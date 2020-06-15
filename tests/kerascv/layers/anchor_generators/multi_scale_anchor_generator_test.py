@@ -213,3 +213,12 @@ def test_multi_feature_maps_over_scale_absolute_coordinate_clip():
         ]
     ).astype(np.float32)
     np.testing.assert_allclose(expected_out, anchor_out)
+
+
+def test_config_with_custom_name():
+    layer = multi_scale_anchor_generator.MultiScaleAnchorGenerator(
+        (300, 300), [[1.0]], [[1.0]], name="multi_anchor_generator"
+    )
+    config = layer.get_config()
+    layer_1 = multi_scale_anchor_generator.MultiScaleAnchorGenerator.from_config(config)
+    np.testing.assert_equal(layer_1.name, layer.name)
