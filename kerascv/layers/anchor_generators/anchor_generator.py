@@ -27,17 +27,17 @@ class AnchorGenerator(tf.keras.layers.Layer):
             **Must** have the same length as `scales`. For example, if `image_size=(300, 200)`, `scales=[.1]`,
             and `aspect_ratios=[.64]`, the base anchor size is 20, then anchor height is 25 and anchor width is 16.
             The anchor aspect ratio is independent to the original aspect ratio of image size.
-        anchor_stride: A list/tuple of 2 ints or floats representing the distance between anchor points.
-            For example, `anchor_stride=(30, 40)` means each anchor is separated by 30 pixels in height, and
+        stride: A list/tuple of 2 ints or floats representing the distance between anchor points.
+            For example, `stride=(30, 40)` means each anchor is separated by 30 pixels in height, and
             40 pixels in width. Defaults to `None`, where anchor stride would be calculated as
             `min(image_height, image_width) / feature_map_height` and
             `min(image_height, image_width) / feature_map_width`.
-        anchor_offset: A list/tuple of 2 floats between [0., 1.] representing the center of anchor points relative to
+        offset: A list/tuple of 2 floats between [0., 1.] representing the center of anchor points relative to
             the upper-left border of each feature map cell. Defaults to `None`, which is the center of each
-            feature map cell when `anchor_stride=None`, or center of anchor stride otherwise.
+            feature map cell when `stride=None`, or center of anchor stride otherwise.
         clip_boxes: Boolean to represents whether the anchor coordinates should be clipped to the image size.
             Defaults to `True`.
-        norm_coords: Boolean to represents whether the anchor coordinates should be normalized to [0., 1.]
+        normalize_coordinates: Boolean to represents whether the anchor coordinates should be normalized to [0., 1.]
             with respect to the image size. Defaults to `True`.
 
     """
@@ -47,10 +47,10 @@ class AnchorGenerator(tf.keras.layers.Layer):
         image_size,
         scales,
         aspect_ratios,
-        anchor_stride=None,
-        anchor_offset=None,
+        stride=None,
+        offset=None,
         clip_boxes=True,
-        norm_coord=True,
+        normalize_coordinates=True,
         name=None,
         **kwargs
     ):
@@ -61,10 +61,10 @@ class AnchorGenerator(tf.keras.layers.Layer):
         self.image_width = image_size[1]
         self.scales = scales
         self.aspect_ratios = aspect_ratios
-        self.anchor_stride = anchor_stride
-        self.anchor_offset = anchor_offset
+        self.stride = stride
+        self.offset = offset
         self.clip_boxes = clip_boxes
-        self.norm_coord = norm_coord
+        self.normalize_coordinates = normalize_coordinates
         super(AnchorGenerator, self).__init__(name=name, **kwargs)
 
     def call(self, feature_map_size):
@@ -75,23 +75,21 @@ class AnchorGenerator(tf.keras.layers.Layer):
 
         min_image_size = tf.minimum(image_width, image_height)
 
-        if self.anchor_stride is None:
-            anchor_stride_height = tf.cast(
+        if self.stride is None:
+            stride_height = tf.cast(
                 min_image_size / feature_map_height, dtype=tf.float32
             )
-            anchor_stride_width = tf.cast(
-                min_image_size / feature_map_width, dtype=tf.float32
-            )
+            stride_width = tf.cast(min_image_size / feature_map_width, dtype=tf.float32)
         else:
-            anchor_stride_height = tf.cast(self.anchor_stride[0], dtype=tf.float32)
-            anchor_stride_width = tf.cast(self.anchor_stride[1], dtype=tf.float32)
+            stride_height = tf.cast(self.stride[0], dtype=tf.float32)
+            stride_width = tf.cast(self.stride[1], dtype=tf.float32)
 
-        if self.anchor_offset is None:
-            anchor_offset_height = tf.constant(0.5, dtype=tf.float32)
-            anchor_offset_width = tf.constant(0.5, dtype=tf.float32)
+        if self.offset is None:
+            offset_height = tf.constant(0.5, dtype=tf.float32)
+            offset_width = tf.constant(0.5, dtype=tf.float32)
         else:
-            anchor_offset_height = tf.cast(self.anchor_offset[0], dtype=tf.float32)
-            anchor_offset_width = tf.cast(self.anchor_offset[1], dtype=tf.float32)
+            offset_height = tf.cast(self.offset[0], dtype=tf.float32)
+            offset_width = tf.cast(self.offset[1], dtype=tf.float32)
 
         len_k = len(self.aspect_ratios)
         aspect_ratios_sqrt = tf.cast(tf.sqrt(self.aspect_ratios), tf.float32)
@@ -105,11 +103,9 @@ class AnchorGenerator(tf.keras.layers.Layer):
         )
 
         # [W]
-        cx = (tf.range(feature_map_width) + anchor_offset_width) * anchor_stride_width
+        cx = (tf.range(feature_map_width) + offset_width) * stride_width
         # [H]
-        cy = (
-            tf.range(feature_map_height) + anchor_offset_height
-        ) * anchor_stride_height
+        cy = (tf.range(feature_map_height) + offset_height) * stride_height
         # [H, W]
         cx_grid, cy_grid = tf.meshgrid(cx, cy)
         # [H, W, 1]
@@ -152,7 +148,7 @@ class AnchorGenerator(tf.keras.layers.Layer):
                 [y_min_clipped, x_min_clipped, y_max_clipped, x_max_clipped], axis=1
             )
 
-        if self.norm_coord:
+        if self.normalize_coordinates:
             box_tensor = box_tensor / tf.constant(
                 [
                     [
@@ -172,10 +168,10 @@ class AnchorGenerator(tf.keras.layers.Layer):
             "image_size": self.image_size,
             "scales": self.scales,
             "aspect_ratios": self.aspect_ratios,
-            "anchor_stride": self.anchor_stride,
-            "anchor_offset": self.anchor_offset,
+            "stride": self.stride,
+            "offset": self.offset,
             "clip_boxes": self.clip_boxes,
-            "norm_coord": self.norm_coord,
+            "normalize_coordinates": self.normalize_coordinates,
         }
         base_config = super(AnchorGenerator, self).get_config()
         return dict(list(base_config.items()) + list(config.items()))

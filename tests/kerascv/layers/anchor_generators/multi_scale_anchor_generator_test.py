@@ -22,7 +22,7 @@ def test_single_feature_map_absolute_coordinate():
         scales=[[0.2]],
         aspect_ratios=[[1.0]],
         clip_boxes=False,
-        norm_coord=False,
+        normalize_coordinates=False,
     )
     anchor_out = anchor_gen([(2, 2)])
     expected_out = np.asarray(
@@ -42,7 +42,7 @@ def test_single_feature_map_multi_aspect_ratios():
         scales=[[0.2, 0.2]],
         aspect_ratios=[[0.64, 1.0]],
         clip_boxes=False,
-        norm_coord=False,
+        normalize_coordinates=False,
     )
     anchor_out = anchor_gen([(2, 2)])
     # height is 300 * 0.2 / 0.8 = 75; width is 300 * 0.2 * 0.8 = 48
@@ -67,7 +67,7 @@ def test_multi_feature_maps_absolute_coordinate():
         scales=[[0.1], [0.2]],
         aspect_ratios=[[1.0], [1.0]],
         clip_boxes=False,
-        norm_coord=False,
+        normalize_coordinates=False,
     )
     anchor_out = anchor_gen([(3, 3), (2, 2)])
     # The first height and width is 30, the second height and width is 60.
@@ -96,9 +96,9 @@ def test_multi_feature_maps_customized_stride():
         image_size=(300, 300),
         scales=[[0.1], [0.2]],
         aspect_ratios=[[1.0], [1.0]],
-        anchor_strides=[[120, 120], [160, 160]],
+        strides=[[120, 120], [160, 160]],
         clip_boxes=False,
-        norm_coord=False,
+        normalize_coordinates=False,
     )
     anchor_out = anchor_gen([(3, 3), (2, 2)])
     # The first center of anchor point for the first feature map is 120 * 0.5 = 60, then 180
@@ -128,9 +128,9 @@ def test_multi_feature_maps_customized_offset():
         image_size=(300, 300),
         scales=[[0.1], [0.2]],
         aspect_ratios=[[1.0], [1.0]],
-        anchor_offsets=[[0.2, 0.2], [0.3, 0.3]],
+        offsets=[[0.2, 0.2], [0.3, 0.3]],
         clip_boxes=False,
-        norm_coord=False,
+        normalize_coordinates=False,
     )
     anchor_out = anchor_gen([(3, 3), (2, 2)])
     # The first center of anchor point for the first feature map is 100 * 0.2 = 20, then 120
@@ -161,7 +161,7 @@ def test_multi_feature_maps_over_scale_absolute_coordinate_no_clip():
         scales=[[0.1], [0.7]],
         aspect_ratios=[[1.0], [1.0]],
         clip_boxes=False,
-        norm_coord=False,
+        normalize_coordinates=False,
     )
     anchor_out = anchor_gen([(3, 3), (2, 2)])
     # The first height and width is 30, the second height and width is 60.
@@ -191,7 +191,7 @@ def test_multi_feature_maps_over_scale_absolute_coordinate_clip():
         scales=[[0.1], [0.7]],
         aspect_ratios=[[1.0], [1.0]],
         clip_boxes=True,
-        norm_coord=False,
+        normalize_coordinates=False,
     )
     anchor_out = anchor_gen([(3, 3), (2, 2)])
     # The first height and width is 30, the second height and width is 60.

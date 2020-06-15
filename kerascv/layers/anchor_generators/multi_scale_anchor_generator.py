@@ -32,17 +32,17 @@ class MultiScaleAnchorGenerator(tf.keras.layers.Layer):
                 `scales=[[.1], [.2]]`, and `aspect_ratios=[[.64], [.1]]`, the base anchor size is 20 and 40, then
                 the anchor heights are 25 and 40, the anchor widths are 16 and 40.
                 The anchor aspect ratio is independent to the original aspect ratio of image size.
-            anchor_strides: A list/tuple of list/tuple of 2 ints or floats representing the distance between anchor
-                points. For example, `anchor_stride=[(30, 40)]` means each anchor is separated by 30 pixels in height,
+            strides: A list/tuple of list/tuple of 2 ints or floats representing the distance between anchor
+                points. For example, `stride=[(30, 40)]` means each anchor is separated by 30 pixels in height,
                 and 40 pixels in width. Defaults to `None`, where anchor stride would be calculated as
                 `min(image_height, image_width) / feature_map_height` and
                 `min(image_height, image_width) / feature_map_width` for each feature map.
-            anchor_offsets: A list/tuple of list/tuple of 2 floats between [0., 1.] representing the center of anchor
+            offsets: A list/tuple of list/tuple of 2 floats between [0., 1.] representing the center of anchor
                 points relative to the upper-left border of each feature map cell. Defaults to `None`, which is the
-                center of each feature map cell when `anchor_strides=None`, or center of each anchor stride otherwise.
+                center of each feature map cell when `strides=None`, or center of each anchor stride otherwise.
             clip_boxes: Boolean to represents whether the anchor coordinates should be clipped to the image size.
                 Defaults to `True`.
-            norm_coords: Boolean to represents whether the anchor coordinates should be normalized to [0., 1.]
+            normalize_coordinates: Boolean to represents whether the anchor coordinates should be normalized to [0., 1.]
                 with respect to the image size. Defaults to `True`.
 
     """
@@ -52,10 +52,10 @@ class MultiScaleAnchorGenerator(tf.keras.layers.Layer):
         image_size,
         scales,
         aspect_ratios,
-        anchor_strides=None,
-        anchor_offsets=None,
+        strides=None,
+        offsets=None,
         clip_boxes=True,
-        norm_coord=True,
+        normalize_coordinates=True,
         name=None,
         **kwargs
     ):
@@ -64,28 +64,27 @@ class MultiScaleAnchorGenerator(tf.keras.layers.Layer):
         self.image_width = image_size[1]
         self.scales = scales
         self.aspect_ratios = aspect_ratios
-        if anchor_strides is None:
-            anchor_strides = [None] * len(scales)
-        if anchor_offsets is None:
-            anchor_offsets = [None] * len(scales)
-        self.anchor_strides = anchor_strides
-        self.anchor_offsets = anchor_offsets
+        if strides is None:
+            strides = [None] * len(scales)
+        if offsets is None:
+            offsets = [None] * len(scales)
+        self.strides = strides
+        self.offsets = offsets
         self.clip_boxes = clip_boxes
-        self.norm_coord = norm_coord
+        self.normalize_coordinates = normalize_coordinates
         self.anchor_generators = []
-        for (
-            i,
-            (scale_list, aspect_ratio_list, anchor_stride, anchor_offset),
-        ) in enumerate(zip(scales, aspect_ratios, anchor_strides, anchor_offsets)):
+        for (i, (scale_list, aspect_ratio_list, stride, offset)) in enumerate(
+            zip(scales, aspect_ratios, strides, offsets)
+        ):
             self.anchor_generators.append(
                 AnchorGenerator(
                     image_size,
                     scales=scale_list,
                     aspect_ratios=aspect_ratio_list,
-                    anchor_stride=anchor_stride,
-                    anchor_offset=anchor_offset,
+                    stride=stride,
+                    offset=offset,
                     clip_boxes=clip_boxes,
-                    norm_coord=norm_coord,
+                    normalize_coordinates=normalize_coordinates,
                     name="anchor_generator_" + str(i),
                 )
             )
@@ -106,10 +105,10 @@ class MultiScaleAnchorGenerator(tf.keras.layers.Layer):
             "image_size": self.image_size,
             "scales": self.scales,
             "aspect_ratios": self.aspect_ratios,
-            "anchor_strides": self.anchor_strides,
-            "anchor_offsets": self.anchor_offsets,
+            "strides": self.strides,
+            "offsets": self.offsets,
             "clip_boxes": self.clip_boxes,
-            "norm_coord": self.norm_coord,
+            "normalize_coordinates": self.normalize_coordinates,
         }
         base_config = super(MultiScaleAnchorGenerator, self).get_config()
         return dict(list(base_config.items()) + list(config.items()))
