@@ -106,8 +106,8 @@ class MultiScaleAnchorGenerator(tf.keras.layers.Layer):
             "image_size": self.image_size,
             "scales": self.scales,
             "aspect_ratios": self.aspect_ratios,
-            "anchor_stride": self.anchor_stride,
-            "anchor_offset": self.anchor_offset,
+            "anchor_strides": self.anchor_strides,
+            "anchor_offsets": self.anchor_offsets,
             "clip_boxes": self.clip_boxes,
             "norm_coord": self.norm_coord,
         }
