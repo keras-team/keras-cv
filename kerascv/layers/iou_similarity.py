@@ -2,12 +2,15 @@ import tensorflow as tf
 
 
 class IOUSimilarity(tf.keras.layers.Layer):
-    """Defines a IOUSimilarity that calculates the IOU between ground truth boxes and anchors."""
+    """Defines a IOUSimilarity that calculates the IOU between ground truth boxes and anchors.
+
+    Calling the layer with `ground_truth_boxes` and `anchors`, `ground_truth_boxes` can be a batched
+    `tf.Tensor` or `tf.RaggedTensor`, while `anchors` can be a batched or un-batched `tf.Tensor`.
+    """
 
     def __init__(self, name=None, **kwargs):
         super(IOUSimilarity, self).__init__(name=name, **kwargs)
 
-    # TODO: support ragged ground_truth_boxes
     def call(self, ground_truth_boxes, anchors):
         # ground_truth_box [n_gt_boxes, box_dim] or [batch_size, n_gt_boxes, box_dim]
         # anchor [n_anchors, box_dim]
@@ -49,6 +52,27 @@ class IOUSimilarity(tf.keras.layers.Layer):
 
             return tf.cast(tf.truediv(intersections, unions), tf.float32)
 
+        if isinstance(ground_truth_boxes, tf.RaggedTensor):
+            if anchors.shape.ndims == 2:
+                return tf.map_fn(
+                    lambda x: iou(x, anchors),
+                    elems=ground_truth_boxes,
+                    parallel_iterations=32,
+                    back_prop=False,
+                    fn_output_signature=tf.RaggedTensorSpec(
+                        dtype=tf.float32, ragged_rank=0
+                    ),
+                )
+            else:
+                return tf.map_fn(
+                    lambda x: iou(x[0], x[1]),
+                    elems=[ground_truth_boxes, anchors],
+                    parallel_iterations=32,
+                    back_prop=False,
+                    fn_output_signature=tf.RaggedTensorSpec(
+                        dtype=tf.float32, ragged_rank=0
+                    ),
+                )
         if anchors.shape.ndims == 2:
             return iou(ground_truth_boxes, anchors)
         elif anchors.shape.ndims == 3:

@@ -121,3 +121,58 @@ def test_iou_large():
         np.float32
     )
     np.testing.assert_allclose(expected_out, similarity)
+
+
+def test_ragged_gt_boxes_multi_anchor_absolute_coordinate():
+    # [2, ragged, 4]
+    gt_boxes = tf.ragged.constant(
+        [[[0, 2, 2, 4]], [[-1, 1, 1, 3], [-1, 1, 2, 3]]], ragged_rank=1
+    )
+    # [2, 4]
+    anchors = tf.constant([[1, 1, 3, 3], [-2, 1, 0, 3]])
+    iou_layer = IOUSimilarity()
+    similarity = iou_layer(gt_boxes, anchors)
+    expected_out = tf.ragged.constant([[[1 / 7, 0.0]], [[0.0, 1 / 3], [1 / 4, 1 / 4]]])
+    np.testing.assert_allclose(expected_out.values.numpy(), similarity.values.numpy())
+
+
+def test_ragged_gt_boxes_multi_anchor_normalized_coordinate():
+    # [2, ragged, 4]
+    gt_boxes = tf.ragged.constant(
+        [[[0.0, 0.5, 0.5, 1.0]], [[-0.25, 0.25, 0.25, 0.75], [-0.25, 0.25, 0.5, 0.75]]],
+        ragged_rank=1,
+    )
+    # [2, 4]
+    anchors = tf.constant([[0.25, 0.25, 0.75, 0.75], [-0.5, 0.25, 0.0, 0.75]])
+    iou_layer = IOUSimilarity()
+    similarity = iou_layer(gt_boxes, anchors)
+    expected_out = tf.ragged.constant([[[1 / 7, 0.0]], [[0.0, 1 / 3], [1 / 4, 1 / 4]]])
+    np.testing.assert_allclose(expected_out.values.numpy(), similarity.values.numpy())
+
+
+def test_ragged_gt_boxes_batched_anchor_normalized_coordinate():
+    # [2, ragged, 4]
+    gt_boxes = tf.ragged.constant(
+        [[[0.0, 0.5, 0.5, 1.0]], [[-0.25, 0.25, 0.25, 0.75], [-0.25, 0.25, 0.5, 0.75]]],
+        ragged_rank=1,
+    )
+    # [2, 1, 4]
+    anchors = tf.constant([[[0.25, 0.25, 0.75, 0.75]], [[-0.5, 0.25, 0.0, 0.75]]])
+    iou_layer = IOUSimilarity()
+    similarity = iou_layer(gt_boxes, anchors)
+    expected_out = tf.ragged.constant([[[1 / 7]], [[1 / 3], [1 / 4]]])
+    np.testing.assert_allclose(expected_out.values.numpy(), similarity.values.numpy())
+
+
+def test_ragged_gt_boxes_empty_anchor():
+    # [2, ragged, 4]
+    gt_boxes = tf.ragged.constant(
+        [[[0.0, 0.5, 0.5, 1.0]], [[-0.25, 0.25, 0.25, 0.75], [-0.25, 0.25, 0.5, 0.75]]],
+        ragged_rank=1,
+    )
+    # [2, 4]
+    anchors = tf.constant([[0.25, 0.25, 0.25, 0.25], [-0.5, 0.25, 0.0, 0.75]])
+    iou_layer = IOUSimilarity()
+    similarity = iou_layer(gt_boxes, anchors)
+    expected_out = tf.ragged.constant([[[0.0, 0.0]], [[0.0, 1 / 3], [0.0, 1 / 4]]])
+    np.testing.assert_allclose(expected_out.values.numpy(), similarity.values.numpy())
