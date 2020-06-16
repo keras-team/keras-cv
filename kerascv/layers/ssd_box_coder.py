@@ -1,7 +1,7 @@
 import tensorflow as tf
 
 
-class SSDBoxEncoder(tf.keras.layers.Layer):
+class SSDBoxCoder(tf.keras.layers.Layer):
     """Defines a SSDBoxEncoder that converts encodes the ground_truth_boxes using anchors.
 
     Mathematically, the encoding is:
@@ -33,7 +33,7 @@ class SSDBoxEncoder(tf.keras.layers.Layer):
     def __init__(self, variances=None, invert=False, name=None, **kwargs):
         self.variances = variances
         self.invert = invert
-        super(SSDBoxEncoder, self).__init__(name=name, **kwargs)
+        super(SSDBoxCoder, self).__init__(name=name, **kwargs)
 
     def call(self, boxes, anchors):
         def corner_to_centroids(box_tensor):
@@ -90,5 +90,5 @@ class SSDBoxEncoder(tf.keras.layers.Layer):
 
     def get_config(self):
         config = {"variances": self.variances, "invert": self.invert}
-        base_config = super(SSDBoxEncoder, self).get_config()
+        base_config = super(SSDBoxCoder, self).get_config()
         return dict(list(base_config.items()) + list(config.items()))
