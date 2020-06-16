@@ -19,8 +19,8 @@ class SSDBoxCoder(tf.keras.layers.Layer):
     # Attributes:
         variances: The 1-D scaling factor with 4 floats. This is used to represent the variance of
             [y_center, x_center, height, width] in Gaussian distribution when labeling the ground truth boxes.
-            During encoding, the result will be divided by the variances. During decoding, the result will be
-            multiplied by the variances. Defaults to `None` where no variance is applied.
+            During encoding, the result will be divided, i.e., normalized by the variances. During decoding, the result
+            will be multiplied, i.e., denormalized by the variances. Defaults to `None` where no variance is applied.
             The SSD paper uses [.1, .1, .2, .2].
         invert: Boolean to indicate whether the layer should encode the `boxes`, i.e., convert from
             [y_min, x_min, y_max, x_max] format to [ty, tx, h, w] format, if True, or the other way around,
