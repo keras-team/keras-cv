@@ -1,8 +1,35 @@
 import tensorflow as tf
 
 
-class HardNegativeMiner(tf.keras.layers.Layer):
-    """Hard Negative Mining to keep balanced positive and negative samples."""
+class HardNegativeMining(tf.keras.layers.Layer):
+    """Hard Negative Mining to keep balanced positive and negative samples.
+
+    This layer will keep a balanced positive and negative samples and return
+    the summed results.
+
+    # Attributes:
+        negative_positive_ratio: An int to represent the maximum ratio between
+            negative samples and positive samples. For example, if the inputs
+            has negative samples : positive samples = 100 : 20, it will sort all
+            negative samples by `values` and only keep the top 60. Defaults to `3`.
+        minimum_negative_examples: An int to represent the minimum negative examples
+            to have. For example if negative samples = 100, positive samples = 20,
+            `negative_positive_ratio=1` and `minimum_negative_examples=30`, it will
+            keep the top 30 results.
+
+    Inputs:
+        values: The values to be sorted, usually classification or regression losses,
+            shape [batch_size, n_boxes]
+        positive_mask: The mask for positive samples, 1 if the value should be
+            treated as positive sample, or 0 if the value should be masked out.
+            shape [batch_size, n_boxes]
+        positive_mask: The mask for negative samples, 1 if the value should be
+            treated as negative sample, or 0 if the value should be masked out.
+            shape [batch_size, n_boxes]
+
+    Returns:
+        summed positive and negative values across the boxes, shape [batch_size]
+    """
 
     def __init__(
         self,
@@ -25,12 +52,13 @@ class HardNegativeMiner(tf.keras.layers.Layer):
             )
         self.negative_positive_ratio = negative_positive_ratio
         self.minimum_negative_examples = minimum_negative_examples
-        super(HardNegativeMiner, self).__init__(name=name, **kwargs)
+        super(HardNegativeMining, self).__init__(name=name, **kwargs)
 
     # values [batch_size, n_boxes]
-    # positive_indices [batch_size, n_boxes]
-    # negative_indices [batch_size, n_boxes]
-    # positive_indices and negative_indices should be mutually exclusive, though we don't check that here.
+    # positive_mask [batch_size, n_boxes]
+    # negative_mask [batch_size, n_boxes]
+    # positive_mask and negative_mask should be mutually exclusive, though we don't
+    # check that here.
     def call(self, values, positive_mask, negative_mask):
         positive_mask = tf.cast(positive_mask, values.dtype)
         negative_mask = tf.cast(negative_mask, values.dtype)
@@ -43,7 +71,8 @@ class HardNegativeMiner(tf.keras.layers.Layer):
         positive_values = tf.reduce_sum(values * positive_mask, axis=-1)
         # [batch_size, n_boxes]
         negative_values_unreduced = values * negative_mask
-        # Only sort non zero negative samples, otherwise positive indices might get leaked into the sorted result.
+        # Only sort non zero negative samples, otherwise positive indices might get
+        # leaked into the sorted result.
         n_non_zero_negative_values = tf.math.count_nonzero(
             negative_values_unreduced, dtype=tf.int32
         )
@@ -74,5 +103,5 @@ class HardNegativeMiner(tf.keras.layers.Layer):
             "negative_positive_ratio": self.negative_positive_ratio,
             "minimum_negative_examples": self.minimum_negative_examples,
         }
-        base_config = super(HardNegativeMiner, self).get_config()
+        base_config = super(HardNegativeMining, self).get_config()
         return dict(list(base_config.items()) + list(config.items()))
