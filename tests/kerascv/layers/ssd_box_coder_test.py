@@ -5,7 +5,9 @@ from kerascv.layers.ssd_box_coder import SSDBoxCoder
 def test_encode_decode_variance():
     gt_boxes = np.asarray([[10.0, 10.0, 20.0, 15.0], [0.2, 0.1, 0.5, 0.4]], np.float32)
     anchors = np.array([[15.0, 12.0, 30.0, 18.0], [0.1, 0.0, 0.7, 0.9]], np.float32)
-    encode_layer = SSDBoxCoder(variances=[0.5, 1 / 3, 0.25, 0.2])
+    encode_layer = SSDBoxCoder(
+        center_variances=[0.5, 1 / 3], size_variances=[0.25, 0.2]
+    )
     encoded_gt_boxes = encode_layer(gt_boxes, anchors)
     expected_out = np.asarray(
         [
@@ -15,7 +17,9 @@ def test_encode_decode_variance():
     )
     np.testing.assert_allclose(expected_out, encoded_gt_boxes, rtol=1e-06, atol=1e-6)
 
-    decode_layer = SSDBoxCoder(variances=[0.5, 1 / 3, 0.25, 0.2], invert=True)
+    decode_layer = SSDBoxCoder(
+        center_variances=[0.5, 1 / 3], size_variances=[0.25, 0.2], invert=True
+    )
     decoded_gt_boxes = decode_layer(encoded_gt_boxes, anchors)
     np.testing.assert_allclose(gt_boxes, decoded_gt_boxes, rtol=1e-6, atol=1e-6)
 
@@ -33,3 +37,12 @@ def test_encode_decode_no_variance():
     decode_layer = SSDBoxCoder(invert=True)
     decoded_gt_boxes = decode_layer(encoded_gt_boxes, anchors)
     np.testing.assert_allclose(gt_boxes, decoded_gt_boxes, rtol=1e-6, atol=1e-6)
+
+
+def test_config_with_custom_name():
+    layer = SSDBoxCoder(
+        center_variances=[0.1, 0.1], size_variances=[0.2, 0.2], name="box_coder"
+    )
+    config = layer.get_config()
+    layer_1 = SSDBoxCoder.from_config(config)
+    np.testing.assert_equal(layer_1.name, layer.name)
