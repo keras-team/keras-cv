@@ -12,9 +12,5 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ==============================================================================
-"""Keras-CV package definition."""
-# pylint: disable=wildcard-import
-from keras_cv import layers
-from keras_cv import losses
-from keras_cv import metrics
-from keras_cv import ops
+"""Keras-CV metrics package definition."""
+from keras_cv.metrics.iou import PerClassIoU
