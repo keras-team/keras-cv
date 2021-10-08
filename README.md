@@ -1,13 +1,6 @@
 # keras-cv
 
-## Losses
+## Under Construction
 
-*   [FocalLoss](losses/focal_loss.py) implements Focal loss as described in
-    ["Focal Loss for Dense Object Detection"](https://arxiv.org/abs/1708.02002).
-
-
-## Ops
-
-Ops are used in data pipeline for pre-compute labels, weights.
-
-*   [IOUSimilarity](ops/iou_similarity.py) implements Intersection-Over-Union.
+[2021/10] We are repurposing this repository as the new home of computer vision related extensions for Keras project.
+Will have more details available for end user in Q4 2021.
