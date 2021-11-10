@@ -31,7 +31,7 @@ py_library(
     deps = [
         ":bbox",
         ":iou",
-        "//third_party/py/tensorflow:tensorflow_google",
+        "//third_party/py/tensorflow:tensorflow",
     ],
 )
 
@@ -43,7 +43,7 @@ py_library(
     srcs_version = "PY3",
     deps = [
         ":bbox",
-        "//third_party/py/tensorflow:tensorflow_google",
+        "//third_party/py/tensorflow:tensorflow",
     ],
 )
 
@@ -54,7 +54,7 @@ py_test(
     ],
     deps = [
         "//third_party/py/keras_cv/metrics/coco:iou",
-        "//third_party/py/tensorflow:tensorflow_google",
+        "//third_party/py/tensorflow:tensorflow",
     ],
 )
 
@@ -65,6 +65,6 @@ py_test(
     ],
     deps = [
         ":recall",
-        "//third_party/py/tensorflow:tensorflow_google",
+        "//third_party/py/tensorflow:tensorflow",
     ],
 )
