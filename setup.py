@@ -19,32 +19,20 @@ from setuptools import setup
 
 setup(
     name="keras-cv",
-    description="Computer Vision extensions for Keras.",
+    description="Industry-strength computer Vision extensions for Keras.",
     url="https://github.com/keras-team/keras-cv",
-    author="The KerasCV authors",
+    author="Keras team",
     author_email="keras-cv@google.com",
     license="Apache License 2.0",
-    # tensorflow isn't a dependency because it would force the
-    # download of the gpu version or the cpu version.
-    # users should install it manually.
     install_requires=[
         "packaging",
-        "numpy",
-        "requests",
-        "scipy",
-        "tensorboard",
-        "ipython",
-        "kt-legacy",
+        "tensorflow"
     ],
     extras_require={
         "tests": [
-            "pytest",
             "flake8",
             "isort",
             "black",
-            "portpicker",
-            "pytest-xdist",
-            "pytest-cov",
         ],
     },
     classifiers=[
