@@ -1,7 +1,6 @@
 """Tests for COCORecall."""
 
 import tensorflow as tf
-from google3.testing.pybase import googletest
 
 from keras_cv.metrics.coco.recall import COCORecall
 
@@ -166,7 +165,3 @@ class CocoRecallTest(tf.test.TestCase):
         metric.update_state(y_true, y_pred)
 
         self.assertEqual(metric.result(), 0.0)
-
-
-if __name__ == "__main__":
-    googletest.main()

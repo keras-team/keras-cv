@@ -2,7 +2,6 @@
 
 import numpy as np
 import tensorflow as tf
-from google3.testing.pybase import googletest
 
 from keras_cv.metrics.coco import iou as iou_lib
 
@@ -57,7 +56,3 @@ class IoUTest(tf.test.TestCase):
 
         result = iou_lib.compute_ious_for_image(sample_y_true, sample_y_pred)
         self.assertAllClose(expected_result, result.numpy())
-
-
-if __name__ == "__main__":
-    googletest.main()
