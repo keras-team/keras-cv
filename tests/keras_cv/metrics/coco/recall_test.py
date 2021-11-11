@@ -40,7 +40,9 @@ class CocoRecallTest(tf.test.TestCase):
         # y_true = [images, bboxes, 5]
         y_true = tf.constant([[[100, 101, 200, 201, category]]], dtype=tf.float32)
         # y_pred = [images, bboxes, 6], the extra dim is confidence
-        y_pred = tf.constant([[[100, 101, 200, 201, category, 1.0]]], dtype=tf.float32)
+        y_pred = tf.constant(
+            [[[100, 101, 200, 201, category, 1.0]]], dtype=tf.float32
+        )
 
         metric = COCORecall(categories=[-1])
         metric.update_state(y_true, y_pred)
@@ -52,7 +54,9 @@ class CocoRecallTest(tf.test.TestCase):
         # y_true = [images, bboxes, 5]
         y_true = tf.constant([[[100, 101, 200, 201, category]]], dtype=tf.float32)
         # y_pred = [images, bboxes, 6], the extra dim is confidence
-        y_pred = tf.constant([[[100, 101, 200, 201, category, 1.0]]], dtype=tf.float32)
+        y_pred = tf.constant(
+            [[[100, 101, 200, 201, category, 1.0]]], dtype=tf.float32
+        )
 
         metric = COCORecall(categories=[-1])
         metric.update_state(y_true, y_pred)
@@ -69,7 +73,9 @@ class CocoRecallTest(tf.test.TestCase):
             [[[100, 101, 200, 201, category], [200, 201, 300, 301, category]]],
             dtype=tf.float32,
         )
-        y_pred = tf.constant([[[100, 101, 200, 201, category, 1.0]]], dtype=tf.float32)
+        y_pred = tf.constant(
+            [[[100, 101, 200, 201, category, 1.0]]], dtype=tf.float32
+        )
 
         metric = COCORecall(categories=[-1])
         metric.update_state(y_true, y_pred)
@@ -79,7 +85,9 @@ class CocoRecallTest(tf.test.TestCase):
     def test_iou_thrs(self):
         category = -1
         y_true = tf.constant([[[100, 101, 200, 201, category]]], dtype=tf.float32)
-        y_pred = tf.constant([[[130, 131, 230, 231, category, 1.0]]], dtype=tf.float32)
+        y_pred = tf.constant(
+            [[[130, 131, 230, 231, category, 1.0]]], dtype=tf.float32
+        )
 
         metric = COCORecall(iou_thresholds=([0.05, 0.95]), categories=[-1])
         metric.update_state(y_true, y_pred)
@@ -90,7 +98,9 @@ class CocoRecallTest(tf.test.TestCase):
     def test_missing_class(self):
         category = 1
         y_true = tf.constant([[[100, 101, 200, 201, category]]], dtype=tf.float32)
-        y_pred = tf.constant([[[100, 101, 200, 201, category, 1.0]]], dtype=tf.float32)
+        y_pred = tf.constant(
+            [[[100, 101, 200, 201, category, 1.0]]], dtype=tf.float32
+        )
 
         metric = COCORecall(categories=[1, 2])
         metric.update_state(y_true, y_pred)
