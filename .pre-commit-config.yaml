@@ -1,0 +1,22 @@
+repos:
+  - repo: https://github.com/pycqa/isort
+    rev: 5.5.2
+    hooks:
+    -   id: isort
+        args: [--check]
+  - repo: https://github.com/psf/black
+    rev: 21.10b0
+    hooks:
+    -   id: black
+        args: [--check]
+  - repo: https://gitlab.com/PyCQA/flake8
+    rev: 4.0.1
+    hooks:
+    -   id: flake8
+  - repo: local
+    hooks:
+    -   id: check-Copyright
+        name: check Copyright
+        language: system
+        entry: grep -q Copyright
+        files: \.py$

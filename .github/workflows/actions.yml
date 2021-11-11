@@ -31,5 +31,14 @@ jobs:
         run: |
           pip install tensorflow
           pip install -e ".[tests]" --progress-bar off --upgrade
+      - name: Set py
+        run: echo "PY=$(python -VV | sha256sum | cut -d' ' -f1)" >> $GITHUB_ENV
+      - name: pre-commit cache
+        uses: actions/cache@v1
+        with:
+          path: ~/.cache/pre-commit
+          key: pre-commit|${{ env.PY }}|${{ hashFiles('.pre-commit-config.yaml') }}
+      - name: Install pre-commit
+        run: pre-commit install
       - name: Lint
-        run: bash shell/lint.sh
+        run: pre-commit run --all-files 
