@@ -3,3 +3,4 @@ line-length = 85
 
 [tool.isort]
 line_length = 85
+force_single_line = true
