@@ -26,7 +26,7 @@ setup(
     license="Apache License 2.0",
     install_requires=[
         "packaging",
-        "tensorflow"
+        "tensorflow",
     ],
     extras_require={
         "tests": [
