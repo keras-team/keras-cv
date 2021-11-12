@@ -17,8 +17,7 @@ class COCORecall(tf.keras.metrics.Metric):
       iou_thresholds: iterable of values for use as IoU thresholds.  The default
         value is the range [0.5:0.95,0.05].
       categories: list of categories, or number of categories to use.
-  """
-
+    """
     def __init__(self, iou_thresholds=None, categories=None, **kwargs):
         super(COCORecall, self).__init__(**kwargs)
         iou_thresholds = iou_thresholds or [x / 100.0 for x in range(50, 100, 5)]
@@ -51,9 +50,7 @@ class COCORecall(tf.keras.metrics.Metric):
         # TODO(lukewood): replace dict with a Tensor, images are sequential anyways
         ious = tf.TensorArray(tf.float32, size=num_images, dynamic_size=False)
         for i in tf.range(num_images):
-            ious = ious.write(
-                i, iou_lib.compute_ious_for_image(y_true[i], y_pred[i])
-            )
+            ious = ious.write(i, iou_lib.compute_ious_for_image(y_true[i], y_pred[i]))
         # iou lookup [image, bbox_true, bbox_pred]
         ious = ious.stack()
 
@@ -68,9 +65,7 @@ class COCORecall(tf.keras.metrics.Metric):
         # internally in order to give all samples taken equal weight, due to this we
         # must iterate over images first, then thresholds/categories internally.  We
         # find the means by using the tf.reduce_mean below.
-        recall_result = tf.TensorArray(
-            tf.float32, size=num_images, dynamic_size=False
-        )
+        recall_result = tf.TensorArray(tf.float32, size=num_images, dynamic_size=False)
         for image in tf.range(num_images):
             img_result = tf.TensorArray(
                 tf.float32, size=num_thresholds, dynamic_size=False
@@ -108,9 +103,7 @@ class COCORecall(tf.keras.metrics.Metric):
         )
         self.recall_sum.assign_add(tf.reduce_sum(recall_mean))
 
-    def _single_image_recall(
-        self, y_true, y_pred, iou_table, iou_thr, category, image
-    ):
+    def _single_image_recall(self, y_true, y_pred, iou_table, iou_thr, category, image):
         # y_true: [bboxes, 5]
         # y_pred: [bboxes, 6]
 
