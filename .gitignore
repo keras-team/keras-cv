@@ -8,3 +8,4 @@ keras_cv.egg-info/
 #VS Code files and container
 .vscode/
 .devcontainer/
+.coverage
