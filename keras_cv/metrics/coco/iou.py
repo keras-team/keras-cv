@@ -1,7 +1,7 @@
 """Contains functions to compute ious of bounding boxes."""
 import tensorflow as tf
 
-from keras_cv.metrics.coco import bbox
+from keras_cv import bbox
 
 
 def _area(left, right, top, bottom):
