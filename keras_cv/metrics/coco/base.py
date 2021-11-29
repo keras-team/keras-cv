@@ -9,7 +9,7 @@ class COCOBase(tf.keras.metrics.Metric):
         iou_thresholds: defaults to [0.5:0.05:0.95].  Dimension T=len(iou_thresholds), defaults to 10.
         category_ids: no default, users must provide.  K=len(category_ids)
         recall_thresholds: recall thresholds over which to compute  precision values, R=len(recall_thresholds).
-        area_ranges: ranges to consider detections in
+        area_ranges: ranges to consider detections in, defaults to [all, 0-32, 32-96, 96>].
 
     Internally the COCOBase class tracks the following values:
     - precision: tf.Tensor with shape [TxRxKxAxM] precision for every evaluation setting.
@@ -35,12 +35,14 @@ class COCOBase(tf.keras.metrics.Metric):
             recall_thresholds or [x / 100.0 for x in range(0, 1, 0.01)],
         )
 
-        """
-        [[0 ** 2, 1e5 ** 2],   # all
-        [0 ** 2, 32 ** 2],      # small 
-        [32 ** 2, 96 ** 2],    # medium
-        [96 ** 2, 1e5 ** 2]]  #  large
-        """
+        # default area ranges are defined for the COCO set
+        # 32 ** 2 represents a 32x32 object.
+        area_ranges = area_ranges or [
+            [0 ** 2, 1e5 ** 2],  # all objects
+            [0 ** 2, 32 ** 2],  # small objects
+            [32 ** 2, 96 ** 2],  # medium size objects
+            [96 ** 2, 1e5 ** 2],  # large size objects
+        ]
         self.area_ranges = self._add_constant_weight(
             "area_ranges", area_ranges or [], shape=(len(area_ranges), 2)
         )
@@ -60,15 +62,21 @@ class COCOBase(tf.keras.metrics.Metric):
             shape=(t, r, k, a, m),
             trainable=False,
             dtype=tf.float32,
-            initializer=initializers.Zeros(),
+            initializer=initializers.Constant(value=-1),
         )
         self.recall = self.add_weight(
             name="recall",
             shape=(t, k, a, m),
             trainable=False,
             dtype=tf.float32,
-            initializer=initializers.Zeros(),
+            initializer=initializers.Constant(value=-1),
         )
+
+    def update_state(self, y_true, y_pred, sample_weight=None):
+        if sample_weight:
+            raise NotImplementedError('sample_weight is not yet supported in keras_cv COCO metrics.')
+        pass
+
 
     def _add_constant_weight(self, name, values, shape=None):
         shape = shape or (len(values),)

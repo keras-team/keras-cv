@@ -4,7 +4,7 @@ import numpy as np
 import tensorflow as tf
 
 from keras_cv.metrics.coco import util
-from keras_cv.metrics.coco import bbox
+from keras_cv import bbox
 
 
 class UtilTest(tf.test.TestCase):
