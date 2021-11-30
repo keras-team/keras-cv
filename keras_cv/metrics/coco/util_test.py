@@ -8,6 +8,13 @@ from keras_cv import bbox
 
 
 class UtilTest(tf.test.TestCase):
+    def test_filter_bboxes_empty(self):
+        # set of bboxes
+        y_pred = tf.stack([_dummy_bbox(category=1)])
+        result = util.filter_boxes(y_pred, 2, axis=bbox.CLASS)
+
+        self.assertEqual(result.shape[0], 0)
+
     def test_filter_bboxes(self):
         # set of bboxes
         y_pred = tf.stack([_dummy_bbox(category=1), _dummy_bbox(category=2)])

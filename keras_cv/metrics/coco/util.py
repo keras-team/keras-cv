@@ -1,7 +1,7 @@
 """Contains shared utilities for Keras COCO metrics."""
 import tensorflow as tf
 
-from keras_cv.metrics.coco import bbox
+from keras_cv import bbox
 
 
 def filter_boxes(boxes, value, axis=4):
@@ -14,7 +14,7 @@ def filter_boxes(boxes, value, axis=4):
     Returns:
         boxes: A new Tensor of bounding boxes, where boxes[axis]==value
     """
-    return tf.gather_nd(tf.where(boxes[axis] == value))
+    return tf.gather_nd(boxes, tf.where(boxes[:, axis] == value))
 
 
 def sort_bboxes(boxes, axis=5):
