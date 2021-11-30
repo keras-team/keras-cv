@@ -72,11 +72,89 @@ class COCOBase(tf.keras.metrics.Metric):
             initializer=initializers.Constant(value=-1),
         )
 
-    def update_state(self, y_true, y_pred, sample_weight=None):
-        if sample_weight:
-            raise NotImplementedError('sample_weight is not yet supported in keras_cv COCO metrics.')
+    def _prepare_true_images(self, y_true):
+        """
+        _prepare_true_images splits y_true into multiple copies of y_true separated by the following categories:
+            - category_id
+            - area_ranges
+
+        The resulting tensor is a Tensor constructed with the following indices:
+        `[image_id, category_id, area_ranges, 5]`.  This Tensor is intended to be used as a lookup table.
+        """
+
         pass
 
+    def update_state(self, y_true, y_pred, sample_weight=None):
+        if sample_weight:
+            raise NotImplementedError(
+                "sample_weight is not yet supported in keras_cv COCO metrics."
+            )
+
+        num_images = y_true.shape[0]
+
+        k = self.category_ids.shape[0]
+        t = self.iou_thresholds.shape[0]
+        r = self.recall_thresholds.shape[0]
+        a = self.area_ranges.shape[0]
+        m = self.max_detections.shape[0]
+
+        # first, we prepare eval_imgs.  eval_imgs creates a lookup table from
+        # [image_id, category_id, area_ranges] => results
+        # this is equivalent to the step of `evaluate()` in cocoeval
+        
+        # evaluate first computes ious for all images in a dictionary.  The dictionary maps
+        # from imgId, catId to iou scores.
+
+        # in our implementation we will iterate imgId and catId and store the ious in a lookup
+        # Tensor with the dimensions [image_id, category_id, bbox_true, bbox_pred] => iou
+
+        ious = tf.TensorArray(tf.float32, size=num_images, dynamic_size=False)
+        for img in tf.range(num_images):
+            # iou lookup table per category.
+            img_ious = tf.TensorArray(tf.float32, size=k, dynamic_size=False)
+            for cat_id in tf.range(k):
+                filtered_y_true = y_true[img]
+                filtered_y_pred = y_pred[img]
+                img_ious = img_ious.write(cat_id, )
+            ious = ious.write(img, img_ious.stack())
+
+        # the next section is equivalent to the `accumulate()` step in cocoeval
+
+        for k_i in tf.range(k):
+            category = self.category_id[k_i]
+            for a_i in tf.range(a):
+                area_min = self.area_ranges[a_i, 0]
+                area_max = self.area_ranges[a_i, 1]
+
+                for m_i in tf.range(m):
+                    max_detections = self.max_detections[m_i]
+
+                    # in the original implementation they fetch all of the values in evalImgs using:
+                    # [image_id, category_id, area_range]
+                    # then, we stack dtScores[0:maxDet].  This is equivalent to y_pred[:, 0:maxdet, 5]
+                    # in our implementation our dtScores will have -1s for sentinel missing values.
+
+                    # next, they craft an indices ordering set using np.argsort(-dtscores, axis=-1).
+                    # this axis set is used to sort:
+                    # y_pred[dtMatches], y_pred[dtIgnore].  We will create dtignore the same way,
+                    # with the additional mask out of our padded -1 values bboxes.
+
+                    # next we check if gtIgnore, which is stored in a Tensor computed by the evaluate()
+                    # section, has any non_zero values for the current image/catid/area_range.
+                    # if gtIf is all zeros we just continue in the loop
+
+                    # next, true positives is computed using a logical and of sorted dts, and a not of sorted ignores
+                    # false positives are computed using the inverse of the true positives, so logical_not(dts)
+
+                    # a sum is taken of true positives and false positives on axis=1.  This contins the result
+
+                    # now, a pretty complex loop takes place:
+                    # https://source.corp.google.com/piper///depot/google3/third_party/py/pycocotools/cocoeval.py;l=409
+                    # the summary is that it computes the recall and precision based on the tps, fps, etc.
+                    # The result is stored in self.recall, and self.precision
+
+    def result(self):
+        raise NotImplementedError("COCOBase subclasses must implement `result()`.")
 
     def _add_constant_weight(self, name, values, shape=None):
         shape = shape or (len(values),)

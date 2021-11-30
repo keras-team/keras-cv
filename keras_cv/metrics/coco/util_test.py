@@ -8,6 +8,13 @@ from keras_cv import bbox
 
 
 class UtilTest(tf.test.TestCase):
+    def test_filter_bboxes(self):
+        # set of bboxes
+        y_pred = tf.stack([_dummy_bbox(category=1), _dummy_bbox(category=2)])
+        result = util.filter_boxes(y_pred, 2, axis=bbox.CLASS)
+
+        self.assertAllClose(result, tf.stack([_dummy_bbox(category=2)]))
+
     def test_sort_bboxes_unsorted_list(self):
         y_pred = tf.expand_dims(
             tf.stack(
@@ -30,6 +37,6 @@ class UtilTest(tf.test.TestCase):
         self.assertAllClose(y_pred, y_sorted)
 
 
-def _dummy_bbox(confidence):
+def _dummy_bbox(confidence=0.0, category=0):
     """returns a bbox dummy with all 0 values, except for confidence."""
-    return tf.constant([0, 0, 0, 0, 0, confidence])
+    return tf.constant([0, 0, 0, 0, category, confidence])
