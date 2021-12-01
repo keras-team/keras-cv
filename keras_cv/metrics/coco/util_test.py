@@ -22,6 +22,29 @@ class UtilTest(tf.test.TestCase):
 
         self.assertAllClose(result, tf.stack([_dummy_bbox(category=2)]))
 
+    def test_to_sentinel_padded_bbox_tensor(self):
+        box_set1 = tf.stack([_dummy_bbox(), _dummy_bbox()])
+        box_set2 = tf.stack([_dummy_bbox()])
+        boxes = [box_set1, box_set2]
+        bbox_tensor = util.test_to_sentinel_padded_bbox_tensor(boxes)
+        self.assertAllClose(bbox_tensor[1, 1], -tf.ones(6,))
+
+    def test_filter_out_sentinels(self):
+        # set of bboxes
+        y_pred = tf.stack([_dummy_bbox(category=1), _dummy_bbox(category=-1)])
+        result = util.filter_out_sentinels(y_pred)
+
+        self.assertAllClose(result, tf.stack([_dummy_bbox(category=1)]))
+
+    def test_end_to_end_sentinel_filtering(self):
+        box_set1 = tf.stack([_dummy_bbox(), _dummy_bbox()])
+        box_set2 = tf.stack([_dummy_bbox()])
+        boxes = [box_set1, box_set2]
+        bbox_tensor = util.test_to_sentinel_padded_bbox_tensor(boxes)
+
+        self.assertAllClose(util.filter_out_sentinels(bbox_tensor[0]), box_set1)
+        self.assertAllClose(util.filter_out_sentinels(bbox_tensor[1]), box_set2)
+
     def test_sort_bboxes_unsorted_list(self):
         y_pred = tf.expand_dims(
             tf.stack(

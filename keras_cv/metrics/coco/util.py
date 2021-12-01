@@ -5,8 +5,8 @@ from keras_cv import bbox
 
 
 def filter_boxes(boxes, value, axis=4):
-    """filter_boxes is used to sort a list of bounding boxes by a given axis.
-    The most common use case for this is to filter out to get a specific bbox.CLASS.
+    """filter_boxes is used to select only boxes matching a given class.
+    The most common use case for this is to filter to accept only a specific bbox.CLASS.
     Args:
         boxes: Tensor of bounding boxes in format `[images, bboxes, 6]`
         value: Value the specified axis must match
@@ -15,6 +15,30 @@ def filter_boxes(boxes, value, axis=4):
         boxes: A new Tensor of bounding boxes, where boxes[axis]==value
     """
     return tf.gather_nd(boxes, tf.where(boxes[:, axis] == value))
+
+
+def test_to_sentinel_padded_bbox_tensor(box_sets):
+    """pad_with_sentinels returns a Tensor of bboxes padded with -1s
+    to ensure that each bbox set has identical dimensions.  This is to
+    be used before passing bbox predictions, or bbox ground truths to 
+    the keras COCO metrics.
+    Args:
+        box_sets: List of Tensors representing bounding boxes, or a list of lists of Tensors
+    Returns:
+        boxes: A new Tensor where each value missing is populated with -1.
+    """
+    return tf.ragged.stack(box_sets).to_tensor(default_value=-1)
+
+
+def filter_out_sentinels(boxes):
+    """filter_out_sentinels to filter out boxes that were padded on to the prediction
+    or ground truth bbox tensor to ensure dimensions match.  
+    Args:
+        boxes: Tensor of bounding boxes in format `[bboxes, 6]`, usually from a single image
+    Returns:
+        boxes: A new Tensor of bounding boxes, where boxes[axis]!=-1
+    """
+    return tf.gather_nd(boxes, tf.where(boxes[:, bbox.CLASS] != -1))
 
 
 def sort_bboxes(boxes, axis=5):

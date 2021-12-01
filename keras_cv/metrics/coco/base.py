@@ -47,8 +47,8 @@ class COCOBase(tf.keras.metrics.Metric):
         )
 
         # Initialize result counters
-        k = self.category_ids.shape[0]
         t = self.iou_thresholds.shape[0]
+        k = self.category_ids.shape[0]
         a = self.area_ranges.shape[0]
         m = self.max_detections.shape[0]
 
@@ -111,65 +111,60 @@ class COCOBase(tf.keras.metrics.Metric):
             img_ious = tf.TensorArray(
                 tf.float32, size=k, dynamic_size=False, infer_shape=False
             )
-            for cat_id in tf.range(k):
+            for category_idx in tf.range(k):
+                category = self.category_ids[category_idx]
                 # filter_boxes automatically filters out categories set to -1
                 # this includes our sentinel boxes padded out.
                 filtered_y_true = util.filter_boxes(
-                    y_true[img], value=cat_id, axis=bbox.CLASS
+                    y_true[img], value=category, axis=bbox.CLASS
                 )
                 filtered_y_pred = util.filter_boxes(
-                    y_pred[img], value=cat_id, axis=bbox.CLASS
+                    y_pred[img], value=category, axis=bbox.CLASS
                 )
-                # we may need to pad these values out so shapes match
-                # alternatively we can move iou computation to the next section of evaluate()
-                img_ious = img_ious.write(
-                    cat_id,
-                    iou_lib.compute_ious_for_image(filtered_y_true, filtered_y_pred),
+                per_category_ious = iou_lib.compute_ious_for_image(
+                    filtered_y_true, filtered_y_pred
                 )
-            ious = ious.write(img, img_ious.stack())
+
+                for iou_idx in tf.range(t):
+                    iou_threshold = self.iou_thresholds[iou_idx]
+
+                    # detect matches, detect ignores, etc
+
+                    for max_dts_idx in tf.range(m):
+                        max_dts = self.max_detections[max_dts_idx]
 
         # next, for each image we compute:
         # - dtIgnore: [imgId, catId, areaRange] => mask
         # - gtIgnore: [imgId, catId, areaRange] => mask
-        # - dtMatches: [imgId, catId, areaRange] =>
-        # - gtMatches: [
+        # - dtMatches: [catId, areaRange] =>
 
         # - dtScores is already stored in y_pred[imgId, bbox.CONFIDENCE]
 
         # the next section is equivalent to the `accumulate()` step in cocoeval
 
-        for k_i in tf.range(k):
-            category = self.category_id[k_i]
-            for a_i in tf.range(a):
-                area_min = self.area_ranges[a_i, 0]
-                area_max = self.area_ranges[a_i, 1]
+        # in the original implementation they fetch all of the values in evalImgs using:
+        # [image_id, category_id, area_range]
+        # then, we stack dtScores[0:maxDet].  This is equivalent to y_pred[:, 0:maxdet, 5]
+        # in our implementation our dtScores will have -1s for sentinel missing values.
 
-                for m_i in tf.range(m):
-                    max_detections = self.max_detections[m_i]
+        # next, they craft an indices ordering set using np.argsort(-dtscores, axis=-1).
+        # this axis set is used to sort:
+        # y_pred[dtMatches], y_pred[dtIgnore].  We will create dtignore the same way,
+        # with the additional mask out of our padded -1 values bboxes.
 
-                    # in the original implementation they fetch all of the values in evalImgs using:
-                    # [image_id, category_id, area_range]
-                    # then, we stack dtScores[0:maxDet].  This is equivalent to y_pred[:, 0:maxdet, 5]
-                    # in our implementation our dtScores will have -1s for sentinel missing values.
+        # next we check if gtIgnore, which is stored in a Tensor computed by the evaluate()
+        # section, has any non_zero values for the current image/catid/area_range.
+        # if gtIf is all zeros we just continue in the loop
 
-                    # next, they craft an indices ordering set using np.argsort(-dtscores, axis=-1).
-                    # this axis set is used to sort:
-                    # y_pred[dtMatches], y_pred[dtIgnore].  We will create dtignore the same way,
-                    # with the additional mask out of our padded -1 values bboxes.
+        # next, true positives is computed using a logical and of sorted dts, and a not of sorted ignores
+        # false positives are computed using the inverse of the true positives, so logical_not(dts)
 
-                    # next we check if gtIgnore, which is stored in a Tensor computed by the evaluate()
-                    # section, has any non_zero values for the current image/catid/area_range.
-                    # if gtIf is all zeros we just continue in the loop
+        # a sum is taken of true positives and false positives on axis=1.  This contins the result
 
-                    # next, true positives is computed using a logical and of sorted dts, and a not of sorted ignores
-                    # false positives are computed using the inverse of the true positives, so logical_not(dts)
-
-                    # a sum is taken of true positives and false positives on axis=1.  This contins the result
-
-                    # now, a pretty complex loop takes place:
-                    # https://source.corp.google.com/piper///depot/google3/third_party/py/pycocotools/cocoeval.py;l=409
-                    # the summary is that it computes the recall and precision based on the tps, fps, etc.
-                    # The result is stored in self.recall, and self.precision
+        # now, a pretty complex loop takes place:
+        # https://source.corp.google.com/piper///depot/google3/third_party/py/pycocotools/cocoeval.py;l=409
+        # the summary is that it computes the recall and precision based on the tps, fps, etc.
+        # result is stored in self.recall, and self.precision
 
     def result(self):
         raise NotImplementedError("COCOBase subclasses must implement `result()`.")
