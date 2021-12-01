@@ -1,5 +1,6 @@
 from keras_cv import bbox
 from keras_cv.metrics.coco import iou as iou_lib
+from keras_cv.metrics.coco import util
 
 
 class COCOBase(tf.keras.metrics.Metric):
@@ -20,7 +21,6 @@ class COCOBase(tf.keras.metrics.Metric):
         self,
         iou_thresholds=None,
         category_ids=None,
-        recall_thresholds=None,
         area_ranges=None,
         max_detections=None,
     ):
@@ -30,10 +30,6 @@ class COCOBase(tf.keras.metrics.Metric):
         )
         # TODO(lukewood): support inference of category_ids based on update_state calls.
         self.category_ids = self._add_constant_weight("category_ids", category_ids)
-        self.recall_thresholds = self._add_constant_weight(
-            "recall_thresholds",
-            recall_thresholds or [x / 100.0 for x in range(0, 1, 0.01)],
-        )
 
         # default area ranges are defined for the COCO set
         # 32 ** 2 represents a 32x32 object.
@@ -53,36 +49,36 @@ class COCOBase(tf.keras.metrics.Metric):
         # Initialize result counters
         k = self.category_ids.shape[0]
         t = self.iou_thresholds.shape[0]
-        r = self.recall_thresholds.shape[0]
         a = self.area_ranges.shape[0]
         m = self.max_detections.shape[0]
 
-        self.precision = self.add_weight(
-            name="precision",
-            shape=(t, r, k, a, m),
-            trainable=False,
-            dtype=tf.float32,
-            initializer=initializers.Constant(value=-1),
-        )
-        self.recall = self.add_weight(
-            name="recall",
+        self.true_positives = self.add_weight(
+            name="true_positives",
             shape=(t, k, a, m),
             trainable=False,
             dtype=tf.float32,
-            initializer=initializers.Constant(value=-1),
+            initializer=initializers.Zeros(),
+        )
+        self.false_positives = self.add_weight(
+            name="false_positives",
+            shape=(t, k, a, m),
+            trainable=False,
+            dtype=tf.float32,
+            initializer=initializers.Zeros(),
+        )
+        self.ground_truth_boxes = self.add_weight(
+            name="ground_truth_boxes",
+            shape=(k, a, m),
+            trainable=False,
+            dtype=tf.float32,
+            initializer=initializers.Zeros(),
         )
 
-    def _prepare_true_images(self, y_true):
-        """
-        _prepare_true_images splits y_true into multiple copies of y_true separated by the following categories:
-            - category_id
-            - area_ranges
-
-        The resulting tensor is a Tensor constructed with the following indices:
-        `[image_id, category_id, area_ranges, 5]`.  This Tensor is intended to be used as a lookup table.
-        """
-
-        pass
+    def reset_state(self):
+        super(COCOBase, self).reset_state()
+        self.true_positives.assign(tf.zeros_like(self.true_positives))
+        self.false_positives.assign(tf.zeros_like(self.false_positives))
+        self.ground_truth_boxes.assign(tf.zeros_like(self.ground_truth_boxes))
 
     def update_state(self, y_true, y_pred, sample_weight=None):
         if sample_weight:
@@ -94,29 +90,51 @@ class COCOBase(tf.keras.metrics.Metric):
 
         k = self.category_ids.shape[0]
         t = self.iou_thresholds.shape[0]
-        r = self.recall_thresholds.shape[0]
         a = self.area_ranges.shape[0]
         m = self.max_detections.shape[0]
 
         # first, we prepare eval_imgs.  eval_imgs creates a lookup table from
         # [image_id, category_id, area_ranges] => results
         # this is equivalent to the step of `evaluate()` in cocoeval
-        
+
         # evaluate first computes ious for all images in a dictionary.  The dictionary maps
         # from imgId, catId to iou scores.
 
         # in our implementation we will iterate imgId and catId and store the ious in a lookup
         # Tensor with the dimensions [image_id, category_id, bbox_true, bbox_pred] => iou
 
-        ious = tf.TensorArray(tf.float32, size=num_images, dynamic_size=False)
+        ious = tf.TensorArray(
+            tf.float32, size=num_images, dynamic_size=False, infer_shape=False
+        )
         for img in tf.range(num_images):
             # iou lookup table per category.
-            img_ious = tf.TensorArray(tf.float32, size=k, dynamic_size=False)
+            img_ious = tf.TensorArray(
+                tf.float32, size=k, dynamic_size=False, infer_shape=False
+            )
             for cat_id in tf.range(k):
-                filtered_y_true = y_true[img]
-                filtered_y_pred = y_pred[img]
-                img_ious = img_ious.write(cat_id, )
+                # filter_boxes automatically filters out categories set to -1
+                # this includes our sentinel boxes padded out.
+                filtered_y_true = util.filter_boxes(
+                    y_true[img], value=cat_id, axis=bbox.CLASS
+                )
+                filtered_y_pred = util.filter_boxes(
+                    y_pred[img], value=cat_id, axis=bbox.CLASS
+                )
+                # we may need to pad these values out so shapes match
+                # alternatively we can move iou computation to the next section of evaluate()
+                img_ious = img_ious.write(
+                    cat_id,
+                    iou_lib.compute_ious_for_image(filtered_y_true, filtered_y_pred),
+                )
             ious = ious.write(img, img_ious.stack())
+
+        # next, for each image we compute:
+        # - dtIgnore: [imgId, catId, areaRange] => mask
+        # - gtIgnore: [imgId, catId, areaRange] => mask
+        # - dtMatches: [imgId, catId, areaRange] =>
+        # - gtMatches: [
+
+        # - dtScores is already stored in y_pred[imgId, bbox.CONFIDENCE]
 
         # the next section is equivalent to the `accumulate()` step in cocoeval
 
