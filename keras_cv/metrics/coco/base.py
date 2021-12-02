@@ -103,9 +103,6 @@ class COCOBase(tf.keras.metrics.Metric):
         # in our implementation we will iterate imgId and catId and store the ious in a lookup
         # Tensor with the dimensions [image_id, category_id, bbox_true, bbox_pred] => iou
 
-        ious = tf.TensorArray(
-            tf.float32, size=num_images, dynamic_size=False, infer_shape=False
-        )
         for img in tf.range(num_images):
             # iou lookup table per category.
             img_ious = tf.TensorArray(
@@ -118,20 +115,60 @@ class COCOBase(tf.keras.metrics.Metric):
                 filtered_y_true = util.filter_boxes(
                     y_true[img], value=category, axis=bbox.CLASS
                 )
+                filtered_y_true = util.filter_out_sentinels(filtered_y_true)
+
                 filtered_y_pred = util.filter_boxes(
                     y_pred[img], value=category, axis=bbox.CLASS
                 )
-                per_category_ious = iou_lib.compute_ious_for_image(
-                    filtered_y_true, filtered_y_pred
+                filtered_y_pred = util.filter_out_sentinels(filtered_y_pred)
+
+                n_true = tf.shape(filtered_y_true)[0]
+                n_pred = tf.shape(filtered_y_pred)[0]
+
+                ious = iou_lib.compute_ious_for_image(filtered_y_true, filtered_y_pred)
+
+                # TensorArray so we can regularly write back to the array
+                gt_matches_outer = tf.TensorArray(
+                    tf.int32, size=t, filtered_y_true)[0], dynamic_size=False
+                )
+                pred_matches_outer = tf.TensorArray(
+                    tf.int32, size=t, dynamic_size=False
                 )
 
-                for iou_idx in tf.range(t):
-                    iou_threshold = self.iou_thresholds[iou_idx]
+                # TODO(lukewood): account for area ranges
 
-                    # detect matches, detect ignores, etc
+                for tind in range(t):
+                    threshold = self.iou_thresholds[tind]
 
-                    for max_dts_idx in tf.range(m):
-                        max_dts = self.max_detections[max_dts_idx]
+                    gt_matches = tf.TensorArray(
+                        tf.int32, size=n_true, filtered_y_true)[0], dynamic_size=False
+                    )
+                    pred_matches = tf.TensorArray(
+                        tf.int32, size=n_pred, dynamic_size=False
+                    )
+
+                    for detection_idx in tf.range(n_pred):
+                       m = -1 
+                       iou = tf.math.minimum(threshold, 1-1e-10)
+
+                       for gt_idx in tf.range(n_true):
+                           if gt_matches.gather([gt_idx]) > 0:
+                               continue
+                           # TODO(lukewood): update clause to account for gtIg
+                           # if m > -1 and gtIg[m] == 0 and gtIg[gind] == 1:
+
+                           if not ious[detection_idx, gt_idx] >= threshold:
+                               continue
+                           iou = ious[detection_idx, gt_idx]
+                           m = gt_idx
+
+                       pred_matches = pred_matches.write(detection_idx, m)
+                       if m == -1:
+                           continue
+                        
+                        gt_matches = gt_matches.write(m, detection_idx)
+                    gt_matches_outer = gt_matches_outer.write(tind, gt_matches.stack())
+                    pred_matches_outer = pred_matches_outer.write(tind, pred_matches.stack())
 
         # next, for each image we compute:
         # - dtIgnore: [imgId, catId, areaRange] => mask
