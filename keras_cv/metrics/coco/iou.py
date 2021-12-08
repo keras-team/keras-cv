@@ -59,7 +59,7 @@ def compute_ious_for_image(ground_truths, predictions):
 
     Bounding boxes are expected to be in the corners format of `[bbox.LEFT, bbox.RIGHT,
     bbox.TOP, bbox.BOTTOM]`.  For example, the bounding box with it's left side at 100,
-    bbox.RIGHT side at 200, bbox.TOP at 101, and bbox.BOTTOM at 201 would be represented 
+    bbox.RIGHT side at 200, bbox.TOP at 101, and bbox.BOTTOM at 201 would be represented
     as:
     > [100, 200, 101, 201]
 
@@ -70,7 +70,7 @@ def compute_ious_for_image(ground_truths, predictions):
     Returns:
       iou_lookup_table: a vector containing the pairwise ious of ground_truths and
         predictions.
-  """
+    """
     ground_truths_size = tf.shape(ground_truths)[0]
     predictions_size = tf.shape(predictions)[0]
     result = tf.TensorArray(

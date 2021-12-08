@@ -1,9 +1,12 @@
+import tensorflow as tf
+import tensorflow.keras as keras
+import tensorflow.keras.initializers as initializers
 from keras_cv import bbox
 from keras_cv.metrics.coco import iou as iou_lib
 from keras_cv.metrics.coco import util
 
 
-class COCOBase(tf.keras.metrics.Metric):
+class COCOBase(keras.metrics.Metric):
     """COCOBase serves as a base for COCORecall and COCOPrecision.
 
     Args:
@@ -24,7 +27,9 @@ class COCOBase(tf.keras.metrics.Metric):
         category_ids=None,
         area_ranges=None,
         max_detections=None,
+        **kwargs
     ):
+        super(COCOBase, self).__init__(**kwargs)
         # Initialize parameter values
         self.iou_thresholds = self._add_constant_weight(
             "iou_thresholds", iou_thresholds or [x / 100.0 for x in range(50, 100, 5)]
@@ -56,21 +61,18 @@ class COCOBase(tf.keras.metrics.Metric):
         self.true_positives = self.add_weight(
             name="true_positives",
             shape=(t, k, a, m),
-            trainable=False,
             dtype=tf.float32,
             initializer=initializers.Zeros(),
         )
         self.false_positives = self.add_weight(
             name="false_positives",
             shape=(t, k, a, m),
-            trainable=False,
             dtype=tf.float32,
             initializer=initializers.Zeros(),
         )
         self.ground_truth_boxes = self.add_weight(
             name="ground_truth_boxes",
             shape=(k, a, m),
-            trainable=False,
             dtype=tf.float32,
             initializer=initializers.Zeros(),
         )
@@ -105,7 +107,7 @@ class COCOBase(tf.keras.metrics.Metric):
         # Tensor with the dimensions [image_id, category_id, bbox_true, bbox_pred] => iou
 
         # Sort by bbox.CONFIDENCE to make maxDetections easy to compute.
-        y_pred = utils.sort_bboxes(boxes, axis=bbox.CONFIDENCE)
+        y_pred = util.sort_bboxes(y_pred, axis=bbox.CONFIDENCE)
 
         for img in tf.range(num_images):
             # iou lookup table per category.
@@ -176,6 +178,23 @@ class COCOBase(tf.keras.metrics.Metric):
                     pred_matches_outer = pred_matches_outer.write(
                         tind, pred_matches.stack()
                     )
+                pred_matches = pred_matches_outer.stack()
+                gt_matches = gt_matches_outer.stack() 
+                
+                trues_positives = tf.TensorArray(tf.float32, size=m, dynamic_size=False)
+                false_positives = tf.TensorArray(tf.float32, size=m, dynamic_size=False)
+
+                true_positives = tf.cast(pred_matches != -1, tf.float32)
+                true_positives_sum = tf.math.reduce_sum(true_positives, axis=-1)
+
+                false_positives = tf.cast(pred_matches == -1, tf.float32)
+                false_positives_sum = tf.match.reduce_sum(false_positives, axis=-1)
+
+                # true_positives.shape=(t, k, a, m)
+                # false_positives.shape=(t, k, a, m)
+                # ground_truth_positives.shape=(k, a, m)
+
+                # true_positives_sum = tensor.shape (a,)
 
         # next, for each image we compute:
         # - dtIgnore: [imgId, catId, areaRange] => mask
@@ -219,6 +238,5 @@ class COCOBase(tf.keras.metrics.Metric):
             name=name,
             shape=shape,
             initializer=initializers.Constant(values),
-            dtype=tf.float32,
-            trainable=False,
+            dtype=tf.float32 
         )

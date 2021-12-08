@@ -15,6 +15,11 @@ class UtilTest(tf.test.TestCase):
 
         self.assertEqual(result.shape[0], 0)
 
+    def test_bbox_area(self):
+        boxes = tf.constant([[0, 0, 100, 100]], dtype=tf.float32)
+        areas = util.bbox_area(boxes)
+        self.assertEqual(boxes, 10000.0)
+
     def test_filter_bboxes(self):
         # set of bboxes
         y_pred = tf.stack([_dummy_bbox(category=1), _dummy_bbox(category=2)])
@@ -27,7 +32,12 @@ class UtilTest(tf.test.TestCase):
         box_set2 = tf.stack([_dummy_bbox()])
         boxes = [box_set1, box_set2]
         bbox_tensor = util.test_to_sentinel_padded_bbox_tensor(boxes)
-        self.assertAllClose(bbox_tensor[1, 1], -tf.ones(6,))
+        self.assertAllClose(
+            bbox_tensor[1, 1],
+            -tf.ones(
+                6,
+            ),
+        )
 
     def test_filter_out_sentinels(self):
         # set of bboxes

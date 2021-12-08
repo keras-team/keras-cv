@@ -4,6 +4,18 @@ import tensorflow as tf
 from keras_cv import bbox
 
 
+def bbox_areas(boxes):
+    """box_areas returns the area of the provided bounding boxes.
+    Args:
+        boxes: Tensor of bounding boxes of shape `[..., 4+]` in corners format.
+    Returns:
+        areas: Tensor of areas of shape `[...]`.
+    """
+    w = boxes[..., bbox.RIGHT] - boxes[..., bbox.LEFT]
+    h = boxes[..., bbox.BOTTOM] - boxes[..., bbox.TOP]
+    return w * h
+
+
 def filter_boxes(boxes, value, axis=4):
     """filter_boxes is used to select only boxes matching a given class.
     The most common use case for this is to filter to accept only a specific bbox.CLASS.
@@ -20,7 +32,7 @@ def filter_boxes(boxes, value, axis=4):
 def test_to_sentinel_padded_bbox_tensor(box_sets):
     """pad_with_sentinels returns a Tensor of bboxes padded with -1s
     to ensure that each bbox set has identical dimensions.  This is to
-    be used before passing bbox predictions, or bbox ground truths to 
+    be used before passing bbox predictions, or bbox ground truths to
     the keras COCO metrics.
     Args:
         box_sets: List of Tensors representing bounding boxes, or a list of lists of Tensors
@@ -32,7 +44,7 @@ def test_to_sentinel_padded_bbox_tensor(box_sets):
 
 def filter_out_sentinels(boxes):
     """filter_out_sentinels to filter out boxes that were padded on to the prediction
-    or ground truth bbox tensor to ensure dimensions match.  
+    or ground truth bbox tensor to ensure dimensions match.
     Args:
         boxes: Tensor of bounding boxes in format `[bboxes, 6]`, usually from a single image
     Returns:

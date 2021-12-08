@@ -5,8 +5,10 @@ import numpy as np
 import tensorflow as tf
 
 from keras_cv.metrics.coco import iou as iou_lib
+from keras_cv.metrics.coco.recall import COCORecall
 
-SAMPLE_FILE = os.path.dirname(os.path.abspath(__file__)) + '/sample_boxes.npz'
+SAMPLE_FILE = os.path.dirname(os.path.abspath(__file__)) + "/sample_boxes.npz"
+
 
 """
 cocoeval.py outputs:
@@ -24,10 +26,24 @@ cocoeval.py outputs:
  Average Recall     (AR) @[ IoU=0.50:0.95 | area=medium | maxDets=100 ] = 0.681
  Average Recall     (AR) @[ IoU=0.50:0.95 | area= large | maxDets=100 ] = 0.682
 """
-class RecallCorrectnesstTest(tf.test.TestCase):
-    def test_recall_correctness(self):
-        npzfile = np.load(SAMPLE_FILE)
-        y_true = npzfile['arr_0']
-        y_pred = npzfile['arr_1']
 
+
+class RecallCorrectnesstTest(tf.test.TestCase):
+    def test_recall_correctness_maxdets_1(self):
+        npzfile = np.load(SAMPLE_FILE)
+        y_true = npzfile["arr_0"].astype(np.float32)
+        y_pred = npzfile["arr_1"].astype(np.float32)
+
+        categories = set(int(x) for x in y_true[:, :, 4].flatten())
+        categories = [x for x in categories if x != -1]
+
+        # Area range all
+        recall = COCORecall(
+            category_ids=categories, max_detections=[1], area_ranges=[(0, 1e5 ** 2)]
+        )
+
+        recall.update_state(y_true, y_pred)
+        recall = recall.result()
+
+        self.assertAlmostEqual(recall, 0.504)
         # recall_metric = #
