@@ -18,7 +18,7 @@ class UtilTest(tf.test.TestCase):
     def test_bbox_area(self):
         boxes = tf.constant([[0, 0, 100, 100]], dtype=tf.float32)
         areas = util.bbox_area(boxes)
-        self.assertEqual(boxes, 10000.0)
+        self.assertAllClose(areas, tf.constant((10000.0,)))
 
     def test_filter_bboxes(self):
         # set of bboxes

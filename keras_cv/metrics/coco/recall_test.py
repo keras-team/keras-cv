@@ -8,7 +8,9 @@ from keras_cv.metrics.coco.recall import COCORecall
 
 class COCORecallTest(tf.test.TestCase):
     def test_recall_direct_assignment(self):
-        recall = COCORecall(max_detections=[1e9], category_ids=[1], area_ranges=[(0, 1e9**2)])
+        recall = COCORecall(
+            max_detections=[1e9], category_ids=[1], area_ranges=[(0, 1e9 ** 2)]
+        )
         t = recall.iou_thresholds.shape[0]
         k = recall.category_ids.shape[0]
 
@@ -18,3 +20,20 @@ class COCORecallTest(tf.test.TestCase):
         recall.ground_truth_boxes.assign(ground_truth_boxes)
 
         self.assertEqual(recall.result(), 0.5)
+
+    def test_recall_direct_assignment(self):
+        recall = COCORecall(
+            max_detections=[1e9], category_ids=[1], area_ranges=[(0, 1e9 ** 2)]
+        )
+        t = recall.iou_thresholds.shape[0]
+        k = recall.category_ids.shape[0]
+
+        true_positives = tf.ones((t, k, 1, 1))
+        ground_truth_boxes = true_positives[0] * 3
+        recall.true_positives.assign(true_positives)
+        recall.ground_truth_boxes.assign(ground_truth_boxes)
+
+        self.assertAlmostEqual(recall.result().numpy(), 1/3)
+
+    # TODO(lukewood): need to implement a test where the detections are inconsistent across thresholds
+    # TODO(lukewood): need to implement a test where the detections are inconsistent across categories

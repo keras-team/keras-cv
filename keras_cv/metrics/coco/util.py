@@ -4,7 +4,7 @@ import tensorflow as tf
 from keras_cv import bbox
 
 
-def bbox_areas(boxes):
+def bbox_area(boxes):
     """box_areas returns the area of the provided bounding boxes.
     Args:
         boxes: Tensor of bounding boxes of shape `[..., 4+]` in corners format.
@@ -13,7 +13,8 @@ def bbox_areas(boxes):
     """
     w = boxes[..., bbox.RIGHT] - boxes[..., bbox.LEFT]
     h = boxes[..., bbox.BOTTOM] - boxes[..., bbox.TOP]
-    return w * h
+    print(w.shape, h.shape)
+    return tf.math.multiply(w, h)
 
 
 def filter_boxes(boxes, value, axis=4):

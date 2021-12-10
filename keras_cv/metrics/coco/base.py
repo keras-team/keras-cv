@@ -46,10 +46,13 @@ class COCOBase(keras.metrics.Metric):
             [96 ** 2, 1e5 ** 2],  # large size objects
         ]
         self.area_ranges = self._add_constant_weight(
-            "area_ranges", area_ranges or [], shape=(len(area_ranges), 2)
+            "area_ranges",
+            area_ranges or [],
+            shape=(len(area_ranges), 2),
+            dtype=tf.int32,
         )
         self.max_detections = self._add_constant_weight(
-            "max_detections", max_detections or [1, 10, 100]
+            "max_detections", max_detections or [1, 10, 100], dtype=tf.int32
         )
 
         # Initialize result counters
@@ -114,6 +117,16 @@ class COCOBase(keras.metrics.Metric):
             img_ious = tf.TensorArray(
                 tf.float32, size=k, dynamic_size=False, infer_shape=False
             )
+
+            true_positives_update_result = tf.TensorArray(
+                tf.float32, size=k, dynamic_size=False
+            )
+            false_positives_update_result = tf.TensorArray(
+                tf.float32, size=k, dynamic_size=False
+            )
+
+            a_i = 0  # TODO(lukewood): use area ranges
+
             for category_idx in tf.range(k):
                 category = self.category_ids[category_idx]
                 # filter_boxes automatically filters out categories set to -1
@@ -131,23 +144,42 @@ class COCOBase(keras.metrics.Metric):
                 n_true = tf.shape(filtered_y_true)[0]
                 n_pred = tf.shape(filtered_y_pred)[0]
 
+                # TODO(lukewood): filter area ranges
+
                 ious = iou_lib.compute_ious_for_image(filtered_y_true, filtered_y_pred)
 
                 # TensorArray so we can regularly write back to the array
-                gt_matches_outer = tf.TensorArray(tf.int32, size=t, dynamic_size=False)
-                pred_matches_outer = tf.TensorArray(
-                    tf.int32, size=t, dynamic_size=False
+                gt_matches_outer = tf.TensorArray(
+                    tf.int32,
+                    size=t,
+                    dynamic_size=False,
                 )
-
+                pred_matches_outer = tf.TensorArray(
+                    tf.int32,
+                    size=t,
+                    dynamic_size=False,
+                )
+                
+                tp_a_result = tf.TensorArray(tf.float32, size=a, dynamic_size=False)
+                fp_a_result = tf.TensorArray(tf.float32, size=a, dynamic_size=False)
+                
                 # TODO(lukewood): account for area ranges
                 for tind in range(t):
                     threshold = self.iou_thresholds[tind]
 
                     gt_matches = tf.TensorArray(
-                        tf.int32, size=n_true, dynamic_size=False
+                        tf.int32,
+                        size=n_true,
+                        dynamic_size=False,
+                        infer_shape=False,
+                        element_shape=(),
                     )
                     pred_matches = tf.TensorArray(
-                        tf.int32, size=n_pred, dynamic_size=False
+                        tf.int32,
+                        size=n_pred,
+                        dynamic_size=False,
+                        infer_shape=False,
+                        element_shape=(),
                     )
 
                     for detection_idx in tf.range(n_pred):
@@ -179,23 +211,60 @@ class COCOBase(keras.metrics.Metric):
                         tind, pred_matches.stack()
                     )
                 pred_matches = pred_matches_outer.stack()
-                gt_matches = gt_matches_outer.stack() 
-                
-                trues_positives = tf.TensorArray(tf.float32, size=m, dynamic_size=False)
-                false_positives = tf.TensorArray(tf.float32, size=m, dynamic_size=False)
+                gt_matches = gt_matches_outer.stack()
 
                 true_positives = tf.cast(pred_matches != -1, tf.float32)
-                true_positives_sum = tf.math.reduce_sum(true_positives, axis=-1)
-
                 false_positives = tf.cast(pred_matches == -1, tf.float32)
-                false_positives_sum = tf.match.reduce_sum(false_positives, axis=-1)
 
-                # true_positives.shape=(t, k, a, m)
-                # false_positives.shape=(t, k, a, m)
-                # ground_truth_positives.shape=(k, a, m)
+                m = tf.shape(self.max_detections)[0]
 
-                # true_positives_sum = tensor.shape (a,)
+                m_true_positives_result = tf.TensorArray(
+                    tf.float32, size=m, dynamic_size=False
+                )
+                m_false_positives_result = tf.TensorArray(
+                    tf.float32, size=m, dynamic_size=False
+                )
+                for m_i in tf.range(m):
+                    max_dets = self.max_detections[m_i]
+                    # TODO(lukewood): cross check maxdets logic against cocoeval.py
+                    # TODO(lukewood): use max dets
+                    false_positives_sum = tf.math.reduce_sum(false_positives, axis=-1)
+                    true_positives_sum = tf.math.reduce_sum(true_positives, axis=-1)
 
+                    m_true_positives_result = m_true_positives_result.write(
+                        m_i, true_positives_sum
+                    )
+                    m_false_positives_result = m_false_positives_result.write(
+                        m_i, false_positives_sum
+                    )
+                
+                m_true_positives_result = tf.transpose(m_true_positives_result.stack(), perm=[1, 0])
+                m_false_positives_result = tf.transpose(m_false_positives_result.stack(), perm=[1, 0])
+
+                tp_a_result = tp_a_result.write(a_i, m_true_positives_result)
+                fp_a_result = fp_a_result.write(a_i, m_true_positives_result)
+
+                tp_a_result = tf.transpose(tp_a_result.stack(), perm=[1, 0, 2])
+                fp_a_result = tf.transpose(fp_a_result.stack(), perm=[1, 0, 2])
+
+                true_positives_update_result = true_positives_update_result.write(
+                    category_idx, tp_a_result
+                )
+                false_positives_update_result = false_positives_update_result.write(
+                    category_idx, fp_a_result
+                )
+
+            tp_update = true_positives_update_result.stack()
+            fp_update = false_positives_update_result.stack()
+
+            tp_update = tf.transpose(tp_update, perm=[1, 0, 2, 3])
+            fp_update = tf.transpose(fp_update, perm=[1, 0, 2, 3])
+            
+            self.true_positives.assign_add(tp_update)
+            self.false_positives.assign_add(fp_update)
+
+            # tp_update = tf.transpose(tp_update, perm=[])
+            # fp_update = tf.transpose(fp_update, perm=[])
         # next, for each image we compute:
         # - dtIgnore: [imgId, catId, areaRange] => mask
         # - gtIgnore: [imgId, catId, areaRange] => mask
@@ -232,11 +301,11 @@ class COCOBase(keras.metrics.Metric):
     def result(self):
         raise NotImplementedError("COCOBase subclasses must implement `result()`.")
 
-    def _add_constant_weight(self, name, values, shape=None):
+    def _add_constant_weight(self, name, values, shape=None, dtype=tf.float32):
         shape = shape or (len(values),)
         return self.add_weight(
             name=name,
             shape=shape,
-            initializer=initializers.Constant(values),
-            dtype=tf.float32 
+            initializer=initializers.Constant(tf.cast(tf.constant(values), dtype)),
+            dtype=dtype,
         )

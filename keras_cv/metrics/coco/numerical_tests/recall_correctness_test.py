@@ -38,10 +38,12 @@ class RecallCorrectnesstTest(tf.test.TestCase):
         categories = [x for x in categories if x != -1]
 
         # Area range all
-        recall = COCORecall(category_ids=categories, max_detections=[1], area_ranges=[(0, 1e5 ** 2)])
+        recall = COCORecall(
+            category_ids=categories, max_detections=[1], area_ranges=[(0, 1e5 ** 2)]
+        )
 
         recall.update_state(y_true, y_pred)
-        recall = recall.result()
+        recall = recall.result().numpy()
 
         self.assertAlmostEqual(recall, 0.504)
         # recall_metric = #
