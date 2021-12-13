@@ -4,6 +4,7 @@ import os
 import numpy as np
 import tensorflow as tf
 
+from keras_cv import bbox
 from keras_cv.metrics.coco import iou as iou_lib
 from keras_cv.metrics.coco.recall import COCORecall
 
@@ -34,7 +35,13 @@ class RecallCorrectnesstTest(tf.test.TestCase):
         y_true = npzfile["arr_0"].astype(np.float32)
         y_pred = npzfile["arr_1"].astype(np.float32)
 
-        categories = set(int(x) for x in y_true[:, :, 4].flatten())
+        y_true = bbox.xywh_to_corners(y_true)
+        y_pred = bbox.xywh_to_corners(y_pred)
+
+        print(y_true[0])
+        print(y_pred[0])
+
+        categories = set(int(x) for x in y_true[:, :, 4].numpy().flatten())
         categories = [x for x in categories if x != -1]
 
         # Area range all

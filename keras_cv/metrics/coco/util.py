@@ -30,7 +30,7 @@ def filter_boxes(boxes, value, axis=4):
     return tf.gather_nd(boxes, tf.where(boxes[:, axis] == value))
 
 
-def test_to_sentinel_padded_bbox_tensor(box_sets):
+def to_sentinel_padded_bbox_tensor(box_sets):
     """pad_with_sentinels returns a Tensor of bboxes padded with -1s
     to ensure that each bbox set has identical dimensions.  This is to
     be used before passing bbox predictions, or bbox ground truths to

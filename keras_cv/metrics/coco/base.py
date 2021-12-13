@@ -75,7 +75,7 @@ class COCOBase(keras.metrics.Metric):
         )
         self.ground_truth_boxes = self.add_weight(
             name="ground_truth_boxes",
-            shape=(k, a, m),
+            shape=(k, a,),
             dtype=tf.float32,
             initializer=initializers.Zeros(),
         )
@@ -124,6 +124,9 @@ class COCOBase(keras.metrics.Metric):
             false_positives_update_result = tf.TensorArray(
                 tf.float32, size=k, dynamic_size=False
             )
+            n_images_update_result = tf.TensorArray(
+                tf.float32, size=k, dynamic_size=False
+            )
 
             a_i = 0  # TODO(lukewood): use area ranges
 
@@ -159,10 +162,13 @@ class COCOBase(keras.metrics.Metric):
                     size=t,
                     dynamic_size=False,
                 )
-                
+
                 tp_a_result = tf.TensorArray(tf.float32, size=a, dynamic_size=False)
                 fp_a_result = tf.TensorArray(tf.float32, size=a, dynamic_size=False)
-                
+                gt_n_boxes_a_result = tf.TensorArray(
+                    tf.float32, size=a, dynamic_size=False
+                )
+
                 # TODO(lukewood): account for area ranges
                 for tind in range(t):
                     threshold = self.iou_thresholds[tind]
@@ -224,12 +230,16 @@ class COCOBase(keras.metrics.Metric):
                 m_false_positives_result = tf.TensorArray(
                     tf.float32, size=m, dynamic_size=False
                 )
+                m_n_true_boxes_result = tf.TensorArray(
+                    tf.float32, size=m, dynamic_size=False
+                )
                 for m_i in tf.range(m):
+
+                    # max_dets only applies to predictions
                     max_dets = self.max_detections[m_i]
-                    # TODO(lukewood): cross check maxdets logic against cocoeval.py
-                    # TODO(lukewood): use max dets
-                    false_positives_sum = tf.math.reduce_sum(false_positives, axis=-1)
-                    true_positives_sum = tf.math.reduce_sum(true_positives, axis=-1)
+                    mdt_slice = tf.math.minimum(tf.shape(false_positives)[1], max_dets)
+                    false_positives_sum = tf.math.reduce_sum(false_positives[:, :mdt_slice], axis=-1)
+                    true_positives_sum = tf.math.reduce_sum(true_positives[:, :mdt_slice], axis=-1)
 
                     m_true_positives_result = m_true_positives_result.write(
                         m_i, true_positives_sum
@@ -237,15 +247,25 @@ class COCOBase(keras.metrics.Metric):
                     m_false_positives_result = m_false_positives_result.write(
                         m_i, false_positives_sum
                     )
-                
-                m_true_positives_result = tf.transpose(m_true_positives_result.stack(), perm=[1, 0])
-                m_false_positives_result = tf.transpose(m_false_positives_result.stack(), perm=[1, 0])
 
+                m_true_positives_result = tf.transpose(
+                    m_true_positives_result.stack(), perm=[1, 0]
+                )
+                m_false_positives_result = tf.transpose(
+                    m_false_positives_result.stack(), perm=[1, 0]
+                )
+
+                # TODO(lukewood): support area ranges
+                # Currently I'm just simulating the a result as it's not supported in this implementation
                 tp_a_result = tp_a_result.write(a_i, m_true_positives_result)
                 fp_a_result = fp_a_result.write(a_i, m_true_positives_result)
+                gt_n_boxes_a_result = gt_n_boxes_a_result.write(
+                    a_i, tf.cast(n_true, tf.float32)
+                )
 
                 tp_a_result = tf.transpose(tp_a_result.stack(), perm=[1, 0, 2])
                 fp_a_result = tf.transpose(fp_a_result.stack(), perm=[1, 0, 2])
+                gt_n_boxes_a_result = gt_n_boxes_a_result.stack()
 
                 true_positives_update_result = true_positives_update_result.write(
                     category_idx, tp_a_result
@@ -253,18 +273,22 @@ class COCOBase(keras.metrics.Metric):
                 false_positives_update_result = false_positives_update_result.write(
                     category_idx, fp_a_result
                 )
+                n_images_update_result = n_images_update_result.write(
+                    category_idx, gt_n_boxes_a_result
+                )
 
             tp_update = true_positives_update_result.stack()
             fp_update = false_positives_update_result.stack()
+            n_images_update = n_images_update_result.stack()
 
             tp_update = tf.transpose(tp_update, perm=[1, 0, 2, 3])
             fp_update = tf.transpose(fp_update, perm=[1, 0, 2, 3])
-            
+
             self.true_positives.assign_add(tp_update)
             self.false_positives.assign_add(fp_update)
+            self.ground_truth_boxes.assign_add(n_images_update)
+            # shape=(k, a),
 
-            # tp_update = tf.transpose(tp_update, perm=[])
-            # fp_update = tf.transpose(fp_update, perm=[])
         # next, for each image we compute:
         # - dtIgnore: [imgId, catId, areaRange] => mask
         # - gtIgnore: [imgId, catId, areaRange] => mask

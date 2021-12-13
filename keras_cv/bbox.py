@@ -1,4 +1,7 @@
-"""Shared constants for use with bounding boxes."""
+"""Shared utility functions for working with bounding boxes."""
+
+import tensorflow as tf
+
 # These are the dimensions used in Tensors to represent each corresponding side.
 LEFT, TOP, RIGHT, BOTTOM = 0, 1, 2, 3
 
@@ -16,8 +19,8 @@ def convert_corners_to_xywh(bboxes):
     """Converts bboxes in corners format to xywh format."""
     return tf.concat(
         [
-            (bboxes[..., :2] + bboxes[..., 2:]) / 2.0,
-            bboxes[..., 2:] - bboxes[..., :2],
+            (bboxes[..., :2] + bboxes[..., 2:4]) / 2.0,
+            bboxes[..., 2:4] - bboxes[..., :2],
             bboxes[..., 4:],
         ],
         axis=-1,
@@ -28,8 +31,8 @@ def xywh_to_corners(bboxes):
     """Converts bboxes in xywh format to corners format."""
     return tf.concat(
         [
-            bboxes[..., :2] - bboxes[..., 2:] / 2.0,
-            bboxes[..., :2] + bboxes[..., 2:] / 2.0,
+            bboxes[..., :2] - bboxes[..., 2:4] / 2.0,
+            bboxes[..., :2] + bboxes[..., 2:4] / 2.0,
             bboxes[..., 4:],
         ],
         axis=-1,
