@@ -18,7 +18,7 @@ class COCOBase(keras.metrics.Metric):
     Internally the COCOBase class tracks the following values:
     - TruePositives: tf.Tensor with shape [TxKxAxM] precision for every evaluation setting.
     - FalsePositives: tf.Tensor with shape [TxKxAxM] precision for every evaluation setting.
-    - GroundTruthBoxes: tf.Tensor with shape [KxAxM] max recall for every evaluation setting.
+    - GroundTruthBoxes: tf.Tensor with shape [KxA] max recall for every evaluation setting.
     """
 
     def __init__(
@@ -75,7 +75,10 @@ class COCOBase(keras.metrics.Metric):
         )
         self.ground_truth_boxes = self.add_weight(
             name="ground_truth_boxes",
-            shape=(k, a,),
+            shape=(
+                k,
+                a,
+            ),
             dtype=tf.float32,
             initializer=initializers.Zeros(),
         )
@@ -234,12 +237,14 @@ class COCOBase(keras.metrics.Metric):
                     tf.float32, size=m, dynamic_size=False
                 )
                 for m_i in tf.range(m):
-
-                    # max_dets only applies to predictions
                     max_dets = self.max_detections[m_i]
                     mdt_slice = tf.math.minimum(tf.shape(false_positives)[1], max_dets)
-                    false_positives_sum = tf.math.reduce_sum(false_positives[:, :mdt_slice], axis=-1)
-                    true_positives_sum = tf.math.reduce_sum(true_positives[:, :mdt_slice], axis=-1)
+                    false_positives_sum = tf.math.reduce_sum(
+                        false_positives[:, :mdt_slice], axis=-1
+                    )
+                    true_positives_sum = tf.math.reduce_sum(
+                        true_positives[:, :mdt_slice], axis=-1
+                    )
 
                     m_true_positives_result = m_true_positives_result.write(
                         m_i, true_positives_sum

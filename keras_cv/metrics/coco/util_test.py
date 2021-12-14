@@ -31,7 +31,7 @@ class UtilTest(tf.test.TestCase):
         box_set1 = tf.stack([_dummy_bbox(), _dummy_bbox()])
         box_set2 = tf.stack([_dummy_bbox()])
         boxes = [box_set1, box_set2]
-        bbox_tensor = util.test_to_sentinel_padded_bbox_tensor(boxes)
+        bbox_tensor = util.to_sentinel_padded_bbox_tensor(boxes)
         self.assertAllClose(
             bbox_tensor[1, 1],
             -tf.ones(
@@ -50,7 +50,7 @@ class UtilTest(tf.test.TestCase):
         box_set1 = tf.stack([_dummy_bbox(), _dummy_bbox()])
         box_set2 = tf.stack([_dummy_bbox()])
         boxes = [box_set1, box_set2]
-        bbox_tensor = util.test_to_sentinel_padded_bbox_tensor(boxes)
+        bbox_tensor = util.to_sentinel_padded_bbox_tensor(boxes)
 
         self.assertAllClose(util.filter_out_sentinels(bbox_tensor[0]), box_set1)
         self.assertAllClose(util.filter_out_sentinels(bbox_tensor[1]), box_set2)
