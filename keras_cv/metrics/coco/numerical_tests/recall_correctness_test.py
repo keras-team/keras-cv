@@ -41,17 +41,52 @@ class RecallCorrectnesstTest(tf.test.TestCase):
 
         recall.update_state(y_true, y_pred)
         recall = recall.result().numpy()
-        
+
         # TODO(lukewood): re-enable
         # self.assertAlmostEqual(recall, 0.504)
         # recall_metric = #
 
-    def test_recall_075_single_image(self):
+    def test_recall_max_dets_1_single_image(self):
+        """
+        cocoeval.py outputs:
+            Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=  1 ] = 0.675
+            Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets= 10 ] = 0.675
+            Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.675
+        """
         y_true, y_pred, categories = load_samples(SINGLE_BOX_SAMPLE_FILE)
 
         # Area range all
         recall = COCORecall(
-            iou_thresholds=[0.75],
+            category_ids=categories,
+            max_detections=[1],
+            area_ranges=[(0, 1e5 ** 2)],
+        )
+
+        recall.update_state(y_true, y_pred)
+        recall = recall.result().numpy()
+
+        self.assertAlmostEqual(recall, 0.675)
+
+    def test_recall_max_dets_10_single_image(self):
+        y_true, y_pred, categories = load_samples(SINGLE_BOX_SAMPLE_FILE)
+
+        # Area range all
+        recall = COCORecall(
+            category_ids=categories,
+            max_detections=[10],
+            area_ranges=[(0, 1e5 ** 2)],
+        )
+
+        recall.update_state(y_true, y_pred)
+        recall = recall.result().numpy()
+
+        self.assertAlmostEqual(recall, 0.675)
+
+    def test_recall_max_dets_100_single_image(self):
+        y_true, y_pred, categories = load_samples(SINGLE_BOX_SAMPLE_FILE)
+
+        # Area range all
+        recall = COCORecall(
             category_ids=categories,
             max_detections=[100],
             area_ranges=[(0, 1e5 ** 2)],
@@ -60,35 +95,58 @@ class RecallCorrectnesstTest(tf.test.TestCase):
         recall.update_state(y_true, y_pred)
         recall = recall.result().numpy()
 
-        self.assertAlmostEqual(recall, 0.750)
+        self.assertAlmostEqual(recall, 0.675)
 
-    def test_recall_correctness_single_image(self):
+    def test_recall_small_objects(self):
         """
         cocoeval.py outputs:
-        Average Precision  (AP) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.675
-        Average Precision  (AP) @[ IoU=0.50      | area=   all | maxDets=100 ] = 1.000
-        Average Precision  (AP) @[ IoU=0.75      | area=   all | maxDets=100 ] = 0.750
-        Average Precision  (AP) @[ IoU=0.50:0.95 | area= small | maxDets=100 ] = 0.600
-        Average Precision  (AP) @[ IoU=0.50:0.95 | area=medium | maxDets=100 ] = 0.800
-        Average Precision  (AP) @[ IoU=0.50:0.95 | area= large | maxDets=100 ] = 0.500
-        Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=  1 ] = 0.675
-        Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets= 10 ] = 0.675
-        Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.675
-        Average Recall     (AR) @[ IoU=0.50:0.95 | area= small | maxDets=100 ] = 0.600
-        Average Recall     (AR) @[ IoU=0.50:0.95 | area=medium | maxDets=100 ] = 0.800
-        Average Recall     (AR) @[ IoU=0.50:0.95 | area= large | maxDets=100 ] = 0.500
+            Average Recall     (AR) @[ IoU=0.50:0.95 | area= small | maxDets=100 ] = 0.600
+            Average Recall     (AR) @[ IoU=0.50:0.95 | area=medium | maxDets=100 ] = 0.800
+            Average Recall     (AR) @[ IoU=0.50:0.95 | area= large | maxDets=100 ] = 0.500
         """
         y_true, y_pred, categories = load_samples(SINGLE_BOX_SAMPLE_FILE)
 
         # Area range all
         recall = COCORecall(
-            category_ids=categories, max_detections=[100], area_ranges=[(0, 1e5 ** 2)]
+            category_ids=categories,
+            max_detections=[100],
+            area_ranges=[(0 ** 2, 32 ** 2)],
         )
 
         recall.update_state(y_true, y_pred)
         recall = recall.result().numpy()
 
-        self.assertAlmostEqual(recall, 0.675)
+        self.assertAlmostEqual(recall, 0.600)
+
+    def test_recall_medium_objects(self):
+        y_true, y_pred, categories = load_samples(SINGLE_BOX_SAMPLE_FILE)
+
+        # Area range all
+        recall = COCORecall(
+            category_ids=categories,
+            max_detections=[100],
+            area_ranges=[(32 ** 2, 96 ** 2)],
+        )
+
+        recall.update_state(y_true, y_pred)
+        recall = recall.result().numpy()
+
+        self.assertAlmostEqual(recall, 0.800)
+
+    def test_recall_large_objects(self):
+        y_true, y_pred, categories = load_samples(SINGLE_BOX_SAMPLE_FILE)
+
+        # Area range all
+        recall = COCORecall(
+            category_ids=categories,
+            max_detections=[100],
+            area_ranges=[(96 ** 2, 1e5 ** 2)],
+        )
+
+        recall.update_state(y_true, y_pred)
+        recall = recall.result().numpy()
+
+        self.assertAlmostEqual(recall, 0.500)
 
 
 def load_samples(fname):
