@@ -4,7 +4,7 @@ are loaded, then are passed through the preprocessing layers.
 Finally, they are shown using matplotlib.
 """
 import tensorflow as tf
-from keras_cv.layers.preprocessing.mix_up import MixUp
+from keras_cv.layers.preprocessing.random_mix_up import RandomMixUp
 import tensorflow_datasets as tfds
 import matplotlib.pyplot as plt
 
@@ -30,8 +30,8 @@ def main():
     train_ds = (
         train_ds.map(resize).shuffle(10 * BATCH).batch(BATCH, drop_remainder=True)
     )
-    mixup = MixUp(num_classes=num_classes)
-    train_ds = train_ds.map(lambda x, y: mixup((x, y)), num_parallel_calls=AUTOTUNE)
+    mixup = RandomMixUp(num_classes=num_classes)
+    train_ds = train_ds.map(mixup, num_parallel_calls=AUTOTUNE)
 
     for images, labels in train_ds.take(1):
         plt.figure(figsize=(8, 8))

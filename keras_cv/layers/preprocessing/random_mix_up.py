@@ -3,7 +3,7 @@ import tensorflow.keras as keras
 from tensorflow.keras import layers
 
 
-class MixUp(layers.Layer):
+class RandomMixUp(layers.Layer):
     def __init__(
         self,
         alpha=0.8,
@@ -12,7 +12,7 @@ class MixUp(layers.Layer):
         label_smoothing=0.1,
         **kwargs
     ):
-        super(MixUp, self).__init__(*kwargs)
+        super(RandomMixUp, self).__init__(*kwargs)
         if num_classes is None:
             raise ValueError(
                 "num_classes is required.  Got MixUp.__init__(num_classes=None)"
@@ -28,9 +28,7 @@ class MixUp(layers.Layer):
         sample_beta = tf.random.gamma(shape, 1.0, beta=beta)
         return sample_alpha / (sample_alpha + sample_beta)
 
-    def call(self, samples):
-        images, labels = samples
-
+    def call(self, images, labels):
         augment_cond = tf.less(
             tf.random.uniform(shape=[], minval=0.0, maxval=1.0), self.probability
         )
