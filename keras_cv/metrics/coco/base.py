@@ -90,6 +90,12 @@ class COCOBase(keras.metrics.Metric):
         self.ground_truth_boxes.assign(tf.zeros_like(self.ground_truth_boxes))
 
     def update_state(self, y_true, y_pred, sample_weight=None):
+        """
+        Args:
+            y_true: a bounding box Tensor in corners format.
+            y_pred: a bounding box Tensor in corners format.
+            sample_weight: Currently unsupported.
+        """
         if sample_weight:
             raise NotImplementedError(
                 "sample_weight is not yet supported in keras_cv COCO metrics."
@@ -190,6 +196,10 @@ class COCOBase(keras.metrics.Metric):
                         infer_shape=False,
                         element_shape=(),
                     )
+                    for i in tf.range(n_true):
+                        gt_matches = gt_matches.write(i, -1)
+                    for i in tf.range(n_pred):
+                        pred_matches = pred_matches.write(i, -1)
 
                     for detection_idx in tf.range(n_pred):
 
@@ -199,14 +209,14 @@ class COCOBase(keras.metrics.Metric):
                         iou = tf.math.minimum(threshold, 1 - 1e-10)
 
                         for gt_idx in tf.range(n_true):
-                            if gt_matches.gather([gt_idx]) > 0:
+                            if gt_matches.gather([gt_idx]) > -1:
                                 continue
                             # TODO(lukewood): update clause to account for gtIg
                             # if m > -1 and gtIg[m] == 0 and gtIg[gind] == 1:
 
-                            if not ious[detection_idx, gt_idx] >= threshold:
+                            if not ious[gt_idx, detection_idx] >= threshold:
                                 continue
-                            iou = ious[detection_idx, gt_idx]
+                            iou = ious[gt_idx, detection_idx]
                             m = gt_idx
 
                         # Write back the match indices
@@ -214,7 +224,7 @@ class COCOBase(keras.metrics.Metric):
                         if m == -1:
                             continue
                         gt_matches = gt_matches.write(m, detection_idx)
-
+                    
                     gt_matches_outer = gt_matches_outer.write(tind, gt_matches.stack())
                     pred_matches_outer = pred_matches_outer.write(
                         tind, pred_matches.stack()
@@ -236,6 +246,7 @@ class COCOBase(keras.metrics.Metric):
                 m_n_true_boxes_result = tf.TensorArray(
                     tf.float32, size=m, dynamic_size=False
                 )
+
                 for m_i in tf.range(m):
                     max_dets = self.max_detections[m_i]
                     mdt_slice = tf.math.minimum(tf.shape(false_positives)[1], max_dets)
@@ -263,7 +274,7 @@ class COCOBase(keras.metrics.Metric):
                 # TODO(lukewood): support area ranges
                 # Currently I'm just simulating the a result as it's not supported in this implementation
                 tp_a_result = tp_a_result.write(a_i, m_true_positives_result)
-                fp_a_result = fp_a_result.write(a_i, m_true_positives_result)
+                fp_a_result = fp_a_result.write(a_i, m_false_positives_result)
                 gt_n_boxes_a_result = gt_n_boxes_a_result.write(
                     a_i, tf.cast(n_true, tf.float32)
                 )

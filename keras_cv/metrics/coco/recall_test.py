@@ -21,7 +21,7 @@ class COCORecallTest(tf.test.TestCase):
 
         self.assertEqual(recall.result(), 0.5)
 
-    def test_max_detections(self):
+    def test_max_detections_one_third(self):
         recall = COCORecall(
             max_detections=[1], category_ids=[1], area_ranges=[(0, 1e9 ** 2)]
         )
