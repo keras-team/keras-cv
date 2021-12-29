@@ -31,7 +31,7 @@ setup(
             "isort",
             "black",
         ],
-        "examples": ["tensorflow_datasets"],
+        "examples": ["tensorflow_datasets", "matplotlib"],
     },
     classifiers=[
         "Programming Language :: Python",
