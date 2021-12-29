@@ -25,7 +25,14 @@ setup(
     author_email="keras-cv@google.com",
     license="Apache License 2.0",
     install_requires=["packaging", "tensorflow"],
-    extras_require={"tests": ["flake8", "isort", "black",],},
+    extras_require={
+        "tests": [
+            "flake8",
+            "isort",
+            "black",
+        ],
+        "examples": ["tensorflow_datasets", "matplotlib"],
+    },
     classifiers=[
         "Programming Language :: Python",
         "Programming Language :: Python :: 3.7",
