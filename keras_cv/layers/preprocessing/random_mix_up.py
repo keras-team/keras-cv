@@ -38,7 +38,7 @@ class RandomMixUp(layers.Layer):
         return tf.cond(augment_cond, augment_a, no_augment)
 
     def _mixup(self, images, labels):
-        lam = MixUp._sample_from_beta(self.alpha, self.alpha, labels.shape)
+        lam = RandomMixUp._sample_from_beta(self.alpha, self.alpha, labels.shape)
         lam = tf.reshape(lam, [-1, 1, 1, 1])
         images = lam * images + (1.0 - lam) * tf.reverse(images, [0])
 
@@ -54,8 +54,9 @@ class RandomMixUp(layers.Layer):
         return images, labels
 
     def _smooth_labels(self, labels):
-        off_value = self.label_smoothing / self.num_classes
-        on_value = 1.0 - self.label_smoothing + off_value
+        label_smoothing = self.label_smoothing or 0.0
+        off_value = label_smoothing / self.num_classes
+        on_value = 1.0 - label_smoothing + off_value
 
         smooth_labels = tf.one_hot(
             labels, self.num_classes, on_value=on_value, off_value=off_value
