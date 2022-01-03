@@ -137,8 +137,6 @@ class COCOBase(keras.metrics.Metric):
                 tf.float32, size=k, dynamic_size=False
             )
 
-            a_i = 0  # TODO(lukewood): use area ranges
-
             for category_idx in tf.range(k):
                 category = self.category_ids[category_idx]
                 # filter_boxes automatically filters out categories set to -1
@@ -171,127 +169,128 @@ class COCOBase(keras.metrics.Metric):
                     size=t,
                     dynamic_size=False,
                 )
-
-                tp_a_result = tf.TensorArray(tf.float32, size=a, dynamic_size=False)
-                fp_a_result = tf.TensorArray(tf.float32, size=a, dynamic_size=False)
-                gt_n_boxes_a_result = tf.TensorArray(
-                    tf.float32, size=a, dynamic_size=False
-                )
-
-                # TODO(lukewood): account for area ranges
-                for tind in range(t):
-                    threshold = self.iou_thresholds[tind]
-
-                    gt_matches = tf.TensorArray(
-                        tf.int32,
-                        size=n_true,
-                        dynamic_size=False,
-                        infer_shape=False,
-                        element_shape=(),
+                
+                for a_i in tf.range(a):
+                    tp_a_result = tf.TensorArray(tf.float32, size=a, dynamic_size=False)
+                    fp_a_result = tf.TensorArray(tf.float32, size=a, dynamic_size=False)
+                    gt_n_boxes_a_result = tf.TensorArray(
+                        tf.float32, size=a, dynamic_size=False
                     )
-                    pred_matches = tf.TensorArray(
-                        tf.int32,
-                        size=n_pred,
-                        dynamic_size=False,
-                        infer_shape=False,
-                        element_shape=(),
-                    )
-                    for i in tf.range(n_true):
-                        gt_matches = gt_matches.write(i, -1)
-                    for i in tf.range(n_pred):
-                        pred_matches = pred_matches.write(i, -1)
 
-                    for detection_idx in tf.range(n_pred):
+                    # TODO(lukewood): account for area ranges
+                    for tind in range(t):
+                        threshold = self.iou_thresholds[tind]
 
-                        # initialize the match index to -1
-                        # "iou to beat" is set to threshold
-                        m = -1
-                        iou = tf.math.minimum(threshold, 1 - 1e-10)
+                        gt_matches = tf.TensorArray(
+                            tf.int32,
+                            size=n_true,
+                            dynamic_size=False,
+                            infer_shape=False,
+                            element_shape=(),
+                        )
+                        pred_matches = tf.TensorArray(
+                            tf.int32,
+                            size=n_pred,
+                            dynamic_size=False,
+                            infer_shape=False,
+                            element_shape=(),
+                        )
+                        for i in tf.range(n_true):
+                            gt_matches = gt_matches.write(i, -1)
+                        for i in tf.range(n_pred):
+                            pred_matches = pred_matches.write(i, -1)
 
-                        for gt_idx in tf.range(n_true):
-                            if gt_matches.gather([gt_idx]) > -1:
+                        for detection_idx in tf.range(n_pred):
+
+                            # initialize the match index to -1
+                            # "iou to beat" is set to threshold
+                            m = -1
+                            iou = tf.math.minimum(threshold, 1 - 1e-10)
+
+                            for gt_idx in tf.range(n_true):
+                                if gt_matches.gather([gt_idx]) > -1:
+                                    continue
+                                # TODO(lukewood): update clause to account for gtIg
+                                # if m > -1 and gtIg[m] == 0 and gtIg[gind] == 1:
+
+                                if not ious[gt_idx, detection_idx] >= threshold:
+                                    continue
+                                iou = ious[gt_idx, detection_idx]
+                                m = gt_idx
+
+                            # Write back the match indices
+                            pred_matches = pred_matches.write(detection_idx, m)
+                            if m == -1:
                                 continue
-                            # TODO(lukewood): update clause to account for gtIg
-                            # if m > -1 and gtIg[m] == 0 and gtIg[gind] == 1:
+                            gt_matches = gt_matches.write(m, detection_idx)
+                        
+                        gt_matches_outer = gt_matches_outer.write(tind, gt_matches.stack())
+                        pred_matches_outer = pred_matches_outer.write(
+                            tind, pred_matches.stack()
+                        )
+                    pred_matches = pred_matches_outer.stack()
+                    gt_matches = gt_matches_outer.stack()
 
-                            if not ious[gt_idx, detection_idx] >= threshold:
-                                continue
-                            iou = ious[gt_idx, detection_idx]
-                            m = gt_idx
+                    true_positives = tf.cast(pred_matches != -1, tf.float32)
+                    false_positives = tf.cast(pred_matches == -1, tf.float32)
 
-                        # Write back the match indices
-                        pred_matches = pred_matches.write(detection_idx, m)
-                        if m == -1:
-                            continue
-                        gt_matches = gt_matches.write(m, detection_idx)
-                    
-                    gt_matches_outer = gt_matches_outer.write(tind, gt_matches.stack())
-                    pred_matches_outer = pred_matches_outer.write(
-                        tind, pred_matches.stack()
+                    m = tf.shape(self.max_detections)[0]
+
+                    m_true_positives_result = tf.TensorArray(
+                        tf.float32, size=m, dynamic_size=False
                     )
-                pred_matches = pred_matches_outer.stack()
-                gt_matches = gt_matches_outer.stack()
-
-                true_positives = tf.cast(pred_matches != -1, tf.float32)
-                false_positives = tf.cast(pred_matches == -1, tf.float32)
-
-                m = tf.shape(self.max_detections)[0]
-
-                m_true_positives_result = tf.TensorArray(
-                    tf.float32, size=m, dynamic_size=False
-                )
-                m_false_positives_result = tf.TensorArray(
-                    tf.float32, size=m, dynamic_size=False
-                )
-                m_n_true_boxes_result = tf.TensorArray(
-                    tf.float32, size=m, dynamic_size=False
-                )
-
-                for m_i in tf.range(m):
-                    max_dets = self.max_detections[m_i]
-                    mdt_slice = tf.math.minimum(tf.shape(false_positives)[1], max_dets)
-                    false_positives_sum = tf.math.reduce_sum(
-                        false_positives[:, :mdt_slice], axis=-1
+                    m_false_positives_result = tf.TensorArray(
+                        tf.float32, size=m, dynamic_size=False
                     )
-                    true_positives_sum = tf.math.reduce_sum(
-                        true_positives[:, :mdt_slice], axis=-1
+                    m_n_true_boxes_result = tf.TensorArray(
+                        tf.float32, size=m, dynamic_size=False
                     )
 
-                    m_true_positives_result = m_true_positives_result.write(
-                        m_i, true_positives_sum
+                    for m_i in tf.range(m):
+                        max_dets = self.max_detections[m_i]
+                        mdt_slice = tf.math.minimum(tf.shape(false_positives)[1], max_dets)
+                        false_positives_sum = tf.math.reduce_sum(
+                            false_positives[:, :mdt_slice], axis=-1
+                        )
+                        true_positives_sum = tf.math.reduce_sum(
+                            true_positives[:, :mdt_slice], axis=-1
+                        )
+
+                        m_true_positives_result = m_true_positives_result.write(
+                            m_i, true_positives_sum
+                        )
+                        m_false_positives_result = m_false_positives_result.write(
+                            m_i, false_positives_sum
+                        )
+
+                    m_true_positives_result = tf.transpose(
+                        m_true_positives_result.stack(), perm=[1, 0]
                     )
-                    m_false_positives_result = m_false_positives_result.write(
-                        m_i, false_positives_sum
+                    m_false_positives_result = tf.transpose(
+                        m_false_positives_result.stack(), perm=[1, 0]
                     )
 
-                m_true_positives_result = tf.transpose(
-                    m_true_positives_result.stack(), perm=[1, 0]
-                )
-                m_false_positives_result = tf.transpose(
-                    m_false_positives_result.stack(), perm=[1, 0]
-                )
+                    # TODO(lukewood): support area ranges
+                    # Currently I'm just simulating the a result as it's not supported in this implementation
+                    tp_a_result = tp_a_result.write(a_i, m_true_positives_result)
+                    fp_a_result = fp_a_result.write(a_i, m_false_positives_result)
+                    gt_n_boxes_a_result = gt_n_boxes_a_result.write(
+                        a_i, tf.cast(n_true, tf.float32)
+                    )
 
-                # TODO(lukewood): support area ranges
-                # Currently I'm just simulating the a result as it's not supported in this implementation
-                tp_a_result = tp_a_result.write(a_i, m_true_positives_result)
-                fp_a_result = fp_a_result.write(a_i, m_false_positives_result)
-                gt_n_boxes_a_result = gt_n_boxes_a_result.write(
-                    a_i, tf.cast(n_true, tf.float32)
-                )
+                    tp_a_result = tf.transpose(tp_a_result.stack(), perm=[1, 0, 2])
+                    fp_a_result = tf.transpose(fp_a_result.stack(), perm=[1, 0, 2])
+                    gt_n_boxes_a_result = gt_n_boxes_a_result.stack()
 
-                tp_a_result = tf.transpose(tp_a_result.stack(), perm=[1, 0, 2])
-                fp_a_result = tf.transpose(fp_a_result.stack(), perm=[1, 0, 2])
-                gt_n_boxes_a_result = gt_n_boxes_a_result.stack()
-
-                true_positives_update_result = true_positives_update_result.write(
-                    category_idx, tp_a_result
-                )
-                false_positives_update_result = false_positives_update_result.write(
-                    category_idx, fp_a_result
-                )
-                n_images_update_result = n_images_update_result.write(
-                    category_idx, gt_n_boxes_a_result
-                )
+                    true_positives_update_result = true_positives_update_result.write(
+                        category_idx, tp_a_result
+                    )
+                    false_positives_update_result = false_positives_update_result.write(
+                        category_idx, fp_a_result
+                    )
+                    n_images_update_result = n_images_update_result.write(
+                        category_idx, gt_n_boxes_a_result
+                    )
 
             tp_update = true_positives_update_result.stack()
             fp_update = false_positives_update_result.stack()
