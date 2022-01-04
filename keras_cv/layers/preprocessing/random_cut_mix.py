@@ -19,8 +19,7 @@ class RandomCutMix(layers.Layer):
         sample_beta = tf.random.gamma(shape, 1.0, beta=beta)
         return sample_alpha / (sample_alpha + sample_beta)
 
-    def call(self, inputs):
-        images, labels = inputs
+    def call(self, images, labels):
         augment_cond = tf.less(
             tf.random.uniform(shape=[], minval=0.0, maxval=1.0), self.probability
         )
@@ -30,6 +29,7 @@ class RandomCutMix(layers.Layer):
         return tf.cond(augment_cond, augment_a, no_augment)
 
     def _cutmix(self, images, labels):
+        """Apply cutmix."""
         lam = RandomCutMix._sample_from_beta(
             self.alpha, self.alpha, labels.shape
         )
