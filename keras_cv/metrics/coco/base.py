@@ -234,11 +234,22 @@ class COCOBase(keras.metrics.Metric):
                         )
                     pred_matches = pred_matches_outer.stack()
                     gt_matches = gt_matches_outer.stack()
+                    
+                    tf.print(dt_ignore)
+                    dt_ignore = tf.expand_dims(dt_ignore, axis=1)
+                    gt_ignore = tf.expand_dims(gt_ignore, axis=1)
+                    dt_ignore = tf.repeat(dt_ignore, tf.shape(pred_matches)[0], axis=0)
+                    gt_ignore = tf.repeat(gt_ignore, tf.shape(gt_matches)[0], axis=0)
 
+                    tf.print(dt_ignore)
                     tf.print(pred_matches)
-                    tf.print(tf.repeat(dt_ignore, tf.shape(pred_matches)[0]))
-                    pred_matches = tf.gather(pred_matches, tf.where(not dt_ignore))
-                    gt_matches = tf.gather_nd(gt_matches, tf.where(not gt_ignore))
+
+                    tf.debugging.Assert(False)
+                    # pred_matches = tf.gather(pred_matches, tf.where(not dt_ignore))
+                    # gt_matches = tf.gather(gt_matches, tf.where(not gt_ignore))
+                    # pred_matches = pred_matches[tf.where(not dt_ignore)]
+                    # gt_matches = gt_matches[tf.where(not gt_ignore)]
+
 
                     true_positives = tf.cast(pred_matches != -1, tf.float32)
                     false_positives = tf.cast(pred_matches == -1, tf.float32)
