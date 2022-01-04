@@ -49,7 +49,7 @@ class COCOBase(keras.metrics.Metric):
             "area_ranges",
             area_ranges or [],
             shape=(len(area_ranges), 2),
-            dtype=tf.int32,
+            dtype=tf.float32,
         )
         self.max_detections = self._add_constant_weight(
             "max_detections", max_detections or [1, 10, 100], dtype=tf.int32
@@ -75,10 +75,7 @@ class COCOBase(keras.metrics.Metric):
         )
         self.ground_truth_boxes = self.add_weight(
             name="ground_truth_boxes",
-            shape=(
-                k,
-                a,
-            ),
+            shape=(k, a,),
             dtype=tf.float32,
             initializer=initializers.Zeros(),
         )
@@ -159,25 +156,27 @@ class COCOBase(keras.metrics.Metric):
                 ious = iou_lib.compute_ious_for_image(filtered_y_true, filtered_y_pred)
 
                 # TensorArray so we can regularly write back to the array
-                gt_matches_outer = tf.TensorArray(
-                    tf.int32,
-                    size=t,
-                    dynamic_size=False,
-                )
+                gt_matches_outer = tf.TensorArray(tf.int32, size=t, dynamic_size=False,)
                 pred_matches_outer = tf.TensorArray(
-                    tf.int32,
-                    size=t,
-                    dynamic_size=False,
+                    tf.int32, size=t, dynamic_size=False,
                 )
-                
+
+                gt_areas = util.bbox_area(filtered_y_true)
+                dt_areas = util.bbox_area(filtered_y_pred)
+
                 for a_i in tf.range(a):
+                    area_range = self.area_ranges[a_i]
+                    min_area = area_range[0]
+                    max_area = area_range[1]
+                    gt_ignore =not tf.logical_and(gt_areas >= min_area, gt_areas < max_area)
+                    dt_ignore = not tf.logical_and(dt_areas >= min_area, dt_areas < max_area)
+
                     tp_a_result = tf.TensorArray(tf.float32, size=a, dynamic_size=False)
                     fp_a_result = tf.TensorArray(tf.float32, size=a, dynamic_size=False)
                     gt_n_boxes_a_result = tf.TensorArray(
                         tf.float32, size=a, dynamic_size=False
                     )
 
-                    # TODO(lukewood): account for area ranges
                     for tind in range(t):
                         threshold = self.iou_thresholds[tind]
 
@@ -201,13 +200,16 @@ class COCOBase(keras.metrics.Metric):
                             pred_matches = pred_matches.write(i, -1)
 
                         for detection_idx in tf.range(n_pred):
-
+                            if dt_ignore[detection_idx]:
+                                continue
                             # initialize the match index to -1
                             # "iou to beat" is set to threshold
                             m = -1
                             iou = tf.math.minimum(threshold, 1 - 1e-10)
 
                             for gt_idx in tf.range(n_true):
+                                if gt_ignore[gt_idx]:
+                                    continue
                                 if gt_matches.gather([gt_idx]) > -1:
                                     continue
                                 # TODO(lukewood): update clause to account for gtIg
@@ -223,13 +225,20 @@ class COCOBase(keras.metrics.Metric):
                             if m == -1:
                                 continue
                             gt_matches = gt_matches.write(m, detection_idx)
-                        
-                        gt_matches_outer = gt_matches_outer.write(tind, gt_matches.stack())
+
+                        gt_matches_outer = gt_matches_outer.write(
+                            tind, gt_matches.stack()
+                        )
                         pred_matches_outer = pred_matches_outer.write(
                             tind, pred_matches.stack()
                         )
                     pred_matches = pred_matches_outer.stack()
                     gt_matches = gt_matches_outer.stack()
+
+                    tf.print(pred_matches)
+                    tf.print(tf.repeat(dt_ignore, tf.shape(pred_matches)[0]))
+                    pred_matches = tf.gather(pred_matches, tf.where(not dt_ignore))
+                    gt_matches = tf.gather_nd(gt_matches, tf.where(not gt_ignore))
 
                     true_positives = tf.cast(pred_matches != -1, tf.float32)
                     false_positives = tf.cast(pred_matches == -1, tf.float32)
@@ -248,10 +257,14 @@ class COCOBase(keras.metrics.Metric):
 
                     for m_i in tf.range(m):
                         max_dets = self.max_detections[m_i]
-                        mdt_slice = tf.math.minimum(tf.shape(false_positives)[1], max_dets)
+                        mdt_slice = tf.math.minimum(
+                            tf.shape(false_positives)[1], max_dets
+                        )
+
                         false_positives_sum = tf.math.reduce_sum(
                             false_positives[:, :mdt_slice], axis=-1
                         )
+
                         true_positives_sum = tf.math.reduce_sum(
                             true_positives[:, :mdt_slice], axis=-1
                         )
@@ -270,8 +283,6 @@ class COCOBase(keras.metrics.Metric):
                         m_false_positives_result.stack(), perm=[1, 0]
                     )
 
-                    # TODO(lukewood): support area ranges
-                    # Currently I'm just simulating the a result as it's not supported in this implementation
                     tp_a_result = tp_a_result.write(a_i, m_true_positives_result)
                     fp_a_result = fp_a_result.write(a_i, m_false_positives_result)
                     gt_n_boxes_a_result = gt_n_boxes_a_result.write(

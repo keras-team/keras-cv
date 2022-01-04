@@ -13,7 +13,6 @@ def bbox_area(boxes):
     """
     w = boxes[..., bbox.RIGHT] - boxes[..., bbox.LEFT]
     h = boxes[..., bbox.BOTTOM] - boxes[..., bbox.TOP]
-    print(w.shape, h.shape)
     return tf.math.multiply(w, h)
 
 
