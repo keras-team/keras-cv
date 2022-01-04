@@ -168,7 +168,7 @@ class COCOBase(keras.metrics.Metric):
                     area_range = self.area_ranges[a_i]
                     min_area = area_range[0]
                     max_area = area_range[1]
-                    gt_ignore =not tf.logical_and(gt_areas >= min_area, gt_areas < max_area)
+                    gt_ignore = not tf.logical_and(gt_areas >= min_area, gt_areas < max_area)
                     dt_ignore = not tf.logical_and(dt_areas >= min_area, dt_areas < max_area)
 
                     tp_a_result = tf.TensorArray(tf.float32, size=a, dynamic_size=False)
@@ -235,22 +235,6 @@ class COCOBase(keras.metrics.Metric):
                     pred_matches = pred_matches_outer.stack()
                     gt_matches = gt_matches_outer.stack()
                     
-                    tf.print(dt_ignore)
-                    dt_ignore = tf.expand_dims(dt_ignore, axis=1)
-                    gt_ignore = tf.expand_dims(gt_ignore, axis=1)
-                    dt_ignore = tf.repeat(dt_ignore, tf.shape(pred_matches)[0], axis=0)
-                    gt_ignore = tf.repeat(gt_ignore, tf.shape(gt_matches)[0], axis=0)
-
-                    tf.print(dt_ignore)
-                    tf.print(pred_matches)
-
-                    tf.debugging.Assert(False)
-                    # pred_matches = tf.gather(pred_matches, tf.where(not dt_ignore))
-                    # gt_matches = tf.gather(gt_matches, tf.where(not gt_ignore))
-                    # pred_matches = pred_matches[tf.where(not dt_ignore)]
-                    # gt_matches = gt_matches[tf.where(not gt_ignore)]
-
-
                     true_positives = tf.cast(pred_matches != -1, tf.float32)
                     false_positives = tf.cast(pred_matches == -1, tf.float32)
 
@@ -276,6 +260,9 @@ class COCOBase(keras.metrics.Metric):
                             false_positives[:, :mdt_slice], axis=-1
                         )
 
+                        mdt_slice = tf.math.minimum(
+                            tf.shape(true_positives)[1], max_dets
+                        )
                         true_positives_sum = tf.math.reduce_sum(
                             true_positives[:, :mdt_slice], axis=-1
                         )
@@ -297,7 +284,7 @@ class COCOBase(keras.metrics.Metric):
                     tp_a_result = tp_a_result.write(a_i, m_true_positives_result)
                     fp_a_result = fp_a_result.write(a_i, m_false_positives_result)
                     gt_n_boxes_a_result = gt_n_boxes_a_result.write(
-                        a_i, tf.cast(n_true, tf.float32)
+                        a_i, tf.math.reduce_sum(tf.cast(not gt_ignore, tf.float32))
                     )
 
                     tp_a_result = tf.transpose(tp_a_result.stack(), perm=[1, 0, 2])
