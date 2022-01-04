@@ -9,7 +9,7 @@ class RandomMixUpTest(tf.test.TestCase):
         ys = tf.squeeze(ys, axis=0)
 
         layer = RandomMixUp(num_classes=2, probability=1.0) 
-        xs, ys = layer(xs, ys)
+        xs, ys = layer((xs, ys))
         
         self.assertEqual(xs.shape, [2, 512, 512, 3])
         # one hot smoothed labels

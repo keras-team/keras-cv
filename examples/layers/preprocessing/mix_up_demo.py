@@ -31,7 +31,7 @@ def main():
         train_ds.map(resize).shuffle(10 * BATCH).batch(BATCH, drop_remainder=True)
     )
     mixup = RandomMixUp(num_classes=num_classes)
-    train_ds = train_ds.map(mixup, num_parallel_calls=AUTOTUNE)
+    train_ds = train_ds.map(lambda x, y: mixup((x, y)), num_parallel_calls=AUTOTUNE)
 
     for images, labels in train_ds.take(1):
         plt.figure(figsize=(8, 8))
