@@ -128,7 +128,7 @@ class COCOBase(keras.metrics.Metric):
                     min_area = area_range[0]
                     max_area = area_range[1]
                     area_filtered_y_true = util.filter_boxes_by_area_range(category_filtered_y_true, min_area, max_area)
-                    area_filtered_y_pred = util.filter_boxes_by_area_range(category_filtered_y_pred, min_area, max_area)
+                    area_filtered_y_pred =category_filtered_y_pred # area_filtered_y_pred = util.filter_boxes_by_area_range(category_filtered_y_pred, min_area, max_area)
                     ious = iou_lib.compute_ious_for_image(area_filtered_y_true, area_filtered_y_pred)
 
                     ground_truth_boxes_update = tf.tensor_scatter_nd_add(ground_truth_boxes_update, [[k_i, a_i]], [tf.cast(tf.shape(area_filtered_y_true)[0], tf.float32)])

@@ -23,9 +23,13 @@ class COCORecall(COCOBase):
     def _single_result(self, a_i, m_i):
         # TODO(lukewood): do I need to mask out -1s???
         # TODO(lukewood): do I need to mask out NaNs?
+        present_values = self.ground_truth_boxes != 0
+
         recalls = tf.math.divide_no_nan(
+            # t, k, a, m
             self.true_positives[:, :, a_i, m_i],
-            self.ground_truth_boxes[None, :, a_i, None],
+            # k, a
+            self.ground_truth_boxes[None, :, a_i],
         )
 
         return tf.math.reduce_mean(recalls)

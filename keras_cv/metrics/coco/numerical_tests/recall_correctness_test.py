@@ -15,23 +15,24 @@ SINGLE_BOX_SAMPLE_FILE = (
 
 
 class RecallCorrectnesstTest(tf.test.TestCase):
-    def test_recall_correctness_maxdets_1(self):
-        """
-        cocoeval.py outputs:
+    """Unit tests that test Keras COCO metric results against the known good ones of cocoeval.py.
+    The bounding boxes in sample_boxes.npz were given to cocoeval.py which output the following values:
 
-         Average Precision  (AP) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.661
-         Average Precision  (AP) @[ IoU=0.50      | area=   all | maxDets=100 ] = 1.000
-         Average Precision  (AP) @[ IoU=0.75      | area=   all | maxDets=100 ] = 0.793
-         Average Precision  (AP) @[ IoU=0.50:0.95 | area= small | maxDets=100 ] = 0.651
-         Average Precision  (AP) @[ IoU=0.50:0.95 | area=medium | maxDets=100 ] = 0.676
-         Average Precision  (AP) @[ IoU=0.50:0.95 | area= large | maxDets=100 ] = 0.671
-         Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=  1 ] = 0.504
-         Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets= 10 ] = 0.686
-         Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.686
-         Average Recall     (AR) @[ IoU=0.50:0.95 | area= small | maxDets=100 ] = 0.674
-         Average Recall     (AR) @[ IoU=0.50:0.95 | area=medium | maxDets=100 ] = 0.681
-         Average Recall     (AR) @[ IoU=0.50:0.95 | area= large | maxDets=100 ] = 0.682
-        """
+        Average Precision  (AP) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.661
+        Average Precision  (AP) @[ IoU=0.50      | area=   all | maxDets=100 ] = 1.000
+        Average Precision  (AP) @[ IoU=0.75      | area=   all | maxDets=100 ] = 0.793
+        Average Precision  (AP) @[ IoU=0.50:0.95 | area= small | maxDets=100 ] = 0.651
+        Average Precision  (AP) @[ IoU=0.50:0.95 | area=medium | maxDets=100 ] = 0.676
+        Average Precision  (AP) @[ IoU=0.50:0.95 | area= large | maxDets=100 ] = 0.671
+        Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=  1 ] = 0.504
+        Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets= 10 ] = 0.686
+        Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.686
+        Average Recall     (AR) @[ IoU=0.50:0.95 | area= small | maxDets=100 ] = 0.674
+        Average Recall     (AR) @[ IoU=0.50:0.95 | area=medium | maxDets=100 ] = 0.681
+        Average Recall     (AR) @[ IoU=0.50:0.95 | area= large | maxDets=100 ] = 0.682
+    """
+    def test_recall_correctness_maxdets_1(self):
+
         y_true, y_pred, categories = load_samples(SAMPLE_FILE)
 
         # Area range all
@@ -43,8 +44,7 @@ class RecallCorrectnesstTest(tf.test.TestCase):
         recall = recall.result().numpy()
 
         # TODO(lukewood): re-enable
-        # self.assertAlmostEqual(recall, 0.504)
-        # recall_metric = #
+        self.assertAlmostEqual(recall, 0.504)
 
     def test_recall_max_dets_1_single_image(self):
         """
@@ -59,7 +59,7 @@ class RecallCorrectnesstTest(tf.test.TestCase):
         recall = COCORecall(
             category_ids=categories,
             max_detections=[1],
-            area_ranges=[(0, 1e5 ** 2)],
+            area_ranges=[(0, 1e9 ** 2)],
         )
 
         recall.update_state(y_true, y_pred)
@@ -74,7 +74,7 @@ class RecallCorrectnesstTest(tf.test.TestCase):
         recall = COCORecall(
             category_ids=categories,
             max_detections=[10],
-            area_ranges=[(0, 1e5 ** 2)],
+            area_ranges=[(0, 1e9 ** 2)],
         )
 
         recall.update_state(y_true, y_pred)
@@ -105,7 +105,6 @@ class RecallCorrectnesstTest(tf.test.TestCase):
             Average Recall     (AR) @[ IoU=0.50:0.95 | area= large | maxDets=100 ] = 0.500
         """
         y_true, y_pred, categories = load_samples(SINGLE_BOX_SAMPLE_FILE)
-
         # Area range all
         recall = COCORecall(
             category_ids=categories,
@@ -135,7 +134,7 @@ class RecallCorrectnesstTest(tf.test.TestCase):
 
     def test_recall_large_objects(self):
         y_true, y_pred, categories = load_samples(SINGLE_BOX_SAMPLE_FILE)
-
+    
         # Area range all
         recall = COCORecall(
             category_ids=categories,
