@@ -97,7 +97,6 @@ class COCOBase(keras.metrics.Metric):
             raise NotImplementedError(
                 "sample_weight is not yet supported in keras_cv COCO metrics."
             )
-
         num_images = y_true.shape[0]
 
         k = self.category_ids.shape[0]
@@ -105,246 +104,107 @@ class COCOBase(keras.metrics.Metric):
         a = self.area_ranges.shape[0]
         m = self.max_detections.shape[0]
 
-        # first, we prepare eval_imgs.  eval_imgs creates a lookup table from
-        # [image_id, category_id, area_ranges] => results
-        # this is equivalent to the step of `evaluate()` in cocoeval
-
-        # evaluate first computes ious for all images in a dictionary.  The dictionary maps
-        # from imgId, catId to iou scores.
-
-        # in our implementation we will iterate imgId and catId and store the ious in a lookup
-        # Tensor with the dimensions [image_id, category_id, bbox_true, bbox_pred] => iou
-
         # Sort by bbox.CONFIDENCE to make maxDetections easy to compute.
         y_pred = util.sort_bboxes(y_pred, axis=bbox.CONFIDENCE)
+        true_positives_update = tf.zeros((t, k, a, m), dtype=tf.float32)
+        false_positives_update = tf.zeros((t, k, a, m), dtype=tf.float32)
+        ground_truth_boxes_update = tf.zeros((k, a,), dtype=tf.float32)
 
         for img in tf.range(num_images):
-            # iou lookup table per category.
-            img_ious = tf.TensorArray(
-                tf.float32, size=k, dynamic_size=False, infer_shape=False
-            )
+            sentinel_filtered_y_true = util.filter_out_sentinels(y_true[img])
+            sentinel_filtered_y_pred = util.filter_out_sentinels(y_pred[img])
 
-            true_positives_update_result = tf.TensorArray(
-                tf.float32, size=k, dynamic_size=False
-            )
-            false_positives_update_result = tf.TensorArray(
-                tf.float32, size=k, dynamic_size=False
-            )
-            n_images_update_result = tf.TensorArray(
-                tf.float32, size=k, dynamic_size=False
-            )
-
-            for category_idx in tf.range(k):
-                category = self.category_ids[category_idx]
-                # filter_boxes automatically filters out categories set to -1
-                # this includes our sentinel boxes padded out.
-                filtered_y_true = util.filter_boxes(
-                    y_true[img], value=category, axis=bbox.CLASS
+            for k_i in tf.range(k):
+                category = self.category_ids[k_i]
+                category_filtered_y_true = util.filter_boxes(
+                    sentinel_filtered_y_true, value=category, axis=bbox.CLASS
                 )
-                filtered_y_true = util.filter_out_sentinels(filtered_y_true)
-
-                filtered_y_pred = util.filter_boxes(
-                    y_pred[img], value=category, axis=bbox.CLASS
+                category_filtered_y_pred = util.filter_boxes(
+                    sentinel_filtered_y_pred, value=category, axis=bbox.CLASS
                 )
-                filtered_y_pred = util.filter_out_sentinels(filtered_y_pred)
-
-                n_true = tf.shape(filtered_y_true)[0]
-                n_pred = tf.shape(filtered_y_pred)[0]
-
-                # TODO(lukewood): filter area ranges
-
-                ious = iou_lib.compute_ious_for_image(filtered_y_true, filtered_y_pred)
-
-                # TensorArray so we can regularly write back to the array
-                gt_matches_outer = tf.TensorArray(tf.int32, size=t, dynamic_size=False,)
-                pred_matches_outer = tf.TensorArray(
-                    tf.int32, size=t, dynamic_size=False,
-                )
-
-                gt_areas = util.bbox_area(filtered_y_true)
-                dt_areas = util.bbox_area(filtered_y_pred)
 
                 for a_i in tf.range(a):
                     area_range = self.area_ranges[a_i]
                     min_area = area_range[0]
                     max_area = area_range[1]
-                    gt_ignore = not tf.logical_and(gt_areas >= min_area, gt_areas < max_area)
-                    dt_ignore = not tf.logical_and(dt_areas >= min_area, dt_areas < max_area)
+                    area_filtered_y_true = util.filter_boxes_by_area_range(category_filtered_y_true, min_area, max_area)
+                    area_filtered_y_pred = util.filter_boxes_by_area_range(category_filtered_y_pred, min_area, max_area)
+                    ious = iou_lib.compute_ious_for_image(area_filtered_y_true, area_filtered_y_pred)
 
-                    tp_a_result = tf.TensorArray(tf.float32, size=a, dynamic_size=False)
-                    fp_a_result = tf.TensorArray(tf.float32, size=a, dynamic_size=False)
-                    gt_n_boxes_a_result = tf.TensorArray(
-                        tf.float32, size=a, dynamic_size=False
-                    )
+                    ground_truth_boxes_update = tf.tensor_scatter_nd_add(ground_truth_boxes_update, [[k_i, a_i]], [tf.cast(tf.shape(area_filtered_y_true)[0], tf.float32)])
 
-                    for tind in range(t):
-                        threshold = self.iou_thresholds[tind]
+                    for t_i in tf.range(t):
+                        threshold = self.iou_thresholds[t_i]
+                        gt_matches, pred_matches = self._match_boxes(area_filtered_y_true, area_filtered_y_pred, threshold, ious)
+                        true_positives = tf.cast(pred_matches != -1, tf.float32)
+                        false_positives = tf.cast(pred_matches == -1, tf.float32)
 
-                        gt_matches = tf.TensorArray(
-                            tf.int32,
-                            size=n_true,
-                            dynamic_size=False,
-                            infer_shape=False,
-                            element_shape=(),
-                        )
-                        pred_matches = tf.TensorArray(
-                            tf.int32,
-                            size=n_pred,
-                            dynamic_size=False,
-                            infer_shape=False,
-                            element_shape=(),
-                        )
-                        for i in tf.range(n_true):
-                            gt_matches = gt_matches.write(i, -1)
-                        for i in tf.range(n_pred):
-                            pred_matches = pred_matches.write(i, -1)
+                        for m_i in range(m):
+                            max_dets = self.max_detections[m_i]
+                            indices = [t_i, k_i, a_i, m_i]
+                            mdt_slice = tf.math.minimum(
+                                tf.shape(false_positives)[0], max_dets
+                            )
+                            false_positives_sum = tf.math.reduce_sum(
+                                false_positives[:mdt_slice], axis=-1
+                            )
+                            mdt_slice = tf.math.minimum(
+                                tf.shape(true_positives)[0], max_dets
+                            )
+                            true_positives_sum = tf.math.reduce_sum(
+                                true_positives[:mdt_slice], axis=-1
+                            )
 
-                        for detection_idx in tf.range(n_pred):
-                            if dt_ignore[detection_idx]:
-                                continue
-                            # initialize the match index to -1
-                            # "iou to beat" is set to threshold
-                            m = -1
-                            iou = tf.math.minimum(threshold, 1 - 1e-10)
+                            true_positives_update = tf.tensor_scatter_nd_add(true_positives_update, [indices], [true_positives_sum],)
+                            false_positives_update = tf.tensor_scatter_nd_add(false_positives_update, [indices], [false_positives_sum],)
+        self.true_positives.assign_add(true_positives_update)
+        self.false_positives.assign_add(false_positives_update)
+        self.ground_truth_boxes.assign_add(ground_truth_boxes_update)
+        
+    def _match_boxes(self, y_true, y_pred, threshold, ious):
+        n_true = tf.shape(y_true)[0]
+        n_pred = tf.shape(y_pred)[0]
 
-                            for gt_idx in tf.range(n_true):
-                                if gt_ignore[gt_idx]:
-                                    continue
-                                if gt_matches.gather([gt_idx]) > -1:
-                                    continue
-                                # TODO(lukewood): update clause to account for gtIg
-                                # if m > -1 and gtIg[m] == 0 and gtIg[gind] == 1:
+        gt_matches = tf.TensorArray(
+            tf.int32,
+            size=n_true,
+            dynamic_size=False,
+            infer_shape=False,
+            element_shape=(),
+        )
+        pred_matches = tf.TensorArray(
+            tf.int32,
+            size=n_pred,
+            dynamic_size=False,
+            infer_shape=False,
+            element_shape=(),
+        )
+        for i in tf.range(n_true):
+            gt_matches = gt_matches.write(i, -1)
+        for i in tf.range(n_pred):
+            pred_matches = pred_matches.write(i, -1)
 
-                                if not ious[gt_idx, detection_idx] >= threshold:
-                                    continue
-                                iou = ious[gt_idx, detection_idx]
-                                m = gt_idx
+        for detection_idx in tf.range(n_pred):
+            m = -1
+            iou = tf.math.minimum(threshold, 1 - 1e-10)
 
-                            # Write back the match indices
-                            pred_matches = pred_matches.write(detection_idx, m)
-                            if m == -1:
-                                continue
-                            gt_matches = gt_matches.write(m, detection_idx)
+            for gt_idx in tf.range(n_true):
+                if gt_matches.gather([gt_idx]) > -1:
+                    continue
+                # TODO(lukewood): update clause to account for gtIg
+                # if m > -1 and gtIg[m] == 0 and gtIg[gind] == 1:
 
-                        gt_matches_outer = gt_matches_outer.write(
-                            tind, gt_matches.stack()
-                        )
-                        pred_matches_outer = pred_matches_outer.write(
-                            tind, pred_matches.stack()
-                        )
-                    pred_matches = pred_matches_outer.stack()
-                    gt_matches = gt_matches_outer.stack()
-                    
-                    true_positives = tf.cast(pred_matches != -1, tf.float32)
-                    false_positives = tf.cast(pred_matches == -1, tf.float32)
+                if not ious[gt_idx, detection_idx] >= threshold:
+                    continue
+                iou = ious[gt_idx, detection_idx]
+                m = gt_idx
 
-                    m = tf.shape(self.max_detections)[0]
-
-                    m_true_positives_result = tf.TensorArray(
-                        tf.float32, size=m, dynamic_size=False
-                    )
-                    m_false_positives_result = tf.TensorArray(
-                        tf.float32, size=m, dynamic_size=False
-                    )
-                    m_n_true_boxes_result = tf.TensorArray(
-                        tf.float32, size=m, dynamic_size=False
-                    )
-
-                    for m_i in tf.range(m):
-                        max_dets = self.max_detections[m_i]
-                        mdt_slice = tf.math.minimum(
-                            tf.shape(false_positives)[1], max_dets
-                        )
-
-                        false_positives_sum = tf.math.reduce_sum(
-                            false_positives[:, :mdt_slice], axis=-1
-                        )
-
-                        mdt_slice = tf.math.minimum(
-                            tf.shape(true_positives)[1], max_dets
-                        )
-                        true_positives_sum = tf.math.reduce_sum(
-                            true_positives[:, :mdt_slice], axis=-1
-                        )
-
-                        m_true_positives_result = m_true_positives_result.write(
-                            m_i, true_positives_sum
-                        )
-                        m_false_positives_result = m_false_positives_result.write(
-                            m_i, false_positives_sum
-                        )
-
-                    m_true_positives_result = tf.transpose(
-                        m_true_positives_result.stack(), perm=[1, 0]
-                    )
-                    m_false_positives_result = tf.transpose(
-                        m_false_positives_result.stack(), perm=[1, 0]
-                    )
-
-                    tp_a_result = tp_a_result.write(a_i, m_true_positives_result)
-                    fp_a_result = fp_a_result.write(a_i, m_false_positives_result)
-                    gt_n_boxes_a_result = gt_n_boxes_a_result.write(
-                        a_i, tf.math.reduce_sum(tf.cast(not gt_ignore, tf.float32))
-                    )
-
-                    tp_a_result = tf.transpose(tp_a_result.stack(), perm=[1, 0, 2])
-                    fp_a_result = tf.transpose(fp_a_result.stack(), perm=[1, 0, 2])
-                    gt_n_boxes_a_result = gt_n_boxes_a_result.stack()
-
-                    true_positives_update_result = true_positives_update_result.write(
-                        category_idx, tp_a_result
-                    )
-                    false_positives_update_result = false_positives_update_result.write(
-                        category_idx, fp_a_result
-                    )
-                    n_images_update_result = n_images_update_result.write(
-                        category_idx, gt_n_boxes_a_result
-                    )
-
-            tp_update = true_positives_update_result.stack()
-            fp_update = false_positives_update_result.stack()
-            n_images_update = n_images_update_result.stack()
-
-            tp_update = tf.transpose(tp_update, perm=[1, 0, 2, 3])
-            fp_update = tf.transpose(fp_update, perm=[1, 0, 2, 3])
-
-            self.true_positives.assign_add(tp_update)
-            self.false_positives.assign_add(fp_update)
-            self.ground_truth_boxes.assign_add(n_images_update)
-            # shape=(k, a),
-
-        # next, for each image we compute:
-        # - dtIgnore: [imgId, catId, areaRange] => mask
-        # - gtIgnore: [imgId, catId, areaRange] => mask
-        # - dtMatches: [catId, areaRange] =>
-
-        # - dtScores is already stored in y_pred[imgId, bbox.CONFIDENCE]
-
-        # the next section is equivalent to the `accumulate()` step in cocoeval
-
-        # in the original implementation they fetch all of the values in evalImgs using:
-        # [image_id, category_id, area_range]
-        # then, we stack dtScores[0:maxDet].  This is equivalent to y_pred[:, 0:maxdet, 5]
-        # in our implementation our dtScores will have -1s for sentinel missing values.
-
-        # next, they craft an indices ordering set using np.argsort(-dtscores, axis=-1).
-        # this axis set is used to sort:
-        # y_pred[dtMatches], y_pred[dtIgnore].  We will create dtignore the same way,
-        # with the additional mask out of our padded -1 values bboxes.
-
-        # next we check if gtIgnore, which is stored in a Tensor computed by the evaluate()
-        # section, has any non_zero values for the current image/catid/area_range.
-        # if gtIf is all zeros we just continue in the loop
-
-        # next, true positives is computed using a logical and of sorted dts, and a not of sorted ignores
-        # false positives are computed using the inverse of the true positives, so logical_not(dts)
-
-        # a sum is taken of true positives and false positives on axis=1.  This contins the result
-
-        # now, a pretty complex loop takes place:
-        # https://source.corp.google.com/piper///depot/google3/third_party/py/pycocotools/cocoeval.py;l=409
-        # the summary is that it computes the recall and precision based on the tps, fps, etc.
-        # result is stored in self.recall, and self.precision
+            # Write back the match indices
+            pred_matches = pred_matches.write(detection_idx, m)
+            if m == -1:
+                continue
+            gt_matches = gt_matches.write(m, detection_idx)
+        return gt_matches.stack(), pred_matches.stack()
 
     def result(self):
         raise NotImplementedError("COCOBase subclasses must implement `result()`.")
