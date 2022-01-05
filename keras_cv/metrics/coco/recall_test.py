@@ -33,7 +33,9 @@ class COCORecallTest(tf.test.TestCase):
         ).astype(np.float32)
         recall.update_state(y_true, y_pred)
 
-        self.assertEqual(recall.result(), 0.5)
+        result_dict = recall.result()
+        results = sorted(result_dict.values())
+        self.assertAllEqual(results, [0.0, 1.0])
 
     def test_recall_direct_assignment(self):
         recall = COCORecall(

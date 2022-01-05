@@ -157,6 +157,7 @@ class COCOBase(keras.metrics.Metric):
 
                             true_positives_update = tf.tensor_scatter_nd_add(true_positives_update, [indices], [true_positives_sum],)
                             false_positives_update = tf.tensor_scatter_nd_add(false_positives_update, [indices], [false_positives_sum],)
+
         self.true_positives.assign_add(true_positives_update)
         self.false_positives.assign_add(false_positives_update)
         self.ground_truth_boxes.assign_add(ground_truth_boxes_update)
