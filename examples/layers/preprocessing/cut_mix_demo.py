@@ -1,23 +1,22 @@
-"""mix_up_example.py shows how to use the CutMix preprocessing layer to 
+"""cut_mix_demo.py shows how to use the CutMix preprocessing layer to 
 preprocess the oxford_flowers102 dataset.  In this script the flowers 
 are loaded, then are passed through the preprocessing layers.  
 Finally, they are shown using matplotlib.
 """
 import tensorflow as tf
-from keras_cv.layers.preprocessing.cut_mix import CutMix
 import tensorflow_datasets as tfds
+import keras_cv.layers.preprocessing.cut_mix as cut_mix
 import matplotlib.pyplot as plt
 
 
-IMG_SIZE = 224
+IMG_SIZE = (224, 224)
 BATCH = 16
 
-AUTOTUNE = tf.data.AUTOTUNE
 
-
-def resize(image, label):
+def resize(image, label, num_classes=10):
     image = tf.cast(image, tf.float32)
-    image = tf.image.resize(image, (IMG_SIZE, IMG_SIZE))
+    image = tf.image.resize(image, IMG_SIZE)
+    label = tf.one_hot(label, num_classes)
     return image, label
 
 
@@ -28,10 +27,12 @@ def main():
     num_classes = ds_info.features["label"].num_classes
 
     train_ds = (
-        train_ds.map(resize).shuffle(10 * BATCH).batch(BATCH)
+        train_ds.map(lambda x, y: resize(x, y, num_classes=num_classes))
+        .shuffle(10 * BATCH)
+        .batch(BATCH)
     )
-    cutmix = CutMix(num_classes=num_classes)
-    train_ds = train_ds.map(cutmix, num_parallel_calls=AUTOTUNE)
+    cutmix = cut_mix.CutMix()
+    train_ds = train_ds.map(cutmix, num_parallel_calls=tf.data.AUTOTUNE)
 
     for images, labels in train_ds.take(1):
         plt.figure(figsize=(8, 8))

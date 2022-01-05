@@ -8,7 +8,6 @@ class CutMix(layers.Layer):
     CutMix implements the CutMix data augmentation technique as proposed in https://arxiv.org/abs/1905.04899.
 
     Args:
-        num_classes: number of classes in the dataset.
         alpha: alpha parameter for the sample distribution.
         probability: probability to apply the CutMix augmentation.
         label_smoothing: coefficient used in label smoothing.
@@ -20,13 +19,11 @@ class CutMix(layers.Layer):
     augmented_data, updated_labels = cutmix(x_train, y_train)
     ```
     """
-    def __init__(
-        self, num_classes, alpha=0.8, probability=1.0, label_smoothing=0.0, **kwargs
-    ):
+
+    def __init__(self, alpha=0.8, probability=1.0, label_smoothing=0.0, **kwargs):
         super(CutMix, self).__init__(*kwargs)
         self.alpha = alpha
         self.probability = probability
-        self.num_classes = num_classes
         self.label_smoothing = label_smoothing
 
     @staticmethod
@@ -36,6 +33,16 @@ class CutMix(layers.Layer):
         return sample_alpha / (sample_alpha + sample_beta)
 
     def call(self, images, labels):
+        """
+        call method for the CutMix layer.
+
+        Args:
+            images: Tensor representing images of shape [batch_size, width, height, channels].
+            labels: One hot encoded tensor of labels for the images.
+        Returns:
+            images: augmented images, same shape as input.
+            labels: updated labels with both label smoothing and the cutmix updates applied.
+        """
         augment_cond = tf.less(
             tf.random.uniform(shape=[], minval=0.0, maxval=1.0), self.probability
         )
@@ -47,7 +54,7 @@ class CutMix(layers.Layer):
     def _cutmix(self, images, labels):
         """Apply cutmix."""
         lambda_sample = CutMix._sample_from_beta(
-            self.alpha, self.alpha, labels.shape
+            self.alpha, self.alpha, (tf.shape(labels)[0],)
         )
 
         ratio = tf.math.sqrt(1 - lambda_sample)
@@ -100,13 +107,9 @@ class CutMix(layers.Layer):
 
     def _smooth_labels(self, labels):
         label_smoothing = self.label_smoothing or 0.0
-        off_value = label_smoothing / self.num_classes
+        off_value = label_smoothing / tf.cast(tf.shape(labels)[1], tf.float32)
         on_value = 1.0 - label_smoothing + off_value
-
-        smooth_labels = tf.one_hot(
-            labels, self.num_classes, on_value=on_value, off_value=off_value
-        )
-        return smooth_labels
+        return labels * on_value + (1 - labels) * off_value
 
 
 def _fill_rectangle(
