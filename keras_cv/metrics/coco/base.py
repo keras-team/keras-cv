@@ -127,15 +127,25 @@ class COCOBase(keras.metrics.Metric):
                     area_range = self.area_ranges[a_i]
                     min_area = area_range[0]
                     max_area = area_range[1]
-                    area_filtered_y_true = util.filter_boxes_by_area_range(category_filtered_y_true, min_area, max_area)
-                    area_filtered_y_pred =category_filtered_y_pred # area_filtered_y_pred = util.filter_boxes_by_area_range(category_filtered_y_pred, min_area, max_area)
-                    ious = iou_lib.compute_ious_for_image(area_filtered_y_true, area_filtered_y_pred)
+                    area_filtered_y_true = util.filter_boxes_by_area_range(
+                        category_filtered_y_true, min_area, max_area
+                    )
+                    area_filtered_y_pred = category_filtered_y_pred  # area_filtered_y_pred = util.filter_boxes_by_area_range(category_filtered_y_pred, min_area, max_area)
+                    ious = iou_lib.compute_ious_for_image(
+                        area_filtered_y_true, area_filtered_y_pred
+                    )
 
-                    ground_truth_boxes_update = tf.tensor_scatter_nd_add(ground_truth_boxes_update, [[k_i, a_i]], [tf.cast(tf.shape(area_filtered_y_true)[0], tf.float32)])
+                    ground_truth_boxes_update = tf.tensor_scatter_nd_add(
+                        ground_truth_boxes_update,
+                        [[k_i, a_i]],
+                        [tf.cast(tf.shape(area_filtered_y_true)[0], tf.float32)],
+                    )
 
                     for t_i in tf.range(t):
                         threshold = self.iou_thresholds[t_i]
-                        gt_matches, pred_matches = self._match_boxes(area_filtered_y_true, area_filtered_y_pred, threshold, ious)
+                        gt_matches, pred_matches = self._match_boxes(
+                            area_filtered_y_true, area_filtered_y_pred, threshold, ious
+                        )
                         true_positives = tf.cast(pred_matches != -1, tf.float32)
                         false_positives = tf.cast(pred_matches == -1, tf.float32)
 
@@ -155,13 +165,19 @@ class COCOBase(keras.metrics.Metric):
                                 true_positives[:mdt_slice], axis=-1
                             )
 
-                            true_positives_update = tf.tensor_scatter_nd_add(true_positives_update, [indices], [true_positives_sum],)
-                            false_positives_update = tf.tensor_scatter_nd_add(false_positives_update, [indices], [false_positives_sum],)
+                            true_positives_update = tf.tensor_scatter_nd_add(
+                                true_positives_update, [indices], [true_positives_sum],
+                            )
+                            false_positives_update = tf.tensor_scatter_nd_add(
+                                false_positives_update,
+                                [indices],
+                                [false_positives_sum],
+                            )
 
         self.true_positives.assign_add(true_positives_update)
         self.false_positives.assign_add(false_positives_update)
         self.ground_truth_boxes.assign_add(ground_truth_boxes_update)
-        
+
     def _match_boxes(self, y_true, y_pred, threshold, ious):
         n_true = tf.shape(y_true)[0]
         n_pred = tf.shape(y_pred)[0]

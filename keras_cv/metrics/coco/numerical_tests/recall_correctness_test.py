@@ -31,6 +31,7 @@ class RecallCorrectnesstTest(tf.test.TestCase):
         Average Recall     (AR) @[ IoU=0.50:0.95 | area=medium | maxDets=100 ] = 0.681
         Average Recall     (AR) @[ IoU=0.50:0.95 | area= large | maxDets=100 ] = 0.682
     """
+
     def test_recall_correctness_maxdets_1(self):
 
         y_true, y_pred, categories = load_samples(SAMPLE_FILE)
@@ -57,9 +58,7 @@ class RecallCorrectnesstTest(tf.test.TestCase):
 
         # Area range all
         recall = COCORecall(
-            category_ids=categories,
-            max_detections=[1],
-            area_ranges=[(0, 1e9 ** 2)],
+            category_ids=categories, max_detections=[1], area_ranges=[(0, 1e9 ** 2)],
         )
 
         recall.update_state(y_true, y_pred)
@@ -72,9 +71,7 @@ class RecallCorrectnesstTest(tf.test.TestCase):
 
         # Area range all
         recall = COCORecall(
-            category_ids=categories,
-            max_detections=[10],
-            area_ranges=[(0, 1e9 ** 2)],
+            category_ids=categories, max_detections=[10], area_ranges=[(0, 1e9 ** 2)],
         )
 
         recall.update_state(y_true, y_pred)
@@ -87,9 +84,7 @@ class RecallCorrectnesstTest(tf.test.TestCase):
 
         # Area range all
         recall = COCORecall(
-            category_ids=categories,
-            max_detections=[100],
-            area_ranges=[(0, 1e5 ** 2)],
+            category_ids=categories, max_detections=[100], area_ranges=[(0, 1e5 ** 2)],
         )
 
         recall.update_state(y_true, y_pred)
@@ -134,7 +129,7 @@ class RecallCorrectnesstTest(tf.test.TestCase):
 
     def test_recall_large_objects(self):
         y_true, y_pred, categories = load_samples(SINGLE_BOX_SAMPLE_FILE)
-    
+
         # Area range all
         recall = COCORecall(
             category_ids=categories,

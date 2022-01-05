@@ -9,6 +9,7 @@ def filter_boxes_by_area_range(boxes, min_area, max_area):
     inds = tf.where(tf.math.logical_and(areas >= min_area, areas < max_area))
     return tf.gather_nd(boxes, inds)
 
+
 def bbox_area(boxes):
     """box_areas returns the area of the provided bounding boxes.
     Args:

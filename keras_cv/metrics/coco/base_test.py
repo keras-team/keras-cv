@@ -25,7 +25,6 @@ class COCOBaseTest(tf.test.TestCase):
         self.assertEqual(1.0, metric.true_positives[0, 0, 0, 0].numpy())
         self.assertEqual(0.0, metric.false_positives[0, 0, 0, 0].numpy())
 
-
     def test_true_positive_counting_one_good_one_bad(self):
         y_true = tf.constant(
             [[[0, 0, 100, 100, 1], [0, 0, 100, 100, 1]]], dtype=tf.float32
@@ -47,7 +46,7 @@ class COCOBaseTest(tf.test.TestCase):
     def test_true_positive_counting_one_true_two_pred(self):
         y_true = tf.constant([[[0, 0, 100, 100, 1],]], dtype=tf.float32)
         y_pred = tf.constant(
-            [[[0, 50, 100, 150, 1, .90], [0, 0, 100, 100, 1, 1.0]]], dtype=tf.float32
+            [[[0, 50, 100, 150, 1, 0.90], [0, 0, 100, 100, 1, 1.0]]], dtype=tf.float32
         )
         # note the low iou threshold
         metric = COCOBase(
