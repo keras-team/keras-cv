@@ -3,11 +3,27 @@ import tensorflow.keras as keras
 from tensorflow.keras import layers
 
 
-class RandomCutMix(layers.Layer):
+class CutMix(layers.Layer):
+    """
+    CutMix implements the CutMix data augmentation technique as proposed in https://arxiv.org/abs/1905.04899.
+
+    Args:
+        num_classes: number of classes in the dataset.
+        alpha: alpha parameter for the sample distribution.
+        probability: probability to apply the CutMix augmentation.
+        label_smoothing: coefficient used in label smoothing.
+
+    Sample usage:
+    ```python
+    (x_train, y_train), (x_test, y_test) = keras.datasets.cifar10.load_data()
+    cutmix = CutMix(10)
+    augmented_data, updated_labels = cutmix(x_train, y_train)
+    ```
+    """
     def __init__(
         self, num_classes, alpha=0.8, probability=1.0, label_smoothing=0.0, **kwargs
     ):
-        super(RandomCutMix, self).__init__(*kwargs)
+        super(CutMix, self).__init__(*kwargs)
         self.alpha = alpha
         self.probability = probability
         self.num_classes = num_classes
@@ -24,17 +40,17 @@ class RandomCutMix(layers.Layer):
             tf.random.uniform(shape=[], minval=0.0, maxval=1.0), self.probability
         )
         # pylint: disable=g-long-lambda
-        augment_a = lambda: self._update_labels(*self._cutmix(images, labels))
+        cutmix_augment = lambda: self._update_labels(*self._cutmix(images, labels))
         no_augment = lambda: (images, self._smooth_labels(labels))
-        return tf.cond(augment_cond, augment_a, no_augment)
+        return tf.cond(augment_cond, cutmix_augment, no_augment)
 
     def _cutmix(self, images, labels):
         """Apply cutmix."""
-        lam = RandomCutMix._sample_from_beta(
+        lambda_sample = CutMix._sample_from_beta(
             self.alpha, self.alpha, labels.shape
         )
 
-        ratio = tf.math.sqrt(1 - lam)
+        ratio = tf.math.sqrt(1 - lambda_sample)
 
         batch_size = tf.shape(images)[0]
         image_height, image_width = tf.shape(images)[1], tf.shape(images)[2]
@@ -54,8 +70,8 @@ class RandomCutMix(layers.Layer):
         )
 
         bbox_area = cut_height * cut_width
-        lam = 1.0 - bbox_area / (image_height * image_width)
-        lam = tf.cast(lam, dtype=tf.float32)
+        lambda_sample = 1.0 - bbox_area / (image_height * image_width)
+        lambda_sample = tf.cast(lambda_sample, dtype=tf.float32)
 
         images = tf.map_fn(
             lambda x: _fill_rectangle(*x),
@@ -71,14 +87,14 @@ class RandomCutMix(layers.Layer):
             fn_output_signature=tf.TensorSpec(images.shape[1:], dtype=tf.float32),
         )
 
-        return images, labels, lam
+        return images, labels, lambda_sample
 
-    def _update_labels(self, images, labels, lam):
+    def _update_labels(self, images, labels, lambda_sample):
         labels_1 = self._smooth_labels(labels)
         labels_2 = tf.reverse(labels_1, [0])
 
-        lam = tf.reshape(lam, [-1, 1])
-        labels = lam * labels_1 + (1.0 - lam) * labels_2
+        lambda_sample = tf.reshape(lambda_sample, [-1, 1])
+        labels = lambda_sample * labels_1 + (1.0 - lambda_sample) * labels_2
 
         return images, labels
 

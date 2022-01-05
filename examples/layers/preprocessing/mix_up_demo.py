@@ -1,10 +1,10 @@
-"""mix_up_example.py shows how to use the RandomMixUp preprocessing layer to 
+"""mix_up_example.py shows how to use the MixUp preprocessing layer to 
 preprocess the oxford_flowers102 dataset.  In this script the flowers 
 are loaded, then are passed through the preprocessing layers.  
 Finally, they are shown using matplotlib.
 """
 import tensorflow as tf
-from keras_cv.layers.preprocessing.random_mix_up import RandomMixUp
+from keras_cv.layers.preprocessing.mix_up import MixUp
 import tensorflow_datasets as tfds
 import matplotlib.pyplot as plt
 
@@ -28,9 +28,9 @@ def main():
     num_classes = ds_info.features["label"].num_classes
 
     train_ds = (
-        train_ds.map(resize).shuffle(10 * BATCH).batch(BATCH, drop_remainder=True)
+        train_ds.map(resize).shuffle(10 * BATCH).batch(BATCH)
     )
-    mixup = RandomMixUp(num_classes=num_classes)
+    mixup = MixUp(num_classes=num_classes)
     train_ds = train_ds.map(mixup, num_parallel_calls=AUTOTUNE)
 
     for images, labels in train_ds.take(1):
