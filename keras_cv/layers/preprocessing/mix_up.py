@@ -8,9 +8,9 @@ class MixUp(layers.Layer):
     MixUp implements the MixUp data augmentation technique as proposed in https://arxiv.org/abs/1710.09412.
 
     Args:
-        alpha: alpha parameter for the sample distribution.
-        probability: probability to apply the CutMix augmentation.
-        label_smoothing: coefficient used in label smoothing.
+        alpha: alpha parameter for the sample distribution.  Defaults 0.8.
+        probability: probability to apply the CutMix augmentation.  Default 1.0.
+        label_smoothing: coefficient used in label smoothing.  Default 0.0.
 
     Sample usage:
     ```python
