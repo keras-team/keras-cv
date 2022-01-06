@@ -23,16 +23,14 @@ class COCORecall(COCOBase):
     def _single_result(self, a_i, m_i):
         # TODO(lukewood): do I need to mask out -1s???
         # TODO(lukewood): do I need to mask out NaNs?
-        present_values = self.ground_truth_boxes != 0
+        present_values = self.ground_truth_boxes[:, a_i] != 0
+        n_present_categories = tf.math.reduce_sum(tf.cast(present_values, tf.float32), axis=-1)
+        if n_present_categories == 0.:
+            return 0.0
 
-        recalls = tf.math.divide_no_nan(
-            # t, k, a, m
-            self.true_positives[:, :, a_i, m_i],
-            # k, a
-            self.ground_truth_boxes[None, :, a_i],
-        )
-
-        return tf.math.reduce_mean(recalls)
+        recalls = tf.math.divide_no_nan(self.true_positives[:, :, a_i, m_i], self.ground_truth_boxes[None, :, a_i])
+        over_categories = tf.math.reduce_sum(recalls, axis=-1) / n_present_categories
+        return tf.math.reduce_mean(over_categories)
 
     def _key_for(self, a_i, m_i):
         # TODO(lukewood): format like the real coco metrics
