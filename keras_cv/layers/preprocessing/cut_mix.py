@@ -1,6 +1,7 @@
 import tensorflow as tf
 import tensorflow.keras as keras
 import tensorflow.keras.layers as layers
+import warnings
 
 
 class CutMix(layers.Layer):
@@ -20,11 +21,14 @@ class CutMix(layers.Layer):
     ```
     """
 
-    def __init__(self, alpha=0.8, probability=1.0, label_smoothing=0.0, **kwargs):
+    def __init__(
+        self, alpha=0.8, probability=1.0, label_smoothing=0.0, seed=None, **kwargs
+    ):
         super(CutMix, self).__init__(*kwargs)
         self.alpha = alpha
         self.probability = probability
         self.label_smoothing = label_smoothing
+        self.seed = seed
 
     @staticmethod
     def _sample_from_beta(alpha, beta, shape):
@@ -43,6 +47,13 @@ class CutMix(layers.Layer):
             images: augmented images, same shape as input.
             labels: updated labels with both label smoothing and the cutmix updates applied.
         """
+
+        if tf.shape(images)[0] == 1:
+            warnings.warn(
+                "CutMix received a single image to `call`.  The layer relies on combining multiple examples, "
+                "and as such will not behave as expected.  Please call the layer with 2 or more samples."
+            )
+
         augment_cond = tf.less(
             tf.random.uniform(shape=[], minval=0.0, maxval=1.0), self.probability
         )
@@ -60,9 +71,8 @@ class CutMix(layers.Layer):
             input_shape[2],
         )
 
-        lambda_sample = CutMix._sample_from_beta(
-            self.alpha, self.alpha, (batch_size,)
-        )
+        permutation_order = tf.random.shuffle(tf.range(0, batch_size), seed=self.seed)
+        lambda_sample = CutMix._sample_from_beta(self.alpha, self.alpha, (batch_size,))
 
         ratio = tf.math.sqrt(1 - lambda_sample)
 
@@ -92,17 +102,17 @@ class CutMix(layers.Layer):
                 random_center_height,
                 cut_width // 2,
                 cut_height // 2,
-                tf.reverse(images, [0]),
+                tf.gather(images, permutation_order)
             ),
             dtype=(tf.float32, tf.int32, tf.int32, tf.int32, tf.int32, tf.float32),
             fn_output_signature=tf.TensorSpec(images.shape[1:], dtype=tf.float32),
         )
 
-        return images, labels, lambda_sample
+        return images, labels, lambda_sample, permutation_order
 
-    def _update_labels(self, images, labels, lambda_sample):
+    def _update_labels(self, images, labels, lambda_sample, permutation_order):
         labels_1 = self._smooth_labels(labels)
-        cutout_labels = tf.reverse(labels_1, [0])
+        cutout_labels = tf.gather(labels, permutation_order)
 
         lambda_sample = tf.reshape(lambda_sample, [-1, 1])
         labels = lambda_sample * labels_1 + (1.0 - lambda_sample) * cutout_labels

@@ -13,7 +13,7 @@ class CutMixTest(tf.test.TestCase):
         ys = tf.squeeze(ys)
         ys = tf.one_hot(ys, NUM_CLASSES)
 
-        layer = CutMix(probability=1.0)
+        layer = CutMix(probability=1.0, seed=1)
         xs, ys = layer(xs, ys)
 
         self.assertEqual(xs.shape, [2, 512, 512, 3])
@@ -28,7 +28,7 @@ class CutMixTest(tf.test.TestCase):
         ys = tf.squeeze(ys)
         ys = tf.one_hot(ys, NUM_CLASSES)
 
-        layer = CutMix(probability=1.0, label_smoothing=0.2)
+        layer = CutMix(probability=1.0, label_smoothing=0.2, seed=1)
         xs, ys = layer(xs, ys)
         self.assertNotAllClose(ys, 0.0)
 
@@ -38,7 +38,7 @@ class CutMixTest(tf.test.TestCase):
         )
         ys = tf.one_hot(tf.constant([0, 1]), 2)
 
-        layer = CutMix(probability=1.0, label_smoothing=0.0)
+        layer = CutMix(probability=1.0, label_smoothing=0.0, seed=1)
         xs, ys = layer(xs, ys)
 
         # At least some pixels should be replaced in the CutMix operation
@@ -56,7 +56,7 @@ class CutMixTest(tf.test.TestCase):
         )
         ys = tf.one_hot(tf.constant([0, 1]), 2)
 
-        layer = CutMix(probability=1.0, label_smoothing=0.0)
+        layer = CutMix(probability=1.0, label_smoothing=0.0, seed=1)
         xs, ys = layer(xs, ys)
 
         # At least some pixels should be replaced in the CutMix operation
