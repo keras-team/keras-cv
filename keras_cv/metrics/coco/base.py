@@ -31,8 +31,9 @@ class COCOBase(keras.metrics.Metric):
     ):
         super(COCOBase, self).__init__(**kwargs)
         # Initialize parameter values
+        self._user_iou_thresholds = iou_thresholds or [x / 100.0 for x in range(50, 100, 5)]
         self.iou_thresholds = self._add_constant_weight(
-            "iou_thresholds", iou_thresholds or [x / 100.0 for x in range(50, 100, 5)]
+            "iou_thresholds", self._user_iou_thresholds
         )
         # TODO(lukewood): support inference of category_ids based on update_state calls.
         self.category_ids = self._add_constant_weight("category_ids", category_ids)

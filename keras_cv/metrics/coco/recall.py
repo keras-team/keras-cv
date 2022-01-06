@@ -40,4 +40,6 @@ class COCORecall(COCOBase):
 
     def iou_threshold_str_rep(self):
         # TODO(lukewood): generate a nice value
-        return "[0.5, 0.95, 0.05]"
+        if len(self._user_iou_thresholds) == 1:
+            return f"[{self._user_iou_thresholds[0]}"
+        return f"[{self._user_iou_thresholds[0]}, {self._user_iou_thresholds[-1]}, {self._user_iou_thresholds[1]-self._user_iou_thresholds[0]}]"
