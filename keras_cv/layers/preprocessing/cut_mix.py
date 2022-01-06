@@ -1,6 +1,7 @@
 import tensorflow as tf
 import tensorflow.keras as keras
-from tensorflow.keras import layers
+import tensorflow.keras.layers as layers
+import warnings
 
 
 class CutMix(layers.Layer):
@@ -43,6 +44,13 @@ class CutMix(layers.Layer):
             images: augmented images, same shape as input.
             labels: updated labels with both label smoothing and the cutmix updates applied.
         """
+        if tf.shape(images)[0] == 1:
+            warnings.warn(
+                "CutMix called with a batch size of 1.  CutMix relies on "
+                "combining multiple examples, and as such does not behave as expected "
+                "when used with a batch size of 1."
+            )
+
         augment_cond = tf.less(
             tf.random.uniform(shape=[], minval=0.0, maxval=1.0), self.probability
         )
@@ -53,18 +61,18 @@ class CutMix(layers.Layer):
 
     def _cutmix(self, images, labels):
         """Apply cutmix."""
-        lambda_sample = CutMix._sample_from_beta(
-            self.alpha, self.alpha, (tf.shape(labels)[0],)
-        )
-
-        ratio = tf.math.sqrt(1 - lambda_sample)
-
         input_shape = tf.shape(images)
         batch_size, image_height, image_width = (
             input_shape[0],
             input_shape[1],
             input_shape[2],
         )
+
+        lambda_sample = CutMix._sample_from_beta(
+            self.alpha, self.alpha, (tf.shape(labels)[0],)
+        )
+
+        ratio = tf.math.sqrt(1 - lambda_sample)
 
         cut_height = tf.cast(
             ratio * tf.cast(image_height, dtype=tf.float32), dtype=tf.int32

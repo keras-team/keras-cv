@@ -31,3 +31,20 @@ class MixUpTest(tf.test.TestCase):
         layer = MixUp(probability=1.0, label_smoothing=0.2)
         xs, ys = layer(xs, ys)
         self.assertNotAllClose(ys, 0.0)
+
+    def test_cut_mix_call_results(self):
+        xs = tf.cast(
+            tf.stack([2 * tf.ones((4, 4, 3)), tf.ones((4, 4, 3))], axis=0,), tf.float32,
+        )
+        ys = tf.one_hot(tf.constant([0, 1]), 2)
+
+        layer = MixUp(probability=1.0, label_smoothing=0.0)
+        xs, ys = layer(xs, ys)
+
+        # None of the individual values should still be close to 1 or 0
+        self.assertNotAllClose(xs, 1.0)
+        self.assertNotAllClose(xs, 2.0)
+
+        # No labels should still be close to their originals
+        self.assertNotAllClose(ys, 1.0)
+        self.assertNotAllClose(ys, 0.0)
