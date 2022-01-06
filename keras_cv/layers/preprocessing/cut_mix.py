@@ -15,7 +15,7 @@ class CutMix(layers.Layer):
     Sample usage:
     ```python
     (images, labels), _ = tf.keras.datasets.cifar10.load_data()
-    cutmix = CutMix(10)
+    cutmix = keras_cv.layers.preprocessing.cut_mix.CutMix(10)
     augmented_images, updated_labels = cutmix(images, labels)
     ```
     """
