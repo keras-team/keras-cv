@@ -29,7 +29,7 @@ jobs:
 					pip install -e ".[tests]" --progress-bar off --upgrade
 			- name: Test with pytest
 				run: |
-					pytest kears_cv/
+					pytest keras_cv/
 	format:
 		name: Check the code format
 		runs-on: ubuntu-latest
