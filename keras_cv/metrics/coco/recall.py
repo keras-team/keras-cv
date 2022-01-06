@@ -29,8 +29,8 @@ class COCORecall(COCOBase):
             return 0.0
 
         recalls = tf.math.divide_no_nan(self.true_positives[:, :, a_i, m_i], self.ground_truth_boxes[None, :, a_i])
-        over_categories = tf.math.reduce_sum(recalls, axis=-1) / n_present_categories
-        return tf.math.reduce_mean(over_categories)
+        recalls_per_threshold = tf.math.reduce_sum(recalls, axis=-1) / n_present_categories
+        return tf.math.reduce_mean(recalls_per_threshold)
 
     def _key_for(self, a_i, m_i):
         # TODO(lukewood): format like the real coco metrics
