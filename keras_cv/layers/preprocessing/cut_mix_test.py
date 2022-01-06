@@ -49,3 +49,21 @@ class CutMixTest(tf.test.TestCase):
         # No labels should still be close to their original values
         self.assertNotAllClose(ys, 1.0)
         self.assertNotAllClose(ys, 0.0)
+
+    def test_cut_mix_call_results_one_channel(self):
+        xs = tf.cast(
+            tf.stack([2 * tf.ones((4, 4, 1)), tf.ones((4, 4, 1))], axis=0,), tf.float32,
+        )
+        ys = tf.one_hot(tf.constant([0, 1]), 2)
+
+        layer = CutMix(probability=1.0, label_smoothing=0.0)
+        xs, ys = layer(xs, ys)
+
+        # At least some pixels should be replaced in the CutMix operation
+        self.assertTrue(tf.math.reduce_any(xs[0] == 1.0))
+        self.assertTrue(tf.math.reduce_any(xs[0] == 2.0))
+        self.assertTrue(tf.math.reduce_any(xs[1] == 1.0))
+        self.assertTrue(tf.math.reduce_any(xs[1] == 2.0))
+        # No labels should still be close to their original values
+        self.assertNotAllClose(ys, 1.0)
+        self.assertNotAllClose(ys, 0.0)

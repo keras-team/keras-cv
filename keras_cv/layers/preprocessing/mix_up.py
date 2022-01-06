@@ -37,8 +37,8 @@ class MixUp(layers.Layer):
         call method for the MixUp layer.
 
         Args:
-            images: Tensor representing images of shape [batch_size, width, height, channels].
-            labels: One hot encoded tensor of labels for the images.
+            images: Tensor representing images of shape [batch_size, width, height, channels], with dtype tf.float32.
+            labels: One hot encoded tensor of labels for the images, with dtype tf.float32.
         Returns:
             images: augmented images, same shape as input.
             labels: updated labels with both label smoothing and the cutmix updates applied.

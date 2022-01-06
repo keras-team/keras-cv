@@ -37,8 +37,8 @@ class CutMix(layers.Layer):
         call method for the CutMix layer.
 
         Args:
-            images: Tensor representing images of shape [batch_size, width, height, channels].
-            labels: One hot encoded tensor of labels for the images.
+            images: Tensor representing images of shape [batch_size, width, height, channels], with dtype tf.float32.
+            labels: One hot encoded tensor of labels for the images, with dtype tf.float32.
         Returns:
             images: augmented images, same shape as input.
             labels: updated labels with both label smoothing and the cutmix updates applied.
@@ -61,7 +61,7 @@ class CutMix(layers.Layer):
         )
 
         lambda_sample = CutMix._sample_from_beta(
-            self.alpha, self.alpha, (tf.shape(labels)[0],)
+            self.alpha, self.alpha, (batch_size,)
         )
 
         ratio = tf.math.sqrt(1 - lambda_sample)
@@ -120,8 +120,9 @@ def _fill_rectangle(
     image, center_width, center_height, half_width, half_height, replace=None
 ):
     """Fill blank area."""
-    image_height = tf.shape(image)[0]
-    image_width = tf.shape(image)[1]
+    image_shape = tf.shape(image)
+    image_height = image_shape[0]
+    image_width = image_shape[1]
 
     lower_pad = tf.maximum(0, center_height - half_height)
     upper_pad = tf.maximum(0, image_height - center_height - half_height)
@@ -137,10 +138,10 @@ def _fill_rectangle(
         tf.zeros(cutout_shape, dtype=image.dtype), padding_dims, constant_values=1
     )
     mask = tf.expand_dims(mask, -1)
-    mask = tf.tile(mask, [1, 1, 3])
+    mask = tf.tile(mask, [1, 1, image_shape[-1]])
 
     if replace is None:
-        fill = tf.random.normal(tf.shape(image), dtype=image.dtype)
+        fill = tf.random.normal(image_shape, dtype=image.dtype)
     elif isinstance(replace, tf.Tensor):
         fill = replace
     else:
