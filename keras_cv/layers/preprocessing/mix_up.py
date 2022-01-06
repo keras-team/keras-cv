@@ -14,9 +14,9 @@ class MixUp(layers.Layer):
 
     Sample usage:
     ```python
-    (x_train, y_train), (x_test, y_test) = keras.datasets.cifar10.load_data()
+    (images, labels), _ = tf.keras.datasets.cifar10.load_data()
     mixup = MixUp(10)
-    augmented_data, updated_labels = mixup(x_train, y_train)
+    augmented_images, updated_labels = mixup(images, labels)
     ```
     """
 

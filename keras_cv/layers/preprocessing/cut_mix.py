@@ -14,9 +14,9 @@ class CutMix(layers.Layer):
 
     Sample usage:
     ```python
-    (x_train, y_train), (x_test, y_test) = keras.datasets.cifar10.load_data()
+    (images, labels), _ = tf.keras.datasets.cifar10.load_data()
     cutmix = CutMix(10)
-    augmented_data, updated_labels = cutmix(x_train, y_train)
+    augmented_images, updated_labels = cutmix(images, labels)
     ```
     """
 
@@ -59,8 +59,12 @@ class CutMix(layers.Layer):
 
         ratio = tf.math.sqrt(1 - lambda_sample)
 
-        batch_size = tf.shape(images)[0]
-        image_height, image_width = tf.shape(images)[1], tf.shape(images)[2]
+        input_shape = tf.shape(images)
+        batch_size, image_height, image_width = (
+            input_shape[0],
+            input_shape[1],
+            input_shape[2],
+        )
 
         cut_height = tf.cast(
             ratio * tf.cast(image_height, dtype=tf.float32), dtype=tf.int32
@@ -98,10 +102,10 @@ class CutMix(layers.Layer):
 
     def _update_labels(self, images, labels, lambda_sample):
         labels_1 = self._smooth_labels(labels)
-        labels_2 = tf.reverse(labels_1, [0])
+        cutout_labels = tf.reverse(labels_1, [0])
 
         lambda_sample = tf.reshape(lambda_sample, [-1, 1])
-        labels = lambda_sample * labels_1 + (1.0 - lambda_sample) * labels_2
+        labels = lambda_sample * labels_1 + (1.0 - lambda_sample) * cutout_labels
 
         return images, labels
 
