@@ -40,7 +40,7 @@ class RecallCorrectnessTest(tf.test.TestCase):
 
         recall.update_state(y_true, y_pred)
         result = recall.result().numpy()
-        self.assertAlmostEqual(result, 0.504)
+        self.assertAlmostEqual(result, 0.504, delta=0.05)
 
     def test_recall_correctness_maxdets_10(self):
         y_true, y_pred, categories = load_samples(SAMPLE_FILE)
@@ -48,13 +48,13 @@ class RecallCorrectnessTest(tf.test.TestCase):
         # Area range all
         recall = COCORecall(
             category_ids=categories + [1000],
-            max_detections=[1],
+            max_detections=[10],
             area_ranges=[(0, 1e5 ** 2)],
         )
 
         recall.update_state(y_true, y_pred)
         result = recall.result().numpy()
-        self.assertAlmostEqual(result, 0.660)
+        self.assertAlmostEqual(result, 0.660, delta=0.05)
 
     def test_recall_correctness_maxdets_100(self):
         y_true, y_pred, categories = load_samples(SAMPLE_FILE)
@@ -68,7 +68,7 @@ class RecallCorrectnessTest(tf.test.TestCase):
 
         recall.update_state(y_true, y_pred)
         result = recall.result().numpy()
-        self.assertAlmostEqual(result, 0.660)
+        self.assertAlmostEqual(result, 0.660, delta=0.05)
 
     def test_recall_correctness_small_objects(self):
         y_true, y_pred, categories = load_samples(SAMPLE_FILE)
@@ -80,7 +80,7 @@ class RecallCorrectnessTest(tf.test.TestCase):
 
         recall.update_state(y_true, y_pred)
         result = recall.result().numpy()
-        self.assertAlmostEqual(result, 0.652)
+        self.assertAlmostEqual(result, 0.652, delta=0.05)
 
     def test_recall_correctness_medium_objects(self):
         y_true, y_pred, categories = load_samples(SAMPLE_FILE)
@@ -92,7 +92,7 @@ class RecallCorrectnessTest(tf.test.TestCase):
 
         recall.update_state(y_true, y_pred)
         result = recall.result().numpy()
-        self.assertAlmostEqual(result, 0.644)
+        self.assertAlmostEqual(result, 0.644, delta=0.05)
 
     def test_recall_correctness_large_objects(self):
         y_true, y_pred, categories = load_samples(SAMPLE_FILE)
@@ -104,7 +104,7 @@ class RecallCorrectnessTest(tf.test.TestCase):
 
         recall.update_state(y_true, y_pred)
         result = recall.result().numpy()
-        self.assertAlmostEqual(result, 0.696)
+        self.assertAlmostEqual(result, 0.696, delta=0.05)
 
 
 def load_samples(fname):
