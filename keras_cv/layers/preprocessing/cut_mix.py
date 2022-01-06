@@ -22,7 +22,13 @@ class CutMix(layers.Layer):
     """
 
     def __init__(
-        self, alpha=0.8, probability=1.0, label_smoothing=0.0, seed=None, **kwargs
+        self,
+        alpha=0.8,
+        probability=1.0,
+        label_smoothing=0.0,
+        shuffle=False,
+        seed=None,
+        **kwargs
     ):
         super(CutMix, self).__init__(*kwargs)
         self.alpha = alpha
@@ -102,7 +108,7 @@ class CutMix(layers.Layer):
                 random_center_height,
                 cut_width // 2,
                 cut_height // 2,
-                tf.gather(images, permutation_order)
+                tf.gather(images, permutation_order),
             ),
             dtype=(tf.float32, tf.int32, tf.int32, tf.int32, tf.int32, tf.float32),
             fn_output_signature=tf.TensorSpec(images.shape[1:], dtype=tf.float32),
@@ -129,7 +135,19 @@ class CutMix(layers.Layer):
 def _fill_rectangle(
     image, center_width, center_height, half_width, half_height, replace=None
 ):
-    """Fill blank area."""
+    """Fill a rectangle in a given image using the value provided in replace.
+
+    Args:
+        image: the starting image to fill the rectangle on.
+        center_width: the X center of the rectangle to fill
+        center_height: the Y center of the rectangle to fill
+        half_width: 1/2 the width of the resulting rectangle
+        half_height: 1/2 the height of the resulting rectangle
+        replace: The value to fill the rectangle with.  Accepts a Tensor, 
+            Constant, or None.
+    Returns:
+        image: the modified image with the chosen rectangle filled.
+     """
     image_shape = tf.shape(image)
     image_height = image_shape[0]
     image_width = image_shape[1]
