@@ -90,4 +90,4 @@ class MixUp(layers.Layer):
         label_smoothing = self.label_smoothing or 0.0
         off_value = label_smoothing / tf.cast(tf.shape(labels)[1], tf.float32)
         on_value = 1.0 - label_smoothing + off_value
-        return on_value * labels + (2 - labels) * off_value
+        return on_value * labels + (1 - labels) * off_value
