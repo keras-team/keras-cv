@@ -1,17 +1,19 @@
 import tensorflow as tf
 import tensorflow.keras as keras
 import tensorflow.keras.layers as layers
-import warnings
+from tensorflow.python.platform import tf_logging as logging
 
 
 class CutMix(layers.Layer):
-    """
-    CutMix implements the CutMix data augmentation technique as proposed in https://arxiv.org/abs/1905.04899.
+    """CutMix implements the CutMix data augmentation technique.
 
     Args:
-        alpha: alpha parameter for the sample distribution.  Defaults 0.8.
-        probability: probability to apply the CutMix augmentation.  Default 1.0.
+        alpha: Float between 0 and 1.  Inverse scale parameter for the gamma distribution.
+            Defaults 0.8.
+        probability: Float between 0 and 1.  The fraction of samples to augment.  Default 1.0.
         label_smoothing: coefficient used in label smoothing.  Default 0.0.
+    References:
+        https://arxiv.org/abs/1905.04899.
 
     Sample usage:
     ```python
@@ -22,13 +24,7 @@ class CutMix(layers.Layer):
     """
 
     def __init__(
-        self,
-        alpha=0.8,
-        probability=1.0,
-        label_smoothing=0.0,
-        shuffle=False,
-        seed=None,
-        **kwargs
+        self, alpha=0.8, probability=1.0, label_smoothing=0.0, seed=None, **kwargs
     ):
         super(CutMix, self).__init__(*kwargs)
         self.alpha = alpha
@@ -43,8 +39,7 @@ class CutMix(layers.Layer):
         return sample_alpha / (sample_alpha + sample_beta)
 
     def call(self, images, labels):
-        """
-        call method for the CutMix layer.
+        """call method for the CutMix layer.
 
         Args:
             images: Tensor representing images of shape [batch_size, width, height, channels], with dtype tf.float32.
@@ -55,7 +50,7 @@ class CutMix(layers.Layer):
         """
 
         if tf.shape(images)[0] == 1:
-            warnings.warn(
+            logging.warning(
                 "CutMix received a single image to `call`.  The layer relies on combining multiple examples, "
                 "and as such will not behave as expected.  Please call the layer with 2 or more samples."
             )
@@ -111,18 +106,17 @@ class CutMix(layers.Layer):
                 tf.gather(images, permutation_order),
             ),
             dtype=(tf.float32, tf.int32, tf.int32, tf.int32, tf.int32, tf.float32),
-            fn_output_signature=tf.TensorSpec(images.shape[1:], dtype=tf.float32),
+            fn_output_signature=tf.TensorSpec.from_tensor(images[0]),
         )
 
         return images, labels, lambda_sample, permutation_order
 
     def _update_labels(self, images, labels, lambda_sample, permutation_order):
-        labels_1 = self._smooth_labels(labels)
+        labels_smoothed = self._smooth_labels(labels)
         cutout_labels = tf.gather(labels, permutation_order)
 
         lambda_sample = tf.reshape(lambda_sample, [-1, 1])
-        labels = lambda_sample * labels_1 + (1.0 - lambda_sample) * cutout_labels
-
+        labels = lambda_sample * labels_smoothed + (1.0 - lambda_sample) * cutout_labels
         return images, labels
 
     def _smooth_labels(self, labels):
@@ -166,7 +160,6 @@ def _fill_rectangle(
         tf.zeros(cutout_shape, dtype=image.dtype), padding_dims, constant_values=1
     )
     mask = tf.expand_dims(mask, -1)
-    mask = tf.tile(mask, [1, 1, image_shape[-1]])
 
     if replace is None:
         fill = tf.random.normal(image_shape, dtype=image.dtype)

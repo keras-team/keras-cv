@@ -1,17 +1,19 @@
 import tensorflow as tf
 import tensorflow.keras as keras
 import tensorflow.keras.layers as layers
-import warnings
+from tensorflow.python.platform import tf_logging as logging
 
 
 class MixUp(layers.Layer):
-    """
-    MixUp implements the MixUp data augmentation technique as proposed in https://arxiv.org/abs/1710.09412.
+    """MixUp implements the MixUp data augmentation technique.
 
     Args:
-        alpha: alpha parameter for the sample distribution.  Defaults 0.8.
-        probability: probability to apply the MixUp augmentation.  Default 1.0.
-        label_smoothing: coefficient used in label smoothing.  Default 0.0.
+        alpha: Float between 0 and 1.  Inverse scale parameter for the gamma distribution.
+            Defaults 0.8.
+        probability: Float between 0 and 1.  The fraction of samples to augment.  Default 1.0.
+        label_smoothing: Float between 0 and 1.  The coefficient used in label smoothing.  Default 0.0.
+    References:
+        https://arxiv.org/abs/1710.09412.
 
     Sample usage:
     ```python
@@ -37,8 +39,7 @@ class MixUp(layers.Layer):
         return sample_alpha / (sample_alpha + sample_beta)
 
     def call(self, images, labels):
-        """
-        call method for the MixUp layer.
+        """call method for the MixUp layer.
 
         Args:
             images: Tensor representing images of shape [batch_size, width, height, channels], with dtype tf.float32.
@@ -49,7 +50,7 @@ class MixUp(layers.Layer):
         """
 
         if tf.shape(images)[0] == 1:
-            warnings.warn(
+            logging.warning(
                 "MixUp received a single image to `call`.  The layer relies on combining multiple examples, "
                 "and as such will not behave as expected.  Please call the layer with 2 or more samples."
             )
@@ -75,11 +76,13 @@ class MixUp(layers.Layer):
         return images, labels, tf.squeeze(lambda_sample), permutation_order
 
     def _update_labels(self, images, labels, lambda_sample, permutation_order):
-        labels_1 = self._smooth_labels(labels)
+        labels_smoothed = self._smooth_labels(labels)
         labels_for_mixup = tf.gather(labels, permutation_order)
 
         lambda_sample = tf.reshape(lambda_sample, [-1, 1])
-        labels = lambda_sample * labels_1 + (1.0 - lambda_sample) * labels_for_mixup
+        labels = (
+            lambda_sample * labels_smoothed + (1.0 - lambda_sample) * labels_for_mixup
+        )
 
         return images, labels
 
