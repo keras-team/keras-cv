@@ -13,9 +13,11 @@ class CutMix(layers.Layer):
             This controls the shape of the distribution from which the smoothing values are 
             sampled.  Defaults 1.0, which is a recommended value when training an imagenet1k
             classification model.
-        label_smoothing: coefficient used in label smoothing.  Default 0.0.
+        label_smoothing: Float in [0, 1]. When > 0, label values are smoothed, meaning the 
+            confidence on label values are relaxed. e.g. label_smoothing=0.2 means that we 
+            will use a value of 0.1 for label 0 and 0.9 for label 1.  Defaults 0.0.
     References:
-        https://arxiv.org/abs/1905.04899.
+       [CutMix paper]( https://arxiv.org/abs/1905.04899).
 
     Sample usage:
     ```python
