@@ -12,8 +12,8 @@ class COCOBase(keras.metrics.Metric):
     Args:
         iou_thresholds: defaults to [0.5:0.05:0.95].  Dimension T=len(iou_thresholds), defaults to 10.
         category_ids: no default, users must provide.  K=len(category_ids)
-        recall_thresholds: recall thresholds over which to compute  precision values, R=len(recall_thresholds).
         area_ranges: ranges to consider detections in, defaults to [all, 0-32, 32-96, 96>].
+        max_detections: TODO
 
     Internally the COCOBase class tracks the following values:
     - TruePositives: tf.Tensor with shape [TxKxAxM] precision for every evaluation setting.
@@ -87,6 +87,7 @@ class COCOBase(keras.metrics.Metric):
         self.false_positives.assign(tf.zeros_like(self.false_positives))
         self.ground_truth_boxes.assign(tf.zeros_like(self.ground_truth_boxes))
 
+    @tf.function(jit_compile=True)
     def update_state(self, y_true, y_pred, sample_weight=None):
         """
         Args:
