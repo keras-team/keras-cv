@@ -28,7 +28,7 @@ class MixUp(layers.Layer):
     def __init__(
         self, rate, label_smoothing=0.0, alpha=0.2, seed=None, **kwargs
     ):
-        super(MixUp, self).__init__(*kwargs)
+        super().__init__(**kwargs)
         self.alpha = alpha
         self.rate = rate
         self.label_smoothing = label_smoothing
