@@ -9,7 +9,9 @@ class MixUp(layers.Layer):
 
     Args:
         alpha: Float between 0 and 1.  Inverse scale parameter for the gamma distribution.
-            Defaults 0.8.
+            This controls the shape of the distribution from which the smoothing values are 
+            sampled.  Defaults 0.2, which is a recommended value when training an imagenet1k
+            classification model.
         probability: Float between 0 and 1.  The fraction of samples to augment.  Default 1.0.
         label_smoothing: Float between 0 and 1.  The coefficient used in label smoothing.  Default 0.0.
     References:
@@ -24,7 +26,7 @@ class MixUp(layers.Layer):
     """
 
     def __init__(
-        self, alpha=0.8, probability=1.0, label_smoothing=0.0, seed=None, **kwargs
+        self, probability=1.0, label_smoothing=0.0, alpha=0.2, seed=None, **kwargs
     ):
         super(MixUp, self).__init__(*kwargs)
         self.alpha = alpha

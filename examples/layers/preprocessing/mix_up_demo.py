@@ -31,7 +31,7 @@ def main():
         .shuffle(10 * BATCH_SIZE)
         .batch(BATCH_SIZE)
     )
-    mixup = mix_up.MixUp()
+    mixup = mix_up.MixUp(alpha=0.8)
     train_ds = train_ds.map(mixup, num_parallel_calls=tf.data.AUTOTUNE)
 
     for images, labels in train_ds.take(1):
