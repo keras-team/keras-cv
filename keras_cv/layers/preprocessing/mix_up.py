@@ -8,11 +8,11 @@ class MixUp(layers.Layer):
     """MixUp implements the MixUp data augmentation technique.
 
     Args:
+        rate: Float between 0 and 1.  The fraction of samples to augment.
         alpha: Float between 0 and 1.  Inverse scale parameter for the gamma distribution.
             This controls the shape of the distribution from which the smoothing values are 
             sampled.  Defaults 0.2, which is a recommended value when training an imagenet1k
             classification model.
-        probability: Float between 0 and 1.  The fraction of samples to augment.  Default 1.0.
         label_smoothing: Float between 0 and 1.  The coefficient used in label smoothing.  Default 0.0.
     References:
         https://arxiv.org/abs/1710.09412.
@@ -26,11 +26,11 @@ class MixUp(layers.Layer):
     """
 
     def __init__(
-        self, probability=1.0, label_smoothing=0.0, alpha=0.2, seed=None, **kwargs
+        self, rate, label_smoothing=0.0, alpha=0.2, seed=None, **kwargs
     ):
         super(MixUp, self).__init__(*kwargs)
         self.alpha = alpha
-        self.probability = probability
+        self.rate = rate
         self.label_smoothing = label_smoothing
         self.seed = seed
 
@@ -58,7 +58,7 @@ class MixUp(layers.Layer):
             )
 
         augment_cond = tf.less(
-            tf.random.uniform(shape=[], minval=0.0, maxval=1.0), self.probability
+            tf.random.uniform(shape=[], minval=0.0, maxval=1.0), self.rate
         )
         # pylint: disable=g-long-lambda
         mixup_augment = lambda: self._update_labels(*self._mixup(images, labels))

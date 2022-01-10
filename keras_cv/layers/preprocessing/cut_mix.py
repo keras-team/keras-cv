@@ -8,11 +8,11 @@ class CutMix(layers.Layer):
     """CutMix implements the CutMix data augmentation technique.
 
     Args:
+        rate: Float between 0 and 1.  The fraction of samples to augment.
         alpha: Float between 0 and 1.  Inverse scale parameter for the gamma distribution.
             This controls the shape of the distribution from which the smoothing values are 
             sampled.  Defaults 1.0, which is a recommended value when training an imagenet1k
             classification model.
-        probability: Float between 0 and 1.  The fraction of samples to augment.  Default 1.0.
         label_smoothing: coefficient used in label smoothing.  Default 0.0.
     References:
         https://arxiv.org/abs/1905.04899.
@@ -26,11 +26,11 @@ class CutMix(layers.Layer):
     """
 
     def __init__(
-        self, probability=1.0, label_smoothing=0.0, alpha=1.0, seed=None, **kwargs
+        self, rate, label_smoothing=0.0, alpha=1.0, seed=None, **kwargs
     ):
         super(CutMix, self).__init__(*kwargs)
         self.alpha = alpha
-        self.probability = probability
+        self.rate = rate
         self.label_smoothing = label_smoothing
         self.seed = seed
 
@@ -58,7 +58,7 @@ class CutMix(layers.Layer):
             )
 
         augment_cond = tf.less(
-            tf.random.uniform(shape=[], minval=0.0, maxval=1.0), self.probability
+            tf.random.uniform(shape=[], minval=0.0, maxval=1.0), self.rate
         )
         # pylint: disable=g-long-lambda
         cutmix_augment = lambda: self._update_labels(*self._cutmix(images, labels))
