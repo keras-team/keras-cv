@@ -17,7 +17,7 @@ class CutMix(layers.Layer):
             confidence on label values are relaxed. e.g. label_smoothing=0.2 means that we 
             will use a value of 0.1 for label 0 and 0.9 for label 1.  Defaults 0.0.
     References:
-       [CutMix paper]( https://arxiv.org/abs/1905.04899).
+       [CutMix]( https://arxiv.org/abs/1905.04899).
 
     Sample usage:
     ```python

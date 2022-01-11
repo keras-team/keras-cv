@@ -17,7 +17,7 @@ class MixUp(layers.Layer):
             confidence on label values are relaxed. e.g. label_smoothing=0.2 means that we 
             will use a value of 0.1 for label 0 and 0.9 for label 1.  Defaults 0.0.
     References:
-        [MixUp paper](https://arxiv.org/abs/1710.09412).
+        [MixUp](https://arxiv.org/abs/1710.09412).
 
     Sample usage:
     ```python
