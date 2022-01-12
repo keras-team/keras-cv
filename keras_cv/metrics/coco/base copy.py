@@ -82,6 +82,7 @@ class COCOBase(keras.metrics.Metric):
         self.false_positives.assign(tf.zeros_like(self.false_positives))
         self.ground_truth_boxes.assign(tf.zeros_like(self.ground_truth_boxes))
 
+    @tf.function(jit_compile=True)
     def update_state(self, y_true, y_pred, sample_weight=None):
         """
         Args:
@@ -109,40 +110,65 @@ class COCOBase(keras.metrics.Metric):
             sentinel_filtered_y_true = util.filter_out_sentinels(y_true[img])
             sentinel_filtered_y_pred = util.filter_out_sentinels(y_pred[img])
 
-            area_filtered_y_true = util.filter_boxes_by_area_range(sentinel_filtered_y_true, self.area_range[0], self.area_range[1])
-            area_filtered_y_pred = util.filter_boxes_by_area_range(sentinel_filtered_y_pred, self.area_range[0], self.area_range[1])
+            # Filter boxes by area
+            # filter boxes by category
+
             for k_i in tf.range(k):
                 category = self.category_ids[k_i]
-
+                category_filtered_y_true = util.filter_boxes(
+                    sentinel_filtered_y_true, value=category, axis=bbox.CLASS
+                )
                 category_filtered_y_pred = util.filter_boxes(
-                    area_filtered_y_pred, value=category, axis=bbox.CLASS
+                    sentinel_filtered_y_pred, value=category, axis=bbox.CLASS
                 )
 
-                y_pred_slice_size = tf.math.min(self.max_detections, tf.shape(category_filtered_y_pred)[0])
-                detections = category_filtered_y_pred[:y_pred_slice_size]
+                for a_i in tf.range(a):
+                    area_range = self.area_ranges[a_i]
+                    min_area = area_range[0]
+                    max_area = area_range[1]
+                    area_filtered_y_true = util.filter_boxes_by_area_range(
+                        category_filtered_y_true, min_area, max_area
+                    )
+                    area_filtered_y_pred = category_filtered_y_pred  # area_filtered_y_pred = util.filter_boxes_by_area_range(category_filtered_y_pred, min_area, max_area)
+                    ious = iou_lib.compute_ious_for_image(
+                        area_filtered_y_true, area_filtered_y_pred
+                    )
 
-                ground_truths = util.filter_boxes(
-                    area_filtered_y_true, value=category, axis=bbox.CLASS
-                )
-                
-                ious = iou_lib.compute_ious_for_image(ground_truths, detections)
+                    ground_truth_boxes_update = tf.tensor_scatter_nd_add(
+                        ground_truth_boxes_update,
+                        [[k_i, a_i]],
+                        [tf.cast(tf.shape(area_filtered_y_true)[0], tf.float32)],
+                    )
 
-                for t_i in tf.range(t):
-                    threshold = self.iou_thresholds[t_i]
-                    gt_matches, pred_matches = self._match_boxes(ground_truths, detections, threshold, ious)
-                    
-                    indices = [t_i, k_i]
-                    true_positives = tf.cast(pred_matches != -1, tf.float32)
-                    false_positives = tf.cast(pred_matches == -1, tf.float32)
+                    for t_i in tf.range(t):
+                        threshold = self.iou_thresholds[t_i]
+                        gt_matches, pred_matches = self._match_boxes(
+                            area_filtered_y_true, area_filtered_y_pred, threshold, ious
+                        )
+                        true_positives = tf.cast(pred_matches != -1, tf.float32)
+                        false_positives = tf.cast(pred_matches == -1, tf.float32)
 
-                    true_positives_sum = tf.math.reduce_sum(true_positives, axis=-1)
-                    false_positives_sum = tf.math.reduce_sum(false_positives == -1, tf.float32)
-                    true_positives_update = tf.scatter_nd_add(true_positives_update, [indices], [true_positives_sum])
-                    false_positives_update = tf.scatter_nd_add(false_positives_update, [indices], [false_positives_sum])
+                        for m_i in range(m):
+                            max_dets = self.max_detections[m_i]
+                            indices = [t_i, k_i, a_i, m_i]
+                            mdt_slice = tf.math.minimum(
+                                tf.shape(false_positives)[0], max_dets
+                            )
+                            false_positives_sum = tf.math.reduce_sum(
+                                false_positives[:mdt_slice], axis=-1
+                            )
+                            true_positives_sum = tf.math.reduce_sum(
+                                true_positives, axis=-1
+                            )
 
-                ground_truth_boxes_update = tf.scatter_nd_add(
-                    ground_truth_boxes_update, [k_i], [tf.cast(tf.shape(ground_truths)[0], tf.float32)]
-                )
+                            true_positives_update = tf.tensor_scatter_nd_add(
+                                true_positives_update, [indices], [true_positives_sum],
+                            )
+                            false_positives_update = tf.tensor_scatter_nd_add(
+                                false_positives_update,
+                                [indices],
+                                [false_positives_sum],
+                            )
 
         self.true_positives.assign_add(true_positives_update)
         self.false_positives.assign_add(false_positives_update)

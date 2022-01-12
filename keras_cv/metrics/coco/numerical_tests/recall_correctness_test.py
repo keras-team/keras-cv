@@ -34,8 +34,8 @@ class RecallCorrectnessTest(tf.test.TestCase):
         # Area range all
         recall = COCORecall(
             category_ids=categories + [1000],
-            max_detections=[1],
-            area_ranges=[(0, 1e5 ** 2)],
+            max_detections=1,
+            area_ranges=(0, 1e5 ** 2),
         )
 
         recall.update_state(y_true, y_pred)
@@ -74,8 +74,8 @@ class RecallCorrectnessTest(tf.test.TestCase):
         y_true, y_pred, categories = load_samples(SAMPLE_FILE)
         recall = COCORecall(
             category_ids=categories + [1000],
-            max_detections=[100],
-            area_ranges=[(0, 32 ** 2)],
+            max_detections=100,
+            area_range=(0, 32 ** 2),
         )
 
         recall.update_state(y_true, y_pred)
@@ -86,8 +86,8 @@ class RecallCorrectnessTest(tf.test.TestCase):
         y_true, y_pred, categories = load_samples(SAMPLE_FILE)
         recall = COCORecall(
             category_ids=categories + [1000],
-            max_detections=[100],
-            area_ranges=[(32 ** 2, 96 ** 2)],
+            max_detections=100,
+            area_ranges=(32 ** 2, 96 ** 2),
         )
 
         recall.update_state(y_true, y_pred)
@@ -98,8 +98,8 @@ class RecallCorrectnessTest(tf.test.TestCase):
         y_true, y_pred, categories = load_samples(SAMPLE_FILE)
         recall = COCORecall(
             category_ids=categories + [1000],
-            max_detections=[100],
-            area_ranges=[(96 ** 2, 1e5**2)],
+            max_detections=100,
+            area_ranges=(96 ** 2, 1e5**2),
         )
 
         recall.update_state(y_true, y_pred)
