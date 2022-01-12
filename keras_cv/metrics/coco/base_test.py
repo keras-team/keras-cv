@@ -16,14 +16,14 @@ class COCOBaseTest(tf.test.TestCase):
         metric = COCOBase(
             iou_thresholds=[0.15],
             category_ids=[1],
-            area_ranges=[(0, 10000 ** 2)],
-            max_detections=[1],
+            area_range=(0, 10000 ** 2),
+            max_detections=1,
         )
         metric.update_state(y_true, y_pred)
         # shape = [1, 1, 1, 1]
-        self.assertEqual(2.0, metric.ground_truth_boxes[0, 0].numpy())
-        self.assertEqual(1.0, metric.true_positives[0, 0, 0, 0].numpy())
-        self.assertEqual(0.0, metric.false_positives[0, 0, 0, 0].numpy())
+        self.assertEqual(2.0, metric.ground_truth_boxes[0].numpy())
+        self.assertEqual(1.0, metric.true_positives[0, 0].numpy())
+        self.assertEqual(0.0, metric.false_positives[0, 0].numpy())
 
     def test_true_positive_counting_one_good_one_bad(self):
         y_true = tf.constant(
@@ -34,14 +34,14 @@ class COCOBaseTest(tf.test.TestCase):
         metric = COCOBase(
             iou_thresholds=[0.15],
             category_ids=[1],
-            area_ranges=[(0, 10000 ** 2)],
-            max_detections=[1],
+            area_range=(0, 10000 ** 2),
+            max_detections=1,
         )
         metric.update_state(y_true, y_pred)
         # shape = [1, 1, 1, 1]
-        self.assertEqual(2.0, metric.ground_truth_boxes[0, 0].numpy())
-        self.assertEqual(1.0, metric.true_positives[0, 0, 0, 0].numpy())
-        self.assertEqual(0.0, metric.false_positives[0, 0, 0, 0].numpy())
+        self.assertEqual(2.0, metric.ground_truth_boxes[0].numpy())
+        self.assertEqual(1.0, metric.true_positives[0, 0].numpy())
+        self.assertEqual(0.0, metric.false_positives[0, 0].numpy())
 
     def test_true_positive_counting_one_true_two_pred(self):
         y_true = tf.constant([[[0, 0, 100, 100, 1],]], dtype=tf.float32)
@@ -52,32 +52,18 @@ class COCOBaseTest(tf.test.TestCase):
         metric = COCOBase(
             iou_thresholds=[0.15],
             category_ids=[1],
-            area_ranges=[(0, 10000 ** 2)],
-            max_detections=[1],
+            area_range=(0, 10000 ** 2),
+            max_detections=1,
         )
         metric.update_state(y_true, y_pred)
         # shape = [1, 1, 1, 1]
-        self.assertEqual(1.0, metric.true_positives[0, 0, 0, 0].numpy())
-
-    def test_true_positive_counting_multiple_updates(self):
-        y_true = tf.constant([[[0, 0, 100, 100, 1]]], dtype=tf.float32)
-        y_pred = tf.constant([[[0, 50, 100, 150, 1, 1.0]]], dtype=tf.float32)
-        # note the low iou threshold
-        metric = COCOBase(
-            iou_thresholds=[0.15],
-            category_ids=[1],
-            area_ranges=[(0, 10000 ** 2)],
-            max_detections=[1],
-        )
-        metric.update_state(y_true, y_pred)
-        # shape = [1, 1, 1, 1]
-        self.assertEqual(1.0, metric.true_positives[0, 0, 0, 0].numpy())
+        self.assertEqual(1.0, metric.true_positives[0, 0].numpy())
 
         y_true = tf.constant([[[0, 0, 100, 100, 1]]], dtype=tf.float32)
         y_pred = tf.constant([[[0, 50, 100, 150, 1, 1.0]]], dtype=tf.float32)
 
         metric.update_state(y_true, y_pred)
-        self.assertEqual(2.0, metric.true_positives[0, 0, 0, 0].numpy())
+        self.assertEqual(2.0, metric.true_positives[0, 0].numpy())
 
     def test_matches_single_box(self):
         y_true = tf.constant([[[0, 0, 100, 100, 1]]], dtype=tf.float32)
@@ -87,15 +73,15 @@ class COCOBaseTest(tf.test.TestCase):
         metric = COCOBase(
             iou_thresholds=[0.15],
             category_ids=[1],
-            area_ranges=[(0, 10000 ** 2)],
-            max_detections=[1],
+            area_range=(0, 10000 ** 2),
+            max_detections=1,
         )
         metric.update_state(y_true, y_pred)
 
         # shape = [1, 1, 1, 1]
-        self.assertEqual(1.0, metric.true_positives[0, 0, 0, 0].numpy())
+        self.assertEqual(1.0, metric.true_positives[0, 0].numpy())
         # shape = [1, 1, 1, 1]
-        self.assertEqual(0.0, metric.false_positives[0, 0, 0, 0].numpy())
+        self.assertEqual(0.0, metric.false_positives[0, 0].numpy())
 
     def test_matches_single_false_positive(self):
         y_true = tf.constant([[[0, 0, 100, 100, 1]]], dtype=tf.float32)
@@ -104,12 +90,12 @@ class COCOBaseTest(tf.test.TestCase):
         metric = COCOBase(
             iou_thresholds=[0.95],
             category_ids=[1],
-            area_ranges=[(0, 100000 ** 2)],
-            max_detections=[1],
+            area_range=(0, 100000 ** 2),
+            max_detections=1,
         )
         metric.update_state(y_true, y_pred)
 
         # shape = [1, 1, 1, 1]
-        self.assertEqual(0.0, metric.true_positives[0, 0, 0, 0].numpy())
+        self.assertEqual(0.0, metric.true_positives[0, 0].numpy())
         # shape = [1, 1, 1, 1]
-        self.assertEqual(1.0, metric.false_positives[0, 0, 0, 0].numpy())
+        self.assertEqual(1.0, metric.false_positives[0, 0].numpy())

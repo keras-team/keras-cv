@@ -25,8 +25,8 @@ class COCOBase(keras.metrics.Metric):
         self,
         iou_thresholds=None,
         category_ids=None,
-        area_range=None,
-        max_detections=None,
+        area_range=(0, 1e9**2),
+        max_detections=100,
         **kwargs
     ):
         super(COCOBase, self).__init__(**kwargs)
@@ -38,24 +38,12 @@ class COCOBase(keras.metrics.Metric):
         # TODO(lukewood): support inference of category_ids based on update_state calls.
         self.category_ids = self._add_constant_weight("category_ids", category_ids)
 
-        # default area ranges are defined for the COCO set
-        # 32 ** 2 represents a 32x32 object.
-        area_range = area_range or [0, 1e9**2]
-        self.area_range = self._add_constant_weight(
-            "area_range",
-            area_range or [],
-            shape=(2,),
-            dtype=tf.float32,
-        )
-        self.max_detections = self._add_constant_weight(
-            "max_detections", max_detections or 100, dtype=tf.int32
-        )
+        self.area_range = area_range
+        self.max_detections = max_detections
 
         # Initialize result counters
-        t = self.iou_thresholds.shape[0]
-        k = self.category_ids.shape[0]
-        a = self.area_ranges.shape[0]
-        m = self.max_detections.shape[0]
+        t = len(self._user_iou_thresholds)
+        k = len(category_ids)
 
         self.true_positives = self.add_weight(
             name="true_positives",
@@ -104,13 +92,14 @@ class COCOBase(keras.metrics.Metric):
         false_positives_update = tf.zeros_like(self.false_positives)
         ground_truth_boxes_update = tf.zeros_like(self.ground_truth_boxes)
         
-
         for img in tf.range(num_images):
             sentinel_filtered_y_true = util.filter_out_sentinels(y_true[img])
             sentinel_filtered_y_pred = util.filter_out_sentinels(y_pred[img])
 
             area_filtered_y_true = util.filter_boxes_by_area_range(sentinel_filtered_y_true, self.area_range[0], self.area_range[1])
+            # TODO(lukewood): try filtering area after max dts.
             area_filtered_y_pred = util.filter_boxes_by_area_range(sentinel_filtered_y_pred, self.area_range[0], self.area_range[1])
+
             for k_i in tf.range(k):
                 category = self.category_ids[k_i]
 
@@ -118,13 +107,14 @@ class COCOBase(keras.metrics.Metric):
                     area_filtered_y_pred, value=category, axis=bbox.CLASS
                 )
 
-                y_pred_slice_size = tf.math.min(self.max_detections, tf.shape(category_filtered_y_pred)[0])
-                detections = category_filtered_y_pred[:y_pred_slice_size]
+                detections = category_filtered_y_pred
+                if self.max_detections < tf.shape(category_filtered_y_pred)[0]:
+                    detections = category_filtered_y_pred[:self.max_detections]
 
                 ground_truths = util.filter_boxes(
                     area_filtered_y_true, value=category, axis=bbox.CLASS
                 )
-                
+
                 ious = iou_lib.compute_ious_for_image(ground_truths, detections)
 
                 for t_i in tf.range(t):
@@ -136,12 +126,12 @@ class COCOBase(keras.metrics.Metric):
                     false_positives = tf.cast(pred_matches == -1, tf.float32)
 
                     true_positives_sum = tf.math.reduce_sum(true_positives, axis=-1)
-                    false_positives_sum = tf.math.reduce_sum(false_positives == -1, tf.float32)
-                    true_positives_update = tf.scatter_nd_add(true_positives_update, [indices], [true_positives_sum])
-                    false_positives_update = tf.scatter_nd_add(false_positives_update, [indices], [false_positives_sum])
+                    false_positives_sum = tf.math.reduce_sum(false_positives, axis=-1)
+                    true_positives_update = tf.tensor_scatter_nd_add(true_positives_update, [indices], [true_positives_sum])
+                    false_positives_update = tf.tensor_scatter_nd_add(false_positives_update, [indices], [false_positives_sum])
 
-                ground_truth_boxes_update = tf.scatter_nd_add(
-                    ground_truth_boxes_update, [k_i], [tf.cast(tf.shape(ground_truths)[0], tf.float32)]
+                ground_truth_boxes_update = tf.tensor_scatter_nd_add(
+                    ground_truth_boxes_update, [[k_i]], [tf.cast(tf.shape(ground_truths)[0], tf.float32)]
                 )
 
         self.true_positives.assign_add(true_positives_update)
