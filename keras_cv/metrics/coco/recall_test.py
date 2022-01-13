@@ -9,9 +9,9 @@ from keras_cv.metrics.coco.recall import COCORecall
 class COCORecallTest(tf.test.TestCase):
     def test_recall_area_range_filtering(self):
         recall = COCORecall(
-            max_detections=[1e9],
-            category_ids=[1],
-            area_ranges=[(0, 32 ** 2), (32 ** 2, 1e9 ** 2)],
+            max_detections=1e9,
+            category_ids=1,
+            area_ranges=(0, 32 ** 2),
         )
         t = recall.iou_thresholds.shape[0]
         k = recall.category_ids.shape[0]
