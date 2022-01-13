@@ -1,5 +1,6 @@
 keras_cv.egg-info/
 *.DS_Store
+build/
 *.swp
 .idea
 *.pyc
