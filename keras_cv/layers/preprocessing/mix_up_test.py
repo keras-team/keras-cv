@@ -60,6 +60,7 @@ class MixUpTest(tf.test.TestCase):
         @tf.function
         def augment(x, y):
             return layer(x, y)
+
         xs, ys = augment(xs, ys)
 
         # None of the individual values should still be close to 1 or 0

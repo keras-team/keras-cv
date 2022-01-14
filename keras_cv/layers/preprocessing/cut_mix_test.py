@@ -70,7 +70,8 @@ class CutMixTest(tf.test.TestCase):
 
     def test_in_tf_function(self):
         xs = tf.cast(
-            tf.stack([2 * tf.ones((100, 100, 1)), tf.ones((100, 100, 1))], axis=0), tf.float32,
+            tf.stack([2 * tf.ones((100, 100, 1)), tf.ones((100, 100, 1))], axis=0),
+            tf.float32,
         )
         ys = tf.one_hot(tf.constant([0, 1]), 2)
 
@@ -79,6 +80,7 @@ class CutMixTest(tf.test.TestCase):
         @tf.function
         def augment(x, y):
             return layer(x, y)
+
         xs, ys = augment(xs, ys)
 
         # At least some pixels should be replaced in the CutMix operation

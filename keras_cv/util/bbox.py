@@ -40,8 +40,9 @@ def xywh_to_corners(bboxes):
 
 
 def pad_bbox_batch_to_shape(bboxes, target_shape, padding_values=-1):
-    """Pads a list of bounding boxes with -1s to indicate that the boxes should
-    be ignored by COCO metrics.
+    """Pads a list of bounding boxes with -1s.
+
+    Boxes represented by all -1s are ignored by COCO metrics.
 
     Args:
         bboxes: tf.Tensor of bounding boxes in any format.

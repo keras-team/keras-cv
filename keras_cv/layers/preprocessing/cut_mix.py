@@ -27,9 +27,7 @@ class CutMix(layers.Layer):
     ```
     """
 
-    def __init__(
-        self, rate, label_smoothing=0.0, alpha=1.0, seed=None, **kwargs
-    ):
+    def __init__(self, rate, label_smoothing=0.0, alpha=1.0, seed=None, **kwargs):
         super().__init__(**kwargs)
         self.alpha = alpha
         self.rate = rate

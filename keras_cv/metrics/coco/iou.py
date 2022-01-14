@@ -1,7 +1,7 @@
 """Contains functions to compute ious of bounding boxes."""
 import tensorflow as tf
 
-from keras_cv import bbox
+from keras_cv.util import bbox
 
 
 def _compute_single_iou(bboxes1, bb2):
@@ -32,7 +32,9 @@ def _compute_single_iou(bboxes1, bb2):
     area_intersection = _area(
         intersection_left, intersection_right, intersection_top, intersection_bottom
     )
-    area_bboxes1 = _area(bb1[bbox.LEFT], bb1[bbox.RIGHT], bb1[bbox.TOP], bb1[bbox.BOTTOM])
+    area_bboxes1 = _area(
+        bb1[bbox.LEFT], bb1[bbox.RIGHT], bb1[bbox.TOP], bb1[bbox.BOTTOM]
+    )
     area_bb2 = _area(bb2[bbox.LEFT], bb2[bbox.RIGHT], bb2[bbox.TOP], bb2[bbox.BOTTOM])
 
     area_union = area_bboxes1 + area_bb2 - area_intersection
@@ -59,8 +61,12 @@ def compute_ious_for_image(boxes1, boxes2):
         boxes2.
     """
     zero = tf.convert_to_tensor(0.0, boxes1.dtype)
-    boxes1_ymin, boxes1_xmin, boxes1_ymax, boxes1_xmax = tf.unstack(boxes1[..., :4, None], 4, axis=-2)
-    boxes2_ymin, boxes2_xmin, boxes2_ymax, boxes2_xmax = tf.unstack(boxes2[None, ..., :4], 4, axis=-1)
+    boxes1_ymin, boxes1_xmin, boxes1_ymax, boxes1_xmax = tf.unstack(
+        boxes1[..., :4, None], 4, axis=-2
+    )
+    boxes2_ymin, boxes2_xmin, boxes2_ymax, boxes2_xmax = tf.unstack(
+        boxes2[None, ..., :4], 4, axis=-1
+    )
     boxes1_width = tf.maximum(zero, boxes1_xmax - boxes1_xmin)
     boxes1_height = tf.maximum(zero, boxes1_ymax - boxes1_ymin)
     boxes2_width = tf.maximum(zero, boxes2_xmax - boxes2_xmin)

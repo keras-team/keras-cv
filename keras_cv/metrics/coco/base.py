@@ -1,7 +1,7 @@
 import tensorflow as tf
 import tensorflow.keras as keras
 import tensorflow.keras.initializers as initializers
-from keras_cv import bbox
+from keras_cv.util import bbox
 from keras_cv.metrics.coco import iou as iou_lib
 from keras_cv.metrics.coco import util
 
@@ -12,26 +12,29 @@ class COCOBase(keras.metrics.Metric):
     Args:
         iou_thresholds: defaults to [0.5:0.05:0.95].  Dimension T=len(iou_thresholds), defaults to 10.
         category_ids: no default, users must provide.  K=len(category_ids)
-        area_ranges: ranges to consider detections in, defaults to [all, 0-32, 32-96, 96>].
-        max_detections: TODO
+        area_range: area range to consider bounding boxes in. Defaults to all.
+        max_detections: number of maximum detections a model is allowed to make.
 
     Internally the COCOBase class tracks the following values:
-    - TruePositives: tf.Tensor with shape [TxKxAxM] precision for every evaluation setting.
-    - FalsePositives: tf.Tensor with shape [TxKxAxM] precision for every evaluation setting.
-    - GroundTruthBoxes: tf.Tensor with shape [KxA] max recall for every evaluation setting.
+
+    - TruePositives: tf.Tensor with shape [TxK] precision for every evaluation setting.
+    - FalsePositives: tf.Tensor with shape [TxK] precision for every evaluation setting.
+    - GroundTruthBoxes: tf.Tensor with shape [K] max recall for every evaluation setting.
     """
 
     def __init__(
         self,
         iou_thresholds=None,
         category_ids=None,
-        area_range=(0, 1e9**2),
+        area_range=(0, 1e9 ** 2),
         max_detections=100,
         **kwargs
     ):
-        super(COCOBase, self).__init__(**kwargs)
+        super().__init__(**kwargs)
         # Initialize parameter values
-        self._user_iou_thresholds = iou_thresholds or [x / 100.0 for x in range(50, 100, 5)]
+        self._user_iou_thresholds = iou_thresholds or [
+            x / 100.0 for x in range(50, 100, 5)
+        ]
         self.iou_thresholds = self._add_constant_weight(
             "iou_thresholds", self._user_iou_thresholds
         )
@@ -42,30 +45,30 @@ class COCOBase(keras.metrics.Metric):
         self.max_detections = max_detections
 
         # Initialize result counters
-        t = len(self._user_iou_thresholds)
-        k = len(category_ids)
+        num_thresholds = len(self._user_iou_thresholds)
+        num_categories = len(category_ids)
 
         self.true_positives = self.add_weight(
             name="true_positives",
-            shape=(t, k),
+            shape=(num_thresholds, num_categories),
             dtype=tf.float32,
             initializer=initializers.Zeros(),
         )
         self.false_positives = self.add_weight(
             name="false_positives",
-            shape=(t, k),
+            shape=(num_thresholds, num_categories),
             dtype=tf.float32,
             initializer=initializers.Zeros(),
         )
         self.ground_truth_boxes = self.add_weight(
             name="ground_truth_boxes",
-            shape=(k,),
+            shape=(num_categories,),
             dtype=tf.float32,
             initializer=initializers.Zeros(),
         )
 
     def reset_state(self):
-        super(COCOBase, self).reset_state()
+        super().reset_state()
         self.true_positives.assign(tf.zeros_like(self.true_positives))
         self.false_positives.assign(tf.zeros_like(self.false_positives))
         self.ground_truth_boxes.assign(tf.zeros_like(self.ground_truth_boxes))
@@ -83,24 +86,28 @@ class COCOBase(keras.metrics.Metric):
             )
         num_images = y_true.shape[0]
 
-        k = self.category_ids.shape[0]
-        t = self.iou_thresholds.shape[0]
+        num_thresholds = self.iou_thresholds.shape[0]
+        num_categories = self.category_ids.shape[0]
 
         # Sort by bbox.CONFIDENCE to make maxDetections easy to compute.
         y_pred = util.sort_bboxes(y_pred, axis=bbox.CONFIDENCE)
         true_positives_update = tf.zeros_like(self.true_positives)
         false_positives_update = tf.zeros_like(self.false_positives)
         ground_truth_boxes_update = tf.zeros_like(self.ground_truth_boxes)
-        
+
         for img in tf.range(num_images):
             sentinel_filtered_y_true = util.filter_out_sentinels(y_true[img])
             sentinel_filtered_y_pred = util.filter_out_sentinels(y_pred[img])
 
-            area_filtered_y_true = util.filter_boxes_by_area_range(sentinel_filtered_y_true, self.area_range[0], self.area_range[1])
+            area_filtered_y_true = util.filter_boxes_by_area_range(
+                sentinel_filtered_y_true, self.area_range[0], self.area_range[1]
+            )
             # TODO(lukewood): try filtering area after max dts.
-            area_filtered_y_pred = util.filter_boxes_by_area_range(sentinel_filtered_y_pred, self.area_range[0], self.area_range[1])
+            area_filtered_y_pred = util.filter_boxes_by_area_range(
+                sentinel_filtered_y_pred, self.area_range[0], self.area_range[1]
+            )
 
-            for k_i in tf.range(k):
+            for k_i in tf.range(num_categories):
                 category = self.category_ids[k_i]
 
                 category_filtered_y_pred = util.filter_boxes(
@@ -109,7 +116,7 @@ class COCOBase(keras.metrics.Metric):
 
                 detections = category_filtered_y_pred
                 if self.max_detections < tf.shape(category_filtered_y_pred)[0]:
-                    detections = category_filtered_y_pred[:self.max_detections]
+                    detections = category_filtered_y_pred[: self.max_detections]
 
                 ground_truths = util.filter_boxes(
                     area_filtered_y_true, value=category, axis=bbox.CLASS
@@ -117,21 +124,29 @@ class COCOBase(keras.metrics.Metric):
 
                 ious = iou_lib.compute_ious_for_image(ground_truths, detections)
 
-                for t_i in tf.range(t):
+                for t_i in tf.range(num_thresholds):
                     threshold = self.iou_thresholds[t_i]
-                    gt_matches, pred_matches = self._match_boxes(ground_truths, detections, threshold, ious)
-                    
+                    gt_matches, pred_matches = self._match_boxes(
+                        ground_truths, detections, threshold, ious
+                    )
+
                     indices = [t_i, k_i]
                     true_positives = tf.cast(pred_matches != -1, tf.float32)
                     false_positives = tf.cast(pred_matches == -1, tf.float32)
 
                     true_positives_sum = tf.math.reduce_sum(true_positives, axis=-1)
                     false_positives_sum = tf.math.reduce_sum(false_positives, axis=-1)
-                    true_positives_update = tf.tensor_scatter_nd_add(true_positives_update, [indices], [true_positives_sum])
-                    false_positives_update = tf.tensor_scatter_nd_add(false_positives_update, [indices], [false_positives_sum])
+                    true_positives_update = tf.tensor_scatter_nd_add(
+                        true_positives_update, [indices], [true_positives_sum]
+                    )
+                    false_positives_update = tf.tensor_scatter_nd_add(
+                        false_positives_update, [indices], [false_positives_sum]
+                    )
 
                 ground_truth_boxes_update = tf.tensor_scatter_nd_add(
-                    ground_truth_boxes_update, [[k_i]], [tf.cast(tf.shape(ground_truths)[0], tf.float32)]
+                    ground_truth_boxes_update,
+                    [[k_i]],
+                    [tf.cast(tf.shape(ground_truths)[0], tf.float32)],
                 )
 
         self.true_positives.assign_add(true_positives_update)
@@ -162,7 +177,7 @@ class COCOBase(keras.metrics.Metric):
             pred_matches = pred_matches.write(i, -1)
 
         for detection_idx in tf.range(n_pred):
-            m = -1
+            match_index = -1
             iou = tf.math.minimum(threshold, 1 - 1e-10)
 
             for gt_idx in tf.range(n_true):
@@ -174,13 +189,13 @@ class COCOBase(keras.metrics.Metric):
                 if not ious[gt_idx, detection_idx] >= threshold:
                     continue
                 iou = ious[gt_idx, detection_idx]
-                m = gt_idx
+                match_index = gt_idx
 
             # Write back the match indices
-            pred_matches = pred_matches.write(detection_idx, m)
-            if m == -1:
+            pred_matches = pred_matches.write(detection_idx, match_index)
+            if match_index == -1:
                 continue
-            gt_matches = gt_matches.write(m, detection_idx)
+            gt_matches = gt_matches.write(match_index, detection_idx)
         return gt_matches.stack(), pred_matches.stack()
 
     def result(self):

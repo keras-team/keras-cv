@@ -4,7 +4,7 @@ import os
 import numpy as np
 import tensorflow as tf
 
-from keras_cv import bbox
+from keras_cv.util import bbox
 from keras_cv.metrics.coco import iou as iou_lib
 from keras_cv.metrics.coco.recall import COCORecall
 
@@ -99,7 +99,7 @@ class RecallCorrectnessTest(tf.test.TestCase):
         recall = COCORecall(
             category_ids=categories + [1000],
             max_detections=100,
-            area_range=(96 ** 2, 1e5**2),
+            area_range=(96 ** 2, 1e5 ** 2),
         )
 
         recall.update_state(y_true, y_pred)
