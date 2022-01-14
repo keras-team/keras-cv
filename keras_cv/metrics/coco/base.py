@@ -154,33 +154,43 @@ class COCOBase(keras.metrics.Metric):
         self.ground_truth_boxes.assign_add(ground_truth_boxes_update)
 
     def _match_boxes(self, y_true, y_pred, threshold, ious):
-        n_true = tf.shape(y_true)[0]
-        n_pred = tf.shape(y_pred)[0]
+        """matches bounding boxes from y_true to boxes in y_pred.
+
+        Args:
+            y_true: bounding box tensor of shape [num_boxes, 4+].
+            y_pred: bounding box tensor of shape [num_boxes, 4+].
+            threshold: minimum IoU for a pair to be considered a match.
+            ious: lookup table from [y_true, y_pred] => IoU.
+        Returns:
+            indices of matches between y_pred and y_true.
+        """
+        num_true = tf.shape(y_true)[0]
+        num_pred = tf.shape(y_pred)[0]
 
         gt_matches = tf.TensorArray(
             tf.int32,
-            size=n_true,
+            size=num_true,
             dynamic_size=False,
             infer_shape=False,
             element_shape=(),
         )
         pred_matches = tf.TensorArray(
             tf.int32,
-            size=n_pred,
+            size=num_pred,
             dynamic_size=False,
             infer_shape=False,
             element_shape=(),
         )
-        for i in tf.range(n_true):
+        for i in tf.range(num_true):
             gt_matches = gt_matches.write(i, -1)
-        for i in tf.range(n_pred):
+        for i in tf.range(num_pred):
             pred_matches = pred_matches.write(i, -1)
 
-        for detection_idx in tf.range(n_pred):
+        for detection_idx in tf.range(num_pred):
             match_index = -1
             iou = tf.math.minimum(threshold, 1 - 1e-10)
 
-            for gt_idx in tf.range(n_true):
+            for gt_idx in tf.range(num_true):
                 if gt_matches.gather([gt_idx]) > -1:
                     continue
                 # TODO(lukewood): update clause to account for gtIg
