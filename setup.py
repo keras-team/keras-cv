@@ -39,5 +39,5 @@ setup(
         "Topic :: Scientific/Engineering",
         "Topic :: Software Development",
     ],
-    packages=find_packages(exclude=("tests",)),
+    packages=find_packages(exclude=("*_test.py",)),
 )
