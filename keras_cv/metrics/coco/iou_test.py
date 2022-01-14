@@ -7,28 +7,15 @@ from keras_cv.metrics.coco import iou as iou_lib
 
 
 class IoUTest(tf.test.TestCase):
-    def test_area(self):
-        self.assertEqual(iou_lib._area(100.0, 200.0, 101.0, 201.0), 10000.0)
-        self.assertEqual(iou_lib._area(0.0, 1.0, 0.0, 1.0), 1.0)
-        self.assertEqual(iou_lib._area(0.0, 1.0, 0.0, 0.25), 0.25)
-        self.assertEqual(iou_lib._area(1.0, 1.0, 0.0, 1.0), 0.0)
-        self.assertEqual(iou_lib._area(0.0, 1.0, 1.0, 1.0), 0.0)
-
-    def test_compute_single_iou_zero_overlap(self):
-        bb1 = tf.constant([100, 101, 200, 201], dtype=tf.float32)
-        far_away_bb = tf.constant([1000, 1100, 1200, 1101], dtype=tf.float32)
-        self.assertAlmostEqual(
-            iou_lib._compute_single_iou(bb1, far_away_bb).numpy(), 0.0
-        )
-
     def test_compute_single_iou(self):
-        bb1 = tf.constant([100, 101, 200, 201], dtype=tf.float32)
-        bb1_off_by_1 = tf.constant([101, 102, 201, 202], dtype=tf.float32)
+        bb1 = tf.constant([[100, 101, 200, 201]], dtype=tf.float32)
+        bb1_off_by_1 = tf.constant([[101, 102, 201, 202]], dtype=tf.float32)
         # area of bb1 and bb1_off_by_1 are each 10000.
         # intersection area is 99*99=9801
         # iou=9801/(2*10000 - 9801)=0.96097656633
+        print(iou_lib.compute_ious_for_image(bb1, bb1_off_by_1))
         self.assertAlmostEqual(
-            iou_lib._compute_single_iou(bb1, bb1_off_by_1), 0.96097656633
+            iou_lib.compute_ious_for_image(bb1, bb1_off_by_1)[0], 0.96097656633
         )
 
     def test_compute_ious_for_image(self):
