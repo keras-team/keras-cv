@@ -32,7 +32,7 @@ class MixUpTest(tf.test.TestCase):
         xs, ys = layer(xs, ys)
         self.assertNotAllClose(ys, 0.0)
 
-    def test_cut_mix_call_results(self):
+    def test_mix_up_call_results(self):
         xs = tf.cast(
             tf.stack([2 * tf.ones((4, 4, 3)), tf.ones((4, 4, 3))], axis=0,), tf.float32,
         )
