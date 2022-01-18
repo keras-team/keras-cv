@@ -124,15 +124,17 @@ class RandomErase(BaseErase):
 
     def _compute_cut_size(self, batch_size, image_height, image_width):
         area = tf.cast(image_height * image_width, tf.float32)
-        for _ in range(10):
-            erase_area = area * tf.random.uniform(
-                [batch_size], minval=self.scale[0], maxval=self.scale[1]
-            )
-            aspect_ratio = tf.random.uniform(
-                [batch_size], minval=self.ratio[0], maxval=self.ratio[1]
-            )
-            h = tf.cast(tf.round(tf.sqrt(erase_area * aspect_ratio)), tf.int32)
-            w = tf.cast(tf.round(tf.sqrt(erase_area / aspect_ratio)), tf.int32)
+        erase_area = area * tf.random.uniform(
+            [batch_size], minval=self.scale[0], maxval=self.scale[1]
+        )
+        aspect_ratio = tf.random.uniform(
+            [batch_size], minval=self.ratio[0], maxval=self.ratio[1]
+        )
+        h = tf.cast(tf.round(tf.sqrt(erase_area * aspect_ratio)), tf.int32)
+        w = tf.cast(tf.round(tf.sqrt(erase_area / aspect_ratio)), tf.int32)
+
+        h = tf.minimum(h, image_height - 1)
+        w = tf.minimum(w, image_width - 1)
 
         return h, w
 
