@@ -5,7 +5,7 @@ import tensorflow.keras.layers as layers
 from tensorflow.python.platform import tf_logging as logging
 
 
-class BaseErase(layers.Layer, abc.ABC):
+class BaseErasing(layers.Layer, abc.ABC):
     """This can be inherited by layers that wants to implement erasing of patches.
 
     Args:
@@ -89,7 +89,7 @@ class BaseErase(layers.Layer, abc.ABC):
         pass
 
 
-class RandomErasing(BaseErase):
+class RandomErasing(BaseErasing):
     """RandomErasing implements the RandomErasing data augmentation technique.
 
     Args:
@@ -139,7 +139,7 @@ class RandomErasing(BaseErase):
         return h, w
 
 
-class CutOut(BaseErase):
+class CutOut(BaseErasing):
     """CutOut implements the CutOut data augmentation technique.
 
     Args:
