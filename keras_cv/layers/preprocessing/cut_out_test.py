@@ -13,7 +13,7 @@ class CutOutTest(tf.test.TestCase):
         ys = tf.squeeze(ys)
         ys = tf.one_hot(ys, NUM_CLASSES)
 
-        layer = CutOut(1.0, length=50, patches=1, patch_value=0.0, seed=1)
+        layer = CutOut(1.0, length=50, patch_value=0.0, seed=1)
         xs, ys = layer(xs, ys)
 
         self.assertEqual(xs.shape, [2, 512, 512, 3])
@@ -28,14 +28,14 @@ class CutOutTest(tf.test.TestCase):
         ys = tf.one_hot(tf.constant([0, 1]), 2)
 
         patch_value = 0.0
-        layer = CutOut(1.0, length=50, patches=1, patch_value=patch_value, seed=1)
+        layer = CutOut(1.0, length=2, patch_value=patch_value, seed=1)
         xs, ys = layer(xs, ys)
 
         # At least some pixels should be replaced in the CutOut operation
         self.assertTrue(tf.math.reduce_any(xs[0] == patch_value))
         self.assertTrue(tf.math.reduce_any(xs[0] == 2.0))
         self.assertTrue(tf.math.reduce_any(xs[1] == patch_value))
-        self.assertTrue(tf.math.reduce_any(xs[1] == 2.0))
+        self.assertTrue(tf.math.reduce_any(xs[1] == 1.0))
 
     def test_cut_out_call_results_one_channel(self):
         xs = tf.cast(
@@ -44,14 +44,14 @@ class CutOutTest(tf.test.TestCase):
         ys = tf.one_hot(tf.constant([0, 1]), 2)
 
         patch_value = 0.0
-        layer = CutOut(1.0, length=50, patches=1, patch_value=patch_value, seed=1)
+        layer = CutOut(1.0, length=2, patch_value=patch_value, seed=1)
         xs, ys = layer(xs, ys)
 
         # At least some pixels should be replaced in the CutOut operation
         self.assertTrue(tf.math.reduce_any(xs[0] == patch_value))
         self.assertTrue(tf.math.reduce_any(xs[0] == 2.0))
         self.assertTrue(tf.math.reduce_any(xs[1] == patch_value))
-        self.assertTrue(tf.math.reduce_any(xs[1] == 2.0))
+        self.assertTrue(tf.math.reduce_any(xs[1] == 1.0))
 
     def test_in_tf_function(self):
         xs = tf.cast(
@@ -60,7 +60,7 @@ class CutOutTest(tf.test.TestCase):
         ys = tf.one_hot(tf.constant([0, 1]), 2)
 
         patch_value = 0.0
-        layer = CutOut(1.0, length=50, patches=1, patch_value=patch_value, seed=1)
+        layer = CutOut(1.0, length=50, patch_value=patch_value, seed=1)
 
         @tf.function
         def augment(x, y):
@@ -71,4 +71,4 @@ class CutOutTest(tf.test.TestCase):
         self.assertTrue(tf.math.reduce_any(xs[0] == patch_value))
         self.assertTrue(tf.math.reduce_any(xs[0] == 2.0))
         self.assertTrue(tf.math.reduce_any(xs[1] == patch_value))
-        self.assertTrue(tf.math.reduce_any(xs[1] == 2.0))
+        self.assertTrue(tf.math.reduce_any(xs[1] == 1.0))

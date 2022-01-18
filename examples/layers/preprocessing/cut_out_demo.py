@@ -1,4 +1,4 @@
-"""cut_mix_demo.py shows how to use the CutMix preprocessing layer.
+"""cut_out_demo.py shows how to use the CutOut preprocessing layer.
 
 Operates on the oxford_flowers102 dataset.  In this script the flowers 
 are loaded, then are passed through the preprocessing layers.  
@@ -31,10 +31,7 @@ def main():
         .shuffle(10 * BATCH_SIZE)
         .batch(BATCH_SIZE)
     )
-    cutout = cut_out.CutOut(1.0, 10)
-    x, y = next(iter(train_ds))
-    z = cutout(x, y)
-
+    cutout = cut_out.CutOut(1.0, length=50, patch_value=None)
     train_ds = train_ds.map(cutout, num_parallel_calls=tf.data.AUTOTUNE)
 
     for images, labels in train_ds.take(1):

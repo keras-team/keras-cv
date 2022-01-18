@@ -1,5 +1,4 @@
 import tensorflow as tf
-import tensorflow.keras as keras
 import tensorflow.keras.layers as layers
 from tensorflow.python.platform import tf_logging as logging
 
@@ -9,14 +8,9 @@ class CutOut(layers.Layer):
 
     Args:
         rate: Float between 0 and 1.  The fraction of samples to augment.
-        length: Integer.  Inverse scale parameter for the gamma distribution.
-            This controls the shape of the distribution from which the smoothing values are
-            sampled.  Defaults 1.0, which is a recommended value when training an imagenet1k
-            classification model.
-        patches: Integer. When > 0, label values are smoothed, meaning the
-            confidence on label values are relaxed. e.g. label_smoothing=0.2 means that we
-            will use a value of 0.1 for label 0 and 0.9 for label 1.  Defaults 1.
-        patch_value: Float. ..... Defaults to 0.0.
+        length: Integer. The side length of the square patches to cut out.
+        patch_value: Float. The value to fill in the patches. If None, will
+            patches with gaussian noise. Defaults to 0.0.
     References:
        [CutOut paper](https://arxiv.org/abs/1708.04552).
 
@@ -24,14 +18,13 @@ class CutOut(layers.Layer):
     ```python
     (images, labels), _ = tf.keras.datasets.cifar10.load_data()
     cutout = keras_cv.layers.preprocessing.cut_mix.CutOut(20)
-    augmented_images, labels = cutmix(images, labels)
+    augmented_images, labels = cutout(images, labels)
     ```
     """
 
-    def __init__(self, rate, length, patches=1, patch_value=0.0, seed=None, **kwargs):
+    def __init__(self, rate, length, patch_value=0.0, seed=None, **kwargs):
         super().__init__(**kwargs)
         self.rate = rate
-        self.patches = patches
         self.length = length
         self.patch_value = patch_value
         self.seed = seed
@@ -44,12 +37,12 @@ class CutOut(layers.Layer):
             labels: One hot encoded tensor of labels for the images, with dtype tf.float32.
         Returns:
             images: augmented images, same shape as input.
-            labels: updated labels with both label smoothing and the cutmix updates applied.
+            labels: updated labels with both label smoothing and the cutout updates applied.
         """
 
         if tf.shape(images)[0] == 1:
             logging.warning(
-                "CutMix received a single image to `call`.  The layer relies on combining multiple examples, "
+                "CutOut received a single image to `call`.  The layer relies on combining multiple examples, "
                 "and as such will not behave as expected.  Please call the layer with 2 or more samples."
             )
 
@@ -72,8 +65,8 @@ class CutOut(layers.Layer):
 
         cut_height, cut_width = self._compute_cut_size(image_height, image_width)
 
-        cut_height = tf.cast(cut_height, dtype=tf.int32)
-        cut_width = tf.cast(cut_width, dtype=tf.int32)
+        cut_height = tf.fill([batch_size], cut_height)
+        cut_width = tf.fill([batch_size], cut_width)
 
         random_center_height = tf.random.uniform(
             shape=[batch_size], minval=0, maxval=image_height, dtype=tf.int32
@@ -82,16 +75,20 @@ class CutOut(layers.Layer):
             shape=[batch_size], minval=0, maxval=image_width, dtype=tf.int32
         )
 
+        args = [
+            images,
+            random_center_width,
+            random_center_height,
+            cut_width // 2,
+            cut_height // 2,
+        ]
+        if self.patch_value is not None:
+            patch_value = tf.fill([batch_size], self.patch_value)
+            args.append(patch_value)
+
         images = tf.map_fn(
             lambda x: _fill_rectangle(*x),
-            (
-                images,
-                random_center_width,
-                random_center_height,
-                cut_width // 2,
-                cut_height // 2,
-                # self.patch_value,
-            ),
+            args,
             fn_output_signature=tf.TensorSpec.from_tensor(images[0]),
         )
 
