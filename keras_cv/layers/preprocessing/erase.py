@@ -21,7 +21,7 @@ class BaseErase(layers.Layer, abc.ABC):
         self.seed = seed
 
     def call(self, images, labels):
-        """call method for the RandomErase layer.
+        """call method for the layer.
 
         Args:
             images: Tensor representing images of shape [batch_size, width, height, channels], with dtype tf.float32.
