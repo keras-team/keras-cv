@@ -32,9 +32,6 @@ def main():
         .batch(BATCH_SIZE)
     )
     rand_erase = random_erase.RandomErase(1.0)
-    # x, y = next(iter(train_ds))
-    # z = rand_erase(x, y)
-
     train_ds = train_ds.map(rand_erase, num_parallel_calls=tf.data.AUTOTUNE)
 
     for images, labels in train_ds.take(1):

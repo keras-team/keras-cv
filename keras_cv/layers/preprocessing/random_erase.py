@@ -28,7 +28,7 @@ class RandomErase(layers.Layer):
         rate,
         scale=(0.02, 0.33),
         ratio=(0.3, 3.3),
-        patch_value=0.0,
+        patch_value=None,
         seed=None,
         **kwargs
     ):
@@ -105,17 +105,15 @@ class RandomErase(layers.Layer):
 
     def _compute_cut_size(self, batch_size, image_height, image_width):
         area = tf.cast(image_height * image_width, tf.float32)
-        erase_area = area * tf.random.uniform(
-            [batch_size], minval=self.scale[0], maxval=self.scale[1]
-        )
-
-        # log_ratio = tf.math.log(self.ratio)
-        # aspect_ratio = tf.random.uniform([], minval=log_ratio[0], maxval=log_ratio[1])
-        # aspect_ratio = tf.math.exp(aspect_ratio)
-        aspect_ratio = tf.random.uniform([batch_size], minval=self.ratio[0], maxval=self.ratio[1])
-
-        h = tf.cast(tf.round(tf.sqrt(erase_area * aspect_ratio)), tf.int32)
-        w = tf.cast(tf.round(tf.sqrt(erase_area / aspect_ratio)), tf.int32)
+        for _ in range(10):
+            erase_area = area * tf.random.uniform(
+                [batch_size], minval=self.scale[0], maxval=self.scale[1]
+            )
+            aspect_ratio = tf.random.uniform(
+                [batch_size], minval=self.ratio[0], maxval=self.ratio[1]
+            )
+            h = tf.cast(tf.round(tf.sqrt(erase_area * aspect_ratio)), tf.int32)
+            w = tf.cast(tf.round(tf.sqrt(erase_area / aspect_ratio)), tf.int32)
 
         return h, w
 
