@@ -1,41 +1,22 @@
+import abc
+
 import tensorflow as tf
 import tensorflow.keras.layers as layers
 from tensorflow.python.platform import tf_logging as logging
 
 
-class RandomErase(layers.Layer):
-    """RandomErase implements the RandomErase data augmentation technique.
+class BaseErase(layers.Layer, abc.ABC):
+    """This can be inherited by layers that wants to implement erasing of patches.
 
     Args:
         rate: Float between 0 and 1.  The fraction of samples to augment.
-        scale: TODO
-        ratio: TODO
         patch_value: Float. The value to fill in the patches. If None, will
             patches with gaussian noise. Defaults to 0.0.
-    References:
-       [RandomErase paper](https://arxiv.org/abs/1708.04896).
-
-    Sample usage:
-    ```python
-    (images, labels), _ = tf.keras.datasets.cifar10.load_data()
-    random_erase = keras_cv.layers.preprocessing.cut_mix.RandomErase(1.0)
-    augmented_images, labels = random_erase(images, labels)
-    ```
     """
 
-    def __init__(
-        self,
-        rate,
-        scale=(0.02, 0.33),
-        ratio=(0.3, 3.3),
-        patch_value=None,
-        seed=None,
-        **kwargs
-    ):
+    def __init__(self, rate, patch_value=None, seed=None, **kwargs):
         super().__init__(**kwargs)
         self.rate = rate
-        self.scale = scale
-        self.ratio = ratio
         self.patch_value = patch_value
         self.seed = seed
 
@@ -60,11 +41,11 @@ class RandomErase(layers.Layer):
             tf.random.uniform(shape=[], minval=0.0, maxval=1.0), self.rate
         )
         # pylint: disable=g-long-lambda
-        random_erase_augment = lambda: self._random_erase(images, labels)
+        random_erase_augment = lambda: self._erase(images, labels)
         no_augment = lambda: (images, labels)
         return tf.cond(augment_cond, random_erase_augment, no_augment)
 
-    def _random_erase(self, images, labels):
+    def _erase(self, images, labels):
         """Apply random erase."""
         input_shape = tf.shape(images)
         batch_size, image_height, image_width = (
@@ -103,6 +84,44 @@ class RandomErase(layers.Layer):
 
         return images, labels
 
+    @abc.abstractmethod
+    def _compute_cut_size(self, batch_size, image_height, image_width):
+        pass
+
+
+class RandomErase(BaseErase):
+    """RandomErase implements the RandomErase data augmentation technique.
+
+    Args:
+        rate: Float between 0 and 1.  The fraction of samples to augment.
+        scale: Tuple of float. Area ratio range (min, max) of erasing patch.
+        ratio: Tuple of float. Aspect ratio range (min, max) of erasing patch.
+        patch_value: Float. The value to fill in the patches. If None, will
+            patches with gaussian noise. Defaults to 0.0.
+    References:
+       [RandomErase paper](https://arxiv.org/abs/1708.04896).
+
+    Sample usage:
+    ```python
+    (images, labels), _ = tf.keras.datasets.cifar10.load_data()
+    random_erase = keras_cv.layers.preprocessing.cut_mix.RandomErase(1.0)
+    augmented_images, labels = random_erase(images, labels)
+    ```
+    """
+
+    def __init__(
+        self,
+        rate,
+        scale=(0.02, 0.33),
+        ratio=(0.3, 3.3),
+        patch_value=None,
+        seed=None,
+        **kwargs
+    ):
+        super().__init__(rate, patch_value, seed, **kwargs)
+        self.scale = scale
+        self.ratio = ratio
+
     def _compute_cut_size(self, batch_size, image_height, image_width):
         area = tf.cast(image_height * image_width, tf.float32)
         for _ in range(10):
@@ -116,6 +135,34 @@ class RandomErase(layers.Layer):
             w = tf.cast(tf.round(tf.sqrt(erase_area / aspect_ratio)), tf.int32)
 
         return h, w
+
+
+class CutOut(BaseErase):
+    """CutOut implements the CutOut data augmentation technique.
+
+    Args:
+        rate: Float between 0 and 1.  The fraction of samples to augment.
+        length: Integer. The side length of the square patches to cut out.
+        patch_value: Float. The value to fill in the patches. If None, will
+            patches with gaussian noise. Defaults to 0.0.
+    References:
+       [CutOut paper](https://arxiv.org/abs/1708.04552).
+
+    Sample usage:
+    ```python
+    (images, labels), _ = tf.keras.datasets.cifar10.load_data()
+    cutout = keras_cv.layers.preprocessing.cut_mix.CutOut(1.0, 50)
+    augmented_images, labels = cutout(images, labels)
+    ```
+    """
+
+    def __init__(self, rate, length, patch_value=0.0, seed=None, **kwargs):
+        super().__init__(rate, patch_value, seed, **kwargs)
+        self.length = length
+
+    def _compute_cut_size(self, batch_size, image_height, image_width):
+        length = tf.fill([batch_size], self.length)
+        return length, length
 
 
 def _fill_rectangle(
