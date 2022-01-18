@@ -17,7 +17,7 @@ class CutOut(layers.Layer):
     Sample usage:
     ```python
     (images, labels), _ = tf.keras.datasets.cifar10.load_data()
-    cutout = keras_cv.layers.preprocessing.cut_mix.CutOut(20)
+    cutout = keras_cv.layers.preprocessing.cut_mix.CutOut(1.0, 50)
     augmented_images, labels = cutout(images, labels)
     ```
     """
@@ -37,7 +37,7 @@ class CutOut(layers.Layer):
             labels: One hot encoded tensor of labels for the images, with dtype tf.float32.
         Returns:
             images: augmented images, same shape as input.
-            labels: updated labels with both label smoothing and the cutout updates applied.
+            labels: original labels
         """
 
         if tf.shape(images)[0] == 1:
@@ -123,13 +123,13 @@ def _fill_rectangle(
     left_pad = tf.maximum(0, center_width - half_width)
     right_pad = tf.maximum(0, image_width - center_width - half_width)
 
-    cutout_shape = [
+    shape = [
         image_height - (lower_pad + upper_pad),
         image_width - (left_pad + right_pad),
     ]
     padding_dims = [[lower_pad, upper_pad], [left_pad, right_pad]]
     mask = tf.pad(
-        tf.zeros(cutout_shape, dtype=image.dtype), padding_dims, constant_values=1
+        tf.zeros(shape, dtype=image.dtype), padding_dims, constant_values=1
     )
     mask = tf.expand_dims(mask, -1)
 
