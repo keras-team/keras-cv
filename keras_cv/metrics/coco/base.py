@@ -73,6 +73,7 @@ class COCOBase(keras.metrics.Metric):
         self.false_positives.assign(tf.zeros_like(self.false_positives))
         self.ground_truth_boxes.assign(tf.zeros_like(self.ground_truth_boxes))
 
+    @tf.function()
     def update_state(self, y_true, y_pred, sample_weight=None):
         """
         Args:
@@ -94,7 +95,7 @@ class COCOBase(keras.metrics.Metric):
         true_positives_update = tf.zeros_like(self.true_positives)
         false_positives_update = tf.zeros_like(self.false_positives)
         ground_truth_boxes_update = tf.zeros_like(self.ground_truth_boxes)
-
+        
         for img in tf.range(num_images):
             sentinel_filtered_y_true = util.filter_out_sentinels(y_true[img])
             sentinel_filtered_y_pred = util.filter_out_sentinels(y_pred[img])
@@ -126,7 +127,7 @@ class COCOBase(keras.metrics.Metric):
 
                 for t_i in tf.range(num_thresholds):
                     threshold = self.iou_thresholds[t_i]
-                    gt_matches, pred_matches = self._match_boxes(
+                    pred_matches = self._match_boxes(
                         ground_truths, detections, threshold, ious
                     )
 
@@ -136,6 +137,7 @@ class COCOBase(keras.metrics.Metric):
 
                     true_positives_sum = tf.math.reduce_sum(true_positives, axis=-1)
                     false_positives_sum = tf.math.reduce_sum(false_positives, axis=-1)
+
                     true_positives_update = tf.tensor_scatter_nd_add(
                         true_positives_update, [indices], [true_positives_sum]
                     )
@@ -185,7 +187,7 @@ class COCOBase(keras.metrics.Metric):
             gt_matches = gt_matches.write(i, -1)
         for i in tf.range(num_pred):
             pred_matches = pred_matches.write(i, -1)
-
+        
         for detection_idx in tf.range(num_pred):
             match_index = -1
             iou = tf.math.minimum(threshold, 1 - 1e-10)
@@ -206,7 +208,7 @@ class COCOBase(keras.metrics.Metric):
             if match_index == -1:
                 continue
             gt_matches = gt_matches.write(match_index, detection_idx)
-        return gt_matches.stack(), pred_matches.stack()
+        return pred_matches.stack()
 
     def result(self):
         raise NotImplementedError("COCOBase subclasses must implement `result()`.")
