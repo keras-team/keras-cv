@@ -33,7 +33,7 @@ class BaseErase(layers.Layer, abc.ABC):
 
         if tf.shape(images)[0] == 1:
             logging.warning(
-                "RandomErase received a single image to `call`.  The layer relies on combining multiple examples, "
+                "RandomErasing received a single image to `call`.  The layer relies on combining multiple examples, "
                 "and as such will not behave as expected.  Please call the layer with 2 or more samples."
             )
 
@@ -89,8 +89,8 @@ class BaseErase(layers.Layer, abc.ABC):
         pass
 
 
-class RandomErase(BaseErase):
-    """RandomErase implements the RandomErase data augmentation technique.
+class RandomErasing(BaseErase):
+    """RandomErasing implements the RandomErasing data augmentation technique.
 
     Args:
         rate: Float between 0 and 1.  The fraction of samples to augment.
@@ -99,12 +99,12 @@ class RandomErase(BaseErase):
         patch_value: Float. The value to fill in the patches. If None, will
             patches with gaussian noise. Defaults to 0.0.
     References:
-       [RandomErase paper](https://arxiv.org/abs/1708.04896).
+       [RandomErasing paper](https://arxiv.org/abs/1708.04896).
 
     Sample usage:
     ```python
     (images, labels), _ = tf.keras.datasets.cifar10.load_data()
-    random_erase = keras_cv.layers.preprocessing.cut_mix.RandomErase(1.0)
+    random_erase = keras_cv.layers.preprocessing.erase.RandomErasing(1.0)
     augmented_images, labels = random_erase(images, labels)
     ```
     """
