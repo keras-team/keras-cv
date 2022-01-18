@@ -84,6 +84,15 @@ class BaseErasing(layers.Layer, abc.ABC):
 
         return images, labels
 
+    def get_config(self):
+        config = {
+            "rate": self.rate,
+            "patch_value": self.patch_value,
+            "seed": self.seed,
+        }
+        base_config = super(BaseErasing, self).get_config()
+        return dict(list(base_config.items()) + list(config.items()))
+
     @abc.abstractmethod
     def _compute_cut_size(self, batch_size, image_height, image_width):
         pass
@@ -94,7 +103,7 @@ class RandomErasing(BaseErasing):
 
     Args:
         rate: Float between 0 and 1.  The fraction of samples to augment.
-        scale: Tuple of float. Area ratio range (min, max) of erasing patch.
+        scale: Tuple of float. Area scale range (min, max) of erasing patch.
         ratio: Tuple of float. Aspect ratio range (min, max) of erasing patch.
         patch_value: Float. The value to fill in the patches. If None, will
             patches with gaussian noise. Defaults to 0.0.
@@ -138,6 +147,14 @@ class RandomErasing(BaseErasing):
 
         return h, w
 
+    def get_config(self):
+        config = {
+            "scale": self.scale,
+            "ratio": self.ratio,
+        }
+        base_config = super(RandomErasing, self).get_config()
+        return dict(list(base_config.items()) + list(config.items()))
+
 
 class CutOut(BaseErasing):
     """CutOut implements the CutOut data augmentation technique.
@@ -165,6 +182,11 @@ class CutOut(BaseErasing):
     def _compute_cut_size(self, batch_size, image_height, image_width):
         length = tf.fill([batch_size], self.length)
         return length, length
+
+    def get_config(self):
+        config = {"length": self.length}
+        base_config = super(CutOut, self).get_config()
+        return dict(list(base_config.items()) + list(config.items()))
 
 
 def _fill_rectangle(
