@@ -31,12 +31,6 @@ class BaseErasing(layers.Layer, abc.ABC):
             labels: orignal labels.
         """
 
-        if tf.shape(images)[0] == 1:
-            logging.warning(
-                "RandomErasing received a single image to `call`.  The layer relies on combining multiple examples, "
-                "and as such will not behave as expected.  Please call the layer with 2 or more samples."
-            )
-
         augment_cond = tf.less(
             tf.random.uniform(shape=[], minval=0.0, maxval=1.0), self.rate
         )
