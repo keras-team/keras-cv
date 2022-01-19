@@ -1,4 +1,4 @@
-"""random_erase_demo.py shows how to use the RandomErase preprocessing layer.
+"""random_erasing_demo.py shows how to use the RandomErase preprocessing layer.
 
 Operates on the oxford_flowers102 dataset.  In this script the flowers 
 are loaded, then are passed through the preprocessing layers.  
