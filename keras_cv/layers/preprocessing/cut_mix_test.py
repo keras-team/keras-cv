@@ -1,3 +1,16 @@
+# Copyright 2022 The KerasCV Authors
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 import tensorflow as tf
 from keras_cv.layers.preprocessing.cut_mix import CutMix
 
@@ -34,7 +47,11 @@ class CutMixTest(tf.test.TestCase):
 
     def test_cut_mix_call_results(self):
         xs = tf.cast(
-            tf.stack([2 * tf.ones((4, 4, 3)), tf.ones((4, 4, 3))], axis=0,), tf.float32,
+            tf.stack(
+                [2 * tf.ones((4, 4, 3)), tf.ones((4, 4, 3))],
+                axis=0,
+            ),
+            tf.float32,
         )
         ys = tf.one_hot(tf.constant([0, 1]), 2)
 
@@ -52,7 +69,11 @@ class CutMixTest(tf.test.TestCase):
 
     def test_cut_mix_call_results_one_channel(self):
         xs = tf.cast(
-            tf.stack([2 * tf.ones((4, 4, 1)), tf.ones((4, 4, 1))], axis=0,), tf.float32,
+            tf.stack(
+                [2 * tf.ones((4, 4, 1)), tf.ones((4, 4, 1))],
+                axis=0,
+            ),
+            tf.float32,
         )
         ys = tf.one_hot(tf.constant([0, 1]), 2)
 

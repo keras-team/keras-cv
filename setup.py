@@ -26,7 +26,11 @@ setup(
     license="Apache License 2.0",
     install_requires=["packaging", "tensorflow"],
     extras_require={
-        "tests": ["flake8", "isort", "black",],
+        "tests": [
+            "flake8",
+            "isort",
+            "black",
+        ],
         "examples": ["tensorflow_datasets", "matplotlib"],
     },
     classifiers=[
