@@ -1,7 +1,8 @@
 import tensorflow as tf
-import tensorflow.keras as keras
 import tensorflow.keras.layers as layers
 from tensorflow.python.platform import tf_logging as logging
+
+from keras_cv.utils.fill_utils import fill_rectangle
 
 
 class CutMix(layers.Layer):
@@ -10,11 +11,11 @@ class CutMix(layers.Layer):
     Args:
         rate: Float between 0 and 1.  The fraction of samples to augment.
         alpha: Float between 0 and 1.  Inverse scale parameter for the gamma distribution.
-            This controls the shape of the distribution from which the smoothing values are 
+            This controls the shape of the distribution from which the smoothing values are
             sampled.  Defaults 1.0, which is a recommended value when training an imagenet1k
             classification model.
-        label_smoothing: Float in [0, 1]. When > 0, label values are smoothed, meaning the 
-            confidence on label values are relaxed. e.g. label_smoothing=0.2 means that we 
+        label_smoothing: Float in [0, 1]. When > 0, label values are smoothed, meaning the
+            confidence on label values are relaxed. e.g. label_smoothing=0.2 means that we
             will use a value of 0.1 for label 0 and 0.9 for label 1.  Defaults 0.0.
     References:
        [CutMix paper]( https://arxiv.org/abs/1905.04899).
@@ -27,9 +28,7 @@ class CutMix(layers.Layer):
     ```
     """
 
-    def __init__(
-        self, rate, label_smoothing=0.0, alpha=1.0, seed=None, **kwargs
-    ):
+    def __init__(self, rate, label_smoothing=0.0, alpha=1.0, seed=None, **kwargs):
         super().__init__(**kwargs)
         self.alpha = alpha
         self.rate = rate
@@ -100,7 +99,7 @@ class CutMix(layers.Layer):
         lambda_sample = tf.cast(lambda_sample, dtype=tf.float32)
 
         images = tf.map_fn(
-            lambda x: _fill_rectangle(*x),
+            lambda x: fill_rectangle(*x),
             (
                 images,
                 random_center_width,
@@ -127,48 +126,3 @@ class CutMix(layers.Layer):
         off_value = label_smoothing / tf.cast(tf.shape(labels)[1], tf.float32)
         on_value = 1.0 - label_smoothing + off_value
         return labels * on_value + (1 - labels) * off_value
-
-
-def _fill_rectangle(
-    image, center_width, center_height, half_width, half_height, replace=None
-):
-    """Fill a rectangle in a given image using the value provided in replace.
-
-    Args:
-        image: the starting image to fill the rectangle on.
-        center_width: the X center of the rectangle to fill
-        center_height: the Y center of the rectangle to fill
-        half_width: 1/2 the width of the resulting rectangle
-        half_height: 1/2 the height of the resulting rectangle
-        replace: The value to fill the rectangle with.  Accepts a Tensor, 
-            Constant, or None.
-    Returns:
-        image: the modified image with the chosen rectangle filled.
-     """
-    image_shape = tf.shape(image)
-    image_height = image_shape[0]
-    image_width = image_shape[1]
-
-    lower_pad = tf.maximum(0, center_height - half_height)
-    upper_pad = tf.maximum(0, image_height - center_height - half_height)
-    left_pad = tf.maximum(0, center_width - half_width)
-    right_pad = tf.maximum(0, image_width - center_width - half_width)
-
-    cutout_shape = [
-        image_height - (lower_pad + upper_pad),
-        image_width - (left_pad + right_pad),
-    ]
-    padding_dims = [[lower_pad, upper_pad], [left_pad, right_pad]]
-    mask = tf.pad(
-        tf.zeros(cutout_shape, dtype=image.dtype), padding_dims, constant_values=1
-    )
-    mask = tf.expand_dims(mask, -1)
-
-    if replace is None:
-        fill = tf.random.normal(image_shape, dtype=image.dtype)
-    elif isinstance(replace, tf.Tensor):
-        fill = replace
-    else:
-        fill = tf.ones_like(image, dtype=image.dtype) * replace
-    image = tf.where(tf.equal(mask, 0), fill, image)
-    return image
