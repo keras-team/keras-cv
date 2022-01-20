@@ -2,7 +2,7 @@ import tensorflow as tf
 import tensorflow.keras.layers as layers
 from tensorflow.python.platform import tf_logging as logging
 
-from keras_cv.utils.fill_utils import fill_rectangle
+from keras_cv.utils import fill_utils
 
 
 class CutMix(layers.Layer):
@@ -99,7 +99,7 @@ class CutMix(layers.Layer):
         lambda_sample = tf.cast(lambda_sample, dtype=tf.float32)
 
         images = tf.map_fn(
-            lambda x: fill_rectangle(*x),
+            lambda x: fill_utils.fill_rectangle(*x),
             (
                 images,
                 random_center_width,

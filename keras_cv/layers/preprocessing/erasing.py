@@ -4,7 +4,7 @@ import tensorflow as tf
 import tensorflow.keras.layers as layers
 from tensorflow.python.keras.utils import layer_utils
 
-from keras_cv.utils.fill_utils import fill_rectangle
+from keras_cv.utils import fill_utils
 
 
 class BaseErasing(layers.Layer, abc.ABC):
@@ -84,7 +84,7 @@ class BaseErasing(layers.Layer, abc.ABC):
             args.append(patch_value)
 
         images = tf.map_fn(
-            lambda x: fill_rectangle(*x),
+            lambda x: fill_utils.fill_rectangle(*x),
             args,
             fn_output_signature=tf.TensorSpec.from_tensor(images[0]),
         )
