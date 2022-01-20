@@ -2,7 +2,7 @@ import abc
 
 import tensorflow as tf
 import tensorflow.keras.layers as layers
-from tensorflow.python.platform import tf_logging as logging
+from tensorflow.python.keras.utils import layer_utils
 
 
 class BaseErasing(layers.Layer, abc.ABC):
@@ -10,12 +10,23 @@ class BaseErasing(layers.Layer, abc.ABC):
 
     Args:
         rate: Float between 0 and 1.  The fraction of samples to augment.
-        patch_value: Float. The value to fill in the patches. If None, will
-            patches with gaussian noise. Defaults to 0.0.
+        patch_value: Float or string. The value to fill in the patches. If "gaussian", will
+            fill patches with gaussian noise. Defaults to "gaussian".
     """
 
-    def __init__(self, rate, patch_value=None, seed=None, **kwargs):
+    def __init__(self, rate, patch_value="gaussian", seed=None, **kwargs):
         super().__init__(**kwargs)
+
+        if isinstance(patch_value, str):
+            layer_utils.validate_string_arg(
+                patch_value,
+                allowable_strings=["gaussian"],
+                layer_name=self.__class__.__name__,
+                arg_name="patch_value",
+                allow_none=False,
+                allow_callables=False,
+            )
+
         self.rate = rate
         self.patch_value = patch_value
         self.seed = seed
@@ -40,7 +51,7 @@ class BaseErasing(layers.Layer, abc.ABC):
         return tf.cond(augment_cond, random_erase_augment, no_augment)
 
     def _erase(self, images, labels):
-        """Apply random erase."""
+        """Apply erasing."""
         input_shape = tf.shape(images)
         batch_size, image_height, image_width = (
             input_shape[0],
@@ -48,7 +59,7 @@ class BaseErasing(layers.Layer, abc.ABC):
             input_shape[2],
         )
 
-        cut_height, cut_width = self._compute_cut_size(
+        patch_height, patch_width = self._compute_patch_size(
             batch_size, image_height, image_width
         )
 
@@ -63,10 +74,10 @@ class BaseErasing(layers.Layer, abc.ABC):
             images,
             random_center_width,
             random_center_height,
-            cut_width // 2,
-            cut_height // 2,
+            patch_width // 2,
+            patch_height // 2,
         ]
-        if self.patch_value is not None:
+        if not isinstance(self.patch_value, str):
             patch_value = tf.fill([batch_size], self.patch_value)
             args.append(patch_value)
 
@@ -84,11 +95,11 @@ class BaseErasing(layers.Layer, abc.ABC):
             "patch_value": self.patch_value,
             "seed": self.seed,
         }
-        base_config = super(BaseErasing, self).get_config()
+        base_config = super().get_config()
         return dict(list(base_config.items()) + list(config.items()))
 
     @abc.abstractmethod
-    def _compute_cut_size(self, batch_size, image_height, image_width):
+    def _compute_patch_size(self, batch_size, image_height, image_width):
         pass
 
 
@@ -99,8 +110,8 @@ class RandomErasing(BaseErasing):
         rate: Float between 0 and 1.  The fraction of samples to augment.
         scale: Tuple of float. Area scale range (min, max) of erasing patch.
         ratio: Tuple of float. Aspect ratio range (min, max) of erasing patch.
-        patch_value: Float. The value to fill in the patches. If None, will
-            patches with gaussian noise. Defaults to 0.0.
+        patch_value: Float or string. The value to fill in the patches. If "gaussian", will
+            fill patches with gaussian noise. Defaults to "gaussian".
     References:
        [RandomErasing paper](https://arxiv.org/abs/1708.04896).
 
@@ -117,7 +128,7 @@ class RandomErasing(BaseErasing):
         rate,
         scale=(0.02, 0.33),
         ratio=(0.3, 3.3),
-        patch_value=None,
+        patch_value="gaussian",
         seed=None,
         **kwargs
     ):
@@ -125,7 +136,7 @@ class RandomErasing(BaseErasing):
         self.scale = scale
         self.ratio = ratio
 
-    def _compute_cut_size(self, batch_size, image_height, image_width):
+    def _compute_patch_size(self, batch_size, image_height, image_width):
         area = tf.cast(image_height * image_width, tf.float32)
         erase_area = area * tf.random.uniform(
             [batch_size], minval=self.scale[0], maxval=self.scale[1]
@@ -146,7 +157,7 @@ class RandomErasing(BaseErasing):
             "scale": self.scale,
             "ratio": self.ratio,
         }
-        base_config = super(RandomErasing, self).get_config()
+        base_config = super().get_config()
         return dict(list(base_config.items()) + list(config.items()))
 
 
@@ -156,8 +167,8 @@ class CutOut(BaseErasing):
     Args:
         rate: Float between 0 and 1.  The fraction of samples to augment.
         length: Integer. The side length of the square patches to cut out.
-        patch_value: Float. The value to fill in the patches. If None, will
-            patches with gaussian noise. Defaults to 0.0.
+        patch_value: Float or string. The value to fill in the patches. If "gaussian", will
+            fill patches with gaussian noise. Defaults to 0.0.
     References:
        [CutOut paper](https://arxiv.org/abs/1708.04552).
 
@@ -173,13 +184,13 @@ class CutOut(BaseErasing):
         super().__init__(rate, patch_value, seed, **kwargs)
         self.length = length
 
-    def _compute_cut_size(self, batch_size, image_height, image_width):
+    def _compute_patch_size(self, batch_size, image_height, image_width):
         length = tf.fill([batch_size], self.length)
         return length, length
 
     def get_config(self):
         config = {"length": self.length}
-        base_config = super(CutOut, self).get_config()
+        base_config = super().get_config()
         return dict(list(base_config.items()) + list(config.items()))
 
 
