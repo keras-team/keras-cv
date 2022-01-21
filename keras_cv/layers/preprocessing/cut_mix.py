@@ -1,7 +1,7 @@
 import tensorflow as tf
 import tensorflow.keras.layers as layers
 from tensorflow.python.platform import tf_logging as logging
-
+from tensorflow.keras import backend
 from keras_cv.utils import fill_utils
 
 
@@ -41,7 +41,7 @@ class CutMix(layers.Layer):
         sample_beta = tf.random.gamma(shape, 1.0, beta=beta)
         return sample_alpha / (sample_alpha + sample_beta)
 
-    def call(self, images, labels):
+    def call(self, images, labels, training=True):
         """call method for the CutMix layer.
 
         Args:
@@ -51,6 +51,8 @@ class CutMix(layers.Layer):
             images: augmented images, same shape as input.
             labels: updated labels with both label smoothing and the cutmix updates applied.
         """
+        if training is None:
+            training = backend.learning_phase()
 
         if tf.shape(images)[0] == 1:
             logging.warning(
@@ -58,9 +60,10 @@ class CutMix(layers.Layer):
                 "and as such will not behave as expected.  Please call the layer with 2 or more samples."
             )
 
-        augment_cond = tf.less(
+        rate_cond = tf.less(
             tf.random.uniform(shape=[], minval=0.0, maxval=1.0), self.rate
         )
+        augment_cond = tf.logical_and(rate_cond, training)
         # pylint: disable=g-long-lambda
         cutmix_augment = lambda: self._update_labels(*self._cutmix(images, labels))
         no_augment = lambda: (images, self._smooth_labels(labels))
