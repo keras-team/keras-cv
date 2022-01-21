@@ -6,7 +6,7 @@ Finally, they are shown using matplotlib.
 """
 import tensorflow as tf
 import tensorflow_datasets as tfds
-from keras_cv.layers.preprocessing import erasing
+from keras_cv.layers.preprocessing import random_erasing
 import matplotlib.pyplot as plt
 
 
@@ -31,7 +31,7 @@ def main():
         .shuffle(10 * BATCH_SIZE)
         .batch(BATCH_SIZE)
     )
-    random_erase = erasing.RandomErasing(1.0)
+    random_erase = random_erasing.RandomErasing(1.0)
     train_ds = train_ds.map(random_erase, num_parallel_calls=tf.data.AUTOTUNE)
 
     for images, labels in train_ds.take(1):
