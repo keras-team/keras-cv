@@ -95,7 +95,7 @@ class COCOBase(keras.metrics.Metric):
         true_positives_update = tf.zeros_like(self.true_positives)
         false_positives_update = tf.zeros_like(self.false_positives)
         ground_truth_boxes_update = tf.zeros_like(self.ground_truth_boxes)
-        
+
         for img in tf.range(num_images):
             sentinel_filtered_y_true = util.filter_out_sentinels(y_true[img])
             sentinel_filtered_y_pred = util.filter_out_sentinels(y_pred[img])
@@ -187,7 +187,7 @@ class COCOBase(keras.metrics.Metric):
             gt_matches = gt_matches.write(i, -1)
         for i in tf.range(num_pred):
             pred_matches = pred_matches.write(i, -1)
-        
+
         for detection_idx in tf.range(num_pred):
             match_index = -1
             iou = tf.math.minimum(threshold, 1 - 1e-10)
