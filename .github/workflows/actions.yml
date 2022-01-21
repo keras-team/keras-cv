@@ -6,64 +6,65 @@ on:
   release:
     types: [created]
 jobs:
-  test: 
+  run-tests:
+    name: "Run Tests"
     runs-on: ubuntu-latest
-    steps: 
-      - 
+    steps:
+      -
         uses: actions/checkout@v2
-      - 
+      -
         name: "Set up Python 3.7"
         uses: actions/setup-python@v1
-        with: 
+        with:
           python-version: 3.7
-      - 
+      -
         id: pip-cache
         name: "Get pip cache dir"
         run: |
             python -m pip install --upgrade pip setuptools
             echo "::set-output name=dir::$(pip cache dir)"
-      - 
+      -
         name: "pip cache"
         uses: actions/cache@v2
-        with: 
+        with:
           key: "${{ runner.os }}-pip-${{ hashFiles('setup.py') }}"
           path: "${{ steps.pip-cache.outputs.dir }}"
           restore-keys: "${{ runner.os }}-pip-\n"
-      - 
+      -
         name: "Install dependencies"
-        run: "pip install -e \".[tests]\" --progress-bar off --upgrade\n"
-      - 
+        run: |
+            pip install -e ".[tests]" --progress-bar off --upgrade
+      -
         name: "Test with pytest"
         run: "pytest keras_cv/\n"
-  format: 
+  linter:
     name: "Check the code format"
     runs-on: ubuntu-latest
-    steps: 
-      - 
+    steps:
+      -
         uses: actions/checkout@v2
-      - 
+      -
         name: "Set up Python 3.7"
         uses: actions/setup-python@v1
-        with: 
+        with:
           python-version: 3.7
-      - 
+      -
         id: pip-cache
         name: "Get pip cache dir"
         run: |
             python -m pip install --upgrade pip setuptools
             echo "::set-output name=dir::$(pip cache dir)"
-      - 
+      -
         name: "pip cache"
         uses: actions/cache@v2
-        with: 
+        with:
           key: "${{ runner.os }}-pip-${{ hashFiles('setup.py') }}"
           path: "${{ steps.pip-cache.outputs.dir }}"
           restore-keys: "${{ runner.os }}-pip-\n"
-      - 
+      -
         name: "Install dependencies"
         run: |
-            pip install tensorflow
             pip install -e ".[tests]" --progress-bar off --upgrade
-      - 
+      -
         name: Lint
         run: "bash shell/lint.sh"
