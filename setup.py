@@ -30,6 +30,7 @@ setup(
             "flake8",
             "isort",
             "black",
+            "pytest"
         ],
         "examples": ["tensorflow_datasets", "matplotlib"],
     },
