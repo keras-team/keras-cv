@@ -19,7 +19,7 @@ import numpy as np
 import tensorflow as tf
 
 from keras_cv.metrics.coco.recall import COCORecall
-from keras_cv.util import bbox
+from keras_cv.utils import bbox
 
 SAMPLE_FILE = os.path.dirname(os.path.abspath(__file__)) + "/sample_boxes.npz"
 

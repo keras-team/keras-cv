@@ -16,8 +16,8 @@ import tensorflow.keras as keras
 import tensorflow.keras.initializers as initializers
 
 from keras_cv.metrics.coco import iou as iou_lib
-from keras_cv.metrics.coco import util
-from keras_cv.util import bbox
+from keras_cv.metrics.coco import utils
+from keras_cv.utils import bbox
 
 
 class COCOBase(keras.metrics.Metric):
@@ -106,27 +106,27 @@ class COCOBase(keras.metrics.Metric):
         num_categories = self.category_ids.shape[0]
 
         # Sort by bbox.CONFIDENCE to make maxDetections easy to compute.
-        y_pred = util.sort_bboxes(y_pred, axis=bbox.CONFIDENCE)
+        y_pred = utils.sort_bboxes(y_pred, axis=bbox.CONFIDENCE)
         true_positives_update = tf.zeros_like(self.true_positives)
         false_positives_update = tf.zeros_like(self.false_positives)
         ground_truth_boxes_update = tf.zeros_like(self.ground_truth_boxes)
 
         for img in tf.range(num_images):
-            sentinel_filtered_y_true = util.filter_out_sentinels(y_true[img])
-            sentinel_filtered_y_pred = util.filter_out_sentinels(y_pred[img])
+            sentinel_filtered_y_true = utils.filter_out_sentinels(y_true[img])
+            sentinel_filtered_y_pred = utils.filter_out_sentinels(y_pred[img])
 
-            area_filtered_y_true = util.filter_boxes_by_area_range(
+            area_filtered_y_true = utils.filter_boxes_by_area_range(
                 sentinel_filtered_y_true, self.area_range[0], self.area_range[1]
             )
             # TODO(lukewood): try filtering area after max dts.
-            area_filtered_y_pred = util.filter_boxes_by_area_range(
+            area_filtered_y_pred = utils.filter_boxes_by_area_range(
                 sentinel_filtered_y_pred, self.area_range[0], self.area_range[1]
             )
 
             for k_i in tf.range(num_categories):
                 category = self.category_ids[k_i]
 
-                category_filtered_y_pred = util.filter_boxes(
+                category_filtered_y_pred = utils.filter_boxes(
                     area_filtered_y_pred, value=category, axis=bbox.CLASS
                 )
 
@@ -134,7 +134,7 @@ class COCOBase(keras.metrics.Metric):
                 if self.max_detections < tf.shape(category_filtered_y_pred)[0]:
                     detections = category_filtered_y_pred[: self.max_detections]
 
-                ground_truths = util.filter_boxes(
+                ground_truths = utils.filter_boxes(
                     area_filtered_y_true, value=category, axis=bbox.CLASS
                 )
 

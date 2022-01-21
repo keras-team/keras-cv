@@ -15,27 +15,27 @@
 
 import tensorflow as tf
 
-from keras_cv.metrics.coco import util
-from keras_cv.util import bbox
+from keras_cv.metrics.coco import utils
+from keras_cv.utils import bbox
 
 
 class UtilTest(tf.test.TestCase):
     def test_filter_bboxes_empty(self):
         # set of bboxes
         y_pred = tf.stack([_dummy_bbox(category=1)])
-        result = util.filter_boxes(y_pred, 2, axis=bbox.CLASS)
+        result = utils.filter_boxes(y_pred, 2, axis=bbox.CLASS)
 
         self.assertEqual(result.shape[0], 0)
 
     def test_bbox_area(self):
         boxes = tf.constant([[0, 0, 100, 100]], dtype=tf.float32)
-        areas = util.bbox_area(boxes)
+        areas = utils.bbox_area(boxes)
         self.assertAllClose(areas, tf.constant((10000.0,)))
 
     def test_filter_bboxes(self):
         # set of bboxes
         y_pred = tf.stack([_dummy_bbox(category=1), _dummy_bbox(category=2)])
-        result = util.filter_boxes(y_pred, 2, axis=bbox.CLASS)
+        result = utils.filter_boxes(y_pred, 2, axis=bbox.CLASS)
 
         self.assertAllClose(result, tf.stack([_dummy_bbox(category=2)]))
 
@@ -43,7 +43,7 @@ class UtilTest(tf.test.TestCase):
         box_set1 = tf.stack([_dummy_bbox(), _dummy_bbox()])
         box_set2 = tf.stack([_dummy_bbox()])
         boxes = [box_set1, box_set2]
-        bbox_tensor = util.to_sentinel_padded_bbox_tensor(boxes)
+        bbox_tensor = utils.to_sentinel_padded_bbox_tensor(boxes)
         self.assertAllClose(
             bbox_tensor[1, 1],
             -tf.ones(
@@ -54,7 +54,7 @@ class UtilTest(tf.test.TestCase):
     def test_filter_out_sentinels(self):
         # set of bboxes
         y_pred = tf.stack([_dummy_bbox(category=1), _dummy_bbox(category=-1)])
-        result = util.filter_out_sentinels(y_pred)
+        result = utils.filter_out_sentinels(y_pred)
 
         self.assertAllClose(result, tf.stack([_dummy_bbox(category=1)]))
 
@@ -62,10 +62,10 @@ class UtilTest(tf.test.TestCase):
         box_set1 = tf.stack([_dummy_bbox(), _dummy_bbox()])
         box_set2 = tf.stack([_dummy_bbox()])
         boxes = [box_set1, box_set2]
-        bbox_tensor = util.to_sentinel_padded_bbox_tensor(boxes)
+        bbox_tensor = utils.to_sentinel_padded_bbox_tensor(boxes)
 
-        self.assertAllClose(util.filter_out_sentinels(bbox_tensor[0]), box_set1)
-        self.assertAllClose(util.filter_out_sentinels(bbox_tensor[1]), box_set2)
+        self.assertAllClose(utils.filter_out_sentinels(bbox_tensor[0]), box_set1)
+        self.assertAllClose(utils.filter_out_sentinels(bbox_tensor[1]), box_set2)
 
     def test_sort_bboxes_unsorted_list(self):
         y_pred = tf.expand_dims(
@@ -90,12 +90,12 @@ class UtilTest(tf.test.TestCase):
             ),
             axis=0,
         )
-        y_sorted = util.sort_bboxes(y_pred, bbox.CONFIDENCE)
+        y_sorted = utils.sort_bboxes(y_pred, bbox.CONFIDENCE)
         self.assertAllClose(y_sorted, want)
 
     def test_sort_bboxes_empty_list(self):
         y_pred = tf.stack([])
-        y_sorted = util.sort_bboxes(y_pred)
+        y_sorted = utils.sort_bboxes(y_pred)
         self.assertAllClose(y_pred, y_sorted)
 
 

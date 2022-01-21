@@ -14,7 +14,7 @@
 """Contains shared utilities for Keras COCO metrics."""
 import tensorflow as tf
 
-from keras_cv.util import bbox
+from keras_cv.utils import bbox
 
 
 def filter_boxes_by_area_range(boxes, min_area, max_area):
