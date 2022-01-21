@@ -32,7 +32,7 @@ def main():
         .batch(BATCH_SIZE)
     )
     cutout = cut_out.CutOut(1.0, length=50, fill_value=0.0)
-    train_ds = train_ds.map(cutout, num_parallel_calls=tf.data.AUTOTUNE)
+    train_ds = train_ds.map(lambda x, y: (cutout(x), y), num_parallel_calls=tf.data.AUTOTUNE)
 
     for images, labels in train_ds.take(1):
         plt.figure(figsize=(8, 8))

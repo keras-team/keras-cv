@@ -32,7 +32,7 @@ def main():
         .batch(BATCH_SIZE)
     )
     random_erase = random_erasing.RandomErasing(1.0)
-    train_ds = train_ds.map(random_erase, num_parallel_calls=tf.data.AUTOTUNE)
+    train_ds = train_ds.map(lambda x, y: (random_erase(x), y), num_parallel_calls=tf.data.AUTOTUNE)
 
     for images, labels in train_ds.take(1):
         plt.figure(figsize=(8, 8))

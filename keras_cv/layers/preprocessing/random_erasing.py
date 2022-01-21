@@ -26,7 +26,7 @@ class RandomErasing(layers.Layer):
     ```python
     (images, labels), _ = tf.keras.datasets.cifar10.load_data()
     random_erase = keras_cv.layers.preprocessing.erasing.RandomErasing(1.0)
-    augmented_images, labels = random_erase(images, labels)
+    augmented_images = random_erase(images)
     ```
     """
 
@@ -59,15 +59,13 @@ class RandomErasing(layers.Layer):
         self.fill_value = fill_value
         self.seed = seed
 
-    def call(self, images, labels, training=True):
+    def call(self, images, training=True):
         """call method for the layer.
 
         Args:
             images: Tensor representing images of shape [batch_size, width, height, channels], with dtype tf.float32.
-            labels: original labels.
         Returns:
             images: augmented images, same shape as input.
-            labels: orignal labels.
         """
         if training is None:
             training = backend.learning_phase()
@@ -77,11 +75,11 @@ class RandomErasing(layers.Layer):
         )
         augment_cond = tf.logical_and(rate_cond, training)
         # pylint: disable=g-long-lambda
-        augment = lambda: self._random_erase(images, labels)
-        no_augment = lambda: (images, labels)
+        augment = lambda: self._random_erase(images)
+        no_augment = lambda: images
         return tf.cond(augment_cond, augment, no_augment)
 
-    def _random_erase(self, images, labels):
+    def _random_erase(self, images):
         """Apply random erasing."""
         input_shape = tf.shape(images)
         batch_size, image_height, image_width = (
@@ -126,7 +124,7 @@ class RandomErasing(layers.Layer):
             fn_output_signature=tf.TensorSpec.from_tensor(images[0]),
         )
 
-        return images, labels
+        return images
 
     def _compute_patch_size(self, batch_size, image_height, image_width):
         area = tf.cast(image_height * image_width, tf.float32)
