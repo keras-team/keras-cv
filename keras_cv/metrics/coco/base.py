@@ -1,9 +1,10 @@
 import tensorflow as tf
 import tensorflow.keras as keras
 import tensorflow.keras.initializers as initializers
-from keras_cv.util import bbox
+
 from keras_cv.metrics.coco import iou as iou_lib
 from keras_cv.metrics.coco import util
+from keras_cv.util import bbox
 
 
 class COCOBase(keras.metrics.Metric):

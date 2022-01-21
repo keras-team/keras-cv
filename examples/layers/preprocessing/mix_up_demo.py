@@ -4,11 +4,11 @@ Uses the oxford_flowers102 dataset.  In this script the flowers
 are loaded, then are passed through the preprocessing layers.  
 Finally, they are shown using matplotlib.
 """
+import matplotlib.pyplot as plt
 import tensorflow as tf
 import tensorflow_datasets as tfds
-from keras_cv.layers.preprocessing import mix_up
-import matplotlib.pyplot as plt
 
+from keras_cv.layers.preprocessing import mix_up
 
 IMG_SIZE = (224, 224)
 BATCH_SIZE = 64
