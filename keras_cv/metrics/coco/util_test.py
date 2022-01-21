@@ -58,13 +58,23 @@ class UtilTest(tf.test.TestCase):
     def test_sort_bboxes_unsorted_list(self):
         y_pred = tf.expand_dims(
             tf.stack(
-                [_dummy_bbox(0.1), _dummy_bbox(0.9), _dummy_bbox(0.4), _dummy_bbox(0.2)]
+                [
+                    _dummy_bbox(0.1),
+                    _dummy_bbox(0.9),
+                    _dummy_bbox(0.4),
+                    _dummy_bbox(0.2),
+                ]
             ),
             axis=0,
         )
         want = tf.expand_dims(
             tf.stack(
-                [_dummy_bbox(0.9), _dummy_bbox(0.4), _dummy_bbox(0.2), _dummy_bbox(0.1)]
+                [
+                    _dummy_bbox(0.9),
+                    _dummy_bbox(0.4),
+                    _dummy_bbox(0.2),
+                    _dummy_bbox(0.1),
+                ]
             ),
             axis=0,
         )

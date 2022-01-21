@@ -137,7 +137,9 @@ class COCOBase(keras.metrics.Metric):
                     false_positives = tf.cast(pred_matches == -1, tf.float32)
 
                     true_positives_sum = tf.math.reduce_sum(true_positives, axis=-1)
-                    false_positives_sum = tf.math.reduce_sum(false_positives, axis=-1)
+                    false_positives_sum = tf.math.reduce_sum(
+                        false_positives, axis=-1
+                    )
 
                     true_positives_update = tf.tensor_scatter_nd_add(
                         true_positives_update, [indices], [true_positives_sum]

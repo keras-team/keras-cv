@@ -35,7 +35,9 @@ def _compute_single_iou(bboxes1, bb2):
     area_bboxes1 = _area(
         bb1[bbox.LEFT], bb1[bbox.RIGHT], bb1[bbox.TOP], bb1[bbox.BOTTOM]
     )
-    area_bb2 = _area(bb2[bbox.LEFT], bb2[bbox.RIGHT], bb2[bbox.TOP], bb2[bbox.BOTTOM])
+    area_bb2 = _area(
+        bb2[bbox.LEFT], bb2[bbox.RIGHT], bb2[bbox.TOP], bb2[bbox.BOTTOM]
+    )
 
     area_union = area_bboxes1 + area_bb2 - area_intersection
     return tf.math.divide_no_nan(area_intersection, area_union)

@@ -53,7 +53,8 @@ class COCOBaseTest(tf.test.TestCase):
             dtype=tf.float32,
         )
         y_pred = tf.constant(
-            [[[0, 50, 100, 150, 1, 0.90], [0, 0, 100, 100, 1, 1.0]]], dtype=tf.float32
+            [[[0, 50, 100, 150, 1, 0.90], [0, 0, 100, 100, 1, 1.0]]],
+            dtype=tf.float32,
         )
         # note the low iou threshold
         metric = COCOBase(
