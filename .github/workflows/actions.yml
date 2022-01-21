@@ -6,7 +6,7 @@ on:
   release:
     types: [created]
 jobs:
-  run-tests:
+  test:
     name: "Run Tests"
     runs-on: ubuntu-latest
     steps:
@@ -37,7 +37,7 @@ jobs:
       -
         name: "Test with pytest"
         run: "pytest keras_cv/\n"
-  linter:
+  format:
     name: "Check the code format"
     runs-on: ubuntu-latest
     steps:
