@@ -1,5 +1,6 @@
 import tensorflow as tf
 import tensorflow.keras.layers as layers
+from tensorflow.keras import backend
 from tensorflow.python.keras.utils import layer_utils
 
 from keras_cv.utils import fill_utils
@@ -58,7 +59,7 @@ class RandomErasing(layers.Layer):
         self.fill_value = fill_value
         self.seed = seed
 
-    def call(self, images, labels):
+    def call(self, images, labels, training=True):
         """call method for the layer.
 
         Args:
@@ -68,17 +69,20 @@ class RandomErasing(layers.Layer):
             images: augmented images, same shape as input.
             labels: orignal labels.
         """
+        if training is None:
+            training = backend.learning_phase()
 
-        augment_cond = tf.less(
+        rate_cond = tf.less(
             tf.random.uniform(shape=[], minval=0.0, maxval=1.0), self.rate
         )
+        augment_cond = tf.logical_and(rate_cond, training)
         # pylint: disable=g-long-lambda
-        augment = lambda: self._erase(images, labels)
+        augment = lambda: self._random_erase(images, labels)
         no_augment = lambda: (images, labels)
         return tf.cond(augment_cond, augment, no_augment)
 
-    def _erase(self, images, labels):
-        """Apply erasing."""
+    def _random_erase(self, images, labels):
+        """Apply random erasing."""
         input_shape = tf.shape(images)
         batch_size, image_height, image_width = (
             input_shape[0],
