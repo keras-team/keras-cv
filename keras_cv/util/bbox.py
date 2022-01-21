@@ -66,5 +66,8 @@ def pad_bbox_batch_to_shape(bboxes, target_shape, padding_values=-1):
         bboxes padded to target shape.
     """
     bbox_shape = tf.shape(bboxes)
-    paddings = [[0, target - bbox_shape[i]] for (i, target) in enumerate(target)]
+    paddings = [
+        [0, target_shape - bbox_shape[i]]
+        for (i, tartarget_shapeget) in enumerate(target_shape)
+    ]
     return tf.pad(bboxes, paddings, mode="CONSTANT", constant_values=padding_values)

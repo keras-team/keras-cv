@@ -1,3 +1,16 @@
+# Copyright 2022 The KerasCV Authors
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 import tensorflow as tf
 import tensorflow.keras as keras
 import tensorflow.keras.initializers as initializers
@@ -11,22 +24,23 @@ class COCOBase(keras.metrics.Metric):
     """COCOBase serves as a base for COCORecall and COCOPrecision.
 
     Args:
-        iou_thresholds: defaults to [0.5:0.05:0.95].  Dimension T=len(iou_thresholds), defaults to 10.
-        category_ids: no default, users must provide.  K=len(category_ids)
+        iou_thresholds: defaults to [0.5:0.05:0.95].
+        category_ids: no default, users must provide.
         area_range: area range to consider bounding boxes in. Defaults to all.
         max_detections: number of maximum detections a model is allowed to make.
 
     Internally the COCOBase class tracks the following values:
-
-    - TruePositives: tf.Tensor with shape [TxK] precision for every evaluation setting.
-    - FalsePositives: tf.Tensor with shape [TxK] precision for every evaluation setting.
-    - GroundTruthBoxes: tf.Tensor with shape [K] max recall for every evaluation setting.
+    T=len(iou_thresholds)
+    K=len(category_ids)
+    - TruePositives: tf.Tensor with shape [TxK].
+    - FalsePositives: tf.Tensor with shape [TxK].
+    - GroundTruthBoxes: tf.Tensor with shape [K].
     """
 
     def __init__(
         self,
+        category_ids,
         iou_thresholds=None,
-        category_ids=None,
         area_range=(0, 1e9 ** 2),
         max_detections=100,
         **kwargs
@@ -39,7 +53,7 @@ class COCOBase(keras.metrics.Metric):
         self.iou_thresholds = self._add_constant_weight(
             "iou_thresholds", self._user_iou_thresholds
         )
-        # TODO(lukewood): support inference of category_ids based on update_state calls.
+        # TODO(lukewood): support inference of category_ids based on update_state.
         self.category_ids = self._add_constant_weight("category_ids", category_ids)
 
         self.area_range = area_range
@@ -201,8 +215,9 @@ class COCOBase(keras.metrics.Metric):
                 # TODO(lukewood): update clause to account for gtIg
                 # if m > -1 and gtIg[m] == 0 and gtIg[gind] == 1:
 
-                if not ious[gt_idx, detection_idx] >= threshold:
+                if not ious[gt_idx, detection_idx] >= iou:
                     continue
+
                 iou = ious[gt_idx, detection_idx]
                 match_index = gt_idx
 

@@ -18,7 +18,6 @@ import os
 import numpy as np
 import tensorflow as tf
 
-from keras_cv.metrics.coco import iou as iou_lib
 from keras_cv.metrics.coco.recall import COCORecall
 from keras_cv.util import bbox
 
@@ -26,20 +25,21 @@ SAMPLE_FILE = os.path.dirname(os.path.abspath(__file__)) + "/sample_boxes.npz"
 
 
 class RecallCorrectnessTest(tf.test.TestCase):
-    """Unit tests that test Keras COCO metric results against the known good ones of cocoeval.py.
-    The bounding boxes in sample_boxes.npz were given to cocoeval.py which output the following values:
-         Average Precision  (AP) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.643
-         Average Precision  (AP) @[ IoU=0.50      | area=   all | maxDets=100 ] = 1.000
-         Average Precision  (AP) @[ IoU=0.75      | area=   all | maxDets=100 ] = 0.729
-         Average Precision  (AP) @[ IoU=0.50:0.95 | area= small | maxDets=100 ] = 0.644
-         Average Precision  (AP) @[ IoU=0.50:0.95 | area=medium | maxDets=100 ] = 0.633
-         Average Precision  (AP) @[ IoU=0.50:0.95 | area= large | maxDets=100 ] = 0.689
-         Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=  1 ] = 0.504
-         Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets= 10 ] = 0.660
-         Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.660
-         Average Recall     (AR) @[ IoU=0.50:0.95 | area= small | maxDets=100 ] = 0.652
-         Average Recall     (AR) @[ IoU=0.50:0.95 | area=medium | maxDets=100 ] = 0.644
-         Average Recall     (AR) @[ IoU=0.50:0.95 | area= large | maxDets=100 ] = 0.696
+    """Unit tests that test Keras COCO metric results against the known good ones of
+    cocoeval.py.  The bounding boxes in sample_boxes.npz were given to cocoeval.py
+    which output the following values:
+    Average Precision  (AP) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.643
+    Average Precision  (AP) @[ IoU=0.50      | area=   all | maxDets=100 ] = 1.000
+    Average Precision  (AP) @[ IoU=0.75      | area=   all | maxDets=100 ] = 0.729
+    Average Precision  (AP) @[ IoU=0.50:0.95 | area= small | maxDets=100 ] = 0.644
+    Average Precision  (AP) @[ IoU=0.50:0.95 | area=medium | maxDets=100 ] = 0.633
+    Average Precision  (AP) @[ IoU=0.50:0.95 | area= large | maxDets=100 ] = 0.689
+    Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=  1 ] = 0.504
+    Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets= 10 ] = 0.660
+    Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.660
+    Average Recall     (AR) @[ IoU=0.50:0.95 | area= small | maxDets=100 ] = 0.652
+    Average Recall     (AR) @[ IoU=0.50:0.95 | area=medium | maxDets=100 ] = 0.644
+    Average Recall     (AR) @[ IoU=0.50:0.95 | area= large | maxDets=100 ] = 0.696
     """
 
     def test_recall_correctness_maxdets_1(self):

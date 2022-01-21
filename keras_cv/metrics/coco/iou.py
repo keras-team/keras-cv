@@ -1,46 +1,18 @@
+# Copyright 2022 The KerasCV Authors
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 """Contains functions to compute ious of bounding boxes."""
 import tensorflow as tf
-
-from keras_cv.util import bbox
-
-
-def _compute_single_iou(bboxes1, bb2):
-    """computes the intersection over union between bboxes1 and bb2.
-
-    bboxes1 and bb2 are expected to come in the 'corners' format, or:
-      [left, right, top, bottom].
-    For example, the bounding box with it's left side at 100, right side at 200,
-    top at 101, and bottom at 201 would be represented as:
-      [100, 200, 101, 201]
-
-    Args:
-      bboxes1: Tensor representing the first bounding box in 'corners' format.
-      bb2: Tensor representing the second bounding box in 'corners' format.
-
-    Returns:
-      iou: Tensor representing the intersection over union of the two bounding
-        boxes.
-    """
-    # bounding box indices
-
-    intersection_left = tf.math.maximum(bboxes1[bbox.LEFT], bb2[bbox.LEFT])
-    intersection_right = tf.math.minimum(bboxes1[bbox.RIGHT], bb2[bbox.RIGHT])
-
-    intersection_top = tf.math.maximum(bboxes1[bbox.TOP], bb2[bbox.TOP])
-    intersection_bottom = tf.math.minimum(bboxes1[bbox.BOTTOM], bb2[bbox.BOTTOM])
-
-    area_intersection = _area(
-        intersection_left, intersection_right, intersection_top, intersection_bottom
-    )
-    area_bboxes1 = _area(
-        bb1[bbox.LEFT], bb1[bbox.RIGHT], bb1[bbox.TOP], bb1[bbox.BOTTOM]
-    )
-    area_bb2 = _area(
-        bb2[bbox.LEFT], bb2[bbox.RIGHT], bb2[bbox.TOP], bb2[bbox.BOTTOM]
-    )
-
-    area_union = area_bboxes1 + area_bb2 - area_intersection
-    return tf.math.divide_no_nan(area_intersection, area_union)
 
 
 def compute_ious_for_image(boxes1, boxes2):
@@ -48,10 +20,10 @@ def compute_ious_for_image(boxes1, boxes2):
 
     The lookup vector is to be indexed by [`boxes1_index`,`boxes2_index`].
 
-    Bounding boxes are expected to be in the corners format of `[bbox.LEFT, bbox.RIGHT,
-    bbox.TOP, bbox.BOTTOM]`.  For example, the bounding box with it's left side at 100,
-    bbox.RIGHT side at 200, bbox.TOP at 101, and bbox.BOTTOM at 201 would be represented
-    as:
+    Bounding boxes are expected to be in the corners format of
+    `[bbox.LEFT, bbox.RIGHT, bbox.TOP, bbox.BOTTOM]`.  For example, the bounding box
+    with it's left side at 100, bbox.RIGHT side at 200, bbox.TOP at 101, and
+    bbox.BOTTOM at 201 would be represented as:
     > [100, 200, 101, 201]
 
     Args:

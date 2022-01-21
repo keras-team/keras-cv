@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import tensorflow as tf
-import tensorflow.keras as keras
 import tensorflow.keras.layers as layers
 from tensorflow.python.platform import tf_logging as logging
 
@@ -22,13 +21,14 @@ class MixUp(layers.Layer):
 
     Args:
         rate: Float between 0 and 1.  The fraction of samples to augment.
-        alpha: Float between 0 and 1.  Inverse scale parameter for the gamma distribution.
-            This controls the shape of the distribution from which the smoothing values are
-            sampled.  Defaults 0.2, which is a recommended value when training an imagenet1k
-            classification model.
-        label_smoothing: Float in [0, 1]. When > 0, label values are smoothed, meaning the
-            confidence on label values are relaxed. e.g. label_smoothing=0.2 means that we
-            will use a value of 0.1 for label 0 and 0.9 for label 1.  Defaults 0.0.
+        alpha: Float between 0 and 1.  Inverse scale parameter for the gamma
+            distribution.  This controls the shape of the distribution from which the
+            smoothing values are sampled.  Defaults 0.2, which is a recommended value
+            when training an imagenet1k classification model.
+        label_smoothing: Float in [0, 1]. When > 0, label values are smoothed,
+            meaning the confidence on label values are relaxed. e.g.
+            label_smoothing=0.2 means that we will use a value of 0.1 for label 0 and
+            0.9 for label 1.  Defaults 0.0.
     References:
         [MixUp paper](https://arxiv.org/abs/1710.09412).
 
@@ -57,17 +57,21 @@ class MixUp(layers.Layer):
         """call method for the MixUp layer.
 
         Args:
-            images: Tensor representing images of shape [batch_size, width, height, channels], with dtype tf.float32.
-            labels: One hot encoded tensor of labels for the images, with dtype tf.float32.
+            images: Tensor representing images of shape
+                [batch_size, width, height, channels], with dtype tf.float32.
+            labels: One hot encoded tensor of labels for the images, with dtype
+                tf.float32.
         Returns:
             images: augmented images, same shape as input.
-            labels: updated labels with both label smoothing and the cutmix updates applied.
+            labels: updated labels with both label smoothing and the cutmix updates
+                applied.
         """
 
         if tf.shape(images)[0] == 1:
             logging.warning(
-                "MixUp received a single image to `call`.  The layer relies on combining multiple examples, "
-                "and as such will not behave as expected.  Please call the layer with 2 or more samples."
+                "CutMix received a single image to `call`.  The layer relies on "
+                "combining multiple examples, and as such will not behave as "
+                "expected.  Please call the layer with 2 or more samples."
             )
 
         augment_cond = tf.less(

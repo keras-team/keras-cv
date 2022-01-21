@@ -1,3 +1,16 @@
+# Copyright 2022 The KerasCV Authors
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 """Contains shared utilities for Keras COCO metrics."""
 import tensorflow as tf
 
@@ -24,7 +37,8 @@ def bbox_area(boxes):
 
 def filter_boxes(boxes, value, axis=4):
     """filter_boxes is used to select only boxes matching a given class.
-    The most common use case for this is to filter to accept only a specific bbox.CLASS.
+    The most common use case for this is to filter to accept only a specific
+    bbox.CLASS.
     Args:
         boxes: Tensor of bounding boxes in format `[images, bboxes, 6]`
         value: Value the specified axis must match
@@ -41,7 +55,8 @@ def to_sentinel_padded_bbox_tensor(box_sets):
     be used before passing bbox predictions, or bbox ground truths to
     the keras COCO metrics.
     Args:
-        box_sets: List of Tensors representing bounding boxes, or a list of lists of Tensors
+        box_sets: List of Tensors representing bounding boxes, or a list of lists of
+            Tensors.
     Returns:
         boxes: A new Tensor where each value missing is populated with -1.
     """
@@ -52,9 +67,10 @@ def filter_out_sentinels(boxes):
     """filter_out_sentinels to filter out boxes that were padded on to the prediction
     or ground truth bbox tensor to ensure dimensions match.
     Args:
-        boxes: Tensor of bounding boxes in format `[bboxes, 6]`, usually from a single image
+        boxes: Tensor of bounding boxes in format `[bboxes, 6]`, usually from a
+            single image.
     Returns:
-        boxes: A new Tensor of bounding boxes, where boxes[axis]!=-1
+        boxes: A new Tensor of bounding boxes, where boxes[axis]!=-1.
     """
     return tf.gather_nd(boxes, tf.where(boxes[:, bbox.CLASS] != -1))
 

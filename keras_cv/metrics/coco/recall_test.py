@@ -1,3 +1,16 @@
+# Copyright 2022 The KerasCV Authors
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 """Tests for COCORecall."""
 
 import numpy as np
@@ -13,8 +26,6 @@ class COCORecallTest(tf.test.TestCase):
             category_ids=[1],
             area_range=(32 ** 2, 64 ** 2),
         )
-        t = recall.iou_thresholds.shape[0]
-        k = recall.category_ids.shape[0]
 
         # These would match if they were in the area range
         y_true = np.array([[[0, 0, 10, 10, 1], [5, 5, 10, 10, 1]]]).astype(
@@ -104,9 +115,6 @@ class COCORecallTest(tf.test.TestCase):
 
         self.assertAlmostEqual(recall.result().numpy(), 1.0)
 
-    # TODO(lukewood): need to implement a test where the detections are inconsistent across thresholds
-    # TODO(lukewood): need to implement a test where the detections are inconsistent across categories
-
     def test_recall_direct_assignment_one_third(self):
         recall = COCORecall(
             max_detections=100, category_ids=[1], area_range=(0, 1e9 ** 2)
@@ -121,6 +129,3 @@ class COCORecallTest(tf.test.TestCase):
         recall.ground_truth_boxes.assign(ground_truth_boxes)
 
         self.assertAlmostEqual(recall.result().numpy(), 1 / 3)
-
-    # TODO(lukewood): need to implement a test where the detections are inconsistent across thresholds
-    # TODO(lukewood): need to implement a test where the detections are inconsistent across categories
