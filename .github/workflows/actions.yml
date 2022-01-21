@@ -7,6 +7,12 @@ on:
     types: [created]
 jobs:
   test:
+    name: Test the code
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [windows-latest, ubuntu-latest]
+    steps:
     - uses: actions/checkout@v2
     - name: Set up Python 3.7
       uses: actions/setup-python@v1
