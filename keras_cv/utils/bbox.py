@@ -14,11 +14,11 @@
 
 """Shared utility functions for working with bounding boxes.
 
-Usually bounding boxes is a 2D Tensor with shape [batch, 4]. The second dimension will contain 4 numbers based on 2
-different formats:
+Usually bounding boxes is a 2D Tensor with shape [batch, 4]. The second dimension
+will contain 4 numbers based on 2 different formats:
 
-1. LEFT, TOP, RIGHT, BOTTOM, where LEFT, TOP represent the top-left corner coordinates, and RIGHT, BOTTOM represent
-   the bottom-right corner coordinates.
+1. LEFT, TOP, RIGHT, BOTTOM, where LEFT, TOP represent the top-left corner
+   coordinates, and RIGHT, BOTTOM represent the bottom-right corner coordinates.
 2. X, Y, WIDTH, HEIGHT, where X and Y are the coordinates for the center of the box.
 
 Math wise:
@@ -32,8 +32,9 @@ Y = (TOP + BOTTOM) / 2
 WIDTH = RIGHT - LEFT
 HEIGHT = BOTTOM - TOP
 
-Note that these two formats are both commonly used. Corners format are mostly used for IOU computation, whereas XYWH are
-easy for bounding box generation with different center and width/height ratio.
+Note that these two formats are both commonly used. Corners format are mostly used
+for IOU computation, whereas XYWH are easy for bounding box generation with different
+center and width/height ratio.
 """
 
 import tensorflow as tf
