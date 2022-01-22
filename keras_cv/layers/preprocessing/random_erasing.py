@@ -16,7 +16,7 @@ class RandomErasing(layers.Layer):
             image area. When represented as a single positive float, lower = upper.
             For instance, `area_factor=(0.2, 0.3)` results in a patch area randomly
             picked in the range `[20% of image area, 30% of image area]`.
-            `height_factor=0.2` results in a patch area of of 20% of image area.
+            `height_factor=0.2` results in a patch area of 20% of image area.
         aspect_ratio: a positive float represented as aspect ratio, or a tuple of size
             2 representing lower and upper bound for patch aspect ratio.
             When represented as a single positive float, lower = upper. For instance,
