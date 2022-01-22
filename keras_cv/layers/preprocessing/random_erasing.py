@@ -11,8 +11,18 @@ class RandomErasing(layers.Layer):
 
     Args:
         rate: Float between 0 and 1.  The fraction of samples to augment.
-        scale: Tuple of float. Area scale range (min, max) of erasing patch.
-        ratio: Tuple of float. Aspect ratio range (min, max) of erasing patch.
+        area_factor: a positive float represented as fraction of image area, or a tuple
+            of size 2 representing lower and upper bound for patch area relative to
+            image area. When represented as a single positive float, lower = upper.
+            For instance, `area_factor=(0.2, 0.3)` results in a patch area randomly
+            picked in the range `[20% of image area, 30% of image area]`.
+            `height_factor=0.2` results in a patch area of of 20% of image area.
+        aspect_ratio: a positive float represented as aspect ratio, or a tuple of size
+            2 representing lower and upper bound for patch aspect ratio.
+            When represented as a single positive float, lower = upper. For instance,
+            `aspect_ratio=(0.3, 3.3)` results in a patch with aspect ratio randomly
+            picked in the range `[0.3, 3.3]`. `aspect_ratio=0.2` results in a patch
+            with aspect ratio of 0.2.
         fill_mode: Pixels inside the patches are filled according
             to the given mode (one of `{"constant", "reflect", "wrap", "nearest"}`).
             - *constant*: The pixels are filled with the same constant value.
@@ -33,8 +43,8 @@ class RandomErasing(layers.Layer):
     def __init__(
         self,
         rate,
-        scale=(0.02, 0.33),
-        ratio=(0.3, 3.3),
+        area_factor=(0.02, 0.33),
+        aspect_ratio=(0.3, 3.3),
         fill_mode="gaussian_noise",
         fill_value=0.0,
         seed=None,
@@ -52,9 +62,17 @@ class RandomErasing(layers.Layer):
             allow_callables=False,
         )
 
+        if isinstance(area_factor, (tuple, list)):
+            self.area_factor = area_factor
+        else:
+            self.area_factor = (area_factor, area_factor)
+
+        if isinstance(aspect_ratio, (tuple, list)):
+            self.aspect_ratio = aspect_ratio
+        else:
+            self.aspect_ratio = (aspect_ratio, aspect_ratio)
+
         self.rate = rate
-        self.scale = scale
-        self.ratio = ratio
         self.fill_mode = fill_mode
         self.fill_value = fill_value
         self.seed = seed
@@ -129,10 +147,10 @@ class RandomErasing(layers.Layer):
     def _compute_patch_size(self, batch_size, image_height, image_width):
         area = tf.cast(image_height * image_width, tf.float32)
         erase_area = area * tf.random.uniform(
-            [batch_size], minval=self.scale[0], maxval=self.scale[1]
+            [batch_size], minval=self.area_factor[0], maxval=self.area_factor[1]
         )
         aspect_ratio = tf.random.uniform(
-            [batch_size], minval=self.ratio[0], maxval=self.ratio[1]
+            [batch_size], minval=self.aspect_ratio[0], maxval=self.aspect_ratio[1]
         )
         h = tf.cast(tf.round(tf.sqrt(erase_area * aspect_ratio)), tf.int32)
         w = tf.cast(tf.round(tf.sqrt(erase_area / aspect_ratio)), tf.int32)
@@ -145,8 +163,8 @@ class RandomErasing(layers.Layer):
     def get_config(self):
         config = {
             "rate": self.rate,
-            "scale": self.scale,
-            "ratio": self.ratio,
+            "area_factor": self.area_factor,
+            "aspect_ratio": self.aspect_ratio,
             "fill_mode": self.fill_mode,
             "fill_value": self.fill_value,
             "seed": self.seed,
