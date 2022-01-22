@@ -64,11 +64,11 @@ def corners_to_xywh(bboxes):
     return tf.concat(
         [
             # We use ... here in case user has higher rank of inputs.
-            (left + right) / 2.0,   # X
-            (top + bottom) / 2.0,   # Y
-            right - left, # WIDTH
-            bottom - top, # HEIGHT
-            rest,   # In case there is any more index after the BOTTOM.
+            (left + right) / 2.0,  # X
+            (top + bottom) / 2.0,  # Y
+            right - left,  # WIDTH
+            bottom - top,  # HEIGHT
+            rest,  # In case there is any more index after the BOTTOM.
         ],
         axis=-1,
     )
@@ -90,7 +90,7 @@ def xywh_to_corners(bboxes):
             y - height / 2.0,
             x + width / 2.0,
             y + height / 2.0,
-            rest,   # In case there is any more index after the HEIGHT.
+            rest,  # In case there is any more index after the HEIGHT.
         ],
         axis=-1,
     )
