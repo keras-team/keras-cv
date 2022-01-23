@@ -100,10 +100,10 @@ class COCOBase(keras.metrics.Metric):
             raise NotImplementedError(
                 "sample_weight is not yet supported in keras_cv COCO metrics."
             )
-        num_images = y_true.shape[0]
+        num_images = tf.shape(y_true)[0]
 
-        num_thresholds = self.iou_thresholds.shape[0]
-        num_categories = self.category_ids.shape[0]
+        num_thresholds = tf.shape(self.iou_thresholds)[0]
+        num_categories = tf.shape(self.category_ids)[0]
 
         # Sort by bbox.CONFIDENCE to make maxDetections easy to compute.
         y_pred = utils.sort_bboxes(y_pred, axis=bbox.CONFIDENCE)
@@ -151,9 +151,7 @@ class COCOBase(keras.metrics.Metric):
                     false_positives = tf.cast(pred_matches == -1, tf.float32)
 
                     true_positives_sum = tf.math.reduce_sum(true_positives, axis=-1)
-                    false_positives_sum = tf.math.reduce_sum(
-                        false_positives, axis=-1
-                    )
+                    false_positives_sum = tf.math.reduce_sum(false_positives, axis=-1)
 
                     true_positives_update = tf.tensor_scatter_nd_add(
                         true_positives_update, [indices], [true_positives_sum]

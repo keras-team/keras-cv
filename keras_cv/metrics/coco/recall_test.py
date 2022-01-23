@@ -15,11 +15,34 @@
 
 import numpy as np
 import tensorflow as tf
+from tensorflow import keras
 
 from keras_cv.metrics.coco.recall import COCORecall
 
 
 class COCORecallTest(tf.test.TestCase):
+
+    def test_runs_inside_model(self):
+        i = keras.layers.Input((None, None, 6)) 
+        model = keras.Model(i, i)
+
+        recall = COCORecall(
+            max_detections=100,
+            category_ids=[1],
+            area_range=(0, 64 ** 2),
+        )
+
+        # These would match if they were in the area range
+        y_true = np.array([[[0, 0, 10, 10, 1], [5, 5, 10, 10, 1]]]).astype(np.float32)
+        y_pred = np.array([[[0, 0, 10, 10, 1, 1.0], [5, 5, 10, 10, 1, 0.9]]]).astype(
+            np.float32
+        )
+
+        model.compile(metrics=[recall])
+        model.evaluate(y_pred, y_true)
+
+        self.assertAllEqual(recall.result(), 1.0)
+
     def test_recall_area_range_filtering(self):
         recall = COCORecall(
             max_detections=100,
@@ -28,9 +51,7 @@ class COCORecallTest(tf.test.TestCase):
         )
 
         # These would match if they were in the area range
-        y_true = np.array([[[0, 0, 10, 10, 1], [5, 5, 10, 10, 1]]]).astype(
-            np.float32
-        )
+        y_true = np.array([[[0, 0, 10, 10, 1], [5, 5, 10, 10, 1]]]).astype(np.float32)
         y_pred = np.array([[[0, 0, 10, 10, 1, 1.0], [5, 5, 10, 10, 1, 0.9]]]).astype(
             np.float32
         )
