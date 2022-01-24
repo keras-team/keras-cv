@@ -1,7 +1,7 @@
 """random_erasing_demo.py shows how to use the RandomErasing preprocessing layer.
 
-Operates on the oxford_flowers102 dataset.  In this script the flowers 
-are loaded, then are passed through the preprocessing layers.  
+Operates on the oxford_flowers102 dataset.  In this script the flowers
+are loaded, then are passed through the preprocessing layers.
 Finally, they are shown using matplotlib.
 """
 import matplotlib.pyplot as plt
@@ -21,7 +21,9 @@ def resize(image, label, num_classes=10):
 
 
 def main():
-    data, ds_info = tfds.load("oxford_flowers102", with_info=True, as_supervised=True)
+    data, ds_info = tfds.load(
+        "oxford_flowers102", with_info=True, as_supervised=True
+    )
     train_ds = data["train"]
 
     num_classes = ds_info.features["label"].num_classes
@@ -32,7 +34,9 @@ def main():
         .batch(BATCH_SIZE)
     )
     random_erase = random_erasing.RandomErasing(1.0)
-    train_ds = train_ds.map(lambda x, y: (random_erase(x), y), num_parallel_calls=tf.data.AUTOTUNE)
+    train_ds = train_ds.map(
+        lambda x, y: (random_erase(x), y), num_parallel_calls=tf.data.AUTOTUNE
+    )
 
     for images, labels in train_ds.take(1):
         plt.figure(figsize=(8, 8))

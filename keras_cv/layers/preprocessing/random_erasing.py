@@ -11,22 +11,23 @@ class RandomErasing(layers.Layer):
 
     Args:
         rate: Float between 0 and 1.  The fraction of samples to augment.
-        area_factor: a positive float represented as fraction of image area, or a tuple
-            of size 2 representing lower and upper bound for patch area relative to
-            image area. When represented as a single positive float, lower = upper.
-            For instance, `area_factor=(0.2, 0.3)` results in a patch area randomly
-            picked in the range `[20% of image area, 30% of image area]`.
-            `area_factor=0.2` results in a patch area of 20% of image area.
-        aspect_ratio: a positive float represented as aspect ratio, or a tuple of size
-            2 representing lower and upper bound for patch aspect ratio.
-            When represented as a single positive float, lower = upper. For instance,
+        area_factor: a positive float represented as fraction of image area, or
+            a tuple of size 2 representing lower and upper bound for patch area
+            relative to image area. When represented as a single positive float,
+            lower = upper. For instance, `area_factor=(0.2, 0.3)` results in a
+            patch area randomly picked in the range
+            `[20% of image area, 30% of image area]`. `area_factor=0.2` results
+            in a patch area of 20% of image area.
+        aspect_ratio: a positive float represented as aspect ratio, or a tuple of
+            size 2 representing lower and upper bound for patch aspect ratio. When
+            represented as a single positive float, lower = upper. For instance,
             `aspect_ratio=(0.3, 3.3)` results in a patch with aspect ratio randomly
             picked in the range `[0.3, 3.3]`. `aspect_ratio=0.2` results in a patch
             with aspect ratio of 0.2.
-        fill_mode: Pixels inside the patches are filled according
-            to the given mode (one of `{"constant", "reflect", "wrap", "nearest"}`).
-            - *constant*: The pixels are filled with the same constant value.
-            - *gaussian_noise*: The pixels are filled with randomly sampled gaussian noise.
+        fill_mode: Pixels inside the patches are filled according to the given
+            mode (one of `{"constant", "reflect", "wrap", "nearest"}`).
+            - *constant*: Pixels are filled with the same constant value.
+            - *gaussian_noise*: Pixels are filled with random gaussian noise.
         fill_value: a float represents the value to be filled inside the patches
           when `fill_mode="constant"`.
     References:
@@ -81,7 +82,8 @@ class RandomErasing(layers.Layer):
         """call method for the layer.
 
         Args:
-            images: Tensor representing images of shape [batch_size, width, height, channels], with dtype tf.float32.
+            images: Tensor representing images of shape
+            [batch_size, width, height, channels], with dtype tf.float32.
         Returns:
             images: augmented images, same shape as input.
         """

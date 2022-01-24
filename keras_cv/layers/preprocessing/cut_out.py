@@ -14,8 +14,8 @@ class CutOut(layers.Layer):
         length: Integer. The side length of the square patches to cut out.
         fill_mode: Pixels inside the patches are filled according
             to the given mode (one of `{"constant", "reflect", "wrap", "nearest"}`).
-            - *constant*: The pixels are filled with the same constant value.
-            - *gaussian_noise*: The pixels are filled with randomly sampled gaussian noise.
+            - *constant*: Pixels are filled with the same constant value.
+            - *gaussian_noise*: Pixels are filled with random gaussian noise.
         fill_value: a float represents the value to be filled inside the patches
           when `fill_mode="constant"`.
     References:
@@ -60,7 +60,8 @@ class CutOut(layers.Layer):
         """call method for the layer.
 
         Args:
-            images: Tensor representing images of shape [batch_size, width, height, channels], with dtype tf.float32.
+            images: Tensor representing images of shape
+                [batch_size, width, height, channels], with dtype tf.float32.
         Returns:
             images: augmented images, same shape as input.
         """
