@@ -1,14 +1,14 @@
 """mix_up_demo.py shows how to use the MixUp preprocessing layer.
 
-Uses the oxford_flowers102 dataset.  In this script the flowers 
-are loaded, then are passed through the preprocessing layers.  
+Uses the oxford_flowers102 dataset.  In this script the flowers
+are loaded, then are passed through the preprocessing layers.
 Finally, they are shown using matplotlib.
 """
+import matplotlib.pyplot as plt
 import tensorflow as tf
 import tensorflow_datasets as tfds
-from keras_cv.layers.preprocessing import mix_up
-import matplotlib.pyplot as plt
 
+from keras_cv.layers import preprocessing
 
 IMG_SIZE = (224, 224)
 BATCH_SIZE = 64
@@ -21,7 +21,9 @@ def resize(image, label, num_classes=10):
 
 
 def main():
-    data, ds_info = tfds.load("oxford_flowers102", with_info=True, as_supervised=True)
+    data, ds_info = tfds.load(
+        "oxford_flowers102", with_info=True, as_supervised=True
+    )
     train_ds = data["train"]
 
     num_classes = ds_info.features["label"].num_classes
@@ -31,7 +33,7 @@ def main():
         .shuffle(10 * BATCH_SIZE)
         .batch(BATCH_SIZE)
     )
-    mixup = mix_up.MixUp(1.0, alpha=0.8)
+    mixup = preprocessing.MixUp(1.0, alpha=0.8)
     train_ds = train_ds.map(mixup, num_parallel_calls=tf.data.AUTOTUNE)
 
     for images, labels in train_ds.take(1):

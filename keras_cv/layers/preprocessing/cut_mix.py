@@ -1,8 +1,21 @@
+# Copyright 2022 The KerasCV Authors
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 import tensorflow as tf
 import tensorflow.keras.layers as layers
-from tensorflow.python.platform import tf_logging as logging
 from tensorflow.keras import backend
 from keras_cv.utils import fill_utils
+from absl import logging
 
 
 class CutMix(layers.Layer):
@@ -10,13 +23,14 @@ class CutMix(layers.Layer):
 
     Args:
         rate: Float between 0 and 1.  The fraction of samples to augment.
-        alpha: Float between 0 and 1.  Inverse scale parameter for the gamma distribution.
-            This controls the shape of the distribution from which the smoothing values are
-            sampled.  Defaults 1.0, which is a recommended value when training an imagenet1k
-            classification model.
-        label_smoothing: Float in [0, 1]. When > 0, label values are smoothed, meaning the
-            confidence on label values are relaxed. e.g. label_smoothing=0.2 means that we
-            will use a value of 0.1 for label 0 and 0.9 for label 1.  Defaults 0.0.
+        alpha: Float between 0 and 1.  Inverse scale parameter for the gamma
+            distribution.  This controls the shape of the distribution from which the
+            smoothing values are sampled.  Defaults 1.0, which is a recommended value
+            when training an imagenet1k classification model.
+        label_smoothing: Float in [0, 1]. When > 0, label values are smoothed,
+            meaning the confidence on label values are relaxed. e.g.
+            label_smoothing=0.2 means that we will use a value of 0.1 for label 0 and
+            0.9 for label 1.  Defaults 0.0.
     References:
        [CutMix paper]( https://arxiv.org/abs/1905.04899).
 
@@ -45,19 +59,23 @@ class CutMix(layers.Layer):
         """call method for the CutMix layer.
 
         Args:
-            images: Tensor representing images of shape [batch_size, width, height, channels], with dtype tf.float32.
-            labels: One hot encoded tensor of labels for the images, with dtype tf.float32.
+            images: Tensor representing images of shape:
+                [batch_size, width, height, channels], with dtype tf.float32.
+            labels: One hot encoded tensor of labels for the images, with dtype
+                tf.float32.
         Returns:
             images: augmented images, same shape as input.
-            labels: updated labels with both label smoothing and the cutmix updates applied.
+            labels: updated labels with both label smoothing and the cutmix updates
+                applied.
         """
         if training is None:
             training = backend.learning_phase()
 
         if tf.shape(images)[0] == 1:
             logging.warning(
-                "CutMix received a single image to `call`.  The layer relies on combining multiple examples, "
-                "and as such will not behave as expected.  Please call the layer with 2 or more samples."
+                "CutMix received a single image to `call`.  The layer relies on "
+                "combining multiple examples, and as such will not behave as "
+                "expected.  Please call the layer with 2 or more samples."
             )
 
         rate_cond = tf.less(
@@ -78,8 +96,12 @@ class CutMix(layers.Layer):
             input_shape[2],
         )
 
-        permutation_order = tf.random.shuffle(tf.range(0, batch_size), seed=self.seed)
-        lambda_sample = CutMix._sample_from_beta(self.alpha, self.alpha, (batch_size,))
+        permutation_order = tf.random.shuffle(
+            tf.range(0, batch_size), seed=self.seed
+        )
+        lambda_sample = CutMix._sample_from_beta(
+            self.alpha, self.alpha, (batch_size,)
+        )
 
         ratio = tf.math.sqrt(1 - lambda_sample)
 
@@ -121,7 +143,9 @@ class CutMix(layers.Layer):
         cutout_labels = tf.gather(labels, permutation_order)
 
         lambda_sample = tf.reshape(lambda_sample, [-1, 1])
-        labels = lambda_sample * labels_smoothed + (1.0 - lambda_sample) * cutout_labels
+        labels = (
+            lambda_sample * labels_smoothed + (1.0 - lambda_sample) * cutout_labels
+        )
         return images, labels
 
     def _smooth_labels(self, labels):

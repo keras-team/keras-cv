@@ -1,8 +1,20 @@
+# Copyright 2022 The KerasCV Authors
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 import tensorflow as tf
-import tensorflow.keras as keras
 import tensorflow.keras.layers as layers
 from tensorflow.keras import backend
-from tensorflow.python.platform import tf_logging as logging
+from absl import logging
 
 
 class MixUp(layers.Layer):
@@ -10,13 +22,14 @@ class MixUp(layers.Layer):
 
     Args:
         rate: Float between 0 and 1.  The fraction of samples to augment.
-        alpha: Float between 0 and 1.  Inverse scale parameter for the gamma distribution.
-            This controls the shape of the distribution from which the smoothing values are 
-            sampled.  Defaults 0.2, which is a recommended value when training an imagenet1k
-            classification model.
-        label_smoothing: Float in [0, 1]. When > 0, label values are smoothed, meaning the 
-            confidence on label values are relaxed. e.g. label_smoothing=0.2 means that we 
-            will use a value of 0.1 for label 0 and 0.9 for label 1.  Defaults 0.0.
+        alpha: Float between 0 and 1.  Inverse scale parameter for the gamma
+            distribution.  This controls the shape of the distribution from which the
+            smoothing values are sampled.  Defaults 0.2, which is a recommended value
+            when training an imagenet1k classification model.
+        label_smoothing: Float in [0, 1]. When > 0, label values are smoothed,
+            meaning the confidence on label values are relaxed. e.g.
+            label_smoothing=0.2 means that we will use a value of 0.1 for label 0 and
+            0.9 for label 1.  Defaults 0.0.
     References:
         [MixUp paper](https://arxiv.org/abs/1710.09412).
 
@@ -28,9 +41,7 @@ class MixUp(layers.Layer):
     ```
     """
 
-    def __init__(
-        self, rate, label_smoothing=0.0, alpha=0.2, seed=None, **kwargs
-    ):
+    def __init__(self, rate, label_smoothing=0.0, alpha=0.2, seed=None, **kwargs):
         super().__init__(**kwargs)
         self.alpha = alpha
         self.rate = rate
@@ -47,19 +58,23 @@ class MixUp(layers.Layer):
         """call method for the MixUp layer.
 
         Args:
-            images: Tensor representing images of shape [batch_size, width, height, channels], with dtype tf.float32.
-            labels: One hot encoded tensor of labels for the images, with dtype tf.float32.
+            images: Tensor representing images of shape
+                [batch_size, width, height, channels], with dtype tf.float32.
+            labels: One hot encoded tensor of labels for the images, with dtype
+                tf.float32.
         Returns:
             images: augmented images, same shape as input.
-            labels: updated labels with both label smoothing and the cutmix updates applied.
+            labels: updated labels with both label smoothing and the cutmix updates
+                applied.
         """
         if training is None:
             training = backend.learning_phase()
 
         if tf.shape(images)[0] == 1:
             logging.warning(
-                "MixUp received a single image to `call`.  The layer relies on combining multiple examples, "
-                "and as such will not behave as expected.  Please call the layer with 2 or more samples."
+                "CutMix received a single image to `call`.  The layer relies on "
+                "combining multiple examples, and as such will not behave as "
+                "expected.  Please call the layer with 2 or more samples."
             )
 
         rate_cond = tf.less(
@@ -73,9 +88,13 @@ class MixUp(layers.Layer):
 
     def _mixup(self, images, labels):
         batch_size = tf.shape(images)[0]
-        permutation_order = tf.random.shuffle(tf.range(0, batch_size), seed=self.seed)
+        permutation_order = tf.random.shuffle(
+            tf.range(0, batch_size), seed=self.seed
+        )
 
-        lambda_sample = MixUp._sample_from_beta(self.alpha, self.alpha, (batch_size,))
+        lambda_sample = MixUp._sample_from_beta(
+            self.alpha, self.alpha, (batch_size,)
+        )
         lambda_sample = tf.reshape(lambda_sample, [-1, 1, 1, 1])
 
         mixup_images = tf.gather(images, permutation_order)
@@ -89,7 +108,8 @@ class MixUp(layers.Layer):
 
         lambda_sample = tf.reshape(lambda_sample, [-1, 1])
         labels = (
-            lambda_sample * labels_smoothed + (1.0 - lambda_sample) * labels_for_mixup
+            lambda_sample * labels_smoothed
+            + (1.0 - lambda_sample) * labels_for_mixup
         )
 
         return images, labels
