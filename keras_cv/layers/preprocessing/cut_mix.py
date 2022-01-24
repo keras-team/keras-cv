@@ -13,9 +13,10 @@
 # limitations under the License.
 import tensorflow as tf
 import tensorflow.keras.layers as layers
-from tensorflow.keras import backend
-from keras_cv.utils import fill_utils
 from absl import logging
+from tensorflow.keras import backend
+
+from keras_cv.utils import fill_utils
 
 
 class CutMix(layers.Layer):

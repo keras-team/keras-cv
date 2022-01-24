@@ -13,8 +13,8 @@
 # limitations under the License.
 import tensorflow as tf
 import tensorflow.keras.layers as layers
-from tensorflow.keras import backend
 from absl import logging
+from tensorflow.keras import backend
 
 
 class MixUp(layers.Layer):
