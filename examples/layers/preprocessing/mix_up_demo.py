@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 import tensorflow as tf
 import tensorflow_datasets as tfds
 
-from keras_cv.layers.preprocessing import mix_up
+from keras_cv.layers import preprocessing
 
 IMG_SIZE = (224, 224)
 BATCH_SIZE = 64
@@ -33,7 +33,7 @@ def main():
         .shuffle(10 * BATCH_SIZE)
         .batch(BATCH_SIZE)
     )
-    mixup = mix_up.MixUp(1.0, alpha=0.8)
+    mixup = preprocessing.MixUp(1.0, alpha=0.8)
     train_ds = train_ds.map(mixup, num_parallel_calls=tf.data.AUTOTUNE)
 
     for images, labels in train_ds.take(1):

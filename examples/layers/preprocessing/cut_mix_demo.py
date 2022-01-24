@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 import tensorflow as tf
 import tensorflow_datasets as tfds
 
-from keras_cv.layers.preprocessing import cut_mix
+from keras_cv.layers import preprocessing
 
 IMG_SIZE = (224, 224)
 BATCH_SIZE = 64
@@ -33,7 +33,7 @@ def main():
         .shuffle(10 * BATCH_SIZE)
         .batch(BATCH_SIZE)
     )
-    cutmix = cut_mix.CutMix(1.0)
+    cutmix = preprocessing.CutMix(1.0)
     train_ds = train_ds.map(cutmix, num_parallel_calls=tf.data.AUTOTUNE)
 
     for images, labels in train_ds.take(1):

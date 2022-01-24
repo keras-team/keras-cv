@@ -13,7 +13,7 @@
 # limitations under the License.
 import tensorflow as tf
 import tensorflow.keras.layers as layers
-from tensorflow.python.platform import tf_logging as logging
+from absl import logging
 
 
 class CutMix(layers.Layer):
