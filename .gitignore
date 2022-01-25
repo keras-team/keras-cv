@@ -6,6 +6,7 @@ build/
 *.pyc
 .pytest_cache
 *.egg-info
+__pycache__/
 
 #VS Code files and container
 .vscode/
