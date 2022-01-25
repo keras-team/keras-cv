@@ -50,11 +50,14 @@ class COCOBase(keras.metrics.Metric):
         self._user_iou_thresholds = iou_thresholds or [
             x / 100.0 for x in range(50, 100, 5)
         ]
+        self.num_thresholds = len(self._user_iou_thresholds)
         self.iou_thresholds = self._add_constant_weight(
             "iou_thresholds", self._user_iou_thresholds
         )
+
         # TODO(lukewood): support inference of category_ids based on update_state.
         self.category_ids = self._add_constant_weight("category_ids", category_ids)
+        self.num_categories = len(category_ids)
 
         self.area_range = area_range
         self.max_detections = max_detections
@@ -102,14 +105,14 @@ class COCOBase(keras.metrics.Metric):
             )
         num_images = tf.shape(y_true)[0]
 
-        num_thresholds = tf.shape(self.iou_thresholds)[0]
-        num_categories = tf.shape(self.category_ids)[0]
+        num_thresholds = self.num_thresholds
+        num_categories = self.num_categories
 
         # Sort by bbox.CONFIDENCE to make maxDetections easy to compute.
         y_pred = utils.sort_bboxes(y_pred, axis=bbox.CONFIDENCE)
-        true_positives_update = tf.zeros_like(self.true_positives)
-        false_positives_update = tf.zeros_like(self.false_positives)
-        ground_truth_boxes_update = tf.zeros_like(self.ground_truth_boxes)
+        true_positives_update = [[0.] * num_categories] * num_thresholds
+        false_positives_update = [[0.] * num_categories] * num_thresholds
+        ground_truth_boxes_update = [0.] * num_categories
 
         for img in tf.range(num_images):
             sentinel_filtered_y_true = utils.filter_out_sentinels(y_true[img])
@@ -123,7 +126,7 @@ class COCOBase(keras.metrics.Metric):
                 sentinel_filtered_y_pred, self.area_range[0], self.area_range[1]
             )
 
-            for k_i in tf.range(num_categories):
+            for k_i in range(num_categories):
                 category = self.category_ids[k_i]
 
                 category_filtered_y_pred = utils.filter_boxes(
@@ -140,13 +143,12 @@ class COCOBase(keras.metrics.Metric):
 
                 ious = iou_lib.compute_ious_for_image(ground_truths, detections)
 
-                for t_i in tf.range(num_thresholds):
+                for t_i in range(num_thresholds):
                     threshold = self.iou_thresholds[t_i]
                     pred_matches = self._match_boxes(
                         ground_truths, detections, threshold, ious
                     )
 
-                    indices = [t_i, k_i]
                     true_positives = tf.cast(pred_matches != -1, tf.float32)
                     false_positives = tf.cast(pred_matches == -1, tf.float32)
 
@@ -155,19 +157,15 @@ class COCOBase(keras.metrics.Metric):
                         false_positives, axis=-1
                     )
 
-                    true_positives_update = tf.tensor_scatter_nd_add(
-                        true_positives_update, [indices], [true_positives_sum]
-                    )
-                    false_positives_update = tf.tensor_scatter_nd_add(
-                        false_positives_update, [indices], [false_positives_sum]
-                    )
+                    true_positives_update[t_i][k_i] += true_positives_sum
+                    false_positives_update[t_i][k_i] += false_positives_sum
 
-                ground_truth_boxes_update = tf.tensor_scatter_nd_add(
-                    ground_truth_boxes_update,
-                    [[k_i]],
-                    [tf.cast(tf.shape(ground_truths)[0], tf.float32)],
-                )
+                ground_truth_boxes_update[k_i] += tf.cast(tf.shape(ground_truths)[0], tf.float32)
 
+        true_positives_update = tf.stack([tf.stack(x) for x in true_positives_update])
+        false_positives_update = tf.stack([tf.stack(x) for x in false_positives_update])
+        ground_truth_boxes_update = tf.stack(ground_truth_boxes_update)
+        
         self.true_positives.assign_add(true_positives_update)
         self.false_positives.assign_add(false_positives_update)
         self.ground_truth_boxes.assign_add(ground_truth_boxes_update)
