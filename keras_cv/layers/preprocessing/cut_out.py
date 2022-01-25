@@ -26,7 +26,7 @@ class CutOut(layers.Layer):
         rate: Float between 0 and 1.  The fraction of samples to augment.
         length: Integer. The side length of the square patches to cut out.
         fill_mode: Pixels inside the patches are filled according
-            to the given mode (one of `{"constant", "reflect", "wrap", "nearest"}`).
+            to the given mode (one of `{"constant", "gaussian_noise"}`).
             - *constant*: Pixels are filled with the same constant value.
             - *gaussian_noise*: Pixels are filled with random gaussian noise.
         fill_value: a float represents the value to be filled inside the patches

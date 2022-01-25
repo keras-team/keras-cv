@@ -38,7 +38,7 @@ class RandomErasing(layers.Layer):
             picked in the range `[0.3, 3.3]`. `aspect_ratio=0.2` results in a patch
             with aspect ratio of 0.2.
         fill_mode: Pixels inside the patches are filled according to the given
-            mode (one of `{"constant", "reflect", "wrap", "nearest"}`).
+            mode (one of `{"constant", "gaussian_noise"}`).
             - *constant*: Pixels are filled with the same constant value.
             - *gaussian_noise*: Pixels are filled with random gaussian noise.
         fill_value: a float represents the value to be filled inside the patches
