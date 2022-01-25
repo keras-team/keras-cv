@@ -37,7 +37,7 @@ class CutOut(layers.Layer):
     Sample usage:
     ```python
     (images, labels), _ = tf.keras.datasets.cifar10.load_data()
-    cutout = keras_cv.layers.preprocessing.erasing.CutOut(1.0, 50)
+    cutout = keras_cv.layers.preprocessing.CutOut(1.0, 50)
     augmented_images = cutout(images)
     ```
     """
