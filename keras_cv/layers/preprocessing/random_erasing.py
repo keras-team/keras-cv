@@ -49,7 +49,7 @@ class RandomErasing(layers.Layer):
     Sample usage:
     ```python
     (images, labels), _ = tf.keras.datasets.cifar10.load_data()
-    random_erase = keras_cv.layers.preprocessing.erasing.RandomErasing(1.0)
+    random_erase = keras_cv.layers.preprocessing.random_erasing.RandomErasing(1.0)
     augmented_images = random_erase(images)
     ```
     """
