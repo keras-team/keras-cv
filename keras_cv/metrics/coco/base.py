@@ -83,7 +83,6 @@ class COCOBase(keras.metrics.Metric):
         )
 
     def reset_state(self):
-        super().reset_state()
         self.true_positives.assign(tf.zeros_like(self.true_positives))
         self.false_positives.assign(tf.zeros_like(self.false_positives))
         self.ground_truth_boxes.assign(tf.zeros_like(self.ground_truth_boxes))
