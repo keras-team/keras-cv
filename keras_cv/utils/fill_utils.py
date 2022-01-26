@@ -15,7 +15,7 @@ import tensorflow as tf
 
 
 def fill_rectangle(
-    image, center_width, center_height, half_width, half_height, replace=None
+    image, center_width, center_height, half_width, half_height, fill=None
 ):
     """Fill a rectangle in a given image using the value provided in replace.
 
@@ -25,8 +25,8 @@ def fill_rectangle(
         center_height: the Y center of the rectangle to fill
         half_width: 1/2 the width of the resulting rectangle
         half_height: 1/2 the height of the resulting rectangle
-        replace: The value to fill the rectangle with.  Accepts a Tensor,
-            Constant, or None.
+        fill: A tensor with same shape as image. Values at rectangle
+         position are used as fill.
     Returns:
         image: the modified image with the chosen rectangle filled.
     """
@@ -49,11 +49,5 @@ def fill_rectangle(
     )
     mask = tf.expand_dims(mask, -1)
 
-    if replace is None:
-        fill = tf.random.normal(image_shape, dtype=image.dtype)
-    elif isinstance(replace, tf.Tensor):
-        fill = replace
-    else:
-        fill = tf.ones_like(image, dtype=image.dtype) * replace
     image = tf.where(tf.equal(mask, 0), fill, image)
     return image
