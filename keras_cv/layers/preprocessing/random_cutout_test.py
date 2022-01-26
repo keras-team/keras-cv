@@ -13,21 +13,23 @@
 # limitations under the License.
 import tensorflow as tf
 
-from keras_cv.layers.preprocessing import random_erasing
+from keras_cv.layers import preprocessing
 
 NUM_CLASSES = 10
 
 
-class RandomErasingTest(tf.test.TestCase):
+class RandomCutoutTest(tf.test.TestCase):
     def test_return_shapes(self):
         xs = tf.ones((2, 512, 512, 3))
 
-        layer = random_erasing.RandomErasing(1.0, seed=1)
+        layer = preprocessing.RandomCutout(
+            height_factor=0.5, width_factor=0.5, rate=1.0, seed=1
+        )
         xs = layer(xs)
 
         self.assertEqual(xs.shape, [2, 512, 512, 3])
 
-    def test_random_erasing_call_results(self):
+    def test_random_cutout_call_results(self):
         xs = tf.cast(
             tf.stack(
                 [2 * tf.ones((40, 40, 3)), tf.ones((40, 40, 3))],
@@ -37,8 +39,13 @@ class RandomErasingTest(tf.test.TestCase):
         )
 
         patch_value = 0.0
-        layer = random_erasing.RandomErasing(
-            1.0, fill_mode="constant", fill_value=patch_value, seed=1
+        layer = preprocessing.RandomCutout(
+            height_factor=0.5,
+            width_factor=0.5,
+            fill_mode="constant",
+            fill_value=patch_value,
+            rate=1.0,
+            seed=1,
         )
         xs = layer(xs)
 
@@ -48,7 +55,7 @@ class RandomErasingTest(tf.test.TestCase):
         self.assertTrue(tf.math.reduce_any(xs[1] == patch_value))
         self.assertTrue(tf.math.reduce_any(xs[1] == 1.0))
 
-    def test_random_erasing_call_results_one_channel(self):
+    def test_random_cutout_call_results_one_channel(self):
         xs = tf.cast(
             tf.stack(
                 [2 * tf.ones((40, 40, 1)), tf.ones((40, 40, 1))],
@@ -58,8 +65,13 @@ class RandomErasingTest(tf.test.TestCase):
         )
 
         patch_value = 0.0
-        layer = random_erasing.RandomErasing(
-            1.0, fill_mode="constant", fill_value=patch_value, seed=1
+        layer = preprocessing.RandomCutout(
+            height_factor=0.5,
+            width_factor=0.5,
+            fill_mode="constant",
+            fill_value=patch_value,
+            rate=1.0,
+            seed=1,
         )
         xs = layer(xs)
 
@@ -76,8 +88,13 @@ class RandomErasingTest(tf.test.TestCase):
         )
 
         patch_value = 0.0
-        layer = random_erasing.RandomErasing(
-            1.0, fill_mode="constant", fill_value=patch_value, seed=1
+        layer = preprocessing.RandomCutout(
+            height_factor=0.5,
+            width_factor=0.5,
+            fill_mode="constant",
+            fill_value=patch_value,
+            rate=1.0,
+            seed=1,
         )
 
         @tf.function

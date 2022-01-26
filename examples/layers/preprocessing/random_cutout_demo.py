@@ -1,4 +1,4 @@
-"""random_erasing_demo.py shows how to use the RandomErasing preprocessing layer.
+"""random_cutout_demo.py shows how to use the RandomCutout preprocessing layer.
 
 Operates on the oxford_flowers102 dataset.  In this script the flowers
 are loaded, then are passed through the preprocessing layers.
@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 import tensorflow as tf
 import tensorflow_datasets as tfds
 
-from keras_cv.layers.preprocessing import random_erasing
+from keras_cv.layers import preprocessing
 
 IMG_SIZE = (224, 224)
 BATCH_SIZE = 64
@@ -33,9 +33,11 @@ def main():
         .shuffle(10 * BATCH_SIZE)
         .batch(BATCH_SIZE)
     )
-    random_erase = random_erasing.RandomErasing(1.0)
+    random_cutout = preprocessing.RandomCutout(
+        height_factor=(0.4, 0.9), width_factor=0.5, rate=1.0,
+    )
     train_ds = train_ds.map(
-        lambda x, y: (random_erase(x), y), num_parallel_calls=tf.data.AUTOTUNE
+        lambda x, y: (random_cutout(x), y), num_parallel_calls=tf.data.AUTOTUNE
     )
 
     for images, labels in train_ds.take(1):
