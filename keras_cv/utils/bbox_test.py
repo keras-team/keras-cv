@@ -88,7 +88,8 @@ class BBOXTestCase(tf.test.TestCase):
         # Make sure to raise error if the rank is different between bbox and target
         # shape
         with self.assertRaisesRegexp(
-                ValueError, 'Target shape should have same rank'):
+            ValueError, "Target shape should have same rank"
+        ):
             bbox.pad_bbox_batch_to_shape(bboxes, [1, 2, 3])
 
         # Make sure to not pad the dim if the target shape is smaller

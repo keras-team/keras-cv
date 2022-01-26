@@ -123,9 +123,11 @@ def pad_bbox_batch_to_shape(bboxes, target_shape, padding_values=-1):
     """
     bbox_shape = tf.shape(bboxes)
     if len(bbox_shape) != len(target_shape):
-        raise ValueError('Target shape should have same rank as the bounding box. '
-                         f'Got bbox shape = {bbox_shape}, '
-                         f'target_shape = {target_shape}')
+        raise ValueError(
+            "Target shape should have same rank as the bounding box. "
+            f"Got bbox shape = {bbox_shape}, "
+            f"target_shape = {target_shape}"
+        )
     paddings = [
         [0, max(0, target_shape[dim] - bbox_shape[dim])]
         for dim in range(len(target_shape))
