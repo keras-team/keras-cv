@@ -83,7 +83,7 @@ class RandomCutout(layers.Layer):
         else:
             self.height_lower = height_factor
             self.height_upper = height_factor
-        if type(self.height_lower) != type(self.height_upper):
+        if not isinstance(self.height_lower, type(self.height_upper)):
             raise ValueError(
                 "`height_factor` must have lower bound and upper bound "
                 "with same type, got {} and {}".format(
@@ -109,7 +109,7 @@ class RandomCutout(layers.Layer):
         else:
             self.width_lower = width_factor
             self.width_upper = width_factor
-        if type(self.width_lower) != type(self.width_upper):
+        if not isinstance(self.width_lower, type(self.width_upper)):
             raise ValueError(
                 "`width_factor` must have lower bound and upper bound "
                 "with same type, got {} and {}".format(

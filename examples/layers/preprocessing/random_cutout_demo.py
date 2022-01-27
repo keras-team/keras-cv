@@ -34,7 +34,10 @@ def main():
         .batch(BATCH_SIZE)
     )
     random_cutout = preprocessing.RandomCutout(
-        height_factor=(0.4, 0.9), width_factor=0.5, rate=1.0,
+        height_factor=(0.3, 0.9),
+        width_factor=64,
+        fill_mode="gaussian_noise",
+        rate=1.0,
     )
     train_ds = train_ds.map(
         lambda x, y: (random_cutout(x), y), num_parallel_calls=tf.data.AUTOTUNE
