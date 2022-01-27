@@ -107,7 +107,7 @@ class RandomCutoutTest(tf.test.TestCase):
         )
         xs = layer(xs)
 
-        # At least some pixels should be replaced in the RandomErase operation
+        # Some pixels should be replaced with fill value
         self.assertTrue(tf.math.reduce_any(xs[0] == patch_value))
         self.assertTrue(tf.math.reduce_any(xs[0] == 2.0))
         self.assertTrue(tf.math.reduce_any(xs[1] == patch_value))
@@ -135,7 +135,7 @@ class RandomCutoutTest(tf.test.TestCase):
 
         xs = augment(xs)
 
-        # At least some pixels should be replaced in the RandomErase operation
+        # Some pixels should be replaced with fill value
         self.assertTrue(tf.math.reduce_any(xs[0] == patch_value))
         self.assertTrue(tf.math.reduce_any(xs[0] == 2.0))
         self.assertTrue(tf.math.reduce_any(xs[1] == patch_value))
