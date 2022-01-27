@@ -76,7 +76,7 @@ class RandomCutoutTest(tf.test.TestCase):
         self._run_test(0.5, (15, 30))
 
     def test_random_cutout_fail_mix_tuple_types(self):
-        fn = lambda: self._run_test(0.5, (15., 30))
+        fn = lambda: self._run_test(0.5, (15.0, 30))
         self.assertRaises(ValueError, fn)
 
     def test_random_cutout_fail_reverse_lower_upper_int(self):
