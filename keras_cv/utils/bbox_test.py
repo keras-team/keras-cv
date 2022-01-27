@@ -74,3 +74,27 @@ class BBOXTestCase(tf.test.TestCase):
         self.assertAllClose(
             bbox.xywh_to_corners(padded_xywh_bbox_3d), padded_corner_bbox_3d
         )
+
+    def test_bbox_padding(self):
+        bboxes = [[1, 2, 3, 4], [5, 6, 7, 8]]
+        target_shape = [3, 4]
+        result = bbox.pad_bbox_batch_to_shape(bboxes, target_shape)
+        self.assertAllClose(result, [[1, 2, 3, 4], [5, 6, 7, 8], [-1, -1, -1, -1]])
+
+        target_shape = [2, 5]
+        result = bbox.pad_bbox_batch_to_shape(bboxes, target_shape)
+        self.assertAllClose(result, [[1, 2, 3, 4, -1], [5, 6, 7, 8, -1]])
+
+        # Make sure to raise error if the rank is different between bbox and target
+        # shape
+        with self.assertRaisesRegexp(
+            ValueError, "Target shape should have same rank"
+        ):
+            bbox.pad_bbox_batch_to_shape(bboxes, [1, 2, 3])
+
+        # Make sure raise error if the target shape is smaller
+        target_shape = [3, 2]
+        with self.assertRaisesRegexp(
+            ValueError, "Target shape should be larger than bounding box shape"
+        ):
+            bbox.pad_bbox_batch_to_shape(bboxes, target_shape)

@@ -102,16 +102,45 @@ def pad_bbox_batch_to_shape(bboxes, target_shape, padding_values=-1):
 
     Boxes represented by all -1s are ignored by COCO metrics.
 
+    Sample usage:
+    bbox = [[1, 2, 3, 4], [5, 6, 7, 8]]   # 2 bboxes with with xywh or corner format.
+    target_shape = [3, 4]   # Add 1 more dummy bbox
+    result = pad_bbox_batch_to_shape(bbox, target_shape)
+    # result == [[1, 2, 3, 4], [5, 6, 7, 8], [-1, -1, -1, -1]]
+
+    target_shape = [2, 5]   # Add 1 more index after the current 4 coordinates.
+    result = pad_bbox_batch_to_shape(bbox, target_shape)
+    # result == [[1, 2, 3, 4, -1], [5, 6, 7, 8, -1]]
+
     Args:
         bboxes: tf.Tensor of bounding boxes in any format.
-        target_shape: Target shape to pad bboxes to.
+        target_shape: Target shape to pad bounding box to. This should have the same
+            rank as the bbboxs. Note that if the target_shape contains any dimension
+            that is smaller than the bounding box shape, then no value will be padded
         padding_values: value to pad, defaults to -1 to mask out in coco metrics.
     Returns:
         bboxes padded to target shape.
+
+    Raises:
+        ValueError, when target shape has smaller rank or dimension value when
+            comparing with shape of bounding boxes.
     """
     bbox_shape = tf.shape(bboxes)
+    if len(bbox_shape) != len(target_shape):
+        raise ValueError(
+            "Target shape should have same rank as the bounding box. "
+            f"Got bbox shape = {bbox_shape}, "
+            f"target_shape = {target_shape}"
+        )
+    for dim in range(len(target_shape)):
+        if bbox_shape[dim] > target_shape[dim]:
+            raise ValueError(
+                "Target shape should be larger than bounding box shape "
+                "in all dimensions. "
+                f"Got bbox shape = {bbox_shape}, "
+                f"target_shape = {target_shape}"
+            )
     paddings = [
-        [0, target_shape - bbox_shape[i]]
-        for (i, tartarget_shapeget) in enumerate(target_shape)
+        [0, target_shape[dim] - bbox_shape[dim]] for dim in range(len(target_shape))
     ]
     return tf.pad(bboxes, paddings, mode="CONSTANT", constant_values=padding_values)
