@@ -23,21 +23,23 @@ class RandomCutout(layers.Layer):
     """Randomly cut out rectangles from images and fill them.
 
     Args:
-        height_factor: a positive float represented as fraction of image height,
-            or as absolute height when factor is an integer. When factor is a tuple
-            of size 2 it represents lower and upper bound for height. For instance,
-            `height_factor=(0.2, 0.3)` results in a height randomly picked in the
-            range `[20% of image height, 30% of image height]`, and
+        height_factor: One of:
+            - a positive float representing a fraction of image height
+            - an integer representing an absolute height
+            - a tuple of size 2, representing lower and upper bound for height. For
+            example, `height_factor=(0.2, 0.3)` results in a height randomly picked
+            in the range `[20% of image height, 30% of image height]`.
             `height_factor=(32, 64)` results in a height picked in the range
-            [32, 64]. `height_factor=0.2` results in a height of 20% of image
+            [32, 64]. `height_factor=0.2` results in a height of [0%, 20%] of image
             height, and `height_factor=32` results in a height of 32.
-        width_factor: a positive float represented as fraction of image width,
-            or as absolute width when factor is an integer. When factor is a tuple
-            of size 2 it represents lower and upper bound for width. For instance,
-            `width_factor=(0.2, 0.3)` results in a width randomly picked in the
-            range `[20% of image width, 30% of image width]`, and
+        width_factor: One of:
+            - a positive float representing a fraction of image width
+            - an integer representing an absolute width
+            - a tuple of size 2, representing lower and upper bound for width. For
+            example, `width_factor=(0.2, 0.3)` results in a width randomly picked
+            in the range `[20% of image width, 30% of image width]`.
             `width_factor=(32, 64)` results in a width picked in the range
-            [32, 64]. `width_factor=0.2` results in a width of 20% of image
+            [32, 64]. `width_factor=0.2` results in a width of [0%, 20%] of image
             width, and `width_factor=32` results in a width of 32.
         fill_mode: Pixels inside the patches are filled according to the given
             mode (one of `{"constant", "gaussian_noise"}`).
@@ -77,12 +79,9 @@ class RandomCutout(layers.Layer):
             allow_callables=False,
         )
 
-        if isinstance(height_factor, (tuple, list)):
-            self.height_lower = height_factor[0]
-            self.height_upper = height_factor[1]
-        else:
-            self.height_lower = height_factor
-            self.height_upper = height_factor
+        self.height_lower, self.height_upper = self._parse_bounds(height_factor)
+        self.width_lower, self.width_upper = self._parse_bounds(width_factor)
+
         if not isinstance(self.height_lower, type(self.height_upper)):
             raise ValueError(
                 "`height_factor` must have lower bound and upper bound "
@@ -90,6 +89,14 @@ class RandomCutout(layers.Layer):
                     type(self.height_lower), type(self.height_upper)
                 )
             )
+        if not isinstance(self.width_lower, type(self.width_upper)):
+            raise ValueError(
+                "`width_factor` must have lower bound and upper bound "
+                "with same type, got {} and {}".format(
+                    type(self.width_lower), type(self.width_upper)
+                )
+            )
+
         if self.height_upper < self.height_lower:
             raise ValueError(
                 "`height_factor` cannot have upper bound less than "
@@ -103,19 +110,6 @@ class RandomCutout(layers.Layer):
                     "when is float, got {}".format(height_factor)
                 )
 
-        if isinstance(width_factor, (tuple, list)):
-            self.width_lower = width_factor[0]
-            self.width_upper = width_factor[1]
-        else:
-            self.width_lower = width_factor
-            self.width_upper = width_factor
-        if not isinstance(self.width_lower, type(self.width_upper)):
-            raise ValueError(
-                "`width_factor` must have lower bound and upper bound "
-                "with same type, got {} and {}".format(
-                    type(self.width_lower), type(self.width_upper)
-                )
-            )
         if self.width_upper < self.width_lower:
             raise ValueError(
                 "`width_factor` cannot have upper bound less than "
@@ -134,6 +128,12 @@ class RandomCutout(layers.Layer):
         self.fill_value = fill_value
         self.rate = rate
         self.seed = seed
+
+    def _parse_bounds(self, factor):
+        if isinstance(factor, (tuple, list)):
+            return factor[0], factor[1]
+        else:
+            return type(factor)(0), factor
 
     def call(self, inputs, training=True):
         if training is None:
