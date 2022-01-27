@@ -122,7 +122,6 @@ class RandomCutout(layers.Layer):
                     "`width_factor` must have values between [0, 1] "
                     "when is float, got {}".format(width_factor)
                 )
-            self._width_is_float = True
 
         self.fill_mode = fill_mode
         self.fill_value = fill_value
