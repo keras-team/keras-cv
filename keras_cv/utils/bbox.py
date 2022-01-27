@@ -120,6 +120,10 @@ def pad_bbox_batch_to_shape(bboxes, target_shape, padding_values=-1):
         padding_values: value to pad, defaults to -1 to mask out in coco metrics.
     Returns:
         bboxes padded to target shape.
+
+    Raises:
+        ValueError, when target shape has smaller rank or dimension value when
+            comparing with shape of bounding boxes.
     """
     bbox_shape = tf.shape(bboxes)
     if len(bbox_shape) != len(target_shape):
@@ -128,8 +132,15 @@ def pad_bbox_batch_to_shape(bboxes, target_shape, padding_values=-1):
             f"Got bbox shape = {bbox_shape}, "
             f"target_shape = {target_shape}"
         )
+    for dim in range(len(target_shape)):
+        if bbox_shape[dim] > target_shape[dim]:
+            raise ValueError(
+                "Target shape should be larger than bounding box shape "
+                "in all dimensions. "
+                f"Got bbox shape = {bbox_shape}, "
+                f"target_shape = {target_shape}"
+            )
     paddings = [
-        [0, max(0, target_shape[dim] - bbox_shape[dim])]
-        for dim in range(len(target_shape))
+        [0, target_shape[dim] - bbox_shape[dim]] for dim in range(len(target_shape))
     ]
     return tf.pad(bboxes, paddings, mode="CONSTANT", constant_values=padding_values)
