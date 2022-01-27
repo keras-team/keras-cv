@@ -4,12 +4,12 @@ applied computer vision engineers can leverage to quickly assemble production-gr
 training and inference pipelines for common use cases such as image classification, object detection, 
 image segmentation, image data augmentation, etc. 
 
-KerasCV can be understood as a horizontal extension of the Keras API: they're new first-party Keras 
-objects (layers, metrics, etc) that are too specialized to be added to core Keras, but that receive 
+KerasCV can be understood as a horizontal extension of the Keras API: the components are new first-party 
+Keras objects (layers, metrics, etc) that are too specialized to be added to core Keras, but that receive 
 the same level of polish and backwards compatibility guarantees as the rest of the Keras API and that 
 are maintained by the Keras team itself (unlike TFAddons).
 
-# No Goals
+# Non-Goals
 - **KerasCV is not a repository of blackbox end-to-end solutions (like TF Hub or ModelGarden).**
 
     For the time being, it is focused on modular and reusable building blocks. We expect models in 
@@ -50,19 +50,6 @@ functions, losses, metrics and other necessary components to achieve state of th
 There will be common shareable components between those 2 tasks, like model building blocks, etc. We
 will have them in the repository as public API as well.
 
-### Common components
-- Model building block (served as backbone for the application)
-  - Resnet 
-  - Resnet RS
-  - ResNeXT
-  - Efficient
-- Preprocessing layers
-  - CutMix
-  - MixUp
-  - CutOut
-  - RandAugment
-  - RandomErasing
-
 ### Image Classification
 - Dataset to evaluate
   - [Imagenet](https://www.tensorflow.org/datasets/catalog/imagenet2012)
@@ -77,16 +64,7 @@ will have them in the repository as public API as well.
   - [Open image v4](https://www.tensorflow.org/datasets/catalog/open_images_v4)
   - [PASCAL voc](https://www.tensorflow.org/datasets/catalog/voc)
 - Target Metric
-  - COCO metric average precision (AP)
-- Detection model
-  - MaskRCNN
-  - YOLO (v3 or v4)
-  - RetinaNet
-- Other related utilities
-  - **ROI** (region of interest) layer (faster RCNN and Mask RCNN)
-  - Bounding box utils
-  - **RPN** (Region Proposal Network) used by faster RCNN and mask RCNN for bounding box 
-    generation.
+  - COCO metric mean average precision (mAP)
 
 ## Overlapping between keras.application and Keras-CV
 As you might notice, some area we would like to focus has overlapping with existing keras.application,
@@ -117,10 +95,6 @@ The ideal workflow will be:
 - Post it to Github as a feature request. 
 - Have a hotlist/tag for those items and advocate them to the community.
 - Let community members claim the task they would like to work on.
-
-In the early stage, Keras team members will just claim those tasks by themselves. When there are 
-enough active community members, we should spend more time as reviewers rather than 
-authors. This should apply to bug fixes as well.
 
 User requested features will be carefully evaluated by keras team member before acceptance. 
 Based on the existing experience from tf-addons, even with a guideline of paper ref count > 50, 
