@@ -14,6 +14,7 @@
 import tensorflow as tf
 import tensorflow.keras.layers as layers
 from absl import logging
+from tensorflow.keras import backend
 
 
 class MixUp(layers.Layer):
@@ -53,7 +54,7 @@ class MixUp(layers.Layer):
         sample_beta = tf.random.gamma(shape, 1.0, beta=beta)
         return sample_alpha / (sample_alpha + sample_beta)
 
-    def call(self, images, labels):
+    def call(self, images, labels, training=True):
         """call method for the MixUp layer.
 
         Args:
@@ -66,6 +67,8 @@ class MixUp(layers.Layer):
             labels: updated labels with both label smoothing and the cutmix updates
                 applied.
         """
+        if training is None:
+            training = backend.learning_phase()
 
         if tf.shape(images)[0] == 1:
             logging.warning(
@@ -74,9 +77,10 @@ class MixUp(layers.Layer):
                 "expected.  Please call the layer with 2 or more samples."
             )
 
-        augment_cond = tf.less(
+        rate_cond = tf.less(
             tf.random.uniform(shape=[], minval=0.0, maxval=1.0), self.rate
         )
+        augment_cond = tf.logical_and(rate_cond, training)
         # pylint: disable=g-long-lambda
         mixup_augment = lambda: self._update_labels(*self._mixup(images, labels))
         no_augment = lambda: (images, self._smooth_labels(labels))

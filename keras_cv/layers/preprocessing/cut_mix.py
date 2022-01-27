@@ -14,6 +14,9 @@
 import tensorflow as tf
 import tensorflow.keras.layers as layers
 from absl import logging
+from tensorflow.keras import backend
+
+from keras_cv.utils import fill_utils
 
 
 class CutMix(layers.Layer):
@@ -53,7 +56,7 @@ class CutMix(layers.Layer):
         sample_beta = tf.random.gamma(shape, 1.0, beta=beta)
         return sample_alpha / (sample_alpha + sample_beta)
 
-    def call(self, images, labels):
+    def call(self, images, labels, training=True):
         """call method for the CutMix layer.
 
         Args:
@@ -66,6 +69,8 @@ class CutMix(layers.Layer):
             labels: updated labels with both label smoothing and the cutmix updates
                 applied.
         """
+        if training is None:
+            training = backend.learning_phase()
 
         if tf.shape(images)[0] == 1:
             logging.warning(
@@ -74,9 +79,10 @@ class CutMix(layers.Layer):
                 "expected.  Please call the layer with 2 or more samples."
             )
 
-        augment_cond = tf.less(
+        rate_cond = tf.less(
             tf.random.uniform(shape=[], minval=0.0, maxval=1.0), self.rate
         )
+        augment_cond = tf.logical_and(rate_cond, training)
         # pylint: disable=g-long-lambda
         cutmix_augment = lambda: self._update_labels(*self._cutmix(images, labels))
         no_augment = lambda: (images, self._smooth_labels(labels))
@@ -119,7 +125,7 @@ class CutMix(layers.Layer):
         lambda_sample = tf.cast(lambda_sample, dtype=tf.float32)
 
         images = tf.map_fn(
-            lambda x: _fill_rectangle(*x),
+            lambda x: fill_utils.fill_rectangle(*x),
             (
                 images,
                 random_center_width,
@@ -148,48 +154,3 @@ class CutMix(layers.Layer):
         off_value = label_smoothing / tf.cast(tf.shape(labels)[1], tf.float32)
         on_value = 1.0 - label_smoothing + off_value
         return labels * on_value + (1 - labels) * off_value
-
-
-def _fill_rectangle(
-    image, center_width, center_height, half_width, half_height, replace=None
-):
-    """Fill a rectangle in a given image using the value provided in replace.
-
-    Args:
-        image: the starting image to fill the rectangle on.
-        center_width: the X center of the rectangle to fill
-        center_height: the Y center of the rectangle to fill
-        half_width: 1/2 the width of the resulting rectangle
-        half_height: 1/2 the height of the resulting rectangle
-        replace: The value to fill the rectangle with.  Accepts a Tensor,
-            Constant, or None.
-    Returns:
-        image: the modified image with the chosen rectangle filled.
-    """
-    image_shape = tf.shape(image)
-    image_height = image_shape[0]
-    image_width = image_shape[1]
-
-    lower_pad = tf.maximum(0, center_height - half_height)
-    upper_pad = tf.maximum(0, image_height - center_height - half_height)
-    left_pad = tf.maximum(0, center_width - half_width)
-    right_pad = tf.maximum(0, image_width - center_width - half_width)
-
-    cutout_shape = [
-        image_height - (lower_pad + upper_pad),
-        image_width - (left_pad + right_pad),
-    ]
-    padding_dims = [[lower_pad, upper_pad], [left_pad, right_pad]]
-    mask = tf.pad(
-        tf.zeros(cutout_shape, dtype=image.dtype), padding_dims, constant_values=1
-    )
-    mask = tf.expand_dims(mask, -1)
-
-    if replace is None:
-        fill = tf.random.normal(image_shape, dtype=image.dtype)
-    elif isinstance(replace, tf.Tensor):
-        fill = replace
-    else:
-        fill = tf.ones_like(image, dtype=image.dtype) * replace
-    image = tf.where(tf.equal(mask, 0), fill, image)
-    return image
