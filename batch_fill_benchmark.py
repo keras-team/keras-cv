@@ -122,17 +122,17 @@ def time_batch_fill(images, cx, cy, height, width, fill, n):
     times = []
     for _ in range(n):
         st = time.time()
-        batch_fill_rectangle(images, cx, cy, height, width, fill)
+        images = batch_fill_rectangle(images, cx, cy, height, width, fill)
         total = time.time() - st
         times.append(total)
-    return times
+    return times, images
 
 
 def time_map_fill(images, cx, cy, height, width, fill, n):
     times = []
     for _ in range(n):
         st = time.time()
-        tf.map_fn(
+        images = tf.map_fn(
             lambda x: fill_rectangle(*x),
             (
                 images,
@@ -146,17 +146,17 @@ def time_map_fill(images, cx, cy, height, width, fill, n):
         )
         total = time.time() - st
         times.append(total)
-    return times
+    return times, images
 
 
 #%%
 n = 5
-batch_sizes = [2 ** i for i in range(5)]
+batch_sizes = [2 ** i for i in range(13)]
+h, w = 32, 32
 
 batch_times = []
 map_times = []
 for batch_size in batch_sizes:
-    h, w = 32, 32
     batch_shape = (batch_size, h, w, 1)
     images = tf.ones(batch_shape)
 
@@ -169,18 +169,24 @@ for batch_size in batch_sizes:
     time_batch_fill(images, cx, cy, height, width, fill, 1)
     time_map_fill(images, cx, cy, height, width, fill, 1)
 
-    batch_times_i = time_batch_fill(images, cx, cy, height, width, fill, n=n)
-    single_times_i = time_map_fill(images, cx, cy, height, width, fill, n=n)
+    batch_times_i, bi = time_batch_fill(images, cx, cy, height, width, fill, n=n)
+    single_times_i, si = time_map_fill(images, cx, cy, height, width, fill, n=n)
     batch_times.append(batch_times_i)
     map_times.append(single_times_i)
 
-# batch_sizes x n
-batch_times = np.array(batch_times)
-map_times = np.array(map_times)
+plt.imshow(bi[0])
+plt.show()
+plt.imshow(si[0])
+plt.show()
 
-plt.plot(batch_sizes, batch_times.mean(1), label="batch")
-plt.plot(batch_sizes, map_times.mean(1), label="map")
+# batch_sizes x n
+batch_times = np.array(batch_times) * 1000
+map_times = np.array(map_times) * 1000
+
+plt.plot(batch_sizes, batch_times.mean(1), label="batch fill")
+plt.plot(batch_sizes, map_times.mean(1), label="map fill")
 plt.xlabel("Batch size")
-plt.ylabel("ylabel")
+plt.ylabel("Avg. fill time [milliseconds]")
 plt.legend()
+plt.savefig("fill_benchmark.png")
 plt.show()
