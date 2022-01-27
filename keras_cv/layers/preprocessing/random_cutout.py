@@ -152,14 +152,16 @@ class RandomCutout(layers.Layer):
         center_x, center_y = self._compute_rectangle_position(inputs)
         rectangle_height, rectangle_width = self._compute_rectangle_size(inputs)
         rectangle_fill = self._compute_rectangle_fill(inputs)
+        half_height = tf.cast(tf.math.ceil(rectangle_height / 2), tf.int32)
+        half_width = tf.cast(tf.math.ceil(rectangle_width / 2), tf.int32)
         inputs = tf.map_fn(
             lambda x: fill_utils.fill_rectangle(*x),
             (
                 inputs,
                 center_y,
                 center_x,
-                rectangle_width // 2,
-                rectangle_height // 2,
+                half_width,
+                half_height,
                 rectangle_fill,
             ),
             fn_output_signature=tf.TensorSpec.from_tensor(inputs[0]),
@@ -215,8 +217,8 @@ class RandomCutout(layers.Layer):
         if self._width_is_float:
             width = width * tf.cast(image_width, tf.float32)
 
-        height = tf.cast(height, tf.int32)
-        width = tf.cast(width, tf.int32)
+        height = tf.cast(tf.math.ceil(height), tf.int32)
+        width = tf.cast(tf.math.ceil(width), tf.int32)
 
         height = tf.minimum(height, image_height)
         width = tf.minimum(width, image_width)

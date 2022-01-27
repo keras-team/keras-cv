@@ -113,6 +113,31 @@ class RandomCutoutTest(tf.test.TestCase):
         self.assertTrue(tf.math.reduce_any(xs[1] == patch_value))
         self.assertTrue(tf.math.reduce_any(xs[1] == 1.0))
 
+    def test_random_cutout_call_tiny_image(self):
+        img_shape = (4, 4, 3)
+        xs = tf.stack(
+            [2 * tf.ones(img_shape), tf.ones(img_shape)],
+            axis=0,
+        )
+        xs = tf.cast(xs, tf.float32)
+
+        fill_value = 0.0
+        layer = preprocessing.RandomCutout(
+            height_factor=(0.4, 0.9),
+            width_factor=(0.1, 0.3),
+            fill_mode="constant",
+            fill_value=fill_value,
+            rate=1.0,
+            seed=1,
+        )
+        xs = layer(xs)
+
+        # Some pixels should be replaced with fill value
+        self.assertTrue(tf.math.reduce_any(xs[0] == fill_value))
+        self.assertTrue(tf.math.reduce_any(xs[0] == 2.0))
+        self.assertTrue(tf.math.reduce_any(xs[1] == fill_value))
+        self.assertTrue(tf.math.reduce_any(xs[1] == 1.0))
+
     def test_in_tf_function(self):
         xs = tf.cast(
             tf.stack([2 * tf.ones((100, 100, 1)), tf.ones((100, 100, 1))], axis=0),
