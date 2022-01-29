@@ -13,8 +13,10 @@
 # limitations under the License.
 import tensorflow as tf
 
+from keras_cv.utils import bbox
 
-def rectangle_masks(mask_shape, x0, y0, x1, y1):
+
+def rectangle_masks(mask_shape, corners):
     """Computes positional masks of rectangles in images
 
     Args:
@@ -28,10 +30,10 @@ def rectangle_masks(mask_shape, x0, y0, x1, y1):
         Boolean masks with True at rectangle positions.
     """
     # add broadcasting axes
-    x0 = x0[:, tf.newaxis, tf.newaxis]
-    y0 = y0[:, tf.newaxis, tf.newaxis]
-    x1 = x1[:, tf.newaxis, tf.newaxis]
-    y1 = y1[:, tf.newaxis, tf.newaxis]
+    x0 = corners[:, 0, tf.newaxis, tf.newaxis]
+    y0 = corners[:, 1, tf.newaxis, tf.newaxis]
+    x1 = corners[:, 2, tf.newaxis, tf.newaxis]
+    y1 = corners[:, 3, tf.newaxis, tf.newaxis]
 
     # repeat for height and width
     batch_size, height, width = mask_shape
@@ -41,8 +43,8 @@ def rectangle_masks(mask_shape, x0, y0, x1, y1):
     y1_rep = tf.repeat(y1, width, axis=2)
 
     # range grid
-    range_row = tf.range(0, height)
-    range_col = tf.range(0, width)
+    range_row = tf.range(0, height, dtype=corners.dtype)
+    range_col = tf.range(0, width, dtype=corners.dtype)
     range_row = tf.repeat(range_row[tf.newaxis, :, tf.newaxis], batch_size, 0)
     range_col = tf.repeat(range_col[tf.newaxis, tf.newaxis, :], batch_size, 0)
 
@@ -57,15 +59,15 @@ def rectangle_masks(mask_shape, x0, y0, x1, y1):
     return masks
 
 
-def batch_fill_rectangle(images, center_x, center_y, height, width, fill):
+def batch_fill_rectangle(images, center_x, center_y, width, height, fill):
     """Fill rectangles with fill value into images.
 
     Args:
         images: the images to fill rectangles into.
         center_x: positions of the rectangle centers on the x-axis.
         center_y: positions of the rectangle centers on the y-axis.
-        height: heights of the rectangles
         width: widths of the rectangles
+        height: heights of the rectangles
         fill: A tensor with same shape as image. Values at rectangle
          positions are used as fill.
     Returns:
@@ -76,31 +78,27 @@ def batch_fill_rectangle(images, center_x, center_y, height, width, fill):
     images_height = images_shape[1]
     images_width = images_shape[2]
 
-    half_height = tf.cast(tf.math.ceil(height / 2), tf.int32)
-    half_width = tf.cast(tf.math.ceil(width / 2), tf.int32)
-
-    x0 = tf.maximum(0, center_x - half_width)
-    x1 = tf.minimum(images_width, center_x + half_width)
-    y0 = tf.maximum(0, center_y - half_height)
-    y1 = tf.minimum(images_height, center_y + half_height)
+    xywh = tf.stack([center_x, center_y, width, height], axis=1)
+    xywh = tf.cast(xywh, tf.float32)
+    corners = bbox.xywh_to_corners(xywh)
 
     masks_shape = (batch_size, images_height, images_width)
-    is_patch_mask = rectangle_masks(masks_shape, x0, y0, x1, y1)
+    is_patch_mask = rectangle_masks(masks_shape, corners)
     is_patch_mask = tf.expand_dims(is_patch_mask, -1)
 
     images = tf.where(tf.equal(is_patch_mask, True), fill, images)
     return images
 
 
-def fill_rectangle(image, center_x, center_y, height, width, fill=None):
+def fill_rectangle(image, center_x, center_y, width, height, fill=None):
     """Fill a rectangle in a given image using the value provided in replace.
 
     Args:
         image: the starting image to fill the rectangle on.
         center_x: the X center of the rectangle to fill
         center_y: the Y center of the rectangle to fill
-        height: the height of the resulting rectangle
         width: the width of the resulting rectangle
+        height: the height of the resulting rectangle
         fill: A tensor with same shape as image. Values at rectangle
          position are used as fill.
     Returns:

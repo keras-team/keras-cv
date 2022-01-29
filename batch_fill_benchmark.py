@@ -8,15 +8,15 @@ from keras_cv.utils import fill_utils
 
 
 @tf.function
-def map_fill_rectangle(images, center_x, center_y, height, width, fill):
+def map_fill_rectangle(images, center_x, center_y, width, height, fill):
     images = tf.map_fn(
         lambda x: fill_utils.fill_rectangle(*x),
         (
             images,
             center_x,
             center_y,
-            height,
             width,
+            height,
             fill,
         ),
         fn_output_signature=tf.TensorSpec.from_tensor(images[0]),
@@ -27,21 +27,21 @@ def map_fill_rectangle(images, center_x, center_y, height, width, fill):
 batch_fill_rectangle = tf.function(fill_utils.batch_fill_rectangle)
 
 
-def time_batch_fill(images, cx, cy, height, width, fill, n):
+def time_batch_fill(images, cx, cy, width, height, fill, n):
     times = []
     for _ in range(n):
         st = time.time()
-        images = batch_fill_rectangle(images, cx, cy, height, width, fill)
+        images = batch_fill_rectangle(images, cx, cy, width, height, fill)
         total = time.time() - st
         times.append(total)
     return times, images
 
 
-def time_map_fill(images, cx, cy, height, width, fill, n):
+def time_map_fill(images, cx, cy, width, height, fill, n):
     times = []
     for _ in range(n):
         st = time.time()
-        images = map_fill_rectangle(images, cx, cy, height, width, fill)
+        images = map_fill_rectangle(images, cx, cy, width, height, fill)
         total = time.time() - st
         times.append(total)
     return times, images
@@ -51,7 +51,8 @@ def time_map_fill(images, cx, cy, height, width, fill, n):
 n = 1
 batch_sizes = [2 ** i for i in range(13)]
 h, w = 32, 32
-rh, rw = h // 2, w // 2
+rh, rw = 10, 16
+center_x, center_y = 10, 10
 
 batch_times = []
 map_times = []
@@ -59,17 +60,17 @@ for batch_size in batch_sizes:
     batch_shape = (batch_size, h, w, 1)
     images = tf.ones(batch_shape)
 
-    cx = tf.fill([batch_size], rw)
-    cy = tf.fill([batch_size], rh)
+    cx = tf.fill([batch_size], center_x)
+    cy = tf.fill([batch_size], center_y)
     height = tf.fill([batch_size], rh)
     width = tf.fill([batch_size], rw)
     fill = tf.zeros_like(images)
 
-    time_batch_fill(images, cx, cy, height, width, fill, 1)
-    time_map_fill(images, cx, cy, height, width, fill, 1)
+    time_batch_fill(images, cx, cy, width, height, fill, 1)
+    time_map_fill(images, cx, cy, width, height, fill, 1)
 
-    batch_times_i, bi = time_batch_fill(images, cx, cy, height, width, fill, n=n)
-    single_times_i, si = time_map_fill(images, cx, cy, height, width, fill, n=n)
+    batch_times_i, bi = time_batch_fill(images, cx, cy, width, height, fill, n=n)
+    single_times_i, si = time_map_fill(images, cx, cy, width, height, fill, n=n)
     batch_times.append(batch_times_i)
     map_times.append(single_times_i)
 
@@ -85,7 +86,7 @@ map_times = np.array(map_times) * 1000
 plt.plot(batch_sizes, batch_times.mean(1), label="batch fill")
 plt.plot(batch_sizes, map_times.mean(1), label="map fill")
 plt.title(
-    "Fill batch of {}x{} rectangles into batch of {}x{} images.".format(rh, rw, h, w)
+    "Fill batch of rectangles into batch of {}x{} images.".format(h, w)
 )
 plt.xlabel("Batch size")
 plt.ylabel("Fill time [milliseconds]")
