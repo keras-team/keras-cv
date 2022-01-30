@@ -97,8 +97,6 @@ class MixUp(layers.Layer):
         labels_for_mixup = tf.gather(labels, permutation_order)
 
         lambda_sample = tf.reshape(lambda_sample, [-1, 1])
-        labels = (
-            lambda_sample * labels + (1.0 - lambda_sample) * labels_for_mixup
-        )
+        labels = lambda_sample * labels + (1.0 - lambda_sample) * labels_for_mixup
 
         return images, labels
