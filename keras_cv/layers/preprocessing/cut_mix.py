@@ -120,17 +120,13 @@ class CutMix(layers.Layer):
         lambda_sample = 1.0 - bbox_area / (image_height * image_width)
         lambda_sample = tf.cast(lambda_sample, dtype=tf.float32)
 
-        images = tf.map_fn(
-            lambda x: fill_utils.fill_rectangle(*x),
-            (
-                images,
-                random_center_width,
-                random_center_height,
-                cut_width // 2,
-                cut_height // 2,
-                tf.gather(images, permutation_order),
-            ),
-            fn_output_signature=tf.TensorSpec.from_tensor(images[0]),
+        images = fill_utils.fill_rectangle(
+            images,
+            random_center_width,
+            random_center_height,
+            cut_width,
+            cut_height,
+            tf.gather(images, permutation_order),
         )
 
         return images, labels, lambda_sample, permutation_order
