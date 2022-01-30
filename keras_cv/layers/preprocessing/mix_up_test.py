@@ -44,6 +44,7 @@ class MixUpTest(tf.test.TestCase):
         layer = MixUp(1.0, label_smoothing=0.2)
         xs, ys = layer(xs, ys)
         self.assertNotAllClose(ys, 0.0)
+        self.assertAllClose(tf.math.reduce_sum(ys, axis=-1), (1.0, 1.0))
 
     def test_mix_up_call_results(self):
         xs = tf.cast(
