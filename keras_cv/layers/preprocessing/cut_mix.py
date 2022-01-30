@@ -97,12 +97,8 @@ class CutMix(layers.Layer):
             input_shape[2],
         )
 
-        permutation_order = tf.random.shuffle(
-            tf.range(0, batch_size), seed=self.seed
-        )
-        lambda_sample = CutMix._sample_from_beta(
-            self.alpha, self.alpha, (batch_size,)
-        )
+        permutation_order = tf.random.shuffle(tf.range(0, batch_size), seed=self.seed)
+        lambda_sample = CutMix._sample_from_beta(self.alpha, self.alpha, (batch_size,))
 
         ratio = tf.math.sqrt(1 - lambda_sample)
 
@@ -144,9 +140,7 @@ class CutMix(layers.Layer):
         cutout_labels = tf.gather(labels, permutation_order)
 
         lambda_sample = tf.reshape(lambda_sample, [-1, 1])
-        labels = (
-            lambda_sample * labels_smoothed + (1.0 - lambda_sample) * cutout_labels
-        )
+        labels = lambda_sample * labels_smoothed + (1.0 - lambda_sample) * cutout_labels
         return images, labels
 
     def _smooth_labels(self, labels):

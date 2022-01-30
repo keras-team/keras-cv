@@ -44,9 +44,7 @@ def fill_rectangle(
         image_width - (left_pad + right_pad),
     ]
     padding_dims = [[lower_pad, upper_pad], [left_pad, right_pad]]
-    mask = tf.pad(
-        tf.zeros(shape, dtype=image.dtype), padding_dims, constant_values=1
-    )
+    mask = tf.pad(tf.zeros(shape, dtype=image.dtype), padding_dims, constant_values=1)
     mask = tf.expand_dims(mask, -1)
 
     image = tf.where(tf.equal(mask, 0), fill, image)

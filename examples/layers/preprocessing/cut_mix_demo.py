@@ -21,9 +21,7 @@ def resize(image, label, num_classes=10):
 
 
 def main():
-    data, ds_info = tfds.load(
-        "oxford_flowers102", with_info=True, as_supervised=True
-    )
+    data, ds_info = tfds.load("oxford_flowers102", with_info=True, as_supervised=True)
     train_ds = data["train"]
 
     num_classes = ds_info.features["label"].num_classes

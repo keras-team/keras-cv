@@ -88,13 +88,9 @@ class MixUp(layers.Layer):
 
     def _mixup(self, images, labels):
         batch_size = tf.shape(images)[0]
-        permutation_order = tf.random.shuffle(
-            tf.range(0, batch_size), seed=self.seed
-        )
+        permutation_order = tf.random.shuffle(tf.range(0, batch_size), seed=self.seed)
 
-        lambda_sample = MixUp._sample_from_beta(
-            self.alpha, self.alpha, (batch_size,)
-        )
+        lambda_sample = MixUp._sample_from_beta(self.alpha, self.alpha, (batch_size,))
         lambda_sample = tf.reshape(lambda_sample, [-1, 1, 1, 1])
 
         mixup_images = tf.gather(images, permutation_order)
@@ -108,8 +104,7 @@ class MixUp(layers.Layer):
 
         lambda_sample = tf.reshape(lambda_sample, [-1, 1])
         labels = (
-            lambda_sample * labels_smoothed
-            + (1.0 - lambda_sample) * labels_for_mixup
+            lambda_sample * labels_smoothed + (1.0 - lambda_sample) * labels_for_mixup
         )
 
         return images, labels
