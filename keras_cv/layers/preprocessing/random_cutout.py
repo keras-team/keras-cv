@@ -151,17 +151,13 @@ class RandomCutout(layers.Layer):
         center_x, center_y = self._compute_rectangle_position(inputs)
         rectangle_height, rectangle_width = self._compute_rectangle_size(inputs)
         rectangle_fill = self._compute_rectangle_fill(inputs)
-        inputs = tf.map_fn(
-            lambda x: fill_utils.fill_rectangle(*x),
-            (
-                inputs,
-                center_x,
-                center_y,
-                rectangle_width,
-                rectangle_height,
-                rectangle_fill,
-            ),
-            fn_output_signature=tf.TensorSpec.from_tensor(inputs[0]),
+        inputs = fill_utils.fill_rectangle(
+            inputs,
+            center_x,
+            center_y,
+            rectangle_width,
+            rectangle_height,
+            rectangle_fill,
         )
         return inputs
 

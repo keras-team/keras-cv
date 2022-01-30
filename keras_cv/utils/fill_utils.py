@@ -21,13 +21,10 @@ def rectangle_masks(mask_shape, corners):
 
     Args:
         mask_shape: shape of the masks as [batch_size, height, width].
-        x0: x-coordinates of
-        y0:
-        x1:
-        y1:
+        corners: rectangle coordinates in corners format.
 
     Returns:
-        Boolean masks with True at rectangle positions.
+        boolean masks with True at rectangle positions.
     """
     # add broadcasting axes
     x0 = corners[:, 0, tf.newaxis, tf.newaxis]
@@ -59,17 +56,16 @@ def rectangle_masks(mask_shape, corners):
     return masks
 
 
-def batch_fill_rectangle(images, center_x, center_y, width, height, fill):
+def fill_rectangle(images, center_x, center_y, width, height, fill):
     """Fill rectangles with fill value into images.
 
     Args:
-        images: the images to fill rectangles into.
-        center_x: positions of the rectangle centers on the x-axis.
-        center_y: positions of the rectangle centers on the y-axis.
-        width: widths of the rectangles
-        height: heights of the rectangles
-        fill: A tensor with same shape as image. Values at rectangle
-         positions are used as fill.
+        images: Tensor of images to fill rectangles into.
+        center_x: Tensor of positions of the rectangle centers on the x-axis.
+        center_y: Tensor f positions of the rectangle centers on the y-axis.
+        width: Tensor of widths of the rectangles
+        height: Tensor of heights of the rectangles
+        fill: Tensor with same shape as images to get rectangle fill from.
     Returns:
         images with filled rectangles.
     """
@@ -124,5 +120,5 @@ def fill_rectangle(image, center_x, center_y, width, height, fill=None):
     mask = tf.pad(tf.zeros(shape, dtype=image.dtype), padding_dims, constant_values=1)
     mask = tf.expand_dims(mask, -1)
 
-    image = tf.where(tf.equal(mask, 0), fill, image)
-    return image
+    images = tf.where(mask, fill, images)
+    return images
