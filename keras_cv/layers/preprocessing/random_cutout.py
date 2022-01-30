@@ -31,7 +31,7 @@ class RandomCutout(layers.Layer):
             in the range `[20% of image height, 30% of image height]`.
             `height_factor=(32, 64)` results in a height picked in the range
             [32, 64]. `height_factor=0.2` results in a height of [0%, 20%] of image
-            height, and `height_factor=32` results in a height of 32.
+            height, and `height_factor=32` results in a height between [0, 32].
         width_factor: One of:
             - a positive float representing a fraction of image width
             - an integer representing an absolute width
@@ -40,7 +40,7 @@ class RandomCutout(layers.Layer):
             in the range `[20% of image width, 30% of image width]`.
             `width_factor=(32, 64)` results in a width picked in the range
             [32, 64]. `width_factor=0.2` results in a width of [0%, 20%] of image
-            width, and `width_factor=32` results in a width of 32.
+            width, and `width_factor=32` results in a width between [0, 32].
         fill_mode: Pixels inside the patches are filled according to the given
             mode (one of `{"constant", "gaussian_noise"}`).
             - *constant*: Pixels are filled with the same constant value.
