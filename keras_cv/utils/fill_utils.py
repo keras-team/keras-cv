@@ -27,12 +27,15 @@ def rectangle_masks(mask_shape, corners):
         boolean masks with True at rectangle positions.
     """
     # add broadcasting axes
-    x0 = corners[:, 0, tf.newaxis, tf.newaxis]
-    y0 = corners[:, 1, tf.newaxis, tf.newaxis]
-    x1 = corners[:, 2, tf.newaxis, tf.newaxis]
-    y1 = corners[:, 3, tf.newaxis, tf.newaxis]
+    corners = corners[..., tf.newaxis, tf.newaxis]
 
-    # repeat for height and width
+    # split coordinates
+    x0 = corners[:, 0]
+    y0 = corners[:, 1]
+    x1 = corners[:, 2]
+    y1 = corners[:, 3]
+
+    # repeat height and width
     batch_size, height, width = mask_shape
     x0_rep = tf.repeat(x0, height, axis=1)
     y0_rep = tf.repeat(y0, width, axis=2)
