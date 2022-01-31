@@ -8,6 +8,10 @@ Before making any changes, we recommend opening an issue (if one doesn't already
 exist) and discussing your proposed changes. This way, we can give you feedback
 and validate the proposed changes.
 
+If your code change involves the fixing of a bug, please include a 
+[Colab](https://colab.research.google.com/) notebook that shows
+how to reproduce the broken behavior.
+
 If the changes are minor (simple bug fix or documentation fix), then feel free
 to open a PR without discussion.
 
@@ -20,7 +24,7 @@ development environment and run the unit tests. This is covered in section
 ### Step 3. Create a pull request
 
 Once the change is ready, open a pull request from your branch in your fork to
-the master branch in [keras-team/keras](https://github.com/keras-team/keras).
+the master branch in [keras-team/keras-cv](https://github.com/keras-team/keras-cv).
 
 ### Step 4. Sign the Contributor License Agreement
 
@@ -49,8 +53,10 @@ Once the pull request is approved, a team member will take care of merging.
 
 ## Setup environment
 
-Setting up your KerasCV development environment is quite easy.  You simply
-need to run the following commands:
+Setting up your KerasCV development environment requires you to clone the KerasCV repository, 
+install dependencies, and execute `python setup.py develop`.
+
+You can achieve this by running the following commands:
 
 ```shell
 git clone https://github.com/YOUR_GITHUB_USERNAME/keras-cv.git
@@ -83,7 +89,7 @@ pytest keras_cv/layers/preprocessing/cut_mix_test.py -k="label"
 
 ### Run all tests
 
-Running all of the tests in KerasCV is as easy as:
+You can run the unit tests for KerasCV by running:
 ```
 pytest keras_cv/
 ```
