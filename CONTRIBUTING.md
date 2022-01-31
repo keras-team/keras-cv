@@ -45,13 +45,7 @@ approved by the reviewer.
 
 ### Step 6. Merging
 
-Once the pull request is approved, a `ready to pull` tag will be added to the
-pull request. A team member will take care of the merging.
-
-![Ready to pull](https://i.imgur.com/yCEqJsA.png)
-
-Here is an [example pull request](https://github.com/keras-team/keras/pull/15015)
-for your reference.
+Once the pull request is approved, a team member will take care of merging.
 
 ## Setup environment
 
@@ -59,8 +53,8 @@ Setting up your KerasCV development environment is quite easy.  You simply
 need to run the following commands:
 
 ```shell
-git clone https://github.com/YOUR_GITHUB_USERNAME/keras.git
-cd keras
+git clone https://github.com/YOUR_GITHUB_USERNAME/keras-cv.git
+cd keras-cv
 pip install ".[tests]"
 python setup.py develop
 ```
@@ -74,7 +68,7 @@ KerasCV is tested using [PyTest](https://docs.pytest.org/en/6.2.x/).
 
 ### Run a test file
 
-To run a test file, run `pytest path/to/file`.
+To run a test file, run `pytest path/to/file` from the root directory of keras\_cv.
 
 ### Run a single test case
 
@@ -93,3 +87,8 @@ Running all of the tests in KerasCV is as easy as:
 ```
 pytest keras_cv/
 ```
+
+### Formatting the Code
+In order to format the code you can use the `shell/format.sh` script.
+If this does not resolve the issue, try updating `isort` and `black`
+via `pip install --upgrade black` and `pip install --upgrade isort`.
