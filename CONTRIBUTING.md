@@ -96,7 +96,7 @@ You can run the unit tests for KerasCV by running:
 pytest keras_cv/
 ```
 
-### Formatting the Code
+## Formatting the Code
 
 In order to format the code you can use the `shell/format.sh` script.
 If this does not resolve the issue, try updating `isort` and `black`
