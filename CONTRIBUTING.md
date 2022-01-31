@@ -97,7 +97,17 @@ pytest keras_cv/
 ```
 
 ## Formatting the Code
+We use `flake8`, `isort` and `black` for code formatting.  You can run
+the following commands manually every time you want to format your code:
 
-In order to format the code you can use the `shell/format.sh` script.
-If this does not resolve the issue, try updating `isort` and `black`
-via `pip install --upgrade black` and `pip install --upgrade isort`.
+- Run `shell/format.sh` to format your code
+- Run `shell/lint.sh` to check the result.
+
+If after running these the CI flow is still failing, try updating `flake8`, `isort` and `black`.
+This can be done by running `pip install --upgrade black`, `pip install --upgrade flake8`, and 
+`pip install --upgrade isort`.
+
+## Community Guidelines
+
+This project follows [Google's Open Source Community Guidelines](https://opensource.google/conduct/).
+
