@@ -53,17 +53,19 @@ Once the pull request is approved, a team member will take care of merging.
 
 ## Setup environment
 
-Setting up your KerasCV development environment requires you to clone the KerasCV repository, 
-install dependencies, and execute `python setup.py develop`.
+Setting up your KerasCV development environment requires you to fork the KerasCV repository,
+clone the repository, install dependencies, and execute `python setup.py develop`.
 
 You can achieve this by running the following commands:
 
 ```shell
-git clone https://github.com/YOUR_GITHUB_USERNAME/keras-cv.git
+gh repo fork keras-team/keras-cv --clone --remote
 cd keras-cv
 pip install ".[tests]"
 python setup.py develop
 ```
+
+The first line relies on having an installation of [the GitHub CLI](https://github.com/cli/cli).
 
 Following these commands you should be able to run the tests using `pytest keras_cv`.
 Please report any issues running tests following these steps.
@@ -95,6 +97,7 @@ pytest keras_cv/
 ```
 
 ### Formatting the Code
+
 In order to format the code you can use the `shell/format.sh` script.
 If this does not resolve the issue, try updating `isort` and `black`
 via `pip install --upgrade black` and `pip install --upgrade isort`.
