@@ -28,12 +28,8 @@ the master branch in [keras-team/keras-cv](https://github.com/keras-team/keras-c
 
 ### Step 4. Sign the Contributor License Agreement
 
-After creating the pull request, the `google-cla` bot will comment on your pull
-request with instructions on signing the Contributor License Agreement (CLA) if
-you haven't done so. Please follow the instructions to sign the CLA. A `cla:yes`
-tag is then added to the pull request.
-
-![Tag added](https://i.imgur.com/LHEdIfL.png)
+After creating the pull request, you will need to sign the Google CLA agreement. 
+The agreement can be foiund at [https://cla.developers.google.com/clas](https://cla.developers.google.com/clas).
 
 
 ### Step 5. Code review
