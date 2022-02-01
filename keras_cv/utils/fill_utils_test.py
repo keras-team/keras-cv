@@ -6,17 +6,17 @@ from keras_cv.utils import fill_utils
 class FillRectangleTest(tf.test.TestCase):
     def test_rectangle_position(self):
         batch_size = 1
-        h, w = 8, 8
-        rh, rw = 3, 5
-        cx, cy = 2, 3
+        img_h, img_w = 8, 8
+        rec_h, rec_w = 3, 5
+        cent_x, cent_y = 2, 3
 
-        batch_shape = (batch_size, h, w, 1)
+        batch_shape = (batch_size, img_h, img_w, 1)
         images = tf.ones(batch_shape)
 
-        centers_x = tf.fill([batch_size], cx)
-        centers_y = tf.fill([batch_size], cy)
-        height = tf.fill([batch_size], rh)
-        width = tf.fill([batch_size], rw)
+        centers_x = tf.fill([batch_size], cent_x)
+        centers_y = tf.fill([batch_size], cent_y)
+        height = tf.fill([batch_size], rec_h)
+        width = tf.fill([batch_size], rec_w)
         fill = tf.zeros_like(images)
 
         filled_images = fill_utils.fill_rectangle(
@@ -40,20 +40,19 @@ class FillRectangleTest(tf.test.TestCase):
         )
         tf.assert_equal(filled_images, expected)
 
-
-    def test_center_plus_width_above_bounds(self):
+    def test_width_out_of_lower_bound(self):
         batch_size = 1
-        h, w = 8, 8
-        rh, rw = 3, 5
-        cx, cy = 6, 3
+        img_h, img_w = 8, 8
+        rec_h, rec_w = 3, 5
+        cent_x, cent_y = 1, 3
 
-        batch_shape = (batch_size, h, w, 1)
+        batch_shape = (batch_size, img_h, img_w, 1)
         images = tf.ones(batch_shape)
 
-        centers_x = tf.fill([batch_size], cx)
-        centers_y = tf.fill([batch_size], cy)
-        height = tf.fill([batch_size], rh)
-        width = tf.fill([batch_size], rw)
+        centers_x = tf.fill([batch_size], cent_x)
+        centers_y = tf.fill([batch_size], cent_y)
+        height = tf.fill([batch_size], rec_h)
+        width = tf.fill([batch_size], rec_w)
         fill = tf.zeros_like(images)
 
         filled_images = fill_utils.fill_rectangle(
@@ -62,13 +61,14 @@ class FillRectangleTest(tf.test.TestCase):
         # remove batch dimension and channel dimension
         filled_images = filled_images[0, ..., 0]
 
+        # assert width is truncated (from 5 to 4) when cent_x - rec_w < 0 (1 - 5 < 0)
         expected = tf.constant(
             [
                 [1, 1, 1, 1, 1, 1, 1, 1],
                 [1, 1, 1, 1, 1, 1, 1, 1],
-                [1, 1, 1, 1, 0, 0, 0, 0],
-                [1, 1, 1, 1, 0, 0, 0, 0],
-                [1, 1, 1, 1, 0, 0, 0, 0],
+                [0, 0, 0, 0, 1, 1, 1, 1],
+                [0, 0, 0, 0, 1, 1, 1, 1],
+                [0, 0, 0, 0, 1, 1, 1, 1],
                 [1, 1, 1, 1, 1, 1, 1, 1],
                 [1, 1, 1, 1, 1, 1, 1, 1],
                 [1, 1, 1, 1, 1, 1, 1, 1],
@@ -77,19 +77,19 @@ class FillRectangleTest(tf.test.TestCase):
         )
         tf.assert_equal(filled_images, expected)
 
-    def test_center_minus_width_below_bounds(self):
+    def test_width_out_of_upper_bound(self):
         batch_size = 1
-        h, w = 8, 8
-        rh, rw = 3, 5  # TODO
-        cx, cy = 6, 3  # TODO
+        img_h, img_w = 8, 8
+        rec_h, rec_w = 3, 5
+        cent_x, cent_y = 6, 3
 
-        batch_shape = (batch_size, h, w, 1)
+        batch_shape = (batch_size, img_h, img_w, 1)
         images = tf.ones(batch_shape)
 
-        centers_x = tf.fill([batch_size], cx)
-        centers_y = tf.fill([batch_size], cy)
-        height = tf.fill([batch_size], rh)
-        width = tf.fill([batch_size], rw)
+        centers_x = tf.fill([batch_size], cent_x)
+        centers_y = tf.fill([batch_size], cent_y)
+        height = tf.fill([batch_size], rec_h)
+        width = tf.fill([batch_size], rec_w)
         fill = tf.zeros_like(images)
 
         filled_images = fill_utils.fill_rectangle(
@@ -98,7 +98,7 @@ class FillRectangleTest(tf.test.TestCase):
         # remove batch dimension and channel dimension
         filled_images = filled_images[0, ..., 0]
 
-        # TODO:
+        # assert width is truncated (from 5 to 4) when cent_x + rec_w > img_w (6 + 5 > 8)
         expected = tf.constant(
             [
                 [1, 1, 1, 1, 1, 1, 1, 1],
