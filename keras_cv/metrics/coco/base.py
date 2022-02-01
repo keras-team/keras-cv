@@ -43,7 +43,7 @@ class COCOBase(keras.metrics.Metric):
         iou_thresholds=None,
         area_range=(0, 1e9**2),
         max_detections=100,
-        **kwargs
+        **kwargs,
     ):
         super().__init__(**kwargs)
         # Initialize parameter values
@@ -224,6 +224,21 @@ class COCOBase(keras.metrics.Metric):
                 continue
             gt_matches = gt_matches.write(match_index, detection_idx)
         return pred_matches.stack()
+
+    @property
+    def mergeable_weights(self):
+        return [self.true_positives, self.false_positives, self.ground_truth_boxes]
+
+    def merge_state(self, metrics):
+        assign_add_ops = []
+        for metric in metrics:
+            if len(self.mergeable_weights) != len(metric.mergeable_weights):
+                raise ValueError(f"Metric {metric} is not compatible with {self}")
+            for weight, weight_to_add in zip(
+                self.mergeable_weights, metric.mergeable_weights
+            ):
+                assign_add_ops.append(weight.assign_add(weight_to_add))
+        return assign_add_ops
 
     def result(self):
         raise NotImplementedError("COCOBase subclasses must implement `result()`.")
