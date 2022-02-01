@@ -59,7 +59,7 @@ def rectangle_masks(mask_shape, corners):
     return masks
 
 
-def fill_rectangle(images, centers_x, centers_y, widths, heights, fill):
+def fill_rectangle(images, centers_x, centers_y, widths, heights, fill_values):
     """Fill rectangles with fill value into images.
 
     Args:
@@ -67,8 +67,8 @@ def fill_rectangle(images, centers_x, centers_y, widths, heights, fill):
         centers_x: Tensor of positions of the rectangle centers on the x-axis.
         centers_y: Tensor of positions of the rectangle centers on the y-axis.
         widths: Tensor of widths of the rectangles
-        height: Tensor of heights of the rectangles
-        fill: Tensor with same shape as images to get rectangle fill from.
+        heights: Tensor of heights of the rectangles
+        fill_values: Tensor with same shape as images to get rectangle fill from.
     Returns:
         images with filled rectangles.
     """
@@ -82,8 +82,8 @@ def fill_rectangle(images, centers_x, centers_y, widths, heights, fill):
     corners = bbox.xywh_to_corners(xywh)
 
     masks_shape = (batch_size, images_height, images_width)
-    is_patch_mask = rectangle_masks(masks_shape, corners)
-    is_patch_mask = tf.expand_dims(is_patch_mask, -1)
+    is_rectangle = rectangle_masks(masks_shape, corners)
+    is_rectangle = tf.expand_dims(is_rectangle, -1)
 
-    images = tf.where(tf.equal(is_patch_mask, True), fill, images)
+    images = tf.where(is_rectangle, fill_values, images)
     return images
