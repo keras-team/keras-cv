@@ -122,3 +122,50 @@ class FillRectangleTest(tf.test.TestCase):
             dtype=tf.int32,
         )
         self._run_test(img_w, img_h, cent_x, cent_y, rec_w, rec_h, expected)
+
+    def test_different_fill(self):
+        batch_size = 2
+        img_w, img_h = 5, 5
+        cent_x, cent_y = 2, 2
+        rec_w, rec_h = 3, 3
+
+        batch_shape = (batch_size, img_h, img_w, 1)
+        images = tf.ones(batch_shape, dtype=tf.int32)
+
+        centers_x = tf.fill([batch_size], cent_x)
+        centers_y = tf.fill([batch_size], cent_y)
+        width = tf.fill([batch_size], rec_w)
+        height = tf.fill([batch_size], rec_h)
+        fill = tf.stack(
+            [
+                tf.fill(images[0].shape, 2),
+                tf.fill(images[1].shape, 3),
+            ]
+        )
+
+        filled_images = fill_utils.fill_rectangle(
+            images, centers_x, centers_y, width, height, fill
+        )
+        # remove batch dimension and channel dimension
+        filled_images = filled_images[..., 0]
+
+        expected = tf.constant(
+            [
+                [
+                    [1, 1, 1, 1, 1],
+                    [1, 2, 2, 2, 1],
+                    [1, 2, 2, 2, 1],
+                    [1, 2, 2, 2, 1],
+                    [1, 1, 1, 1, 1],
+                ],
+                [
+                    [1, 1, 1, 1, 1],
+                    [1, 3, 3, 3, 1],
+                    [1, 3, 3, 3, 1],
+                    [1, 3, 3, 3, 1],
+                    [1, 1, 1, 1, 1],
+                ],
+            ],
+            dtype=tf.int32,
+        )
+        tf.assert_equal(filled_images, expected)
