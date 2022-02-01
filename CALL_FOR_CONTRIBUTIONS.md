@@ -22,4 +22,3 @@ open up the patth for community contributions.
 For now, we are not actively seeking contributions of this type.  Once
 the KerasCV authors contribute an example of this class of component, we will 
 open up the patth for community contributions.
-s
