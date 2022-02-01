@@ -59,14 +59,14 @@ def rectangle_masks(mask_shape, corners):
     return masks
 
 
-def fill_rectangle(images, center_x, center_y, width, height, fill):
+def fill_rectangle(images, centers_x, centers_y, widths, heights, fill):
     """Fill rectangles with fill value into images.
 
     Args:
         images: Tensor of images to fill rectangles into.
-        center_x: Tensor of positions of the rectangle centers on the x-axis.
-        center_y: Tensor f positions of the rectangle centers on the y-axis.
-        width: Tensor of widths of the rectangles
+        centers_x: Tensor of positions of the rectangle centers on the x-axis.
+        centers_y: Tensor of positions of the rectangle centers on the y-axis.
+        widths: Tensor of widths of the rectangles
         height: Tensor of heights of the rectangles
         fill: Tensor with same shape as images to get rectangle fill from.
     Returns:
@@ -77,7 +77,7 @@ def fill_rectangle(images, center_x, center_y, width, height, fill):
     images_height = images_shape[1]
     images_width = images_shape[2]
 
-    xywh = tf.stack([center_x, center_y, width, height], axis=1)
+    xywh = tf.stack([centers_x, centers_y, widths, heights], axis=1)
     xywh = tf.cast(xywh, tf.float32)
     corners = bbox.xywh_to_corners(xywh)
 
