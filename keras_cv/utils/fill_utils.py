@@ -65,7 +65,7 @@ def fill_rectangle(images, centers_x, centers_y, widths, heights, fill_values):
     Args:
         images: Tensor of images to fill rectangles into.
         centers_x: Tensor of positions of the rectangle centers on the x-axis.
-        centers_y: Tensor f positions of the rectangle centers on the y-axis.
+        centers_y: Tensor of positions of the rectangle centers on the y-axis.
         widths: Tensor of widths of the rectangles
         heights: Tensor of heights of the rectangles
         fill_values: Tensor with same shape as images to get rectangle fill from.
