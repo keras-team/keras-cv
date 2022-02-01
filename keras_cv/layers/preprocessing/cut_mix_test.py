@@ -30,21 +30,7 @@ class CutMixTest(tf.test.TestCase):
         xs, ys = layer(xs, ys)
 
         self.assertEqual(xs.shape, [2, 512, 512, 3])
-        # one hot smoothed labels
         self.assertEqual(ys.shape, [2, 10])
-        self.assertEqual(len(ys != 0.0), 2)
-
-    def test_label_smoothing(self):
-        xs = tf.ones((2, 512, 512, 3))
-        # randomly sample labels
-        ys = tf.random.categorical(tf.math.log([[0.5, 0.5]]), 2)
-        ys = tf.squeeze(ys)
-        ys = tf.one_hot(ys, NUM_CLASSES)
-
-        layer = CutMix(1.0, label_smoothing=0.2, seed=1)
-        xs, ys = layer(xs, ys)
-        self.assertNotAllClose(ys, 0.0)
-        self.assertAllClose(tf.math.reduce_sum(ys, axis=-1), (1.0, 1.0))
 
     def test_cut_mix_call_results(self):
         xs = tf.cast(
@@ -56,7 +42,7 @@ class CutMixTest(tf.test.TestCase):
         )
         ys = tf.one_hot(tf.constant([0, 1]), 2)
 
-        layer = CutMix(1.0, label_smoothing=0.0, seed=1)
+        layer = CutMix(1.0, seed=1)
         xs, ys = layer(xs, ys)
 
         # At least some pixels should be replaced in the CutMix operation
@@ -78,7 +64,7 @@ class CutMixTest(tf.test.TestCase):
         )
         ys = tf.one_hot(tf.constant([0, 1]), 2)
 
-        layer = CutMix(1.0, label_smoothing=0.0, seed=1)
+        layer = CutMix(1.0, seed=1)
         xs, ys = layer(xs, ys)
 
         # At least some pixels should be replaced in the CutMix operation
@@ -97,7 +83,7 @@ class CutMixTest(tf.test.TestCase):
         )
         ys = tf.one_hot(tf.constant([0, 1]), 2)
 
-        layer = CutMix(1.0, label_smoothing=0.0, seed=1)
+        layer = CutMix(1.0, seed=1)
 
         @tf.function
         def augment(x, y):

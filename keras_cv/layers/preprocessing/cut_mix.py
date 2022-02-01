@@ -28,10 +28,6 @@ class CutMix(layers.Layer):
             distribution.  This controls the shape of the distribution from which the
             smoothing values are sampled.  Defaults 1.0, which is a recommended value
             when training an imagenet1k classification model.
-        label_smoothing: Float in [0, 1]. When > 0, label values are smoothed,
-            meaning the confidence on label values are relaxed. e.g.
-            label_smoothing=0.2 means that we will use a value of 0.1 for label 0 and
-            0.9 for label 1.  Defaults 0.0.
     References:
        [CutMix paper]( https://arxiv.org/abs/1905.04899).
 
@@ -43,11 +39,10 @@ class CutMix(layers.Layer):
     ```
     """
 
-    def __init__(self, rate, label_smoothing=0.0, alpha=1.0, seed=None, **kwargs):
+    def __init__(self, rate, alpha=1.0, seed=None, **kwargs):
         super().__init__(**kwargs)
         self.alpha = alpha
         self.rate = rate
-        self.label_smoothing = label_smoothing
         self.seed = seed
 
     @staticmethod
@@ -85,7 +80,7 @@ class CutMix(layers.Layer):
         augment_cond = tf.logical_and(rate_cond, training)
         # pylint: disable=g-long-lambda
         cutmix_augment = lambda: self._update_labels(*self._cutmix(images, labels))
-        no_augment = lambda: (images, self._smooth_labels(labels))
+        no_augment = lambda: (images, labels)
         return tf.cond(augment_cond, cutmix_augment, no_augment)
 
     def _cutmix(self, images, labels):
@@ -132,15 +127,8 @@ class CutMix(layers.Layer):
         return images, labels, lambda_sample, permutation_order
 
     def _update_labels(self, images, labels, lambda_sample, permutation_order):
-        labels_smoothed = self._smooth_labels(labels)
         cutout_labels = tf.gather(labels, permutation_order)
 
         lambda_sample = tf.reshape(lambda_sample, [-1, 1])
-        labels = lambda_sample * labels_smoothed + (1.0 - lambda_sample) * cutout_labels
+        labels = lambda_sample * labels + (1.0 - lambda_sample) * cutout_labels
         return images, labels
-
-    def _smooth_labels(self, labels):
-        label_smoothing = self.label_smoothing or 0.0
-        off_value = label_smoothing / tf.cast(tf.shape(labels)[1], tf.float32)
-        on_value = 1.0 - label_smoothing + off_value
-        return labels * on_value + (1 - labels) * off_value
