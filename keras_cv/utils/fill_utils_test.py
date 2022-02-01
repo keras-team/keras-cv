@@ -146,7 +146,7 @@ class FillRectangleTest(tf.test.TestCase):
         filled_images = fill_utils.fill_rectangle(
             images, centers_x, centers_y, width, height, fill
         )
-        # remove batch dimension and channel dimension
+        # remove channel dimension
         filled_images = filled_images[..., 0]
 
         expected = tf.constant(
