@@ -18,6 +18,6 @@ Currently, KerasCV is operating pre-release.  Upon launch of KerasCV 1.0, full A
 will be available.
 
 ## Community
-- [Roadmap](ROADMAP.md)
-- [Contributors Guide](CONTRIBUTING.md)
-- [Call for Contributions](CALL_FOR_CONTRIBUTIONS.md)
+- [Roadmap](.github/ROADMAP.md)
+- [Contributors Guide](.github/CONTRIBUTING.md)
+- [Call for Contributions](.github/CALL_FOR_CONTRIBUTIONS.md)
