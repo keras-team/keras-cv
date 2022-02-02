@@ -76,17 +76,11 @@ class Equalize(tf.keras.layers.Layer):
         return tf.cast(result, dtype)
 
     def call(self, images):
-        if (
-            tf.maximum(images) > 255
-            or tf.minimum(images) < 0
-            or not tf.dtypes.is_integer(images)
-        ):
+        if not images.dtype.is_integer:
             raise ValueError(
                 "Equalize.call(images) expects images to be a "
                 "Tensor of type int, with values in range [0, 255]. "
-                f"got images.dtype={images.dtype}, "
-                f"maximum(images)={tf.maximum(images)}, "
-                f"minimum(images)={tf.minimum(images)}."
+                f"got images.dtype={images.dtype}."
             )
 
         # Assumes RGB for now.  Scales each channel independently
@@ -95,6 +89,6 @@ class Equalize(tf.keras.layers.Layer):
         g = tf.map_fn(lambda x: self.equalize_channel(x, 1), images)
         b = tf.map_fn(lambda x: self.equalize_channel(x, 2), images)
         # TODO(lukewood): ideally this should be vectorized.
-        
+
         images = tf.stack([r, g, b], axis=-1)
         return images
