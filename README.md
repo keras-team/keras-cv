@@ -15,11 +15,7 @@ the same level of polish and backwards compatibility guarantees as the rest of t
 are maintained by the Keras team itself (unlike TFAddons).
 
 Currently, KerasCV is operating pre-release.  Upon launch of KerasCV 1.0, full API docs and code examples
-will be available.
-
-## Quick Links
-- [Roadmap](.github/ROADMAP.md)
-- [Call for Contributions](.github/CALL_FOR_CONTRIBUTIONS.md)
+will be available.  To learn more about the project, please check the [roadmap](.github/ROADMAP.md).
 
 ## Contributors
 If you'd like to contribute, please see our [contributing guide](.github/CONTRIBUTING.md).
