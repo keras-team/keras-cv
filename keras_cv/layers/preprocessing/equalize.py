@@ -13,8 +13,6 @@
 # limitations under the License.
 import tensorflow as tf
 
-from keras_cv.utils import fill_utils
-
 
 class Equalize(tf.keras.layers.Layer):
     """Equalize performs histogram equalization on a channel-wise basis."""
