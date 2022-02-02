@@ -19,5 +19,13 @@ will be available.
 
 ## Quick Links
 - [Roadmap](.github/ROADMAP.md)
-- [Contributors Guide](.github/CONTRIBUTING.md)
 - [Call for Contributions](.github/CALL_FOR_CONTRIBUTIONS.md)
+
+## Contributors
+If you'd like to contribute, please see our [contributing guide](.github/CONTRIBUTING.md).
+
+Thank you to all of our wonderful contributors!
+
+<a href="https://github.com/keras-team/keras-cv/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=keras-team/keras-cv" />
+</a>
