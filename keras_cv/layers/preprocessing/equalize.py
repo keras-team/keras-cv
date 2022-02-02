@@ -26,7 +26,14 @@ class Equalize(tf.keras.layers.Layer):
         super().__init__(**kwargs)
 
     @staticmethod
-    def scale_channel(image, channel_index):
+    def equalize_channel(image, channel_index):
+        """equalize_channel performs histogram equalization on a single channel.
+
+        Args:
+            image: int Tensor with pixels in range [0, 255], RGB format,
+                with channels last
+            channel_index: channel to equalize
+        """
         image = tf.cast(image[..., channel_index], tf.int32)
         # Compute the histogram of the image channel.
         histogram = tf.histogram_fixed_width(image, [0, 255], nbins=256)
@@ -57,10 +64,23 @@ class Equalize(tf.keras.layers.Layer):
         return tf.cast(result, tf.uint8)
 
     def call(self, images):
+        if (
+            tf.maximum(images) > 255
+            or tf.minimum(images) < 0
+            or not tf.dtypes.is_integer(images)
+        ):
+            raise ValueError(
+                "Equalize.call(images) expects images to be a "
+                "Tensor of type int, with values in range [0, 255]. "
+                f"got images.dtype={images.dtype}, "
+                f"maximum(images)={tf.maximum(images)}, "
+                f"minimum(images)={tf.minimum(images)}."
+            )
+
         # Assumes RGB for now.  Scales each channel independently
         # and then stacks the result.
-        r = tf.map_fn(lambda x: Equalize.scale_channel(x, 0), images)
-        g = tf.map_fn(lambda x: Equalize.scale_channel(x, 1), images)
-        b = tf.map_fn(lambda x: Equalize.scale_channel(x, 2), images)
+        r = tf.map_fn(lambda x: Equalize.equalize_channel(x, 0), images)
+        g = tf.map_fn(lambda x: Equalize.equalize_channel(x, 1), images)
+        b = tf.map_fn(lambda x: Equalize.equalize_channel(x, 2), images)
         images = tf.stack([r, g, b], axis=-1)
         return images
