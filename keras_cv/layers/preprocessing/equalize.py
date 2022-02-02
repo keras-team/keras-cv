@@ -26,7 +26,7 @@ class Equalize(tf.keras.layers.Layer):
 
         (images, labels), _ = tf.keras.data.cifar10.load_data()
         # Note that images are an int32 Tensor with values in the range [0, 255]
-        images = equalize(images)    
+        images = equalize(images)
         ```
 
     Call arguments:
@@ -34,8 +34,8 @@ class Equalize(tf.keras.layers.Layer):
     """
 
     def __init__(self, bins=256, **kwargs):
-        self.bins = bins
         super().__init__(**kwargs)
+        self.bins = bins
 
     def equalize_channel(self, image, channel_index):
         """equalize_channel performs histogram equalization on a single channel.
@@ -53,7 +53,9 @@ class Equalize(tf.keras.layers.Layer):
         # For the purposes of computing the step, filter out the nonzeros.
         nonzero = tf.where(tf.not_equal(histogram, 0))
         nonzero_histogram = tf.reshape(tf.gather(histogram, nonzero), [-1])
-        step = (tf.reduce_sum(nonzero_histogram) - nonzero_histogram[-1]) // 255
+        step = (tf.reduce_sum(nonzero_histogram) - nonzero_histogram[-1]) // (
+            self.bins - 1
+        )
 
         def build_mapping(histogram, step):
             # Compute the cumulative sum, shifting by step // 2
