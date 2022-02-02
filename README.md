@@ -20,6 +20,8 @@ will be available.  To learn more about the project, please check the [roadmap](
 ## Contributors
 If you'd like to contribute, please see our [contributing guide](.github/CONTRIBUTING.md).
 
+To find an issue to tackle, please check our [call for contributions](.github/CALL_FOR_CONTRIBUTIONS.md).
+
 Thank you to all of our wonderful contributors!
 
 <a href="https://github.com/keras-team/keras-cv/graphs/contributors">
