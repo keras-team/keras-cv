@@ -15,52 +15,52 @@ import tensorflow as tf
 
 
 class Equalize(tf.keras.layers.Layer):
-    """Equalize performs histogram equalization on a channel-wise basis."""
+    """Equalize performs histogram equalization on a channel-wise basis.
 
-    def __init__(self, rate=1.0, **kwargs):
+
+    Call arguments:
+        images: Tensor of type int, pixels in range [0, 255], in RGB format.
+    """
+
+    def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
     @staticmethod
-    def scale_channel(image, c):
-        image = tf.cast(image[..., c], tf.int32)
+    def scale_channel(image, channel_index):
+        image = tf.cast(image[..., channel_index], tf.int32)
         # Compute the histogram of the image channel.
-        histo = tf.histogram_fixed_width(image, [0, 255], nbins=256)
+        histogram = tf.histogram_fixed_width(image, [0, 255], nbins=256)
 
         # For the purposes of computing the step, filter out the nonzeros.
-        nonzero = tf.where(tf.not_equal(histo, 0))
-        nonzero_histo = tf.reshape(tf.gather(histo, nonzero), [-1])
-        step = (tf.reduce_sum(nonzero_histo) - nonzero_histo[-1]) // 255
+        nonzero = tf.where(tf.not_equal(histogram, 0))
+        nonzero_histogram = tf.reshape(tf.gather(histogram, nonzero), [-1])
+        step = (tf.reduce_sum(nonzero_histogram) - nonzero_histogram[-1]) // 255
 
-        def build_mapping(histo, step):
+        def build_mapping(histogram, step):
             # Compute the cumulative sum, shifting by step // 2
             # and then normalization by step.
-            lut = (tf.cumsum(histo) + (step // 2)) // step
-            # Shift lut, prepending with 0.
-            lut = tf.concat([[0], lut[:-1]], 0)
+            lookup_table = (tf.cumsum(histogram) + (step // 2)) // step
+            # Shift lookup_table, prepending with 0.
+            lookup_table = tf.concat([[0], lookup_table[:-1]], 0)
             # Clip the counts to be in range.  This is done
             # in the C code for image.point.
-            return tf.clip_by_value(lut, 0, 255)
+            return tf.clip_by_value(lookup_table, 0, 255)
 
         # If step is zero, return the original image.  Otherwise, build
-        # lut from the full histogram and step and then index from it.
+        # lookup table from the full histogram and step and then index from it.
         result = tf.cond(
             tf.equal(step, 0),
             lambda: image,
-            lambda: tf.gather(build_mapping(histo, step), image),
+            lambda: tf.gather(build_mapping(histogram, step), image),
         )
 
         return tf.cast(result, tf.uint8)
 
     def call(self, images):
-        """call method for Equalize
-
-        Args:
-            images: Tensor of type int, pixels in range [0, 255], in RGB format.
-        """
         # Assumes RGB for now.  Scales each channel independently
         # and then stacks the result.
         r = tf.map_fn(lambda x: Equalize.scale_channel(x, 0), images)
         g = tf.map_fn(lambda x: Equalize.scale_channel(x, 1), images)
         b = tf.map_fn(lambda x: Equalize.scale_channel(x, 2), images)
-        images = tf.stack([r, g, b], -1)
+        images = tf.stack([r, g, b], axis=-1)
         return images
