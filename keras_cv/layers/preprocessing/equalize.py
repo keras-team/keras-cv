@@ -24,8 +24,8 @@ class Equalize(tf.keras.layers.Layer):
         ```
         equalize = Equalize()
 
-        (images, labels), _ = tf.keras.data.cifar10.load_data()
-        # Note that images are an int32 Tensor with values in the range [0, 255]
+        (images, labels), _ = tf.keras.datasets.cifar10.load_data()
+        # Note that images are an int8 Tensor with values in the range [0, 255]
         images = equalize(images)
         ```
 
