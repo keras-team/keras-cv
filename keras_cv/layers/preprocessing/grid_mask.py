@@ -17,15 +17,13 @@ from tensorflow.keras import layers, backend
 
 
 class GridMask(layers.Layer):
-    """GridMask class for grid-mask augmentation.
-
+    """GridMask class for grid-mask augmentation. The expected images should be [0-255] pixel ranges.
+    
     Args:
-        ratio: Grid mask ratio i.e if 0.5 grid and spacing will be equal.
-            Defaults to 0.5.
+        ratio: Grid mask ratio i.e if 0.5, grid and spacing will be equal.
+            Defaults to 0.5. It ranges from 0.0 to 1.0.
         gridmask_size_ratio: Grid mask size, grid to image size ratio.
-            Defaults to 0.5.
-        fill_value: an integer represents the value to be filled inside the grid.
-            Defaults to 1.
+            Defaults to 0.5. It ranges from 0.0 to 1.0.
         rate: Float between 0 and 1. The probability of augmenting an input.
             Defaults to 0.5.
 
@@ -41,14 +39,13 @@ class GridMask(layers.Layer):
         self,
         ratio=0.6,
         gridmask_size_ratio=0.5,
-        fill_value=1,
         rate=0.5,
         **kwargs
     ):
         super().__init__(**kwargs)
         self.ratio = ratio
         self.gridmask_size_ratio = gridmask_size_ratio
-        self.fill_value = fill_value
+        self.fill_value = 1 # TODO: make it adaptive.
         self.rate = rate
 
     @staticmethod
@@ -135,6 +132,8 @@ class GridMask(layers.Layer):
         """Masks input image tensor with random grid mask."""
         if training is None:
             training = backend.learning_phase()
+        
+        # TODO: Make the batch operation vectorize.
         return tf.map_fn(lambda image: self._grid_mask(image, training), images)
 
     def get_config(self):
@@ -142,7 +141,6 @@ class GridMask(layers.Layer):
             "ratio": self.ratio,
             "rate": self.rate,
             "gridmask_size_ratio": self.gridmask_size_ratio,
-            "fill_value": self.fill_value,
         }
         base_config = super().get_config()
         return dict(list(base_config.items()) + list(config.items()))

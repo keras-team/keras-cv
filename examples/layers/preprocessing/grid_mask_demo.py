@@ -33,7 +33,7 @@ def main():
     )
 
     gridmask = preprocessing.GridMask(
-        ratio=0.6, gridmask_size_ratio=0.8, fill_value=1, rate=0.8
+        ratio=0.6, gridmask_size_ratio=0.8, rate=0.8
     )
     train_ds = train_ds.map(
         lambda x, y: (gridmask(x, training=True), y),
