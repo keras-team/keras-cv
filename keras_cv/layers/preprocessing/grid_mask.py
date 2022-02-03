@@ -47,6 +47,7 @@ class GridMask(layers.Layer):
         self.gridmask_size_ratio = gridmask_size_ratio
         self.fill_value = 1 # TODO: make it adaptive.
         self.rate = rate
+        # TODO: set seed for deterministic result
 
     @staticmethod
     def crop(mask, image_height, image_width):
@@ -115,6 +116,7 @@ class GridMask(layers.Layer):
         image_height = tf.shape(image)[0]
         image_width = tf.shape(image)[1]
         grid = self.mask(image_height, image_width)
+        # TODO: rnadomly rotate the grid, i.e. tf.image.rot90
 
         mask = tf.reshape(
             tf.cast(self.crop(grid, image_height, image_width), image.dtype),
