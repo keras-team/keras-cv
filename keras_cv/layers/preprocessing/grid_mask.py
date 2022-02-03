@@ -45,7 +45,7 @@ class GridMask(layers.Layer):
         super().__init__(**kwargs)
         self.ratio = ratio
         self.gridmask_size_ratio = gridmask_size_ratio
-        self.fill_value = 1 # TODO: make it adaptive.
+        self.fill_value = 1 # TODO: make it adaptive, i.e. 'constant' or 'gaussian_noise'
         self.rate = rate
         # TODO: set seed for deterministic result
 
