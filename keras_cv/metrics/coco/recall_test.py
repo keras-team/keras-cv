@@ -73,7 +73,7 @@ class COCORecallTest(tf.test.TestCase):
 
         self.assertEqual([[1.0]], metric_result.true_positives)
         self.assertEqual([3.0], metric_result.ground_truth_boxes)
-        self.assertAlmostEqual(0.33, metric_result.result())
+        self.assertEqual(1 / 3, metric_result.result())
 
     def test_recall_area_range_filtering(self):
         recall = COCORecall(
