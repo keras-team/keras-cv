@@ -16,15 +16,16 @@ import tensorflow as tf
 from keras_cv.utils import bbox
 
 
-def rectangle_masks(mask_shape, corners):
-    """Computes positional masks of rectangles in images
+def rectangle_masks(corners, width, height):
+    """Computes masks of rectangles
 
     Args:
-        mask_shape: shape of the masks as [batch_size, height, width].
         corners: rectangle coordinates in corners format.
+        width: width of the masks
+        height: height of the masks
 
     Returns:
-        boolean masks with True at rectangle positions.
+        boolean masks with True at positions within rectangle coordinates.
     """
     # add broadcasting axes
     corners = corners[..., tf.newaxis, tf.newaxis]
@@ -36,13 +37,13 @@ def rectangle_masks(mask_shape, corners):
     y1 = corners[:, 3]
 
     # repeat height and width
-    batch_size, height, width = mask_shape
     x0_rep = tf.repeat(x0, height, axis=1)
     y0_rep = tf.repeat(y0, width, axis=2)
     x1_rep = tf.repeat(x1, height, axis=1)
     y1_rep = tf.repeat(y1, width, axis=2)
 
     # range grid
+    batch_size = tf.shape(corners)[0]
     range_row = tf.range(0, height, dtype=corners.dtype)
     range_col = tf.range(0, width, dtype=corners.dtype)
     range_row = tf.repeat(range_row[tf.newaxis, :, tf.newaxis], batch_size, 0)
@@ -81,8 +82,7 @@ def fill_rectangle(images, centers_x, centers_y, widths, heights, fill_values):
     xywh = tf.cast(xywh, tf.float32)
     corners = bbox.xywh_to_corners(xywh)
 
-    masks_shape = (batch_size, images_height, images_width)
-    is_rectangle = rectangle_masks(masks_shape, corners)
+    is_rectangle = rectangle_masks(corners, images_width, images_height)
     is_rectangle = tf.expand_dims(is_rectangle, -1)
 
     images = tf.where(is_rectangle, fill_values, images)
