@@ -16,13 +16,14 @@ import tensorflow as tf
 from keras_cv.utils import bbox
 
 
-def rectangle_masks(corners, width, height):
+def rectangle_masks(corners, mask_shape):
     """Computes masks of rectangles
 
     Args:
-        corners: rectangle coordinates in corners format.
-        width: width of the masks
-        height: height of the masks
+        corners: tensor of rectangle coordinates with shape (batch_size, 4) in
+            corners format (x0, y0, x1, y1).
+        mask_shape: a shape tuple as (width, height) indicating the output
+            width and height of masks.
 
     Returns:
         boolean masks with True at positions within rectangle coordinates.
@@ -37,6 +38,7 @@ def rectangle_masks(corners, width, height):
     y1 = corners[:, 3]
 
     # repeat height and width
+    width, height = mask_shape
     x0_rep = tf.repeat(x0, height, axis=1)
     y0_rep = tf.repeat(y0, width, axis=2)
     x1_rep = tf.repeat(x1, height, axis=1)
@@ -81,7 +83,8 @@ def fill_rectangle(images, centers_x, centers_y, widths, heights, fill_values):
     xywh = tf.cast(xywh, tf.float32)
     corners = bbox.xywh_to_corners(xywh)
 
-    is_rectangle = rectangle_masks(corners, images_width, images_height)
+    mask_shape = (images_width, images_height)
+    is_rectangle = rectangle_masks(corners, mask_shape)
     is_rectangle = tf.expand_dims(is_rectangle, -1)
 
     images = tf.where(is_rectangle, fill_values, images)
