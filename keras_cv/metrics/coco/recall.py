@@ -19,6 +19,7 @@ from keras_cv.metrics.coco import utils
 from keras_cv.utils import bbox
 from keras_cv.utils import iou as iou_lib
 
+
 class COCORecall(keras.metrics.Metric):
     """COCORecall computes the COCO recall metric.
 
@@ -68,9 +69,7 @@ class COCORecall(keras.metrics.Metric):
         super().__init__(**kwargs)
         # Initialize parameter values
 
-        iou_thresholds = iou_thresholds or [
-            x / 100.0 for x in range(50, 100, 5)
-        ]
+        iou_thresholds = iou_thresholds or [x / 100.0 for x in range(50, 100, 5)]
         self.iou_thresholds = iou_thresholds
         self.category_ids = category_ids
 
