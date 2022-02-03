@@ -42,19 +42,19 @@ will have them in the repository as public API as well.
 
 ### Image Classification
 - Dataset to evaluate
-- [Imagenet](https://www.tensorflow.org/datasets/catalog/imagenet2012)
-- [Imagenet v2](https://www.tensorflow.org/datasets/catalog/imagenet_v2) (for testing)
+    - [Imagenet](https://www.tensorflow.org/datasets/catalog/imagenet2012)
+    - [Imagenet v2](https://www.tensorflow.org/datasets/catalog/imagenet_v2) (for testing)
 - Target Metric 
-- Top1 Accuracy > 80% (Note that some existing SotA models might not achieve this, like 
+    - Top1 Accuracy > 80% (Note that some existing SotA models might not achieve this, like 
 original ResNet, but this serve as a guideline for newly added models)
 
 ### Object Detection
 - Dataset to evaluate
-- [Coco 2017](https://www.tensorflow.org/datasets/catalog/coco#coco2017)
-- [Open image v4](https://www.tensorflow.org/datasets/catalog/open_images_v4)
-- [PASCAL voc](https://www.tensorflow.org/datasets/catalog/voc)
+    - [Coco 2017](https://www.tensorflow.org/datasets/catalog/coco#coco2017)
+    - [Open image v4](https://www.tensorflow.org/datasets/catalog/open_images_v4)
+    - [PASCAL voc](https://www.tensorflow.org/datasets/catalog/voc)
 - Target Metric
-- COCO metric mean average precision (mAP)
+    - COCO metric mean average precision (mAP)
 
 ## Overlapping between keras.application and Keras-CV
 As you might notice, some area we would like to focus has overlapping with existing keras.application,
