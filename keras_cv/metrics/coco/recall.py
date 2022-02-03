@@ -19,6 +19,7 @@ from keras_cv.metrics.coco import iou as iou_lib
 from keras_cv.metrics.coco import utils
 from keras_cv.utils import bbox
 
+
 class COCORecall(keras.metrics.Metric):
     """COCORecall computes the COCO recall metric.
 
@@ -32,12 +33,12 @@ class COCORecall(keras.metrics.Metric):
         COCORecall accepts two Tensors as input to it's `update_state` method.
         These Tensors represent bounding boxes in `corners` format.  Utilities
         to convert Tensors from `xywh` to `corners` format can be found in
-        `keras_cv.utils.bbox`.  
-        
+        `keras_cv.utils.bbox`.
+
         Each image in a dataset may have a different number of bounding boxes,
         both in the ground truth dataset and the prediction set.  In order to
-        account for this, users must pad Tensors with `-1`s to indicate unused 
-        boxes.  A utility function to perform this padding is available at 
+        account for this, users must pad Tensors with `-1`s to indicate unused
+        boxes.  A utility function to perform this padding is available at
         `keras_cv_.utils.bbox.pad_bbox_batch_to_shape`.
 
         ```
@@ -68,9 +69,7 @@ class COCORecall(keras.metrics.Metric):
         super().__init__(**kwargs)
         # Initialize parameter values
 
-        iou_thresholds = iou_thresholds or [
-            x / 100.0 for x in range(50, 100, 5)
-        ]
+        iou_thresholds = iou_thresholds or [x / 100.0 for x in range(50, 100, 5)]
         self.iou_thresholds = iou_thresholds
         self.category_ids = category_ids
 

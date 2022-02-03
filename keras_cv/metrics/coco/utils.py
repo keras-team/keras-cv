@@ -154,6 +154,7 @@ def match_boxes(y_true, y_pred, threshold, ious):
         gt_matches = gt_matches.write(match_index, detection_idx)
     return pred_matches.stack()
 
+
 def result(self):
     present_values = self.ground_truth_boxes != 0
     n_present_categories = tf.math.reduce_sum(
@@ -165,7 +166,5 @@ def result(self):
     recalls = tf.math.divide_no_nan(
         self.true_positives, self.ground_truth_boxes[None, :]
     )
-    recalls_per_threshold = (
-        tf.math.reduce_sum(recalls, axis=-1) / n_present_categories
-    )
+    recalls_per_threshold = tf.math.reduce_sum(recalls, axis=-1) / n_present_categories
     return tf.math.reduce_mean(recalls_per_threshold)
