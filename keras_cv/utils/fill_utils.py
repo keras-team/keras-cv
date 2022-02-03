@@ -74,7 +74,6 @@ def fill_rectangle(images, centers_x, centers_y, widths, heights, fill_values):
         images with filled rectangles.
     """
     images_shape = tf.shape(images)
-    batch_size = images_shape[0]
     images_height = images_shape[1]
     images_width = images_shape[2]
 
