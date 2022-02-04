@@ -13,7 +13,7 @@
 # limitations under the License.
 
 import tensorflow as tf
-from tensorflow.keras import layers
+from tensorflow.keras import layers, backend
 from tensorflow.python.keras.utils import layer_utils
 
 
@@ -148,7 +148,7 @@ class GridMask(layers.Layer):
                 if self.fill_mode == "constant":
                     updates = (
                         tf.zeros(shape=[end - start, mask_w], dtype=tf.int32)
-                        * self.fill_value  
+                        * self.fill_value
                     )
                 else:
                     updates = tf.ones(shape=[end - start, mask_w], dtype=tf.int32)
@@ -176,7 +176,19 @@ class GridMask(layers.Layer):
             return mask * image
 
     def call(self, images, training=True):
-        """Masks input image tensor with random grid mask."""
+        """call method for the GridMask layer.
+
+        Args:
+            images: Tensor Tensor representing images of shape
+                [batch_size, width, height, channels], with dtype tf.float32, or,
+                [width, height, channels], with dtype tf.float32
+        Returns:
+            images: augmented images, same shape as input.
+        """
+
+        if training is None:
+            training = backend.learning_phase()
+
         if training:
             unbatched = images.shape.rank == 3
 
@@ -191,6 +203,7 @@ class GridMask(layers.Layer):
             if unbatched:
                 output = tf.squeeze(output, 0)
             return output
+
         return images
 
     def get_config(self):
