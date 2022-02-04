@@ -42,6 +42,32 @@ class COCORecallTest(tf.test.TestCase):
 
         self.assertAllEqual(recall.result(), 1.0)
 
+    def test_ragged_tensor_support(self):
+        recall = COCORecall(
+            max_detections=100,
+            category_ids=[1],
+            area_range=(0, 64**2),
+        )
+
+        # These would match if they were in the area range
+        y_true = tf.ragged.stack(
+            [
+                tf.constant([[0, 0, 10, 10, 1], [5, 5, 10, 10, 1]], tf.float32),
+                tf.constant([[0, 0, 10, 10, 1]], tf.float32),
+            ]
+        )
+        y_pred = tf.ragged.stack(
+            [
+                tf.constant([[5, 5, 10, 10, 1, 0.9]], tf.float32),
+                tf.constant(
+                    [[0, 0, 10, 10, 1, 1.0], [5, 5, 10, 10, 1, 0.9]], tf.float32
+                ),
+            ]
+        )
+
+        recall.update_state(y_true, y_pred)
+        self.assertAlmostEqual(recall.result(), 2 / 3)
+
     def test_merge_state(self):
         y_true = tf.constant([[[0, 0, 100, 100, 1]]], dtype=tf.float32)
         y_pred = tf.constant([[[0, 50, 100, 150, 1, 1.0]]], dtype=tf.float32)

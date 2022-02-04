@@ -37,9 +37,9 @@ class COCORecall(keras.metrics.Metric):
 
         Each image in a dataset may have a different number of bounding boxes,
         both in the ground truth dataset and the prediction set.  In order to
-        account for this, users must pad Tensors with `-1`s to indicate unused
-        boxes.  A utility function to perform this padding is available at
-        `keras_cv_.utils.bbox.pad_bbox_batch_to_shape`.
+        account for this, you may either pass a `tf.RaggedTensor`, or pad Tensors 
+        with `-1`s to indicate unused boxes.  A utility function to perform this 
+        padding is available at `keras_cv_.utils.bbox.pad_bbox_batch_to_shape`.
 
         ```
         coco_recall = COCORecall(
@@ -109,6 +109,12 @@ class COCORecall(keras.metrics.Metric):
             raise NotImplementedError(
                 "sample_weight is not yet supported in keras_cv COCO metrics."
             )
+
+        if isinstance(y_true, tf.RaggedTensor):
+            y_true = y_true.to_tensor(default_value=-1)
+        if isinstance(y_pred, tf.RaggedTensor):
+            y_pred = y_pred.to_tensor(default_value=-1)
+
         num_images = tf.shape(y_true)[0]
 
         iou_thresholds = tf.constant(self.iou_thresholds, dtype=tf.float32)
