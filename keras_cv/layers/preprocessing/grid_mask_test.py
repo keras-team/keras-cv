@@ -8,7 +8,6 @@ class GridMaskTest(tf.test.TestCase):
 
         layer = GridMask(
             ratio=0.6, 
-            gridmask_size_ratio=0.5, 
             rate=1.0
         )
         xs = layer(xs)
@@ -26,7 +25,6 @@ class GridMaskTest(tf.test.TestCase):
 
         layer = GridMask(
             ratio=0.6,
-            gridmask_size_ratio=0.5,
             rate=1.0,
         )
         xs = layer(xs)
@@ -45,7 +43,6 @@ class GridMaskTest(tf.test.TestCase):
 
         layer = GridMask(
             ratio=0.6, 
-            gridmask_size_ratio=0.5, 
             rate=1.0
         )
         xs = layer(xs)
@@ -65,7 +62,6 @@ class GridMaskTest(tf.test.TestCase):
 
         layer = GridMask(
             ratio=0.6,
-            gridmask_size_ratio=0.5,
             rate=1.0,
         )
         xs = layer(xs)
@@ -82,7 +78,6 @@ class GridMaskTest(tf.test.TestCase):
 
         layer = GridMask(
             ratio=0.6,
-            gridmask_size_ratio=0.5,
             rate=1.0,
         )
 

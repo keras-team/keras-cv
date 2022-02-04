@@ -20,10 +20,9 @@ class GridMask(layers.Layer):
     """GridMask class for grid-mask augmentation. The expected images should be [0-255] pixel ranges.
     
     Args:
-        ratio: Grid mask ratio i.e if 0.5, grid and spacing will be equal.
-            Defaults to 0.5. It ranges from 0.0 to 1.0.
-        gridmask_size_ratio: Grid mask size, grid to image size ratio.
-            Defaults to 0.5. It ranges from 0.0 to 1.0.
+        ratio: The ratio from grit masks to spacings. 
+            Float in range [0, 1]. Defaults to 0.5, which indicates that grid and spacing will be equal.
+            In orther word, higher value makes grid size smaller and equally spaced, and opposite. 
         rate: Float between 0 and 1. The probability of augmenting an input.
             Defaults to 0.5.
 
@@ -38,13 +37,11 @@ class GridMask(layers.Layer):
     def __init__(
         self,
         ratio=0.6,
-        gridmask_size_ratio=0.5,
         rate=0.5,
         **kwargs
     ):
         super().__init__(**kwargs)
         self.ratio = ratio
-        self.gridmask_size_ratio = gridmask_size_ratio
         self.fill_value = 1 # TODO: make it adaptive, i.e. 'constant' or 'gaussian_noise'
         self.rate = rate
         # TODO: set seed for deterministic result
@@ -66,9 +63,7 @@ class GridMask(layers.Layer):
         image_width = tf.cast(image_width, tf.float32)
 
         mask_w = mask_h = tf.cast(
-            tf.cast((self.gridmask_size_ratio + 1), tf.float32)
-            * tf.math.maximum(image_height, image_width),
-            tf.int32,
+            tf.math.maximum(image_height, image_width) * 2.0, tf.int32
         )
 
         mask = tf.zeros(shape=[mask_h, mask_w], dtype=tf.int32)
@@ -142,7 +137,6 @@ class GridMask(layers.Layer):
         config = {
             "ratio": self.ratio,
             "rate": self.rate,
-            "gridmask_size_ratio": self.gridmask_size_ratio,
         }
         base_config = super().get_config()
         return dict(list(base_config.items()) + list(config.items()))
