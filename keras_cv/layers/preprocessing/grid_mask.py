@@ -20,16 +20,21 @@ class GridMask(layers.Layer):
     """GridMask class for grid-mask augmentation. The expected images should be [0-255] pixel ranges.
     
     Args:
-        ratio: The ratio from grit masks to spacings. 
+        ratio: The ratio from grid masks to spacings. 
             Float in range [0, 1]. Defaults to 0.5, which indicates that grid and spacing will be equal.
             In orther word, higher value makes grid size smaller and equally spaced, and opposite. 
         rate: Float between 0 and 1. The probability of augmenting an input.
             Defaults to 0.5.
+        gridmask_rotation_factor:
+            The gridmask_rotation_factor will pass to layers.RandomRotation to apply random rotation on 
+            gridmask. A preprocessing layer which randomly rotates gridmask during training.
+        seed: 
+            Integer. Used to create a random seed.
 
     Sample usage:
     ```python
     (images, labels), _ = tf.keras.datasets.cifar10.load_data()
-    random_gridmask = keras_cv.layers.preprocessing.GridMask(0.5, 0.5, rate=1.0)
+    random_gridmask = keras_cv.layers.preprocessing.GridMask(0.5, rate=1.0)
     augmented_images = random_gridmask(images)
     ```
     """
