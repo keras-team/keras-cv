@@ -13,7 +13,8 @@
 # limitations under the License.
 
 import tensorflow as tf
-from tensorflow.keras import layers, backend
+from tensorflow.keras import layers
+from tensorflow.python.keras.utils import layer_utils
 
 
 class GridMask(layers.Layer):
@@ -31,33 +32,59 @@ class GridMask(layers.Layer):
             Float in range [0, 1]. Defaults to 0.5, which indicates that grid and spacing will be equal.
             In orther word, higher value makes grid size smaller and equally spaced, and opposite.
         gridmask_rotation_factor:
-            a float represented as fraction of 2 Pi, or a tuple of size 2 representing lower and upper 
+            a float represented as fraction of 2 Pi, or a tuple of size 2 representing lower and upper
             bound for rotating clockwise and counter-clockwise. A positive values means rotating counter
-            clock-wise, while a negative value means clock-wise. When represented as a single float, this 
-            value is used for both the upper and lower bound. For instance, factor=(-0.2, 0.3) results in 
-            an output rotation by a random amount in the range [-20% * 2pi, 30% * 2pi]. factor=0.2 results 
+            clock-wise, while a negative value means clock-wise. When represented as a single float, this
+            value is used for both the upper and lower bound. For instance, factor=(-0.2, 0.3) results in
+            an output rotation by a random amount in the range [-20% * 2pi, 30% * 2pi]. factor=0.2 results
             in an output rotating by a random amount in the range [-20% * 2pi, 20% * 2pi].
 
-            The gridmask_rotation_factor will pass to tf.keras.layers.RandomRotation to apply random rotation 
+            The gridmask_rotation_factor will pass to tf.keras.layers.RandomRotation to apply random rotation
             on gridmask. A preprocessing layer which randomly rotates gridmask during training. Default to 0.1,
             which results in an output rotating by a random amount in the range [-10% * 2pi, 10% * 2pi].
+        fill_mode: Pixels inside the gridblock are filled according to the given
+            mode (one of `{"constant", "gaussian_noise"}`).
+            - *constant*: Pixels are filled with the same constant value.
+            - *gaussian_noise*: Pixels are filled with random gaussian noise.
+        fill_value: an integer represents of value to be filled inside the gridblock
+            when `fill_mode="constant"`. Valid integer range [1 to 255], where 1 for black towards 255 for white.
         seed:
             Integer. Used to create a random seed.
 
     Sample usage:
     ```python
     (images, labels), _ = tf.keras.datasets.cifar10.load_data()
-    random_gridmask = keras_cv.layers.preprocessing.GridMask(0.5)
+    random_gridmask = keras_cv.layers.preprocessing.GridMask(ratio=0.5)
     augmented_images = random_gridmask(images)
     ```
     """
 
-    def __init__(self, ratio=0.6, gridmask_rotation_factor=0.1, seed=None, **kwargs):
+    def __init__(
+        self,
+        ratio=0.6,
+        gridmask_rotation_factor=0.1,
+        fill_mode="constant",
+        fill_value=1,
+        seed=None,
+        **kwargs
+    ):
         super().__init__(**kwargs)
+
+        layer_utils.validate_string_arg(
+            fill_mode,
+            allowable_strings=["constant", "gaussian_noise"],
+            layer_name="GridMask",
+            arg_name="fill_mode",
+            allow_none=False,
+            allow_callables=False,
+        )
+
         self.ratio = ratio
         self.gridmask_random_rotate = layers.RandomRotation(
             factor=gridmask_rotation_factor, seed=seed
         )
+        self.fill_mode = fill_mode
+        self.fill_value = fill_value
         self.seed = seed
 
     @staticmethod
@@ -80,7 +107,11 @@ class GridMask(layers.Layer):
             tf.math.maximum(image_height, image_width) * 2.0, tf.int32
         )
 
-        mask = tf.zeros(shape=[mask_h, mask_w], dtype=tf.int32)
+        if self.fill_mode == "constant":
+            mask = tf.fill([mask_h, mask_w], self.fill_value)
+        else:
+            mask = tf.cast(tf.random.normal([mask_h, mask_w]), tf.int32)
+
         gridblock = tf.random.uniform(
             shape=[],
             minval=int(tf.math.minimum(image_height * 0.5, image_width * 0.3)),
@@ -113,9 +144,15 @@ class GridMask(layers.Layer):
                 start = gridblock * i + start_w
                 end = tf.math.minimum(start + length, mask_w)
                 indices = tf.reshape(tf.range(start, end), [end - start, 1])
-                updates = (
-                    tf.ones(shape=[end - start, mask_w], dtype=tf.int32)
-                )
+
+                if self.fill_mode == "constant":
+                    updates = (
+                        tf.zeros(shape=[end - start, mask_w], dtype=tf.int32)
+                        * self.fill_value  
+                    )
+                else:
+                    updates = tf.ones(shape=[end - start, mask_w], dtype=tf.int32)
+
                 mask = tf.tensor_scatter_nd_update(mask, indices, updates)
             mask = tf.transpose(mask)
         return mask
@@ -132,7 +169,11 @@ class GridMask(layers.Layer):
             (image_height, image_width),
         )
         mask = tf.expand_dims(mask, -1) if image._rank() != mask._rank() else mask
-        return image * mask
+
+        if self.fill_mode == "constant":
+            return tf.where(mask < self.fill_value, image, mask)
+        else:
+            return mask * image
 
     def call(self, images, training=True):
         """Masks input image tensor with random grid mask."""
@@ -153,6 +194,14 @@ class GridMask(layers.Layer):
         return images
 
     def get_config(self):
-        config = {"ratio": self.ratio, "seed": self.seed}
+        config = {
+            "ratio": self.ratio,
+            "fill_mode": self.fill_mode,
+            "fill_value": self.fill_value,
+            "seed": self.seed,
+        }
         base_config = super().get_config()
         return dict(list(base_config.items()) + list(config.items()))
+
+    def compute_output_shape(self, input_shape):
+        return input_shape
