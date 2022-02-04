@@ -37,8 +37,8 @@ class COCORecall(keras.metrics.Metric):
 
         Each image in a dataset may have a different number of bounding boxes,
         both in the ground truth dataset and the prediction set.  In order to
-        account for this, you may either pass a `tf.RaggedTensor`, or pad Tensors 
-        with `-1`s to indicate unused boxes.  A utility function to perform this 
+        account for this, you may either pass a `tf.RaggedTensor`, or pad Tensors
+        with `-1`s to indicate unused boxes.  A utility function to perform this
         padding is available at `keras_cv_.utils.bbox.pad_bbox_batch_to_shape`.
 
         ```
