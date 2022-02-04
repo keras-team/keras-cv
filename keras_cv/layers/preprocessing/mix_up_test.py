@@ -26,7 +26,7 @@ class MixUpTest(tf.test.TestCase):
         ys = tf.squeeze(ys)
         ys = tf.one_hot(ys, NUM_CLASSES)
 
-        layer = MixUp(1.0)
+        layer = MixUp()
         xs, ys = layer(xs, ys)
 
         self.assertEqual(xs.shape, [2, 512, 512, 3])
@@ -42,7 +42,7 @@ class MixUpTest(tf.test.TestCase):
         )
         ys = tf.one_hot(tf.constant([0, 1]), 2)
 
-        layer = MixUp(1.0)
+        layer = MixUp()
         xs, ys = layer(xs, ys)
 
         # None of the individual values should still be close to 1 or 0
@@ -63,7 +63,7 @@ class MixUpTest(tf.test.TestCase):
         )
         ys = tf.one_hot(tf.constant([0, 1]), 2)
 
-        layer = MixUp(1.0)
+        layer = MixUp()
 
         @tf.function
         def augment(x, y):

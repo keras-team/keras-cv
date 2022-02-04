@@ -26,7 +26,7 @@ class CutMixTest(tf.test.TestCase):
         ys = tf.squeeze(ys)
         ys = tf.one_hot(ys, NUM_CLASSES)
 
-        layer = CutMix(1.0, seed=1)
+        layer = CutMix(seed=1)
         xs, ys = layer(xs, ys)
 
         self.assertEqual(xs.shape, [2, 512, 512, 3])
@@ -42,7 +42,7 @@ class CutMixTest(tf.test.TestCase):
         )
         ys = tf.one_hot(tf.constant([0, 1]), 2)
 
-        layer = CutMix(1.0, seed=1)
+        layer = CutMix(seed=1)
         xs, ys = layer(xs, ys)
 
         # At least some pixels should be replaced in the CutMix operation
@@ -64,7 +64,7 @@ class CutMixTest(tf.test.TestCase):
         )
         ys = tf.one_hot(tf.constant([0, 1]), 2)
 
-        layer = CutMix(1.0, seed=1)
+        layer = CutMix(seed=1)
         xs, ys = layer(xs, ys)
 
         # At least some pixels should be replaced in the CutMix operation
@@ -83,7 +83,7 @@ class CutMixTest(tf.test.TestCase):
         )
         ys = tf.one_hot(tf.constant([0, 1]), 2)
 
-        layer = CutMix(1.0, seed=1)
+        layer = CutMix(seed=1)
 
         @tf.function
         def augment(x, y):
