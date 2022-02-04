@@ -18,42 +18,43 @@ from tensorflow.keras import layers, backend
 
 class GridMask(layers.Layer):
     """GridMask class for grid-mask augmentation. The expected images should be [0-255] pixel ranges.
-    
+
+    Input shape:
+        3D (unbatched) or 4D (batched) tensor with shape:
+        `(..., height, width, channels)`, in `"channels_last"` format
+    Output shape:
+        3D (unbatched) or 4D (batched) tensor with shape:
+        `(..., height, width, channels)`, in `"channels_last"` format
+
     Args:
-        ratio: The ratio from grid masks to spacings. 
+        ratio: The ratio from grid masks to spacings.
             Float in range [0, 1]. Defaults to 0.5, which indicates that grid and spacing will be equal.
-            In orther word, higher value makes grid size smaller and equally spaced, and opposite. 
-        rate: Float between 0 and 1. The probability of augmenting an input.
-            Defaults to 0.5.
+            In orther word, higher value makes grid size smaller and equally spaced, and opposite.
         gridmask_rotation_factor:
-            The gridmask_rotation_factor will pass to layers.RandomRotation to apply random rotation on 
+            The gridmask_rotation_factor will pass to layers.RandomRotation to apply random rotation on
             gridmask. A preprocessing layer which randomly rotates gridmask during training.
-        seed: 
+        seed:
             Integer. Used to create a random seed.
 
     Sample usage:
     ```python
     (images, labels), _ = tf.keras.datasets.cifar10.load_data()
-    random_gridmask = keras_cv.layers.preprocessing.GridMask(0.5, rate=1.0)
+    random_gridmask = keras_cv.layers.preprocessing.GridMask(0.5)
     augmented_images = random_gridmask(images)
     ```
     """
-    
-    def __init__(
-        self,
-        ratio=0.6,
-        gridmask_rotation_factor=0.1,
-        seed=None,
-        **kwargs
-    ):
+
+    def __init__(self, ratio=0.6, gridmask_rotation_factor=0.1, seed=None, **kwargs):
         super().__init__(**kwargs)
         self.ratio = ratio
-        self.gridmask_random_rotate = layers.RandomRotation(factor=gridmask_rotation_factor, seed=seed)
-        self.seed = seed 
+        self.gridmask_random_rotate = layers.RandomRotation(
+            factor=gridmask_rotation_factor, seed=seed
+        )
+        self.seed = seed
 
     @staticmethod
     def crop(mask, image_height, image_width):
-        '''crops in middle of mask and image corners.'''
+        """crops in middle of mask and image corners."""
         ww = hh = tf.shape(mask)[0]
         mask = mask[
             (hh - image_height) // 2 : (hh - image_height) // 2 + image_height,
@@ -77,7 +78,7 @@ class GridMask(layers.Layer):
             minval=int(tf.math.minimum(image_height * 0.5, image_width * 0.3)),
             maxval=int(tf.math.maximum(image_height * 0.5, image_width * 0.3)) + 1,
             dtype=tf.int32,
-            seed=self.seed
+            seed=self.seed,
         )
 
         if self.ratio == 1:
@@ -128,16 +129,23 @@ class GridMask(layers.Layer):
 
     def call(self, images, training=True):
         """Masks input image tensor with random grid mask."""
-        if training is None:
-            training = backend.learning_phase()
-        
-        # TODO: Make the batch operation vectorize.
-        return tf.map_fn(lambda image: self._grid_mask(image), images)
+        if training:
+            unbatched = images.shape.rank == 3
+
+            # The transform op only accepts rank 4 inputs, so if we have an unbatched
+            # image, we need to temporarily expand dims to a batch.
+            if unbatched:
+                images = tf.expand_dims(images, 0)
+
+            # TODO: Make the batch operation vectorize.
+            output = tf.map_fn(lambda image: self._grid_mask(image), images)
+
+            if unbatched:
+                output = tf.squeeze(output, 0)
+            return output
+        return images
 
     def get_config(self):
-        config = {
-            "ratio": self.ratio,
-            "seed": self.seed
-        }
+        config = {"ratio": self.ratio, "seed": self.seed}
         base_config = super().get_config()
         return dict(list(base_config.items()) + list(config.items()))
