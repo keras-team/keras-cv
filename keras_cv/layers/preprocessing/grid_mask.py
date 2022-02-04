@@ -38,6 +38,7 @@ class GridMask(layers.Layer):
         self,
         ratio=0.6,
         rate=0.5,
+        gridmask_rotation_factor=0.1,
         seed=None,
         **kwargs
     ):
@@ -45,6 +46,7 @@ class GridMask(layers.Layer):
         self.ratio = ratio
         self.fill_value = 1 # TODO: make it adaptive, i.e. 'constant' or 'gaussian_noise'
         self.rate = rate
+        self.gridmask_random_rotate = layers.RandomRotation(factor=gridmask_rotation_factor, seed=seed)
         self.seed = seed 
 
     @staticmethod
@@ -113,7 +115,7 @@ class GridMask(layers.Layer):
         image_height = tf.shape(image)[0]
         image_width = tf.shape(image)[1]
         grid = self.mask(image_height, image_width)
-        # TODO: rnadomly rotate the grid, i.e. tf.image.rot90
+        grid = self.gridmask_random_rotate(grid[:, :, tf.newaxis])
 
         mask = tf.reshape(
             tf.cast(self.crop(grid, image_height, image_width), image.dtype),
