@@ -42,15 +42,12 @@ class GridMask(layers.Layer):
     def __init__(
         self,
         ratio=0.6,
-        rate=0.5,
         gridmask_rotation_factor=0.1,
         seed=None,
         **kwargs
     ):
         super().__init__(**kwargs)
         self.ratio = ratio
-        self.fill_value = 1 # TODO: make it adaptive, i.e. 'constant' or 'gaussian_noise'
-        self.rate = rate
         self.gridmask_random_rotate = layers.RandomRotation(factor=gridmask_rotation_factor, seed=seed)
         self.seed = seed 
 
@@ -116,7 +113,7 @@ class GridMask(layers.Layer):
         return mask
 
     @tf.function
-    def _grid_mask(self, image, training):
+    def _grid_mask(self, image):
         image_height = tf.shape(image)[0]
         image_width = tf.shape(image)[1]
         grid = self.mask(image_height, image_width)
@@ -127,12 +124,7 @@ class GridMask(layers.Layer):
             (image_height, image_width),
         )
         mask = tf.expand_dims(mask, -1) if image._rank() != mask._rank() else mask
-
-        rate_cond = tf.less(
-            tf.random.uniform(shape=[], minval=0, maxval=1.0), self.rate
-        )
-        augment_cond = tf.logical_and(rate_cond, training)
-        return tf.cond(augment_cond, lambda: image * mask, lambda: image)
+        return image * mask
 
     def call(self, images, training=True):
         """Masks input image tensor with random grid mask."""
@@ -140,12 +132,11 @@ class GridMask(layers.Layer):
             training = backend.learning_phase()
         
         # TODO: Make the batch operation vectorize.
-        return tf.map_fn(lambda image: self._grid_mask(image, training), images)
+        return tf.map_fn(lambda image: self._grid_mask(image), images)
 
     def get_config(self):
         config = {
             "ratio": self.ratio,
-            "rate": self.rate,
             "seed": self.seed
         }
         base_config = super().get_config()
