@@ -26,7 +26,8 @@ def rectangle_masks(corners, mask_shape):
             width and height of masks.
 
     Returns:
-        boolean masks with True at positions within rectangle coordinates.
+        boolean masks with shape (batch_size, width, height) where True values
+            indicate positions within rectangle coordinates.
     """
     # add broadcasting axes
     corners = corners[..., tf.newaxis, tf.newaxis]
