@@ -38,8 +38,9 @@ class GridMask(layers.Layer):
             an output rotation by a random amount in the range [-20% * 2pi, 30% * 2pi]. factor=0.2 results 
             in an output rotating by a random amount in the range [-20% * 2pi, 20% * 2pi].
 
-            The gridmask_rotation_factor will pass to layers.RandomRotation to apply random rotation on
-            gridmask. A preprocessing layer which randomly rotates gridmask during training.
+            The gridmask_rotation_factor will pass to tf.keras.layers.RandomRotation to apply random rotation 
+            on gridmask. A preprocessing layer which randomly rotates gridmask during training. Default to 0.1,
+            which results in an output rotating by a random amount in the range [-10% * 2pi, 10% * 2pi].
         seed:
             Integer. Used to create a random seed.
 
@@ -114,7 +115,6 @@ class GridMask(layers.Layer):
                 indices = tf.reshape(tf.range(start, end), [end - start, 1])
                 updates = (
                     tf.ones(shape=[end - start, mask_w], dtype=tf.int32)
-                    * self.fill_value
                 )
                 mask = tf.tensor_scatter_nd_update(mask, indices, updates)
             mask = tf.transpose(mask)

@@ -7,8 +7,8 @@ class GridMaskTest(tf.test.TestCase):
         xs = tf.ones((2, 512, 512, 3))
 
         layer = GridMask(
-            ratio=0.6, 
-            rate=1.0
+            ratio=0.1,
+            gridmask_rotation_factor=(-0.2, 0.3)
         )
         xs = layer(xs)
 
@@ -24,31 +24,15 @@ class GridMaskTest(tf.test.TestCase):
         )
 
         layer = GridMask(
-            ratio=0.6,
-            rate=1.0,
+            ratio=1.0,
+            gridmask_rotation_factor=(0.2, 0.3)
         )
         xs = layer(xs)
 
-        # Some pixels should be replaced with fill value
+        # Some pixels should be replaced with zero value
+        self.assertTrue(tf.math.reduce_any(xs[0] == 0.0))
         self.assertTrue(tf.math.reduce_any(xs[0] == 2.0))
-        self.assertTrue(tf.math.reduce_any(xs[1] == 1.0))
-
-    def test_gridmask_call_tiny_image(self):
-        img_shape = (4, 4, 3)
-        xs = tf.stack(
-            [2 * tf.ones(img_shape), tf.ones(img_shape)],
-            axis=0,
-        )
-        xs = tf.cast(xs, tf.float32)
-
-        layer = GridMask(
-            ratio=0.6, 
-            rate=1.0
-        )
-        xs = layer(xs)
-
-        # Some pixels should be replaced with fill value
-        self.assertTrue(tf.math.reduce_any(xs[0] == 2.0))
+        self.assertTrue(tf.math.reduce_any(xs[1] == 0.0))
         self.assertTrue(tf.math.reduce_any(xs[1] == 1.0))
 
     def test_non_square_image(self):
@@ -62,12 +46,14 @@ class GridMaskTest(tf.test.TestCase):
 
         layer = GridMask(
             ratio=0.6,
-            rate=1.0,
+            gridmask_rotation_factor=0.3
         )
         xs = layer(xs)
 
-        # Some pixels should be replaced with fill value
+        # Some pixels should be replaced with zero value
+        self.assertTrue(tf.math.reduce_any(xs[0] == 0.0))
         self.assertTrue(tf.math.reduce_any(xs[0] == 2.0))
+        self.assertTrue(tf.math.reduce_any(xs[1] == 0.0))
         self.assertTrue(tf.math.reduce_any(xs[1] == 1.0))
 
     def test_in_tf_function(self):
@@ -77,8 +63,8 @@ class GridMaskTest(tf.test.TestCase):
         )
 
         layer = GridMask(
-            ratio=0.6,
-            rate=1.0,
+            ratio=0.4,
+            gridmask_rotation_factor=0.5
         )
 
         @tf.function
@@ -87,6 +73,23 @@ class GridMaskTest(tf.test.TestCase):
 
         xs = augment(xs)
 
-        # Some pixels should be replaced with fill value
+        # Some pixels should be replaced with zero value
+        self.assertTrue(tf.math.reduce_any(xs[0] == 0.0))
         self.assertTrue(tf.math.reduce_any(xs[0] == 2.0))
+        self.assertTrue(tf.math.reduce_any(xs[1] == 0.0))
         self.assertTrue(tf.math.reduce_any(xs[1] == 1.0))
+
+    def test_in_single_image(self):
+        xs = tf.cast(
+            tf.ones((512, 512, 1)), 
+            tf.float32,
+        )
+
+        layer = GridMask(
+            ratio=0.2
+        )
+        xs = layer(xs)
+
+        # Some pixels should be replaced with zero value
+        self.assertTrue(tf.math.reduce_any(xs == 0.0))
+        self.assertTrue(tf.math.reduce_any(xs == 1.0))
