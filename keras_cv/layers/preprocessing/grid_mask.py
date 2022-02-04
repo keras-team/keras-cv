@@ -33,12 +33,12 @@ class GridMask(layers.Layer):
         gridmask_rotation_factor:
             a float represented as fraction of 2 Pi, or a tuple of size 2 representing lower and upper 
             bound for rotating clockwise and counter-clockwise. A positive values means rotating counter
-             clock-wise, while a negative value means clock-wise. When represented as a single float, this 
-             value is used for both the upper and lower bound. For instance, factor=(-0.2, 0.3) results in 
-             an output rotation by a random amount in the range [-20% * 2pi, 30% * 2pi]. factor=0.2 results 
-             in an output rotating by a random amount in the range [-20% * 2pi, 20% * 2pi].
+            clock-wise, while a negative value means clock-wise. When represented as a single float, this 
+            value is used for both the upper and lower bound. For instance, factor=(-0.2, 0.3) results in 
+            an output rotation by a random amount in the range [-20% * 2pi, 30% * 2pi]. factor=0.2 results 
+            in an output rotating by a random amount in the range [-20% * 2pi, 20% * 2pi].
 
-             The gridmask_rotation_factor will pass to layers.RandomRotation to apply random rotation on
+            The gridmask_rotation_factor will pass to layers.RandomRotation to apply random rotation on
             gridmask. A preprocessing layer which randomly rotates gridmask during training.
         seed:
             Integer. Used to create a random seed.
