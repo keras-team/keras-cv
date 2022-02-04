@@ -38,13 +38,14 @@ class GridMask(layers.Layer):
         self,
         ratio=0.6,
         rate=0.5,
+        seed=None,
         **kwargs
     ):
         super().__init__(**kwargs)
         self.ratio = ratio
         self.fill_value = 1 # TODO: make it adaptive, i.e. 'constant' or 'gaussian_noise'
         self.rate = rate
-        # TODO: set seed for deterministic result
+        self.seed = seed 
 
     @staticmethod
     def crop(mask, image_height, image_width):
@@ -71,12 +72,13 @@ class GridMask(layers.Layer):
             shape=[],
             minval=int(tf.math.minimum(image_height * 0.5, image_width * 0.3)),
             maxval=int(tf.math.maximum(image_height * 0.5, image_width * 0.3)) + 1,
-            dtype=tf.int32
+            dtype=tf.int32,
+            seed=self.seed
         )
 
         if self.ratio == 1:
             length = tf.random.uniform(
-                shape=[], minval=1, maxval=gridblock + 1, dtype=tf.int32
+                shape=[], minval=1, maxval=gridblock + 1, dtype=tf.int32, seed=self.seed
             )
         else:
             length = tf.cast(
@@ -91,7 +93,7 @@ class GridMask(layers.Layer):
 
         for _ in range(2):
             start_w = tf.random.uniform(
-                shape=[], minval=0, maxval=gridblock + 1, dtype=tf.int32
+                shape=[], minval=0, maxval=gridblock + 1, dtype=tf.int32, seed=self.seed
             )
 
             for i in range(mask_w // gridblock):
@@ -137,6 +139,7 @@ class GridMask(layers.Layer):
         config = {
             "ratio": self.ratio,
             "rate": self.rate,
+            "seed": self.seed
         }
         base_config = super().get_config()
         return dict(list(base_config.items()) + list(config.items()))
