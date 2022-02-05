@@ -175,7 +175,7 @@ class GridMask(layers.Layer):
         else:
             return mask * image
 
-    def call(self, images, training=True):
+    def call(self, images, training=None):
         """call method for the GridMask layer.
 
         Args:
@@ -209,6 +209,7 @@ class GridMask(layers.Layer):
     def get_config(self):
         config = {
             "ratio": self.ratio,
+            "gridmask_rotation_factor": self.gridmask_rotation_factor,
             "fill_mode": self.fill_mode,
             "fill_value": self.fill_value,
             "seed": self.seed,
