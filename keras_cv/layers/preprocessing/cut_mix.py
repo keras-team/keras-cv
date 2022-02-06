@@ -23,7 +23,6 @@ class CutMix(layers.Layer):
     """CutMix implements the CutMix data augmentation technique.
 
     Args:
-        rate: Float between 0 and 1.  The fraction of samples to augment.
         alpha: Float between 0 and 1.  Inverse scale parameter for the gamma
             distribution.  This controls the shape of the distribution from which the
             smoothing values are sampled.  Defaults 1.0, which is a recommended value
@@ -39,10 +38,9 @@ class CutMix(layers.Layer):
     ```
     """
 
-    def __init__(self, rate, alpha=1.0, seed=None, **kwargs):
+    def __init__(self, alpha=1.0, seed=None, **kwargs):
         super().__init__(**kwargs)
         self.alpha = alpha
-        self.rate = rate
         self.seed = seed
 
     @staticmethod
@@ -74,14 +72,10 @@ class CutMix(layers.Layer):
                 "expected.  Please call the layer with 2 or more samples."
             )
 
-        rate_cond = tf.less(
-            tf.random.uniform(shape=[], minval=0.0, maxval=1.0), self.rate
-        )
-        augment_cond = tf.logical_and(rate_cond, training)
         # pylint: disable=g-long-lambda
         cutmix_augment = lambda: self._update_labels(*self._cutmix(images, labels))
         no_augment = lambda: (images, labels)
-        return tf.cond(augment_cond, cutmix_augment, no_augment)
+        return tf.cond(tf.cast(training, tf.bool), cutmix_augment, no_augment)
 
     def _cutmix(self, images, labels):
         """Apply cutmix."""
