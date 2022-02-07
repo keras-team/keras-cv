@@ -11,8 +11,23 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import tensorflow as tf
 
-from keras_cv.layers.preprocessing.cut_mix import CutMix
-from keras_cv.layers.preprocessing.invert import Invert
-from keras_cv.layers.preprocessing.mix_up import MixUp
-from keras_cv.layers.preprocessing.random_cutout import RandomCutout
+
+class Invert(tf.keras.layers.Layer):
+    """Inverts the image pixels.
+
+    Usage:
+        ```
+        invert = Invert()
+        (images, labels), _ = tf.keras.dataset.cifar10.load_data()
+        # Note that images are Tensor with values in the range [0, 255]
+        images = invert(images)
+        ```
+
+    Call arguments:
+        images: Tensor of type int or float, pixels in range [0, 255].
+    """
+
+    def call(self, images):
+        return 255 - images
