@@ -126,3 +126,11 @@ class CutMix(layers.Layer):
         lambda_sample = tf.reshape(lambda_sample, [-1, 1])
         labels = lambda_sample * labels + (1.0 - lambda_sample) * cutout_labels
         return images, labels
+
+    def get_config(self):
+        config = {
+            "alpha": self.alpha,
+            "seed": self.seed,
+        }
+        base_config = super().get_config()
+        return dict(list(base_config.items()) + list(config.items()))
