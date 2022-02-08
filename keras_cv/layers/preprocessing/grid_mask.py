@@ -30,7 +30,7 @@ class GridMask(layers.Layer):
     Args:
         ratio: The ratio from grid masks to spacings.
             Float in range [0, 1]. Defaults to 0.5, which indicates that grid and spacing will be equal.
-            In orther word, higher value makes grid size smaller and equally spaced, and opposite.
+            In other word, higher value makes grid size smaller and equally spaced, and opposite.
         gridmask_rotation_factor:
             a float represented as fraction of 2 Pi, or a tuple of size 2 representing lower and upper
             bound for rotating clockwise and counter-clockwise. A positive values means rotating counter
@@ -51,12 +51,15 @@ class GridMask(layers.Layer):
         seed:
             Integer. Used to create a random seed.
 
-    Sample usage:
+    Usage:
     ```python
     (images, labels), _ = tf.keras.datasets.cifar10.load_data()
-    random_gridmask = keras_cv.layers.preprocessing.GridMask(ratio=0.5)
+    random_gridmask = keras_cv.layers.preprocessing.GridMask()
     augmented_images = random_gridmask(images)
     ```
+
+    References:
+        - https://arxiv.org/abs/2001.04086
     """
 
     def __init__(
@@ -179,7 +182,7 @@ class GridMask(layers.Layer):
         """call method for the GridMask layer.
 
         Args:
-            images: Tensor Tensor representing images of shape
+            images: Tensor representing images of shape
                 [batch_size, width, height, channels], with dtype tf.float32, or,
                 [width, height, channels], with dtype tf.float32
         Returns:
