@@ -152,4 +152,3 @@ def match_boxes(ious, threshold):
             continue
         gt_matches = gt_matches.write(match_index, detection_idx)
     return pred_matches.stack()
-

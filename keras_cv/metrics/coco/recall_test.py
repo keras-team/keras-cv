@@ -17,7 +17,7 @@ import numpy as np
 import tensorflow as tf
 from tensorflow import keras
 
-from keras_cv.metrics.coco.recall import COCORecall
+from keras_cv.metrics import COCORecall
 
 
 class COCORecallTest(tf.test.TestCase):
@@ -138,9 +138,7 @@ class COCORecallTest(tf.test.TestCase):
         self.assertEqual(recall.result(), 0.5)
 
     def test_recall_direct_assignment(self):
-        recall = COCORecall(
-            max_detections=100, class_ids=[1], area_range=(0, 1e9**2)
-        )
+        recall = COCORecall(max_detections=100, class_ids=[1], area_range=(0, 1e9**2))
         t = len(recall.iou_thresholds)
         k = len(recall.class_ids)
 
@@ -152,9 +150,7 @@ class COCORecallTest(tf.test.TestCase):
         self.assertEqual(recall.result(), 0.5)
 
     def test_max_detections_one_third(self):
-        recall = COCORecall(
-            max_detections=1, class_ids=[1], area_range=(0, 1e9**2)
-        )
+        recall = COCORecall(max_detections=1, class_ids=[1], area_range=(0, 1e9**2))
         y_true = np.array(
             [
                 [
@@ -173,9 +169,7 @@ class COCORecallTest(tf.test.TestCase):
         self.assertAlmostEqual(recall.result().numpy(), 1 / 3)
 
     def test_max_detections(self):
-        recall = COCORecall(
-            max_detections=3, class_ids=[1], area_range=(0, 1e9**2)
-        )
+        recall = COCORecall(max_detections=3, class_ids=[1], area_range=(0, 1e9**2))
         y_true = np.array(
             [
                 [
@@ -195,9 +189,7 @@ class COCORecallTest(tf.test.TestCase):
         self.assertAlmostEqual(recall.result().numpy(), 1.0)
 
     def test_recall_direct_assignment_one_third(self):
-        recall = COCORecall(
-            max_detections=100, class_ids=[1], area_range=(0, 1e9**2)
-        )
+        recall = COCORecall(max_detections=100, class_ids=[1], area_range=(0, 1e9**2))
         t = len(recall.iou_thresholds)
         k = len(recall.class_ids)
 

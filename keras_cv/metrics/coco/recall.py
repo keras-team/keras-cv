@@ -15,9 +15,9 @@ import tensorflow as tf
 import tensorflow.keras as keras
 import tensorflow.keras.initializers as initializers
 
-from keras_cv.utils import iou as iou_lib
 from keras_cv.metrics.coco import utils
 from keras_cv.utils import bbox
+from keras_cv.utils import iou as iou_lib
 
 
 class COCORecall(keras.metrics.Metric):
@@ -172,9 +172,7 @@ class COCORecall(keras.metrics.Metric):
 
                 for t_i in tf.range(num_thresholds):
                     threshold = iou_thresholds[t_i]
-                    pred_matches = utils.match_boxes(
-                       ious, threshold
-                    )
+                    pred_matches = utils.match_boxes(ious, threshold)
 
                     indices = [t_i, k_i]
                     true_positives = tf.cast(pred_matches != -1, tf.float32)
