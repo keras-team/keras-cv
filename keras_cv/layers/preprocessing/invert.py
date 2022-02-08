@@ -42,3 +42,11 @@ class Invert(tf.keras.layers.Layer):
 
     def call(self, images):
         return self.max_value - images + self.min_value
+
+    def get_config(self):
+        config = {
+            "min_value": self.min_value,
+            "max_value": self.max_value,
+        }
+        base_config = super().get_config()
+        return dict(list(base_config.items()) + list(config.items()))
