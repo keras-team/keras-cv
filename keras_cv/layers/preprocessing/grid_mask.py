@@ -154,7 +154,7 @@ class GridMask(layers.Layer):
 
                 if self.fill_mode == "constant":
                     updates = (
-                        tf.zeros(shape=[end - start, mask_w], dtype=tf.int32) * self.fill_value
+                        tf.zeros(shape=[end - start, mask_w], dtype=tf.int32) 
                     )
                 else:
                     updates = tf.ones(shape=[end - start, mask_w], dtype=tf.int32)
