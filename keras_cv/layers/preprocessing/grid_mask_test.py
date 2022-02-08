@@ -8,7 +8,7 @@ class GridMaskTest(tf.test.TestCase):
 
         layer = GridMask(
             ratio=0.1,
-            gridmask_rotation_factor=(-0.2, 0.3)
+            rotation_factor=(-0.2, 0.3)
         )
         xs = layer(xs)
 
@@ -26,7 +26,7 @@ class GridMaskTest(tf.test.TestCase):
         fill_value = 1
         layer = GridMask(
             ratio=1.0,
-            gridmask_rotation_factor=(0.2, 0.3),
+            rotation_factor=(0.2, 0.3),
             fill_mode="constant",
             fill_value=fill_value
         )
@@ -50,7 +50,7 @@ class GridMaskTest(tf.test.TestCase):
         fill_value = 100
         layer = GridMask(
             ratio=0.6,
-            gridmask_rotation_factor=0.3,
+            rotation_factor=0.3,
             fill_mode="constant",
             fill_value=fill_value
         )
@@ -71,7 +71,7 @@ class GridMaskTest(tf.test.TestCase):
         fill_value = 255
         layer = GridMask(
             ratio=0.4,
-            gridmask_rotation_factor=0.5,
+            rotation_factor=0.5,
             fill_mode="constant",
             fill_value=fill_value
         )
