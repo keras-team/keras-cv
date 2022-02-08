@@ -102,7 +102,7 @@ class GridMask(layers.Layer):
         return mask
 
     @tf.function
-    def compute_mask(self, image_height, image_width):
+    def _compute_mask(self, image_height, image_width):
         """mask helper function for initializing grid mask of required size."""
         image_height = tf.cast(image_height, tf.float32)
         image_width = tf.cast(image_width, tf.float32)
@@ -167,7 +167,7 @@ class GridMask(layers.Layer):
     def _grid_mask(self, image):
         image_height = tf.shape(image)[0]
         image_width = tf.shape(image)[1]
-        grid = self.compute_mask(image_height, image_width)
+        grid = self._compute_mask(image_height, image_width)
         grid = self.random_rotate(grid[:, :, tf.newaxis])
 
         mask = tf.reshape(
