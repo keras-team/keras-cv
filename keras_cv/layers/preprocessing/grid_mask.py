@@ -90,7 +90,7 @@ class GridMask(layers.Layer):
         self.seed = seed
 
     @staticmethod
-    def crop(mask, image_height, image_width):
+    def _crop(mask, image_height, image_width):
         """crops in middle of mask and image corners."""
         ww = hh = tf.shape(mask)[0]
         mask = mask[
@@ -100,7 +100,7 @@ class GridMask(layers.Layer):
         return mask
 
     @tf.function
-    def mask(self, image_height, image_width):
+    def compute_mask(self, image_height, image_width):
         """mask helper function for initializing grid mask of required size."""
         image_height = tf.cast(image_height, tf.float32)
         image_width = tf.cast(image_width, tf.float32)
@@ -163,11 +163,11 @@ class GridMask(layers.Layer):
     def _grid_mask(self, image):
         image_height = tf.shape(image)[0]
         image_width = tf.shape(image)[1]
-        grid = self.mask(image_height, image_width)
+        grid = self.compute_mask(image_height, image_width)
         grid = self.random_rotate(grid[:, :, tf.newaxis])
 
         mask = tf.reshape(
-            tf.cast(self.crop(grid, image_height, image_width), image.dtype),
+            tf.cast(self._crop(grid, image_height, image_width), image.dtype),
             (image_height, image_width),
         )
         mask = tf.expand_dims(mask, -1) if image._rank() != mask._rank() else mask
