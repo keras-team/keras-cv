@@ -30,7 +30,9 @@ class GridMask(layers.Layer):
     Args:
         ratio: The ratio from grid masks to spacings.
             Float in range [0, 1]. Defaults to 0.5, which indicates that grid and spacing will be equal.
-            In other word, higher value makes grid size smaller and equally spaced, and opposite.
+            In other word, higher value makes grid size smaller and equally spaced, and opposite. In special
+            case, when ration = 1.0, the spatial distribution of grid block will be random, 
+            either it can be dense or sparse in each call. 
         rotation_factor:
             a float represented as fraction of 2 Pi, or a tuple of size 2 representing lower and upper
             bound for rotating clockwise and counter-clockwise. A positive values means rotating counter
@@ -114,6 +116,7 @@ class GridMask(layers.Layer):
         else:
             mask = tf.cast(tf.random.normal([mask_h, mask_w]), tf.int32)
 
+        # size of the each grid-block, higher value makes larger gridblock, and opposide.
         gridblock = tf.random.uniform(
             shape=[],
             minval=int(tf.math.minimum(image_height * 0.5, image_width * 0.3)),
@@ -122,7 +125,9 @@ class GridMask(layers.Layer):
             seed=self.seed,
         )
 
-        if self.ratio == 1:
+        if self.ratio == float(1):
+            # controls the distance of each grid block.
+            # smaller value makes gridblock dense, whereas larger value makes gridblock sparse.
             length = tf.random.uniform(
                 shape=[], minval=1, maxval=gridblock + 1, dtype=tf.int32, seed=self.seed
             )
@@ -149,8 +154,7 @@ class GridMask(layers.Layer):
 
                 if self.fill_mode == "constant":
                     updates = (
-                        tf.zeros(shape=[end - start, mask_w], dtype=tf.int32)
-                        * self.fill_value
+                        tf.zeros(shape=[end - start, mask_w], dtype=tf.int32) * self.fill_value
                     )
                 else:
                     updates = tf.ones(shape=[end - start, mask_w], dtype=tf.int32)
