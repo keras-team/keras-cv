@@ -94,13 +94,13 @@ class COCORecall(keras.metrics.Metric):
         self.true_positives = self.add_weight(
             name="true_positives",
             shape=(num_thresholds, num_categories),
-            dtype=tf.float32,
+            dtype=tf.int32,
             initializer=initializers.Zeros(),
         )
         self.ground_truth_boxes = self.add_weight(
             name="ground_truth_boxes",
             shape=(num_categories,),
-            dtype=tf.float32,
+            dtype=tf.int32,
             initializer=initializers.Zeros(),
         )
 
@@ -175,7 +175,7 @@ class COCORecall(keras.metrics.Metric):
                     pred_matches = utils.match_boxes(ious, threshold)
 
                     indices = [t_i, k_i]
-                    true_positives = tf.cast(pred_matches != -1, tf.float32)
+                    true_positives = tf.cast(pred_matches != -1, tf.int32)
                     true_positives_sum = tf.math.reduce_sum(true_positives, axis=-1)
 
                     true_positives_update = tf.tensor_scatter_nd_add(
@@ -185,7 +185,7 @@ class COCORecall(keras.metrics.Metric):
                 ground_truth_boxes_update = tf.tensor_scatter_nd_add(
                     ground_truth_boxes_update,
                     [[k_i]],
-                    [tf.cast(tf.shape(ground_truths)[0], tf.float32)],
+                    [tf.cast(tf.shape(ground_truths)[0], tf.int32)],
                 )
 
         self.true_positives.assign_add(true_positives_update)
@@ -194,13 +194,16 @@ class COCORecall(keras.metrics.Metric):
     def result(self):
         present_values = self.ground_truth_boxes != 0
         n_present_categories = tf.math.reduce_sum(
-            tf.cast(present_values, tf.float32), axis=-1
+            tf.cast(present_values, self.dtype), axis=-1
         )
         if n_present_categories == 0.0:
             return 0.0
 
+        true_positives = tf.cast(self.true_positives, self.dtype)
+        ground_truth_boxes = tf.cast(self.ground_truth_boxes, self.dtype)
+
         recalls = tf.math.divide_no_nan(
-            self.true_positives, self.ground_truth_boxes[None, :]
+            true_positives, ground_truth_boxes[None, :]
         )
         recalls_per_threshold = (
             tf.math.reduce_sum(recalls, axis=-1) / n_present_categories
