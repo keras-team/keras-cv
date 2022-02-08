@@ -20,7 +20,7 @@ class GridMaskTest(tf.test.TestCase):
                 [2 * tf.ones((40, 40, 1)), tf.ones((40, 40, 1))],
                 axis=0,
             ),
-            tf.float32,
+            dtype=tf.float32,
         )
 
         fill_value = 1
@@ -44,7 +44,7 @@ class GridMaskTest(tf.test.TestCase):
                 [2 * tf.ones((1024, 512, 1)), tf.ones((1024, 512, 1))],
                 axis=0,
             ),
-            tf.float32,
+            dtype=tf.float32,
         )
 
         fill_value = 100
@@ -65,7 +65,7 @@ class GridMaskTest(tf.test.TestCase):
     def test_in_tf_function(self):
         xs = tf.cast(
             tf.stack([2 * tf.ones((100, 100, 1)), tf.ones((100, 100, 1))], axis=0),
-            tf.float32,
+            dtype=tf.float32,
         )
 
         fill_value = 255
@@ -91,7 +91,7 @@ class GridMaskTest(tf.test.TestCase):
     def test_in_single_image(self):
         xs = tf.cast(
             tf.ones((512, 512, 1)), 
-            tf.float32,
+            dtype=tf.float32,
         )
 
         layer = GridMask(

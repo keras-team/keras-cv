@@ -104,17 +104,17 @@ class GridMask(layers.Layer):
     @tf.function
     def _compute_mask(self, image_height, image_width):
         """mask helper function for initializing grid mask of required size."""
-        image_height = tf.cast(image_height, tf.float32)
-        image_width = tf.cast(image_width, tf.float32)
+        image_height = tf.cast(image_height, dtype=tf.float32)
+        image_width = tf.cast(image_width, dtype=tf.float32)
 
         mask_w = mask_h = tf.cast(
-            tf.math.maximum(image_height, image_width) * 2.0, tf.int32
+            tf.math.maximum(image_height, image_width) * 2.0, dtype=tf.int32
         )
 
         if self.fill_mode == "constant":
             mask = tf.fill([mask_h, mask_w], self.fill_value)
         else:
-            mask = tf.cast(tf.random.normal([mask_h, mask_w]), tf.int32)
+            mask = tf.cast(tf.random.normal([mask_h, mask_w]), dtype=tf.int32)
 
         # size of the each grid-block, higher value makes larger gridblock, and opposide.
         gridblock = tf.random.uniform(
@@ -139,7 +139,7 @@ class GridMask(layers.Layer):
                     ),
                     gridblock - 1,
                 ),
-                tf.int32,
+                dtype=tf.int32,
             )
 
         for _ in range(2):
@@ -171,7 +171,7 @@ class GridMask(layers.Layer):
         grid = self.random_rotate(grid[:, :, tf.newaxis])
 
         mask = tf.reshape(
-            tf.cast(self._crop(grid, image_height, image_width), image.dtype),
+            tf.cast(self._crop(grid, image_height, image_width), dtype=image.dtype),
             (image_height, image_width),
         )
         mask = tf.expand_dims(mask, -1) if image._rank() != mask._rank() else mask
@@ -203,13 +203,13 @@ class GridMask(layers.Layer):
             # The transform op only accepts rank 4 inputs, so if we have an unbatched
             # image, we need to temporarily expand dims to a batch.
             if unbatched:
-                images = tf.expand_dims(images, 0)
+                images = tf.expand_dims(images, axis=0)
 
             # TODO: Make the batch operation vectorize.
             output = tf.map_fn(lambda image: self._grid_mask(image), images)
 
             if unbatched:
-                output = tf.squeeze(output, 0)
+                output = tf.squeeze(output, axis=0)
             return output
 
     def get_config(self):
