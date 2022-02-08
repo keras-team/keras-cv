@@ -98,19 +98,18 @@ def sort_bboxes(boxes, axis=5):
     return boxes_sorted_list.stack()
 
 
-def match_boxes(y_true, y_pred, threshold, ious):
+def match_boxes(ious, threshold):
     """matches bounding boxes from y_true to boxes in y_pred.
 
     Args:
-        y_true: bounding box tensor of shape [num_boxes, 4+].
-        y_pred: bounding box tensor of shape [num_boxes, 4+].
-        threshold: minimum IoU for a pair to be considered a match.
         ious: lookup table from [y_true, y_pred] => IoU.
+        threshold: minimum IoU for a pair to be considered a match.
     Returns:
-        indices of matches between y_pred and y_true.
+        a mapping from [y_pred] => matching y_true index.  Dimension
+        of result tensor is equal to the number of boxes in y_pred.
     """
-    num_true = tf.shape(y_true)[0]
-    num_pred = tf.shape(y_pred)[0]
+    num_true = tf.shape(ious)[0]
+    num_pred = tf.shape(ious)[1]
 
     gt_matches = tf.TensorArray(
         tf.int32,
@@ -141,7 +140,7 @@ def match_boxes(y_true, y_pred, threshold, ious):
             # TODO(lukewood): update clause to account for gtIg
             # if m > -1 and gtIg[m] == 0 and gtIg[gind] == 1:
 
-            if not ious[gt_idx, detection_idx] >= iou:
+            if ious[gt_idx, detection_idx] < iou:
                 continue
 
             iou = ious[gt_idx, detection_idx]
@@ -154,17 +153,3 @@ def match_boxes(y_true, y_pred, threshold, ious):
         gt_matches = gt_matches.write(match_index, detection_idx)
     return pred_matches.stack()
 
-
-def result(self):
-    present_values = self.ground_truth_boxes != 0
-    n_present_categories = tf.math.reduce_sum(
-        tf.cast(present_values, tf.float32), axis=-1
-    )
-    if n_present_categories == 0.0:
-        return 0.0
-
-    recalls = tf.math.divide_no_nan(
-        self.true_positives, self.ground_truth_boxes[None, :]
-    )
-    recalls_per_threshold = tf.math.reduce_sum(recalls, axis=-1) / n_present_categories
-    return tf.math.reduce_mean(recalls_per_threshold)

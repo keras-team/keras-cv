@@ -173,7 +173,7 @@ class COCORecall(keras.metrics.Metric):
                 for t_i in tf.range(num_thresholds):
                     threshold = iou_thresholds[t_i]
                     pred_matches = utils.match_boxes(
-                        ground_truths, detections, threshold, ious
+                       ious, threshold
                     )
 
                     indices = [t_i, k_i]

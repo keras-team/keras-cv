@@ -17,6 +17,7 @@ import tensorflow as tf
 
 from keras_cv.metrics.coco import utils
 from keras_cv.utils import bbox
+from keras_cv.utils import iou as iou_lib
 
 
 class UtilTest(tf.test.TestCase):
@@ -66,6 +67,26 @@ class UtilTest(tf.test.TestCase):
 
         self.assertAllClose(utils.filter_out_sentinels(bbox_tensor[0]), box_set1)
         self.assertAllClose(utils.filter_out_sentinels(bbox_tensor[1]), box_set2)
+
+    def test_match_boxes(self):
+        y_pred = tf.stack(
+            [
+                _dummy_bbox(0.1),
+                _dummy_bbox(0.9),
+                _dummy_bbox(0.4),
+            ]
+        )
+        y_true = tf.stack(
+            [
+                _dummy_bbox(0.1),
+                _dummy_bbox(0.9),
+                _dummy_bbox(0.4),
+                _dummy_bbox(0.2),
+            ]
+        )
+
+        ious = iou_lib.compute_ious_for_image(y_true, y_pred)
+        self.assertEqual(utils.match_boxes(ious, 0.5).shape, [3])
 
     def test_sort_bboxes_unsorted_list(self):
         y_pred = tf.expand_dims(

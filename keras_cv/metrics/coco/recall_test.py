@@ -27,7 +27,7 @@ class COCORecallTest(tf.test.TestCase):
 
         recall = COCORecall(
             max_detections=100,
-            category_ids=[1],
+            class_ids=[1],
             area_range=(0, 64**2),
         )
 
@@ -45,7 +45,7 @@ class COCORecallTest(tf.test.TestCase):
     def test_ragged_tensor_support(self):
         recall = COCORecall(
             max_detections=100,
-            category_ids=[1],
+            class_ids=[1],
             area_range=(0, 64**2),
         )
 
@@ -74,13 +74,13 @@ class COCORecallTest(tf.test.TestCase):
 
         m1 = COCORecall(
             iou_thresholds=[0.95],
-            category_ids=[1],
+            class_ids=[1],
             area_range=(0, 100000**2),
             max_detections=1,
         )
         m2 = COCORecall(
             iou_thresholds=[0.95],
-            category_ids=[1],
+            class_ids=[1],
             area_range=(0, 100000**2),
             max_detections=1,
         )
@@ -91,7 +91,7 @@ class COCORecallTest(tf.test.TestCase):
 
         metric_result = COCORecall(
             iou_thresholds=[0.95],
-            category_ids=[1],
+            class_ids=[1],
             area_range=(0, 100000**2),
             max_detections=1,
         )
@@ -104,7 +104,7 @@ class COCORecallTest(tf.test.TestCase):
     def test_recall_area_range_filtering(self):
         recall = COCORecall(
             max_detections=100,
-            category_ids=[1],
+            class_ids=[1],
             area_range=(32**2, 64**2),
         )
 
@@ -119,10 +119,10 @@ class COCORecallTest(tf.test.TestCase):
 
     def test_missing_categories(self):
         recall = COCORecall(
-            max_detections=100, category_ids=[1, 2, 3], area_range=(0, 1e9**2)
+            max_detections=100, class_ids=[1, 2, 3], area_range=(0, 1e9**2)
         )
         t = len(recall.iou_thresholds)
-        k = len(recall.category_ids)
+        k = len(recall.class_ids)
 
         true_positives = np.ones((t, k))
         true_positives[:, 1] = np.zeros((t,))
@@ -139,10 +139,10 @@ class COCORecallTest(tf.test.TestCase):
 
     def test_recall_direct_assignment(self):
         recall = COCORecall(
-            max_detections=100, category_ids=[1], area_range=(0, 1e9**2)
+            max_detections=100, class_ids=[1], area_range=(0, 1e9**2)
         )
         t = len(recall.iou_thresholds)
-        k = len(recall.category_ids)
+        k = len(recall.class_ids)
 
         true_positives = tf.ones((t, k))
         ground_truth_boxes = tf.ones((k,)) * 2
@@ -153,7 +153,7 @@ class COCORecallTest(tf.test.TestCase):
 
     def test_max_detections_one_third(self):
         recall = COCORecall(
-            max_detections=1, category_ids=[1], area_range=(0, 1e9**2)
+            max_detections=1, class_ids=[1], area_range=(0, 1e9**2)
         )
         y_true = np.array(
             [
@@ -174,7 +174,7 @@ class COCORecallTest(tf.test.TestCase):
 
     def test_max_detections(self):
         recall = COCORecall(
-            max_detections=3, category_ids=[1], area_range=(0, 1e9**2)
+            max_detections=3, class_ids=[1], area_range=(0, 1e9**2)
         )
         y_true = np.array(
             [
@@ -196,10 +196,10 @@ class COCORecallTest(tf.test.TestCase):
 
     def test_recall_direct_assignment_one_third(self):
         recall = COCORecall(
-            max_detections=100, category_ids=[1], area_range=(0, 1e9**2)
+            max_detections=100, class_ids=[1], area_range=(0, 1e9**2)
         )
         t = len(recall.iou_thresholds)
-        k = len(recall.category_ids)
+        k = len(recall.class_ids)
 
         true_positives = tf.ones((t, k))
         ground_truth_boxes = tf.ones((k,)) * 3
@@ -217,7 +217,7 @@ class COCORecallTest(tf.test.TestCase):
         # note the low iou threshold
         metric = COCORecall(
             iou_thresholds=[0.15],
-            category_ids=[1],
+            class_ids=[1],
             area_range=(0, 10000**2),
             max_detections=1,
         )
@@ -233,7 +233,7 @@ class COCORecallTest(tf.test.TestCase):
         # note the low iou threshold
         metric = COCORecall(
             iou_thresholds=[0.15],
-            category_ids=[1],
+            class_ids=[1],
             area_range=(0, 10000**2),
             max_detections=1,
         )
@@ -258,7 +258,7 @@ class COCORecallTest(tf.test.TestCase):
         # note the low iou threshold
         metric = COCORecall(
             iou_thresholds=[0.15],
-            category_ids=[1],
+            class_ids=[1],
             area_range=(0, 10000**2),
             max_detections=1,
         )
@@ -278,7 +278,7 @@ class COCORecallTest(tf.test.TestCase):
         # note the low iou threshold
         metric = COCORecall(
             iou_thresholds=[0.15],
-            category_ids=[1],
+            class_ids=[1],
             area_range=(0, 10000**2),
             max_detections=1,
         )
@@ -292,7 +292,7 @@ class COCORecallTest(tf.test.TestCase):
 
         metric = COCORecall(
             iou_thresholds=[0.95],
-            category_ids=[1],
+            class_ids=[1],
             area_range=(0, 100000**2),
             max_detections=1,
         )
