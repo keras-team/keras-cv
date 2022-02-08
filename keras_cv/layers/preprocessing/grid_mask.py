@@ -195,7 +195,9 @@ class GridMask(layers.Layer):
         if training is None:
             training = backend.learning_phase()
 
-        if training:
+        if not training:
+            return images
+        else:
             unbatched = images.shape.rank == 3
 
             # The transform op only accepts rank 4 inputs, so if we have an unbatched
@@ -209,8 +211,6 @@ class GridMask(layers.Layer):
             if unbatched:
                 output = tf.squeeze(output, 0)
             return output
-
-        return images
 
     def get_config(self):
         config = {
