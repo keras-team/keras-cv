@@ -15,18 +15,27 @@ import tensorflow as tf
 
 
 class Invert(tf.keras.layers.Layer):
-    """Inverts the image pixels.
+    """Applies (max_value - pixel + min_value) for each pixel in the image.
+
+    Args:
+        min_value: int or float. Lower bound of input pixel values.
+        max_value: int or float. Upper bound of input pixel values.
 
     Usage:
-        ```
-        invert = Invert()
-        (images, labels), _ = tf.keras.dataset.cifar10.load_data()
+
+    ```python
+        (images, labels), _ = tf.keras.datasets.cifar10.load_data()
+        print(images[0, 0, 0])  # [59 62 63]
         # Note that images are Tensor with values in the range [0, 255]
+        invert = Invert(min_value=0, max_value=255)
         images = invert(images)
-        ```
+        print(images[0, 0, 0])  # [196, 193, 192]
+    ```
 
     Call arguments:
-        images: Tensor of type int or float, pixels in range [0, 255].
+        images: Tensor of type int or float, with pixels in
+            range [`min_value`, `max_value`] and shape [batch, height, width, channels]
+            or [height, width, channels].
     """
 
     def __init__(self, min_value=0, max_value=255):
