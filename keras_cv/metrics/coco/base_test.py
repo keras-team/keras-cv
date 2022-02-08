@@ -28,7 +28,7 @@ class COCOBaseTest(tf.test.TestCase):
         metric = COCOBase(
             iou_thresholds=[0.15],
             category_ids=[1],
-            area_range=(0, 10000 ** 2),
+            area_range=(0, 10000**2),
             max_detections=1,
         )
         metric.update_state(y_true, y_pred)
@@ -46,7 +46,7 @@ class COCOBaseTest(tf.test.TestCase):
         metric = COCOBase(
             iou_thresholds=[0.15],
             category_ids=[1],
-            area_range=(0, 10000 ** 2),
+            area_range=(0, 10000**2),
             max_detections=1,
         )
         metric.update_state(y_true, y_pred)
@@ -72,7 +72,7 @@ class COCOBaseTest(tf.test.TestCase):
         metric = COCOBase(
             iou_thresholds=[0.15],
             category_ids=[1],
-            area_range=(0, 10000 ** 2),
+            area_range=(0, 10000**2),
             max_detections=1,
         )
         metric.update_state(y_true, y_pred)
@@ -93,7 +93,7 @@ class COCOBaseTest(tf.test.TestCase):
         metric = COCOBase(
             iou_thresholds=[0.15],
             category_ids=[1],
-            area_range=(0, 10000 ** 2),
+            area_range=(0, 10000**2),
             max_detections=1,
         )
         metric.update_state(y_true, y_pred)
@@ -110,7 +110,7 @@ class COCOBaseTest(tf.test.TestCase):
         metric = COCOBase(
             iou_thresholds=[0.95],
             category_ids=[1],
-            area_range=(0, 100000 ** 2),
+            area_range=(0, 100000**2),
             max_detections=1,
         )
         metric.update_state(y_true, y_pred)

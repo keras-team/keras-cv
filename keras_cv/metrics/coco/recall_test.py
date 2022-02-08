@@ -28,13 +28,11 @@ class COCORecallTest(tf.test.TestCase):
         recall = COCORecall(
             max_detections=100,
             category_ids=[1],
-            area_range=(0, 64 ** 2),
+            area_range=(0, 64**2),
         )
 
         # These would match if they were in the area range
-        y_true = np.array([[[0, 0, 10, 10, 1], [5, 5, 10, 10, 1]]]).astype(
-            np.float32
-        )
+        y_true = np.array([[[0, 0, 10, 10, 1], [5, 5, 10, 10, 1]]]).astype(np.float32)
         y_pred = np.array([[[0, 0, 10, 10, 1, 1.0], [5, 5, 10, 10, 1, 0.9]]]).astype(
             np.float32
         )
@@ -48,13 +46,11 @@ class COCORecallTest(tf.test.TestCase):
         recall = COCORecall(
             max_detections=100,
             category_ids=[1],
-            area_range=(32 ** 2, 64 ** 2),
+            area_range=(32**2, 64**2),
         )
 
         # These would match if they were in the area range
-        y_true = np.array([[[0, 0, 10, 10, 1], [5, 5, 10, 10, 1]]]).astype(
-            np.float32
-        )
+        y_true = np.array([[[0, 0, 10, 10, 1], [5, 5, 10, 10, 1]]]).astype(np.float32)
         y_pred = np.array([[[0, 0, 10, 10, 1, 1.0], [5, 5, 10, 10, 1, 0.9]]]).astype(
             np.float32
         )
@@ -64,7 +60,7 @@ class COCORecallTest(tf.test.TestCase):
 
     def test_missing_categories(self):
         recall = COCORecall(
-            max_detections=100, category_ids=[1, 2, 3], area_range=(0, 1e9 ** 2)
+            max_detections=100, category_ids=[1, 2, 3], area_range=(0, 1e9**2)
         )
         t = recall.iou_thresholds.shape[0]
         k = recall.category_ids.shape[0]
@@ -84,7 +80,7 @@ class COCORecallTest(tf.test.TestCase):
 
     def test_recall_direct_assignment(self):
         recall = COCORecall(
-            max_detections=100, category_ids=[1], area_range=(0, 1e9 ** 2)
+            max_detections=100, category_ids=[1], area_range=(0, 1e9**2)
         )
         t = recall.iou_thresholds.shape[0]
         k = recall.category_ids.shape[0]
@@ -98,7 +94,7 @@ class COCORecallTest(tf.test.TestCase):
 
     def test_max_detections_one_third(self):
         recall = COCORecall(
-            max_detections=1, category_ids=[1], area_range=(0, 1e9 ** 2)
+            max_detections=1, category_ids=[1], area_range=(0, 1e9**2)
         )
         y_true = np.array(
             [
@@ -119,7 +115,7 @@ class COCORecallTest(tf.test.TestCase):
 
     def test_max_detections(self):
         recall = COCORecall(
-            max_detections=3, category_ids=[1], area_range=(0, 1e9 ** 2)
+            max_detections=3, category_ids=[1], area_range=(0, 1e9**2)
         )
         y_true = np.array(
             [
@@ -141,7 +137,7 @@ class COCORecallTest(tf.test.TestCase):
 
     def test_recall_direct_assignment_one_third(self):
         recall = COCORecall(
-            max_detections=100, category_ids=[1], area_range=(0, 1e9 ** 2)
+            max_detections=100, category_ids=[1], area_range=(0, 1e9**2)
         )
         t = recall.iou_thresholds.shape[0]
         k = recall.category_ids.shape[0]

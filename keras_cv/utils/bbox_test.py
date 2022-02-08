@@ -40,9 +40,7 @@ class BBOXTestCase(tf.test.TestCase):
             self.corner_bbox, [[0, 0], [0, 2]]
         )  # Right pad 2 more value
         padded_xywh_bbox = tf.pad(self.xywh_bbox, [[0, 0], [0, 2]])
-        self.assertAllClose(
-            bbox.corners_to_xywh(padded_corner_bbox), padded_xywh_bbox
-        )
+        self.assertAllClose(bbox.corners_to_xywh(padded_corner_bbox), padded_xywh_bbox)
 
         # Same for higher rank
         padded_corner_bbox_3d = tf.expand_dims(padded_corner_bbox, 0)
@@ -64,9 +62,7 @@ class BBOXTestCase(tf.test.TestCase):
             self.corner_bbox, [[0, 0], [0, 2]]
         )  # Right pad 2 more value
         padded_xywh_bbox = tf.pad(self.xywh_bbox, [[0, 0], [0, 2]])
-        self.assertAllClose(
-            bbox.xywh_to_corners(padded_xywh_bbox), padded_corner_bbox
-        )
+        self.assertAllClose(bbox.xywh_to_corners(padded_xywh_bbox), padded_corner_bbox)
 
         # Same for higher rank
         padded_corner_bbox_3d = tf.expand_dims(padded_corner_bbox, 0)
@@ -87,9 +83,7 @@ class BBOXTestCase(tf.test.TestCase):
 
         # Make sure to raise error if the rank is different between bbox and target
         # shape
-        with self.assertRaisesRegexp(
-            ValueError, "Target shape should have same rank"
-        ):
+        with self.assertRaisesRegexp(ValueError, "Target shape should have same rank"):
             bbox.pad_bbox_batch_to_shape(bboxes, [1, 2, 3])
 
         # Make sure raise error if the target shape is smaller

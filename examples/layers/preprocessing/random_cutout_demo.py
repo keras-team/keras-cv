@@ -21,9 +21,7 @@ def resize(image, label, num_classes=10):
 
 
 def main():
-    data, ds_info = tfds.load(
-        "oxford_flowers102", with_info=True, as_supervised=True
-    )
+    data, ds_info = tfds.load("oxford_flowers102", with_info=True, as_supervised=True)
     train_ds = data["train"]
 
     num_classes = ds_info.features["label"].num_classes
@@ -37,7 +35,6 @@ def main():
         height_factor=(0.3, 0.9),
         width_factor=64,
         fill_mode="gaussian_noise",
-        rate=1.0,
     )
     train_ds = train_ds.map(
         lambda x, y: (random_cutout(x), y), num_parallel_calls=tf.data.AUTOTUNE

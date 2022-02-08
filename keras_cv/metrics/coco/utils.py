@@ -86,9 +86,7 @@ def sort_bboxes(boxes, axis=5):
         boxes: A new Tensor of Bounding boxes, sorted on an image-wise basis.
     """
     num_images = tf.shape(boxes)[0]
-    boxes_sorted_list = tf.TensorArray(
-        tf.float32, size=num_images, dynamic_size=False
-    )
+    boxes_sorted_list = tf.TensorArray(tf.float32, size=num_images, dynamic_size=False)
     for img in tf.range(num_images):
         preds_for_img = boxes[img, :, :]
         prediction_scores = preds_for_img[:, axis]

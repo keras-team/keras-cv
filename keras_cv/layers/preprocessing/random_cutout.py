@@ -31,7 +31,7 @@ class RandomCutout(layers.Layer):
             in the range `[20% of image height, 30% of image height]`.
             `height_factor=(32, 64)` results in a height picked in the range
             [32, 64]. `height_factor=0.2` results in a height of [0%, 20%] of image
-            height, and `height_factor=32` results in a height of 32.
+            height, and `height_factor=32` results in a height between [0, 32].
         width_factor: One of:
             - a positive float representing a fraction of image width
             - an integer representing an absolute width
@@ -40,20 +40,18 @@ class RandomCutout(layers.Layer):
             in the range `[20% of image width, 30% of image width]`.
             `width_factor=(32, 64)` results in a width picked in the range
             [32, 64]. `width_factor=0.2` results in a width of [0%, 20%] of image
-            width, and `width_factor=32` results in a width of 32.
+            width, and `width_factor=32` results in a width between [0, 32].
         fill_mode: Pixels inside the patches are filled according to the given
             mode (one of `{"constant", "gaussian_noise"}`).
             - *constant*: Pixels are filled with the same constant value.
             - *gaussian_noise*: Pixels are filled with random gaussian noise.
         fill_value: a float represents the value to be filled inside the patches
             when `fill_mode="constant"`.
-        rate: Float between 0 and 1. The probability of augmenting an input.
-            Defaults to 1.0.
 
     Sample usage:
     ```python
     (images, labels), _ = tf.keras.datasets.cifar10.load_data()
-    random_cutout = keras_cv.layers.preprocessing.RandomCutout(0.5, 0.5, rate=1.0)
+    random_cutout = keras_cv.layers.preprocessing.RandomCutout(0.5, 0.5)
     augmented_images = random_cutout(images)
     ```
     """
@@ -64,7 +62,6 @@ class RandomCutout(layers.Layer):
         width_factor,
         fill_mode="constant",
         fill_value=0.0,
-        rate=1.0,
         seed=None,
         **kwargs
     ):
@@ -125,7 +122,6 @@ class RandomCutout(layers.Layer):
 
         self.fill_mode = fill_mode
         self.fill_value = fill_value
-        self.rate = rate
         self.seed = seed
 
     def _parse_bounds(self, factor):
@@ -138,32 +134,22 @@ class RandomCutout(layers.Layer):
         if training is None:
             training = backend.learning_phase()
 
-        rate_cond = tf.less(
-            tf.random.uniform(shape=[], minval=0.0, maxval=1.0), self.rate
-        )
-        augment_cond = tf.logical_and(rate_cond, training)
         augment = lambda: self._random_cutout(inputs)
         no_augment = lambda: inputs
-        return tf.cond(augment_cond, augment, no_augment)
+        return tf.cond(tf.cast(training, tf.bool), augment, no_augment)
 
     def _random_cutout(self, inputs):
         """Apply random cutout."""
         center_x, center_y = self._compute_rectangle_position(inputs)
         rectangle_height, rectangle_width = self._compute_rectangle_size(inputs)
         rectangle_fill = self._compute_rectangle_fill(inputs)
-        half_height = tf.cast(tf.math.ceil(rectangle_height / 2), tf.int32)
-        half_width = tf.cast(tf.math.ceil(rectangle_width / 2), tf.int32)
-        inputs = tf.map_fn(
-            lambda x: fill_utils.fill_rectangle(*x),
-            (
-                inputs,
-                center_y,
-                center_x,
-                half_width,
-                half_height,
-                rectangle_fill,
-            ),
-            fn_output_signature=tf.TensorSpec.from_tensor(inputs[0]),
+        inputs = fill_utils.fill_rectangle(
+            inputs,
+            center_x,
+            center_y,
+            rectangle_width,
+            rectangle_height,
+            rectangle_fill,
         )
         return inputs
 
@@ -177,14 +163,14 @@ class RandomCutout(layers.Layer):
         center_x = tf.random.uniform(
             shape=[batch_size],
             minval=0,
-            maxval=image_height,
+            maxval=image_width,
             dtype=tf.int32,
             seed=self.seed,
         )
         center_y = tf.random.uniform(
             shape=[batch_size],
             minval=0,
-            maxval=image_width,
+            maxval=image_height,
             dtype=tf.int32,
             seed=self.seed,
         )
@@ -240,7 +226,6 @@ class RandomCutout(layers.Layer):
             "width_factor": self.width_factor,
             "fill_mode": self.fill_mode,
             "fill_value": self.fill_value,
-            "rate": self.rate,
             "seed": self.seed,
         }
         base_config = super().get_config()

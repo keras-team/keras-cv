@@ -23,15 +23,10 @@ class CutMix(layers.Layer):
     """CutMix implements the CutMix data augmentation technique.
 
     Args:
-        rate: Float between 0 and 1.  The fraction of samples to augment.
         alpha: Float between 0 and 1.  Inverse scale parameter for the gamma
             distribution.  This controls the shape of the distribution from which the
             smoothing values are sampled.  Defaults 1.0, which is a recommended value
             when training an imagenet1k classification model.
-        label_smoothing: Float in [0, 1]. When > 0, label values are smoothed,
-            meaning the confidence on label values are relaxed. e.g.
-            label_smoothing=0.2 means that we will use a value of 0.1 for label 0 and
-            0.9 for label 1.  Defaults 0.0.
     References:
        [CutMix paper]( https://arxiv.org/abs/1905.04899).
 
@@ -43,11 +38,9 @@ class CutMix(layers.Layer):
     ```
     """
 
-    def __init__(self, rate, label_smoothing=0.0, alpha=1.0, seed=None, **kwargs):
+    def __init__(self, alpha=1.0, seed=None, **kwargs):
         super().__init__(**kwargs)
         self.alpha = alpha
-        self.rate = rate
-        self.label_smoothing = label_smoothing
         self.seed = seed
 
     @staticmethod
@@ -79,14 +72,10 @@ class CutMix(layers.Layer):
                 "expected.  Please call the layer with 2 or more samples."
             )
 
-        rate_cond = tf.less(
-            tf.random.uniform(shape=[], minval=0.0, maxval=1.0), self.rate
-        )
-        augment_cond = tf.logical_and(rate_cond, training)
         # pylint: disable=g-long-lambda
         cutmix_augment = lambda: self._update_labels(*self._cutmix(images, labels))
-        no_augment = lambda: (images, self._smooth_labels(labels))
-        return tf.cond(augment_cond, cutmix_augment, no_augment)
+        no_augment = lambda: (images, labels)
+        return tf.cond(tf.cast(training, tf.bool), cutmix_augment, no_augment)
 
     def _cutmix(self, images, labels):
         """Apply cutmix."""
@@ -97,12 +86,8 @@ class CutMix(layers.Layer):
             input_shape[2],
         )
 
-        permutation_order = tf.random.shuffle(
-            tf.range(0, batch_size), seed=self.seed
-        )
-        lambda_sample = CutMix._sample_from_beta(
-            self.alpha, self.alpha, (batch_size,)
-        )
+        permutation_order = tf.random.shuffle(tf.range(0, batch_size), seed=self.seed)
+        lambda_sample = CutMix._sample_from_beta(self.alpha, self.alpha, (batch_size,))
 
         ratio = tf.math.sqrt(1 - lambda_sample)
 
@@ -124,33 +109,28 @@ class CutMix(layers.Layer):
         lambda_sample = 1.0 - bbox_area / (image_height * image_width)
         lambda_sample = tf.cast(lambda_sample, dtype=tf.float32)
 
-        images = tf.map_fn(
-            lambda x: fill_utils.fill_rectangle(*x),
-            (
-                images,
-                random_center_width,
-                random_center_height,
-                cut_width // 2,
-                cut_height // 2,
-                tf.gather(images, permutation_order),
-            ),
-            fn_output_signature=tf.TensorSpec.from_tensor(images[0]),
+        images = fill_utils.fill_rectangle(
+            images,
+            random_center_width,
+            random_center_height,
+            cut_width,
+            cut_height,
+            tf.gather(images, permutation_order),
         )
 
         return images, labels, lambda_sample, permutation_order
 
     def _update_labels(self, images, labels, lambda_sample, permutation_order):
-        labels_smoothed = self._smooth_labels(labels)
         cutout_labels = tf.gather(labels, permutation_order)
 
         lambda_sample = tf.reshape(lambda_sample, [-1, 1])
-        labels = (
-            lambda_sample * labels_smoothed + (1.0 - lambda_sample) * cutout_labels
-        )
+        labels = lambda_sample * labels + (1.0 - lambda_sample) * cutout_labels
         return images, labels
 
-    def _smooth_labels(self, labels):
-        label_smoothing = self.label_smoothing or 0.0
-        off_value = label_smoothing / tf.cast(tf.shape(labels)[1], tf.float32)
-        on_value = 1.0 - label_smoothing + off_value
-        return labels * on_value + (1 - labels) * off_value
+    def get_config(self):
+        config = {
+            "alpha": self.alpha,
+            "seed": self.seed,
+        }
+        base_config = super().get_config()
+        return dict(list(base_config.items()) + list(config.items()))
