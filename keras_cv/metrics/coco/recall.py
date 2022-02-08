@@ -54,7 +54,7 @@ class COCORecall(keras.metrics.Metric):
     padding is available at `keras_cv_.utils.bbox.pad_bbox_batch_to_shape`.
 
     ```python
-    coco_recall = keras_cv.metrics.coco.COCORecall(
+    coco_recall = keras_cv.metrics.COCORecall(
         max_detections=100,
         class_ids=[1]
     )
