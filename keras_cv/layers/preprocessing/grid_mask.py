@@ -31,7 +31,7 @@ class GridMask(layers.Layer):
         ratio: The ratio from grid masks to spacings.
             Float in range [0, 1]. Defaults to 0.5, which indicates that grid and spacing will be equal.
             In other word, higher value makes grid size smaller and equally spaced, and opposite.
-        gridmask_rotation_factor:
+        rotation_factor:
             a float represented as fraction of 2 Pi, or a tuple of size 2 representing lower and upper
             bound for rotating clockwise and counter-clockwise. A positive values means rotating counter
             clock-wise, while a negative value means clock-wise. When represented as a single float, this
@@ -39,8 +39,7 @@ class GridMask(layers.Layer):
             an output rotation by a random amount in the range [-20% * 2pi, 30% * 2pi]. factor=0.2 results
             in an output rotating by a random amount in the range [-20% * 2pi, 20% * 2pi].
 
-            The gridmask_rotation_factor will pass to tf.keras.layers.RandomRotation to apply random rotation
-            on gridmask. A preprocessing layer which randomly rotates gridmask during training. Default to 0.1,
+            The rotation_factor will be used to randomly rotate the grid_mask during training. Default to 0.1,
             which results in an output rotating by a random amount in the range [-10% * 2pi, 10% * 2pi].
         fill_mode: Pixels inside the gridblock are filled according to the given
             mode (one of `{"constant", "gaussian_noise"}`).
@@ -65,7 +64,7 @@ class GridMask(layers.Layer):
     def __init__(
         self,
         ratio=0.6,
-        gridmask_rotation_factor=0.1,
+        rotation_factor=0.1,
         fill_mode="constant",
         fill_value=1,
         seed=None,
@@ -83,8 +82,8 @@ class GridMask(layers.Layer):
         )
 
         self.ratio = ratio
-        self.gridmask_random_rotate = layers.RandomRotation(
-            factor=gridmask_rotation_factor, seed=seed
+        self.random_rotate = layers.RandomRotation(
+            factor=rotation_factor, seed=seed
         )
         self.fill_mode = fill_mode
         self.fill_value = fill_value
@@ -165,7 +164,7 @@ class GridMask(layers.Layer):
         image_height = tf.shape(image)[0]
         image_width = tf.shape(image)[1]
         grid = self.mask(image_height, image_width)
-        grid = self.gridmask_random_rotate(grid[:, :, tf.newaxis])
+        grid = self.random_rotate(grid[:, :, tf.newaxis])
 
         mask = tf.reshape(
             tf.cast(self.crop(grid, image_height, image_width), image.dtype),
@@ -212,7 +211,7 @@ class GridMask(layers.Layer):
     def get_config(self):
         config = {
             "ratio": self.ratio,
-            "gridmask_rotation_factor": self.gridmask_rotation_factor,
+            "rotation_factor": self.rotation_factor,
             "fill_mode": self.fill_mode,
             "fill_value": self.fill_value,
             "seed": self.seed,
