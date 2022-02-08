@@ -202,9 +202,7 @@ class COCORecall(keras.metrics.Metric):
         true_positives = tf.cast(self.true_positives, self.dtype)
         ground_truth_boxes = tf.cast(self.ground_truth_boxes, self.dtype)
 
-        recalls = tf.math.divide_no_nan(
-            true_positives, ground_truth_boxes[None, :]
-        )
+        recalls = tf.math.divide_no_nan(true_positives, ground_truth_boxes[None, :])
         recalls_per_threshold = (
             tf.math.reduce_sum(recalls, axis=-1) / n_present_categories
         )
