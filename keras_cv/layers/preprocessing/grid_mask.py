@@ -186,8 +186,8 @@ class GridMask(layers.Layer):
 
         Args:
             images: Tensor representing images of shape
-                [batch_size, width, height, channels], with dtype tf.float32, or,
-                [width, height, channels], with dtype tf.float32
+                [batch_size, width, height, channels], with dtype tf.float32 / tf.uint8, or,
+                [width, height, channels], with dtype tf.float32 / tf.uint8
         Returns:
             images: augmented images, same shape as input.
         """
