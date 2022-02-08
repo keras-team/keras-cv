@@ -17,28 +17,91 @@ from keras_cv.layers.preprocessing.invert import Invert
 
 
 class InvertTest(tf.test.TestCase):
-    invert = Invert()
+    def test_raises_error_on_invalid_min_max_values(self):
+        with self.assertRaises(AssertionError):
+            Invert(min_value=255, max_value=0)  # min must be smaller than max
 
-    def test_return_shape_unchanged(self):
-        dummy_input = tf.ones(shape=(2, 224, 224, 3))
+    def test_range_0_to_255(self):
+        invert = Invert(min_value=0, max_value=255)
 
-        output = self.invert(dummy_input)
-
-        self.assertEqual(dummy_input.shape, output.shape)
-
-    def test_return_values(self):
         test_parameters = [
-            {"input_value": 0, "expected_value": 255},
-            {"input_value": 255, "expected_value": 0},
-            {"input_value": 127.5, "expected_value": 127.5},
+            {"input_value": 0, "expected_output_value": 255},
+            {"input_value": 64, "expected_output_value": 191},
+            {"input_value": 127, "expected_output_value": 128},
+            {"input_value": 191, "expected_output_value": 64},
+            {"input_value": 255, "expected_output_value": 0},
         ]
 
         for parameters in test_parameters:
-            self._test_input_output(**parameters)
+            self._test_input_output(
+                layer=invert,
+                input_value=parameters["input_value"],
+                expected_value=parameters["expected_output_value"],
+                dtype=tf.uint8,
+            )
 
-    def _test_input_output(self, input_value, expected_value):
-        dummy_inputs = tf.ones(shape=(1, 224, 224, 3)) * input_value
+    def test_range_0_to_1(self):
+        invert = Invert(min_value=0.0, max_value=1.0)
 
-        outputs = self.invert(dummy_inputs)
+        test_parameters = [
+            {"input_value": 1.0, "expected_output_value": 0.0},
+            {"input_value": 0.75, "expected_output_value": 0.25},
+            {"input_value": 0.5, "expected_output_value": 0.5},
+            {"input_value": 0.25, "expected_output_value": 0.75},
+            {"input_value": 0.0, "expected_output_value": 1.0},
+        ]
 
-        self.assertTrue((outputs == expected_value).numpy().all())
+        for parameters in test_parameters:
+            self._test_input_output(
+                layer=invert,
+                input_value=parameters["input_value"],
+                expected_value=parameters["expected_output_value"],
+                dtype=tf.float32,
+            )
+
+    def test_range_minus_1_to_plus_1(self):
+        invert = Invert(min_value=-1.0, max_value=1.0)
+
+        test_parameters = [
+            {"input_value": -1.0, "expected_output_value": 1.0},
+            {"input_value": -0.5, "expected_output_value": 0.5},
+            {"input_value": 0.0, "expected_output_value": 0.0},
+            {"input_value": 0.5, "expected_output_value": -0.5},
+            {"input_value": 1.0, "expected_output_value": -1.0},
+        ]
+
+        for parameters in test_parameters:
+            self._test_input_output(
+                layer=invert,
+                input_value=parameters["input_value"],
+                expected_value=parameters["expected_output_value"],
+                dtype=tf.float32,
+            )
+
+    def test_custom_range_minus_8_to_plus_16(self):
+        invert = Invert(min_value=-8, max_value=16)
+
+        test_parameters = [
+            {"input_value": -8, "expected_output_value": 16},
+            {"input_value": -2, "expected_output_value": 10},
+            {"input_value": 4, "expected_output_value": 4},
+            {"input_value": 10, "expected_output_value": -2},
+            {"input_value": 16, "expected_output_value": -8},
+        ]
+
+        for parameters in test_parameters:
+            self._test_input_output(
+                layer=invert,
+                input_value=parameters["input_value"],
+                expected_value=parameters["expected_output_value"],
+                dtype=tf.int32,
+            )
+
+    @staticmethod
+    def _test_input_output(layer, input_value, expected_value, dtype):
+        dummy_input = tf.ones(shape=(2, 224, 224, 3), dtype=dtype) * input_value
+        expected_output = tf.ones(shape=(2, 224, 224, 3), dtype=dtype) * expected_value
+
+        output = layer(dummy_input)
+
+        tf.debugging.assert_equal(output, expected_output)

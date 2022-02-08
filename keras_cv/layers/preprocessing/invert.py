@@ -29,5 +29,16 @@ class Invert(tf.keras.layers.Layer):
         images: Tensor of type int or float, pixels in range [0, 255].
     """
 
+    def __init__(self, min_value=0, max_value=255):
+        super().__init__()
+
+        assert min_value < max_value, (
+            "`min_value` should be smaller than `max_value`. "
+            f"Received: min_value: {min_value}, max_value: {max_value}"
+        )
+
+        self.min_value = min_value
+        self.max_value = max_value
+
     def call(self, images):
-        return 255 - images
+        return self.max_value - images + self.min_value
