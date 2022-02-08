@@ -194,8 +194,10 @@ class COCORecall(keras.metrics.Metric):
     def result(self):
         present_values = self.ground_truth_boxes != 0
         n_present_categories = tf.math.reduce_sum(
-            tf.cast(present_values, self.dtype), axis=-1
+            tf.cast(present_values, tf.int32), axis=-1
         )
+        n_present_categories = tf.cast(n_present_categories, self.dtype)
+
         if n_present_categories == 0.0:
             return 0.0
 

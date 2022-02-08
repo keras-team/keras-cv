@@ -97,8 +97,8 @@ class COCORecallTest(tf.test.TestCase):
         )
         metric_result.merge_state([m1, m2])
 
-        self.assertEqual([[1.0]], metric_result.true_positives)
-        self.assertEqual([3.0], metric_result.ground_truth_boxes)
+        self.assertEqual([[1]], metric_result.true_positives)
+        self.assertEqual([3], metric_result.ground_truth_boxes)
         self.assertEqual(1 / 3, metric_result.result())
 
     def test_recall_area_range_filtering(self):
@@ -126,12 +126,12 @@ class COCORecallTest(tf.test.TestCase):
 
         true_positives = np.ones((t, k))
         true_positives[:, 1] = np.zeros((t,))
-        true_positives = tf.constant(true_positives, dtype=tf.float32)
+        true_positives = tf.constant(true_positives, dtype=tf.int32)
 
         ground_truth_boxes = np.ones((k,)) * 2
         ground_truth_boxes[1] = 0
 
-        ground_truth_boxes = tf.constant(ground_truth_boxes, dtype=tf.float32)
+        ground_truth_boxes = tf.constant(ground_truth_boxes, dtype=tf.int32)
         recall.true_positives.assign(true_positives)
         recall.ground_truth_boxes.assign(ground_truth_boxes)
 
@@ -142,8 +142,8 @@ class COCORecallTest(tf.test.TestCase):
         t = len(recall.iou_thresholds)
         k = len(recall.class_ids)
 
-        true_positives = tf.ones((t, k))
-        ground_truth_boxes = tf.ones((k,)) * 2
+        true_positives = tf.ones((t, k), dtype=tf.int32)
+        ground_truth_boxes = tf.ones((k,), dtype=tf.int32) * 2
         recall.true_positives.assign(true_positives)
         recall.ground_truth_boxes.assign(ground_truth_boxes)
 
@@ -193,8 +193,8 @@ class COCORecallTest(tf.test.TestCase):
         t = len(recall.iou_thresholds)
         k = len(recall.class_ids)
 
-        true_positives = tf.ones((t, k))
-        ground_truth_boxes = tf.ones((k,)) * 3
+        true_positives = tf.ones((t, k), dtype=tf.int32)
+        ground_truth_boxes = tf.ones((k,), dtype=tf.int32) * 3
 
         recall.true_positives.assign(true_positives)
         recall.ground_truth_boxes.assign(ground_truth_boxes)
@@ -214,8 +214,8 @@ class COCORecallTest(tf.test.TestCase):
             max_detections=1,
         )
         metric.update_state(y_true, y_pred)
-        self.assertEqual([[2.0]], metric.ground_truth_boxes)
-        self.assertEqual([[1.0]], metric.true_positives)
+        self.assertEqual([[2]], metric.ground_truth_boxes)
+        self.assertEqual([[1]], metric.true_positives)
 
     def test_true_positive_counting_one_good_one_bad(self):
         y_true = tf.constant(
@@ -231,8 +231,8 @@ class COCORecallTest(tf.test.TestCase):
         )
         metric.update_state(y_true, y_pred)
 
-        self.assertEqual([2.0], metric.ground_truth_boxes)
-        self.assertEqual([[1.0]], metric.true_positives)
+        self.assertEqual([2], metric.ground_truth_boxes)
+        self.assertEqual([[1]], metric.true_positives)
 
     def test_true_positive_counting_one_true_two_pred(self):
         y_true = tf.constant(
@@ -255,13 +255,13 @@ class COCORecallTest(tf.test.TestCase):
             max_detections=1,
         )
         metric.update_state(y_true, y_pred)
-        self.assertEqual([[1.0]], metric.true_positives)
+        self.assertEqual([[1]], metric.true_positives)
 
         y_true = tf.constant([[[0, 0, 100, 100, 1]]], dtype=tf.float32)
         y_pred = tf.constant([[[0, 50, 100, 150, 1, 1.0]]], dtype=tf.float32)
 
         metric.update_state(y_true, y_pred)
-        self.assertEqual([[2.0]], metric.true_positives)
+        self.assertEqual([[2]], metric.true_positives)
 
     def test_matches_single_box(self):
         y_true = tf.constant([[[0, 0, 100, 100, 1]]], dtype=tf.float32)
@@ -276,7 +276,7 @@ class COCORecallTest(tf.test.TestCase):
         )
         metric.update_state(y_true, y_pred)
 
-        self.assertEqual([[1.0]], metric.true_positives)
+        self.assertEqual([[1]], metric.true_positives)
 
     def test_matches_single_false_positive(self):
         y_true = tf.constant([[[0, 0, 100, 100, 1]]], dtype=tf.float32)
@@ -290,4 +290,4 @@ class COCORecallTest(tf.test.TestCase):
         )
         metric.update_state(y_true, y_pred)
 
-        self.assertEqual([[0.0]], metric.true_positives)
+        self.assertEqual([[0]], metric.true_positives)
