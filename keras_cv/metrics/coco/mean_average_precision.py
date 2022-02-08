@@ -11,12 +11,12 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from numpy import pad
 import tensorflow as tf
 import tensorflow.keras as keras
 import tensorflow.keras.initializers as initializers
+from numpy import pad
 
-from keras_cv.metrics.coco import iou as iou_lib
+from keras_cv.utils import iou as iou_lib
 from keras_cv.metrics.coco import utils
 from keras_cv.utils import bbox
 
@@ -26,7 +26,7 @@ class COCOMeanAveragePrecision(tf.keras.metrics.Metric):
 
     Args:
         iou_thresholds: defaults to [0.5:0.05:0.95].
-        category_ids: no default, users must provide.
+        class_ids: no default, users must provide.
         area_range: area range to consider bounding boxes in. Defaults to all.
         max_detections: number of maximum detections a model is allowed to make.
         recall_thresholds: List of floats.  Defaults to [0:.01:1].
@@ -96,7 +96,7 @@ class COCOMeanAveragePrecision(tf.keras.metrics.Metric):
             ious = iou_lib.compute_ious_for_image(ground_truths, detections)
 
             pred_matches = utils.match_boxes(
-                ground_truths, detections, self.iou_threshold, ious
+                ious, self.iou_threshold
             )
             dt_scores = detections[:, bbox.CONFIDENCE]
             indices = tf.argsort(dt_scores, direction="DESCENDING")
@@ -104,42 +104,43 @@ class COCOMeanAveragePrecision(tf.keras.metrics.Metric):
             dt_scores = tf.gather(dt_scores, indices)
             dtm = tf.gather(pred_matches, indices)
 
-            tps = tf.cast(dtm != -1, tf.int32)
-            fps = tf.cast(dtm == -1, tf.int32)
+            tps = dtm != -1
+            fps = dtm == -1
 
-            confidence_buckets = tf.math.floor(self.num_buckets * dt_scores, tf.int32)
+            confidence_buckets = tf.cast(tf.math.floor(self.num_buckets * dt_scores), tf.int32)
 
-            # TODO(lukewood): vectorize this operation.  We should be able to
-            # using a mask constructed as follows:
-            # bucket_mask = tf.one_hot(tf.range(0, self.num_buckets), self.num_buckets)
-            # alongside with TensorFlow's broadcasting rules.
+            tps_by_bucket = tf.gather_nd(confidence_buckets, indices=tf.where(tps))
+            fps_by_bucket = tf.gather_nd(confidence_buckets, indices=tf.where(fps))
 
-            tps_by_bucket = tf.TensorArray(tf.int32, size=self.num_buckets)
-            fps_by_bucket = tf.TensorArray(tf.int32, size=self.num_buckets)
-            for bucket in range(self.num_buckets):
-                indices = tf.where(confidence_buckets == bucket)
-                tps_for_bucket = tf.gather(tps, indices)
-                fps_for_bucket = tf.gather(fps, indices)
-                tps_by_bucket = tps_by_bucket.write(
-                    bucket, tf.math.reduce_sum(tps_for_bucket)
-                )
-                fps_for_bucket = fps_by_bucket.write(
-                    bucket, tf.math.reduce_sum(fps_for_bucket)
-                )
+            tp_counts_per_bucket = tf.math.bincount(
+                tps_by_bucket, minlength=self.num_buckets, maxlength=self.num_buckets
+            )
+            fp_counts_per_bucket = tf.math.bincount(
+                fps_by_bucket, minlength=self.num_buckets, maxlength=self.num_buckets
+            )
 
-            self.true_positive_buckets.assign_add(tps_by_bucket.stack())
-            self.false_positive_buckets.assign_add(fps_by_bucket.stack())
+            self.true_positive_buckets.assign_add(tp_counts_per_bucket)
+            self.false_positive_buckets.assign_add(fp_counts_per_bucket)
 
             self.ground_truths.assign_add(tf.cast(tf.shape(ground_truths)[0], tf.int32))
 
     def result(self):
-        tp_sum = tf.cumsum(self.true_positive_buckets, axis=-1)
-        fp_sum = tf.cumsum(self.false_positive_buckets, axis=-1)
+        true_positives = tf.cast(self.true_positive_buckets, self.dtype)
+        false_positivves = tf.cast(self.false_positive_buckets, self.dtype)
+        ground_truths = tf.cast(self.ground_truths, self.dtype)
 
-        rc = tp_sum / self.ground_truths
-        pr = tp_sum / (fp_sum + tp_sum)
+        tp_sum = tf.cumsum(true_positives, axis=-1)
+        fp_sum = tf.cumsum(false_positivves, axis=-1)
+
+        if self.ground_truths == 0:
+            return
+
+        rc = tf.math.divide_no_nan(tp_sum, ground_truths)
+        pr = tf.math.divide_no_nan(tp_sum, (fp_sum + tp_sum))
+
         inds = tf.searchsorted(rc, tf.constant(self.recall_thresholds), side="left")
-        precision_result = tf.TensorArray(tf.float32, size=len(self.recall_thresholds))
+
+        precision_result = tf.TensorArray(self.dtype, size=len(self.recall_thresholds))
         for ri in tf.range(len(self.recall_thresholds)):
             pi = inds[ri]
             if pi < tf.shape(pr)[0]:

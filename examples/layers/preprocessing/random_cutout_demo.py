@@ -35,6 +35,7 @@ def main():
         height_factor=(0.3, 0.9),
         width_factor=64,
         fill_mode="gaussian_noise",
+        rate=1.0,
     )
     train_ds = train_ds.map(
         lambda x, y: (random_cutout(x), y), num_parallel_calls=tf.data.AUTOTUNE

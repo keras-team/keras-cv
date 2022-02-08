@@ -31,7 +31,7 @@ def main():
         .shuffle(10 * BATCH_SIZE)
         .batch(BATCH_SIZE)
     )
-    cutmix = preprocessing.CutMix()
+    cutmix = preprocessing.CutMix(1.0)
     train_ds = train_ds.map(cutmix, num_parallel_calls=tf.data.AUTOTUNE)
 
     for images, labels in train_ds.take(1):
