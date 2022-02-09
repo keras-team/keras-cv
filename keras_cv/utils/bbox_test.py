@@ -83,12 +83,12 @@ class BBOXTestCase(tf.test.TestCase):
 
         # Make sure to raise error if the rank is different between bbox and target
         # shape
-        with self.assertRaisesRegexp(ValueError, "Target shape should have same rank"):
+        with self.assertRaisesRegex(ValueError, "Target shape should have same rank"):
             bbox.pad_bbox_batch_to_shape(bboxes, [1, 2, 3])
 
         # Make sure raise error if the target shape is smaller
         target_shape = [3, 2]
-        with self.assertRaisesRegexp(
+        with self.assertRaisesRegex(
             ValueError, "Target shape should be larger than bounding box shape"
         ):
             bbox.pad_bbox_batch_to_shape(bboxes, target_shape)
