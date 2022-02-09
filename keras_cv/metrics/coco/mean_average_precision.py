@@ -34,9 +34,9 @@ class COCOMeanAveragePrecision(tf.keras.metrics.Metric):
 
     def __init__(
         self,
-        category_id=1,
+        category_ids,
         recall_thresholds=None,
-        iou_threshold=0.5,
+        iou_thresholds=None,
         area_range=(0, 1e9**2),
         max_detections=100,
         num_buckets=10000,
@@ -44,25 +44,26 @@ class COCOMeanAveragePrecision(tf.keras.metrics.Metric):
     ):
         super().__init__(**kwargs)
         # Initialize parameter values
-        self.iou_threshold = iou_threshold
+        self.iou_thresholds = iou_thresholds or [x / 100.0 for x in range(50, 100, 5)]
         self.area_range = area_range
         self.max_detections = max_detections
-        self.category_id = category_id
+        self.category_ids = category_ids
         self.recall_thresholds = recall_thresholds or [x / 100 for x in range(0, 101)]
         self.num_buckets = num_buckets
 
-        self.ground_truths = self.add_weight(
-            "ground_truths", dtype=tf.int32, initializer="zeros"
-        )
+        self.num_iou_thresholds = len(self.iou_thresholds)
+        self.num_category_ids = len(self.category_ids)
+
+        self.ground_truths = self.add_weight("ground_truths", shape=(self.num_category_ids,), dtype=tf.int32, initializer="zeros")
         self.true_positive_buckets = self.add_weight(
             "true_positive_buckets",
-            shape=(num_buckets,),
+            shape=(self.num_category_ids, self.num_iou_thresholds, num_buckets,),
             dtype=tf.int32,
             initializer="zeros",
         )
         self.false_positive_buckets = self.add_weight(
             "true_positive_buckets",
-            shape=(num_buckets,),
+            shape=(self.num_category_ids, self.num_iou_thresholds, num_buckets,),
             dtype=tf.int32,
             initializer="zeros",
         )
@@ -77,6 +78,10 @@ class COCOMeanAveragePrecision(tf.keras.metrics.Metric):
 
         y_pred = utils.sort_bboxes(y_pred, axis=bbox.CONFIDENCE)
 
+        ground_truth_boxes_update = tf.zeros_like(self.ground_truths)
+        true_positive_buckets_update = tf.zeros_like(self.true_positive_buckets)
+        false_positive_buckets_update = tf.zeros_like(self.false_positive_buckets)
+
         for img in tf.range(num_images):
             ground_truths = utils.filter_out_sentinels(y_true[img])
             detections = utils.filter_out_sentinels(y_pred[img])
@@ -86,43 +91,78 @@ class COCOMeanAveragePrecision(tf.keras.metrics.Metric):
             detections = utils.filter_boxes_by_area_range(
                 detections, self.area_range[0], self.area_range[1]
             )
-            ground_truths = utils.filter_boxes(
-                ground_truths, value=self.category_id, axis=bbox.CLASS
-            )
-            detections = utils.filter_boxes(
-                detections, value=self.category_id, axis=bbox.CLASS
-            )
 
-            ious = iou_lib.compute_ious_for_image(ground_truths, detections)
+            true_positives_update = tf.TensorArray(tf.int32, size=self.num_category_ids * self.num_iou_thresholds)
+            false_positives_update = tf.TensorArray(tf.int32, size=self.num_category_ids * self.num_iou_thresholds)
+            ground_truths_update = tf.TensorArray(tf.int32, size=self.num_category_ids)
 
-            pred_matches = utils.match_boxes(
-                ious, self.iou_threshold
-            )
-            dt_scores = detections[:, bbox.CONFIDENCE]
-            indices = tf.argsort(dt_scores, direction="DESCENDING")
+            for c_i in range(self.num_category_ids):
+                category_id = self.category_ids[c_i]
+                ground_truths = utils.filter_boxes(
+                    ground_truths, value=category_id, axis=bbox.CLASS
+                )
+                detections = utils.filter_boxes(
+                    detections, value=category_id, axis=bbox.CLASS
+                )
+                ground_truths_update = ground_truths_update.write(c_i, tf.shape(ground_truths)[0])
 
-            dt_scores = tf.gather(dt_scores, indices)
-            dtm = tf.gather(pred_matches, indices)
+                ious = iou_lib.compute_ious_for_image(ground_truths, detections)
 
-            tps = dtm != -1
-            fps = dtm == -1
+                for iou_i in range(self.num_iou_thresholds):
+                    iou_threshold = self.iou_thresholds[iou_i]
 
-            confidence_buckets = tf.cast(tf.math.floor(self.num_buckets * dt_scores), tf.int32)
+                    pred_matches = utils.match_boxes(
+                        ious, iou_threshold
+                    )
+                    dt_scores = detections[:, bbox.CONFIDENCE]
+                    indices = tf.argsort(dt_scores, direction="DESCENDING")
 
-            tps_by_bucket = tf.gather_nd(confidence_buckets, indices=tf.where(tps))
-            fps_by_bucket = tf.gather_nd(confidence_buckets, indices=tf.where(fps))
+                    dt_scores = tf.gather(dt_scores, indices)
+                    dtm = tf.gather(pred_matches, indices)
 
-            tp_counts_per_bucket = tf.math.bincount(
-                tps_by_bucket, minlength=self.num_buckets, maxlength=self.num_buckets
-            )
-            fp_counts_per_bucket = tf.math.bincount(
-                fps_by_bucket, minlength=self.num_buckets, maxlength=self.num_buckets
-            )
+                    tps = dtm != -1
+                    fps = dtm == -1
 
-            self.true_positive_buckets.assign_add(tp_counts_per_bucket)
-            self.false_positive_buckets.assign_add(fp_counts_per_bucket)
+                    tf.print('tps', tps.shape)
 
-            self.ground_truths.assign_add(tf.cast(tf.shape(ground_truths)[0], tf.int32))
+                    confidence_buckets = tf.cast(tf.math.floor(self.num_buckets * dt_scores), tf.int32)
+
+                    tps_by_bucket = tf.gather_nd(confidence_buckets, indices=tf.where(tps))
+                    fps_by_bucket = tf.gather_nd(confidence_buckets, indices=tf.where(fps))
+
+                    tf.print('tps_by_bucket', tps_by_bucket.shape)
+
+                    tp_counts_per_bucket = tf.math.bincount(
+                        tps_by_bucket, minlength=self.num_buckets, maxlength=self.num_buckets
+                    )
+                    fp_counts_per_bucket = tf.math.bincount(
+                        fps_by_bucket, minlength=self.num_buckets, maxlength=self.num_buckets
+                    )
+                    true_positives_update = true_positives_update.write((iou_i * c_i) + iou_i, tp_counts_per_bucket)
+                    false_positives_update = false_positives_update.write((iou_i * c_i) + iou_i, fp_counts_per_bucket)
+
+            true_positives_update = tf.reshape(true_positives_update.stack(), (self.num_category_ids, self.num_iou_thresholds, self.num_buckets))
+            false_positives_update = tf.reshape(false_positives_update.stack(), (self.num_category_ids, self.num_iou_thresholds, self.num_buckets))
+
+            true_positive_buckets_update = true_positive_buckets_update + true_positives_update
+            false_positive_buckets_update = false_positive_buckets_update + false_positives_update
+            ground_truth_boxes_update = ground_truth_boxes_update + ground_truths_update.stack()
+
+                #     indices = [[c_i, iou_i, i] for i in range(self.num_buckets)]
+                #     true_positive_buckets_update = tf.tensor_scatter_nd_add(
+                #         true_positive_buckets_update,
+                #         [indices],
+                #         tp_counts_per_bucket
+                #     )
+                #     false_positive_buckets_update = tf.tensor_scatter_nd_add(
+                #         false_positive_buckets_update,
+                #         [indices],
+                #         fp_counts_per_bucket
+                #     )
+        self.ground_truths.assign_add(ground_truth_boxes_update)
+        self.true_positive_buckets.assign_add(true_positive_buckets_update)
+        self.false_positive_buckets.assign_add(false_positive_buckets_update)
+        tf.print(self.ground_truths)
 
     def result(self):
         true_positives = tf.cast(self.true_positive_buckets, self.dtype)
@@ -132,13 +172,18 @@ class COCOMeanAveragePrecision(tf.keras.metrics.Metric):
         tp_sum = tf.cumsum(true_positives, axis=-1)
         fp_sum = tf.cumsum(false_positivves, axis=-1)
 
-        if self.ground_truths == 0:
-            return
+        present_categories = tf.math.reduce_sum(tf.cast(ground_truths != 0, tf.int32))
 
-        rc = tf.math.divide_no_nan(tp_sum, ground_truths)
+        if present_categories == 0:
+            return 0.0
+
+        # tp_sum shape, [categories, iou_thr, n_buckets]
+        rc = tf.math.divide_no_nan(tp_sum, ground_truths[:, None, None])
         pr = tf.math.divide_no_nan(tp_sum, (fp_sum + tp_sum))
 
+        # search sorted always applies to the -1 axis
         inds = tf.searchsorted(rc, tf.constant(self.recall_thresholds), side="left")
+        tf.print(inds.shape)
 
         precision_result = tf.TensorArray(self.dtype, size=len(self.recall_thresholds))
         for ri in tf.range(len(self.recall_thresholds)):
