@@ -112,8 +112,17 @@ IMG_SHAPE = (5, 224, 224)
 img = tf.ones(IMG_SHAPE)
 masks = _compute_masks(img)
 
-# TODO: Rotate mask
-# TODO: Center crop mask
+masks = tf.expand_dims(tf.cast(masks, tf.uint8), -1)
+
+rotate = tf.keras.layers.RandomRotation(
+    factor=1.0, fill_mode="constant", fill_value=0.0
+)
+masks = rotate(masks)
+
+center_crop = tf.keras.layers.CenterCrop(224, 224)
+masks = center_crop(masks)
+
+masks = tf.cast(masks, tf.bool)
 
 for m in masks:
     plt.imshow(m)
