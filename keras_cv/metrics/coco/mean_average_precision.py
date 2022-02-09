@@ -123,14 +123,10 @@ class COCOMeanAveragePrecision(tf.keras.metrics.Metric):
                     tps = dtm != -1
                     fps = dtm == -1
 
-                    tf.print('tps', tps.shape)
-
                     confidence_buckets = tf.cast(tf.math.floor(self.num_buckets * dt_scores), tf.int32)
 
                     tps_by_bucket = tf.gather_nd(confidence_buckets, indices=tf.where(tps))
                     fps_by_bucket = tf.gather_nd(confidence_buckets, indices=tf.where(fps))
-
-                    tf.print('tps_by_bucket', tps_by_bucket.shape)
 
                     tp_counts_per_bucket = tf.math.bincount(
                         tps_by_bucket, minlength=self.num_buckets, maxlength=self.num_buckets
@@ -162,7 +158,6 @@ class COCOMeanAveragePrecision(tf.keras.metrics.Metric):
         self.ground_truths.assign_add(ground_truth_boxes_update)
         self.true_positive_buckets.assign_add(true_positive_buckets_update)
         self.false_positive_buckets.assign_add(false_positive_buckets_update)
-        tf.print(self.ground_truths)
 
     def result(self):
         true_positives = tf.cast(self.true_positive_buckets, self.dtype)
@@ -181,16 +176,24 @@ class COCOMeanAveragePrecision(tf.keras.metrics.Metric):
         rc = tf.math.divide_no_nan(tp_sum, ground_truths[:, None, None])
         pr = tf.math.divide_no_nan(tp_sum, (fp_sum + tp_sum))
 
-        # search sorted always applies to the -1 axis
-        inds = tf.searchsorted(rc, tf.constant(self.recall_thresholds), side="left")
-        tf.print(inds.shape)
+        result = tf.TensorArray(tf.float32, size=self.num_category_ids*self.num_iou_thresholds)
+        for i in range(self.num_category_ids):
+            for j in range(self.num_iou_thresholds):
+                rc_i = rc[i, j]
+                pr_i = pr[i, j]
+                inds = tf.searchsorted(rc_i, tf.constant(self.recall_thresholds), side="left")
 
-        precision_result = tf.TensorArray(self.dtype, size=len(self.recall_thresholds))
-        for ri in tf.range(len(self.recall_thresholds)):
-            pi = inds[ri]
-            if pi < tf.shape(pr)[0]:
-                pr_res = pr[pi]
-                precision_result = precision_result.write(ri, pr_res)
+                precision_result = tf.TensorArray(self.dtype, size=len(self.recall_thresholds))
+                for ri in tf.range(len(self.recall_thresholds)):
+                    pi = inds[ri]
+                    if pi < tf.shape(pr_i)[0]:
+                        pr_res = pr_i[pi]
+                        precision_result = precision_result.write(ri, pr_res)
 
-        pr_per_threshold = precision_result.stack()
-        return tf.math.reduce_mean(pr_per_threshold)
+                pr_per_recall_threshold = precision_result.stack()
+                result_ij = tf.math.reduce_mean(pr_per_recall_threshold, axis=-1)
+                result = result.write(j + i*j, result_ij)
+
+        result = tf.reshape(result.stack(), (self.num_category_ids, self.num_iou_thresholds))
+        result = tf.math.reduce_mean(result, axis=-1)
+        return tf.math.reduce_sum(result, axis=0) / tf.cast(present_categories, tf.float32)
