@@ -18,7 +18,7 @@ import os
 import numpy as np
 import tensorflow as tf
 
-from keras_cv.metrics.coco.recall import COCORecall
+from keras_cv.metrics import COCORecall
 from keras_cv.utils import bbox
 
 SAMPLE_FILE = os.path.dirname(os.path.abspath(__file__)) + "/sample_boxes.npz"
@@ -47,7 +47,7 @@ class RecallCorrectnessTest(tf.test.TestCase):
 
         # Area range all
         recall = COCORecall(
-            category_ids=categories + [1000],
+            class_ids=categories + [1000],
             max_detections=1,
             area_range=(0, 1e5**2),
         )
@@ -61,7 +61,7 @@ class RecallCorrectnessTest(tf.test.TestCase):
 
         # Area range all
         recall = COCORecall(
-            category_ids=categories + [1000],
+            class_ids=categories + [1000],
             max_detections=10,
             area_range=(0, 1e5**2),
         )
@@ -75,7 +75,7 @@ class RecallCorrectnessTest(tf.test.TestCase):
 
         # Area range all
         recall = COCORecall(
-            category_ids=categories + [1000],
+            class_ids=categories + [1000],
             max_detections=100,
             area_range=(0, 1e5**2),
         )
@@ -87,7 +87,7 @@ class RecallCorrectnessTest(tf.test.TestCase):
     def test_recall_correctness_small_objects(self):
         y_true, y_pred, categories = load_samples(SAMPLE_FILE)
         recall = COCORecall(
-            category_ids=categories + [1000],
+            class_ids=categories + [1000],
             max_detections=100,
             area_range=(0, 32**2),
         )
@@ -99,7 +99,7 @@ class RecallCorrectnessTest(tf.test.TestCase):
     def test_recall_correctness_medium_objects(self):
         y_true, y_pred, categories = load_samples(SAMPLE_FILE)
         recall = COCORecall(
-            category_ids=categories + [1000],
+            class_ids=categories + [1000],
             max_detections=100,
             area_range=(32**2, 96**2),
         )
@@ -111,7 +111,7 @@ class RecallCorrectnessTest(tf.test.TestCase):
     def test_recall_correctness_large_objects(self):
         y_true, y_pred, categories = load_samples(SAMPLE_FILE)
         recall = COCORecall(
-            category_ids=categories + [1000],
+            class_ids=categories + [1000],
             max_detections=100,
             area_range=(96**2, 1e5**2),
         )
