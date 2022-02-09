@@ -98,7 +98,7 @@ def _compute_masks(inputs):
     mask_shape = (tf.shape(corners)[0], mask_hw, mask_hw)
     masks = fill_utils.rectangle_masks(mask_shape, corners)
 
-    # reshape masks into shape (batch_size, rectangles_per_image, mask_width, mask_height)
+    # reshape masks into shape (batch_size, rectangles_per_image, mask_height, mask_width)
     masks = tf.reshape(masks, [-1, max_grid_size * max_grid_size, mask_hw, mask_hw])
 
     # combine rectangle masks per image
