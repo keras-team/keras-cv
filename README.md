@@ -17,6 +17,12 @@ are maintained by the Keras team itself (unlike TFAddons).
 Currently, KerasCV is operating pre-release.  Upon launch of KerasCV 1.0, full API docs and code examples
 will be available.  To learn more about the project, please check the [roadmap](.github/ROADMAP.md).
 
+## Quick Links
+- [Contributing Guide](.github/CONTRIBUTING.md)
+- [Call for Contributions](https://github.com/keras-team/keras-cv/issues?q=is%3Aopen+is%3Aissue+label%3Acontribution-welcome)
+- [Roadmap](.github/ROADMAP.md)
+- [API Design Guidelines](.github/API_DESIGN.md)
+
 ## Contributors
 If you'd like to contribute, please see our [contributing guide](.github/CONTRIBUTING.md).
 
