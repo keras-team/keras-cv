@@ -99,18 +99,18 @@ class RandomBrightness(tf.keras.layers.Layer):
             false_fn=lambda: inputs,
         )
 
-    def _brightness_adjust(self, image):
-        rank = image.shape.rank
+    def _brightness_adjust(self, images):
+        rank = images.shape.rank
         if rank == 3:
             rgb_delta_shape = (3,)
         elif rank == 4:
             # Skip the width and height, but keep the batch and channel.
             # This will ensure to have same adjustment for one channel, but different
             # across the images.
-            rgb_delta_shape = [tf.shape(image)[0], 1, 1, 3]
+            rgb_delta_shape = [tf.shape(images)[0], 1, 1, 3]
         else:
             raise ValueError(
-                f"Expect the input image to be rank 3 or 4. Got {image.shape}"
+                f"Expect the input image to be rank 3 or 4. Got {images.shape}"
             )
         if self._seed is not None:
             rgb_delta = tf.random.stateless_uniform(
@@ -124,11 +124,11 @@ class RandomBrightness(tf.keras.layers.Layer):
                 shape=rgb_delta_shape, minval=self._scale[0], maxval=self._scale[1]
             )
         rgb_delta = rgb_delta * 255.0
-        input_dtype = image.dtype
-        image = tf.cast(image, tf.float32)
-        image += rgb_delta
-        image = tf.clip_by_value(image, 0.0, 255.0)
-        return tf.cast(image, input_dtype)
+        input_dtype = images.dtype
+        images = tf.cast(images, tf.float32)
+        images += rgb_delta
+        images = tf.clip_by_value(images, 0.0, 255.0)
+        return tf.cast(images, input_dtype)
 
     def get_config(self):
         config = {
