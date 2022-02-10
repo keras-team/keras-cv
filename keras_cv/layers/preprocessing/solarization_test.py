@@ -17,7 +17,6 @@ from keras_cv.layers.preprocessing.solarization import Solarization
 
 
 class SolarizationTest(tf.test.TestCase):
-
     def test_range_0_to_255(self):
         solarization = Solarization()
 
