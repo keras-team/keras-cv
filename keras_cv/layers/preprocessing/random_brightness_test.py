@@ -76,13 +76,19 @@ class RandomBrightnessTest(tf.test.TestCase):
         self.assertLessEqual(tf.math.reduce_max(diff), 0)
         self.assertLess(tf.math.reduce_mean(diff), 0)
 
-    def test_same_adjustment_within_batch(self):
+    def test_different_adjustment_within_batch(self):
         layer = preprocessing.RandomBrightness([0.2, 0.3])
-        inputs = np.zeros(shape=(2, 224, 224, 3))   # 2 images with all zeros
+        inputs = np.zeros(shape=(2, 10, 10, 3))   # 2 images with all zeros
         output = layer(inputs, training=True)
         diff = output - inputs
         # Make sure two images gets the same adjustment
-        self.assertAllClose(diff[0], diff[1])
+        self.assertNotAllClose(diff[0], diff[1])
+        # Make sure all the pixel are the same with the same image
+        image1 = output[0]
+        # The reduced mean pixel value among width and height are the same as
+        # any of the pixel in the image.
+        self.assertAllClose(tf.reduce_mean(image1, axis=[0, 1]), image1[0, 0],
+                            rtol=1e-5, atol=1e-5)
 
     def test_inference(self):
         layer = preprocessing.RandomBrightness([0, 1.0])

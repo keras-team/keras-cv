@@ -25,7 +25,7 @@ class RandomBrightness(tf.keras.layers.Layer):
     During inference time, the output will be identical to input. Call the layer with
     training=True to adjust brightness of the input.
 
-    Note that same brightness adjustment will be apply to all the images in the same
+    Note that different brightness adjustment will be apply to each the images in the
     batch.
 
     Args:
@@ -97,13 +97,24 @@ class RandomBrightness(tf.keras.layers.Layer):
             false_fn=lambda: image)
 
     def _brightness_adjust(self, image):
+        rank = image.shape.rank
+        if rank == 3:
+            rgb_delta_shape = (3,)
+        elif rank == 4:
+            # Skip the width and height, but keep the batch and channel.
+            # This will ensure to have same adjustment for one channel, but different
+            # across the images.
+            rgb_delta_shape = [tf.shape(image)[0], 1, 1, 3]
+        else:
+            raise ValueError(
+                f'Expect the input image to be rank 3 or 4. Got {image.shape}')
         if self._seed is not None:
             rgb_delta = tf.random.stateless_uniform(
-                shape=(3,), seed=[0, self._seed],
+                shape=rgb_delta_shape, seed=[0, self._seed],
                 minval=self._scale[0], maxval=self._scale[1])
         else:
             rgb_delta = tf.random.uniform(
-                shape=(3,), minval=self._scale[0], maxval=self._scale[1])
+                shape=rgb_delta_shape, minval=self._scale[0], maxval=self._scale[1])
         rgb_delta = rgb_delta * 255.0
         input_dtype = image.dtype
         image = tf.cast(image, tf.float32)
