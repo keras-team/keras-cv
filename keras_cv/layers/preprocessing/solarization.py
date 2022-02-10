@@ -17,6 +17,16 @@ import tensorflow as tf
 class Solarization(tf.keras.layers.Layer):
     """Applies (max_value - pixel + min_value) for each pixel in the image.
 
+    When created without `threshold` parameter, the layer performs the equivalent of
+    `Invert` transform from `AutoAugment` paper. When created with specified `threshold`
+    value, the layer performs the equivalent of `Solarize` transform from `AutoAugment`
+    paper.
+
+    Reference:
+    - [AutoAugment: Learning Augmentation Policies from Data](
+        https://arxiv.org/abs/1805.09501
+    )
+
     Args:
         min_value: int or float. Lower bound of input pixel values.
         max_value: int or float. Upper bound of input pixel values.
@@ -27,11 +37,13 @@ class Solarization(tf.keras.layers.Layer):
 
     ```python
         (images, labels), _ = tf.keras.datasets.cifar10.load_data()
-        print(images[0, 0, 0])  # [59 62 63]
+        print(images[0, 0, 0])
+        # [59 62 63]
         # Note that images are Tensor with values in the range [0, 255]
         solarization = Solarization(min_value=0, max_value=255)
         images = solarization(images)
-        print(images[0, 0, 0])  # [196, 193, 192]
+        print(images[0, 0, 0])
+        # [196, 193, 192]
     ```
 
     Call arguments:
