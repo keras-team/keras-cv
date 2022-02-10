@@ -37,7 +37,7 @@ class COCOMeanAveragePrecision(tf.keras.metrics.Metric):
         category_ids,
         recall_thresholds=None,
         iou_thresholds=None,
-        area_range=(0, 1e9**2),
+        area_range=None,
         max_detections=100,
         num_buckets=10000,
         **kwargs
@@ -85,12 +85,14 @@ class COCOMeanAveragePrecision(tf.keras.metrics.Metric):
         for img in tf.range(num_images):
             ground_truths = utils.filter_out_sentinels(y_true[img])
             detections = utils.filter_out_sentinels(y_pred[img])
-            ground_truths = utils.filter_boxes_by_area_range(
-                ground_truths, self.area_range[0], self.area_range[1]
-            )
-            detections = utils.filter_boxes_by_area_range(
-                detections, self.area_range[0], self.area_range[1]
-            )
+
+            if self.area_range is not None:
+                ground_truths = utils.filter_boxes_by_area_range(
+                    ground_truths, self.area_range[0], self.area_range[1]
+                )
+                detections = utils.filter_boxes_by_area_range(
+                    detections, self.area_range[0], self.area_range[1]
+                )
 
             true_positives_update = tf.TensorArray(tf.int32, size=self.num_category_ids * self.num_iou_thresholds)
             false_positives_update = tf.TensorArray(tf.int32, size=self.num_category_ids * self.num_iou_thresholds)
@@ -134,8 +136,8 @@ class COCOMeanAveragePrecision(tf.keras.metrics.Metric):
                     fp_counts_per_bucket = tf.math.bincount(
                         fps_by_bucket, minlength=self.num_buckets, maxlength=self.num_buckets
                     )
-                    true_positives_update = true_positives_update.write((iou_i * c_i) + iou_i, tp_counts_per_bucket)
-                    false_positives_update = false_positives_update.write((iou_i * c_i) + iou_i, fp_counts_per_bucket)
+                    true_positives_update = true_positives_update.write((self.num_iou_thresholds * c_i) + iou_i, tp_counts_per_bucket)
+                    false_positives_update = false_positives_update.write((self.num_iou_thresholds * c_i) + iou_i, fp_counts_per_bucket)
 
             true_positives_update = tf.reshape(true_positives_update.stack(), (self.num_category_ids, self.num_iou_thresholds, self.num_buckets))
             false_positives_update = tf.reshape(false_positives_update.stack(), (self.num_category_ids, self.num_iou_thresholds, self.num_buckets))
@@ -144,17 +146,6 @@ class COCOMeanAveragePrecision(tf.keras.metrics.Metric):
             false_positive_buckets_update = false_positive_buckets_update + false_positives_update
             ground_truth_boxes_update = ground_truth_boxes_update + ground_truths_update.stack()
 
-                #     indices = [[c_i, iou_i, i] for i in range(self.num_buckets)]
-                #     true_positive_buckets_update = tf.tensor_scatter_nd_add(
-                #         true_positive_buckets_update,
-                #         [indices],
-                #         tp_counts_per_bucket
-                #     )
-                #     false_positive_buckets_update = tf.tensor_scatter_nd_add(
-                #         false_positive_buckets_update,
-                #         [indices],
-                #         fp_counts_per_bucket
-                #     )
         self.ground_truths.assign_add(ground_truth_boxes_update)
         self.true_positive_buckets.assign_add(true_positive_buckets_update)
         self.false_positive_buckets.assign_add(false_positive_buckets_update)
@@ -192,7 +183,7 @@ class COCOMeanAveragePrecision(tf.keras.metrics.Metric):
 
                 pr_per_recall_threshold = precision_result.stack()
                 result_ij = tf.math.reduce_mean(pr_per_recall_threshold, axis=-1)
-                result = result.write(j + i*j, result_ij)
+                result = result.write(j + i*self.num_iou_thresholds, result_ij)
 
         result = tf.reshape(result.stack(), (self.num_category_ids, self.num_iou_thresholds))
         result = tf.math.reduce_mean(result, axis=-1)

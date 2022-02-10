@@ -41,3 +41,10 @@ class COCOMeanAveragePrecisionTest(tf.test.TestCase):
         model.evaluate(y_pred, y_true)
 
         self.assertAllEqual(mean_average_precision.result(), 1.0)
+
+    def test_result_method(self):
+        mean_average_precision = COCOMeanAveragePrecision(
+            max_detections=100,
+            class_ids=[1],
+            num_buckets=2
+        )
