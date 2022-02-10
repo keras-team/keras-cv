@@ -28,8 +28,6 @@ class Solarization(tf.keras.layers.Layer):
     )
 
     Args:
-        min_value: int or float. Lower bound of input pixel values.
-        max_value: int or float. Upper bound of input pixel values.
         threshold: (Optionally) int or float. If specified, only pixel values above this
             threshold will be solarized.
 
@@ -40,7 +38,7 @@ class Solarization(tf.keras.layers.Layer):
         print(images[0, 0, 0])
         # [59 62 63]
         # Note that images are Tensor with values in the range [0, 255]
-        solarization = Solarization(min_value=0, max_value=255)
+        solarization = Solarization()
         images = solarization(images)
         print(images[0, 0, 0])
         # [196, 193, 192]
@@ -48,25 +46,17 @@ class Solarization(tf.keras.layers.Layer):
 
     Call arguments:
         images: Tensor of type int or float, with pixels in
-            range [`min_value`, `max_value`] and shape [batch, height, width, channels]
+            range [0, 255] and shape [batch, height, width, channels]
             or [height, width, channels].
     """
 
-    def __init__(self, min_value, max_value, threshold=None):
+    def __init__(self, threshold=None):
         super().__init__()
-
-        assert min_value < max_value, (
-            "`min_value` should be smaller than `max_value`. "
-            f"Received: min_value: {min_value}, max_value: {max_value}"
-        )
-
-        self.min_value = min_value
-        self.max_value = max_value
         self.threshold = threshold
 
     def call(self, images):
         images = tf.clip_by_value(
-            images, clip_value_min=self.min_value, clip_value_max=self.max_value
+            images, clip_value_min=0, clip_value_max=255
         )
         if self.threshold is None:
             return self._solarize(images)
@@ -74,7 +64,7 @@ class Solarization(tf.keras.layers.Layer):
             return self._solarize_above_threshold(images)
 
     def _solarize(self, images):
-        return self.max_value - images + self.min_value
+        return 255 - images 
 
     def _solarize_above_threshold(self, images):
         return tf.where(images < self.threshold, images, self._solarize(images))
