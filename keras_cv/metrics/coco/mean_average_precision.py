@@ -16,9 +16,9 @@ import tensorflow.keras as keras
 import tensorflow.keras.initializers as initializers
 from numpy import pad
 
-from keras_cv.utils import iou as iou_lib
 from keras_cv.metrics.coco import utils
 from keras_cv.utils import bbox
+from keras_cv.utils import iou as iou_lib
 
 
 class COCOMeanAveragePrecision(tf.keras.metrics.Metric):
@@ -54,16 +54,29 @@ class COCOMeanAveragePrecision(tf.keras.metrics.Metric):
         self.num_iou_thresholds = len(self.iou_thresholds)
         self.num_category_ids = len(self.category_ids)
 
-        self.ground_truths = self.add_weight("ground_truths", shape=(self.num_category_ids,), dtype=tf.int32, initializer="zeros")
+        self.ground_truths = self.add_weight(
+            "ground_truths",
+            shape=(self.num_category_ids,),
+            dtype=tf.int32,
+            initializer="zeros",
+        )
         self.true_positive_buckets = self.add_weight(
             "true_positive_buckets",
-            shape=(self.num_category_ids, self.num_iou_thresholds, num_buckets,),
+            shape=(
+                self.num_category_ids,
+                self.num_iou_thresholds,
+                num_buckets,
+            ),
             dtype=tf.int32,
             initializer="zeros",
         )
         self.false_positive_buckets = self.add_weight(
             "true_positive_buckets",
-            shape=(self.num_category_ids, self.num_iou_thresholds, num_buckets,),
+            shape=(
+                self.num_category_ids,
+                self.num_iou_thresholds,
+                num_buckets,
+            ),
             dtype=tf.int32,
             initializer="zeros",
         )
@@ -73,6 +86,7 @@ class COCOMeanAveragePrecision(tf.keras.metrics.Metric):
         self.false_positive_buckets.assign(tf.zeros_like(self.false_positive_buckets))
         self.ground_truths.assign(tf.zeros_like(self.ground_truths))
 
+    @tf.function
     def update_state(self, y_true, y_pred):
         num_images = tf.shape(y_true)[0]
 
@@ -98,8 +112,12 @@ class COCOMeanAveragePrecision(tf.keras.metrics.Metric):
                     detections, self.area_range[0], self.area_range[1]
                 )
 
-            true_positives_update = tf.TensorArray(tf.int32, size=self.num_category_ids * self.num_iou_thresholds)
-            false_positives_update = tf.TensorArray(tf.int32, size=self.num_category_ids * self.num_iou_thresholds)
+            true_positives_update = tf.TensorArray(
+                tf.int32, size=self.num_category_ids * self.num_iou_thresholds
+            )
+            false_positives_update = tf.TensorArray(
+                tf.int32, size=self.num_category_ids * self.num_iou_thresholds
+            )
             ground_truths_update = tf.TensorArray(tf.int32, size=self.num_category_ids)
 
             for c_i in range(self.num_category_ids):
@@ -108,21 +126,22 @@ class COCOMeanAveragePrecision(tf.keras.metrics.Metric):
                     ground_truths, value=category_id, axis=bbox.CLASS
                 )
 
-
                 detections = utils.filter_boxes(
                     detections, value=category_id, axis=bbox.CLASS
                 )
+                if self.max_detections < tf.shape(detections)[0]:
+                    detections = detections[: self.max_detections]
 
-                ground_truths_update = ground_truths_update.write(c_i, tf.shape(ground_truths)[0])
+                ground_truths_update = ground_truths_update.write(
+                    c_i, tf.shape(ground_truths)[0]
+                )
 
                 ious = iou_lib.compute_ious_for_image(ground_truths, detections)
 
                 for iou_i in range(self.num_iou_thresholds):
                     iou_threshold = self.iou_thresholds[iou_i]
 
-                    pred_matches = utils.match_boxes(
-                        ious, iou_threshold
-                    )
+                    pred_matches = utils.match_boxes(ious, iou_threshold)
                     dt_scores = detections[:, bbox.CONFIDENCE]
                     indices = tf.argsort(dt_scores, direction="DESCENDING")
 
@@ -132,31 +151,58 @@ class COCOMeanAveragePrecision(tf.keras.metrics.Metric):
                     tps = dtm != -1
                     fps = dtm == -1
 
-                    confidence_buckets = tf.cast(tf.math.floor(self.num_buckets * dt_scores), tf.int32)
+                    confidence_buckets = tf.cast(
+                        tf.math.floor(self.num_buckets * dt_scores), tf.int32
+                    )
 
-                    tps_by_bucket = tf.gather_nd(confidence_buckets, indices=tf.where(tps))
-                    fps_by_bucket = tf.gather_nd(confidence_buckets, indices=tf.where(fps))
+                    tps_by_bucket = tf.gather_nd(
+                        confidence_buckets, indices=tf.where(tps)
+                    )
+                    fps_by_bucket = tf.gather_nd(
+                        confidence_buckets, indices=tf.where(fps)
+                    )
 
                     tp_counts_per_bucket = tf.math.bincount(
-                        tps_by_bucket, minlength=self.num_buckets, maxlength=self.num_buckets
+                        tps_by_bucket,
+                        minlength=self.num_buckets,
+                        maxlength=self.num_buckets,
                     )
                     fp_counts_per_bucket = tf.math.bincount(
-                        fps_by_bucket, minlength=self.num_buckets, maxlength=self.num_buckets
+                        fps_by_bucket,
+                        minlength=self.num_buckets,
+                        maxlength=self.num_buckets,
                     )
-                    true_positives_update = true_positives_update.write((self.num_iou_thresholds * c_i) + iou_i, tp_counts_per_bucket)
-                    false_positives_update = false_positives_update.write((self.num_iou_thresholds * c_i) + iou_i, fp_counts_per_bucket)
+                    true_positives_update = true_positives_update.write(
+                        (self.num_iou_thresholds * c_i) + iou_i, tp_counts_per_bucket
+                    )
+                    false_positives_update = false_positives_update.write(
+                        (self.num_iou_thresholds * c_i) + iou_i, fp_counts_per_bucket
+                    )
 
-            true_positives_update = tf.reshape(true_positives_update.stack(), (self.num_category_ids, self.num_iou_thresholds, self.num_buckets))
-            false_positives_update = tf.reshape(false_positives_update.stack(), (self.num_category_ids, self.num_iou_thresholds, self.num_buckets))
+            true_positives_update = tf.reshape(
+                true_positives_update.stack(),
+                (self.num_category_ids, self.num_iou_thresholds, self.num_buckets),
+            )
+            false_positives_update = tf.reshape(
+                false_positives_update.stack(),
+                (self.num_category_ids, self.num_iou_thresholds, self.num_buckets),
+            )
 
-            true_positive_buckets_update = true_positive_buckets_update + true_positives_update
-            false_positive_buckets_update = false_positive_buckets_update + false_positives_update
-            ground_truth_boxes_update = ground_truth_boxes_update + ground_truths_update.stack()
+            true_positive_buckets_update = (
+                true_positive_buckets_update + true_positives_update
+            )
+            false_positive_buckets_update = (
+                false_positive_buckets_update + false_positives_update
+            )
+            ground_truth_boxes_update = (
+                ground_truth_boxes_update + ground_truths_update.stack()
+            )
 
         self.ground_truths.assign_add(ground_truth_boxes_update)
         self.true_positive_buckets.assign_add(true_positive_buckets_update)
         self.false_positive_buckets.assign_add(false_positive_buckets_update)
 
+    @tf.function
     def result(self):
         true_positives = tf.cast(self.true_positive_buckets, self.dtype)
         false_positivves = tf.cast(self.false_positive_buckets, self.dtype)
@@ -174,14 +220,20 @@ class COCOMeanAveragePrecision(tf.keras.metrics.Metric):
         rc = tf.math.divide_no_nan(tp_sum, ground_truths[:, None, None])
         pr = tf.math.divide_no_nan(tp_sum, (fp_sum + tp_sum))
 
-        result = tf.TensorArray(tf.float32, size=self.num_category_ids*self.num_iou_thresholds)
+        result = tf.TensorArray(
+            tf.float32, size=self.num_category_ids * self.num_iou_thresholds
+        )
         for i in range(self.num_category_ids):
             for j in range(self.num_iou_thresholds):
                 rc_i = rc[i, j]
                 pr_i = pr[i, j]
-                inds = tf.searchsorted(rc_i, tf.constant(self.recall_thresholds), side="left")
+                inds = tf.searchsorted(
+                    rc_i, tf.constant(self.recall_thresholds), side="left"
+                )
 
-                precision_result = tf.TensorArray(self.dtype, size=len(self.recall_thresholds))
+                precision_result = tf.TensorArray(
+                    self.dtype, size=len(self.recall_thresholds)
+                )
                 for ri in tf.range(len(self.recall_thresholds)):
                     pi = inds[ri]
                     if pi < tf.shape(pr_i)[0]:
@@ -190,8 +242,12 @@ class COCOMeanAveragePrecision(tf.keras.metrics.Metric):
 
                 pr_per_recall_threshold = precision_result.stack()
                 result_ij = tf.math.reduce_mean(pr_per_recall_threshold, axis=-1)
-                result = result.write(j + i*self.num_iou_thresholds, result_ij)
+                result = result.write(j + i * self.num_iou_thresholds, result_ij)
 
-        result = tf.reshape(result.stack(), (self.num_category_ids, self.num_iou_thresholds))
+        result = tf.reshape(
+            result.stack(), (self.num_category_ids, self.num_iou_thresholds)
+        )
         result = tf.math.reduce_mean(result, axis=-1)
-        return tf.math.reduce_sum(result, axis=0) / tf.cast(present_categories, tf.float32)
+        return tf.math.reduce_sum(result, axis=0) / tf.cast(
+            present_categories, tf.float32
+        )

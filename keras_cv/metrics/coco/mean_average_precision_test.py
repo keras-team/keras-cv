@@ -44,7 +44,5 @@ class COCOMeanAveragePrecisionTest(tf.test.TestCase):
 
     def test_result_method(self):
         mean_average_precision = COCOMeanAveragePrecision(
-            max_detections=100,
-            class_ids=[1],
-            num_buckets=2
+            max_detections=100, class_ids=[1], num_buckets=2
         )
