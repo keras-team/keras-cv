@@ -17,10 +17,9 @@ import tensorflow as tf
 class Solarization(tf.keras.layers.Layer):
     """Applies (max_value - pixel + min_value) for each pixel in the image.
 
-    When created without `threshold` parameter, the layer performs the equivalent of
-    `Invert` transform from `AutoAugment` paper. When created with specified `threshold`
-    value, the layer performs the equivalent of `Solarize` transform from `AutoAugment`
-    paper.
+    When created without `threshold` parameter, the layer performs solarization to
+    all values. When created with specified `threshold` the layer only augments
+    pixels that are above the `threshold` value
 
     Reference:
     - [AutoAugment: Learning Augmentation Policies from Data](
@@ -55,24 +54,19 @@ class Solarization(tf.keras.layers.Layer):
         self.threshold = threshold
 
     def call(self, images):
-        images = tf.clip_by_value(
-            images, clip_value_min=0, clip_value_max=255
-        )
+        images = tf.clip_by_value(images, clip_value_min=0, clip_value_max=255)
         if self.threshold is None:
             return self._solarize(images)
         else:
             return self._solarize_above_threshold(images)
 
     def _solarize(self, images):
-        return 255 - images 
+        return 255 - images
 
     def _solarize_above_threshold(self, images):
         return tf.where(images < self.threshold, images, self._solarize(images))
 
     def get_config(self):
-        config = {
-            "min_value": self.min_value,
-            "max_value": self.max_value,
-        }
+        config = {"threshold": self.threshold}
         base_config = super().get_config()
         return dict(list(base_config.items()) + list(config.items()))
