@@ -2,7 +2,7 @@ import tensorflow as tf
 from keras_cv.layers.preprocessing.channel_shuffle import ChannelShuffle
 
 
-class GridMaskTest(tf.test.TestCase):
+class ChannelShuffleTest(tf.test.TestCase):
     def test_return_shapes(self):
         xs = tf.ones((2, 512, 512, 3))
 
