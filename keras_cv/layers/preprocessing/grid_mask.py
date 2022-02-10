@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import numpy as np 
 import tensorflow as tf
 from tensorflow.keras import layers, backend
 from tensorflow.python.keras.utils import layer_utils
@@ -29,10 +30,8 @@ class GridMask(layers.Layer):
 
     Args:
         ratio: The ratio from grid masks to spacings.
-            Float in range [0, 1]. Defaults to 0.5, which indicates that grid and spacing will be equal.
-            In other word, higher value makes grid size smaller and equally spaced, and opposite. In special
-            case, when ration = 1.0, the spatial distribution of grid block will be random, 
-            either it can be dense or sparse in each call. 
+            Float in range [0, 1). Defaults to 0.5, which indicates that grid and spacing will be equal.
+            In other word, higher value makes grid size smaller and equally spaced, and opposite. 
         rotation_factor:
             a float represented as fraction of 2 Pi, or a tuple of size 2 representing lower and upper
             bound for rotating clockwise and counter-clockwise. A positive values means rotating counter
@@ -73,6 +72,25 @@ class GridMask(layers.Layer):
         **kwargs
     ):
         super().__init__(**kwargs)
+        self._check_input_range(ratio, fill_mode, fill_value)
+        self.random_rotate = layers.RandomRotation(
+            factor=rotation_factor, seed=seed
+        )
+        self.seed = seed
+
+    def _check_input_range(self, ratio, fill_mode, fill_value):
+        if ratio not in [ x / pow(0.1, -1) for x in range(0, 10) ]:
+            raise ValueError(f"ratio should be within [0.0, 0.9 ] with 0.1 interval Got {ratio}")
+        
+        if fill_mode.lower() not in ["constant", "gaussian_noise"]:
+            raise ValueError(f"fill_mode should be either 'constant', or 'gaussian_noise' ] Got {fill_mode}")
+
+        if fill_value not in np.arange(1, 256):
+            raise ValueError(f"fill_value should be either 'constant', or 'gaussian_noise' ] Got {fill_value}")
+
+        self.ratio = ratio
+        self.fill_mode = fill_mode
+        self.fill_value = fill_value
 
         layer_utils.validate_string_arg(
             fill_mode,
@@ -82,14 +100,6 @@ class GridMask(layers.Layer):
             allow_none=False,
             allow_callables=False,
         )
-
-        self.ratio = ratio
-        self.random_rotate = layers.RandomRotation(
-            factor=rotation_factor, seed=seed
-        )
-        self.fill_mode = fill_mode
-        self.fill_value = fill_value
-        self.seed = seed
 
     @staticmethod
     def _crop(mask, image_height, image_width):
