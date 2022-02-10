@@ -135,22 +135,15 @@ class GridMask(layers.Layer):
             seed=self.seed,
         )
 
-        if self.ratio == float(1):
-            # controls the distance of each grid block.
-            # smaller value makes gridblock dense, whereas larger value makes gridblock sparse.
-            length = tf.random.uniform(
-                shape=[], minval=1, maxval=gridblock + 1, dtype=tf.int32, seed=self.seed
-            )
-        else:
-            length = tf.cast(
-                tf.math.minimum(
-                    tf.math.maximum(
-                        int(tf.cast(gridblock, tf.float32) * self.ratio + 0.5), 1
-                    ),
-                    gridblock - 1,
+        length = tf.cast(
+            tf.math.minimum(
+                tf.math.maximum(
+                    int(tf.cast(gridblock, tf.float32) * self.ratio + 0.5), 1
                 ),
-                dtype=tf.int32,
-            )
+                gridblock - 1,
+            ),
+            dtype=tf.int32,
+        )
 
         for _ in range(2):
             start_w = tf.random.uniform(

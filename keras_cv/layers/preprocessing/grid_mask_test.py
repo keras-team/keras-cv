@@ -25,7 +25,7 @@ class GridMaskTest(tf.test.TestCase):
 
         fill_value = 1
         layer = GridMask(
-            ratio=1.0,
+            ratio=0.3,
             rotation_factor=(0.2, 0.3),
             fill_mode="constant",
             fill_value=fill_value
