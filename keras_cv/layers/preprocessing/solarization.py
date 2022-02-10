@@ -20,6 +20,8 @@ class Solarization(tf.keras.layers.Layer):
     Args:
         min_value: int or float. Lower bound of input pixel values.
         max_value: int or float. Upper bound of input pixel values.
+        threshold: (Optionally) int or float. If specified, only pixel values above this
+            threshold will be solarized.
 
     Usage:
 
@@ -38,7 +40,7 @@ class Solarization(tf.keras.layers.Layer):
             or [height, width, channels].
     """
 
-    def __init__(self, min_value=0, max_value=255):
+    def __init__(self, min_value, max_value, threshold=None):
         super().__init__()
 
         assert min_value < max_value, (
@@ -48,9 +50,23 @@ class Solarization(tf.keras.layers.Layer):
 
         self.min_value = min_value
         self.max_value = max_value
+        self.threshold = threshold
 
     def call(self, images):
+        if self.threshold is None:
+            return self._solarize(images)
+        else:
+            return self._solarize_above_threshold(images)
+
+    def _solarize(self, images):
         return self.max_value - images + self.min_value
+
+    def _solarize_above_threshold(self, images):
+        return tf.where(
+            images < self.threshold,
+            images,
+            self._solarize(images)
+        )
 
     def get_config(self):
         config = {

@@ -105,3 +105,22 @@ class SolarizationTest(tf.test.TestCase):
         output = layer(dummy_input)
 
         tf.debugging.assert_equal(output, expected_output)
+
+    def test_only_values_above_threshold_are_solarized_if_threshold_specified(self):
+        solarization = Solarization(min_value=0, max_value=255, threshold=128)
+
+        test_parameters = [
+            {"input_value": 0, "expected_output_value": 0},
+            {"input_value": 64, "expected_output_value": 64},
+            {"input_value": 127, "expected_output_value": 127},
+            {"input_value": 191, "expected_output_value": 64},
+            {"input_value": 255, "expected_output_value": 0},
+        ]
+
+        for parameters in test_parameters:
+            self._test_input_output(
+                layer=solarization,
+                input_value=parameters["input_value"],
+                expected_value=parameters["expected_output_value"],
+                dtype=tf.uint8,
+            )
