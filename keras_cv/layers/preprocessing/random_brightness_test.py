@@ -21,14 +21,14 @@ from keras_cv.layers import preprocessing
 class RandomBrightnessTest(tf.test.TestCase):
 
     def test_scale_input_validation(self):
-      with self.assertRaisesRegexp(ValueError, 'ranged between [-1.0, 1.0]'):
-        preprocessing.RandomBrightness(2.0)
+        with self.assertRaisesRegexp(ValueError, 'ranged between \[-1.0, 1.0\]'):
+            preprocessing.RandomBrightness(2.0)
 
-      with self.assertRaisesRegexp(ValueError, 'list of two numbers'):
-        preprocessing.RandomBrightness([1.0])
+        with self.assertRaisesRegexp(ValueError, 'list of two numbers'):
+            preprocessing.RandomBrightness([1.0])
 
-      with self.assertRaisesRegexp(ValueError, 'should be number'):
-        preprocessing.RandomBrightness('one')
+        with self.assertRaisesRegexp(ValueError, 'should be number'):
+            preprocessing.RandomBrightness('one')
 
     def test_scale_normalize(self):
         layer = preprocessing.RandomBrightness(1.0)
