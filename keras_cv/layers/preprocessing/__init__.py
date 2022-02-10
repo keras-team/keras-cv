@@ -15,3 +15,4 @@
 from keras_cv.layers.preprocessing.cut_mix import CutMix
 from keras_cv.layers.preprocessing.mix_up import MixUp
 from keras_cv.layers.preprocessing.random_cutout import RandomCutout
+from keras_cv.layers.preprocessing.solarization import Solarization
