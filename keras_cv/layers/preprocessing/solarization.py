@@ -53,6 +53,9 @@ class Solarization(tf.keras.layers.Layer):
         self.threshold = threshold
 
     def call(self, images):
+        images = tf.clip_by_value(
+            images, clip_value_min=self.min_value, clip_value_max=self.max_value
+        )
         if self.threshold is None:
             return self._solarize(images)
         else:
@@ -62,11 +65,7 @@ class Solarization(tf.keras.layers.Layer):
         return self.max_value - images + self.min_value
 
     def _solarize_above_threshold(self, images):
-        return tf.where(
-            images < self.threshold,
-            images,
-            self._solarize(images)
-        )
+        return tf.where(images < self.threshold, images, self._solarize(images))
 
     def get_config(self):
         config = {

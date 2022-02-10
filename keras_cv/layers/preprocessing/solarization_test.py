@@ -124,3 +124,21 @@ class SolarizationTest(tf.test.TestCase):
                 expected_value=parameters["expected_output_value"],
                 dtype=tf.uint8,
             )
+
+    def test_input_values_outside_of_specified_range_are_clipped(self):
+        solarization = Solarization(min_value=0, max_value=255)
+
+        test_parameters = [
+            {"input_value": -100, "expected_output_value": 255},  # Clipped to 0
+            {"input_value": -1, "expected_output_value": 255},  # Clipped to 0
+            {"input_value": 256, "expected_output_value": 0},  # Clipped to 255
+            {"input_value": 300, "expected_output_value": 0},  # Clipped to 255
+        ]
+
+        for parameters in test_parameters:
+            self._test_input_output(
+                layer=solarization,
+                input_value=parameters["input_value"],
+                expected_value=parameters["expected_output_value"],
+                dtype=tf.int32,
+            )
