@@ -18,7 +18,8 @@ class Equalize(tf.keras.layers.Layer):
     """Equalize performs histogram equalization on a channel-wise basis.
 
     Args:
-        bins: Integer indicating the number of bins to use in histogram equalization. 
+        bins: Integer indicating the number of bins to use in histogram equalization.
+            Should be in the range [0, 256]
 
     Usage:
     ```python
