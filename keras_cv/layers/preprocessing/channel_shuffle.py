@@ -66,17 +66,17 @@ class ChannelShuffle(layers.Layer):
 
         if not training:
             return images
-  
-        unbatched = images.shape.rank == 3
-        if unbatched:
-            images = tf.expand_dims(images, axis=0)
+        else:
+            unbatched = images.shape.rank == 3
+            if unbatched:
+                images = tf.expand_dims(images, axis=0)
 
-        # TODO: Make the batch operation vectorize.
-        output = tf.map_fn(lambda image: self._channel_shuffling(image), images)
+            # TODO: Make the batch operation vectorize.
+            output = tf.map_fn(lambda image: self._channel_shuffling(image), images)
 
-        if unbatched:
-            output = tf.squeeze(output, axis=0)
-        return output
+            if unbatched:
+                output = tf.squeeze(output, axis=0)
+            return output
 
     def get_config(self):
         config = {
