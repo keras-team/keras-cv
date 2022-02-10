@@ -134,14 +134,18 @@ class COCORecall(keras.metrics.Metric):
 
         num_thresholds = tf.shape(iou_thresholds)[0]
         num_categories = tf.shape(class_ids)[0]
+        
+        y_pred = utils.sort_bboxes(y_pred)
 
-        # Sort by bbox.CONFIDENCE to make maxDetections easy to compute.
         true_positives_update = tf.zeros_like(self.true_positives)
         ground_truth_boxes_update = tf.zeros_like(self.ground_truth_boxes)
 
         for img in tf.range(num_images):
             y_true_for_image = utils.filter_out_sentinels(y_true[img])
             y_pred_for_image = utils.filter_out_sentinels(y_pred[img])
+
+            if self.max_detections < tf.shape(y_pred_for_image)[0]:
+                y_pred_for_image = y_pred_for_image[: self.max_detections]
 
             if self.area_range is not None:
                 y_true_for_image = utils.filter_boxes_by_area_range(
@@ -154,14 +158,9 @@ class COCORecall(keras.metrics.Metric):
             for k_i in tf.range(num_categories):
                 category = class_ids[k_i]
 
-                category_filtered_y_pred = utils.filter_boxes(
+                detections = utils.filter_boxes(
                     y_pred_for_image, value=category, axis=bbox.CLASS
                 )
-
-                detections = category_filtered_y_pred
-                if self.max_detections < tf.shape(category_filtered_y_pred)[0]:
-                    detections = category_filtered_y_pred[: self.max_detections]
-
                 ground_truths = utils.filter_boxes(
                     y_true_for_image, value=category, axis=bbox.CLASS
                 )

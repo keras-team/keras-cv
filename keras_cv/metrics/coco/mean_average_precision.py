@@ -86,6 +86,10 @@ class COCOMeanAveragePrecision(tf.keras.metrics.Metric):
             ground_truths = utils.filter_out_sentinels(y_true[img])
             detections = utils.filter_out_sentinels(y_pred[img])
 
+            detections = detections
+            if self.max_detections < tf.shape(detections)[0]:
+                detections = detections[: self.max_detections]
+
             if self.area_range is not None:
                 ground_truths = utils.filter_boxes_by_area_range(
                     ground_truths, self.area_range[0], self.area_range[1]
@@ -103,9 +107,12 @@ class COCOMeanAveragePrecision(tf.keras.metrics.Metric):
                 ground_truths = utils.filter_boxes(
                     ground_truths, value=category_id, axis=bbox.CLASS
                 )
+
+
                 detections = utils.filter_boxes(
                     detections, value=category_id, axis=bbox.CLASS
                 )
+
                 ground_truths_update = ground_truths_update.write(c_i, tf.shape(ground_truths)[0])
 
                 ious = iou_lib.compute_ious_for_image(ground_truths, detections)
