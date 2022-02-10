@@ -18,19 +18,20 @@ class Equalize(tf.keras.layers.Layer):
     """Equalize performs histogram equalization on a channel-wise basis.
 
     Args:
-        bins: number of bins to use in histogram equalization.
+        bins: Integer indicating the number of bins to use in histogram equalization. 
 
     Usage:
-        ```
-        equalize = Equalize()
+    ```python
+    equalize = Equalize()
 
-        (images, labels), _ = tf.keras.datasets.cifar10.load_data()
-        # Note that images are an int8 Tensor with values in the range [0, 255]
-        images = equalize(images)
-        ```
+    (images, labels), _ = tf.keras.datasets.cifar10.load_data()
+    # Note that images are an int8 Tensor with values in the range [0, 255]
+    images = equalize(images)
+    ```
 
     Call arguments:
-        images: Tensor of type int, pixels in range [0, 255], in RGB format.
+        images: Tensor of pixels in range [0, 255], in RGB format.  Can be
+            of type float or int.  Should be in NHWC format.
     """
 
     def __init__(self, bins=256, **kwargs):
@@ -46,7 +47,7 @@ class Equalize(tf.keras.layers.Layer):
             channel_index: channel to equalize
         """
         dtype = image.dtype
-        image = tf.cast(image[..., channel_index], tf.int32)
+        image = image[..., channel_index]
         # Compute the histogram of the image channel.
         histogram = tf.histogram_fixed_width(image, [0, 255], nbins=self.bins)
 
@@ -78,19 +79,12 @@ class Equalize(tf.keras.layers.Layer):
         return tf.cast(result, dtype)
 
     def call(self, images):
-        if not images.dtype.is_integer:
-            raise ValueError(
-                "Equalize.call(images) expects images to be a "
-                "Tensor of type int, with values in range [0, 255]. "
-                f"got images.dtype={images.dtype}."
-            )
-
         # Assumes RGB for now.  Scales each channel independently
         # and then stacks the result.
+        # TODO(lukewood): ideally this would be vectorized.
         r = tf.map_fn(lambda x: self.equalize_channel(x, 0), images)
         g = tf.map_fn(lambda x: self.equalize_channel(x, 1), images)
         b = tf.map_fn(lambda x: self.equalize_channel(x, 2), images)
-        # TODO(lukewood): ideally this should be vectorized.
 
         images = tf.stack([r, g, b], axis=-1)
         return images
