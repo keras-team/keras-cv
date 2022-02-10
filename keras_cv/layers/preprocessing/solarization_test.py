@@ -13,16 +13,16 @@
 # limitations under the License.
 import tensorflow as tf
 
-from keras_cv.layers.preprocessing.invert import Invert
+from keras_cv.layers.preprocessing.solarization import Solarization
 
 
-class InvertTest(tf.test.TestCase):
+class SolarizationTest(tf.test.TestCase):
     def test_raises_error_on_invalid_min_max_values(self):
         with self.assertRaises(AssertionError):
-            Invert(min_value=255, max_value=0)  # min must be smaller than max
+            Solarization(min_value=255, max_value=0)  # min must be smaller than max
 
     def test_range_0_to_255(self):
-        invert = Invert(min_value=0, max_value=255)
+        solarization = Solarization(min_value=0, max_value=255)
 
         test_parameters = [
             {"input_value": 0, "expected_output_value": 255},
@@ -34,14 +34,14 @@ class InvertTest(tf.test.TestCase):
 
         for parameters in test_parameters:
             self._test_input_output(
-                layer=invert,
+                layer=solarization,
                 input_value=parameters["input_value"],
                 expected_value=parameters["expected_output_value"],
                 dtype=tf.uint8,
             )
 
     def test_range_0_to_1(self):
-        invert = Invert(min_value=0.0, max_value=1.0)
+        solarization = Solarization(min_value=0.0, max_value=1.0)
 
         test_parameters = [
             {"input_value": 1.0, "expected_output_value": 0.0},
@@ -53,14 +53,14 @@ class InvertTest(tf.test.TestCase):
 
         for parameters in test_parameters:
             self._test_input_output(
-                layer=invert,
+                layer=solarization,
                 input_value=parameters["input_value"],
                 expected_value=parameters["expected_output_value"],
                 dtype=tf.float32,
             )
 
     def test_range_minus_1_to_plus_1(self):
-        invert = Invert(min_value=-1.0, max_value=1.0)
+        solarization = Solarization(min_value=-1.0, max_value=1.0)
 
         test_parameters = [
             {"input_value": -1.0, "expected_output_value": 1.0},
@@ -72,14 +72,14 @@ class InvertTest(tf.test.TestCase):
 
         for parameters in test_parameters:
             self._test_input_output(
-                layer=invert,
+                layer=solarization,
                 input_value=parameters["input_value"],
                 expected_value=parameters["expected_output_value"],
                 dtype=tf.float32,
             )
 
     def test_custom_range_minus_8_to_plus_16(self):
-        invert = Invert(min_value=-8, max_value=16)
+        solarization = Solarization(min_value=-8, max_value=16)
 
         test_parameters = [
             {"input_value": -8, "expected_output_value": 16},
@@ -91,7 +91,7 @@ class InvertTest(tf.test.TestCase):
 
         for parameters in test_parameters:
             self._test_input_output(
-                layer=invert,
+                layer=solarization,
                 input_value=parameters["input_value"],
                 expected_value=parameters["expected_output_value"],
                 dtype=tf.int32,

@@ -14,7 +14,7 @@
 import tensorflow as tf
 
 
-class Invert(tf.keras.layers.Layer):
+class Solarization(tf.keras.layers.Layer):
     """Applies (max_value - pixel + min_value) for each pixel in the image.
 
     Args:
@@ -27,8 +27,8 @@ class Invert(tf.keras.layers.Layer):
         (images, labels), _ = tf.keras.datasets.cifar10.load_data()
         print(images[0, 0, 0])  # [59 62 63]
         # Note that images are Tensor with values in the range [0, 255]
-        invert = Invert(min_value=0, max_value=255)
-        images = invert(images)
+        solarization = Solarization(min_value=0, max_value=255)
+        images = solarization(images)
         print(images[0, 0, 0])  # [196, 193, 192]
     ```
 
