@@ -90,13 +90,13 @@ class RandomBrightness(tf.keras.layers.Layer):
         if input_number > 1.0 or input_number < -1.0:
             raise ValueError(_SCALE_VALIDATION_ERROR + f"Got {input_number}")
 
-    def call(self, image, training=None):
+    def call(self, inputs, training=None):
         if training is None:
             training = tf.keras.backend.learning_phase()
         return tf.__internal__.smart_cond.smart_cond(
             training,
-            true_fn=lambda: self._brightness_adjust(image),
-            false_fn=lambda: image,
+            true_fn=lambda: self._brightness_adjust(inputs),
+            false_fn=lambda: inputs,
         )
 
     def _brightness_adjust(self, image):
