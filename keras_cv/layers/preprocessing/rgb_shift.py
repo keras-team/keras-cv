@@ -15,7 +15,6 @@
 import numpy as np 
 import tensorflow as tf
 from tensorflow.keras import layers, backend
-from tensorflow.python.keras.utils import layer_utils
 
 
 class RGBShift(layers.Layer):
