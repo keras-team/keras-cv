@@ -14,8 +14,10 @@
 
 import tensorflow as tf
 
-_SCALE_VALIDATION_ERROR = ('The `scale` should be number or a list of two numbers '
-                           'that ranged between [-1.0, 1.0]. ')
+_SCALE_VALIDATION_ERROR = (
+    "The `scale` should be number or a list of two numbers "
+    "that ranged between [-1.0, 1.0]. "
+)
 
 
 class RandomBrightness(tf.keras.layers.Layer):
@@ -72,7 +74,7 @@ class RandomBrightness(tf.keras.layers.Layer):
     def _set_scale(self, scale):
         if isinstance(scale, (tuple, list)):
             if len(scale) != 2:
-                raise ValueError(_SCALE_VALIDATION_ERROR + f'Got {scale}')
+                raise ValueError(_SCALE_VALIDATION_ERROR + f"Got {scale}")
             self._check_scale_range(scale[0])
             self._check_scale_range(scale[1])
             self._scale = sorted(scale)
@@ -81,12 +83,12 @@ class RandomBrightness(tf.keras.layers.Layer):
             scale = abs(scale)
             self._scale = [-scale, scale]
         else:
-            raise ValueError(_SCALE_VALIDATION_ERROR + f'Got {scale}')
+            raise ValueError(_SCALE_VALIDATION_ERROR + f"Got {scale}")
 
     @staticmethod
     def _check_scale_range(input_number):
         if input_number > 1.0 or input_number < -1.0:
-            raise ValueError(_SCALE_VALIDATION_ERROR + f'Got {input_number}')
+            raise ValueError(_SCALE_VALIDATION_ERROR + f"Got {input_number}")
 
     def call(self, image, training=None):
         if training is None:
@@ -94,7 +96,8 @@ class RandomBrightness(tf.keras.layers.Layer):
         return tf.__internal__.smart_cond.smart_cond(
             training,
             true_fn=lambda: self._brightness_adjust(image),
-            false_fn=lambda: image)
+            false_fn=lambda: image,
+        )
 
     def _brightness_adjust(self, image):
         rank = image.shape.rank
@@ -107,14 +110,19 @@ class RandomBrightness(tf.keras.layers.Layer):
             rgb_delta_shape = [tf.shape(image)[0], 1, 1, 3]
         else:
             raise ValueError(
-                f'Expect the input image to be rank 3 or 4. Got {image.shape}')
+                f"Expect the input image to be rank 3 or 4. Got {image.shape}"
+            )
         if self._seed is not None:
             rgb_delta = tf.random.stateless_uniform(
-                shape=rgb_delta_shape, seed=[0, self._seed],
-                minval=self._scale[0], maxval=self._scale[1])
+                shape=rgb_delta_shape,
+                seed=[0, self._seed],
+                minval=self._scale[0],
+                maxval=self._scale[1],
+            )
         else:
             rgb_delta = tf.random.uniform(
-                shape=rgb_delta_shape, minval=self._scale[0], maxval=self._scale[1])
+                shape=rgb_delta_shape, minval=self._scale[0], maxval=self._scale[1]
+            )
         rgb_delta = rgb_delta * 255.0
         input_dtype = image.dtype
         image = tf.cast(image, tf.float32)
@@ -124,8 +132,8 @@ class RandomBrightness(tf.keras.layers.Layer):
 
     def get_config(self):
         config = {
-            'scale': self._scale,
-            'seed': self._seed,
+            "scale": self._scale,
+            "seed": self._seed,
         }
         base_config = super().get_config()
         return dict(list(base_config.items()) + list(config.items()))

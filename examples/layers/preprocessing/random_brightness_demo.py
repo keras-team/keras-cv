@@ -21,22 +21,20 @@ def resize(image, label, num_classes=10):
 
 
 def main():
-    data, ds_info = tfds.load("oxford_flowers102", with_info=True,
-                              as_supervised=True)
+    data, ds_info = tfds.load("oxford_flowers102", with_info=True, as_supervised=True)
     train_ds = data["train"]
 
     num_classes = ds_info.features["label"].num_classes
 
-    train_ds = (
-        train_ds.map(lambda x, y: resize(x, y, num_classes=num_classes))
-        .batch(BATCH_SIZE)
+    train_ds = train_ds.map(lambda x, y: resize(x, y, num_classes=num_classes)).batch(
+        BATCH_SIZE
     )
     random_brightness = preprocessing.RandomBrightness(
-        scale=(0.1, 0.3),   # Scale can be chosen between -1.0 and 1.0
+        scale=(-0.5, 0.5),
     )
     train_ds = train_ds.map(
         lambda x, y: (random_brightness(x, training=True), y),
-        num_parallel_calls=tf.data.AUTOTUNE
+        num_parallel_calls=tf.data.AUTOTUNE,
     )
 
     for images, labels in train_ds.take(1):

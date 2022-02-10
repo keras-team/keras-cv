@@ -19,16 +19,15 @@ from keras_cv.layers import preprocessing
 
 
 class RandomBrightnessTest(tf.test.TestCase):
-
     def test_scale_input_validation(self):
-        with self.assertRaisesRegexp(ValueError, 'ranged between \[-1.0, 1.0\]'):
+        with self.assertRaisesRegexp(ValueError, "ranged between \[-1.0, 1.0\]"):
             preprocessing.RandomBrightness(2.0)
 
-        with self.assertRaisesRegexp(ValueError, 'list of two numbers'):
+        with self.assertRaisesRegexp(ValueError, "list of two numbers"):
             preprocessing.RandomBrightness([1.0])
 
-        with self.assertRaisesRegexp(ValueError, 'should be number'):
-            preprocessing.RandomBrightness('one')
+        with self.assertRaisesRegexp(ValueError, "should be number"):
+            preprocessing.RandomBrightness("one")
 
     def test_scale_normalize(self):
         layer = preprocessing.RandomBrightness(1.0)
@@ -78,7 +77,7 @@ class RandomBrightnessTest(tf.test.TestCase):
 
     def test_different_adjustment_within_batch(self):
         layer = preprocessing.RandomBrightness([0.2, 0.3])
-        inputs = np.zeros(shape=(2, 10, 10, 3))   # 2 images with all zeros
+        inputs = np.zeros(shape=(2, 10, 10, 3))  # 2 images with all zeros
         output = layer(inputs, training=True)
         diff = output - inputs
         # Make sure two images gets the same adjustment
@@ -87,8 +86,9 @@ class RandomBrightnessTest(tf.test.TestCase):
         image1 = output[0]
         # The reduced mean pixel value among width and height are the same as
         # any of the pixel in the image.
-        self.assertAllClose(tf.reduce_mean(image1, axis=[0, 1]), image1[0, 0],
-                            rtol=1e-5, atol=1e-5)
+        self.assertAllClose(
+            tf.reduce_mean(image1, axis=[0, 1]), image1[0, 0], rtol=1e-5, atol=1e-5
+        )
 
     def test_inference(self):
         layer = preprocessing.RandomBrightness([0, 1.0])
@@ -120,8 +120,8 @@ class RandomBrightnessTest(tf.test.TestCase):
     def test_config(self):
         layer = preprocessing.RandomBrightness([0, 1.0], seed=1337)
         config = layer.get_config()
-        self.assertEqual(config['scale'], [0.0, 1.0])
-        self.assertEqual(config['seed'], 1337)
+        self.assertEqual(config["scale"], [0.0, 1.0])
+        self.assertEqual(config["seed"], 1337)
 
         reconstructed_layer = preprocessing.RandomBrightness.from_config(config)
         self.assertEqual(reconstructed_layer._scale, layer._scale)
