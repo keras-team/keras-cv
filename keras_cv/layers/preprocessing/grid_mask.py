@@ -86,7 +86,7 @@ class GridMask(layers.Layer):
             if ratio < 0 or ratio > 1:
                 raise ValueError(f"ratio should be in the range [0.0, 1.0] as float. Got {ratio}")
         elif isinstance(ratio, str):
-            if ratio.lower() != str("random"):
+            if ratio.lower() != "random":
                 raise ValueError(f"ratio should be 'random' as string. Got {ratio}")
         else:
             raise ValueError(f"ratio is not float within [0.0, 1.0] or 'random' as string. Got {ratio}")
