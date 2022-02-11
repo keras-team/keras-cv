@@ -15,7 +15,7 @@ H_AXIS = -3
 W_AXIS = -2
 
 
-def _compute_masks(inputs):
+def _compute_grid_masks(inputs):
     """Computes grid masks for all inputs"""
     input_shape = tf.shape(inputs)
     batch_size = input_shape[0]
@@ -112,7 +112,6 @@ def _compute_masks(inputs):
     return masks
 
 
-# %%
 def _center_crop(masks, width, height):
     masks_shape = tf.shape(masks)
     h_diff = masks_shape[1] - height
@@ -123,20 +122,27 @@ def _center_crop(masks, width, height):
     return tf.image.crop_to_bounding_box(masks, h_start, w_start, height, width)
 
 
+# %%
 inputs = tf.ones((5, 224, 224, 3))
-masks = _compute_masks(inputs)
+masks = _compute_grid_masks(inputs)
 
+# convert mask to single-channel image
+masks = tf.cast(masks, tf.uint8)
+masks = tf.expand_dims(masks, axis=-1)
+
+# randomly rotate masks
 rotate = tf.keras.layers.RandomRotation(
     factor=1.0, fill_mode="constant", fill_value=0.0
 )
-
-masks = tf.expand_dims(tf.cast(masks, tf.uint8), -1)
 masks = rotate(masks)
 
+# center crop masks
 input_shape = tf.shape(inputs)
 input_height = input_shape[H_AXIS]
 input_width = input_shape[W_AXIS]
 masks = _center_crop(masks, input_width, input_height)
+
+# convert back to boolean mask
 masks = tf.cast(masks, tf.bool)
 
 for m in masks:
