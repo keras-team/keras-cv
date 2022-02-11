@@ -11,20 +11,22 @@ import tensorflow as tf
 from keras_cv.utils import fill_utils
 
 RATIO = 0.6
+H_AXIS = -3
+W_AXIS = -2
 
 
 def _compute_masks(inputs):
     """Computes grid masks for all inputs"""
     input_shape = tf.shape(inputs)
     batch_size = input_shape[0]
-    height = tf.cast(input_shape[1], tf.float32)
-    width = tf.cast(input_shape[2], tf.float32)
+    height = tf.cast(input_shape[H_AXIS], tf.float32)
+    width = tf.cast(input_shape[W_AXIS], tf.float32)
 
     # masks side length
     squared_w = tf.square(width)
     squared_h = tf.square(height)
-    mask_hw = tf.math.ceil(tf.sqrt(squared_w + squared_h))
-    mask_hw = tf.cast(mask_hw, tf.int32)
+    mask_side_length = tf.math.ceil(tf.sqrt(squared_w + squared_h))
+    mask_side_length = tf.cast(mask_side_length, tf.int32)
 
     # grid unit sizes
     unit_sizes = tf.random.uniform(
@@ -42,7 +44,7 @@ def _compute_masks(inputs):
 
     # number of diagonal units per grid (grid size)
     unit_sizes = tf.cast(unit_sizes, tf.int32)
-    grid_sizes = mask_hw // unit_sizes + 1
+    grid_sizes = mask_side_length // unit_sizes + 1
     max_grid_size = tf.reduce_max(grid_sizes)
 
     # diagonal range per image
@@ -95,11 +97,14 @@ def _compute_masks(inputs):
     corners = tf.concat([corners0, corners1], axis=1)
 
     # make mask for each rectangle
-    mask_shape = (tf.shape(corners)[0], mask_hw, mask_hw)
+    mask_shape = (tf.shape(corners)[0], mask_side_length, mask_side_length)
     masks = fill_utils.rectangle_masks(mask_shape, corners)
 
     # reshape masks into shape (batch_size, rectangles_per_image, mask_height, mask_width)
-    masks = tf.reshape(masks, [-1, max_grid_size * max_grid_size, mask_hw, mask_hw])
+    masks = tf.reshape(
+        masks,
+        [-1, max_grid_size * max_grid_size, mask_side_length, mask_side_length],
+    )
 
     # combine rectangle masks per image
     masks = tf.reduce_any(masks, axis=1)
@@ -108,20 +113,30 @@ def _compute_masks(inputs):
 
 
 # %%
-IMG_SHAPE = (5, 224, 224)
-img = tf.ones(IMG_SHAPE)
-masks = _compute_masks(img)
+def _center_crop(masks, width, height):
+    masks_shape = tf.shape(masks)
+    h_diff = masks_shape[1] - height
+    w_diff = masks_shape[2] - width
 
-masks = tf.expand_dims(tf.cast(masks, tf.uint8), -1)
+    h_start = tf.cast(h_diff / 2, tf.int32)
+    w_start = tf.cast(w_diff / 2, tf.int32)
+    return tf.image.crop_to_bounding_box(masks, h_start, w_start, height, width)
+
+
+inputs = tf.ones((5, 224, 224, 3))
+masks = _compute_masks(inputs)
 
 rotate = tf.keras.layers.RandomRotation(
     factor=1.0, fill_mode="constant", fill_value=0.0
 )
+
+masks = tf.expand_dims(tf.cast(masks, tf.uint8), -1)
 masks = rotate(masks)
 
-center_crop = tf.keras.layers.CenterCrop(224, 224)
-masks = center_crop(masks)
-
+input_shape = tf.shape(inputs)
+input_height = input_shape[H_AXIS]
+input_width = input_shape[W_AXIS]
+masks = _center_crop(masks, input_width, input_height)
 masks = tf.cast(masks, tf.bool)
 
 for m in masks:
