@@ -102,12 +102,11 @@ class RandomBrightness(tf.keras.layers.Layer):
     def _brightness_adjust(self, images):
         rank = images.shape.rank
         if rank == 3:
-            rgb_delta_shape = (3,)
+            rgb_delta_shape = (1, 1, 1)
         elif rank == 4:
-            # Skip the width and height, but keep the batch and channel.
-            # This will ensure to have same adjustment for one channel, but different
-            # across the images.
-            rgb_delta_shape = [tf.shape(images)[0], 1, 1, 3]
+            # Keep only the batch dim. This will ensure to have same adjustment
+            # with in one image, but different across the images.
+            rgb_delta_shape = [tf.shape(images)[0], 1, 1, 1]
         else:
             raise ValueError(
                 f"Expect the input image to be rank 3 or 4. Got {images.shape}"
