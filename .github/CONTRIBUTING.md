@@ -20,7 +20,6 @@ to open a PR without discussion.
 To make code changes, you need to fork the repository. You will need to setup a
 development environment and run the unit tests. This is covered in section
 "Setup environment".
-
 ### Step 3. Create a pull request
 
 Once the change is ready, open a pull request from your branch in your fork to
