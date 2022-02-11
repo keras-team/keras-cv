@@ -14,8 +14,8 @@
 import tensorflow as tf
 
 
-class Equalize(tf.keras.layers.Layer):
-    """Equalize performs histogram equalization on a channel-wise basis.
+class Equalization(tf.keras.layers.Layer):
+    """Equalization performs histogram equalization on a channel-wise basis.
 
     Args:
         bins: Integer indicating the number of bins to use in histogram equalization.
@@ -23,7 +23,7 @@ class Equalize(tf.keras.layers.Layer):
 
     Usage:
     ```python
-    equalize = Equalize()
+    equalize = Equalization()
 
     (images, labels), _ = tf.keras.datasets.cifar10.load_data()
     # Note that images are an int8 Tensor with values in the range [0, 255]

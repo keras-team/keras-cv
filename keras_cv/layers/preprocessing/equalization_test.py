@@ -13,13 +13,13 @@
 # limitations under the License.
 import tensorflow as tf
 
-from keras_cv.layers.preprocessing.equalize import Equalize
+from keras_cv.layers.preprocessing.equalize import Equalization
 
 
-class EqualizeTest(tf.test.TestCase):
+class EqualizationTest(tf.test.TestCase):
     def test_return_shapes(self):
         xs = 255 * tf.ones((2, 512, 512, 3), dtype=tf.int32)
-        layer = Equalize()
+        layer = Equalization()
         xs = layer(xs)
 
         self.assertEqual(xs.shape, [2, 512, 512, 3])
