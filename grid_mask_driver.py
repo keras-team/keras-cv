@@ -16,7 +16,7 @@ W_AXIS = -2
 
 
 def _compute_grid_masks(inputs):
-    """Computes grid masks for all inputs"""
+    """Computes grid masks for all input images"""
     input_shape = tf.shape(inputs)
     batch_size = input_shape[0]
     height = tf.cast(input_shape[H_AXIS], tf.float32)
