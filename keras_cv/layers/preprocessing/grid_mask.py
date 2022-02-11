@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import numpy as np 
 import tensorflow as tf
 from tensorflow.keras import layers, backend
 from tensorflow.python.keras.utils import layer_utils
@@ -29,25 +28,28 @@ class GridMask(layers.Layer):
         `(..., height, width, channels)`, in `"channels_last"` format
 
     Args:
-        ratio: The ratio from grid masks to spacings.
-            Float in range [0, 1). Defaults to 0.5, which indicates that grid and spacing will be equal.
-            In other word, higher value makes grid size smaller and equally spaced, and opposite. 
+        ratio: The ratio from grid masks to spacings. Higher values make the grid size smaller, 
+            and large values make the grid mask large. Expected argument: float: [0, 1) and string: "random".  
+            Float in range [0, 1), defaults to 0.5, which indicates that grid and 
+            spacing will be of equal size.
+            String value "random" will make different scale grid maks at each call.
         rotation_factor:
-            a float represented as fraction of 2 Pi, or a tuple of size 2 representing lower and upper
+            The rotation_factor will be used to randomly rotate the grid_mask during training. Default to 0.1,
+            which results in an output rotating by a random amount in the range [-10% * 2pi, 10% * 2pi].
+
+            A float represented as fraction of 2 Pi, or a tuple of size 2 representing lower and upper
             bound for rotating clockwise and counter-clockwise. A positive values means rotating counter
             clock-wise, while a negative value means clock-wise. When represented as a single float, this
             value is used for both the upper and lower bound. For instance, factor=(-0.2, 0.3) results in
             an output rotation by a random amount in the range [-20% * 2pi, 30% * 2pi]. factor=0.2 results
             in an output rotating by a random amount in the range [-20% * 2pi, 20% * 2pi].
 
-            The rotation_factor will be used to randomly rotate the grid_mask during training. Default to 0.1,
-            which results in an output rotating by a random amount in the range [-10% * 2pi, 10% * 2pi].
         fill_mode: Pixels inside the gridblock are filled according to the given
-            mode (one of `{"constant", "gaussian_noise"}`).
+            mode (one of `{"constant", "gaussian_noise"}`). Default: "constant".
             - *constant*: Pixels are filled with the same constant value.
             - *gaussian_noise*: Pixels are filled with random gaussian noise.
         fill_value: an integer represents of value to be filled inside the gridblock
-            when `fill_mode="constant"`. Valid integer range [1 to 255], where 1 for black towards 255 for white.
+            when `fill_mode="constant"`. Valid integer range [0 to 255], where 0 for black towards 255 for white.
         seed:
             Integer. Used to create a random seed.
 
@@ -67,7 +69,7 @@ class GridMask(layers.Layer):
         ratio=0.6,
         rotation_factor=0.1,
         fill_mode="constant",
-        fill_value=1,
+        fill_value=0,
         seed=None,
         **kwargs
     ):
@@ -79,14 +81,22 @@ class GridMask(layers.Layer):
         self.seed = seed
 
     def _check_input_range(self, ratio, fill_mode, fill_value):
-        if ratio not in [ x / pow(0.1, -1) for x in range(0, 10) ]:
-            raise ValueError(f"ratio should be within [0.0, 0.9 ] with 0.1 interval Got {ratio}")
-        
+
+        if isinstance(ratio, float):
+            if ratio < 0 or ratio > 1:
+                raise ValueError(f"ratio should be in the range [0.0, 1.0] as float. Got {ratio}")
+        elif isinstance(ratio, str):
+            if ratio.lower() != str("random"):
+                raise ValueError(f"ratio should be 'random' as string. Got {ratio}")
+        else:
+            raise ValueError(f"ratio is not float within [0.0, 1.0] or 'random' as string. Got {ratio}")
+
+
         if fill_mode.lower() not in ["constant", "gaussian_noise"]:
             raise ValueError(f"fill_mode should be either 'constant', or 'gaussian_noise' ] Got {fill_mode}")
 
-        if fill_value not in np.arange(1, 256):
-            raise ValueError(f"fill_value should be either 'constant', or 'gaussian_noise' ] Got {fill_value}")
+        if fill_value not in range(0, 256):
+            raise ValueError(f"fill_value should be in range(0, 255). Got {fill_mode}")
 
         self.ratio = ratio
         self.fill_mode = fill_mode
@@ -94,7 +104,7 @@ class GridMask(layers.Layer):
 
         layer_utils.validate_string_arg(
             fill_mode,
-            allowable_strings=["constant", "gaussian_noise"],
+            allowable_strings=["constant", "gaussian_noise", "random"],
             layer_name="GridMask",
             arg_name="fill_mode",
             allow_none=False,
@@ -104,10 +114,10 @@ class GridMask(layers.Layer):
     @staticmethod
     def _crop(mask, image_height, image_width):
         """crops in middle of mask and image corners."""
-        ww = hh = tf.shape(mask)[0]
+        mask_width = mask_height = tf.shape(mask)[0]
         mask = mask[
-            (hh - image_height) // 2 : (hh - image_height) // 2 + image_height,
-            (ww - image_width) // 2 : (ww - image_width) // 2 + image_width,
+            (mask_height - image_height) // 2 : (mask_height - image_height) // 2 + image_height,
+            (mask_width - image_width) // 2 : (mask_width - image_width) // 2 + image_width,
         ]
         return mask
 
@@ -117,14 +127,18 @@ class GridMask(layers.Layer):
         image_height = tf.cast(image_height, dtype=tf.float32)
         image_width = tf.cast(image_width, dtype=tf.float32)
 
-        mask_w = mask_h = tf.cast(
+        mask_width = mask_height = tf.cast(
             tf.math.maximum(image_height, image_width) * 2.0, dtype=tf.int32
         )
 
         if self.fill_mode == "constant":
-            mask = tf.fill([mask_h, mask_w], self.fill_value)
+            mask = tf.fill([mask_height, mask_width], value=-1)
+        elif self.fill_mode == "gaussian_noise":
+            mask = tf.cast(tf.random.normal([mask_height, mask_width]), dtype=tf.int32)
         else:
-            mask = tf.cast(tf.random.normal([mask_h, mask_w]), dtype=tf.int32)
+            raise ValueError(
+                "Unsupported fill_mode.  `fill_mode` should be 'constant' or 'gaussian_noise'."
+            )
 
         # size of the each grid-block, higher value makes larger gridblock, and opposide.
         gridblock = tf.random.uniform(
@@ -135,43 +149,44 @@ class GridMask(layers.Layer):
             seed=self.seed,
         )
 
-        length = tf.cast(
-            tf.math.minimum(
-                tf.math.maximum(
-                    int(tf.cast(gridblock, tf.float32) * self.ratio + 0.5), 1
+        if isinstance(self.ratio, str):
+            length = tf.random.uniform(
+                shape=[], minval=1, maxval=gridblock + 1, 
+                dtype=tf.int32, seed=self.seed
+            )
+        elif isinstance(self.ratio, float):
+            length = tf.cast(
+                tf.math.minimum(
+                    tf.math.maximum(
+                        int(tf.cast(gridblock, tf.float32) * self.ratio + 0.5), 1
+                    ),
+                    gridblock - 1,
                 ),
-                gridblock - 1,
-            ),
-            dtype=tf.int32,
-        )
+                tf.int32,
+            )
 
         for _ in range(2):
-            start_w = tf.random.uniform(
+            start_x = tf.random.uniform(
                 shape=[], minval=0, maxval=gridblock + 1, dtype=tf.int32, seed=self.seed
             )
 
-            for i in range(mask_w // gridblock):
-                start = gridblock * i + start_w
-                end = tf.math.minimum(start + length, mask_w)
+            for i in range(mask_width // gridblock):
+                start = gridblock * i + start_x
+                end = tf.math.minimum(start + length, mask_width)
                 indices = tf.reshape(tf.range(start, end), [end - start, 1])
-
-                if self.fill_mode == "constant":
-                    updates = (
-                        tf.zeros(shape=[end - start, mask_w], dtype=tf.int32) 
-                    )
-                else:
-                    updates = tf.ones(shape=[end - start, mask_w], dtype=tf.int32)
-
+                updates = tf.fill([end - start, mask_width], value=self.fill_value) 
                 mask = tf.tensor_scatter_nd_update(mask, indices, updates)
             mask = tf.transpose(mask)
-        return mask
+
+        return tf.equal(mask, self.fill_value) 
 
     @tf.function
     def _grid_mask(self, image):
         image_height = tf.shape(image)[0]
         image_width = tf.shape(image)[1]
+
         grid = self._compute_mask(image_height, image_width)
-        grid = self.random_rotate(grid[:, :, tf.newaxis])
+        grid = self.random_rotate(tf.cast(grid[:, :, tf.newaxis], tf.float32))
 
         mask = tf.reshape(
             tf.cast(self._crop(grid, image_height, image_width), dtype=image.dtype),
@@ -180,7 +195,7 @@ class GridMask(layers.Layer):
         mask = tf.expand_dims(mask, -1) if image._rank() != mask._rank() else mask
 
         if self.fill_mode == "constant":
-            return tf.where(mask < self.fill_value, image, mask)
+            return tf.where(tf.cast(mask, tf.bool), image, self.fill_value) 
         else:
             return mask * image
 
