@@ -34,7 +34,7 @@ def _compute_grid_masks(inputs):
         minval=tf.math.minimum(height * 0.5, width * 0.3),
         maxval=tf.math.maximum(height * 0.5, width * 0.3) + 1,
     )
-    rectangle_lengths = tf.cast((1 - RATIO) * unit_sizes, tf.int32)
+    rectangle_side_length = tf.cast((1 - RATIO) * unit_sizes, tf.int32)
 
     # x and y offsets for grid units
     delta_x = tf.random.uniform([batch_size], minval=0, maxval=1, dtype=tf.float32)
@@ -42,27 +42,27 @@ def _compute_grid_masks(inputs):
     delta_x = tf.cast(delta_x * unit_sizes, tf.int32)
     delta_y = tf.cast(delta_y * unit_sizes, tf.int32)
 
-    # number of diagonal units per grid (grid size)
+    # grid size (number of diagonal units per grid)
     unit_sizes = tf.cast(unit_sizes, tf.int32)
     grid_sizes = mask_side_length // unit_sizes + 1
     max_grid_size = tf.reduce_max(grid_sizes)
 
-    # diagonal range per image
-    diag_range = tf.range(1, max_grid_size + 1)
-    diag_range = tf.tile(tf.expand_dims(diag_range, 0), [batch_size, 1])
+    # grid size range per image
+    grid_size_range = tf.range(1, max_grid_size + 1)
+    grid_size_range = tf.tile(tf.expand_dims(grid_size_range, 0), [batch_size, 1])
 
-    # add broadcasting axis for diagonal ranges
+    # make broadcastable to grid size ranges
     delta_x = tf.expand_dims(delta_x, 1)
     delta_y = tf.expand_dims(delta_y, 1)
     unit_sizes = tf.expand_dims(unit_sizes, 1)
-    rectangle_lengths = tf.expand_dims(rectangle_lengths, 1)
+    rectangle_side_length = tf.expand_dims(rectangle_side_length, 1)
 
     # diagonal corner coordinates
-    d_range = diag_range * unit_sizes
+    d_range = grid_size_range * unit_sizes
     x1 = d_range - delta_x
-    x0 = x1 - rectangle_lengths
+    x0 = x1 - rectangle_side_length
     y1 = d_range - delta_y
-    y0 = y1 - rectangle_lengths
+    y0 = y1 - rectangle_side_length
 
     # mask coordinates by grid ranges
     d_range_mask = tf.sequence_mask(
@@ -73,17 +73,17 @@ def _compute_grid_masks(inputs):
     y1 = y1 * d_range_mask
     y0 = y0 * d_range_mask
 
-    # expand diagonal top left corner coordinates into a mesh plane
+    # mesh grid of diagonal top left corner coordinates for each image
     x0 = tf.tile(tf.expand_dims(x0, 1), [1, max_grid_size, 1])
     y0 = tf.tile(tf.expand_dims(y0, 1), [1, max_grid_size, 1])
     y0 = tf.transpose(y0, [0, 2, 1])
 
-    # expand diagonal bottom right corner coordinates into a mesh plane
+    # mesh grid of diagonal bottom right corner coordinates for each image
     x1 = tf.tile(tf.expand_dims(x1, 1), [1, max_grid_size, 1])
     y1 = tf.tile(tf.expand_dims(y1, 1), [1, max_grid_size, 1])
     y1 = tf.transpose(y1, [0, 2, 1])
 
-    # flatten mesh planes to mesh grids
+    # flatten mesh grids
     x0 = tf.reshape(x0, [-1, max_grid_size])
     y0 = tf.reshape(y0, [-1, max_grid_size])
     x1 = tf.reshape(x1, [-1, max_grid_size])
