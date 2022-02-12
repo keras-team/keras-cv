@@ -27,8 +27,11 @@ class ToGray(layers.Layer):
         3D (unbatched) or 4D (batched) tensor with shape:
         `(..., height, width, channels)`, in `"channels_last"` format
     Args:
-        seed:
-            Integer. Used to create a random seed.
+        num_output_channels. It represent the output channel number after transformation. Valid values are 1 and 3.
+        (..., height, width, 1) for num_output_channels = 1 .
+        (..., height, width, 3) for num_output_channels = 3 .
+
+
     Usage:
     ```python
     (images, labels), _ = tf.keras.datasets.cifar10.load_data()
@@ -44,17 +47,18 @@ class ToGray(layers.Layer):
     def _check_input_params(self, num_output_channels):
         if num_output_channels not in [1, 3]:
             raise ValueError(
-                f"Valid arugment for num_output_channels param are 1 or 3. Got {num_output_channels}"
+                f"Valid arugment for num_output_channels param are 1 or 3. \
+                 1 for (..., height, width, 1) and 3 for (..., height, width, 3). Got {num_output_channels}"
             )
         self.num_output_channels = num_output_channels
 
     def _rgb_to_grayscale(self, image):
         if self.num_output_channels == 1:
             return tf.image.rgb_to_grayscale(image)
-        elif self.num_output_channels == 3:
+        else:
             _grayscale = tf.image.rgb_to_grayscale(image)
             return tf.concat([_grayscale, _grayscale, _grayscale], axis=-1)
-
+   
     def call(self, images, training=None):
         """call method for the ChannelShuffle layer.
         Args:
