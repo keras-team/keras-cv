@@ -89,7 +89,8 @@ def _compute_grid_masks(inputs):
     x1 = tf.reshape(x1, [-1, max_grid_size])
     y1 = tf.reshape(y1, [-1, max_grid_size])
 
-    # combine coordinates to (x0, y0, x1, y1) with shape (num_rectangles_in_batch, 4)
+    # combine coordinates to (x0, y0, x1, y1)
+    # with shape (num_rectangles_in_batch, 4)
     corners0 = tf.stack([x0, y0], axis=-1)
     corners1 = tf.stack([x1, y1], axis=-1)
     corners0 = tf.reshape(corners0, [-1, 2])
@@ -100,7 +101,8 @@ def _compute_grid_masks(inputs):
     mask_shape = (tf.shape(corners)[0], mask_side_length, mask_side_length)
     masks = fill_utils.rectangle_masks(mask_shape, corners)
 
-    # reshape masks into shape (batch_size, rectangles_per_image, mask_height, mask_width)
+    # reshape masks into shape
+    # (batch_size, rectangles_per_image, mask_height, mask_width)
     masks = tf.reshape(
         masks,
         [-1, max_grid_size * max_grid_size, mask_side_length, mask_side_length],
