@@ -112,7 +112,7 @@ class COCOMeanAveragePrecision(tf.keras.metrics.Metric):
             initializer="zeros",
         )
         self.false_positive_buckets = self.add_weight(
-            "true_positive_buckets",
+            "false_positive_buckets",
             shape=(
                 self.num_class_ids,
                 self.num_iou_thresholds,

@@ -50,3 +50,6 @@ class COCOMeanAveragePrecisionTest(tf.test.TestCase):
         mean_average_precision = COCOMeanAveragePrecision(
             max_detections=100, class_ids=[1], num_buckets=2
         )
+
+        ground_truths = 2*tf.ones(shape=(1,), dtype=tf.int32)
+        mean_average_precision.ground_truths.assign()
