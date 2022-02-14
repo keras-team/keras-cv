@@ -14,7 +14,8 @@
 
 import tensorflow as tf
 import tensorflow.keras.layers as layers
-from tensorflow.keras import backend, layers
+from tensorflow.keras import backend
+from tensorflow.keras import layers
 
 
 class Grayscale(layers.Layer):
