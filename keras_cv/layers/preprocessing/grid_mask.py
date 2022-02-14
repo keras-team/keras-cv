@@ -247,6 +247,3 @@ class GridMask(layers.Layer):
         }
         base_config = super().get_config()
         return dict(list(base_config.items()) + list(config.items()))
-
-    def compute_output_shape(self, input_shape):
-        return input_shape
