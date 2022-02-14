@@ -14,13 +14,13 @@
 
 import tensorflow as tf
 import tensorflow.keras.layers as layers
-from tensorflow.keras import layers, backend
+from tensorflow.keras import backend, layers
 
 
 class Grayscale(layers.Layer):
-    """Grayscale is a preprocessing layer that transforms RGB images to Grayscale images. 
+    """Grayscale is a preprocessing layer that transforms RGB images to Grayscale images.
     Input images should have values in the range of [0, 255].
-    
+
     Input shape:
         3D (unbatched) or 4D (batched) tensor with shape:
         `(..., height, width, channels)`, in `"channels_last"` format
@@ -28,15 +28,13 @@ class Grayscale(layers.Layer):
         3D (unbatched) or 4D (batched) tensor with shape:
         `(..., height, width, channels)`, in `"channels_last"` format
     Args:
-        output_channels. 
-            It represents the output channel number of the RGB image after the Grayscale transformation.
-            The output_channels should have values either 1 or 3 to represnt the output channel number.
-            For exampel, for RGB image with shape (..., height, width, 3), after applying Grayscale transformation, 
-            it will be as follows
-                 a. (..., height, width, 1) for output_channels = 1 , Or, 
-                 b. (..., height, width, 3) for output_channels = 3 .
-                 Here, ... notation represnts the batch size.
-
+        output_channels.
+            Number color channels present in the output image.
+            The output_channels can be 1 or 3. RGB image with shape
+            (..., height, width, 3) will have the following shapes
+            after the `Grayscale` operation:
+                 a. (..., height, width, 1) if output_channels = 1
+                 b. (..., height, width, 3) if output_channels = 3.
 
     Usage:
     ```python
@@ -54,16 +52,18 @@ class Grayscale(layers.Layer):
         if output_channels not in [1, 3]:
             raise ValueError(
                 f"Received invalid argument output_channels. output_channels must be in 1 or 3. Got {output_channels}"
-            ) 
+            )
         self.output_channels = output_channels
 
     def _rgb_to_grayscale(self, image):
         if self.output_channels == 1:
             return tf.image.rgb_to_grayscale(image)
+        elif self.output_channels == 3:
+            grayscale = tf.image.rgb_to_grayscale(image)
+            return tf.image.grayscale_to_rgb(grayscale)
         else:
-            _grayscale = tf.image.rgb_to_grayscale(image)
-            return tf.image.grayscale_to_rgb(_grayscale)
-   
+            raise ValueError("Unsupported value for `output_channels`.")
+
     def call(self, images, training=None):
         """call method for the ChannelShuffle layer.
         Args:
@@ -77,11 +77,10 @@ class Grayscale(layers.Layer):
             training = backend.learning_phase()
 
         return tf.cond(
-            tf.cast(training, tf.bool), 
-            lambda: self._rgb_to_grayscale(images), 
-            lambda: images
-            )
- 
+            tf.cast(training, tf.bool),
+            lambda: self._rgb_to_grayscale(images),
+            lambda: images,
+        )
 
     def get_config(self):
         config = {
@@ -89,6 +88,3 @@ class Grayscale(layers.Layer):
         }
         base_config = super().get_config()
         return dict(list(base_config.items()) + list(config.items()))
-
-    def compute_output_shape(self, input_shape):
-        return input_shape
