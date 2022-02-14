@@ -42,7 +42,11 @@ class COCOMeanAveragePrecisionTest(tf.test.TestCase):
 
         self.assertAllEqual(mean_average_precision.result(), 1.0)
 
-    def test_result_method(self):
+    def test_end_to_end_run_simple_result(self):
+         y_true = np.array([[[0, 0, 10, 10, 1], [20, 20, 10, 10, 1]]]).astype(np.float32)
+         y_pred = np.array([[[0, 0, 10, 10, 1, 1.0], [5, 5, 10, 10, 1, 0.9]]]).astype(np.float32)
+
+    def test_result_method_with_direct_assignment(self):
         mean_average_precision = COCOMeanAveragePrecision(
             max_detections=100, class_ids=[1], num_buckets=2
         )

@@ -38,6 +38,7 @@ class COCORecall(keras.metrics.Metric):
             than `32**2`, and smaller than `1000000**2`.
         max_detections: number of maximum detections a model is allowed to make.
             Must be an integer, defaults to `100`.
+
     Usage:
 
     COCORecall accepts two Tensors as input to it's `update_state` method.

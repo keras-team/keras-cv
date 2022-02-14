@@ -26,7 +26,7 @@ class MeanAveragePrecisionTest(tf.test.TestCase):
 
         # Area range all
         mean_average_precision = COCOMeanAveragePrecision(
-            category_ids=categories + [1000],
+            class_ids=categories + [1000],
             max_detections=100,
         )
 
@@ -38,7 +38,7 @@ class MeanAveragePrecisionTest(tf.test.TestCase):
         y_true, y_pred, categories = load_samples(SAMPLE_FILE)
 
         mean_average_precision = COCOMeanAveragePrecision(
-            category_ids=categories + [1000],
+            class_ids=categories + [1000],
             max_detections=100,
             area_range=(0, 32**2),
         )
@@ -51,7 +51,7 @@ class MeanAveragePrecisionTest(tf.test.TestCase):
         y_true, y_pred, categories = load_samples(SAMPLE_FILE)
 
         mean_average_precision = COCOMeanAveragePrecision(
-            category_ids=categories + [1000],
+            class_ids=categories + [1000],
             max_detections=100,
             area_range=(0, 32**2),
         )
@@ -64,7 +64,7 @@ class MeanAveragePrecisionTest(tf.test.TestCase):
         y_true, y_pred, categories = load_samples(SAMPLE_FILE)
 
         mean_average_precision = COCOMeanAveragePrecision(
-            category_ids=categories + [1000],
+            class_ids=categories + [1000],
             max_detections=100,
             area_range=(0, 32**2),
         )
@@ -77,7 +77,7 @@ class MeanAveragePrecisionTest(tf.test.TestCase):
         y_true, y_pred, categories = load_samples(SAMPLE_FILE)
 
         mean_average_precision = COCOMeanAveragePrecision(
-            category_ids=categories + [1000],
+            class_ids=categories + [1000],
             iou_thresholds=[0.5],
             max_detections=100,
             area_range=(0, 1e5**2),
@@ -91,7 +91,7 @@ class MeanAveragePrecisionTest(tf.test.TestCase):
         y_true, y_pred, categories = load_samples(SAMPLE_FILE)
 
         mean_average_precision = COCOMeanAveragePrecision(
-            category_ids=categories + [1000],
+            class_ids=categories + [1000],
             iou_thresholds=[0.75],
             max_detections=100,
             area_range=(0, 1e5**2),
