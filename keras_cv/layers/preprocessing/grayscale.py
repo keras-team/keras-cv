@@ -13,7 +13,8 @@
 # limitations under the License.
 
 import tensorflow as tf
-from tensorflow.keras import backend, layers
+from tensorflow.keras import backend
+from tensorflow.keras import layers
 
 
 class Grayscale(layers.Layer):
