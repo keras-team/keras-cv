@@ -28,16 +28,14 @@ class Grayscale(layers.Layer):
         3D (unbatched) or 4D (batched) tensor with shape:
         `(..., height, width, channels)`, in `"channels_last"` format
     Args:
-        output_channels. It represents the output channel number of the RGB image after the Grayscale transformation.
-        The output_channels should have values either 1 or 3 to represnt the output channel number.
-
-        For exampel, for RGB image with shape (..., height, width, 3), after applying Grayscale transformation, 
-        it will be as follows
-        
-            a. (..., height, width, 1) for output_channels = 1 , Or, 
-            b. (..., height, width, 3) for output_channels = 3 .
-
-        Here, ... notation represnts the batch size.
+        output_channels. 
+            It represents the output channel number of the RGB image after the Grayscale transformation.
+            The output_channels should have values either 1 or 3 to represnt the output channel number.
+            For exampel, for RGB image with shape (..., height, width, 3), after applying Grayscale transformation, 
+            it will be as follows
+                 a. (..., height, width, 1) for output_channels = 1 , Or, 
+                 b. (..., height, width, 3) for output_channels = 3 .
+                 Here, ... notation represnts the batch size.
 
 
     Usage:
