@@ -18,8 +18,9 @@ from tensorflow.keras import layers, backend
 
 
 class Grayscale(layers.Layer):
-    """Grayscale class for transforming RGB image to Grayscale image. The expected images 
-    should be [0-255] pixel ranges.
+    """Grayscale is a preprocessing layer that transforms RGB images to Grayscale images. 
+    Input images should have values in the range of [0, 255].
+    
     Input shape:
         3D (unbatched) or 4D (batched) tensor with shape:
         `(..., height, width, channels)`, in `"channels_last"` format
@@ -27,33 +28,39 @@ class Grayscale(layers.Layer):
         3D (unbatched) or 4D (batched) tensor with shape:
         `(..., height, width, channels)`, in `"channels_last"` format
     Args:
-        num_output_channels. It represent the output channel number after transformation. Valid values are 1 and 3.
-        (..., height, width, 1) for num_output_channels = 1 .
-        (..., height, width, 3) for num_output_channels = 3 .
+        output_channels. It represents the output channel number of the RGB image after the Grayscale transformation.
+        The output_channels should have values either 1 or 3 to represnt the output channel number.
+
+        For exampel, for RGB image with shape (..., height, width, 3), after applying Grayscale transformation, 
+        it will be as follows
+        
+            a. (..., height, width, 1) for output_channels = 1 , Or, 
+            b. (..., height, width, 3) for output_channels = 3 .
+
+        Here, ... notation represnts the batch size.
 
 
     Usage:
     ```python
     (images, labels), _ = tf.keras.datasets.cifar10.load_data()
-    to_grayscale = keras_cv.layers.preprocessing.ToGray()
+    to_grayscale = keras_cv.layers.preprocessing.Grayscale()
     augmented_images = to_grayscale(images)
     ```
     """
 
-    def __init__(self, num_output_channels=1, **kwargs):
+    def __init__(self, output_channels=1, **kwargs):
         super().__init__(**kwargs)
-        self.num_output_channels = num_output_channels
+        self.output_channels = output_channels
 
-    def _check_input_params(self, num_output_channels):
-        if num_output_channels not in [1, 3]:
+    def _check_input_params(self, output_channels):
+        if output_channels not in [1, 3]:
             raise ValueError(
-                f"Valid arugment for num_output_channels param are 1 or 3. \
-                 1 for (..., height, width, 1) and 3 for (..., height, width, 3). Got {num_output_channels}"
-            )
-        self.num_output_channels = num_output_channels
+                f"Received invalid argument output_channels. output_channels must be in 1 or 3. Got {output_channels}"
+            ) 
+        self.output_channels = output_channels
 
     def _rgb_to_grayscale(self, image):
-        if self.num_output_channels == 1:
+        if self.output_channels == 1:
             return tf.image.rgb_to_grayscale(image)
         else:
             _grayscale = tf.image.rgb_to_grayscale(image)
@@ -71,15 +78,16 @@ class Grayscale(layers.Layer):
         if training is None:
             training = backend.learning_phase()
 
-        return tf.__internal__.smart_cond.smart_cond(
-            training,
-            true_fn=lambda: self._rgb_to_grayscale(images),
-            false_fn=lambda: images,
-        )
+        return tf.cond(
+            tf.cast(training, tf.bool), 
+            lambda: self._rgb_to_grayscale(images), 
+            lambda: images
+            )
+ 
 
     def get_config(self):
         config = {
-            "num_output_channels": self.num_output_channels,
+            "output_channels": self.output_channels,
         }
         base_config = super().get_config()
         return dict(list(base_config.items()) + list(config.items()))
