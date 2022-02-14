@@ -13,7 +13,7 @@
 # limitations under the License.
 import tensorflow as tf
 
-from keras_cv.layers.preprocessing.equalize import Equalization
+from keras_cv.layers.preprocessing.equalization import Equalization
 
 
 class EqualizationTest(tf.test.TestCase):
