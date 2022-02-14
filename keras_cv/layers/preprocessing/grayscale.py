@@ -13,9 +13,7 @@
 # limitations under the License.
 
 import tensorflow as tf
-import tensorflow.keras.layers as layers
-from tensorflow.keras import backend
-from tensorflow.keras import layers
+from tensorflow.keras import backend, layers
 
 
 class Grayscale(layers.Layer):
@@ -52,15 +50,16 @@ class Grayscale(layers.Layer):
     def _check_input_params(self, output_channels):
         if output_channels not in [1, 3]:
             raise ValueError(
-                f"Received invalid argument output_channels. output_channels must be in 1 or 3. Got {output_channels}"
+                "Received invalid argument output_channels. "
+                f"output_channels must be in 1 or 3. Got {output_channels}"
             )
         self.output_channels = output_channels
 
     def _rgb_to_grayscale(self, image):
+        grayscale = tf.image.rgb_to_grayscale(image)
         if self.output_channels == 1:
-            return tf.image.rgb_to_grayscale(image)
+            return grayscale
         elif self.output_channels == 3:
-            grayscale = tf.image.rgb_to_grayscale(image)
             return tf.image.grayscale_to_rgb(grayscale)
         else:
             raise ValueError("Unsupported value for `output_channels`.")
@@ -69,8 +68,9 @@ class Grayscale(layers.Layer):
         """call method for the ChannelShuffle layer.
         Args:
             images: Tensor representing images of shape
-                [batch_size, width, height, channels], with dtype tf.float32 / tf.uint8, or,
-                [width, height, channels], with dtype tf.float32 / tf.uint8
+                [batch_size, width, height, channels] or
+                [width, height, channels] with type float or int.
+                Pixel values should be in the range [0, 255]
         Returns:
             images: augmented images, same shape as input.
         """
