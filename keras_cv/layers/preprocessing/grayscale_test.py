@@ -15,14 +15,14 @@ import tensorflow as tf
 from keras_cv.layers import preprocessing
 
 
-class ToGrayTest(tf.test.TestCase):
+class GrayscaleTest(tf.test.TestCase):
     def test_return_shapes(self):
         xs = tf.ones((2, 512, 512, 3))
 
-        layer = preprocessing.ToGray(num_output_channels=1,)
+        layer = preprocessing.Grayscale(num_output_channels=1,)
         xs1 = layer(xs, training=True)
 
-        layer = preprocessing.ToGray(num_output_channels=3,)
+        layer = preprocessing.Grayscale(num_output_channels=3,)
         xs2 = layer(xs, training=True)
 
         self.assertEqual(xs1.shape, [2, 512, 512, 1])
@@ -35,7 +35,7 @@ class ToGrayTest(tf.test.TestCase):
         )
 
         # test 1
-        layer = preprocessing.ToGray(num_output_channels=1,)
+        layer = preprocessing.Grayscale(num_output_channels=1,)
 
         @tf.function
         def augment(x):
@@ -44,7 +44,7 @@ class ToGrayTest(tf.test.TestCase):
         xs1 = augment(xs)
 
         # test 2
-        layer = preprocessing.ToGray(num_output_channels=3,)
+        layer = preprocessing.Grayscale(num_output_channels=3,)
 
         @tf.function
         def augment(x):
@@ -61,10 +61,10 @@ class ToGrayTest(tf.test.TestCase):
             tf.float32,
         )
 
-        layer = preprocessing.ToGray(num_output_channels=1,)
+        layer = preprocessing.Grayscale(num_output_channels=1,)
         xs1 = layer(xs, training=True)
 
-        layer = preprocessing.ToGray(num_output_channels=3,)
+        layer = preprocessing.Grayscale(num_output_channels=3,)
         xs2 = layer(xs, training=True)
 
         self.assertEqual(xs1.shape, [2, 512, 1024, 1])
@@ -73,10 +73,10 @@ class ToGrayTest(tf.test.TestCase):
     def test_in_single_image(self):
         xs = tf.cast(tf.ones((512, 512, 3)), dtype=tf.float32,)
 
-        layer = preprocessing.ToGray(num_output_channels=1,)
+        layer = preprocessing.Grayscale(num_output_channels=1,)
         xs1 = layer(xs, training=True)
 
-        layer = preprocessing.ToGray(num_output_channels=3,)
+        layer = preprocessing.Grayscale(num_output_channels=3,)
         xs2 = layer(xs, training=True)
 
         self.assertEqual(xs1.shape, [512, 512, 1])

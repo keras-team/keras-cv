@@ -17,8 +17,8 @@ import tensorflow.keras.layers as layers
 from tensorflow.keras import layers, backend
 
 
-class ToGray(layers.Layer):
-    """ToGray class for transforming RGB image to Grayscale image. The expected images 
+class Grayscale(layers.Layer):
+    """Grayscale class for transforming RGB image to Grayscale image. The expected images 
     should be [0-255] pixel ranges.
     Input shape:
         3D (unbatched) or 4D (batched) tensor with shape:
@@ -57,7 +57,7 @@ class ToGray(layers.Layer):
             return tf.image.rgb_to_grayscale(image)
         else:
             _grayscale = tf.image.rgb_to_grayscale(image)
-            return tf.concat([_grayscale, _grayscale, _grayscale], axis=-1)
+            return tf.image.grayscale_to_rgb(_grayscale)
    
     def call(self, images, training=None):
         """call method for the ChannelShuffle layer.
