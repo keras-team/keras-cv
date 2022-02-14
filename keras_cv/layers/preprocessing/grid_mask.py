@@ -37,15 +37,18 @@ class GridMask(layers.Layer):
             spacing will be of equal size.
             String value "random" will choose a random scale at each call.
         rotation_factor:
-            The rotation_factor will be used to randomly rotate the grid_mask during training. Default to 0.1,
-            which results in an output rotating by a random amount in the range [-10% * 2pi, 10% * 2pi].
+            The rotation_factor will be used to randomly rotate the grid_mask during
+            training. Default to 0.1, which results in an output rotating by a
+            random amount in the range [-10% * 2pi, 10% * 2pi].
 
-            A float represented as fraction of 2 Pi, or a tuple of size 2 representing lower and upper
-            bound for rotating clockwise and counter-clockwise. A positive values means rotating counter
-            clock-wise, while a negative value means clock-wise. When represented as a single float, this
-            value is used for both the upper and lower bound. For instance, factor=(-0.2, 0.3) results in
-            an output rotation by a random amount in the range [-20% * 2pi, 30% * 2pi]. factor=0.2 results
-            in an output rotating by a random amount in the range [-20% * 2pi, 20% * 2pi].
+            A float represented as fraction of 2 Pi, or a tuple of size 2
+            representing lower and upper bound for rotating clockwise and
+            counter-clockwise. A positive values means rotating counter clock-wise,
+            while a negative value means clock-wise. When represented as a single
+            float, this value is used for both the upper and lower bound. For
+            instance, factor=(-0.2, 0.3) results in an output rotation by a random
+            amount in the range [-20% * 2pi, 30% * 2pi]. factor=0.2 results in an
+            output rotating by a random amount in the range [-20% * 2pi, 20% * 2pi].
 
         fill_mode: Pixels inside the gridblock are filled according to the given
             mode (one of `{"constant", "gaussian_noise"}`). Default: "constant".
@@ -144,10 +147,10 @@ class GridMask(layers.Layer):
             mask = tf.cast(tf.random.normal([mask_height, mask_width]), dtype=tf.int32)
         else:
             raise ValueError(
-                "Unsupported fill_mode.  `fill_mode` should be 'constant' or 'gaussian_noise'."
+                "Unsupported fill_mode.  `fill_mode` should be 'constant' or "
+                "'gaussian_noise'."
             )
 
-        # size of the each grid-block, higher value makes larger gridblock, and opposide.
         gridblock = tf.random.uniform(
             shape=[],
             minval=int(tf.math.minimum(image_height * 0.5, image_width * 0.3)),
