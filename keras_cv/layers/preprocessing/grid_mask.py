@@ -159,7 +159,7 @@ class GridMask(layers.Layer):
             length = tf.random.uniform(
                 shape=[], minval=1, maxval=gridblock + 1, dtype=tf.int32, seed=self.seed
             )
-        elif isinstance(self.ratio, float):
+        else:
             length = tf.cast(
                 tf.math.minimum(
                     tf.math.maximum(
