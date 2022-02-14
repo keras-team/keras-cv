@@ -11,10 +11,16 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import tensorflow as tf
 
-from keras_cv.layers.preprocessing.cut_mix import CutMix
 from keras_cv.layers.preprocessing.equalization import Equalization
-from keras_cv.layers.preprocessing.grid_mask import GridMask
-from keras_cv.layers.preprocessing.mix_up import MixUp
-from keras_cv.layers.preprocessing.random_cutout import RandomCutout
-from keras_cv.layers.preprocessing.solarization import Solarization
+
+
+class EqualizationTest(tf.test.TestCase):
+    def test_return_shapes(self):
+        xs = 255 * tf.ones((2, 512, 512, 3), dtype=tf.int32)
+        layer = Equalization()
+        xs = layer(xs)
+
+        self.assertEqual(xs.shape, [2, 512, 512, 3])
+        self.assertAllEqual(xs, 255 * tf.ones((2, 512, 512, 3)))
