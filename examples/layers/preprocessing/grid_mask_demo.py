@@ -1,9 +1,10 @@
-"""random_cutout_demo.py shows how to use the RandomCutout preprocessing layer.
+"""gridmask_demo.py shows how to use the GridMask preprocessing layer.
 
 Operates on the oxford_flowers102 dataset.  In this script the flowers
 are loaded, then are passed through the preprocessing layers.
 Finally, they are shown using matplotlib.
 """
+
 import matplotlib.pyplot as plt
 import tensorflow as tf
 import tensorflow_datasets as tfds
@@ -31,13 +32,13 @@ def main():
         .shuffle(10 * BATCH_SIZE)
         .batch(BATCH_SIZE)
     )
-    random_cutout = preprocessing.RandomCutout(
-        height_factor=(0.3, 0.9),
-        width_factor=64,
-        fill_mode="gaussian_noise",
+
+    gridmask = preprocessing.GridMask(
+        ratio="random", rotation_factor=0.5, fill_mode="gaussian_noise"
     )
     train_ds = train_ds.map(
-        lambda x, y: (random_cutout(x), y), num_parallel_calls=tf.data.AUTOTUNE
+        lambda x, y: (gridmask(x, training=True), y),
+        num_parallel_calls=tf.data.AUTOTUNE,
     )
 
     for images, labels in train_ds.take(1):

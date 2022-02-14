@@ -47,13 +47,11 @@ class RandomCutout(layers.Layer):
             - *gaussian_noise*: Pixels are filled with random gaussian noise.
         fill_value: a float represents the value to be filled inside the patches
             when `fill_mode="constant"`.
-        rate: Float between 0 and 1. The probability of augmenting an input.
-            Defaults to 1.0.
 
     Sample usage:
     ```python
     (images, labels), _ = tf.keras.datasets.cifar10.load_data()
-    random_cutout = keras_cv.layers.preprocessing.RandomCutout(0.5, 0.5, rate=1.0)
+    random_cutout = keras_cv.layers.preprocessing.RandomCutout(0.5, 0.5)
     augmented_images = random_cutout(images)
     ```
     """
@@ -64,7 +62,6 @@ class RandomCutout(layers.Layer):
         width_factor,
         fill_mode="constant",
         fill_value=0.0,
-        rate=1.0,
         seed=None,
         **kwargs
     ):
@@ -125,7 +122,6 @@ class RandomCutout(layers.Layer):
 
         self.fill_mode = fill_mode
         self.fill_value = fill_value
-        self.rate = rate
         self.seed = seed
 
     def _parse_bounds(self, factor):
@@ -138,13 +134,9 @@ class RandomCutout(layers.Layer):
         if training is None:
             training = backend.learning_phase()
 
-        rate_cond = tf.less(
-            tf.random.uniform(shape=[], minval=0.0, maxval=1.0), self.rate
-        )
-        augment_cond = tf.logical_and(rate_cond, training)
         augment = lambda: self._random_cutout(inputs)
         no_augment = lambda: inputs
-        return tf.cond(augment_cond, augment, no_augment)
+        return tf.cond(tf.cast(training, tf.bool), augment, no_augment)
 
     def _random_cutout(self, inputs):
         """Apply random cutout."""
@@ -234,7 +226,6 @@ class RandomCutout(layers.Layer):
             "width_factor": self.width_factor,
             "fill_mode": self.fill_mode,
             "fill_value": self.fill_value,
-            "rate": self.rate,
             "seed": self.seed,
         }
         base_config = super().get_config()

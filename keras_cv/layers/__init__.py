@@ -12,4 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from keras_cv.layers import preprocessing
+from keras_cv.layers.preprocessing.cut_mix import CutMix
+from keras_cv.layers.preprocessing.mix_up import MixUp
+from keras_cv.layers.preprocessing.random_cutout import RandomCutout
+from keras_cv.layers.preprocessing.solarization import Solarization

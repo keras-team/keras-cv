@@ -96,3 +96,59 @@ def sort_bboxes(boxes, axis=5):
         )
 
     return boxes_sorted_list.stack()
+
+
+def match_boxes(ious, threshold):
+    """matches bounding boxes from y_true to boxes in y_pred.
+
+    Args:
+        ious: lookup table from [y_true, y_pred] => IoU.
+        threshold: minimum IoU for a pair to be considered a match.
+    Returns:
+        a mapping from [y_pred] => matching y_true index.  Dimension
+        of result tensor is equal to the number of boxes in y_pred.
+    """
+    num_true = tf.shape(ious)[0]
+    num_pred = tf.shape(ious)[1]
+
+    gt_matches = tf.TensorArray(
+        tf.int32,
+        size=num_true,
+        dynamic_size=False,
+        infer_shape=False,
+        element_shape=(),
+    )
+    pred_matches = tf.TensorArray(
+        tf.int32,
+        size=num_pred,
+        dynamic_size=False,
+        infer_shape=False,
+        element_shape=(),
+    )
+    for i in tf.range(num_true):
+        gt_matches = gt_matches.write(i, -1)
+    for i in tf.range(num_pred):
+        pred_matches = pred_matches.write(i, -1)
+
+    for detection_idx in tf.range(num_pred):
+        match_index = -1
+        iou = tf.math.minimum(threshold, 1 - 1e-10)
+
+        for gt_idx in tf.range(num_true):
+            if gt_matches.gather([gt_idx]) > -1:
+                continue
+            # TODO(lukewood): update clause to account for gtIg
+            # if m > -1 and gtIg[m] == 0 and gtIg[gind] == 1:
+
+            if ious[gt_idx, detection_idx] < iou:
+                continue
+
+            iou = ious[gt_idx, detection_idx]
+            match_index = gt_idx
+
+        # Write back the match indices
+        pred_matches = pred_matches.write(detection_idx, match_index)
+        if match_index == -1:
+            continue
+        gt_matches = gt_matches.write(match_index, detection_idx)
+    return pred_matches.stack()

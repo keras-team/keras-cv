@@ -17,7 +17,7 @@ import numpy as np
 import tensorflow as tf
 from tensorflow import keras
 
-from keras_cv.metrics.coco.recall import COCORecall
+from keras_cv.metrics import COCORecall
 
 
 class COCORecallTest(tf.test.TestCase):
@@ -27,7 +27,7 @@ class COCORecallTest(tf.test.TestCase):
 
         recall = COCORecall(
             max_detections=100,
-            category_ids=[1],
+            class_ids=[1],
             area_range=(0, 64**2),
         )
 
@@ -42,10 +42,69 @@ class COCORecallTest(tf.test.TestCase):
 
         self.assertAllEqual(recall.result(), 1.0)
 
+    def test_ragged_tensor_support(self):
+        recall = COCORecall(
+            max_detections=100,
+            class_ids=[1],
+            area_range=(0, 64**2),
+        )
+
+        # These would match if they were in the area range
+        y_true = tf.ragged.stack(
+            [
+                tf.constant([[0, 0, 10, 10, 1], [5, 5, 10, 10, 1]], tf.float32),
+                tf.constant([[0, 0, 10, 10, 1]], tf.float32),
+            ]
+        )
+        y_pred = tf.ragged.stack(
+            [
+                tf.constant([[5, 5, 10, 10, 1, 0.9]], tf.float32),
+                tf.constant(
+                    [[0, 0, 10, 10, 1, 1.0], [5, 5, 10, 10, 1, 0.9]], tf.float32
+                ),
+            ]
+        )
+
+        recall.update_state(y_true, y_pred)
+        self.assertAlmostEqual(recall.result(), 2 / 3)
+
+    def test_merge_state(self):
+        y_true = tf.constant([[[0, 0, 100, 100, 1]]], dtype=tf.float32)
+        y_pred = tf.constant([[[0, 50, 100, 150, 1, 1.0]]], dtype=tf.float32)
+
+        m1 = COCORecall(
+            iou_thresholds=[0.95],
+            class_ids=[1],
+            area_range=(0, 100000**2),
+            max_detections=1,
+        )
+        m2 = COCORecall(
+            iou_thresholds=[0.95],
+            class_ids=[1],
+            area_range=(0, 100000**2),
+            max_detections=1,
+        )
+
+        m1.update_state(y_true, y_pred)
+        m1.update_state(y_true, y_true)
+        m2.update_state(y_true, y_pred)
+
+        metric_result = COCORecall(
+            iou_thresholds=[0.95],
+            class_ids=[1],
+            area_range=(0, 100000**2),
+            max_detections=1,
+        )
+        metric_result.merge_state([m1, m2])
+
+        self.assertEqual([[1]], metric_result.true_positives)
+        self.assertEqual([3], metric_result.ground_truth_boxes)
+        self.assertEqual(1 / 3, metric_result.result())
+
     def test_recall_area_range_filtering(self):
         recall = COCORecall(
             max_detections=100,
-            category_ids=[1],
+            class_ids=[1],
             area_range=(32**2, 64**2),
         )
 
@@ -60,42 +119,38 @@ class COCORecallTest(tf.test.TestCase):
 
     def test_missing_categories(self):
         recall = COCORecall(
-            max_detections=100, category_ids=[1, 2, 3], area_range=(0, 1e9**2)
+            max_detections=100, class_ids=[1, 2, 3], area_range=(0, 1e9**2)
         )
-        t = recall.iou_thresholds.shape[0]
-        k = recall.category_ids.shape[0]
+        t = len(recall.iou_thresholds)
+        k = len(recall.class_ids)
 
         true_positives = np.ones((t, k))
         true_positives[:, 1] = np.zeros((t,))
-        true_positives = tf.constant(true_positives, dtype=tf.float32)
+        true_positives = tf.constant(true_positives, dtype=tf.int32)
 
         ground_truth_boxes = np.ones((k,)) * 2
         ground_truth_boxes[1] = 0
 
-        ground_truth_boxes = tf.constant(ground_truth_boxes, dtype=tf.float32)
+        ground_truth_boxes = tf.constant(ground_truth_boxes, dtype=tf.int32)
         recall.true_positives.assign(true_positives)
         recall.ground_truth_boxes.assign(ground_truth_boxes)
 
         self.assertEqual(recall.result(), 0.5)
 
     def test_recall_direct_assignment(self):
-        recall = COCORecall(
-            max_detections=100, category_ids=[1], area_range=(0, 1e9**2)
-        )
-        t = recall.iou_thresholds.shape[0]
-        k = recall.category_ids.shape[0]
+        recall = COCORecall(max_detections=100, class_ids=[1], area_range=(0, 1e9**2))
+        t = len(recall.iou_thresholds)
+        k = len(recall.class_ids)
 
-        true_positives = tf.ones((t, k))
-        ground_truth_boxes = tf.ones((k,)) * 2
+        true_positives = tf.ones((t, k), dtype=tf.int32)
+        ground_truth_boxes = tf.ones((k,), dtype=tf.int32) * 2
         recall.true_positives.assign(true_positives)
         recall.ground_truth_boxes.assign(ground_truth_boxes)
 
         self.assertEqual(recall.result(), 0.5)
 
     def test_max_detections_one_third(self):
-        recall = COCORecall(
-            max_detections=1, category_ids=[1], area_range=(0, 1e9**2)
-        )
+        recall = COCORecall(max_detections=1, class_ids=[1], area_range=(0, 1e9**2))
         y_true = np.array(
             [
                 [
@@ -114,9 +169,7 @@ class COCORecallTest(tf.test.TestCase):
         self.assertAlmostEqual(recall.result().numpy(), 1 / 3)
 
     def test_max_detections(self):
-        recall = COCORecall(
-            max_detections=3, category_ids=[1], area_range=(0, 1e9**2)
-        )
+        recall = COCORecall(max_detections=3, class_ids=[1], area_range=(0, 1e9**2))
         y_true = np.array(
             [
                 [
@@ -136,16 +189,105 @@ class COCORecallTest(tf.test.TestCase):
         self.assertAlmostEqual(recall.result().numpy(), 1.0)
 
     def test_recall_direct_assignment_one_third(self):
-        recall = COCORecall(
-            max_detections=100, category_ids=[1], area_range=(0, 1e9**2)
-        )
-        t = recall.iou_thresholds.shape[0]
-        k = recall.category_ids.shape[0]
+        recall = COCORecall(max_detections=100, class_ids=[1], area_range=(0, 1e9**2))
+        t = len(recall.iou_thresholds)
+        k = len(recall.class_ids)
 
-        true_positives = tf.ones((t, k))
-        ground_truth_boxes = tf.ones((k,)) * 3
+        true_positives = tf.ones((t, k), dtype=tf.int32)
+        ground_truth_boxes = tf.ones((k,), dtype=tf.int32) * 3
 
         recall.true_positives.assign(true_positives)
         recall.ground_truth_boxes.assign(ground_truth_boxes)
 
         self.assertAlmostEqual(recall.result().numpy(), 1 / 3)
+
+    def test_area_range_bounding_box_counting(self):
+        y_true = tf.constant(
+            [[[0, 0, 100, 100, 1], [0, 0, 100, 100, 1]]], dtype=tf.float32
+        )
+        y_pred = tf.constant([[[0, 50, 100, 150, 1, 1.0]]], dtype=tf.float32)
+        # note the low iou threshold
+        metric = COCORecall(
+            iou_thresholds=[0.15],
+            class_ids=[1],
+            area_range=(0, 10000**2),
+            max_detections=1,
+        )
+        metric.update_state(y_true, y_pred)
+        self.assertEqual([[2]], metric.ground_truth_boxes)
+        self.assertEqual([[1]], metric.true_positives)
+
+    def test_true_positive_counting_one_good_one_bad(self):
+        y_true = tf.constant(
+            [[[0, 0, 100, 100, 1], [0, 0, 100, 100, 1]]], dtype=tf.float32
+        )
+        y_pred = tf.constant([[[0, 50, 100, 150, 1, 1.0]]], dtype=tf.float32)
+        # note the low iou threshold
+        metric = COCORecall(
+            iou_thresholds=[0.15],
+            class_ids=[1],
+            area_range=(0, 10000**2),
+            max_detections=1,
+        )
+        metric.update_state(y_true, y_pred)
+
+        self.assertEqual([2], metric.ground_truth_boxes)
+        self.assertEqual([[1]], metric.true_positives)
+
+    def test_true_positive_counting_one_true_two_pred(self):
+        y_true = tf.constant(
+            [
+                [
+                    [0, 0, 100, 100, 1],
+                ]
+            ],
+            dtype=tf.float32,
+        )
+        y_pred = tf.constant(
+            [[[0, 50, 100, 150, 1, 0.90], [0, 0, 100, 100, 1, 1.0]]],
+            dtype=tf.float32,
+        )
+        # note the low iou threshold
+        metric = COCORecall(
+            iou_thresholds=[0.15],
+            class_ids=[1],
+            area_range=(0, 10000**2),
+            max_detections=1,
+        )
+        metric.update_state(y_true, y_pred)
+        self.assertEqual([[1]], metric.true_positives)
+
+        y_true = tf.constant([[[0, 0, 100, 100, 1]]], dtype=tf.float32)
+        y_pred = tf.constant([[[0, 50, 100, 150, 1, 1.0]]], dtype=tf.float32)
+
+        metric.update_state(y_true, y_pred)
+        self.assertEqual([[2]], metric.true_positives)
+
+    def test_matches_single_box(self):
+        y_true = tf.constant([[[0, 0, 100, 100, 1]]], dtype=tf.float32)
+        y_pred = tf.constant([[[0, 50, 100, 150, 1, 1.0]]], dtype=tf.float32)
+
+        # note the low iou threshold
+        metric = COCORecall(
+            iou_thresholds=[0.15],
+            class_ids=[1],
+            area_range=(0, 10000**2),
+            max_detections=1,
+        )
+        metric.update_state(y_true, y_pred)
+
+        self.assertEqual([[1]], metric.true_positives)
+
+    def test_matches_single_false_positive(self):
+        y_true = tf.constant([[[0, 0, 100, 100, 1]]], dtype=tf.float32)
+        y_pred = tf.constant([[[0, 50, 100, 150, 1, 1.0]]], dtype=tf.float32)
+
+        metric = COCORecall(
+            iou_thresholds=[0.95],
+            class_ids=[1],
+            area_range=(0, 100000**2),
+            max_detections=1,
+        )
+        metric.update_state(y_true, y_pred)
+
+        self.assertEqual([[0]], metric.true_positives)
