@@ -265,20 +265,6 @@ class GridMask(layers.Layer):
 
         return tf.where(masks, fill_value, images)
 
-    # def _augment_images(self, images):
-    #     unbatched = images.shape.rank == 3
-    #
-    #     # The transform op only accepts rank 4 inputs, so if we have an unbatched
-    #     # image, we need to temporarily expand dims to a batch.
-    #     if unbatched:
-    #         images = tf.expand_dims(images, axis=0)
-    #
-    #     output = self._grid_mask(images)
-    #
-    #     if unbatched:
-    #         output = tf.squeeze(output, axis=0)
-    #     return output
-
     def call(self, images, training=True):
         """call method for the GridMask layer.
 
