@@ -16,10 +16,10 @@ import tensorflow as tf
 from tensorflow.keras import layers, backend
 
 class ChannelShuffle(layers.Layer):
-    """ChannelShuffle class for shuffling the channel of RGB image. The expected images 
-    should be [0-255] pixel ranges.
+    """ChannelShuffle performs shuffling the channel of RGB image. 
 
     Input shape:
+        The expected images should be [0-255] pixel ranges.
         3D (unbatched) or 4D (batched) tensor with shape:
         `(..., height, width, channels)`, in `"channels_last"` format
     Output shape:
@@ -51,7 +51,7 @@ class ChannelShuffle(layers.Layer):
         x = tf.random.shuffle(x, seed=self.seed)
         return tf.transpose(x)
 
-    def call(self, images, training=None):
+    def call(self, images, training=True):
         """call method for the ChannelShuffle layer.
 
         Args:
