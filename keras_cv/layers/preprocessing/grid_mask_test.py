@@ -94,18 +94,3 @@ class GridMaskTest(tf.test.TestCase):
         self.assertTrue(tf.math.reduce_any(xs[0] == 2.0))
         self.assertTrue(tf.math.reduce_any(xs[1] == float(fill_value)))
         self.assertTrue(tf.math.reduce_any(xs[1] == 1.0))
-
-    def test_in_single_image(self):
-        xs = tf.cast(
-            tf.ones((512, 512, 1)),
-            dtype=tf.float32,
-        )
-
-        layer = GridMask(
-            ratio="random",
-            fill_mode="gaussian_noise",
-            fill_value=0.0
-        )
-        xs = layer(xs, training=True)
-        self.assertTrue(tf.math.reduce_any(xs == 0.0))
-        self.assertTrue(tf.math.reduce_any(xs == 1.0))

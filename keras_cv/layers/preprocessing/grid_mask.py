@@ -77,7 +77,7 @@ class GridMask(layers.Layer):
         ratio="random",
         rotation_factor=0.15,
         fill_mode="constant",
-        fill_value=0,
+        fill_value=0.0,
         seed=None,
         **kwargs,
     ):
