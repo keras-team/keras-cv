@@ -34,7 +34,7 @@ def main():
     )
 
     gridmask = preprocessing.GridMask(
-        ratio=0.1, rotation_factor=0.5, fill_mode="gaussian_noise"
+        ratio="random", rotation_factor=0.5, fill_mode="gaussian_noise"
     )
     train_ds = train_ds.map(
         lambda x, y: (gridmask(x), y),
