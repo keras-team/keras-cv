@@ -9,7 +9,8 @@ in this document.
 Some preprocessing layers in KerasCV perform color based transformations.  This
 includes `RandomBrightness`, `Equalize`, `Solarization`, and more.  Preprocessing
 layers that perform color based transformations make the following assumptions:
-- input images are represented in pixel space, with values in the range [0,255]
+- these layers must accept a `value_range`, which is a tuple of numbers.
+- `value_range` must default to `(0, 255)`
 - input images may be of any `dtype`
 
 Additionally, these preprocessing layers should cast back to the input images
