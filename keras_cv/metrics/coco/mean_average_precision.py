@@ -128,8 +128,11 @@ class COCOMeanAveragePrecision(tf.keras.metrics.Metric):
         self.ground_truths.assign(tf.zeros_like(self.ground_truths))
 
     @tf.function()
-    def update_state(self, y_true, y_pred):
+    def update_state(self, y_true, y_pred, sample_weight=None):
         num_images = tf.shape(y_true)[0]
+
+        if sample_weight is not None:
+            raise ValueError("Received unsupported `sample_weight` to `update_state`")
 
         y_pred = utils.sort_bboxes(y_pred, axis=bbox.CONFIDENCE)
 
@@ -254,13 +257,18 @@ class COCOMeanAveragePrecision(tf.keras.metrics.Metric):
             return 0.0
 
         # tp_sum shape, [categories, iou_thr, n_buckets]
-        recalls = tf.math.divide_no_nan(true_positives_sum, ground_truths[:, None, None])
-        precisions = tf.math.divide_no_nan(false_positives_sum, (false_positives_sum + true_positives_sum))
+        recalls = tf.math.divide_no_nan(
+            true_positives_sum, ground_truths[:, None, None]
+        )
+        precisions = tf.math.divide_no_nan(
+            true_positives_sum, (false_positives_sum + true_positives_sum)
+        )
 
         result = tf.TensorArray(
             tf.float32, size=self.num_class_ids * self.num_iou_thresholds
         )
 
+        # so in this case this should be: [1, 1]
         for i in range(self.num_class_ids):
             for j in range(self.num_iou_thresholds):
                 recalls_i = recalls[i, j]
@@ -279,16 +287,20 @@ class COCOMeanAveragePrecision(tf.keras.metrics.Metric):
                     p_i = inds[r_i]
                     if p_i < tf.shape(precisions_i)[0]:
                         result_for_threshold = precisions_i[p_i]
-                        precision_result = precision_result.write(ri, result_for_threshold)
+                        precision_result = precision_result.write(
+                            r_i, result_for_threshold
+                        )
 
                 precision_per_recall_threshold = precision_result.stack()
-                result_ij = tf.math.reduce_mean(pr_per_recall_threshold, axis=-1)
+                tf.print(precision_per_recall_threshold)
+                result_ij = tf.math.reduce_mean(precision_per_recall_threshold, axis=-1)
                 result = result.write(j + i * self.num_iou_thresholds, result_ij)
 
         result = tf.reshape(
             result.stack(), (self.num_class_ids, self.num_iou_thresholds)
         )
         result = tf.math.reduce_mean(result, axis=-1)
-        return tf.math.reduce_sum(result, axis=0) / tf.cast(
+        result = tf.math.reduce_sum(result, axis=0) / tf.cast(
             present_categories, tf.float32
         )
+        return result
