@@ -134,7 +134,7 @@ class RGBShift(layers.Layer):
         shifted_rgb = tf.clip_by_value(shifted_rgb, 0, 255)
         return tf.cast(shifted_rgb, images.dtype)
 
-    def call(self, images, training=None):
+    def call(self, images, training=True):
         """call method for the RGBShift layer.
 
         Args:
@@ -146,25 +146,12 @@ class RGBShift(layers.Layer):
         """
         if training is None:
             training = backend.learning_phase()
-
-        if not training:
-            return images
-        else:
-            unbatched = images.shape.rank == 3
-            # The transform op only accepts rank 4 inputs, so if we have an unbatched
-            # image, we need to temporarily expand dims to a batch.
-            if unbatched:
-                images = tf.expand_dims(images, axis=0)
-
-            # TODO: Check if input tensor is RGB or not. 
-            # TODO: Support tf.uint8
-
-            # TODO: Make the batch operation vectorize.
-            output = tf.map_fn(lambda image: self._rgb_shifting(image), images)
-
-            if unbatched:
-                output = tf.squeeze(output, axis=0)
-            return output
+        
+        return tf.cond(
+            tf.cast(training, tf.bool),
+            lambda: self._rgb_shifting(images),
+            lambda: images,
+        )
 
     def get_config(self):
         config = {
