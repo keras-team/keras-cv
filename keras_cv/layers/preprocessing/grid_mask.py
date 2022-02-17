@@ -15,7 +15,6 @@
 import tensorflow as tf
 from tensorflow.keras import backend
 from tensorflow.keras import layers
-from tensorflow.python.keras.utils import layer_utils
 
 
 class GridMask(layers.Layer):
@@ -110,14 +109,11 @@ class GridMask(layers.Layer):
                 f"fill_value should be in the range [0, 255]. Got {fill_value}"
             )
 
-        layer_utils.validate_string_arg(
-            fill_mode,
-            allowable_strings=["constant", "gaussian_noise", "random"],
-            layer_name="GridMask",
-            arg_name="fill_mode",
-            allow_none=False,
-            allow_callables=False,
-        )
+        if fill_mode not in ["constant", "gaussian_noise", "random"]:
+            raise ValueError(
+                '`fill_mode` should be "constant", '
+                f'"gaussian_noise", or "random".  Got `fill_mode`={fill_mode}'
+            )
 
     @staticmethod
     def _crop(mask, image_height, image_width):
