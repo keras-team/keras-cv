@@ -49,7 +49,10 @@ class Posterization(tf.keras.layers.Layer):
 
     def __init__(self, bits: int):
         super().__init__()
-        assert 0 < bits < 9, f"Bits value must be between 1-8. Received bits: {bits}."
+
+        if not (0 < bits < 9):
+            raise ValueError(f"Bits value must be between 1-8. Received bits: {bits}.")
+
         self.shift = 8 - bits
 
     def call(self, images):

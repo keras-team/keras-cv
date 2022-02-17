@@ -23,7 +23,7 @@ class PosterizationTest(tf.test.TestCase):
         invalid_values = [-1, 0, 9, 24]
 
         for value in invalid_values:
-            with self.assertRaises(AssertionError):
+            with self.assertRaises(ValueError):
                 Posterization(bits=value)
 
     def test_output_shape_unchanged(self):
