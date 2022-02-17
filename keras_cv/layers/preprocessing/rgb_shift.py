@@ -68,13 +68,26 @@ class RGBShift(layers.Layer):
             if len(shift_limit) != 2: 
                 raise ValueError(f'The {channel} should be scalar, tuple or list of two upper and lower \
                     bound number. Got {shift_limit}')
-            return sorted(shift_limit)
+            return self._check_scale_range(sorted(shift_limit))
         elif isinstance(shift_limit, (int, float)):
             shift_limit = abs(shift_limit)
-            return [-shift_limit, shift_limit]
+            return self._check_scale_range(sorted(shift_limit))
         else:
             raise ValueError(f'The {channel} should be scalar, tuple or list of two upper and lower bound\
                  number. Got {shift_limit}')
+        
+    @staticmethod
+    def _check_scale_range(shift_limit):
+        if all(isinstance(each_elem, float) for each_elem in shift_limit):
+            if shift_limit[0] < -1.0 or shift_limit[1] > 1.0:
+                raise ValueError(f"Got {shift_limit}")
+            return shift_limit
+        elif all(isinstance(each_elem, int) for each_elem in shift_limit):
+            if shift_limit[0] < -255 or shift_limit[1] > 255:
+                raise ValueError(f"Got {shift_limit}")
+            return shift_limit
+        else:
+            raise ValueError(f'Both bound must be same dtype. Got {shift_limit}')
 
     @tf.function
     def _rgb_shifting(self, image):
