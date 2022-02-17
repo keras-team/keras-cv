@@ -18,8 +18,6 @@ import tensorflow as tf
 from tensorflow import keras
 
 from keras_cv.metrics import COCOMeanAveragePrecision
-from keras_cv.metrics.coco import utils
-from keras_cv.utils import iou as iou_lib
 
 
 class COCOMeanAveragePrecisionTest(tf.test.TestCase):
@@ -55,11 +53,6 @@ class COCOMeanAveragePrecisionTest(tf.test.TestCase):
             max_detections=100,
             num_buckets=4,
             recall_thresholds=[0.3, 0.5],
-        )
-        buckets_shape = (
-            mean_average_precision.num_class_ids,
-            mean_average_precision.num_iou_thresholds,
-            mean_average_precision.num_buckets,
         )
 
         ground_truths = [3]
@@ -117,11 +110,6 @@ class COCOMeanAveragePrecisionTest(tf.test.TestCase):
             max_detections=100,
             num_buckets=3,
             recall_thresholds=[0.3, 0.5],
-        )
-        buckets_shape = (
-            mean_average_precision.num_class_ids,
-            mean_average_precision.num_iou_thresholds,
-            mean_average_precision.num_buckets,
         )
 
         ground_truths = [3]

@@ -12,9 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import tensorflow as tf
-import tensorflow.keras as keras
-import tensorflow.keras.initializers as initializers
-from numpy import pad
 
 from keras_cv.metrics.coco import utils
 from keras_cv.utils import bbox
