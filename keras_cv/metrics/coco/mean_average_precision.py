@@ -77,7 +77,7 @@ class COCOMeanAveragePrecision(tf.keras.metrics.Metric):
     )
     coco_map.update_state(y_true, y_pred)
     coco_map.result()
-    # TODO(lukewood) print result before submitting
+    # 0.24752477
     ```
     """
 
