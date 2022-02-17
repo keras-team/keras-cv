@@ -138,7 +138,7 @@ class COCOMeanAveragePrecision(tf.keras.metrics.Metric):
 
         if sample_weight is not None:
             raise ValueError(
-                f"{self.class.name} does not support `sample_weight`"
+                "COCOMeanAveragePrecision does not support `sample_weight`"
             )
 
         y_pred = utils.sort_bboxes(y_pred, axis=bbox.CONFIDENCE)
