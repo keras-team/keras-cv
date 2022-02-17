@@ -22,7 +22,7 @@ from keras_cv.utils import iou as iou_lib
 
 
 class COCOMeanAveragePrecision(tf.keras.metrics.Metric):
-    """COCOMeanAveragePrecision computes MaP.
+    """COCOMeanAveragePrecision computes an approximation of MaP.
 
     Args:
         class_ids: The class IDs to evaluate the metric for.  To evaluate for
@@ -43,6 +43,14 @@ class COCOMeanAveragePrecision(tf.keras.metrics.Metric):
             Must be an integer, defaults to `100`.
         recall_thresholds: The list of thresholds to average over in the MaP
             computation.  List of floats.  Defaults to [0:.01:1].
+        num_buckets: num_buckets is used to select the number of confidence
+            buckets predictions are placed into.  Instead of computation MaP
+            over each incrementally selected set of bounding boxes, we instead
+            place them into buckets.  This makes distributed computation easier.
+            Increasing buckets improves accuracy of the metric, while decreasing
+            buckets improves performance.  This is a tradeoff you must weight
+            for your use case.  Defaults to 10,000 which is sufficiently large
+            for most use cases.
 
     Usage:
 
