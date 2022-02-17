@@ -14,7 +14,6 @@
 import tensorflow as tf
 import tensorflow.keras.layers as layers
 from tensorflow.keras import backend
-from tensorflow.python.keras.utils import layer_utils
 
 from keras_cv.utils import fill_utils
 

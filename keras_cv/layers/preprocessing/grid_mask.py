@@ -15,7 +15,6 @@
 import tensorflow as tf
 from tensorflow.keras import backend
 from tensorflow.keras import layers
-from tensorflow.python.keras.utils import layer_utils
 
 
 class GridMask(layers.Layer):
