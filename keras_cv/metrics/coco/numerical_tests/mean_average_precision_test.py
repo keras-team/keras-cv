@@ -23,9 +23,11 @@ SAMPLE_FILE = os.path.dirname(os.path.abspath(__file__)) + "/sample_boxes.npz"
 
 
 class MeanAveragePrecisionTest(tf.test.TestCase):
-    """Unit tests that test Keras COCO metric results against the known good ones of
-    cocoeval.py.  The bounding boxes in sample_boxes.npz were given to cocoeval.py
-    which output the following values:
+    """Numerical testing for COCOMeanAveragePrecision.
+
+    Unit tests that test Keras COCO metric results against the known values of
+    cocoeval.py.  The bounding boxes in sample_boxes.npz were given to
+    cocoeval.py, which computed the following values:
         Average Precision  (AP) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.643
         Average Precision  (AP) @[ IoU=0.50      | area=   all | maxDets=100 ] = 1.000
         Average Precision  (AP) @[ IoU=0.75      | area=   all | maxDets=100 ] = 0.729

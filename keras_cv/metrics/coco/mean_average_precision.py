@@ -51,16 +51,16 @@ class COCOMeanAveragePrecision(tf.keras.metrics.Metric):
 
     Usage:
 
-    COCOMeanAveragePrecision accepts two Tensors as input to it's `update_state` method.
-    These Tensors represent bounding boxes in `corners` format.  Utilities
-    to convert Tensors from `xywh` to `corners` format can be found in
-    `keras_cv.utils.bbox`.
+    COCOMeanAveragePrecision accepts two Tensors as input to it's
+    `update_state()` method.  These Tensors represent bounding boxes in
+    `corners` format.  Utilities to convert Tensors from `xywh` to `corners`
+    format can be found in `keras_cv.utils.bbox`.
 
     Each image in a dataset may have a different number of bounding boxes,
     both in the ground truth dataset and the prediction set.  In order to
     account for this, you may either pass a `tf.RaggedTensor`, or pad Tensors
     with `-1`s to indicate unused boxes.  A utility function to perform this
-    padding is available at `keras_cv_.utils.bbox.pad_bbox_batch_to_shape`.
+    padding is available at `keras_cv_.utils.bbox.pad_bbox_batch_to_shape()`.
 
     ```python
     coco_map = keras_cv.metrics.COCOMeanAveragePrecision(
@@ -137,7 +137,9 @@ class COCOMeanAveragePrecision(tf.keras.metrics.Metric):
         num_images = tf.shape(y_true)[0]
 
         if sample_weight is not None:
-            raise ValueError("Received unsupported `sample_weight` to `update_state`")
+            raise ValueError(
+                f"{self.class.name} does not support `sample_weight`"
+            )
 
         y_pred = utils.sort_bboxes(y_pred, axis=bbox.CONFIDENCE)
 
@@ -308,9 +310,7 @@ class COCOMeanAveragePrecision(tf.keras.metrics.Metric):
             result.stack(), (self.num_class_ids, self.num_iou_thresholds)
         )
         result = tf.math.reduce_mean(result, axis=-1)
-        # tf.print('result', result)
         result = tf.math.reduce_sum(result, axis=0) / tf.cast(
             present_categories, tf.float32
         )
-        # tf.print('result2', result)
         return result
