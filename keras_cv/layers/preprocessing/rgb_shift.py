@@ -89,27 +89,50 @@ class RGBShift(layers.Layer):
         else:
             raise ValueError(f'Both bound must be same dtype. Got {shift_limit}')
 
-    @tf.function
-    def _rgb_shifting(self, image):
-        r_shift = tf.random.uniform([], 
-                                    minval=self._r_shift_limit[0], 
-                                    maxval=self._r_shift_limit[1], 
-                                    dtype=tf.float32, seed=self.seed)
-        g_shift = tf.random.uniform([], 
-                                    minval=self._g_shift_limit[0], 
-                                    maxval=self._g_shift_limit[1], 
-                                    dtype=tf.float32, seed=self.seed)
-        b_shift = tf.random.uniform([], 
-                                    minval=self._b_shift_limit[0],
-                                    maxval=self._b_shift_limit[1], 
-                                    dtype=tf.float32, seed=self.seed)
-        
-        unstack_rgb = tf.unstack(image, axis=-1)
+    def _get_random_uniform(self, shift_limit, rgb_delta_shape):
+            if self.seed is not None:
+                _rand_uniform = tf.random.stateless_uniform(
+                    shape=rgb_delta_shape,
+                    seed=[0, self._seed],
+                    minval=shift_limit[0],
+                    maxval=shift_limit[1],
+                )
+            else:
+                _rand_uniform = tf.random.uniform(rgb_delta_shape, 
+                                                minval=shift_limit[0], 
+                                                maxval=shift_limit[1], 
+                                                dtype=tf.float32)
+            
+
+            if all(isinstance(each_elem, float) for each_elem in shift_limit):
+                _rand_uniform = _rand_uniform * 85.0
+
+            return _rand_uniform
+
+    def _rgb_shifting(self, images):
+        rank = images.shape.rank
+        if rank == 3:
+            rgb_delta_shape = (1, 1, 1)
+        elif rank == 4:
+            # Keep only the batch dim. This will ensure to have same adjustment
+            # with in one image, but different across the images.
+            rgb_delta_shape = [tf.shape(images)[0], 1, 1, 1]
+        else:
+            raise ValueError(
+                f"Expect the input image to be rank 3 or 4. Got {images.shape}"
+            )
+
+        r_shift = self._get_random_uniform(self.r_shift_limit, rgb_delta_shape)   
+        g_shift = self._get_random_uniform(self.g_shift_limit, rgb_delta_shape)
+        b_shift = self._get_random_uniform(self.b_shift_limit, rgb_delta_shape)
+
+        unstack_rgb = tf.unstack(images, axis=-1)
         shifted_rgb = tf.stack([unstack_rgb[0] + r_shift, 
                                 unstack_rgb[1] + g_shift, 
                                 unstack_rgb[2] + b_shift],  axis=-1)
+        
         shifted_rgb = tf.clip_by_value(shifted_rgb, 0, 255)
-        return tf.cast(shifted_rgb, image.dtype)
+        return tf.cast(shifted_rgb, images.dtype)
 
     def call(self, images, training=None):
         """call method for the RGBShift layer.
