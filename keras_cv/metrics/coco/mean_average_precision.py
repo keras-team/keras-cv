@@ -188,39 +188,38 @@ class COCOMeanAveragePrecision(tf.keras.metrics.Metric):
 
                     dt_scores = detections[:, bbox.CONFIDENCE]
 
-                    tps = pred_matches != -1
-                    fps = pred_matches == -1
-                    # tf.print("tps", tps)
-                    # tf.print("fps", fps)
+                    true_positives = pred_matches != -1
+                    false_positives = pred_matches == -1
 
                     # We must divide by 1.01 to prevent off by one errors.
                     confidence_buckets = tf.cast(
                         tf.math.floor(self.num_buckets * (dt_scores / 1.01)), tf.int32
                     )
-                    # tf.print('confidence_buckets', confidence_buckets)
-                    tps_by_bucket = tf.gather_nd(
-                        confidence_buckets, indices=tf.where(tps)
+                    true_positives_by_bucket = tf.gather_nd(
+                        confidence_buckets, indices=tf.where(true_positives)
                     )
-                    fps_by_bucket = tf.gather_nd(
-                        confidence_buckets, indices=tf.where(fps)
+                    false_positives_by_bucket = tf.gather_nd(
+                        confidence_buckets, indices=tf.where(false_positives)
                     )
-                    # tf.print('tps_by_bucket', tps_by_bucket)
-                    tp_counts_per_bucket = tf.math.bincount(
-                        tps_by_bucket,
+
+                    true_positive_counts_per_bucket = tf.math.bincount(
+                        true_positives_by_bucket,
                         minlength=self.num_buckets,
                         maxlength=self.num_buckets,
                     )
-                    fp_counts_per_bucket = tf.math.bincount(
-                        fps_by_bucket,
+                    false_positives_counts_per_bucket = tf.math.bincount(
+                        false_positives_by_bucket,
                         minlength=self.num_buckets,
                         maxlength=self.num_buckets,
                     )
-                    # tf.print('tp_counts_per_bucket', tp_counts_per_bucket)
+
                     true_positives_update = true_positives_update.write(
-                        (self.num_iou_thresholds * c_i) + iou_i, tp_counts_per_bucket
+                        (self.num_iou_thresholds * c_i) + iou_i,
+                        true_positive_counts_per_bucket,
                     )
                     false_positives_update = false_positives_update.write(
-                        (self.num_iou_thresholds * c_i) + iou_i, fp_counts_per_bucket
+                        (self.num_iou_thresholds * c_i) + iou_i,
+                        false_positives_counts_per_bucket,
                     )
 
             true_positives_update = tf.reshape(
@@ -245,9 +244,6 @@ class COCOMeanAveragePrecision(tf.keras.metrics.Metric):
         self.ground_truths.assign_add(ground_truth_boxes_update)
         self.true_positive_buckets.assign_add(true_positive_buckets_update)
         self.false_positive_buckets.assign_add(false_positive_buckets_update)
-        #
-        # tf.print('true_positive_buckets', self.true_positive_buckets)
-        # tf.print('false_positive_buckets', self.false_positive_buckets)
 
     @tf.function()
     def result(self):
@@ -262,8 +258,6 @@ class COCOMeanAveragePrecision(tf.keras.metrics.Metric):
 
         if present_categories == 0:
             return 0.0
-
-        # tp_sum shape, [categories, iou_thr, n_buckets]
 
         recalls = tf.math.divide_no_nan(
             true_positives_sum, ground_truths[:, None, None]
@@ -285,12 +279,11 @@ class COCOMeanAveragePrecision(tf.keras.metrics.Metric):
                 # original implementation always has at least one bounding box
                 # in the first bucket.
                 #
-                # as such, we may need to mask out the buckets where there is at
+                # as such, we need to mask out the buckets where there is at
                 # least one bounding box  Therefore, we must filter out the
                 # buckets where (precisions_i) is NaN, as that implies a divide
                 # by zero.
 
-                # tf.print("inds", inds)
                 inds = tf.where(not tf.math.is_nan(precisions_i))
                 recalls_i = tf.gather_nd(recalls_i, inds)
                 precisions_i = tf.gather_nd(precisions_i, inds)
@@ -299,25 +292,10 @@ class COCOMeanAveragePrecision(tf.keras.metrics.Metric):
                     recalls_i, tf.constant(self.recall_thresholds), side="left"
                 )
 
-                # TODO(lukewood): Vectorize this, this should be trivial with
-                # gather operations.
-
                 # if searchsorted returns len(precisions)+1, we should return 0
                 precisions_i = tf.concat([precisions_i, zero_pad], axis=-1)
                 precision_per_recall_threshold = tf.gather(precisions_i, inds)
 
-                # for r_i in tf.range(len(self.recall_thresholds)):
-                #     p_i = inds[r_i]
-                #     if p_i < tf.shape(precisions_i)[0]:
-                #         result_for_threshold = precisions_i[p_i]
-                #         precision_result = precision_result.write(
-                #             r_i, result_for_threshold
-                #         )
-                #         recall_result = recall_result.write(
-                #             r_i, recalls_i[r_i]
-                #         )
-                # tf.print('recall_per_threshold', recall_per_threshold)
-                # tf.print('precision_per_recall_threshold', precision_per_recall_threshold)
                 result_ij = tf.math.reduce_mean(precision_per_recall_threshold, axis=-1)
                 result = result.write(j + i * self.num_iou_thresholds, result_ij)
 
