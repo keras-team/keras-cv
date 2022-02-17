@@ -18,7 +18,8 @@ import tensorflow as tf
 from tensorflow import keras
 
 from keras_cv.metrics import COCOMeanAveragePrecision
-
+from keras_cv.metrics.coco import utils
+from keras_cv.utils import iou as iou_lib
 
 class COCOMeanAveragePrecisionTest(tf.test.TestCase):
     def test_runs_inside_model(self):
@@ -27,20 +28,92 @@ class COCOMeanAveragePrecisionTest(tf.test.TestCase):
 
         mean_average_precision = COCOMeanAveragePrecision(
             max_detections=100,
+            num_buckets=4,
             class_ids=[1],
             area_range=(0, 64**2),
         )
 
         # These would match if they were in the area range
-        y_true = np.array([[[0, 0, 10, 10, 1], [5, 5, 10, 10, 1]]]).astype(np.float32)
-        y_pred = np.array([[[0, 0, 10, 10, 1, 1.0], [5, 5, 10, 10, 1, 0.9]]]).astype(
+        y_true = np.array([[
+            [0, 0, 10, 10, 1],
+            [5, 5, 10, 10, 1]
+            ]]).astype(np.float32)
+        y_pred = np.array([[
+            [0, 0, 10, 10, 1, 1.0],
+            [5, 5, 10, 10, 1, 0.5]
+        ]]).astype(
             np.float32
         )
 
         model.compile(metrics=[mean_average_precision])
+
+        # mean_average_precision.update_state(y_true, y_pred)
+
         model.evaluate(y_pred, y_true)
 
         self.assertAllEqual(mean_average_precision.result(), 1.0)
+
+
+    def test_first_bucket_has_no_boxes(self):
+        mean_average_precision = COCOMeanAveragePrecision(
+            iou_thresholds=[0.33],
+            class_ids=[1],
+            max_detections=100,
+            num_buckets=3,
+            recall_thresholds=[0.3, 0.5],
+        )
+        buckets_shape = (
+            mean_average_precision.num_class_ids,
+            mean_average_precision.num_iou_thresholds,
+            mean_average_precision.num_buckets,
+        )
+
+        ground_truths = [3]
+
+        # one class
+        true_positives = [
+            [
+                [
+                    # one threshold
+                    # three buckets
+                    0,
+                    1,
+                    2,
+                ]
+            ]
+        ]
+
+        false_positives = [
+            [
+                [
+                    # one threshold
+                    # three buckets
+                    0,
+                    1,
+                    0,
+                ]
+            ]
+        ]
+
+        # so we get:
+        # rcs = [0, 0.33,  1.0]
+        # prs = [0, 0.5 ,  0.75]
+
+        # so for PR pairs we get:
+        # [0.3, 0.5]
+        # [0.5, 0.75]
+
+        # So mean average precision should be: (0.5 + 0.75)/2 = 0.625.
+
+        ground_truths = tf.constant(ground_truths, tf.int32)
+        true_positives = tf.constant(true_positives, tf.int32)
+        false_positives = tf.constant(false_positives, tf.int32)
+
+        mean_average_precision.ground_truths.assign(ground_truths)
+        mean_average_precision.true_positive_buckets.assign(true_positives)
+        mean_average_precision.false_positive_buckets.assign(false_positives)
+
+        self.assertEqual(mean_average_precision.result(), 0.625)
 
     def test_result_method_with_direct_assignment_one_threshold(self):
         mean_average_precision = COCOMeanAveragePrecision(
