@@ -269,13 +269,17 @@ class COCOMeanAveragePrecision(tf.keras.metrics.Metric):
         )
 
         # so in this case this should be: [1, 1]
+        tf.print('result.shape', result)
         for i in range(self.num_class_ids):
             for j in range(self.num_iou_thresholds):
                 recalls_i = recalls[i, j]
                 precisions_i = precisions[i, j]
+                tf.print("recalls_i", recalls_i)
+                tf.print('precisions_i', precisions_i)
                 inds = tf.searchsorted(
                     recalls_i, tf.constant(self.recall_thresholds), side="left"
                 )
+                tf.print("inds", inds)
 
                 precision_result = tf.TensorArray(
                     self.dtype, size=len(self.recall_thresholds)
@@ -300,7 +304,9 @@ class COCOMeanAveragePrecision(tf.keras.metrics.Metric):
             result.stack(), (self.num_class_ids, self.num_iou_thresholds)
         )
         result = tf.math.reduce_mean(result, axis=-1)
+        tf.print('result', result)
         result = tf.math.reduce_sum(result, axis=0) / tf.cast(
             present_categories, tf.float32
         )
+        tf.print('result2', result)
         return result
