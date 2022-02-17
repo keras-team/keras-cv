@@ -26,8 +26,7 @@ class MeanAveragePrecisionTest(tf.test.TestCase):
 
         # Area range all
         mean_average_precision = COCOMeanAveragePrecision(
-            class_ids=categories + [1000],
-            max_detections=100,
+            class_ids=categories + [1000], max_detections=100, num_buckets=1000
         )
 
         mean_average_precision.update_state(y_true, y_pred)

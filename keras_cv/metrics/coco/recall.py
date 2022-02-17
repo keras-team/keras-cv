@@ -190,6 +190,7 @@ class COCORecall(keras.metrics.Metric):
         self.true_positives.assign_add(true_positives_update)
         self.ground_truth_boxes.assign_add(ground_truth_boxes_update)
 
+
 class COCORecall(keras.metrics.Metric):
     """COCORecall computes the COCO recall metric.
 

@@ -21,6 +21,7 @@ from keras_cv.metrics import COCOMeanAveragePrecision
 from keras_cv.metrics.coco import utils
 from keras_cv.utils import iou as iou_lib
 
+
 class COCOMeanAveragePrecisionTest(tf.test.TestCase):
     def test_runs_inside_model(self):
         i = keras.layers.Input((None, None, 6))
@@ -34,14 +35,8 @@ class COCOMeanAveragePrecisionTest(tf.test.TestCase):
         )
 
         # These would match if they were in the area range
-        y_true = np.array([[
-            [0, 0, 10, 10, 1],
-            [5, 5, 10, 10, 1]
-            ]]).astype(np.float32)
-        y_pred = np.array([[
-            [0, 0, 10, 10, 1, 1.0],
-            [5, 5, 10, 10, 1, 0.5]
-        ]]).astype(
+        y_true = np.array([[[0, 0, 10, 10, 1], [5, 5, 10, 10, 1]]]).astype(np.float32)
+        y_pred = np.array([[[0, 0, 10, 10, 1, 1.0], [5, 5, 10, 10, 1, 0.5]]]).astype(
             np.float32
         )
 
@@ -53,13 +48,12 @@ class COCOMeanAveragePrecisionTest(tf.test.TestCase):
 
         self.assertAllEqual(mean_average_precision.result(), 1.0)
 
-
-    def test_first_bucket_has_no_boxes(self):
+    def test_first_buckets_have_no_boxes(self):
         mean_average_precision = COCOMeanAveragePrecision(
             iou_thresholds=[0.33],
             class_ids=[1],
             max_detections=100,
-            num_buckets=3,
+            num_buckets=4,
             recall_thresholds=[0.3, 0.5],
         )
         buckets_shape = (
@@ -69,7 +63,6 @@ class COCOMeanAveragePrecisionTest(tf.test.TestCase):
         )
 
         ground_truths = [3]
-
         # one class
         true_positives = [
             [
@@ -77,17 +70,18 @@ class COCOMeanAveragePrecisionTest(tf.test.TestCase):
                     # one threshold
                     # three buckets
                     0,
+                    0,
                     1,
                     2,
                 ]
             ]
         ]
-
         false_positives = [
             [
                 [
                     # one threshold
                     # three buckets
+                    0,
                     0,
                     1,
                     0,
@@ -96,15 +90,16 @@ class COCOMeanAveragePrecisionTest(tf.test.TestCase):
         ]
 
         # so we get:
-        # rcs = [0, 0.33,  1.0]
-        # prs = [0, 0.5 ,  0.75]
-
+        # rcs = [0, 0, 0.33,  1.0]
+        # prs = [NaN, NaN, 0.5 ,  0.75]
+        # after filtering:
+        # rcs = [0.33, 1.0]
+        # prs = [0.5, 0.75]
         # so for PR pairs we get:
         # [0.3, 0.5]
         # [0.5, 0.75]
 
         # So mean average precision should be: (0.5 + 0.75)/2 = 0.625.
-
         ground_truths = tf.constant(ground_truths, tf.int32)
         true_positives = tf.constant(true_positives, tf.int32)
         false_positives = tf.constant(false_positives, tf.int32)
