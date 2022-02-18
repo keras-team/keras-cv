@@ -16,7 +16,7 @@ import tensorflow as tf
 from tensorflow.keras import layers, backend
 
 class ChannelShuffle(layers.Layer):
-    """ChannelShuffle performs shuffling the channel of RGB image. 
+    """ChannelShuffle performs shuffling the channel of inputs.  
 
     Input shape:
         The expected images should be [0-255] pixel ranges.
@@ -27,6 +27,8 @@ class ChannelShuffle(layers.Layer):
         `(..., height, width, channels)`, in `"channels_last"` format
 
     Args:
+        groups:
+            Number of groups to divide the input channels.
         seed:
             Integer. Used to create a random seed.
 
@@ -39,17 +41,34 @@ class ChannelShuffle(layers.Layer):
     """
     def __init__(
         self,
+        groups=3,
         seed=None,
         **kwargs
     ):
         super().__init__(**kwargs)
+        self.groups=groups,
         self.seed = seed
 
-    @tf.function
-    def _channel_shuffling(self, image):
-        x = tf.transpose(image)
-        x = tf.random.shuffle(x, seed=self.seed)
-        return tf.transpose(x)
+    def _channel_shuffling(self, images):
+        unbatched = images.shape.rank == 3
+        
+        if unbatched:
+            images = tf.expand_dims(images, axis=0)
+
+        batch_size, height, width, num_channels = images.get_shape().as_list()
+        assert num_channels % self.groups == 0 , ('input channels should be divisible by the number of group')
+        channels_per_group = num_channels // self.groups
+
+        images = tf.reshape(images, [batch_size, height, width, self.groups, channels_per_group])
+        images = tf.transpose(images, perm=[3, 1, 2, 4, 0])
+        images = tf.random.shuffle(images, seed=self.seed)
+        images = tf.transpose(images, perm=[4, 1, 2, 3, 0])
+        images = tf.reshape(images, [batch_size, height, width, num_channels])
+
+        if unbatched:
+            images = tf.squeeze(images, axis=0)
+
+        return images
 
     def call(self, images, training=True):
         """call method for the ChannelShuffle layer.
@@ -64,22 +83,15 @@ class ChannelShuffle(layers.Layer):
         if training is None:
             training = backend.learning_phase()
 
-        if not training:
-            return images
-        else:
-            unbatched = images.shape.rank == 3
-            if unbatched:
-                images = tf.expand_dims(images, axis=0)
-
-            # TODO: Make the batch operation vectorize.
-            output = tf.map_fn(lambda image: self._channel_shuffling(image), images)
-
-            if unbatched:
-                output = tf.squeeze(output, axis=0)
-            return output
+        return tf.cond(
+            tf.cast(training, tf.bool),
+            lambda: self._channel_shuffling(images),
+            lambda: images,
+        )
 
     def get_config(self):
         config = {
+            "groups": self.groups, 
             "seed": self.seed,
         }
         base_config = super().get_config()
