@@ -28,7 +28,7 @@ class ChannelShuffle(layers.Layer):
 
     Args:
         groups:
-            Number of groups to divide the input channels.
+            Number of groups to divide the input channels. Default 3. 
         seed:
             Integer. Used to create a random seed.
 
@@ -46,7 +46,7 @@ class ChannelShuffle(layers.Layer):
         **kwargs
     ):
         super().__init__(**kwargs)
-        self.groups=groups,
+        self.groups=groups
         self.seed = seed
 
     def _channel_shuffling(self, images):
@@ -56,9 +56,11 @@ class ChannelShuffle(layers.Layer):
             images = tf.expand_dims(images, axis=0)
 
         batch_size, height, width, num_channels = images.get_shape().as_list()
-        assert num_channels % self.groups == 0 , ('input channels should be divisible by the number of group')
-        channels_per_group = num_channels // self.groups
+        if not num_channels % self.groups == 0:
+            raise ValueError("input channels should be divisible by the number of group. "
+                             f"Got channels {num_channels} and groups {self.groups}")
 
+        channels_per_group = num_channels // self.groups
         images = tf.reshape(images, [batch_size, height, width, self.groups, channels_per_group])
         images = tf.transpose(images, perm=[3, 1, 2, 4, 0])
         images = tf.random.shuffle(images, seed=self.seed)
