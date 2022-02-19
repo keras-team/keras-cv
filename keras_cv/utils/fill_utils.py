@@ -53,12 +53,10 @@ def rectangle_masks(corners, mask_shape):
     range_col = tf.repeat(range_col[tf.newaxis, tf.newaxis, :], batch_size, 0)
 
     # boolean masks
-    mask_x0 = tf.less_equal(x0_rep, range_col)
-    mask_y0 = tf.less_equal(y0_rep, range_row)
-    mask_x1 = tf.less(range_col, x1_rep)
-    mask_y1 = tf.less(range_row, y1_rep)
-
-    masks = mask_x0 & mask_y0 & mask_x1 & mask_y1
+    masks = tf.less_equal(x0_rep, range_col)
+    masks = masks & tf.less_equal(y0_rep, range_row)
+    masks = masks & tf.less(range_col, x1_rep)
+    masks = masks & tf.less(range_row, y1_rep)
 
     return masks
 
