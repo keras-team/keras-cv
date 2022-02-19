@@ -144,7 +144,7 @@ class GridMask(layers.Layer):
         )
         if self.ratio == "random":
             ratio = tf.random.uniform(
-                shape=[], minval=0, maxval=1, dtype=tf.float32, seed=self.seed
+                shape=[batch_size], minval=0, maxval=1, dtype=tf.float32, seed=self.seed
             )
         else:
             ratio = self.ratio
