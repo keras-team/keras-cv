@@ -17,7 +17,10 @@ def transform_to_standard_range(images, value_range):
 
     Usage:
     ```python
-    images = keras_cv.utils.preprocessing.transform_to_standard_range(images, value_range)
+    images = keras_cv.utils.preprocessing.transform_to_standard_range(
+        images,
+        value_range
+    )
     images = tf.math.minimum(images + 10, 255)
     images = keras_cv.utils.transform_to_value_range(images, value_range)
     ```
@@ -25,7 +28,8 @@ def transform_to_standard_range(images, value_range):
     images = tf.cast(images, dtype=tf.float32)
     min_value, max_value = _unwrap_value_range(value_range)
     images = (images - min_value) / (max_value - min_value)
-    return images * 255.
+    return images * 255.0
+
 
 def transform_to_value_range(images, value_range):
     """transforms input Tensor into value_range.
@@ -45,7 +49,10 @@ def transform_to_value_range(images, value_range):
 
     Usage:
     ```python
-    images = keras_cv.utils.preprocessing.transform_to_standard_range(images, value_range)
+    images = keras_cv.utils.preprocessing.transform_to_standard_range(
+        images,
+        value_range
+    )
     images = tf.math.minimum(images + 10, 255)
     images = keras_cv.utils.transform_to_value_range(images, value_range)
     ```
@@ -54,6 +61,7 @@ def transform_to_value_range(images, value_range):
     images = images / 255.0
     images = images * max_value - min_value
     return images
+
 
 def _unwrap_value_range(value_range):
     min_value, max_value = value_range
