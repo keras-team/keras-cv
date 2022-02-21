@@ -35,7 +35,9 @@ class UtilTest(tf.test.TestCase):
 
     def test_filter_bounding_boxes(self):
         # set of bounding_boxes
-        y_pred = tf.stack([_dummy_bounding_box(category=1), _dummy_bounding_box(category=2)])
+        y_pred = tf.stack(
+            [_dummy_bounding_box(category=1), _dummy_bounding_box(category=2)]
+        )
         result = utils.filter_boxes(y_pred, 2, axis=bounding_box.CLASS)
 
         self.assertAllClose(result, tf.stack([_dummy_bounding_box(category=2)]))
@@ -54,7 +56,9 @@ class UtilTest(tf.test.TestCase):
 
     def test_filter_out_sentinels(self):
         # set of bounding_boxes
-        y_pred = tf.stack([_dummy_bounding_box(category=1), _dummy_bounding_box(category=-1)])
+        y_pred = tf.stack(
+            [_dummy_bounding_box(category=1), _dummy_bounding_box(category=-1)]
+        )
         result = utils.filter_out_sentinels(y_pred)
 
         self.assertAllClose(result, tf.stack([_dummy_bounding_box(category=1)]))
@@ -65,8 +69,12 @@ class UtilTest(tf.test.TestCase):
         boxes = [box_set1, box_set2]
         bounding_box_tensor = utils.to_sentinel_padded_bounding_box_tensor(boxes)
 
-        self.assertAllClose(utils.filter_out_sentinels(bounding_box_tensor[0]), box_set1)
-        self.assertAllClose(utils.filter_out_sentinels(bounding_box_tensor[1]), box_set2)
+        self.assertAllClose(
+            utils.filter_out_sentinels(bounding_box_tensor[0]), box_set1
+        )
+        self.assertAllClose(
+            utils.filter_out_sentinels(bounding_box_tensor[1]), box_set2
+        )
 
     def test_match_boxes(self):
         y_pred = tf.stack(

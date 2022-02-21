@@ -60,7 +60,8 @@ class COCOMeanAveragePrecision(tf.keras.metrics.Metric):
     both in the ground truth dataset and the prediction set.  In order to
     account for this, you may either pass a `tf.RaggedTensor`, or pad Tensors
     with `-1`s to indicate unused boxes.  A utility function to perform this
-    padding is available at `keras_cv_.utils.bounding_box.pad_bounding_box_batch_to_shape()`.
+    padding is available at
+    `keras_cv_.utils.bounding_box.pad_bounding_box_batch_to_shape()`.
 
     ```python
     coco_map = keras_cv.metrics.COCOMeanAveragePrecision(
