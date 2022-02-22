@@ -4,6 +4,13 @@ In general, KerasCV abides to the  [API design guidelines of Keras](https://gith
 There are a few API guidelines that apply only to KerasCV.  These are discussed
 in this document.
 
+## Label Names
+When working with `bounding_box` and `segmentation_map` labels the abbreviations `bbox` and 
+`segm` are often used.  In KerasCV, we will *not* be using these abbreviations.  This is done
+to ensure full consistency in our naming convention.  While the team is fond of the abbreviation
+`bbox`, we are loss fond of `segm`.  In order to ensure full consistency, we have decided to
+use the full names for label types in our code base.
+
 ## Preprocessing Layers
 ### Color Based Preprocessing Layers
 Some preprocessing layers in KerasCV perform color based transformations.  This
