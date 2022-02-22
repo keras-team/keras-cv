@@ -14,7 +14,7 @@
 import tensorflow as tf
 
 from keras_cv.metrics.coco import utils
-from keras_cv.utils import bbox
+from keras_cv.utils import bounding_box
 from keras_cv.utils import iou as iou_lib
 
 
@@ -54,13 +54,14 @@ class COCOMeanAveragePrecision(tf.keras.metrics.Metric):
     COCOMeanAveragePrecision accepts two Tensors as input to it's
     `update_state()` method.  These Tensors represent bounding boxes in
     `corners` format.  Utilities to convert Tensors from `xywh` to `corners`
-    format can be found in `keras_cv.utils.bbox`.
+    format can be found in `keras_cv.utils.bounding_box`.
 
     Each image in a dataset may have a different number of bounding boxes,
     both in the ground truth dataset and the prediction set.  In order to
     account for this, you may either pass a `tf.RaggedTensor`, or pad Tensors
     with `-1`s to indicate unused boxes.  A utility function to perform this
-    padding is available at `keras_cv_.utils.bbox.pad_bbox_batch_to_shape()`.
+    padding is available at
+    `keras_cv_.utils.bounding_box.pad_bounding_box_batch_to_shape()`.
 
     ```python
     coco_map = keras_cv.metrics.COCOMeanAveragePrecision(
@@ -141,7 +142,7 @@ class COCOMeanAveragePrecision(tf.keras.metrics.Metric):
                 "COCOMeanAveragePrecision does not support `sample_weight`"
             )
 
-        y_pred = utils.sort_bboxes(y_pred, axis=bbox.CONFIDENCE)
+        y_pred = utils.sort_bounding_boxes(y_pred, axis=bounding_box.CONFIDENCE)
 
         ground_truth_boxes_update = tf.zeros_like(self.ground_truths)
         true_positive_buckets_update = tf.zeros_like(self.true_positive_buckets)
@@ -174,11 +175,11 @@ class COCOMeanAveragePrecision(tf.keras.metrics.Metric):
             for c_i in range(self.num_class_ids):
                 category_id = self.class_ids[c_i]
                 ground_truths = utils.filter_boxes(
-                    ground_truths, value=category_id, axis=bbox.CLASS
+                    ground_truths, value=category_id, axis=bounding_box.CLASS
                 )
 
                 detections = utils.filter_boxes(
-                    detections, value=category_id, axis=bbox.CLASS
+                    detections, value=category_id, axis=bounding_box.CLASS
                 )
                 if self.max_detections < tf.shape(detections)[0]:
                     detections = detections[: self.max_detections]
@@ -193,7 +194,7 @@ class COCOMeanAveragePrecision(tf.keras.metrics.Metric):
                     iou_threshold = self.iou_thresholds[iou_i]
                     pred_matches = utils.match_boxes(ious, iou_threshold)
 
-                    dt_scores = detections[:, bbox.CONFIDENCE]
+                    dt_scores = detections[:, bounding_box.CONFIDENCE]
 
                     true_positives = pred_matches != -1
                     false_positives = pred_matches == -1

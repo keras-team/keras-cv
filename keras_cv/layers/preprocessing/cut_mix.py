@@ -105,8 +105,8 @@ class CutMix(layers.Layer):
             shape=[batch_size], minval=0, maxval=image_width, dtype=tf.int32
         )
 
-        bbox_area = cut_height * cut_width
-        lambda_sample = 1.0 - bbox_area / (image_height * image_width)
+        bounding_box_area = cut_height * cut_width
+        lambda_sample = 1.0 - bounding_box_area / (image_height * image_width)
         lambda_sample = tf.cast(lambda_sample, dtype=tf.float32)
 
         images = fill_utils.fill_rectangle(

@@ -13,7 +13,7 @@
 # limitations under the License.
 import tensorflow as tf
 
-from keras_cv.utils import bbox
+from keras_cv.utils import bounding_box
 
 
 def rectangle_masks(corners, mask_shape):
@@ -82,7 +82,7 @@ def fill_rectangle(images, centers_x, centers_y, widths, heights, fill_values):
 
     xywh = tf.stack([centers_x, centers_y, widths, heights], axis=1)
     xywh = tf.cast(xywh, tf.float32)
-    corners = bbox.xywh_to_corners(xywh)
+    corners = bounding_box.xywh_to_corners(xywh)
 
     mask_shape = (images_width, images_height)
     is_rectangle = rectangle_masks(corners, mask_shape)
