@@ -213,7 +213,7 @@ class GridMask(layers.Layer):
             images = tf.expand_dims(images, axis=0)
 
         # TODO: Make the batch operation vectorize.
-        output = tf.vectorized_map(lambda image: self._grid_mask(image), images, True)
+        output = tf.vectorized_map(lambda image: self._grid_mask(image), images, fallback_to_while_loop=True)
 
         if unbatched:
             output = tf.squeeze(output, axis=0)
