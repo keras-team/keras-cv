@@ -192,6 +192,7 @@ class COCORecall(keras.metrics.Metric):
         self.true_positives.assign_add(true_positives_update)
         self.ground_truth_boxes.assign_add(ground_truth_boxes_update)
 
+    @tf.function
     def result(self):
         present_values = self.ground_truth_boxes != 0
         n_present_categories = tf.math.reduce_sum(
