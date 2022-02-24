@@ -21,7 +21,6 @@ class RGBShift(layers.Layer):
     """RGBShift class randomly shift values for each channel of the input RGB image. The expected images 
     should be [0-255] pixel ranges.
 
-   
     Input shape:
         3D (unbatched) or 4D (batched) tensor with shape:
         `(..., height, width, channels)`, in `"channels_last"` format
@@ -30,64 +29,62 @@ class RGBShift(layers.Layer):
         `(..., height, width, channels)`, in `"channels_last"` format
 
     Args:
-        r_shift_limit: A scalar or tuple or list of two upper and lower bound number. It will change r-channel by
-            adding with the r-channel. If r_shift_limit is a single integer, the range will be (-r_shift_limit, r_shift_limit).
-            Default: (-10, 10).
-        g_shift_limit: A scalar or tuple or list of two upper and lower bound number. It will change g-channel by
-            adding with the r-channel. If r_shift_limit is a single integer, the range will be (-g_shift_limit, g_shift_limit).
-            Default: (-10, 10).
-        b_shift_limit: A scalar or tuple or list of two upper and lower bound number. It will change b-channel by
-            adding with the r-channel. If r_shift_limit is a single integer, the range will be (-b_shift_limit, b_shift_limit).
-            Default: (-10, 10).
+        factor: A scalar or tuple or list of two upper and lower bound number. If factor is a single value, 
+                the range will be (-factor, factor). The factor value can be float or integer; for float the 
+                valid limits are (-1.0, 1.0) and for integer the valid limits are (-255, 255).
         seed: Integer. Used to create a random seed. Default: None.
 
+    call method for the RGBShift layer.
+        Args:
+            images: Tensor representing images of shape
+                [batch_size, width, height, channels], with dtype tf.float32 / tf.uint8, or,
+                [width, height, channels], with dtype tf.float32 / tf.uint8
+        Returns:
+            images: augmented images, same shape as input.
+   
     Usage:
     ```python
     (images, labels), _ = tf.keras.datasets.cifar10.load_data()
-    rgbshift = keras_cv.layers.preprocessing.RGBShift()
+    rgbshift = keras_cv.layers.RGBShift()
     augmented_images = rgbshift(images)
     ```
     """
 
     def __init__(
         self,
-        r_shift_limit=10,
-        g_shift_limit=10,
-        b_shift_limit=10,
+        factor,
         seed=None,
         **kwargs
     ):
         super().__init__(**kwargs)
-        self._r_shift_limit = self._set_shift_limit(r_shift_limit, channel='r_shift_limit')
-        self._g_shift_limit = self._set_shift_limit(g_shift_limit, channel='g_shift_limit')
-        self._b_shift_limit = self._set_shift_limit(b_shift_limit, channel='b_shift_limit')
+        self.factor = self._set_shift_limit(factor)
         self.seed = seed
 
-    def _set_shift_limit(self, shift_limit, channel=''):
-        if isinstance(shift_limit, (tuple, list)):
-            if len(shift_limit) != 2: 
-                raise ValueError(f'The {channel} should be scalar, tuple or list of two upper and lower \
-                    bound number. Got {shift_limit}')
-            return self._check_scale_range(sorted(shift_limit))
-        elif isinstance(shift_limit, (int, float)):
-            shift_limit = abs(shift_limit)
-            return self._check_scale_range(sorted(shift_limit))
+    def _set_shift_limit(self, factor):
+        if isinstance(factor, (tuple, list)):
+            if len(factor) != 2: 
+                raise ValueError(f'The factor should be scalar, tuple or list of two upper and lower \
+                    bound number. Got {factor}')
+            return self._check_scale_range(sorted(factor))
+        elif isinstance(factor, (int, float)):
+            factor = abs(factor)
+            return self._check_scale_range(sorted(factor))
         else:
-            raise ValueError(f'The {channel} should be scalar, tuple or list of two upper and lower bound\
-                 number. Got {shift_limit}')
+            raise ValueError(f'The factor should be scalar, tuple or list of two upper and lower bound\
+                 number. Got {factor}')
         
     @staticmethod
-    def _check_scale_range(shift_limit):
-        if all(isinstance(each_elem, float) for each_elem in shift_limit):
-            if shift_limit[0] < -1.0 or shift_limit[1] > 1.0:
-                raise ValueError(f"Got {shift_limit}")
-            return shift_limit
-        elif all(isinstance(each_elem, int) for each_elem in shift_limit):
-            if shift_limit[0] < -255 or shift_limit[1] > 255:
-                raise ValueError(f"Got {shift_limit}")
-            return shift_limit
+    def _check_scale_range(factor):
+        if all(isinstance(each_elem, float) for each_elem in factor):
+            if factor[0] < -1.0 or factor[1] > 1.0:
+                raise ValueError(f"Got {factor}")
+            return factor
+        elif all(isinstance(each_elem, int) for each_elem in factor):
+            if factor[0] < -255 or factor[1] > 255:
+                raise ValueError(f"Got {factor}")
+            return factor
         else:
-            raise ValueError(f'Both bound must be same dtype. Got {shift_limit}')
+            raise ValueError(f'Both bound must be same dtype. Got {factor}')
 
     def _get_random_uniform(self, shift_limit, rgb_delta_shape):
             if self.seed is not None:
@@ -122,46 +119,33 @@ class RGBShift(layers.Layer):
                 f"Expect the input image to be rank 3 or 4. Got {images.shape}"
             )
 
-        r_shift = self._get_random_uniform(self.r_shift_limit, rgb_delta_shape)   
-        g_shift = self._get_random_uniform(self.g_shift_limit, rgb_delta_shape)
-        b_shift = self._get_random_uniform(self.b_shift_limit, rgb_delta_shape)
+        r_shift = self._get_random_uniform(self.factor, rgb_delta_shape)   
+        g_shift = self._get_random_uniform(self.factor, rgb_delta_shape)
+        b_shift = self._get_random_uniform(self.factor, rgb_delta_shape)
 
         unstack_rgb = tf.unstack(images, axis=-1)
-        shifted_rgb = tf.stack([unstack_rgb[0] + r_shift, 
-                                unstack_rgb[1] + g_shift, 
-                                unstack_rgb[2] + b_shift],  axis=-1)
+        shifted_rgb = tf.stack([tf.math.add(unstack_rgb[0], r_shift),
+                                tf.math.add(unstack_rgb[1], g_shift),
+                                tf.math.add(unstack_rgb[2], b_shift)], axis=-1)
         
         shifted_rgb = tf.clip_by_value(shifted_rgb, 0, 255)
         return tf.cast(shifted_rgb, images.dtype)
 
     def call(self, images, training=True):
-        """call method for the RGBShift layer.
-
-        Args:
-            images: Tensor representing images of shape
-                [batch_size, width, height, channels], with dtype tf.float32 / tf.uint8, or,
-                [width, height, channels], with dtype tf.float32 / tf.uint8
-        Returns:
-            images: augmented images, same shape as input.
-        """
-        if training is None:
-            training = backend.learning_phase()
-        
-        return tf.cond(
-            tf.cast(training, tf.bool),
-            lambda: self._rgb_shifting(images),
-            lambda: images,
-        )
+        if training:
+            return self._rgb_shifting(images)
+        else:
+            return images
 
     def get_config(self):
-        config = {
-            "r_shift_limit": self._r_shift_limit,
-            "g_shift_limit": self._g_shift_limit,
-            "b_shift_limit": self._b_shift_limit,
-            "seed": self.seed,
-        }
-        base_config = super().get_config()
-        return dict(list(base_config.items()) + list(config.items()))
+        config = super().get_config()
+        config.update(
+            {
+                "factor": self.factor, 
+                "seed": self.seed
+            }
+        )
+        return config 
 
     def compute_output_shape(self, input_shape):
         return input_shape

@@ -22,9 +22,7 @@ class RGBShiftTest(tf.test.TestCase):
         xs = tf.ones((2, 512, 512, 3))
 
         layer = RGBShift(
-            r_shift_limit=10,
-            g_shift_limit=20,
-            b_shift_limit=30
+            factor=10
         )
 
         xs = layer(xs, training=True)
@@ -40,9 +38,7 @@ class RGBShiftTest(tf.test.TestCase):
         )
 
         layer = RGBShift(
-            r_shift_limit=[10, 30],
-            g_shift_limit=[20, 50],
-            b_shift_limit=[30, 40]
+            factor=[10, 30]
         )
 
         xs = layer(xs, training=True)
@@ -56,9 +52,7 @@ class RGBShiftTest(tf.test.TestCase):
         )
 
         layer = RGBShift(
-            r_shift_limit=30,
-            g_shift_limit=50,
-            b_shift_limit=30
+            factor=30
         )
 
         @tf.function
@@ -76,9 +70,7 @@ class RGBShiftTest(tf.test.TestCase):
         )
 
         layer = RGBShift(
-            r_shift_limit=40,
-            g_shift_limit=30,
-            b_shift_limit=20
+            factor=40
         )
 
         xs = layer(xs, training=True)
@@ -98,28 +90,20 @@ class RGBShiftTest(tf.test.TestCase):
 
     def test_config(self):
         layer = RGBShift(
-            r_shift_limit=40,
-            g_shift_limit=30,
-            b_shift_limit=20,
+            factor=40,
             seed=101
         )
         config = layer.get_config()
-        self.assertEqual(config["r_shift_limit"], [-40, 40])
-        self.assertEqual(config["g_shift_limit"], [-30, 30])
-        self.assertEqual(config["b_shift_limit"], [-20, 20])
+        self.assertEqual(config["factor"], [-40, 40])
         self.assertEqual(config["seed"], 101)
 
         reconstructed_layer = RGBShift.from_config(config)
-        self.assertEqual(reconstructed_layer._r_shift_limit, layer._r_shift_limit)
-        self.assertEqual(reconstructed_layer._g_shift_limit, layer._g_shift_limit)
-        self.assertEqual(reconstructed_layer._b_shift_limit, layer._b_shift_limit)
+        self.assertEqual(reconstructed_layer.factor, layer.factor)
         self.assertEqual(reconstructed_layer.seed, layer.seed)
 
     def test_inference(self):
         layer = RGBShift(
-            r_shift_limit=40,
-            g_shift_limit=30,
-            b_shift_limit=20,
+            factor=40,
             seed=101
         )
         inputs = np.random.randint(0, 255, size=(224, 224, 3))
