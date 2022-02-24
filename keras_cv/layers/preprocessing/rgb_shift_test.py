@@ -77,15 +77,15 @@ class RGBShiftTest(tf.test.TestCase):
         self.assertFalse(tf.math.reduce_any(xs == 1.0))
 
     def test_dtype(self):
-        layer = RGBShift()
+        layer = RGBShift(factor=0.2)
         inputs = np.random.randint(0, 255, size=(224, 224, 3))
 
         output = layer(inputs, training=True)
-        self.assertEqual(output.dtype, tf.int64)
+        self.assertEqual(output.dtype, inputs.dtype)
 
         inputs = tf.cast(inputs, tf.float32)
         output = layer(inputs, training=True)
-        self.assertEqual(output.dtype, tf.float32)
+        self.assertEqual(output.dtype, inputs.dtype)
 
     def test_config(self):
         layer = RGBShift(
@@ -106,9 +106,6 @@ class RGBShiftTest(tf.test.TestCase):
             seed=101
         )
         inputs = np.random.randint(0, 255, size=(224, 224, 3))
-        output = layer(inputs)
-        self.assertAllClose(inputs, output)
-
         output = layer(inputs, training=False)
         self.assertAllClose(inputs, output)
         
