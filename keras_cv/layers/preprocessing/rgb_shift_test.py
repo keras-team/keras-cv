@@ -112,3 +112,4 @@ class RGBShiftTest(tf.test.TestCase):
 
         output = layer(inputs, training=False)
         self.assertAllClose(inputs, output)
+        
