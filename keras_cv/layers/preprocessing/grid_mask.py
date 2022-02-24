@@ -220,6 +220,7 @@ class GridMask(layers.Layer):
 
         # reshape masks into shape
         # (batch_size, rectangles_per_image, mask_height, mask_width)
+        mask_side_length = tf.cast(mask_side_length, tf.float32)
         masks = tf.reshape(
             masks,
             [-1, max_grid_size * max_grid_size, mask_side_length, mask_side_length],
