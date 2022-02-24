@@ -34,7 +34,7 @@ class RGBShift(layers.Layer):
                 valid limits are (-1.0, 1.0) and for integer the valid limits are (-255, 255).
         seed: Integer. Used to create a random seed. Default: None.
 
-    call method for the RGBShift layer.
+    Call arguments: call method for the RGBShift layer.
         Args:
             images: Tensor representing images of shape
                 [batch_size, width, height, channels], with dtype tf.float32 / tf.uint8, or,
@@ -108,6 +108,8 @@ class RGBShift(layers.Layer):
 
     def _rgb_shifting(self, images):
         rank = images.shape.rank
+        original_dtype = images.dtype
+
         if rank == 3:
             rgb_delta_shape = (1, 1, 1)
         elif rank == 4:
@@ -123,13 +125,13 @@ class RGBShift(layers.Layer):
         g_shift = self._get_random_uniform(self.factor, rgb_delta_shape)
         b_shift = self._get_random_uniform(self.factor, rgb_delta_shape)
 
-        unstack_rgb = tf.unstack(images, axis=-1)
-        shifted_rgb = tf.stack([tf.math.add(unstack_rgb[0], r_shift),
-                                tf.math.add(unstack_rgb[1], g_shift),
-                                tf.math.add(unstack_rgb[2], b_shift)], axis=-1)
+        unstack_rgb = tf.unstack(tf.cast(images, dtype=tf.float32), axis=-1)
+        shifted_rgb = tf.stack([tf.add(unstack_rgb[0], r_shift),
+                                tf.add(unstack_rgb[1], g_shift),
+                                tf.add(unstack_rgb[2], b_shift)], axis=-1)
         
-        shifted_rgb = tf.clip_by_value(shifted_rgb, 0, 255)
-        return tf.cast(shifted_rgb, images.dtype)
+        shifted_rgb = tf.clip_by_value(shifted_rgb, 0.0, 255.0)
+        return tf.cast(shifted_rgb, original_dtype)
 
     def call(self, images, training=True):
         if training:

@@ -32,9 +32,7 @@ def main():
     )
 
     rgbshift = preprocessing.RGBShift(
-        r_shift_limit=10,
-        g_shift_limit=20,
-        b_shift_limit=30
+        factor=0.4
         )
         
     train_ds = train_ds.map(
@@ -47,3 +45,4 @@ def main():
         for i in range(9):
             plt.subplot(3, 3, i + 1)
             plt.imshow(images[i].numpy().astype("uint8"))
+            

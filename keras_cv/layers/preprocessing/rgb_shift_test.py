@@ -80,9 +80,8 @@ class RGBShiftTest(tf.test.TestCase):
         layer = RGBShift()
         inputs = np.random.randint(0, 255, size=(224, 224, 3))
 
-        # TODO 
-        # output = layer(inputs, training=True)
-        # self.assertEqual(output.dtype, tf.int64)
+        output = layer(inputs, training=True)
+        self.assertEqual(output.dtype, tf.int64)
 
         inputs = tf.cast(inputs, tf.float32)
         output = layer(inputs, training=True)
