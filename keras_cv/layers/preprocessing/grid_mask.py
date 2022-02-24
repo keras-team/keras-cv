@@ -78,7 +78,6 @@ class GridMask(layers.Layer):
         rotation_factor=0.15,
         fill_mode="constant",
         fill_value=0.0,
-        vectorized=True,
         seed=None,
         **kwargs,
     ):
@@ -91,7 +90,6 @@ class GridMask(layers.Layer):
         self.random_rotate = layers.RandomRotation(
             factor=rotation_factor, fill_mode="constant", fill_value=0.0, seed=seed
         )
-        self.vectorized = vectorized
         self.seed = seed
 
         self._check_parameter_values()
@@ -242,15 +240,7 @@ class GridMask(layers.Layer):
 
     def _grid_mask(self, images):
         # compute grid masks
-        if self.vectorized:
-            masks = self._compute_grid_masks(images)
-        else:
-            masks = tf.map_fn(
-                self._compute_grid_masks,
-                tf.expand_dims(images, 1),
-                fn_output_signature=tf.TensorSpec(shape=(1, None, None), dtype=tf.bool),
-            )
-            masks = tf.squeeze(masks, 1)
+        masks = self._compute_grid_masks(images)
 
         # convert masks to single-channel images
         masks = tf.cast(masks, tf.float32)
@@ -301,7 +291,6 @@ class GridMask(layers.Layer):
             "rotation_factor": self.rotation_factor,
             "fill_mode": self.fill_mode,
             "fill_value": self.fill_value,
-            "vectorized": self.vectorized,
             "seed": self.seed,
         }
         base_config = super().get_config()
