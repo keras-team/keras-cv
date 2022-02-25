@@ -18,8 +18,8 @@ from tensorflow.keras import layers
 
 
 class RGBShift(layers.Layer):
-    """RGBShift class randomly shift values for each channel of the input RGB image. The expected images 
-    should be `(0-255)` pixel ranges.
+    """RGBShift class randomly shift values for each channel of the 
+    input RGB image. The expected images should be `(0-255)` pixel ranges.
 
     Input shape:
         3D (unbatched) or 4D (batched) tensor with shape:
@@ -29,18 +29,19 @@ class RGBShift(layers.Layer):
         `(..., height, width, channels)`, in `channels_last` format
 
     Args:
-        factor: A scalar or tuple or list of two upper and lower bound number. If factor is a single value, 
-                the range will be `(-factor, factor)`. The factor value can be float or integer; for float the 
-                valid limits are `(-1.0, 1.0)` and for integer the valid limits are `(-255, 255)`.
+        factor: A scalar or tuple or list of two upper and lower bound 
+            number. If factor is a single value, the range will be `(-factor, factor)`. 
+            The factor value can be float or integer; for float the 
+            valid limits are `(-1.0, 1.0)` and for integer the valid limits are `(-255, 255)`.
         seed: Integer. Used to create a random seed. Default: None.
 
     Call arguments: 
-        Args:
-            images: Tensor representing images of shape
-                `(..., height, width, channels)`, with dtype tf.float32 / tf.uint8, or,
-                `(height, width, channels)`, with dtype tf.float32 / tf.uint8
-        Returns:
-            images: augmented images, same shape as input.
+        images: Tensor representing images of shape
+            `(..., height, width, channels)`, with dtype tf.float32 / tf.uint8, or,
+            `(height, width, channels)`, with dtype tf.float32 / tf.uint8
+        training: A boolean argument that determines whether the call should be run 
+            in inference mode or training mode. Default: True.
+        output images: augmented images, same shape as input.
    
     Usage:
     ```python
