@@ -31,11 +31,11 @@ class ChannelShuffle(layers.Layer):
         groups: Number of groups to divide the input channels. Default 3. 
         seed: Integer. Used to create a random seed.
 
-    call method for the ChannelShuffle layer.
+    Call arguments:
         Args:
             images: Tensor representing images of shape
-                [batch_size, width, height, channels], with dtype tf.float32 / tf.uint8, or,
-                [width, height, channels], with dtype tf.float32 / tf.uint8
+                `(batch_size, width, height, channels)`, with dtype tf.float32 / tf.uint8, or,
+                `(width, height, channels)`, with dtype tf.float32 / tf.uint8
         Returns:
             images: augmented images, same shape as input.
 
@@ -43,7 +43,7 @@ class ChannelShuffle(layers.Layer):
     ```python
     (images, labels), _ = tf.keras.datasets.cifar10.load_data()
     channel_shuffle = keras_cv.layers.ChannelShuffle()
-    augmented_images = channelshuffle(images)
+    augmented_images = channel_shuffle(images)
     ```
     """
     def __init__(
@@ -53,7 +53,7 @@ class ChannelShuffle(layers.Layer):
         **kwargs
     ):
         super().__init__(**kwargs)
-        self.groups=groups
+        self.groups = groups
         self.seed = seed
 
     def _channel_shuffling(self, images):
@@ -62,21 +62,20 @@ class ChannelShuffle(layers.Layer):
         if unbatched:
             images = tf.expand_dims(images, axis=0)
 
-        batch_size = tf.shape(images)[0]
         height = tf.shape(images)[1]
         width = tf.shape(images)[2]
-        num_channels = tf.shape(images)[3]
+        num_channels = images.shape[3]
 
         if not num_channels % self.groups == 0:
             raise ValueError("The number of input channels should be divisible by the number of groups."
                              f"Received: channels={num_channels}, groups={self.groups}")
 
         channels_per_group = num_channels // self.groups
-        images = tf.reshape(images, [batch_size, height, width, self.groups, channels_per_group])
+        images = tf.reshape(images, [-1, height, width, self.groups, channels_per_group])
         images = tf.transpose(images, perm=[3, 1, 2, 4, 0])
         images = tf.random.shuffle(images, seed=self.seed)
         images = tf.transpose(images, perm=[4, 1, 2, 3, 0])
-        images = tf.reshape(images, [batch_size, height, width, num_channels])
+        images = tf.reshape(images, [-1, height, width, num_channels])
 
         if unbatched:
             images = tf.squeeze(images, axis=0)
