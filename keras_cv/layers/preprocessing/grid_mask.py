@@ -279,7 +279,12 @@ class GridMask(layers.Layer):
             training = backend.learning_phase()
 
         if training:
-            images = self._grid_mask(images)
+            if images.shape.rank == 3:
+                images = tf.expand_dims(images, axis=0)
+                images = self._grid_mask(images)
+                images = tf.squeeze(images, axis=0)
+            else:
+                images = self._grid_mask(images)
 
         return images
 
