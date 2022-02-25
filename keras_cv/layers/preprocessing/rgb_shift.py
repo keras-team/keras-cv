@@ -14,19 +14,19 @@
 
 import numpy as np 
 import tensorflow as tf
-from tensorflow.keras import layers, backend
+from tensorflow.keras import layers
 
 
 class RGBShift(layers.Layer):
     """RGBShift class randomly shift values for each channel of the input RGB image. The expected images 
-    should be [0-255] pixel ranges.
+    should be `(0-255)` pixel ranges.
 
     Input shape:
         3D (unbatched) or 4D (batched) tensor with shape:
-        `(..., height, width, channels)`, in `"channels_last"` format
+        `(..., height, width, channels)`, in `channels_last` format
     Output shape:
         3D (unbatched) or 4D (batched) tensor with shape:
-        `(..., height, width, channels)`, in `"channels_last"` format
+        `(..., height, width, channels)`, in `channels_last` format
 
     Args:
         factor: A scalar or tuple or list of two upper and lower bound number. If factor is a single value, 
@@ -52,7 +52,7 @@ class RGBShift(layers.Layer):
     _FACTOR_VALIDATION_ERROR = (
         'The factor should be a scalar, '
         'a tuple or a list of two upper and lower '
-        'bound values in the range `(-1.0, 1.0)` as float or `(-255, 255) as integer. ')
+        'bound values in the range `(-1.0, 1.0)` as float or `(-255, 255) as integer.')
 
     def __init__(
         self,
@@ -86,26 +86,27 @@ class RGBShift(layers.Layer):
             return factor
         else:
             raise ValueError(
-                'Both factor bound must be same dtype. '
-                f'Received: factor dtype = {factor[0].dtype} and  {factor[1].dtype}')
+                'Both lower/upper bound values must have the same dtype. '
+                f'Received: factor={factor} where type(factor[0]) is {type(factor[0])} '
+                f'and type(factor[1]) is {type(factor[1])}')
 
-    def _get_random_uniform(self, shift_limit, rgb_delta_shape):
+    def _get_random_uniform(self, factor_limit, rgb_delta_shape):
             if self.seed is not None:
                 _rand_uniform = tf.random.stateless_uniform(
                     shape=rgb_delta_shape,
                     seed=[0, self.seed],
-                    minval=shift_limit[0],
-                    maxval=shift_limit[1],
+                    minval=factor_limit[0],
+                    maxval=factor_limit[1],
                 )
             else:
                 _rand_uniform = tf.random.uniform(
                     rgb_delta_shape, 
-                    minval=shift_limit[0], 
-                    maxval=shift_limit[1], 
+                    minval=factor_limit[0], 
+                    maxval=factor_limit[1], 
                     dtype=tf.float32
                 )
             
-            if all(isinstance(each_elem, float) for each_elem in shift_limit):
+            if all(isinstance(each_elem, float) for each_elem in factor_limit):
                 _rand_uniform = _rand_uniform * 85.0
 
             return _rand_uniform
