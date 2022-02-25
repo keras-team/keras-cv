@@ -1,4 +1,5 @@
 import tensorflow as tf
+from torch import channel_shuffle
 from keras_cv.layers.preprocessing.channel_shuffle import ChannelShuffle
 
 
@@ -8,10 +9,9 @@ class ChannelShuffleTest(tf.test.TestCase):
 
         layer = ChannelShuffle(groups=3)
         xs = layer(xs, training=True)
-
         self.assertEqual(xs.shape, [2, 512, 512, 3])
-
-    def test_gridmask_call_results_one_channel(self):
+    
+    def test_channel_shuffle_call_results_one_channel(self):
         xs = tf.cast(
             tf.stack(
                 [3 * tf.ones((40, 40, 1)), 2*tf.ones((40, 40, 1))],
@@ -22,12 +22,10 @@ class ChannelShuffleTest(tf.test.TestCase):
 
         layer = ChannelShuffle(groups=1)
         xs = layer(xs, training=True)
-
-        # Some pixels should be replaced with fill_value
         self.assertTrue(tf.math.reduce_any(xs[0] == 3.0))
         self.assertTrue(tf.math.reduce_any(xs[1] == 2.0))
 
-    def test_gridmask_call_results_multi_channel(self):
+    def test_channel_shuffle_call_results_multi_channel(self):
         xs = tf.cast(
             tf.stack(
                 [3 * tf.ones((40, 40, 20)), 2*tf.ones((40, 40, 20))],
@@ -38,8 +36,6 @@ class ChannelShuffleTest(tf.test.TestCase):
 
         layer = ChannelShuffle(groups=5)
         xs = layer(xs, training=True)
-
-        # Some pixels should be replaced with fill_value
         self.assertTrue(tf.math.reduce_any(xs[0] == 3.0))
         self.assertTrue(tf.math.reduce_any(xs[1] == 2.0))
 
@@ -54,8 +50,6 @@ class ChannelShuffleTest(tf.test.TestCase):
 
         layer = ChannelShuffle(groups=1)
         xs = layer(xs, training=True)
-
-        # Some pixels should be replaced with fill_value
         self.assertTrue(tf.math.reduce_any(xs[0] == 2.0))
         self.assertTrue(tf.math.reduce_any(xs[1] == 1.0))
 
@@ -72,8 +66,6 @@ class ChannelShuffleTest(tf.test.TestCase):
             return layer(x, training=True)
 
         xs = augment(xs)
-
-        # Some pixels should be replaced with fill_value
         self.assertTrue(tf.math.reduce_any(xs[0] == 2.0))
         self.assertTrue(tf.math.reduce_any(xs[1] == 1.0))
 
