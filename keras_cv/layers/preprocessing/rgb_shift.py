@@ -30,25 +30,29 @@ class RGBShift(layers.Layer):
 
     Args:
         factor: A scalar or tuple or list of two upper and lower bound number. If factor is a single value, 
-                the range will be (-factor, factor). The factor value can be float or integer; for float the 
-                valid limits are (-1.0, 1.0) and for integer the valid limits are (-255, 255).
+                the range will be `(-factor, factor)`. The factor value can be float or integer; for float the 
+                valid limits are `(-1.0, 1.0)` and for integer the valid limits are `(-255, 255)`.
         seed: Integer. Used to create a random seed. Default: None.
 
-    Call arguments: call method for the RGBShift layer.
+    Call arguments: 
         Args:
             images: Tensor representing images of shape
-                [batch_size, width, height, channels], with dtype tf.float32 / tf.uint8, or,
-                [width, height, channels], with dtype tf.float32 / tf.uint8
+                `(..., height, width, channels)`, with dtype tf.float32 / tf.uint8, or,
+                `(height, width, channels)`, with dtype tf.float32 / tf.uint8
         Returns:
             images: augmented images, same shape as input.
    
     Usage:
     ```python
     (images, labels), _ = tf.keras.datasets.cifar10.load_data()
-    rgbshift = keras_cv.layers.RGBShift(factor=(-2, 2))
-    augmented_images = rgbshift(images)
+    rgb_shift = keras_cv.layers.RGBShift(factor=(-2, 2))
+    augmented_images = rgb_shift(images)
     ```
     """
+    _FACTOR_VALIDATION_ERROR = (
+        'The factor should be a scalar, '
+        'a tuple or a list of two upper and lower '
+        'bound values in the range `(-1.0, 1.0)` as float or `(-255, 255) as integer. ')
 
     def __init__(
         self,
@@ -63,28 +67,27 @@ class RGBShift(layers.Layer):
     def _set_shift_limit(self, factor):
         if isinstance(factor, (tuple, list)):
             if len(factor) != 2: 
-                raise ValueError(f'The factor should be scalar, tuple or list of two upper and lower \
-                    bound number. Got {factor}')
+                raise ValueError(self._FACTOR_VALIDATION_ERROR + f'Received: factor={factor}')
             return self._check_factor_range(sorted(factor))
         elif isinstance(factor, (int, float)):
             factor = abs(factor)
             return self._check_factor_range([-factor, factor])
         else:
-            raise ValueError(f'The factor should be scalar, tuple or list of two upper and lower bound\
-                 number. Got {factor}')
+            raise ValueError(self._FACTOR_VALIDATION_ERROR + f'Received: factor={factor}')
         
-    @staticmethod
-    def _check_factor_range(factor):
+    def _check_factor_range(self, factor):
         if all(isinstance(each_elem, float) for each_elem in factor):
             if factor[0] < -1.0 or factor[1] > 1.0:
-                raise ValueError(f"Got {factor}")
+                raise ValueError(self._FACTOR_VALIDATION_ERROR + f'Received: factor={factor}')
             return factor
         elif all(isinstance(each_elem, int) for each_elem in factor):
             if factor[0] < -255 or factor[1] > 255:
-                raise ValueError(f"Got {factor}")
+                raise ValueError(self._FACTOR_VALIDATION_ERROR + f'Received: factor={factor}')
             return factor
         else:
-            raise ValueError(f'Both bound must be same dtype. Got {factor}')
+            raise ValueError(
+                'Both factor bound must be same dtype. '
+                f'Received: factor dtype = {factor[0].dtype} and  {factor[1].dtype}')
 
     def _get_random_uniform(self, shift_limit, rgb_delta_shape):
             if self.seed is not None:
