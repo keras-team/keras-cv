@@ -12,8 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import tensorflow as tf 
-from tensorflow.keras import layers, backend
+import tensorflow as tf
+from tensorflow.keras import layers
+
 
 class ChannelShuffle(layers.Layer):
     """Shuffle channels of an input image.  
@@ -32,12 +33,12 @@ class ChannelShuffle(layers.Layer):
         seed: Integer. Used to create a random seed.
 
     Call arguments:
-        Args:
-            images: Tensor representing images of shape
-                `(batch_size, width, height, channels)`, with dtype tf.float32 / tf.uint8, or,
-                `(width, height, channels)`, with dtype tf.float32 / tf.uint8
-        Returns:
-            images: augmented images, same shape as input.
+        images: Tensor representing images of shape
+            `(batch_size, width, height, channels)`, with dtype tf.float32 / tf.uint8,
+            ` or (width, height, channels)`, with dtype tf.float32 / tf.uint8
+        training: A boolean argument that determines whether the call should be run 
+            in inference mode or training mode. Default: True.
+        output images: augmented images, same shape as input.
 
     Usage:
     ```python
@@ -46,19 +47,15 @@ class ChannelShuffle(layers.Layer):
     augmented_images = channel_shuffle(images)
     ```
     """
-    def __init__(
-        self,
-        groups = 3,
-        seed = None,
-        **kwargs
-    ):
+
+    def __init__(self, groups=3, seed=None, **kwargs):
         super().__init__(**kwargs)
         self.groups = groups
         self.seed = seed
 
     def _channel_shuffling(self, images):
         unbatched = images.shape.rank == 3
-        
+
         if unbatched:
             images = tf.expand_dims(images, axis=0)
 
@@ -67,11 +64,16 @@ class ChannelShuffle(layers.Layer):
         num_channels = images.shape[3]
 
         if not num_channels % self.groups == 0:
-            raise ValueError("The number of input channels should be divisible by the number of groups."
-                             f"Received: channels={num_channels}, groups={self.groups}")
+            raise ValueError(
+                "The number of input channels should be "
+                "divisible by the number of groups."
+                f"Received: channels={num_channels}, groups={self.groups}"
+            )
 
         channels_per_group = num_channels // self.groups
-        images = tf.reshape(images, [-1, height, width, self.groups, channels_per_group])
+        images = tf.reshape(
+            images, [-1, height, width, self.groups, channels_per_group]
+        )
         images = tf.transpose(images, perm=[3, 1, 2, 4, 0])
         images = tf.random.shuffle(images, seed=self.seed)
         images = tf.transpose(images, perm=[4, 1, 2, 3, 0])
@@ -86,17 +88,12 @@ class ChannelShuffle(layers.Layer):
         if training:
             return self._channel_shuffling(images)
         else:
-            return images 
+            return images
 
     def get_config(self):
         config = super().get_config()
-        config.update(
-            {
-                "groups": self.groups, 
-                "seed": self.seed
-            }
-        )
-        return config 
+        config.update({"groups": self.groups, "seed": self.seed})
+        return config
 
     def compute_output_shape(self, input_shape):
         return input_shape
