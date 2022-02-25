@@ -123,9 +123,6 @@ class GridMask(layers.Layer):
             allow_callables=False,
         )
 
-    def _compute_rectangle_coordinates(self, unit_sizes, mask_side_len):
-        pass
-
     def _compute_grid_masks(self, input_shape):
         """Computes grid masks"""
         batch_size = input_shape[0]
