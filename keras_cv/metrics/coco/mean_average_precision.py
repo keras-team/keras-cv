@@ -52,7 +52,7 @@ class COCOMeanAveragePrecision(tf.keras.metrics.Metric):
     Usage:
 
     COCOMeanAveragePrecision accepts two Tensors as input to it's
-    `update_state()` method.  These Tensors represent bounding boxes in
+    `update_state()` method.  These Tensors represent bounding boxes in random spurious change to demonstrate that the linter runs.
     `corners` format.  Utilities to convert Tensors from `xywh` to `corners`
     format can be found in `keras_cv.utils.bounding_box`.
 
