@@ -16,6 +16,59 @@ import tensorflow as tf
 from keras_cv.utils import bbox
 
 
+def _axis_mask(axis_lengths, offsets, mask_len):
+    axis_mask = tf.sequence_mask(axis_lengths, mask_len)
+    rev_lengths = tf.minimum(offsets + axis_lengths, mask_len)
+    axis_mask = tf.reverse_sequence(axis_mask, rev_lengths, seq_axis=1)
+    return axis_mask
+
+
+def xywh_to_mask(xywh, mask_shape):
+    width, height = mask_shape
+    cx = xywh[:, 0]
+    cy = xywh[:, 1]
+    w = xywh[:, 2]
+    h = xywh[:, 3]
+    x0 = cx - (w / 2)
+    y0 = cy - (h / 2)
+
+    w = tf.cast(w, tf.int32)
+    h = tf.cast(h, tf.int32)
+    x0 = tf.cast(x0, tf.int32)
+    y0 = tf.cast(y0, tf.int32)
+    w_mask = _axis_mask(w, x0, width)
+    h_mask = _axis_mask(h, y0, height)
+
+    w_mask = tf.expand_dims(w_mask, axis=-2)
+    h_mask = tf.expand_dims(h_mask, axis=-1)
+    masks = tf.logical_and(w_mask, h_mask)
+
+    return masks
+
+
+def corners_to_mask(corners, mask_shape):
+    width, height = mask_shape
+    x0 = corners[:, 0]
+    y0 = corners[:, 1]
+    x1 = corners[:, 2]
+    y1 = corners[:, 3]
+    w = x1 - x0
+    h = y1 - y0
+
+    w = tf.cast(w, tf.int32)
+    h = tf.cast(h, tf.int32)
+    x0 = tf.cast(x0, tf.int32)
+    y0 = tf.cast(y0, tf.int32)
+    w_mask = _axis_mask(w, x0, width)
+    h_mask = _axis_mask(h, y0, height)
+
+    w_mask = tf.expand_dims(w_mask, axis=-2)
+    h_mask = tf.expand_dims(h_mask, axis=-1)
+    masks = tf.logical_and(w_mask, h_mask)
+
+    return masks
+
+
 def rectangle_masks(corners, mask_shape):
     """Computes masks of rectangles
 
