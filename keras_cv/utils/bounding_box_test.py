@@ -27,6 +27,14 @@ class BBOXTestCase(tf.test.TestCase):
             [[60, 60, 100, 100], [70, 70, 100, 100]], dtype=tf.float32
         )
 
+        self.extended_corner_bounding_box = tf.constant(
+            [
+                [10, 10, 110, 10, 10, 110, 110, 110],
+                [20, 20, 120, 20, 20, 120, 120, 120],
+            ],
+            dtype=tf.float32,
+        )
+
     def test_corner_to_xywh(self):
         self.assertAllClose(
             bounding_box.corners_to_xywh(self.corner_bounding_box),
@@ -114,3 +122,41 @@ class BBOXTestCase(tf.test.TestCase):
             ValueError, "Target shape should be larger than bounding box shape"
         ):
             bounding_box.pad_bounding_box_batch_to_shape(bounding_boxes, target_shape)
+
+    def test_get_bbox_corners(self):
+        self.assertAllClose(
+            bounding_box.get_bbox_corners(self.corner_bounding_box),
+            self.extended_corner_bounding_box,
+        )
+
+        # Make sure it also accept higher rank than 2
+        corner_bounding_box_3d = tf.expand_dims(self.corner_bounding_box, 0)
+        extended_corner_bounding_box_3d = tf.expand_dims(
+            self.extended_corner_bounding_box, 0
+        )
+        self.assertAllClose(
+            bounding_box.get_bbox_corners(corner_bounding_box_3d),
+            extended_corner_bounding_box_3d,
+        )
+
+        # Make sure it also accept more value after last index.
+        padded_corner_bounding_box = tf.pad(
+            self.corner_bounding_box, [[0, 0], [0, 2]]
+        )  # Right pad 2 more value
+        padded_extended_corner_bounding_box = tf.pad(
+            self.extended_corner_bounding_box, [[0, 0], [0, 2]]
+        )
+        self.assertAllClose(
+            bounding_box.get_bbox_corners(padded_corner_bounding_box),
+            padded_extended_corner_bounding_box,
+        )
+
+        # Same for higher rank
+        padded_corner_bounding_box_3d = tf.expand_dims(padded_corner_bounding_box, 0)
+        padded_extended_corner_bounding_box_3d = tf.expand_dims(
+            padded_extended_corner_bounding_box, 0
+        )
+        self.assertAllClose(
+            bounding_box.get_bbox_corners(padded_corner_bounding_box_3d),
+            padded_extended_corner_bounding_box_3d,
+        )

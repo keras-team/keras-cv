@@ -149,3 +149,35 @@ def pad_bounding_box_batch_to_shape(bounding_boxes, target_shape, padding_values
     return tf.pad(
         bounding_boxes, paddings, mode="CONSTANT", constant_values=padding_values
     )
+
+
+def get_bbox_corners(bboxes):
+
+    """Get corners of bounding boxes
+    Args:
+        bounding_boxes: a Tensor which has at least 2D rank, with shape [..., 4]
+
+    returns
+        converted bounding boxes with same shape, but 4 corners coordinates.
+
+    """
+    left, top, right, bottom, rest = tf.split(bboxes, [1, 1, 1, 1, -1], axis=-1)
+    width = right - left  # WIDTH
+    height = bottom - top  # HEIGHT
+
+    # TOP-LEFT
+    x1 = left
+    y1 = top
+
+    # TOP-RIGHT
+    x2 = x1 + width
+    y2 = y1
+
+    # BOTTOM-LEFT
+    x3 = x1
+    y3 = y1 + height
+
+    # BOTTOM-RIGHT
+    x4 = right
+    y4 = bottom
+    return tf.concat([x1, y1, x2, y2, x3, y3, x4, y4, rest], axis=-1)
