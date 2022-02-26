@@ -14,7 +14,6 @@
 import tensorflow as tf
 import tensorflow.keras.layers as layers
 from tensorflow.keras import backend
-from tensorflow.python.keras.utils import layer_utils
 
 from keras_cv.utils import fill_utils
 
@@ -63,21 +62,18 @@ class RandomCutout(layers.Layer):
         fill_mode="constant",
         fill_value=0.0,
         seed=None,
-        **kwargs
+        **kwargs,
     ):
         super().__init__(**kwargs)
 
-        layer_utils.validate_string_arg(
-            fill_mode,
-            allowable_strings=["constant", "gaussian_noise"],
-            layer_name="RandomCutout",
-            arg_name="fill_mode",
-            allow_none=False,
-            allow_callables=False,
-        )
-
         self.height_lower, self.height_upper = self._parse_bounds(height_factor)
         self.width_lower, self.width_upper = self._parse_bounds(width_factor)
+
+        if fill_mode not in ["gaussian_noise", "constant"]:
+            raise ValueError(
+                '`fill_mode` should be "gaussian_noise" '
+                f'or "constant".  Got `fill_mode`={fill_mode}'
+            )
 
         if not isinstance(self.height_lower, type(self.height_upper)):
             raise ValueError(

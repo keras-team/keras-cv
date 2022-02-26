@@ -52,16 +52,16 @@ CLASS = 4
 CONFIDENCE = 5
 
 
-def corners_to_xywh(bboxes):
-    """Converts bboxes in corners format to XYWH format.
+def corners_to_xywh(bounding_boxes):
+    """Converts bounding_boxes in corners format to XYWH format.
 
     Args:
-        bboxes: a Tensor which has at least 2D rank, with shape [..., 4]
+        bounding_boxes: a Tensor which has at least 2D rank, with shape [..., 4]
 
     Returns:
-        converted bboxes with same shape, but in XYWH format.
+        converted bounding_boxes with same shape, but in XYWH format.
     """
-    left, top, right, bottom, rest = tf.split(bboxes, [1, 1, 1, 1, -1], axis=-1)
+    left, top, right, bottom, rest = tf.split(bounding_boxes, [1, 1, 1, 1, -1], axis=-1)
     return tf.concat(
         [
             # We use ... here in case user has higher rank of inputs.
@@ -75,16 +75,16 @@ def corners_to_xywh(bboxes):
     )
 
 
-def xywh_to_corners(bboxes):
-    """Converts bboxes in XYWH format to corners format.
+def xywh_to_corners(bounding_boxes):
+    """Converts bounding_boxes in XYWH format to corners format.
 
     Args:
-        bboxes: a Tensor which has at least 2D rank, with shape [..., 4]
+        bounding_boxes: a Tensor which has at least 2D rank, with shape [..., 4]
 
     Returns:
-        converted bboxes with same shape, but in corners format.
+        converted bounding_boxes with same shape, but in corners format.
     """
-    x, y, width, height, rest = tf.split(bboxes, [1, 1, 1, 1, -1], axis=-1)
+    x, y, width, height, rest = tf.split(bounding_boxes, [1, 1, 1, 1, -1], axis=-1)
     return tf.concat(
         [
             x - width / 2.0,
@@ -97,50 +97,55 @@ def xywh_to_corners(bboxes):
     )
 
 
-def pad_bbox_batch_to_shape(bboxes, target_shape, padding_values=-1):
+def pad_bounding_box_batch_to_shape(bounding_boxes, target_shape, padding_values=-1):
     """Pads a list of bounding boxes with -1s.
 
     Boxes represented by all -1s are ignored by COCO metrics.
 
     Sample usage:
-    bbox = [[1, 2, 3, 4], [5, 6, 7, 8]]   # 2 bboxes with with xywh or corner format.
-    target_shape = [3, 4]   # Add 1 more dummy bbox
-    result = pad_bbox_batch_to_shape(bbox, target_shape)
+    bounding_box = [[1, 2, 3, 4], [5, 6, 7, 8]]   # 2 bounding_boxes with with xywh or
+        corners format.
+    target_shape = [3, 4]   # Add 1 more dummy bounding_box
+    result = pad_bounding_box_batch_to_shape(bounding_box, target_shape)
     # result == [[1, 2, 3, 4], [5, 6, 7, 8], [-1, -1, -1, -1]]
 
     target_shape = [2, 5]   # Add 1 more index after the current 4 coordinates.
-    result = pad_bbox_batch_to_shape(bbox, target_shape)
+    result = pad_bounding_box_batch_to_shape(bounding_box, target_shape)
     # result == [[1, 2, 3, 4, -1], [5, 6, 7, 8, -1]]
 
     Args:
-        bboxes: tf.Tensor of bounding boxes in any format.
+        bounding_boxes: tf.Tensor of bounding boxes in any format.
         target_shape: Target shape to pad bounding box to. This should have the same
-            rank as the bbboxs. Note that if the target_shape contains any dimension
-            that is smaller than the bounding box shape, then no value will be padded
+            rank as the bbounding_boxs. Note that if the target_shape contains any
+            dimension that is smaller than the bounding box shape, then no value will be
+            padded.
         padding_values: value to pad, defaults to -1 to mask out in coco metrics.
     Returns:
-        bboxes padded to target shape.
+        bounding_boxes padded to target shape.
 
     Raises:
         ValueError, when target shape has smaller rank or dimension value when
             comparing with shape of bounding boxes.
     """
-    bbox_shape = tf.shape(bboxes)
-    if len(bbox_shape) != len(target_shape):
+    bounding_box_shape = tf.shape(bounding_boxes)
+    if len(bounding_box_shape) != len(target_shape):
         raise ValueError(
             "Target shape should have same rank as the bounding box. "
-            f"Got bbox shape = {bbox_shape}, "
+            f"Got bounding_box shape = {bounding_box_shape}, "
             f"target_shape = {target_shape}"
         )
     for dim in range(len(target_shape)):
-        if bbox_shape[dim] > target_shape[dim]:
+        if bounding_box_shape[dim] > target_shape[dim]:
             raise ValueError(
                 "Target shape should be larger than bounding box shape "
                 "in all dimensions. "
-                f"Got bbox shape = {bbox_shape}, "
+                f"Got bounding_box shape = {bounding_box_shape}, "
                 f"target_shape = {target_shape}"
             )
     paddings = [
-        [0, target_shape[dim] - bbox_shape[dim]] for dim in range(len(target_shape))
+        [0, target_shape[dim] - bounding_box_shape[dim]]
+        for dim in range(len(target_shape))
     ]
-    return tf.pad(bboxes, paddings, mode="CONSTANT", constant_values=padding_values)
+    return tf.pad(
+        bounding_boxes, paddings, mode="CONSTANT", constant_values=padding_values
+    )
