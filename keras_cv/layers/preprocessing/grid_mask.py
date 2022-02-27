@@ -207,7 +207,7 @@ class GridMask(layers.Layer):
 
         # make mask for each rectangle
         mask_side_len = tf.cast(mask_side_len, tf.int32)
-        masks = fill_utils.rectangle_masks(corners, (mask_side_len, mask_side_len))
+        masks = fill_utils.corners_to_mask(corners, (mask_side_len, mask_side_len))
 
         # reshape masks into shape
         # (batch_size, rectangles_per_image, mask_height, mask_width)
