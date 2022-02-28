@@ -38,7 +38,6 @@ class ChannelShuffle(layers.Layer):
             ` or (width, height, channels)`, with dtype tf.float32 / tf.uint8
         training: A boolean argument that determines whether the call should be run 
             in inference mode or training mode. Default: True.
-        output images: augmented images, same shape as input.
 
     Usage:
     ```python
