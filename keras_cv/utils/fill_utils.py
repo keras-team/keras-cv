@@ -24,9 +24,8 @@ def _axis_mask(starts, ends, mask_len):
     axis_indices = tf.tile(axis_indices, [batch_size, 1])
 
     # mask of index bounds
-    above_eq_starts = tf.greater_equal(axis_indices, tf.expand_dims(starts, 1))
-    less_ends = tf.less(axis_indices, tf.expand_dims(ends, 1))
-    return above_eq_starts & less_ends
+    axis_mask = tf.greater_equal(axis_indices, starts) & tf.less(axis_indices, ends)
+    return axis_mask
 
 
 def corners_to_mask(bounding_boxes, mask_shape):
@@ -43,10 +42,7 @@ def corners_to_mask(bounding_boxes, mask_shape):
             indicate positions within bounding box coordinates.
     """
     mask_width, mask_height = mask_shape
-    x0 = bounding_boxes[:, 0]
-    y0 = bounding_boxes[:, 1]
-    x1 = bounding_boxes[:, 2]
-    y1 = bounding_boxes[:, 3]
+    x0, y0, x1, y1 = tf.split(bounding_boxes, [1, 1, 1, 1], axis=-1)
 
     w_mask = _axis_mask(x0, x1, mask_width)
     h_mask = _axis_mask(y0, y1, mask_height)
