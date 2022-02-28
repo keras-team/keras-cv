@@ -144,7 +144,7 @@ class GridMask(layers.Layer):
             ratio = self.ratio
         rectangle_side_len = tf.cast((1 - ratio) * unit_sizes, tf.float32)
 
-        # x and y offsets for grid units
+        # sample x and y offsets for grid units randomly between 0 and unit_sizes
         delta_x = tf.random.uniform([batch_size], minval=0, maxval=1, dtype=tf.float32)
         delta_y = tf.random.uniform([batch_size], minval=0, maxval=1, dtype=tf.float32)
         delta_x = delta_x * unit_sizes
@@ -199,11 +199,8 @@ class GridMask(layers.Layer):
 
         # combine coordinates to (x0, y0, x1, y1)
         # with shape (num_rectangles_in_batch, 4)
-        corners0 = tf.stack([x0, y0], axis=-1)
-        corners1 = tf.stack([x1, y1], axis=-1)
-        corners0 = tf.reshape(corners0, [-1, 2])
-        corners1 = tf.reshape(corners1, [-1, 2])
-        corners = tf.concat([corners0, corners1], axis=1)
+        corners = tf.stack([x0, y0, x1, y1], axis=-1)
+        corners = tf.reshape(corners, [-1, 4])
 
         # make mask for each rectangle
         mask_side_len = tf.cast(mask_side_len, tf.int32)
@@ -252,6 +249,7 @@ class GridMask(layers.Layer):
         # convert back to boolean mask
         masks = tf.cast(masks, tf.bool)
 
+        # fill
         if self.fill_mode == "constant":
             fill_value = tf.fill(input_shape, self.fill_value)
         else:
