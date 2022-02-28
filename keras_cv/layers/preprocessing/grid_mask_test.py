@@ -101,11 +101,7 @@ class GridMaskTest(tf.test.TestCase):
             dtype=tf.float32,
         )
 
-        layer = GridMask(
-            ratio="random",
-            fill_mode="constant",
-            fill_value=0.0
-        )
+        layer = GridMask(ratio="random", fill_mode="constant", fill_value=0.0)
         xs = layer(xs, training=True)
         self.assertTrue(tf.math.reduce_any(xs == 0.0))
         self.assertTrue(tf.math.reduce_any(xs == 1.0))
