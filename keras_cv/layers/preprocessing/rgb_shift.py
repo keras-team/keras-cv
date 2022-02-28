@@ -41,7 +41,6 @@ class RGBShift(layers.Layer):
             `(height, width, channels)`, with dtype tf.float32 / tf.uint8
         training: A boolean argument that determines whether the call should be run 
             in inference mode or training mode. Default: True.
-        output images: augmented images, same shape as input.
    
     Usage:
     ```python
@@ -59,10 +58,10 @@ class RGBShift(layers.Layer):
 
     def __init__(self, factor, seed=None, **kwargs):
         super().__init__(**kwargs)
-        self.factor = self._set_shift_limit(factor)
+        self.factor = self._set_factor_limit(factor)
         self.seed = seed
 
-    def _set_shift_limit(self, factor):
+    def _set_factor_limit(self, factor):
         if isinstance(factor, (tuple, list)):
             if len(factor) != 2:
                 raise ValueError(

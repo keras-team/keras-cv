@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import numpy as np 
+import numpy as np
 import tensorflow as tf
 from keras_cv.layers.preprocessing.rgb_shift import RGBShift
 
@@ -21,25 +21,18 @@ class RGBShiftTest(tf.test.TestCase):
     def test_return_shapes(self):
         xs = tf.ones((2, 512, 512, 3))
 
-        layer = RGBShift(
-            factor=10
-        )
+        layer = RGBShift(factor=10)
 
         xs = layer(xs, training=True)
         self.assertEqual(xs.shape, [2, 512, 512, 3])
 
     def test_non_square_image(self):
         xs = tf.cast(
-            tf.stack(
-                [2 * tf.ones((1024, 512, 3)), tf.ones((1024, 512, 3))],
-                axis=0,
-            ),
+            tf.stack([2 * tf.ones((1024, 512, 3)), tf.ones((1024, 512, 3))], axis=0,),
             dtype=tf.float32,
         )
 
-        layer = RGBShift(
-            factor=[10, 30]
-        )
+        layer = RGBShift(factor=[10, 30])
 
         xs = layer(xs, training=True)
         self.assertFalse(tf.math.reduce_any(xs[0] == 2.0))
@@ -51,9 +44,7 @@ class RGBShiftTest(tf.test.TestCase):
             dtype=tf.float32,
         )
 
-        layer = RGBShift(
-            factor=30
-        )
+        layer = RGBShift(factor=0.3)
 
         @tf.function
         def augment(x):
@@ -64,14 +55,9 @@ class RGBShiftTest(tf.test.TestCase):
         self.assertFalse(tf.math.reduce_any(xs[1] == 1.0))
 
     def test_in_single_image(self):
-        xs = tf.cast(
-            tf.ones((512, 512, 3)), 
-            dtype=tf.float32,
-        )
+        xs = tf.cast(tf.ones((512, 512, 3)), dtype=tf.float32,)
 
-        layer = RGBShift(
-            factor=40
-        )
+        layer = RGBShift(factor=0.4)
 
         xs = layer(xs, training=True)
         self.assertFalse(tf.math.reduce_any(xs == 1.0))
@@ -88,10 +74,7 @@ class RGBShiftTest(tf.test.TestCase):
         self.assertEqual(output.dtype, inputs.dtype)
 
     def test_config(self):
-        layer = RGBShift(
-            factor=40,
-            seed=101
-        )
+        layer = RGBShift(factor=40, seed=101)
         config = layer.get_config()
         self.assertEqual(config["factor"], [-40, 40])
         self.assertEqual(config["seed"], 101)
@@ -101,11 +84,7 @@ class RGBShiftTest(tf.test.TestCase):
         self.assertEqual(reconstructed_layer.seed, layer.seed)
 
     def test_inference(self):
-        layer = RGBShift(
-            factor=40,
-            seed=101
-        )
+        layer = RGBShift(factor=[40, 90], seed=101)
         inputs = np.random.randint(0, 255, size=(224, 224, 3))
         output = layer(inputs, training=False)
         self.assertAllClose(inputs, output)
-        
