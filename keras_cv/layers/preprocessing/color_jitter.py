@@ -18,8 +18,8 @@ from tensorflow.keras import layers
 
 class ColorJitter(layers.Layer):
     """ColorJitter class randomly apply brightness, contrast, saturation 
-    and hue image processing operation sequentially and randomly. 
-    It expects input RGB image. The expected images should be `(0-255)` pixel ranges.
+    and hue image processing operation sequentially and randomly on the input. 
+    It expects input as RGB image. The expected image should be `(0-255)` pixel ranges.
 
     Input shape:
         3D (unbatched) or 4D (batched) tensor with shape:
@@ -35,19 +35,20 @@ class ColorJitter(layers.Layer):
 
         contrast_factor: A non-negative scalar or tuple or list of two upper 
         and lower bound number. If factor is a single value, the range will 
-        be `(0, contrast_factor)`; otherwise (contrast_factor[0], contrast_factor[1])
+        be `(0, contrast_factor)`; otherwise `(contrast_factor[0], contrast_factor[1])`
         as lower and upper bound respectively. It will be used to randomly pick a value 
         from uniform distribution. Default: (0.5, 0.9).
 
         saturation_factor: A non-negative scalar or tuple or list of two upper 
         and lower bound number. If factor is a single value, the range will 
-        be `(0, saturation_factor)`; otherwise (saturation_factor[0], saturation_factor[1])
-        as lower and upper bound respectively. Default: (0.5, 0.9). It will be used 
-        to randomly pick a value from uniform distribution. Default: (0.5, 0.9).
+        be `(0, saturation_factor)`; otherwise `(saturation_factor[0], saturation_factor[1])`
+        as lower and upper bound respectively. It will be used to randomly pick a value 
+        from uniform distribution. Default: (0.5, 0.9).
 
         hue_factor: A non-negative single float value. It will be used 
-        as `[-hue_factor, hue_factor)` to randomly pick a value 
-        from uniform distribution. Default: 0.5.
+        as `[-hue_factor, hue_factor)` to randomly pick a value from uniform 
+        distribution. Default: 0.5.
+
         seed: Integer. Used to create a random seed. Default: None.
 
     Call arguments: 
@@ -141,12 +142,17 @@ class ColorJitter(layers.Layer):
             return images
 
     def get_config(self):
-        config = {
-            "brightness_factor": self.brightness_factor,
-            "contrast_factor": self.contrast_factor,
-            "saturation_factor": self.saturation_factor,
-            "hue_factor": self.hue_factor,
-            "seed": self.seed,
-        }
-        base_config = super().get_config()
-        return dict(list(base_config.items()) + list(config.items()))
+        config = super().get_config()
+        config.update(
+            {
+                "brightness_factor": self.brightness_factor,
+                "contrast_factor": self.contrast_factor,
+                "saturation_factor": self.saturation_factor,
+                "hue_factor": self.hue_factor,
+                "seed": self.seed,
+            }
+        )
+        return config
+
+    def compute_output_shape(self, input_shape):
+        return input_shape
