@@ -694,22 +694,7 @@ plt.show()
 # Extra notes
 
 ## Warnings
-it would be really annoying as a user to use an official keras_cv component and get warned that "RandomUniform" or "RandomUniformInt" inside pfor may not get the same output
-
-## Tracing Error
-During tracing I get:
-```
-Object was never used (type <class 'tensorflow.python.ops.tensor_array_ops.TensorArray'>):
-<tensorflow.python.ops.tensor_array_ops.TensorArray object at 0x7f61a62c8d90>
-If you want to mark it as used call its "mark_used()" method.
-It was originally created here:
-  File "/usr/local/lib/python3.7/dist-packages/tensorflow/python/ops/control_flow_ops.py", line 2838, in while_loop
-    return result  File "/usr/local/lib/python3.7/dist-packages/tensorflow/python/ops/control_flow_ops.py", line 2786, in <lambda>
-    body = lambda i, lv: (i + 1, orig_body(*lv))  File "/usr/local/lib/python3.7/dist-packages/tensorflow/python/ops/map_fn.py", line 493, in compute
-    return (i + 1, tas)  File "/usr/local/lib/python3.7/dist-packages/tensorflow/python/ops/map_fn.py", line 491, in <listcomp>
-    ta.write(i, value) for (ta, value) in zip(tas, result_value_batchable)  File "/usr/local/lib/python3.7/dist-packages/tensorflow/python/util/tf_should_use.py", line 245, in wrapped
-    error_in_function=error_in_function)
-```
-
-But the function runs fine.  Very strange.
+it would be really annoying as a user to use an official keras_cv component and get
+warned that "RandomUniform" or "RandomUniformInt" inside pfor may not get the same
+output.
 """
