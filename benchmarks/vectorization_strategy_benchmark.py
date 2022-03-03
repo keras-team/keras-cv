@@ -20,7 +20,8 @@ import tensorflow.keras as keras
 import tensorflow.keras.layers as layers
 from tensorflow.keras import backend
 
-from keras_cv.utils import bounding_box, fill_utils
+from keras_cv.utils import bounding_box
+from keras_cv.utils import fill_utils
 
 
 def single_rectangle_mask(corners, mask_shape):
@@ -102,6 +103,8 @@ def fill_single_rectangle(image, centers_x, centers_y, widths, heights, fill_val
 # Layer Implementations
 ## Fully Vectorized
 """
+
+
 class VectorizedRandomCutout(layers.Layer):
     def __init__(
         self,
@@ -280,6 +283,8 @@ class VectorizedRandomCutout(layers.Layer):
 """
 ## tf.map_fn
 """
+
+
 class MapFnRandomCutout(layers.Layer):
     def __init__(
         self,
@@ -453,6 +458,8 @@ class MapFnRandomCutout(layers.Layer):
 """
 ## tf.vectorized_map
 """
+
+
 class VMapRandomCutout(layers.Layer):
     def __init__(
         self,
