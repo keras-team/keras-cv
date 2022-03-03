@@ -1,7 +1,11 @@
 import math
 import random
+import time
 
+import matplotlib.pyplot as plt
 import numpy as np
+import pandas as pd
+import seaborn as sns
 import tensorflow as tf
 
 import keras_cv
@@ -46,8 +50,6 @@ class_ids = list(range(20))
 
 n_images = [128, 256, 512, 512 + 256, 1024]
 
-import time
-
 update_state_runtimes = []
 result_runtimes = []
 end_to_end_runtimes = []
@@ -71,10 +73,6 @@ for images in n_images:
     end_to_end_runtimes.append(end - start)
 
     print("end_to_end_runtimes", end_to_end_runtimes)
-
-import matplotlib.pyplot as plt
-import pandas as pd
-import seaborn as sns
 
 data = pd.DataFrame(
     {
