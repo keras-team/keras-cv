@@ -23,6 +23,7 @@ class RGBShift(layers.Layer):
     Input shape:
         3D (unbatched) or 4D (batched) tensor with shape:
         `(..., height, width, channels)`, in `channels_last` format
+
     Output shape:
         3D (unbatched) or 4D (batched) tensor with shape:
         `(..., height, width, channels)`, in `channels_last` format
@@ -65,7 +66,7 @@ class RGBShift(layers.Layer):
         if isinstance(factor, (tuple, list)):
             if len(factor) != 2:
                 raise ValueError(
-                    self._FACTOR_VALIDATION_ERROR + f"Received: factor={factor}"
+                    self._FACTOR_VALIDATION_ERROR + f" Received: factor={factor}"
                 )
             return self._check_factor_range(sorted(factor))
         elif isinstance(factor, (int, float)):
@@ -73,20 +74,20 @@ class RGBShift(layers.Layer):
             return self._check_factor_range([-factor, factor])
         else:
             raise ValueError(
-                self._FACTOR_VALIDATION_ERROR + f"Received: factor={factor}"
+                self._FACTOR_VALIDATION_ERROR + f" Received: factor={factor}"
             )
 
     def _check_factor_range(self, factor):
         if all(isinstance(each_elem, float) for each_elem in factor):
             if factor[0] < -1.0 or factor[1] > 1.0:
                 raise ValueError(
-                    self._FACTOR_VALIDATION_ERROR + f"Received: factor={factor}"
+                    self._FACTOR_VALIDATION_ERROR + f" Received: factor={factor}"
                 )
             return factor
         elif all(isinstance(each_elem, int) for each_elem in factor):
             if factor[0] < -255 or factor[1] > 255:
                 raise ValueError(
-                    self._FACTOR_VALIDATION_ERROR + f"Received: factor={factor}"
+                    self._FACTOR_VALIDATION_ERROR + f" Received: factor={factor}"
                 )
             return factor
         else:
