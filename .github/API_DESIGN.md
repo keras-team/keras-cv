@@ -13,7 +13,7 @@ use the full names for label types in our code base.
 
 # Preprocessing Layers
 ## BaseImageAugmentationLayer
-When implementing preprocessing, we encourage users to subclass the `tf.keras.__internal__.layers.BaseImageAugmentationLayer`.  This layer provides a common `call` method, auto vectorization, and more.  
+When implementing preprocessing, we encourage users to subclass the `tf.keras.__internal__.layers.BaseImageAugmentationLayer`.  This layer provides a common `call()` method, auto vectorization, and more.  
 
 When subclassing `BaseImageAugmentationLayer`, several methods can overridden:
 
