@@ -117,7 +117,7 @@ class COCORecall(keras.metrics.Metric):
             y_pred: a bounding box Tensor in corners format.
             sample_weight: Currently unsupported.
         """
-        if sample_weight:
+        if sample_weight and not tf.math.reduce_all(sample_weight == 1.0):
             raise NotImplementedError(
                 "sample_weight is not yet supported in keras_cv COCO metrics."
             )

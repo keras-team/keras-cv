@@ -137,7 +137,7 @@ class COCOMeanAveragePrecision(tf.keras.metrics.Metric):
     def update_state(self, y_true, y_pred, sample_weight=None):
         num_images = tf.shape(y_true)[0]
 
-        if sample_weight is not None:
+        if sample_weight and not tf.math.reduce_all(sample_weight == 1.0):
             raise ValueError(
                 "COCOMeanAveragePrecision does not support `sample_weight`"
             )
