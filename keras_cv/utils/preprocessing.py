@@ -14,17 +14,20 @@
 import tensorflow as tf
 
 
-def transform_value_range(images, original_range, target_range):
+def transform_value_range(images, original_range, target_range, dtype=None):
     """transforms values in input tensor from original_range to target_range.
 
     This function is intended to be used in preprocessing layers that
     rely upon color values.  This allows us to assume internally that
     the input tensor is always in the range [0, 255].
 
+    Note that
+
     Args:
         images: the set of images to transform to the [0, 255] range.
         original_range: the value range to transform from.
         target_range: the value range to transform to.
+        dtype: the dtype to compute the conversion with.  Defaults to tf.float32.
     Returns:
         a new Tensor with values in the target range.
 
@@ -45,9 +48,12 @@ def transform_value_range(images, original_range, target_range):
     )
     ```
     """
-    images = tf.cast(images, dtype=tf.float32)
-    original_min_value, original_max_value = _unwrap_value_range(original_range)
-    target_min_value, target_max_value = _unwrap_value_range(target_range)
+    dtype = dtype or tf.float32
+    images = tf.cast(images, dtype=dtype)
+    original_min_value, original_max_value = _unwrap_value_range(
+        original_range, dtype=dtype
+    )
+    target_min_value, target_max_value = _unwrap_value_range(target_range, dtype=dtype)
 
     # images in the [0, 1] scale
     images = (images - original_min_value) / (original_max_value - original_min_value)
@@ -56,8 +62,9 @@ def transform_value_range(images, original_range, target_range):
     return (images * scale_factor) + target_min_value
 
 
-def _unwrap_value_range(value_range):
+def _unwrap_value_range(value_range, dtype=None):
+    dtype = dtype or tf.float32
     min_value, max_value = value_range
-    min_value = tf.cast(min_value, dtype=tf.float32)
-    max_value = tf.cast(max_value, dtype=tf.float32)
+    min_value = tf.cast(min_value, dtype=dtype)
+    max_value = tf.cast(max_value, dtype=dtype)
     return min_value, max_value
