@@ -105,7 +105,7 @@ class DropBlock2D(BaseRandomLayer):
         seed=None,
         name=None,
     ):
-        super().__init__(seed=seed, name=name)
+        super().__init__(seed=seed, name=name, force_generator=True)
         if not dropblock_size > 0:
             raise ValueError(
                 f"dropblock_size must be greater than 0. Received: {dropblock_size}"

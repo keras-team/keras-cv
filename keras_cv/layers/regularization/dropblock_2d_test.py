@@ -78,4 +78,4 @@ class DropBlock2DTest(tf.test.TestCase):
         def apply(x):
             return layer(x, training=True)
 
-        layer(dummy_inputs)
+        apply(dummy_inputs)
