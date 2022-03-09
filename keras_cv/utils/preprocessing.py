@@ -22,11 +22,11 @@ def transform_value_range(images, original_range, target_range):
     the input tensor is always in the range [0, 255].
 
     Args:
-        images: the set of images to transform to the [0, 255] range
-        original_range: the value range to transform from
-        target_range: the value range to transform to
+        images: the set of images to transform to the [0, 255] range.
+        original_range: the value range to transform from.
+        target_range: the value range to transform to.
     Returns:
-        a new Tensor with values in the target range
+        a new Tensor with values in the target range.
 
     Usage:
     ```python
