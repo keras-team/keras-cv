@@ -23,15 +23,21 @@ class PreprocessingTestCase(tf.test.TestCase):
 
     def test_transform_to_standard_range_neg_one_range(self):
         x = tf.constant([-1, 0, 1])
-        x = preprocessing.transform_to_standard_range(x, [-1, 1])
+        x = preprocessing.transform_value_range(
+            x, original_range=[-1, 1], target_range=[0, 255]
+        )
         self.assertAllClose(x, [0.0, 127.5, 255.0])
 
     def test_transform_to_standard_range(self):
         x = tf.constant([8 / 255, 9 / 255, 255 / 255])
-        x = preprocessing.transform_to_standard_range(x, [0, 1])
+        x = preprocessing.transform_value_range(
+            x, original_range=[0, 1], target_range=[0, 255]
+        )
         self.assertAllClose(x, [8.0, 9.0, 255.0])
 
     def test_transform_to_value_range(self):
         x = tf.constant([128.0, 255.0, 0.0])
-        x = preprocessing.transform_to_value_range(x, [0, 1])
+        x = preprocessing.transform_value_range(
+            x, original_range=[0, 255], target_range=[0, 1]
+        )
         self.assertAllClose(x, [128 / 255, 1, 0])
