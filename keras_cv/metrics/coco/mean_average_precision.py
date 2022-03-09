@@ -137,12 +137,8 @@ class COCOMeanAveragePrecision(tf.keras.metrics.Metric):
     def update_state(self, y_true, y_pred, sample_weight=None):
         num_images = tf.shape(y_true)[0]
 
-        if sample_weight is not None and tf.logical_not(
-            tf.math.reduce_all(tf.equal(sample_weight, 1.0))
-        ):
-            raise ValueError(
-                "COCOMeanAveragePrecision does not support `sample_weight`"
-            )
+        if sample_weight is not None:
+            tf.debugging.Assert(tf.logical_not(tf.math.reduce_all(tf.equal(sample_weight, 1.0))), ['sample_weight is not yet supported in keras_cv COCO metrics.'])
 
         y_pred = utils.sort_bounding_boxes(y_pred, axis=bounding_box.CONFIDENCE)
 

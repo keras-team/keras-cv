@@ -117,12 +117,9 @@ class COCORecall(keras.metrics.Metric):
             y_pred: a bounding box Tensor in corners format.
             sample_weight: Currently unsupported.
         """
-        if sample_weight is not None and tf.logical_not(
-            tf.math.reduce_all(tf.equal(sample_weight, 1.0))
-        ):
-            raise NotImplementedError(
-                "sample_weight is not yet supported in keras_cv COCO metrics."
-            )
+        if sample_weight is not None:
+            tf.debugging.Assert(tf.logical_not(tf.math.reduce_all(tf.equal(sample_weight, 1.0))), ['sample_weight is not yet supported in keras_cv COCO metrics.'])
+
 
         # TODO(lukewood): Add first party RaggedTensor support.  Currently
         # this could cause an OOM error if users are not expecting to convert
