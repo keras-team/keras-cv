@@ -11,6 +11,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import warnings
+
 import tensorflow as tf
 
 from keras_cv.metrics.coco import utils
@@ -136,9 +138,8 @@ class COCOMeanAveragePrecision(tf.keras.metrics.Metric):
     @tf.function()
     def update_state(self, y_true, y_pred, sample_weight=None):
         if sample_weight is not None:
-            tf.debugging.Assert(
-                tf.math.reduce_all(tf.equal(sample_weight, 1.0)),
-                ["sample_weight is not yet supported in keras_cv COCO metrics."],
+            warnings.warn(
+                "sample_weight is not yet supported in keras_cv COCO metrics."
             )
 
         num_images = tf.shape(y_true)[0]

@@ -118,9 +118,8 @@ class COCORecall(keras.metrics.Metric):
             sample_weight: Currently unsupported.
         """
         if sample_weight is not None:
-            tf.debugging.Assert(
-                tf.math.reduce_all(tf.equal(sample_weight, 1.0)),
-                ["sample_weight is not yet supported in keras_cv COCO metrics."],
+            warnings.warn(
+                "sample_weight is not yet supported in keras_cv COCO metrics."
             )
 
         # TODO(lukewood): Add first party RaggedTensor support.  Currently

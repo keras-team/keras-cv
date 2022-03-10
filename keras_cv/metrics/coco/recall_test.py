@@ -278,20 +278,6 @@ class COCORecallTest(tf.test.TestCase):
 
         self.assertEqual([[1]], metric.true_positives)
 
-    def test_allows_all_1_sample_weight(self):
-        y_true = tf.constant([[[0, 0, 100, 100, 1]]], dtype=tf.float32)
-        y_pred = tf.constant([[[0, 50, 100, 150, 1, 1.0]]], dtype=tf.float32)
-
-        metric = COCORecall(
-            iou_thresholds=[0.95],
-            class_ids=[1],
-            area_range=(0, 100000**2),
-            max_detections=1,
-        )
-        metric.update_state(
-            y_true, y_pred, sample_weight=tf.ones((1,), dtype=tf.float32)
-        )
-
     def test_matches_single_false_positive(self):
         y_true = tf.constant([[[0, 0, 100, 100, 1]]], dtype=tf.float32)
         y_pred = tf.constant([[[0, 50, 100, 150, 1, 1.0]]], dtype=tf.float32)
