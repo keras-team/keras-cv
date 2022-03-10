@@ -12,8 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import tensorflow as tf
-from keras.engine.base_layer import BaseRandomLayer
-from keras.utils import conv_utils
+from tensorflow.keras.__internal__.layers import BaseRandomLayer
+
+from keras_cv.utils import conv_utils
 
 
 class DropBlock2D(BaseRandomLayer):
@@ -51,50 +52,50 @@ class DropBlock2D(BaseRandomLayer):
         name: string. The name of the layer.
 
     Usage:
-        DropBlock2D should be used inside a `tf.keras.Model`:
+    DropBlock2D can be used inside a `tf.keras.Model`:
     ```python
-        # (...)
-        x = Conv2D(32, (1, 1))(x)
-        x = BatchNormalization()(x)
-        x = ReLU()(x)
-        x = DropBlock2D()(x)
-        # (...)
+    # (...)
+    x = Conv2D(32, (1, 1))(x)
+    x = BatchNormalization()(x)
+    x = ReLU()(x)
+    x = DropBlock2D()(x)
+    # (...)
     ```
-        When used directly, the layer will zero-out some inputs in a contiguous region
-        and apply slight scaling to the values.
+    When used directly, the layer will zero-out some inputs in a contiguous region and
+    normalize the remaining values.
 
     ```python
-        # Small feature map shape for demonstration purposes:
-        features = tf.random.stateless_uniform((1, 4, 4, 1), seed=[0, 1])
+    # Small feature map shape for demonstration purposes:
+    features = tf.random.stateless_uniform((1, 4, 4, 1), seed=[0, 1])
 
-        # Preview the feature map
-        print(features[..., 0])
-        # tf.Tensor(
-        # [[[0.08216608 0.40928006 0.39318466 0.3162533 ]
-        #   [0.34717774 0.73199546 0.56369007 0.9769211 ]
-        #   [0.55243933 0.13101244 0.2941643  0.5130266 ]
-        #   [0.38977218 0.80855536 0.6040567  0.10502195]]], shape=(1, 4, 4),
-        # dtype=float32)
+    # Preview the feature map
+    print(features[..., 0])
+    # tf.Tensor(
+    # [[[0.08216608 0.40928006 0.39318466 0.3162533 ]
+    #   [0.34717774 0.73199546 0.56369007 0.9769211 ]
+    #   [0.55243933 0.13101244 0.2941643  0.5130266 ]
+    #   [0.38977218 0.80855536 0.6040567  0.10502195]]], shape=(1, 4, 4),
+    # dtype=float32)
 
-        layer = DropBlock2D(dropblock_size=2, seed=1234)  # Small size for demonstration
-        output = layer(features, training=True)
+    layer = DropBlock2D(dropblock_size=2, seed=1234)  # Small size for demonstration
+    output = layer(features, training=True)
 
-        # Preview the feature map after dropblock:
-        print(output[..., 0])
-        # tf.Tensor(
-        # [[[0.10955477 0.54570675 0.5242462  0.42167106]
-        #   [0.46290365 0.97599393 0.75158674 1.3025614 ]
-        #   [0.         0.         0.39221907 0.6840355 ]
-        #   [0.         0.         0.80540895 0.14002927]]], shape=(1, 4, 4),
-        # dtype=float32)
+    # Preview the feature map after dropblock:
+    print(output[..., 0])
+    # tf.Tensor(
+    # [[[0.10955477 0.54570675 0.5242462  0.42167106]
+    #   [0.46290365 0.97599393 0.75158674 1.3025614 ]
+    #   [0.         0.         0.39221907 0.6840355 ]
+    #   [0.         0.         0.80540895 0.14002927]]], shape=(1, 4, 4),
+    # dtype=float32)
 
     ```
-        We can observe two things:
-        1. A 2x2 block has been set to zero.
-        2. The inputs have been scaled as mentioned in the paper.
+    We can observe two things:
+    1. A 2x2 block has been set to zero.
+    2. The inputs have been normalized.
 
-        One must remember, that DropBlock operation is random, so bigger or smaller
-        patches can be dropped.
+    One must remember, that DropBlock operation is random, so bigger or smaller
+    patches can be dropped.
     """
 
     def __init__(
@@ -156,20 +157,23 @@ class DropBlock2D(BaseRandomLayer):
         else:
             valid_block = tf.reshape(valid_block, [1, 1, height, width])
 
-        randnoise = self._random_generator.random_uniform(tf.shape(x), dtype=tf.float32)
+        random_noise = self._random_generator.random_uniform(
+            tf.shape(x), dtype=tf.float32
+        )
         valid_block = tf.cast(valid_block, dtype=tf.float32)
         seed_keep_rate = tf.cast(1 - seed_drop_rate, dtype=tf.float32)
-        block_pattern = (1 - valid_block + seed_keep_rate + randnoise) >= 1
+        block_pattern = (1 - valid_block + seed_keep_rate + random_noise) >= 1
         block_pattern = tf.cast(block_pattern, dtype=tf.float32)
 
         if self._data_format == "channels_last":
-            ksize = [1, self._dropblock_size, self._dropblock_size, 1]
+            window_size = [1, self._dropblock_size, self._dropblock_size, 1]
         else:
-            ksize = [1, 1, self._dropblock_size, self._dropblock_size]
+            window_size = [1, 1, self._dropblock_size, self._dropblock_size]
 
+        # Double negative and max_pool is essentially min_pooling
         block_pattern = -tf.nn.max_pool(
             -block_pattern,
-            ksize=ksize,
+            ksize=window_size,
             strides=[1, 1, 1, 1],
             padding="SAME",
             data_format="NHWC" if self._data_format == "channels_last" else "NCHW",
