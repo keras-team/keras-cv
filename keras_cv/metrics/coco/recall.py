@@ -11,6 +11,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import warnings
+
 import tensorflow as tf
 import tensorflow.keras as keras
 import tensorflow.keras.initializers as initializers
@@ -117,8 +119,8 @@ class COCORecall(keras.metrics.Metric):
             y_pred: a bounding box Tensor in corners format.
             sample_weight: Currently unsupported.
         """
-        if sample_weight:
-            raise NotImplementedError(
+        if sample_weight is not None:
+            warnings.warn(
                 "sample_weight is not yet supported in keras_cv COCO metrics."
             )
 
