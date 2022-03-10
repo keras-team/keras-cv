@@ -24,7 +24,7 @@ setup(
     author="Keras team",
     author_email="keras-cv@google.com",
     license="Apache License 2.0",
-    install_requires=["packaging", "tensorflow", "absl-py"],
+    install_requires=["packaging", "tf-nightly", "absl-py"],
     extras_require={
         "tests": ["flake8", "isort", "black", "pytest"],
         "examples": ["tensorflow_datasets", "matplotlib"],
