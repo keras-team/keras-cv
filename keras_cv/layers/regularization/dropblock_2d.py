@@ -87,9 +87,9 @@ class DropBlock2D(BaseRandomLayer):
     print(output[..., 0])
     # tf.Tensor(
     # [[[0.10955477 0.54570675 0.5242462  0.42167106]
-    #   [0.46290365 0.97599393 0.75158674 1.3025614 ]
-    #   [0.         0.         0.39221907 0.6840355 ]
-    #   [0.         0.         0.80540895 0.14002927]]], shape=(1, 4, 4),
+    #   [0.46290365 0.97599393 0.         0.        ]
+    #   [0.7365858  0.17468326 0.         0.        ]
+    #   [0.51969624 1.0780739  0.80540895 0.14002927]]], shape=(1, 4, 4),
     # dtype=float32)
 
     ```
@@ -127,9 +127,13 @@ class DropBlock2D(BaseRandomLayer):
             return x
 
         if self._data_format == "channels_last":
-            _, height, width, _ = x.get_shape().as_list()
+            _, height, width, _ = tf.split(tf.shape(x), 4)
         else:
-            _, _, height, width = x.get_shape().as_list()
+            _, _, height, width = tf.split(tf.shape(x), 4)
+
+        # Unnest scalar values
+        height = tf.squeeze(height)
+        width = tf.squeeze(width)
 
         dropblock_height = tf.math.minimum(self._dropblock_height, height)
         dropblock_width = tf.math.minimum(self._dropblock_width, width)
@@ -139,9 +143,10 @@ class DropBlock2D(BaseRandomLayer):
             self._dropout_rate
             * tf.cast(width * height, dtype=tf.float32)
             / tf.cast(dropblock_height * dropblock_width, dtype=tf.float32)
-            / (
+            / tf.cast(
                 (width - self._dropblock_width + 1)
-                * (height - self._dropblock_height + 1)
+                * (height - self._dropblock_height + 1),
+                tf.float32,
             )
         )
 
