@@ -37,10 +37,14 @@ class DropBlock2D(BaseRandomLayer):
     Args:
         dropout_rate: float. Probability of dropping a unit. Must be between 0 and 1.
             For best results, the value should be between 0.05-0.25.
-        dropblock_size: integer. The size of the block to be dropped. Defaults to 7.
+        dropblock_size: integer, or tuple of integers. The size of the block to be
+            dropped. In case of an integer a square block will be dropped. In case of a
+            tuple, the numbers are block's (height, width).
             Must be bigger than 0, and should not be bigger than the input feature map
-            size. If this value is greater by 1 from the input feature map size you will
-            encounter `ZeroDivisionError`.
+            size. The paper authors use `dropblock_size=7` for input feature's of size
+            `14x14xchannels`.
+            If this value is greater or equal to the input feature map size you will
+            encounter `nan` values.
         data_format: string. One of channels_last (default) or channels_first. The
             ordering of the dimensions in the inputs. channels_last corresponds to
             inputs with shape (batch_size, height, width, channels) while channels_first
@@ -57,7 +61,7 @@ class DropBlock2D(BaseRandomLayer):
     x = Conv2D(32, (1, 1))(x)
     x = BatchNormalization()(x)
     x = ReLU()(x)
-    x = DropBlock2D(0.1)(x)
+    x = DropBlock2D(0.1, dropblock_size=7)(x)
     # (...)
     ```
     When used directly, the layer will zero-out some inputs in a contiguous region and
@@ -100,16 +104,12 @@ class DropBlock2D(BaseRandomLayer):
     def __init__(
         self,
         dropout_rate,
-        dropblock_size=7,
+        dropblock_size,
         data_format=None,
         seed=None,
         name=None,
     ):
         super().__init__(seed=seed, name=name, force_generator=True)
-        if not dropblock_size > 0:
-            raise ValueError(
-                f"dropblock_size must be greater than 0. Received: {dropblock_size}"
-            )
         if not 0.0 <= dropout_rate <= 1.0:
             raise ValueError(
                 f"dropout_rate must be a number between 0 and 1. "
@@ -117,10 +117,12 @@ class DropBlock2D(BaseRandomLayer):
             )
 
         self._dropout_rate = dropout_rate
-        self._dropblock_size = dropblock_size
+        self._dropblock_height, self._dropblock_width = conv_utils.normalize_tuple(
+            value=dropblock_size, n=2, name="dropblock_size", allow_zero=False
+        )
         self._data_format = conv_utils.normalize_data_format(data_format)
 
-    def call(self, x, training=False):
+    def call(self, x, training=None):
         if not training or self._dropout_rate == 0.0:
             return x
 
@@ -129,25 +131,30 @@ class DropBlock2D(BaseRandomLayer):
         else:
             _, _, height, width = x.get_shape().as_list()
 
-        total_size = width * height
-        dropblock_size = min(self._dropblock_size, width, height)
+        dropblock_height = tf.math.minimum(self._dropblock_height, height)
+        dropblock_width = tf.math.minimum(self._dropblock_width, width)
 
         # Seed_drop_rate is the gamma parameter of DropBlock.
         seed_drop_rate = (
             self._dropout_rate
-            * total_size
-            / dropblock_size**2
-            / ((width - self._dropblock_size + 1) * (height - self._dropblock_size + 1))
+            * tf.cast(width * height, dtype=tf.float32)
+            / tf.cast(dropblock_height * dropblock_width, dtype=tf.float32)
+            / (
+                (width - self._dropblock_width + 1)
+                * (height - self._dropblock_height + 1)
+            )
         )
 
         # Forces the block to be inside the feature map.
         w_i, h_i = tf.meshgrid(tf.range(width), tf.range(height))
         valid_block = tf.logical_and(
             tf.logical_and(
-                w_i >= int(dropblock_size // 2), w_i < width - (dropblock_size - 1) // 2
+                w_i >= int(dropblock_width // 2),
+                w_i < width - (dropblock_width - 1) // 2,
             ),
             tf.logical_and(
-                h_i >= int(dropblock_size // 2), h_i < width - (dropblock_size - 1) // 2
+                h_i >= int(dropblock_height // 2),
+                h_i < width - (dropblock_height - 1) // 2,
             ),
         )
 
@@ -165,9 +172,9 @@ class DropBlock2D(BaseRandomLayer):
         block_pattern = tf.cast(block_pattern, dtype=tf.float32)
 
         if self._data_format == "channels_last":
-            window_size = [1, self._dropblock_size, self._dropblock_size, 1]
+            window_size = [1, self._dropblock_height, self._dropblock_width, 1]
         else:
-            window_size = [1, 1, self._dropblock_size, self._dropblock_size]
+            window_size = [1, 1, self._dropblock_height, self._dropblock_width]
 
         # Double negative and max_pool is essentially min_pooling
         block_pattern = -tf.nn.max_pool(
@@ -187,7 +194,7 @@ class DropBlock2D(BaseRandomLayer):
     def get_config(self):
         config = {
             "dropout_rate": self._dropout_rate,
-            "dropblock_size": self._dropblock_size,
+            "dropblock_size": (self._dropblock_height, self._dropblock_width),
             "data_format": self._data_format,
         }
         base_config = super().get_config()
