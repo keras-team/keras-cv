@@ -35,9 +35,8 @@ class DropBlock2D(BaseRandomLayer):
     )
 
     Args:
-        keep_probability: float. Probability of keeping a unit. Defaults to 0.9.
-            Must be between 0 and 1. For best results, the value should be between
-            0.75-0.95
+        dropout_rate: float. Probability of dropping a unit. Must be between 0 and 1.
+            For best results, the value should be between 0.05-0.25.
         dropblock_size: integer. The size of the block to be dropped. Defaults to 7.
             Must be bigger than 0, and should not be bigger than the input feature map
             size. If this value is greater by 1 from the input feature map size you will
@@ -58,7 +57,7 @@ class DropBlock2D(BaseRandomLayer):
     x = Conv2D(32, (1, 1))(x)
     x = BatchNormalization()(x)
     x = ReLU()(x)
-    x = DropBlock2D()(x)
+    x = DropBlock2D(0.1)(x)
     # (...)
     ```
     When used directly, the layer will zero-out some inputs in a contiguous region and
@@ -77,7 +76,7 @@ class DropBlock2D(BaseRandomLayer):
     #   [0.38977218 0.80855536 0.6040567  0.10502195]]], shape=(1, 4, 4),
     # dtype=float32)
 
-    layer = DropBlock2D(dropblock_size=2, seed=1234)  # Small size for demonstration
+    layer = DropBlock2D(0.1, dropblock_size=2, seed=1234) # Small size for demonstration
     output = layer(features, training=True)
 
     # Preview the feature map after dropblock:
@@ -100,7 +99,7 @@ class DropBlock2D(BaseRandomLayer):
 
     def __init__(
         self,
-        keep_probability=0.9,
+        dropout_rate,
         dropblock_size=7,
         data_format=None,
         seed=None,
@@ -111,18 +110,18 @@ class DropBlock2D(BaseRandomLayer):
             raise ValueError(
                 f"dropblock_size must be greater than 0. Received: {dropblock_size}"
             )
-        if not 0.0 <= keep_probability <= 1.0:
+        if not 0.0 <= dropout_rate <= 1.0:
             raise ValueError(
-                f"keep_probability must be a number between 0 and 1. "
-                f"Received: {keep_probability}"
+                f"dropout_rate must be a number between 0 and 1. "
+                f"Received: {dropout_rate}"
             )
 
-        self._keep_probability = keep_probability
+        self._dropout_rate = dropout_rate
         self._dropblock_size = dropblock_size
         self._data_format = conv_utils.normalize_data_format(data_format)
 
     def call(self, x, training=False):
-        if not training or self._keep_probability == 1.0:
+        if not training or self._dropout_rate == 0.0:
             return x
 
         if self._data_format == "channels_last":
@@ -135,7 +134,7 @@ class DropBlock2D(BaseRandomLayer):
 
         # Seed_drop_rate is the gamma parameter of DropBlock.
         seed_drop_rate = (
-            (1.0 - self._keep_probability)
+            self._dropout_rate
             * total_size
             / dropblock_size**2
             / ((width - self._dropblock_size + 1) * (height - self._dropblock_size + 1))
@@ -179,15 +178,15 @@ class DropBlock2D(BaseRandomLayer):
             data_format="NHWC" if self._data_format == "channels_last" else "NCHW",
         )
 
+        # Slightly scale the values, to account for magnitude change
         percent_ones = tf.cast(tf.reduce_sum(block_pattern), tf.float32) / tf.cast(
             tf.size(block_pattern), tf.float32
         )
-
         return x / tf.cast(percent_ones, x.dtype) * tf.cast(block_pattern, x.dtype)
 
     def get_config(self):
         config = {
-            "keep_probability": self._keep_probability,
+            "dropout_rate": self._dropout_rate,
             "dropblock_size": self._dropblock_size,
             "data_format": self._data_format,
         }
