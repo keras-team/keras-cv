@@ -38,7 +38,7 @@ class DropBlock2DTest(tf.test.TestCase):
 
         output = layer(dummy_inputs, training=False)
 
-        tf.debugging.assert_near(dummy_inputs, output)
+        self.assertAllClose(dummy_inputs, output)
 
     def test_input_unchanged_with_dropout_rate_equal_to_zero(self):
         dummy_inputs = self.rng.uniform(shape=self.FEATURE_SHAPE)
@@ -46,7 +46,7 @@ class DropBlock2DTest(tf.test.TestCase):
 
         output = layer(dummy_inputs, training=True)
 
-        tf.debugging.assert_near(dummy_inputs, output)
+        self.assertAllClose(dummy_inputs, output)
 
     def test_input_gets_partially_zeroed_out_in_train_mode(self):
         dummy_inputs = self.rng.uniform(shape=self.FEATURE_SHAPE)
