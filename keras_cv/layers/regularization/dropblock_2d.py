@@ -138,8 +138,7 @@ class DropBlock2D(BaseRandomLayer):
         dropblock_height = tf.math.minimum(self._dropblock_height, height)
         dropblock_width = tf.math.minimum(self._dropblock_width, width)
 
-        # Seed_drop_rate is the gamma parameter of DropBlock.
-        seed_drop_rate = (
+        gamma = (
             self._dropout_rate
             * tf.cast(width * height, dtype=tf.float32)
             / tf.cast(dropblock_height * dropblock_width, dtype=tf.float32)
@@ -172,7 +171,7 @@ class DropBlock2D(BaseRandomLayer):
             tf.shape(x), dtype=tf.float32
         )
         valid_block = tf.cast(valid_block, dtype=tf.float32)
-        seed_keep_rate = tf.cast(1 - seed_drop_rate, dtype=tf.float32)
+        seed_keep_rate = tf.cast(1 - gamma, dtype=tf.float32)
         block_pattern = (1 - valid_block + seed_keep_rate + random_noise) >= 1
         block_pattern = tf.cast(block_pattern, dtype=tf.float32)
 
