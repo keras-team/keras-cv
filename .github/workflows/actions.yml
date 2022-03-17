@@ -64,7 +64,7 @@ jobs:
     - name: Lint
       run: bash shell/lint.sh
   deploy:
-    needs: [build, format,compatibility]
+    needs: [build, format]
     if: github.event_name == 'release' && github.event.action == 'created'
     runs-on: ubuntu-latest
     steps:
