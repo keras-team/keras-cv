@@ -92,13 +92,49 @@ class DropBlock2D(BaseRandomLayer):
     #   [0.51969624 1.0780739  0.80540895 0.14002927]]], shape=(1, 4, 4),
     # dtype=float32)
 
-    ```
-    We can observe two things:
-    1. A 2x2 block has been set to zero.
-    2. The inputs have been normalized.
+    # We can observe two things:
+    # 1. A 2x2 block has been dropped
+    # 2. The inputs have been slightly scaled to account for missing values.
 
-    One must remember, that DropBlock operation is random, so bigger or smaller
-    patches can be dropped.
+    # The number of blocks dropped can vary, between the channels - sometimes no blocks
+    # will be dropped, and sometimes there will be multiple overlapping blocks.
+    # Let's present on a larger feature map:
+
+    features = tf.random.stateless_uniform((1, 4, 4, 36), seed=[0, 1])
+    layer = DropBlock2D(0.1, (2, 2), seed=123)
+    output = layer(features, training=True)
+
+    print(output[..., 0])  # no drop
+    # tf.Tensor(
+    # [[[0.09136613 0.98085546 0.15265216 0.19690938]
+    #   [0.48835075 0.52433217 0.1661478  0.7067729 ]
+    #   [0.07383626 0.9938906  0.14309917 0.06882786]
+    #   [0.43242374 0.04158871 0.24213943 0.1903095 ]]], shape=(1, 4, 4),
+    # dtype=float32)
+
+    print(output[..., 9])  # drop single block
+    # tf.Tensor(
+    # [[[0.14568178 0.01571623 0.9082305  1.0545396 ]
+    #   [0.24126057 0.86874676 0.         0.        ]
+    #   [0.44101703 0.29805306 0.         0.        ]
+    #   [0.56835717 0.04925899 0.6745584  0.20550345]]], shape=(1, 4, 4), dtype=float32)
+
+    print(output[..., 22])  # drop two blocks
+    # tf.Tensor(
+    # [[[0.69479376 0.49463132 1.0627024  0.58349967]
+    #   [0.         0.         0.36143216 0.58699244]
+    #   [0.         0.         0.         0.        ]
+    #   [0.0315055  1.0117861  0.         0.        ]]], shape=(1, 4, 4),
+    # dtype=float32)
+
+    print(output[..., 29])  # drop two blocks with overlap
+    # tf.Tensor(
+    # [[[0.2137237  0.9120104  0.9963533  0.33937347]
+    #   [0.21868704 0.44030213 0.5068906  0.20034194]
+    #   [0.         0.         0.         0.5915383 ]
+    #   [0.         0.         0.         0.9526224 ]]], shape=(1, 4, 4),
+    # dtype=float32)
+    ```
     """
 
     def __init__(
