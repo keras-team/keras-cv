@@ -14,12 +14,19 @@
 
 """Setup script."""
 
+import pathlib
+
 from setuptools import find_packages
 from setuptools import setup
+
+HERE = pathlib.Path(__file__).parent
+README = (HERE / "README.md").read_text()
 
 setup(
     name="keras-cv",
     description="Industry-strength computer Vision extensions for Keras.",
+    long_description=README,
+    long_description_content_type="text/markdown",
     url="https://github.com/keras-team/keras-cv",
     author="Keras team",
     author_email="keras-cv@google.com",
