@@ -14,6 +14,11 @@ IMG_SIZE = (224, 224)
 BATCH_SIZE = 64
 
 
+def resize(image, label):
+    image = tf.image.resize(image, IMG_SIZE)
+    return image, label
+
+
 def main():
     data, ds_info = tfds.load("oxford_flowers102", with_info=True, as_supervised=True)
     train_ds = data["train"]
