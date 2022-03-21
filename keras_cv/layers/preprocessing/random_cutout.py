@@ -172,7 +172,7 @@ class RandomCutout(layers.Layer):
 
     def _random_cutout(self, inputs):
         """Apply random cutout."""
-        for _ in range(self._sample_num_cutouts()):
+        for _ in tf.range(self._sample_num_cutouts()):
             center_x, center_y = self._compute_rectangle_position(inputs)
             rectangle_height, rectangle_width = self._compute_rectangle_size(inputs)
             rectangle_fill = self._compute_rectangle_fill(inputs)
