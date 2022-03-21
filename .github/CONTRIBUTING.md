@@ -21,6 +21,9 @@ To make code changes, you need to fork the repository. You will need to setup a
 development environment and run the unit tests. This is covered in section
 "Setup environment".
 
+If your code change involves introducing a new API change, please see our 
+[API Design Guidelines](API_DESIGN.md).
+
 ### Step 3. Create a pull request
 
 Once the change is ready, open a pull request from your branch in your fork to

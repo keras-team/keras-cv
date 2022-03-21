@@ -12,4 +12,4 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from keras_cv.utils import bounding_box
+from keras_cv.layers.regularization.dropblock_2d import DropBlock2D

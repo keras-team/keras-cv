@@ -1,4 +1,5 @@
 keras_cv.egg-info/
+dist/
 .DS_Store
 build/
 *.swp

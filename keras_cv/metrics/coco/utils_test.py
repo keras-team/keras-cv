@@ -16,65 +16,94 @@
 import tensorflow as tf
 
 from keras_cv.metrics.coco import utils
-from keras_cv.utils import bbox
+from keras_cv.utils import bounding_box
+from keras_cv.utils import iou as iou_lib
 
 
 class UtilTest(tf.test.TestCase):
-    def test_filter_bboxes_empty(self):
-        # set of bboxes
-        y_pred = tf.stack([_dummy_bbox(category=1)])
-        result = utils.filter_boxes(y_pred, 2, axis=bbox.CLASS)
+    def test_filter_bounding_boxes_empty(self):
+        # set of bounding_boxes
+        y_pred = tf.stack([_dummy_bounding_box(category=1)])
+        result = utils.filter_boxes(y_pred, 2, axis=bounding_box.CLASS)
 
         self.assertEqual(result.shape[0], 0)
 
-    def test_bbox_area(self):
+    def test_bounding_box_area(self):
         boxes = tf.constant([[0, 0, 100, 100]], dtype=tf.float32)
-        areas = utils.bbox_area(boxes)
+        areas = utils.bounding_box_area(boxes)
         self.assertAllClose(areas, tf.constant((10000.0,)))
 
-    def test_filter_bboxes(self):
-        # set of bboxes
-        y_pred = tf.stack([_dummy_bbox(category=1), _dummy_bbox(category=2)])
-        result = utils.filter_boxes(y_pred, 2, axis=bbox.CLASS)
+    def test_filter_bounding_boxes(self):
+        # set of bounding_boxes
+        y_pred = tf.stack(
+            [_dummy_bounding_box(category=1), _dummy_bounding_box(category=2)]
+        )
+        result = utils.filter_boxes(y_pred, 2, axis=bounding_box.CLASS)
 
-        self.assertAllClose(result, tf.stack([_dummy_bbox(category=2)]))
+        self.assertAllClose(result, tf.stack([_dummy_bounding_box(category=2)]))
 
-    def test_to_sentinel_padded_bbox_tensor(self):
-        box_set1 = tf.stack([_dummy_bbox(), _dummy_bbox()])
-        box_set2 = tf.stack([_dummy_bbox()])
+    def test_to_sentinel_padded_bounding_box_tensor(self):
+        box_set1 = tf.stack([_dummy_bounding_box(), _dummy_bounding_box()])
+        box_set2 = tf.stack([_dummy_bounding_box()])
         boxes = [box_set1, box_set2]
-        bbox_tensor = utils.to_sentinel_padded_bbox_tensor(boxes)
+        bounding_box_tensor = utils.to_sentinel_padded_bounding_box_tensor(boxes)
         self.assertAllClose(
-            bbox_tensor[1, 1],
+            bounding_box_tensor[1, 1],
             -tf.ones(
                 6,
             ),
         )
 
     def test_filter_out_sentinels(self):
-        # set of bboxes
-        y_pred = tf.stack([_dummy_bbox(category=1), _dummy_bbox(category=-1)])
+        # set of bounding_boxes
+        y_pred = tf.stack(
+            [_dummy_bounding_box(category=1), _dummy_bounding_box(category=-1)]
+        )
         result = utils.filter_out_sentinels(y_pred)
 
-        self.assertAllClose(result, tf.stack([_dummy_bbox(category=1)]))
+        self.assertAllClose(result, tf.stack([_dummy_bounding_box(category=1)]))
 
     def test_end_to_end_sentinel_filtering(self):
-        box_set1 = tf.stack([_dummy_bbox(), _dummy_bbox()])
-        box_set2 = tf.stack([_dummy_bbox()])
+        box_set1 = tf.stack([_dummy_bounding_box(), _dummy_bounding_box()])
+        box_set2 = tf.stack([_dummy_bounding_box()])
         boxes = [box_set1, box_set2]
-        bbox_tensor = utils.to_sentinel_padded_bbox_tensor(boxes)
+        bounding_box_tensor = utils.to_sentinel_padded_bounding_box_tensor(boxes)
 
-        self.assertAllClose(utils.filter_out_sentinels(bbox_tensor[0]), box_set1)
-        self.assertAllClose(utils.filter_out_sentinels(bbox_tensor[1]), box_set2)
+        self.assertAllClose(
+            utils.filter_out_sentinels(bounding_box_tensor[0]), box_set1
+        )
+        self.assertAllClose(
+            utils.filter_out_sentinels(bounding_box_tensor[1]), box_set2
+        )
 
-    def test_sort_bboxes_unsorted_list(self):
+    def test_match_boxes(self):
+        y_pred = tf.stack(
+            [
+                _dummy_bounding_box(0.1),
+                _dummy_bounding_box(0.9),
+                _dummy_bounding_box(0.4),
+            ]
+        )
+        y_true = tf.stack(
+            [
+                _dummy_bounding_box(0.1),
+                _dummy_bounding_box(0.9),
+                _dummy_bounding_box(0.4),
+                _dummy_bounding_box(0.2),
+            ]
+        )
+
+        ious = iou_lib.compute_ious_for_image(y_true, y_pred)
+        self.assertEqual(utils.match_boxes(ious, 0.5).shape, [3])
+
+    def test_sort_bounding_boxes_unsorted_list(self):
         y_pred = tf.expand_dims(
             tf.stack(
                 [
-                    _dummy_bbox(0.1),
-                    _dummy_bbox(0.9),
-                    _dummy_bbox(0.4),
-                    _dummy_bbox(0.2),
+                    _dummy_bounding_box(0.1),
+                    _dummy_bounding_box(0.9),
+                    _dummy_bounding_box(0.4),
+                    _dummy_bounding_box(0.2),
                 ]
             ),
             axis=0,
@@ -82,23 +111,23 @@ class UtilTest(tf.test.TestCase):
         want = tf.expand_dims(
             tf.stack(
                 [
-                    _dummy_bbox(0.9),
-                    _dummy_bbox(0.4),
-                    _dummy_bbox(0.2),
-                    _dummy_bbox(0.1),
+                    _dummy_bounding_box(0.9),
+                    _dummy_bounding_box(0.4),
+                    _dummy_bounding_box(0.2),
+                    _dummy_bounding_box(0.1),
                 ]
             ),
             axis=0,
         )
-        y_sorted = utils.sort_bboxes(y_pred, bbox.CONFIDENCE)
+        y_sorted = utils.sort_bounding_boxes(y_pred, bounding_box.CONFIDENCE)
         self.assertAllClose(y_sorted, want)
 
-    def test_sort_bboxes_empty_list(self):
+    def test_sort_bounding_boxes_empty_list(self):
         y_pred = tf.stack([])
-        y_sorted = utils.sort_bboxes(y_pred)
+        y_sorted = utils.sort_bounding_boxes(y_pred)
         self.assertAllClose(y_pred, y_sorted)
 
 
-def _dummy_bbox(confidence=0.0, category=0):
-    """returns a bbox dummy with all 0 values, except for confidence."""
+def _dummy_bounding_box(confidence=0.0, category=0):
+    """returns a bounding_box dummy with all 0 values, except for confidence."""
     return tf.constant([0, 0, 0, 0, category, confidence])
