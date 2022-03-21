@@ -1,3 +1,18 @@
+# Copyright 2022 The KerasCV Authors
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+import warnings
+
 import tensorflow as tf
 from tensorflow import keras
 
@@ -24,7 +39,7 @@ class RandomShear(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
              documentation.  Defaults to `"reflect"`.
         fill_value: fill_value in the `ImageProjectiveTransformV3` op.
              Supported values can be found in the `ImageProjectiveTransformV3`
-             documentation.  Defaults to `0.0`. 
+             documentation.  Defaults to `0.0`.
     """
 
     def __init__(
@@ -41,9 +56,16 @@ class RandomShear(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
             x = (0, x)
         if isinstance(y, float):
             y = (0, y)
+        if x is None and y is None:
+            warnings.warn(
+                "RandomShear received both `x=None` and `y=None`.  As a "
+                "result, the layer will perform no augmentation."
+            )
         self.x = x
         self.y = y
         self.interpolation = interpolation
+        self.fill_mode = fill_mode
+        self.fill_value = fill_value
 
     def get_random_tranformation(self):
         x = self._get_shear_amount(self.x)
@@ -76,7 +98,6 @@ class RandomShear(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
                 interpolation=self.interpolation,
                 fill_mode=self.fill_mode,
                 fill_value=self.fill_value,
-                interpolation=self.interpolation,
             )
 
         if y is not None:
@@ -89,7 +110,6 @@ class RandomShear(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
                 interpolation=self.interpolation,
                 fill_mode=self.fill_mode,
                 fill_value=self.fill_value,
-                interpolation=self.interpolation,
             )
 
         return tf.squeeze(image, axis=0)
