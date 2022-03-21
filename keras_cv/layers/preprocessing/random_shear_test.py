@@ -19,7 +19,6 @@ NUM_CLASSES = 10
 
 
 class RandomCutoutTest(tf.test.TestCase):
-
     def test_aggressive_shear_fills_at_least_some_pixels(self):
         img_shape = (50, 50, 3)
         xs = tf.stack(
@@ -30,10 +29,7 @@ class RandomCutoutTest(tf.test.TestCase):
 
         fill_value = 0.0
         layer = preprocessing.RandomShear(
-            x=(3, 3),
-            seed=0,
-            fill_mode="constant",
-            fill_value=fill_value
+            x=(3, 3), seed=0, fill_mode="constant", fill_value=fill_value
         )
         xs = layer(xs)
 
