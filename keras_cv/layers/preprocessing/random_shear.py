@@ -14,7 +14,6 @@
 import warnings
 
 import tensorflow as tf
-from tensorflow import keras
 
 from keras_cv.utils import preprocessing
 
@@ -23,14 +22,14 @@ class RandomShear(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
     """Randomly shears an image.
 
     Args:
-        x: float, 2 element tuple, or `None`.  For each augmented image a value is sampled
-            from the provided range.  If a float is passed, the range is interpreted as
-            `(0, x)`.  If `None` is passed, no shear occurs on the X axis.  Defaults to
-            `None`.
-        y: float, 2 element tuple, or `None`.  For each augmented image a value is sampled
-            from the provided range.  If a float is passed, the range is interpreted as
-            `(0, x)`.  If `None` is passed, no shear occurs on the Y axis.  Defaults to
-            `None`.
+        x: float, 2 element tuple, or `None`.  For each augmented image a value is
+            sampled from the provided range.  If a float is passed, the range is
+            interpreted as `(0, x)`.  If `None` is passed, no shear occurs on the X
+            axis.  Defaults to `None`.
+        y: float, 2 element tuple, or `None`.  For each augmented image a value is
+            sampled from the provided range.  If a float is passed, the range is
+            interpreted as `(0, y)`.  If `None` is passed, no shear occurs on the Y
+            axis.  Defaults to `None`.
         interpolation: interpolation method used in the `ImageProjectiveTransformV3` op.
              Supported values can be found in the `ImageProjectiveTransformV3`
              documentation.  Defaults to `"bilinear"`.

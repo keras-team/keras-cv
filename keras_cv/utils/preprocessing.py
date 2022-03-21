@@ -26,7 +26,7 @@ def transform_value_range(images, original_range, target_range, dtype=tf.float32
         original_range: the value range to transform from.
         target_range: the value range to transform to.
         dtype: the dtype to compute the conversion with.  Defaults to tf.float32.
-    
+
     Returns:
         a new Tensor with values in the target range.
 
