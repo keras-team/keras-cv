@@ -14,20 +14,12 @@ IMG_SIZE = (224, 224)
 BATCH_SIZE = 64
 
 
-def resize(image, label, num_classes=10):
-    image = tf.image.resize(image, IMG_SIZE)
-    label = tf.one_hot(label, num_classes)
-    return image, label
-
-
 def main():
     data, ds_info = tfds.load("oxford_flowers102", with_info=True, as_supervised=True)
     train_ds = data["train"]
 
-    num_classes = ds_info.features["label"].num_classes
-
     train_ds = (
-        train_ds.map(lambda x, y: resize(x, y, num_classes=num_classes))
+        train_ds.map(lambda x, y: resize(x, y))
         .shuffle(10 * BATCH_SIZE)
         .batch(BATCH_SIZE)
     )
