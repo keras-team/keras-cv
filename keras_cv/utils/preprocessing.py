@@ -20,13 +20,16 @@ def transform_value_range(images, original_range, target_range, dtype=tf.float32
     This function is intended to be used in preprocessing layers that
     rely upon color values.  This allows us to assume internally that
     the input tensor is always in the range [0, 255].
+
     Args:
         images: the set of images to transform to the target range range.
         original_range: the value range to transform from.
         target_range: the value range to transform to.
         dtype: the dtype to compute the conversion with.  Defaults to tf.float32.
+    
     Returns:
         a new Tensor with values in the target range.
+
     Usage:
     ```python
     original_range = [0, 1]
