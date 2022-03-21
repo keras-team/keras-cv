@@ -31,7 +31,8 @@ class RandomShear(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
             interpreted as `(0, y)`.  Provided values should be positive.  If `None` is
             passed, no shear occurs on the Y axis.  Defaults to `None`.
         interpolation: interpolation method used in the `ImageProjectiveTransformV3` op.
-             Supported values are `"nearest"` and `"bilinear"`.  Defaults to `"bilinear"`.
+             Supported values are `"nearest"` and `"bilinear"`.
+             Defaults to `"bilinear"`.
         fill_mode: fill_mode in the `ImageProjectiveTransformV3` op.
              Supported values are `"reflect"`, `"wrap"`, `"constant"`, and `"nearest"`.
              Defaults to `"reflect"`.
