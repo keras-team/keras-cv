@@ -115,4 +115,4 @@ class RandomShear(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
     @staticmethod
     def _format_transform(transform):
         transform = tf.convert_to_tensor(transform, dtype=tf.float32)
-        return transform[None]
+        return transform[tf.newaxis]
