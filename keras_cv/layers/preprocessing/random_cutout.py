@@ -51,7 +51,7 @@ class RandomCutout(layers.Layer):
             - A tuple of size 2, representing the range for the number of cutouts.
             For example, `num_cutouts=10` results in 10 cutouts.
             `num_cutouts=(2,8)` results in num_cutouts between [2, 8]. Can be used
-            to implement coarse dropout.
+            to implement coarse dropout. Defaults to 1.
 
     Sample usage:
     ```python
@@ -172,7 +172,7 @@ class RandomCutout(layers.Layer):
 
     def _random_cutout(self, inputs):
         """Apply random cutout."""
-        for _ in range(self._compute_num_cutouts()):
+        for _ in range(self._sample_num_cutouts()):
             center_x, center_y = self._compute_rectangle_position(inputs)
             rectangle_height, rectangle_width = self._compute_rectangle_size(inputs)
             rectangle_fill = self._compute_rectangle_fill(inputs)
@@ -209,7 +209,7 @@ class RandomCutout(layers.Layer):
         )
         return center_x, center_y
 
-    def _compute_num_cutouts(self):
+    def _sample_num_cutouts(self):
         num_cutouts = tf.random.uniform(
             shape=(1,),
             minval=self.num_cutouts_lower,
