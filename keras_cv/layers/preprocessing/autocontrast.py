@@ -18,10 +18,14 @@ import tensorflow as tf
 
 class AutoContrast(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
     """Performs the AutoContrast operation on an image.
+
+    Args:
+        value_range
     """
 
     def __init__(
         self,
+        value_range=(0, 255)
         **kwargs,
     ):
         super().__init__(**kwargs)
@@ -47,8 +51,9 @@ class AutoContrast(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
         return result
 
     def augment_image(self, image, transformation=None):
+        image = #
         channels = tf.shape(image)[-1]
         result = []
         for c in channels:
             result.append(AutoContrast.scale_channel(image[..., c]))
-        return tf.stack(result, -1)
+        result = tf.stack(result, -1)
