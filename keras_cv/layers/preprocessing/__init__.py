@@ -37,3 +37,4 @@ from keras_cv.layers.preprocessing.mix_up import MixUp
 from keras_cv.layers.preprocessing.random_cutout import RandomCutout
 from keras_cv.layers.preprocessing.random_shear import RandomShear
 from keras_cv.layers.preprocessing.solarization import Solarization
+from keras_cv.layers.preprocessing.sharpen import Sharpen
