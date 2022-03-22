@@ -20,6 +20,11 @@ from keras_cv.utils import preprocessing
 class AutoContrast(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
     """Performs the AutoContrast operation on an image.
 
+    Auto contrast stretches the values of an image across the entire available
+    `value_range`.  This makes differences between pixels more obvious.  An example of
+    this is if an image only has values `[0, 1]` out of the range `[0, 255]`, auto
+    contrast will change the `1` values to be `255`.
+
     Args:
         value_range: the range of values the incoming images will have.
             Represented as a two number tuple written [low, high].
