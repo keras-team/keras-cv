@@ -57,15 +57,21 @@ class AutoContrast(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
         return result
 
     def augment_image(self, image, transformation=None):
+        original_image = image
         image = preprocessing.transform_value_range(
             image, original_range=self.value_range, target_range=(0, 255)
         )
-        channels = tf.shape(image)[-1]
-        result = []
-        for c in tf.range(channels):
-            result.append(AutoContrast.scale_channel(image[..., c]))
-        result = tf.stack(result, -1)
+
+        low = tf.reduce_min(image, axis=0)
+        high = tf.reduce_max(image, axis=0)
+        scale = 255.0 / (high - low)
+        offset = -low * scale
+
+        image = image * scale[None, None] + offset[None, None]
+        result = tf.clip_by_value(image, 0.0, 255.0)
         result = preprocessing.transform_value_range(
             result, original_range=(0, 255), target_range=self.value_range
         )
+        # don't process NaN channels
+        result = tf.where(tf.math.is_nan(result), original_image, result)
         return result
