@@ -28,8 +28,6 @@ from tensorflow.keras.layers import Rescaling
 from tensorflow.keras.layers import Resizing
 
 from keras_cv.layers.preprocessing.channel_shuffle import ChannelShuffle
-
-# All the KPLs for Keras CV
 from keras_cv.layers.preprocessing.cut_mix import CutMix
 from keras_cv.layers.preprocessing.equalization import Equalization
 from keras_cv.layers.preprocessing.grayscale import Grayscale
