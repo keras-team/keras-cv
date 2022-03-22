@@ -47,6 +47,9 @@ def transform_value_range(images, original_range, target_range, dtype=tf.float32
     )
     ```
     """
+    if original_range[0] == target_range[0] and original_range[1] == target_range[1]:
+        return images
+
     images = tf.cast(images, dtype=dtype)
     original_min_value, original_max_value = _unwrap_value_range(
         original_range, dtype=dtype
