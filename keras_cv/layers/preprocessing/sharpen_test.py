@@ -17,7 +17,7 @@ from keras_cv.layers import preprocessing
 
 
 class SharpenTest(tf.test.TestCase):
-    def test_aggressive_shear_fills_at_least_some_pixels(self):
+    def test_sharpen_preserves_output_shape(self):
         img_shape = (50, 50, 3)
         xs = tf.stack(
             [2 * tf.ones(img_shape), tf.ones(img_shape)],
