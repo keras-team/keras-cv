@@ -104,6 +104,7 @@ def fill_single_rectangle(image, centers_x, centers_y, widths, heights, fill_val
 ## Fully Vectorized
 """
 
+
 class VectorizedRandomCutout(layers.Layer):
     def __init__(
         self,
@@ -205,6 +206,7 @@ class VectorizedRandomCutout(layers.Layer):
             return factor[0], factor[1]
         else:
             return type(factor)(0), factor
+
     @tf.function
     def call(self, inputs, training=True):
         if training is None:
@@ -319,6 +321,7 @@ class VectorizedRandomCutout(layers.Layer):
         base_config = super().get_config()
         return dict(list(base_config.items()) + list(config.items()))
 
+
 """
 ## tf.map_fn
 """
@@ -425,15 +428,17 @@ class MapFnRandomCutout(layers.Layer):
             return factor[0], factor[1]
         else:
             return type(factor)(0), factor
+
     @tf.function
     def call(self, inputs, training=True):
+        return self._random_cutout(inputs, training)
 
-        augment = lambda: tf.map_fn(self._random_cutout, inputs)
-        no_augment = lambda: inputs
-        return tf.cond(tf.cast(training, tf.bool), augment, no_augment)
-
-    def _random_cutout(self, inputs):
+    def _random_cutout(self, inputs, training):
         """Apply random cutout."""
+        if training is None:
+            training = backend.learning_phase()
+
+        no_augment = lambda: inputs
         for _ in tf.range(self._sample_num_cutouts()):
             center_x, center_y = self._compute_rectangle_position(inputs)
             rectangle_height, rectangle_width = self._compute_rectangle_size(inputs)
@@ -446,7 +451,8 @@ class MapFnRandomCutout(layers.Layer):
                 rectangle_height,
                 rectangle_fill,
             )
-        return inputs
+        augment = lambda: inputs
+        return tf.cond(tf.cast(training, tf.bool), augment, no_augment)
 
     def _compute_rectangle_position(self, inputs):
         input_shape = tf.shape(inputs)
@@ -536,6 +542,7 @@ class MapFnRandomCutout(layers.Layer):
         }
         base_config = super().get_config()
         return dict(list(base_config.items()) + list(config.items()))
+
 
 """
 ## tf.vectorized_map
@@ -643,6 +650,7 @@ class VMapRandomCutout(layers.Layer):
             return factor[0], factor[1]
         else:
             return type(factor)(0), factor
+
     @tf.function
     def call(self, inputs, training=True):
         augment = lambda: tf.vectorized_map(self._random_cutout, inputs)
