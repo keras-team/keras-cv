@@ -11,8 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import warnings
-
 import tensorflow as tf
 
 from keras_cv.utils import preprocessing
@@ -35,6 +33,7 @@ class Sharpen(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
 
             Defaults to 1.0.
     """
+
     def __init__(
         self,
         value_range=(0, 255),
