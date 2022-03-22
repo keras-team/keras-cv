@@ -27,6 +27,11 @@ class BBOXTestCase(tf.test.TestCase):
             [[60, 60, 100, 100], [70, 70, 100, 100]], dtype=tf.float32
         )
 
+        center_box_mask_image = tf.constant(
+            [[0, 0, 0, 0], [0, 1, 1, 0], [0, 1, 1, 0], [0, 0, 0, 0]], dtype=tf.float32
+        )
+        self.corner_bounding_box = tf.expand_dims(center_box_mask_image, axis=-1)
+
     def test_corner_to_xywh(self):
         self.assertAllClose(
             bounding_box.corners_to_xywh(self.corner_bounding_box),
@@ -114,3 +119,8 @@ class BBOXTestCase(tf.test.TestCase):
             ValueError, "Target shape should be larger than bounding box shape"
         ):
             bounding_box.pad_bounding_box_batch_to_shape(bounding_boxes, target_shape)
+
+    def test_mask_to_bbox(self):
+        bbox = bounding_box.mask_to_bboxes(self.center_box_mask_image)
+
+        self.assertAllClose(bbox, [1, 1, 1, 1])

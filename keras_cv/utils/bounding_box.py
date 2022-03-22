@@ -149,3 +149,26 @@ def pad_bounding_box_batch_to_shape(bounding_boxes, target_shape, padding_values
     return tf.pad(
         bounding_boxes, paddings, mode="CONSTANT", constant_values=padding_values
     )
+
+
+def mask_to_bboxes(mask):
+    def _get_positive_pixel_index(group, occurence=0):
+        pos_group = tf.where(group)[:-1]
+        return pos_group[occurence]
+
+    # convert rows to bool by nonzero pixel.
+    rows = tf.math.count_nonzero(mask, axis=0, keepdims=None, dtype=tf.bool)
+    rows = tf.squeeze(rows, axis=1)
+
+    # convert columns to bool by nonzero pixel.
+    columns = tf.math.count_nonzero(mask, axis=1, keepdims=None, dtype=tf.bool)
+    columns = tf.squeeze(columns, axis=1)
+
+    # get first and last pos occurence i.e TOP BOTTOM pixel.
+    top = _get_positive_pixel_index(rows, occurence=0)
+    bottom = _get_positive_pixel_index(rows, occurence=-1)
+
+    # get first and last pos occurence i.e LEFT RIGHT pixel.
+    left = _get_positive_pixel_index(columns, occurence=0)
+    right = _get_positive_pixel_index(columns, occurence=-1)
+    return tf.concat([top, left, bottom, right], axis=-1)
