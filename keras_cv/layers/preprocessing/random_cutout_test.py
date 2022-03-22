@@ -15,8 +15,6 @@ import tensorflow as tf
 
 from keras_cv.layers import preprocessing
 
-NUM_CLASSES = 10
-
 
 class RandomCutoutTest(tf.test.TestCase):
     def _run_test(self, height_factor, width_factor):
