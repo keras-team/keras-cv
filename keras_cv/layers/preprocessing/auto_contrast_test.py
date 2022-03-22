@@ -17,7 +17,6 @@ from keras_cv.layers import preprocessing
 
 
 class AutoContrastTest(tf.test.TestCase):
-
     def test_auto_contrast_expands_value_range(self):
         img_shape = (2, 1, 1)
         img = tf.constant([0, 128], dtype=tf.float32)
@@ -26,15 +25,12 @@ class AutoContrastTest(tf.test.TestCase):
         img = tf.expand_dims(img, axis=0)
 
         fill_value = 0.0
-        layer = preprocessing.AutoContrast(
-            value_range=(0, 255)
-        )
+        layer = preprocessing.AutoContrast(value_range=(0, 255))
         ys = layer(img)
 
         # Some pixels should be replaced with fill value
-        self.assertTrue(tf.math.reduce_any(ys[0] == 0.))
-        self.assertTrue(tf.math.reduce_any(ys[0] == 255.))
-
+        self.assertTrue(tf.math.reduce_any(ys[0] == 0.0))
+        self.assertTrue(tf.math.reduce_any(ys[0] == 255.0))
 
     def test_auto_contrast_properly_converts_value_range(self):
         img_shape = (2, 1, 1)
@@ -44,11 +40,9 @@ class AutoContrastTest(tf.test.TestCase):
         img = tf.expand_dims(img, axis=0)
 
         fill_value = 0.0
-        layer = preprocessing.AutoContrast(
-            value_range=(0, 1)
-        )
+        layer = preprocessing.AutoContrast(value_range=(0, 1))
         ys = layer(img)
 
         # Some pixels should be replaced with fill value
-        self.assertTrue(tf.math.reduce_any(ys[0] == 0.))
-        self.assertTrue(tf.math.reduce_any(ys[0] == 1.))
+        self.assertTrue(tf.math.reduce_any(ys[0] == 0.0))
+        self.assertTrue(tf.math.reduce_any(ys[0] == 1.0))

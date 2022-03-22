@@ -13,7 +13,9 @@
 # limitations under the License.
 
 import warnings
+
 import tensorflow as tf
+
 from keras_cv.utils import preprocessing
 
 
@@ -57,11 +59,15 @@ class AutoContrast(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
         return result
 
     def augment_image(self, image, transformation=None):
-        image = preprocessing.transform_value_range(image, original_range=self.value_range, target_range=(0, 255))
+        image = preprocessing.transform_value_range(
+            image, original_range=self.value_range, target_range=(0, 255)
+        )
         channels = tf.shape(image)[-1]
         result = []
         for c in tf.range(channels):
             result.append(AutoContrast.scale_channel(image[..., c]))
         result = tf.stack(result, -1)
-        result = preprocessing.transform_value_range(result, original_range=(0, 255), target_range=self.value_range)
+        result = preprocessing.transform_value_range(
+            result, original_range=(0, 255), target_range=self.value_range
+        )
         return result
