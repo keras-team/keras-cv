@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 import tensorflow as tf
 
 from keras_cv.layers import preprocessing
@@ -18,13 +19,11 @@ from keras_cv.layers import preprocessing
 
 class AutoContrastTest(tf.test.TestCase):
     def test_auto_contrast_expands_value_range(self):
-        img_shape = (2, 1, 1)
         img = tf.constant([0, 128], dtype=tf.float32)
         img = tf.expand_dims(img, axis=-1)
         img = tf.expand_dims(img, axis=-1)
         img = tf.expand_dims(img, axis=0)
 
-        fill_value = 0.0
         layer = preprocessing.AutoContrast(value_range=(0, 255))
         ys = layer(img)
 
@@ -33,13 +32,11 @@ class AutoContrastTest(tf.test.TestCase):
         self.assertTrue(tf.math.reduce_any(ys[0] == 255.0))
 
     def test_auto_contrast_properly_converts_value_range(self):
-        img_shape = (2, 1, 1)
         img = tf.constant([0, 0.5], dtype=tf.float32)
         img = tf.expand_dims(img, axis=-1)
         img = tf.expand_dims(img, axis=-1)
         img = tf.expand_dims(img, axis=0)
 
-        fill_value = 0.0
         layer = preprocessing.AutoContrast(value_range=(0, 1))
         ys = layer(img)
 
