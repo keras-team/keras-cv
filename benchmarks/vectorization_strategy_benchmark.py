@@ -104,7 +104,6 @@ def fill_single_rectangle(image, centers_x, centers_y, widths, heights, fill_val
 ## Fully Vectorized
 """
 
-
 class VectorizedRandomCutout(layers.Layer):
     def __init__(
         self,
@@ -112,6 +111,7 @@ class VectorizedRandomCutout(layers.Layer):
         width_factor,
         fill_mode="constant",
         fill_value=0.0,
+        num_cutouts=1,
         seed=None,
         **kwargs,
     ):
@@ -119,6 +119,11 @@ class VectorizedRandomCutout(layers.Layer):
 
         self.height_lower, self.height_upper = self._parse_bounds(height_factor)
         self.width_lower, self.width_upper = self._parse_bounds(width_factor)
+        self.num_cutouts_lower, self.num_cutouts_upper = self._parse_bounds(num_cutouts)
+        self.num_cutouts_lower = (
+            self.num_cutouts_lower if self.num_cutouts_lower != 0 else 1
+        )
+        self.num_cutouts_upper += 1
 
         if fill_mode not in ["gaussian_noise", "constant"]:
             raise ValueError(
@@ -138,6 +143,13 @@ class VectorizedRandomCutout(layers.Layer):
                 "`width_factor` must have lower bound and upper bound "
                 "with same type, got {} and {}".format(
                     type(self.width_lower), type(self.width_upper)
+                )
+            )
+        if not isinstance(self.num_cutouts_lower, type(self.num_cutouts_upper)):
+            raise ValueError(
+                "`num_cutouts` must have lower bound and upper bound "
+                "with same type, got {} and {}".format(
+                    type(self.num_cutouts_lower), type(self.num_cutouts_upper)
                 )
             )
 
@@ -167,6 +179,23 @@ class VectorizedRandomCutout(layers.Layer):
                     "when is float, got {}".format(width_factor)
                 )
 
+        if self.num_cutouts_upper < self.num_cutouts_lower:
+            raise ValueError(
+                "`num_cutouts` cannot have upper bound less than lower bound"
+            )
+        if not isinstance(self.num_cutouts_upper, int):
+            raise ValueError(
+                "`num_cutouts` must be dtype int, got {}".format(
+                    type(self.num_cutouts_upper)
+                )
+            )
+        if not isinstance(self.num_cutouts_lower, int):
+            raise ValueError(
+                "`num_cutouts` must be dtype int, got {}".format(
+                    type(self.num_cutouts_lower)
+                )
+            )
+
         self.fill_mode = fill_mode
         self.fill_value = fill_value
         self.seed = seed
@@ -176,7 +205,6 @@ class VectorizedRandomCutout(layers.Layer):
             return factor[0], factor[1]
         else:
             return type(factor)(0), factor
-
     @tf.function
     def call(self, inputs, training=True):
         if training is None:
@@ -188,17 +216,18 @@ class VectorizedRandomCutout(layers.Layer):
 
     def _random_cutout(self, inputs):
         """Apply random cutout."""
-        center_x, center_y = self._compute_rectangle_position(inputs)
-        rectangle_height, rectangle_width = self._compute_rectangle_size(inputs)
-        rectangle_fill = self._compute_rectangle_fill(inputs)
-        inputs = fill_utils.fill_rectangle(
-            inputs,
-            center_x,
-            center_y,
-            rectangle_width,
-            rectangle_height,
-            rectangle_fill,
-        )
+        for _ in tf.range(self._sample_num_cutouts()):
+            center_x, center_y = self._compute_rectangle_position(inputs)
+            rectangle_height, rectangle_width = self._compute_rectangle_size(inputs)
+            rectangle_fill = self._compute_rectangle_fill(inputs)
+            inputs = fill_utils.fill_rectangle(
+                inputs,
+                center_x,
+                center_y,
+                rectangle_width,
+                rectangle_height,
+                rectangle_fill,
+            )
         return inputs
 
     def _compute_rectangle_position(self, inputs):
@@ -224,6 +253,16 @@ class VectorizedRandomCutout(layers.Layer):
         )
         return center_x, center_y
 
+    def _sample_num_cutouts(self):
+        num_cutouts = tf.random.uniform(
+            shape=(1,),
+            minval=self.num_cutouts_lower,
+            maxval=self.num_cutouts_upper,
+            dtype=tf.int32,
+            seed=self.seed,
+        )
+        return num_cutouts[0]
+
     def _compute_rectangle_size(self, inputs):
         input_shape = tf.shape(inputs)
         batch_size, image_height, image_width = (
@@ -274,11 +313,11 @@ class VectorizedRandomCutout(layers.Layer):
             "width_factor": self.width_factor,
             "fill_mode": self.fill_mode,
             "fill_value": self.fill_value,
+            "num_cutouts": self.num_cutouts,
             "seed": self.seed,
         }
         base_config = super().get_config()
         return dict(list(base_config.items()) + list(config.items()))
-
 
 """
 ## tf.map_fn
@@ -292,6 +331,7 @@ class MapFnRandomCutout(layers.Layer):
         width_factor,
         fill_mode="constant",
         fill_value=0.0,
+        num_cutouts=1,
         seed=None,
         **kwargs,
     ):
@@ -299,6 +339,11 @@ class MapFnRandomCutout(layers.Layer):
 
         self.height_lower, self.height_upper = self._parse_bounds(height_factor)
         self.width_lower, self.width_upper = self._parse_bounds(width_factor)
+        self.num_cutouts_lower, self.num_cutouts_upper = self._parse_bounds(num_cutouts)
+        self.num_cutouts_lower = (
+            self.num_cutouts_lower if self.num_cutouts_lower != 0 else 1
+        )
+        self.num_cutouts_upper += 1
 
         if fill_mode not in ["gaussian_noise", "constant"]:
             raise ValueError(
@@ -318,6 +363,13 @@ class MapFnRandomCutout(layers.Layer):
                 "`width_factor` must have lower bound and upper bound "
                 "with same type, got {} and {}".format(
                     type(self.width_lower), type(self.width_upper)
+                )
+            )
+        if not isinstance(self.num_cutouts_lower, type(self.num_cutouts_upper)):
+            raise ValueError(
+                "`num_cutouts` must have lower bound and upper bound "
+                "with same type, got {} and {}".format(
+                    type(self.num_cutouts_lower), type(self.num_cutouts_upper)
                 )
             )
 
@@ -347,6 +399,23 @@ class MapFnRandomCutout(layers.Layer):
                     "when is float, got {}".format(width_factor)
                 )
 
+        if self.num_cutouts_upper < self.num_cutouts_lower:
+            raise ValueError(
+                "`num_cutouts` cannot have upper bound less than lower bound"
+            )
+        if not isinstance(self.num_cutouts_upper, int):
+            raise ValueError(
+                "`num_cutouts` must be dtype int, got {}".format(
+                    type(self.num_cutouts_upper)
+                )
+            )
+        if not isinstance(self.num_cutouts_lower, int):
+            raise ValueError(
+                "`num_cutouts` must be dtype int, got {}".format(
+                    type(self.num_cutouts_lower)
+                )
+            )
+
         self.fill_mode = fill_mode
         self.fill_value = fill_value
         self.seed = seed
@@ -356,7 +425,6 @@ class MapFnRandomCutout(layers.Layer):
             return factor[0], factor[1]
         else:
             return type(factor)(0), factor
-
     @tf.function
     def call(self, inputs, training=True):
 
@@ -364,35 +432,38 @@ class MapFnRandomCutout(layers.Layer):
         no_augment = lambda: inputs
         return tf.cond(tf.cast(training, tf.bool), augment, no_augment)
 
-    def _random_cutout(self, input):
-        center_x, center_y = self._compute_rectangle_position(input)
-        rectangle_height, rectangle_width = self._compute_rectangle_size(input)
-        rectangle_fill = self._compute_rectangle_fill(input)
-        input = fill_single_rectangle(
-            input,
-            center_x,
-            center_y,
-            rectangle_width,
-            rectangle_height,
-            rectangle_fill,
-        )
-        return input
+    def _random_cutout(self, inputs):
+        """Apply random cutout."""
+        for _ in tf.range(self._sample_num_cutouts()):
+            center_x, center_y = self._compute_rectangle_position(inputs)
+            rectangle_height, rectangle_width = self._compute_rectangle_size(inputs)
+            rectangle_fill = self._compute_rectangle_fill(inputs)
+            inputs = fill_utils.fill_rectangle(
+                inputs,
+                center_x,
+                center_y,
+                rectangle_width,
+                rectangle_height,
+                rectangle_fill,
+            )
+        return inputs
 
     def _compute_rectangle_position(self, inputs):
         input_shape = tf.shape(inputs)
-        image_height, image_width = (
+        batch_size, image_height, image_width = (
             input_shape[0],
             input_shape[1],
+            input_shape[2],
         )
         center_x = tf.random.uniform(
-            shape=[],
+            shape=[batch_size],
             minval=0,
             maxval=image_width,
             dtype=tf.int32,
             seed=self.seed,
         )
         center_y = tf.random.uniform(
-            shape=[],
+            shape=[batch_size],
             minval=0,
             maxval=image_height,
             dtype=tf.int32,
@@ -400,20 +471,31 @@ class MapFnRandomCutout(layers.Layer):
         )
         return center_x, center_y
 
+    def _sample_num_cutouts(self):
+        num_cutouts = tf.random.uniform(
+            shape=(1,),
+            minval=self.num_cutouts_lower,
+            maxval=self.num_cutouts_upper,
+            dtype=tf.int32,
+            seed=self.seed,
+        )
+        return num_cutouts[0]
+
     def _compute_rectangle_size(self, inputs):
         input_shape = tf.shape(inputs)
-        image_height, image_width = (
+        batch_size, image_height, image_width = (
             input_shape[0],
             input_shape[1],
+            input_shape[2],
         )
         height = tf.random.uniform(
-            [],
+            [batch_size],
             minval=self.height_lower,
             maxval=self.height_upper,
             dtype=tf.float32,
         )
         width = tf.random.uniform(
-            [],
+            [batch_size],
             minval=self.width_lower,
             maxval=self.width_upper,
             dtype=tf.float32,
@@ -449,11 +531,11 @@ class MapFnRandomCutout(layers.Layer):
             "width_factor": self.width_factor,
             "fill_mode": self.fill_mode,
             "fill_value": self.fill_value,
+            "num_cutouts": self.num_cutouts,
             "seed": self.seed,
         }
         base_config = super().get_config()
         return dict(list(base_config.items()) + list(config.items()))
-
 
 """
 ## tf.vectorized_map
@@ -467,6 +549,7 @@ class VMapRandomCutout(layers.Layer):
         width_factor,
         fill_mode="constant",
         fill_value=0.0,
+        num_cutouts=1,
         seed=None,
         **kwargs,
     ):
@@ -474,6 +557,11 @@ class VMapRandomCutout(layers.Layer):
 
         self.height_lower, self.height_upper = self._parse_bounds(height_factor)
         self.width_lower, self.width_upper = self._parse_bounds(width_factor)
+        self.num_cutouts_lower, self.num_cutouts_upper = self._parse_bounds(num_cutouts)
+        self.num_cutouts_lower = (
+            self.num_cutouts_lower if self.num_cutouts_lower != 0 else 1
+        )
+        self.num_cutouts_upper += 1
 
         if fill_mode not in ["gaussian_noise", "constant"]:
             raise ValueError(
@@ -493,6 +581,13 @@ class VMapRandomCutout(layers.Layer):
                 "`width_factor` must have lower bound and upper bound "
                 "with same type, got {} and {}".format(
                     type(self.width_lower), type(self.width_upper)
+                )
+            )
+        if not isinstance(self.num_cutouts_lower, type(self.num_cutouts_upper)):
+            raise ValueError(
+                "`num_cutouts` must have lower bound and upper bound "
+                "with same type, got {} and {}".format(
+                    type(self.num_cutouts_lower), type(self.num_cutouts_upper)
                 )
             )
 
@@ -522,6 +617,23 @@ class VMapRandomCutout(layers.Layer):
                     "when is float, got {}".format(width_factor)
                 )
 
+        if self.num_cutouts_upper < self.num_cutouts_lower:
+            raise ValueError(
+                "`num_cutouts` cannot have upper bound less than lower bound"
+            )
+        if not isinstance(self.num_cutouts_upper, int):
+            raise ValueError(
+                "`num_cutouts` must be dtype int, got {}".format(
+                    type(self.num_cutouts_upper)
+                )
+            )
+        if not isinstance(self.num_cutouts_lower, int):
+            raise ValueError(
+                "`num_cutouts` must be dtype int, got {}".format(
+                    type(self.num_cutouts_lower)
+                )
+            )
+
         self.fill_mode = fill_mode
         self.fill_value = fill_value
         self.seed = seed
@@ -531,42 +643,44 @@ class VMapRandomCutout(layers.Layer):
             return factor[0], factor[1]
         else:
             return type(factor)(0), factor
-
     @tf.function
     def call(self, inputs, training=True):
         augment = lambda: tf.vectorized_map(self._random_cutout, inputs)
         no_augment = lambda: inputs
         return tf.cond(tf.cast(training, tf.bool), augment, no_augment)
 
-    def _random_cutout(self, input):
-        center_x, center_y = self._compute_rectangle_position(input)
-        rectangle_height, rectangle_width = self._compute_rectangle_size(input)
-        rectangle_fill = self._compute_rectangle_fill(input)
-        input = fill_single_rectangle(
-            input,
-            center_x,
-            center_y,
-            rectangle_width,
-            rectangle_height,
-            rectangle_fill,
-        )
-        return input
+    def _random_cutout(self, inputs):
+        """Apply random cutout."""
+        for _ in tf.range(self._sample_num_cutouts()):
+            center_x, center_y = self._compute_rectangle_position(inputs)
+            rectangle_height, rectangle_width = self._compute_rectangle_size(inputs)
+            rectangle_fill = self._compute_rectangle_fill(inputs)
+            inputs = fill_utils.fill_rectangle(
+                inputs,
+                center_x,
+                center_y,
+                rectangle_width,
+                rectangle_height,
+                rectangle_fill,
+            )
+        return inputs
 
     def _compute_rectangle_position(self, inputs):
         input_shape = tf.shape(inputs)
-        image_height, image_width = (
+        batch_size, image_height, image_width = (
             input_shape[0],
             input_shape[1],
+            input_shape[2],
         )
         center_x = tf.random.uniform(
-            shape=[],
+            shape=[batch_size],
             minval=0,
             maxval=image_width,
             dtype=tf.int32,
             seed=self.seed,
         )
         center_y = tf.random.uniform(
-            shape=[],
+            shape=[batch_size],
             minval=0,
             maxval=image_height,
             dtype=tf.int32,
@@ -574,20 +688,31 @@ class VMapRandomCutout(layers.Layer):
         )
         return center_x, center_y
 
+    def _sample_num_cutouts(self):
+        num_cutouts = tf.random.uniform(
+            shape=(1,),
+            minval=self.num_cutouts_lower,
+            maxval=self.num_cutouts_upper,
+            dtype=tf.int32,
+            seed=self.seed,
+        )
+        return num_cutouts[0]
+
     def _compute_rectangle_size(self, inputs):
         input_shape = tf.shape(inputs)
-        image_height, image_width = (
+        batch_size, image_height, image_width = (
             input_shape[0],
             input_shape[1],
+            input_shape[2],
         )
         height = tf.random.uniform(
-            [],
+            [batch_size],
             minval=self.height_lower,
             maxval=self.height_upper,
             dtype=tf.float32,
         )
         width = tf.random.uniform(
-            [],
+            [batch_size],
             minval=self.width_lower,
             maxval=self.width_upper,
             dtype=tf.float32,
@@ -623,6 +748,7 @@ class VMapRandomCutout(layers.Layer):
             "width_factor": self.width_factor,
             "fill_mode": self.fill_mode,
             "fill_value": self.fill_value,
+            "num_cutouts": self.num_cutouts,
             "seed": self.seed,
         }
         base_config = super().get_config()
