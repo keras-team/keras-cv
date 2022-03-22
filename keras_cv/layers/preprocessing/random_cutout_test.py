@@ -33,7 +33,6 @@ class RandomCutoutTest(tf.test.TestCase):
             width_factor=width_factor,
             fill_mode="constant",
             fill_value=fill_value,
-            rate=1.0,
             seed=1,
         )
         xs = layer(xs)
@@ -47,9 +46,7 @@ class RandomCutoutTest(tf.test.TestCase):
     def test_return_shapes(self):
         xs = tf.ones((2, 512, 512, 3))
 
-        layer = preprocessing.RandomCutout(
-            height_factor=0.5, width_factor=0.5, rate=1.0, seed=1
-        )
+        layer = preprocessing.RandomCutout(height_factor=0.5, width_factor=0.5, seed=1)
         xs = layer(xs)
 
         self.assertEqual(xs.shape, [2, 512, 512, 3])
@@ -102,7 +99,6 @@ class RandomCutoutTest(tf.test.TestCase):
             width_factor=0.5,
             fill_mode="constant",
             fill_value=patch_value,
-            rate=1.0,
             seed=1,
         )
         xs = layer(xs)
@@ -127,7 +123,6 @@ class RandomCutoutTest(tf.test.TestCase):
             width_factor=(0.1, 0.3),
             fill_mode="constant",
             fill_value=fill_value,
-            rate=1.0,
             seed=1,
         )
         xs = layer(xs)
@@ -150,7 +145,6 @@ class RandomCutoutTest(tf.test.TestCase):
             width_factor=0.5,
             fill_mode="constant",
             fill_value=patch_value,
-            rate=1.0,
             seed=1,
         )
 

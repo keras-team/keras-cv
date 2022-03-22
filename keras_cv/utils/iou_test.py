@@ -16,7 +16,7 @@
 import numpy as np
 import tensorflow as tf
 
-from keras_cv.metrics.coco import iou as iou_lib
+from keras_cv.utils import iou as iou_lib
 
 
 class IoUTest(tf.test.TestCase):

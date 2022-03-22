@@ -18,8 +18,8 @@ import os
 import numpy as np
 import tensorflow as tf
 
-from keras_cv.metrics.coco.recall import COCORecall
-from keras_cv.utils import bbox
+from keras_cv.metrics import COCORecall
+from keras_cv.utils import bounding_box
 
 SAMPLE_FILE = os.path.dirname(os.path.abspath(__file__)) + "/sample_boxes.npz"
 
@@ -47,7 +47,7 @@ class RecallCorrectnessTest(tf.test.TestCase):
 
         # Area range all
         recall = COCORecall(
-            category_ids=categories + [1000],
+            class_ids=categories + [1000],
             max_detections=1,
             area_range=(0, 1e5**2),
         )
@@ -61,7 +61,7 @@ class RecallCorrectnessTest(tf.test.TestCase):
 
         # Area range all
         recall = COCORecall(
-            category_ids=categories + [1000],
+            class_ids=categories + [1000],
             max_detections=10,
             area_range=(0, 1e5**2),
         )
@@ -75,7 +75,7 @@ class RecallCorrectnessTest(tf.test.TestCase):
 
         # Area range all
         recall = COCORecall(
-            category_ids=categories + [1000],
+            class_ids=categories + [1000],
             max_detections=100,
             area_range=(0, 1e5**2),
         )
@@ -87,7 +87,7 @@ class RecallCorrectnessTest(tf.test.TestCase):
     def test_recall_correctness_small_objects(self):
         y_true, y_pred, categories = load_samples(SAMPLE_FILE)
         recall = COCORecall(
-            category_ids=categories + [1000],
+            class_ids=categories + [1000],
             max_detections=100,
             area_range=(0, 32**2),
         )
@@ -99,7 +99,7 @@ class RecallCorrectnessTest(tf.test.TestCase):
     def test_recall_correctness_medium_objects(self):
         y_true, y_pred, categories = load_samples(SAMPLE_FILE)
         recall = COCORecall(
-            category_ids=categories + [1000],
+            class_ids=categories + [1000],
             max_detections=100,
             area_range=(32**2, 96**2),
         )
@@ -111,7 +111,7 @@ class RecallCorrectnessTest(tf.test.TestCase):
     def test_recall_correctness_large_objects(self):
         y_true, y_pred, categories = load_samples(SAMPLE_FILE)
         recall = COCORecall(
-            category_ids=categories + [1000],
+            class_ids=categories + [1000],
             max_detections=100,
             area_range=(96**2, 1e5**2),
         )
@@ -126,8 +126,8 @@ def load_samples(fname):
     y_true = npzfile["arr_0"].astype(np.float32)
     y_pred = npzfile["arr_1"].astype(np.float32)
 
-    y_true = bbox.xywh_to_corners(y_true)
-    y_pred = bbox.xywh_to_corners(y_pred)
+    y_true = bounding_box.xywh_to_corners(y_true)
+    y_pred = bounding_box.xywh_to_corners(y_pred)
 
     categories = set(int(x) for x in y_true[:, :, 4].numpy().flatten())
     categories = [x for x in categories if x != -1]
