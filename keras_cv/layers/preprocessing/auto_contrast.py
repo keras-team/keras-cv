@@ -35,26 +35,6 @@ class AutoContrast(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
     ):
         super().__init__(**kwargs)
         self.value_range = value_range
-        # tf.vectorized_map can't handle iteration over a tf.range.
-        self.auto_vectorize = False
-
-    @staticmethod
-    def scale_channel(image: tf.Tensor) -> tf.Tensor:
-        """Scale the 2D image using the autocontrast rule."""
-        low = tf.reduce_min(image)
-        high = tf.reduce_max(image)
-
-        # Scale the image, making the lowest value 0 and the highest value 255.
-        def scale_values(image):
-            scale = 255.0 / (high - low)
-            offset = -low * scale
-            image = image * scale + offset
-            image = tf.clip_by_value(image, 0.0, 255.0)
-            return image
-
-        # we can't scale uniform channels
-        result = tf.cond(high > low, lambda: scale_values(image), lambda: image)
-        return result
 
     def augment_image(self, image, transformation=None):
         original_image = image
