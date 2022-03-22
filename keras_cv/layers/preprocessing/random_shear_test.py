@@ -16,7 +16,7 @@ import tensorflow as tf
 from keras_cv.layers import preprocessing
 
 
-class RandomCutoutTest(tf.test.TestCase):
+class RandomShearTest(tf.test.TestCase):
     def test_aggressive_shear_fills_at_least_some_pixels(self):
         img_shape = (50, 50, 3)
         xs = tf.stack(
