@@ -15,8 +15,6 @@ import tensorflow as tf
 
 from keras_cv.layers import preprocessing
 
-NUM_CLASSES = 10
-
 
 class RandomCutoutTest(tf.test.TestCase):
     def test_aggressive_shear_fills_at_least_some_pixels(self):
