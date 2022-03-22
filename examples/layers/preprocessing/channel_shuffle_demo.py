@@ -23,6 +23,7 @@ Finally, they are shown using matplotlib.
 import matplotlib.pyplot as plt
 import tensorflow as tf
 import tensorflow_datasets as tfds
+
 from keras_cv.layers import preprocessing
 
 IMG_SIZE = (224, 224)
@@ -50,7 +51,7 @@ def main():
     channel_shuffle = preprocessing.ChannelShuffle()
     train_ds = train_ds.map(
         lambda x, y: (channel_shuffle(x, training=True), y),
-        num_parallel_calls=tf.data.AUTOTUNE
+        num_parallel_calls=tf.data.AUTOTUNE,
     )
 
     for images, labels in train_ds.take(1):
@@ -64,4 +65,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-    

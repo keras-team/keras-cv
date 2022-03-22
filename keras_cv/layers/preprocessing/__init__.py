@@ -27,6 +27,8 @@ from tensorflow.keras.layers import RandomZoom
 from tensorflow.keras.layers import Rescaling
 from tensorflow.keras.layers import Resizing
 
+from keras_cv.layers.preprocessing.channel_shuffle import ChannelShuffle
+
 # All the KPLs for Keras CV
 from keras_cv.layers.preprocessing.cut_mix import CutMix
 from keras_cv.layers.preprocessing.equalization import Equalization
@@ -34,6 +36,5 @@ from keras_cv.layers.preprocessing.grayscale import Grayscale
 from keras_cv.layers.preprocessing.grid_mask import GridMask
 from keras_cv.layers.preprocessing.mix_up import MixUp
 from keras_cv.layers.preprocessing.random_cutout import RandomCutout
-from keras_cv.layers.preprocessing.channel_shuffle import ChannelShuffle
 from keras_cv.layers.preprocessing.random_shear import RandomShear
 from keras_cv.layers.preprocessing.solarization import Solarization
