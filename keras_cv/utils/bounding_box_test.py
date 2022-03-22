@@ -27,10 +27,9 @@ class BBOXTestCase(tf.test.TestCase):
             [[60, 60, 100, 100], [70, 70, 100, 100]], dtype=tf.float32
         )
 
-        center_box_mask_image = tf.constant(
+        self.center_box_mask_image = tf.constant(
             [[0, 0, 0, 0], [0, 1, 1, 0], [0, 1, 1, 0], [0, 0, 0, 0]], dtype=tf.float32
         )
-        self.corner_bounding_box = tf.expand_dims(center_box_mask_image, axis=-1)
 
     def test_corner_to_xywh(self):
         self.assertAllClose(
@@ -121,6 +120,16 @@ class BBOXTestCase(tf.test.TestCase):
             bounding_box.pad_bounding_box_batch_to_shape(bounding_boxes, target_shape)
 
     def test_mask_to_bbox(self):
-        bbox = bounding_box.mask_to_bboxes(self.center_box_mask_image)
+        target_boundingbox = [1, 1, 1, 1]
+        result = bounding_box.mask_to_bbox(self.center_box_mask_image)
+        self.assertAllClose(result, target_boundingbox)
 
-        self.assertAllClose(bbox, [1, 1, 1, 1])
+        self.center_box_mask_image_3d = tf.expand_dims(
+            self.center_box_mask_image, axis=-1
+        )
+        self.assertAllClose(result, target_boundingbox)
+
+        with self.assertRaisesRegex(
+            ValueError, "Mask shape should be at leat 2 dimensional"
+        ):
+            bounding_box.mask_to_bbox(tf.constant(1))
