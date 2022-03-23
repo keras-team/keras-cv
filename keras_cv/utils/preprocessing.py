@@ -86,11 +86,6 @@ def blend(image1: tf.Tensor, image2: tf.Tensor, factor: float) -> tf.Tensor:
     Returns:
       A blended image Tensor.
     """
-    if factor == 0.0:
-        return tf.image1
-    if factor == 1.0:
-        return image2
-
     difference = image2 - image1
     scaled = factor * difference
 
