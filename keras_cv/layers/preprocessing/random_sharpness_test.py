@@ -16,15 +16,15 @@ import tensorflow as tf
 from keras_cv.layers import preprocessing
 
 
-class SharpenTest(tf.test.TestCase):
-    def test_sharpen_preserves_output_shape(self):
+class SharpnessTest(tf.test.TestCase):
+    def test_sharpness_preserves_output_shape(self):
         img_shape = (50, 50, 3)
         xs = tf.stack(
             [2 * tf.ones(img_shape), tf.ones(img_shape)],
             axis=0,
         )
 
-        layer = preprocessing.Sharpen()
+        layer = preprocessing.Sharpness(0.7)
         ys = layer(xs)
 
         self.assertEqual(xs.shape, ys.shape)

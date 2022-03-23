@@ -16,8 +16,15 @@ import tensorflow as tf
 from keras_cv.utils import preprocessing
 
 
-class Sharpen(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
-    """Performs the sharpen operation on given images.
+class RandomSharpness(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
+    """Randomly performs the sharpness operation on given images.
+
+    The sharpness operation first performs a blur operation, then blends between the
+    original image and the blurred image.  This operation makes the edges of an image
+    less sharp than they were in the original image.
+
+    References:
+        [PIL Sharpness](https://pillow.readthedocs.io/en/stable/reference/ImageEnhance.html)
 
     Args:
         value_range: the range of values the incoming images will have.
@@ -25,30 +32,51 @@ class Sharpen(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
             This is typically either `[0, 1]` or `[0, 255]` depending
             on how your preprocessing pipeline is setup.  Defaults to
             `[0, 255].`
-        blend_factor: A float between 0 and 1 that controls that blending between the
-            original image and the sharpened image. A value of `blend_factor=0.0` makes
+        factor: Either a tuple of two floats or a single float. `factor` controls the
+            extent to which the image sharpness is impacted.  `factor=0.0` makes this
             layer perform a no-op operation, while a value of 1.0 uses the sharpened
             result entirely.  Values between 0 and 1 result in linear interpolation
             between the original image and the sharpened image.
 
-            Defaults to 1.0.
+            Values should be between `0.0` and `1.0`.  If a tuple is used, a `factor` is
+            sampled between the two values for every image augmented.  If a single float
+            is used, a value between `0.0` and the passed float is sampled.  In order to
+            ensure the value is always the same, please pass a tuple with two identical
+            floats: `(0.5, 0.5)`.
+
+            Defaults to `(0.0, 1.0)`.
     """
 
     def __init__(
         self,
         value_range=(0, 255),
-        blend_factor=1.0,
+        factor=(0.0, 1.0),
         **kwargs,
     ):
         super().__init__(**kwargs)
         self.value_range = value_range
-        self.blend_factor = blend_factor
+        self.factor = RandomSharpness._parse_factor(factor)
+
+    @staticmethod
+    def _parse_factor(factor):
+        if isinstance(factor, float):
+            return (0.0, factor)
+        return factor
+
+    def get_random_tranformation(self):
+        if isinstance(self.factor, tuple):
+            if self.factor[0] == self.factor[1]:
+                return self.factor[0]
+            return self._random_generator.random_uniform(
+                (), self.factor[0], self.factor[1], dtype=tf.float32
+            )
 
     def augment_image(self, image, transformation=None):
         image = preprocessing.transform_value_range(
             image, original_range=self.value_range, target_range=(0, 255)
         )
-        orig_image = image
+        original_image = image
+
         # Make image 4D for conv operation.
         image = tf.expand_dims(image, axis=0)
 
@@ -59,25 +87,28 @@ class Sharpen(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
             )
             / 13.0
         )
+
         # Tile across channel dimension.
         kernel = tf.tile(kernel, [1, 1, 3, 1])
         strides = [1, 1, 1, 1]
 
-        degenerate = tf.nn.depthwise_conv2d(
+        smoothed_image = tf.nn.depthwise_conv2d(
             image, kernel, strides, padding="VALID", dilations=[1, 1]
         )
-        degenerate = tf.clip_by_value(degenerate, 0.0, 255.0)
-        degenerate = tf.squeeze(degenerate, axis=0)
+        smoothed_image = tf.clip_by_value(smoothed_image, 0.0, 255.0)
+        smoothed_image = tf.squeeze(smoothed_image, axis=0)
 
         # For the borders of the resulting image, fill in the values of the
         # original image.
-        mask = tf.ones_like(degenerate)
+        mask = tf.ones_like(smoothed_image)
         padded_mask = tf.pad(mask, [[1, 1], [1, 1], [0, 0]])
-        padded_degenerate = tf.pad(degenerate, [[1, 1], [1, 1], [0, 0]])
+        padded_smoothed_image = tf.pad(smoothed_image, [[1, 1], [1, 1], [0, 0]])
 
-        result = tf.where(tf.equal(padded_mask, 1), padded_degenerate, orig_image)
+        result = tf.where(
+            tf.equal(padded_mask, 1), padded_smoothed_image, original_image
+        )
         # Blend the final result.
-        result = preprocessing.blend(result, orig_image, self.blend_factor)
+        result = preprocessing.blend(result, original_image, transformation)
         result = preprocessing.transform_value_range(
             result, original_range=(0, 255), target_range=self.value_range
         )
