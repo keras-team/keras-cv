@@ -41,23 +41,24 @@ def single_rectangle_mask(corners, mask_shape):
     corners = corners[..., tf.newaxis, tf.newaxis]
 
     # split coordinates
-    x0 = corners[0]
-    y0 = corners[1]
-    x1 = corners[2]
-    y1 = corners[3]
+    x0 = corners[:, 0]
+    y0 = corners[:, 1]
+    x1 = corners[:, 2]
+    y1 = corners[:, 3]
 
     # repeat height and width
     width, height = mask_shape
-    x0_rep = tf.repeat(x0, height, axis=0)
-    y0_rep = tf.repeat(y0, width, axis=1)
-    x1_rep = tf.repeat(x1, height, axis=0)
-    y1_rep = tf.repeat(y1, width, axis=1)
+    x0_rep = tf.repeat(x0, height, axis=1)
+    y0_rep = tf.repeat(y0, width, axis=2)
+    x1_rep = tf.repeat(x1, height, axis=1)
+    y1_rep = tf.repeat(y1, width, axis=2)
 
     # range grid
+    batch_size = tf.shape(corners)[0]
     range_row = tf.range(0, height, dtype=corners.dtype)
     range_col = tf.range(0, width, dtype=corners.dtype)
-    range_row = range_row[:, tf.newaxis]
-    range_col = range_col[tf.newaxis, :]
+    range_row = tf.repeat(range_row[tf.newaxis, :, tf.newaxis], batch_size, 0)
+    range_col = tf.repeat(range_col[tf.newaxis, tf.newaxis, :], batch_size, 0)
 
     # boolean masks
     mask_x0 = tf.less_equal(x0_rep, range_col)
@@ -70,7 +71,7 @@ def single_rectangle_mask(corners, mask_shape):
     return masks
 
 
-def fill_single_rectangle(image, centers_x, centers_y, widths, heights, fill_values):
+def fill_single_rectangle(images, centers_x, centers_y, widths, heights, fill_values):
     """Fill rectangles with fill value into images.
 
     Args:
@@ -83,19 +84,19 @@ def fill_single_rectangle(image, centers_x, centers_y, widths, heights, fill_val
     Returns:
         images with filled rectangles.
     """
-    images_shape = tf.shape(image)
-    images_height = images_shape[0]
-    images_width = images_shape[1]
+    images_shape = tf.shape(images)
+    images_height = images_shape[1]
+    images_width = images_shape[2]
 
-    xywh = tf.stack([centers_x, centers_y, widths, heights], axis=0)
+    xywh = tf.stack([centers_x, centers_y, widths, heights], axis=1)
     xywh = tf.cast(xywh, tf.float32)
     corners = bounding_box.xywh_to_corners(xywh)
 
     mask_shape = (images_width, images_height)
     is_rectangle = single_rectangle_mask(corners, mask_shape)
-    is_rectangle = tf.expand_dims(is_rectangle, -1)
+    # is_rectangle = tf.expand_dims(is_rectangle, -1)
 
-    images = tf.where(is_rectangle, fill_values, image)
+    images = tf.where(is_rectangle, fill_values, images)
     return images
 
 
@@ -207,7 +208,6 @@ class VectorizedRandomCutout(layers.Layer):
         else:
             return type(factor)(0), factor
 
-    @tf.function
     def call(self, inputs, training=True):
         if training is None:
             training = backend.learning_phase()
@@ -216,9 +216,10 @@ class VectorizedRandomCutout(layers.Layer):
         no_augment = lambda: inputs
         return tf.cond(tf.cast(training, tf.bool), augment, no_augment)
 
+    @tf.function
     def _random_cutout(self, inputs):
         """Apply random cutout."""
-        for _ in tf.range(self._sample_num_cutouts()):
+        for _ in tf.range(tf.constant(5)):
             center_x, center_y = self._compute_rectangle_position(inputs)
             rectangle_height, rectangle_width = self._compute_rectangle_size(inputs)
             rectangle_fill = self._compute_rectangle_fill(inputs)
@@ -429,21 +430,19 @@ class MapFnRandomCutout(layers.Layer):
         else:
             return type(factor)(0), factor
 
-    @tf.function
     def call(self, inputs, training=True):
-        return self._random_cutout(inputs, training)
-
-    def _random_cutout(self, inputs, training):
-        """Apply random cutout."""
-        if training is None:
-            training = backend.learning_phase()
-
+        augment = lambda: tf.map_fn(self._random_cutout, inputs)
         no_augment = lambda: inputs
-        for _ in tf.range(self._sample_num_cutouts()):
+        return tf.cond(tf.cast(training, tf.bool), augment, no_augment)
+
+    @tf.function
+    def _random_cutout(self, inputs):
+        """Apply random cutout."""
+        for _ in tf.range(tf.constant(5)):
             center_x, center_y = self._compute_rectangle_position(inputs)
             rectangle_height, rectangle_width = self._compute_rectangle_size(inputs)
             rectangle_fill = self._compute_rectangle_fill(inputs)
-            inputs = fill_utils.fill_rectangle(
+            inputs = fill_single_rectangle(
                 inputs,
                 center_x,
                 center_y,
@@ -451,8 +450,7 @@ class MapFnRandomCutout(layers.Layer):
                 rectangle_height,
                 rectangle_fill,
             )
-        augment = lambda: inputs
-        return tf.cond(tf.cast(training, tf.bool), augment, no_augment)
+        return inputs
 
     def _compute_rectangle_position(self, inputs):
         input_shape = tf.shape(inputs)
@@ -651,19 +649,19 @@ class VMapRandomCutout(layers.Layer):
         else:
             return type(factor)(0), factor
 
-    @tf.function
     def call(self, inputs, training=True):
         augment = lambda: tf.vectorized_map(self._random_cutout, inputs)
         no_augment = lambda: inputs
         return tf.cond(tf.cast(training, tf.bool), augment, no_augment)
 
+    @tf.function
     def _random_cutout(self, inputs):
         """Apply random cutout."""
-        for _ in tf.range(self._sample_num_cutouts()):
+        for _ in tf.range(tf.constant(5)):
             center_x, center_y = self._compute_rectangle_position(inputs)
             rectangle_height, rectangle_width = self._compute_rectangle_size(inputs)
             rectangle_fill = self._compute_rectangle_fill(inputs)
-            inputs = fill_utils.fill_rectangle(
+            inputs = fill_single_rectangle(
                 inputs,
                 center_x,
                 center_y,
