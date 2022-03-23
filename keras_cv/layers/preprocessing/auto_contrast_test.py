@@ -44,18 +44,10 @@ class AutoContrastTest(tf.test.TestCase):
         self.assertTrue(tf.math.reduce_any(ys[0] == 0.0))
         self.assertTrue(tf.math.reduce_any(ys[0] == 255.0))
 
-
     def test_auto_contrast_different_values_per_channel(self):
-        img = tf.constant([
-            [
-                [1, 2, 3],
-                [4, 5, 6]
-            ],
-            [
-                [7, 8, 9],
-                [10, 11, 12]
-            ]
-        ], dtype=tf.float32)
+        img = tf.constant(
+            [[[1, 2, 3], [4, 5, 6]], [[7, 8, 9], [10, 11, 12]]], dtype=tf.float32
+        )
         img = tf.expand_dims(img, axis=0)
 
         layer = preprocessing.AutoContrast(value_range=(0, 255))
