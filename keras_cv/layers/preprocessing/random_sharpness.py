@@ -24,7 +24,7 @@ class RandomSharpness(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
     less sharp than they were in the original image.
 
     References:
-        [PIL Sharpness](https://pillow.readthedocs.io/en/stable/reference/ImageEnhance.html)
+        [Sharpness](https://pillow.readthedocs.io/en/stable/reference/ImageEnhance.html)
 
     Args:
         factor: Either a tuple of two floats or a single float. `factor` controls the
