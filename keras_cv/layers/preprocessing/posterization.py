@@ -12,9 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import tensorflow as tf
+from tensorflow.keras.__internal__.layers import BaseImageAugmentationLayer
+
+from keras_cv.utils.preprocessing import transform_value_range
 
 
-class Posterization(tf.keras.layers.Layer):
+class Posterization(BaseImageAugmentationLayer):
     """Reduces the number of bits for each color channel.
 
     References:
@@ -28,42 +31,71 @@ class Posterization(tf.keras.layers.Layer):
     Args:
         bits: integer. The number of bits to keep for each channel. Must be a value
             between 1-8.
+        value_range: a tuple or a list of two elements. The value range of input images.
+            When applying the layer, the image values must be scaled to 0-255, with the
+            help of provided `value_range`.
 
      Usage:
-
     ```python
-        (images, labels), _ = tf.keras.datasets.cifar10.load_data()
-        print(images[0, 0, 0])
-        # [59 62 63]
-        # Note that images are Tensors with values in the range [0, 255] and uint8 dtype
-        posterization = Posterization(bits=4)
-        images = posterization(images)
-        print(images[0, 0, 0])
-        # [48, 48, 48]
+    (images, labels), _ = tf.keras.datasets.cifar10.load_data()
+    print(images[0, 0, 0])
+    # [59 62 63]
+    # Note that images are Tensors with values in the range [0, 255] and uint8 dtype
+    posterization = Posterization(bits=4, value_range=[0, 255])
+    images = posterization(images)
+    print(images[0, 0, 0])
+    # [48., 48., 48.]
+    # NOTE: the layer will output values in tf.float32, regardless of input dtype.
     ```
 
      Call arguments:
-        images: Tensor with pixels in range [0, 255] and shape
-            [batch, height, width, channels] or [height, width, channels].
+        inputs: input tensor in two possible formats:
+            1. single 3D (HWC) image or 4D (NHWC) batch of images.
+            2. A dict of tensors where the images are under `"images"` key.
     """
 
-    def __init__(self, bits: int):
-        super().__init__()
+    def __init__(self, bits: int, value_range, **kwargs):
+        super().__init__(**kwargs)
+
+        if not len(value_range) == 2:
+            raise ValueError(
+                "value_range must be a sequence of two elements. "
+                f"Received: {value_range}"
+            )
 
         if not (0 < bits < 9):
             raise ValueError(f"Bits value must be between 1-8. Received bits: {bits}.")
 
-        self.shift = 8 - bits
+        self._shift = 8 - bits
+        self._value_range = value_range
 
-    def call(self, images):
-        dtype = images.dtype
-        images = tf.cast(images, tf.uint8)
-        images = tf.bitwise.left_shift(
-            tf.bitwise.right_shift(images, self.shift), self.shift
+    def augment_image(self, image, transformation=None):
+        image = transform_value_range(
+            images=image,
+            original_range=self._value_range,
+            target_range=[0, 255],
         )
-        return tf.cast(images, dtype)
+        image = tf.cast(image, tf.uint8)
+
+        image = self._posterize(image)
+
+        return transform_value_range(
+            images=image,
+            original_range=[0, 255],
+            target_range=self._value_range,
+        )
+
+    def _batch_augment(self, inputs):
+        # Skip the use of vectorized_map or map_fn as the implementation is already
+        # vectorized
+        return self._augment(inputs)
+
+    def _posterize(self, image):
+        return tf.bitwise.left_shift(
+            tf.bitwise.right_shift(image, self._shift), self._shift
+        )
 
     def get_config(self):
-        config = {"shift": self.shift}
+        config = {"bits": 8 - self.shift, "value_range": self._value_range}
         base_config = super().get_config()
         return dict(list(base_config.items()) + list(config.items()))
