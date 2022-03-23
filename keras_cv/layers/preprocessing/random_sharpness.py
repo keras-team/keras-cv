@@ -61,11 +61,14 @@ class RandomSharpness(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
             factor = (0.0, factor)
 
         if factor[0] > factor[1]:
-            raise ValueError("`factor[0] > factor[1]`, `factor[0]` must be <= "
-                f"`factor[1]`.  Got `factor={factor}`")
+            raise ValueError(
+                "`factor[0] > factor[1]`, `factor[0]` must be <= "
+                f"`factor[1]`.  Got `factor={factor}`"
+            )
         if factor[0] < 0.0 or factor[1] > 1.0:
-            raise ValueError("`factor` should be inside of range [0.0, 1.0]. "
-                f"Got factor={factor}")
+            raise ValueError(
+                "`factor` should be inside of range [0.0, 1.0]. " f"Got factor={factor}"
+            )
 
         return factor
 
