@@ -47,8 +47,8 @@ class AutoContrast(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
             image, original_range=self.value_range, target_range=(0, 255)
         )
 
-        low = tf.reduce_min(image, axis=0)
-        high = tf.reduce_max(image, axis=0)
+        low = tf.reduce_min(tf.reduce_min(image, axis=0), axis=0)
+        high = tf.reduce_max(tf.reduce_max(image, axis=0), axis=0)
         scale = 255.0 / (high - low)
         offset = -low * scale
 
