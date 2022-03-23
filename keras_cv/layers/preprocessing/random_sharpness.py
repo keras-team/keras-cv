@@ -27,11 +27,6 @@ class RandomSharpness(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
         [PIL Sharpness](https://pillow.readthedocs.io/en/stable/reference/ImageEnhance.html)
 
     Args:
-        value_range: the range of values the incoming images will have.
-            Represented as a two number tuple written [low, high].
-            This is typically either `[0, 1]` or `[0, 255]` depending
-            on how your preprocessing pipeline is setup.  Defaults to
-            `[0, 255].`
         factor: Either a tuple of two floats or a single float. `factor` controls the
             extent to which the image sharpness is impacted.  `factor=0.0` makes this
             layer perform a no-op operation, while a value of 1.0 uses the sharpened
@@ -43,14 +38,17 @@ class RandomSharpness(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
             is used, a value between `0.0` and the passed float is sampled.  In order to
             ensure the value is always the same, please pass a tuple with two identical
             floats: `(0.5, 0.5)`.
-
-            Defaults to `(0.0, 1.0)`.
+        value_range: the range of values the incoming images will have.
+            Represented as a two number tuple written [low, high].
+            This is typically either `[0, 1]` or `[0, 255]` depending
+            on how your preprocessing pipeline is setup.  Defaults to
+            `[0, 255].`
     """
 
     def __init__(
         self,
+        factor,
         value_range=(0, 255),
-        factor=(0.0, 1.0),
         **kwargs,
     ):
         super().__init__(**kwargs)
