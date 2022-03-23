@@ -27,7 +27,6 @@ class AutoContrastTest(tf.test.TestCase):
         layer = preprocessing.AutoContrast(value_range=(0, 255))
         ys = layer(img)
 
-        # Some pixels should be replaced with fill value
         self.assertTrue(tf.math.reduce_any(ys[0] == 1.0))
         self.assertTrue(tf.math.reduce_any(ys[0] == 1.0))
 
@@ -40,7 +39,6 @@ class AutoContrastTest(tf.test.TestCase):
         layer = preprocessing.AutoContrast(value_range=(0, 255))
         ys = layer(img)
 
-        # Some pixels should be replaced with fill value
         self.assertTrue(tf.math.reduce_any(ys[0] == 0.0))
         self.assertTrue(tf.math.reduce_any(ys[0] == 255.0))
 
@@ -68,7 +66,6 @@ class AutoContrastTest(tf.test.TestCase):
         layer = preprocessing.AutoContrast(value_range=(0, 255))
         ys = layer(img)
 
-        # Some pixels should be replaced with fill value
         self.assertTrue(tf.math.reduce_any(ys[0] == 0.0))
         self.assertTrue(tf.math.reduce_any(ys[0] == 255.0))
 
@@ -81,6 +78,5 @@ class AutoContrastTest(tf.test.TestCase):
         layer = preprocessing.AutoContrast(value_range=(0, 1))
         ys = layer(img)
 
-        # Some pixels should be replaced with fill value
         self.assertTrue(tf.math.reduce_any(ys[0] == 0.0))
         self.assertTrue(tf.math.reduce_any(ys[0] == 1.0))
