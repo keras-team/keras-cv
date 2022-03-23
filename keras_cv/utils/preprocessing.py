@@ -88,13 +88,7 @@ def blend(image1: tf.Tensor, image2: tf.Tensor, factor: float) -> tf.Tensor:
     """
     difference = image2 - image1
     scaled = factor * difference
-
-    # Do addition in float.
     temp = image1 + scaled
-
-    # Extrapolate:
-    #
-    # We need to clip and then cast.
     return tf.clip_by_value(temp, 0.0, 255.0)
 
 
