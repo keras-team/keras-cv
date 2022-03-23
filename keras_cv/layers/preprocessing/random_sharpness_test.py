@@ -16,27 +16,16 @@ import tensorflow as tf
 from keras_cv.layers import preprocessing
 
 
-class SharpnessTest(tf.test.TestCase):
-    def test_sharpness_preserves_output_shape(self):
+class RandomSharpnessTest(tf.test.TestCase):
+    def test_random_sharpness_preserves_output_shape(self):
         img_shape = (50, 50, 3)
         xs = tf.stack(
             [2 * tf.ones(img_shape), tf.ones(img_shape)],
             axis=0,
         )
 
-        layer = preprocessing.Sharpness(0.7)
+        layer = preprocessing.RandomSharpness(0.7)
         ys = layer(xs)
 
         self.assertEqual(xs.shape, ys.shape)
 
-    def test_sharpness_full_factor(self):
-        img_shape = (50, 50, 3)
-        xs = tf.random.random_uniform(
-            [2 * tf.ones(img_shape), tf.ones(img_shape)],
-            axis=0,
-        )
-
-        layer = preprocessing.Sharpness((0.0, 0.0))
-        ys = layer(xs)
-
-        self.assertEqual(xs.shape, ys.shape)
