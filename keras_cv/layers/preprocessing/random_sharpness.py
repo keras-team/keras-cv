@@ -122,7 +122,7 @@ class RandomSharpness(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
             tf.equal(padded_mask, 1), padded_smoothed_image, original_image
         )
         # Blend the final result.
-        result = preprocessing.blend(result, original_image, transformation)
+        result = preprocessing.blend(original_image, result, transformation)
         result = preprocessing.transform_value_range(
             result, original_range=(0, 255), target_range=self.value_range
         )
