@@ -102,7 +102,8 @@ class RandomSharpness(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
         )
 
         # Tile across channel dimension.
-        kernel = tf.tile(kernel, [1, 1, 3, 1])
+        channels = tf.shape(image)[-1]
+        kernel = tf.tile(kernel, [1, 1, channels, 1])
         strides = [1, 1, 1, 1]
 
         smoothed_image = tf.nn.depthwise_conv2d(

@@ -30,7 +30,7 @@ class RandomSharpnessTest(tf.test.TestCase):
         self.assertEqual(xs.shape, ys.shape)
         self.assertAllClose(xs, ys)
 
-    def test_random_sharpness_blur_effect(self):
+    def test_random_sharpness_blur_effect_single_channel(self):
         xs = tf.expand_dims(
             tf.constant([
                 [0, 0, 0, 0],
