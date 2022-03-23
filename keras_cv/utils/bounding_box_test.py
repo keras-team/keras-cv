@@ -119,17 +119,16 @@ class BBOXTestCase(tf.test.TestCase):
         ):
             bounding_box.pad_bounding_box_batch_to_shape(bounding_boxes, target_shape)
 
-    def test_mask_to_bbox(self):
-        target_boundingbox = [1, 1, 1, 1]
-        result = bounding_box.mask_to_bbox(self.center_box_mask_image)
-        self.assertAllClose(result, target_boundingbox)
+    def test_mask_to_bounding_boxes(self):
+        target_bounding_box = [1, 1, 2, 2]
+        result = bounding_box.mask_to_bounding_boxes(self.center_box_mask_image)
+        self.assertAllClose(result, target_bounding_box)
 
-        self.center_box_mask_image_3d = tf.expand_dims(
-            self.center_box_mask_image, axis=-1
-        )
-        self.assertAllClose(result, target_boundingbox)
+        center_box_mask_image_3d = tf.expand_dims(self.center_box_mask_image, axis=0)
+        result = bounding_box.mask_to_bounding_boxes(center_box_mask_image_3d)
+        self.assertAllClose(result, [target_bounding_box])
 
         with self.assertRaisesRegex(
             ValueError, "Mask shape should be at leat 2 dimensional"
         ):
-            bounding_box.mask_to_bbox(tf.constant(1))
+            bounding_box.mask_to_bounding_boxes(tf.constant(1))
