@@ -24,8 +24,26 @@ class RandomSharpnessTest(tf.test.TestCase):
             axis=0,
         )
 
-        layer = preprocessing.RandomSharpness(0.7)
+        layer = preprocessing.RandomSharpness(0.0)
         ys = layer(xs)
 
         self.assertEqual(xs.shape, ys.shape)
-        self.assertEqual(xs, ys)
+        self.assertAllClose(xs, ys)
+
+    def test_random_sharpness_blur_effect(self):
+        xs = tf.expand_dims(
+            tf.constant([
+                [0, 0, 0, 0],
+                [0, 1, 1, 0],
+                [0, 1, 1, 0],
+                [0, 0, 0, 0],
+            ]),
+            axis=-1,
+        )
+        xs = tf.expand_dims(xs, axis=0)
+
+        layer = preprocessing.RandomSharpness(1.0)
+        ys = layer(xs)
+
+        self.assertEqual(xs.shape, ys.shape)
+        self.assertNotAllClose(ys, 0.0)
