@@ -57,6 +57,38 @@ class AutoContrastTest(tf.test.TestCase):
         self.assertTrue(tf.math.reduce_any(ys[0, ..., 0] == 255.0))
         self.assertTrue(tf.math.reduce_any(ys[0, ..., 1] == 255.0))
 
+        self.assertAllClose(
+            ys,
+            [
+                [
+                    [
+                        [
+                            0.0,
+                            0.0,
+                            0.0,
+                        ],
+                        [
+                            85.0,
+                            85.0,
+                            85.0,
+                        ],
+                    ],
+                    [
+                        [
+                            170.0,
+                            170.0,
+                            170.0,
+                        ],
+                        [
+                            255.0,
+                            255.0,
+                            255.0,
+                        ],
+                    ],
+                ]
+            ],
+        )
+
     def test_auto_contrast_expands_value_range_uint8(self):
         img = tf.constant([0, 128], dtype=tf.uint8)
         img = tf.expand_dims(img, axis=-1)
