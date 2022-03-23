@@ -24,7 +24,7 @@ class RandomSharpness(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
     less sharp than they were in the original image.
 
     References:
-        [Sharpness](https://pillow.readthedocs.io/en/stable/reference/ImageEnhance.html)
+        - [PIL](https://pillow.readthedocs.io/en/stable/reference/ImageEnhance.html)
 
     Args:
         factor: Either a tuple of two floats or a single float. `factor` controls the
@@ -73,12 +73,11 @@ class RandomSharpness(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
         return factor
 
     def get_random_tranformation(self):
-        if isinstance(self.factor, tuple):
-            if self.factor[0] == self.factor[1]:
-                return self.factor[0]
-            return self._random_generator.random_uniform(
-                (), self.factor[0], self.factor[1], dtype=tf.float32
-            )
+        if self.factor[0] == self.factor[1]:
+            return self.factor[0]
+        return self._random_generator.random_uniform(
+            (), self.factor[0], self.factor[1], dtype=tf.float32
+        )
 
     def augment_image(self, image, transformation=None):
         image = preprocessing.transform_value_range(
@@ -89,7 +88,12 @@ class RandomSharpness(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
         # Make image 4D for conv operation.
         image = tf.expand_dims(image, axis=0)
 
-        # SMOOTH PIL Kernel.
+        # [1 1 1]
+        # [1 5 1]
+        # [1 1 1]
+        # all divided by 13 is the default 3x3 gaussian smoothing kernel.
+        # Correlating or Convolving with this filter is equivalent to performing a
+        # gaussian blur.
         kernel = (
             tf.constant(
                 [[1, 1, 1], [1, 5, 1], [1, 1, 1]], dtype=tf.float32, shape=[3, 3, 1, 1]

@@ -28,4 +28,4 @@ class RandomSharpnessTest(tf.test.TestCase):
         ys = layer(xs)
 
         self.assertEqual(xs.shape, ys.shape)
-
+        self.assertEqual(xs, ys)
