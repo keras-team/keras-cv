@@ -17,8 +17,8 @@ from tensorflow.keras import layers
 
 
 class RGBShift(layers.Layer):
-    """RGBShift class randomly shift values for each channel of the 
-    input RGB image. The expected images should be `(0-255)` pixel ranges.
+    """Randomly shift values for each channel of the input image(s).
+    The input images should have values in the `[0-255]` range.
 
     Input shape:
         3D (unbatched) or 4D (batched) tensor with shape:
