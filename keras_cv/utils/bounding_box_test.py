@@ -132,3 +132,20 @@ class BBOXTestCase(tf.test.TestCase):
             ValueError, "Mask shape should be at leat 2 dimensional"
         ):
             bounding_box.mask_to_bounding_boxes(tf.constant(1))
+
+        # test `batch_dim` at first dimension
+        center_box_mask_image_first_channel = tf.expand_dims(
+            self.center_box_mask_image, axis=0
+        )
+        result = bounding_box.mask_to_bounding_boxes(
+            center_box_mask_image_first_channel, batch_dim=0
+        )
+        self.assertAllClose(result, [target_bounding_box])
+
+        center_box_mask_image_last_channel = tf.expand_dims(
+            self.center_box_mask_image, axis=-1
+        )
+        result = bounding_box.mask_to_bounding_boxes(
+            center_box_mask_image_last_channel, batch_dim=-1
+        )
+        self.assertAllClose(result, [target_bounding_box])

@@ -151,10 +151,22 @@ def pad_bounding_box_batch_to_shape(bounding_boxes, target_shape, padding_values
     )
 
 
-def mask_to_bounding_boxes(masks):
+def mask_to_bounding_boxes(masks, batch_dim=0):
+    """Extracts bouding boxes from masks.
+
+    Args:
+        masks: tf.Tensor of binary masks.
+        batch_dim: Dimension to perform extraction.
+    Returns:
+        bounding_boxes extracted from binary masks.
+
+    Raises:
+        ValueError, when `masks` shape if not in compatible range.
+    """
+
     def _get_bounding_box(mask):
         def _get_positive_pixel_coordinate(group):
-            positive_indices = tf.where(group)
+            positive_indices = tf.cast(tf.where(group), tf.int32)
             return positive_indices[0], positive_indices[-1]
 
         # convert rows to bool by nonzero pixel.
@@ -166,12 +178,21 @@ def mask_to_bounding_boxes(masks):
         top, bottom = _get_positive_pixel_coordinate(rows)
         # get first and last pos occurence i.e LEFT RIGHT pixel.
         left, right = _get_positive_pixel_coordinate(columns)
-        return tf.concat([top, left, bottom, right], axis=-1)
+        return tf.concat([top, left, bottom, right], axis=-1, dtype=tf.int32)
 
-    if masks.ndim < 2:
+    _ndim = masks.ndim
+    if _ndim < 2:
         raise ValueError(
-            f"Mask shape should be at least 2 dimensional but {masks.ndim} passed."
+            f"Mask shape should be at least 2 dimensional but {_ndim} passed."
         )
-    if masks.ndim == 2:
+    elif _ndim == 2:
         return _get_bounding_box(masks)
-    return tf.vectorized_map(_get_bounding_box, masks)
+
+    # replace first element with `batch_dim`
+    _perm = list(range(_ndim))
+    _perm[0] = _perm[batch_dim]
+    _perm[batch_dim] = 0
+
+    # unroll `batch_dim` on first dimension.
+    masks = tf.transpose(masks, _perm)
+    return tf.map_fn(_get_bounding_box, masks, dtype=tf.int32)
