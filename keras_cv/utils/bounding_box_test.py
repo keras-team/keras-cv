@@ -121,6 +121,7 @@ class BBOXTestCase(tf.test.TestCase):
 
     def test_mask_to_bounding_boxes(self):
         target_bounding_box = [1, 1, 2, 2]
+        target_empty_bounding_box = [-1, -1, -1, -1]
         result = bounding_box.mask_to_bounding_boxes(self.center_box_mask_image)
         self.assertAllClose(result, target_bounding_box)
 
@@ -129,7 +130,7 @@ class BBOXTestCase(tf.test.TestCase):
         self.assertAllClose(result, [target_bounding_box])
 
         with self.assertRaisesRegex(
-            ValueError, "Mask shape should be at leat 2 dimensional"
+            ValueError, "Masks should be at least 2 dimensional"
         ):
             bounding_box.mask_to_bounding_boxes(tf.constant(1))
 
@@ -149,3 +150,16 @@ class BBOXTestCase(tf.test.TestCase):
             center_box_mask_image_last_channel, batch_dim=-1
         )
         self.assertAllClose(result, [target_bounding_box])
+
+        # test no bounding_box
+        empty_mask = tf.zeros((4, 4))
+        result = bounding_box.mask_to_bounding_boxes(empty_mask, batch_dim=-1)
+        self.assertAllClose(result, target_empty_bounding_box)
+
+        # test mix of empty and no empty mask
+        empty_with_non_empty_mask = tf.stack(
+            [empty_mask, self.center_box_mask_image], axis=0
+        )
+        result = bounding_box.mask_to_bounding_boxes(empty_mask, batch_dim=-1)
+        self.assertAllClose(result[0], target_empty_bounding_box)
+        self.assertAllClose(result[1], target_bounding_box)

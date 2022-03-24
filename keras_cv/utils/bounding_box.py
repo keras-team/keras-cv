@@ -158,15 +158,21 @@ def mask_to_bounding_boxes(masks, batch_dim=0):
         masks: tf.Tensor of binary masks.
         batch_dim: Dimension to perform extraction.
     Returns:
-        bounding_boxes extracted from binary masks.
+        Bounding_boxes extracted from binary masks, if no bounding box found,
+        dummy bounding box will be returned.
 
     Raises:
         ValueError, when `masks` shape if not in compatible range.
+
     """
 
     def _get_bounding_box(mask):
         def _get_positive_pixel_coordinate(group):
             positive_indices = tf.cast(tf.where(group), tf.int32)
+            is_empty = tf.equal(tf.size(positive_indices), 0)
+            if is_empty:
+                _dummy = tf.constant([-1], tf.int32)
+                return _dummy, _dummy
             return positive_indices[0], positive_indices[-1]
 
         # convert rows to bool by nonzero pixel.
@@ -182,9 +188,7 @@ def mask_to_bounding_boxes(masks, batch_dim=0):
 
     _ndim = masks.ndim
     if _ndim < 2:
-        raise ValueError(
-            f"Mask shape should be at least 2 dimensional but {_ndim} passed."
-        )
+        raise ValueError(f"Masks should be at least 2 dimensional but {_ndim} passed.")
     elif _ndim == 2:
         return _get_bounding_box(masks)
 
