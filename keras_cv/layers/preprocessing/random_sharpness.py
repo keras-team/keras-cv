@@ -72,7 +72,7 @@ class RandomSharpness(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
 
         return factor
 
-    def get_random_tranformation(self):
+    def get_random_transformation(self):
         if self.factor[0] == self.factor[1]:
             return self.factor[0]
         return self._random_generator.random_uniform(
