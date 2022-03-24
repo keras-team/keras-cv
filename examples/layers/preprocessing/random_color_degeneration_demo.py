@@ -1,17 +1,4 @@
-# Copyright 2022 The KerasCV Authors
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     https://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-"""random_color_degeneration_demo.py shows how to use RandomColorDegeneration.
+"""random_shear_demo.py shows how to use the RandomShear preprocessing layer.
 
 Operates on the oxford_flowers102 dataset.  In this script the flowers
 are loaded, then are passed through the preprocessing layers.
@@ -37,16 +24,16 @@ def main():
     train_ds = data["train"]
 
     train_ds = (
-        train_ds.take(1)
-        .repeat()
+        train_ds.take(1).repeat()
         .map(lambda x, y: resize(x, y))
         .shuffle(10 * BATCH_SIZE)
         .batch(BATCH_SIZE)
     )
-    random_color_degeneration = preprocessing.RandomColorDegeneration(factor=(0, 1.0))
+    random_color_degeneration = preprocessing.RandomColorDegeneration(
+        factor=(0, 1.0)
+    )
     train_ds = train_ds.map(
-        lambda x, y: (random_color_degeneration(x), y),
-        num_parallel_calls=tf.data.AUTOTUNE,
+        lambda x, y: (random_color_degeneration(x), y), num_parallel_calls=tf.data.AUTOTUNE
     )
 
     for images, labels in train_ds.take(1):
