@@ -160,6 +160,8 @@ class BBOXTestCase(tf.test.TestCase):
         empty_with_non_empty_mask = tf.stack(
             [empty_mask, self.center_box_mask_image], axis=0
         )
-        result = bounding_box.mask_to_bounding_boxes(empty_mask, batch_dim=-1)
+        result = bounding_box.mask_to_bounding_boxes(
+            empty_with_non_empty_mask, batch_dim=0
+        )
         self.assertAllClose(result[0], target_empty_bounding_box)
         self.assertAllClose(result[1], target_bounding_box)
