@@ -45,7 +45,10 @@ class Equalization(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
     def __init__(self, value_range, bins=256, **kwargs):
         super().__init__(**kwargs)
         self.bins = bins
+<<<<<<< HEAD
         self.value_range = value_range
+=======
+>>>>>>> Vectorizing Equalization
 
     @tf.function
     def equalize_channel(self, image, channel_index):
