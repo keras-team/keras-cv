@@ -24,16 +24,16 @@ def main():
     train_ds = data["train"]
 
     train_ds = (
-        train_ds.take(1).repeat()
+        train_ds.take(1)
+        .repeat()
         .map(lambda x, y: resize(x, y))
         .shuffle(10 * BATCH_SIZE)
         .batch(BATCH_SIZE)
     )
-    random_color_degeneration = preprocessing.RandomColorDegeneration(
-        factor=(0, 1.0)
-    )
+    random_color_degeneration = preprocessing.RandomColorDegeneration(factor=(0, 1.0))
     train_ds = train_ds.map(
-        lambda x, y: (random_color_degeneration(x), y), num_parallel_calls=tf.data.AUTOTUNE
+        lambda x, y: (random_color_degeneration(x), y),
+        num_parallel_calls=tf.data.AUTOTUNE,
     )
 
     for images, labels in train_ds.take(1):
