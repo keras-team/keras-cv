@@ -52,8 +52,52 @@ class RandomColorDegeneration(tf.keras.__internal__.layers.BaseImageAugmentation
         return self.factor()
 
     def augment_image(self, image, transformation=None):
-        degenerate = tf.image.grayscale_to_rgb(tf.image.rgb_to_grayscale(image))
-        result = preprocessing.blend(image, degenerate, transformation)
+        image = preprocessing.transform_value_range(
+            image, original_range=self.value_range, target_range=(0, 255)
+        )
+        original_image = image
+
+        # Make image 4D for conv operation.
+        image = tf.expand_dims(image, axis=0)
+
+        # [1 1 1]
+        # [1 5 1]
+        # [1 1 1]
+        # all divided by 13 is the default 3x3 gaussian smoothing kernel.
+        # Correlating or Convolving with this filter is equivalent to performing a
+        # gaussian blur.
+        kernel = (
+            tf.constant(
+                [[1, 1, 1], [1, 5, 1], [1, 1, 1]], dtype=tf.float32, shape=[3, 3, 1, 1]
+            )
+            / 13.0
+        )
+
+        # Tile across channel dimension.
+        channels = tf.shape(image)[-1]
+        kernel = tf.tile(kernel, [1, 1, channels, 1])
+        strides = [1, 1, 1, 1]
+
+        smoothed_image = tf.nn.depthwise_conv2d(
+            image, kernel, strides, padding="VALID", dilations=[1, 1]
+        )
+        smoothed_image = tf.clip_by_value(smoothed_image, 0.0, 255.0)
+        smoothed_image = tf.squeeze(smoothed_image, axis=0)
+
+        # For the borders of the resulting image, fill in the values of the
+        # original image.
+        mask = tf.ones_like(smoothed_image)
+        padded_mask = tf.pad(mask, [[1, 1], [1, 1], [0, 0]])
+        padded_smoothed_image = tf.pad(smoothed_image, [[1, 1], [1, 1], [0, 0]])
+
+        result = tf.where(
+            tf.equal(padded_mask, 1), padded_smoothed_image, original_image
+        )
+        # Blend the final result.
+        result = preprocessing.blend(original_image, result, transformation)
+        result = preprocessing.transform_value_range(
+            result, original_range=(0, 255), target_range=self.value_range
+        )
         return result
 
     def augment_label(self, label, transformation=None):
