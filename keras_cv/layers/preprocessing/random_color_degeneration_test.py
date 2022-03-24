@@ -28,3 +28,18 @@ class RandomColorDegenerationTest(tf.test.TestCase):
         ys = layer(xs)
 
         self.assertEqual(xs.shape, ys.shape)
+
+    def test_color_degeneration_full_factor(self):
+        img_shape = (50, 50, 1)
+        r = tf.ones(img_shape)
+        g = 2 * tf.ones(img_shape)
+        b = 3 * tf.ones(img_shape)
+        xs = tf.concat([r, g, b], axis=-1)
+
+        layer = preprocessing.RandomColorDegeneration(factor=(1, 1))
+        ys = layer(xs)
+
+        # Color degeneration uses standard luma conversion for RGB->Grayscale.
+        # The formula for luma is result= 0.2989*r + 0.5870*g + 0.1140*b
+        luma_result = 0.2989 + 2*0.5870 + 3*0.1140
+        self.assertAllClose(ys, tf.ones_like(ys) * result_value)
