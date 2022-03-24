@@ -16,10 +16,9 @@ import warnings
 import tensorflow as tf
 
 from keras_cv.utils import preprocessing
-from keras.layers.preprocessing.image_preprocessing import BaseImageAugmentationLayer
 
 
-class RandomShear(BaseImageAugmentationLayer):
+class RandomShear(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
     """Randomly shears an image.
 
     Args:
