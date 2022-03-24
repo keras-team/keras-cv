@@ -16,20 +16,17 @@ import tensorflow as tf
 from keras_cv.utils import preprocessing
 
 
-class RandomSharpness(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
-    """Randomly performs the sharpness operation on given images.
+class RandomColorDegeneration(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
+    """Randomly performs the color degeneration operation on given images.
 
-    The sharpness operation first performs a blur operation, then blends between the
-    original image and the blurred image.  This operation makes the edges of an image
-    less sharp than they were in the original image.
-
-    References:
-        - [PIL](https://pillow.readthedocs.io/en/stable/reference/ImageEnhance.html)
+    The sharpness operation first converts an image to gray scale, then back to color.
+    It then takes a weighted average between original image and the degenerated image.
+    This makes colors appear more dull.
 
     Args:
         factor: Either a tuple of two floats or a single float. `factor` controls the
             extent to which the image sharpness is impacted.  `factor=0.0` makes this
-            layer perform a no-op operation, while a value of 1.0 uses the sharpened
+            layer perform a no-op operation, while a value of 1.0 uses the degenerated
             result entirely.  Values between 0 and 1 result in linear interpolation
             between the original image and the sharpened image.
 
@@ -38,21 +35,14 @@ class RandomSharpness(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
             is used, a value between `0.0` and the passed float is sampled.  In order to
             ensure the value is always the same, please pass a tuple with two identical
             floats: `(0.5, 0.5)`.
-        value_range: the range of values the incoming images will have.
-            Represented as a two number tuple written [low, high].
-            This is typically either `[0, 1]` or `[0, 255]` depending
-            on how your preprocessing pipeline is setup.  Defaults to
-            `[0, 255].`
     """
 
     def __init__(
         self,
         factor,
-        value_range=(0, 255),
         **kwargs,
     ):
         super().__init__(**kwargs)
-        self.value_range = value_range
         self.factor = preprocessing.parse_value_range(factor)
 
     def get_random_transformation(self):
