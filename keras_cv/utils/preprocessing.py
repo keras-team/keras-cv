@@ -94,7 +94,7 @@ def blend(image1: tf.Tensor, image2: tf.Tensor, factor: float) -> tf.Tensor:
     return tf.clip_by_value(temp, 0.0, 255.0)
 
 
-def parse_value_range(param, min_value=0.0, max_value=1.0, param_name="factor"):
+def parse_factor_value_range(param, min_value=0.0, max_value=1.0, param_name="factor"):
     if isinstance(param, float):
         param = (min_value, param)
 
