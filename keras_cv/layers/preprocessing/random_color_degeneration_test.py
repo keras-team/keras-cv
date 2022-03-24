@@ -41,5 +41,32 @@ class RandomColorDegenerationTest(tf.test.TestCase):
 
         # Color degeneration uses standard luma conversion for RGB->Grayscale.
         # The formula for luma is result= 0.2989*r + 0.5870*g + 0.1140*b
-        luma_result = 0.2989 + 2*0.5870 + 3*0.1140
-        self.assertAllClose(ys, tf.ones_like(ys) * result_value)
+        luma_result = 0.2989 + 2 * 0.5870 + 3 * 0.1140
+        self.assertAllClose(ys, tf.ones_like(ys) * luma_result)
+
+    def test_color_degeneration_70p_factor(self):
+        img_shape = (50, 50, 1)
+        r = tf.ones(img_shape)
+        g = 2 * tf.ones(img_shape)
+        b = 3 * tf.ones(img_shape)
+        xs = tf.concat([r, g, b], axis=-1)
+
+        layer = preprocessing.RandomColorDegeneration(factor=(0.7, 0.7))
+        ys = layer(xs)
+
+        # Color degeneration uses standard luma conversion for RGB->Grayscale.
+        # The formula for luma is result= 0.2989*r + 0.5870*g + 0.1140*b
+        luma_result = 0.2989 + 2 * 0.5870 + 3 * 0.1140
+
+        # with factor=0.7, luma_result should be blended at a 70% rate with the original
+        r_result = luma_result * 0.7 + 1 * 0.3
+        g_result = luma_result * 0.7 + 2 * 0.3
+        b_result = luma_result * 0.7 + 3 * 0.3
+
+        r = ys[..., 0]
+        g = ys[..., 1]
+        b = ys[..., 2]
+
+        self.assertAllClose(r, tf.ones_like(r) * r_result)
+        self.assertAllClose(g, tf.ones_like(g) * g_result)
+        self.assertAllClose(b, tf.ones_like(b) * b_result)
