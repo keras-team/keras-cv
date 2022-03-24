@@ -1,5 +1,5 @@
 #!/bin/bash
-isort --sl -c .
+isort --sl -c --profile=black .
 if ! [ $? -eq 0 ]
 then
   echo "Please run \"sh shell/format.sh\" to format the code."
