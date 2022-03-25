@@ -20,10 +20,10 @@ class Grayscale(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
     Input images should have values in the range of [0, 255].
 
     Input shape:
-        4D (batched) tensor with shape:
+        3D (unbatched) or 4D (batched) tensor with shape:
         `(..., height, width, channels)`, in `"channels_last"` format
     Output shape:
-        4D (batched) tensor with shape:
+        3D (unbatched) or 4D (batched) tensor with shape:
         `(..., height, width, channels)`, in `"channels_last"` format
     Args:
         output_channels.
