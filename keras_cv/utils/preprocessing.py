@@ -92,6 +92,24 @@ def blend(image1: tf.Tensor, image2: tf.Tensor, factor: float) -> tf.Tensor:
     return tf.clip_by_value(temp, 0.0, 255.0)
 
 
+def parse_factor_value_range(param, min_value=0.0, max_value=1.0, param_name="factor"):
+    if isinstance(param, float):
+        param = (min_value, param)
+
+    if param[0] > param[1]:
+        raise ValueError(
+            f"`{param_name}[0] > {param_name}[1]`, `{param_name}[0]` must be <= "
+            f"`{param_name}[1]`.  Got `{param_name}={param}`"
+        )
+    if param[0] < min_value or param[1] > max_value:
+        raise ValueError(
+            f"`{param_name}` should be inside of range [{min_value}, {max_value}]. "
+            f"Got {param_name}={param}"
+        )
+
+    return param
+
+
 def transform(
     images,
     transforms,

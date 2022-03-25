@@ -53,24 +53,7 @@ class RandomSharpness(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
     ):
         super().__init__(**kwargs)
         self.value_range = value_range
-        self.factor = RandomSharpness._parse_factor(factor)
-
-    @staticmethod
-    def _parse_factor(factor):
-        if isinstance(factor, float):
-            factor = (0.0, factor)
-
-        if factor[0] > factor[1]:
-            raise ValueError(
-                "`factor[0] > factor[1]`, `factor[0]` must be <= "
-                f"`factor[1]`.  Got `factor={factor}`"
-            )
-        if factor[0] < 0.0 or factor[1] > 1.0:
-            raise ValueError(
-                "`factor` should be inside of range [0.0, 1.0]. " f"Got factor={factor}"
-            )
-
-        return factor
+        self.factor = preprocessing.parse_factor_value_range(factor)
 
     def get_random_transformation(self):
         if self.factor[0] == self.factor[1]:
