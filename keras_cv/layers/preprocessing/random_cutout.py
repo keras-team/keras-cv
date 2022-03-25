@@ -12,11 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import tensorflow as tf
+import tensorflow.keras.layers as layers
+from tensorflow.keras import backend
 
 from keras_cv.utils import fill_utils
 
 
-class RandomCutout(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
+class RandomCutout(layers.Layer):
     """Randomly cut out rectangles from images and fill them.
 
     Args:
@@ -160,14 +162,17 @@ class RandomCutout(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
         else:
             return type(factor)(0), factor
 
-    def get_random_transformation(self):
-        return self._sample_num_cutouts()
+    def call(self, inputs, training=True):
+        if training is None:
+            training = backend.learning_phase()
 
-    @tf.function
-    def augment_image(self, image, transformation=None):
+        augment = lambda: self._random_cutout(inputs)
+        no_augment = lambda: inputs
+        return tf.cond(tf.cast(training, tf.bool), augment, no_augment)
+
+    def _random_cutout(self, inputs):
         """Apply random cutout."""
-        inputs = tf.expand_dims(image, 0)
-        for _ in tf.range(transformation):
+        for _ in tf.range(self._sample_num_cutouts()):
             center_x, center_y = self._compute_rectangle_position(inputs)
             rectangle_height, rectangle_width = self._compute_rectangle_size(inputs)
             rectangle_fill = self._compute_rectangle_fill(inputs)
@@ -179,13 +184,7 @@ class RandomCutout(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
                 rectangle_height,
                 rectangle_fill,
             )
-        return inputs[0]
-
-    def _sample_num_cutouts(self):
-        num_cutouts = self._random_generator.random_uniform(
-            (), self.num_cutouts_lower, self.num_cutouts_upper, dtype=tf.int32
-        )
-        return num_cutouts
+        return inputs
 
     def _compute_rectangle_position(self, inputs):
         input_shape = tf.shape(inputs)
@@ -194,13 +193,31 @@ class RandomCutout(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
             input_shape[1],
             input_shape[2],
         )
-        center_x = self._random_generator.random_uniform(
-            [batch_size], 0, image_width, dtype=tf.int32
+        center_x = tf.random.uniform(
+            shape=[batch_size],
+            minval=0,
+            maxval=image_width,
+            dtype=tf.int32,
+            seed=self.seed,
         )
-        center_y = self._random_generator.random_uniform(
-            [batch_size], 0, image_height, dtype=tf.int32
+        center_y = tf.random.uniform(
+            shape=[batch_size],
+            minval=0,
+            maxval=image_height,
+            dtype=tf.int32,
+            seed=self.seed,
         )
         return center_x, center_y
+
+    def _sample_num_cutouts(self):
+        num_cutouts = tf.random.uniform(
+            shape=(1,),
+            minval=self.num_cutouts_lower,
+            maxval=self.num_cutouts_upper,
+            dtype=tf.int32,
+            seed=self.seed,
+        )
+        return num_cutouts[0]
 
     def _compute_rectangle_size(self, inputs):
         input_shape = tf.shape(inputs)
@@ -209,11 +226,17 @@ class RandomCutout(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
             input_shape[1],
             input_shape[2],
         )
-        height = self._random_generator.random_uniform(
-            [batch_size], self.height_lower, self.height_upper, dtype=tf.float32
+        height = tf.random.uniform(
+            [batch_size],
+            minval=self.height_lower,
+            maxval=self.height_upper,
+            dtype=tf.float32,
         )
-        width = self._random_generator.random_uniform(
-            [batch_size], self.width_lower, self.width_upper, dtype=tf.float32
+        width = tf.random.uniform(
+            [batch_size],
+            minval=self.width_lower,
+            maxval=self.width_upper,
+            dtype=tf.float32,
         )
 
         if self._height_is_float:
