@@ -61,7 +61,7 @@ class Solarization(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
     def __init__(
         self,
         addition=0.0,
-        threshold=None,
+        threshold=0.0,
         value_range=(0, 255),
     ):
         super().__init__()
@@ -75,10 +75,7 @@ class Solarization(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
         )
         result = image + self.addition
         result = tf.clip_by_value(result, 0, 255)
-        if self.threshold is None:
-            result = self._solarize(result)
-        else:
-            result = self._solarize_above_threshold(result)
+        result = self._solarize_above_threshold(result)
         result = preprocessing.transform_value_range(
             result, original_range=(0, 255), target_range=self.value_range
         )
