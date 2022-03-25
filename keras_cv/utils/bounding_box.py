@@ -193,8 +193,7 @@ def mask_to_bounding_boxes(masks, batch_dim=0):
 
     # replace first element with `batch_dim`
     _perm = list(range(_ndim))
-    _perm[0] = _perm[batch_dim]
-    _perm[batch_dim] = 0
+    _perm = [_perm.pop(batch_dim)] + _perm
 
     # unroll `batch_dim` on first dimension.
     masks = tf.transpose(masks, _perm)
