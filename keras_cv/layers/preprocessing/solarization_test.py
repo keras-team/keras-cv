@@ -67,7 +67,7 @@ class SolarizationTest(tf.test.TestCase, parameterized.TestCase):
         )
 
     def _test_input_output(self, layer, input_value, expected_value, dtype):
-        dummy_input = tf.ones(shape=(2, 224, 224, 3), dtype=dtype) * input_value
+        input = tf.ones(shape=(2, 224, 224, 3), dtype=dtype) * input_value
         expected_output = tf.clip_by_value(
             (
                 tf.ones(shape=(2, 224, 224, 3), dtype=layer.compute_dtype)
@@ -77,6 +77,6 @@ class SolarizationTest(tf.test.TestCase, parameterized.TestCase):
             255,
         )
 
-        output = layer(dummy_input)
+        output = layer(input)
 
         self.assertAllClose(output, expected_output)
