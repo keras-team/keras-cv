@@ -152,18 +152,17 @@ def pad_bounding_box_batch_to_shape(bounding_boxes, target_shape, padding_values
 
 
 def mask_to_bounding_boxes(masks, batch_dim=0):
-    """Extracts bouding boxes from masks.
+    """Computes bouding boxes from masks.
 
     Args:
         masks: tf.Tensor of binary masks.
-        batch_dim: Dimension to perform extraction.
+        batch_dim (optional): Perform bouding box extraction on given dimension.
     Returns:
         Bounding_boxes extracted from binary masks, if no bounding box found,
-        dummy bounding box will be returned.
+        dummy bounding box will be returned i.e [-1, -1, -1, -1].
 
     Raises:
-        ValueError, when `masks` shape if not in compatible range.
-
+        ValueError, when `masks` ndim is not in compatible range.
     """
 
     def _get_bounding_box(mask):
