@@ -142,6 +142,9 @@ class COCOMeanAveragePrecision(tf.keras.metrics.Metric):
                 "sample_weight is not yet supported in keras_cv COCO metrics."
             )
 
+        class_ids = tf.constant(self.class_ids, dtype=self.compute_dtype)
+        iou_thresholds = tf.constant(self.iou_thresholds, dtype=self.compute_dtype)
+
         num_images = tf.shape(y_true)[0]
 
         y_pred = utils.sort_bounding_boxes(y_pred, axis=bounding_box.CONFIDENCE)
@@ -162,7 +165,6 @@ class COCOMeanAveragePrecision(tf.keras.metrics.Metric):
                     detections, self.area_range[0], self.area_range[1]
                 )
 
-            detections = detections
             if self.max_detections < tf.shape(detections)[0]:
                 detections = detections[: self.max_detections]
 
@@ -174,8 +176,8 @@ class COCOMeanAveragePrecision(tf.keras.metrics.Metric):
             )
             ground_truths_update = tf.TensorArray(tf.int32, size=self.num_class_ids)
 
-            for c_i in range(self.num_class_ids):
-                category_id = self.class_ids[c_i]
+            for c_i in tf.range(self.num_class_ids):
+                category_id = class_ids[c_i]
                 ground_truths = utils.filter_boxes(
                     ground_truths, value=category_id, axis=bounding_box.CLASS
                 )
@@ -192,8 +194,8 @@ class COCOMeanAveragePrecision(tf.keras.metrics.Metric):
 
                 ious = iou_lib.compute_ious_for_image(ground_truths, detections)
 
-                for iou_i in range(self.num_iou_thresholds):
-                    iou_threshold = self.iou_thresholds[iou_i]
+                for iou_i in tf.range(self.num_iou_thresholds):
+                    iou_threshold = iou_thresholds[iou_i]
                     pred_matches = utils.match_boxes(ious, iou_threshold)
 
                     dt_scores = detections[:, bounding_box.CONFIDENCE]
@@ -279,8 +281,8 @@ class COCOMeanAveragePrecision(tf.keras.metrics.Metric):
         )
         zero_pad = tf.zeros(shape=(1,), dtype=tf.float32)
         # so in this case this should be: [1, 1]
-        for i in range(self.num_class_ids):
-            for j in range(self.num_iou_thresholds):
+        for i in tf.range(self.num_class_ids):
+            for j in tf.range(self.num_iou_thresholds):
                 recalls_i = recalls[i, j]
                 precisions_i = precisions[i, j]
 

@@ -1,4 +1,3 @@
 #!/bin/bash
-isort --sl .
+isort --sl --profile=black .
 black .
-

@@ -51,10 +51,6 @@ following assumptions:
 - `value_range` must default to `(0, 255)`
 - input images may be of any `dtype`
 
-Additionally, these preprocessing layers should cast back to the input images
-original `dtype` before the end of their `call` body.  This API design decision
-is made to preserve simplicity and provide the easiest API to use.
-
 The decision to support inputs of any `dtype` is made based on the nuance that
 some Keras layers cast user inputs without the user knowing.  For example, if
 `Solarization` expected user inputs to be of type `int`, and a custom layer

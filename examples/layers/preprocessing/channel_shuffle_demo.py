@@ -11,9 +11,11 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""gridmask_demo.py shows how to use the GridMask preprocessing layer.
 
-Operates on the oxford_flowers102 dataset.  In this script the flowers
+
+"""channel_shuffle_demo.py shows how to use the ChannelShuffle preprocessing layer.
+
+Operates on the oxford_flowers102 dataset. In this script the flowers
 are loaded, then are passed through the preprocessing layers.
 Finally, they are shown using matplotlib.
 """
@@ -46,11 +48,9 @@ def main():
         .batch(BATCH_SIZE)
     )
 
-    gridmask = preprocessing.GridMask(
-        ratio="random", rotation_factor=0.5, fill_mode="gaussian_noise"
-    )
+    channel_shuffle = preprocessing.ChannelShuffle()
     train_ds = train_ds.map(
-        lambda x, y: (gridmask(x, training=True), y),
+        lambda x, y: (channel_shuffle(x, training=True), y),
         num_parallel_calls=tf.data.AUTOTUNE,
     )
 
