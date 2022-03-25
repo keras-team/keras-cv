@@ -18,22 +18,25 @@ from tensorflow.keras import layers
 
 class RGBShift(layers.Layer):
     """Randomly shift values for each channel of the input image(s).
+
     The input images should have values in the `[0-255]` range.
 
     Input shape:
         3D (unbatched) or 4D (batched) tensor with shape:
-        `(..., height, width, channels)`, in `channels_last` format
+        `(..., height, width, channels)`, in `channels_last` format.
 
     Output shape:
         3D (unbatched) or 4D (batched) tensor with shape:
-        `(..., height, width, channels)`, in `channels_last` format
+        `(..., height, width, channels)`, in `channels_last` format.
 
     Args:
-        factor: A scalar or tuple or list of two upper and lower bound 
-            number. If factor is a single value, the range will be 
-            `(-factor, factor)`. The factor value can be float or integer; 
-            for float the valid limits are `(-1.0, 1.0)` and for integer the 
-            valid limits are `(-255, 255)`.
+        factor: A scalar value, or tuple/list of two values. 
+            number. If `factor` is a single value, it is interpreted as 
+            equivalent to the tuple `(-factor, factor)`.
+            If the lower and upper founds are floats in the range `[-1, 1]`,
+            then the bounds are interpreted as fractions. If the lower
+            and upper bounds are integers in the range `[0, 255]`, then
+            the bounds are intepreted as absolute pixel values.
         seed: Integer. Used to create a random seed. Default: None.
 
     Call arguments: 
