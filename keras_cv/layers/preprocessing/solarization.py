@@ -81,11 +81,8 @@ class Solarization(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
         )
         return result
 
-    def _solarize(self, images):
-        return 255 - images
-
     def _solarize_above_threshold(self, images):
-        return tf.where(images < self.threshold, images, self._solarize(images))
+        return tf.where(images < self.threshold, images, 255 - images)
 
     def get_config(self):
         config = {
