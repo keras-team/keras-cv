@@ -33,24 +33,28 @@ def rectangle_masks(corners, mask_shape):
     corners = corners[..., tf.newaxis, tf.newaxis]
 
     # split coordinates
-    x0 = corners[:, 0]
-    y0 = corners[:, 1]
-    x1 = corners[:, 2]
-    y1 = corners[:, 3]
+    x0 = corners[:, :, 0]
+    y0 = corners[:, :, 1]
+    x1 = corners[:, :, 2]
+    y1 = corners[:, :, 3]
 
     # repeat height and width
     width, height = mask_shape
-    x0_rep = tf.repeat(x0, height, axis=1)
-    y0_rep = tf.repeat(y0, width, axis=2)
-    x1_rep = tf.repeat(x1, height, axis=1)
-    y1_rep = tf.repeat(y1, width, axis=2)
+    x0_rep = tf.repeat(x0, height, axis=2)
+    y0_rep = tf.repeat(y0, width, axis=3)
+    x1_rep = tf.repeat(x1, height, axis=2)
+    y1_rep = tf.repeat(y1, width, axis=3)
 
     # range grid
     batch_size = tf.shape(corners)[0]
     range_row = tf.range(0, height, dtype=corners.dtype)
     range_col = tf.range(0, width, dtype=corners.dtype)
-    range_row = tf.repeat(range_row[tf.newaxis, :, tf.newaxis], batch_size, 0)
-    range_col = tf.repeat(range_col[tf.newaxis, tf.newaxis, :], batch_size, 0)
+    range_row = tf.repeat(
+        range_row[tf.newaxis, tf.newaxis, :, tf.newaxis], batch_size, 0
+    )
+    range_col = tf.repeat(
+        range_col[tf.newaxis, tf.newaxis, tf.newaxis, :], batch_size, 0
+    )
 
     # boolean masks
     mask_x0 = tf.less_equal(x0_rep, range_col)
@@ -59,7 +63,6 @@ def rectangle_masks(corners, mask_shape):
     mask_y1 = tf.less(range_row, y1_rep)
 
     masks = mask_x0 & mask_y0 & mask_x1 & mask_y1
-
     return masks
 
 
@@ -80,7 +83,7 @@ def fill_rectangle(images, centers_x, centers_y, widths, heights, fill_values):
     images_height = images_shape[1]
     images_width = images_shape[2]
 
-    xywh = tf.stack([centers_x, centers_y, widths, heights], axis=1)
+    xywh = tf.stack([centers_x, centers_y, widths, heights], axis=2)
     xywh = tf.cast(xywh, tf.float32)
     corners = bounding_box.xywh_to_corners(xywh)
 
@@ -88,5 +91,7 @@ def fill_rectangle(images, centers_x, centers_y, widths, heights, fill_values):
     is_rectangle = rectangle_masks(corners, mask_shape)
     is_rectangle = tf.expand_dims(is_rectangle, -1)
 
+    # Bringing all masks together into one
+    is_rectangle = tf.reduce_any(is_rectangle, axis=1)
     images = tf.where(is_rectangle, fill_values, images)
     return images
