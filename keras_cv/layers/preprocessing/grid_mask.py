@@ -17,9 +17,21 @@ from tensorflow.keras import backend
 from tensorflow.keras import layers
 
 from keras_cv.utils import fill_utils
+from keras.layers.preprocessing.image_preprocessing import BaseImageAugmentationLayer
 
 
-class GridMask(layers.Layer):
+def _center_crop(mask, width, height):
+    masks_shape = tf.shape(mask)
+    h_diff = masks_shape[0] - height
+    w_diff = masks_shape[1] - width
+
+    h_start = tf.cast(h_diff / 2, tf.int32)
+    w_start = tf.cast(w_diff / 2, tf.int32)
+    return tf.image.crop_to_bounding_box(mask, h_start, w_start, height, width)
+
+
+# class GridMask(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
+class GridMask(BaseImageAugmentationLayer):
     """GridMask class for grid-mask augmentation.
 
 
@@ -90,6 +102,7 @@ class GridMask(layers.Layer):
             factor=rotation_factor, fill_mode="constant", fill_value=0.0, seed=seed
         )
         self.seed = seed
+        self.auto_vectorize = False
 
         self._check_parameter_values()
 
@@ -119,135 +132,84 @@ class GridMask(layers.Layer):
                 f'"gaussian_noise", or "random".  Got `fill_mode`={fill_mode}'
             )
 
-    def _compute_grid_masks(self, input_shape):
-        """Computes grid masks"""
-        batch_size = input_shape[0]
-        height = tf.cast(input_shape[1], tf.float32)
-        width = tf.cast(input_shape[2], tf.float32)
+    def get_random_transformation(self, image=None, label=None, bounding_box=None):
+        if self.ratio == "random":
+            return tf.random.uniform(
+                shape=(), minval=0, maxval=1, dtype=tf.float32, seed=self.seed
+            )
+        else:
+            return self.ratio
+
+    def _compute_grid_mask(self, input_shape, ratio):
+        height = tf.cast(input_shape[0], tf.float32)
+        width = tf.cast(input_shape[1], tf.float32)
 
         # masks side length
         input_diagonal_len = tf.sqrt(tf.square(width) + tf.square(height))
         mask_side_len = tf.math.ceil(input_diagonal_len)
 
-        # grid unit sizes
-        unit_sizes = tf.random.uniform(
-            shape=[batch_size],
+        # grid unit size
+        unit_size = tf.random.uniform(
+            shape=(),
             minval=tf.math.minimum(height * 0.5, width * 0.3),
             maxval=tf.math.maximum(height * 0.5, width * 0.3) + 1,
             dtype=tf.float32,
         )
-        if self.ratio == "random":
-            ratio = tf.random.uniform(
-                shape=[batch_size], minval=0, maxval=1, dtype=tf.float32, seed=self.seed
-            )
-        else:
-            ratio = self.ratio
-        rectangle_side_len = tf.cast((1 - ratio) * unit_sizes, tf.float32)
+        rectangle_side_len = tf.cast((1 - ratio) * unit_size, tf.float32)
 
-        # sample x and y offsets for grid units randomly between 0 and unit_sizes
-        delta_x = tf.random.uniform([batch_size], minval=0, maxval=1, dtype=tf.float32)
-        delta_y = tf.random.uniform([batch_size], minval=0, maxval=1, dtype=tf.float32)
-        delta_x = delta_x * unit_sizes
-        delta_y = delta_y * unit_sizes
+        # sample x and y offset for grid units randomly between 0 and unit_size
+        delta_x = tf.random.uniform(shape=(), minval=0, maxval=unit_size, dtype=tf.float32)
+        delta_y = tf.random.uniform(shape=(), minval=0, maxval=unit_size, dtype=tf.float32)
 
-        # grid size (number of diagonal units per grid)
-        grid_sizes = mask_side_len // unit_sizes + 1
-        max_grid_size = tf.reduce_max(grid_sizes)
-
-        # grid size range per image
-        grid_size_range = tf.range(1, max_grid_size + 1)
-        grid_size_range = tf.tile(tf.expand_dims(grid_size_range, 0), [batch_size, 1])
-
-        # make broadcastable to grid size ranges
-        delta_x = tf.expand_dims(delta_x, 1)
-        delta_y = tf.expand_dims(delta_y, 1)
-        unit_sizes = tf.expand_dims(unit_sizes, 1)
-        rectangle_side_len = tf.expand_dims(rectangle_side_len, 1)
+        # grid size (number of diagonal units in grid)
+        grid_size = mask_side_len // unit_size + 1
+        grid_size_range = tf.range(1, grid_size + 1)
 
         # diagonal corner coordinates
-        d_range = grid_size_range * unit_sizes
-        x1 = d_range - delta_x
+        unit_size_range = grid_size_range * unit_size
+        x1 = unit_size_range - delta_x
         x0 = x1 - rectangle_side_len
-        y1 = d_range - delta_y
+        y1 = unit_size_range - delta_y
         y0 = y1 - rectangle_side_len
 
-        # not every input has the same grid size (its random),
-        # so we mask out some of the coordinates for smaller grids.
-        d_range_mask = tf.sequence_mask(
-            lengths=grid_sizes, maxlen=max_grid_size, dtype=tf.float32
-        )
-        x1 = x1 * d_range_mask
-        x0 = x0 * d_range_mask
-        y1 = y1 * d_range_mask
-        y0 = y0 * d_range_mask
+        # compute grid coordinates
+        x0, y0 = tf.meshgrid(x0, y0)
+        x1, y1 = tf.meshgrid(x1, y1)
 
-        # mesh grid of diagonal top left corner coordinates for each image
-        x0 = tf.tile(tf.expand_dims(x0, 1), [1, max_grid_size, 1])
-        y0 = tf.tile(tf.expand_dims(y0, 1), [1, max_grid_size, 1])
-        y0 = tf.transpose(y0, [0, 2, 1])
+        # flatten mesh grid
+        x0 = tf.reshape(x0, [-1])
+        y0 = tf.reshape(y0, [-1])
+        x1 = tf.reshape(x1, [-1])
+        y1 = tf.reshape(y1, [-1])
 
-        # mesh grid of diagonal bottom right corner coordinates for each image
-        x1 = tf.tile(tf.expand_dims(x1, 1), [1, max_grid_size, 1])
-        y1 = tf.tile(tf.expand_dims(y1, 1), [1, max_grid_size, 1])
-        y1 = tf.transpose(y1, [0, 2, 1])
-
-        # flatten mesh grids
-        x0 = tf.reshape(x0, [-1, max_grid_size])
-        y0 = tf.reshape(y0, [-1, max_grid_size])
-        x1 = tf.reshape(x1, [-1, max_grid_size])
-        y1 = tf.reshape(y1, [-1, max_grid_size])
-
-        # combine coordinates to (x0, y0, x1, y1)
-        # with shape (num_rectangles_in_batch, 4)
         corners = tf.stack([x0, y0, x1, y1], axis=-1)
-        corners = tf.reshape(corners, [-1, 4])
 
-        # make mask for each rectangle
         mask_side_len = tf.cast(mask_side_len, tf.int32)
-        masks = fill_utils.corners_to_mask(corners, (mask_side_len, mask_side_len))
+        mask = tf.random.uniform(shape=(mask_side_len, mask_side_len), minval=0, maxval=2, dtype=tf.int32)
+        mask = tf.cast(mask, tf.bool)
+        return mask
 
-        # reshape masks into shape
-        # (batch_size, rectangles_per_image, mask_height, mask_width)
-        mask_side_len = tf.cast(mask_side_len, tf.float32)
-        masks = tf.reshape(
-            masks,
-            [-1, max_grid_size * max_grid_size, mask_side_len, mask_side_len],
-        )
-
-        # combine rectangle masks per image
-        masks = tf.reduce_any(masks, axis=1)
-
-        return masks
-
-    def _center_crop(self, masks, width, height):
-        masks_shape = tf.shape(masks)
-        h_diff = masks_shape[1] - height
-        w_diff = masks_shape[2] - width
-
-        h_start = tf.cast(h_diff / 2, tf.int32)
-        w_start = tf.cast(w_diff / 2, tf.int32)
-        return tf.image.crop_to_bounding_box(masks, h_start, w_start, height, width)
-
-    def _grid_mask(self, images):
-        input_shape = tf.shape(images)
+    def augment_image(self, image, transformation=None):
+        ratio = transformation
+        input_shape = tf.shape(image)
 
         # compute grid masks
-        masks = self._compute_grid_masks(input_shape)
+        mask = self._compute_grid_mask(input_shape, ratio)
 
-        # convert masks to single-channel images
-        masks = tf.cast(masks, tf.float32)
-        masks = tf.expand_dims(masks, axis=-1)
+        # convert mask to single-channel images
+        mask = tf.cast(mask, tf.float32)
+        mask = tf.expand_dims(mask, axis=-1)
 
-        # randomly rotate masks
-        masks = self.random_rotate(masks)
+        # randomly rotate mask
+        mask = self.random_rotate(mask)
 
-        # center crop masks
-        input_height = input_shape[1]
-        input_width = input_shape[2]
-        masks = self._center_crop(masks, input_width, input_height)
+        # center crop mask
+        input_height = input_shape[0]
+        input_width = input_shape[1]
+        mask = _center_crop(mask, input_width, input_height)
 
         # convert back to boolean mask
-        masks = tf.cast(masks, tf.bool)
+        mask = tf.cast(mask, tf.bool)
 
         # fill
         if self.fill_mode == "constant":
@@ -256,31 +218,7 @@ class GridMask(layers.Layer):
             # gaussian noise
             fill_value = tf.random.normal(input_shape)
 
-        return tf.where(masks, fill_value, images)
-
-    def call(self, images, training=True):
-        """call method for the GridMask layer.
-
-        Args:
-            images: Tensor representing images with shape
-                [batch_size, width, height, channels] or [width, height, channels]
-                of type int or float.  Values should be in the range [0, 255].
-        Returns:
-            images: augmented images, same shape as input.
-        """
-
-        if training is None:
-            training = backend.learning_phase()
-
-        if training:
-            if images.shape.rank == 3:
-                images = tf.expand_dims(images, axis=0)
-                images = self._grid_mask(images)
-                images = tf.squeeze(images, axis=0)
-            else:
-                images = self._grid_mask(images)
-
-        return images
+        return tf.where(mask, fill_value, image)
 
     def get_config(self):
         config = {
