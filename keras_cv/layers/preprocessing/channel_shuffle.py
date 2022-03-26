@@ -32,7 +32,7 @@ class ChannelShuffle(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
         seed: Integer. Used to create a random seed.
 
     Call arguments:
-        images: Tensor representing images of shape
+        inputs: Tensor representing images of shape
             `(batch_size, width, height, channels)`, with dtype tf.float32 / tf.uint8,
             ` or (width, height, channels)`, with dtype tf.float32 / tf.uint8
         training: A boolean argument that determines whether the call should be run
