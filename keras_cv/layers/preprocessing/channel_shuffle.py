@@ -13,10 +13,9 @@
 # limitations under the License.
 
 import tensorflow as tf
-from tensorflow.keras import layers
 
 
-class ChannelShuffle(layers.Layer):
+class ChannelShuffle(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
     """Shuffle channels of an input image.
 
     Input shape:
@@ -52,15 +51,10 @@ class ChannelShuffle(layers.Layer):
         self.groups = groups
         self.seed = seed
 
-    def _channel_shuffling(self, images):
-        unbatched = images.shape.rank == 3
-
-        if unbatched:
-            images = tf.expand_dims(images, axis=0)
-
-        height = tf.shape(images)[1]
-        width = tf.shape(images)[2]
-        num_channels = images.shape[3]
+    def augment_image(self, image, transformation=None):
+        height = tf.shape(image)[0]
+        width = tf.shape(image)[1]
+        num_channels = image.shape[2]
 
         if not num_channels % self.groups == 0:
             raise ValueError(
@@ -70,24 +64,13 @@ class ChannelShuffle(layers.Layer):
             )
 
         channels_per_group = num_channels // self.groups
-        images = tf.reshape(
-            images, [-1, height, width, self.groups, channels_per_group]
-        )
-        images = tf.transpose(images, perm=[3, 1, 2, 4, 0])
-        images = tf.random.shuffle(images, seed=self.seed)
-        images = tf.transpose(images, perm=[4, 1, 2, 3, 0])
-        images = tf.reshape(images, [-1, height, width, num_channels])
+        image = tf.reshape(image, [height, width, self.groups, channels_per_group])
+        image = tf.transpose(image, perm=[2, 0, 1, 3])
+        image = tf.random.shuffle(image, seed=self.seed)
+        image = tf.transpose(image, perm=[1, 2, 3, 0])
+        image = tf.reshape(image, [height, width, num_channels])
 
-        if unbatched:
-            images = tf.squeeze(images, axis=0)
-
-        return images
-
-    def call(self, images, training=True):
-        if training:
-            return self._channel_shuffling(images)
-        else:
-            return images
+        return image
 
     def get_config(self):
         config = super().get_config()
