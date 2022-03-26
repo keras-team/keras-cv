@@ -13,11 +13,9 @@
 # limitations under the License.
 
 import tensorflow as tf
-from tensorflow.keras import backend
-from tensorflow.keras import layers
 
 
-class Grayscale(layers.Layer):
+class Grayscale(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
     """Grayscale is a preprocessing layer that transforms RGB images to Grayscale images.
     Input images should have values in the range of [0, 255].
 
@@ -56,7 +54,7 @@ class Grayscale(layers.Layer):
             )
         self.output_channels = output_channels
 
-    def _rgb_to_grayscale(self, image):
+    def augment_image(self, image, transformation=None):
         grayscale = tf.image.rgb_to_grayscale(image)
         if self.output_channels == 1:
             return grayscale
@@ -64,25 +62,6 @@ class Grayscale(layers.Layer):
             return tf.image.grayscale_to_rgb(grayscale)
         else:
             raise ValueError("Unsupported value for `output_channels`.")
-
-    def call(self, images, training=None):
-        """call method for the ChannelShuffle layer.
-        Args:
-            images: Tensor representing images of shape
-                [batch_size, width, height, channels] or
-                [width, height, channels] with type float or int.
-                Pixel values should be in the range [0, 255]
-        Returns:
-            images: augmented images, same shape as input.
-        """
-        if training is None:
-            training = backend.learning_phase()
-
-        return tf.cond(
-            tf.cast(training, tf.bool),
-            lambda: self._rgb_to_grayscale(images),
-            lambda: images,
-        )
 
     def get_config(self):
         config = {
