@@ -13,11 +13,9 @@
 # limitations under the License.
 
 import tensorflow as tf
-from tensorflow.keras import backend
 from tensorflow.keras import layers
 
 from keras_cv.utils import fill_utils
-from keras.layers.preprocessing.image_preprocessing import BaseImageAugmentationLayer
 
 
 def _center_crop(mask, width, height):
@@ -30,8 +28,7 @@ def _center_crop(mask, width, height):
     return tf.image.crop_to_bounding_box(mask, h_start, w_start, height, width)
 
 
-# class GridMask(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
-class GridMask(BaseImageAugmentationLayer):
+class GridMask(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
     """GridMask class for grid-mask augmentation.
 
 
@@ -102,7 +99,7 @@ class GridMask(BaseImageAugmentationLayer):
             factor=rotation_factor, fill_mode="constant", fill_value=0.0, seed=seed
         )
         self.seed = seed
-        self.auto_vectorize = False
+        self.auto_vectorize = True
 
         self._check_parameter_values()
 
@@ -183,11 +180,11 @@ class GridMask(BaseImageAugmentationLayer):
         y1 = tf.reshape(y1, [-1])
 
         corners = tf.stack([x0, y0, x1, y1], axis=-1)
-
         mask_side_len = tf.cast(mask_side_len, tf.int32)
-        mask = tf.random.uniform(shape=(mask_side_len, mask_side_len), minval=0, maxval=2, dtype=tf.int32)
-        mask = tf.cast(mask, tf.bool)
-        return mask
+        rectangle_masks = fill_utils.corners_to_mask(corners, mask_shape=(mask_side_len, mask_side_len))
+        grid_mask = tf.reduce_any(rectangle_masks, axis=0)
+
+        return grid_mask
 
     def augment_image(self, image, transformation=None):
         ratio = transformation
