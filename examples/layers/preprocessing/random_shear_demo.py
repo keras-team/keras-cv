@@ -11,13 +11,12 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""gridmask_demo.py shows how to use the GridMask preprocessing layer.
+"""random_shear_demo.py shows how to use the RandomShear preprocessing layer.
 
 Operates on the oxford_flowers102 dataset.  In this script the flowers
 are loaded, then are passed through the preprocessing layers.
 Finally, they are shown using matplotlib.
 """
-
 import matplotlib.pyplot as plt
 import tensorflow as tf
 import tensorflow_datasets as tfds
@@ -28,9 +27,8 @@ IMG_SIZE = (224, 224)
 BATCH_SIZE = 64
 
 
-def resize(image, label, num_classes=10):
+def resize(image, label):
     image = tf.image.resize(image, IMG_SIZE)
-    label = tf.one_hot(label, num_classes)
     return image, label
 
 
@@ -38,20 +36,17 @@ def main():
     data, ds_info = tfds.load("oxford_flowers102", with_info=True, as_supervised=True)
     train_ds = data["train"]
 
-    num_classes = ds_info.features["label"].num_classes
-
     train_ds = (
-        train_ds.map(lambda x, y: resize(x, y, num_classes=num_classes))
+        train_ds.map(lambda x, y: resize(x, y))
         .shuffle(10 * BATCH_SIZE)
         .batch(BATCH_SIZE)
     )
-
-    gridmask = preprocessing.GridMask(
-        ratio="random", rotation_factor=0.5, fill_mode="gaussian_noise"
+    random_cutout = preprocessing.RandomShear(
+        x=(0, 1),
+        y=0.5,
     )
     train_ds = train_ds.map(
-        lambda x, y: (gridmask(x, training=True), y),
-        num_parallel_calls=tf.data.AUTOTUNE,
+        lambda x, y: (random_cutout(x), y), num_parallel_calls=tf.data.AUTOTUNE
     )
 
     for images, labels in train_ds.take(1):

@@ -12,8 +12,4 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from keras_cv import layers
-from keras_cv import metrics
-from keras_cv import utils
-
-__version__ = "master"
+from keras_cv.layers.regularization.dropblock_2d import DropBlock2D
