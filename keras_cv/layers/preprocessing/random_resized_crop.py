@@ -6,6 +6,7 @@ from keras.utils import image_utils
 from keras.utils import tf_utils
 import numpy as np
 import tensorflow as tf
+import random
 from tensorflow.python.util.tf_export import keras_export
 from tensorflow.tools.docs import doc_controls
 
@@ -23,9 +24,7 @@ class RandomResizedCrop(base_layer.Layer):
     '''
 
     def __init__(self, height, width, seed=None, **kwargs):
-        base_preprocessing_layer.keras_kpl_gauge.get_cell('RandomCrop').set(True)
-        super(RandomResizedCrop, self).__init__(**kwargs, autocast=False, seed=seed,
-                                         force_generator=True)
+        super().__init__
         # Attribute to crop image
         self.height = height
         # Attribute to take the custom height
@@ -62,7 +61,9 @@ class RandomResizedCrop(base_layer.Layer):
 
     # method for resizing the images
     def _resize(self, inputs):
-        outputs = image_utils.smart_resize(inputs, [self.height, self.width])
+        self.new_height=random.randint(0,self.height)
+        self.new_width=random.randint(0,self.width)
+        outputs = image_utils.smart_resize(inputs, [self.new_height, self.new_width])
         # smart_resize will always output float32, so we need to re-cast.
         return tf.cast(outputs, self.compute_dtype)
 
