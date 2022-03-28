@@ -58,8 +58,7 @@ def draw_segmentation(image, mask, color="red", alpha=0.4):
         raise ValueError("`mask` elements should be in [0, 1]")
     if image.shape[:3] != mask.shape:
         raise ValueError(
-            "The image has spatial dimensions %s but the mask has "
-            "dimensions %s" % (image.shape[:2], mask.shape)
+            f"image.shape[:3] == mask.shape should be true, got {image.shape[:3]} != {mask.shape}"
         )
     if alpha <= 0.0:
         return tf.cast(image, dtype=tf.float32)
