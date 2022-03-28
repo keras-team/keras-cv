@@ -16,8 +16,8 @@
 import numpy as np
 import tensorflow as tf
 
-from pycocotools import mask as maskUtils
 from keras_cv.utils import iou as iou_lib
+from pycocotools import mask as maskUtils
 
 
 class IoUTest(tf.test.TestCase):
