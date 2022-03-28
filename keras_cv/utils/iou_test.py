@@ -16,31 +16,31 @@
 import numpy as np
 import tensorflow as tf
 
+from keras_cv.utils import bounding_box as bbox
 from keras_cv.utils import iou as iou_lib
 from pycocotools import mask as maskUtils
 
 
 class IoUTest(tf.test.TestCase):
     def test_compute_single_iou(self):
-        bb1_coords = [[100, 101, 200, 201]]
-        bb1_coords_off_by_1 = [[101, 102, 201, 202]]
-        bb1 = tf.constant(bb1_coords, dtype=tf.float32)
-        bb1_off_by_1 = tf.constant(bb1_coords_off_by_1, dtype=tf.float32)
-        # area of bb1 and bb1_off_by_1 are each 10000.
+        bb1 = tf.constant([[100, 101, 200, 201]], dtype=tf.float32)
+        bb1_off_by_1 = tf.constant([[101, 102, 201, 202]], dtype=tf.float32)
+        bb1_xywh = [[100, 101, 100, 100]]
+        bb1_off_by_1_xywh = [[101, 102, 100, 100]]
         # intersection area is 99*99=9801
         # iou=9801/(2*10000 - 9801)=0.96097656633
+
         print(iou_lib.compute_ious_for_image(bb1, bb1_off_by_1))
         iou = iou_lib.compute_ious_for_image(bb1, bb1_off_by_1)
-        pycocotools_iou_crowd = maskUtils.iou(bb1_coords, 
-            bb1_coords_off_by_1,[True])[0][0]
-        pycocotools_iou_not_crowd = maskUtils.iou(bb1_coords,
-            bb1_coords_off_by_1,[False])[0][0]
-        with self.subTest(msg='Compare with pycocotools_iou_crowd'):
-            self.assertAlmostEqual(iou[0].numpy()[0], pycocotools_iou_crowd)
+
+        pycocotools_iou_crowd = maskUtils.iou(bb1_xywh,
+            bb1_off_by_1_xywh, [True])[0][0]
+        pycocotools_iou_not_crowd = maskUtils.iou(bb1_xywh,
+            bb1_off_by_1_xywh, [False])[0][0]
+
         with self.subTest(msg='Compare with pycocotools_iou_not crowd'):
             self.assertAlmostEqual(iou[0].numpy()[0], 
                 pycocotools_iou_not_crowd)
-        
         self.assertAlmostEqual(
             iou_lib.compute_ious_for_image(bb1, bb1_off_by_1)[0], 0.96097656633
         )
