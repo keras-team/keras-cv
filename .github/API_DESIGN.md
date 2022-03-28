@@ -37,8 +37,7 @@ When subclassing `BaseImageAugmentationLayer`, several methods can overridden:
 - `augment_label()` allows updates to be made to labels
 - `augment_bounding_box()` allows updates to bounding boxes to be made
 
-When a canonical layer subclassing BaseImageAugmentationLayer is available, a 
-link to it will be added here.
+[`RandomShear` serves as a canonical example of how to subclass `BaseImageAugmentationLayer`](https://github.com/keras-team/keras-cv/blob/master/keras_cv/layers/preprocessing/random_shear.py)
 
 ## Vectorization
 `BaseImageAugmentationLayer` requires you to implement augmentations in an 
