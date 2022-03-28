@@ -47,10 +47,11 @@ def draw_segmentation(image, mask, color="red", alpha=0.4):
         if factor > 0.0 and factor < 1.0:
             # Interpolation means we always stay within 0 and 255.
             return tf.round(blended)
+        # We need to clip and then cast.
+        blended = tf.round(tf.clip_by_value(blended, 0.0, 255.0))
         return blended
 
-    if image.dtype != tf.uint8:
-        raise ValueError("`image` not of type tf.uint8")
+    tf.debugging.assert_integer(image, message="Only integer dtypes supported.")
     if mask.dtype != tf.uint8:
         raise ValueError("`mask` not of type tf.uint8")
     if tf.math.reduce_any(tf.math.logical_and(mask != 1, mask != 0)):
