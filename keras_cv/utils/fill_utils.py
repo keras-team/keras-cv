@@ -40,10 +40,10 @@ def rectangle_masks(corners, mask_shape):
 
     # repeat height and width
     width, height = mask_shape
-    x0_rep = tf.repeat(x0, height, axis=2)
-    y0_rep = tf.repeat(y0, width, axis=3)
-    x1_rep = tf.repeat(x1, height, axis=2)
-    y1_rep = tf.repeat(y1, width, axis=3)
+    x0_repeat = tf.repeat(x0, height, axis=-2)
+    y0_repeat = tf.repeat(y0, width, axis=-1)
+    x1_repeat = tf.repeat(x1, height, axis=-2)
+    y1_repeat = tf.repeat(y1, width, axis=-1)
 
     # range grid
     batch_size = tf.shape(corners)[0]
@@ -57,10 +57,10 @@ def rectangle_masks(corners, mask_shape):
     )
 
     # boolean masks
-    mask_x0 = tf.less_equal(x0_rep, range_col)
-    mask_y0 = tf.less_equal(y0_rep, range_row)
-    mask_x1 = tf.less(range_col, x1_rep)
-    mask_y1 = tf.less(range_row, y1_rep)
+    mask_x0 = tf.less_equal(x0_repeat, range_col)
+    mask_y0 = tf.less_equal(y0_repeat, range_row)
+    mask_x1 = tf.less(range_col, x1_repeat)
+    mask_y1 = tf.less(range_row, y1_repeat)
 
     masks = mask_x0 & mask_y0 & mask_x1 & mask_y1
     return masks

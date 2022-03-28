@@ -87,7 +87,7 @@ class CutMix(layers.Layer):
         )
 
         permutation_order = tf.random.shuffle(tf.range(0, batch_size), seed=self.seed)
-        lambda_sample = CutMix._sample_from_beta(self.alpha, self.alpha, (batch_size,))
+        lambda_sample = CutMix._sample_from_beta(self.alpha, self.alpha, (batch_size,1))
 
         ratio = tf.math.sqrt(1 - lambda_sample)
 
@@ -99,10 +99,10 @@ class CutMix(layers.Layer):
         )
 
         random_center_height = tf.random.uniform(
-            shape=[batch_size], minval=0, maxval=image_height, dtype=tf.int32
+            shape=[batch_size,1], minval=0, maxval=image_height, dtype=tf.int32
         )
         random_center_width = tf.random.uniform(
-            shape=[batch_size], minval=0, maxval=image_width, dtype=tf.int32
+            shape=[batch_size,1], minval=0, maxval=image_width, dtype=tf.int32
         )
 
         bounding_box_area = cut_height * cut_width

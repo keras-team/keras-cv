@@ -152,15 +152,17 @@ class RandomCutout(layers.Layer):
         self.fill_value = fill_value
         self.seed = seed
         self.num_cutouts = num_cutouts
-        if isinstance(num_cutouts, tuple):
-            self.num_cutouts = tf.random.uniform(
+
+    def get_random_transformation(self):
+        if isinstance(self.num_cutouts, tuple):
+            num_cutouts = tf.random.uniform(
                 shape=(1,),
                 minval=self.num_cutouts_lower,
                 maxval=self.num_cutouts_upper + 1,
                 dtype=tf.int32,
                 seed=self.seed,
             )
-            self.num_cutouts = self.num_cutouts[0]
+            self.num_cutouts = num_cutouts[0]
 
     def _parse_bounds(self, factor):
         if isinstance(factor, (tuple, list)):
@@ -172,6 +174,7 @@ class RandomCutout(layers.Layer):
         if training is None:
             training = backend.learning_phase()
 
+        self.get_random_transformation()
         augment = lambda: self._random_cutout(inputs)
         no_augment = lambda: inputs
         return tf.cond(tf.cast(training, tf.bool), augment, no_augment)
