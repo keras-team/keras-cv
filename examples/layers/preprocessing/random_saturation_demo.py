@@ -37,7 +37,7 @@ def main():
     train_ds = data["train"]
 
     train_ds = train_ds.map(lambda x, y: resize(x, y)).batch(BATCH_SIZE)
-    random_saturation = preprocessing.RandomSaturation(factor=(0.5, 1.5))
+    random_saturation = preprocessing.RandomSaturation(factor=(0.0, 1.0))
     train_ds = train_ds.map(
         lambda x, y: (random_saturation(x), y), num_parallel_calls=tf.data.AUTOTUNE
     )

@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import numpy as np
 import tensorflow as tf
 
 from keras_cv.utils import preprocessing
@@ -26,12 +25,11 @@ class RandomSaturation(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
 
     Args:
         factor: Either a tuple of two floats or a single float. `factor` controls the
-            extent to which the image saturation is impacted. `factor=1.0` makes
+            extent to which the image saturation is impacted. `factor=0.5` makes
             this layer perform a no-op operation. `factor=0.0` makes the image to be
-            fully grayscale. Any value larger than 1.0 will increase the saturation
-            of the image.
+            fully grayscale. `factor=1.0` makes the image to be fully saturated.
 
-            Values should be between `0.0` and +inf. If a tuple is used, a `factor`
+            Values should be between `0.0` and `1.0`. If a tuple is used, a `factor`
             is sampled between the two values for every image augmented.  If a single
             float is used, a value between `0.0` and the passed float is sampled.
             In order to ensure the value is always the same, please pass a tuple with
@@ -41,7 +39,7 @@ class RandomSaturation(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
     def __init__(self, factor, **kwargs):
         super().__init__(**kwargs)
         self.factor = preprocessing.parse_factor_value_range(
-            factor, min_value=0.0, max_value=np.inf
+            factor, min_value=0.0, max_value=1.0
         )
 
     def get_random_transformation(self, image=None, label=None, bounding_box=None):
@@ -53,7 +51,21 @@ class RandomSaturation(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
         )
 
     def augment_image(self, image, transformation=None):
-        adjust_factor = transformation
+        # Convert the factor range from [0, 1] to [0, +inf]. Note that the
+        # tf.image.adjust_saturation is trying to apply the following math formula
+        # `output_saturation = input_saturation * factor`. We use the following
+        # method to the do the mapping.
+        # `y = x / (1 - x)`.
+        # This will ensure:
+        #   y = +inf when x = 1 (full saturation)
+        #   y = 1 when x = 0.5 (no augmentation)
+        #   y = 0 when x = 0 (full gray scale)
+
+        # Convert the transformation to tensor in case it is a float. When
+        # transformation is 1.0, then it will result in to divide by zero error, but
+        # it will be handled correctly when it is a one tensor.
+        transformation = tf.convert_to_tensor(transformation)
+        adjust_factor = transformation / (1 - transformation)
         return tf.image.adjust_saturation(image, saturation_factor=adjust_factor)
 
     def get_config(self):
