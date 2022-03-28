@@ -33,8 +33,6 @@ class IoUTest(tf.test.TestCase):
         print(iou_lib.compute_ious_for_image(bb1, bb1_off_by_1))
         iou = iou_lib.compute_ious_for_image(bb1, bb1_off_by_1)
 
-        pycocotools_iou_crowd = maskUtils.iou(bb1_xywh,
-            bb1_off_by_1_xywh, [True])[0][0]
         pycocotools_iou_not_crowd = maskUtils.iou(bb1_xywh,
             bb1_off_by_1_xywh, [False])[0][0]
 
