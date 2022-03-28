@@ -34,7 +34,7 @@ setup(
     # Temporarily require tf-nightly until tf 2.9
     install_requires=["packaging", "tf-nightly", "absl-py"],
     extras_require={
-        "tests": ["flake8", "isort", "black", "pytest". "pytest-subtests", "pycocotools"],
+        "tests": ["flake8", "isort", "black", "pytest", "pytest-subtests", "pycocotools"],
         "examples": ["tensorflow_datasets", "matplotlib"],
     },
     classifiers=[
