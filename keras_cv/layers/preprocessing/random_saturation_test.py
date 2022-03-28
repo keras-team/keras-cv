@@ -78,4 +78,4 @@ class RandomSaturationTest(tf.test.TestCase):
     def test_config(self):
         layer = preprocessing.RandomSaturation(factor=(0.5, 1.5))
         config = layer.get_config()
-        self.assertEqual(config['factor'], (0.5, 1.5))
+        self.assertEqual(config["factor"], (0.5, 1.5))

@@ -18,7 +18,7 @@ from keras_cv.utils import preprocessing
 
 
 class RandomSaturation(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
-    """Randomly performs the saturation adjustment on given images.
+    """Randomly adjusts the saturation on given images.
 
     This layer will randomly increase/reduce the saturation for the input RGB
     images. At inference time, the output will be identical to the input.
@@ -44,14 +44,16 @@ class RandomSaturation(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
     def __init__(self, factor, **kwargs):
         super().__init__(**kwargs)
         self.factor = preprocessing.parse_factor_value_range(
-            factor, min_value=0.0, max_value=np.inf)
+            factor, min_value=0.0, max_value=np.inf
+        )
 
     def get_random_transformation(self, image=None, label=None, bounding_box=None):
         del image, label, bounding_box
         if self.factor[0] == self.factor[1]:
             return self.factor[0]
         return self._random_generator.random_uniform(
-            shape=(), minval=self.factor[0], maxval=self.factor[1], dtype=tf.float32)
+            shape=(), minval=self.factor[0], maxval=self.factor[1], dtype=tf.float32
+        )
 
     def augment_image(self, image, transformation=None):
         adjust_factor = transformation
@@ -61,7 +63,7 @@ class RandomSaturation(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
         # TODO(scottzhu): Add tf.keras.utils.register_keras_serializable to all the
         # KPLs for serial/deserialization
         config = {
-            'factor': self.factor,
+            "factor": self.factor,
         }
         base_config = super().get_config()
         return dict(list(base_config.items()) + list(config.items()))
