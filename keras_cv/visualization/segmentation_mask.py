@@ -1,9 +1,28 @@
+# Copyright 2022 The KerasCV Authors
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+"""Utility function to help visualize batch of binary mask.
+"""
+
 import tensorflow as tf
-import PIL.ImageColor as ImageColor
+
+from keras_cv.visualization.colors import colors
 
 
-def draw_masks_on_images(image, mask, color="red", alpha=0.4):
-    """Draws masks on images.
+def draw_segmentation(image, mask, color="red", alpha=0.4):
+    """Draws segmentation masks on images with desired color
+    and transparency.
+    Colors supported are standard X11 colors.
 
     Args:
         image: an uint8 tensor with shape (N, img_height, img_height, 3)
@@ -45,7 +64,12 @@ def draw_masks_on_images(image, mask, color="red", alpha=0.4):
         return tf.cast(image, dtype=tf.float32)
 
     # compute colored mask
-    rgb = ImageColor.getrgb(color)
+    rgb = colors.get(color, None)
+    if not rgb:
+        raise ValueError(
+            f"{color} is not supported yet,"
+            "please check supported colors at `keras_cv.visualization.colors`"
+        )
     solid_color = tf.expand_dims(tf.ones_like(mask), axis=-1)
     color = tf.cast(tf.reshape(list(rgb), [1, 1, 1, 3]), dtype=tf.uint8)
     solid_color *= color
