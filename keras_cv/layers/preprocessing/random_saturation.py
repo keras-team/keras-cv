@@ -24,9 +24,6 @@ class RandomSaturation(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
     images. At inference time, the output will be identical to the input.
     Call the layer with `training=True` to adjust the brightness of the input.
 
-    Note that different saturation adjustment factors will be apply to each the
-    images in the batch.
-
     Args:
         factor: Either a tuple of two floats or a single float. `factor` controls the
             extent to which the image saturation is impacted. `factor=1.0` makes
