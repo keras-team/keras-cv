@@ -16,7 +16,7 @@ use the full names for label types in our code base.
 # Preprocessing Layers
 ## Strength Parameters
 Many augmentation layers take a parameter representing a strength, often called
-`factor`.  Supported factor values must conform to a the range: `[0, 1]`, with
+`factor`.  When possible, factor values must conform to a the range: `[0, 1]`, with
 1 representing the strongest transformation and 0 representing a no-op transform.
 The strength of an augmentation should scale linearly with this factor.  If needed,
 a transformation can be performed to map to a large value range internally.  If
