@@ -13,10 +13,9 @@
 # limitations under the License.
 
 import tensorflow as tf
-from tensorflow.keras import layers
 
 
-class ColorJitter(layers.Layer):
+class ColorJitter(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
     """ColorJitter class randomly apply brightness, contrast, saturation 
     and hue image processing operation sequentially and randomly on the input. 
     It expects input as RGB image. The expected image should be `(0-255)` pixel ranges.
@@ -111,12 +110,12 @@ class ColorJitter(layers.Layer):
                 f"or list of two upper and lower bound number. Received: {factor}"
             )
 
-    def _color_jitter(self, images):
-        original_dtype = images.dtype
-        images = tf.cast(images, dtype=tf.float32)
+    def _color_jitter(self, image):
+        original_dtype = image.dtype
+        image = tf.cast(image, dtype=tf.float32)
 
         brightness = tf.image.random_brightness(
-            images, max_delta=self.brightness_factor * 255.0, seed=self.seed
+            image, max_delta=self.brightness_factor * 255.0, seed=self.seed
         )
         brightness = tf.clip_by_value(brightness, 0.0, 255.0)
 
@@ -135,11 +134,8 @@ class ColorJitter(layers.Layer):
         hue = tf.image.random_hue(saturation, max_delta=self.hue_factor, seed=self.seed)
         return tf.cast(hue, original_dtype)
 
-    def call(self, images, training=True):
-        if training:
-            return self._color_jitter(images)
-        else:
-            return images
+    def augment_image(self, image, transformation=None):
+        return self._color_jitter(image)
 
     def get_config(self):
         config = super().get_config()

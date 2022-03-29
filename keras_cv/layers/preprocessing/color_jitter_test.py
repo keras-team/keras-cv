@@ -75,7 +75,10 @@ class ColorJitterTest(tf.test.TestCase):
         )
         inputs = np.random.randint(0, 255, size=(224, 224, 3))
 
+        print('a ', inputs.dtype)
+
         output = layer(inputs, training=True)
+        print('b ', output.dtype)
         self.assertEqual(output.dtype, inputs.dtype)
 
         inputs = tf.cast(inputs, tf.float32)
