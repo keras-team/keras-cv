@@ -14,6 +14,8 @@
 import tensorflow as tf
 from tensorflow.keras import backend
 
+from keras_cv import core
+
 
 def transform_value_range(images, original_range, target_range, dtype=tf.float32):
     """transforms values in input tensor from original_range to target_range.
@@ -92,8 +94,19 @@ def blend(image1: tf.Tensor, image2: tf.Tensor, factor: float) -> tf.Tensor:
     return tf.clip_by_value(temp, 0.0, 255.0)
 
 
-def parse_factor_value_range(param, min_value=0.0, max_value=1.0, param_name="factor"):
-    if isinstance(param, float):
+def parse_factor(
+    param,
+    min_value=0.0,
+    max_value=1.0,
+    param_name="factor",
+    seed=None,
+    random_generator=None,
+):
+
+    if isinstance(param, core.Factor):
+        return param
+
+    if isinstance(param, float) or isinstance(param, int):
         param = (min_value, param)
 
     if param[0] > param[1]:
@@ -101,13 +114,20 @@ def parse_factor_value_range(param, min_value=0.0, max_value=1.0, param_name="fa
             f"`{param_name}[0] > {param_name}[1]`, `{param_name}[0]` must be <= "
             f"`{param_name}[1]`.  Got `{param_name}={param}`"
         )
-    if param[0] < min_value or param[1] > max_value:
+    if (min_value is not None and param[0] < min_value) or (
+        max_value is not None and param[1] > max_value
+    ):
         raise ValueError(
             f"`{param_name}` should be inside of range [{min_value}, {max_value}]. "
             f"Got {param_name}={param}"
         )
 
-    return param
+    if param[0] == param[1]:
+        return core.ConstantFactor(param[0])
+
+    return core.UniformFactor(
+        param[0], param[1], seed=seed, random_generator=random_generator
+    )
 
 
 def transform(
