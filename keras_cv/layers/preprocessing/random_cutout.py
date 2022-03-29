@@ -18,6 +18,7 @@ from tensorflow.keras import backend
 from keras_cv.utils import fill_utils
 
 
+@tf.keras.utils.register_keras_serializable(package="keras_cv")
 class RandomCutout(layers.Layer):
     """Randomly cut out rectangles from images and fill them.
 
@@ -75,6 +76,7 @@ class RandomCutout(layers.Layer):
 
         self.height_lower, self.height_upper = self._parse_bounds(height_factor)
         self.width_lower, self.width_upper = self._parse_bounds(width_factor)
+        self.num_cutouts = num_cutouts
         self.num_cutouts_lower, self.num_cutouts_upper = self._parse_bounds(num_cutouts)
         self.num_cutouts_lower = (
             self.num_cutouts_lower if self.num_cutouts_lower != 0 else 1
@@ -265,8 +267,8 @@ class RandomCutout(layers.Layer):
 
     def get_config(self):
         config = {
-            "height_factor": self.height_factor,
-            "width_factor": self.width_factor,
+            "height_factor": (self.height_lower, self.height_upper),
+            "width_factor": (self.width_lower, self.width_upper),
             "fill_mode": self.fill_mode,
             "fill_value": self.fill_value,
             "num_cutouts": self.num_cutouts,

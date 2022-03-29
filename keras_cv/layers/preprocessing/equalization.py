@@ -14,6 +14,7 @@
 import tensorflow as tf
 
 
+@tf.keras.utils.register_keras_serializable(package="keras_cv")
 class Equalization(tf.keras.layers.Layer):
     """Equalization performs histogram equalization on a channel-wise basis.
 
@@ -89,3 +90,8 @@ class Equalization(tf.keras.layers.Layer):
 
         images = tf.stack([r, g, b], axis=-1)
         return images
+
+    def get_config(self):
+        config = super().get_config()
+        config.update({"bins": self.bins})
+        return config

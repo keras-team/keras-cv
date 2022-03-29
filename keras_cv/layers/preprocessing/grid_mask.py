@@ -17,6 +17,7 @@ from tensorflow.keras import backend
 from tensorflow.keras import layers
 
 
+@tf.keras.utils.register_keras_serializable(package="keras_cv")
 class GridMask(layers.Layer):
     """GridMask class for grid-mask augmentation.
 
@@ -84,9 +85,9 @@ class GridMask(layers.Layer):
             self.ratio = ratio.lower()
         self.fill_mode = fill_mode
         self.fill_value = fill_value
-        self.random_rotate = layers.RandomRotation(factor=rotation_factor, seed=seed)
+        self.rotation_factor = rotation_factor
         self.seed = seed
-
+        self.random_rotate = layers.RandomRotation(factor=rotation_factor, seed=seed)
         self._check_parameter_values()
 
     def _check_parameter_values(self):

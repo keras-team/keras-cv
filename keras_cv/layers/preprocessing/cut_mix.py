@@ -19,6 +19,7 @@ from tensorflow.keras import backend
 from keras_cv.utils import fill_utils
 
 
+@tf.keras.utils.register_keras_serializable(package="keras_cv")
 class CutMix(layers.Layer):
     """CutMix implements the CutMix data augmentation technique.
 
