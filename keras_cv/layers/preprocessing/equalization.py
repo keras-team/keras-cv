@@ -13,14 +13,20 @@
 # limitations under the License.
 import tensorflow as tf
 
+from keras_cv.utils import preprocessing
+
 
 @tf.keras.utils.register_keras_serializable(package="keras_cv")
-class Equalization(tf.keras.layers.Layer):
+class Equalization(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
     """Equalization performs histogram equalization on a channel-wise basis.
 
     Args:
         bins: Integer indicating the number of bins to use in histogram equalization.
             Should be in the range [0, 256]
+        value_range: a tuple or a list of two elements. The first value represents
+            the lower bound for values in passed images, the second represents the
+            upper bound. Images passed to the layer should have values within
+            `value_range`. Defaults to `(0, 255)`.
 
     Usage:
     ```python
@@ -36,9 +42,10 @@ class Equalization(tf.keras.layers.Layer):
             of type float or int.  Should be in NHWC format.
     """
 
-    def __init__(self, bins=256, **kwargs):
+    def __init__(self, bins=256, value_range=(0, 255), **kwargs):
         super().__init__(**kwargs)
         self.bins = bins
+        self.value_range = value_range
 
     def equalize_channel(self, image, channel_index):
         """equalize_channel performs histogram equalization on a single channel.
@@ -48,7 +55,6 @@ class Equalization(tf.keras.layers.Layer):
                 with channels last
             channel_index: channel to equalize
         """
-        dtype = image.dtype
         image = image[..., channel_index]
         # Compute the histogram of the image channel.
         histogram = tf.histogram_fixed_width(image, [0, 255], nbins=self.bins)
@@ -75,23 +81,24 @@ class Equalization(tf.keras.layers.Layer):
         result = tf.cond(
             tf.equal(step, 0),
             lambda: image,
-            lambda: tf.gather(build_mapping(histogram, step), image),
+            lambda: tf.cast(
+                tf.gather(build_mapping(histogram, step), tf.cast(image, tf.int32)),
+                self.compute_dtype,
+            ),
         )
 
-        return tf.cast(result, dtype)
+        return result
 
-    def call(self, images):
-        # Assumes RGB for now.  Scales each channel independently
-        # and then stacks the result.
-        # TODO(lukewood): ideally this would be vectorized.
-        r = tf.map_fn(lambda x: self.equalize_channel(x, 0), images)
-        g = tf.map_fn(lambda x: self.equalize_channel(x, 1), images)
-        b = tf.map_fn(lambda x: self.equalize_channel(x, 2), images)
-
-        images = tf.stack([r, g, b], axis=-1)
-        return images
+    def augment_image(self, image, transformation=None):
+        image = preprocessing.transform_value_range(image, self.value_range, (0, 255))
+        r = self.equalize_channel(image, 0)
+        g = self.equalize_channel(image, 1)
+        b = self.equalize_channel(image, 2)
+        image = tf.stack([r, g, b], axis=-1)
+        image = preprocessing.transform_value_range(image, (0, 255), self.value_range)
+        return image
 
     def get_config(self):
         config = super().get_config()
-        config.update({"bins": self.bins})
+        config.update({"bins": self.bins, "value_range": self.value_range})
         return config
