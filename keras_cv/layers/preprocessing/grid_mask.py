@@ -13,12 +13,12 @@
 # limitations under the License.
 
 import tensorflow as tf
-from tensorflow.keras import backend
-from tensorflow.keras import layers
+
+from keras_cv import layers
 
 
 @tf.keras.utils.register_keras_serializable(package="keras_cv")
-class GridMask(layers.Layer):
+class GridMask(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
     """GridMask class for grid-mask augmentation.
 
 
@@ -79,7 +79,7 @@ class GridMask(layers.Layer):
         seed=None,
         **kwargs,
     ):
-        super().__init__(**kwargs)
+        super().__init__(seed=seed, **kwargs)
         self.ratio = ratio
         if isinstance(ratio, str):
             self.ratio = ratio.lower()
@@ -89,6 +89,7 @@ class GridMask(layers.Layer):
         self.seed = seed
         self.random_rotate = layers.RandomRotation(factor=rotation_factor, seed=seed)
         self._check_parameter_values()
+        self.auto_vectorize = False
 
     def _check_parameter_values(self):
         ratio, fill_mode, fill_value = self.ratio, self.fill_mode, self.fill_value
@@ -129,7 +130,7 @@ class GridMask(layers.Layer):
         return mask
 
     @tf.function
-    def _compute_mask(self, image_height, image_width):
+    def _compute_mask(self, image_height, image_width, grid_block):
         """mask helper function for initializing grid mask of required size."""
         image_height = tf.cast(image_height, dtype=tf.float32)
         image_width = tf.cast(image_width, dtype=tf.float32)
@@ -141,43 +142,42 @@ class GridMask(layers.Layer):
         if self.fill_mode == "constant":
             mask = tf.fill([mask_height, mask_width], value=-1)
         elif self.fill_mode == "gaussian_noise":
-            mask = tf.cast(tf.random.normal([mask_height, mask_width]), dtype=tf.int32)
+            mask = tf.cast(
+                self._random_generator.random_normal([mask_height, mask_width]),
+                dtype=tf.int32,
+            )
         else:
             raise ValueError(
                 "Unsupported fill_mode.  `fill_mode` should be 'constant' or "
                 "'gaussian_noise'."
             )
 
-        gridblock = tf.random.uniform(
-            shape=[],
-            minval=int(tf.math.minimum(image_height * 0.5, image_width * 0.3)),
-            maxval=int(tf.math.maximum(image_height * 0.5, image_width * 0.3)) + 1,
-            dtype=tf.int32,
-            seed=self.seed,
-        )
-
         if self.ratio == "random":
-            length = tf.random.uniform(
-                shape=[], minval=1, maxval=gridblock + 1, dtype=tf.int32, seed=self.seed
+            length = self._random_generator.random_uniform(
+                shape=[], minval=1, maxval=grid_block + 1, dtype=tf.int32
             )
         else:
             length = tf.cast(
                 tf.math.minimum(
                     tf.math.maximum(
-                        int(tf.cast(gridblock, tf.float32) * self.ratio + 0.5), 1
+                        int(tf.cast(grid_block, tf.float32) * self.ratio + 0.5), 1
                     ),
-                    gridblock - 1,
+                    grid_block - 1,
                 ),
                 tf.int32,
             )
 
         for _ in range(2):
             start_x = tf.random.uniform(
-                shape=[], minval=0, maxval=gridblock + 1, dtype=tf.int32, seed=self.seed
+                shape=[],
+                minval=0,
+                maxval=grid_block + 1,
+                dtype=tf.int32,
+                seed=self.seed,
             )
 
-            for i in range(mask_width // gridblock):
-                start = gridblock * i + start_x
+            for i in range(mask_width // grid_block):
+                start = grid_block * i + start_x
                 end = tf.math.minimum(start + length, mask_width)
                 indices = tf.reshape(tf.range(start, end), [end - start, 1])
                 updates = tf.fill([end - start, mask_width], value=self.fill_value)
@@ -187,11 +187,11 @@ class GridMask(layers.Layer):
         return tf.equal(mask, self.fill_value)
 
     @tf.function
-    def _grid_mask(self, image):
+    def _grid_mask(self, image, grid_block):
         image_height = tf.shape(image)[0]
         image_width = tf.shape(image)[1]
 
-        grid = self._compute_mask(image_height, image_width)
+        grid = self._compute_mask(image_height, image_width, grid_block)
         grid = self.random_rotate(tf.cast(grid[:, :, tf.newaxis], tf.float32))
 
         mask = tf.reshape(
@@ -205,38 +205,26 @@ class GridMask(layers.Layer):
         else:
             return mask * image
 
-    def _augment_images(self, images):
-        unbatched = images.shape.rank == 3
+    def augment_image(self, image, transformation=None):
+        return self._grid_mask(image, transformation["grid_block"])
 
-        # The transform op only accepts rank 4 inputs, so if we have an unbatched
-        # image, we need to temporarily expand dims to a batch.
-        if unbatched:
-            images = tf.expand_dims(images, axis=0)
-
-        # TODO: Make the batch operation vectorize.
-        output = tf.map_fn(lambda image: self._grid_mask(image), images)
-
-        if unbatched:
-            output = tf.squeeze(output, axis=0)
-        return output
-
-    def call(self, images, training=None):
-        """call method for the GridMask layer.
-
-        Args:
-            images: Tensor representing images with shape
-                [batch_size, width, height, channels] or [width, height, channels]
-                of type int or float.  Values should be in the range [0, 255].
-        Returns:
-            images: augmented images, same shape as input.
-        """
-
-        if training is None:
-            training = backend.learning_phase()
-
-        if not training:
-            return images
-        return self._augment_images(images)
+    def get_random_transformation(self, image=None, label=None, bounding_box=None):
+        image_shape = tf.shape(image)
+        image_height, image_width = image_shape[0], image_shape[1]
+        image_height = tf.cast(image_height, dtype=tf.float32)
+        image_width = tf.cast(image_width, dtype=tf.float32)
+        grid_block = self._random_generator.random_uniform(
+            shape=[],
+            minval=tf.cast(
+                tf.math.minimum(image_height * 0.5, image_width * 0.3), dtype=tf.int32
+            ),
+            maxval=tf.cast(
+                (tf.math.maximum(image_height * 0.5, image_width * 0.3)) + 1,
+                dtype=tf.int32,
+            ),
+            dtype=tf.int32,
+        )
+        return {"grid_block": grid_block}
 
     def get_config(self):
         config = {
