@@ -67,6 +67,9 @@ class RandomCutout(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
 
         self.height_lower, self.height_upper = self._parse_bounds(height_factor)
         self.width_lower, self.width_upper = self._parse_bounds(width_factor)
+        self.fill_mode = fill_mode
+        self.fill_value = fill_value
+        self.seed = seed
 
         if fill_mode not in ["gaussian_noise", "constant"]:
             raise ValueError(
@@ -114,10 +117,6 @@ class RandomCutout(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
                     "`width_factor` must have values between [0, 1] "
                     "when is float, got {}".format(width_factor)
                 )
-
-        self.fill_mode = fill_mode
-        self.fill_value = fill_value
-        self.seed = seed
 
     def _parse_bounds(self, factor):
         if isinstance(factor, (tuple, list)):
