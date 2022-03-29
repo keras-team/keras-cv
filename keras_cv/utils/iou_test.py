@@ -15,10 +15,10 @@
 
 import numpy as np
 import tensorflow as tf
+from pycocotools import mask as maskUtils
 
 from keras_cv.utils import bounding_box as bbox
 from keras_cv.utils import iou as iou_lib
-from pycocotools import mask as maskUtils
 
 
 class IoUTest(tf.test.TestCase):
@@ -33,12 +33,12 @@ class IoUTest(tf.test.TestCase):
         print(iou_lib.compute_ious_for_image(bb1, bb1_off_by_1))
         iou = iou_lib.compute_ious_for_image(bb1, bb1_off_by_1)
 
-        pycocotools_iou_not_crowd = maskUtils.iou(bb1_xywh,
-            bb1_off_by_1_xywh, [False])[0][0]
+        pycocotools_iou_not_crowd = maskUtils.iou(bb1_xywh, bb1_off_by_1_xywh, [False])[
+            0
+        ][0]
 
-        with self.subTest(msg='Compare with pycocotools_iou_not crowd'):
-            self.assertAlmostEqual(iou[0].numpy()[0], 
-                pycocotools_iou_not_crowd)
+        with self.subTest(msg="Compare with pycocotools_iou_not crowd"):
+            self.assertAlmostEqual(iou[0].numpy()[0], pycocotools_iou_not_crowd)
         self.assertAlmostEqual(
             iou_lib.compute_ious_for_image(bb1, bb1_off_by_1)[0], 0.96097656633
         )
