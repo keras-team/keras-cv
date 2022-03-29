@@ -94,8 +94,21 @@ def blend(image1: tf.Tensor, image2: tf.Tensor, factor: float) -> tf.Tensor:
     return tf.clip_by_value(temp, 0.0, 255.0)
 
 
+<<<<<<< HEAD
 def parse_factor(param, min_value=0.0, max_value=1.0, param_name="factor", seed=None):
     if isinstance(param, core.FactorSampler):
+=======
+def parse_factor(
+    param,
+    min_value=0.0,
+    max_value=1.0,
+    param_name="factor",
+    seed=None,
+    random_generator=None,
+):
+
+    if isinstance(param, core.Factor):
+>>>>>>> 5bfbff4 (Begin migrating to Factor pattern)
         return param
 
     if isinstance(param, float) or isinstance(param, int):
@@ -115,9 +128,11 @@ def parse_factor(param, min_value=0.0, max_value=1.0, param_name="factor", seed=
         )
 
     if param[0] == param[1]:
-        return core.ConstantFactorSampler(param[0])
+        return core.ConstantFactor(param[0])
 
-    return core.UniformFactorSampler(param[0], param[1], seed=seed)
+    return core.UniformFactor(
+        param[0], param[1], seed=seed, random_generator=random_generator
+    )
 
 
 def random_inversion(random_generator):

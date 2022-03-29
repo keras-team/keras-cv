@@ -46,6 +46,9 @@ class RandomHue(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
         super().__init__(**kwargs)
         self.factor = preprocessing.parse_factor(
             factor,
+            min_value=0.0,
+            max_value=1.0,
+            random_generator=self._random_generator,
         )
         self.value_range = value_range
 
