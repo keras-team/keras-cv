@@ -55,7 +55,6 @@ class Equalization(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
                 with channels last
             channel_index: channel to equalize
         """
-        dtype = image.dtype
         image = image[..., channel_index]
         # Compute the histogram of the image channel.
         histogram = tf.histogram_fixed_width(image, [0, 255], nbins=self.bins)
