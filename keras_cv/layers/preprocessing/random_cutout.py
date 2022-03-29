@@ -16,27 +16,28 @@ import tensorflow as tf
 from keras_cv.utils import fill_utils
 from keras_cv.utils import preprocessing
 
-
 @tf.keras.utils.register_keras_serializable(package="keras_cv")
 class RandomCutout(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
     """Randomly cut out rectangles from images and fill them.
 
     Args:
         height_factor: A tuple of two floats, a single float or a
-            `keras_cv.FactorSampler`.  `height_factor` controls the size of the
-            cutouts. `height_factor=0.0` means the rectangle will be of size 0% of the
-            image height, `height_factor=0.1` means the rectangle will have a size of
-            10% of the image height, and so forth.
+            `keras_cv.core.Factor`.  `height_factor` controls the size of the cutouts.
+            `height_factor=0.0` means the rectangle will be of size 0% of the image
+            height, `height_factor=0.1` means the rectangle will have a size of 10% of
+            the image height, and so forth.
+
             Values should be between `0.0` and `1.0`.  If a tuple is used, a
             `height_factor` is sampled between the two values for every image augmented.
             If a single float is used, a value between `0.0` and the passed float is
             sampled.  In order to ensure the value is always the same, please pass a
             tuple with two identical floats: `(0.5, 0.5)`.
         width_factor: A tuple of two floats, a single float or a
-            `keras_cv.FactorSampler`.  `width_factor` controls the size of the
-            cutouts. `width_factor=0.0` means the rectangle will be of size 0% of the
-            image height, `width_factor=0.1` means the rectangle will have a size of 10%
-            of the image width, and so forth.
+            `keras_cv.core.Factor`.  `width_factor` controls the size of the cutouts.
+            `width_factor=0.0` means the rectangle will be of size 0% of the image
+            height, `width_factor=0.1` means the rectangle will have a size of 10% of
+            the image width, and so forth.
+
             Values should be between `0.0` and `1.0`.  If a tuple is used, a
             `width_factor` is sampled between the two values for every image augmented.
             If a single float is used, a value between `0.0` and the passed float is
@@ -69,10 +70,16 @@ class RandomCutout(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
         super().__init__(**kwargs)
 
         self.height_factor = preprocessing.parse_factor(
-            height_factor, param_name="height_factor", seed=seed
+            height_factor,
+            param_name="height_factor",
+            random_generator=self._random_generator,
+            seed=seed
         )
         self.width_factor = preprocessing.parse_factor(
-            width_factor, param_name="width_factor", seed=seed
+            width_factor,
+            param_name="width_factor",
+            random_generator=self._random_generator,
+            seed=seed
         )
         self.fill_mode = fill_mode
         self.fill_value = fill_value
@@ -131,8 +138,8 @@ class RandomCutout(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
             input_shape[0],
             input_shape[1],
         )
-        height = self.height_factor()
-        width = self.width_factor()
+        height = self.height_factor.sample()
+        width = self.width_factor.sample()
 
         height = height * tf.cast(image_height, tf.float32)
         width = width * tf.cast(image_width, tf.float32)

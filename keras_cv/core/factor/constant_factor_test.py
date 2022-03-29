@@ -11,6 +11,18 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from keras_cv.core.factor.constant_factor import ConstantFactor
-from keras_cv.core.factor.factor import Factor
-from keras_cv.core.factor.uniform_factor import UniformFactor
+
+import tensorflow as tf
+
+from keras_cv.layers import preprocessing
+
+
+class ConstantFactorTest(tf.test.TestCase):
+    def test_config(self):
+        layer = preprocessing.RandomHue(factor=(0.3, 0.8))
+        config = layer.get_config()
+        self.assertEqual(config["factor"].get_config, (0.3, 0.8))
+
+        layer = preprocessing.RandomHue(factor=0.5)
+        config = layer.get_config()
+        self.assertEqual(config["factor"], (0.0, 0.5))
