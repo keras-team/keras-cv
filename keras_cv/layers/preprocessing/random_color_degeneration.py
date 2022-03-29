@@ -25,12 +25,12 @@ class RandomColorDegeneration(tf.keras.__internal__.layers.BaseImageAugmentation
     This makes colors appear more dull.
 
     Args:
-        factor: A tuple of two floats, a single float or a
-            `keras_cv.FactorSampler`. `factor` controls the extent to which the
-            image sharpness is impacted. `factor=0.0` makes this layer perform a no-op
-            operation, while a value of 1.0 uses the degenerated result entirely.
-            Values between 0 and 1 result in linear interpolation between the original
-            image and the sharpened image.
+        factor: A tuple of two floats, a single float or a `keras_cv.core.Factor`.
+            `factor` controls the extent to which the image sharpness is impacted.
+            `factor=0.0` makes this layer perform a no-op operation, while a value of
+            1.0 uses the degenerated result entirely.  Values between 0 and 1 result in
+            linear interpolation between the original image and the sharpened image.
+
             Values should be between `0.0` and `1.0`.  If a tuple is used, a `factor` is
             sampled between the two values for every image augmented.  If a single float
             is used, a value between `0.0` and the passed float is sampled.  In order to
@@ -45,12 +45,14 @@ class RandomColorDegeneration(tf.keras.__internal__.layers.BaseImageAugmentation
         seed=None,
         **kwargs,
     ):
-        super().__init__(seed=seed, **kwargs)
-        self.factor = preprocessing.parse_factor(factor, seed=seed)
-        self.seed = seed
+        super().__init__(**kwargs)
+        self.factor = preprocessing.parse_factor(
+            factor,
+            random_generator=self._random_generator,
+        )
 
     def get_random_transformation(self, image=None, label=None, bounding_box=None):
-        return self.factor()
+        return self.factor.sample()
 
     def augment_image(self, image, transformation=None):
         degenerate = tf.image.grayscale_to_rgb(tf.image.rgb_to_grayscale(image))
