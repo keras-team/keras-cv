@@ -44,10 +44,10 @@ def main():
         .shuffle(10 * BATCH_SIZE)
         .batch(BATCH_SIZE)
     )
-    mixup = preprocessing.RandAugment(num_layers=3, magnitude=7.0)
-    train_ds = train_ds.map(mixup, num_parallel_calls=tf.data.AUTOTUNE)
+    rand_augment = preprocessing.RandAugment(num_layers=3, magnitude=10.0, probability_to_apply=0.5)
+    train_ds = train_ds.map(rand_augment, num_parallel_calls=tf.data.AUTOTUNE)
 
-    for images, labels in train_ds.take(1):
+    for images in train_ds.take(1):
         plt.figure(figsize=(8, 8))
         for i in range(9):
             plt.subplot(3, 3, i + 1)

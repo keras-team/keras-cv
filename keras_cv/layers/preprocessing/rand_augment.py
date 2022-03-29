@@ -5,8 +5,6 @@ from tensorflow.keras import layers
 from keras_cv.layers import preprocessing as cv_preprocessing
 from keras_cv.utils import preprocessing as preprocessing_utils
 
-class RandAugmentPolicy:
-    pass
 
 class RandAugment(keras.layers.Layer):
     """RandAugment performs the Rand Augment operation on input images.
@@ -44,24 +42,25 @@ class RandAugment(keras.layers.Layer):
         super().__init__()
         self.num_layers = num_layers
         self.magnitude = magnitude
-        addition = magnitude * 2
-        # TODO autogenerate parameters based on magnitude.
+        self.probability_to_apply = probability_to_apply
 
-        self.auto_contrast = cv_preprocessing.AutoContrast()
-        self.equalize = cv_preprocessing.Equalization()
+        policy = create_rand_augment_policy(magnitude)
 
-        # solarize = solarize add layer
-        self.solarize = cv_preprocessing.Solarization()
-        self.solarize_add = cv_preprocessing.Solarization(addition=addition)
-        self.invert = cv_preprocessing.Solarization()
-        self.color = cv_preprocessing.RandomColorDegeneration(0.5)
-        self.contrast = cv_preprocessing.RandomContrast(0.5)
-        self.brightness = cv_preprocessing.RandomBrightness(0.5)
-        self.shear_x = cv_preprocessing.RandomShear(x=0.5)
-        self.shear_y = cv_preprocessing.RandomShear(y=0.5)
-        self.translate_x = cv_preprocessing.RandomTranslation(width_factor=0.2, height_factor=0)
-        self.translate_y = cv_preprocessing.RandomTranslation(height_factor=0.2, width_factor=0)
-        self.cutout = cv_preprocessing.RandomCutout(height_factor=0.2, width_factor=0.2)
+        self.auto_contrast = cv_preprocessing.AutoContrast(**policy["auto_contrast"])
+        self.equalize = cv_preprocessing.Equalization(**policy["equalize"])
+
+        self.solarize = cv_preprocessing.Solarization(**policy["solarize"])
+        self.solarize_add = cv_preprocessing.Solarization(**policy["solarize_add"])
+        self.invert = cv_preprocessing.Solarization(**policy["invert"])
+
+        self.color = cv_preprocessing.RandomColorDegeneration(**policy["color"])
+        self.contrast = cv_preprocessing.RandomContrast(**policy["contrast"])
+        self.brightness = cv_preprocessing.RandomBrightness(**policy["brightness"])
+        self.shear_x = cv_preprocessing.RandomShear(**policy["shear_x"])
+        self.shear_y = cv_preprocessing.RandomShear(**policy["shear_y"])
+        self.translate_x = cv_preprocessing.RandomTranslation(**policy["translate_x"])
+        self.translate_y = cv_preprocessing.RandomTranslation(**policy["translate_y"])
+        self.cutout = cv_preprocessing.RandomCutout(**policy["cutout"])
 
         self.augmentation_layers = [
             self.auto_contrast,
@@ -79,6 +78,7 @@ class RandAugment(keras.layers.Layer):
             self.cutout,
         ]
 
+    @tf.function
     def augment_sample(self, sample):
         for _ in range(self.num_layers):
             selected_op = tf.random.uniform(
@@ -103,3 +103,77 @@ class RandAugment(keras.layers.Layer):
 
     def call(self, inputs):
         return tf.map_fn(lambda sample: self.augment_sample(sample), inputs)
+
+def auto_contrast_policy(magnitude):
+    return {}
+
+
+def equalize_policy(magnitude):
+    return {}
+
+
+def solarize_policy(magnitude):
+    return {"threshold": magnitude/10 * 256}
+
+
+def solarize_add_policy(magnitude):
+    return {"addition": magnitude/10 * 110,"threshold": 128}
+
+
+def invert_policy(magnitude):
+    return {"addition": 0, "threshold": 0}
+
+
+def color_policy(magnitude):
+    return {"factor": (magnitude/10.0)}
+
+
+def contrast_policy(magnitude):
+    return {"factor": (magnitude/10.0)}
+
+
+def brightness_policy(magnitude):
+    return {"factor": (magnitude/10.0)}
+
+
+def shear_x_policy(magnitude):
+    return {"x_factor": magnitude/10, "y_factor": 0}
+
+
+def shear_y_policy(magnitude):
+    return {"x_factor": 0, "y_factor":  magnitude/10}
+
+
+def translate_x_policy(magnitude):
+    return {"width_factor": magnitude/10, "height_factor": 0}
+
+def translate_y_policy(magnitude):
+    return {"width_factor": 0, "height_factor":  magnitude/10}
+
+
+def cutout_policy(magnitude):
+    return {"width_factor": 0.5 * magnitude/10, "height_factor":  0.5 * magnitude/10}
+
+
+policy_pairs = [
+    ("auto_contrast", auto_contrast_policy),
+    ("equalize", equalize_policy),
+    ("solarize", solarize_policy),
+    ("solarize_add", solarize_add_policy),
+    ("invert", invert_policy),
+    ("color", color_policy),
+    ("contrast", contrast_policy),
+    ("brightness", brightness_policy),
+    ("shear_x", shear_x_policy),
+    ("shear_y", shear_y_policy),
+    ("translate_x", translate_x_policy),
+    ("translate_y", translate_y_policy),
+    ("cutout", cutout_policy),
+]
+
+
+def create_rand_augment_policy(magnitude):
+    result = {}
+    for name, policy_fn in policy_pairs:
+        result[name] = policy_fn(magnitude)
+    return result
