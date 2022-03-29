@@ -49,6 +49,14 @@ class RandomCutoutTest(tf.test.TestCase):
 
         self.assertEqual(xs.shape, [2, 512, 512, 3])
 
+    def test_return_shapes_single_element(self):
+        xs = tf.ones((512, 512, 3))
+
+        layer = preprocessing.RandomCutout(height_factor=0.5, width_factor=0.5, seed=1)
+        xs = layer(xs)
+
+        self.assertEqual(xs.shape, [512, 512, 3])
+
     def test_random_cutout_single_float(self):
         self._run_test(0.5, 0.5)
 
