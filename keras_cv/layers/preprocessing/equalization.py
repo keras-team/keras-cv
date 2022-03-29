@@ -16,6 +16,7 @@ import tensorflow as tf
 from keras_cv.utils import preprocessing
 
 
+@tf.keras.utils.register_keras_serializable(package="keras_cv")
 class Equalization(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
     """Equalization performs histogram equalization on a channel-wise basis.
 
@@ -87,7 +88,7 @@ class Equalization(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
             ),
         )
 
-        return tf.cast(result, dtype)
+        return result
 
     def augment_image(self, image, transformation=None):
         image = preprocessing.transform_value_range(image, self.value_range, (0, 255))
@@ -97,3 +98,8 @@ class Equalization(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
         image = tf.stack([r, g, b], axis=-1)
         image = preprocessing.transform_value_range(image, (0, 255), self.value_range)
         return image
+
+    def get_config(self):
+        config = super().get_config()
+        config.update({"bins": self.bins, "value_range": self.value_range})
+        return config

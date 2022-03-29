@@ -17,22 +17,25 @@ from keras_cv.utils import preprocessing
 
 
 @tf.keras.utils.register_keras_serializable(package="keras_cv")
-class RandomSaturation(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
-    """Randomly adjusts the saturation on given images.
+class RandomHue(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
+    """Randomly adjusts the hue on given images.
 
-    This layer will randomly increase/reduce the saturation for the input RGB
+    This layer will randomly increase/reduce the hue for the input RGB
     images. At inference time, the output will be identical to the input.
     Call the layer with `training=True` to adjust the brightness of the input.
 
+    The image hue is adjusted by converting the image(s) to HSV and rotating the
+    hue channel (H) by delta. The image is then converted back to RGB.
+
     Args:
         factor: Either a tuple of two floats or a single float. `factor` controls the
-            extent to which the image saturation is impacted. `factor=0.5` makes
-            this layer perform a no-op operation. `factor=0.0` makes the image to be
-            fully grayscale. `factor=1.0` makes the image to be fully saturated.
-
-            Values should be between `0.0` and `1.0`. If a tuple is used, a `factor`
-            is sampled between the two values for every image augmented.  If a single
-            float is used, a value between `0.0` and the passed float is sampled.
+            extent to which the image saturation is impacted. `factor` =
+            `0.0`, `0.5` or `1.0` makes this layer perform a no-op operation.
+            `factor=0.25` and `factor=0.75` makes the image to have fully opposite
+            hue value. Values should be between `0.0` and `1.0`.
+            If a tuple is used, a `factor` is sampled
+            between the two values for every image augmented.  If a single float is
+            used, a value between `0.0` and the passed float is sampled.
             In order to ensure the value is always the same, please pass a tuple with
             two identical floats: `(0.5, 0.5)`.
     """
@@ -52,22 +55,9 @@ class RandomSaturation(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
         )
 
     def augment_image(self, image, transformation=None):
-        # Convert the factor range from [0, 1] to [0, +inf]. Note that the
-        # tf.image.adjust_saturation is trying to apply the following math formula
-        # `output_saturation = input_saturation * factor`. We use the following
-        # method to the do the mapping.
-        # `y = x / (1 - x)`.
-        # This will ensure:
-        #   y = +inf when x = 1 (full saturation)
-        #   y = 1 when x = 0.5 (no augmentation)
-        #   y = 0 when x = 0 (full gray scale)
-
-        # Convert the transformation to tensor in case it is a float. When
-        # transformation is 1.0, then it will result in to divide by zero error, but
-        # it will be handled correctly when it is a one tensor.
-        transformation = tf.convert_to_tensor(transformation)
-        adjust_factor = transformation / (1 - transformation)
-        return tf.image.adjust_saturation(image, saturation_factor=adjust_factor)
+        # Convert the factor range from [0, 1] to [-1.0, 1.0].
+        adjust_factor = transformation * 2.0 - 1.0
+        return tf.image.adjust_hue(image, delta=adjust_factor)
 
     def get_config(self):
         config = {

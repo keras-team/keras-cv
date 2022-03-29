@@ -16,6 +16,7 @@ import tensorflow as tf
 from keras_cv.utils import preprocessing
 
 
+@tf.keras.utils.register_keras_serializable(package="keras_cv")
 class RandomColorDegeneration(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
     """Randomly performs the color degeneration operation on given images.
 
@@ -56,3 +57,8 @@ class RandomColorDegeneration(tf.keras.__internal__.layers.BaseImageAugmentation
         degenerate = tf.image.grayscale_to_rgb(tf.image.rgb_to_grayscale(image))
         result = preprocessing.blend(image, degenerate, transformation)
         return result
+
+    def get_config(self):
+        config = super().get_config()
+        config.update({"factor": self.factor})
+        return config
