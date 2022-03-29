@@ -51,9 +51,13 @@ def draw_segmentation(image, mask, color="red", alpha=0.4):
         blended = tf.round(tf.clip_by_value(blended, 0.0, 255.0))
         return blended
 
-    tf.debugging.assert_integer(image, message="Only integer dtypes supported.")
-    if mask.dtype != tf.uint8:
-        raise ValueError("`mask` not of type tf.uint8")
+    tf.debugging.assert_integer(
+        image, message="Only integer dtypes supported for images."
+    )
+    tf.debugging.assert_integer(
+        mask, message="Only integer dtypes supported for masks."
+    )
+
     if tf.math.reduce_any(tf.math.logical_and(mask != 1, mask != 0)):
         raise ValueError("`mask` elements should be in [0, 1]")
     if image.shape[:3] != mask.shape:
@@ -61,7 +65,9 @@ def draw_segmentation(image, mask, color="red", alpha=0.4):
             f"image.shape[:3] == mask.shape should be true, got {image.shape[:3]} != {mask.shape}"
         )
     if alpha <= 0.0:
-        return tf.cast(image, dtype=tf.float32)
+        return image
+
+    _input_image_dtype = image.dtype
 
     # compute colored mask
     rgb = colors.get(color, None)
@@ -88,4 +94,5 @@ def draw_segmentation(image, mask, color="red", alpha=0.4):
 
     # exclude non positive area on image
     masked_image = tf.where(tf.cast(mask_3d, tf.bool), masked_image, image)
+    masked_image = tf.cast(masked_image, dtype=_input_image_dtype)
     return masked_image
