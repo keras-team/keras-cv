@@ -17,6 +17,7 @@ from absl import logging
 from tensorflow.keras import backend
 
 
+@tf.keras.utils.register_keras_serializable(package="keras_cv")
 class MixUp(layers.Layer):
     """MixUp implements the MixUp data augmentation technique.
 

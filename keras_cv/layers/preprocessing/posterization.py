@@ -17,6 +17,7 @@ from tensorflow.keras.__internal__.layers import BaseImageAugmentationLayer
 from keras_cv.utils.preprocessing import transform_value_range
 
 
+@tf.keras.utils.register_keras_serializable(package="keras_cv")
 class Posterization(BaseImageAugmentationLayer):
     """Reduces the number of bits for each color channel.
 
@@ -98,6 +99,6 @@ class Posterization(BaseImageAugmentationLayer):
         )
 
     def get_config(self):
-        config = {"bits": 8 - self.shift, "value_range": self._value_range}
+        config = {"bits": 8 - self._shift, "value_range": self._value_range}
         base_config = super().get_config()
         return dict(list(base_config.items()) + list(config.items()))
