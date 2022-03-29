@@ -4,25 +4,8 @@ from tensorflow.keras import layers
 from keras_cv.layers import preprocessing as cv_preprocessing
 from keras_cv.utils import preprocessing as preprocessing_utils
 
-
-class _SolarizationAdd(keras.__internal__.layers.BaseImageAugmentationLayer):
-    def __init__(threshold, addition, value_range=(0, 255) ** kwargs):
-        super().__init__(**kwargs)
-        self.addition = addition
-        self.value_range = value_range
-        self.solarization = cv_preprocessing.Solarization(threshold=threshold)
-
-    def augment_image(self, image, transformation=None):
-        image = utils.transform_value_range(
-            image, original_range=self.value_range, target_range=(0, 255)
-        )
-        image = tf.clip_by_value(image + self.addition, 0, 255)
-        result = self.solarization(image)
-        result = utils.transform_value_range(
-            result, original_range=(0, 255), target_range=self.value_range
-        )
-        return result
-
+class _RandomAugmentTransformation:
+    selected_augments = []
 
 class RandAugment(keras.layers.Layer):
     """RandAugment performs the Rand Augment operation on input images.
@@ -57,11 +40,14 @@ class RandAugment(keras.layers.Layer):
         self.num_layers = num_layers
         self.magnitude = magnitude
 
+        # TODO autogenerate parameters based on magnitude.
+
         self.auto_contrast = cv_preprocessing.AutoContrast()
         self.equalize = cv_preprocessing.Equalize()
 
         # solarize = solarize add layer
-        self.solarize = cv_preprocessing.Solarization()
+        self.solarize = cv_preprocessing.Solarization(addition=addition)
+        self.solarize_add = cv_preprocessing.Solarization()
         self.invert = cv_preprocessing.Solarization()
         self.color = cv_preprocessing.RandomColorDegeneration()
         self.contrast = cv_preprocessing.RandomContrast()
@@ -72,5 +58,30 @@ class RandAugment(keras.layers.Layer):
         self.translate_y = cv_preprocessing.RandomTranslate()
         self.cutout = cv_preprocessing.RandomCutout()
 
-    def call(self, inputs):
+        self.augmentation_layers = [
+            self.auto_contrast,
+            self.equalize,
+            self.solarize,
+            self.solarize_add,
+            self.invert,
+            self.color,
+            self.contrast,
+            self.brightness,
+            self.shear_x,
+            self.shear_y,
+            self.translate_x,
+            self.translate_y,
+            self.cutout
+        ]
+
+    def get_random_transformation(self, image=None, label=None, bounding_box=None):
         pass
+
+    def augment_image(self, image, transformation=None):
+        branch_fns = []
+        for augmentation_layer in self.augmentation_layers:
+            lambda img: augmentation_layer.augment_image(img, transformation=augmentation_layer.get_random_transformation())
+
+    def call(self, inputs):
+        batch=tf.shape(images)
+        minibatches = tf.random.uniform((), min_value=0, max_value=len(self.augmentation_layers))
