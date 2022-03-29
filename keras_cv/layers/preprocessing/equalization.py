@@ -47,7 +47,6 @@ class Equalization(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
         self.bins = bins
         self.value_range = value_range
 
-    @tf.function
     def equalize_channel(self, image, channel_index):
         """equalize_channel performs histogram equalization on a single channel.
 
