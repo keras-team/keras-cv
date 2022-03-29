@@ -16,6 +16,7 @@ import tensorflow as tf
 from keras_cv.utils import preprocessing
 
 
+@tf.keras.utils.register_keras_serializable(package="keras_cv")
 class RandomSaturation(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
     """Randomly adjusts the saturation on given images.
 
@@ -69,8 +70,6 @@ class RandomSaturation(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
         return tf.image.adjust_saturation(image, saturation_factor=adjust_factor)
 
     def get_config(self):
-        # TODO(scottzhu): Add tf.keras.utils.register_keras_serializable to all the
-        # KPLs for serial/deserialization
         config = {
             "factor": self.factor,
         }

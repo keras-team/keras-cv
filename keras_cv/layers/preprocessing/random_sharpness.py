@@ -16,6 +16,7 @@ import tensorflow as tf
 from keras_cv.utils import preprocessing
 
 
+@tf.keras.utils.register_keras_serializable(package="keras_cv")
 class RandomSharpness(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
     """Randomly performs the sharpness operation on given images.
 
@@ -110,3 +111,8 @@ class RandomSharpness(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
             result, original_range=(0, 255), target_range=self.value_range
         )
         return result
+
+    def get_config(self):
+        config = super().get_config()
+        config.update({"factor": self.factor, "value_range": self.value_range})
+        return config

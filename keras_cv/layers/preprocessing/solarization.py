@@ -16,6 +16,7 @@ import tensorflow as tf
 from keras_cv.utils import preprocessing
 
 
+@tf.keras.utils.register_keras_serializable(package="keras_cv")
 class Solarization(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
     """Applies (max_value - pixel + min_value) for each pixel in the image.
 
@@ -58,13 +59,8 @@ class Solarization(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
             or [height, width, channels].
     """
 
-    def __init__(
-        self,
-        addition=0.0,
-        threshold=0.0,
-        value_range=(0, 255),
-    ):
-        super().__init__()
+    def __init__(self, addition=0.0, threshold=0.0, value_range=(0, 255), **kwargs):
+        super().__init__(**kwargs)
         self.addition = addition
         self.threshold = threshold
         self.value_range = value_range
