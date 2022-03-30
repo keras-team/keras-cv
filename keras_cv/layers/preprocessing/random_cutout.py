@@ -72,13 +72,11 @@ class RandomCutout(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
         self.height_factor = preprocessing.parse_factor(
             height_factor,
             param_name="height_factor",
-            random_generator=self._random_generator,
             seed=seed
         )
         self.width_factor = preprocessing.parse_factor(
             width_factor,
             param_name="width_factor",
-            random_generator=self._random_generator,
             seed=seed
         )
         self.fill_mode = fill_mode

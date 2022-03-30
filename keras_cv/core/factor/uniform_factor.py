@@ -36,23 +36,17 @@ class UniformFactor(Factor):
     ```
     """
 
-    def __init__(self, lower, upper, seed=None, random_generator=None):
+    def __init__(self, lower, upper, seed=None):
         self.lower = lower
         self.upper = upper
-
-        if random_generator is None:
-            random_generator = backend.RandomGenerator(seed, force_generator=False)
-        self.random_generator = random_generator
+        self.seed = seed
 
     def sample(self):
-        return self.random_generator.random_uniform(
-            (), self.lower, self.upper, dtype=tf.float32
-        )
+        return tf.random.uniform((), self.lower, self.upper, seed=self.seed, dtype=tf.float32)
 
-    def get_config():
+    def get_config(self):
         return {
             "lower": self.lower,
             "upper": self.upper,
             "seed": self.seed,
-            "random_generator": self.random_generator,
         }

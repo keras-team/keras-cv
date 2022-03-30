@@ -46,7 +46,6 @@ class RandomColorDegeneration(tf.keras.__internal__.layers.BaseImageAugmentation
         super().__init__(**kwargs)
         self.factor = preprocessing.parse_factor(
             factor,
-            random_generator=self._random_generator,
         )
 
     def get_random_transformation(self, image=None, label=None, bounding_box=None):
