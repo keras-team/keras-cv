@@ -60,6 +60,7 @@ class RandAugment(keras.layers.Layer):
         super().__init__()
         self.num_layers = num_layers
         self.magnitude = magnitude
+        self.value_range = value_range
         if magnitude > 10.0:
             raise ValueError(
                 f"`magnitude` must be in the range [0, 10], got `magnitude={magnitude}`"
@@ -125,12 +126,12 @@ class RandAugment(keras.layers.Layer):
         return sample
 
     def call(self, inputs):
-        inputs["images"] = preprocessing_utils.transform_value_range(
-            inputs["images"], self.value_range, (0, 255)
+        inputs = preprocessing_utils.transform_value_range(
+            inputs, self.value_range, (0, 255)
         )
         result = tf.map_fn(lambda sample: self.augment_sample(sample), inputs)
-        result["images"] = preprocessing_utils.transform_value_range(
-            result["images"], (0, 255), self.value_range
+        result = preprocessing_utils.transform_value_range(
+            result, (0, 255), self.value_range
         )
         return result
 
