@@ -56,6 +56,9 @@ class RandomColorDegeneration(tf.keras.__internal__.layers.BaseImageAugmentation
         result = preprocessing.blend(image, degenerate, transformation)
         return result
 
+    def augment_label(self, label, transformation=None):
+        return label
+
     def get_config(self):
         config = super().get_config()
         config.update({"factor": self.factor})

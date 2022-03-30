@@ -231,6 +231,9 @@ class GridMask(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
 
         return tf.where(mask, fill_value, image)
 
+    def augment_label(self, label, transformation=None):
+        return label
+
     def get_config(self):
         config = {
             "ratio": self.ratio,

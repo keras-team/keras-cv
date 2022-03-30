@@ -64,6 +64,9 @@ class Grayscale(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
         else:
             raise ValueError("Unsupported value for `output_channels`.")
 
+    def augment_label(self, label, transformation=None):
+        return label
+
     def get_config(self):
         config = {
             "output_channels": self.output_channels,
