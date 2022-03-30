@@ -1,5 +1,5 @@
-from tensorflow import keras
 import tensorflow as tf
+from tensorflow import keras
 from tensorflow.keras import layers
 
 from keras_cv.layers import preprocessing as cv_preprocessing
@@ -104,6 +104,7 @@ class RandAugment(keras.layers.Layer):
     def call(self, inputs):
         return tf.map_fn(lambda sample: self.augment_sample(sample), inputs)
 
+
 def auto_contrast_policy(magnitude):
     return {}
 
@@ -113,11 +114,11 @@ def equalize_policy(magnitude):
 
 
 def solarize_policy(magnitude):
-    return {"threshold": magnitude/10 * 256}
+    return {"threshold": magnitude / 10 * 256}
 
 
 def solarize_add_policy(magnitude):
-    return {"addition": magnitude/10 * 110,"threshold": 128}
+    return {"addition": magnitude / 10 * 110, "threshold": 128}
 
 
 def invert_policy(magnitude):
@@ -125,34 +126,35 @@ def invert_policy(magnitude):
 
 
 def color_policy(magnitude):
-    return {"factor": (magnitude/10.0)}
+    return {"factor": (magnitude / 10.0)}
 
 
 def contrast_policy(magnitude):
-    return {"factor": (magnitude/10.0)}
+    return {"factor": (magnitude / 10.0)}
 
 
 def brightness_policy(magnitude):
-    return {"factor": (magnitude/10.0)}
+    return {"factor": (magnitude / 10.0)}
 
 
 def shear_x_policy(magnitude):
-    return {"x_factor": magnitude/10, "y_factor": 0}
+    return {"x_factor": magnitude / 10, "y_factor": 0}
 
 
 def shear_y_policy(magnitude):
-    return {"x_factor": 0, "y_factor":  magnitude/10}
+    return {"x_factor": 0, "y_factor": magnitude / 10}
 
 
 def translate_x_policy(magnitude):
-    return {"width_factor": magnitude/10, "height_factor": 0}
+    return {"width_factor": magnitude / 10, "height_factor": 0}
+
 
 def translate_y_policy(magnitude):
-    return {"width_factor": 0, "height_factor":  magnitude/10}
+    return {"width_factor": 0, "height_factor": magnitude / 10}
 
 
 def cutout_policy(magnitude):
-    return {"width_factor": 0.5 * magnitude/10, "height_factor":  0.5 * magnitude/10}
+    return {"width_factor": 0.5 * magnitude / 10, "height_factor": 0.5 * magnitude / 10}
 
 
 policy_pairs = [

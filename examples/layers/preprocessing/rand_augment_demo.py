@@ -44,7 +44,9 @@ def main():
         .shuffle(10 * BATCH_SIZE)
         .batch(BATCH_SIZE)
     )
-    rand_augment = preprocessing.RandAugment(num_layers=3, magnitude=10.0, probability_to_apply=0.5)
+    rand_augment = preprocessing.RandAugment(
+        num_layers=3, magnitude=10.0, probability_to_apply=0.5
+    )
     train_ds = train_ds.map(rand_augment, num_parallel_calls=tf.data.AUTOTUNE)
 
     for images in train_ds.take(1):
