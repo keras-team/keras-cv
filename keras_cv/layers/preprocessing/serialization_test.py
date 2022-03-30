@@ -16,7 +16,23 @@ from absl.testing import parameterized
 
 from keras_cv import core
 from keras_cv.layers import preprocessing
+from keras_cv import core
 
+def custom_compare(obj1, obj2):
+    if isinstance(obj1, core.ConstantFactor):
+        return obj1.get_config() == obj2.get_config()
+    elif isinstance(obj1, core.UniformFactor):
+        return obj1.get_config() == obj2.get_config()
+    else:
+        return obj1 == obj2
+
+
+def config_equals(config1, config2):
+    for key in list(config1.keys()) + list(config2.keys()):
+        v1, v2 = config1[key], config2[key]
+        if not custom_compare(v1, v2):
+            return False
+    return True
 
 def custom_compare(obj1, obj2):
     if isinstance(obj1, core.ConstantFactorSampler):
@@ -77,6 +93,4 @@ class SerializationTest(tf.test.TestCase, parameterized.TestCase):
         reconstructed_model = tf.keras.Sequential().from_config(model_config)
         reconstructed_layer = reconstructed_model.layers[0]
 
-        self.assertTrue(
-            config_equals(layer.get_config(), reconstructed_layer.get_config())
-        )
+        self.assertTrue(config_equals(layer.get_config(), reconstructed_layer.get_config()))
