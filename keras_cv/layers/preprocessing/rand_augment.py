@@ -105,55 +105,55 @@ class RandAugment(keras.layers.Layer):
         return tf.map_fn(lambda sample: self.augment_sample(sample), inputs)
 
 
-def auto_contrast_policy(magnitude):
+def auto_contrast_policy(magnitude, magnitude_std):
     return {}
 
 
-def equalize_policy(magnitude):
+def equalize_policy(magnitude, magnitude_std):
     return {}
 
 
-def solarize_policy(magnitude):
+def solarize_policy(magnitude, magnitude_std):
     return {"threshold": magnitude / 10 * 256}
 
 
-def solarize_add_policy(magnitude):
+def solarize_add_policy(magnitude, magnitude_std):
     return {"addition": magnitude / 10 * 110, "threshold": 128}
 
 
-def invert_policy(magnitude):
+def invert_policy(magnitude, magnitude_std):
     return {"addition": 0, "threshold": 0}
 
 
-def color_policy(magnitude):
+def color_policy(magnitude, magnitude_std):
     return {"factor": (magnitude / 10.0)}
 
 
-def contrast_policy(magnitude):
+def contrast_policy(magnitude, magnitude_std):
     return {"factor": (magnitude / 10.0)}
 
 
-def brightness_policy(magnitude):
+def brightness_policy(magnitude, magnitude_std):
     return {"factor": (magnitude / 10.0)}
 
 
-def shear_x_policy(magnitude):
+def shear_x_policy(magnitude, magnitude_std):
     return {"x_factor": magnitude / 10, "y_factor": 0}
 
 
-def shear_y_policy(magnitude):
+def shear_y_policy(magnitude, magnitude_std):
     return {"x_factor": 0, "y_factor": magnitude / 10}
 
 
-def translate_x_policy(magnitude):
+def translate_x_policy(magnitude, magnitude_std):
     return {"width_factor": magnitude / 10, "height_factor": 0}
 
 
-def translate_y_policy(magnitude):
+def translate_y_policy(magnitude, magnitude_std):
     return {"width_factor": 0, "height_factor": magnitude / 10}
 
 
-def cutout_policy(magnitude):
+def cutout_policy(magnitude, magnitude_std):
     return {"width_factor": 0.5 * magnitude / 10, "height_factor": 0.5 * magnitude / 10}
 
 
