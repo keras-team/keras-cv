@@ -27,8 +27,8 @@ class NormalFactorSampler(FactorSampler):
     Args:
         mean: mean value for the distribution.
         standard_deviation: standard deviation of the distribution.
-        lower: values below lower are clipped to lower.
-        upper: values above upper are clipped to upper
+        min_value: values below min_value are clipped to min_value.
+        max_value: values above max_value are clipped to max_value.
 
     Usage:
     ```python
@@ -39,11 +39,11 @@ class NormalFactorSampler(FactorSampler):
     ```
     """
 
-    def __init__(self, mean, standard_deviation, lower, upper, seed=None):
+    def __init__(self, mean, standard_deviation, min_value, max_value, seed=None):
         self.mean = mean
         self.standard_deviation = standard_deviation
-        self.lower = lower
-        self.upper = upper
+        self.min_value = min_value
+        self.max_value = max_value
         self.seed = seed
 
     def sample(self):
@@ -55,15 +55,15 @@ class NormalFactorSampler(FactorSampler):
                 seed=self.seed,
                 dtype=tf.float32,
             ),
-            self.lower,
-            self.upper,
+            self.min_value,
+            self.max_value,
         )
 
     def get_config(self):
         return {
             "mean": self.mean,
             "standard_deviation": self.standard_deviation,
-            "lower": self.lower,
-            "upper": self.upper,
+            "min_value": self.min_value,
+            "max_value": self.max_value,
             "seed": self.seed,
         }
