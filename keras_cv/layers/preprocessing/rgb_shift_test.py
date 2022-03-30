@@ -21,7 +21,7 @@ class RGBShiftTest(tf.test.TestCase):
     def test_return_shapes(self):
         xs = tf.ones((2, 512, 512, 3))
 
-        layer = RGBShift(factor=10)
+        layer = RGBShift(factor=1.0)
 
         xs = layer(xs, training=True)
         self.assertEqual(xs.shape, [2, 512, 512, 3])
@@ -32,7 +32,7 @@ class RGBShiftTest(tf.test.TestCase):
             dtype=tf.float32,
         )
 
-        layer = RGBShift(factor=[10, 30])
+        layer = RGBShift(factor=[0.1, 0.3])
 
         xs = layer(xs, training=True)
         self.assertFalse(tf.math.reduce_any(xs[0] == 2.0))
@@ -62,29 +62,16 @@ class RGBShiftTest(tf.test.TestCase):
         xs = layer(xs, training=True)
         self.assertFalse(tf.math.reduce_any(xs == 1.0))
 
-    def test_dtype(self):
-        layer = RGBShift(factor=0.2)
-        inputs = np.random.randint(0, 255, size=(224, 224, 3))
-
-        output = layer(inputs, training=True)
-        self.assertEqual(output.dtype, inputs.dtype)
-
-        inputs = tf.cast(inputs, tf.float32)
-        output = layer(inputs, training=True)
-        self.assertEqual(output.dtype, inputs.dtype)
-
     def test_config(self):
-        layer = RGBShift(factor=40, seed=101)
+        layer = RGBShift(factor=(0.1, 0.5))
         config = layer.get_config()
-        self.assertEqual(config["factor"], [-40, 40])
-        self.assertEqual(config["seed"], 101)
+        self.assertEqual(config["factor"], [0.1, 0.5])
 
         reconstructed_layer = RGBShift.from_config(config)
         self.assertEqual(reconstructed_layer.factor, layer.factor)
-        self.assertEqual(reconstructed_layer.seed, layer.seed)
 
     def test_inference(self):
-        layer = RGBShift(factor=[40, 90], seed=101)
+        layer = RGBShift(factor=0.8)
         inputs = np.random.randint(0, 255, size=(224, 224, 3))
         output = layer(inputs, training=False)
         self.assertAllClose(inputs, output)

@@ -14,17 +14,25 @@
 
 """Setup script."""
 
+import pathlib
+
 from setuptools import find_packages
 from setuptools import setup
+
+HERE = pathlib.Path(__file__).parent
+README = (HERE / "README.md").read_text()
 
 setup(
     name="keras-cv",
     description="Industry-strength computer Vision extensions for Keras.",
+    long_description=README,
+    long_description_content_type="text/markdown",
     url="https://github.com/keras-team/keras-cv",
     author="Keras team",
     author_email="keras-cv@google.com",
     license="Apache License 2.0",
-    install_requires=["packaging", "tensorflow", "absl-py"],
+    # Temporarily require tf-nightly until tf 2.9
+    install_requires=["packaging", "tf-nightly", "absl-py"],
     extras_require={
         "tests": ["flake8", "isort", "black", "pytest"],
         "examples": ["tensorflow_datasets", "matplotlib"],

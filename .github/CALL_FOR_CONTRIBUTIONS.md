@@ -4,6 +4,13 @@ to work on.  Should you decide to contribute a component, please comment on the
 corresponding GitHub issue that you will be working on the component.  A team 
 member will then follow up by assigning the issue to you.
 
+## Default Parameters
+Default parameters should **not** be set on which values achieve the best scores
+on any specific dataset.  Instead, parameters should be required, with a 
+recommended value in the docstring.  This is to discourage users from widely 
+adopting the hyperparameters required to do well on ImageNet2k on datasets
+that require a different tuning.
+
 ## Preprocessing Layers
 KerasCV preprocessing layers allow for construction of state of the art computer
 vision data augmentation pipelines.  Our [CutMix](https://github.com/keras-team/keras-cv/blob/master/keras_cv/layers/preprocessing/cut_mix.py) implementation serves as a sample preprocessing

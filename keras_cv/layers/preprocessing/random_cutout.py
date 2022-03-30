@@ -12,14 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import tensorflow as tf
-import tensorflow.keras.layers as layers
-from tensorflow.keras import backend
-from tensorflow.python.keras.utils import layer_utils
 
 from keras_cv.utils import fill_utils
 
 
-class RandomCutout(layers.Layer):
+@tf.keras.utils.register_keras_serializable(package="keras_cv")
+class RandomCutout(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
     """Randomly cut out rectangles from images and fill them.
 
     Args:
@@ -47,13 +45,11 @@ class RandomCutout(layers.Layer):
             - *gaussian_noise*: Pixels are filled with random gaussian noise.
         fill_value: a float represents the value to be filled inside the patches
             when `fill_mode="constant"`.
-        rate: Float between 0 and 1. The probability of augmenting an input.
-            Defaults to 1.0.
 
     Sample usage:
     ```python
     (images, labels), _ = tf.keras.datasets.cifar10.load_data()
-    random_cutout = keras_cv.layers.preprocessing.RandomCutout(0.5, 0.5, rate=1.0)
+    random_cutout = keras_cv.layers.preprocessing.RandomCutout(0.5, 0.5)
     augmented_images = random_cutout(images)
     ```
     """
@@ -64,23 +60,22 @@ class RandomCutout(layers.Layer):
         width_factor,
         fill_mode="constant",
         fill_value=0.0,
-        rate=1.0,
         seed=None,
-        **kwargs
+        **kwargs,
     ):
         super().__init__(**kwargs)
 
-        layer_utils.validate_string_arg(
-            fill_mode,
-            allowable_strings=["constant", "gaussian_noise"],
-            layer_name="RandomCutout",
-            arg_name="fill_mode",
-            allow_none=False,
-            allow_callables=False,
-        )
-
         self.height_lower, self.height_upper = self._parse_bounds(height_factor)
         self.width_lower, self.width_upper = self._parse_bounds(width_factor)
+        self.fill_mode = fill_mode
+        self.fill_value = fill_value
+        self.seed = seed
+
+        if fill_mode not in ["gaussian_noise", "constant"]:
+            raise ValueError(
+                '`fill_mode` should be "gaussian_noise" '
+                f'or "constant".  Got `fill_mode`={fill_mode}'
+            )
 
         if not isinstance(self.height_lower, type(self.height_upper)):
             raise ValueError(
@@ -123,33 +118,22 @@ class RandomCutout(layers.Layer):
                     "when is float, got {}".format(width_factor)
                 )
 
-        self.fill_mode = fill_mode
-        self.fill_value = fill_value
-        self.rate = rate
-        self.seed = seed
-
     def _parse_bounds(self, factor):
         if isinstance(factor, (tuple, list)):
             return factor[0], factor[1]
         else:
             return type(factor)(0), factor
 
-    def call(self, inputs, training=True):
-        if training is None:
-            training = backend.learning_phase()
+    def get_random_transformation(self, image=None, label=None, bounding_box=None):
+        center_x, center_y = self._compute_rectangle_position(image)
+        rectangle_height, rectangle_width = self._compute_rectangle_size(image)
+        return center_x, center_y, rectangle_height, rectangle_width
 
-        rate_cond = tf.less(
-            tf.random.uniform(shape=[], minval=0.0, maxval=1.0), self.rate
-        )
-        augment_cond = tf.logical_and(rate_cond, training)
-        augment = lambda: self._random_cutout(inputs)
-        no_augment = lambda: inputs
-        return tf.cond(augment_cond, augment, no_augment)
-
-    def _random_cutout(self, inputs):
+    def augment_image(self, image, transformation=None):
         """Apply random cutout."""
-        center_x, center_y = self._compute_rectangle_position(inputs)
-        rectangle_height, rectangle_width = self._compute_rectangle_size(inputs)
+        inputs = tf.expand_dims(image, 0)
+        center_x, center_y, rectangle_height, rectangle_width = transformation
+
         rectangle_fill = self._compute_rectangle_fill(inputs)
         inputs = fill_utils.fill_rectangle(
             inputs,
@@ -159,7 +143,7 @@ class RandomCutout(layers.Layer):
             rectangle_height,
             rectangle_fill,
         )
-        return inputs
+        return inputs[0]
 
     def _compute_rectangle_position(self, inputs):
         input_shape = tf.shape(inputs)
@@ -168,19 +152,11 @@ class RandomCutout(layers.Layer):
             input_shape[1],
             input_shape[2],
         )
-        center_x = tf.random.uniform(
-            shape=[batch_size],
-            minval=0,
-            maxval=image_width,
-            dtype=tf.int32,
-            seed=self.seed,
+        center_x = self._random_generator.random_uniform(
+            [batch_size], 0, image_width, dtype=tf.int32
         )
-        center_y = tf.random.uniform(
-            shape=[batch_size],
-            minval=0,
-            maxval=image_height,
-            dtype=tf.int32,
-            seed=self.seed,
+        center_y = self._random_generator.random_uniform(
+            [batch_size], 0, image_height, dtype=tf.int32
         )
         return center_x, center_y
 
@@ -191,17 +167,11 @@ class RandomCutout(layers.Layer):
             input_shape[1],
             input_shape[2],
         )
-        height = tf.random.uniform(
-            [batch_size],
-            minval=self.height_lower,
-            maxval=self.height_upper,
-            dtype=tf.float32,
+        height = self._random_generator.random_uniform(
+            [batch_size], self.height_lower, self.height_upper, dtype=tf.float32
         )
-        width = tf.random.uniform(
-            [batch_size],
-            minval=self.width_lower,
-            maxval=self.width_upper,
-            dtype=tf.float32,
+        width = self._random_generator.random_uniform(
+            [batch_size], self.width_lower, self.width_upper, dtype=tf.float32
         )
 
         if self._height_is_float:
@@ -230,11 +200,10 @@ class RandomCutout(layers.Layer):
 
     def get_config(self):
         config = {
-            "height_factor": self.height_factor,
-            "width_factor": self.width_factor,
+            "height_factor": (self.height_lower, self.height_upper),
+            "width_factor": (self.width_lower, self.width_upper),
             "fill_mode": self.fill_mode,
             "fill_value": self.fill_value,
-            "rate": self.rate,
             "seed": self.seed,
         }
         base_config = super().get_config()

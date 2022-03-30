@@ -1,5 +1,5 @@
 #!/bin/bash
-isort --sl -c .
+isort --sl -c --profile=black .
 if ! [ $? -eq 0 ]
 then
   echo "Please run \"sh shell/format.sh\" to format the code."
@@ -20,7 +20,7 @@ then
     exit 1
 fi
 echo "no issues with black"
-for i in $(find keras_cv -name '*.py') # or whatever other pattern...
+for i in $(find examples keras_cv -name '*.py') # or whatever other pattern...
 do
   if ! grep -q Copyright $i
   then

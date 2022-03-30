@@ -19,11 +19,11 @@ from tensorflow.keras import backend
 from keras_cv.utils import fill_utils
 
 
+@tf.keras.utils.register_keras_serializable(package="keras_cv")
 class CutMix(layers.Layer):
     """CutMix implements the CutMix data augmentation technique.
 
     Args:
-        rate: Float between 0 and 1.  The fraction of samples to augment.
         alpha: Float between 0 and 1.  Inverse scale parameter for the gamma
             distribution.  This controls the shape of the distribution from which the
             smoothing values are sampled.  Defaults 1.0, which is a recommended value
@@ -39,10 +39,9 @@ class CutMix(layers.Layer):
     ```
     """
 
-    def __init__(self, rate, alpha=1.0, seed=None, **kwargs):
+    def __init__(self, alpha=1.0, seed=None, **kwargs):
         super().__init__(**kwargs)
         self.alpha = alpha
-        self.rate = rate
         self.seed = seed
 
     @staticmethod
@@ -74,14 +73,10 @@ class CutMix(layers.Layer):
                 "expected.  Please call the layer with 2 or more samples."
             )
 
-        rate_cond = tf.less(
-            tf.random.uniform(shape=[], minval=0.0, maxval=1.0), self.rate
-        )
-        augment_cond = tf.logical_and(rate_cond, training)
         # pylint: disable=g-long-lambda
         cutmix_augment = lambda: self._update_labels(*self._cutmix(images, labels))
         no_augment = lambda: (images, labels)
-        return tf.cond(augment_cond, cutmix_augment, no_augment)
+        return tf.cond(tf.cast(training, tf.bool), cutmix_augment, no_augment)
 
     def _cutmix(self, images, labels):
         """Apply cutmix."""
@@ -111,8 +106,8 @@ class CutMix(layers.Layer):
             shape=[batch_size], minval=0, maxval=image_width, dtype=tf.int32
         )
 
-        bbox_area = cut_height * cut_width
-        lambda_sample = 1.0 - bbox_area / (image_height * image_width)
+        bounding_box_area = cut_height * cut_width
+        lambda_sample = 1.0 - bounding_box_area / (image_height * image_width)
         lambda_sample = tf.cast(lambda_sample, dtype=tf.float32)
 
         images = fill_utils.fill_rectangle(
@@ -132,3 +127,11 @@ class CutMix(layers.Layer):
         lambda_sample = tf.reshape(lambda_sample, [-1, 1])
         labels = lambda_sample * labels + (1.0 - lambda_sample) * cutout_labels
         return images, labels
+
+    def get_config(self):
+        config = {
+            "alpha": self.alpha,
+            "seed": self.seed,
+        }
+        base_config = super().get_config()
+        return dict(list(base_config.items()) + list(config.items()))

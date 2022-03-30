@@ -13,10 +13,10 @@
 # limitations under the License.
 
 import tensorflow as tf
-from tensorflow.keras import layers
+from keras_cv.utils import preprocessing
 
 
-class RGBShift(layers.Layer):
+class RGBShift(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
     """Randomly shift values for each channel of the input image(s).
 
     The input images should have values in the `[0-255]` range.
@@ -30,139 +30,64 @@ class RGBShift(layers.Layer):
         `(..., height, width, channels)`, in `channels_last` format.
 
     Args:
-        factor: A scalar value, or tuple/list of two values. 
-            number. If `factor` is a single value, it is interpreted as 
-            equivalent to the tuple `(-factor, factor)`.
-            If the lower and upper founds are floats in the range `[-1, 1]`,
-            then the bounds are interpreted as fractions. If the lower
-            and upper bounds are integers in the range `[0, 255]`, then
-            the bounds are intepreted as absolute pixel values.
-        seed: Integer. Used to create a random seed. Default: None.
+        factor: A scalar value, or tuple/list of two floating values in
+            the range `[0.0, 1.0]`. If `factor` is a single value, it will 
+            interpret as equivalent to the tuple `(0.0, factor)`.
 
-    Call arguments: 
-        images: Tensor representing images of shape
-            `(..., height, width, channels)`, with dtype tf.float32 / tf.uint8, or,
-            `(height, width, channels)`, with dtype tf.float32 / tf.uint8
-        training: A boolean argument that determines whether the call should be run 
-            in inference mode or training mode. Default: True.
-   
+            The `factor` will sampled between its range for every image to 
+            augment. And later the sampled value from [0.0, 1.0] will convert
+            to [-1.0, 1.0] ranges. 
+        
     Usage:
     ```python
     (images, labels), _ = tf.keras.datasets.cifar10.load_data()
-    rgb_shift = keras_cv.layers.RGBShift(factor=(-2, 2))
+    rgb_shift = keras_cv.layers.RGBShift(factor=(0.3, 0.8))
     augmented_images = rgb_shift(images)
     ```
     """
 
-    _FACTOR_VALIDATION_ERROR = (
-        "The factor should be a scalar, "
-        "a tuple or a list of two upper and lower "
-        "bound values in the range `(-1.0, 1.0)` as float or `(-255, 255) as integer."
-    )
-
-    def __init__(self, factor, seed=None, **kwargs):
+    def __init__(self, factor, **kwargs):
         super().__init__(**kwargs)
-        self.factor = self._set_factor_limit(factor)
-        self.seed = seed
+        self.factor = preprocessing.parse_factor_value_range(
+            factor, min_value=0.0, max_value=1.0
+        )
 
-    def _set_factor_limit(self, factor):
-        if isinstance(factor, (tuple, list)):
-            if len(factor) != 2:
-                raise ValueError(
-                    self._FACTOR_VALIDATION_ERROR + f" Received: factor={factor}"
-                )
-            return self._check_factor_range(sorted(factor))
-        elif isinstance(factor, (int, float)):
-            factor = abs(factor)
-            return self._check_factor_range([-factor, factor])
-        else:
-            raise ValueError(
-                self._FACTOR_VALIDATION_ERROR + f" Received: factor={factor}"
-            )
+    def get_random_transformation(self, image=None, label=None, bounding_box=None):
+        r_shift_rand_uniform = self._random_generator.random_uniform(
+            shape=(), minval=self.factor[0], maxval=self.factor[1], dtype=tf.float32
+        )
 
-    def _check_factor_range(self, factor):
-        if all(isinstance(each_elem, float) for each_elem in factor):
-            if factor[0] < -1.0 or factor[1] > 1.0:
-                raise ValueError(
-                    self._FACTOR_VALIDATION_ERROR + f" Received: factor={factor}"
-                )
-            return factor
-        elif all(isinstance(each_elem, int) for each_elem in factor):
-            if factor[0] < -255 or factor[1] > 255:
-                raise ValueError(
-                    self._FACTOR_VALIDATION_ERROR + f" Received: factor={factor}"
-                )
-            return factor
-        else:
-            raise ValueError(
-                "Both lower/upper bound values must have the same dtype. "
-                f"Received: factor={factor} where type(factor[0]) is {type(factor[0])} "
-                f"and type(factor[1]) is {type(factor[1])}"
-            )
+        g_shift_rand_uniform = self._random_generator.random_uniform(
+            shape=(), minval=self.factor[0], maxval=self.factor[1], dtype=tf.float32
+        )
 
-    def _get_random_uniform(self, factor_limit, rgb_delta_shape):
-        if self.seed is not None:
-            _rand_uniform = tf.random.stateless_uniform(
-                shape=rgb_delta_shape,
-                seed=[0, self.seed],
-                minval=factor_limit[0],
-                maxval=factor_limit[1],
-            )
-        else:
-            _rand_uniform = tf.random.uniform(
-                rgb_delta_shape,
-                minval=factor_limit[0],
-                maxval=factor_limit[1],
-                dtype=tf.float32,
-            )
+        b_shift_rand_uniform = self._random_generator.random_uniform(
+            shape=(), minval=self.factor[0], maxval=self.factor[1], dtype=tf.float32
+        )
 
-        if all(isinstance(each_elem, float) for each_elem in factor_limit):
-            _rand_uniform = _rand_uniform * 85.0
+        return [r_shift_rand_uniform, g_shift_rand_uniform, b_shift_rand_uniform]
 
-        return _rand_uniform
+    def augment_image(self, image, transformation=None):
+        # Convert sampled value from [0.0, 1.0] ranges to [-1.0, 1.0] ranges.
+        transformation = [
+            (each_transformation * 2.0 - 1.0) for each_transformation in transformation
+        ]
 
-    def _rgb_shifting(self, images):
-        rank = images.shape.rank
-        original_dtype = images.dtype
-
-        if rank == 3:
-            rgb_delta_shape = (1, 1)
-        elif rank == 4:
-            # Keep only the batch dim. This will ensure to have same adjustment
-            # with in one image, but different across the images.
-            rgb_delta_shape = [tf.shape(images)[0], 1, 1]
-        else:
-            raise ValueError(
-                f"Expect the input image to be rank 3 or 4. Got {images.shape}"
-            )
-
-        r_shift = self._get_random_uniform(self.factor, rgb_delta_shape)
-        g_shift = self._get_random_uniform(self.factor, rgb_delta_shape)
-        b_shift = self._get_random_uniform(self.factor, rgb_delta_shape)
-
-        unstack_rgb = tf.unstack(tf.cast(images, dtype=tf.float32), axis=-1)
+        image = preprocessing.transform_value_range(image, [0, 255], [0.0, 1.0])
+        unstack_rgb = tf.unstack(tf.cast(image, tf.float32), axis=-1)
         shifted_rgb = tf.stack(
             [
-                tf.add(unstack_rgb[0], r_shift),
-                tf.add(unstack_rgb[1], g_shift),
-                tf.add(unstack_rgb[2], b_shift),
+                tf.add(unstack_rgb[0], transformation[0]),
+                tf.add(unstack_rgb[1], transformation[1]),
+                tf.add(unstack_rgb[2], transformation[2]),
             ],
             axis=-1,
         )
-        shifted_rgb = tf.clip_by_value(shifted_rgb, 0.0, 255.0)
-
-        return tf.cast(shifted_rgb, dtype=original_dtype)
-
-    def call(self, images, training=True):
-        if training:
-            return self._rgb_shifting(images)
-        else:
-            return images
+        shifted_rgb = tf.clip_by_value(shifted_rgb, 0.0, 1.0)
+        image = preprocessing.transform_value_range(shifted_rgb, [0.0, 1.0], [0, 255])
+        return image
 
     def get_config(self):
         config = super().get_config()
-        config.update({"factor": self.factor, "seed": self.seed})
+        config.update({"factor": self.factor})
         return config
-
-    def compute_output_shape(self, input_shape):
-        return input_shape

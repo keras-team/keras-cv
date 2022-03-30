@@ -17,11 +17,11 @@ from absl import logging
 from tensorflow.keras import backend
 
 
+@tf.keras.utils.register_keras_serializable(package="keras_cv")
 class MixUp(layers.Layer):
     """MixUp implements the MixUp data augmentation technique.
 
     Args:
-        rate: Float between 0 and 1.  The fraction of samples to augment.
         alpha: Float between 0 and 1.  Inverse scale parameter for the gamma
             distribution.  This controls the shape of the distribution from which the
             smoothing values are sampled.  Defaults 0.2, which is a recommended value
@@ -37,10 +37,9 @@ class MixUp(layers.Layer):
     ```
     """
 
-    def __init__(self, rate, alpha=0.2, seed=None, **kwargs):
+    def __init__(self, alpha=0.2, seed=None, **kwargs):
         super().__init__(**kwargs)
         self.alpha = alpha
-        self.rate = rate
         self.seed = seed
 
     @staticmethod
@@ -72,14 +71,10 @@ class MixUp(layers.Layer):
                 "expected.  Please call the layer with 2 or more samples."
             )
 
-        rate_cond = tf.less(
-            tf.random.uniform(shape=[], minval=0.0, maxval=1.0), self.rate
-        )
-        augment_cond = tf.logical_and(rate_cond, training)
         # pylint: disable=g-long-lambda
         mixup_augment = lambda: self._update_labels(*self._mixup(images, labels))
         no_augment = lambda: (images, labels)
-        return tf.cond(augment_cond, mixup_augment, no_augment)
+        return tf.cond(tf.cast(training, tf.bool), mixup_augment, no_augment)
 
     def _mixup(self, images, labels):
         batch_size = tf.shape(images)[0]
@@ -100,3 +95,11 @@ class MixUp(layers.Layer):
         labels = lambda_sample * labels + (1.0 - lambda_sample) * labels_for_mixup
 
         return images, labels
+
+    def get_config(self):
+        config = {
+            "alpha": self.alpha,
+            "seed": self.seed,
+        }
+        base_config = super().get_config()
+        return dict(list(base_config.items()) + list(config.items()))
