@@ -17,19 +17,22 @@ class RandAugment(keras.layers.Layer):
     The policy operates as follows:
 
     For each `layer`, the policy selects a random operation from a list of operations.
-    It then samples a random number and if that number is less than `prob_to_apply`
+    It then samples a random number and if that number is less than `probability_to_apply`
     applies it to the given image.
 
     References:
+        - [RandAugment](https://arxiv.org/abs/1909.13719)
 
     Args:
-        num_layers:
-        magnitude:
-        magnitude_standard_deviation:
-        probability_to_apply:
-        value_range:
+        num_layers: the number of layers to use in the rand augment policy.
+        magnitude: the magnitude to use for each of the augmentation.
+        magnitude_standard_deviation: the standard deviation to use when drawing values
+            for the perturbations.
+        probability_to_apply:  the probability to apply an augmentation at each layer.
+        value_range: the value range of the incoming images
 
     Usage:
+    # TODO(lukewood): document fully.
     ```python
     ```
     """
@@ -131,12 +134,12 @@ def equalize_policy(magnitude, magnitude_std):
 
 
 def solarize_policy(magnitude, magnitude_std):
-    # this should support a sample-able factor.
+    # TODO(lukewood): this should support a sample-able factor.
     return {"threshold": magnitude / 10 * 256}
 
 
 def solarize_add_policy(magnitude, magnitude_std):
-    # same with this.
+    # TODO(lukewood): this should support a sample-able factor.
     return {"addition": magnitude / 10 * 110, "threshold": 128}
 
 
@@ -155,12 +158,14 @@ def color_policy(magnitude, magnitude_std):
 
 
 def contrast_policy(magnitude, magnitude_std):
+    # TODO(lukewood): should we integrate RandomContrast with `factor`?
     # RandomContrast layer errors when factor=0
     factor = max(magnitude / 10, 0.001)
     return {"factor": factor}
 
 
 def brightness_policy(magnitude, magnitude_std):
+    # TODO(lukewood): should we integrate RandomBrightness with `factor`?
     return {"factor": magnitude / 10.0}
 
 
@@ -185,10 +190,12 @@ def shear_y_policy(magnitude, magnitude_std):
 
 
 def translate_x_policy(magnitude, magnitude_std):
+    # TODO(lukewood): should we integrate RandomTranslation with `factor`?
     return {"width_factor": magnitude / 10, "height_factor": 0}
 
 
 def translate_y_policy(magnitude, magnitude_std):
+    # TODO(lukewood): should we integrate RandomTranslation with `factor`?
     return {"width_factor": 0, "height_factor": magnitude / 10}
 
 
