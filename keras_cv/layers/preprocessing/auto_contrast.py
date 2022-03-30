@@ -41,9 +41,6 @@ class AutoContrast(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
         super().__init__(**kwargs)
         self.value_range = value_range
 
-    def augment_label(self, label, transformation=None):
-        return label
-
     def augment_image(self, image, transformation=None):
         original_image = image
         image = preprocessing.transform_value_range(
@@ -63,6 +60,9 @@ class AutoContrast(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
         # don't process NaN channels
         result = tf.where(tf.math.is_nan(result), original_image, result)
         return result
+
+    def augment_label(self, label, transformation=None):
+        return label
 
     def get_config(self):
         config = super().get_config()

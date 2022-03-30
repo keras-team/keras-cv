@@ -98,6 +98,9 @@ class Posterization(BaseImageAugmentationLayer):
             tf.bitwise.right_shift(image, self._shift), self._shift
         )
 
+    def augment_label(self, label, transformation=None):
+        return label
+
     def get_config(self):
         config = {"bits": 8 - self._shift, "value_range": self._value_range}
         base_config = super().get_config()

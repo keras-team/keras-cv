@@ -67,6 +67,9 @@ class RandomSaturation(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
         adjust_factor = transformation / (1 - transformation)
         return tf.image.adjust_saturation(image, saturation_factor=adjust_factor)
 
+    def augment_label(self, label, transformation=None):
+        return label
+
     def get_config(self):
         config = {
             "factor": self.factor,
