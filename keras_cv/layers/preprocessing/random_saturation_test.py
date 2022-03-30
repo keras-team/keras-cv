@@ -13,8 +13,9 @@
 # limitations under the License.
 import tensorflow as tf
 
-from keras_cv.layers import preprocessing
 from keras_cv import core
+from keras_cv.layers import preprocessing
+
 
 class RandomSaturationTest(tf.test.TestCase):
     def test_preserves_output_shape(self):
