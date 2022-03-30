@@ -14,15 +14,16 @@
 
 import tensorflow as tf
 
-from keras_cv.layers import preprocessing
+from keras_cv import core
 
 
 class ConstantFactorTest(tf.test.TestCase):
-    def test_config(self):
-        layer = preprocessing.RandomHue(factor=(0.3, 0.8))
-        config = layer.get_config()
-        self.assertEqual(config["factor"].get_config, (0.3, 0.8))
 
-        layer = preprocessing.RandomHue(factor=0.5)
-        config = layer.get_config()
-        self.assertEqual(config["factor"], (0.0, 0.5))
+    def test_sample(self):
+        factor = core.ConstantFactor(0.3)
+        self.assertEqual(factor.sample(), 0.3)
+
+    def test_config(self):
+        factor = core.ConstantFactor(0.3)
+        config = factor.get_config()
+        self.assertEqual(config["value"], 0.3)

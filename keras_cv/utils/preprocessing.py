@@ -99,8 +99,7 @@ def parse_factor(
     min_value=0.0,
     max_value=1.0,
     param_name="factor",
-    seed=None,
-    random_generator=None,
+    seed=None
 ):
 
     if isinstance(param, core.Factor):
@@ -126,7 +125,7 @@ def parse_factor(
         return core.ConstantFactor(param[0])
 
     return core.UniformFactor(
-        param[0], param[1], seed=seed, random_generator=random_generator
+        param[0], param[1], seed=seed
     )
 
 

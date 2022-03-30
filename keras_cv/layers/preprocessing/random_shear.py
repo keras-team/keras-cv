@@ -77,8 +77,6 @@ class RandomShear(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
                 "RandomShear received both `x_factor=None` and `y_factor=None`.  As a "
                 "result, the layer will perform no augmentation."
             )
-        self.x = x
-        self.y = y
         self.interpolation = interpolation
         self.fill_mode = fill_mode
         self.fill_value = fill_value
@@ -137,8 +135,8 @@ class RandomShear(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
         config = super().get_config()
         config.update(
             {
-                "x": self.x,
-                "y": self.y,
+                "x_factor": self.x_factor,
+                "y_factor": self.y_factor,
                 "interpolation": self.interpolation,
                 "fill_mode": self.fill_mode,
                 "fill_value": self.fill_value,

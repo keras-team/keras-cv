@@ -27,7 +27,7 @@ class RandomShearTest(tf.test.TestCase):
 
         fill_value = 0.0
         layer = preprocessing.RandomShear(
-            x=(3, 3), seed=0, fill_mode="constant", fill_value=fill_value
+            x_factor=(3, 3), seed=0, fill_mode="constant", fill_value=fill_value
         )
         xs = layer(xs)
 
