@@ -14,8 +14,9 @@
 import tensorflow as tf
 from absl.testing import parameterized
 
-from keras_cv.layers import preprocessing
 from keras_cv import core
+from keras_cv.layers import preprocessing
+
 
 def custom_compare(obj1, obj2):
     if isinstance(obj1, core.ConstantFactor):
@@ -32,6 +33,7 @@ def config_equals(config1, config2):
         if not custom_compare(v1, v2):
             return False
     return True
+
 
 class SerializationTest(tf.test.TestCase, parameterized.TestCase):
     @parameterized.named_parameters(
@@ -75,4 +77,6 @@ class SerializationTest(tf.test.TestCase, parameterized.TestCase):
         reconstructed_model = tf.keras.Sequential().from_config(model_config)
         reconstructed_layer = reconstructed_model.layers[0]
 
-        self.assertTrue(config_equals(layer.get_config(), reconstructed_layer.get_config()))
+        self.assertTrue(
+            config_equals(layer.get_config(), reconstructed_layer.get_config())
+        )

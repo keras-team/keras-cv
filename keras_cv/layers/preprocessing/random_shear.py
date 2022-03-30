@@ -133,8 +133,6 @@ class RandomShear(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
 
     def get_config(self):
         config = super().get_config()
-        x_factor = self.x_factor.get_config() if self.x_factor is not None else None
-        y_factor = self.y_factor.get_config() if self.y_factor is not None else None
         config.update(
             {
                 "x_factor": self.x_factor,
