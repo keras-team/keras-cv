@@ -28,6 +28,7 @@ def _center_crop(mask, width, height):
     return tf.image.crop_to_bounding_box(mask, h_start, w_start, height, width)
 
 
+@tf.keras.utils.register_keras_serializable(package="keras_cv")
 class GridMask(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
     """GridMask class for grid-mask augmentation.
 
@@ -95,12 +96,12 @@ class GridMask(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
             self.ratio = ratio.lower()
         self.fill_mode = fill_mode
         self.fill_value = fill_value
+        self.rotation_factor = rotation_factor
         self.random_rotate = layers.RandomRotation(
             factor=rotation_factor, fill_mode="constant", fill_value=0.0, seed=seed
         )
         self.seed = seed
         self.auto_vectorize = True
-
         self._check_parameter_values()
 
     def _check_parameter_values(self):

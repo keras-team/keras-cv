@@ -18,6 +18,7 @@ import tensorflow as tf
 from keras_cv.utils import preprocessing
 
 
+@tf.keras.utils.register_keras_serializable(package="keras_cv")
 class RandomShear(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
     """Randomly shears an image.
 
@@ -70,7 +71,7 @@ class RandomShear(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
         self.fill_mode = fill_mode
         self.fill_value = fill_value
 
-    def get_random_transformation(self):
+    def get_random_transformation(self, image=None, label=None, bounding_box=None):
         x = self._get_shear_amount(self.x)
         y = self._get_shear_amount(self.y)
         return (x, y)
@@ -121,3 +122,16 @@ class RandomShear(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
     def _format_transform(transform):
         transform = tf.convert_to_tensor(transform, dtype=tf.float32)
         return transform[tf.newaxis]
+
+    def get_config(self):
+        config = super().get_config()
+        config.update(
+            {
+                "x": self.x,
+                "y": self.y,
+                "interpolation": self.interpolation,
+                "fill_mode": self.fill_mode,
+                "fill_value": self.fill_value,
+            }
+        )
+        return config
