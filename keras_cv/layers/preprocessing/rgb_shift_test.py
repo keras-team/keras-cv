@@ -63,7 +63,7 @@ class RGBShiftTest(tf.test.TestCase):
         self.assertFalse(tf.math.reduce_any(xs == 1.0))
 
     def test_config(self):
-        layer = RGBShift(factor=(0.1, 0.5))
+        layer = RGBShift(factor=[0.1, 0.5])
         config = layer.get_config()
         self.assertEqual(config["factor"], [0.1, 0.5])
 
