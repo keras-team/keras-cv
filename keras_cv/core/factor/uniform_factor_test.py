@@ -16,8 +16,8 @@ import tensorflow as tf
 
 from keras_cv import core
 
-class UniformFactorTest(tf.test.TestCase):
 
+class UniformFactorTest(tf.test.TestCase):
     def test_sample(self):
         factor = core.UniformFactor(0.3, 0.6)
         self.assertTrue(0.3 <= factor.sample() <= 0.6)

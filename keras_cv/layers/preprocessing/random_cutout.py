@@ -16,6 +16,7 @@ import tensorflow as tf
 from keras_cv.utils import fill_utils
 from keras_cv.utils import preprocessing
 
+
 @tf.keras.utils.register_keras_serializable(package="keras_cv")
 class RandomCutout(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
     """Randomly cut out rectangles from images and fill them.
@@ -70,14 +71,10 @@ class RandomCutout(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
         super().__init__(**kwargs)
 
         self.height_factor = preprocessing.parse_factor(
-            height_factor,
-            param_name="height_factor",
-            seed=seed
+            height_factor, param_name="height_factor", seed=seed
         )
         self.width_factor = preprocessing.parse_factor(
-            width_factor,
-            param_name="width_factor",
-            seed=seed
+            width_factor, param_name="width_factor", seed=seed
         )
         self.fill_mode = fill_mode
         self.fill_value = fill_value
