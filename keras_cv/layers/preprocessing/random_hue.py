@@ -81,6 +81,9 @@ class RandomHue(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
     def augment_label(self, label, transformation=None):
         return label
 
+    def augment_label(self, label, transformation=None):
+        return label
+
     def get_config(self):
         config = {
             "factor": self.factor,
