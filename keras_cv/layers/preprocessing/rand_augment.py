@@ -1,6 +1,18 @@
+# Copyright 2022 The KerasCV Authors
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 import tensorflow as tf
 from tensorflow import keras
-from tensorflow.keras import layers
 
 from keras_cv import core
 from keras_cv.layers import preprocessing as cv_preprocessing
@@ -17,8 +29,8 @@ class RandAugment(keras.layers.Layer):
     The policy operates as follows:
 
     For each `layer`, the policy selects a random operation from a list of operations.
-    It then samples a random number and if that number is less than `probability_to_apply`
-    applies it to the given image.
+    It then samples a random number and if that number is less than
+    `probability_to_apply` applies it to the given image.
 
     References:
         - [RandAugment](https://arxiv.org/abs/1909.13719)
@@ -40,8 +52,8 @@ class RandAugment(keras.layers.Layer):
     def __init__(
         self,
         num_layers=3,
-        magnitude=7.0,
-        magnitude_standard_deviation=0.0,
+        magnitude=5.0,
+        magnitude_standard_deviation=1.5,
         probability_to_apply=None,
         value_range=(0, 255),
     ):
@@ -113,7 +125,14 @@ class RandAugment(keras.layers.Layer):
         return sample
 
     def call(self, inputs):
-        return tf.map_fn(lambda sample: self.augment_sample(sample), inputs)
+        inputs["images"] = preprocessing_utils.transform_value_range(
+            inputs["images"], self.value_range, (0, 255)
+        )
+        result = tf.map_fn(lambda sample: self.augment_sample(sample), inputs)
+        result["images"] = preprocessing_utils.transform_value_range(
+            result["images"], (0, 255), self.value_range
+        )
+        return result
 
     def get_config(self):
         return {
@@ -206,7 +225,7 @@ def cutout_policy(magnitude, magnitude_std):
         min_value=0,
         max_value=1,
     )
-    return {"width_factor": 0.5 * magnitude / 10, "height_factor": 0.5 * magnitude / 10}
+    return {"width_factor": factor, "height_factor": factor}
 
 
 policy_pairs = [
