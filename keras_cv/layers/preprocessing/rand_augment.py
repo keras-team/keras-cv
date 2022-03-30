@@ -2,6 +2,7 @@ import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras import layers
 
+from keras_cv import core
 from keras_cv.layers import preprocessing as cv_preprocessing
 from keras_cv.utils import preprocessing as preprocessing_utils
 
@@ -24,6 +25,7 @@ class RandAugment(keras.layers.Layer):
     Args:
         num_layers:
         magnitude:
+        magnitude_standard_deviation:
         probability_to_apply:
         value_range:
 
@@ -36,15 +38,21 @@ class RandAugment(keras.layers.Layer):
         self,
         num_layers=3,
         magnitude=7.0,
+        magnitude_standard_deviation=0.0,
         probability_to_apply=None,
         value_range=(0, 255),
     ):
         super().__init__()
         self.num_layers = num_layers
         self.magnitude = magnitude
+        if magnitude > 10.0:
+            raise ValueError(
+                f"`magnitude` must be in the range [0, 10], got `magnitude={magnitude}`"
+            )
+        self.magnitude_standard_deviation = magnitude_standard_deviation
         self.probability_to_apply = probability_to_apply
 
-        policy = create_rand_augment_policy(magnitude)
+        policy = create_rand_augment_policy(magnitude, magnitude_standard_deviation)
 
         self.auto_contrast = cv_preprocessing.AutoContrast(**policy["auto_contrast"])
         self.equalize = cv_preprocessing.Equalization(**policy["equalize"])
@@ -104,6 +112,15 @@ class RandAugment(keras.layers.Layer):
     def call(self, inputs):
         return tf.map_fn(lambda sample: self.augment_sample(sample), inputs)
 
+    def get_config(self):
+        return {
+            "num_layers": self.num_layers,
+            "magnitude": self.magnitude,
+            "magnitude_standard_deviation": self.magnitude_standard_deviation,
+            "probability_to_apply": self.probability_to_apply,
+            "value_range": self.value_range,
+        }
+
 
 def auto_contrast_policy(magnitude, magnitude_std):
     return {}
@@ -114,10 +131,12 @@ def equalize_policy(magnitude, magnitude_std):
 
 
 def solarize_policy(magnitude, magnitude_std):
+    # this should support a sample-able factor.
     return {"threshold": magnitude / 10 * 256}
 
 
 def solarize_add_policy(magnitude, magnitude_std):
+    # same with this.
     return {"addition": magnitude / 10 * 110, "threshold": 128}
 
 
@@ -126,23 +145,43 @@ def invert_policy(magnitude, magnitude_std):
 
 
 def color_policy(magnitude, magnitude_std):
-    return {"factor": (magnitude / 10.0)}
+    factor = core.NormalFactor(
+        mean=magnitude / 10.0,
+        standard_deviation=magnitude_std / 10.0,
+        min_value=0,
+        max_value=1,
+    )
+    return {"factor": factor}
 
 
 def contrast_policy(magnitude, magnitude_std):
-    return {"factor": (magnitude / 10.0)}
+    # RandomContrast layer errors when factor=0
+    factor = max(magnitude / 10, 0.001)
+    return {"factor": factor}
 
 
 def brightness_policy(magnitude, magnitude_std):
-    return {"factor": (magnitude / 10.0)}
+    return {"factor": magnitude / 10.0}
 
 
 def shear_x_policy(magnitude, magnitude_std):
-    return {"x_factor": magnitude / 10, "y_factor": 0}
+    factor = core.NormalFactor(
+        mean=magnitude / 10.0,
+        standard_deviation=magnitude_std / 10.0,
+        min_value=0,
+        max_value=1,
+    )
+    return {"x_factor": factor, "y_factor": 0}
 
 
 def shear_y_policy(magnitude, magnitude_std):
-    return {"x_factor": 0, "y_factor": magnitude / 10}
+    factor = core.NormalFactor(
+        mean=magnitude / 10.0,
+        standard_deviation=magnitude_std / 10.0,
+        min_value=0,
+        max_value=1,
+    )
+    return {"x_factor": 0, "y_factor": factor}
 
 
 def translate_x_policy(magnitude, magnitude_std):
@@ -154,6 +193,12 @@ def translate_y_policy(magnitude, magnitude_std):
 
 
 def cutout_policy(magnitude, magnitude_std):
+    factor = core.NormalFactor(
+        mean=0.5 * (magnitude / 10.0),
+        standard_deviation=(magnitude_std / 10.0),
+        min_value=0,
+        max_value=1,
+    )
     return {"width_factor": 0.5 * magnitude / 10, "height_factor": 0.5 * magnitude / 10}
 
 
@@ -174,8 +219,8 @@ policy_pairs = [
 ]
 
 
-def create_rand_augment_policy(magnitude):
+def create_rand_augment_policy(magnitude, magnitude_standard_deviation):
     result = {}
     for name, policy_fn in policy_pairs:
-        result[name] = policy_fn(magnitude)
+        result[name] = policy_fn(magnitude, magnitude_standard_deviation)
     return result
