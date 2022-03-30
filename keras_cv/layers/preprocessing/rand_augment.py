@@ -222,7 +222,7 @@ def translate_y_policy(magnitude, magnitude_std):
 
 def cutout_policy(magnitude, magnitude_std):
     factor = core.NormalFactor(
-        mean=0.5 * (magnitude / 10.0),
+        mean=(magnitude / 10.0),
         standard_deviation=(magnitude_std / 10.0),
         min_value=0,
         max_value=1,
