@@ -35,6 +35,7 @@ from keras_cv.layers.preprocessing.grayscale import Grayscale
 from keras_cv.layers.preprocessing.grid_mask import GridMask
 from keras_cv.layers.preprocessing.mix_up import MixUp
 from keras_cv.layers.preprocessing.posterization import Posterization
+from keras_cv.layers.preprocessing.rand_augment import RandAugment
 from keras_cv.layers.preprocessing.random_color_degeneration import (
     RandomColorDegeneration,
 )
@@ -44,4 +45,3 @@ from keras_cv.layers.preprocessing.random_saturation import RandomSaturation
 from keras_cv.layers.preprocessing.random_sharpness import RandomSharpness
 from keras_cv.layers.preprocessing.random_shear import RandomShear
 from keras_cv.layers.preprocessing.solarization import Solarization
-from keras_cv.layers.preprocessing.rand_augment import RandAugment
