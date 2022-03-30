@@ -139,26 +139,38 @@ class DropBlock2D(BaseRandomLayer):
 
     def __init__(
         self,
-        dropout_rate,
         dropblock_size,
+        dropout_rate=None,
+        dropout_rate_scheduler=None,
         data_format=None,
         seed=None,
         name=None,
     ):
         super().__init__(seed=seed, name=name, force_generator=True)
-        if not 0.0 <= dropout_rate <= 1.0:
-            raise ValueError(
-                f"dropout_rate must be a number between 0 and 1. "
-                f"Received: {dropout_rate}"
-            )
 
-        self._dropout_rate = dropout_rate
+        self.training_step = 1  # Current training step
+        if dropout_rate != None:
+            if not 0.0 <= dropout_rate <= 1.0:
+                raise ValueError(
+                    f"dropout_rate must be a number between 0 and 1. "
+                    f"Received: {dropout_rate}"
+                )
+            self.dropout_rate_schedule = lambda _: dropout_rate
+
+        elif dropout_rate_scheduler:
+            self.dropout_rate_schedule = dropout_rate_scheduler
+
+        else:
+            raise TypeError(f"Received neither dropout_rate nor dropout_rate_scheduler")
+
         self._dropblock_height, self._dropblock_width = conv_utils.normalize_tuple(
             value=dropblock_size, n=2, name="dropblock_size", allow_zero=False
         )
         self._data_format = conv_utils.normalize_data_format(data_format)
 
     def call(self, x, training=None):
+        self._dropout_rate = self.dropout_rate_schedule(self.training_step)
+
         if not training or self._dropout_rate == 0.0:
             return x
 
@@ -229,6 +241,10 @@ class DropBlock2D(BaseRandomLayer):
         percent_ones = tf.cast(tf.reduce_sum(block_pattern), tf.float32) / tf.cast(
             tf.size(block_pattern), tf.float32
         )
+
+        # Increment the training step
+        self.training_step += 1
+
         return x / tf.cast(percent_ones, x.dtype) * tf.cast(block_pattern, x.dtype)
 
     def get_config(self):
