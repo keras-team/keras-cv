@@ -15,5 +15,6 @@
 from keras_cv import layers
 from keras_cv import metrics
 from keras_cv import utils
+from keras_cv import visualization
 
 __version__ = "master"
