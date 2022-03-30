@@ -56,6 +56,7 @@ class RandAugment(keras.layers.Layer):
         magnitude_standard_deviation=1.5,
         probability_to_apply=None,
         value_range=(0, 255),
+        seed=None,
     ):
         super().__init__()
         self.num_layers = num_layers
@@ -70,21 +71,33 @@ class RandAugment(keras.layers.Layer):
 
         policy = create_rand_augment_policy(magnitude, magnitude_standard_deviation)
 
-        self.auto_contrast = cv_preprocessing.AutoContrast(**policy["auto_contrast"])
-        self.equalize = cv_preprocessing.Equalization(**policy["equalize"])
+        self.auto_contrast = cv_preprocessing.AutoContrast(
+            **policy["auto_contrast"], seed=seed
+        )
+        self.equalize = cv_preprocessing.Equalization(**policy["equalize"], seed=seed)
 
-        self.solarize = cv_preprocessing.Solarization(**policy["solarize"])
-        self.solarize_add = cv_preprocessing.Solarization(**policy["solarize_add"])
-        self.invert = cv_preprocessing.Solarization(**policy["invert"])
+        self.solarize = cv_preprocessing.Solarization(**policy["solarize"], seed=seed)
+        self.solarize_add = cv_preprocessing.Solarization(
+            **policy["solarize_add"], seed=seed
+        )
+        self.invert = cv_preprocessing.Solarization(**policy["invert"], seed=seed)
 
-        self.color = cv_preprocessing.RandomColorDegeneration(**policy["color"])
-        self.contrast = cv_preprocessing.RandomContrast(**policy["contrast"])
-        self.brightness = cv_preprocessing.RandomBrightness(**policy["brightness"])
-        self.shear_x = cv_preprocessing.RandomShear(**policy["shear_x"])
-        self.shear_y = cv_preprocessing.RandomShear(**policy["shear_y"])
-        self.translate_x = cv_preprocessing.RandomTranslation(**policy["translate_x"])
-        self.translate_y = cv_preprocessing.RandomTranslation(**policy["translate_y"])
-        self.cutout = cv_preprocessing.RandomCutout(**policy["cutout"])
+        self.color = cv_preprocessing.RandomColorDegeneration(
+            **policy["color"], seed=seed
+        )
+        self.contrast = cv_preprocessing.RandomContrast(**policy["contrast"], seed=seed)
+        self.brightness = cv_preprocessing.RandomBrightness(
+            **policy["brightness"], seed=seed
+        )
+        self.shear_x = cv_preprocessing.RandomShear(**policy["shear_x"], seed=seed)
+        self.shear_y = cv_preprocessing.RandomShear(**policy["shear_y"], seed=seed)
+        self.translate_x = cv_preprocessing.RandomTranslation(
+            **policy["translate_x"], seed=seed
+        )
+        self.translate_y = cv_preprocessing.RandomTranslation(
+            **policy["translate_y"], seed=seed
+        )
+        self.cutout = cv_preprocessing.RandomCutout(**policy["cutout"], seed=seed)
 
         self.augmentation_layers = [
             self.auto_contrast,
