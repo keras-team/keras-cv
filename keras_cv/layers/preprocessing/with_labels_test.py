@@ -50,4 +50,37 @@ class WithLabelsTest(tf.test.TestCase, parameterized.TestCase):
         labels = tf.ones((1,), dtype=tf.float32)
 
         inputs = {"images": img, "labels": labels}
-        ys = layer(inputs)
+        _ = layer(inputs)
+
+    @parameterized.named_parameters(
+        ("AutoContrast", preprocessing.AutoContrast, {}),
+        ("Equalization", preprocessing.Equalization, {}),
+        ("Grayscale", preprocessing.Grayscale, {}),
+        ("GridMask", preprocessing.GridMask, {}),
+        ("Posterization", preprocessing.Posterization, {"bits": 3}),
+        (
+            "RandomColorDegeneration",
+            preprocessing.RandomColorDegeneration,
+            {"factor": 0.5},
+        ),
+        (
+            "RandomCutout",
+            preprocessing.RandomCutout,
+            {"height_factor": 0.2, "width_factor": 0.2},
+        ),
+        ("RandomHue", preprocessing.RandomHue, {"factor": 0.5}),
+        ("RandomSaturation", preprocessing.RandomSaturation, {"factor": 0.5}),
+        ("RandomSharpness", preprocessing.RandomSharpness, {"factor": 0.5}),
+        ("RandomShear", preprocessing.RandomShear, {"x": 0.3, "y": 0.3}),
+        ("Solarization", preprocessing.Solarization, {}),
+    )
+    def test_can_run_with_labels_unbatched(self, layer_cls, init_args):
+        layer = layer_cls(**init_args)
+
+        img = tf.constant([0, 128], dtype=tf.uint8)
+        img = tf.expand_dims(img, axis=-1)
+        img = tf.repeat(img, 3, axis=-1)
+        labels = tf.ones((), dtype=tf.float32)
+
+        inputs = {"images": img, "labels": labels}
+        _ = layer(inputs)
