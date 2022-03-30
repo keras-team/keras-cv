@@ -42,7 +42,9 @@ class UniformFactor(Factor):
         self.seed = seed
 
     def sample(self):
-        return tf.random.uniform((), self.lower, self.upper, seed=self.seed, dtype=tf.float32)
+        return tf.random.uniform(
+            (), self.lower, self.upper, seed=self.seed, dtype=tf.float32
+        )
 
     def get_config(self):
         return {
