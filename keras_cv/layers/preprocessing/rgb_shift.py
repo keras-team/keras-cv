@@ -31,13 +31,13 @@ class RGBShift(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
 
     Args:
         factor: A scalar value, or tuple/list of two floating values in
-            the range `[0.0, 1.0]`. If `factor` is a single value, it will 
+            the range `[0.0, 1.0]`. If `factor` is a single value, it will
             interpret as equivalent to the tuple `(0.0, factor)`.
 
-            The `factor` will sampled between its range for every image to 
+            The `factor` will sampled between its range for every image to
             augment. And later the sampled value from [0.0, 1.0] will convert
-            to [-1.0, 1.0] ranges. 
-        
+            to [-1.0, 1.0] ranges.
+
     Usage:
     ```python
     (images, labels), _ = tf.keras.datasets.cifar10.load_data()
