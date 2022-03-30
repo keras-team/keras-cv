@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import tensorflow as tf
-from tensorflow.keras import backend
 
 from keras_cv.core.factor_sampler.factor_sampler import Sampler
 
@@ -32,7 +31,12 @@ class NormalFactorSampler(FactorSampler):
 
     Usage:
     ```python
-    factor = keras_cv.core.NormalFactor(mean=0.5, standard_deviation=0.1, lower=0, upper=1)
+    factor = keras_cv.core.NormalFactor(
+        mean=0.5,
+        standard_deviation=0.1,
+        lower=0,
+        upper=1
+    )
     random_sharpness = keras_cv.layers.RandomSharpness(factor=factor)
     # random_sharpness will now sample normally around 0.5, with a lower of 0 and upper
     # bound of 1.
