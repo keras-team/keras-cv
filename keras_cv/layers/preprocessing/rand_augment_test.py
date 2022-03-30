@@ -29,3 +29,14 @@ class RandAugmentTest(tf.test.TestCase, parameterized.TestCase):
         xs = tf.ones((2, 512, 512, 3))
         ys = rand_augment(xs)
         self.assertEqual(ys.shape, (2, 512, 512, 3))
+
+    @parameterized.named_parameters(
+        ("float32", tf.float32),
+        ("int32", tf.int32),
+        ("uint8", tf.uint8),
+    )
+    def test_runs_with_dtype_input(self, dtype):
+        rand_augment = layers.RandAugment()
+        xs = tf.ones((2, 512, 512, 3), dtype=dtype)
+        ys = rand_augment(xs)
+        self.assertEqual(ys.shape, (2, 512, 512, 3))

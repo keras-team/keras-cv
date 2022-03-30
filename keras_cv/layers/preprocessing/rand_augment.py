@@ -126,6 +126,7 @@ class RandAugment(keras.layers.Layer):
         return sample
 
     def call(self, inputs):
+        inputs = tf.cast(inputs, self.compute_dtype)
         inputs = preprocessing_utils.transform_value_range(
             inputs, self.value_range, (0, 255)
         )
