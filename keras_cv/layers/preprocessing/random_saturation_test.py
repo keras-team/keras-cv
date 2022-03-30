@@ -15,7 +15,7 @@ import tensorflow as tf
 
 from keras_cv import core
 from keras_cv.layers import preprocessing
-
+from keras_cv import core
 
 class RandomSaturationTest(tf.test.TestCase):
     def test_preserves_output_shape(self):
@@ -90,6 +90,4 @@ class RandomSaturationTest(tf.test.TestCase):
     def test_config(self):
         layer = preprocessing.RandomSaturation(factor=(0.3, 0.8))
         config = layer.get_config()
-        self.assertTrue(isinstance(config["factor"], core.UniformFactorSampler))
-        self.assertEqual(config["factor"].get_config()["lower"], 0.3)
-        self.assertEqual(config["factor"].get_config()["upper"], 0.8)
+        self.assertTrue(isinstance(config["factor"], core.Factor))

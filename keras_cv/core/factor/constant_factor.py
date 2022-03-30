@@ -40,5 +40,5 @@ class ConstantFactor(Factor):
     def sample(self):
         return self.value
 
-    def get_config():
+    def get_config(self):
         return {"value": self.value}
