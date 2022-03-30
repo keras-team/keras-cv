@@ -89,6 +89,21 @@ class AutoContrastTest(tf.test.TestCase):
             ],
         )
 
+    def test_auto_contrast_with_label(self):
+        img = tf.constant([0, 128], dtype=tf.uint8)
+        img = tf.expand_dims(img, axis=-1)
+        img = tf.expand_dims(img, axis=-1)
+        img = tf.expand_dims(img, axis=0)
+        labels = tf.ones((1,), dtype=tf.float32)
+
+        layer = preprocessing.AutoContrast(value_range=(0, 255))
+        inputs = {"images": img, "labels": labels}
+        ys = layer(inputs)
+
+        self.assertTrue(tf.math.reduce_any(ys["images"][0] == 0.0))
+        self.assertTrue(tf.math.reduce_any(ys["images"][0] == 255.0))
+
+
     def test_auto_contrast_expands_value_range_uint8(self):
         img = tf.constant([0, 128], dtype=tf.uint8)
         img = tf.expand_dims(img, axis=-1)
