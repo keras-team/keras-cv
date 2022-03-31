@@ -205,7 +205,7 @@ class COCOMeanAveragePrecision(tf.keras.metrics.Metric):
 
                     # We must divide by 1.01 to prevent off by one errors.
                     confidence_buckets = tf.cast(
-                        tf.math.floor(self.num_buckets * (dt_scores / 1.0001)), tf.int32
+                        tf.math.floor(self.num_buckets * (dt_scores / 1.01)), tf.int32
                     )
                     true_positives_by_bucket = tf.gather_nd(
                         confidence_buckets, indices=tf.where(true_positives)
