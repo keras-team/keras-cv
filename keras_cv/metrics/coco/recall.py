@@ -152,9 +152,9 @@ class COCORecall(keras.metrics.Metric):
                 y_true_for_image = utils.filter_boxes_by_area_range(
                     y_true_for_image, self.area_range[0], self.area_range[1]
                 )
-                y_pred_for_image = utils.filter_boxes_by_area_range(
-                    y_pred_for_image, self.area_range[0], self.area_range[1]
-                )
+                # y_pred_for_image = utils.filter_boxes_by_area_range(
+                #    y_pred_for_image, self.area_range[0], self.area_range[1]
+                # )
 
             for k_i in tf.range(num_categories):
                 category = class_ids[k_i]

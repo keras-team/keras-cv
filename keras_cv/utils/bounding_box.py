@@ -65,8 +65,8 @@ def corners_to_xywh(bounding_boxes):
     return tf.concat(
         [
             # We use ... here in case user has higher rank of inputs.
-            (left + right) / 2.0,  # X
-            (top + bottom) / 2.0,  # Y
+            left + right,  # X
+            top + bottom,  # Y
             right - left,  # WIDTH
             bottom - top,  # HEIGHT
             rest,  # In case there is any more index after the BOTTOM.
@@ -87,10 +87,10 @@ def xywh_to_corners(bounding_boxes):
     x, y, width, height, rest = tf.split(bounding_boxes, [1, 1, 1, 1, -1], axis=-1)
     return tf.concat(
         [
-            x - width / 2.0,
-            y - height / 2.0,
-            x + width / 2.0,
-            y + height / 2.0,
+            x,
+            y,
+            x + width,
+            y + height,
             rest,  # In case there is any more index after the HEIGHT.
         ],
         axis=-1,
