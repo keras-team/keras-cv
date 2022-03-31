@@ -87,7 +87,6 @@ class GridMask(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
         rotation_factor=0.15,
         fill_mode="constant",
         fill_value=0.0,
-        seed=None,
         **kwargs,
     ):
         super().__init__(**kwargs)
@@ -98,9 +97,11 @@ class GridMask(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
         self.fill_value = fill_value
         self.rotation_factor = rotation_factor
         self.random_rotate = layers.RandomRotation(
-            factor=rotation_factor, fill_mode="constant", fill_value=0.0, seed=seed
+            factor=rotation_factor,
+            fill_mode="constant",
+            fill_value=0.0,
+            seed=self._random_generator._seed,
         )
-        self.seed = seed
         self.auto_vectorize = False
         self._check_parameter_values()
 
@@ -132,8 +133,8 @@ class GridMask(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
 
     def get_random_transformation(self, image=None, label=None, bounding_box=None):
         if self.ratio == "random":
-            ratio = tf.random.uniform(
-                shape=(), minval=0, maxval=1, dtype=tf.float32, seed=self.seed
+            ratio = self._random_generator.random_uniform(
+                shape=(), minval=0.0, maxval=1.0, dtype=tf.float32
             )
         else:
             ratio = self.ratio
@@ -142,25 +143,34 @@ class GridMask(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
         input_shape = tf.shape(image)
         mask = self._compute_grid_mask(input_shape, ratio=ratio)
 
-        # convert mask to single-channel images
+        # convert mask to single-channel image
         mask = tf.cast(mask, tf.float32)
         mask = tf.expand_dims(mask, axis=-1)
 
         # randomly rotate mask
         mask = self.random_rotate(mask)
 
-        return mask
+        # compute fill
+        if self.fill_mode == "constant":
+            fill_value = tf.fill(input_shape, self.fill_value)
+        else:
+            # gaussian noise
+            fill_value = self._random_generator.random_normal(
+                shape=input_shape, dtype=image.dtype
+            )
+
+        return mask, fill_value
 
     def _compute_grid_mask(self, input_shape, ratio):
         height = tf.cast(input_shape[0], tf.float32)
         width = tf.cast(input_shape[1], tf.float32)
 
-        # masks side length
+        # mask side length
         input_diagonal_len = tf.sqrt(tf.square(width) + tf.square(height))
         mask_side_len = tf.math.ceil(input_diagonal_len)
 
         # grid unit size
-        unit_size = tf.random.uniform(
+        unit_size = self._random_generator.random_uniform(
             shape=(),
             minval=tf.math.minimum(height * 0.5, width * 0.3),
             maxval=tf.math.maximum(height * 0.5, width * 0.3) + 1,
@@ -169,11 +179,11 @@ class GridMask(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
         rectangle_side_len = tf.cast((1 - ratio) * unit_size, tf.float32)
 
         # sample x and y offset for grid units randomly between 0 and unit_size
-        delta_x = tf.random.uniform(
-            shape=(), minval=0, maxval=unit_size, dtype=tf.float32
+        delta_x = self._random_generator.random_uniform(
+            shape=(), minval=0.0, maxval=unit_size, dtype=tf.float32
         )
-        delta_y = tf.random.uniform(
-            shape=(), minval=0, maxval=unit_size, dtype=tf.float32
+        delta_y = self._random_generator.random_uniform(
+            shape=(), minval=0.0, maxval=unit_size, dtype=tf.float32
         )
 
         # grid size (number of diagonal units in grid)
@@ -197,6 +207,7 @@ class GridMask(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
         x1 = tf.reshape(x1, [-1])
         y1 = tf.reshape(y1, [-1])
 
+        # convert coordinates to mask
         corners = tf.stack([x0, y0, x1, y1], axis=-1)
         mask_side_len = tf.cast(mask_side_len, tf.int32)
         rectangle_masks = fill_utils.corners_to_mask(
@@ -207,7 +218,7 @@ class GridMask(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
         return grid_mask
 
     def augment_image(self, image, transformation=None):
-        mask = transformation
+        mask, fill_value = transformation
         input_shape = tf.shape(image)
 
         # center crop mask
@@ -218,13 +229,6 @@ class GridMask(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
         # convert back to boolean mask
         mask = tf.cast(mask, tf.bool)
 
-        # fill
-        if self.fill_mode == "constant":
-            fill_value = tf.fill(input_shape, self.fill_value)
-        else:
-            # gaussian noise
-            fill_value = tf.random.normal(input_shape)
-
         return tf.where(mask, fill_value, image)
 
     def get_config(self):
@@ -233,7 +237,6 @@ class GridMask(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
             "rotation_factor": self.rotation_factor,
             "fill_mode": self.fill_mode,
             "fill_value": self.fill_value,
-            "seed": self.seed,
         }
         base_config = super().get_config()
         return dict(list(base_config.items()) + list(config.items()))
