@@ -23,69 +23,74 @@ class BBOXTestCase(tf.test.TestCase):
         self.corner_bounding_box = tf.constant(
             [[10, 10, 110, 110], [20, 20, 120, 120]], dtype=tf.float32
         )
-        self.xywh_bounding_box = tf.constant(
+        self.yolo_bounding_box = tf.constant(
             [[60, 60, 100, 100], [70, 70, 100, 100]], dtype=tf.float32
         )
-
-    def test_corner_to_xywh(self):
-        self.assertAllClose(
-            bounding_box.corners_to_xywh(self.corner_bounding_box),
-            self.xywh_bounding_box,
+        self.coco_bounding_box = tf.constant(
+            [[10, 10, 100, 100], [20, 20, 100, 100]], dtype=tf.float32
         )
 
-        # Make sure it also accept higher rank than 2
-        corner_bounding_box_3d = tf.expand_dims(self.corner_bounding_box, 0)
-        xywh_bounding_box_3d = tf.expand_dims(self.xywh_bounding_box, 0)
+    def test_coco_to_corner(self):
         self.assertAllClose(
-            bounding_box.corners_to_xywh(corner_bounding_box_3d), xywh_bounding_box_3d
-        )
-
-        # Make sure it also accept more value after last index.
-        padded_corner_bounding_box = tf.pad(
-            self.corner_bounding_box, [[0, 0], [0, 2]]
-        )  # Right pad 2 more value
-        padded_xywh_bounding_box = tf.pad(self.xywh_bounding_box, [[0, 0], [0, 2]])
-        self.assertAllClose(
-            bounding_box.corners_to_xywh(padded_corner_bounding_box),
-            padded_xywh_bounding_box,
-        )
-
-        # Same for higher rank
-        padded_corner_bounding_box_3d = tf.expand_dims(padded_corner_bounding_box, 0)
-        padded_xywh_bounding_box_3d = tf.expand_dims(padded_xywh_bounding_box, 0)
-        self.assertAllClose(
-            bounding_box.corners_to_xywh(padded_corner_bounding_box_3d),
-            padded_xywh_bounding_box_3d,
-        )
-
-    def test_xywh_to_corner(self):
-        self.assertAllClose(
-            bounding_box.xywh_to_corners(self.xywh_bounding_box),
+            bounding_box.convert_to_corners(self.coco_bounding_box, format="coco"),
             self.corner_bounding_box,
         )
 
         # Make sure it also accept higher rank than 2
         corner_bounding_box_3d = tf.expand_dims(self.corner_bounding_box, 0)
-        xywh_bounding_box_3d = tf.expand_dims(self.xywh_bounding_box, 0)
+        coco_bounding_box_3d = tf.expand_dims(self.coco_bounding_box, 0)
         self.assertAllClose(
-            bounding_box.xywh_to_corners(xywh_bounding_box_3d), corner_bounding_box_3d
+            bounding_box.convert_to_corners(coco_bounding_box_3d, format="coco"),
+            corner_bounding_box_3d,
         )
 
         # Make sure it also accept more value after last index.
         padded_corner_bounding_box = tf.pad(
             self.corner_bounding_box, [[0, 0], [0, 2]]
         )  # Right pad 2 more value
-        padded_xywh_bounding_box = tf.pad(self.xywh_bounding_box, [[0, 0], [0, 2]])
+        padded_coco_bounding_box = tf.pad(self.coco_bounding_box, [[0, 0], [0, 2]])
         self.assertAllClose(
-            bounding_box.xywh_to_corners(padded_xywh_bounding_box),
+            bounding_box.convert_to_corners(padded_coco_bounding_box, format="coco"),
             padded_corner_bounding_box,
         )
 
         # Same for higher rank
         padded_corner_bounding_box_3d = tf.expand_dims(padded_corner_bounding_box, 0)
-        padded_xywh_bounding_box_3d = tf.expand_dims(padded_xywh_bounding_box, 0)
+        padded_coco_bounding_box_3d = tf.expand_dims(padded_coco_bounding_box, 0)
         self.assertAllClose(
-            bounding_box.xywh_to_corners(padded_xywh_bounding_box_3d),
+            bounding_box.convert_to_corners(padded_coco_bounding_box_3d, format="coco"),
+            padded_corner_bounding_box_3d,
+        )
+
+    def test_yolo_to_corner(self):
+        self.assertAllClose(
+            bounding_box.convert_to_corners(self.yolo_bounding_box, format="yolo"),
+            self.corner_bounding_box,
+        )
+
+        # Make sure it also accept higher rank than 2
+        corner_bounding_box_3d = tf.expand_dims(self.corner_bounding_box, 0)
+        yolo_bounding_box_3d = tf.expand_dims(self.yolo_bounding_box, 0)
+        self.assertAllClose(
+            bounding_box.convert_to_corners(yolo_bounding_box_3d, format="yolo"),
+            corner_bounding_box_3d,
+        )
+
+        # Make sure it also accept more value after last index.
+        padded_corner_bounding_box = tf.pad(
+            self.corner_bounding_box, [[0, 0], [0, 2]]
+        )  # Right pad 2 more value
+        padded_yolo_bounding_box = tf.pad(self.yolo_bounding_box, [[0, 0], [0, 2]])
+        self.assertAllClose(
+            bounding_box.convert_to_corners(padded_yolo_bounding_box, format="yolo"),
+            padded_corner_bounding_box,
+        )
+
+        # Same for higher rank
+        padded_corner_bounding_box_3d = tf.expand_dims(padded_corner_bounding_box, 0)
+        padded_yolo_bounding_box_3d = tf.expand_dims(padded_yolo_bounding_box, 0)
+        self.assertAllClose(
+            bounding_box.convert_to_corners(padded_yolo_bounding_box_3d, format="yolo"),
             padded_corner_bounding_box_3d,
         )
 

@@ -42,9 +42,6 @@ import tensorflow as tf
 # These are the indexes used in Tensors to represent each corresponding side.
 LEFT, TOP, RIGHT, BOTTOM = 0, 1, 2, 3
 
-# These are the indexes that you can use for bounding box in XYWH format.
-X, Y, WIDTH, HEIGHT = 0, 1, 2, 3
-
 # Regardless of format these constants are consistent.
 # Class is held in the 5th index
 CLASS = 4
@@ -52,38 +49,41 @@ CLASS = 4
 CONFIDENCE = 5
 
 
-def corners_to_xywh(bounding_boxes):
-    """Converts bounding_boxes in corners format to XYWH format.
+def convert_to_corners(bounding_boxes, format="coco"):
+    """Converts bounding_boxes to corners format.
 
-    Args:
-        bounding_boxes: a Tensor which has at least 2D rank, with shape [..., 4]
-
-    Returns:
-        converted bounding_boxes with same shape, but in XYWH format.
+    args:
+        format:  one of "coco" or "yolo".  The formats are as follows-
+            pascal_voc=[x_min, y_min, x_max, y_max]
+            coco=[x_min, y_min, width, height]
+            yolo=[x_center, y_center, width, height]
     """
-    left, top, right, bottom, rest = tf.split(bounding_boxes, [1, 1, 1, 1, -1], axis=-1)
+    if format == "coco":
+        return _coco_to_corners(bounding_boxes)
+    elif format == "yolo":
+        return _yolo_to_corners(bounding_boxes)
+    else:
+        raise ValueError(
+            "Unsupported format passed to convert_to_corners().  "
+            f"Want one 'coco' or 'yolo', got format=={format}"
+        )
+
+
+def _yolo_to_corners(bounding_boxes):
+    x, y, width, height, rest = tf.split(bounding_boxes, [1, 1, 1, 1, -1], axis=-1)
     return tf.concat(
         [
-            # We use ... here in case user has higher rank of inputs.
-            left + right,  # X
-            top + bottom,  # Y
-            right - left,  # WIDTH
-            bottom - top,  # HEIGHT
-            rest,  # In case there is any more index after the BOTTOM.
+            x - width / 2.0,
+            y - height / 2.0,
+            x + width / 2.0,
+            y + height / 2.0,
+            rest,  # In case there is any more index after the HEIGHT.
         ],
         axis=-1,
     )
 
 
-def xywh_to_corners(bounding_boxes):
-    """Converts bounding_boxes in XYWH format to corners format.
-
-    Args:
-        bounding_boxes: a Tensor which has at least 2D rank, with shape [..., 4]
-
-    Returns:
-        converted bounding_boxes with same shape, but in corners format.
-    """
+def _coco_to_corners(bounding_boxes):
     x, y, width, height, rest = tf.split(bounding_boxes, [1, 1, 1, 1, -1], axis=-1)
     return tf.concat(
         [

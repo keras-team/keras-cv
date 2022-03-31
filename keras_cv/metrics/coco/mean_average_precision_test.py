@@ -196,13 +196,7 @@ class COCOMeanAveragePrecisionTest(tf.test.TestCase):
                     0,
                 ],
             ],
-            [
-                [
-                    0,
-                    0,
-                    0
-                ]
-            ],
+            [[0, 0, 0]],
         ]
         # Result should be the same as above.
         ground_truths = tf.constant(ground_truths, tf.int32)
