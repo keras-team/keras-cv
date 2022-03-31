@@ -38,6 +38,14 @@ def _blend(image1, image2, factor=0.4):
 
 
 def _map_color_on_mask(masks, color_map):
+
+    # check distinct mask color codes with color mapping.
+    distinct_mask_code = tf.unique(tf.reshape(masks, -1)).y
+    if any([code not in distinct_mask_code for code in color_map.keys()]):
+        raise ValueError(
+            f"Color mapping {color_map} does not map completely with distint color codes present in masks: {distinct_mask_code}"
+        )
+
     color_rgb = defaultdict(tuple)
 
     # map color code with RGB
@@ -85,12 +93,15 @@ def draw_segmentation(image, mask, color_map={}, alpha=0.4):
         ValueError: On incorrect data type and shapes for images or masks.
         KeyError: On incorrect color in `color_map`.
     """
-
     tf.debugging.assert_integer(
         image, message="Only integer dtypes supported for images."
     )
     tf.debugging.assert_integer(
         mask, message="Only integer dtypes supported for masks."
+    )
+
+    assert isinstance(color_map, dict), TypeError(
+        f"Dict is expected for color_map but {type(color_map)} passed."
     )
 
     if image.shape[:3] != mask.shape:
@@ -101,8 +112,6 @@ def draw_segmentation(image, mask, color_map={}, alpha=0.4):
         return image
 
     _input_image_dtype = image.dtype
-
-    # TODO: get distinct color mapping w.r.t masks
 
     # compute colored mask
     colored_mask = _map_color_on_mask(mask, color_map)
