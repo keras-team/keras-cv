@@ -138,29 +138,29 @@ class BoundingBoxToMaskTest(tf.test.TestCase):
     def test_height_out_of_lower_bound(self):
         expected = tf.constant(
             [
-                [1, 1, 0, 0, 0, 0],
-                [1, 1, 0, 0, 0, 0],
-                [1, 1, 0, 0, 0, 0],
+                [0, 1, 1, 1, 0, 0],
+                [0, 1, 1, 1, 0, 0],
+                [0, 0, 0, 0, 0, 0],
                 [0, 0, 0, 0, 0, 0],
                 [0, 0, 0, 0, 0, 0],
                 [0, 0, 0, 0, 0, 0],
             ]
         )
-        corners = tf.constant([[-2, -2, 2, 3]], dtype=tf.float32)
+        corners = tf.constant([[1, -3, 4, 2]], dtype=tf.float32)
         self._run_test(corners, expected)
 
     def test_height_out_of_upper_bound(self):
         expected = tf.constant(
             [
-                [0, 0, 0, 0, 1, 1],
-                [0, 0, 0, 0, 1, 1],
-                [0, 0, 0, 0, 1, 1],
                 [0, 0, 0, 0, 0, 0],
                 [0, 0, 0, 0, 0, 0],
                 [0, 0, 0, 0, 0, 0],
+                [0, 0, 0, 0, 0, 0],
+                [0, 1, 1, 1, 0, 0],
+                [0, 1, 1, 1, 0, 0],
             ]
         )
-        corners = tf.constant([[4, 0, 8, 3]], dtype=tf.float32)
+        corners = tf.constant([[1, 4, 4, 9]], dtype=tf.float32)
         self._run_test(corners, expected)
 
     def test_start_out_of_upper_bound(self):
