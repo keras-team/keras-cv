@@ -14,7 +14,7 @@ H_AXIS = -3
 W_AXIS = -2
 
 
-class RandomResizedCrop(base_layer.Layer):
+class RandomResizedCrop(tf.keras.internal.layers.BaseImageAugmentationLayer):
     '''
     This layer is used to
     Crop a random portion of image and resize it to a given size.
