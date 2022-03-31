@@ -21,12 +21,12 @@ class Equalization(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
     """Equalization performs histogram equalization on a channel-wise basis.
 
     Args:
-        bins: Integer indicating the number of bins to use in histogram equalization.
-            Should be in the range [0, 256]
         value_range: a tuple or a list of two elements. The first value represents
             the lower bound for values in passed images, the second represents the
             upper bound. Images passed to the layer should have values within
-            `value_range`. Defaults to `(0, 255)`.
+            `value_range`.
+        bins: Integer indicating the number of bins to use in histogram equalization.
+            Should be in the range [0, 256].
 
     Usage:
     ```python
@@ -42,7 +42,7 @@ class Equalization(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
             of type float or int.  Should be in NHWC format.
     """
 
-    def __init__(self, bins=256, value_range=(0, 255), **kwargs):
+    def __init__(self, value_range, bins=256, **kwargs):
         super().__init__(**kwargs)
         self.bins = bins
         self.value_range = value_range

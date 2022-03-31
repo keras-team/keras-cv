@@ -19,7 +19,7 @@ from keras_cv.layers.preprocessing.equalization import Equalization
 class EqualizationTest(tf.test.TestCase):
     def test_return_shapes(self):
         xs = 255 * tf.ones((2, 512, 512, 3), dtype=tf.int32)
-        layer = Equalization()
+        layer = Equalization(value_range=(0, 255))
         xs = layer(xs)
 
         self.assertEqual(xs.shape, [2, 512, 512, 3])

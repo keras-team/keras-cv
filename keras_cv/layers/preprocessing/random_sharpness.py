@@ -49,7 +49,7 @@ class RandomSharpness(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
     def __init__(
         self,
         factor,
-        value_range=(0, 255),
+        value_range,
         **kwargs,
     ):
         super().__init__(**kwargs)
