@@ -43,7 +43,8 @@ def _map_color_on_mask(masks, color_map):
     distinct_mask_code = tf.unique(tf.reshape(masks, -1)).y
     if any([code not in distinct_mask_code for code in color_map.keys()]):
         raise ValueError(
-            f"Color mapping {color_map} does not map completely with distint color codes present in masks: {distinct_mask_code}"
+            f"Color mapping {color_map} does not map completely\
+              with distint color codes present in masks: {distinct_mask_code}"
         )
 
     color_rgb = defaultdict(tuple)
