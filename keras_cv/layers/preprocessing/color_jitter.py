@@ -14,11 +14,14 @@
 
 import tensorflow as tf
 
+from keras_cv.layers import preprocessing
+
 
 class ColorJitter(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
-    """ColorJitter class randomly apply brightness, contrast, saturation 
-    and hue image processing operation sequentially and randomly on the input. 
-    It expects input as RGB image. The expected image should be `(0-255)` pixel ranges.
+    """ColorJitter class randomly apply brightness, contrast, saturation
+    and hue image processing operation sequentially and randomly on the
+    input. It expects input as RGB image. The expected image should be
+    `(0-255)` pixel ranges.
 
     Input shape:
         3D (unbatched) or 4D (batched) tensor with shape:
@@ -28,35 +31,36 @@ class ColorJitter(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
         `(..., height, width, channels)`, in `channels_last` format
 
     Args:
-        brightness_factor: A non-negative single float value. It will be used 
-        as `[-brightness_factor, brightness_factor)` to randomly pick a value 
-        from uniform distribution. Default: 0.5.
+        brightness_factor: Float or a list/tuple of 2 floats between -1.0
+            and 1.0. The factor is used to determine the lower bound and
+            upper bound of the brightness adjustment. A float value will be
+            chosen randomly between the limits. When -1.0 is chosen, the
+            output image will be black, and when 1.0 is chosen, the image
+            will be fully white. When only one float is provided, eg, 0.2,
+            then -0.2 will be used for lower bound and 0.2 will be used for
+            upper bound.
 
-        contrast_factor: A non-negative scalar or tuple or list of two upper 
-        and lower bound number. If factor is a single value, the range will 
-        be `(0, contrast_factor)`; otherwise `(contrast_factor[0], contrast_factor[1])`
-        as lower and upper bound respectively. It will be used to randomly pick a value 
-        from uniform distribution. Default: (0.5, 0.9).
+        contrast_factor: A positive float represented as fraction of value,
+            or a tuple of size 2 representing lower and upper bound. When
+            represented as a single float, lower = upper. The contrast factor
+            will be randomly picked between `[1.0 - lower, 1.0 + upper]`.
 
-        saturation_factor: A non-negative scalar or tuple or list of two upper 
-        and lower bound number. If factor is a single value, the range will 
-        be `(0, saturation_factor)`; otherwise `(saturation_factor[0], saturation_factor[1])`
-        as lower and upper bound respectively. It will be used to randomly pick a value 
-        from uniform distribution. Default: (0.5, 0.9).
+        saturation_factor: Either a tuple of two floats or a single float.
+            `factor` controls the extent to which the image saturation is
+            impacted. `factor=0.5` makes this layer perform a no-op operation.
+            `factor=0.0` makes the image to be fully grayscale. `factor=1.0`
+            makes the image to be fully saturated.
 
-        hue_factor: A non-negative single float value. It will be used 
-        as `[-hue_factor, hue_factor)` to randomly pick a value from uniform 
-        distribution. Default: 0.5.
+        hue_factor: Either a tuple of two floats or a single float. `factor`
+            controls the extent to which the image saturation is impacted.
+            `factor` = `0.0`, `0.5` or `1.0` makes this layer perform a no-op
+            operation. `factor=0.25` and `factor=0.75` makes the image to have
+            fully opposite hue value. Values should be between `0.0` and `1.0`.
+            If a tuple is used, a `factor` is sampled between the two values for
+            every image augmented. If a single float is used, a value between `0.0`
+            and the passed float is sampled. In order to ensure the value is always
+            the same, please pass a tuple with two identical floats: `(0.5, 0.5)`.
 
-        seed: Integer. Used to create a random seed. Default: None.
-
-    Call arguments: 
-        images: Tensor representing images of shape
-            `(..., height, width, channels)`, with dtype tf.float32 / tf.uint8, or,
-            `(height, width, channels)`, with dtype tf.float32 / tf.uint8
-        training: A boolean argument that determines whether the call should be run 
-            in inference mode or training mode. Default: True.
-   
     Usage:
     ```python
     (images, labels), _ = tf.keras.datasets.cifar10.load_data()
@@ -67,75 +71,32 @@ class ColorJitter(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
 
     def __init__(
         self,
-        brightness_factor=0.5,
-        contrast_factor=(0.5, 0.9),
-        saturation_factor=(0.5, 0.9),
-        hue_factor=0.5,
-        seed=None,
+        brightness_factor,
+        contrast_factor,
+        saturation_factor,
+        hue_factor,
         **kwargs,
     ):
         super().__init__(**kwargs)
-        self.seed = seed
-        self.brightness_factor = self._check_factor_limit(
-            brightness_factor, name="brightness"
-        )
-        self.contrast_factor = self._check_factor_limit(
-            contrast_factor, name="contrast"
-        )
-        self.saturation_factor = self._check_factor_limit(
-            saturation_factor, name="saturation"
-        )
-        self.hue_factor = self._check_factor_limit(hue_factor, name="hue")
+        self.brightness_factor = brightness_factor
+        self.contrast_factor = contrast_factor
+        self.saturation_factor = saturation_factor
+        self.hue_factor = hue_factor
 
-    def _check_factor_limit(self, factor, name):
-        if isinstance(factor, (int, float)):
-            if factor < 0:
-                raise TypeError(
-                    "The factor value should be non-negative scalar or tuple "
-                    f"or list of two upper and lower bound number. Received: {factor}"
-                )
-            if name == "brightness" or name == "hue":
-                return abs(factor)
-            return (0, abs(factor))
-        elif isinstance(factor, (tuple, list)) and len(factor) == 2:
-            if name == "brightness" or name == "hue":
-                raise ValueError(
-                    "The factor limit for brightness and hue, it should be a single "
-                    f"non-negative scaler. Received: {factor} for {name}"
-                )
-            return sorted(factor)
-        else:
-            raise TypeError(
-                "The factor value should be non-negative scalar or tuple "
-                f"or list of two upper and lower bound number. Received: {factor}"
-            )
-
-    def _color_jitter(self, image):
-        original_dtype = image.dtype
-        image = tf.cast(image, dtype=tf.float32)
-
-        brightness = tf.image.random_brightness(
-            image, max_delta=self.brightness_factor * 255.0, seed=self.seed
+        self.random_brightness = preprocessing.RandomBrightness(
+            factor=self.brightness_factor
         )
-        brightness = tf.clip_by_value(brightness, 0.0, 255.0)
-
-        contrast = tf.image.random_contrast(
-            brightness,
-            lower=self.contrast_factor[0],
-            upper=self.contrast_factor[1],
-            seed=self.seed,
+        self.random_contrast = preprocessing.RandomContrast(factor=self.contrast_factor)
+        self.random_saturation = preprocessing.RandomSaturation(
+            factor=self.saturation_factor
         )
-        saturation = tf.image.random_saturation(
-            contrast,
-            lower=self.saturation_factor[0],
-            upper=self.saturation_factor[1],
-            seed=self.seed,
-        )
-        hue = tf.image.random_hue(saturation, max_delta=self.hue_factor, seed=self.seed)
-        return tf.cast(hue, original_dtype)
+        self.random_hue = preprocessing.RandomHue(factor=self.hue_factor)
 
     def augment_image(self, image, transformation=None):
-        return self._color_jitter(image)
+        brightness = self.random_brightness(image)
+        contrast = self.random_contrast(brightness)
+        saturation = self.random_saturation(contrast)
+        return self.random_hue(saturation)
 
     def get_config(self):
         config = super().get_config()
@@ -145,10 +106,6 @@ class ColorJitter(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
                 "contrast_factor": self.contrast_factor,
                 "saturation_factor": self.saturation_factor,
                 "hue_factor": self.hue_factor,
-                "seed": self.seed,
             }
         )
         return config
-
-    def compute_output_shape(self, input_shape):
-        return input_shape
