@@ -28,38 +28,47 @@ def _blend(image1, image2, factor=0.4):
     # Do addition in float.
     blended = image1 + scaled
 
-    # Interpolate
-    if factor > 0.0 and factor < 1.0:
-        # Interpolation means we always stay within 0 and 255.
-        return tf.round(blended)
     # We need to clip and then cast.
     blended = tf.round(tf.clip_by_value(blended, 0.0, 255.0))
     return blended
 
 
-def _map_color_on_mask(masks, color_map):
+def _map_color_on_mask(masks, color):
 
     # check distinct mask color codes with color mapping.
     distinct_mask_code = tf.unique(tf.reshape(masks, -1)).y
-    if any([code not in distinct_mask_code for code in color_map.keys()]):
-        raise ValueError(
-            f"Color mapping {color_map} does not map completely\
-              with distint color codes present in masks: {distinct_mask_code}"
-        )
-
     color_rgb = defaultdict(tuple)
 
-    # map color code with RGB
-    for code, color in color_map.items():
-        try:
-            color_rgb.update({code: colors.get(color)})
-        except KeyError:
-            raise KeyError(
-                f"{color} is not supported yet,"
-                "please check supported colors at `keras_cv.visualization.colors`"
+    if isinstance(color, str):
+        for idx in distinct_mask_code:
+            try:
+                color_rgb.update({int(idx): colors[color]})
+            except KeyError:
+                raise KeyError(
+                    f"{color} is not supported yet,"
+                    "please check supported colors at `keras_cv.visualization.colors`"
+                )
+
+        color_keys = list(distinct_mask_code.numpy())
+
+    else:
+        if any([code not in distinct_mask_code for code in color.keys()]):
+            raise ValueError(
+                f"Color mapping {color} does not map completely\
+                  with distint color codes present in masks: {distinct_mask_code}"
             )
 
-    color_keys = list(color_map.keys())
+        # map color code with RGB
+        for code, name in color.items():
+            try:
+                color_rgb.update({code: colors[name]})
+            except KeyError:
+                raise KeyError(
+                    f"{name} is not supported yet,"
+                    "please check supported colors at `keras_cv.visualization.colors`"
+                )
+        color_keys = list(color.keys())
+
     keys_tensor = tf.constant(color_keys, dtype=tf.int32)
     colored_masks = tf.TensorArray(
         tf.int32, size=0, dynamic_size=True, clear_after_read=True
@@ -76,7 +85,7 @@ def _map_color_on_mask(masks, color_map):
     return tf.transpose(colored_masks.stack(), list(range(1, masks.ndim + 1)) + [0])
 
 
-def draw_segmentation(image, mask, color_map={}, alpha=0.4):
+def draw_segmentation(image, mask, color={}, alpha=0.4):
     """Draws segmentation masks on images with desired color
     and transparency.
     Colors supported are standard X11 colors.
@@ -85,7 +94,10 @@ def draw_segmentation(image, mask, color_map={}, alpha=0.4):
         image: An integer tensor with shape (N, img_height, img_height, 3)
         mask: An integer tensor of shape (N, img_height, img_height) with masks
               values corresponding to `color_map`.
-        color_map: (dict) Color mapping is dict which defines color mapping on masks.
+        color: The color or colors to draw the segmentation map/s in.
+               This can either be a single color, or a mapping from class IDs
+               to colors.  Supported color formats are RGB tuples or strings.
+               A full list of color strings is available in keras_cv/visualization/colors.py
         alpha: Transparency value between 0 and 1. (default: 0.4)
     Returns:
         Masks overlaid on images.
@@ -101,8 +113,8 @@ def draw_segmentation(image, mask, color_map={}, alpha=0.4):
         mask, message="Only integer dtypes supported for masks."
     )
 
-    assert isinstance(color_map, dict), TypeError(
-        f"Dict is expected for color_map but {type(color_map)} passed."
+    assert isinstance(color, (dict, str)), TypeError(
+        f"Dict or string is expected for `color` but {type(color)} passed."
     )
 
     if image.shape[:3] != mask.shape:
@@ -115,7 +127,7 @@ def draw_segmentation(image, mask, color_map={}, alpha=0.4):
     _input_image_dtype = image.dtype
 
     # compute colored mask
-    colored_mask = _map_color_on_mask(mask, color_map)
+    colored_mask = _map_color_on_mask(mask, color)
 
     # blend mask with image
     image = tf.cast(image, tf.float32)
