@@ -52,8 +52,8 @@ class ChannelShuffle(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
         self.seed = seed
 
     def augment_image(self, image, transformation=None):
-        height = tf.shape(image)[0]
-        width = tf.shape(image)[1]
+        shape = tf.shape(image)
+        height, width = shape[0], shape[1]
         num_channels = image.shape[2]
 
         if not num_channels % self.groups == 0:
