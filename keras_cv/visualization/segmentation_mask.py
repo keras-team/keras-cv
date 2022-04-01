@@ -19,8 +19,6 @@ import tensorflow as tf
 
 from keras_cv.visualization.colors import colors
 
-RGB = 3
-
 
 def _blend(image1, image2, factor=0.4):
     difference = image2 - image1
@@ -74,7 +72,7 @@ def _map_color_on_mask(masks, color):
         tf.int32, size=0, dynamic_size=True, clear_after_read=True
     )
 
-    for c in range(RGB):
+    for c in range(3):
         vals_tensor = tf.constant([color_rgb[color][c] for color in color_keys])
         table = tf.lookup.StaticHashTable(
             tf.lookup.KeyValueTensorInitializer(keys_tensor, vals_tensor),
@@ -85,7 +83,7 @@ def _map_color_on_mask(masks, color):
     return tf.transpose(colored_masks.stack(), list(range(1, masks.ndim + 1)) + [0])
 
 
-def draw_segmentation(image, mask, color={}, alpha=0.4):
+def draw_segmentation(image, mask, color=None, alpha=0.4):
     """Draws segmentation masks on images with desired color
     and transparency.
     Colors supported are standard X11 colors.
@@ -94,36 +92,32 @@ def draw_segmentation(image, mask, color={}, alpha=0.4):
         image: An integer tensor with shape (N, img_height, img_height, 3)
         mask: An integer tensor of shape (N, img_height, img_height) with masks
               values corresponding to `color_map`.
-        color: The color or colors to draw the segmentation map/s in.
-               This can either be a single color, or a mapping from class IDs
-               to colors.  Supported color formats are RGB tuples or strings.
-               A full list of color strings is available in keras_cv/visualization/colors.py
+        color: The color or colors to draw the segmentation map in.
+               This can either be a single color, or a dictionary mapping from class IDs
+               to colors.  Supported color formats are RGB tuples and strings. A full
+               list of color strings is available in `keras_cv/visualization/colors.py`.
         alpha: Transparency value between 0 and 1. (default: 0.4)
     Returns:
         Masks overlaid on images.
 
     Raises:
         ValueError: On incorrect data type and shapes for images or masks.
-        KeyError: On incorrect color in `color_map`.
+        KeyError: On incorrect color string in `color_map`, or a class ID missing from
+            the color ma.
     """
-    tf.debugging.assert_integer(
-        image, message="Only integer dtypes supported for images."
-    )
-    tf.debugging.assert_integer(
-        mask, message="Only integer dtypes supported for masks."
-    )
 
-    assert isinstance(color, (dict, str)), TypeError(
-        f"Dict or string is expected for `color` but {type(color)} passed."
-    )
+    if not isinstance(color, (dict, str)):
+        raise TypeError(
+            f"Want type(color)=dict or string, got type(color)={type(color)}."
+        )
 
     if image.shape[:3] != mask.shape:
         raise ValueError(
-            f"image.shape[:3] == mask.shape should be true, got {image.shape[:3]} != {mask.shape}"
+            "image.shape[:3] == mask.shape should be true, got "
+            f"{image.shape[:3]} != {mask.shape}"
         )
-    if alpha <= 0.0:
-        return image
-
+    if alpha < 0 or alpha > 1:
+        raise ValueError(f"alpha should be in the range [0, 1], got alpha={alpha}")
     _input_image_dtype = image.dtype
 
     # compute colored mask
@@ -132,13 +126,10 @@ def draw_segmentation(image, mask, color={}, alpha=0.4):
     # blend mask with image
     image = tf.cast(image, tf.float32)
     colored_mask = tf.cast(colored_mask, tf.float32)
-    if alpha >= 1.0:
-        masked_image = colored_mask
-    else:
-        masked_image = _blend(image, colored_mask, alpha)
+    masked_image = _blend(image, colored_mask, alpha)
 
     # stack masks along channel.
-    mask_3d = tf.stack([mask] * RGB, axis=-1)
+    mask_3d = tf.stack([mask] * 3, axis=-1)
 
     # exclude non positive area on image
     masked_image = tf.where(tf.cast(mask_3d, tf.bool), masked_image, image)
