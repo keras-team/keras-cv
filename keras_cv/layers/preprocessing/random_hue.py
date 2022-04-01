@@ -41,8 +41,6 @@ class RandomHue(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
             Represented as a two number tuple written [low, high].
             This is typically either `[0, 1]` or `[0, 255]` depending
             on how your preprocessing pipeline is setup.
-=======
-        factor: A tuple of two floats, a single float or a `keras_cv.core.FactorSampler`.
             factor` controls the extent to which the image saturation is impacted.
             `factor`=`0.0`, `0.5` or `1.0` makes this layer perform a no-op operation.
             `factor=0.25` and `factor=0.75` makes the image to have fully opposite
