@@ -14,6 +14,7 @@
 
 import tensorflow as tf
 
+
 @tf.keras.utils.register_keras_serializable(package="keras_cv")
 class GaussianBlur(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
     """Applies a Gaussian Blur with random sigma to an image.
@@ -28,11 +29,7 @@ class GaussianBlur(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
             bound of the sampling interval.
     """
 
-    def __init__(self,
-                 kernel_size,
-                 sigma,
-                 **kwargs
-                 ):
+    def __init__(self, kernel_size, sigma, **kwargs):
         super().__init__(**kwargs)
         self.kernel_size = kernel_size
         self.sigma = sigma
@@ -46,9 +43,8 @@ class GaussianBlur(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
             else:
                 raise ValueError(
                     "`kernel_size` must be list, tuple or integer "
-                    ", got {} ".format(
-                        type(self.kernel_size))
-                    )
+                    ", got {} ".format(type(self.kernel_size))
+                )
 
         if isinstance(sigma, (tuple, list)):
             self.sigma_min = sigma[0]
@@ -89,7 +85,8 @@ class GaussianBlur(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
 
     def get_sigma(self):
         sigma = self._random_generator.random_uniform(
-            shape=(), minval=self.sigma_min, maxval=self.sigma_max)
+            shape=(), minval=self.sigma_min, maxval=self.sigma_max
+        )
         return sigma
 
     def augment_image(self, image, transformation=None):
@@ -101,31 +98,26 @@ class GaussianBlur(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
         blur_h = tf.tile(blur_h, [1, 1, num_channels, 1])
         blur_v = tf.tile(blur_v, [1, 1, num_channels, 1])
         blurred = tf.nn.depthwise_conv2d(
-            image, blur_h, strides=[1, 1, 1, 1], padding="SAME")
+            image, blur_h, strides=[1, 1, 1, 1], padding="SAME"
+        )
         blurred = tf.nn.depthwise_conv2d(
-            blurred, blur_v, strides=[1, 1, 1, 1], padding="SAME")
+            blurred, blur_v, strides=[1, 1, 1, 1], padding="SAME"
+        )
 
         return tf.squeeze(blurred, axis=0)
 
     @staticmethod
     def get_kernel(sigma, filter_size):
-        x = tf.cast(tf.range(-filter_size // 2 + 1, filter_size // 2 + 1), dtype=tf.float32)
-        blur_filter = tf.exp(-tf.pow(x, 2.0) /
-                             (2.0 * tf.pow(tf.cast(sigma, dtype=tf.float32), 2.0)))
+        x = tf.cast(
+            tf.range(-filter_size // 2 + 1, filter_size // 2 + 1), dtype=tf.float32
+        )
+        blur_filter = tf.exp(
+            -tf.pow(x, 2.0) / (2.0 * tf.pow(tf.cast(sigma, dtype=tf.float32), 2.0))
+        )
         blur_filter /= tf.reduce_sum(blur_filter)
         return blur_filter
 
     def get_config(self):
         config = super().get_config()
-        config.update(
-            {
-                "sigma": self.sigma,
-                "kernel_size": self.kernel_size
-            }
-        )
+        config.update({"sigma": self.sigma, "kernel_size": self.kernel_size})
         return config
-
-
-
-
-

@@ -29,6 +29,7 @@ from keras_cv.layers.preprocessing.auto_contrast import AutoContrast
 from keras_cv.layers.preprocessing.channel_shuffle import ChannelShuffle
 from keras_cv.layers.preprocessing.cut_mix import CutMix
 from keras_cv.layers.preprocessing.equalization import Equalization
+from keras_cv.layers.preprocessing.gaussian_blur import GaussianBlur
 from keras_cv.layers.preprocessing.grayscale import Grayscale
 from keras_cv.layers.preprocessing.grid_mask import GridMask
 from keras_cv.layers.preprocessing.mix_up import MixUp
@@ -41,4 +42,3 @@ from keras_cv.layers.preprocessing.random_sharpness import RandomSharpness
 from keras_cv.layers.preprocessing.random_shear import RandomShear
 from keras_cv.layers.preprocessing.solarization import Solarization
 from keras_cv.layers.regularization.dropblock_2d import DropBlock2D
-from keras_cv.layers.preprocessing.gaussian_blur import GaussianBlur

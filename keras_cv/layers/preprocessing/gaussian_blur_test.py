@@ -11,12 +11,13 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 import tensorflow as tf
-import matplotlib.pyplot as plt
+
 from keras_cv.layers import preprocessing
 
-class GaussianBlurTest(tf.test.TestCase):
 
+class GaussianBlurTest(tf.test.TestCase):
     def test_return_shapes(self):
         layer = preprocessing.GaussianBlur(kernel_size=(3, 7), sigma=(0, 2))
 
@@ -76,12 +77,3 @@ class GaussianBlurTest(tf.test.TestCase):
         xs = tf.ones((2, 512, 512, 1))
         xs = layer(xs)
         self.assertEqual(xs.shape, [2, 512, 512, 1])
-
-
-
-
-
-
-
-
-
