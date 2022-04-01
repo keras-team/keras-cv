@@ -25,7 +25,7 @@ class RandomColorDegeneration(tf.keras.__internal__.layers.BaseImageAugmentation
     This makes colors appear more dull.
 
     Args:
-        factor: A tuple of two floats, a single float or a `keras_cv.core.Factor`.
+        factor: A tuple of two floats, a single float or a `keras_cv.core.FactorSampler`.
             `factor` controls the extent to which the image sharpness is impacted.
             `factor=0.0` makes this layer perform a no-op operation, while a value of
             1.0 uses the degenerated result entirely.  Values between 0 and 1 result in

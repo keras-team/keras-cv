@@ -16,10 +16,10 @@ import tensorflow as tf
 
 
 @tf.keras.utils.register_keras_serializable(package="keras_cv")
-class Factor:
-    """Factor represents a strength factor for use in an augmentation layer.
+class FactorSampler:
+    """FactorSampler represents a strength factor for use in an augmentation layer.
 
-    Factor should be subclassed and implement a `sample()` method that returns a
+    FactorSampler should be subclassed and implement a `sample()` method that returns a
     tf.float32.  This method will be used by preprocessing layers to determine the
     strength of their augmentation.  The specific range of values supported may vary by
     layer, but for most layers is the range [0, 1].
@@ -27,7 +27,7 @@ class Factor:
 
     def sample():
         raise NotImplementedError(
-            "Factor subclasses must implement a `sample()` method."
+            "FactorSampler subclasses must implement a `sample()` method."
         )
 
     def get_config():

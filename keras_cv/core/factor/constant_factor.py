@@ -13,12 +13,12 @@
 # limitations under the License.
 import tensorflow as tf
 
-from keras_cv.core.factor.factor import Factor
+from keras_cv.core.factor.factor import FactorSampler
 
 
 @tf.keras.utils.register_keras_serializable(package="keras_cv")
-class ConstantFactor(Factor):
-    """ConstantFactor samples the same factor for every call to `sample()`.
+class ConstantFactorSampler(FactorSampler):
+    """ConstantFactorSampler samples the same factor for every call to `sample()`.
 
     This is useful in cases where a user wants to always ensure that an augmentation
     layer performs augmentations of the same strength.
@@ -28,7 +28,7 @@ class ConstantFactor(Factor):
 
     Usage:
     ```python
-    constant_factor = keras_cv.core.ConstantFactor(0.5)
+    constant_factor = keras_cv.core.ConstantFactorSampler(0.5)
     random_sharpness = keras_cv.layers.RandomSharpness(factor=constant_factor)
     # random_sharpness will now always use a factor of 0.5
     ```
