@@ -13,12 +13,12 @@
 # limitations under the License.
 import tensorflow as tf
 
-from keras_cv.core.factor.factor import Factor
+from keras_cv.core.factor.factor import FactorSampler
 
 
 @tf.keras.utils.register_keras_serializable(package="keras_cv")
-class UniformFactor(Factor):
-    """UniformFactor samples factors uniformly from a range.
+class UniformFactorSampler(FactorSampler):
+    """UniformFactorSampler samples factors uniformly from a range.
 
     This is useful in cases where a user wants to always ensure that an augmentation
     layer performs augmentations of the same strength.
@@ -29,7 +29,7 @@ class UniformFactor(Factor):
 
     Usage:
     ```python
-    uniform_factor = keras_cv.core.UniformFactor(0, 0.5)
+    uniform_factor = keras_cv.core.UniformFactorSampler(0, 0.5)
     random_sharpness = keras_cv.layers.RandomSharpness(factor=uniform_factor)
     # random_sharpness will now sample factors between 0, and 0.5
     ```
