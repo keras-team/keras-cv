@@ -23,9 +23,9 @@ class GaussianBlur(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
         kernel_size: int, 2 element tuple or 2 element list. x and y dimensions for
             the kernel used. If tuple or list, first element is used for the x dimension
             and second element is used for y dimension. If int, kernel will be squared.
-        sigma: float, 2 element tuple or 2 element list. Interval in which sigma should be
-            sampled from. If float, interval is going to be [0, float), else the first
-            element represents the lower bound and the second element the upper
+        sigma: float, 2 element tuple or 2 element list. Interval in which sigma should
+            be sampled from. If float, interval is going to be [0, float), else the
+            first element represents the lower bound and the second element the upper
             bound of the sampling interval.
     """
 
