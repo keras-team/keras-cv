@@ -17,12 +17,12 @@ import tensorflow as tf
 from keras_cv import core
 
 
-class ConstantFactorTest(tf.test.TestCase):
+class ConstantFactorSamplerTest(tf.test.TestCase):
     def test_sample(self):
-        factor = core.ConstantFactor(0.3)
+        factor = core.ConstantFactorSampler(0.3)
         self.assertEqual(factor.sample(), 0.3)
 
     def test_config(self):
-        factor = core.ConstantFactor(0.3)
+        factor = core.ConstantFactorSampler(0.3)
         config = factor.get_config()
         self.assertEqual(config["value"], 0.3)

@@ -23,7 +23,7 @@ class RandomShear(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
     """Randomly shears an image.
 
     Args:
-        x_factor: A tuple of two floats, a single float or a `keras_cv.core.Factor`.
+        x_factor: A tuple of two floats, a single float or a `keras_cv.core.FactorSampler`.
             For each augmented image a value is sampled from the provided range.
             If a float is passed, the range is interpreted as `(0, x_factor)`.  Values
             represent a percentage of the image to shear over.  For example, 0.3 shears
@@ -31,7 +31,7 @@ class RandomShear(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
              positive.  If `None` is passed, no shear occurs on the X axis.
 
              Defaults to `None`.
-        y_factor:  A tuple of two floats, a single float or a `keras_cv.core.Factor`.
+        y_factor:  A tuple of two floats, a single float or a `keras_cv.core.FactorSampler`.
             For each augmented image a value is sampled from the provided range.
             If a float is passed, the range is interpreted as `(0, y_factor)`.
             Values represent a percentage of the image to shear over.  For example, 0.3

@@ -17,13 +17,13 @@ import tensorflow as tf
 from keras_cv import core
 
 
-class UniformFactorTest(tf.test.TestCase):
+class UniformFactorSamplerTest(tf.test.TestCase):
     def test_sample(self):
-        factor = core.UniformFactor(0.3, 0.6)
+        factor = core.UniformFactorSampler(0.3, 0.6)
         self.assertTrue(0.3 <= factor.sample() <= 0.6)
 
     def test_config(self):
-        factor = core.UniformFactor(0.3, 0.6)
+        factor = core.UniformFactorSampler(0.3, 0.6)
         config = factor.get_config()
         self.assertEqual(config["lower"], 0.3)
         self.assertEqual(config["upper"], 0.6)

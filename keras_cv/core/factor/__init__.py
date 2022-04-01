@@ -11,6 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from keras_cv.core.factor.constant_factor import ConstantFactor
-from keras_cv.core.factor.factor import Factor
-from keras_cv.core.factor.uniform_factor import UniformFactor
+from keras_cv.core.factor.constant_factor import ConstantFactorSampler
+from keras_cv.core.factor.factor import FactorSampler
+from keras_cv.core.factor.uniform_factor import UniformFactorSampler

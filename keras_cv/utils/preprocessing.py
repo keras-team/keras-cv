@@ -96,7 +96,7 @@ def blend(image1: tf.Tensor, image2: tf.Tensor, factor: float) -> tf.Tensor:
 
 def parse_factor(param, min_value=0.0, max_value=1.0, param_name="factor", seed=None):
 
-    if isinstance(param, core.Factor):
+    if isinstance(param, core.FactorSampler):
         return param
 
     if isinstance(param, float) or isinstance(param, int):
@@ -116,9 +116,9 @@ def parse_factor(param, min_value=0.0, max_value=1.0, param_name="factor", seed=
         )
 
     if param[0] == param[1]:
-        return core.ConstantFactor(param[0])
+        return core.ConstantFactorSampler(param[0])
 
-    return core.UniformFactor(param[0], param[1], seed=seed)
+    return core.UniformFactorSampler(param[0], param[1], seed=seed)
 
 
 def transform(
