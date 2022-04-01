@@ -36,7 +36,7 @@ class GridMaskTest(tf.test.TestCase):
             dtype=tf.float32,
         )
 
-        fill_value = 0
+        fill_value = 0.0
         layer = GridMask(
             ratio=0.3,
             rotation_factor=(0.2, 0.3),
@@ -60,7 +60,7 @@ class GridMaskTest(tf.test.TestCase):
             dtype=tf.float32,
         )
 
-        fill_value = 100
+        fill_value = 100.0
         layer = GridMask(
             ratio=0.6, rotation_factor=0.3, fill_mode="constant", fill_value=fill_value
         )
@@ -78,7 +78,7 @@ class GridMaskTest(tf.test.TestCase):
             dtype=tf.float32,
         )
 
-        fill_value = 255
+        fill_value = 255.0
         layer = GridMask(
             ratio=0.4, rotation_factor=0.5, fill_mode="constant", fill_value=fill_value
         )
@@ -101,10 +101,7 @@ class GridMaskTest(tf.test.TestCase):
             dtype=tf.float32,
         )
 
-        layer = GridMask(
-            ratio="random",
-            fill_mode="gaussian_noise",
-        )
+        layer = GridMask(ratio="random", fill_mode="constant", fill_value=0.0)
         xs = layer(xs, training=True)
         self.assertTrue(tf.math.reduce_any(xs == 0.0))
         self.assertTrue(tf.math.reduce_any(xs == 1.0))
