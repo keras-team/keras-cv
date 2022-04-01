@@ -17,6 +17,7 @@ import tensorflow as tf
 from keras_cv.utils import preprocessing
 
 
+@tf.keras.utils.register_keras_serializable(package="keras_cv")
 class AutoContrast(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
     """Performs the AutoContrast operation on an image.
 
@@ -60,3 +61,8 @@ class AutoContrast(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
         # don't process NaN channels
         result = tf.where(tf.math.is_nan(result), original_image, result)
         return result
+
+    def get_config(self):
+        config = super().get_config()
+        config.update({"value_range": self.value_range})
+        return config

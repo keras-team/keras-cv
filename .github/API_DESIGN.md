@@ -14,6 +14,18 @@ loss fond of `segm`.  In order to ensure full consistency, we have decided to
 use the full names for label types in our code base.
 
 # Preprocessing Layers
+## Strength Parameters
+Many augmentation layers take a parameter representing a strength, often called
+`factor`.  When possible, factor values must conform to a the range: `[0, 1]`, with
+1 representing the strongest transformation and 0 representing a no-op transform.
+The strength of an augmentation should scale linearly with this factor.  If needed,
+a transformation can be performed to map to a large value range internally.  If
+this is done, please provide a thorough explanation of the value range semantics in
+the docstring.
+
+Additionally, factors should support both float and tuples as inputs.  If a float is
+passed, such as `factor=0.5`, the layer should default to the range `[0, factor]`.
+
 ## BaseImageAugmentationLayer
 When implementing preprocessing, we encourage users to subclass the 
 `tf.keras.__internal__.layers.BaseImageAugmentationLayer`.  This layer provides
@@ -25,8 +37,7 @@ When subclassing `BaseImageAugmentationLayer`, several methods can overridden:
 - `augment_label()` allows updates to be made to labels
 - `augment_bounding_box()` allows updates to bounding boxes to be made
 
-When a canonical layer subclassing BaseImageAugmentationLayer is available, a 
-link to it will be added here.
+[`RandomShear` serves as a canonical example of how to subclass `BaseImageAugmentationLayer`](https://github.com/keras-team/keras-cv/blob/master/keras_cv/layers/preprocessing/random_shear.py)
 
 ## Vectorization
 `BaseImageAugmentationLayer` requires you to implement augmentations in an 
