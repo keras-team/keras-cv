@@ -24,22 +24,20 @@ class RandomShear(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
 
     Args:
         x_factor: A tuple of two floats, a single float or a
-            `keras_cv.core.FactorSampler`. For each augmented image a value is sampled
+            `keras_cv.FactorSampler`. For each augmented image a value is sampled
             from the provided range. If a float is passed, the range is interpreted as
             `(0, x_factor)`.  Values represent a percentage of the image to shear over.
              For example, 0.3 shears pixels up to 30% of the way across the image.
              All provided values should be positive.  If `None` is passed, no shear
              occurs on the X axis.
-
              Defaults to `None`.
         y_factor: A tuple of two floats, a single float or a
-            `keras_cv.core.FactorSampler`. For each augmented image a value is sampled
+            `keras_cv.FactorSampler`. For each augmented image a value is sampled
             from the provided range. If a float is passed, the range is interpreted as
             `(0, y_factor)`. Values represent a percentage of the image to shear over.
             For example, 0.3 shears pixels up to 30% of the way across the image.
             All provided values should be positive.  If `None` is passed, no shear
             occurs on the Y axis.
-
             Defaults to `None`.
         interpolation: interpolation method used in the `ImageProjectiveTransformV3` op.
              Supported values are `"nearest"` and `"bilinear"`.
