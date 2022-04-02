@@ -25,12 +25,11 @@ class RandomSaturation(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
     Call the layer with `training=True` to adjust the brightness of the input.
 
     Args:
-        factor: A tuple of two floats, a single float or `keras_cv.core.FactorSampler`.
+        factor: A tuple of two floats, a single float or `keras_cv.FactorSampler`.
             `factor` controls the extent to which the image saturation is impacted.
             `factor=0.5` makes this layer perform a no-op operation. `factor=0.0` makes
             the image to be fully grayscale. `factor=1.0` makes the image to be fully
             saturated.
-
             Values should be between `0.0` and `1.0`. If a tuple is used, a `factor`
             is sampled between the two values for every image augmented.  If a single
             float is used, a value between `0.0` and the passed float is sampled.
