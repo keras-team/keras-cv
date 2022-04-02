@@ -50,7 +50,7 @@ class RandomColorDegeneration(tf.keras.__internal__.layers.BaseImageAugmentation
         )
 
     def get_random_transformation(self, image=None, label=None, bounding_box=None):
-        return self.factor.sample()
+        return self.factor()
 
     def augment_image(self, image, transformation=None):
         degenerate = tf.image.grayscale_to_rgb(tf.image.rgb_to_grayscale(image))
