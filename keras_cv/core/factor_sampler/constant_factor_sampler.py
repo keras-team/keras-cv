@@ -13,18 +13,18 @@
 # limitations under the License.
 import tensorflow as tf
 
-from keras_cv.core.factor.factor import FactorSampler
+from keras_cv.core.factor_sampler.factor_sampler import FactorSampler
 
 
 @tf.keras.utils.register_keras_serializable(package="keras_cv")
 class ConstantFactorSampler(FactorSampler):
-    """ConstantFactorSampler samples the same factor for every call to `sample()`.
+    """ConstantFactorSampler samples the same factor for every call to `__call__()`.
 
     This is useful in cases where a user wants to always ensure that an augmentation
     layer performs augmentations of the same strength.
 
     Args:
-        value: the value to return from `sample()`.
+        value: the value to return from `__call__()`.
 
     Usage:
     ```python
@@ -37,7 +37,7 @@ class ConstantFactorSampler(FactorSampler):
     def __init__(self, value):
         self.value = value
 
-    def sample(self):
+    def __call__(self):
         return self.value
 
     def get_config(self):

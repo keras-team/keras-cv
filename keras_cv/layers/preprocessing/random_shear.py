@@ -95,7 +95,7 @@ class RandomShear(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
         negate = self._random_generator.random_uniform((), 0, 1, dtype=tf.float32) > 0.5
         negate = tf.cond(negate, lambda: -1.0, lambda: 1.0)
 
-        return negate * constraint.sample()
+        return negate * constraint()
 
     def augment_image(self, image, transformation=None):
         image = tf.expand_dims(image, axis=0)

@@ -13,7 +13,7 @@
 # limitations under the License.
 import tensorflow as tf
 
-from keras_cv.core.factor.factor import FactorSampler
+from keras_cv.core.factor_sampler.factor_sampler import FactorSampler
 
 
 @tf.keras.utils.register_keras_serializable(package="keras_cv")
@@ -24,8 +24,8 @@ class UniformFactorSampler(FactorSampler):
     layer performs augmentations of the same strength.
 
     Args:
-        lower: the lower bound of values returned from `sample()`.
-        upper: the upper bound of values returned from `sample()`.
+        lower: the lower bound of values returned from `__call__()`.
+        upper: the upper bound of values returned from `__call__()`.
 
     Usage:
     ```python
@@ -40,7 +40,7 @@ class UniformFactorSampler(FactorSampler):
         self.upper = upper
         self.seed = seed
 
-    def sample(self):
+    def __call__(self):
         return tf.random.uniform(
             (), self.lower, self.upper, seed=self.seed, dtype=tf.float32
         )

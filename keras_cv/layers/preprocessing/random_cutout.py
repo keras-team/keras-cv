@@ -133,8 +133,8 @@ class RandomCutout(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
             input_shape[0],
             input_shape[1],
         )
-        height = self.height_factor.sample()
-        width = self.width_factor.sample()
+        height = self.height_factor()
+        width = self.width_factor()
 
         height = height * tf.cast(image_height, tf.float32)
         width = width * tf.cast(image_width, tf.float32)

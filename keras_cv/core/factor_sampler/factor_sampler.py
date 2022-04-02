@@ -19,15 +19,15 @@ import tensorflow as tf
 class FactorSampler:
     """FactorSampler represents a strength factor for use in an augmentation layer.
 
-    FactorSampler should be subclassed and implement a `sample()` method that returns a
-    tf.float32.  This method will be used by preprocessing layers to determine the
+    FactorSampler should be subclassed and implement a `__call__()` method that returns
+    a tf.float32.  This method will be used by preprocessing layers to determine the
     strength of their augmentation.  The specific range of values supported may vary by
     layer, but for most layers is the range [0, 1].
     """
 
-    def sample():
+    def __call__():
         raise NotImplementedError(
-            "FactorSampler subclasses must implement a `sample()` method."
+            "FactorSampler subclasses must implement a `__call__()` method."
         )
 
     def get_config():

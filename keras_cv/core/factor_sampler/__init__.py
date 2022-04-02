@@ -11,19 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
-import tensorflow as tf
-
-from keras_cv import core
-
-
-class UniformFactorSamplerTest(tf.test.TestCase):
-    def test_sample(self):
-        factor = core.UniformFactorSampler(0.3, 0.6)
-        self.assertTrue(0.3 <= factor.sample() <= 0.6)
-
-    def test_config(self):
-        factor = core.UniformFactorSampler(0.3, 0.6)
-        config = factor.get_config()
-        self.assertEqual(config["lower"], 0.3)
-        self.assertEqual(config["upper"], 0.6)
+from keras_cv.core.factor_sampler.constant_factor_sampler import ConstantFactorSampler
+from keras_cv.core.factor_sampler.factor_sampler import FactorSampler
+from keras_cv.core.factor_sampler.uniform_factor_sampler import UniformFactorSampler

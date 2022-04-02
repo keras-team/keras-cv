@@ -50,7 +50,7 @@ class RandomHue(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
 
     def get_random_transformation(self, image=None, label=None, bounding_box=None):
         del image, label, bounding_box
-        return self.factor.sample()
+        return self.factor()
 
     def augment_image(self, image, transformation=None):
         # Convert the factor range from [0, 1] to [-1.0, 1.0].

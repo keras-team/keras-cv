@@ -20,7 +20,7 @@ from keras_cv import core
 class ConstantFactorSamplerTest(tf.test.TestCase):
     def test_sample(self):
         factor = core.ConstantFactorSampler(0.3)
-        self.assertEqual(factor.sample(), 0.3)
+        self.assertEqual(factor(), 0.3)
 
     def test_config(self):
         factor = core.ConstantFactorSampler(0.3)
