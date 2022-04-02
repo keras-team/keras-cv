@@ -26,7 +26,7 @@ class SolarizationTest(tf.test.TestCase, parameterized.TestCase):
         ("255_0", 255, 0),
     )
     def test_output_values(self, input_value, expected_value):
-        solarization = Solarization()
+        solarization = Solarization(value_range=(0, 255))
 
         self._test_input_output(
             layer=solarization,
@@ -40,7 +40,7 @@ class SolarizationTest(tf.test.TestCase, parameterized.TestCase):
         ("255_0", 255, 0),
     )
     def test_solarization_with_addition(self, input_value, output_value):
-        solarization = Solarization(addition=10.0)
+        solarization = Solarization(addition=10.0, value_range=(0, 255))
 
         self._test_input_output(
             layer=solarization,
@@ -57,7 +57,7 @@ class SolarizationTest(tf.test.TestCase, parameterized.TestCase):
         ("255_0", 255, 0),
     )
     def test_only_values_above_threshold_are_solarized(self, input_value, output_value):
-        solarization = Solarization(threshold=128)
+        solarization = Solarization(threshold=128, value_range=(0, 255))
 
         self._test_input_output(
             layer=solarization,

@@ -19,14 +19,18 @@ from keras_cv.layers import preprocessing
 
 class SerializationTest(tf.test.TestCase, parameterized.TestCase):
     @parameterized.named_parameters(
-        ("AutoContrast", preprocessing.AutoContrast, {}),
+        ("AutoContrast", preprocessing.AutoContrast, {"value_range": (0, 255)}),
         ("ChannelShuffle", preprocessing.ChannelShuffle, {}),
         ("CutMix", preprocessing.CutMix, {}),
-        ("Equalization", preprocessing.Equalization, {}),
+        ("Equalization", preprocessing.Equalization, {"value_range": (0, 255)}),
         ("Grayscale", preprocessing.Grayscale, {}),
         ("GridMask", preprocessing.GridMask, {}),
         ("MixUp", preprocessing.MixUp, {}),
-        ("Posterization", preprocessing.Posterization, {"bits": 3}),
+        (
+            "Posterization",
+            preprocessing.Posterization,
+            {"bits": 3, "value_range": (0, 255)},
+        ),
         (
             "RandomColorDegeneration",
             preprocessing.RandomColorDegeneration,
@@ -39,9 +43,13 @@ class SerializationTest(tf.test.TestCase, parameterized.TestCase):
         ),
         ("RandomHue", preprocessing.RandomHue, {"factor": 0.5}),
         ("RandomSaturation", preprocessing.RandomSaturation, {"factor": 0.5}),
-        ("RandomSharpness", preprocessing.RandomSharpness, {"factor": 0.5}),
+        (
+            "RandomSharpness",
+            preprocessing.RandomSharpness,
+            {"factor": 0.5, "value_range": (0, 255)},
+        ),
         ("RandomShear", preprocessing.RandomShear, {"x": 0.3, "y": 0.3}),
-        ("Solarization", preprocessing.Solarization, {}),
+        ("Solarization", preprocessing.Solarization, {"value_range": (0, 255)}),
     )
     def test_layer_serialization(self, layer_cls, init_args):
         layer = layer_cls(**init_args)
