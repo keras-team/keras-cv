@@ -28,7 +28,6 @@ class RandomHue(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
     hue channel (H) by delta. The image is then converted back to RGB.
 
     Args:
-<<<<<<< HEAD
         factor: A tuple of two floats, a single float or `keras_cv.FactorSampler`.
             `factor` controls the extent to which the image sharpness is impacted.
             `factor=0.0` makes this layer perform a no-op operation, while a value of
@@ -50,7 +49,6 @@ class RandomHue(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
             used, a value between `0.0` and the passed float is sampled.
             In order to ensure the value is always the same, please pass a tuple with
             two identical floats: `(0.5, 0.5)`.
->>>>>>> fbbec7e (Rename `Factor` => `FactorSampler`)
     """
 
     def __init__(self, factor, value_range, **kwargs):
