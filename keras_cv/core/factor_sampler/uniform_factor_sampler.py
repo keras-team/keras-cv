@@ -26,7 +26,8 @@ class UniformFactorSampler(FactorSampler):
     Args:
         lower: the lower bound of values returned from `__call__()`.
         upper: the upper bound of values returned from `__call__()`.
-
+        seed: A shape [2] Tensor, the seed to the random number generator. Must have
+            dtype int32 or int64. (When using XLA, only int32 is allowed.)
     Usage:
     ```python
     uniform_factor = keras_cv.UniformFactorSampler(0, 0.5)
@@ -35,14 +36,14 @@ class UniformFactorSampler(FactorSampler):
     ```
     """
 
-    def __init__(self, lower, upper, seed=None):
+    def __init__(self, lower, upper, seed=(0, 0)):
         self.lower = lower
         self.upper = upper
         self.seed = seed
 
     def __call__(self):
-        return tf.random.uniform(
-            (), self.lower, self.upper, seed=self.seed, dtype=tf.float32
+        return tf.random.stateless_uniform(
+            (), seed=self.seed, minval=self.lower, maxval=self.upper,  dtype=tf.float32
         )
 
     def get_config(self):
