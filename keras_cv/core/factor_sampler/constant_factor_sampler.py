@@ -28,7 +28,7 @@ class ConstantFactorSampler(FactorSampler):
 
     Usage:
     ```python
-    constant_factor = keras_cv.core.ConstantFactorSampler(0.5)
+    constant_factor = keras_cv.ConstantFactorSampler(0.5)
     random_sharpness = keras_cv.layers.RandomSharpness(factor=constant_factor)
     # random_sharpness will now always use a factor of 0.5
     ```
