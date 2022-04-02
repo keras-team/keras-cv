@@ -44,8 +44,6 @@ class RandomHue(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
         super().__init__(**kwargs)
         self.factor = preprocessing.parse_factor(
             factor,
-            min_value=0.0,
-            max_value=1.0,
         )
 
     def get_random_transformation(self, image=None, label=None, bounding_box=None):
