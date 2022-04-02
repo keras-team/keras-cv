@@ -28,12 +28,11 @@ class RandomSharpness(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
         - [PIL](https://pillow.readthedocs.io/en/stable/reference/ImageEnhance.html)
 
     Args:
-        factor: A tuple of two floats, a single float or `keras_cv.core.FactorSampler`.
+        factor: A tuple of two floats, a single float or `keras_cv.FactorSampler`.
             `factor` controls the extent to which the image sharpness is impacted.
             `factor=0.0` makes this layer perform a no-op operation, while a value of
             1.0 uses the sharpened result entirely.  Values between 0 and 1 result in
             linear interpolation between the original image and the sharpened image.
-
             Values should be between `0.0` and `1.0`.  If a tuple is used, a `factor` is
             sampled between the two values for every image augmented.  If a single float
             is used, a value between `0.0` and the passed float is sampled.  In order to

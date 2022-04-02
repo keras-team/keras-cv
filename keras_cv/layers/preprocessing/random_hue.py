@@ -28,7 +28,7 @@ class RandomHue(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
     hue channel (H) by delta. The image is then converted back to RGB.
 
     Args:
-        factor: A tuple of two floats, a single float or `keras_cv.core.FactorSampler`.
+        factor: A tuple of two floats, a single float or `keras_cv.FactorSampler`.
             factor` controls the extent to which the image saturation is impacted.
             `factor`=`0.0`, `0.5` or `1.0` makes this layer perform a no-op operation.
             `factor=0.25` and `factor=0.75` makes the image to have fully opposite
