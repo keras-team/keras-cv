@@ -28,7 +28,7 @@ class ConstantFactorSampler(FactorSampler):
 
     Usage:
     ```python
-    constant_factor = keras_cv.ConstantFactorSampler(0.5)
+    constant_factor = keras_cv.core.ConstantFactorSampler(0.5)
     random_sharpness = keras_cv.layers.RandomSharpness(factor=constant_factor)
     # random_sharpness will now always use a factor of 0.5
     ```
@@ -37,9 +37,8 @@ class ConstantFactorSampler(FactorSampler):
     def __init__(self, value):
         self.value = value
 
-    def __call__(self, shape=None, dtype=tf.float32):
-        shape = shape or ()
-        return tf.ones(shape=shape, dtype=dtype) * self.value
+    def __call__(self):
+        return self.value
 
     def get_config(self):
         return {"value": self.value}
