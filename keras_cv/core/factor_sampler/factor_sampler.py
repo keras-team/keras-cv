@@ -25,10 +25,10 @@ class FactorSampler:
     layer, but for most layers is the range [0, 1].
     """
 
-    def __call__():
+    def __call__(self):
         raise NotImplementedError(
             "FactorSampler subclasses must implement a `__call__()` method."
         )
 
-    def get_config():
+    def get_config(self):
         return {}
