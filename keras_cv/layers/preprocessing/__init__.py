@@ -12,8 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# Also export the image KPLs from core keras, so that user can import all the image
-# KPLs from one place.
 from tensorflow.keras.layers import CenterCrop
 from tensorflow.keras.layers import RandomBrightness
 from tensorflow.keras.layers import RandomContrast
@@ -31,6 +29,7 @@ from keras_cv.layers.preprocessing.auto_contrast import AutoContrast
 from keras_cv.layers.preprocessing.channel_shuffle import ChannelShuffle
 from keras_cv.layers.preprocessing.cut_mix import CutMix
 from keras_cv.layers.preprocessing.equalization import Equalization
+from keras_cv.layers.preprocessing.gaussian_blur import GaussianBlur
 from keras_cv.layers.preprocessing.grayscale import Grayscale
 from keras_cv.layers.preprocessing.grid_mask import GridMask
 from keras_cv.layers.preprocessing.mix_up import MixUp
@@ -39,8 +38,7 @@ from keras_cv.layers.preprocessing.random_color_degeneration import (
     RandomColorDegeneration,
 )
 from keras_cv.layers.preprocessing.random_cutout import RandomCutout
-from keras_cv.layers.preprocessing.random_hue import RandomHue
-from keras_cv.layers.preprocessing.random_saturation import RandomSaturation
 from keras_cv.layers.preprocessing.random_sharpness import RandomSharpness
 from keras_cv.layers.preprocessing.random_shear import RandomShear
 from keras_cv.layers.preprocessing.solarization import Solarization
+from keras_cv.layers.regularization.dropblock_2d import DropBlock2D
