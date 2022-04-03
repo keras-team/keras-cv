@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# Also export the image KPLs from core keras, so that user can import all the image
+# KPLs from one place.
 from tensorflow.keras.layers import CenterCrop
 from tensorflow.keras.layers import RandomBrightness
 from tensorflow.keras.layers import RandomContrast
