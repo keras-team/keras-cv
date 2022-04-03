@@ -40,7 +40,8 @@ from keras_cv.layers.preprocessing.random_color_degeneration import (
     RandomColorDegeneration,
 )
 from keras_cv.layers.preprocessing.random_cutout import RandomCutout
+from keras_cv.layers.preprocessing.random_hue import RandomHue
+from keras_cv.layers.preprocessing.random_saturation import RandomSaturation
 from keras_cv.layers.preprocessing.random_sharpness import RandomSharpness
 from keras_cv.layers.preprocessing.random_shear import RandomShear
 from keras_cv.layers.preprocessing.solarization import Solarization
-from keras_cv.layers.regularization.dropblock_2d import DropBlock2D
