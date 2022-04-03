@@ -36,6 +36,14 @@ def get_image(data):
     return image
 
 
+def draw_masked_images(images):
+    # show masked images.
+    f, axarr = plt.subplots(BATCH_SIZE, 1)
+    for i, mask_image in enumerate(images):
+        axarr[i].imshow(mask_image.numpy().astype("uint8"))
+    plt.show()
+
+
 def main():
     data = tfds.load("oxford_flowers102")
     train_ds = data["train"]
@@ -53,13 +61,13 @@ def main():
     mask = tf.stack([mask] * BATCH_SIZE, axis=0)
 
     # draw segmentation on batch of images.
+    # example 1.: single color `green`
     masked_images = draw_segmentation(batch_images, mask, color="green")
+    draw_masked_images(masked_images)
 
-    # show masked images.
-    f, axarr = plt.subplots(BATCH_SIZE, 1)
-    for i, mask_image in enumerate(masked_images):
-        axarr[i].imshow(mask_image.numpy().astype("uint8"))
-    plt.show()
+    # example 2.: color mapping.
+    masked_images = draw_segmentation(batch_images, mask, color={1: "green"})
+    draw_masked_images(masked_images)
 
 
 if __name__ == "__main__":
