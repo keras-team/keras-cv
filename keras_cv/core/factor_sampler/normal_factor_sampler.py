@@ -13,7 +13,7 @@
 # limitations under the License.
 import tensorflow as tf
 
-from keras_cv.core.factor_sampler.factor_sampler import Sampler
+from keras_cv.core.factor_sampler.factor_sampler import FactorSampler
 
 
 @tf.keras.utils.register_keras_serializable(package="keras_cv")
@@ -50,7 +50,7 @@ class NormalFactorSampler(FactorSampler):
         self.max_value = max_value
         self.seed = seed
 
-    def sample(self):
+    def __call__(self):
         return tf.clip_by_value(
             tf.random.normal(
                 (),

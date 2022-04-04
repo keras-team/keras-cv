@@ -51,11 +51,11 @@ class RandAugment(keras.layers.Layer):
 
     def __init__(
         self,
+        value_range,
         num_layers=3,
         magnitude=5.0,
         magnitude_standard_deviation=1.5,
         probability_to_apply=None,
-        value_range=(0, 255),
         seed=None,
     ):
         super().__init__()
@@ -72,15 +72,15 @@ class RandAugment(keras.layers.Layer):
         policy = create_rand_augment_policy(magnitude, magnitude_standard_deviation)
 
         self.auto_contrast = cv_preprocessing.AutoContrast(
-            **policy["auto_contrast"], seed=seed
+            **policy["auto_contrast"],value_range=(0, 255), seed=seed
         )
-        self.equalize = cv_preprocessing.Equalization(**policy["equalize"], seed=seed)
+        self.equalize = cv_preprocessing.Equalization( **policy["equalize"],value_range=(0, 255), seed=seed)
 
-        self.solarize = cv_preprocessing.Solarization(**policy["solarize"], seed=seed)
+        self.solarize = cv_preprocessing.Solarization(**policy["solarize"],value_range=(0, 255), seed=seed)
         self.solarize_add = cv_preprocessing.Solarization(
-            **policy["solarize_add"], seed=seed
+            **policy["solarize_add"],value_range=(0, 255), seed=seed
         )
-        self.invert = cv_preprocessing.Solarization(**policy["invert"], seed=seed)
+        self.invert = cv_preprocessing.Solarization(**policy["invert"],value_range=(0, 255), seed=seed)
 
         self.color = cv_preprocessing.RandomColorDegeneration(
             **policy["color"], seed=seed
@@ -182,7 +182,7 @@ def invert_policy(magnitude, magnitude_std):
 
 
 def color_policy(magnitude, magnitude_std):
-    factor = core.NormalFactor(
+    factor = core.NormalFactorSampler(
         mean=magnitude / 10.0,
         standard_deviation=magnitude_std / 10.0,
         min_value=0,
@@ -204,7 +204,7 @@ def brightness_policy(magnitude, magnitude_std):
 
 
 def shear_x_policy(magnitude, magnitude_std):
-    factor = core.NormalFactor(
+    factor = core.NormalFactorSampler(
         mean=magnitude / 10.0,
         standard_deviation=magnitude_std / 10.0,
         min_value=0,
@@ -214,7 +214,7 @@ def shear_x_policy(magnitude, magnitude_std):
 
 
 def shear_y_policy(magnitude, magnitude_std):
-    factor = core.NormalFactor(
+    factor = core.NormalFactorSampler(
         mean=magnitude / 10.0,
         standard_deviation=magnitude_std / 10.0,
         min_value=0,
@@ -234,7 +234,7 @@ def translate_y_policy(magnitude, magnitude_std):
 
 
 def cutout_policy(magnitude, magnitude_std):
-    factor = core.NormalFactor(
+    factor = core.NormalFactorSampler(
         mean=(magnitude / 10.0),
         standard_deviation=(magnitude_std / 10.0),
         min_value=0,

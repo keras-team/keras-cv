@@ -22,7 +22,7 @@ class NormalFactorTest(tf.test.TestCase):
         factor = core.NormalFactor(
             mean=0.5, standard_deviation=0.2, min_value=0, max_value=1
         )
-        self.assertTrue(0 <= factor.sample() <= 1)
+        self.assertTrue(0 <= factor() <= 1)
 
     def test_config(self):
         factor = core.NormalFactor(
