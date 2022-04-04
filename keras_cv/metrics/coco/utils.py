@@ -32,7 +32,7 @@ def bounding_box_area(boxes):
     """
     w = boxes[..., bounding_box.RIGHT] - boxes[..., bounding_box.LEFT]
     h = boxes[..., bounding_box.BOTTOM] - boxes[..., bounding_box.TOP]
-    return tf.math.abs(tf.math.multiply(w, h))
+    return tf.math.multiply(w, h)
 
 
 def filter_boxes(boxes, value, axis=4):

@@ -177,7 +177,7 @@ class COCOMeanAveragePrecisionTest(tf.test.TestCase):
                     0,
                     1,
                     2,
-                ],
+                ]
             ],
             [
                 [
@@ -189,13 +189,7 @@ class COCOMeanAveragePrecisionTest(tf.test.TestCase):
         ]
 
         false_positives = [
-            [
-                [
-                    1,
-                    0,
-                    0,
-                ],
-            ],
+            [[1, 0, 0]],
             [[0, 0, 0]],
         ]
         # Result should be the same as above.
