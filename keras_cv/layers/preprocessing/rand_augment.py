@@ -72,15 +72,21 @@ class RandAugment(keras.layers.Layer):
         policy = create_rand_augment_policy(magnitude, magnitude_standard_deviation)
 
         self.auto_contrast = cv_preprocessing.AutoContrast(
-            **policy["auto_contrast"],value_range=(0, 255), seed=seed
+            **policy["auto_contrast"], value_range=(0, 255), seed=seed
         )
-        self.equalize = cv_preprocessing.Equalization( **policy["equalize"],value_range=(0, 255), seed=seed)
+        self.equalize = cv_preprocessing.Equalization(
+            **policy["equalize"], value_range=(0, 255), seed=seed
+        )
 
-        self.solarize = cv_preprocessing.Solarization(**policy["solarize"],value_range=(0, 255), seed=seed)
-        self.solarize_add = cv_preprocessing.Solarization(
-            **policy["solarize_add"],value_range=(0, 255), seed=seed
+        self.solarize = cv_preprocessing.Solarization(
+            **policy["solarize"], value_range=(0, 255), seed=seed
         )
-        self.invert = cv_preprocessing.Solarization(**policy["invert"],value_range=(0, 255), seed=seed)
+        self.solarize_add = cv_preprocessing.Solarization(
+            **policy["solarize_add"], value_range=(0, 255), seed=seed
+        )
+        self.invert = cv_preprocessing.Solarization(
+            **policy["invert"], value_range=(0, 255), seed=seed
+        )
 
         self.color = cv_preprocessing.RandomColorDegeneration(
             **policy["color"], seed=seed

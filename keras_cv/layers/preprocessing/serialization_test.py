@@ -23,22 +23,7 @@ def custom_compare(obj1, obj2):
         return obj1.get_config() == obj2.get_config()
     elif isinstance(obj1, core.UniformFactor):
         return obj1.get_config() == obj2.get_config()
-    else:
-        return obj1 == obj2
-
-
-def config_equals(config1, config2):
-    for key in list(config1.keys()) + list(config2.keys()):
-        v1, v2 = config1[key], config2[key]
-        if not custom_compare(v1, v2):
-            return False
-    return True
-
-
-def custom_compare(obj1, obj2):
-    if isinstance(obj1, core.ConstantFactorSampler):
-        return obj1.get_config() == obj2.get_config()
-    elif isinstance(obj1, core.UniformFactorSampler):
+    elif isinstance(obj1, core.NormalFactor):
         return obj1.get_config() == obj2.get_config()
     else:
         return obj1 == obj2
