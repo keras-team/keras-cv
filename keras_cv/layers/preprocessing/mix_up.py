@@ -13,8 +13,6 @@
 # limitations under the License.
 import tensorflow as tf
 import tensorflow.keras.layers as layers
-from absl import logging
-from tensorflow.keras import backend
 
 
 @tf.keras.utils.register_keras_serializable(package="keras_cv")
