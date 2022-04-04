@@ -34,6 +34,7 @@ def config_equals(config1, config2):
             return False
     return True
 
+
 def custom_compare(obj1, obj2):
     if isinstance(obj1, core.ConstantFactorSampler):
         return obj1.get_config() == obj2.get_config()
