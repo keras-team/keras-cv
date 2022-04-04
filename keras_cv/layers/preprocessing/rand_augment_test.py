@@ -25,7 +25,7 @@ class RandAugmentTest(tf.test.TestCase, parameterized.TestCase):
         ("10", 10.0),
     )
     def test_runs_with_magnitude(self, magnitude):
-        rand_augment = layers.RandAugment(magnitude=magnitude)
+        rand_augment = layers.RandAugment(value_range=(0, 255), magnitude=magnitude)
         xs = tf.ones((2, 512, 512, 3))
         ys = rand_augment(xs)
         self.assertEqual(ys.shape, (2, 512, 512, 3))
@@ -47,7 +47,7 @@ class RandAugmentTest(tf.test.TestCase, parameterized.TestCase):
         ("uint8", tf.uint8),
     )
     def test_runs_with_dtype_input(self, dtype):
-        rand_augment = layers.RandAugment()
+        rand_augment = layers.RandAugment(value_range=(0, 255))
         xs = tf.ones((2, 512, 512, 3), dtype=dtype)
         ys = rand_augment(xs)
         self.assertEqual(ys.shape, (2, 512, 512, 3))
