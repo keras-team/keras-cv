@@ -19,4 +19,11 @@
 	"extensions": [
 		"ms-python.python",
 	],
+
+	"features": {
+		"git": {
+			"version": "os-provided",
+		},
+	},
+
 }
