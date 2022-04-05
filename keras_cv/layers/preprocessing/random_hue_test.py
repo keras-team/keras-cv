@@ -98,3 +98,10 @@ class RandomHueTest(tf.test.TestCase):
         layer = preprocessing.RandomHue(factor=(0.3, 0.8))
         output = layer(image)
         self.assertNotAllClose(image, output)
+
+    def test_config(self):
+        layer = preprocessing.RandomHue(factor=(0.3, 0.8))
+        config = layer.get_config()
+        self.assertTrue(isinstance(config["factor"], core.UniformFactorSamplers))
+        self.assertEqual(config["factor"].get_config()["lower"], 0.3)
+        self.assertEqual(config["factor"].get_config()["lower"], 0.8)
