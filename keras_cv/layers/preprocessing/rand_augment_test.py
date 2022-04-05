@@ -57,16 +57,3 @@ class RandAugmentTest(tf.test.TestCase, parameterized.TestCase):
         xs = tf.random.uniform((512, 512, 3), 0, 255, dtype=tf.float32)
         ys = rand_augment(xs)
         self.assertEqual(xs.shape, ys.shape)
-
-    def test_runs_unbatched_with_dict(self):
-        rand_augment = layers.RandAugment(num_layers=3, magnitude=5.0, value_range=(low, high))
-        images = tf.random.uniform((512, 512, 3), low, high, dtype=tf.float32)
-        labels = tf.ones(shape=(1,), dtype=tf.int32)
-        ys = rand_augment({"images": images, "labels": labels})
-        self.assertEqual(images.shape, ys["images"].shape)
-
-    def test_runs_with_dictionary_input(self):
-        rand_augment = layers.RandAugment(num_layers=3, magnitude=5.0, value_range=(0, 255))
-        xs = tf.random.uniform((2, 512, 512, 3), 0, 255, dtype=tf.float32)
-        ys = tf.ones_like(xs)
-        rand_augment({"images": xs, "labels": ys})
