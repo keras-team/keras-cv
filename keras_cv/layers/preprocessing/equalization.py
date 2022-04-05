@@ -60,11 +60,13 @@ class Equalization(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
         histogram = tf.histogram_fixed_width(image, [0, 255], nbins=self.bins)
 
         # For the purposes of computing the step, filter out the nonzeros.
-        # Zeroes are replaced by 1410065408 while calculating min to keep shape
+        # Zeroes are replaced by a big number while calculating min to keep shape
         # constant across input sizes for compatibility with vectorized_map
+
+        big_number = 1410065408
         histogram_without_zeroes = tf.where(
             tf.equal(histogram, 0),
-            tf.ones((), tf.int32) * 1410065408,
+            big_number,
             histogram,
         )
 
@@ -93,17 +95,17 @@ class Equalization(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
         return result
 
     def augment_image(self, image, transformation=None):
-        dtype = image.dtype
+        image = preprocessing.transform_value_range(image, self.value_range, (0, 255), dtype=image.dtype)
         image = tf.cast(image, tf.int32)
-        image = preprocessing.transform_value_range(image, self.value_range, (0, 255))
         image = tf.vectorized_map(
             lambda channel: self.equalize_channel(image, channel),
             tf.range(tf.shape(image)[-1]),
         )
 
         image = tf.transpose(image, [1, 2, 0])
+        image = tf.cast(image, tf.float32)
         image = preprocessing.transform_value_range(image, (0, 255), self.value_range)
-        return tf.cast(image, dtype)
+        return image
 
     def get_config(self):
         config = super().get_config()
