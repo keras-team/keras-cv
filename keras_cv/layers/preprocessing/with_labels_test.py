@@ -18,7 +18,6 @@ from keras_cv.layers import preprocessing
 
 
 class WithLabelsTest(tf.test.TestCase, parameterized.TestCase):
-
     @parameterized.named_parameters(
         ("AutoContrast", preprocessing.AutoContrast, {"value_range": (0, 255)}),
         ("Equalization", preprocessing.Equalization, {"value_range": (0, 255)}),
