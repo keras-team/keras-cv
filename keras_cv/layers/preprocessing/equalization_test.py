@@ -12,9 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import tensorflow as tf
+from absl.testing import parameterized
 
 from keras_cv.layers.preprocessing.equalization import Equalization
-from absl.testing import parameterized
 
 
 class EqualizationTest(tf.test.TestCase, parameterized.TestCase):
@@ -35,9 +35,7 @@ class EqualizationTest(tf.test.TestCase, parameterized.TestCase):
             self.assertTrue(tf.math.reduce_any(xs == i))
 
     @parameterized.named_parameters(
-        ("float32", tf.float32),
-        ("int32", tf.int32),
-        ("int64", tf.int64)
+        ("float32", tf.float32), ("int32", tf.int32), ("int64", tf.int64)
     )
     def test_input_dtypes(self, dtype):
         xs = tf.random.uniform((2, 512, 512, 3), 0, 255, dtype=dtype)
@@ -48,10 +46,7 @@ class EqualizationTest(tf.test.TestCase, parameterized.TestCase):
             self.assertTrue(tf.math.reduce_any(xs == i))
         self.assertAllInRange(xs, 0, 255)
 
-    @parameterized.named_parameters(
-        ("0_255", 0, 255),
-        ("0_1", 0, 1)
-    )
+    @parameterized.named_parameters(("0_255", 0, 255), ("0_1", 0, 1))
     def test_output_range(self, lower, upper):
         xs = tf.random.uniform((2, 512, 512, 3), lower, upper, dtype=tf.float32)
         layer = Equalization(value_range=(lower, upper))
