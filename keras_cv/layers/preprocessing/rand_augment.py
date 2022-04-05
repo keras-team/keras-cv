@@ -48,6 +48,11 @@ class RandAugment(keras.layers.Layer):
 
     Usage:
     ```python
+    (x_test, y_test), _ = tf.keras.datasets.cifar10.load_data()
+    rand_augment = keras_cv.layers.RandAugment(
+        value_range=(0, 255), num_layers=3, magnitude=5.0
+    )
+    x_test = rand_augment(x_test)
     ```
     """
 
