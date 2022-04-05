@@ -12,13 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import tensorflow as tf
-import tensorflow.keras.layers as layers
 
 from keras_cv.utils import fill_utils
 
 
 @tf.keras.utils.register_keras_serializable(package="keras_cv")
-class CutMix(layers.Layer):
+class CutMix(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
     """CutMix implements the CutMix data augmentation technique.
 
     Args:
@@ -38,7 +37,7 @@ class CutMix(layers.Layer):
     """
 
     def __init__(self, alpha=1.0, seed=None, **kwargs):
-        super().__init__(**kwargs)
+        super().__init__(seed=seed, **kwargs)
         self.alpha = alpha
         self.seed = seed
 
@@ -48,23 +47,14 @@ class CutMix(layers.Layer):
         sample_beta = tf.random.gamma(shape, 1.0, beta=beta)
         return sample_alpha / (sample_alpha + sample_beta)
 
-    def call(self, images, labels, training=True):
-        """call method for the CutMix layer.
-
-        Args:
-            images: Tensor representing images of shape:
-                [batch_size, width, height, channels], with dtype tf.float32.
-            labels: One hot encoded tensor of labels for the images, with dtype
-                tf.float32.
-        Returns:
-            images: augmented images, same shape as input.
-            labels: updated labels with both label smoothing and the cutmix updates
-                applied.
-        """
-        # pylint: disable=g-long-lambda
-        cutmix_augment = lambda: self._update_labels(*self._cutmix(images, labels))
-        no_augment = lambda: (images, labels)
-        return tf.cond(tf.cast(training, tf.bool), cutmix_augment, no_augment)
+    def _batch_augment(self, inputs):
+        images = inputs.get('images', None)
+        labels = inputs.get('labels', None)
+        if images is None or labels is None:
+            raise ValueError(
+                'CutMix is expecting both images and labels as inputs.'
+                f'Got: images = {images} and labels = {labels}')
+        return self._update_labels(*self._cutmix(images, labels))
 
     def _cutmix(self, images, labels):
         """Apply cutmix."""
