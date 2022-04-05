@@ -25,11 +25,11 @@ class RandomSaturation(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
     Call the layer with `training=True` to adjust the brightness of the input.
 
     Args:
-        factor: Either a tuple of two floats or a single float. `factor` controls the
-            extent to which the image saturation is impacted. `factor=0.5` makes
-            this layer perform a no-op operation. `factor=0.0` makes the image to be
-            fully grayscale. `factor=1.0` makes the image to be fully saturated.
-
+        factor: A tuple of two floats, a single float or `keras_cv.FactorSampler`.
+            `factor` controls the extent to which the image saturation is impacted.
+            `factor=0.5` makes this layer perform a no-op operation. `factor=0.0` makes
+            the image to be fully grayscale. `factor=1.0` makes the image to be fully
+            saturated.
             Values should be between `0.0` and `1.0`. If a tuple is used, a `factor`
             is sampled between the two values for every image augmented.  If a single
             float is used, a value between `0.0` and the passed float is sampled.
@@ -39,17 +39,15 @@ class RandomSaturation(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
 
     def __init__(self, factor, **kwargs):
         super().__init__(**kwargs)
-        self.factor = preprocessing.parse_factor_value_range(
-            factor, min_value=0.0, max_value=1.0
+        self.factor = preprocessing.parse_factor(
+            factor,
+            min_value=0.0,
+            max_value=1.0,
         )
 
     def get_random_transformation(self, image=None, label=None, bounding_box=None):
         del image, label, bounding_box
-        if self.factor[0] == self.factor[1]:
-            return self.factor[0]
-        return self._random_generator.random_uniform(
-            shape=(), minval=self.factor[0], maxval=self.factor[1], dtype=tf.float32
-        )
+        return self.factor()
 
     def augment_image(self, image, transformation=None):
         # Convert the factor range from [0, 1] to [0, +inf]. Note that the

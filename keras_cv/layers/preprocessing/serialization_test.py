@@ -14,7 +14,25 @@
 import tensorflow as tf
 from absl.testing import parameterized
 
+from keras_cv import core
 from keras_cv.layers import preprocessing
+
+
+def custom_compare(obj1, obj2):
+    if isinstance(obj1, core.ConstantFactorSampler):
+        return obj1.get_config() == obj2.get_config()
+    elif isinstance(obj1, core.UniformFactorSampler):
+        return obj1.get_config() == obj2.get_config()
+    else:
+        return obj1 == obj2
+
+
+def config_equals(config1, config2):
+    for key in list(config1.keys()) + list(config2.keys()):
+        v1, v2 = config1[key], config2[key]
+        if not custom_compare(v1, v2):
+            return False
+    return True
 
 
 class SerializationTest(tf.test.TestCase, parameterized.TestCase):
@@ -48,13 +66,17 @@ class SerializationTest(tf.test.TestCase, parameterized.TestCase):
             preprocessing.RandomSharpness,
             {"factor": 0.5, "value_range": (0, 255)},
         ),
-        ("RandomShear", preprocessing.RandomShear, {"x": 0.3, "y": 0.3}),
+        ("RandomShear", preprocessing.RandomShear, {"x_factor": 0.3, "x_factor": 0.3}),
         ("Solarization", preprocessing.Solarization, {"value_range": (0, 255)}),
     )
     def test_layer_serialization(self, layer_cls, init_args):
         layer = layer_cls(**init_args)
         model = tf.keras.models.Sequential(layer)
         model_config = model.get_config()
+
         reconstructed_model = tf.keras.Sequential().from_config(model_config)
         reconstructed_layer = reconstructed_model.layers[0]
-        self.assertEqual(layer.get_config(), reconstructed_layer.get_config())
+
+        self.assertTrue(
+            config_equals(layer.get_config(), reconstructed_layer.get_config())
+        )
