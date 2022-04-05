@@ -13,7 +13,6 @@
 # Setup/utils
 """
 import time
-import numba
 
 import matplotlib.pyplot as plt
 import tensorflow as tf
@@ -24,7 +23,7 @@ from tensorflow.keras import backend
 from keras_cv.utils import bounding_box
 from keras_cv.utils import fill_utils
 
-@numba.jit()
+
 def single_rectangle_mask(corners, mask_shape):
     """Computes masks of rectangles
 
@@ -70,7 +69,7 @@ def single_rectangle_mask(corners, mask_shape):
 
     return masks
 
-@numba.jit()
+
 def fill_single_rectangle(image, centers_x, centers_y, widths, heights, fill_values):
     """Fill rectangles with fill value into images.
 
@@ -90,7 +89,7 @@ def fill_single_rectangle(image, centers_x, centers_y, widths, heights, fill_val
 
     xywh = tf.stack([centers_x, centers_y, widths, heights], axis=0)
     xywh = tf.cast(xywh, tf.float32)
-    corners = bounding_box.xywh_to_corners(xywh)
+    corners = bounding_box._coco_to_corners(xywh)
 
     mask_shape = (images_width, images_height)
     is_rectangle = single_rectangle_mask(corners, mask_shape)
@@ -178,7 +177,7 @@ class VectorizedRandomCutout(layers.Layer):
         else:
             return type(factor)(0), factor
 
-    @tf.function
+    @tf.function(jit_compile=True)
     def call(self, inputs, training=True):
         if training is None:
             training = backend.learning_phase()
@@ -358,7 +357,7 @@ class MapFnRandomCutout(layers.Layer):
         else:
             return type(factor)(0), factor
 
-    @tf.function
+    @tf.function(jit_compile=True)
     def call(self, inputs, training=True):
 
         augment = lambda: tf.map_fn(self._random_cutout, inputs)
@@ -533,7 +532,7 @@ class VMapRandomCutout(layers.Layer):
         else:
             return type(factor)(0), factor
 
-    @tf.function
+    @tf.function(jit_compile=True)
     def call(self, inputs, training=True):
         augment = lambda: tf.vectorized_map(self._random_cutout, inputs)
         no_augment = lambda: inputs
