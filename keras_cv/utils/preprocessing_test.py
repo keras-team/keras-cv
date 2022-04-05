@@ -16,6 +16,13 @@ import tensorflow as tf
 
 from keras_cv.utils import preprocessing
 
+class MockRandomGenerator():
+    def __init__(self, value):
+        self.value = value
+
+    def random_uniform(self, shape, minval, maxval, dtype=None):
+        del minval, maxval
+        return tf.constant(self.value, dtype=dtype)
 
 class PreprocessingTestCase(tf.test.TestCase):
     def setUp(self):
@@ -48,3 +55,9 @@ class PreprocessingTestCase(tf.test.TestCase):
             x, original_range=[0, 255], target_range=[0, 1]
         )
         self.assertAllClose(x, [128 / 255, 1, 0])
+
+    def test_random_inversion(self):
+        generator = MockRandomGenerator(0.75)
+        self.assertEqual(preprocessing.random_inversion(generator), -1.)
+        generator = MockRandomGenerator(0.25)
+        self.assertEqual(preprocessing.random_inversion(generator), 1.)

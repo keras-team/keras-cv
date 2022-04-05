@@ -22,7 +22,7 @@ class RandomHueTest(tf.test.TestCase):
         image_shape = (4, 8, 8, 3)
         image = tf.random.uniform(shape=image_shape) * 255.0
 
-        layer = preprocessing.RandomHue(factor=(0.3, 0.8))
+        layer = preprocessing.RandomHue(factor=(0.3, 0.8), value_range=(0, 255))
         output = layer(image)
 
         self.assertEqual(image.shape, output.shape)
@@ -32,15 +32,7 @@ class RandomHueTest(tf.test.TestCase):
         image_shape = (4, 8, 8, 3)
         image = tf.random.uniform(shape=image_shape) * 255.0
 
-        layer = preprocessing.RandomHue(factor=(0.5, 0.5))
-        output = layer(image)
-        self.assertAllClose(image, output, atol=1e-5, rtol=1e-5)
-
-        layer = preprocessing.RandomHue(factor=(0.0, 0.0))
-        output = layer(image)
-        self.assertAllClose(image, output, atol=1e-5, rtol=1e-5)
-
-        layer = preprocessing.RandomHue(factor=(1.0, 1.0))
+        layer = preprocessing.RandomHue(factor=(0.0, 0.0), value_range=(0, 255))
         output = layer(image)
         self.assertAllClose(image, output, atol=1e-5, rtol=1e-5)
 
@@ -48,7 +40,7 @@ class RandomHueTest(tf.test.TestCase):
         image_shape = (4, 8, 8, 3)
         image = tf.random.uniform(shape=image_shape) * 255.0
 
-        layer = preprocessing.RandomHue(factor=(0.25, 0.25))
+        layer = preprocessing.RandomHue(factor=(1., 1.), value_range=(0, 255))
         output = layer(image)
 
         channel_max = tf.math.reduce_max(output, axis=-1)
@@ -62,7 +54,7 @@ class RandomHueTest(tf.test.TestCase):
             channel_min, tf.math.reduce_min(image, axis=-1), atol=1e-5, rtol=1e-5
         )
 
-        layer = preprocessing.RandomHue(factor=(0.75, 0.75))
+        layer = preprocessing.RandomHue(factor=(0.75, 0.75), value_range=(0, 255))
         output = layer(image)
 
         channel_max = tf.math.reduce_max(output, axis=-1)
@@ -79,29 +71,30 @@ class RandomHueTest(tf.test.TestCase):
         # Value range (0, 100)
         image = tf.random.uniform(shape=image_shape) * 100.0
 
-        layer = preprocessing.RandomHue(factor=(0.5, 0.5))
+        layer = preprocessing.RandomHue(factor=(0.0, 0.0), value_range=(0, 255))
         output = layer(image)
         self.assertAllClose(image, output, atol=1e-5, rtol=1e-5)
 
-        layer = preprocessing.RandomHue(factor=(0.3, 0.8))
+        layer = preprocessing.RandomHue(factor=(0.3, 0.8), value_range=(0, 255))
         output = layer(image)
         self.assertNotAllClose(image, output)
 
-    def test_with_unit8(self):
+    def test_with_uint8(self):
         image_shape = (4, 8, 8, 3)
         image = tf.cast(tf.random.uniform(shape=image_shape) * 255.0, dtype=tf.uint8)
 
-        layer = preprocessing.RandomHue(factor=(0.5, 0.5))
+        layer = preprocessing.RandomHue(factor=(0.0, 0.0), value_range=(0, 255))
         output = layer(image)
         self.assertAllClose(image, output, atol=1e-5, rtol=1e-5)
 
-        layer = preprocessing.RandomHue(factor=(0.3, 0.8))
+        layer = preprocessing.RandomHue(factor=(0.3, 0.8), value_range=(0, 255))
         output = layer(image)
         self.assertNotAllClose(image, output)
 
     def test_config(self):
-        layer = preprocessing.RandomHue(factor=(0.3, 0.8))
+        layer = preprocessing.RandomHue(factor=(0.3, 0.8), value_range=(0, 255))
         config = layer.get_config()
         self.assertTrue(isinstance(config["factor"], core.UniformFactorSampler))
         self.assertEqual(config["factor"].get_config()["lower"], 0.3)
         self.assertEqual(config["factor"].get_config()["upper"], 0.8)
+        self.assertEqual(config["value_range"], (0, 255))
