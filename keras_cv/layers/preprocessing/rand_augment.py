@@ -36,15 +36,17 @@ class RandAugment(keras.layers.Layer):
         - [RandAugment](https://arxiv.org/abs/1909.13719)
 
     Args:
+        value_range: the range of values the incoming images will have.
+            Represented as a two number tuple written [low, high].
+            This is typically either `[0, 1]` or `[0, 255]` depending
+            on how your preprocessing pipeline is setup.
         num_layers: the number of layers to use in the rand augment policy.
         magnitude: the magnitude to use for each of the augmentation.
         magnitude_standard_deviation: the standard deviation to use when drawing values
             for the perturbations.
         probability_to_apply:  the probability to apply an augmentation at each layer.
-        value_range: the value range of the incoming images
 
     Usage:
-    # TODO(lukewood): document fully.
     ```python
     ```
     """
