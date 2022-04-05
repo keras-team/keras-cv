@@ -23,7 +23,7 @@ from keras_cv.utils import bounding_box
 
 SAMPLE_FILE = os.path.dirname(os.path.abspath(__file__)) + "/sample_boxes.npz"
 
-delta = 0.04
+delta = 0.004
 
 
 class RecallCorrectnessTest(tf.test.TestCase):
