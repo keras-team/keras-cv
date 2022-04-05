@@ -60,9 +60,17 @@ class Equalization(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
         histogram = tf.histogram_fixed_width(image, [0, 255], nbins=self.bins)
 
         # For the purposes of computing the step, filter out the nonzeros.
-        nonzero = tf.where(tf.not_equal(histogram, 0))
-        nonzero_histogram = tf.reshape(tf.gather(histogram, nonzero), [-1])
-        step = (tf.reduce_sum(nonzero_histogram) - nonzero_histogram[-1]) // (
+        # Zeroes are replaced by a big number while calculating min to keep shape
+        # constant across input sizes for compatibility with vectorized_map
+
+        big_number = 1410065408
+        histogram_without_zeroes = tf.where(
+            tf.equal(histogram, 0),
+            big_number,
+            histogram,
+        )
+
+        step = (tf.reduce_sum(histogram) - tf.reduce_min(histogram_without_zeroes)) // (
             self.bins - 1
         )
 
@@ -81,20 +89,23 @@ class Equalization(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
         result = tf.cond(
             tf.equal(step, 0),
             lambda: image,
-            lambda: tf.cast(
-                tf.gather(build_mapping(histogram, step), tf.cast(image, tf.int32)),
-                self.compute_dtype,
-            ),
+            lambda: tf.gather(build_mapping(histogram, step), image),
         )
 
         return result
 
     def augment_image(self, image, transformation=None):
-        image = preprocessing.transform_value_range(image, self.value_range, (0, 255))
-        r = self.equalize_channel(image, 0)
-        g = self.equalize_channel(image, 1)
-        b = self.equalize_channel(image, 2)
-        image = tf.stack([r, g, b], axis=-1)
+        image = preprocessing.transform_value_range(
+            image, self.value_range, (0, 255), dtype=image.dtype
+        )
+        image = tf.cast(image, tf.int32)
+        image = tf.vectorized_map(
+            lambda channel: self.equalize_channel(image, channel),
+            tf.range(tf.shape(image)[-1]),
+        )
+
+        image = tf.transpose(image, [1, 2, 0])
+        image = tf.cast(image, tf.float32)
         image = preprocessing.transform_value_range(image, (0, 255), self.value_range)
         return image
 
