@@ -12,11 +12,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from keras_cv import layers
-from keras_cv import metrics
-from keras_cv import utils
-from keras_cv.core.factor_sampler.constant_factor_sampler import ConstantFactorSampler
-from keras_cv.core.factor_sampler.factor_sampler import FactorSampler
-from keras_cv.core.factor_sampler.uniform_factor_sampler import UniformFactorSampler
+import tensorflow as tf
 
-__version__ = "master"
+import keras_cv
+
+
+class UniformFactorSamplerTest(tf.test.TestCase):
+    def test_sample(self):
+        factor = keras_cv.UniformFactorSampler(0.3, 0.6)
+        self.assertTrue(0.3 <= factor() <= 0.6)
+
+    def test_config(self):
+        factor = keras_cv.UniformFactorSampler(0.3, 0.6)
+        config = factor.get_config()
+        self.assertEqual(config["lower"], 0.3)
+        self.assertEqual(config["upper"], 0.6)

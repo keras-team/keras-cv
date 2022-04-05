@@ -13,6 +13,7 @@
 # limitations under the License.
 import tensorflow as tf
 
+from keras_cv import core
 from keras_cv.layers import preprocessing
 
 
@@ -101,8 +102,6 @@ class RandomHueTest(tf.test.TestCase):
     def test_config(self):
         layer = preprocessing.RandomHue(factor=(0.3, 0.8))
         config = layer.get_config()
-        self.assertEqual(config["factor"], (0.3, 0.8))
-
-        layer = preprocessing.RandomHue(factor=0.5)
-        config = layer.get_config()
-        self.assertEqual(config["factor"], (0.0, 0.5))
+        self.assertTrue(isinstance(config["factor"], core.UniformFactorSampler))
+        self.assertEqual(config["factor"].get_config()["lower"], 0.3)
+        self.assertEqual(config["factor"].get_config()["upper"], 0.8)

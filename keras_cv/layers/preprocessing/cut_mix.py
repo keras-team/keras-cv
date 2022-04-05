@@ -13,8 +13,6 @@
 # limitations under the License.
 import tensorflow as tf
 import tensorflow.keras.layers as layers
-from absl import logging
-from tensorflow.keras import backend
 
 from keras_cv.utils import fill_utils
 
@@ -63,16 +61,6 @@ class CutMix(layers.Layer):
             labels: updated labels with both label smoothing and the cutmix updates
                 applied.
         """
-        if training is None:
-            training = backend.learning_phase()
-
-        if tf.shape(images)[0] == 1:
-            logging.warning(
-                "CutMix received a single image to `call`.  The layer relies on "
-                "combining multiple examples, and as such will not behave as "
-                "expected.  Please call the layer with 2 or more samples."
-            )
-
         # pylint: disable=g-long-lambda
         cutmix_augment = lambda: self._update_labels(*self._cutmix(images, labels))
         no_augment = lambda: (images, labels)

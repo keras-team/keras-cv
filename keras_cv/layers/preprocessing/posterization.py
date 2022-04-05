@@ -30,12 +30,12 @@ class Posterization(BaseImageAugmentationLayer):
     )
 
     Args:
-        bits: integer. The number of bits to keep for each channel. Must be a value
-            between 1-8.
         value_range: a tuple or a list of two elements. The first value represents
             the lower bound for values in passed images, the second represents the
             upper bound. Images passed to the layer should have values within
             `value_range`. Defaults to `(0, 255)`.
+        bits: integer. The number of bits to keep for each channel. Must be a value
+            between 1-8.
 
      Usage:
     ```python
@@ -56,7 +56,7 @@ class Posterization(BaseImageAugmentationLayer):
             2. A dict of tensors where the images are under `"images"` key.
     """
 
-    def __init__(self, bits: int, value_range=(0, 255), **kwargs):
+    def __init__(self, value_range, bits, **kwargs):
         super().__init__(**kwargs)
 
         if not len(value_range) == 2:
