@@ -16,6 +16,9 @@ from keras_cv import layers
 from keras_cv import metrics
 from keras_cv import utils
 from keras_cv import visualization
+from keras_cv.core.factor_sampler.constant_factor_sampler import ConstantFactorSampler
+from keras_cv.core.factor_sampler.factor_sampler import FactorSampler
+from keras_cv.core.factor_sampler.uniform_factor_sampler import UniformFactorSampler
 
 version_check.check_tf_version()
 

@@ -61,16 +61,16 @@ class RandomShear(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
         seed=None,
         **kwargs,
     ):
-        super().__init__(seed=seed, **kwargs)
+        super().__init__(**kwargs)
         if x_factor is not None:
             self.x_factor = preprocessing.parse_factor(
-                x_factor, max_value=None, param_name="x_factor", seed=seed
+                x_factor, max_value=None, param_name="x_factor"
             )
         else:
             self.x_factor = x_factor
         if y_factor is not None:
             self.y_factor = preprocessing.parse_factor(
-                y_factor, max_value=None, param_name="y_factor", seed=seed
+                y_factor, max_value=None, param_name="y_factor"
             )
         else:
             self.y_factor = y_factor
@@ -93,8 +93,10 @@ class RandomShear(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
         if constraint is None:
             return None
 
-        invert = preprocessing.random_inversion(self._random_generator)
-        return invert * constraint()
+        negate = self._random_generator.random_uniform((), 0, 1, dtype=tf.float32) > 0.5
+        negate = tf.cond(negate, lambda: -1.0, lambda: 1.0)
+
+        return negate * constraint()
 
     def augment_image(self, image, transformation=None):
         image = tf.expand_dims(image, axis=0)
