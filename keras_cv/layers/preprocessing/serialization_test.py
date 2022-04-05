@@ -19,11 +19,7 @@ from keras_cv.layers import preprocessing
 
 
 def custom_compare(obj1, obj2):
-    if isinstance(obj1, core.ConstantFactorSampler):
-        return obj1.get_config() == obj2.get_config()
-    elif isinstance(obj1, core.UniformFactorSampler):
-        return obj1.get_config() == obj2.get_config()
-    elif isinstance(obj1, core.NormalFactorSampler):
+    if isinstance(obj1, core.FactorSampler):
         return obj1.get_config() == obj2.get_config()
     else:
         return obj1 == obj2
