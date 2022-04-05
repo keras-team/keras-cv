@@ -48,6 +48,7 @@ class WithLabelsTest(tf.test.TestCase, parameterized.TestCase):
         ),
         ("RandomShear", preprocessing.RandomShear, {"x_factor": 0.3, "x_factor": 0.3}),
         ("Solarization", preprocessing.Solarization, {"value_range": (0, 255)}),
+        ("RandAugment", preprocessing.RandAugment, {"value_range": (0, 255)})
     )
     def test_can_run_with_labels(self, layer_cls, init_args):
         layer = layer_cls(**init_args)
