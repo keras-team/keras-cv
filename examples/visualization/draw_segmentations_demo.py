@@ -27,7 +27,7 @@ from keras_cv.visualization import draw_segmentation
 
 IMG_SIZE = (224, 224)
 BATCH_SIZE = 2
-MASK_SIZE = 24
+MASK_SIZE = 124
 
 
 def get_image(data):
@@ -38,7 +38,7 @@ def get_image(data):
 
 def draw_masked_images(images):
     # show masked images.
-    f, axarr = plt.subplots(BATCH_SIZE, 1)
+    _, axarr = plt.subplots(BATCH_SIZE, 1)
     for i, mask_image in enumerate(images):
         axarr[i].imshow(mask_image.numpy().astype("uint8"))
     plt.show()
@@ -53,12 +53,18 @@ def main():
     batch_images = next(iter(train_ds))
     batch_images = tf.cast(batch_images, tf.uint8)
 
+    COLOR_CODE1 = 1
+    COLOR_CODE2 = 2
+
     # create center rectangle mask.
-    mask = tf.ones((MASK_SIZE, MASK_SIZE), tf.int32)
+    mask1 = tf.ones((MASK_SIZE, MASK_SIZE), tf.int32) * COLOR_CODE1
+    mask2 = tf.ones((MASK_SIZE, MASK_SIZE), tf.int32) * COLOR_CODE2
+
     mask_pad = int((IMG_SIZE[0] - MASK_SIZE) / 2)
     paddings = tf.constant([[mask_pad] * 2] * 2)
-    mask = tf.cast(tf.pad(mask, paddings, "CONSTANT"), dtype=tf.uint8)
-    mask = tf.stack([mask] * BATCH_SIZE, axis=0)
+    mask1 = tf.cast(tf.pad(mask1, paddings, "CONSTANT"), dtype=tf.uint8)
+    mask2 = tf.cast(tf.pad(mask2, paddings, "CONSTANT"), dtype=tf.uint8)
+    mask = tf.stack([mask1, mask2], axis=0)
 
     # draw segmentation on batch of images.
     # example 1.: single color `green`
@@ -66,7 +72,7 @@ def main():
     draw_masked_images(masked_images)
 
     # example 2.: color mapping.
-    masked_images = draw_segmentation(batch_images, mask, color={1: "green"})
+    masked_images = draw_segmentation(batch_images, mask, color={1: "green", 2: "red"})
     draw_masked_images(masked_images)
 
 
