@@ -18,7 +18,6 @@ from keras_cv.layers import preprocessing
 
 
 class WithLabelsTest(tf.test.TestCase, parameterized.TestCase):
-
     @parameterized.named_parameters(
         ("AutoContrast", preprocessing.AutoContrast, {"value_range": (0, 255)}),
         ("Equalization", preprocessing.Equalization, {"value_range": (0, 255)}),
@@ -52,7 +51,9 @@ class WithLabelsTest(tf.test.TestCase, parameterized.TestCase):
     def test_can_run_with_labels(self, layer_cls, init_args):
         layer = layer_cls(**init_args)
 
-        img = tf.random.uniform(shape=(3, 512, 512, 3), minval=0, maxval=1, dtype=tf.float32)
+        img = tf.random.uniform(
+            shape=(3, 512, 512, 3), minval=0, maxval=1, dtype=tf.float32
+        )
         labels = tf.ones((3,), dtype=tf.float32)
 
         inputs = {"images": img, "labels": labels}
@@ -60,7 +61,9 @@ class WithLabelsTest(tf.test.TestCase, parameterized.TestCase):
 
         layer = layer_cls(**init_args)
 
-        img = tf.random.uniform(shape=(512, 512, 3), minval=0, maxval=1, dtype=tf.float32)
+        img = tf.random.uniform(
+            shape=(512, 512, 3), minval=0, maxval=1, dtype=tf.float32
+        )
         labels = tf.ones((), dtype=tf.float32)
 
         inputs = {"images": img, "labels": labels}
