@@ -50,14 +50,15 @@ class NormalFactorSampler(FactorSampler):
         self.max_value = max_value
         self.seed = seed
 
-    def __call__(self):
+    def __call__(self, shape=None, dtype=tf.float32):
+        shape = shape or None
         return tf.clip_by_value(
             tf.random.normal(
-                (),
+                shape,
                 mean=self.mean,
                 stddev=self.standard_deviation,
                 seed=self.seed,
-                dtype=tf.float32,
+                dtype=dtype,
             ),
             self.min_value,
             self.max_value,
