@@ -67,9 +67,6 @@ class RandomHue(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
         return image
 
     def get_config(self):
-        config = {
-            "factor": self.factor,
-            "value_range": self.value_range
-        }
+        config = {"factor": self.factor, "value_range": self.value_range}
         base_config = super().get_config()
         return dict(list(base_config.items()) + list(config.items()))

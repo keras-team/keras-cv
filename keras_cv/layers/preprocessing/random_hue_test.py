@@ -40,7 +40,7 @@ class RandomHueTest(tf.test.TestCase):
         image_shape = (4, 8, 8, 3)
         image = tf.random.uniform(shape=image_shape) * 255.0
 
-        layer = preprocessing.RandomHue(factor=(1., 1.), value_range=(0, 255))
+        layer = preprocessing.RandomHue(factor=(1.0, 1.0), value_range=(0, 255))
         output = layer(image)
 
         channel_max = tf.math.reduce_max(output, axis=-1)
