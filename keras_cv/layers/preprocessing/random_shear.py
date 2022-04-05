@@ -91,8 +91,7 @@ class RandomShear(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
             return None
 
         invert = preprocessing.random_inversion(self._random_generator)
-
-        return negate * constraint()
+        return invert * constraint()
 
     def augment_image(self, image, transformation=None):
         image = tf.expand_dims(image, axis=0)
