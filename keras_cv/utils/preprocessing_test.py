@@ -28,6 +28,13 @@ class PreprocessingTestCase(tf.test.TestCase):
         )
         self.assertAllClose(x, [0.0, 127.5, 255.0])
 
+    def test_transform_to_same_range(self):
+        x = tf.constant([-1, 0, 1])
+        x = preprocessing.transform_value_range(
+            x, original_range=[0, 255], target_range=[0, 255]
+        )
+        self.assertAllClose(x, [-1, 0, 1])
+
     def test_transform_to_standard_range(self):
         x = tf.constant([8 / 255, 9 / 255, 255 / 255])
         x = preprocessing.transform_value_range(

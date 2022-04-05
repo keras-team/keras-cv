@@ -16,6 +16,168 @@ import tensorflow as tf
 from keras_cv.utils import fill_utils
 
 
+class BoundingBoxToMaskTest(tf.test.TestCase):
+    def _run_test(self, corners, expected):
+        mask = fill_utils.corners_to_mask(corners, mask_shape=(6, 6))
+        mask = tf.cast(mask, dtype=tf.int32)
+        tf.assert_equal(mask, expected)
+
+    def test_corners_whole(self):
+        expected = tf.constant(
+            [
+                [0, 1, 1, 1, 0, 0],
+                [0, 1, 1, 1, 0, 0],
+                [0, 1, 1, 1, 0, 0],
+                [0, 0, 0, 0, 0, 0],
+                [0, 0, 0, 0, 0, 0],
+                [0, 0, 0, 0, 0, 0],
+            ],
+            dtype=tf.int32,
+        )
+        corners = tf.constant([[1, 0, 4, 3]], dtype=tf.float32)
+        self._run_test(corners, expected)
+
+    def test_corners_frac(self):
+        expected = tf.constant(
+            [
+                [0, 0, 0, 0, 0, 0],
+                [0, 0, 1, 1, 1, 0],
+                [0, 0, 1, 1, 1, 0],
+                [0, 0, 1, 1, 1, 0],
+                [0, 0, 0, 0, 0, 0],
+                [0, 0, 0, 0, 0, 0],
+            ]
+        )
+        corners = tf.constant([[1.5, 0.5, 4.5, 3.5]], dtype=tf.float32)
+        self._run_test(corners, expected)
+
+    def test_width_zero(self):
+        expected = tf.constant(
+            [
+                [0, 0, 0, 0, 0, 0],
+                [0, 0, 0, 0, 0, 0],
+                [0, 0, 0, 0, 0, 0],
+                [0, 0, 0, 0, 0, 0],
+                [0, 0, 0, 0, 0, 0],
+                [0, 0, 0, 0, 0, 0],
+            ]
+        )
+        corners = tf.constant([[0, 0, 0, 3]], dtype=tf.float32)
+        self._run_test(corners, expected)
+
+    def test_height_zero(self):
+        expected = tf.constant(
+            [
+                [0, 0, 0, 0, 0, 0],
+                [0, 0, 0, 0, 0, 0],
+                [0, 0, 0, 0, 0, 0],
+                [0, 0, 0, 0, 0, 0],
+                [0, 0, 0, 0, 0, 0],
+                [0, 0, 0, 0, 0, 0],
+            ]
+        )
+        corners = tf.constant([[1, 0, 4, 0]], dtype=tf.float32)
+        self._run_test(corners, expected)
+
+    def test_width_negative(self):
+        expected = tf.constant(
+            [
+                [0, 0, 0, 0, 0, 0],
+                [0, 0, 0, 0, 0, 0],
+                [0, 0, 0, 0, 0, 0],
+                [0, 0, 0, 0, 0, 0],
+                [0, 0, 0, 0, 0, 0],
+                [0, 0, 0, 0, 0, 0],
+            ]
+        )
+        corners = tf.constant([[1, 0, -2, 3]], dtype=tf.float32)
+        self._run_test(corners, expected)
+
+    def test_height_negative(self):
+        expected = tf.constant(
+            [
+                [0, 0, 0, 0, 0, 0],
+                [0, 0, 0, 0, 0, 0],
+                [0, 0, 0, 0, 0, 0],
+                [0, 0, 0, 0, 0, 0],
+                [0, 0, 0, 0, 0, 0],
+                [0, 0, 0, 0, 0, 0],
+            ]
+        )
+        corners = tf.constant([[1, 0, 4, -2]], dtype=tf.float32)
+        self._run_test(corners, expected)
+
+    def test_width_out_of_lower_bound(self):
+        expected = tf.constant(
+            [
+                [1, 1, 0, 0, 0, 0],
+                [1, 1, 0, 0, 0, 0],
+                [1, 1, 0, 0, 0, 0],
+                [0, 0, 0, 0, 0, 0],
+                [0, 0, 0, 0, 0, 0],
+                [0, 0, 0, 0, 0, 0],
+            ]
+        )
+        corners = tf.constant([[-2, -2, 2, 3]], dtype=tf.float32)
+        self._run_test(corners, expected)
+
+    def test_width_out_of_upper_bound(self):
+        expected = tf.constant(
+            [
+                [0, 0, 0, 0, 1, 1],
+                [0, 0, 0, 0, 1, 1],
+                [0, 0, 0, 0, 1, 1],
+                [0, 0, 0, 0, 0, 0],
+                [0, 0, 0, 0, 0, 0],
+                [0, 0, 0, 0, 0, 0],
+            ]
+        )
+        corners = tf.constant([[4, 0, 8, 3]], dtype=tf.float32)
+        self._run_test(corners, expected)
+
+    def test_height_out_of_lower_bound(self):
+        expected = tf.constant(
+            [
+                [0, 1, 1, 1, 0, 0],
+                [0, 1, 1, 1, 0, 0],
+                [0, 0, 0, 0, 0, 0],
+                [0, 0, 0, 0, 0, 0],
+                [0, 0, 0, 0, 0, 0],
+                [0, 0, 0, 0, 0, 0],
+            ]
+        )
+        corners = tf.constant([[1, -3, 4, 2]], dtype=tf.float32)
+        self._run_test(corners, expected)
+
+    def test_height_out_of_upper_bound(self):
+        expected = tf.constant(
+            [
+                [0, 0, 0, 0, 0, 0],
+                [0, 0, 0, 0, 0, 0],
+                [0, 0, 0, 0, 0, 0],
+                [0, 0, 0, 0, 0, 0],
+                [0, 1, 1, 1, 0, 0],
+                [0, 1, 1, 1, 0, 0],
+            ]
+        )
+        corners = tf.constant([[1, 4, 4, 9]], dtype=tf.float32)
+        self._run_test(corners, expected)
+
+    def test_start_out_of_upper_bound(self):
+        expected = tf.constant(
+            [
+                [0, 0, 0, 0, 0, 0],
+                [0, 0, 0, 0, 0, 0],
+                [0, 0, 0, 0, 0, 0],
+                [0, 0, 0, 0, 0, 0],
+                [0, 0, 0, 0, 0, 0],
+                [0, 0, 0, 0, 0, 0],
+            ]
+        )
+        corners = tf.constant([[8, 8, 10, 12]], dtype=tf.float32)
+        self._run_test(corners, expected)
+
+
 class FillRectangleTest(tf.test.TestCase):
     def _run_test(self, img_w, img_h, cent_x, cent_y, rec_w, rec_h, expected):
         batch_size = 1

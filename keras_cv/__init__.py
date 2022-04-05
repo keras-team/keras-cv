@@ -16,4 +16,4 @@ from keras_cv import layers
 from keras_cv import metrics
 from keras_cv import utils
 
-__version__ = "0.0.2"
+__version__ = "master"

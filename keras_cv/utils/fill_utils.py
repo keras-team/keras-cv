@@ -16,50 +16,40 @@ import tensorflow as tf
 from keras_cv.utils import bounding_box
 
 
-def rectangle_masks(corners, mask_shape):
-    """Computes masks of rectangles
+def _axis_mask(starts, ends, mask_len):
+    # index range of axis
+    batch_size = tf.shape(starts)[0]
+    axis_indices = tf.range(mask_len, dtype=starts.dtype)
+    axis_indices = tf.expand_dims(axis_indices, 0)
+    axis_indices = tf.tile(axis_indices, [batch_size, 1])
+
+    # mask of index bounds
+    axis_mask = tf.greater_equal(axis_indices, starts) & tf.less(axis_indices, ends)
+    return axis_mask
+
+
+def corners_to_mask(bounding_boxes, mask_shape):
+    """Converts bounding boxes in corners format to boolean masks
 
     Args:
-        corners: tensor of rectangle coordinates with shape (batch_size, 4) in
+        bounding_boxes: tensor of rectangle coordinates with shape (batch_size, 4) in
             corners format (x0, y0, x1, y1).
         mask_shape: a shape tuple as (width, height) indicating the output
             width and height of masks.
 
     Returns:
         boolean masks with shape (batch_size, width, height) where True values
-            indicate positions within rectangle coordinates.
+            indicate positions within bounding box coordinates.
     """
-    # add broadcasting axes
-    corners = corners[..., tf.newaxis, tf.newaxis]
+    mask_width, mask_height = mask_shape
+    x0, y0, x1, y1 = tf.split(bounding_boxes, [1, 1, 1, 1], axis=-1)
 
-    # split coordinates
-    x0 = corners[:, 0]
-    y0 = corners[:, 1]
-    x1 = corners[:, 2]
-    y1 = corners[:, 3]
+    w_mask = _axis_mask(x0, x1, mask_width)
+    h_mask = _axis_mask(y0, y1, mask_height)
 
-    # repeat height and width
-    width, height = mask_shape
-    x0_rep = tf.repeat(x0, height, axis=1)
-    y0_rep = tf.repeat(y0, width, axis=2)
-    x1_rep = tf.repeat(x1, height, axis=1)
-    y1_rep = tf.repeat(y1, width, axis=2)
-
-    # range grid
-    batch_size = tf.shape(corners)[0]
-    range_row = tf.range(0, height, dtype=corners.dtype)
-    range_col = tf.range(0, width, dtype=corners.dtype)
-    range_row = tf.repeat(range_row[tf.newaxis, :, tf.newaxis], batch_size, 0)
-    range_col = tf.repeat(range_col[tf.newaxis, tf.newaxis, :], batch_size, 0)
-
-    # boolean masks
-    mask_x0 = tf.less_equal(x0_rep, range_col)
-    mask_y0 = tf.less_equal(y0_rep, range_row)
-    mask_x1 = tf.less(range_col, x1_rep)
-    mask_y1 = tf.less(range_row, y1_rep)
-
-    masks = mask_x0 & mask_y0 & mask_x1 & mask_y1
-
+    w_mask = tf.expand_dims(w_mask, axis=1)
+    h_mask = tf.expand_dims(h_mask, axis=2)
+    masks = tf.logical_and(w_mask, h_mask)
     return masks
 
 
@@ -82,10 +72,10 @@ def fill_rectangle(images, centers_x, centers_y, widths, heights, fill_values):
 
     xywh = tf.stack([centers_x, centers_y, widths, heights], axis=1)
     xywh = tf.cast(xywh, tf.float32)
-    corners = bounding_box.xywh_to_corners(xywh)
+    corners = bounding_box.convert_to_corners(xywh, format="yolo")
 
     mask_shape = (images_width, images_height)
-    is_rectangle = rectangle_masks(corners, mask_shape)
+    is_rectangle = corners_to_mask(corners, mask_shape)
     is_rectangle = tf.expand_dims(is_rectangle, -1)
 
     images = tf.where(is_rectangle, fill_values, images)
