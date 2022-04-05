@@ -18,5 +18,6 @@ from keras_cv import utils
 from keras_cv.core import ConstantFactorSampler
 from keras_cv.core import FactorSampler
 from keras_cv.core import UniformFactorSampler
+from keras_cv.core import NormalFactorSampler
 
 __version__ = "master"
