@@ -3,7 +3,7 @@
 	"build": {
 		"dockerfile": "Dockerfile",
 		"args": { 
-			// Uncomment this if need GPU support
+			// Uncomment this if GPU support it is required
 			// "VARIANT": "-gpu",
 		}
 	},
