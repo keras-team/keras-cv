@@ -24,3 +24,10 @@ class EqualizationTest(tf.test.TestCase):
 
         self.assertEqual(xs.shape, [2, 512, 512, 3])
         self.assertAllEqual(xs, 255 * tf.ones((2, 512, 512, 3)))
+
+    def test_output_range(self):
+        xs = tf.random.uniform((2, 512, 512, 3), 0, 256, dtype=tf.int32)
+        layer = Equalization(value_range=(0, 255))
+        xs = layer(xs)
+
+        self.assertAllInRange(xs, 0, 255)

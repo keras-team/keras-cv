@@ -19,7 +19,6 @@ from keras_cv.utils import preprocessing
 @tf.keras.utils.register_keras_serializable(package="keras_cv")
 class Equalization(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
     """Equalization performs histogram equalization on a channel-wise basis.
-
     Args:
         value_range: a tuple or a list of two elements. The first value represents
             the lower bound for values in passed images, the second represents the
@@ -27,16 +26,13 @@ class Equalization(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
             `value_range`.
         bins: Integer indicating the number of bins to use in histogram equalization.
             Should be in the range [0, 256].
-
     Usage:
     ```python
     equalize = Equalization()
-
     (images, labels), _ = tf.keras.datasets.cifar10.load_data()
     # Note that images are an int8 Tensor with values in the range [0, 255]
     images = equalize(images)
     ```
-
     Call arguments:
         images: Tensor of pixels in range [0, 255], in RGB format.  Can be
             of type float or int.  Should be in NHWC format.
@@ -49,7 +45,6 @@ class Equalization(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
 
     def equalize_channel(self, image, channel_index):
         """equalize_channel performs histogram equalization on a single channel.
-
         Args:
             image: int Tensor with pixels in range [0, 255], RGB format,
                 with channels last
@@ -64,7 +59,7 @@ class Equalization(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
         # constant across input sizes for compatibility with vectorized_map
         histogram_without_zeroes = tf.where(
             tf.equal(histogram, 0),
-            tf.multiply(tf.ones((), tf.int32), 1410065408),
+            tf.ones((), tf.int32) * 1410065408,
             histogram,
         )
 
