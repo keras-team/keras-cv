@@ -51,10 +51,10 @@ class NormalFactorSampler(FactorSampler):
         self.seed = seed
 
     def __call__(self, shape=None, dtype=tf.float32):
-        shape = shape or None
+        shape = shape or ()
         return tf.clip_by_value(
             tf.random.normal(
-                shape,
+                shape=shape,
                 mean=self.mean,
                 stddev=self.standard_deviation,
                 seed=self.seed,
