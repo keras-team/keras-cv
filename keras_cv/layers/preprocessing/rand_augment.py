@@ -128,8 +128,10 @@ class RandAugment(keras.layers.Layer):
             self.cutout,
         ]
 
-    @tf.function
     def augment_sample(self, sample):
+        sample["images"] = preprocessing_utils.transform_value_range(
+            sample["images"], self.value_range, (0, 255)
+        )
         for _ in range(self.num_layers):
             selected_op = tf.random.uniform(
                 (), maxval=len(self.augmentation_layers) + 1, dtype=tf.int32
@@ -149,28 +151,44 @@ class RandAugment(keras.layers.Layer):
                     lambda: sample,
                 )
             sample = augmented_sample
+
+        sample["images"] = preprocessing_utils.transform_value_range(
+            sample["images"], (0, 255), self.value_range
+        )
         return sample
 
     def call(self, inputs):
-        inputs = tf.cast(inputs, self.compute_dtype)
-        inputs = preprocessing_utils.transform_value_range(
-            inputs, self.value_range, (0, 255)
-        )
-        result = tf.map_fn(lambda sample: self.augment_sample(sample), inputs)
-        result = preprocessing_utils.transform_value_range(
-            result, (0, 255), self.value_range
-        )
-        return result
+        inputs = self._ensure_images_are_tensor(inputs)
+        inputs, is_dict = self._format_inputs(inputs)
+        unbatched = inputs["images"].shape.rank == 3
+        if unbatched:
+            return self._format_output(self.augment_sample(inputs), is_dict)
+        return self._format_output(tf.vectorized_map(self.augment_sample, inputs), is_dict)
 
-    def get_config(self):
-        return {
-            "num_layers": self.num_layers,
-            "magnitude": self.magnitude,
-            "magnitude_standard_deviation": self.magnitude_standard_deviation,
-            "probability_to_apply": self.probability_to_apply,
-            "value_range": self.value_range,
-        }
+    def _format_inputs(self, inputs):
+        if tf.is_tensor(inputs):
+            # single image input tensor
+            return {'images': inputs}, False
+        elif isinstance(inputs, dict):
+            # TODO(scottzhu): Check if it only contains the valid keys
+            return inputs, True
+        else:
+            raise ValueError(
+                f'Expect the inputs to be image tensor or dict. Got {inputs}')
 
+    def _ensure_images_are_tensor(self, inputs):
+        if isinstance(inputs, dict):
+            inputs['images'] = preprocessing_utils.ensure_tensor(inputs["images"], self.compute_dtype)
+        else:
+            inputs = preprocessing_utils.ensure_tensor(inputs, self.compute_dtype)
+        return inputs
+
+
+    def _format_output(self, output, is_dict):
+        if not is_dict:
+            return output['images']
+        else:
+            return output
 
 def auto_contrast_policy(magnitude, magnitude_std):
     return {}
