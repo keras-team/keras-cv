@@ -158,3 +158,47 @@ class COCOMeanAveragePrecisionTest(tf.test.TestCase):
         mean_average_precision.false_positive_buckets.assign(false_positives)
 
         self.assertEqual(mean_average_precision.result(), 0.625)
+
+    def test_result_method_with_direct_assignment_missing_class(self):
+        mean_average_precision = COCOMeanAveragePrecision(
+            iou_thresholds=[0.33],
+            class_ids=[1, 2],
+            max_detections=100,
+            num_buckets=3,
+            recall_thresholds=[0.3, 0.5],
+        )
+
+        ground_truths = [3, 0]
+
+        # one class
+        true_positives = [
+            [
+                [
+                    0,
+                    1,
+                    2,
+                ]
+            ],
+            [
+                [
+                    0,
+                    0,
+                    0,
+                ]
+            ],
+        ]
+
+        false_positives = [
+            [[1, 0, 0]],
+            [[0, 0, 0]],
+        ]
+        # Result should be the same as above.
+        ground_truths = tf.constant(ground_truths, tf.int32)
+        true_positives = tf.constant(true_positives, tf.int32)
+        false_positives = tf.constant(false_positives, tf.int32)
+
+        mean_average_precision.ground_truths.assign(ground_truths)
+        mean_average_precision.true_positive_buckets.assign(true_positives)
+        mean_average_precision.false_positive_buckets.assign(false_positives)
+
+        self.assertEqual(mean_average_precision.result(), 0.625)
