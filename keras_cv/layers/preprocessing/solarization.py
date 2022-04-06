@@ -38,14 +38,14 @@ class Solarization(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
         addition_factor: (Optional)  A tuple of two floats, a single float or a
             `keras_cv.FactorSampler`. For each augmented image a value is sampled
             from the provided range. If a float is passed, the range is interpreted as
-            `(0, addition)`. If specified, this value is added to each pixel before
-            solarization and thresholding.  The addition value should be scaled
+            `(0, addition_factor)`. If specified, this value is added to each pixel
+            before solarization and thresholding.  The addition value should be scaled
             according to the value range (0, 255). Defaults to 0.0.
         threshold_factor: (Optional)  A tuple of two floats, a single float or a
             `keras_cv.FactorSampler`. For each augmented image a value is sampled
             from the provided range. If a float is passed, the range is interpreted as
-            `(0, threshold)`. If specified, only pixel values above this threshold will
-            be solarized.
+            `(0, threshold_factor)`. If specified, only pixel values above this
+            threshold will be solarized.
     Usage:
     ```python
     (images, labels), _ = tf.keras.datasets.cifar10.load_data()
@@ -74,10 +74,10 @@ class Solarization(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
     ):
         super().__init__(seed=seed, **kwargs)
         self.addition_factor = preprocessing.parse_factor(
-            addition_factor, max_value=256, seed=seed, param_name="addition_factor"
+            addition_factor, max_value=255, seed=seed, param_name="addition_factor"
         )
         self.threshold_factor = preprocessing.parse_factor(
-            threshold_factor, max_value=256, seed=seed, param_name="threshold_factor"
+            threshold_factor, max_value=255, seed=seed, param_name="threshold_factor"
         )
         self.value_range = value_range
 
@@ -91,7 +91,7 @@ class Solarization(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
         )
         result = image + addition
         result = tf.clip_by_value(result, 0, 255)
-        result = tf.where(result < threshold, result, 255 - result)
+        result = tf.where(result <= threshold, result, 255 - result)
         result = preprocessing.transform_value_range(
             result, original_range=(0, 255), target_range=self.value_range
         )
