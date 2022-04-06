@@ -157,6 +157,7 @@ class RandAugment(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
         )
         return sample
 
+
 def auto_contrast_policy(magnitude, magnitude_std):
     return {}
 
