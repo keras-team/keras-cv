@@ -64,7 +64,14 @@ class Solarization(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
             or [height, width, channels].
     """
 
-    def __init__(self, value_range, addition_factor=0.0, threshold_factor=0.0, seed=None, **kwargs):
+    def __init__(
+        self,
+        value_range,
+        addition_factor=0.0,
+        threshold_factor=0.0,
+        seed=None,
+        **kwargs
+    ):
         super().__init__(seed=seed, **kwargs)
         self.addition_factor = preprocessing.parse_factor(
             addition_factor, max_value=256, seed=seed, param_name="addition_factor"
