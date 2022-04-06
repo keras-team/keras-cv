@@ -19,7 +19,7 @@ from keras_cv.layers import preprocessing as cv_preprocessing
 from keras_cv.utils import preprocessing as preprocessing_utils
 
 
-class RandAugment(keras.layers.Layer):
+class RandAugment(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
     """RandAugment performs the Rand Augment operation on input images.
 
     This layer can be thought of as an all in one image augmentation layer.  The policy
@@ -128,7 +128,7 @@ class RandAugment(keras.layers.Layer):
             self.cutout,
         ]
 
-    def augment_sample(self, sample):
+    def _augment(self, sample):
         sample["images"] = preprocessing_utils.transform_value_range(
             sample["images"], self.value_range, (0, 255)
         )
@@ -156,39 +156,6 @@ class RandAugment(keras.layers.Layer):
             sample["images"], (0, 255), self.value_range
         )
         return sample
-
-    def call(self, inputs):
-        inputs = self._ensure_images_are_tensor(inputs)
-        inputs, is_dict = self._format_inputs(inputs)
-        unbatched = inputs["images"].shape.rank == 3
-        if unbatched:
-            return self._format_output(self.augment_sample(inputs), is_dict)
-        return self._format_output(tf.vectorized_map(self.augment_sample, inputs), is_dict)
-
-    def _format_inputs(self, inputs):
-        if tf.is_tensor(inputs):
-            # single image input tensor
-            return {'images': inputs}, False
-        elif isinstance(inputs, dict):
-            # TODO(scottzhu): Check if it only contains the valid keys
-            return inputs, True
-        else:
-            raise ValueError(
-                f'Expect the inputs to be image tensor or dict. Got {inputs}')
-
-    def _ensure_images_are_tensor(self, inputs):
-        if isinstance(inputs, dict):
-            inputs['images'] = preprocessing_utils.ensure_tensor(inputs["images"], self.compute_dtype)
-        else:
-            inputs = preprocessing_utils.ensure_tensor(inputs, self.compute_dtype)
-        return inputs
-
-
-    def _format_output(self, output, is_dict):
-        if not is_dict:
-            return output['images']
-        else:
-            return output
 
 def auto_contrast_policy(magnitude, magnitude_std):
     return {}
