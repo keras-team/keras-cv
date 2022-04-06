@@ -36,7 +36,9 @@ class RandAugmentTest(tf.test.TestCase, parameterized.TestCase):
         ("0_1", 0, 1),
     )
     def test_runs_with_value_range(self, low, high):
-        rand_augment = layers.RandAugment(num_layers=3, magnitude=5.0, value_range=(low, high))
+        rand_augment = layers.RandAugment(
+            num_layers=3, magnitude=5.0, value_range=(low, high)
+        )
         xs = tf.random.uniform((2, 512, 512, 3), low, high, dtype=tf.float32)
         ys = rand_augment(xs)
         self.assertTrue(tf.math.reduce_all(tf.logical_and(ys >= low, ys <= high)))
@@ -53,7 +55,9 @@ class RandAugmentTest(tf.test.TestCase, parameterized.TestCase):
         self.assertEqual(ys.shape, (2, 512, 512, 3))
 
     def test_runs_unbatched(self):
-        rand_augment = layers.RandAugment(num_layers=3, magnitude=5.0, value_range=(0, 255))
+        rand_augment = layers.RandAugment(
+            num_layers=3, magnitude=5.0, value_range=(0, 255)
+        )
         xs = tf.random.uniform((512, 512, 3), 0, 255, dtype=tf.float32)
         ys = rand_augment(xs)
         self.assertEqual(xs.shape, ys.shape)
