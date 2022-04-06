@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import tensorflow as tf
-from tensorflow import keras
 
 from keras_cv import core
 from keras_cv.layers import preprocessing as cv_preprocessing
