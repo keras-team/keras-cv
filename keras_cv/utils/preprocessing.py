@@ -106,8 +106,8 @@ def parse_factor(param, min_value=0.0, max_value=1.0, param_name="factor", seed=
             f"`{param_name}[0] > {param_name}[1]`, `{param_name}[0]` must be <= "
             f"`{param_name}[1]`.  Got `{param_name}={param}`"
         )
-    if (min_value is not None and param[0] <= min_value) or (
-        max_value is not None and param[1] >= max_value
+    if (min_value is not None and param[0] < min_value) or (
+        max_value is not None and param[1] > max_value
     ):
         raise ValueError(
             f"`{param_name}` should be inside of range [{min_value}, {max_value}]. "
