@@ -29,28 +29,33 @@ class RandomHue(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
 
     Args:
         factor: A tuple of two floats, a single float or `keras_cv.FactorSampler`.
-            factor` controls the extent to which the image saturation is impacted.
-            `factor`=`0.0`, `0.5` or `1.0` makes this layer perform a no-op operation.
-            `factor=0.25` and `factor=0.75` makes the image to have fully opposite
-            hue value. Values should be between `0.0` and `1.0`.
-            If a tuple is used, a `factor` is sampled
-            between the two values for every image augmented.  If a single float is
-            used, a value between `0.0` and the passed float is sampled.
-            In order to ensure the value is always the same, please pass a tuple with
-            two identical floats: `(0.5, 0.5)`.
+            `factor` controls the extent to which the image sharpness is impacted.
+            `factor=0.0` makes this layer perform a no-op operation, while a value of
+            1.0 performs the most aggressive contrast adjustment available.  If a tuple
+            is used, a `factor` is sampled between the two values for every image
+            augmented.  If a single float is used, a value between `0.0` and the passed
+            float is sampled.  In order to ensure the value is always the same, please
+            pass a tuple with two identical floats: `(0.5, 0.5)`.
+        value_range:  the range of values the incoming images will have.
+            Represented as a two number tuple written [low, high].
+            This is typically either `[0, 1]` or `[0, 255]` depending
+            on how your preprocessing pipeline is setup.
     """
 
-    def __init__(self, factor, **kwargs):
+    def __init__(self, factor, value_range, **kwargs):
         super().__init__(**kwargs)
         self.factor = preprocessing.parse_factor(
             factor,
         )
         self.value_range = value_range
-        self.seed = seed
 
     def get_random_transformation(self, image=None, label=None, bounding_box=None):
         del image, label, bounding_box
-        return self.factor()
+        invert = preprocessing.random_inversion(self._random_generator)
+        # We must scale self.factor() to the range [-0.5, 0.5].  This is because the
+        # tf.image operation performs rotation on the hue saturation value orientation.
+        # This can be thought of as an angle in the range [-180, 180]
+        return invert * self.factor() * 0.5
 
     def augment_image(self, image, transformation=None):
         image = preprocessing.transform_value_range(image, self.value_range, (0, 1))
@@ -61,14 +66,7 @@ class RandomHue(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
         image = preprocessing.transform_value_range(image, (0, 1), self.value_range)
         return image
 
-    def augment_label(self, label, transformation=None):
-        return label
-
     def get_config(self):
-        config = {
-            "factor": self.factor,
-            "value_range": self.value_range,
-            "seed": self.seed,
-        }
+        config = {"factor": self.factor, "value_range": self.value_range}
         base_config = super().get_config()
         return dict(list(base_config.items()) + list(config.items()))
