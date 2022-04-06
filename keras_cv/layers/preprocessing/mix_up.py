@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import tensorflow as tf
-import tensorflow.keras.layers as layers
 
 
 @tf.keras.utils.register_keras_serializable(package="keras_cv")
@@ -50,23 +49,23 @@ class MixUp(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
         sample_beta = tf.random.gamma(shape, 1.0, beta=beta)
         return sample_alpha / (sample_alpha + sample_beta)
 
-    def call(self, images, labels, training=True):
-        """call method for the MixUp layer.
+    def _batch_augment(self, inputs):
+        images = inputs.get("images", None)
+        labels = inputs.get("labels", None)
+        if images is None or labels is None:
+            raise ValueError(
+                "MixUp expects inputs in a dictionary with format "
+                '{"images": images, "labels": labels}.'
+                f"Got: inputs = {inputs}"
+            )
+        return self._update_labels(*self._mixup(images, labels))
 
-        Args:
-            images: Tensor representing images of shape
-                [batch_size, width, height, channels], with dtype tf.float32.
-            labels: One hot encoded tensor of labels for the images, with dtype
-                tf.float32.
-        Returns:
-            images: augmented images, same shape as input.
-            labels: updated labels with both label smoothing and the cutmix updates
-                applied.
-        """
-        # pylint: disable=g-long-lambda
-        mixup_augment = lambda: self._update_labels(*self._mixup(images, labels))
-        no_augment = lambda: (images, labels)
-        return tf.cond(tf.cast(training, tf.bool), mixup_augment, no_augment)
+    def _augment(self, inputs):
+        raise ValueError(
+            "MixUp received a single image to `call`.  The layer relies on "
+            "combining multiple examples, and as such will not behave as "
+            "expected.  Please call the layer with 2 or more samples."
+        )
 
     def _mixup(self, images):
         batch_size = tf.shape(images)[0]

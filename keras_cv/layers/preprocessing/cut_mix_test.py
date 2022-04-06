@@ -87,7 +87,7 @@ class CutMixTest(tf.test.TestCase):
 
         @tf.function
         def augment(x, y):
-            return layer({"images": xs, "labels": ys})
+            return layer({"images": x, "labels": y})
 
         outputs = augment(xs, ys)
         xs, ys = outputs["images"], outputs["labels"]

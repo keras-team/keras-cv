@@ -30,15 +30,7 @@ class MixUpTest(tf.test.TestCase):
         ys_bounding_boxes = tf.random.uniform((2, 3, 5), 0, 1)
 
         layer = MixUp()
-        # mixup on labels
-        outputs = layer(
-            {"images": xs, "labels": ys_labels, "bounding_boxes": ys_bounding_boxes}
-        )
-        xs, ys_labels, ys_bounding_boxes = (
-            outputs["images"],
-            outputs["labels"],
-            outputs["bounding_boxes"],
-        )
+        xs, ys = layer({"images": xs, "labels": ys})
 
         self.assertEqual(xs.shape, [2, 512, 512, 3])
         self.assertEqual(ys_labels.shape, [2, 10])
@@ -55,8 +47,7 @@ class MixUpTest(tf.test.TestCase):
         ys = tf.one_hot(tf.constant([0, 1]), 2)
 
         layer = MixUp()
-        outputs = layer({"images": xs, "labels": ys})
-        xs, ys = outputs["images"], outputs["labels"]
+        xs, ys = layer({"images": xs, "labels": ys})
 
         # None of the individual values should still be close to 1 or 0
         self.assertNotAllClose(xs, 1.0)
