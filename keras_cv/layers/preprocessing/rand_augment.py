@@ -132,6 +132,7 @@ class RandAugment(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
         sample["images"] = preprocessing_utils.transform_value_range(
             sample["images"], self.value_range, (0, 255)
         )
+        augmented_sample = sample
         for _ in range(self.num_layers):
             selected_op = tf.random.uniform(
                 (), maxval=len(self.augmentation_layers) + 1, dtype=tf.int32
@@ -150,12 +151,11 @@ class RandAugment(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
                     lambda: augmented_sample,
                     lambda: sample,
                 )
-            sample = augmented_sample
 
-        sample["images"] = preprocessing_utils.transform_value_range(
-            sample["images"], (0, 255), self.value_range
+        augmented_sample["images"] = preprocessing_utils.transform_value_range(
+            augmented_sample["images"], (0, 255), self.value_range
         )
-        return sample
+        return augmented_sample
 
 
 def auto_contrast_policy(magnitude, magnitude_std):
