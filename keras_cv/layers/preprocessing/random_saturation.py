@@ -38,12 +38,10 @@ class RandomSaturation(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
         seed: Integer. Used to create a random seed.
     """
 
-    def __init__(self, factor, **kwargs):
+    def __init__(self, factor, seed=None, **kwargs):
         super().__init__(**kwargs)
         self.factor = preprocessing.parse_factor(
-            factor,
-            min_value=0.0,
-            max_value=1.0,
+            factor, min_value=0.0, max_value=1.0, seed=seed
         )
         self.seed = seed
 
