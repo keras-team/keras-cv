@@ -168,17 +168,27 @@ def equalize_policy(magnitude, magnitude_std):
 
 
 def solarize_policy(magnitude, magnitude_std):
-    # TODO(lukewood): this should support a sample-able factor.
-    return {"threshold": magnitude / 10 * 256}
+    threshold_factor = factor = core.NormalFactorSampler(
+        mean=(magnitude / 10) * 256,
+        standard_deviation=(magnitude_std / 10.0) * 256,
+        min_value=0,
+        max_value=255,
+    )
+    return {"threshold_factor": threshold_factor}
 
 
 def solarize_add_policy(magnitude, magnitude_std):
-    # TODO(lukewood): this should support a sample-able factor.
-    return {"addition": magnitude / 10 * 110, "threshold": 128}
+    addition_factor = factor = core.NormalFactorSampler(
+        mean=(magnitude / 10) * 110,
+        standard_deviation=(magnitude_std / 10.0) * 110,
+        min_value=0,
+        max_value=110,
+    )
+    return {"addition_factor": addition_factor, "threshold_factor": 128}
 
 
 def invert_policy(magnitude, magnitude_std):
-    return {"addition": 0, "threshold": 0}
+    return {"addition_factor": 0, "threshold_factor": 0}
 
 
 def color_policy(magnitude, magnitude_std):
