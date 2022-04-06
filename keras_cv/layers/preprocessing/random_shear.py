@@ -57,18 +57,19 @@ class RandomShear(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
         interpolation="bilinear",
         fill_mode="reflect",
         fill_value=0.0,
+        seed=None,
         **kwargs,
     ):
-        super().__init__(**kwargs)
+        super().__init__(seed=seed, **kwargs)
         if x_factor is not None:
             self.x_factor = preprocessing.parse_factor(
-                x_factor, max_value=None, param_name="x_factor"
+                x_factor, max_value=None, param_name="x_factor", seed=seed
             )
         else:
             self.x_factor = x_factor
         if y_factor is not None:
             self.y_factor = preprocessing.parse_factor(
-                y_factor, max_value=None, param_name="y_factor"
+                y_factor, max_value=None, param_name="y_factor", seed=seed
             )
         else:
             self.y_factor = y_factor
@@ -80,6 +81,7 @@ class RandomShear(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
         self.interpolation = interpolation
         self.fill_mode = fill_mode
         self.fill_value = fill_value
+        self.seed = seed
 
     def get_random_transformation(self, image=None, label=None, bounding_box=None):
         x = self._get_shear_amount(self.x_factor)
@@ -138,6 +140,7 @@ class RandomShear(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
                 "interpolation": self.interpolation,
                 "fill_mode": self.fill_mode,
                 "fill_value": self.fill_value,
+                "seed": self.seed,
             }
         )
         return config
