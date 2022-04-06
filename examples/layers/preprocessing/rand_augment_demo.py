@@ -45,7 +45,7 @@ def main():
         .batch(BATCH_SIZE)
     )
     rand_augment = preprocessing.RandAugment(
-        value_range=(0, 255), num_layers=3, magnitude=5.0
+        value_range=(0, 255), num_layers=3, magnitude=10.0
     )
     train_ds = train_ds.map(rand_augment, num_parallel_calls=tf.data.AUTOTUNE)
 
