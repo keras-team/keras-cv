@@ -48,13 +48,22 @@ class CutMix(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
         return sample_alpha / (sample_alpha + sample_beta)
 
     def _batch_augment(self, inputs):
-        images = inputs.get('images', None)
-        labels = inputs.get('labels', None)
+        images = inputs.get("images", None)
+        labels = inputs.get("labels", None)
         if images is None or labels is None:
             raise ValueError(
-                'CutMix is expecting both images and labels as inputs.'
-                f'Got: images = {images} and labels = {labels}')
+                "CutMix expects inputs in a dictionary with format "
+                '{"images": images, "labels": labels}.'
+                f"Got: inputs = {inputs}"
+            )
         return self._update_labels(*self._cutmix(images, labels))
+
+    def _augment(self, inputs):
+        raise ValueError(
+            "CutMix received a single image to `call`.  The layer relies on "
+            "combining multiple examples, and as such will not behave as "
+            "expected.  Please call the layer with 2 or more samples."
+        )
 
     def _cutmix(self, images, labels):
         """Apply cutmix."""
