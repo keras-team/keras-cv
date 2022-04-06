@@ -27,7 +27,8 @@ class MixUpTest(tf.test.TestCase):
         ys = tf.one_hot(ys, NUM_CLASSES)
 
         layer = MixUp()
-        xs, ys = layer({"images": xs, "labels": ys})
+        outputs = layer({"images": xs, "labels": ys})
+        xs, ys = outputs["images"], outputs["labels"]
 
         self.assertEqual(xs.shape, [2, 512, 512, 3])
         self.assertEqual(ys.shape, [2, 10])
@@ -43,7 +44,8 @@ class MixUpTest(tf.test.TestCase):
         ys = tf.one_hot(tf.constant([0, 1]), 2)
 
         layer = MixUp()
-        xs, ys = layer({"images": xs, "labels": ys})
+        outputs = layer({"images": xs, "labels": ys})
+        xs, ys = outputs["images"], outputs["labels"]
 
         # None of the individual values should still be close to 1 or 0
         self.assertNotAllClose(xs, 1.0)
@@ -69,7 +71,8 @@ class MixUpTest(tf.test.TestCase):
         def augment(x, y):
             return layer({"images": x, "labels": y})
 
-        xs, ys = augment(xs, ys)
+        outputs = augment(xs, ys)
+        xs, ys = outputs["images"], outputs["labels"]
 
         # None of the individual values should still be close to 1 or 0
         self.assertNotAllClose(xs, 1.0)

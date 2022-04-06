@@ -55,7 +55,10 @@ class MixUp(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
                 '{"images": images, "labels": labels}.'
                 f"Got: inputs = {inputs}"
             )
-        return self._update_labels(*self._mixup(images, labels))
+        images, labels = self._update_labels(*self._mixup(images, labels))
+        inputs["images"] = images
+        inputs["labels"] = labels
+        return inputs
 
     def _augment(self, inputs):
         raise ValueError(
