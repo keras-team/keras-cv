@@ -69,7 +69,7 @@ class RandAugment(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
         self.num_layers = num_layers
         self.magnitude = magnitude
         self.value_range = value_range
-        if magnitude > 10.0:
+        if magnitude < 0.0 or magnitude > 10.0:
             raise ValueError(
                 f"`magnitude` must be in the range [0, 10], got `magnitude={magnitude}`"
             )
