@@ -99,8 +99,8 @@ class Solarization(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
 
     def get_config(self):
         config = {
-            "threshold": self.threshold_factor,
-            "addition": self.addition_factor,
+            "threshold_factor": self.threshold_factor,
+            "addition_factor": self.addition_factor,
             "value_range": self.value_range,
         }
         base_config = super().get_config()
