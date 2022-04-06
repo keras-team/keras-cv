@@ -32,7 +32,8 @@ class CutMix(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
     ```python
     (images, labels), _ = tf.keras.datasets.cifar10.load_data()
     cutmix = keras_cv.layers.preprocessing.cut_mix.CutMix(10)
-    augmented_images, updated_labels = cutmix(images, labels)
+    output = cutmix({'images': images, 'labels': labels})
+    # output == {'images': updated_images, 'labels': updated_labels}
     ```
     """
 

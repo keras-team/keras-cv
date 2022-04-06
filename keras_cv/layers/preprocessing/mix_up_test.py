@@ -27,7 +27,7 @@ class MixUpTest(tf.test.TestCase):
         ys = tf.one_hot(ys, NUM_CLASSES)
 
         layer = MixUp()
-        xs, ys = layer(xs, ys)
+        xs, ys = layer({"images": xs, "labels": ys})
 
         self.assertEqual(xs.shape, [2, 512, 512, 3])
         self.assertEqual(ys.shape, [2, 10])
@@ -43,7 +43,7 @@ class MixUpTest(tf.test.TestCase):
         ys = tf.one_hot(tf.constant([0, 1]), 2)
 
         layer = MixUp()
-        xs, ys = layer(xs, ys)
+        xs, ys = layer({"images": xs, "labels": ys})
 
         # None of the individual values should still be close to 1 or 0
         self.assertNotAllClose(xs, 1.0)
@@ -67,7 +67,7 @@ class MixUpTest(tf.test.TestCase):
 
         @tf.function
         def augment(x, y):
-            return layer(x, y)
+            return layer({"images": x, "labels": y})
 
         xs, ys = augment(xs, ys)
 
@@ -78,3 +78,22 @@ class MixUpTest(tf.test.TestCase):
         # No labels should still be close to their originals
         self.assertNotAllClose(ys, 1.0)
         self.assertNotAllClose(ys, 0.0)
+
+    def test_image_input_only(self):
+        xs = tf.cast(
+            tf.stack([2 * tf.ones((100, 100, 1)), tf.ones((100, 100, 1))], axis=0),
+            tf.float32,
+        )
+        layer = MixUp()
+        with self.assertRaisesRegexp(ValueError, "expects inputs in a dictionary"):
+            _ = layer(xs)
+
+    def test_single_image_input(self):
+        xs = tf.ones((512, 512, 3))
+        ys = tf.one_hot(tf.constant([1]), 2)
+        inputs = {"images": xs, "labels": ys}
+        layer = MixUp()
+        with self.assertRaisesRegexp(
+            ValueError, "MixUp received a single image to `call`"
+        ):
+            _ = layer(inputs)
