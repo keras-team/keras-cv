@@ -32,7 +32,8 @@ class CutMix(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
     ```python
     (images, labels), _ = tf.keras.datasets.cifar10.load_data()
     cutmix = keras_cv.layers.preprocessing.cut_mix.CutMix(10)
-    augmented_images, updated_labels = cutmix(images, labels)
+    output = cutmix({'images': images, 'labels': labels})
+    # output == {'images': updated_images, 'labels': updated_labels}
     ```
     """
 
@@ -56,7 +57,10 @@ class CutMix(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
                 '{"images": images, "labels": labels}.'
                 f"Got: inputs = {inputs}"
             )
-        return self._update_labels(*self._cutmix(images, labels))
+        images, labels = self._update_labels(*self._cutmix(images, labels))
+        inputs["images"] = images
+        inputs["labels"] = labels
+        return inputs
 
     def _augment(self, inputs):
         raise ValueError(

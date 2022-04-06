@@ -90,10 +90,8 @@ class RandomShear(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
         if constraint is None:
             return None
 
-        negate = self._random_generator.random_uniform((), 0, 1, dtype=tf.float32) > 0.5
-        negate = tf.cond(negate, lambda: -1.0, lambda: 1.0)
-
-        return negate * constraint()
+        invert = preprocessing.random_inversion(self._random_generator)
+        return invert * constraint()
 
     def augment_image(self, image, transformation=None):
         image = tf.expand_dims(image, axis=0)
