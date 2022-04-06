@@ -28,16 +28,14 @@ class RandomHue(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
     hue channel (H) by delta. The image is then converted back to RGB.
 
     Args:
-        factor: A tuple of two floats, a single float or a
-            `keras_cv.FactorSampler`.  `height_factor` controls the size of the
-            cutouts. `height_factor=0.0` means the rectangle will be of size 0% of the
-            image height, `height_factor=0.1` means the rectangle will have a size of
-            10% of the image height, and so forth.
-            Values should be between `0.0` and `1.0`.  If a tuple is used, a
-            `height_factor` is sampled between the two values for every image augmented.
-            If a single float is used, a value between `0.0` and the passed float is
-            sampled.  In order to ensure the value is always the same, please pass a
-            tuple with two identical floats: `(0.5, 0.5)`.
+        factor: A tuple of two floats, a single float or `keras_cv.FactorSampler`.
+            `factor` controls the extent to which the image sharpness is impacted.
+            `factor=0.0` makes this layer perform a no-op operation, while a value of
+            1.0 performs the most aggressive contrast adjustment available.  If a tuple
+            is used, a `factor` is sampled between the two values for every image
+            augmented.  If a single float is used, a value between `0.0` and the passed
+            float is sampled.  In order to ensure the value is always the same, please
+            pass a tuple with two identical floats: `(0.5, 0.5)`.
         value_range:  the range of values the incoming images will have.
             Represented as a two number tuple written [low, high].
             This is typically either `[0, 1]` or `[0, 255]` depending
