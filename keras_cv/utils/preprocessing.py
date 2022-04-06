@@ -95,7 +95,6 @@ def blend(image1: tf.Tensor, image2: tf.Tensor, factor: float) -> tf.Tensor:
 
 
 def parse_factor(param, min_value=0.0, max_value=1.0, param_name="factor", seed=None):
-
     if isinstance(param, core.FactorSampler):
         return param
 
