@@ -42,12 +42,11 @@ class RandomHue(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
             on how your preprocessing pipeline is setup.
     """
 
-    def __init__(self, factor, value_range, **kwargs):
+    def __init__(self, factor, value_range, seed=None, **kwargs):
         super().__init__(**kwargs)
-        self.factor = preprocessing.parse_factor(
-            factor,
-        )
+        self.factor = preprocessing.parse_factor(factor, seed=seed)
         self.value_range = value_range
+        self.seed = seed
 
     def get_random_transformation(self, image=None, label=None, bounding_box=None):
         del image, label, bounding_box
@@ -67,6 +66,10 @@ class RandomHue(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
         return image
 
     def get_config(self):
-        config = {"factor": self.factor, "value_range": self.value_range}
+        config = {
+            "factor": self.factor,
+            "value_range": self.value_range,
+            "seed": self.seed,
+        }
         base_config = super().get_config()
         return dict(list(base_config.items()) + list(config.items()))

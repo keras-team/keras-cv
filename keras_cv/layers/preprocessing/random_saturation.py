@@ -37,13 +37,12 @@ class RandomSaturation(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
             two identical floats: `(0.5, 0.5)`.
     """
 
-    def __init__(self, factor, **kwargs):
+    def __init__(self, factor, seed=None, **kwargs):
         super().__init__(**kwargs)
         self.factor = preprocessing.parse_factor(
-            factor,
-            min_value=0.0,
-            max_value=1.0,
+            factor, min_value=0.0, max_value=1.0, seed=seed
         )
+        self.seed = seed
 
     def get_random_transformation(self, image=None, label=None, bounding_box=None):
         del image, label, bounding_box
@@ -70,6 +69,7 @@ class RandomSaturation(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
     def get_config(self):
         config = {
             "factor": self.factor,
+            "seed": self.seed,
         }
         base_config = super().get_config()
         return dict(list(base_config.items()) + list(config.items()))

@@ -48,7 +48,7 @@ class ChannelShuffle(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
     """
 
     def __init__(self, groups=3, seed=None, **kwargs):
-        super().__init__(**kwargs)
+        super().__init__(seed=seed, **kwargs)
         self.groups = groups
         self.seed = seed
 

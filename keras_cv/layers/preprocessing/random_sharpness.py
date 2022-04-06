@@ -49,11 +49,13 @@ class RandomSharpness(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
         self,
         factor,
         value_range,
+        seed=None,
         **kwargs,
     ):
-        super().__init__(**kwargs)
+        super().__init__(seed=seed, **kwargs)
         self.value_range = value_range
-        self.factor = preprocessing.parse_factor(factor)
+        self.factor = preprocessing.parse_factor(factor, seed=seed)
+        self.seed = seed
 
     def get_random_transformation(self, image=None, label=None, bounding_box=None):
         return self.factor()
@@ -109,5 +111,7 @@ class RandomSharpness(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
 
     def get_config(self):
         config = super().get_config()
-        config.update({"factor": self.factor, "value_range": self.value_range})
+        config.update(
+            {"factor": self.factor, "value_range": self.value_range, "seed": self.seed}
+        )
         return config

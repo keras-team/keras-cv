@@ -87,9 +87,10 @@ class GridMask(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
         rotation_factor=0.15,
         fill_mode="constant",
         fill_value=0.0,
+        seed=None,
         **kwargs,
     ):
-        super().__init__(**kwargs)
+        super().__init__(seed=seed, **kwargs)
         self.ratio = ratio
         if isinstance(ratio, str):
             self.ratio = ratio.lower()
@@ -100,10 +101,11 @@ class GridMask(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
             factor=rotation_factor,
             fill_mode="constant",
             fill_value=0.0,
-            seed=self._random_generator._seed,
+            seed=seed,
         )
         self.auto_vectorize = False
         self._check_parameter_values()
+        self.seed = seed
 
     def _check_parameter_values(self):
         ratio, fill_mode, fill_value = self.ratio, self.fill_mode, self.fill_value
@@ -237,6 +239,7 @@ class GridMask(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
             "rotation_factor": self.rotation_factor,
             "fill_mode": self.fill_mode,
             "fill_value": self.fill_value,
+            "seed": self.seed,
         }
         base_config = super().get_config()
         return dict(list(base_config.items()) + list(config.items()))
