@@ -52,7 +52,7 @@ class RandomHue(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
     def get_random_transformation(self, image=None, label=None, bounding_box=None):
         del image, label, bounding_box
         invert = preprocessing.random_inversion(self._random_generator)
-        return invert * self.factor()
+        return invert * self.factor() * 0.5
 
     def augment_image(self, image, transformation=None):
         image = preprocessing.transform_value_range(image, self.value_range, (0, 1))
