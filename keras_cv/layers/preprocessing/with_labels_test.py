@@ -39,7 +39,11 @@ class WithLabelsTest(tf.test.TestCase, parameterized.TestCase):
             preprocessing.RandomCutout,
             {"height_factor": 0.2, "width_factor": 0.2},
         ),
-        ("RandomHue", preprocessing.RandomHue, {"factor": 0.5}),
+        (
+            "RandomHue",
+            preprocessing.RandomHue,
+            {"value_range": (0, 255), "factor": 0.5},
+        ),
         ("RandomSaturation", preprocessing.RandomSaturation, {"factor": 0.5}),
         (
             "RandomSharpness",
