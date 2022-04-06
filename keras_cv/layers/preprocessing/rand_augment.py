@@ -64,8 +64,9 @@ class RandAugment(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
         magnitude_standard_deviation=1.5,
         probability_to_apply=None,
         seed=None,
+        **kwargs
     ):
-        super().__init__()
+        super().__init__(**kwargs)
         self.num_layers = num_layers
         self.magnitude = magnitude
         self.value_range = value_range
