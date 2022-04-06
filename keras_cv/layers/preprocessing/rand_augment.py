@@ -127,6 +127,7 @@ class RandAugment(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
             self.translate_y,
             self.cutout,
         ]
+        self.auto_vectorize = False
 
     def _augment(self, sample):
         sample["images"] = preprocessing_utils.transform_value_range(
