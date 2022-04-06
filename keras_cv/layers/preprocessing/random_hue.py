@@ -52,6 +52,9 @@ class RandomHue(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
     def get_random_transformation(self, image=None, label=None, bounding_box=None):
         del image, label, bounding_box
         invert = preprocessing.random_inversion(self._random_generator)
+        # We must scale self.factor() to the range [-0.5, 0.5].  This is because the
+        # tf.image operation performs rotation on the hue saturation value orientation.
+        # This can be thought of as an angle in the range [-180, 180]
         return invert * self.factor() * 0.5
 
     def augment_image(self, image, transformation=None):
