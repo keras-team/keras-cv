@@ -121,6 +121,23 @@ def parse_factor(param, min_value=0.0, max_value=1.0, param_name="factor", seed=
     return core.UniformFactorSampler(param[0], param[1], seed=seed)
 
 
+def random_inversion(random_generator):
+    """Randomly returns a -1 or a 1 based on the provided random_generator.
+
+    This can be used by KPLs to randomly invert sampled values.
+
+    Args:
+        random_generator: a Keras random number generator.  An instance can be passed
+        from the `self._random_generator` attribute of a `BaseImageAugmentationLayer`.
+
+    Returns:
+        either -1, or -1.
+    """
+    negate = random_generator.random_uniform((), 0, 1, dtype=tf.float32) > 0.5
+    negate = tf.cond(negate, lambda: -1.0, lambda: 1.0)
+    return negate
+
+
 def transform(
     images,
     transforms,
