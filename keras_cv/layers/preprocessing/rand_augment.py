@@ -159,7 +159,7 @@ class RandAugment(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
                     self._random_generator.random_uniform(shape=(), dtype=tf.float32)
                     < self.rate,
                     lambda: sample_augmented_by_this_layer,
-                    lambda: augmentated_sample,
+                    lambda: augmented_sample,
                 )
             augmented_sample = sample_augmented_by_this_layer
 
