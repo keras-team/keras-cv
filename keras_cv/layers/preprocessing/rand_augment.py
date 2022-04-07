@@ -75,6 +75,7 @@ class RandAugment(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
         self.distortions = distortions
         self.magnitude = float(magnitude)
         self.value_range = value_range
+        self.seed = seed
         if magnitude < 0.0 or magnitude > 1:
             raise ValueError(
                 f"`magnitude` must be in the range [0, 1], got `magnitude={magnitude}`"
