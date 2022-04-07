@@ -70,6 +70,11 @@ class SerializationTest(tf.test.TestCase, parameterized.TestCase):
         ),
         ("RandomShear", preprocessing.RandomShear, {"x_factor": 0.3, "x_factor": 0.3}),
         ("Solarization", preprocessing.Solarization, {"value_range": (0, 255)}),
+        (
+            "RandAugment",
+            preprocessing.RandAugment,
+            {"magnitude": 0.5, "distortions": 3, "rate": 0.3, "magnitude_stddev": 0.1},
+        ),
     )
     def test_layer_serialization(self, layer_cls, init_args):
         layer = layer_cls(**init_args)

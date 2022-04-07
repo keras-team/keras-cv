@@ -29,7 +29,7 @@ class RandAugment(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
 
     For each `layer`, the policy selects a random operation from a list of operations.
     It then samples a random number and if that number is less than
-    `probability_to_apply` applies it to the given image.
+    `rate` applies it to the given image.
 
     References:
         - [RandAugment](https://arxiv.org/abs/1909.13719)
@@ -39,17 +39,23 @@ class RandAugment(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
             Represented as a two number tuple written [low, high].
             This is typically either `[0, 1]` or `[0, 255]` depending
             on how your preprocessing pipeline is setup.
-        num_layers: the number of layers to use in the rand augment policy.
-        magnitude: the magnitude to use for each of the augmentation.
-        magnitude_standard_deviation: the standard deviation to use when drawing values
-            for the perturbations.
-        probability_to_apply:  the probability to apply an augmentation at each layer.
+        distortions: the number of layers to use in the rand augment policy.
+        magnitude: the magnitude to use for each of the augmentation.  magnitude should
+            be a float in the range `[0, 1]`.  A magnitude of `0` indicates that the
+            augmentations are as weak as possible (not recommended), while a value of
+            `1.0` implies use of the strongest possible augmentation.  Defaults to
+            `0.5`.
+        magnitude_stddevdev: the standard deviation to use when drawing values
+            for the perturbations.  Keep in mind magnitude will still be clipped to the
+            range `[0, 1]` after samples are drawn from the uniform distribution.
+        rate:  the rate at which to apply each augmentation.  This parameter is applied
+            on a per-distortion layer, per image.
 
     Usage:
     ```python
     (x_test, y_test), _ = tf.keras.datasets.cifar10.load_data()
     rand_augment = keras_cv.layers.RandAugment(
-        value_range=(0, 255), num_layers=3, magnitude=5.0
+        value_range=(0, 255), distortions=3, magnitude=5.0
     )
     x_test = rand_augment(x_test)
     ```
@@ -58,25 +64,25 @@ class RandAugment(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
     def __init__(
         self,
         value_range,
-        num_layers=3,
-        magnitude=5.0,
-        magnitude_standard_deviation=1.5,
-        probability_to_apply=None,
+        distortions=3,
+        magnitude=0.5,
+        magnitude_stddevdev=1.5,
+        rate=None,
         seed=None,
         **kwargs,
     ):
         super().__init__(**kwargs)
-        self.num_layers = num_layers
-        self.magnitude = magnitude
+        self.distortions = distortions
+        self.magnitude = float(magnitude)
         self.value_range = value_range
-        if magnitude < 0.0 or magnitude > 10.0:
+        if magnitude < 0.0 or magnitude > 1:
             raise ValueError(
-                f"`magnitude` must be in the range [0, 10], got `magnitude={magnitude}`"
+                f"`magnitude` must be in the range [0, 1], got `magnitude={magnitude}`"
             )
-        self.magnitude_standard_deviation = magnitude_standard_deviation
-        self.probability_to_apply = probability_to_apply
+        self.magnitude_stddevdev = float(magnitude_stddevdev)
+        self.rate = rate
 
-        policy = create_rand_augment_policy(magnitude, magnitude_standard_deviation)
+        policy = create_rand_augment_policy(magnitude, magnitude_stddevdev)
 
         self.auto_contrast = cv_preprocessing.AutoContrast(
             **policy["auto_contrast"], value_range=(0, 255), seed=seed
@@ -134,24 +140,27 @@ class RandAugment(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
             sample["images"], self.value_range, (0, 255)
         )
         augmented_sample = sample
-        for _ in range(self.num_layers):
-            selected_op = tf.random.uniform(
-                (), maxval=len(self.augmentation_layers) + 1, dtype=tf.int32
+        for _ in range(self.distortions):
+            selected_op = self._random_generator.random_uniform(
+                (), minval=0, maxval=len(self.augmentation_layers) + 1, dtype=tf.int32
             )
             branch_fns = []
             for (i, layer) in enumerate(self.augmentation_layers):
-                branch_fns.append((i, lambda: layer(sample)))
+                branch_fns.append((i, lambda: layer(augmented_sample)))
 
-            augmented_sample = tf.switch_case(
-                branch_index=selected_op, branch_fns=branch_fns, default=lambda: sample
+            sample_augmented_by_this_layer = tf.switch_case(
+                branch_index=selected_op,
+                branch_fns=branch_fns,
+                default=lambda: augmented_sample,
             )
-            if self.probability_to_apply is not None:
+            if self.rate is not None:
                 augmented_sample = tf.cond(
-                    tf.random.uniform(shape=(), dtype=tf.float32)
-                    < self.probability_to_apply,
-                    lambda: augmented_sample,
-                    lambda: sample,
+                    self._random_generator.random_uniform(shape=(), dtype=tf.float32)
+                    < self.rate,
+                    lambda: sample_augmented_by_this_layer,
+                    lambda: augmentated_sample,
                 )
+            augmented_sample = sample_augmented_by_this_layer
 
         augmented_sample["images"] = preprocessing_utils.transform_value_range(
             augmented_sample["images"], (0, 255), self.value_range
@@ -159,119 +168,122 @@ class RandAugment(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
         return augmented_sample
 
 
-def auto_contrast_policy(magnitude, magnitude_std):
+def auto_contrast_policy(magnitude, magnitude_stddev):
     return {}
 
 
-def equalize_policy(magnitude, magnitude_std):
+def equalize_policy(magnitude, magnitude_stddev):
     return {}
 
 
-def solarize_policy(magnitude, magnitude_std):
+def solarize_policy(magnitude, magnitude_stddev):
     threshold_factor = core.NormalFactorSampler(
-        mean=(magnitude / 10) * 256,
-        standard_deviation=(magnitude_std / 10.0) * 256,
+        mean=magnitude * 255,
+        standard_deviation=magnitude_stddev * 256,
         min_value=0,
         max_value=255,
     )
     return {"threshold_factor": threshold_factor}
 
 
-def solarize_add_policy(magnitude, magnitude_std):
+def solarize_add_policy(magnitude, magnitude_stddev):
+    # We cap additions at 110, because if we add more than 110 we will be nearly
+    # nullifying the information contained in the image, making the model train on noise
+    maximum_addition_value = 110
     addition_factor = core.NormalFactorSampler(
-        mean=(magnitude / 10) * 110,
-        standard_deviation=(magnitude_std / 10.0) * 110,
+        mean=magnitude * maximum_addition_value,
+        standard_deviation=magnitude_stddev * maximum_addition_value,
         min_value=0,
-        max_value=110,
+        max_value=maximum_addition_value,
     )
     return {"addition_factor": addition_factor, "threshold_factor": 128}
 
 
-def invert_policy(magnitude, magnitude_std):
+def invert_policy(magnitude, magnitude_stddev):
     return {"addition_factor": 0, "threshold_factor": 0}
 
 
-def color_policy(magnitude, magnitude_std):
+def color_policy(magnitude, magnitude_stddev):
     factor = core.NormalFactorSampler(
-        mean=magnitude / 10.0,
-        standard_deviation=magnitude_std / 10.0,
+        mean=magnitude,
+        standard_deviation=magnitude_stddev,
         min_value=0,
         max_value=1,
     )
     return {"factor": factor}
 
 
-def contrast_policy(magnitude, magnitude_std):
+def contrast_policy(magnitude, magnitude_stddev):
     # TODO(lukewood): should we integrate RandomContrast with `factor`?
     # RandomContrast layer errors when factor=0
-    factor = max(magnitude / 10, 0.001)
+    factor = max(magnitude, 0.001)
     return {"factor": factor}
 
 
-def brightness_policy(magnitude, magnitude_std):
+def brightness_policy(magnitude, magnitude_stddev):
     # TODO(lukewood): should we integrate RandomBrightness with `factor`?
-    return {"factor": magnitude / 10.0}
+    return {"factor": magnitude}
 
 
-def shear_x_policy(magnitude, magnitude_std):
+def shear_x_policy(magnitude, magnitude_stddev):
     factor = core.NormalFactorSampler(
-        mean=magnitude / 10.0,
-        standard_deviation=magnitude_std / 10.0,
+        mean=magnitude,
+        standard_deviation=magnitude_stddev,
         min_value=0,
         max_value=1,
     )
     return {"x_factor": factor, "y_factor": 0}
 
 
-def shear_y_policy(magnitude, magnitude_std):
+def shear_y_policy(magnitude, magnitude_stddev):
     factor = core.NormalFactorSampler(
-        mean=magnitude / 10.0,
-        standard_deviation=magnitude_std / 10.0,
+        mean=magnitude,
+        standard_deviation=magnitude_stddev,
         min_value=0,
         max_value=1,
     )
     return {"x_factor": 0, "y_factor": factor}
 
 
-def translate_x_policy(magnitude, magnitude_std):
+def translate_x_policy(magnitude, magnitude_stddev):
     # TODO(lukewood): should we integrate RandomTranslation with `factor`?
-    return {"width_factor": magnitude / 10, "height_factor": 0}
+    return {"width_factor": magnitude, "height_factor": 0}
 
 
-def translate_y_policy(magnitude, magnitude_std):
+def translate_y_policy(magnitude, magnitude_stddev):
     # TODO(lukewood): should we integrate RandomTranslation with `factor`?
-    return {"width_factor": 0, "height_factor": magnitude / 10}
+    return {"width_factor": 0, "height_factor": magnitude}
 
 
-def cutout_policy(magnitude, magnitude_std):
+def cutout_policy(magnitude, magnitude_stddev):
     factor = core.NormalFactorSampler(
-        mean=0.75 * (magnitude / 10.0),
-        standard_deviation=0.75 * (magnitude_std / 10.0),
+        mean=0.75 * magnitude,
+        standard_deviation=0.75 * magnitude_stddev,
         min_value=0,
         max_value=1,
     )
     return {"width_factor": factor, "height_factor": factor}
 
 
-policy_pairs = [
-    ("auto_contrast", auto_contrast_policy),
-    ("equalize", equalize_policy),
-    ("solarize", solarize_policy),
-    ("solarize_add", solarize_add_policy),
-    ("invert", invert_policy),
-    ("color", color_policy),
-    ("contrast", contrast_policy),
-    ("brightness", brightness_policy),
-    ("shear_x", shear_x_policy),
-    ("shear_y", shear_y_policy),
-    ("translate_x", translate_x_policy),
-    ("translate_y", translate_y_policy),
-    ("cutout", cutout_policy),
-]
+POLICY_PAIRS = {
+    "auto_contrast": auto_contrast_policy,
+    "equalize": equalize_policy,
+    "solarize": solarize_policy,
+    "solarize_add": solarize_add_policy,
+    "invert": invert_policy,
+    "color": color_policy,
+    "contrast": contrast_policy,
+    "brightness": brightness_policy,
+    "shear_x": shear_x_policy,
+    "shear_y": shear_y_policy,
+    "translate_x": translate_x_policy,
+    "translate_y": translate_y_policy,
+    "cutout": cutout_policy,
+}
 
 
-def create_rand_augment_policy(magnitude, magnitude_standard_deviation):
+def create_rand_augment_policy(magnitude, magnitude_stddevdev):
     result = {}
-    for name, policy_fn in policy_pairs:
-        result[name] = policy_fn(magnitude, magnitude_standard_deviation)
+    for name, policy_fn in POLICY_PAIRS.items():
+        result[name] = policy_fn(magnitude, magnitude_stddevdev)
     return result
