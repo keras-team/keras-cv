@@ -48,6 +48,7 @@ class RandomCutout(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
             - *gaussian_noise*: Pixels are filled with random gaussian noise.
         fill_value: a float represents the value to be filled inside the patches
             when `fill_mode="constant"`.
+        seed: Integer. Used to create a random seed.
 
     Sample usage:
     ```python
@@ -66,7 +67,7 @@ class RandomCutout(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
         seed=None,
         **kwargs,
     ):
-        super().__init__(**kwargs)
+        super().__init__(seed=seed, **kwargs)
 
         self.height_factor = preprocessing.parse_factor(
             height_factor, param_name="height_factor", seed=seed

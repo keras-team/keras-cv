@@ -23,6 +23,8 @@ class MixUp(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
             distribution.  This controls the shape of the distribution from which the
             smoothing values are sampled.  Defaults 0.2, which is a recommended value
             when training an imagenet1k classification model.
+        seed: Integer. Used to create a random seed.
+
     References:
         [MixUp paper](https://arxiv.org/abs/1710.09412).
 

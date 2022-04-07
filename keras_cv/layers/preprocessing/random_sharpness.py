@@ -43,6 +43,7 @@ class RandomSharpness(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
             This is typically either `[0, 1]` or `[0, 255]` depending
             on how your preprocessing pipeline is setup.  Defaults to
             `[0, 255].`
+        seed: Integer. Used to create a random seed.
     """
 
     def __init__(

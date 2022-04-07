@@ -48,6 +48,7 @@ class RandomShear(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
         fill_value: fill_value in the `ImageProjectiveTransformV3` op.
              A `Tensor` of type `float32`. The value to be filled when fill_mode is
              constant".  Defaults to `0.0`.
+        seed: Integer. Used to create a random seed.
     """
 
     def __init__(
