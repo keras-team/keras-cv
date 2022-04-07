@@ -45,7 +45,7 @@ class RandAugment(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
             augmentations are as weak as possible (not recommended), while a value of
             `1.0` implies use of the strongest possible augmentation.  Defaults to
             `0.5`.
-        magnitude_stddevdev: the standard deviation to use when drawing values
+        magnitude_stddev: the standard deviation to use when drawing values
             for the perturbations.  Keep in mind magnitude will still be clipped to the
             range `[0, 1]` after samples are drawn from the uniform distribution.
         rate:  the rate at which to apply each augmentation.  This parameter is applied
@@ -66,7 +66,7 @@ class RandAugment(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
         value_range,
         distortions=3,
         magnitude=0.5,
-        magnitude_stddevdev=1.5,
+        magnitude_stddev=1.5,
         rate=None,
         seed=None,
         **kwargs,
@@ -79,10 +79,10 @@ class RandAugment(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
             raise ValueError(
                 f"`magnitude` must be in the range [0, 1], got `magnitude={magnitude}`"
             )
-        self.magnitude_stddevdev = float(magnitude_stddevdev)
+        self.magnitude_stddev = float(magnitude_stddev)
         self.rate = rate
 
-        policy = create_rand_augment_policy(magnitude, magnitude_stddevdev)
+        policy = create_rand_augment_policy(magnitude, magnitude_stddev)
 
         self.auto_contrast = cv_preprocessing.AutoContrast(
             **policy["auto_contrast"], value_range=(0, 255), seed=seed
@@ -174,7 +174,7 @@ class RandAugment(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
                 "value_range": self.value_range,
                 "distortions": self.distortions,
                 "magnitude": self.magnitude,
-                "magnitude_stddevdev": self.magnitude_stddevdev,
+                "magnitude_stddev": self.magnitude_stddev,
                 "rate": self.rate,
                 "seed": self.seed,
             }
@@ -296,8 +296,8 @@ POLICY_PAIRS = {
 }
 
 
-def create_rand_augment_policy(magnitude, magnitude_stddevdev):
+def create_rand_augment_policy(magnitude, magnitude_stddev):
     result = {}
     for name, policy_fn in POLICY_PAIRS.items():
-        result[name] = policy_fn(magnitude, magnitude_stddevdev)
+        result[name] = policy_fn(magnitude, magnitude_stddev)
     return result
