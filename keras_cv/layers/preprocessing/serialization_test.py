@@ -81,7 +81,13 @@ class SerializationTest(tf.test.TestCase, parameterized.TestCase):
         (
             "RandAugment",
             preprocessing.RandAugment,
-            {"magnitude": 0.5, "distortions": 3, "rate": 0.3, "magnitude_stddev": 0.1},
+            {
+                "value_range": (0, 255),
+                "magnitude": 0.5,
+                "distortions": 3,
+                "rate": 0.3,
+                "magnitude_stddev": 0.1,
+            },
         ),
     )
     def test_layer_serialization(self, layer_cls, init_args):

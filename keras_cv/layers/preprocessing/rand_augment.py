@@ -167,6 +167,20 @@ class RandAugment(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
         )
         return augmented_sample
 
+    def get_config(self):
+        config = super().get_config()
+        config.update(
+            {
+                "value_range": self.value_range,
+                "distortions": self.distortions,
+                "magnitude": self.magnitude,
+                "magnitude_stddevdev": self.magnitude_stddevdev,
+                "rate": self.rate,
+                "seed": self.seed,
+            }
+        )
+        return config
+
 
 def auto_contrast_policy(magnitude, magnitude_stddev):
     return {}
