@@ -72,7 +72,7 @@ class RandAugment(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
         seed=None,
         **kwargs,
     ):
-        super().__init__(**kwargs)
+        super().__init__(**kwargs, seed=seed)
         self.distortions = distortions
         self.magnitude = float(magnitude)
         self.value_range = value_range
