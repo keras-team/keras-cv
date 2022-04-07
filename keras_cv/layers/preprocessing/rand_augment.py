@@ -18,6 +18,7 @@ from keras_cv.layers import preprocessing as cv_preprocessing
 from keras_cv.utils import preprocessing as preprocessing_utils
 
 
+@tf.keras.utils.register_keras_serializable(package="keras_cv")
 class RandAugment(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
     """RandAugment performs the Rand Augment operation on input images.
 
