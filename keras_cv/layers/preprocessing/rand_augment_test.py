@@ -25,7 +25,7 @@ class RandAugmentTest(tf.test.TestCase, parameterized.TestCase):
         ("10", 1.0),
     )
     def test_runs_with_magnitude(self, magnitude):
-        rand_augment = layers.RandAugment(value_range=(0, 255), magnitude=magnitude)
+        rand_augment = layers.RandAugment(value_range=(0, 255), rate=0.5, magnitude=magnitude)
         xs = tf.ones((2, 512, 512, 3))
         ys = rand_augment(xs)
         self.assertEqual(ys.shape, (2, 512, 512, 3))
