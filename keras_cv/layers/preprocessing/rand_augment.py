@@ -31,7 +31,8 @@ class RandAugment(RandomAugmentationPipeline):
 
     The policy operates as follows:
 
-    For each `layer`, the policy selects a random operation from a list of operations.
+    For each augmentation in the range `[0, augmentations_per_image]`,
+    the policy selects a random operation from a list of operations.
     It then samples a random number and if that number is less than
     `rate` applies it to the given image.
 
