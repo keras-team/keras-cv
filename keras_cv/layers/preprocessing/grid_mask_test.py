@@ -15,8 +15,9 @@
 
 import tensorflow as tf
 
-from keras_cv.layers.preprocessing.grid_mask import GridMask
 import keras_cv
+from keras_cv.layers.preprocessing.grid_mask import GridMask
+
 
 class GridMaskTest(tf.test.TestCase):
     def test_return_shapes(self):
@@ -62,7 +63,10 @@ class GridMaskTest(tf.test.TestCase):
 
         fill_value = 100.0
         layer = GridMask(
-            ratio_factor=0.6, rotation_factor=0.3, fill_mode="constant", fill_value=fill_value
+            ratio_factor=0.6,
+            rotation_factor=0.3,
+            fill_mode="constant",
+            fill_value=fill_value,
         )
         xs = layer(xs, training=True)
 
@@ -80,7 +84,10 @@ class GridMaskTest(tf.test.TestCase):
 
         fill_value = 255.0
         layer = GridMask(
-            ratio_factor=keras_cv.ConstantFactorSampler(0.5), rotation_factor=0.5, fill_mode="constant", fill_value=fill_value
+            ratio_factor=keras_cv.ConstantFactorSampler(0.5),
+            rotation_factor=0.5,
+            fill_mode="constant",
+            fill_value=fill_value,
         )
 
         @tf.function
