@@ -46,8 +46,8 @@ def main():
     )
     mixup = preprocessing.MixUp(alpha=0.8)
     train_ds = train_ds.map(
-        lambda x, y: mixup({'images': x, 'labels': y}),
-        num_parallel_calls=tf.data.AUTOTUNE
+        lambda x, y: mixup({"images": x, "labels": y}),
+        num_parallel_calls=tf.data.AUTOTUNE,
     )
 
     for batch in train_ds.take(1):
