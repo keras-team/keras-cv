@@ -44,7 +44,7 @@ class RandAugment(RandomAugmentationPipeline):
             This is typically either `[0, 1]` or `[0, 255]` depending
             on how your preprocessing pipeline is setup.
         augmentations_per_image: the number of layers to use in the rand augment policy.
-            Defaults to 3.
+            Defaults to `3`.
         magnitude: magnitude is the mean of the normal distribution used to sample the
             magnitude used for each data augmentation.  magnitude should
             be a float in the range `[0, 1]`.  A magnitude of `0` indicates that the
@@ -56,8 +56,8 @@ class RandAugment(RandomAugmentationPipeline):
             range `[0, 1]` after samples are drawn from the normal distribution.
             Defaults to `0.15`.
         rate:  the rate at which to apply each augmentation.  This parameter is applied
-            on a per-distortion layer, per image.  Should be in the range [0, 1].
-            Defaults to 1.
+            on a per-distortion layer, per image.  Should be in the range `[0, 1]`.
+            Defaults to `1`.
 
     Usage:
     ```python
