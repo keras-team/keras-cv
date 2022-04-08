@@ -14,42 +14,25 @@
 
 import numpy as np
 import tensorflow as tf
+from absl.testing import parameterized
 
-from keras_cv.layers.preprocessing.rgb_shift import RGBShift
+from keras_cv.layers import preprocessing
 
 
-class RGBShiftTest(tf.test.TestCase):
-    def test_return_transformation(self):
-        factor_values = (0.2, 0.2)
-        layer = RGBShift(factor=factor_values, value_range=(0, 255))
-        xs = layer.get_random_transformation()
-        xs = tf.concat(xs, axis=0)
-        self.assertTrue(tf.math.reduce_any(xs == factor_values[0]))
-        self.assertTrue(tf.math.reduce_any(xs == factor_values[1]))
-
-        factor_values = 0.2
-        layer = RGBShift(factor=factor_values, value_range=(0, 255))
-        xs = layer.get_random_transformation()
-        xs = tf.concat(xs, axis=0)
-        self.assertFalse(tf.math.reduce_any(xs == factor_values))
-        self.assertFalse(tf.math.reduce_any(xs == factor_values))
-
+class RGBShiftTest(tf.test.TestCase, parameterized.TestCase):
     def test_return_shapes(self):
         xs = tf.ones((2, 512, 512, 3))
-        layer = RGBShift(factor=1.0, value_range=(0, 255))
+        layer = preprocessing.RGBShift(factor=1.0, value_range=(0, 255))
 
         xs = layer(xs, training=True)
         self.assertEqual(xs.shape, [2, 512, 512, 3])
 
     def test_non_square_image(self):
         xs = tf.cast(
-            tf.stack(
-                [2 * tf.ones((1024, 512, 3)), tf.ones((1024, 512, 3))],
-                axis=0,
-            ),
+            tf.stack([2 * tf.ones((1024, 512, 3)), tf.ones((1024, 512, 3))], axis=0,),
             dtype=tf.float32,
         )
-        layer = RGBShift(factor=[0.1, 0.3], value_range=(0, 255))
+        layer = preprocessing.RGBShift(factor=[0.1, 0.3], value_range=(0, 255))
 
         xs = layer(xs, training=True)
         self.assertFalse(tf.math.reduce_any(xs[0] == 2.0))
@@ -60,7 +43,7 @@ class RGBShiftTest(tf.test.TestCase):
             tf.stack([2 * tf.ones((100, 100, 3)), tf.ones((100, 100, 3))], axis=0),
             dtype=tf.float32,
         )
-        layer = RGBShift(factor=0.3, value_range=(0, 255))
+        layer = preprocessing.RGBShift(factor=0.3, value_range=(0, 255))
 
         @tf.function
         def augment(x):
@@ -71,24 +54,28 @@ class RGBShiftTest(tf.test.TestCase):
         self.assertFalse(tf.math.reduce_any(xs[1] == 1.0))
 
     def test_in_single_image(self):
-        xs = tf.cast(
-            tf.ones((512, 512, 3)),
-            dtype=tf.float32,
-        )
-        layer = RGBShift(factor=0.4, value_range=(0, 255))
+        xs = tf.cast(tf.ones((512, 512, 3)), dtype=tf.float32,)
+        layer = preprocessing.RGBShift(factor=0.4, value_range=(0, 255))
         xs = layer(xs, training=True)
         self.assertFalse(tf.math.reduce_any(xs == 1.0))
 
     def test_config(self):
-        layer = RGBShift(factor=[0.1, 0.5], value_range=(0, 255))
+        layer = preprocessing.RGBShift(
+            factor=[0.1, 0.5], value_range=(0, 255), seed=101
+        )
         config = layer.get_config()
-        self.assertEqual(config["factor"], [0.1, 0.5])
+        self.assertEqual(config["factor"].get_config()["lower"], 0.1)
+        self.assertEqual(config["factor"].get_config()["upper"], 0.5)
+        self.assertEqual(config["value_range"], (0, 255))
+        self.assertEqual(config["seed"], 101)
 
-        reconstructed_layer = RGBShift.from_config(config)
+        reconstructed_layer = preprocessing.RGBShift.from_config(config)
         self.assertEqual(reconstructed_layer.factor, layer.factor)
+        self.assertEqual(reconstructed_layer.value_range, layer.value_range)
+        self.assertEqual(reconstructed_layer.seed, layer.seed)
 
     def test_inference(self):
-        layer = RGBShift(factor=0.8, value_range=(0, 255))
+        layer = preprocessing.RGBShift(factor=0.8, value_range=(0, 255))
         inputs = np.random.randint(0, 255, size=(224, 224, 3))
         output = layer(inputs, training=False)
         self.assertAllClose(inputs, output)

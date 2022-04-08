@@ -65,9 +65,7 @@ class Equalization(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
 
         big_number = 1410065408
         histogram_without_zeroes = tf.where(
-            tf.equal(histogram, 0),
-            big_number,
-            histogram,
+            tf.equal(histogram, 0), big_number, histogram,
         )
 
         step = (tf.reduce_sum(histogram) - tf.reduce_min(histogram_without_zeroes)) // (

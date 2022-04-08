@@ -19,10 +19,7 @@ from keras_cv.layers import preprocessing
 class RandomColorDegenerationTest(tf.test.TestCase):
     def test_random_color_degeneration_base_case(self):
         img_shape = (50, 50, 3)
-        xs = tf.stack(
-            [2 * tf.ones(img_shape), tf.ones(img_shape)],
-            axis=0,
-        )
+        xs = tf.stack([2 * tf.ones(img_shape), tf.ones(img_shape)], axis=0,)
 
         layer = preprocessing.RandomColorDegeneration(0.0)
         ys = layer(xs)

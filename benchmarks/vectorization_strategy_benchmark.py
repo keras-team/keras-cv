@@ -385,18 +385,10 @@ class MapFnRandomCutout(layers.Layer):
             input_shape[1],
         )
         center_x = tf.random.uniform(
-            shape=[],
-            minval=0,
-            maxval=image_width,
-            dtype=tf.int32,
-            seed=self.seed,
+            shape=[], minval=0, maxval=image_width, dtype=tf.int32, seed=self.seed,
         )
         center_y = tf.random.uniform(
-            shape=[],
-            minval=0,
-            maxval=image_height,
-            dtype=tf.int32,
-            seed=self.seed,
+            shape=[], minval=0, maxval=image_height, dtype=tf.int32, seed=self.seed,
         )
         return center_x, center_y
 
@@ -407,16 +399,10 @@ class MapFnRandomCutout(layers.Layer):
             input_shape[1],
         )
         height = tf.random.uniform(
-            [],
-            minval=self.height_lower,
-            maxval=self.height_upper,
-            dtype=tf.float32,
+            [], minval=self.height_lower, maxval=self.height_upper, dtype=tf.float32,
         )
         width = tf.random.uniform(
-            [],
-            minval=self.width_lower,
-            maxval=self.width_upper,
-            dtype=tf.float32,
+            [], minval=self.width_lower, maxval=self.width_upper, dtype=tf.float32,
         )
 
         if self._height_is_float:
@@ -559,18 +545,10 @@ class VMapRandomCutout(layers.Layer):
             input_shape[1],
         )
         center_x = tf.random.uniform(
-            shape=[],
-            minval=0,
-            maxval=image_width,
-            dtype=tf.int32,
-            seed=self.seed,
+            shape=[], minval=0, maxval=image_width, dtype=tf.int32, seed=self.seed,
         )
         center_y = tf.random.uniform(
-            shape=[],
-            minval=0,
-            maxval=image_height,
-            dtype=tf.int32,
-            seed=self.seed,
+            shape=[], minval=0, maxval=image_height, dtype=tf.int32, seed=self.seed,
         )
         return center_x, center_y
 
@@ -581,16 +559,10 @@ class VMapRandomCutout(layers.Layer):
             input_shape[1],
         )
         height = tf.random.uniform(
-            [],
-            minval=self.height_lower,
-            maxval=self.height_upper,
-            dtype=tf.float32,
+            [], minval=self.height_lower, maxval=self.height_upper, dtype=tf.float32,
         )
         width = tf.random.uniform(
-            [],
-            minval=self.width_lower,
-            maxval=self.width_upper,
-            dtype=tf.float32,
+            [], minval=self.width_lower, maxval=self.width_upper, dtype=tf.float32,
         )
 
         if self._height_is_float:
