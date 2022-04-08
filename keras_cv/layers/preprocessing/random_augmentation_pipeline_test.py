@@ -34,7 +34,7 @@ class RandomAugmentationPipelineTest(tf.test.TestCase, parameterized.TestCase):
         pipeline = layers.RandomAugmentationPipeline(
             layers=[layer], augmentations_per_image=augmentations_per_image, rate=1.0
         )
-        xs = tf.random.uniform((2, 512, 512, 3), 0, 100, dtype=tf.float32)
+        xs = tf.random.uniform((2, 5, 5, 3), 0, 100, dtype=tf.float32)
         os = pipeline(xs)
 
         self.assertAllClose(xs + augmentations_per_image, os)
@@ -47,7 +47,7 @@ class RandomAugmentationPipelineTest(tf.test.TestCase, parameterized.TestCase):
         pipeline = layers.RandomAugmentationPipeline(
             layers=[layer], augmentations_per_image=augmentations_per_image, rate=1.0
         )
-        xs = tf.random.uniform((2, 512, 512, 3), 0, 100, dtype=tf.float32)
+        xs = tf.random.uniform((5, 5, 3), 0, 100, dtype=tf.float32)
         os = pipeline(xs)
 
         self.assertAllClose(xs + augmentations_per_image, os)

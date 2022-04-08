@@ -37,8 +37,9 @@ def create_custom_pipeline():
         value_range=(0, 255), magnitude=0.75, magnitude_stddev=0.3
     )
     layers = layers[:4]  # slice out some layers you don't want for whatever reason
+    layers = [preprocessing.GridMask()]
     return preprocessing.RandomAugmentationPipeline(
-        layers=layers, augmentations_per_image=3, rate=0.5
+        layers=layers, augmentations_per_image=3
     )
 
 

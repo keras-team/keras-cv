@@ -33,9 +33,10 @@ class RandomAugmentationPipeline(
         self.auto_vectorize = False
 
     def _augment(self, sample):
+        result = sample.copy()
         for _ in range(self.augmentations_per_image):
-            sample = self._single_augmentation(sample)
-        return sample
+            result = self._single_augmentation(result)
+        return result
 
     def _single_augmentation(self, sample):
         skip_augment = self._random_generator.random_uniform(
