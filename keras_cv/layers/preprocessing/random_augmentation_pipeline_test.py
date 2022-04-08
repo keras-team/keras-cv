@@ -51,3 +51,14 @@ class RandomAugmentationPipelineTest(tf.test.TestCase, parameterized.TestCase):
         os = pipeline(xs)
 
         self.assertAllClose(xs + augmentations_per_image, os)
+
+    @parameterized.named_parameters(("1", 1), ("3", 3), ("5", 5))
+    def test_respects_rate(self, augmentations_per_image):
+        layer = AddOneToInputs()
+        pipeline = layers.RandomAugmentationPipeline(
+            layers=[layer], augmentations_per_image=augmentations_per_image, rate=0.0
+        )
+        xs = tf.random.uniform((2, 5, 5, 3), 0, 100, dtype=tf.float32)
+        os = pipeline(xs)
+
+        self.assertAllClose(xs, os)

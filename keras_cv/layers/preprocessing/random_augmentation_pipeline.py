@@ -18,11 +18,54 @@ import tensorflow as tf
 class RandomAugmentationPipeline(
     tf.keras.__internal__.layers.BaseImageAugmentationLayer
 ):
+    """RandomAugmentationPipeline constructs a pipeline based on provided arguments.
+
+    The implemented policy does the following: for each sample provided in `call`(), the
+    policy first samples a random number, if the number is < rate, the policy then
+    selects a random layer from the provided list of `layers`.  It then calls the
+    `layer()` on the sample.  This is done `augmentations_per_image` times.
+
+    This layer can be used to create custom policies resembling `RandAugment` or
+    `AutoAugment`.
+
+    Usage:
+    ```python
+    # construct a list of layers
+    layers = keras_cv.layers.RandAugment.get_standard_policy(
+        value_range=(0, 255), magnitude=0.75, magnitude_stddev=0.3
+    )
+    layers = layers[:4]  # slice out some layers you don't want for whatever reason
+    layers = layers + [keras_cv.layers.GridMask()]
+
+    # create the pipeline.
+    pipeline = keras_cv.layers.RandomAugmentationPipeline(
+        layers=layers, augmentations_per_image=3
+    )
+
+    augmented_images = pipeline(images)
+    ```
+
+    Args:
+        layers: a list of `keras.Layers`.  These are randomly sampled during
+            augmentation to augment the samples passed in `call()`.
+        augmentations_per_image: the number of layers to apply to each sample in the
+            `call()` method.
+        rate: the rate at which to apply each augmentation.  This is applied on a per
+            augmentation bases, so if `augmentations_per_image=3` and `rate=0.5`, the
+            odds an image will receive no augmentationts is 0.5^3, or 0.5*0.5*0.5.
+        auto_vectorize: whether or not to use `tf.vectorized_map` or `tf.map_fn` to
+            apply the augmentations.  This offers a significant performance boost, but
+            can only be used if all of the layers provided to the `layers` argument
+            support auto vectorization.
+        seed: Integer. Used to create a random seed.
+    """
+
     def __init__(
         self,
         layers,
         augmentations_per_image,
         rate=1.0,
+        auto_vectorize=False,
         seed=None,
         **kwargs,
     ):
@@ -30,7 +73,7 @@ class RandomAugmentationPipeline(
         self.augmentations_per_image = augmentations_per_image
         self.rate = rate
         self.layers = layers
-        self.auto_vectorize = False
+        self.auto_vectorize = auto_vectorize
         self.seed = seed
 
     def _augment(self, sample):
