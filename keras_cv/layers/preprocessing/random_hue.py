@@ -49,10 +49,12 @@ class RandomHue(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
             used, a value between `0.0` and the passed float is sampled.
             In order to ensure the value is always the same, please pass a tuple with
             two identical floats: `(0.5, 0.5)`.
+        seed: Integer. Used to create a random seed.
+
     """
 
-    def __init__(self, factor, value_range, **kwargs):
-        super().__init__(**kwargs)
+    def __init__(self, factor, value_range, seed=None, **kwargs):
+        super().__init__(seed=seed, **kwargs)
         self.factor = preprocessing.parse_factor(
             factor,
         )
