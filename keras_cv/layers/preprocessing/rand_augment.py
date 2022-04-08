@@ -44,6 +44,7 @@ class RandAugment(RandomAugmentationPipeline):
             This is typically either `[0, 1]` or `[0, 255]` depending
             on how your preprocessing pipeline is setup.
         augmentations_per_image: the number of layers to use in the rand augment policy.
+            Defaults to 3.
         magnitude: the magnitude to use for each of the augmentation.  magnitude should
             be a float in the range `[0, 1]`.  A magnitude of `0` indicates that the
             augmentations are as weak as possible (not recommended), while a value of
@@ -54,13 +55,14 @@ class RandAugment(RandomAugmentationPipeline):
             range `[0, 1]` after samples are drawn from the uniform distribution.
             Defaults to `0.15`.
         rate:  the rate at which to apply each augmentation.  This parameter is applied
-            on a per-distortion layer, per image.
+            on a per-distortion layer, per image.  Should be in the range [0, 1].
+            Defaults to 1.
 
     Usage:
     ```python
     (x_test, y_test), _ = tf.keras.datasets.cifar10.load_data()
     rand_augment = keras_cv.layers.RandAugment(
-        value_range=(0, 255), augmentations_per_image=3, magnitude=5.0
+        value_range=(0, 255), augmentations_per_image=3, magnitude=0.5
     )
     x_test = rand_augment(x_test)
     ```
@@ -78,6 +80,16 @@ class RandAugment(RandomAugmentationPipeline):
     ):
         # As an optimization RandAugment makes all internal layers use (0, 255) while
         # and we handle range transformation at the _augment level.
+        if magnitude < 0.0 or magnitude > 1:
+            raise ValueError(
+                f"`magnitude` must be in the range [0, 1], got `magnitude={magnitude}`"
+            )
+        if magnitude_stddev < 0.0 or magnitude_stddev > 1:
+            raise ValueError(
+                f"`magnitude_stddev` must be in the range [0, 1], got "
+                "`magnitude_stddev={magnitude}`"
+            )
+
         super().__init__(
             layers=RandAugment.get_standard_policy(
                 (0, 255), magnitude, magnitude_stddev, seed=seed
@@ -90,10 +102,6 @@ class RandAugment(RandomAugmentationPipeline):
         self.magnitude = float(magnitude)
         self.value_range = value_range
         self.seed = seed
-        if magnitude < 0.0 or magnitude > 1:
-            raise ValueError(
-                f"`magnitude` must be in the range [0, 1], got `magnitude={magnitude}`"
-            )
         self.magnitude_stddev = float(magnitude_stddev)
 
     def _augment(self, sample):

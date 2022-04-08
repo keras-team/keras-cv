@@ -93,7 +93,7 @@ class SerializationTest(tf.test.TestCase, parameterized.TestCase):
             "RandomAugmentationPipeline",
             preprocessing.RandomAugmentationPipeline,
             {
-                "layers": [preprocessing.GridMask()],
+                "layers": [],
                 "augmentations_per_image": 1,
                 "rate": 1.0,
             },

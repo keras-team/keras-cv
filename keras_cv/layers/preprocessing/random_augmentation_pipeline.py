@@ -20,10 +20,10 @@ class RandomAugmentationPipeline(
 ):
     """RandomAugmentationPipeline constructs a pipeline based on provided arguments.
 
-    The implemented policy does the following: for each sample provided in `call`(), the
-    policy first samples a random number, if the number is < rate, the policy then
+    The implemented policy does the following: for each inputs provided in `call`(), the
+    policy first inputss a random number, if the number is < rate, the policy then
     selects a random layer from the provided list of `layers`.  It then calls the
-    `layer()` on the sample.  This is done `augmentations_per_image` times.
+    `layer()` on the inputs.  This is done `augmentations_per_image` times.
 
     This layer can be used to create custom policies resembling `RandAugment` or
     `AutoAugment`.
@@ -46,9 +46,10 @@ class RandomAugmentationPipeline(
     ```
 
     Args:
-        layers: a list of `keras.Layers`.  These are randomly sampled during
-            augmentation to augment the samples passed in `call()`.
-        augmentations_per_image: the number of layers to apply to each sample in the
+        layers: a list of `keras.Layers`.  These are randomly inputs during
+            augmentation to augment the inputss passed in `call()`.  The layers passed
+            should subclass `BaseImageAugmentationLayer`.
+        augmentations_per_image: the number of layers to apply to each inputs in the
             `call()` method.
         rate: the rate at which to apply each augmentation.  This is applied on a per
             augmentation bases, so if `augmentations_per_image=3` and `rate=0.5`, the
@@ -76,18 +77,18 @@ class RandomAugmentationPipeline(
         self.auto_vectorize = auto_vectorize
         self.seed = seed
 
-    def _augment(self, sample):
-        result = sample.copy()
+    def _augment(self, inputs):
+        result = inputs
         for _ in range(self.augmentations_per_image):
             result = self._single_augmentation(result)
         return result
 
-    def _single_augmentation(self, sample):
+    def _single_augmentation(self, inputs):
         skip_augment = self._random_generator.random_uniform(
             shape=(), minval=0.0, maxval=1.0, dtype=tf.float32
         )
         if skip_augment > self.rate:
-            return sample
+            return inputs
 
         selected_op = self._random_generator.random_uniform(
             (), minval=0, maxval=len(self.layers), dtype=tf.int32
@@ -95,12 +96,12 @@ class RandomAugmentationPipeline(
 
         branch_fns = []
         for (i, layer) in enumerate(self.layers):
-            branch_fns.append((i, lambda: layer(sample)))
+            branch_fns.append((i, lambda: layer(inputs)))
 
         return tf.switch_case(
             branch_index=selected_op,
             branch_fns=branch_fns,
-            default=lambda: sample,
+            default=lambda: inputs,
         )
 
     def get_config(self):
@@ -109,7 +110,8 @@ class RandomAugmentationPipeline(
             {
                 "augmentations_per_image": self.augmentations_per_image,
                 "rate": self.rate,
-                "layers": self.seed,
+                "layers": self.layers,
+                "seed": self.seed,
             }
         )
         return config
