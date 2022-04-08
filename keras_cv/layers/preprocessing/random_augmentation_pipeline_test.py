@@ -20,9 +20,10 @@ from keras_cv import layers
 class CountInvocations(tf.keras.layers.Layer):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+        self.calls = tf.Variable(0, trainable=False)
 
     def call(self, inputs):
-        self.calls.assign_add(1)
+        self.calls.assign_add(1, use_locking=True)
         return inputs
 
 
@@ -37,7 +38,7 @@ class RandomAugmentationPipelineTest(tf.test.TestCase, parameterized.TestCase):
         os = pipeline(xs)
         self.assertAllClose(xs, os)
 
-        self.assertEqual(layer.my_calls.numpy(), 2 * augmentations_per_image)
+        self.assertEqual(layer.calls.numpy(), 2 * augmentations_per_image)
 
     @parameterized.named_parameters(("1", 1), ("3", 3), ("5", 5))
     def test_calls_layers_augmentations_per_image_times_single_image(
@@ -53,4 +54,4 @@ class RandomAugmentationPipelineTest(tf.test.TestCase, parameterized.TestCase):
 
         self.assertAllClose(xs, os)
 
-        self.assertEqual(layer.my_calls.numpy(), augmentations_per_image)
+        self.assertEqual(layer.calls.numpy(), augmentations_per_image)
