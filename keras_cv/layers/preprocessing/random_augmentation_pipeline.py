@@ -13,10 +13,6 @@
 # limitations under the License.
 import tensorflow as tf
 
-from keras_cv import core
-from keras_cv.layers import preprocessing as cv_preprocessing
-from keras_cv.utils import preprocessing as preprocessing_utils
-
 
 @tf.keras.utils.register_keras_serializable(package="keras_cv")
 class RandomAugmentationPipeline(
@@ -37,14 +33,17 @@ class RandomAugmentationPipeline(
         self.auto_vectorize = False
 
     def _augment(self, sample):
-        augmented_sample = sample
-
         for _ in range(self.augmentations_per_image):
-            augmented_sample = self._single_augmentation(augmented_sample)
-
-        return augmented_sample
+            sample = self._single_augmentation(sample)
+        return sample
 
     def _single_augmentation(self, sample):
+        skip_augment = self._random_generator.random_uniform(
+            shape=(), minval=0.0, maxval=1.0, dtype=tf.float32
+        )
+        if skip_augment > self.rate:
+            return sample
+
         selected_op = self._random_generator.random_uniform(
             (), minval=0, maxval=len(self.layers) + 1, dtype=tf.int32
         )
@@ -53,18 +52,11 @@ class RandomAugmentationPipeline(
         for (i, layer) in enumerate(self.layers):
             branch_fns.append((i, lambda: layer(sample)))
 
-        should_augment = self._random_generator.random_uniform(
-            shape=(), minval=0.0, maxval=1.0, dtype=tf.float32
+        return tf.switch_case(
+            branch_index=selected_op,
+            branch_fns=branch_fns,
+            default=lambda: sample,
         )
-        should_augment = should_augment < self.rate
-
-        if should_augment:
-            return tf.switch_case(
-                branch_index=selected_op,
-                branch_fns=branch_fns,
-                default=lambda: sample,
-            )
-        return sample
 
     def get_config(self):
         config = super().get_config()
