@@ -27,9 +27,8 @@ IMG_SIZE = (224, 224)
 BATCH_SIZE = 64
 
 
-def resize(image, label, num_classes=10):
+def resize(image, num_classes=10):
     image = tf.image.resize(image, IMG_SIZE)
-    label = tf.one_hot(label, num_classes)
     return image
 
 
@@ -40,12 +39,12 @@ def main():
     num_classes = ds_info.features["label"].num_classes
 
     train_ds = (
-        train_ds.map(lambda x, y: resize(x, y, num_classes=num_classes))
+        train_ds.map(lambda x, y: resize(x, num_classes=num_classes))
         .shuffle(10 * BATCH_SIZE)
         .batch(BATCH_SIZE)
     )
     rand_augment = preprocessing.RandAugment(
-        value_range=(0, 255), num_layers=3, magnitude=10.0
+        value_range=(0, 255), distortions=3, magnitude=1.0
     )
     train_ds = train_ds.map(rand_augment, num_parallel_calls=tf.data.AUTOTUNE)
 
