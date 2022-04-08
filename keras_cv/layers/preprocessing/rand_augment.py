@@ -52,6 +52,7 @@ class RandAugment(RandomAugmentationPipeline):
         magnitude_stddev: the standard deviation to use when drawing values
             for the perturbations.  Keep in mind magnitude will still be clipped to the
             range `[0, 1]` after samples are drawn from the uniform distribution.
+            Defaults to `0.15`.
         rate:  the rate at which to apply each augmentation.  This parameter is applied
             on a per-distortion layer, per image.
 
@@ -70,7 +71,7 @@ class RandAugment(RandomAugmentationPipeline):
         value_range,
         augmentations_per_image=3,
         magnitude=0.5,
-        magnitude_stddev=1.5,
+        magnitude_stddev=0.15,
         rate=1.0,
         seed=None,
         **kwargs,
