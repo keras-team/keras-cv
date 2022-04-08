@@ -25,6 +25,7 @@ class MixUp(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
             when training an imagenet1k classification model.
     References:
         [MixUp paper](https://arxiv.org/abs/1710.09412).
+        [MixUp for Object Detection paper](https://arxiv.org/pdf/1902.04103).
 
     Sample usage:
     ```python
