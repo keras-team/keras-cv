@@ -233,7 +233,7 @@ class GridMask(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
 
     def get_config(self):
         config = {
-            "ratio": self.ratio,
+            "ratio_factor": self.ratio_factor,
             "rotation_factor": self.rotation_factor,
             "fill_mode": self.fill_mode,
             "fill_value": self.fill_value,
