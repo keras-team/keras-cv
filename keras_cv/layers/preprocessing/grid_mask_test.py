@@ -16,13 +16,13 @@
 import tensorflow as tf
 
 from keras_cv.layers.preprocessing.grid_mask import GridMask
-
+import keras_cv
 
 class GridMaskTest(tf.test.TestCase):
     def test_return_shapes(self):
         xs = tf.ones((2, 512, 512, 3))
 
-        layer = GridMask(ratio=0.1, rotation_factor=(-0.2, 0.3))
+        layer = GridMask(ratio_factor=0.1, rotation_factor=(-0.2, 0.3))
         xs = layer(xs, training=True)
 
         self.assertEqual(xs.shape, [2, 512, 512, 3])
@@ -38,7 +38,7 @@ class GridMaskTest(tf.test.TestCase):
 
         fill_value = 0.0
         layer = GridMask(
-            ratio=0.3,
+            ratio_factor=0.3,
             rotation_factor=(0.2, 0.3),
             fill_mode="constant",
             fill_value=fill_value,
@@ -62,7 +62,7 @@ class GridMaskTest(tf.test.TestCase):
 
         fill_value = 100.0
         layer = GridMask(
-            ratio=0.6, rotation_factor=0.3, fill_mode="constant", fill_value=fill_value
+            ratio_factor=0.6, rotation_factor=0.3, fill_mode="constant", fill_value=fill_value
         )
         xs = layer(xs, training=True)
 
@@ -80,7 +80,7 @@ class GridMaskTest(tf.test.TestCase):
 
         fill_value = 255.0
         layer = GridMask(
-            ratio=0.4, rotation_factor=0.5, fill_mode="constant", fill_value=fill_value
+            ratio_factor=keras_cv.ConstantFactorSampler(0.5), rotation_factor=0.5, fill_mode="constant", fill_value=fill_value
         )
 
         @tf.function
@@ -101,7 +101,7 @@ class GridMaskTest(tf.test.TestCase):
             dtype=tf.float32,
         )
 
-        layer = GridMask(ratio="random", fill_mode="constant", fill_value=0.0)
+        layer = GridMask(ratio_factor=(0.5, 0.5), fill_mode="constant", fill_value=0.0)
         xs = layer(xs, training=True)
         self.assertTrue(tf.math.reduce_any(xs == 0.0))
         self.assertTrue(tf.math.reduce_any(xs == 1.0))

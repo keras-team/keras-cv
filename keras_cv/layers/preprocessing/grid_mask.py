@@ -16,6 +16,7 @@ import tensorflow as tf
 from tensorflow.keras import layers
 
 from keras_cv.utils import fill_utils
+from keras_cv.utils import preprocessing
 
 
 def _center_crop(mask, width, height):
@@ -42,11 +43,15 @@ class GridMask(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
         `(..., height, width, channels)`, in `"channels_last"` format
 
     Args:
-        ratio: The ratio from grid masks to spacings. Higher values make the grid
-            size smaller, and large values make the grid mask large.
-            Float in range [0, 1), defaults to 0.5, which indicates that grid and
-            spacing will be of equal size.
-            String value "random" will choose a random scale at each call.
+        ratio_factor: A float, tuple of two floats, or `keras_cv.FactorSampler`.
+            Ratio determines the ratio from spacings to grid masks.
+            Lower values make the grid
+            size smaller, and higher values make the grid mask large.
+            Floats should be in the range [0, 1].  0.5 indicates that grid and
+            spacing will be of equal size. To always use the same value, pass a
+            `keras_cv.ConstantFactorSampler()`.
+
+            Defaults to `(0, 0.5)`.
         rotation_factor:
             The rotation_factor will be used to randomly rotate the grid_mask during
             training. Default to 0.1, which results in an output rotating by a
@@ -83,7 +88,7 @@ class GridMask(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
 
     def __init__(
         self,
-        ratio="random",
+        ratio_factor=(0, 0.5),
         rotation_factor=0.15,
         fill_mode="constant",
         fill_value=0.0,
@@ -91,9 +96,7 @@ class GridMask(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
         **kwargs,
     ):
         super().__init__(seed=seed, **kwargs)
-        self.ratio = ratio
-        if isinstance(ratio, str):
-            self.ratio = ratio.lower()
+        self.ratio_factor = preprocessing.parse_factor(ratio_factor, param_name="ratio_factor")
         self.fill_mode = fill_mode
         self.fill_value = fill_value
         self.rotation_factor = rotation_factor
@@ -108,19 +111,7 @@ class GridMask(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
         self.seed = seed
 
     def _check_parameter_values(self):
-        ratio, fill_mode, fill_value = self.ratio, self.fill_mode, self.fill_value
-        ratio_error = (
-            "ratio should be in the range [0.0, 1.0] or the string "
-            f"'random'. Got {ratio}"
-        )
-        if isinstance(ratio, float):
-            if ratio < 0 or ratio > 1:
-                raise ValueError(ratio_error)
-        elif isinstance(ratio, str) and ratio != "random":
-            raise ValueError(ratio_error)
-
-        if not isinstance(ratio, (str, float)):
-            raise ValueError(ratio_error)
+        fill_mode, fill_value = self.fill_mode, self.fill_value
 
         if fill_value not in range(0, 256):
             raise ValueError(
@@ -134,12 +125,7 @@ class GridMask(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
             )
 
     def get_random_transformation(self, image=None, label=None, bounding_box=None):
-        if self.ratio == "random":
-            ratio = self._random_generator.random_uniform(
-                shape=(), minval=0.0, maxval=1.0, dtype=tf.float32
-            )
-        else:
-            ratio = self.ratio
+        ratio = self.ratio_factor()
 
         # compute grid mask
         input_shape = tf.shape(image)
