@@ -26,8 +26,6 @@ from keras_cv.layers import preprocessing
 IMG_SIZE = (224, 224)
 BATCH_SIZE = 64
 
-tf.debugging.disable_traceback_filtering()
-
 
 def resize(image, num_classes=10):
     image = tf.image.resize(image, IMG_SIZE)
@@ -46,10 +44,8 @@ def main():
         .batch(BATCH_SIZE)
     )
     rand_augment = preprocessing.RandAugment(
-        value_range=(0, 255), augmentations_per_image=3, magnitude=1.0
+        value_range=(0, 255), augmentations_per_image=3, magnitude=1
     )
-    for batch in train_ds.take(1):
-        rand_augment(batch)
     train_ds = train_ds.map(rand_augment, num_parallel_calls=tf.data.AUTOTUNE)
 
     for images in train_ds.take(1):

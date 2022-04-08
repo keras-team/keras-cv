@@ -86,7 +86,6 @@ class RandAugment(RandomAugmentationPipeline):
             **kwargs,
             seed=seed,
         )
-        self.augmentations_per_image = augmentations_per_image
         self.magnitude = float(magnitude)
         self.value_range = value_range
         self.seed = seed
@@ -95,7 +94,6 @@ class RandAugment(RandomAugmentationPipeline):
                 f"`magnitude` must be in the range [0, 1], got `magnitude={magnitude}`"
             )
         self.magnitude_stddev = float(magnitude_stddev)
-        self.rate = rate
 
     def _augment(self, sample):
         sample["images"] = preprocessing_utils.transform_value_range(
@@ -103,7 +101,7 @@ class RandAugment(RandomAugmentationPipeline):
         )
         result = super()._augment(sample)
         result["images"] = preprocessing_utils.transform_value_range(
-            sample["images"], (0, 255), self.value_range
+            result["images"], (0, 255), self.value_range
         )
         return result
 
@@ -262,8 +260,8 @@ def translate_y_policy(magnitude, magnitude_stddev):
 
 def cutout_policy(magnitude, magnitude_stddev):
     factor = core.NormalFactorSampler(
-        mean=0.75 * magnitude,
-        standard_deviation=0.75 * magnitude_stddev,
+        mean=0.5 * magnitude,
+        standard_deviation=0.5 * magnitude_stddev,
         min_value=0,
         max_value=1,
     )
