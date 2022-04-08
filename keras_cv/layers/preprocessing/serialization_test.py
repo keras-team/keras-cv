@@ -89,7 +89,11 @@ class SerializationTest(tf.test.TestCase, parameterized.TestCase):
                 "magnitude_stddev": 0.1,
             },
         ),
-        ("RandomAugmentationPipeline", preprocessing.RandomAugmentationPipeline, {"layers": [], "augmentations_per_image": 1, "rate": 1.0})
+        (
+            "RandomAugmentationPipeline",
+            preprocessing.RandomAugmentationPipeline,
+            {"layers": [], "augmentations_per_image": 1, "rate": 1.0},
+        ),
     )
     def test_layer_serialization(self, layer_cls, init_args):
         layer = layer_cls(**init_args)

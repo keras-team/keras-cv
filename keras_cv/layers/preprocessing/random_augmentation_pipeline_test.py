@@ -25,6 +25,7 @@ class CountInvocations(tf.keras.layers.Layer):
         self.calls.assign_add(1)
         return inputs
 
+
 class RandomAugmentationPipelineTest(tf.test.TestCase, parameterized.TestCase):
     @parameterized.named_parameters(("1", 1), ("3", 3), ("5", 5))
     def test_calls_layers_augmentations_per_image_times(self, augmentations_per_image):
@@ -36,7 +37,7 @@ class RandomAugmentationPipelineTest(tf.test.TestCase, parameterized.TestCase):
         os = pipeline(xs)
         self.assertAllClose(xs, os)
 
-        self.assertEqual(layer.my_calls.numpy(), 2*augmentations_per_image)
+        self.assertEqual(layer.my_calls.numpy(), 2 * augmentations_per_image)
 
     @parameterized.named_parameters(("1", 1), ("3", 3), ("5", 5))
     def test_calls_layers_augmentations_per_image_times_single_image(

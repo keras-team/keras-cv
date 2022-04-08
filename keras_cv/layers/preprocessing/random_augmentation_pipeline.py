@@ -53,7 +53,9 @@ class RandomAugmentationPipeline(
         for (i, layer) in enumerate(self.layers):
             branch_fns.append((i, lambda: layer(sample)))
 
-        should_augment =self._random_generator.random_uniform(shape=(), minval=0.0, maxval=1.0, dtype=tf.float32)
+        should_augment = self._random_generator.random_uniform(
+            shape=(), minval=0.0, maxval=1.0, dtype=tf.float32
+        )
         should_augment = should_augment < self.rate
 
         if should_augment:
