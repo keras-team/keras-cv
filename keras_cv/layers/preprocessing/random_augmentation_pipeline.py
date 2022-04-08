@@ -46,7 +46,7 @@ class RandomAugmentationPipeline(
             return sample
 
         selected_op = self._random_generator.random_uniform(
-            (), minval=0, maxval=len(self.layers) + 1, dtype=tf.int32
+            (), minval=0, maxval=len(self.layers), dtype=tf.int32
         )
 
         branch_fns = []
