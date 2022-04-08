@@ -49,8 +49,8 @@ class RandAugment(RandomAugmentationPipeline):
             magnitude used for each data augmentation.  magnitude should
             be a float in the range `[0, 1]`.  A magnitude of `0` indicates that the
             augmentations are as weak as possible (not recommended), while a value of
-            `1.0` implies use of the strongest possible augmentation.  Defaults to
-            `0.5`.
+            `1.0` implies use of the strongest possible augmentation.  All magnitudes
+            are clipped to the range `[0, 1]` after sampling.  Defaults to `0.5`.
         magnitude_stddev: the standard deviation to use when drawing values
             for the perturbations.  Keep in mind magnitude will still be clipped to the
             range `[0, 1]` after samples are drawn from the normal distribution.
