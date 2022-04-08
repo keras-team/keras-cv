@@ -88,8 +88,8 @@ class RandAugment(RandomAugmentationPipeline):
             )
         if magnitude_stddev < 0.0 or magnitude_stddev > 1:
             raise ValueError(
-                f"`magnitude_stddev` must be in the range [0, 1], got "
-                "`magnitude_stddev={magnitude}`"
+                "`magnitude_stddev` must be in the range [0, 1], got "
+                f"`magnitude_stddev={magnitude}`"
             )
 
         super().__init__(
