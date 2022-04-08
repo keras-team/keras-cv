@@ -142,35 +142,32 @@ class RandAugment(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
             sample["images"], self.value_range, (0, 255)
         )
         augmented_sample = sample
-
         for _ in range(self.distortions):
-            augmented_sample = self._perform_single_distortion(augmented_sample)
+            selected_op = self._random_generator.random_uniform(
+                (), minval=0, maxval=len(self.augmentation_layers) + 1, dtype=tf.int32
+            )
+            branch_fns = []
+            for (i, layer) in enumerate(self.augmentation_layers):
+                branch_fns.append((i, lambda: layer(augmented_sample)))
+
+            sample_augmented_by_this_layer = tf.switch_case(
+                branch_index=selected_op,
+                branch_fns=branch_fns,
+                default=lambda: augmented_sample,
+            )
+            if self.rate is not None:
+                augmented_sample = tf.cond(
+                    self._random_generator.random_uniform(shape=(), dtype=tf.float32)
+                    < self.rate,
+                    lambda: sample_augmented_by_this_layer,
+                    lambda: augmented_sample,
+                )
+            augmented_sample = sample_augmented_by_this_layer
 
         augmented_sample["images"] = preprocessing_utils.transform_value_range(
             augmented_sample["images"], (0, 255), self.value_range
         )
         return augmented_sample
-
-    def _perform_single_distortion(self, sample):
-        selected_op = self._random_generator.random_uniform(
-            (), minval=0, maxval=len(self.augmentation_layers) + 1, dtype=tf.int32
-        )
-
-        branch_fns = []
-        for (i, layer) in enumerate(self.augmentation_layers):
-            branch_fns.append((i, lambda: layer(sample)))
-
-        augmented_sample = tf.switch_case(
-            branch_index=selected_op,
-            branch_fns=branch_fns,
-            default=lambda: sample,
-        )
-        return tf.cond(
-            self._random_generator.random_uniform(shape=(), dtype=tf.float32)
-            < self.rate,
-            lambda: augmented_sample,
-            lambda: sample,
-        )
 
     def get_config(self):
         config = super().get_config()
