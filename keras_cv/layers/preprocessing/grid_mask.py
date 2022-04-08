@@ -15,6 +15,7 @@
 import tensorflow as tf
 from tensorflow.keras import layers
 
+from keras_cv import core
 from keras_cv.utils import fill_utils
 from keras_cv.utils import preprocessing
 
@@ -100,7 +101,7 @@ class GridMask(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
             ratio_factor, param_name="ratio_factor"
         )
 
-        if isinstance(rotation_factor, keras_cv.FactorSampler):
+        if isinstance(rotation_factor, core.FactorSampler):
             raise ValueError(
                 "Currently `GridMask.rotation_factor` does not support the "
                 "`FactorSampler` API.  This will be supported in the next Keras "
@@ -175,7 +176,7 @@ class GridMask(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
             maxval=tf.math.maximum(height * 0.5, width * 0.3) + 1,
             dtype=tf.float32,
         )
-        rectangle_side_len = tf.cast((1 - ratio) * unit_size, tf.float32)
+        rectangle_side_len = tf.cast((ratio) * unit_size, tf.float32)
 
         # sample x and y offset for grid units randomly between 0 and unit_size
         delta_x = self._random_generator.random_uniform(
