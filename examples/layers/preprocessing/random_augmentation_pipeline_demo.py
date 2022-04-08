@@ -26,12 +26,20 @@ from keras_cv.layers import preprocessing
 IMG_SIZE = (224, 224)
 BATCH_SIZE = 64
 
-tf.debugging.disable_traceback_filtering()
 
 def resize(image, num_classes=10):
     image = tf.image.resize(image, IMG_SIZE)
     return image
 
+def create_custom_pipeline():
+    layers = preprocessing.RandAugment.get_standard_policy(
+        value_range=(0, 255), magnitude=0.75, magnitude_stddev=0.3
+    )
+    layers = layers[:3]  # slice out some layers you don't want for whatever reason
+    layers = layers + [preprocessing.GridMask()]
+    return preprocessing.RandomAugmentationPipeline(
+        layers=layers, augmentations_per_image=3, rate=0.5
+    )
 
 def main():
     data, ds_info = tfds.load("oxford_flowers102", with_info=True, as_supervised=True)
@@ -44,12 +52,10 @@ def main():
         .shuffle(10 * BATCH_SIZE)
         .batch(BATCH_SIZE)
     )
-    rand_augment = preprocessing.RandAugment(
-        value_range=(0, 255), augmentations_per_image=3, magnitude=1.0
-    )
-    for batch in train_ds.take(1):
-        rand_augment(batch)
-    train_ds = train_ds.map(rand_augment, num_parallel_calls=tf.data.AUTOTUNE)
+
+    custom_pipeline = create_custom_pipeline()
+
+    train_ds = train_ds.map(custom_pipeline, num_parallel_calls=tf.data.AUTOTUNE)
 
     for images in train_ds.take(1):
         plt.figure(figsize=(8, 8))
