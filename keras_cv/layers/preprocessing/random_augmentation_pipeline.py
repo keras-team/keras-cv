@@ -31,6 +31,7 @@ class RandomAugmentationPipeline(
         self.rate = rate
         self.layers = layers
         self.auto_vectorize = False
+        self.seed = seed
 
     def _augment(self, sample):
         result = sample.copy()

@@ -168,6 +168,8 @@ class RandAugment(RandomAugmentationPipeline):
                 "seed": self.seed,
             }
         )
+        # layers is recreated in the constructor
+        del config["layers"]
         return config
 
 
