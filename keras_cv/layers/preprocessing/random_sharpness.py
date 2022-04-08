@@ -28,12 +28,11 @@ class RandomSharpness(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
         - [PIL](https://pillow.readthedocs.io/en/stable/reference/ImageEnhance.html)
 
     Args:
-        factor: Either a tuple of two floats or a single float. `factor` controls the
-            extent to which the image sharpness is impacted.  `factor=0.0` makes this
-            layer perform a no-op operation, while a value of 1.0 uses the sharpened
-            result entirely.  Values between 0 and 1 result in linear interpolation
-            between the original image and the sharpened image.
-
+        factor: A tuple of two floats, a single float or `keras_cv.FactorSampler`.
+            `factor` controls the extent to which the image sharpness is impacted.
+            `factor=0.0` makes this layer perform a no-op operation, while a value of
+            1.0 uses the sharpened result entirely.  Values between 0 and 1 result in
+            linear interpolation between the original image and the sharpened image.
             Values should be between `0.0` and `1.0`.  If a tuple is used, a `factor` is
             sampled between the two values for every image augmented.  If a single float
             is used, a value between `0.0` and the passed float is sampled.  In order to
@@ -44,24 +43,23 @@ class RandomSharpness(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
             This is typically either `[0, 1]` or `[0, 255]` depending
             on how your preprocessing pipeline is setup.  Defaults to
             `[0, 255].`
+        seed: Integer. Used to create a random seed.
     """
 
     def __init__(
         self,
         factor,
-        value_range=(0, 255),
+        value_range,
+        seed=None,
         **kwargs,
     ):
-        super().__init__(**kwargs)
+        super().__init__(seed=seed, **kwargs)
         self.value_range = value_range
-        self.factor = preprocessing.parse_factor_value_range(factor)
+        self.factor = preprocessing.parse_factor(factor, seed=seed)
+        self.seed = seed
 
     def get_random_transformation(self, image=None, label=None, bounding_box=None):
-        if self.factor[0] == self.factor[1]:
-            return self.factor[0]
-        return self._random_generator.random_uniform(
-            (), self.factor[0], self.factor[1], dtype=tf.float32
-        )
+        return self.factor()
 
     def augment_image(self, image, transformation=None):
         image = preprocessing.transform_value_range(
@@ -114,5 +112,7 @@ class RandomSharpness(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
 
     def get_config(self):
         config = super().get_config()
-        config.update({"factor": self.factor, "value_range": self.value_range})
+        config.update(
+            {"factor": self.factor, "value_range": self.value_range, "seed": self.seed}
+        )
         return config
