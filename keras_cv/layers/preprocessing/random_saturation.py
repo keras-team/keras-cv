@@ -39,7 +39,7 @@ class RandomSaturation(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
     """
 
     def __init__(self, factor, seed=None, **kwargs):
-        super().__init__(**kwargs)
+        super().__init__(seed=seed, **kwargs)
         self.factor = preprocessing.parse_factor(
             factor, min_value=0.0, max_value=1.0, seed=seed
         )

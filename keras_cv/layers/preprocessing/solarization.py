@@ -46,6 +46,8 @@ class Solarization(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
             from the provided range. If a float is passed, the range is interpreted as
             `(0, threshold_factor)`. If specified, only pixel values above this
             threshold will be solarized.
+        seed: Integer. Used to create a random seed.
+
     Usage:
     ```python
     (images, labels), _ = tf.keras.datasets.cifar10.load_data()
