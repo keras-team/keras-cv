@@ -14,8 +14,10 @@
 import tensorflow as tf
 
 from keras_cv import core
-from keras_cv.layers.preprocessing.random_augmentation_pipeline import RandomAugmentationPipeline
 from keras_cv.layers import preprocessing as cv_preprocessing
+from keras_cv.layers.preprocessing.random_augmentation_pipeline import (
+    RandomAugmentationPipeline,
+)
 from keras_cv.utils import preprocessing as preprocessing_utils
 
 
@@ -95,7 +97,6 @@ class RandAugment(RandomAugmentationPipeline):
         self.magnitude_stddev = float(magnitude_stddev)
         self.rate = rate
 
-
     def _augment(self, sample):
         sample["images"] = preprocessing_utils.transform_value_range(
             sample["images"], self.value_range, (0, 255)
@@ -104,7 +105,7 @@ class RandAugment(RandomAugmentationPipeline):
         result["images"] = preprocessing_utils.transform_value_range(
             sample["images"], (0, 255), self.value_range
         )
-
+        return result
 
     @staticmethod
     def get_standard_policy(value_range, magnitude, magnitude_stddev, seed=None):

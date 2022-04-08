@@ -28,6 +28,7 @@ BATCH_SIZE = 64
 
 tf.debugging.disable_traceback_filtering()
 
+
 def resize(image, num_classes=10):
     image = tf.image.resize(image, IMG_SIZE)
     return image
