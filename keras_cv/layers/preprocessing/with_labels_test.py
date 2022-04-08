@@ -16,63 +16,42 @@ from absl.testing import parameterized
 
 from keras_cv.layers import preprocessing
 
-TEST_CONFIGURATIONS = [
-    ("AutoContrast", preprocessing.AutoContrast, {"value_range": (0, 255)}),
-    ("Equalization", preprocessing.Equalization, {"value_range": (0, 255)}),
-    ("Grayscale", preprocessing.Grayscale, {}),
-    ("GridMask", preprocessing.GridMask, {}),
-    (
-        "Posterization",
-        preprocessing.Posterization,
-        {"bits": 3, "value_range": (0, 255)},
-    ),
-    (
-        "RandomColorDegeneration",
-        preprocessing.RandomColorDegeneration,
-        {"factor": 0.5},
-    ),
-    (
-        "RandomCutout",
-        preprocessing.RandomCutout,
-        {"height_factor": 0.2, "width_factor": 0.2},
-    ),
-    (
-        "RandomHue",
-        preprocessing.RandomHue,
-        {"factor": 0.5, "value_range": (0, 255)},
-    ),
-    (
-        "RandomChannelShift",
-        preprocessing.RandomChannelShift,
-        {"value_range": (0, 255), "factor": 0.5},
-    ),
-    (
-        "RandomColorJitter",
-        preprocessing.RandomColorJitter,
-        {
-            "value_range": (0, 255),
-            "brightness_factor": (-0.2, 0.5),
-            "contrast_factor": (0.5, 0.9),
-            "saturation_factor": (0.5, 0.9),
-            "hue_factor": (0.5, 0.9),
-            "seed": 1,
-        },
-    ),
-    ("RandomSaturation", preprocessing.RandomSaturation, {"factor": 0.5}),
-    (
-        "RandomSharpness",
-        preprocessing.RandomSharpness,
-        {"factor": 0.5, "value_range": (0, 255)},
-    ),
-    ("RandomShear", preprocessing.RandomShear, {"x_factor": 0.3, "x_factor": 0.3}),
-    ("Solarization", preprocessing.Solarization, {"value_range": (0, 255)}),
-]
-
 
 class WithLabelsTest(tf.test.TestCase, parameterized.TestCase):
     @parameterized.named_parameters(
-        *TEST_CONFIGURATIONS,
+        ("AutoContrast", preprocessing.AutoContrast, {"value_range": (0, 255)}),
+        ("Equalization", preprocessing.Equalization, {"value_range": (0, 255)}),
+        ("Grayscale", preprocessing.Grayscale, {}),
+        ("GridMask", preprocessing.GridMask, {}),
         ("CutMix", preprocessing.CutMix, {}),
+        (
+            "Posterization",
+            preprocessing.Posterization,
+            {"bits": 3, "value_range": (0, 255)},
+        ),
+        (
+            "RandomColorDegeneration",
+            preprocessing.RandomColorDegeneration,
+            {"factor": 0.5},
+        ),
+        (
+            "RandomCutout",
+            preprocessing.RandomCutout,
+            {"height_factor": 0.2, "width_factor": 0.2},
+        ),
+        (
+            "RandomHue",
+            preprocessing.RandomHue,
+            {"value_range": (0, 255), "factor": 0.5},
+        ),
+        ("RandomSaturation", preprocessing.RandomSaturation, {"factor": 0.5}),
+        (
+            "RandomSharpness",
+            preprocessing.RandomSharpness,
+            {"factor": 0.5, "value_range": (0, 255)},
+        ),
+        ("RandomShear", preprocessing.RandomShear, {"x_factor": 0.3, "x_factor": 0.3}),
+        ("Solarization", preprocessing.Solarization, {"value_range": (0, 255)}),
     )
     def test_can_run_with_labels(self, layer_cls, init_args):
         layer = layer_cls(**init_args)
@@ -86,7 +65,40 @@ class WithLabelsTest(tf.test.TestCase, parameterized.TestCase):
         _ = layer(inputs)
 
     # this has to be a separate test case to exclude CutMix and MixUp
-    @parameterized.named_parameters(*TEST_CONFIGURATIONS)
+    @parameterized.named_parameters(
+        ("AutoContrast", preprocessing.AutoContrast, {"value_range": (0, 255)}),
+        ("Equalization", preprocessing.Equalization, {"value_range": (0, 255)}),
+        ("Grayscale", preprocessing.Grayscale, {}),
+        ("GridMask", preprocessing.GridMask, {}),
+        (
+            "Posterization",
+            preprocessing.Posterization,
+            {"bits": 3, "value_range": (0, 255)},
+        ),
+        (
+            "RandomColorDegeneration",
+            preprocessing.RandomColorDegeneration,
+            {"factor": 0.5},
+        ),
+        (
+            "RandomCutout",
+            preprocessing.RandomCutout,
+            {"height_factor": 0.2, "width_factor": 0.2},
+        ),
+        (
+            "RandomHue",
+            preprocessing.RandomHue,
+            {"factor": 0.5, "value_range": (0, 255)},
+        ),
+        ("RandomSaturation", preprocessing.RandomSaturation, {"factor": 0.5}),
+        (
+            "RandomSharpness",
+            preprocessing.RandomSharpness,
+            {"factor": 0.5, "value_range": (0, 255)},
+        ),
+        ("RandomShear", preprocessing.RandomShear, {"x_factor": 0.3, "x_factor": 0.3}),
+        ("Solarization", preprocessing.Solarization, {"value_range": (0, 255)}),
+    )
     def test_can_run_with_labels_single_image(self, layer_cls, init_args):
         layer = layer_cls(**init_args)
         img = tf.random.uniform(
