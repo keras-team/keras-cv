@@ -41,9 +41,7 @@ class RandomSharpness(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
         value_range: the range of values the incoming images will have.
             Represented as a two number tuple written [low, high].
             This is typically either `[0, 1]` or `[0, 255]` depending
-            on how your preprocessing pipeline is setup.  Defaults to
-            `[0, 255].`
-        seed: Integer. Used to create a random seed.
+            on how your preprocessing pipeline is setup.
     """
 
     def __init__(
@@ -55,7 +53,7 @@ class RandomSharpness(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
     ):
         super().__init__(seed=seed, **kwargs)
         self.value_range = value_range
-        self.factor = preprocessing.parse_factor(factor, seed=seed)
+        self.factor = preprocessing.parse_factor(factor)
         self.seed = seed
 
     def get_random_transformation(self, image=None, label=None, bounding_box=None):
@@ -109,6 +107,9 @@ class RandomSharpness(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
             result, original_range=(0, 255), target_range=self.value_range
         )
         return result
+
+    def augment_label(self, label, transformation=None):
+        return label
 
     def get_config(self):
         config = super().get_config()

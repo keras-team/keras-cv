@@ -61,6 +61,9 @@ class AutoContrast(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
         result = tf.where(tf.math.is_nan(result), original_image, result)
         return result
 
+    def augment_label(self, label, transformation=None):
+        return label
+
     def get_config(self):
         config = super().get_config()
         config.update({"value_range": self.value_range})

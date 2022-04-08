@@ -19,9 +19,7 @@ from keras_cv.layers import preprocessing
 
 
 def custom_compare(obj1, obj2):
-    if isinstance(obj1, core.ConstantFactorSampler):
-        return obj1.get_config() == obj2.get_config()
-    elif isinstance(obj1, core.UniformFactorSampler):
+    if isinstance(obj1, core.FactorSampler):
         return obj1.get_config() == obj2.get_config()
     else:
         return obj1 == obj2
@@ -80,6 +78,26 @@ class SerializationTest(tf.test.TestCase, parameterized.TestCase):
             {"x_factor": 0.3, "x_factor": 0.3, "seed": 1},
         ),
         ("Solarization", preprocessing.Solarization, {"value_range": (0, 255)}),
+        (
+            "RandAugment",
+            preprocessing.RandAugment,
+            {
+                "value_range": (0, 255),
+                "magnitude": 0.5,
+                "augmentations_per_image": 3,
+                "rate": 0.3,
+                "magnitude_stddev": 0.1,
+            },
+        ),
+        (
+            "RandomAugmentationPipeline",
+            preprocessing.RandomAugmentationPipeline,
+            {
+                "layers": [],
+                "augmentations_per_image": 1,
+                "rate": 1.0,
+            },
+        ),
     )
     def test_layer_serialization(self, layer_cls, init_args):
         layer = layer_cls(**init_args)

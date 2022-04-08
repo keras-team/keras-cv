@@ -127,6 +127,9 @@ class RandomShear(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
 
         return tf.squeeze(image, axis=0)
 
+    def augment_label(self, label, transformation=None):
+        return label
+
     @staticmethod
     def _format_transform(transform):
         transform = tf.convert_to_tensor(transform, dtype=tf.float32)

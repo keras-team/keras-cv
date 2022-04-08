@@ -11,7 +11,23 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from keras_cv.core.factor_sampler.constant_factor_sampler import ConstantFactorSampler
-from keras_cv.core.factor_sampler.factor_sampler import FactorSampler
-from keras_cv.core.factor_sampler.normal_factor_sampler import NormalFactorSampler
-from keras_cv.core.factor_sampler.uniform_factor_sampler import UniformFactorSampler
+
+import tensorflow as tf
+
+from keras_cv import core
+
+
+class NormalFactorTest(tf.test.TestCase):
+    def test_sample(self):
+        factor = core.NormalFactor(
+            mean=0.5, standard_deviation=0.2, min_value=0, max_value=1
+        )
+        self.assertTrue(0 <= factor() <= 1)
+
+    def test_config(self):
+        factor = core.NormalFactor(
+            mean=0.5, standard_deviation=0.2, min_value=0, max_value=1
+        )
+        config = factor.get_config()
+        self.assertEqual(config["mean"], 0.5)
+        self.assertEqual(config["standard_deviation"], 0.2)

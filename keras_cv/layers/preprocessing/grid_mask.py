@@ -67,8 +67,7 @@ class GridMask(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
             - *gaussian_noise*: Pixels are filled with random gaussian noise.
         fill_value: an integer represents of value to be filled inside the gridblock
             when `fill_mode="constant"`. Valid integer range [0 to 255]
-        seed:
-            Integer. Used to create a random seed.
+        seed: Integer. Used to create a random seed.
 
     Usage:
     ```python
@@ -232,6 +231,9 @@ class GridMask(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
         mask = tf.cast(mask, tf.bool)
 
         return tf.where(mask, fill_value, image)
+
+    def augment_label(self, label, transformation=None):
+        return label
 
     def get_config(self):
         config = {
