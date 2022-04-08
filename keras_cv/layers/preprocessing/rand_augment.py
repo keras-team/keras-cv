@@ -155,6 +155,7 @@ class RandAugment(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
         selected_op = self._random_generator.random_uniform(
             (), minval=0, maxval=len(self.augmentation_layers) + 1, dtype=tf.int32
         )
+
         branch_fns = []
         for (i, layer) in enumerate(self.augmentation_layers):
             branch_fns.append((i, lambda: layer(sample)))
