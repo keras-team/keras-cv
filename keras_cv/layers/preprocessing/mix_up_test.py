@@ -22,16 +22,27 @@ class MixUpTest(tf.test.TestCase):
     def test_return_shapes(self):
         xs = tf.ones((2, 512, 512, 3))
         # randomly sample labels
-        ys = tf.random.categorical(tf.math.log([[0.5, 0.5]]), 2)
-        ys = tf.squeeze(ys)
-        ys = tf.one_hot(ys, NUM_CLASSES)
+        ys_labels = tf.random.categorical(tf.math.log([[0.5, 0.5]]), 2)
+        ys_labels = tf.squeeze(ys_labels)
+        ys_labels = tf.one_hot(ys_labels, NUM_CLASSES)
+
+        # randomly sample bounding boxes
+        ys_bounding_boxes = tf.random.uniform((2, 3, 5), 0, 1)
 
         layer = MixUp()
-        outputs = layer({"images": xs, "labels": ys})
-        xs, ys = outputs["images"], outputs["labels"]
+        # mixup on labels
+        outputs = layer(
+            {"images": xs, "labels": ys_labels, "bounding_boxes": ys_bounding_boxes}
+        )
+        xs, ys_labels, ys_bounding_boxes = (
+            outputs["images"],
+            outputs["labels"],
+            outputs["bounding_boxes"],
+        )
 
         self.assertEqual(xs.shape, [2, 512, 512, 3])
-        self.assertEqual(ys.shape, [2, 10])
+        self.assertEqual(ys_labels.shape, [2, 10])
+        self.assertEqual(ys_bounding_boxes.shape, [2, 6, 5])
 
     def test_mix_up_call_results(self):
         xs = tf.cast(
