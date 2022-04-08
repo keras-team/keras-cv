@@ -38,26 +38,31 @@ class RandomAugmentationPipeline(
 
     def _augment(self, sample):
         augmented_sample = sample
-        for _ in range(self.augmentations_per_image):
-            selected_op = self._random_generator.random_uniform(
-                (), minval=0, maxval=len(self.layers) + 1, dtype=tf.int32
-            )
-            branch_fns = []
-            for (i, layer) in enumerate(self.layers):
-                branch_fns.append((i, lambda: layer(augmented_sample)))
 
-            sample_augmented_by_this_layer = tf.switch_case(
+        for _ in range(self.augmentations_per_image):
+            augmented_sample = self._single_augmentation(augmented_sample)
+
+        return augmented_sample
+
+    def _single_augmentation(self, sample):
+        selected_op = self._random_generator.random_uniform(
+            (), minval=0, maxval=len(self.layers) + 1, dtype=tf.int32
+        )
+
+        branch_fns = []
+        for (i, layer) in enumerate(self.layers):
+            branch_fns.append((i, lambda: layer(sample)))
+
+        should_augment =self._random_generator.random_uniform(shape=(), minval=0.0, maxval=1.0, dtype=tf.float32)
+        should_augment = should_augment < self.rate
+
+        if should_augment:
+            return tf.switch_case(
                 branch_index=selected_op,
                 branch_fns=branch_fns,
-                default=lambda: augmented_sample,
+                default=lambda: sample,
             )
-            augmented_sample = tf.cond(
-                self._random_generator.random_uniform(shape=(), dtype=tf.float32)
-                < self.rate,
-                lambda: sample_augmented_by_this_layer,
-                lambda: augmented_sample,
-            )
-        return augmented_sample
+        return sample
 
     def get_config(self):
         config = super().get_config()
