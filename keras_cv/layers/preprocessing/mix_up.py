@@ -17,6 +17,7 @@ import tensorflow as tf
 @tf.keras.utils.register_keras_serializable(package="keras_cv")
 class MixUp(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
     """MixUp implements the MixUp data augmentation technique.
+
     Args:
         alpha: Float between 0 and 1.  Inverse scale parameter for the gamma
             distribution.  This controls the shape of the distribution from which the
@@ -24,6 +25,7 @@ class MixUp(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
             when training an imagenet1k classification model.
     References:
         [MixUp paper](https://arxiv.org/abs/1710.09412).
+
     Sample usage:
     ```python
     (images, labels), _ = tf.keras.datasets.cifar10.load_data()
