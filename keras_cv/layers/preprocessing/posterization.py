@@ -73,7 +73,9 @@ class Posterization(BaseImageAugmentationLayer):
 
     def augment_image(self, image, transformation=None):
         image = transform_value_range(
-            images=image, original_range=self._value_range, target_range=[0, 255],
+            images=image,
+            original_range=self._value_range,
+            target_range=[0, 255],
         )
         image = tf.cast(image, tf.uint8)
 
@@ -81,7 +83,9 @@ class Posterization(BaseImageAugmentationLayer):
 
         image = tf.cast(image, self.compute_dtype)
         return transform_value_range(
-            images=image, original_range=[0, 255], target_range=self._value_range,
+            images=image,
+            original_range=[0, 255],
+            target_range=self._value_range,
         )
 
     def _batch_augment(self, inputs):

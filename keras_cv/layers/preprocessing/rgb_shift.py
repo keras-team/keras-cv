@@ -33,8 +33,8 @@ class RGBShift(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
     Args:
         factor: A scalar value, or tuple/list of two floating values in
             the range `[0.0, 1.0]`. If `factor` is a single value, it will
-            interpret as equivalent to the tuple `(0.0, factor)`. The `factor` 
-            will sampled between its range for every image to augment. 
+            interpret as equivalent to the tuple `(0.0, factor)`. The `factor`
+            will sampled between its range for every image to augment.
         value_range: The range of values the incoming images will have.
             Represented as a two number tuple written [low, high].
             This is typically either `[0, 1]` or `[0, 255]` depending

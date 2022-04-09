@@ -26,7 +26,10 @@ class COCOMeanAveragePrecisionTest(tf.test.TestCase):
         model = keras.Model(i, i)
 
         mean_average_precision = COCOMeanAveragePrecision(
-            max_detections=100, num_buckets=4, class_ids=[1], area_range=(0, 64 ** 2),
+            max_detections=100,
+            num_buckets=4,
+            class_ids=[1],
+            area_range=(0, 64**2),
         )
 
         # These would match if they were in the area range
@@ -169,8 +172,20 @@ class COCOMeanAveragePrecisionTest(tf.test.TestCase):
 
         # one class
         true_positives = [
-            [[0, 1, 2,]],
-            [[0, 0, 0,]],
+            [
+                [
+                    0,
+                    1,
+                    2,
+                ]
+            ],
+            [
+                [
+                    0,
+                    0,
+                    0,
+                ]
+            ],
         ]
 
         false_positives = [

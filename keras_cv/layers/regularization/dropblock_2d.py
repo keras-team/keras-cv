@@ -138,7 +138,12 @@ class DropBlock2D(BaseRandomLayer):
     """
 
     def __init__(
-        self, dropout_rate, dropblock_size, data_format=None, seed=None, name=None,
+        self,
+        dropout_rate,
+        dropblock_size,
+        data_format=None,
+        seed=None,
+        name=None,
     ):
         super().__init__(seed=seed, name=name, force_generator=True)
         if not 0.0 <= dropout_rate <= 1.0:
