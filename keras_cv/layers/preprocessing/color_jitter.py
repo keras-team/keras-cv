@@ -51,15 +51,15 @@ class ColorJitter(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
             `factor=0.0` makes the image to be fully grayscale. `factor=1.0`
             makes the image to be fully saturated.
 
-        hue_factor: Either a tuple of two floats or a single float. `factor`
-            controls the extent to which the image saturation is impacted.
-            `factor` = `0.0`, `0.5` or `1.0` makes this layer perform a no-op
-            operation. `factor=0.25` and `factor=0.75` makes the image to have
-            fully opposite hue value. Values should be between `0.0` and `1.0`.
-            If a tuple is used, a `factor` is sampled between the two values for
-            every image augmented. If a single float is used, a value between `0.0`
-            and the passed float is sampled. In order to ensure the value is always
-            the same, please pass a tuple with two identical floats: `(0.5, 0.5)`.
+        hue_factor: A tuple of two floats, a single float or 
+            `keras_cv.FactorSampler`. `factor` controls the extent to which the 
+            image sharpness is impacted. `factor=0.0` makes this layer perform 
+            a no-op operation, while a value of 1.0 performs the most aggressive 
+            contrast adjustment available.  If a tuple is used, a `factor` is sampled 
+            between the two values for every image augmented.  If a single float 
+            is used, a value between `0.0` and the passed float is sampled. 
+            In order to ensure the value is always the same, please pass a tuple 
+            with two identical floats: `(0.5, 0.5)`.
 
     Usage:
     ```python
@@ -84,13 +84,13 @@ class ColorJitter(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
         self.hue_factor = hue_factor
 
         self.random_brightness = preprocessing.RandomBrightness(
-            factor=self.brightness_factor
+            factor=self.brightness_factor, value_range=(0, 255)
         )
         self.random_contrast = preprocessing.RandomContrast(factor=self.contrast_factor)
         self.random_saturation = preprocessing.RandomSaturation(
             factor=self.saturation_factor
         )
-        self.random_hue = preprocessing.RandomHue(factor=self.hue_factor)
+        self.random_hue = preprocessing.RandomHue(factor=self.hue_factor, value_range=(0, 255))
 
     def augment_image(self, image, transformation=None):
         brightness = self.random_brightness(image)
