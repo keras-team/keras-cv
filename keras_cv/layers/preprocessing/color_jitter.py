@@ -51,14 +51,14 @@ class ColorJitter(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
             `factor=0.0` makes the image to be fully grayscale. `factor=1.0`
             makes the image to be fully saturated.
 
-        hue_factor: A tuple of two floats, a single float or 
-            `keras_cv.FactorSampler`. `factor` controls the extent to which the 
-            image sharpness is impacted. `factor=0.0` makes this layer perform 
-            a no-op operation, while a value of 1.0 performs the most aggressive 
-            contrast adjustment available.  If a tuple is used, a `factor` is sampled 
-            between the two values for every image augmented.  If a single float 
-            is used, a value between `0.0` and the passed float is sampled. 
-            In order to ensure the value is always the same, please pass a tuple 
+        hue_factor: A tuple of two floats, a single float or
+            `keras_cv.FactorSampler`. `factor` controls the extent to which the
+            image sharpness is impacted. `factor=0.0` makes this layer perform
+            a no-op operation, while a value of 1.0 performs the most aggressive
+            contrast adjustment available.  If a tuple is used, a `factor` is sampled
+            between the two values for every image augmented.  If a single float
+            is used, a value between `0.0` and the passed float is sampled.
+            In order to ensure the value is always the same, please pass a tuple
             with two identical floats: `(0.5, 0.5)`.
 
     Usage:
@@ -90,7 +90,9 @@ class ColorJitter(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
         self.random_saturation = preprocessing.RandomSaturation(
             factor=self.saturation_factor
         )
-        self.random_hue = preprocessing.RandomHue(factor=self.hue_factor, value_range=(0, 255))
+        self.random_hue = preprocessing.RandomHue(
+            factor=self.hue_factor, value_range=(0, 255)
+        )
 
     def augment_image(self, image, transformation=None):
         brightness = self.random_brightness(image)
