@@ -42,8 +42,10 @@ class RandomColorDegeneration(tf.keras.__internal__.layers.BaseImageAugmentation
     def __init__(
         self, factor, seed=None, **kwargs,
     ):
-        super().__init__(seed=seed, **kwargs)
-        self.factor = preprocessing.parse_factor(factor, seed=seed)
+        super().__init__(**kwargs)
+        self.factor = preprocessing.parse_factor(
+            factor,
+        )
         self.seed = seed
 
     def get_random_transformation(self, image=None, label=None, bounding_box=None):
@@ -53,6 +55,9 @@ class RandomColorDegeneration(tf.keras.__internal__.layers.BaseImageAugmentation
         degenerate = tf.image.grayscale_to_rgb(tf.image.rgb_to_grayscale(image))
         result = preprocessing.blend(image, degenerate, transformation)
         return result
+
+    def augment_label(self, label, transformation=None):
+        return label
 
     def get_config(self):
         config = super().get_config()
