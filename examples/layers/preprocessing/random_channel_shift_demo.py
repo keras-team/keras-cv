@@ -13,8 +13,8 @@
 # limitations under the License.
 
 
-"""rgb_shift_demo.py shows how to use the RGBShift preprocessing layer.
-Operates on the oxford_flowers102 dataset.  In this script the flowers
+"""random_channel_shift_demo.py shows how to use the RandomChannelShift preprocessing
+layer.  Operates on the oxford_flowers102 dataset.  In this script the flowers
 are loaded, then are passed through the preprocessing layers.
 Finally, they are shown using matplotlib.
 """
@@ -47,15 +47,18 @@ def main():
         .batch(BATCH_SIZE)
     )
 
-    rgbshift = preprocessing.RGBShift(factor=0.4)
+    rgbshift = preprocessing.RandomChannelShift(value_range=(0, 255), factor=0.4)
 
     train_ds = train_ds.map(
         lambda x, y: (rgbshift(x, training=True), y),
         num_parallel_calls=tf.data.AUTOTUNE,
     )
 
-    for images, labels in train_ds.take(1):
-        plt.figure(figsize=(8, 8))
-        for i in range(9):
-            plt.subplot(3, 3, i + 1)
-            plt.imshow(images[i].numpy().astype("uint8"))
+    images, labels = next(iter(train_ds.take(1)))
+    plt.figure(figsize=(8, 8))
+    for i in range(9):
+        plt.subplot(3, 3, i + 1)
+        plt.imshow(images[i].numpy().astype("uint8"))
+    plt.show()
+
+main()
