@@ -45,9 +45,13 @@ def main():
         .batch(BATCH_SIZE)
     )
     mixup = preprocessing.MixUp(alpha=0.8)
-    train_ds = train_ds.map(mixup, num_parallel_calls=tf.data.AUTOTUNE)
+    train_ds = train_ds.map(
+        lambda x, y: mixup({"images": x, "labels": y}),
+        num_parallel_calls=tf.data.AUTOTUNE,
+    )
 
-    for images, labels in train_ds.take(1):
+    for batch in train_ds.take(1):
+        images = batch["images"]
         plt.figure(figsize=(8, 8))
         for i in range(9):
             plt.subplot(3, 3, i + 1)
