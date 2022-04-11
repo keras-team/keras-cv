@@ -17,6 +17,7 @@ import tensorflow as tf
 @tf.keras.utils.register_keras_serializable(package="keras_cv")
 class MixUp(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
     """MixUp implements the MixUp data augmentation technique.
+
     Args:
         alpha: Float between 0 and 1.  Inverse scale parameter for the gamma
             distribution.  This controls the shape of the distribution from which the
@@ -25,6 +26,7 @@ class MixUp(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
     References:
         [MixUp paper](https://arxiv.org/abs/1710.09412).
         [MixUp for Object Detection paper](https://arxiv.org/pdf/1902.04103).
+
     Sample usage:
     ```python
     (images, labels), _ = tf.keras.datasets.cifar10.load_data()
@@ -58,9 +60,7 @@ class MixUp(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
             )
         images, lambda_sample, permutation_order = self._mixup(images)
         if labels is not None:
-            labels = self._update_labels(
-                labels, lambda_sample, permutation_order
-            )
+            labels = self._update_labels(labels, lambda_sample, permutation_order)
             inputs["labels"] = labels
         if bounding_boxes is not None:
             bounding_boxes = self._update_bounding_boxes(
