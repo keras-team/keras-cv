@@ -17,7 +17,6 @@ import tensorflow as tf
 @tf.keras.utils.register_keras_serializable(package="keras_cv")
 class MixUp(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
     """MixUp implements the MixUp data augmentation technique.
-
     Args:
         alpha: Float between 0 and 1.  Inverse scale parameter for the gamma
             distribution.  This controls the shape of the distribution from which the
@@ -26,7 +25,6 @@ class MixUp(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
     References:
         [MixUp paper](https://arxiv.org/abs/1710.09412).
         [MixUp for Object Detection paper](https://arxiv.org/pdf/1902.04103).
-
     Sample usage:
     ```python
     (images, labels), _ = tf.keras.datasets.cifar10.load_data()
@@ -60,13 +58,13 @@ class MixUp(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
             )
         images, lambda_sample, permutation_order = self._mixup(images)
         if labels is not None:
-            images, labels = self._update_labels(
-                images, labels, lambda_sample, permutation_order
+            labels = self._update_labels(
+                labels, lambda_sample, permutation_order
             )
             inputs["labels"] = labels
         if bounding_boxes is not None:
-            images, bounding_boxes = self._update_bounding_boxes(
-                images, bounding_boxes, permutation_order
+            bounding_boxes = self._update_bounding_boxes(
+                bounding_boxes, permutation_order
             )
             inputs["bounding_boxes"] = bounding_boxes
         inputs["images"] = images
@@ -91,19 +89,19 @@ class MixUp(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
 
         return images, tf.squeeze(lambda_sample), permutation_order
 
-    def _update_labels(self, images, labels, lambda_sample, permutation_order):
+    def _update_labels(self, labels, lambda_sample, permutation_order):
         labels_for_mixup = tf.gather(labels, permutation_order)
 
         lambda_sample = tf.reshape(lambda_sample, [-1, 1])
         labels = lambda_sample * labels + (1.0 - lambda_sample) * labels_for_mixup
 
-        return images, labels
+        return labels
 
-    def _update_bounding_boxes(self, images, bounding_boxes, permutation_order):
+    def _update_bounding_boxes(self, bounding_boxes, permutation_order):
         boxes_for_mixup = tf.gather(bounding_boxes, permutation_order)
         bounding_boxes = tf.concat([bounding_boxes, boxes_for_mixup], axis=1)
 
-        return images, bounding_boxes
+        return bounding_boxes
 
     def get_config(self):
         config = {
