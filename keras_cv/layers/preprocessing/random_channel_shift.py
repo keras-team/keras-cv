@@ -48,7 +48,7 @@ class RandomChannelShift(tf.keras.__internal__.layers.BaseImageAugmentationLayer
     Usage:
     ```python
     (images, labels), _ = tf.keras.datasets.cifar10.load_data()
-    rgb_shift = keras_cv.layers.RandomChannelShift(factor=(0.3, 0.8), value_range=(0, 255))
+    rgb_shift = keras_cv.layers.RandomChannelShift(value_range=(0, 255), factor=0.5)
     augmented_images = rgb_shift(images)
     ```
     """
