@@ -96,9 +96,18 @@ class GridMask(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
         **kwargs,
     ):
         super().__init__(seed=seed, **kwargs)
-        self.ratio = ratio
-        if isinstance(ratio, str):
-            self.ratio = ratio.lower()
+        self.ratio_factor = preprocessing.parse_factor(
+            ratio_factor, param_name="ratio_factor"
+        )
+
+        if isinstance(rotation_factor, core.FactorSampler):
+            raise ValueError(
+                "Currently `GridMask.rotation_factor` does not support the "
+                "`FactorSampler` API.  This will be supported in the next Keras "
+                "release. For now, please pass a float for the "
+                "`rotation_factor` argument."
+            )
+
         self.fill_mode = fill_mode
         self.fill_value = fill_value
         self.rotation_factor = rotation_factor
