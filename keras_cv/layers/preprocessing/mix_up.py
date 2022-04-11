@@ -27,6 +27,7 @@ class MixUp(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
 
     References:
         [MixUp paper](https://arxiv.org/abs/1710.09412).
+        [MixUp for Object Detection paper](https://arxiv.org/pdf/1902.04103).
 
     Sample usage:
     ```python
@@ -51,15 +52,24 @@ class MixUp(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
     def _batch_augment(self, inputs):
         images = inputs.get("images", None)
         labels = inputs.get("labels", None)
-        if images is None or labels is None:
+        bounding_boxes = inputs.get("bounding_boxes", None)
+        if images is None or (labels is None and bounding_boxes is None):
             raise ValueError(
                 "MixUp expects inputs in a dictionary with format "
-                '{"images": images, "labels": labels}.'
+                '{"images": images, "labels": labels}. or'
+                '{"images": images, "bounding_boxes": bounding_boxes}'
                 f"Got: inputs = {inputs}"
             )
-        images, labels = self._update_labels(*self._mixup(images, labels))
+        images, lambda_sample, permutation_order = self._mixup(images)
+        if labels is not None:
+            labels = self._update_labels(labels, lambda_sample, permutation_order)
+            inputs["labels"] = labels
+        if bounding_boxes is not None:
+            bounding_boxes = self._update_bounding_boxes(
+                bounding_boxes, permutation_order
+            )
+            inputs["bounding_boxes"] = bounding_boxes
         inputs["images"] = images
-        inputs["labels"] = labels
         return inputs
 
     def _augment(self, inputs):
@@ -69,7 +79,7 @@ class MixUp(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
             "expected.  Please call the layer with 2 or more samples."
         )
 
-    def _mixup(self, images, labels):
+    def _mixup(self, images):
         batch_size = tf.shape(images)[0]
         permutation_order = tf.random.shuffle(tf.range(0, batch_size), seed=self.seed)
 
@@ -79,15 +89,21 @@ class MixUp(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
         mixup_images = tf.gather(images, permutation_order)
         images = lambda_sample * images + (1.0 - lambda_sample) * mixup_images
 
-        return images, labels, tf.squeeze(lambda_sample), permutation_order
+        return images, tf.squeeze(lambda_sample), permutation_order
 
-    def _update_labels(self, images, labels, lambda_sample, permutation_order):
+    def _update_labels(self, labels, lambda_sample, permutation_order):
         labels_for_mixup = tf.gather(labels, permutation_order)
 
         lambda_sample = tf.reshape(lambda_sample, [-1, 1])
         labels = lambda_sample * labels + (1.0 - lambda_sample) * labels_for_mixup
 
-        return images, labels
+        return labels
+
+    def _update_bounding_boxes(self, bounding_boxes, permutation_order):
+        boxes_for_mixup = tf.gather(bounding_boxes, permutation_order)
+        bounding_boxes = tf.concat([bounding_boxes, boxes_for_mixup], axis=1)
+
+        return bounding_boxes
 
     def get_config(self):
         config = {

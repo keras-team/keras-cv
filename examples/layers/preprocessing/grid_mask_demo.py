@@ -22,6 +22,7 @@ import matplotlib.pyplot as plt
 import tensorflow as tf
 import tensorflow_datasets as tfds
 
+import keras_cv
 from keras_cv.layers import preprocessing
 
 IMG_SIZE = (224, 224)
@@ -47,7 +48,9 @@ def main():
     )
 
     gridmask = preprocessing.GridMask(
-        ratio="random", rotation_factor=0.5, fill_mode="gaussian_noise"
+        ratio_factor=keras_cv.ConstantFactorSampler(0.3),
+        rotation_factor=0.5,
+        fill_mode="gaussian_noise",
     )
     train_ds = train_ds.map(
         lambda x, y: (gridmask(x, training=True), y),
