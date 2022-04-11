@@ -21,15 +21,18 @@ class DrawSegmentationTest(tf.test.TestCase):
         super().setUp()
         IMG_SIZE = 6
         MASK_SIZE = 2
-        N = 2
         COLOR_CODE1 = 1
         COLOR_CODE2 = 2
 
         self.color = "red"
         self.color_map = {COLOR_CODE1: "red", COLOR_CODE2: "green"}
-        self.images = tf.zeros((N, IMG_SIZE, IMG_SIZE, 3), tf.uint8)
 
-        # create center rectangle mask.
+        # create two different images,
+        image1 = tf.ones((IMG_SIZE, IMG_SIZE, 3), tf.uint8) * 100
+        image2 = tf.ones((IMG_SIZE, IMG_SIZE, 3), tf.uint8) * 200
+        self.images = tf.stack([image1, image2], axis=0)
+
+        # create two center rectangle masks.
         mask1 = tf.ones((MASK_SIZE, MASK_SIZE), tf.int32) * COLOR_CODE1
         mask2 = tf.ones((MASK_SIZE, MASK_SIZE), tf.int32) * COLOR_CODE2
 
@@ -108,11 +111,13 @@ class DrawSegmentationTest(tf.test.TestCase):
         ):
             draw_segmentation(self.images, self.masks, color=_missing_color_map)
 
+        # test mask and image shape
         with self.assertRaisesRegex(
             ValueError, "image.shape[:3] == mask.shape should be true"
         ):
             draw_segmentation(self.images, tf.constant(1, tf.uint8))
 
+        # test mask and image dtypes.
         with self.assertRaisesRegex(TypeError, "Only integer dtypes supported"):
             draw_segmentation(tf.cast(self.images, tf.float32), self.masks)
 
