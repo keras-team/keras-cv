@@ -44,7 +44,11 @@ class WithLabelsTest(tf.test.TestCase, parameterized.TestCase):
             preprocessing.RandomHue,
             {"value_range": (0, 255), "factor": 0.5},
         ),
-        ("RandomSaturation", preprocessing.RandomSaturation, {"factor": 0.5}),
+        (
+            "RandomChannelShift",
+            preprocessing.RandomChannelShift,
+            {"value_range": (0, 255)},
+        )("RandomSaturation", preprocessing.RandomSaturation, {"factor": 0.5}),
         (
             "RandomSharpness",
             preprocessing.RandomSharpness,
