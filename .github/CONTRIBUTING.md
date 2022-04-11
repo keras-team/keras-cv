@@ -2,6 +2,8 @@
 
 Follow these steps to submit your code contribution.
 
+[You can find a list of issues that we are looking for contributors on here!](https://github.com/keras-team/keras-cv/labels/contribution-welcome)
+
 ### Step 1. Open an issue
 
 Before making any changes, we recommend opening an issue (if one doesn't already
