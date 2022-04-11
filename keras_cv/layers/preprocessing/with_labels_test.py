@@ -41,6 +41,11 @@ TEST_CONFIGURATIONS = [
         preprocessing.RandomHue,
         {"factor": 0.5, "value_range": (0, 255)},
     ),
+    (
+        "RandomChannelShift",
+        preprocessing.RandomChannelShift,
+        {"value_range": (0, 255), "factor": 0.5},
+    ),
     ("RandomSaturation", preprocessing.RandomSaturation, {"factor": 0.5}),
     (
         "RandomSharpness",
