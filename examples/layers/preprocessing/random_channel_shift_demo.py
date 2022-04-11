@@ -61,4 +61,5 @@ def main():
         plt.imshow(images[i].numpy().astype("uint8"))
     plt.show()
 
+
 main()
