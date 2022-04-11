@@ -42,7 +42,7 @@ class SerializationTest(tf.test.TestCase, parameterized.TestCase):
         ("Grayscale", preprocessing.Grayscale, {}),
         ("GridMask", preprocessing.GridMask, {"seed": 1}),
         ("MixUp", preprocessing.MixUp, {"seed": 1}),
-        (
+        ("RandomChannelShift", preprocessing.RandomChannelShift, {})(
             "Posterization",
             preprocessing.Posterization,
             {"bits": 3, "value_range": (0, 255)},

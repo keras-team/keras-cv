@@ -17,7 +17,7 @@ import tensorflow as tf
 from keras_cv.utils import preprocessing
 
 
-class RGBShift(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
+class RandomChannelShift(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
     """Randomly shift values for each channel of the input image(s).
 
     The input images should have values in the `[0-255]` or `[0-1]` range.
@@ -31,62 +31,68 @@ class RGBShift(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
         `(..., height, width, channels)`, in `channels_last` format.
 
     Args:
-        factor: A scalar value, or tuple/list of two floating values in
-            the range `[0.0, 1.0]`. If `factor` is a single value, it will
-            interpret as equivalent to the tuple `(0.0, factor)`. The `factor`
-            will sampled between its range for every image to augment.
         value_range: The range of values the incoming images will have.
             Represented as a two number tuple written [low, high].
             This is typically either `[0, 1]` or `[0, 255]` depending
             on how your preprocessing pipeline is setup.
+        factor: A scalar value, or tuple/list of two floating values in
+            the range `[0.0, 1.0]`. If `factor` is a single value, it will
+            interpret as equivalent to the tuple `(0.0, factor)`. The `factor`
+            will sampled between its range for every image to augment.
+        channels: integer, the number of channels to shift.  Defaults to 3 which
+            corresponds to an RGB shift.  In some cases, there may ber more or less
+            channels.
         seed: Integer. Used to create a random seed.
 
     Usage:
     ```python
     (images, labels), _ = tf.keras.datasets.cifar10.load_data()
-    rgb_shift = keras_cv.layers.RGBShift(factor=(0.3, 0.8), value_range=(0, 255))
+    rgb_shift = keras_cv.layers.RandomChannelShift(factor=(0.3, 0.8), value_range=(0, 255))
     augmented_images = rgb_shift(images)
     ```
     """
 
-    def __init__(self, factor, value_range, seed=None, **kwargs):
-        super().__init__(**kwargs)
+    def __init__(self, value_range, factor, channels=3, seed=None, **kwargs):
+        super().__init__(**kwargs, seed=seed)
         self.seed = seed
         self.value_range = value_range
+        self.channels = channels
         self.factor = preprocessing.parse_factor(factor, seed=self.seed)
 
     def get_random_transformation(self, image=None, label=None, bounding_box=None):
-        invert = preprocessing.random_inversion(self._random_generator)
-        r_shift = invert * self.factor() * 0.5
+        shifts = []
+        for _ in range(self.channels):
+            shifts.append(self._get_shift())
+        return shifts
 
+    def _get_shift(self):
         invert = preprocessing.random_inversion(self._random_generator)
-        g_shift = invert * self.factor() * 0.5
-
-        invert = preprocessing.random_inversion(self._random_generator)
-        b_shift = invert * self.factor() * 0.5
-
-        return [r_shift, g_shift, b_shift]
+        return invert * self.factor() * 0.5
 
     def augment_image(self, image, transformation=None):
         image = preprocessing.transform_value_range(image, self.value_range, (0, 1))
-        unstack_rgb = tf.unstack(tf.cast(image, tf.float32), axis=-1)
-        shifted_rgb = tf.stack(
-            [
-                tf.add(unstack_rgb[0], transformation[0]),
-                tf.add(unstack_rgb[1], transformation[1]),
-                tf.add(unstack_rgb[2], transformation[2]),
-            ],
+        unstack_rgb = tf.unstack(image, axis=-1)
+
+        result = []
+        for c_i in range(self.channels):
+            result.append(unstack_rgb[c_i] + transformation[c_i])
+
+        result = tf.stack(
+            result,
             axis=-1,
         )
-        shifted_rgb = tf.clip_by_value(shifted_rgb, 0.0, 1.0)
-        image = preprocessing.transform_value_range(
-            shifted_rgb, (0, 1), self.value_range
-        )
+        result = tf.clip_by_value(result, 0.0, 1.0)
+        image = preprocessing.transform_value_range(result, (0, 1), self.value_range)
         return image
 
     def get_config(self):
         config = super().get_config()
         config.update(
-            {"factor": self.factor, "value_range": self.value_range, "seed": self.seed}
+            {
+                "factor": self.factor,
+                "channels": self.channels,
+                "value_range": self.value_range,
+                "seed": self.seed,
+            }
         )
         return config
