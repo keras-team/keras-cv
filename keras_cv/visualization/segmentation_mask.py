@@ -82,7 +82,7 @@ def _map_color_on_mask(masks, color):
         )
         colored_masks.write(c, table[tf.cast(masks, tf.int32)]).mark_used()
 
-    return tf.transpose(colored_masks.stack(), list(range(1, masks.ndim + 1)) + [0])
+    return tf.einsum("cnhw->nhwc", colored_masks.stack())
 
 
 def draw_segmentation(image, mask, color={}, alpha=0.4):
