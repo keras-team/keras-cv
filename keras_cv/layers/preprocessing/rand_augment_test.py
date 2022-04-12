@@ -39,7 +39,7 @@ class RandAugmentTest(tf.test.TestCase, parameterized.TestCase):
     )
     def test_runs_with_value_range(self, low, high):
         rand_augment = layers.RandAugment(
-            augmentations_per_image=3, magnitude=0.5, value_range=(low, high)
+            augmentations_per_image=3, magnitude=0.5, rate=1.0, value_range=(low, high)
         )
         xs = tf.random.uniform((2, 512, 512, 3), low, high, dtype=tf.float32)
         ys = rand_augment(xs)
@@ -58,7 +58,7 @@ class RandAugmentTest(tf.test.TestCase, parameterized.TestCase):
 
     def test_runs_unbatched(self):
         rand_augment = layers.RandAugment(
-            augmentations_per_image=3, magnitude=0.5, value_range=(0, 255)
+            augmentations_per_image=3, magnitude=0.5, rate=1.0, value_range=(0, 255)
         )
         xs = tf.random.uniform((512, 512, 3), 0, 255, dtype=tf.float32)
         ys = rand_augment(xs)
