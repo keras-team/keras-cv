@@ -58,7 +58,11 @@ class RandAugment(RandomAugmentationPipeline):
             Defaults to `0.15`.
         rate:  the rate at which to apply each augmentation.  This parameter is applied
             on a per-distortion layer, per image.  Should be in the range `[0, 1]`.
-            Defaults to `1`.
+            To reproduce the original RandAugment paper results, set this to `10/11`.
+            The original `RandAugment` paper includes an Identity transform.  By setting
+            the rate to 10/11 in our implementation, the behavior is identical to
+            sampling an Identity augmentation 10/11th of the time.
+            Defaults to `1.0`.
 
     Usage:
     ```python
@@ -76,7 +80,7 @@ class RandAugment(RandomAugmentationPipeline):
         augmentations_per_image=3,
         magnitude=0.5,
         magnitude_stddev=0.15,
-        rate=1.0,
+        rate=10 / 11,
         seed=None,
         **kwargs,
     ):
@@ -130,12 +134,6 @@ class RandAugment(RandomAugmentationPipeline):
         solarize = cv_preprocessing.Solarization(
             **policy["solarize"], value_range=value_range, seed=seed
         )
-        solarize_add = cv_preprocessing.Solarization(
-            **policy["solarize_add"], value_range=value_range, seed=seed
-        )
-        invert = cv_preprocessing.Solarization(
-            **policy["invert"], value_range=value_range, seed=seed
-        )
 
         color = cv_preprocessing.RandomColorDegeneration(**policy["color"], seed=seed)
         contrast = cv_preprocessing.RandomContrast(**policy["contrast"], seed=seed)
@@ -150,13 +148,10 @@ class RandAugment(RandomAugmentationPipeline):
         translate_y = cv_preprocessing.RandomTranslation(
             **policy["translate_y"], seed=seed
         )
-        cutout = cv_preprocessing.RandomCutout(**policy["cutout"], seed=seed)
         return [
             auto_contrast,
             equalize,
             solarize,
-            solarize_add,
-            invert,
             color,
             contrast,
             brightness,
@@ -164,7 +159,6 @@ class RandAugment(RandomAugmentationPipeline):
             shear_y,
             translate_x,
             translate_y,
-            cutout,
         ]
 
     def get_config(self):
@@ -193,16 +187,6 @@ def equalize_policy(magnitude, magnitude_stddev):
 
 
 def solarize_policy(magnitude, magnitude_stddev):
-    threshold_factor = core.NormalFactorSampler(
-        mean=magnitude * 255,
-        standard_deviation=magnitude_stddev * 256,
-        min_value=0,
-        max_value=255,
-    )
-    return {"threshold_factor": threshold_factor}
-
-
-def solarize_add_policy(magnitude, magnitude_stddev):
     # We cap additions at 110, because if we add more than 110 we will be nearly
     # nullifying the information contained in the image, making the model train on noise
     maximum_addition_value = 110
@@ -212,11 +196,13 @@ def solarize_add_policy(magnitude, magnitude_stddev):
         min_value=0,
         max_value=maximum_addition_value,
     )
-    return {"addition_factor": addition_factor, "threshold_factor": 128}
-
-
-def invert_policy(magnitude, magnitude_stddev):
-    return {"addition_factor": 0, "threshold_factor": 0}
+    threshold_factor = core.NormalFactorSampler(
+        mean=(255 - (magnitude * 255)),
+        standard_deviation=(magnitude_stddev * 255),
+        min_value=0,
+        max_value=255,
+    )
+    return {"addition_factor": addition_factor, "threshold_factor": threshold_factor}
 
 
 def color_policy(magnitude, magnitude_stddev):
@@ -271,22 +257,10 @@ def translate_y_policy(magnitude, magnitude_stddev):
     return {"width_factor": 0, "height_factor": magnitude}
 
 
-def cutout_policy(magnitude, magnitude_stddev):
-    factor = core.NormalFactorSampler(
-        mean=0.5 * magnitude,
-        standard_deviation=0.5 * magnitude_stddev,
-        min_value=0,
-        max_value=1,
-    )
-    return {"width_factor": factor, "height_factor": factor}
-
-
 POLICY_PAIRS = {
     "auto_contrast": auto_contrast_policy,
     "equalize": equalize_policy,
     "solarize": solarize_policy,
-    "solarize_add": solarize_add_policy,
-    "invert": invert_policy,
     "color": color_policy,
     "contrast": contrast_policy,
     "brightness": brightness_policy,
@@ -294,7 +268,6 @@ POLICY_PAIRS = {
     "shear_y": shear_y_policy,
     "translate_x": translate_x_policy,
     "translate_y": translate_y_policy,
-    "cutout": cutout_policy,
 }
 
 
