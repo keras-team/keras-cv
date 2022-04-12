@@ -58,7 +58,10 @@ class RandAugment(RandomAugmentationPipeline):
             Defaults to `0.15`.
         rate:  the rate at which to apply each augmentation.  This parameter is applied
             on a per-distortion layer, per image.  Should be in the range `[0, 1]`.
-            Defaults to `1`.
+            Defaults to `1/11`, as the original `RandAugment` paper includes an
+            Identity transform.  By setting the rate to 1/11 in our implementation, the
+            behavior is identical to sampling an Identity augmentation 1/11th of the
+            time.
 
     Usage:
     ```python
@@ -76,7 +79,7 @@ class RandAugment(RandomAugmentationPipeline):
         augmentations_per_image=3,
         magnitude=0.5,
         magnitude_stddev=0.15,
-        rate=1.0,
+        rate=10 / 11,
         seed=None,
         **kwargs,
     ):
@@ -127,8 +130,8 @@ class RandAugment(RandomAugmentationPipeline):
             **policy["equalize"], value_range=value_range, seed=seed
         )
 
-        solarize_add = cv_preprocessing.Solarization(
-            **policy["solarize_add"], value_range=value_range, seed=seed
+        solarize = cv_preprocessing.Solarization(
+            **policy["solarize"], value_range=value_range, seed=seed
         )
 
         color = cv_preprocessing.RandomColorDegeneration(**policy["color"], seed=seed)
@@ -147,7 +150,7 @@ class RandAugment(RandomAugmentationPipeline):
         return [
             auto_contrast,
             equalize,
-            solarize_add,
+            solarize,
             color,
             contrast,
             brightness,
@@ -174,18 +177,6 @@ class RandAugment(RandomAugmentationPipeline):
         return config
 
 
-@tf.keras.utils.register_keras_serializable(package="keras_cv")
-class Identity(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
-    def augment_image(self, image, transformation=None):
-        return image
-
-    def augment_label(self, label, transformation=None):
-        return label
-
-    def augment_bounding_box(self, bounding_box, transformation=None):
-        return bounding_box
-
-
 def auto_contrast_policy(magnitude, magnitude_stddev):
     return {}
 
@@ -194,7 +185,7 @@ def equalize_policy(magnitude, magnitude_stddev):
     return {}
 
 
-def solarize_add_policy(magnitude, magnitude_stddev):
+def solarize_policy(magnitude, magnitude_stddev):
     # We cap additions at 110, because if we add more than 110 we will be nearly
     # nullifying the information contained in the image, making the model train on noise
     maximum_addition_value = 110
@@ -204,7 +195,13 @@ def solarize_add_policy(magnitude, magnitude_stddev):
         min_value=0,
         max_value=maximum_addition_value,
     )
-    return {"addition_factor": addition_factor, "threshold_factor": 128}
+    threshold_factor = core.NormalFactorSampler(
+        mean=(255 - (magnitude * 255)),
+        standard_deviation=(magnitude_stddev * 255),
+        min_value=0,
+        max_value=255,
+    )
+    return {"addition_factor": addition_factor, "threshold_factor": threshold_factor}
 
 
 def color_policy(magnitude, magnitude_stddev):
@@ -262,7 +259,7 @@ def translate_y_policy(magnitude, magnitude_stddev):
 POLICY_PAIRS = {
     "auto_contrast": auto_contrast_policy,
     "equalize": equalize_policy,
-    "solarize_add": solarize_add_policy,
+    "solarize": solarize_policy,
     "color": color_policy,
     "contrast": contrast_policy,
     "brightness": brightness_policy,
