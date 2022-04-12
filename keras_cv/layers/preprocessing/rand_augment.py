@@ -58,9 +58,9 @@ class RandAugment(RandomAugmentationPipeline):
             Defaults to `0.15`.
         rate:  the rate at which to apply each augmentation.  This parameter is applied
             on a per-distortion layer, per image.  Should be in the range `[0, 1]`.
-            Defaults to `1/11`, as the original `RandAugment` paper includes an
-            Identity transform.  By setting the rate to 1/11 in our implementation, the
-            behavior is identical to sampling an Identity augmentation 1/11th of the
+            Defaults to `10/11`, as the original `RandAugment` paper includes an
+            Identity transform.  By setting the rate to 10/11 in our implementation, the
+            behavior is identical to sampling an Identity augmentation 10/11th of the
             time.
 
     Usage:
