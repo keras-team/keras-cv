@@ -48,38 +48,35 @@ class FMix(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
         self.seed = seed
 
     @staticmethod
-    def _sample_from_beta(alpha, beta):
-        sample_alpha = tf.random.gamma((), 1.0, beta=alpha)
-        sample_beta = tf.random.gamma((), 1.0, beta=beta)
+    def _sample_from_beta(alpha, beta, shape):
+        sample_alpha = tf.random.gamma(shape, 1.0, beta=alpha)
+        sample_beta = tf.random.gamma(shape, 1.0, beta=beta)
         return sample_alpha / (sample_alpha + sample_beta)
 
     def fftfreq(self, n, d=1):
         # An implementation of numpy.fft.fftfreq using Tensorflow.
 
-        results = tf.zeros(n, dtype=tf.int32)
         N = tf.convert_to_tensor((n - 1) / 2 + 1)
         results = tf.concat(
             [tf.range(N, dtype=tf.int32), tf.range(-(n // 2), 0, dtype=tf.int32)], 0
         )
         return results / (n * d)
 
-    def apply_fftfreq(self, h, w, z):
+    def apply_fftfreq(self, h, w):
         # Applying the fourier transform across 3 dimensions.
 
         fx = self.fftfreq(w)[: w // 2 + 1 + w % 2]
 
         fy = self.fftfreq(h)
         fy = tf.expand_dims(fy, -1)
-        fy = tf.expand_dims(fy, -1)
 
-        fz = self.fftfreq(z)[:, None]
-        return tf.math.sqrt(fx * fx + fy * fy + fz * fz)
+        return tf.math.sqrt(fx * fx + fy * fy)
 
-    def get_spectrum(self, freqs, decay_power, ch, h, w, z):
+    def get_spectrum(self, freqs, decay_power, ch, h, w):
         # Function to apply a low pass filter by decaying its high frequency components.
 
         scale = tf.ones(1) / tf.cast(
-            tf.math.maximum(freqs, tf.convert_to_tensor([1 / tf.reduce_max([w, h, z])]))
+            tf.math.maximum(freqs, tf.convert_to_tensor([1 / tf.reduce_max([w, h])]))
             ** decay_power,
             tf.float32,
         )
@@ -96,12 +93,12 @@ class FMix(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
     def sample_mask_from_transform(self, decay, shape, ch=1):
         # Sampling low frequency map from fourier transform.
 
-        freqs = self.apply_fftfreq(shape[0], shape[1], shape[2])
-        spectrum = self.get_spectrum(freqs, decay, ch, shape[0], shape[1], shape[2])
+        freqs = self.apply_fftfreq(shape[0], shape[1])
+        spectrum = self.get_spectrum(freqs, decay, ch, shape[0], shape[1])
         spectrum = tf.complex(spectrum[:, 0], spectrum[:, 1])
 
-        mask = tf.math.real(tf.signal.irfft3d(spectrum, shape))
-        mask = mask[:1, : shape[0], : shape[1], : shape[2]]
+        mask = tf.math.real(tf.signal.irfft2d(spectrum, shape))
+        mask = mask[:1, : shape[0], : shape[1]]
 
         mask = mask - tf.reduce_min(mask)
         mask = mask / tf.reduce_max(mask)
@@ -168,19 +165,33 @@ class FMix(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
         shape = tf.shape(images)
         permutation_order = tf.random.shuffle(tf.range(0, shape[0]), seed=self.seed)
 
-        lambda_sample = FMix._sample_from_beta(self.alpha, self.alpha)
+        lambda_sample = FMix._sample_from_beta(self.alpha, self.alpha, (shape[0],))
 
-        masks = self.sample_mask_from_transform(self.decay_power, shape[:-1])
-        masks = self.binarise_mask(masks, lambda_sample, shape[:-1], self.max_soft)
+        # generate masks utilizing mapped calls
+        masks = tf.map_fn(
+            lambda x: self.sample_mask_from_transform(self.decay_power, shape[1:-1]),
+            tf.range(shape[0], dtype=tf.float32),
+        )
+
+        masks = tf.map_fn(
+            lambda i: self.binarise_mask(
+                masks[i], lambda_sample[i], shape[1:-1], self.max_soft
+            ),
+            tf.range(shape[0], dtype=tf.int32),
+            fn_output_signature=tf.float32,
+        )
         masks = tf.expand_dims(masks, -1)
-        fmix_images = tf.gather(images, permutation_order)
 
+        fmix_images = tf.gather(images, permutation_order)
         images = masks * images + (1.0 - masks) * fmix_images
 
         return images, lambda_sample, permutation_order
 
     def _update_labels(self, labels, lambda_sample, permutation_order):
         labels_for_fmix = tf.gather(labels, permutation_order)
+
+        # for one-hot broadcast
+        lambda_sample = tf.expand_dims(lambda_sample, -1)
 
         labels = lambda_sample * labels + (1.0 - lambda_sample) * labels_for_fmix
         return labels
