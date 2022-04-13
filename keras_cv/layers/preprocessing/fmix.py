@@ -87,7 +87,7 @@ class FMix(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
         param_size = tf.concat(
             [tf.constant([ch]), tf.shape(freqs), tf.constant([2])], 0
         )
-        param = self._random_generator.random_uniform(param_size)
+        param = self._random_generator.random_normal(param_size)
 
         scale = tf.expand_dims(scale, -1)[None, :]
 
