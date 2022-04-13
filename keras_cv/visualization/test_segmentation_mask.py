@@ -107,6 +107,10 @@ class DrawSegmentationTest(tf.test.TestCase):
         actual_mask_section = tf.stack(_color_masks, axis=0)
         self.assertAllEqual(images, actual_images)
 
+    def test_draw_segmentation_color_tuple(self):
+        images = draw_segmentation(self.images, self.masks, color=(255, 0, 0))
+        self.assertEqual(images.shape, self.images.shape)
+
     def test_draw_segmentation_exception_handling(self):
 
         # test color type handling.

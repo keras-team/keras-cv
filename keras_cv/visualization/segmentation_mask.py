@@ -34,48 +34,48 @@ def _blend(image1, image2, factor=0.4):
 
 
 def _map_color_on_mask(masks, color):
+    def _raise_color_not_found_error(color):
+        raise KeyError(
+            f"{color} is not supported yet,"
+            "please check supported colors at `keras_cv.visualization.colors`"
+        )
 
-    # check distinct mask color codes with color mapping.
-    distinct_mask_code = tf.unique(tf.reshape(masks, -1)).y
-    color_rgb = defaultdict(tuple)
-
-    if isinstance(color, str):
-        for idx in distinct_mask_code:
-            try:
-                color_rgb.update({int(idx): colors[color]})
-            except KeyError:
-                raise KeyError(
-                    f"{color} is not supported yet,"
-                    "please check supported colors at `keras_cv.visualization.colors`"
-                )
-
-        color_keys = list(distinct_mask_code.numpy())
-
-    else:
+    def _check_distinct_mask_code(distinct_mask_code):
         if any([code not in distinct_mask_code for code in color.keys()]):
             raise ValueError(
                 f"Color mapping {color} does not map completely\
                   with distint color codes present in masks: {distinct_mask_code}"
             )
 
+    # check distinct mask color codes with color mapping.
+    distinct_mask_code = tf.unique(tf.reshape(masks, -1)).y
+
+    if isinstance(color, str):
+        try:
+            color_rgb = defaultdict(lambda: colors[color])
+        except KeyError:
+            _raise_color_not_found_error(color)
+
+    elif isinstance(color, (tuple, list)):
+        color_rgb = defaultdict(lambda: color)
+
+    else:
+        _check_distinct_mask_code(distinct_mask_code)
         # map color code with RGB
+        color_rgb = defaultdict(lambda: (0, 0, 0))
         for code, name in color.items():
             try:
                 color_rgb.update({code: colors[name]})
             except KeyError:
-                raise KeyError(
-                    f"{name} is not supported yet,"
-                    "please check supported colors at `keras_cv.visualization.colors`"
-                )
-        color_keys = list(color.keys())
+                _raise_color_not_found_error(name)
 
-    keys_tensor = tf.constant(color_keys, dtype=tf.int32)
+    keys_tensor = tf.cast(distinct_mask_code, tf.int32)
     colored_masks = tf.TensorArray(
         tf.int32, size=0, dynamic_size=True, clear_after_read=True
     )
 
     for c in range(RGB):
-        vals_tensor = tf.constant([color_rgb[color][c] for color in color_keys])
+        vals_tensor = tf.map_fn(lambda color: color_rgb[color.numpy()][c], keys_tensor)
         table = tf.lookup.StaticHashTable(
             tf.lookup.KeyValueTensorInitializer(keys_tensor, vals_tensor),
             default_value=0,
@@ -88,16 +88,16 @@ def _map_color_on_mask(masks, color):
 def draw_segmentation(image, mask, color={}, alpha=0.4):
     """Draws segmentation masks on images with desired color
     and transparency.
-    Colors supported are standard X11 colors.
+    Colors supported are standard `X11 Color set`.
 
     Args:
-        image: An integer tensor with shape (N, img_height, img_height, 3)
-        mask: An integer tensor of shape (N, img_height, img_height) with masks
+        image: An integer tensor with shape (N, img_height, img_width, 3)
+        mask: An integer tensor of shape (N, img_height, img_width) with masks
               values corresponding to `color_map`.
         color: The color or colors to draw the segmentation map/s in.
                This can either be a single color, or a mapping from class IDs
-               to colors.  Supported color formats are RGB tuples or strings.
-               A full list of color strings is available in keras_cv/visualization/colors.py
+               to colors.  Supported colors are `X11 Color Set` and formats are RGB tuples or strings.
+               A full list of color strings is available at `KerasCV Colors`
         alpha: Transparency value between 0 and 1. (default: 0.4)
     Returns:
         Masks overlaid on images.
@@ -105,15 +105,18 @@ def draw_segmentation(image, mask, color={}, alpha=0.4):
     Raises:
         ValueError: On incorrect data type and shapes for images or masks.
         KeyError: On incorrect color in `color_map`.
+
+    .. KerasCV Colors:
+       https://github.com/keras-team/keras-cv/tree/master/keras_cv/visualization/colors.py
+    .. X11 Color Set:
+       https://www.w3.org/TR/css-color-4/#named-colors
+
     """
-    tf.debugging.assert_integer(
-        image, message="Only integer dtypes supported for images."
-    )
     tf.debugging.assert_integer(
         mask, message="Only integer dtypes supported for masks."
     )
 
-    assert isinstance(color, (dict, str)), TypeError(
+    assert isinstance(color, (dict, str, tuple, list)), TypeError(
         f"Dict or string is expected for `color` but {type(color)} passed."
     )
 

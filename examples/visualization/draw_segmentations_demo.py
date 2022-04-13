@@ -23,7 +23,7 @@ import matplotlib.pyplot as plt
 import tensorflow as tf
 import tensorflow_datasets as tfds
 
-from keras_cv.visualization import draw_segmentation
+import keras_cv
 
 IMG_SIZE = (224, 224)
 BATCH_SIZE = 2
@@ -68,11 +68,15 @@ def main():
 
     # draw segmentation on batch of images.
     # example 1.: single color `green`
-    masked_images = draw_segmentation(batch_images, mask, color="green")
+    masked_images = keras_cv.visualization.draw_segmentation(
+        batch_images, mask, color="green"
+    )
     draw_masked_images(masked_images)
 
     # example 2.: color mapping.
-    masked_images = draw_segmentation(batch_images, mask, color={1: "green", 2: "red"})
+    masked_images = keras_cv.visualization.draw_segmentation(
+        batch_images, mask, color={1: "green", 2: "red"}
+    )
     draw_masked_images(masked_images)
 
 
