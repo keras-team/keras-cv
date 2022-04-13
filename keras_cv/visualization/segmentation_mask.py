@@ -164,7 +164,7 @@ def draw_segmentation(image, mask, color={}, alpha=0.4):
     )
 
     assert isinstance(color, (dict, str, tuple, list)), TypeError(
-        f"Dict or string is expected for `color` but {type(color)} passed."
+        f"(dict/string/tuple/list) are supported types `color` but {type(color)} passed."
     )
 
     if (image.ndim == 4) and (image.shape[:3] != mask.shape):
