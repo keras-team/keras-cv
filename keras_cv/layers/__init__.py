@@ -18,6 +18,7 @@ from tensorflow.keras.layers import RandomContrast
 from tensorflow.keras.layers import RandomCrop
 from tensorflow.keras.layers import RandomFlip
 from tensorflow.keras.layers import RandomHeight
+from tensorflow.keras.layers import RandomHue
 from tensorflow.keras.layers import RandomRotation
 from tensorflow.keras.layers import RandomTranslation
 from tensorflow.keras.layers import RandomWidth
