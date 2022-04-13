@@ -12,27 +12,45 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import tensorflow as tf
+from absl.testing import parameterized
 
 import keras_cv
 
 
-class DrawSegmentationTest(tf.test.TestCase):
+IMG_SIZE = 6
+MASK_SIZE = 2
+N = 2
+COLOR_CODE1 = 1
+COLOR_CODE2 = 2
+
+colors_test_data = (
+    ("basic_string", "red"),
+    ("basic_tuple", (0, 255, 0)),
+    ("color_string_map", {1: (0, 255, 0)}),
+    ("color_tuple_map", {1: "red"}),
+)
+
+dtypes_test_data = (
+    ("float32", tf.float32),
+    ("uint8", tf.uint8),
+    ("int16", tf.int16),
+    ("int32", tf.int32),
+)
+
+color_map_test_data = (
+    ("complete-map-str", {COLOR_CODE1: "red", COLOR_CODE2: "green"}),
+    ("missing-map-str", {COLOR_CODE1: "green"}),
+    ("complete-map-tuple", {COLOR_CODE1: (255, 0, 0), COLOR_CODE2: (0, 255, 0)}),
+)
+
+
+class DrawSegmentationTest(tf.test.TestCase, parameterized.TestCase):
     def setUp(self):
         super().setUp()
-        IMG_SIZE = 6
-        MASK_SIZE = 2
-        COLOR_CODE1 = 1
-        COLOR_CODE2 = 2
 
-        self.color = "red"
-        self.color_map = {COLOR_CODE1: "red", COLOR_CODE2: "green"}
+        self.images = tf.zeros((N, IMG_SIZE, IMG_SIZE, 3), tf.float32)
 
-        # create two different images,
-        image1 = tf.ones((IMG_SIZE, IMG_SIZE, 3), tf.uint8) * 100
-        image2 = tf.ones((IMG_SIZE, IMG_SIZE, 3), tf.uint8) * 200
-        self.images = tf.stack([image1, image2], axis=0)
-
-        # create two center rectangle masks.
+        # create center rectangle mask.
         mask1 = tf.ones((MASK_SIZE, MASK_SIZE), tf.int32) * COLOR_CODE1
         mask2 = tf.ones((MASK_SIZE, MASK_SIZE), tf.int32) * COLOR_CODE2
 
@@ -43,109 +61,87 @@ class DrawSegmentationTest(tf.test.TestCase):
         mask2 = tf.cast(tf.pad(mask2, paddings, "CONSTANT"), dtype=tf.uint8)
         self.masks = tf.stack([mask1, mask2], axis=0)
 
-        self.IMG_SIZE = IMG_SIZE
-        self.MASK_SIZE = MASK_SIZE
-
-    def test_draw_segmentation_base_case(self):
+    @parameterized.named_parameters(*colors_test_data)
+    def test_draw_segmentation_base_case(self, color):
         images = keras_cv.visualization.draw_segmentation(
-            self.images, self.masks, color="red"
+            self.images, self.masks, color=color
         )
         self.assertEqual(images.shape, self.images.shape)
 
-    def test_draw_segmentation_full_factor(self):
+    @parameterized.named_parameters(*dtypes_test_data)
+    def test_draw_segmentation_dtypes(self, dtype):
         images = keras_cv.visualization.draw_segmentation(
-            self.images, self.masks, color=self.color, alpha=1.0
+            tf.cast(self.images, dtype), self.masks
         )
-        mask_section = images[
-            :, self.MASK_SIZE : self.mask_y, self.MASK_SIZE : self.mask_y
-        ]
+        self.assertEqual(images.shape, self.images.shape)
 
-        actual_images = tf.Variable(tf.identity(self.images))
-        actual_images[
-            :, self.MASK_SIZE : self.mask_y, self.MASK_SIZE : self.mask_y
-        ].assign(mask_section)
-
-        self.assertAllEqual(images, actual_images)
-
-    def test_draw_segmentation_no_factor(self):
+    @parameterized.named_parameters(
+        ("full_factor", 1.0), ("partial_factor", 0.5), ("no_factor", 0.0)
+    )
+    def test_draw_segmentation_partial_factor(self, alpha):
         images = keras_cv.visualization.draw_segmentation(
-            self.images, self.masks, color=self.color, alpha=0.0
+            self.images, self.masks, alpha=alpha
         )
-        self.assertAllEqual(self.images, images)
-
-    def test_draw_segmentation_partial_factor(self):
-        alpha = 0.5
-        images = keras_cv.visualization.draw_segmentation(
-            self.images, self.masks, color=self.color, alpha=alpha
-        )
-        color_rgb = keras_cv.visualization.colors.get(self.color)
+        color_rgb = colors.get("red")
         alpha_tf = tf.constant(alpha)
 
         image_section = tf.cast(
-            self.images[:, self.MASK_SIZE : self.mask_y, self.MASK_SIZE : self.mask_y],
-            tf.float32,
+            self.images[:, MASK_SIZE : self.mask_y, MASK_SIZE : self.mask_y], tf.float32
         )
         actual_mask_section = tf.round(
             image_section * (1 - alpha_tf) + alpha_tf * color_rgb
         )
         actual_images = tf.Variable(tf.identity(self.images))
-        actual_images[
-            :, self.MASK_SIZE : self.mask_y, self.MASK_SIZE : self.mask_y
-        ].assign(tf.cast(actual_mask_section, actual_images.dtype))
+        actual_images[:, MASK_SIZE : self.mask_y, MASK_SIZE : self.mask_y].assign(
+            tf.cast(actual_mask_section, actual_images.dtype)
+        )
         self.assertAllEqual(images, actual_images)
 
-    def test_draw_segmentation_color_map_base_case(self):
+    @parameterized.named_parameters(*color_map_test_data)
+    def test_draw_segmentation_color_map_base_case(self, color):
         images = keras_cv.visualization.draw_segmentation(
-            self.images, self.masks, color=self.color_map, alpha=1.0
+            self.images, self.masks, color=color, alpha=1.0
         )
-        mask_section = images[
-            :, self.MASK_SIZE : self.mask_y, self.MASK_SIZE : self.mask_y
-        ]
+        mask_section = images[:, MASK_SIZE : self.mask_y, MASK_SIZE : self.mask_y]
         actual_images = tf.Variable(tf.identity(self.images))
-        actual_images[
-            :, self.MASK_SIZE : self.mask_y, self.MASK_SIZE : self.mask_y
-        ].assign(mask_section)
+        actual_images[:, MASK_SIZE : self.mask_y, MASK_SIZE : self.mask_y].assign(
+            mask_section
+        )
 
         _color_masks = []
-        for c in self.color_map.values():
-            color_rgb = keras_cv.visualization.colors.get(c)
+        _all_color_codes = [COLOR_CODE1, COLOR_CODE2]
+        for c in _all_color_codes:
+            if c not in color.keys():
+                color.update({c: "red"})
+        for k, c in color.items():
+            if isinstance(c, str):
+                color_rgb = colors.get(c)
+            else:
+                color_rgb = c
             _color_masks.append(tf.ones_like(mask_section[0]) * color_rgb)
         actual_mask_section = tf.stack(_color_masks, axis=0)
         self.assertAllEqual(images, actual_images)
 
-    def test_draw_segmentation_color_tuple(self):
+    def test_draw_segmentation_3d_image(self):
         images = keras_cv.visualization.draw_segmentation(
-            self.images, self.masks, color=(255, 0, 0)
+            self.images[0], self.masks[0], color=[255, 0, 0]
         )
-        self.assertEqual(images.shape, self.images.shape)
+        self.assertEqual(images.shape, self.images[0].shape)
 
     def test_draw_segmentation_exception_handling(self):
 
         # test color type handling.
-        with self.assertRaisesRegex(TypeError, "Dict or string is excepted"):
-            keras_cv.visualization.draw_segmentation(self.images, self.masks, color=-1)
-        # test color distinct code.
-        _missing_color_map = {-1: "red"}
-
         with self.assertRaisesRegex(
-            TypeError, f"Color mapping {_missing_color_map} does not map completely"
+            TypeError,
+            "(dict/string/tuple/list) are supported types `color` but {type(color)} passed.",
         ):
-            keras_cv.visualization.draw_segmentation(
-                self.images, self.masks, color=_missing_color_map
-            )
+            keras_cv.visualization.draw_segmentation(self.images, self.masks, color=-1)
 
-        # test mask and image shape
         with self.assertRaisesRegex(
             ValueError, "image.shape[:3] == mask.shape should be true"
         ):
             keras_cv.visualization.draw_segmentation(
                 self.images, tf.constant(1, tf.uint8)
-            )
-
-        # test mask and image dtypes.
-        with self.assertRaisesRegex(TypeError, "Only integer dtypes supported"):
-            keras_cv.visualization.draw_segmentation(
-                tf.cast(self.images, tf.float32), self.masks
             )
 
         with self.assertRaisesRegex(TypeError, "Only integer dtypes supported"):
