@@ -96,7 +96,7 @@ class FMix(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
     def sample_mask_from_transform(self, decay, shape, ch=1):
         # Sampling low frequency map from fourier transform.
 
-        freqs = self.always_fftfreq(shape[0], shape[1], shape[2])
+        freqs = self.apply_fftfreq(shape[0], shape[1], shape[2])
         spectrum = self.get_spectrum(freqs, decay, ch, shape[0], shape[1], shape[2])
         spectrum = tf.complex(spectrum[:, 0], spectrum[:, 1])
 
