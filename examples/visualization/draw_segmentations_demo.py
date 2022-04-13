@@ -79,6 +79,24 @@ def main():
     )
     draw_masked_images(masked_images)
 
+    # example 3: color mapping tuple
+    masked_images = keras_cv.visualization.draw_segmentation(
+        batch_images, mask, color={1: (0, 255, 0), 2: (255, 0, 0)}
+    )
+    draw_masked_images(masked_images)
+
+    # example 4: color tuple
+    masked_images = keras_cv.visualization.draw_segmentation(
+        batch_images, mask, color=(0, 255, 0)
+    )
+    draw_masked_images(masked_images)
+
+    # example 5. 3D image.
+    masked_images = keras_cv.visualization.draw_segmentation(
+        batch_images[0], mask[0], color="green"
+    )
+    draw_masked_images(tf.stack([masked_images] * BATCH_SIZE))
+
 
 if __name__ == "__main__":
     main()

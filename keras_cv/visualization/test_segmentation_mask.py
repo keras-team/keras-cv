@@ -13,7 +13,7 @@
 # limitations under the License.
 import tensorflow as tf
 
-from keras_cv.visualization import draw_segmentation, colors
+import keras_cv
 
 
 class DrawSegmentationTest(tf.test.TestCase):
@@ -47,11 +47,15 @@ class DrawSegmentationTest(tf.test.TestCase):
         self.MASK_SIZE = MASK_SIZE
 
     def test_draw_segmentation_base_case(self):
-        images = draw_segmentation(self.images, self.masks, color="red")
+        images = keras_cv.visualization.draw_segmentation(
+            self.images, self.masks, color="red"
+        )
         self.assertEqual(images.shape, self.images.shape)
 
     def test_draw_segmentation_full_factor(self):
-        images = draw_segmentation(self.images, self.masks, color=self.color, alpha=1.0)
+        images = keras_cv.visualization.draw_segmentation(
+            self.images, self.masks, color=self.color, alpha=1.0
+        )
         mask_section = images[
             :, self.MASK_SIZE : self.mask_y, self.MASK_SIZE : self.mask_y
         ]
@@ -64,15 +68,17 @@ class DrawSegmentationTest(tf.test.TestCase):
         self.assertAllEqual(images, actual_images)
 
     def test_draw_segmentation_no_factor(self):
-        images = draw_segmentation(self.images, self.masks, color=self.color, alpha=0.0)
+        images = keras_cv.visualization.draw_segmentation(
+            self.images, self.masks, color=self.color, alpha=0.0
+        )
         self.assertAllEqual(self.images, images)
 
     def test_draw_segmentation_partial_factor(self):
         alpha = 0.5
-        images = draw_segmentation(
+        images = keras_cv.visualization.draw_segmentation(
             self.images, self.masks, color=self.color, alpha=alpha
         )
-        color_rgb = colors.get(self.color)
+        color_rgb = keras_cv.visualization.colors.get(self.color)
         alpha_tf = tf.constant(alpha)
 
         image_section = tf.cast(
@@ -89,7 +95,7 @@ class DrawSegmentationTest(tf.test.TestCase):
         self.assertAllEqual(images, actual_images)
 
     def test_draw_segmentation_color_map_base_case(self):
-        images = draw_segmentation(
+        images = keras_cv.visualization.draw_segmentation(
             self.images, self.masks, color=self.color_map, alpha=1.0
         )
         mask_section = images[
@@ -102,37 +108,47 @@ class DrawSegmentationTest(tf.test.TestCase):
 
         _color_masks = []
         for c in self.color_map.values():
-            color_rgb = colors.get(c)
+            color_rgb = keras_cv.visualization.colors.get(c)
             _color_masks.append(tf.ones_like(mask_section[0]) * color_rgb)
         actual_mask_section = tf.stack(_color_masks, axis=0)
         self.assertAllEqual(images, actual_images)
 
     def test_draw_segmentation_color_tuple(self):
-        images = draw_segmentation(self.images, self.masks, color=(255, 0, 0))
+        images = keras_cv.visualization.draw_segmentation(
+            self.images, self.masks, color=(255, 0, 0)
+        )
         self.assertEqual(images.shape, self.images.shape)
 
     def test_draw_segmentation_exception_handling(self):
 
         # test color type handling.
         with self.assertRaisesRegex(TypeError, "Dict or string is excepted"):
-            draw_segmentation(self.images, self.masks, color=-1)
+            keras_cv.visualization.draw_segmentation(self.images, self.masks, color=-1)
         # test color distinct code.
         _missing_color_map = {-1: "red"}
 
         with self.assertRaisesRegex(
             TypeError, f"Color mapping {_missing_color_map} does not map completely"
         ):
-            draw_segmentation(self.images, self.masks, color=_missing_color_map)
+            keras_cv.visualization.draw_segmentation(
+                self.images, self.masks, color=_missing_color_map
+            )
 
         # test mask and image shape
         with self.assertRaisesRegex(
             ValueError, "image.shape[:3] == mask.shape should be true"
         ):
-            draw_segmentation(self.images, tf.constant(1, tf.uint8))
+            keras_cv.visualization.draw_segmentation(
+                self.images, tf.constant(1, tf.uint8)
+            )
 
         # test mask and image dtypes.
         with self.assertRaisesRegex(TypeError, "Only integer dtypes supported"):
-            draw_segmentation(tf.cast(self.images, tf.float32), self.masks)
+            keras_cv.visualization.draw_segmentation(
+                tf.cast(self.images, tf.float32), self.masks
+            )
 
         with self.assertRaisesRegex(TypeError, "Only integer dtypes supported"):
-            draw_segmentation(self.images, tf.cast(self.masks, tf.float32))
+            keras_cv.visualization.draw_segmentation(
+                self.images, tf.cast(self.masks, tf.float32)
+            )

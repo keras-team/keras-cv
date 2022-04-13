@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Utility function to help visualize batch of binary mask.
+"""Utility function to help visualize binary mask on image tensor.
 """
 from collections import defaultdict
 
@@ -33,15 +33,32 @@ def _blend(image1, image2, factor=0.4):
     return blended
 
 
-def _map_color_on_mask(masks, color):
-    def _raise_color_not_found_error(color):
-        raise KeyError(
-            f"{color} is not supported yet,"
-            "please check supported colors at `keras_cv.visualization.colors`"
-        )
+def _raise_color_not_found_error(color):
+    raise KeyError(
+        f"{color} is not supported yet,"
+        "please check supported colors at `keras_cv.visualization.colors`"
+    )
 
+
+def _check_rgb_tuple(rgb):
+    assert all(
+        isinstance(c, int) for c in rgb
+    ), f"Only integers are support for color tuple."
+    assert all(
+        c >= 0 and c <= 255 for c in rgb
+    ), f"{rgb} does not have valid range i.e 0-255"
+    assert len(rgb) == 3, f"Only RBG is supported but {rgb} passed."
+
+
+def _map_color_on_mask(masks, color):
     def _check_distinct_mask_code(distinct_mask_code):
-        if any([code not in distinct_mask_code for code in color.keys()]):
+        if any(
+            [
+                code not in color.keys()
+                for code in distinct_mask_code.numpy()
+                if code != 0
+            ]
+        ):
             raise ValueError(
                 f"Color mapping {color} does not map completely\
                   with distint color codes present in masks: {distinct_mask_code}"
@@ -57,15 +74,23 @@ def _map_color_on_mask(masks, color):
             _raise_color_not_found_error(color)
 
     elif isinstance(color, (tuple, list)):
+        _check_rgb_tuple(color)
         color_rgb = defaultdict(lambda: color)
 
     else:
         _check_distinct_mask_code(distinct_mask_code)
         # map color code with RGB
         color_rgb = defaultdict(lambda: (0, 0, 0))
+
         for code, name in color.items():
             try:
-                color_rgb.update({code: colors[name]})
+                if isinstance(name, (tuple, list)):
+                    _check_rgb_tuple(name)
+                    color_rgb.update({code: name})
+                elif isinstance(name, str):
+                    color_rgb.update({code: colors[name]})
+                else:
+                    raise TypeError(f"{type(name)} is not supported in color mapping.")
             except KeyError:
                 _raise_color_not_found_error(name)
 
@@ -82,6 +107,8 @@ def _map_color_on_mask(masks, color):
         )
         colored_masks.write(c, table[tf.cast(masks, tf.int32)]).mark_used()
 
+    if masks.ndim == 2:
+        return tf.einsum("chw->hwc", colored_masks.stack())
     return tf.einsum("cnhw->nhwc", colored_masks.stack())
 
 
@@ -104,7 +131,8 @@ def draw_segmentation(image, mask, color={}, alpha=0.4):
 
     Raises:
         ValueError: On incorrect data type and shapes for images or masks.
-        KeyError: On incorrect color in `color_map`.
+        KeyError: On incorrect color string.
+        TypeError: On incorrect color type.
 
     References:
     .. KerasCV Colors:
@@ -121,10 +149,15 @@ def draw_segmentation(image, mask, color={}, alpha=0.4):
         f"Dict or string is expected for `color` but {type(color)} passed."
     )
 
-    if image.shape[:3] != mask.shape:
+    if (image.ndim == 4) and (image.shape[:3] != mask.shape):
         raise ValueError(
             f"image.shape[:3] == mask.shape should be true, got {image.shape[:3]} != {mask.shape}"
         )
+    elif (image.ndim == 3) and (image.shape[:2] != mask.shape):
+        raise ValueError(
+            f"image.shape[:2] == mask.shape should be true, got {image.shape[:2]} != {mask.shape}"
+        )
+
     if alpha <= 0.0:
         return image
 
