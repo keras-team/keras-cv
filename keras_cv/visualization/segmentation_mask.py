@@ -106,6 +106,7 @@ def draw_segmentation(image, mask, color={}, alpha=0.4):
         ValueError: On incorrect data type and shapes for images or masks.
         KeyError: On incorrect color in `color_map`.
 
+    References:
     .. KerasCV Colors:
        https://github.com/keras-team/keras-cv/tree/master/keras_cv/visualization/colors.py
     .. X11 Color Set:
