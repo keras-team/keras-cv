@@ -21,12 +21,12 @@ class FMix(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
     Args:
         alpha: Float value for beta distribution.  Inverse scale parameter for the gamma
             distribution.  This controls the shape of the distribution from which the
-            smoothing values are sampled.  Defaults 0.5, which is a recommended value
+            smoothing values are sampled.  Defaults to 0.5, which is a recommended value
             in the paper.
-        decay_power: A float value representing the decay power for frequency decay prop
-            1/f**d.  Defaults to 3, as recommended in the paper.
-        max_soft: Float value representing softening value between 0 and 0.5 which
-            smooths hard edges in the mask.  Defaults to 0.0.
+        decay_power: A float value representing the decay power.  Defaults to 3, as
+            recommended in the paper.
+        edge_softening: Float value representing softening value which smooths hard
+            edges in the mask.  Defaults to 0.0.
         seed: Integer. Used to create a random seed.
     References:
         [FMix paper](https://arxiv.org/abs/2002.12047).
@@ -40,11 +40,13 @@ class FMix(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
     ```
     """
 
-    def __init__(self, alpha=0.2, decay_power=3, max_soft=0.0, seed=None, **kwargs):
+    def __init__(
+        self, alpha=0.5, decay_power=3, edge_softening=0.0, seed=None, **kwargs
+    ):
         super().__init__(seed=seed, **kwargs)
         self.alpha = alpha
         self.decay_power = decay_power
-        self.max_soft = max_soft
+        self.edge_softening = edge_softening
         self.seed = seed
 
     @staticmethod
@@ -53,26 +55,34 @@ class FMix(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
         sample_beta = tf.random.gamma(shape, 1.0, beta=beta)
         return sample_alpha / (sample_alpha + sample_beta)
 
-    def fftfreq(self, n, d=1):
-        # An implementation of numpy.fft.fftfreq using Tensorflow.
+    @staticmethod
+    def fftfreq(signal_size, sample_spacing=1):
+        """This function returns the sample frequencies of a discrete fourier transform.
+        The result array contains the frequency bin centers starting at 0 using the
+        sample spacing.
+        """
 
-        N = tf.convert_to_tensor((n - 1) / 2 + 1)
         results = tf.concat(
-            [tf.range(N, dtype=tf.int32), tf.range(-(n // 2), 0, dtype=tf.int32)], 0
+            [
+                tf.range((signal_size - 1) / 2 + 1, dtype=tf.int32),
+                tf.range(-(signal_size // 2), 0, dtype=tf.int32),
+            ],
+            0,
         )
-        return results / (n * d)
+
+        return results / (signal_size * sample_spacing)
 
     def apply_fftfreq(self, h, w):
-        # Applying the fourier transform across 3 dimensions.
+        # Applying the fourier transform across 2 dimensions (height and width).
 
-        fx = self.fftfreq(w)[: w // 2 + 1 + w % 2]
+        fx = FMix.fftfreq(w)[: w // 2 + 1 + w % 2]
 
-        fy = self.fftfreq(h)
+        fy = FMix.fftfreq(h)
         fy = tf.expand_dims(fy, -1)
 
         return tf.math.sqrt(fx * fx + fy * fy)
 
-    def get_spectrum(self, freqs, decay_power, ch, h, w):
+    def get_spectrum(self, freqs, decay_power, channel, h, w):
         # Function to apply a low pass filter by decaying its high frequency components.
 
         scale = tf.ones(1) / tf.cast(
@@ -82,7 +92,7 @@ class FMix(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
         )
 
         param_size = tf.concat(
-            [tf.constant([ch]), tf.shape(freqs), tf.constant([2])], 0
+            [tf.constant([channel]), tf.shape(freqs), tf.constant([2])], 0
         )
         param = self._random_generator.random_normal(param_size)
 
@@ -104,19 +114,19 @@ class FMix(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
         mask = mask / tf.reduce_max(mask)
         return mask
 
-    def binarise_mask(self, mask, lam, in_shape, max_soft=0.0):
-        # create the final mask from the sampled values.
+    def binarise_mask(self, mask, lam, in_shape, edge_softening=0.0):
+        # Create the final mask from the sampled values.
 
         idx = tf.argsort(tf.reshape(mask, [-1]), direction="DESCENDING")
         mask = tf.reshape(mask, [-1])
         num = tf.math.round(lam * tf.cast(tf.size(mask), tf.float32))
 
-        eff_soft = max_soft
+        eff_soft = edge_softening
 
         max_compare = tf.math.maximum(lam, (1 - lam))
         min_compare = tf.math.minimum(lam, (1 - lam))
-        eff_soft = tf.where(max_soft > max_compare, max_compare, max_soft)
-        eff_soft = tf.where(max_soft > min_compare, min_compare, max_soft)
+        eff_soft = tf.where(edge_softening > max_compare, max_compare, edge_softening)
+        eff_soft = tf.where(edge_softening > min_compare, min_compare, edge_softening)
 
         soft = tf.cast(tf.size(mask), tf.float32) * eff_soft
         num_low = tf.cast(num - soft, tf.int32)
@@ -173,9 +183,10 @@ class FMix(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
             tf.range(shape[0], dtype=tf.float32),
         )
 
+        # binarise masks utilizing mapped calls
         masks = tf.map_fn(
             lambda i: self.binarise_mask(
-                masks[i], lambda_sample[i], shape[1:-1], self.max_soft
+                masks[i], lambda_sample[i], shape[1:-1], self.edge_softening
             ),
             tf.range(shape[0], dtype=tf.int32),
             fn_output_signature=tf.float32,
@@ -200,7 +211,7 @@ class FMix(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
         config = {
             "alpha": self.alpha,
             "decay_power": self.decay_power,
-            "max_soft": self.max_soft,
+            "edge_softening": self.edge_softening,
             "seed": self.seed,
         }
         base_config = super().get_config()
