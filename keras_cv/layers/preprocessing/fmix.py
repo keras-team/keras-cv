@@ -54,7 +54,7 @@ class FMix(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
         return sample_alpha / (sample_alpha + sample_beta)
 
     def fftfreq(self, n, d=1):
-        # An implementation of numpy.fft.fftfreq using Tensorflow.
+        # This function returns the sample frequencies of a discrete fourier transform.
 
         N = tf.convert_to_tensor((n - 1) / 2 + 1)
         results = tf.concat(
