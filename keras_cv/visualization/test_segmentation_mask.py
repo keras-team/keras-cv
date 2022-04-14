@@ -132,8 +132,7 @@ class DrawSegmentationTest(tf.test.TestCase, parameterized.TestCase):
 
         # test color type handling.
         with self.assertRaisesRegex(
-            TypeError,
-            "(dict/string/tuple/list) are supported types `color` but {type(color)} passed.",
+            TypeError, f"Want type(color)=dict or string, got type(color)"
         ):
             keras_cv.visualization.draw_segmentation(self.images, self.masks, color=-1)
 
