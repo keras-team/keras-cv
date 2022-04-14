@@ -51,7 +51,7 @@ def main():
         contrast_factor=(0.5, 0.9),
         saturation_factor=(0.5, 0.9),
         hue_factor=(0.5, 0.9),
-        seed=101
+        seed=101,
     )
     train_ds = train_ds.map(
         lambda x, y: (color_jitter(x), y), num_parallel_calls=tf.data.AUTOTUNE
