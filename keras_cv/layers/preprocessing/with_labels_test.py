@@ -46,6 +46,17 @@ TEST_CONFIGURATIONS = [
         preprocessing.RandomChannelShift,
         {"value_range": (0, 255), "factor": 0.5},
     ),
+    (
+        "RandomColorJitter",
+        preprocessing.RandomColorJitter,
+        {
+            "brightness_factor": (-0.2, 0.5),
+            "contrast_factor": (0.5, 0.9),
+            "saturation_factor": (0.5, 0.9),
+            "hue_factor": (0.5, 0.9),
+            "seed": 1,
+        },
+    ),
     ("RandomSaturation", preprocessing.RandomSaturation, {"factor": 0.5}),
     (
         "RandomSharpness",

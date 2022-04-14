@@ -17,8 +17,9 @@ import tensorflow as tf
 from keras_cv.layers import preprocessing
 
 
-class ColorJitter(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
-    """ColorJitter class randomly apply brightness, contrast, saturation
+@tf.keras.utils.register_keras_serializable(package="keras_cv")
+class RandomColorJitter(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
+    """RandomColorJitter class randomly apply brightness, contrast, saturation
     and hue image processing operation sequentially and randomly on the
     input. It expects input as RGB image. The expected image should be
     `(0-255)` pixel ranges.
@@ -61,10 +62,12 @@ class ColorJitter(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
             In order to ensure the value is always the same, please pass a tuple
             with two identical floats: `(0.5, 0.5)`.
 
+        seed: Integer. Used to create a random seed.
+
     Usage:
     ```python
     (images, labels), _ = tf.keras.datasets.cifar10.load_data()
-    color_jitter = keras_cv.layers.ColorJitter()
+    color_jitter = keras_cv.layers.RandomColorJitter()
     augmented_images = color_jitter(images)
     ```
     """
@@ -75,6 +78,7 @@ class ColorJitter(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
         contrast_factor,
         saturation_factor,
         hue_factor,
+        seed=None,
         **kwargs,
     ):
         super().__init__(**kwargs)
@@ -82,16 +86,19 @@ class ColorJitter(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
         self.contrast_factor = contrast_factor
         self.saturation_factor = saturation_factor
         self.hue_factor = hue_factor
+        self.seed = seed
 
         self.random_brightness = preprocessing.RandomBrightness(
-            factor=self.brightness_factor, value_range=(0, 255)
+            factor=self.brightness_factor, value_range=(0, 255), seed=self.seed
         )
-        self.random_contrast = preprocessing.RandomContrast(factor=self.contrast_factor)
+        self.random_contrast = preprocessing.RandomContrast(
+            factor=self.contrast_factor, seed=self.seed
+        )
         self.random_saturation = preprocessing.RandomSaturation(
-            factor=self.saturation_factor
+            factor=self.saturation_factor, seed=self.seed
         )
         self.random_hue = preprocessing.RandomHue(
-            factor=self.hue_factor, value_range=(0, 255)
+            factor=self.hue_factor, value_range=(0, 255), seed=self.seed
         )
 
     def augment_image(self, image, transformation=None):
@@ -99,6 +106,9 @@ class ColorJitter(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
         contrast = self.random_contrast(brightness)
         saturation = self.random_saturation(contrast)
         return self.random_hue(saturation)
+
+    def augment_label(self, label, transformation=None):
+        return label
 
     def get_config(self):
         config = super().get_config()
@@ -108,6 +118,7 @@ class ColorJitter(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
                 "contrast_factor": self.contrast_factor,
                 "saturation_factor": self.saturation_factor,
                 "hue_factor": self.hue_factor,
+                "seed": self.seed,
             }
         )
         return config
