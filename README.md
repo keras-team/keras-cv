@@ -34,3 +34,17 @@ Thank you to all of our wonderful contributors!
 <a href="https://github.com/keras-team/keras-cv/graphs/contributors">
   <img src="https://contrib.rocks/image?repo=keras-team/keras-cv" />
 </a>
+
+## Citing KerasCV
+
+If KerasCV helps your research, we appreciate your citations.
+Here is the BibTeX entry:
+
+```bibtex
+@misc{wood2022kerascv,
+  title={KerasCV},
+  author={Wood, Luke and Zhu, Scott and Chollet, Fran\c{c}ois and others},
+  year={2022},
+  howpublished={\url{https://github.com/keras-team/keras-cv}},
+}
+```
