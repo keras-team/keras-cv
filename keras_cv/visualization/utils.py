@@ -1,14 +1,7 @@
-from typing import Dict
-from typing import List
-from typing import Tuple
-from typing import Union
-
 import tensorflow as tf
 
-E = Union[str, Dict[str, Union[str, int]]]
 
-
-def get_nested_layer(model: tf.keras.Model, name: str) -> tf.keras.layers.Layer:
+def get_nested_layer(model, name):
     """Get nested layer in model.
 
     Example:
@@ -27,7 +20,7 @@ def get_nested_layer(model: tf.keras.Model, name: str) -> tf.keras.layers.Layer:
     return model
 
 
-def collect_endpoints(model: tf.keras.Model, endpoints: List[E]) -> List[tf.Tensor]:
+def collect_endpoints(model, endpoints):
     """Collect (intermediate) endpoints in a model."""
     endpoints_ = []
 
@@ -48,7 +41,7 @@ def collect_endpoints(model: tf.keras.Model, endpoints: List[E]) -> List[tf.Tens
     return endpoints_
 
 
-def normalize(x: tf.Tensor, axis: Tuple[int, int] = (-3, -2)) -> tf.Tensor:
+def normalize(x, axis=(-3, -2)):
     """Normalize a positional signal between 0 and 1."""
     x = tf.convert_to_tensor(x)
     x -= tf.reduce_min(x, axis=axis, keepdims=True)

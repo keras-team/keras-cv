@@ -24,7 +24,7 @@ x = tf.convert_to_tensor(images.astype("float32") / 127.5 - 1)
 
 # Load a model with pre-trained weights from ImageNet
 input_tensor = tf.keras.Input([None, None, 3], name="images")
-rn50 = tf.keras.applications.ResNet50V2(
+resnet50 = tf.keras.applications.ResNet50V2(
     input_tensor=input_tensor, weights="imagenet", classifier_activation=None
 )
 
@@ -39,7 +39,7 @@ rn50 = tf.keras.applications.ResNet50V2(
 #   (b) The output scores (logits) of the network.
 #
 endpoints = collect_endpoints(
-    rn50,
+    resnet50,
     endpoints=[
         {"name": "avg_pool", "link": "input"},
         {"name": "predictions"},
@@ -47,13 +47,13 @@ endpoints = collect_endpoints(
 )
 
 rn50_w_acts = tf.keras.Model(
-    inputs=rn50.inputs,
+    inputs=resnet50.inputs,
     outputs=endpoints,
 )
 
 # For each image, get the index of the 5 labels with
 # highest associated classification energy:
-logits = rn50.predict(x, verbose=0)
+logits = resnet50.predict(x, verbose=0)
 labels = tf.argsort(logits, axis=-1, direction="DESCENDING")[..., :LABELS]
 probs = tf.nn.softmax(logits)
 decoded = tf.keras.applications.imagenet_utils.decode_predictions(probs.numpy())

@@ -1,15 +1,14 @@
-from typing import Optional
-
 import tensorflow as tf
 
 
 @tf.function(experimental_relax_shapes=True, experimental_follow_type_hints=True)
 def gradcam(
-    model: tf.keras.Model,
-    inputs: tf.Tensor,
-    indices: Optional[tf.Tensor] = None,
-    indices_batch_dims: int = -1,
-    indices_axis: int = -1,
+    model,
+    inputs,
+    indices=None,
+    indices_batch_dims=-1,
+    indices_axis=-1,
+    positional_axis=(-3, -2),
 ):
     """Computes the Grad-CAM Visualization Method.
 
@@ -25,8 +24,8 @@ def gradcam(
     explaining map.
 
     """
-    with tf.GradientTape(watch_accessed_variables=False) as t:
-        t.watch(inputs)
+    with tf.GradientTape(watch_accessed_variables=False) as tape:
+        tape.watch(inputs)
         activations, logits = model(inputs, training=False)
 
         if indices is not None:
@@ -34,8 +33,8 @@ def gradcam(
                 logits, indices, batch_dims=indices_batch_dims, axis=indices_axis
             )
 
-    dlda = t.batch_jacobian(logits, activations)
-    weights = tf.reduce_mean(dlda, axis=(-3, -2))
-    maps = tf.einsum("bhwk,bok->bhwo", activations, weights)
+    dlda = tape.batch_jacobian(logits, activations)
+    weights = tf.reduce_mean(dlda, axis=positional_axis)
+    maps = tf.einsum("b...k,bck->b...c", activations, weights)
 
     return logits, maps
