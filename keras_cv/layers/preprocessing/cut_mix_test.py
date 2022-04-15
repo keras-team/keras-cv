@@ -27,7 +27,8 @@ class CutMixTest(tf.test.TestCase):
         ys = tf.one_hot(ys, NUM_CLASSES)
 
         layer = CutMix(seed=1)
-        xs, ys = layer(xs, ys)
+        outputs = layer({"images": xs, "labels": ys})
+        xs, ys = outputs["images"], outputs["labels"]
 
         self.assertEqual(xs.shape, [2, 512, 512, 3])
         self.assertEqual(ys.shape, [2, 10])
@@ -43,7 +44,8 @@ class CutMixTest(tf.test.TestCase):
         ys = tf.one_hot(tf.constant([0, 1]), 2)
 
         layer = CutMix(seed=1)
-        xs, ys = layer(xs, ys)
+        outputs = layer({"images": xs, "labels": ys})
+        xs, ys = outputs["images"], outputs["labels"]
 
         # At least some pixels should be replaced in the CutMix operation
         self.assertTrue(tf.math.reduce_any(xs[0] == 1.0))
@@ -65,7 +67,8 @@ class CutMixTest(tf.test.TestCase):
         ys = tf.one_hot(tf.constant([0, 1]), 2)
 
         layer = CutMix(seed=1)
-        xs, ys = layer(xs, ys)
+        outputs = layer({"images": xs, "labels": ys})
+        xs, ys = outputs["images"], outputs["labels"]
 
         # At least some pixels should be replaced in the CutMix operation
         self.assertTrue(tf.math.reduce_any(xs[0] == 1.0))
@@ -87,9 +90,10 @@ class CutMixTest(tf.test.TestCase):
 
         @tf.function
         def augment(x, y):
-            return layer(x, y)
+            return layer({"images": x, "labels": y})
 
-        xs, ys = augment(xs, ys)
+        outputs = augment(xs, ys)
+        xs, ys = outputs["images"], outputs["labels"]
 
         # At least some pixels should be replaced in the CutMix operation
         self.assertTrue(tf.math.reduce_any(xs[0] == 1.0))
@@ -99,3 +103,22 @@ class CutMixTest(tf.test.TestCase):
         # No labels should still be close to their original values
         self.assertNotAllClose(ys, 1.0)
         self.assertNotAllClose(ys, 0.0)
+
+    def test_image_input_only(self):
+        xs = tf.cast(
+            tf.stack([2 * tf.ones((100, 100, 1)), tf.ones((100, 100, 1))], axis=0),
+            tf.float32,
+        )
+        layer = CutMix()
+        with self.assertRaisesRegexp(ValueError, "expects inputs in a dictionary"):
+            _ = layer(xs)
+
+    def test_single_image_input(self):
+        xs = tf.ones((512, 512, 3))
+        ys = tf.one_hot(tf.constant([1]), 2)
+        inputs = {"images": xs, "labels": ys}
+        layer = CutMix()
+        with self.assertRaisesRegexp(
+            ValueError, "CutMix received a single image to `call`"
+        ):
+            _ = layer(inputs)

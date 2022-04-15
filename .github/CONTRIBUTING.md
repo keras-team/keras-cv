@@ -2,6 +2,8 @@
 
 Follow these steps to submit your code contribution.
 
+[You can find a list of issues that we are looking for contributors on here!](https://github.com/keras-team/keras-cv/labels/contribution-welcome)
+
 ### Step 1. Open an issue
 
 Before making any changes, we recommend opening an issue (if one doesn't already
@@ -32,7 +34,7 @@ the master branch in [keras-team/keras-cv](https://github.com/keras-team/keras-c
 ### Step 4. Sign the Contributor License Agreement
 
 After creating the pull request, you will need to sign the Google CLA agreement. 
-The agreement can be foiund at [https://cla.developers.google.com/clas](https://cla.developers.google.com/clas).
+The agreement can be found at [https://cla.developers.google.com/clas](https://cla.developers.google.com/clas).
 
 
 ### Step 5. Code review

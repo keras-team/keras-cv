@@ -49,33 +49,22 @@ class RandomCutoutTest(tf.test.TestCase):
 
         self.assertEqual(xs.shape, [2, 512, 512, 3])
 
+    def test_return_shapes_single_element(self):
+        xs = tf.ones((512, 512, 3))
+
+        layer = preprocessing.RandomCutout(height_factor=0.5, width_factor=0.5, seed=1)
+        xs = layer(xs)
+
+        self.assertEqual(xs.shape, [512, 512, 3])
+
     def test_random_cutout_single_float(self):
         self._run_test(0.5, 0.5)
-
-    def test_random_cutout_single_int(self):
-        self._run_test(28, 28)
-
-    def test_random_cutout_single_float_int(self):
-        self._run_test(0.5, 28)
 
     def test_random_cutout_tuple_float(self):
         self._run_test((0.4, 0.9), (0.1, 0.3))
 
-    def test_random_cutout_tuple_int(self):
-        self._run_test((14, 28), (10, 20))
-
-    def test_random_cutout_tuple_float_int(self):
-        self._run_test((0.4, 0.9), (15, 30))
-
-    def test_random_cutout_single_tuple_float_int(self):
-        self._run_test(0.5, (15, 30))
-
-    def test_random_cutout_fail_mix_tuple_types(self):
+    def test_random_cutout_fail_mix_bad_param_values(self):
         fn = lambda: self._run_test(0.5, (15.0, 30))
-        self.assertRaises(ValueError, fn)
-
-    def test_random_cutout_fail_reverse_lower_upper_int(self):
-        fn = lambda: self._run_test(0.5, (30, 15))
         self.assertRaises(ValueError, fn)
 
     def test_random_cutout_fail_reverse_lower_upper_float(self):

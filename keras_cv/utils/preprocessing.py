@@ -14,6 +14,8 @@
 import tensorflow as tf
 from tensorflow.keras import backend
 
+from keras_cv import core
+
 
 def transform_value_range(images, original_range, target_range, dtype=tf.float32):
     """transforms values in input tensor from original_range to target_range.
@@ -47,6 +49,9 @@ def transform_value_range(images, original_range, target_range, dtype=tf.float32
     )
     ```
     """
+    if original_range[0] == target_range[0] and original_range[1] == target_range[1]:
+        return images
+
     images = tf.cast(images, dtype=dtype)
     original_min_value, original_max_value = _unwrap_value_range(
         original_range, dtype=dtype
@@ -65,6 +70,71 @@ def _unwrap_value_range(value_range, dtype=tf.float32):
     min_value = tf.cast(min_value, dtype=dtype)
     max_value = tf.cast(max_value, dtype=dtype)
     return min_value, max_value
+
+
+def blend(image1: tf.Tensor, image2: tf.Tensor, factor: float) -> tf.Tensor:
+    """Blend image1 and image2 using 'factor'.
+
+    FactorSampler should be in the range [0, 1].  A value of 0.0 means only image1
+    is used. A value of 1.0 means only image2 is used.  A value between 0.0
+    and 1.0 means we linearly interpolate the pixel values between the two
+    images.  A value greater than 1.0 "extrapolates" the difference
+    between the two pixel values, and we clip the results to values
+    between 0 and 255.
+    Args:
+      image1: An image Tensor of type tf.float32 with value range [0, 255].
+      image2: An image Tensor of type tf.float32 with value range [0, 255].
+      factor: A floating point value above 0.0.
+    Returns:
+      A blended image Tensor.
+    """
+    difference = image2 - image1
+    scaled = factor * difference
+    temp = image1 + scaled
+    return tf.clip_by_value(temp, 0.0, 255.0)
+
+
+def parse_factor(param, min_value=0.0, max_value=1.0, param_name="factor", seed=None):
+    if isinstance(param, core.FactorSampler):
+        return param
+
+    if isinstance(param, float) or isinstance(param, int):
+        param = (min_value, param)
+
+    if param[0] > param[1]:
+        raise ValueError(
+            f"`{param_name}[0] > {param_name}[1]`, `{param_name}[0]` must be <= "
+            f"`{param_name}[1]`.  Got `{param_name}={param}`"
+        )
+    if (min_value is not None and param[0] < min_value) or (
+        max_value is not None and param[1] > max_value
+    ):
+        raise ValueError(
+            f"`{param_name}` should be inside of range [{min_value}, {max_value}]. "
+            f"Got {param_name}={param}"
+        )
+
+    if param[0] == param[1]:
+        return core.ConstantFactorSampler(param[0])
+
+    return core.UniformFactorSampler(param[0], param[1], seed=seed)
+
+
+def random_inversion(random_generator):
+    """Randomly returns a -1 or a 1 based on the provided random_generator.
+
+    This can be used by KPLs to randomly invert sampled values.
+
+    Args:
+        random_generator: a Keras random number generator.  An instance can be passed
+        from the `self._random_generator` attribute of a `BaseImageAugmentationLayer`.
+
+    Returns:
+        either -1, or -1.
+    """
+    negate = random_generator.random_uniform((), 0, 1, dtype=tf.float32) > 0.5
+    negate = tf.cond(negate, lambda: -1.0, lambda: 1.0)
+    return negate
 
 
 def transform(

@@ -13,13 +13,20 @@
 # limitations under the License.
 import tensorflow as tf
 
+from keras_cv.utils import preprocessing
 
-class Equalization(tf.keras.layers.Layer):
+
+@tf.keras.utils.register_keras_serializable(package="keras_cv")
+class Equalization(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
     """Equalization performs histogram equalization on a channel-wise basis.
 
     Args:
+        value_range: a tuple or a list of two elements. The first value represents
+            the lower bound for values in passed images, the second represents the
+            upper bound. Images passed to the layer should have values within
+            `value_range`.
         bins: Integer indicating the number of bins to use in histogram equalization.
-            Should be in the range [0, 256]
+            Should be in the range [0, 256].
 
     Usage:
     ```python
@@ -35,9 +42,10 @@ class Equalization(tf.keras.layers.Layer):
             of type float or int.  Should be in NHWC format.
     """
 
-    def __init__(self, bins=256, **kwargs):
+    def __init__(self, value_range, bins=256, **kwargs):
         super().__init__(**kwargs)
         self.bins = bins
+        self.value_range = value_range
 
     def equalize_channel(self, image, channel_index):
         """equalize_channel performs histogram equalization on a single channel.
@@ -47,15 +55,22 @@ class Equalization(tf.keras.layers.Layer):
                 with channels last
             channel_index: channel to equalize
         """
-        dtype = image.dtype
         image = image[..., channel_index]
         # Compute the histogram of the image channel.
         histogram = tf.histogram_fixed_width(image, [0, 255], nbins=self.bins)
 
         # For the purposes of computing the step, filter out the nonzeros.
-        nonzero = tf.where(tf.not_equal(histogram, 0))
-        nonzero_histogram = tf.reshape(tf.gather(histogram, nonzero), [-1])
-        step = (tf.reduce_sum(nonzero_histogram) - nonzero_histogram[-1]) // (
+        # Zeroes are replaced by a big number while calculating min to keep shape
+        # constant across input sizes for compatibility with vectorized_map
+
+        big_number = 1410065408
+        histogram_without_zeroes = tf.where(
+            tf.equal(histogram, 0),
+            big_number,
+            histogram,
+        )
+
+        step = (tf.reduce_sum(histogram) - tf.reduce_min(histogram_without_zeroes)) // (
             self.bins - 1
         )
 
@@ -77,15 +92,27 @@ class Equalization(tf.keras.layers.Layer):
             lambda: tf.gather(build_mapping(histogram, step), image),
         )
 
-        return tf.cast(result, dtype)
+        return result
 
-    def call(self, images):
-        # Assumes RGB for now.  Scales each channel independently
-        # and then stacks the result.
-        # TODO(lukewood): ideally this would be vectorized.
-        r = tf.map_fn(lambda x: self.equalize_channel(x, 0), images)
-        g = tf.map_fn(lambda x: self.equalize_channel(x, 1), images)
-        b = tf.map_fn(lambda x: self.equalize_channel(x, 2), images)
+    def augment_image(self, image, transformation=None):
+        image = preprocessing.transform_value_range(
+            image, self.value_range, (0, 255), dtype=image.dtype
+        )
+        image = tf.cast(image, tf.int32)
+        image = tf.vectorized_map(
+            lambda channel: self.equalize_channel(image, channel),
+            tf.range(tf.shape(image)[-1]),
+        )
 
-        images = tf.stack([r, g, b], axis=-1)
-        return images
+        image = tf.transpose(image, [1, 2, 0])
+        image = tf.cast(image, tf.float32)
+        image = preprocessing.transform_value_range(image, (0, 255), self.value_range)
+        return image
+
+    def augment_label(self, label, transformation=None):
+        return label
+
+    def get_config(self):
+        config = super().get_config()
+        config.update({"bins": self.bins, "value_range": self.value_range})
+        return config
