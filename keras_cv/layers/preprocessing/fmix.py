@@ -201,8 +201,11 @@ class FMix(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
     def _update_labels(self, labels, lambda_sample, permutation_order):
         labels_for_fmix = tf.gather(labels, permutation_order)
 
-        # for one-hot broadcast
-        lambda_sample = tf.expand_dims(lambda_sample, -1)
+        # for broadcasting
+        batch_size = tf.expand_dims(tf.shape(labels)[0], -1)
+        labels_rank = tf.rank(labels)
+        broadcast_shape = tf.concat([batch_size, tf.ones(labels_rank - 1, tf.int32)], 0)
+        lambda_sample = tf.reshape(lambda_sample, broadcast_shape)
 
         labels = lambda_sample * labels + (1.0 - lambda_sample) * labels_for_fmix
         return labels
