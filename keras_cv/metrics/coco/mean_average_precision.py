@@ -135,12 +135,20 @@ class COCOMeanAveragePrecision(tf.keras.metrics.Metric):
         self.false_positive_buckets.assign(tf.zeros_like(self.false_positive_buckets))
         self.ground_truths.assign(tf.zeros_like(self.ground_truths))
 
-    @tf.function()
+    @tf.function(experimental_relax_shapes=True)
     def update_state(self, y_true, y_pred, sample_weight=None):
         if sample_weight is not None:
             warnings.warn(
                 "sample_weight is not yet supported in keras_cv COCO metrics."
             )
+
+        if isinstance(y_true, tf.RaggedTensor):
+            y_true = y_true.to_tensor(default_value=-1)
+        if isinstance(y_pred, tf.RaggedTensor):
+            y_pred = y_pred.to_tensor(default_value=-1)
+
+        y_true = tf.cast(y_true, self.compute_dtype)
+        y_pred = tf.cast(y_pred, self.compute_dtype)
 
         class_ids = tf.constant(self.class_ids, dtype=self.compute_dtype)
         iou_thresholds = tf.constant(self.iou_thresholds, dtype=self.compute_dtype)
@@ -181,6 +189,8 @@ class COCOMeanAveragePrecision(tf.keras.metrics.Metric):
                 ground_truths = utils.filter_boxes(
                     ground_truths, value=category_id, axis=bounding_box.CLASS
                 )
+                if tf.shape(ground_truths[0] == 0):
+                    continue
 
                 detections = utils.filter_boxes(
                     detections, value=category_id, axis=bounding_box.CLASS
@@ -203,9 +213,11 @@ class COCOMeanAveragePrecision(tf.keras.metrics.Metric):
                     true_positives = pred_matches != -1
                     false_positives = pred_matches == -1
 
+                    dt_scores_clipped = tf.clip_by_value(dt_scores, 0., 1.)
                     # We must divide by 1.01 to prevent off by one errors.
                     confidence_buckets = tf.cast(
-                        tf.math.floor(self.num_buckets * (dt_scores / 1.01)), tf.int32
+
+                        tf.math.floor(self.num_buckets * (dt_scores_clipped / 1.01)), tf.int32
                     )
                     true_positives_by_bucket = tf.gather_nd(
                         confidence_buckets, indices=tf.where(true_positives)
