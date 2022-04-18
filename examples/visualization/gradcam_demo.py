@@ -10,8 +10,8 @@ LABELS = 5
 
 # Load images from the web
 def load_image(path):
-    image = tf.keras.preprocessing.image.load_img(path, target_size=SIZES)
-    return tf.keras.preprocessing.image.img_to_array(image)
+    image = tf.keras.utils.load_img(path, target_size=SIZES)
+    return tf.keras.utils.img_to_array(image)
 
 paths = [
     tf.keras.utils.get_file("african_elephant.jpg", "https://i.imgur.com/Bvro0YD.png"),
