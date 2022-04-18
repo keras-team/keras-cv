@@ -19,6 +19,8 @@ import tensorflow as tf
 
 from keras_cv.visualization.colors import colors
 
+__all__ = ["draw_segmentation"]
+
 
 def _blend(image1, image2, factor=0.4):
     difference = image2 - image1
@@ -29,13 +31,6 @@ def _blend(image1, image2, factor=0.4):
     # We need to clip and then cast.
     blended = tf.round(tf.clip_by_value(blended, 0.0, 255.0))
     return blended
-
-
-def _raise_color_not_found_error(color):
-    raise KeyError(
-        f"{color} is not supported yet,"
-        "please check supported colors at `keras_cv.visualization.colors`"
-    )
 
 
 def _check_rgb_tuple(rgb):
@@ -49,6 +44,12 @@ def _check_rgb_tuple(rgb):
 
 
 def _map_color_on_mask(masks, color):
+    def _raise_color_not_found_error(color):
+        raise KeyError(
+            f"{color} is not supported yet,"
+            "please check supported colors at `keras_cv.visualization.colors`"
+        )
+
     def _create_color_rgb_mapping():
         nonlocal color
         color_rgb = defaultdict(lambda: colors["red"])
