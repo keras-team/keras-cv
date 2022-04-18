@@ -13,12 +13,12 @@
 # limitations under the License.
 
 import tensorflow as tf
-
+from tensorflow.keras.__internal__.layers import BaseImageAugmentationLayer
 from keras_cv.layers import preprocessing
 
 
 @tf.keras.utils.register_keras_serializable(package="keras_cv")
-class RandomColorJitter(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
+class RandomColorJitter(BaseImageAugmentationLayer):
     """RandomColorJitter class randomly apply brightness, contrast, saturation
     and hue image processing operation sequentially and randomly on the
     input. It expects input as RGB image. The expected image should be
