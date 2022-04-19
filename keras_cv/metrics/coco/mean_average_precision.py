@@ -135,7 +135,7 @@ class COCOMeanAveragePrecision(tf.keras.metrics.Metric):
         self.false_positive_buckets.assign(tf.zeros_like(self.false_positive_buckets))
         self.ground_truths.assign(tf.zeros_like(self.ground_truths))
 
-    @tf.function(experimental_relax_shapes=True)
+    @tf.function()
     def update_state(self, y_true, y_pred, sample_weight=None):
         if sample_weight is not None:
             warnings.warn(
