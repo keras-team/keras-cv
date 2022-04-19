@@ -16,7 +16,7 @@ the same level of polish and backwards compatibility guarantees as the rest of t
 are maintained by the Keras team itself (unlike TFAddons).
 
 KerasCV's primary goal is to provide a coherent, elegant, and pleasant API to train state of the art computer vision models.
-Users should be able to train state of teh art models using only `Keras`, `KerasCV`, and TensorFlow core (i.e. `tf.data`) components.
+Users should be able to train state of the art models using only `Keras`, `KerasCV`, and TensorFlow core (i.e. `tf.data`) components.
 
 To learn more about the future project direction, please check the [roadmap](.github/ROADMAP.md).
 
