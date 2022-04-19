@@ -56,7 +56,7 @@ class FMix(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
         return sample_alpha / (sample_alpha + sample_beta)
 
     @staticmethod
-    def fftfreq(signal_size, sample_spacing=1):
+    def _fftfreq(signal_size, sample_spacing=1):
         """This function returns the sample frequencies of a discrete fourier transform.
         The result array contains the frequency bin centers starting at 0 using the
         sample spacing.
@@ -72,9 +72,8 @@ class FMix(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
 
         return results / (signal_size * sample_spacing)
 
-    def apply_fftfreq(self, h, w):
+    def _apply_fftfreq(self, h, w):
         # Applying the fourier transform across 2 dimensions (height and width).
-
         fx = FMix.fftfreq(w)[: w // 2 + 1 + w % 2]
 
         fy = FMix.fftfreq(h)
@@ -82,9 +81,8 @@ class FMix(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
 
         return tf.math.sqrt(fx * fx + fy * fy)
 
-    def get_spectrum(self, freqs, decay_power, channel, h, w):
+    def _get_spectrum(self, freqs, decay_power, channel, h, w):
         # Function to apply a low pass filter by decaying its high frequency components.
-
         scale = tf.ones(1) / tf.cast(
             tf.math.maximum(freqs, tf.convert_to_tensor([1 / tf.reduce_max([w, h])]))
             ** decay_power,
@@ -100,11 +98,10 @@ class FMix(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
 
         return scale * param
 
-    def sample_mask_from_transform(self, decay, shape, ch=1):
+    def _sample_mask_from_transform(self, decay, shape, ch=1):
         # Sampling low frequency map from fourier transform.
-
-        freqs = self.apply_fftfreq(shape[0], shape[1])
-        spectrum = self.get_spectrum(freqs, decay, ch, shape[0], shape[1])
+        freqs = self._apply_fftfreq(shape[0], shape[1])
+        spectrum = self._get_spectrum(freqs, decay, ch, shape[0], shape[1])
         spectrum = tf.complex(spectrum[:, 0], spectrum[:, 1])
 
         mask = tf.math.real(tf.signal.irfft2d(spectrum, shape))
@@ -114,9 +111,8 @@ class FMix(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
         mask = mask / tf.reduce_max(mask)
         return mask
 
-    def binarise_mask(self, mask, lam, in_shape, edge_softening=0.0):
+    def _binarise_mask(self, mask, lam, in_shape, edge_softening=0.0):
         # Create the final mask from the sampled values.
-
         idx = tf.argsort(tf.reshape(mask, [-1]), direction="DESCENDING")
         mask = tf.reshape(mask, [-1])
         num = tf.math.round(lam * tf.cast(tf.size(mask), tf.float32))
@@ -179,13 +175,13 @@ class FMix(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
 
         # generate masks utilizing mapped calls
         masks = tf.map_fn(
-            lambda x: self.sample_mask_from_transform(self.decay_power, shape[1:-1]),
+            lambda x: self._sample_mask_from_transform(self.decay_power, shape[1:-1]),
             tf.range(shape[0], dtype=tf.float32),
         )
 
         # binarise masks utilizing mapped calls
         masks = tf.map_fn(
-            lambda i: self.binarise_mask(
+            lambda i: self._binarise_mask(
                 masks[i], lambda_sample[i], shape[1:-1], self.edge_softening
             ),
             tf.range(shape[0], dtype=tf.int32),
