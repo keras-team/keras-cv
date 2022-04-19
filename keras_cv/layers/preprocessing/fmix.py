@@ -74,9 +74,9 @@ class FMix(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
 
     def _apply_fftfreq(self, h, w):
         # Applying the fourier transform across 2 dimensions (height and width).
-        fx = FMix.fftfreq(w)[: w // 2 + 1 + w % 2]
+        fx = FMix._fftfreq(w)[: w // 2 + 1 + w % 2]
 
-        fy = FMix.fftfreq(h)
+        fy = FMix._fftfreq(h)
         fy = tf.expand_dims(fy, -1)
 
         return tf.math.sqrt(fx * fx + fy * fy)
