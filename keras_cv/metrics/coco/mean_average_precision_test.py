@@ -228,6 +228,5 @@ class COCOMeanAveragePrecisionTest(tf.test.TestCase):
                 ),
             ]
         )
-        print('y_true_shape', y_true.shape)
         mean_average_precision.update_state(y_true, y_pred)
-        self.assertEqual(mean_average_precision.result(), 1.0)
+        self.assertEqual(mean_average_precision.result(), 2/3)
