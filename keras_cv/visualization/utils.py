@@ -25,25 +25,31 @@ def collect_endpoints(model, endpoints):
     endpoints_ = []
 
     for ep in endpoints:
-        if isinstance(ep, str):
-            ep = {"name": ep}
+        if isinstance(ep, int):
+            endpoint = model.layers[ep].get_output_at(0)
+        elif isinstance(ep, tf.keras.layers.Layer):
+            endpoint = ep.get_output_at(0)
+        else:
+            if isinstance(ep, str):
+                ep = {"name": ep}
 
-        layer = ep["name"]
-        link = ep.get("link", "output")
-        bind = ep.get("bind", 0)
+            if not isinstance(ep, dict):
+                raise ValueError(
+                    f"Illegal type {type(ep)} for endpoint {ep}. Expected a "
+                    "layer index (int), layer name (str) or a dictionary with "
+                    "`name`, `link` and `bind` keys."
+                )
 
-        endpoints_.append(
-            get_nested_layer(model, layer).get_input_at(bind)
-            if link == "input"
-            else get_nested_layer(model, layer).get_output_at(bind)
-        )
+            layer = ep["name"]
+            link = ep.get("link", "output")
+            bind = ep.get("bind", 0)
+
+            endpoint = (
+                get_nested_layer(model, layer).get_input_at(bind)
+                if link == "input"
+                else get_nested_layer(model, layer).get_output_at(bind)
+            )
+
+        endpoints_.append(endpoint)
 
     return endpoints_
-
-
-def normalize(x, axis=(-3, -2)):
-    """Normalize a positional signal between 0 and 1."""
-    x = tf.convert_to_tensor(x)
-    x -= tf.reduce_min(x, axis=axis, keepdims=True)
-
-    return tf.math.divide_no_nan(x, tf.reduce_max(x, axis=axis, keepdims=True))

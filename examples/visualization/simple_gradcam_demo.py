@@ -3,7 +3,6 @@ import numpy as np
 import tensorflow as tf
 
 from keras_cv import visualization
-from keras_cv.visualization.utils import collect_endpoints
 
 SIZES = (299, 299)
 LABELS = 5
@@ -30,29 +29,6 @@ resnet50 = tf.keras.applications.ResNet50V2(
     input_tensor=input_tensor, weights="imagenet", classifier_activation=None
 )
 
-# Grad-CAM works by computing the gradient of an score (logit) unit with
-# respect to an intermediate activation positional signal A^k_{ij} in the
-# network.
-#
-# We define a new model that outputs:
-#
-#   (a) The last positional signal of the network (the input tensor of the
-#       Global Average Pooling layer);
-#   (b) The output scores (logits) of the network.
-#
-endpoints = collect_endpoints(
-    resnet50,
-    endpoints=[
-        {"name": "avg_pool", "link": "input"},
-        {"name": "predictions"},
-    ],
-)
-
-rn50_w_acts = tf.keras.Model(
-    inputs=resnet50.inputs,
-    outputs=endpoints,
-)
-
 # For each image, get the index of the 5 labels with
 # highest associated classification energy:
 logits = resnet50.predict(x, verbose=0)
@@ -60,14 +36,7 @@ labels = tf.argsort(logits, axis=-1, direction="DESCENDING")[..., :LABELS]
 probs = tf.nn.softmax(logits)
 decoded = tf.keras.applications.imagenet_utils.decode_predictions(probs.numpy())
 
-logits, maps = visualization.methods.gradcam(rn50_w_acts, x, labels)
-
-# As we are only interested in pixels that positively contribute to the
-# classification of a label, we crunch pixels that negatively contribute to
-# its classification and unrelated pixels (zero contribution) together:
-maps = tf.nn.relu(maps)
-maps -= tf.reduce_min(maps, axis=(1, 2), keepdims=True)
-maps /= tf.reduce_max(maps, axis=(1, 2), keepdims=True) + 1e-7
+logits, maps = visualization.gradcam(resnet50, x, labels)
 maps = tf.image.resize(maps, SIZES).numpy()
 
 # Visualize maps
