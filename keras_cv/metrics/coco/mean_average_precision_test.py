@@ -212,7 +212,6 @@ class COCOMeanAveragePrecisionTest(tf.test.TestCase):
             recall_thresholds=[0.3, 0.5],
         )
 
-
         y_true = tf.ragged.stack(
             [
                 tf.constant([[0, 0, 10, 10, 1], [5, 5, 10, 10, 1]], tf.float32),
@@ -229,4 +228,4 @@ class COCOMeanAveragePrecisionTest(tf.test.TestCase):
             ]
         )
         mean_average_precision.update_state(y_true, y_pred)
-        self.assertEqual(mean_average_precision.result(), 2/3)
+        self.assertEqual(mean_average_precision.result(), 2 / 3)
