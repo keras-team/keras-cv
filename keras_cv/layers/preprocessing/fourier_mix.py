@@ -170,7 +170,9 @@ class FourierMix(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
         shape = tf.shape(images)
         permutation_order = tf.random.shuffle(tf.range(0, shape[0]), seed=self.seed)
 
-        lambda_sample = FourierMix._sample_from_beta(self.alpha, self.alpha, (shape[0],))
+        lambda_sample = FourierMix._sample_from_beta(
+            self.alpha, self.alpha, (shape[0],)
+        )
 
         # generate masks utilizing mapped calls
         masks = tf.map_fn(
