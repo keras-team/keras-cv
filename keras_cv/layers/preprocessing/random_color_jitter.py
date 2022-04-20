@@ -16,6 +16,7 @@ import tensorflow as tf
 from tensorflow.keras.__internal__.layers import BaseImageAugmentationLayer
 
 from keras_cv.layers import preprocessing
+from keras_cv.utils import preprocessing as preprocessing_utils
 
 
 @tf.keras.utils.register_keras_serializable(package="keras_cv")
@@ -33,6 +34,10 @@ class RandomColorJitter(BaseImageAugmentationLayer):
         `(..., height, width, channels)`, in `channels_last` format
 
     Args:
+        value_range:  the range of values the incoming images will have.
+            Represented as a two number tuple written [low, high].
+            This is typically either `[0, 1]` or `[0, 255]` depending
+            on how your preprocessing pipeline is setup.
         brightness_factor: Float or a list/tuple of 2 floats between -1.0
             and 1.0. The factor is used to determine the lower bound and
             upper bound of the brightness adjustment. A float value will be
@@ -75,6 +80,7 @@ class RandomColorJitter(BaseImageAugmentationLayer):
 
     def __init__(
         self,
+        value_range,
         brightness_factor,
         contrast_factor,
         saturation_factor,
@@ -83,6 +89,7 @@ class RandomColorJitter(BaseImageAugmentationLayer):
         **kwargs,
     ):
         super().__init__(**kwargs)
+        self.value_range = value_range
         self.brightness_factor = brightness_factor
         self.contrast_factor = contrast_factor
         self.saturation_factor = saturation_factor
@@ -103,10 +110,23 @@ class RandomColorJitter(BaseImageAugmentationLayer):
         )
 
     def augment_image(self, image, transformation=None):
+        image = preprocessing_utils.transform_value_range(
+            image,
+            original_range=self.value_range,
+            target_range=(0, 255),
+            dtype=image.dtype,
+        )
         image = self.random_brightness(image)
         image = self.random_contrast(image)
         image = self.random_saturation(image)
-        return self.random_hue(image)
+        image = self.random_hue(image)
+        image = preprocessing_utils.transform_value_range(
+            image,
+            original_range=(0, 255),
+            target_range=self.value_range,
+            dtype=image.dtype,
+        )
+        return image
 
     def augment_label(self, label, transformation=None):
         return label
@@ -115,6 +135,7 @@ class RandomColorJitter(BaseImageAugmentationLayer):
         config = super().get_config()
         config.update(
             {
+                "value_range": self.value_range,
                 "brightness_factor": self.brightness_factor,
                 "contrast_factor": self.contrast_factor,
                 "saturation_factor": self.saturation_factor,
