@@ -32,8 +32,8 @@ class FourierMix(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
     Sample usage:
     ```python
     (images, labels), _ = tf.keras.datasets.cifar10.load_data()
-    fmix = keras_cv.layers.preprocessing.mix_up.FourierMix(0.5)
-    augmented_images, updated_labels = fmix({'images': images, 'labels': labels})
+    fourier_mix = keras_cv.layers.preprocessing.mix_up.FourierMix(0.5)
+    augmented_images, updated_labels = fourier_mix({'images': images, 'labels': labels})
     # output == {'images': updated_images, 'labels': updated_labels}
     ```
     """

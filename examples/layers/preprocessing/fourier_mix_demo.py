@@ -43,9 +43,9 @@ def main():
         .shuffle(10 * BATCH_SIZE)
         .batch(BATCH_SIZE)
     )
-    fmix = preprocessing.FourierMix(alpha=0.5)
+    fourier_mix = preprocessing.FourierMix(alpha=0.5)
     train_ds = train_ds.map(
-        lambda x, y: fmix({"images": x, "labels": y}),
+        lambda x, y: fourier_mix({"images": x, "labels": y}),
         num_parallel_calls=tf.data.AUTOTUNE,
     )
 
