@@ -203,6 +203,18 @@ class COCOMeanAveragePrecisionTest(tf.test.TestCase):
 
         self.assertEqual(mean_average_precision.result(), 0.625)
 
+    def test_mixed_dtypes(self):
+        y_true = tf.constant([[[0, 0, 100, 100, 1]]], dtype=tf.float64)
+        y_pred = tf.constant([[[0, 50, 100, 150, 1, 1.0]]], dtype=tf.float32)
+
+        metric = COCOMeanAveragePrecision(
+            iou_thresholds=[0.15],
+            class_ids=[1],
+            max_detections=1,
+        )
+        metric.update_state(y_true, y_pred)
+        self.assertEqual(metric.result(), 1.0)
+
     def test_runs_with_confidence_over_1(self):
         mean_average_precision = COCOMeanAveragePrecision(
             iou_thresholds=[0.33],
