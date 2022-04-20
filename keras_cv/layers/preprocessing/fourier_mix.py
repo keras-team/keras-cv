@@ -25,8 +25,6 @@ class FourierMix(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
             in the paper.
         decay_power: A float value representing the decay power.  Defaults to 3, as
             recommended in the paper.
-        edge_softening: Float value representing softening value which smooths hard
-            edges in the mask.  Defaults to 0.0.
         seed: Integer. Used to create a random seed.
     References:
         [FMix paper](https://arxiv.org/abs/2002.12047).
@@ -40,13 +38,10 @@ class FourierMix(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
     ```
     """
 
-    def __init__(
-        self, alpha=0.5, decay_power=3, edge_softening=0.0, seed=None, **kwargs
-    ):
+    def __init__(self, alpha=0.5, decay_power=3, seed=None, **kwargs):
         super().__init__(seed=seed, **kwargs)
         self.alpha = alpha
         self.decay_power = decay_power
-        self.edge_softening = edge_softening
         self.seed = seed
 
     @staticmethod
@@ -110,28 +105,16 @@ class FourierMix(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
         mask = mask / tf.reduce_max(mask)
         return mask
 
-    def _binarise_mask(self, mask, lam, in_shape, edge_softening=0.0):
+    def _binarise_mask(self, mask, lam, in_shape):
         # Create the final mask from the sampled values.
         idx = tf.argsort(tf.reshape(mask, [-1]), direction="DESCENDING")
         mask = tf.reshape(mask, [-1])
-        num = tf.math.round(lam * tf.cast(tf.size(mask), tf.float32))
-
-        eff_soft = edge_softening
-
-        max_compare = tf.math.maximum(lam, (1 - lam))
-        min_compare = tf.math.minimum(lam, (1 - lam))
-        eff_soft = tf.where(edge_softening > max_compare, max_compare, edge_softening)
-        eff_soft = tf.where(edge_softening > min_compare, min_compare, edge_softening)
-
-        soft = tf.cast(tf.size(mask), tf.float32) * eff_soft
-        num_low = tf.cast(num - soft, tf.int32)
-        num_high = tf.cast(num + soft, tf.int32)
+        num = tf.cast(tf.math.round(lam * tf.cast(tf.size(mask), tf.float32)), tf.int32)
 
         updates = tf.concat(
             [
-                tf.ones((num_low,), tf.float32),
-                tf.cast(tf.linspace(1, 0, num_high - num_low), tf.float32),
-                tf.zeros((tf.size(mask) - num_high,), tf.float32),
+                tf.ones((num,), tf.float32),
+                tf.zeros((tf.size(mask) - num,), tf.float32),
             ],
             0,
         )
@@ -182,9 +165,7 @@ class FourierMix(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
 
         # binarise masks utilizing mapped calls
         masks = tf.map_fn(
-            lambda i: self._binarise_mask(
-                masks[i], lambda_sample[i], shape[1:-1], self.edge_softening
-            ),
+            lambda i: self._binarise_mask(masks[i], lambda_sample[i], shape[1:-1]),
             tf.range(shape[0], dtype=tf.int32),
             fn_output_signature=tf.float32,
         )
@@ -211,7 +192,6 @@ class FourierMix(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
         config = {
             "alpha": self.alpha,
             "decay_power": self.decay_power,
-            "edge_softening": self.edge_softening,
             "seed": self.seed,
         }
         base_config = super().get_config()
