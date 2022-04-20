@@ -11,12 +11,14 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import warnings
+
 import tensorflow as tf
 import tensorflow.keras as keras
 import tensorflow.keras.initializers as initializers
 
 from keras_cv.metrics.coco import utils
-from keras_cv.utils import bbox
+from keras_cv.utils import bounding_box
 from keras_cv.utils import iou as iou_lib
 
 
@@ -45,13 +47,14 @@ class COCORecall(keras.metrics.Metric):
     COCORecall accepts two Tensors as input to it's `update_state` method.
     These Tensors represent bounding boxes in `corners` format.  Utilities
     to convert Tensors from `xywh` to `corners` format can be found in
-    `keras_cv.utils.bbox`.
+    `keras_cv.utils.bounding_box`.
 
     Each image in a dataset may have a different number of bounding boxes,
     both in the ground truth dataset and the prediction set.  In order to
     account for this, you may either pass a `tf.RaggedTensor`, or pad Tensors
     with `-1`s to indicate unused boxes.  A utility function to perform this
-    padding is available at `keras_cv_.utils.bbox.pad_bbox_batch_to_shape`.
+    padding is available at
+    `keras_cv.utils.bounding_box.pad_bounding_box_batch_to_shape`.
 
     ```python
     coco_recall = keras_cv.metrics.COCORecall(
@@ -116,8 +119,8 @@ class COCORecall(keras.metrics.Metric):
             y_pred: a bounding box Tensor in corners format.
             sample_weight: Currently unsupported.
         """
-        if sample_weight:
-            raise NotImplementedError(
+        if sample_weight is not None:
+            warnings.warn(
                 "sample_weight is not yet supported in keras_cv COCO metrics."
             )
 
@@ -137,7 +140,7 @@ class COCORecall(keras.metrics.Metric):
         num_thresholds = tf.shape(iou_thresholds)[0]
         num_categories = tf.shape(class_ids)[0]
 
-        # Sort by bbox.CONFIDENCE to make maxDetections easy to compute.
+        # Sort by bounding_box.CONFIDENCE to make maxDetections easy to compute.
         true_positives_update = tf.zeros_like(self.true_positives)
         ground_truth_boxes_update = tf.zeros_like(self.ground_truth_boxes)
 
@@ -157,7 +160,7 @@ class COCORecall(keras.metrics.Metric):
                 category = class_ids[k_i]
 
                 category_filtered_y_pred = utils.filter_boxes(
-                    y_pred_for_image, value=category, axis=bbox.CLASS
+                    y_pred_for_image, value=category, axis=bounding_box.CLASS
                 )
 
                 detections = category_filtered_y_pred
@@ -165,7 +168,7 @@ class COCORecall(keras.metrics.Metric):
                     detections = category_filtered_y_pred[: self.max_detections]
 
                 ground_truths = utils.filter_boxes(
-                    y_true_for_image, value=category, axis=bbox.CLASS
+                    y_true_for_image, value=category, axis=bounding_box.CLASS
                 )
 
                 ious = iou_lib.compute_ious_for_image(ground_truths, detections)
@@ -191,6 +194,7 @@ class COCORecall(keras.metrics.Metric):
         self.true_positives.assign_add(true_positives_update)
         self.ground_truth_boxes.assign_add(ground_truth_boxes_update)
 
+    @tf.function
     def result(self):
         present_values = self.ground_truth_boxes != 0
         n_present_categories = tf.math.reduce_sum(

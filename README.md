@@ -1,8 +1,9 @@
 # KerasCV
 [![](https://github.com/keras-team/keras-cv/workflows/Tests/badge.svg?branch=master)](https://github.com/keras-team/keras-cv/actions?query=workflow%3ATests+branch%3Amaster)
+![Downloads](https://img.shields.io/pypi/dm/keras-cv.svg)
 ![Python](https://img.shields.io/badge/python-v3.7.0+-success.svg)
-![Tensorflow](https://img.shields.io/badge/tensorflow-v2.5.0+-success.svg)
-[![contributions welcome](https://img.shields.io/badge/contributions-welcome-brightgreen.svg?style=flat)](https://github.com/keras-team/keras-cv/issues)
+![Tensorflow](https://img.shields.io/badge/tensorflow-v2.8.0+-success.svg)
+[![Contributions Welcome](https://img.shields.io/badge/contributions-welcome-brightgreen.svg?style=flat)](https://github.com/keras-team/keras-cv/issues)
 
 KerasCV is a repository of modular building blocks (layers, metrics, losses, data-augmentation) that
 applied computer vision engineers can leverage to quickly assemble production-grade, state-of-the-art
@@ -33,3 +34,17 @@ Thank you to all of our wonderful contributors!
 <a href="https://github.com/keras-team/keras-cv/graphs/contributors">
   <img src="https://contrib.rocks/image?repo=keras-team/keras-cv" />
 </a>
+
+## Citing KerasCV
+
+If KerasCV helps your research, we appreciate your citations.
+Here is the BibTeX entry:
+
+```bibtex
+@misc{wood2022kerascv,
+  title={KerasCV},
+  author={Wood, Luke and Zhu, Scott and Chollet, Fran\c{c}ois and others},
+  year={2022},
+  howpublished={\url{https://github.com/keras-team/keras-cv}},
+}
+```

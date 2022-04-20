@@ -21,9 +21,10 @@ def compute_ious_for_image(boxes1, boxes2):
     The lookup vector is to be indexed by [`boxes1_index`,`boxes2_index`].
 
     Bounding boxes are expected to be in the corners format of
-    `[bbox.LEFT, bbox.RIGHT, bbox.TOP, bbox.BOTTOM]`.  For example, the bounding box
-    with it's left side at 100, bbox.RIGHT side at 200, bbox.TOP at 101, and
-    bbox.BOTTOM at 201 would be represented as:
+    `[bounding_box.LEFT, bounding_box.RIGHT, bounding_box.TOP, bounding_box.BOTTOM]`.
+    For example, the bounding box with it's left side at 100, bounding_box.RIGHT side at
+    200, bounding_box.TOP at 101, and bounding_box.BOTTOM at 201 would be represented
+    as:
     > [100, 200, 101, 201]
 
     Args:
