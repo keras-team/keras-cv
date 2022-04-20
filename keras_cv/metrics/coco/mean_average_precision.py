@@ -141,6 +141,8 @@ class COCOMeanAveragePrecision(tf.keras.metrics.Metric):
             warnings.warn(
                 "sample_weight is not yet supported in keras_cv COCO metrics."
             )
+        y_true = tf.cast(y_true, self.compute_dtype)
+        y_pred = tf.cast(y_pred, self.compute_dtype)
 
         if isinstance(y_true, tf.RaggedTensor):
             y_true = y_true.to_tensor(default_value=-1)
