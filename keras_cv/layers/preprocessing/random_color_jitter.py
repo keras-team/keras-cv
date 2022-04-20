@@ -103,10 +103,10 @@ class RandomColorJitter(BaseImageAugmentationLayer):
         )
 
     def augment_image(self, image, transformation=None):
-        brightness = self.random_brightness(image)
-        contrast = self.random_contrast(brightness)
-        saturation = self.random_saturation(contrast)
-        return self.random_hue(saturation)
+        image = self.random_brightness(image)
+        image = self.random_contrast(image)
+        image = self.random_saturation(image)
+        return self.random_hue(image)
 
     def augment_label(self, label, transformation=None):
         return label
