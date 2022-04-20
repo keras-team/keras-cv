@@ -61,6 +61,7 @@ class RandomColorJitterTest(tf.test.TestCase, parameterized.TestCase):
         inputs = tf.ones((2, 512, 512, 3))
 
         layer = preprocessing.RandomColorJitter(
+            value_range=(0, 255),
             brightness_factor=0.5,
             contrast_factor=(0.5, 0.9),
             saturation_factor=(0.5, 0.9),
