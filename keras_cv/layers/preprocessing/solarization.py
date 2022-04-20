@@ -31,15 +31,22 @@ class Solarization(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
     - [RandAugment](https://arxiv.org/pdf/1909.13719.pdf)
 
     Args:
-        addition: (Optional) int or float.  If specified, this value is added to each
-            pixel before solarization and thresholding.  The addition value should be
-            scaled accoring to the value range (0, 255).  Defaults to 0.0.
-        threshold: (Optional) int or float. If specified, only pixel values above this
-            threshold will be solarized.
         value_range: a tuple or a list of two elements. The first value represents
             the lower bound for values in passed images, the second represents the
             upper bound. Images passed to the layer should have values within
             `value_range`. Defaults to `(0, 255)`.
+        addition_factor: (Optional)  A tuple of two floats, a single float or a
+            `keras_cv.FactorSampler`. For each augmented image a value is sampled
+            from the provided range. If a float is passed, the range is interpreted as
+            `(0, addition_factor)`. If specified, this value is added to each pixel
+            before solarization and thresholding.  The addition value should be scaled
+            according to the value range (0, 255). Defaults to 0.0.
+        threshold_factor: (Optional)  A tuple of two floats, a single float or a
+            `keras_cv.FactorSampler`. For each augmented image a value is sampled
+            from the provided range. If a float is passed, the range is interpreted as
+            `(0, threshold_factor)`. If specified, only pixel values above this
+            threshold will be solarized.
+        seed: Integer. Used to create a random seed.
 
     Usage:
     ```python
@@ -59,31 +66,46 @@ class Solarization(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
             or [height, width, channels].
     """
 
-    def __init__(self, addition=0.0, threshold=0.0, value_range=(0, 255), **kwargs):
-        super().__init__(**kwargs)
-        self.addition = addition
-        self.threshold = threshold
+    def __init__(
+        self,
+        value_range,
+        addition_factor=0.0,
+        threshold_factor=0.0,
+        seed=None,
+        **kwargs
+    ):
+        super().__init__(seed=seed, **kwargs)
+        self.addition_factor = preprocessing.parse_factor(
+            addition_factor, max_value=255, seed=seed, param_name="addition_factor"
+        )
+        self.threshold_factor = preprocessing.parse_factor(
+            threshold_factor, max_value=255, seed=seed, param_name="threshold_factor"
+        )
         self.value_range = value_range
 
+    def get_random_transformation(self, image=None, label=None, bounding_box=None):
+        return (self.addition_factor(), self.threshold_factor())
+
     def augment_image(self, image, transformation=None):
+        (addition, threshold) = transformation
         image = preprocessing.transform_value_range(
             image, original_range=self.value_range, target_range=(0, 255)
         )
-        result = image + self.addition
+        result = image + addition
         result = tf.clip_by_value(result, 0, 255)
-        result = self._solarize(result)
+        result = tf.where(result < threshold, result, 255 - result)
         result = preprocessing.transform_value_range(
             result, original_range=(0, 255), target_range=self.value_range
         )
         return result
 
-    def _solarize(self, images):
-        return tf.where(images < self.threshold, images, 255 - images)
+    def augment_label(self, label, transformation=None):
+        return label
 
     def get_config(self):
         config = {
-            "threshold": self.threshold,
-            "addition": self.addition,
+            "threshold_factor": self.threshold_factor,
+            "addition_factor": self.addition_factor,
             "value_range": self.value_range,
         }
         base_config = super().get_config()

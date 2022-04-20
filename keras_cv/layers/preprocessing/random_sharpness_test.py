@@ -24,7 +24,7 @@ class RandomSharpnessTest(tf.test.TestCase):
             axis=0,
         )
 
-        layer = preprocessing.RandomSharpness(0.0)
+        layer = preprocessing.RandomSharpness(0.0, value_range=(0, 255))
         ys = layer(xs)
 
         self.assertEqual(xs.shape, ys.shape)
@@ -47,7 +47,7 @@ class RandomSharpnessTest(tf.test.TestCase):
         )
         xs = tf.expand_dims(xs, axis=0)
 
-        layer = preprocessing.RandomSharpness((1.0, 1.0))
+        layer = preprocessing.RandomSharpness((1.0, 1.0), value_range=(0, 255))
         ys = layer(xs)
 
         self.assertEqual(xs.shape, ys.shape)

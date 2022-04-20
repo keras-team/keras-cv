@@ -30,13 +30,12 @@ class AutoContrast(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
         value_range: the range of values the incoming images will have.
             Represented as a two number tuple written [low, high].
             This is typically either `[0, 1]` or `[0, 255]` depending
-            on how your preprocessing pipeline is setup.  Defaults to
-            `[0, 255].`
+            on how your preprocessing pipeline is setup.
     """
 
     def __init__(
         self,
-        value_range=(0, 255),
+        value_range,
         **kwargs,
     ):
         super().__init__(**kwargs)
@@ -61,6 +60,9 @@ class AutoContrast(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
         # don't process NaN channels
         result = tf.where(tf.math.is_nan(result), original_image, result)
         return result
+
+    def augment_label(self, label, transformation=None):
+        return label
 
     def get_config(self):
         config = super().get_config()

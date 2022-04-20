@@ -23,18 +23,22 @@ class RandomShear(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
     """Randomly shears an image.
 
     Args:
-        x: float, 2 element tuple, or `None`.  For each augmented image a value is
-            sampled from the provided range.  If a float is passed, the range is
-            interpreted as `(0, x)`.  Values represent a percentage of the image
-            to shear over.  For example, 0.3 shears pixels up to 30% of the way
-            across the image.  All provided values should be positive.  If
-            `None` is passed, no shear occurs on the X axis.  Defaults to `None`.
-        y: float, 2 element tuple, or `None`.  For each augmented image a value is
-            sampled from the provided range.  If a float is passed, the range is
-            interpreted as `(0, y)`.  Values represent a percentage of the image
-            to shear over.  For example, 0.3 shears pixels up to 30% of the way
-            across the image.  All provided values should be positive.  If
-            `None` is passed, no shear occurs on the Y axis.  Defaults to `None`.
+        x_factor: A tuple of two floats, a single float or a
+            `keras_cv.FactorSampler`. For each augmented image a value is sampled
+            from the provided range. If a float is passed, the range is interpreted as
+            `(0, x_factor)`.  Values represent a percentage of the image to shear over.
+             For example, 0.3 shears pixels up to 30% of the way across the image.
+             All provided values should be positive.  If `None` is passed, no shear
+             occurs on the X axis.
+             Defaults to `None`.
+        y_factor: A tuple of two floats, a single float or a
+            `keras_cv.FactorSampler`. For each augmented image a value is sampled
+            from the provided range. If a float is passed, the range is interpreted as
+            `(0, y_factor)`. Values represent a percentage of the image to shear over.
+            For example, 0.3 shears pixels up to 30% of the way across the image.
+            All provided values should be positive.  If `None` is passed, no shear
+            occurs on the Y axis.
+            Defaults to `None`.
         interpolation: interpolation method used in the `ImageProjectiveTransformV3` op.
              Supported values are `"nearest"` and `"bilinear"`.
              Defaults to `"bilinear"`.
@@ -44,48 +48,53 @@ class RandomShear(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
         fill_value: fill_value in the `ImageProjectiveTransformV3` op.
              A `Tensor` of type `float32`. The value to be filled when fill_mode is
              constant".  Defaults to `0.0`.
+        seed: Integer. Used to create a random seed.
     """
 
     def __init__(
         self,
-        x=None,
-        y=None,
+        x_factor=None,
+        y_factor=None,
         interpolation="bilinear",
         fill_mode="reflect",
         fill_value=0.0,
+        seed=None,
         **kwargs,
     ):
-        super().__init__(**kwargs)
-        if isinstance(x, float):
-            x = (0, x)
-        if isinstance(y, float):
-            y = (0, y)
-        if x is None and y is None:
+        super().__init__(seed=seed, **kwargs)
+        if x_factor is not None:
+            self.x_factor = preprocessing.parse_factor(
+                x_factor, max_value=None, param_name="x_factor", seed=seed
+            )
+        else:
+            self.x_factor = x_factor
+        if y_factor is not None:
+            self.y_factor = preprocessing.parse_factor(
+                y_factor, max_value=None, param_name="y_factor", seed=seed
+            )
+        else:
+            self.y_factor = y_factor
+        if x_factor is None and y_factor is None:
             warnings.warn(
-                "RandomShear received both `x=None` and `y=None`.  As a "
+                "RandomShear received both `x_factor=None` and `y_factor=None`.  As a "
                 "result, the layer will perform no augmentation."
             )
-        self.x = x
-        self.y = y
         self.interpolation = interpolation
         self.fill_mode = fill_mode
         self.fill_value = fill_value
+        self.seed = seed
 
     def get_random_transformation(self, image=None, label=None, bounding_box=None):
-        x = self._get_shear_amount(self.x)
-        y = self._get_shear_amount(self.y)
+        x = self._get_shear_amount(self.x_factor)
+        y = self._get_shear_amount(self.y_factor)
         return (x, y)
 
     def _get_shear_amount(self, constraint):
         if constraint is None:
             return None
 
-        negate = self._random_generator.random_uniform((), 0, 1, dtype=tf.float32) > 0.5
-        negate = tf.cond(negate, lambda: -1.0, lambda: 1.0)
-
-        return negate * self._random_generator.random_uniform(
-            (), constraint[0], constraint[1]
-        )
+        invert = preprocessing.random_inversion(self._random_generator)
+        return invert * constraint()
 
     def augment_image(self, image, transformation=None):
         image = tf.expand_dims(image, axis=0)
@@ -118,6 +127,9 @@ class RandomShear(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
 
         return tf.squeeze(image, axis=0)
 
+    def augment_label(self, label, transformation=None):
+        return label
+
     @staticmethod
     def _format_transform(transform):
         transform = tf.convert_to_tensor(transform, dtype=tf.float32)
@@ -127,11 +139,12 @@ class RandomShear(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
         config = super().get_config()
         config.update(
             {
-                "x": self.x,
-                "y": self.y,
+                "x_factor": self.x_factor,
+                "y_factor": self.y_factor,
                 "interpolation": self.interpolation,
                 "fill_mode": self.fill_mode,
                 "fill_value": self.fill_value,
+                "seed": self.seed,
             }
         )
         return config

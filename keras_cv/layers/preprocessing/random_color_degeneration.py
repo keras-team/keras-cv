@@ -25,40 +25,44 @@ class RandomColorDegeneration(tf.keras.__internal__.layers.BaseImageAugmentation
     This makes colors appear more dull.
 
     Args:
-        factor: Either a tuple of two floats or a single float. `factor` controls the
-            extent to which the image sharpness is impacted.  `factor=0.0` makes this
-            layer perform a no-op operation, while a value of 1.0 uses the degenerated
-            result entirely.  Values between 0 and 1 result in linear interpolation
-            between the original image and the sharpened image.
-
+        factor: A tuple of two floats, a single float or a
+            `keras_cv.FactorSampler`. `factor` controls the extent to which the
+            image sharpness is impacted. `factor=0.0` makes this layer perform a no-op
+            operation, while a value of 1.0 uses the degenerated result entirely.
+            Values between 0 and 1 result in linear interpolation between the original
+            image and the sharpened image.
             Values should be between `0.0` and `1.0`.  If a tuple is used, a `factor` is
             sampled between the two values for every image augmented.  If a single float
             is used, a value between `0.0` and the passed float is sampled.  In order to
             ensure the value is always the same, please pass a tuple with two identical
             floats: `(0.5, 0.5)`.
+        seed: Integer. Used to create a random seed.
     """
 
     def __init__(
         self,
         factor,
+        seed=None,
         **kwargs,
     ):
         super().__init__(**kwargs)
-        self.factor = preprocessing.parse_factor_value_range(factor)
+        self.factor = preprocessing.parse_factor(
+            factor,
+        )
+        self.seed = seed
 
     def get_random_transformation(self, image=None, label=None, bounding_box=None):
-        if self.factor[0] == self.factor[1]:
-            return self.factor[0]
-        return self._random_generator.random_uniform(
-            (), self.factor[0], self.factor[1], dtype=tf.float32
-        )
+        return self.factor()
 
     def augment_image(self, image, transformation=None):
         degenerate = tf.image.grayscale_to_rgb(tf.image.rgb_to_grayscale(image))
         result = preprocessing.blend(image, degenerate, transformation)
         return result
 
+    def augment_label(self, label, transformation=None):
+        return label
+
     def get_config(self):
         config = super().get_config()
-        config.update({"factor": self.factor})
+        config.update({"factor": self.factor, "seed": self.seed})
         return config

@@ -43,11 +43,7 @@ class COCORecallTest(tf.test.TestCase):
         self.assertAllEqual(recall.result(), 1.0)
 
     def test_ragged_tensor_support(self):
-        recall = COCORecall(
-            max_detections=100,
-            class_ids=[1],
-            area_range=(0, 64**2),
-        )
+        recall = COCORecall(max_detections=100, class_ids=[1], area_range=(0, 64**2))
 
         # These would match if they were in the area range
         y_true = tf.ragged.stack(
