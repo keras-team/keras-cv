@@ -27,6 +27,7 @@ class RandomColorJitterTest(tf.test.TestCase, parameterized.TestCase):
         unbatch_input = tf.ones((512, 512, 3))
 
         layer = preprocessing.RandomColorJitter(
+            value_range=(0, 255),
             brightness_factor=0.5,
             contrast_factor=(0.5, 0.9),
             saturation_factor=(0.5, 0.9),
@@ -43,6 +44,7 @@ class RandomColorJitterTest(tf.test.TestCase, parameterized.TestCase):
     # Test 2: Check if the factor ranges are set properly.
     def test_factor_range(self):
         layer = preprocessing.RandomColorJitter(
+            value_range=(0, 255),
             brightness_factor=(-0.2, 0.5),
             contrast_factor=(0.5, 0.9),
             saturation_factor=(0.5, 0.9),
@@ -75,6 +77,7 @@ class RandomColorJitterTest(tf.test.TestCase, parameterized.TestCase):
     # Test 4: Check if get_config and from_config work as expected.
     def test_config(self):
         layer = preprocessing.RandomColorJitter(
+            value_range=(0, 255),
             brightness_factor=0.5,
             contrast_factor=(0.5, 0.9),
             saturation_factor=(0.5, 0.9),
@@ -96,6 +99,7 @@ class RandomColorJitterTest(tf.test.TestCase, parameterized.TestCase):
     # Test 5: Check if inference model is OK.
     def test_inference(self):
         layer = preprocessing.RandomColorJitter(
+            value_range=(0, 255),
             brightness_factor=0.5,
             contrast_factor=(0.5, 0.9),
             saturation_factor=(0.5, 0.9),

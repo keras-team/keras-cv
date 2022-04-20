@@ -73,7 +73,13 @@ class RandomColorJitter(BaseImageAugmentationLayer):
     Usage:
     ```python
     (images, labels), _ = tf.keras.datasets.cifar10.load_data()
-    color_jitter = keras_cv.layers.RandomColorJitter()
+    color_jitter = keras_cv.layers.RandomColorJitter(
+            value_range=(0, 255),
+            brightness_factor=(-0.2, 0.5),
+            contrast_factor=(0.5, 0.9),
+            saturation_factor=(0.5, 0.9),
+            hue_factor=(0.5, 0.9),
+    )
     augmented_images = color_jitter(images)
     ```
     """
