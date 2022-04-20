@@ -202,3 +202,30 @@ class COCOMeanAveragePrecisionTest(tf.test.TestCase):
         mean_average_precision.false_positive_buckets.assign(false_positives)
 
         self.assertEqual(mean_average_precision.result(), 0.625)
+
+    def test_runs_with_confidence_over_1(self):
+        mean_average_precision = COCOMeanAveragePrecision(
+            iou_thresholds=[0.33],
+            class_ids=[1, 2],
+            max_detections=100,
+            num_buckets=3,
+            recall_thresholds=[0.3, 0.5],
+        )
+
+        y_true = tf.ragged.stack(
+            [
+                tf.constant([[0, 0, 10, 10, 1], [5, 5, 10, 10, 1]], tf.float32),
+                tf.constant([[0, 0, 10, 10, 1]], tf.float32),
+            ]
+        )
+        y_pred = tf.ragged.stack(
+            [
+                tf.constant([[5, 5, 10, 10, 1, 0.9]], tf.float32),
+                # this box is out of the valid confidence range.
+                tf.constant(
+                    [[0, 0, 10, 10, 1, 1.0], [5, 5, 10, 10, 1, 1.1]], tf.float32
+                ),
+            ]
+        )
+        mean_average_precision.update_state(y_true, y_pred)
+        self.assertEqual(mean_average_precision.result(), 2 / 3)

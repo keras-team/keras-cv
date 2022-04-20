@@ -91,7 +91,7 @@ def sort_bounding_boxes(boxes, axis=5):
     for img in tf.range(num_images):
         preds_for_img = boxes[img, :, :]
         prediction_scores = preds_for_img[:, axis]
-        _, idx = tf.math.top_k(prediction_scores, preds_for_img.shape[0])
+        _, idx = tf.math.top_k(prediction_scores, tf.shape(preds_for_img)[0])
         boxes_sorted_list = boxes_sorted_list.write(
             img, tf.gather(preds_for_img, idx, axis=0)
         )
