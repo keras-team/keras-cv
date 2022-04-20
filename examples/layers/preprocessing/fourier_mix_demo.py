@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""fmix_demo.py shows how to use the FMix preprocessing layer.
+"""fourier_mix_demo.py shows how to use the FourierMix preprocessing layer.
 Uses the oxford_flowers102 dataset.  In this script the flowers
 are loaded, then are passed through the preprocessing layers.
 Finally, they are shown using matplotlib.
@@ -43,7 +43,7 @@ def main():
         .shuffle(10 * BATCH_SIZE)
         .batch(BATCH_SIZE)
     )
-    fmix = preprocessing.FMix(alpha=0.5)
+    fmix = preprocessing.FourierMix(alpha=0.5)
     train_ds = train_ds.map(
         lambda x, y: fmix({"images": x, "labels": y}),
         num_parallel_calls=tf.data.AUTOTUNE,

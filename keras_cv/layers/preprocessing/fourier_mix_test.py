@@ -13,12 +13,12 @@
 # limitations under the License.
 import tensorflow as tf
 
-from keras_cv.layers.preprocessing.fmix import FMix
+from keras_cv.layers.preprocessing.fourier_mix import FourierMix
 
 NUM_CLASSES = 10
 
 
-class FMixTest(tf.test.TestCase):
+class FourierMixTest(tf.test.TestCase):
     def test_return_shapes(self):
         xs = tf.ones((2, 512, 512, 3))
         # randomly sample labels
@@ -26,7 +26,7 @@ class FMixTest(tf.test.TestCase):
         ys = tf.squeeze(ys)
         ys = tf.one_hot(ys, NUM_CLASSES)
 
-        layer = FMix()
+        layer = FourierMix()
         outputs = layer({"images": xs, "labels": ys})
         xs, ys = (
             outputs["images"],
@@ -36,7 +36,7 @@ class FMixTest(tf.test.TestCase):
         self.assertEqual(xs.shape, [2, 512, 512, 3])
         self.assertEqual(ys.shape, [2, 10])
 
-    def test_fmix_call_results(self):
+    def test_fourier_mix_call_results(self):
         xs = tf.cast(
             tf.stack(
                 [2 * tf.ones((4, 4, 3)), tf.ones((4, 4, 3))],
@@ -46,7 +46,7 @@ class FMixTest(tf.test.TestCase):
         )
         ys = tf.one_hot(tf.constant([0, 1]), 2)
 
-        layer = FMix()
+        layer = FourierMix()
         outputs = layer({"images": xs, "labels": ys})
         xs, ys = outputs["images"], outputs["labels"]
 
@@ -68,7 +68,7 @@ class FMixTest(tf.test.TestCase):
         )
         ys = tf.one_hot(tf.constant([0, 1]), 2)
 
-        layer = FMix()
+        layer = FourierMix()
 
         @tf.function
         def augment(x, y):
@@ -90,7 +90,7 @@ class FMixTest(tf.test.TestCase):
             tf.stack([2 * tf.ones((100, 100, 1)), tf.ones((100, 100, 1))], axis=0),
             tf.float32,
         )
-        layer = FMix()
+        layer = FourierMix()
         with self.assertRaisesRegexp(ValueError, "expects inputs in a dictionary"):
             _ = layer(xs)
 
@@ -98,8 +98,8 @@ class FMixTest(tf.test.TestCase):
         xs = tf.ones((512, 512, 3))
         ys = tf.one_hot(tf.constant([1]), 2)
         inputs = {"images": xs, "labels": ys}
-        layer = FMix()
+        layer = FourierMix()
         with self.assertRaisesRegexp(
-            ValueError, "FMix received a single image to `call`"
+            ValueError, "FourierMix received a single image to `call`"
         ):
             _ = layer(inputs)

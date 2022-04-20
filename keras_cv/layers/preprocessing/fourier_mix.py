@@ -15,8 +15,8 @@ import tensorflow as tf
 
 
 @tf.keras.utils.register_keras_serializable(package="keras_cv")
-class FMix(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
-    """FMix implements the FMix data augmentation technique.
+class FourierMix(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
+    """FourierMix implements the FMix data augmentation technique.
 
     Args:
         alpha: Float value for beta distribution.  Inverse scale parameter for the gamma
@@ -34,7 +34,7 @@ class FMix(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
     Sample usage:
     ```python
     (images, labels), _ = tf.keras.datasets.cifar10.load_data()
-    fmix = keras_cv.layers.preprocessing.mix_up.FMix(0.5)
+    fmix = keras_cv.layers.preprocessing.mix_up.FourierMix(0.5)
     augmented_images, updated_labels = fmix({'images': images, 'labels': labels})
     # output == {'images': updated_images, 'labels': updated_labels}
     ```
@@ -74,8 +74,8 @@ class FMix(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
 
     def _apply_fftfreq(self, h, w):
         # Applying the fourier transform across 2 dimensions (height and width).
-        fx = FMix._fftfreq(w)[: w // 2 + 1 + w % 2]
-        fy = FMix._fftfreq(h)
+        fx = FourierMix._fftfreq(w)[: w // 2 + 1 + w % 2]
+        fy = FourierMix._fftfreq(h)
         fy = tf.expand_dims(fy, -1)
 
         return tf.math.sqrt(fx * fx + fy * fy)
@@ -148,11 +148,11 @@ class FMix(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
         labels = inputs.get("labels", None)
         if images is None or labels is None:
             raise ValueError(
-                "FMix expects inputs in a dictionary with format "
+                "FourierMix expects inputs in a dictionary with format "
                 '{"images": images, "labels": labels}.'
                 f"Got: inputs = {inputs}"
             )
-        images, lambda_sample, permutation_order = self._fmix(images)
+        images, lambda_sample, permutation_order = self._fourier_mix(images)
         if labels is not None:
             labels = self._update_labels(labels, lambda_sample, permutation_order)
             inputs["labels"] = labels
@@ -161,16 +161,16 @@ class FMix(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
 
     def _augment(self, inputs):
         raise ValueError(
-            "FMix received a single image to `call`.  The layer relies on "
+            "FourierMix received a single image to `call`.  The layer relies on "
             "combining multiple examples, and as such will not behave as "
             "expected.  Please call the layer with 2 or more samples."
         )
 
-    def _fmix(self, images):
+    def _fourier_mix(self, images):
         shape = tf.shape(images)
         permutation_order = tf.random.shuffle(tf.range(0, shape[0]), seed=self.seed)
 
-        lambda_sample = FMix._sample_from_beta(self.alpha, self.alpha, (shape[0],))
+        lambda_sample = FourierMix._sample_from_beta(self.alpha, self.alpha, (shape[0],))
 
         # generate masks utilizing mapped calls
         masks = tf.map_fn(
