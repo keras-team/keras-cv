@@ -189,8 +189,6 @@ class COCOMeanAveragePrecision(tf.keras.metrics.Metric):
                 ground_truths = utils.filter_boxes(
                     ground_truths, value=category_id, axis=bounding_box.CLASS
                 )
-                if tf.shape(ground_truths)[0] == 0:
-                    continue
 
                 detections = utils.filter_boxes(
                     detections, value=category_id, axis=bounding_box.CLASS
