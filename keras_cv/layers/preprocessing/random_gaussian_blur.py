@@ -18,24 +18,27 @@ from keras_cv.utils import preprocessing
 
 
 @tf.keras.utils.register_keras_serializable(package="keras_cv")
-class GaussianBlur(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
-    """Applies a Gaussian Blur with random sigma to an image.
+class RandomGaussianBlur(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
+    """Applies a Gaussian Blur with random strength to an image.
 
     Args:
         kernel_size: int, 2 element tuple or 2 element list. x and y dimensions for
             the kernel used. If tuple or list, first element is used for the x dimension
             and second element is used for y dimension. If int, kernel will be squared.
-        sigma: float, 2 element tuple or 2 element list. Interval in which sigma should
-            be sampled from. If float, interval is going to be [0, float), else the
-            first element represents the lower bound and the second element the upper
-            bound of the sampling interval.
+        factor: A tuple of two floats, a single float or a
+            `keras_cv.FactorSampler`. `factor` controls the extent to which the
+            image is blurred.  Mathematically, `factor` represents the `sigma` value in
+            a gaussian blur. `factor=0.0` makes this layer perform a no-op
+            operation, and high values make the blur stronger. In order to
+            ensure the value is always the same, please pass a tuple with two identical
+            floats: `(0.5, 0.5)`.
     """
 
-    def __init__(self, kernel_size, sigma, **kwargs):
+    def __init__(self, kernel_size, factor, **kwargs):
         super().__init__(**kwargs)
 
-        self.sigma = preprocessing.parse_factor(
-            sigma, min_value=0.0, max_value=None, param_name="sigma"
+        self.factor = preprocessing.parse_factor(
+            factor, min_value=0.0, max_value=None, param_name="factor"
         )
 
         self.kernel_size = kernel_size
@@ -53,9 +56,9 @@ class GaussianBlur(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
                 )
 
     def get_random_transformation(self, image=None, label=None, bounding_box=None):
-        sigma = self.sigma()
-        blur_v = GaussianBlur.get_kernel(sigma, self.y)
-        blur_h = GaussianBlur.get_kernel(sigma, self.x)
+        factor = self.factor()
+        blur_v = RandomGaussianBlur.get_kernel(factor, self.y)
+        blur_h = RandomGaussianBlur.get_kernel(factor, self.x)
         blur_v = tf.reshape(blur_v, [self.y, 1, 1, 1])
         blur_h = tf.reshape(blur_h, [1, self.x, 1, 1])
         return (blur_v, blur_h)
@@ -78,17 +81,17 @@ class GaussianBlur(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
         return tf.squeeze(blurred, axis=0)
 
     @staticmethod
-    def get_kernel(sigma, filter_size):
+    def get_kernel(factor, filter_size):
         x = tf.cast(
             tf.range(-filter_size // 2 + 1, filter_size // 2 + 1), dtype=tf.float32
         )
         blur_filter = tf.exp(
-            -tf.pow(x, 2.0) / (2.0 * tf.pow(tf.cast(sigma, dtype=tf.float32), 2.0))
+            -tf.pow(x, 2.0) / (2.0 * tf.pow(tf.cast(factor, dtype=tf.float32), 2.0))
         )
         blur_filter /= tf.reduce_sum(blur_filter)
         return blur_filter
 
     def get_config(self):
         config = super().get_config()
-        config.update({"sigma": self.sigma, "kernel_size": self.kernel_size})
+        config.update({"factor": self.factor, "kernel_size": self.kernel_size})
         return config
