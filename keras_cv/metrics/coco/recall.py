@@ -123,6 +123,8 @@ class COCORecall(keras.metrics.Metric):
             warnings.warn(
                 "sample_weight is not yet supported in keras_cv COCO metrics."
             )
+        y_true = tf.cast(y_true, self.compute_dtype)
+        y_pred = tf.cast(y_pred, self.compute_dtype)
 
         # TODO(lukewood): Add first party RaggedTensor support.  Currently
         # this could cause an OOM error if users are not expecting to convert

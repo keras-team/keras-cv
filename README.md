@@ -7,16 +7,18 @@
 
 KerasCV is a repository of modular building blocks (layers, metrics, losses, data-augmentation) that
 applied computer vision engineers can leverage to quickly assemble production-grade, state-of-the-art
-training and inference pipelines for common use cases such as image classification, object detection, 
-image segmentation, image data augmentation, etc. 
+training and inference pipelines for common use cases such as image classification, object detection,
+image segmentation, image data augmentation, etc.
 
-KerasCV can be understood as a horizontal extension of the Keras API: the components are new first-party 
-Keras objects (layers, metrics, etc) that are too specialized to be added to core Keras, but that receive 
-the same level of polish and backwards compatibility guarantees as the rest of the Keras API and that 
+KerasCV can be understood as a horizontal extension of the Keras API: the components are new first-party
+Keras objects (layers, metrics, etc) that are too specialized to be added to core Keras, but that receive
+the same level of polish and backwards compatibility guarantees as the rest of the Keras API and that
 are maintained by the Keras team itself (unlike TFAddons).
 
-Currently, KerasCV is operating pre-release.  Upon launch of KerasCV 1.0, full API docs and code examples
-will be available.  To learn more about the project, please check the [roadmap](.github/ROADMAP.md).
+KerasCV's primary goal is to provide a coherent, elegant, and pleasant API to train state of the art computer vision models.
+Users should be able to train state of the art models using only `Keras`, `KerasCV`, and TensorFlow core (i.e. `tf.data`) components.
+
+To learn more about the future project direction, please check the [roadmap](.github/ROADMAP.md).
 
 ## Quick Links
 - [Contributing Guide](.github/CONTRIBUTING.md)
