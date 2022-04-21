@@ -40,15 +40,6 @@ class RandomHue(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
             Represented as a two number tuple written [low, high].
             This is typically either `[0, 1]` or `[0, 255]` depending
             on how your preprocessing pipeline is setup.
-            factor` controls the extent to which the image saturation is impacted.
-            `factor`=`0.0`, `0.5` or `1.0` makes this layer perform a no-op operation.
-            `factor=0.25` and `factor=0.75` makes the image to have fully opposite
-            hue value. Values should be between `0.0` and `1.0`.
-            If a tuple is used, a `factor` is sampled
-            between the two values for every image augmented.  If a single float is
-            used, a value between `0.0` and the passed float is sampled.
-            In order to ensure the value is always the same, please pass a tuple with
-            two identical floats: `(0.5, 0.5)`.
         seed: Integer. Used to create a random seed.
 
     """

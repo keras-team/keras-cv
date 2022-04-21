@@ -103,6 +103,18 @@ class SerializationTest(tf.test.TestCase, parameterized.TestCase):
                 "rate": 1.0,
             },
         ),
+        (
+            "RandomColorJitter",
+            preprocessing.RandomColorJitter,
+            {
+                "value_range": (0, 255),
+                "brightness_factor": (-0.2, 0.5),
+                "contrast_factor": (0.5, 0.9),
+                "saturation_factor": (0.5, 0.9),
+                "hue_factor": (0.5, 0.9),
+                "seed": 1,
+            },
+        ),
     )
     def test_layer_serialization(self, layer_cls, init_args):
         layer = layer_cls(**init_args)
