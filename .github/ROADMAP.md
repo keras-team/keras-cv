@@ -40,7 +40,7 @@ KerasCV will offer a state of the art training template for produce high quality
 CNN classifiers.  The template will be written to train on the `imagenet2012` dataset,
 but will support custom dataset usage.  This template will support recovery from failure,
 checkpointing, metric logging to TensorBoard, and more.  The template will not require
-users to "nurse" the job.  [Qianli Scott Zhu](qlzh727) will be kicking off
+users to "nurse" the job.  [Qianli Scott Zhu](https://github.com/qlzh727) will be kicking off
 this effort.
 
 After the first version of the template is created, community members may propose feature
