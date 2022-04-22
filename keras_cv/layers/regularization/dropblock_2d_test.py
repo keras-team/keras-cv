@@ -11,6 +11,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import os
+import tempfile
+
 import tensorflow as tf
 
 from keras_cv.layers.regularization.dropblock_2d import DropBlock2D
@@ -92,3 +95,11 @@ class DropBlock2DTest(tf.test.TestCase):
             return layer(x, training=True)
 
         apply(dummy_inputs)
+
+    def test_serialization_and_deserialization(self):
+        model_path = os.path.join(tempfile.mkdtemp(), "model.h5")
+        model = tf.keras.Sequential([DropBlock2D(dropout_rate=0.1, dropblock_size=7)])
+        model.build(input_shape=self.FEATURE_SHAPE[1:])  # omit batch dimension
+
+        tf.keras.models.save_model(model, model_path)
+        tf.keras.models.load_model(model_path)
