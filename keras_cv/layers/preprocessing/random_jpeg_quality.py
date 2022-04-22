@@ -20,10 +20,7 @@ from keras_cv.utils import preprocessing
 @tf.keras.utils.register_keras_serializable(package="keras_cv")
 class RandomJpegQuality(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
     """Applies Random Jpeg compression artifacts to an image
-<<<<<<< HEAD
-=======
 
->>>>>>> 2e0e60799255df506ce7f8fd2d049352bd44491e
     Args:
         factor: int, 2 element tuple or 2 element list. If int, this is the maximum
         compression that can be applied. If list or tuple, the first and second
