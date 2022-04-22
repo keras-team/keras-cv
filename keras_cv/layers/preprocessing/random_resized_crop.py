@@ -33,8 +33,8 @@ class RandomResizedCrop(tf.keras.internal.layers.BaseImageAugmentationLayer):
         self.seed = seed
         # Attribute to take random seed
 
-    #Methoid for taking the inputs
-    def call(self, inputs, training=True):
+    #Method for taking the inputs
+    def augment_image(self, inputs, training=True):
         inputs = utils.ensure_tensor(inputs, dtype=self.compute_dtype)
         if training:
             input_shape = tf.shape(inputs)
@@ -94,7 +94,7 @@ class RandomResizedCrop(tf.keras.internal.layers.BaseImageAugmentationLayer):
         if constraint is None:
             return None
 
-        negate = tf.random_uniform((), 0, self.constraint, dtype=tf.float32) 
+        negate = tf.random_uniform((), 0, self.constraint, dtype=tf.float32) > 0.5
         negate = tf.cond(negate, lambda: -1.0, lambda: 1.0)
 
         return negate * self._random_generator.random_uniform(
