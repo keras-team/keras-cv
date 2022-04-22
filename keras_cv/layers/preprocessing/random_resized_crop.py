@@ -61,7 +61,7 @@ class RandomResizedCrop(tf.keras.internal.layers.BaseImageAugmentationLayer):
 
     # method for resizing the images
     def _resize(self, inputs):
-        self.new_height=random.randint(0,self.height)
+        self.new_height=self.random.randint(0,self.height)
         self.new_width=random.randint(0,self.width)
         outputs = image_utils.smart_resize(inputs, [self.new_height, self.new_width])
         # smart_resize will always output float32, so we need to re-cast.
@@ -83,6 +83,23 @@ class RandomResizedCrop(tf.keras.internal.layers.BaseImageAugmentationLayer):
         }
         base_config = super(RandomResizedCrop, self).get_config()
         return dict(list(base_config.items()) + list(config.items()))
+
+    def get_random_transformation(self, image=None, label=None, bounding_box=None):
+        x = self._get_shear_amount(self.x)
+
+        y = self._get_shear_amount(self.y)
+        return (x, y)
+
+    def _get_shear_amount(self, constraint):
+        if constraint is None:
+            return None
+
+        negate = self._random_generator.random_uniform((), 0, 1, dtype=tf.float32) > 0.5
+        negate = tf.cond(negate, lambda: -1.0, lambda: 1.0)
+
+        return negate * self._random_generator.random_uniform(
+            (), constraint[0], constraint[1]
+        )
 
     # Method for Random Resizing of the inputs
     def _random_resized_crop(self,inputs):
