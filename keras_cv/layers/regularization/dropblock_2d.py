@@ -146,7 +146,7 @@ class DropBlock2D(BaseRandomLayer):
         seed=None,
         **kwargs,
     ):
-        super().__init__(seed=seed, force_generator=True, **kwargs)
+        super().__init__(seed=seed, **kwargs)
         if not 0.0 <= dropout_rate <= 1.0:
             raise ValueError(
                 f"dropout_rate must be a number between 0 and 1. "
