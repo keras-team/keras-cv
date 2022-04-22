@@ -3,10 +3,10 @@ from keras.engine import base_layer
 from keras.engine import base_preprocessing_layer
 from keras.layers.preprocessing import preprocessing_utils as utils
 from keras.utils import image_utils
+from keras_cv.utils import preprocessing
 from keras.utils import tf_utils
 import numpy as np
 import tensorflow as tf
-import random
 from tensorflow.python.util.tf_export import keras_export
 from tensorflow.tools.docs import doc_controls
 
@@ -61,8 +61,7 @@ class RandomResizedCrop(tf.keras.internal.layers.BaseImageAugmentationLayer):
 
     # method for resizing the images
     def _resize(self, inputs):
-        self.new_height=self.random.randint(0,self.height)
-        self.new_width=random.randint(0,self.width)
+        self.new_height,self.new_width=self.get_random_transformation()
         outputs = image_utils.smart_resize(inputs, [self.new_height, self.new_width])
         # smart_resize will always output float32, so we need to re-cast.
         return tf.cast(outputs, self.compute_dtype)
@@ -85,16 +84,17 @@ class RandomResizedCrop(tf.keras.internal.layers.BaseImageAugmentationLayer):
         return dict(list(base_config.items()) + list(config.items()))
 
     def get_random_transformation(self, image=None, label=None, bounding_box=None):
-        x = self._get_shear_amount(self.x)
+        x = self._get_shear_amount(self.height)
 
-        y = self._get_shear_amount(self.y)
+        y = self._get_shear_amount(self.width)
+
         return (x, y)
 
     def _get_shear_amount(self, constraint):
         if constraint is None:
             return None
 
-        negate = self._random_generator.random_uniform((), 0, 1, dtype=tf.float32) > 0.5
+        negate = tf.random_uniform((), 0, self.constraint, dtype=tf.float32) 
         negate = tf.cond(negate, lambda: -1.0, lambda: 1.0)
 
         return negate * self._random_generator.random_uniform(
