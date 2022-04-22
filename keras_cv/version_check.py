@@ -27,7 +27,7 @@ def check_tf_version():
     if parse(tf.__version__) < parse(MIN_VERSION):
         warnings.warn(
             f"The Tensorflow package version needs to be at least {MIN_VERSION} \n"
-            "for AutoKeras to run. Currently, your TensorFlow version is \n"
+            "for KerasCV to run. Currently, your TensorFlow version is \n"
             f"{tf.__version__}. Please upgrade with \n"
             "`$ pip install --upgrade tensorflow`. \n"
             "You can use `pip freeze` to check afterwards that everything is "
