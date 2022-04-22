@@ -1,7 +1,7 @@
 import tensorflow as tf
 
-from keras_cv.visualization import methods
-from keras_cv.visualization.utils import collect_endpoints
+from keras_cv.explain import methods
+from keras_cv.explain.utils import collect_endpoints
 
 
 def explain(

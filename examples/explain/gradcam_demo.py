@@ -2,8 +2,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 import tensorflow as tf
 
-from keras_cv import visualization
-from keras_cv.visualization.utils import collect_endpoints
+from keras_cv import explain
+from keras_cv.explain.utils import collect_endpoints
 
 SIZES = (299, 299)
 LABELS = 5
@@ -60,7 +60,7 @@ labels = tf.argsort(logits, axis=-1, direction="DESCENDING")[..., :LABELS]
 probs = tf.nn.softmax(logits)
 decoded = tf.keras.applications.imagenet_utils.decode_predictions(probs.numpy())
 
-logits, maps = visualization.methods.gradcam(rn50_w_acts, x, labels)
+logits, maps = explain.methods.gradcam(rn50_w_acts, x, labels)
 
 # As we are only interested in pixels that positively contribute to the
 # classification of a label, we crunch pixels that negatively contribute to

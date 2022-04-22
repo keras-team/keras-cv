@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import tensorflow as tf
 
-from keras_cv import visualization
+from keras_cv import explain
 
 SIZES = (299, 299)
 LABELS = 5
@@ -36,7 +36,7 @@ labels = tf.argsort(logits, axis=-1, direction="DESCENDING")[..., :LABELS]
 probs = tf.nn.softmax(logits)
 decoded = tf.keras.applications.imagenet_utils.decode_predictions(probs.numpy())
 
-logits, maps = visualization.gradcam(resnet50, x, labels)
+logits, maps = explain.gradcam(resnet50, x, labels)
 maps = tf.image.resize(maps, SIZES).numpy()
 
 # Visualize maps
