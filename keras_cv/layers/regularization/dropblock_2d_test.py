@@ -11,8 +11,10 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 import tensorflow as tf
 
+from keras_cv.layers.preprocessing.serialization_test import config_equals
 from keras_cv.layers.regularization.dropblock_2d import DropBlock2D
 
 
@@ -92,3 +94,16 @@ class DropBlock2DTest(tf.test.TestCase):
             return layer(x, training=True)
 
         apply(dummy_inputs)
+
+    def test_layer_serialization(self):
+        layer = DropBlock2D(dropout_rate=0.1, dropblock_size=7, seed=1234)
+
+        model = tf.keras.models.Sequential(layer)
+        model_config = model.get_config()
+
+        reconstructed_model = tf.keras.Sequential().from_config(model_config)
+        reconstructed_layer = reconstructed_model.layers[0]
+
+        self.assertTrue(
+            config_equals(layer.get_config(), reconstructed_layer.get_config())
+        )
