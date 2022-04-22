@@ -25,9 +25,6 @@ from tensorflow.keras.layers import RandomZoom
 from tensorflow.keras.layers import Rescaling
 from tensorflow.keras.layers import Resizing
 
-from keras_cv.layers.preprocessing.auto_contrast import AutoContrast
-from keras_cv.layers.preprocessing.channel_shuffle import ChannelShuffle
-from keras_cv.layers.preprocessing.cut_mix import CutMix
 from keras_cv.layers.preprocessing.equalization import Equalization
 from keras_cv.layers.preprocessing.fourier_mix import FourierMix
 from keras_cv.layers.preprocessing.grayscale import Grayscale
