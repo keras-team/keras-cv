@@ -42,8 +42,8 @@ def main():
         .batch(BATCH_SIZE)
     )
     random_cutout = preprocessing.RandomShear(
-        x=(0, 1),
-        y=0.5,
+        x_factor=(0, 1),
+        y_factor=0.5,
     )
     train_ds = train_ds.map(
         lambda x, y: (random_cutout(x), y), num_parallel_calls=tf.data.AUTOTUNE
