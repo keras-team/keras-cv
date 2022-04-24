@@ -1,3 +1,5 @@
+# Copyright 2022 The KerasCV Authors
+#
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -89,7 +91,7 @@ def fill_single_rectangle(image, centers_x, centers_y, widths, heights, fill_val
 
     xywh = tf.stack([centers_x, centers_y, widths, heights], axis=0)
     xywh = tf.cast(xywh, tf.float32)
-    corners = bounding_box.xywh_to_corners(xywh)
+    corners = bounding_box.convert_to_corners(xywh, format="coco")
 
     mask_shape = (images_width, images_height)
     is_rectangle = single_rectangle_mask(corners, mask_shape)
@@ -177,7 +179,7 @@ class VectorizedRandomCutout(layers.Layer):
         else:
             return type(factor)(0), factor
 
-    @tf.function
+    @tf.function(jit_compile=True)
     def call(self, inputs, training=True):
         if training is None:
             training = backend.learning_phase()
@@ -357,7 +359,7 @@ class MapFnRandomCutout(layers.Layer):
         else:
             return type(factor)(0), factor
 
-    @tf.function
+    @tf.function(jit_compile=True)
     def call(self, inputs, training=True):
 
         augment = lambda: tf.map_fn(self._random_cutout, inputs)
@@ -532,7 +534,538 @@ class VMapRandomCutout(layers.Layer):
         else:
             return type(factor)(0), factor
 
-    @tf.function
+    @tf.function(jit_compile=True)
+    def call(self, inputs, training=True):
+        augment = lambda: tf.vectorized_map(self._random_cutout, inputs)
+        no_augment = lambda: inputs
+        return tf.cond(tf.cast(training, tf.bool), augment, no_augment)
+
+    def _random_cutout(self, input):
+        center_x, center_y = self._compute_rectangle_position(input)
+        rectangle_height, rectangle_width = self._compute_rectangle_size(input)
+        rectangle_fill = self._compute_rectangle_fill(input)
+        input = fill_single_rectangle(
+            input,
+            center_x,
+            center_y,
+            rectangle_width,
+            rectangle_height,
+            rectangle_fill,
+        )
+        return input
+
+    def _compute_rectangle_position(self, inputs):
+        input_shape = tf.shape(inputs)
+        image_height, image_width = (
+            input_shape[0],
+            input_shape[1],
+        )
+        center_x = tf.random.uniform(
+            shape=[],
+            minval=0,
+            maxval=image_width,
+            dtype=tf.int32,
+            seed=self.seed,
+        )
+        center_y = tf.random.uniform(
+            shape=[],
+            minval=0,
+            maxval=image_height,
+            dtype=tf.int32,
+            seed=self.seed,
+        )
+        return center_x, center_y
+
+    def _compute_rectangle_size(self, inputs):
+        input_shape = tf.shape(inputs)
+        image_height, image_width = (
+            input_shape[0],
+            input_shape[1],
+        )
+        height = tf.random.uniform(
+            [],
+            minval=self.height_lower,
+            maxval=self.height_upper,
+            dtype=tf.float32,
+        )
+        width = tf.random.uniform(
+            [],
+            minval=self.width_lower,
+            maxval=self.width_upper,
+            dtype=tf.float32,
+        )
+
+        if self._height_is_float:
+            height = height * tf.cast(image_height, tf.float32)
+
+        if self._width_is_float:
+            width = width * tf.cast(image_width, tf.float32)
+
+        height = tf.cast(tf.math.ceil(height), tf.int32)
+        width = tf.cast(tf.math.ceil(width), tf.int32)
+
+        height = tf.minimum(height, image_height)
+        width = tf.minimum(width, image_width)
+
+        return height, width
+
+    def _compute_rectangle_fill(self, inputs):
+        input_shape = tf.shape(inputs)
+        if self.fill_mode == "constant":
+            fill_value = tf.fill(input_shape, self.fill_value)
+        else:
+            # gaussian noise
+            fill_value = tf.random.normal(input_shape)
+
+        return fill_value
+
+    def get_config(self):
+        config = {
+            "height_factor": self.height_factor,
+            "width_factor": self.width_factor,
+            "fill_mode": self.fill_mode,
+            "fill_value": self.fill_value,
+            "seed": self.seed,
+        }
+        base_config = super().get_config()
+        return dict(list(base_config.items()) + list(config.items()))
+
+
+"""
+JIT COMPILED
+# Layer Implementations
+## Fully Vectorized
+"""
+
+
+class JITVectorizedRandomCutout(layers.Layer):
+    def __init__(
+        self,
+        height_factor,
+        width_factor,
+        fill_mode="constant",
+        fill_value=0.0,
+        seed=None,
+        **kwargs,
+    ):
+        super().__init__(**kwargs)
+
+        self.height_lower, self.height_upper = self._parse_bounds(height_factor)
+        self.width_lower, self.width_upper = self._parse_bounds(width_factor)
+
+        if fill_mode not in ["gaussian_noise", "constant"]:
+            raise ValueError(
+                '`fill_mode` should be "gaussian_noise" '
+                f'or "constant".  Got `fill_mode`={fill_mode}'
+            )
+
+        if not isinstance(self.height_lower, type(self.height_upper)):
+            raise ValueError(
+                "`height_factor` must have lower bound and upper bound "
+                "with same type, got {} and {}".format(
+                    type(self.height_lower), type(self.height_upper)
+                )
+            )
+        if not isinstance(self.width_lower, type(self.width_upper)):
+            raise ValueError(
+                "`width_factor` must have lower bound and upper bound "
+                "with same type, got {} and {}".format(
+                    type(self.width_lower), type(self.width_upper)
+                )
+            )
+
+        if self.height_upper < self.height_lower:
+            raise ValueError(
+                "`height_factor` cannot have upper bound less than "
+                "lower bound, got {}".format(height_factor)
+            )
+        self._height_is_float = isinstance(self.height_lower, float)
+        if self._height_is_float:
+            if not self.height_lower >= 0.0 or not self.height_upper <= 1.0:
+                raise ValueError(
+                    "`height_factor` must have values between [0, 1] "
+                    "when is float, got {}".format(height_factor)
+                )
+
+        if self.width_upper < self.width_lower:
+            raise ValueError(
+                "`width_factor` cannot have upper bound less than "
+                "lower bound, got {}".format(width_factor)
+            )
+        self._width_is_float = isinstance(self.width_lower, float)
+        if self._width_is_float:
+            if not self.width_lower >= 0.0 or not self.width_upper <= 1.0:
+                raise ValueError(
+                    "`width_factor` must have values between [0, 1] "
+                    "when is float, got {}".format(width_factor)
+                )
+
+        self.fill_mode = fill_mode
+        self.fill_value = fill_value
+        self.seed = seed
+
+    def _parse_bounds(self, factor):
+        if isinstance(factor, (tuple, list)):
+            return factor[0], factor[1]
+        else:
+            return type(factor)(0), factor
+
+    @tf.function(jit_compile=True)
+    def call(self, inputs, training=True):
+        if training is None:
+            training = backend.learning_phase()
+
+        augment = lambda: self._random_cutout(inputs)
+        no_augment = lambda: inputs
+        return tf.cond(tf.cast(training, tf.bool), augment, no_augment)
+
+    def _random_cutout(self, inputs):
+        """Apply random cutout."""
+        center_x, center_y = self._compute_rectangle_position(inputs)
+        rectangle_height, rectangle_width = self._compute_rectangle_size(inputs)
+        rectangle_fill = self._compute_rectangle_fill(inputs)
+        inputs = fill_utils.fill_rectangle(
+            inputs,
+            center_x,
+            center_y,
+            rectangle_width,
+            rectangle_height,
+            rectangle_fill,
+        )
+        return inputs
+
+    def _compute_rectangle_position(self, inputs):
+        input_shape = tf.shape(inputs)
+        batch_size, image_height, image_width = (
+            input_shape[0],
+            input_shape[1],
+            input_shape[2],
+        )
+        center_x = tf.random.uniform(
+            shape=[batch_size],
+            minval=0,
+            maxval=image_width,
+            dtype=tf.int32,
+            seed=self.seed,
+        )
+        center_y = tf.random.uniform(
+            shape=[batch_size],
+            minval=0,
+            maxval=image_height,
+            dtype=tf.int32,
+            seed=self.seed,
+        )
+        return center_x, center_y
+
+    def _compute_rectangle_size(self, inputs):
+        input_shape = tf.shape(inputs)
+        batch_size, image_height, image_width = (
+            input_shape[0],
+            input_shape[1],
+            input_shape[2],
+        )
+        height = tf.random.uniform(
+            [batch_size],
+            minval=self.height_lower,
+            maxval=self.height_upper,
+            dtype=tf.float32,
+        )
+        width = tf.random.uniform(
+            [batch_size],
+            minval=self.width_lower,
+            maxval=self.width_upper,
+            dtype=tf.float32,
+        )
+
+        if self._height_is_float:
+            height = height * tf.cast(image_height, tf.float32)
+
+        if self._width_is_float:
+            width = width * tf.cast(image_width, tf.float32)
+
+        height = tf.cast(tf.math.ceil(height), tf.int32)
+        width = tf.cast(tf.math.ceil(width), tf.int32)
+
+        height = tf.minimum(height, image_height)
+        width = tf.minimum(width, image_width)
+
+        return height, width
+
+    def _compute_rectangle_fill(self, inputs):
+        input_shape = tf.shape(inputs)
+        if self.fill_mode == "constant":
+            fill_value = tf.fill(input_shape, self.fill_value)
+        else:
+            # gaussian noise
+            fill_value = tf.random.normal(input_shape)
+
+        return fill_value
+
+    def get_config(self):
+        config = {
+            "height_factor": self.height_factor,
+            "width_factor": self.width_factor,
+            "fill_mode": self.fill_mode,
+            "fill_value": self.fill_value,
+            "seed": self.seed,
+        }
+        base_config = super().get_config()
+        return dict(list(base_config.items()) + list(config.items()))
+
+
+"""
+## tf.map_fn
+"""
+
+
+class JITMapFnRandomCutout(layers.Layer):
+    def __init__(
+        self,
+        height_factor,
+        width_factor,
+        fill_mode="constant",
+        fill_value=0.0,
+        seed=None,
+        **kwargs,
+    ):
+        super().__init__(**kwargs)
+
+        self.height_lower, self.height_upper = self._parse_bounds(height_factor)
+        self.width_lower, self.width_upper = self._parse_bounds(width_factor)
+
+        if fill_mode not in ["gaussian_noise", "constant"]:
+            raise ValueError(
+                '`fill_mode` should be "gaussian_noise" '
+                f'or "constant".  Got `fill_mode`={fill_mode}'
+            )
+
+        if not isinstance(self.height_lower, type(self.height_upper)):
+            raise ValueError(
+                "`height_factor` must have lower bound and upper bound "
+                "with same type, got {} and {}".format(
+                    type(self.height_lower), type(self.height_upper)
+                )
+            )
+        if not isinstance(self.width_lower, type(self.width_upper)):
+            raise ValueError(
+                "`width_factor` must have lower bound and upper bound "
+                "with same type, got {} and {}".format(
+                    type(self.width_lower), type(self.width_upper)
+                )
+            )
+
+        if self.height_upper < self.height_lower:
+            raise ValueError(
+                "`height_factor` cannot have upper bound less than "
+                "lower bound, got {}".format(height_factor)
+            )
+        self._height_is_float = isinstance(self.height_lower, float)
+        if self._height_is_float:
+            if not self.height_lower >= 0.0 or not self.height_upper <= 1.0:
+                raise ValueError(
+                    "`height_factor` must have values between [0, 1] "
+                    "when is float, got {}".format(height_factor)
+                )
+
+        if self.width_upper < self.width_lower:
+            raise ValueError(
+                "`width_factor` cannot have upper bound less than "
+                "lower bound, got {}".format(width_factor)
+            )
+        self._width_is_float = isinstance(self.width_lower, float)
+        if self._width_is_float:
+            if not self.width_lower >= 0.0 or not self.width_upper <= 1.0:
+                raise ValueError(
+                    "`width_factor` must have values between [0, 1] "
+                    "when is float, got {}".format(width_factor)
+                )
+
+        self.fill_mode = fill_mode
+        self.fill_value = fill_value
+        self.seed = seed
+
+    def _parse_bounds(self, factor):
+        if isinstance(factor, (tuple, list)):
+            return factor[0], factor[1]
+        else:
+            return type(factor)(0), factor
+
+    @tf.function(jit_compile=True)
+    def call(self, inputs, training=True):
+
+        augment = lambda: tf.map_fn(self._random_cutout, inputs)
+        no_augment = lambda: inputs
+        return tf.cond(tf.cast(training, tf.bool), augment, no_augment)
+
+    def _random_cutout(self, input):
+        center_x, center_y = self._compute_rectangle_position(input)
+        rectangle_height, rectangle_width = self._compute_rectangle_size(input)
+        rectangle_fill = self._compute_rectangle_fill(input)
+        input = fill_single_rectangle(
+            input,
+            center_x,
+            center_y,
+            rectangle_width,
+            rectangle_height,
+            rectangle_fill,
+        )
+        return input
+
+    def _compute_rectangle_position(self, inputs):
+        input_shape = tf.shape(inputs)
+        image_height, image_width = (
+            input_shape[0],
+            input_shape[1],
+        )
+        center_x = tf.random.uniform(
+            shape=[],
+            minval=0,
+            maxval=image_width,
+            dtype=tf.int32,
+            seed=self.seed,
+        )
+        center_y = tf.random.uniform(
+            shape=[],
+            minval=0,
+            maxval=image_height,
+            dtype=tf.int32,
+            seed=self.seed,
+        )
+        return center_x, center_y
+
+    def _compute_rectangle_size(self, inputs):
+        input_shape = tf.shape(inputs)
+        image_height, image_width = (
+            input_shape[0],
+            input_shape[1],
+        )
+        height = tf.random.uniform(
+            [],
+            minval=self.height_lower,
+            maxval=self.height_upper,
+            dtype=tf.float32,
+        )
+        width = tf.random.uniform(
+            [],
+            minval=self.width_lower,
+            maxval=self.width_upper,
+            dtype=tf.float32,
+        )
+
+        if self._height_is_float:
+            height = height * tf.cast(image_height, tf.float32)
+
+        if self._width_is_float:
+            width = width * tf.cast(image_width, tf.float32)
+
+        height = tf.cast(tf.math.ceil(height), tf.int32)
+        width = tf.cast(tf.math.ceil(width), tf.int32)
+
+        height = tf.minimum(height, image_height)
+        width = tf.minimum(width, image_width)
+
+        return height, width
+
+    def _compute_rectangle_fill(self, inputs):
+        input_shape = tf.shape(inputs)
+        if self.fill_mode == "constant":
+            fill_value = tf.fill(input_shape, self.fill_value)
+        else:
+            # gaussian noise
+            fill_value = tf.random.normal(input_shape)
+
+        return fill_value
+
+    def get_config(self):
+        config = {
+            "height_factor": self.height_factor,
+            "width_factor": self.width_factor,
+            "fill_mode": self.fill_mode,
+            "fill_value": self.fill_value,
+            "seed": self.seed,
+        }
+        base_config = super().get_config()
+        return dict(list(base_config.items()) + list(config.items()))
+
+
+"""
+## tf.vectorized_map
+"""
+
+
+class JITVMapRandomCutout(layers.Layer):
+    def __init__(
+        self,
+        height_factor,
+        width_factor,
+        fill_mode="constant",
+        fill_value=0.0,
+        seed=None,
+        **kwargs,
+    ):
+        super().__init__(**kwargs)
+
+        self.height_lower, self.height_upper = self._parse_bounds(height_factor)
+        self.width_lower, self.width_upper = self._parse_bounds(width_factor)
+
+        if fill_mode not in ["gaussian_noise", "constant"]:
+            raise ValueError(
+                '`fill_mode` should be "gaussian_noise" '
+                f'or "constant".  Got `fill_mode`={fill_mode}'
+            )
+
+        if not isinstance(self.height_lower, type(self.height_upper)):
+            raise ValueError(
+                "`height_factor` must have lower bound and upper bound "
+                "with same type, got {} and {}".format(
+                    type(self.height_lower), type(self.height_upper)
+                )
+            )
+        if not isinstance(self.width_lower, type(self.width_upper)):
+            raise ValueError(
+                "`width_factor` must have lower bound and upper bound "
+                "with same type, got {} and {}".format(
+                    type(self.width_lower), type(self.width_upper)
+                )
+            )
+
+        if self.height_upper < self.height_lower:
+            raise ValueError(
+                "`height_factor` cannot have upper bound less than "
+                "lower bound, got {}".format(height_factor)
+            )
+        self._height_is_float = isinstance(self.height_lower, float)
+        if self._height_is_float:
+            if not self.height_lower >= 0.0 or not self.height_upper <= 1.0:
+                raise ValueError(
+                    "`height_factor` must have values between [0, 1] "
+                    "when is float, got {}".format(height_factor)
+                )
+
+        if self.width_upper < self.width_lower:
+            raise ValueError(
+                "`width_factor` cannot have upper bound less than "
+                "lower bound, got {}".format(width_factor)
+            )
+        self._width_is_float = isinstance(self.width_lower, float)
+        if self._width_is_float:
+            if not self.width_lower >= 0.0 or not self.width_upper <= 1.0:
+                raise ValueError(
+                    "`width_factor` must have values between [0, 1] "
+                    "when is float, got {}".format(width_factor)
+                )
+
+        self.fill_mode = fill_mode
+        self.fill_value = fill_value
+        self.seed = seed
+
+    def _parse_bounds(self, factor):
+        if isinstance(factor, (tuple, list)):
+            return factor[0], factor[1]
+        else:
+            return type(factor)(0), factor
+
+    @tf.function(jit_compile=True)
     def call(self, inputs, training=True):
         augment = lambda: tf.vectorized_map(self._random_cutout, inputs)
         no_augment = lambda: inputs
@@ -644,7 +1177,14 @@ num_images = [1000, 2000, 5000, 10000, 25000, 37500, 50000]
 
 results = {}
 
-for aug in [VectorizedRandomCutout, VMapRandomCutout, MapFnRandomCutout]:
+for aug in [
+    VectorizedRandomCutout,
+    VMapRandomCutout,
+    MapFnRandomCutout,
+    JITVectorizedRandomCutout,
+    JITVMapRandomCutout,
+    JITMapFnRandomCutout,
+]:
     c = aug.__name__
     layer = aug(0.2, 0.2)
     runtimes = []
