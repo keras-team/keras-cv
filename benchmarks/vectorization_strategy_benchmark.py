@@ -91,7 +91,7 @@ def fill_single_rectangle(image, centers_x, centers_y, widths, heights, fill_val
 
     xywh = tf.stack([centers_x, centers_y, widths, heights], axis=0)
     xywh = tf.cast(xywh, tf.float32)
-    corners = bounding_box.convert_to_corners(xywh, format='coco')
+    corners = bounding_box.convert_to_corners(xywh, format="coco")
 
     mask_shape = (images_width, images_height)
     is_rectangle = single_rectangle_mask(corners, mask_shape)
