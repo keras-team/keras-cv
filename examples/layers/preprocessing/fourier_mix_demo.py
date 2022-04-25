@@ -11,9 +11,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""random_shear_demo.py shows how to use the RandomShear preprocessing layer.
-
-Operates on the oxford_flowers102 dataset.  In this script the flowers
+"""fourier_mix_demo.py shows how to use the FourierMix preprocessing layer.
+Uses the oxford_flowers102 dataset.  In this script the flowers
 are loaded, then are passed through the preprocessing layers.
 Finally, they are shown using matplotlib.
 """
@@ -27,8 +26,9 @@ IMG_SIZE = (224, 224)
 BATCH_SIZE = 64
 
 
-def resize(image, label):
+def resize(image, label, num_classes=10):
     image = tf.image.resize(image, IMG_SIZE)
+    label = tf.one_hot(label, num_classes)
     return image, label
 
 
@@ -36,20 +36,21 @@ def main():
     data, ds_info = tfds.load("oxford_flowers102", with_info=True, as_supervised=True)
     train_ds = data["train"]
 
+    num_classes = ds_info.features["label"].num_classes
+
     train_ds = (
-        train_ds.map(lambda x, y: resize(x, y))
+        train_ds.map(lambda x, y: resize(x, y, num_classes=num_classes))
         .shuffle(10 * BATCH_SIZE)
         .batch(BATCH_SIZE)
     )
-    random_cutout = preprocessing.RandomShear(
-        x_factor=(0, 1),
-        y_factor=0.5,
-    )
+    fourier_mix = preprocessing.FourierMix(alpha=0.5)
     train_ds = train_ds.map(
-        lambda x, y: (random_cutout(x), y), num_parallel_calls=tf.data.AUTOTUNE
+        lambda x, y: fourier_mix({"images": x, "labels": y}),
+        num_parallel_calls=tf.data.AUTOTUNE,
     )
 
-    for images, labels in train_ds.take(1):
+    for batch in train_ds.take(1):
+        images = batch["images"]
         plt.figure(figsize=(8, 8))
         for i in range(9):
             plt.subplot(3, 3, i + 1)

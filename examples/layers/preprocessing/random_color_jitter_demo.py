@@ -11,7 +11,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""random_shear_demo.py shows how to use the RandomShear preprocessing layer.
+
+"""color_jitter_demo.py shows how to use the ColorJitter preprocessing layer.
 
 Operates on the oxford_flowers102 dataset.  In this script the flowers
 are loaded, then are passed through the preprocessing layers.
@@ -27,8 +28,9 @@ IMG_SIZE = (224, 224)
 BATCH_SIZE = 64
 
 
-def resize(image, label):
+def resize(image, label, num_classes=10):
     image = tf.image.resize(image, IMG_SIZE)
+    label = tf.one_hot(label, num_classes)
     return image, label
 
 
@@ -36,17 +38,24 @@ def main():
     data, ds_info = tfds.load("oxford_flowers102", with_info=True, as_supervised=True)
     train_ds = data["train"]
 
+    num_classes = ds_info.features["label"].num_classes
+
     train_ds = (
-        train_ds.map(lambda x, y: resize(x, y))
+        train_ds.map(lambda x, y: resize(x, y, num_classes=num_classes))
         .shuffle(10 * BATCH_SIZE)
         .batch(BATCH_SIZE)
     )
-    random_cutout = preprocessing.RandomShear(
-        x_factor=(0, 1),
-        y_factor=0.5,
+
+    color_jitter = preprocessing.RandomColorJitter(
+        value_range=(0, 255),
+        brightness_factor=(-0.2, 0.5),
+        contrast_factor=(0.5, 0.9),
+        saturation_factor=(0.5, 0.9),
+        hue_factor=(0.5, 0.9),
+        seed=101,
     )
     train_ds = train_ds.map(
-        lambda x, y: (random_cutout(x), y), num_parallel_calls=tf.data.AUTOTUNE
+        lambda x, y: (color_jitter(x), y), num_parallel_calls=tf.data.AUTOTUNE
     )
 
     for images, labels in train_ds.take(1):
