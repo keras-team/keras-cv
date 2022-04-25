@@ -217,6 +217,8 @@ class COCOMeanAveragePrecisionTest(tf.test.TestCase):
         )
         metric.update_state(y_true, y_pred)
         self.assertEqual(metric.ground_truths, [1])
+        metric.update_state(y_true, y_pred)
+        self.assertEqual(metric.ground_truths, [2])
 
     def test_mixed_dtypes(self):
         y_true = tf.constant([[[0, 0, 100, 100, 1]]], dtype=tf.float64)
