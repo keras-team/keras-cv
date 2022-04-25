@@ -191,7 +191,7 @@ class COCOMeanAveragePrecision(tf.keras.metrics.Metric):
                 ground_truths = utils.filter_boxes(
                     ground_truths, value=category_id, axis=bounding_box.CLASS
                 )
-
+                tf.print('ground_truths', ground_truths)
                 detections = utils.filter_boxes(
                     detections, value=category_id, axis=bounding_box.CLASS
                 )
