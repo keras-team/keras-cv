@@ -14,6 +14,9 @@
 
 # Also export the image KPLs from core keras, so that user can import all the image
 # KPLs from one place.
+
+from tensorflow.keras.__internal__.layers import BaseImageAugmentationLayer
+
 from tensorflow.keras.layers import CenterCrop
 from tensorflow.keras.layers import RandomBrightness
 from tensorflow.keras.layers import RandomContrast
