@@ -20,8 +20,9 @@ from tensorflow import keras
 from keras_cv.metrics import COCOMeanAveragePrecision
 from keras_cv.utils import bounding_box as bounding_box_utils
 
+
 class COCOMeanAveragePrecisionTest(tf.test.TestCase):
-    def test_runs_inside_model(self):s
+    def test_runs_inside_model(self):
         i = keras.layers.Input((None, None, 6))
         model = keras.Model(i, i)
 
@@ -208,7 +209,6 @@ class COCOMeanAveragePrecisionTest(tf.test.TestCase):
         y_pred = tf.constant([[[0, 50, 100, 150, 1, 1.0]]], dtype=tf.float32)
 
         y_true = bounding_box_utils.pad_bounding_box_batch_to_shape(y_true, (1, 20, 5))
-        tf.print('y_true', y_trues)
 
         metric = COCOMeanAveragePrecision(
             iou_thresholds=[0.15],
@@ -216,7 +216,7 @@ class COCOMeanAveragePrecisionTest(tf.test.TestCase):
             max_detections=1,
         )
         metric.update_state(y_true, y_pred)
-        self.assertEqual(metric.ground_truths(), [1])
+        self.assertEqual(metric.ground_truths, [1])
 
     def test_mixed_dtypes(self):
         y_true = tf.constant([[[0, 0, 100, 100, 1]]], dtype=tf.float64)
