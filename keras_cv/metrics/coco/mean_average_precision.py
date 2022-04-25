@@ -89,7 +89,7 @@ class COCOMeanAveragePrecision(tf.keras.metrics.Metric):
         area_range=None,
         max_detections=100,
         num_buckets=10000,
-        **kwargs
+        **kwargs,
     ):
         super().__init__(**kwargs)
         # Initialize parameter values
@@ -102,6 +102,11 @@ class COCOMeanAveragePrecision(tf.keras.metrics.Metric):
 
         self.num_iou_thresholds = len(self.iou_thresholds)
         self.num_class_ids = len(self.class_ids)
+
+        if any([c < 0 for c in class_ids]):
+            raise ValueError(
+                "class_ids must be positive.  Got " f"class_ids={class_ids}"
+            )
 
         self.ground_truths = self.add_weight(
             "ground_truths",
@@ -191,7 +196,6 @@ class COCOMeanAveragePrecision(tf.keras.metrics.Metric):
                 ground_truths = utils.filter_boxes(
                     ground_truths, value=category_id, axis=bounding_box.CLASS
                 )
-
                 detections = utils.filter_boxes(
                     detections, value=category_id, axis=bounding_box.CLASS
                 )

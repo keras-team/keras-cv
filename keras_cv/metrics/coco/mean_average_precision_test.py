@@ -18,6 +18,7 @@ import tensorflow as tf
 from tensorflow import keras
 
 from keras_cv.metrics import COCOMeanAveragePrecision
+from keras_cv.utils import bounding_box as bounding_box_utils
 
 
 class COCOMeanAveragePrecisionTest(tf.test.TestCase):
@@ -202,6 +203,22 @@ class COCOMeanAveragePrecisionTest(tf.test.TestCase):
         mean_average_precision.false_positive_buckets.assign(false_positives)
 
         self.assertEqual(mean_average_precision.result(), 0.625)
+
+    def test_bounding_box_counting(self):
+        y_true = tf.constant([[[0, 0, 100, 100, 1]]], dtype=tf.float64)
+        y_pred = tf.constant([[[0, 50, 100, 150, 1, 1.0]]], dtype=tf.float32)
+
+        y_true = bounding_box_utils.pad_bounding_box_batch_to_shape(y_true, (1, 20, 5))
+
+        metric = COCOMeanAveragePrecision(
+            iou_thresholds=[0.15],
+            class_ids=[1],
+            max_detections=1,
+        )
+        metric.update_state(y_true, y_pred)
+        self.assertEqual(metric.ground_truths, [1])
+        metric.update_state(y_true, y_pred)
+        self.assertEqual(metric.ground_truths, [2])
 
     def test_mixed_dtypes(self):
         y_true = tf.constant([[[0, 0, 100, 100, 1]]], dtype=tf.float64)
