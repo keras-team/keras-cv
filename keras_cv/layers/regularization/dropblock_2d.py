@@ -158,6 +158,7 @@ class DropBlock2D(BaseRandomLayer):
             value=dropblock_size, n=2, name="dropblock_size", allow_zero=False
         )
         self._data_format = conv_utils.normalize_data_format(data_format)
+        self.seed = seed
 
     def call(self, x, training=None):
         if not training or self._dropout_rate == 0.0:
@@ -237,6 +238,7 @@ class DropBlock2D(BaseRandomLayer):
             "dropout_rate": self._dropout_rate,
             "dropblock_size": (self._dropblock_height, self._dropblock_width),
             "data_format": self._data_format,
+            "seed": self.seed,
         }
         base_config = super().get_config()
         return dict(list(base_config.items()) + list(config.items()))
