@@ -34,7 +34,7 @@ class Solarization(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
         value_range: a tuple or a list of two elements. The first value represents
             the lower bound for values in passed images, the second represents the
             upper bound. Images passed to the layer should have values within
-            `value_range`. Defaults to `(0, 255)`.
+            `value_range`.
         addition_factor: (Optional)  A tuple of two floats, a single float or a
             `keras_cv.FactorSampler`. For each augmented image a value is sampled
             from the provided range. If a float is passed, the range is interpreted as
