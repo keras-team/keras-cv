@@ -151,3 +151,64 @@ class RandomShear(BaseImageAugmentationLayer):
             }
         )
         return config
+
+    def _augment(self, inputs):
+        image = inputs.get("images", None)
+        label = inputs.get("labels", None)
+        bounding_box = inputs.get("bounding_boxes", None)
+        transformation = self.get_random_transformation(
+            image=image, label=label, bounding_box=bounding_box
+        )  # pylint: disable=assignment-from-none
+        image = self.augment_image(image, transformation=transformation)
+        result = {"images": image}
+        if label is not None:
+            label = self.augment_label(label, transformation=transformation)
+            result["labels"] = label
+        if bounding_box is not None:
+            bounding_box = self.augment_bounding_box(
+                image, bounding_box, transformation=transformation
+            )
+            result["bounding_boxes"] = bounding_box
+        return result
+
+    def augment_bounding_box(self, image, bounding_boxes, transformation):
+        x, y = transformation
+        height, width, _ = image.shape
+        y1, x1, y2, x2 = tf.split(bounding_boxes, 4, axis=1)
+        new_bboxes = tf.stack(
+            [
+                x1 * width,
+                y1 * height,
+                x2 * width,
+                y2 * height,
+                x2 * width,
+                y1 * height,
+                x1 * width,
+                y2 * height,
+            ],
+            axis=1,
+        )
+        matrix = tf.stack([1.0, -x, -y, 1.0], axis=0)
+        matrix = tf.reshape(matrix, (2, 2))
+        new_bboxes = tf.reshape(new_bboxes, (-1, 2))
+        transformed_bboxes = tf.reshape(
+            tf.einsum("ij,kj->ki", matrix, new_bboxes), (-1, 8)
+        )
+        (
+            top_left_x,
+            top_left_y,
+            bottom_right_x,
+            bottom_right_y,
+            top_right_x,
+            top_right_y,
+            bottom_left_x,
+            bottom_left_y,
+        ) = tf.split(transformed_bboxes, 8, axis=1)
+        final_y1 = tf.math.minimum(top_left_y, top_right_y)
+        final_x1 = tf.math.minimum(top_left_x, bottom_left_x)
+        final_y2 = tf.math.maximum(bottom_right_y, bottom_left_y)
+        final_x2 = tf.math.maximum(bottom_right_x, top_right_x)
+        return tf.concat(
+            [final_y1 / height, final_x1 / width, final_y2 / height, final_x2 / width],
+            axis=1,
+        )
