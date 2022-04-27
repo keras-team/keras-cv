@@ -113,7 +113,7 @@ class Dice(keras.losses.Loss):
         )
 
         if self.class_ids is not None:
-            y_true, y_pred = gather_channels(y_true, y_pred, indexes=self.class_ids)
+            y_true, y_pred = gather_channels(y_true, y_pred, indices=self.class_ids)
 
         axes = (
             tf.constant([1, 2])

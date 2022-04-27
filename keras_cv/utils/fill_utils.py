@@ -84,18 +84,18 @@ def fill_rectangle(images, centers_x, centers_y, widths, heights, fill_values):
     return images
 
 
-def gather_channels(*xs, indexes=None):
+def gather_channels(*matrices, indices=None):
     # Gather all channel axis separately and pass as a list.
-    if indexes is None:
-        return xs
-    elif isinstance(indexes, (int)):
-        indexes = [indexes]
+    if indices is None:
+        return matrices
+    elif isinstance(indices, (int)):
+        indices = [indices]
 
-    xs_ = []
-    for x in xs:
+    gathered_matrices = []
+    for matrix in matrices:
         if keras.backend.image_data_format() == "channels_last":
-            x = tf.gather(x, indexes, axis=-1)
+            matrix = tf.gather(matrix, indices, axis=-1)
         else:
-            x = tf.gather(x, indexes, axis=1)
-        xs_.append(x)
-    return xs_
+            matrix = tf.gather(matrix, indices, axis=1)
+        gathered_matrices.append(matrix)
+    return gathered_matrices
