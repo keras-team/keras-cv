@@ -23,4 +23,4 @@ from keras_cv.core import UniformFactorSampler
 
 version_check.check_tf_version()
 
-__version__ = "0.1.0master"
+__version__ = "0.1.0dev"
