@@ -11,11 +11,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from turtle import back
 
 import tensorflow as tf
-from matplotlib.pyplot import axis
-from tensorflow.keras import backend
+from tensorflow import keras
 
 from keras_cv.utils import bounding_box
 
@@ -87,7 +85,7 @@ def fill_rectangle(images, centers_x, centers_y, widths, heights, fill_values):
 
 
 def gather_channels(*xs, indexes=None):
-    """TODO"""
+    # Gather all channel axis separately and pass as a list.
     if indexes is None:
         return xs
     elif isinstance(indexes, (int)):
@@ -95,17 +93,9 @@ def gather_channels(*xs, indexes=None):
 
     xs_ = []
     for x in xs:
-        if backend.image_data_format() == "channels_last":
+        if keras.backend.image_data_format() == "channels_last":
             x = tf.gather(x, indexes, axis=-1)
         else:
             x = tf.gather(x, indexes, axis=1)
         xs_.append(x)
     return xs_
-
-
-def get_reduce_axes(per_image):
-    """TODO"""
-    axes = [1, 2] if backend.image_data_format() == "channels_last" else [2, 3]
-    if not per_image:
-        axes.insert(0, 0)
-    return axes
