@@ -17,7 +17,6 @@ Operates on the voc dataset.  In this script the images and bboxes
 are loaded, then are passed through the preprocessing layers.
 Finally, they are shown using matplotlib.
 """
-import cv2
 import matplotlib.pyplot as plt
 import numpy as np
 import tensorflow as tf
@@ -25,7 +24,7 @@ import tensorflow_datasets as tfds
 
 from keras_cv.layers import preprocessing
 
-IMG_SIZE = (500, 500)
+IMG_SIZE = (256, 256)
 BATCH_SIZE = 9
 
 
@@ -49,38 +48,27 @@ def resize(inputs):
     return inputs
 
 
-def plot_bbox(image, bbox):
-    """plots bbox over image"""
-    image = image.astype(np.uint8)
-    h, w, _ = image.shape
-    bbox[..., [0, 2]] = bbox[..., [0, 2]] * h
-    bbox[..., [1, 3]] = bbox[..., [1, 3]] * w
-    bbox = bbox.astype(int)
-    for coor in bbox:
-        y1, x1, y2, x2 = coor
-        image = cv2.rectangle(image, (x1, y1), (x2, y2), (0, 255, 0), 2)
-    return image
-
-
 def main():
-    dataset = tfds.load("voc/2007", split=tfds.Split.TRAIN, batch_size=1)
+    dataset = tfds.load(
+        "voc/2007", split=tfds.Split.TRAIN, batch_size=1, shuffle_files=True
+    )
     dataset = dataset.map(lambda x: resize(x))
     dataset = dataset.padded_batch(BATCH_SIZE)
 
     randomshear = preprocessing.RandomShear(
-        x_factor=(0, 0.5), y_factor=0.2, fill_mode="constant"
+        x_factor=(0, 0.2), y_factor=(0, 0.2), fill_mode="constant"
     )
-
-    for example in iter(dataset):
+    colors = np.array([[0.0, 255.0, 0.0]])
+    for example in dataset.take(1):
         result = randomshear(
             {"images": example["image"], "bounding_boxes": example["objects"]["bbox"]}
         )
         images, bboxes = result["images"], result["bounding_boxes"]
+        plotted_images = tf.image.draw_bounding_boxes(images, bboxes, colors)
         plt.figure(figsize=(20, 20))
-        for i in range(9):
-            plt.subplot(3, 3, i + 1)
-            image = plot_bbox(images[i].numpy(), bboxes[i].numpy())
-            plt.imshow(image.astype("uint8"))
+        for i in range(BATCH_SIZE):
+            plt.subplot(BATCH_SIZE // 3, BATCH_SIZE // 3, i + 1)
+            plt.imshow(plotted_images[i].numpy().astype("uint8"))
             plt.axis("off")
         plt.show()
 
