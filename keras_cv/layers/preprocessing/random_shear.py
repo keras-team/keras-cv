@@ -165,6 +165,8 @@ class RandomShear(BaseImageAugmentationLayer):
             label = self.augment_label(label, transformation=transformation)
             result["labels"] = label
         if bounding_box is not None:
+            # changed augment_bounding_box requires image as well
+            # for unnormalizing bbox coordinates
             bounding_box = self.augment_bounding_box(
                 image, bounding_box, transformation=transformation
             )
@@ -172,9 +174,19 @@ class RandomShear(BaseImageAugmentationLayer):
         return result
 
     def augment_bounding_box(self, image, bounding_boxes, transformation):
+        """args: image : takes a single image H,W,C,
+        bounding_boxes: take bbox coordinates [N,4] -> [y1,x1,y2,x2]
+        transformation: takes tuple for x,y transformation None if no transformation"""
         x, y = transformation
+        if x is None:
+            x = 0
+        if y is None:
+            y = 0
         height, width, _ = image.shape
+        # split bbox coordinates [N,4] to y1,x1,y2,x2 each of shape [N,1]
         y1, x1, y2, x2 = tf.split(bounding_boxes, 4, axis=1)
+        # unnormalize bbox coordinates to image shape
+        # and tranform into [x1,y1,x2,y2,x3,y3,x4,y4]
         new_bboxes = tf.stack(
             [
                 x1 * width,
@@ -188,12 +200,17 @@ class RandomShear(BaseImageAugmentationLayer):
             ],
             axis=1,
         )
+        # create transformation matrix [1,4]
         matrix = tf.stack([1.0, -x, -y, 1.0], axis=0)
+        # reshape it to [2,2]
         matrix = tf.reshape(matrix, (2, 2))
+        # reshape unnormalized bboxes from [N,8] -> [N*4,2]
         new_bboxes = tf.reshape(new_bboxes, (-1, 2))
+        # [[1,x`],[y`,1]]*[x,y]->[new_x,new_y]
         transformed_bboxes = tf.reshape(
             tf.einsum("ij,kj->ki", matrix, new_bboxes), (-1, 8)
         )
+        # split into 4 corners of bbox
         (
             top_left_x,
             top_left_y,
@@ -204,10 +221,13 @@ class RandomShear(BaseImageAugmentationLayer):
             bottom_left_x,
             bottom_left_y,
         ) = tf.split(transformed_bboxes, 8, axis=1)
+        # choose minimum for top and left coordinates
+        # choose maximum for bottom and right coordinates
         final_y1 = tf.math.minimum(top_left_y, top_right_y)
         final_x1 = tf.math.minimum(top_left_x, bottom_left_x)
         final_y2 = tf.math.maximum(bottom_right_y, bottom_left_y)
         final_x2 = tf.math.maximum(bottom_right_x, top_right_x)
+        # return transformed normalized bbox coordinates [N,4]
         return tf.concat(
             [final_y1 / height, final_x1 / width, final_y2 / height, final_x2 / width],
             axis=1,
