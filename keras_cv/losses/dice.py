@@ -95,22 +95,20 @@ class Dice(keras.losses.Loss):
         self.per_sample = per_sample
         self.epsilon = epsilon
 
+    def _smooth_labels(self, y_true, y_pred, label_smoothing):
+        num_classes = tf.cast(tf.shape(y_true)[-1], y_pred.dtype)
+        return y_true * (1.0 - label_smoothing) + (label_smoothing / num_classes)
+
     def call(self, y_true, y_pred):
         y_pred = tf.convert_to_tensor(y_pred)
         y_true = tf.cast(y_true, y_pred.dtype)
         label_smoothing = tf.convert_to_tensor(self.label_smoothing, dtype=y_pred.dtype)
 
-        y_pred = tf.__internal__.smart_cond.smart_cond(
-            self.from_logits, lambda: tf.nn.softmax(y_pred), lambda: y_pred
-        )
+        if self.from_logits:
+            y_pred = tf.nn.softmax(y_pred)
 
-        def _smooth_labels():
-            num_classes = tf.cast(tf.shape(y_true)[-1], y_pred.dtype)
-            return y_true * (1.0 - label_smoothing) + (label_smoothing / num_classes)
-
-        y_true = tf.__internal__.smart_cond.smart_cond(
-            label_smoothing, _smooth_labels, lambda: y_true
-        )
+        if tf.cast(label_smoothing, dtype=tf.bool):
+            y_true = self._smooth_labels(y_true, y_pred, label_smoothing)
 
         if self.class_ids is not None:
             y_true, y_pred = gather_channels(y_true, y_pred, indices=self.class_ids)
@@ -120,17 +118,14 @@ class Dice(keras.losses.Loss):
             if keras.backend.image_data_format() == "channels_last"
             else tf.constant([2, 3])
         )
-        axes = tf.__internal__.smart_cond.smart_cond(
-            self.per_sample,
-            lambda: axes,
-            lambda: tf.concat([tf.constant([0]), axes], axis=0),
-        )
+        if not self.per_image:
+            axes = tf.concat([tf.constant([0]), axes], axis=0)
 
+        # loss calculation: Fβ-score (in terms of Type I and type II erro
         true_positive = keras.backend.sum(y_true * y_pred, axis=axes)
         false_positive = keras.backend.sum(y_pred, axis=axes) - true_positive
         false_negative = keras.backend.sum(y_true, axis=axes) - true_positive
 
-        # Type I and type II errors - f-score forumula
         power_beta = 1 + self.beta**2
         numerator = power_beta * true_positive + self.epsilon
         denominator = (
@@ -139,12 +134,11 @@ class Dice(keras.losses.Loss):
             + false_positive
             + self.epsilon
         )
-
         dice_score = numerator / denominator
-        dice_score = tf.__internal__.smart_cond.smart_cond(
-            self.per_sample,
-            lambda: keras.backend.mean(dice_score, axis=0),
-            lambda: keras.backend.mean(dice_score),
-        )
+
+        if self.per_image:
+            dice_score = keras.backend.mean(dice_score, axis=0)
+        else:
+            dice_score = keras.backend.mean(dice_score)
 
         return 1 - dice_score
