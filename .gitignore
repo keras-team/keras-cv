@@ -13,3 +13,7 @@ __pycache__/
 .vscode/
 .devcontainer/
 .coverage
+
+#Virtual environment and IDE files
+venv/
+.idea/
