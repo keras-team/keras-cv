@@ -64,7 +64,7 @@ def main():
             {"images": example["image"], "bounding_boxes": example["objects"]["bbox"]}
         )
         images, bboxes = result["images"], result["bounding_boxes"]
-        plotted_images = tf.image.draw_bounding_boxes(images, bboxes, colors, text=None)
+        plotted_images = tf.image.draw_bounding_boxes(images, bboxes, colors, name=None)
         plt.figure(figsize=(20, 20))
         for i in range(BATCH_SIZE):
             plt.subplot(BATCH_SIZE // 3, BATCH_SIZE // 3, i + 1)
