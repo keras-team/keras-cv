@@ -60,15 +60,15 @@ class Dice(keras.losses.Loss):
         per_sample=False,
         epsilon=keras.backend.epsilon(),
         name="dice",
-        **kwargs
+        **kwargs,
     ):
         """Initializes `Dice` instance.
 
         Args:
             beta: A float or integer coefficient for balancing the precision
                 and recall. It determines the weight of recall and precision
-                in the combined score. If `beta < 1`, precisoin will be
-                doninated; if `beta > 1`, recall will be dominated. Default to `1`.
+                in the combined score. If `beta < 1`, precisoin will doninate;
+                if `beta > 1`, recall will dominate. Default to `1`.
             from_logits: Whether `y_pred` is expected to be a logits tensor. By
                 default, we assume that `y_pred` encodes a probability distribution.
                 Default to `False`.
@@ -78,7 +78,7 @@ class Dice(keras.losses.Loss):
             label_smoothing: Float in [0, 1]. When > 0, label values are smoothed,
                 meaning the confidence on label values are relaxed. For example, if
                 `0.1`, use `0.1 / num_classes` for non-target labels and
-                `0.9 + 0.1 / num_classes` for target labels. Default to `0.0`
+                `0.9 + 0.1 / num_classes` for target labels. Default to `0.0`.
             per_sample: If `True`, the loss will be calculated for each sample in
                 batch and then averaged. Otherwise the loss will be calculated for
                 the whole batch. Default to `False`.
@@ -100,7 +100,7 @@ class Dice(keras.losses.Loss):
             )
         elif isinstance(class_ids, int):
             class_ids = [class_ids]
-        
+
         self.class_ids = class_ids
 
     def _smooth_labels(self, y_true, y_pred, label_smoothing):
