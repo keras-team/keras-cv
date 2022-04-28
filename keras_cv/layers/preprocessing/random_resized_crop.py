@@ -1,14 +1,7 @@
-from keras import backend
-from keras.engine import base_layer
-from keras.engine import base_preprocessing_layer
+import tensorflow as tf
 from keras.layers.preprocessing import preprocessing_utils as utils
 from keras.utils import image_utils
-from keras_cv.utils import preprocessing
-from keras.utils import tf_utils
-import numpy as np
-import tensorflow as tf
-from tensorflow.python.util.tf_export import keras_export
-from tensorflow.tools.docs import doc_controls
+
 
 H_AXIS = -3
 W_AXIS = -2
@@ -24,7 +17,7 @@ class RandomResizedCrop(tf.keras.internal.layers.BaseImageAugmentationLayer):
     '''
 
     def __init__(self, height, width, seed=None, **kwargs):
-        super().__init__
+        super().__init__(**kwargs)
         # Attribute to crop image
         self.height = height
         # Attribute to take the custom height
