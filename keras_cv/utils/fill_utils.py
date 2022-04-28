@@ -89,13 +89,6 @@ def gather_channels(*matrices, indices=None):
     if indices is None:
         return matrices
 
-    if isinstance(indices, float) or any(isinstance(x, float) for x in indices):
-        raise ValueError(
-            f"The indices should be int or a list of integer. Got {indices}"
-        )
-    elif isinstance(indices, int):
-        indices = [indices]
-
     gathered_channels = []
 
     for matrix in matrices:

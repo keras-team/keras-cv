@@ -85,15 +85,23 @@ class Dice(keras.losses.Loss):
             epsilon: Small float added to dice score to avoid dividing by zero.
                 Default to `keras.backend.epsilon()` or `1e-07`.
             name: Optional name for the instance.
-            Defaults to 'dice'.
+                Defaults to 'dice'.
         """
-        super().__init__(**kwargs)
+        super().__init__(name=name, **kwargs)
         self.beta = beta
         self.from_logits = from_logits
-        self.class_ids = class_ids
         self.label_smoothing = label_smoothing
         self.per_sample = per_sample
         self.epsilon = epsilon
+
+        if isinstance(class_ids, float) or any(isinstance(x, float) for x in class_ids):
+            raise ValueError(
+                f"The indices should be int or a list of integer. Got {class_ids}"
+            )
+        elif isinstance(class_ids, int):
+            class_ids = [class_ids]
+        
+        self.class_ids = class_ids
 
     def _smooth_labels(self, y_true, y_pred, label_smoothing):
         num_classes = tf.cast(tf.shape(y_true)[-1], y_pred.dtype)
