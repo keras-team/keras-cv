@@ -18,13 +18,9 @@ class RandomResizedCrop(tf.keras.internal.layers.BaseImageAugmentationLayer):
 
     def __init__(self, height, width, seed=None, **kwargs):
         super().__init__(**kwargs)
-        # Attribute to crop image
         self.height = height
-        # Attribute to take the custom height
         self.width = width
-        # Attribute to take the custom width
         self.seed = seed
-        # Attribute to take random seed
 
     #Method for taking the inputs
     def augment_image(self, inputs, training=True):
