@@ -3,10 +3,6 @@ from keras.layers.preprocessing import preprocessing_utils as utils
 from keras.utils import image_utils
 
 
-H_AXIS = -3
-W_AXIS = -2
-
-
 class RandomResizedCrop(tf.keras.internal.layers.BaseImageAugmentationLayer):
     '''
     This layer is used to
@@ -58,8 +54,8 @@ class RandomResizedCrop(tf.keras.internal.layers.BaseImageAugmentationLayer):
     # Method for computing the output shape
     def compute_output_shape(self, input_shape):
         input_shape = tf.TensorShape(input_shape).as_list()
-        input_shape[H_AXIS] = self.height
-        input_shape[W_AXIS] = self.width
+        input_shape[-3] = self.height
+        input_shape[-2] = self.width
         return tf.TensorShape(input_shape)
 
     #Configuration Method
