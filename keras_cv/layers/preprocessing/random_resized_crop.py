@@ -23,8 +23,8 @@ class RandomResizedCrop(tf.keras.internal.layers.BaseImageAugmentationLayer):
         inputs = utils.ensure_tensor(inputs, dtype=self.compute_dtype)
         if training:
             input_shape = tf.shape(inputs)
-            h_diff = input_shape[H_AXIS] - self.height
-            w_diff = input_shape[W_AXIS] - self.width
+            h_diff = input_shape[-3] - self.height
+            w_diff = input_shape[-2] - self.width
             return tf.cond(
                 tf.reduce_all((h_diff >= 0, w_diff >= 0)),
                 lambda: self._random_crop(inputs),
@@ -35,8 +35,8 @@ class RandomResizedCrop(tf.keras.internal.layers.BaseImageAugmentationLayer):
     #Method for the random crop
     def _random_crop(self, inputs):
         input_shape = tf.shape(inputs)
-        h_diff = input_shape[H_AXIS] - self.height
-        w_diff = input_shape[W_AXIS] - self.width
+        h_diff = input_shape[-3] - self.height
+        w_diff = input_shape[-2] - self.width
         dtype = input_shape.dtype
         rands = self._random_generator.random_uniform([2], 0, dtype.max, dtype)
         h_start = rands[0] % (h_diff + 1)
