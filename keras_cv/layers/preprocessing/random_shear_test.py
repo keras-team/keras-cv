@@ -88,7 +88,7 @@ class RandomShearTest(tf.test.TestCase):
         ys = tf.constant([[0.3, 0.4, 0.5, 0.6], [0.9, 0.8, 1.0, 1.0]])
         inputs = {"images": xs, "bounding_boxes": ys}
         layer = preprocessing.RandomShear(
-            x_factor=(3, 3), y_factor=1, seed=0, fill_mode="constant"
+            x_factor=(0.3, 0.7), y_factor=(0.4,0.7), seed=0, fill_mode="constant"
         )
         outputs = layer(inputs)
         xs, ys_bounding_boxes = (
