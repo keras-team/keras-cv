@@ -15,77 +15,88 @@
 import tensorflow as tf
 from tensorflow import keras
 
-from keras_cv.losses import Dice
+from keras_cv.losses.dice import Dice
+
+
+def get_2d_model(num_classes, activation=None):
+    input = keras.Input(shape=(None, None, 3))
+    output = keras.layers.Conv2D(num_classes, 1, activation=activation)(input)
+    model = keras.Model(input, output)
+    return model
 
 
 class DiceTest(tf.test.TestCase):
-    def test_on_2D_model():
-        def get_2d_model(num_classes, activation=None):
-            input = keras.Input(shape=(None, None, 3))
-            output = keras.layers.Conv2D(num_classes, 1, activation=activation)(input)
-            model = keras.Model(input, output)
-            return model
+    def test_dice_score(self):
+        y_true = tf.constant(
+            [
+                [
+                    [
+                        [0.0, 0.0, 1.0],
+                        [0.0, 0.0, 0.0],
+                    ],
+                    [
+                        [1.0, 0.0, 1.0],
+                        [0.0, 0.0, 1.0],
+                    ],
+                ],
+                [
+                    [
+                        [0.0, 0.0, 1.0],
+                        [0.0, 0.0, 1.0],
+                    ],
+                    [
+                        [1.0, 0.0, 1.0],
+                        [0.0, 1.0, 0.0],
+                    ],
+                ],
+            ]
+        )
 
-        # multi-class classification with activation to None.
+        y_pred = tf.constant(
+            [
+                [
+                    [
+                        [0.0, 0.0, 1.0],
+                        [0.0, 0.0, 0.0],
+                    ],
+                    [
+                        [1.0, 0.0, 1.0],
+                        [0.0, 0.0, 1.0],
+                    ],
+                ],
+                [
+                    [
+                        [0.0, 0.0, 1.0],
+                        [0.0, 0.0, 1.0],
+                    ],
+                    [
+                        [1.0, 1.0, 0.0],
+                        [0.0, 0.0, 1.0],
+                    ],
+                ],
+            ]
+        )
+
+        dice = Dice(from_logits=False, per_sample=True)
+        score = dice(y_true, y_pred)
+        self.assertAlmostEqual(score.numpy(), 0.22222221)
+
+        dice = Dice(from_logits=False, per_sample=False)
+        score = dice(y_true, y_pred)
+        self.assertAlmostEqual(score.numpy(), 0.3888889)
+
+    def test_output_shape(self):
         num_classes = 4
         activation = None
+
         model = get_2d_model(num_classes=num_classes, activation=activation)
         model.compile(loss=Dice(from_logits=True))
-        model.fit(
-            x=tf.random.uniform(shape=(2, 5, 5, 3)),
-            y=tf.one_hot(
-                tf.random.uniform(shape=[2, 5, 5], minval=0, maxval=5, dtype=tf.int32),
-                depth=num_classes,
-            ),
-            verbose=0,
-        )
 
-        # multi-class classification with activation to softmax.
-        num_classes = 10
-        activation = "softmax"
-        model = get_2d_model(num_classes=num_classes, activation=activation)
-        model.compile(loss=Dice(from_logits=False))
-        model.fit(
-            x=tf.random.uniform(shape=(2, 5, 5, 3)),
-            y=tf.one_hot(
-                tf.random.uniform(shape=[2, 5, 5], minval=0, maxval=5, dtype=tf.int32),
-                depth=num_classes,
-            ),
-            verbose=0,
-        )
+        y_true = tf.one_hot(
+            tf.random.uniform(shape=[2, 5, 5], minval=0, maxval=5, dtype=tf.int32),
+            depth=num_classes,
+        ).shape
 
-        # binary classification with activation to sigmoid.
-        num_classes = 1
-        activation = "sigmoid"
-        model = get_2d_model(num_classes=num_classes, activation=activation)
-        model.compile(loss=Dice(from_logits=False))
-        model.fit(
-            x=tf.random.uniform(shape=(2, 5, 5, 3)),
-            y=tf.random.uniform(
-                shape=[2, 5, 5, num_classes], minval=0, maxval=2, dtype=tf.int32
-            ),
-            verbose=0,
-        )
+        y_pred = model(tf.random.uniform(shape=(2, 5, 5, 3)), training=False).shape
 
-    def test_on_3D_model():
-        def get_3d_model(num_classes, activation=None):
-            input = keras.Input(shape=(None, None, None, 3))
-            output = keras.layers.Conv3D(num_classes, 1, activation=activation)(input)
-            model = keras.Model(input, output)
-            return model
-
-        num_classes = 10
-        activation = None
-        model = get_3d_model(num_classes=num_classes, activation=activation)
-        model.compile(loss=Dice(from_logits=True))
-
-        model.fit(
-            x=tf.random.uniform(shape=(2, 5, 5, 4, 3)),
-            y=tf.one_hot(
-                tf.random.uniform(
-                    shape=[2, 5, 5, 4], minval=0, maxval=5, dtype=tf.int32
-                ),
-                depth=num_classes,
-            ),
-            verbose=0,
-        )
+        self.assertAllEqual(y_true, y_pred)

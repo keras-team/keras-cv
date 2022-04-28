@@ -28,21 +28,19 @@ class Dice(keras.losses.Loss):
       In the snippet below, there are `num_classes` times channels per
       sample. The shape of `y_true` and `y_pred` are
       `[batch_size, height, width, num_classes]` or
-      `[batch_size, height, widht, depth, num_classes]`.
+      `[batch_size, height, width, depth, num_classes]`.
 
       Standalone usage:
 
-      >>> y_true = tf.random.uniform([5, 10, 10, 3], 0, maxval=2, dtype=tf.int32)
-      >>> y_true = tf.cast(y_true, dtype=tf.float32)
-      >>> y_pred = tf.random.uniform([5, 10, 10, 3], 0, maxval=2, dtype=tf.int32)
-      >>> y_pred = tf.cast(y_pred, dtype=tf.float32)
+      >>> y_true = tf.random.uniform([5, 10, 10], 0, maxval=4, dtype=tf.int32)
+      >>> y_true = tf.one_hot(y_true, depth=4)
+      >>> y_pred = tf.random.uniform([5, 10, 10, 4], 0, maxval=4)
       >>> dice = Dice()
       >>> dice(y_true, y_pred).numpy()
-      0.49238735
+      0.5549314
 
       >>> # Calling with 'sample_weight'.
-      >>> dice(y_true, y_pred, sample_weight=tf.constant([[0.5, 0.5, 0.5,
-                                                           0.5, 0.5]])).numpy()
+      >>> dice(y_true, y_pred, sample_weight=tf.constant([[0.5, 0.5]])).numpy()
       0.24619368
 
       Usage with the `compile()` API:
@@ -94,12 +92,15 @@ class Dice(keras.losses.Loss):
         self.per_sample = per_sample
         self.epsilon = epsilon
 
-        if isinstance(class_ids, float) or any(isinstance(x, float) for x in class_ids):
-            raise ValueError(
-                f"The indices should be int or a list of integer. Got {class_ids}"
-            )
-        elif isinstance(class_ids, int):
-            class_ids = [class_ids]
+        if class_ids is not None:
+            if isinstance(class_ids, float) or any(
+                isinstance(x, float) for x in class_ids
+            ):
+                raise ValueError(
+                    f"The indices should be int or a list of integer. Got {class_ids}"
+                )
+            elif isinstance(class_ids, int):
+                class_ids = [class_ids]
 
         self.class_ids = class_ids
 
@@ -126,7 +127,7 @@ class Dice(keras.losses.Loss):
             if keras.backend.image_data_format() == "channels_last"
             else tf.constant([2, 3])
         )
-        if not self.per_image:
+        if not self.per_sample:
             axes = tf.concat([tf.constant([0]), axes], axis=0)
 
         # loss calculation: Fβ-score (in terms of Type I and type II erro
@@ -144,7 +145,7 @@ class Dice(keras.losses.Loss):
         )
         dice_score = numerator / denominator
 
-        if self.per_image:
+        if self.per_sample:
             dice_score = keras.backend.mean(dice_score, axis=0)
         else:
             dice_score = keras.backend.mean(dice_score)
