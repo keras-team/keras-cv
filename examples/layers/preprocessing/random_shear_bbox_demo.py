@@ -49,7 +49,6 @@ def resize(inputs):
 
 
 def main():
-    cnt = 1
     dataset = tfds.load(
         "voc/2007", split=tfds.Split.TRAIN, batch_size=1, shuffle_files=True
     )
@@ -72,6 +71,7 @@ def main():
             plt.imshow(plotted_images[i].numpy().astype("uint8"))
             plt.axis("off")
         plt.show()
+
 
 if __name__ == "__main__":
     main()
