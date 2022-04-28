@@ -178,10 +178,16 @@ class RandomShear(BaseImageAugmentationLayer):
         bounding_boxes: take bbox coordinates [N,4] -> [y1,x1,y2,x2]
         transformation: takes tuple for x,y transformation None if no transformation"""
         x, y = transformation
-        if x is None:
-            x = 0
-        if y is None:
-            y = 0
+        if x is not None:
+            bounding_boxes = self.augment_horizontal(image, bounding_boxes, x)
+        if y is not None:
+            bounding_boxes = self.augment_vertical(image, bounding_boxes, y)
+        return bounding_boxes
+
+    def augment_horizontal(self, image, bounding_boxes, x):
+        """args: image : takes a single image H,W,C,
+        bounding_boxes: take bbox coordinates [N,4] -> [y1,x1,y2,x2]
+        x: x transformation None if no transformation"""
         height, width, _ = image.shape
         # split bbox coordinates [N,4] to y1,x1,y2,x2 each of shape [N,1]
         y1, x1, y2, x2 = tf.split(bounding_boxes, 4, axis=1)
@@ -201,7 +207,7 @@ class RandomShear(BaseImageAugmentationLayer):
             axis=1,
         )
         # create transformation matrix [1,4]
-        matrix = tf.stack([1.0, -x, -y, 1.0], axis=0)
+        matrix = tf.stack([1.0, -x, 0, 1.0], axis=0)
         # reshape it to [2,2]
         matrix = tf.reshape(matrix, (2, 2))
         # reshape unnormalized bboxes from [N,8] -> [N*4,2]
@@ -221,14 +227,93 @@ class RandomShear(BaseImageAugmentationLayer):
             bottom_left_x,
             bottom_left_y,
         ) = tf.split(transformed_bboxes, 8, axis=1)
-        # choose minimum for top and left coordinates
-        # choose maximum for bottom and right coordinates
-        final_y1 = tf.math.minimum(top_left_y, top_right_y)
-        final_x1 = tf.math.minimum(top_left_x, bottom_left_x)
-        final_y2 = tf.math.maximum(bottom_right_y, bottom_left_y)
-        final_x2 = tf.math.maximum(bottom_right_x, top_right_x)
-        # return transformed normalized bbox coordinates [N,4]
+
+        # choose x1,x2 when x>0
+        def positive_case():
+            final_x1 = bottom_left_x
+            final_x2 = top_right_x
+            return final_x1, final_x2
+
+        # choose x1,x2 when x<0
+        def negative_case():
+            final_x1 = top_left_x
+            final_x2 = bottom_right_x
+            return final_x1, final_x2
+
+        final_x1, final_x2 = tf.cond(tf.less(x, 0), negative_case, positive_case)
         return tf.concat(
-            [final_y1 / height, final_x1 / width, final_y2 / height, final_x2 / width],
+            [
+                top_left_y / height,
+                final_x1 / width,
+                bottom_right_y / height,
+                final_x2 / width,
+            ],
+            axis=1,
+        )
+
+    def augment_vertical(self, image, bounding_boxes, y):
+        """args: image : takes a single image H,W,C,
+        bounding_boxes: take bbox coordinates [N,4] -> [y1,x1,y2,x2]
+        y: y transformation None if no transformation"""
+        height, width, _ = image.shape
+        # split bbox coordinates [N,4] to y1,x1,y2,x2 each of shape [N,1]
+        y1, x1, y2, x2 = tf.split(bounding_boxes, 4, axis=1)
+        # unnormalize bbox coordinates to image shape
+        # and tranform into [x1,y1,x2,y2,x3,y3,x4,y4]
+        new_bboxes = tf.stack(
+            [
+                x1 * width,
+                y1 * height,
+                x2 * width,
+                y2 * height,
+                x2 * width,
+                y1 * height,
+                x1 * width,
+                y2 * height,
+            ],
+            axis=1,
+        )
+        # create transformation matrix [1,4]
+        matrix = tf.stack([1.0, 0, -y, 1.0], axis=0)
+        # reshape it to [2,2]
+        matrix = tf.reshape(matrix, (2, 2))
+        # reshape unnormalized bboxes from [N,8] -> [N*4,2]
+        new_bboxes = tf.reshape(new_bboxes, (-1, 2))
+        # [[1,x`],[y`,1]]*[x,y]->[new_x,new_y]
+        transformed_bboxes = tf.reshape(
+            tf.einsum("ij,kj->ki", matrix, new_bboxes), (-1, 8)
+        )
+        # split into 4 corners of bbox
+        (
+            top_left_x,
+            top_left_y,
+            bottom_right_x,
+            bottom_right_y,
+            top_right_x,
+            top_right_y,
+            bottom_left_x,
+            bottom_left_y,
+        ) = tf.split(transformed_bboxes, 8, axis=1)
+
+        # choose y1,y2 when y > 0
+        def positive_case():
+            final_y1 = top_right_y
+            final_y2 = bottom_left_y
+            return final_y1, final_y2
+
+        # choose y1,y2 when y < 0
+        def negative_case():
+            final_y1 = top_left_y
+            final_y2 = bottom_right_y
+            return final_y1, final_y2
+
+        final_y1, final_y2 = tf.cond(tf.less(y, 0), negative_case, positive_case)
+        return tf.concat(
+            [
+                final_y1 / height,
+                top_left_x / width,
+                final_y2 / height,
+                top_right_x / width,
+            ],
             axis=1,
         )

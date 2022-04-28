@@ -49,6 +49,7 @@ def resize(inputs):
 
 
 def main():
+    cnt = 1
     dataset = tfds.load(
         "voc/2007", split=tfds.Split.TRAIN, batch_size=1, shuffle_files=True
     )
@@ -56,22 +57,21 @@ def main():
     dataset = dataset.padded_batch(BATCH_SIZE)
 
     randomshear = preprocessing.RandomShear(
-        x_factor=(0, 0.2), y_factor=(0, 0.2), fill_mode="constant"
+        x_factor=(0.1, 0.3), y_factor=(0.1, 0.3), fill_mode="constant"
     )
     colors = np.array([[0.0, 255.0, 0.0]])
-    for example in dataset.take(1):
+    for example in dataset.take(4):
         result = randomshear(
             {"images": example["image"], "bounding_boxes": example["objects"]["bbox"]}
         )
         images, bboxes = result["images"], result["bounding_boxes"]
-        plotted_images = tf.image.draw_bounding_boxes(images, bboxes, colors)
+        plotted_images = tf.image.draw_bounding_boxes(images, bboxes, colors, text=None)
         plt.figure(figsize=(20, 20))
         for i in range(BATCH_SIZE):
             plt.subplot(BATCH_SIZE // 3, BATCH_SIZE // 3, i + 1)
             plt.imshow(plotted_images[i].numpy().astype("uint8"))
             plt.axis("off")
         plt.show()
-
 
 if __name__ == "__main__":
     main()
