@@ -57,20 +57,24 @@ Once the pull request is approved, a team member will take care of merging.
 Python 3.7 or later is required.
 
 Setting up your KerasCV development environment requires you to fork the
-KerasCV repository, clone the repository, create a virtual environment, and 
-install dependencies.
+KerasCV repository, clone the repository, and install dependencies.
 
 You can achieve this by running the following commands:
 
 ```shell
 gh repo fork keras-team/keras-cv --clone --remote
 cd keras-cv
-python -m venv ~/keras-cv-venv
-source ~/keras-cv-venv/bin/activate
 pip install -e ".[tests]"
 ```
 
 The first line relies on having an installation of [the GitHub CLI](https://github.com/cli/cli).
+
+You can also setup a virtual environment before installing the dependencies 
+like this:
+```shell
+python -m venv ~/keras-cv-venv
+source ~/keras-cv-venv/bin/activate
+```
 
 Following these commands you should be able to run the tests using `pytest keras_cv`.
 Please report any issues running tests following these steps.
