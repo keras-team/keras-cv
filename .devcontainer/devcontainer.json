@@ -1,0 +1,29 @@
+{
+	"name": "Keras-cv",
+	"build": {
+		"dockerfile": "Dockerfile",
+		"args": { 
+			// Uncomment this if GPU support it is required
+			// "VARIANT": "-gpu",
+		}
+	},
+
+	"settings": {
+		"python.pythonPath": "/usr/bin/python3",
+		"python.linting.enabled": true,
+		"python.linting.flake8Enabled": true,
+		"python.formatting.provider":"black",
+		"python.testing.pytestEnabled":true,
+	},
+
+	"extensions": [
+		"ms-python.python",
+	],
+
+	"features": {
+		"git": {
+			"version": "os-provided",
+		},
+	},
+
+}

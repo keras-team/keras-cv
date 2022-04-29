@@ -54,7 +54,7 @@ class COCORecall(keras.metrics.Metric):
     account for this, you may either pass a `tf.RaggedTensor`, or pad Tensors
     with `-1`s to indicate unused boxes.  A utility function to perform this
     padding is available at
-    `keras_cv_.utils.bounding_box.pad_bounding_box_batch_to_shape`.
+    `keras_cv.utils.bounding_box.pad_bounding_box_batch_to_shape`.
 
     ```python
     coco_recall = keras_cv.metrics.COCORecall(
@@ -123,6 +123,8 @@ class COCORecall(keras.metrics.Metric):
             warnings.warn(
                 "sample_weight is not yet supported in keras_cv COCO metrics."
             )
+        y_true = tf.cast(y_true, self.compute_dtype)
+        y_pred = tf.cast(y_pred, self.compute_dtype)
 
         # TODO(lukewood): Add first party RaggedTensor support.  Currently
         # this could cause an OOM error if users are not expecting to convert

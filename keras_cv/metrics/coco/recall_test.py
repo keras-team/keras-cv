@@ -43,11 +43,7 @@ class COCORecallTest(tf.test.TestCase):
         self.assertAllEqual(recall.result(), 1.0)
 
     def test_ragged_tensor_support(self):
-        recall = COCORecall(
-            max_detections=100,
-            class_ids=[1],
-            area_range=(0, 64**2),
-        )
+        recall = COCORecall(max_detections=100, class_ids=[1], area_range=(0, 64**2))
 
         # These would match if they were in the area range
         y_true = tf.ragged.stack(
@@ -262,6 +258,19 @@ class COCORecallTest(tf.test.TestCase):
 
         metric.update_state(y_true, y_pred)
         self.assertEqual([[2]], metric.true_positives)
+
+    def test_mixed_dtypes(self):
+        y_true = tf.constant([[[0, 0, 100, 100, 1]]], dtype=tf.float64)
+        y_pred = tf.constant([[[0, 50, 100, 150, 1, 1.0]]], dtype=tf.float32)
+
+        metric = COCORecall(
+            iou_thresholds=[0.15],
+            class_ids=[1],
+            area_range=(0, 10000**2),
+            max_detections=1,
+        )
+        metric.update_state(y_true, y_pred)
+        self.assertEqual(metric.result(), 1.0)
 
     def test_matches_single_box(self):
         y_true = tf.constant([[[0, 0, 100, 100, 1]]], dtype=tf.float32)

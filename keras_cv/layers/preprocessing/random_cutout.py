@@ -12,40 +12,43 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import tensorflow as tf
-import tensorflow.keras.layers as layers
-from tensorflow.keras import backend
 
 from keras_cv.utils import fill_utils
+from keras_cv.utils import preprocessing
 
 
-class RandomCutout(layers.Layer):
+@tf.keras.utils.register_keras_serializable(package="keras_cv")
+class RandomCutout(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
     """Randomly cut out rectangles from images and fill them.
 
     Args:
-        height_factor: One of:
-            - a positive float representing a fraction of image height
-            - an integer representing an absolute height
-            - a tuple of size 2, representing lower and upper bound for height. For
-            example, `height_factor=(0.2, 0.3)` results in a height randomly picked
-            in the range `[20% of image height, 30% of image height]`.
-            `height_factor=(32, 64)` results in a height picked in the range
-            [32, 64]. `height_factor=0.2` results in a height of [0%, 20%] of image
-            height, and `height_factor=32` results in a height between [0, 32].
-        width_factor: One of:
-            - a positive float representing a fraction of image width
-            - an integer representing an absolute width
-            - a tuple of size 2, representing lower and upper bound for width. For
-            example, `width_factor=(0.2, 0.3)` results in a width randomly picked
-            in the range `[20% of image width, 30% of image width]`.
-            `width_factor=(32, 64)` results in a width picked in the range
-            [32, 64]. `width_factor=0.2` results in a width of [0%, 20%] of image
-            width, and `width_factor=32` results in a width between [0, 32].
+        height_factor: A tuple of two floats, a single float or a
+            `keras_cv.FactorSampler`.  `height_factor` controls the size of the
+            cutouts. `height_factor=0.0` means the rectangle will be of size 0% of the
+            image height, `height_factor=0.1` means the rectangle will have a size of
+            10% of the image height, and so forth.
+            Values should be between `0.0` and `1.0`.  If a tuple is used, a
+            `height_factor` is sampled between the two values for every image augmented.
+            If a single float is used, a value between `0.0` and the passed float is
+            sampled.  In order to ensure the value is always the same, please pass a
+            tuple with two identical floats: `(0.5, 0.5)`.
+        width_factor: A tuple of two floats, a single float or a
+            `keras_cv.FactorSampler`.  `width_factor` controls the size of the
+            cutouts. `width_factor=0.0` means the rectangle will be of size 0% of the
+            image height, `width_factor=0.1` means the rectangle will have a size of 10%
+            of the image width, and so forth.
+            Values should be between `0.0` and `1.0`.  If a tuple is used, a
+            `width_factor` is sampled between the two values for every image augmented.
+            If a single float is used, a value between `0.0` and the passed float is
+            sampled.  In order to ensure the value is always the same, please pass a
+            tuple with two identical floats: `(0.5, 0.5)`.
         fill_mode: Pixels inside the patches are filled according to the given
             mode (one of `{"constant", "gaussian_noise"}`).
             - *constant*: Pixels are filled with the same constant value.
             - *gaussian_noise*: Pixels are filled with random gaussian noise.
         fill_value: a float represents the value to be filled inside the patches
             when `fill_mode="constant"`.
+        seed: Integer. Used to create a random seed.
 
     Sample usage:
     ```python
@@ -64,10 +67,17 @@ class RandomCutout(layers.Layer):
         seed=None,
         **kwargs,
     ):
-        super().__init__(**kwargs)
+        super().__init__(seed=seed, **kwargs)
 
-        self.height_lower, self.height_upper = self._parse_bounds(height_factor)
-        self.width_lower, self.width_upper = self._parse_bounds(width_factor)
+        self.height_factor = preprocessing.parse_factor(
+            height_factor, param_name="height_factor", seed=seed
+        )
+        self.width_factor = preprocessing.parse_factor(
+            width_factor, param_name="width_factor", seed=seed
+        )
+        self.fill_mode = fill_mode
+        self.fill_value = fill_value
+        self.seed = seed
 
         if fill_mode not in ["gaussian_noise", "constant"]:
             raise ValueError(
@@ -75,69 +85,22 @@ class RandomCutout(layers.Layer):
                 f'or "constant".  Got `fill_mode`={fill_mode}'
             )
 
-        if not isinstance(self.height_lower, type(self.height_upper)):
-            raise ValueError(
-                "`height_factor` must have lower bound and upper bound "
-                "with same type, got {} and {}".format(
-                    type(self.height_lower), type(self.height_upper)
-                )
-            )
-        if not isinstance(self.width_lower, type(self.width_upper)):
-            raise ValueError(
-                "`width_factor` must have lower bound and upper bound "
-                "with same type, got {} and {}".format(
-                    type(self.width_lower), type(self.width_upper)
-                )
-            )
-
-        if self.height_upper < self.height_lower:
-            raise ValueError(
-                "`height_factor` cannot have upper bound less than "
-                "lower bound, got {}".format(height_factor)
-            )
-        self._height_is_float = isinstance(self.height_lower, float)
-        if self._height_is_float:
-            if not self.height_lower >= 0.0 or not self.height_upper <= 1.0:
-                raise ValueError(
-                    "`height_factor` must have values between [0, 1] "
-                    "when is float, got {}".format(height_factor)
-                )
-
-        if self.width_upper < self.width_lower:
-            raise ValueError(
-                "`width_factor` cannot have upper bound less than "
-                "lower bound, got {}".format(width_factor)
-            )
-        self._width_is_float = isinstance(self.width_lower, float)
-        if self._width_is_float:
-            if not self.width_lower >= 0.0 or not self.width_upper <= 1.0:
-                raise ValueError(
-                    "`width_factor` must have values between [0, 1] "
-                    "when is float, got {}".format(width_factor)
-                )
-
-        self.fill_mode = fill_mode
-        self.fill_value = fill_value
-        self.seed = seed
-
     def _parse_bounds(self, factor):
         if isinstance(factor, (tuple, list)):
             return factor[0], factor[1]
         else:
             return type(factor)(0), factor
 
-    def call(self, inputs, training=True):
-        if training is None:
-            training = backend.learning_phase()
+    def get_random_transformation(self, image=None, label=None, bounding_box=None):
+        center_x, center_y = self._compute_rectangle_position(image)
+        rectangle_height, rectangle_width = self._compute_rectangle_size(image)
+        return center_x, center_y, rectangle_height, rectangle_width
 
-        augment = lambda: self._random_cutout(inputs)
-        no_augment = lambda: inputs
-        return tf.cond(tf.cast(training, tf.bool), augment, no_augment)
-
-    def _random_cutout(self, inputs):
+    def augment_image(self, image, transformation=None):
         """Apply random cutout."""
-        center_x, center_y = self._compute_rectangle_position(inputs)
-        rectangle_height, rectangle_width = self._compute_rectangle_size(inputs)
+        inputs = tf.expand_dims(image, 0)
+        center_x, center_y, rectangle_height, rectangle_width = transformation
+
         rectangle_fill = self._compute_rectangle_fill(inputs)
         inputs = fill_utils.fill_rectangle(
             inputs,
@@ -147,56 +110,36 @@ class RandomCutout(layers.Layer):
             rectangle_height,
             rectangle_fill,
         )
-        return inputs
+        return inputs[0]
+
+    def augment_label(self, label, transformation=None):
+        return label
 
     def _compute_rectangle_position(self, inputs):
         input_shape = tf.shape(inputs)
-        batch_size, image_height, image_width = (
+        image_height, image_width = (
             input_shape[0],
             input_shape[1],
-            input_shape[2],
         )
-        center_x = tf.random.uniform(
-            shape=[batch_size],
-            minval=0,
-            maxval=image_width,
-            dtype=tf.int32,
-            seed=self.seed,
+        center_x = self._random_generator.random_uniform(
+            [1], 0, image_width, dtype=tf.int32
         )
-        center_y = tf.random.uniform(
-            shape=[batch_size],
-            minval=0,
-            maxval=image_height,
-            dtype=tf.int32,
-            seed=self.seed,
+        center_y = self._random_generator.random_uniform(
+            [1], 0, image_height, dtype=tf.int32
         )
         return center_x, center_y
 
     def _compute_rectangle_size(self, inputs):
         input_shape = tf.shape(inputs)
-        batch_size, image_height, image_width = (
+        image_height, image_width = (
             input_shape[0],
             input_shape[1],
-            input_shape[2],
         )
-        height = tf.random.uniform(
-            [batch_size],
-            minval=self.height_lower,
-            maxval=self.height_upper,
-            dtype=tf.float32,
-        )
-        width = tf.random.uniform(
-            [batch_size],
-            minval=self.width_lower,
-            maxval=self.width_upper,
-            dtype=tf.float32,
-        )
+        height = self.height_factor()
+        width = self.width_factor()
 
-        if self._height_is_float:
-            height = height * tf.cast(image_height, tf.float32)
-
-        if self._width_is_float:
-            width = width * tf.cast(image_width, tf.float32)
+        height = height * tf.cast(image_height, tf.float32)
+        width = width * tf.cast(image_width, tf.float32)
 
         height = tf.cast(tf.math.ceil(height), tf.int32)
         width = tf.cast(tf.math.ceil(width), tf.int32)
@@ -204,7 +147,7 @@ class RandomCutout(layers.Layer):
         height = tf.minimum(height, image_height)
         width = tf.minimum(width, image_width)
 
-        return height, width
+        return tf.expand_dims(height, axis=0), tf.expand_dims(width, axis=0)
 
     def _compute_rectangle_fill(self, inputs):
         input_shape = tf.shape(inputs)
