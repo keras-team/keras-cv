@@ -151,3 +151,17 @@ class Dice(keras.losses.Loss):
             dice_score = keras.backend.mean(dice_score)
 
         return 1 - dice_score
+
+    def get_config(self):
+        config = super().get_config()
+        config.update(
+            {
+                "beta": self.beta,
+                "from_logits": self.from_logits,
+                "class_ids": self.class_ids,
+                "label_smoothing": self.label_smoothing,
+                "per_sample": self.per_sample,
+                "epsilon": self.epsilon,
+            }
+        )
+        return config
