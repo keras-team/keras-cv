@@ -17,6 +17,7 @@ import tensorflow as tf
 from keras_cv.visualization.colors import colors
 from keras_cv.utils.preprocessing import blend
 
+
 def _check_rgb_tuple(color):
     assert all(
         isinstance(c, int) for c in color
@@ -86,7 +87,7 @@ def _map_color_on_mask(masks, color):
     return tf.einsum("cnhw->nhwc", colored_masks.stack())
 
 
-def draw_map(image, mask, color='red', alpha=0.4):
+def draw_map(image, mask, color="red", alpha=0.4):
     """Draws segmentation masks on images with desired color
     and transparency.
     Colors supported are standard `X11 Color set`.
