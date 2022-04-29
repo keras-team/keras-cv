@@ -145,8 +145,8 @@ def draw_map(image, mask, color="red", alpha=0.4):
 
     if not isinstance(color, (dict, str, tuple, list)):
         raise TypeError(
-            f"Want type(color) in [dict, str, tuple, list]. "
-            "got type(color)={type(color)}."
+            "Want type(color) in [dict, str, tuple, list]. "
+            f"got type(color)={type(color)}."
         )
 
     if (image.ndim == 4) and (image.shape[:3] != mask.shape):

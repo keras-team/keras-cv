@@ -76,7 +76,7 @@ class DrawSegmentationTest(tf.test.TestCase, parameterized.TestCase):
     @parameterized.named_parameters(
         ("full_factor", 1.0), ("partial_factor", 0.5), ("no_factor", 0.0)
     )
-    def test_draw_segmentation_partial_factor(self, alpha):
+    def test_draw_segmentation_factor(self, alpha):
         images = keras_cv.visualization.draw_map(self.images, self.masks, alpha=alpha)
         color_rgb = keras_cv.visualization.colors.get("red")
         alpha_tf = tf.constant(alpha)
@@ -84,9 +84,7 @@ class DrawSegmentationTest(tf.test.TestCase, parameterized.TestCase):
         image_section = tf.cast(
             self.images[:, MASK_SIZE : self.mask_y, MASK_SIZE : self.mask_y], tf.float32
         )
-        actual_mask_section = tf.round(
-            image_section * (1 - alpha_tf) + alpha_tf * color_rgb
-        )
+        actual_mask_section = image_section * (1 - alpha_tf) + alpha_tf * color_rgb
         actual_images = tf.Variable(tf.identity(self.images))
         actual_images[:, MASK_SIZE : self.mask_y, MASK_SIZE : self.mask_y].assign(
             tf.cast(actual_mask_section, actual_images.dtype)
@@ -128,12 +126,12 @@ class DrawSegmentationTest(tf.test.TestCase, parameterized.TestCase):
 
         # test color type handling.
         with self.assertRaisesRegex(
-            TypeError, f"Want type(color) in [dict, str, tuple, list]."
+            TypeError, "Want type\(color\) in \[dict, str, tuple, list\]"
         ):
             keras_cv.visualization.draw_map(self.images, self.masks, color=-1)
 
         with self.assertRaisesRegex(
-            ValueError, "image.shape[:3] == mask.shape should be true"
+            ValueError, "image\.shape\[:3\] == mask.shape should be true"
         ):
             keras_cv.visualization.draw_map(self.images, tf.constant(1, tf.uint8))
 
