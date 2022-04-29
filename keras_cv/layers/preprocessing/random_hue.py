@@ -29,7 +29,7 @@ class RandomHue(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
 
     Args:
         factor: A tuple of two floats, a single float or `keras_cv.FactorSampler`.
-            `factor` controls the extent to which the image sharpness is impacted.
+            `factor` controls the extent to which the image hue is impacted.
             `factor=0.0` makes this layer perform a no-op operation, while a value of
             1.0 performs the most aggressive contrast adjustment available.  If a tuple
             is used, a `factor` is sampled between the two values for every image
