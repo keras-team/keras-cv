@@ -23,7 +23,7 @@ from keras_cv.visualization.colors import colors
 def _check_rgb_tuple(color):
     assert all(
         isinstance(c, int) for c in color
-    ), f"Only integers are support for color tuple."
+    ), "Only integers are support for color tuple."
     assert all(
         c >= 0 and c <= 255 for c in color
     ), f"all values in color should be in range [0, 255].  got color={color}"

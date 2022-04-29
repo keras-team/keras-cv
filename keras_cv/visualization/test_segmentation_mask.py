@@ -96,23 +96,22 @@ class DrawSegmentationTest(tf.test.TestCase, parameterized.TestCase):
             self.images, self.masks, color=color, alpha=1.0
         )
         mask_section = images[:, MASK_SIZE : self.mask_y, MASK_SIZE : self.mask_y]
-        actual_images = tf.Variable(tf.identity(self.images))
-        actual_images[:, MASK_SIZE : self.mask_y, MASK_SIZE : self.mask_y].assign(
-            mask_section
-        )
-
         _color_masks = []
         _all_color_codes = [COLOR_CODE1, COLOR_CODE2]
         for c in _all_color_codes:
             if c not in color.keys():
                 color.update({c: "red"})
-        for k, c in color.items():
+        for _, c in color.items():
             if isinstance(c, str):
                 color_rgb = keras_cv.visualization.colors.get(c)
             else:
                 color_rgb = c
             _color_masks.append(tf.ones_like(mask_section[0]) * color_rgb)
         actual_mask_section = tf.stack(_color_masks, axis=0)
+        actual_images = tf.Variable(tf.identity(self.images))
+        actual_images[:, MASK_SIZE : self.mask_y, MASK_SIZE : self.mask_y].assign(
+            actual_mask_section
+        )
         self.assertAllEqual(images, actual_images)
 
     def test_draw_segmentation_3d_image(self):
