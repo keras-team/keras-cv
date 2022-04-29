@@ -25,25 +25,25 @@ class DropBlock2DTest(tf.test.TestCase):
         invalid_sizes = [0, -10, (5, -2), (0, 7), (1, 2, 3, 4)]
         for size in invalid_sizes:
             with self.assertRaises(ValueError):
-                DropBlock2D(dropblock_size=size, dropout_rate=0.1)
+                DropBlock2D(block_size=size, rate=0.1)
 
-    def test_layer_not_created_with_invalid_dropout_rate(self):
+    def test_layer_not_created_with_invalid_rate(self):
         invalid_rates = [1.1, -0.1]
         for rate in invalid_rates:
             with self.assertRaises(ValueError):
-                DropBlock2D(dropout_rate=rate, dropblock_size=7)
+                DropBlock2D(rate=rate, block_size=7)
 
     def test_input_unchanged_in_eval_mode(self):
         dummy_inputs = self.rng.uniform(shape=self.FEATURE_SHAPE)
-        layer = DropBlock2D(dropout_rate=0.1, dropblock_size=7)
+        layer = DropBlock2D(rate=0.1, block_size=7)
 
         output = layer(dummy_inputs, training=False)
 
         self.assertAllClose(dummy_inputs, output)
 
-    def test_input_unchanged_with_dropout_rate_equal_to_zero(self):
+    def test_input_unchanged_with_rate_equal_to_zero(self):
         dummy_inputs = self.rng.uniform(shape=self.FEATURE_SHAPE)
-        layer = DropBlock2D(dropout_rate=0.0, dropblock_size=7)
+        layer = DropBlock2D(rate=0.0, block_size=7)
 
         output = layer(dummy_inputs, training=True)
 
@@ -51,7 +51,7 @@ class DropBlock2DTest(tf.test.TestCase):
 
     def test_input_gets_partially_zeroed_out_in_train_mode(self):
         dummy_inputs = self.rng.uniform(shape=self.FEATURE_SHAPE)
-        layer = DropBlock2D(dropout_rate=0.1, dropblock_size=7)
+        layer = DropBlock2D(rate=0.1, block_size=7)
 
         output = layer(dummy_inputs, training=True)
         num_input_zeros = self._count_zeros(dummy_inputs)
@@ -62,7 +62,7 @@ class DropBlock2DTest(tf.test.TestCase):
     def test_batched_input_gets_partially_zeroed_out_in_train_mode(self):
         batched_shape = (4, *self.FEATURE_SHAPE[1:])
         dummy_inputs = self.rng.uniform(shape=batched_shape)
-        layer = DropBlock2D(dropout_rate=0.1, dropblock_size=7)
+        layer = DropBlock2D(rate=0.1, block_size=7)
 
         output = layer(dummy_inputs, training=True)
         num_input_zeros = self._count_zeros(dummy_inputs)
@@ -70,9 +70,9 @@ class DropBlock2DTest(tf.test.TestCase):
 
         self.assertGreater(num_output_zeros, num_input_zeros)
 
-    def test_input_gets_partially_zeroed_out_with_non_square_dropblock_size(self):
+    def test_input_gets_partially_zeroed_out_with_non_square_block_size(self):
         dummy_inputs = self.rng.uniform(shape=self.FEATURE_SHAPE)
-        layer = DropBlock2D(dropout_rate=0.1, dropblock_size=(7, 10))
+        layer = DropBlock2D(rate=0.1, block_size=(7, 10))
 
         output = layer(dummy_inputs, training=True)
         num_input_zeros = self._count_zeros(dummy_inputs)
@@ -86,7 +86,7 @@ class DropBlock2DTest(tf.test.TestCase):
 
     def test_works_with_xla(self):
         dummy_inputs = self.rng.uniform(shape=self.FEATURE_SHAPE)
-        layer = DropBlock2D(dropout_rate=0.1, dropblock_size=7)
+        layer = DropBlock2D(rate=0.1, block_size=7)
 
         @tf.function(jit_compile=True)
         def apply(x):
