@@ -149,8 +149,7 @@ class DropBlock2D(BaseRandomLayer):
         super().__init__(seed=seed, **kwargs)
         if not 0.0 <= rate <= 1.0:
             raise ValueError(
-                f"rate must be a number between 0 and 1. "
-                f"Received: {rate}"
+                f"rate must be a number between 0 and 1. " f"Received: {rate}"
             )
 
         self._rate = rate
