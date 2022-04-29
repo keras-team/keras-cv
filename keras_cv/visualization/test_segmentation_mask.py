@@ -78,7 +78,7 @@ class DrawSegmentationTest(tf.test.TestCase, parameterized.TestCase):
     )
     def test_draw_segmentation_partial_factor(self, alpha):
         images = keras_cv.visualization.draw_map(self.images, self.masks, alpha=alpha)
-        color_rgb = colors.get("red")
+        color_rgb = keras_cv.visualization.colors.get("red")
         alpha_tf = tf.constant(alpha)
 
         image_section = tf.cast(
@@ -111,7 +111,7 @@ class DrawSegmentationTest(tf.test.TestCase, parameterized.TestCase):
                 color.update({c: "red"})
         for k, c in color.items():
             if isinstance(c, str):
-                color_rgb = colors.get(c)
+                color_rgb = keras_cv.visualization.colors.get(c)
             else:
                 color_rgb = c
             _color_masks.append(tf.ones_like(mask_section[0]) * color_rgb)
