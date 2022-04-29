@@ -183,7 +183,11 @@ class RandomShear(BaseImageAugmentationLayer):
             bounding_boxes = self.augment_horizontal(image, bounding_boxes, x)
         if y is not None:
             bounding_boxes = self.augment_vertical(image, bounding_boxes, y)
-        return bounding_boxes
+        return tf.clip_by_value(
+            bounding_boxes,
+            clip_value_min=0.0,
+            clip_value_max=1.0,
+        )
 
     def augment_horizontal(self, image, bounding_boxes, x):
         """args: image : takes a single image H,W,C,
@@ -242,18 +246,14 @@ class RandomShear(BaseImageAugmentationLayer):
             return final_x1, final_x2
 
         final_x1, final_x2 = tf.cond(tf.less(x, 0), negative_case, positive_case)
-        return tf.clip_by_value(
-            tf.concat(
-                [
-                    top_left_y / height,
-                    final_x1 / width,
-                    bottom_right_y / height,
-                    final_x2 / width,
-                ],
-                axis=1,
-            ),
-            clip_value_min=0.0,
-            clip_value_max=1.0,
+        return tf.concat(
+            [
+                top_left_y / height,
+                final_x1 / width,
+                bottom_right_y / height,
+                final_x2 / width,
+            ],
+            axis=1,
         )
 
     def augment_vertical(self, image, bounding_boxes, y):
@@ -313,16 +313,12 @@ class RandomShear(BaseImageAugmentationLayer):
             return final_y1, final_y2
 
         final_y1, final_y2 = tf.cond(tf.less(y, 0), negative_case, positive_case)
-        return tf.clip_by_value(
-            tf.concat(
-                [
-                    final_y1 / height,
-                    top_left_x / width,
-                    final_y2 / height,
-                    top_right_x / width,
-                ],
-                axis=1,
-            ),
-            clip_value_min=0.0,
-            clip_value_max=1.0,
+        return tf.concat(
+            [
+                final_y1 / height,
+                top_left_x / width,
+                final_y2 / height,
+                top_right_x / width,
+            ],
+            axis=1,
         )
