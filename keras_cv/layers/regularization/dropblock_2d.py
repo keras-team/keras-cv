@@ -36,13 +36,13 @@ class DropBlock2D(BaseRandomLayer):
     )
 
     Args:
-        dropout_rate: float. Probability of dropping a unit. Must be between 0 and 1.
+        rate: float. Probability of dropping a unit. Must be between 0 and 1.
             For best results, the value should be between 0.05-0.25.
-        dropblock_size: integer, or tuple of integers. The size of the block to be
+        block_size: integer, or tuple of integers. The size of the block to be
             dropped. In case of an integer a square block will be dropped. In case of a
             tuple, the numbers are block's (height, width).
             Must be bigger than 0, and should not be bigger than the input feature map
-            size. The paper authors use `dropblock_size=7` for input feature's of size
+            size. The paper authors use `block_size=7` for input feature's of size
             `14x14xchannels`.
             If this value is greater or equal to the input feature map size you will
             encounter `nan` values.
@@ -62,7 +62,7 @@ class DropBlock2D(BaseRandomLayer):
     x = Conv2D(32, (1, 1))(x)
     x = BatchNormalization()(x)
     x = ReLU()(x)
-    x = DropBlock2D(0.1, dropblock_size=7)(x)
+    x = DropBlock2D(0.1, block_size=7)(x)
     # (...)
     ```
     When used directly, the layer will zero-out some inputs in a contiguous region and
@@ -81,7 +81,7 @@ class DropBlock2D(BaseRandomLayer):
     #   [0.38977218 0.80855536 0.6040567  0.10502195]]], shape=(1, 4, 4),
     # dtype=float32)
 
-    layer = DropBlock2D(0.1, dropblock_size=2, seed=1234) # Small size for demonstration
+    layer = DropBlock2D(0.1, block_size=2, seed=1234) # Small size for demonstration
     output = layer(features, training=True)
 
     # Preview the feature map after dropblock:
@@ -140,28 +140,27 @@ class DropBlock2D(BaseRandomLayer):
 
     def __init__(
         self,
-        dropout_rate,
-        dropblock_size,
+        rate,
+        block_size,
         data_format=None,
         seed=None,
         **kwargs,
     ):
         super().__init__(seed=seed, **kwargs)
-        if not 0.0 <= dropout_rate <= 1.0:
+        if not 0.0 <= rate <= 1.0:
             raise ValueError(
-                f"dropout_rate must be a number between 0 and 1. "
-                f"Received: {dropout_rate}"
+                f"rate must be a number between 0 and 1. " f"Received: {rate}"
             )
 
-        self._dropout_rate = dropout_rate
+        self._rate = rate
         self._dropblock_height, self._dropblock_width = conv_utils.normalize_tuple(
-            value=dropblock_size, n=2, name="dropblock_size", allow_zero=False
+            value=block_size, n=2, name="block_size", allow_zero=False
         )
         self._data_format = conv_utils.normalize_data_format(data_format)
         self.seed = seed
 
     def call(self, x, training=None):
-        if not training or self._dropout_rate == 0.0:
+        if not training or self._rate == 0.0:
             return x
 
         if self._data_format == "channels_last":
@@ -177,7 +176,7 @@ class DropBlock2D(BaseRandomLayer):
         dropblock_width = tf.math.minimum(self._dropblock_width, width)
 
         gamma = (
-            self._dropout_rate
+            self._rate
             * tf.cast(width * height, dtype=tf.float32)
             / tf.cast(dropblock_height * dropblock_width, dtype=tf.float32)
             / tf.cast(
@@ -235,8 +234,8 @@ class DropBlock2D(BaseRandomLayer):
 
     def get_config(self):
         config = {
-            "dropout_rate": self._dropout_rate,
-            "dropblock_size": (self._dropblock_height, self._dropblock_width),
+            "rate": self._rate,
+            "block_size": (self._dropblock_height, self._dropblock_width),
             "data_format": self._data_format,
             "seed": self.seed,
         }

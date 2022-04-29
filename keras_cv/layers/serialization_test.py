@@ -120,8 +120,8 @@ class SerializationTest(tf.test.TestCase, parameterized.TestCase):
             "DropBlock2D",
             regularization.DropBlock2D,
             {
-                "dropout_rate": 0.1,
-                "dropblock_size": (7, 7),
+                "rate": 0.1,
+                "block_size": (7, 7),
                 "seed": 1234,
             },
         ),
