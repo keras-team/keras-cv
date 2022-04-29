@@ -16,7 +16,6 @@ from absl.testing import parameterized
 
 import keras_cv
 
-
 IMG_SIZE = 6
 MASK_SIZE = 2
 N = 2

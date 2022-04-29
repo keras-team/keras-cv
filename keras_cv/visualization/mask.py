@@ -13,9 +13,11 @@
 # limitations under the License.
 """Utility function to help visualize binary mask on image tensor."""
 from collections import defaultdict
+
 import tensorflow as tf
-from keras_cv.visualization.colors import colors
+
 from keras_cv.utils.preprocessing import blend
+from keras_cv.visualization.colors import colors
 
 
 def _check_rgb_tuple(color):
