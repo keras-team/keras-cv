@@ -22,9 +22,9 @@ def _check_rgb_tuple(color):
         isinstance(c, int) for c in color
     ), f"Only integers are support for color tuple."
     assert all(
-        c >= 0 and c <= 255 for c in rgb
-    ), f"all values in color should be in range [0, 255].  got color={rgb}"
-    assert len(rgb) == 3, f"Only RBG is supported but {rgb} passed."
+        c >= 0 and c <= 255 for c in color
+    ), f"all values in color should be in range [0, 255].  got color={color}"
+    assert len(color) == 3, f"Only RBG is supported but {color} passed."
 
 
 def _map_color_on_mask(masks, color):
