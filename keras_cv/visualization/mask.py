@@ -11,35 +11,19 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Utility function to help visualize binary mask on image tensor.
-"""
+"""Utility function to help visualize binary mask on image tensor."""
 from collections import defaultdict
-
 import tensorflow as tf
-
 from keras_cv.visualization.colors import colors
+from keras_cv.utils.preprocessing import blend
 
-__all__ = ["draw_segmentation"]
-
-
-def _blend(image1, image2, factor=0.4):
-    difference = image2 - image1
-    scaled = factor * difference
-    # Do addition in float.
-    blended = image1 + scaled
-
-    # We need to clip and then cast.
-    blended = tf.round(tf.clip_by_value(blended, 0.0, 255.0))
-    return blended
-
-
-def _check_rgb_tuple(rgb):
+def _check_rgb_tuple(color):
     assert all(
-        isinstance(c, int) for c in rgb
+        isinstance(c, int) for c in color
     ), f"Only integers are support for color tuple."
     assert all(
         c >= 0 and c <= 255 for c in rgb
-    ), f"{rgb} does not have valid range i.e 0-255"
+    ), f"all values in color should be in range [0, 255].  got color={rgb}"
     assert len(rgb) == 3, f"Only RBG is supported but {rgb} passed."
 
 
@@ -102,26 +86,24 @@ def _map_color_on_mask(masks, color):
     return tf.einsum("cnhw->nhwc", colored_masks.stack())
 
 
-def draw_segmentation(image, mask, color=None, alpha=0.4):
+def draw_map(image, mask, color='red', alpha=0.4):
     """Draws segmentation masks on images with desired color
     and transparency.
     Colors supported are standard `X11 Color set`.
 
     Args:
         image: 3D (unbatched) or 4D (batched) tensor with shape:
-              `(N, height, width, 3)` or (height, width, 3)
-              ,in `"channels_last"` format.
+              `(N, height, width, 3)` or (height, width, 3) in `"channels_last"` format.
         mask: 2D (unbatched) or 3D (batched) tensor with shape:
-              `(N, height, width)` or (height, width)
-              ,in `"channels_last"` format.
-        color: The color or colors to draw the segmentation map/s in.
+              `(N, height, width)` or (height, width) in `"channels_last"` format.
+        color: The color or colors to draw the segmentation map(s) in.
                This can either be a single color,
                or a dictionary mapping from class IDs to colors.
                Supported colors are `X11 Color Set` and formats
-               are RGB tuples or strings.A full list of color
-               strings is available at `KerasCV Colors`
-               Default (`red`) color value is used.
-        alpha: Transparency value between 0 and 1. (default: 0.4)
+               are RGB tuples or strings.  A full list of color
+               strings is available in The`KerasCV `colors.py` file.
+               Defaults to 'red'.
+        alpha: Alpha value between 0 and 1. (default: 0.4)
     Returns:
         Masks overlaid on images.
 
@@ -131,22 +113,15 @@ def draw_segmentation(image, mask, color=None, alpha=0.4):
         the color map.
         TypeError: On incorrect color type.
 
-    Note:
-        In case of color as class IDs mapping, if any class ID from mask tensor
-        is not present in color mapping passed, default `red` color value
-        will be used for those IDs.
-
     References:
-    .. KerasCV Colors:
-       https://github.com/keras-team/keras-cv/tree/master/keras_cv/visualization/colors.py
-    .. X11 Color Set:
-       https://www.w3.org/TR/css-color-4/#named-colors
+    - [KerasCV Colors](https://tinyurl.com/34bm28zu)
+    - [X11 Color Set](https://www.w3.org/TR/css-color-4/#named-colors)
 
     Usage:
     ```python
     # Example1
     color = {1:(255, 0, 0), 2:(0, 255, 0)}
-    images = keras_cv.visualization.draw_segmentation(
+    images = keras_cv.visualization.draw_map(
         images, # 4D Batched images or 3D images
         masks, # 4D Batch masks or 3D masks
         color=color
@@ -154,20 +129,23 @@ def draw_segmentation(image, mask, color=None, alpha=0.4):
 
     # Example2
     color = "cyan"
-    images = keras_cv.visualization.draw_segmentation(
+    images = keras_cv.visualization.draw_map(
         images,
         masks,
         color=color
     )
     ```
     """
+
+    # TODO: add support for regression format masks
     tf.debugging.assert_integer(
-        mask, message="Only integer dtypes supported for masks."
+        mask, message="Only integer dtypes supported for `mask`."
     )
 
     if not isinstance(color, (dict, str, tuple, list)):
         raise TypeError(
-            f"Want type(color)=dict or string, got type(color)={type(color)}."
+            f"Want type(color) in [dict, str, tuple, list]. "
+            "got type(color)={type(color)}."
         )
 
     if (image.ndim == 4) and (image.shape[:3] != mask.shape):
@@ -192,15 +170,10 @@ def draw_segmentation(image, mask, color=None, alpha=0.4):
     # blend mask with image
     image = tf.cast(image, tf.float32)
     colored_mask = tf.cast(colored_mask, tf.float32)
-    if alpha >= 1.0:
-        masked_image = colored_mask
-    else:
-        masked_image = _blend(image, colored_mask, alpha)
+    masked_image = blend(image, colored_mask, alpha)
 
     # stack masks along channel.
     mask_3d = tf.stack([mask] * 3, axis=-1)
-
-    # exclude non positive area on image
     masked_image = tf.where(tf.cast(mask_3d, tf.bool), masked_image, image)
     masked_image = tf.cast(masked_image, dtype=_input_image_dtype)
     return masked_image
