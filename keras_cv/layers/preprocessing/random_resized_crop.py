@@ -2,7 +2,7 @@ import tensorflow as tf
 from keras.layers.preprocessing import preprocessing_utils as utils
 from keras.utils import image_utils
 
-
+@tf.keras.utils.register_keras_serializable(package="keras_cv")
 class RandomResizedCrop(tf.keras.internal.layers.BaseImageAugmentationLayer):
     '''
     This layer is used to
@@ -13,7 +13,7 @@ class RandomResizedCrop(tf.keras.internal.layers.BaseImageAugmentationLayer):
     '''
 
     def __init__(self, height, width, seed=None, **kwargs):
-        super().__init__(**kwargs)
+        super().__init__(seed=seed,**kwargs)
         self.height = height
         self.width = width
         self.seed = seed
