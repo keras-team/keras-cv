@@ -54,9 +54,10 @@ class Dice(keras.losses.Loss):
         beta=1,
         from_logits=False,
         class_ids=None,
+        axis=[1, 2],
         label_smoothing=0.0,
         per_sample=False,
-        epsilon=keras.backend.epsilon(),
+        epsilon=1e-07,
         name="dice",
         **kwargs,
     ):
@@ -73,6 +74,11 @@ class Dice(keras.losses.Loss):
             class_ids: An interger or a lost of intergers within `range(num_classes)`
                 to evaluate the loss. If it's `None`, all classes will beu used to
                 calculate the loss. Default to `None`.
+            axis: An optional sequence of `int` specifying the axis to perform reduce
+                ops for raw dice score. For 2D model, it should be [1,2] or [2,3] for
+                the `channels_last` or `channels_first` format respectively. And for
+                3D mdoel, it should be [1,2,3] or [2,3,4] for the `channels_last` or
+                `channel_first` format respectively.
             label_smoothing: Float in [0, 1]. When > 0, label values are smoothed,
                 meaning the confidence on label values are relaxed. For example, if
                 `0.1`, use `0.1 / num_classes` for non-target labels and
@@ -81,7 +87,7 @@ class Dice(keras.losses.Loss):
                 batch and then averaged. Otherwise the loss will be calculated for
                 the whole batch. Default to `False`.
             epsilon: Small float added to dice score to avoid dividing by zero.
-                Default to `keras.backend.epsilon()` or `1e-07`.
+                Default to `1e-07`.
             name: Optional name for the instance.
                 Defaults to 'dice'.
         """
@@ -91,6 +97,10 @@ class Dice(keras.losses.Loss):
         self.label_smoothing = label_smoothing
         self.per_sample = per_sample
         self.epsilon = epsilon
+
+        self.axis = tf.constant(axis)
+        if not self.per_sample:
+            self.axis = tf.concat([tf.constant([0]), self.axis], axis=0)
 
         if class_ids is not None:
             if isinstance(class_ids, float) or any(
@@ -122,18 +132,10 @@ class Dice(keras.losses.Loss):
         if self.class_ids is not None:
             y_true, y_pred = gather_channels(y_true, y_pred, indices=self.class_ids)
 
-        axes = (
-            tf.constant([1, 2])
-            if keras.backend.image_data_format() == "channels_last"
-            else tf.constant([2, 3])
-        )
-        if not self.per_sample:
-            axes = tf.concat([tf.constant([0]), axes], axis=0)
-
         # loss calculation: Fβ-score (in terms of Type I and type II erro
-        true_positive = keras.backend.sum(y_true * y_pred, axis=axes)
-        false_positive = keras.backend.sum(y_pred, axis=axes) - true_positive
-        false_negative = keras.backend.sum(y_true, axis=axes) - true_positive
+        true_positive = keras.backend.sum(y_true * y_pred, axis=self.axis)
+        false_positive = keras.backend.sum(y_pred, axis=self.axis) - true_positive
+        false_negative = keras.backend.sum(y_true, axis=self.axis) - true_positive
 
         power_beta = 1 + self.beta**2
         numerator = power_beta * true_positive + self.epsilon
@@ -162,6 +164,7 @@ class Dice(keras.losses.Loss):
                 "label_smoothing": self.label_smoothing,
                 "per_sample": self.per_sample,
                 "epsilon": self.epsilon,
+                "axis": self.axis,
             }
         )
         return config
