@@ -46,16 +46,11 @@ def prepare_dataset(
     return train_ds
 
 
-def apply_augmentation(ds, augmentation_fxn=None):
-    ds = ds.map(augmentation_fxn, num_parallel_calls=tf.data.AUTOTUNE)
-    return ds
-
-
-def visualize_dataset(ds=None, take=1):
-    for images, _ in ds.take(take):
-        plt.figure(figsize=(8, 8))
-        for i in range(9):
-            plt.subplot(3, 3, i + 1)
-            plt.imshow(images[i].numpy().astype("uint8"))
-            plt.axis("off")
-        plt.show()
+def visualize_dataset(ds):
+    images, labels = next(iter(ds.take(1)))
+    plt.figure(figsize=(8, 8))
+    for i in range(9):
+        plt.subplot(3, 3, i + 1)
+        plt.imshow(images[i].numpy().astype("uint8"))
+        plt.axis("off")
+    plt.show()
