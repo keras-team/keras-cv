@@ -55,6 +55,7 @@ class Dice(keras.losses.Loss):
         from_logits=False,
         class_ids=None,
         axis=[1, 2],
+        loss_type=None,
         label_smoothing=0.0,
         per_sample=False,
         epsilon=1e-07,
@@ -79,6 +80,10 @@ class Dice(keras.losses.Loss):
                 the `channels_last` or `channels_first` format respectively. And for
                 3D mdoel, it should be [1,2,3] or [2,3,4] for the `channels_last` or
                 `channel_first` format respectively.
+            loss_type: An optional `str` specifying the type of the dice score to
+                compute. Compute generalized or adaptive dice score if metric type is
+                `generalized` or `adaptive`; otherwise compute original dice score.
+                Default to `None`.
             label_smoothing: Float in [0, 1]. When > 0, label values are smoothed,
                 meaning the confidence on label values are relaxed. For example, if
                 `0.1`, use `0.1 / num_classes` for non-target labels and
@@ -94,6 +99,7 @@ class Dice(keras.losses.Loss):
         super().__init__(name=name, **kwargs)
         self.beta = beta
         self.from_logits = from_logits
+        self.loss_type = loss_type
         self.label_smoothing = label_smoothing
         self.per_sample = per_sample
         self.epsilon = epsilon
@@ -111,6 +117,13 @@ class Dice(keras.losses.Loss):
                 )
             elif isinstance(class_ids, int):
                 class_ids = [class_ids]
+
+        if self.loss_type is not None:
+            if self.loss_type not in ["generalized", "adaptive"]:
+                raise ValueError(
+                    "The loss type is not valid. "
+                    f"It should be `generalized` or `adaptive`. Got {self.loss_type}"
+                )
 
         self.class_ids = class_ids
 
@@ -145,7 +158,13 @@ class Dice(keras.losses.Loss):
             + false_positive
             + self.epsilon
         )
-        dice_score = numerator / denominator
+
+        if self.loss_type == "generalized":
+            dice_score = self._generalized_dice_score(y_true, numerator, denominator)
+        elif self.loss_type == "adaptive":
+            dice_score = self._adaptive_dice_score(numerator, denominator)
+        else:
+            dice_score = numerator / denominator
 
         if self.per_sample:
             dice_score = keras.backend.mean(dice_score, axis=0)
@@ -154,6 +173,31 @@ class Dice(keras.losses.Loss):
 
         return 1 - dice_score
 
+    def _generalized_dice_score(self, y_true, numerator, denominator):
+        # Calculate the volume of groundtruth labels.
+        weight = tf.math.reciprocal(tf.square(tf.reduce_sum(y_true, axis=self.axis)))
+
+        # Calculate the weighted dice score and normalizer.
+        weighted_numerator = tf.reduce_sum(weight * numerator)
+        weighted_denominator = tf.reduce_sum(weight * denominator)
+        general_dice_score = weighted_numerator / weighted_denominator
+
+        return general_dice_score
+
+    def _adaptive_dice_score(self, numerator, denominator):
+        # Calculate the dice scores
+        dice_score = numerator / denominator
+        # Calculate weights based on Dice scores.
+        weights = tf.exp(-1.0 * dice_score)
+        # Multiply weights by corresponding scores and get sum.
+        weighted_dice = tf.reduce_sum(weights * dice_score)
+        # Calculate normalization factor.
+        normalizer = tf.cast(tf.size(input=dice_score), dtype=tf.float32) * tf.exp(-1.0)
+        # normalize the dice score
+        norm_dice_score = weighted_dice / normalizer
+
+        return norm_dice_score
+
     def get_config(self):
         config = super().get_config()
         config.update(
@@ -161,6 +205,7 @@ class Dice(keras.losses.Loss):
                 "beta": self.beta,
                 "from_logits": self.from_logits,
                 "class_ids": self.class_ids,
+                "loss_type": self.loss_type,
                 "label_smoothing": self.label_smoothing,
                 "per_sample": self.per_sample,
                 "epsilon": self.epsilon,
