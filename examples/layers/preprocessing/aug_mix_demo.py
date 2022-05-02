@@ -46,8 +46,8 @@ def main():
         .batch(BATCH_SIZE)
     )
 
-    augmix = preprocessing.AugMix([0,255])
-    
+    augmix = preprocessing.AugMix([0, 255])
+
     train_ds = train_ds.map(
         lambda x, y: (augmix(x), y),
         num_parallel_calls=tf.data.AUTOTUNE,
