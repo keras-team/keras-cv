@@ -18,7 +18,7 @@ from keras_cv import layers
 from keras_cv.utils import preprocessing
 
 
-@tf.keras.utils.register_keras_serializable(package="keras_cv")
+# @tf.keras.utils.register_keras_serializable(package="keras_cv")
 class AugMix(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
     """Performs the AugMix data augmentation technique.
 
@@ -41,6 +41,7 @@ class AugMix(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
     References:
         [AugMix paper](https://arxiv.org/pdf/1912.02781)
         [Official Code](https://github.com/google-research/augmix)
+        [Unoffial TF Code](https://github.com/szacho/augmix-tf)
 
     Sample usage:
     ```python
@@ -67,18 +68,6 @@ class AugMix(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
         self.depth = depth
         self.alpha = alpha
         self.seed = seed
-        self.augmentations = [
-            self._auto_contrast,
-            self._equalize,
-            self._posterize,
-            self._rotate,
-            self._solarize,
-            self._shear_x,
-            self._shear_y,
-            self._translate_x,
-            self._translate_y,
-        ]
-
         self.auto_vectorize = False
 
     @staticmethod
@@ -92,20 +81,17 @@ class AugMix(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
         sample_beta = tf.random.gamma((), 1.0, beta=beta)
         return sample_alpha / (sample_alpha + sample_beta)
 
-    def _sample_level(self, level, maxval, dtype):
+    def _sample_level(self, level, maxval, dtype, shape=()):
         level = self._random_generator.random_uniform(
-            shape=(), minval=0.1, maxval=level, dtype=tf.float32
+            shape=shape, minval=0.1, maxval=level, dtype=tf.float32
         )
         return tf.cast((level) * maxval / 10.0, dtype)
 
     def _loop_on_depth(self, depth_level, image_aug):
-        op_index = tf.get_static_value(
-            self._random_generator.random_uniform(
-                shape=(), minval=0, maxval=8, dtype=tf.int32
-            )
+        op_index = self._random_generator.random_uniform(
+            shape=(), minval=0, maxval=8, dtype=tf.int32
         )
-        tf.print(op_index)
-        image_aug = self.augmentations[op_index](image_aug)
+        image_aug = self._apply_op(image_aug, op_index)
         depth_level += 1
         return depth_level, image_aug
 
@@ -133,16 +119,32 @@ class AugMix(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
         return layers.AutoContrast(self.value_range)(image)
 
     def _equalize(self, image):
-        return layers.Equalization(self.value_range)(image)
+        shape = image.shape
+        image = layers.Equalization(self.value_range)(image)
+        image.set_shape(shape)
+        return image
 
     def _posterize(self, image):
-        bits = self._sample_level(self.severity, 8, tf.int32)
-        bits = tf.get_static_value(tf.math.maximum(bits, 1))
-        return layers.Posterization(bits=bits, value_range=self.value_range)(image)
+        image = preprocessing.transform_value_range(
+            images=image,
+            original_range=self.value_range,
+            target_range=[0, 255],
+        )
+
+        bits = self._sample_level(self.severity, 3, tf.int32)
+        shift = tf.cast(4 - bits + 1, tf.uint8)
+        image = tf.cast(image, tf.uint8)
+        image = tf.bitwise.left_shift(tf.bitwise.right_shift(image, shift), shift)
+        image = tf.cast(image, self.compute_dtype)
+        return preprocessing.transform_value_range(
+            images=image,
+            original_range=[0, 255],
+            target_range=self.value_range,
+        )
 
     def _rotate(self, image):
-        angle = self.sample_level(self.severity, 30, tf.float32)
-        shape = tf.shape(image, tf.float32)
+        angle = self._sample_level(self.severity, 30, tf.float32, [1])
+        shape = tf.cast(tf.shape(image), tf.float32)
 
         return preprocessing.transform(
             tf.expand_dims(image, 0),
@@ -150,11 +152,17 @@ class AugMix(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
         )[0]
 
     def _solarize(self, image):
-        threshold = tf.get_static_value(
-            self._sample_level(self.severity, 1, tf.float32)
+        threshold = tf.cast(
+            self._sample_level(self.severity, 255, tf.int32), tf.float32
         )
-        return layers.Solarization(self.value_range, threshold_factor=(0, threshold))(
-            image
+
+        image = preprocessing.transform_value_range(
+            image, original_range=self.value_range, target_range=(0, 255)
+        )
+        result = tf.clip_by_value(image, 0, 255)
+        result = tf.where(result < threshold, result, 255 - result)
+        return preprocessing.transform_value_range(
+            result, original_range=(0, 255), target_range=self.value_range
         )
 
     def _shear_x(self, image):
@@ -178,24 +186,79 @@ class AugMix(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
         )[0]
 
     def _translate_x(self, image):
-        shape = tf.shape(image, tf.float32)
-        x = self.sample_level(self.severity, shape[1], tf.int32)
+        shape = tf.cast(tf.shape(image), tf.float32)
+        x = self._sample_level(self.severity, shape[1] / 3, tf.float32, [1, 1])
         x *= preprocessing.random_inversion(self._random_generator)
+        x = tf.cast(x, tf.int32)
 
-        translations = tf.cast(tf.concat([x, 0], axis=1), dtype=tf.float32)
+        translations = tf.cast(
+            tf.concat([x, tf.zeros_like(x)], axis=1), dtype=tf.float32
+        )
         return preprocessing.transform(
             tf.expand_dims(image, 0), preprocessing.get_translation_matrix(translations)
         )[0]
 
     def _translate_y(self, image):
-        shape = tf.shape(image, tf.float32)
-        y = self.sample_level(self.severity, shape[0], tf.int32)
+        shape = tf.cast(tf.shape(image), tf.float32)
+        y = self._sample_level(self.severity, shape[0] / 3, tf.float32, [1, 1])
         y *= preprocessing.random_inversion(self._random_generator)
+        y = tf.cast(y, tf.int32)
 
-        translations = tf.cast(tf.concat([0, y], axis=1), dtype=tf.float32)
+        translations = tf.cast(
+            tf.concat([tf.zeros_like(y), y], axis=1), dtype=tf.float32
+        )
         return preprocessing.transform(
             tf.expand_dims(image, 0), preprocessing.get_translation_matrix(translations)
         )[0]
+
+    def _apply_op(self, image, op_index):
+        augmented = image
+        augmented = tf.cond(
+            op_index == tf.constant([0], dtype=tf.int32),
+            lambda: self._auto_contrast(augmented),
+            lambda: augmented,
+        )
+        augmented = tf.cond(
+            op_index == tf.constant([1], dtype=tf.int32),
+            lambda: self._equalize(augmented),
+            lambda: augmented,
+        )
+        augmented = tf.cond(
+            op_index == tf.constant([2], dtype=tf.int32),
+            lambda: self._posterize(augmented),
+            lambda: augmented,
+        )
+        augmented = tf.cond(
+            op_index == tf.constant([3], dtype=tf.int32),
+            lambda: self._rotate(augmented),
+            lambda: augmented,
+        )
+        augmented = tf.cond(
+            op_index == tf.constant([4], dtype=tf.int32),
+            lambda: self._solarize(augmented),
+            lambda: augmented,
+        )
+        augmented = tf.cond(
+            op_index == tf.constant([5], dtype=tf.int32),
+            lambda: self._shear_x(augmented),
+            lambda: augmented,
+        )
+        augmented = tf.cond(
+            op_index == tf.constant([6], dtype=tf.int32),
+            lambda: self._shear_y(augmented),
+            lambda: augmented,
+        )
+        augmented = tf.cond(
+            op_index == tf.constant([7], dtype=tf.int32),
+            lambda: self._translate_x(augmented),
+            lambda: augmented,
+        )
+        augmented = tf.cond(
+            op_index == tf.constant([8], dtype=tf.int32),
+            lambda: self._translate_y(augmented),
+            lambda: augmented,
+        )
+        return augmented
 
     def augment_image(self, image, transformation=None):
         chain_mixing_weights = AugMix._sample_from_dirichlet(
@@ -213,7 +276,6 @@ class AugMix(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
             self._loop_on_width,
             [image, chain_mixing_weights, curr_chain, result],
         )
-
         result = weight_sample * image + (1 - weight_sample) * result
         return result
 
