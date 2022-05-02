@@ -81,7 +81,7 @@ class Dice(keras.losses.Loss):
                 3D mdoel, it should be [1,2,3] or [2,3,4] for the `channels_last` or
                 `channel_first` format respectively.
             loss_type: An optional `str` specifying the type of the dice score to
-                compute. Compute generalized or adaptive dice score if metric type is
+                compute. Compute generalized or adaptive dice score if loss type is
                 `generalized` or `adaptive`; otherwise compute original dice score.
                 Default to `None`.
             label_smoothing: Float in [0, 1]. When > 0, label values are smoothed,
