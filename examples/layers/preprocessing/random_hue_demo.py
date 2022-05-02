@@ -29,7 +29,7 @@ def main():
     random_hue = preprocessing.RandomHue(factor=(0.0, 1.0), value_range=(0, 255))
 
     # Apply augmentation.
-    train_ds = utils.apply_augmentation(train_ds, lambda x, y: (random_hue(x), y))
+    train_ds = train_ds.map(lambda x, y: (random_hue(x), y))
 
     # visualize.
     utils.visualize_dataset(train_ds)
