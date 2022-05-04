@@ -18,6 +18,7 @@ from tensorflow import keras
 from keras_cv.utils.fill_utils import gather_channels
 
 
+@tf.keras.utils.register_keras_serializable(package="keras_cv")
 class Dice(keras.losses.Loss):
     """Compute the dice loss between the labels and predictions.
 
