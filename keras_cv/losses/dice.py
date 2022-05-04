@@ -73,8 +73,8 @@ class Dice(keras.losses.Loss):
             from_logits: Whether `y_pred` is expected to be a logits tensor. By
                 default, we assume that `y_pred` encodes a probability distribution.
                 Default to `False`.
-            class_ids: An interger or a lost of intergers within `range(num_classes)`
-                to evaluate the loss. If it's `None`, all classes will beu used to
+            class_ids: An interger or a list of intergers within `range(num_classes)`
+                to evaluate the loss. If it's `None`, all classes will be used to
                 calculate the loss. Default to `None`.
             axis: An optional sequence of `int` specifying the axis to perform reduce
                 ops for raw dice score. For 2D model, it should be [1,2] or [2,3] for
