@@ -14,23 +14,26 @@
 
 
 import tensorflow as tf
+from tensorflow import keras
 
 
-class Hausdorff(tf.keras.losses.Loss):
+class Hausdorff(keras.losses.Loss):
     """
     Hausdorff computes the hausdorff distance between two sets of n_dimensional points.
 
-    Args:
+    Standalone usage:
 
-    Usage:
-        ```python
-        hausdorff_distance = keras_cv.losses.Hausdorff()
+    >>> y_true = np.array([[0, 1, 0, 2], [0, 1, 0, 3], [1, 1, 1, 1]], dtype=np.float32)
+    >>> y_pred = np.array([[1, 2, 3, 4], [1, 1, 1, 1]], dtype=np.float32)
+    >>> hausdorff_distance = keras_cv.losses.Hausdorff()
+    >>> hausdorff_distance(y_true, y_pred).numpy()
+    2.4494898
 
-        y_true = np.array([[0, 1, 0, 2], [0, 1, 0, 3], [1, 1, 1, 1]], dtype=np.float32)
-        y_pred = np.array([[1, 2, 3, 4], [1, 1, 1, 1]], dtype=np.float32)
+    Usage with the `compile()` API:
+    ```python
+    model.compile(optimizer="Adam", loss=keras_cv.losses.Hausdorff())
+    ```
 
-        hausdorff_distance(y_true, y_pred)
-        ```
     """
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -38,11 +41,13 @@ class Hausdorff(tf.keras.losses.Loss):
     def _pairwise_distance(self, set_a, set_b):
         """
         Args:
-            set_a: Tensorflow array with ndim=2
-            set_b: Tensorflow array with ndim=2
+            set_a: A tf tensor where the last axis
+            represents points in D dimensional space
+            set_b: A tf tensor where the last axis
+                represents points in D dimentional space
         """
         set_a = tf.expand_dims(set_a, -2)
-        set_b = tf.expand_dims(set_b, 0)
+        set_b = tf.expand_dims(set_b, -3)
 
         distances = tf.reduce_sum(tf.square(set_a - set_b), axis=-1)
 
@@ -54,10 +59,18 @@ class Hausdorff(tf.keras.losses.Loss):
             y_true: ground truth Tensor.
             y_pred: predicted Tensor.
         """
-        y_true = tf.convert_to_tensor(y_true)
-        y_pred = tf.convert_to_tensor(y_pred)
+        y_true = tf.convert_to_tensor(y_true, dtype=tf.float32)
+        y_pred = tf.convert_to_tensor(y_pred, dtype=tf.float32)
 
-        assert y_true.shape[-1] == y_pred.shape[-1], "expected"
+        if len(y_true.shape) != len(y_pred.shape):
+            raise ValueError(f"Dimension mismatch, Expected ndims of \
+y_true == ndims of y_pred, Got ndims of y_true:{len(y_true.shape)} \
+, ndims of y_pred:{len(y_pred.shape)}.")
+
+        if y_true.shape[-1] != y_pred.shape[-1]:
+            raise ValueError(f"Dimension mismatch in last axis of y_true \
+and y_pred, Expected y_true.shape[-1] == y_pred.shape[-1], Got {y_true.shape} \
+, {y_pred.shape}.")
 
         distance = self._pairwise_distance(y_true, y_pred)
 
