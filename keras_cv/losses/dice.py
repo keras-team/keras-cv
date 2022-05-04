@@ -67,8 +67,9 @@ class Dice(keras.losses.Loss):
         Args:
             beta: A float or integer coefficient for balancing the precision
                 and recall. It determines the weight of recall and precision
-                in the combined score. If `beta < 1`, precisoin will doninate;
-                if `beta > 1`, recall will dominate. Default to `1`.
+                in the combined score. The value of `beta` should be greather
+                than `0`. If `beta < 1`, precisoin will doninate; if `beta > 1`,
+                recall will dominate. Default to `1`.
             from_logits: Whether `y_pred` is expected to be a logits tensor. By
                 default, we assume that `y_pred` encodes a probability distribution.
                 Default to `False`.
@@ -97,16 +98,17 @@ class Dice(keras.losses.Loss):
                 Defaults to 'dice'.
         """
         super().__init__(name=name, **kwargs)
-        self.beta = beta
-        self.from_logits = from_logits
-        self.loss_type = loss_type
-        self.label_smoothing = label_smoothing
-        self.per_sample = per_sample
-        self.epsilon = epsilon
 
-        self.axis = tf.constant(axis)
-        if not self.per_sample:
-            self.axis = tf.concat([tf.constant([0]), self.axis], axis=0)
+        if beta <= 0.0:
+            raise ValueError(f"`beta` value should be greater than zero. Got {beta}")
+
+        if loss_type is not None:
+            if loss_type not in ["generalized", "adaptive"]:
+                raise ValueError(
+                    "The `loss_type` is not valid. "
+                    "If `loss_type` is not `None`, It should be either "
+                    f"`generalized` or `adaptive`. Got {self.loss_type}"
+                )
 
         if class_ids is not None:
             if isinstance(class_ids, float) or any(
@@ -115,17 +117,21 @@ class Dice(keras.losses.Loss):
                 raise ValueError(
                     f"The indices should be int or a list of integer. Got {class_ids}"
                 )
-            elif isinstance(class_ids, int):
-                class_ids = [class_ids]
 
-        if self.loss_type is not None:
-            if self.loss_type not in ["generalized", "adaptive"]:
-                raise ValueError(
-                    "The loss type is not valid. "
-                    f"It should be `generalized` or `adaptive`. Got {self.loss_type}"
-                )
+        if isinstance(class_ids, int):
+            class_ids = [class_ids]
 
+        self.beta = beta
+        self.from_logits = from_logits
+        self.loss_type = loss_type
+        self.label_smoothing = label_smoothing
+        self.per_sample = per_sample
+        self.epsilon = epsilon
         self.class_ids = class_ids
+
+        self.axis = tf.constant(axis)
+        if not self.per_sample:
+            self.axis = tf.concat([tf.constant([0]), self.axis], axis=0)
 
     def _smooth_labels(self, y_true, y_pred, label_smoothing):
         num_classes = tf.cast(tf.shape(y_true)[-1], y_pred.dtype)
