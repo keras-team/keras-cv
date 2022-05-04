@@ -145,10 +145,10 @@ class Dice(keras.losses.Loss):
         if self.class_ids is not None:
             y_true, y_pred = gather_channels(y_true, y_pred, indices=self.class_ids)
 
-        # loss calculation: Fβ-score (in terms of Type I and type II erro
-        true_positive = keras.backend.sum(y_true * y_pred, axis=self.axis)
-        false_positive = keras.backend.sum(y_pred, axis=self.axis) - true_positive
-        false_negative = keras.backend.sum(y_true, axis=self.axis) - true_positive
+        # loss calculation: Fβ-score (in terms of Type I and type II error).
+        true_positive = tf.reduce_sum(y_true * y_pred, axis=self.axis)
+        false_positive = tf.reduce_sum(y_pred, axis=self.axis) - true_positive
+        false_negative = tf.reduce_sum(y_true, axis=self.axis) - true_positive
 
         power_beta = 1 + self.beta**2
         numerator = power_beta * true_positive + self.epsilon
@@ -167,9 +167,9 @@ class Dice(keras.losses.Loss):
             dice_score = numerator / denominator
 
         if self.per_sample:
-            dice_score = keras.backend.mean(dice_score, axis=0)
+            dice_score = tf.reduce_mean(dice_score, axis=0)
         else:
-            dice_score = keras.backend.mean(dice_score)
+            dice_score = tf.reduce_mean(dice_score)
 
         return 1 - dice_score
 
