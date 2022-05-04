@@ -12,10 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+
 import tensorflow as tf
 from tensorflow import keras
-
-from keras_cv.utils.fill_utils import gather_channels
 
 
 @tf.keras.utils.register_keras_serializable(package="keras_cv")
@@ -132,6 +131,23 @@ class Dice(keras.losses.Loss):
         num_classes = tf.cast(tf.shape(y_true)[-1], y_pred.dtype)
         return y_true * (1.0 - label_smoothing) + (label_smoothing / num_classes)
 
+    @staticmethod
+    def gather_channels(*matrices, indices=None):
+        # Gather channel axis according to the indices.
+        if indices is None:
+            return matrices
+
+        gathered_channels = []
+
+        for matrix in matrices:
+            if keras.backend.image_data_format() == "channels_last":
+                matrix = tf.gather(matrix, indices, axis=-1)
+            else:
+                matrix = tf.gather(matrix, indices, axis=1)
+            gathered_channels.append(matrix)
+
+        return gathered_channels
+
     def call(self, y_true, y_pred):
         y_pred = tf.convert_to_tensor(y_pred)
         y_true = tf.cast(y_true, y_pred.dtype)
@@ -144,7 +160,9 @@ class Dice(keras.losses.Loss):
             y_true = self._smooth_labels(y_true, y_pred, label_smoothing)
 
         if self.class_ids is not None:
-            y_true, y_pred = gather_channels(y_true, y_pred, indices=self.class_ids)
+            y_true, y_pred = self.gather_channels(
+                y_true, y_pred, indices=self.class_ids
+            )
 
         # loss calculation: Fβ-score (in terms of Type I and type II error).
         true_positive = tf.reduce_sum(y_true * y_pred, axis=self.axis)

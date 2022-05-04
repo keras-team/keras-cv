@@ -13,7 +13,6 @@
 # limitations under the License.
 
 import tensorflow as tf
-from tensorflow import keras
 
 from keras_cv.utils import bounding_box
 
@@ -82,20 +81,3 @@ def fill_rectangle(images, centers_x, centers_y, widths, heights, fill_values):
 
     images = tf.where(is_rectangle, fill_values, images)
     return images
-
-
-def gather_channels(*matrices, indices=None):
-    # Gather channel axis according to the indices.
-    if indices is None:
-        return matrices
-
-    gathered_channels = []
-
-    for matrix in matrices:
-        if keras.backend.image_data_format() == "channels_last":
-            matrix = tf.gather(matrix, indices, axis=-1)
-        else:
-            matrix = tf.gather(matrix, indices, axis=1)
-        gathered_channels.append(matrix)
-
-    return gathered_channels
