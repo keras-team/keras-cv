@@ -25,7 +25,7 @@ class NormalFactorSampler(FactorSampler):
 
     Args:
         mean: mean value for the distribution.
-        standard_deviation: standard deviation of the distribution.
+        stddev: standard deviation of the distribution.
         min_value: values below min_value are clipped to min_value.
         max_value: values above max_value are clipped to max_value.
 
@@ -33,7 +33,7 @@ class NormalFactorSampler(FactorSampler):
     ```python
     factor = keras_cv.core.NormalFactor(
         mean=0.5,
-        standard_deviation=0.1,
+        stddev=0.1,
         lower=0,
         upper=1
     )
@@ -43,9 +43,9 @@ class NormalFactorSampler(FactorSampler):
     ```
     """
 
-    def __init__(self, mean, standard_deviation, min_value, max_value, seed=None):
+    def __init__(self, mean, stddev, min_value, max_value, seed=None):
         self.mean = mean
-        self.standard_deviation = standard_deviation
+        self.stddev = stddev
         self.min_value = min_value
         self.max_value = max_value
         self.seed = seed
@@ -56,7 +56,7 @@ class NormalFactorSampler(FactorSampler):
             tf.random.normal(
                 shape=shape,
                 mean=self.mean,
-                stddev=self.standard_deviation,
+                stddev=self.stddev,
                 seed=self.seed,
                 dtype=dtype,
             ),
@@ -67,7 +67,7 @@ class NormalFactorSampler(FactorSampler):
     def get_config(self):
         return {
             "mean": self.mean,
-            "standard_deviation": self.standard_deviation,
+            "stddev": self.stddev,
             "min_value": self.min_value,
             "max_value": self.max_value,
             "seed": self.seed,
