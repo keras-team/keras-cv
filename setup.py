@@ -31,8 +31,7 @@ setup(
     author="Keras team",
     author_email="keras-cv@google.com",
     license="Apache License 2.0",
-    # Temporarily require tf-nightly until tf 2.9
-    install_requires=["packaging", "tensorflow==2.9.0rc1", "absl-py"],
+    install_requires=["packaging", "absl-py"],
     extras_require={
         "tests": ["flake8", "isort", "black", "pytest"],
         "examples": ["tensorflow_datasets", "matplotlib"],
