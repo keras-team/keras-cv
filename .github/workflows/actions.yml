@@ -32,6 +32,7 @@ jobs:
           ${{ runner.os }}-pip-
     - name: Install dependencies
       run: |
+        pip install tf-nightly
         pip install -e ".[tests]" --progress-bar off --upgrade
     - name: Test with pytest
       run: |
@@ -75,6 +76,7 @@ jobs:
         python-version: 3.7
     - name: Install dependencies
       run: |
+        pip install tf-nightly
         python -m pip install --upgrade pip setuptools wheel twine
     - name: Build and publish
       env:
