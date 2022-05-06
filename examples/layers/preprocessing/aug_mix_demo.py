@@ -46,7 +46,7 @@ def main():
         .batch(BATCH_SIZE)
     )
 
-    augmix = preprocessing.AugMix([0, 255])
+    augmix = preprocessing.AugMix(value_range=[0, 255])
 
     train_ds = train_ds.map(
         lambda x, y: (augmix(x), y),
