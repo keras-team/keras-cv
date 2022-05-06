@@ -73,7 +73,7 @@ class AugMix(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
     @staticmethod
     def _sample_from_dirichlet(alpha):
         gamma_sample = tf.random.gamma(shape=(), alpha=alpha)
-        return gamma_sample / tf.reduce_sum(gamma_sample, -1, keepdims=True)
+        return gamma_sample / tf.reduce_sum(gamma_sample, axis=-1, keepdims=True)
 
     @staticmethod
     def _sample_from_beta(alpha, beta):
