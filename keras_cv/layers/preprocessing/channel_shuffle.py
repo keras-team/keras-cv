@@ -69,10 +69,10 @@ class ChannelShuffle(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
         channels_per_group = num_channels // self.groups
 
         rand_uniform = keras_cv.UniformFactorSampler(lower=0, upper=1, seed=self.seed)
-        indices = tf.argsort(rand_uniform(shape=[self.groups]))
+        rand_indices = tf.argsort(rand_uniform(shape=[self.groups]))
 
         image = tf.reshape(image, [height, width, channels_per_group, self.groups])
-        image = tf.gather(image, indices, axis=-1)
+        image = tf.gather(image, rand_indices, axis=-1)
         image = tf.reshape(image, [height, width, num_channels])
 
         return image
