@@ -14,6 +14,8 @@
 
 import tensorflow as tf
 
+import keras_cv
+
 
 @tf.keras.utils.register_keras_serializable(package="keras_cv")
 class ChannelShuffle(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
@@ -65,10 +67,12 @@ class ChannelShuffle(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
             )
 
         channels_per_group = num_channels // self.groups
-        image = tf.reshape(image, [height, width, self.groups, channels_per_group])
-        image = tf.transpose(image, perm=[2, 0, 1, 3])
-        image = tf.random.shuffle(image, seed=self.seed)
-        image = tf.transpose(image, perm=[1, 2, 3, 0])
+
+        rand_uniform = keras_cv.UniformFactorSampler(lower=0, upper=1, seed=self.seed)
+        indices = tf.argsort(rand_uniform(shape=[self.groups]))
+
+        image = tf.reshape(image, [height, width, channels_per_group, self.groups])
+        image = tf.gather(image, indices, axis=-1)
         image = tf.reshape(image, [height, width, num_channels])
 
         return image
