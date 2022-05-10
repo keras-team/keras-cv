@@ -84,25 +84,25 @@ class RandomAugmentationPipeline(
         return result
 
     def _single_augmentation(self, inputs):
+        def _augment():
+            selected_op = self._random_generator.random_uniform(
+                (), minval=0, maxval=len(self.layers), dtype=tf.int32
+            )
+
+            branch_fns = []
+            for (i, layer) in enumerate(self.layers):
+                branch_fns.append((i, lambda: layer(inputs)))
+
+            return tf.switch_case(
+                branch_index=selected_op,
+                branch_fns=branch_fns,
+                default=lambda: inputs,
+            )
+
         skip_augment = self._random_generator.random_uniform(
             shape=(), minval=0.0, maxval=1.0, dtype=tf.float32
         )
-        if skip_augment > self.rate:
-            return inputs
-
-        selected_op = self._random_generator.random_uniform(
-            (), minval=0, maxval=len(self.layers), dtype=tf.int32
-        )
-
-        branch_fns = []
-        for (i, layer) in enumerate(self.layers):
-            branch_fns.append((i, lambda: layer(inputs)))
-
-        return tf.switch_case(
-            branch_index=selected_op,
-            branch_fns=branch_fns,
-            default=lambda: inputs,
-        )
+        return tf.cond(skip_augment > self.rate, lambda: inputs, _augment)
 
     def get_config(self):
         config = super().get_config()
