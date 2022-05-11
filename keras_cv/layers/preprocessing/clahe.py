@@ -21,6 +21,15 @@ from keras_cv.utils import preprocessing
 class CLAHE(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
     """Performs Contrast Limited Adaptive Histogram Equalization on an image.
 
+    CLAHE is an advancement over usual Adaptive Histogram Equalization, which aims to
+    perform Histogram Equalization on parts of image (thus being 'adaptive') to
+    increase the contrast.
+
+    CLAHE or  Contrast Limited-AHE, overcomes the problem of noise amplification
+    faced by AHE by clipping the histogram at a predefined value before computing the
+    CDF (Cumulative Distribution Function) and distribute it equally among all
+    histogram bins.
+
     Args:
         value_range: A tuple or a list of two elements. The first value represents
             the lower bound for values in passed image, the second represents the
