@@ -70,7 +70,7 @@ class RandomAugmentationPipeline(
         seed=None,
         **kwargs,
     ):
-        super().__init__(**kwargs, seed=seed)
+        super().__init__(**kwargs, seed=seed, force_generator=True)
         self.augmentations_per_image = augmentations_per_image
         self.rate = rate
         self.layers = layers
@@ -83,15 +83,21 @@ class RandomAugmentationPipeline(
             result = self._single_augmentation(result)
         return result
 
+    def _curry_call_layer(self, inputs, layer):
+        def call_layer():
+            return layer(inputs)
+
+        return call_layer
+
+    @tf.function()
     def _single_augmentation(self, inputs):
         def _augment():
             selected_op = self._random_generator.random_uniform(
                 (), minval=0, maxval=len(self.layers), dtype=tf.int32
             )
-
             branch_fns = []
             for (i, layer) in enumerate(self.layers):
-                branch_fns.append((i, lambda: layer(inputs)))
+                branch_fns.append((i, self._curry_call_layer(inputs, layer)))
 
             return tf.switch_case(
                 branch_index=selected_op,
