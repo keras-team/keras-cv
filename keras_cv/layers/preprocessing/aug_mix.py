@@ -20,15 +20,21 @@ from keras_cv.utils import preprocessing
 
 @tf.keras.utils.register_keras_serializable(package="keras_cv")
 class AugMix(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
-    """Performs the AugMix data augmentation technique.
+    """Performs the AugMix data augmentation technique.  AugMix mixes several
+    chains of augmentations together using weights sampled from a Dirichlet
+    distribution.  A single chain consist of a series of individual augmentations.
+    The resultant image is further mixed with the original image to form the
+    final augmented image.
 
     Args:
         value_range: the range of values the incoming images will have.
             Represented as a two number tuple written [low, high].
             This is typically either `[0, 1]` or `[0, 255]` depending
             on how your preprocessing pipeline is setup.
-        severity: an integer representing the level of strength of
-            augmentations (between 1 and 10). Defaults to 3.
+        severity: A tuple of two floats, a single float or a `keras_cv.FactorSampler`.
+            A value is sampled from the provided range.  If a float is passed, the
+            range is interpreted as `(0, severity)`. This value represents the
+            level of strength of augmentations.  Defaults to 0.3.
         width: an integer representing the number of different chains to
             be mixed. Defaults to 3.
         depth: an integer representing the number of transformations in
@@ -54,7 +60,7 @@ class AugMix(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
     def __init__(
         self,
         value_range,
-        severity=3,
+        severity=0.3,
         width=3,
         depth=-1,
         alpha=1.0,
@@ -63,12 +69,17 @@ class AugMix(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
     ):
         super().__init__(seed=seed, **kwargs)
         self.value_range = value_range
-        self.severity = severity
         self.width = width
         self.depth = depth
         self.alpha = alpha
         self.seed = seed
         self.auto_vectorize = False
+        self.severity = severity
+
+        # initialize layers
+        self.auto_contrast = layers.AutoContrast
+        self.equalize = layers.Equalization
+        self.random_shear = layers.RandomShear
 
     @staticmethod
     def _sample_from_dirichlet(alpha):
@@ -81,9 +92,12 @@ class AugMix(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
         sample_beta = tf.random.gamma((), 1.0, beta=beta)
         return sample_alpha / (sample_alpha + sample_beta)
 
-    def _sample_level(self, level, maxval, dtype, shape=()):
-        level = self._random_generator.random_uniform(
-            shape=shape, minval=0.1, maxval=level, dtype=tf.float32
+    def _sample_level(self, level, maxval, dtype):
+        level = (
+            preprocessing.parse_factor(
+                level, min_value=0.01, param_name="severity", seed=self.seed
+            )()
+            * 10
         )
         return tf.cast((level) * maxval / 10.0, dtype)
 
@@ -116,11 +130,11 @@ class AugMix(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
         return image, chain_mixing_weights, curr_chain, result
 
     def _auto_contrast(self, image):
-        return layers.AutoContrast(self.value_range)(image)
+        return self.auto_contrast(self.value_range)(image)
 
     def _equalize(self, image):
         shape = image.shape
-        image = layers.Equalization(self.value_range)(image)
+        image = self.equalize(self.value_range)(image)
         image.set_shape(shape)
         return image
 
@@ -143,7 +157,9 @@ class AugMix(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
         )
 
     def _rotate(self, image):
-        angle = self._sample_level(self.severity, 30, tf.float32, [1])
+        angle = tf.expand_dims(
+            self._sample_level(self.severity, 30, tf.float32), axis=0
+        )
         shape = tf.cast(tf.shape(image), tf.float32)
 
         return preprocessing.transform(
@@ -168,7 +184,7 @@ class AugMix(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
     def _shear_x(self, image):
         x = self._sample_level(self.severity, 0.3, tf.float32)
         x *= preprocessing.random_inversion(self._random_generator)
-        transform_x = layers.RandomShear._format_transform(
+        transform_x = self.random_shear._format_transform(
             [1.0, x, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0]
         )
         return preprocessing.transform(
@@ -178,7 +194,7 @@ class AugMix(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
     def _shear_y(self, image):
         y = self._sample_level(self.severity, 0.3, tf.float32)
         y *= preprocessing.random_inversion(self._random_generator)
-        transform_x = layers.RandomShear._format_transform(
+        transform_x = self.random_shear._format_transform(
             [1.0, 0.0, 0.0, y, 1.0, 0.0, 0.0, 0.0]
         )
         return preprocessing.transform(
@@ -187,7 +203,8 @@ class AugMix(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
 
     def _translate_x(self, image):
         shape = tf.cast(tf.shape(image), tf.float32)
-        x = self._sample_level(self.severity, shape[1] / 3, tf.float32, [1, 1])
+        x = self._sample_level(self.severity, shape[1] / 3, tf.float32)
+        x = tf.expand_dims(tf.expand_dims(x, axis=0), axis=0)
         x *= preprocessing.random_inversion(self._random_generator)
         x = tf.cast(x, tf.int32)
 
@@ -200,7 +217,8 @@ class AugMix(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
 
     def _translate_y(self, image):
         shape = tf.cast(tf.shape(image), tf.float32)
-        y = self._sample_level(self.severity, shape[0] / 3, tf.float32, [1, 1])
+        y = self._sample_level(self.severity, shape[0] / 3, tf.float32)
+        y = tf.expand_dims(tf.expand_dims(y, axis=0), axis=0)
         y *= preprocessing.random_inversion(self._random_generator)
         y = tf.cast(y, tf.int32)
 
