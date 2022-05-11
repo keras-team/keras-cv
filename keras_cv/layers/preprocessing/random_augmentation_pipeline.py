@@ -94,9 +94,17 @@ class RandomAugmentationPipeline(
             selected_op = self._random_generator.random_uniform(
                 (), minval=0, maxval=len(self.layers), dtype=tf.int32
             )
-            branch_fns = []
-            for (i, layer) in enumerate(self.layers):
-                branch_fns.append((i, self._curry_call_layer(inputs, layer)))
+
+            # Warning!!!
+            # DO NOT REPLACE WITH A FOR LOOP
+            # Autograph has an edge case where capturing python for loop
+            # variables is inconsistent between eager and graph execution
+            # by using a list comprehension and currying, we mitigate
+            # our code against both of these cases.
+            branch_fns = [
+                (i, self._curry_call_layer(inputs, layer))
+                for (i, layer) in enumerate(self.layers)
+            ]
 
             return tf.switch_case(
                 branch_index=selected_op,
