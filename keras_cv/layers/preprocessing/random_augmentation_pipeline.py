@@ -89,7 +89,6 @@ class RandomAugmentationPipeline(
 
         return call_layer
 
-    @tf.function()
     def _single_augmentation(self, inputs):
         def _augment():
             selected_op = self._random_generator.random_uniform(
