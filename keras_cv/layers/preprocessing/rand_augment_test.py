@@ -61,12 +61,14 @@ class RandAugmentTest(tf.test.TestCase, parameterized.TestCase):
         ("neg1_1", -1, 1),
         ("0_1", 0, 1),
     )
-    def test_rand_augment_respects_value_Range(self, lower, upper):
-        rand_augment = layers.RandAugment(value_range=(lower, upper), augmentations_per_image=20)
+    def test_rand_augment_respects_value_range(self, lower, upper):
+        rand_augment = layers.RandAugment(
+            value_range=(lower, upper), magnitude=1.0, augmentations_per_image=20
+        )
         xs = tf.random.uniform((2, 512, 512, 3), lower, upper, dtype=tf.float32)
         ys = rand_augment(xs)
-        self.assertTrue(tf.math.reduce_max(ys) <= upper)
-        self.assertTrue(tf.math.reduce_min(ys) >= lower)
+        self.assertLessEqual(tf.math.reduce_max(ys), upper)
+        self.assertGreaterEqual(tf.math.reduce_min(ys), lower)
 
     def test_runs_unbatched(self):
         rand_augment = layers.RandAugment(
