@@ -95,12 +95,10 @@ class RandomAugmentationPipeline(
                 (), minval=0, maxval=len(self.layers), dtype=tf.int32
             )
 
-            # Warning!!!
-            # DO NOT REPLACE WITH A FOR LOOP
-            # Autograph has an edge case where capturing python for loop
-            # variables is inconsistent between eager and graph execution
-            # by using a list comprehension and currying, we mitigate
-            # our code against both of these cases.
+            # Warning: 
+            # In case of refactoring don't close over the loop variable
+            # https://docs.microsoft.com/en-us/archive/blogs/ericlippert/closing-over-the-loop-variable-considered-harmful
+    
             branch_fns = [
                 (i, self._curry_call_layer(inputs, layer))
                 for (i, layer) in enumerate(self.layers)
