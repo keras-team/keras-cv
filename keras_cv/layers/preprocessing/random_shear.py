@@ -178,39 +178,116 @@ class RandomShear(BaseImageAugmentationLayer):
         """args: image : takes a single image H,W,C,
         bounding_boxes: take bbox coordinates [N,4] -> [y1,x1,y2,x2]
         transformation: takes tuple for x,y transformation None if no transformation"""
-        x, y = transformation
-        if x is not None:
-            bounding_boxes = self.augment_horizontal(image, bounding_boxes, x)
-        if y is not None:
-            bounding_boxes = self.augment_vertical(image, bounding_boxes, y)
-        return tf.clip_by_value(
-            bounding_boxes,
-            clip_value_min=0.0,
-            clip_value_max=1.0,
-        )
-
-    def augment_horizontal(self, image, bounding_boxes, x):
-        """args: image : takes a single image H,W,C,
-        bounding_boxes: take bbox coordinates [N,4] -> [y1,x1,y2,x2]
-        x: x transformation None if no transformation"""
         height, width, _ = image.shape
+        # Check bounding boxes are absolute or normalized
+        result = RandomShear.is_bbox_normalised(bounding_boxes)
+        # if normalized i.e 0-1 convert to absolute coordinates
+        bounding_boxes = tf.cond(
+            tf.equal(result, tf.constant(True)),
+            true_fn=lambda: RandomShear.convert_to_absolute_coordinates(
+                height, width, bounding_boxes
+            ),
+            false_fn=lambda: bounding_boxes,
+        )
+        x, y = transformation
+        # apply horizontal shear
+        if x is not None:
+            bounding_boxes = self._apply_horizontal_transformation_to_bounding_box(
+                bounding_boxes, x
+            )
+        # apply vertical shear
+        if y is not None:
+            bounding_boxes = self._apply_vertical_transformation_to_bounding_box(
+                bounding_boxes, y
+            )
+        # clip bounding boxes value to 0-image height and 0-image width
+        bounding_boxes = RandomShear.clip_bounding_box(height, width, bounding_boxes)
+        # if input bounding boxes were normalized convert to 0-1 and return
+        bounding_boxes = tf.cond(
+            tf.equal(result, tf.constant(True)),
+            true_fn=lambda: RandomShear.convert_to_normalized_coordinates(
+                height, width, bounding_boxes
+            ),
+            false_fn=lambda: bounding_boxes,
+        )
+        return bounding_boxes
+
+    @staticmethod
+    def convert_to_normalized_coordinates(height, width, bounding_boxes):
+        """converts absolute coordinates to normal coordinates"""
         # split bbox coordinates [N,4] to y1,x1,y2,x2 each of shape [N,1]
         y1, x1, y2, x2 = tf.split(bounding_boxes, 4, axis=1)
-        # unnormalize bbox coordinates to image shape
-        # and tranform into [x1,y1,x2,y2,x3,y3,x4,y4]
+        new_bboxes = tf.stack(
+            [y1 / height, x1 / width, y2 / height, x2 / width],
+            axis=1,
+        )
+        new_bboxes = tf.squeeze(new_bboxes, axis=-1)
+        return new_bboxes
+
+    @staticmethod
+    def convert_to_absolute_coordinates(height, width, bounding_boxes):
+        """converts normalized coordinates to absolute coordinates"""
+        # split bbox coordinates [N,4] to y1,x1,y2,x2 each of shape [N,1]
+        y1, x1, y2, x2 = tf.split(bounding_boxes, 4, axis=1)
+        new_bboxes = tf.stack(
+            [y1 * height, x1 * width, y2 * height, x2 * width],
+            axis=1,
+        )
+        new_bboxes = tf.squeeze(new_bboxes, axis=-1)
+        return new_bboxes
+
+    @staticmethod
+    def clip_bounding_box(height, width, bounding_boxes):
+        """clips bounding boxes b/w 0 - image width and 0 - image height"""
+        y1, x1, y2, x2 = tf.split(bounding_boxes, 4, axis=1)
         new_bboxes = tf.stack(
             [
-                x1 * width,
-                y1 * height,
-                x2 * width,
-                y2 * height,
-                x2 * width,
-                y1 * height,
-                x1 * width,
-                y2 * height,
+                tf.clip_by_value(y1, clip_value_min=0, clip_value_max=height),
+                tf.clip_by_value(x1, clip_value_min=0, clip_value_max=width),
+                tf.clip_by_value(y2, clip_value_min=0, clip_value_max=height),
+                tf.clip_by_value(x2, clip_value_min=0, clip_value_max=width),
             ],
             axis=1,
         )
+        new_bboxes = tf.squeeze(new_bboxes, axis=-1)
+        return new_bboxes
+
+    @staticmethod
+    def convert_to_extended_corners_format(bounding_boxes):
+        """splits corner bboxes top left,bottom right to 4 corners top left,
+        bottom right,top right and bottom left"""
+        y1, x1, y2, x2 = tf.split(bounding_boxes, 4, axis=1)
+        new_bboxes = tf.stack(
+            [
+                x1,
+                y1,
+                x2,
+                y2,
+                x2,
+                y1,
+                x1,
+                y2,
+            ],
+            axis=1,
+        )
+        return new_bboxes
+
+    @staticmethod
+    def is_bbox_normalised(bounding_boxes):
+        """checks given bboxes are normalized i.e 0-1 returns true if normalized"""
+        min_value, max_value = RandomShear.get_min_max_range(bounding_boxes)
+        return tf.cond(tf.greater(max_value, 1.0), lambda: False, lambda: True)
+
+    @staticmethod
+    def get_min_max_range(tensor):
+        """returns min and max of a tensor"""
+        return (tf.reduce_min(tensor), tf.reduce_max(tensor))
+
+    def _apply_horizontal_transformation_to_bounding_box(self, bounding_boxes, x):
+        """args: image : takes a single image H,W,C,
+        bounding_boxes: take bbox coordinates [N,4] -> [y1,x1,y2,x2]
+        x: x transformation None if no transformation"""
+        new_bboxes = self.convert_to_extended_corners_format(bounding_boxes)
         # create transformation matrix [1,4]
         matrix = tf.stack([1.0, -x, 0, 1.0], axis=0)
         # reshape it to [2,2]
@@ -248,36 +325,19 @@ class RandomShear(BaseImageAugmentationLayer):
         final_x1, final_x2 = tf.cond(tf.less(x, 0), negative_case, positive_case)
         return tf.concat(
             [
-                top_left_y / height,
-                final_x1 / width,
-                bottom_right_y / height,
-                final_x2 / width,
+                top_left_y,
+                final_x1,
+                bottom_right_y,
+                final_x2,
             ],
             axis=1,
         )
 
-    def augment_vertical(self, image, bounding_boxes, y):
+    def _apply_vertical_transformation_to_bounding_box(self, bounding_boxes, y):
         """args: image : takes a single image H,W,C,
         bounding_boxes: take bbox coordinates [N,4] -> [y1,x1,y2,x2]
         y: y transformation None if no transformation"""
-        height, width, _ = image.shape
-        # split bbox coordinates [N,4] to y1,x1,y2,x2 each of shape [N,1]
-        y1, x1, y2, x2 = tf.split(bounding_boxes, 4, axis=1)
-        # unnormalize bbox coordinates to image shape
-        # and tranform into [x1,y1,x2,y2,x3,y3,x4,y4]
-        new_bboxes = tf.stack(
-            [
-                x1 * width,
-                y1 * height,
-                x2 * width,
-                y2 * height,
-                x2 * width,
-                y1 * height,
-                x1 * width,
-                y2 * height,
-            ],
-            axis=1,
-        )
+        new_bboxes = self.convert_to_extended_corners_format(bounding_boxes)
         # create transformation matrix [1,4]
         matrix = tf.stack([1.0, 0, -y, 1.0], axis=0)
         # reshape it to [2,2]
@@ -315,10 +375,10 @@ class RandomShear(BaseImageAugmentationLayer):
         final_y1, final_y2 = tf.cond(tf.less(y, 0), negative_case, positive_case)
         return tf.concat(
             [
-                final_y1 / height,
-                top_left_x / width,
-                final_y2 / height,
-                top_right_x / width,
+                final_y1,
+                top_left_x,
+                final_y2,
+                top_right_x,
             ],
             axis=1,
         )
