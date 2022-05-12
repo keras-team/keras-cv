@@ -94,11 +94,11 @@ class RandomAugmentationPipeline(
             selected_op = self._random_generator.random_uniform(
                 (), minval=0, maxval=len(self.layers), dtype=tf.int32
             )
-
-            # Warning: 
+            
+            # Warning:
             # In case of refactoring don't close over the loop variable
             # https://docs.microsoft.com/en-us/archive/blogs/ericlippert/closing-over-the-loop-variable-considered-harmful
-    
+            
             branch_fns = [
                 (i, self._curry_call_layer(inputs, layer))
                 for (i, layer) in enumerate(self.layers)
