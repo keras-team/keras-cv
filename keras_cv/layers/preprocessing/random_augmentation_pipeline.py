@@ -97,7 +97,7 @@ class RandomAugmentationPipeline(
 
             # Warning:
             # In case of refactoring don't close over the loop variable
-            # https://docs.microsoft.com/en-us/archive/blogs/ericlippert/closing-over-the-loop-variable-considered-harmful
+            # https://discuss.python.org/t/make-lambdas-proper-closures/10553
 
             branch_fns = [
                 (i, self._curry_call_layer(inputs, layer))
