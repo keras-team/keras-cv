@@ -139,7 +139,7 @@ class RandAugment(RandomAugmentationPipeline):
         color = cv_preprocessing.RandomColorDegeneration(**policy["color"], seed=seed)
         contrast = cv_preprocessing.RandomContrast(**policy["contrast"], seed=seed)
         brightness = cv_preprocessing.RandomBrightness(
-            **policy["brightness"], seed=seed
+            **policy["brightness"], value_range=value_range, seed=seed
         )
         shear_x = cv_preprocessing.RandomShear(**policy["shear_x"], seed=seed)
         shear_y = cv_preprocessing.RandomShear(**policy["shear_y"], seed=seed)
