@@ -96,9 +96,10 @@ class RandomAugmentationPipeline(
             )
 
             # Warning:
-            # In case of refactoring don't close over the loop variable
-            # https://discuss.python.org/t/make-lambdas-proper-closures/10553
-
+            # Do not replace the currying function with a lambda.
+            # Originally we used a lambda, but due to Python's
+            # lack of loop level scope this causes unexpected
+            # behavior running outside of graph mode.
             branch_fns = [
                 (i, self._curry_call_layer(inputs, layer))
                 for (i, layer) in enumerate(self.layers)
