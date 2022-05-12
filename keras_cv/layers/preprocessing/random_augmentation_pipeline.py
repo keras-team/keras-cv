@@ -95,11 +95,10 @@ class RandomAugmentationPipeline(
                 (), minval=0, maxval=len(self.layers), dtype=tf.int32
             )
 
-            # Warning:
-            # Do not replace the currying function with a lambda.
-            # Originally we used a lambda, but due to Python's
-            # lack of loop level scope this causes unexpected
-            # behavior running outside of graph mode.
+            # Note:
+            # If you replace the currying function with a lambda please
+            # take care of the variable scope.
+            # https://docs.python.org/3/faq/programming.html#why-do-lambdas-defined-in-a-loop-with-different-values-all-return-the-same-result
             branch_fns = [
                 (i, self._curry_call_layer(inputs, layer))
                 for (i, layer) in enumerate(self.layers)
