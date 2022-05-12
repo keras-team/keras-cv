@@ -100,6 +100,11 @@ class RandomAugmentationPipeline(
             # Originally we used a lambda, but due to Python's
             # lack of loop level scope this causes unexpected
             # behavior running outside of graph mode.
+            #
+            # Autograph has an edge case where the behavior of Python for loop
+            # variables is inconsistent between Python and graph execution.
+            # By using a list comprehension and currying, we mitigate
+            # our code against both of these cases.
             branch_fns = [
                 (i, self._curry_call_layer(inputs, layer))
                 for (i, layer) in enumerate(self.layers)
