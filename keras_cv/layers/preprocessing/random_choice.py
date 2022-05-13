@@ -15,13 +15,11 @@ import tensorflow as tf
 
 
 @tf.keras.utils.register_keras_serializable(package="keras_cv")
-class RandomChoice(
-    tf.keras.__internal__.layers.BaseImageAugmentationLayer
-):
+class RandomChoice(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
     """RandomChoice constructs a pipeline based on provided arguments.
 
     The implemented policy does the following: for each inputs provided in `call`(), the
-    selects a random layer from the provided list of `layers`.  It then calls the
+    policy selects a random layer from the provided list of `layers`.  It then calls the
     `layer()` on the inputs.
 
     Usage:
@@ -43,9 +41,9 @@ class RandomChoice(
         layers: a list of `keras.Layers`.  These are randomly inputs during
             augmentation to augment the inputs passed in `call()`.  The layers passed
             should subclass `BaseImageAugmentationLayer`.
-        auto_vectorize: whether or not to use `tf.vectorized_map` or `tf.map_fn` to
+        auto_vectorize: whether to use `tf.vectorized_map` or `tf.map_fn` to
             apply the augmentations.  This offers a significant performance boost, but
-            can only be used if all of the layers provided to the `layers` argument
+            can only be used if all the layers provided to the `layers` argument
             support auto vectorization.
         seed: Integer. Used to create a random seed.
     """
@@ -87,7 +85,6 @@ class RandomChoice(
             (i, self._curry_call_layer(inputs, layer))
             for (i, layer) in enumerate(self.layers)
         ]
-
         return tf.switch_case(
             branch_index=selected_op,
             branch_fns=branch_fns,
