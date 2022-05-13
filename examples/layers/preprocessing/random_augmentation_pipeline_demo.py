@@ -41,6 +41,7 @@ def create_custom_pipeline():
     return preprocessing.RandomAugmentationPipeline(
         layers=layers, augmentations_per_image=3
     )
+    # return preprocessing.RandomChoice(layers=layers)
 
 
 def main():
