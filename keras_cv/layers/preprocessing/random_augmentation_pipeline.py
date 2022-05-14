@@ -79,7 +79,9 @@ class RandomAugmentationPipeline(
         self.auto_vectorize = auto_vectorize
         self.seed = seed
 
-        self._random_choice = preprocessing.RandomChoice(layers=layers, seed=seed)
+        self._random_choice = preprocessing.RandomChoice(
+            layers=layers, auto_vectorize=auto_vectorize, seed=seed
+        )
 
     def _augment(self, inputs):
         result = inputs
