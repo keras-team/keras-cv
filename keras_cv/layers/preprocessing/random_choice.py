@@ -96,6 +96,7 @@ class RandomChoice(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
         config.update(
             {
                 "layers": self.layers,
+                "auto_vectorize": self.auto_vectorize,
                 "seed": self.seed,
             }
         )
