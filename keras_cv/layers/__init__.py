@@ -39,6 +39,7 @@ from keras_cv.layers.preprocessing.random_augmentation_pipeline import (
     RandomAugmentationPipeline,
 )
 from keras_cv.layers.preprocessing.random_channel_shift import RandomChannelShift
+from keras_cv.layers.preprocessing.random_choice import RandomChoice
 from keras_cv.layers.preprocessing.random_color_degeneration import (
     RandomColorDegeneration,
 )

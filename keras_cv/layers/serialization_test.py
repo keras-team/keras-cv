@@ -105,6 +105,15 @@ class SerializationTest(tf.test.TestCase, parameterized.TestCase):
             },
         ),
         (
+            "RandomChoice",
+            preprocessing.RandomChoice,
+            {
+                "layers": [],
+                "seed": 3,
+                "auto_vectorize": False,
+            },
+        ),
+        (
             "RandomColorJitter",
             preprocessing.RandomColorJitter,
             {
