@@ -1,4 +1,4 @@
-nane: Tests
+name: Tests
 
 on:
   push:
