@@ -118,6 +118,7 @@ class RandAugment(RandomAugmentationPipeline):
         result["images"] = preprocessing_utils.transform_value_range(
             result["images"], (0, 255), self.value_range
         )
+        result["images"]
         return result
 
     @staticmethod
