@@ -34,7 +34,7 @@ class ZeroOut(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
 
 
 class MaybeApplyTest(tf.test.TestCase, parameterized.TestCase):
-    rng = tf.random.Generator.from_non_deterministic_state()
+    rng = tf.random.Generator.from_seed(seed=1234)
 
     @parameterized.parameters([-0.5, 1.7])
     def test_raises_error_on_invalid_rate_parameter(self, invalid_rate):
