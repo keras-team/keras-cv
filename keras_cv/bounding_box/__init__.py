@@ -12,9 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from keras_cv.utils.fill_utils import fill_rectangle
-from keras_cv.utils.iou import compute_ious_for_image
-from keras_cv.utils.preprocessing import blend
-from keras_cv.utils.preprocessing import parse_factor
-from keras_cv.utils.preprocessing import transform
-from keras_cv.utils.preprocessing import transform_value_range
+from keras_cv.bounding_box.convert_to_corners import convert_to_corners
+from keras_cv.bounding_box.pad_batch_to_shape import pad_batch_to_shape
+
+# These are the indexes used in Tensors to represent each corresponding side.
+LEFT, TOP, RIGHT, BOTTOM = 0, 1, 2, 3
+
+# Regardless of format these constants are consistent.
+# Class is held in the 5th index
+CLASS = 4
+# Confidence exists only on y_pred, and is in the 6th index.
+CONFIDENCE = 5

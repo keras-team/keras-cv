@@ -15,8 +15,8 @@ import warnings
 
 import tensorflow as tf
 
+from keras_cv import bounding_box
 from keras_cv.metrics.coco import utils
-from keras_cv.utils import bounding_box
 from keras_cv.utils import iou as iou_lib
 
 
@@ -63,7 +63,7 @@ class COCOMeanAveragePrecision(tf.keras.metrics.Metric):
     account for this, you may either pass a `tf.RaggedTensor`, or pad Tensors
     with `-1`s to indicate unused boxes.  A utility function to perform this
     padding is available at
-    `keras_cv.utils.bounding_box.pad_bounding_box_batch_to_shape()`.
+    `keras_cv.bounding_box.pad_batch_to_shape()`.
 
     ```python
     coco_map = keras_cv.metrics.COCOMeanAveragePrecision(

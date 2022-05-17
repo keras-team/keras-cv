@@ -36,9 +36,7 @@ def produce_random_data(include_confidence=False, num_images=128, num_classes=20
         )
 
     images = [
-        keras_cv.utils.bounding_box.pad_bounding_box_batch_to_shape(
-            x, [25, images[0].shape[1]]
-        )
+        keras_cv.bounding_box.pad_batch_to_shape(x, [25, images[0].shape[1]])
         for x in images
     ]
     return tf.stack(images, axis=0)
