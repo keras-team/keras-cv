@@ -13,3 +13,7 @@
 # limitations under the License.
 
 from keras_cv.utils import bounding_box
+from keras_cv.utils.preprocessing import transform_value_range
+from keras_cv.utils.preprocessing import blend
+from keras_cv.utils.preprocessing import parse_factor
+from keras_cv.utils.preprocessing import transform
