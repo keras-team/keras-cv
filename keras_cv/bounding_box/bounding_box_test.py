@@ -97,15 +97,11 @@ class BBOXTestCase(tf.test.TestCase):
     def test_bounding_box_padding(self):
         bounding_boxes = [[1, 2, 3, 4], [5, 6, 7, 8]]
         target_shape = [3, 4]
-        result = bounding_box.pad_batch_to_shape(
-            bounding_boxes, target_shape
-        )
+        result = bounding_box.pad_batch_to_shape(bounding_boxes, target_shape)
         self.assertAllClose(result, [[1, 2, 3, 4], [5, 6, 7, 8], [-1, -1, -1, -1]])
 
         target_shape = [2, 5]
-        result = bounding_box.pad_batch_to_shape(
-            bounding_boxes, target_shape
-        )
+        result = bounding_box.pad_batch_to_shape(bounding_boxes, target_shape)
         self.assertAllClose(result, [[1, 2, 3, 4, -1], [5, 6, 7, 8, -1]])
 
         # Make sure to raise error if the rank is different between bounding_box and

@@ -12,8 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from keras_cv.bounding_box.pad_batch_to_shape import pad_batch_to_shape
 from keras_cv.bounding_box.convert_to_corners import convert_to_corners
+from keras_cv.bounding_box.pad_batch_to_shape import pad_batch_to_shape
 
 # These are the indexes used in Tensors to represent each corresponding side.
 LEFT, TOP, RIGHT, BOTTOM = 0, 1, 2, 3

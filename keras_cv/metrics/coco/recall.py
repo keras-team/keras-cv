@@ -17,8 +17,8 @@ import tensorflow as tf
 import tensorflow.keras as keras
 import tensorflow.keras.initializers as initializers
 
-from keras_cv.metrics.coco import utils
 from keras_cv import bounding_box
+from keras_cv.metrics.coco import utils
 from keras_cv.utils import iou as iou_lib
 
 
