@@ -13,7 +13,7 @@
 # limitations under the License.
 import tensorflow as tf
 
-from keras_cv.utils import bounding_box
+from keras_cv import bounding_box
 
 
 def _axis_mask(starts, ends, mask_len):
