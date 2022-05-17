@@ -31,7 +31,7 @@ class MaybeApply(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
 
     Example usage:
         # Let's declare an example layer that will set all image pixels to zero.
-        zero_out = tf.keras.layers.Lambda(lambda x: 0 * x)
+        zero_out = tf.keras.layers.Lambda(lambda x: {"images": 0 * x["images"]})
 
         # Create a small batch of random, single-channel, 2x2 images:
         images = tf.random.stateless_uniform(shape=(5, 2, 2, 1), seed=[0, 1])
@@ -86,26 +86,11 @@ class MaybeApply(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
         self.auto_vectorize = auto_vectorize
         self.seed = seed
 
-    def augment_image(self, image, transformation=None):
-        should_apply = transformation > 1.0 - self._rate
-        return tf.cond(should_apply, lambda: self._layer(image), lambda: image)
-
-    def get_random_transformation(self, image=None, label=None, bounding_box=None):
-        return self._random_generator.random_uniform(shape=())
-
-    def augment_label(self, label, transformation=None):
-        should_apply = transformation > 1.0 - self._rate
-        return tf.cond(
-            should_apply, lambda: self._layer.augment_label(label), lambda: label
-        )
-
-    def augment_bounding_box(self, bounding_box, transformation=None):
-        should_apply = transformation > 1.0 - self._rate
-        return tf.cond(
-            should_apply,
-            lambda: self._layer.augment_bounding_box(bounding_box),
-            lambda: bounding_box,
-        )
+    def _augment(self, inputs):
+        if self._random_generator.random_uniform(shape=()) > 1.0 - self._rate:
+            return self._layer(inputs)
+        else:
+            return inputs
 
     def get_config(self):
         config = super().get_config()
