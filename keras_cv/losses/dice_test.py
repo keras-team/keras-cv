@@ -15,7 +15,7 @@
 import tensorflow as tf
 from tensorflow import keras
 
-from keras_cv.losses.dice import Dice
+from keras_cv.losses.dice import CategoricalDice
 
 
 def get_2d_model(num_classes, activation=None):
@@ -77,20 +77,16 @@ class DiceTest(tf.test.TestCase):
             ]
         )
 
-        dice = Dice(from_logits=False, per_sample=True)
+        dice = CategoricalDice(from_logits=False)
         score = dice(y_true, y_pred)
-        self.assertAlmostEqual(score.numpy(), 0.22222221)
-
-        dice = Dice(from_logits=False, per_sample=False)
-        score = dice(y_true, y_pred)
-        self.assertAlmostEqual(score.numpy(), 0.3888889)
+        self.assertAlmostEqual(score.numpy(), 0.22222215)
 
     def test_output_shape(self):
         num_classes = 4
         activation = None
 
         model = get_2d_model(num_classes=num_classes, activation=activation)
-        model.compile(loss=Dice(from_logits=True))
+        model.compile(loss=CategoricalDice(from_logits=True))
 
         y_true = tf.one_hot(
             tf.random.uniform(shape=[2, 5, 5], minval=0, maxval=5, dtype=tf.int32),
