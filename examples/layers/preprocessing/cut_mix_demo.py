@@ -32,8 +32,10 @@ def resize(image, label, num_classes=10):
     label = tf.one_hot(label, num_classes)
     return image, label
 
+
 def package(images, labels):
     return {"images": images, "labels": labels}
+
 
 def main():
     data, ds_info = tfds.load("oxford_flowers102", with_info=True, as_supervised=True)

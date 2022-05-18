@@ -17,6 +17,7 @@ from keras_cv.bounding_box.pad_batch_to_shape import pad_batch_to_shape
 
 # per format axis selector constants
 
+
 class XYXY:
     LEFT = 0
     TOP = 1
@@ -25,6 +26,7 @@ class XYXY:
     CLASS = 4
     CONFIDENCE = 5
 
+
 class CENTER_XYWH:
     X = 0
     Y = 1
@@ -32,6 +34,7 @@ class CENTER_XYWH:
     HEIGHT = 3
     CLASS = 4
     CONFIDENCE = 5
+
 
 class XYWH:
     X = 0
