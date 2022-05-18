@@ -27,6 +27,8 @@ class COCOMeanAveragePrecision(tf.keras.metrics.Metric):
         class_ids: The class IDs to evaluate the metric for.  To evaluate for
             all classes in over a set of sequentially labelled classes, pass
             `range(num_classes)`.
+        bounding_box_format: Format of the incoming bounding boxes.  Supported values
+            are "xywh", "center_xywh", "xyxy".
         iou_thresholds: IoU thresholds over which to evaluate the recall.  Must
             be a tuple of floats, defaults to [0.5:0.05:0.95].
         area_range: area range to constrict the considered bounding boxes in
@@ -67,6 +69,7 @@ class COCOMeanAveragePrecision(tf.keras.metrics.Metric):
 
     ```python
     coco_map = keras_cv.metrics.COCOMeanAveragePrecision(
+        bounding_box_format='xyxy',
         max_detections=100,
         class_ids=[1]
     )
@@ -84,6 +87,7 @@ class COCOMeanAveragePrecision(tf.keras.metrics.Metric):
     def __init__(
         self,
         class_ids,
+        bounding_box_format,
         recall_thresholds=None,
         iou_thresholds=None,
         area_range=None,
@@ -93,6 +97,7 @@ class COCOMeanAveragePrecision(tf.keras.metrics.Metric):
     ):
         super().__init__(**kwargs)
         # Initialize parameter values
+        self.bounding_box_format = bounding_box_format
         self.iou_thresholds = iou_thresholds or [x / 100.0 for x in range(50, 100, 5)]
         self.area_range = area_range
         self.max_detections = max_detections
@@ -116,21 +121,13 @@ class COCOMeanAveragePrecision(tf.keras.metrics.Metric):
         )
         self.true_positive_buckets = self.add_weight(
             "true_positive_buckets",
-            shape=(
-                self.num_class_ids,
-                self.num_iou_thresholds,
-                self.num_buckets,
-            ),
+            shape=(self.num_class_ids, self.num_iou_thresholds, self.num_buckets,),
             dtype=tf.int32,
             initializer="zeros",
         )
         self.false_positive_buckets = self.add_weight(
             "false_positive_buckets",
-            shape=(
-                self.num_class_ids,
-                self.num_iou_thresholds,
-                self.num_buckets,
-            ),
+            shape=(self.num_class_ids, self.num_iou_thresholds, self.num_buckets,),
             dtype=tf.int32,
             initializer="zeros",
         )
@@ -154,15 +151,19 @@ class COCOMeanAveragePrecision(tf.keras.metrics.Metric):
         if isinstance(y_pred, tf.RaggedTensor):
             y_pred = y_pred.to_tensor(default_value=-1)
 
-        y_true = tf.cast(y_true, self.compute_dtype)
-        y_pred = tf.cast(y_pred, self.compute_dtype)
+        y_true = bounding_box.transform_format(
+            y_true, source=self.bounding_box_format, target="xyxy"
+        )
+        y_pred = bounding_box.transform_format(
+            y_pred, source=self.bounding_box_format, target="xyxy"
+        )
 
         class_ids = tf.constant(self.class_ids, dtype=self.compute_dtype)
         iou_thresholds = tf.constant(self.iou_thresholds, dtype=self.compute_dtype)
 
         num_images = tf.shape(y_true)[0]
 
-        y_pred = utils.sort_bounding_boxes(y_pred, axis=bounding_box.CONFIDENCE)
+        y_pred = utils.sort_bounding_boxes(y_pred, axis=bounding_box.XYXY.confidence)
 
         ground_truth_boxes_update = tf.zeros_like(self.ground_truths)
         true_positive_buckets_update = tf.zeros_like(self.true_positive_buckets)

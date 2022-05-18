@@ -29,6 +29,8 @@ class COCORecall(keras.metrics.Metric):
         class_ids: The class IDs to evaluate the metric for.  To evaluate for
             all classes in over a set of sequentially labelled classes, pass
             `range(num_classes)`.
+        bounding_box_format: Format of the incoming bounding boxes.  Supported values
+            are "xywh", "center_xywh", "xyxy".
         iou_thresholds: IoU thresholds over which to evaluate the recall.  Must
             be a tuple of floats, defaults to [0.5:0.05:0.95].
         area_range: area range to constrict the considered bounding boxes in
@@ -58,6 +60,7 @@ class COCORecall(keras.metrics.Metric):
 
     ```python
     coco_recall = keras_cv.metrics.COCORecall(
+        bounding_box_format='xyxy',
         max_detections=100,
         class_ids=[1]
     )
@@ -75,6 +78,7 @@ class COCORecall(keras.metrics.Metric):
     def __init__(
         self,
         class_ids,
+        bounding_box_format,
         iou_thresholds=None,
         area_range=None,
         max_detections=100,
@@ -82,6 +86,7 @@ class COCORecall(keras.metrics.Metric):
     ):
         super().__init__(**kwargs)
         # Initialize parameter values
+        self.bounding_box_format = bounding_box_format
         iou_thresholds = iou_thresholds or [x / 100.0 for x in range(50, 100, 5)]
 
         self.iou_thresholds = iou_thresholds
@@ -132,6 +137,13 @@ class COCORecall(keras.metrics.Metric):
             y_true = y_true.to_tensor(default_value=-1)
         if isinstance(y_pred, tf.RaggedTensor):
             y_pred = y_pred.to_tensor(default_value=-1)
+
+        y_true = bounding_box.transform_format(
+            y_true, source=self.bounding_box_format, target="xyxy"
+        )
+        y_pred = bounding_box.transform_format(
+            y_pred, source=self.bounding_box_format, target="xyxy"
+        )
 
         num_images = tf.shape(y_true)[0]
 

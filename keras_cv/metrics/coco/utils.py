@@ -30,8 +30,8 @@ def bounding_box_area(boxes):
     Returns:
         areas: Tensor of areas of shape `[...]`.
     """
-    w = boxes[..., bounding_box.RIGHT] - boxes[..., bounding_box.LEFT]
-    h = boxes[..., bounding_box.BOTTOM] - boxes[..., bounding_box.TOP]
+    w = boxes[..., bounding_box.XYXY.right] - boxes[..., bounding_box.XYXY.left]
+    h = boxes[..., bounding_box.XYXY.bottom] - boxes[..., bounding_box.XYXY.top]
     return tf.math.multiply(w, h)
 
 

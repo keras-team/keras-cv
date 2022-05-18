@@ -139,12 +139,7 @@ class DropBlock2D(BaseRandomLayer):
     """
 
     def __init__(
-        self,
-        rate,
-        block_size,
-        data_format=None,
-        seed=None,
-        **kwargs,
+        self, rate, block_size, data_format=None, seed=None, **kwargs,
     ):
         super().__init__(seed=seed, **kwargs)
         if not 0.0 <= rate <= 1.0:

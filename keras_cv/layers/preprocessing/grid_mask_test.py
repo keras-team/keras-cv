@@ -30,10 +30,7 @@ class GridMaskTest(tf.test.TestCase):
 
     def test_gridmask_call_results_one_channel(self):
         xs = tf.cast(
-            tf.stack(
-                [3 * tf.ones((40, 40, 1)), 2 * tf.ones((40, 40, 1))],
-                axis=0,
-            ),
+            tf.stack([3 * tf.ones((40, 40, 1)), 2 * tf.ones((40, 40, 1))], axis=0,),
             dtype=tf.float32,
         )
 
@@ -54,10 +51,7 @@ class GridMaskTest(tf.test.TestCase):
 
     def test_non_square_image(self):
         xs = tf.cast(
-            tf.stack(
-                [2 * tf.ones((1024, 512, 1)), tf.ones((1024, 512, 1))],
-                axis=0,
-            ),
+            tf.stack([2 * tf.ones((1024, 512, 1)), tf.ones((1024, 512, 1))], axis=0,),
             dtype=tf.float32,
         )
 
@@ -103,10 +97,7 @@ class GridMaskTest(tf.test.TestCase):
         self.assertTrue(tf.math.reduce_any(xs[1] == 1.0))
 
     def test_in_single_image(self):
-        xs = tf.cast(
-            tf.ones((512, 512, 1)),
-            dtype=tf.float32,
-        )
+        xs = tf.cast(tf.ones((512, 512, 1)), dtype=tf.float32,)
 
         layer = GridMask(ratio_factor=(0.5, 0.5), fill_mode="constant", fill_value=0.0)
         xs = layer(xs, training=True)

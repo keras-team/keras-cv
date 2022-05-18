@@ -27,10 +27,11 @@ class COCOMeanAveragePrecisionTest(tf.test.TestCase):
         model = keras.Model(i, i)
 
         mean_average_precision = COCOMeanAveragePrecision(
+            bounding_box_format="xyxy",
             max_detections=100,
             num_buckets=4,
             class_ids=[1],
-            area_range=(0, 64**2),
+            area_range=(0, 64 ** 2),
         )
 
         # These would match if they were in the area range
@@ -49,6 +50,7 @@ class COCOMeanAveragePrecisionTest(tf.test.TestCase):
 
     def test_first_buckets_have_no_boxes(self):
         mean_average_precision = COCOMeanAveragePrecision(
+            bounding_box_format="xyxy",
             iou_thresholds=[0.33],
             class_ids=[1],
             max_detections=100,
@@ -106,6 +108,7 @@ class COCOMeanAveragePrecisionTest(tf.test.TestCase):
 
     def test_result_method_with_direct_assignment_one_threshold(self):
         mean_average_precision = COCOMeanAveragePrecision(
+            bounding_box_format="xyxy",
             iou_thresholds=[0.33],
             class_ids=[1],
             max_detections=100,
@@ -162,6 +165,7 @@ class COCOMeanAveragePrecisionTest(tf.test.TestCase):
 
     def test_result_method_with_direct_assignment_missing_class(self):
         mean_average_precision = COCOMeanAveragePrecision(
+            bounding_box_format="xyxy",
             iou_thresholds=[0.33],
             class_ids=[1, 2],
             max_detections=100,
@@ -173,20 +177,8 @@ class COCOMeanAveragePrecisionTest(tf.test.TestCase):
 
         # one class
         true_positives = [
-            [
-                [
-                    0,
-                    1,
-                    2,
-                ]
-            ],
-            [
-                [
-                    0,
-                    0,
-                    0,
-                ]
-            ],
+            [[0, 1, 2,]],
+            [[0, 0, 0,]],
         ]
 
         false_positives = [
@@ -211,6 +203,7 @@ class COCOMeanAveragePrecisionTest(tf.test.TestCase):
         y_true = bounding_box.pad_batch_to_shape(y_true, (1, 20, 5))
 
         metric = COCOMeanAveragePrecision(
+            bounding_box_format="xyxy",
             iou_thresholds=[0.15],
             class_ids=[1],
             max_detections=1,
@@ -225,6 +218,7 @@ class COCOMeanAveragePrecisionTest(tf.test.TestCase):
         y_pred = tf.constant([[[0, 50, 100, 150, 1, 1.0]]], dtype=tf.float32)
 
         metric = COCOMeanAveragePrecision(
+            bounding_box_format="xyxy",
             iou_thresholds=[0.15],
             class_ids=[1],
             max_detections=1,
@@ -234,6 +228,7 @@ class COCOMeanAveragePrecisionTest(tf.test.TestCase):
 
     def test_runs_with_confidence_over_1(self):
         mean_average_precision = COCOMeanAveragePrecision(
+            bounding_box_format="xyxy",
             iou_thresholds=[0.33],
             class_ids=[1, 2],
             max_detections=100,

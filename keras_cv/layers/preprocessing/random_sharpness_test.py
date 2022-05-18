@@ -19,10 +19,7 @@ from keras_cv.layers import preprocessing
 class RandomSharpnessTest(tf.test.TestCase):
     def test_random_sharpness_preserves_output_shape(self):
         img_shape = (50, 50, 3)
-        xs = tf.stack(
-            [2 * tf.ones(img_shape), tf.ones(img_shape)],
-            axis=0,
-        )
+        xs = tf.stack([2 * tf.ones(img_shape), tf.ones(img_shape)], axis=0,)
 
         layer = preprocessing.RandomSharpness(0.0, value_range=(0, 255))
         ys = layer(xs)

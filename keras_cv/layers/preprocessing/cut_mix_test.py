@@ -35,11 +35,7 @@ class CutMixTest(tf.test.TestCase):
 
     def test_cut_mix_call_results(self):
         xs = tf.cast(
-            tf.stack(
-                [2 * tf.ones((4, 4, 3)), tf.ones((4, 4, 3))],
-                axis=0,
-            ),
-            tf.float32,
+            tf.stack([2 * tf.ones((4, 4, 3)), tf.ones((4, 4, 3))], axis=0,), tf.float32,
         )
         ys = tf.one_hot(tf.constant([0, 1]), 2)
 
@@ -58,11 +54,7 @@ class CutMixTest(tf.test.TestCase):
 
     def test_cut_mix_call_results_one_channel(self):
         xs = tf.cast(
-            tf.stack(
-                [2 * tf.ones((4, 4, 1)), tf.ones((4, 4, 1))],
-                axis=0,
-            ),
-            tf.float32,
+            tf.stack([2 * tf.ones((4, 4, 1)), tf.ones((4, 4, 1))], axis=0,), tf.float32,
         )
         ys = tf.one_hot(tf.constant([0, 1]), 2)
 

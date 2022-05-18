@@ -19,10 +19,7 @@ from keras_cv import layers
 
 class RandAugmentTest(tf.test.TestCase, parameterized.TestCase):
     @parameterized.named_parameters(
-        ("0", 0),
-        ("20", 0.2),
-        ("55", 0.55),
-        ("10", 1.0),
+        ("0", 0), ("20", 0.2), ("55", 0.55), ("10", 1.0),
     )
     def test_runs_with_magnitude(self, magnitude):
         rand_augment = layers.RandAugment(
@@ -33,9 +30,7 @@ class RandAugmentTest(tf.test.TestCase, parameterized.TestCase):
         self.assertEqual(ys.shape, (2, 512, 512, 3))
 
     @parameterized.named_parameters(
-        ("0_255", 0, 255),
-        ("neg_1_1", -1, 1),
-        ("0_1", 0, 1),
+        ("0_255", 0, 255), ("neg_1_1", -1, 1), ("0_1", 0, 1),
     )
     def test_runs_with_value_range(self, low, high):
         rand_augment = layers.RandAugment(
@@ -46,9 +41,7 @@ class RandAugmentTest(tf.test.TestCase, parameterized.TestCase):
         self.assertTrue(tf.math.reduce_all(tf.logical_and(ys >= low, ys <= high)))
 
     @parameterized.named_parameters(
-        ("float32", tf.float32),
-        ("int32", tf.int32),
-        ("uint8", tf.uint8),
+        ("float32", tf.float32), ("int32", tf.int32), ("uint8", tf.uint8),
     )
     def test_runs_with_dtype_input(self, dtype):
         rand_augment = layers.RandAugment(value_range=(0, 255))
@@ -57,9 +50,7 @@ class RandAugmentTest(tf.test.TestCase, parameterized.TestCase):
         self.assertEqual(ys.shape, (2, 512, 512, 3))
 
     @parameterized.named_parameters(
-        ("0_255", 0, 255),
-        ("neg1_1", -1, 1),
-        ("0_1", 0, 1),
+        ("0_255", 0, 255), ("neg1_1", -1, 1), ("0_1", 0, 1),
     )
     def test_standard_policy_respects_value_range(self, lower, upper):
         my_layers = layers.RandAugment.get_standard_policy(
