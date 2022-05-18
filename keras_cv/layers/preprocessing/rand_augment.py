@@ -208,7 +208,10 @@ def solarize_policy(magnitude, magnitude_stddev):
 
 def color_policy(magnitude, magnitude_stddev):
     factor = core.NormalFactorSampler(
-        mean=magnitude, stddev=magnitude_stddev, min_value=0, max_value=1,
+        mean=magnitude,
+        stddev=magnitude_stddev,
+        min_value=0,
+        max_value=1,
     )
     return {"factor": factor}
 
@@ -227,14 +230,20 @@ def brightness_policy(magnitude, magnitude_stddev):
 
 def shear_x_policy(magnitude, magnitude_stddev):
     factor = core.NormalFactorSampler(
-        mean=magnitude, stddev=magnitude_stddev, min_value=0, max_value=1,
+        mean=magnitude,
+        stddev=magnitude_stddev,
+        min_value=0,
+        max_value=1,
     )
     return {"x_factor": factor, "y_factor": 0}
 
 
 def shear_y_policy(magnitude, magnitude_stddev):
     factor = core.NormalFactorSampler(
-        mean=magnitude, stddev=magnitude_stddev, min_value=0, max_value=1,
+        mean=magnitude,
+        stddev=magnitude_stddev,
+        min_value=0,
+        max_value=1,
     )
     return {"x_factor": 0, "y_factor": factor}
 

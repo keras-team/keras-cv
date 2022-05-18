@@ -27,7 +27,10 @@ class ChannelShuffleTest(tf.test.TestCase):
 
     def test_channel_shuffle_call_results_one_channel(self):
         xs = tf.cast(
-            tf.stack([3 * tf.ones((40, 40, 1)), 2 * tf.ones((40, 40, 1))], axis=0,),
+            tf.stack(
+                [3 * tf.ones((40, 40, 1)), 2 * tf.ones((40, 40, 1))],
+                axis=0,
+            ),
             dtype=tf.float32,
         )
 
@@ -38,7 +41,10 @@ class ChannelShuffleTest(tf.test.TestCase):
 
     def test_channel_shuffle_call_results_multi_channel(self):
         xs = tf.cast(
-            tf.stack([3 * tf.ones((40, 40, 20)), 2 * tf.ones((40, 40, 20))], axis=0,),
+            tf.stack(
+                [3 * tf.ones((40, 40, 20)), 2 * tf.ones((40, 40, 20))],
+                axis=0,
+            ),
             dtype=tf.float32,
         )
 
@@ -49,7 +55,10 @@ class ChannelShuffleTest(tf.test.TestCase):
 
     def test_non_square_image(self):
         xs = tf.cast(
-            tf.stack([2 * tf.ones((1024, 512, 1)), tf.ones((1024, 512, 1))], axis=0,),
+            tf.stack(
+                [2 * tf.ones((1024, 512, 1)), tf.ones((1024, 512, 1))],
+                axis=0,
+            ),
             dtype=tf.float32,
         )
 
@@ -75,7 +84,10 @@ class ChannelShuffleTest(tf.test.TestCase):
         self.assertTrue(tf.math.reduce_any(xs[1] == 1.0))
 
     def test_in_single_image(self):
-        xs = tf.cast(tf.ones((512, 512, 1)), dtype=tf.float32,)
+        xs = tf.cast(
+            tf.ones((512, 512, 1)),
+            dtype=tf.float32,
+        )
 
         layer = ChannelShuffle(groups=1)
         xs = layer(xs, training=True)

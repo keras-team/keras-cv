@@ -34,7 +34,9 @@ class AutoContrast(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
     """
 
     def __init__(
-        self, value_range, **kwargs,
+        self,
+        value_range,
+        **kwargs,
     ):
         super().__init__(**kwargs)
         self.value_range = value_range

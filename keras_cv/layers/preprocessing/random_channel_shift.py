@@ -78,7 +78,10 @@ class RandomChannelShift(tf.keras.__internal__.layers.BaseImageAugmentationLayer
         for c_i in range(self.channels):
             result.append(unstack_rgb[c_i] + transformation[c_i])
 
-        result = tf.stack(result, axis=-1,)
+        result = tf.stack(
+            result,
+            axis=-1,
+        )
         result = tf.clip_by_value(result, 0.0, 1.0)
         image = preprocessing.transform_value_range(result, (0, 1), self.value_range)
         return image

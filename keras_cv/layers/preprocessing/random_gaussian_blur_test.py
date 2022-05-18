@@ -35,13 +35,19 @@ class RandomGaussianBlurTest(tf.test.TestCase):
         layer = preprocessing.RandomGaussianBlur(kernel_size=(3, 7), factor=(0, 2))
 
         # RGB
-        xs = tf.cast(tf.ones((512, 512, 3)), dtype=tf.float32,)
+        xs = tf.cast(
+            tf.ones((512, 512, 3)),
+            dtype=tf.float32,
+        )
 
         xs = layer(xs)
         self.assertEqual(xs.shape, [512, 512, 3])
 
         # greyscale
-        xs = tf.cast(tf.ones((512, 512, 1)), dtype=tf.float32,)
+        xs = tf.cast(
+            tf.ones((512, 512, 1)),
+            dtype=tf.float32,
+        )
 
         xs = layer(xs)
         self.assertEqual(xs.shape, [512, 512, 1])
@@ -75,7 +81,10 @@ class RandomGaussianBlurTest(tf.test.TestCase):
     def test_numerical(self):
         layer = preprocessing.RandomGaussianBlur(kernel_size=3, factor=(1.0, 1.0))
 
-        xs = tf.expand_dims(tf.constant([[0, 0, 0], [0, 1, 0], [0, 0, 0]]), axis=-1,)
+        xs = tf.expand_dims(
+            tf.constant([[0, 0, 0], [0, 1, 0], [0, 0, 0]]),
+            axis=-1,
+        )
 
         xs = tf.expand_dims(xs, axis=0)
 

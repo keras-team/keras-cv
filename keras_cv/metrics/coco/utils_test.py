@@ -48,7 +48,10 @@ class UtilTest(tf.test.TestCase):
         boxes = [box_set1, box_set2]
         bounding_box_tensor = utils.to_sentinel_padded_bounding_box_tensor(boxes)
         self.assertAllClose(
-            bounding_box_tensor[1, 1], -tf.ones(6,),
+            bounding_box_tensor[1, 1],
+            -tf.ones(
+                6,
+            ),
         )
 
     def test_filter_out_sentinels(self):

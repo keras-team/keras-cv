@@ -36,7 +36,8 @@ class SolarizationTest(tf.test.TestCase, parameterized.TestCase):
         )
 
     @parameterized.named_parameters(
-        ("0_245", 0, 245), ("255_0", 255, 0),
+        ("0_245", 0, 245),
+        ("255_0", 255, 0),
     )
     def test_solarization_with_addition(self, input_value, output_value):
         solarization = Solarization(addition_factor=(10.0, 10.0), value_range=(0, 255))

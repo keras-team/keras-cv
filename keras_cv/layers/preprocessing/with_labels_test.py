@@ -36,7 +36,11 @@ TEST_CONFIGURATIONS = [
         preprocessing.RandomCutout,
         {"height_factor": 0.2, "width_factor": 0.2},
     ),
-    ("RandomHue", preprocessing.RandomHue, {"factor": 0.5, "value_range": (0, 255)},),
+    (
+        "RandomHue",
+        preprocessing.RandomHue,
+        {"factor": 0.5, "value_range": (0, 255)},
+    ),
     (
         "RandomChannelShift",
         preprocessing.RandomChannelShift,
@@ -67,7 +71,8 @@ TEST_CONFIGURATIONS = [
 
 class WithLabelsTest(tf.test.TestCase, parameterized.TestCase):
     @parameterized.named_parameters(
-        *TEST_CONFIGURATIONS, ("CutMix", preprocessing.CutMix, {}),
+        *TEST_CONFIGURATIONS,
+        ("CutMix", preprocessing.CutMix, {}),
     )
     def test_can_run_with_labels(self, layer_cls, init_args):
         layer = layer_cls(**init_args)

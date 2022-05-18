@@ -46,7 +46,11 @@ class MixUpTest(tf.test.TestCase):
 
     def test_mix_up_call_results(self):
         xs = tf.cast(
-            tf.stack([2 * tf.ones((4, 4, 3)), tf.ones((4, 4, 3))], axis=0,), tf.float32,
+            tf.stack(
+                [2 * tf.ones((4, 4, 3)), tf.ones((4, 4, 3))],
+                axis=0,
+            ),
+            tf.float32,
         )
         ys = tf.one_hot(tf.constant([0, 1]), 2)
 
@@ -64,7 +68,11 @@ class MixUpTest(tf.test.TestCase):
 
     def test_in_tf_function(self):
         xs = tf.cast(
-            tf.stack([2 * tf.ones((4, 4, 3)), tf.ones((4, 4, 3))], axis=0,), tf.float32,
+            tf.stack(
+                [2 * tf.ones((4, 4, 3)), tf.ones((4, 4, 3))],
+                axis=0,
+            ),
+            tf.float32,
         )
         ys = tf.one_hot(tf.constant([0, 1]), 2)
 

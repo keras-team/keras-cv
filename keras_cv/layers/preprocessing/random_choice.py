@@ -49,7 +49,11 @@ class RandomChoice(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
     """
 
     def __init__(
-        self, layers, auto_vectorize=False, seed=None, **kwargs,
+        self,
+        layers,
+        auto_vectorize=False,
+        seed=None,
+        **kwargs,
     ):
         super().__init__(**kwargs, seed=seed, force_generator=True)
         self.layers = layers
@@ -82,7 +86,9 @@ class RandomChoice(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
             for (i, layer) in enumerate(self.layers)
         ]
         return tf.switch_case(
-            branch_index=selected_op, branch_fns=branch_fns, default=lambda: inputs,
+            branch_index=selected_op,
+            branch_fns=branch_fns,
+            default=lambda: inputs,
         )
 
     def get_config(self):

@@ -31,7 +31,7 @@ class COCOMeanAveragePrecisionTest(tf.test.TestCase):
             max_detections=100,
             num_buckets=4,
             class_ids=[1],
-            area_range=(0, 64 ** 2),
+            area_range=(0, 64**2),
         )
 
         # These would match if they were in the area range

@@ -112,7 +112,10 @@ class GridMask(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
         self.fill_value = fill_value
         self.rotation_factor = rotation_factor
         self.random_rotate = layers.RandomRotation(
-            factor=rotation_factor, fill_mode="constant", fill_value=0.0, seed=seed,
+            factor=rotation_factor,
+            fill_mode="constant",
+            fill_value=0.0,
+            seed=seed,
         )
         self.auto_vectorize = False
         self._check_parameter_values()

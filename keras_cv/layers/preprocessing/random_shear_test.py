@@ -19,7 +19,10 @@ from keras_cv.layers import preprocessing
 class RandomShearTest(tf.test.TestCase):
     def test_aggressive_shear_fills_at_least_some_pixels(self):
         img_shape = (50, 50, 3)
-        xs = tf.stack([2 * tf.ones(img_shape), tf.ones(img_shape)], axis=0,)
+        xs = tf.stack(
+            [2 * tf.ones(img_shape), tf.ones(img_shape)],
+            axis=0,
+        )
         xs = tf.cast(xs, tf.float32)
 
         fill_value = 0.0

@@ -29,7 +29,7 @@ def _center_xywh_to_corners(boxes, images=None):
     x, y, width, height, rest = tf.split(boxes, [1, 1, 1, 1, -1], axis=-1)
     return tf.concat(
         [x - width / 2.0, y - height / 2.0, x + width / 2.0, y + height / 2.0, rest],
-        axis=-1
+        axis=-1,
     )
 
 
@@ -44,14 +44,17 @@ def _xyxy_no_op(boxes, images=None):
 
 def _corners_to_xywh(boxes, images=None):
     left, top, right, bottom, rest = tf.split(boxes, [1, 1, 1, 1, -1], axis=-1)
-    return tf.concat([left, top, right - left, bottom - top, rest], axis=-1,)
+    return tf.concat(
+        [left, top, right - left, bottom - top, rest],
+        axis=-1,
+    )
 
 
 def _corners_to_center_xywh(boxes, images=None):
     left, top, right, bottom, rest = tf.split(boxes, [1, 1, 1, 1, -1], axis=-1)
     return tf.concat(
         [(left + right) / 2.0, (top + bottom) / 2.0, right - left, bottom - top, rest],
-        axis=-1
+        axis=-1,
     )
 
 
