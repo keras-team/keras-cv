@@ -106,9 +106,6 @@ class CategoricalDice(keras.losses.Loss):
                 meaning the confidence on label values are relaxed. For example, if
                 `0.1`, use `0.1 / num_classes` for non-target labels and
                 `0.9 + 0.1 / num_classes` for target labels. Default to `0.0`.
-            per_sample: If `True`, the loss will be calculated for each sample in
-                batch and then averaged. Otherwise the loss will be calculated for
-                the whole batch. Default to `False`.
             epsilon: Small float added to dice score to avoid dividing by zero.
                 Default to `1e-07`.
             name: Optional name for the instance.
