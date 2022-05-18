@@ -72,7 +72,7 @@ def fill_rectangle(images, centers_x, centers_y, widths, heights, fill_values):
 
     xywh = tf.stack([centers_x, centers_y, widths, heights], axis=1)
     xywh = tf.cast(xywh, tf.float32)
-    corners = bounding_box.transform_format(xywh, source="xywh", target="xyxy")
+    corners = bounding_box.transform_format(xywh, source="center_xywh", target="xyxy")
     mask_shape = (images_width, images_height)
     is_rectangle = corners_to_mask(corners, mask_shape)
     is_rectangle = tf.expand_dims(is_rectangle, -1)
