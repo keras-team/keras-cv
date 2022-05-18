@@ -44,7 +44,7 @@ class MaybeApplyTest(tf.test.TestCase, parameterized.TestCase):
     def test_works_with_batched_input(self):
         batch_size = 32
         dummy_inputs = self.rng.uniform(shape=(batch_size, 224, 224, 3))
-        layer = MaybeApply(rate=0.5, layer=ZeroOut())
+        layer = MaybeApply(rate=0.5, layer=ZeroOut(), seed=1234)
 
         outputs = layer(dummy_inputs)
         num_zero_inputs = self._num_zero_batches(dummy_inputs)
