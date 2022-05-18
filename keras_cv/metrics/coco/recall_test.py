@@ -171,7 +171,7 @@ class COCORecallTest(tf.test.TestCase):
             area_range=(0, 1e9 ** 2),
         )
         y_true = np.array(
-            [[[0, 0, 100, 100, 1], [100, 100, 200, 200, 1], [300, 300, 400, 400, 1],]]
+            [[[0, 0, 100, 100, 1], [100, 100, 200, 200, 1], [300, 300, 400, 400, 1]]]
         ).astype(np.float32)
         y_pred = np.concatenate([y_true, np.ones((1, 3, 1))], axis=-1).astype(
             np.float32
@@ -189,7 +189,7 @@ class COCORecallTest(tf.test.TestCase):
             area_range=(0, 1e9 ** 2),
         )
         y_true = np.array(
-            [[[0, 0, 100, 100, 1], [100, 100, 200, 200, 1], [300, 300, 400, 400, 1],]]
+            [[[0, 0, 100, 100, 1], [100, 100, 200, 200, 1], [300, 300, 400, 400, 1]]]
         ).astype(np.float32)
         y_pred = np.concatenate([y_true, np.ones((1, 3, 1))], axis=-1).astype(
             np.float32
@@ -254,7 +254,7 @@ class COCORecallTest(tf.test.TestCase):
         self.assertEqual([[1]], metric.true_positives)
 
     def test_true_positive_counting_one_true_two_pred(self):
-        y_true = tf.constant([[[0, 0, 100, 100, 1],]], dtype=tf.float32,)
+        y_true = tf.constant([[[0, 0, 100, 100, 1]]], dtype=tf.float32,)
         y_pred = tf.constant(
             [[[0, 50, 100, 150, 1, 0.90], [0, 0, 100, 100, 1, 1.0]]], dtype=tf.float32,
         )

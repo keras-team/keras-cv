@@ -28,14 +28,14 @@ import tensorflow as tf
 def _center_xywh_to_corners(boxes, images=None):
     x, y, width, height, rest = tf.split(boxes, [1, 1, 1, 1, -1], axis=-1)
     return tf.concat(
-        [x - width / 2.0, y - height / 2.0, x + width / 2.0, y + height / 2.0, rest,],
-        axis=-1,
+        [x - width / 2.0, y - height / 2.0, x + width / 2.0, y + height / 2.0, rest],
+        axis=-1
     )
 
 
 def _xywh_to_corners(boxes, images=None):
     x, y, width, height, rest = tf.split(boxes, [1, 1, 1, 1, -1], axis=-1)
-    return tf.concat([x, y, x + width, y + height, rest,], axis=-1,)
+    return tf.concat([x, y, x + width, y + height, rest], axis=-1)
 
 
 def _xyxy_no_op(boxes, images=None):
@@ -50,8 +50,8 @@ def _corners_to_xywh(boxes, images=None):
 def _corners_to_center_xywh(boxes, images=None):
     left, top, right, bottom, rest = tf.split(boxes, [1, 1, 1, 1, -1], axis=-1)
     return tf.concat(
-        [(left + right) / 2.0, (top + bottom) / 2.0, right - left, bottom - top, rest,],
-        axis=-1,
+        [(left + right) / 2.0, (top + bottom) / 2.0, right - left, bottom - top, rest],
+        axis=-1
     )
 
 
@@ -102,13 +102,13 @@ def transform_format(boxes, source, target, images=None):
     global from_corners_converters
     source = source.lower()
     target = target.lower()
-    if not source in to_corners_converters:
+    if source not in to_corners_converters:
         raise ValueError(
             f"`transform_format()` received an unsupported format for the argument "
             f"`source`.  `source` should be one of {to_corners_converters.keys()}. "
             f"Got `source`={source}"
         )
-    if not target in from_corners_converters:
+    if target not in from_corners_converters:
         raise ValueError(
             f"`transform_format()` received an unsupported format for the argument "
             f"`target`.  `target` should be one of {from_corners_converters.keys()}. "
