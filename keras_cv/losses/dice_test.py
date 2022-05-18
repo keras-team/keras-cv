@@ -26,62 +26,6 @@ def get_2d_model(num_classes, activation=None):
 
 
 class DiceTest(tf.test.TestCase):
-    def test_dice_score(self):
-        y_true = tf.constant(
-            [
-                [
-                    [
-                        [0.0, 0.0, 1.0],
-                        [0.0, 0.0, 0.0],
-                    ],
-                    [
-                        [1.0, 0.0, 1.0],
-                        [0.0, 0.0, 1.0],
-                    ],
-                ],
-                [
-                    [
-                        [0.0, 0.0, 1.0],
-                        [0.0, 0.0, 1.0],
-                    ],
-                    [
-                        [1.0, 0.0, 1.0],
-                        [0.0, 1.0, 0.0],
-                    ],
-                ],
-            ]
-        )
-
-        y_pred = tf.constant(
-            [
-                [
-                    [
-                        [0.0, 0.0, 1.0],
-                        [0.0, 0.0, 0.0],
-                    ],
-                    [
-                        [1.0, 0.0, 1.0],
-                        [0.0, 0.0, 1.0],
-                    ],
-                ],
-                [
-                    [
-                        [0.0, 0.0, 1.0],
-                        [0.0, 0.0, 1.0],
-                    ],
-                    [
-                        [1.0, 1.0, 0.0],
-                        [0.0, 0.0, 1.0],
-                    ],
-                ],
-            ]
-        )
-
-        # (todo: innat)
-        # dice = CategoricalDice(from_logits=False)
-        # score = dice(y_true, y_pred)
-        # self.assertAlmostEqual(score.numpy(), 0.22222215)
-
     def test_output_shape(self):
         num_classes = 4
         activation = None
