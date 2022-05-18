@@ -131,8 +131,8 @@ def load_samples(fname):
     y_true = npzfile["arr_0"].astype(np.float32)
     y_pred = npzfile["arr_1"].astype(np.float32)
 
-    y_true = bounding_box.convert_to_corners(y_true, format="coco")
-    y_pred = bounding_box.convert_to_corners(y_pred, format="coco")
+    y_true = bounding_box.transform_format(y_true, source='xyWH', target="xyxy")
+    y_pred = bounding_box.transform_format(y_pred, source='xyWH', target="xyxy")
 
     categories = set(int(x) for x in y_true[:, :, 4].numpy().flatten())
     categories = [x for x in categories if x != -1]

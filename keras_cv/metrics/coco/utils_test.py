@@ -24,7 +24,7 @@ class UtilTest(tf.test.TestCase):
     def test_filter_bounding_boxes_empty(self):
         # set of bounding_boxes
         y_pred = tf.stack([_dummy_bounding_box(category=1)])
-        result = utils.filter_boxes(y_pred, 2, axis=bounding_box.CLASS)
+        result = utils.filter_boxes(y_pred, 2, axis=bounding_box.XYXY.CLASS)
 
         self.assertEqual(result.shape[0], 0)
 
@@ -38,7 +38,7 @@ class UtilTest(tf.test.TestCase):
         y_pred = tf.stack(
             [_dummy_bounding_box(category=1), _dummy_bounding_box(category=2)]
         )
-        result = utils.filter_boxes(y_pred, 2, axis=bounding_box.CLASS)
+        result = utils.filter_boxes(y_pred, 2, axis=bounding_box.XYXY.CLASS)
 
         self.assertAllClose(result, tf.stack([_dummy_bounding_box(category=2)]))
 
@@ -116,7 +116,7 @@ class UtilTest(tf.test.TestCase):
             ),
             axis=0,
         )
-        y_sorted = utils.sort_bounding_boxes(y_pred, bounding_box.CONFIDENCE)
+        y_sorted = utils.sort_bounding_boxes(y_pred, bounding_box.XYXY.CONFIDENCE)
         self.assertAllClose(y_sorted, want)
 
     def test_sort_bounding_boxes_empty_list(self):

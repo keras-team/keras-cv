@@ -173,7 +173,7 @@ class COCORecall(keras.metrics.Metric):
                 category = class_ids[k_i]
 
                 category_filtered_y_pred = utils.filter_boxes(
-                    y_pred_for_image, value=category, axis=bounding_box.CLASS
+                    y_pred_for_image, value=category, axis=bounding_box.XYXY.CLASS
                 )
 
                 detections = category_filtered_y_pred
@@ -181,7 +181,7 @@ class COCORecall(keras.metrics.Metric):
                     detections = category_filtered_y_pred[: self.max_detections]
 
                 ground_truths = utils.filter_boxes(
-                    y_true_for_image, value=category, axis=bounding_box.CLASS
+                    y_true_for_image, value=category, axis=bounding_box.XYXY.CLASS
                 )
 
                 ious = iou_lib.compute_ious_for_image(ground_truths, detections)

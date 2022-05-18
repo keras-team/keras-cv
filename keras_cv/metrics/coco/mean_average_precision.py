@@ -163,7 +163,7 @@ class COCOMeanAveragePrecision(tf.keras.metrics.Metric):
 
         num_images = tf.shape(y_true)[0]
 
-        y_pred = utils.sort_bounding_boxes(y_pred, axis=bounding_box.XYXY.confidence)
+        y_pred = utils.sort_bounding_boxes(y_pred, axis=bounding_box.XYXY.CONFIDENCE)
 
         ground_truth_boxes_update = tf.zeros_like(self.ground_truths)
         true_positive_buckets_update = tf.zeros_like(self.true_positive_buckets)
@@ -195,10 +195,10 @@ class COCOMeanAveragePrecision(tf.keras.metrics.Metric):
             for c_i in tf.range(self.num_class_ids):
                 category_id = class_ids[c_i]
                 ground_truths = utils.filter_boxes(
-                    ground_truths, value=category_id, axis=bounding_box.CLASS
+                    ground_truths, value=category_id, axis=bounding_box.XYXY.CLASS
                 )
                 detections = utils.filter_boxes(
-                    detections, value=category_id, axis=bounding_box.CLASS
+                    detections, value=category_id, axis=bounding_box.XYXY.CLASS
                 )
                 if self.max_detections < tf.shape(detections)[0]:
                     detections = detections[: self.max_detections]
@@ -213,7 +213,7 @@ class COCOMeanAveragePrecision(tf.keras.metrics.Metric):
                     iou_threshold = iou_thresholds[iou_i]
                     pred_matches = utils.match_boxes(ious, iou_threshold)
 
-                    dt_scores = detections[:, bounding_box.CONFIDENCE]
+                    dt_scores = detections[:, bounding_box.XYXY.CONFIDENCE]
 
                     true_positives = pred_matches != -1
                     false_positives = pred_matches == -1

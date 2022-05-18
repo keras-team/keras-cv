@@ -32,6 +32,8 @@ def resize(image, label, num_classes=10):
     label = tf.one_hot(label, num_classes)
     return image, label
 
+def package(images, labels):
+    return {"images": images, "labels": labels}
 
 def main():
     data, ds_info = tfds.load("oxford_flowers102", with_info=True, as_supervised=True)
@@ -43,6 +45,7 @@ def main():
         train_ds.map(lambda x, y: resize(x, y, num_classes=num_classes))
         .shuffle(10 * BATCH_SIZE)
         .batch(BATCH_SIZE)
+        .map(package)
     )
     cutmix = preprocessing.CutMix()
     train_ds = train_ds.map(
@@ -50,7 +53,8 @@ def main():
         num_parallel_calls=tf.data.AUTOTUNE,
     )
 
-    for data in train_ds.take(1):
+    for inputs in train_ds.take(1):
+        images = inputs["images"]
         plt.figure(figsize=(8, 8))
         for i in range(9):
             plt.subplot(3, 3, i + 1)

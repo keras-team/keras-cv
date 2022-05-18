@@ -15,22 +15,28 @@
 from keras_cv.bounding_box.converters import transform_format
 from keras_cv.bounding_box.pad_batch_to_shape import pad_batch_to_shape
 
+# per format axis selector constants
 
-# per format selector constants
 class XYXY:
-    left = 0
-    top = 1
-    right = 2
-    bottom = 3
+    LEFT = 0
+    TOP = 1
+    RIGHT = 2
+    BOTTOM = 3
+    CLASS = 4
+    CONFIDENCE = 5
 
+class CENTER_XYWH:
+    X = 0
+    Y = 1
+    WIDTH = 2
+    HEIGHT = 3
+    CLASS = 4
+    CONFIDENCE = 5
 
 class XYWH:
-    x = 0
-    y = 1
-    width = 2
-    height = 3
-
-
-# shared axis selectors
-CLASS = 4
-CONFIDENCE = 5
+    X = 0
+    Y = 1
+    WIDTH = 2
+    HEIGHT = 3
+    CLASS = 4
+    CONFIDENCE = 5
