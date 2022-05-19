@@ -335,3 +335,17 @@ class COCOMeanAveragePrecision(tf.keras.metrics.Metric):
             present_categories, tf.float32
         )
         return result
+
+    def get_config(self):
+        config = super().get_config()
+        config.update(
+            {
+                "class_ids": self.class_ids,
+                "recall_thresholds": self.recall_thresholds,
+                "iou_thresholds": self.iou_thresholds,
+                "area_range": self.area_range,
+                "max_detections": self.max_detections,
+                "num_buckets": self.num_buckets,
+            }
+        )
+        return config
