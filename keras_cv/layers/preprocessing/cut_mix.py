@@ -35,7 +35,7 @@ class CutMix(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
     labels = tf.one_hot(labels.squeeze(), 10)
 
     cutmix = keras_cv.layers.preprocessing.cut_mix.CutMix(10)
-    cutmix({"images": images[:32], "labels": labels[:32]})
+    output = cutmix({"images": images[:32], "labels": labels[:32]})
     # output == {'images': updated_images, 'labels': updated_labels}
     ```
     """
