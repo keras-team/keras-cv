@@ -59,9 +59,9 @@ class CutMix(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
                 f"Got: inputs = {inputs}"
             )
         images, labels = self._update_labels(*self._cutmix(images, labels))
-        inputs["images"] = images
-        inputs["labels"] = labels
-        return inputs
+        #inputs["images"] = images
+        #inputs["labels"] = labels
+        return images, labels #inputs
 
     def _augment(self, inputs):
         raise ValueError(
