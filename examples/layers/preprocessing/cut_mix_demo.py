@@ -45,13 +45,15 @@ def main():
         .batch(BATCH_SIZE)
     )
     cutmix = preprocessing.CutMix()
-    train_ds = train_ds.map(cutmix, num_parallel_calls=tf.data.AUTOTUNE)
+    train_ds = train_ds.map(lambda image, label: 
+                            cutmix({'images': image, 'labels': label}), 
+                            num_parallel_calls=tf.data.AUTOTUNE)
 
-    for images, labels in train_ds.take(1):
+    for data in train_ds.take(1):
         plt.figure(figsize=(8, 8))
         for i in range(9):
             plt.subplot(3, 3, i + 1)
-            plt.imshow(images[i].numpy().astype("uint8"))
+            plt.imshow(data['images'][i].numpy().astype("uint8"))
             plt.axis("off")
         plt.show()
 
