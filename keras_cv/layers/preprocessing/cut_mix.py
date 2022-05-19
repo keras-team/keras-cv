@@ -54,6 +54,7 @@ class CutMix(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
     def _batch_augment(self, inputs):
         images = inputs.get("images", None)
         labels = inputs.get("labels", None)
+        self._validate_inputs(images, labels)
         if images is None or labels is None:
             raise ValueError(
                 "CutMix expects inputs in a dictionary with format "
@@ -121,6 +122,10 @@ class CutMix(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
         lambda_sample = tf.reshape(lambda_sample, [-1, 1])
         labels = lambda_sample * labels + (1.0 - lambda_sample) * cutout_labels
         return images, labels
+
+    def _validate_inputs(self, images, labels):
+        if not labels.dtype.is_floating():
+            raise ValueError("")
 
     def get_config(self):
         config = {
