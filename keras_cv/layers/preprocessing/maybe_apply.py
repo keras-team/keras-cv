@@ -19,8 +19,9 @@ class MaybeApply(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
     """Apply provided layer to random elements in a batch.
 
     Args:
-        layer: a keras Layer or BaseImageAugmentationLayer. This layer will be applied
-            to randomly chosen samples in a batch.
+        layer: a keras `Layer` or `BaseImageAugmentationLayer`. This layer will be
+            applied to randomly chosen samples in a batch. Layer should not modify the
+            size of provided inputs.
         rate: controls the frequency of applying the layer. 1.0 means all elements in
             a batch will be modified. 0.0 means no elements will be modified.
             Defaults to 0.5.
@@ -30,49 +31,51 @@ class MaybeApply(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
         seed: integer, controls random behaviour.
 
     Example usage:
-        # Let's declare an example layer that will set all image pixels to zero.
-        zero_out = tf.keras.layers.Lambda(lambda x: {"images": 0 * x["images"]})
+    ```
+    # Let's declare an example layer that will set all image pixels to zero.
+    zero_out = tf.keras.layers.Lambda(lambda x: {"images": 0 * x["images"]})
 
-        # Create a small batch of random, single-channel, 2x2 images:
-        images = tf.random.stateless_uniform(shape=(5, 2, 2, 1), seed=[0, 1])
-        print(images[..., 0])
-        # <tf.Tensor: shape=(5, 2, 2), dtype=float32, numpy=
-        # array([[[0.08216608, 0.40928006],
-        #         [0.39318466, 0.3162533 ]],
-        #
-        #        [[0.34717774, 0.73199546],
-        #         [0.56369007, 0.9769211 ]],
-        #
-        #        [[0.55243933, 0.13101244],
-        #         [0.2941643 , 0.5130266 ]],
-        #
-        #        [[0.38977218, 0.80855536],
-        #         [0.6040567 , 0.10502195]],
-        #
-        #        [[0.51828027, 0.12730157],
-        #         [0.288486  , 0.252975  ]]], dtype=float32)>
+    # Create a small batch of random, single-channel, 2x2 images:
+    images = tf.random.stateless_uniform(shape=(5, 2, 2, 1), seed=[0, 1])
+    print(images[..., 0])
+    # <tf.Tensor: shape=(5, 2, 2), dtype=float32, numpy=
+    # array([[[0.08216608, 0.40928006],
+    #         [0.39318466, 0.3162533 ]],
+    #
+    #        [[0.34717774, 0.73199546],
+    #         [0.56369007, 0.9769211 ]],
+    #
+    #        [[0.55243933, 0.13101244],
+    #         [0.2941643 , 0.5130266 ]],
+    #
+    #        [[0.38977218, 0.80855536],
+    #         [0.6040567 , 0.10502195]],
+    #
+    #        [[0.51828027, 0.12730157],
+    #         [0.288486  , 0.252975  ]]], dtype=float32)>
 
-        # Apply the layer with 50% probability:
-        maybe_apply = MaybeApply(layer=zero_out, rate=0.5, seed=1234)
-        outputs = maybe_apply(images)
-        print(outputs[..., 0])
-        # <tf.Tensor: shape=(5, 2, 2), dtype=float32, numpy=
-        # array([[[0.        , 0.        ],
-        #         [0.        , 0.        ]],
-        #
-        #        [[0.34717774, 0.73199546],
-        #         [0.56369007, 0.9769211 ]],
-        #
-        #        [[0.55243933, 0.13101244],
-        #         [0.2941643 , 0.5130266 ]],
-        #
-        #        [[0.38977218, 0.80855536],
-        #         [0.6040567 , 0.10502195]],
-        #
-        #        [[0.        , 0.        ],
-        #         [0.        , 0.        ]]], dtype=float32)>
+    # Apply the layer with 50% probability:
+    maybe_apply = MaybeApply(layer=zero_out, rate=0.5, seed=1234)
+    outputs = maybe_apply(images)
+    print(outputs[..., 0])
+    # <tf.Tensor: shape=(5, 2, 2), dtype=float32, numpy=
+    # array([[[0.        , 0.        ],
+    #         [0.        , 0.        ]],
+    #
+    #        [[0.34717774, 0.73199546],
+    #         [0.56369007, 0.9769211 ]],
+    #
+    #        [[0.55243933, 0.13101244],
+    #         [0.2941643 , 0.5130266 ]],
+    #
+    #        [[0.38977218, 0.80855536],
+    #         [0.6040567 , 0.10502195]],
+    #
+    #        [[0.        , 0.        ],
+    #         [0.        , 0.        ]]], dtype=float32)>
 
-        # We can observe that the layer has been randomly applied to 2 out of 5 batches.
+    # We can observe that the layer has been randomly applied to 2 out of 5 samples.
+    ```
     """
 
     def __init__(self, layer, rate=0.5, auto_vectorize=False, seed=None, **kwargs):
