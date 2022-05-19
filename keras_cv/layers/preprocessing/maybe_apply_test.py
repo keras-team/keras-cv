@@ -29,9 +29,6 @@ class ZeroOut(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
     def augment_label(self, label, transformation=None):
         return 0 * label
 
-    def augment_bounding_box(self, bounding_box, transformation=None):
-        return 0 * bounding_box
-
 
 class MaybeApplyTest(tf.test.TestCase, parameterized.TestCase):
     rng = tf.random.Generator.from_seed(seed=1234)
@@ -94,15 +91,6 @@ class MaybeApplyTest(tf.test.TestCase, parameterized.TestCase):
         outputs = layer({"images": dummy_inputs, "labels": dummy_labels})
 
         self.assertAllEqual(outputs["labels"], tf.zeros_like(dummy_labels))
-
-    def test_can_modify_bounding_box(self):
-        dummy_inputs = self.rng.uniform(shape=(32, 224, 224, 3))
-        dummy_boxes = tf.ones(shape=(32, 4))
-        layer = MaybeApply(rate=1.0, layer=ZeroOut())
-
-        outputs = layer({"images": dummy_inputs, "bounding_boxes": dummy_boxes})
-
-        self.assertAllEqual(outputs["bounding_boxes"], tf.zeros_like(dummy_boxes))
 
     def test_works_with_native_keras_layers(self):
         dummy_inputs = self.rng.uniform(shape=(32, 224, 224, 3))
