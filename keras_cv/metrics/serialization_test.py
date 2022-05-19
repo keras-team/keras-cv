@@ -17,22 +17,6 @@ from absl.testing import parameterized
 from keras_cv import core
 from keras_cv import metrics
 
-
-def custom_compare(obj1, obj2):
-    if isinstance(obj1, core.FactorSampler):
-        return obj1.get_config() == obj2.get_config()
-    else:
-        return obj1 == obj2
-
-
-def config_equals(config1, config2):
-    for key in list(config1.keys()) + list(config2.keys()):
-        v1, v2 = config1[key], config2[key]
-        if not custom_compare(v1, v2):
-            return False
-    return True
-
-
 class SerializationTest(tf.test.TestCase, parameterized.TestCase):
     @parameterized.named_parameters(
         ("COCORecall", metrics.COCORecall, {"class_ids": [0, 1, 2]}),
@@ -47,6 +31,6 @@ class SerializationTest(tf.test.TestCase, parameterized.TestCase):
         metric_config = metric.get_config()
         reconstructed_metric = metric_cls.from_config(metric_config)
 
-        self.assertTrue(
-            config_equals(metric.get_config(), reconstructed_metric.get_config())
+        self.assertEqual(
+        metric.get_config(), reconstructed_metric.get_config()
         )
