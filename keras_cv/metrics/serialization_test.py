@@ -16,8 +16,6 @@ from absl.testing import parameterized
 
 from keras_cv import core
 from keras_cv import metrics
-from keras_cv.layers import preprocessing
-from keras_cv.layers import regularization
 
 
 def custom_compare(obj1, obj2):
