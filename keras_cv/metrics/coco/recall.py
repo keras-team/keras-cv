@@ -82,11 +82,10 @@ class COCORecall(keras.metrics.Metric):
     ):
         super().__init__(**kwargs)
         # Initialize parameter values
-
         iou_thresholds = iou_thresholds or [x / 100.0 for x in range(50, 100, 5)]
+
         self.iou_thresholds = iou_thresholds
         self.class_ids = class_ids
-
         self.area_range = area_range
         self.max_detections = max_detections
 
@@ -215,3 +214,15 @@ class COCORecall(keras.metrics.Metric):
             tf.math.reduce_sum(recalls, axis=-1) / n_present_categories
         )
         return tf.math.reduce_mean(recalls_per_threshold)
+
+    def get_config(self):
+        config = super().get_config()
+        config.update(
+            {
+                "class_ids": self.class_ids,
+                "iou_thresholds": self.iou_thresholds,
+                "area_range": self.area_range,
+                "max_detections": self.max_detections,
+            }
+        )
+        return config
