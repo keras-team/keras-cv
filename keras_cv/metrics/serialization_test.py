@@ -17,6 +17,7 @@ from absl.testing import parameterized
 from keras_cv import core
 from keras_cv import metrics
 
+
 class SerializationTest(tf.test.TestCase, parameterized.TestCase):
     @parameterized.named_parameters(
         ("COCORecall", metrics.COCORecall, {"class_ids": [0, 1, 2]}),
@@ -31,6 +32,4 @@ class SerializationTest(tf.test.TestCase, parameterized.TestCase):
         metric_config = metric.get_config()
         reconstructed_metric = metric_cls.from_config(metric_config)
 
-        self.assertEqual(
-        metric.get_config(), reconstructed_metric.get_config()
-        )
+        self.assertEqual(metric.get_config(), reconstructed_metric.get_config())
