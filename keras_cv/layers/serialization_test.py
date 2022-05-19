@@ -134,6 +134,15 @@ class SerializationTest(tf.test.TestCase, parameterized.TestCase):
                 "seed": 1234,
             },
         ),
+        (
+            "MaybeApply",
+            preprocessing.MaybeApply,
+            {
+                "rate": 0.5,
+                "layer": None,
+                "seed": 1234,
+            },
+        ),
     )
     def test_layer_serialization(self, layer_cls, init_args):
         layer = layer_cls(**init_args)
