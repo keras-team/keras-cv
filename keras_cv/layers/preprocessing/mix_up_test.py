@@ -112,13 +112,6 @@ class MixUpTest(tf.test.TestCase):
         ):
             _ = layer(inputs)
 
-    def test_missing_labels(self):
-        xs = tf.ones((2, 512, 512, 3))
-        inputs = {"images": xs}
-        layer = MixUp()
-        with self.assertRaisesRegexp(ValueError, "MixUp expects 'labels'"):
-            _ = layer(inputs)
-
     def test_int_labels(self):
         xs = tf.ones((2, 512, 512, 3))
         ys = tf.one_hot(tf.constant([1, 0]), 2, dtype=tf.int32)
@@ -131,6 +124,6 @@ class MixUpTest(tf.test.TestCase):
         xs = tf.ones((2, 512, 512, 3))
         layer = MixUp()
         with self.assertRaisesRegexp(
-            ValueError, "MixUp expects 'labels' to be present in its inputs"
+            ValueError, "MixUp expects inputs in a dictionary with format"
         ):
             _ = layer(xs)
