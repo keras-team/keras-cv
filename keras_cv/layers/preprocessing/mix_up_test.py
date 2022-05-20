@@ -111,3 +111,26 @@ class MixUpTest(tf.test.TestCase):
             ValueError, "MixUp received a single image to `call`"
         ):
             _ = layer(inputs)
+
+    def test_missing_labels(self):
+        xs = tf.ones((2, 512, 512, 3))
+        inputs = {"images": xs}
+        layer = MixUp()
+        with self.assertRaisesRegexp(ValueError, "MixUp expects 'labels'"):
+            _ = layer(inputs)
+
+    def test_int_labels(self):
+        xs = tf.ones((2, 512, 512, 3))
+        ys = tf.one_hot(tf.constant([1, 0]), 2, dtype=tf.int32)
+        inputs = {"images": xs, "labels": ys}
+        layer = MixUp()
+        with self.assertRaisesRegexp(ValueError, "MixUp received labels with type"):
+            _ = layer(inputs)
+
+    def test_image_input(self):
+        xs = tf.ones((2, 512, 512, 3))
+        layer = MixUp()
+        with self.assertRaisesRegexp(
+            ValueError, "MixUp expects 'labels' to be present in its inputs"
+        ):
+            _ = layer(xs)

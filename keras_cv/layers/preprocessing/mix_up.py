@@ -50,6 +50,7 @@ class MixUp(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
         return sample_alpha / (sample_alpha + sample_beta)
 
     def _batch_augment(self, inputs):
+        self._validate_inputs(inputs)
         images = inputs.get("images", None)
         labels = inputs.get("labels", None)
         bounding_boxes = inputs.get("bounding_boxes", None)
@@ -104,6 +105,23 @@ class MixUp(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
         bounding_boxes = tf.concat([bounding_boxes, boxes_for_mixup], axis=1)
 
         return bounding_boxes
+
+    def _validate_inputs(self, inputs):
+        labels = inputs.get("labels", None)
+        if labels is None:
+            raise ValueError(
+                "MixUp expects 'labels' to be present in its inputs. "
+                "MixUp relies on both images an labels. "
+                "Please pass a dictionary with keys 'images' "
+                "containing the image Tensor, and 'labels' containing "
+                "the classification labels. "
+                "For example, `mix_up({'images': images, 'labels': labels})`."
+            )
+        if not labels.dtype.is_floating:
+            raise ValueError(
+                f"MixUp received labels with type {labels.dtype}. "
+                "Labels must be of type float."
+            )
 
     def get_config(self):
         config = {
