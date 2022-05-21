@@ -16,22 +16,70 @@
 import tensorflow as tf
 from tensorflow import keras
 
+from keras_cv.utils import losses_utils
 
-def gather_channels(*matrices, indices=None):
-    # Gather channel axis according to the indices.
-    if indices is None:
-        return matrices
 
-    gathered_channels = []
+def _calculate_dice_numerator_denominator(y_true, y_pred, beta, axis, epsilon):
+    """Calculate dice's numerator and denominator from equation."""
+    true_positive = tf.reduce_sum(y_true * y_pred, axis=axis)
+    false_positive = tf.reduce_sum(y_pred, axis=axis) - true_positive
+    false_negative = tf.reduce_sum(y_true, axis=axis) - true_positive
 
-    for matrix in matrices:
-        if keras.backend.image_data_format() == "channels_last":
-            matrix = tf.gather(matrix, indices, axis=-1)
-        else:
-            matrix = tf.gather(matrix, indices, axis=1)
-        gathered_channels.append(matrix)
+    power_beta = 1 + beta**2
+    numerator = power_beta * true_positive + epsilon
+    denominator = (
+        (power_beta * true_positive)
+        + (beta**2 * false_negative)
+        + false_positive
+        + epsilon
+    )
+    return (numerator, denominator)
 
-    return gathered_channels
+
+def _generalized_dice_score(y_true, numerator, denominator, axis):
+    # Calculate the volume of groundtruth labels.
+    weight = tf.math.reciprocal(tf.square(tf.reduce_sum(y_true, axis=axis)))
+
+    # Calculate the weighted dice score and normalizer.
+    weighted_numerator = tf.reduce_sum(weight * numerator)
+    weighted_denominator = tf.reduce_sum(weight * denominator)
+    general_dice_score = weighted_numerator / weighted_denominator
+
+    return general_dice_score
+
+
+def _adaptive_dice_score(numerator, denominator):
+    # Calculate the dice scores
+    dice_score = numerator / denominator
+    # Calculate weights based on Dice scores.
+    weights = tf.exp(-1.0 * dice_score)
+    # Multiply weights by corresponding scores and get sum.
+    weighted_dice = tf.reduce_sum(weights * dice_score)
+    # Calculate normalization factor.
+    normalizer = tf.cast(tf.size(input=dice_score), dtype=tf.float32) * tf.exp(-1.0)
+    # normalize the dice score
+    norm_dice_score = weighted_dice / normalizer
+
+    return norm_dice_score
+
+
+def _check_input_params(beta, loss_type=None, class_ids=None):
+    if beta <= 0.0:
+        raise ValueError(f"`beta` value should be greater than zero. Got {beta}")
+
+    if loss_type is not None:
+        if loss_type.lower() not in ["generalized", "adaptive"]:
+            raise ValueError(
+                "The `loss_type` is not valid. "
+                "If `loss_type` is not `None`, It should be either "
+                f"`generalized` or `adaptive`. Got {loss_type.lower()}"
+            )
+
+    if class_ids is not None:
+        if isinstance(class_ids, float) or any(isinstance(x, float) for x in class_ids):
+            raise ValueError(
+                f"The indices should be int or a list of integer. Got {class_ids}"
+            )
 
 
 @tf.keras.utils.register_keras_serializable(package="keras_cv")
@@ -52,7 +100,7 @@ class CategoricalDice(keras.losses.Loss):
       >>> y_true = tf.random.uniform([5, 10, 10], 0, maxval=4, dtype=tf.int32)
       >>> y_true = tf.one_hot(y_true, depth=4)
       >>> y_pred = tf.random.uniform([5, 10, 10, 4], 0, maxval=4)
-      >>> dice = Dice()
+      >>> dice = CategoricalDice()
       >>> dice(y_true, y_pred).numpy()
       0.5549314
 
@@ -62,7 +110,7 @@ class CategoricalDice(keras.losses.Loss):
 
       Usage with the `compile()` API:
       ```python
-      model.compile(optimizer='adam', loss=keras_cv.losses.Dice())
+      model.compile(optimizer='adam', loss=keras_cv.losses.CategoricalDice())
     ```
     """
 
@@ -113,31 +161,14 @@ class CategoricalDice(keras.losses.Loss):
         """
         super().__init__(name=name, **kwargs)
 
-        if beta <= 0.0:
-            raise ValueError(f"`beta` value should be greater than zero. Got {beta}")
-
-        if loss_type is not None:
-            if loss_type not in ["generalized", "adaptive"]:
-                raise ValueError(
-                    "The `loss_type` is not valid. "
-                    "If `loss_type` is not `None`, It should be either "
-                    f"`generalized` or `adaptive`. Got {self.loss_type}"
-                )
-
-        if class_ids is not None:
-            if isinstance(class_ids, float) or any(
-                isinstance(x, float) for x in class_ids
-            ):
-                raise ValueError(
-                    f"The indices should be int or a list of integer. Got {class_ids}"
-                )
+        _check_input_params(beta, loss_type, class_ids)
 
         if isinstance(class_ids, int):
             class_ids = [class_ids]
 
         self.beta = beta
         self.from_logits = from_logits
-        self.loss_type = loss_type
+        self.loss_type = loss_type.lower()
         self.label_smoothing = label_smoothing
         self.per_sample = per_sample
         self.epsilon = epsilon
@@ -160,56 +191,26 @@ class CategoricalDice(keras.losses.Loss):
             y_true = self._smooth_labels(y_true, y_pred, label_smoothing)
 
         if self.class_ids is not None:
-            y_true, y_pred = gather_channels(y_true, y_pred, indices=self.class_ids)
+            y_true, y_pred = losses_utils.gather_channels(
+                y_true, y_pred, indices=self.class_ids
+            )
 
         # loss calculation: Fβ-score (in terms of Type I and type II error).
-        true_positive = tf.reduce_sum(y_true * y_pred, axis=self.axis)
-        false_positive = tf.reduce_sum(y_pred, axis=self.axis) - true_positive
-        false_negative = tf.reduce_sum(y_true, axis=self.axis) - true_positive
-
-        power_beta = 1 + self.beta**2
-        numerator = power_beta * true_positive + self.epsilon
-        denominator = (
-            (power_beta * true_positive)
-            + (self.beta**2 * false_negative)
-            + false_positive
-            + self.epsilon
+        numerator, denominator = _calculate_dice_numerator_denominator(
+            y_true, y_pred, self.beta, self.axis, self.epsilon
         )
 
         if self.loss_type == "generalized":
-            dice_score = self._generalized_dice_score(y_true, numerator, denominator)
+            dice_score = _generalized_dice_score(
+                y_true, numerator, denominator, self.axis
+            )
         elif self.loss_type == "adaptive":
-            dice_score = self._adaptive_dice_score(numerator, denominator)
+            dice_score = _adaptive_dice_score(numerator, denominator)
         else:
             dice_score = numerator / denominator
 
         dice_score = tf.reduce_mean(dice_score)
         return 1 - dice_score
-
-    def _generalized_dice_score(self, y_true, numerator, denominator):
-        # Calculate the volume of groundtruth labels.
-        weight = tf.math.reciprocal(tf.square(tf.reduce_sum(y_true, axis=self.axis)))
-
-        # Calculate the weighted dice score and normalizer.
-        weighted_numerator = tf.reduce_sum(weight * numerator)
-        weighted_denominator = tf.reduce_sum(weight * denominator)
-        general_dice_score = weighted_numerator / weighted_denominator
-
-        return general_dice_score
-
-    def _adaptive_dice_score(self, numerator, denominator):
-        # Calculate the dice scores
-        dice_score = numerator / denominator
-        # Calculate weights based on Dice scores.
-        weights = tf.exp(-1.0 * dice_score)
-        # Multiply weights by corresponding scores and get sum.
-        weighted_dice = tf.reduce_sum(weights * dice_score)
-        # Calculate normalization factor.
-        normalizer = tf.cast(tf.size(input=dice_score), dtype=tf.float32) * tf.exp(-1.0)
-        # normalize the dice score
-        norm_dice_score = weighted_dice / normalizer
-
-        return norm_dice_score
 
     def get_config(self):
         config = super().get_config()
@@ -242,9 +243,9 @@ class SparseDice(keras.losses.Loss):
 
       Standalone usage:
 
-      >>> y_true = tf.random.uniform([5, 10, 10, 1], 0, maxval=4, dtype=tf.int32)
+      >>> y_true = tf.random.uniform([5, 10, 10], 0, maxval=4, dtype=tf.int32)
       >>> y_pred = tf.random.uniform([5, 10, 10, 4], 0, maxval=4)
-      >>> dice = Dice()
+      >>> dice = SparseDice()
       >>> dice(y_true, y_pred).numpy()
       0.5549314
 
@@ -254,7 +255,7 @@ class SparseDice(keras.losses.Loss):
 
       Usage with the `compile()` API:
       ```python
-      model.compile(optimizer='adam', loss=keras_cv.losses.Dice())
+      model.compile(optimizer='adam', loss=keras_cv.losses.SparseDice())
     ```
     """
 
@@ -305,31 +306,14 @@ class SparseDice(keras.losses.Loss):
         """
         super().__init__(name=name, **kwargs)
 
-        if beta <= 0.0:
-            raise ValueError(f"`beta` value should be greater than zero. Got {beta}")
-
-        if loss_type is not None:
-            if loss_type not in ["generalized", "adaptive"]:
-                raise ValueError(
-                    "The `loss_type` is not valid. "
-                    "If `loss_type` is not `None`, It should be either "
-                    f"`generalized` or `adaptive`. Got {self.loss_type}"
-                )
-
-        if class_ids is not None:
-            if isinstance(class_ids, float) or any(
-                isinstance(x, float) for x in class_ids
-            ):
-                raise ValueError(
-                    f"The indices should be int or a list of integer. Got {class_ids}"
-                )
+        _check_input_params(beta, loss_type, class_ids)
 
         if isinstance(class_ids, int):
             class_ids = [class_ids]
 
         self.beta = beta
         self.from_logits = from_logits
-        self.loss_type = loss_type
+        self.loss_type = loss_type.lower()
         self.label_smoothing = label_smoothing
         self.per_sample = per_sample
         self.epsilon = epsilon
@@ -342,8 +326,8 @@ class SparseDice(keras.losses.Loss):
 
     def call(self, y_true, y_pred):
         y_pred = tf.convert_to_tensor(y_pred)
-        num_channels = y_pred.shape[-1]
-        y_true = tf.one_hot(y_true, depth=num_channels)
+        num_channels = tf.cast(y_pred.shape[-1], dtype=tf.int32)
+        y_true = tf.one_hot(tf.cast(y_true, dtype=tf.int32), depth=num_channels)
 
         y_true = tf.cast(y_true, y_pred.dtype)
         label_smoothing = tf.convert_to_tensor(self.label_smoothing, dtype=y_pred.dtype)
@@ -355,57 +339,27 @@ class SparseDice(keras.losses.Loss):
             y_true = self._smooth_labels(y_true, y_pred, label_smoothing)
 
         if self.class_ids is not None:
-            y_true, y_pred = gather_channels(y_true, y_pred, indices=self.class_ids)
+            y_true, y_pred = losses_utils.gather_channels(
+                y_true, y_pred, indices=self.class_ids
+            )
 
         # loss calculation: Fβ-score (in terms of Type I and type II error).
-        true_positive = tf.reduce_sum(y_true * y_pred, axis=self.axis)
-        false_positive = tf.reduce_sum(y_pred, axis=self.axis) - true_positive
-        false_negative = tf.reduce_sum(y_true, axis=self.axis) - true_positive
-
-        power_beta = 1 + self.beta**2
-        numerator = power_beta * true_positive + self.epsilon
-        denominator = (
-            (power_beta * true_positive)
-            + (self.beta**2 * false_negative)
-            + false_positive
-            + self.epsilon
+        numerator, denominator = _calculate_dice_numerator_denominator(
+            y_true, y_pred, self.beta, self.axis, self.epsilon
         )
 
         if self.loss_type == "generalized":
-            dice_score = self._generalized_dice_score(y_true, numerator, denominator)
+            dice_score = _generalized_dice_score(
+                y_true, numerator, denominator, self.axis
+            )
         elif self.loss_type == "adaptive":
-            dice_score = self._adaptive_dice_score(numerator, denominator)
+            dice_score = _adaptive_dice_score(numerator, denominator)
         else:
             dice_score = numerator / denominator
 
         dice_score = tf.reduce_mean(dice_score)
 
         return 1 - dice_score
-
-    def _generalized_dice_score(self, y_true, numerator, denominator):
-        # Calculate the volume of groundtruth labels.
-        weight = tf.math.reciprocal(tf.square(tf.reduce_sum(y_true, axis=self.axis)))
-
-        # Calculate the weighted dice score and normalizer.
-        weighted_numerator = tf.reduce_sum(weight * numerator)
-        weighted_denominator = tf.reduce_sum(weight * denominator)
-        general_dice_score = weighted_numerator / weighted_denominator
-
-        return general_dice_score
-
-    def _adaptive_dice_score(self, numerator, denominator):
-        # Calculate the dice scores
-        dice_score = numerator / denominator
-        # Calculate weights based on Dice scores.
-        weights = tf.exp(-1.0 * dice_score)
-        # Multiply weights by corresponding scores and get sum.
-        weighted_dice = tf.reduce_sum(weights * dice_score)
-        # Calculate normalization factor.
-        normalizer = tf.cast(tf.size(input=dice_score), dtype=tf.float32) * tf.exp(-1.0)
-        # normalize the dice score
-        norm_dice_score = weighted_dice / normalizer
-
-        return norm_dice_score
 
     def get_config(self):
         config = super().get_config()
@@ -440,7 +394,7 @@ class BinaryDice(keras.losses.Loss):
 
       >>> y_true = tf.random.uniform([5, 10, 10, 1], 0, maxval=4, dtype=tf.int32)
       >>> y_pred = tf.random.uniform([5, 10, 10, 4], 0, maxval=4)
-      >>> dice = Dice()
+      >>> dice = BinaryDice()
       >>> dice(y_true, y_pred).numpy()
       0.5549314
 
@@ -450,7 +404,7 @@ class BinaryDice(keras.losses.Loss):
 
       Usage with the `compile()` API:
       ```python
-      model.compile(optimizer='adam', loss=keras_cv.losses.Dice())
+      model.compile(optimizer='adam', loss=keras_cv.losses.BinaryDice())
     ```
     """
 
@@ -501,31 +455,14 @@ class BinaryDice(keras.losses.Loss):
         """
         super().__init__(name=name, **kwargs)
 
-        if beta <= 0.0:
-            raise ValueError(f"`beta` value should be greater than zero. Got {beta}")
-
-        if loss_type is not None:
-            if loss_type not in ["generalized", "adaptive"]:
-                raise ValueError(
-                    "The `loss_type` is not valid. "
-                    "If `loss_type` is not `None`, It should be either "
-                    f"`generalized` or `adaptive`. Got {self.loss_type}"
-                )
-
-        if class_ids is not None:
-            if isinstance(class_ids, float) or any(
-                isinstance(x, float) for x in class_ids
-            ):
-                raise ValueError(
-                    f"The indices should be int or a list of integer. Got {class_ids}"
-                )
+        _check_input_params(beta, loss_type, class_ids)
 
         if isinstance(class_ids, int):
             class_ids = [class_ids]
 
         self.beta = beta
         self.from_logits = from_logits
-        self.loss_type = loss_type
+        self.loss_type = loss_type.lower()
         self.label_smoothing = label_smoothing
         self.per_sample = per_sample
         self.epsilon = epsilon
@@ -548,57 +485,27 @@ class BinaryDice(keras.losses.Loss):
             y_true = self._smooth_labels(y_true, y_pred, label_smoothing)
 
         if self.class_ids is not None:
-            y_true, y_pred = gather_channels(y_true, y_pred, indices=self.class_ids)
+            y_true, y_pred = losses_utils.gather_channels(
+                y_true, y_pred, indices=self.class_ids
+            )
 
         # loss calculation: Fβ-score (in terms of Type I and type II error).
-        true_positive = tf.reduce_sum(y_true * y_pred, axis=self.axis)
-        false_positive = tf.reduce_sum(y_pred, axis=self.axis) - true_positive
-        false_negative = tf.reduce_sum(y_true, axis=self.axis) - true_positive
-
-        power_beta = 1 + self.beta**2
-        numerator = power_beta * true_positive + self.epsilon
-        denominator = (
-            (power_beta * true_positive)
-            + (self.beta**2 * false_negative)
-            + false_positive
-            + self.epsilon
+        numerator, denominator = _calculate_dice_numerator_denominator(
+            y_true, y_pred, self.beta, self.axis, self.epsilon
         )
 
         if self.loss_type == "generalized":
-            dice_score = self._generalized_dice_score(y_true, numerator, denominator)
+            dice_score = _generalized_dice_score(
+                y_true, numerator, denominator, self.axis
+            )
         elif self.loss_type == "adaptive":
-            dice_score = self._adaptive_dice_score(numerator, denominator)
+            dice_score = _adaptive_dice_score(numerator, denominator)
         else:
             dice_score = numerator / denominator
 
         dice_score = tf.reduce_mean(dice_score)
 
         return 1 - dice_score
-
-    def _generalized_dice_score(self, y_true, numerator, denominator):
-        # Calculate the volume of groundtruth labels.
-        weight = tf.math.reciprocal(tf.square(tf.reduce_sum(y_true, axis=self.axis)))
-
-        # Calculate the weighted dice score and normalizer.
-        weighted_numerator = tf.reduce_sum(weight * numerator)
-        weighted_denominator = tf.reduce_sum(weight * denominator)
-        general_dice_score = weighted_numerator / weighted_denominator
-
-        return general_dice_score
-
-    def _adaptive_dice_score(self, numerator, denominator):
-        # Calculate the dice scores
-        dice_score = numerator / denominator
-        # Calculate weights based on Dice scores.
-        weights = tf.exp(-1.0 * dice_score)
-        # Multiply weights by corresponding scores and get sum.
-        weighted_dice = tf.reduce_sum(weights * dice_score)
-        # Calculate normalization factor.
-        normalizer = tf.cast(tf.size(input=dice_score), dtype=tf.float32) * tf.exp(-1.0)
-        # normalize the dice score
-        norm_dice_score = weighted_dice / normalizer
-
-        return norm_dice_score
 
     def get_config(self):
         config = super().get_config()
