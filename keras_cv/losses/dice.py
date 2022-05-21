@@ -68,11 +68,11 @@ def _check_input_params(beta, loss_type=None, class_ids=None):
         raise ValueError(f"`beta` value should be greater than zero. Got {beta}")
 
     if loss_type is not None:
-        if loss_type.lower() not in ["generalized", "adaptive"]:
+        if loss_type not in ["generalized", "adaptive"]:
             raise ValueError(
                 "The `loss_type` is not valid. "
                 "If `loss_type` is not `None`, It should be either "
-                f"`generalized` or `adaptive`. Got {loss_type.lower()}"
+                f"`generalized` or `adaptive`. Got {loss_type}"
             )
 
     if class_ids is not None:
@@ -167,7 +167,7 @@ class CategoricalDice(keras.losses.Loss):
 
         self.beta = beta
         self.from_logits = from_logits
-        self.loss_type = loss_type.lower()
+        self.loss_type = loss_type
         self.label_smoothing = label_smoothing
         self.epsilon = epsilon
         self.class_ids = class_ids
@@ -310,7 +310,7 @@ class SparseDice(keras.losses.Loss):
 
         self.beta = beta
         self.from_logits = from_logits
-        self.loss_type = loss_type.lower()
+        self.loss_type = loss_type
         self.label_smoothing = label_smoothing
         self.epsilon = epsilon
         self.class_ids = class_ids
@@ -457,7 +457,7 @@ class BinaryDice(keras.losses.Loss):
 
         self.beta = beta
         self.from_logits = from_logits
-        self.loss_type = loss_type.lower()
+        self.loss_type = loss_type
         self.label_smoothing = label_smoothing
         self.epsilon = epsilon
         self.class_ids = class_ids
