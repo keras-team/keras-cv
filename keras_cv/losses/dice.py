@@ -105,7 +105,7 @@ class CategoricalDice(keras.losses.Loss):
       0.5549314
 
       >>> # Calling with 'sample_weight'.
-      >>> dice(y_true, y_pred, sample_weight=tf.constant([[0.5, 0.5]])).numpy()
+      >>> dice(y_true, y_pred, sample_weight=[[0.5, 0.5, 0.2, 0.2, 0.5]]).numpy()
       0.24619368
 
       Usage with the `compile()` API:
@@ -122,7 +122,6 @@ class CategoricalDice(keras.losses.Loss):
         axis=[1, 2],
         loss_type=None,
         label_smoothing=0.0,
-        per_sample=False,
         epsilon=1e-07,
         name="categorical_dice",
         **kwargs,
@@ -170,7 +169,6 @@ class CategoricalDice(keras.losses.Loss):
         self.from_logits = from_logits
         self.loss_type = loss_type.lower()
         self.label_smoothing = label_smoothing
-        self.per_sample = per_sample
         self.epsilon = epsilon
         self.class_ids = class_ids
         self.axis = axis
@@ -267,7 +265,6 @@ class SparseDice(keras.losses.Loss):
         axis=[1, 2],
         loss_type=None,
         label_smoothing=0.0,
-        per_sample=False,
         epsilon=1e-07,
         name="sparse_dice",
         **kwargs,
@@ -315,7 +312,6 @@ class SparseDice(keras.losses.Loss):
         self.from_logits = from_logits
         self.loss_type = loss_type.lower()
         self.label_smoothing = label_smoothing
-        self.per_sample = per_sample
         self.epsilon = epsilon
         self.class_ids = class_ids
         self.axis = axis
@@ -416,7 +412,6 @@ class BinaryDice(keras.losses.Loss):
         axis=[1, 2],
         loss_type=None,
         label_smoothing=0.0,
-        per_sample=False,
         epsilon=1e-07,
         name="binary_dice",
         **kwargs,
@@ -464,7 +459,6 @@ class BinaryDice(keras.losses.Loss):
         self.from_logits = from_logits
         self.loss_type = loss_type.lower()
         self.label_smoothing = label_smoothing
-        self.per_sample = per_sample
         self.epsilon = epsilon
         self.class_ids = class_ids
         self.axis = axis
