@@ -50,16 +50,10 @@ class MixUp(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
         return sample_alpha / (sample_alpha + sample_beta)
 
     def _batch_augment(self, inputs):
+        self._validate_inputs(inputs)
         images = inputs.get("images", None)
         labels = inputs.get("labels", None)
         bounding_boxes = inputs.get("bounding_boxes", None)
-        if images is None or (labels is None and bounding_boxes is None):
-            raise ValueError(
-                "MixUp expects inputs in a dictionary with format "
-                '{"images": images, "labels": labels}. or'
-                '{"images": images, "bounding_boxes": bounding_boxes}'
-                f"Got: inputs = {inputs}"
-            )
         images, lambda_sample, permutation_order = self._mixup(images)
         if labels is not None:
             labels = self._update_labels(labels, lambda_sample, permutation_order)
@@ -104,6 +98,23 @@ class MixUp(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
         bounding_boxes = tf.concat([bounding_boxes, boxes_for_mixup], axis=1)
 
         return bounding_boxes
+
+    def _validate_inputs(self, inputs):
+        images = inputs.get("images", None)
+        labels = inputs.get("labels", None)
+        bounding_boxes = inputs.get("bounding_boxes", None)
+        if images is None or (labels is None and bounding_boxes is None):
+            raise ValueError(
+                "MixUp expects inputs in a dictionary with format "
+                '{"images": images, "labels": labels}. or'
+                '{"images": images, "bounding_boxes": bounding_boxes}'
+                f"Got: inputs = {inputs}"
+            )
+        if not labels.dtype.is_floating:
+            raise ValueError(
+                f"MixUp received labels with type {labels.dtype}. "
+                "Labels must be of type float."
+            )
 
     def get_config(self):
         config = {

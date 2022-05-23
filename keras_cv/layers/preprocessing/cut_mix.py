@@ -52,6 +52,7 @@ class CutMix(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
         return sample_alpha / (sample_alpha + sample_beta)
 
     def _batch_augment(self, inputs):
+        self._validate_inputs(inputs)
         images = inputs.get("images", None)
         labels = inputs.get("labels", None)
         if images is None or labels is None:
@@ -121,6 +122,23 @@ class CutMix(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
         lambda_sample = tf.reshape(lambda_sample, [-1, 1])
         labels = lambda_sample * labels + (1.0 - lambda_sample) * cutout_labels
         return images, labels
+
+    def _validate_inputs(self, inputs):
+        labels = inputs.get("labels", None)
+        if labels is None:
+            raise ValueError(
+                "CutMix expects 'labels' to be present in its inputs. "
+                "CutMix relies on both images an labels. "
+                "Please pass a dictionary with keys 'images' "
+                "containing the image Tensor, and 'labels' containing "
+                "the classification labels. "
+                "For example, `cut_mix({'images': images, 'labels': labels})`."
+            )
+        if not labels.dtype.is_floating:
+            raise ValueError(
+                f"CutMix received labels with type {labels.dtype}. "
+                "Labels must be of type float."
+            )
 
     def get_config(self):
         config = {
