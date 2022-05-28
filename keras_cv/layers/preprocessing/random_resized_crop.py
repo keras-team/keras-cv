@@ -19,25 +19,10 @@ from keras_cv.utils import preprocessing
 
 
 @tf.keras.utils.register_keras_serializable(package="keras_cv")
-class RandomShear(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
-    """Randomly shears an image.
+class RandomResizedCrop(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
+    """Randomly crops an image and resizes it to its original resolution.
     Args:
-        x_factor: A tuple of two floats, a single float or a
-            `keras_cv.FactorSampler`. For each augmented image a value is sampled
-            from the provided range. If a float is passed, the range is interpreted as
-            `(0, x_factor)`.  Values represent a percentage of the image to shear over.
-             For example, 0.3 shears pixels up to 30% of the way across the image.
-             All provided values should be positive.  If `None` is passed, no shear
-             occurs on the X axis.
-             Defaults to `None`.
-        y_factor: A tuple of two floats, a single float or a
-            `keras_cv.FactorSampler`. For each augmented image a value is sampled
-            from the provided range. If a float is passed, the range is interpreted as
-            `(0, y_factor)`. Values represent a percentage of the image to shear over.
-            For example, 0.3 shears pixels up to 30% of the way across the image.
-            All provided values should be positive.  If `None` is passed, no shear
-            occurs on the Y axis.
-            Defaults to `None`.
+        TODO
         interpolation: interpolation method used in the `ImageProjectiveTransformV3` op.
              Supported values are `"nearest"` and `"bilinear"`.
              Defaults to `"bilinear"`.
@@ -52,8 +37,8 @@ class RandomShear(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
 
     def __init__(
         self,
-        x_factor=None,
-        y_factor=None,
+        area_factor=0.0,
+        aspect_ratio_factor=0.0,
         interpolation="bilinear",
         fill_mode="reflect",
         fill_value=0.0,
@@ -61,22 +46,17 @@ class RandomShear(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
         **kwargs,
     ):
         super().__init__(seed=seed, **kwargs)
-        if x_factor is not None:
-            self.x_factor = preprocessing.parse_factor(
-                x_factor, max_value=None, param_name="x_factor", seed=seed
-            )
-        else:
-            self.x_factor = x_factor
-        if y_factor is not None:
-            self.y_factor = preprocessing.parse_factor(
-                y_factor, max_value=None, param_name="y_factor", seed=seed
-            )
-        else:
-            self.y_factor = y_factor
-        if x_factor is None and y_factor is None:
+        self.area_factor = preprocessing.parse_factor(
+            area_factor, param_name="area_factor", seed=seed
+        )
+        self.aspect_ratio_factor = preprocessing.parse_factor(
+            aspect_ratio_factor, param_name="aspect_ratio_factor", seed=seed
+        )
+        if area_factor == 0.0 and aspect_ratio_factor == 0.0:
             warnings.warn(
-                "RandomShear received both `x_factor=None` and `y_factor=None`.  As a "
-                "result, the layer will perform no augmentation."
+                "RandomResizedCrop received both `area_factor=0.0` and "
+                "`aspect_ratio_factor=0.0`. As a result, the layer will perform no "
+                "augmentation."
             )
         self.interpolation = interpolation
         self.fill_mode = fill_mode
@@ -84,45 +64,63 @@ class RandomShear(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
         self.seed = seed
 
     def get_random_transformation(self, image=None, label=None, bounding_box=None):
-        x = self._get_shear_amount(self.x_factor)
-        y = self._get_shear_amount(self.y_factor)
-        return (x, y)
+        # random area and aspect ratio
+        random_area = (
+            1.0
+            + preprocessing.random_inversion(self._random_generator)
+            * self.area_factor()
+        )
+        random_aspect_ratio = (
+            1.0
+            + preprocessing.random_inversion(self._random_generator)
+            * self.aspect_ratio_factor()
+        )
 
-    def _get_shear_amount(self, constraint):
-        if constraint is None:
-            return None
+        # corresponding height and width (1 = original height/width)
+        new_height = tf.sqrt(random_area / random_aspect_ratio)
+        new_width = tf.sqrt(random_area * random_aspect_ratio)
 
-        invert = preprocessing.random_inversion(self._random_generator)
-        return invert * constraint()
+        # random offsets for the crop, inside or outside the image
+        height_offset = self._random_generator.random_uniform(
+            (),
+            tf.minimum(0.0, 1.0 - new_height),
+            tf.maximum(0.0, 1.0 - new_height),
+            dtype=tf.float32,
+        )
+        width_offset = self._random_generator.random_uniform(
+            (),
+            tf.minimum(0.0, 1.0 - new_width),
+            tf.maximum(0.0, 1.0 - new_width),
+            dtype=tf.float32,
+        )
+
+        return (new_height, new_width, height_offset, width_offset)
 
     def augment_image(self, image, transformation=None):
+        height, width, _ = image.shape
         image = tf.expand_dims(image, axis=0)
 
-        x, y = transformation
+        new_height, new_width, height_offset, width_offset = transformation
 
-        if x is not None:
-            transform_x = RandomShear._format_transform(
-                [1.0, x, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0]
-            )
-            image = preprocessing.transform(
-                images=image,
-                transforms=transform_x,
-                interpolation=self.interpolation,
-                fill_mode=self.fill_mode,
-                fill_value=self.fill_value,
-            )
-
-        if y is not None:
-            transform_y = RandomShear._format_transform(
-                [1.0, 0.0, 0.0, y, 1.0, 0.0, 0.0, 0.0]
-            )
-            image = preprocessing.transform(
-                images=image,
-                transforms=transform_y,
-                interpolation=self.interpolation,
-                fill_mode=self.fill_mode,
-                fill_value=self.fill_value,
-            )
+        transform = RandomResizedCrop._format_transform(
+            [
+                new_width,
+                0.0,
+                width_offset * width,
+                0.0,
+                new_height,
+                height_offset * height,
+                0.0,
+                0.0,
+            ]
+        )
+        image = preprocessing.transform(
+            images=image,
+            transforms=transform,
+            interpolation=self.interpolation,
+            fill_mode=self.fill_mode,
+            fill_value=self.fill_value,
+        )
 
         return tf.squeeze(image, axis=0)
 
@@ -138,12 +136,12 @@ class RandomShear(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
         config = super().get_config()
         config.update(
             {
-                "x_factor": self.x_factor,
-                "y_factor": self.y_factor,
+                "area_factor": self.area_factor,
+                "aspect_ratio_factor": self.aspect_ratio_factor,
                 "interpolation": self.interpolation,
                 "fill_mode": self.fill_mode,
                 "fill_value": self.fill_value,
                 "seed": self.seed,
             }
         )
-        return 
+        return config
