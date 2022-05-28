@@ -96,7 +96,7 @@ class RandomResizedCrop(tf.keras.__internal__.layers.BaseImageAugmentationLayer)
 
         return (new_height, new_width, height_offset, width_offset)
 
-    def augment_image(self, image, transformation=None):
+    def augment_image(self, image, transformation):
         height, width, _ = image.shape
         image = tf.expand_dims(image, axis=0)
 
@@ -124,7 +124,7 @@ class RandomResizedCrop(tf.keras.__internal__.layers.BaseImageAugmentationLayer)
 
         return tf.squeeze(image, axis=0)
 
-    def augment_label(self, label, transformation=None):
+    def augment_label(self, label, transformation):
         return label
 
     @staticmethod
