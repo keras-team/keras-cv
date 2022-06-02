@@ -20,12 +20,26 @@ from keras_cv.utils import preprocessing
 
 @tf.keras.utils.register_keras_serializable(package="keras_cv")
 class RandomResizedCrop(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
-    """Randomly crops an image and resizes it to its original resolution.
+    """Randomly resizes an image then crops to a target size.
     Args:
-        TODO
+        resize_factor: A tuple of two floats, a single float or `keras_cv.FactorSampler`.
+            `factor` controls the extent to which the image is resized.
+            `factor=0.0` makes this layer perform a no-op operation, while a value of
+            1.0 doubles the size of the image.  If a single float is used, a value
+            between `0.0` and the passed float is sampled.  In order to ensure the value
+            is always the same, please pass a tuple with two identical floats:
+            `(0.5, 0.5)`.
+        crop_size: a tuple of two integers used as the target size to crop images to.
         interpolation: interpolation method used in the `ImageProjectiveTransformV3` op.
              Supported values are `"nearest"` and `"bilinear"`.
              Defaults to `"bilinear"`.
+        aspect_ratio_factor: (Optional) A tuple of two floats, a single float or
+            `keras_cv.FactorSampler`. `factor` used to distort the aspect ratio of the
+            image. `factor=0.0` makes this layer perform a no-op operation, while a
+            value of 1.0 doubles the size of the image.  If a single float is used, a
+            value between `0.0` and the passed float is sampled.  In order to ensure the
+            value is always the same, please pass a tuple with two identical floats:
+            `(0.5, 0.5)`.
         fill_mode: fill_mode in the `ImageProjectiveTransformV3` op.
              Supported values are `"reflect"`, `"wrap"`, `"constant"`, and `"nearest"`.
              Defaults to `"reflect"`.
@@ -37,7 +51,8 @@ class RandomResizedCrop(tf.keras.__internal__.layers.BaseImageAugmentationLayer)
 
     def __init__(
         self,
-        area_factor=0.0,
+        resize_factor,
+        crop_size,
         aspect_ratio_factor=0.0,
         interpolation="bilinear",
         fill_mode="reflect",
