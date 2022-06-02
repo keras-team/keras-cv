@@ -16,6 +16,7 @@ import tensorflow as tf
 from keras_cv import core
 from keras_cv.layers import preprocessing
 
+
 class RandomResizedCropTest(tf.test.TestCase):
     def test_preserves_output_shape(self):
         image_shape = (4, 300, 300, 3)
