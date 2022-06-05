@@ -1,2 +1,2 @@
 #!/bin/sh
-./shell/lint.sh
+./shell/lint.sh "git diff --diff-filter=d --cached --name-only '*.py'"

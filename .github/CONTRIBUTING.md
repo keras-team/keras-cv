@@ -63,6 +63,7 @@ You can achieve this by running the following commands:
 gh repo fork keras-team/keras-cv --clone --remote
 cd keras-cv
 pip install ".[tests]"
+git config core.hooksPath .githooks
 python setup.py develop
 ```
 
