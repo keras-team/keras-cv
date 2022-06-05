@@ -1,0 +1,2 @@
+#!/bin/sh
+./shell/lint.sh
