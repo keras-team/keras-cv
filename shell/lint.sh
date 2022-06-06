@@ -1,4 +1,6 @@
 #!/bin/bash
+# We could optionally pass a list of file as arg ($1)
+
 files="."
 if [ ! -z "$1" ]
   then
