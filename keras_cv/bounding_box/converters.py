@@ -104,8 +104,8 @@ def transform_format(boxes, source, target, images=None):
 
     Args:
         boxes: tf.Tensor representing bounding boxes in the format specified in the
-            `source` parameter.  `boxes` can optionally have extra dimensions stacked on the
-            final axis to store metadata.
+            `source` parameter.  `boxes` can optionally have extra dimensions stacked on
+             the final axis to store metadata.
         source: One of {" ".join([f'"{f}"' for f in TO_XYXY_CONVERTERS.keys()])}.  Used
             to specify the original format of the `boxes` parameter.
         target: One of {" ".join([f'"{f}"' for f in TO_XYXY_CONVERTERS.keys()])}.  Used

@@ -47,7 +47,7 @@ def main():
         train_ds.map(lambda x, y: resize(x, y, num_classes=num_classes))
         .shuffle(10 * BATCH_SIZE)
         .batch(BATCH_SIZE)
-        .map(package)
+        .map(to_dict)
     )
     cutmix = preprocessing.CutMix()
     train_ds = train_ds.map(
