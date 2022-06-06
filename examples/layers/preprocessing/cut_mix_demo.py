@@ -33,7 +33,7 @@ def resize(image, label, num_classes=10):
     return image, label
 
 
-def package(images, labels):
+def to_dict(images, labels):
     return {"images": images, "labels": labels}
 
 

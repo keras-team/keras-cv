@@ -13,33 +13,7 @@
 # limitations under the License.
 
 from keras_cv.bounding_box.converters import transform_format
+from keras_cv.bounding_box.formats import CENTER_XYWH
+from keras_cv.bounding_box.formats import XYWH
+from keras_cv.bounding_box.formats import XYXY
 from keras_cv.bounding_box.pad_batch_to_shape import pad_batch_to_shape
-
-# per format axis selector constants
-
-
-class XYXY:
-    LEFT = 0
-    TOP = 1
-    RIGHT = 2
-    BOTTOM = 3
-    CLASS = 4
-    CONFIDENCE = 5
-
-
-class CENTER_XYWH:
-    X = 0
-    Y = 1
-    WIDTH = 2
-    HEIGHT = 3
-    CLASS = 4
-    CONFIDENCE = 5
-
-
-class XYWH:
-    X = 0
-    Y = 1
-    WIDTH = 2
-    HEIGHT = 3
-    CLASS = 4
-    CONFIDENCE = 5

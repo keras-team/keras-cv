@@ -25,7 +25,7 @@ their formats.
 import tensorflow as tf
 
 
-def _center_xywh_to_corners(boxes, images=None):
+def _center_xywh_to_xyxy(boxes, images=None):
     x, y, width, height, rest = tf.split(boxes, [1, 1, 1, 1, -1], axis=-1)
     return tf.concat(
         [x - width / 2.0, y - height / 2.0, x + width / 2.0, y + height / 2.0, rest],
@@ -33,7 +33,7 @@ def _center_xywh_to_corners(boxes, images=None):
     )
 
 
-def _xywh_to_corners(boxes, images=None):
+def _xywh_to_xyxy(boxes, images=None):
     x, y, width, height, rest = tf.split(boxes, [1, 1, 1, 1, -1], axis=-1)
     return tf.concat([x, y, x + width, y + height, rest], axis=-1)
 
@@ -42,7 +42,7 @@ def _xyxy_no_op(boxes, images=None):
     return boxes
 
 
-def _corners_to_xywh(boxes, images=None):
+def _xyxy_to_xywh(boxes, images=None):
     left, top, right, bottom, rest = tf.split(boxes, [1, 1, 1, 1, -1], axis=-1)
     return tf.concat(
         [left, top, right - left, bottom - top, rest],
@@ -50,7 +50,7 @@ def _corners_to_xywh(boxes, images=None):
     )
 
 
-def _corners_to_center_xywh(boxes, images=None):
+def _xyxy_to_center_xywh(boxes, images=None):
     left, top, right, bottom, rest = tf.split(boxes, [1, 1, 1, 1, -1], axis=-1)
     return tf.concat(
         [(left + right) / 2.0, (top + bottom) / 2.0, right - left, bottom - top, rest],
@@ -58,21 +58,21 @@ def _corners_to_center_xywh(boxes, images=None):
     )
 
 
-to_corners_converters = {
-    "xywh": _xywh_to_corners,
-    "center_xywh": _center_xywh_to_corners,
+TO_XYXY_CONVERTERS = {
+    "xywh": _xywh_to_xyxy,
+    "center_xywh": _center_xywh_to_xyxy,
     "xyxy": _xyxy_no_op,
 }
 
-from_corners_converters = {
-    "xywh": _corners_to_xywh,
-    "center_xywh": _corners_to_center_xywh,
+FROM_XYXY_CONVERTERS = {
+    "xywh": _xyxy_to_xywh,
+    "center_xywh": _xyxy_to_center_xywh,
     "xyxy": _xyxy_no_op,
 }
 
 
 def transform_format(boxes, source, target, images=None):
-    """Converts bounding_boxes from one format to another.
+    f"""Converts bounding_boxes from one format to another.
 
     Supported formats are:
     - xyxy, also known as `corners` format.  In this format the first four axes
@@ -92,34 +92,46 @@ def transform_format(boxes, source, target, images=None):
     will need to be processed separately due to the mismatching image shapes.
 
     Usage:
+
     ```python
     boxes = load_coco_dataset()
     boxes_in_xywh = keras_cv.bounding_box.transform_format(
         boxes,
-        original='xyxy',
+        source='xyxy',
         target='xyWH'
     )
     ```
+
+    Args:
+        boxes: tf.Tensor representing bounding boxes in the format specified in the
+            `source` parameter.  `boxes` can optionally have extra dimensions stacked on the
+            final axis to store metadata.
+        source: One of {" ".join([f'"{f}"' for f in TO_XYXY_CONVERTERS.keys()])}.  Used
+            to specify the original format of the `boxes` parameter.
+        target: One of {" ".join([f'"{f}"' for f in TO_XYXY_CONVERTERS.keys()])}.  Used
+            to specify the destination format of the `boxes` parameter.
+        images: A batch of images aligned with `boxes` on the first axis.  Should be at
+            least 3 dimensions, with the first 3 dimensions representing:
+            `[batch_size, height, width]`.  Used in some converters to compute relative
+            pixel values of the bounding box dimensions.
     """
-    global to_corners_converters
-    global from_corners_converters
     source = source.lower()
     target = target.lower()
-    if source not in to_corners_converters:
+    if source not in TO_XYXY_CONVERTERS:
         raise ValueError(
             f"`transform_format()` received an unsupported format for the argument "
-            f"`source`.  `source` should be one of {to_corners_converters.keys()}. "
-            f"Got `source`={source}"
+            f"`source`.  `source` should be one of {TO_XYXY_CONVERTERS.keys()}. "
+            f"Got source={source}"
         )
-    if target not in from_corners_converters:
+    if target not in FROM_XYXY_CONVERTERS:
         raise ValueError(
             f"`transform_format()` received an unsupported format for the argument "
-            f"`target`.  `target` should be one of {from_corners_converters.keys()}. "
-            f"Got `target`={target}"
+            f"`target`.  `target` should be one of {FROM_XYXY_CONVERTERS.keys()}. "
+            f"Got target={target}"
         )
 
-    to_corners = to_corners_converters[source]
-    from_corners = from_corners_converters[target]
+    to_xyxy_fn = TO_XYXY_CONVERTERS[source]
+    from_xyxy_fn = FROM_XYXY_CONVERTERS[target]
 
-    in_corners = to_corners(boxes, images=images)
-    return from_corners(in_corners, images=images)
+    in_xyxy = to_xyxy_fn(boxes, images=images)
+    return from_xyxy_fn(in_xyxy, images=images)
