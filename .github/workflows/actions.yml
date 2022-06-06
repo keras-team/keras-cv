@@ -7,6 +7,7 @@ on:
     types: [created]
 jobs:
   test:
+    needs: [format]
     name: Test the code
     runs-on: ${{ matrix.os }}
     strategy:
