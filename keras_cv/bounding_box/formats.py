@@ -40,6 +40,32 @@ class XYXY:
     CONFIDENCE = 5
 
 
+class REL_XYXY:
+    """REL_XYXY contains axis indices for the REL_XYXY format.
+
+    REL_XYXY is like XYXY, but each value is relative to the width and height of the
+    origin image.  Values are percentages of the origin images' width and height
+    respectively.
+
+    The REL_XYXY format consists of the following required indices:
+    - LEFT: left hand side of the bounding box
+    - TOP: top of the bounding box
+    - RIGHT: right of the bounding box
+    - BOTTOM: bottom of the bounding box
+
+    and the following optional indices, used in some KerasCV components:
+    - CLASS: class of the object contained in the bounding box
+    - CONFIDENCE: confidence that the box is valid, used in predictions
+    """
+
+    LEFT = 0
+    TOP = 1
+    RIGHT = 2
+    BOTTOM = 3
+    CLASS = 4
+    CONFIDENCE = 5
+
+
 class CENTER_XYWH:
     """CENTER_XYWH contains axis indices for the CENTER_XYWH format.
 

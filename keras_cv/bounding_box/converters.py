@@ -25,6 +25,12 @@ their formats.
 import tensorflow as tf
 
 
+# Internal exception to propagate the fact images was not passed to a converter that
+# needs it
+class RequiresImagesException(Exception):
+    pass
+
+
 def _center_xywh_to_xyxy(boxes, images=None):
     x, y, width, height, rest = tf.split(boxes, [1, 1, 1, 1, -1], axis=-1)
     return tf.concat(
@@ -58,20 +64,52 @@ def _xyxy_to_center_xywh(boxes, images=None):
     )
 
 
+def _rel_xyxy_to_xyxy(boxes, images=None):
+    if images is None:
+        raise RequiresImagesException()
+    shape = tf.shape(images)
+    height, width = shape[1], shape[2]
+    height, width = tf.cast(height, boxes.dtype), tf.cast(width, boxes.dtype)
+    left, top, right, bottom, rest = tf.split(boxes, [1, 1, 1, 1, -1], axis=-1)
+    left, right = left * width, right * width
+    top, bottom = top * height, bottom * height
+    return tf.concat(
+        [left, top, right, bottom, rest],
+        axis=-1,
+    )
+
+
+def _xyxy_to_rel_xyxy(boxes, images=None):
+    if images is None:
+        raise RequiresImagesException()
+    shape = tf.shape(images)
+    height, width = shape[1], shape[2]
+    height, width = tf.cast(height, boxes.dtype), tf.cast(width, boxes.dtype)
+    left, top, right, bottom, rest = tf.split(boxes, [1, 1, 1, 1, -1], axis=-1)
+    left, right = left / width, right / width
+    top, bottom = top / height, bottom / height
+    return tf.concat(
+        [left, top, right, bottom, rest],
+        axis=-1,
+    )
+
+
 TO_XYXY_CONVERTERS = {
     "xywh": _xywh_to_xyxy,
     "center_xywh": _center_xywh_to_xyxy,
     "xyxy": _xyxy_no_op,
+    "rel_xyxy": _rel_xyxy_to_xyxy,
 }
 
 FROM_XYXY_CONVERTERS = {
     "xywh": _xyxy_to_xywh,
     "center_xywh": _xyxy_to_center_xywh,
     "xyxy": _xyxy_no_op,
+    "rel_xyxy": _xyxy_to_rel_xyxy,
 }
 
 
-def transform_format(boxes, source, target, images=None):
+def transform_format(boxes, source, target, images=None, dtype="float32"):
     f"""Converts bounding_boxes from one format to another.
 
     Supported formats are:
@@ -105,7 +143,8 @@ def transform_format(boxes, source, target, images=None):
     Args:
         boxes: tf.Tensor representing bounding boxes in the format specified in the
             `source` parameter.  `boxes` can optionally have extra dimensions stacked on
-             the final axis to store metadata.
+             the final axis to store metadata.  boxes should be a 3D Tensor, with the
+             shape `[batch_size, num_boxes, *]`.
         source: One of {" ".join([f'"{f}"' for f in TO_XYXY_CONVERTERS.keys()])}.  Used
             to specify the original format of the `boxes` parameter.
         target: One of {" ".join([f'"{f}"' for f in TO_XYXY_CONVERTERS.keys()])}.  Used
@@ -114,6 +153,8 @@ def transform_format(boxes, source, target, images=None):
             least 3 dimensions, with the first 3 dimensions representing:
             `[batch_size, height, width]`.  Used in some converters to compute relative
             pixel values of the bounding box dimensions.
+        dtype: the data type to use when transforming the boxes.  Defaults to
+            `tf.float32`.
     """
     source = source.lower()
     target = target.lower()
@@ -130,8 +171,19 @@ def transform_format(boxes, source, target, images=None):
             f"Got target={target}"
         )
 
+    boxes = tf.cast(boxes, dtype)
     to_xyxy_fn = TO_XYXY_CONVERTERS[source]
     from_xyxy_fn = FROM_XYXY_CONVERTERS[target]
 
-    in_xyxy = to_xyxy_fn(boxes, images=images)
-    return from_xyxy_fn(in_xyxy, images=images)
+    try:
+        in_xyxy = to_xyxy_fn(boxes, images=images)
+        result = from_xyxy_fn(in_xyxy, images=images)
+    except RequiresImagesException:
+        raise ValueError(
+            "transform_format() must receive `images` when transforming "
+            f"between relative and absolute formats."
+            f"transform_format() received source=`{format}`, target=`{format}, "
+            f"but images={images}"
+        )
+
+    return result

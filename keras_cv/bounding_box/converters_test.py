@@ -20,15 +20,21 @@ from absl.testing import parameterized
 from keras_cv import bounding_box
 
 xyxy_box = tf.constant([[10, 10, 110, 110], [20, 20, 120, 120]], dtype=tf.float32)
+rel_xyxy_box = tf.constant(
+    [[0.01, 0.01, 0.11, 0.11], [0.02, 0.02, 0.12, 0.12]], dtype=tf.float32
+)
 center_xywh_box = tf.constant(
     [[60, 60, 100, 100], [70, 70, 100, 100]], dtype=tf.float32
 )
 xywh_box = tf.constant([[10, 10, 100, 100], [20, 20, 100, 100]], dtype=tf.float32)
 
+images = tf.ones([2, 1000, 1000, 3])
+
 boxes = {
     "xyxy": xyxy_box,
     "center_xywh": center_xywh_box,
     "xywh": xywh_box,
+    "rel_xyxy": rel_xyxy_box,
 }
 
 test_cases = [
@@ -44,6 +50,8 @@ class ConvertersTestCase(tf.test.TestCase, parameterized.TestCase):
         target_box = boxes[target]
 
         self.assertAllClose(
-            bounding_box.transform_format(source_box, source=source, target=target),
+            bounding_box.transform_format(
+                source_box, source=source, target=target, images=images
+            ),
             target_box,
         )
