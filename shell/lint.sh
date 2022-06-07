@@ -1,7 +1,11 @@
 #!/bin/bash
 # Usage: # lint.sh can be used without arguments to lint the entire project: 
 # 
-# ./lint.sh # # or with arguments to lint a subset of files # # ./lint.sh examples/*
+# ./lint.sh 
+# 
+# or with arguments to lint a subset of files
+# 
+# ./lint.sh examples/*
 
 files="."
 if [ $# -ne 0  ]
