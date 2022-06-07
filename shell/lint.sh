@@ -1,14 +1,12 @@
 #!/bin/bash
-# We could optionally pass a list of file as arg ($1)
+# Usage: # lint.sh can be used without arguments to lint the entire project: 
+# 
+# ./lint.sh # # or with arguments to lint a subset of files # # ./lint.sh examples/*
 
 files="."
-if [ ! -z "$1" ]
-  then
-    files=$(eval $1)
-    if [ -z "$files" ]
-      then
-        exit 0
-    fi
+if [ $# -ne 0  ]
+  then 
+    files=$(eval $@)
 fi
 
 isort -c $files
@@ -17,7 +15,7 @@ then
   echo "Please run \"sh shell/format.sh\" to format the code."
   exit 1
 fi
-[ -z "$1" ] && echo "no issues with isort"
+[ $# -eq 0  ] && echo "no issues with isort"
 flake8 $files
 if ! [ $? -eq 0 ]
 then
@@ -31,7 +29,7 @@ then
   echo "Please run \"sh shell/format.sh\" to format the code."
     exit 1
 fi
-[ -z "$1" ] && echo "no issues with black"
+[ $# -eq 0  ] && echo "no issues with black"
 for i in $(find examples keras_cv -name '*.py') # or whatever other pattern...
 do
   if ! grep -q Copyright $i
