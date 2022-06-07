@@ -69,7 +69,7 @@ class StochasticDepth(tf.keras.layers.Layer):
         if training:
             return shortcut + b_l * residual
         else:
-            return shortcut + residual
+            return shortcut + self.survival_probability * residual
 
     def get_config(self):
         config = {"survival_probability": self.survival_probability}
