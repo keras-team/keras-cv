@@ -108,6 +108,9 @@ If after running these the CI flow is still failing, try updating `flake8`, `iso
 This can be done by running `pip install --upgrade black`, `pip install --upgrade flake8`, and 
 `pip install --upgrade isort`.
 
+Note: The linting checks could be automated activating  
+      pre-commit hooks with `git config core.hooksPath .githooks`
+
 ## Community Guidelines
 
 This project follows [Google's Open Source Community Guidelines](https://opensource.google/conduct/).
