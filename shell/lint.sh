@@ -22,7 +22,7 @@ then
   echo "Please fix the code style issue."
   exit 1
 fi
-[ -z "$1" ] && echo "no issues with flake8"
+[ $# -eq 0 ] && echo "no issues with flake8"
 black --check $files
 if ! [ $? -eq 0 ]
 then
