@@ -6,7 +6,7 @@
 files="."
 if [ $# -ne 0  ]
   then 
-    files=$(eval $@)
+    files=$@
 fi
 
 isort -c $files
