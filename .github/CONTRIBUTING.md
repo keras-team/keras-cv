@@ -109,7 +109,7 @@ This can be done by running `pip install --upgrade black`, `pip install --upgrad
 `pip install --upgrade isort`.
 
 Note: The linting checks could be automated activating  
-      pre-commit hooks with `git config core.hooksPath .githooks`
+      pre-commit hooks with `git config core.hooksPath .github/.githooks`
 
 ## Community Guidelines
 
