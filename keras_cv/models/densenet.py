@@ -124,6 +124,7 @@ def _apply_pooling_layer(x, pooling):
 
 def DenseNet(
     blocks,
+    include_preprocessing,
     include_top=True,
     weights=None
     input_tensor=None,
@@ -146,6 +147,9 @@ def DenseNet(
 
     Args:
       blocks: numbers of building blocks for the four dense layers.
+      include_preprocessing: whether or not to Rescale the inputs.
+        If set to True, inputs will be passed through a
+        `Rescaling(1/255.0)` layer.
       include_top: whether to include the fully-connected
         layer at the top of the network.
       weights: one of `None` (random initialization), or a pretrained
@@ -197,6 +201,9 @@ def DenseNet(
         )
 
     img_input = utils.get_input_tensor()
+
+    if include_preprocessing:
+        x = layers.Rescaling(1/255.)
 
     x = layers.ZeroPadding2D(padding=((3, 3), (3, 3)))(img_input)
     x = layers.Conv2D(64, 7, strides=2, use_bias=False, name="conv1/conv")(x)
