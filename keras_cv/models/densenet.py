@@ -19,10 +19,13 @@ Reference:
 """
 
 import tensorflow as tf
-
+from tensorflow import keras
 from tensorflow.keras import backend
 from tensorflow.keras import layers
 
+from keras_cv.models import utils
+
+BN_AXIS = 3
 
 def dense_block(x, blocks, name):
     """A dense block.
@@ -52,16 +55,181 @@ def transition_block(x, reduction, name):
     Returns:
       output tensor for the block.
     """
-    bn_axis = 3
     x = layers.BatchNormalization(
-        axis=bn_axis, epsilon=1.001e-5, name=name + "_bn"
+        axis=BN_AXIS, epsilon=1.001e-5, name=name + "_bn"
     )(x)
     x = layers.Activation("relu", name=name + "_relu")(x)
     x = layers.Conv2D(
-        int(backend.int_shape(x)[bn_axis] * reduction),
+        int(backend.int_shape(x)[BN_AXIS] * reduction),
         1,
         use_bias=False,
         name=name + "_conv",
     )(x)
     x = layers.AveragePooling2D(2, strides=2, name=name + "_pool")(x)
     return x
+
+
+def conv_block(x, growth_rate, name):
+    """A building block for a dense block.
+
+    Args:
+      x: input tensor.
+      growth_rate: float, growth rate at dense layers.
+      name: string, block label.
+
+    Returns:
+      Output tensor for the block.
+    """
+    x1 = layers.BatchNormalization(
+        axis=BN_AXIS, epsilon=1.001e-5, name=name + "_0_bn"
+    )(x)
+    x1 = layers.Activation("relu", name=name + "_0_relu")(x1)
+    x1 = layers.Conv2D(
+        4 * growth_rate, 1, use_bias=False, name=name + "_1_conv"
+    )(x1)
+    x1 = layers.BatchNormalization(
+        axis=BN_AXIS, epsilon=1.001e-5, name=name + "_1_bn"
+    )(x1)
+    x1 = layers.Activation("relu", name=name + "_1_relu")(x1)
+    x1 = layers.Conv2D(
+        growth_rate, 3, padding="same", use_bias=False, name=name + "_2_conv"
+    )(x1)
+    x = layers.Concatenate(axis=bn_axis, name=name + "_concat")([x, x1])
+    return x
+
+def _create_model(inputs, x):
+    if blocks == [6, 12, 24, 16]:
+        return keras.Model(inputs, x, name="densenet121")
+    elif blocks == [6, 12, 32, 32]:
+        return keras.Model(inputs, x, name="densenet169")
+    elif blocks == [6, 12, 48, 32]:
+        return keras.Model(inputs, x, name="densenet201")
+
+    return keras.Model(inputs, x, name="densenet")
+
+
+def _apply_classifier(x, classifier_activation):
+    x = layers.GlobalAveragePooling2D(name="avg_pool")(x)
+    x = layers.Dense(
+        classes, activation=classifier_activation, name="predictions"
+    )(x)
+
+def _apply_pooling_layer(x, pooling):
+    if pooling == "avg":
+        x = layers.GlobalAveragePooling2D(name="avg_pool")(x)
+    elif pooling == "max":
+        x = layers.GlobalMaxPooling2D(name="max_pool")(x)
+    return x
+
+
+def DenseNet(
+    blocks,
+    include_top=True,
+    weights=None
+    input_tensor=None,
+    input_shape=None,
+    pooling=None,
+    classes=1000,
+    classifier_activation="softmax",
+):
+    """Instantiates the DenseNet architecture.
+
+    Reference:
+    - [Densely Connected Convolutional Networks (CVPR 2017)](
+        https://arxiv.org/abs/1608.06993)
+
+    This function returns a Keras DenseNet model.
+
+    For transfer learning use cases, make sure to read the
+    [guide to transfer learning & fine-tuning](
+      https://keras.io/guides/transfer_learning/).
+
+    Args:
+      blocks: numbers of building blocks for the four dense layers.
+      include_top: whether to include the fully-connected
+        layer at the top of the network.
+      weights: one of `None` (random initialization), or a pretrained
+        checkpoint.
+      input_tensor: optional Keras tensor
+        (i.e. output of `layers.Input()`)
+        to use as image input for the model.
+      input_shape: optional shape tuple, only to be specified
+        if `include_top` is False (otherwise the input shape
+        has to be `(224, 224, 3)`.
+        Should have exactly 3 inputs channels.
+        Width and height should be no smaller than 32.
+        E.g. `(200, 200, 3)` would be one valid value.
+      pooling: optional pooling mode for feature extraction
+        when `include_top` is `False`.
+        - `None` means that the output of the model will be
+            the 4D tensor output of the
+            last convolutional block.
+        - `avg` means that global average pooling
+            will be applied to the output of the
+            last convolutional block, and thus
+            the output of the model will be a 2D tensor.
+        - `max` means that global max pooling will
+            be applied.
+      classes: optional number of classes to classify images
+        into, only to be specified if `include_top` is True, and
+        if no `weights` argument is specified.
+      classifier_activation: A `str` or callable. The activation function to use
+        on the "top" layer. Ignored unless `include_top=True`. Set
+        `classifier_activation=None` to return the logits of the "top" layer.
+        When loading pretrained weights, `classifier_activation` can only
+        be `None` or `"softmax"`.
+
+    Returns:
+      A `keras.Model` instance.
+    """
+    if not (weights in {None} or tf.io.gfile.exists(weights)):
+        raise ValueError(
+            "The `weights` argument should be either "
+            "`None` or the path to the weights file to be loaded."
+        )
+
+    # Determine proper input shape
+
+    if input_shape is None and input_tensor is None:
+        raise ValueError(
+            "Either DenseNet() expects either `input_shape` or `input_tensor` to be "
+            f"set, got input_shape={input_shape} and input_tensor={input_tensor}"
+        )
+
+    img_input = utils.get_input_tensor()
+
+    x = layers.ZeroPadding2D(padding=((3, 3), (3, 3)))(img_input)
+    x = layers.Conv2D(64, 7, strides=2, use_bias=False, name="conv1/conv")(x)
+    x = layers.BatchNormalization(
+        axis=BN_AXIS, epsilon=1.001e-5, name="conv1/bn"
+    )(x)
+    x = layers.Activation("relu", name="conv1/relu")(x)
+    x = layers.ZeroPadding2D(padding=((1, 1), (1, 1)))(x)
+    x = layers.MaxPooling2D(3, strides=2, name="pool1")(x)
+
+    x = dense_block(x, blocks[0], name="conv2")
+    x = transition_block(x, 0.5, name="pool2")
+    x = dense_block(x, blocks[1], name="conv3")
+    x = transition_block(x, 0.5, name="pool3")
+    x = dense_block(x, blocks[2], name="conv4")
+    x = transition_block(x, 0.5, name="pool4")
+    x = dense_block(x, blocks[3], name="conv5")
+
+    x = layers.BatchNormalization(axis=BN_AXIS, epsilon=1.001e-5, name="bn")(x)
+    x = layers.Activation("relu", name="relu")(x)
+
+    if include_top:
+        x = _apply_classifier(x, classifier_activation)
+    else:
+        x = _apply_pooling_layer(x, pooling)
+
+    if input_tensor is not None:
+        inputs = layer_utils.get_source_inputs(input_tensor)
+    else:
+        inputs = img_input
+
+    model = _create_model(inputs, x)
+
+    if weights is not None:
+        model.load_weights(weights)
+    return model
