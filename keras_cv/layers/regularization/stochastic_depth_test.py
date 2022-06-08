@@ -15,6 +15,7 @@ import tensorflow as tf
 
 from keras_cv.layers.regularization.stochastic_depth import StochasticDepth
 
+
 class StochasticDepthTest(tf.test.TestCase):
     FEATURE_SHAPE = (1, 14, 14, 256)
 
@@ -22,9 +23,9 @@ class StochasticDepthTest(tf.test.TestCase):
         inputs = tf.random.uniform(self.FEATURE_SHAPE, 0, 1)
         inputs = [inputs, inputs, inputs]
 
-        with self.assertRaisesRegex(ValueError,
-                                   "Input must be a list of length 2. "
-                                   "Got input with length=3."):
+        with self.assertRaisesRegex(
+                ValueError, "Input must be a list of length 2. "
+                "Got input with length=3."):
             StochasticDepth()(inputs)
 
     def test_eval_mode(self):
@@ -38,7 +39,7 @@ class StochasticDepthTest(tf.test.TestCase):
 
         self.assertAllClose(inputs[0] * (1 + survival_prob), outputs)
 
-    def test_training(self):
+    def test_training_mode(self):
         inputs = tf.random.uniform(self.FEATURE_SHAPE, 0, 1)
         inputs = [inputs, inputs]
 
@@ -47,4 +48,7 @@ class StochasticDepthTest(tf.test.TestCase):
         outputs = StochasticDepth(survival_probability=survival_prob)(
             inputs, training=True)
 
-        self.assertIn(outputs, [inputs, inputs * (1 + survival_prob)])
+        outputs_sum = tf.math.reduce_sum(outputs)
+        inputs_sum = tf.math.reduce_sum(inputs[0])
+
+        self.assertIn(outputs_sum, [inputs_sum, inputs_sum * 2])
