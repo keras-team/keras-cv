@@ -54,7 +54,7 @@ def transition_block(x, reduction, name):
     Returns:
       output tensor for the block.
     """
-    bn_axis = 3 if backend.image_data_format() == "channels_last" else 1
+    bn_axis = 3
     x = layers.BatchNormalization(
         axis=bn_axis, epsilon=1.001e-5, name=name + "_bn"
     )(x)
@@ -80,7 +80,7 @@ def conv_block(x, growth_rate, name):
     Returns:
       Output tensor for the block.
     """
-    bn_axis = 3 if backend.image_data_format() == "channels_last" else 1
+    bn_axis = 3
     x1 = layers.BatchNormalization(
         axis=bn_axis, epsilon=1.001e-5, name=name + "_0_bn"
     )(x)
