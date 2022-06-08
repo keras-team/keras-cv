@@ -113,15 +113,16 @@ def transform_format(boxes, source, target, images=None, dtype="float32"):
     f"""Converts bounding_boxes from one format to another.
 
     Supported formats are:
-    - xyxy, also known as `corners` format.  In this format the first four axes
+    - `"xyxy"`, also known as `corners` format.  In this format the first four axes
         represent [left, top, right, bottom] in that order.
-    - xyWH.  In this format the first four axes represent [left, top, width, height].
-    - center_xyWH.  In this format the first two coordinates represent the x and y
+    - `"xyWH"`.  In this format the first four axes represent
+        [left, top, width, height].
+    - `"center_xyWH"`.  In this format the first two coordinates represent the x and y
         coordinates of the center of the bounding box, while the last two represent
         the width and height of the bounding box.
 
     Formats are case insensitive.  It is recommended that you capitalize width and
-    height to maximize the visual difference between `xyWH` and `xyxy`.
+    height to maximize the visual difference between `"xyWH"` and `"xyxy"`.
 
     Relative formats, abbreviated `rel`, make use of the shapes of the `images` passsed.
     In these formats, the coordinates, widths, and heights are all specified as
