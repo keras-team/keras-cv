@@ -27,6 +27,7 @@ from keras_cv.models import utils
 
 BN_AXIS = 3
 
+
 def dense_block(x, blocks, name):
     """A dense block.
 
@@ -43,7 +44,6 @@ def dense_block(x, blocks, name):
     return x
 
 
-
 def transition_block(x, reduction, name):
     """A transition block.
 
@@ -55,9 +55,7 @@ def transition_block(x, reduction, name):
     Returns:
       output tensor for the block.
     """
-    x = layers.BatchNormalization(
-        axis=BN_AXIS, epsilon=1.001e-5, name=name + "_bn"
-    )(x)
+    x = layers.BatchNormalization(axis=BN_AXIS, epsilon=1.001e-5, name=name + "_bn")(x)
     x = layers.Activation("relu", name=name + "_relu")(x)
     x = layers.Conv2D(
         int(backend.int_shape(x)[BN_AXIS] * reduction),
@@ -80,45 +78,41 @@ def conv_block(x, growth_rate, name):
     Returns:
       Output tensor for the block.
     """
-    x1 = layers.BatchNormalization(
-        axis=BN_AXIS, epsilon=1.001e-5, name=name + "_0_bn"
-    )(x)
+    x1 = layers.BatchNormalization(axis=BN_AXIS, epsilon=1.001e-5, name=name + "_0_bn")(
+        x
+    )
     x1 = layers.Activation("relu", name=name + "_0_relu")(x1)
-    x1 = layers.Conv2D(
-        4 * growth_rate, 1, use_bias=False, name=name + "_1_conv"
-    )(x1)
-    x1 = layers.BatchNormalization(
-        axis=BN_AXIS, epsilon=1.001e-5, name=name + "_1_bn"
-    )(x1)
+    x1 = layers.Conv2D(4 * growth_rate, 1, use_bias=False, name=name + "_1_conv")(x1)
+    x1 = layers.BatchNormalization(axis=BN_AXIS, epsilon=1.001e-5, name=name + "_1_bn")(
+        x1
+    )
     x1 = layers.Activation("relu", name=name + "_1_relu")(x1)
     x1 = layers.Conv2D(
         growth_rate, 3, padding="same", use_bias=False, name=name + "_2_conv"
     )(x1)
-    x = layers.Concatenate(axis=bn_axis, name=name + "_concat")([x, x1])
+    x = layers.Concatenate(axis=BN_AXIS, name=name + "_concat")([x, x1])
     return x
 
-def _create_model(inputs, x):
+def _get_name(blocks):
     if blocks == [6, 12, 24, 16]:
-        return keras.Model(inputs, x, name="densenet121")
-    elif blocks == [6, 12, 32, 32]:
-        return keras.Model(inputs, x, name="densenet169")
-    elif blocks == [6, 12, 48, 32]:
-        return keras.Model(inputs, x, name="densenet201")
+        return "densenet121"
+    if blocks == [6, 12, 32, 32]:
+        return "densenet169"
+    if blocks == [6, 12, 48, 32]:
+        return "densenet201"
+    return "densenet"
 
-    return keras.Model(inputs, x, name="densenet")
-
-
-def _apply_classifier(x, classifier_activation):
+def _apply_classifier(x, classes, classifier_activation):
     x = layers.GlobalAveragePooling2D(name="avg_pool")(x)
-    x = layers.Dense(
-        classes, activation=classifier_activation, name="predictions"
-    )(x)
+    x = layers.Dense(classes, activation=classifier_activation, name="predictions")(x)
+    return x
 
 def _apply_pooling_layer(x, pooling):
+    print(x.shape)
     if pooling == "avg":
-        x = layers.GlobalAveragePooling2D(name="avg_pool")(x)
-    elif pooling == "max":
-        x = layers.GlobalMaxPooling2D(name="max_pool")(x)
+        return layers.GlobalAveragePooling2D(name="avg_pool")(x)
+    if pooling == "max":
+        return layers.GlobalMaxPooling2D(name="max_pool")(x)
     return x
 
 
@@ -126,9 +120,9 @@ def DenseNet(
     blocks,
     include_preprocessing,
     include_top=True,
-    weights=None
+    weights=None,
     input_tensor=None,
-    input_shape=None,
+    input_shape=(None, None, 3),
     pooling=None,
     classes=1000,
     classifier_activation="softmax",
@@ -157,12 +151,7 @@ def DenseNet(
       input_tensor: optional Keras tensor
         (i.e. output of `layers.Input()`)
         to use as image input for the model.
-      input_shape: optional shape tuple, only to be specified
-        if `include_top` is False (otherwise the input shape
-        has to be `(224, 224, 3)`.
-        Should have exactly 3 inputs channels.
-        Width and height should be no smaller than 32.
-        E.g. `(200, 200, 3)` would be one valid value.
+      input_shape: optional shape tuple, defaults to (None, None, 3).
       pooling: optional pooling mode for feature extraction
         when `include_top` is `False`.
         - `None` means that the output of the model will be
@@ -192,24 +181,22 @@ def DenseNet(
             "`None` or the path to the weights file to be loaded."
         )
 
-    # Determine proper input shape
-
-    if input_shape is None and input_tensor is None:
+    if include_top and None in input_shape:
         raise ValueError(
-            "Either DenseNet() expects either `input_shape` or `input_tensor` to be "
-            f"set, got input_shape={input_shape} and input_tensor={input_tensor}"
+            "If `include_top` is True, "
+            "you should specify a static `input_shape`. "
+            f"Received: input_shape={input_shape}"
         )
 
-    img_input = utils.get_input_tensor()
+    # Determine proper input shape
+    img_input = utils.get_input_tensor(input_shape, input_tensor)
 
     if include_preprocessing:
-        x = layers.Rescaling(1/255.)
+        x = layers.Rescaling(1 / 255.0)
 
     x = layers.ZeroPadding2D(padding=((3, 3), (3, 3)))(img_input)
     x = layers.Conv2D(64, 7, strides=2, use_bias=False, name="conv1/conv")(x)
-    x = layers.BatchNormalization(
-        axis=BN_AXIS, epsilon=1.001e-5, name="conv1/bn"
-    )(x)
+    x = layers.BatchNormalization(axis=BN_AXIS, epsilon=1.001e-5, name="conv1/bn")(x)
     x = layers.Activation("relu", name="conv1/relu")(x)
     x = layers.ZeroPadding2D(padding=((1, 1), (1, 1)))(x)
     x = layers.MaxPooling2D(3, strides=2, name="pool1")(x)
@@ -226,17 +213,91 @@ def DenseNet(
     x = layers.Activation("relu", name="relu")(x)
 
     if include_top:
-        x = _apply_classifier(x, classifier_activation)
+        x = _apply_classifier(x, classes, classifier_activation)
     else:
         x = _apply_pooling_layer(x, pooling)
 
     if input_tensor is not None:
-        inputs = layer_utils.get_source_inputs(input_tensor)
+        inputs = keras.utils.get_source_inputs(input_tensor)
     else:
         inputs = img_input
 
-    model = _create_model(inputs, x)
+    model = keras.Model(inputs, x, name=_get_name(blocks))
 
     if weights is not None:
         model.load_weights(weights)
     return model
+
+
+def DenseNet121(
+    include_preprocessing,
+    include_top=True,
+    weights="imagenet",
+    input_tensor=None,
+    input_shape=(None, None, 3),
+    pooling=None,
+    classes=1000,
+    **kwargs,
+):
+    return DenseNet(
+        [6, 12, 24, 16],
+        include_preprocessing,
+        include_top,
+        weights,
+        input_tensor,
+        input_shape,
+        pooling,
+        classes,
+        **kwargs,
+    )
+
+
+def DenseNet169(
+    include_preprocessing,
+    include_top=True,
+    weights="imagenet",
+    input_tensor=None,
+    input_shape=(None, None, 3),
+    pooling=None,
+    classes=1000,
+    **kwargs,
+):
+    return DenseNet(
+        [6, 12, 32, 32],
+        include_preprocessing,
+        include_top,
+        weights,
+        input_tensor,
+        input_shape,
+        pooling,
+        classes,
+        **kwargs,
+    )
+
+
+def DenseNet201(
+    include_preprocessing,
+    include_top=True,
+    weights="imagenet",
+    input_tensor=None,
+    input_shape=(None, None, 3),
+    pooling=None,
+    classes=1000,
+    **kwargs,
+):
+    return DenseNet(
+        [6, 12, 48, 32],
+        include_preprocessing,
+        include_top,
+        weights,
+        input_tensor,
+        input_shape,
+        pooling,
+        classes,
+        **kwargs,
+    )
+
+
+setattr(DenseNet121, "__doc__", DenseNet.__doc__)
+setattr(DenseNet169, "__doc__", DenseNet.__doc__)
+setattr(DenseNet201, "__doc__", DenseNet.__doc__)

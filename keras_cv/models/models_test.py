@@ -16,15 +16,16 @@
 import tensorflow as tf
 from absl.testing import parameterized
 
-from keras import backend
-from keras import utils
-from keras.applications import densenet
+from tensorflow.keras import backend
+from tensorflow.keras import utils
+from keras_cv.models import densenet
 
 MODEL_LIST = [
     (densenet.DenseNet121, 1024),
     (densenet.DenseNet169, 1664),
     (densenet.DenseNet201, 1920),
 ]
+
 
 class ApplicationsTest(tf.test.TestCase, parameterized.TestCase):
     def assertShapeEqual(self, shape1, shape2):
@@ -34,14 +35,14 @@ class ApplicationsTest(tf.test.TestCase, parameterized.TestCase):
             )
         for v1, v2 in zip(shape1, shape2):
             if v1 != v2:
-                raise AssertionError(
-                    "Shapes differ: %s vs %s" % (shape1, shape2)
-                )
+                raise AssertionError("Shapes differ: %s vs %s" % (shape1, shape2))
 
     @parameterized.parameters(*MODEL_LIST)
     def test_application_base(self, app, _):
         # Can be instantiated with default arguments
-        model = app(weights=None)
+        model = app(
+            input_shape=(224, 224, 3), include_preprocessing=False, weights=None
+        )
         # Can be serialized and deserialized
         config = model.get_config()
         reconstructed_model = model.__class__.from_config(config)
@@ -51,7 +52,11 @@ class ApplicationsTest(tf.test.TestCase, parameterized.TestCase):
     @parameterized.parameters(*MODEL_LIST)
     def test_application_notop(self, app, last_dim):
         output_shape = _get_output_shape(
-            lambda: app(weights=None, include_top=False)
+            lambda: app(
+                include_preprocessing=False,
+                weights=None,
+                include_top=False,
+            )
         )
         self.assertShapeEqual(output_shape, (None, None, None, last_dim))
         backend.clear_session()
@@ -59,7 +64,13 @@ class ApplicationsTest(tf.test.TestCase, parameterized.TestCase):
     @parameterized.parameters(*MODEL_LIST)
     def test_application_pooling(self, app, last_dim):
         output_shape = _get_output_shape(
-            lambda: app(weights=None, include_top=False, pooling="avg")
+            lambda: app(
+                input_shape=(224, 224, 3),
+                include_preprocessing=False,
+                weights=None,
+                include_top=False,
+                pooling="avg",
+            )
         )
         self.assertShapeEqual(output_shape, (None, last_dim))
 
@@ -68,7 +79,10 @@ class ApplicationsTest(tf.test.TestCase, parameterized.TestCase):
         input_shape = (None, None, 1)
         output_shape = _get_output_shape(
             lambda: app(
-                weights=None, include_top=False, input_shape=input_shape
+                include_preprocessing=False,
+                weights=None,
+                include_top=False,
+                input_shape=input_shape,
             )
         )
         self.assertShapeEqual(output_shape, (None, None, None, last_dim))
@@ -77,7 +91,10 @@ class ApplicationsTest(tf.test.TestCase, parameterized.TestCase):
         input_shape = (None, None, 4)
         output_shape = _get_output_shape(
             lambda: app(
-                weights=None, include_top=False, input_shape=input_shape
+                include_preprocessing=False,
+                weights=None,
+                include_top=False,
+                input_shape=input_shape,
             )
         )
         self.assertShapeEqual(output_shape, (None, None, None, last_dim))
