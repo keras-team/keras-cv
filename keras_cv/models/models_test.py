@@ -1,0 +1,93 @@
+# Copyright 2022 The KerasCV Authors
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+"""Integration tests for KerasCV models."""
+
+import tensorflow as tf
+from absl.testing import parameterized
+
+from keras import backend
+from keras import utils
+from keras.applications import densenet
+
+MODEL_LIST = [
+    (densenet.DenseNet121, 1024),
+    (densenet.DenseNet169, 1664),
+    (densenet.DenseNet201, 1920),
+]
+
+class ApplicationsTest(tf.test.TestCase, parameterized.TestCase):
+    def assertShapeEqual(self, shape1, shape2):
+        if len(shape1) != len(shape2):
+            raise AssertionError(
+                "Shapes are different rank: %s vs %s" % (shape1, shape2)
+            )
+        for v1, v2 in zip(shape1, shape2):
+            if v1 != v2:
+                raise AssertionError(
+                    "Shapes differ: %s vs %s" % (shape1, shape2)
+                )
+
+    @parameterized.parameters(*MODEL_LIST)
+    def test_application_base(self, app, _):
+        # Can be instantiated with default arguments
+        model = app(weights=None)
+        # Can be serialized and deserialized
+        config = model.get_config()
+        reconstructed_model = model.__class__.from_config(config)
+        self.assertEqual(len(model.weights), len(reconstructed_model.weights))
+        backend.clear_session()
+
+    @parameterized.parameters(*MODEL_LIST)
+    def test_application_notop(self, app, last_dim):
+        output_shape = _get_output_shape(
+            lambda: app(weights=None, include_top=False)
+        )
+        self.assertShapeEqual(output_shape, (None, None, None, last_dim))
+        backend.clear_session()
+
+    @parameterized.parameters(*MODEL_LIST)
+    def test_application_pooling(self, app, last_dim):
+        output_shape = _get_output_shape(
+            lambda: app(weights=None, include_top=False, pooling="avg")
+        )
+        self.assertShapeEqual(output_shape, (None, last_dim))
+
+    @parameterized.parameters(*MODEL_LIST)
+    def test_application_variable_input_channels(self, app, last_dim):
+        input_shape = (None, None, 1)
+        output_shape = _get_output_shape(
+            lambda: app(
+                weights=None, include_top=False, input_shape=input_shape
+            )
+        )
+        self.assertShapeEqual(output_shape, (None, None, None, last_dim))
+        backend.clear_session()
+
+        input_shape = (None, None, 4)
+        output_shape = _get_output_shape(
+            lambda: app(
+                weights=None, include_top=False, input_shape=input_shape
+            )
+        )
+        self.assertShapeEqual(output_shape, (None, None, None, last_dim))
+        backend.clear_session()
+
+
+def _get_output_shape(model_fn):
+    model = model_fn()
+    return model.output_shape
+
+
+if __name__ == "__main__":
+    tf.test.main()
