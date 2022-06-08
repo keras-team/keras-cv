@@ -139,10 +139,16 @@ class COCORecall(keras.metrics.Metric):
             y_pred = y_pred.to_tensor(default_value=-1)
 
         y_true = bounding_box.transform_format(
-            y_true, source=self.bounding_box_format, target="xyxy"
+            y_true,
+            source=self.bounding_box_format,
+            target="xyxy",
+            dtype=self.compute_dtype,
         )
         y_pred = bounding_box.transform_format(
-            y_pred, source=self.bounding_box_format, target="xyxy"
+            y_pred,
+            source=self.bounding_box_format,
+            target="xyxy",
+            dtype=self.compute_dtype,
         )
 
         num_images = tf.shape(y_true)[0]
