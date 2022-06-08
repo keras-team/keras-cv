@@ -115,12 +115,14 @@ def transform_format(boxes, source, target, images=None, dtype="float32"):
     Supported formats are:
     - `"xyxy"`, also known as `corners` format.  In this format the first four axes
         represent [left, top, right, bottom] in that order.
+    - `"rel_xyxy"`.  In this format, the axes are the same as `"xyxy"` but the x
+        coordinates are normalized using the image width, and the y axes the image
+        height.  All values in `rel_xyxy` are in the range (0, 1).
     - `"xyWH"`.  In this format the first four axes represent
         [left, top, width, height].
     - `"center_xyWH"`.  In this format the first two coordinates represent the x and y
         coordinates of the center of the bounding box, while the last two represent
         the width and height of the bounding box.
-
     Formats are case insensitive.  It is recommended that you capitalize width and
     height to maximize the visual difference between `"xyWH"` and `"xyxy"`.
 
