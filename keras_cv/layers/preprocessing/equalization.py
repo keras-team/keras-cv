@@ -101,7 +101,7 @@ class Equalization(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
         image = tf.cast(image, tf.int32)
         image = tf.vectorized_map(
             lambda channel: self.equalize_channel(image, channel),
-            tf.range(tf.shape(image)[-1]),
+            tf.range(image.shape[-1]),
         )
 
         image = tf.transpose(image, [1, 2, 0])
