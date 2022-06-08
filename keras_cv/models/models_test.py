@@ -15,9 +15,9 @@
 
 import tensorflow as tf
 from absl.testing import parameterized
-
 from tensorflow.keras import backend
 from tensorflow.keras import utils
+
 from keras_cv.models import densenet
 
 MODEL_LIST = [

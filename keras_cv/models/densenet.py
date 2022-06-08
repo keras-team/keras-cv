@@ -93,6 +93,7 @@ def conv_block(x, growth_rate, name):
     x = layers.Concatenate(axis=BN_AXIS, name=name + "_concat")([x, x1])
     return x
 
+
 def _get_name(blocks):
     if blocks == [6, 12, 24, 16]:
         return "densenet121"
@@ -102,10 +103,12 @@ def _get_name(blocks):
         return "densenet201"
     return "densenet"
 
+
 def _apply_classifier(x, classes, classifier_activation):
     x = layers.GlobalAveragePooling2D(name="avg_pool")(x)
     x = layers.Dense(classes, activation=classifier_activation, name="predictions")(x)
     return x
+
 
 def _apply_pooling_layer(x, pooling):
     print(x.shape)

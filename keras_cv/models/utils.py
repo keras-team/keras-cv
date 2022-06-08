@@ -1,5 +1,5 @@
-from tensorflow.keras import layers
 from tensorflow.keras import backend
+from tensorflow.keras import layers
 
 
 def get_input_tensor(input_shape, input_tensor):
