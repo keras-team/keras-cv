@@ -17,10 +17,13 @@ import tensorflow as tf
 class StochasticDepth(tf.keras.layers.Layer):
     """
     Implements the Stochastic Depth layer. It randomly drops residual branches
-    in residual architectures.      
+    in residual architectures. It is used as a drop-in replacement for addition 
+    operation. Note that this layer DOES NOT drop a residual block across 
+    individual samples but across the entire batch. 
     
     Reference:
-        - [Deep Networks with Stochastic Depth](https://arxiv.org/abs/1603.09382)
+        - [Deep Networks with Stochastic Depth](https://arxiv.org/abs/1603.09382).
+        - Docstring taken from [tensorflow_addons/layers/stochastic_depth.py](https://github.com/tensorflow/addons/blob/v0.17.0/tensorflow_addons/layers/stochastic_depth.py#L5-L90).
     
     Args:
         survival_probability: float, the probability of the residual branch 
@@ -46,13 +49,8 @@ class StochasticDepth(tf.keras.layers.Layer):
     $$
     x[0] + p_l * x[1]
     $$
-
-    It is used as a drop-in replacement for addition operation. Note that this
-    layer DOES NOT drop a residual block across individual samples but across
-    the entire batch. 
     """
     def __init__(self, survival_probability=0.5, **kwargs):
-        # Docstring taken from: tensorflow_addons/layers/stochastic_depth.py
         super().__init__(**kwargs)
         self.survival_probability = survival_probability
 
