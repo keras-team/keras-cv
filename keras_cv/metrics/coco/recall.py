@@ -238,6 +238,7 @@ class COCORecall(keras.metrics.Metric):
         config.update(
             {
                 "class_ids": self.class_ids,
+                "bounding_box_format": self.bounding_box_format,
                 "iou_thresholds": self.iou_thresholds,
                 "area_range": self.area_range,
                 "max_detections": self.max_detections,

@@ -356,6 +356,7 @@ class COCOMeanAveragePrecision(tf.keras.metrics.Metric):
         config.update(
             {
                 "class_ids": self.class_ids,
+                "bounding_box_format": self.bounding_box_format,
                 "recall_thresholds": self.recall_thresholds,
                 "iou_thresholds": self.iou_thresholds,
                 "area_range": self.area_range,
