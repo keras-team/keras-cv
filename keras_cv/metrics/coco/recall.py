@@ -138,13 +138,13 @@ class COCORecall(keras.metrics.Metric):
         if isinstance(y_pred, tf.RaggedTensor):
             y_pred = y_pred.to_tensor(default_value=-1)
 
-        y_true = bounding_box.transform_format(
+        y_true = bounding_box.convert_format(
             y_true,
             source=self.bounding_box_format,
             target="xyxy",
             dtype=self.compute_dtype,
         )
-        y_pred = bounding_box.transform_format(
+        y_pred = bounding_box.convert_format(
             y_pred,
             source=self.bounding_box_format,
             target="xyxy",

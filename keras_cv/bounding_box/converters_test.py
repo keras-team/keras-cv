@@ -50,7 +50,7 @@ class ConvertersTestCase(tf.test.TestCase, parameterized.TestCase):
         target_box = boxes[target]
 
         self.assertAllClose(
-            bounding_box.transform_format(
+            bounding_box.convert_format(
                 source_box, source=source, target=target, images=images
             ),
             target_box,

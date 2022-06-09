@@ -109,7 +109,7 @@ FROM_XYXY_CONVERTERS = {
 }
 
 
-def transform_format(boxes, source, target, images=None, dtype="float32"):
+def convert_format(boxes, source, target, images=None, dtype="float32"):
     f"""Converts bounding_boxes from one format to another.
 
     Supported formats are:
@@ -136,7 +136,7 @@ def transform_format(boxes, source, target, images=None, dtype="float32"):
 
     ```python
     boxes = load_coco_dataset()
-    boxes_in_xywh = keras_cv.bounding_box.transform_format(
+    boxes_in_xywh = keras_cv.bounding_box.convert_format(
         boxes,
         source='xyxy',
         target='xyWH'
@@ -163,18 +163,21 @@ def transform_format(boxes, source, target, images=None, dtype="float32"):
     target = target.lower()
     if source not in TO_XYXY_CONVERTERS:
         raise ValueError(
-            f"`transform_format()` received an unsupported format for the argument "
+            f"`convert_format()` received an unsupported format for the argument "
             f"`source`.  `source` should be one of {TO_XYXY_CONVERTERS.keys()}. "
             f"Got source={source}"
         )
     if target not in FROM_XYXY_CONVERTERS:
         raise ValueError(
-            f"`transform_format()` received an unsupported format for the argument "
+            f"`convert_format()` received an unsupported format for the argument "
             f"`target`.  `target` should be one of {FROM_XYXY_CONVERTERS.keys()}. "
             f"Got target={target}"
         )
 
     boxes = tf.cast(boxes, dtype)
+    if source == target:
+        return boxes
+
     to_xyxy_fn = TO_XYXY_CONVERTERS[source]
     from_xyxy_fn = FROM_XYXY_CONVERTERS[target]
 
@@ -183,9 +186,9 @@ def transform_format(boxes, source, target, images=None, dtype="float32"):
         result = from_xyxy_fn(in_xyxy, images=images)
     except RequiresImagesException:
         raise ValueError(
-            "transform_format() must receive `images` when transforming "
+            "convert_format() must receive `images` when transforming "
             f"between relative and absolute formats."
-            f"transform_format() received source=`{format}`, target=`{format}, "
+            f"convert_format() received source=`{format}`, target=`{format}, "
             f"but images={images}"
         )
 
