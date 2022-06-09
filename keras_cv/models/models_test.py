@@ -40,7 +40,7 @@ class ApplicationsTest(tf.test.TestCase, parameterized.TestCase):
     def test_application_base(self, app, _):
         # Can be instantiated with default arguments
         model = app(
-            input_shape=(224, 224, 3), include_preprocessing=False, weights=None
+            input_shape=(224, 224, 3), include_rescaling=False, weights=None
         )
         # Can be serialized and deserialized
         config = model.get_config()
@@ -49,10 +49,22 @@ class ApplicationsTest(tf.test.TestCase, parameterized.TestCase):
         backend.clear_session()
 
     @parameterized.parameters(*MODEL_LIST)
+    def test_application_with_rescaling(self, app, last_dim):
+        output_shape = _get_output_shape(
+            lambda: app(
+                include_rescaling=True,
+                weights=None,
+                include_top=False,
+            )
+        )
+        self.assertShapeEqual(output_shape, (None, None, None, last_dim))
+        backend.clear_session()
+
+    @parameterized.parameters(*MODEL_LIST)
     def test_application_notop(self, app, last_dim):
         output_shape = _get_output_shape(
             lambda: app(
-                include_preprocessing=False,
+                include_rescaling=False,
                 weights=None,
                 include_top=False,
             )
@@ -65,7 +77,7 @@ class ApplicationsTest(tf.test.TestCase, parameterized.TestCase):
         output_shape = _get_output_shape(
             lambda: app(
                 input_shape=(224, 224, 3),
-                include_preprocessing=False,
+                include_rescaling=False,
                 weights=None,
                 include_top=False,
                 pooling="avg",
@@ -78,7 +90,7 @@ class ApplicationsTest(tf.test.TestCase, parameterized.TestCase):
         input_shape = (None, None, 1)
         output_shape = _get_output_shape(
             lambda: app(
-                include_preprocessing=False,
+                include_rescaling=False,
                 weights=None,
                 include_top=False,
                 input_shape=input_shape,
@@ -90,7 +102,7 @@ class ApplicationsTest(tf.test.TestCase, parameterized.TestCase):
         input_shape = (None, None, 4)
         output_shape = _get_output_shape(
             lambda: app(
-                include_preprocessing=False,
+                include_rescaling=False,
                 weights=None,
                 include_top=False,
                 input_shape=input_shape,

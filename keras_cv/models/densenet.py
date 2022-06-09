@@ -23,8 +23,6 @@ from tensorflow import keras
 from tensorflow.keras import backend
 from tensorflow.keras import layers
 
-from keras_cv.models import utils
-
 BN_AXIS = 3
 
 
@@ -121,10 +119,9 @@ def _apply_pooling_layer(x, pooling):
 
 def DenseNet(
     blocks,
-    include_preprocessing,
-    include_top=True,
+    include_rescaling,
+    include_top,
     weights=None,
-    input_tensor=None,
     input_shape=(None, None, 3),
     pooling=None,
     classes=1000,
@@ -144,16 +141,13 @@ def DenseNet(
 
     Args:
       blocks: numbers of building blocks for the four dense layers.
-      include_preprocessing: whether or not to Rescale the inputs.
+      include_rescaling: whether or not to Rescale the inputs.
         If set to True, inputs will be passed through a
         `Rescaling(1/255.0)` layer.
       include_top: whether to include the fully-connected
-        layer at the top of the network.
+        layer at the top of the network.  If provided, num_classes must be provided.
       weights: one of `None` (random initialization), or a pretrained
         checkpoint.
-      input_tensor: optional Keras tensor
-        (i.e. output of `layers.Input()`)
-        to use as image input for the model.
       input_shape: optional shape tuple, defaults to (None, None, 3).
       pooling: optional pooling mode for feature extraction
         when `include_top` is `False`.
@@ -191,13 +185,20 @@ def DenseNet(
             f"Received: input_shape={input_shape}"
         )
 
-    # Determine proper input shape
-    img_input = utils.get_input_tensor(input_shape, input_tensor)
+    if include_top and not classes:
+        raise ValueError(
+        "If `include_top` is True, "
+        "you should specify `classes`. "
+        f"Received: classes={classes}"
+        )
 
-    if include_preprocessing:
-        x = layers.Rescaling(1 / 255.0)
+    inputs = layers.Input(shape=input_shape)
 
-    x = layers.ZeroPadding2D(padding=((3, 3), (3, 3)))(img_input)
+    x = inputs
+    if include_rescaling:
+        x = layers.Rescaling(1 / 255.0)(x)
+
+    x = layers.ZeroPadding2D(padding=((3, 3), (3, 3)))(x)
     x = layers.Conv2D(64, 7, strides=2, use_bias=False, name="conv1/conv")(x)
     x = layers.BatchNormalization(axis=BN_AXIS, epsilon=1.001e-5, name="conv1/bn")(x)
     x = layers.Activation("relu", name="conv1/relu")(x)
@@ -220,11 +221,6 @@ def DenseNet(
     else:
         x = _apply_pooling_layer(x, pooling)
 
-    if input_tensor is not None:
-        inputs = keras.utils.get_source_inputs(input_tensor)
-    else:
-        inputs = img_input
-
     model = keras.Model(inputs, x, name=_get_name(blocks))
 
     if weights is not None:
@@ -233,21 +229,19 @@ def DenseNet(
 
 
 def DenseNet121(
-    include_preprocessing,
-    include_top=True,
-    weights="imagenet",
-    input_tensor=None,
+    include_rescaling,
+    include_top,
+    weights=None,
     input_shape=(None, None, 3),
     pooling=None,
-    classes=1000,
+    classes=None,
     **kwargs,
 ):
     return DenseNet(
         [6, 12, 24, 16],
-        include_preprocessing,
+        include_rescaling,
         include_top,
         weights,
-        input_tensor,
         input_shape,
         pooling,
         classes,
@@ -256,21 +250,19 @@ def DenseNet121(
 
 
 def DenseNet169(
-    include_preprocessing,
-    include_top=True,
-    weights="imagenet",
-    input_tensor=None,
+    include_rescaling,
+    include_top,
+    weights=None,
     input_shape=(None, None, 3),
     pooling=None,
-    classes=1000,
+    classes=None,
     **kwargs,
 ):
     return DenseNet(
         [6, 12, 32, 32],
-        include_preprocessing,
+        include_rescaling,
         include_top,
         weights,
-        input_tensor,
         input_shape,
         pooling,
         classes,
@@ -279,21 +271,19 @@ def DenseNet169(
 
 
 def DenseNet201(
-    include_preprocessing,
-    include_top=True,
-    weights="imagenet",
-    input_tensor=None,
+    include_rescaling,
+    include_top,
+    weights=None,
     input_shape=(None, None, 3),
     pooling=None,
-    classes=1000,
+    classes=None,
     **kwargs,
 ):
     return DenseNet(
         [6, 12, 48, 32],
-        include_preprocessing,
+        include_rescaling,
         include_top,
         weights,
-        input_tensor,
         input_shape,
         pooling,
         classes,
