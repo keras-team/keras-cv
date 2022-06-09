@@ -152,10 +152,11 @@ def convert_format(boxes, source, target, images=None, dtype="float32"):
             to specify the original format of the `boxes` parameter.
         target: One of {" ".join([f'"{f}"' for f in TO_XYXY_CONVERTERS.keys()])}.  Used
             to specify the destination format of the `boxes` parameter.
-        images: A batch of images aligned with `boxes` on the first axis.  Should be at
-            least 3 dimensions, with the first 3 dimensions representing:
+        images: (Optional) a batch of images aligned with `boxes` on the first axis.
+            Should be at least 3 dimensions, with the first 3 dimensions representing:
             `[batch_size, height, width]`.  Used in some converters to compute relative
-            pixel values of the bounding box dimensions.
+            pixel values of the bounding box dimensions.  Required when transforming
+            from a rel format to a non-rel format.
         dtype: the data type to use when transforming the boxes.  Defaults to
             `tf.float32`.
     """
