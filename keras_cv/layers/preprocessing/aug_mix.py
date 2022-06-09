@@ -77,8 +77,8 @@ class AugMix(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
         self.severity = severity
 
         # initialize layers
-        self.auto_contrast = layers.AutoContrast
-        self.equalize = layers.Equalization
+        self.auto_contrast = layers.AutoContrast(value_range = self.value_range)
+        self.equalize = layers.Equalization(value_range = self.value_range)
         self.random_shear = layers.RandomShear
 
     @staticmethod
@@ -94,11 +94,12 @@ class AugMix(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
 
     def _sample_level(self, level, maxval, dtype):
         level = (
-            preprocessing.parse_factor(
-                level, min_value=0.01, param_name="severity", seed=self.seed
-            )()
+            self._random_generator.random_uniform(
+                shape=(), minval=0.01, maxval=level, dtype=tf.float32
+            )
             * 10
         )
+
         return tf.cast((level) * maxval / 10.0, dtype)
 
     def _loop_on_depth(self, depth_level, image_aug):
@@ -130,13 +131,10 @@ class AugMix(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
         return image, chain_mixing_weights, curr_chain, result
 
     def _auto_contrast(self, image):
-        return self.auto_contrast(self.value_range)(image)
+        return self.auto_contrast(image)
 
     def _equalize(self, image):
-        shape = image.shape
-        image = self.equalize(self.value_range)(image)
-        image.set_shape(shape)
-        return image
+        return self.equalize(image)
 
     def _posterize(self, image):
         image = preprocessing.transform_value_range(
