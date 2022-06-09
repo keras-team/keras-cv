@@ -43,6 +43,7 @@ class RecallCorrectnessTest(tf.test.TestCase):
 
         # Area range all
         recall = COCORecall(
+            bounding_box_format="xyxy",
             class_ids=categories + [1000],
             max_detections=1,
         )
@@ -56,6 +57,7 @@ class RecallCorrectnessTest(tf.test.TestCase):
 
         # Area range all
         recall = COCORecall(
+            bounding_box_format="xyxy",
             class_ids=categories + [1000],
             max_detections=10,
         )
@@ -69,6 +71,7 @@ class RecallCorrectnessTest(tf.test.TestCase):
 
         # Area range all
         recall = COCORecall(
+            bounding_box_format="xyxy",
             class_ids=categories + [1000],
             max_detections=100,
         )
@@ -80,6 +83,7 @@ class RecallCorrectnessTest(tf.test.TestCase):
     def test_recall_correctness_small_objects(self):
         y_true, y_pred, categories = load_samples(SAMPLE_FILE)
         recall = COCORecall(
+            bounding_box_format="xyxy",
             class_ids=categories + [1000],
             max_detections=100,
             area_range=(0, 32**2),
@@ -92,6 +96,7 @@ class RecallCorrectnessTest(tf.test.TestCase):
     def test_recall_correctness_medium_objects(self):
         y_true, y_pred, categories = load_samples(SAMPLE_FILE)
         recall = COCORecall(
+            bounding_box_format="xyxy",
             class_ids=categories + [1000],
             max_detections=100,
             area_range=(32**2, 96**2),
@@ -104,6 +109,7 @@ class RecallCorrectnessTest(tf.test.TestCase):
     def test_recall_correctness_large_objects(self):
         y_true, y_pred, categories = load_samples(SAMPLE_FILE)
         recall = COCORecall(
+            bounding_box_format="xyxy",
             class_ids=categories + [1000],
             max_detections=100,
             area_range=(96**2, 1e5**2),
@@ -119,8 +125,8 @@ def load_samples(fname):
     y_true = npzfile["arr_0"].astype(np.float32)
     y_pred = npzfile["arr_1"].astype(np.float32)
 
-    y_true = bounding_box.convert_to_corners(y_true, format="coco")
-    y_pred = bounding_box.convert_to_corners(y_pred, format="coco")
+    y_true = bounding_box.convert_format(y_true, source="xywh", target="xyxy")
+    y_pred = bounding_box.convert_format(y_pred, source="xywh", target="xyxy")
 
     categories = set(int(x) for x in y_true[:, :, 4].numpy().flatten())
     categories = [x for x in categories if x != -1]

@@ -33,6 +33,10 @@ def resize(image, label, num_classes=10):
     return image, label
 
 
+def to_dict(images, labels):
+    return {"images": images, "labels": labels}
+
+
 def main():
     data, ds_info = tfds.load("oxford_flowers102", with_info=True, as_supervised=True)
     train_ds = data["train"]
@@ -43,6 +47,7 @@ def main():
         train_ds.map(lambda x, y: resize(x, y, num_classes=num_classes))
         .shuffle(10 * BATCH_SIZE)
         .batch(BATCH_SIZE)
+        .map(to_dict)
     )
     cutmix = preprocessing.CutMix()
     train_ds = train_ds.map(

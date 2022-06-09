@@ -12,14 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from keras_cv.bounding_box.convert_to_corners import convert_to_corners
+from keras_cv.bounding_box.converters import convert_format
+from keras_cv.bounding_box.formats import CENTER_XYWH
+from keras_cv.bounding_box.formats import XYWH
+from keras_cv.bounding_box.formats import XYXY
 from keras_cv.bounding_box.pad_batch_to_shape import pad_batch_to_shape
-
-# These are the indexes used in Tensors to represent each corresponding side.
-LEFT, TOP, RIGHT, BOTTOM = 0, 1, 2, 3
-
-# Regardless of format these constants are consistent.
-# Class is held in the 5th index
-CLASS = 4
-# Confidence exists only on y_pred, and is in the 6th index.
-CONFIDENCE = 5
