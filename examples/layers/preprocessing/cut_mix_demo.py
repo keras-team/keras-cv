@@ -55,8 +55,7 @@ def main():
         num_parallel_calls=tf.data.AUTOTUNE,
     )
 
-    for inputs in train_ds.take(1):
-        images = inputs["images"]
+    for data in train_ds.take(1):
         plt.figure(figsize=(8, 8))
         for i in range(9):
             plt.subplot(3, 3, i + 1)
