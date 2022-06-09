@@ -19,11 +19,15 @@ from keras_cv import metrics
 
 class SerializationTest(tf.test.TestCase, parameterized.TestCase):
     @parameterized.named_parameters(
-        ("COCORecall", metrics.COCORecall, {"class_ids": [0, 1, 2]}),
+        (
+            "COCORecall",
+            metrics.COCORecall,
+            {"class_ids": [0, 1, 2], "bounding_box_format": "xyxy"},
+        ),
         (
             "COCOMeanAveragePrecision",
             metrics.COCOMeanAveragePrecision,
-            {"class_ids": [0, 1, 2]},
+            {"class_ids": [0, 1, 2], "bounding_box_format": "xyxy"},
         ),
     )
     def test_layer_serialization(self, metric_cls, init_args):
