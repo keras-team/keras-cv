@@ -79,7 +79,6 @@ class AugMix(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
         # initialize layers
         self.auto_contrast = layers.AutoContrast(value_range=self.value_range)
         self.equalize = layers.Equalization(value_range=self.value_range)
-        self.random_shear = layers.RandomShear
 
     @staticmethod
     def _sample_from_dirichlet(alpha):
@@ -182,7 +181,7 @@ class AugMix(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
     def _shear_x(self, image):
         x = self._sample_level(self.severity, 0.3, tf.float32)
         x *= preprocessing.random_inversion(self._random_generator)
-        transform_x = self.random_shear._format_transform(
+        transform_x = layers.RandomShear._format_transform(
             [1.0, x, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0]
         )
         return preprocessing.transform(
@@ -192,7 +191,7 @@ class AugMix(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
     def _shear_y(self, image):
         y = self._sample_level(self.severity, 0.3, tf.float32)
         y *= preprocessing.random_inversion(self._random_generator)
-        transform_x = self.random_shear._format_transform(
+        transform_x = layers.RandomShear._format_transform(
             [1.0, 0.0, 0.0, y, 1.0, 0.0, 0.0, 0.0]
         )
         return preprocessing.transform(
