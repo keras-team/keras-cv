@@ -238,13 +238,13 @@ def DenseNet121(
     **kwargs,
 ):
     return DenseNet(
-        [6, 12, 24, 16],
-        include_rescaling,
-        include_top,
-        weights,
-        input_shape,
-        pooling,
-        classes,
+        blocks=[6, 12, 48, 32],
+        include_rescaling=include_rescaling,
+        include_top=include_top,
+        classes=classes,
+        weights=weights,
+        input_shape=input_shape,
+        pooling=pooling,
         **kwargs,
     )
 
@@ -259,13 +259,13 @@ def DenseNet169(
     **kwargs,
 ):
     return DenseNet(
-        [6, 12, 32, 32],
-        include_rescaling,
-        include_top,
-        weights,
-        input_shape,
-        pooling,
-        classes,
+        blocks=[6, 12, 48, 32],
+        include_rescaling=include_rescaling,
+        include_top=include_top,
+        classes=classes,
+        weights=weights,
+        input_shape=input_shape,
+        pooling=pooling,
         **kwargs,
     )
 
@@ -280,13 +280,13 @@ def DenseNet201(
     **kwargs,
 ):
     return DenseNet(
-        [6, 12, 48, 32],
-        include_rescaling,
-        include_top,
-        weights,
-        input_shape,
-        pooling,
-        classes,
+        blocks=[6, 12, 48, 32],
+        include_rescaling=include_rescaling,
+        include_top=include_top,
+        classes=classes,
+        weights=weights,
+        input_shape=input_shape,
+        pooling=pooling,
         **kwargs,
     )
 
