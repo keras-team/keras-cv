@@ -121,10 +121,10 @@ def DenseNet(
     blocks,
     include_rescaling,
     include_top,
+    classes=None,
     weights=None,
     input_shape=(None, None, 3),
     pooling=None,
-    classes=1000,
     classifier_activation="softmax",
 ):
     """Instantiates the DenseNet architecture.
@@ -146,8 +146,11 @@ def DenseNet(
         `Rescaling(1/255.0)` layer.
       include_top: whether to include the fully-connected
         layer at the top of the network.  If provided, num_classes must be provided.
+      classes: optional number of classes to classify images
+        into, only to be specified if `include_top` is True, and
+        if no `weights` argument is specified.
       weights: one of `None` (random initialization), or a pretrained
-        checkpoint.
+        weight file path.
       input_shape: optional shape tuple, defaults to (None, None, 3).
       pooling: optional pooling mode for feature extraction
         when `include_top` is `False`.
@@ -160,9 +163,6 @@ def DenseNet(
             the output of the model will be a 2D tensor.
         - `max` means that global max pooling will
             be applied.
-      classes: optional number of classes to classify images
-        into, only to be specified if `include_top` is True, and
-        if no `weights` argument is specified.
       classifier_activation: A `str` or callable. The activation function to use
         on the "top" layer. Ignored unless `include_top=True`. Set
         `classifier_activation=None` to return the logits of the "top" layer.
@@ -231,10 +231,10 @@ def DenseNet(
 def DenseNet121(
     include_rescaling,
     include_top,
+    classes=None,
     weights=None,
     input_shape=(None, None, 3),
     pooling=None,
-    classes=None,
     **kwargs,
 ):
     return DenseNet(
@@ -252,10 +252,10 @@ def DenseNet121(
 def DenseNet169(
     include_rescaling,
     include_top,
+    classes=None,
     weights=None,
     input_shape=(None, None, 3),
     pooling=None,
-    classes=None,
     **kwargs,
 ):
     return DenseNet(
@@ -273,10 +273,10 @@ def DenseNet169(
 def DenseNet201(
     include_rescaling,
     include_top,
+    classes=None,
     weights=None,
     input_shape=(None, None, 3),
     pooling=None,
-    classes=None,
     **kwargs,
 ):
     return DenseNet(
