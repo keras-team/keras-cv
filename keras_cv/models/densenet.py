@@ -238,7 +238,7 @@ def DenseNet121(
     **kwargs,
 ):
     return DenseNet(
-        blocks=[6, 12, 48, 32],
+        [6, 12, 24, 16],
         include_rescaling=include_rescaling,
         include_top=include_top,
         classes=classes,
@@ -259,7 +259,7 @@ def DenseNet169(
     **kwargs,
 ):
     return DenseNet(
-        blocks=[6, 12, 48, 32],
+        [6, 12, 32, 32],
         include_rescaling=include_rescaling,
         include_top=include_top,
         classes=classes,
