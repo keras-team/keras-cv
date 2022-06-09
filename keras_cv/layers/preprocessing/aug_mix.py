@@ -77,8 +77,8 @@ class AugMix(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
         self.severity = severity
 
         # initialize layers
-        self.auto_contrast = layers.AutoContrast(value_range = self.value_range)
-        self.equalize = layers.Equalization(value_range = self.value_range)
+        self.auto_contrast = layers.AutoContrast(value_range=self.value_range)
+        self.equalize = layers.Equalization(value_range=self.value_range)
         self.random_shear = layers.RandomShear
 
     @staticmethod
