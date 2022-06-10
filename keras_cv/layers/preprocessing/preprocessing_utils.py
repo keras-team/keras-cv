@@ -16,12 +16,6 @@
 
 import tensorflow as tf
 
-INT = "int"
-ONE_HOT = "one_hot"
-MULTI_HOT = "multi_hot"
-COUNT = "count"
-TF_IDF = "tf_idf"
-
 
 def ensure_tensor(inputs, dtype=None):
     """Ensures the input is a Tensor, SparseTensor or RaggedTensor."""
