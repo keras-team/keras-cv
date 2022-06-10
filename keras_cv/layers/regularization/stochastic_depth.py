@@ -13,22 +13,23 @@
 # limitations under the License.
 import tensorflow as tf
 
+
 @tf.keras.utils.register_keras_serializable(package="keras_cv")
 class StochasticDepth(tf.keras.layers.Layer):
     """
     Implements the Stochastic Depth layer. It randomly drops residual branches
-    in residual architectures. It is used as a drop-in replacement for addition 
-    operation. Note that this layer DOES NOT drop a residual block across 
-    individual samples but across the entire batch. 
-    
+    in residual architectures. It is used as a drop-in replacement for addition
+    operation. Note that this layer DOES NOT drop a residual block across
+    individual samples but across the entire batch.
+
     Reference:
         - [Deep Networks with Stochastic Depth](https://arxiv.org/abs/1603.09382).
         - Docstring taken from [tensorflow_addons/layers/stochastic_depth.py](https://github.com/tensorflow/addons/blob/v0.17.0/tensorflow_addons/layers/stochastic_depth.py#L5-L90).
-    
+
     Args:
-        survival_probability: float, the probability of the residual branch 
+        survival_probability: float, the probability of the residual branch
             being kept.
-    
+
     Usage:
     `StochasticDepth` can be used in a residual network as follows:
     ```python
@@ -44,25 +45,27 @@ class StochasticDepth(tf.keras.layers.Layer):
     x[0] + b_l * x[1],
     $$
     where $b_l$ is a random Bernoulli variable with probability $P(b_l = 1) = p_l$
-    At test time, StochasticDepth rescales the activations of the residual 
+    At test time, StochasticDepth rescales the activations of the residual
     branch based on the survival probability ($p_l$):
     $$
     x[0] + p_l * x[1]
     $$
     """
+
     def __init__(self, survival_probability=0.5, **kwargs):
         super().__init__(**kwargs)
         self.survival_probability = survival_probability
 
     def call(self, x, training=None):
         if len(x) != 2:
-            raise ValueError(f"""Input must be a list of length 2. """
-                             f"""Got input with length={len(x)}.""")
+            raise ValueError(
+                f"""Input must be a list of length 2. """
+                f"""Got input with length={len(x)}."""
+            )
 
         shortcut, residual = x
 
-        b_l = tf.keras.backend.random_bernoulli(
-            [], p=self.survival_probability)
+        b_l = tf.keras.backend.random_bernoulli([], p=self.survival_probability)
 
         if training:
             return shortcut + b_l * residual
