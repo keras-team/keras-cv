@@ -74,15 +74,15 @@ New preprocessing layers should be consistent with these decisions.
 
 - Import symbols from top level namespaces in code samples (usage docstring for example).
 
-So, prefer:
+Prefer:
 
-```py
+```python
 import keras_cv.layers.StochasticDepth
 ```
 
-Instead of:
+to:
 
-```py
+```python
 keras_cv.layers.regularization.stochastic_depth.StochasticDepth
 ```
 
