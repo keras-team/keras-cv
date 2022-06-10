@@ -29,7 +29,7 @@ class COCORecallTest(tf.test.TestCase):
             max_detections=100,
             bounding_box_format="xyxy",
             class_ids=[1],
-            area_range=(0, 64**2),
+            area_range=(0, 64 ** 2),
         )
 
         # These would match if they were in the area range
@@ -48,7 +48,7 @@ class COCORecallTest(tf.test.TestCase):
             max_detections=100,
             bounding_box_format="xyxy",
             class_ids=[1],
-            area_range=(0, 64**2),
+            area_range=(0, 64 ** 2),
         )
 
         # These would match if they were in the area range
@@ -78,14 +78,14 @@ class COCORecallTest(tf.test.TestCase):
             bounding_box_format="xyxy",
             iou_thresholds=[0.95],
             class_ids=[1],
-            area_range=(0, 100000**2),
+            area_range=(0, 100000 ** 2),
             max_detections=1,
         )
         m2 = COCORecall(
             bounding_box_format="xyxy",
             iou_thresholds=[0.95],
             class_ids=[1],
-            area_range=(0, 100000**2),
+            area_range=(0, 100000 ** 2),
             max_detections=1,
         )
 
@@ -97,7 +97,7 @@ class COCORecallTest(tf.test.TestCase):
             bounding_box_format="xyxy",
             iou_thresholds=[0.95],
             class_ids=[1],
-            area_range=(0, 100000**2),
+            area_range=(0, 100000 ** 2),
             max_detections=1,
         )
         metric_result.merge_state([m1, m2])
@@ -111,7 +111,7 @@ class COCORecallTest(tf.test.TestCase):
             bounding_box_format="xyxy",
             max_detections=100,
             class_ids=[1],
-            area_range=(32**2, 64**2),
+            area_range=(32 ** 2, 64 ** 2),
         )
 
         # These would match if they were in the area range
@@ -128,7 +128,7 @@ class COCORecallTest(tf.test.TestCase):
             bounding_box_format="xyxy",
             max_detections=100,
             class_ids=[1, 2, 3],
-            area_range=(0, 1e9**2),
+            area_range=(0, 1e9 ** 2),
         )
         t = len(recall.iou_thresholds)
         k = len(recall.class_ids)
@@ -151,7 +151,7 @@ class COCORecallTest(tf.test.TestCase):
             bounding_box_format="xyxy",
             max_detections=100,
             class_ids=[1],
-            area_range=(0, 1e9**2),
+            area_range=(0, 1e9 ** 2),
         )
         t = len(recall.iou_thresholds)
         k = len(recall.class_ids)
@@ -168,7 +168,7 @@ class COCORecallTest(tf.test.TestCase):
             bounding_box_format="xyxy",
             max_detections=1,
             class_ids=[1],
-            area_range=(0, 1e9**2),
+            area_range=(0, 1e9 ** 2),
         )
         y_true = np.array(
             [[[0, 0, 100, 100, 1], [100, 100, 200, 200, 1], [300, 300, 400, 400, 1]]]
@@ -186,7 +186,7 @@ class COCORecallTest(tf.test.TestCase):
             bounding_box_format="xyxy",
             max_detections=3,
             class_ids=[1],
-            area_range=(0, 1e9**2),
+            area_range=(0, 1e9 ** 2),
         )
         y_true = np.array(
             [[[0, 0, 100, 100, 1], [100, 100, 200, 200, 1], [300, 300, 400, 400, 1]]]
@@ -205,7 +205,7 @@ class COCORecallTest(tf.test.TestCase):
             bounding_box_format="xyxy",
             max_detections=100,
             class_ids=[1],
-            area_range=(0, 1e9**2),
+            area_range=(0, 1e9 ** 2),
         )
         t = len(recall.iou_thresholds)
         k = len(recall.class_ids)
@@ -228,7 +228,7 @@ class COCORecallTest(tf.test.TestCase):
             bounding_box_format="xyxy",
             iou_thresholds=[0.15],
             class_ids=[1],
-            area_range=(0, 10000**2),
+            area_range=(0, 10000 ** 2),
             max_detections=1,
         )
         metric.update_state(y_true, y_pred)
@@ -245,7 +245,7 @@ class COCORecallTest(tf.test.TestCase):
             bounding_box_format="xyxy",
             iou_thresholds=[0.15],
             class_ids=[1],
-            area_range=(0, 10000**2),
+            area_range=(0, 10000 ** 2),
             max_detections=1,
         )
         metric.update_state(y_true, y_pred)
@@ -267,7 +267,7 @@ class COCORecallTest(tf.test.TestCase):
             bounding_box_format="xyxy",
             iou_thresholds=[0.15],
             class_ids=[1],
-            area_range=(0, 10000**2),
+            area_range=(0, 10000 ** 2),
             max_detections=1,
         )
         metric.update_state(y_true, y_pred)
@@ -287,7 +287,7 @@ class COCORecallTest(tf.test.TestCase):
             bounding_box_format="xyxy",
             iou_thresholds=[0.15],
             class_ids=[1],
-            area_range=(0, 10000**2),
+            area_range=(0, 10000 ** 2),
             max_detections=1,
         )
         metric.update_state(y_true, y_pred)
@@ -302,7 +302,7 @@ class COCORecallTest(tf.test.TestCase):
             bounding_box_format="xyxy",
             iou_thresholds=[0.15],
             class_ids=[1],
-            area_range=(0, 10000**2),
+            area_range=(0, 10000 ** 2),
             max_detections=1,
         )
         metric.update_state(y_true, y_pred)
@@ -317,7 +317,7 @@ class COCORecallTest(tf.test.TestCase):
             bounding_box_format="xyxy",
             iou_thresholds=[0.95],
             class_ids=[1],
-            area_range=(0, 100000**2),
+            area_range=(0, 100000 ** 2),
             max_detections=1,
         )
         metric.update_state(y_true, y_pred)
