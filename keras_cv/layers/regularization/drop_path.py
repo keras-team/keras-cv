@@ -22,7 +22,7 @@ class DropPath(tf.keras.layers.Layer):
     this layer drop individual samples within a batch and not the entire batch.
 
     References:
-        - [FractalNet: Ultra-Deep Neural Networks without Residuals](https://arxiv.org/abs/1605.07648v4).
+        - [FractalNet](https://arxiv.org/abs/1605.07648v4).
         - [rwightman/pytorch-image-models](https://tinyurl.com/timm-droppath)
 
     Args:

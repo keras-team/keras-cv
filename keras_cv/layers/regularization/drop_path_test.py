@@ -46,3 +46,24 @@ class DropPathTest(tf.test.TestCase):
         non_zeros_outputs = tf.math.count_nonzero(outputs, dtype=tf.int32)
 
         self.assertGreaterEqual(non_zeros_inputs, non_zeros_outputs)
+
+    def test_strict_input_gets_partially_zeroed_out_in_train_mode(self):
+        layer = DropPath(drop_rate=0.5)
+        inputs = tf.random.uniform(self.FEATURE_SHAPE)
+
+        total_non_zero_inputs = 0
+        total_non_zero_outputs = 0
+
+        for _ in range(5000):
+            outputs = layer(inputs, training=True)
+
+            non_zeros_inputs = tf.math.count_nonzero(inputs, dtype=tf.int32)
+            non_zeros_outputs = tf.math.count_nonzero(outputs, dtype=tf.int32)
+
+            total_non_zero_inputs += non_zeros_inputs
+            total_non_zero_outputs += non_zeros_outputs
+
+        self.assertAllInRange(
+            total_non_zero_outputs,
+            int(0.49 * tf.cast(total_non_zero_inputs, tf.float32)),
+            int(0.51 * tf.cast(total_non_zero_inputs, tf.float32)))
