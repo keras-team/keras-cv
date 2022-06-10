@@ -13,8 +13,9 @@
 # limitations under the License.
 
 import tensorflow as tf
-from tensorflow.keras.layers import preprocessing_utils as utils
 from tensorflow.tools.docs import doc_controls
+
+from keras_cv.layers.preprocessing import preprocessing_utils as utils
 
 H_AXIS = -3
 W_AXIS = -2
@@ -25,7 +26,7 @@ TARGETS = "targets"
 BOUNDING_BOXES = "bounding_boxes"
 
 
-class BaseImageAugmentationLayer(tf.keras.internal.layers.BaseRandomLayer):
+class BaseImageAugmentationLayer(tf.keras.__internal__.layers.BaseRandomLayer):
     """Abstract base layer for image augmentaion.
 
     This layer contains base functionalities for preprocessing layers which
