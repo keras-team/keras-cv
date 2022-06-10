@@ -39,8 +39,8 @@ class DropPath(tf.keras.layers.Layer):
     # (...)
     ```
     """
-    def __init__(self, drop_rate=0.5):
-        super().__init__()
+    def __init__(self, drop_rate=0.5, **kwargs):
+        super().__init__(**kwargs)
         self.drop_rate = drop_rate
 
     def call(self, x, training=None):
@@ -48,9 +48,14 @@ class DropPath(tf.keras.layers.Layer):
             return x
         else:
             keep_prob = 1 - self.drop_rate
-            drop_map_shape = (x.shape[0],) + (1,) * (len(x.shape) - 1)
+            drop_map_shape = (x.shape[0], ) + (1, ) * (len(x.shape) - 1)
             drop_map = tf.keras.backend.random_bernoulli(drop_map_shape,
                                                          p=keep_prob)
             x = x / keep_prob
             x = x * drop_map
             return x
+
+    def get_config(self):
+        config = {"drop_rate": self.drop_rate}
+        base_config = super().get_config()
+        return dict(list(base_config.items()) + list(config.items()))
