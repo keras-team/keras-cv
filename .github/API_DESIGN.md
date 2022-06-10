@@ -10,7 +10,7 @@ When working with `bounding_box` and `segmentation_map` labels the
 abbreviations `bbox` and `segm` are often used.  In KerasCV, we will *not* be 
 using these abbreviations.  This is done to ensure full consistency in our 
 naming convention.  While the team is fond of the abbreviation `bbox`, we are 
-loss fond of `segm`.  In order to ensure full consistency, we have decided to
+less fond of `segm`.  In order to ensure full consistency, we have decided to
 use the full names for label types in our code base.
 
 # Preprocessing Layers
@@ -69,3 +69,20 @@ was accidentally casting inputs to `float32`, it would be a bad user experience
 to raise an error asserting that all inputs must be of type `int`.  
 
 New preprocessing layers should be consistent with these decisions.
+
+# Codesamples
+
+- Import symbols from top level namespaces in code samples (usage docstring for example).
+
+So, prefer:
+
+```py
+import keras_cv.layers.StochasticDepth
+```
+
+Instead of:
+
+```py
+keras_cv.layers.regularization.stochastic_depth.StochasticDepth
+```
+
