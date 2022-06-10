@@ -31,10 +31,11 @@ class DropPath(tf.keras.layers.Layer):
     Usage:
     `DropPath` can be used in any network as follows:
     ```python
+
     # (...)
     input = tf.ones((1, 3, 3, 1), dtype=tf.float32)
     residual = tf.keras.layers.Conv2D(1, 1)(input)
-    output = keras_cv.layers.regularization.drop_path.DropPath()(input)
+    output = keras_cv.layers.DropPath()(input)
     # (...)
     ```
     """

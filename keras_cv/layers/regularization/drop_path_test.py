@@ -14,7 +14,7 @@
 
 import tensorflow as tf
 
-from keras_cv.layers.regularization.drop_path import DropPath
+from keras_cv.layers import DropPath
 
 class DropPathTest(tf.test.TestCase):
 	FEATURE_SHAPE = (1, 14, 14, 256)
