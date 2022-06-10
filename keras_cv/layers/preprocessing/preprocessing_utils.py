@@ -14,9 +14,7 @@
 # ==============================================================================
 """Utils for preprocessing layers."""
 
-import numpy as np
 import tensorflow as tf
-from keras.utils import tf_utils
 
 INT = "int"
 ONE_HOT = "one_hot"
