@@ -23,7 +23,7 @@ class DropPath(tf.keras.layers.Layer):
     
     Reference:
         - [FractalNet: Ultra-Deep Neural Networks without Residuals](https://arxiv.org/abs/1605.07648v4).
-        - [rwightman/pytorch-image-models](https://github.com/rwightman/pytorch-image-models/blob/7c67d6aca992f039eece0af5f7c29a43d48c00e4/timm/models/layers/drop.py#L135)
+        - [rwightman/pytorch-image-models](https://tinyurl.com/timm-droppath)
     
     Args:
         drop_rate: float, the probability of the residual branch being dropped.
@@ -49,7 +49,7 @@ class DropPath(tf.keras.layers.Layer):
         else:
             keep_prob = 1 - self.drop_rate
             drop_map_shape = (x.shape[0],) + (1,) * (len(x.shape) - 1)
-            drop_map = tf.keras.backend.random_bernoulli(drop_map_shape, 
+            drop_map = tf.keras.backend.random_bernoulli(drop_map_shape,
                                                          p=keep_prob)
             x = x / keep_prob
             x = x * drop_map
