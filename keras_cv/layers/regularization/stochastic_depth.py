@@ -24,19 +24,20 @@ class StochasticDepth(tf.keras.layers.Layer):
 
     Reference:
         - [Deep Networks with Stochastic Depth](https://arxiv.org/abs/1603.09382).
-        - Docstring taken from [tensorflow_addons/layers/stochastic_depth.py](https://github.com/tensorflow/addons/blob/v0.17.0/tensorflow_addons/layers/stochastic_depth.py#L5-L90).
+        - Docstring taken from [tensorflow_addons/layers/stochastic_depth.py](tinyurl.com/mr3y2af6).
 
     Args:
         survival_probability: float, the probability of the residual branch
             being kept.
 
     Usage:
+
     `StochasticDepth` can be used in a residual network as follows:
     ```python
     # (...)
     input = tf.ones((1, 3, 3, 1), dtype=tf.float32)
     residual = tf.keras.layers.Conv2D(1, 1)(input)
-    output = keras_cv.layers.regularization.stochastic_depth.StochasticDepth()([input, residual])
+    output = keras_cv.layers.StochasticDepth()([input, residual])
     # (...)
     ```
 
