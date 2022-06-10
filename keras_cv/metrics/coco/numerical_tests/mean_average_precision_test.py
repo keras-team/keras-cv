@@ -44,7 +44,10 @@ class MeanAveragePrecisionTest(tf.test.TestCase):
 
         # Area range all
         mean_average_precision = COCOMeanAveragePrecision(
-            class_ids=categories + [1000], max_detections=100, num_buckets=1000
+            bounding_box_format="xyxy",
+            class_ids=categories + [1000],
+            max_detections=100,
+            num_buckets=1000,
         )
 
         mean_average_precision.update_state(y_true, y_pred)
@@ -55,6 +58,7 @@ class MeanAveragePrecisionTest(tf.test.TestCase):
         y_true, y_pred, categories = load_samples(SAMPLE_FILE)
 
         mean_average_precision = COCOMeanAveragePrecision(
+            bounding_box_format="xyxy",
             class_ids=categories + [1000],
             iou_thresholds=[0.5],
             max_detections=100,
@@ -68,6 +72,7 @@ class MeanAveragePrecisionTest(tf.test.TestCase):
         y_true, y_pred, categories = load_samples(SAMPLE_FILE)
 
         mean_average_precision = COCOMeanAveragePrecision(
+            bounding_box_format="xyxy",
             class_ids=categories + [1000],
             iou_thresholds=[0.75],
             max_detections=100,
@@ -81,6 +86,7 @@ class MeanAveragePrecisionTest(tf.test.TestCase):
         y_true, y_pred, categories = load_samples(SAMPLE_FILE)
 
         mean_average_precision = COCOMeanAveragePrecision(
+            bounding_box_format="xyxy",
             class_ids=categories + [1000],
             max_detections=100,
             area_range=(32**2, 96**2),
@@ -94,6 +100,7 @@ class MeanAveragePrecisionTest(tf.test.TestCase):
         y_true, y_pred, categories = load_samples(SAMPLE_FILE)
 
         mean_average_precision = COCOMeanAveragePrecision(
+            bounding_box_format="xyxy",
             class_ids=categories + [1000],
             max_detections=100,
             area_range=(96**2, 1e5**2),
@@ -124,8 +131,8 @@ def load_samples(fname):
     y_true = npzfile["arr_0"].astype(np.float32)
     y_pred = npzfile["arr_1"].astype(np.float32)
 
-    y_true = bounding_box.convert_to_corners(y_true, format="coco")
-    y_pred = bounding_box.convert_to_corners(y_pred, format="coco")
+    y_true = bounding_box.convert_format(y_true, source="xyWH", target="xyxy")
+    y_pred = bounding_box.convert_format(y_pred, source="xyWH", target="xyxy")
 
     categories = set(int(x) for x in y_true[:, :, 4].numpy().flatten())
     categories = [x for x in categories if x != -1]

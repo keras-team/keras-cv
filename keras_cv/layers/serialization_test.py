@@ -140,20 +140,12 @@ class SerializationTest(tf.test.TestCase, parameterized.TestCase):
         (
             "RandomAugmentationPipeline",
             preprocessing.RandomAugmentationPipeline,
-            {
-                "layers": [],
-                "augmentations_per_image": 1,
-                "rate": 1.0,
-            },
+            {"layers": [], "augmentations_per_image": 1, "rate": 1.0},
         ),
         (
             "RandomChoice",
             preprocessing.RandomChoice,
-            {
-                "layers": [],
-                "seed": 3,
-                "auto_vectorize": False,
-            },
+            {"layers": [], "seed": 3, "auto_vectorize": False},
         ),
         (
             "RandomColorJitter",
@@ -170,11 +162,12 @@ class SerializationTest(tf.test.TestCase, parameterized.TestCase):
         (
             "DropBlock2D",
             regularization.DropBlock2D,
-            {
-                "rate": 0.1,
-                "block_size": (7, 7),
-                "seed": 1234,
-            },
+            {"rate": 0.1, "block_size": (7, 7), "seed": 1234},
+        ),
+        (
+            "StochasticDepth",
+            regularization.StochasticDepth,
+            {"survival_probability": 0.9},
         ),
         (
             "DropPath",
