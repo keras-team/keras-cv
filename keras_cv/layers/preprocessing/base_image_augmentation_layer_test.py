@@ -11,12 +11,12 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import tensorflow as tf
 import numpy as np
+import tensorflow as tf
 
 from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
-
- BaseImageAugmentationLayer)
+    BaseImageAugmentationLayer,
+)
 
 
 class RandomAddLayer(BaseImageAugmentationLayer):
@@ -25,9 +25,7 @@ class RandomAddLayer(BaseImageAugmentationLayer):
         self.value_range = value_range
         self.fixed_value = fixed_value
 
-    def get_random_transformation(
-        self, image=None, label=None, bounding_box=None
-    ):
+    def get_random_transformation(self, image=None, label=None, bounding_box=None):
         if self.fixed_value:
             return self.fixed_value
         return self._random_generator.random_uniform(
@@ -72,9 +70,7 @@ class BaseImageAugmentationLayerTest(tf.test.TestCase):
         images = tf.ones((2, 8, 8, 3), dtype="uint8")
         output = add_layer(images)
 
-        self.assertAllClose(
-            tf.ones((2, 8, 8, 3), dtype="float32") * 3.0, output
-        )
+        self.assertAllClose(tf.ones((2, 8, 8, 3), dtype="float32") * 3.0, output)
 
     def test_augment_batch_images(self):
         add_layer = RandomAddLayer()

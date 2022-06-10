@@ -13,10 +13,8 @@
 # limitations under the License.
 
 import tensorflow as tf
-
 from keras.engine import base_layer
 from keras.layers.preprocessing import preprocessing_utils as utils
-
 from tensorflow.tools.docs import doc_controls
 
 H_AXIS = -3
@@ -178,9 +176,7 @@ class BaseImageAugmentationLayer(base_layer.BaseRandomLayer):
         return self.augment_label(target, transformation)
 
     @doc_controls.for_subclass_implementers
-    def augment_bounding_boxes(
-        self, image, bounding_boxes, transformation=None
-    ):
+    def augment_bounding_boxes(self, image, bounding_boxes, transformation=None):
         """Augment bounding boxes for one image during training.
 
         Args:
@@ -198,9 +194,7 @@ class BaseImageAugmentationLayer(base_layer.BaseRandomLayer):
         raise NotImplementedError()
 
     @doc_controls.for_subclass_implementers
-    def get_random_transformation(
-        self, image=None, label=None, bounding_box=None
-    ):
+    def get_random_transformation(self, image=None, label=None, bounding_box=None):
         """Produce random transformation config for one single input.
 
         This is used to produce same randomness between
@@ -219,15 +213,12 @@ class BaseImageAugmentationLayer(base_layer.BaseRandomLayer):
         return None
 
     def call(self, inputs, training=True):
-        print("##########here############")
         inputs = self._ensure_inputs_are_compute_dtype(inputs)
         if training:
             inputs, is_dict, use_targets = self._format_inputs(inputs)
             images = inputs[IMAGES]
             if images.shape.rank == 3:
-                return self._format_output(
-                    self._augment(inputs), is_dict, use_targets
-                )
+                return self._format_output(self._augment(inputs), is_dict, use_targets)
             elif images.shape.rank == 4:
                 return self._format_output(
                     self._batch_augment(inputs), is_dict, use_targets
@@ -291,9 +282,7 @@ class BaseImageAugmentationLayer(base_layer.BaseRandomLayer):
 
     def _ensure_inputs_are_compute_dtype(self, inputs):
         if isinstance(inputs, dict):
-            inputs[IMAGES] = utils.ensure_tensor(
-                inputs[IMAGES], self.compute_dtype
-            )
+            inputs[IMAGES] = utils.ensure_tensor(inputs[IMAGES], self.compute_dtype)
         else:
             inputs = utils.ensure_tensor(inputs, self.compute_dtype)
         return inputs
