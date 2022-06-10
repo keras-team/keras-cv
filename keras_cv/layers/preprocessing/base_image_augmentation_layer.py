@@ -13,8 +13,8 @@
 # limitations under the License.
 
 import tensorflow as tf
-from tensorflow.tools.docs import doc_controls
 from tensorflow.keras.layers import preprocessing_utils as utils
+from tensorflow.tools.docs import doc_controls
 
 H_AXIS = -3
 W_AXIS = -2
