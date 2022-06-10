@@ -13,9 +13,8 @@
 # limitations under the License.
 
 import tensorflow as tf
-from keras.engine import base_layer
-from keras.layers.preprocessing import preprocessing_utils as utils
 from tensorflow.tools.docs import doc_controls
+from tensorflow.keras.layers import preprocessing_utils as utils
 
 H_AXIS = -3
 W_AXIS = -2
@@ -26,7 +25,7 @@ TARGETS = "targets"
 BOUNDING_BOXES = "bounding_boxes"
 
 
-class BaseImageAugmentationLayer(base_layer.BaseRandomLayer):
+class BaseImageAugmentationLayer(tf.keras.internal.layers.BaseRandomLayer):
     """Abstract base layer for image augmentaion.
 
     This layer contains base functionalities for preprocessing layers which
@@ -96,9 +95,8 @@ class BaseImageAugmentationLayer(base_layer.BaseRandomLayer):
     `self._random_generator` attribute.
     """
 
-    def __init__(self, rate=1.0, seed=None, **kwargs):
+    def __init__(self, seed=None, **kwargs):
         super().__init__(seed=seed, **kwargs)
-        self.rate = rate
 
     @property
     def auto_vectorize(self):
