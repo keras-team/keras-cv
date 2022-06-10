@@ -76,8 +76,9 @@ class AugMix(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
         self.alpha = alpha
         self.seed = seed
         self.auto_vectorize = False
+        self.severity = severity
         self.severity_factor = preprocessing.parse_factor(
-            severity, min_value=0.01, param_name="severity", seed=self.seed
+            self.severity, min_value=0.01, param_name="severity", seed=self.seed
         )
 
         # initialize layers
