@@ -11,9 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Utility functions to help prepare dataset and visualize preprocessed samples."""
-import functools
-
+"""Utility functions for preprocessing demos."""
 import matplotlib.pyplot as plt
 import tensorflow as tf
 import tensorflow_datasets as tfds
@@ -22,10 +20,10 @@ import tensorflow_datasets as tfds
 def resize(image, label, img_size=(224, 224), num_classes=10):
     image = tf.image.resize(image, img_size)
     label = tf.one_hot(label, num_classes)
-    return image, label
+    return {"images": image, "labels": label}
 
 
-def prepare_dataset(
+def load_oxford_dataset(
     name="oxford_flowers102",
     batch_size=64,
     img_size=(224, 224),
@@ -36,18 +34,16 @@ def prepare_dataset(
     train_ds = data["train"]
     num_classes = ds_info.features["label"].num_classes
 
-    # Prepare resize function.
-    resize_partial = functools.partial(
-        resize, img_size=img_size, num_classes=num_classes
-    )
-
     # Get tf dataset.
-    train_ds = train_ds.map(lambda x, y: resize_partial(x, y)).batch(batch_size)
+    train_ds = train_ds.map(
+        lambda x, y: resize(x, y, img_size=img_size, num_classes=num_classes)
+    ).batch(batch_size)
     return train_ds
 
 
 def visualize_dataset(ds):
-    images, labels = next(iter(ds.take(1)))
+    outputs = next(iter(ds.take(1)))
+    images = outputs["images"]
     plt.figure(figsize=(8, 8))
     for i in range(9):
         plt.subplot(3, 3, i + 1)
