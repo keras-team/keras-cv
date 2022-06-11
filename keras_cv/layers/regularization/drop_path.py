@@ -18,7 +18,7 @@ import tensorflow as tf
 class DropPath(tf.keras.layers.Layer):
     """
     Implements the DropPath layer. Some samples from the batch are randomly
-    dropped during training with dropping probability `drop_rate`. Note that
+    dropped during training with dropping probability `rate`. Note that
     this layer drop individual samples within a batch and not the entire batch.
 
     References:
@@ -26,7 +26,7 @@ class DropPath(tf.keras.layers.Layer):
         - [rwightman/pytorch-image-models](https://tinyurl.com/timm-droppath)
 
     Args:
-        drop_rate: float, the probability of the residual branch being dropped.
+        rate: float, the probability of the residual branch being dropped.
 
     Usage:
     `DropPath` can be used in any network as follows:
@@ -40,15 +40,15 @@ class DropPath(tf.keras.layers.Layer):
     ```
     """
 
-    def __init__(self, drop_rate=0.5, **kwargs):
+    def __init__(self, rate=0.5, **kwargs):
         super().__init__(**kwargs)
-        self.drop_rate = drop_rate
+        self.rate = rate
 
     def call(self, x, training=None):
-        if self.drop_rate == 0.0 or not training:
+        if self.rate == 0.0 or not training:
             return x
         else:
-            keep_prob = 1 - self.drop_rate
+            keep_prob = 1 - self.rate
             drop_map_shape = (x.shape[0],) + (1,) * (len(x.shape) - 1)
             drop_map = tf.keras.backend.random_bernoulli(drop_map_shape, p=keep_prob)
             x = x / keep_prob
@@ -56,6 +56,6 @@ class DropPath(tf.keras.layers.Layer):
             return x
 
     def get_config(self):
-        config = {"drop_rate": self.drop_rate}
+        config = {"rate": self.rate}
         base_config = super().get_config()
         return dict(list(base_config.items()) + list(config.items()))

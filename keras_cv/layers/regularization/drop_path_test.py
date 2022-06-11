@@ -18,10 +18,10 @@ from keras_cv.layers import DropPath
 
 
 class DropPathTest(tf.test.TestCase):
-    FEATURE_SHAPE = (1, 14, 14, 256)
+    FEATURE_SHAPE = (16, 14, 14, 256)
 
     def test_input_unchanged_in_eval_mode(self):
-        layer = DropPath(drop_rate=0.5)
+        layer = DropPath(rate=0.5)
         inputs = tf.random.uniform(self.FEATURE_SHAPE)
 
         outputs = layer(inputs, training=False)
@@ -29,7 +29,7 @@ class DropPathTest(tf.test.TestCase):
         self.assertAllClose(inputs, outputs)
 
     def test_input_unchanged_with_rate_equal_to_zero(self):
-        layer = DropPath(drop_rate=0)
+        layer = DropPath(rate=0)
         inputs = tf.random.uniform(self.FEATURE_SHAPE)
 
         outputs = layer(inputs, training=True)
@@ -37,7 +37,7 @@ class DropPathTest(tf.test.TestCase):
         self.assertAllClose(inputs, outputs)
 
     def test_input_gets_partially_zeroed_out_in_train_mode(self):
-        layer = DropPath(drop_rate=0.2)
+        layer = DropPath(rate=0.2)
         inputs = tf.random.uniform(self.FEATURE_SHAPE)
 
         outputs = layer(inputs, training=True)
@@ -48,13 +48,14 @@ class DropPathTest(tf.test.TestCase):
         self.assertGreaterEqual(non_zeros_inputs, non_zeros_outputs)
 
     def test_strict_input_gets_partially_zeroed_out_in_train_mode(self):
-        layer = DropPath(drop_rate=0.5)
+        layer = DropPath(rate=0.5)
+        tf.random.set_seed(42)
         inputs = tf.random.uniform(self.FEATURE_SHAPE)
 
         total_non_zero_inputs = 0
         total_non_zero_outputs = 0
 
-        for _ in range(5000):
+        for _ in range(200):
             outputs = layer(inputs, training=True)
 
             non_zeros_inputs = tf.math.count_nonzero(inputs, dtype=tf.int32)
