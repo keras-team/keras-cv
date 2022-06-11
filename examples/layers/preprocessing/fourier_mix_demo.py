@@ -24,7 +24,7 @@ from keras_cv import layers
 
 
 def main():
-    fourier_mix = preprocessing.FourierMix(alpha=0.5)
+    fourier_mix = layers.FourierMix(alpha=0.5)
     ds = demo_utils.load_oxford_dataset()
     ds = ds.map(fourier_mix, num_parallel_calls=tf.data.AUTOTUNE)
     demo_utils.visualize_dataset(ds)
