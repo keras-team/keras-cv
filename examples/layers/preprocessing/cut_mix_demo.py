@@ -17,20 +17,11 @@ Operates on the oxford_flowers102 dataset.  In this script the flowers
 are loaded, then are passed through the preprocessing layers.
 Finally, they are shown using matplotlib.
 """
-import matplotlib.pyplot as plt
+
+import demo_utils
 import tensorflow as tf
-import tensorflow_datasets as tfds
 
-from keras_cv.layers import preprocessing
-
-IMG_SIZE = (224, 224)
-BATCH_SIZE = 64
-
-
-def resize(image, label, num_classes=10):
-    image = tf.image.resize(image, IMG_SIZE)
-    label = tf.one_hot(label, num_classes)
-    return image, label
+from keras_cv import layers
 
 
 def to_dict(images, labels):
@@ -38,30 +29,10 @@ def to_dict(images, labels):
 
 
 def main():
-    data, ds_info = tfds.load("oxford_flowers102", with_info=True, as_supervised=True)
-    train_ds = data["train"]
-
-    num_classes = ds_info.features["label"].num_classes
-
-    train_ds = (
-        train_ds.map(lambda x, y: resize(x, y, num_classes=num_classes))
-        .shuffle(10 * BATCH_SIZE)
-        .batch(BATCH_SIZE)
-        .map(to_dict)
-    )
-    cutmix = preprocessing.CutMix()
-    train_ds = train_ds.map(
-        lambda image, label: cutmix({"images": image, "labels": label}),
-        num_parallel_calls=tf.data.AUTOTUNE,
-    )
-
-    for data in train_ds.take(1):
-        plt.figure(figsize=(8, 8))
-        for i in range(9):
-            plt.subplot(3, 3, i + 1)
-            plt.imshow(data["images"][i].numpy().astype("uint8"))
-            plt.axis("off")
-        plt.show()
+    cutmix = layers.CutMix()
+    ds = demo_utils.load_oxford_dataset()
+    ds = ds.map(cutmix, num_parallel_calls=tf.data.AUTOTUNE)
+    demo_utils.visualize_dataset(ds)
 
 
 if __name__ == "__main__":
