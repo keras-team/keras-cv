@@ -22,10 +22,15 @@ from keras_cv.utils import preprocessing
 class AugMix(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
     """Performs the AugMix data augmentation technique.
 
-    AugMix mixes several chains of augmentations together using weights sampled
-    from a Dirichlet distribution.  A single chain consist of a series of
-    individual augmentations.  The resultant image is further mixed with the
+    A single chain in AugMix consists of a sequence of individual augmentations.
+    AugMix mixes these chains of augmentations together using weights sampled
+    from a Dirichlet distribution. The resultant image is further mixed with the
     original image to form the final augmented image.
+
+    AugMix aims to produce images with variety while preserving much of the
+    image semantics and local statistics.  The augmentations are sampled from the
+    list: translation, shearing, rotation, posterization, histogram equalization,
+    solarization and auto contrast.
 
     Args:
         value_range: the range of values the incoming images will have.
@@ -39,9 +44,8 @@ class AugMix(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
             Defaults to 0.3.
         width: an integer representing the number of different chains to
             be mixed. Defaults to 3.
-        depth: an integer representing the number of transformations in
-            the chains. A negative value enables stochastic depth uniformly
-            in [1,3]. Defaults to -1.
+        depth: an integer or range representing the number of transformations in
+            the chains. Defaults to [1,3].
         alpha: a float value used as the probability coefficients for the
             Beta and Dirichlet distributions. Defaults to 1.0.
         seed: Integer. Used to create a random seed.
@@ -54,7 +58,7 @@ class AugMix(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
     Sample Usage:
     ```python
     (images, labels), _ = tf.keras.datasets.cifar10.load_data()
-    augmix = keras_cv.layers.preprocessing.mix_up.AugMix([0, 255])
+    augmix = keras_cv.layers.AugMix([0, 255])
     augmented_images = augmix(images)
     ```
     """
@@ -64,7 +68,7 @@ class AugMix(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
         value_range,
         severity=0.3,
         width=3,
-        depth=-1,
+        depth=[1, 3],
         alpha=1.0,
         seed=None,
         **kwargs,
@@ -78,8 +82,15 @@ class AugMix(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
         self.auto_vectorize = False
         self.severity = severity
         self.severity_factor = preprocessing.parse_factor(
-            self.severity, min_value=0.01, param_name="severity", seed=self.seed
+            self.severity,
+            min_value=0.01,
+            max_value=1.0,
+            param_name="severity",
+            seed=self.seed,
         )
+
+        if isinstance(self.depth, int):
+            self.depth = [self.depth, self.depth]
 
         # initialize layers
         self.auto_contrast = layers.AutoContrast(value_range=self.value_range)
@@ -96,6 +107,11 @@ class AugMix(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
         sample_beta = tf.random.gamma((), 1.0, beta=beta)
         return sample_alpha / (sample_alpha + sample_beta)
 
+    def _sample_depth(self):
+        return self._random_generator.random_uniform(
+            shape=(), minval=self.depth[0], maxval=self.depth[1] + 1, dtype=tf.int32
+        )
+
     def _loop_on_depth(self, depth_level, image_aug):
         op_index = self._random_generator.random_uniform(
             shape=(), minval=0, maxval=8, dtype=tf.int32
@@ -106,13 +122,7 @@ class AugMix(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
 
     def _loop_on_width(self, image, chain_mixing_weights, curr_chain, result):
         image_aug = tf.identity(image)
-        depth = tf.cond(
-            tf.greater(self.depth, 0),
-            lambda: self.depth,
-            lambda: self._random_generator.random_uniform(
-                shape=(), minval=1, maxval=3, dtype=tf.int32
-            ),
-        )
+        depth = self._sample_depth()
 
         depth_level = tf.constant([0], dtype=tf.int32)
         depth_level, image_aug = tf.while_loop(
