@@ -42,5 +42,5 @@ class RandomJpegQuality(tf.keras.__internal__.layers.BaseImageAugmentationLayer)
 
     def get_config(self):
         config = super().get_config()
-        config.update({"jpeg_quality": self.factor})
+        config.update({"factor": self.factor})
         return config
