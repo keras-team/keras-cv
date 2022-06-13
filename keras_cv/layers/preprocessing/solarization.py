@@ -13,11 +13,14 @@
 # limitations under the License.
 import tensorflow as tf
 
+from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
+    BaseImageAugmentationLayer,
+)
 from keras_cv.utils import preprocessing
 
 
 @tf.keras.utils.register_keras_serializable(package="keras_cv")
-class Solarization(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
+class Solarization(BaseImageAugmentationLayer):
     """Applies (max_value - pixel + min_value) for each pixel in the image.
 
     When created without `threshold` parameter, the layer performs solarization to

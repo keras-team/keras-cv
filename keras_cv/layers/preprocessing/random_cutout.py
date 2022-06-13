@@ -13,12 +13,15 @@
 # limitations under the License.
 import tensorflow as tf
 
+from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
+    BaseImageAugmentationLayer,
+)
 from keras_cv.utils import fill_utils
 from keras_cv.utils import preprocessing
 
 
 @tf.keras.utils.register_keras_serializable(package="keras_cv")
-class RandomCutout(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
+class RandomCutout(BaseImageAugmentationLayer):
     """Randomly cut out rectangles from images and fill them.
 
     Args:

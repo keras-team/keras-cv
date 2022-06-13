@@ -13,11 +13,14 @@
 # limitations under the License.
 import tensorflow as tf
 
+from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
+    BaseImageAugmentationLayer,
+)
 from keras_cv.utils import preprocessing
 
 
 @tf.keras.utils.register_keras_serializable(package="keras_cv")
-class RandomColorDegeneration(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
+class RandomColorDegeneration(BaseImageAugmentationLayer):
     """Randomly performs the color degeneration operation on given images.
 
     The sharpness operation first converts an image to gray scale, then back to color.
