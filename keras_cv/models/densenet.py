@@ -16,6 +16,7 @@
 
 Reference:
   - [Densely Connected Convolutional Networks](https://arxiv.org/abs/1608.06993)
+  - [Based on the Original keras.applications DenseNet](https://github.com/keras-team/keras/blob/master/keras/applications/densenet.py)
 """
 
 import tensorflow as tf
@@ -187,9 +188,9 @@ def DenseNet(
 
     if include_top and not classes:
         raise ValueError(
-        "If `include_top` is True, "
-        "you should specify `classes`. "
-        f"Received: classes={classes}"
+            "If `include_top` is True, "
+            "you should specify `classes`. "
+            f"Received: classes={classes}"
         )
 
     inputs = layers.Input(shape=input_shape)

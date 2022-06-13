@@ -40,7 +40,11 @@ class ApplicationsTest(tf.test.TestCase, parameterized.TestCase):
     def test_application_base(self, app, _):
         # Can be instantiated with default arguments
         model = app(
-            input_shape=(224, 224, 3), include_top=True, classes=1000, include_rescaling=False, weights=None
+            input_shape=(224, 224, 3),
+            include_top=True,
+            classes=1000,
+            include_rescaling=False,
+            weights=None,
         )
         # Can be serialized and deserialized
         config = model.get_config()
