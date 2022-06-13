@@ -36,16 +36,33 @@ def resize(inputs):
     inputs["objects"]["bbox"] = tf.squeeze(
         tf.stack(
             [
-                y1 * (IMG_SIZE[0] / height),
-                x1 * (IMG_SIZE[1] / width),
-                y2 * (IMG_SIZE[0] / height),
-                x2 * (IMG_SIZE[1] / width),
+                x1 * (IMG_SIZE[0] / width),
+                y1 * (IMG_SIZE[1] / height),
+                x2 * (IMG_SIZE[0] / width),
+                y2 * (IMG_SIZE[1] / height),
             ],
             axis=1,
         ),
         axis=-1,
     )
     return inputs
+
+
+def _rel_xyxy_to_rel_yxyx(bounding_boxes, height, width):
+    x1, y1, x2, y2 = tf.split(bounding_boxes, 4, axis=2)
+    new_bboxes = tf.squeeze(
+        tf.stack(
+            [
+                y1,
+                x1,
+                y2,
+                x2,
+            ],
+            axis=2,
+        ),
+        axis=-1,
+    )
+    return new_bboxes
 
 
 def main():
@@ -56,7 +73,10 @@ def main():
     dataset = dataset.padded_batch(BATCH_SIZE)
 
     randomshear = preprocessing.RandomShear(
-        x_factor=(0.1, 0.3), y_factor=(0.1, 0.3), fill_mode="constant"
+        x_factor=(0.1, 0.3),
+        y_factor=(0.1, 0.3),
+        fill_mode="constant",
+        bounding_box_format="rel_xyxy",
     )
     colors = np.array([[0.0, 255.0, 0.0]])
     for example in dataset.take(4):
@@ -64,7 +84,10 @@ def main():
             {"images": example["image"], "bounding_boxes": example["objects"]["bbox"]}
         )
         images, bboxes = result["images"], result["bounding_boxes"]
-        plotted_images = tf.image.draw_bounding_boxes(images, bboxes, colors, name=None)
+        rel_yxyx_bboxes = _rel_xyxy_to_rel_yxyx(bboxes, IMG_SIZE[0], IMG_SIZE[1])
+        plotted_images = tf.image.draw_bounding_boxes(
+            images, rel_yxyx_bboxes, colors, name=None
+        )
         plt.figure(figsize=(20, 20))
         for i in range(BATCH_SIZE):
             plt.subplot(BATCH_SIZE // 3, BATCH_SIZE // 3, i + 1)
