@@ -26,6 +26,7 @@ TARGETS = "targets"
 BOUNDING_BOXES = "bounding_boxes"
 
 
+@tf.keras.utils.register_keras_serializable(package="keras_cv")
 class BaseImageAugmentationLayer(tf.keras.__internal__.layers.BaseRandomLayer):
     """Abstract base layer for image augmentaion.
 
@@ -69,7 +70,7 @@ class BaseImageAugmentationLayer(tf.keras.__internal__.layers.BaseRandomLayer):
     on `tf.map_fn()`. For example:
 
     ```python
-    class SubclassLayer(BaseImageAugmentationLayer):
+    class SubclassLayer(keras_cv.layers.BaseImageAugmentationLayer):
       def __init__(self):
         super().__init__()
         self.auto_vectorize = False
@@ -78,7 +79,7 @@ class BaseImageAugmentationLayer(tf.keras.__internal__.layers.BaseRandomLayer):
     Example:
 
     ```python
-    class RandomContrast(BaseImageAugmentationLayer):
+    class RandomContrast(keras_cv.layers.BaseImageAugmentationLayer):
 
       def __init__(self, factor=(0.5, 1.5), **kwargs):
         super().__init__(**kwargs)

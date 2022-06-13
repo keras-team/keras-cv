@@ -15,10 +15,12 @@
 import tensorflow as tf
 
 from keras_cv.utils import preprocessing
-
+from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
+    BaseImageAugmentationLayer,
+)
 
 @tf.keras.utils.register_keras_serializable(package="keras_cv")
-class RandomGaussianBlur(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
+class RandomGaussianBlur(BaseImageAugmentationLayer):
     """Applies a Gaussian Blur with random strength to an image.
 
     Args:

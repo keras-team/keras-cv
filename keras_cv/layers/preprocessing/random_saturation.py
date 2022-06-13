@@ -14,10 +14,13 @@
 import tensorflow as tf
 
 from keras_cv.utils import preprocessing
+from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
+    BaseImageAugmentationLayer,
+)
 
 
 @tf.keras.utils.register_keras_serializable(package="keras_cv")
-class RandomSaturation(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
+class RandomSaturation(BaseImageAugmentationLayer):
     """Randomly adjusts the saturation on given images.
 
     This layer will randomly increase/reduce the saturation for the input RGB

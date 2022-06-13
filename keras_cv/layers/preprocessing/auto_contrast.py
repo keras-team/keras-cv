@@ -15,10 +15,13 @@
 import tensorflow as tf
 
 from keras_cv.utils import preprocessing
+from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
+    BaseImageAugmentationLayer,
+)
 
 
 @tf.keras.utils.register_keras_serializable(package="keras_cv")
-class AutoContrast(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
+class AutoContrast(BaseImageAugmentationLayer):
     """Performs the AutoContrast operation on an image.
 
     Auto contrast stretches the values of an image across the entire available

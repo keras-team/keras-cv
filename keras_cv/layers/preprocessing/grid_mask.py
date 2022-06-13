@@ -18,6 +18,9 @@ from tensorflow.keras import layers
 from keras_cv import core
 from keras_cv.utils import fill_utils
 from keras_cv.utils import preprocessing
+from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
+    BaseImageAugmentationLayer,
+)
 
 
 def _center_crop(mask, width, height):
