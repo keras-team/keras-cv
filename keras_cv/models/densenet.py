@@ -200,8 +200,7 @@ def DenseNet(
     x = layers.Conv2D(64, 7, strides=2, use_bias=False, padding='same', name="conv1/conv")(x)
     x = layers.BatchNormalization(axis=BN_AXIS, epsilon=1.001e-5, name="conv1/bn")(x)
     x = layers.Activation("relu", name="conv1/relu")(x)
-    x = layers.ZeroPadding2D(padding=((1, 1), (1, 1)))(x)
-    x = layers.MaxPooling2D(3, strides=2, name="pool1")(x)
+    x = layers.MaxPooling2D(3, strides=2, padding="same", name="pool1")(x)
 
     x = DenseBlock(blocks[0], name="conv2")(x)
     x = TransitionBlock(0.5, name="pool2")(x)
