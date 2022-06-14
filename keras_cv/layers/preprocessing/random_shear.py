@@ -15,7 +15,6 @@ import warnings
 
 import tensorflow as tf
 
-
 from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
     BaseImageAugmentationLayer,
 )
@@ -55,6 +54,8 @@ class RandomShear(BaseImageAugmentationLayer):
              A `Tensor` of type `float32`. The value to be filled when fill_mode is
              constant".  Defaults to `0.0`.
         seed: Integer. Used to create a random seed.
+        bounding_box_format : Specify input bounding box format.
+        Supported formats : xyxy, rel_xyxy, xywh, center_xywh
     """
 
     def __init__(

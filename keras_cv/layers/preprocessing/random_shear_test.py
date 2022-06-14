@@ -229,7 +229,7 @@ class RandomShearTest(tf.test.TestCase):
         self.assertNotAllClose(ys[..., 3], output_ys[..., 3])
 
     def test_rel_xyxy(self):
-        """test for shear bbox augmentation for relative xyxy"""
+        """test for shear bbox augmentation for relative xyxy bbox input"""
         xs = tf.cast(
             tf.stack(
                 [2 * tf.ones((4, 4, 3)), tf.ones((4, 4, 3))],
