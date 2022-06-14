@@ -27,93 +27,89 @@ from tensorflow.keras import layers
 BN_AXIS = 3
 
 
-def DenseBlock(x, blocks, name=None):
+def DenseBlock(blocks, name=None):
     """A dense block.
 
     Args:
-      x: input tensor.
       blocks: integer, the number of building blocks.
       name: string, block label.
 
     Returns:
-      Output tensor for the block.
+      a function that takes an input Tensor representing a DenseBlock.
     """
     if name is None:
-        name = "dense_block_" + str(backend.get_uid("dense_block"))
+        name = f"dense_block_{backend.get_uid('dense_block')}"
 
-    for i in range(blocks):
-        x = ConvBlock(x, 32, name=name + "_block_" + str(i))
-    return x
+    def apply(x):
+        for i in range(blocks):
+            x = ConvBlock(x, 32, name=name + "_block_" + str(i))
+        return x
+
+    return apply
 
 
-def TransitionBlock(x, reduction, name=None):
+def TransitionBlock(reduction, name=None):
     """A transition block.
 
     Args:
-      x: input tensor.
       reduction: float, compression rate at transition layers.
       name: string, block label.
 
     Returns:
-      output tensor for the block.
+      a function that takes an input Tensor representing a TransitionBlock.
     """
     if name is None:
-        name = "transition_block_" + str(backend.get_uid("transition_block"))
+        name = f"transition_block_{backend.get_uid('transition_block')}"
 
-    x = layers.BatchNormalization(axis=BN_AXIS, epsilon=1.001e-5, name=name + "_bn")(x)
-    x = layers.Activation("relu", name=name + "_relu")(x)
-    x = layers.Conv2D(
-        int(backend.int_shape(x)[BN_AXIS] * reduction),
-        1,
-        use_bias=False,
-        name=name + "_conv",
-    )(x)
-    x = layers.AveragePooling2D(2, strides=2, name=name + "_pool")(x)
-    return x
+    def apply(x):
+        x = layers.BatchNormalization(
+            axis=BN_AXIS, epsilon=1.001e-5, name=name + "_bn"
+        )(x)
+        x = layers.Activation("relu", name=name + "_relu")(x)
+        x = layers.Conv2D(
+            int(backend.int_shape(x)[BN_AXIS] * reduction),
+            1,
+            use_bias=False,
+            name=name + "_conv",
+        )(x)
+        x = layers.AveragePooling2D(2, strides=2, name=name + "_pool")(x)
+        return x
+
+    return apply
 
 
-def ConvBlock(x, growth_rate, name=None):
+def ConvBlock(growth_rate, name=None):
     """A building block for a dense block.
 
     Args:
-      x: input tensor.
       growth_rate: float, growth rate at dense layers.
       name: string, block label.
 
     Returns:
-      Output tensor for the block.
+      a function that takes an input Tensor representing a ConvBlock.
     """
     if name is None:
-        name = "conv_block_" + str(backend.get_uid("conv_block"))
+        name = f"conv_block_{backend.get_uid('conv_block')}"
 
-    x1 = layers.BatchNormalization(axis=BN_AXIS, epsilon=1.001e-5, name=name + "_0_bn")(
-        x
-    )
-    x1 = layers.Activation("relu", name=name + "_0_relu")(x1)
-    x1 = layers.Conv2D(4 * growth_rate, 1, use_bias=False, name=name + "_1_conv")(x1)
-    x1 = layers.BatchNormalization(axis=BN_AXIS, epsilon=1.001e-5, name=name + "_1_bn")(
-        x1
-    )
-    x1 = layers.Activation("relu", name=name + "_1_relu")(x1)
-    x1 = layers.Conv2D(
-        growth_rate, 3, padding="same", use_bias=False, name=name + "_2_conv"
-    )(x1)
-    x = layers.Concatenate(axis=BN_AXIS, name=name + "_concat")([x, x1])
-    return x
+    def apply(x):
+        x1 = layers.BatchNormalization(
+            axis=BN_AXIS, epsilon=1.001e-5, name=name + "_0_bn"
+        )(x)
+        x1 = layers.Activation("relu", name=name + "_0_relu")(x1)
+        x1 = layers.Conv2D(4 * growth_rate, 1, use_bias=False, name=name + "_1_conv")(
+            x1
+        )
+        x1 = layers.BatchNormalization(
+            axis=BN_AXIS, epsilon=1.001e-5, name=name + "_1_bn"
+        )(x1)
+        x1 = layers.Activation("relu", name=name + "_1_relu")(x1)
+        x1 = layers.Conv2D(
+            growth_rate, 3, padding="same", use_bias=False, name=name + "_2_conv"
+        )(x1)
+        x = layers.Concatenate(axis=BN_AXIS, name=name + "_concat")([x, x1])
+        return x
 
-
-def apply_classifier(x, classes, classifier_activation):
-    x = layers.GlobalAveragePooling2D(name="avg_pool")(x)
-    x = layers.Dense(classes, activation=classifier_activation, name="predictions")(x)
-    return x
-
-
-def apply_pooling_layer(x, pooling):
-    if pooling == "avg":
-        return layers.GlobalAveragePooling2D(name="avg_pool")(x)
-    if pooling == "max":
-        return layers.GlobalMaxPooling2D(name="max_pool")(x)
-    return x
+    return apply
 
 
 def DenseNet(
@@ -207,21 +203,26 @@ def DenseNet(
     x = layers.ZeroPadding2D(padding=((1, 1), (1, 1)))(x)
     x = layers.MaxPooling2D(3, strides=2, name="pool1")(x)
 
-    x = DenseBlock(x, blocks[0], name="conv2")
+    x = DenseBlock(blocks[0], name="conv2")(x)
     x = TransitionBlock(x, 0.5, name="pool2")
-    x = DenseBlock(x, blocks[1], name="conv3")
+    x = DenseBlock(blocks[1], name="conv3")(x)
     x = TransitionBlock(x, 0.5, name="pool3")
-    x = DenseBlock(x, blocks[2], name="conv4")
+    x = DenseBlock(blocks[2], name="conv4")(x)
     x = TransitionBlock(x, 0.5, name="pool4")
-    x = DenseBlock(x, blocks[3], name="conv5")
+    x = DenseBlock(blocks[3], name="conv5")(x)
 
     x = layers.BatchNormalization(axis=BN_AXIS, epsilon=1.001e-5, name="bn")(x)
     x = layers.Activation("relu", name="relu")(x)
 
     if include_top:
-        x = apply_classifier(x, classes, classifier_activation)
-    else:
-        x = apply_pooling_layer(x, pooling)
+        x = layers.GlobalAveragePooling2D(name="avg_pool")(x)
+        x = layers.Dense(classes, activation=classifier_activation, name="predictions")(
+            x
+        )
+    elif pooling == "avg":
+        x = layers.GlobalAveragePooling2D(name="avg_pool")(x)
+    elif pooling == "max":
+        x = layers.GlobalMaxPooling2D(name="max_pool")(x)
 
     model = keras.Model(inputs, x, name=name, **kwargs)
 
