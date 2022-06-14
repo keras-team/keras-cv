@@ -42,9 +42,9 @@ class AugMix(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
             range is interpreted as `(0, severity)`. This value represents the
             level of strength of augmentations and is in the range [0, 1].
             Defaults to 0.3.
-        width: an integer representing the number of different chains to
+        num_chains: an integer representing the number of different chains to
             be mixed. Defaults to 3.
-        depth: an integer or range representing the number of transformations in
+        chain_depth: an integer or range representing the number of transformations in
             the chains. Defaults to [1,3].
         alpha: a float value used as the probability coefficients for the
             Beta and Dirichlet distributions. Defaults to 1.0.
@@ -59,7 +59,7 @@ class AugMix(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
     ```python
     (images, labels), _ = tf.keras.datasets.cifar10.load_data()
     augmix = keras_cv.layers.AugMix([0, 255])
-    augmented_images = augmix(images)
+    augmented_images = augmix(images[:100])
     ```
     """
 
@@ -67,16 +67,16 @@ class AugMix(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
         self,
         value_range,
         severity=0.3,
-        width=3,
-        depth=[1, 3],
+        num_chains=3,
+        chain_depth=[1, 3],
         alpha=1.0,
         seed=None,
         **kwargs,
     ):
         super().__init__(seed=seed, **kwargs)
         self.value_range = value_range
-        self.width = width
-        self.depth = depth
+        self.num_chains = num_chains
+        self.chain_depth = chain_depth
         self.alpha = alpha
         self.seed = seed
         self.auto_vectorize = False
@@ -89,8 +89,8 @@ class AugMix(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
             seed=self.seed,
         )
 
-        if isinstance(self.depth, int):
-            self.depth = [self.depth, self.depth]
+        if isinstance(self.chain_depth, int):
+            self.chain_depth = [self.chain_depth, self.chain_depth]
 
         # initialize layers
         self.auto_contrast = layers.AutoContrast(value_range=self.value_range)
@@ -109,7 +109,7 @@ class AugMix(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
 
     def _sample_depth(self):
         return self._random_generator.random_uniform(
-            shape=(), minval=self.depth[0], maxval=self.depth[1] + 1, dtype=tf.int32
+            shape=(), minval=self.chain_depth[0], maxval=self.chain_depth[1] + 1, dtype=tf.int32
         )
 
     def _loop_on_depth(self, depth_level, image_aug):
@@ -122,11 +122,11 @@ class AugMix(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
 
     def _loop_on_width(self, image, chain_mixing_weights, curr_chain, result):
         image_aug = tf.identity(image)
-        depth = self._sample_depth()
+        chain_depth = self._sample_depth()
 
         depth_level = tf.constant([0], dtype=tf.int32)
         depth_level, image_aug = tf.while_loop(
-            lambda depth_level, image_aug: tf.less(depth_level, depth),
+            lambda depth_level, image_aug: tf.less(depth_level, chain_depth),
             self._loop_on_depth,
             [depth_level, image_aug],
         )
@@ -278,7 +278,7 @@ class AugMix(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
 
     def augment_image(self, image, transformation=None):
         chain_mixing_weights = AugMix._sample_from_dirichlet(
-            tf.ones([self.width]) * self.alpha
+            tf.ones([self.num_chains]) * self.alpha
         )
         weight_sample = AugMix._sample_from_beta(self.alpha, self.alpha)
 
@@ -287,7 +287,7 @@ class AugMix(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
 
         image, chain_mixing_weights, curr_chain, result = tf.while_loop(
             lambda image, chain_mixing_weights, curr_chain, result: tf.less(
-                curr_chain, self.width
+                curr_chain, self.num_chains
             ),
             self._loop_on_width,
             [image, chain_mixing_weights, curr_chain, result],
@@ -302,8 +302,8 @@ class AugMix(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
         config = {
             "value_range": self.value_range,
             "severity": self.severity,
-            "width": self.width,
-            "depth": self.depth,
+            "num_chains": self.num_chains,
+            "chain_depth": self.chain_depth,
             "alpha": self.alpha,
             "seed": self.seed,
         }
