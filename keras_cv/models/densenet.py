@@ -27,7 +27,7 @@ from tensorflow.keras import layers
 BN_AXIS = 3
 
 
-def dense_block(x, blocks, name):
+def DenseBlock(x, blocks, name=None):
     """A dense block.
 
     Args:
@@ -39,11 +39,11 @@ def dense_block(x, blocks, name):
       Output tensor for the block.
     """
     for i in range(blocks):
-        x = conv_block(x, 32, name=name + "_block" + str(i + 1))
+        x = ConvBlock(x, 32, name=name + "_block_" + str(i))
     return x
 
 
-def transition_block(x, reduction, name):
+def TransitionBlock(x, reduction, name=None):
     """A transition block.
 
     Args:
@@ -66,7 +66,7 @@ def transition_block(x, reduction, name):
     return x
 
 
-def conv_block(x, growth_rate, name):
+def ConvBlock(x, growth_rate, name=None):
     """A building block for a dense block.
 
     Args:
@@ -93,24 +93,13 @@ def conv_block(x, growth_rate, name):
     return x
 
 
-def _get_name(blocks):
-    if blocks == [6, 12, 24, 16]:
-        return "densenet121"
-    if blocks == [6, 12, 32, 32]:
-        return "densenet169"
-    if blocks == [6, 12, 48, 32]:
-        return "densenet201"
-    return "densenet"
-
-
-def _apply_classifier(x, classes, classifier_activation):
+def apply_classifier(x, classes, classifier_activation):
     x = layers.GlobalAveragePooling2D(name="avg_pool")(x)
     x = layers.Dense(classes, activation=classifier_activation, name="predictions")(x)
     return x
 
 
-def _apply_pooling_layer(x, pooling):
-    print(x.shape)
+def apply_pooling_layer(x, pooling):
     if pooling == "avg":
         return layers.GlobalAveragePooling2D(name="avg_pool")(x)
     if pooling == "max":
@@ -127,6 +116,8 @@ def DenseNet(
     input_shape=(None, None, 3),
     pooling=None,
     classifier_activation="softmax",
+    name=None,
+    **kwargs,
 ):
     """Instantiates the DenseNet architecture.
 
@@ -169,6 +160,7 @@ def DenseNet(
         `classifier_activation=None` to return the logits of the "top" layer.
         When loading pretrained weights, `classifier_activation` can only
         be `None` or `"softmax"`.
+      name: (Optional) name to pass to the model.  Defaults to "DenseNet".
 
     Returns:
       A `keras.Model` instance.
@@ -206,23 +198,23 @@ def DenseNet(
     x = layers.ZeroPadding2D(padding=((1, 1), (1, 1)))(x)
     x = layers.MaxPooling2D(3, strides=2, name="pool1")(x)
 
-    x = dense_block(x, blocks[0], name="conv2")
-    x = transition_block(x, 0.5, name="pool2")
-    x = dense_block(x, blocks[1], name="conv3")
-    x = transition_block(x, 0.5, name="pool3")
-    x = dense_block(x, blocks[2], name="conv4")
-    x = transition_block(x, 0.5, name="pool4")
-    x = dense_block(x, blocks[3], name="conv5")
+    x = DenseBlock(x, blocks[0], name="conv2")
+    x = TransitionBlock(x, 0.5, name="pool2")
+    x = DenseBlock(x, blocks[1], name="conv3")
+    x = TransitionBlock(x, 0.5, name="pool3")
+    x = DenseBlock(x, blocks[2], name="conv4")
+    x = TransitionBlock(x, 0.5, name="pool4")
+    x = DenseBlock(x, blocks[3], name="conv5")
 
     x = layers.BatchNormalization(axis=BN_AXIS, epsilon=1.001e-5, name="bn")(x)
     x = layers.Activation("relu", name="relu")(x)
 
     if include_top:
-        x = _apply_classifier(x, classes, classifier_activation)
+        x = apply_classifier(x, classes, classifier_activation)
     else:
-        x = _apply_pooling_layer(x, pooling)
+        x = apply_pooling_layer(x, pooling)
 
-    model = keras.Model(inputs, x, name=_get_name(blocks))
+    model = keras.Model(inputs, x, name=name, **kwargs)
 
     if weights is not None:
         model.load_weights(weights)
@@ -236,6 +228,7 @@ def DenseNet121(
     weights=None,
     input_shape=(None, None, 3),
     pooling=None,
+    name="densenet121",
     **kwargs,
 ):
     return DenseNet(
@@ -246,6 +239,7 @@ def DenseNet121(
         weights=weights,
         input_shape=input_shape,
         pooling=pooling,
+        name=name,
         **kwargs,
     )
 
@@ -257,6 +251,7 @@ def DenseNet169(
     weights=None,
     input_shape=(None, None, 3),
     pooling=None,
+    name="densenet169",
     **kwargs,
 ):
     return DenseNet(
@@ -267,6 +262,7 @@ def DenseNet169(
         weights=weights,
         input_shape=input_shape,
         pooling=pooling,
+        name=name,
         **kwargs,
     )
 
@@ -278,6 +274,7 @@ def DenseNet201(
     weights=None,
     input_shape=(None, None, 3),
     pooling=None,
+    name="densenet201",
     **kwargs,
 ):
     return DenseNet(
@@ -288,6 +285,7 @@ def DenseNet201(
         weights=weights,
         input_shape=input_shape,
         pooling=pooling,
+        name=name,
         **kwargs,
     )
 

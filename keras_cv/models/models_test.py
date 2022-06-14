@@ -28,13 +28,7 @@ MODEL_LIST = [
 
 class ApplicationsTest(tf.test.TestCase, parameterized.TestCase):
     def assertShapeEqual(self, shape1, shape2):
-        if len(shape1) != len(shape2):
-            raise AssertionError(
-                "Shapes are different rank: %s vs %s" % (shape1, shape2)
-            )
-        for v1, v2 in zip(shape1, shape2):
-            if v1 != v2:
-                raise AssertionError("Shapes differ: %s vs %s" % (shape1, shape2))
+        self.assertEqual(tf.TensorShape(shape1), tf.TensorShape(shape2))
 
     @parameterized.parameters(*MODEL_LIST)
     def test_application_base(self, app, _):
