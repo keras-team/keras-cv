@@ -98,6 +98,11 @@ class COCORecall(keras.metrics.Metric):
         num_thresholds = len(iou_thresholds)
         num_categories = len(class_ids)
 
+        if any([c < 0 for c in class_ids]):
+            raise ValueError(
+                "class_ids must be positive.  Got " f"class_ids={class_ids}"
+            )
+
         self.true_positives = self.add_weight(
             name="true_positives",
             shape=(num_thresholds, num_categories),
