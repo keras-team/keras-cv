@@ -197,7 +197,9 @@ def DenseNet(
     if include_rescaling:
         x = layers.Rescaling(1 / 255.0)(x)
 
-    x = layers.Conv2D(64, 7, strides=2, use_bias=False, padding='same', name="conv1/conv")(x)
+    x = layers.Conv2D(
+        64, 7, strides=2, use_bias=False, padding="same", name="conv1/conv"
+    )(x)
     x = layers.BatchNormalization(axis=BN_AXIS, epsilon=1.001e-5, name="conv1/bn")(x)
     x = layers.Activation("relu", name="conv1/relu")(x)
     x = layers.MaxPooling2D(3, strides=2, padding="same", name="pool1")(x)
