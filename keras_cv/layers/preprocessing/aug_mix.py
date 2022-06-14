@@ -22,15 +22,13 @@ from keras_cv.utils import preprocessing
 class AugMix(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
     """Performs the AugMix data augmentation technique.
 
-    A single chain in AugMix consists of a sequence of individual augmentations.
-    AugMix mixes these chains of augmentations together using weights sampled
-    from a Dirichlet distribution. The resultant image is further mixed with the
-    original image to form the final augmented image.
-
-    AugMix aims to produce images with variety while preserving much of the
-    image semantics and local statistics.  The augmentations are sampled from the
-    list: translation, shearing, rotation, posterization, histogram equalization,
-    solarization and auto contrast.
+    AugMix aims to produce images with variety while preserving the
+    image semantics and local statistics.  During the augmentation process, each image
+    is augmented `num_chains` different ways, each way consisting of `chain_depth`
+    augmentations. Augmentations are sampled from the list: translation, shearing,
+    rotation, posterization, histogram equalization, solarization and auto contrast.
+    The results of each chain are then mixed together with the original
+    image based on random samples from a Dirichlet distribution.
 
     Args:
         value_range: the range of values the incoming images will have.
