@@ -100,7 +100,7 @@ def ConvBlock(growth_rate, name=None):
             x1
         )
         x1 = layers.BatchNormalization(
-            axis=BN_AXIS, epsilon=1.001e-5, name=f"{name}_1_bn"``
+            axis=BN_AXIS, epsilon=1.001e-5, name=f"{name}_1_bn"
         )(x1)
         x1 = layers.Activation("relu", name=f"{name}_1_relu")(x1)
         x1 = layers.Conv2D(
@@ -170,10 +170,11 @@ def DenseNet(
     Returns:
       A `keras.Model` instance.
     """
-    if not (weights in {None} or tf.io.gfile.exists(weights)):
+    if weights and not tf.io.gfile.exists(weights)
         raise ValueError(
             "The `weights` argument should be either "
-            "`None` or the path to the weights file to be loaded."
+            "`None` or the path to the weights file to be loaded. "
+            f"Weights file not found at location: {weights}"
         )
 
     if include_top and None in input_shape:
