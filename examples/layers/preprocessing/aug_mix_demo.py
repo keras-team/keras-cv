@@ -18,48 +18,17 @@ are loaded, then are passed through the preprocessing layers.
 Finally, they are shown using matplotlib.
 """
 
-import matplotlib.pyplot as plt
+import demo_utils
 import tensorflow as tf
-import tensorflow_datasets as tfds
 
-from keras_cv.layers import preprocessing
-
-IMG_SIZE = (224, 224)
-BATCH_SIZE = 64
-
-
-def resize(image, label, num_classes=10):
-    image = tf.image.resize(image, IMG_SIZE)
-    label = tf.one_hot(label, num_classes)
-    return image, label
+from keras_cv import layers
 
 
 def main():
-    data, ds_info = tfds.load("oxford_flowers102", with_info=True, as_supervised=True)
-    train_ds = data["train"]
-
-    num_classes = ds_info.features["label"].num_classes
-
-    train_ds = (
-        train_ds.map(lambda x, y: resize(x, y, num_classes=num_classes))
-        .shuffle(10 * BATCH_SIZE)
-        .batch(BATCH_SIZE)
-    )
-
-    augmix = preprocessing.AugMix(value_range=[0, 255])
-
-    train_ds = train_ds.map(
-        lambda x, y: (augmix(x), y),
-        num_parallel_calls=tf.data.AUTOTUNE,
-    )
-
-    for images, labels in train_ds.take(1):
-        plt.figure(figsize=(8, 8))
-        for i in range(9):
-            plt.subplot(3, 3, i + 1)
-            plt.imshow(images[i].numpy().astype("uint8"))
-            plt.axis("off")
-        plt.show()
+    augmix = layers.AugMix(value_range=[0, 255])
+    ds = demo_utils.load_oxford_dataset()
+    ds = ds.map(augmix, num_parallel_calls=tf.data.AUTOTUNE)
+    demo_utils.visualize_dataset(ds)
 
 
 if __name__ == "__main__":

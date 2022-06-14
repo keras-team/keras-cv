@@ -77,6 +77,10 @@ class AugMix(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
         self.value_range = value_range
         self.num_chains = num_chains
         self.chain_depth = chain_depth
+
+        if isinstance(self.chain_depth, int):
+            self.chain_depth = [self.chain_depth, self.chain_depth]
+
         self.alpha = alpha
         self.seed = seed
         self.auto_vectorize = False
@@ -88,9 +92,6 @@ class AugMix(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
             param_name="severity",
             seed=self.seed,
         )
-
-        if isinstance(self.chain_depth, int):
-            self.chain_depth = [self.chain_depth, self.chain_depth]
 
         # initialize layers
         self.auto_contrast = layers.AutoContrast(value_range=self.value_range)
