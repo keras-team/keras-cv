@@ -82,7 +82,7 @@ class COCORecall(keras.metrics.Metric):
         iou_thresholds=None,
         area_range=None,
         max_detections=100,
-        **kwargs
+        **kwargs,
     ):
         super().__init__(**kwargs)
         # Initialize parameter values
@@ -97,6 +97,11 @@ class COCORecall(keras.metrics.Metric):
         # Initialize result counters
         num_thresholds = len(iou_thresholds)
         num_categories = len(class_ids)
+
+        if any([c < 0 for c in class_ids]):
+            raise ValueError(
+                "class_ids must be positive.  Got " f"class_ids={class_ids}"
+            )
 
         self.true_positives = self.add_weight(
             name="true_positives",
@@ -151,6 +156,8 @@ class COCORecall(keras.metrics.Metric):
             dtype=self.compute_dtype,
         )
 
+        y_pred = utils.sort_bounding_boxes(y_pred, axis=bounding_box.XYXY.CONFIDENCE)
+
         num_images = tf.shape(y_true)[0]
 
         iou_thresholds = tf.constant(self.iou_thresholds, dtype=tf.float32)
@@ -159,7 +166,6 @@ class COCORecall(keras.metrics.Metric):
         num_thresholds = tf.shape(iou_thresholds)[0]
         num_categories = tf.shape(class_ids)[0]
 
-        # Sort by bounding_box.CONFIDENCE to make maxDetections easy to compute.
         true_positives_update = tf.zeros_like(self.true_positives)
         ground_truth_boxes_update = tf.zeros_like(self.ground_truth_boxes)
 
