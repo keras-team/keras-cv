@@ -136,6 +136,18 @@ class SerializationTest(tf.test.TestCase, parameterized.TestCase):
                 "seed": 1234,
             },
         ),
+        (
+            "AugMix",
+            preprocessing.AugMix,
+            {
+                "value_range": (0, 255),
+                "severity": 0.3,
+                "num_chains": 3,
+                "chain_depth": -1,
+                "alpha": 1.0,
+                "seed": 1,
+            },
+        ),
     )
     def test_layer_serialization(self, layer_cls, init_args):
         layer = layer_cls(**init_args)

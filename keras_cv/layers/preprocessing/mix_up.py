@@ -36,7 +36,7 @@ class MixUp(BaseImageAugmentationLayer):
     Sample usage:
     ```python
     (images, labels), _ = tf.keras.datasets.cifar10.load_data()
-    mixup = keras_cv.layers.preprocessing.mix_up.MixUp(10)
+    mixup = keras_cv.layers.preprocessing.MixUp(10)
     augmented_images, updated_labels = mixup({'images': images, 'labels': labels})
     # output == {'images': updated_images, 'labels': updated_labels}
     ```
