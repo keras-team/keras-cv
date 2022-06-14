@@ -14,11 +14,14 @@
 
 import tensorflow as tf
 
+from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
+    BaseImageAugmentationLayer,
+)
 from keras_cv.utils import preprocessing
 
 
 @tf.keras.utils.register_keras_serializable(package="keras_cv")
-class RandomChannelShift(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
+class RandomChannelShift(BaseImageAugmentationLayer):
     """Randomly shift values for each channel of the input image(s).
 
     The input images should have values in the `[0-255]` or `[0-1]` range.

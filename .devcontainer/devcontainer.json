@@ -32,7 +32,7 @@
 		}
 	},
 	"onCreateCommand": "locale-gen \"en_US.UTF-8\""
-	# Optional: install pre-commit hooks
-	# "postCreateCommand": "git config core.hooksPath .github/.githooks"
+	// Optional: install pre-commit hooks
+	// "postCreateCommand": "git config core.hooksPath .github/.githooks"
 
 }

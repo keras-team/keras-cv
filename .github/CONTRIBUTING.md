@@ -26,6 +26,10 @@ development environment and run the unit tests. This is covered in section
 If your code change involves introducing a new API change, please see our 
 [API Design Guidelines](API_DESIGN.md).
 
+**Notes**
+
+- Make sure to add a new entry to [serialization tests](https://github.com/keras-team/keras-cv/blob/master/keras_cv/layers/serialization_test.py#L37) for new layers.
+
 ### Step 3. Create a pull request
 
 Once the change is ready, open a pull request from your branch in your fork to

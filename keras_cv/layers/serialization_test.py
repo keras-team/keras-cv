@@ -123,6 +123,11 @@ class SerializationTest(tf.test.TestCase, parameterized.TestCase):
             {"rate": 0.1, "block_size": (7, 7), "seed": 1234},
         ),
         (
+            "StochasticDepth",
+            regularization.StochasticDepth,
+            {"survival_probability": 0.9},
+        ),
+        (
             "MaybeApply",
             preprocessing.MaybeApply,
             {

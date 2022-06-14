@@ -13,9 +13,11 @@
 # limitations under the License.
 
 import tensorflow as tf
-from tensorflow.keras.__internal__.layers import BaseImageAugmentationLayer
 
 from keras_cv.layers import preprocessing
+from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
+    BaseImageAugmentationLayer,
+)
 from keras_cv.utils import preprocessing as preprocessing_utils
 
 

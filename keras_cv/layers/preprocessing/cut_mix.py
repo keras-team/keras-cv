@@ -13,11 +13,14 @@
 # limitations under the License.
 import tensorflow as tf
 
+from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
+    BaseImageAugmentationLayer,
+)
 from keras_cv.utils import fill_utils
 
 
 @tf.keras.utils.register_keras_serializable(package="keras_cv")
-class CutMix(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
+class CutMix(BaseImageAugmentationLayer):
     """CutMix implements the CutMix data augmentation technique.
 
     Args:
