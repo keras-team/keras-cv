@@ -14,8 +14,8 @@
 # ==============================================================================
 """Utils for preprocessing layers."""
 
-from tensorflow.keras import backend
 import tensorflow as tf
+from tensorflow.keras import backend
 
 
 def ensure_tensor(inputs, dtype=None):
@@ -25,6 +25,7 @@ def ensure_tensor(inputs, dtype=None):
     if dtype is not None and inputs.dtype != dtype:
         inputs = tf.cast(inputs, dtype)
     return inputs
+
 
 def check_fill_mode_and_interpolation(fill_mode, interpolation):
     if fill_mode not in {"reflect", "wrap", "constant", "nearest"}:
@@ -37,6 +38,7 @@ def check_fill_mode_and_interpolation(fill_mode, interpolation):
             "Unknown `interpolation` {}. Only `nearest` and "
             "`bilinear` are supported.".format(interpolation)
         )
+
 
 def get_rotation_matrix(angles, image_height, image_width, name=None):
     """Returns projective transform(s) for the given angle(s).
@@ -77,6 +79,7 @@ def get_rotation_matrix(angles, image_height, image_width, name=None):
             ],
             axis=1,
         )
+
 
 def transform(
     images,
