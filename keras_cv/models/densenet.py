@@ -38,6 +38,9 @@ def DenseBlock(x, blocks, name=None):
     Returns:
       Output tensor for the block.
     """
+    if name is None:
+        name = "dense_block_" + str(backend.get_uid("dense_block"))
+
     for i in range(blocks):
         x = ConvBlock(x, 32, name=name + "_block_" + str(i))
     return x
@@ -54,6 +57,9 @@ def TransitionBlock(x, reduction, name=None):
     Returns:
       output tensor for the block.
     """
+    if name is None:
+        name = "transition_block_" + str(backend.get_uid("transition_block"))
+
     x = layers.BatchNormalization(axis=BN_AXIS, epsilon=1.001e-5, name=name + "_bn")(x)
     x = layers.Activation("relu", name=name + "_relu")(x)
     x = layers.Conv2D(
@@ -77,6 +83,9 @@ def ConvBlock(x, growth_rate, name=None):
     Returns:
       Output tensor for the block.
     """
+    if name is None:
+        name = "conv_block_" + str(backend.get_uid("conv_block"))
+
     x1 = layers.BatchNormalization(axis=BN_AXIS, epsilon=1.001e-5, name=name + "_0_bn")(
         x
     )
