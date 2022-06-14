@@ -90,7 +90,7 @@ class COCORecallTest(tf.test.TestCase):
         )
 
         m1.update_state(y_true, y_pred)
-        m1.update_state(y_true, y_true)
+        m1.update_state(y_true, y_pred)
         m2.update_state(y_true, y_pred)
 
         metric_result = COCORecall(

@@ -21,7 +21,7 @@ from keras_cv.metrics.coco import COCOMeanAveragePrecision
 
 SAMPLE_FILE = os.path.dirname(os.path.abspath(__file__)) + "/sample_boxes.npz"
 
-delta = 0.035
+delta = 0.04
 
 
 class MeanAveragePrecisionTest(tf.test.TestCase):
