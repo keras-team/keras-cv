@@ -184,7 +184,6 @@ class RandomShear(BaseImageAugmentationLayer):
         transformation: takes tuple for x,y transformation None if no transformation"""
         height, width, _ = image.shape
         image = tf.expand_dims(image, axis=0)
-        # Check bounding boxes are absolute or normalized
         if self.bounding_box_format != "xyxy":
             bounding_boxes = keras_cv.bounding_box.convert_format(
                 bounding_boxes,
@@ -192,7 +191,6 @@ class RandomShear(BaseImageAugmentationLayer):
                 target="xyxy",
                 images=image,
             )
-        # if normalized i.e 0-1 convert to absolute coordinates
         x, y = transformation
         # apply horizontal shear
         if x is not None:
@@ -206,7 +204,6 @@ class RandomShear(BaseImageAugmentationLayer):
             )
         # clip bounding boxes value to 0-image height and 0-image width
         bounding_boxes = RandomShear.clip_bounding_box(height, width, bounding_boxes)
-        # if input bounding boxes were normalized convert to 0-1 and return
         if self.bounding_box_format != "xyxy":
             bounding_boxes = keras_cv.bounding_box.convert_format(
                 bounding_boxes,
