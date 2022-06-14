@@ -137,8 +137,8 @@ class SerializationTest(tf.test.TestCase, parameterized.TestCase):
             {
                 "value_range": (0, 255),
                 "severity": 0.3,
-                "width": 3,
-                "depth": -1,
+                "num_chains": 3,
+                "chain_depth": -1,
                 "alpha": 1.0,
                 "seed": 1,
             },
