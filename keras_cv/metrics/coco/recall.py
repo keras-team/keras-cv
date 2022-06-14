@@ -82,7 +82,7 @@ class COCORecall(keras.metrics.Metric):
         iou_thresholds=None,
         area_range=None,
         max_detections=100,
-        **kwargs
+        **kwargs,
     ):
         super().__init__(**kwargs)
         # Initialize parameter values

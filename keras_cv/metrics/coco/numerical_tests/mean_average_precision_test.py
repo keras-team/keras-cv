@@ -110,7 +110,6 @@ class MeanAveragePrecisionTest(tf.test.TestCase):
         result = mean_average_precision.result().numpy()
         self.assertAlmostEqual(result, 0.610, delta=delta)
 
-
     def test_mean_average_precision_correctness_small(self):
         y_true, y_pred, categories = load_samples(SAMPLE_FILE)
 
@@ -124,7 +123,6 @@ class MeanAveragePrecisionTest(tf.test.TestCase):
         mean_average_precision.update_state(y_true, y_pred)
         result = mean_average_precision.result().numpy()
         self.assertAlmostEqual(result, 0.604, delta=delta)
-
 
 
 def load_samples(fname):

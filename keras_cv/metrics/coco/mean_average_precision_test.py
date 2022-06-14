@@ -197,9 +197,14 @@ class COCOMeanAveragePrecisionTest(tf.test.TestCase):
         self.assertEqual(mean_average_precision.result(), 0.625)
 
     def test_counting_with_missing_class_present_in_data(self):
-        y_true = tf.constant([[
-            [0, 0, 100, 100, 1],
-        ]], dtype=tf.float64)
+        y_true = tf.constant(
+            [
+                [
+                    [0, 0, 100, 100, 1],
+                ]
+            ],
+            dtype=tf.float64,
+        )
         y_pred = tf.constant([[[0, 50, 100, 150, 1, 1.0]]], dtype=tf.float32)
 
         y_true = bounding_box.pad_batch_to_shape(y_true, (1, 20, 5))

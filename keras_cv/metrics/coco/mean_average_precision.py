@@ -215,13 +215,17 @@ class COCOMeanAveragePrecision(tf.keras.metrics.Metric):
                     detections, value=category_id, axis=bounding_box.XYXY.CLASS
                 )
                 if self.max_detections < tf.shape(detections_by_category)[0]:
-                    detections_by_category = detections_by_category[: self.max_detections]
+                    detections_by_category = detections_by_category[
+                        : self.max_detections
+                    ]
 
                 ground_truths_update = ground_truths_update.write(
                     c_i, tf.shape(ground_truths_by_category)[0]
                 )
 
-                ious = iou_lib.compute_ious_for_image(ground_truths_by_category, detections_by_category)
+                ious = iou_lib.compute_ious_for_image(
+                    ground_truths_by_category, detections_by_category
+                )
 
                 for iou_i in tf.range(self.num_iou_thresholds):
                     iou_threshold = iou_thresholds[iou_i]
