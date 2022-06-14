@@ -42,7 +42,7 @@ def DenseBlock(blocks, name=None):
 
     def apply(x):
         for i in range(blocks):
-            x = ConvBlock(x, 32, name=name + "_block_" + str(i))
+            x = ConvBlock(x, 32, name=f"{name}_block_{i}")
         return x
 
     return apply
@@ -63,16 +63,16 @@ def TransitionBlock(reduction, name=None):
 
     def apply(x):
         x = layers.BatchNormalization(
-            axis=BN_AXIS, epsilon=1.001e-5, name=name + "_bn"
+            axis=BN_AXIS, epsilon=1.001e-5, name=f"{name}_bn"
         )(x)
-        x = layers.Activation("relu", name=name + "_relu")(x)
+        x = layers.Activation("relu", name=f"{name}_relu")(x)
         x = layers.Conv2D(
             int(backend.int_shape(x)[BN_AXIS] * reduction),
             1,
             use_bias=False,
-            name=name + "_conv",
+            name=f"{name}_conv",
         )(x)
-        x = layers.AveragePooling2D(2, strides=2, name=name + "_pool")(x)
+        x = layers.AveragePooling2D(2, strides=2, name=f"{name}_pool")(x)
         return x
 
     return apply
@@ -93,20 +93,20 @@ def ConvBlock(growth_rate, name=None):
 
     def apply(x):
         x1 = layers.BatchNormalization(
-            axis=BN_AXIS, epsilon=1.001e-5, name=name + "_0_bn"
+            axis=BN_AXIS, epsilon=1.001e-5, name=f"{name}_0_bn"
         )(x)
-        x1 = layers.Activation("relu", name=name + "_0_relu")(x1)
-        x1 = layers.Conv2D(4 * growth_rate, 1, use_bias=False, name=name + "_1_conv")(
+        x1 = layers.Activation("relu", name=f"{name}_0_relu")(x1)
+        x1 = layers.Conv2D(4 * growth_rate, 1, use_bias=False, name=f"{name}_1_conv")(
             x1
         )
         x1 = layers.BatchNormalization(
-            axis=BN_AXIS, epsilon=1.001e-5, name=name + "_1_bn"
+            axis=BN_AXIS, epsilon=1.001e-5, name=f"{name}_1_bn"``
         )(x1)
-        x1 = layers.Activation("relu", name=name + "_1_relu")(x1)
+        x1 = layers.Activation("relu", name=f"{name}_1_relu")(x1)
         x1 = layers.Conv2D(
-            growth_rate, 3, padding="same", use_bias=False, name=name + "_2_conv"
+            growth_rate, 3, padding="same", use_bias=False, name=f"{name}_2_conv"
         )(x1)
-        x = layers.Concatenate(axis=BN_AXIS, name=name + "_concat")([x, x1])
+        x = layers.Concatenate(axis=BN_AXIS, name=f"{name}_concat")([x, x1])
         return x
 
     return apply
