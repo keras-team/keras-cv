@@ -42,7 +42,7 @@ def DenseBlock(blocks, name=None):
 
     def apply(x):
         for i in range(blocks):
-            x = ConvBlock(x, 32, name=f"{name}_block_{i}")
+            x = ConvBlock(32, name=f"{name}_block_{i}")(x)
         return x
 
     return apply
@@ -170,7 +170,7 @@ def DenseNet(
     Returns:
       A `keras.Model` instance.
     """
-    if weights and not tf.io.gfile.exists(weights)
+    if weights and not tf.io.gfile.exists(weights):
         raise ValueError(
             "The `weights` argument should be either "
             "`None` or the path to the weights file to be loaded. "
@@ -197,19 +197,18 @@ def DenseNet(
     if include_rescaling:
         x = layers.Rescaling(1 / 255.0)(x)
 
-    x = layers.ZeroPadding2D(padding=((3, 3), (3, 3)))(x)
-    x = layers.Conv2D(64, 7, strides=2, use_bias=False, name="conv1/conv")(x)
+    x = layers.Conv2D(64, 7, strides=2, use_bias=False, padding='same', name="conv1/conv")(x)
     x = layers.BatchNormalization(axis=BN_AXIS, epsilon=1.001e-5, name="conv1/bn")(x)
     x = layers.Activation("relu", name="conv1/relu")(x)
     x = layers.ZeroPadding2D(padding=((1, 1), (1, 1)))(x)
     x = layers.MaxPooling2D(3, strides=2, name="pool1")(x)
 
     x = DenseBlock(blocks[0], name="conv2")(x)
-    x = TransitionBlock(x, 0.5, name="pool2")
+    x = TransitionBlock(0.5, name="pool2")(x)
     x = DenseBlock(blocks[1], name="conv3")(x)
-    x = TransitionBlock(x, 0.5, name="pool3")
+    x = TransitionBlock(0.5, name="pool3")(x)
     x = DenseBlock(blocks[2], name="conv4")(x)
-    x = TransitionBlock(x, 0.5, name="pool4")
+    x = TransitionBlock(0.5, name="pool4")(x)
     x = DenseBlock(blocks[3], name="conv5")(x)
 
     x = layers.BatchNormalization(axis=BN_AXIS, epsilon=1.001e-5, name="bn")(x)
