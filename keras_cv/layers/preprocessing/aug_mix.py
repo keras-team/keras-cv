@@ -109,7 +109,10 @@ class AugMix(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
 
     def _sample_depth(self):
         return self._random_generator.random_uniform(
-            shape=(), minval=self.chain_depth[0], maxval=self.chain_depth[1] + 1, dtype=tf.int32
+            shape=(),
+            minval=self.chain_depth[0],
+            maxval=self.chain_depth[1] + 1,
+            dtype=tf.int32,
         )
 
     def _loop_on_depth(self, depth_level, image_aug):
