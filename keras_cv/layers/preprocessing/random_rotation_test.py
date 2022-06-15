@@ -106,11 +106,11 @@ class RandomRotationTest(tf.test.TestCase):
         bboxes = tf.convert_to_tensor([[200, 200, 400, 400], [100, 100, 300, 300]])
         input = {"images": input_image, "bounding_boxes": bboxes}
         # 180 rotation.
-        layer = RandomRotation(factor=(0.0833, 0.0833), bounding_box_format="xyxy")
+        layer = RandomRotation(factor=(0.5, 0.5), bounding_box_format="xyxy")
         output_bbox = layer(input)
-        expected_output = np.asarray([[179, 135, 452, 408], [42, 98, 316, 372]]).astype(
-            np.int32
-        )
+        expected_output = np.asarray(
+            [[111, 112, 312, 312], [212, 211, 412, 412]],
+        ).astype(np.int32)
         expected_output = np.reshape(expected_output, (2, 4))
         self.assertAllClose(expected_output, output_bbox["bounding_boxes"])
 

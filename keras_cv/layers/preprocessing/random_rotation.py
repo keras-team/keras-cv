@@ -73,7 +73,7 @@ class RandomRotation(BaseImageAugmentationLayer):
       seed: Integer. Used to create a random seed.
       fill_value: a float represents the value to be filled outside the
         boundaries when `fill_mode="constant"`.
-    Bounding_box_format: The format of bounding boxes of input dataset.
+      bounding_box_format: The format of bounding boxes of input dataset.
         Supported formats are -`"xyxy"`,`"rel_xyxy"`, `"xyWH"`, `"center_xyWH"`.
     """
 
