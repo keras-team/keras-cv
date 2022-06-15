@@ -74,7 +74,9 @@ class RandomRotation(BaseImageAugmentationLayer):
       fill_value: a float represents the value to be filled outside the
         boundaries when `fill_mode="constant"`.
       bounding_box_format: The format of bounding boxes of input dataset.
-        Supported formats are -`"xyxy"`,`"rel_xyxy"`, `"xyWH"`, `"center_xyWH"`.
+        Refer <a href=
+        "https://github.com/keras-team/keras-cv/blob/master/keras_cv/bounding_box/converters.py"
+        >here</a> for more details on supported bounding box formats
     """
 
     def __init__(
