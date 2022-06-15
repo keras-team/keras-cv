@@ -73,10 +73,9 @@ class RandomRotation(BaseImageAugmentationLayer):
       seed: Integer. Used to create a random seed.
       fill_value: a float represents the value to be filled outside the
         boundaries when `fill_mode="constant"`.
-      bounding_box_format: The format of bounding boxes of input dataset.
-        Refer <a href=
-        "https://github.com/keras-team/keras-cv/blob/master/keras_cv/bounding_box/converters.py"
-        >here</a> for more details on supported bounding box formats
+      bounding_box_format: The format of bounding boxes of input dataset. Refer
+        https://github.com/keras-team/keras-cv/blob/master/keras_cv/bounding_box/converters.py
+        for more details on supported bounding box formats.
     """
 
     def __init__(
