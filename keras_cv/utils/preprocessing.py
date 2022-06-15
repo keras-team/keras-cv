@@ -315,8 +315,8 @@ def ensure_tensor(inputs, dtype=None):
 def check_fill_mode_and_interpolation(fill_mode, interpolation):
     if fill_mode not in {"reflect", "wrap", "constant", "nearest"}:
         raise NotImplementedError(
-            "Unknown `fill_mode` {}. Only `reflect`, `wrap`, "
-            "`constant` and `nearest` are supported.".format(fill_mode)
+            " Want fillmode  to be one of `reflect`, `wrap`, "
+            "`constant` or `nearest`. Got `fill_mode` {}. ".format(fill_mode)
         )
     if interpolation not in {"nearest", "bilinear"}:
         raise NotImplementedError(
