@@ -32,17 +32,6 @@ class RandomRotationTest(tf.test.TestCase):
         actual_output = layer(input_images, training=False)
         self.assertAllClose(expected_output, actual_output)
 
-    def test_distribution_strategy(self):
-        """Tests that RandomRotation can be created within distribution
-        strategies."""
-        input_images = np.random.random((2, 5, 8, 3)).astype(np.float32)
-        strat = tf.distribute.MirroredStrategy(devices=["cpu", "gpu"])
-        with strat.scope():
-            layer = RandomRotation(0.5)
-            output = strat.run(lambda: layer(input_images, training=True))
-        values = output.values
-        self.assertAllEqual(2, len(values))
-
     def test_config_with_custom_name(self):
         layer = RandomRotation(0.5, name="image_preproc")
         config = layer.get_config()
