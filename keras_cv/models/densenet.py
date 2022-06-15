@@ -177,13 +177,6 @@ def DenseNet(
             f"Weights file not found at location: {weights}"
         )
 
-    if include_top and None in input_shape:
-        raise ValueError(
-            "If `include_top` is True, "
-            "you should specify a static `input_shape`. "
-            f"Received: input_shape={input_shape}"
-        )
-
     if include_top and not classes:
         raise ValueError(
             "If `include_top` is True, "
