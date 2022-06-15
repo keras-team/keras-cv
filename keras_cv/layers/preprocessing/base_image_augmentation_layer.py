@@ -15,7 +15,7 @@
 import tensorflow as tf
 from tensorflow.tools.docs import doc_controls
 
-from keras_cv.layers.preprocessing import preprocessing_utils as utils
+from keras_cv.utils import preprocessing
 
 H_AXIS = -3
 W_AXIS = -2
@@ -282,7 +282,13 @@ class BaseImageAugmentationLayer(tf.keras.__internal__.layers.BaseRandomLayer):
 
     def _ensure_inputs_are_compute_dtype(self, inputs):
         if isinstance(inputs, dict):
-            inputs[IMAGES] = utils.ensure_tensor(inputs[IMAGES], self.compute_dtype)
+            inputs[IMAGES] = preprocessing.ensure_tensor(
+                inputs[IMAGES],
+                self.compute_dtype,
+            )
         else:
-            inputs = utils.ensure_tensor(inputs, self.compute_dtype)
+            inputs = preprocessing.ensure_tensor(
+                inputs,
+                self.compute_dtype,
+            )
         return inputs

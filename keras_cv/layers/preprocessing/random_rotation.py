@@ -16,18 +16,13 @@ import numpy as np
 import tensorflow as tf
 
 from keras_cv import bounding_box
-from keras_cv.layers.preprocessing import preprocessing_utils as utils
 from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
     BaseImageAugmentationLayer,
 )
+from keras_cv.utils import preprocessing
 
 H_AXIS = -3
 W_AXIS = -2
-
-IMAGES = "images"
-LABELS = "labels"
-TARGETS = "targets"
-BOUNDING_BOXES = "bounding_boxes"
 
 
 @tf.keras.utils.register_keras_serializable(package="keras_cv")
@@ -104,7 +99,7 @@ class RandomRotation(BaseImageAugmentationLayer):
             raise ValueError(
                 "Factor cannot have negative values, " "got {}".format(factor)
             )
-        utils.check_fill_mode_and_interpolation(fill_mode, interpolation)
+        preprocessing.check_fill_mode_and_interpolation(fill_mode, interpolation)
         self.fill_mode = fill_mode
         self.fill_value = fill_value
         self.interpolation = interpolation
@@ -120,16 +115,16 @@ class RandomRotation(BaseImageAugmentationLayer):
         return {"angle": angle}
 
     def augment_image(self, image, transformation):
-        image = utils.ensure_tensor(image, self.compute_dtype)
+        image = preprocessing.ensure_tensor(image, self.compute_dtype)
         original_shape = image.shape
         image = tf.expand_dims(image, 0)
         image_shape = tf.shape(image)
         img_hd = tf.cast(image_shape[H_AXIS], tf.float32)
         img_wd = tf.cast(image_shape[W_AXIS], tf.float32)
         angle = transformation["angle"]
-        output = utils.transform(
+        output = preprocessing.transform(
             image,
-            utils.get_rotation_matrix(angle, img_hd, img_wd),
+            preprocessing.get_rotation_matrix(angle, img_hd, img_wd),
             fill_mode=self.fill_mode,
             fill_value=self.fill_value,
             interpolation=self.interpolation,
