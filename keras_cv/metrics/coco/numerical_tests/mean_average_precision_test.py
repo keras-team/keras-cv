@@ -21,7 +21,7 @@ from keras_cv.metrics.coco import COCOMeanAveragePrecision
 
 SAMPLE_FILE = os.path.dirname(os.path.abspath(__file__)) + "/sample_boxes.npz"
 
-delta = 0.05
+delta = 0.04
 
 
 class MeanAveragePrecisionTest(tf.test.TestCase):
@@ -110,20 +110,19 @@ class MeanAveragePrecisionTest(tf.test.TestCase):
         result = mean_average_precision.result().numpy()
         self.assertAlmostEqual(result, 0.610, delta=delta)
 
-    # TODO(lukewood): re-enable after performance testing
-    # def test_mean_average_precision_correctness_small(self):
-    #     y_true, y_pred, categories = load_samples(SAMPLE_FILE)
-    #
-    #     mean_average_precision = COCOMeanAveragePrecision(
-    #         class_ids=categories + [1000],
-    #         max_detections=100,
-    #         area_range=(0, 32**2),
-    #     )
-    #
-    #     mean_average_precision.update_state(y_true, y_pred)
-    #     result = mean_average_precision.result().numpy()
-    #     self.assertAlmostEqual(result, 0.604, delta=delta)
-    #
+    def test_mean_average_precision_correctness_small(self):
+        y_true, y_pred, categories = load_samples(SAMPLE_FILE)
+
+        mean_average_precision = COCOMeanAveragePrecision(
+            bounding_box_format="xyxy",
+            class_ids=categories + [1000],
+            max_detections=100,
+            area_range=(0, 32**2),
+        )
+
+        mean_average_precision.update_state(y_true, y_pred)
+        result = mean_average_precision.result().numpy()
+        self.assertAlmostEqual(result, 0.604, delta=delta)
 
 
 def load_samples(fname):
