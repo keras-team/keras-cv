@@ -73,6 +73,7 @@ class COCORecallTest(tf.test.TestCase):
     def test_merge_state(self):
         y_true = tf.constant([[[0, 0, 100, 100, 1]]], dtype=tf.float32)
         y_pred = tf.constant([[[0, 50, 100, 150, 1, 1.0]]], dtype=tf.float32)
+        y_pred_match = tf.constant([[[0, 0, 100, 100, 1, 1.0]]], dtype=tf.float32)
 
         m1 = COCORecall(
             bounding_box_format="xyxy",
@@ -90,7 +91,8 @@ class COCORecallTest(tf.test.TestCase):
         )
 
         m1.update_state(y_true, y_pred)
-        m1.update_state(y_true, y_true)
+        m1.update_state(y_true, y_pred_match)
+
         m2.update_state(y_true, y_pred)
 
         metric_result = COCORecall(
