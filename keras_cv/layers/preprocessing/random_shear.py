@@ -99,7 +99,7 @@ class RandomShear(BaseImageAugmentationLayer):
         invert = preprocessing.random_inversion(self._random_generator)
         return invert * constraint()
 
-    def augment_image(self, image, transformation=None):
+    def augment_image(self, image, transformation=None, **kwargs):
         image = tf.expand_dims(image, axis=0)
 
         x, y = transformation
@@ -130,7 +130,7 @@ class RandomShear(BaseImageAugmentationLayer):
 
         return tf.squeeze(image, axis=0)
 
-    def augment_label(self, label, transformation=None):
+    def augment_label(self, label, transformation=None, **kwargs):
         return label
 
     @staticmethod

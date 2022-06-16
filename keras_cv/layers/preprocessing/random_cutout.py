@@ -99,7 +99,7 @@ class RandomCutout(BaseImageAugmentationLayer):
         rectangle_height, rectangle_width = self._compute_rectangle_size(image)
         return center_x, center_y, rectangle_height, rectangle_width
 
-    def augment_image(self, image, transformation=None):
+    def augment_image(self, image, transformation=None, **kwargs):
         """Apply random cutout."""
         inputs = tf.expand_dims(image, 0)
         center_x, center_y, rectangle_height, rectangle_width = transformation
@@ -115,7 +115,7 @@ class RandomCutout(BaseImageAugmentationLayer):
         )
         return inputs[0]
 
-    def augment_label(self, label, transformation=None):
+    def augment_label(self, label, transformation=None, **kwargs):
         return label
 
     def _compute_rectangle_position(self, inputs):

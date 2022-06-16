@@ -219,7 +219,7 @@ class GridMask(BaseImageAugmentationLayer):
 
         return grid_mask
 
-    def augment_image(self, image, transformation=None):
+    def augment_image(self, image, transformation=None, **kwargs):
         mask, fill_value = transformation
         input_shape = tf.shape(image)
 
@@ -233,7 +233,7 @@ class GridMask(BaseImageAugmentationLayer):
 
         return tf.where(mask, fill_value, image)
 
-    def augment_label(self, label, transformation=None):
+    def augment_label(self, label, transformation=None, **kwargs):
         return label
 
     def get_config(self):

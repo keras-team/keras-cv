@@ -63,7 +63,7 @@ class RandomHue(BaseImageAugmentationLayer):
         # This can be thought of as an angle in the range [-180, 180]
         return invert * self.factor() * 0.5
 
-    def augment_image(self, image, transformation=None):
+    def augment_image(self, image, transformation=None, **kwargs):
         image = preprocessing.transform_value_range(image, self.value_range, (0, 1))
         # tf.image.adjust_hue expects floats to be in range [0, 1]
         image = tf.image.adjust_hue(image, delta=transformation)
@@ -72,7 +72,7 @@ class RandomHue(BaseImageAugmentationLayer):
         image = preprocessing.transform_value_range(image, (0, 1), self.value_range)
         return image
 
-    def augment_label(self, label, transformation=None):
+    def augment_label(self, label, transformation=None, **kwargs):
         return label
 
     def get_config(self):
