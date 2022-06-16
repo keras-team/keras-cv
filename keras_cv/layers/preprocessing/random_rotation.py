@@ -134,7 +134,7 @@ class RandomRotation(BaseImageAugmentationLayer):
         output.set_shape(original_shape)
         return output
 
-    def augment_bounding_boxes(self, bounding_boxes, transformation , **kwargs):
+    def augment_bounding_boxes(self, bounding_boxes, transformation, **kwargs):
         image = None
         if "image" in kwargs:
             image = kwargs.get("image")
