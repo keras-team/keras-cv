@@ -50,8 +50,8 @@ class RandomSaturation(BaseImageAugmentationLayer):
         )
         self.seed = seed
 
-    def get_random_transformation(self, image=None, label=None, bounding_box=None):
-        del image, label, bounding_box
+    def get_random_transformation(self, image=None, label=None, bounding_boxes=None):
+        del image, label, bounding_boxes
         return self.factor()
 
     def augment_image(self, image, transformation=None):
