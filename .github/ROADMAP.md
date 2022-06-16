@@ -12,12 +12,6 @@ produce state of the art results for that model architecture.
 The scripts should be easily forkable, use monitoring, automatically checkpoint and
 restart from failure, and all in all provide a delightful user experience.
 
-With the library, users should easily be able to achieve the following scores:
-
-TODO(lukewood): produce a table of this
-[Imagenet](https://www.tensorflow.org/datasets/catalog/imagenet2012): Top1 Accuracy > 80%
-[Imagenet v2](https://www.tensorflow.org/datasets/catalog/imagenet_v2) (for testing)
-
 ### Visualization Tools
 
 The new `visualization` directory will contain methods to visualize various components of
@@ -36,6 +30,37 @@ Recently we finished our API design for bounding box handling.  With this change
 we now have the opportunity to finish providing strong bounding box support within the
 library.
 
+Ideally like to provide the following workflow for training a bounding box detection model:
+
+```python
+train_ds = load_dataset()
+
+preprocessing_model = keras.Sequential(
+    [
+        keras_cv.RandAugment(),
+        keras_cv.Mosaic()(),
+        keras_cv.MixUp(),
+    ], name="preprocessing_model"
+)
+
+train_ds = train_ds.map(tfm.RetinaNet.LabelEncoder().encoder_batch())
+model = tfm.RetinaNet(keyword_arg_1=my_arv, name="retinanet")
+
+model.compile(
+    # we don't need to include loss because it is core to the RetinaNet model
+    optimizer=optimizers.SGD(),
+    metrics=[
+        keras_cv.COCOMeanAveragePrecision(),
+        keras_cv.COCORecall()
+    ]
+)
+
+model.fit(train_ds)
+
+results = model.predict(somedata)
+# > results is a dict, {train_targets: train_targets, inference_targets: inference_targets}
+```
+
 ### Bounding Box Support for Image Data Augmentation Layers
 [divyashreepathihalli](https://github.com/divyashreepathihalli) is leading this effort.
 
@@ -43,7 +68,18 @@ As part of v0.1.0, KerasCV launched 28 image data augmentation layers.
 These layers provide all that is needed to train state of the art image classification models; namely RandomRotation, ChannelShift, RandAugment, CutMix, and MixUp.
 We would like to add support for bounding boxes to these data augmentation techniques.
 
+# Semantic Segmentation
+
+Following bounding box support, another team member will begin focusing on introducing
+segmentation map support to the repo.
+
 # Whats Next?
+
+After Semantic Segmentation, what is next for KerasCV?  Following this, we will pick
+specific applications such as OCR, or few shot learning, and place a high focus on
+providing a seamless end to end journey on completing these tasks.
+
+What tasks will be picked?  This will be decided in the following months.
 
 ## Overview
 - **KerasCV is not a repository of blackbox end-to-end solutions (like TF Hub or ModelGarden).**
