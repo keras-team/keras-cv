@@ -107,7 +107,7 @@ class RandomRotation(BaseImageAugmentationLayer):
         self.seed = seed
         self.bounding_box_format = bounding_box_format
 
-    def get_random_transformation(self, image=None, label=None, bounding_box=None):
+    def get_random_transformation(self, image=None, label=None, bounding_boxes=None):
         min_angle = self.lower * 2.0 * np.pi
         max_angle = self.upper * 2.0 * np.pi
         angle = self._random_generator.random_uniform(
@@ -115,7 +115,7 @@ class RandomRotation(BaseImageAugmentationLayer):
         )
         return {"angle": angle}
 
-    def augment_image(self, image, transformation):
+    def augment_image(self, image, transformation, **kwargs):
         image = preprocessing.ensure_tensor(image, self.compute_dtype)
         original_shape = image.shape
         image = tf.expand_dims(image, 0)
@@ -134,7 +134,10 @@ class RandomRotation(BaseImageAugmentationLayer):
         output.set_shape(original_shape)
         return output
 
-    def augment_bounding_boxes(self, image, bounding_boxes, transformation):
+    def augment_bounding_boxes(self, bounding_boxes, transformation , **kwargs):
+        image = None
+        if "image" in kwargs:
+            image = kwargs.get("image")
         bbox_dtype = bounding_boxes.dtype
         if self.bounding_box_format is None:
             raise ValueError(
@@ -203,7 +206,7 @@ class RandomRotation(BaseImageAugmentationLayer):
         bboxes_out = tf.cast(bboxes_out, bbox_dtype)
         return bboxes_out
 
-    def augment_label(self, label, transformation):
+    def augment_label(self, label, transformation, **kwargs):
         return label
 
     def compute_output_shape(self, input_shape):

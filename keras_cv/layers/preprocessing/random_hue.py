@@ -55,7 +55,7 @@ class RandomHue(BaseImageAugmentationLayer):
         self.value_range = value_range
         self.seed = seed
 
-    def get_random_transformation(self, image=None, label=None, bounding_box=None):
+    def get_random_transformation(self, image=None, label=None, bounding_boxes=None):
         del image, label, bounding_box
         invert = preprocessing.random_inversion(self._random_generator)
         # We must scale self.factor() to the range [-0.5, 0.5].  This is because the

@@ -63,7 +63,7 @@ class RandomChannelShift(BaseImageAugmentationLayer):
         self.channels = channels
         self.factor = preprocessing.parse_factor(factor, seed=self.seed)
 
-    def get_random_transformation(self, image=None, label=None, bounding_box=None):
+    def get_random_transformation(self, image=None, label=None, bounding_boxes=None):
         shifts = []
         for _ in range(self.channels):
             shifts.append(self._get_shift())
