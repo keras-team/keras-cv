@@ -22,12 +22,14 @@ class XYXY:
     All values in the XYXY format should be absolute pixel values.
 
     The XYXY format consists of the following required indices:
+
     - LEFT: left hand side of the bounding box
     - TOP: top of the bounding box
     - RIGHT: right of the bounding box
     - BOTTOM: bottom of the bounding box
 
     and the following optional indices, used in some KerasCV components:
+
     - CLASS: class of the object contained in the bounding box
     - CONFIDENCE: confidence that the box is valid, used in predictions
     """
@@ -48,12 +50,14 @@ class REL_XYXY:
     respectively.
 
     The REL_XYXY format consists of the following required indices:
+
     - LEFT: left hand side of the bounding box
     - TOP: top of the bounding box
     - RIGHT: right of the bounding box
     - BOTTOM: bottom of the bounding box
 
     and the following optional indices, used in some KerasCV components:
+
     - CLASS: class of the object contained in the bounding box
     - CONFIDENCE: confidence that the box is valid, used in predictions
     """
@@ -72,12 +76,14 @@ class CENTER_XYWH:
     All values in the CENTER_XYWH format should be absolute pixel values.
 
     The CENTER_XYWH format consists of the following required indices:
+
     - X: X coordinate of the center of the bounding box
     - Y: Y coordinate of the center of the bounding box
     - WIDTH: width of the bounding box
     - HEIGHT: height of the bounding box
 
     and the following optional indices, used in some KerasCV components:
+
     - 4: class of the object contained in the bounding box
     - 5: confidence that the box is valid, used in predictions
     """
@@ -96,12 +102,14 @@ class XYWH:
     All values in the XYWH format should be absolute pixel values.
 
     The XYWH format consists of the following required indices:
+
     - X: X coordinate of the left of the bounding box
     - Y: Y coordinate of the top of the bounding box
     - WIDTH: width of the bounding box
     - HEIGHT: height of the bounding box
 
     and the following optional indices, used in some KerasCV components:
+
     - 4: class of the object contained in the bounding box
     - 5: confidence that the box is valid, used in predictions
     """
