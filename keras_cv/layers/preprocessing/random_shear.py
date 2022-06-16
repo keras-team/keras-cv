@@ -66,7 +66,7 @@ class RandomShear(BaseImageAugmentationLayer):
         fill_mode="reflect",
         fill_value=0.0,
         seed=None,
-        bounding_box_format="xyxy",
+        bounding_box_format=None,
         **kwargs,
     ):
         super().__init__(seed=seed, **kwargs)
@@ -158,40 +158,22 @@ class RandomShear(BaseImageAugmentationLayer):
         )
         return config
 
-    def _augment(self, inputs):
-        image = inputs.get("images", None)
-        label = inputs.get("labels", None)
-        bounding_box = inputs.get("bounding_boxes", None)
-        transformation = self.get_random_transformation(
-            image=image, label=label, bounding_box=bounding_box
-        )  # pylint: disable=assignment-from-none
-        image = self.augment_image(image, transformation=transformation)
-        result = {"images": image}
-        if label is not None:
-            label = self.augment_label(label, transformation=transformation)
-            result["labels"] = label
-        if bounding_box is not None:
-            # changed augment_bounding_box requires image as well
-            # for unnormalizing bbox coordinates
-            bounding_box = self.augment_bounding_box(
-                image, bounding_box, transformation=transformation
-            )
-            result["bounding_boxes"] = bounding_box
-        return result
-
-    def augment_bounding_box(self, image, bounding_boxes, transformation):
+    def augment_bounding_boxes(self, image, bounding_boxes, transformation=None):
         """args: image : takes a single image H,W,C,
         bounding_boxes: take bbox coordinates [N,4] -> [y1,x1,y2,x2]
         transformation: takes tuple for x,y transformation None if no transformation"""
         height, width, _ = image.shape
+        input_dtype = bounding_boxes.dtype
         image = tf.expand_dims(image, axis=0)
-        if self.bounding_box_format != "xyxy":
-            bounding_boxes = keras_cv.bounding_box.convert_format(
-                bounding_boxes,
-                source=self.bounding_box_format,
-                target="xyxy",
-                images=image,
-            )
+        if self.bounding_box_format is None:
+            raise ValueError("Specify bounding_box_format,cannot be None")
+        bounding_boxes = keras_cv.bounding_box.convert_format(
+            bounding_boxes,
+            source=self.bounding_box_format,
+            target="xyxy",
+            images=image,
+            dtype=tf.float32,
+        )
         x, y = transformation
         # apply horizontal shear
         if x is not None:
@@ -205,13 +187,13 @@ class RandomShear(BaseImageAugmentationLayer):
             )
         # clip bounding boxes value to 0-image height and 0-image width
         bounding_boxes = RandomShear.clip_bounding_box(height, width, bounding_boxes)
-        if self.bounding_box_format != "xyxy":
-            bounding_boxes = keras_cv.bounding_box.convert_format(
-                bounding_boxes,
-                source="xyxy",
-                target=self.bounding_box_format,
-                images=image,
-            )
+        bounding_boxes = keras_cv.bounding_box.convert_format(
+            bounding_boxes,
+            source="xyxy",
+            target=self.bounding_box_format,
+            images=image,
+            dtype=input_dtype,
+        )
         return bounding_boxes
 
     @staticmethod
