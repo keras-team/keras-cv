@@ -32,23 +32,19 @@ class StochasticDepthTest(tf.test.TestCase):
         inputs = tf.random.uniform(self.FEATURE_SHAPE, 0, 1)
         inputs = [inputs, inputs]
 
-        survival_prob = 0.5
+        rate = 0.5
 
-        outputs = StochasticDepth(survival_probability=survival_prob)(
-            inputs, training=False
-        )
+        outputs = StochasticDepth(rate=rate)(inputs, training=False)
 
-        self.assertAllClose(inputs[0] * (1 + survival_prob), outputs)
+        self.assertAllClose(inputs[0] * (1 + rate), outputs)
 
     def test_training_mode(self):
         inputs = tf.random.uniform(self.FEATURE_SHAPE, 0, 1)
         inputs = [inputs, inputs]
 
-        survival_prob = 0.5
+        rate = 0.5
 
-        outputs = StochasticDepth(survival_probability=survival_prob)(
-            inputs, training=True
-        )
+        outputs = StochasticDepth(rate=rate)(inputs, training=True)
 
         outputs_sum = tf.math.reduce_sum(outputs)
         inputs_sum = tf.math.reduce_sum(inputs[0])
