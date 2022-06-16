@@ -393,4 +393,4 @@ class RandomShearTest(tf.test.TestCase):
         )
         outputs = layer({"images": xs, "bounding_boxes": ys})
         _, output_ys = outputs["images"], outputs["bounding_boxes"]
-        self.assertNotAllEqual(true_ys, output_ys)
+        self.assertAllEqual(true_ys, output_ys)
