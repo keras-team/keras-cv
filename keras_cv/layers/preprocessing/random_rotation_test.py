@@ -35,8 +35,8 @@ class RandomRotationTest(tf.test.TestCase):
     def test_config_with_custom_name(self):
         layer = RandomRotation(0.5, name="image_preproc")
         config = layer.get_config()
-        layer_1 = RandomRotation.from_config(config)
-        self.assertEqual(layer_1.name, layer.name)
+        layer_reconstructed = RandomRotation.from_config(config)
+        self.assertEqual(layer_reconstructed.name, layer.name)
 
     def test_unbatched_image(self):
         input_image = np.reshape(np.arange(0, 25), (5, 5, 1)).astype(np.float32)
