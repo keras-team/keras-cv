@@ -86,7 +86,7 @@ class RecallCorrectnessTest(tf.test.TestCase):
             bounding_box_format="xyxy",
             class_ids=categories + [1000],
             max_detections=100,
-            area_range=(0, 32 ** 2),
+            area_range=(0, 32**2),
         )
 
         recall.update_state(y_true, y_pred)
@@ -99,7 +99,7 @@ class RecallCorrectnessTest(tf.test.TestCase):
             bounding_box_format="xyxy",
             class_ids=categories + [1000],
             max_detections=100,
-            area_range=(32 ** 2, 96 ** 2),
+            area_range=(32**2, 96**2),
         )
 
         recall.update_state(y_true, y_pred)
@@ -112,7 +112,7 @@ class RecallCorrectnessTest(tf.test.TestCase):
             bounding_box_format="xyxy",
             class_ids=categories + [1000],
             max_detections=100,
-            area_range=(96 ** 2, 1e5 ** 2),
+            area_range=(96**2, 1e5**2),
         )
 
         recall.update_state(y_true, y_pred)

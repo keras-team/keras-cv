@@ -67,4 +67,5 @@ class DropPathTest(tf.test.TestCase):
         self.assertAllInRange(
             total_non_zero_outputs,
             int(0.49 * tf.cast(total_non_zero_inputs, tf.float32)),
-            int(0.51 * tf.cast(total_non_zero_inputs, tf.float32)))
+            int(0.51 * tf.cast(total_non_zero_inputs, tf.float32)),
+        )
