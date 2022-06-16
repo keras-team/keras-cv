@@ -44,9 +44,9 @@ class StochasticDepth(tf.keras.layers.Layer):
     $$
     x[0] + b_l * x[1],
     $$
-    where $b_l$ is a random Bernoulli variable with probability $P(b_l = 1) = p_l$
-    At test time, StochasticDepth rescales the activations of the residual
-    branch based on the drop rate ($rate$):
+    where $b_l$ is a random Bernoulli variable with probability 
+    $P(b_l = 1) = rate$. At test time, StochasticDepth rescales the activations 
+    of the residual branch based on the drop rate ($rate$):
     $$
     x[0] + (1 - rate) * x[1]
     $$
