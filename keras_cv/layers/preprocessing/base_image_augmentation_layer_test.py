@@ -32,10 +32,10 @@ class RandomAddLayer(BaseImageAugmentationLayer):
             [], minval=self.value_range[0], maxval=self.value_range[1]
         )
 
-    def augment_image(self, image, transformation):
+    def augment_image(self, image, transformation, **kwargs):
         return image + transformation
 
-    def augment_label(self, label, transformation):
+    def augment_label(self, label, transformation, **kwargs):
         return label + transformation
 
 

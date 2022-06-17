@@ -239,14 +239,27 @@ class BaseImageAugmentationLayer(tf.keras.__internal__.layers.BaseRandomLayer):
         transformation = self.get_random_transformation(
             image=image, label=label, bounding_boxes=bounding_boxes
         )
-        image = self.augment_image(image, transformation=transformation)
+        image = self.augment_image(
+            image,
+            transformation=transformation,
+            bounding_boxes=bounding_boxes,
+            label=label,
+        )
         result = {IMAGES: image}
         if label is not None:
-            label = self.augment_target(label, transformation=transformation)
+            label = self.augment_target(
+                label,
+                transformation=transformation,
+                bounding_boxes=bounding_boxes,
+                image=image,
+            )
             result[LABELS] = label
         if bounding_boxes is not None:
             bounding_boxes = self.augment_bounding_boxes(
-                bounding_boxes, transformation=transformation, image=image
+                bounding_boxes,
+                transformation=transformation,
+                label=label,
+                image=image,
             )
             result[BOUNDING_BOXES] = bounding_boxes
         return result
