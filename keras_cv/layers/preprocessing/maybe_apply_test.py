@@ -14,10 +14,10 @@
 import tensorflow as tf
 from absl.testing import parameterized
 
-from keras_cv.layers.preprocessing.maybe_apply import MaybeApply
 from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
     BaseImageAugmentationLayer,
 )
+from keras_cv.layers.preprocessing.maybe_apply import MaybeApply
 
 
 class ZeroOut(BaseImageAugmentationLayer):

@@ -17,6 +17,8 @@ from tensorflow.tools.docs import doc_controls
 
 from keras_cv.utils import preprocessing
 
+# In order to support both unbatched and batched inputs, the horizontal
+# and verticle axis is reverse indexed
 H_AXIS = -3
 W_AXIS = -2
 
