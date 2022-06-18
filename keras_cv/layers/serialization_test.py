@@ -192,9 +192,7 @@ class SerializationTest(tf.test.TestCase, parameterized.TestCase):
         (
             "StochasticDepth",
             regularization.StochasticDepth,
-            {
-                "survival_probability": 0.9
-            },
+            {"rate": 0.1},
         ),
         (
             "MaybeApply",

@@ -1,54 +1,16 @@
 # Roadmap
+This document provides an overview of where KerasCV is at, and where it is going.
+# Ongoing Efforts
+## Finish a compelling, end to end, image classification journey
+We have strong preprocessing, a sound API for producing classification models, easy to
+use data loading utilities, and a plethora of information on what it takes to train
+state of the art models.
 
-## Horizon Efforts
-### Publicity
-
-Once TensorFlow 2.9.0 goes live, KerasCV will no longer depend on tf-nightly.  As such,
-the repository will be ready for a soft launch.  This soft launch will include publishing
-documents on keras.io, publishing YouTube videos to the TensorFlow YouTube channel, and
-various other publicity efforts.
-
-While [lukewood](https://github.com/lukewood) will be taking care of many of these tasks
-such as the YouTube videos and the creation of a KerasCV landing page, community members
-may contribute guides to KerasCV.  These guides will mirror existing keras.io tutorials,
-but instead of using manual implementation of specific techniques they will rely on the
-corresponding KerasCV implementations.  These guides will reference the original
-implementations and must focus on the ease of use that KerasCV components provide over
-their manual implementations.
-
-This is done for several reasons:
-
-- allows us to gather all KerasCV tutorials under `guides/keras_cv`
-- allows KerasCV full autonomy to edit the tutorials as needed to highlight the KerasCV components
-- maintains low level workflows that some users may find useful: i.e. the existing RandAugment guide shows how to use `tf.py_function` in a `tf.data.Dataset` pipeline
-
-Over the next few weeks, we will gather a list of guides that users will be able to contribute.
-These will be tracked in a GitHub project.  Stay tuned over the next few weeks to view this list of guides...
-
-### Bounding Box Support for Image Data Augmentation Layers
-
-As part of v0.1.0, KerasCV launched 28 image data augmentation layers.
-These layers provide all that is needed to train state of the art image classification models; namely RandomRotation, ChannelShift, RandAugment, CutMix, and MixUp.
-
-Next, we would like to add support for bounding boxes to these data augmentation techniques.
-This will largely be handled by [divyashreepathihalli](https://github.com/divyashreepathihalli), but there
-may be the opportunity for community contributors to contribute support in specific layers after a reference example is available.
-
-### Classification Model Training Template
-
-KerasCV will offer a state of the art training template for produce high quality, efficient
-CNN classifiers.  The template will be written to train on the `imagenet2012` dataset,
-but will support custom dataset usage.  This template will support recovery from failure,
-checkpointing, metric logging to TensorBoard, and more.  The template will not require
-users to "nurse" the job.  [Qianli Scott Zhu](https://github.com/qlzh727) will be kicking off
-this effort.
-
-After the first version of the template is created, community members may propose feature
-additions or code changes.
-
-### Bounding Box Model Training Template
-
-Same as Classification template but for bounding box detection
+We need to bundle it all up into a training template that produces a pretrained
+checkpoints.  Each model should ideally have a script in `examples` showing how to
+produce state of the art results for that model architecture.
+The scripts should be easily forkable, use monitoring, automatically checkpoint and
+restart from failure, and all in all provide a delightful user experience.
 
 ### Visualization Tools
 
@@ -63,7 +25,63 @@ Explainability tools will show *why* a model makes the classification it does.  
 includes tools like `GradCam`.  A Google Summer of Code student will likely kick this
 effort off.
 
-## Non-Goals
+## Provide a unique bounding box journey
+Recently we finished our API design for bounding box handling.  With this change,
+we now have the opportunity to finish providing strong bounding box support within the
+library.
+
+Ideally like to provide the following workflow for training a bounding box detection model:
+
+```python
+train_ds = load_dataset()
+
+preprocessing_model = keras.Sequential(
+    [
+        keras_cv.RandAugment(),
+        keras_cv.Mosaic()(),
+        keras_cv.MixUp(),
+    ], name="preprocessing_model"
+)
+
+train_ds = train_ds.map(tfm.RetinaNet.LabelEncoder().encoder_batch())
+model = tfm.RetinaNet(keyword_arg_1=my_arv, name="retinanet")
+
+model.compile(
+    # we don't need to include loss because it is core to the RetinaNet model
+    optimizer=optimizers.SGD(),
+    metrics=[
+        keras_cv.COCOMeanAveragePrecision(),
+        keras_cv.COCORecall()
+    ]
+)
+
+model.fit(train_ds)
+
+results = model.predict(somedata)
+# > results is a dict, {train_targets: train_targets, inference_targets: inference_targets}
+```
+
+### Bounding Box Support for Image Data Augmentation Layers
+[divyashreepathihalli](https://github.com/divyashreepathihalli) is leading this effort.
+
+As part of v0.1.0, KerasCV launched 28 image data augmentation layers.
+These layers provide all that is needed to train state of the art image classification models; namely RandomRotation, ChannelShift, RandAugment, CutMix, and MixUp.
+We would like to add support for bounding boxes to these data augmentation techniques.
+
+# Semantic Segmentation
+
+Following bounding box support, another team member will begin focusing on introducing
+segmentation map support to the repo.
+
+# Whats Next?
+
+After Semantic Segmentation, what is next for KerasCV?  Following this, we will pick
+specific applications such as OCR, or few shot learning, and place a high focus on
+providing a seamless end to end journey on completing these tasks.
+
+What tasks will be picked?  This will be decided in the following months.
+
+## Overview
 - **KerasCV is not a repository of blackbox end-to-end solutions (like TF Hub or ModelGarden).**
 
     For the time being, it is focused on modular and reusable building blocks. We expect models in
@@ -80,7 +98,7 @@ effort off.
     metrics, or callbacks. Low-level C++ ops should go elsewhere.
 
 
-- **KerasCV is not a research library.**
+- **KerasCV is a production grade library.**
 
     Researchers may use it, but we do not consider researchers to be our target audience. Our target
     audience is applied CV engineers with experimentation and production needs. KerasCV should make
@@ -89,56 +107,7 @@ effort off.
     on top of KerasCV. This enables us to focus on usability and API standardization, and produce
     objects that have a longer lifespan than the average research project.
 
-## Areas of focus
-At the start of the project, we would like to take a task-oriented approach to outline our project,
-and the first 2 tasks we would like to focus are:
-
-1. **Image classification** (Given an image and a list of labels, return the label and confidence for
-the image).
-2. **Object detection** (Given an image and a list of labels, return a list of bounding box,
-corresponding labels and confidence for the objects in the image).
-
-For each of the tasks, we are targeting to provide user model architectures, layers, preprocessing
-functions, losses, metrics and other necessary components to achieve state of the art accuracy.
-
-There will be common shareable components between those 2 tasks, like model building blocks, etc. We
-will have them in the repository as public API as well.
-
-### Image Classification
-- Dataset to evaluate
-    - [Imagenet](https://www.tensorflow.org/datasets/catalog/imagenet2012)
-    - [Imagenet v2](https://www.tensorflow.org/datasets/catalog/imagenet_v2) (for testing)
-- Target Metric
-    - Top1 Accuracy > 80% (Note that some existing SotA models might not achieve this, like
-original ResNet, but this serve as a guideline for newly added models)
-
-### Object Detection
-- Dataset to evaluate
-    - [Coco 2017](https://www.tensorflow.org/datasets/catalog/coco#coco2017)
-    - [Open image v4](https://www.tensorflow.org/datasets/catalog/open_images_v4)
-    - [PASCAL voc](https://www.tensorflow.org/datasets/catalog/voc)
-- Target Metric
-    - COCO metric mean average precision (mAP)
-
-## Overlapping between keras.application and Keras-CV
-As you might notice, some area we would like to focus has overlapping with existing keras.application,
-and we would like to clarify the reason of the potential code duplication here.
-
-keras.application has a strong API contract that we can't easily make any backward incompatible
-change. On the other hand, there are a few of behavior we actually would like to change within the keras-cv
-- Fetch imagenet weights by default, which might not want to do for keras-cv.
-- Have the image preprocessing logic outside the model. We want to include all the preprocessing
-within the model, so that user won't need to call the extra preprocessing methods.
-- Only end-to-end model are exposed as public API, and Keras CV would like to include more building
-blocks as well.
-- Some legacy model architectures are no longer commonly used and can't reach SotA performance, which
-we might want to deprecate.
-
-Once the keras-cv applications are mature enough, we would add a deprecation warning in the
-keras.applications code.
-
-
-## Community contribution guideline
+# Community contribution guideline
 We would like to leverage/outsource the Keras community not only for bug reporting or fixes,
 but also for active development for feature delivery. To achieve this, we will have the predefined
 process for how to contribute to this repository.
