@@ -36,54 +36,96 @@ def config_equals(config1, config2):
 
 class SerializationTest(tf.test.TestCase, parameterized.TestCase):
     @parameterized.named_parameters(
-        ("AutoContrast", preprocessing.AutoContrast, {"value_range": (0, 255)}),
-        ("ChannelShuffle", preprocessing.ChannelShuffle, {"seed": 1}),
-        ("CutMix", preprocessing.CutMix, {"seed": 1}),
-        ("Equalization", preprocessing.Equalization, {"value_range": (0, 255)}),
+        ("AutoContrast", preprocessing.AutoContrast, {
+            "value_range": (0, 255)
+        }),
+        ("ChannelShuffle", preprocessing.ChannelShuffle, {
+            "seed": 1
+        }),
+        ("CutMix", preprocessing.CutMix, {
+            "seed": 1
+        }),
+        ("Equalization", preprocessing.Equalization, {
+            "value_range": (0, 255)
+        }),
         ("Grayscale", preprocessing.Grayscale, {}),
-        ("GridMask", preprocessing.GridMask, {"seed": 1}),
-        ("MixUp", preprocessing.MixUp, {"seed": 1}),
+        ("GridMask", preprocessing.GridMask, {
+            "seed": 1
+        }),
+        ("MixUp", preprocessing.MixUp, {
+            "seed": 1
+        }),
         (
             "RandomChannelShift",
             preprocessing.RandomChannelShift,
-            {"value_range": (0, 255), "factor": 0.5},
+            {
+                "value_range": (0, 255),
+                "factor": 0.5
+            },
         ),
         (
             "Posterization",
             preprocessing.Posterization,
-            {"bits": 3, "value_range": (0, 255)},
+            {
+                "bits": 3,
+                "value_range": (0, 255)
+            },
         ),
         (
             "RandomColorDegeneration",
             preprocessing.RandomColorDegeneration,
-            {"factor": 0.5, "seed": 1},
+            {
+                "factor": 0.5,
+                "seed": 1
+            },
         ),
         (
             "RandomCutout",
             preprocessing.RandomCutout,
-            {"height_factor": 0.2, "width_factor": 0.2, "seed": 1},
+            {
+                "height_factor": 0.2,
+                "width_factor": 0.2,
+                "seed": 1
+            },
         ),
         (
             "RandomHue",
             preprocessing.RandomHue,
-            {"factor": 0.5, "value_range": (0, 255), "seed": 1},
+            {
+                "factor": 0.5,
+                "value_range": (0, 255),
+                "seed": 1
+            },
         ),
         (
             "RandomSaturation",
             preprocessing.RandomSaturation,
-            {"factor": 0.5, "seed": 1},
+            {
+                "factor": 0.5,
+                "seed": 1
+            },
         ),
         (
             "RandomSharpness",
             preprocessing.RandomSharpness,
-            {"factor": 0.5, "value_range": (0, 255), "seed": 1},
+            {
+                "factor": 0.5,
+                "value_range": (0, 255),
+                "seed": 1
+            },
         ),
         (
             "RandomShear",
             preprocessing.RandomShear,
-            {"x_factor": 0.3, "x_factor": 0.3, "seed": 1},
+            {
+                "x_factor": 0.3,
+                "x_factor": 0.3,
+                "seed": 1
+            },
         ),
-        ("Solarization", preprocessing.Solarization, {"value_range": (0, 255)}),
+        ("Solarization", preprocessing.Solarization, {
+            "value_range": (0, 255)
+        }),
         (
             "RandAugment",
             preprocessing.RandAugment,
@@ -98,12 +140,20 @@ class SerializationTest(tf.test.TestCase, parameterized.TestCase):
         (
             "RandomAugmentationPipeline",
             preprocessing.RandomAugmentationPipeline,
-            {"layers": [], "augmentations_per_image": 1, "rate": 1.0},
+            {
+                "layers": [],
+                "augmentations_per_image": 1,
+                "rate": 1.0
+            },
         ),
         (
             "RandomChoice",
             preprocessing.RandomChoice,
-            {"layers": [], "seed": 3, "auto_vectorize": False},
+            {
+                "layers": [],
+                "seed": 3,
+                "auto_vectorize": False
+            },
         ),
         (
             "RandomColorJitter",
@@ -118,9 +168,26 @@ class SerializationTest(tf.test.TestCase, parameterized.TestCase):
             },
         ),
         (
+            "RandomResizedCrop",
+            preprocessing.RandomResizedCrop,
+            {
+                "target_size": (224, 224),
+                "area_factor": (0.08, 1.0),
+                "aspect_ratio_factor": (3. / 4., 4. / 3.),
+                "interpolation": "bilinear",
+                "fill_mode": "reflect",
+                "fill_value": 0.,
+                "seed": 1,
+            },
+        ),
+        (
             "DropBlock2D",
             regularization.DropBlock2D,
-            {"rate": 0.1, "block_size": (7, 7), "seed": 1234},
+            {
+                "rate": 0.1,
+                "block_size": (7, 7),
+                "seed": 1234
+            },
         ),
         (
             "StochasticDepth",

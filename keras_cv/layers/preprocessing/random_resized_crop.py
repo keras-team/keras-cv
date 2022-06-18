@@ -15,33 +15,27 @@ import warnings
 
 import tensorflow as tf
 
-from keras_cv.utils import preprocessing
 from keras_cv.layers import BaseImageAugmentationLayer
 
 
 @tf.keras.utils.register_keras_serializable(package="keras_cv")
 class RandomResizedCrop(BaseImageAugmentationLayer):
-    """Randomly resizes an image then crops to a target size. 
-	Code credits: https://github.com/keras-team/keras-cv/pull/457
+    """
+    Randomly crops a part of an image and resizes it to provided size.
+
     Args:
-        resize_factor: A tuple of two floats, a single float or `keras_cv.FactorSampler`.
-            `factor` controls the extent to which the image is resized.
-            `factor=0.0` makes this layer perform a no-op operation, while a value of
-            1.0 doubles the size of the image.  If a single float is used, a value
-            between `0.0` and the passed float is sampled.  In order to ensure the value
-            is always the same, please pass a tuple with two identical floats:
-            `(0.5, 0.5)`.
-        crop_size: a tuple of two integers used as the target size to crop images to.
+        target_size: A uple of two integers used as the target size to crop 
+            images to.
+        aspect_ratio_factor: (Optional) A tuple of two floats. Represents the 
+            lower and upper bound for the aspect ratio of the cropped image 
+            before resizing it to `target_size`. Defaults to (3./4., 4./3.).
+        area_factor: (Optional) A tuple of two floats, a single float or 
+            `keras_cv.FactorSampler`. Represents the lower and upper bound for
+            the area relative to the original image of the cropped image before 
+            resizing it to `target_size`. Defaults to (0.08, 1.0).
         interpolation: interpolation method used in the `ImageProjectiveTransformV3` op.
              Supported values are `"nearest"` and `"bilinear"`.
              Defaults to `"bilinear"`.
-        aspect_ratio_factor: (Optional) A tuple of two floats, a single float or
-            `keras_cv.FactorSampler`. `factor` used to distort the aspect ratio of the
-            image. `factor=0.0` makes this layer perform a no-op operation, while a
-            value of 1.0 doubles the size of the image.  If a single float is used, a
-            value between `0.0` and the passed float is sampled.  In order to ensure the
-            value is always the same, please pass a tuple with two identical floats:
-            `(0.5, 0.5)`.
         fill_mode: fill_mode in the `ImageProjectiveTransformV3` op.
              Supported values are `"reflect"`, `"wrap"`, `"constant"`, and `"nearest"`.
              Defaults to `"reflect"`.
@@ -50,103 +44,86 @@ class RandomResizedCrop(BaseImageAugmentationLayer):
              constant".  Defaults to `0.0`.
         seed: Integer. Used to create a random seed.
     """
-    def __init__(
-        self,
-        resize_factor,
-        crop_size,
-        aspect_ratio_factor=0.0,
-        interpolation="bilinear",
-        fill_mode="reflect",
-        fill_value=0.0,
-        seed=None,
-        **kwargs,
-    ):
-        super().__init__(seed=seed, **kwargs)
-        self.area_factor = preprocessing.parse_factor(resize_factor,
-                                                      param_name="area_factor",
-                                                      seed=seed)
-        self.aspect_ratio_factor = preprocessing.parse_factor(
-            aspect_ratio_factor, param_name="aspect_ratio_factor", seed=seed)
-        if resize_factor == 0.0 and aspect_ratio_factor == 0.0:
-            warnings.warn(
-                "RandomResizedCrop received both `area_factor=0.0` and "
-                "`aspect_ratio_factor=0.0`. As a result, the layer will perform no "
-                "augmentation.")
+    def __init__(self,
+                 target_size,
+                 aspect_ratio_factor=(3. / 4., 4. / 3.),
+                 area_factor=(0.08, 1.0),
+                 interpolation="bilinear",
+                 fill_mode="reflect",
+                 fill_value=0.0,
+                 seed=None,
+                 **kwargs):
+        super(RandomResizedCrop, self).__init__(seed=seed, **kwargs)
+
+        self.target_size = target_size
+        self.aspect_ratio_factor = aspect_ratio_factor
+        self.area_factor = preprocessing.parse_factor(area_factor,
+            param_name="area_factor", seed=seed)
+
         self.interpolation = interpolation
         self.fill_mode = fill_mode
         self.fill_value = fill_value
         self.seed = seed
-        self.crop_size = crop_size
+
+        if area_factor == 0.0 and aspect_ratio_factor == 0.0:
+            warnings.warn(
+                "RandomResizedCrop received both `area_factor=0.0` and "
+                "`aspect_ratio_factor=0.0`. As a result, the layer will perform no "
+                "augmentation.")
 
     def get_random_transformation(self,
                                   image=None,
                                   label=None,
                                   bounding_box=None):
-        # random area and aspect ratio
-        random_area = (1.0 +
-                       preprocessing.random_inversion(self._random_generator) *
-                       self.area_factor())
-        random_aspect_ratio = (
-            1.0 + preprocessing.random_inversion(self._random_generator) *
-            self.aspect_ratio_factor())
+        area_factor = self.area_factor()
+        aspect_ratio = tf.random.uniform((), minval=self.aspect_ratio_factor[0], 
+            maxval=self.aspect_ratio_factor[1], dtype=tf.float32)
 
-        # corresponding height and width (1 = original height/width)
-        new_height = tf.sqrt(random_area / random_aspect_ratio)
-        new_width = tf.sqrt(random_area * random_aspect_ratio)
+        new_height = tf.clip_by_value(tf.sqrt(area_factor / aspect_ratio), 0.0,
+                                    1.0)  # to avoid unwanted/unintuitive effects
+        new_width = tf.clip_by_value(tf.sqrt(area_factor * aspect_ratio), 0.0, 1.0)
 
-        # random offsets for the crop, inside or outside the image
-        height_offset = self._random_generator.random_uniform(
+        height_offset = tf.random.uniform(
             (),
-            tf.minimum(0.0, 1.0 - new_height),
-            tf.maximum(0.0, 1.0 - new_height),
-            dtype=tf.float32,
-        )
-        width_offset = self._random_generator.random_uniform(
-            (),
-            tf.minimum(0.0, 1.0 - new_width),
-            tf.maximum(0.0, 1.0 - new_width),
+            minval=tf.minimum(0.0, 1.0 - new_height),
+            maxval=tf.maximum(0.0, 1.0 - new_height),
             dtype=tf.float32,
         )
 
-        return (new_height, new_width, height_offset, width_offset)
+        width_offset = tf.random.uniform(
+            (),
+            minval=tf.minimum(0.0, 1.0 - new_width),
+            maxval=tf.maximum(0.0, 1.0 - new_width),
+            dtype=tf.float32,
+        )
+
+        y1 = height_offset
+        y2 = height_offset + new_height
+        x1 = width_offset
+        x2 = width_offset + new_width
+
+        return [[y1, x1, y2, x2]]
 
     def augment_image(self, image, transformation):
-        height, width, _ = image.shape
         image = tf.expand_dims(image, axis=0)
+        boxes = transformation
 
-        new_height, new_width, height_offset, width_offset = transformation
-
-        transform = RandomResizedCrop._format_transform([
-            new_width,
-            0.0,
-            width_offset * width,
-            0.0,
-            new_height,
-            height_offset * height,
-            0.0,
-            0.0,
-        ])
-        image = preprocessing.transform(
-            images=image,
-            transforms=transform,
-            interpolation=self.interpolation,
-            fill_mode=self.fill_mode,
-            fill_value=self.fill_value,
+        # See bit.ly/tf_crop_resize for more details
+        augmented_image = tf.image.crop_and_resize(
+            image,  # image shape: [B, H, W, C]
+            boxes,  # boxes: (1, 4) in this case; represents area  
+            # to be cropped from the original image
+            [0],  # box_indices: maps boxes to images along batch axis 
+            # [0] since there is only one image
+            self.target_size,  # output size
         )
 
-        return tf.squeeze(image, axis=0)
-
-    def augment_label(self, label, transformation):
-        return label
-
-    @staticmethod
-    def _format_transform(transform):
-        transform = tf.convert_to_tensor(transform, dtype=tf.float32)
-        return transform[tf.newaxis]
+        return tf.squeeze(augmented_image, axis=0)
 
     def get_config(self):
         config = super().get_config()
         config.update({
+            "target_size": self.target_size,
             "area_factor": self.area_factor,
             "aspect_ratio_factor": self.aspect_ratio_factor,
             "interpolation": self.interpolation,
