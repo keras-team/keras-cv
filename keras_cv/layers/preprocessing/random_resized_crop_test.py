@@ -18,12 +18,26 @@ from keras_cv.layers import preprocessing
 
 
 class RandomResizedCropTest(tf.test.TestCase):
-    def test_preserves_output_shape(self):
-        image_shape = (4, 300, 300, 3)
-        image = tf.random.uniform(shape=image_shape) * 255.0
+    def train_augments_image(self):
+        # Checks if original and augmented images are different
 
-        layer = preprocessing.RandomResizeCrop(area_factor=(0.3, 0.8))
-        output = layer(image)
+        input_image_shape = (4, 300, 300, 3)
+        image = tf.random.uniform(shape=input_image_shape)
+
+        layer = preprocessing.RandomResizedCrop((224, 224))
+        output = layer(image, training=True)
+
+        output_image_resized = tf.image.resize(output, input_image_shape)
+
+        self.assertNotEqual(image, output_image_resized)
+
+    def test_preserves_image(self):
+        # Checks if resultant image stays the same at inference time
+
+        image_shape = (4, 300, 300, 3)
+        image = tf.random.uniform(shape=image_shape)
+
+        layer = preprocessing.RandomResizedCrop((300, 300))
+        output = layer(image, training=False)
 
         self.assertEqual(image.shape, output.shape)
-        self.assertNotAllClose(image, output)
