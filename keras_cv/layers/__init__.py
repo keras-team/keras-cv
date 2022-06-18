@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from tensorflow.keras.__internal__.layers import BaseImageAugmentationLayer
 from tensorflow.keras.layers import CenterCrop
 from tensorflow.keras.layers import RandomBrightness
 from tensorflow.keras.layers import RandomContrast
@@ -26,6 +25,8 @@ from tensorflow.keras.layers import RandomZoom
 from tensorflow.keras.layers import Rescaling
 from tensorflow.keras.layers import Resizing
 
+
+from keras_cv.layers.preprocessing.base_image_augmentation_layer import BaseImageAugmentationLayer
 from keras_cv.layers.preprocessing.aug_mix import AugMix
 from keras_cv.layers.preprocessing.auto_contrast import AutoContrast
 from keras_cv.layers.preprocessing.channel_shuffle import ChannelShuffle
