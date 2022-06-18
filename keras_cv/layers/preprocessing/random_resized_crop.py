@@ -25,14 +25,14 @@ class RandomResizedCrop(BaseImageAugmentationLayer):
     Randomly crops a part of an image and resizes it to provided size.
 
     Args:
-        target_size: A uple of two integers used as the target size to crop 
+        target_size: A uple of two integers used as the target size to crop
             images to.
-        aspect_ratio_factor: (Optional) A tuple of two floats. Represents the 
-            lower and upper bound for the aspect ratio of the cropped image 
+        aspect_ratio_factor: (Optional) A tuple of two floats. Represents the
+            lower and upper bound for the aspect ratio of the cropped image
             before resizing it to `target_size`. Defaults to (3./4., 4./3.).
-        area_factor: (Optional) A tuple of two floats, a single float or 
+        area_factor: (Optional) A tuple of two floats, a single float or
             `keras_cv.FactorSampler`. Represents the lower and upper bound for
-            the area relative to the original image of the cropped image before 
+            the area relative to the original image of the cropped image before
             resizing it to `target_size`. Defaults to (0.08, 1.0).
         interpolation: interpolation method used in the `ImageProjectiveTransformV3` op.
              Supported values are `"nearest"` and `"bilinear"`.
@@ -117,9 +117,9 @@ class RandomResizedCrop(BaseImageAugmentationLayer):
         # See bit.ly/tf_crop_resize for more details
         augmented_image = tf.image.crop_and_resize(
             image,  # image shape: [B, H, W, C]
-            boxes,  # boxes: (1, 4) in this case; represents area  
-            # to be cropped from the original image
-            [0],  # box_indices: maps boxes to images along batch axis 
+            boxes,  # boxes: (1, 4) in this case; represents area
+                        # to be cropped from the original image
+            [0],  # box_indices: maps boxes to images along batch axis
             # [0] since there is only one image
             self.target_size,  # output size
         )
