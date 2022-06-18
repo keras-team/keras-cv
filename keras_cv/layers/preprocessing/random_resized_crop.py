@@ -16,6 +16,7 @@ import warnings
 import tensorflow as tf
 
 from keras_cv.layers import BaseImageAugmentationLayer
+from keras_cv.utils import preprocessing
 
 
 @tf.keras.utils.register_keras_serializable(package="keras_cv")
@@ -58,7 +59,8 @@ class RandomResizedCrop(BaseImageAugmentationLayer):
         self.target_size = target_size
         self.aspect_ratio_factor = aspect_ratio_factor
         self.area_factor = preprocessing.parse_factor(area_factor,
-            param_name="area_factor", seed=seed)
+                                                      param_name="area_factor",
+                                                      seed=seed)
 
         self.interpolation = interpolation
         self.fill_mode = fill_mode
@@ -76,12 +78,16 @@ class RandomResizedCrop(BaseImageAugmentationLayer):
                                   label=None,
                                   bounding_box=None):
         area_factor = self.area_factor()
-        aspect_ratio = tf.random.uniform((), minval=self.aspect_ratio_factor[0], 
-            maxval=self.aspect_ratio_factor[1], dtype=tf.float32)
+        aspect_ratio = tf.random.uniform((),
+                                         minval=self.aspect_ratio_factor[0],
+                                         maxval=self.aspect_ratio_factor[1],
+                                         dtype=tf.float32)
 
-        new_height = tf.clip_by_value(tf.sqrt(area_factor / aspect_ratio), 0.0,
-                                    1.0)  # to avoid unwanted/unintuitive effects
-        new_width = tf.clip_by_value(tf.sqrt(area_factor * aspect_ratio), 0.0, 1.0)
+        new_height = tf.clip_by_value(
+            tf.sqrt(area_factor / aspect_ratio), 0.0,
+            1.0)  # to avoid unwanted/unintuitive effects
+        new_width = tf.clip_by_value(tf.sqrt(area_factor * aspect_ratio), 0.0,
+                                     1.0)
 
         height_offset = tf.random.uniform(
             (),
