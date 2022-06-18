@@ -25,7 +25,7 @@ class FeaturePyramid(tf.keras.layers.Layer):
 
     There is an output associated with each input in the basic FPN. The output Pi
     at level `i` (corresponding to Ci) is given by performing a merge operation on
-    the outputs after:
+    the outputs of:
     1) a top down operation on Pj (where j = i - 1)
     2) a lateral operation on Ci
 
@@ -50,7 +50,7 @@ class FeaturePyramid(tf.keras.layers.Layer):
             match the corresponding level from pyramid_levels list. The top-most layer
             is not merged and the corresponding operation is therefore not included.
             Passing None will populate the list with the default FPN operation
-            (a 1X1 Conv2D layer). Defaults to None.
+            (an add operation). Defaults to None.
 
     References:
         [FPN paper](https://arxiv.org/pdf/1612.03144)
