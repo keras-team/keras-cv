@@ -14,3 +14,4 @@
 
 from keras_cv.layers.regularization.dropblock_2d import DropBlock2D
 from keras_cv.layers.regularization.stochastic_depth import StochasticDepth
+from keras_cv.layers.regularization.squeeze_excite import SqueezeAndExciteBlock2D
