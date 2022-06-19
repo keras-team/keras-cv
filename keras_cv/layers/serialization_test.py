@@ -15,9 +15,9 @@ import tensorflow as tf
 from absl.testing import parameterized
 
 from keras_cv import core
+from keras_cv.layers import fpn
 from keras_cv.layers import preprocessing
 from keras_cv.layers import regularization
-from keras_cv.layers import fpn
 
 
 def custom_compare(obj1, obj2):
