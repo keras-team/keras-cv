@@ -118,7 +118,7 @@ class RandomResizedCrop(BaseImageAugmentationLayer):
         augmented_image = tf.image.crop_and_resize(
             image,  # image shape: [B, H, W, C]
             boxes,  # boxes: (1, 4) in this case; represents area
-                        # to be cropped from the original image
+            # to be cropped from the original image
             [0],  # box_indices: maps boxes to images along batch axis
             # [0] since there is only one image
             self.target_size,  # output size
