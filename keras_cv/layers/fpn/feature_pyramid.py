@@ -14,7 +14,7 @@
 
 import tensorflow as tf
 
-
+@tf.keras.utils.register_keras_serializable(package="keras_cv")
 class FeaturePyramid(tf.keras.layers.Layer):
     """Implements a Feature Pyramid Network.
 
@@ -81,7 +81,7 @@ class FeaturePyramid(tf.keras.layers.Layer):
         merge_ops=None,
         **kwargs,
     ):
-        super(FeaturePyramid, self).__init__(name="FPN", **kwargs)
+        super(FeaturePyramid, self).__init__(**kwargs)
         self.pyramid_levels = sorted(pyramid_levels)
         self.num_pyramid_levels = len(self.pyramid_levels)
         self.num_channels = num_channels
