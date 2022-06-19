@@ -28,7 +28,7 @@ class FeaturePyramid(tf.keras.layers.Layer):
     the outputs of:
     1) a top down operation on Pj (where j = i - 1)
     2) a lateral operation on Ci
-    
+
     The layer must be called with the feature Ci in increasing order of `i`. As an
     example, for `pyramid_levels`=[2,3,4,5], the layer should be called with the
     list [C2,C3,C4,C5] as input
@@ -108,7 +108,7 @@ class FeaturePyramid(tf.keras.layers.Layer):
             if not top_down_ops
             else top_down_ops
         )
-        # the same merge layer is used for all levels 
+        # the same merge layer is used for all levels
         self.merge_ops = (
             [tf.keras.layers.Add()] * (self.num_pyramid_levels - 1)
             if not merge_ops
@@ -129,7 +129,7 @@ class FeaturePyramid(tf.keras.layers.Layer):
             P_i = self.lateral_ops[i](features[i])
             P_i = self.merge_ops[i - 1]([P_i, P_top_down_i])
             P_top_down_i = self.top_down_ops[i](P_i)
-            
+
             # store the outputs in a dictionary
             output_features[f"P{self.pyramid_levels[i]}"] = P_i
 
@@ -147,5 +147,4 @@ class FeaturePyramid(tf.keras.layers.Layer):
             "merge_ops": self.merge_ops,
         }
         base_config = super().get_config()
-        return dict(list(base_config.items()) + list(config.items()))    
-    
+        return dict(list(base_config.items()) + list(config.items()))
