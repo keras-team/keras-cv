@@ -13,7 +13,6 @@
 # limitations under the License.
 import tensorflow as tf
 
-from keras_cv import core
 from keras_cv.layers import preprocessing
 
 
