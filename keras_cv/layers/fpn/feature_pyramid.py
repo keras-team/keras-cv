@@ -108,7 +108,7 @@ class FeaturePyramid(tf.keras.layers.Layer):
             if not top_down_ops
             else top_down_ops
         )
-        # same merge_ops for all layers 
+        # the same merge layer is used for all levels 
         self.merge_ops = (
             [tf.keras.layers.Add()] * (self.num_pyramid_levels - 1)
             if not merge_ops
