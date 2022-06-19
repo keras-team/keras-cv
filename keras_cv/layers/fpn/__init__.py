@@ -12,4 +12,4 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from keras_cv.layers.fpn.FeaturePyramid import FeaturePyramid
+from keras_cv.layers.fpn.feature_pyramid import FeaturePyramid
