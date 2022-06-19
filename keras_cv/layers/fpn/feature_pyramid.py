@@ -14,6 +14,7 @@
 
 import tensorflow as tf
 
+
 @tf.keras.utils.register_keras_serializable(package="keras_cv")
 class FeaturePyramid(tf.keras.layers.Layer):
     """Implements a Feature Pyramid Network.
