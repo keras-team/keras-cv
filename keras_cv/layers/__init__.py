@@ -56,5 +56,5 @@ from keras_cv.layers.preprocessing.random_sharpness import RandomSharpness
 from keras_cv.layers.preprocessing.random_shear import RandomShear
 from keras_cv.layers.preprocessing.solarization import Solarization
 from keras_cv.layers.regularization.dropblock_2d import DropBlock2D
-from keras_cv.layers.regularization.stochastic_depth import StochasticDepth
 from keras_cv.layers.regularization.squeeze_excite import SqueezeAndExciteBlock2D
+from keras_cv.layers.regularization.stochastic_depth import StochasticDepth

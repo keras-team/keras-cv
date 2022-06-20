@@ -13,9 +13,10 @@
 # limitations under the License.
 
 from multiprocessing.sharedctypes import Value
-import tensorflow as tf
 
+import tensorflow as tf
 from tensorflow.keras import layers
+
 
 @tf.keras.utils.register_keras_serializable(package="keras_cv")
 class SqueezeAndExciteBlock2D(layers.Layer):
