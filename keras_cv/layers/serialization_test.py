@@ -15,6 +15,7 @@ import tensorflow as tf
 from absl.testing import parameterized
 
 from keras_cv import core
+from keras_cv.layers import fpn
 from keras_cv.layers import preprocessing
 from keras_cv.layers import regularization
 
@@ -146,6 +147,17 @@ class SerializationTest(tf.test.TestCase, parameterized.TestCase):
                 "chain_depth": -1,
                 "alpha": 1.0,
                 "seed": 1,
+            },
+        ),
+        (
+            "FeaturePyramid",
+            fpn.FeaturePyramid,
+            {
+                "pyramid_levels": [2, 3, 4, 5],
+                "num_channels": 256,
+                "lateral_ops": None,
+                "top_down_ops": None,
+                "merge_ops": None,
             },
         ),
     )

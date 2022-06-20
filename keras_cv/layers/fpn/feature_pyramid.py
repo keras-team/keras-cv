@@ -87,6 +87,11 @@ class FeaturePyramid(tf.keras.layers.Layer):
         self.num_pyramid_levels = len(self.pyramid_levels)
         self.num_channels = num_channels
 
+        # required for successful serialization
+        self.lateral_ops_passed = lateral_ops
+        self.top_down_ops_passed = lateral_ops
+        self.merge_ops_passed = lateral_ops
+
         if not lateral_ops:
             # populate self.lateral_ops with default FPN Conv2D 1X1 layers
             self.lateral_ops = []
@@ -143,9 +148,9 @@ class FeaturePyramid(tf.keras.layers.Layer):
         config = {
             "pyramid_levels": self.pyramid_levels,
             "num_channels": self.num_channels,
-            "lateral_ops": self.lateral_ops,
-            "top_down_ops": self.top_down_ops,
-            "merge_ops": self.merge_ops,
+            "lateral_ops": self.lateral_ops_passed,
+            "top_down_ops": self.top_down_ops_passed,
+            "merge_ops": self.merge_ops_passed,
         }
         base_config = super().get_config()
         return dict(list(base_config.items()) + list(config.items()))
