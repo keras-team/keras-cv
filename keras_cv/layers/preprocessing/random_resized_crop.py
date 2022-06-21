@@ -25,7 +25,7 @@ class RandomResizedCrop(BaseImageAugmentationLayer):
     Randomly crops a part of an image and resizes it to provided size. 
 
     Args:
-        target_size: A uple of two integers used as the target size to crop
+        target_size: A tuple of two integers used as the target size to crop
             images to.
 <<<<<<< HEAD
         aspect_ratio_factor: (Optional) A tuple of two floats, a single float or
@@ -39,7 +39,7 @@ class RandomResizedCrop(BaseImageAugmentationLayer):
             before resizing it to `target_size`. Defaults to (3./4., 4./3.).
 >>>>>>> 8967911 (Update keras_cv/layers/preprocessing/random_resized_crop.py)
         area_factor: (Optional) A tuple of two floats, a single float or
-            `keras_cv.FactorSampler`. Represents the lower and upper bound for
+            `keras_cv.FactorSampler`. Represents the lower and upper bounds for
             the area relative to the original image of the cropped image before
             resizing it to `target_size`. Defaults to (0.08, 1.0).
         seed: (Optional) Integer. Used to create a random seed.
