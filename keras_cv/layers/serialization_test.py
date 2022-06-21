@@ -137,6 +137,13 @@ class SerializationTest(tf.test.TestCase, parameterized.TestCase):
             },
         ),
         (
+            "RandomJpegQuality",
+            preprocessing.RandomJpegQuality,
+            {
+                "factor": (75, 100)
+            },
+        ),
+        (
             "AugMix",
             preprocessing.AugMix,
             {
