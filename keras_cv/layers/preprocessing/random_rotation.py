@@ -141,8 +141,10 @@ class RandomRotation(BaseImageAugmentationLayer):
         image = kwargs.get("image")
         if self.bounding_box_format is None:
             raise ValueError(
-                "bounding_box_format has not been specified during layer "
-                "initialization. Please refer docstring for more information."
+                "`RandomRotation()` was called with bounding boxes,"
+                "but no `bounding_box_format` was specified in the constructor."
+                "Please specify a bounding box format in the constructor. i.e."
+                "`RandomRotation(bounding_box_format='xyxy')`"
             )
         else:
             bounding_boxes = bounding_box.convert_format(
