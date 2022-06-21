@@ -58,7 +58,7 @@ class RandomGaussianBlur(BaseImageAugmentationLayer):
                     ", got {} ".format(type(self.kernel_size))
                 )
 
-    def get_random_transformation(self, image=None, label=None, bounding_box=None):
+    def get_random_transformation(self, image=None, label=None, bounding_boxes=None):
         factor = self.factor()
         blur_v = RandomGaussianBlur.get_kernel(factor, self.y)
         blur_h = RandomGaussianBlur.get_kernel(factor, self.x)
@@ -66,7 +66,7 @@ class RandomGaussianBlur(BaseImageAugmentationLayer):
         blur_h = tf.reshape(blur_h, [1, self.x, 1, 1])
         return (blur_v, blur_h)
 
-    def augment_image(self, image, transformation=None):
+    def augment_image(self, image, transformation=None, **kwargs):
 
         image = tf.expand_dims(image, axis=0)
 

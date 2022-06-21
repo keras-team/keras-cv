@@ -301,3 +301,25 @@ def transform(
             fill_mode=fill_mode.upper(),
             interpolation=interpolation.upper(),
         )
+
+
+def ensure_tensor(inputs, dtype=None):
+    """Ensures the input is a Tensor, SparseTensor or RaggedTensor."""
+    if not isinstance(inputs, (tf.Tensor, tf.RaggedTensor, tf.SparseTensor)):
+        inputs = tf.convert_to_tensor(inputs, dtype)
+    if dtype is not None and inputs.dtype != dtype:
+        inputs = tf.cast(inputs, dtype)
+    return inputs
+
+
+def check_fill_mode_and_interpolation(fill_mode, interpolation):
+    if fill_mode not in {"reflect", "wrap", "constant", "nearest"}:
+        raise NotImplementedError(
+            " Want fillmode  to be one of `reflect`, `wrap`, "
+            "`constant` or `nearest`. Got `fill_mode` {}. ".format(fill_mode)
+        )
+    if interpolation not in {"nearest", "bilinear"}:
+        raise NotImplementedError(
+            "Unknown `interpolation` {}. Only `nearest` and "
+            "`bilinear` are supported.".format(interpolation)
+        )

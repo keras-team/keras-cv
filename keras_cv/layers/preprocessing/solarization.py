@@ -86,10 +86,10 @@ class Solarization(BaseImageAugmentationLayer):
         )
         self.value_range = value_range
 
-    def get_random_transformation(self, image=None, label=None, bounding_box=None):
+    def get_random_transformation(self, image=None, label=None, bounding_boxes=None):
         return (self.addition_factor(), self.threshold_factor())
 
-    def augment_image(self, image, transformation=None):
+    def augment_image(self, image, transformation=None, **kwargs):
         (addition, threshold) = transformation
         image = preprocessing.transform_value_range(
             image, original_range=self.value_range, target_range=(0, 255)
@@ -102,7 +102,7 @@ class Solarization(BaseImageAugmentationLayer):
         )
         return result
 
-    def augment_label(self, label, transformation=None):
+    def augment_label(self, label, transformation=None, **kwargs):
         return label
 
     def get_config(self):

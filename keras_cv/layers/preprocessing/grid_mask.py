@@ -138,7 +138,7 @@ class GridMask(BaseImageAugmentationLayer):
                 f'"gaussian_noise", or "random".  Got `fill_mode`={fill_mode}'
             )
 
-    def get_random_transformation(self, image=None, label=None, bounding_box=None):
+    def get_random_transformation(self, image=None, label=None, bounding_boxes=None):
         ratio = self.ratio_factor()
 
         # compute grid mask
@@ -219,7 +219,7 @@ class GridMask(BaseImageAugmentationLayer):
 
         return grid_mask
 
-    def augment_image(self, image, transformation=None):
+    def augment_image(self, image, transformation=None, **kwargs):
         mask, fill_value = transformation
         input_shape = tf.shape(image)
 
@@ -233,7 +233,7 @@ class GridMask(BaseImageAugmentationLayer):
 
         return tf.where(mask, fill_value, image)
 
-    def augment_label(self, label, transformation=None):
+    def augment_label(self, label, transformation=None, **kwargs):
         return label
 
     def get_config(self):

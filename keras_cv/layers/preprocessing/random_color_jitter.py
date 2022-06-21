@@ -117,7 +117,7 @@ class RandomColorJitter(BaseImageAugmentationLayer):
             factor=self.hue_factor, value_range=(0, 255), seed=self.seed
         )
 
-    def augment_image(self, image, transformation=None):
+    def augment_image(self, image, transformation=None, **kwargs):
         image = preprocessing_utils.transform_value_range(
             image,
             original_range=self.value_range,
@@ -136,7 +136,7 @@ class RandomColorJitter(BaseImageAugmentationLayer):
         )
         return image
 
-    def augment_label(self, label, transformation=None):
+    def augment_label(self, label, transformation=None, **kwargs):
         return label
 
     def get_config(self):

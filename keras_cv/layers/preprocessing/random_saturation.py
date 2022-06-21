@@ -50,11 +50,11 @@ class RandomSaturation(BaseImageAugmentationLayer):
         )
         self.seed = seed
 
-    def get_random_transformation(self, image=None, label=None, bounding_box=None):
-        del image, label, bounding_box
+    def get_random_transformation(self, image=None, label=None, bounding_boxes=None):
+        del image, label, bounding_boxes
         return self.factor()
 
-    def augment_image(self, image, transformation=None):
+    def augment_image(self, image, transformation=None, **kwargs):
         # Convert the factor range from [0, 1] to [0, +inf]. Note that the
         # tf.image.adjust_saturation is trying to apply the following math formula
         # `output_saturation = input_saturation * factor`. We use the following
@@ -72,7 +72,7 @@ class RandomSaturation(BaseImageAugmentationLayer):
         adjust_factor = transformation / (1 - transformation)
         return tf.image.adjust_saturation(image, saturation_factor=adjust_factor)
 
-    def augment_label(self, label, transformation=None):
+    def augment_label(self, label, transformation=None, **kwargs):
         return label
 
     def get_config(self):
