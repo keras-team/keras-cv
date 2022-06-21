@@ -28,7 +28,7 @@ class RandomResizedCrop(BaseImageAugmentationLayer):
         target_size: A uple of two integers used as the target size to crop
             images to.
         aspect_ratio_factor: (Optional) A tuple of two floats. Represents the
-            lower and upper bound for the aspect ratio of the cropped image
+            lower and upper bounds for the aspect ratio of the cropped image
             before resizing it to `target_size`. Defaults to (3./4., 4./3.).
         area_factor: (Optional) A tuple of two floats, a single float or
             `keras_cv.FactorSampler`. Represents the lower and upper bound for
