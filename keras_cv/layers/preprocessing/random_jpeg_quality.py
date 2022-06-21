@@ -12,9 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import kears_cv
 import tensorflow as tf
 
+import keras_cv
 from keras_cv.utils import preprocessing
 
 
