@@ -48,18 +48,15 @@ class RandomColorJitter(BaseImageAugmentationLayer):
             will be fully white. When only one float is provided, eg, 0.2,
             then -0.2 will be used for lower bound and 0.2 will be used for
             upper bound.
-
         contrast_factor: A positive float represented as fraction of value,
             or a tuple of size 2 representing lower and upper bound. When
             represented as a single float, lower = upper. The contrast factor
             will be randomly picked between `[1.0 - lower, 1.0 + upper]`.
-
         saturation_factor: Either a tuple of two floats or a single float.
             `factor` controls the extent to which the image saturation is
             impacted. `factor=0.5` makes this layer perform a no-op operation.
             `factor=0.0` makes the image to be fully grayscale. `factor=1.0`
             makes the image to be fully saturated.
-
         hue_factor: A tuple of two floats, a single float or
             `keras_cv.FactorSampler`. `factor` controls the extent to which the
             image sharpness is impacted. `factor=0.0` makes this layer perform
@@ -69,7 +66,6 @@ class RandomColorJitter(BaseImageAugmentationLayer):
             is used, a value between `0.0` and the passed float is sampled.
             In order to ensure the value is always the same, please pass a tuple
             with two identical floats: `(0.5, 0.5)`.
-
         seed: Integer. Used to create a random seed.
 
     Usage:
