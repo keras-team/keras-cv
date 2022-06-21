@@ -12,25 +12,43 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import kears_cv
 import tensorflow as tf
 
 from keras_cv.utils import preprocessing
 
 
 @tf.keras.utils.register_keras_serializable(package="keras_cv")
-class RandomJpegQuality(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
-    """Applies Random Jpeg compression artifacts to an image
+class RandomJpegQuality(keras_cv.layers.BaseImageAugmentationLayer):
+    """Applies Random Jpeg compression artifacts to an image.
+
+    Performs the jpeg compression algorithm on the image.  This layer can used in order
+    to ensure your model is robust to artifacts introduced by JPEG compresion.
+
     Args:
-        factor: int, 2 element tuple or 2 element list. If int, this is the maximum
-        compression that can be applied. If list or tuple, the first and second
-        element represent the lower and upper bound respectively.
+        factor: 2 element tuple or 2 element list.  During augmentation, a random number
+        is drawn from the factor distribution.  This value is passed to
+        `tf.image.adjust_jpeg_quality()`.
+        seed: Integer. Used to create a random seed.
+
+    Usage:
+    ```python
+    layer = keras_cv.RandomJpegQuality(factor=(75, 100)))
+    (images, labels), _ = tf.keras.datasets.cifar10.load_data()
+    augmented_images = layer(images)
+    ```
     """
 
-    def __init__(self, factor, **kwargs):
+    def __init__(self, factor, seed=None, **kwargs):
         super().__init__(**kwargs)
-
+        if isinstance(factor, float, int):
+            raise ValueError(
+                "RandomJpegQuality() expects factor to be a 2 element "
+                "tuple, list or a `keras_cv.FactorSampler`. "
+                "RandomJpegQuality() received `factor={factor}`."
+            )
         self.factor = preprocessing.parse_factor(
-            factor, min_value=0, max_value=100, param_name="factor"
+            factor, min_value=0, max_value=100, param_name="factor", seed=self.seed
         )
 
     def get_random_transformation(self, image=None, label=None, bounding_box=None):
