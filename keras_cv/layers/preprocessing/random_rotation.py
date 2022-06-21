@@ -172,7 +172,7 @@ class RandomRotation(BaseImageAugmentationLayer):
         point_x = tf.gather(point, [0], axis=2)
         # point_y : y cordinates of all corners of the bounding box
         point_y = tf.gather(point, [1], axis=2)
-        # rotated bbox coordinates
+        # rotated bounding box coordinates
         # new_x : new position of x coordinates of corners of bounding box
         new_x = (
             origin_x
@@ -193,21 +193,21 @@ class RandomRotation(BaseImageAugmentationLayer):
                 tf.cos(angle), tf.cast((point_y - origin_y), dtype=tf.float32)
             )
         )
-        # rotated bbox coordinates
+        # rotated bounding box coordinates
         out = tf.concat([new_x, new_y], axis=2)
         # find readjusted coordinates of bounding box to represent it in corners
         # format
         min_cordinates = tf.math.reduce_min(out, axis=1)
         max_cordinates = tf.math.reduce_max(out, axis=1)
-        bboxes_out = tf.concat([min_cordinates, max_cordinates], axis=1)
+        bounding_boxes_out = tf.concat([min_cordinates, max_cordinates], axis=1)
         # cordinates cannot be float values, it is casted to int32
-        bboxes_out = bounding_box.convert_format(
-            bboxes_out,
+        bounding_boxes_out = bounding_box.convert_format(
+            bounding_boxes_out,
             source="xyxy",
             target=self.bounding_box_format,
             dtype=self.compute_dtype,
         )
-        return bboxes_out
+        return bounding_boxes_out
 
     def augment_label(self, label, transformation, **kwargs):
         return label
