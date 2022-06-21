@@ -21,6 +21,8 @@ from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
 )
 from keras_cv.utils import preprocessing
 
+# In order to support both unbatched and batched inputs, the horizontal
+# and verticle axis is reverse indexed
 H_AXIS = -3
 W_AXIS = -2
 
@@ -138,7 +140,6 @@ class RandomRotation(BaseImageAugmentationLayer):
         image = None
         if "image" in kwargs:
             image = kwargs.get("image")
-        bbox_dtype = bounding_boxes.dtype
         if self.bounding_box_format is None:
             raise ValueError(
                 "bounding_box_format has not been specified during layer "
@@ -201,9 +202,11 @@ class RandomRotation(BaseImageAugmentationLayer):
         bboxes_out = tf.concat([min_cordinates, max_cordinates], axis=1)
         # cordinates cannot be float values, it is casted to int32
         bboxes_out = bounding_box.convert_format(
-            bboxes_out, source="xyxy", target=self.bounding_box_format
+            bboxes_out,
+            source="xyxy",
+            target=self.bounding_box_format,
+            dtype=self.compute_dtype,
         )
-        bboxes_out = tf.cast(bboxes_out, bbox_dtype)
         return bboxes_out
 
     def augment_label(self, label, transformation, **kwargs):

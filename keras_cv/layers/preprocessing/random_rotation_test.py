@@ -63,8 +63,8 @@ class RandomRotationTest(tf.test.TestCase):
         layer = RandomRotation(factor=(0.5, 0.5), bounding_box_format="xyxy")
         output_bbox = layer(input)
         expected_output = np.asarray(
-            [[111, 112, 312, 312], [212, 211, 412, 412]],
-        ).astype(np.int32)
+            [[112.0, 112.0, 312.0, 312.0], [212.0, 212.0, 412.0, 412.0]],
+        )
         expected_output = np.reshape(expected_output, (2, 4))
         self.assertAllClose(expected_output, output_bbox["bounding_boxes"])
 
