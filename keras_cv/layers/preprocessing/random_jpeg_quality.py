@@ -14,7 +14,6 @@
 
 import tensorflow as tf
 
-import keras_cv
 from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
     BaseImageAugmentationLayer,
 )
