@@ -94,11 +94,53 @@ def _xyxy_to_rel_xyxy(boxes, images=None):
     )
 
 
+def _yxyx_to_xyxy(boxes, images=None):
+    y1, x1, y2, x2, rest = tf.split(boxes, [1, 1, 1, 1, -1], axis=-1)
+    return tf.concat([x1, y1, x2, y2, rest], axis=-1)
+
+
+def _rel_yxyx_to_xyxy(boxes, images=None):
+    if images is None:
+        raise RequiresImagesException()
+    shape = tf.shape(images)
+    height, width = shape[1], shape[2]
+    height, width = tf.cast(height, boxes.dtype), tf.cast(width, boxes.dtype)
+    top, left, bottom, right, rest = tf.split(boxes, [1, 1, 1, 1, -1], axis=-1)
+    left, right = left * width, right * width
+    top, bottom = top * height, bottom * height
+    return tf.concat(
+        [left, top, right, bottom, rest],
+        axis=-1,
+    )
+
+
+def _xyxy_to_yxyx(boxes, images=None):
+    x1, y1, x2, y2, rest = tf.split(boxes, [1, 1, 1, 1, -1], axis=-1)
+    return tf.concat([y1, x1, y2, x2, rest], axis=-1)
+
+
+def _xyxy_to_rel_yxyx(boxes, images=None):
+    if images is None:
+        raise RequiresImagesException()
+    shape = tf.shape(images)
+    height, width = shape[1], shape[2]
+    height, width = tf.cast(height, boxes.dtype), tf.cast(width, boxes.dtype)
+    left, top, right, bottom, rest = tf.split(boxes, [1, 1, 1, 1, -1], axis=-1)
+    left, right = left / width, right / width
+    top, bottom = top / height, bottom / height
+    return tf.concat(
+        [top, left, bottom, right, rest],
+        axis=-1,
+    )
+
+
 TO_XYXY_CONVERTERS = {
     "xywh": _xywh_to_xyxy,
     "center_xywh": _center_xywh_to_xyxy,
     "xyxy": _xyxy_no_op,
     "rel_xyxy": _rel_xyxy_to_xyxy,
+    "yxyx": _yxyx_to_xyxy,
+    "rel_yxyx": _rel_yxyx_to_xyxy,
 }
 
 FROM_XYXY_CONVERTERS = {
@@ -106,6 +148,8 @@ FROM_XYXY_CONVERTERS = {
     "center_xywh": _xyxy_to_center_xywh,
     "xyxy": _xyxy_no_op,
     "rel_xyxy": _xyxy_to_rel_xyxy,
+    "yxyx": _xyxy_to_yxyx,
+    "rel_yxyx": _xyxy_to_rel_yxyx,
 }
 
 
@@ -123,6 +167,11 @@ def convert_format(boxes, source, target, images=None, dtype="float32"):
     - `"center_xyWH"`.  In this format the first two coordinates represent the x and y
         coordinates of the center of the bounding box, while the last two represent
         the width and height of the bounding box.
+    - `"yxyx"`.  In this format the first four axes represent [top, left, bottom, right]
+        in that order.
+    - `"rel_yxyx"`.  In this format, the axes are the same as `"yxyx"` but the x
+        coordinates are normalized using the image width, and the y axes the image
+        height.  All values in `rel_yxyx` are in the range (0, 1).
     Formats are case insensitive.  It is recommended that you capitalize width and
     height to maximize the visual difference between `"xyWH"` and `"xyxy"`.
 
