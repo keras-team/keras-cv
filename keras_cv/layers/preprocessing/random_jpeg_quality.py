@@ -15,10 +15,10 @@
 import tensorflow as tf
 
 import keras_cv
-from keras_cv.utils import preprocessing
 from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
     BaseImageAugmentationLayer,
 )
+from keras_cv.utils import preprocessing
 
 
 @tf.keras.utils.register_keras_serializable(package="keras_cv")
