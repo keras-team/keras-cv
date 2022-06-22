@@ -64,25 +64,3 @@ class RandomJpegQualityTest(tf.test.TestCase):
         xs = tf.ones((2, 256, 512, 1))
         xs = layer(xs)
         self.assertEqual(xs.shape, [2, 256, 512, 1])
-
-    def test_single_input_args(self):
-        layer = preprocessing.RandomJpegQuality(factor=50)
-
-        # RGB
-        xs = tf.ones((2, 512, 512, 3))
-        xs = layer(xs)
-        self.assertEqual(xs.shape, [2, 512, 512, 3])
-
-        # greyscale
-        xs = tf.ones((2, 512, 512, 1))
-        xs = layer(xs)
-        self.assertEqual(xs.shape, [2, 512, 512, 1])
-
-    def test_numerical(self):
-        layer = preprocessing.RandomJpegQuality(factor=[90, 100])
-
-        xs = tf.random.uniform((2, 256, 512, 3))
-
-        result = layer(xs)
-
-        self.assertNotAllEqual(xs, result)

@@ -43,20 +43,21 @@ class RandomJpegQuality(BaseImageAugmentationLayer):
 
     def __init__(self, factor, seed=None, **kwargs):
         super().__init__(**kwargs)
-        if isinstance(factor, float, int):
+        if isinstance(factor, (float, int)):
             raise ValueError(
                 "RandomJpegQuality() expects factor to be a 2 element "
                 "tuple, list or a `keras_cv.FactorSampler`. "
                 "RandomJpegQuality() received `factor={factor}`."
             )
+        self.seed = seed
         self.factor = preprocessing.parse_factor(
             factor, min_value=0, max_value=100, param_name="factor", seed=self.seed
         )
 
-    def get_random_transformation(self, image=None, label=None, bounding_box=None):
+    def get_random_transformation(self, **kwargs):
         return self.factor(dtype=tf.int32)
 
-    def augment_image(self, image, transformation=None):
+    def augment_image(self, image, transformation=None, **kwargs):
         jpeg_quality = transformation
         return tf.image.adjust_jpeg_quality(image, jpeg_quality)
 
