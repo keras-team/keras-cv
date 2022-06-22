@@ -54,7 +54,7 @@ class DropPathTest(tf.test.TestCase):
         total_non_zero_inputs = 0
         total_non_zero_outputs = 0
 
-        for _ in range(200):
+        for _ in range(300):
             outputs = layer(inputs, training=True)
 
             non_zeros_inputs = tf.math.count_nonzero(inputs, dtype=tf.int32)
