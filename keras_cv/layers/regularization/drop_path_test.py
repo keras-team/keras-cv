@@ -21,7 +21,7 @@ class DropPathTest(tf.test.TestCase):
     FEATURE_SHAPE = (16, 14, 14, 256)
 
     def test_input_unchanged_in_eval_mode(self):
-        layer = DropPath(rate=0.5)
+        layer = DropPath(rate=0.5, seed=42)
         inputs = tf.random.uniform(self.FEATURE_SHAPE)
 
         outputs = layer(inputs, training=False)
@@ -29,7 +29,7 @@ class DropPathTest(tf.test.TestCase):
         self.assertAllClose(inputs, outputs)
 
     def test_input_unchanged_with_rate_equal_to_zero(self):
-        layer = DropPath(rate=0)
+        layer = DropPath(rate=0, seed=42)
         inputs = tf.random.uniform(self.FEATURE_SHAPE)
 
         outputs = layer(inputs, training=True)
@@ -37,7 +37,7 @@ class DropPathTest(tf.test.TestCase):
         self.assertAllClose(inputs, outputs)
 
     def test_input_gets_partially_zeroed_out_in_train_mode(self):
-        layer = DropPath(rate=0.2)
+        layer = DropPath(rate=0.2, seed=42)
         inputs = tf.random.uniform(self.FEATURE_SHAPE)
 
         outputs = layer(inputs, training=True)
@@ -48,8 +48,7 @@ class DropPathTest(tf.test.TestCase):
         self.assertGreaterEqual(non_zeros_inputs, non_zeros_outputs)
 
     def test_strict_input_gets_partially_zeroed_out_in_train_mode(self):
-        layer = DropPath(rate=0.5)
-        tf.random.set_seed(42)
+        layer = DropPath(rate=0.5, seed=42)
         inputs = tf.random.uniform(self.FEATURE_SHAPE)
 
         total_non_zero_inputs = 0

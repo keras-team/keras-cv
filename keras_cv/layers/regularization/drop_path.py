@@ -54,7 +54,9 @@ class DropPath(tf.keras.__internal__.layers.BaseRandomLayer):
         else:
             keep_prob = 1 - self.rate
             drop_map_shape = (x.shape[0],) + (1,) * (len(x.shape) - 1)
-            drop_map = tf.keras.backend.random_bernoulli(drop_map_shape, p=keep_prob, seed=self.seed)
+            drop_map = tf.keras.backend.random_bernoulli(
+                drop_map_shape, p=keep_prob, seed=self.seed
+            )
             x = x / keep_prob
             x = x * drop_map
             return x
