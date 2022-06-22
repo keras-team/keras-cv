@@ -56,7 +56,7 @@ class RetinaNetFPNTest(tf.test.TestCase):
         self.assertEqual(xs["P7"].shape, (2, 4, 8, 256))
 
     def test_different_channels(self):
-        layer = RetinaNetFPN(pyramid_levels=[2, 3, 4, 5])
+        layer = RetinaNetFPN(pyramid_levels=[3, 4, 5, 6, 7])
 
         C3 = tf.ones((2, 64, 64, 256))
         C4 = tf.ones((2, 32, 32, 512))
@@ -71,7 +71,7 @@ class RetinaNetFPNTest(tf.test.TestCase):
         self.assertEqual(xs["P7"].shape, (2, 4, 4, 256))
 
     def test_in_a_model(self):
-        layer = RetinaNetFPN(pyramid_levels=[2, 3, 4, 5])
+        layer = RetinaNetFPN(pyramid_levels=[3, 4, 5, 6, 7])
 
         C3 = tf.keras.layers.Input([64, 64, 3])
         C4 = tf.keras.layers.Input([32, 32, 3])
@@ -93,20 +93,10 @@ class RetinaNetFPNTest(tf.test.TestCase):
         self.assertEqual(xs["P7"].shape, (2, 4, 4, 256))
 
     def test_adding_level7_without_level6(self):
-        layer = RetinaNetFPN(pyramid_levels=[3, 4, 5, 7])
-
-        C3 = tf.ones((2, 64, 64, 256))
-        C4 = tf.ones((2, 32, 32, 512))
-        C5 = tf.ones((2, 16, 16, 1024))
-
         with self.assertRaises(ValueError):
-            layer([C3, C4, C5])
+            RetinaNetFPN(pyramid_levels=[3, 4, 5, 7])
 
-    def test_skipping_level4(self):
-        layer = RetinaNetFPN(pyramid_levels=[3, 5, 6, 7])
-
-        C3 = tf.ones((2, 64, 64, 256))
-        C5 = tf.ones((2, 16, 16, 1024))
-
-        with self.assertRaises(ValueError):
-            layer([C3, C5])
+    def test_skipping_level345(self):
+        for invalid_levels in [[3, 5, 6, 7], [3, 4, 6, 7], [4, 5, 6, 7]]:
+            with self.assertRaises(ValueError):
+                RetinaNetFPN(pyramid_levels=invalid_levels)
