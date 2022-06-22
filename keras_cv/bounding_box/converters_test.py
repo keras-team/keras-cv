@@ -20,7 +20,11 @@ from absl.testing import parameterized
 from keras_cv import bounding_box
 
 xyxy_box = tf.constant([[10, 10, 110, 110], [20, 20, 120, 120]], dtype=tf.float32)
+yxyx_box = tf.constant([[10, 10, 110, 110], [20, 20, 120, 120]], dtype=tf.float32)
 rel_xyxy_box = tf.constant(
+    [[0.01, 0.01, 0.11, 0.11], [0.02, 0.02, 0.12, 0.12]], dtype=tf.float32
+)
+rel_yxyx_box = tf.constant(
     [[0.01, 0.01, 0.11, 0.11], [0.02, 0.02, 0.12, 0.12]], dtype=tf.float32
 )
 center_xywh_box = tf.constant(
@@ -35,6 +39,8 @@ boxes = {
     "center_xywh": center_xywh_box,
     "xywh": xywh_box,
     "rel_xyxy": rel_xyxy_box,
+    "yxyx": yxyx_box,
+    "rel_yxyx": rel_yxyx_box,
 }
 
 test_cases = [
