@@ -13,3 +13,4 @@
 # limitations under the License.
 
 from keras_cv.layers.fpn.feature_pyramid import FeaturePyramid
+from keras_cv.layers.fpn.retinanet_fpn import RetinaNetFPN

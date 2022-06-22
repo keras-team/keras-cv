@@ -160,6 +160,14 @@ class SerializationTest(tf.test.TestCase, parameterized.TestCase):
                 "merge_ops": None,
             },
         ),
+        (
+            "RetinaNetFPN",
+            fpn.FeaturePyramid,
+            {
+                "pyramid_levels": [2, 3, 4, 5, 6],
+                "num_channels": 256,
+            },
+        ),
     )
     def test_layer_serialization(self, layer_cls, init_args):
         layer = layer_cls(**init_args)

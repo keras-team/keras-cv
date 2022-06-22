@@ -27,6 +27,7 @@ from tensorflow.keras.layers import Rescaling
 from tensorflow.keras.layers import Resizing
 
 from keras_cv.layers.fpn.feature_pyramid import FeaturePyramid
+from keras_cv.layers.fpn.retinanet_fpn import RetinaNetFPN
 from keras_cv.layers.preprocessing.aug_mix import AugMix
 from keras_cv.layers.preprocessing.auto_contrast import AutoContrast
 from keras_cv.layers.preprocessing.channel_shuffle import ChannelShuffle
