@@ -15,6 +15,7 @@ import tensorflow as tf
 
 from keras_cv import layers
 
+
 @tf.keras.utils.register_keras_serializable(package="keras_cv")
 class RandomChoice(layers.BaseImageAugmentationLayer):
     """RandomChoice constructs a pipeline based on provided arguments.

@@ -16,6 +16,7 @@ import tensorflow as tf
 
 from keras_cv import layers
 
+
 @tf.keras.utils.register_keras_serializable(package="keras_cv")
 class ChannelShuffle(layers.BaseImageAugmentationLayer):
     """Shuffle channels of an input image.
