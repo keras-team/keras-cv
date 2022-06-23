@@ -120,3 +120,57 @@ class XYWH:
     HEIGHT = 3
     CLASS = 4
     CONFIDENCE = 5
+
+
+class YXYX:
+    """YXYX contains axis indices for the YXYX format.
+
+    All values in the YXYX format should be absolute pixel values.
+
+    The YXYX format consists of the following required indices:
+
+    - TOP: top of the bounding box
+    - LEFT: left hand side of the bounding box
+    - BOTTOM: bottom of the bounding box
+    - RIGHT: right of the bounding box
+
+    and the following optional indices, used in some KerasCV components:
+
+    - CLASS: class of the object contained in the bounding box
+    - CONFIDENCE: confidence that the box is valid, used in predictions
+    """
+
+    TOP = 0
+    LEFT = 1
+    BOTTOM = 2
+    RIGHT = 3
+    CLASS = 4
+    CONFIDENCE = 5
+
+
+class REL_YXYX:
+    """REL_YXYX contains axis indices for the REL_YXYX format.
+
+    REL_YXYX is like YXYX, but each value is relative to the width and height of the
+    origin image.  Values are percentages of the origin images' width and height
+    respectively.
+
+    The REL_YXYX format consists of the following required indices:
+
+    - TOP: top of the bounding box
+    - LEFT: left hand side of the bounding box
+    - BOTTOM: bottom of the bounding box
+    - RIGHT: right of the bounding box
+
+    and the following optional indices, used in some KerasCV components:
+
+    - CLASS: class of the object contained in the bounding box
+    - CONFIDENCE: confidence that the box is valid, used in predictions
+    """
+
+    TOP = 0
+    LEFT = 1
+    BOTTOM = 2
+    RIGHT = 3
+    CLASS = 4
+    CONFIDENCE = 5

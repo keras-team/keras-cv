@@ -278,7 +278,7 @@ class AugMix(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
         )
         return augmented
 
-    def augment_image(self, image, transformation=None):
+    def augment_image(self, image, transformation=None, **kwargs):
         chain_mixing_weights = AugMix._sample_from_dirichlet(
             tf.ones([self.num_chains]) * self.alpha
         )
@@ -297,7 +297,7 @@ class AugMix(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
         result = weight_sample * image + (1 - weight_sample) * result
         return result
 
-    def augment_label(self, label, transformation=None):
+    def augment_label(self, label, transformation=None, **kwargs):
         return label
 
     def get_config(self):

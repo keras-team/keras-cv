@@ -19,14 +19,18 @@ from absl.testing import parameterized
 
 from keras_cv import bounding_box
 
-xyxy_box = tf.constant([[10, 10, 110, 110], [20, 20, 120, 120]], dtype=tf.float32)
+xyxy_box = tf.constant([[10, 20, 110, 120], [20, 30, 120, 130]], dtype=tf.float32)
+yxyx_box = tf.constant([[20, 10, 120, 110], [30, 20, 130, 120]], dtype=tf.float32)
 rel_xyxy_box = tf.constant(
-    [[0.01, 0.01, 0.11, 0.11], [0.02, 0.02, 0.12, 0.12]], dtype=tf.float32
+    [[0.01, 0.02, 0.11, 0.12], [0.02, 0.03, 0.12, 0.13]], dtype=tf.float32
+)
+rel_yxyx_box = tf.constant(
+    [[0.02, 0.01, 0.12, 0.11], [0.03, 0.02, 0.13, 0.12]], dtype=tf.float32
 )
 center_xywh_box = tf.constant(
-    [[60, 60, 100, 100], [70, 70, 100, 100]], dtype=tf.float32
+    [[60, 70, 100, 100], [70, 80, 100, 100]], dtype=tf.float32
 )
-xywh_box = tf.constant([[10, 10, 100, 100], [20, 20, 100, 100]], dtype=tf.float32)
+xywh_box = tf.constant([[10, 20, 100, 100], [20, 30, 100, 100]], dtype=tf.float32)
 
 images = tf.ones([2, 1000, 1000, 3])
 
@@ -35,6 +39,8 @@ boxes = {
     "center_xywh": center_xywh_box,
     "xywh": xywh_box,
     "rel_xyxy": rel_xyxy_box,
+    "yxyx": yxyx_box,
+    "rel_yxyx": rel_yxyx_box,
 }
 
 test_cases = [

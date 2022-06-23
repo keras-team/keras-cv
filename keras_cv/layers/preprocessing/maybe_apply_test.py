@@ -14,19 +14,22 @@
 import tensorflow as tf
 from absl.testing import parameterized
 
+from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
+    BaseImageAugmentationLayer,
+)
 from keras_cv.layers.preprocessing.maybe_apply import MaybeApply
 
 
-class ZeroOut(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
+class ZeroOut(BaseImageAugmentationLayer):
     """Zero out all entries, for testing purposes."""
 
     def __init__(self):
         super(ZeroOut, self).__init__()
 
-    def augment_image(self, image, transformation=None):
+    def augment_image(self, image, transformation=None, **kwargs):
         return 0 * image
 
-    def augment_label(self, label, transformation=None):
+    def augment_label(self, label, transformation=None, **kwargs):
         return 0 * label
 
 

@@ -54,15 +54,15 @@ class RandomColorDegeneration(BaseImageAugmentationLayer):
         )
         self.seed = seed
 
-    def get_random_transformation(self, image=None, label=None, bounding_box=None):
+    def get_random_transformation(self, image=None, label=None, bounding_boxes=None):
         return self.factor()
 
-    def augment_image(self, image, transformation=None):
+    def augment_image(self, image, transformation=None, **kwargs):
         degenerate = tf.image.grayscale_to_rgb(tf.image.rgb_to_grayscale(image))
         result = preprocessing.blend(image, degenerate, transformation)
         return result
 
-    def augment_label(self, label, transformation=None):
+    def augment_label(self, label, transformation=None, **kwargs):
         return label
 
     def get_config(self):

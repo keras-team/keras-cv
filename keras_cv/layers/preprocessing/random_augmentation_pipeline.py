@@ -14,12 +14,13 @@
 import tensorflow as tf
 
 from keras_cv.layers import preprocessing
+from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
+    BaseImageAugmentationLayer,
+)
 
 
 @tf.keras.utils.register_keras_serializable(package="keras_cv")
-class RandomAugmentationPipeline(
-    tf.keras.__internal__.layers.BaseImageAugmentationLayer
-):
+class RandomAugmentationPipeline(BaseImageAugmentationLayer):
     """RandomAugmentationPipeline constructs a pipeline based on provided arguments.
 
     The implemented policy does the following: for each inputs provided in `call`(), the

@@ -97,7 +97,7 @@ class Equalization(BaseImageAugmentationLayer):
 
         return result
 
-    def augment_image(self, image, transformation=None):
+    def augment_image(self, image, transformation=None, **kwargs):
         image = preprocessing.transform_value_range(
             image, self.value_range, (0, 255), dtype=image.dtype
         )
@@ -112,7 +112,7 @@ class Equalization(BaseImageAugmentationLayer):
         image = preprocessing.transform_value_range(image, (0, 255), self.value_range)
         return image
 
-    def augment_label(self, label, transformation=None):
+    def augment_label(self, label, transformation=None, **kwargs):
         return label
 
     def get_config(self):

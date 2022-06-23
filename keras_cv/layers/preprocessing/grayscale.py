@@ -59,7 +59,7 @@ class Grayscale(BaseImageAugmentationLayer):
             )
         self.output_channels = output_channels
 
-    def augment_image(self, image, transformation=None):
+    def augment_image(self, image, transformation=None, **kwargs):
         grayscale = tf.image.rgb_to_grayscale(image)
         if self.output_channels == 1:
             return grayscale
@@ -68,7 +68,7 @@ class Grayscale(BaseImageAugmentationLayer):
         else:
             raise ValueError("Unsupported value for `output_channels`.")
 
-    def augment_label(self, label, transformation=None):
+    def augment_label(self, label, transformation=None, **kwargs):
         return label
 
     def get_config(self):
