@@ -22,36 +22,26 @@ from keras_cv.utils import preprocessing
 @tf.keras.utils.register_keras_serializable(package="keras_cv")
 class RandomResizedCrop(BaseImageAugmentationLayer):
     """
-    Randomly crops a part of an image and resizes it to provided size.
+    Randomly crops a part of an image and resizes it to provided size. 
 
     Args:
         target_size: A uple of two integers used as the target size to crop
             images to.
-        aspect_ratio_factor: (Optional) A tuple of two floats. Represents the
-            lower and upper bound for the aspect ratio of the cropped image
-            before resizing it to `target_size`. Defaults to (3./4., 4./3.).
+        aspect_ratio_factor: (Optional) A tuple of two floats, a single float or
+            `keras_cv.FactorSampler`. Aspect ratio means the ratio of width to
+            height of the cropped image. Represents the lower and upper bound
+            for the aspect ratio of the cropped image before resizing it to
+            `target_size`. Defaults to (3./4., 4./3.).
         area_factor: (Optional) A tuple of two floats, a single float or
             `keras_cv.FactorSampler`. Represents the lower and upper bound for
             the area relative to the original image of the cropped image before
             resizing it to `target_size`. Defaults to (0.08, 1.0).
-        interpolation: interpolation method used in the `ImageProjectiveTransformV3` op.
-             Supported values are `"nearest"` and `"bilinear"`.
-             Defaults to `"bilinear"`.
-        fill_mode: fill_mode in the `ImageProjectiveTransformV3` op.
-             Supported values are `"reflect"`, `"wrap"`, `"constant"`, and `"nearest"`.
-             Defaults to `"reflect"`.
-        fill_value: fill_value in the `ImageProjectiveTransformV3` op.
-             A `Tensor` of type `float32`. The value to be filled when fill_mode is
-             constant".  Defaults to `0.0`.
-        seed: Integer. Used to create a random seed.
+        seed: (Optional) Integer. Used to create a random seed.
     """
     def __init__(self,
                  target_size,
                  aspect_ratio_factor=(3. / 4., 4. / 3.),
                  area_factor=(0.08, 1.0),
-                 interpolation="bilinear",
-                 fill_mode="reflect",
-                 fill_value=0.0,
                  seed=None,
                  **kwargs):
         super(RandomResizedCrop, self).__init__(seed=seed, **kwargs)
@@ -62,9 +52,6 @@ class RandomResizedCrop(BaseImageAugmentationLayer):
                                                       param_name="area_factor",
                                                       seed=seed)
 
-        self.interpolation = interpolation
-        self.fill_mode = fill_mode
-        self.fill_value = fill_value
         self.seed = seed
 
         if area_factor == 0.0 and aspect_ratio_factor == 0.0:
@@ -132,9 +119,6 @@ class RandomResizedCrop(BaseImageAugmentationLayer):
             "target_size": self.target_size,
             "area_factor": self.area_factor,
             "aspect_ratio_factor": self.aspect_ratio_factor,
-            "interpolation": self.interpolation,
-            "fill_mode": self.fill_mode,
-            "fill_value": self.fill_value,
             "seed": self.seed,
         })
         return config
