@@ -28,7 +28,7 @@ passed, such as `factor=0.5`, the layer should default to the range `[0, factor]
 
 ## BaseImageAugmentationLayer
 When implementing preprocessing, we encourage users to subclass the 
-`tf.keras.__internal__.layers.BaseImageAugmentationLayer`.  This layer provides
+`keras_cv.layers.preprocessing.BaseImageAugmentationLayer`.  This layer provides
  a common `call()` method, auto vectorization, and more.  
 
 When subclassing `BaseImageAugmentationLayer`, several methods can overridden:
