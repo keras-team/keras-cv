@@ -14,11 +14,13 @@
 
 import tensorflow as tf
 
-from keras_cv import layers
+from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
+    BaseImageAugmentationLayer,
+)
 
 
 @tf.keras.utils.register_keras_serializable(package="keras_cv")
-class ChannelShuffle(layers.BaseImageAugmentationLayer):
+class ChannelShuffle(BaseImageAugmentationLayer):
     """Shuffle channels of an input image.
 
     Input shape:
