@@ -22,7 +22,15 @@ from keras_cv.utils import preprocessing
 @tf.keras.utils.register_keras_serializable(package="keras_cv")
 class RandomResizedCrop(BaseImageAugmentationLayer):
     """
-    Randomly crops a part of an image and resizes it to provided size. 
+    Randomly crops a part of an image and resizes it to provided size. This
+    implementation takes an intuitive approach, where we crop the images to a
+    random height and width, and then resize them. To do this, we first sample a
+    random value for area using `area_factor` and a value for aspect ratio using
+    `aspect_ratio_factor`. Further we get the new height and width by
+    dividing and multiplying the old height and width by the random area
+    respectively. We then sample offsets for height and width and clip them such
+    that the cropped area does not exceed image boundaries. Finally we do the
+    actual cropping operation and resize the image to `target_size`.
 
     Args:
         target_size: A tuple of two integers used as the target size to crop
@@ -33,9 +41,11 @@ class RandomResizedCrop(BaseImageAugmentationLayer):
             for the aspect ratio of the cropped image before resizing it to
             `target_size`. Defaults to (3./4., 4./3.).
         area_factor: (Optional) A tuple of two floats, a single float or
-            `keras_cv.FactorSampler`. Represents the lower and upper bounds for
-            the area relative to the original image of the cropped image before
-            resizing it to `target_size`. Defaults to (0.08, 1.0).
+            `keras_cv.FactorSampler`. The ratio of area of the cropped part to
+            that of original image is sampled using this factor. Represents the 
+            lower and upper bounds for the area relative to the original image
+            of the cropped image before resizing it to `target_size`. Defaults
+            to (0.08, 1.0).
         seed: (Optional) Integer. Used to create a random seed.
     """
     def __init__(self,
@@ -44,10 +54,14 @@ class RandomResizedCrop(BaseImageAugmentationLayer):
                  area_factor=(0.08, 1.0),
                  seed=None,
                  **kwargs):
-        super(RandomResizedCrop, self).__init__(seed=seed, **kwargs)
+        super().__init__(seed=seed, **kwargs)
 
         self.target_size = target_size
-        self.aspect_ratio_factor = aspect_ratio_factor
+
+
+
+        self.aspect_ratio_factor = preprocessing.parse_factor(
+            aspect_ratio_factor, param_name="aspect_ratio_factor", seed=seed)
         self.area_factor = preprocessing.parse_factor(area_factor,
                                                       param_name="area_factor",
                                                       seed=seed)
@@ -68,7 +82,8 @@ class RandomResizedCrop(BaseImageAugmentationLayer):
         aspect_ratio = tf.random.uniform((),
                                          minval=self.aspect_ratio_factor[0],
                                          maxval=self.aspect_ratio_factor[1],
-                                         dtype=tf.float32)
+                                         dtype=tf.float32,
+                                         seed=self.seed)
 
         new_height = tf.clip_by_value(
             tf.sqrt(area_factor / aspect_ratio), 0.0,
@@ -81,6 +96,7 @@ class RandomResizedCrop(BaseImageAugmentationLayer):
             minval=tf.minimum(0.0, 1.0 - new_height),
             maxval=tf.maximum(0.0, 1.0 - new_height),
             dtype=tf.float32,
+            seed=self.seed
         )
 
         width_offset = tf.random.uniform(
@@ -88,6 +104,7 @@ class RandomResizedCrop(BaseImageAugmentationLayer):
             minval=tf.minimum(0.0, 1.0 - new_width),
             maxval=tf.maximum(0.0, 1.0 - new_width),
             dtype=tf.float32,
+            seed=self.seed
         )
 
         y1 = height_offset
