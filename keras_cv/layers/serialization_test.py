@@ -174,6 +174,7 @@ class SerializationTest(tf.test.TestCase, parameterized.TestCase):
                 "target_size": (224, 224),
                 "area_factor": (0.08, 1.0),
                 "aspect_ratio_factor": (3. / 4., 4. / 3.),
+                "interpolation": "bilinear",
                 "seed": 1,
             },
         ),
