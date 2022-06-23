@@ -19,7 +19,7 @@ from keras_cv.utils import preprocessing
 
 
 @tf.keras.utils.register_keras_serializable(package="keras_cv")
-class AugMix(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
+class AugMix(layers.BaseImageAugmentationLayer):
     """Performs the AugMix data augmentation technique.
 
     AugMix aims to produce images with variety while preserving the

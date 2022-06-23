@@ -13,9 +13,10 @@
 # limitations under the License.
 import tensorflow as tf
 
+from keras_cv import layers
 
 @tf.keras.utils.register_keras_serializable(package="keras_cv")
-class RandomChoice(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
+class RandomChoice(layers.BaseImageAugmentationLayer):
     """RandomChoice constructs a pipeline based on provided arguments.
 
     The implemented policy does the following: for each inputs provided in `call`(), the
