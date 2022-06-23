@@ -20,7 +20,6 @@ from tensorflow.keras.layers import CenterCrop
 from tensorflow.keras.layers import RandomCrop
 from tensorflow.keras.layers import RandomFlip
 from tensorflow.keras.layers import RandomHeight
-from tensorflow.keras.layers import RandomTranslation
 from tensorflow.keras.layers import RandomWidth
 from tensorflow.keras.layers import RandomZoom
 from tensorflow.keras.layers import Rescaling
@@ -58,3 +57,4 @@ from keras_cv.layers.preprocessing.solarization import Solarization
 from keras_cv.layers.preprocessing.random_contrast import RandomContrast
 from keras_cv.layers.preprocessing.random_brightness import RandomBrightness
 from keras_cv.layers.preprocessing.random_rotation import RandomRotation
+from keras_cv.layers.preprocessing.random_translation import RandomTranslation
