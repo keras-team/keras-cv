@@ -132,6 +132,14 @@ class RandomShear(BaseImageAugmentationLayer):
     def augment_label(self, label, transformation=None, **kwargs):
         return label
 
+    def augment_bounding_boxes(self, bounding_boxes, **kwargs):
+        #TODO implements
+        return bounding_boxes
+
+    def augment_keypoints(self, keypoints, **kwargs):
+        #TODO implements
+        return keypoints
+
     @staticmethod
     def _format_transform(transform):
         transform = tf.convert_to_tensor(transform, dtype=tf.float32)

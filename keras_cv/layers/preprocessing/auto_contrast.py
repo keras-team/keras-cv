@@ -35,7 +35,6 @@ class AutoContrast(BaseImageAugmentationLayer):
             This is typically either `[0, 1]` or `[0, 255]` depending
             on how your preprocessing pipeline is setup.
     """
-
     def __init__(
         self,
         value_range,
@@ -66,6 +65,12 @@ class AutoContrast(BaseImageAugmentationLayer):
 
     def augment_label(self, label, transformation=None, **kwargs):
         return label
+
+    def augment_bounding_boxes(self, bounding_boxes, **kwargs):
+        return bounding_boxes
+
+    def augment_keypoints(self, keypoints, **kwargs):
+        return keypoints
 
     def get_config(self):
         config = super().get_config()

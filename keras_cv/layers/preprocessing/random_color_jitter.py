@@ -81,7 +81,6 @@ class RandomColorJitter(BaseImageAugmentationLayer):
     augmented_images = color_jitter(images)
     ```
     """
-
     def __init__(
         self,
         value_range,
@@ -134,6 +133,12 @@ class RandomColorJitter(BaseImageAugmentationLayer):
 
     def augment_label(self, label, transformation=None, **kwargs):
         return label
+
+    def augment_bounding_boxes(self, bounding_boxes, **kwargs):
+        return bounding_boxes
+
+    def augment_keypoints(self, keypoints, **kwargs):
+        return keypoints
 
     def get_config(self):
         config = super().get_config()

@@ -57,7 +57,6 @@ class Posterization(BaseImageAugmentationLayer):
             1. single 3D (HWC) image or 4D (NHWC) batch of images.
             2. A dict of tensors where the images are under `"images"` key.
     """
-
     def __init__(self, value_range, bits, **kwargs):
         super().__init__(**kwargs)
 
@@ -102,6 +101,12 @@ class Posterization(BaseImageAugmentationLayer):
 
     def augment_label(self, label, transformation=None, **kwargs):
         return label
+
+    def augment_bounding_boxes(self, bounding_boxes, **kwargs):
+        return bounding_boxes
+
+    def augment_keypoints(self, keypoints, **kwargs):
+        return keypoints
 
     def get_config(self):
         config = {"bits": 8 - self._shift, "value_range": self._value_range}

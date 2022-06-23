@@ -66,10 +66,10 @@ TEST_CONFIGURATIONS = [
     ),
     ("RandomShear", preprocessing.RandomShear, {"x_factor": 0.3, "x_factor": 0.3}),
     ("Solarization", preprocessing.Solarization, {"value_range": (0, 255)}),
-]
+]  # yapf:disable
 
 
-class WithLabelsTest(tf.test.TestCase, parameterized.TestCase):
+class WithKeysTest(tf.test.TestCase, parameterized.TestCase):
     @parameterized.named_parameters(
         *TEST_CONFIGURATIONS,
         ("CutMix", preprocessing.CutMix, {}),
@@ -80,7 +80,7 @@ class WithLabelsTest(tf.test.TestCase, parameterized.TestCase):
         img = tf.random.uniform(
             shape=(3, 512, 512, 3), minval=0, maxval=1, dtype=tf.float32
         )
-        labels = tf.ones((3,), dtype=tf.float32)
+        labels = tf.ones((3, ), dtype=tf.float32)
 
         inputs = {"images": img, "labels": labels}
         _ = layer(inputs)
@@ -96,3 +96,63 @@ class WithLabelsTest(tf.test.TestCase, parameterized.TestCase):
 
         inputs = {"images": img, "labels": labels}
         _ = layer(inputs)
+
+    @parameterized.named_parameters(
+        *TEST_CONFIGURATIONS,
+        ("CutMix", preprocessing.CutMix, {}),
+    )
+    def test_can_run_with_bounding_boxes(self, layer_cls, init_args):
+        layer = layer_cls(**init_args)
+
+        img = tf.random.uniform(
+            shape=(3, 512, 512, 3), minval=0, maxval=1, dtype=tf.float32
+        )
+        labels = tf.ones((3, 2), dtype=tf.float32)
+        bounding_boxes = tf.ones((3, 2, 4), dtype=tf.float32)
+
+        inputs = {"images": img, "labels": labels, "bounding_boxes": bounding_boxes}
+        outputs = layer(inputs)
+        self.assertTrue("bounding_boxes" in outputs)
+
+    # this has to be a separate test case to exclude CutMix and MixUp
+    @parameterized.named_parameters(*TEST_CONFIGURATIONS)
+    def test_can_run_with_bouding_boxes_single_image(self, layer_cls, init_args):
+        layer = layer_cls(**init_args)
+        img = tf.random.uniform(
+            shape=(512, 512, 3), minval=0, maxval=1, dtype=tf.float32
+        )
+        labels = tf.ones((3), dtype=tf.float32)
+        bounding_boxes = tf.ones((3, 4), dtype=tf.float32)
+        inputs = {"images": img, "labels": labels, "bounding_boxes": bounding_boxes}
+        outputs = layer(inputs)
+        self.assertTrue("bounding_boxes" in outputs)
+
+    @parameterized.named_parameters(
+        *TEST_CONFIGURATIONS,
+        ("CutMix", preprocessing.CutMix, {}),
+    )
+    def test_can_run_with_keypoints(self, layer_cls, init_args):
+        layer = layer_cls(**init_args)
+
+        img = tf.random.uniform(
+            shape=(3, 512, 512, 3), minval=0, maxval=1, dtype=tf.float32
+        )
+        labels = tf.ones((3, 2), dtype=tf.float32)
+        keypoints = tf.ones((3, 2, 6, 2), dtype=tf.float32)
+
+        inputs = {"images": img, "labels": labels, "keypoints": keypoints}
+        outputs = layer(inputs)
+        self.assertTrue("keypoints" in outputs)
+
+    # this has to be a separate test case to exclude CutMix and MixUp
+    @parameterized.named_parameters(*TEST_CONFIGURATIONS)
+    def test_can_run_with_keypoints_single_image(self, layer_cls, init_args):
+        layer = layer_cls(**init_args)
+        img = tf.random.uniform(
+            shape=(512, 512, 3), minval=0, maxval=1, dtype=tf.float32
+        )
+        labels = tf.ones((3), dtype=tf.float32)
+        keypoints = tf.ones((3, 8, 2), dtype=tf.float32)
+        inputs = {"images": img, "labels": labels, "keypoints": keypoints}
+        outputs = layer(inputs)
+        self.assertTrue("keypoints" in outputs)

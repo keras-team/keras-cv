@@ -46,7 +46,6 @@ class Grayscale(BaseImageAugmentationLayer):
     augmented_images = to_grayscale(images)
     ```
     """
-
     def __init__(self, output_channels=1, **kwargs):
         super().__init__(**kwargs)
         self.output_channels = output_channels
@@ -70,6 +69,12 @@ class Grayscale(BaseImageAugmentationLayer):
 
     def augment_label(self, label, transformation=None, **kwargs):
         return label
+
+    def augment_bounding_boxes(self, bounding_boxes, **kwargs):
+        return bounding_boxes
+
+    def augment_keypoints(self, keypoints, **kwargs):
+        return keypoints
 
     def get_config(self):
         config = {

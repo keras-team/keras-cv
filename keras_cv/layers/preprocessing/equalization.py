@@ -44,7 +44,6 @@ class Equalization(BaseImageAugmentationLayer):
         images: Tensor of pixels in range [0, 255], in RGB format.  Can be
             of type float or int.  Should be in NHWC format.
     """
-
     def __init__(self, value_range, bins=256, **kwargs):
         super().__init__(**kwargs)
         self.bins = bins
@@ -73,9 +72,8 @@ class Equalization(BaseImageAugmentationLayer):
             histogram,
         )
 
-        step = (tf.reduce_sum(histogram) - tf.reduce_min(histogram_without_zeroes)) // (
-            self.bins - 1
-        )
+        step = (tf.reduce_sum(histogram) -
+                tf.reduce_min(histogram_without_zeroes)) // (self.bins - 1)
 
         def build_mapping(histogram, step):
             # Compute the cumulative sum, shifting by step // 2
@@ -114,6 +112,12 @@ class Equalization(BaseImageAugmentationLayer):
 
     def augment_label(self, label, transformation=None, **kwargs):
         return label
+
+    def augment_bounding_boxes(self, bounding_boxes, **kwargs):
+        return bounding_boxes
+
+    def augment_keypoints(self, keypoints, **kwargs):
+        return keypoints
 
     def get_config(self):
         config = super().get_config()
