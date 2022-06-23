@@ -20,6 +20,9 @@ from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
 )
 from keras_cv.utils import preprocessing
 
+from keras_cv import bounding_box
+import functools
+
 
 @tf.keras.utils.register_keras_serializable(package="keras_cv")
 class RandomShear(BaseImageAugmentationLayer):
@@ -61,6 +64,7 @@ class RandomShear(BaseImageAugmentationLayer):
         fill_mode="reflect",
         fill_value=0.0,
         seed=None,
+        bounding_box_format=None,
         **kwargs,
     ):
         super().__init__(seed=seed, **kwargs)
@@ -85,6 +89,7 @@ class RandomShear(BaseImageAugmentationLayer):
         self.fill_mode = fill_mode
         self.fill_value = fill_value
         self.seed = seed
+        self.bounding_box_format = bounding_box_format
 
     def get_random_transformation(self, **kwargs):
         x = self._get_shear_amount(self.x_factor)
@@ -132,12 +137,32 @@ class RandomShear(BaseImageAugmentationLayer):
     def augment_label(self, label, transformation=None, **kwargs):
         return label
 
-    def augment_bounding_boxes(self, bounding_boxes, **kwargs):
-        #TODO implements
-        return bounding_boxes
+    def augment_bounding_boxes(self, bounding_boxes, transformation, **kwargs):
+        if self.bounding_box_format is None:
+            raise ValueError(
+                "`RandomShear()` was called with bounding boxes,"
+                "but no `bounding_box_format` was specified in the constructor."
+                "Please specify a bounding box format in the constructor. i.e."
+                "`RandomShear(bounding_box_format='xyxy')`"
+            )
 
-    def augment_keypoints(self, keypoints, **kwargs):
-        #TODO implements
+        return bounding_box.transform_from_point_transform(
+            bounding_boxes,
+            functools.partial(self.augment_keypoints, transformation=transformation),
+            bounding_box_format=self.bounding_box_format,
+            compute_dtype=self.compute_dtype
+        )
+
+    def augment_keypoints(self, keypoints, transformation=None, **kwargs):
+        x, y = transformation
+        if x is not None:
+            offset_x = keypoints[..., 1] * x
+            offset_y = tf.zeros_like(offset_x)
+            keypoints = keypoints - tf.stack([offset_x, offset_y], axis=-1)
+        if y is not None:
+            offset_y = keypoints[..., 0] * y
+            offset_x = tf.zeros_like(offset_y)
+            keypoints = keypoints - tf.stack([offset_x, offset_y], axis=-1)
         return keypoints
 
     @staticmethod
@@ -155,6 +180,7 @@ class RandomShear(BaseImageAugmentationLayer):
                 "fill_mode": self.fill_mode,
                 "fill_value": self.fill_value,
                 "seed": self.seed,
+                "bounding_box_format": self.bounding_box_format,
             }
         )
         return config

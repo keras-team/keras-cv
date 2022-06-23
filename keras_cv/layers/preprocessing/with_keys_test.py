@@ -64,7 +64,11 @@ TEST_CONFIGURATIONS = [
         preprocessing.RandomSharpness,
         {"factor": 0.5, "value_range": (0, 255)},
     ),
-    ("RandomShear", preprocessing.RandomShear, {"x_factor": 0.3, "x_factor": 0.3}),
+    (
+        "RandomShear",
+        preprocessing.RandomShear,
+        {"x_factor": 0.3, "x_factor": 0.3,"bounding_box_format": "xyxy"},
+    ),
     ("Solarization", preprocessing.Solarization, {"value_range": (0, 255)}),
     ("RandomContrast", preprocessing.RandomContrast, {"factor": 1, "seed": 2}),
     ("RandomBrightness", preprocessing.RandomBrightness, {"factor": 1, "seed": 2}),
