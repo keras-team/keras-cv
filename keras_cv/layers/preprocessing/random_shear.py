@@ -158,21 +158,25 @@ class RandomShear(BaseImageAugmentationLayer):
         )
         return config
 
-    def augment_bounding_boxes(self, image, bounding_boxes, transformation=None):
-        """args: image : takes a single image H,W,C,
-        bounding_boxes: take bbox coordinates [N,4] -> [y1,x1,y2,x2]
-        transformation: takes tuple for x,y transformation None if no transformation"""
-        height, width, _ = image.shape
-        input_dtype = bounding_boxes.dtype
-        image = tf.expand_dims(image, axis=0)
+    def augment_bounding_boxes(self, bounding_boxes, transformation, **kwargs):
+        image = None
+        image = kwargs.get("image")
         if self.bounding_box_format is None:
-            raise ValueError("Specify bounding_box_format,cannot be None")
+            raise ValueError(
+                "`RandomShear()` was called with bounding boxes,"
+                "but no `bounding_box_format` was specified in the constructor."
+                "Please specify a bounding box format in the constructor. i.e."
+                "`RandomShear(bounding_box_format='xyxy')`"
+            )
+        height, width, _ = image.shape
+        image = tf.expand_dims(image, axis=0)
+
         bounding_boxes = keras_cv.bounding_box.convert_format(
             bounding_boxes,
             source=self.bounding_box_format,
             target="xyxy",
             images=image,
-            dtype=tf.float32,
+            dtype=self.compute_dtype,
         )
         x, y = transformation
         # apply horizontal shear
@@ -192,7 +196,7 @@ class RandomShear(BaseImageAugmentationLayer):
             source="xyxy",
             target=self.bounding_box_format,
             images=image,
-            dtype=input_dtype,
+            dtype=self.compute_dtype,
         )
         return bounding_boxes
 

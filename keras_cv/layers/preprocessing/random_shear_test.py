@@ -334,7 +334,7 @@ class RandomShearTest(tf.test.TestCase):
         self.assertAllEqual(ground_truth, output_ys)
 
     def test_dtype(self):
-        """test for same dtype is returned as input"""
+        """test for output dtype is returned as standardize dtype"""
         xs = tf.cast(
             tf.stack(
                 [2 * tf.ones((4, 4, 3)), tf.ones((4, 4, 3))],
@@ -350,14 +350,14 @@ class RandomShearTest(tf.test.TestCase):
                 ],
                 axis=0,
             ),
-            tf.int32,
+            tf.float32,
         )
         layer = preprocessing.RandomShear(
             x_factor=0, y_factor=0, bounding_box_format="xyxy"
         )
         outputs = layer({"images": xs, "bounding_boxes": ys})
         _, output_ys = outputs["images"], outputs["bounding_boxes"]
-        self.assertEqual(ys.dtype, output_ys.dtype)
+        self.assertEqual(layer.compute_dtype, output_ys.dtype)
 
     def test_output_values(self):
         """test to verify augmented bounding box output coordinate"""
@@ -386,11 +386,11 @@ class RandomShearTest(tf.test.TestCase):
                 ],
                 axis=0,
             ),
-            tf.int32,
+            tf.float32,
         )
         layer = preprocessing.RandomShear(
             x_factor=0.2, y_factor=0.2, bounding_box_format="xyxy"
         )
         outputs = layer({"images": xs, "bounding_boxes": ys})
         _, output_ys = outputs["images"], outputs["bounding_boxes"]
-        self.assertAllEqual(true_ys, output_ys)
+        self.assertAllClose(true_ys, output_ys, rtol=1e-02, atol=1e-03)

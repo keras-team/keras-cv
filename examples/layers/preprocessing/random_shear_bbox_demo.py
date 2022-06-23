@@ -22,6 +22,7 @@ import numpy as np
 import tensorflow as tf
 import tensorflow_datasets as tfds
 
+from keras_cv.bounding_box import convert_format
 from keras_cv.layers import preprocessing
 
 IMG_SIZE = (256, 256)
@@ -48,23 +49,6 @@ def resize(inputs):
     return inputs
 
 
-def _rel_xyxy_to_rel_yxyx(bounding_boxes, height, width):
-    x1, y1, x2, y2 = tf.split(bounding_boxes, 4, axis=2)
-    new_bboxes = tf.squeeze(
-        tf.stack(
-            [
-                y1,
-                x1,
-                y2,
-                x2,
-            ],
-            axis=2,
-        ),
-        axis=-1,
-    )
-    return new_bboxes
-
-
 def main():
     dataset = tfds.load(
         "voc/2007", split=tfds.Split.TRAIN, batch_size=1, shuffle_files=True
@@ -84,7 +68,13 @@ def main():
             {"images": example["image"], "bounding_boxes": example["objects"]["bbox"]}
         )
         images, bboxes = result["images"], result["bounding_boxes"]
-        rel_yxyx_bboxes = _rel_xyxy_to_rel_yxyx(bboxes, IMG_SIZE[0], IMG_SIZE[1])
+        rel_yxyx_bboxes = convert_format(
+            bboxes,
+            source="rel_xyxy",
+            target="rel_yxyx",
+            images=images,
+            dtype=bboxes.dtype,
+        )
         plotted_images = tf.image.draw_bounding_boxes(
             images, rel_yxyx_bboxes, colors, name=None
         )
