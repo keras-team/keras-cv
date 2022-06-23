@@ -21,9 +21,7 @@ Finally, they are shown using matplotlib.
 import demo_utils
 import tensorflow as tf
 
-from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
-    BaseImageAugmentationLayer,
-)
+from keras_cv import layers
 
 
 def main():
