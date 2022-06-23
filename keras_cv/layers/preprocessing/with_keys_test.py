@@ -68,6 +68,18 @@ TEST_CONFIGURATIONS = [
     ("Solarization", preprocessing.Solarization, {"value_range": (0, 255)}),
     ("RandomContrast", preprocessing.RandomContrast, {"factor": 1, "seed": 2}),
     ("RandomBrightness", preprocessing.RandomBrightness, {"factor": 1, "seed": 2}),
+    (
+        "RandomRotation",
+        preprocessing.RandomRotation,
+        {
+            "factor": 1.0,
+            "fill_mode": 'reflect',
+            "interpolation": 'bilinear',
+            "seed": 1,
+            "fill_value": 0.5,
+            "bounding_box_format": "xyxy",
+        },
+    ),
 ]  # yapf:disable
 
 

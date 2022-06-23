@@ -21,6 +21,8 @@ from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
 )
 from keras_cv.utils import preprocessing
 
+import functools
+
 # In order to support both unbatched and batched inputs, the horizontal
 # and verticle axis is reverse indexed
 H_AXIS = -3
@@ -146,33 +148,33 @@ class RandomRotation(BaseImageAugmentationLayer):
                 "Please specify a bounding box format in the constructor. i.e."
                 "`RandomRotation(bounding_box_format='xyxy')`"
             )
-        else:
-            bounding_boxes = bounding_box.convert_format(
-                bounding_boxes, source=self.bounding_box_format, target="xyxy"
-            )
+        # calculate bounding box by applying keypoints transformation on the bounding box corners
+        return bounding_box.transform_from_point_transform(
+            bounding_boxes,
+            functools.partial(
+                self.augment_keypoints, transformation=transformation, image=image
+            ),
+            bounding_box_format=self.bounding_box_format,
+            compute_dtype=self.compute_dtype
+        )
+
+    def augment_keypoints(self, keypoints, transformation, **kwargs):
+        image = None
+        image = kwargs.get("image")
+
         image = tf.expand_dims(image, 0)
         image_shape = tf.shape(image)
         h = image_shape[H_AXIS]
         w = image_shape[W_AXIS]
         # origin coordinates, all the points on the image are rotated around
         # this point
-        origin_x, origin_y = int(h / 2), int(w / 2)
+        origin_x, origin_y = tf.cast(h // 2, tf.float32), tf.cast(w // 2, tf.float32)
         angle = transformation["angle"]
         angle = -angle
-        # calculate coordinates of all four corners of the bounding box
-        point = tf.stack(
-            [
-                tf.stack([bounding_boxes[:, 0], bounding_boxes[:, 1]], axis=1),
-                tf.stack([bounding_boxes[:, 2], bounding_boxes[:, 1]], axis=1),
-                tf.stack([bounding_boxes[:, 2], bounding_boxes[:, 3]], axis=1),
-                tf.stack([bounding_boxes[:, 0], bounding_boxes[:, 3]], axis=1),
-            ],
-            axis=1,
-        )
         # point_x : x coordinates of all corners of the bounding box
-        point_x = tf.gather(point, [0], axis=2)
+        point_x = tf.gather(keypoints, [0], axis=-1)
         # point_y : y cordinates of all corners of the bounding box
-        point_y = tf.gather(point, [1], axis=2)
+        point_y = tf.gather(keypoints, [1], axis=-1)
         # rotated bounding box coordinates
         # new_x : new position of x coordinates of corners of bounding box
         new_x = (
@@ -190,19 +192,7 @@ class RandomRotation(BaseImageAugmentationLayer):
         )
         # rotated bounding box coordinates
         out = tf.concat([new_x, new_y], axis=2)
-        # find readjusted coordinates of bounding box to represent it in corners
-        # format
-        min_cordinates = tf.math.reduce_min(out, axis=1)
-        max_cordinates = tf.math.reduce_max(out, axis=1)
-        bounding_boxes_out = tf.concat([min_cordinates, max_cordinates], axis=1)
-        # cordinates cannot be float values, it is casted to int32
-        bounding_boxes_out = bounding_box.convert_format(
-            bounding_boxes_out,
-            source="xyxy",
-            target=self.bounding_box_format,
-            dtype=self.compute_dtype,
-        )
-        return bounding_boxes_out
+        return out
 
     def augment_label(self, label, transformation, **kwargs):
         return label
