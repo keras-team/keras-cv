@@ -161,6 +161,14 @@ class SerializationTest(tf.test.TestCase, parameterized.TestCase):
                 "seed": 42,
             },
         ),
+        (
+            "RandomBrightness",
+            preprocessing.RandomContrast,
+            {
+                "factor": 1,
+                "seed": 42,
+            },
+        ),
     )  # yapf:disable
     def test_layer_serialization(self, layer_cls, init_args):
         layer = layer_cls(**init_args)
