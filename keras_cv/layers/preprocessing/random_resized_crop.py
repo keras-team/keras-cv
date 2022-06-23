@@ -15,7 +15,7 @@ import warnings
 
 import tensorflow as tf
 
-from keras_cv.layers import BaseImageAugmentationLayer
+from keras_cv.layers.preprocessing import BaseImageAugmentationLayer
 from keras_cv.utils import preprocessing
 
 
@@ -48,7 +48,7 @@ class RandomResizedCrop(BaseImageAugmentationLayer):
 >>>>>>> 8967911 (Update keras_cv/layers/preprocessing/random_resized_crop.py)
         area_factor: (Optional) A tuple of two floats, a single float or
             `keras_cv.FactorSampler`. The ratio of area of the cropped part to
-            that of original image is sampled using this factor. Represents the 
+            that of original image is sampled using this factor. Represents the
             lower and upper bounds for the area relative to the original image
             of the cropped image before resizing it to `target_size`. Defaults
             to (0.08, 1.0).
@@ -56,28 +56,40 @@ class RandomResizedCrop(BaseImageAugmentationLayer):
             resizing.
         seed: (Optional) Integer. Used to create a random seed.
     """
-    def __init__(self,
-                 target_size,
-                 aspect_ratio_factor=(3. / 4., 4. / 3.),
-                 area_factor=(0.08, 1.0),
-                 interpolation="bilinear",
-                 seed=None,
-                 **kwargs):
+
+    def __init__(
+        self,
+        target_size,
+        aspect_ratio_factor=(3.0 / 4.0, 4.0 / 3.0),
+        area_factor=(0.08, 1.0),
+        interpolation="bilinear",
+        seed=None,
+        **kwargs
+    ):
         super().__init__(seed=seed, **kwargs)
 
         self.target_size = target_size
 
         if isinstance(aspect_ratio_factor, tuple):
+            min_aspect_ratio = min(aspect_ratio_factor)
             max_aspect_ratio = max(aspect_ratio_factor)
         elif isinstance(aspect_ratio_factor, (int, float)):
+            min_aspect_ratio = 3.0 / 4.0
             max_aspect_ratio = aspect_ratio_factor
+        else:
+            min_aspect_ratio = 3.0 / 4.0
+            max_aspect_ratio = 4.0 / 3.0
 
         self.aspect_ratio_factor = preprocessing.parse_factor(
-            aspect_ratio_factor, max_value=max_aspect_ratio,
-            param_name="aspect_ratio_factor", seed=seed)
-        self.area_factor = preprocessing.parse_factor(area_factor,
-                                                      param_name="area_factor",
-                                                      seed=seed)
+            aspect_ratio_factor,
+            min_value=min_aspect_ratio,
+            max_value=max_aspect_ratio,
+            param_name="aspect_ratio_factor",
+            seed=seed,
+        )
+        self.area_factor = preprocessing.parse_factor(
+            area_factor, param_name="area_factor", seed=seed
+        )
 
         self.interpolation = interpolation
         self.seed = seed
@@ -86,32 +98,31 @@ class RandomResizedCrop(BaseImageAugmentationLayer):
             warnings.warn(
                 "RandomResizedCrop received both `area_factor=0.0` and "
                 "`aspect_ratio_factor=0.0`. As a result, the layer will perform no "
-                "augmentation.")
+                "augmentation."
+            )
 
-    def get_random_transformation(self,
-                                  image=None,
-                                  label=None,
-                                  bounding_box=None):
+    def get_random_transformation(self, image=None, label=None, bounding_box=None):
         area_factor = self.area_factor()
         aspect_ratio = self.aspect_ratio_factor()
 
         new_height = tf.clip_by_value(
-            tf.sqrt(area_factor / aspect_ratio), 0.0,
-            1.0)  # to avoid unwanted/unintuitive effects
-        new_width = tf.clip_by_value(tf.sqrt(area_factor * aspect_ratio), 0.0,
-                                     1.0)
+            tf.sqrt(area_factor / aspect_ratio), 0.0, 1.0
+        )  # to avoid unwanted/unintuitive effects
+        new_width = tf.clip_by_value(tf.sqrt(area_factor * aspect_ratio), 0.0, 1.0)
 
         height_offset = self._random_generator.random_uniform(
             (),
             minval=tf.minimum(0.0, 1.0 - new_height),
             maxval=tf.maximum(0.0, 1.0 - new_height),
-            dtype=tf.float32)
+            dtype=tf.float32,
+        )
 
         width_offset = self._random_generator.random_uniform(
             (),
             minval=tf.minimum(0.0, 1.0 - new_width),
             maxval=tf.maximum(0.0, 1.0 - new_width),
-            dtype=tf.float32)
+            dtype=tf.float32,
+        )
 
         y1 = height_offset
         y2 = height_offset + new_height
@@ -138,11 +149,13 @@ class RandomResizedCrop(BaseImageAugmentationLayer):
 
     def get_config(self):
         config = super().get_config()
-        config.update({
-            "target_size": self.target_size,
-            "area_factor": self.area_factor,
-            "aspect_ratio_factor": self.aspect_ratio_factor,
-            "interpolation": self.interpolation,
-            "seed": self.seed,
-        })
+        config.update(
+            {
+                "target_size": self.target_size,
+                "area_factor": self.area_factor,
+                "aspect_ratio_factor": self.aspect_ratio_factor,
+                "interpolation": self.interpolation,
+                "seed": self.seed,
+            }
+        )
         return config
