@@ -26,6 +26,7 @@ IMAGES = "images"
 LABELS = "labels"
 TARGETS = "targets"
 BOUNDING_BOXES = "bounding_boxes"
+KEYPOINTS = "keypoints"
 
 
 @tf.keras.utils.register_keras_serializable(package="keras_cv")
@@ -98,7 +99,6 @@ class BaseImageAugmentationLayer(tf.keras.__internal__.layers.BaseRandomLayer):
     produce the random numbers.  The random number generator is stored in the
     `self._random_generator` attribute.
     """
-
     def __init__(self, seed=None, **kwargs):
         super().__init__(seed=seed, **kwargs)
 
@@ -182,8 +182,6 @@ class BaseImageAugmentationLayer(tf.keras.__internal__.layers.BaseRandomLayer):
         """Augment bounding boxes for one image during training.
 
         Args:
-          image: 3D image input tensor to the layer. Forwarded from
-            `layer.call()`.
           bounding_boxes: 2D bounding boxes to the layer. Forwarded from
             `call()`.
           transformation: The transformation object produced by
@@ -196,7 +194,25 @@ class BaseImageAugmentationLayer(tf.keras.__internal__.layers.BaseRandomLayer):
         raise NotImplementedError()
 
     @doc_controls.for_subclass_implementers
-    def get_random_transformation(self, image=None, label=None, bounding_boxes=None):
+    def augment_keypoints(self, keypoints, transformation, **kwargs):
+        """Augment keypoints for one image during training.
+
+        Args:
+          keypoints: 2D keypoints input tensor to the layer. Forwarded from
+            `layer.call()`.
+          transformation: The transformation object produced by
+            `get_random_transformation`. Used to coordinate the randomness
+            between image, label and bounding box.
+
+        Returns:
+          output 2D tensor, which will be forward to `layer.call()`.
+        """
+        raise NotImplementedError()
+
+    @doc_controls.for_subclass_implementers
+    def get_random_transformation(
+        self, image=None, label=None, bounding_boxes=None, keypoints=None
+    ):
         """Produce random transformation config for one single input.
 
         This is used to produce same randomness between
@@ -238,8 +254,12 @@ class BaseImageAugmentationLayer(tf.keras.__internal__.layers.BaseRandomLayer):
         image = inputs.get(IMAGES, None)
         label = inputs.get(LABELS, None)
         bounding_boxes = inputs.get(BOUNDING_BOXES, None)
+        keypoints = inputs.get(KEYPOINTS, None)
         transformation = self.get_random_transformation(
-            image=image, label=label, bounding_boxes=bounding_boxes
+            image=image,
+            label=label,
+            bounding_boxes=bounding_boxes,
+            keypoints=keypoints
         )
         image = self.augment_image(
             image,
@@ -264,6 +284,16 @@ class BaseImageAugmentationLayer(tf.keras.__internal__.layers.BaseRandomLayer):
                 image=image,
             )
             result[BOUNDING_BOXES] = bounding_boxes
+        if keypoints is not None:
+            keypoints = self.augment_keypoints(
+                keypoints,
+                transformation=transformation,
+                label=label,
+                bounding_boxes=bounding_boxes,
+                image=image,
+            )
+            result[KEYPOINTS] = keypoints
+
         return result
 
     def _batch_augment(self, inputs):

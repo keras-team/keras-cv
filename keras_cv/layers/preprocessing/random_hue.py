@@ -46,17 +46,13 @@ class RandomHue(BaseImageAugmentationLayer):
         seed: Integer. Used to create a random seed.
 
     """
-
     def __init__(self, factor, value_range, seed=None, **kwargs):
         super().__init__(seed=seed, **kwargs)
-        self.factor = preprocessing.parse_factor(
-            factor,
-        )
+        self.factor = preprocessing.parse_factor(factor, )
         self.value_range = value_range
         self.seed = seed
 
-    def get_random_transformation(self, image=None, label=None, bounding_boxes=None):
-        del image, label, bounding_boxes
+    def get_random_transformation(self, **kwargs):
         invert = preprocessing.random_inversion(self._random_generator)
         # We must scale self.factor() to the range [-0.5, 0.5].  This is because the
         # tf.image operation performs rotation on the hue saturation value orientation.

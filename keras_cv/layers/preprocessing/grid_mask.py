@@ -88,7 +88,6 @@ class GridMask(BaseImageAugmentationLayer):
     References:
         - https://arxiv.org/abs/2001.04086
     """
-
     def __init__(
         self,
         ratio_factor=(0, 0.5),
@@ -138,7 +137,7 @@ class GridMask(BaseImageAugmentationLayer):
                 f'"gaussian_noise", or "random".  Got `fill_mode`={fill_mode}'
             )
 
-    def get_random_transformation(self, image=None, label=None, bounding_boxes=None):
+    def get_random_transformation(self, image=None, **kwargs):
         ratio = self.ratio_factor()
 
         # compute grid mask

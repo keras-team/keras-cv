@@ -55,7 +55,6 @@ class RandomChannelShift(BaseImageAugmentationLayer):
     augmented_images = rgb_shift(images)
     ```
     """
-
     def __init__(self, value_range, factor, channels=3, seed=None, **kwargs):
         super().__init__(**kwargs, seed=seed)
         self.seed = seed
@@ -63,7 +62,7 @@ class RandomChannelShift(BaseImageAugmentationLayer):
         self.channels = channels
         self.factor = preprocessing.parse_factor(factor, seed=self.seed)
 
-    def get_random_transformation(self, image=None, label=None, bounding_boxes=None):
+    def get_random_transformation(self, **kwargs):
         shifts = []
         for _ in range(self.channels):
             shifts.append(self._get_shift())

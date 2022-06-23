@@ -25,7 +25,7 @@ class RandomAddLayer(BaseImageAugmentationLayer):
         self.value_range = value_range
         self.fixed_value = fixed_value
 
-    def get_random_transformation(self, image=None, label=None, bounding_boxes=None):
+    def get_random_transformation(self, **kwargs):
         if self.fixed_value:
             return self.fixed_value
         return self._random_generator.random_uniform(
@@ -37,6 +37,12 @@ class RandomAddLayer(BaseImageAugmentationLayer):
 
     def augment_label(self, label, transformation, **kwargs):
         return label + transformation
+
+    def augment_bounding_boxes(self, bounding_boxes, transformation, **kwargs):
+        return bounding_boxes + transformation
+
+    def augment_keypoints(self, keypoints, transformation, **kwargs):
+        return keypoints + transformation
 
 
 class VectorizeDisabledLayer(BaseImageAugmentationLayer):
@@ -84,7 +90,7 @@ class BaseImageAugmentationLayerTest(tf.test.TestCase):
     def test_augment_image_and_label(self):
         add_layer = RandomAddLayer(fixed_value=2.0)
         image = np.random.random(size=(8, 8, 3)).astype("float32")
-        label = np.random.random(size=(1,)).astype("float32")
+        label = np.random.random(size=(1, )).astype("float32")
 
         output = add_layer({"images": image, "labels": label})
         expected_output = {"images": image + 2.0, "labels": label + 2.0}
@@ -93,7 +99,7 @@ class BaseImageAugmentationLayerTest(tf.test.TestCase):
     def test_augment_image_and_target(self):
         add_layer = RandomAddLayer(fixed_value=2.0)
         image = np.random.random(size=(8, 8, 3)).astype("float32")
-        label = np.random.random(size=(1,)).astype("float32")
+        label = np.random.random(size=(1, )).astype("float32")
 
         output = add_layer({"images": image, "targets": label})
         expected_output = {"images": image + 2.0, "targets": label + 2.0}
@@ -110,3 +116,43 @@ class BaseImageAugmentationLayerTest(tf.test.TestCase):
         # Make sure the first image and second image get different augmentation
         self.assertNotAllClose(image_diff[0], image_diff[1])
         self.assertNotAllClose(label_diff[0], label_diff[1])
+
+    def test_augment_image_and_localization_data(self):
+        add_layer = RandomAddLayer(fixed_value=2.0)
+        images = np.random.random(size=(8, 8, 3)).astype("float32")
+        bounding_boxes = np.random.random(size=(3, 4)).astype("float32")
+        keypoints = np.random.random(size=(3, 5, 2)).astype("float32")
+
+        output = add_layer(
+            {
+                "images": images,
+                "bounding_boxes": bounding_boxes,
+                "keypoints": keypoints
+            }
+        )
+
+        expected_output = {
+            "images": images + 2.0,
+            "bounding_boxes": bounding_boxes + 2.0,
+            "keypoints": keypoints + 2.0
+        }
+        self.assertAllClose(output, expected_output)
+
+    def test_augment_batch_image_and_localization_data(self):
+        add_layer = RandomAddLayer()
+        images = np.random.random(size=(2, 8, 8, 3)).astype("float32")
+        bounding_boxes = np.random.random(size=(2, 3, 4)).astype("float32")
+        keypoints = np.random.random(size=(2, 3, 5, 2)).astype("float32")
+
+        output = add_layer(
+            {
+                "images": images,
+                "bounding_boxes": bounding_boxes,
+                "keypoints": keypoints
+            }
+        )
+
+        bounding_boxes_diff = output["bounding_boxes"] - bounding_boxes
+        keypoints_diff = output["keypoints"] - keypoints
+        self.assertNotAllClose(bounding_boxes_diff[0], bounding_boxes_diff[1])
+        self.assertNotAllClose(keypoints_diff[0], keypoints_diff[1])

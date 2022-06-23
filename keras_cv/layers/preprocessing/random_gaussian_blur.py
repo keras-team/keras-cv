@@ -36,7 +36,6 @@ class RandomGaussianBlur(BaseImageAugmentationLayer):
             ensure the value is always the same, please pass a tuple with two identical
             floats: `(0.5, 0.5)`.
     """
-
     def __init__(self, kernel_size, factor, **kwargs):
         super().__init__(**kwargs)
 
@@ -58,7 +57,7 @@ class RandomGaussianBlur(BaseImageAugmentationLayer):
                     ", got {} ".format(type(self.kernel_size))
                 )
 
-    def get_random_transformation(self, image=None, label=None, bounding_boxes=None):
+    def get_random_transformation(self, **kwargs):
         factor = self.factor()
         blur_v = RandomGaussianBlur.get_kernel(factor, self.y)
         blur_h = RandomGaussianBlur.get_kernel(factor, self.x)

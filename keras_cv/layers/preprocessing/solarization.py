@@ -68,7 +68,6 @@ class Solarization(BaseImageAugmentationLayer):
             range [0, 255] and shape [batch, height, width, channels]
             or [height, width, channels].
     """
-
     def __init__(
         self,
         value_range,
@@ -86,7 +85,7 @@ class Solarization(BaseImageAugmentationLayer):
         )
         self.value_range = value_range
 
-    def get_random_transformation(self, image=None, label=None, bounding_boxes=None):
+    def get_random_transformation(self, **kwargs):
         return (self.addition_factor(), self.threshold_factor())
 
     def augment_image(self, image, transformation=None, **kwargs):

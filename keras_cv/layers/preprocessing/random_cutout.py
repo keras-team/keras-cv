@@ -60,7 +60,6 @@ class RandomCutout(BaseImageAugmentationLayer):
     augmented_images = random_cutout(images)
     ```
     """
-
     def __init__(
         self,
         height_factor,
@@ -94,7 +93,7 @@ class RandomCutout(BaseImageAugmentationLayer):
         else:
             return type(factor)(0), factor
 
-    def get_random_transformation(self, image=None, label=None, bounding_boxes=None):
+    def get_random_transformation(self, image=None, **kwargs):
         center_x, center_y = self._compute_rectangle_position(image)
         rectangle_height, rectangle_width = self._compute_rectangle_size(image)
         return center_x, center_y, rectangle_height, rectangle_width
