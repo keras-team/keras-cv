@@ -13,7 +13,6 @@
 # limitations under the License.
 
 import tensorflow as tf
-from tensorflow.tools.docs import doc_controls
 
 from keras_cv.utils import preprocessing
 
@@ -131,7 +130,6 @@ class BaseImageAugmentationLayer(tf.keras.__internal__.layers.BaseRandomLayer):
         else:
             return tf.map_fn
 
-    @doc_controls.for_subclass_implementers
     def augment_image(self, image, transformation, **kwargs):
         """Augment a single image during training.
 
@@ -147,7 +145,6 @@ class BaseImageAugmentationLayer(tf.keras.__internal__.layers.BaseRandomLayer):
         """
         raise NotImplementedError()
 
-    @doc_controls.for_subclass_implementers
     def augment_label(self, label, transformation, **kwargs):
         """Augment a single label during training.
 
@@ -162,7 +159,6 @@ class BaseImageAugmentationLayer(tf.keras.__internal__.layers.BaseRandomLayer):
         """
         raise NotImplementedError()
 
-    @doc_controls.for_subclass_implementers
     def augment_target(self, target, transformation, **kwargs):
         """Augment a single target during training.
 
@@ -177,7 +173,6 @@ class BaseImageAugmentationLayer(tf.keras.__internal__.layers.BaseRandomLayer):
         """
         return self.augment_label(target, transformation)
 
-    @doc_controls.for_subclass_implementers
     def augment_bounding_boxes(self, bounding_boxes, transformation, **kwargs):
         """Augment bounding boxes for one image during training.
 
@@ -195,7 +190,6 @@ class BaseImageAugmentationLayer(tf.keras.__internal__.layers.BaseRandomLayer):
         """
         raise NotImplementedError()
 
-    @doc_controls.for_subclass_implementers
     def get_random_transformation(self, image=None, label=None, bounding_boxes=None):
         """Produce random transformation config for one single input.
 
