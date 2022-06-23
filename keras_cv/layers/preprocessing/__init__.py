@@ -18,7 +18,6 @@
 from tensorflow.keras.__internal__.layers import BaseImageAugmentationLayer
 from tensorflow.keras.layers import CenterCrop
 from tensorflow.keras.layers import RandomBrightness
-from tensorflow.keras.layers import RandomContrast
 from tensorflow.keras.layers import RandomCrop
 from tensorflow.keras.layers import RandomFlip
 from tensorflow.keras.layers import RandomHeight
@@ -58,3 +57,4 @@ from keras_cv.layers.preprocessing.random_saturation import RandomSaturation
 from keras_cv.layers.preprocessing.random_sharpness import RandomSharpness
 from keras_cv.layers.preprocessing.random_shear import RandomShear
 from keras_cv.layers.preprocessing.solarization import Solarization
+from keras_cv.layers.preprocessing.random_contrast import RandomContrast

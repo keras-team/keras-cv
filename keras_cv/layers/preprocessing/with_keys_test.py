@@ -66,6 +66,7 @@ TEST_CONFIGURATIONS = [
     ),
     ("RandomShear", preprocessing.RandomShear, {"x_factor": 0.3, "x_factor": 0.3}),
     ("Solarization", preprocessing.Solarization, {"value_range": (0, 255)}),
+    ("RandomContrast", preprocessing.RandomContrast, {"factor": 1, "seed": 2}),
 ]  # yapf:disable
 
 
