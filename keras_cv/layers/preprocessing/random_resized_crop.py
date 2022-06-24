@@ -55,11 +55,8 @@ class RandomResizedCrop(BaseImageAugmentationLayer):
             `keras_cv.FactorSampler`. The ratio of area of the cropped part to
             that of original image is sampled using this factor. Represents the
             lower and upper bounds for the area relative to the original image
-            of the cropped image before resizing it to `target_size`. Defaults
-            to (0.08, 1.0).
-=======
+            of the cropped image before resizing it to `target_size`.
             `target_size`.  Defaults to (1.0, 1.0), or a no-op.
->>>>>>> aa0088a (Luke edits)
         interpolation: (Optional) A string specifying the sampling method for
             resizing.
         seed: (Optional) Integer. Used to create a random seed.
