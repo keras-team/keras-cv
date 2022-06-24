@@ -23,7 +23,9 @@ class RandomResizedCropTest(tf.test.TestCase):
         input_image_shape = (4, 300, 300, 3)
         image = tf.random.uniform(shape=input_image_shape)
 
-        layer = preprocessing.RandomResizedCrop((224, 224))
+        layer = preprocessing.RandomResizedCrop(
+            target_size=(224, 224), area_factor=(0.8, 1.0)
+        )
         output = layer(image, training=True)
 
         output_image_resized = tf.image.resize(output, input_image_shape)
@@ -36,7 +38,9 @@ class RandomResizedCropTest(tf.test.TestCase):
         image_shape = (4, 300, 300, 3)
         image = tf.random.uniform(shape=image_shape)
 
-        layer = preprocessing.RandomResizedCrop((300, 300))
+        layer = preprocessing.RandomResizedCrop(
+            target_size=(214, 214), area_factor=(0.8, 1.0)
+        )
         output = layer(image, training=False)
 
-        self.assertEqual(image.shape, output.shape)
+        self.assertEqual(output.shape, (4, 214, 214, 3))
