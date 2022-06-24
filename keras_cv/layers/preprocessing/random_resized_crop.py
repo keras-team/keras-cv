@@ -22,15 +22,15 @@ from keras_cv.utils import preprocessing
 @tf.keras.utils.register_keras_serializable(package="keras_cv")
 class RandomResizedCrop(BaseImageAugmentationLayer):
     """
-    Randomly crops a part of an image and resizes it to provided size. This
-    implementation takes an intuitive approach, where we crop the images to a
-    random height and width, and then resize them. To do this, we first sample a
-    random value for area using `area_factor` and a value for aspect ratio using
-    `aspect_ratio_factor`. Further we get the new height and width by
-    dividing and multiplying the old height and width by the random area
-    respectively. We then sample offsets for height and width and clip them such
-    that the cropped area does not exceed image boundaries. Finally we do the
-    actual cropping operation and resize the image to `target_size`.
+    Randomly crops a part of an image and resizes it to provided size. In
+    this implementation, we crop the images to a random height and width, and
+    then resize them to the given resolution. To do this, we first sample a
+    random value for area using `area_factor` and a value for aspect ratio using 
+    `aspect_ratio_factor`. Further, we get the new height and width by dividing
+    and multiplying the old height and width by the random area respectively. We
+    then sample offsets for height and width and clip them such that the cropped
+    area does not exceed image boundaries. Finally, we do the actual cropping
+    operation and resize the image to `target_size`.
 
     Args:
         target_size: A tuple of two integers used as the target size to crop
