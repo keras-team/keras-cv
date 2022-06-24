@@ -128,6 +128,13 @@ class SerializationTest(tf.test.TestCase, parameterized.TestCase):
             {"rate": 0.1},
         ),
         (
+            "DropPath",
+            regularization.DropPath,
+            {
+                "rate": 0.2,
+            },
+        ),
+        (
             "MaybeApply",
             preprocessing.MaybeApply,
             {
