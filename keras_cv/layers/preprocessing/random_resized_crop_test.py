@@ -17,13 +17,36 @@ from keras_cv.layers import preprocessing
 
 
 class RandomResizedCropTest(tf.test.TestCase):
+    height, width = 300, 300
+    num_channels = 3
+    batch_size = 4
+    target_size = (224, 224)
+
     def train_augments_image(self):
         # Checks if original and augmented images are different
 
-        input_image_shape = (4, 300, 300, 3)
+        input_image_shape = (
+            self.batch_size,
+            self.height,
+            self.width,
+            self.num_channels,
+        )
         image = tf.random.uniform(shape=input_image_shape)
 
-        layer = preprocessing.RandomResizedCrop((224, 224))
+        layer = preprocessing.RandomResizedCrop(self.target_size)
+        output = layer(image, training=True)
+
+        output_image_resized = tf.image.resize(output, input_image_shape)
+
+        self.assertNotEqual(image, output_image_resized)
+
+    def train_augments_grayscale_image(self):
+        # Checks if original and augmented images are different
+
+        input_image_shape = (self.batch_size, self.height, self.width, 1)
+        image = tf.random.uniform(shape=input_image_shape)
+
+        layer = preprocessing.RandomResizedCrop(self.target_size)
         output = layer(image, training=True)
 
         output_image_resized = tf.image.resize(output, input_image_shape)
@@ -33,10 +56,10 @@ class RandomResizedCropTest(tf.test.TestCase):
     def test_preserves_image(self):
         # Checks if resultant image stays the same at inference time
 
-        image_shape = (4, 300, 300, 3)
+        image_shape = (self.batch_size, self.height, self.width, self.num_channels)
         image = tf.random.uniform(shape=image_shape)
 
-        layer = preprocessing.RandomResizedCrop((300, 300))
+        layer = preprocessing.RandomResizedCrop((self.height, self.width))
         output = layer(image, training=False)
 
         self.assertEqual(image.shape, output.shape)
