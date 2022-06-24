@@ -104,7 +104,9 @@ class RandomResizedCrop(BaseImageAugmentationLayer):
         self.interpolation = interpolation
         self.seed = seed
 
-    def get_random_transformation(self, image=None, label=None, bounding_box=None):
+    def get_random_transformation(
+        self, image=None, label=None, bounding_boxes=None, **kwargs
+    ):
         area_factor = self.area_factor()
         aspect_ratio = self.aspect_ratio_factor()
 
@@ -147,7 +149,7 @@ class RandomResizedCrop(BaseImageAugmentationLayer):
             output["images"] = self._resize(inputs["images"])
             return self._format_output(output, is_dict, use_targets)
 
-    def augment_image(self, image, transformation):
+    def augment_image(self, image, transformation, **kwargs):
         image = tf.expand_dims(image, axis=0)
         boxes = transformation
 
