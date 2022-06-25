@@ -17,7 +17,8 @@ import tensorflow as tf
 from absl.testing import parameterized
 from tensorflow.keras import backend
 
-from keras_cv.models import densenet, mobilenet_v3
+from keras_cv.models import densenet
+from keras_cv.models import mobilenet_v3
 
 MODEL_LIST = [
     (densenet.DenseNet121, 1024),

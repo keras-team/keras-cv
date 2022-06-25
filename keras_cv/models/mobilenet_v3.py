@@ -12,10 +12,11 @@ from tensorflow.keras import layers
 
 channel_axis = -1
 
+
 def Depth(divisor=8, min_value=None, name=None):
     if name is None:
         name = f"depth_{backend.get_uid('depth')}"
-    
+
     def apply(x):
         nonlocal min_value
         if min_value is None:
@@ -25,28 +26,34 @@ def Depth(divisor=8, min_value=None, name=None):
         if new_x < 0.9 * x:
             new_x += divisor
         return new_x
+
     return apply
+
 
 def HardSigmoid(name=None):
     if name is None:
-        name=f"hard_sigmoid_{backend.get_uid('hard_sigmoid')}"
-    
+        name = f"hard_sigmoid_{backend.get_uid('hard_sigmoid')}"
+
     def apply(x):
         return layers.ReLU(6.0)(x + 3.0) * (1.0 / 6.0)
+
     return apply
+
 
 def HardSwish(name=None):
     if name is None:
-        name=f"hard_swish_{backend.get_uid('hard_swish')}"
-    
+        name = f"hard_swish_{backend.get_uid('hard_swish')}"
+
     def apply(x):
         return layers.Multiply()([x, HardSigmoid()(x)])
+
     return apply
+
 
 def SEBlock(filters, se_ratio, prefix, name=None):
     if name is None:
-        name=f"se_block_{backend.get_uid('se_block')}"
-    
+        name = f"se_block_{backend.get_uid('se_block')}"
+
     def apply(inputs):
         x = layers.GlobalAveragePooling2D(
             keepdims=True, name=prefix + "squeeze_excite/AvgPool"
@@ -67,17 +74,26 @@ def SEBlock(filters, se_ratio, prefix, name=None):
         x = HardSigmoid()(x)
         x = layers.Multiply(name=prefix + "squeeze_excite/Mul")([inputs, x])
         return x
+
     return apply
+
+
 def ReLU(name=None):
     if name is None:
-        name=f"relu_{backend.get_uid('relu')}"
+        name = f"relu_{backend.get_uid('relu')}"
+
     def apply(x):
         layers.ReLU()(x)
+
     return apply
-def InvertedResBlock(expansion, filters, kernel_size, stride, se_ratio, activation, block_id, name=None):
+
+
+def InvertedResBlock(
+    expansion, filters, kernel_size, stride, se_ratio, activation, block_id, name=None
+):
     if name is None:
-        name=f"inverted_res_block_{backend.get_uid('inverted_res_block')}"
-    
+        name = f"inverted_res_block_{backend.get_uid('inverted_res_block')}"
+
     def apply(x):
         shortcut = x
         prefix = "expanded_conv/"
@@ -135,7 +151,9 @@ def InvertedResBlock(expansion, filters, kernel_size, stride, se_ratio, activati
         if stride == 1 and infilters == filters:
             x = layers.Add(name=prefix + "Add")([shortcut, x])
         return x
+
     return apply
+
 
 def MobileNetV3(
     stack_fn,
@@ -151,7 +169,7 @@ def MobileNetV3(
     include_rescaling=True,
     minimalistic=True,
     name=None,
-    **kwargs
+    **kwargs,
 ):
 
     if weights and not tf.io.gfile.exists(weights):
@@ -228,23 +246,20 @@ def MobileNetV3(
 
         if dropout_rate > 0:
             x = layers.Dropout(dropout_rate)(x)
-        x = layers.Conv2D(
-            classes, kernel_size=1, padding="same", name="Logits"
-        )(x)
+        x = layers.Conv2D(classes, kernel_size=1, padding="same", name="Logits")(x)
         x = layers.Flatten()(x)
-        x = layers.Activation(
-            activation=classifier_activation, name="Predictions"
-        )(x)    
+        x = layers.Activation(activation=classifier_activation, name="Predictions")(x)
     elif pooling == "avg":
         x = layers.GlobalAveragePooling2D(name="avg_pool")(x)
     elif pooling == "max":
         x = layers.GlobalMaxPooling2D(name="max_pool")(x)
-    
+
     model = keras.Model(inputs, x, name=name, **kwargs)
 
     if weights is not None:
         model.load_weights(weights)
     return model
+
 
 def MobileNetV3Small(
     input_shape=(None, None, 3),
@@ -258,41 +273,25 @@ def MobileNetV3Small(
     classifier_activation="softmax",
     include_rescaling=True,
     name="MobileNetV3Small",
-    **kwargs
-    ):
-
+    **kwargs,
+):
     def stack_fn(x, kernel, activation, se_ratio):
         def depth(d):
             return Depth()(d * alpha)
+
         x = InvertedResBlock(1, depth(16), 3, 2, se_ratio, layers.ReLU(), 0)(x)
         x = InvertedResBlock(72.0 / 16, depth(24), 3, 2, None, layers.ReLU(), 1)(x)
         x = InvertedResBlock(88.0 / 24, depth(24), 3, 1, None, layers.ReLU(), 2)(x)
-        x = InvertedResBlock(
-            4, depth(40), kernel, 2, se_ratio, activation, 3
-        )(x)
-        x = InvertedResBlock(
-            6, depth(40), kernel, 1, se_ratio, activation, 4
-        )(x)
-        x = InvertedResBlock(
-            6, depth(40), kernel, 1, se_ratio, activation, 5
-        )(x)
-        x = InvertedResBlock(
-            3, depth(48), kernel, 1, se_ratio, activation, 6
-        )(x)
-        x = InvertedResBlock(
-            3, depth(48), kernel, 1, se_ratio, activation, 7
-        )(x)
-        x = InvertedResBlock(
-            6, depth(96), kernel, 2, se_ratio, activation, 8
-        )(x)
-        x = InvertedResBlock(
-            6, depth(96), kernel, 1, se_ratio, activation, 9
-        )(x)
-        x = InvertedResBlock(
-            6, depth(96), kernel, 1, se_ratio, activation, 10
-        )(x)
+        x = InvertedResBlock(4, depth(40), kernel, 2, se_ratio, activation, 3)(x)
+        x = InvertedResBlock(6, depth(40), kernel, 1, se_ratio, activation, 4)(x)
+        x = InvertedResBlock(6, depth(40), kernel, 1, se_ratio, activation, 5)(x)
+        x = InvertedResBlock(3, depth(48), kernel, 1, se_ratio, activation, 6)(x)
+        x = InvertedResBlock(3, depth(48), kernel, 1, se_ratio, activation, 7)(x)
+        x = InvertedResBlock(6, depth(96), kernel, 2, se_ratio, activation, 8)(x)
+        x = InvertedResBlock(6, depth(96), kernel, 1, se_ratio, activation, 9)(x)
+        x = InvertedResBlock(6, depth(96), kernel, 1, se_ratio, activation, 10)(x)
         return x
-    
+
     return MobileNetV3(
         stack_fn,
         1024,
@@ -307,5 +306,5 @@ def MobileNetV3Small(
         include_rescaling,
         minimalistic,
         name=name,
-        **kwargs
+        **kwargs,
     )
