@@ -34,7 +34,7 @@ class SqueezeAndExciteBlock2D(layers.Layer):
 	```python
 	# (...)
 	input = tf.ones((1, 5, 5, 16), dtype=tf.float32)
-	x = tf.keras.layers.Conv2D(16, (3,3))(input)
+	x = tf.keras.layers.Conv2D(16, (3, 3))(input)
 	output = keras_cv.layers.SqueezeAndExciteBlock(16)(x)
 	# (...)
 	```
@@ -55,8 +55,7 @@ class SqueezeAndExciteBlock2D(layers.Layer):
         self.ratio = ratio
         self.se_filters = int(self.filters * self.ratio)
 
-        self.ga_pool = layers.GlobalAveragePooling2D()
-        self.squeeze_reshape = layers.Reshape((1, 1, self.filters))
+        self.ga_pool = layers.GlobalAveragePooling2D(keepdims=True)
         self.squeeze_conv = layers.Conv2D(
          self.se_filters, (1, 1), activation="relu",
         )
@@ -64,12 +63,10 @@ class SqueezeAndExciteBlock2D(layers.Layer):
                                          activation="sigmoid")
 
     def call(self, inputs, training=True):
-        x = self.ga_pool(inputs)  # x: (B, filters)
-
-        x = self.squeeze_reshape(x)  # x: (B, 1, 1, filters)
-        x = self.squeeze_conv(x)  # x: (B, 1, 1, se_filters)
-        x = self.excite_conv(x)  # x: (B, 1, 1, filters)
-        x = tf.math.multiply(x, inputs)  # x: (B, h, w, filters)
+        x = self.ga_pool(inputs)  # x: (batch_size, 1, 1, filters)
+        x = self.squeeze_conv(x)  # x: (batch_size, 1, 1, se_filters)
+        x = self.excite_conv(x)  # x: (batch_size, 1, 1, filters)
+        x = tf.math.multiply(x, inputs)  # x: (batch_size, h, w, filters)
         return x
 
     def get_config(self):
