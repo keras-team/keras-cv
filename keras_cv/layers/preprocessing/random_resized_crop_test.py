@@ -17,28 +17,46 @@ from keras_cv.layers import preprocessing
 
 
 class RandomResizedCropTest(tf.test.TestCase):
+    height, width = 300, 300
+    batch_size = 4
+    target_size = (224, 224)
     def test_train_augments_image(self):
         # Checks if original and augmented images are different
 
-        input_image_shape = (4, 300, 300, 3)
+        input_image_shape = (self.batch_size, self.height, self.width, 3)
         image = tf.random.uniform(shape=input_image_shape)
 
         layer = preprocessing.RandomResizedCrop(
-            target_size=(224, 224), area_factor=(0.8, 1.0)
+            target_size=self.target_size, area_factor=(0.08, 1.0)
         )
         output = layer(image, training=True)
 
-        output_image_resized = tf.image.resize(output, input_image_shape)
+        input_image_resized = tf.image.resize(image, self.target_size)
 
-        self.assertNotEqual(image, output_image_resized)
+        self.assertNotAllClose(output, input_image_resized)
+
+    def test_grayscale(self):
+        input_image_shape = (self.batch_size, self.height, self.width, 1)
+        image = tf.random.uniform(shape=input_image_shape)
+
+        layer = preprocessing.RandomResizedCrop(target_size=self.target_size,
+                                                area_factor=(0.8, 1.0))
+        output = layer(image, training=True)
+
+        input_image_resized = tf.image.resize(image, self.target_size)
+
+        self.assertAllEqual(output.shape, (4, 224, 224, 1))
+        self.assertNotAllClose(output, input_image_resized)
 
     def test_preserves_image(self):
-        image_shape = (4, 300, 300, 3)
+        image_shape = (self.batch_size, self.height, self.width, 3)
         image = tf.random.uniform(shape=image_shape)
 
         layer = preprocessing.RandomResizedCrop(
-            target_size=(214, 214), area_factor=(0.8, 1.0)
+            target_size=self.target_size, area_factor=(0.8, 1.0)
         )
+
+        input_resized = tf.image.resize(image, self.target_size)
         output = layer(image, training=False)
 
-        self.assertEqual(output.shape, (4, 214, 214, 3))
+        self.assertAllClose(output, input_resized)
