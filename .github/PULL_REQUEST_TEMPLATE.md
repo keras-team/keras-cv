@@ -21,7 +21,6 @@ Fixes # (issue)
       Pull Request section?
 - [ ] Was this discussed/approved via a Github issue? Please add a link
       to it if that's the case.
-- [ ] Did you make sure to update the documentation with your changes?
 - [ ] Did you write any new necessary tests?
 
 
@@ -30,25 +29,8 @@ Fixes # (issue)
 Anyone in the community is free to review the PR once the tests have passed. Feel free to tag
 members/contributors who may be interested in your PR.
 
-<!-- Your PR will be replied to more quickly if you can figure out the right person to tag with @
-
- If you know how to use git blame, that is the easiest way, otherwise, here is a rough guide of **who to tag**.
- Please tag fewer than 3 people.
-
-Models:
-
-- 
-- 
-
-Layers:
-
-- 
-- 
-
-Losses:
-
-- 
-- 
+<!-- 
+Feel free to tag @LukeWood and @tanzhenyu in your reviews.
 -->
 
 <!--
