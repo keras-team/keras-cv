@@ -308,3 +308,56 @@ def MobileNetV3Small(
         name=name,
         **kwargs,
     )
+
+
+def MobileNetV3Large(
+    input_shape=(None, None, 3),
+    alpha=1.0,
+    minimalistic=False,
+    include_top=True,
+    weights=None,
+    classes=None,
+    pooling=None,
+    dropout_rate=0.2,
+    classifier_activation="softmax",
+    include_rescaling=True,
+    name="MobileNetV3Large",
+    **kwargs,
+):
+    def stack_fn(x, kernel, activation, se_ratio):
+        def depth(d):
+            return Depth()(d * alpha)
+
+        x = InvertedResBlock(1, depth(16), 3, 1, None, layers.ReLU(), 0)(x)
+        x = InvertedResBlock(4, depth(24), 3, 2, None, layers.ReLU(), 1)(x)
+        x = InvertedResBlock(3, depth(24), 3, 1, None, layers.ReLU(), 2)(x)
+        x = InvertedResBlock(3, depth(40), kernel, 2, se_ratio, layers.ReLU(), 3)(x)
+        x = InvertedResBlock(3, depth(40), kernel, 1, se_ratio, layers.ReLU(), 4)(x)
+        x = InvertedResBlock(3, depth(40), kernel, 1, se_ratio, layers.ReLU(), 5)(x)
+        x = InvertedResBlock(6, depth(80), 3, 2, None, activation, 6)(x)
+        x = InvertedResBlock(2.5, depth(80), 3, 1, None, activation, 7)(x)
+        x = InvertedResBlock(2.3, depth(80), 3, 1, None, activation, 8)(x)
+        x = InvertedResBlock(2.3, depth(80), 3, 1, None, activation, 9)(x)
+        x = InvertedResBlock(6, depth(112), 3, 1, se_ratio, activation, 10)(x)
+        x = InvertedResBlock(6, depth(112), 3, 1, se_ratio, activation, 11)(x)
+        x = InvertedResBlock(6, depth(160), kernel, 2, se_ratio, activation, 12)(x)
+        x = InvertedResBlock(6, depth(160), kernel, 1, se_ratio, activation, 13)(x)
+        x = InvertedResBlock(6, depth(160), kernel, 1, se_ratio, activation, 14)(x)
+        return x
+
+    return MobileNetV3(
+        stack_fn,
+        1280,
+        input_shape,
+        alpha,
+        include_top,
+        weights,
+        classes,
+        pooling,
+        dropout_rate,
+        classifier_activation,
+        include_rescaling,
+        minimalistic,
+        name=name,
+        **kwargs,
+    )

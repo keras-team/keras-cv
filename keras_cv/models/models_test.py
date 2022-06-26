@@ -25,6 +25,7 @@ MODEL_LIST = [
     (densenet.DenseNet169, 1664),
     (densenet.DenseNet201, 1920),
     (mobilenet_v3.MobileNetV3Small, 576),
+    (mobilenet_v3.MobileNetV3Large, 960),
 ]
 
 
