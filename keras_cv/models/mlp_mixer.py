@@ -14,9 +14,9 @@
 
 """MLP Mixer models for KerasCV.
 
-Reference:
+References:
   - [MLP-Mixer: An all-MLP Architecture for Vision](https://arxiv.org/abs/2105.01601)
-  - Official Mixer code: https://github.com/google-research/vision_transformer/blob/main/vit_jax/models_mixer.py
+  - [Official Mixer code](https://github.com/google-research/vision_transformer/blob/main/vit_jax/models_mixer.py)
 """
 
 import tensorflow as tf
