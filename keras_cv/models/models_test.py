@@ -57,7 +57,9 @@ class ApplicationsTest(tf.test.TestCase, parameterized.TestCase):
                 include_rescaling=True,
                 include_top=False,
                 weights=None,
-                input_shape=(None, None, 3) if "mixer" not in app.__name__ else (224, 224, 3)
+                input_shape=(None, None, 3)
+                if "mixer" not in app.__name__
+                else (224, 224, 3),
             )
         )
         if "mixer" not in app.__name__:
@@ -78,7 +80,9 @@ class ApplicationsTest(tf.test.TestCase, parameterized.TestCase):
                 include_rescaling=False,
                 include_top=False,
                 weights=None,
-                input_shape=(None, None, 3) if "mixer" not in app.__name__ else (224, 224, 3)
+                input_shape=(None, None, 3)
+                if "mixer" not in app.__name__
+                else (224, 224, 3),
             )
         )
         if "mixer" not in app.__name__:
