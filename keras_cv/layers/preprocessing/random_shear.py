@@ -25,7 +25,21 @@ from keras_cv.utils import preprocessing
 
 @tf.keras.utils.register_keras_serializable(package="keras_cv")
 class RandomShear(BaseImageAugmentationLayer):
-    """Randomly shears an image.
+    """A preprocessing layer which randomly shears images during training.
+    This layer will apply random shearings to each image, filling empty space
+    according to `fill_mode`.
+    By default, random shears are only applied during training.
+    At inference time, the layer does nothing. If you need to apply random
+    shear at inference time, set `training` to True when calling the layer.
+    Input pixel values can be of any range (e.g. `[0., 1.)` or `[0, 255]`) and
+    of interger or floating point dtype. By default, the layer will output
+    floats.
+    Input shape:
+      3D (unbatched) or 4D (batched) tensor with shape:
+      `(..., height, width, channels)`, in `"channels_last"` format
+    Output shape:
+      3D (unbatched) or 4D (batched) tensor with shape:
+      `(..., height, width, channels)`, in `"channels_last"` format
 
     Args:
         x_factor: A tuple of two floats, a single float or a
@@ -54,8 +68,9 @@ class RandomShear(BaseImageAugmentationLayer):
              A `Tensor` of type `float32`. The value to be filled when fill_mode is
              constant".  Defaults to `0.0`.
         seed: Integer. Used to create a random seed.
-        bounding_box_format : Specify input bounding box format.
-        Supported formats : xyxy, rel_xyxy, xywh, center_xywh
+        bounding_box_format: The format of bounding boxes of input dataset. Refer
+        https://github.com/keras-team/keras-cv/blob/master/keras_cv/bounding_box/converters.py
+        for more details on supported bounding box formats.
     """
 
     def __init__(
