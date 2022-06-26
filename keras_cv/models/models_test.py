@@ -18,11 +18,15 @@ from absl.testing import parameterized
 from tensorflow.keras import backend
 
 from keras_cv.models import densenet
+from keras_cv.models import mlp_mixer
 
 MODEL_LIST = [
     (densenet.DenseNet121, 1024),
     (densenet.DenseNet169, 1664),
     (densenet.DenseNet201, 1920),
+    (mlp_mixer.MLPMixerB16, 768),
+    (mlp_mixer.MLPMixerB32, 768),
+    (mlp_mixer.MLPMixerL16, 1024),
 ]
 
 
@@ -55,7 +59,15 @@ class ApplicationsTest(tf.test.TestCase, parameterized.TestCase):
                 weights=None,
             )
         )
-        self.assertShapeEqual(output_shape, (None, None, None, last_dim))
+        if "mixer" not in app.__name__:
+            self.assertShapeEqual(output_shape, (None, None, None, last_dim))
+        elif "mixer_b16" in app.__name__ or "mixer_l16" in app.__name__:
+            num_patches = 196
+            self.assertShapeEqual(output_shape, (None, num_patches, last_dim))
+        elif "mixer_b32" in app.__name__:
+            num_patches = 49
+            self.assertShapeEqual(output_shape, (None, num_patches, last_dim))
+
         backend.clear_session()
 
     @parameterized.parameters(*MODEL_LIST)
@@ -67,7 +79,15 @@ class ApplicationsTest(tf.test.TestCase, parameterized.TestCase):
                 weights=None,
             )
         )
-        self.assertShapeEqual(output_shape, (None, None, None, last_dim))
+        if "mixer" not in app.__name__:
+            self.assertShapeEqual(output_shape, (None, None, None, last_dim))
+        elif "mixer_b16" in app.__name__ or "mixer_l16" in app.__name__:
+            num_patches = 196
+            self.assertShapeEqual(output_shape, (None, num_patches, last_dim))
+        elif "mixer_b32" in app.__name__:
+            num_patches = 49
+            self.assertShapeEqual(output_shape, (None, num_patches, last_dim))
+
         backend.clear_session()
 
     @parameterized.parameters(*MODEL_LIST)
@@ -85,7 +105,7 @@ class ApplicationsTest(tf.test.TestCase, parameterized.TestCase):
 
     @parameterized.parameters(*MODEL_LIST)
     def test_application_variable_input_channels(self, app, last_dim):
-        input_shape = (None, None, 1)
+        input_shape = (None, None, 1) if "mixer" not in app.__name__ else (224, 224, 1)
         output_shape = _get_output_shape(
             lambda: app(
                 include_rescaling=False,
@@ -94,10 +114,18 @@ class ApplicationsTest(tf.test.TestCase, parameterized.TestCase):
                 input_shape=input_shape,
             )
         )
-        self.assertShapeEqual(output_shape, (None, None, None, last_dim))
+        if "mixer" not in app.__name__:
+            self.assertShapeEqual(output_shape, (None, None, None, last_dim))
+        elif "mixer_b16" in app.__name__ or "mixer_l16" in app.__name__:
+            num_patches = 196
+            self.assertShapeEqual(output_shape, (None, num_patches, last_dim))
+        elif "mixer_b32" in app.__name__:
+            num_patches = 49
+            self.assertShapeEqual(output_shape, (None, num_patches, last_dim))
+
         backend.clear_session()
 
-        input_shape = (None, None, 4)
+        input_shape = (None, None, 4) if "mixer" not in app.__name__ else (224, 224, 4)
         output_shape = _get_output_shape(
             lambda: app(
                 include_rescaling=False,
@@ -106,7 +134,16 @@ class ApplicationsTest(tf.test.TestCase, parameterized.TestCase):
                 input_shape=input_shape,
             )
         )
-        self.assertShapeEqual(output_shape, (None, None, None, last_dim))
+
+        if "mixer" not in app.__name__:
+            self.assertShapeEqual(output_shape, (None, None, None, last_dim))
+        elif "mixer_b16" in app.__name__ or "mixer_l16" in app.__name__:
+            num_patches = 196
+            self.assertShapeEqual(output_shape, (None, num_patches, last_dim))
+        elif "mixer_b32" in app.__name__:
+            num_patches = 49
+            self.assertShapeEqual(output_shape, (None, num_patches, last_dim))
+
         backend.clear_session()
 
 

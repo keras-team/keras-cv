@@ -158,6 +158,9 @@ def MLPMixer(
             f"Received: classes={classes}"
         )
 
+    if input_shape[0] % patch_size[0] != 0:
+        raise ValueError("Input resolution should be divisible" " by the patch size.")
+
     inputs = layers.Input(shape=input_shape)
 
     x = inputs

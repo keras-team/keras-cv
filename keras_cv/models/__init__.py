@@ -15,7 +15,6 @@
 from keras_cv.models.densenet import DenseNet121
 from keras_cv.models.densenet import DenseNet169
 from keras_cv.models.densenet import DenseNet201
-
 from keras_cv.models.mlp_mixer import MLPMixerB16
 from keras_cv.models.mlp_mixer import MLPMixerB32
 from keras_cv.models.mlp_mixer import MLPMixerL16
