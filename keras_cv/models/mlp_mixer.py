@@ -16,6 +16,7 @@
 
 Reference:
   - [MLP-Mixer: An all-MLP Architecture for Vision](https://arxiv.org/abs/2105.01601)
+  - Official Mixer code: https://github.com/google-research/vision_transformer/blob/main/vit_jax/models_mixer.py
 """
 
 import tensorflow as tf
@@ -39,27 +40,11 @@ def MLPBlock(mlp_dim, name=None):
         name = f"mlp_block_{backend.get_uid('mlp_block')}"
 
     def apply(x):
-        x = layers.Dense(mlp_dim, name=f"{name}_dense_1")(x)
-        x = layers.Activation("gelu", name=f"{name}_gelu")(x)
-        return layers.Dense(tf.shape(x)[-1], name=f"{name}_dense_2")(x)
+        y = layers.Dense(mlp_dim, name=f"{name}_dense_1")(x)
+        y = layers.Activation("gelu", name=f"{name}_gelu")(y)
+        return layers.Dense(x.shape[-1], name=f"{name}_dense_2")(y)
 
     return apply
-
-
-# class MixerBlock(nn.Module):
-#   """Mixer block layer."""
-#   tokens_mlp_dim: int
-#   channels_mlp_dim: int
-
-#   @nn.compact
-#   def __call__(self, x):
-#     y = nn.LayerNorm()(x)
-#     y = jnp.swapaxes(y, 1, 2)
-#     y = MlpBlock(self.tokens_mlp_dim, name='token_mixing')(y)
-#     y = jnp.swapaxes(y, 1, 2)
-#     x = x + y
-#     y = nn.LayerNorm()(x)
-#     return x + MlpBlock(self.channels_mlp_dim, name='channel_mixing')(y)
 
 
 def MixerBlock(tokens_mlp_dim, channels_mlp_dim, name=None):
@@ -82,14 +67,13 @@ def MixerBlock(tokens_mlp_dim, channels_mlp_dim, name=None):
         y = layers.LayerNormalization()(x)
         y = layers.Permute((2, 1))(y)
 
-        token_mixing = MLPBlock(tokens_mlp_dim, name=f"{name}_token_mixing")(y)
-        token_mixing = layers.Permute((2, 1))(token_mixing)
-        x = layers.Add()([x, token_mixing])
+        y = MLPBlock(tokens_mlp_dim, name=f"{name}_token_mixing")(y)
+        y = layers.Permute((2, 1))(y)
+        x = layers.Add()([x, y])
 
         y = layers.LayerNormalization()(x)
-        channel_mixing = MLPBlock(channels_mlp_dim, name=f"{name}_channel_mixing")(y)
-        output = layers.Add()([x, channel_mixing])
-        return output
+        y = MLPBlock(channels_mlp_dim, name=f"{name}_channel_mixing")(y)
+        return layers.Add()([x, y])
 
     return apply
 
@@ -104,7 +88,7 @@ def MLPMixer(
     include_top,
     classes=None,
     weights=None,
-    input_shape=(None, None, 3),
+    input_shape=(224, 224, 3),
     pooling=None,
     classifier_activation="softmax",
     name=None,
@@ -181,13 +165,13 @@ def MLPMixer(
         x = layers.Rescaling(1 / 255.0)(x)
 
     x = layers.Conv2D(
-        hidden_dim,
+        filters=hidden_dim,
         kernel_size=patch_size,
         strides=patch_size,
         padding="valid",
         name="patchify_and_projection",
     )(x)
-    x = layers.Reshape((tf.shape(x)[1] * tf.shape(x)[2], tf.shape(x)[3]))(x)
+    x = layers.Reshape((x.shape[1] * x.shape[2], x.shape[3]))(x)
 
     for i in range(num_blocks):
         x = MixerBlock(tokens_mlp_dim, channels_mlp_dim, name=f"mixer_block_{i}")(x)
@@ -217,7 +201,7 @@ def MLPMixerB16(
     include_top,
     classes=None,
     weights=None,
-    input_shape=(None, None, 3),
+    input_shape=(224, 224, 3),
     pooling=None,
     name="mlp_mixer_b16",
     **kwargs,
@@ -244,7 +228,7 @@ def MLPMixerB32(
     include_top,
     classes=None,
     weights=None,
-    input_shape=(None, None, 3),
+    input_shape=(224, 224, 3),
     pooling=None,
     name="mlp_mixer_b32",
     **kwargs,
@@ -271,7 +255,7 @@ def MLPMixerL16(
     include_top,
     classes=None,
     weights=None,
-    input_shape=(None, None, 3),
+    input_shape=(224, 224, 3),
     pooling=None,
     name="mlp_mixer_l16",
     **kwargs,
