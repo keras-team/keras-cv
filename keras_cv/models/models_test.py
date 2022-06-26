@@ -58,16 +58,16 @@ class ApplicationsTest(tf.test.TestCase, parameterized.TestCase):
                 include_top=False,
                 weights=None,
                 input_shape=(None, None, 3)
-                if "mixer" not in app.__name__
+                if "Mixer" not in app.__name__
                 else (224, 224, 3),
             )
         )
-        if "mixer" not in app.__name__:
+        if "Mixer" not in app.__name__:
             self.assertShapeEqual(output_shape, (None, None, None, last_dim))
-        elif "mixer_b16" in app.__name__ or "mixer_l16" in app.__name__:
+        elif "MixerB16" in app.__name__ or "MixerL16" in app.__name__:
             num_patches = 196
             self.assertShapeEqual(output_shape, (None, num_patches, last_dim))
-        elif "mixer_b32" in app.__name__:
+        elif "MixerB32" in app.__name__:
             num_patches = 49
             self.assertShapeEqual(output_shape, (None, num_patches, last_dim))
 
@@ -81,16 +81,16 @@ class ApplicationsTest(tf.test.TestCase, parameterized.TestCase):
                 include_top=False,
                 weights=None,
                 input_shape=(None, None, 3)
-                if "mixer" not in app.__name__
+                if "Mixer" not in app.__name__
                 else (224, 224, 3),
             )
         )
-        if "mixer" not in app.__name__:
+        if "Mixer" not in app.__name__:
             self.assertShapeEqual(output_shape, (None, None, None, last_dim))
-        elif "mixer_b16" in app.__name__ or "mixer_l16" in app.__name__:
+        elif "MixerB16" in app.__name__ or "MixerL16" in app.__name__:
             num_patches = 196
             self.assertShapeEqual(output_shape, (None, num_patches, last_dim))
-        elif "mixer_b32" in app.__name__:
+        elif "MixerB32" in app.__name__:
             num_patches = 49
             self.assertShapeEqual(output_shape, (None, num_patches, last_dim))
 
@@ -111,7 +111,7 @@ class ApplicationsTest(tf.test.TestCase, parameterized.TestCase):
 
     @parameterized.parameters(*MODEL_LIST)
     def test_application_variable_input_channels(self, app, last_dim):
-        input_shape = (None, None, 1) if "mixer" not in app.__name__ else (224, 224, 1)
+        input_shape = (None, None, 1) if "Mixer" not in app.__name__ else (224, 224, 1)
         output_shape = _get_output_shape(
             lambda: app(
                 include_rescaling=False,
@@ -120,18 +120,18 @@ class ApplicationsTest(tf.test.TestCase, parameterized.TestCase):
                 input_shape=input_shape,
             )
         )
-        if "mixer" not in app.__name__:
+        if "Mixer" not in app.__name__:
             self.assertShapeEqual(output_shape, (None, None, None, last_dim))
-        elif "mixer_b16" in app.__name__ or "mixer_l16" in app.__name__:
+        elif "MixerB16" in app.__name__ or "MixerL16" in app.__name__:
             num_patches = 196
             self.assertShapeEqual(output_shape, (None, num_patches, last_dim))
-        elif "mixer_b32" in app.__name__:
+        elif "MixerB32" in app.__name__:
             num_patches = 49
             self.assertShapeEqual(output_shape, (None, num_patches, last_dim))
 
         backend.clear_session()
 
-        input_shape = (None, None, 4) if "mixer" not in app.__name__ else (224, 224, 4)
+        input_shape = (None, None, 4) if "Mixer" not in app.__name__ else (224, 224, 4)
         output_shape = _get_output_shape(
             lambda: app(
                 include_rescaling=False,
@@ -141,12 +141,12 @@ class ApplicationsTest(tf.test.TestCase, parameterized.TestCase):
             )
         )
 
-        if "mixer" not in app.__name__:
+        if "Mixer" not in app.__name__:
             self.assertShapeEqual(output_shape, (None, None, None, last_dim))
-        elif "mixer_b16" in app.__name__ or "mixer_l16" in app.__name__:
+        elif "MixerB16" in app.__name__ or "MixerL16" in app.__name__:
             num_patches = 196
             self.assertShapeEqual(output_shape, (None, num_patches, last_dim))
-        elif "mixer_b32" in app.__name__:
+        elif "MixerB32" in app.__name__:
             num_patches = 49
             self.assertShapeEqual(output_shape, (None, num_patches, last_dim))
 
