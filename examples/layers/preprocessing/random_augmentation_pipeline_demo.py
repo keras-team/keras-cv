@@ -23,7 +23,6 @@ import tensorflow as tf
 from keras_cv.layers import preprocessing
 
 
-
 def create_custom_pipeline():
     layers = preprocessing.RandAugment.get_standard_policy(
         value_range=(0, 255), magnitude=0.75, magnitude_stddev=0.3

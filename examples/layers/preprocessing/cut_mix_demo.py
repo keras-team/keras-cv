@@ -24,7 +24,6 @@ import tensorflow as tf
 from keras_cv import layers
 
 
-
 def main():
     cutmix = layers.CutMix()
     ds = demo_utils.load_oxford_dataset()

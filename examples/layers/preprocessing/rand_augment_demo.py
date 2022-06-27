@@ -22,6 +22,7 @@ import tensorflow as tf
 
 from keras_cv.layers import preprocessing
 
+
 def main():
     ds = demo_utils.load_oxford_dataset()
     rand_augment = preprocessing.RandAugment(
@@ -29,7 +30,6 @@ def main():
     )
     ds = ds.map(rand_augment, num_parallel_calls=tf.data.AUTOTUNE)
     demo_utils.visualize_dataset(ds)
-
 
 
 if __name__ == "__main__":

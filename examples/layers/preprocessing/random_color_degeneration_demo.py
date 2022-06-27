@@ -23,7 +23,6 @@ import tensorflow as tf
 from keras_cv.layers import preprocessing
 
 
-
 def main():
     ds = demo_utils.load_oxford_dataset()
     random_color_degeneration = preprocessing.RandomColorDegeneration(factor=(0, 1.0))

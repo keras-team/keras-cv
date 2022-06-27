@@ -22,6 +22,7 @@ import tensorflow as tf
 
 from keras_cv.layers import preprocessing
 
+
 def main():
     ds = demo_utils.load_oxford_dataset()
     mixup = preprocessing.MixUp(alpha=0.8)
