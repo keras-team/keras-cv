@@ -27,14 +27,12 @@ from keras_cv.layers import preprocessing
 
 def main():
     ds = demo_utils.load_oxford_dataset()
-
     gridmask = preprocessing.GridMask(
         ratio_factor=keras_cv.ConstantFactorSampler(0.3),
         rotation_factor=0.5,
         fill_mode="gaussian_noise",
     )
     ds = ds.map(gridmask, num_parallel_calls=tf.data.AUTOTUNE)
-
     demo_utils.visualize_dataset(ds)
 
 
