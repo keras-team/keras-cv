@@ -36,7 +36,8 @@ BASE_DOCSTRING = """Instantiates the {name} architecture.
         - [YoloV3 Paper](https://arxiv.org/abs/1804.02767)
         - [YoloV3 implementation](https://github.com/ultralytics/yolov3)
     For transfer learning use cases, make sure to read the
-    [guide to transfer learning & fine-tuning](https://keras.io/guides/transfer_learning/).
+    [guide to transfer learning & fine-tuning](
+        https://keras.io/guides/transfer_learning/).
 
     Args:
         include_rescaling: whether or not to Rescale the inputs.If set to True,
@@ -84,8 +85,9 @@ def DarkNet(
     Reference:
         - [YoloV3 Paper](https://arxiv.org/abs/1804.02767)
         - [YoloV3 implementation](https://github.com/ultralytics/yolov3)
-    For transfer learning use cases, make sure to read the 
-    [guide to transfer learning & fine-tuning](https://keras.io/guides/transfer_learning/).
+    For transfer learning use cases, make sure to read the
+    [guide to transfer learning & fine-tuning](
+        https://keras.io/guides/transfer_learning/).
 
     Args:
         blocks: numbers of building blocks from the layer dark2 to layer dark5.
