@@ -16,9 +16,7 @@
 
 Reference:
   - [Densely Connected Convolutional Networks](https://arxiv.org/abs/1608.06993)
-  - [Based on the Original keras.applications DenseNet](
-    https://github.com/keras-team/keras/blob/master/keras/applications/densenet.py
-    )
+  - [Based on the Original keras.applications DenseNet](https://github.com/keras-team/keras/blob/master/keras/applications/densenet.py)
 """
 
 import tensorflow as tf
