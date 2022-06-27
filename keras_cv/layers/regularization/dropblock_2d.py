@@ -189,7 +189,7 @@ class DropBlock2D(BaseRandomLayer):
         )
 
         valid_block = tf.reshape(valid_block, [1, height, width, 1])
-        
+
         random_noise = self._random_generator.random_uniform(
             tf.shape(x), dtype=tf.float32
         )
@@ -199,7 +199,7 @@ class DropBlock2D(BaseRandomLayer):
         block_pattern = tf.cast(block_pattern, dtype=tf.float32)
 
         window_size = [1, self._dropblock_height, self._dropblock_width, 1]
-        
+
         # Double negative and max_pool is essentially min_pooling
         block_pattern = -tf.nn.max_pool(
             -block_pattern,
