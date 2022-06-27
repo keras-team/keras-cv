@@ -11,19 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import tensorflow as tf
-
-
-def normalize_data_format(value):
-    if value is None:
-        value = tf.keras.backend.image_data_format()
-    data_format = value.lower()
-    if data_format not in {"channels_first", "channels_last"}:
-        raise ValueError(
-            "The `data_format` argument must be one of "
-            f'"channels_first", "channels_last". Received: {value}'
-        )
-    return data_format
 
 
 def normalize_tuple(value, n, name, allow_zero=False):
