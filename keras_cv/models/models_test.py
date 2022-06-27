@@ -36,7 +36,7 @@ class ApplicationsTest(tf.test.TestCase, parameterized.TestCase):
         model = app(
             input_shape=(224, 224, 3),
             include_top=True,
-            classes=1000,
+            num_classes=1000,
             include_rescaling=False,
             weights=None,
         )
