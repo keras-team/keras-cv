@@ -193,6 +193,11 @@ def DenseNet(
                 of the last convolutional block, and thus the output of the model will be
                 a 2D tensor.
             - `max` means that global max pooling will be applied.
+        classifier_activation: A `str` or callable. The activation function to use
+            on the "top" layer. Ignored unless `include_top=True`. Set
+            `classifier_activation=None` to return the logits of the "top" layer.
+            When loading pretrained weights, `classifier_activation` can only
+            be `None` or `"softmax"`.
         name: (Optional) name to pass to the model.  Defaults to "DenseNet".
 
     Returns:
