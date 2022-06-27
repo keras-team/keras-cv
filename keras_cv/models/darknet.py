@@ -237,4 +237,4 @@ def DarkNet53(
 
 
 setattr(DarkNet21, "__doc__", BASE_DOCSTRING.format(name="DarkNet21"))
-setattr(DarkNet53, "__doc__", BASE_DOCSTRING.format(name="DarkNet21"))
+setattr(DarkNet53, "__doc__", BASE_DOCSTRING.format(name="DarkNet53"))
