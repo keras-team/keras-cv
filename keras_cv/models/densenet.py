@@ -36,7 +36,7 @@ BASE_DOCSTRING = """Instantiates the {name} architecture.
 
     This function returns a Keras {name} model.
 
-    For transfer learning use cases, make sure to read the [guide to transfer 
+    For transfer learning use cases, make sure to read the [guide to transfer
         learning & fine-tuning](https://keras.io/guides/transfer_learning/).
 
     Args:
@@ -54,9 +54,9 @@ BASE_DOCSTRING = """Instantiates the {name} architecture.
             when `include_top` is `False`.
             - `None` means that the output of the model will be the 4D tensor output
                 of the last convolutional block.
-            - `avg` means that global average pooling will be applied to the output 
-                of the last convolutional block, and thus the output of the model will be
-                a 2D tensor.
+            - `avg` means that global average pooling will be applied to the output
+                of the last convolutional block, and thus the output of the model will
+                be a 2D tensor.
             - `max` means that global max pooling will be applied.
         name: (Optional) name to pass to the model.  Defaults to "{name}".
 
@@ -170,7 +170,7 @@ def DenseNet(
 
     This function returns a Keras DenseNet model.
 
-    For transfer learning use cases, make sure to read the [guide to transfer 
+    For transfer learning use cases, make sure to read the [guide to transfer
         learning & fine-tuning](https://keras.io/guides/transfer_learning/).
 
     Args:
@@ -189,9 +189,9 @@ def DenseNet(
             when `include_top` is `False`.
             - `None` means that the output of the model will be the 4D tensor output
                 of the last convolutional block.
-            - `avg` means that global average pooling will be applied to the output 
-                of the last convolutional block, and thus the output of the model will be
-                a 2D tensor.
+            - `avg` means that global average pooling will be applied to the output
+                of the last convolutional block, and thus the output of the model will
+                be a 2D tensor.
             - `max` means that global max pooling will be applied.
         classifier_activation: A `str` or callable. The activation function to use
             on the "top" layer. Ignored unless `include_top=True`. Set
@@ -241,9 +241,9 @@ def DenseNet(
 
     if include_top:
         x = layers.GlobalAveragePooling2D(name="avg_pool")(x)
-        x = layers.Dense(num_classes, activation=classifier_activation, name="predictions")(
-            x
-        )
+        x = layers.Dense(
+            num_classes, activation=classifier_activation, name="predictions"
+        )(x)
     elif pooling == "avg":
         x = layers.GlobalAveragePooling2D(name="avg_pool")(x)
     elif pooling == "max":
