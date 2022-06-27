@@ -61,6 +61,9 @@ class RandomJpegQuality(BaseImageAugmentationLayer):
         jpeg_quality = transformation
         return tf.image.adjust_jpeg_quality(image, jpeg_quality)
 
+    def augment_label(self, label, transformation=None, **kwargs):
+        return label
+
     def get_config(self):
         config = super().get_config()
         config.update({"factor": self.factor})
