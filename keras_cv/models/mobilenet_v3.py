@@ -108,17 +108,6 @@ def SqueezeAndExcitationBlock(filters, se_ratio, prefix, name=None):
 
     return apply
 
-
-def ReLU(name=None):
-    if name is None:
-        name = f"relu_{backend.get_uid('relu')}"
-
-    def apply(x):
-        layers.ReLU()(x)
-
-    return apply
-
-
 def InvertedResBlock(
     expansion, filters, kernel_size, stride, se_ratio, activation, block_id, name=None
 ):
@@ -221,7 +210,7 @@ def MobileNetV3(
 
     if minimalistic:
         kernel = 3
-        activation = ReLU()
+        activation = layers.ReLU()
         se_ratio = None
     else:
         kernel = 5
