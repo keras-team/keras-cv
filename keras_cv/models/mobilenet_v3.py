@@ -66,7 +66,7 @@ def HardSwish(name=None):
     return apply
 
 
-def SEBlock(filters, se_ratio, prefix, name=None):
+def SqueezeAndExcitationBlock(filters, se_ratio, prefix, name=None):
     if name is None:
         name = f"se_block_{backend.get_uid('se_block')}"
 
@@ -148,7 +148,7 @@ def InvertedResBlock(
         x = activation(x)
 
         if se_ratio:
-            x = SEBlock(Depth()(infilters * expansion), se_ratio, prefix)(x)
+            x = SqueezeAndExcitationBlock(Depth()(infilters * expansion), se_ratio, prefix)(x)
 
         x = layers.Conv2D(
             filters,
