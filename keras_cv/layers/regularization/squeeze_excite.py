@@ -37,32 +37,34 @@ class SqueezeAndExciteBlock2D(layers.Layer):
     # (...)
     ```
     """
-
     def __init__(self, filters, ratio=0.25, **kwargs):
         super().__init__(**kwargs)
 
         self.filters = filters
 
         if ratio <= 0.0 or ratio >= 1.0:
-            raise ValueError(f"`ratio` should be a float between 0 and 1. Got {ratio}")
+            raise ValueError(
+                f"`ratio` should be a float between 0 and 1. Got {ratio}")
 
         if filters <= 0 or not isinstance(filters, int):
-            raise ValueError(f"`filters` should be a positive integer. Got {filters}")
+            raise ValueError(
+                f"`filters` should be a positive integer. Got {filters}")
 
         self.ratio = ratio
-        self.se_filters = int(self.filters * self.ratio)
+        self.bottleneck_filters = int(self.filters * self.ratio)
 
-        self.ga_pool = layers.GlobalAveragePooling2D(keepdims=True)
+        self.global_average_pool = layers.GlobalAveragePooling2D(keepdims=True)
         self.squeeze_conv = layers.Conv2D(
-            self.se_filters,
+            self.bottleneck_filters,
             (1, 1),
             activation="relu",
         )
-        self.excite_conv = layers.Conv2D(self.filters, (1, 1), activation="sigmoid")
+        self.excite_conv = layers.Conv2D(self.filters, (1, 1),
+                                         activation="sigmoid")
 
     def call(self, inputs, training=True):
-        x = self.ga_pool(inputs)  # x: (batch_size, 1, 1, filters)
-        x = self.squeeze_conv(x)  # x: (batch_size, 1, 1, se_filters)
+        x = self.global_average_pool(inputs)  # x: (batch_size, 1, 1, filters)
+        x = self.squeeze_conv(x)  # x: (batch_size, 1, 1, bottleneck_filters)
         x = self.excite_conv(x)  # x: (batch_size, 1, 1, filters)
         x = tf.math.multiply(x, inputs)  # x: (batch_size, h, w, filters)
         return x
