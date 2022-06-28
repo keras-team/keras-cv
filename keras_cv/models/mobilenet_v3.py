@@ -29,11 +29,11 @@ channel_axis = -1
 def Depth(divisor=8, min_value=None, name=None):
     if name is None:
         name = f"depth_{backend.get_uid('depth')}"
+        
+    if min_value is None:
+        min_value = divisor
 
-    def apply(x):
-        nonlocal min_value
-        if min_value is None:
-            min_value = divisor
+    def apply(x):        
         new_x = max(min_value, int(x + divisor / 2) // divisor * divisor)
         # Make sure that round down does not go down by more than 10%.
         if new_x < 0.9 * x:
