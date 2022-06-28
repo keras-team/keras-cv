@@ -70,25 +70,40 @@ def SqueezeAndExcitationBlock(filters, se_ratio, prefix, name=None):
     if name is None:
         name = f"se_block_{backend.get_uid('se_block')}"
 
+    if se_ratio <= 0.0 or se_ratio >= 1.0:
+        raise ValueError(
+            f"`ratio` should be a float between 0 and 1. Got " f" {se_ratio}"
+        )
+
+    if filters <= 0 or not isinstance(filters, int):
+        raise ValueError(f"`filters` should be a positive integer. Got " f" {filters}")
+
+    ga_pool = layers.GlobalAveragePooling2D(
+        keepdims=True, name=prefix + "squeeze_excite/AvgPool"
+    )
+    conv1 = layers.Conv2D(
+        Depth()(filters * se_ratio),
+        kernel_size=1,
+        padding="same",
+        name=prefix + "squeeze_excite/Conv",
+    )
+    conv2 = layers.Conv2D(
+        filters,
+        kernel_size=1,
+        padding="same",
+        name=prefix + "squeeze_excite/Conv_1",
+    )
+    relu = layers.ReLU(name=prefix + "squeeze_excite/Relu")
+    hard_sigmoid = HardSigmoid()
+    multiply = layers.Multiply(name=prefix + "squeeze_excite/Mul")
+
     def apply(inputs):
-        x = layers.GlobalAveragePooling2D(
-            keepdims=True, name=prefix + "squeeze_excite/AvgPool"
-        )(inputs)
-        x = layers.Conv2D(
-            Depth()(filters * se_ratio),
-            kernel_size=1,
-            padding="same",
-            name=prefix + "squeeze_excite/Conv",
-        )(x)
-        x = layers.ReLU(name=prefix + "squeeze_excite/Relu")(x)
-        x = layers.Conv2D(
-            filters,
-            kernel_size=1,
-            padding="same",
-            name=prefix + "squeeze_excite/Conv_1",
-        )(x)
-        x = HardSigmoid()(x)
-        x = layers.Multiply(name=prefix + "squeeze_excite/Mul")([inputs, x])
+        x = ga_pool(inputs)
+        x = conv1(x)
+        x = relu(x)
+        x = conv2(x)
+        x = hard_sigmoid(x)
+        x = multiply([inputs, x])
         return x
 
     return apply
@@ -148,7 +163,9 @@ def InvertedResBlock(
         x = activation(x)
 
         if se_ratio:
-            x = SqueezeAndExcitationBlock(Depth()(infilters * expansion), se_ratio, prefix)(x)
+            x = SqueezeAndExcitationBlock(
+                Depth()(infilters * expansion), se_ratio, prefix
+            )(x)
 
         x = layers.Conv2D(
             filters,
