@@ -27,7 +27,7 @@ class RandomResizedCrop(BaseImageAugmentationLayer):
 
     This implementation takes an intuitive approach, where we crop the images to a
     random height and width, and then resize them. To do this, we first sample a
-    random value for area using `area_factor` and a value for aspect ratio using
+    random value for area using `crop_area_factor` and a value for aspect ratio using
     `aspect_ratio_factor`. Further we get the new height and width by
     dividing and multiplying the old height and width by the random area
     respectively. We then sample offsets for height and width and clip them such
@@ -37,19 +37,18 @@ class RandomResizedCrop(BaseImageAugmentationLayer):
     Args:
         target_size: A tuple of two integers used as the target size to ultimately crop
             images to.
-        area_factor: (Optional) A tuple of two floats, a single float or
+        crop_area_factor: A tuple of two floats, a single float or
             `keras_cv.FactorSampler`. The ratio of area of the cropped part to
             that of original image is sampled using this factor. Represents the
             lower and upper bounds for the area relative to the original image
             of the cropped image before resizing it to `target_size`.
-            `target_size`.  Defaults to (0.08, 1.0).
-        aspect_ratio_factor: (Optional) A tuple of two floats, a single float or
+            `target_size`.
+        aspect_ratio_factor: A tuple of two floats, a single float or
             `keras_cv.FactorSampler`. Aspect ratio means the ratio of width to
             height of the cropped image. In the context of this layer, the aspect ratio
             sampled represents a value to distort the aspect ratio by.
             Represents the lower and upper bound for the aspect ratio of the
-            cropped image before resizing it to `target_size`. Defaults to
-            (3./4., 4./3.).
+            cropped image before resizing it to `target_size`.
         interpolation: (Optional) A string specifying the sampling method for
             resizing. Defaults to "bilinear".
         seed: (Optional) Used to create a random seed. Defaults to None.
@@ -57,8 +56,8 @@ class RandomResizedCrop(BaseImageAugmentationLayer):
     def __init__(
         self,
         target_size,
-        area_factor=(0.08, 1.0),
-        aspect_ratio_factor=(3. / 4., 4. / 3.),
+        crop_area_factor,
+        aspect_ratio_factor,
         interpolation="bilinear",
         seed=None,
         **kwargs,
@@ -67,7 +66,6 @@ class RandomResizedCrop(BaseImageAugmentationLayer):
 
         self.target_size = target_size
 
-        aspect_ratio_factor = aspect_ratio_factor or (3. / 4., 4. / 3.)
         if isinstance(aspect_ratio_factor, tuple):
             min_aspect_ratio = min(aspect_ratio_factor)
             max_aspect_ratio = max(aspect_ratio_factor)
@@ -76,8 +74,13 @@ class RandomResizedCrop(BaseImageAugmentationLayer):
         else:
             raise ValueError(
                 "Expected `aspect_ratio` to be tuple or FactorSampler. Received "
-                f"RandomResizedCrop(aspect_ratio_factor={aspect_ratio_factor})."
+                f"aspect_ratio_factor={aspect_ratio_factor}."
             )
+
+        if crop_area_factor == 0.:
+            raise ValueError(
+                "Expected `crop_area_factor` to be tuple or FactorSampler. Received "
+                f"aspect_ratio_factor={aspect_ratio_factor}.")
 
         self.aspect_ratio_factor = preprocessing.parse_factor(
             aspect_ratio_factor,
@@ -86,19 +89,19 @@ class RandomResizedCrop(BaseImageAugmentationLayer):
             param_name="aspect_ratio_factor",
             seed=seed,
         )
-        self.area_factor = preprocessing.parse_factor(
-            area_factor,
+        self.crop_area_factor = preprocessing.parse_factor(
+            crop_area_factor,
             max_value=1.0,
-            param_name="area_factor",
+            param_name="crop_area_factor",
             seed=seed,
         )
 
         self.interpolation = interpolation
         self.seed = seed
 
-        if area_factor == 0.0 and aspect_ratio_factor == 0.0:
+        if crop_area_factor == 1.0 and aspect_ratio_factor == 0.0:
             warnings.warn(
-                "RandomResizedCrop received both `area_factor=0.0` and "
+                "RandomResizedCrop received both `crop_area_factor=0.0` and "
                 "`aspect_ratio_factor=0.0`. As a result, the layer will perform no "
                 "augmentation.")
 
@@ -107,13 +110,13 @@ class RandomResizedCrop(BaseImageAugmentationLayer):
                                   label=None,
                                   bounding_box=None,
                                   **kwargs):
-        area_factor = self.area_factor()
+        crop_area_factor = self.crop_area_factor()
         aspect_ratio = self.aspect_ratio_factor()
 
         new_height = tf.clip_by_value(
-            tf.sqrt(area_factor / aspect_ratio), 0.0,
+            tf.sqrt(crop_area_factor / aspect_ratio), 0.0,
             1.0)  # to avoid unwanted/unintuitive effects
-        new_width = tf.clip_by_value(tf.sqrt(area_factor * aspect_ratio), 0.0,
+        new_width = tf.clip_by_value(tf.sqrt(crop_area_factor * aspect_ratio), 0.0,
                                      1.0)
 
         height_offset = self._random_generator.random_uniform(
@@ -176,7 +179,7 @@ class RandomResizedCrop(BaseImageAugmentationLayer):
         config = super().get_config()
         config.update({
             "target_size": self.target_size,
-            "area_factor": self.area_factor,
+            "crop_area_factor": self.crop_area_factor,
             "aspect_ratio_factor": self.aspect_ratio_factor,
             "interpolation": self.interpolation,
             "seed": self.seed,
