@@ -46,9 +46,10 @@ def Depth(divisor=8, min_value=None, name=None):
 def HardSigmoid(name=None):
     if name is None:
         name = f"hard_sigmoid_{backend.get_uid('hard_sigmoid')}"
+        activation = layers.ReLU(6.0)
 
     def apply(x):
-        return layers.ReLU(6.0)(x + 3.0) * (1.0 / 6.0)
+        return activation(x + 3.0) * (1.0 / 6.0)
 
     return apply
 
