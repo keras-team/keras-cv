@@ -18,7 +18,7 @@ from keras_cv.layers import SqueezeAndExciteBlock2D
 
 
 class SqueezeAndExciteBlock2DTest(tf.test.TestCase):
-    def maintains_shape(self):
+    def test_maintains_shape(self):
         input_shape = (1, 4, 4, 8)
         inputs = tf.random.uniform(input_shape)
 
@@ -26,14 +26,14 @@ class SqueezeAndExciteBlock2DTest(tf.test.TestCase):
         outputs = layer(inputs)
         self.assertEquals(inputs.shape, outputs.shape)
 
-    def raises_invalid_ratio_error(self):
+    def test_raises_invalid_ratio_error(self):
         with self.assertRaisesRegex(
-                ValueError, "`ratio` should be a float"
-                "between 0 and 1. Got (.*?)"):
-            layer = SqueezeAndExciteBlock2D(8, ratio=1)
+            ValueError, "`ratio` should be a float" " between 0 and 1. Got (.*?)"
+        ):
+            _ = SqueezeAndExciteBlock2D(8, ratio=1.1)
 
-    def raises_invalid_ratio_error(self):
+    def test_raises_invalid_filters_error(self):
         with self.assertRaisesRegex(
-                ValueError, "`filters` should be a positive"
-                " integer. Got (.*?)"):
-            layer = SqueezeAndExciteBlock2D(-8.7)
+            ValueError, "`filters` should be a positive" " integer. Got (.*?)"
+        ):
+            _ = SqueezeAndExciteBlock2D(-8.7)

@@ -12,8 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from multiprocessing.sharedctypes import Value
-
 import tensorflow as tf
 from tensorflow.keras import layers
 
@@ -21,46 +19,46 @@ from tensorflow.keras import layers
 @tf.keras.utils.register_keras_serializable(package="keras_cv")
 class SqueezeAndExciteBlock2D(layers.Layer):
     """
-	Implements Squeeze and Excite block as in 
-	[Squeeze-and-Excitation Networks](https://arxiv.org/pdf/1709.01507.pdf).
+    Implements Squeeze and Excite block as in
+    [Squeeze-and-Excitation Networks](https://arxiv.org/pdf/1709.01507.pdf).
 
-	Args:
-		filters: Number of input and output filters. The number of input and
-			output filters is same.
-		ratio: Ratio for bottleneck filters. Number of bottleneck filters = 
-			filters * ratio. Defaults to 0.25.
-	Usage:
+    Args:
+            filters: Number of input and output filters. The number of input and
+                    output filters is same.
+            ratio: Ratio for bottleneck filters. Number of bottleneck filters =
+                    filters * ratio. Defaults to 0.25.
+    Usage:
 
-	```python
-	# (...)
-	input = tf.ones((1, 5, 5, 16), dtype=tf.float32)
-	x = tf.keras.layers.Conv2D(16, (3, 3))(input)
-	output = keras_cv.layers.SqueezeAndExciteBlock(16)(x)
-	# (...)
-	```
-	"""
+    ```python
+    # (...)
+    input = tf.ones((1, 5, 5, 16), dtype=tf.float32)
+    x = tf.keras.layers.Conv2D(16, (3, 3))(input)
+    output = keras_cv.layers.SqueezeAndExciteBlock(16)(x)
+    # (...)
+    ```
+    """
+
     def __init__(self, filters, ratio=0.25, **kwargs):
         super().__init__(**kwargs)
 
         self.filters = filters
 
-        if ratio <= 0. or ratio >= 1.:
-            raise ValueError(f"`ratio` should be a float between 0 and 1. Got "
-                             f" {ratio}")
+        if ratio <= 0.0 or ratio >= 1.0:
+            raise ValueError(f"`ratio` should be a float between 0 and 1. Got {ratio}")
 
         if filters <= 0 or not isinstance(filters, int):
-            raise ValueError(f"`filters` should be a positive integer. Got "
-                             f" {filters}")
+            raise ValueError(f"`filters` should be a positive integer. Got {filters}")
 
         self.ratio = ratio
         self.se_filters = int(self.filters * self.ratio)
 
         self.ga_pool = layers.GlobalAveragePooling2D(keepdims=True)
         self.squeeze_conv = layers.Conv2D(
-         self.se_filters, (1, 1), activation="relu",
+            self.se_filters,
+            (1, 1),
+            activation="relu",
         )
-        self.excite_conv = layers.Conv2D(self.filters, (1, 1),
-                                         activation="sigmoid")
+        self.excite_conv = layers.Conv2D(self.filters, (1, 1), activation="sigmoid")
 
     def call(self, inputs, training=True):
         x = self.ga_pool(inputs)  # x: (batch_size, 1, 1, filters)
@@ -70,9 +68,6 @@ class SqueezeAndExciteBlock2D(layers.Layer):
         return x
 
     def get_config(self):
-        config = {
-            "filters": self.filters,
-            "ratio": self.ratio
-        }
+        config = {"filters": self.filters, "ratio": self.ratio}
         base_config = super().get_config()
         return dict(list(base_config.items()) + list(config.items()))
