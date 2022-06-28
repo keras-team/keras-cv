@@ -55,15 +55,15 @@ class RandomHue(BaseImageAugmentationLayer):
         self.value_range = value_range
         self.seed = seed
 
-    def get_random_transformation(self, image=None, label=None, bounding_box=None):
-        del image, label, bounding_box
+    def get_random_transformation(self, image=None, label=None, bounding_boxes=None):
+        del image, label, bounding_boxes
         invert = preprocessing.random_inversion(self._random_generator)
         # We must scale self.factor() to the range [-0.5, 0.5].  This is because the
         # tf.image operation performs rotation on the hue saturation value orientation.
         # This can be thought of as an angle in the range [-180, 180]
         return invert * self.factor() * 0.5
 
-    def augment_image(self, image, transformation=None):
+    def augment_image(self, image, transformation=None, **kwargs):
         image = preprocessing.transform_value_range(image, self.value_range, (0, 1))
         # tf.image.adjust_hue expects floats to be in range [0, 1]
         image = tf.image.adjust_hue(image, delta=transformation)
@@ -72,7 +72,7 @@ class RandomHue(BaseImageAugmentationLayer):
         image = preprocessing.transform_value_range(image, (0, 1), self.value_range)
         return image
 
-    def augment_label(self, label, transformation=None):
+    def augment_label(self, label, transformation=None, **kwargs):
         return label
 
     def get_config(self):

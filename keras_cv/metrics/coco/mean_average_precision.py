@@ -101,7 +101,7 @@ class COCOMeanAveragePrecision(tf.keras.metrics.Metric):
         self.iou_thresholds = iou_thresholds or [x / 100.0 for x in range(50, 100, 5)]
         self.area_range = area_range
         self.max_detections = max_detections
-        self.class_ids = class_ids
+        self.class_ids = list(class_ids)
         self.recall_thresholds = recall_thresholds or [x / 100 for x in range(0, 101)]
         self.num_buckets = num_buckets
 

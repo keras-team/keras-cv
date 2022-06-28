@@ -13,9 +13,13 @@
 # limitations under the License.
 import tensorflow as tf
 
+from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
+    BaseImageAugmentationLayer,
+)
+
 
 @tf.keras.utils.register_keras_serializable(package="keras_cv")
-class MaybeApply(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
+class MaybeApply(BaseImageAugmentationLayer):
     """Apply provided layer to random elements in a batch.
 
     Args:

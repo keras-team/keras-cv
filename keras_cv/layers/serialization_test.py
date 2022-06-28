@@ -131,6 +131,11 @@ class SerializationTest(tf.test.TestCase, parameterized.TestCase):
             "SqueezeAndExciteBlock2D",
             regularization.SqueezeAndExciteBlock2D,
             {"filters": 16, "ratio": 0.25},
+            "DropPath",
+            regularization.DropPath,
+            {
+                "rate": 0.2,
+            },
         ),
         (
             "MaybeApply",
@@ -140,6 +145,11 @@ class SerializationTest(tf.test.TestCase, parameterized.TestCase):
                 "layer": None,
                 "seed": 1234,
             },
+        ),
+        (
+            "RandomJpegQuality",
+            preprocessing.RandomJpegQuality,
+            {"factor": (75, 100)},
         ),
         (
             "AugMix",

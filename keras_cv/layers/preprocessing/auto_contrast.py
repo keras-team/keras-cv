@@ -44,7 +44,7 @@ class AutoContrast(BaseImageAugmentationLayer):
         super().__init__(**kwargs)
         self.value_range = value_range
 
-    def augment_image(self, image, transformation=None):
+    def augment_image(self, image, transformation=None, **kwargs):
         original_image = image
         image = preprocessing.transform_value_range(
             image, original_range=self.value_range, target_range=(0, 255)
@@ -64,7 +64,7 @@ class AutoContrast(BaseImageAugmentationLayer):
         result = tf.where(tf.math.is_nan(result), original_image, result)
         return result
 
-    def augment_label(self, label, transformation=None):
+    def augment_label(self, label, transformation=None, **kwargs):
         return label
 
     def get_config(self):

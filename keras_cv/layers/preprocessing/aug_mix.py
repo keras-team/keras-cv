@@ -15,11 +15,14 @@
 import tensorflow as tf
 
 from keras_cv import layers
+from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
+    BaseImageAugmentationLayer,
+)
 from keras_cv.utils import preprocessing
 
 
 @tf.keras.utils.register_keras_serializable(package="keras_cv")
-class AugMix(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
+class AugMix(BaseImageAugmentationLayer):
     """Performs the AugMix data augmentation technique.
 
     AugMix aims to produce images with variety while preserving the
@@ -278,7 +281,7 @@ class AugMix(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
         )
         return augmented
 
-    def augment_image(self, image, transformation=None):
+    def augment_image(self, image, transformation=None, **kwargs):
         chain_mixing_weights = AugMix._sample_from_dirichlet(
             tf.ones([self.num_chains]) * self.alpha
         )
@@ -297,7 +300,7 @@ class AugMix(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
         result = weight_sample * image + (1 - weight_sample) * result
         return result
 
-    def augment_label(self, label, transformation=None):
+    def augment_label(self, label, transformation=None, **kwargs):
         return label
 
     def get_config(self):

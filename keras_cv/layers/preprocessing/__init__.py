@@ -15,7 +15,6 @@
 # Also export the image KPLs from core keras, so that user can import all the image
 # KPLs from one place.
 
-from tensorflow.keras.__internal__.layers import BaseImageAugmentationLayer
 from tensorflow.keras.layers import CenterCrop
 from tensorflow.keras.layers import RandomBrightness
 from tensorflow.keras.layers import RandomContrast
@@ -31,6 +30,9 @@ from tensorflow.keras.layers import Resizing
 
 from keras_cv.layers.preprocessing.aug_mix import AugMix
 from keras_cv.layers.preprocessing.auto_contrast import AutoContrast
+from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
+    BaseImageAugmentationLayer,
+)
 from keras_cv.layers.preprocessing.channel_shuffle import ChannelShuffle
 from keras_cv.layers.preprocessing.cut_mix import CutMix
 from keras_cv.layers.preprocessing.equalization import Equalization
@@ -53,6 +55,7 @@ from keras_cv.layers.preprocessing.random_color_jitter import RandomColorJitter
 from keras_cv.layers.preprocessing.random_cutout import RandomCutout
 from keras_cv.layers.preprocessing.random_gaussian_blur import RandomGaussianBlur
 from keras_cv.layers.preprocessing.random_hue import RandomHue
+from keras_cv.layers.preprocessing.random_jpeg_quality import RandomJpegQuality
 from keras_cv.layers.preprocessing.random_saturation import RandomSaturation
 from keras_cv.layers.preprocessing.random_sharpness import RandomSharpness
 from keras_cv.layers.preprocessing.random_shear import RandomShear

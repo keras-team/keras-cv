@@ -13,10 +13,11 @@
 # limitations under the License.
 
 import tensorflow as tf
-from tensorflow.tools.docs import doc_controls
 
-from keras_cv.layers.preprocessing import preprocessing_utils as utils
+from keras_cv.utils import preprocessing
 
+# In order to support both unbatched and batched inputs, the horizontal
+# and verticle axis is reverse indexed
 H_AXIS = -3
 W_AXIS = -2
 
@@ -70,7 +71,7 @@ class BaseImageAugmentationLayer(tf.keras.__internal__.layers.BaseRandomLayer):
     on `tf.map_fn()`. For example:
 
     ```python
-    class SubclassLayer(keras_cv.layers.BaseImageAugmentationLayer):
+    class SubclassLayer(keras_cv.BaseImageAugmentationLayer):
       def __init__(self):
         super().__init__()
         self.auto_vectorize = False
@@ -79,7 +80,7 @@ class BaseImageAugmentationLayer(tf.keras.__internal__.layers.BaseRandomLayer):
     Example:
 
     ```python
-    class RandomContrast(keras_cv.layers.BaseImageAugmentationLayer):
+    class RandomContrast(keras_cv.BaseImageAugmentationLayer):
 
       def __init__(self, factor=(0.5, 1.5), **kwargs):
         super().__init__(**kwargs)
@@ -129,8 +130,7 @@ class BaseImageAugmentationLayer(tf.keras.__internal__.layers.BaseRandomLayer):
         else:
             return tf.map_fn
 
-    @doc_controls.for_subclass_implementers
-    def augment_image(self, image, transformation):
+    def augment_image(self, image, transformation, **kwargs):
         """Augment a single image during training.
 
         Args:
@@ -145,8 +145,7 @@ class BaseImageAugmentationLayer(tf.keras.__internal__.layers.BaseRandomLayer):
         """
         raise NotImplementedError()
 
-    @doc_controls.for_subclass_implementers
-    def augment_label(self, label, transformation):
+    def augment_label(self, label, transformation, **kwargs):
         """Augment a single label during training.
 
         Args:
@@ -160,8 +159,7 @@ class BaseImageAugmentationLayer(tf.keras.__internal__.layers.BaseRandomLayer):
         """
         raise NotImplementedError()
 
-    @doc_controls.for_subclass_implementers
-    def augment_target(self, target, transformation):
+    def augment_target(self, target, transformation, **kwargs):
         """Augment a single target during training.
 
         Args:
@@ -175,8 +173,7 @@ class BaseImageAugmentationLayer(tf.keras.__internal__.layers.BaseRandomLayer):
         """
         return self.augment_label(target, transformation)
 
-    @doc_controls.for_subclass_implementers
-    def augment_bounding_boxes(self, image, bounding_boxes, transformation=None):
+    def augment_bounding_boxes(self, bounding_boxes, transformation, **kwargs):
         """Augment bounding boxes for one image during training.
 
         Args:
@@ -193,8 +190,7 @@ class BaseImageAugmentationLayer(tf.keras.__internal__.layers.BaseRandomLayer):
         """
         raise NotImplementedError()
 
-    @doc_controls.for_subclass_implementers
-    def get_random_transformation(self, image=None, label=None, bounding_box=None):
+    def get_random_transformation(self, image=None, label=None, bounding_boxes=None):
         """Produce random transformation config for one single input.
 
         This is used to produce same randomness between
@@ -235,20 +231,33 @@ class BaseImageAugmentationLayer(tf.keras.__internal__.layers.BaseRandomLayer):
     def _augment(self, inputs):
         image = inputs.get(IMAGES, None)
         label = inputs.get(LABELS, None)
-        bounding_box = inputs.get(BOUNDING_BOXES, None)
+        bounding_boxes = inputs.get(BOUNDING_BOXES, None)
         transformation = self.get_random_transformation(
-            image=image, label=label, bounding_box=bounding_box
+            image=image, label=label, bounding_boxes=bounding_boxes
         )
-        image = self.augment_image(image, transformation=transformation)
+        image = self.augment_image(
+            image,
+            transformation=transformation,
+            bounding_boxes=bounding_boxes,
+            label=label,
+        )
         result = {IMAGES: image}
         if label is not None:
-            label = self.augment_target(label, transformation=transformation)
-            result[LABELS] = label
-        if bounding_box is not None:
-            bounding_box = self.augment_bounding_boxes(
-                image, bounding_box, transformation=transformation
+            label = self.augment_target(
+                label,
+                transformation=transformation,
+                bounding_boxes=bounding_boxes,
+                image=image,
             )
-            result[BOUNDING_BOXES] = bounding_box
+            result[LABELS] = label
+        if bounding_boxes is not None:
+            bounding_boxes = self.augment_bounding_boxes(
+                bounding_boxes,
+                transformation=transformation,
+                label=label,
+                image=image,
+            )
+            result[BOUNDING_BOXES] = bounding_boxes
         return result
 
     def _batch_augment(self, inputs):
@@ -282,7 +291,13 @@ class BaseImageAugmentationLayer(tf.keras.__internal__.layers.BaseRandomLayer):
 
     def _ensure_inputs_are_compute_dtype(self, inputs):
         if isinstance(inputs, dict):
-            inputs[IMAGES] = utils.ensure_tensor(inputs[IMAGES], self.compute_dtype)
+            inputs[IMAGES] = preprocessing.ensure_tensor(
+                inputs[IMAGES],
+                self.compute_dtype,
+            )
         else:
-            inputs = utils.ensure_tensor(inputs, self.compute_dtype)
+            inputs = preprocessing.ensure_tensor(
+                inputs,
+                self.compute_dtype,
+            )
         return inputs

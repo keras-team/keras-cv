@@ -14,9 +14,13 @@
 
 import tensorflow as tf
 
+from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
+    BaseImageAugmentationLayer,
+)
+
 
 @tf.keras.utils.register_keras_serializable(package="keras_cv")
-class ChannelShuffle(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
+class ChannelShuffle(BaseImageAugmentationLayer):
     """Shuffle channels of an input image.
 
     Input shape:
@@ -52,7 +56,7 @@ class ChannelShuffle(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
         self.groups = groups
         self.seed = seed
 
-    def augment_image(self, image, transformation=None):
+    def augment_image(self, image, transformation=None, **kwargs):
         shape = tf.shape(image)
         height, width = shape[0], shape[1]
         num_channels = image.shape[2]
@@ -73,7 +77,7 @@ class ChannelShuffle(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
 
         return image
 
-    def augment_label(self, label, transformation=None):
+    def augment_label(self, label, transformation=None, **kwargs):
         return label
 
     def get_config(self):

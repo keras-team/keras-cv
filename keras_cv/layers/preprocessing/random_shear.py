@@ -87,7 +87,7 @@ class RandomShear(BaseImageAugmentationLayer):
         self.fill_value = fill_value
         self.seed = seed
 
-    def get_random_transformation(self, image=None, label=None, bounding_box=None):
+    def get_random_transformation(self, image=None, label=None, bounding_boxes=None):
         x = self._get_shear_amount(self.x_factor)
         y = self._get_shear_amount(self.y_factor)
         return (x, y)
@@ -99,7 +99,7 @@ class RandomShear(BaseImageAugmentationLayer):
         invert = preprocessing.random_inversion(self._random_generator)
         return invert * constraint()
 
-    def augment_image(self, image, transformation=None):
+    def augment_image(self, image, transformation=None, **kwargs):
         image = tf.expand_dims(image, axis=0)
 
         x, y = transformation
@@ -130,7 +130,7 @@ class RandomShear(BaseImageAugmentationLayer):
 
         return tf.squeeze(image, axis=0)
 
-    def augment_label(self, label, transformation=None):
+    def augment_label(self, label, transformation=None, **kwargs):
         return label
 
     @staticmethod

@@ -46,12 +46,6 @@ class DropBlock2D(BaseRandomLayer):
             `14x14xchannels`.
             If this value is greater or equal to the input feature map size you will
             encounter `nan` values.
-        data_format: string. One of channels_last (default) or channels_first. The
-            ordering of the dimensions in the inputs. channels_last corresponds to
-            inputs with shape (batch_size, height, width, channels) while channels_first
-            corresponds to inputs with shape (batch_size, channels,height, width). It
-            defaults to the image_data_format value found in your Keras config file at
-            ~/.keras/keras.json. If you never set it, then it will be channels_last.
         seed: integer. To use as random seed.
         name: string. The name of the layer.
 
@@ -142,7 +136,6 @@ class DropBlock2D(BaseRandomLayer):
         self,
         rate,
         block_size,
-        data_format=None,
         seed=None,
         **kwargs,
     ):
@@ -156,17 +149,13 @@ class DropBlock2D(BaseRandomLayer):
         self._dropblock_height, self._dropblock_width = conv_utils.normalize_tuple(
             value=block_size, n=2, name="block_size", allow_zero=False
         )
-        self._data_format = conv_utils.normalize_data_format(data_format)
         self.seed = seed
 
     def call(self, x, training=None):
         if not training or self._rate == 0.0:
             return x
 
-        if self._data_format == "channels_last":
-            _, height, width, _ = tf.split(tf.shape(x), 4)
-        else:
-            _, _, height, width = tf.split(tf.shape(x), 4)
+        _, height, width, _ = tf.split(tf.shape(x), 4)
 
         # Unnest scalar values
         height = tf.squeeze(height)
@@ -199,10 +188,7 @@ class DropBlock2D(BaseRandomLayer):
             ),
         )
 
-        if self._data_format == "channels_last":
-            valid_block = tf.reshape(valid_block, [1, height, width, 1])
-        else:
-            valid_block = tf.reshape(valid_block, [1, 1, height, width])
+        valid_block = tf.reshape(valid_block, [1, height, width, 1])
 
         random_noise = self._random_generator.random_uniform(
             tf.shape(x), dtype=tf.float32
@@ -212,10 +198,7 @@ class DropBlock2D(BaseRandomLayer):
         block_pattern = (1 - valid_block + seed_keep_rate + random_noise) >= 1
         block_pattern = tf.cast(block_pattern, dtype=tf.float32)
 
-        if self._data_format == "channels_last":
-            window_size = [1, self._dropblock_height, self._dropblock_width, 1]
-        else:
-            window_size = [1, 1, self._dropblock_height, self._dropblock_width]
+        window_size = [1, self._dropblock_height, self._dropblock_width, 1]
 
         # Double negative and max_pool is essentially min_pooling
         block_pattern = -tf.nn.max_pool(
@@ -223,7 +206,6 @@ class DropBlock2D(BaseRandomLayer):
             ksize=window_size,
             strides=[1, 1, 1, 1],
             padding="SAME",
-            data_format="NHWC" if self._data_format == "channels_last" else "NCHW",
         )
 
         # Slightly scale the values, to account for magnitude change
@@ -236,7 +218,6 @@ class DropBlock2D(BaseRandomLayer):
         config = {
             "rate": self._rate,
             "block_size": (self._dropblock_height, self._dropblock_width),
-            "data_format": self._data_format,
             "seed": self.seed,
         }
         base_config = super().get_config()
