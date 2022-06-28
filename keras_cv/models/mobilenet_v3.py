@@ -57,9 +57,11 @@ def HardSigmoid(name=None):
 def HardSwish(name=None):
     if name is None:
         name = f"hard_swish_{backend.get_uid('hard_swish')}"
+    hard_sigmoid = HardSigmoid()
+    multiply_layer = layers.Multiply()
 
     def apply(x):
-        return layers.Multiply()([x, HardSigmoid()(x)])
+        return multiply_layer([x, hard_sigmoid(x)])
 
     return apply
 
