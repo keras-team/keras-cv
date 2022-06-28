@@ -11,17 +11,16 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import functools
 import warnings
 
 import tensorflow as tf
 
+from keras_cv import bounding_box
 from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
     BaseImageAugmentationLayer,
 )
 from keras_cv.utils import preprocessing
-
-from keras_cv import bounding_box
-import functools
 
 
 @tf.keras.utils.register_keras_serializable(package="keras_cv")
@@ -56,6 +55,7 @@ class RandomShear(BaseImageAugmentationLayer):
              constant".  Defaults to `0.0`.
         seed: Integer. Used to create a random seed.
     """
+
     def __init__(
         self,
         x_factor=None,
@@ -150,7 +150,7 @@ class RandomShear(BaseImageAugmentationLayer):
             bounding_boxes,
             functools.partial(self.augment_keypoints, transformation=transformation),
             bounding_box_format=self.bounding_box_format,
-            compute_dtype=self.compute_dtype
+            compute_dtype=self.compute_dtype,
         )
 
     def augment_keypoints(self, keypoints, transformation=None, **kwargs):

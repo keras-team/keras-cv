@@ -67,7 +67,7 @@ TEST_CONFIGURATIONS = [
     (
         "RandomShear",
         preprocessing.RandomShear,
-        {"x_factor": 0.3, "x_factor": 0.3,"bounding_box_format": "xyxy"},
+        {"x_factor": 0.3, "x_factor": 0.3, "bounding_box_format": "xyxy"},
     ),
     ("Solarization", preprocessing.Solarization, {"value_range": (0, 255)}),
     ("RandomContrast", preprocessing.RandomContrast, {"factor": 1, "seed": 2}),
@@ -77,8 +77,8 @@ TEST_CONFIGURATIONS = [
         preprocessing.RandomRotation,
         {
             "factor": 1.0,
-            "fill_mode": 'reflect',
-            "interpolation": 'bilinear',
+            "fill_mode": "reflect",
+            "interpolation": "bilinear",
             "seed": 1,
             "fill_value": 0.5,
             "bounding_box_format": "xyxy",
@@ -98,7 +98,7 @@ class WithKeysTest(tf.test.TestCase, parameterized.TestCase):
         img = tf.random.uniform(
             shape=(3, 512, 512, 3), minval=0, maxval=1, dtype=tf.float32
         )
-        labels = tf.ones((3, ), dtype=tf.float32)
+        labels = tf.ones((3,), dtype=tf.float32)
 
         inputs = {"images": img, "labels": labels}
         _ = layer(inputs)

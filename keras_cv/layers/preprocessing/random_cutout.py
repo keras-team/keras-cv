@@ -60,6 +60,7 @@ class RandomCutout(BaseImageAugmentationLayer):
     augmented_images = random_cutout(images)
     ```
     """
+
     def __init__(
         self,
         height_factor,

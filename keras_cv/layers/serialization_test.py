@@ -174,11 +174,11 @@ class SerializationTest(tf.test.TestCase, parameterized.TestCase):
             preprocessing.RandomRotation,
             {
                 "factor": 0.4,
-                "fill_mode": 'constant',
-                "interpolation": 'nearest',
+                "fill_mode": "constant",
+                "interpolation": "nearest",
                 "seed": 3,
                 "fill_value": 2.0,
-                "bounding_box_format": 'xywh',
+                "bounding_box_format": "xywh",
             },
         ),
         (
@@ -187,14 +187,13 @@ class SerializationTest(tf.test.TestCase, parameterized.TestCase):
             {
                 "height_factor": 0.2,
                 "width_factor": 0.3,
-                "fill_mode": 'constant',
-                "interpolation": 'nearest',
+                "fill_mode": "constant",
+                "interpolation": "nearest",
                 "seed": 3,
                 "fill_value": 2.0,
-                "bounding_box_format": 'xywh',
+                "bounding_box_format": "xywh",
             },
         ),
-
     )  # yapf:disable
     def test_layer_serialization(self, layer_cls, init_args):
         layer = layer_cls(**init_args)

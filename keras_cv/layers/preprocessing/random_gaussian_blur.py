@@ -36,6 +36,7 @@ class RandomGaussianBlur(BaseImageAugmentationLayer):
             ensure the value is always the same, please pass a tuple with two identical
             floats: `(0.5, 0.5)`.
     """
+
     def __init__(self, kernel_size, factor, **kwargs):
         super().__init__(**kwargs)
 

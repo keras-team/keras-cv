@@ -88,6 +88,7 @@ class GridMask(BaseImageAugmentationLayer):
     References:
         - https://arxiv.org/abs/2001.04086
     """
+
     def __init__(
         self,
         ratio_factor=(0, 0.5),

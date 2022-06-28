@@ -46,6 +46,7 @@ class RandomSharpness(BaseImageAugmentationLayer):
             This is typically either `[0, 1]` or `[0, 255]` depending
             on how your preprocessing pipeline is setup.
     """
+
     def __init__(
         self,
         factor,
@@ -79,7 +80,8 @@ class RandomSharpness(BaseImageAugmentationLayer):
         kernel = (
             tf.constant(
                 [[1, 1, 1], [1, 5, 1], [1, 1, 1]], dtype=tf.float32, shape=[3, 3, 1, 1]
-            ) / 13.0
+            )
+            / 13.0
         )
 
         # Tile across channel dimension.
@@ -121,10 +123,6 @@ class RandomSharpness(BaseImageAugmentationLayer):
     def get_config(self):
         config = super().get_config()
         config.update(
-            {
-                "factor": self.factor,
-                "value_range": self.value_range,
-                "seed": self.seed
-            }
+            {"factor": self.factor, "value_range": self.value_range, "seed": self.seed}
         )
         return config

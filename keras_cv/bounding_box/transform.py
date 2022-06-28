@@ -1,12 +1,29 @@
-import keras_cv.bounding_box as bounding_box
+# Copyright 2022 The KerasCV Authors
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+"""
+transform.py contains function to transform bounding box according to corner transformation
+"""
 
 import tensorflow as tf
+
+import keras_cv.bounding_box as bounding_box
 
 
 def transform_from_point_transform(
     bounding_boxes,
     point_transform_fn,
-    bounding_box_format='xyxy',
+    bounding_box_format="xyxy",
     compute_dtype=tf.float32,
 ):
     bounding_boxes = bounding_box.convert_format(
@@ -30,6 +47,6 @@ def transform_from_point_transform(
         bounding_boxes_out,
         source="xyxy",
         target=bounding_box_format,
-        dtype=compute_dtype
+        dtype=compute_dtype,
     )
     return bounding_boxes_out

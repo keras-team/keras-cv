@@ -11,15 +11,14 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import functools
+
 import tensorflow as tf
 
+from keras_cv import bounding_box
 from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
     BaseImageAugmentationLayer,
 )
-
-from keras_cv import bounding_box
-
-import functools
 
 H_AXIS = -3
 W_AXIS = -2
@@ -82,12 +81,13 @@ class RandomTranslation(BaseImageAugmentationLayer):
       3D (unbatched) or 4D (batched) tensor with shape:
       `(..., height, width, channels)`,  in `"channels_last"` format.
     """
+
     def __init__(
         self,
         height_factor,
         width_factor,
-        fill_mode='reflect',
-        interpolation='bilinear',
+        fill_mode="reflect",
+        interpolation="bilinear",
         seed=None,
         fill_value=0.0,
         bounding_box_format=None,
@@ -140,7 +140,7 @@ class RandomTranslation(BaseImageAugmentationLayer):
                 self.augment_keypoints, transformation=transformation, image=image
             ),
             bounding_box_format=self.bounding_box_format,
-            compute_dtype=self.compute_dtype
+            compute_dtype=self.compute_dtype,
         )
 
     def augment_keypoints(self, keypoints, transformation=None, image=None, **kwargs):
@@ -153,6 +153,6 @@ class RandomTranslation(BaseImageAugmentationLayer):
 
         offset = tf.cast(
             tf.concat([img_wd * offset_x, img_hd * offset_y], axis=-1),
-            dtype=self.compute_dtype
+            dtype=self.compute_dtype,
         )
         return keypoints + offset[None, ...]

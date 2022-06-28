@@ -68,6 +68,7 @@ class Solarization(BaseImageAugmentationLayer):
             range [0, 255] and shape [batch, height, width, channels]
             or [height, width, channels].
     """
+
     def __init__(
         self,
         value_range,

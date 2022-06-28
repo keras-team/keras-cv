@@ -57,6 +57,7 @@ class Posterization(BaseImageAugmentationLayer):
             1. single 3D (HWC) image or 4D (NHWC) batch of images.
             2. A dict of tensors where the images are under `"images"` key.
     """
+
     def __init__(self, value_range, bits, **kwargs):
         super().__init__(**kwargs)
 

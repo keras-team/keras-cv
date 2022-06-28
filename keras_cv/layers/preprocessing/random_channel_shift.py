@@ -55,6 +55,7 @@ class RandomChannelShift(BaseImageAugmentationLayer):
     augmented_images = rgb_shift(images)
     ```
     """
+
     def __init__(self, value_range, factor, channels=3, seed=None, **kwargs):
         super().__init__(**kwargs, seed=seed)
         self.seed = seed

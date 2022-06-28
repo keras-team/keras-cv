@@ -46,6 +46,7 @@ class Grayscale(BaseImageAugmentationLayer):
     augmented_images = to_grayscale(images)
     ```
     """
+
     def __init__(self, output_channels=1, **kwargs):
         super().__init__(**kwargs)
         self.output_channels = output_channels

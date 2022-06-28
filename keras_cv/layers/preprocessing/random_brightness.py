@@ -71,6 +71,7 @@ class RandomBrightness(BaseImageAugmentationLayer):
             shape=(2, 2, 3), dtype=int64)
     ```
     """
+
     def __init__(self, factor, value_range=(0, 255), seed=None, **kwargs):
         super().__init__(seed=seed, **kwargs)
         self.base = tf.keras.layers.RandomBrightness(

@@ -46,7 +46,7 @@ class RandomTranslationTest(tf.test.TestCase):
         layer = RandomTranslation(
             height_factor=(0.5, 0.5),
             width_factor=(0.25, 0.25),
-            fill_mode='reflect',
+            fill_mode="reflect",
         )
         output_image = layer(input_image)
         expected_output = np.asarray(
@@ -72,13 +72,13 @@ class RandomTranslationTest(tf.test.TestCase):
         layer = RandomTranslation(
             height_factor=(0.5, 0.5),
             width_factor=(0.25, 0.25),
-            bounding_box_format="xyxy"
+            bounding_box_format="xyxy",
         )
         output_bbox = layer(input)
         expected_output = np.asarray(
             [
                 [200 + 512 / 4, 200 + 512 / 2, 400 + 512 / 4, 400 + 512 / 2, 3.0],
-                [100 + 512 / 4, 100 + 512 / 2, 300 + 512 / 4, 300 + 512 / 2, 42.0]
+                [100 + 512 / 4, 100 + 512 / 2, 300 + 512 / 4, 300 + 512 / 2, 42.0],
             ],
         )
         expected_output = np.reshape(expected_output, (2, 5))

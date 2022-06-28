@@ -42,21 +42,21 @@ from keras_cv.layers.preprocessing.rand_augment import RandAugment
 from keras_cv.layers.preprocessing.random_augmentation_pipeline import (
     RandomAugmentationPipeline,
 )
+from keras_cv.layers.preprocessing.random_brightness import RandomBrightness
 from keras_cv.layers.preprocessing.random_channel_shift import RandomChannelShift
 from keras_cv.layers.preprocessing.random_choice import RandomChoice
 from keras_cv.layers.preprocessing.random_color_degeneration import (
     RandomColorDegeneration,
 )
 from keras_cv.layers.preprocessing.random_color_jitter import RandomColorJitter
+from keras_cv.layers.preprocessing.random_contrast import RandomContrast
 from keras_cv.layers.preprocessing.random_cutout import RandomCutout
 from keras_cv.layers.preprocessing.random_gaussian_blur import RandomGaussianBlur
 from keras_cv.layers.preprocessing.random_hue import RandomHue
 from keras_cv.layers.preprocessing.random_jpeg_quality import RandomJpegQuality
+from keras_cv.layers.preprocessing.random_rotation import RandomRotation
 from keras_cv.layers.preprocessing.random_saturation import RandomSaturation
 from keras_cv.layers.preprocessing.random_sharpness import RandomSharpness
 from keras_cv.layers.preprocessing.random_shear import RandomShear
-from keras_cv.layers.preprocessing.solarization import Solarization
-from keras_cv.layers.preprocessing.random_contrast import RandomContrast
-from keras_cv.layers.preprocessing.random_brightness import RandomBrightness
-from keras_cv.layers.preprocessing.random_rotation import RandomRotation
 from keras_cv.layers.preprocessing.random_translation import RandomTranslation
+from keras_cv.layers.preprocessing.solarization import Solarization

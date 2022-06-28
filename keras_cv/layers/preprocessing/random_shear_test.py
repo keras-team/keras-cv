@@ -11,10 +11,11 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import tensorflow as tf
 import numpy as np
-from keras_cv.layers import preprocessing
+import tensorflow as tf
 from absl.testing import parameterized
+
+from keras_cv.layers import preprocessing
 
 
 class RandomShearTest(tf.test.TestCase, parameterized.TestCase):
@@ -70,9 +71,11 @@ class RandomShearTest(tf.test.TestCase, parameterized.TestCase):
         image = tf.ones(shape=(100, 100, 3))
         factor = 0.5
 
-        bounding_boxes = np.array([
-            [25.0, 25.0, 75.0, 75.0],
-        ])
+        bounding_boxes = np.array(
+            [
+                [25.0, 25.0, 75.0, 75.0],
+            ]
+        )
 
         if shear_type == "x":
             shear_kwargs = {"x_factor": (factor, factor), "bounding_box_format": "xyxy"}

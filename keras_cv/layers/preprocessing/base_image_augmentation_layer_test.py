@@ -90,7 +90,7 @@ class BaseImageAugmentationLayerTest(tf.test.TestCase):
     def test_augment_image_and_label(self):
         add_layer = RandomAddLayer(fixed_value=2.0)
         image = np.random.random(size=(8, 8, 3)).astype("float32")
-        label = np.random.random(size=(1, )).astype("float32")
+        label = np.random.random(size=(1,)).astype("float32")
 
         output = add_layer({"images": image, "labels": label})
         expected_output = {"images": image + 2.0, "labels": label + 2.0}
@@ -99,7 +99,7 @@ class BaseImageAugmentationLayerTest(tf.test.TestCase):
     def test_augment_image_and_target(self):
         add_layer = RandomAddLayer(fixed_value=2.0)
         image = np.random.random(size=(8, 8, 3)).astype("float32")
-        label = np.random.random(size=(1, )).astype("float32")
+        label = np.random.random(size=(1,)).astype("float32")
 
         output = add_layer({"images": image, "targets": label})
         expected_output = {"images": image + 2.0, "targets": label + 2.0}
@@ -124,17 +124,13 @@ class BaseImageAugmentationLayerTest(tf.test.TestCase):
         keypoints = np.random.random(size=(3, 5, 2)).astype("float32")
 
         output = add_layer(
-            {
-                "images": images,
-                "bounding_boxes": bounding_boxes,
-                "keypoints": keypoints
-            }
+            {"images": images, "bounding_boxes": bounding_boxes, "keypoints": keypoints}
         )
 
         expected_output = {
             "images": images + 2.0,
             "bounding_boxes": bounding_boxes + 2.0,
-            "keypoints": keypoints + 2.0
+            "keypoints": keypoints + 2.0,
         }
         self.assertAllClose(output, expected_output)
 
@@ -145,11 +141,7 @@ class BaseImageAugmentationLayerTest(tf.test.TestCase):
         keypoints = np.random.random(size=(2, 3, 5, 2)).astype("float32")
 
         output = add_layer(
-            {
-                "images": images,
-                "bounding_boxes": bounding_boxes,
-                "keypoints": keypoints
-            }
+            {"images": images, "bounding_boxes": bounding_boxes, "keypoints": keypoints}
         )
 
         bounding_boxes_diff = output["bounding_boxes"] - bounding_boxes

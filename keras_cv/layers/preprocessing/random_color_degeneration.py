@@ -41,6 +41,7 @@ class RandomColorDegeneration(BaseImageAugmentationLayer):
             floats: `(0.5, 0.5)`.
         seed: Integer. Used to create a random seed.
     """
+
     def __init__(
         self,
         factor,
@@ -48,7 +49,9 @@ class RandomColorDegeneration(BaseImageAugmentationLayer):
         **kwargs,
     ):
         super().__init__(**kwargs)
-        self.factor = preprocessing.parse_factor(factor, )
+        self.factor = preprocessing.parse_factor(
+            factor,
+        )
         self.seed = seed
 
     def get_random_transformation(self, **kwargs):
