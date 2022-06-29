@@ -19,6 +19,7 @@ Finally, they are shown using matplotlib.
 """
 
 import demo_utils
+
 from keras_cv.layers.preprocessing import RandomResizedCrop
 
 
