@@ -139,4 +139,92 @@ def Depth(divisor=8, min_value=None, name=None):
 
     return apply
 
+def InvertedResBlock(expansion, stride, alpha, filters, block_id, name=None):
+    if name is None:
+        name = f"inverted_res_block_{backend.get_uid('inverted_res_block')}"
 
+    prefix = "block_{}_".format(block_id)
+
+    pointwise_conv_filters = int(filters * alpha)
+    # Ensure the number of filters on the last 1x1 convolution is divisible by
+    # 8.
+    pointwise_filters = Depth(pointwise_conv_filters, 8)
+
+    batch_norm_1 = layers.BatchNormalization(
+        axis=-1,
+        epsilon=1e-3,
+        momentum=0.999,
+        name=prefix + "expand_BN",
+    )
+    correct_pad = CorrectPad(3)
+    activation_1 = layers.ReLU(6.0, name=prefix + "expand_relu")
+    depthwise_conv2d_1 = layers.DepthwiseConv2D(
+        kernel_size=3,
+        strides=stride,
+        activation=None,
+        use_bias=False,
+        padding="same" if stride == 1 else "valid",
+        name=prefix + "depthwise",
+    )
+    batch_norm_2 = layers.BatchNormalization(
+        axis=-1,
+        epsilon=1e-3,
+        momentum=0.999,
+        name=prefix + "depthwise_BN",
+    )
+    activation_2 = layers.ReLU(6.0, name=prefix + "depthwise_relu")
+    conv2d_1 = layers.Conv2D(
+        pointwise_filters,
+        kernel_size=1,
+        padding="same",
+        use_bias=False,
+        activation=None,
+        name=prefix + "project",
+    )
+    batch_norm_3 = layers.BatchNormalization(
+        axis=-1,
+        epsilon=1e-3,
+        momentum=0.999,
+        name=prefix + "project_BN",
+    )
+    add = layers.Add(name=prefix + "add")
+
+    def apply(inputs):
+        in_channels = backend.int_shape(inputs)[-1]
+
+        x = inputs
+
+        if block_id:
+            # Expand with a pointwise 1x1 convolution.
+            x = layers.Conv2D(
+                expansion * in_channels,
+                kernel_size=1,
+                padding="same",
+                use_bias=False,
+                activation=None,
+                name=prefix + "expand",
+            )(x)
+            x = batch_norm_1(x)
+            x = activation_1(x)
+        else:
+            prefix = "expanded_conv_"
+
+        # Depthwise 3x3 convolution.
+        if stride == 2:
+            x = layers.ZeroPadding2D(padding=correct_pad(x), name=prefix + "pad")(x)
+
+        x = depthwise_conv2d_1(x)
+        x = batch_norm_2(x)
+
+        x = activation_2(x)
+
+        # Project with a pointwise 1x1 convolution.
+        x = conv2d_1(x)
+        x = batch_norm_3(x)
+
+        if in_channels == pointwise_filters and stride == 1:
+            return add([inputs, x])
+
+        return x
+
+    return apply
