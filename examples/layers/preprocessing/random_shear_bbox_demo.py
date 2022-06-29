@@ -49,7 +49,22 @@ def main():
         "voc/2007", split=tfds.Split.TRAIN, batch_size=1, shuffle_files=True
     )
     dataset = dataset.map(lambda x: resize(x))
-    dataset = dataset.padded_batch(BATCH_SIZE)
+    dataset = dataset.padded_batch(
+        BATCH_SIZE,
+        padding_values={
+            "image": None,
+            "labels": None,
+            "image/filename": None,
+            "labels_no_difficult": None,
+            "objects": {
+                "bbox": tf.cast(-1, tf.float32),
+                "is_difficult": None,
+                "is_truncated": None,
+                "label": None,
+                "pose": None,
+            },
+        },
+    )
 
     randomshear = preprocessing.RandomShear(
         x_factor=(0.1, 0.3),
