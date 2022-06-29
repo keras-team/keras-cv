@@ -96,14 +96,12 @@ def MLPMixer(
     """Instantiates the MLP Mixer architecture.
 
     Reference:
-    - [MLP-Mixer: An all-MLP Architecture for Vision (NeurIPS 2021)](
-        https://arxiv.org/abs/2105.01601)
+    - [MLP-Mixer: An all-MLP Architecture for Vision (NeurIPS 2021)](https://arxiv.org/abs/2105.01601)
 
     This function returns a Keras MLP Mixer model.
 
     For transfer learning use cases, make sure to read the
-    [guide to transfer learning & fine-tuning](
-      https://keras.io/guides/transfer_learning/).
+    [guide to transfer learning & fine-tuning](https://keras.io/guides/transfer_learning/).
 
     Args:
       patch_size: size of the patches to be extracted from the inputs.
