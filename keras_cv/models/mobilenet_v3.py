@@ -79,6 +79,7 @@ BASE_DOCSTRING = """Instantiates the {name} architecture.
       A `keras.Model` instance.
 """
 
+
 def Depth(divisor=8, min_value=None, name=None):
     """Ensure that all layers have a channel number that is divisble by the `divisor`.
 
@@ -553,3 +554,7 @@ def MobileNetV3Large(
         name=name,
         **kwargs,
     )
+
+
+setattr(MobileNetV3Large, "__doc__", BASE_DOCSTRING.format(name="MobileNetV3Large"))
+setattr(MobileNetV3Small, "__doc__", BASE_DOCSTRING.format(name="MobileNetV3Small"))
