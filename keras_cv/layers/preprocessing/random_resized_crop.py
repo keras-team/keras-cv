@@ -42,13 +42,17 @@ class RandomResizedCrop(BaseImageAugmentationLayer):
             UniformFactorSampler. The ratio of area of the cropped part to
             that of original image is sampled using this factor. Represents the
             lower and upper bounds for the area relative to the original image
-            of the cropped image before resizing it to `target_size`.
+            of the cropped image before resizing it to `target_size`.  For
+            self-supervised pretraining a common value for this parameter is
+            `(0.08, 1.0)`.  For fine tuning and classification a common value for this
+            is `0.8, 1.0`.
         aspect_ratio_factor: A tuple of two floats, ConstantFactorSampler or
             UniformFactorSampler. Aspect ratio means the ratio of width to
             height of the cropped image. In the context of this layer, the aspect ratio
             sampled represents a value to distort the aspect ratio by.
             Represents the lower and upper bound for the aspect ratio of the
-            cropped image before resizing it to `target_size`.
+            cropped image before resizing it to `target_size`.  For most tasks, this
+            should be `(3/4, 4/3)`.  To perform a no-op provide the value `(1.0, 1.0)`.
         interpolation: (Optional) A string specifying the sampling method for
             resizing. Defaults to "bilinear".
         seed: (Optional) Used to create a random seed. Defaults to None.
