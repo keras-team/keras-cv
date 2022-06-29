@@ -26,6 +26,22 @@ class SqueezeAndExciteBlock2DTest(tf.test.TestCase):
         outputs = layer(inputs)
         self.assertEquals(inputs.shape, outputs.shape)
 
+    def test_custom_activation(self):
+        def custom_activation(x):
+            return x * tf.random.uniform(x.shape, seed=42)
+
+        input_shape = (1, 4, 4, 8)
+        inputs = tf.random.uniform(input_shape)
+
+        layer = SqueezeAndExciteBlock2D(
+            8,
+            ratio=0.25,
+            squeeze_activation=custom_activation,
+            excite_activation=custom_activation,
+        )
+        outputs = layer(inputs)
+        self.assertEquals(inputs.shape, outputs.shape)
+
     def test_raises_invalid_ratio_error(self):
         with self.assertRaisesRegex(
             ValueError, "`ratio` should be a float" " between 0 and 1. Got (.*?)"

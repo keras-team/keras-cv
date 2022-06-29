@@ -14,7 +14,6 @@
 
 import tensorflow as tf
 from tensorflow.keras import layers
-from tensorflow.keras.activations import serialize
 
 
 @tf.keras.utils.register_keras_serializable(package="keras_cv")
@@ -25,12 +24,14 @@ class SqueezeAndExciteBlock2D(layers.Layer):
 
     Args:
         filters: Number of input and output filters. The number of input and
-                output filters is same.
+            output filters is same.
         ratio: Ratio for bottleneck filters. Number of bottleneck filters =
-                filters * ratio. Defaults to 0.25.
-        squeeze_activation: (Optional) String or function denoting activation to
+            filters * ratio. Defaults to 0.25.
+        squeeze_activation: (Optional) String, function or tf.keras.activations.*
+            instance denoting activation to
             be applied after squeeze convolution. Defaults to `relu`.
-        excite_activation: (Optional) String or function denoting activation to
+        excite_activation: (Optional)String, function or tf.keras.activations.*
+            instance denoting activation to
             be applied after excite convolution. Defaults to `sigmoid`.
     Usage:
 
@@ -85,22 +86,11 @@ class SqueezeAndExciteBlock2D(layers.Layer):
         return x
 
     def get_config(self):
-        squeeze_activation_serialized = (
-            serialize(self.squeeze_activation)
-            if hasattr(self.squeeze_activation, "__call__")
-            else self.squeeze_activation
-        )
-        excite_activation_serialized = (
-            serialize(self.excite_activation)
-            if hasattr(self.squeeze_activation, "__call__")
-            else self.excite_activation
-        )
-
         config = {
             "filters": self.filters,
             "ratio": self.ratio,
-            "squeeze_activation": squeeze_activation_serialized,
-            "excite_activation": excite_activation_serialized,
+            "squeeze_activation": self.squeeze_activation,
+            "excite_activation": self.excite_activation,
         }
         base_config = super().get_config()
         return dict(list(base_config.items()) + list(config.items()))
