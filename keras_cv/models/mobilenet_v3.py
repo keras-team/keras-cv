@@ -35,7 +35,7 @@ def Depth(divisor=8, min_value=None, name=None):
       name: string, layer label.
 
     Returns:
-        a function that takes an input Tensor representing a Depth layer.
+      a function that takes an input Tensor representing a Depth layer.
     """
     if name is None:
         name = f"depth_{backend.get_uid('depth')}"
@@ -61,7 +61,7 @@ def HardSigmoid(name=None):
       name: string, layer label.
 
     Returns:
-        a function that takes an input Tensor representing a HardSigmoid layer.
+      a function that takes an input Tensor representing a HardSigmoid layer.
     """
     if name is None:
         name = f"hard_sigmoid_{backend.get_uid('hard_sigmoid')}"
@@ -81,7 +81,7 @@ def HardSwish(name=None):
       name: string, layer label.
 
     Returns:
-        a function that takes an input Tensor representing a HardSwish layer.
+      a function that takes an input Tensor representing a HardSwish layer.
     """
     if name is None:
         name = f"hard_swish_{backend.get_uid('hard_swish')}"
@@ -96,6 +96,16 @@ def HardSwish(name=None):
 
 
 def SqueezeAndExcitationBlock(filters, se_ratio, prefix, name=None):
+    """The Squeeze and Excitation block.
+
+    Args:
+      filters: integer, number of input and output filters. The number of input and output filters is same.
+      se_ratio: float, ratio for bottleneck filters. Number of bottleneck filters = filters * se_ratio.
+      prefix: string, prefix for names of layers.
+    
+    Returns:
+      a function that takes an input Tensor representing a SqueezeAndExcitationBlock.
+    """
     if name is None:
         name = f"se_block_{backend.get_uid('se_block')}"
 
