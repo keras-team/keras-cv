@@ -20,17 +20,19 @@ class RandomResizedCropTest(tf.test.TestCase):
     height, width = 300, 300
     batch_size = 4
     target_size = (224, 224)
+    seed = 42
 
     def test_train_augments_image(self):
         # Checks if original and augmented images are different
 
         input_image_shape = (self.batch_size, self.height, self.width, 3)
-        image = tf.random.uniform(shape=input_image_shape)
+        image = tf.random.uniform(shape=input_image_shape, seed=self.seed)
 
         layer = preprocessing.RandomResizedCrop(
             target_size=self.target_size,
             aspect_ratio_factor=(3 / 4, 4 / 3),
             crop_area_factor=(0.8, 1.0),
+            seed=self.seed,
         )
         output = layer(image, training=True)
 
@@ -68,3 +70,11 @@ class RandomResizedCropTest(tf.test.TestCase):
         output = layer(image, training=False)
 
         self.assertAllClose(output, input_resized)
+
+    def test_raises_no_op_warning(self):
+        with self.assertWarns(expected_warning=Warning):
+            preprocessing.RandomResizedCrop(
+                target_size=self.target_size,
+                aspect_ratio_factor=(1.0, 1.0),
+                crop_area_factor=(1.0, 1.0),
+            )

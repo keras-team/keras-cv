@@ -38,13 +38,13 @@ class RandomResizedCrop(BaseImageAugmentationLayer):
     Args:
         target_size: A tuple of two integers used as the target size to ultimately crop
             images to.
-        crop_area_factor: A tuple of two floats or
-            `keras_cv.FactorSampler`. The ratio of area of the cropped part to
+        crop_area_factor: A tuple of two floats, ConstantFactorSampler or
+            UniformFactorSampler. The ratio of area of the cropped part to
             that of original image is sampled using this factor. Represents the
             lower and upper bounds for the area relative to the original image
             of the cropped image before resizing it to `target_size`.
-        aspect_ratio_factor: A tuple of two floats or
-            `keras_cv.FactorSampler`. Aspect ratio means the ratio of width to
+        aspect_ratio_factor: A tuple of two floats, ConstantFactorSampler or
+            UniformFactorSampler. Aspect ratio means the ratio of width to
             height of the cropped image. In the context of this layer, the aspect ratio
             sampled represents a value to distort the aspect ratio by.
             Represents the lower and upper bound for the aspect ratio of the
@@ -65,71 +65,44 @@ class RandomResizedCrop(BaseImageAugmentationLayer):
     ):
         super().__init__(seed=seed, **kwargs)
 
-        self.target_size = target_size
+        self._check_class_arguments(target_size, crop_area_factor, aspect_ratio_factor)
 
         if isinstance(aspect_ratio_factor, tuple):
-            if min(aspect_ratio_factor) < 0:
-                raise ValueError(
-                    "Expected `aspect_ratio_factor` to be greater than 0."
-                    f" Received aspect_ratio_factor={aspect_ratio_factor}"
-                )
-            min_aspect_ratio = min(aspect_ratio_factor)
             max_aspect_ratio = max(aspect_ratio_factor)
         elif isinstance(aspect_ratio_factor, core.FactorSampler):
-            min_aspect_ratio = None
-            max_aspect_ratio = None
+            pass
         else:
             raise ValueError(
                 "Expected `aspect_ratio` to be tuple or FactorSampler. Received "
                 f"aspect_ratio_factor={aspect_ratio_factor}."
             )
 
-        if isinstance(crop_area_factor, tuple):
-            if min(crop_area_factor) < 0 or max(crop_area_factor) > 1:
-                raise ValueError(
-                    "Expected `crop_area_factor` to be between 0 and 1."
-                    f" Received crop_area_factor={crop_area_factor}"
-                )
-            min_crop_area_factor = min(crop_area_factor)
-            max_crop_area_factor = max(crop_area_factor)
-        elif isinstance(crop_area_factor, core.FactorSampler):
-            min_crop_area_factor = None
-            max_crop_area_factor = None
-        else:
-            raise ValueError(
-                "Expected `crop_area_factor` to be tuple or FactorSampler. Received "
-                f"crop_area_factor={crop_area_factor}."
-            )
-
+        self.target_size = target_size
         self.aspect_ratio_factor = preprocessing.parse_factor(
             aspect_ratio_factor,
-            min_value=min_aspect_ratio,
             max_value=max_aspect_ratio,
             param_name="aspect_ratio_factor",
             seed=seed,
         )
         self.crop_area_factor = preprocessing.parse_factor(
             crop_area_factor,
-            min_value=min_crop_area_factor,
-            max_value=max_crop_area_factor,
+            max_value=1.0,
             param_name="crop_area_factor",
             seed=seed,
         )
 
-        if (
-            self.aspect_ratio_factor.lower == 1.0
-            and self.aspect_ratio_factor.upper == 1.0
-            and self.crop_area_factor.lower == 1.0
-            and self.crop_area_factor.upper == 1.0
-        ):
+        self.interpolation = interpolation
+        self.seed = seed
+
+        if isinstance(
+            self.aspect_ratio_factor, core.ConstantFactorSampler
+        ) and isinstance(self.crop_area_factor, core.ConstantFactorSampler):
             warnings.warn(
                 "Received `aspect_ratio_factor` and "
                 "`crop_area_factor` to be (1., 1.)."
-                "This will perform a no-op."
+                "This will perform a no-op.",
+                Warning,
             )
-
-        self.interpolation = interpolation
-        self.seed = seed
 
     def get_random_transformation(
         self, image=None, label=None, bounding_box=None, **kwargs
@@ -197,13 +170,69 @@ class RandomResizedCrop(BaseImageAugmentationLayer):
         # smart_resize will always output float32, so we need to re-cast.
         return tf.cast(outputs, self.compute_dtype)
 
+    def _check_class_arguments(
+        self, target_size, crop_area_factor, aspect_ratio_factor
+    ):
+        if not isinstance(target_size, tuple):
+            raise ValueError(
+                "`target_size` must be tuple of two integers."
+                f"Received target_size={target_size}"
+            )
+
+        if len(target_size) != 2:
+            raise ValueError(
+                "`target_size` must be tuple of two integers."
+                f"Received target_size={target_size}"
+            )
+
+        if not isinstance(target_size[0], int):
+            raise ValueError(
+                "`target_size` must be tuple of two integers."
+                f"Received target_size={target_size}"
+            )
+
+        if not isinstance(target_size[1], int):
+            raise ValueError(
+                "`target_size` must be tuple of two integers."
+                f"Received target_size={target_size}"
+            )
+
+        if isinstance(aspect_ratio_factor, core.NormalFactorSampler):
+            raise ValueError(
+                "`aspect_ratio_factor` is an instance of NormalFactorSampler."
+                "Expected `aspect_ratio_factor` to be a tuple, ConstantFactorSampler or UniformFactorSampler."
+            )
+
+        if isinstance(crop_area_factor, core.NormalFactorSampler):
+            raise ValueError(
+                "`crop_area_factor` is an instance of NormalFactorSampler."
+                "Expected `crop_area_factor` to be a tuple, ConstantFactorSampler or UniformFactorSampler."
+            )
+
     def get_config(self):
+        if isinstance(self.crop_area_factor, core.ConstantFactorSampler):
+            area_lower = self.crop_area_factor.value
+            area_upper = self.crop_area_factor.value
+        else:
+            area_lower = self.crop_area_factor.lower
+            area_upper = self.crop_area_factor.upper
+
+        if isinstance(self.aspect_ratio_factor, core.ConstantFactorSampler):
+            aspect_lower = self.aspect_ratio_factor.value
+            aspect_upper = self.aspect_ratio_factor.value
+        else:
+            aspect_lower = self.aspect_ratio_factor.lower
+            aspect_upper = self.aspect_ratio_factor.upper
+
         config = super().get_config()
         config.update(
             {
                 "target_size": self.target_size,
-                "crop_area_factor": self.crop_area_factor,
-                "aspect_ratio_factor": self.aspect_ratio_factor,
+                "crop_area_factor": (area_lower, area_upper),
+                "aspect_ratio_factor": (
+                    aspect_lower,
+                    aspect_upper,
+                ),
                 "interpolation": self.interpolation,
                 "seed": self.seed,
             }
