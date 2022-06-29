@@ -34,6 +34,9 @@ def Depth(divisor=8, min_value=None, name=None):
       divisor: integer, the value by which a channel number should be divisble, defaults to 8.
       min_value: float, minimum value for the new tensor.
       name: string, layer label.
+
+    Returns:
+        a function that takes an input Tensor representing a Depth layer.
     """
     if name is None:
         name = f"depth_{backend.get_uid('depth')}"
