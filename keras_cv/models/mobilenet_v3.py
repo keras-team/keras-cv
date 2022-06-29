@@ -25,6 +25,59 @@ from tensorflow.keras import layers
 
 channel_axis = -1
 
+BASE_DOCSTRING = """Instantiates the {name} architecture.
+    
+    Reference:
+        - [Densely Connected Convolutional Networks (CVPR 2017)](https://arxiv.org/abs/1608.06993)
+    
+    This function returns a Keras {name} model.
+    
+    For transfer learning use cases, make sure to read the [guide to transfer
+        learning & fine-tuning](https://keras.io/guides/transfer_learning/).
+    
+    Args:
+        input_shape: optional shape tuple, defaults to (None, None, 3).
+        alpha: controls the width of the network. This is known as the
+            depth multiplier in the MobileNetV3 paper, but the name is kept for
+            consistency with MobileNetV1 in Keras.
+            - If `alpha` < 1.0, proportionally decreases the number
+                of filters in each layer.
+            - If `alpha` > 1.0, proportionally increases the number
+                of filters in each layer.
+            - If `alpha` = 1, default number of filters from the paper
+                are used at each layer.
+        minimalistic: in addition to large and small models this module also
+            contains so-called minimalistic models, these models have the same
+            per-layer dimensions characteristic as MobilenetV3 however, they don't
+            utilize any of the advanced blocks (squeeze-and-excite units, hard-swish,
+            and 5x5 convolutions). While these models are less efficient on CPU, they
+            are much more performant on GPU/DSP.
+        include_top: whether to include the fully-connected layer at the top of the
+            network.  If provided, num_classes must be provided.
+        weights: one of `None` (random initialization), or a pretrained weight file
+            path.
+        classes: optional number of classes to classify images into, only to be
+            specified if `include_top` is True, and if no `weights` argument is
+            specified.
+        pooling: optional pooling mode for feature extraction
+            when `include_top` is `False`.
+            - `None` means that the output of the model will be the 4D tensor output
+                of the last convolutional block.
+            - `avg` means that global average pooling will be applied to the output
+                of the last convolutional block, and thus the output of the model will
+                be a 2D tensor.
+            - `max` means that global max pooling will be applied.
+        dropout_rate: a float between 0 and 1 denoting the fraction of input units to
+            drop, defaults to 0.2.
+        classifier_activation: the activation function to use, defaults to softmax.
+        include_rescaling: whether or not to Rescale the inputs.If set to True,
+            inputs will be passed through a `Rescaling(scale=1.0 / 127.5, offset=-1.0)`
+            layer, defaults to True.
+        name: (Optional) name to pass to the model.  Defaults to "{name}".
+    
+    Returns:
+      A `keras.Model` instance.
+"""
 
 def Depth(divisor=8, min_value=None, name=None):
     """Ensure that all layers have a channel number that is divisble by the `divisor`.
@@ -99,8 +152,10 @@ def SqueezeAndExcitationBlock(filters, se_ratio, prefix, name=None):
     """The Squeeze and Excitation block.
 
     Args:
-      filters: integer, number of input and output filters. The number of input and output filters is same.
-      se_ratio: float, ratio for bottleneck filters. Number of bottleneck filters = filters * se_ratio.
+      filters: integer, number of input and output filters. The number of input and
+        output filters is same.
+      se_ratio: float, ratio for bottleneck filters. Number of bottleneck
+        filters = filters * se_ratio.
       prefix: string, prefix for names of layers.
 
     Returns:
@@ -154,13 +209,16 @@ def InvertedResBlock(
     """An Inverted Residual Block.
 
     Args:
-      expansion: integer, the expansion ratio, multiplied with infilters to get the minimum value passed to Depth.
+      expansion: integer, the expansion ratio, multiplied with infilters to get the
+        minimum value passed to Depth.
       filters: integer, number of filters for convolution layer.
       kernel_size: integer, the kernel size for DpethWise Convolutions.
       strides: integer, the stride length for DpethWise Convolutions.
-      se_ratio: float, ratio for bottleneck filters. Number of bottleneck filters = filters * se_ratio.
+      se_ratio: float, ratio for bottleneck filters. Number of bottleneck
+        filters = filters * se_ratio.
       activation: the activation layer to use.
-      block_id: integer, a unique identification if you want to use expanded convolutions.
+      block_id: integer, a unique identification if you want to use expanded
+        convolutions.
 
     Returns:
       a function that takes an input Tensor representing a InvertedResBlock.
@@ -289,11 +347,11 @@ def MobileNetV3(
                 be a 2D tensor.
             - `max` means that global max pooling will be applied.
         dropout_rate: a float between 0 and 1 denoting the fraction of input units to
-            drop.
-        classifier_activation: the activation function to use.
+            drop, defaults to 0.2.
+        classifier_activation: the activation function to use, defaults to softmax.
         include_rescaling: whether or not to Rescale the inputs.If set to True,
             inputs will be passed through a `Rescaling(scale=1.0 / 127.5, offset=-1.0)`
-            layer.
+            layer, defaults to True.
         minimalistic: in addition to large and small models this module also
             contains so-called minimalistic models, these models have the same
             per-layer dimensions characteristic as MobilenetV3 however, they don't
