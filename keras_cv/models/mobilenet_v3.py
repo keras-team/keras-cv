@@ -102,7 +102,7 @@ def SqueezeAndExcitationBlock(filters, se_ratio, prefix, name=None):
       filters: integer, number of input and output filters. The number of input and output filters is same.
       se_ratio: float, ratio for bottleneck filters. Number of bottleneck filters = filters * se_ratio.
       prefix: string, prefix for names of layers.
-    
+
     Returns:
       a function that takes an input Tensor representing a SqueezeAndExcitationBlock.
     """
@@ -246,10 +246,65 @@ def MobileNetV3(
     classifier_activation="softmax",
     include_rescaling=True,
     minimalistic=True,
-    name=None,
+    name="MobileNetV3",
     **kwargs,
 ):
+    """Instantiates the MobileNetV3 architecture.
 
+    Reference:
+        - [Searching for MobileNetV3](https://arxiv.org/pdf/1905.02244.pdf) (ICCV 2019)
+
+    This function returns a Keras MobileNetV3 model.
+
+    For transfer learning use cases, make sure to read the [guide to transfer
+        learning & fine-tuning](https://keras.io/guides/transfer_learning/).
+
+    Args:
+        stack_fn: a function that returns tensors passed through Inverted
+            Residual Blocks.
+        last_point_ch: the number of filters for the convolution layer.
+        input_shape: optional shape tuple, defaults to (None, None, 3).
+        alpha: controls the width of the network. This is known as the
+            depth multiplier in the MobileNetV3 paper, but the name is kept for
+            consistency with MobileNetV1 in Keras.
+            - If `alpha` < 1.0, proportionally decreases the number
+                of filters in each layer.
+            - If `alpha` > 1.0, proportionally increases the number
+                of filters in each layer.
+            - If `alpha` = 1, default number of filters from the paper
+                are used at each layer.
+        include_top: whether to include the fully-connected layer at the top of the
+            network.  If provided, num_classes must be provided.
+        weights: one of `None` (random initialization), or a pretrained weight file
+            path.
+        classes: optional number of classes to classify images into, only to be
+            specified if `include_top` is True, and if no `weights` argument is
+            specified.
+        pooling: optional pooling mode for feature extraction
+            when `include_top` is `False`.
+            - `None` means that the output of the model will be the 4D tensor output
+                of the last convolutional block.
+            - `avg` means that global average pooling will be applied to the output
+                of the last convolutional block, and thus the output of the model will
+                be a 2D tensor.
+            - `max` means that global max pooling will be applied.
+        dropout_rate: a float between 0 and 1 denoting the fraction of input units to
+            drop.
+        classifier_activation: the activation function to use.
+        include_rescaling: whether or not to Rescale the inputs.If set to True,
+            inputs will be passed through a `Rescaling(scale=1.0 / 127.5, offset=-1.0)`
+            layer.
+        minimalistic: in addition to large and small models this module also
+            contains so-called minimalistic models, these models have the same
+            per-layer dimensions characteristic as MobilenetV3 however, they don't
+            utilize any of the advanced blocks (squeeze-and-excite units, hard-swish,
+            and 5x5 convolutions). While these models are less efficient on CPU, they
+            are much more performant on GPU/DSP.
+        name: (Optional) name to pass to the model. Defaults to "MobileNetV3".
+
+    Returns:
+        A `keras.Model` instance.
+    """
     if weights and not tf.io.gfile.exists(weights):
         raise ValueError(
             "The `weights` argument should be either "
@@ -279,6 +334,7 @@ def MobileNetV3(
 
     if include_rescaling:
         x = layers.Rescaling(scale=1.0 / 127.5, offset=-1.0)(x)
+
     x = layers.Conv2D(
         16,
         kernel_size=3,
