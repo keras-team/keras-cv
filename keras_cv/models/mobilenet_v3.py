@@ -151,6 +151,20 @@ def SqueezeAndExcitationBlock(filters, se_ratio, prefix, name=None):
 def InvertedResBlock(
     expansion, filters, kernel_size, stride, se_ratio, activation, block_id, name=None
 ):
+    """An Inverted Residual Block.
+
+    Args:
+      expansion: integer, the expansion ratio, multiplied with infilters to get the minimum value passed to Depth.
+      filters: integer, number of filters for convolution layer.
+      kernel_size: integer, the kernel size for DpethWise Convolutions.
+      strides: integer, the stride length for DpethWise Convolutions.
+      se_ratio: float, ratio for bottleneck filters. Number of bottleneck filters = filters * se_ratio.
+      activation: the activation layer to use.
+      block_id: integer, a unique identification if you want to use expanded convolutions.
+
+    Returns:
+      a function that takes an input Tensor representing a InvertedResBlock.
+    """
     if name is None:
         name = f"inverted_res_block_{backend.get_uid('inverted_res_block')}"
 
@@ -158,9 +172,10 @@ def InvertedResBlock(
         shortcut = x
         prefix = "expanded_conv/"
         infilters = backend.int_shape(x)[channel_axis]
+
         if block_id:
-            # Expand
             prefix = "expanded_conv_{}/".format(block_id)
+
             x = layers.Conv2D(
                 Depth()(infilters * expansion),
                 kernel_size=1,
@@ -212,6 +227,7 @@ def InvertedResBlock(
 
         if stride == 1 and infilters == filters:
             x = layers.Add(name=prefix + "Add")([shortcut, x])
+
         return x
 
     return apply
