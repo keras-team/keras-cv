@@ -18,13 +18,17 @@ is loaded, then are passed through the preprocessing layers.
 Finally, they are shown using matplotlib.
 """
 
-from examples.layers.preprocessing import demo_utils
+import demo_utils
 from keras_cv.layers.preprocessing import RandomResizedCrop
 
 
 def main():
     many_elephants = demo_utils.load_elephant_tensor(output_size=(300, 300))
-    layer = RandomResizedCrop((224, 224), (0.08, 1.0), (3.0 / 4.0, 4.0 / 3.0))
+    layer = RandomResizedCrop(
+        target_size=(224, 224),
+        crop_area_factor=(0.08, 1.0),
+        aspect_ratio_factor=(3.0 / 4.0, 4.0 / 3.0),
+    )
     augmented = layer(many_elephants)
     demo_utils.gallery_show(augmented.numpy())
 
