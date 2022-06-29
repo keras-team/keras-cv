@@ -20,8 +20,8 @@ from keras_cv.layers import regularization
 
 
 def custom_compare(obj1, obj2):
-    if isinstance(obj1, core.FactorSampler):
-        return obj1.get_config() == obj2.get_config()
+    if isinstance(obj1, (core.FactorSampler, tf.keras.layers.Layer)):
+        return config_equals(obj1.get_config(), obj2.get_config())
     else:
         return obj1 == obj2
 
