@@ -20,6 +20,7 @@ class RandomResizedCropTest(tf.test.TestCase):
     height, width = 300, 300
     batch_size = 4
     target_size = (224, 224)
+
     def test_train_augments_image(self):
         # Checks if original and augmented images are different
 
@@ -27,7 +28,9 @@ class RandomResizedCropTest(tf.test.TestCase):
         image = tf.random.uniform(shape=input_image_shape)
 
         layer = preprocessing.RandomResizedCrop(
-            target_size=self.target_size, area_factor=(0.08, 1.0)
+            target_size=self.target_size,
+            aspect_ratio_factor=(3 / 4, 4 / 3),
+            crop_area_factor=(0.8, 1.0),
         )
         output = layer(image, training=True)
 
@@ -39,8 +42,11 @@ class RandomResizedCropTest(tf.test.TestCase):
         input_image_shape = (self.batch_size, self.height, self.width, 1)
         image = tf.random.uniform(shape=input_image_shape)
 
-        layer = preprocessing.RandomResizedCrop(target_size=self.target_size,
-                                                area_factor=(0.8, 1.0))
+        layer = preprocessing.RandomResizedCrop(
+            target_size=self.target_size,
+            aspect_ratio_factor=(3 / 4, 4 / 3),
+            crop_area_factor=(0.8, 1.0),
+        )
         output = layer(image, training=True)
 
         input_image_resized = tf.image.resize(image, self.target_size)
@@ -53,7 +59,9 @@ class RandomResizedCropTest(tf.test.TestCase):
         image = tf.random.uniform(shape=image_shape)
 
         layer = preprocessing.RandomResizedCrop(
-            target_size=self.target_size, area_factor=(0.8, 1.0)
+            target_size=self.target_size,
+            aspect_ratio_factor=(3 / 4, 4 / 3),
+            crop_area_factor=(0.8, 1.0),
         )
 
         input_resized = tf.image.resize(image, self.target_size)

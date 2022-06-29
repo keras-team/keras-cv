@@ -17,7 +17,8 @@ import tensorflow as tf
 
 from keras_cv import core
 from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
-    BaseImageAugmentationLayer, )
+    BaseImageAugmentationLayer,
+)
 from keras_cv.utils import preprocessing
 
 
@@ -37,13 +38,12 @@ class RandomResizedCrop(BaseImageAugmentationLayer):
     Args:
         target_size: A tuple of two integers used as the target size to ultimately crop
             images to.
-        crop_area_factor: A tuple of two floats, a single float or
+        crop_area_factor: A tuple of two floats or
             `keras_cv.FactorSampler`. The ratio of area of the cropped part to
             that of original image is sampled using this factor. Represents the
             lower and upper bounds for the area relative to the original image
             of the cropped image before resizing it to `target_size`.
-            `target_size`.
-        aspect_ratio_factor: A tuple of two floats, a single float or
+        aspect_ratio_factor: A tuple of two floats or
             `keras_cv.FactorSampler`. Aspect ratio means the ratio of width to
             height of the cropped image. In the context of this layer, the aspect ratio
             sampled represents a value to distort the aspect ratio by.
@@ -53,6 +53,7 @@ class RandomResizedCrop(BaseImageAugmentationLayer):
             resizing. Defaults to "bilinear".
         seed: (Optional) Used to create a random seed. Defaults to None.
     """
+
     def __init__(
         self,
         target_size,
@@ -67,20 +68,38 @@ class RandomResizedCrop(BaseImageAugmentationLayer):
         self.target_size = target_size
 
         if isinstance(aspect_ratio_factor, tuple):
+            if min(aspect_ratio_factor) < 0:
+                raise ValueError(
+                    "Expected `aspect_ratio_factor` to be greater than 0."
+                    f" Received aspect_ratio_factor={aspect_ratio_factor}"
+                )
             min_aspect_ratio = min(aspect_ratio_factor)
             max_aspect_ratio = max(aspect_ratio_factor)
         elif isinstance(aspect_ratio_factor, core.FactorSampler):
-            pass
+            min_aspect_ratio = None
+            max_aspect_ratio = None
         else:
             raise ValueError(
                 "Expected `aspect_ratio` to be tuple or FactorSampler. Received "
                 f"aspect_ratio_factor={aspect_ratio_factor}."
             )
 
-        if crop_area_factor == 0.:
+        if isinstance(crop_area_factor, tuple):
+            if min(crop_area_factor) < 0 or max(crop_area_factor) > 1:
+                raise ValueError(
+                    "Expected `crop_area_factor` to be between 0 and 1."
+                    f" Received crop_area_factor={crop_area_factor}"
+                )
+            min_crop_area_factor = min(crop_area_factor)
+            max_crop_area_factor = max(crop_area_factor)
+        elif isinstance(crop_area_factor, core.FactorSampler):
+            min_crop_area_factor = None
+            max_crop_area_factor = None
+        else:
             raise ValueError(
                 "Expected `crop_area_factor` to be tuple or FactorSampler. Received "
-                f"aspect_ratio_factor={aspect_ratio_factor}.")
+                f"crop_area_factor={crop_area_factor}."
+            )
 
         self.aspect_ratio_factor = preprocessing.parse_factor(
             aspect_ratio_factor,
@@ -91,33 +110,37 @@ class RandomResizedCrop(BaseImageAugmentationLayer):
         )
         self.crop_area_factor = preprocessing.parse_factor(
             crop_area_factor,
-            max_value=1.0,
+            min_value=min_crop_area_factor,
+            max_value=max_crop_area_factor,
             param_name="crop_area_factor",
             seed=seed,
         )
 
+        if (
+            self.aspect_ratio_factor.lower == 1.0
+            and self.aspect_ratio_factor.upper == 1.0
+            and self.crop_area_factor.lower == 1.0
+            and self.crop_area_factor.upper == 1.0
+        ):
+            warnings.warn(
+                "Received `aspect_ratio_factor` and "
+                "`crop_area_factor` to be (1., 1.)."
+                "This will perform a no-op."
+            )
+
         self.interpolation = interpolation
         self.seed = seed
 
-        if crop_area_factor == 1.0 and aspect_ratio_factor == 0.0:
-            warnings.warn(
-                "RandomResizedCrop received both `crop_area_factor=0.0` and "
-                "`aspect_ratio_factor=0.0`. As a result, the layer will perform no "
-                "augmentation.")
-
-    def get_random_transformation(self,
-                                  image=None,
-                                  label=None,
-                                  bounding_box=None,
-                                  **kwargs):
+    def get_random_transformation(
+        self, image=None, label=None, bounding_box=None, **kwargs
+    ):
         crop_area_factor = self.crop_area_factor()
         aspect_ratio = self.aspect_ratio_factor()
 
         new_height = tf.clip_by_value(
-            tf.sqrt(crop_area_factor / aspect_ratio), 0.0,
-            1.0)  # to avoid unwanted/unintuitive effects
-        new_width = tf.clip_by_value(tf.sqrt(crop_area_factor * aspect_ratio), 0.0,
-                                     1.0)
+            tf.sqrt(crop_area_factor / aspect_ratio), 0.0, 1.0
+        )  # to avoid unwanted/unintuitive effects
+        new_width = tf.clip_by_value(tf.sqrt(crop_area_factor * aspect_ratio), 0.0, 1.0)
 
         height_offset = self._random_generator.random_uniform(
             (),
@@ -170,18 +193,19 @@ class RandomResizedCrop(BaseImageAugmentationLayer):
         return tf.squeeze(augmented_image, axis=0)
 
     def _resize(self, image):
-        outputs = tf.keras.preprocessing.image.smart_resize(
-            image, self.target_size)
+        outputs = tf.keras.preprocessing.image.smart_resize(image, self.target_size)
         # smart_resize will always output float32, so we need to re-cast.
         return tf.cast(outputs, self.compute_dtype)
 
     def get_config(self):
         config = super().get_config()
-        config.update({
-            "target_size": self.target_size,
-            "crop_area_factor": self.crop_area_factor,
-            "aspect_ratio_factor": self.aspect_ratio_factor,
-            "interpolation": self.interpolation,
-            "seed": self.seed,
-        })
+        config.update(
+            {
+                "target_size": self.target_size,
+                "crop_area_factor": self.crop_area_factor,
+                "aspect_ratio_factor": self.aspect_ratio_factor,
+                "interpolation": self.interpolation,
+                "seed": self.seed,
+            }
+        )
         return config
