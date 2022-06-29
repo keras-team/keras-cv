@@ -73,7 +73,9 @@ def DarknetConvBlock(
         x = layers.BatchNormalization(name=f"{name}_bn")(x)
 
         if activation == "silu":
-            x = layers.Lambda(lambda x: keras.activations.swish(x), name=f"{name}_silu")(x)
+            x = layers.Lambda(
+                lambda x: keras.activations.swish(x), name=f"{name}_silu"
+            )(x)
         elif activation == "relu":
             x = layers.ReLU(name=f"{name}_relu")(x)
         elif activation == "lrelu":
