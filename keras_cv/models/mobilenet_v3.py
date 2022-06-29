@@ -65,7 +65,8 @@ def HardSigmoid(name=None):
     """
     if name is None:
         name = f"hard_sigmoid_{backend.get_uid('hard_sigmoid')}"
-        activation = layers.ReLU(6.0)
+
+    activation = layers.ReLU(6.0)
 
     def apply(x):
         return activation(x + 3.0) * (1.0 / 6.0)
@@ -74,8 +75,17 @@ def HardSigmoid(name=None):
 
 
 def HardSwish(name=None):
+    """The Hard Swish function.
+
+    Args:
+      name: string, layer label.
+
+    Returns:
+        a function that takes an input Tensor representing a HardSwish layer.
+    """
     if name is None:
         name = f"hard_swish_{backend.get_uid('hard_swish')}"
+
     hard_sigmoid = HardSigmoid()
     multiply_layer = layers.Multiply()
 
