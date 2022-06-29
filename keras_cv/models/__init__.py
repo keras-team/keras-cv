@@ -15,3 +15,5 @@
 from keras_cv.models.densenet import DenseNet121
 from keras_cv.models.densenet import DenseNet169
 from keras_cv.models.densenet import DenseNet201
+from keras_cv.models.mobilenet_v3 import MobileNetV3Small
+from keras_cv.models.mobilenet_v3 import MobileNetV3Large
