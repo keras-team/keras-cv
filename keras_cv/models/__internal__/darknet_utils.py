@@ -58,7 +58,7 @@ def DarknetConvBlock(
     """
 
     if name is None:
-        name = f"darknet_block_{backend.get_uid('darknet_block')}"
+        name = f"darknet_block{backend.get_uid('darknet_block')}"
 
     def apply(x):
         x = layers.Conv2D(
@@ -73,7 +73,7 @@ def DarknetConvBlock(
         x = layers.BatchNormalization(name=f"{name}_bn")(x)
 
         if activation == "silu":
-            x = keras.activations.swish(x)
+            x = layers.Lambda(lambda x: keras.activations.swish(x), name=f"{name}_silu")(x)
         elif activation == "relu":
             x = layers.ReLU(name=f"{name}_relu")(x)
         elif activation == "lrelu":
@@ -98,7 +98,7 @@ def ResidualBlocks(filters, num_blocks, name=None):
     """
 
     if name is None:
-        name = f"residual_block_{backend.get_uid('residual_block')}"
+        name = f"residual_block{backend.get_uid('residual_block')}"
 
     def apply(x):
         x = DarknetConvBlock(
@@ -149,7 +149,7 @@ def SPPBottleneck(filters, kernel_sizes=(5, 9, 13), activation="silu", name=None
     """
 
     if name is None:
-        name = f"spp_{backend.get_uid('spp')}"
+        name = f"spp{backend.get_uid('spp')}"
 
     def apply(x):
         x = DarknetConvBlock(
