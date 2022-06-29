@@ -62,7 +62,7 @@ def gallery_show(images):
     plt.show()
 
 
-def load_elephant_tensor(output_size=(300,300)):
+def load_elephant_tensor(output_size=(300, 300)):
     elephants = tf.keras.utils.get_file(
         "african_elephant.jpg", "https://i.imgur.com/Bvro0YD.png"
     )

@@ -12,22 +12,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""random_resized_crop_demo.py.py shows how to use the RandomResizedCrop 
+"""random_resized_crop_demo.py.py shows how to use the RandomResizedCrop
 preprocessing layer. Operates on an image of elephant. In this script the image
 is loaded, then are passed through the preprocessing layers.
 Finally, they are shown using matplotlib.
 """
 
 from examples.layers.preprocessing import demo_utils
-import tensorflow as tf
-
 from keras_cv.layers.preprocessing import RandomResizedCrop
 
 
 def main():
-    many_elephants = demo_utils.load_elephant_tensor(output_size=(300,300))
-    layer = RandomResizedCrop((224, 224), (0.08, 1.0),
-                                            (3. / 4., 4. / 3.))
+    many_elephants = demo_utils.load_elephant_tensor(output_size=(300, 300))
+    layer = RandomResizedCrop((224, 224), (0.08, 1.0), (3.0 / 4.0, 4.0 / 3.0))
     augmented = layer(many_elephants)
     demo_utils.gallery_show(augmented.numpy())
 
