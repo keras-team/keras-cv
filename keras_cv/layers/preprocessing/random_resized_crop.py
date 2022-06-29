@@ -11,11 +11,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import warnings
 
 import tensorflow as tf
 
-from keras_cv import core
 from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
     BaseImageAugmentationLayer,
 )
@@ -71,20 +69,11 @@ class RandomResizedCrop(BaseImageAugmentationLayer):
 
         self._check_class_arguments(target_size, crop_area_factor, aspect_ratio_factor)
 
-        if isinstance(aspect_ratio_factor, tuple):
-            max_aspect_ratio = max(aspect_ratio_factor)
-        elif isinstance(aspect_ratio_factor, core.FactorSampler):
-            pass
-        else:
-            raise ValueError(
-                "Expected `aspect_ratio` to be tuple or FactorSampler. Received "
-                f"aspect_ratio_factor={aspect_ratio_factor}."
-            )
-
         self.target_size = target_size
         self.aspect_ratio_factor = preprocessing.parse_factor(
             aspect_ratio_factor,
-            max_value=max_aspect_ratio,
+            min_value=0.0,
+            max_value=None,
             param_name="aspect_ratio_factor",
             seed=seed,
         )
@@ -97,16 +86,6 @@ class RandomResizedCrop(BaseImageAugmentationLayer):
 
         self.interpolation = interpolation
         self.seed = seed
-
-        if isinstance(
-            self.aspect_ratio_factor, core.ConstantFactorSampler
-        ) and isinstance(self.crop_area_factor, core.ConstantFactorSampler):
-            warnings.warn(
-                "Received `aspect_ratio_factor` and "
-                "`crop_area_factor` to be (1., 1.)."
-                "This will perform a no-op.",
-                Warning,
-            )
 
     def get_random_transformation(
         self, image=None, label=None, bounding_box=None, **kwargs
@@ -177,66 +156,24 @@ class RandomResizedCrop(BaseImageAugmentationLayer):
     def _check_class_arguments(
         self, target_size, crop_area_factor, aspect_ratio_factor
     ):
-        if not isinstance(target_size, tuple):
+        if (
+            not isinstance(target_size, tuple)
+            or len(target_size) != 2
+            or not isinstance(target_size[0], int)
+            or not isinstance(target_size[1], int)
+        ):
             raise ValueError(
                 "`target_size` must be tuple of two integers."
                 f"Received target_size={target_size}"
-            )
-
-        if len(target_size) != 2:
-            raise ValueError(
-                "`target_size` must be tuple of two integers."
-                f"Received target_size={target_size}"
-            )
-
-        if not isinstance(target_size[0], int):
-            raise ValueError(
-                "`target_size` must be tuple of two integers."
-                f"Received target_size={target_size}"
-            )
-
-        if not isinstance(target_size[1], int):
-            raise ValueError(
-                "`target_size` must be tuple of two integers."
-                f"Received target_size={target_size}"
-            )
-
-        if isinstance(aspect_ratio_factor, core.NormalFactorSampler):
-            raise ValueError(
-                "`aspect_ratio_factor` is an instance of NormalFactorSampler."
-                "Expected `aspect_ratio_factor` to be a tuple, ConstantFactorSampler or UniformFactorSampler."
-            )
-
-        if isinstance(crop_area_factor, core.NormalFactorSampler):
-            raise ValueError(
-                "`crop_area_factor` is an instance of NormalFactorSampler."
-                "Expected `crop_area_factor` to be a tuple, ConstantFactorSampler or UniformFactorSampler."
             )
 
     def get_config(self):
-        if isinstance(self.crop_area_factor, core.ConstantFactorSampler):
-            area_lower = self.crop_area_factor.value
-            area_upper = self.crop_area_factor.value
-        else:
-            area_lower = self.crop_area_factor.lower
-            area_upper = self.crop_area_factor.upper
-
-        if isinstance(self.aspect_ratio_factor, core.ConstantFactorSampler):
-            aspect_lower = self.aspect_ratio_factor.value
-            aspect_upper = self.aspect_ratio_factor.value
-        else:
-            aspect_lower = self.aspect_ratio_factor.lower
-            aspect_upper = self.aspect_ratio_factor.upper
-
         config = super().get_config()
         config.update(
             {
                 "target_size": self.target_size,
-                "crop_area_factor": (area_lower, area_upper),
-                "aspect_ratio_factor": (
-                    aspect_lower,
-                    aspect_upper,
-                ),
+                "crop_area_factor": self.crop_area_factor,
+                "aspect_ratio_factor": self.aspect_ratio_factor,
                 "interpolation": self.interpolation,
                 "seed": self.seed,
             }

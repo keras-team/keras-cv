@@ -70,11 +70,3 @@ class RandomResizedCropTest(tf.test.TestCase):
         output = layer(image, training=False)
 
         self.assertAllClose(output, input_resized)
-
-    def test_raises_no_op_warning(self):
-        with self.assertWarns(expected_warning=Warning):
-            preprocessing.RandomResizedCrop(
-                target_size=self.target_size,
-                aspect_ratio_factor=(1.0, 1.0),
-                crop_area_factor=(1.0, 1.0),
-            )
