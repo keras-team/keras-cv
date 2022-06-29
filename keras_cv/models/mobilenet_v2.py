@@ -110,7 +110,6 @@ def CorrectPad(kernel_size, name=None):
     return apply
 
 
-
 def Depth(divisor=8, min_value=None, name=None):
     """Ensure that all layers have a channel number that is divisble by the `divisor`.
 
@@ -138,6 +137,7 @@ def Depth(divisor=8, min_value=None, name=None):
         return new_x
 
     return apply
+
 
 def InvertedResBlock(expansion, stride, alpha, filters, block_id, name=None):
     if name is None:
