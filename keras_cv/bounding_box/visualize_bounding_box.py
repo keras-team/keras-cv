@@ -24,7 +24,9 @@ def visualize_bounding_boxes_on_image(
     if bounding_box_format is None:
         raise ValueError("please specifiy bbox formar")
     else:
-        bboxes = bounding_box.convert_format(source=bounding_box_format, target="xyxy")
+        bboxes = bounding_box.convert_format(
+            boxes=bboxes, source=bounding_box_format, target="xyxy"
+        )
     fig, ax = plt.subplots()
     ax.imshow(image)
     for box in bboxes:
