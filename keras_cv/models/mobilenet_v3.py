@@ -26,15 +26,15 @@ from tensorflow.keras import layers
 channel_axis = -1
 
 BASE_DOCSTRING = """Instantiates the {name} architecture.
-    
+
     Reference:
         - [Densely Connected Convolutional Networks (CVPR 2017)](https://arxiv.org/abs/1608.06993)
-    
+
     This function returns a Keras {name} model.
-    
+
     For transfer learning use cases, make sure to read the [guide to transfer
         learning & fine-tuning](https://keras.io/guides/transfer_learning/).
-    
+
     Args:
         input_shape: optional shape tuple, defaults to (None, None, 3).
         alpha: controls the width of the network. This is known as the
@@ -74,7 +74,7 @@ BASE_DOCSTRING = """Instantiates the {name} architecture.
             inputs will be passed through a `Rescaling(scale=1.0 / 127.5, offset=-1.0)`
             layer, defaults to True.
         name: (Optional) name to pass to the model.  Defaults to "{name}".
-    
+
     Returns:
       A `keras.Model` instance.
 """
