@@ -77,3 +77,37 @@ from tensorflow.keras import backend
 from tensorflow.keras import layers
 
 
+def CorrectPad(kernel_size, name=None):
+    """Zero-padding for 2D convolution with downsampling.
+
+    Args:
+        kernel_size: an integer or tuple/list of 2 integers.
+        name: string, layer label.
+
+    Returns:
+        a function that takes an input Tensor representing a CorrectPad.
+    """
+    if name is None:
+        name = f"correct_pad_{backend.get_uid('correct_pad')}"
+
+    def apply(x):
+        img_dim = 1
+        input_size = backend.int_shape(x)[img_dim : (img_dim + 2)]
+
+        if isinstance(kernel_size, int):
+            kernel_size = (kernel_size, kernel_size)
+
+        if input_size[0] is None:
+            adjust = (1, 1)
+        else:
+            adjust = (1 - input_size[0] % 2, 1 - input_size[1] % 2)
+        correct = (kernel_size[0] // 2, kernel_size[1] // 2)
+        return (
+            (correct[0] - adjust[0], correct[0]),
+            (correct[1] - adjust[1], correct[1]),
+        )
+
+    return apply
+
+
+
