@@ -27,6 +27,14 @@ channel_axis = -1
 
 
 def Depth(divisor=8, min_value=None, name=None):
+    """Ensure that all layers have a channel number that is divisble by the `divisor`.
+
+    Args:
+      x: input tensor.
+      divisor: integer, the value by which a channel number should be divisble, defaults to 8.
+      min_value: float, minimum value for the new tensor.
+      name: string, layer label.
+    """
     if name is None:
         name = f"depth_{backend.get_uid('depth')}"
 
@@ -35,6 +43,7 @@ def Depth(divisor=8, min_value=None, name=None):
 
     def apply(x):
         new_x = max(min_value, int(x + divisor / 2) // divisor * divisor)
+
         # Make sure that round down does not go down by more than 10%.
         if new_x < 0.9 * x:
             new_x += divisor
