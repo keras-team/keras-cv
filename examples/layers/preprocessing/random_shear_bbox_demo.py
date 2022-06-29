@@ -32,19 +32,14 @@ BATCH_SIZE = 9
 def resize(inputs):
     """mapping function to create batched image and bbox coordinates"""
     inputs["image"] = tf.image.resize(inputs["image"], IMG_SIZE)[0]
-    height, width, _ = inputs["image"].shape
-    y1, x1, y2, x2 = tf.split(inputs["objects"]["bbox"][0], 4, axis=1)
     inputs["objects"]["bbox"] = tf.squeeze(
-        tf.stack(
-            [
-                x1 * (IMG_SIZE[0] / width),
-                y1 * (IMG_SIZE[1] / height),
-                x2 * (IMG_SIZE[0] / width),
-                y2 * (IMG_SIZE[1] / height),
-            ],
-            axis=1,
+        convert_format(
+            inputs["objects"]["bbox"],
+            images=inputs["image"],
+            source="rel_yxyx",
+            target="rel_xyxy",
         ),
-        axis=-1,
+        axis=0,
     )
     return inputs
 
