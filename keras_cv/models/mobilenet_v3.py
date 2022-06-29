@@ -30,7 +30,6 @@ def Depth(divisor=8, min_value=None, name=None):
     """Ensure that all layers have a channel number that is divisble by the `divisor`.
 
     Args:
-      x: input tensor.
       divisor: integer, the value by which a channel number should be divisble, defaults to 8.
       min_value: float, minimum value for the new tensor.
       name: string, layer label.
@@ -56,6 +55,14 @@ def Depth(divisor=8, min_value=None, name=None):
 
 
 def HardSigmoid(name=None):
+    """The Hard Sigmoid function.
+
+    Args:
+      name: string, layer label.
+
+    Returns:
+        a function that takes an input Tensor representing a HardSigmoid layer.
+    """
     if name is None:
         name = f"hard_sigmoid_{backend.get_uid('hard_sigmoid')}"
         activation = layers.ReLU(6.0)
