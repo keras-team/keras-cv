@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """
-Visualize bounding box demo illustrates how to use 
+Visualize bounding box demo illustrates how to use
 visualize_bounding_boxes_on_image
 """
 import numpy as np
