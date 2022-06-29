@@ -84,12 +84,12 @@ def Depth(divisor=8, min_value=None, name=None):
     """Ensure that all layers have a channel number that is divisble by the `divisor`.
 
     Args:
-      divisor: integer, the value by which a channel number should be divisble, defaults to 8.
-      min_value: float, minimum value for the new tensor.
-      name: string, layer label.
+        divisor: integer, the value by which a channel number should be divisble, defaults to 8.
+        min_value: float, minimum value for the new tensor.
+        name: string, layer label.
 
     Returns:
-      a function that takes an input Tensor representing a Depth layer.
+        a function that takes an input Tensor representing a Depth layer.
     """
     if name is None:
         name = f"depth_{backend.get_uid('depth')}"
@@ -112,10 +112,10 @@ def HardSigmoid(name=None):
     """The Hard Sigmoid function.
 
     Args:
-      name: string, layer label.
+        name: string, layer label.
 
     Returns:
-      a function that takes an input Tensor representing a HardSigmoid layer.
+        a function that takes an input Tensor representing a HardSigmoid layer.
     """
     if name is None:
         name = f"hard_sigmoid_{backend.get_uid('hard_sigmoid')}"
@@ -132,10 +132,10 @@ def HardSwish(name=None):
     """The Hard Swish function.
 
     Args:
-      name: string, layer label.
+        name: string, layer label.
 
     Returns:
-      a function that takes an input Tensor representing a HardSwish layer.
+        a function that takes an input Tensor representing a HardSwish layer.
     """
     if name is None:
         name = f"hard_swish_{backend.get_uid('hard_swish')}"
@@ -153,14 +153,18 @@ def SqueezeAndExcitationBlock(filters, se_ratio, prefix, name=None):
     """The Squeeze and Excitation block.
 
     Args:
-      filters: integer, number of input and output filters. The number of input and
-        output filters is same.
-      se_ratio: float, ratio for bottleneck filters. Number of bottleneck
-        filters = filters * se_ratio.
-      prefix: string, prefix for names of layers.
+        filters: integer, number of input and output filters. The number of input and
+            output filters is same.
+        se_ratio: float, ratio for bottleneck filters. Number of bottleneck
+            filters = filters * se_ratio.
+        prefix: string, prefix for names of layers.
 
     Returns:
-      a function that takes an input Tensor representing a SqueezeAndExcitationBlock.
+        a function that takes an input Tensor representing a SqueezeAndExcitationBlock.
+
+    Raises:
+        ValueError: if `se_ratio` is not in between 0.0 and 1.0.
+        ValueError: if `filters` is not a positive integer.
     """
     if name is None:
         name = f"se_block_{backend.get_uid('se_block')}"
@@ -210,19 +214,19 @@ def InvertedResBlock(
     """An Inverted Residual Block.
 
     Args:
-      expansion: integer, the expansion ratio, multiplied with infilters to get the
-        minimum value passed to Depth.
-      filters: integer, number of filters for convolution layer.
-      kernel_size: integer, the kernel size for DpethWise Convolutions.
-      strides: integer, the stride length for DpethWise Convolutions.
-      se_ratio: float, ratio for bottleneck filters. Number of bottleneck
-        filters = filters * se_ratio.
-      activation: the activation layer to use.
-      block_id: integer, a unique identification if you want to use expanded
-        convolutions.
+        expansion: integer, the expansion ratio, multiplied with infilters to get the
+            minimum value passed to Depth.
+        filters: integer, number of filters for convolution layer.
+        kernel_size: integer, the kernel size for DpethWise Convolutions.
+        strides: integer, the stride length for DpethWise Convolutions.
+        se_ratio: float, ratio for bottleneck filters. Number of bottleneck
+            filters = filters * se_ratio.
+        activation: the activation layer to use.
+        block_id: integer, a unique identification if you want to use expanded
+            convolutions.
 
     Returns:
-      a function that takes an input Tensor representing a InvertedResBlock.
+        a function that takes an input Tensor representing a InvertedResBlock.
     """
     if name is None:
         name = f"inverted_res_block_{backend.get_uid('inverted_res_block')}"
@@ -363,6 +367,11 @@ def MobileNetV3(
 
     Returns:
         A `keras.Model` instance.
+
+    Raises:
+        ValueError: if `weights` represents an invalid path to weights file and is not
+            None.
+        ValueError: if `include_top` is True and `classes` is not specified.
     """
     if weights and not tf.io.gfile.exists(weights):
         raise ValueError(
