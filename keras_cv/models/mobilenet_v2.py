@@ -111,3 +111,32 @@ def CorrectPad(kernel_size, name=None):
 
 
 
+def Depth(divisor=8, min_value=None, name=None):
+    """Ensure that all layers have a channel number that is divisble by the `divisor`.
+
+    Args:
+        divisor: integer, the value by which a channel number should be divisble,
+            defaults to 8.
+        min_value: float, minimum value for the new tensor.
+        name: string, layer label.
+
+    Returns:
+        a function that takes an input Tensor representing a Depth layer.
+    """
+    if name is None:
+        name = f"depth_{backend.get_uid('depth')}"
+
+    if min_value is None:
+        min_value = divisor
+
+    def apply(x):
+        new_x = max(min_value, int(x + divisor / 2) // divisor * divisor)
+
+        # Make sure that round down does not go down by more than 10%.
+        if new_x < 0.9 * x:
+            new_x += divisor
+        return new_x
+
+    return apply
+
+
