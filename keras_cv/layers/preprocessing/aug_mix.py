@@ -15,11 +15,14 @@
 import tensorflow as tf
 
 from keras_cv import layers
+from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
+    BaseImageAugmentationLayer,
+)
 from keras_cv.utils import preprocessing
 
 
 @tf.keras.utils.register_keras_serializable(package="keras_cv")
-class AugMix(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
+class AugMix(BaseImageAugmentationLayer):
     """Performs the AugMix data augmentation technique.
 
     AugMix aims to produce images with variety while preserving the

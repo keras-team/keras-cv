@@ -25,7 +25,7 @@ class FactorSampler:
     supported may vary by layer, but for most layers is the range [0, 1].
     """
 
-    def __call__(self, shape=None, dtype=tf.float32):
+    def __call__(self, shape=None, dtype="float32"):
         raise NotImplementedError(
             "FactorSampler subclasses must implement a `__call__()` method."
         )

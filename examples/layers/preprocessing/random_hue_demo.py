@@ -16,23 +16,17 @@ Operates on the oxford_flowers102 dataset.  In this script the flowers
 are loaded, then are passed through the preprocessing layers.
 Finally, they are shown using matplotlib.
 """
-import utils
+import demo_utils
+import tensorflow as tf
 
 from keras_cv.layers import preprocessing
 
 
 def main():
-    # Prepare flower dataset dataset.
-    train_ds = utils.prepare_dataset()
-
-    # Prepare augmentation layer.
+    ds = demo_utils.load_oxford_dataset()
     random_hue = preprocessing.RandomHue(factor=(0.0, 1.0), value_range=(0, 255))
-
-    # Apply augmentation.
-    train_ds = train_ds.map(lambda x, y: (random_hue(x), y))
-
-    # visualize.
-    utils.visualize_dataset(train_ds)
+    ds = ds.map(random_hue, num_parallel_calls=tf.data.AUTOTUNE)
+    demo_utils.visualize_dataset(ds)
 
 
 if __name__ == "__main__":
