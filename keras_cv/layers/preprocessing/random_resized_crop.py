@@ -157,10 +157,11 @@ class RandomResizedCrop(BaseImageAugmentationLayer):
         self, target_size, crop_area_factor, aspect_ratio_factor
     ):
         if (
-            not isinstance(target_size, tuple)
+            not isinstance(target_size, (tuple, list))
             or len(target_size) != 2
             or not isinstance(target_size[0], int)
             or not isinstance(target_size[1], int)
+            or isinstance(target_size, int)
         ):
             raise ValueError(
                 "`target_size` must be tuple of two integers."
