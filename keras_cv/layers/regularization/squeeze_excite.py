@@ -14,6 +14,7 @@
 
 import tensorflow as tf
 from tensorflow.keras import layers
+from tensorflow.keras.activations import serialize
 
 
 @tf.keras.utils.register_keras_serializable(package="keras_cv")
@@ -23,10 +24,14 @@ class SqueezeAndExciteBlock2D(layers.Layer):
     [Squeeze-and-Excitation Networks](https://arxiv.org/pdf/1709.01507.pdf).
 
     Args:
-            filters: Number of input and output filters. The number of input and
-                    output filters is same.
-            ratio: Ratio for bottleneck filters. Number of bottleneck filters =
-                    filters * ratio. Defaults to 0.25.
+        filters: Number of input and output filters. The number of input and
+                output filters is same.
+        ratio: Ratio for bottleneck filters. Number of bottleneck filters =
+                filters * ratio. Defaults to 0.25.
+        squeeze_activation: (Optional) String or function denoting activation to
+            be applied after squeeze convolution. Defaults to `relu`.
+        excite_activation: (Optional) String or function denoting activation to
+            be applied after excite convolution. Defaults to `sigmoid`.
     Usage:
 
     ```python
@@ -38,7 +43,14 @@ class SqueezeAndExciteBlock2D(layers.Layer):
     ```
     """
 
-    def __init__(self, filters, ratio=0.25, **kwargs):
+    def __init__(
+        self,
+        filters,
+        ratio=0.25,
+        squeeze_activation="relu",
+        excite_activation="sigmoid",
+        **kwargs,
+    ):
         super().__init__(**kwargs)
 
         self.filters = filters
@@ -52,13 +64,18 @@ class SqueezeAndExciteBlock2D(layers.Layer):
         self.ratio = ratio
         self.bottleneck_filters = int(self.filters * self.ratio)
 
+        self.squeeze_activation = squeeze_activation
+        self.excite_activation = excite_activation
+
         self.global_average_pool = layers.GlobalAveragePooling2D(keepdims=True)
         self.squeeze_conv = layers.Conv2D(
             self.bottleneck_filters,
             (1, 1),
-            activation="relu",
+            activation=self.squeeze_activation,
         )
-        self.excite_conv = layers.Conv2D(self.filters, (1, 1), activation="sigmoid")
+        self.excite_conv = layers.Conv2D(
+            self.filters, (1, 1), activation=self.excite_activation
+        )
 
     def call(self, inputs, training=True):
         x = self.global_average_pool(inputs)  # x: (batch_size, 1, 1, filters)
@@ -68,6 +85,22 @@ class SqueezeAndExciteBlock2D(layers.Layer):
         return x
 
     def get_config(self):
-        config = {"filters": self.filters, "ratio": self.ratio}
+        squeeze_activation_serialized = (
+            serialize(self.squeeze_activation)
+            if hasattr(self.squeeze_activation, "__call__")
+            else self.squeeze_activation
+        )
+        excite_activation_serialized = (
+            serialize(self.excite_activation)
+            if hasattr(self.squeeze_activation, "__call__")
+            else self.excite_activation
+        )
+
+        config = {
+            "filters": self.filters,
+            "ratio": self.ratio,
+            "squeeze_activation": squeeze_activation_serialized,
+            "excite_activation": excite_activation_serialized,
+        }
         base_config = super().get_config()
         return dict(list(base_config.items()) + list(config.items()))

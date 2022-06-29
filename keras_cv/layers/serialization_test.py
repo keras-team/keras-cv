@@ -130,7 +130,12 @@ class SerializationTest(tf.test.TestCase, parameterized.TestCase):
         (
             "SqueezeAndExciteBlock2D",
             regularization.SqueezeAndExciteBlock2D,
-            {"filters": 16, "ratio": 0.25},
+            {
+                "filters": 16,
+                "ratio": 0.25,
+                "squeeze_activation": tf.keras.activations.relu,
+                "excite_activation": tf.keras.activations.relu,
+            },
         ),
         (
             "DropPath",
