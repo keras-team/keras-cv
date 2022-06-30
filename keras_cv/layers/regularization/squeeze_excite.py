@@ -27,11 +27,11 @@ class SqueezeAndExciteBlock2D(layers.Layer):
             output filters is same.
         ratio: Ratio for bottleneck filters. Number of bottleneck filters =
             filters * ratio. Defaults to 0.25.
-        squeeze_activation: (Optional) String, function or tf.keras.activations.*
-            instance denoting activation to
+        squeeze_activation: (Optional) String, callable (or tf.keras.layers.Layer) or
+            tf.keras.activations.Activation instance denoting activation to
             be applied after squeeze convolution. Defaults to `relu`.
-        excite_activation: (Optional)String, function or tf.keras.activations.*
-            instance denoting activation to
+        excite_activation: (Optional) String, callable (or tf.keras.layers.Layer) or
+            tf.keras.activations.Activation instance denoting activation to
             be applied after excite convolution. Defaults to `sigmoid`.
     Usage:
 
