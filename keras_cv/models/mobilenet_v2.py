@@ -47,6 +47,7 @@ def CorrectPad(kernel_size, name=None):
 
     def apply(x):
         img_dim = 1
+        nonlocal kernel_size
         input_size = backend.int_shape(x)[img_dim : (img_dim + 2)]
 
         if isinstance(kernel_size, int):
@@ -103,7 +104,7 @@ def InvertedResBlock(expansion, stride, alpha, filters, block_id, name=None):
     pointwise_conv_filters = int(filters * alpha)
     # Ensure the number of filters on the last 1x1 convolution is divisible by
     # 8.
-    pointwise_filters = Depth(pointwise_conv_filters, 8)
+    pointwise_filters = Depth(8)(pointwise_conv_filters)
 
     batch_norm_1 = layers.BatchNormalization(
         axis=-1,
@@ -146,6 +147,7 @@ def InvertedResBlock(expansion, stride, alpha, filters, block_id, name=None):
 
     def apply(inputs):
         in_channels = backend.int_shape(inputs)[-1]
+        prefix = "block_{}_".format(block_id)
 
         x = inputs
 
@@ -183,3 +185,153 @@ def InvertedResBlock(expansion, stride, alpha, filters, block_id, name=None):
         return x
 
     return apply
+
+def MobileNetV2(input_shape=(None, None, 3),
+    alpha=1.0,
+    include_rescaling=True,
+    include_top=True,
+    weights=None,
+    pooling=None,
+    num_classes=None,
+    classifier_activation="softmax",
+    name="MobileNetV2",
+    **kwargs):
+
+    channel_axis = -1
+
+    if weights and not tf.io.gfile.exists(weights):
+        raise ValueError(
+            "The `weights` argument should be either "
+            "`None` or the path to the weights file to be loaded. "
+            f"Weights file not found at location: {weights}"
+        )
+
+    if include_top and not num_classes:
+        raise ValueError(
+            "If `include_top` is True, "
+            "you should specify `num_classes`. "
+            f"Received: num_classes={num_classes}"
+        )
+
+    input = layers.Input(shape=input_shape)
+    x = None
+
+    if include_rescaling:
+        x = layers.Rescaling(scale=1.0 / 127.5, offset=-1.0)(input)
+
+    first_block_filters = Depth(8)(32 * alpha)
+
+    if x is None:
+        x = layers.Conv2D(
+            first_block_filters,
+            kernel_size=3,
+            strides=(2, 2),
+            padding="same",
+            use_bias=False,
+            name="Conv1",
+        )(input)
+    else:
+        x = layers.Conv2D(
+            first_block_filters,
+            kernel_size=3,
+            strides=(2, 2),
+            padding="same",
+            use_bias=False,
+            name="Conv1",
+        )(x)
+
+    x = layers.BatchNormalization(
+        axis=channel_axis, epsilon=1e-3, momentum=0.999, name="bn_Conv1"
+    )(x)
+    x = layers.ReLU(6.0, name="Conv1_relu")(x)
+
+    x = InvertedResBlock(
+        filters=16, alpha=alpha, stride=1, expansion=1, block_id=0
+    )(x)
+
+    x = InvertedResBlock(
+        filters=24, alpha=alpha, stride=2, expansion=6, block_id=1
+    )(x)
+    x = InvertedResBlock(
+        filters=24, alpha=alpha, stride=1, expansion=6, block_id=2
+    )(x)
+
+    x = InvertedResBlock(
+        filters=32, alpha=alpha, stride=2, expansion=6, block_id=3
+    )(x)
+    x = InvertedResBlock(
+        filters=32, alpha=alpha, stride=1, expansion=6, block_id=4
+    )(x)
+    x = InvertedResBlock(
+        filters=32, alpha=alpha, stride=1, expansion=6, block_id=5
+    )(x)
+
+    x = InvertedResBlock(
+        filters=64, alpha=alpha, stride=2, expansion=6, block_id=6
+    )(x)
+    x = InvertedResBlock(
+        filters=64, alpha=alpha, stride=1, expansion=6, block_id=7
+    )(x)
+    x = InvertedResBlock(
+        filters=64, alpha=alpha, stride=1, expansion=6, block_id=8
+    )(x)
+    x = InvertedResBlock(
+        filters=64, alpha=alpha, stride=1, expansion=6, block_id=9
+    )(x)
+
+    x = InvertedResBlock(
+        filters=96, alpha=alpha, stride=1, expansion=6, block_id=10
+    )(x)
+    x = InvertedResBlock(
+        filters=96, alpha=alpha, stride=1, expansion=6, block_id=11
+    )(x)
+    x = InvertedResBlock(
+        filters=96, alpha=alpha, stride=1, expansion=6, block_id=12
+    )(x)
+
+    x = InvertedResBlock(
+        filters=160, alpha=alpha, stride=2, expansion=6, block_id=13
+    )(x)
+    x = InvertedResBlock(
+        filters=160, alpha=alpha, stride=1, expansion=6, block_id=14
+    )(x)
+    x = InvertedResBlock(
+        filters=160, alpha=alpha, stride=1, expansion=6, block_id=15
+    )(x)
+
+    x = InvertedResBlock(
+        filters=320, alpha=alpha, stride=1, expansion=6, block_id=16
+    )(x)
+
+    # no alpha applied to last conv as stated in the paper:
+    # if the width multiplier is greater than 1 we increase the number of output
+    # channels.
+    if alpha > 1.0:
+        last_block_filters = Depth(8)(1280 * alpha)
+    else:
+        last_block_filters = 1280
+    
+    x = layers.Conv2D(
+        last_block_filters, kernel_size=1, use_bias=False, name="Conv_1"
+    )(x)
+    x = layers.BatchNormalization(
+        axis=channel_axis, epsilon=1e-3, momentum=0.999, name="Conv_1_bn"
+    )(x)
+    x = layers.ReLU(6.0, name="out_relu")(x)
+
+    if include_top:
+        x = layers.GlobalAveragePooling2D()(x)
+        x = layers.Dense(
+            num_classes, activation=classifier_activation, name="predictions"
+        )(x)
+    elif pooling == "avg":
+        x = layers.GlobalAveragePooling2D()(x)
+    elif pooling == "max":
+        x = layers.GlobalMaxPooling2D()(x)
+
+    model = keras.Model(input, x, name=name, **kwargs)
+
+    if weights is not None:
+        model.load_weights(weights)
+
+    return model
