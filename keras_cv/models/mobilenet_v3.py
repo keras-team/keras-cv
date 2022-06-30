@@ -11,11 +11,12 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 """MobileNet v3 models for KerasCV.
 
 Reference:
-  - [Searching for MobileNetV3](https://arxiv.org/pdf/1905.02244.pdf) (ICCV 2019)
-  - [Based on the Original keras.applications MobileNetv3](https://github.com/keras-team/keras/blob/master/keras/applications/mobilenet_v3.py)
+    - [Searching for MobileNetV3](https://arxiv.org/pdf/1905.02244.pdf) (ICCV 2019)
+    - [Based on the Original keras.applications MobileNetv3](https://github.com/keras-team/keras/blob/master/keras/applications/mobilenet_v3.py)
 """
 
 import tensorflow as tf
@@ -27,8 +28,21 @@ channel_axis = -1
 
 BASE_DOCSTRING = """Instantiates the {name} architecture.
 
+    The following table describes the performance of MobileNets v3:
+    ------------------------------------------------------------------------
+    MACs stands for Multiply Adds
+    |Classification Checkpoint|MACs(M)|Parameters(M)|Top1 Accuracy|Pixel1 CPU(ms)|
+    |---|---|---|---|---|
+    | mobilenet_v3_large_1.0_224              | 217 | 5.4 |   75.6   |   51.2  |
+    | mobilenet_v3_large_0.75_224             | 155 | 4.0 |   73.3   |   39.8  |
+    | mobilenet_v3_large_minimalistic_1.0_224 | 209 | 3.9 |   72.3   |   44.1  |
+    | mobilenet_v3_small_1.0_224              | 66  | 2.9 |   68.1   |   15.8  |
+    | mobilenet_v3_small_0.75_224             | 44  | 2.4 |   65.4   |   12.8  |
+    | mobilenet_v3_small_minimalistic_1.0_224 | 65  | 2.0 |   61.9   |   12.2  |
+
     Reference:
         - [Densely Connected Convolutional Networks (CVPR 2017)](https://arxiv.org/abs/1608.06993)
+        - [Based on the Original keras.applications MobileNetv3](https://github.com/keras-team/keras/blob/master/keras/applications/mobilenet_v3.py)
 
     This function returns a Keras {name} model.
 
@@ -53,7 +67,7 @@ BASE_DOCSTRING = """Instantiates the {name} architecture.
             and 5x5 convolutions). While these models are less efficient on CPU, they
             are much more performant on GPU/DSP.
         include_top: whether to include the fully-connected layer at the top of the
-            network.  If provided, num_classes must be provided.
+            network.  If provided, `classes` must be provided.
         weights: one of `None` (random initialization), or a pretrained weight file
             path.
         classes: optional number of classes to classify images into, only to be
@@ -73,10 +87,10 @@ BASE_DOCSTRING = """Instantiates the {name} architecture.
         include_rescaling: whether or not to Rescale the inputs.If set to True,
             inputs will be passed through a `Rescaling(scale=1.0 / 127.5, offset=-1.0)`
             layer, defaults to True.
-        name: (Optional) name to pass to the model.  Defaults to "{name}".
+        name: (Optional) name to pass to the model. Defaults to "{name}".
 
     Returns:
-      A `keras.Model` instance.
+        A `keras.Model` instance.
 """
 
 
@@ -84,7 +98,8 @@ def Depth(divisor=8, min_value=None, name=None):
     """Ensure that all layers have a channel number that is divisble by the `divisor`.
 
     Args:
-        divisor: integer, the value by which a channel number should be divisble, defaults to 8.
+        divisor: integer, the value by which a channel number should be divisble,
+            defaults to 8.
         min_value: float, minimum value for the new tensor.
         name: string, layer label.
 
@@ -100,7 +115,7 @@ def Depth(divisor=8, min_value=None, name=None):
     def apply(x):
         new_x = max(min_value, int(x + divisor / 2) // divisor * divisor)
 
-        # Make sure that round down does not go down by more than 10%.
+        # make sure that round down does not go down by more than 10%.
         if new_x < 0.9 * x:
             new_x += divisor
         return new_x
@@ -158,6 +173,7 @@ def SqueezeAndExcitationBlock(filters, se_ratio, prefix, name=None):
         se_ratio: float, ratio for bottleneck filters. Number of bottleneck
             filters = filters * se_ratio.
         prefix: string, prefix for names of layers.
+        name: string, layer label.
 
     Returns:
         a function that takes an input Tensor representing a SqueezeAndExcitationBlock.
@@ -224,6 +240,7 @@ def InvertedResBlock(
         activation: the activation layer to use.
         block_id: integer, a unique identification if you want to use expanded
             convolutions.
+        name: string, layer label.
 
     Returns:
         a function that takes an input Tensor representing a InvertedResBlock.
@@ -337,7 +354,7 @@ def MobileNetV3(
             - If `alpha` = 1, default number of filters from the paper
                 are used at each layer.
         include_top: whether to include the fully-connected layer at the top of the
-            network.  If provided, num_classes must be provided.
+            network.  If provided, `classes` must be provided.
         weights: one of `None` (random initialization), or a pretrained weight file
             path.
         classes: optional number of classes to classify images into, only to be
