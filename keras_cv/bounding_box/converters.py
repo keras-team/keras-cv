@@ -209,7 +209,6 @@ def convert_format(boxes, source, target, images=None, dtype="float32"):
         dtype: the data type to use when transforming the boxes.  Defaults to
             `tf.float32`.
     """
-    boxes, images, squeeze = _format_inputs(boxes, images)
 
     source = source.lower()
     target = target.lower()
@@ -229,6 +228,8 @@ def convert_format(boxes, source, target, images=None, dtype="float32"):
     boxes = tf.cast(boxes, dtype)
     if source == target:
         return boxes
+
+    boxes, images, squeeze = _format_inputs(boxes, images)
 
     to_xyxy_fn = TO_XYXY_CONVERTERS[source]
     from_xyxy_fn = FROM_XYXY_CONVERTERS[target]

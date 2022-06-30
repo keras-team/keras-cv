@@ -46,7 +46,7 @@ boxes = {
 test_cases = [
     (f"{source}_{target}", source, target)
     for (source, target) in itertools.permutations(boxes.keys(), 2)
-]
+] + ("xyxy_xyxy", "xyxy", "xyxy")
 
 
 class ConvertersTestCase(tf.test.TestCase, parameterized.TestCase):
