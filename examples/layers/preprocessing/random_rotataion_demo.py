@@ -13,7 +13,7 @@
 # limitations under the License.
 """
    random_rotation_demo.py shows how to use the RandomRotation preprocessing layer
-   for object detection. An image is downloaded from URL, both the image and 
+   for object detection. An image is downloaded from URL, both the image and
    bounding boxes are augmented and displayed using matplotlib.
 """
 import matplotlib.patches as patches
@@ -21,6 +21,7 @@ import matplotlib.pyplot as plt
 import requests
 import tensorflow as tf
 from PIL import Image
+
 from keras_cv.layers import preprocessing
 
 IMG_SIZE = (256, 256)
@@ -50,6 +51,7 @@ def main():
     )
     bboxes = tf.convert_to_tensor([[200, 200, 400, 400], [100, 100, 300, 300]])
     visualize_bounding_boxes_on_image(image, bboxes, title="Before Augmentation")
+    # 180 degree rotation
     randomrotation = preprocessing.RandomRotation(
         factor=(0.5, 0.5),
         bounding_box_format="xyxy",
