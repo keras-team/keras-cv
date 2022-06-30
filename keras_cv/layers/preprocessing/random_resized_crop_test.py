@@ -12,11 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import tensorflow as tf
+from absl.testing import parameterized
 
 from keras_cv.layers import preprocessing
 
 
-class RandomResizedCropTest(tf.test.TestCase):
+class RandomResizedCropTest(tf.test.TestCase, parameterized.TestCase):
     height, width = 300, 300
     batch_size = 4
     target_size = (224, 224)
@@ -70,3 +71,54 @@ class RandomResizedCropTest(tf.test.TestCase):
         output = layer(image, training=False)
 
         self.assertAllClose(output, input_resized)
+
+    @parameterized.named_parameters(
+        ("Not tuple or list", dict()),
+        ("Length not equal to 2", [1, 2, 3]),
+        ("Members not int", (2.3, 4.5)),
+        ("Single integer", 5),
+    )
+    def test_target_size_errors(self, target_size):
+        with self.assertRaisesRegex(
+            ValueError,
+            "`target_size` must be tuple of two integers. Received target_size=(.*)",
+        ):
+            _ = preprocessing.RandomResizedCrop(
+                target_size=target_size,
+                aspect_ratio_factor=(3 / 4, 4 / 3),
+                crop_area_factor=(0.8, 1.0),
+            )
+
+    @parameterized.named_parameters(
+        ("Not tuple or list", dict()),
+        ("Single integer", 5),
+        ("Single float", 5.0),
+    )
+    def test_aspect_ratio_factor_errors(self, aspect_ratio_factor):
+        with self.assertRaisesRegex(
+            ValueError,
+            "`aspect_ratio_factor` must be tuple of two positive floats or keras_cv.core.FactorSampler instance. "
+            "Received aspect_ratio_factor=(.*)",
+        ):
+            _ = preprocessing.RandomResizedCrop(
+                target_size=(224, 224),
+                aspect_ratio_factor=aspect_ratio_factor,
+                crop_area_factor=(0.8, 1.0),
+            )
+
+    @parameterized.named_parameters(
+        ("Not tuple or list", dict()),
+        ("Single integer", 5),
+        ("Single float", 5.0),
+    )
+    def test_crop_area_factor_errors(self, crop_area_factor):
+        with self.assertRaisesRegex(
+            ValueError,
+            "`crop_area_factor` must be tuple of two positive floats less than or equal to 1 or keras_cv.core.FactorSampler instance. "
+            "Received crop_area_factor=(.*)",
+        ):
+            _ = preprocessing.RandomResizedCrop(
+                target_size=(224, 224),
+                aspect_ratio_factor=(3 / 4, 4 / 3),
+                crop_area_factor=crop_area_factor,
+            )

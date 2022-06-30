@@ -14,6 +14,7 @@
 
 import tensorflow as tf
 
+from keras_cv import core
 from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
     BaseImageAugmentationLayer,
 )
@@ -164,8 +165,28 @@ class RandomResizedCrop(BaseImageAugmentationLayer):
             or isinstance(target_size, int)
         ):
             raise ValueError(
-                "`target_size` must be tuple of two integers."
+                "`target_size` must be tuple of two integers. "
                 f"Received target_size={target_size}"
+            )
+
+        if (
+            not isinstance(crop_area_factor, (tuple, list, core.FactorSampler))
+            or isinstance(crop_area_factor, float)
+            or isinstance(crop_area_factor, int)
+        ):
+            raise ValueError(
+                "`crop_area_factor` must be tuple of two positive floats less than or equal to 1 or keras_cv.core.FactorSampler instance. "
+                f"Received crop_area_factor={crop_area_factor}"
+            )
+
+        if (
+            not isinstance(aspect_ratio_factor, (tuple, list, core.FactorSampler))
+            or isinstance(aspect_ratio_factor, float)
+            or isinstance(aspect_ratio_factor, int)
+        ):
+            raise ValueError(
+                "`aspect_ratio_factor` must be tuple of two positive floats or keras_cv.core.FactorSampler instance. "
+                f"Received aspect_ratio_factor={aspect_ratio_factor}"
             )
 
     def get_config(self):
