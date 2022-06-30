@@ -98,7 +98,7 @@ def Depth(divisor=8, min_value=None, name=None):
 def InvertedResBlock(expansion, stride, alpha, filters, block_id, name=None):
 
     """An Inverted Residual Block.
-    
+
     Args:
         expansion: integer, the expansion ratio, multiplied with `filters` to get the
             minimum value passed to Depth.
@@ -110,7 +110,7 @@ def InvertedResBlock(expansion, stride, alpha, filters, block_id, name=None):
         name: string, layer label.
 
     Returns:
-        a function that takes an input Tensor representing a InvertedResBlock.    
+        a function that takes an input Tensor representing a InvertedResBlock.
     """
     if name is None:
         name = f"inverted_res_block_{backend.get_uid('inverted_res_block')}"
@@ -202,7 +202,9 @@ def InvertedResBlock(expansion, stride, alpha, filters, block_id, name=None):
 
     return apply
 
-def MobileNetV2(input_shape=(None, None, 3),
+
+def MobileNetV2(
+    input_shape=(None, None, 3),
     alpha=1.0,
     include_rescaling=True,
     include_top=True,
@@ -211,20 +213,21 @@ def MobileNetV2(input_shape=(None, None, 3),
     num_classes=None,
     classifier_activation="softmax",
     name="MobileNetV2",
-    **kwargs):
+    **kwargs,
+):
     """Instantiates the MobileNetV2 architecture.
-    
+
     References:
         - [MobileNetV2: Inverted Residuals and Linear Bottlenecks](
             https://arxiv.org/abs/1801.04381) (CVPR 2018)
         - [Based on the Original keras.applications MobileNetv2](
             https://github.com/keras-team/keras/blob/master/keras/applications/mobilenet_v2.py)
-    
+
     This function returns a Keras MobileNetV3 model.
-    
+
     For transfer learning use cases, make sure to read the [guide to transfer
         learning & fine-tuning](https://keras.io/guides/transfer_learning/).
-    
+
     Args:
         alpha: controls the width of the network. This is known as the
             depth multiplier in the MobileNetV3 paper, but the name is kept for
@@ -249,7 +252,7 @@ def MobileNetV2(input_shape=(None, None, 3),
             - `avg` means that global average pooling will be applied to the output
                 of the last convolutional block, and thus the output of the model will
                 be a 2D tensor.
-            - `max` means that global max pooling will be applied. 
+            - `max` means that global max pooling will be applied.
         num_classes: optional number of classes to classify images into, only to be
             specified if `include_top` is True, and if no `weights` argument is
             specified.
@@ -313,63 +316,37 @@ def MobileNetV2(input_shape=(None, None, 3),
     )(x)
     x = layers.ReLU(6.0, name="Conv1_relu")(x)
 
-    x = InvertedResBlock(
-        filters=16, alpha=alpha, stride=1, expansion=1, block_id=0
-    )(x)
+    x = InvertedResBlock(filters=16, alpha=alpha, stride=1, expansion=1, block_id=0)(x)
 
-    x = InvertedResBlock(
-        filters=24, alpha=alpha, stride=2, expansion=6, block_id=1
-    )(x)
-    x = InvertedResBlock(
-        filters=24, alpha=alpha, stride=1, expansion=6, block_id=2
-    )(x)
+    x = InvertedResBlock(filters=24, alpha=alpha, stride=2, expansion=6, block_id=1)(x)
+    x = InvertedResBlock(filters=24, alpha=alpha, stride=1, expansion=6, block_id=2)(x)
 
-    x = InvertedResBlock(
-        filters=32, alpha=alpha, stride=2, expansion=6, block_id=3
-    )(x)
-    x = InvertedResBlock(
-        filters=32, alpha=alpha, stride=1, expansion=6, block_id=4
-    )(x)
-    x = InvertedResBlock(
-        filters=32, alpha=alpha, stride=1, expansion=6, block_id=5
-    )(x)
+    x = InvertedResBlock(filters=32, alpha=alpha, stride=2, expansion=6, block_id=3)(x)
+    x = InvertedResBlock(filters=32, alpha=alpha, stride=1, expansion=6, block_id=4)(x)
+    x = InvertedResBlock(filters=32, alpha=alpha, stride=1, expansion=6, block_id=5)(x)
 
-    x = InvertedResBlock(
-        filters=64, alpha=alpha, stride=2, expansion=6, block_id=6
-    )(x)
-    x = InvertedResBlock(
-        filters=64, alpha=alpha, stride=1, expansion=6, block_id=7
-    )(x)
-    x = InvertedResBlock(
-        filters=64, alpha=alpha, stride=1, expansion=6, block_id=8
-    )(x)
-    x = InvertedResBlock(
-        filters=64, alpha=alpha, stride=1, expansion=6, block_id=9
-    )(x)
+    x = InvertedResBlock(filters=64, alpha=alpha, stride=2, expansion=6, block_id=6)(x)
+    x = InvertedResBlock(filters=64, alpha=alpha, stride=1, expansion=6, block_id=7)(x)
+    x = InvertedResBlock(filters=64, alpha=alpha, stride=1, expansion=6, block_id=8)(x)
+    x = InvertedResBlock(filters=64, alpha=alpha, stride=1, expansion=6, block_id=9)(x)
 
-    x = InvertedResBlock(
-        filters=96, alpha=alpha, stride=1, expansion=6, block_id=10
-    )(x)
-    x = InvertedResBlock(
-        filters=96, alpha=alpha, stride=1, expansion=6, block_id=11
-    )(x)
-    x = InvertedResBlock(
-        filters=96, alpha=alpha, stride=1, expansion=6, block_id=12
-    )(x)
+    x = InvertedResBlock(filters=96, alpha=alpha, stride=1, expansion=6, block_id=10)(x)
+    x = InvertedResBlock(filters=96, alpha=alpha, stride=1, expansion=6, block_id=11)(x)
+    x = InvertedResBlock(filters=96, alpha=alpha, stride=1, expansion=6, block_id=12)(x)
 
-    x = InvertedResBlock(
-        filters=160, alpha=alpha, stride=2, expansion=6, block_id=13
-    )(x)
-    x = InvertedResBlock(
-        filters=160, alpha=alpha, stride=1, expansion=6, block_id=14
-    )(x)
-    x = InvertedResBlock(
-        filters=160, alpha=alpha, stride=1, expansion=6, block_id=15
-    )(x)
+    x = InvertedResBlock(filters=160, alpha=alpha, stride=2, expansion=6, block_id=13)(
+        x
+    )
+    x = InvertedResBlock(filters=160, alpha=alpha, stride=1, expansion=6, block_id=14)(
+        x
+    )
+    x = InvertedResBlock(filters=160, alpha=alpha, stride=1, expansion=6, block_id=15)(
+        x
+    )
 
-    x = InvertedResBlock(
-        filters=320, alpha=alpha, stride=1, expansion=6, block_id=16
-    )(x)
+    x = InvertedResBlock(filters=320, alpha=alpha, stride=1, expansion=6, block_id=16)(
+        x
+    )
 
     # no alpha applied to last conv as stated in the paper:
     # if the width multiplier is greater than 1 we increase the number of output
@@ -378,10 +355,10 @@ def MobileNetV2(input_shape=(None, None, 3),
         last_block_filters = Depth(8)(1280 * alpha)
     else:
         last_block_filters = 1280
-    
-    x = layers.Conv2D(
-        last_block_filters, kernel_size=1, use_bias=False, name="Conv_1"
-    )(x)
+
+    x = layers.Conv2D(last_block_filters, kernel_size=1, use_bias=False, name="Conv_1")(
+        x
+    )
     x = layers.BatchNormalization(
         axis=channel_axis, epsilon=1e-3, momentum=0.999, name="Conv_1_bn"
     )(x)
