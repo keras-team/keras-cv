@@ -164,7 +164,7 @@ class RandomResizedCrop(BaseImageAugmentationLayer):
             or isinstance(target_size, int)
         ):
             raise ValueError(
-                "`target_size` must be tuple of two integers."
+                "`target_size` must be tuple of two integers. "
                 f"Received target_size={target_size}"
             )
 
