@@ -62,7 +62,6 @@ class ConvertersTestCase(tf.test.TestCase, parameterized.TestCase):
             target_box,
         )
 
-
     @parameterized.named_parameters(*test_cases)
     def test_converters_unbatched(self, source, target):
         source_box = boxes[source][0]
@@ -76,19 +75,16 @@ class ConvertersTestCase(tf.test.TestCase, parameterized.TestCase):
         )
 
     def test_raises_with_different_image_rank(self):
-        source_box = boxes['xyxy'][0]
+        source_box = boxes["xyxy"][0]
         with self.assertRaises(ValueError):
             bounding_box.convert_format(
-                source_box, source='xyxy', target='xywh', images=images
+                source_box, source="xyxy", target="xywh", images=images
             )
 
-
     def test_without_images(self):
-        source_box = boxes['xyxy']
-        target_box = boxes['xywh']
+        source_box = boxes["xyxy"]
+        target_box = boxes["xywh"]
         self.assertAllClose(
-            bounding_box.convert_format(
-                source_box, source='xyxy', target='xywh'
-            ),
+            bounding_box.convert_format(source_box, source="xyxy", target="xywh"),
             target_box,
         )

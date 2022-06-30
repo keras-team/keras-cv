@@ -246,6 +246,7 @@ def convert_format(boxes, source, target, images=None, dtype="float32"):
 
     return _format_outputs(result, squeeze)
 
+
 def _format_inputs(boxes, images):
     boxes_rank = len(boxes.shape)
     if boxes_rank > 3:
@@ -276,6 +277,7 @@ def _format_inputs(boxes, images):
     if not boxes_includes_batch:
         return tf.expand_dims(boxes, axis=0), images, True
     return boxes, images, False
+
 
 def _format_outputs(boxes, squeeze):
     if squeeze:
