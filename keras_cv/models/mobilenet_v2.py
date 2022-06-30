@@ -96,6 +96,22 @@ def Depth(divisor=8, min_value=None, name=None):
 
 
 def InvertedResBlock(expansion, stride, alpha, filters, block_id, name=None):
+
+    """An Inverted Residual Block.
+    
+    Args:
+        expansion: integer, the expansion ratio, multiplied with `filters` to get the
+            minimum value passed to Depth.
+        stride: integer, the stride length for DpethWise Convolutions.
+        alpha: float, scaling for the pointwise convolution filters.
+        filters: int, number of filters.
+        block_id: integer, a unique identification if you want to use expanded
+            convolutions.
+        name: string, layer label.
+
+    Returns:
+        a function that takes an input Tensor representing a InvertedResBlock.    
+    """
     if name is None:
         name = f"inverted_res_block_{backend.get_uid('inverted_res_block')}"
 
