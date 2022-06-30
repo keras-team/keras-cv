@@ -18,11 +18,13 @@ from absl.testing import parameterized
 from tensorflow.keras import backend
 
 from keras_cv.models import densenet
+from keras_cv.models import mobilenet_v2
 
 MODEL_LIST = [
     (densenet.DenseNet121, 1024),
     (densenet.DenseNet169, 1664),
     (densenet.DenseNet201, 1920),
+    (mobilenet_v2.MobileNetV2, 1280),
 ]
 
 
@@ -40,7 +42,7 @@ class ApplicationsTest(tf.test.TestCase, parameterized.TestCase):
             include_rescaling=False,
             weights=None,
         )
-        # Can be serialized and deserialized
+        # Can be serialized and desericlalized
         config = model.get_config()
         reconstructed_model = model.__class__.from_config(config)
         self.assertEqual(len(model.weights), len(reconstructed_model.weights))
