@@ -21,7 +21,6 @@ from tensorflow.keras.layers import RandomContrast
 from tensorflow.keras.layers import RandomCrop
 from tensorflow.keras.layers import RandomFlip
 from tensorflow.keras.layers import RandomHeight
-from tensorflow.keras.layers import RandomRotation
 from tensorflow.keras.layers import RandomTranslation
 from tensorflow.keras.layers import RandomWidth
 from tensorflow.keras.layers import RandomZoom
@@ -57,6 +56,7 @@ from keras_cv.layers.preprocessing.random_gaussian_blur import RandomGaussianBlu
 from keras_cv.layers.preprocessing.random_hue import RandomHue
 from keras_cv.layers.preprocessing.random_jpeg_quality import RandomJpegQuality
 from keras_cv.layers.preprocessing.random_resized_crop import RandomResizedCrop
+from keras_cv.layers.preprocessing.random_rotation import RandomRotation
 from keras_cv.layers.preprocessing.random_saturation import RandomSaturation
 from keras_cv.layers.preprocessing.random_sharpness import RandomSharpness
 from keras_cv.layers.preprocessing.random_shear import RandomShear
