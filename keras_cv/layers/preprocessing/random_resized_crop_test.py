@@ -88,3 +88,39 @@ class RandomResizedCropTest(tf.test.TestCase, parameterized.TestCase):
                 aspect_ratio_factor=(3 / 4, 4 / 3),
                 crop_area_factor=(0.8, 1.0),
             )
+
+    @parameterized.named_parameters(
+        ("Not tuple or list", dict()),
+        ("Length not equal to 2", [1, 2, 3]),
+        ("Single integer", 5),
+        ("Single float", 5.0),
+    )
+    def test_aspect_ratio_factor_errors(self, aspect_ratio_factor):
+        with self.assertRaisesRegex(
+                ValueError,
+                "`aspect_ratio_factor` must be tuple of two positive floats. "
+                "Received aspect_ratio_factor=(.*)",
+        ):
+            _ = preprocessing.RandomResizedCrop(
+                target_size=(224, 224),
+                aspect_ratio_factor=aspect_ratio_factor,
+                crop_area_factor=(0.8, 1.0),
+            )
+
+    @parameterized.named_parameters(
+        ("Not tuple or list", dict()),
+        ("Length not equal to 2", [1, 2, 3]),
+        ("Single integer", 5),
+        ("Single float", 5.0),
+    )
+    def test_crop_area_factor_errors(self, crop_area_factor):
+        with self.assertRaisesRegex(
+                ValueError,
+                "`crop_area_factor` must be tuple of two positive floats less than or equal to 1. "
+                "Received crop_area_factor=(.*)",
+        ):
+            _ = preprocessing.RandomResizedCrop(
+                target_size=(224, 224),
+                aspect_ratio_factor=(3 / 4, 4 / 3),
+                crop_area_factor=crop_area_factor,
+            )
