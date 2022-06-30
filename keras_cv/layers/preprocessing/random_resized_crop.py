@@ -168,16 +168,25 @@ class RandomResizedCrop(BaseImageAugmentationLayer):
                 f"Received target_size={target_size}"
             )
 
-        if (not isinstance(crop_area_factor, (tuple, list)) or len(crop_area_factor) != 2
-                or isinstance(crop_area_factor, float)):
-            raise ValueError("`crop_area_factor` must be tuple of two positive floats less than or equal to 1. "
-                             f"Received crop_area_factor={crop_area_factor}")
+        if (
+            not isinstance(crop_area_factor, (tuple, list))
+            or len(crop_area_factor) != 2
+            or isinstance(crop_area_factor, float)
+        ):
+            raise ValueError(
+                "`crop_area_factor` must be tuple of two positive floats less than or equal to 1. "
+                f"Received crop_area_factor={crop_area_factor}"
+            )
 
-        if (not isinstance(aspect_ratio_factor, (tuple, list)) or len(aspect_ratio_factor) != 2
-                or isinstance(aspect_ratio_factor, float)):
-            raise ValueError("`aspect_ratio_factor` must be tuple of two positive floats. "
-                             f"Received aspect_ratio_factor={aspect_ratio_factor}")
-
+        if (
+            not isinstance(aspect_ratio_factor, (tuple, list))
+            or len(aspect_ratio_factor) != 2
+            or isinstance(aspect_ratio_factor, float)
+        ):
+            raise ValueError(
+                "`aspect_ratio_factor` must be tuple of two positive floats. "
+                f"Received aspect_ratio_factor={aspect_ratio_factor}"
+            )
 
     def get_config(self):
         config = super().get_config()
