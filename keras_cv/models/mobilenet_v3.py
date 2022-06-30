@@ -14,7 +14,7 @@
 
 """MobileNet v3 models for KerasCV.
 
-Reference:
+References:
     - [Searching for MobileNetV3](https://arxiv.org/pdf/1905.02244.pdf) (ICCV 2019)
     - [Based on the Original keras.applications MobileNetv3](https://github.com/keras-team/keras/blob/master/keras/applications/mobilenet_v3.py)
 """
@@ -40,7 +40,7 @@ BASE_DOCSTRING = """Instantiates the {name} architecture.
     | mobilenet_v3_small_0.75_224             | 44  | 2.4 |   65.4   |   12.8  |
     | mobilenet_v3_small_minimalistic_1.0_224 | 65  | 2.0 |   61.9   |   12.2  |
 
-    Reference:
+    References:
         - [Densely Connected Convolutional Networks (CVPR 2017)](https://arxiv.org/abs/1608.06993)
         - [Based on the Original keras.applications MobileNetv3](https://github.com/keras-team/keras/blob/master/keras/applications/mobilenet_v3.py)
 
@@ -234,7 +234,7 @@ def InvertedResBlock(
             minimum value passed to Depth.
         filters: integer, number of filters for convolution layer.
         kernel_size: integer, the kernel size for DpethWise Convolutions.
-        strides: integer, the stride length for DpethWise Convolutions.
+        stride: integer, the stride length for DpethWise Convolutions.
         se_ratio: float, ratio for bottleneck filters. Number of bottleneck
             filters = filters * se_ratio.
         activation: the activation layer to use.
@@ -331,8 +331,9 @@ def MobileNetV3(
 ):
     """Instantiates the MobileNetV3 architecture.
 
-    Reference:
+    References:
         - [Searching for MobileNetV3](https://arxiv.org/pdf/1905.02244.pdf) (ICCV 2019)
+        - [Based on the Original keras.applications MobileNetv3](https://github.com/keras-team/keras/blob/master/keras/applications/mobilenet_v3.py)
 
     This function returns a Keras MobileNetV3 model.
 
