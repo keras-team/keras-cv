@@ -209,10 +209,9 @@ def convert_format(boxes, source, target, images=None, dtype="float32"):
         dtype: the data type to use when transforming the boxes.  Defaults to
             `tf.float32`.
     """
-    boxes, images, squeeze = _format_inputs(boxes, images)
-
     source = source.lower()
     target = target.lower()
+
     if source not in TO_XYXY_CONVERTERS:
         raise ValueError(
             f"`convert_format()` received an unsupported format for the argument "
@@ -226,9 +225,12 @@ def convert_format(boxes, source, target, images=None, dtype="float32"):
             f"Got target={target}"
         )
 
-    boxes = tf.cast(boxes, dtype)
     if source == target:
         return boxes
+
+    boxes, images, squeeze = _format_inputs(boxes, images)
+
+    boxes = tf.cast(boxes, dtype)
 
     to_xyxy_fn = TO_XYXY_CONVERTERS[source]
     from_xyxy_fn = FROM_XYXY_CONVERTERS[target]
@@ -248,6 +250,7 @@ def convert_format(boxes, source, target, images=None, dtype="float32"):
 
 
 def _format_inputs(boxes, images):
+    print('boxes.shape', boxes.shape)
     boxes_rank = len(boxes.shape)
     if boxes_rank > 3:
         raise ValueError(
@@ -255,6 +258,9 @@ def _format_inputs(boxes, images):
             f"len(boxes.shape)={boxes_rank}"
         )
     boxes_includes_batch = boxes_rank == 3
+
+    if not boxes_includes_batch:
+        boxes = tf.expand_dims(boxes, axis=0)
     # Determine if images needs an expand_dims() call
     if images is not None:
         images_rank = len(images.shape)
@@ -273,13 +279,11 @@ def _format_inputs(boxes, images):
             )
         if not images_include_batch:
             images = tf.expand_dims(images, axis=0)
+    return boxes, images, not boxes_includes_batch
 
-    if not boxes_includes_batch:
-        return tf.expand_dims(boxes, axis=0), images, True
-    return boxes, images, False
-
-
-def _format_outputs(boxes, squeeze):
-    if squeeze:
+def _format_outputs(boxes, unbatched):
+    print('unbatched', unbatched)
+    print('boxes.shape', boxes.shape)
+    if unbatched:
         return tf.squeeze(boxes, axis=0)
     return boxes

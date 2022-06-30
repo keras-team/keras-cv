@@ -251,6 +251,10 @@ class BaseImageAugmentationLayer(tf.keras.__internal__.layers.BaseRandomLayer):
             )
             result[LABELS] = label
         if bounding_boxes is not None:
+            if 'boxes' not in bounding_boxes:
+                raise ValueError("Expected `bounding_boxes` to be a dictionary containing "
+                "key 'boxes'.  For example, {'boxes': boxes}. "
+                f"Got bounding_boxes={bounding_boxes}.")
             bounding_boxes = self.augment_bounding_boxes(
                 bounding_boxes,
                 transformation=transformation,

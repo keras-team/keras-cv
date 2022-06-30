@@ -55,18 +55,19 @@ class RandomRotationTest(tf.test.TestCase):
         expected_output = np.reshape(expected_output, (5, 5, 1))
         self.assertAllClose(expected_output, output_image)
 
-    def test_augment_bbox_dict_input(self):
+    def test_augment_bounding_box_dict_input(self):
         input_image = np.random.random((512, 512, 3)).astype(np.float32)
-        bboxes = tf.convert_to_tensor([[200, 200, 400, 400], [100, 100, 300, 300]])
-        input = {"images": input_image, "bounding_boxes": bboxes}
+        boxes = tf.convert_to_tensor([[200, 200, 400, 400], [100, 100, 300, 300]])
+        classes = tf.constant([0, 1])
+        input = {"images": input_image, "bounding_boxes": {'boxes': boxes, 'classes': classes}}
         # 180 rotation.
         layer = RandomRotation(factor=(0.5, 0.5), bounding_box_format="xyxy")
-        output_bbox = layer(input)
+        output_bounding_box = layer(input)
         expected_output = np.asarray(
             [[112.0, 112.0, 312.0, 312.0], [212.0, 212.0, 412.0, 412.0]],
         )
-        expected_output = np.reshape(expected_output, (2, 4))
-        self.assertAllClose(expected_output, output_bbox["bounding_boxes"])
+        expected_output = {'boxes': np.reshape(expected_output, (2, 4)), 'classes': classes}
+        self.assertAllClose(expected_output, output_bounding_box["bounding_boxes"])
 
     def test_output_dtypes(self):
         inputs = np.array([[[1], [2]], [[3], [4]]], dtype="float64")

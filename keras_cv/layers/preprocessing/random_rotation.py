@@ -137,8 +137,9 @@ class RandomRotation(BaseImageAugmentationLayer):
         return output
 
     def augment_bounding_boxes(self, bounding_boxes, transformation, **kwargs):
-        image = None
-        image = kwargs.get("image")
+        image = kwargs.get("image", None)
+
+        boxes = bounding_boxes['boxes']
         if self.bounding_box_format is None:
             raise ValueError(
                 "`RandomRotation()` was called with bounding boxes,"
@@ -147,10 +148,13 @@ class RandomRotation(BaseImageAugmentationLayer):
                 "`RandomRotation(bounding_box_format='xyxy')`"
             )
         else:
-            bounding_boxes = bounding_box.convert_format(
-                bounding_boxes, source=self.bounding_box_format, target="xyxy"
+            boxes = bounding_box.convert_format(
+                boxes,
+                source=self.bounding_box_format,
+                target="xyxy",
+                images=image,
             )
-        image = tf.expand_dims(image, 0)
+        image = tf.expand_dims(image, axis=0)
         image_shape = tf.shape(image)
         h = image_shape[H_AXIS]
         w = image_shape[W_AXIS]
@@ -162,10 +166,10 @@ class RandomRotation(BaseImageAugmentationLayer):
         # calculate coordinates of all four corners of the bounding box
         point = tf.stack(
             [
-                tf.stack([bounding_boxes[:, 0], bounding_boxes[:, 1]], axis=1),
-                tf.stack([bounding_boxes[:, 2], bounding_boxes[:, 1]], axis=1),
-                tf.stack([bounding_boxes[:, 2], bounding_boxes[:, 3]], axis=1),
-                tf.stack([bounding_boxes[:, 0], bounding_boxes[:, 3]], axis=1),
+                tf.stack([boxes[:, 0], boxes[:, 1]], axis=1),
+                tf.stack([boxes[:, 2], boxes[:, 1]], axis=1),
+                tf.stack([boxes[:, 2], boxes[:, 3]], axis=1),
+                tf.stack([boxes[:, 0], boxes[:, 3]], axis=1),
             ],
             axis=1,
         )
@@ -200,15 +204,16 @@ class RandomRotation(BaseImageAugmentationLayer):
         # format
         min_cordinates = tf.math.reduce_min(out, axis=1)
         max_cordinates = tf.math.reduce_max(out, axis=1)
-        bounding_boxes_out = tf.concat([min_cordinates, max_cordinates], axis=1)
+        boxes_out = tf.concat([min_cordinates, max_cordinates], axis=1)
         # cordinates cannot be float values, it is casted to int32
-        bounding_boxes_out = bounding_box.convert_format(
-            bounding_boxes_out,
+        boxes_out = bounding_box.convert_format(
+            boxes_out,
             source="xyxy",
             target=self.bounding_box_format,
             dtype=self.compute_dtype,
         )
-        return bounding_boxes_out
+        bounding_boxes['boxes'] = boxes_out
+        return bounding_boxes
 
     def augment_label(self, label, transformation, **kwargs):
         return label

@@ -46,7 +46,7 @@ boxes = {
 test_cases = [
     (f"{source}_{target}", source, target)
     for (source, target) in itertools.permutations(boxes.keys(), 2)
-]
+] + [("xyxy_xyxy", 'xyxy', 'xyxy')]
 
 
 class ConvertersTestCase(tf.test.TestCase, parameterized.TestCase):
@@ -66,11 +66,12 @@ class ConvertersTestCase(tf.test.TestCase, parameterized.TestCase):
     def test_converters_unbatched(self, source, target):
         source_box = boxes[source][0]
         target_box = boxes[target][0]
-
+        result = bounding_box.convert_format(
+            source_box, source=source, target=target, images=images[0]
+        )
+        self.assertEqual(len(result.shape), 2)
         self.assertAllClose(
-            bounding_box.convert_format(
-                source_box, source=source, target=target, images=images[0]
-            ),
+            result,
             target_box,
         )
 
