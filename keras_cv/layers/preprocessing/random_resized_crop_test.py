@@ -91,7 +91,6 @@ class RandomResizedCropTest(tf.test.TestCase, parameterized.TestCase):
 
     @parameterized.named_parameters(
         ("Not tuple or list", dict()),
-        ("Length not equal to 2", [1, 2, 3]),
         ("Single integer", 5),
         ("Single float", 5.0),
     )
@@ -109,7 +108,6 @@ class RandomResizedCropTest(tf.test.TestCase, parameterized.TestCase):
 
     @parameterized.named_parameters(
         ("Not tuple or list", dict()),
-        ("Length not equal to 2", [1, 2, 3]),
         ("Single integer", 5),
         ("Single float", 5.0),
     )
