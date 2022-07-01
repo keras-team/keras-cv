@@ -97,7 +97,11 @@ def ResidualBlocks(filters, num_blocks, name=None):
 
     def apply(x):
         x = DarknetConvBlock(
-            filters, kernel_size=3, strides=2, activation="leaky_relu", name=f"{name}_conv1"
+            filters,
+            kernel_size=3,
+            strides=2,
+            activation="leaky_relu",
+            name=f"{name}_conv1",
         )(x)
 
         for i in range(1, num_blocks + 1):

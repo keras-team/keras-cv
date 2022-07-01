@@ -162,17 +162,33 @@ def DarkNet(
         x
     )
     x = DarknetConvBlock(
-        filters=512, kernel_size=1, strides=1, activation="leaky_relu", name="dark5_conv1"
+        filters=512,
+        kernel_size=1,
+        strides=1,
+        activation="leaky_relu",
+        name="dark5_conv1",
     )(x)
     x = DarknetConvBlock(
-        filters=1024, kernel_size=3, strides=1, activation="leaky_relu", name="dark5_conv2"
+        filters=1024,
+        kernel_size=3,
+        strides=1,
+        activation="leaky_relu",
+        name="dark5_conv2",
     )(x)
     x = SPPBottleneck(512, activation="leaky_relu", name="dark5_spp")(x)
     x = DarknetConvBlock(
-        filters=1024, kernel_size=3, strides=1, activation="leaky_relu", name="dark5_conv3"
+        filters=1024,
+        kernel_size=3,
+        strides=1,
+        activation="leaky_relu",
+        name="dark5_conv3",
     )(x)
     x = DarknetConvBlock(
-        filters=512, kernel_size=1, strides=1, activation="leaky_relu", name="dark5_conv4"
+        filters=512,
+        kernel_size=1,
+        strides=1,
+        activation="leaky_relu",
+        name="dark5_conv4",
     )(x)
 
     if include_top:
