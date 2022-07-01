@@ -27,7 +27,6 @@ def DarknetConvBlock(
     filters,
     kernel_size,
     strides,
-    groups=1,
     use_bias=False,
     activation="silu",
     name=None,
@@ -43,11 +42,6 @@ def DarknetConvBlock(
         strides: An integer or tuple/list of 2 integers, specifying the strides of
             the convolution along the height and width. Can be a single integer to
             the same value both dimensions.
-        groups: A positive integer specifying the number of groups in which the
-            input is split along the channel axis. Each group is convolved separately
-            with `filters / groups` filters. The output is the concatenation of all
-            the `groups` results along the channel axis. Input channels and `filters`
-            must both be divisible by `groups`.
         use_bias: Boolean, whether the layer uses a bias vector.
         activation: the activation applied after the BatchNorm layer. One of "silu",
             "relu" or "lrelu". Defaults to "silu".
@@ -56,7 +50,6 @@ def DarknetConvBlock(
     Returns:
         a function that takes an input Tensor representing a DarknetConvBlock.
     """
-
     if name is None:
         name = f"darknet_block{backend.get_uid('darknet_block')}"
 
@@ -66,7 +59,6 @@ def DarknetConvBlock(
             kernel_size,
             strides,
             padding="same",
-            groups=groups,
             use_bias=use_bias,
             name=name,
         )(x)
@@ -135,12 +127,17 @@ def ResidualBlocks(filters, num_blocks, name=None):
     return apply
 
 
-def SPPBottleneck(filters, kernel_sizes=(5, 9, 13), activation="silu", name=None):
+def SPPBottleneck(
+    filters, hidden_filters=None, kernel_sizes=(5, 9, 13), activation="silu", name=None
+):
     """Spatial pyramid pooling layer used in YOLOv3-SPP
 
     Args:
         filters: Integer, the dimensionality of the output spaces (i.e. the number of
             output filters in used the blocks).
+        hidden_filters: Integer, the dimensionality of the intermediate bottleneck space
+            (i.e. the number of output filters in the bottleneck convolution). If None,
+            it will be equal to filters. Defaults to None.
         kernel_sizes: A list or tuple representing all the pool sizes used for the
             pooling layers. Defaults to (5, 9, 13).
         activation: Activation for the conv layers. Defaults to "silu".
@@ -149,13 +146,15 @@ def SPPBottleneck(filters, kernel_sizes=(5, 9, 13), activation="silu", name=None
     Returns:
         a function that takes an input Tensor representing an SPPBottleneck.
     """
+    if hidden_filters is None:
+        hidden_filters = filters
 
     if name is None:
         name = f"spp{backend.get_uid('spp')}"
 
     def apply(x):
         x = DarknetConvBlock(
-            filters,
+            hidden_filters,
             kernel_size=1,
             strides=1,
             activation=activation,
