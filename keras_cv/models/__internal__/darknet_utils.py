@@ -18,6 +18,7 @@ Reference:
   - [YoloV3 implementation](https://github.com/ultralytics/yolov3)
 """
 
+import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras import backend
 from tensorflow.keras import layers
@@ -146,11 +147,11 @@ def SPPBottleneck(
     Returns:
         a function that takes an input Tensor representing an SPPBottleneck.
     """
-    if hidden_filters is None:
-        hidden_filters = filters
-
     if name is None:
         name = f"spp{backend.get_uid('spp')}"
+
+    if hidden_filters is None:
+        hidden_filters = filters
 
     def apply(x):
         x = DarknetConvBlock(
@@ -182,5 +183,168 @@ def SPPBottleneck(
         )(x)
 
         return x
+
+    return apply
+
+
+def DarknetConvBlockDepthwise(
+    filters, kernel_size, strides, activation="silu", name=None
+):
+    """The depthwise conv block used in CSPDarknet.
+
+    Args:
+        filters: Integer, the dimensionality of the output space (i.e. the number of
+            output filters in the final convolution).
+        kernel_size: An integer or tuple/list of 2 integers, specifying the height
+            and width of the 2D convolution window. Can be a single integer to specify
+            the same value both dimensions.
+        strides: An integer or tuple/list of 2 integers, specifying the strides of
+            the convolution along the height and width. Can be a single integer to
+            the same value both dimensions.
+        activation: the activation applied after the final layer. One of "silu",
+            "relu" or "lrelu". Defaults to "silu".
+        name: the prefix for the layer names used in the block.
+
+    Returns:
+        a function that takes an input Tensor representing a DarknetConvBlockDepthwise.
+    """
+
+    if name is None:
+        name = f"darknet_blockDW{backend.get_uid('darknet_blockDW')}"
+
+    def apply(x):
+        x = layers.DepthwiseConv2D(
+            kernel_size, strides, padding="same", use_bias=False, name=f"{name}_conv"
+        )(x)
+        x = layers.BatchNormalization(name=f"{name}_bn")(x)
+
+        if activation == "silu":
+            x = layers.Lambda(
+                lambda x: keras.activations.swish(x), name=f"{name}_silu"
+            )(x)
+        elif activation == "relu":
+            x = layers.ReLU(name=f"{name}_relu")(x)
+        elif activation == "lrelu":
+            x = layers.LeakyReLU(0.1, name=f"{name}_lrelu")(x)
+
+        x = DarknetConvBlock(
+            filters,
+            kernel_size=1,
+            strides=1,
+            activation=activation,
+            name=f"{name}_block",
+        )(x)
+
+        return x
+
+    return apply
+
+
+def CSPLayer(
+    filters,
+    num_bottlenecks,
+    add_residual=True,
+    use_depthwise=False,
+    activation="silu",
+    name=None,
+):
+    """A block used in Cross Stage Partial Darknet.
+
+    Args:
+        filters: Integer, the dimensionality of the output space (i.e. the number of
+            output filters in the final convolution).
+        num_bottlenecks: an integer representing the number of blocks added in the
+            layer bottleneck.
+        add_residual: a boolean representing whether the value tensor before the
+            bottleneck should be added to the output of the bottleneck as a residual.
+            Defaults to True.
+        use_depthwise: a boolean value used to decide whether a depthwise conv block
+            should be used over a regular darknet block. Defaults to False
+        activation: the activation applied after the final layer. One of "silu",
+            "relu" or "lrelu". Defaults to "silu".
+        name: the prefix for the layer names used in the block.
+
+    Returns:
+        a function that takes an input Tensor representing a CSPLayer.
+    """
+
+    if name is None:
+        name = f"CSPBlock{backend.get_uid('CSPBlock')}"
+
+    hidden_channels = filters // 2
+    ConvBlock = DarknetConvBlockDepthwise if use_depthwise else DarknetConvBlock
+
+    def apply(x):
+        x1 = DarknetConvBlock(
+            hidden_channels,
+            kernel_size=1,
+            strides=1,
+            activation=activation,
+            name=f"{name}_conv1",
+        )(x)
+        x2 = DarknetConvBlock(
+            hidden_channels,
+            kernel_size=1,
+            strides=1,
+            activation=activation,
+            name=f"{name}_conv2",
+        )(x)
+
+        for i in range(1, num_bottlenecks + 1):
+            residual = x1
+            x1 = DarknetConvBlock(
+                hidden_channels,
+                kernel_size=1,
+                strides=1,
+                activation=activation,
+                name=f"{name}_bottleneck_conv{2*i}",
+            )(x1)
+            x1 = ConvBlock(
+                hidden_channels,
+                kernel_size=3,
+                strides=1,
+                activation=activation,
+                name=f"{name}_bottleneck_conv{2*i + 1}",
+            )(x1)
+
+            if add_residual:
+                x1 = layers.Add(name=f"{name}_add_{i}")([residual, x1])
+
+        x1 = layers.Concatenate(name=f"{name}_concat")([x1, x2])
+        x = DarknetConvBlock(
+            filters, kernel_size=1, strides=1, activation=activation, name=f"{name}_out"
+        )(x1)
+
+        return x
+
+    return apply
+
+
+def Focus(name=None):
+    """A block used in CSPDarknet to focus information into channels of the image.
+
+    If the dimensions of a batch input is (batch_size, width, height, channels), this
+    layer converts the image into size (batch_size, width/2, height/2, 4*channels).
+
+    Args:
+        name: the name for the lambda layer used in the block.
+
+    Returns:
+        a function that takes an input Tensor representing a Focus layer.
+    """
+
+    def apply(x):
+        return layers.Lambda(
+            lambda x: tf.concat(
+                [
+                    x[..., ::2, ::2, :],
+                    x[..., 1::2, ::2, :],
+                    x[..., ::2, 1::2, :],
+                    x[..., 1::2, 1::2, :],
+                ],
+                axis=-1,
+            ),
+            name=name,
+        )(x)
 
     return apply
