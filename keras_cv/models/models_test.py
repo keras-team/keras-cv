@@ -22,7 +22,8 @@ from keras_cv.models import darknet
 from keras_cv.models import densenet
 
 MODEL_LIST = [
-    (csp_darknet.CSPDarkNet, 1024)(darknet.DarkNet21, 512),
+    (csp_darknet.CSPDarkNet, 1024),
+    (darknet.DarkNet21, 512),
     (darknet.DarkNet53, 512),
     (densenet.DenseNet121, 1024),
     (densenet.DenseNet169, 1664),

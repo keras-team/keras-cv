@@ -45,7 +45,7 @@ def DarknetConvBlock(
             the same value both dimensions.
         use_bias: Boolean, whether the layer uses a bias vector.
         activation: the activation applied after the BatchNorm layer. One of "silu",
-            "relu" or "lrelu". Defaults to "silu".
+            "relu" or "leaky_relu". Defaults to "silu".
         name: the prefix for the layer names used in the block.
 
     Returns:
@@ -71,7 +71,7 @@ def DarknetConvBlock(
             )(x)
         elif activation == "relu":
             x = layers.ReLU(name=f"{name}_relu")(x)
-        elif activation == "lrelu":
+        elif activation == "leaky_relu":
             x = layers.LeakyReLU(0.1, name=f"{name}_lrelu")(x)
 
         return x
@@ -97,7 +97,7 @@ def ResidualBlocks(filters, num_blocks, name=None):
 
     def apply(x):
         x = DarknetConvBlock(
-            filters, kernel_size=3, strides=2, activation="lrelu", name=f"{name}_conv1"
+            filters, kernel_size=3, strides=2, activation="leaky_relu", name=f"{name}_conv1"
         )(x)
 
         for i in range(1, num_blocks + 1):
@@ -107,14 +107,14 @@ def ResidualBlocks(filters, num_blocks, name=None):
                 filters // 2,
                 kernel_size=1,
                 strides=1,
-                activation="lrelu",
+                activation="leaky_relu",
                 name=f"{name}_conv{2*i}",
             )(x)
             x = DarknetConvBlock(
                 filters,
                 kernel_size=3,
                 strides=1,
-                activation="lrelu",
+                activation="leaky_relu",
                 name=f"{name}_conv{2*i + 1}",
             )(x)
 
@@ -202,7 +202,7 @@ def DarknetConvBlockDepthwise(
             the convolution along the height and width. Can be a single integer to
             the same value both dimensions.
         activation: the activation applied after the final layer. One of "silu",
-            "relu" or "lrelu". Defaults to "silu".
+            "relu" or "leaky_relu". Defaults to "silu".
         name: the prefix for the layer names used in the block.
 
     Returns:
@@ -224,7 +224,7 @@ def DarknetConvBlockDepthwise(
             )(x)
         elif activation == "relu":
             x = layers.ReLU(name=f"{name}_relu")(x)
-        elif activation == "lrelu":
+        elif activation == "leaky_relu":
             x = layers.LeakyReLU(0.1, name=f"{name}_lrelu")(x)
 
         x = DarknetConvBlock(
@@ -261,7 +261,7 @@ def CSPLayer(
         use_depthwise: a boolean value used to decide whether a depthwise conv block
             should be used over a regular darknet block. Defaults to False
         activation: the activation applied after the final layer. One of "silu",
-            "relu" or "lrelu". Defaults to "silu".
+            "relu" or "leaky_relu". Defaults to "silu".
         name: the prefix for the layer names used in the block.
 
     Returns:

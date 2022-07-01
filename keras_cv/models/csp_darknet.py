@@ -119,7 +119,7 @@ def CSPDarkNet(
 
     # stem
     x = Focus(name="stem_focus")(x)
-    x = DarknetConvBlock(base_channels, kernel_size=3, strides=1, name=f"stem_conv")(x)
+    x = DarknetConvBlock(base_channels, kernel_size=3, strides=1, name="stem_conv")(x)
 
     # dark2
     x = ConvBlock(base_channels * 2, kernel_size=3, strides=2, name="dark2_conv")(x)

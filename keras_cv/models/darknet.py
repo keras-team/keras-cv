@@ -138,7 +138,7 @@ def DarkNet(
 
     # stem
     x = DarknetConvBlock(
-        filters=32, kernel_size=3, strides=1, activation="lrelu", name="stem_conv"
+        filters=32, kernel_size=3, strides=1, activation="leaky_relu", name="stem_conv"
     )(x)
     x = ResidualBlocks(filters=64, num_blocks=1, name="stem_residual_block")(x)
 
@@ -162,17 +162,17 @@ def DarkNet(
         x
     )
     x = DarknetConvBlock(
-        filters=512, kernel_size=1, strides=1, activation="lrelu", name="dark5_conv1"
+        filters=512, kernel_size=1, strides=1, activation="leaky_relu", name="dark5_conv1"
     )(x)
     x = DarknetConvBlock(
-        filters=1024, kernel_size=3, strides=1, activation="lrelu", name="dark5_conv2"
+        filters=1024, kernel_size=3, strides=1, activation="leaky_relu", name="dark5_conv2"
     )(x)
-    x = SPPBottleneck(512, activation="lrelu", name="dark5_spp")(x)
+    x = SPPBottleneck(512, activation="leaky_relu", name="dark5_spp")(x)
     x = DarknetConvBlock(
-        filters=1024, kernel_size=3, strides=1, activation="lrelu", name="dark5_conv3"
+        filters=1024, kernel_size=3, strides=1, activation="leaky_relu", name="dark5_conv3"
     )(x)
     x = DarknetConvBlock(
-        filters=512, kernel_size=1, strides=1, activation="lrelu", name="dark5_conv4"
+        filters=512, kernel_size=1, strides=1, activation="leaky_relu", name="dark5_conv4"
     )(x)
 
     if include_top:
