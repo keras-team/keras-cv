@@ -24,14 +24,8 @@ from tensorflow.keras import backend
 from tensorflow.keras import layers
 
 
-def DarknetConvBlock(
-    filters,
-    kernel_size,
-    strides,
-    use_bias=False,
-    activation="silu",
-    name=None,
-):
+@tf.keras.utils.register_keras_serializable(package="keras_cv")
+class DarknetConvBlock(layers.Layer):
     """The basic conv block used in Darknet. Applies Conv2D followed by a BatchNorm.
 
     Args:
@@ -46,37 +40,52 @@ def DarknetConvBlock(
         use_bias: Boolean, whether the layer uses a bias vector.
         activation: the activation applied after the BatchNorm layer. One of "silu",
             "relu" or "leaky_relu". Defaults to "silu".
-        name: the prefix for the layer names used in the block.
-
-    Returns:
-        a function that takes an input Tensor representing a DarknetConvBlock.
     """
-    if name is None:
-        name = f"darknet_block{backend.get_uid('darknet_block')}"
 
-    def apply(x):
-        x = layers.Conv2D(
+    def __init__(
+        self, filters, kernel_size, strides, use_bias=False, activation="silu", **kwargs
+    ):
+        super().__init__(**kwargs)
+
+        self.filters = filters
+        self.kernel_size = kernel_size
+        self.strides = strides
+        self.use_bias = use_bias
+        self.activation = activation
+
+        self.conv = layers.Conv2D(
             filters,
             kernel_size,
             strides,
             padding="same",
             use_bias=use_bias,
-            name=name,
-        )(x)
-        x = layers.BatchNormalization(name=f"{name}_bn")(x)
+        )
+
+        self.batch_norm = layers.BatchNormalization()
 
         if activation == "silu":
-            x = layers.Lambda(
-                lambda x: keras.activations.swish(x), name=f"{name}_silu"
-            )(x)
+            self.act = layers.Lambda(lambda x: keras.activations.swish(x))
         elif activation == "relu":
-            x = layers.ReLU(name=f"{name}_relu")(x)
+            self.act = layers.ReLU()
         elif activation == "leaky_relu":
-            x = layers.LeakyReLU(0.1, name=f"{name}_lrelu")(x)
+            self.act = layers.LeakyReLU(0.1)
 
+    def call(self, x):
+        x = self.conv(x)
+        x = self.batch_norm(x)
+        x = self.act(x)
         return x
 
-    return apply
+    def get_config(self):
+        config = {
+            "filters": self.filters,
+            "kernel_size": self.kernel_size,
+            "strides": self.strides,
+            "use_bias": self.use_bias,
+            "activation": self.activation,
+        }
+        base_config = super().get_config()
+        return dict(list(base_config.items()) + list(config.items()))
 
 
 def ResidualBlocks(filters, num_blocks, name=None):
@@ -191,9 +200,8 @@ def SPPBottleneck(
     return apply
 
 
-def DarknetConvBlockDepthwise(
-    filters, kernel_size, strides, activation="silu", name=None
-):
+@tf.keras.utils.register_keras_serializable(package="keras_cv")
+class DarknetConvBlockDepthwise(layers.Layer):
     """The depthwise conv block used in CSPDarknet.
 
     Args:
@@ -207,51 +215,54 @@ def DarknetConvBlockDepthwise(
             the same value both dimensions.
         activation: the activation applied after the final layer. One of "silu",
             "relu" or "leaky_relu". Defaults to "silu".
-        name: the prefix for the layer names used in the block.
-
-    Returns:
-        a function that takes an input Tensor representing a DarknetConvBlockDepthwise.
     """
 
-    if name is None:
-        name = f"darknet_blockDW{backend.get_uid('darknet_blockDW')}"
+    def __init__(self, filters, kernel_size, strides, activation="silu", **kwargs):
+        super().__init__(**kwargs)
 
-    def apply(x):
-        x = layers.DepthwiseConv2D(
-            kernel_size, strides, padding="same", use_bias=False, name=f"{name}_conv"
-        )(x)
-        x = layers.BatchNormalization(name=f"{name}_bn")(x)
+        self.filters = filters
+        self.kernel_size = kernel_size
+        self.strides = strides
+        self.activation = activation
+
+        self.dw_conv = layers.DepthwiseConv2D(
+            kernel_size, strides, padding="same", use_bias=False
+        )
+
+        self.batch_norm = layers.BatchNormalization()
 
         if activation == "silu":
-            x = layers.Lambda(
-                lambda x: keras.activations.swish(x), name=f"{name}_silu"
-            )(x)
+            self.act = layers.Lambda(lambda x: keras.activations.swish(x))
         elif activation == "relu":
-            x = layers.ReLU(name=f"{name}_relu")(x)
+            self.act = layers.ReLU()
         elif activation == "leaky_relu":
-            x = layers.LeakyReLU(0.1, name=f"{name}_lrelu")(x)
+            self.act = layers.LeakyReLU(0.1)
 
-        x = DarknetConvBlock(
-            filters,
-            kernel_size=1,
-            strides=1,
-            activation=activation,
-            name=f"{name}_block",
-        )(x)
+        self.darknet_conv = DarknetConvBlock(
+            filters, kernel_size=1, strides=1, activation=activation
+        )
+
+    def call(self, x):
+        x = self.dw_conv(x)
+        x = self.batch_norm(x)
+        x = self.act(x)
+        x = self.darknet_conv(x)
 
         return x
 
-    return apply
+    def get_config(self):
+        config = {
+            "filters": self.filters,
+            "kernel_size": self.kernel_size,
+            "strides": self.strides,
+            "activation": self.activation,
+        }
+        base_config = super().get_config()
+        return dict(list(base_config.items()) + list(config.items()))
 
 
-def CSPLayer(
-    filters,
-    num_bottlenecks,
-    add_residual=True,
-    use_depthwise=False,
-    activation="silu",
-    name=None,
-):
+@tf.keras.utils.register_keras_serializable(package="keras_cv")
+class CSPLayer(layers.Layer):
     """A block used in Cross Stage Partial Darknet.
 
     Args:
@@ -266,62 +277,95 @@ def CSPLayer(
             should be used over a regular darknet block. Defaults to False
         activation: the activation applied after the final layer. One of "silu",
             "relu" or "leaky_relu". Defaults to "silu".
-        name: the prefix for the layer names used in the block.
-
-    Returns:
-        a function that takes an input Tensor representing a CSPLayer.
     """
 
-    if name is None:
-        name = f"CSPBlock{backend.get_uid('CSPBlock')}"
+    def __init__(
+        self,
+        filters,
+        num_bottlenecks,
+        add_residual=True,
+        use_depthwise=False,
+        activation="silu",
+        **kwargs,
+    ):
+        super().__init__(**kwargs)
+        self.filters = filters
+        self.num_bottlenecks = num_bottlenecks
+        self.add_residual = add_residual
+        self.use_depthwise = use_depthwise
+        self.activation = activation
 
-    hidden_channels = filters // 2
-    ConvBlock = DarknetConvBlockDepthwise if use_depthwise else DarknetConvBlock
+        hidden_channels = filters // 2
+        ConvBlock = DarknetConvBlockDepthwise if use_depthwise else DarknetConvBlock
 
-    def apply(x):
-        x1 = DarknetConvBlock(
+        self.darknet_conv1 = DarknetConvBlock(
             hidden_channels,
             kernel_size=1,
             strides=1,
             activation=activation,
-            name=f"{name}_conv1",
-        )(x)
-        x2 = DarknetConvBlock(
+        )
+
+        self.darknet_conv2 = DarknetConvBlock(
             hidden_channels,
             kernel_size=1,
             strides=1,
             activation=activation,
-            name=f"{name}_conv2",
-        )(x)
+        )
 
-        for i in range(1, num_bottlenecks + 1):
+        # repeat bottlenecks num_bottleneck times
+        self.bottleneck_convs = []
+        for _ in range(num_bottlenecks):
+            self.bottleneck_convs.append(
+                DarknetConvBlock(
+                    hidden_channels,
+                    kernel_size=1,
+                    strides=1,
+                    activation=activation,
+                )
+            )
+
+            self.bottleneck_convs.append(
+                ConvBlock(
+                    hidden_channels,
+                    kernel_size=3,
+                    strides=1,
+                    activation=activation,
+                )
+            )
+
+        self.add = layers.Add()
+        self.concatenate = layers.Concatenate()
+
+        self.darknet_conv3 = DarknetConvBlock(
+            filters, kernel_size=1, strides=1, activation=activation
+        )
+
+    def call(self, x):
+        x1 = self.darknet_conv1(x)
+        x2 = self.darknet_conv2(x)
+
+        for i in range(self.num_bottlenecks):
             residual = x1
-            x1 = DarknetConvBlock(
-                hidden_channels,
-                kernel_size=1,
-                strides=1,
-                activation=activation,
-                name=f"{name}_bottleneck_conv{2*i}",
-            )(x1)
-            x1 = ConvBlock(
-                hidden_channels,
-                kernel_size=3,
-                strides=1,
-                activation=activation,
-                name=f"{name}_bottleneck_conv{2*i + 1}",
-            )(x1)
+            x1 = self.bottleneck_convs[2 * i](x1)
+            x1 = self.bottleneck_convs[2 * i + 1](x1)
 
-            if add_residual:
-                x1 = layers.Add(name=f"{name}_add_{i}")([residual, x1])
+            if self.add_residual:
+                x1 = self.add([residual, x1])
 
-        x1 = layers.Concatenate(name=f"{name}_concat")([x1, x2])
-        x = DarknetConvBlock(
-            filters, kernel_size=1, strides=1, activation=activation, name=f"{name}_out"
-        )(x1)
-
+        x1 = self.concatenate([x1, x2])
+        x = self.darknet_conv3(x1)
         return x
 
-    return apply
+    def get_config(self):
+        config = {
+            "filters": self.filters,
+            "num_bottlenecks": self.num_bottlenecks,
+            "add_residual": self.add_residual,
+            "use_depthwise": self.use_depthwise,
+            "activation": self.activation,
+        }
+        base_config = super().get_config()
+        return dict(list(base_config.items()) + list(config.items()))
 
 
 def Focus(name=None):
