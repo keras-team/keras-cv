@@ -102,12 +102,7 @@ class AugMix(BaseImageAugmentationLayer):
         gamma_sample = tf.random.gamma(
             shape=(), alpha=alpha, seed=self._random_generator.make_legacy_seed()
         )
-        return gamma_sample / tf.reduce_sum(
-            gamma_sample,
-            axis=-1,
-            keepdims=True,
-            seed=self._random_generator.make_legacy_seed(),
-        )
+        return gamma_sample / tf.reduce_sum(gamma_sample, axis=-1, keepdims=True)
 
     def _sample_from_beta(self, alpha, beta):
         sample_alpha = tf.random.gamma(
