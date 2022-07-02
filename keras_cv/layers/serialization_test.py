@@ -20,8 +20,8 @@ from keras_cv.layers import regularization
 
 
 def custom_compare(obj1, obj2):
-    if isinstance(obj1, core.FactorSampler):
-        return obj1.get_config() == obj2.get_config()
+    if isinstance(obj1, (core.FactorSampler, tf.keras.layers.Layer)):
+        return config_equals(obj1.get_config(), obj2.get_config())
     else:
         return obj1 == obj2
 
@@ -114,6 +114,17 @@ class SerializationTest(tf.test.TestCase, parameterized.TestCase):
                 "contrast_factor": (0.5, 0.9),
                 "saturation_factor": (0.5, 0.9),
                 "hue_factor": (0.5, 0.9),
+                "seed": 1,
+            },
+        ),
+        (
+            "RandomResizedCrop",
+            preprocessing.RandomResizedCrop,
+            {
+                "target_size": (224, 224),
+                "crop_area_factor": (0.08, 1.0),
+                "aspect_ratio_factor": (3.0 / 4.0, 4.0 / 3.0),
+                "interpolation": "bilinear",
                 "seed": 1,
             },
         ),
