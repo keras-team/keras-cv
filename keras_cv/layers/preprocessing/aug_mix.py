@@ -99,12 +99,18 @@ class AugMix(BaseImageAugmentationLayer):
         self.equalize = layers.Equalization(value_range=self.value_range)
 
     def _sample_from_dirichlet(self, alpha):
-        gamma_sample = tf.random.gamma(shape=(), alpha=alpha, seed=self.make_legacy_seed())
-        return gamma_sample / tf.reduce_sum(gamma_sample, axis=-1, keepdims=True, seed=self.make_legacy_seed())
+        gamma_sample = tf.random.gamma(
+            shape=(), alpha=alpha, seed=self.make_legacy_seed()
+        )
+        return gamma_sample / tf.reduce_sum(
+            gamma_sample, axis=-1, keepdims=True, seed=self.make_legacy_seed()
+        )
 
     def _sample_from_beta(self, alpha, beta):
-        sample_alpha = tf.random.gamma((), 1.0, beta=alpha, seed = self.make_legacy_seed())
-        sample_beta = tf.random.gamma((), 1.0, beta=beta, seed = self.make_legacy_seed())
+        sample_alpha = tf.random.gamma(
+            (), 1.0, beta=alpha, seed=self.make_legacy_seed()
+        )
+        sample_beta = tf.random.gamma((), 1.0, beta=beta, seed=self.make_legacy_seed())
         return sample_alpha / (sample_alpha + sample_beta)
 
     def _sample_depth(self):

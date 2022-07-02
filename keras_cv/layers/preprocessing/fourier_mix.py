@@ -49,8 +49,12 @@ class FourierMix(BaseImageAugmentationLayer):
         self.seed = seed
 
     def _sample_from_beta(self, alpha, beta, shape):
-        sample_alpha = tf.random.gamma(shape, 1.0, beta=alpha, seed = self.make_legacy_seed())
-        sample_beta = tf.random.gamma(shape, 1.0, beta=beta, seed = self.make_legacy_seed())
+        sample_alpha = tf.random.gamma(
+            shape, 1.0, beta=alpha, seed=self.make_legacy_seed()
+        )
+        sample_beta = tf.random.gamma(
+            shape, 1.0, beta=beta, seed=self.make_legacy_seed()
+        )
         return sample_alpha / (sample_alpha + sample_beta)
 
     @staticmethod
@@ -156,9 +160,7 @@ class FourierMix(BaseImageAugmentationLayer):
         shape = tf.shape(images)
         permutation_order = tf.random.shuffle(tf.range(0, shape[0]), seed=self.seed)
 
-        lambda_sample = self._sample_from_beta(
-            self.alpha, self.alpha, (shape[0],)
-        )
+        lambda_sample = self._sample_from_beta(self.alpha, self.alpha, (shape[0],))
 
         # generate masks utilizing mapped calls
         masks = tf.map_fn(

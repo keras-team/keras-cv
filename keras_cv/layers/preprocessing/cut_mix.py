@@ -49,8 +49,12 @@ class CutMix(BaseImageAugmentationLayer):
         self.seed = seed
 
     def _sample_from_beta(self, alpha, beta, shape):
-        sample_alpha = tf.random.gamma(shape, 1.0, beta=alpha, seed = self.make_legacy_seed())
-        sample_beta = tf.random.gamma(shape, 1.0, beta=beta, seed = self.make_legacy_seed())
+        sample_alpha = tf.random.gamma(
+            shape, 1.0, beta=alpha, seed=self.make_legacy_seed()
+        )
+        sample_beta = tf.random.gamma(
+            shape, 1.0, beta=beta, seed=self.make_legacy_seed()
+        )
         return sample_alpha / (sample_alpha + sample_beta)
 
     def _batch_augment(self, inputs):
