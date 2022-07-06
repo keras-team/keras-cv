@@ -79,11 +79,6 @@ class RandomAugmentationPipeline(BaseImageAugmentationLayer):
         self.rate = rate
         self._layers_empty = False
 
-        if layers is None:
-            raise ValueError(
-                f"Received layers={layers}. Expected `layers` to be a list."
-            )
-
         if list(layers) == []:
             layers = [tf.keras.layers.Lambda(lambda x: x)]
             self._layers_empty = True
