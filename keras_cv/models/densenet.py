@@ -30,8 +30,7 @@ BN_AXIS = 3
 BASE_DOCSTRING = """Instantiates the {name} architecture.
 
     Reference:
-        - [Densely Connected Convolutional Networks (CVPR 2017)](
-            https://arxiv.org/abs/1608.06993)
+        - [Densely Connected Convolutional Networks (CVPR 2017)](https://arxiv.org/abs/1608.06993)
 
     This function returns a Keras {name} model.
 
