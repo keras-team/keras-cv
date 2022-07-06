@@ -51,8 +51,8 @@ class RandomAugmentationPipeline(BaseImageAugmentationLayer):
     Args:
         layers: a list of `keras.Layers`.  These are randomly inputs during
             augmentation to augment the inputs passed in `call()`.  The layers passed
-            should subclass `BaseImageAugmentationLayer`. Passing `layers=[]` or
-            `layers=None` would result in a no-op.
+            should subclass `BaseImageAugmentationLayer`. Passing `layers=[]`
+            would result in a no-op.
         augmentations_per_image: the number of layers to apply to each inputs in the
             `call()` method.
         rate: the rate at which to apply each augmentation.  This is applied on a per
@@ -78,7 +78,13 @@ class RandomAugmentationPipeline(BaseImageAugmentationLayer):
         self.augmentations_per_image = augmentations_per_image
         self.rate = rate
         self._layers_empty = False
-        if list(layers) == [] or layers is None:
+
+        if layers is None:
+            raise ValueError(
+                f"Received layers={layers}. Expected `layers` to be a list."
+            )
+
+        if list(layers) == []:
             layers = [tf.keras.layers.Lambda(lambda x: x)]
             self._layers_empty = True
         self.layers = layers
