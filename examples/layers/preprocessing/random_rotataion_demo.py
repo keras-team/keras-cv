@@ -30,7 +30,7 @@ BATCH_SIZE = 9
 
 def visualize_bounding_boxes_on_image(image, bboxes, title="visualization"):
     fig, ax = plt.subplots()
-    color = ['r', 'g', 'b', 'c', 'm', 'y']
+    color = ["r", "g", "b", "c", "m", "y"]
     ax.imshow(image)
     for i, box in enumerate(bboxes):
         rect = patches.Rectangle(
