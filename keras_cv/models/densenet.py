@@ -16,8 +16,7 @@
 
 Reference:
   - [Densely Connected Convolutional Networks](https://arxiv.org/abs/1608.06993)
-  - [Based on the Original keras.applications DenseNet](
-    https://github.com/keras-team/keras/blob/master/keras/applications/densenet.py)
+  - [Based on the Original keras.applications DenseNet](https://github.com/keras-team/keras/blob/master/keras/applications/densenet.py)
 """
 
 import tensorflow as tf
@@ -164,8 +163,7 @@ def DenseNet(
     """Instantiates the DenseNet architecture.
 
     Reference:
-        - [Densely Connected Convolutional Networks (CVPR 2017)](
-            https://arxiv.org/abs/1608.06993)
+        - [Densely Connected Convolutional Networks (CVPR 2017)](https://arxiv.org/abs/1608.06993)
 
     This function returns a Keras DenseNet model.
 

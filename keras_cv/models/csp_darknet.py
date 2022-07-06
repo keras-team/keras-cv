@@ -57,8 +57,7 @@ def CSPDarkNet(
         - [YoloX Paper](https://arxiv.org/abs/2107.08430)
         - [YoloX implementation](https://github.com/ultralytics/yolov3)
     For transfer learning use cases, make sure to read the
-    [guide to transfer learning & fine-tuning](
-        https://keras.io/guides/transfer_learning/).
+    [guide to transfer learning & fine-tuning](https://keras.io/guides/transfer_learning/).
 
     Args:
         include_rescaling: whether or not to Rescale the inputs.If set to True,
