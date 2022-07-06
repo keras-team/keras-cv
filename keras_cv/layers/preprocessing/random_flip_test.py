@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from grpc import Status
 import numpy as np
 import tensorflow as tf
 
@@ -112,42 +111,6 @@ class RandomFlipTest(tf.test.TestCase):
         self.assertAllEqual(layer(inputs).dtype, "float32")
         layer = RandomFlip(dtype="uint8")
         self.assertAllEqual(layer(inputs).dtype, "uint8")
-
-    def test_augment_bbox_horizontal(self):
-        image = tf.zeros([1, 20, 20, 3])
-        bboxes = tf.convert_to_tensor([[0, 0, 10, 10], [4, 4, 12, 12]])
-        layer = RandomFlip(bounding_box_format="xyxy")
-        output = layer.augment_bounding_boxes(
-            bboxes,
-            transformation={"flip_horizontal": True, "flip_vertical": False},
-            image=image,
-        )
-        expected_output = [[10, 0, 20, 10], [8, 4, 16, 12]]
-        self.assertAllClose(expected_output, output)
-
-    def test_augment_bbox_vertical(self):
-        image = tf.zeros([1, 20, 20, 3])
-        bboxes = tf.convert_to_tensor([[0, 0, 10, 10], [4, 4, 12, 12]])
-        layer = RandomFlip(bounding_box_format="xyxy")
-        output = layer.augment_bounding_boxes(
-            bboxes,
-            transformation={"flip_horizontal": False, "flip_vertical": True},
-            image=image,
-        )
-        expected_output = [[0, 10, 10, 20], [4, 8, 12, 16]]
-        self.assertAllClose(expected_output, output)
-
-    def test_augment_bbox_both(self):
-        image = tf.zeros([1, 20, 20, 3])
-        bboxes = tf.convert_to_tensor([[0, 0, 10, 10], [4, 4, 12, 12]])
-        layer = RandomFlip(bounding_box_format="xyxy")
-        output = layer.augment_bounding_boxes(
-            bboxes,
-            transformation={"flip_horizontal": True, "flip_vertical": True},
-            image=image,
-        )
-        expected_output = [[10, 10, 20, 20], [8, 8, 16, 16]]
-        self.assertAllClose(expected_output, output)
 
     def test_augment_bbox_batched_input(self):
         image = tf.zeros([20, 20, 3])
