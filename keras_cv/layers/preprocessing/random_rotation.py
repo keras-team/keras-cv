@@ -148,7 +148,9 @@ class RandomRotation(BaseImageAugmentationLayer):
             )
         else:
             bounding_boxes = bounding_box.convert_format(
-                bounding_boxes, source=self.bounding_box_format, target="xyxy"
+                bounding_boxes,
+                source=self.bounding_box_format,
+                target="xyxy",
             )
         image = tf.expand_dims(image, 0)
         image_shape = tf.shape(image)
