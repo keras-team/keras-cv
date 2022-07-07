@@ -225,7 +225,7 @@ def convert_format(boxes, source, target, images=None, dtype="float32"):
     if source == target:
         return boxes
 
-    boxes, images, squeeze = _format_inputs(boxes, images)
+    boxes, images, unbatched_inputs = _format_inputs(boxes, images)
 
     to_xyxy_fn = TO_XYXY_CONVERTERS[source]
     from_xyxy_fn = FROM_XYXY_CONVERTERS[target]
@@ -241,10 +241,11 @@ def convert_format(boxes, source, target, images=None, dtype="float32"):
             f"but images={images}"
         )
 
-    return _format_outputs(result, squeeze)
+    return _format_outputs(result, unbatched_inputs)
 
 
 def _format_inputs(boxes, images):
+    """Formats inputs to be batched regardless of if unbatched."""
     boxes_rank = len(boxes.shape)
     if boxes_rank > 3:
         raise ValueError(
@@ -276,7 +277,8 @@ def _format_inputs(boxes, images):
     return boxes, images, False
 
 
-def _format_outputs(boxes, squeeze):
-    if squeeze:
-        return tf.squeeze(boxes, axis=0)
+def _format_outputs(boxes, unbatched_inputs):
+    """Returns inputs to their original format, batched or unbatched."""
+    if unbatched_inputs:
+        return tf.unbatched_inputs(boxes, axis=0)
     return boxes
