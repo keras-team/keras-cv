@@ -134,8 +134,8 @@ class SerializationTest(tf.test.TestCase, parameterized.TestCase):
             {"rate": 0.1},
         ),
         (
-            "SqueezeAndExciteBlock2D",
-            regularization.SqueezeAndExciteBlock2D,
+            "SqueezeAndExcite2D",
+            regularization.SqueezeAndExcite2D,
             {
                 "filters": 16,
                 "ratio": 0.25,

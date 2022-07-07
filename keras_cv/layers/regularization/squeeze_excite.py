@@ -17,10 +17,21 @@ from tensorflow.keras import layers
 
 
 @tf.keras.utils.register_keras_serializable(package="keras_cv")
-class SqueezeAndExciteBlock2D(layers.Layer):
+class SqueezeAndExcite2D(layers.Layer):
     """
     Implements Squeeze and Excite block as in
     [Squeeze-and-Excitation Networks](https://arxiv.org/pdf/1709.01507.pdf).
+    This layer tries to use a content aware mechanism to assign channel-wise
+    weights adaptively. It first squeezes the feature maps into a single value
+    using global average pooling, which are then fed into two Conv1D layers,
+    which act like fully-connected layers. The first layer reduces the
+    dimensionality of the feature maps by a factor of `ratio`, whereas the second
+    layer restores it to its original value.
+
+    The resultant values are the adaptive weights for each channel. These
+    weights are then multiplied with the original inputs to scale the outputs
+    based on their individual weightages.
+
 
     Args:
         filters: Number of input and output filters. The number of input and

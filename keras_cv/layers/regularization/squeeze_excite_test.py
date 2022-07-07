@@ -14,15 +14,15 @@
 
 import tensorflow as tf
 
-from keras_cv.layers import SqueezeAndExciteBlock2D
+from keras_cv.layers import SqueezeAndExcite2D
 
 
-class SqueezeAndExciteBlock2DTest(tf.test.TestCase):
+class SqueezeAndExcite2DTest(tf.test.TestCase):
     def test_maintains_shape(self):
         input_shape = (1, 4, 4, 8)
         inputs = tf.random.uniform(input_shape)
 
-        layer = SqueezeAndExciteBlock2D(8, ratio=0.25)
+        layer = SqueezeAndExcite2D(8, ratio=0.25)
         outputs = layer(inputs)
         self.assertEquals(inputs.shape, outputs.shape)
 
@@ -33,7 +33,7 @@ class SqueezeAndExciteBlock2DTest(tf.test.TestCase):
         input_shape = (1, 4, 4, 8)
         inputs = tf.random.uniform(input_shape)
 
-        layer = SqueezeAndExciteBlock2D(
+        layer = SqueezeAndExcite2D(
             8,
             ratio=0.25,
             squeeze_activation=custom_activation,
@@ -46,10 +46,10 @@ class SqueezeAndExciteBlock2DTest(tf.test.TestCase):
         with self.assertRaisesRegex(
             ValueError, "`ratio` should be a float" " between 0 and 1. Got (.*?)"
         ):
-            _ = SqueezeAndExciteBlock2D(8, ratio=1.1)
+            _ = SqueezeAndExcite2D(8, ratio=1.1)
 
     def test_raises_invalid_filters_error(self):
         with self.assertRaisesRegex(
             ValueError, "`filters` should be a positive" " integer. Got (.*?)"
         ):
-            _ = SqueezeAndExciteBlock2D(-8.7)
+            _ = SqueezeAndExcite2D(-8.7)
