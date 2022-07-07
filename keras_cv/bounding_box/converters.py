@@ -209,6 +209,7 @@ def convert_format(boxes, source, target, images=None, dtype="float32"):
         dtype: the data type to use when transforming the boxes.  Defaults to
             `tf.float32`.
     """
+
     source = source.lower()
     target = target.lower()
     if source not in TO_XYXY_CONVERTERS:
@@ -228,6 +229,8 @@ def convert_format(boxes, source, target, images=None, dtype="float32"):
     if source == target:
         return boxes
 
+    boxes, images, squeeze = _format_inputs(boxes, images)
+
     to_xyxy_fn = TO_XYXY_CONVERTERS[source]
     from_xyxy_fn = FROM_XYXY_CONVERTERS[target]
 
@@ -242,4 +245,42 @@ def convert_format(boxes, source, target, images=None, dtype="float32"):
             f"but images={images}"
         )
 
-    return result
+    return _format_outputs(result, squeeze)
+
+
+def _format_inputs(boxes, images):
+    boxes_rank = len(boxes.shape)
+    if boxes_rank > 3:
+        raise ValueError(
+            "Expected len(boxes.shape)=2, or len(boxes.shape)=3, got "
+            f"len(boxes.shape)={boxes_rank}"
+        )
+    boxes_includes_batch = boxes_rank == 3
+    # Determine if images needs an expand_dims() call
+    if images is not None:
+        images_rank = len(images.shape)
+        if images_rank > 4:
+            raise ValueError(
+                "Expected len(images.shape)=2, or len(images.shape)=3, got "
+                f"len(images.shape)={images_rank}"
+            )
+        images_include_batch = images_rank == 4
+        if boxes_includes_batch != images_include_batch:
+            raise ValueError(
+                "convert_format() expects both boxes and images to be batched, or both "
+                f"boxes and images to be unbatched.  Received len(boxes.shape)={boxes_rank}, "
+                f"len(images.shape)={images_rank}.  Expected either len(boxes.shape)=2 AND "
+                "len(images.shape)=3, or len(boxes.shape)=3 AND len(images.shape)=4."
+            )
+        if not images_include_batch:
+            images = tf.expand_dims(images, axis=0)
+
+    if not boxes_includes_batch:
+        return tf.expand_dims(boxes, axis=0), images, True
+    return boxes, images, False
+
+
+def _format_outputs(boxes, squeeze):
+    if squeeze:
+        return tf.squeeze(boxes, axis=0)
+    return boxes
