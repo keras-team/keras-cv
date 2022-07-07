@@ -243,7 +243,6 @@ def convert_format(boxes, source, target, images=None, dtype="float32"):
 
     return _format_outputs(result, unbatched_inputs)
 
-
 def _format_inputs(boxes, images):
     """Formats inputs to be batched regardless of if unbatched."""
     boxes_rank = len(boxes.shape)
