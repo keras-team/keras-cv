@@ -79,9 +79,6 @@ class RandomAugmentationPipeline(BaseImageAugmentationLayer):
         self.rate = rate
         self._layers_empty = False
 
-        if list(layers) == []:
-            layers = [tf.keras.layers.Lambda(lambda x: x)]
-            self._layers_empty = True
         self.layers = layers
         self.auto_vectorize = auto_vectorize
         self.seed = seed
@@ -91,6 +88,9 @@ class RandomAugmentationPipeline(BaseImageAugmentationLayer):
         )
 
     def _augment(self, inputs):
+        if list(self.layers) == []:
+            return inputs
+
         result = inputs
         for _ in range(self.augmentations_per_image):
             skip_augment = self._random_generator.random_uniform(
@@ -105,15 +105,12 @@ class RandomAugmentationPipeline(BaseImageAugmentationLayer):
 
     def get_config(self):
         config = super().get_config()
-        if self._layers_empty:
-            layers_cfg = []
-        else:
-            layers_cfg = self.layers
+
         config.update(
             {
                 "augmentations_per_image": self.augmentations_per_image,
                 "rate": self.rate,
-                "layers": layers_cfg,
+                "layers": self.layers,
                 "seed": self.seed,
             }
         )
