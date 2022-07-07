@@ -280,5 +280,5 @@ def _format_inputs(boxes, images):
 def _format_outputs(boxes, unbatched_inputs):
     """Returns inputs to their original format, batched or unbatched."""
     if unbatched_inputs:
-        return tf.unbatched_inputs(boxes, axis=0)
+        return tf.squeeze(boxes, axis=0)
     return boxes
