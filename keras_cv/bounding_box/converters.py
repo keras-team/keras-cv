@@ -12,15 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Converter functions for working with bounding boxes.
-
-Usually bounding boxes is a 2D Tensor with shape [batch, 4]. The second dimension
-will contain 4 numbers based on 2 different formats.  In KerasCV, we will use the
-`corners` format, which is [LEFT, TOP, RIGHT, BOTTOM].
-
-In this file, provide utility functions for manipulating bounding boxes and converting
-their formats.
-"""
+"""Converter functions for working with bounding box formats."""
 
 import tensorflow as tf
 
