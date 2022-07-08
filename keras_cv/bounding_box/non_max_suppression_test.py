@@ -28,7 +28,7 @@ class NonMaxSuppressionTest(tf.test.TestCase):
 
         predictions = tf.concat([boxes, classes, scores], axis=-1)
 
-        boxes = layer(images, predictions)
+        boxes = layer(predictions, images)
         self.assertEqual(boxes.shape, [3, None, 6])
 
     def test_non_square_images(self):
@@ -42,12 +42,12 @@ class NonMaxSuppressionTest(tf.test.TestCase):
 
         # RGB
         images = tf.ones((2, 256, 512, 3))
-        boxes = layer(images, predictions)
+        boxes = layer(predictions, images)
         self.assertEqual(boxes.shape, [2, None, 6])
 
         # greyscale
         images = tf.ones((2, 256, 512, 1))
-        boxes = layer(images, predictions)
+        boxes = layer(predictions, images)
         self.assertEqual(boxes.shape, [2, None, 6])
 
     def test_different_channels(self):
@@ -60,7 +60,7 @@ class NonMaxSuppressionTest(tf.test.TestCase):
 
         predictions = tf.concat([boxes, classes, scores], axis=-1)
 
-        boxes = layer(images, predictions)
+        boxes = layer(predictions, images)
         self.assertEqual(boxes.shape, [3, None, 6])
 
     def test_in_a_model(self):
@@ -79,5 +79,17 @@ class NonMaxSuppressionTest(tf.test.TestCase):
 
         predictions = tf.concat([boxes, classes, scores], axis=-1)
 
-        boxes = model([images, predictions])
+        boxes = model([predictions, images])
+        self.assertEqual(boxes.shape, [3, None, 6])
+
+    def test_without_images(self):
+        layer = NonMaxSuppression(num_classes=4, bounding_box_format="xyWH")
+
+        boxes = tf.cast(tf.random.uniform((3, 5, 4), 0, 480, tf.int32), tf.float32)
+        classes = tf.cast(tf.random.uniform((3, 5, 1), 0, 4, tf.int32), tf.float32)
+        scores = tf.random.uniform((3, 5, 1), 0, 1, tf.float32)
+
+        predictions = tf.concat([boxes, classes, scores], axis=-1)
+
+        boxes = layer(predictions)
         self.assertEqual(boxes.shape, [3, None, 6])

@@ -31,34 +31,20 @@ class NonMaxSuppression(tf.keras.layers.Layer):
     Args:
         num_classes: an integer representing the number of classes that a bounding
             box can belong to.
-        bounding_box_format: a case-sensitive string which is one of the supported
-            formats:
-            - `"xyxy"`, also known as `corners` format.  In this format the first four
-                    axes represent [left, top, right, bottom] in that order.
-            - `"rel_xyxy"`.  In this format, the axes are the same as `"xyxy"` but
-                    the x coordinates are normalized using the image width, and the y
-                    axes the image height.  All values in `rel_xyxy` are in the range
-                    (0, 1).
-            - `"xyWH"`.  In this format the first four axes represent
-                    [left, top, width, height].
-            - `"center_xyWH"`.  In this format the first two coordinates represent the
-                    x and y coordinates of the center of the bounding box, while the
-                    last two represent the width and height of the bounding box.
-            - `"yxyx"`.  In this format the first four axes represent
-                    [top, left, bottom, right] in that order.
-            - `"rel_yxyx"`.  In this format, the axes are the same as `"yxyx"` but the x
-                    coordinates are normalized using the image width, and the y axes the
-                    image height.  All values in `rel_yxyx` are in the range (0, 1).
-            The position and shape of the bounding box will be followed by the class and
-            confidence values (in that order). This is required for proper ranking
-            of the bounding boxes. Therefore, each bounding box is defined by 6 values.
+        bounding_box_format: a case-sensitive string which is one of `"xyxy"`,
+            `"rel_xyxy"`, `"xyWH"`, `"center_xyWH"`, `"yxyx"`, `"rel_yxyx"`. The
+            position and shape of the bounding box will be followed by the class and
+            confidencevalues (in that order). This is required for proper ranking of
+            the bounding boxes. Therefore, each bounding box is defined by 6 values.
+            For detailed information on the supported format, see the
+            [KerasCV bounding box documentation](https://keras.io/api/keras_cv/bounding_box/formats/).
         confidence_threshold: a float value in the range [0, 1]. All boxes with
             confidence below this value will be discarded. Defaults to 0.05.
-        nms_iou_threshold: a float value in the range [0, 1] representing the minimum
+        iou_threshold: a float value in the range [0, 1] representing the minimum
             IoU threshold for two boxes to be considered same for suppression. Defaults
             to 0.5.
         max_detections: the maximum detections to consider after nms is applied. A large
-            number may trigger OOM. Defaults to 100.
+            number may trigger significant memory overhead. Defaults to 100.
         max_detections_per_class: the maximum detections to consider per class after
             nms is applied. Defaults to 100.
 
@@ -83,10 +69,10 @@ class NonMaxSuppression(tf.keras.layers.Layer):
     nms = NonMaxSuppression(
         num_classes=8,
         bounding_box_format="center_xyWH",
-        nms_iou_threshold=0.1
+        iou_threshold=0.1
     )
 
-    boxes = nms(images, ex_boxes)
+    boxes = nms(boxes, images)
     ```
     """
 
@@ -95,7 +81,7 @@ class NonMaxSuppression(tf.keras.layers.Layer):
         num_classes,
         bounding_box_format,
         confidence_threshold=0.05,
-        nms_iou_threshold=0.5,
+        iou_threshold=0.5,
         max_detections=100,
         max_detections_per_class=100,
         **kwargs
@@ -104,16 +90,16 @@ class NonMaxSuppression(tf.keras.layers.Layer):
         self.num_classes = num_classes
         self.bounding_box_format = bounding_box_format
         self.confidence_threshold = confidence_threshold
-        self.nms_iou_threshold = nms_iou_threshold
+        self.iou_threshold = iou_threshold
         self.max_detections = max_detections
         self.max_detections_per_class = max_detections_per_class
 
-    def call(self, images, predictions):
+    def call(self, predictions, images=None):
         # convert to yxyx for the TF NMS operation
         predictions = convert_format(
             predictions,
             source=self.bounding_box_format,
-            target="rel_yxyx",
+            target="yxyx",
             images=images,
         )
 
@@ -131,7 +117,7 @@ class NonMaxSuppression(tf.keras.layers.Layer):
             scores,
             self.max_detections_per_class,
             self.max_detections,
-            self.nms_iou_threshold,
+            self.iou_threshold,
             self.confidence_threshold,
             clip_boxes=False,
         )
@@ -170,7 +156,7 @@ class NonMaxSuppression(tf.keras.layers.Layer):
         # converting all boxes to the original format
         boxes = convert_format(
             tf.expand_dims(boxes, axis=0),
-            source="rel_yxyx",
+            source="yxyx",
             target=self.bounding_box_format,
             images=images,
         )[0]
@@ -187,7 +173,7 @@ class NonMaxSuppression(tf.keras.layers.Layer):
             "num_classes": self.num_classes,
             "bounding_box_format": self.bounding_box_format,
             "confidence_threshold": self.confidence_threshold,
-            "nms_iou_threshold": self.nms_iou_threshold,
+            "iou_threshold": self.iou_threshold,
             "max_detections": self.max_detections,
             "max_detections_per_class": self.max_detections_per_class,
         }
