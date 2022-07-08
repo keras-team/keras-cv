@@ -47,10 +47,11 @@ def load_oxford_dataset(
 def load_voc_dataset(
     name="voc/2007",
     batch_size=9,
+    image_size=(224, 224),
 ):
-    def resize_voc(inputs, img_size=(224, 224)):
+    def resize_voc(inputs):
         """mapping function to create batched image and bbox coordinates"""
-        inputs["image"] = tf.image.resize(inputs["image"], img_size)[0]
+        inputs["image"] = tf.image.resize(inputs["image"], image_size)[0]
         inputs["objects"]["bbox"] = bounding_box.convert_format(
             inputs["objects"]["bbox"][0],
             images=inputs["image"],
