@@ -48,23 +48,19 @@ def load_voc_dataset(
     name="voc/2007",
     batch_size=9,
 ):
-    def resize_(inputs, img_size=(256, 256)):
-        inputs["image"] = inputs["image"]
-        inputs["objects"]["bbox"] = tf.squeeze(
-            bounding_box.convert_format(
-                inputs["objects"]["bbox"],
-                images=inputs["image"],
-                source="rel_yxyx",
-                target="rel_xyxy",
-            ),
-            axis=0,
+    def resize_voc(inputs, img_size=(224, 224)):
+        """mapping function to create batched image and bbox coordinates"""
+        inputs["image"] = tf.image.resize(inputs["image"], img_size)[0]
+        inputs["objects"]["bbox"] = bounding_box.convert_format(
+            inputs["objects"]["bbox"][0],
+            images=inputs["image"],
+            source="rel_yxyx",
+            target="rel_xyxy",
         )
         return inputs
 
-    dataset = tfds.load(
-        "voc/2007", split=tfds.Split.TRAIN, batch_size=1, shuffle_files=True
-    )
-    dataset = dataset.map(lambda x: resize_(x))
+    dataset = tfds.load(name, split=tfds.Split.TRAIN, batch_size=1, shuffle_files=True)
+    dataset = dataset.map(lambda x: resize_voc(x, img_size=(224, 224)))
     dataset = dataset.padded_batch(
         batch_size,
         padding_values={
@@ -94,7 +90,6 @@ def visualize_data(data, bounding_box_format):
 
 
 def visualize_bounding_box(image, bounding_boxes, bounding_box_format):
-    print("bounding box here", bounding_boxes)
     color = np.array([[255.0, 0.0, 0.0]])
     bounding_boxes = bounding_box.convert_format(
         bounding_boxes,
@@ -102,7 +97,6 @@ def visualize_bounding_box(image, bounding_boxes, bounding_box_format):
         target="rel_yxyx",
         images=image,
     )
-    print("new bbox=", bounding_boxes)
     return tf.image.draw_bounding_boxes(image, bounding_boxes, color, name=None)
 
 

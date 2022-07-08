@@ -18,9 +18,9 @@ are loaded, then are passed through the preprocessing layers.
 Finally, they are shown using matplotlib.
 """
 
-import examples.layers.preprocessing.classification.demo_utils as demo_utils
 import tensorflow as tf
 
+import examples.layers.preprocessing.classification.demo_utils as demo_utils
 import keras_cv
 from keras_cv.layers import preprocessing
 

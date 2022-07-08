@@ -19,7 +19,6 @@ Finally, they are shown using matplotlib.
 """
 
 import examples.layers.preprocessing.classification.demo_utils as demo_utils
-
 from keras_cv.layers.preprocessing import RandomResizedCrop
 
 
