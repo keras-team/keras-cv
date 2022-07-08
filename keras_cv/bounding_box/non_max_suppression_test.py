@@ -64,8 +64,8 @@ class NonMaxSuppressionTest(tf.test.TestCase):
         self.assertEqual(boxes.shape, [3, None, 6])
 
     def test_in_a_model(self):
-        input1 = tf.keras.layers.Input([480, 480, 3])
-        input2 = tf.keras.layers.Input([5, 6])
+        input1 = tf.keras.layers.Input([5, 6])
+        input2 = tf.keras.layers.Input([480, 480, 3])
         layer = NonMaxSuppression(num_classes=4, bounding_box_format="xyWH")
         outputs = layer(input1, input2)
 
