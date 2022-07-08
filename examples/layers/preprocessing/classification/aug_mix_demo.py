@@ -11,25 +11,23 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""random_shear_demo.py shows how to use the RandomShear preprocessing layer.
+"""aug_mix_demo.py shows how to use the AugMix preprocessing layer.
 
 Operates on the oxford_flowers102 dataset.  In this script the flowers
 are loaded, then are passed through the preprocessing layers.
 Finally, they are shown using matplotlib.
 """
-import demo_utils
+
+import examples.layers.preprocessing.classification.demo_utils as demo_utils
 import tensorflow as tf
 
-from keras_cv.layers import preprocessing
+from keras_cv import layers
 
 
 def main():
+    augmix = layers.AugMix(value_range=[0, 255])
     ds = demo_utils.load_oxford_dataset()
-    random_cutout = preprocessing.RandomShear(
-        x_factor=(0, 1),
-        y_factor=0.5,
-    )
-    ds = ds.map(random_cutout, num_parallel_calls=tf.data.AUTOTUNE)
+    ds = ds.map(augmix, num_parallel_calls=tf.data.AUTOTUNE)
     demo_utils.visualize_dataset(ds)
 
 

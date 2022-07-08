@@ -11,15 +11,13 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+"""random_cutout_demo.py shows how to use the RandomCutout preprocessing layer.
 
-
-"""random_channel_shift_demo.py shows how to use the RandomChannelShift preprocessing
-layer.  Operates on the oxford_flowers102 dataset.  In this script the flowers
+Operates on the oxford_flowers102 dataset.  In this script the flowers
 are loaded, then are passed through the preprocessing layers.
 Finally, they are shown using matplotlib.
 """
-
-import demo_utils
+import examples.layers.preprocessing.classification.demo_utils as demo_utils
 import tensorflow as tf
 
 from keras_cv.layers import preprocessing
@@ -27,9 +25,14 @@ from keras_cv.layers import preprocessing
 
 def main():
     ds = demo_utils.load_oxford_dataset()
-    rgbshift = preprocessing.RandomChannelShift(value_range=(0, 255), factor=0.4)
-    ds = ds.map(rgbshift, num_parallel_calls=tf.data.AUTOTUNE)
+    random_cutout = preprocessing.RandomCutout(
+        height_factor=(0.3, 0.9),
+        width_factor=(0.3, 0.9),
+        fill_mode="gaussian_noise",
+    )
+    ds = ds.map(random_cutout, num_parallel_calls=tf.data.AUTOTUNE)
     demo_utils.visualize_dataset(ds)
 
 
-main()
+if __name__ == "__main__":
+    main()

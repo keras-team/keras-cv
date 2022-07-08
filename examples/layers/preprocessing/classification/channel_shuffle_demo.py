@@ -11,22 +11,23 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""fourier_mix_demo.py shows how to use the FourierMix preprocessing layer.
-Uses the oxford_flowers102 dataset.  In this script the flowers
+"""channel_shuffle_demo.py shows how to use the ChannelShuffle preprocessing layer.
+
+Operates on the oxford_flowers102 dataset. In this script the flowers
 are loaded, then are passed through the preprocessing layers.
 Finally, they are shown using matplotlib.
 """
 
-import demo_utils
+import examples.layers.preprocessing.classification.demo_utils as demo_utils
 import tensorflow as tf
 
 from keras_cv import layers
 
 
 def main():
-    fourier_mix = layers.FourierMix(alpha=0.5)
+    channel_shuffle = layers.ChannelShuffle()
     ds = demo_utils.load_oxford_dataset()
-    ds = ds.map(fourier_mix, num_parallel_calls=tf.data.AUTOTUNE)
+    ds = ds.map(channel_shuffle, num_parallel_calls=tf.data.AUTOTUNE)
     demo_utils.visualize_dataset(ds)
 
 

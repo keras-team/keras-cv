@@ -17,18 +17,27 @@ Uses the oxford_flowers102 dataset.  In this script the flowers
 are loaded, then are passed through the preprocessing layers.
 Finally, they are shown using matplotlib.
 """
-import demo_utils
+import examples.layers.preprocessing.classification.demo_utils as demo_utils
 import tensorflow as tf
 
 from keras_cv.layers import preprocessing
 
 
+def create_custom_pipeline():
+    layers = preprocessing.RandAugment.get_standard_policy(
+        value_range=(0, 255), magnitude=0.75, magnitude_stddev=0.3
+    )
+    layers = layers[:4]  # slice out some layers you don't want for whatever reason
+    layers = layers + [preprocessing.GridMask()]
+    return preprocessing.RandomAugmentationPipeline(
+        layers=layers, augmentations_per_image=3
+    )
+
+
 def main():
     ds = demo_utils.load_oxford_dataset()
-    rand_augment = preprocessing.RandAugment(
-        value_range=(0, 255), augmentations_per_image=3, magnitude=0.5, rate=0.875
-    )
-    ds = ds.map(rand_augment, num_parallel_calls=tf.data.AUTOTUNE)
+    custom_pipeline = create_custom_pipeline()
+    ds = ds.map(custom_pipeline, num_parallel_calls=tf.data.AUTOTUNE)
     demo_utils.visualize_dataset(ds)
 
 

@@ -11,13 +11,15 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""random_saturation_demo.py shows how to use the RandomSaturation preprocessing layer.
 
-Operates on the oxford_flowers102 dataset.  In this script the flowers
+
+"""random_channel_shift_demo.py shows how to use the RandomChannelShift preprocessing
+layer.  Operates on the oxford_flowers102 dataset.  In this script the flowers
 are loaded, then are passed through the preprocessing layers.
 Finally, they are shown using matplotlib.
 """
-import demo_utils
+
+import examples.layers.preprocessing.classification.demo_utils as demo_utils
 import tensorflow as tf
 
 from keras_cv.layers import preprocessing
@@ -25,10 +27,9 @@ from keras_cv.layers import preprocessing
 
 def main():
     ds = demo_utils.load_oxford_dataset()
-    random_saturation = preprocessing.RandomSaturation(factor=(0.0, 1.0))
-    ds = ds.map(random_saturation, num_parallel_calls=tf.data.AUTOTUNE)
+    rgbshift = preprocessing.RandomChannelShift(value_range=(0, 255), factor=0.4)
+    ds = ds.map(rgbshift, num_parallel_calls=tf.data.AUTOTUNE)
     demo_utils.visualize_dataset(ds)
 
 
-if __name__ == "__main__":
-    main()
+main()

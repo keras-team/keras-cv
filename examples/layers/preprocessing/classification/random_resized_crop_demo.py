@@ -11,27 +11,27 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""random_cutout_demo.py shows how to use the RandomCutout preprocessing layer.
 
-Operates on the oxford_flowers102 dataset.  In this script the flowers
-are loaded, then are passed through the preprocessing layers.
+"""random_resized_crop_demo.py.py shows how to use the RandomResizedCrop
+preprocessing layer. Operates on an image of elephant. In this script the image
+is loaded, then are passed through the preprocessing layers.
 Finally, they are shown using matplotlib.
 """
-import demo_utils
-import tensorflow as tf
 
-from keras_cv.layers import preprocessing
+import examples.layers.preprocessing.classification.demo_utils as demo_utils
+
+from keras_cv.layers.preprocessing import RandomResizedCrop
 
 
 def main():
-    ds = demo_utils.load_oxford_dataset()
-    random_cutout = preprocessing.RandomCutout(
-        height_factor=(0.3, 0.9),
-        width_factor=(0.3, 0.9),
-        fill_mode="gaussian_noise",
+    many_elephants = demo_utils.load_elephant_tensor(output_size=(300, 300))
+    layer = RandomResizedCrop(
+        target_size=(224, 224),
+        crop_area_factor=(0.08, 1.0),
+        aspect_ratio_factor=(3.0 / 4.0, 4.0 / 3.0),
     )
-    ds = ds.map(random_cutout, num_parallel_calls=tf.data.AUTOTUNE)
-    demo_utils.visualize_dataset(ds)
+    augmented = layer(many_elephants)
+    demo_utils.gallery_show(augmented.numpy())
 
 
 if __name__ == "__main__":

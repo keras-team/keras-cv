@@ -11,23 +11,17 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""mix_up_demo.py shows how to use the MixUp preprocessing layer.
-
-Uses the oxford_flowers102 dataset.  In this script the flowers
-are loaded, then are passed through the preprocessing layers.
-Finally, they are shown using matplotlib.
+"""
+   Visualization_demo.py is used to visualize the dataset with bounding boxes.
 """
 import demo_utils
-import tensorflow as tf
-
-from keras_cv.layers import preprocessing
 
 
 def main():
-    ds = demo_utils.load_oxford_dataset()
-    mixup = preprocessing.MixUp(alpha=0.8)
-    ds = ds.map(mixup, num_parallel_calls=tf.data.AUTOTUNE)
-    demo_utils.visualize_dataset(ds)
+    ds = demo_utils.load_voc_dataset()
+    inputs = {"images": ds["image"], "bounding_boxes": ds["objects"]["bbox"]}
+    print(inputs)
+    demo_utils.visualize_data(inputs, bounding_box_format="rel_xyxy")
 
 
 if __name__ == "__main__":

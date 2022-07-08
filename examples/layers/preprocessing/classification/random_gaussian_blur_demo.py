@@ -11,23 +11,23 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""cut_mix_demo.py shows how to use the CutMix preprocessing layer.
-
+"""random_gaussian_blur_demo.py shows how to use the RandomHue preprocessing layer.
 Operates on the oxford_flowers102 dataset.  In this script the flowers
 are loaded, then are passed through the preprocessing layers.
 Finally, they are shown using matplotlib.
 """
-
-import demo_utils
+import examples.layers.preprocessing.classification.demo_utils as demo_utils
 import tensorflow as tf
 
-from keras_cv import layers
+from keras_cv.layers import preprocessing
 
 
 def main():
-    cutmix = layers.CutMix()
     ds = demo_utils.load_oxford_dataset()
-    ds = ds.map(cutmix, num_parallel_calls=tf.data.AUTOTUNE)
+    random_gaussian_blur = preprocessing.RandomGaussianBlur(
+        kernel_size=3, factor=(0.0, 3.0)
+    )
+    ds = ds.map(random_gaussian_blur, num_parallel_calls=tf.data.AUTOTUNE)
     demo_utils.visualize_dataset(ds)
 
 

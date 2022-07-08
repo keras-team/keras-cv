@@ -11,12 +11,13 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""random_hue_demo.py shows how to use the RandomHue preprocessing layer.
-Operates on the oxford_flowers102 dataset.  In this script the flowers
+"""rand_augment_demo.py shows how to use the RandAugment preprocessing layer.
+
+Uses the oxford_flowers102 dataset.  In this script the flowers
 are loaded, then are passed through the preprocessing layers.
 Finally, they are shown using matplotlib.
 """
-import demo_utils
+import examples.layers.preprocessing.classification.demo_utils as demo_utils
 import tensorflow as tf
 
 from keras_cv.layers import preprocessing
@@ -24,8 +25,10 @@ from keras_cv.layers import preprocessing
 
 def main():
     ds = demo_utils.load_oxford_dataset()
-    random_hue = preprocessing.RandomHue(factor=(0.0, 1.0), value_range=(0, 255))
-    ds = ds.map(random_hue, num_parallel_calls=tf.data.AUTOTUNE)
+    rand_augment = preprocessing.RandAugment(
+        value_range=(0, 255), augmentations_per_image=3, magnitude=0.5, rate=0.875
+    )
+    ds = ds.map(rand_augment, num_parallel_calls=tf.data.AUTOTUNE)
     demo_utils.visualize_dataset(ds)
 
 

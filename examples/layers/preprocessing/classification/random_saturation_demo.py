@@ -11,27 +11,23 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+"""random_saturation_demo.py shows how to use the RandomSaturation preprocessing layer.
 
-"""random_resized_crop_demo.py.py shows how to use the RandomResizedCrop
-preprocessing layer. Operates on an image of elephant. In this script the image
-is loaded, then are passed through the preprocessing layers.
+Operates on the oxford_flowers102 dataset.  In this script the flowers
+are loaded, then are passed through the preprocessing layers.
 Finally, they are shown using matplotlib.
 """
+import examples.layers.preprocessing.classification.demo_utils as demo_utils
+import tensorflow as tf
 
-import demo_utils
-
-from keras_cv.layers.preprocessing import RandomResizedCrop
+from keras_cv.layers import preprocessing
 
 
 def main():
-    many_elephants = demo_utils.load_elephant_tensor(output_size=(300, 300))
-    layer = RandomResizedCrop(
-        target_size=(224, 224),
-        crop_area_factor=(0.08, 1.0),
-        aspect_ratio_factor=(3.0 / 4.0, 4.0 / 3.0),
-    )
-    augmented = layer(many_elephants)
-    demo_utils.gallery_show(augmented.numpy())
+    ds = demo_utils.load_oxford_dataset()
+    random_saturation = preprocessing.RandomSaturation(factor=(0.0, 1.0))
+    ds = ds.map(random_saturation, num_parallel_calls=tf.data.AUTOTUNE)
+    demo_utils.visualize_dataset(ds)
 
 
 if __name__ == "__main__":
