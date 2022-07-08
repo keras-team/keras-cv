@@ -24,10 +24,6 @@ import tensorflow as tf
 from keras_cv import layers
 
 
-def to_dict(images, labels):
-    return {"images": images, "labels": labels}
-
-
 def main():
     cutmix = layers.CutMix()
     ds = demo_utils.load_oxford_dataset()

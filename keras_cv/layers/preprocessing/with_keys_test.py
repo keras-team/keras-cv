@@ -58,6 +58,12 @@ TEST_CONFIGURATIONS = [
             "seed": 1,
         },
     ),
+    (
+        "RandomGaussianBlur",
+        preprocessing.RandomGaussianBlur,
+        {"kernel_size": 3, "factor": (0.0, 3.0)},
+    ),
+    ("RandomJpegQuality", preprocessing.RandomJpegQuality, {"factor": (75, 100)}),
     ("RandomSaturation", preprocessing.RandomSaturation, {"factor": 0.5}),
     (
         "RandomSharpness",

@@ -19,47 +19,17 @@ are loaded, then are passed through the preprocessing layers.
 Finally, they are shown using matplotlib.
 """
 
-import matplotlib.pyplot as plt
+import demo_utils
 import tensorflow as tf
-import tensorflow_datasets as tfds
 
 from keras_cv.layers import preprocessing
 
-IMG_SIZE = (224, 224)
-BATCH_SIZE = 64
-
-
-def resize(image, label, num_classes=10):
-    image = tf.image.resize(image, IMG_SIZE)
-    label = tf.one_hot(label, num_classes)
-    return image, label
-
 
 def main():
-    data, ds_info = tfds.load("oxford_flowers102", with_info=True, as_supervised=True)
-    train_ds = data["train"]
-
-    num_classes = ds_info.features["label"].num_classes
-
-    train_ds = (
-        train_ds.map(lambda x, y: resize(x, y, num_classes=num_classes))
-        .shuffle(10 * BATCH_SIZE)
-        .batch(BATCH_SIZE)
-    )
-
+    ds = demo_utils.load_oxford_dataset()
     rgbshift = preprocessing.RandomChannelShift(value_range=(0, 255), factor=0.4)
-
-    train_ds = train_ds.map(
-        lambda x, y: (rgbshift(x, training=True), y),
-        num_parallel_calls=tf.data.AUTOTUNE,
-    )
-
-    images, labels = next(iter(train_ds.take(1)))
-    plt.figure(figsize=(8, 8))
-    for i in range(9):
-        plt.subplot(3, 3, i + 1)
-        plt.imshow(images[i].numpy().astype("uint8"))
-    plt.show()
+    ds = ds.map(rgbshift, num_parallel_calls=tf.data.AUTOTUNE)
+    demo_utils.visualize_dataset(ds)
 
 
 main()
