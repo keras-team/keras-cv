@@ -77,8 +77,7 @@ class RandomAugmentationPipeline(BaseImageAugmentationLayer):
         super().__init__(**kwargs, seed=seed, force_generator=True)
         self.augmentations_per_image = augmentations_per_image
         self.rate = rate
-
-        self.layers = layers
+        self.layers = list(layers)
         self.auto_vectorize = auto_vectorize
         self.seed = seed
 
@@ -87,7 +86,7 @@ class RandomAugmentationPipeline(BaseImageAugmentationLayer):
         )
 
     def _augment(self, inputs):
-        if list(self.layers) == []:
+        if self.layers == []:
             return inputs
 
         result = inputs
