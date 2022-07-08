@@ -61,6 +61,7 @@ class RandomShearTest(tf.test.TestCase, parameterized.TestCase):
             shear_kwargs = {"y_factor": (factor, factor)}
             expected_output[:, 1] += keypoints[:, 0] * factor
 
+        shear_kwargs['keypoint_format'] = 'xy'
         layer = preprocessing.RandomShear(**shear_kwargs)
         output = layer({"images": image, "keypoints": keypoints})
 
@@ -71,11 +72,9 @@ class RandomShearTest(tf.test.TestCase, parameterized.TestCase):
         image = tf.ones(shape=(100, 100, 3))
         factor = 0.5
 
-        bounding_boxes = np.array(
-            [
-                [25.0, 25.0, 75.0, 75.0],
-            ]
-        )
+        bounding_boxes = np.array([
+            [25.0, 25.0, 75.0, 75.0],
+        ])
 
         if shear_type == "x":
             shear_kwargs = {"x_factor": (factor, factor), "bounding_box_format": "xyxy"}

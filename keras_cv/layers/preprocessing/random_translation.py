@@ -16,9 +16,12 @@ import functools
 import tensorflow as tf
 
 from keras_cv import bounding_box
+from keras_cv import keypoint
 from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
     BaseImageAugmentationLayer,
 )
+
+from keras_cv.layers.preprocessing.random_rotation import MissingFormatError
 
 H_AXIS = -3
 W_AXIS = -2
@@ -38,7 +41,7 @@ class RandomTranslation(BaseImageAugmentationLayer):
     [guide](https://www.tensorflow.org/guide/keras/preprocessing_layers).
 
     Args:
-      height_factor: a float represented as fraction of value, or a
+      height_factor: oa float represented as fraction of value, or a
         tuple of size 2 representing lower and upper bound for
         shifting vertically. A negative value means shifting image up,
         while a positive value means shifting image down. When
@@ -69,19 +72,18 @@ class RandomTranslation(BaseImageAugmentationLayer):
           nearest pixel.
       interpolation: Interpolation mode. Supported values: `"nearest"`,
         `"bilinear"`.
+      bounding_box_format: The format of bounding boxes of input
+        dataset. Refer to
+        https://github.com/keras-team/keras-cv/blob/master/keras_cv/bounding_box/converters.py
+        for more details on supported bounding box formats.
+      keypoint_format: The format of keypoints of input dataset. Refer
+        to
+        https://github.com/keras-team/keras-cv/blob/master/keras_cv/bounding_box/converters.py
+        for more details on supported keypoint formats.
       seed: Integer. Used to create a random seed.
       fill_value: a float represents the value to be filled outside the boundaries
         when `fill_mode="constant"`.
-
-    Input shape:
-      3D (unbatched) or 4D (batched) tensor with shape:
-      `(..., height, width, channels)`,  in `"channels_last"` format.
-
-    Output shape:
-      3D (unbatched) or 4D (batched) tensor with shape:
-      `(..., height, width, channels)`,  in `"channels_last"` format.
     """
-
     def __init__(
         self,
         height_factor,
@@ -91,6 +93,7 @@ class RandomTranslation(BaseImageAugmentationLayer):
         seed=None,
         fill_value=0.0,
         bounding_box_format=None,
+        keypoint_format=None,
         **kwargs
     ):
         super().__init__(seed=seed, **kwargs)
@@ -104,11 +107,17 @@ class RandomTranslation(BaseImageAugmentationLayer):
             **kwargs
         )
         self.bounding_box_format = bounding_box_format
+        self.keypoint_format = keypoint_format
 
     def get_config(self):
         config = super().get_config()
         config.update(self.base.get_config())
-        config.update({"bounding_box_format": self.bounding_box_format})
+        config.update(
+            {
+                "bounding_box_format": self.bounding_box_format,
+                "keypoint_format": self.keypoint_format
+            }
+        )
         return config
 
     def get_random_transformation(
@@ -124,26 +133,37 @@ class RandomTranslation(BaseImageAugmentationLayer):
     def augment_label(self, labels, transformation=None, **kwargs):
         return labels
 
-    def augment_bounding_boxes(
-        self, bounding_boxes, transformation=None, image=None, **kwargs
-    ):
+    def augment_bounding_boxes(self, bounding_boxes, transformation=None, **kwargs):
+        image = kwargs.get('image')
         if self.bounding_box_format is None:
-            raise ValueError(
-                "`RandomTranslation()` was called with bounding boxes,"
-                "but no `bounding_box_format` was specified in the constructor."
-                "Please specify a bounding box format in the constructor. i.e."
-                "`RandomTranslation(bounding_box_format='xyxy')`"
-            )
+            raise MissingFormatError.bounding_boxes("RandomRotation")
+
         return bounding_box.transform_from_point_transform(
             bounding_boxes,
             functools.partial(
-                self.augment_keypoints, transformation=transformation, image=image
+                self.augment_keypoints,
+                transformation=transformation,
+                image=image,
             ),
             bounding_box_format=self.bounding_box_format,
+            images=image,
             compute_dtype=self.compute_dtype,
         )
 
-    def augment_keypoints(self, keypoints, transformation=None, image=None, **kwargs):
+    def augment_keypoints(self, keypoints, transformation=None, **kwargs):
+        image = kwargs.get('image')
+        keypoint_format = kwargs.get('keypoint_format', self.keypoint_format)
+
+        if keypoint_format is None:
+            raise MissingFormatError.keypoints('RandomTranslation')
+
+        keypoints = keypoint.convert_format(
+            keypoints,
+            source=keypoint_format,
+            target='xy',
+            images=image,
+        )
+
         inputs_shape = tf.shape(image)
         img_hd = tf.cast(inputs_shape[H_AXIS], tf.float32)
         img_wd = tf.cast(inputs_shape[W_AXIS], tf.float32)
@@ -155,4 +175,10 @@ class RandomTranslation(BaseImageAugmentationLayer):
             tf.concat([img_wd * offset_x, img_hd * offset_y], axis=-1),
             dtype=self.compute_dtype,
         )
-        return keypoints + offset[None, ...]
+
+        return keypoint.convert_format(
+            keypoints + offset[None, ...],
+            source='xy',
+            target=keypoint_format,
+            images=image
+        )

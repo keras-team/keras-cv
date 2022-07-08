@@ -84,7 +84,7 @@ class RandomRotationTest(tf.test.TestCase):
         )
         input = {"images": input_image, "keypoints": keypoints}
         # 180 rotation.
-        layer = RandomRotation(factor=(0.5, 0.5), bounding_box_format="xyxy")
+        layer = RandomRotation(factor=(0.5, 0.5), keypoint_format="xy")
         output_bbox = layer(input)
         expected_output = np.asarray(
             [

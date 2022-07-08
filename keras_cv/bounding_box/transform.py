@@ -24,10 +24,14 @@ def transform_from_point_transform(
     bounding_boxes,
     point_transform_fn,
     bounding_box_format="xyxy",
+    images=None,
     compute_dtype=tf.float32,
 ):
     bounding_boxes = bounding_box.convert_format(
-        bounding_boxes, source=bounding_box_format, target="xyxy"
+        bounding_boxes,
+        source=bounding_box_format,
+        target="xyxy",
+        images=images,
     )
     xlu, ylu, xrl, yrl, rest = tf.split(bounding_boxes, [1, 1, 1, 1, -1], axis=-1)
     corners = tf.stack(
@@ -39,7 +43,7 @@ def transform_from_point_transform(
         ],
         axis=1,
     )
-    corners = point_transform_fn(corners)
+    corners = point_transform_fn(corners, keypoint_format='xy')
     min_coordinates = tf.math.reduce_min(corners, axis=-2)
     max_coordinates = tf.math.reduce_max(corners, axis=-2)
     bounding_boxes_out = tf.concat([min_coordinates, max_coordinates, rest], axis=-1)
@@ -47,6 +51,7 @@ def transform_from_point_transform(
         bounding_boxes_out,
         source="xyxy",
         target=bounding_box_format,
+        images=images,
         dtype=compute_dtype,
     )
     return bounding_boxes_out

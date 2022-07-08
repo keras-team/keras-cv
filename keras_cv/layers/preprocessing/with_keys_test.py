@@ -73,7 +73,12 @@ TEST_CONFIGURATIONS = [
     (
         "RandomShear",
         preprocessing.RandomShear,
-        {"x_factor": 0.3, "x_factor": 0.3, "bounding_box_format": "xyxy"},
+        {
+            "x_factor": 0.3,
+            "x_factor": 0.3,
+            "bounding_box_format": "xyxy",
+            "keypoint_format": "xy",
+        },
     ),
     ("Solarization", preprocessing.Solarization, {"value_range": (0, 255)}),
     ("RandomContrast", preprocessing.RandomContrast, {"factor": 1, "seed": 2}),
@@ -88,6 +93,21 @@ TEST_CONFIGURATIONS = [
             "seed": 1,
             "fill_value": 0.5,
             "bounding_box_format": "xyxy",
+            "keypoint_format": "xy",
+        },
+    ),
+    (
+        "RandomTranslation",
+        preprocessing.RandomTranslation,
+        {
+            "width_factor": 0.1,
+            "height_factor": 0.3,
+            "fill_mode": "reflect",
+            "interpolation": "bilinear",
+            "seed": 2,
+            "fill_value": 0.3,
+            "bounding_box_format": "xyxy",
+            "keypoint_format": "xy",
         },
     ),
 ]  # yapf:disable
@@ -104,7 +124,7 @@ class WithKeysTest(tf.test.TestCase, parameterized.TestCase):
         img = tf.random.uniform(
             shape=(3, 512, 512, 3), minval=0, maxval=1, dtype=tf.float32
         )
-        labels = tf.ones((3,), dtype=tf.float32)
+        labels = tf.ones((3, ), dtype=tf.float32)
 
         inputs = {"images": img, "labels": labels}
         _ = layer(inputs)

@@ -99,6 +99,7 @@ class RandomTranslationTest(tf.test.TestCase):
         layer = RandomTranslation(
             height_factor=(0.5, 0.5),
             width_factor=(0.25, 0.25),
+            keypoint_format='xy',
         )
         output_bbox = layer(input)
         expected_output = np.asarray(
