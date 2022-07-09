@@ -232,7 +232,10 @@ def InvertedResBlock(
         if se_ratio:
             with custom_object_scope({"hard_sigmoid": HardSigmoid()}):
                 x = SqueezeAndExcite2D(
-                    filters=Depth()(infilters * expansion), ratio=se_ratio, squeeze_activation="relu", excite_activation="hard_sigmoid"
+                    filters=Depth()(infilters * expansion),
+                    ratio=se_ratio,
+                    squeeze_activation="relu",
+                    excite_activation="hard_sigmoid",
                 )(x)
 
         x = layers.Conv2D(
