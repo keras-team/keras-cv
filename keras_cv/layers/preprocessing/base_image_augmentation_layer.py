@@ -258,7 +258,8 @@ class BaseImageAugmentationLayer(tf.keras.__internal__.layers.BaseRandomLayer):
                 image=image,
             )
             result[BOUNDING_BOXES] = bounding_boxes
-        return result
+        inputs.update(result)  # preserve unmodified, additional entries.
+        return inputs
 
     def _batch_augment(self, inputs):
         return self._map_fn(self._augment, inputs)
