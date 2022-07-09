@@ -67,10 +67,10 @@ BASE_DOCSTRING = """Instantiates the {name} architecture.
             and 5x5 convolutions). While these models are less efficient on CPU, they
             are much more performant on GPU/DSP.
         include_top: whether to include the fully-connected layer at the top of the
-            network.  If provided, `classes` must be provided.
+            network.  If provided, `num_classes` must be provided.
         weights: one of `None` (random initialization), or a pretrained weight file
             path.
-        classes: optional number of classes to classify images into, only to be
+        num_classes: optional number of num_classes to classify images into, only to be
             specified if `include_top` is True, and if no `weights` argument is
             specified.
         pooling: optional pooling mode for feature extraction
@@ -320,7 +320,7 @@ def MobileNetV3(
     alpha=1.0,
     include_top=True,
     weights=None,
-    classes=None,
+    num_classes=None,
     pooling=None,
     dropout_rate=0.2,
     classifier_activation="softmax",
@@ -355,10 +355,10 @@ def MobileNetV3(
             - If `alpha` = 1, default number of filters from the paper
                 are used at each layer.
         include_top: whether to include the fully-connected layer at the top of the
-            network.  If provided, `classes` must be provided.
+            network.  If provided, `num_classes` must be provided.
         weights: one of `None` (random initialization), or a pretrained weight file
             path.
-        classes: optional number of classes to classify images into, only to be
+        num_classes: optional number of classes to classify images into, only to be
             specified if `include_top` is True, and if no `weights` argument is
             specified.
         pooling: optional pooling mode for feature extraction
@@ -389,7 +389,7 @@ def MobileNetV3(
     Raises:
         ValueError: if `weights` represents an invalid path to weights file and is not
             None.
-        ValueError: if `include_top` is True and `classes` is not specified.
+        ValueError: if `include_top` is True and `num_classes` is not specified.
     """
     if weights and not tf.io.gfile.exists(weights):
         raise ValueError(
@@ -398,11 +398,11 @@ def MobileNetV3(
             f"Weights file not found at location: {weights}"
         )
 
-    if include_top and not classes:
+    if include_top and not num_classes:
         raise ValueError(
             "If `include_top` is True, "
-            "you should specify `classes`. "
-            f"Received: classes={classes}"
+            "you should specify `num_classes`. "
+            f"Received: num_classes={num_classes}"
         )
 
     if minimalistic:
@@ -466,7 +466,7 @@ def MobileNetV3(
 
         if dropout_rate > 0:
             x = layers.Dropout(dropout_rate)(x)
-        x = layers.Conv2D(classes, kernel_size=1, padding="same", name="Logits")(x)
+        x = layers.Conv2D(num_classes, kernel_size=1, padding="same", name="Logits")(x)
         x = layers.Flatten()(x)
         x = layers.Activation(activation=classifier_activation, name="Predictions")(x)
     elif pooling == "avg":
@@ -487,7 +487,7 @@ def MobileNetV3Small(
     minimalistic=False,
     include_top=True,
     weights=None,
-    classes=None,
+    num_classes=None,
     pooling=None,
     dropout_rate=0.2,
     classifier_activation="softmax",
@@ -519,7 +519,7 @@ def MobileNetV3Small(
         alpha,
         include_top,
         weights,
-        classes,
+        num_classes,
         pooling,
         dropout_rate,
         classifier_activation,
@@ -536,7 +536,7 @@ def MobileNetV3Large(
     minimalistic=False,
     include_top=True,
     weights=None,
-    classes=None,
+    num_classes=None,
     pooling=None,
     dropout_rate=0.2,
     classifier_activation="softmax",
@@ -572,7 +572,7 @@ def MobileNetV3Large(
         alpha,
         include_top,
         weights,
-        classes,
+        num_classes,
         pooling,
         dropout_rate,
         classifier_activation,
