@@ -742,15 +742,14 @@ def EfficientNetB7(
         **kwargs
     )
 
-
-EfficientNetB0.__doc__ = BASE_DOCSTRING.format(name="EfficientNetB0")
-EfficientNetB1.__doc__ = BASE_DOCSTRING.format(name="EfficientNetB1")
-EfficientNetB2.__doc__ = BASE_DOCSTRING.format(name="EfficientNetB2")
-EfficientNetB3.__doc__ = BASE_DOCSTRING.format(name="EfficientNetB3")
-EfficientNetB4.__doc__ = BASE_DOCSTRING.format(name="EfficientNetB4")
-EfficientNetB5.__doc__ = BASE_DOCSTRING.format(name="EfficientNetB5")
-EfficientNetB6.__doc__ = BASE_DOCSTRING.format(name="EfficientNetB6")
-EfficientNetB7.__doc__ = BASE_DOCSTRING.format(name="EfficientNetB7")
+setattr(EfficientNetB0, "__doc__", BASE_DOCSTRING.format(name="EfficientNetB0"))
+setattr(EfficientNetB1, "__doc__", BASE_DOCSTRING.format(name="EfficientNetB1"))
+setattr(EfficientNetB2, "__doc__", BASE_DOCSTRING.format(name="EfficientNetB2"))
+setattr(EfficientNetB3, "__doc__", BASE_DOCSTRING.format(name="EfficientNetB3"))
+setattr(EfficientNetB4, "__doc__", BASE_DOCSTRING.format(name="EfficientNetB4"))
+setattr(EfficientNetB5, "__doc__", BASE_DOCSTRING.format(name="EfficientNetB5"))
+setattr(EfficientNetB6, "__doc__", BASE_DOCSTRING.format(name="EfficientNetB6"))
+setattr(EfficientNetB7, "__doc__", BASE_DOCSTRING.format(name="EfficientNetB7"))
 
 def preprocess_input(x, data_format=None):
     """A placeholder method for backward compatibility.
