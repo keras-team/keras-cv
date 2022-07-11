@@ -44,8 +44,6 @@ def VGG19(
 
     This function returns a Keras VGG19 model.
 
-    The default input size for this model is 224x224.
-
     Args:
       include_rescaling: whether or not to Rescale the inputs.If set to True,
         inputs will be passed through a `Rescaling(1/255.0)` layer.
