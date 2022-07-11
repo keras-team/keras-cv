@@ -33,7 +33,7 @@ def VGG19(
     input_shape=(None, None, 3),
     pooling=None,
     classifier_activation="softmax",
-    name=None,
+    name="VGG19",
     **kwargs,
 ):
     """Instantiates the VGG19 architecture.
@@ -169,7 +169,7 @@ def VGG19(
         elif pooling == "max":
             x = layers.GlobalMaxPooling2D()(x)
 
-    model = keras.Model(inputs, x, name="vgg19", **kwargs)
+    model = keras.Model(inputs, x, name=name, **kwargs)
 
     if weights is not None:
         model.load_weights(weights)
