@@ -18,11 +18,13 @@ from absl.testing import parameterized
 from tensorflow.keras import backend
 
 from keras_cv.models import densenet
+from keras_cv.models import vgg19
 
 MODEL_LIST = [
     (densenet.DenseNet121, 1024),
     (densenet.DenseNet169, 1664),
     (densenet.DenseNet201, 1920),
+    (vgg19.VGG19, 512),
 ]
 
 
