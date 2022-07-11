@@ -16,8 +16,7 @@
 """VGG19 model for KerasCV.
 
 Reference:
-  - [Very Deep Convolutional Networks for Large-Scale Image Recognition](
-      https://arxiv.org/abs/1409.1556) (ICLR 2015)
+  - [Very Deep Convolutional Networks for Large-Scale Image Recognition](https://arxiv.org/abs/1409.1556) (ICLR 2015)
 """
 
 import tensorflow as tf
@@ -39,8 +38,7 @@ def VGG19(
     """Instantiates the VGG19 architecture.
 
     Reference:
-    - [Very Deep Convolutional Networks for Large-Scale Image Recognition](
-        https://arxiv.org/abs/1409.1556) (ICLR 2015)
+    - [Very Deep Convolutional Networks for Large-Scale Image Recognition](https://arxiv.org/abs/1409.1556) (ICLR 2015)
 
     This function returns a Keras VGG19 model.
 
