@@ -34,7 +34,7 @@ class NonMaxSuppression(tf.keras.layers.Layer):
         bounding_box_format: a case-sensitive string which is one of `"xyxy"`,
             `"rel_xyxy"`, `"xyWH"`, `"center_xyWH"`, `"yxyx"`, `"rel_yxyx"`. The
             position and shape of the bounding box will be followed by the class and
-            confidencevalues (in that order). This is required for proper ranking of
+            confidence values (in that order). This is required for proper ranking of
             the bounding boxes. Therefore, each bounding box is defined by 6 values.
             For detailed information on the supported format, see the
             [KerasCV bounding box documentation](https://keras.io/api/keras_cv/bounding_box/formats/).
@@ -147,8 +147,8 @@ class NonMaxSuppression(tf.keras.layers.Layer):
             )
 
             # iterate through the boxes and append it to TensorArray
-            for i in range(nmsed_boxes.valid_detections[i]):
-                boxes = boxes.write(boxes.size(), boxes_recombined[i])
+            for j in range(nmsed_boxes.valid_detections[i]):
+                boxes = boxes.write(boxes.size(), boxes_recombined[j])
 
         # stacking to create a tensor
         boxes = boxes.stack()
