@@ -20,30 +20,6 @@ import tensorflow_datasets as tfds
 from keras_cv import bounding_box
 
 
-def resize(image, label, img_size=(224, 224), num_classes=10):
-    image = tf.image.resize(image, img_size)
-    label = tf.one_hot(label, num_classes)
-    return {"images": image, "labels": label}
-
-
-def load_oxford_dataset(
-    name="oxford_flowers102",
-    batch_size=64,
-    img_size=(224, 224),
-    as_supervised=True,
-):
-    # Load dataset.
-    data, ds_info = tfds.load(name, as_supervised=as_supervised, with_info=True)
-    train_ds = data["train"]
-    num_classes = ds_info.features["label"].num_classes
-
-    # Get tf dataset.
-    train_ds = train_ds.map(
-        lambda x, y: resize(x, y, img_size=img_size, num_classes=num_classes)
-    ).batch(batch_size)
-    return train_ds
-
-
 def load_voc_dataset(
     name="voc/2007",
     batch_size=9,
@@ -61,7 +37,7 @@ def load_voc_dataset(
         return inputs
 
     dataset = tfds.load(name, split=tfds.Split.TRAIN, batch_size=1, shuffle_files=True)
-    dataset = dataset.map(lambda x: resize_voc(x, img_size=(224, 224)))
+    dataset = dataset.map(lambda x: resize_voc(x))
     dataset = dataset.padded_batch(
         batch_size,
         padding_values={
@@ -78,10 +54,12 @@ def load_voc_dataset(
             },
         },
     )
-    return next(iter(dataset.take(1)))
+    dataset = dataset.map(lambda x: package_to_dict(x))
+    return dataset
 
 
 def visualize_data(data, bounding_box_format):
+    data = next(iter(data.take(9)))
     images = data["images"]
     bounding_boxes = data["bounding_boxes"]
     output_images = visualize_bounding_box(
@@ -111,12 +89,6 @@ def gallery_show(images):
     plt.show()
 
 
-def load_elephant_tensor(output_size=(300, 300)):
-    elephants = tf.keras.utils.get_file(
-        "african_elephant.jpg", "https://i.imgur.com/Bvro0YD.png"
-    )
-    elephants = tf.keras.utils.load_img(elephants, target_size=output_size)
-    elephants = tf.keras.utils.img_to_array(elephants)
-
-    many_elephants = tf.repeat(tf.expand_dims(elephants, axis=0), 9, axis=0)
-    return many_elephants
+def package_to_dict(dataset):
+    outputs = {"images": dataset["image"], "bounding_boxes": dataset["objects"]["bbox"]}
+    return outputs

@@ -17,9 +17,9 @@ Operates on the oxford_flowers102 dataset.  In this script the flowers
 are loaded, then are passed through the preprocessing layers.
 Finally, they are shown using matplotlib.
 """
+import demo_utils
 import tensorflow as tf
 
-import examples.layers.preprocessing.classification.demo_utils as demo_utils
 from keras_cv.layers import preprocessing
 
 

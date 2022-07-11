@@ -18,8 +18,7 @@ import demo_utils
 
 
 def main():
-    ds = demo_utils.load_voc_dataset()
-    inputs = {"images": ds["image"], "bounding_boxes": ds["objects"]["bbox"]}
+    inputs = demo_utils.load_voc_dataset()
     demo_utils.visualize_data(inputs, bounding_box_format="rel_xyxy")
 
 

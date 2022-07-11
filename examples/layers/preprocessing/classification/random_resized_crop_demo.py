@@ -18,7 +18,8 @@ is loaded, then are passed through the preprocessing layers.
 Finally, they are shown using matplotlib.
 """
 
-import examples.layers.preprocessing.classification.demo_utils as demo_utils
+import demo_utils
+
 from keras_cv.layers.preprocessing import RandomResizedCrop
 
 
