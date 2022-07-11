@@ -183,7 +183,6 @@ class RandomShear(BaseImageAugmentationLayer):
                 "`RandomShear(bounding_box_format='xyxy')`"
             )
         height, width, _ = image.shape
-        image = tf.expand_dims(image, axis=0)
 
         bounding_boxes = keras_cv.bounding_box.convert_format(
             bounding_boxes,
@@ -204,7 +203,7 @@ class RandomShear(BaseImageAugmentationLayer):
                 bounding_boxes, y
             )
         # clip bounding boxes value to 0-image height and 0-image width
-        bounding_boxes = RandomShear.clip_bounding_box(height, width, bounding_boxes)
+        bounding_boxes = self._clip_bounding_box(height, width, bounding_boxes)
         bounding_boxes = keras_cv.bounding_box.convert_format(
             bounding_boxes,
             source="xyxy",
@@ -214,8 +213,7 @@ class RandomShear(BaseImageAugmentationLayer):
         )
         return bounding_boxes
 
-    @staticmethod
-    def clip_bounding_box(height, width, bounding_boxes):
+    def _clip_bounding_box(self, height, width, bounding_boxes):
         """clips bounding boxes b/w 0 - image width and 0 - image height"""
         x1, y1, x2, y2 = tf.split(bounding_boxes, 4, axis=1)
         new_bboxes = tf.stack(
@@ -230,8 +228,7 @@ class RandomShear(BaseImageAugmentationLayer):
         new_bboxes = tf.squeeze(new_bboxes, axis=-1)
         return new_bboxes
 
-    @staticmethod
-    def convert_to_extended_corners_format(bounding_boxes):
+    def _convert_to_extended_corners_format(self, bounding_boxes):
         """splits corner bboxes top left,bottom right to 4 corners top left,
         bottom right,top right and bottom left"""
         x1, y1, x2, y2 = tf.split(bounding_boxes, 4, axis=1)
@@ -254,7 +251,7 @@ class RandomShear(BaseImageAugmentationLayer):
         """args: image : takes a single image H,W,C,
         bounding_boxes: take bbox coordinates [N,4] -> [x1,y1,x2,y2]
         x: x transformation None if no transformation"""
-        new_bboxes = self.convert_to_extended_corners_format(bounding_boxes)
+        new_bboxes = self._convert_to_extended_corners_format(bounding_boxes)
         # create transformation matrix [1,4]
         matrix = tf.stack([1.0, -x, 0, 1.0], axis=0)
         # reshape it to [2,2]
@@ -299,7 +296,7 @@ class RandomShear(BaseImageAugmentationLayer):
         """args: image : takes a single image H,W,C,
         bounding_boxes: take bbox coordinates [N,4] -> [y1,x1,y2,x2]
         y: y transformation None if no transformation"""
-        new_bboxes = self.convert_to_extended_corners_format(bounding_boxes)
+        new_bboxes = self._convert_to_extended_corners_format(bounding_boxes)
         # create transformation matrix [1,4]
         matrix = tf.stack([1.0, 0, -y, 1.0], axis=0)
         # reshape it to [2,2]
