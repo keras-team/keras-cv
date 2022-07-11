@@ -11,12 +11,4 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
-from keras_cv.bounding_box.converters import convert_format
-from keras_cv.bounding_box.formats import CENTER_XYWH
-from keras_cv.bounding_box.formats import REL_XYXY
-from keras_cv.bounding_box.formats import REL_YXYX
-from keras_cv.bounding_box.formats import XYWH
-from keras_cv.bounding_box.formats import XYXY
-from keras_cv.bounding_box.formats import YXYX
-from keras_cv.bounding_box.pad_batch_to_shape import pad_batch_to_shape
+from keras_cv.layers.object_detection.non_max_suppression import NonMaxSuppression
