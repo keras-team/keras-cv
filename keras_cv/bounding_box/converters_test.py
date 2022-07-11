@@ -100,5 +100,6 @@ class ConvertersTestCase(tf.test.TestCase, parameterized.TestCase):
             target_box,
         )
 
+
 def _raggify(tensor, row_lengths=[[2, 0], [0, 0]]):
     return tf.RaggedTensor.from_row_lengths(tensor[0], [2, 0])
