@@ -113,6 +113,19 @@ class BaseImageAugmentationLayerTest(tf.test.TestCase):
 
     def test_augment_leaves_extra_dict_entries_unmodified(self):
         add_layer = RandomAddLayer(fixed_value=0.5)
+        images = np.random.random(size=(8, 8, 3)).astype("float32")
+        filenames = tf.constant("/path/to/first.jpg")
+        inputs = {"images": images, "filenames": filenames}
+
+        outputs = add_layer(inputs)
+
+        self.assertListEqual(list(inputs.keys()), list(outputs.keys()))
+        self.assertAllEqual(inputs["filenames"], outputs["filenames"])
+        self.assertNotAllClose(inputs["images"], outputs["images"])
+        self.assertAllEqual(inputs["images"], images)  # Assert original unchanged
+
+    def test_augment_leaves_batched_extra_dict_entries_unmodified(self):
+        add_layer = RandomAddLayer(fixed_value=0.5)
         images = np.random.random(size=(2, 8, 8, 3)).astype("float32")
         filenames = tf.constant(["/path/to/first.jpg", "/path/to/second.jpg"])
         inputs = {"images": images, "filenames": filenames}
