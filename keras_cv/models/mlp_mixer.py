@@ -78,6 +78,7 @@ def MixerBlock(tokens_mlp_dim, channels_mlp_dim, name=None):
 
 
 def MLPMixer(
+    input_shape,
     patch_size,
     num_blocks,
     hidden_dim,
@@ -87,7 +88,6 @@ def MLPMixer(
     include_top,
     classes=None,
     weights=None,
-    input_shape=(224, 224, 3),
     pooling=None,
     classifier_activation="softmax",
     name=None,
@@ -103,8 +103,12 @@ def MLPMixer(
     For transfer learning use cases, make sure to read the
     [guide to transfer learning & fine-tuning](https://keras.io/guides/transfer_learning/).
 
+    Note that the `input_shape` should be fully divisible by the `patch_size`.
+
     Args:
-      patch_size: size of the patches to be extracted from the inputs.
+      input_shape: tuple denoting the input shape, (224, 224, 3) for example.
+      patch_size: tuple denoting the size of the patches to be extracted
+        from the inputs ((16, 16) for example).
       num_blocks: number of mixer blocks.
       hidden_dim: dimension to which the patches will be linearly projected.
       tokens_mlp_dim: dimension of the MLP block responsible for tokens.
@@ -119,7 +123,6 @@ def MLPMixer(
         if no `weights` argument is specified.
       weights: one of `None` (random initialization), or a pretrained
         weight file path.
-      input_shape: optional shape tuple, defaults to (None, None, 3).
       pooling: optional pooling mode for feature extraction
         when `include_top` is `False`.
         - `None` means that the output of the model will be
@@ -155,8 +158,29 @@ def MLPMixer(
             f"Received: classes={classes}"
         )
 
+    if (not isinstance(input_shape, tuple)) and (not isinstance(patch_size, tuple)):
+        raise ValueError("`input_shape` and `patch_size` both need to be tuple.")
+
+    if len(input_shape) != 3:
+        raise ValueError(
+            "`input_shape` needs to contain dimensions for three"
+            " axes: height, width, and channel ((224, 224, 3) for example)."
+        )
+
+    if len(patch_size) != 2:
+        raise ValueError(
+            "`patch_size` needs to contain dimensions for two"
+            " spatial axes: height, and width ((16, 16) for example)."
+        )
+
+    if input_shape[0] != input_shape[1]:
+        raise ValueError("Non-uniform resolutions are not supported.")
+
+    if patch_size[0] != patch_size[1]:
+        raise ValueError("Non-uniform patch sizes are not supported.")
+
     if input_shape[0] % patch_size[0] != 0:
-        raise ValueError("Input resolution should be divisible" " by the patch size.")
+        raise ValueError("Input resolution should be divisible by the patch size.")
 
     inputs = layers.Input(shape=input_shape)
 
@@ -197,17 +221,19 @@ def MLPMixer(
 
 
 def MLPMixerB16(
+    input_shape,
+    patch_size,
     include_rescaling,
     include_top,
     classes=None,
     weights=None,
-    input_shape=(224, 224, 3),
     pooling=None,
     name="mlp_mixer_b16",
     **kwargs,
 ):
     return MLPMixer(
-        patch_size=(16, 16),
+        input_shape=input_shape,
+        patch_size=patch_size,
         num_blocks=12,
         hidden_dim=768,
         tokens_mlp_dim=384,
@@ -216,7 +242,6 @@ def MLPMixerB16(
         include_top=include_top,
         classes=classes,
         weights=weights,
-        input_shape=input_shape,
         pooling=pooling,
         name=name,
         **kwargs,
@@ -224,17 +249,19 @@ def MLPMixerB16(
 
 
 def MLPMixerB32(
+    input_shape,
+    patch_size,
     include_rescaling,
     include_top,
     classes=None,
     weights=None,
-    input_shape=(224, 224, 3),
     pooling=None,
     name="mlp_mixer_b32",
     **kwargs,
 ):
     return MLPMixer(
-        patch_size=(32, 32),
+        input_shape=input_shape,
+        patch_size=patch_size,
         num_blocks=12,
         hidden_dim=768,
         tokens_mlp_dim=384,
@@ -243,7 +270,6 @@ def MLPMixerB32(
         include_top=include_top,
         classes=classes,
         weights=weights,
-        input_shape=input_shape,
         pooling=pooling,
         name=name,
         **kwargs,
@@ -251,17 +277,19 @@ def MLPMixerB32(
 
 
 def MLPMixerL16(
+    input_shape,
+    patch_size,
     include_rescaling,
     include_top,
     classes=None,
     weights=None,
-    input_shape=(224, 224, 3),
     pooling=None,
     name="mlp_mixer_l16",
     **kwargs,
 ):
     return MLPMixer(
-        patch_size=(16, 16),
+        input_shape=input_shape,
+        patch_size=patch_size,
         num_blocks=24,
         hidden_dim=1024,
         tokens_mlp_dim=512,
@@ -270,7 +298,6 @@ def MLPMixerL16(
         include_top=include_top,
         classes=classes,
         weights=weights,
-        input_shape=input_shape,
         pooling=pooling,
         name=name,
         **kwargs,
