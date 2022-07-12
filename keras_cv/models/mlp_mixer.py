@@ -204,9 +204,9 @@ def MLPMixer(
 
     if include_top:
         x = layers.GlobalAveragePooling1D(name="avg_pool")(x)
-        x = layers.Dense(num_classes, activation=classifier_activation, name="predictions")(
-            x
-        )
+        x = layers.Dense(
+            num_classes, activation=classifier_activation, name="predictions"
+        )(x)
 
     elif pooling == "avg":
         x = layers.GlobalAveragePooling1D(name="avg_pool")(x)
