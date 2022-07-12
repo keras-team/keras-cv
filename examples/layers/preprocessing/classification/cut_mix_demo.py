@@ -11,17 +11,25 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+"""cut_mix_demo.py shows how to use the CutMix preprocessing layer.
+
+Operates on the oxford_flowers102 dataset.  In this script the flowers
+are loaded, then are passed through the preprocessing layers.
+Finally, they are shown using matplotlib.
+"""
+
+import demo_utils
+import tensorflow as tf
 
 from keras_cv import layers
-from keras_cv import metrics
-from keras_cv import models
-from keras_cv import utils
-from keras_cv import version_check
-from keras_cv.core import ConstantFactorSampler
-from keras_cv.core import FactorSampler
-from keras_cv.core import NormalFactorSampler
-from keras_cv.core import UniformFactorSampler
 
-version_check.check_tf_version()
 
-__version__ = "0.2.8"
+def main():
+    cutmix = layers.CutMix()
+    ds = demo_utils.load_oxford_dataset()
+    ds = ds.map(cutmix, num_parallel_calls=tf.data.AUTOTUNE)
+    demo_utils.visualize_dataset(ds)
+
+
+if __name__ == "__main__":
+    main()

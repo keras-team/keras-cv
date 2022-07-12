@@ -11,17 +11,24 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+"""mix_up_demo.py shows how to use the MixUp preprocessing layer.
 
-from keras_cv import layers
-from keras_cv import metrics
-from keras_cv import models
-from keras_cv import utils
-from keras_cv import version_check
-from keras_cv.core import ConstantFactorSampler
-from keras_cv.core import FactorSampler
-from keras_cv.core import NormalFactorSampler
-from keras_cv.core import UniformFactorSampler
+Uses the oxford_flowers102 dataset.  In this script the flowers
+are loaded, then are passed through the preprocessing layers.
+Finally, they are shown using matplotlib.
+"""
+import demo_utils
+import tensorflow as tf
 
-version_check.check_tf_version()
+from keras_cv.layers import preprocessing
 
-__version__ = "0.2.8"
+
+def main():
+    ds = demo_utils.load_oxford_dataset()
+    mixup = preprocessing.MixUp(alpha=0.8)
+    ds = ds.map(mixup, num_parallel_calls=tf.data.AUTOTUNE)
+    demo_utils.visualize_dataset(ds)
+
+
+if __name__ == "__main__":
+    main()

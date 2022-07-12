@@ -17,45 +17,19 @@ Uses the oxford_flowers102 dataset.  In this script the flowers
 are loaded, then are passed through the preprocessing layers.
 Finally, they are shown using matplotlib.
 """
-import matplotlib.pyplot as plt
+import demo_utils
 import tensorflow as tf
-import tensorflow_datasets as tfds
 
 from keras_cv.layers import preprocessing
 
-IMG_SIZE = (224, 224)
-BATCH_SIZE = 8
-
-
-def resize(image, num_classes=10):
-    image = tf.image.resize(image, IMG_SIZE)
-    return image
-
 
 def main():
-    data, ds_info = tfds.load("oxford_flowers102", with_info=True, as_supervised=True)
-    train_ds = data["train"]
-
-    num_classes = ds_info.features["label"].num_classes
-
-    train_ds = train_ds.map(lambda x, y: resize(x, num_classes=num_classes))
-    train_ds = train_ds.take(1)
-    train_ds = train_ds.repeat()
-    train_ds = train_ds.batch(BATCH_SIZE)
-
+    ds = demo_utils.load_oxford_dataset()
     rand_augment = preprocessing.RandAugment(
         value_range=(0, 255), augmentations_per_image=3, magnitude=0.5, rate=0.875
     )
-    train_ds = train_ds.map(rand_augment, num_parallel_calls=tf.data.AUTOTUNE)
-
-    i = 0
-    plt.figure(figsize=(8, 8))
-    for images in train_ds.take(9):
-        plt.subplot(3, 3, i + 1)
-        plt.imshow(images[0].numpy().astype("uint8"))
-        plt.axis("off")
-        i += 1
-    plt.show()
+    ds = ds.map(rand_augment, num_parallel_calls=tf.data.AUTOTUNE)
+    demo_utils.visualize_dataset(ds)
 
 
 if __name__ == "__main__":

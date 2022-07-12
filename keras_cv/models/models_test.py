@@ -19,6 +19,7 @@ from tensorflow.keras import backend
 
 from keras_cv.models import densenet
 from keras_cv.models import mlp_mixer
+from keras_cv.models import vgg19
 
 MODEL_LIST = [
     (densenet.DenseNet121, 1024),
@@ -27,6 +28,7 @@ MODEL_LIST = [
     (mlp_mixer.MLPMixerB16, 768),
     (mlp_mixer.MLPMixerB32, 768),
     (mlp_mixer.MLPMixerL16, 1024),
+    (vgg19.VGG19, 512),
 ]
 
 
@@ -41,7 +43,7 @@ class ApplicationsTest(tf.test.TestCase, parameterized.TestCase):
             model = app(
                 input_shape=(224, 224, 3),
                 include_top=True,
-                classes=1000,
+                num_classes=1000,
                 include_rescaling=False,
                 weights=None,
             )
@@ -50,7 +52,7 @@ class ApplicationsTest(tf.test.TestCase, parameterized.TestCase):
                 input_shape=(224, 224, 3),
                 patch_size=(16, 16),
                 include_top=True,
-                classes=1000,
+                num_classes=1000,
                 include_rescaling=False,
                 weights=None,
             )
@@ -59,7 +61,7 @@ class ApplicationsTest(tf.test.TestCase, parameterized.TestCase):
                 input_shape=(224, 224, 3),
                 patch_size=(32, 32),
                 include_top=True,
-                classes=1000,
+                num_classes=1000,
                 include_rescaling=False,
                 weights=None,
             )
