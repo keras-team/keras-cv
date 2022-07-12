@@ -30,6 +30,13 @@ BASE_DOCSTRING = """Instantiates the {name} architecture.
         - [Deep Residual Learning for Image Recognition](https://arxiv.org/abs/1512.03385)
         - [Identity Mappings in Deep Residual Networks](https://arxiv.org/abs/1603.05027) (ECCV 2016)
     This function returns a Keras {name} model.
+
+    The difference in Resnet and ResNetV2 rests in the structure of their
+    individual building blocks. In ResNetV2, the batch normalization and
+    ReLU activation preceed the convolution layers, as opposed to ResNetV1 where
+    the batch normalization and ReLU activation are applied after the
+    convolution layers.
+
     For transfer learning use cases, make sure to read the [guide to transfer
         learning & fine-tuning](https://keras.io/guides/transfer_learning/).
     Args:
@@ -59,7 +66,7 @@ BASE_DOCSTRING = """Instantiates the {name} architecture.
 
 def ResNet(
     stack_fn,
-    preact,
+    use_preactivation,
     include_rescaling,
     name="ResNet",
     include_top=True,
@@ -70,13 +77,14 @@ def ResNet(
     classifier_activation="softmax",
     **kwargs,
 ):
-    """Instantiates the ResNet, ResNetV2, and ResNeXt architecture.
+    """Instantiates the ResNet and ResNetV2 architecture.
+
     Args:
       stack_fn: a function that returns output tensor for the
         stacked residual blocks.
-      preact: whether to use pre-activation or not
-        (True for ResNetV2, False for ResNet).
-      include_rescaling: whether or not to Rescale the inputs.If set to True,
+      use_preactivation: whether to use pre-activation or not
+        (True for ResNetV2, False for ResNetV1).
+      include_rescaling: whether or not to Rescale the inputs. If set to True,
         inputs will be passed through a `Rescaling(1/255.0)` layer.
       name: string, model name.
       include_top: whether to include the fully-connected
@@ -105,7 +113,7 @@ def ResNet(
         be `None` or `"softmax"`.
       **kwargs: For backwards compatibility only.
 
-        Returns:
+    Returns:
       A `keras.Model` instance.
     """
     if kwargs:
@@ -131,7 +139,7 @@ def ResNet(
         64, 7, strides=2, use_bias=True, padding="same", name="conv1_conv"
     )(img_input)
 
-    if not preact:
+    if not use_preactivation:
         x = layers.BatchNormalization(axis=BN_AXIS, epsilon=1.001e-5, name="conv1_bn")(
             x
         )
@@ -141,7 +149,7 @@ def ResNet(
 
     x = stack_fn(x)
 
-    if preact:
+    if use_preactivation:
         x = layers.BatchNormalization(axis=BN_AXIS, epsilon=1.001e-5, name="post_bn")(x)
         x = layers.Activation("relu", name="post_relu")(x)
 
@@ -244,7 +252,7 @@ def V1Stack(filters, blocks, stride1=2, name=None):
 
 
 def V2Block(filters, kernel_size=3, stride=1, conv_shortcut=False, name=None):
-    """A residual block.
+    """A residual block (v2).
     Args:
         filters: integer, filters of the bottleneck layer.
         kernel_size: default 3, kernel size of the bottleneck layer.
@@ -259,21 +267,23 @@ def V2Block(filters, kernel_size=3, stride=1, conv_shortcut=False, name=None):
         name = f"v2_block_{backend.get_uid('v2_block')}"
 
     def apply(x):
-        preact = layers.BatchNormalization(
-            axis=BN_AXIS, epsilon=1.001e-5, name=name + "_preact_bn"
+        use_preactivation = layers.BatchNormalization(
+            axis=BN_AXIS, epsilon=1.001e-5, name=name + "_use_preactivation_bn"
         )(x)
 
-        preact = layers.Activation("relu", name=name + "_preact_relu")(preact)
+        use_preactivation = layers.Activation(
+            "relu", name=name + "_use_preactivation_relu"
+        )(use_preactivation)
 
         if conv_shortcut:
             shortcut = layers.Conv2D(
                 4 * filters, 1, strides=stride, name=name + "_0_conv"
-            )(preact)
+            )(use_preactivation)
         else:
             shortcut = layers.MaxPooling2D(1, strides=stride)(x) if stride > 1 else x
 
         x = layers.Conv2D(filters, 1, strides=1, use_bias=False, name=name + "_1_conv")(
-            preact
+            use_preactivation
         )
         x = layers.BatchNormalization(
             axis=BN_AXIS, epsilon=1.001e-5, name=name + "_1_bn"
@@ -345,7 +355,7 @@ def ResNet50(
 
     return ResNet(
         stack_fn=stack_fn,
-        preact=False,
+        use_preactivation=False,
         include_rescaling=include_rescaling,
         name=name,
         include_top=include_top,
@@ -379,7 +389,7 @@ def ResNet101(
 
     return ResNet(
         stack_fn=stack_fn,
-        preact=False,
+        use_preactivation=False,
         name=name,
         include_rescaling=include_rescaling,
         include_top=include_top,
@@ -413,7 +423,7 @@ def ResNet152(
 
     return ResNet(
         stack_fn=stack_fn,
-        preact=False,
+        use_preactivation=False,
         include_rescaling=include_rescaling,
         name=name,
         include_top=include_top,
@@ -447,7 +457,7 @@ def ResNet50V2(
 
     return ResNet(
         stack_fn=stack_fn,
-        preact=True,
+        use_preactivation=True,
         include_rescaling=include_rescaling,
         include_top=include_top,
         weights=weights,
@@ -481,7 +491,7 @@ def ResNet101V2(
 
     return ResNet(
         stack_fn=stack_fn,
-        preact=True,
+        use_preactivation=True,
         include_rescaling=include_rescaling,
         name=name,
         include_top=include_top,
@@ -515,7 +525,7 @@ def ResNet152V2(
 
     return ResNet(
         stack_fn=stack_fn,
-        preact=True,
+        use_preactivation=True,
         include_rescaling=include_rescaling,
         include_top=include_top,
         weights=weights,
