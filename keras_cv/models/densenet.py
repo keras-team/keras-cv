@@ -156,7 +156,7 @@ def DenseNet(
     input_shape=(None, None, 3),
     pooling=None,
     classifier_activation="softmax",
-    name="DenseNet",
+    name=None,
     **kwargs,
 ):
     """Instantiates the DenseNet architecture.

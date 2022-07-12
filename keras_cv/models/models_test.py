@@ -18,6 +18,7 @@ from absl.testing import parameterized
 from tensorflow.keras import backend
 
 from keras_cv.models import densenet
+from keras_cv.models import resnet_v2
 from keras_cv.models import vgg19
 
 MODEL_LIST = [
@@ -25,6 +26,9 @@ MODEL_LIST = [
     (densenet.DenseNet169, 1664),
     (densenet.DenseNet201, 1920),
     (vgg19.VGG19, 512),
+    (resnet_v2.ResNet50V2, 2048),
+    (resnet_v2.ResNet101V2, 2048),
+    (resnet_v2.ResNet152V2, 2048),
 ]
 
 
