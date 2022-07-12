@@ -20,41 +20,33 @@ import tensorflow_datasets as tfds
 from keras_cv import bounding_box
 
 
+def preprocess_voc(inputs, format, image_size):
+    """mapping function to create batched image and bbox coordinates"""
+    inputs["image"] = tf.image.resize(inputs["image"], image_size)
+    inputs["objects"]["bbox"] = bounding_box.convert_format(
+        inputs["objects"]["bbox"],
+        images=inputs["image"],
+        source="rel_yxyx",
+        target=format,
+    )
+    return {"images": inputs["image"], "bounding_boxes": inputs["objects"]["bbox"]}
+
+
 def load_voc_dataset(
+    bounding_box_format,
     name="voc/2007",
     batch_size=9,
     image_size=(224, 224),
 ):
-    def resize_voc(inputs):
-        """mapping function to create batched image and bbox coordinates"""
-        inputs["image"] = tf.image.resize(inputs["image"], image_size)[0]
-        inputs["objects"]["bbox"] = bounding_box.convert_format(
-            inputs["objects"]["bbox"][0],
-            images=inputs["image"],
-            source="rel_yxyx",
-            target="rel_xyxy",
-        )
-        return inputs
 
-    dataset = tfds.load(name, split=tfds.Split.TRAIN, batch_size=1, shuffle_files=True)
-    dataset = dataset.map(lambda x: resize_voc(x))
-    dataset = dataset.padded_batch(
-        batch_size,
-        padding_values={
-            "image": None,
-            "labels": None,
-            "image/filename": None,
-            "labels_no_difficult": None,
-            "objects": {
-                "bbox": tf.cast(-1, tf.float32),
-                "is_difficult": None,
-                "is_truncated": None,
-                "label": None,
-                "pose": None,
-            },
-        },
+    dataset = tfds.load(name, split=tfds.Split.TRAIN, shuffle_files=True)
+    dataset = dataset.map(
+        lambda x: preprocess_voc(x, format=bounding_box_format, image_size=image_size),
+        num_parallel_calls=tf.data.AUTOTUNE,
     )
-    dataset = dataset.map(lambda x: package_to_dict(x))
+    dataset = dataset.padded_batch(
+        batch_size, padding_values={"images": None, "bounding_boxes": -1.0}
+    )
     return dataset
 
 
@@ -62,13 +54,13 @@ def visualize_data(data, bounding_box_format):
     data = next(iter(data.take(9)))
     images = data["images"]
     bounding_boxes = data["bounding_boxes"]
-    output_images = visualize_bounding_box(
+    output_images = visualize_bounding_boxes(
         images, bounding_boxes, bounding_box_format
     ).numpy()
     gallery_show(output_images)
 
 
-def visualize_bounding_box(image, bounding_boxes, bounding_box_format):
+def visualize_bounding_boxes(image, bounding_boxes, bounding_box_format):
     color = np.array([[255.0, 0.0, 0.0]])
     bounding_boxes = bounding_box.convert_format(
         bounding_boxes,
@@ -87,8 +79,3 @@ def gallery_show(images):
         plt.imshow(image.astype("uint8"))
         plt.axis("off")
     plt.show()
-
-
-def package_to_dict(dataset):
-    outputs = {"images": dataset["image"], "bounding_boxes": dataset["objects"]["bbox"]}
-    return outputs
