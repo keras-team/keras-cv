@@ -61,7 +61,7 @@ BASE_DOCSTRING = """Instantiates the {name} architecture
       `classifier_activation=None` to return the logits of the "top" layer.
       When loading pretrained weights, `classifier_activation` can only
       be `None` or `"softmax"`.
-    name: (Optional) name to pass to the model. Defaults to "ResNetV2"
+    name: (Optional) name to pass to the model. Defaults to "{name}".
 
 
   Returns:
