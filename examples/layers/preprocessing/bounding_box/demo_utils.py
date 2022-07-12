@@ -45,8 +45,7 @@ def load_voc_dataset(
         num_parallel_calls=tf.data.AUTOTUNE,
     )
     dataset = dataset.padded_batch(
-        batch_size,
-        padding_values={"images": None, "bounding_boxes":-1.0}
+        batch_size, padding_values={"images": None, "bounding_boxes": -1.0}
     )
     return dataset
 
