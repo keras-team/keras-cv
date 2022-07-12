@@ -21,7 +21,6 @@ Reference:
 
 import tensorflow as tf
 from tensorflow import keras
-from tensorflow.keras import backend
 from tensorflow.keras import layers
 
 BN_AXIS = 3
@@ -100,8 +99,6 @@ def block(x, filters, kernel_size=3, stride=1, conv_shortcut=False, name=None):
     Returns:
       Output tensor for the residual block.
     """
-    BN_AXIS = 3 if backend.image_data_format() == "channels_last" else 1
-
     preact = layers.BatchNormalization(
         axis=BN_AXIS, epsilon=1.001e-5, name=name + "_preact_bn"
     )(x)
