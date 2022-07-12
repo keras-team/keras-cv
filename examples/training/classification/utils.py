@@ -13,6 +13,7 @@
 # limitations under the License.
 """Utility functions for training demos."""
 
+import tensorflow as tf
 import tensorflow_datasets as tfds
 
 
@@ -21,7 +22,7 @@ def load_cfar10_dataset():
         "cifar10", split=["train", "test"], as_supervised=True
     )
 
-    train = train_ds.shuffle(100).batch(32)
-    test = test_ds.batch(32)
+    train = train_ds.map(lambda x, y: (x, tf.one_hot(y, 10))).batch(32)
+    test = test_ds.map(lambda x, y: (x, tf.one_hot(y, 10))).batch(32)
 
     return train, test
