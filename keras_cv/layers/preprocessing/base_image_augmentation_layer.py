@@ -260,7 +260,7 @@ class BaseImageAugmentationLayer(tf.keras.__internal__.layers.BaseRandomLayer):
             result[BOUNDING_BOXES] = bounding_boxes
 
         # preserve any additional inputs unmodified by this layer.
-        for key in (inputs.keys() - result.keys()):
+        for key in inputs.keys() - result.keys():
             result[key] = inputs[key]
         return result
 
