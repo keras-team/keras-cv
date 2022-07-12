@@ -86,7 +86,7 @@ def MLPMixer(
     channels_mlp_dim,
     include_rescaling,
     include_top,
-    classes=None,
+    num_classes=None,
     weights=None,
     pooling=None,
     classifier_activation="softmax",
@@ -117,8 +117,8 @@ def MLPMixer(
         If set to True, inputs will be passed through a
         `Rescaling(1/255.0)` layer.
       include_top: whether to include the fully-connected
-        layer at the top of the network.  If provided, num_classes must be provided.
-      classes: optional number of classes to classify images
+        layer at the top of the network.  If provided, num_num_classes must be provided.
+      num_classes: optional number of num_classes to classify images
         into, only to be specified if `include_top` is True, and
         if no `weights` argument is specified.
       weights: one of `None` (random initialization), or a pretrained
@@ -151,11 +151,11 @@ def MLPMixer(
             f"Weights file not found at location: {weights}"
         )
 
-    if include_top and not classes:
+    if include_top and not num_classes:
         raise ValueError(
             "If `include_top` is True, "
-            "you should specify `classes`. "
-            f"Received: classes={classes}"
+            "you should specify `num_classes`. "
+            f"Received: num_classes={num_classes}"
         )
 
     if (not isinstance(input_shape, tuple)) and (not isinstance(patch_size, tuple)):
@@ -204,7 +204,7 @@ def MLPMixer(
 
     if include_top:
         x = layers.GlobalAveragePooling1D(name="avg_pool")(x)
-        x = layers.Dense(classes, activation=classifier_activation, name="predictions")(
+        x = layers.Dense(num_classes, activation=classifier_activation, name="predictions")(
             x
         )
 
@@ -225,7 +225,7 @@ def MLPMixerB16(
     patch_size,
     include_rescaling,
     include_top,
-    classes=None,
+    num_classes=None,
     weights=None,
     pooling=None,
     name="mlp_mixer_b16",
@@ -240,7 +240,7 @@ def MLPMixerB16(
         channels_mlp_dim=3072,
         include_rescaling=include_rescaling,
         include_top=include_top,
-        classes=classes,
+        num_classes=num_classes,
         weights=weights,
         pooling=pooling,
         name=name,
@@ -253,7 +253,7 @@ def MLPMixerB32(
     patch_size,
     include_rescaling,
     include_top,
-    classes=None,
+    num_classes=None,
     weights=None,
     pooling=None,
     name="mlp_mixer_b32",
@@ -268,7 +268,7 @@ def MLPMixerB32(
         channels_mlp_dim=3072,
         include_rescaling=include_rescaling,
         include_top=include_top,
-        classes=classes,
+        num_classes=num_classes,
         weights=weights,
         pooling=pooling,
         name=name,
@@ -281,7 +281,7 @@ def MLPMixerL16(
     patch_size,
     include_rescaling,
     include_top,
-    classes=None,
+    num_classes=None,
     weights=None,
     pooling=None,
     name="mlp_mixer_l16",
@@ -296,7 +296,7 @@ def MLPMixerL16(
         channels_mlp_dim=4096,
         include_rescaling=include_rescaling,
         include_top=include_top,
-        classes=classes,
+        num_classes=num_classes,
         weights=weights,
         pooling=pooling,
         name=name,
