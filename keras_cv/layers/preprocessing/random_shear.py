@@ -30,7 +30,7 @@ class RandomShear(BaseImageAugmentationLayer):
     By default, random shears are only applied during training.
     At inference time, the layer does nothing. If you need to apply random
     shear at inference time, set `training` to True when calling the layer.
-    Input pixel values can be of any range and any data type. 
+    Input pixel values can be of any range and any data type.
     Input shape:
       3D (unbatched) or 4D (batched) tensor with shape:
       `(..., height, width, channels)`, in `"channels_last"` format
