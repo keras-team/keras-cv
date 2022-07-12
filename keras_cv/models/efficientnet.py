@@ -208,11 +208,11 @@ def EfficientNet(
     blocks_args="default",
     model_name="efficientnet",
     include_top=True,
-    weights="imagenet",
+    weights=None,
     input_tensor=None,
     input_shape=None,
     pooling=None,
-    classes=1000,
+    classes=None,
     classifier_activation="softmax",
 ):
     """Instantiates the EfficientNet architecture using given scaling coefficients.
@@ -268,18 +268,16 @@ def EfficientNet(
     if blocks_args == "default":
         blocks_args = DEFAULT_BLOCKS_ARGS
 
-    if not (weights in {"imagenet", None} or tf.io.gfile.exists(weights)):
+    if weights and not tf.io.gfile.exists(weights):
         raise ValueError(
-            "The `weights` argument should be either "
-            "`None` (random initialization), `imagenet` "
-            "(pre-training on ImageNet), "
-            "or the path to the weights file to be loaded."
+            "The `weights` argument should be either `None` or the path to the "
+            "weights file to be loaded. Weights file not found at location: {weights}"
         )
 
-    if weights == "imagenet" and include_top and classes != 1000:
+    if include_top and not classes:
         raise ValueError(
-            'If using `weights` as `"imagenet"` with `include_top`'
-            " as true, `classes` should be 1000"
+            "If `include_top` is True, you should specify `num_classes`. "
+            f"Received: num_classes={classes}"
         )
 
     # Determine proper input shape
@@ -321,16 +319,6 @@ def EfficientNet(
     x = img_input
     x = layers.Rescaling(1.0 / 255.0)(x)
     x = layers.Normalization(axis=bn_axis)(x)
-    if weights == "imagenet":
-        # Note that the normaliztion layer uses square value of STDDEV as the
-        # variance for the layer: result = (input - mean) / sqrt(var)
-        # However, the original implemenetation uses (input - mean) / var to
-        # normalize the input, we need to divide another sqrt(var) to match the
-        # original implementation.
-        # See https://github.com/tensorflow/tensorflow/issues/49930 for more
-        # details
-        x = layers.Rescaling(1.0 / tf.math.sqrt(IMAGENET_STDDEV_RGB))(x)
-
     x = layers.ZeroPadding2D(
         padding=imagenet_utils.correct_pad(x, 3), name="stem_conv_pad"
     )(x)
@@ -530,11 +518,11 @@ def block(
 
 def EfficientNetB0(
     include_top=True,
-    weights="imagenet",
+    weights=None,
     input_tensor=None,
     input_shape=None,
     pooling=None,
-    classes=1000,
+    classes=None,
     classifier_activation="softmax",
     **kwargs
 ):
@@ -557,11 +545,11 @@ def EfficientNetB0(
 
 def EfficientNetB1(
     include_top=True,
-    weights="imagenet",
+    weights=None,
     input_tensor=None,
     input_shape=None,
     pooling=None,
-    classes=1000,
+    classes=None,
     classifier_activation="softmax",
     **kwargs
 ):
@@ -584,11 +572,11 @@ def EfficientNetB1(
 
 def EfficientNetB2(
     include_top=True,
-    weights="imagenet",
+    weights=None,
     input_tensor=None,
     input_shape=None,
     pooling=None,
-    classes=1000,
+    classes=None,
     classifier_activation="softmax",
     **kwargs
 ):
@@ -610,11 +598,11 @@ def EfficientNetB2(
 
 def EfficientNetB3(
     include_top=True,
-    weights="imagenet",
+    weights=None,
     input_tensor=None,
     input_shape=None,
     pooling=None,
-    classes=1000,
+    classes=None,
     classifier_activation="softmax",
     **kwargs
 ):
@@ -637,11 +625,11 @@ def EfficientNetB3(
 
 def EfficientNetB4(
     include_top=True,
-    weights="imagenet",
+    weights=None,
     input_tensor=None,
     input_shape=None,
     pooling=None,
-    classes=1000,
+    classes=None,
     classifier_activation="softmax",
     **kwargs
 ):
@@ -664,11 +652,11 @@ def EfficientNetB4(
 
 def EfficientNetB5(
     include_top=True,
-    weights="imagenet",
+    weights=None,
     input_tensor=None,
     input_shape=None,
     pooling=None,
-    classes=1000,
+    classes=None,
     classifier_activation="softmax",
     **kwargs
 ):
@@ -691,11 +679,11 @@ def EfficientNetB5(
 
 def EfficientNetB6(
     include_top=True,
-    weights="imagenet",
+    weights=None,
     input_tensor=None,
     input_shape=None,
     pooling=None,
-    classes=1000,
+    classes=None,
     classifier_activation="softmax",
     **kwargs
 ):
@@ -718,11 +706,11 @@ def EfficientNetB6(
 
 def EfficientNetB7(
     include_top=True,
-    weights="imagenet",
+    weights=None,
     input_tensor=None,
     input_shape=None,
     pooling=None,
-    classes=1000,
+    classes=None,
     classifier_activation="softmax",
     **kwargs
 ):
