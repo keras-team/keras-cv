@@ -23,6 +23,7 @@ train, test = load_cfar10_dataset()
 NUM_CLASSES = 10
 EPOCHS = 1
 WEIGHTS_PATH = "weights.hdf5"
+MODEL_GS_PATH = "densenet"
 
 checkpoint = ModelCheckpoint(
     WEIGHTS_PATH,
@@ -57,4 +58,4 @@ with tf.distribute.MirroredStrategy().scope():
         validation_data=test,
     )
 
-model.save_weights("gs://ian-kerascv/" + WEIGHTS_PATH)
+model.save("gs://ian-kerascv/" + MODEL_GS_PATH)
