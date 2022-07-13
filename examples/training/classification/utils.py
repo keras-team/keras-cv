@@ -17,12 +17,12 @@ import tensorflow as tf
 import tensorflow_datasets as tfds
 
 
-def load_cfar10_dataset():
+def load_cfar10_dataset(batch_size=32):
     train_ds, test_ds = tfds.load(
         "cifar10", split=["train", "test"], as_supervised=True
     )
 
-    train = train_ds.map(lambda x, y: (x, tf.one_hot(y, 10))).batch(32)
-    test = test_ds.map(lambda x, y: (x, tf.one_hot(y, 10))).batch(32)
+    train = train_ds.map(lambda x, y: (x, tf.one_hot(y, 10))).batch(batch_size)
+    test = test_ds.map(lambda x, y: (x, tf.one_hot(y, 10))).batch(batch_size)
 
     return train, test

@@ -21,6 +21,7 @@ import tensorflow as tf
 from absl import app
 from absl import flags
 from keras.callbacks import BackupAndRestore
+from keras.callbacks import ModelCheckpoint
 from utils import load_cfar10_dataset
 
 from keras_cv.models import DenseNet121
@@ -32,20 +33,33 @@ _EXPERIMENT_ID = flags.DEFINE_string(
 
 NUM_CLASSES = 10
 EPOCHS = 1
-LOCAL_TMP_WEIGHTS_PATH = "tmp.hdf5"
+BATCH_SIZE = 32
+WEIGHTS_PATH = "weights.hdf5"
+
 
 def main(argv):
     assert _GCS_BUCKET.value
     assert _EXPERIMENT_ID.value
 
-    path_base = "gs://{bucket}/densenet/{experiment}/".format(bucket=_GCS_BUCKET.value, experiment=_EXPERIMENT_ID.value)
-    backup_path = path_base + "backup/"
-    remote_weights_path = path_base + "weights.hdf5"
+    gcs_path_base = "gs://{bucket}/densenet/{experiment}/".format(
+        bucket=_GCS_BUCKET.value, experiment=_EXPERIMENT_ID.value
+    )
+    gcs_backup_path = gcs_path_base + "backup/"
+    gcs_weights_path = gcs_path_base + WEIGHTS_PATH
 
-    train, test = load_cfar10_dataset()
+    train, test = load_cfar10_dataset(BATCH_SIZE)
 
-    backup = BackupAndRestore(backup_path)
+    gcs_backup = BackupAndRestore(gcs_backup_path)
+    local_checkpoint = ModelCheckpoint(
+        WEIGHTS_PATH,
+        monitor="val_accuracy",
+        verbose=1,
+        save_best_only=True,
+        save_weights_only=True,
+        mode="max",
+    )
 
+    model = None
     with tf.distribute.MirroredStrategy().scope():
         model = DenseNet121(
             include_rescaling=True,
@@ -62,20 +76,23 @@ def main(argv):
 
         model.fit(
             train,
-            batch_size=32,
+            batch_size=BATCH_SIZE,
             epochs=EPOCHS,
-            callbacks=[backup],
+            callbacks=[gcs_backup, local_checkpoint],
             validation_data=test,
         )
 
-    # In order to save only weights to GCS, we manually store weights locally, copy
-    # them to GCS using gsutil, and then delete our local copy.
-    model.save_weights(LOCAL_TMP_WEIGHTS_PATH)
-    os.system("gsutil -m cp " + LOCAL_TMP_WEIGHTS_PATH + " " + remote_weights_path)
-    os.system("rm " + LOCAL_TMP_WEIGHTS_PATH)
+    # In order to save only weights to GCS, we manually store weights locally
+    # (in our local_checkpoint callback) and then copy them to GCS using gsutil.
+    # In case storing weights in GCS fails, the weights are also stored locally.
+    os.system(
+        "gsutil cp {local_path} {remote_path}".format(
+            local_path=WEIGHTS_PATH, remote_path=gcs_weights_path
+        )
+    )
 
     # TODO(ianjjohnson) After success, store a local file with metadata and a pointer to the GCS weights file.
 
 
 if __name__ == "__main__":
-  app.run(main)
+    app.run(main)
