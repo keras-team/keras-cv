@@ -46,7 +46,7 @@ with tf.distribute.MirroredStrategy().scope():
         train,
         batch_size=32,
         epochs=EPOCHS,
-        callbacks=[build_checkpoint_callback()],
+        callbacks=[build_checkpoint_callback(WEIGHTS_PATH)],
         validation_data=test,
     )
 
