@@ -15,7 +15,7 @@
 
 import tensorflow as tf
 import tensorflow_datasets as tfds
-from keras.callbacks import ModelCheckpoint
+from keras.callbacks import ModelCheckpoint, BackupAndRestore
 
 
 def load_cfar10_dataset():
@@ -38,3 +38,6 @@ def build_checkpoint_callback(weights_path):
         save_weights_only=True,
         mode="max",
     )
+
+def build_backup_and_restore_callback(backup_path):
+    return BackupAndRestore(backup_path)
