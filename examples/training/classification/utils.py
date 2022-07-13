@@ -15,6 +15,7 @@
 
 import tensorflow as tf
 import tensorflow_datasets as tfds
+from keras.callbacks import ModelCheckpoint
 
 
 def load_cfar10_dataset():
@@ -26,3 +27,14 @@ def load_cfar10_dataset():
     test = test_ds.map(lambda x, y: (x, tf.one_hot(y, 10))).batch(32)
 
     return train, test
+
+
+def build_checkpoint_callback(weights_path):
+    return ModelCheckpoint(
+        weights_path,
+        monitor="val_accuracy",
+        verbose=1,
+        save_best_only=True,
+        save_weights_only=True,
+        mode="max",
+    )

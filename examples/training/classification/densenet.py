@@ -13,7 +13,7 @@
 # limitations under the License.
 
 import tensorflow as tf
-from keras.callbacks import ModelCheckpoint
+from utils import build_checkpoint_callback
 from utils import load_cfar10_dataset
 
 from keras_cv.models import DenseNet121
@@ -23,16 +23,8 @@ train, test = load_cfar10_dataset()
 NUM_CLASSES = 10
 EPOCHS = 1
 WEIGHTS_PATH = "weights.hdf5"
-MODEL_GS_PATH = "densenet"
+MODEL_GS_PATH = "densenet/"
 
-checkpoint = ModelCheckpoint(
-    WEIGHTS_PATH,
-    monitor="val_accuracy",
-    verbose=1,
-    save_best_only=True,
-    save_weights_only=True,
-    mode="max",
-)
 
 with tf.distribute.MirroredStrategy().scope():
     model = DenseNet121(
@@ -54,8 +46,8 @@ with tf.distribute.MirroredStrategy().scope():
         train,
         batch_size=32,
         epochs=EPOCHS,
-        callbacks=[checkpoint],
+        callbacks=[build_checkpoint_callback()],
         validation_data=test,
     )
 
-model.save("gs://ian-kerascv/" + MODEL_GS_PATH)
+model.save("gs://ian-kerascv/" + MODEL_GS_PATH + WEIGHTS_PATH)
