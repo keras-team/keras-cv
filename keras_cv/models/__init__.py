@@ -18,3 +18,4 @@ from keras_cv.models.darknet import DarkNet53
 from keras_cv.models.densenet import DenseNet121
 from keras_cv.models.densenet import DenseNet169
 from keras_cv.models.densenet import DenseNet201
+from keras_cv.models.vgg19 import VGG19

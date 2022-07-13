@@ -20,6 +20,7 @@ from tensorflow.keras import backend
 from keras_cv.models import csp_darknet
 from keras_cv.models import darknet
 from keras_cv.models import densenet
+from keras_cv.models import vgg19
 
 MODEL_LIST = [
     (csp_darknet.CSPDarkNet, 1024),
@@ -28,6 +29,7 @@ MODEL_LIST = [
     (densenet.DenseNet121, 1024),
     (densenet.DenseNet169, 1664),
     (densenet.DenseNet201, 1920),
+    (vgg19.VGG19, 512),
 ]
 
 

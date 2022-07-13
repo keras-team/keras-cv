@@ -22,7 +22,7 @@
 
 	"extensions": [
 		"ms-python.python",
-		"ms-python.python.isort",
+		"ms-python.isort",
 		"ms-python.black-formatter"
 	],
 
