@@ -15,49 +15,67 @@
 
 This example is under active development and should not be forked for other models yet.
 """
-import tensorflow as tf
 import os
 
-from utils import build_backup_and_restore_callback, build_checkpoint_callback
+import tensorflow as tf
+from absl import app
+from absl import flags
+from keras.callbacks import BackupAndRestore
 from utils import load_cfar10_dataset
 
 from keras_cv.models import DenseNet121
 
-train, test = load_cfar10_dataset()
+_GCS_BUCKET = flags.DEFINE_string("gcs_bucket", None, "Name of GCS Bucket")
+_EXPERIMENT_ID = flags.DEFINE_string(
+    "experiment_id", None, "An experiment name (preferably a git commit hash)"
+)
 
 NUM_CLASSES = 10
-EPOCHS = 10
-PATH_BASE = "gs://ian-kerascv/densenet/experimentid/"
-BACKUP_PATH = PATH_BASE + "backup/"
-REMOTE_WEIGHTS_PATH = PATH_BASE + "weights.hdf5"
+EPOCHS = 1
 LOCAL_TMP_WEIGHTS_PATH = "tmp.hdf5"
 
-backup = build_backup_and_restore_callback(BACKUP_PATH)
+def main(argv):
+    assert _GCS_BUCKET.value
+    assert _EXPERIMENT_ID.value
 
-with tf.distribute.MirroredStrategy().scope():
-    model = DenseNet121(
-        include_rescaling=True,
-        include_top=True,
-        num_classes=NUM_CLASSES,
-        input_shape=(32, 32, 3),
-    )
+    path_base = "gs://{bucket}/densenet/{experiment}/".format(bucket=_GCS_BUCKET.value, experiment=_EXPERIMENT_ID.value)
+    backup_path = path_base + "backup/"
+    remote_weights_path = path_base + "weights.hdf5"
 
-    model.compile(
-        optimizer="adam",
-        loss="categorical_crossentropy",
-        metrics=["accuracy"],
-    )
+    train, test = load_cfar10_dataset()
 
-    model.fit(
-        train,
-        batch_size=32,
-        epochs=EPOCHS,
-        callbacks=[backup],
-        validation_data=test,
-    )
+    backup = BackupAndRestore(backup_path)
 
-model.save_weights(LOCAL_TMP_WEIGHTS_PATH)
-os.system("gsutil -m cp " + LOCAL_TMP_WEIGHTS_PATH + " " + REMOTE_WEIGHTS_PATH)
-os.system("rm " + LOCAL_TMP_WEIGHTS_PATH)
+    with tf.distribute.MirroredStrategy().scope():
+        model = DenseNet121(
+            include_rescaling=True,
+            include_top=True,
+            num_classes=NUM_CLASSES,
+            input_shape=(32, 32, 3),
+        )
 
-# TODO(ianjjohnson) After success, store a file with the final output (JSON)
+        model.compile(
+            optimizer="adam",
+            loss="categorical_crossentropy",
+            metrics=["accuracy"],
+        )
+
+        model.fit(
+            train,
+            batch_size=32,
+            epochs=EPOCHS,
+            callbacks=[backup],
+            validation_data=test,
+        )
+
+    # In order to save only weights to GCS, we manually store weights locally, copy
+    # them to GCS using gsutil, and then delete our local copy.
+    model.save_weights(LOCAL_TMP_WEIGHTS_PATH)
+    os.system("gsutil -m cp " + LOCAL_TMP_WEIGHTS_PATH + " " + remote_weights_path)
+    os.system("rm " + LOCAL_TMP_WEIGHTS_PATH)
+
+    # TODO(ianjjohnson) After success, store a local file with metadata and a pointer to the GCS weights file.
+
+
+if __name__ == "__main__":
+  app.run(main)
