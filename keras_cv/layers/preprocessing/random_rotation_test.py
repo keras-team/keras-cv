@@ -60,14 +60,14 @@ class RandomRotationTest(tf.test.TestCase):
         # Makes sure it supports additionnal data attached to bboxes,
         # like classes and confidences
         bboxes = tf.convert_to_tensor(
-            [[200, 200, 400, 400, 3.0], [100, 100, 300, 300, 42.0]]
+            [[200, 200, 400, 400, 3.0], [0, 0, 300, 300, 42.0]]
         )
         input = {"images": input_image, "bounding_boxes": bboxes}
         # 180 rotation.
         layer = RandomRotation(factor=(0.5, 0.5), bounding_box_format="xyxy")
         output_bbox = layer(input)
         expected_output = np.asarray(
-            [[112.0, 112.0, 312.0, 312.0, 3.0], [212.0, 212.0, 412.0, 412.0, 42.0]],
+            [[112.0, 112.0, 312.0, 312.0, 3.0], [212.0, 212.0, 512.0, 512.0, 42.0]],
         )
         expected_output = np.reshape(expected_output, (2, 5))
         self.assertAllClose(expected_output, output_bbox["bounding_boxes"])
@@ -76,23 +76,18 @@ class RandomRotationTest(tf.test.TestCase):
         input_image = np.random.random((512, 512, 3)).astype(np.float32)
         # Makes sure it supports additionnal data attached to bboxes,
         # like classes and confidences
-        keypoints = tf.convert_to_tensor(
-            [
-                [[200.0, 200.0], [400.0, 400.0]],
-                [[100.0, 100.0], [300.0, 300.0]],
-            ]
+        keypoints = tf.RaggedTensor.from_row_lengths(
+            [[200.0, 200.0], [400.0, 400.0], [0.0, 0.0], [300.0, 300.0]], [2, 1, 1]
         )
         input = {"images": input_image, "keypoints": keypoints}
         # 180 rotation.
         layer = RandomRotation(factor=(0.5, 0.5), keypoint_format="xy")
-        output_bbox = layer(input)
-        expected_output = np.asarray(
-            [
-                [[312.0, 312.0], [112.0, 112.0]],
-                [[412.0, 412.0], [212.0, 212.0]],
-            ]
+        output_keypoint = layer(input)
+        expected_output = tf.RaggedTensor.from_row_lengths(
+            [[312.0, 312.0], [112.0, 112.0], [212.0, 212.0]],
+            [2, 0, 1],
         )
-        self.assertAllClose(expected_output, output_bbox["keypoints"])
+        self.assertAllClose(expected_output, output_keypoint["keypoints"])
 
     def test_output_dtypes(self):
         inputs = np.array([[[1], [2]], [[3], [4]]], dtype="float64")

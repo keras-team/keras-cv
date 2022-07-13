@@ -87,7 +87,14 @@ class SerializationTest(tf.test.TestCase, parameterized.TestCase):
         (
             "RandomShear",
             preprocessing.RandomShear,
-            {"x_factor": 0.3, "x_factor": 0.3, "seed": 1},
+            {
+                "x_factor": 0.3,
+                "x_factor": 0.3,
+                "seed": 1,
+                "bounding_box_format": 'xyxy',
+                "keypoint_format": 'rel_xy',
+                "clip_points_to_image_size": False,
+            },
         ),
         ("Solarization", preprocessing.Solarization, {"value_range": (0, 255)}),
         (
@@ -213,6 +220,8 @@ class SerializationTest(tf.test.TestCase, parameterized.TestCase):
                 "seed": 3,
                 "fill_value": 2.0,
                 "bounding_box_format": "xywh",
+                "keypoint_format": 'rel_xy',
+                "clip_points_to_image_size": False,
             },
         ),
         (
@@ -226,6 +235,8 @@ class SerializationTest(tf.test.TestCase, parameterized.TestCase):
                 "seed": 3,
                 "fill_value": 2.0,
                 "bounding_box_format": "xywh",
+                "keypoint_format": 'rel_xy',
+                "clip_points_to_image_size": False,
             },
         ),
     )  # yapf:disable

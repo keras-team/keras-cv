@@ -104,6 +104,12 @@ class RandomRotation(BaseImageAugmentationLayer):
       keypoint_format: The format of keypoints of input dataset. Refer to
         https://github.com/keras-team/keras-cv/blob/master/keras_cv/bounding_box/converters.py
         for more details on supported keypoint formats.
+      clip_points_to_image_size: Indicates if bounding boxes and
+        keypoints should respectively be clipped or discarded
+        according to the input image shape. Note that you should
+        disable clipping while augmenting batches of images with
+        keypoints data.
+
     """
     def __init__(
         self,
@@ -114,6 +120,7 @@ class RandomRotation(BaseImageAugmentationLayer):
         fill_value=0.0,
         bounding_box_format=None,
         keypoint_format=None,
+        clip_points_to_image_size=True,
         **kwargs,
     ):
         super().__init__(seed=seed, force_generator=True, **kwargs)
@@ -136,6 +143,7 @@ class RandomRotation(BaseImageAugmentationLayer):
         self.seed = seed
         self.bounding_box_format = bounding_box_format
         self.keypoint_format = keypoint_format
+        self.clip_points_to_image_size = clip_points_to_image_size
 
     def get_random_transformation(self, **kwargs):
         min_angle = self.lower * 2.0 * np.pi
@@ -173,18 +181,30 @@ class RandomRotation(BaseImageAugmentationLayer):
         return bounding_box.transform_from_point_transform(
             bounding_boxes,
             functools.partial(
-                self.augment_keypoints, transformation=transformation, image=image
+                self.augment_keypoints,
+                transformation=transformation,
+                image=image,
+                keypoint_format='xy',
+                discard_out_of_image=False,
             ),
             bounding_box_format=self.bounding_box_format,
-            compute_dtype=self.compute_dtype,
+            dtype=self.compute_dtype,
             images=image,
+            clip_boxes=self.clip_points_to_image_size,
         )
 
-    def augment_keypoints(self, keypoints, transformation, **kwargs):
+    def augment_keypoints(
+        self,
+        keypoints,
+        transformation,
+        image=None,
+        **kwargs,
+    ):
 
-        image = None
-        image = kwargs.get("image")
         keypoint_format = kwargs.get("keypoint_format", self.keypoint_format)
+        discard_out_of_image = kwargs.get(
+            "discard_out_of_image", self.clip_points_to_image_size
+        )
         if keypoint_format is None:
             raise MissingFormatError.keypoints("RandomRotation")
 
@@ -221,7 +241,11 @@ class RandomRotation(BaseImageAugmentationLayer):
             tf.multiply(tf.cos(angle), tf.cast((point_y - origin_y), dtype=tf.float32))
         )
         # rotated bounding box coordinates
-        out = tf.concat([new_x, new_y], axis=2)
+        out = tf.concat([new_x, new_y], axis=-1)
+
+        if discard_out_of_image:
+            out = keypoint.discard_out_of_image(out, image)
+
         return keypoint.convert_format(
             out, source='xy', target=keypoint_format, images=image
         )
@@ -238,6 +262,7 @@ class RandomRotation(BaseImageAugmentationLayer):
             "fill_mode": self.fill_mode,
             "fill_value": self.fill_value,
             "interpolation": self.interpolation,
+            "clip_points_to_image_size": self.clip_points_to_image_size,
             "seed": self.seed,
         }
         base_config = super().get_config()

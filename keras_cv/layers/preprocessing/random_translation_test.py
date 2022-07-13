@@ -81,6 +81,7 @@ class RandomTranslationTest(tf.test.TestCase):
                 [100 + 512 / 4, 100 + 512 / 2, 300 + 512 / 4, 300 + 512 / 2, 42.0],
             ],
         )
+        expected_output = np.minimum(expected_output, 512)
         expected_output = np.reshape(expected_output, (2, 5))
         self.assertAllClose(expected_output, output_bbox["bounding_boxes"])
 
@@ -88,11 +89,8 @@ class RandomTranslationTest(tf.test.TestCase):
         input_image = np.random.random((512, 512, 3)).astype(np.float32)
         # Makes sure it supports additionnal data attached to bboxes,
         # like classes and confidences
-        keypoints = tf.convert_to_tensor(
-            [
-                [[200.0, 200.0], [400.0, 400.0]],
-                [[100.0, 100.0], [300.0, 300.0]],
-            ]
+        keypoints = tf.RaggedTensor.from_row_lengths(
+            [[200.0, 200.0], [400.0, 400.0], [100.0, 100.0], [300.0, 300.0]], [2, 1, 1]
         )
         input = {"images": input_image, "keypoints": keypoints}
         # 180 rotation.
@@ -102,12 +100,14 @@ class RandomTranslationTest(tf.test.TestCase):
             keypoint_format='xy',
         )
         output_bbox = layer(input)
-        expected_output = np.asarray(
+        expected_output = tf.RaggedTensor.from_row_lengths(
             [
-                [[200 + 512 / 4, 200.0 + 512 / 2], [400 + 512 / 4, 400 + 512 / 2]],
-                [[100 + 512 / 4, 100.0 + 512 / 2], [300 + 512 / 4, 300 + 512 / 2]],
-            ]
+                [200 + 512 / 4, 200.0 + 512 / 2],
+                [100 + 512 / 4, 100.0 + 512 / 2],
+            ],
+            [1, 1, 0],
         )
+
         self.assertAllClose(expected_output, output_bbox["keypoints"])
 
     def test_output_dtypes(self):

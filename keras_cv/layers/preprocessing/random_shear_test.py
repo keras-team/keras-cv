@@ -56,15 +56,19 @@ class RandomShearTest(tf.test.TestCase, parameterized.TestCase):
         expected_output = np.copy(keypoints)
         if shear_type == "x":
             shear_kwargs = {"x_factor": (factor, factor)}
-            expected_output[:, 0] += keypoints[:, 1] * factor
+            expected_output[..., 0] += keypoints[..., 1] * factor
         elif shear_type == "y":
             shear_kwargs = {"y_factor": (factor, factor)}
-            expected_output[:, 1] += keypoints[:, 0] * factor
+            expected_output[..., 1] += keypoints[..., 0] * factor
+
+        keypoints = tf.RaggedTensor.from_row_lengths(keypoints, [2, 1, 0, 1])
+        expected_output = tf.RaggedTensor.from_row_lengths(
+            expected_output[[0, 1, 3], :], [2, 0, 0, 1]
+        )
 
         shear_kwargs['keypoint_format'] = 'xy'
         layer = preprocessing.RandomShear(**shear_kwargs)
         output = layer({"images": image, "keypoints": keypoints})
-
         self.assertAllClose(output["keypoints"], expected_output)
 
     @parameterized.parameters("x", "y")
@@ -78,10 +82,10 @@ class RandomShearTest(tf.test.TestCase, parameterized.TestCase):
 
         if shear_type == "x":
             shear_kwargs = {"x_factor": (factor, factor), "bounding_box_format": "xyxy"}
-            expected_output = np.array([[37.5, 25.0, 112.5, 75.0]])
+            expected_output = np.array([[37.5, 25.0, 100, 75.0]])
         elif shear_type == "y":
             shear_kwargs = {"y_factor": (factor, factor), "bounding_box_format": "xyxy"}
-            expected_output = np.array([[25.0, 37.5, 75.0, 112.5]])
+            expected_output = np.array([[25.0, 37.5, 75.0, 100]])
 
         layer = preprocessing.RandomShear(**shear_kwargs)
         output = layer({"images": image, "bounding_boxes": bounding_boxes})

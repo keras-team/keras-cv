@@ -98,7 +98,6 @@ class BaseImageAugmentationLayer(tf.keras.__internal__.layers.BaseRandomLayer):
     produce the random numbers.  The random number generator is stored in the
     `self._random_generator` attribute.
     """
-
     def __init__(self, seed=None, **kwargs):
         super().__init__(seed=seed, **kwargs)
 
@@ -252,7 +251,10 @@ class BaseImageAugmentationLayer(tf.keras.__internal__.layers.BaseRandomLayer):
         bounding_boxes = inputs.get(BOUNDING_BOXES, None)
         keypoints = inputs.get(KEYPOINTS, None)
         transformation = self.get_random_transformation(
-            image=image, label=label, bounding_boxes=bounding_boxes, keypoints=keypoints
+            image=image,
+            label=label,
+            bounding_boxes=bounding_boxes,
+            keypoints=keypoints
         )
         image = self.augment_image(
             image,

@@ -64,6 +64,11 @@ class RandomShear(BaseImageAugmentationLayer):
         to
         https://github.com/keras-team/keras-cv/blob/master/keras_cv/bounding_box/converters.py
         for more details on supported keypoint formats.
+      clip_points_to_image_size: Indicates if bounding boxes and
+        keypoints should respectively be clipped or discarded
+        according to the input image shape. Note that you should
+        disable clipping while augmenting batches of images with
+        keypoints data.
       seed: Integer. Used to create a random seed.
     """
     def __init__(
@@ -76,6 +81,7 @@ class RandomShear(BaseImageAugmentationLayer):
         seed=None,
         bounding_box_format=None,
         keypoint_format=None,
+        clip_points_to_image_size=True,
         **kwargs,
     ):
         super().__init__(seed=seed, **kwargs)
@@ -102,6 +108,7 @@ class RandomShear(BaseImageAugmentationLayer):
         self.seed = seed
         self.bounding_box_format = bounding_box_format
         self.keypoint_format = keypoint_format
+        self.clip_points_to_image_size = clip_points_to_image_size
 
     def get_random_transformation(self, **kwargs):
         x = self._get_shear_amount(self.x_factor)
@@ -156,14 +163,29 @@ class RandomShear(BaseImageAugmentationLayer):
 
         return bounding_box.transform_from_point_transform(
             bounding_boxes,
-            functools.partial(self.augment_keypoints, transformation=transformation),
+            functools.partial(
+                self.augment_keypoints,
+                transformation=transformation,
+                image=image,
+                keypoint_format='xy',
+                discard_out_of_image=False,
+            ),
             bounding_box_format=self.bounding_box_format,
-            compute_dtype=self.compute_dtype,
+            dtype=self.compute_dtype,
             images=image,
+            clip_boxes=self.clip_points_to_image_size,
         )
 
-    def augment_keypoints(self, keypoints, transformation=None, **kwargs):
-        image = kwargs.get("image")
+    def augment_keypoints(
+        self,
+        keypoints,
+        image,
+        transformation=None,
+        **kwargs,
+    ):
+        discard_out_of_image = kwargs.get(
+            "discard_out_of_image", self.clip_points_to_image_size
+        )
         keypoint_format = kwargs.get("keypoint_format", self.keypoint_format)
         if keypoint_format is None:
             raise MissingFormatError.keypoints("RandomShear")
@@ -179,6 +201,9 @@ class RandomShear(BaseImageAugmentationLayer):
             offset_y = keypoints[..., 0] * y
             offset_x = tf.zeros_like(offset_y)
             keypoints = keypoints - tf.stack([offset_x, offset_y], axis=-1)
+
+        if discard_out_of_image:
+            keypoints = keypoint.discard_out_of_image(keypoints, image)
 
         return keypoint.convert_format(
             keypoints, source='xy', target=keypoint_format, images=image
@@ -201,6 +226,7 @@ class RandomShear(BaseImageAugmentationLayer):
                 "seed": self.seed,
                 "bounding_box_format": self.bounding_box_format,
                 "keypoint_format": self.keypoint_format,
+                "clip_points_to_image_size": self.clip_points_to_image_size,
             }
         )
         return config

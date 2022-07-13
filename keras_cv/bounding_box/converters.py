@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """Converter functions for working with bounding box formats."""
 
 import tensorflow as tf
@@ -145,7 +144,7 @@ FROM_XYXY_CONVERTERS = {
 }
 
 
-def convert_format(boxes, source, target, images=None, dtype="float32"):
+def convert_format(boxes, source, target, images=None, dtype=None):
     f"""Converts bounding_boxes from one format to another.
 
     Supported formats are:
@@ -199,7 +198,7 @@ def convert_format(boxes, source, target, images=None, dtype="float32"):
             pixel values of the bounding box dimensions.  Required when transforming
             from a rel format to a non-rel format.
         dtype: the data type to use when transforming the boxes.  Defaults to
-            `tf.float32`.
+            bounding_box format.
     """
 
     source = source.lower()
@@ -217,7 +216,9 @@ def convert_format(boxes, source, target, images=None, dtype="float32"):
             f"Got target={target}"
         )
 
-    boxes = tf.cast(boxes, dtype)
+    if dtype:
+        boxes = tf.cast(boxes, dtype)
+
     if source == target:
         return boxes
 

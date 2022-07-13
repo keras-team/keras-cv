@@ -80,6 +80,11 @@ class RandomTranslation(BaseImageAugmentationLayer):
         to
         https://github.com/keras-team/keras-cv/blob/master/keras_cv/bounding_box/converters.py
         for more details on supported keypoint formats.
+      clip_points_to_image_size: Indicates if bounding boxes and
+        keypoints should respectively be clipped or discarded
+        according to the input image shape. Note that you should
+        disable clipping while augmenting batches of images with
+        keypoints data.
       seed: Integer. Used to create a random seed.
       fill_value: a float represents the value to be filled outside the boundaries
         when `fill_mode="constant"`.
@@ -94,6 +99,7 @@ class RandomTranslation(BaseImageAugmentationLayer):
         fill_value=0.0,
         bounding_box_format=None,
         keypoint_format=None,
+        clip_points_to_image_size=True,
         **kwargs
     ):
         super().__init__(seed=seed, **kwargs)
@@ -108,6 +114,7 @@ class RandomTranslation(BaseImageAugmentationLayer):
         )
         self.bounding_box_format = bounding_box_format
         self.keypoint_format = keypoint_format
+        self.clip_points_to_image_size = clip_points_to_image_size
 
     def get_config(self):
         config = super().get_config()
@@ -115,7 +122,8 @@ class RandomTranslation(BaseImageAugmentationLayer):
         config.update(
             {
                 "bounding_box_format": self.bounding_box_format,
-                "keypoint_format": self.keypoint_format
+                "keypoint_format": self.keypoint_format,
+                "clip_points_to_image_size": self.clip_points_to_image_size,
             }
         )
         return config
@@ -133,10 +141,15 @@ class RandomTranslation(BaseImageAugmentationLayer):
     def augment_label(self, labels, transformation=None, **kwargs):
         return labels
 
-    def augment_bounding_boxes(self, bounding_boxes, transformation=None, **kwargs):
-        image = kwargs.get('image')
+    def augment_bounding_boxes(
+        self,
+        bounding_boxes,
+        transformation=None,
+        image=None,
+        **kwargs,
+    ):
         if self.bounding_box_format is None:
-            raise MissingFormatError.bounding_boxes("RandomRotation")
+            raise MissingFormatError.bounding_boxes("RandomTranslation")
 
         return bounding_box.transform_from_point_transform(
             bounding_boxes,
@@ -144,14 +157,26 @@ class RandomTranslation(BaseImageAugmentationLayer):
                 self.augment_keypoints,
                 transformation=transformation,
                 image=image,
+                keypoint_format='xy',
+                discard_out_of_image=False,
             ),
             bounding_box_format=self.bounding_box_format,
             images=image,
-            compute_dtype=self.compute_dtype,
+            dtype=self.compute_dtype,
+            clip_boxes=self.clip_points_to_image_size,
         )
 
-    def augment_keypoints(self, keypoints, transformation=None, **kwargs):
+    def augment_keypoints(
+        self,
+        keypoints,
+        transformation=None,
+        **kwargs,
+    ):
         image = kwargs.get('image')
+        discard_out_of_image = kwargs.get(
+            'discard_out_of_image', self.clip_points_to_image_size
+        )
+
         keypoint_format = kwargs.get('keypoint_format', self.keypoint_format)
 
         if keypoint_format is None:
@@ -176,9 +201,11 @@ class RandomTranslation(BaseImageAugmentationLayer):
             dtype=self.compute_dtype,
         )
 
+        out = keypoints + offset
+
+        if discard_out_of_image:
+            out = keypoint.discard_out_of_image(out, image=image)
+
         return keypoint.convert_format(
-            keypoints + offset[None, ...],
-            source='xy',
-            target=keypoint_format,
-            images=image
+            out, source='xy', target=keypoint_format, images=image
         )

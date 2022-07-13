@@ -78,6 +78,7 @@ TEST_CONFIGURATIONS = [
             "x_factor": 0.3,
             "bounding_box_format": "xyxy",
             "keypoint_format": "xy",
+            "clip_points_to_image_size": True,
         },
     ),
     ("Solarization", preprocessing.Solarization, {"value_range": (0, 255)}),
@@ -94,6 +95,7 @@ TEST_CONFIGURATIONS = [
             "fill_value": 0.5,
             "bounding_box_format": "xyxy",
             "keypoint_format": "xy",
+            "clip_points_to_image_size": True,
         },
     ),
     (
@@ -108,6 +110,7 @@ TEST_CONFIGURATIONS = [
             "fill_value": 0.3,
             "bounding_box_format": "xyxy",
             "keypoint_format": "xy",
+            "clip_points_to_image_size": True,
         },
     ),
 ]  # yapf:disable
@@ -176,6 +179,8 @@ class WithKeysTest(tf.test.TestCase, parameterized.TestCase):
         ("CutMix", preprocessing.CutMix, {}),
     )
     def test_can_run_with_keypoints(self, layer_cls, init_args):
+        if "clip_points_to_image_size" in init_args:
+            init_args["clip_points_to_image_size"] = False
         layer = layer_cls(**init_args)
 
         img = tf.random.uniform(
@@ -191,6 +196,8 @@ class WithKeysTest(tf.test.TestCase, parameterized.TestCase):
     # this has to be a separate test case to exclude CutMix and MixUp
     @parameterized.named_parameters(*TEST_CONFIGURATIONS)
     def test_can_run_with_keypoints_single_image(self, layer_cls, init_args):
+        if "clip_points_to_image_size" in init_args:
+            init_args["clip_points_to_image_size"] = True
         layer = layer_cls(**init_args)
         img = tf.random.uniform(
             shape=(512, 512, 3), minval=0, maxval=1, dtype=tf.float32
