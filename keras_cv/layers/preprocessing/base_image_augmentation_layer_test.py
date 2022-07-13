@@ -143,7 +143,6 @@ class BaseImageAugmentationLayerTest(tf.test.TestCase):
         self.assertNotAllClose(inputs["images"], outputs["images"])
         self.assertAllEqual(inputs["images"], images)  # Assert original unchanged
 
-
     def test_augment_image_and_localization_data(self):
         add_layer = RandomAddLayer(fixed_value=2.0)
         images = np.random.random(size=(8, 8, 3)).astype("float32")

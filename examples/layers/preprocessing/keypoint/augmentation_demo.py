@@ -71,7 +71,7 @@ def main():
     ds = demo_utils.load_AFLW2000_dataset(batch_size=9, ragged_keypoints=True)
     custom_pipeline = create_custom_pipeline()
     ds = ds.map(custom_pipeline, num_parallel_calls=tf.data.AUTOTUNE)
-    demo_utils.visualize_dataset(ds)
+    demo_utils.visualize_data(ds)
 
 
 if __name__ == "__main__":
