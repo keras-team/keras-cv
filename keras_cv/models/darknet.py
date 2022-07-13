@@ -142,25 +142,19 @@ def DarkNet(
     )(x)
     x = ResidualBlocks(filters=64, num_blocks=1, name="stem_residual_block")(x)
 
-    # dark2
-    x = ResidualBlocks(filters=128, num_blocks=blocks[0], name="dark2_residual_block")(
-        x
-    )
+    # filters for the ResidualBlock outputs
+    filters = [128, 256, 512, 1024]
 
-    # dark3
-    x = ResidualBlocks(filters=256, num_blocks=blocks[1], name="dark3_residual_block")(
-        x
-    )
+    # layer_num is used for naming the residual blocks (starts with dark2, hence 2)
+    layer_num = 2
 
-    # dark4
-    x = ResidualBlocks(filters=512, num_blocks=blocks[2], name="dark4_residual_block")(
-        x
-    )
+    for filter, block in zip(filters, blocks):
+        x = ResidualBlocks(
+            filters=filter, num_blocks=block, name=f"dark{layer_num}_residual_block"
+        )(x)
+        layer_num += 1
 
-    # dark5
-    x = ResidualBlocks(filters=1024, num_blocks=blocks[3], name="dark5_residual_block")(
-        x
-    )
+    # remaining dark5 layers
     x = DarknetConvBlock(
         filters=512,
         kernel_size=1,

@@ -24,7 +24,7 @@ import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras import layers
 
-from keras_cv.models.__internal__.darknet_utils import CSPLayer
+from keras_cv.models.__internal__.darknet_utils import CrossStagePartialLayer
 from keras_cv.models.__internal__.darknet_utils import DarknetConvBlock
 from keras_cv.models.__internal__.darknet_utils import DarknetConvBlockDepthwise
 from keras_cv.models.__internal__.darknet_utils import Focus
@@ -122,7 +122,7 @@ def CSPDarkNet(
 
     # dark2
     x = ConvBlock(base_channels * 2, kernel_size=3, strides=2, name="dark2_conv")(x)
-    x = CSPLayer(
+    x = CrossStagePartialLayer(
         base_channels * 2,
         num_bottlenecks=base_depth,
         use_depthwise=use_depthwise,
@@ -131,7 +131,7 @@ def CSPDarkNet(
 
     # dark3
     x = ConvBlock(base_channels * 4, kernel_size=3, strides=2, name="dark3_conv")(x)
-    x = CSPLayer(
+    x = CrossStagePartialLayer(
         base_channels * 4,
         num_bottlenecks=base_depth * 3,
         use_depthwise=use_depthwise,
@@ -140,7 +140,7 @@ def CSPDarkNet(
 
     # dark4
     x = ConvBlock(base_channels * 8, kernel_size=3, strides=2, name="dark4_conv")(x)
-    x = CSPLayer(
+    x = CrossStagePartialLayer(
         base_channels * 8,
         num_bottlenecks=base_depth * 3,
         use_depthwise=use_depthwise,
@@ -152,7 +152,7 @@ def CSPDarkNet(
     x = SPPBottleneck(
         base_channels * 16, hidden_filters=base_channels * 8, name="dark5_spp"
     )(x)
-    x = CSPLayer(
+    x = CrossStagePartialLayer(
         base_channels * 16,
         num_bottlenecks=base_depth,
         add_residual=False,

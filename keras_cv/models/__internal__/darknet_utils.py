@@ -262,7 +262,7 @@ class DarknetConvBlockDepthwise(layers.Layer):
 
 
 @tf.keras.utils.register_keras_serializable(package="keras_cv")
-class CSPLayer(layers.Layer):
+class CrossStagePartialLayer(layers.Layer):
     """A block used in Cross Stage Partial Darknet.
 
     Args:
@@ -270,7 +270,7 @@ class CSPLayer(layers.Layer):
             output filters in the final convolution).
         num_bottlenecks: an integer representing the number of blocks added in the
             layer bottleneck.
-        add_residual: a boolean representing whether the value tensor before the
+        residual: a boolean representing whether the value tensor before the
             bottleneck should be added to the output of the bottleneck as a residual.
             Defaults to True.
         use_depthwise: a boolean value used to decide whether a depthwise conv block
@@ -283,7 +283,7 @@ class CSPLayer(layers.Layer):
         self,
         filters,
         num_bottlenecks,
-        add_residual=True,
+        residual=True,
         use_depthwise=False,
         activation="silu",
         **kwargs,
@@ -291,7 +291,7 @@ class CSPLayer(layers.Layer):
         super().__init__(**kwargs)
         self.filters = filters
         self.num_bottlenecks = num_bottlenecks
-        self.add_residual = add_residual
+        self.residual = residual
         self.use_depthwise = use_depthwise
         self.activation = activation
 
@@ -349,7 +349,7 @@ class CSPLayer(layers.Layer):
             x1 = self.bottleneck_convs[2 * i](x1)
             x1 = self.bottleneck_convs[2 * i + 1](x1)
 
-            if self.add_residual:
+            if self.residual:
                 x1 = self.add([residual, x1])
 
         x1 = self.concatenate([x1, x2])
@@ -360,7 +360,7 @@ class CSPLayer(layers.Layer):
         config = {
             "filters": self.filters,
             "num_bottlenecks": self.num_bottlenecks,
-            "add_residual": self.add_residual,
+            "residual": self.residual,
             "use_depthwise": self.use_depthwise,
             "activation": self.activation,
         }
@@ -373,6 +373,7 @@ def Focus(name=None):
 
     If the dimensions of a batch input is (batch_size, width, height, channels), this
     layer converts the image into size (batch_size, width/2, height/2, 4*channels).
+    See [the original discussion on YoloV5 Focus Layer](https://github.com/ultralytics/yolov5/discussions/3181).
 
     Args:
         name: the name for the lambda layer used in the block.
