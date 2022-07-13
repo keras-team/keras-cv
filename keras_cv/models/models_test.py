@@ -18,12 +18,16 @@ from absl.testing import parameterized
 from tensorflow.keras import backend
 
 from keras_cv.models import densenet
+from keras_cv.models import mlp_mixer
 from keras_cv.models import vgg19
 
 MODEL_LIST = [
     (densenet.DenseNet121, 1024),
     (densenet.DenseNet169, 1664),
     (densenet.DenseNet201, 1920),
+    (mlp_mixer.MLPMixerB16, 768),
+    (mlp_mixer.MLPMixerB32, 768),
+    (mlp_mixer.MLPMixerL16, 1024),
     (vgg19.VGG19, 512),
 ]
 
@@ -35,13 +39,32 @@ class ApplicationsTest(tf.test.TestCase, parameterized.TestCase):
     @parameterized.parameters(*MODEL_LIST)
     def test_application_base(self, app, _):
         # Can be instantiated with default arguments
-        model = app(
-            input_shape=(224, 224, 3),
-            include_top=True,
-            num_classes=1000,
-            include_rescaling=False,
-            weights=None,
-        )
+        if "Mixer" not in app.__name__:
+            model = app(
+                input_shape=(224, 224, 3),
+                include_top=True,
+                num_classes=1000,
+                include_rescaling=False,
+                weights=None,
+            )
+        elif "MixerB16" in app.__name__ or "MixerL16" in app.__name__:
+            model = app(
+                input_shape=(224, 224, 3),
+                patch_size=(16, 16),
+                include_top=True,
+                num_classes=1000,
+                include_rescaling=False,
+                weights=None,
+            )
+        elif "MixerB32" in app.__name__:
+            model = app(
+                input_shape=(224, 224, 3),
+                patch_size=(32, 32),
+                include_top=True,
+                num_classes=1000,
+                include_rescaling=False,
+                weights=None,
+            )
         # Can be serialized and deserialized
         config = model.get_config()
         reconstructed_model = model.__class__.from_config(config)
@@ -50,65 +73,209 @@ class ApplicationsTest(tf.test.TestCase, parameterized.TestCase):
 
     @parameterized.parameters(*MODEL_LIST)
     def test_application_with_rescaling(self, app, last_dim):
-        output_shape = _get_output_shape(
-            lambda: app(
-                include_rescaling=True,
-                include_top=False,
-                weights=None,
+        if "Mixer" not in app.__name__:
+            output_shape = _get_output_shape(
+                lambda: app(
+                    include_rescaling=True,
+                    include_top=False,
+                    weights=None,
+                    input_shape=(None, None, 3),
+                )
             )
-        )
-        self.assertShapeEqual(output_shape, (None, None, None, last_dim))
+        elif "MixerB16" in app.__name__ or "MixerL16" in app.__name__:
+            output_shape = _get_output_shape(
+                lambda: app(
+                    include_rescaling=True,
+                    include_top=False,
+                    weights=None,
+                    input_shape=(224, 224, 3),
+                    patch_size=(16, 16),
+                )
+            )
+        elif "MixerB32" in app.__name__:
+            output_shape = _get_output_shape(
+                lambda: app(
+                    include_rescaling=True,
+                    include_top=False,
+                    weights=None,
+                    input_shape=(224, 224, 3),
+                    patch_size=(32, 32),
+                )
+            )
+
+        if "Mixer" not in app.__name__:
+            self.assertShapeEqual(output_shape, (None, None, None, last_dim))
+        elif "MixerB16" in app.__name__ or "MixerL16" in app.__name__:
+            num_patches = 196
+            self.assertShapeEqual(output_shape, (None, num_patches, last_dim))
+        elif "MixerB32" in app.__name__:
+            num_patches = 49
+            self.assertShapeEqual(output_shape, (None, num_patches, last_dim))
+
         backend.clear_session()
 
     @parameterized.parameters(*MODEL_LIST)
     def test_application_notop(self, app, last_dim):
-        output_shape = _get_output_shape(
-            lambda: app(
-                include_rescaling=False,
-                include_top=False,
-                weights=None,
+        if "Mixer" not in app.__name__:
+            output_shape = _get_output_shape(
+                lambda: app(
+                    include_rescaling=False,
+                    include_top=False,
+                    weights=None,
+                    input_shape=(None, None, 3),
+                )
             )
-        )
-        self.assertShapeEqual(output_shape, (None, None, None, last_dim))
+        elif "MixerB16" in app.__name__ or "MixerL16" in app.__name__:
+            output_shape = _get_output_shape(
+                lambda: app(
+                    include_rescaling=False,
+                    include_top=False,
+                    weights=None,
+                    input_shape=(224, 224, 3),
+                    patch_size=(16, 16),
+                )
+            )
+        elif "MixerB32" in app.__name__:
+            output_shape = _get_output_shape(
+                lambda: app(
+                    include_rescaling=False,
+                    include_top=False,
+                    weights=None,
+                    input_shape=(224, 224, 3),
+                    patch_size=(32, 32),
+                )
+            )
+
+        if "Mixer" not in app.__name__:
+            self.assertShapeEqual(output_shape, (None, None, None, last_dim))
+        elif "MixerB16" in app.__name__ or "MixerL16" in app.__name__:
+            num_patches = 196
+            self.assertShapeEqual(output_shape, (None, num_patches, last_dim))
+        elif "MixerB32" in app.__name__:
+            num_patches = 49
+            self.assertShapeEqual(output_shape, (None, num_patches, last_dim))
+
         backend.clear_session()
 
     @parameterized.parameters(*MODEL_LIST)
     def test_application_pooling(self, app, last_dim):
-        output_shape = _get_output_shape(
-            lambda: app(
-                input_shape=(224, 224, 3),
-                include_rescaling=False,
-                include_top=False,
-                weights=None,
-                pooling="avg",
+        if "Mixer" not in app.__name__:
+            output_shape = _get_output_shape(
+                lambda: app(
+                    input_shape=(224, 224, 3),
+                    include_rescaling=False,
+                    include_top=False,
+                    weights=None,
+                    pooling="avg",
+                )
             )
-        )
+        elif "MixerB16" in app.__name__ or "MixerL16" in app.__name__:
+            output_shape = _get_output_shape(
+                lambda: app(
+                    input_shape=(224, 224, 3),
+                    patch_size=(16, 16),
+                    include_rescaling=False,
+                    include_top=False,
+                    weights=None,
+                    pooling="avg",
+                )
+            )
+        elif "MixerB32" in app.__name__:
+            output_shape = _get_output_shape(
+                lambda: app(
+                    input_shape=(224, 224, 3),
+                    patch_size=(32, 32),
+                    include_rescaling=False,
+                    include_top=False,
+                    weights=None,
+                    pooling="avg",
+                )
+            )
         self.assertShapeEqual(output_shape, (None, last_dim))
 
     @parameterized.parameters(*MODEL_LIST)
     def test_application_variable_input_channels(self, app, last_dim):
-        input_shape = (None, None, 1)
-        output_shape = _get_output_shape(
-            lambda: app(
-                include_rescaling=False,
-                weights=None,
-                include_top=False,
-                input_shape=input_shape,
+        input_shape = (None, None, 1) if "Mixer" not in app.__name__ else (224, 224, 1)
+        if "Mixer" not in app.__name__:
+            output_shape = _get_output_shape(
+                lambda: app(
+                    include_rescaling=False,
+                    weights=None,
+                    include_top=False,
+                    input_shape=input_shape,
+                )
             )
-        )
-        self.assertShapeEqual(output_shape, (None, None, None, last_dim))
+        elif "MixerB16" in app.__name__ or "MixerL16" in app.__name__:
+            output_shape = _get_output_shape(
+                lambda: app(
+                    include_rescaling=False,
+                    weights=None,
+                    include_top=False,
+                    input_shape=input_shape,
+                    patch_size=(16, 16),
+                )
+            )
+        elif "MixerB32" in app.__name__:
+            output_shape = _get_output_shape(
+                lambda: app(
+                    include_rescaling=False,
+                    weights=None,
+                    include_top=False,
+                    input_shape=input_shape,
+                    patch_size=(32, 32),
+                )
+            )
+        if "Mixer" not in app.__name__:
+            self.assertShapeEqual(output_shape, (None, None, None, last_dim))
+        elif "MixerB16" in app.__name__ or "MixerL16" in app.__name__:
+            num_patches = 196
+            self.assertShapeEqual(output_shape, (None, num_patches, last_dim))
+        elif "MixerB32" in app.__name__:
+            num_patches = 49
+            self.assertShapeEqual(output_shape, (None, num_patches, last_dim))
+
         backend.clear_session()
 
-        input_shape = (None, None, 4)
-        output_shape = _get_output_shape(
-            lambda: app(
-                include_rescaling=False,
-                weights=None,
-                include_top=False,
-                input_shape=input_shape,
+        input_shape = (None, None, 4) if "Mixer" not in app.__name__ else (224, 224, 4)
+        if "Mixer" not in app.__name__:
+            output_shape = _get_output_shape(
+                lambda: app(
+                    include_rescaling=False,
+                    weights=None,
+                    include_top=False,
+                    input_shape=input_shape,
+                )
             )
-        )
-        self.assertShapeEqual(output_shape, (None, None, None, last_dim))
+        elif "MixerB16" in app.__name__ or "MixerL16" in app.__name__:
+            output_shape = _get_output_shape(
+                lambda: app(
+                    include_rescaling=False,
+                    weights=None,
+                    include_top=False,
+                    input_shape=input_shape,
+                    patch_size=(16, 16),
+                )
+            )
+        elif "MixerB32" in app.__name__:
+            output_shape = _get_output_shape(
+                lambda: app(
+                    include_rescaling=False,
+                    weights=None,
+                    include_top=False,
+                    input_shape=input_shape,
+                    patch_size=(32, 32),
+                )
+            )
+
+        if "Mixer" not in app.__name__:
+            self.assertShapeEqual(output_shape, (None, None, None, last_dim))
+        elif "MixerB16" in app.__name__ or "MixerL16" in app.__name__:
+            num_patches = 196
+            self.assertShapeEqual(output_shape, (None, num_patches, last_dim))
+        elif "MixerB32" in app.__name__:
+            num_patches = 49
+            self.assertShapeEqual(output_shape, (None, num_patches, last_dim))
+
         backend.clear_session()
 
 
