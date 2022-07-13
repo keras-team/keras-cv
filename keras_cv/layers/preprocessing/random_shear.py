@@ -21,9 +21,8 @@ from keras_cv import keypoint
 from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
     BaseImageAugmentationLayer,
 )
+from keras_cv.layers.preprocessing.random_rotation import MissingFormatError
 from keras_cv.utils import preprocessing
-
-from keras_cv.layers.preprocessing.random_rotation import (MissingFormatError)
 
 
 @tf.keras.utils.register_keras_serializable(package="keras_cv")
@@ -71,6 +70,7 @@ class RandomShear(BaseImageAugmentationLayer):
         keypoints data.
       seed: Integer. Used to create a random seed.
     """
+
     def __init__(
         self,
         x_factor=None,
@@ -167,7 +167,7 @@ class RandomShear(BaseImageAugmentationLayer):
                 self.augment_keypoints,
                 transformation=transformation,
                 image=image,
-                keypoint_format='xy',
+                keypoint_format="xy",
                 discard_out_of_image=False,
             ),
             bounding_box_format=self.bounding_box_format,
@@ -190,7 +190,7 @@ class RandomShear(BaseImageAugmentationLayer):
         if keypoint_format is None:
             raise MissingFormatError.keypoints("RandomShear")
         keypoints = keypoint.convert_format(
-            keypoints, source=keypoint_format, target='xy', images=image
+            keypoints, source=keypoint_format, target="xy", images=image
         )
         x, y = transformation
         if x is not None:
@@ -206,7 +206,7 @@ class RandomShear(BaseImageAugmentationLayer):
             keypoints = keypoint.discard_out_of_image(keypoints, image)
 
         return keypoint.convert_format(
-            keypoints, source='xy', target=keypoint_format, images=image
+            keypoints, source="xy", target=keypoint_format, images=image
         )
 
     @staticmethod

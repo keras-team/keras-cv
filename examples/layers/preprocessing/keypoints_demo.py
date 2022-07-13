@@ -23,6 +23,7 @@ falling outside the images boundaries are discarded.
 
 import demo_utils
 import tensorflow as tf
+
 from keras_cv.layers import preprocessing
 
 
@@ -32,30 +33,30 @@ def create_custom_pipeline():
     layers = [
         preprocessing.RandomRotation(
             factor=(-1.0, 1.0),
-            keypoint_format='xy',
-            fill_mode='constant',
+            keypoint_format="xy",
+            fill_mode="constant",
         ),
         preprocessing.RandomTranslation(
             height_factor=0.5,
             width_factor=0,
-            keypoint_format='xy',
-            fill_mode='constant',
+            keypoint_format="xy",
+            fill_mode="constant",
         ),
         preprocessing.RandomTranslation(
             width_factor=0.5,
             height_factor=0,
-            keypoint_format='xy',
-            fill_mode='constant',
+            keypoint_format="xy",
+            fill_mode="constant",
         ),
         preprocessing.RandomShear(
             x_factor=0.5,
-            keypoint_format='xy',
-            fill_mode='constant',
+            keypoint_format="xy",
+            fill_mode="constant",
         ),
         preprocessing.RandomShear(
             y_factor=0.5,
-            keypoint_format='xy',
-            fill_mode='constant',
+            keypoint_format="xy",
+            fill_mode="constant",
         ),
     ]
     return preprocessing.RandomAugmentationPipeline(

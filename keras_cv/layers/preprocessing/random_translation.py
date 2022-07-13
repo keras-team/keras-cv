@@ -20,7 +20,6 @@ from keras_cv import keypoint
 from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
     BaseImageAugmentationLayer,
 )
-
 from keras_cv.layers.preprocessing.random_rotation import MissingFormatError
 
 H_AXIS = -3
@@ -89,6 +88,7 @@ class RandomTranslation(BaseImageAugmentationLayer):
       fill_value: a float represents the value to be filled outside the boundaries
         when `fill_mode="constant"`.
     """
+
     def __init__(
         self,
         height_factor,
@@ -100,7 +100,7 @@ class RandomTranslation(BaseImageAugmentationLayer):
         bounding_box_format=None,
         keypoint_format=None,
         clip_points_to_image_size=True,
-        **kwargs
+        **kwargs,
     ):
         super().__init__(seed=seed, **kwargs)
         self.base = tf.keras.layers.RandomTranslation(
@@ -110,7 +110,7 @@ class RandomTranslation(BaseImageAugmentationLayer):
             interpolation=interpolation,
             seed=seed,
             fill_value=fill_value,
-            **kwargs
+            **kwargs,
         )
         self.bounding_box_format = bounding_box_format
         self.keypoint_format = keypoint_format
@@ -157,7 +157,7 @@ class RandomTranslation(BaseImageAugmentationLayer):
                 self.augment_keypoints,
                 transformation=transformation,
                 image=image,
-                keypoint_format='xy',
+                keypoint_format="xy",
                 discard_out_of_image=False,
             ),
             bounding_box_format=self.bounding_box_format,
@@ -172,20 +172,20 @@ class RandomTranslation(BaseImageAugmentationLayer):
         transformation=None,
         **kwargs,
     ):
-        image = kwargs.get('image')
+        image = kwargs.get("image")
         discard_out_of_image = kwargs.get(
-            'discard_out_of_image', self.clip_points_to_image_size
+            "discard_out_of_image", self.clip_points_to_image_size
         )
 
-        keypoint_format = kwargs.get('keypoint_format', self.keypoint_format)
+        keypoint_format = kwargs.get("keypoint_format", self.keypoint_format)
 
         if keypoint_format is None:
-            raise MissingFormatError.keypoints('RandomTranslation')
+            raise MissingFormatError.keypoints("RandomTranslation")
 
         keypoints = keypoint.convert_format(
             keypoints,
             source=keypoint_format,
-            target='xy',
+            target="xy",
             images=image,
         )
 
@@ -207,5 +207,5 @@ class RandomTranslation(BaseImageAugmentationLayer):
             out = keypoint.discard_out_of_image(out, image=image)
 
         return keypoint.convert_format(
-            out, source='xy', target=keypoint_format, images=image
+            out, source="xy", target=keypoint_format, images=image
         )

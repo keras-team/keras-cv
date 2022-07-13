@@ -127,7 +127,7 @@ class WithKeysTest(tf.test.TestCase, parameterized.TestCase):
         img = tf.random.uniform(
             shape=(3, 512, 512, 3), minval=0, maxval=1, dtype=tf.float32
         )
-        labels = tf.ones((3, ), dtype=tf.float32)
+        labels = tf.ones((3,), dtype=tf.float32)
 
         inputs = {"images": img, "labels": labels}
         _ = layer(inputs)

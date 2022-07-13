@@ -63,6 +63,7 @@ class RandomAugmentationPipeline(BaseImageAugmentationLayer):
             support auto vectorization.
         seed: Integer. Used to create a random seed.
     """
+
     def __init__(
         self,
         layers,

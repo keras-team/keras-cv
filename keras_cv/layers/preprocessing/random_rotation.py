@@ -19,7 +19,6 @@ import tensorflow as tf
 
 from keras_cv import bounding_box
 from keras_cv import keypoint
-
 from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
     BaseImageAugmentationLayer,
 )
@@ -46,7 +45,7 @@ class MissingFormatError:
             f"`{cls_name}()` was called with bounding boxes, but no ",
             "`bounding_box_format` was specified in the constructor. Please specify a "
             "bounding box format in the constructor, i.e. "
-            f"`{cls_name}(keypoint_format='xy')"
+            f"`{cls_name}(keypoint_format='xy')",
         )
 
 
@@ -111,6 +110,7 @@ class RandomRotation(BaseImageAugmentationLayer):
         keypoints data.
 
     """
+
     def __init__(
         self,
         factor,
@@ -133,8 +133,7 @@ class RandomRotation(BaseImageAugmentationLayer):
             self.upper = factor
         if self.upper < self.lower:
             raise ValueError(
-                "Factor cannot have negative values, "
-                "got {}".format(factor)
+                "Factor cannot have negative values, " "got {}".format(factor)
             )
         preprocessing.check_fill_mode_and_interpolation(fill_mode, interpolation)
         self.fill_mode = fill_mode
@@ -184,7 +183,7 @@ class RandomRotation(BaseImageAugmentationLayer):
                 self.augment_keypoints,
                 transformation=transformation,
                 image=image,
-                keypoint_format='xy',
+                keypoint_format="xy",
                 discard_out_of_image=False,
             ),
             bounding_box_format=self.bounding_box_format,
@@ -209,7 +208,7 @@ class RandomRotation(BaseImageAugmentationLayer):
             raise MissingFormatError.keypoints("RandomRotation")
 
         keypoints = keypoint.convert_format(
-            keypoints, source=keypoint_format, target='xy', images=image
+            keypoints, source=keypoint_format, target="xy", images=image
         )
 
         image = tf.expand_dims(image, 0)
@@ -228,17 +227,23 @@ class RandomRotation(BaseImageAugmentationLayer):
         # rotated bounding box coordinates
         # new_x : new position of x coordinates of corners of bounding box
         new_x = (
-            origin_x +
-            tf.multiply(tf.cos(angle), tf.cast((point_x - origin_x),
-                                               dtype=tf.float32)) -
-            tf.multiply(tf.sin(angle), tf.cast((point_y - origin_y), dtype=tf.float32))
+            origin_x
+            + tf.multiply(
+                tf.cos(angle), tf.cast((point_x - origin_x), dtype=tf.float32)
+            )
+            - tf.multiply(
+                tf.sin(angle), tf.cast((point_y - origin_y), dtype=tf.float32)
+            )
         )
         # new_y : new position of y coordinates of corners of bounding box
         new_y = (
-            origin_y +
-            tf.multiply(tf.sin(angle), tf.cast((point_x - origin_x),
-                                               dtype=tf.float32)) +
-            tf.multiply(tf.cos(angle), tf.cast((point_y - origin_y), dtype=tf.float32))
+            origin_y
+            + tf.multiply(
+                tf.sin(angle), tf.cast((point_x - origin_x), dtype=tf.float32)
+            )
+            + tf.multiply(
+                tf.cos(angle), tf.cast((point_y - origin_y), dtype=tf.float32)
+            )
         )
         # rotated bounding box coordinates
         out = tf.concat([new_x, new_y], axis=-1)
@@ -247,7 +252,7 @@ class RandomRotation(BaseImageAugmentationLayer):
             out = keypoint.discard_out_of_image(out, image)
 
         return keypoint.convert_format(
-            out, source='xy', target=keypoint_format, images=image
+            out, source="xy", target=keypoint_format, images=image
         )
 
     def augment_label(self, label, transformation, **kwargs):

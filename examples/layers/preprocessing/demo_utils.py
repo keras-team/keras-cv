@@ -49,11 +49,11 @@ def _resize_keypoints(
     *,
     ragged_keypoints=False,
     img_size=(224, 224),
-    keypoint_format='rel_xy'
+    keypoint_format="rel_xy"
 ):
     image = tf.image.resize(image, img_size)
     keypoints = keypoint.convert_format(
-        keypoints, source=keypoint_format, target='xy', images=image
+        keypoints, source=keypoint_format, target="xy", images=image
     )
     if ragged_keypoints:
         keypoints = tf.RaggedTensor.from_row_lengths(keypoints, [keypoints.shape[0]])
@@ -72,8 +72,8 @@ def load_AFLW2000_dataset(
 
     train_ds = train_ds.map(
         lambda x: _resize_keypoints(
-            x['image'],
-            x['landmarks_68_3d_xy_normalized'],
+            x["image"],
+            x["landmarks_68_3d_xy_normalized"],
             img_size=img_size,
             ragged_keypoints=ragged_keypoints,
         )
@@ -92,7 +92,7 @@ def _visualize_keypoints(keypoints):
         keypoints = keypoints[None, ...]
     for keypoints_group in keypoints:
         plt.scatter(
-            keypoints_group[:, 0], keypoints_group[:, 1], marker='+', linewidths=0.5
+            keypoints_group[:, 0], keypoints_group[:, 1], marker="+", linewidths=0.5
         )
 
 

@@ -66,7 +66,9 @@ def transform_from_point_transform(
         ],
         axis=1,
     )
-    corners = point_transform_fn(corners, )
+    corners = point_transform_fn(
+        corners,
+    )
     min_coordinates = tf.math.reduce_min(corners, axis=-2)
     max_coordinates = tf.math.reduce_max(corners, axis=-2)
 

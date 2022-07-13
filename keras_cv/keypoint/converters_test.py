@@ -21,14 +21,14 @@ from keras_cv import keypoint
 
 xy_keypoints = tf.constant(
     [[[10, 20], [110, 120], [210, 220]], [[20, 30], [120, 130], [220, 230]]],
-    dtype=tf.float32
+    dtype=tf.float32,
 )
 rel_xy_keypoints = tf.constant(
     [
         [[0.01, 0.04], [0.11, 0.24], [0.21, 0.44]],
-        [[0.02, 0.06], [0.12, 0.26], [0.22, 0.46]]
+        [[0.02, 0.06], [0.12, 0.26], [0.22, 0.46]],
     ],
-    dtype=tf.float32
+    dtype=tf.float32,
 )
 
 images = tf.ones([2, 500, 1000, 3])
@@ -85,7 +85,8 @@ class ConvertersTestCase(tf.test.TestCase, parameterized.TestCase):
         self.assertAllClose(
             keypoint.convert_format(
                 source_keypoints, source=source, target=target, images=images
-            ), target_keypoints
+            ),
+            target_keypoints,
         )
 
     @parameterized.named_parameters(*test_cases)
@@ -102,7 +103,8 @@ class ConvertersTestCase(tf.test.TestCase, parameterized.TestCase):
         self.assertAllClose(
             keypoint.convert_format(
                 source_keypoints, source=source, target=target, images=images
-            ), target_keypoints
+            ),
+            target_keypoints,
         )
 
     def test_raise_errors_when_missing_shape(self):
@@ -113,35 +115,35 @@ class ConvertersTestCase(tf.test.TestCase, parameterized.TestCase):
             str(e.exception),
             "convert_format() must receive `images` when transforming "
             "between relative and absolute formats. convert_format() "
-            "received source=`xy`, target=`rel_xy`, but images=None"
+            "received source=`xy`, target=`rel_xy`, but images=None",
         )
 
     @parameterized.named_parameters(
         (
-            'keypoint_rank',
+            "keypoint_rank",
             tf.ones([2, 3, 4, 2, 1]),
             None,
-            'Expected keypoints rank to be in [2, 4], got len(keypoints.shape)=5.',
+            "Expected keypoints rank to be in [2, 4], got len(keypoints.shape)=5.",
         ),
         (
-            'images_rank',
+            "images_rank",
             tf.ones([4, 2]),
             tf.ones([35, 35]),
-            'Expected images rank to be 3 or 4, got len(images.shape)=2.',
+            "Expected images rank to be 3 or 4, got len(images.shape)=2.",
         ),
         (
-            'batch_mismatch',
+            "batch_mismatch",
             tf.ones([2, 4, 2]),
             tf.ones([35, 35, 3]),
-            'convert_format() expects both `keypoints` and `images` to be batched or '
-            'both unbatched. Received len(keypoints.shape)=3, len(images.shape)=3. '
-            'Expected either len(keypoints.shape)=2 and len(images.shape)=3, or '
-            'len(keypoints.shape)>=3 and len(images.shape)=4.',
+            "convert_format() expects both `keypoints` and `images` to be batched or "
+            "both unbatched. Received len(keypoints.shape)=3, len(images.shape)=3. "
+            "Expected either len(keypoints.shape)=2 and len(images.shape)=3, or "
+            "len(keypoints.shape)>=3 and len(images.shape)=4.",
         ),
     )
     def test_input_format_exception(self, keypoints, images, expected):
         with self.assertRaises(ValueError) as e:
             keypoint.convert_format(
-                keypoints, source='xy', target='rel_xy', images=images
+                keypoints, source="xy", target="rel_xy", images=images
             )
         self.assertEqual(str(e.exception), expected)
