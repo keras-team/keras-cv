@@ -155,7 +155,7 @@ def CSPDarkNet(
     x = CrossStagePartialLayer(
         base_channels * 16,
         num_bottlenecks=base_depth,
-        add_residual=False,
+        residual=False,
         use_depthwise=use_depthwise,
         name="dark5_csp",
     )(x)
