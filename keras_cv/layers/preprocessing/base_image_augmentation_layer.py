@@ -287,6 +287,9 @@ class BaseImageAugmentationLayer(tf.keras.__internal__.layers.BaseRandomLayer):
             )
             result[KEYPOINTS] = keypoints
 
+        # preserve any additional inputs unmodified by this layer.
+        for key in inputs.keys() - result.keys():
+            result[key] = inputs[key]
         return result
 
     def _batch_augment(self, inputs):

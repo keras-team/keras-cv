@@ -51,7 +51,8 @@ class RandomAugmentationPipeline(BaseImageAugmentationLayer):
     Args:
         layers: a list of `keras.Layers`.  These are randomly inputs during
             augmentation to augment the inputs passed in `call()`.  The layers passed
-            should subclass `BaseImageAugmentationLayer`.
+            should subclass `BaseImageAugmentationLayer`. Passing `layers=[]`
+            would result in a no-op.
         augmentations_per_image: the number of layers to apply to each inputs in the
             `call()` method.
         rate: the rate at which to apply each augmentation.  This is applied on a per
@@ -76,7 +77,7 @@ class RandomAugmentationPipeline(BaseImageAugmentationLayer):
         super().__init__(**kwargs, seed=seed, force_generator=True)
         self.augmentations_per_image = augmentations_per_image
         self.rate = rate
-        self.layers = layers
+        self.layers = list(layers)
         self.auto_vectorize = auto_vectorize
         self.seed = seed
 
@@ -85,6 +86,9 @@ class RandomAugmentationPipeline(BaseImageAugmentationLayer):
         )
 
     def _augment(self, inputs):
+        if self.layers == []:
+            return inputs
+
         result = inputs
         for _ in range(self.augmentations_per_image):
             skip_augment = self._random_generator.random_uniform(
@@ -99,6 +103,7 @@ class RandomAugmentationPipeline(BaseImageAugmentationLayer):
 
     def get_config(self):
         config = super().get_config()
+
         config.update(
             {
                 "augmentations_per_image": self.augmentations_per_image,
