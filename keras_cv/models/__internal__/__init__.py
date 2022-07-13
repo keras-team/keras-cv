@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from keras_cv.models.__internal__.darknet_utils import CSPLayer
+from keras_cv.models.__internal__.darknet_utils import CrossStagePartialLayer
 from keras_cv.models.__internal__.darknet_utils import DarknetConvBlock
 from keras_cv.models.__internal__.darknet_utils import DarknetConvBlockDepthwise
 from keras_cv.models.__internal__.darknet_utils import Focus
