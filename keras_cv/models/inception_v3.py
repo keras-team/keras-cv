@@ -26,23 +26,21 @@ import tensorflow as tf
 from tensorflow.keras import backend
 from tensorflow.keras.applications import imagenet_utils
 from tensorflow.keras.engine import training
-from tensorflow.keras.layers import VersionAwareLayers
 from tensorflow.keras.utils import data_utils
 from tensorflow.keras.utils import layer_utils
+from tensorflow.keras import layers
 
-# isort: off
-from tensorflow.python.util.tf_export import keras_export
-
-layers = VersionAwareLayers()
 
 def InceptionV3(
+    include_rescaling,
     include_top,
+    num_classes=None,
     weights=None,
-    input_tensor=None,
-    input_shape=None,
+    input_shape=(None, None, 3),
     pooling=None,
-    classes=None,
     classifier_activation="softmax",
+    name="InceptionV3",
+    **kwargs,
 ):
     """Instantiates the Inception v3 architecture.
 
@@ -127,18 +125,19 @@ def InceptionV3(
         weights=weights,
     )
 
-    if input_tensor is None:
-        img_input = layers.Input(shape=input_shape)
-    else:
-        if not backend.is_keras_tensor(input_tensor):
-            img_input = layers.Input(tensor=input_tensor, shape=input_shape)
-        else:
-            img_input = input_tensor
+   
+    img_input = layers.Input(shape=input_shape)
+    
 
     if backend.image_data_format() == "channels_first":
         channel_axis = 1
     else:
         channel_axis = 3
+    
+    
+    if include_rescaling:
+        x = layers.Rescaling(1 / 255.0)(x)
+
 
     x = conv2d_bn(img_input, 32, 3, 3, strides=(2, 2), padding="valid")
     x = conv2d_bn(x, 32, 3, 3, padding="valid")
@@ -344,7 +343,7 @@ def InceptionV3(
         x = layers.GlobalAveragePooling2D(name="avg_pool")(x)
         imagenet_utils.validate_activation(classifier_activation, weights)
         x = layers.Dense(
-            classes, activation=classifier_activation, name="predictions"
+            num_classes, activation=classifier_activation, name="predictions"
         )(x)
     else:
         if pooling == "avg":
@@ -352,12 +351,8 @@ def InceptionV3(
         elif pooling == "max":
             x = layers.GlobalMaxPooling2D()(x)
 
-    # Ensure that the model takes into account
-    # any potential predecessors of `input_tensor`.
-    if input_tensor is not None:
-        inputs = layer_utils.get_source_inputs(input_tensor)
-    else:
-        inputs = img_input
+
+    inputs = img_input
     # Create model.
     model = training.Model(inputs, x, name="inception_v3")
 
