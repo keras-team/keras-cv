@@ -60,7 +60,6 @@ def main(argv):
         mode="max",
     )
 
-    model = None
     with tf.distribute.MirroredStrategy().scope():
         model = DenseNet121(
             include_rescaling=True,
