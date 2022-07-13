@@ -15,6 +15,7 @@
 
 This example is under active development and should not be forked for other models yet.
 """
+import json
 import os
 
 import tensorflow as tf
@@ -32,7 +33,7 @@ _EXPERIMENT_ID = flags.DEFINE_string(
 )
 
 NUM_CLASSES = 10
-EPOCHS = 1
+EPOCHS = 10
 BATCH_SIZE = 32
 WEIGHTS_PATH = "weights.hdf5"
 
@@ -91,7 +92,12 @@ def main(argv):
         )
     )
 
-    # TODO(ianjjohnson) After success, store a local file with metadata and a pointer to the GCS weights file.
+    metadata = {
+        "experiment_id": _EXPERIMENT_ID.value,
+        "gcs_weights_path": gcs_weights_path,
+    }
+    with open("densenet.json", "w") as outfile:
+        json.dump(metadata, outfile)
 
 
 if __name__ == "__main__":
