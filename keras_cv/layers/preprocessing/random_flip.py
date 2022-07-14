@@ -16,10 +16,10 @@ import numpy as np
 import tensorflow as tf
 
 from keras_cv import bounding_box
+from keras_cv import utils
 from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
     BaseImageAugmentationLayer,
 )
-from keras_cv.utils import preprocessing
 
 # In order to support both unbatched and batched inputs, the horizontal
 # and vertical axis is reverse indexed
@@ -90,7 +90,7 @@ class RandomFlip(BaseImageAugmentationLayer):
         return label
 
     def augment_image(self, image, transformation, **kwargs):
-        image = preprocessing.ensure_tensor(image, self.compute_dtype)
+        image = utils.preprocessing.ensure_tensor(image, self.compute_dtype)
         flipped_output = image
         if self.horizontal and transformation["flip_horizontal"]:
             flipped_output = tf.image.flip_left_right(flipped_output)
@@ -155,7 +155,7 @@ class RandomFlip(BaseImageAugmentationLayer):
                 ],
                 axis=-1,
             )
-        bounding_boxes_out = preprocessing.clip_bounding_box(
+        bounding_boxes_out = utils.preprocessing.clip_bounding_box(
             bounding_boxes_out,
             bounding_box_format="xyxy",
             images=image,

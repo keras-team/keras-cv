@@ -17,7 +17,7 @@
 """
 import demo_utils
 
-from keras_cv.layers import preprocessing
+from keras_cv import layers
 
 IMG_SIZE = (256, 256)
 BATCH_SIZE = 9
@@ -25,7 +25,9 @@ BATCH_SIZE = 9
 
 def main():
     inputs = demo_utils.load_voc_dataset(bounding_box_format="rel_xyxy")
-    random_rotation_layer = preprocessing.RandomFlip(bounding_box_format="rel_xyxy")
+    random_rotation_layer = layers.preprocessing.RandomFlip(
+        bounding_box_format="rel_xyxy"
+    )
     input = next(iter(inputs.take(9)))
     outputs = random_rotation_layer(input)
     demo_utils.visualize_data(outputs, bounding_box_format="rel_xyxy")
