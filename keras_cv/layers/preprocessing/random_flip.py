@@ -41,9 +41,8 @@ class RandomFlip(BaseImageAugmentationLayer):
     input. Call the layer with `training=True` to flip the input.
 
     Input pixel values can be of any range (e.g. `[0., 1.)` or `[0, 255]`) and
-    of interger or floating point dtype. By default, the layer will output
+    of integer or floating point dtype. By default, the layer will output
     floats.
-
 
     Input shape:
       3D (unbatched) or 4D (batched) tensor with shape:
@@ -81,8 +80,8 @@ class RandomFlip(BaseImageAugmentationLayer):
             self.vertical = True
         else:
             raise ValueError(
-                "RandomFlip layer {name} received an unknown mode "
-                "argument {arg}".format(name=self.name, arg=mode)
+                "RandomFlip layer {name} received an unknown mode="
+                "{arg}".format(name=self.name, arg=mode)
             )
         self.auto_vectorize = False
         self.bounding_box_format = bounding_box_format
@@ -100,7 +99,9 @@ class RandomFlip(BaseImageAugmentationLayer):
         flipped_output.set_shape(image.shape)
         return flipped_output
 
-    def get_random_transformation(self, image=None, label=None, bounding_boxes=None):
+    def get_random_transformation(
+        self, image=None, label=None, bounding_boxes=None, keypoints=None
+    ):
         flip_horizontal = False
         flip_vertical = False
         if self.horizontal:
@@ -124,10 +125,12 @@ class RandomFlip(BaseImageAugmentationLayer):
             )
         else:
             bounding_boxes = bounding_box.convert_format(
-                bounding_boxes, source=self.bounding_box_format, target="xyxy"
+                bounding_boxes,
+                source=self.bounding_box_format,
+                target="xyxy",
+                images=image,
             )
         transformation = transformation or self.get_random_transformation()
-        image = tf.expand_dims(image, 0)
         image_shape = tf.shape(image)
         h = tf.cast(image_shape[H_AXIS], dtype="float32")
         w = tf.cast(image_shape[W_AXIS], dtype="float32")
@@ -157,6 +160,7 @@ class RandomFlip(BaseImageAugmentationLayer):
             source="xyxy",
             target=self.bounding_box_format,
             dtype=self.compute_dtype,
+            images=image,
         )
         return bounding_boxes_out
 
