@@ -24,7 +24,7 @@ from tensorflow.keras import layers
 
 from keras_cv.models.__internal__.darknet_utils import DarknetConvBlock
 from keras_cv.models.__internal__.darknet_utils import ResidualBlocks
-from keras_cv.models.__internal__.darknet_utils import SPPBottleneck
+from keras_cv.models.__internal__.darknet_utils import SpatialPyramidPoolingBottleneck
 
 BASE_DOCSTRING = """Instantiates the {name} architecture.
 
@@ -169,7 +169,9 @@ def DarkNet(
         activation="leaky_relu",
         name="dark5_conv2",
     )(x)
-    x = SPPBottleneck(512, activation="leaky_relu", name="dark5_spp")(x)
+    x = SpatialPyramidPoolingBottleneck(512, activation="leaky_relu", name="dark5_spp")(
+        x
+    )
     x = DarknetConvBlock(
         filters=1024,
         kernel_size=3,

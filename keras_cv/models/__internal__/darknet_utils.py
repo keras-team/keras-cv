@@ -24,8 +24,9 @@ from tensorflow.keras import backend
 from tensorflow.keras import layers
 
 
-@tf.keras.utils.register_keras_serializable(package="keras_cv")
-class DarknetConvBlock(layers.Layer):
+def DarknetConvBlock(
+    filters, kernel_size, strides, use_bias=False, activation="silu", name=None
+):
     """The basic conv block used in Darknet. Applies Conv2D followed by a BatchNorm.
 
     Args:
@@ -40,52 +41,31 @@ class DarknetConvBlock(layers.Layer):
         use_bias: Boolean, whether the layer uses a bias vector.
         activation: the activation applied after the BatchNorm layer. One of "silu",
             "relu" or "leaky_relu". Defaults to "silu".
+        name: the prefix for the layer names used in the block.
     """
 
-    def __init__(
-        self, filters, kernel_size, strides, use_bias=False, activation="silu", **kwargs
-    ):
-        super().__init__(**kwargs)
+    if name is None:
+        name = f"conv_block{backend.get_uid('conv_block')}"
 
-        self.filters = filters
-        self.kernel_size = kernel_size
-        self.strides = strides
-        self.use_bias = use_bias
-        self.activation = activation
-
-        self.conv = layers.Conv2D(
+    model_layers = [
+        layers.Conv2D(
             filters,
             kernel_size,
             strides,
             padding="same",
             use_bias=use_bias,
-        )
+        ),
+        layers.BatchNormalization(),
+    ]
 
-        self.batch_norm = layers.BatchNormalization()
+    if activation == "silu":
+        model_layers.append(layers.Lambda(lambda x: keras.activations.swish(x)))
+    elif activation == "relu":
+        model_layers.append(layers.ReLU())
+    elif activation == "leaky_relu":
+        model_layers.append(layers.LeakyReLU(0.1))
 
-        if activation == "silu":
-            self.act = layers.Lambda(lambda x: keras.activations.swish(x))
-        elif activation == "relu":
-            self.act = layers.ReLU()
-        elif activation == "leaky_relu":
-            self.act = layers.LeakyReLU(0.1)
-
-    def call(self, x):
-        x = self.conv(x)
-        x = self.batch_norm(x)
-        x = self.act(x)
-        return x
-
-    def get_config(self):
-        config = {
-            "filters": self.filters,
-            "kernel_size": self.kernel_size,
-            "strides": self.strides,
-            "use_bias": self.use_bias,
-            "activation": self.activation,
-        }
-        base_config = super().get_config()
-        return dict(list(base_config.items()) + list(config.items()))
+    return keras.Sequential(model_layers, name=None)
 
 
 def ResidualBlocks(filters, num_blocks, name=None):
@@ -141,7 +121,7 @@ def ResidualBlocks(filters, num_blocks, name=None):
     return apply
 
 
-def SPPBottleneck(
+def SpatialPyramidPoolingBottleneck(
     filters, hidden_filters=None, kernel_sizes=(5, 9, 13), activation="silu", name=None
 ):
     """Spatial pyramid pooling layer used in YOLOv3-SPP
@@ -158,7 +138,7 @@ def SPPBottleneck(
         name: the prefix for the layer names used in the block.
 
     Returns:
-        a function that takes an input Tensor representing an SPPBottleneck.
+        a function that takes an input Tensor representing an SpatialPyramidPoolingBottleneck.
     """
     if name is None:
         name = f"spp{backend.get_uid('spp')}"
@@ -200,8 +180,9 @@ def SPPBottleneck(
     return apply
 
 
-@tf.keras.utils.register_keras_serializable(package="keras_cv")
-class DarknetConvBlockDepthwise(layers.Layer):
+def DarknetConvBlockDepthwise(
+    filters, kernel_size, strides, activation="silu", name=None
+):
     """The depthwise conv block used in CSPDarknet.
 
     Args:
@@ -215,54 +196,34 @@ class DarknetConvBlockDepthwise(layers.Layer):
             the same value both dimensions.
         activation: the activation applied after the final layer. One of "silu",
             "relu" or "leaky_relu". Defaults to "silu".
+        name: the prefix for the layer names used in the block.
+
     """
 
-    def __init__(self, filters, kernel_size, strides, activation="silu", **kwargs):
-        super().__init__(**kwargs)
+    if name is None:
+        name = f"conv_block{backend.get_uid('conv_block')}"
 
-        self.filters = filters
-        self.kernel_size = kernel_size
-        self.strides = strides
-        self.activation = activation
+    model_layers = [
+        layers.DepthwiseConv2D(kernel_size, strides, padding="same", use_bias=False),
+        layers.BatchNormalization(),
+    ]
 
-        self.dw_conv = layers.DepthwiseConv2D(
-            kernel_size, strides, padding="same", use_bias=False
-        )
+    if activation == "silu":
+        model_layers.append(layers.Lambda(lambda x: keras.activations.swish(x)))
+    elif activation == "relu":
+        model_layers.append(layers.ReLU())
+    elif activation == "leaky_relu":
+        model_layers.append(layers.LeakyReLU(0.1))
 
-        self.batch_norm = layers.BatchNormalization()
+    model_layers.append(
+        DarknetConvBlock(filters, kernel_size=1, strides=1, activation=activation)
+    )
 
-        if activation == "silu":
-            self.act = layers.Lambda(lambda x: keras.activations.swish(x))
-        elif activation == "relu":
-            self.act = layers.ReLU()
-        elif activation == "leaky_relu":
-            self.act = layers.LeakyReLU(0.1)
-
-        self.darknet_conv = DarknetConvBlock(
-            filters, kernel_size=1, strides=1, activation=activation
-        )
-
-    def call(self, x):
-        x = self.dw_conv(x)
-        x = self.batch_norm(x)
-        x = self.act(x)
-        x = self.darknet_conv(x)
-
-        return x
-
-    def get_config(self):
-        config = {
-            "filters": self.filters,
-            "kernel_size": self.kernel_size,
-            "strides": self.strides,
-            "activation": self.activation,
-        }
-        base_config = super().get_config()
-        return dict(list(base_config.items()) + list(config.items()))
+    return keras.Sequential(model_layers, name=name)
 
 
 @tf.keras.utils.register_keras_serializable(package="keras_cv")
-class CrossStagePartialLayer(layers.Layer):
+class CrossStagePartial(layers.Layer):
     """A block used in Cross Stage Partial Darknet.
 
     Args:
