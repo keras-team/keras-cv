@@ -23,6 +23,9 @@ from absl import app
 from absl import flags
 from keras.callbacks import BackupAndRestore
 from keras.callbacks import ModelCheckpoint
+from keras.callbacks import TensorBoard
+from keras.optimizers import Adam
+from utils import get_learning_rate_schedule
 from utils import load_cfar10_dataset
 
 from keras_cv.models import DenseNet121
@@ -47,6 +50,7 @@ def main(argv):
     )
     gcs_backup_path = gcs_path_base + "backup/"
     gcs_weights_path = gcs_path_base + WEIGHTS_PATH
+    gcs_tensorboard_path = gcs_path_base + "logs/"
 
     train, test = load_cfar10_dataset(BATCH_SIZE)
 
@@ -59,6 +63,7 @@ def main(argv):
         save_weights_only=True,
         mode="max",
     )
+    tensorboard = TensorBoard(log_dir=gcs_tensorboard_path)
 
     with tf.distribute.MirroredStrategy().scope():
         model = DenseNet121(
@@ -69,7 +74,11 @@ def main(argv):
         )
 
         model.compile(
-            optimizer="adam",
+            optimizer=Adam(
+                learning_rate=get_learning_rate_schedule(
+                    EPOCHS, steps_per_epoch=train.cardinality().numpy()
+                )
+            ),
             loss="categorical_crossentropy",
             metrics=["accuracy"],
         )
@@ -78,7 +87,7 @@ def main(argv):
             train,
             batch_size=BATCH_SIZE,
             epochs=EPOCHS,
-            callbacks=[gcs_backup, local_checkpoint],
+            callbacks=[gcs_backup, local_checkpoint, tensorboard],
             validation_data=test,
         )
 
@@ -94,6 +103,7 @@ def main(argv):
     metadata = {
         "experiment_id": _EXPERIMENT_ID.value,
         "gcs_weights_path": gcs_weights_path,
+        "gcs_tensorboard_path": gcs_tensorboard_path,
     }
     with open("densenet.json", "w") as outfile:
         json.dump(metadata, outfile)

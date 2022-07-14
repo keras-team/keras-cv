@@ -1,1 +1,1 @@
-{"experiment_id": "testing", "gcs_weights_path": "gs://ian-kerascv/densenet/testing/weights.hdf5"}
+{"experiment_id": "testing", "gcs_weights_path": "gs://ian-kerascv/densenet/testing/weights.hdf5", "gcs_tensorboard_path": "gs://ian-kerascv/densenet/testing/logs/"}
