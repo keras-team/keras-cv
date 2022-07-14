@@ -63,3 +63,24 @@ class PreprocessingTestCase(tf.test.TestCase):
         self.assertEqual(preprocessing.random_inversion(generator), -1.0)
         generator = MockRandomGenerator(0.25)
         self.assertEqual(preprocessing.random_inversion(generator), 1.0)
+
+    def test_clip_bounding_box(self):
+        # Test xyxy format
+        height = 256
+        width = 256
+        bboxes = tf.convert_to_tensor([[200, 200, 400, 400], [100, 100, 300, 300]])
+        image = tf.ones(shape=(height, width, 3))
+        bboxes_out = preprocessing.clip_bounding_box(
+            bboxes, bounding_box_format="xyxy", image=image
+        )
+        self.assertAllGreaterEqual(bboxes_out, 0)
+        x1, y1, x2, y2 = tf.split(bboxes_out, 4, axis=1)
+        self.assertAllLessEqual([x1, x2], width)
+        self.assertAllLessEqual([y1, y2], height)
+        bboxes = tf.convert_to_tensor([[0.2, -1, 1.2, 0.3], [0.4, 1.5, 0.2, 0.3]])
+        # Test relative format
+        bboxes_out = preprocessing.clip_bounding_box(
+            bboxes, bounding_box_format="rel_xyxy", image=image
+        )
+        self.assertAllGreaterEqual(bboxes_out, 0)
+        self.assertAllLessEqual(bboxes_out, 1)
