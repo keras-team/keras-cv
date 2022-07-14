@@ -19,7 +19,6 @@ import json
 import os
 
 import tensorflow as tf
-import keras_cv
 from absl import app
 from absl import flags
 from keras.callbacks import BackupAndRestore
@@ -29,6 +28,7 @@ from keras.optimizers import Adam
 from utils import get_learning_rate_schedule
 from utils import load_cfar10_dataset
 
+import keras_cv
 from keras_cv.models import DenseNet121
 
 _GCS_BUCKET = flags.DEFINE_string("gcs_bucket", None, "Name of GCS Bucket")
@@ -47,6 +47,7 @@ AUGMENT_LAYERS = [
     keras_cv.layers.MixUp(),
     keras_cv.layers.RandomFlip(),
 ]
+
 
 @tf.function
 def augment(img, label):
