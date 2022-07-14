@@ -11,8 +11,16 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+"""
+   visualization_demo.py is used to visualize the dataset with bounding boxes.
+"""
+import demo_utils
 
-from keras_cv.layers.regularization.drop_path import DropPath
-from keras_cv.layers.regularization.dropblock_2d import DropBlock2D
-from keras_cv.layers.regularization.squeeze_excite import SqueezeAndExcite2D
-from keras_cv.layers.regularization.stochastic_depth import StochasticDepth
+
+def main():
+    inputs = demo_utils.load_voc_dataset(bounding_box_format="rel_xyxy")
+    demo_utils.visualize_data(inputs, bounding_box_format="rel_xyxy")
+
+
+if __name__ == "__main__":
+    main()
