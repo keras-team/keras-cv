@@ -25,6 +25,7 @@ IMAGES = "images"
 LABELS = "labels"
 TARGETS = "targets"
 BOUNDING_BOXES = "bounding_boxes"
+KEYPOINTS = "keypoints"
 
 
 @tf.keras.utils.register_keras_serializable(package="keras_cv")
@@ -190,7 +191,24 @@ class BaseImageAugmentationLayer(tf.keras.__internal__.layers.BaseRandomLayer):
         """
         raise NotImplementedError()
 
-    def get_random_transformation(self, image=None, label=None, bounding_boxes=None):
+    def augment_keypoints(self, keypoints, transformation, **kwargs):
+        """Augment keypoints for one image during training.
+
+        Args:
+          keypoints: 2D keypoints input tensor to the layer. Forwarded from
+            `layer.call()`.
+          transformation: The transformation object produced by
+            `get_random_transformation`. Used to coordinate the randomness
+            between image, label and bounding box.
+
+        Returns:
+          output 2D tensor, which will be forward to `layer.call()`.
+        """
+        raise NotImplementedError()
+
+    def get_random_transformation(
+        self, image=None, label=None, bounding_boxes=None, keypoints=None
+    ):
         """Produce random transformation config for one single input.
 
         This is used to produce same randomness between
@@ -232,8 +250,9 @@ class BaseImageAugmentationLayer(tf.keras.__internal__.layers.BaseRandomLayer):
         image = inputs.get(IMAGES, None)
         label = inputs.get(LABELS, None)
         bounding_boxes = inputs.get(BOUNDING_BOXES, None)
+        keypoints = inputs.get(KEYPOINTS, None)
         transformation = self.get_random_transformation(
-            image=image, label=label, bounding_boxes=bounding_boxes
+            image=image, label=label, bounding_boxes=bounding_boxes, keypoints=keypoints
         )
         image = self.augment_image(
             image,
@@ -258,6 +277,15 @@ class BaseImageAugmentationLayer(tf.keras.__internal__.layers.BaseRandomLayer):
                 image=image,
             )
             result[BOUNDING_BOXES] = bounding_boxes
+        if keypoints is not None:
+            keypoints = self.augment_keypoints(
+                keypoints,
+                transformation=transformation,
+                label=label,
+                bounding_boxes=bounding_boxes,
+                image=image,
+            )
+            result[KEYPOINTS] = keypoints
 
         # preserve any additional inputs unmodified by this layer.
         for key in inputs.keys() - result.keys():
