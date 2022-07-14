@@ -155,6 +155,11 @@ class RandomFlip(BaseImageAugmentationLayer):
                 ],
                 axis=-1,
             )
+        bounding_boxes_out = preprocessing.clip_bounding_box(
+            bounding_boxes_out,
+            bounding_box_format="xyxy",
+            images=image,
+        )
         bounding_boxes_out = bounding_box.convert_format(
             bounding_boxes_out,
             source="xyxy",
