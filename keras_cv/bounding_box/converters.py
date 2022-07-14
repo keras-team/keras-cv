@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """Converter functions for working with bounding box formats."""
 
 import tensorflow as tf
@@ -24,7 +23,9 @@ class RequiresImagesException(Exception):
 
 
 def _center_xywh_to_xyxy(boxes, images=None):
-    x, y, width, height, rest = tf.split(boxes, [1, 1, 1, 1, -1], axis=-1)
+    x, y, width, height, rest = tf.split(
+        boxes, [1, 1, 1, 1, boxes.shape[-1] - 4], axis=-1
+    )
     return tf.concat(
         [x - width / 2.0, y - height / 2.0, x + width / 2.0, y + height / 2.0, rest],
         axis=-1,
@@ -32,7 +33,9 @@ def _center_xywh_to_xyxy(boxes, images=None):
 
 
 def _xywh_to_xyxy(boxes, images=None):
-    x, y, width, height, rest = tf.split(boxes, [1, 1, 1, 1, -1], axis=-1)
+    x, y, width, height, rest = tf.split(
+        boxes, [1, 1, 1, 1, boxes.shape[-1] - 4], axis=-1
+    )
     return tf.concat([x, y, x + width, y + height, rest], axis=-1)
 
 
@@ -41,7 +44,9 @@ def _xyxy_no_op(boxes, images=None):
 
 
 def _xyxy_to_xywh(boxes, images=None):
-    left, top, right, bottom, rest = tf.split(boxes, [1, 1, 1, 1, -1], axis=-1)
+    left, top, right, bottom, rest = tf.split(
+        boxes, [1, 1, 1, 1, boxes.shape[-1] - 4], axis=-1
+    )
     return tf.concat(
         [left, top, right - left, bottom - top, rest],
         axis=-1,
@@ -49,7 +54,9 @@ def _xyxy_to_xywh(boxes, images=None):
 
 
 def _xyxy_to_center_xywh(boxes, images=None):
-    left, top, right, bottom, rest = tf.split(boxes, [1, 1, 1, 1, -1], axis=-1)
+    left, top, right, bottom, rest = tf.split(
+        boxes, [1, 1, 1, 1, boxes.shape[-1] - 4], axis=-1
+    )
     return tf.concat(
         [(left + right) / 2.0, (top + bottom) / 2.0, right - left, bottom - top, rest],
         axis=-1,
@@ -62,7 +69,9 @@ def _rel_xyxy_to_xyxy(boxes, images=None):
     shape = tf.shape(images)
     height, width = shape[1], shape[2]
     height, width = tf.cast(height, boxes.dtype), tf.cast(width, boxes.dtype)
-    left, top, right, bottom, rest = tf.split(boxes, [1, 1, 1, 1, -1], axis=-1)
+    left, top, right, bottom, rest = tf.split(
+        boxes, [1, 1, 1, 1, boxes.shape[-1] - 4], axis=-1
+    )
     left, right = left * width, right * width
     top, bottom = top * height, bottom * height
     return tf.concat(
@@ -77,7 +86,9 @@ def _xyxy_to_rel_xyxy(boxes, images=None):
     shape = tf.shape(images)
     height, width = shape[1], shape[2]
     height, width = tf.cast(height, boxes.dtype), tf.cast(width, boxes.dtype)
-    left, top, right, bottom, rest = tf.split(boxes, [1, 1, 1, 1, -1], axis=-1)
+    left, top, right, bottom, rest = tf.split(
+        boxes, [1, 1, 1, 1, boxes.shape[-1] - 4], axis=-1
+    )
     left, right = left / width, right / width
     top, bottom = top / height, bottom / height
     return tf.concat(
@@ -87,7 +98,7 @@ def _xyxy_to_rel_xyxy(boxes, images=None):
 
 
 def _yxyx_to_xyxy(boxes, images=None):
-    y1, x1, y2, x2, rest = tf.split(boxes, [1, 1, 1, 1, -1], axis=-1)
+    y1, x1, y2, x2, rest = tf.split(boxes, [1, 1, 1, 1, boxes.shape[-1] - 4], axis=-1)
     return tf.concat([x1, y1, x2, y2, rest], axis=-1)
 
 
@@ -97,7 +108,9 @@ def _rel_yxyx_to_xyxy(boxes, images=None):
     shape = tf.shape(images)
     height, width = shape[1], shape[2]
     height, width = tf.cast(height, boxes.dtype), tf.cast(width, boxes.dtype)
-    top, left, bottom, right, rest = tf.split(boxes, [1, 1, 1, 1, -1], axis=-1)
+    top, left, bottom, right, rest = tf.split(
+        boxes, [1, 1, 1, 1, boxes.shape[-1] - 4], axis=-1
+    )
     left, right = left * width, right * width
     top, bottom = top * height, bottom * height
     return tf.concat(
@@ -107,7 +120,7 @@ def _rel_yxyx_to_xyxy(boxes, images=None):
 
 
 def _xyxy_to_yxyx(boxes, images=None):
-    x1, y1, x2, y2, rest = tf.split(boxes, [1, 1, 1, 1, -1], axis=-1)
+    x1, y1, x2, y2, rest = tf.split(boxes, [1, 1, 1, 1, boxes.shape[-1] - 4], axis=-1)
     return tf.concat([y1, x1, y2, x2, rest], axis=-1)
 
 
@@ -117,7 +130,9 @@ def _xyxy_to_rel_yxyx(boxes, images=None):
     shape = tf.shape(images)
     height, width = shape[1], shape[2]
     height, width = tf.cast(height, boxes.dtype), tf.cast(width, boxes.dtype)
-    left, top, right, bottom, rest = tf.split(boxes, [1, 1, 1, 1, -1], axis=-1)
+    left, top, right, bottom, rest = tf.split(
+        boxes, [1, 1, 1, 1, boxes.shape[-1] - 4], axis=-1
+    )
     left, right = left / width, right / width
     top, bottom = top / height, bottom / height
     return tf.concat(

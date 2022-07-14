@@ -109,7 +109,7 @@ class RandomRotation(BaseImageAugmentationLayer):
         self.seed = seed
         self.bounding_box_format = bounding_box_format
 
-    def get_random_transformation(self, image=None, label=None, bounding_boxes=None):
+    def get_random_transformation(self, **kwargs):
         min_angle = self.lower * 2.0 * np.pi
         max_angle = self.upper * 2.0 * np.pi
         angle = self._random_generator.random_uniform(

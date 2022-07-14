@@ -14,7 +14,7 @@
 
 import tensorflow as tf
 
-from keras_cv.bounding_box import NonMaxSuppression
+from keras_cv.layers import NonMaxSuppression
 
 
 class NonMaxSuppressionTest(tf.test.TestCase):
