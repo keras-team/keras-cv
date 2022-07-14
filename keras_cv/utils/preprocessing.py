@@ -326,19 +326,30 @@ def check_fill_mode_and_interpolation(fill_mode, interpolation):
         )
 
 
-def clip_bounding_box(bounding_boxes, bounding_box_format, image=None):
+def clip_bounding_box(bounding_boxes, bounding_box_format, images):
     """clips bounding boxes to image boundaries"""
+    boxes_rank = len(bounding_boxes.shape)
+    images_rank = len(images.shape)
+    boxes_includes_batch = boxes_rank == 3
+    images_include_batch = images_rank == 4
+    if boxes_includes_batch != images_include_batch:
+        raise ValueError(
+            "clip_bounding_box() expects both boxes and images to be batched, or both "
+            f"boxes and images to be unbatched.  Received len(boxes.shape)={boxes_rank}, "
+            f"len(images.shape)={images_rank}.  Expected either len(boxes.shape)=2 AND "
+            "len(images.shape)=3, or len(boxes.shape)=3 AND len(images.shape)=4."
+        )
     bounding_boxes = bounding_box.convert_format(
         bounding_boxes,
         source=bounding_box_format,
         target="rel_xyxy",
-        images=image,
+        images=images,
     )
     new_bboxes = tf.clip_by_value(bounding_boxes, clip_value_min=0, clip_value_max=1)
     new_bboxes = bounding_box.convert_format(
         new_bboxes,
         source="rel_xyxy",
         target=bounding_box_format,
-        images=image,
+        images=images,
     )
     return new_bboxes

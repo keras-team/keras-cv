@@ -208,7 +208,7 @@ class RandomRotation(BaseImageAugmentationLayer):
         bounding_boxes_out = preprocessing.clip_bounding_box(
             bounding_boxes_out,
             bounding_box_format="xyxy",
-            image=image,
+            images=image,
         )
         # cordinates cannot be float values, it is casted to int32
         bounding_boxes_out = bounding_box.convert_format(
