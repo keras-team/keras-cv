@@ -26,7 +26,7 @@ from keras.callbacks import ModelCheckpoint
 from keras.callbacks import TensorBoard
 from keras.optimizers import Adam
 from utils import get_learning_rate_schedule
-from utils import load_cfar10_dataset
+from utils import load_cifar10_dataset
 
 import keras_cv
 from keras_cv.models import DenseNet121
@@ -35,6 +35,9 @@ _GCS_BUCKET = flags.DEFINE_string("gcs_bucket", None, "Name of GCS Bucket")
 _EXPERIMENT_ID = flags.DEFINE_string(
     "experiment_id", None, "An experiment name (preferably a git commit hash)"
 )
+_AUTHOR = flags.DEFINE_string(
+    "author", None, "The GitHub username of the author of this training script"
+)
 
 NUM_CLASSES = 10
 EPOCHS = 250
@@ -42,10 +45,11 @@ BATCH_SIZE = 32
 WEIGHTS_PATH = "weights.hdf5"
 
 AUGMENT_LAYERS = [
+    keras_cv.layers.RandomFlip(),
     keras_cv.layers.RandAugment(value_range=(0, 255), magnitude=0.7),
+    keras_cv.layers.RandomCutout(height_factor=0.1, width_factor=0.1),
     keras_cv.layers.CutMix(),
     keras_cv.layers.MixUp(),
-    keras_cv.layers.RandomFlip(),
 ]
 
 
@@ -60,16 +64,20 @@ def augment(img, label):
 def main(argv):
     assert _GCS_BUCKET.value
     assert _EXPERIMENT_ID.value
+    assert _AUTHOR.value
 
     gcs_path_base = "gs://{bucket}/densenet/{experiment}/".format(
         bucket=_GCS_BUCKET.value, experiment=_EXPERIMENT_ID.value
     )
     gcs_backup_path = gcs_path_base + "backup/"
     gcs_weights_path = gcs_path_base + WEIGHTS_PATH
-    gcs_tensorboard_path = gcs_path_base + "logs/"
+    gcs_tensorboard_path = "gs://{bucket}/densenet/logs/{experiment}/".format(
+        bucket=_GCS_BUCKET.value, experiment=_EXPERIMENT_ID.value
+    )
 
-    train, test = load_cfar10_dataset(BATCH_SIZE)
-    train = train.map(augment)
+    train, test = load_cifar10_dataset(BATCH_SIZE)
+    train = train.map(augment, num_parallel_calls=tf.data.AUTOTUNE)
+    train = train.prefetch(tf.data.AUTOTUNE)
 
     gcs_backup = BackupAndRestore(gcs_backup_path)
     local_checkpoint = ModelCheckpoint(
@@ -108,6 +116,8 @@ def main(argv):
             validation_data=test,
         )
 
+        validation_metrics = model.evaluate(test, return_dict=True)
+
     # In order to save only weights to GCS, we manually store weights locally
     # (in our local_checkpoint callback) and then copy them to GCS using gsutil.
     # In case storing weights in GCS fails, the weights are also stored locally.
@@ -119,8 +129,10 @@ def main(argv):
 
     metadata = {
         "experiment_id": _EXPERIMENT_ID.value,
+        "author": _AUTHOR.value,
         "gcs_weights_path": gcs_weights_path,
         "gcs_tensorboard_path": gcs_tensorboard_path,
+        "evaluation_metrics": validation_metrics,
     }
     with open("densenet.json", "w") as outfile:
         json.dump(metadata, outfile)

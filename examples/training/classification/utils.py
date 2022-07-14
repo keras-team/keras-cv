@@ -18,7 +18,7 @@ import tensorflow_datasets as tfds
 from tensorflow.keras.optimizers.schedules import PiecewiseConstantDecay
 
 
-def load_cfar10_dataset(batch_size=32):
+def load_cifar10_dataset(batch_size=32):
     train_ds, test_ds = tfds.load(
         "cifar10", split=["train", "test"], as_supervised=True
     )

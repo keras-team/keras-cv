@@ -1,1 +1,1 @@
-{"experiment_id": "testing", "gcs_weights_path": "gs://ian-kerascv/densenet/testing/weights.hdf5", "gcs_tensorboard_path": "gs://ian-kerascv/densenet/testing/logs/"}
+{"experiment_id": "testing", "author": "ianjjohnson", "gcs_weights_path": "gs://ian-kerascv/densenet/testing/weights.hdf5", "gcs_tensorboard_path": "gs://ian-kerascv/densenet/logs/testing/", "evaluation_metrics": {"loss": 2.302229881286621, "accuracy": 0.10000000149011612}}
