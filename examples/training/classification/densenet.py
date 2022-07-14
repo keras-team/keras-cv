@@ -66,13 +66,11 @@ def main(argv):
     assert _EXPERIMENT_ID.value
     assert _AUTHOR.value
 
-    gcs_path_base = "gs://{bucket}/densenet/{experiment}/".format(
-        bucket=_GCS_BUCKET.value, experiment=_EXPERIMENT_ID.value
-    )
+    gcs_path_base = f"gs://{_GCS_BUCKET.value}/densenet/{_EXPERIMENT_ID.value}/"
     gcs_backup_path = gcs_path_base + "backup/"
     gcs_weights_path = gcs_path_base + WEIGHTS_PATH
-    gcs_tensorboard_path = "gs://{bucket}/densenet/logs/{experiment}/".format(
-        bucket=_GCS_BUCKET.value, experiment=_EXPERIMENT_ID.value
+    gcs_tensorboard_path = (
+        f"gs://{_GCS_BUCKET.value}/densenet/logs/{_EXPERIMENT_ID.value}/"
     )
 
     train, test = load_cifar10_dataset(BATCH_SIZE)
@@ -121,11 +119,7 @@ def main(argv):
     # In order to save only weights to GCS, we manually store weights locally
     # (in our local_checkpoint callback) and then copy them to GCS using gsutil.
     # In case storing weights in GCS fails, the weights are also stored locally.
-    os.system(
-        "gsutil cp {local_path} {remote_path}".format(
-            local_path=WEIGHTS_PATH, remote_path=gcs_weights_path
-        )
-    )
+    os.system(f"gsutil cp {WEIGHTS_PATH} {gcs_weights_path}")
 
     metadata = {
         "experiment_id": _EXPERIMENT_ID.value,
