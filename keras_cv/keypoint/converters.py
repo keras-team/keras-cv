@@ -116,12 +116,14 @@ def convert_format(keypoints, source, target, images=None, dtype=None):
         raise ValueError(
             f"convert_format() received an unsupported format for the argument "
             f"`source`. `source` should be one of {TO_XY_CONVERTERS.keys()}. "
-            f"Got source={source}")
+            f"Got source={source}"
+        )
     if target not in FROM_XY_CONVERTERS:
         raise ValueError(
             f"convert_format() received an unsupported format for the argument "
             f"`target`. `target` should be one of {FROM_XY_CONVERTERS.keys()}. "
-            f"Got target={target}")
+            f"Got target={target}"
+        )
 
     if dtype:
         keypoints = tf.cast(keypoints, dtype)
@@ -139,7 +141,8 @@ def convert_format(keypoints, source, target, images=None, dtype=None):
             "convert_format() must receive `images` when transforming "
             f"between relative and absolute formats. "
             f"convert_format() received source=`{source}`, target=`{target}`, "
-            f"but images={images}")
+            f"but images={images}"
+        )
 
     return _format_outputs(result, squeeze_axis)
 
@@ -147,15 +150,19 @@ def convert_format(keypoints, source, target, images=None, dtype=None):
 def _format_inputs(keypoints, images):
     keypoints_rank = len(keypoints.shape)
     if keypoints_rank > 4:
-        raise ValueError("Expected keypoints rank to be in [2, 4], got "
-                         f"len(keypoints.shape)={keypoints_rank}.")
+        raise ValueError(
+            "Expected keypoints rank to be in [2, 4], got "
+            f"len(keypoints.shape)={keypoints_rank}."
+        )
     keypoints_includes_batch = keypoints_rank > 2
     keypoints_are_grouped = keypoints_rank == 4
     if images is not None:
         images_rank = len(images.shape)
         if images_rank > 4 or images_rank < 3:
-            raise ValueError("Expected images rank to be 3 or 4, got "
-                             f"len(images.shape)={images_rank}.")
+            raise ValueError(
+                "Expected images rank to be 3 or 4, got "
+                f"len(images.shape)={images_rank}."
+            )
         images_include_batch = images_rank == 4
         if keypoints_includes_batch != images_include_batch:
             raise ValueError(
@@ -163,7 +170,8 @@ def _format_inputs(keypoints, images):
                 f"or both unbatched. Received len(keypoints.shape)={keypoints_rank}, "
                 f"len(images.shape)={images_rank}. Expected either "
                 "len(keypoints.shape)=2 and len(images.shape)=3, or "
-                "len(keypoints.shape)>=3 and len(images.shape)=4.")
+                "len(keypoints.shape)>=3 and len(images.shape)=4."
+            )
         if not images_include_batch:
             images = tf.expand_dims(images, axis=0)
 
