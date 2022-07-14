@@ -99,9 +99,7 @@ class RandomFlip(BaseImageAugmentationLayer):
         flipped_output.set_shape(image.shape)
         return flipped_output
 
-    def get_random_transformation(
-        self, image=None, label=None, bounding_boxes=None, keypoints=None
-    ):
+    def get_random_transformation(self, **kwargs):
         flip_horizontal = False
         flip_vertical = False
         if self.horizontal:
