@@ -345,7 +345,17 @@ def clip_bounding_box(bounding_boxes, bounding_box_format, images):
         target="rel_xyxy",
         images=images,
     )
-    new_bboxes = tf.clip_by_value(bounding_boxes, clip_value_min=0, clip_value_max=1)
+    x1, y1, x2, y2 = tf.split(bounding_boxes, 4, axis=1)
+    new_bboxes = tf.stack(
+        [
+            tf.clip_by_value(x1, clip_value_min=0, clip_value_max=1),
+            tf.clip_by_value(y1, clip_value_min=0, clip_value_max=1),
+            tf.clip_by_value(x2, clip_value_min=0, clip_value_max=1),
+            tf.clip_by_value(y2, clip_value_min=0, clip_value_max=1),
+        ],
+        axis=1,
+    )
+    new_bboxes = tf.squeeze(new_bboxes, axis=-1)
     new_bboxes = bounding_box.convert_format(
         new_bboxes,
         source="rel_xyxy",
