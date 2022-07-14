@@ -207,8 +207,6 @@ class RandomRotation(BaseImageAugmentationLayer):
         bounding_boxes_out = tf.concat([min_cordinates, max_cordinates], axis=1)
         bounding_boxes_out = preprocessing.clip_bounding_box(
             bounding_boxes_out,
-            tf.cast(h, dtype=self.compute_dtype),
-            tf.cast(w, dtype=self.compute_dtype),
             bounding_box_format="xyxy",
             image=image,
         )

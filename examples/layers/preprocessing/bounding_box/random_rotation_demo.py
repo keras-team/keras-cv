@@ -24,10 +24,10 @@ BATCH_SIZE = 9
 
 
 def main():
-    inputs = demo_utils.load_voc_dataset()
+    inputs = demo_utils.load_voc_dataset(bounding_box_format="rel_xyxy")
     # demo_utils.visualize_data(inputs, bounding_box_format="rel_xyxy")
     random_rotation_layer = preprocessing.RandomRotation(
-        factor=(0.5), bounding_box_format="rel_xyxy"
+        factor=(0.5) , bounding_box_format="rel_xyxy"
     )
     input = next(iter(inputs.take(9)))
     outputs = random_rotation_layer(input)

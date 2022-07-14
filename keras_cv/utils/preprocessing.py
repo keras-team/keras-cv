@@ -326,28 +326,18 @@ def check_fill_mode_and_interpolation(fill_mode, interpolation):
         )
 
 
-def clip_bounding_box(bounding_boxes, height, width, bounding_box_format, image=None):
+def clip_bounding_box(bounding_boxes, bounding_box_format, image=None):
     """clips bounding boxes to image boundaries"""
     bounding_boxes = bounding_box.convert_format(
         bounding_boxes,
         source=bounding_box_format,
-        target="xyxy",
+        target="rel_xyxy",
         images=image,
     )
-    x1, y1, x2, y2 = tf.split(bounding_boxes, 4, axis=1)
-    new_bboxes = tf.stack(
-        [
-            tf.clip_by_value(x1, clip_value_min=0, clip_value_max=width),
-            tf.clip_by_value(y1, clip_value_min=0, clip_value_max=height),
-            tf.clip_by_value(x2, clip_value_min=0, clip_value_max=width),
-            tf.clip_by_value(y2, clip_value_min=0, clip_value_max=height),
-        ],
-        axis=1,
-    )
-    new_bboxes = tf.squeeze(new_bboxes, axis=-1)
+    new_bboxes = tf.clip_by_value(bounding_boxes, clip_value_min=0, clip_value_max=1)
     new_bboxes = bounding_box.convert_format(
         new_bboxes,
-        source="xyxy",
+        source="rel_xyxy",
         target=bounding_box_format,
         images=image,
     )
