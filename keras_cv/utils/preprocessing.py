@@ -339,27 +339,36 @@ def clip_bounding_box(bounding_boxes, bounding_box_format, images):
             f"len(images.shape)={images_rank}.  Expected either len(boxes.shape)=2 AND "
             "len(images.shape)=3, or len(boxes.shape)=3 AND len(images.shape)=4."
         )
+
+    def clip_unbatched_bbox(bbox):
+        x1, y1, x2, y2 = tf.split(bbox, 4, axis=1)
+        clipped_bboxes = tf.stack(
+            [
+                tf.clip_by_value(x1, clip_value_min=0, clip_value_max=1),
+                tf.clip_by_value(y1, clip_value_min=0, clip_value_max=1),
+                tf.clip_by_value(x2, clip_value_min=0, clip_value_max=1),
+                tf.clip_by_value(y2, clip_value_min=0, clip_value_max=1),
+            ],
+            axis=1,
+        )
+        clipped_bboxes = tf.squeeze(clipped_bboxes, axis=-1)
+        return clipped_bboxes
+
     bounding_boxes = bounding_box.convert_format(
         bounding_boxes,
         source=bounding_box_format,
         target="rel_xyxy",
         images=images,
     )
-    x1, y1, x2, y2 = tf.split(bounding_boxes, 4, axis=1)
-    clipped_bboxes = tf.stack(
-        [
-            tf.clip_by_value(x1, clip_value_min=0, clip_value_max=1),
-            tf.clip_by_value(y1, clip_value_min=0, clip_value_max=1),
-            tf.clip_by_value(x2, clip_value_min=0, clip_value_max=1),
-            tf.clip_by_value(y2, clip_value_min=0, clip_value_max=1),
-        ],
-        axis=1,
-    )
-    clipped_bboxes = tf.squeeze(clipped_bboxes, axis=-1)
-    clipped_bboxes = bounding_box.convert_format(
-        clipped_bboxes,
+    if boxes_includes_batch:
+        clipped_bounding_boxes = tf.map_fn(clip_unbatched_bbox, bounding_boxes)
+    else:
+        clipped_bounding_boxes = clip_unbatched_bbox(bounding_boxes)
+
+    clipped_bounding_boxes = bounding_box.convert_format(
+        clipped_bounding_boxes,
         source="rel_xyxy",
         target=bounding_box_format,
         images=images,
     )
-    return clipped_bboxes
+    return clipped_bounding_boxes
