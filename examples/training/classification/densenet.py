@@ -19,6 +19,7 @@ import json
 import os
 
 import tensorflow as tf
+import keras_cv
 from absl import app
 from absl import flags
 from keras.callbacks import BackupAndRestore
@@ -36,9 +37,23 @@ _EXPERIMENT_ID = flags.DEFINE_string(
 )
 
 NUM_CLASSES = 10
-EPOCHS = 10
+EPOCHS = 250
 BATCH_SIZE = 32
 WEIGHTS_PATH = "weights.hdf5"
+
+AUGMENT_LAYERS = [
+    keras_cv.layers.RandAugment(value_range=(0, 255), magnitude=0.7),
+    keras_cv.layers.CutMix(),
+    keras_cv.layers.MixUp(),
+    keras_cv.layers.RandomFlip(),
+]
+
+@tf.function
+def augment(img, label):
+    inputs = {"images": img, "labels": label}
+    for layer in AUGMENT_LAYERS:
+        inputs = layer(inputs)
+    return inputs["images"], inputs["labels"]
 
 
 def main(argv):
@@ -53,6 +68,7 @@ def main(argv):
     gcs_tensorboard_path = gcs_path_base + "logs/"
 
     train, test = load_cfar10_dataset(BATCH_SIZE)
+    train = train.map(augment)
 
     gcs_backup = BackupAndRestore(gcs_backup_path)
     local_checkpoint = ModelCheckpoint(
