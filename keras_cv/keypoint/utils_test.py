@@ -15,10 +15,11 @@
 import tensorflow as tf
 from absl.testing import parameterized
 
-from keras_cv.keypoint.utils import discard_out_of_image
+from keras_cv.keypoint.utils import filter_out_of_boundaries
 
 
 class UtilsTestCase(tf.test.TestCase, parameterized.TestCase):
+
     @parameterized.named_parameters(
         (
             "all inside",
@@ -35,11 +36,12 @@ class UtilsTestCase(tf.test.TestCase, parameterized.TestCase):
         (
             "ragged input",
             tf.RaggedTensor.from_row_lengths(
-                [[10.0, 20.0], [30.0, 40.0], [50.0, 50.0]], [2, 1]
-            ),
+                [[10.0, 20.0], [30.0, 40.0], [50.0, 50.0]], [2, 1]),
             tf.zeros([50, 50, 3]),
-            tf.RaggedTensor.from_row_lengths([[10.0, 20.0], [30.0, 40.0]], [2, 0]),
+            tf.RaggedTensor.from_row_lengths([[10.0, 20.0], [30.0, 40.0]],
+                                             [2, 0]),
         ),
     )
     def test_result(self, keypoints, image, expected):
-        self.assertAllClose(discard_out_of_image(keypoints, image), expected)
+        self.assertAllClose(filter_out_of_boundaries(keypoints, image),
+                            expected)

@@ -15,12 +15,15 @@
 
 import tensorflow as tf
 
-from keras_cv.bounding_box.converters import RequiresImagesException
+
+# Internal exception
+class _RequiresImagesException(Exception):
+    pass
 
 
 def _rel_xy_to_xy(keypoints, images=None):
     if images is None:
-        raise RequiresImagesException()
+        raise _RequiresImagesException()
     shape = tf.cast(tf.shape(images), keypoints.dtype)
     h, w = shape[1], shape[2]
 
@@ -31,7 +34,7 @@ def _rel_xy_to_xy(keypoints, images=None):
 
 def _xy_to_rel_xy(keypoints, images=None):
     if images is None:
-        raise RequiresImagesException()
+        raise _RequiresImagesException()
     shape = tf.cast(tf.shape(images), keypoints.dtype)
     h, w = shape[1], shape[2]
 
@@ -136,7 +139,7 @@ def convert_format(keypoints, source, target, images=None, dtype=None):
     try:
         in_xy = TO_XY_CONVERTERS[source](keypoints, images=images)
         result = FROM_XY_CONVERTERS[target](in_xy, images=images)
-    except RequiresImagesException:
+    except _RequiresImagesException:
         raise ValueError(
             "convert_format() must receive `images` when transforming "
             f"between relative and absolute formats. "
