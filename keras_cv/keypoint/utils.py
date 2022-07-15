@@ -14,6 +14,9 @@
 """Utility functions for keypoint transformation."""
 import tensorflow as tf
 
+H_AXIS = -3
+W_AXIS = -2
+
 
 def filter_out_of_boundaries(keypoints, image):
     """Discards keypoints if falling outside of the image.
@@ -30,10 +33,12 @@ def filter_out_of_boundaries(keypoints, image):
 
     image_shape = tf.cast(tf.shape(image), keypoints.dtype)
     mask = tf.math.logical_and(
-        tf.math.logical_and(keypoints[..., 0] >= 0,
-                            keypoints[..., 0] < image_shape[-2]),
-        tf.math.logical_and(keypoints[..., 1] >= 0,
-                            keypoints[..., 1] < image_shape[-3]),
+        tf.math.logical_and(
+            keypoints[..., 0] >= 0, keypoints[..., 0] < image_shape[W_AXIS]
+        ),
+        tf.math.logical_and(
+            keypoints[..., 1] >= 0, keypoints[..., 1] < image_shape[H_AXIS]
+        ),
     )
     masked = tf.ragged.boolean_mask(keypoints, mask)
     if isinstance(masked, tf.RaggedTensor):
