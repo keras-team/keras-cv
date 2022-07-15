@@ -118,6 +118,12 @@ class Equalization(BaseImageAugmentationLayer):
     def augment_label(self, label, transformation=None, **kwargs):
         return label
 
+    def augment_bounding_boxes(self, bounding_boxes, **kwargs):
+        return bounding_boxes
+
+    def augment_keypoints(self, keypoints, **kwargs):
+        return keypoints
+
     def get_config(self):
         config = super().get_config()
         config.update({"bins": self.bins, "value_range": self.value_range})
