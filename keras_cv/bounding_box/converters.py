@@ -182,7 +182,7 @@ def convert_format(boxes, source, target, images=None, dtype="float32"):
     Formats are case insensitive.  It is recommended that you capitalize width and
     height to maximize the visual difference between `"xyWH"` and `"xyxy"`.
 
-    Relative formats, abbreviated `rel`, make use of the shapes of the `images` passsed.
+    Relative formats, abbreviated `rel`, make use of the shapes of the `images` passed.
     In these formats, the coordinates, widths, and heights are all specified as
     percentages of the host image.  `images` may be a ragged Tensor.  Note that using a
     ragged Tensor for images may cause a substantial performance loss, as each image
