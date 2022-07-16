@@ -18,18 +18,19 @@ from absl.testing import parameterized
 from tensorflow.keras import backend
 
 from keras_cv.models import densenet
-from keras_cv.models import resnet
+from keras_cv.models import resnet_v1
+from keras_cv.models import resnet_v2
 
 MODEL_LIST = [
     (densenet.DenseNet121, 1024),
     (densenet.DenseNet169, 1664),
     (densenet.DenseNet201, 1920),
-    (resnet.ResNet50, 2048),
-    (resnet.ResNet101, 2048),
-    (resnet.ResNet152, 2048),
-    (resnet.ResNet50V2, 2048),
-    (resnet.ResNet101V2, 2048),
-    (resnet.ResNet152V2, 2048),
+    (resnet_v1.ResNet50, 2048),
+    (resnet_v1.ResNet101, 2048),
+    (resnet_v1.ResNet152, 2048),
+    (resnet_v2.ResNet50V2, 2048),
+    (resnet_v2.ResNet101V2, 2048),
+    (resnet_v2.ResNet152V2, 2048),
 ]
 
 
