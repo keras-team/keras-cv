@@ -18,7 +18,7 @@ H_AXIS = -3
 W_AXIS = -2
 
 
-def filter_out_of_boundaries(keypoints, image):
+def filter_out_of_image(keypoints, image):
     """Discards keypoints if falling outside of the image.
 
     Args:
