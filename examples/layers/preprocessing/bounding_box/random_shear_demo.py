@@ -35,7 +35,7 @@ def main():
     )
     randomshear = preprocessing.RandomShear(
         x_factor=(0.1, 0.3),
-        y_factor=(0.1, 0.3),
+        # y_factor=(0.1, 0.3),
         bounding_box_format="rel_xyxy",
     )
     plt.figure(figsize=(20, 20))

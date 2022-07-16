@@ -48,10 +48,11 @@ class RandomShearTest(tf.test.TestCase):
         ys_labels = tf.one_hot(ys_labels, NUM_CLASSES)
 
         # randomly sample bounding boxes
-        ys_bounding_boxes = tf.random.uniform((2, 3, 4), 0, 1)
+        ys_bounding_boxes = tf.random.uniform((2, 3, 7), 0, 1)
 
         layer = preprocessing.RandomShear(
-            x_factor=(3, 3),
+            x_factor=(0.1, 0.3),
+            y_factor=(0.1, 0.3),
             seed=0,
             fill_mode="constant",
             bounding_box_format="rel_xyxy",
@@ -65,10 +66,9 @@ class RandomShearTest(tf.test.TestCase):
             outputs["labels"],
             outputs["bounding_boxes"],
         )
-
         self.assertEqual(xs.shape, [2, 512, 512, 3])
         self.assertEqual(ys_labels.shape, [2, 10])
-        self.assertEqual(ys_bounding_boxes.shape, [2, 3, 4])
+        self.assertEqual(ys_bounding_boxes.shape, [2, 3, 7])
 
     def test_single_image_input(self):
         """test for single image input"""
@@ -77,7 +77,6 @@ class RandomShearTest(tf.test.TestCase):
         inputs = {"images": xs, "bounding_boxes": ys}
         layer = preprocessing.RandomShear(
             x_factor=(3, 3),
-            y_factor=1,
             seed=0,
             fill_mode="constant",
             bounding_box_format="rel_xyxy",

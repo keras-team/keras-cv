@@ -22,7 +22,7 @@ from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
 from keras_cv.utils import preprocessing
 
 
-@tf.keras.utils.register_keras_serializable(package="keras_cv")
+# @tf.keras.utils.register_keras_serializable(package="keras_cv")
 class RandomShear(BaseImageAugmentationLayer):
     """A preprocessing layer which randomly shears images during training.
     This layer will apply random shearings to each image, filling empty space
@@ -190,18 +190,24 @@ class RandomShear(BaseImageAugmentationLayer):
             dtype=self.compute_dtype,
         )
         x, y = transformation
-        # apply horizontal shear
+        extended_bboxes, rest_axes = self._convert_to_extended_corners_format(
+            bounding_boxes
+        )
         if x is not None:
-            bounding_boxes = self._apply_horizontal_transformation_to_bounding_box(
-                bounding_boxes, x
+            extended_bboxes = self._apply_horizontal_transformation_to_bounding_box(
+                extended_bboxes, x
             )
         # apply vertical shear
         if y is not None:
-            bounding_boxes = self._apply_vertical_transformation_to_bounding_box(
-                bounding_boxes, y
+            extended_bboxes = self._apply_vertical_transformation_to_bounding_box(
+                extended_bboxes, y
             )
+        bounding_boxes = self._convert_to_four_coordinate(extended_bboxes, x, y)
         # clip bounding boxes value to 0-image height and 0-image width
         bounding_boxes = self._clip_bounding_box(height, width, bounding_boxes)
+        # join rest of the axes with bbox axes
+        bounding_boxes = self._join_axes(bounding_boxes, rest_axes)
+        # convert to universal output format
         bounding_boxes = keras_cv.bounding_box.convert_format(
             bounding_boxes,
             source="xyxy",
@@ -210,6 +216,98 @@ class RandomShear(BaseImageAugmentationLayer):
             dtype=self.compute_dtype,
         )
         return bounding_boxes
+
+    def _join_axes(self, bounding_boxes, rest_axes):
+        """join bbox axes with rest of axes"""
+        return tf.concat(
+            [bounding_boxes, rest_axes],
+            axis=-1,
+        )
+
+    def _convert_to_four_coordinate(self, extended_bboxes, x, y):
+        """convert from extended coordinates to 4 coordinates system"""
+        (
+            top_left_x,
+            top_left_y,
+            bottom_right_x,
+            bottom_right_y,
+            top_right_x,
+            top_right_y,
+            bottom_left_x,
+            bottom_left_y,
+        ) = tf.split(extended_bboxes, 8, axis=1)
+
+        # choose x1,x2 when x>0
+        def positive_case_x():
+            final_x1 = bottom_left_x
+            final_x2 = top_right_x
+            return final_x1, final_x2
+
+        # choose x1,x2 when x<0
+        def negative_case_x():
+            final_x1 = top_left_x
+            final_x2 = bottom_right_x
+            return final_x1, final_x2
+
+        if x is not None:
+            final_x1, final_x2 = tf.cond(
+                tf.less(x, 0), negative_case_x, positive_case_x
+            )
+        else:
+            final_x1, final_x2 = top_left_x, bottom_right_x
+
+        # choose y1,y2 when y > 0
+        def positive_case_y():
+            final_y1 = top_right_y
+            final_y2 = bottom_left_y
+            return final_y1, final_y2
+
+        # choose y1,y2 when y < 0
+        def negative_case_y():
+            final_y1 = top_left_y
+            final_y2 = bottom_right_y
+            return final_y1, final_y2
+
+        if y is not None:
+            final_y1, final_y2 = tf.cond(
+                tf.less(y, 0), negative_case_y, positive_case_y
+            )
+        else:
+            final_y1, final_y2 = top_left_y, bottom_right_y
+        return tf.concat(
+            [final_x1, final_y1, final_x2, final_y2],
+            axis=1,
+        )
+
+    def _apply_horizontal_transformation_to_bounding_box(
+        self, extended_bounding_boxes, x
+    ):
+        # create transformation matrix [1,4]
+        matrix = tf.stack([1.0, -x, 0, 1.0], axis=0)
+        # reshape it to [2,2]
+        matrix = tf.reshape(matrix, (2, 2))
+        # reshape unnormalized bboxes from [N,8] -> [N*4,2]
+        new_bboxes = tf.reshape(extended_bounding_boxes, (-1, 2))
+        # [[1,x`],[y`,1]]*[x,y]->[new_x,new_y]
+        transformed_bboxes = tf.reshape(
+            tf.einsum("ij,kj->ki", matrix, new_bboxes), (-1, 8)
+        )
+        return transformed_bboxes
+
+    def _apply_vertical_transformation_to_bounding_box(
+        self, extended_bounding_boxes, y
+    ):
+        # create transformation matrix [1,4]
+        matrix = tf.stack([1.0, 0, -y, 1.0], axis=0)
+        # reshape it to [2,2]
+        matrix = tf.reshape(matrix, (2, 2))
+        # reshape unnormalized bboxes from [N,8] -> [N*4,2]
+        new_bboxes = tf.reshape(extended_bounding_boxes, (-1, 2))
+        # [[1,x`],[y`,1]]*[x,y]->[new_x,new_y]
+        transformed_bboxes = tf.reshape(
+            tf.einsum("ij,kj->ki", matrix, new_bboxes), (-1, 8)
+        )
+        return transformed_bboxes
 
     def _clip_bounding_box(self, height, width, bounding_boxes):
         """clips bounding boxes b/w 0 - image width and 0 - image height"""
@@ -229,108 +327,11 @@ class RandomShear(BaseImageAugmentationLayer):
     def _convert_to_extended_corners_format(self, bounding_boxes):
         """splits corner bboxes top left,bottom right to 4 corners top left,
         bottom right,top right and bottom left"""
-        x1, y1, x2, y2 = tf.split(bounding_boxes, 4, axis=1)
-        new_bboxes = tf.stack(
-            [
-                x1,
-                y1,
-                x2,
-                y2,
-                x2,
-                y1,
-                x1,
-                y2,
-            ],
-            axis=1,
+        x1, y1, x2, y2, rest = tf.split(
+            bounding_boxes, [1, 1, 1, 1, bounding_boxes.shape[-1] - 4], axis=-1
         )
-        return new_bboxes
-
-    def _apply_horizontal_transformation_to_bounding_box(self, bounding_boxes, x):
-        """args: image : takes a single image H,W,C,
-        bounding_boxes: take bbox coordinates [N,4] -> [x1,y1,x2,y2]
-        x: x transformation None if no transformation"""
-        new_bboxes = self._convert_to_extended_corners_format(bounding_boxes)
-        # create transformation matrix [1,4]
-        matrix = tf.stack([1.0, -x, 0, 1.0], axis=0)
-        # reshape it to [2,2]
-        matrix = tf.reshape(matrix, (2, 2))
-        # reshape unnormalized bboxes from [N,8] -> [N*4,2]
-        new_bboxes = tf.reshape(new_bboxes, (-1, 2))
-        # [[1,x`],[y`,1]]*[x,y]->[new_x,new_y]
-        transformed_bboxes = tf.reshape(
-            tf.einsum("ij,kj->ki", matrix, new_bboxes), (-1, 8)
+        new_bboxes = tf.concat(
+            [x1, y1, x2, y2, x2, y1, x1, y2],
+            axis=-1,
         )
-        # split into 4 corners of bbox
-        (
-            top_left_x,
-            top_left_y,
-            bottom_right_x,
-            bottom_right_y,
-            top_right_x,
-            top_right_y,
-            bottom_left_x,
-            bottom_left_y,
-        ) = tf.split(transformed_bboxes, 8, axis=1)
-
-        # choose x1,x2 when x>0
-        def positive_case():
-            final_x1 = bottom_left_x
-            final_x2 = top_right_x
-            return final_x1, final_x2
-
-        # choose x1,x2 when x<0
-        def negative_case():
-            final_x1 = top_left_x
-            final_x2 = bottom_right_x
-            return final_x1, final_x2
-
-        final_x1, final_x2 = tf.cond(tf.less(x, 0), negative_case, positive_case)
-        return tf.concat(
-            [final_x1, top_left_y, final_x2, bottom_right_y],
-            axis=1,
-        )
-
-    def _apply_vertical_transformation_to_bounding_box(self, bounding_boxes, y):
-        """args: image : takes a single image H,W,C,
-        bounding_boxes: take bbox coordinates [N,4] -> [y1,x1,y2,x2]
-        y: y transformation None if no transformation"""
-        new_bboxes = self._convert_to_extended_corners_format(bounding_boxes)
-        # create transformation matrix [1,4]
-        matrix = tf.stack([1.0, 0, -y, 1.0], axis=0)
-        # reshape it to [2,2]
-        matrix = tf.reshape(matrix, (2, 2))
-        # reshape unnormalized bboxes from [N,8] -> [N*4,2]
-        new_bboxes = tf.reshape(new_bboxes, (-1, 2))
-        # [[1,x`],[y`,1]]*[x,y]->[new_x,new_y]
-        transformed_bboxes = tf.reshape(
-            tf.einsum("ij,kj->ki", matrix, new_bboxes), (-1, 8)
-        )
-        # split into 4 corners of bbox
-        (
-            top_left_x,
-            top_left_y,
-            bottom_right_x,
-            bottom_right_y,
-            top_right_x,
-            top_right_y,
-            bottom_left_x,
-            bottom_left_y,
-        ) = tf.split(transformed_bboxes, 8, axis=1)
-
-        # choose y1,y2 when y > 0
-        def positive_case():
-            final_y1 = top_right_y
-            final_y2 = bottom_left_y
-            return final_y1, final_y2
-
-        # choose y1,y2 when y < 0
-        def negative_case():
-            final_y1 = top_left_y
-            final_y2 = bottom_right_y
-            return final_y1, final_y2
-
-        final_y1, final_y2 = tf.cond(tf.less(y, 0), negative_case, positive_case)
-        return tf.concat(
-            [top_left_x, final_y1, top_right_x, final_y2],
-            axis=1,
-        )
+        return new_bboxes, rest
