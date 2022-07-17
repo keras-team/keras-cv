@@ -197,7 +197,7 @@ def InvertedResBlock(
         infilters = backend.int_shape(x)[channel_axis]
 
         if block_id:
-            prefix = "expanded_conv_{}/".format(block_id)
+            prefix = f"expanded_conv_{block_id}"
 
             x = layers.Conv2D(
                 Depth()(infilters * expansion),
