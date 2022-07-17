@@ -16,7 +16,7 @@
 
 References:
     - [Searching for MobileNetV3](https://arxiv.org/pdf/1905.02244.pdf) (ICCV 2019)
-    - [Based on the Original keras.applications MobileNetv3](https://github.com/keras-team/keras/blob/master/keras/applications/mobilenet_v3.py)
+    - [Based on the original keras.applications MobileNetv3](https://github.com/keras-team/keras/blob/master/keras/applications/mobilenet_v3.py)
 """
 
 import tensorflow as tf
@@ -192,7 +192,7 @@ def InvertedResBlock(
         name = f"inverted_res_block_{backend.get_uid('inverted_res_block')}"
 
     def apply(x):
-        shortcut = x
+        shortcut = x 
         prefix = "expanded_conv/"
         infilters = backend.int_shape(x)[channel_axis]
 
