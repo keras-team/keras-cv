@@ -25,7 +25,7 @@ from tensorflow.keras import backend
 from tensorflow.keras import layers
 from tensorflow.keras.utils import custom_object_scope
 
-from keras_cv.layers.regularization.squeeze_excite import SqueezeAndExcite2D
+import keras_cv.layers
 
 channel_axis = -1
 
@@ -231,7 +231,7 @@ def InvertedResBlock(
 
         if se_ratio:
             with custom_object_scope({"hard_sigmoid": HardSigmoid()}):
-                x = SqueezeAndExcite2D(
+                x = keras_cv.layers.SqueezeAndExcite2D(
                     filters=Depth()(infilters * expansion),
                     ratio=se_ratio,
                     squeeze_activation="relu",
