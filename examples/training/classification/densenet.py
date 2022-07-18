@@ -27,7 +27,7 @@ from keras.callbacks import ModelCheckpoint
 from keras.callbacks import TensorBoard
 from keras.optimizers import Adam
 from utils import get_learning_rate_schedule
-from utils import load_cifar10_dataset
+from utils import load_cats_and_dogs_dataset
 from wandb.keras import WandbCallback
 
 import keras_cv
@@ -44,7 +44,7 @@ _WANDB_PROJECT = flags.DEFINE_string(
     "wandb_project", None, "Optional, a WandB project for exporting training data"
 )
 
-NUM_CLASSES = 10
+NUM_CLASSES = 2
 EPOCHS = 250
 BATCH_SIZE = 32
 WEIGHTS_PATH = "weights.hdf5"
@@ -78,7 +78,7 @@ def main(argv):
         f"gs://{_GCS_BUCKET.value}/densenet/logs/{_EXPERIMENT_ID.value}/"
     )
 
-    train, test = load_cifar10_dataset(BATCH_SIZE)
+    train, test = load_cats_and_dogs_dataset(BATCH_SIZE)
     train = train.map(augment, num_parallel_calls=tf.data.AUTOTUNE)
     train = train.prefetch(tf.data.AUTOTUNE)
 

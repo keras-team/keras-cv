@@ -18,6 +18,17 @@ import tensorflow_datasets as tfds
 from tensorflow.keras.optimizers.schedules import PiecewiseConstantDecay
 
 
+def load_cats_and_dogs_dataset(batch_size=32):
+    train_ds, test_ds = tfds.load(
+        "cats_vs_dogs", split=["train[:90%]", "train[90%:]"], as_supervised=True
+    )
+
+    train = train_ds.map(lambda x, y: (x, tf.one_hot(y, 2))).batch(batch_size)
+    test = test_ds.map(lambda x, y: (x, tf.one_hot(y, 2))).batch(batch_size)
+
+    return train, test
+
+
 def load_cifar10_dataset(batch_size=32):
     train_ds, test_ds = tfds.load(
         "cifar10", split=["train", "test"], as_supervised=True
