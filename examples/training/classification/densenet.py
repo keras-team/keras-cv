@@ -103,7 +103,7 @@ def main(argv):
             include_rescaling=True,
             include_top=True,
             num_classes=NUM_CLASSES,
-            input_shape=(32, 32, 3),
+            input_shape=(150, 150, 3),
         )
 
         model.compile(
