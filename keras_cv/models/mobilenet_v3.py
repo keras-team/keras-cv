@@ -121,6 +121,7 @@ def depth(x, divisor=8, min_value=None):
         new_x += divisor
     return new_x
 
+
 def HardSigmoid(name=None):
     """The Hard Sigmoid function.
 
