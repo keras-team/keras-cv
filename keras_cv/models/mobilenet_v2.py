@@ -66,33 +66,29 @@ def CorrectPad(kernel_size, name=None):
     return apply
 
 
-def Depth(divisor=8, min_value=None, name=None):
+def depth(x, divisor=8, min_value=None):
     """Ensure that all layers have a channel number that is divisble by the `divisor`.
 
     Args:
+        x: input value.
         divisor: integer, the value by which a channel number should be divisble,
             defaults to 8.
         min_value: float, minimum value for the new tensor.
         name: string, layer label.
 
     Returns:
-        a function that takes an input Tensor representing a Depth layer.
+        the updated value of the input.
     """
-    if name is None:
-        name = f"depth_{backend.get_uid('depth')}"
 
     if min_value is None:
         min_value = divisor
 
-    def apply(x):
-        new_x = max(min_value, int(x + divisor / 2) // divisor * divisor)
+    new_x = max(min_value, int(x + divisor / 2) // divisor * divisor)
 
-        # Make sure that round down does not go down by more than 10%.
-        if new_x < 0.9 * x:
-            new_x += divisor
-        return new_x
-
-    return apply
+    # make sure that round down does not go down by more than 10%.
+    if new_x < 0.9 * x:
+        new_x += divisor
+    return new_x
 
 
 def InvertedResBlock(expansion, stride, alpha, filters, block_id, name=None):
@@ -120,7 +116,7 @@ def InvertedResBlock(expansion, stride, alpha, filters, block_id, name=None):
     pointwise_conv_filters = int(filters * alpha)
     # Ensure the number of filters on the last 1x1 convolution is divisible by
     # 8.
-    pointwise_filters = Depth(8)(pointwise_conv_filters)
+    pointwise_filters = depth(pointwise_conv_filters)
 
     batch_norm_1 = layers.BatchNormalization(
         axis=-1,
@@ -290,7 +286,7 @@ def MobileNetV2(
     if include_rescaling:
         x = layers.Rescaling(scale=1.0 / 127.5, offset=-1.0)(input)
 
-    first_block_filters = Depth(8)(32 * alpha)
+    first_block_filters = depth(32 * alpha)
 
     if x is None:
         x = layers.Conv2D(
@@ -352,7 +348,7 @@ def MobileNetV2(
     # if the width multiplier is greater than 1 we increase the number of output
     # channels.
     if alpha > 1.0:
-        last_block_filters = Depth(8)(1280 * alpha)
+        last_block_filters = depth(1280 * alpha)
     else:
         last_block_filters = 1280
 
