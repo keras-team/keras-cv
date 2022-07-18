@@ -99,7 +99,7 @@ def main(argv):
         wandb.init(_WANDB_PROJECT.value, entity="keras-team-testing")
         callbacks.append(WandbCallback())
 
-    with tf.device("/cpu:0"):
+    with tf.distribute.MirroredStrategy().scope():
         model = DenseNet121(
             include_rescaling=True,
             include_top=True,
