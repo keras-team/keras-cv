@@ -15,6 +15,7 @@
 
 import tensorflow as tf
 import tensorflow_datasets as tfds
+from keras.layers import Resizing
 from tensorflow.keras.optimizers.schedules import PiecewiseConstantDecay
 
 
@@ -23,8 +24,16 @@ def load_cats_and_dogs_dataset(batch_size=32):
         "cats_vs_dogs", split=["train[:90%]", "train[90%:]"], as_supervised=True
     )
 
-    train = train_ds.map(lambda x, y: (x, tf.one_hot(y, 2))).batch(batch_size)
-    test = test_ds.map(lambda x, y: (x, tf.one_hot(y, 2))).batch(batch_size)
+    resizing = Resizing(150, 150)
+
+    train = train_ds.map(
+        lambda x, y: (resizing(x), tf.one_hot(y, 2)),
+        num_parallel_calls=tf.data.AUTOTUNE,
+    ).batch(batch_size)
+    test = test_ds.map(
+        lambda x, y: (resizing(x), tf.one_hot(y, 2)),
+        num_parallel_calls=tf.data.AUTOTUNE,
+    ).batch(batch_size)
 
     return train, test
 
