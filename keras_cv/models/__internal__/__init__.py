@@ -12,13 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from keras_cv.models.csp_darknet import CSPDarkNet
-from keras_cv.models.darknet import DarkNet21
-from keras_cv.models.darknet import DarkNet53
-from keras_cv.models.densenet import DenseNet121
-from keras_cv.models.densenet import DenseNet169
-from keras_cv.models.densenet import DenseNet201
-from keras_cv.models.mlp_mixer import MLPMixerB16
-from keras_cv.models.mlp_mixer import MLPMixerB32
-from keras_cv.models.mlp_mixer import MLPMixerL16
-from keras_cv.models.vgg19 import VGG19
+from keras_cv.models.__internal__.darknet_utils import CrossStagePartial
+from keras_cv.models.__internal__.darknet_utils import DarknetConvBlock
+from keras_cv.models.__internal__.darknet_utils import DarknetConvBlockDepthwise
+from keras_cv.models.__internal__.darknet_utils import Focus
+from keras_cv.models.__internal__.darknet_utils import ResidualBlocks
+from keras_cv.models.__internal__.darknet_utils import SpatialPyramidPoolingBottleneck
