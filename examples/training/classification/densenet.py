@@ -19,6 +19,7 @@ import json
 import os
 
 import tensorflow as tf
+import wandb
 from absl import app
 from absl import flags
 from keras.callbacks import BackupAndRestore
@@ -27,12 +28,10 @@ from keras.callbacks import TensorBoard
 from keras.optimizers import Adam
 from utils import get_learning_rate_schedule
 from utils import load_cifar10_dataset
+from wandb.keras import WandbCallback
 
 import keras_cv
 from keras_cv.models import DenseNet121
-
-import wandb
-from wandb.keras import WandbCallback
 
 _GCS_BUCKET = flags.DEFINE_string("gcs_bucket", None, "Name of GCS Bucket")
 _EXPERIMENT_ID = flags.DEFINE_string(
