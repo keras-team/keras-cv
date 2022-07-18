@@ -24,6 +24,7 @@ from absl import app
 from absl import flags
 from keras.callbacks import BackupAndRestore
 from keras.callbacks import ModelCheckpoint
+from keras.callbacks import EarlyStopping
 from keras.callbacks import TensorBoard
 from keras.optimizers import Adam
 from utils import get_learning_rate_schedule
@@ -92,7 +93,8 @@ def main(argv):
         mode="max",
     )
     tensorboard = TensorBoard(log_dir=gcs_tensorboard_path)
-    callbacks = [gcs_backup, local_checkpoint, tensorboard]
+    early_stopping = EarlyStopping(patience=5)
+    callbacks = [gcs_backup, local_checkpoint, tensorboard, early_stopping]
 
     if _WANDB_PROJECT.value:
         wandb.init(_WANDB_PROJECT.value, entity="keras-team-testing")
