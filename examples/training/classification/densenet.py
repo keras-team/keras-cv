@@ -97,7 +97,7 @@ def main(argv):
     callbacks = [gcs_backup, local_checkpoint, tensorboard, early_stopping]
 
     if _WANDB_PROJECT.value:
-        wandb.init(_WANDB_PROJECT.value, entity="keras-team-testing")
+        wandb.init(project=_WANDB_PROJECT.value, entity="keras-team-testing")
         callbacks.append(WandbCallback())
 
     with tf.distribute.MirroredStrategy().scope():
