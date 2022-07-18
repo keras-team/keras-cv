@@ -67,7 +67,6 @@ You can achieve this by running the following commands:
 gh repo fork keras-team/keras-cv --clone --remote
 cd keras-cv
 pip install ".[tests]"
-python setup.py develop
 ```
 
 The first line relies on having an installation of [the GitHub CLI](https://github.com/cli/cli).
