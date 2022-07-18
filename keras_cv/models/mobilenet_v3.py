@@ -97,32 +97,29 @@ BASE_DOCSTRING = """Instantiates the {name} architecture.
 """
 
 
-def depth(divisor=8, min_value=None):
+def depth(x, divisor=8, min_value=None):
     """Ensure that all layers have a channel number that is divisble by the `divisor`.
 
     Args:
+        x: input value.
         divisor: integer, the value by which a channel number should be divisble,
             defaults to 8.
         min_value: float, minimum value for the new tensor.
         name: string, layer label.
 
     Returns:
-        a function that takes an input Tensor representing a Depth layer.
+        the updated value of the input.
     """
 
     if min_value is None:
         min_value = divisor
 
-    def apply(x):
-        new_x = max(min_value, int(x + divisor / 2) // divisor * divisor)
+    new_x = max(min_value, int(x + divisor / 2) // divisor * divisor)
 
-        # make sure that round down does not go down by more than 10%.
-        if new_x < 0.9 * x:
-            new_x += divisor
-        return new_x
-
-    return apply
-
+    # make sure that round down does not go down by more than 10%.
+    if new_x < 0.9 * x:
+        new_x += divisor
+    return new_x
 
 def HardSigmoid(name=None):
     """The Hard Sigmoid function.
