@@ -190,7 +190,7 @@ def InvertedResBlock(
         name = f"inverted_res_block_{backend.get_uid('inverted_res_block')}"
 
     def apply(x):
-        shortcut = x 
+        shortcut = x
         prefix = "expanded_conv/"
         infilters = backend.int_shape(x)[channel_axis]
 
@@ -442,17 +442,37 @@ def MobileNetV3Small(
 ):
     def stack_fn(x, kernel, activation, se_ratio):
 
-        x = InvertedResBlock(1, depth(16*alpha), 3, 2, se_ratio, layers.ReLU(), 0)(x)
-        x = InvertedResBlock(72.0 / 16, depth(24*alpha), 3, 2, None, layers.ReLU(), 1)(x)
-        x = InvertedResBlock(88.0 / 24, depth(24*alpha), 3, 1, None, layers.ReLU(), 2)(x)
-        x = InvertedResBlock(4, depth(40*alpha), kernel, 2, se_ratio, activation, 3)(x)
-        x = InvertedResBlock(6, depth(40*alpha), kernel, 1, se_ratio, activation, 4)(x)
-        x = InvertedResBlock(6, depth(40*alpha), kernel, 1, se_ratio, activation, 5)(x)
-        x = InvertedResBlock(3, depth(48*alpha), kernel, 1, se_ratio, activation, 6)(x)
-        x = InvertedResBlock(3, depth(48*alpha), kernel, 1, se_ratio, activation, 7)(x)
-        x = InvertedResBlock(6, depth(96*alpha), kernel, 2, se_ratio, activation, 8)(x)
-        x = InvertedResBlock(6, depth(96*alpha), kernel, 1, se_ratio, activation, 9)(x)
-        x = InvertedResBlock(6, depth(96*alpha), kernel, 1, se_ratio, activation, 10)(x)
+        x = InvertedResBlock(1, depth(16 * alpha), 3, 2, se_ratio, layers.ReLU(), 0)(x)
+        x = InvertedResBlock(
+            72.0 / 16, depth(24 * alpha), 3, 2, None, layers.ReLU(), 1
+        )(x)
+        x = InvertedResBlock(
+            88.0 / 24, depth(24 * alpha), 3, 1, None, layers.ReLU(), 2
+        )(x)
+        x = InvertedResBlock(4, depth(40 * alpha), kernel, 2, se_ratio, activation, 3)(
+            x
+        )
+        x = InvertedResBlock(6, depth(40 * alpha), kernel, 1, se_ratio, activation, 4)(
+            x
+        )
+        x = InvertedResBlock(6, depth(40 * alpha), kernel, 1, se_ratio, activation, 5)(
+            x
+        )
+        x = InvertedResBlock(3, depth(48 * alpha), kernel, 1, se_ratio, activation, 6)(
+            x
+        )
+        x = InvertedResBlock(3, depth(48 * alpha), kernel, 1, se_ratio, activation, 7)(
+            x
+        )
+        x = InvertedResBlock(6, depth(96 * alpha), kernel, 2, se_ratio, activation, 8)(
+            x
+        )
+        x = InvertedResBlock(6, depth(96 * alpha), kernel, 1, se_ratio, activation, 9)(
+            x
+        )
+        x = InvertedResBlock(6, depth(96 * alpha), kernel, 1, se_ratio, activation, 10)(
+            x
+        )
         return x
 
     return MobileNetV3(
@@ -489,21 +509,33 @@ def MobileNetV3Large(
 ):
     def stack_fn(x, kernel, activation, se_ratio):
 
-        x = InvertedResBlock(1, depth(16*alpha), 3, 1, None, layers.ReLU(), 0)(x)
-        x = InvertedResBlock(4, depth(24*alpha), 3, 2, None, layers.ReLU(), 1)(x)
-        x = InvertedResBlock(3, depth(24*alpha), 3, 1, None, layers.ReLU(), 2)(x)
-        x = InvertedResBlock(3, depth(40*alpha), kernel, 2, se_ratio, layers.ReLU(), 3)(x)
-        x = InvertedResBlock(3, depth(40*alpha), kernel, 1, se_ratio, layers.ReLU(), 4)(x)
-        x = InvertedResBlock(3, depth(40*alpha), kernel, 1, se_ratio, layers.ReLU(), 5)(x)
-        x = InvertedResBlock(6, depth(80*alpha), 3, 2, None, activation, 6)(x)
-        x = InvertedResBlock(2.5, depth(80*alpha), 3, 1, None, activation, 7)(x)
-        x = InvertedResBlock(2.3, depth(80*alpha), 3, 1, None, activation, 8)(x)
-        x = InvertedResBlock(2.3, depth(80*alpha), 3, 1, None, activation, 9)(x)
-        x = InvertedResBlock(6, depth(112*alpha), 3, 1, se_ratio, activation, 10)(x)
-        x = InvertedResBlock(6, depth(112*alpha), 3, 1, se_ratio, activation, 11)(x)
-        x = InvertedResBlock(6, depth(160*alpha), kernel, 2, se_ratio, activation, 12)(x)
-        x = InvertedResBlock(6, depth(160*alpha), kernel, 1, se_ratio, activation, 13)(x)
-        x = InvertedResBlock(6, depth(160*alpha), kernel, 1, se_ratio, activation, 14)(x)
+        x = InvertedResBlock(1, depth(16 * alpha), 3, 1, None, layers.ReLU(), 0)(x)
+        x = InvertedResBlock(4, depth(24 * alpha), 3, 2, None, layers.ReLU(), 1)(x)
+        x = InvertedResBlock(3, depth(24 * alpha), 3, 1, None, layers.ReLU(), 2)(x)
+        x = InvertedResBlock(
+            3, depth(40 * alpha), kernel, 2, se_ratio, layers.ReLU(), 3
+        )(x)
+        x = InvertedResBlock(
+            3, depth(40 * alpha), kernel, 1, se_ratio, layers.ReLU(), 4
+        )(x)
+        x = InvertedResBlock(
+            3, depth(40 * alpha), kernel, 1, se_ratio, layers.ReLU(), 5
+        )(x)
+        x = InvertedResBlock(6, depth(80 * alpha), 3, 2, None, activation, 6)(x)
+        x = InvertedResBlock(2.5, depth(80 * alpha), 3, 1, None, activation, 7)(x)
+        x = InvertedResBlock(2.3, depth(80 * alpha), 3, 1, None, activation, 8)(x)
+        x = InvertedResBlock(2.3, depth(80 * alpha), 3, 1, None, activation, 9)(x)
+        x = InvertedResBlock(6, depth(112 * alpha), 3, 1, se_ratio, activation, 10)(x)
+        x = InvertedResBlock(6, depth(112 * alpha), 3, 1, se_ratio, activation, 11)(x)
+        x = InvertedResBlock(
+            6, depth(160 * alpha), kernel, 2, se_ratio, activation, 12
+        )(x)
+        x = InvertedResBlock(
+            6, depth(160 * alpha), kernel, 1, se_ratio, activation, 13
+        )(x)
+        x = InvertedResBlock(
+            6, depth(160 * alpha), kernel, 1, se_ratio, activation, 14
+        )(x)
         return x
 
     return MobileNetV3(
