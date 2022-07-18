@@ -31,12 +31,18 @@ from utils import load_cifar10_dataset
 import keras_cv
 from keras_cv.models import DenseNet121
 
+import wandb
+from wandb.keras import WandbCallback
+
 _GCS_BUCKET = flags.DEFINE_string("gcs_bucket", None, "Name of GCS Bucket")
 _EXPERIMENT_ID = flags.DEFINE_string(
     "experiment_id", None, "An experiment name (preferably a git commit hash)"
 )
 _AUTHOR = flags.DEFINE_string(
     "author", None, "The GitHub username of the author of this training script"
+)
+_WANDB_PROJECT = flags.DEFINE_string(
+    "wandb_project", None, "Optional, a WandB project for exporting training data"
 )
 
 NUM_CLASSES = 10
@@ -87,8 +93,13 @@ def main(argv):
         mode="max",
     )
     tensorboard = TensorBoard(log_dir=gcs_tensorboard_path)
+    callbacks = [gcs_backup, local_checkpoint, tensorboard]
 
-    with tf.distribute.MirroredStrategy().scope():
+    if _WANDB_PROJECT.value:
+        wandb.init(_WANDB_PROJECT.value, entity="keras-team-testing")
+        callbacks.append(WandbCallback())
+
+    with tf.device("/cpu:0"):
         model = DenseNet121(
             include_rescaling=True,
             include_top=True,
@@ -110,7 +121,7 @@ def main(argv):
             train,
             batch_size=BATCH_SIZE,
             epochs=EPOCHS,
-            callbacks=[gcs_backup, local_checkpoint, tensorboard],
+            callbacks=callbacks,
             validation_data=test,
         )
 
