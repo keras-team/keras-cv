@@ -23,8 +23,8 @@ import wandb
 from absl import app
 from absl import flags
 from keras.callbacks import BackupAndRestore
-from keras.callbacks import ModelCheckpoint
 from keras.callbacks import EarlyStopping
+from keras.callbacks import ModelCheckpoint
 from keras.callbacks import TensorBoard
 from keras.optimizers import Adam
 from utils import get_learning_rate_schedule
