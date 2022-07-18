@@ -109,7 +109,7 @@ def main(argv):
         model.compile(
             optimizer=Adam(
                 learning_rate=get_learning_rate_schedule(
-                    EPOCHS, steps_per_epoch=train.cardinality().numpy()
+                    decay_steps=train.cardinality().numpy() * EPOCHS,
                 )
             ),
             loss="categorical_crossentropy",

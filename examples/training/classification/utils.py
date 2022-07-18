@@ -16,7 +16,7 @@
 import tensorflow as tf
 import tensorflow_datasets as tfds
 from keras.layers import Resizing
-from tensorflow.keras.optimizers.schedules import PiecewiseConstantDecay
+from tensorflow.keras.optimizers.schedules import PolynomialDecay
 
 
 def load_cats_and_dogs_dataset(batch_size=32):
@@ -49,10 +49,7 @@ def load_cifar10_dataset(batch_size=32):
     return train, test
 
 
-def get_learning_rate_schedule(epochs, steps_per_epoch):
-    epoch_boundaries = [epochs / 20, epochs / 10, epochs / 5, epochs / 2]
-    values = [0.01, 0.005, 0.001, 0.0005, 0.00025]
-
-    boundaries = [steps_per_epoch * x for x in epoch_boundaries]
-
-    return PiecewiseConstantDecay(boundaries, values)
+def get_learning_rate_schedule(decay_steps):
+    return PolynomialDecay(
+        initial_learning_rate=0.01, decay_steps=decay_steps, end_learning_rate=0.0001
+    )
