@@ -52,10 +52,8 @@ WEIGHTS_PATH = "weights.hdf5"
 
 AUGMENT_LAYERS = [
     keras_cv.layers.RandomFlip(),
-    keras_cv.layers.RandAugment(value_range=(0, 255), magnitude=0.7),
+    keras_cv.layers.RandAugment(value_range=(0, 255), magnitude=0.3),
     keras_cv.layers.RandomCutout(height_factor=0.1, width_factor=0.1),
-    keras_cv.layers.CutMix(),
-    keras_cv.layers.MixUp(),
 ]
 
 
