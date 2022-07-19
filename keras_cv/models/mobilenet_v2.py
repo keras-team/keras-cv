@@ -284,7 +284,7 @@ def MobileNetV2(
     x = None
 
     if include_rescaling:
-        x = layers.Rescaling(scale=1.0 / 127.5, offset=-1.0)(input)
+        x = layers.Rescaling(scale=1 / 255)(input)
 
     first_block_filters = depth(32 * alpha)
 
