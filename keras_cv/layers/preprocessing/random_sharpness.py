@@ -59,7 +59,7 @@ class RandomSharpness(BaseImageAugmentationLayer):
         self.factor = preprocessing.parse_factor(factor)
         self.seed = seed
 
-    def get_random_transformation(self, image=None, label=None, bounding_boxes=None):
+    def get_random_transformation(self, **kwargs):
         return self.factor()
 
     def augment_image(self, image, transformation=None, **kwargs):

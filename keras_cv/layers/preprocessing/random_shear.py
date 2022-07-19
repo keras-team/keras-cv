@@ -87,7 +87,7 @@ class RandomShear(BaseImageAugmentationLayer):
         self.fill_value = fill_value
         self.seed = seed
 
-    def get_random_transformation(self, image=None, label=None, bounding_boxes=None):
+    def get_random_transformation(self, **kwargs):
         x = self._get_shear_amount(self.x_factor)
         y = self._get_shear_amount(self.y_factor)
         return (x, y)
