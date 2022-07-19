@@ -28,7 +28,7 @@ def main():
     random_rotation_layer = preprocessing.RandomRotation(
         factor=0.5, bounding_box_format="rel_xyxy"
     )
-    input = next(iter(inputs.take(9)))
+    input = next(iter(inputs.take(1)))
     outputs = random_rotation_layer(input)
     demo_utils.visualize_data(outputs, bounding_box_format="rel_xyxy")
 
