@@ -17,8 +17,7 @@
 """EfficientNet models for Keras.
 
 References:
-  - [EfficientNet: Rethinking Model Scaling for Convolutional Neural Networks](
-      https://arxiv.org/abs/1905.11946) (ICML 2019)
+  - [EfficientNet: Rethinking Model Scaling for Convolutional Neural Networks](https://arxiv.org/abs/1905.11946) (ICML 2019)
   - [Based on the Original keras.applications EfficientNet](https://github.com/keras-team/keras/blob/master/keras/applications/efficientnet.py)
 """
 
@@ -152,38 +151,41 @@ BASE_DOCSTRING = """Instantiates the {name} architecture.
   tensors of pixels with values in the [0-255] range.
 
   Args:
-    include_top: Whether to include the fully-connected
-        layer at the top of the network. Defaults to True.
-    weights: One of `None` (random initialization),
-          'imagenet' (pre-training on ImageNet),
-          or the path to the weights file to be loaded. Defaults to 'imagenet'.
-    input_tensor: Optional Keras tensor
-        (i.e. output of `layers.Input()`)
-        to use as image input for the model.
-    input_shape: Optional shape tuple, only to be specified
-        if `include_top` is False.
-        It should have exactly 3 inputs channels.
-    pooling: Optional pooling mode for feature extraction
-        when `include_top` is `False`. Defaults to None.
-        - `None` means that the output of the model will be
-            the 4D tensor output of the
-            last convolutional layer.
-        - `avg` means that global average pooling
-            will be applied to the output of the
-            last convolutional layer, and thus
-            the output of the model will be a 2D tensor.
-        - `max` means that global max pooling will
-            be applied.
-    classes: Optional number of classes to classify images
-        into, only to be specified if `include_top` is True, and
-        if no `weights` argument is specified. Defaults to 1000 (number of
-        ImageNet classes).
-    classifier_activation: A `str` or callable. The activation function to use
-        on the "top" layer. Ignored unless `include_top=True`. Set
-        `classifier_activation=None` to return the logits of the "top" layer.
-        Defaults to 'softmax'.
-        When loading pretrained weights, `classifier_activation` can only
-        be `None` or `"softmax"`.
+    include_rescaling: whether or not to Rescale the inputs.If set to True,
+        inputs will be passed through a `Rescaling(1/255.0)` layer.
+      width_coefficient: float, scaling coefficient for network width.
+      depth_coefficient: float, scaling coefficient for network depth.
+      default_size: integer, default input image size.
+      include_top: whether to include the fully-connected
+          layer at the top of the network.
+      weights: one of `None` (random initialization),
+            'imagenet' (pre-training on ImageNet),
+      input_shape: optional shape tuple, defaults to (None, None, 3).
+            or the path to the weights file to be loaded.
+      
+      pooling: optional pooling mode for feature extraction
+          when `include_top` is `False`.
+          - `None` means that the output of the model will be
+              the 4D tensor output of the
+              last convolutional layer.
+          - `avg` means that global average pooling
+              will be applied to the output of the
+              last convolutional layer, and thus
+              the output of the model will be a 2D tensor.
+          - `max` means that global max pooling will
+              be applied.
+      num_classes: optional number of classes to classify images into, only to be
+        specified if `include_top` is True, and if no `weights` argument is
+        specified.
+      classifier_activation: A `str` or callable. The activation function to use
+          on the "top" layer. Ignored unless `include_top=True`. Set
+          `classifier_activation=None` to return the logits of the "top" layer.
+      dropout_rate: float, dropout rate before final classifier layer.
+      drop_connect_rate: float, dropout rate at skip connections.
+      depth_divisor: integer, a unit of network width.
+      activation: activation function.
+      blocks_args: list of dicts, parameters to construct block modules.
+      name: string, model name.
 
   Returns:
     A `keras.Model` instance.
@@ -215,26 +217,18 @@ def EfficientNet(
     """Instantiates the EfficientNet architecture using given scaling coefficients.
 
     Args:
+      include_rescaling: whether or not to Rescale the inputs.If set to True,
+        inputs will be passed through a `Rescaling(1/255.0)` layer.
       width_coefficient: float, scaling coefficient for network width.
       depth_coefficient: float, scaling coefficient for network depth.
       default_size: integer, default input image size.
-      dropout_rate: float, dropout rate before final classifier layer.
-      drop_connect_rate: float, dropout rate at skip connections.
-      depth_divisor: integer, a unit of network width.
-      activation: activation function.
-      blocks_args: list of dicts, parameters to construct block modules.
-      name: string, model name.
       include_top: whether to include the fully-connected
           layer at the top of the network.
       weights: one of `None` (random initialization),
             'imagenet' (pre-training on ImageNet),
+      input_shape: optional shape tuple, defaults to (None, None, 3).
             or the path to the weights file to be loaded.
-      input_tensor: optional Keras tensor
-          (i.e. output of `layers.Input()`)
-          to use as image input for the model.
-      input_shape: optional shape tuple, only to be specified
-          if `include_top` is False.
-          It should have exactly 3 inputs channels.
+      
       pooling: optional pooling mode for feature extraction
           when `include_top` is `False`.
           - `None` means that the output of the model will be
@@ -246,12 +240,18 @@ def EfficientNet(
               the output of the model will be a 2D tensor.
           - `max` means that global max pooling will
               be applied.
-      num_classes: optional number of classes to classify images
-          into, only to be specified if `include_top` is True, and
-          if no `weights` argument is specified.
+      num_classes: optional number of classes to classify images into, only to be
+        specified if `include_top` is True, and if no `weights` argument is
+        specified.
       classifier_activation: A `str` or callable. The activation function to use
           on the "top" layer. Ignored unless `include_top=True`. Set
           `classifier_activation=None` to return the logits of the "top" layer.
+      dropout_rate: float, dropout rate before final classifier layer.
+      drop_connect_rate: float, dropout rate at skip connections.
+      depth_divisor: integer, a unit of network width.
+      activation: activation function.
+      blocks_args: list of dicts, parameters to construct block modules.
+      name: string, model name.
 
     Returns:
       A `keras.Model` instance.
@@ -277,17 +277,6 @@ def EfficientNet(
             f"Received: num_classes={num_classes}"
         )
 
-    # Determine proper input shape
-    input_shape = imagenet_utils.obtain_input_shape(
-        input_shape,
-        default_size=default_size,
-        min_size=32,
-        data_format=backend.image_data_format(),
-        require_flatten=include_top,
-        weights=weights,
-    )
-
-    
     img_input = layers.Input(shape=input_shape)
     
 
