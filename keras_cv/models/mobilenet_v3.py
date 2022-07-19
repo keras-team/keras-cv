@@ -88,7 +88,7 @@ BASE_DOCSTRING = """Instantiates the {name} architecture.
             drop, defaults to 0.2.
         classifier_activation: the activation function to use, defaults to softmax.
         include_rescaling: whether or not to Rescale the inputs.If set to True,
-            inputs will be passed through a `Rescaling(scale=1.0 / 127.5, offset=-1.0)`
+            inputs will be passed through a `Rescaling(scale=1 / 255)`
             layer, defaults to True.
         name: (Optional) name to pass to the model. Defaults to "{name}".
 
@@ -105,7 +105,6 @@ def depth(x, divisor=8, min_value=None):
         divisor: integer, the value by which a channel number should be divisble,
             defaults to 8.
         min_value: float, minimum value for the new tensor.
-        name: string, layer label.
 
     Returns:
         the updated value of the input.
@@ -316,7 +315,7 @@ def MobileNetV3(
             drop, defaults to 0.2.
         classifier_activation: the activation function to use, defaults to softmax.
         include_rescaling: whether or not to Rescale the inputs.If set to True,
-            inputs will be passed through a `Rescaling(scale=1.0 / 127.5, offset=-1.0)`
+            inputs will be passed through a `Rescaling(scale=1 / 255)`
             layer, defaults to True.
         minimalistic: in addition to large and small models this module also
             contains so-called minimalistic models, these models have the same
