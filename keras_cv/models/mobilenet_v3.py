@@ -362,7 +362,7 @@ def MobileNetV3(
     x = inputs
 
     if include_rescaling:
-        x = layers.Rescaling(scale=1.0 / 127.5, offset=-1.0)(x)
+        x = layers.Rescaling(scale=1 / 255)(x)
 
     x = layers.Conv2D(
         16,
