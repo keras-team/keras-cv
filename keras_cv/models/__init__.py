@@ -18,9 +18,9 @@ from keras_cv.models.darknet import DarkNet53
 from keras_cv.models.densenet import DenseNet121
 from keras_cv.models.densenet import DenseNet169
 from keras_cv.models.densenet import DenseNet201
-from keras_cv.models.mobilenet_v3 import MobileNetV3Large
-from keras_cv.models.mobilenet_v3 import MobileNetV3Small
 from keras_cv.models.mlp_mixer import MLPMixerB16
 from keras_cv.models.mlp_mixer import MLPMixerB32
 from keras_cv.models.mlp_mixer import MLPMixerL16
+from keras_cv.models.mobilenet_v3 import MobileNetV3Large
+from keras_cv.models.mobilenet_v3 import MobileNetV3Small
 from keras_cv.models.vgg19 import VGG19

@@ -20,8 +20,8 @@ from tensorflow.keras import backend
 from keras_cv.models import csp_darknet
 from keras_cv.models import darknet
 from keras_cv.models import densenet
-from keras_cv.models import mobilenet_v3
 from keras_cv.models import mlp_mixer
+from keras_cv.models import mobilenet_v3
 from keras_cv.models import vgg19
 
 MODEL_LIST = [
