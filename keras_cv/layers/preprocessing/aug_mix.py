@@ -98,15 +98,19 @@ class AugMix(BaseImageAugmentationLayer):
         self.auto_contrast = layers.AutoContrast(value_range=self.value_range)
         self.equalize = layers.Equalization(value_range=self.value_range)
 
-    @staticmethod
-    def _sample_from_dirichlet(alpha):
-        gamma_sample = tf.random.gamma(shape=(), alpha=alpha)
+    def _sample_from_dirichlet(self, alpha):
+        gamma_sample = tf.random.gamma(
+            shape=(), alpha=alpha, seed=self._random_generator.make_legacy_seed()
+        )
         return gamma_sample / tf.reduce_sum(gamma_sample, axis=-1, keepdims=True)
 
-    @staticmethod
-    def _sample_from_beta(alpha, beta):
-        sample_alpha = tf.random.gamma((), 1.0, beta=alpha)
-        sample_beta = tf.random.gamma((), 1.0, beta=beta)
+    def _sample_from_beta(self, alpha, beta):
+        sample_alpha = tf.random.gamma(
+            (), 1.0, beta=alpha, seed=self._random_generator.make_legacy_seed()
+        )
+        sample_beta = tf.random.gamma(
+            (), 1.0, beta=beta, seed=self._random_generator.make_legacy_seed()
+        )
         return sample_alpha / (sample_alpha + sample_beta)
 
     def _sample_depth(self):
@@ -282,10 +286,10 @@ class AugMix(BaseImageAugmentationLayer):
         return augmented
 
     def augment_image(self, image, transformation=None, **kwargs):
-        chain_mixing_weights = AugMix._sample_from_dirichlet(
+        chain_mixing_weights = self._sample_from_dirichlet(
             tf.ones([self.num_chains]) * self.alpha
         )
-        weight_sample = AugMix._sample_from_beta(self.alpha, self.alpha)
+        weight_sample = self._sample_from_beta(self.alpha, self.alpha)
 
         result = tf.zeros_like(image)
         curr_chain = tf.constant([0], dtype=tf.int32)

@@ -11,17 +11,24 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import inspect
+
 import tensorflow as tf
 from absl.testing import parameterized
 
 from keras_cv import core
+from keras_cv.layers import object_detection
 from keras_cv.layers import preprocessing
 from keras_cv.layers import regularization
 
 
 def custom_compare(obj1, obj2):
-    if isinstance(obj1, core.FactorSampler):
-        return obj1.get_config() == obj2.get_config()
+    if isinstance(obj1, (core.FactorSampler, tf.keras.layers.Layer)):
+        return config_equals(obj1.get_config(), obj2.get_config())
+    elif inspect.isfunction(obj1):
+        return tf.keras.utils.serialize_keras_object(obj1) == obj2
+    elif inspect.isfunction(obj2):
+        return obj1 == tf.keras.utils.serialize_keras_object(obj2)
     else:
         return obj1 == obj2
 
@@ -118,6 +125,17 @@ class SerializationTest(tf.test.TestCase, parameterized.TestCase):
             },
         ),
         (
+            "RandomResizedCrop",
+            preprocessing.RandomResizedCrop,
+            {
+                "target_size": (224, 224),
+                "crop_area_factor": (0.08, 1.0),
+                "aspect_ratio_factor": (3.0 / 4.0, 4.0 / 3.0),
+                "interpolation": "bilinear",
+                "seed": 1,
+            },
+        ),
+        (
             "DropBlock2D",
             regularization.DropBlock2D,
             {"rate": 0.1, "block_size": (7, 7), "seed": 1234},
@@ -126,6 +144,16 @@ class SerializationTest(tf.test.TestCase, parameterized.TestCase):
             "StochasticDepth",
             regularization.StochasticDepth,
             {"rate": 0.1},
+        ),
+        (
+            "SqueezeAndExcite2D",
+            regularization.SqueezeAndExcite2D,
+            {
+                "filters": 16,
+                "ratio": 0.25,
+                "squeeze_activation": tf.keras.layers.ReLU(),
+                "excite_activation": tf.keras.activations.relu,
+            },
         ),
         (
             "DropPath",
@@ -158,6 +186,18 @@ class SerializationTest(tf.test.TestCase, parameterized.TestCase):
                 "chain_depth": -1,
                 "alpha": 1.0,
                 "seed": 1,
+            },
+        ),
+        (
+            "NonMaxSuppression",
+            object_detection.NonMaxSuppression,
+            {
+                "num_classes": 5,
+                "bounding_box_format": "xyxy",
+                "confidence_threshold": 0.5,
+                "iou_threshold": 0.5,
+                "max_detections": 100,
+                "max_detections_per_class": 100,
             },
         ),
     )
