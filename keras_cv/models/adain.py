@@ -24,14 +24,19 @@ from tensorflow import keras
 from tensorflow.keras import layers
 
 
-def get_mini_vgg19_encoder(image_size):
-    vgg19 = keras.applications.VGG19(
+def get_mini_vgg19_encoder(include_rescaling, image_size):
+    inputs = layers.Input([*image_size, 3])
+    x = inputs
+    if include_rescaling:
+         x = keras.applications.vgg19.preprocess_inputs(x)
+    backbone = keras.applications.VGG19(
         include_top=False,
         weights="imagenet",
-        input_shape=(*image_size, 3),
+        input_tensor=x,
     )
-    vgg19.trainable = False
-    return keras.Model(vgg19.input, vgg19.get_layer("block4_conv1").output, name="mini_vgg19")
+    x = backbone(x)
+    backbone.trainable = False
+    return keras.Model(inputs, vgg19.get_layer("block4_conv1").output, name="mini_vgg19")
 
 
 def get_adain_decoder():
@@ -62,16 +67,19 @@ def get_adain_decoder():
     return decoder    
 
 
-def get_loss_net(image_size=(None, None)):
+def get_loss_net(include_rescaling, image_size=(None, None)):
+    inputs = layers.Input([*image_size, 3])
+    x = inputs
+    if include_rescaling:
+    	x = keras.applications.vgg19.preprocess_inputs(x) 
     vgg19 = keras.applications.VGG19(
-        include_top=False, weights="imagenet", input_shape=(*image_size, 3)
+        include_top=False, weights="imagenet", input_tensor=x
     )
+    x = vgg19(x)
     vgg19.trainable = False
     layer_names = ["block1_conv1", "block2_conv1", "block3_conv1", "block4_conv1"]
     outputs = [vgg19.get_layer(name).output for name in layer_names]
-    mini_vgg19 = keras.Model(vgg19.input, outputs)
-
-    inputs = layers.Input([*IMAGE_SIZE, 3])
+    mini_vgg19 = keras.Model(x, outputs)
     mini_vgg19_out = mini_vgg19(inputs)
     return keras.Model(inputs, mini_vgg19_out, name="loss_net")
 
@@ -105,35 +113,36 @@ class AdaIN(layers.Layer):
         return t
 
 
-class AdaINModel(keras.Model):
-    def __init__(self, image_size=(None, None), style_weight=4.0, **kwargs):
+def create_adain_model(include_rescaling, image_size):
+    encoder = get_mini_vgg19_encoder(include_rescaling, image_size)
+    decoder = get_adain_decoder()
+    adain_layer = AdaIn()
+    style_input = layers.Input([*self.image_size, 3])
+    style_encoded = encoder(style_input)
+    content_input = layers.Input([*self.image_size, 3])
+    content_encoded = encoder(content_input)
+
+    adain_feature_map = adain_layer((style_encoded, content_encoded))
+    content_decoded = decoder(adain_feature_map)
+        
+    model=keras.Model([style_input, content_input], content_decoded, name="adain_style_transfer")
+    return encoder, decoder, model
+    
+
+
+class AdaInTrainer(keras.Model):
+    def __init__(self, include_rescaling, optimizer, image_size=(None, None), style_weight=4.0, **kwargs):
         super().__init__(**kwargs)
         self.image_size = image_size
-        self.encoder = get_mini_vgg19_encoder(image_size)
-        self.decoder = get_adain_decoder()
-        self.adain_layer = AdaIN()
-        self.loss_net = get_loss_net(image_size)
+        self.encoder, self.decoder, self.model = create_adain_model(include_rescaling, image_size)
+        self.loss_net = get_loss_net(include_rescaling, image_size)
         self.style_weight = style_weight
-
-    def produce_functional_model():
-        style_input = layers.Input([*self.image_size, 3])
-        style_encoded = self.encoder(style_input)
-        content_input = layers.Input([*self.image_size, 3])
-        content_encoded = self.encoder(content_input)
-
-        adain_feature_map = self.adain_layer((style_encoded, content_encoded))
-        content_decoded = self.decoder(adain_feature_map)
-        
-        return keras.Model([style_input, content_input], content_decoded, name="adain_style_transfer")
-
-
-    def compile(self, optimizer, loss_fn):
-        super().compile()
         self.optimizer = optimizer
-        self.loss_fn = loss_fn
+        self.loss_fn = get_loss_net(include_rescaling, image_size)
         self.style_loss_tracker = keras.metrics.Mean(name="style_loss")
         self.content_loss_tracker = keras.metrics.Mean(name="content_loss")
         self.total_loss_tracker = keras.metrics.Mean(name="total_loss")
+
         
     def call(self, inputs):
         style, content = inputs
