@@ -91,7 +91,7 @@ def main(argv):
         mode="max",
     )
     tensorboard = TensorBoard(log_dir=gcs_tensorboard_path)
-    early_stopping = EarlyStopping(patience=5)
+    early_stopping = EarlyStopping(patience=10)
     callbacks = [gcs_backup, local_checkpoint, tensorboard, early_stopping]
 
     if _WANDB_PROJECT.value:

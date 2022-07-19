@@ -23,9 +23,7 @@ def load_cats_and_dogs_dataset(batch_size=32):
     train_ds, test_ds = tfds.load(
         "cats_vs_dogs", split=["train[:90%]", "train[90%:]"], as_supervised=True
     )
-
     resizing = Resizing(150, 150)
-
     train = train_ds.map(
         lambda x, y: (resizing(x), tf.one_hot(y, 2)),
         num_parallel_calls=tf.data.AUTOTUNE,
@@ -34,7 +32,6 @@ def load_cats_and_dogs_dataset(batch_size=32):
         lambda x, y: (resizing(x), tf.one_hot(y, 2)),
         num_parallel_calls=tf.data.AUTOTUNE,
     ).batch(batch_size)
-
     return train, test
 
 
@@ -51,5 +48,5 @@ def load_cifar10_dataset(batch_size=32):
 
 def get_learning_rate_schedule(decay_steps):
     return PolynomialDecay(
-        initial_learning_rate=0.01, decay_steps=decay_steps, end_learning_rate=0.0001
+        initial_learning_rate=0.005, decay_steps=decay_steps, end_learning_rate=0.0001
     )
