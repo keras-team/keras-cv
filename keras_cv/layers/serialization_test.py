@@ -17,6 +17,7 @@ import tensorflow as tf
 from absl.testing import parameterized
 
 from keras_cv import core
+from keras_cv.layers import object_detection
 from keras_cv.layers import preprocessing
 from keras_cv.layers import regularization
 
@@ -185,6 +186,18 @@ class SerializationTest(tf.test.TestCase, parameterized.TestCase):
                 "chain_depth": -1,
                 "alpha": 1.0,
                 "seed": 1,
+            },
+        ),
+        (
+            "NonMaxSuppression",
+            object_detection.NonMaxSuppression,
+            {
+                "num_classes": 5,
+                "bounding_box_format": "xyxy",
+                "confidence_threshold": 0.5,
+                "iou_threshold": 0.5,
+                "max_detections": 100,
+                "max_detections_per_class": 100,
             },
         ),
     )
