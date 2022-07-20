@@ -15,12 +15,19 @@ import tensorflow as tf
 from absl.testing import parameterized
 
 from keras_cv.layers import preprocessing
+
+# Imports from with_labels the list of augmentation that should perform a No-Op.
 from keras_cv.layers.preprocessing.with_labels_test import TEST_CONFIGURATIONS
+
+# List here the layers that are expected to modify keypoints with
+# their specific parameters.
+GEOMETRIC_TEST_CONFIGURATIONS = []
 
 
 class WithKeypointsTest(tf.test.TestCase, parameterized.TestCase):
     @parameterized.named_parameters(
         *TEST_CONFIGURATIONS,
+        *GEOMETRIC_TEST_CONFIGURATIONS,
         ("CutMix", preprocessing.CutMix, {}),
     )
     def test_can_run_with_keypoints(self, layer_cls, init_args):
@@ -39,7 +46,10 @@ class WithKeypointsTest(tf.test.TestCase, parameterized.TestCase):
         self.assertTrue("keypoints" in outputs)
 
     # this has to be a separate test case to exclude CutMix and MixUp
-    @parameterized.named_parameters(*TEST_CONFIGURATIONS)
+    @parameterized.named_parameters(
+        *TEST_CONFIGURATIONS,
+        *GEOMETRIC_TEST_CONFIGURATIONS,
+    )
     def test_can_run_with_keypoints_single_image(self, layer_cls, init_args):
         if "clip_points_to_image_size" in init_args:
             init_args["clip_points_to_image_size"] = True
