@@ -75,7 +75,9 @@ class ApplicationsTest(tf.test.TestCase, parameterized.TestCase):
 
         output_shape = model.output_shape
 
-        if "Mixer" not in app.__name__:
+        if "VGG" in app.__name__:
+            self.assertShapeEqual(output_shape, (None, 7, 7, last_dim))
+        elif "Mixer" not in app.__name__:
             self.assertShapeEqual(output_shape, (None, None, None, last_dim))
         elif "MixerB16" in app.__name__ or "MixerL16" in app.__name__:
             num_patches = 196
@@ -94,7 +96,9 @@ class ApplicationsTest(tf.test.TestCase, parameterized.TestCase):
 
         output_shape = model.output_shape
 
-        if "Mixer" not in app.__name__:
+        if "VGG" in app.__name__:
+            self.assertShapeEqual(output_shape, (None, 7, 7, last_dim))
+        elif "Mixer" not in app.__name__:
             self.assertShapeEqual(output_shape, (None, None, None, last_dim))
         elif "MixerB16" in app.__name__ or "MixerL16" in app.__name__:
             num_patches = 196
@@ -144,7 +148,7 @@ class ApplicationsTest(tf.test.TestCase, parameterized.TestCase):
 
         backend.clear_session()
 
-        four_channel_input_shape = (input_shape[0], input_shape[1], 1)
+        four_channel_input_shape = (input_shape[0], input_shape[1], 4)
         model = app(
             include_rescaling=False,
             include_top=False,
@@ -154,9 +158,7 @@ class ApplicationsTest(tf.test.TestCase, parameterized.TestCase):
 
         output_shape = model.output_shape
 
-        if "VGG" in app.__name__:
-            self.assertShapeEqual(output_shape, (None, 7, 7, last_dim))
-        elif "Mixer" not in app.__name__:
+        if "Mixer" not in app.__name__:
             self.assertShapeEqual(output_shape, (None, None, None, last_dim))
         elif "MixerB16" in app.__name__ or "MixerL16" in app.__name__:
             num_patches = 196
