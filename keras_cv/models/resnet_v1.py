@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""ResNet models for Keras.
+"""ResNet models for KerasCV.
 Reference:
   - [Deep Residual Learning for Image Recognition](https://arxiv.org/abs/1512.03385) (CVPR 2015)
   - [Based on the original keras.applications ResNet](https://github.com/keras-team/keras/blob/master/keras/applications/resnet.py)
@@ -80,7 +80,7 @@ BASE_DOCSTRING = """Instantiates the {name} architecture.
 """
 
 
-def V1Block(filters, kernel_size=3, stride=1, conv_shortcut=True, name=None):
+def Block(filters, kernel_size=3, stride=1, conv_shortcut=True, name=None):
     """A residual block.
     Args:
       x: input tensor.
@@ -98,35 +98,33 @@ def V1Block(filters, kernel_size=3, stride=1, conv_shortcut=True, name=None):
 
     def apply(x):
         if conv_shortcut:
-            shortcut = layers.Conv2D(4 * filters,
-                                     1,
-                                     strides=stride,
-                                     name=name + "_0_conv")(x)
-            shortcut = layers.BatchNormalization(axis=BN_AXIS,
-                                                 epsilon=1.001e-5,
-                                                 name=name + "_0_bn")(shortcut)
+            shortcut = layers.Conv2D(
+                4 * filters, 1, strides=stride, name=name + "_0_conv"
+            )(x)
+            shortcut = layers.BatchNormalization(
+                axis=BN_AXIS, epsilon=1.001e-5, name=name + "_0_bn"
+            )(shortcut)
         else:
             shortcut = x
 
         x = layers.Conv2D(filters, 1, strides=stride, name=name + "_1_conv")(x)
-        x = layers.BatchNormalization(axis=BN_AXIS,
-                                      epsilon=1.001e-5,
-                                      name=name + "_1_bn")(x)
+        x = layers.BatchNormalization(
+            axis=BN_AXIS, epsilon=1.001e-5, name=name + "_1_bn"
+        )(x)
         x = layers.Activation("relu", name=name + "_1_relu")(x)
 
-        x = layers.Conv2D(filters,
-                          kernel_size,
-                          padding="SAME",
-                          name=name + "_2_conv")(x)
-        x = layers.BatchNormalization(axis=BN_AXIS,
-                                      epsilon=1.001e-5,
-                                      name=name + "_2_bn")(x)
+        x = layers.Conv2D(filters, kernel_size, padding="SAME", name=name + "_2_conv")(
+            x
+        )
+        x = layers.BatchNormalization(
+            axis=BN_AXIS, epsilon=1.001e-5, name=name + "_2_bn"
+        )(x)
         x = layers.Activation("relu", name=name + "_2_relu")(x)
 
         x = layers.Conv2D(4 * filters, 1, name=name + "_3_conv")(x)
-        x = layers.BatchNormalization(axis=BN_AXIS,
-                                      epsilon=1.001e-5,
-                                      name=name + "_3_bn")(x)
+        x = layers.BatchNormalization(
+            axis=BN_AXIS, epsilon=1.001e-5, name=name + "_3_bn"
+        )(x)
 
         x = layers.Add(name=name + "_add")([shortcut, x])
         x = layers.Activation("relu", name=name + "_out")(x)
@@ -135,7 +133,7 @@ def V1Block(filters, kernel_size=3, stride=1, conv_shortcut=True, name=None):
     return apply
 
 
-def V1Stack(filters, blocks, stride=2, name=None):
+def Stack(filters, blocks, stride=2, name=None):
     """A set of stacked residual blocks.
     Args:
       filters: integer, filters of the bottleneck layer in a block.
@@ -149,11 +147,9 @@ def V1Stack(filters, blocks, stride=2, name=None):
         name = f"v1_stack_{backend.get_uid('v1_stack')}"
 
     def apply(x):
-        x = V1Block(filters, stride=stride, name=name + "_block1")(x)
+        x = Block(filters, stride=stride, name=name + "_block1")(x)
         for i in range(2, blocks + 1):
-            x = V1Block(filters,
-                        conv_shortcut=False,
-                        name=name + "_block" + str(i))(x)
+            x = Block(filters, conv_shortcut=False, name=name + "_block" + str(i))(x)
         return x
 
     return apply
@@ -165,15 +161,15 @@ def ResNet(
     stackwise_strides,
     include_rescaling,
     name="ResNet",
-    include_top=True,
+    include_top=None,
     weights=None,
     input_shape=(None, None, 3),
     pooling=None,
-    num_classes=1000,
+    num_classes=None,
     classifier_activation="softmax",
     **kwargs,
 ):
-    """Instantiates the ResNet and ResNetV2 architecture.
+    """Instantiates the ResNet architecture.
 
     Args:
       stackwise_filters: number of filters for each stack in the model.
@@ -220,23 +216,25 @@ def ResNet(
     if include_top and not num_classes:
         raise ValueError(
             "If `include_top` is True, you should specify `num_classes`. "
-            f"Received: num_classes={num_classes}")
+            f"Received: num_classes={num_classes}"
+        )
+
+    if include_top and pooling:
+        raise ValueError(
+            f"`pooling` must be `None` when `include_top=True`."
+            f"Received pooling={pooling} and include_top={include_top}. "
+        )
 
     img_input = layers.Input(shape=input_shape)
 
     if include_rescaling:
         img_input = layers.Rescaling(1 / 255.0)(img_input)
 
-    x = layers.Conv2D(64,
-                      7,
-                      strides=2,
-                      use_bias=True,
-                      padding="same",
-                      name="conv1_conv")(img_input)
+    x = layers.Conv2D(
+        64, 7, strides=2, use_bias=True, padding="same", name="conv1_conv"
+    )(img_input)
 
-    x = layers.BatchNormalization(axis=BN_AXIS,
-                                  epsilon=1.001e-5,
-                                  name="conv1_bn")(x)
+    x = layers.BatchNormalization(axis=BN_AXIS, epsilon=1.001e-5, name="conv1_bn")(x)
     x = layers.Activation("relu", name="conv1_relu")(x)
 
     x = layers.MaxPooling2D(3, strides=2, padding="same", name="pool1_pool")(x)
@@ -244,7 +242,7 @@ def ResNet(
     num_stacks = len(stackwise_filters)
 
     for stack_index in range(num_stacks):
-        x = V1Stack(
+        x = Stack(
             filters=stackwise_filters[stack_index],
             blocks=stackwise_blocks[stack_index],
             stride=stackwise_strides[stack_index],
@@ -252,9 +250,9 @@ def ResNet(
 
     if include_top:
         x = layers.GlobalAveragePooling2D(name="avg_pool")(x)
-        x = layers.Dense(num_classes,
-                         activation=classifier_activation,
-                         name="predictions")(x)
+        x = layers.Dense(
+            num_classes, activation=classifier_activation, name="predictions"
+        )(x)
     else:
         if pooling == "avg":
             x = layers.GlobalAveragePooling2D(name="avg_pool")(x)
@@ -275,7 +273,7 @@ def ResNet(
 def ResNet50(
     include_rescaling,
     include_top,
-    num_classes=1000,
+    num_classes=None,
     weights=None,
     input_shape=(None, None, 3),
     pooling=None,
@@ -304,7 +302,7 @@ def ResNet50(
 def ResNet101(
     include_rescaling,
     include_top,
-    num_classes=1000,
+    num_classes=None,
     weights=None,
     input_shape=(None, None, 3),
     pooling=None,
@@ -332,7 +330,7 @@ def ResNet101(
 def ResNet152(
     include_rescaling,
     include_top,
-    num_classes=1000,
+    num_classes=None,
     weights=None,
     input_shape=(None, None, 3),
     pooling=None,
@@ -355,3 +353,8 @@ def ResNet152(
         classifier_activation=classifier_activation,
         **kwargs,
     )
+
+
+setattr(ResNet50, "__doc__", BASE_DOCSTRING.format(name="ResNet50"))
+setattr(ResNet101, "__doc__", BASE_DOCSTRING.format(name="ResNet101"))
+setattr(ResNet152, "__doc__", BASE_DOCSTRING.format(name="ResNet152"))

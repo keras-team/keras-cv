@@ -96,34 +96,29 @@ def V2Block(filters, kernel_size=3, stride=1, conv_shortcut=False, name=None):
 
     def apply(x):
         use_preactivation = layers.BatchNormalization(
-            axis=BN_AXIS,
-            epsilon=1.001e-5,
-            name=name + "_use_preactivation_bn")(x)
+            axis=BN_AXIS, epsilon=1.001e-5, name=name + "_use_preactivation_bn"
+        )(x)
 
         use_preactivation = layers.Activation(
-            "relu", name=name + "_use_preactivation_relu")(use_preactivation)
+            "relu", name=name + "_use_preactivation_relu"
+        )(use_preactivation)
 
         if conv_shortcut:
-            shortcut = layers.Conv2D(4 * filters,
-                                     1,
-                                     strides=stride,
-                                     name=name + "_0_conv")(use_preactivation)
+            shortcut = layers.Conv2D(
+                4 * filters, 1, strides=stride, name=name + "_0_conv"
+            )(use_preactivation)
         else:
-            shortcut = layers.MaxPooling2D(
-                1, strides=stride)(x) if stride > 1 else x
+            shortcut = layers.MaxPooling2D(1, strides=stride)(x) if stride > 1 else x
 
-        x = layers.Conv2D(filters,
-                          1,
-                          strides=1,
-                          use_bias=False,
-                          name=name + "_1_conv")(use_preactivation)
-        x = layers.BatchNormalization(axis=BN_AXIS,
-                                      epsilon=1.001e-5,
-                                      name=name + "_1_bn")(x)
+        x = layers.Conv2D(filters, 1, strides=1, use_bias=False, name=name + "_1_conv")(
+            use_preactivation
+        )
+        x = layers.BatchNormalization(
+            axis=BN_AXIS, epsilon=1.001e-5, name=name + "_1_bn"
+        )(x)
         x = layers.Activation("relu", name=name + "_1_relu")(x)
 
-        x = layers.ZeroPadding2D(padding=((1, 1), (1, 1)),
-                                 name=name + "_2_pad")(x)
+        x = layers.ZeroPadding2D(padding=((1, 1), (1, 1)), name=name + "_2_pad")(x)
         x = layers.Conv2D(
             filters,
             kernel_size,
@@ -131,9 +126,9 @@ def V2Block(filters, kernel_size=3, stride=1, conv_shortcut=False, name=None):
             use_bias=False,
             name=name + "_2_conv",
         )(x)
-        x = layers.BatchNormalization(axis=BN_AXIS,
-                                      epsilon=1.001e-5,
-                                      name=name + "_2_bn")(x)
+        x = layers.BatchNormalization(
+            axis=BN_AXIS, epsilon=1.001e-5, name=name + "_2_bn"
+        )(x)
         x = layers.Activation("relu", name=name + "_2_relu")(x)
 
         x = layers.Conv2D(4 * filters, 1, name=name + "_3_conv")(x)
@@ -160,8 +155,7 @@ def V2Stack(filters, blocks, stride=2, name=None):
         x = V2Block(filters, conv_shortcut=True, name=name + "_block1")(x)
         for i in range(2, blocks):
             x = V2Block(filters, name=name + "_block" + str(i))(x)
-        x = V2Block(filters, stride=stride,
-                    name=name + "_block" + str(blocks))(x)
+        x = V2Block(filters, stride=stride, name=name + "_block" + str(blocks))(x)
         return x
 
     return apply
@@ -173,15 +167,15 @@ def ResNetV2(
     stackwise_strides,
     include_rescaling,
     name="ResNetV2",
-    include_top=True,
+    include_top=None,
     weights=None,
     input_shape=(None, None, 3),
     pooling=None,
-    num_classes=1000,
+    num_classes=None,
     classifier_activation="softmax",
     **kwargs,
 ):
-    """Instantiates the ResNet and ResNetV2 architecture.
+    """Instantiates the ResNetV2 architecture.
 
     Args:
       stackwise_filters: number of filters for each stack in the model.
@@ -228,19 +222,23 @@ def ResNetV2(
     if include_top and not num_classes:
         raise ValueError(
             "If `include_top` is True, you should specify `num_classes`. "
-            f"Received: num_classes={num_classes}")
+            f"Received: num_classes={num_classes}"
+        )
+
+    if include_top and pooling:
+        raise ValueError(
+            f"`pooling` must be `None` when `include_top=True`."
+            f"Received pooling={pooling} and include_top={include_top}. "
+        )
 
     img_input = layers.Input(shape=input_shape)
 
     if include_rescaling:
         img_input = layers.Rescaling(1 / 255.0)(img_input)
 
-    x = layers.Conv2D(64,
-                      7,
-                      strides=2,
-                      use_bias=True,
-                      padding="same",
-                      name="conv1_conv")(img_input)
+    x = layers.Conv2D(
+        64, 7, strides=2, use_bias=True, padding="same", name="conv1_conv"
+    )(img_input)
 
     x = layers.MaxPooling2D(3, strides=2, padding="same", name="pool1_pool")(x)
 
@@ -253,16 +251,14 @@ def ResNetV2(
             stride=stackwise_strides[stack_index],
         )(x)
 
-    x = layers.BatchNormalization(axis=BN_AXIS,
-                                  epsilon=1.001e-5,
-                                  name="post_bn")(x)
+    x = layers.BatchNormalization(axis=BN_AXIS, epsilon=1.001e-5, name="post_bn")(x)
     x = layers.Activation("relu", name="post_relu")(x)
 
     if include_top:
         x = layers.GlobalAveragePooling2D(name="avg_pool")(x)
-        x = layers.Dense(num_classes,
-                         activation=classifier_activation,
-                         name="predictions")(x)
+        x = layers.Dense(
+            num_classes, activation=classifier_activation, name="predictions"
+        )(x)
     else:
         if pooling == "avg":
             x = layers.GlobalAveragePooling2D(name="avg_pool")(x)
@@ -283,7 +279,7 @@ def ResNetV2(
 def ResNet50V2(
     include_rescaling,
     include_top,
-    num_classes=1000,
+    num_classes=None,
     weights=None,
     input_shape=(None, None, 3),
     pooling=None,
@@ -312,7 +308,7 @@ def ResNet50V2(
 def ResNet101V2(
     include_rescaling,
     include_top,
-    num_classes=1000,
+    num_classes=None,
     weights=None,
     input_shape=(None, None, 3),
     pooling=None,
@@ -340,7 +336,7 @@ def ResNet101V2(
 def ResNet152V2(
     include_rescaling,
     include_top,
-    num_classes=1000,
+    num_classes=None,
     weights=None,
     input_shape=(None, None, 3),
     pooling=None,
@@ -363,3 +359,8 @@ def ResNet152V2(
         classifier_activation=classifier_activation,
         **kwargs,
     )
+
+
+setattr(ResNet50V2, "__doc__", BASE_DOCSTRING.format(name="ResNet50V2"))
+setattr(ResNet101V2, "__doc__", BASE_DOCSTRING.format(name="ResNet101V2"))
+setattr(ResNet152V2, "__doc__", BASE_DOCSTRING.format(name="ResNet152V2"))
