@@ -16,18 +16,12 @@ from absl.testing import parameterized
 
 from keras_cv.layers import preprocessing
 
+# List of augmentation layers that do not modify
+# geometry. i.e. `augment_bounding_boxes()` and `augment_keypoints()`
+# is a No-Op.
 TEST_CONFIGURATIONS = [
     ("AutoContrast", preprocessing.AutoContrast, {"value_range": (0, 255)}),
     ("Equalization", preprocessing.Equalization, {"value_range": (0, 255)}),
-    (
-        "RandomResizedCrop",
-        preprocessing.RandomResizedCrop,
-        {
-            "target_size": (224, 224),
-            "crop_area_factor": (0.8, 1.0),
-            "aspect_ratio_factor": (3 / 4, 4 / 3),
-        },
-    ),
     ("Grayscale", preprocessing.Grayscale, {}),
     ("GridMask", preprocessing.GridMask, {}),
     (
@@ -83,10 +77,26 @@ TEST_CONFIGURATIONS = [
     ("Solarization", preprocessing.Solarization, {"value_range": (0, 255)}),
 ]
 
+# List of augmentation layers that does modify
+# geometry. i.e. `augment_bounding_boxes()` and `augment_keypoints()`
+# is a No-Op.
+GEOMETRIC_TEST_CONFIGURATIONS = [
+    (
+        "RandomResizedCrop",
+        preprocessing.RandomResizedCrop,
+        {
+            "target_size": (224, 224),
+            "crop_area_factor": (0.8, 1.0),
+            "aspect_ratio_factor": (3 / 4, 4 / 3),
+        },
+    ),
+]
+
 
 class WithLabelsTest(tf.test.TestCase, parameterized.TestCase):
     @parameterized.named_parameters(
         *TEST_CONFIGURATIONS,
+        *GEOMETRIC_TEST_CONFIGURATIONS,
         ("CutMix", preprocessing.CutMix, {}),
     )
     def test_can_run_with_labels(self, layer_cls, init_args):
@@ -101,7 +111,10 @@ class WithLabelsTest(tf.test.TestCase, parameterized.TestCase):
         _ = layer(inputs)
 
     # this has to be a separate test case to exclude CutMix and MixUp
-    @parameterized.named_parameters(*TEST_CONFIGURATIONS)
+    @parameterized.named_parameters(
+        *TEST_CONFIGURATIONS,
+        *GEOMETRIC_TEST_CONFIGURATIONS,
+    )
     def test_can_run_with_labels_single_image(self, layer_cls, init_args):
         layer = layer_cls(**init_args)
         img = tf.random.uniform(
