@@ -79,7 +79,7 @@ TEST_CONFIGURATIONS = [
 
 # List of augmentation layers that does modify
 # geometry. i.e. `augment_bounding_boxes()` and `augment_keypoints()`
-# is a No-Op.
+# are expected to modify bounding boxes or keypoints.
 GEOMETRIC_TEST_CONFIGURATIONS = [
     (
         "RandomResizedCrop",
