@@ -283,6 +283,42 @@ class ApplicationsTest(tf.test.TestCase, parameterized.TestCase):
 
         backend.clear_session()
 
+    @parameterized.parameters(*MODEL_LIST)
+    def test_rescaling(self, app, _):
+        for include_rescaling in [True, False]:
+            if "Mixer" not in app.__name__:
+                model = app(
+                    input_shape=(224, 224, 3),
+                    include_top=True,
+                    num_classes=1000,
+                    include_rescaling=include_rescaling,
+                    weights=None,
+                )
+            elif "MixerB16" in app.__name__ or "MixerL16" in app.__name__:
+                model = app(
+                    input_shape=(224, 224, 3),
+                    patch_size=(16, 16),
+                    include_top=True,
+                    num_classes=1000,
+                    include_rescaling=include_rescaling,
+                    weights=None,
+                )
+            elif "MixerB32" in app.__name__:
+                model = app(
+                    input_shape=(224, 224, 3),
+                    patch_size=(32, 32),
+                    include_top=True,
+                    num_classes=1000,
+                    include_rescaling=include_rescaling,
+                    weights=None,
+                )
+
+            if include_rescaling:
+                self.assertIsNotNone(model.get_layer(name="rescaling"))
+            else:
+                with self.assertRaises(ValueError):
+                    model.get_layer(name="rescaling")
+
 
 def _get_output_shape(model_fn):
     model = model_fn()
