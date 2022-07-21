@@ -14,8 +14,6 @@
 import tensorflow as tf
 from tensorflow.keras import backend
 
-import keras_cv.bounding_box.converters as bbox_formater
-from keras_cv import bounding_box
 from keras_cv import core
 
 
@@ -325,40 +323,3 @@ def check_fill_mode_and_interpolation(fill_mode, interpolation):
             "Unknown `interpolation` {}. Only `nearest` and "
             "`bilinear` are supported.".format(interpolation)
         )
-
-
-def clip_bounding_box(bounding_boxes, bounding_box_format, images):
-    """clips bounding boxes to image boundaries"""
-    bounding_boxes = bounding_box.convert_format(
-        bounding_boxes,
-        source=bounding_box_format,
-        target="rel_xyxy",
-        images=images,
-    )
-    bounding_boxes, images, squeeze = bbox_formater._format_inputs(
-        bounding_boxes, images
-    )
-    x1, y1, x2, y2, rest = tf.split(
-        bounding_boxes, [1, 1, 1, 1, bounding_boxes.shape[-1] - 4], axis=-1
-    )
-    clipped_bounding_boxes = tf.concat(
-        [
-            tf.clip_by_value(x1, clip_value_min=0, clip_value_max=1),
-            tf.clip_by_value(y1, clip_value_min=0, clip_value_max=1),
-            tf.clip_by_value(x2, clip_value_min=0, clip_value_max=1),
-            tf.clip_by_value(y2, clip_value_min=0, clip_value_max=1),
-            rest,
-        ],
-        axis=-1,
-    )
-
-    clipped_bounding_boxes = bounding_box.convert_format(
-        clipped_bounding_boxes,
-        source="rel_xyxy",
-        target=bounding_box_format,
-        images=images,
-    )
-    clipped_bounding_boxes = bbox_formater._format_outputs(
-        clipped_bounding_boxes, squeeze
-    )
-    return clipped_bounding_boxes

@@ -16,6 +16,7 @@
    for object detection.
 """
 import demo_utils
+import tensorflow as tf
 
 from keras_cv.layers import preprocessing
 
@@ -24,13 +25,13 @@ BATCH_SIZE = 9
 
 
 def main():
-    inputs = demo_utils.load_voc_dataset(bounding_box_format="rel_xyxy")
-    random_rotation_layer = preprocessing.RandomRotation(
+    dataset = demo_utils.load_voc_dataset(bounding_box_format="rel_xyxy")
+    random_rotation = preprocessing.RandomRotation(
         factor=0.5, bounding_box_format="rel_xyxy"
     )
-    input = next(iter(inputs.take(1)))
-    outputs = random_rotation_layer(input)
-    demo_utils.visualize_data(outputs, bounding_box_format="rel_xyxy")
+    result = dataset.map(random_rotation, num_parallel_calls=tf.data.AUTOTUNE)
+    # outputs = random_rotation_layer(input)
+    demo_utils.visualize_data(result, bounding_box_format="rel_xyxy")
 
 
 if __name__ == "__main__":
