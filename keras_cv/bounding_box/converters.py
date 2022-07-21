@@ -11,16 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
-"""Converter functions for working with bounding boxes.
-
-Usually bounding boxes is a 2D Tensor with shape [batch, 4]. The second dimension
-will contain 4 numbers based on 2 different formats.  In KerasCV, we will use the
-`corners` format, which is [LEFT, TOP, RIGHT, BOTTOM].
-
-In this file, provide utility functions for manipulating bounding boxes and converting
-their formats.
-"""
+"""Converter functions for working with bounding box formats."""
 
 import tensorflow as tf
 
@@ -32,7 +23,9 @@ class RequiresImagesException(Exception):
 
 
 def _center_xywh_to_xyxy(boxes, images=None):
-    x, y, width, height, rest = tf.split(boxes, [1, 1, 1, 1, -1], axis=-1)
+    x, y, width, height, rest = tf.split(
+        boxes, [1, 1, 1, 1, boxes.shape[-1] - 4], axis=-1
+    )
     return tf.concat(
         [x - width / 2.0, y - height / 2.0, x + width / 2.0, y + height / 2.0, rest],
         axis=-1,
@@ -40,7 +33,9 @@ def _center_xywh_to_xyxy(boxes, images=None):
 
 
 def _xywh_to_xyxy(boxes, images=None):
-    x, y, width, height, rest = tf.split(boxes, [1, 1, 1, 1, -1], axis=-1)
+    x, y, width, height, rest = tf.split(
+        boxes, [1, 1, 1, 1, boxes.shape[-1] - 4], axis=-1
+    )
     return tf.concat([x, y, x + width, y + height, rest], axis=-1)
 
 
@@ -49,7 +44,9 @@ def _xyxy_no_op(boxes, images=None):
 
 
 def _xyxy_to_xywh(boxes, images=None):
-    left, top, right, bottom, rest = tf.split(boxes, [1, 1, 1, 1, -1], axis=-1)
+    left, top, right, bottom, rest = tf.split(
+        boxes, [1, 1, 1, 1, boxes.shape[-1] - 4], axis=-1
+    )
     return tf.concat(
         [left, top, right - left, bottom - top, rest],
         axis=-1,
@@ -57,7 +54,9 @@ def _xyxy_to_xywh(boxes, images=None):
 
 
 def _xyxy_to_center_xywh(boxes, images=None):
-    left, top, right, bottom, rest = tf.split(boxes, [1, 1, 1, 1, -1], axis=-1)
+    left, top, right, bottom, rest = tf.split(
+        boxes, [1, 1, 1, 1, boxes.shape[-1] - 4], axis=-1
+    )
     return tf.concat(
         [(left + right) / 2.0, (top + bottom) / 2.0, right - left, bottom - top, rest],
         axis=-1,
@@ -70,7 +69,9 @@ def _rel_xyxy_to_xyxy(boxes, images=None):
     shape = tf.shape(images)
     height, width = shape[1], shape[2]
     height, width = tf.cast(height, boxes.dtype), tf.cast(width, boxes.dtype)
-    left, top, right, bottom, rest = tf.split(boxes, [1, 1, 1, 1, -1], axis=-1)
+    left, top, right, bottom, rest = tf.split(
+        boxes, [1, 1, 1, 1, boxes.shape[-1] - 4], axis=-1
+    )
     left, right = left * width, right * width
     top, bottom = top * height, bottom * height
     return tf.concat(
@@ -85,7 +86,9 @@ def _xyxy_to_rel_xyxy(boxes, images=None):
     shape = tf.shape(images)
     height, width = shape[1], shape[2]
     height, width = tf.cast(height, boxes.dtype), tf.cast(width, boxes.dtype)
-    left, top, right, bottom, rest = tf.split(boxes, [1, 1, 1, 1, -1], axis=-1)
+    left, top, right, bottom, rest = tf.split(
+        boxes, [1, 1, 1, 1, boxes.shape[-1] - 4], axis=-1
+    )
     left, right = left / width, right / width
     top, bottom = top / height, bottom / height
     return tf.concat(
@@ -95,7 +98,7 @@ def _xyxy_to_rel_xyxy(boxes, images=None):
 
 
 def _yxyx_to_xyxy(boxes, images=None):
-    y1, x1, y2, x2, rest = tf.split(boxes, [1, 1, 1, 1, -1], axis=-1)
+    y1, x1, y2, x2, rest = tf.split(boxes, [1, 1, 1, 1, boxes.shape[-1] - 4], axis=-1)
     return tf.concat([x1, y1, x2, y2, rest], axis=-1)
 
 
@@ -105,7 +108,9 @@ def _rel_yxyx_to_xyxy(boxes, images=None):
     shape = tf.shape(images)
     height, width = shape[1], shape[2]
     height, width = tf.cast(height, boxes.dtype), tf.cast(width, boxes.dtype)
-    top, left, bottom, right, rest = tf.split(boxes, [1, 1, 1, 1, -1], axis=-1)
+    top, left, bottom, right, rest = tf.split(
+        boxes, [1, 1, 1, 1, boxes.shape[-1] - 4], axis=-1
+    )
     left, right = left * width, right * width
     top, bottom = top * height, bottom * height
     return tf.concat(
@@ -115,7 +120,7 @@ def _rel_yxyx_to_xyxy(boxes, images=None):
 
 
 def _xyxy_to_yxyx(boxes, images=None):
-    x1, y1, x2, y2, rest = tf.split(boxes, [1, 1, 1, 1, -1], axis=-1)
+    x1, y1, x2, y2, rest = tf.split(boxes, [1, 1, 1, 1, boxes.shape[-1] - 4], axis=-1)
     return tf.concat([y1, x1, y2, x2, rest], axis=-1)
 
 
@@ -125,7 +130,9 @@ def _xyxy_to_rel_yxyx(boxes, images=None):
     shape = tf.shape(images)
     height, width = shape[1], shape[2]
     height, width = tf.cast(height, boxes.dtype), tf.cast(width, boxes.dtype)
-    left, top, right, bottom, rest = tf.split(boxes, [1, 1, 1, 1, -1], axis=-1)
+    left, top, right, bottom, rest = tf.split(
+        boxes, [1, 1, 1, 1, boxes.shape[-1] - 4], axis=-1
+    )
     left, right = left / width, right / width
     top, bottom = top / height, bottom / height
     return tf.concat(
@@ -175,7 +182,7 @@ def convert_format(boxes, source, target, images=None, dtype="float32"):
     Formats are case insensitive.  It is recommended that you capitalize width and
     height to maximize the visual difference between `"xyWH"` and `"xyxy"`.
 
-    Relative formats, abbreviated `rel`, make use of the shapes of the `images` passsed.
+    Relative formats, abbreviated `rel`, make use of the shapes of the `images` passed.
     In these formats, the coordinates, widths, and heights are all specified as
     percentages of the host image.  `images` may be a ragged Tensor.  Note that using a
     ragged Tensor for images may cause a substantial performance loss, as each image
@@ -209,6 +216,7 @@ def convert_format(boxes, source, target, images=None, dtype="float32"):
         dtype: the data type to use when transforming the boxes.  Defaults to
             `tf.float32`.
     """
+
     source = source.lower()
     target = target.lower()
     if source not in TO_XYXY_CONVERTERS:
@@ -228,6 +236,8 @@ def convert_format(boxes, source, target, images=None, dtype="float32"):
     if source == target:
         return boxes
 
+    boxes, images, squeeze = _format_inputs(boxes, images)
+
     to_xyxy_fn = TO_XYXY_CONVERTERS[source]
     from_xyxy_fn = FROM_XYXY_CONVERTERS[target]
 
@@ -242,4 +252,42 @@ def convert_format(boxes, source, target, images=None, dtype="float32"):
             f"but images={images}"
         )
 
-    return result
+    return _format_outputs(result, squeeze)
+
+
+def _format_inputs(boxes, images):
+    boxes_rank = len(boxes.shape)
+    if boxes_rank > 3:
+        raise ValueError(
+            "Expected len(boxes.shape)=2, or len(boxes.shape)=3, got "
+            f"len(boxes.shape)={boxes_rank}"
+        )
+    boxes_includes_batch = boxes_rank == 3
+    # Determine if images needs an expand_dims() call
+    if images is not None:
+        images_rank = len(images.shape)
+        if images_rank > 4:
+            raise ValueError(
+                "Expected len(images.shape)=2, or len(images.shape)=3, got "
+                f"len(images.shape)={images_rank}"
+            )
+        images_include_batch = images_rank == 4
+        if boxes_includes_batch != images_include_batch:
+            raise ValueError(
+                "convert_format() expects both boxes and images to be batched, or both "
+                f"boxes and images to be unbatched.  Received len(boxes.shape)={boxes_rank}, "
+                f"len(images.shape)={images_rank}.  Expected either len(boxes.shape)=2 AND "
+                "len(images.shape)=3, or len(boxes.shape)=3 AND len(images.shape)=4."
+            )
+        if not images_include_batch:
+            images = tf.expand_dims(images, axis=0)
+
+    if not boxes_includes_batch:
+        return tf.expand_dims(boxes, axis=0), images, True
+    return boxes, images, False
+
+
+def _format_outputs(boxes, squeeze):
+    if squeeze:
+        return tf.squeeze(boxes, axis=0)
+    return boxes

@@ -58,7 +58,7 @@ class RandomGaussianBlur(BaseImageAugmentationLayer):
                     ", got {} ".format(type(self.kernel_size))
                 )
 
-    def get_random_transformation(self, image=None, label=None, bounding_boxes=None):
+    def get_random_transformation(self, **kwargs):
         factor = self.factor()
         blur_v = RandomGaussianBlur.get_kernel(factor, self.y)
         blur_h = RandomGaussianBlur.get_kernel(factor, self.x)

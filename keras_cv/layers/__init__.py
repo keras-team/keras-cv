@@ -25,6 +25,7 @@ from tensorflow.keras.layers import RandomZoom
 from tensorflow.keras.layers import Rescaling
 from tensorflow.keras.layers import Resizing
 
+from keras_cv.layers.object_detection.non_max_suppression import NonMaxSuppression
 from keras_cv.layers.preprocessing.aug_mix import AugMix
 from keras_cv.layers.preprocessing.auto_contrast import AutoContrast
 from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
@@ -59,4 +60,5 @@ from keras_cv.layers.preprocessing.random_shear import RandomShear
 from keras_cv.layers.preprocessing.solarization import Solarization
 from keras_cv.layers.regularization.drop_path import DropPath
 from keras_cv.layers.regularization.dropblock_2d import DropBlock2D
+from keras_cv.layers.regularization.squeeze_excite import SqueezeAndExcite2D
 from keras_cv.layers.regularization.stochastic_depth import StochasticDepth

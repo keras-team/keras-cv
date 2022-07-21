@@ -215,10 +215,6 @@ BASE_DOCSTRING = """Instantiates the {name} architecture.
   [guide to transfer learning & fine-tuning](
     https://keras.io/guides/transfer_learning/).
 
-  Note: Each Keras Application expects a specific kind of input preprocessing.
-  For Regnets, preprocessing is included in the model using a `Rescaling` layer.
-  RegNet models expect their inputs to be float or uint8 tensors of pixels with
-  values in the [0-255] range.
 
   The naming of models is as follows: `RegNet<block_type><flops>` where
   `block_type` is one of `(X, Y)` and `flops` signifies hundred million
@@ -262,24 +258,6 @@ BASE_DOCSTRING = """Instantiates the {name} architecture.
     A `keras.Model` instance.
 """
 
-
-def PreStem(name=None):
-    """Rescales and normalizes inputs to [0,1] and ImageNet mean and std.
-
-    Args:
-      name: name prefix
-
-    Returns:
-      Rescaled and normalized tensor
-    """
-    if name is None:
-        name = "prestem" + str(backend.get_uid("prestem"))
-
-    def apply(x):
-        x = layers.Rescaling(scale=1.0 / 255.0, name=name + "_prestem_rescaling")(x)
-        return x
-
-    return apply
 
 
 def Stem(name=None):
@@ -715,7 +693,7 @@ def Stage(block_type, depth, group_width, filters_in, filters_out, name=None):
     return apply
 
 
-def Head(num_classes=1000, name=None):
+def Head(num_classes=None, name=None):
     """Implementation of classification head of RegNet.
 
     Args:
@@ -741,13 +719,14 @@ def RegNet(
     widths,
     group_width,
     block_type,
+    include_rescaling,
+    include_top,
     model_name="regnet",
-    include_rescaling=True,
-    include_top=True,
     weights=None,
     input_shape=(None, None, 3),
     pooling=None,
-    num_classes=1000,
+    num_classes=None,
+    **kwargs
 ):
     """Instantiates RegNet architecture given specific configuration.
 
@@ -793,11 +772,22 @@ def RegNet(
             "or the path to the weights file to be loaded."
         )
 
+    if include_top and not num_classes:
+        raise ValueError(
+            "If `include_top` is True, you should specify `num_classes`. "
+            f"Received: num_classes={num_classes}")
+
+    if include_top and pooling:
+        raise ValueError(
+            f"`pooling` must be `None` when `include_top=True`."
+            f"Received pooling={pooling} and include_top={include_top}. ")
+
     img_input = layers.Input(shape=input_shape)
 
     x = img_input
     if include_rescaling:
-        x = PreStem(name=model_name)(x)
+        x = layers.Rescaling(scale=1.0 / 255.0,
+                             name=model_name + "_prestem_rescaling")(x)
     x = Stem(name=model_name)(x)
 
     in_channels = 32  # Output from Stem
@@ -818,14 +808,13 @@ def RegNet(
 
     if include_top:
         x = Head(num_classes=num_classes)(x)
-
     else:
         if pooling == "avg":
             x = layers.GlobalAveragePooling2D()(x)
         elif pooling == "max":
             x = layers.GlobalMaxPooling2D()(x)
 
-    model = tf.keras.Model(inputs=img_input, outputs=x, name=model_name)
+    model = tf.keras.Model(inputs=img_input, outputs=x, name=model_name, **kwargs)
 
     # Load weights.
     if weights is not None:
@@ -838,13 +827,14 @@ def RegNet(
 
 
 def RegNetX002(
+    include_top,
+    include_rescaling,
     model_name="regnetx002",
-    include_top=True,
-    include_rescaling=True,
     weights=None,
     input_shape=(None, None, 3),
     pooling=None,
-    num_classes=1000,
+    num_classes=None,
+    **kwargs
 ):
     return RegNet(
         MODEL_CONFIGS["x002"]["depths"],
@@ -858,17 +848,19 @@ def RegNetX002(
         input_shape=input_shape,
         pooling=pooling,
         num_classes=num_classes,
+        **kwargs
     )
 
 
 def RegNetX004(
+    include_top,
+    include_rescaling,
     model_name="regnetx004",
-    include_top=True,
-    include_rescaling=True,
     weights=None,
     input_shape=(None, None, 3),
     pooling=None,
-    num_classes=1000,
+    num_classes=None,
+    **kwargs
 ):
     return RegNet(
         MODEL_CONFIGS["x004"]["depths"],
@@ -882,17 +874,19 @@ def RegNetX004(
         input_shape=input_shape,
         pooling=pooling,
         num_classes=num_classes,
+        **kwargs
     )
 
 
 def RegNetX006(
+    include_top,
+    include_rescaling,
     model_name="regnetx006",
-    include_top=True,
-    include_rescaling=True,
     weights=None,
     input_shape=(None, None, 3),
     pooling=None,
-    num_classes=1000,
+    num_classes=None,
+    **kwargs
 ):
     return RegNet(
         MODEL_CONFIGS["x006"]["depths"],
@@ -906,17 +900,19 @@ def RegNetX006(
         input_shape=input_shape,
         pooling=pooling,
         num_classes=num_classes,
+        **kwargs
     )
 
 
 def RegNetX008(
+    include_top,
+    include_rescaling,
     model_name="regnetx008",
-    include_top=True,
-    include_rescaling=True,
     weights=None,
     input_shape=(None, None, 3),
     pooling=None,
-    num_classes=1000,
+    num_classes=None,
+    **kwargs
 ):
     return RegNet(
         MODEL_CONFIGS["x008"]["depths"],
@@ -930,17 +926,19 @@ def RegNetX008(
         input_shape=input_shape,
         pooling=pooling,
         num_classes=num_classes,
+        **kwargs
     )
 
 
 def RegNetX016(
+    include_top,
+    include_rescaling,
     model_name="regnetx016",
-    include_top=True,
-    include_rescaling=True,
     weights=None,
     input_shape=(None, None, 3),
     pooling=None,
-    num_classes=1000,
+    num_classes=None,
+    **kwargs
 ):
     return RegNet(
         MODEL_CONFIGS["x016"]["depths"],
@@ -954,17 +952,19 @@ def RegNetX016(
         input_shape=input_shape,
         pooling=pooling,
         num_classes=num_classes,
+        **kwargs
     )
 
 
 def RegNetX032(
+    include_top,
+    include_rescaling,
     model_name="regnetx032",
-    include_top=True,
-    include_rescaling=True,
     weights=None,
     input_shape=(None, None, 3),
     pooling=None,
-    num_classes=1000,
+    num_classes=None,
+    **kwargs
 ):
     return RegNet(
         MODEL_CONFIGS["x032"]["depths"],
@@ -978,17 +978,19 @@ def RegNetX032(
         input_shape=input_shape,
         pooling=pooling,
         num_classes=num_classes,
+        **kwargs
     )
 
 
 def RegNetX040(
+    include_top,
+    include_rescaling,
     model_name="regnetx040",
-    include_top=True,
-    include_rescaling=True,
     weights=None,
     input_shape=(None, None, 3),
     pooling=None,
-    num_classes=1000,
+    num_classes=None,
+    **kwargs
 ):
     return RegNet(
         MODEL_CONFIGS["x040"]["depths"],
@@ -1002,17 +1004,19 @@ def RegNetX040(
         input_shape=input_shape,
         pooling=pooling,
         num_classes=num_classes,
+        **kwargs
     )
 
 
 def RegNetX064(
+    include_top,
+    include_rescaling,
     model_name="regnetx064",
-    include_top=True,
-    include_rescaling=True,
     weights=None,
     input_shape=(None, None, 3),
     pooling=None,
-    num_classes=1000,
+    num_classes=None,
+    **kwargs
 ):
     return RegNet(
         MODEL_CONFIGS["x064"]["depths"],
@@ -1026,17 +1030,19 @@ def RegNetX064(
         input_shape=input_shape,
         pooling=pooling,
         num_classes=num_classes,
+        **kwargs
     )
 
 
 def RegNetX080(
+    include_top,
+    include_rescaling,
     model_name="regnetx080",
-    include_top=True,
-    include_rescaling=True,
     weights=None,
     input_shape=(None, None, 3),
     pooling=None,
-    num_classes=1000,
+    num_classes=None,
+    **kwargs
 ):
     return RegNet(
         MODEL_CONFIGS["x080"]["depths"],
@@ -1050,17 +1056,19 @@ def RegNetX080(
         input_shape=input_shape,
         pooling=pooling,
         num_classes=num_classes,
+        **kwargs
     )
 
 
 def RegNetX120(
+    include_top,
+    include_rescaling,
     model_name="regnetx120",
-    include_top=True,
-    include_rescaling=True,
     weights=None,
     input_shape=(None, None, 3),
     pooling=None,
-    num_classes=1000,
+    num_classes=None,
+    **kwargs
 ):
     return RegNet(
         MODEL_CONFIGS["x120"]["depths"],
@@ -1074,17 +1082,19 @@ def RegNetX120(
         input_shape=input_shape,
         pooling=pooling,
         num_classes=num_classes,
+        **kwargs
     )
 
 
 def RegNetX160(
+    include_top,
+    include_rescaling,
     model_name="regnetx160",
-    include_top=True,
-    include_rescaling=True,
     weights=None,
     input_shape=(None, None, 3),
     pooling=None,
-    num_classes=1000,
+    num_classes=None,
+    **kwargs
 ):
     return RegNet(
         MODEL_CONFIGS["x160"]["depths"],
@@ -1098,17 +1108,19 @@ def RegNetX160(
         input_shape=input_shape,
         pooling=pooling,
         num_classes=num_classes,
+        **kwargs
     )
 
 
 def RegNetX320(
+    include_top,
+    include_rescaling,
     model_name="regnetx320",
-    include_top=True,
-    include_rescaling=True,
     weights=None,
     input_shape=(None, None, 3),
     pooling=None,
-    num_classes=1000,
+    num_classes=None,
+    **kwargs
 ):
     return RegNet(
         MODEL_CONFIGS["x320"]["depths"],
@@ -1122,17 +1134,19 @@ def RegNetX320(
         input_shape=input_shape,
         pooling=pooling,
         num_classes=num_classes,
+        **kwargs
     )
 
 
 def RegNetY002(
+    include_top,
+    include_rescaling,
     model_name="regnety002",
-    include_top=True,
-    include_rescaling=True,
     weights=None,
     input_shape=(None, None, 3),
     pooling=None,
-    num_classes=1000,
+    num_classes=None,
+    **kwargs
 ):
     return RegNet(
         MODEL_CONFIGS["y002"]["depths"],
@@ -1146,17 +1160,19 @@ def RegNetY002(
         input_shape=input_shape,
         pooling=pooling,
         num_classes=num_classes,
+        **kwargs
     )
 
 
 def RegNetY004(
+    include_top,
+    include_rescaling,
     model_name="regnety004",
-    include_top=True,
-    include_rescaling=True,
     weights=None,
     input_shape=(None, None, 3),
     pooling=None,
-    num_classes=1000,
+    num_classes=None,
+    **kwargs
 ):
     return RegNet(
         MODEL_CONFIGS["y004"]["depths"],
@@ -1170,17 +1186,19 @@ def RegNetY004(
         input_shape=input_shape,
         pooling=pooling,
         num_classes=num_classes,
+        **kwargs
     )
 
 
 def RegNetY006(
+    include_top,
+    include_rescaling,
     model_name="regnety006",
-    include_top=True,
-    include_rescaling=True,
     weights=None,
     input_shape=(None, None, 3),
     pooling=None,
-    num_classes=1000,
+    num_classes=None,
+    **kwargs
 ):
     return RegNet(
         MODEL_CONFIGS["y006"]["depths"],
@@ -1194,17 +1212,19 @@ def RegNetY006(
         input_shape=input_shape,
         pooling=pooling,
         num_classes=num_classes,
+        **kwargs
     )
 
 
 def RegNetY008(
+    include_top,
+    include_rescaling,
     model_name="regnety008",
-    include_top=True,
-    include_rescaling=True,
     weights=None,
     input_shape=(None, None, 3),
     pooling=None,
-    num_classes=1000,
+    num_classes=None,
+    **kwargs
 ):
     return RegNet(
         MODEL_CONFIGS["y008"]["depths"],
@@ -1218,17 +1238,19 @@ def RegNetY008(
         input_shape=input_shape,
         pooling=pooling,
         num_classes=num_classes,
+        **kwargs
     )
 
 
 def RegNetY016(
+    include_top,
+    include_rescaling,
     model_name="regnety016",
-    include_top=True,
-    include_rescaling=True,
     weights=None,
     input_shape=(None, None, 3),
     pooling=None,
-    num_classes=1000,
+    num_classes=None,
+    **kwargs
 ):
     return RegNet(
         MODEL_CONFIGS["y016"]["depths"],
@@ -1242,17 +1264,19 @@ def RegNetY016(
         input_shape=input_shape,
         pooling=pooling,
         num_classes=num_classes,
+        **kwargs
     )
 
 
 def RegNetY032(
+    include_top,
+    include_rescaling,
     model_name="regnety032",
-    include_top=True,
-    include_rescaling=True,
     weights=None,
     input_shape=(None, None, 3),
     pooling=None,
-    num_classes=1000,
+    num_classes=None,
+    **kwargs
 ):
     return RegNet(
         MODEL_CONFIGS["y032"]["depths"],
@@ -1266,17 +1290,19 @@ def RegNetY032(
         input_shape=input_shape,
         pooling=pooling,
         num_classes=num_classes,
+        **kwargs
     )
 
 
 def RegNetY040(
+    include_top,
+    include_rescaling,
     model_name="regnety040",
-    include_top=True,
-    include_rescaling=True,
     weights=None,
     input_shape=(None, None, 3),
     pooling=None,
-    num_classes=1000,
+    num_classes=None,
+    **kwargs
 ):
     return RegNet(
         MODEL_CONFIGS["y040"]["depths"],
@@ -1290,17 +1316,19 @@ def RegNetY040(
         input_shape=input_shape,
         pooling=pooling,
         num_classes=num_classes,
+        **kwargs
     )
 
 
 def RegNetY064(
+    include_top,
+    include_rescaling,
     model_name="regnety064",
-    include_top=True,
-    include_rescaling=True,
     weights=None,
     input_shape=(None, None, 3),
     pooling=None,
-    num_classes=1000,
+    num_classes=None,
+    **kwargs
 ):
     return RegNet(
         MODEL_CONFIGS["y064"]["depths"],
@@ -1314,17 +1342,19 @@ def RegNetY064(
         input_shape=input_shape,
         pooling=pooling,
         num_classes=num_classes,
+        **kwargs
     )
 
 
 def RegNetY080(
+    include_top,
+    include_rescaling,
     model_name="regnety080",
-    include_top=True,
-    include_rescaling=True,
     weights=None,
     input_shape=(None, None, 3),
     pooling=None,
-    num_classes=1000,
+    num_classes=None,
+    **kwargs
 ):
     return RegNet(
         MODEL_CONFIGS["y080"]["depths"],
@@ -1338,17 +1368,19 @@ def RegNetY080(
         input_shape=input_shape,
         pooling=pooling,
         num_classes=num_classes,
+        **kwargs
     )
 
 
 def RegNetY120(
+    include_top,
+    include_rescaling,
     model_name="regnety120",
-    include_top=True,
-    include_rescaling=True,
     weights=None,
     input_shape=(None, None, 3),
     pooling=None,
-    num_classes=1000,
+    num_classes=None,
+    **kwargs
 ):
     return RegNet(
         MODEL_CONFIGS["y120"]["depths"],
@@ -1362,17 +1394,19 @@ def RegNetY120(
         input_shape=input_shape,
         pooling=pooling,
         num_classes=num_classes,
+        **kwargs
     )
 
 
 def RegNetY160(
+    include_top,
+    include_rescaling,
     model_name="regnety160",
-    include_top=True,
-    include_rescaling=True,
     weights=None,
     input_shape=(None, None, 3),
     pooling=None,
-    num_classes=1000,
+    num_classes=None,
+    **kwargs
 ):
     return RegNet(
         MODEL_CONFIGS["y160"]["depths"],
@@ -1386,17 +1420,19 @@ def RegNetY160(
         input_shape=input_shape,
         pooling=pooling,
         num_classes=num_classes,
+        **kwargs
     )
 
 
 def RegNetY320(
+    include_top,
+    include_rescaling,
     model_name="regnety320",
-    include_top=True,
-    include_rescaling=True,
     weights=None,
     input_shape=(None, None, 3),
     pooling=None,
-    num_classes=1000,
+    num_classes=None,
+    **kwargs
 ):
     return RegNet(
         MODEL_CONFIGS["y320"]["depths"],
@@ -1410,6 +1446,7 @@ def RegNetY320(
         input_shape=input_shape,
         pooling=pooling,
         num_classes=num_classes,
+        **kwargs
     )
 
 

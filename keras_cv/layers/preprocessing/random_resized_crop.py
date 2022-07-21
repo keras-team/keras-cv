@@ -175,8 +175,9 @@ class RandomResizedCrop(BaseImageAugmentationLayer):
             or isinstance(crop_area_factor, int)
         ):
             raise ValueError(
-                "`crop_area_factor` must be tuple of two positive floats less than or equal to 1 or keras_cv.core.FactorSampler instance. "
-                f"Received crop_area_factor={crop_area_factor}"
+                "`crop_area_factor` must be tuple of two positive floats less than "
+                "or equal to 1 or keras_cv.core.FactorSampler instance. Received "
+                f"crop_area_factor={crop_area_factor}"
             )
 
         if (
@@ -185,9 +186,13 @@ class RandomResizedCrop(BaseImageAugmentationLayer):
             or isinstance(aspect_ratio_factor, int)
         ):
             raise ValueError(
-                "`aspect_ratio_factor` must be tuple of two positive floats or keras_cv.core.FactorSampler instance. "
-                f"Received aspect_ratio_factor={aspect_ratio_factor}"
+                "`aspect_ratio_factor` must be tuple of two positive floats or "
+                "keras_cv.core.FactorSampler instance. Received "
+                f"aspect_ratio_factor={aspect_ratio_factor}"
             )
+
+    def augment_target(self, augment_target, **kwargs):
+        return augment_target
 
     def get_config(self):
         config = super().get_config()
