@@ -13,17 +13,17 @@
 # limitations under the License.
 """Utility functions for training demos."""
 
+import matplotlib.pyplot as plt
 import tensorflow as tf
 import tensorflow_datasets as tfds
 from keras.layers import Resizing
-from tensorflow.keras.optimizers.schedules import PolynomialDecay
 
 
-def load_cats_and_dogs_dataset(batch_size=32):
+def load_cats_and_dogs_dataset(batch_size=32, width=150, height=150):
     train_ds, test_ds = tfds.load(
         "cats_vs_dogs", split=["train[:90%]", "train[90%:]"], as_supervised=True
     )
-    resizing = Resizing(150, 150)
+    resizing = Resizing(width, height)
     train = train_ds.map(
         lambda x, y: (resizing(x), tf.one_hot(y, 2)),
         num_parallel_calls=tf.data.AUTOTUNE,
@@ -46,7 +46,32 @@ def load_cifar10_dataset(batch_size=32):
     return train, test
 
 
-def get_learning_rate_schedule(decay_steps):
-    return PolynomialDecay(
-        initial_learning_rate=0.005, decay_steps=decay_steps, end_learning_rate=0.0001
-    )
+def augment(augmentation_layers):
+    @tf.function
+    def augment_fn(img, label):
+        inputs = {"images": img, "labels": label}
+        for layer in augmentation_layers:
+            inputs = layer(inputs)
+        return inputs["images"], inputs["labels"]
+
+    return augment_fn
+
+
+def visualize_dataset(dataset, title):
+    plt.figure(figsize=(6, 6)).suptitle(title, fontsize=18)
+    for i, samples in enumerate(iter(dataset.take(9))):
+        images = samples["images"]
+        plt.subplot(3, 3, i + 1)
+        plt.imshow(images[0].numpy().astype("uint8"))
+        plt.axis("off")
+    plt.show()
+
+
+def save_training_results(results_path, validation_metrics, author):
+    metadata = {
+        "author": author,
+        "evaluation_metrics": validation_metrics,
+    }
+
+    with open(results_path, "w") as outfile:
+        json.dump(metadata, outfile)

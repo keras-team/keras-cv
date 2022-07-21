@@ -27,7 +27,7 @@ from keras.callbacks import EarlyStopping
 from keras.callbacks import ModelCheckpoint
 from keras.callbacks import TensorBoard
 from keras.optimizers import Adam
-from utils import get_learning_rate_schedule
+from tensorflow.keras.optimizers.schedules import PolynomialDecay
 from utils import load_cats_and_dogs_dataset
 from wandb.keras import WandbCallback
 
@@ -108,8 +108,10 @@ def main(argv):
 
         model.compile(
             optimizer=Adam(
-                learning_rate=get_learning_rate_schedule(
+                learning_rate=PolynomialDecay(
+                    initial_learning_rate=0.005,
                     decay_steps=train.cardinality().numpy() * EPOCHS,
+                    end_learning_rate=0.0001,
                 )
             ),
             loss="categorical_crossentropy",
