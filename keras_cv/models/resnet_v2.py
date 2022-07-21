@@ -79,7 +79,7 @@ BASE_DOCSTRING = """Instantiates the {name} architecture.
 """
 
 
-def V2Block(filters, kernel_size=3, stride=1, conv_shortcut=False, name=None):
+def Block(filters, kernel_size=3, stride=1, conv_shortcut=False, name=None):
     """A residual block (v2).
     Args:
         filters: integer, filters of the bottleneck layer.
@@ -138,7 +138,7 @@ def V2Block(filters, kernel_size=3, stride=1, conv_shortcut=False, name=None):
     return apply
 
 
-def V2Stack(filters, blocks, stride=2, name=None):
+def Stack(filters, blocks, stride=2, name=None):
     """A set of stacked residual blocks.
     Args:
         filters: integer, filters of the bottleneck layer in a block.
@@ -152,10 +152,10 @@ def V2Stack(filters, blocks, stride=2, name=None):
         name = f"v2_stack_{backend.get_uid('v2_stack')}"
 
     def apply(x):
-        x = V2Block(filters, conv_shortcut=True, name=name + "_block1")(x)
+        x = Block(filters, conv_shortcut=True, name=name + "_block1")(x)
         for i in range(2, blocks):
-            x = V2Block(filters, name=name + "_block" + str(i))(x)
-        x = V2Block(filters, stride=stride, name=name + "_block" + str(blocks))(x)
+            x = Block(filters, name=name + "_block" + str(i))(x)
+        x = Block(filters, stride=stride, name=name + "_block" + str(blocks))(x)
         return x
 
     return apply
@@ -166,8 +166,8 @@ def ResNetV2(
     stackwise_blocks,
     stackwise_strides,
     include_rescaling,
+    include_top,
     name="ResNetV2",
-    include_top=None,
     weights=None,
     input_shape=(None, None, 3),
     pooling=None,
@@ -232,20 +232,21 @@ def ResNetV2(
         )
 
     img_input = layers.Input(shape=input_shape)
+    x = img_input
 
     if include_rescaling:
-        img_input = layers.Rescaling(1 / 255.0)(img_input)
+        x = layers.Rescaling(1 / 255.0)(x)
 
     x = layers.Conv2D(
         64, 7, strides=2, use_bias=True, padding="same", name="conv1_conv"
-    )(img_input)
+    )(x)
 
     x = layers.MaxPooling2D(3, strides=2, padding="same", name="pool1_pool")(x)
 
     num_stacks = len(stackwise_filters)
 
     for stack_index in range(num_stacks):
-        x = V2Stack(
+        x = Stack(
             filters=stackwise_filters[stack_index],
             blocks=stackwise_blocks[stack_index],
             stride=stackwise_strides[stack_index],
@@ -265,10 +266,8 @@ def ResNetV2(
         elif pooling == "max":
             x = layers.GlobalMaxPooling2D(name="max_pool")(x)
 
-    inputs = img_input
-
     # Create model.
-    model = tf.keras.Model(inputs, x, name=name, **kwargs)
+    model = tf.keras.Model(img_input, x, name=name, **kwargs)
 
     if weights is not None:
         model.load_weights(weights)
@@ -294,8 +293,8 @@ def ResNet50V2(
         stackwise_blocks=MODEL_CONFIGS["ResNet50V2"]["stackwise_blocks"],
         stackwise_strides=MODEL_CONFIGS["ResNet50V2"]["stackwise_strides"],
         include_rescaling=include_rescaling,
-        name=name,
         include_top=include_top,
+        name=name,
         weights=weights,
         input_shape=input_shape,
         pooling=pooling,
@@ -350,8 +349,8 @@ def ResNet152V2(
         stackwise_blocks=MODEL_CONFIGS["ResNet152V2"]["stackwise_blocks"],
         stackwise_strides=MODEL_CONFIGS["ResNet152V2"]["stackwise_strides"],
         include_rescaling=include_rescaling,
-        name=name,
         include_top=include_top,
+        name=name,
         weights=weights,
         input_shape=input_shape,
         pooling=pooling,

@@ -160,8 +160,8 @@ def ResNet(
     stackwise_blocks,
     stackwise_strides,
     include_rescaling,
+    include_top,
     name="ResNet",
-    include_top=None,
     weights=None,
     input_shape=(None, None, 3),
     pooling=None,
@@ -226,13 +226,14 @@ def ResNet(
         )
 
     img_input = layers.Input(shape=input_shape)
+    x = img_input
 
     if include_rescaling:
-        img_input = layers.Rescaling(1 / 255.0)(img_input)
+        x = layers.Rescaling(1 / 255.0)(x)
 
     x = layers.Conv2D(
         64, 7, strides=2, use_bias=True, padding="same", name="conv1_conv"
-    )(img_input)
+    )(x)
 
     x = layers.BatchNormalization(axis=BN_AXIS, epsilon=1.001e-5, name="conv1_bn")(x)
     x = layers.Activation("relu", name="conv1_relu")(x)
@@ -259,10 +260,8 @@ def ResNet(
         elif pooling == "max":
             x = layers.GlobalMaxPooling2D(name="max_pool")(x)
 
-    inputs = img_input
-
     # Create model.
-    model = tf.keras.Model(inputs, x, name=name, **kwargs)
+    model = tf.keras.Model(img_input, x, name=name, **kwargs)
 
     if weights is not None:
         model.load_weights(weights)
@@ -288,8 +287,8 @@ def ResNet50(
         stackwise_blocks=MODEL_CONFIGS["ResNet50"]["stackwise_blocks"],
         stackwise_strides=MODEL_CONFIGS["ResNet50"]["stackwise_strides"],
         include_rescaling=include_rescaling,
-        name=name,
         include_top=include_top,
+        name=name,
         weights=weights,
         input_shape=input_shape,
         pooling=pooling,
@@ -344,8 +343,8 @@ def ResNet152(
         stackwise_blocks=MODEL_CONFIGS["ResNet152"]["stackwise_blocks"],
         stackwise_strides=MODEL_CONFIGS["ResNet152"]["stackwise_strides"],
         include_rescaling=include_rescaling,
-        name=name,
         include_top=include_top,
+        name=name,
         weights=weights,
         input_shape=input_shape,
         pooling=pooling,
