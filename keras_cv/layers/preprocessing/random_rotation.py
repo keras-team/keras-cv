@@ -222,6 +222,7 @@ class RandomRotation(BaseImageAugmentationLayer):
             "fill_mode": self.fill_mode,
             "fill_value": self.fill_value,
             "interpolation": self.interpolation,
+            "bounding_box_format": self.bounding_box_format,
             "seed": self.seed,
         }
         base_config = super().get_config()
