@@ -278,9 +278,9 @@ def Stem(name=None):
             kernel_initializer="he_normal",
             name=name + "_stem_conv",
         )(x)
-        x = layers.BatchNormalization(momentum=0.9,
-                                      epsilon=1e-5,
-                                      name=name + "_stem_bn")(x)
+        x = layers.BatchNormalization(
+            momentum=0.9, epsilon=1e-5, name=name + "_stem_bn"
+        )(x)
         x = layers.ReLU(name=name + "_stem_relu")(x)
         return x
 
@@ -302,9 +302,9 @@ def SqueezeAndExciteBlock(filters_in, se_filters, name=None):
         name = str(backend.get_uid("squeeze_and_excite"))
 
     def apply(inputs):
-        x = layers.GlobalAveragePooling2D(name=name +
-                                          "_squeeze_and_excite_gap",
-                                          keepdims=True)(inputs)
+        x = layers.GlobalAveragePooling2D(
+            name=name + "_squeeze_and_excite_gap", keepdims=True
+        )(inputs)
         x = layers.Conv2D(
             se_filters,
             (1, 1),
@@ -348,7 +348,8 @@ def XBlock(filters_in, filters_out, group_width, stride=1, name=None):
                 f"Input filters({filters_in}) and output "
                 f"filters({filters_out}) "
                 f"are not equal for stride {stride}. Input and output filters "
-                f"must be equal for stride={stride}.")
+                f"must be equal for stride={stride}."
+            )
 
         # Declare layers
         groups = filters_out // group_width
@@ -362,9 +363,9 @@ def XBlock(filters_in, filters_out, group_width, stride=1, name=None):
                 kernel_initializer="he_normal",
                 name=name + "_skip_1x1",
             )(inputs)
-            skip = layers.BatchNormalization(momentum=0.9,
-                                             epsilon=1e-5,
-                                             name=name + "_skip_bn")(skip)
+            skip = layers.BatchNormalization(
+                momentum=0.9, epsilon=1e-5, name=name + "_skip_bn"
+            )(skip)
         else:
             skip = inputs
 
@@ -377,9 +378,9 @@ def XBlock(filters_in, filters_out, group_width, stride=1, name=None):
             kernel_initializer="he_normal",
             name=name + "_conv_1x1_1",
         )(inputs)
-        x = layers.BatchNormalization(momentum=0.9,
-                                      epsilon=1e-5,
-                                      name=name + "_conv_1x1_1_bn")(x)
+        x = layers.BatchNormalization(
+            momentum=0.9, epsilon=1e-5, name=name + "_conv_1x1_1_bn"
+        )(x)
         x = layers.ReLU(name=name + "_conv_1x1_1_relu")(x)
 
         # conv_3x3
@@ -393,9 +394,9 @@ def XBlock(filters_in, filters_out, group_width, stride=1, name=None):
             kernel_initializer="he_normal",
             name=name + "_conv_3x3",
         )(x)
-        x = layers.BatchNormalization(momentum=0.9,
-                                      epsilon=1e-5,
-                                      name=name + "_conv_3x3_bn")(x)
+        x = layers.BatchNormalization(
+            momentum=0.9, epsilon=1e-5, name=name + "_conv_3x3_bn"
+        )(x)
         x = layers.ReLU(name=name + "_conv_3x3_relu")(x)
 
         # conv_1x1_2
@@ -406,9 +407,9 @@ def XBlock(filters_in, filters_out, group_width, stride=1, name=None):
             kernel_initializer="he_normal",
             name=name + "_conv_1x1_2",
         )(x)
-        x = layers.BatchNormalization(momentum=0.9,
-                                      epsilon=1e-5,
-                                      name=name + "_conv_1x1_2_bn")(x)
+        x = layers.BatchNormalization(
+            momentum=0.9, epsilon=1e-5, name=name + "_conv_1x1_2_bn"
+        )(x)
 
         x = layers.ReLU(name=name + "_exit_relu")(x + skip)
 
@@ -448,7 +449,8 @@ def YBlock(
                 f"Input filters({filters_in}) and output "
                 f"filters({filters_out}) "
                 f"are not equal for stride {stride}. Input and output filters "
-                f"must be equal for stride={stride}.")
+                f"must be equal for stride={stride}."
+            )
 
         groups = filters_out // group_width
         se_filters = int(filters_in * squeeze_excite_ratio)
@@ -462,9 +464,9 @@ def YBlock(
                 kernel_initializer="he_normal",
                 name=name + "_skip_1x1",
             )(inputs)
-            skip = layers.BatchNormalization(momentum=0.9,
-                                             epsilon=1e-5,
-                                             name=name + "_skip_bn")(skip)
+            skip = layers.BatchNormalization(
+                momentum=0.9, epsilon=1e-5, name=name + "_skip_bn"
+            )(skip)
         else:
             skip = inputs
 
@@ -477,9 +479,9 @@ def YBlock(
             kernel_initializer="he_normal",
             name=name + "_conv_1x1_1",
         )(inputs)
-        x = layers.BatchNormalization(momentum=0.9,
-                                      epsilon=1e-5,
-                                      name=name + "_conv_1x1_1_bn")(x)
+        x = layers.BatchNormalization(
+            momentum=0.9, epsilon=1e-5, name=name + "_conv_1x1_1_bn"
+        )(x)
         x = layers.ReLU(name=name + "_conv_1x1_1_relu")(x)
 
         # conv_3x3
@@ -493,9 +495,9 @@ def YBlock(
             kernel_initializer="he_normal",
             name=name + "_conv_3x3",
         )(x)
-        x = layers.BatchNormalization(momentum=0.9,
-                                      epsilon=1e-5,
-                                      name=name + "_conv_3x3_bn")(x)
+        x = layers.BatchNormalization(
+            momentum=0.9, epsilon=1e-5, name=name + "_conv_3x3_bn"
+        )(x)
         x = layers.ReLU(name=name + "_conv_3x3_relu")(x)
 
         # Squeeze-Excitation block
@@ -509,9 +511,9 @@ def YBlock(
             kernel_initializer="he_normal",
             name=name + "_conv_1x1_2",
         )(x)
-        x = layers.BatchNormalization(momentum=0.9,
-                                      epsilon=1e-5,
-                                      name=name + "_conv_1x1_2_bn")(x)
+        x = layers.BatchNormalization(
+            momentum=0.9, epsilon=1e-5, name=name + "_conv_1x1_2_bn"
+        )(x)
 
         x = layers.ReLU(name=name + "_exit_relu")(x + skip)
 
@@ -551,7 +553,8 @@ def ZBlock(
             raise ValueError(
                 f"Input filters({filters_in}) and output filters({filters_out})"
                 f"are not equal for stride {stride}. Input and output filters "
-                f"must be equal for stride={stride}.")
+                f"must be equal for stride={stride}."
+            )
 
         groups = filters_out // group_width
         se_filters = int(filters_in * squeeze_excite_ratio)
@@ -567,9 +570,9 @@ def ZBlock(
             kernel_initializer="he_normal",
             name=name + "_conv_1x1_1",
         )(inputs)
-        x = layers.BatchNormalization(momentum=0.9,
-                                      epsilon=1e-5,
-                                      name=name + "_conv_1x1_1_bn")(x)
+        x = layers.BatchNormalization(
+            momentum=0.9, epsilon=1e-5, name=name + "_conv_1x1_1_bn"
+        )(x)
         x = tf.nn.silu(x)
 
         # conv_3x3
@@ -583,9 +586,9 @@ def ZBlock(
             kernel_initializer="he_normal",
             name=name + "_conv_3x3",
         )(x)
-        x = layers.BatchNormalization(momentum=0.9,
-                                      epsilon=1e-5,
-                                      name=name + "_conv_3x3_bn")(x)
+        x = layers.BatchNormalization(
+            momentum=0.9, epsilon=1e-5, name=name + "_conv_3x3_bn"
+        )(x)
         x = tf.nn.silu(x)
 
         # Squeeze-Excitation block
@@ -599,9 +602,9 @@ def ZBlock(
             kernel_initializer="he_normal",
             name=name + "_conv_1x1_2",
         )(x)
-        x = layers.BatchNormalization(momentum=0.9,
-                                      epsilon=1e-5,
-                                      name=name + "_conv_1x1_2_bn")(x)
+        x = layers.BatchNormalization(
+            momentum=0.9, epsilon=1e-5, name=name + "_conv_1x1_2_bn"
+        )(x)
 
         if stride != 1:
             return x
@@ -678,7 +681,8 @@ def Stage(block_type, depth, group_width, filters_in, filters_out, name=None):
         else:
             raise NotImplementedError(
                 f"Block type `{block_type}` not recognized."
-                f"block_type must be one of (`X`, `Y`, `Z`). ")
+                f"block_type must be one of (`X`, `Y`, `Z`). "
+            )
         return x
 
     return apply
@@ -699,9 +703,9 @@ def Head(num_classes=None, name=None, activation=None):
 
     def apply(x):
         x = layers.GlobalAveragePooling2D(name=name + "_head_gap")(x)
-        x = layers.Dense(num_classes,
-                         name=name + "head_dense",
-                         activation=activation)(x)
+        x = layers.Dense(num_classes, name=name + "head_dense", activation=activation)(
+            x
+        )
         return x
 
     return apply
@@ -760,19 +764,23 @@ def RegNet(
       A `keras.Model` instance.
     """
     if not (weights is None or tf.io.gfile.exists(weights)):
-        raise ValueError("The `weights` argument should be either "
-                         "`None` (random initialization) "
-                         "or the path to the weights file to be loaded.")
+        raise ValueError(
+            "The `weights` argument should be either "
+            "`None` (random initialization) "
+            "or the path to the weights file to be loaded."
+        )
 
     if include_top and not num_classes:
         raise ValueError(
             "If `include_top` is True, you should specify `num_classes`. "
-            f"Received: num_classes={num_classes}")
+            f"Received: num_classes={num_classes}"
+        )
 
     if include_top and pooling:
         raise ValueError(
             f"`pooling` must be `None` when `include_top=True`."
-            f"Received pooling={pooling} and include_top={include_top}. ")
+            f"Received pooling={pooling} and include_top={include_top}. "
+        )
 
     img_input = layers.Input(shape=input_shape)
 
@@ -805,10 +813,7 @@ def RegNet(
         elif pooling == "max":
             x = layers.GlobalMaxPooling2D()(x)
 
-    model = tf.keras.Model(inputs=img_input,
-                           outputs=x,
-                           name=model_name,
-                           **kwargs)
+    model = tf.keras.Model(inputs=img_input, outputs=x, name=model_name, **kwargs)
 
     # Load weights.
     if weights is not None:
