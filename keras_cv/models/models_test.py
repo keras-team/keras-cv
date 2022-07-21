@@ -68,26 +68,17 @@ MODEL_LIST = [
     (
         mlp_mixer.MLPMixerB16,
         768,
-        {
-            "patch_size": (16, 16),
-            "input_shape": (224, 224, 3)
-        },
+        {"patch_size": (16, 16), "input_shape": (224, 224, 3)},
     ),
     (
         mlp_mixer.MLPMixerB32,
         768,
-        {
-            "patch_size": (32, 32),
-            "input_shape": (224, 224, 3)
-        },
+        {"patch_size": (32, 32), "input_shape": (224, 224, 3)},
     ),
     (
         mlp_mixer.MLPMixerL16,
         1024,
-        {
-            "patch_size": (16, 16),
-            "input_shape": (224, 224, 3)
-        },
+        {"patch_size": (16, 16), "input_shape": (224, 224, 3)},
     ),
     (vgg19.VGG19, 512, {}),
 ]
@@ -100,10 +91,7 @@ class ApplicationsTest(tf.test.TestCase, parameterized.TestCase):
     @parameterized.parameters(*MODEL_LIST)
     def test_application_base(self, app, _, args):
         # Can be instantiated with default arguments
-        model = app(include_top=True,
-                    num_classes=1000,
-                    include_rescaling=False,
-                    **args)
+        model = app(include_top=True, num_classes=1000, include_rescaling=False, **args)
 
         # Can be serialized and deserialized
         config = model.get_config()
@@ -158,10 +146,7 @@ class ApplicationsTest(tf.test.TestCase, parameterized.TestCase):
 
     @parameterized.parameters(*MODEL_LIST)
     def test_application_pooling(self, app, last_dim, args):
-        model = app(include_rescaling=False,
-                    include_top=False,
-                    pooling="avg",
-                    **args)
+        model = app(include_rescaling=False, include_top=False, pooling="avg", **args)
 
         self.assertShapeEqual(model.output_shape, (None, last_dim))
 
@@ -178,10 +163,12 @@ class ApplicationsTest(tf.test.TestCase, parameterized.TestCase):
             del args["input_shape"]
 
         single_channel_input_shape = (input_shape[0], input_shape[1], 1)
-        model = app(include_rescaling=False,
-                    include_top=False,
-                    input_shape=single_channel_input_shape,
-                    **args)
+        model = app(
+            include_rescaling=False,
+            include_top=False,
+            input_shape=single_channel_input_shape,
+            **args
+        )
 
         output_shape = model.output_shape
 
@@ -197,10 +184,12 @@ class ApplicationsTest(tf.test.TestCase, parameterized.TestCase):
         backend.clear_session()
 
         four_channel_input_shape = (input_shape[0], input_shape[1], 4)
-        model = app(include_rescaling=False,
-                    include_top=False,
-                    input_shape=four_channel_input_shape,
-                    **args)
+        model = app(
+            include_rescaling=False,
+            include_top=False,
+            input_shape=four_channel_input_shape,
+            **args
+        )
 
         output_shape = model.output_shape
 
