@@ -21,4 +21,10 @@ from keras_cv.models.densenet import DenseNet201
 from keras_cv.models.mlp_mixer import MLPMixerB16
 from keras_cv.models.mlp_mixer import MLPMixerB32
 from keras_cv.models.mlp_mixer import MLPMixerL16
+from keras_cv.models.resnet_v1 import ResNet50
+from keras_cv.models.resnet_v1 import ResNet101
+from keras_cv.models.resnet_v1 import ResNet152
+from keras_cv.models.resnet_v2 import ResNet50V2
+from keras_cv.models.resnet_v2 import ResNet101V2
+from keras_cv.models.resnet_v2 import ResNet152V2
 from keras_cv.models.vgg19 import VGG19
