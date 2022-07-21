@@ -17,25 +17,71 @@ import tensorflow as tf
 from absl.testing import parameterized
 
 from keras_cv import core
+from keras_cv.layers import object_detection
 from keras_cv.layers import preprocessing
 from keras_cv.layers import regularization
 
 
-def custom_compare(obj1, obj2):
-    if isinstance(obj1, (core.FactorSampler, tf.keras.layers.Layer)):
+def exhaustive_compare(obj1, obj2):
+    classes_supporting_get_config = (
+        core.FactorSampler,
+        tf.keras.layers.Layer,
+        preprocessing.BaseImageAugmentationLayer,
+    )
+
+    # If both objects are either one of list or tuple then their individual
+    # elements also must be checked exhaustively.
+    if isinstance(obj1, (list, tuple)) and isinstance(obj2, (list, tuple)):
+        # Length based checks.
+        if len(obj1) == 0 and len(obj2) == 0:
+            return True
+        if len(obj1) != len(obj2):
+            return False
+
+        # Exhaustive check for all elements.
+        for v1, v2 in list(zip(obj1, obj2)):
+            return exhaustive_compare(v1, v2)
+
+    # If the objects are dicts then we simply call the `config_equals` function
+    # which supports dicts.
+    elif isinstance(obj1, (dict)) and isinstance(obj2, (dict)):
+        return config_equals(v1, v2)
+
+    # If both objects are subclasses of Keras classes that support `get_config`
+    # method, then we compare their individual attributes using `config_equals`.
+    elif isinstance(obj1, classes_supporting_get_config) and isinstance(
+        obj2, classes_supporting_get_config
+    ):
         return config_equals(obj1.get_config(), obj2.get_config())
-    elif inspect.isfunction(obj1):
+
+    # Following checks are if either of the objects are _functions_, not methods
+    # or callables, since Layers and other unforeseen objects may also fit into
+    # this category. Specifically for Keras activation functions.
+    elif inspect.isfunction(obj1) and inspect.isfunction(obj2):
+        return tf.keras.utils.serialize_keras_object(
+            obj1
+        ) == tf.keras.utils.serialize_keras_object(obj2)
+    elif inspect.isfunction(obj1) and not inspect.isfunction(obj2):
         return tf.keras.utils.serialize_keras_object(obj1) == obj2
-    elif inspect.isfunction(obj2):
+    elif inspect.isfunction(obj2) and not inspect.isfunction(obj1):
         return obj1 == tf.keras.utils.serialize_keras_object(obj2)
+
+    # Lastly check for primitive datatypes and objects that don't need
+    # additional preprocessing.
     else:
         return obj1 == obj2
 
 
 def config_equals(config1, config2):
-    for key in list(config1.keys()) + list(config2.keys()):
+    # Both `config1` and `config2` are python dicts. So the first check is to
+    # see if both of them have same keys.
+    if config1.keys() != config2.keys():
+        return False
+
+    # Iterate over all keys of the configs and compare each entry exhaustively.
+    for key in list(config1.keys()):
         v1, v2 = config1[key], config2[key]
-        if not custom_compare(v1, v2):
+        if not exhaustive_compare(v1, v2):
             return False
     return True
 
@@ -104,7 +150,14 @@ class SerializationTest(tf.test.TestCase, parameterized.TestCase):
         (
             "RandomAugmentationPipeline",
             preprocessing.RandomAugmentationPipeline,
-            {"layers": [], "augmentations_per_image": 1, "rate": 1.0},
+            {
+                "layers": [
+                    preprocessing.RandomSaturation(factor=0.5),
+                    preprocessing.RandomColorDegeneration(factor=0.5),
+                ],
+                "augmentations_per_image": 1,
+                "rate": 1.0,
+            },
         ),
         (
             "RandomChoice",
@@ -187,11 +240,30 @@ class SerializationTest(tf.test.TestCase, parameterized.TestCase):
                 "seed": 1,
             },
         ),
+        (
+            "NonMaxSuppression",
+            object_detection.NonMaxSuppression,
+            {
+                "num_classes": 5,
+                "bounding_box_format": "xyxy",
+                "confidence_threshold": 0.5,
+                "iou_threshold": 0.5,
+                "max_detections": 100,
+                "max_detections_per_class": 100,
+            },
+        ),
+        (
+            "RandomRotation",
+            preprocessing.RandomRotation,
+            {
+                "factor": 0.5,
+            },
+        ),
     )
     def test_layer_serialization(self, layer_cls, init_args):
         layer = layer_cls(**init_args)
-        if "seed" in init_args:
-            self.assertIn("seed", layer.get_config())
+        config = layer.get_config()
+        self.assertAllInitParametersAreInConfig(layer_cls, config)
 
         model = tf.keras.models.Sequential(layer)
         model_config = model.get_config()
@@ -202,3 +274,15 @@ class SerializationTest(tf.test.TestCase, parameterized.TestCase):
         self.assertTrue(
             config_equals(layer.get_config(), reconstructed_layer.get_config())
         )
+
+    def assertAllInitParametersAreInConfig(self, layer_cls, config):
+        excluded_name = ["args", "kwargs", "*"]
+        parameter_names = {
+            v
+            for v in inspect.signature(layer_cls).parameters.keys()
+            if v not in excluded_name
+        }
+
+        intersection_with_config = {v for v in config.keys() if v in parameter_names}
+
+        self.assertSetEqual(parameter_names, intersection_with_config)

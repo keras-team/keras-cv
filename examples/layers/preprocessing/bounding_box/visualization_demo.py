@@ -18,7 +18,7 @@ import demo_utils
 
 
 def main():
-    inputs = demo_utils.load_voc_dataset()
+    inputs = demo_utils.load_voc_dataset(bounding_box_format="rel_xyxy")
     demo_utils.visualize_data(inputs, bounding_box_format="rel_xyxy")
 
 

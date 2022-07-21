@@ -78,6 +78,7 @@ class Solarization(BaseImageAugmentationLayer):
         **kwargs
     ):
         super().__init__(seed=seed, **kwargs)
+        self.seed = seed
         self.addition_factor = preprocessing.parse_factor(
             addition_factor, max_value=255, seed=seed, param_name="addition_factor"
         )
@@ -86,7 +87,7 @@ class Solarization(BaseImageAugmentationLayer):
         )
         self.value_range = value_range
 
-    def get_random_transformation(self, image=None, label=None, bounding_boxes=None):
+    def get_random_transformation(self, **kwargs):
         return (self.addition_factor(), self.threshold_factor())
 
     def augment_image(self, image, transformation=None, **kwargs):
@@ -110,6 +111,7 @@ class Solarization(BaseImageAugmentationLayer):
             "threshold_factor": self.threshold_factor,
             "addition_factor": self.addition_factor,
             "value_range": self.value_range,
+            "seed": self.seed,
         }
         base_config = super().get_config()
         return dict(list(base_config.items()) + list(config.items()))
