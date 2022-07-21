@@ -107,6 +107,7 @@ class RandomAugmentationPipeline(BaseImageAugmentationLayer):
         config.update(
             {
                 "augmentations_per_image": self.augmentations_per_image,
+                "auto_vectorize": self.auto_vectorize,
                 "rate": self.rate,
                 "layers": self.layers,
                 "seed": self.seed,
