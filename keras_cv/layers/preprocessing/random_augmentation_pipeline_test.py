@@ -39,6 +39,15 @@ class RandomAugmentationPipelineTest(tf.test.TestCase, parameterized.TestCase):
 
         self.assertAllClose(xs + augmentations_per_image, os)
 
+    def test_supports_empty_layers_argument(self):
+        pipeline = layers.RandomAugmentationPipeline(
+            layers=[], augmentations_per_image=1, rate=1.0
+        )
+        xs = tf.random.uniform((2, 5, 5, 3), 0, 100, dtype=tf.float32)
+        os = pipeline(xs)
+
+        self.assertAllClose(xs, os)
+
     def test_calls_layers_augmentations_in_graph(self):
         layer = AddOneToInputs()
         pipeline = layers.RandomAugmentationPipeline(

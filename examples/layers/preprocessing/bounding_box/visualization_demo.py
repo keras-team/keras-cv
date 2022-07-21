@@ -11,17 +11,16 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+"""
+   visualization_demo.py is used to visualize the dataset with bounding boxes.
+"""
+import demo_utils
 
-from keras_cv import layers
-from keras_cv import metrics
-from keras_cv import models
-from keras_cv import utils
-from keras_cv import version_check
-from keras_cv.core import ConstantFactorSampler
-from keras_cv.core import FactorSampler
-from keras_cv.core import NormalFactorSampler
-from keras_cv.core import UniformFactorSampler
 
-version_check.check_tf_version()
+def main():
+    inputs = demo_utils.load_voc_dataset(bounding_box_format="rel_xyxy")
+    demo_utils.visualize_data(inputs, bounding_box_format="rel_xyxy")
 
-__version__ = "0.2.9"
+
+if __name__ == "__main__":
+    main()

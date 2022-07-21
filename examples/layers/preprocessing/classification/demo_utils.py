@@ -50,3 +50,24 @@ def visualize_dataset(ds):
         plt.imshow(images[i].numpy().astype("uint8"))
         plt.axis("off")
     plt.show()
+
+
+def gallery_show(images):
+    images = images.astype(int)
+    for i in range(9):
+        image = images[i]
+        plt.subplot(3, 3, i + 1)
+        plt.imshow(image.astype("uint8"))
+        plt.axis("off")
+    plt.show()
+
+
+def load_elephant_tensor(output_size=(300, 300)):
+    elephants = tf.keras.utils.get_file(
+        "african_elephant.jpg", "https://i.imgur.com/Bvro0YD.png"
+    )
+    elephants = tf.keras.utils.load_img(elephants, target_size=output_size)
+    elephants = tf.keras.utils.img_to_array(elephants)
+
+    many_elephants = tf.repeat(tf.expand_dims(elephants, axis=0), 9, axis=0)
+    return many_elephants
