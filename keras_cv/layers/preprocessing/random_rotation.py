@@ -205,7 +205,7 @@ class RandomRotation(BaseImageAugmentationLayer):
         min_cordinates = tf.math.reduce_min(out, axis=1)
         max_cordinates = tf.math.reduce_max(out, axis=1)
         bounding_boxes_out = tf.concat([min_cordinates, max_cordinates], axis=1)
-        bounding_boxes_out = preprocessing.clip_bounding_box(
+        bounding_boxes_out = bounding_box.clip_to_image(
             bounding_boxes_out,
             bounding_box_format="xyxy",
             images=image,
