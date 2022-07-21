@@ -19,6 +19,15 @@ from keras_cv.layers import preprocessing
 TEST_CONFIGURATIONS = [
     ("AutoContrast", preprocessing.AutoContrast, {"value_range": (0, 255)}),
     ("Equalization", preprocessing.Equalization, {"value_range": (0, 255)}),
+    (
+        "RandomResizedCrop",
+        preprocessing.RandomResizedCrop,
+        {
+            "target_size": (224, 224),
+            "crop_area_factor": (0.8, 1.0),
+            "aspect_ratio_factor": (3 / 4, 4 / 3),
+        },
+    ),
     ("Grayscale", preprocessing.Grayscale, {}),
     ("GridMask", preprocessing.GridMask, {}),
     (
