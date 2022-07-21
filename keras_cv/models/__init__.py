@@ -18,6 +18,9 @@ from keras_cv.models.darknet import DarkNet53
 from keras_cv.models.densenet import DenseNet121
 from keras_cv.models.densenet import DenseNet169
 from keras_cv.models.densenet import DenseNet201
+from keras_cv.models.mlp_mixer import MLPMixerB16
+from keras_cv.models.mlp_mixer import MLPMixerB32
+from keras_cv.models.mlp_mixer import MLPMixerL16
 from keras_cv.models.regnet import RegNetX002
 from keras_cv.models.regnet import RegNetX004
 from keras_cv.models.regnet import RegNetX006
@@ -42,9 +45,6 @@ from keras_cv.models.regnet import RegNetY080
 from keras_cv.models.regnet import RegNetY120
 from keras_cv.models.regnet import RegNetY160
 from keras_cv.models.regnet import RegNetY320
-from keras_cv.models.mlp_mixer import MLPMixerB16
-from keras_cv.models.mlp_mixer import MLPMixerB32
-from keras_cv.models.mlp_mixer import MLPMixerL16
 from keras_cv.models.resnet_v1 import ResNet50
 from keras_cv.models.resnet_v1 import ResNet101
 from keras_cv.models.resnet_v1 import ResNet152

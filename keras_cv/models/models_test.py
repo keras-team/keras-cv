@@ -20,7 +20,6 @@ from tensorflow.keras import backend
 from keras_cv.models import csp_darknet
 from keras_cv.models import darknet
 from keras_cv.models import densenet
-
 from keras_cv.models import mlp_mixer
 from keras_cv.models import regnet
 from keras_cv.models import resnet_v1
