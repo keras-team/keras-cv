@@ -16,7 +16,7 @@ import tensorflow as tf
 from keras_cv import bounding_box
 
 
-class BoundingBoxTestCase(tf.test.TestCase):
+class BoundingBoxUtilTestCase(tf.test.TestCase):
     def test_clip_to_image(self):
         # Test xyxy format unbatched
         height = 256
