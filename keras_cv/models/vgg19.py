@@ -29,7 +29,7 @@ def VGG19(
     include_top,
     num_classes=None,
     weights=None,
-    input_shape=(None, None, 3),
+    input_shape=(224, 224, 3),
     pooling=None,
     classifier_activation="softmax",
     name="VGG19",
@@ -51,7 +51,7 @@ def VGG19(
         specified if `include_top` is True, and if no `weights` argument is
         specified.
       weights: one of `None` (random initialization), or a pretrained weight file path.
-      input_shape: optional shape tuple, defaults to (None, None, 3).
+      input_shape: optional shape tuple, defaults to (224, 224, 3).
       pooling: Optional pooling mode for feature extraction
         when `include_top` is `False`.
         - `None` means that the output of the model will be

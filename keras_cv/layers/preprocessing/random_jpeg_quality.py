@@ -66,5 +66,5 @@ class RandomJpegQuality(BaseImageAugmentationLayer):
 
     def get_config(self):
         config = super().get_config()
-        config.update({"factor": self.factor})
+        config.update({"factor": self.factor, "seed": self.seed})
         return config
