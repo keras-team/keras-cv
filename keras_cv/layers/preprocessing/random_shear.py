@@ -20,7 +20,7 @@ from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
     BaseImageAugmentationLayer,
 )
 from keras_cv.utils import preprocessing
-
+from keras_cv import bounding_box
 
 @tf.keras.utils.register_keras_serializable(package="keras_cv")
 class RandomShear(BaseImageAugmentationLayer):
@@ -161,8 +161,6 @@ class RandomShear(BaseImageAugmentationLayer):
                 "Please specify a bounding box format in the constructor. i.e."
                 "`RandomShear(bounding_box_format='xyxy')`"
             )
-        height, width, _ = image.shape
-
         bounding_boxes = keras_cv.bounding_box.convert_format(
             bounding_boxes,
             source=self.bounding_box_format,
@@ -183,9 +181,9 @@ class RandomShear(BaseImageAugmentationLayer):
             extended_bboxes = self._apply_vertical_transformation_to_bounding_box(
                 extended_bboxes, y
             )
+
         bounding_boxes = self._convert_to_four_coordinate(extended_bboxes, x, y)
-        # clip bounding boxes value to 0-image height and 0-image width
-        bounding_boxes = self._clip_bounding_box(bounding_boxes, height, width)
+        bounding_boxes = bounding_box.clip_to_image(bounding_boxes, images=image, bounding_box_format='xyxy')
         # join rest of the axes with bbox axes
         bounding_boxes = tf.concat(
             [bounding_boxes, rest_axes],
@@ -308,22 +306,6 @@ class RandomShear(BaseImageAugmentationLayer):
             tf.einsum("ij,kj->ki", matrix, new_bboxes), (-1, 8)
         )
         return transformed_bboxes
-
-    @staticmethod
-    def _clip_bounding_box(bounding_boxes, height, width):
-        """clips bounding boxes b/w 0 - image width and 0 - image height"""
-        x1, y1, x2, y2 = tf.split(bounding_boxes, 4, axis=1)
-        new_bboxes = tf.stack(
-            [
-                tf.clip_by_value(x1, clip_value_min=0, clip_value_max=width),
-                tf.clip_by_value(y1, clip_value_min=0, clip_value_max=height),
-                tf.clip_by_value(x2, clip_value_min=0, clip_value_max=width),
-                tf.clip_by_value(y2, clip_value_min=0, clip_value_max=height),
-            ],
-            axis=1,
-        )
-        new_bboxes = tf.squeeze(new_bboxes, axis=-1)
-        return new_bboxes
 
     @staticmethod
     def _convert_to_extended_corners_format(bounding_boxes):
