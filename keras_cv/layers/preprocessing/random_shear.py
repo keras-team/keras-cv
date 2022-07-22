@@ -211,6 +211,7 @@ class RandomShear(BaseImageAugmentationLayer):
                 "interpolation": self.interpolation,
                 "fill_mode": self.fill_mode,
                 "fill_value": self.fill_value,
+                "bounding_box_format": self.bounding_box_format,
                 "seed": self.seed,
             }
         )
