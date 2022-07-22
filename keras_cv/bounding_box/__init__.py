@@ -19,4 +19,5 @@ from keras_cv.bounding_box.formats import REL_YXYX
 from keras_cv.bounding_box.formats import XYWH
 from keras_cv.bounding_box.formats import XYXY
 from keras_cv.bounding_box.formats import YXYX
+from keras_cv.bounding_box.iou import compute_ious_for_image
 from keras_cv.bounding_box.pad_batch_to_shape import pad_batch_to_shape

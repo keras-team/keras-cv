@@ -16,8 +16,8 @@
 import tensorflow as tf
 
 from keras_cv import bounding_box
+from keras_cv.bounding_box import iou as iou_lib
 from keras_cv.metrics.coco import utils
-from keras_cv.utils import iou as iou_lib
 
 
 class UtilTest(tf.test.TestCase):
@@ -93,7 +93,7 @@ class UtilTest(tf.test.TestCase):
             ]
         )
 
-        ious = iou_lib.compute_ious_for_image(y_true, y_pred)
+        ious = iou_lib.compute_ious_for_image(y_true, y_pred, "yxyx")
         self.assertEqual(utils.match_boxes(ious, 0.5).shape, [3])
 
     def test_sort_bounding_boxes_unsorted_list(self):

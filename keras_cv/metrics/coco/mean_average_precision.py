@@ -16,8 +16,8 @@ import warnings
 import tensorflow as tf
 
 from keras_cv import bounding_box
+from keras_cv.bounding_box import iou as iou_lib
 from keras_cv.metrics.coco import utils
-from keras_cv.utils import iou as iou_lib
 
 
 class COCOMeanAveragePrecision(tf.keras.metrics.Metric):
@@ -224,7 +224,7 @@ class COCOMeanAveragePrecision(tf.keras.metrics.Metric):
                 )
 
                 ious = iou_lib.compute_ious_for_image(
-                    ground_truths_by_category, detections_by_category
+                    ground_truths_by_category, detections_by_category, "yxyx"
                 )
 
                 for iou_i in tf.range(self.num_iou_thresholds):

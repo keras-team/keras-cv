@@ -16,7 +16,7 @@
 import numpy as np
 import tensorflow as tf
 
-from keras_cv.utils import iou as iou_lib
+from keras_cv.bounding_box import iou as iou_lib
 
 
 class IoUTest(tf.test.TestCase):
@@ -26,9 +26,9 @@ class IoUTest(tf.test.TestCase):
         # area of bb1 and bb1_off_by_1 are each 10000.
         # intersection area is 99*99=9801
         # iou=9801/(2*10000 - 9801)=0.96097656633
-        print(iou_lib.compute_ious_for_image(bb1, bb1_off_by_1))
+        print(iou_lib.compute_ious_for_image(bb1, bb1_off_by_1, "yxyx"))
         self.assertAlmostEqual(
-            iou_lib.compute_ious_for_image(bb1, bb1_off_by_1)[0], 0.96097656633
+            iou_lib.compute_ious_for_image(bb1, bb1_off_by_1, "yxyx")[0], 0.96097656633
         )
 
     def test_compute_ious_for_image(self):
@@ -54,5 +54,5 @@ class IoUTest(tf.test.TestCase):
             dtype=tf.float32,
         )
 
-        result = iou_lib.compute_ious_for_image(sample_y_true, sample_y_pred)
+        result = iou_lib.compute_ious_for_image(sample_y_true, sample_y_pred, "yxyx")
         self.assertAllClose(expected_result, result.numpy())

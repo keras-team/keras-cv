@@ -14,27 +14,40 @@
 """Contains functions to compute ious of bounding boxes."""
 import tensorflow as tf
 
+from keras_cv import bounding_box
 
-def compute_ious_for_image(boxes1, boxes2):
-    """computes a lookup table vector containing the ious for a given set boxes.
+
+def compute_ious_for_image(boxes1, boxes2, bounding_box_format):
+    """Computes a lookup table vector containing the ious for a given set boxes.
 
     The lookup vector is to be indexed by [`boxes1_index`,`boxes2_index`].
-
-    Bounding boxes are expected to be in the corners format of
-    `[bounding_box.TOP, bounding_box.LEFT, bounding_box.BOTTOM, bounding_box.RIGHT]`.
-    For example, the bounding box with it's bounding_box.TOP side at 100,
-    bounding_box.LEFT side at 200, bounding_box.BOTTOM at 101, and bounding_box.RIGHT
-    at 201 would be represented as:
-    > [100, 200, 101, 201]
 
     Args:
       boxes1: a list of bounding boxes in 'corners' format.
       boxes2: a list of bounding boxes in 'corners' format.
+      bounding_box_format: a case-sensitive string which is one of `"xyxy"`,
+        `"rel_xyxy"`, `"xyWH"`, `"center_xyWH"`, `"yxyx"`, `"rel_yxyx"`.
+        For detailed information on the supported format, see the
+        [KerasCV bounding box documentation](https://keras.io/api/keras_cv/bounding_box/formats/).
 
     Returns:
       iou_lookup_table: a vector containing the pairwise ious of boxes1 and
         boxes2.
     """
+
+    if "rel" in bounding_box_format:
+        target = "rel_yxyx"
+    else:
+        target = "yxyx"
+
+    boxes1 = bounding_box.convert_format(
+        boxes1, source=bounding_box_format, target=target
+    )
+
+    boxes2 = bounding_box.convert_format(
+        boxes2, source=bounding_box_format, target=target
+    )
+
     zero = tf.convert_to_tensor(0.0, boxes1.dtype)
     boxes1_ymin, boxes1_xmin, boxes1_ymax, boxes1_xmax = tf.unstack(
         boxes1[..., :4, None], 4, axis=-2
