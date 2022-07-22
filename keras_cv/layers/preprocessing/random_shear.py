@@ -170,9 +170,9 @@ class RandomShear(BaseImageAugmentationLayer):
         )
         return config
 
-    def augment_bounding_boxes(self, bounding_boxes, transformation, **kwargs):
-        image = None
-        image = kwargs.get("image")
+    def augment_bounding_boxes(
+        self, bounding_boxes, transformation, image=None, **kwargs
+    ):
         if self.bounding_box_format is None:
             raise ValueError(
                 "`RandomShear()` was called with bounding boxes,"

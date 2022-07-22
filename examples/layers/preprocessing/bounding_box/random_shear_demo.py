@@ -17,9 +17,9 @@ Operates on the voc dataset.  In this script the images and bboxes
 are loaded, then are passed through the preprocessing layers.
 Finally, they are shown using matplotlib.
 """
+import demo_utils
 import matplotlib.pyplot as plt
-from demo_utils import load_voc_dataset
-from demo_utils import visualize_data
+import tensorflow as tf
 
 from keras_cv.layers import preprocessing
 
@@ -28,19 +28,14 @@ BATCH_SIZE = 9
 
 
 def main():
-    dataset = load_voc_dataset(
-        name="voc/2007",
-        batch_size=BATCH_SIZE,
-        image_size=(256, 256),
-    )
-    randomshear = preprocessing.RandomShear(
-        x_factor=(0.1, 0.3),
-        # y_factor=(0.1, 0.3),
+    dataset = demo_utils.load_voc_dataset(bounding_box_format="rel_xyxy")
+    random_shear = preprocessing.RandomShear(
+        x_factor=(0.1, 0.5),
+        y_factor=(0.1, 0.5),
         bounding_box_format="rel_xyxy",
     )
-    plt.figure(figsize=(20, 20))
-    dataset = dataset.map(lambda x: randomshear(x))
-    visualize_data(data=dataset, bounding_box_format="rel_xyxy")
+    dataset = dataset.map(random_shear, num_parallel_calls=tf.data.AUTOTUNE)
+    demo_utils.visualize_data(dataset, bounding_box_format="rel_xyxy")
 
 
 if __name__ == "__main__":
