@@ -182,10 +182,14 @@ class RetinaNet(keras.Model):
 
     def train_step(self, data):
         x, y = data
+        # y comes in in self.bounding_box_format
         y_for_metrics, y_training_target = self._encode_data(x, y)
+        # y is still in self.bounding_box_format
 
         with tf.GradientTape() as tape:
             predictions = self(x, training=True)
+            # predictions technically do not have a format
+            # loss accepts
             loss = self.compiled_loss(
                 y_training_target,
                 predictions["train_preds"],
