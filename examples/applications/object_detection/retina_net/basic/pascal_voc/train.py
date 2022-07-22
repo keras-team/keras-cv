@@ -11,21 +11,14 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import keras_cv
 
-from keras_cv import version_check
-
-version_check.check_tf_version()
-
-
-from keras_cv import applications
-from keras_cv import layers
-from keras_cv import losses
-from keras_cv import metrics
-from keras_cv import models
-from keras_cv import utils
-from keras_cv.core import ConstantFactorSampler
-from keras_cv.core import FactorSampler
-from keras_cv.core import NormalFactorSampler
-from keras_cv.core import UniformFactorSampler
-
-__version__ = "0.2.9"
+# Right now, this just creates a RetinaNet model
+# As I add in the loss & pascal_voc_loader we can make this train a model.
+model = keras_cv.applications.RetinaNet(
+    num_classes=20,
+    bounding_box_format='xywh',
+    backbone='resnet50',
+    backbone_weights='imagenet',
+    include_rescaling=True
+)
