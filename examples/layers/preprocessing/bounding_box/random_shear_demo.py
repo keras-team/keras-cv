@@ -18,7 +18,6 @@ are loaded, then are passed through the preprocessing layers.
 Finally, they are shown using matplotlib.
 """
 import demo_utils
-import matplotlib.pyplot as plt
 import tensorflow as tf
 
 from keras_cv.layers import preprocessing
