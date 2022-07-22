@@ -236,6 +236,10 @@ def convert_format(boxes, source, target, images=None, dtype="float32"):
     if source == target:
         return boxes
 
+    if "rel" in source and "rel" in target:
+        source = source[4:]
+        target = target[4:]
+
     boxes, images, squeeze = _format_inputs(boxes, images)
 
     to_xyxy_fn = TO_XYXY_CONVERTERS[source]
