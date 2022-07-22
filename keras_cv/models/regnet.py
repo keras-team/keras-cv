@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""RegNet models for Keras.
+"""RegNet models for KerasCV.
 References:
     - [Designing Network Design Spaces](https://arxiv.org/abs/2003.13678)
     (CVPR 2020)
@@ -224,10 +224,12 @@ BASE_DOCSTRING = """Instantiates the {name} architecture.
         inputs will be passed through a `Rescaling(1/255.0)` layer.
     include_top: Whether to include the fully-connected
         layer at the top of the network.
+    num_classes: Optional number of classes to classify images
+        into, only to be specified if `include_top` is True, and
+        if no `weights` argument is specified.
     weights: One of `None` (random initialization), or the path to the weights
           file to be loaded. Defaults to `None`.
-    input_shape: Optional shape tuple, only to be specified
-        if `include_top` is False.
+    input_shape: Optional shape tuple, defaults to (None, None, 3).
         It should have exactly 3 inputs channels.
     pooling: Optional pooling mode for feature extraction
         when `include_top` is `False`. Defaults to None.
@@ -240,9 +242,6 @@ BASE_DOCSTRING = """Instantiates the {name} architecture.
             the output of the model will be a 2D tensor.
         - `max` means that global max pooling will
             be applied.
-    num_classes: Optional number of classes to classify images
-        into, only to be specified if `include_top` is True, and
-        if no `weights` argument is specified.
     classifier_activation: A `str` or callable. The activation function to use
         on the "top" layer. Ignored unless `include_top=True`. Set
         `classifier_activation=None` to return the logits of the "top" layer.
@@ -718,47 +717,53 @@ def RegNet(
     block_type,
     include_rescaling,
     include_top,
+    num_classes=None,
     model_name="regnet",
     weights=None,
     input_shape=(None, None, 3),
     pooling=None,
-    num_classes=None,
     classifier_activation="softmax",
     **kwargs,
 ):
     """Instantiates RegNet architecture given specific configuration.
 
     Args:
-      depths: An iterable containing depths for each individual stages.
-      widths: An iterable containing output channel width of each individual
-        stages
-      group_width: Number of channels to be used in each group. See grouped
-        convolutions for more information.
-      block_type: Must be one of `{"X", "Y", "Z"}`. For more details see the
-        papers "Designing network design spaces" and "Fast and Accurate Model
-        Scaling"
-      default_size: Default input image size.
-      model_name: An optional name for the model.
-      include_rescaling: boolean denoting whther to include preprocessing in
-        the model
-      include_top: Boolean denoting whether to include classification head to
-        the model.
-      weights: one of `None` (random initialization) or the path to the weights file to be loaded.
-      input_shape: optional shape tuple, only to be specified if `include_top`
-        is False. It should have exactly 3 inputs channels.
-      pooling: optional pooling mode for feature extraction when `include_top`
-        is `False`. - `None` means that the output of the model will be the 4D
-        tensor output of the last convolutional layer. - `avg` means that global
-        average pooling will be applied to the output of the last convolutional
-        layer, and thus the output of the model will be a 2D tensor. - `max`
-        means that global max pooling will be applied.
-      num_classes: optional number of classes to classify images into, only to be
-        specified if `include_top` is True, and if no `weights` argument is
-        specified.
-      classifier_activation: A `str` or callable. The activation function to use
-        on the "top" layer. Ignored unless `include_top=True`. Set
-        `classifier_activation=None` to return the logits of the "top" layer.
-        Defaults to `"softmax"`.
+        depths: An iterable containing depths for each individual stages.
+        widths: An iterable containing output channel width of each individual
+            stages
+        group_width: Number of channels to be used in each group. See grouped
+            convolutions for more information.
+        block_type: Must be one of `{"X", "Y", "Z"}`. For more details see the
+            papers "Designing network design spaces" and "Fast and Accurate
+            Model Scaling"
+        default_size: Default input image size.
+        model_name: An optional name for the model.
+        include_rescaling: whether or not to Rescale the inputs.If set to True,
+            inputs will be passed through a `Rescaling(1/255.0)` layer.
+        include_top: Whether to include the fully-connected
+            layer at the top of the network.
+        num_classes: Optional number of classes to classify images
+            into, only to be specified if `include_top` is True, and
+            if no `weights` argument is specified.
+        weights: One of `None` (random initialization), or the path to the
+            weights file to be loaded. Defaults to `None`.
+        input_shape: Optional shape tuple, defaults to (None, None, 3).
+            It should have exactly 3 inputs channels.
+        pooling: Optional pooling mode for feature extraction
+            when `include_top` is `False`. Defaults to None.
+            - `None` means that the output of the model will be
+                the 4D tensor output of the
+                last convolutional layer.
+            - `avg` means that global average pooling
+                will be applied to the output of the
+                last convolutional layer, and thus
+                the output of the model will be a 2D tensor.
+            - `max` means that global max pooling will
+                be applied.
+        classifier_activation: A `str` or callable. The activation function to
+            use on the "top" layer. Ignored unless `include_top=True`. Set
+            `classifier_activation=None` to return the logits of the "top"
+            layer. Defaults to `"softmax"`.
 
     Returns:
       A `keras.Model` instance.
@@ -791,9 +796,9 @@ def RegNet(
 
     in_channels = 32  # Output from Stem
 
-    for num_stage in range(4):
-        depth = depths[num_stage]
-        out_channels = widths[num_stage]
+    for stage_index in range(4):
+        depth = depths[stage_index]
+        out_channels = widths[stage_index]
 
         x = Stage(
             block_type,
@@ -801,7 +806,7 @@ def RegNet(
             group_width,
             in_channels,
             out_channels,
-            name=model_name + "_Stage_" + str(num_stage),
+            name=model_name + "_Stage_" + str(stage_index),
         )(x)
         in_channels = out_channels
 
