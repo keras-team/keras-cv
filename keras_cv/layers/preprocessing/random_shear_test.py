@@ -294,7 +294,7 @@ class RandomShearTest(tf.test.TestCase):
         )
         outputs = layer({"images": xs, "bounding_boxes": ys})
         _, output_ys = outputs["images"], outputs["bounding_boxes"]
-        self.assertAllEqual(ys, output_ys)
+        self.assertAllClose(ys, output_ys)
 
     def test_clip_bounding_box(self):
         """test for bbox clipping to image width and height"""
