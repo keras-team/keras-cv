@@ -122,7 +122,7 @@ class NonMaxSuppression(tf.keras.layers.Layer):
             clip_boxes=False,
         )
         # output will be a ragged tensor because num_boxes will change across the batch
-        boxes = self._encode_to_dense_output_tensor(nmsed_boxes)
+        boxes = self._decode_nms_boxes_to_tensor(nmsed_boxes)
         # converting all boxes to the original format
         boxes = self._encode_to_ragged(boxes, nmsed_boxes.valid_detections)
         return bounding_box.convert_format(
@@ -132,7 +132,7 @@ class NonMaxSuppression(tf.keras.layers.Layer):
             images=images,
         )
 
-    def _encode_to_dense_output_tensor(self, nmsed_boxes):
+    def _decode_nms_boxes_to_tensor(self, nmsed_boxes):
         boxes = tf.TensorArray(tf.float32, size=0, dynamic_size=True)
 
         for i in tf.range(tf.shape(nmsed_boxes.nmsed_boxes)[0]):
