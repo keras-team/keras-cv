@@ -25,7 +25,7 @@ def compute_ious_for_image(boxes1, boxes2, bounding_box_format):
     Args:
       boxes1: a list of bounding boxes in 'corners' format.
       boxes2: a list of bounding boxes in 'corners' format.
-      bounding_box_format: a case-sensitive string which is one of `"xyxy"`,
+      bounding_box_format: a case insensitive string which is one of `"xyxy"`,
         `"rel_xyxy"`, `"xyWH"`, `"center_xyWH"`, `"yxyx"`, `"rel_yxyx"`.
         For detailed information on the supported format, see the
         [KerasCV bounding box documentation](https://keras.io/api/keras_cv/bounding_box/formats/).
@@ -35,6 +35,7 @@ def compute_ious_for_image(boxes1, boxes2, bounding_box_format):
         boxes2.
     """
 
+    # target format is chosen based on source format to remove dependencies on images
     if "rel" in bounding_box_format:
         target = "rel_yxyx"
     else:
