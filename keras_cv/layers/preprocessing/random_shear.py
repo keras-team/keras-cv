@@ -151,25 +151,6 @@ class RandomShear(BaseImageAugmentationLayer):
     def augment_label(self, label, transformation=None, **kwargs):
         return label
 
-    @staticmethod
-    def _format_transform(transform):
-        transform = tf.convert_to_tensor(transform, dtype=tf.float32)
-        return transform[tf.newaxis]
-
-    def get_config(self):
-        config = super().get_config()
-        config.update(
-            {
-                "x_factor": self.x_factor,
-                "y_factor": self.y_factor,
-                "interpolation": self.interpolation,
-                "fill_mode": self.fill_mode,
-                "fill_value": self.fill_value,
-                "seed": self.seed,
-            }
-        )
-        return config
-
     def augment_bounding_boxes(
         self, bounding_boxes, transformation, image=None, **kwargs
     ):
@@ -204,9 +185,12 @@ class RandomShear(BaseImageAugmentationLayer):
             )
         bounding_boxes = self._convert_to_four_coordinate(extended_bboxes, x, y)
         # clip bounding boxes value to 0-image height and 0-image width
-        bounding_boxes = self._clip_bounding_box(height, width, bounding_boxes)
+        bounding_boxes = self._clip_bounding_box(bounding_boxes, height, width)
         # join rest of the axes with bbox axes
-        bounding_boxes = self._join_axes(bounding_boxes, rest_axes)
+        bounding_boxes = tf.concat(
+            [bounding_boxes, rest_axes],
+            axis=-1,
+        )
         # convert to universal output format
         bounding_boxes = keras_cv.bounding_box.convert_format(
             bounding_boxes,
@@ -217,14 +201,28 @@ class RandomShear(BaseImageAugmentationLayer):
         )
         return bounding_boxes
 
-    def _join_axes(self, bounding_boxes, rest_axes):
-        """join bbox axes with rest of axes"""
-        return tf.concat(
-            [bounding_boxes, rest_axes],
-            axis=-1,
+    def get_config(self):
+        config = super().get_config()
+        config.update(
+            {
+                "x_factor": self.x_factor,
+                "y_factor": self.y_factor,
+                "interpolation": self.interpolation,
+                "fill_mode": self.fill_mode,
+                "fill_value": self.fill_value,
+                "seed": self.seed,
+            }
         )
+        return config
 
-    def _convert_to_four_coordinate(self, extended_bboxes, x, y):
+    @staticmethod
+    def _format_transform(transform):
+        transform = tf.convert_to_tensor(transform, dtype=tf.float32)
+        return transform[tf.newaxis]
+
+
+    @staticmethod
+    def _convert_to_four_coordinate(extended_bboxes, x, y):
         """convert from extended coordinates to 4 coordinates system"""
         (
             top_left_x,
@@ -279,8 +277,9 @@ class RandomShear(BaseImageAugmentationLayer):
             axis=1,
         )
 
+    @staticmethod
     def _apply_horizontal_transformation_to_bounding_box(
-        self, extended_bounding_boxes, x
+        extended_bounding_boxes, x
     ):
         # create transformation matrix [1,4]
         matrix = tf.stack([1.0, -x, 0, 1.0], axis=0)
@@ -294,8 +293,9 @@ class RandomShear(BaseImageAugmentationLayer):
         )
         return transformed_bboxes
 
+    @staticmethod
     def _apply_vertical_transformation_to_bounding_box(
-        self, extended_bounding_boxes, y
+        extended_bounding_boxes, y
     ):
         # create transformation matrix [1,4]
         matrix = tf.stack([1.0, 0, -y, 1.0], axis=0)
@@ -309,7 +309,8 @@ class RandomShear(BaseImageAugmentationLayer):
         )
         return transformed_bboxes
 
-    def _clip_bounding_box(self, height, width, bounding_boxes):
+    @staticmethod
+    def _clip_bounding_box(bounding_boxes, height, width):
         """clips bounding boxes b/w 0 - image width and 0 - image height"""
         x1, y1, x2, y2 = tf.split(bounding_boxes, 4, axis=1)
         new_bboxes = tf.stack(
@@ -324,7 +325,8 @@ class RandomShear(BaseImageAugmentationLayer):
         new_bboxes = tf.squeeze(new_bboxes, axis=-1)
         return new_bboxes
 
-    def _convert_to_extended_corners_format(self, bounding_boxes):
+    @staticmethod
+    def _convert_to_extended_corners_format(bounding_boxes):
         """splits corner bboxes top left,bottom right to 4 corners top left,
         bottom right,top right and bottom left"""
         x1, y1, x2, y2, rest = tf.split(
