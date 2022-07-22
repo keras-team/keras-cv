@@ -17,8 +17,8 @@ import keras_cv
 # As I add in the loss & pascal_voc_loader we can make this train a model.
 model = keras_cv.applications.RetinaNet(
     num_classes=20,
-    bounding_box_format='xywh',
-    backbone='resnet50',
-    backbone_weights='imagenet',
-    include_rescaling=True
+    bounding_box_format="xywh",
+    backbone="resnet50",
+    backbone_weights="imagenet",
+    include_rescaling=True,
 )

@@ -12,12 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import keras_cv
 import numpy as np
 import tensorflow as tf
-from absl import flags
-from ml_collections.config_flags import config_flags
 from tensorflow import keras
+
 from keras_cv import bounding_box
 from keras_cv.applications.object_detection.retina_net.__internal__ import (
     layers as layers_lib,

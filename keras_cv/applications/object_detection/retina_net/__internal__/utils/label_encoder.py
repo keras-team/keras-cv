@@ -12,9 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from keras_cv.applications.object_detection.retina_net.__internal__ import utils
-from keras_cv import bounding_box
 import tensorflow as tf
+
+from keras_cv import bounding_box
+from keras_cv.applications.object_detection.retina_net.__internal__ import utils
 
 
 class LabelEncoder:

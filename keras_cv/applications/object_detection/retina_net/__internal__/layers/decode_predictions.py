@@ -13,9 +13,10 @@
 # limitations under the License.
 
 import tensorflow as tf
+from retina_net.utils import AnchorBox
+
 from keras_cv import bounding_box
 from keras_cv import layers
-from retina_net.utils import AnchorBox
 
 
 class DecodePredictions(tf.keras.layers.Layer):
