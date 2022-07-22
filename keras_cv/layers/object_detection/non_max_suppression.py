@@ -13,7 +13,7 @@
 # limitations under the License.
 import tensorflow as tf
 
-from keras_cv.bounding_box.converters import convert_format
+from keras_cv import bounding_box
 
 
 @tf.keras.utils.register_keras_serializable(package="keras_cv")
@@ -96,7 +96,7 @@ class NonMaxSuppression(tf.keras.layers.Layer):
 
     def call(self, predictions, images=None):
         # convert to yxyx for the TF NMS operation
-        predictions = convert_format(
+        predictions = bounding_box.convert_format(
             predictions,
             source=self.bounding_box_format,
             target="yxyx",
@@ -121,12 +121,18 @@ class NonMaxSuppression(tf.keras.layers.Layer):
             self.confidence_threshold,
             clip_boxes=False,
         )
-
         # output will be a ragged tensor because num_boxes will change across the batch
-        return self._encode_to_ragged(nmsed_boxes, images)
+        boxes = self._encode_to_dense_output_tensor(nmsed_boxes)
+        # converting all boxes to the original format
+        boxes = bounding_box.convert_format(
+            boxes,
+            source="yxyx",
+            target=self.bounding_box_format,
+            images=images,
+        )
+        return self._encode_to_ragged(boxes, nmsed_boxes.valid_detections)
 
-    def _encode_to_ragged(self, nmsed_boxes, images):
-        # this TensorArray will hold all the valid detections
+    def _encode_to_dense_output_tensor(self, nmsed_boxes):
         boxes = tf.TensorArray(tf.float32, size=0, dynamic_size=True)
 
         for i in tf.range(tf.shape(nmsed_boxes.nmsed_boxes)[0]):
@@ -151,19 +157,11 @@ class NonMaxSuppression(tf.keras.layers.Layer):
                 boxes = boxes.write(boxes.size(), boxes_recombined[j])
 
         # stacking to create a tensor
-        boxes = boxes.stack()
+        return boxes.stack()
 
-        # converting all boxes to the original format
-        boxes = convert_format(
-            tf.expand_dims(boxes, axis=0),
-            source="yxyx",
-            target=self.bounding_box_format,
-            images=images,
-        )[0]
-
+    def _encode_to_ragged(self, boxes, valid_detections):
         # using cumulative sum to calculate row_limits for ragged tensor
-        row_limits = tf.cumsum(nmsed_boxes.valid_detections)
-
+        row_limits = tf.cumsum(valid_detections)
         # creating the output RaggedTensor by splitting boxes at row_limits
         result = tf.RaggedTensor.from_row_limits(values=boxes, row_limits=row_limits)
         return result
