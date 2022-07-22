@@ -12,10 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import keras_cv
 import numpy as np
 import tensorflow as tf
+from absl import flags
+from ml_collections.config_flags import config_flags
 from tensorflow import keras
-
 from keras_cv import bounding_box
 from keras_cv.applications.object_detection.retina_net.__internal__ import (
     layers as layers_lib,
@@ -25,59 +27,28 @@ from keras_cv.applications.object_detection.retina_net.__internal__ import (
 )
 
 
-# TODO(lukewood): update docstring to include documentation on creating a custom label
-# decoder/etc.
 class RetinaNet(keras.Model):
     """A Keras model implementing the RetinaNet architecture.
 
-    Implements the RetinaNet architecture for object detection.  The constructor
-    requires `num_classes`, `bounding_box_format` and a `backbone`.  Optionally, a
-    custom label encoder, feature pyramid network, and prediction decoder may all be
-    provided.
+    TODO: describe how it works, output formats, metrics, etc.
 
     Usage:
-    ```
-    retina_net = keras_cv.applications.RetinaNet(
-        num_classes=20,
-        bounding_box_format="xywh",
-        backbone="resnet50",
-        backbone_weights="imagenet",
-        include_rescaling=True,
-    )
-    ```
+        TODO
 
     Args:
-        num_classes: the number of classes in your dataset excluding the background
-            class.  Classes should be represented by integers in the range
-            [0, num_classes).
-        bounding_box_format: The format of bounding boxes of input dataset. Refer
-            https://github.com/keras-team/keras-cv/blob/master/keras_cv/bounding_box/converters.py
-            for more details on supported bounding box formats.
+        num_classes:
+        bounding_box_format:
         backbone: Either 'resnet50' or a custom backbone model.  Please see {link} to see
             how to construct your own backbone.
         include_rescaling: Required if provided backbone is a pre-configured model.
-            If set to True, inputs will be passed through a Rescaling(1/255.0) layer.
+            Whether or not to rescale inputs in the backbone.
         backbone_weights: (Optional) if using a KerasCV provided backbone, the
             underlying backbone model will be loaded using the weights provided in this
             argument.  Can be a model checkpoint path, or a string from the supported
             weight sets in the underlying model.
-        label_encoder: (Optional) a keras.Layer that accepts an image Tensor and a
-            bounding box Tensor to its `call()` method, and returns RetinaNet training
-            targets.  By default, a KerasCV standard LabelEncoder is created and used.
-            Results of this `call()` method are passed to the `loss` object passed into
-            `compile()` as the `y_true` argument.
-        feature_pyramid: (Optional) A `keras.Model` representing a feature pyramid
-            network (FPN).  The feature pyramid network is called on the outputs of the
-            `backbone`.  The keras_cv default backbones return three outputs in a list,
-            but custom backbones may be written and used with custom feature pyramid
-            networks.  If not provided, a default feature pyramid neetwork is produced
-            by the library.  The default feature pyramid network is compatible with all
-            standard keras_cv backbones.
-        prediction_decoder: (Optional)  A `keras.layer` that is responsible for
-            transforming retina_net predictions into usable bounding box Tensors.  If
-            not provided, a default is provided.  The default PredictionDecoder layer
-            operates using an AnchorBox matching algorithm and a NonMaxSuppression
-            operation.
+        label_encoder:
+        feature_pyramid:
+        prediction_decoder:
         name: (Optional) name for the model, defaults to RetinaNet.
     """
 
@@ -95,8 +66,7 @@ class RetinaNet(keras.Model):
         **kwargs,
     ):
         super().__init__(name=name, **kwargs)
-
-        if backbone is not None and include_rescaling is None:
+        if backbone is None and include_rescaling is None:
             raise ValueError(
                 "Either `backbone` OR `include_rescaling` must be set when "
                 "constructing a `keras_cv.models.RetinaNet()` model. "
@@ -126,7 +96,6 @@ class RetinaNet(keras.Model):
         self.prediction_decoder = prediction_decoder or layers_lib.DecodePredictions(
             num_classes=num_classes, bounding_box_format=bounding_box_format
         )
-        self._metrics_bounding_box_format = None
 
     def compile(self, metrics=None, **kwargs):
         metrics = metrics or []
@@ -141,7 +110,7 @@ class RetinaNet(keras.Model):
         if not all_have_format:
             raise ValueError(
                 "All metrics passed to RetinaNet.compile() must have "
-                f"a `bounding_box_format` attribute.  Received metrics={metrics}"
+                "a `bounding_box_format` attribute."
             )
 
         if len(metrics) != 0:
@@ -159,8 +128,7 @@ class RetinaNet(keras.Model):
             raise ValueError(
                 "All metrics passed to RetinaNet.compile() must have "
                 "the same `bounding_box_format` attribute.  For example, if one metric "
-                "uses 'xyxy', all other metrics must use 'xyxy'.  Received "
-                f"metrics={metrics}"
+                "uses 'xyxy', all other metrics must use 'xyxy'"
             )
 
     def call(self, x, training=False):
@@ -205,7 +173,7 @@ class RetinaNet(keras.Model):
             target=self.label_encoder.bounding_box_format,
             images=x,
         )
-        y_training_target = self.label_encoder(x, y)
+        y_training_target = self.label_encoder.encode_batch(x, y)
         y_training_target = bounding_box.convert_format(
             y_training_target,
             source=self.label_encoder.bounding_box_format,
@@ -216,13 +184,10 @@ class RetinaNet(keras.Model):
 
     def train_step(self, data):
         x, y = data
-        # y comes in in self.bounding_box_format
         y_for_metrics, y_training_target = self._encode_data(x, y)
 
         with tf.GradientTape() as tape:
             predictions = self(x, training=True)
-            # predictions technically do not have a format
-            # loss accepts
             loss = self.compiled_loss(
                 y_training_target,
                 predictions["train_preds"],
@@ -294,14 +259,10 @@ def _parse_backbone(backbone, include_rescaling, backbone_weights):
             f"include_rescaling={include_rescaling}, and "
             f"backbone_weights={backbone_weights}."
         )
-    if not isinstance(backbone, keras.Model):
-        raise ValueError(
-            "Custom backbones should be subclasses of a keras.Model. "
-            f"Received backbone={backbone}."
-        )
     return backbone
 
 
+# --- Building the ResNet50 backbone ---
 def _resnet50_backbone(include_rescaling, backbone_weights):
     inputs = keras.layers.Input(shape=(None, None, 3))
     x = inputs

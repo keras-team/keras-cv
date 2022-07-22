@@ -12,9 +12,5 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from keras_cv.applications.object_detection.retina_net.__internal__.utils.anchor_box import (
-    AnchorBox,
-)
-from keras_cv.applications.object_detection.retina_net.__internal__.utils.label_encoder import (
-    LabelEncoder,
-)
+from keras_cv.applications.object_detection.retina_net.__internal__.utils.anchor_box import AnchorBox
+from keras_cv.applications.object_detection.retina_net.__internal__.utils.label_encoder import LabelEncoder

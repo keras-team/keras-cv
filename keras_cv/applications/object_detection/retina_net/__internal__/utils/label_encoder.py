@@ -12,43 +12,28 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import tensorflow as tf
-from tensorflow.keras import layers
-
-from keras_cv import bounding_box
 from keras_cv.applications.object_detection.retina_net.__internal__ import utils
+from keras_cv import bounding_box
+import tensorflow as tf
 
 
-class LabelEncoder(layers.Layer):
+class LabelEncoder:
     """Transforms the raw labels into targets for training.
 
     This class has operations to generate targets for a batch of samples which
     is made up of the input images, bounding boxes for the objects present and
     their class ids.
-
-    Args:
-        bounding_box_format:  The format of bounding boxes of input dataset. Refer
-            https://github.com/keras-team/keras-cv/blob/master/keras_cv/bounding_box/converters.py
-            for more details on supported bounding box formats.
-        anchor_box: Anchor box generator to encode the bounding boxes.
-        box_variance: The scaling factors used to scale the bounding box targets.
+    Attributes:
+      anchor_box: Anchor box generator to encode the bounding boxes.
+      box_variance: The scaling factors used to scale the bounding box targets.
     """
 
-    def __init__(
-        self,
-        bounding_box_format,
-        anchor_box_generator=None,
-        box_variance=None,
-        **kwargs
-    ):
-        super().__init__(**kwargs)
+    def __init__(self, bounding_box_format):
         self.bounding_box_format = bounding_box_format
-        self._anchor_box = anchor_box_generator or utils.AnchorBox(
-            bounding_box_format=bounding_box_format
+        self._anchor_box = utils.AnchorBox()
+        self._box_variance = tf.convert_to_tensor(
+            [0.1, 0.1, 0.2, 0.2], dtype=tf.float32
         )
-
-        box_variance = box_variance or [0.1, 0.1, 0.2, 0.2]
-        self._box_variance = tf.convert_to_tensor(box_variance, dtype=tf.float32)
 
     def _match_anchor_boxes(
         self, anchor_boxes, gt_boxes, match_iou=0.5, ignore_iou=0.4
@@ -80,9 +65,7 @@ class LabelEncoder(layers.Layer):
           ignore_mask: A mask for anchor boxes that need to by ignored during
             training
         """
-        iou_matrix = bounding_box.compute_iou(
-            anchor_boxes, gt_boxes, bounding_box_format=self.bounding_box_format
-        )
+        iou_matrix = compute_iou(anchor_boxes, gt_boxes, bounding_box_format="xywh")
         max_iou = tf.reduce_max(iou_matrix, axis=1)
         matched_gt_idx = tf.argmax(iou_matrix, axis=1)
         positive_mask = tf.greater_equal(max_iou, match_iou)
@@ -106,10 +89,11 @@ class LabelEncoder(layers.Layer):
         box_target = box_target / self._box_variance
         return box_target
 
-    def _encode_sample(self, gt_boxes, anchor_boxes):
+    def _encode_sample(self, image_shape, gt_boxes):
         """Creates box and classification targets for a single sample"""
         cls_ids = gt_boxes[:, 4]
         gt_boxes = gt_boxes[:, :4]
+        anchor_boxes = self._anchor_box.get_anchors(image_shape[1], image_shape[2])
         cls_ids = tf.cast(cls_ids, dtype=tf.float32)
         matched_gt_idx, positive_mask, ignore_mask = self._match_anchor_boxes(
             anchor_boxes, gt_boxes
@@ -125,20 +109,42 @@ class LabelEncoder(layers.Layer):
         label = tf.concat([box_target, cls_target], axis=-1)
         return label
 
-    def call(self, images, boxes):
+    def encode_batch(self, batch_images, boxes):
         """Creates box and classification targets for a batch"""
         boxes = bounding_box.convert_format(
-            boxes, source=self.bounding_box_format, target="xywh", images=images
+            boxes, source=self.bounding_box_format, target="xywh"
         )
-
-        anchor_boxes = self._anchor_box(images)
-
+        images_shape = tf.shape(batch_images)
         if isinstance(boxes, tf.RaggedTensor):
             boxes = boxes.to_tensor(default_value=-1)
+        return tf.map_fn(elems=boxes, fn=lambda x: self._encode_sample(images_shape, x))
 
-        result = tf.map_fn(
-            elems=(images), fn=lambda x: self._encode_sample(x, anchor_boxes)
-        )
-        return bounding_box.convert_format(
-            result, source="xywh", target=self.bounding_box_format, images=images
-        )
+
+def compute_iou(boxes1, boxes2, bounding_box_format):
+    """Computes pairwise IOU matrix for given two sets of boxes
+    Arguments:
+      boxes1: A tensor with shape `(N, 4)` representing bounding boxes
+        where each box is of the format `[x, y, width, height]`.
+      boxes2: A tensor with shape `(M, 4)` representing bounding boxes
+        where each box is of the format `[x, y, width, height]`.
+    Returns:
+      pairwise IOU matrix with shape `(N, M)`, where the value at ith row
+        jth column holds the IOU between ith box and jth box from
+        boxes1 and boxes2 respectively.
+    """
+    boxes1_corners = bounding_box.convert_format(
+        boxes1, source=bounding_box_format, target="xyxy"
+    )
+    boxes2_corners = bounding_box.convert_format(
+        boxes2, source=bounding_box_format, target="xyxy"
+    )
+    lu = tf.maximum(boxes1_corners[:, None, :2], boxes2_corners[:, :2])
+    rd = tf.minimum(boxes1_corners[:, None, 2:], boxes2_corners[:, 2:])
+    intersection = tf.maximum(0.0, rd - lu)
+    intersection_area = intersection[:, :, 0] * intersection[:, :, 1]
+    boxes1_area = boxes1[:, 2] * boxes1[:, 3]
+    boxes2_area = boxes2[:, 2] * boxes2[:, 3]
+    union_area = tf.maximum(
+        boxes1_area[:, None] + boxes2_area - intersection_area, 1e-8
+    )
+    return tf.clip_by_value(intersection_area / union_area, 0.0, 1.0)

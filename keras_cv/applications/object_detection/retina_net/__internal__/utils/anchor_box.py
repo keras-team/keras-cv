@@ -14,43 +14,32 @@
 
 import tensorflow as tf
 
-import keras_cv
+# TODO(lukewood): evaluate if this really needs a class.  This seems like it could
+# pretty easily be handled by a non-class.
 
 
-class AnchorBox(tf.keras.layers.Layer):
+class AnchorBox:
     """Generates anchor boxes.
 
     This class has operations to generate anchor boxes for feature maps at
-    strides `[8, 16, 32, 64, 128]`.
+    strides `[8, 16, 32, 64, 128]`. Where each anchor each box is of the
+    format `[x, y, width, height]`.
 
     Args:
-        bounding_box_format:   The format of bounding boxes of input dataset. Refer
-            https://github.com/keras-team/keras-cv/blob/master/keras_cv/bounding_box/converters.py
-            for more details on supported bounding box formats.
-        aspect_ratios: A list of float values representing the aspect ratios of
-            the anchor boxes at each location on the feature map
-        scales: A list of float values representing the scale of the anchor boxes
-            at each location on the feature map.
-        num_anchors: The number of anchor boxes at each location on feature map
-        areas: A list of float values representing the areas of the anchor
-            boxes for each feature map in the feature pyramid.
-        strides: A list of float value representing the strides for each feature
-            map in the feature pyramid.
+      aspect_ratios: A list of float values representing the aspect ratios of
+        the anchor boxes at each location on the feature map
+      scales: A list of float values representing the scale of the anchor boxes
+        at each location on the feature map.
+      num_anchors: The number of anchor boxes at each location on feature map
+      areas: A list of float values representing the areas of the anchor
+        boxes for each feature map in the feature pyramid.
+      strides: A list of float value representing the strides for each feature
+        map in the feature pyramid.
 
     To customize these values, please fork the RetinaNet model repo.
     """
 
-    def __init__(
-        self,
-        bounding_box_format,
-        aspect_ratios=None,
-        scales=None,
-        strides=None,
-        areas=None,
-        **kwargs,
-    ):
-        super().__init__(**kwargs)
-        self.bounding_box_format = bounding_box_format
+    def __init__(self, aspect_ratios=None, scales=None, strides=None, areas=None):
         self.aspect_ratios = aspect_ratios or [0.5, 1.0, 2.0]
         self.scales = scales or [2**x for x in [0, 1 / 3, 2 / 3]]
 
@@ -101,23 +90,15 @@ class AnchorBox(tf.keras.layers.Layer):
             anchors, [feature_height * feature_width * self._num_anchors, 4]
         )
 
-    def call(self, images):
+    def get_anchors(self, image_height, image_width):
         """Generates anchor boxes for all the feature maps of the feature pyramid.
         Arguments:
-          images: batch of images with shape [batch_size, height, width, 3].
+          image_height: Height of the input image.
+          image_width: Width of the input image.
         Returns:
           anchor boxes for all the feature maps, stacked as a single tensor
             with shape `(total_anchors, 4)`
         """
-        if isinstance(images, tf.RaggedTensor):
-            raise ValueError(
-                "AnchorBox() does not support tf.RaggedTensor inputs. "
-                f"Received images={images}"
-            )
-        images_shape = tf.shape(images)
-        image_height = images_shape[1]
-        image_width = images_shape[2]
-
         anchors = [
             self._get_anchors(
                 tf.math.ceil(image_height / 2**i),
@@ -126,10 +107,4 @@ class AnchorBox(tf.keras.layers.Layer):
             )
             for i in range(3, 8)
         ]
-        return keras_cv.bounding_box.convert_format(
-            tf.concat(anchors, axis=0),
-            source="xywh",
-            target=self.bounding_box_format,
-            # anchor_box generates unbatched AnchorBoxes
-            images=images[0],
-        )
+        return tf.concat(anchors, axis=0)

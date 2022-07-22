@@ -13,9 +13,9 @@
 # limitations under the License.
 
 import tensorflow as tf
-
-from keras_cv.applications.object_detection.retina_net.__internal__ import utils
-from keras_cv.layers.object_detection.non_max_suppression import NonMaxSuppression
+from keras_cv import bounding_box
+from keras_cv import layers
+from retina_net.utils import AnchorBox
 
 
 class DecodePredictions(tf.keras.layers.Layer):
@@ -44,15 +44,15 @@ class DecodePredictions(tf.keras.layers.Layer):
     ):
         super().__init__(**kwargs)
         self.bounding_box_format = bounding_box_format
-        self.non_max_suppression = NonMaxSuppression(
-            bounding_box_format=bounding_box_format,
+        self.non_max_suppression = layers.NonMaxSuppression(
+            bounding_box_format="xyxy",
             num_classes=num_classes,
             confidence_threshold=confidence_threshold,
             iou_threshold=iou_threshold,
             max_detections=max_detections,
             max_detections_per_class=max_detections_per_class,
         )
-        self._anchor_box = utils.AnchorBox(bounding_box_format=bounding_box_format)
+        self._anchor_box = AnchorBox()
         self._box_variance = tf.convert_to_tensor(
             [0.1, 0.1, 0.2, 0.2], dtype=tf.float32
         )
@@ -66,22 +66,22 @@ class DecodePredictions(tf.keras.layers.Layer):
             ],
             axis=-1,
         )
-        # TODO correctness check
-        return boxes
+        boxes_transformed = bounding_box.convert_format(
+            boxes, source=self.bounding_box_format, target="xyxy"
+        )
+        return boxes_transformed
 
     def call(self, images, predictions):
-        anchor_boxes = self._anchor_box(images)
+        image_shape = tf.cast(tf.shape(images), dtype=tf.float32)
+        anchor_boxes = self._anchor_box.get_anchors(image_shape[1], image_shape[2])
         box_predictions = predictions[:, :, :4]
         cls_predictions = tf.nn.sigmoid(predictions[:, :, 4:])
-
-        classes = tf.math.argmax(cls_predictions, axis=-1)
-        classes = tf.cast(classes, box_predictions.dtype)
-        confidence = tf.math.reduce_max(cls_predictions, axis=-1)
-
-        classes = tf.expand_dims(classes, axis=-1)
-        confidence = tf.expand_dims(confidence, axis=-1)
-
         boxes = self._decode_box_predictions(anchor_boxes[None, ...], box_predictions)
-        boxes = tf.concat([boxes, classes, confidence], axis=-1)
 
-        return self.non_max_suppression(boxes, images=images)
+        boxes = tf.concat([boxes, cls_predictions], axis=-1)
+
+        result = self.non_max_suppression(boxes)
+        result = bounding_box.convert_format(
+            result, source="xyxy", target=self.bounding_box_format
+        )
+        return result
