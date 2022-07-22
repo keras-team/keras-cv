@@ -75,6 +75,9 @@ BASE_DOCSTRING = """Instantiates the {name} architecture.
                 be a 2D tensor.
             - `max` means that global max pooling will be applied.
         name: (Optional) name to pass to the model.  Defaults to "{name}".
+        classifier_activation: A `str` or callable. The activation function to use
+            on the "top" layer. Ignored unless `include_top=True`. Set
+            `classifier_activation=None` to return the logits of the "top" layer.
     Returns:
       A `keras.Model` instance.
 """
@@ -172,37 +175,35 @@ def ResNet(
     """Instantiates the ResNet architecture.
 
     Args:
-      stackwise_filters: number of filters for each stack in the model.
-      stackwise_blocks: number of blocks for each stack in the model.
-      stackwise_strides: stride for each stack in the model.
-      include_rescaling: whether or not to Rescale the inputs. If set to True,
-        inputs will be passed through a `Rescaling(1/255.0)` layer.
-      name: string, model name.
-      include_top: whether to include the fully-connected
-        layer at the top of the network.
-      weights: one of `None` (random initialization),
-        or the path to the weights file to be loaded.
-      input_shape: optional shape tuple, defaults to (None, None, 3).
-      pooling: optional pooling mode for feature extraction
-        when `include_top` is `False`.
-        - `None` means that the output of the model will be
-            the 4D tensor output of the
-            last convolutional layer.
-        - `avg` means that global average pooling
-            will be applied to the output of the
-            last convolutional layer, and thus
-            the output of the model will be a 2D tensor.
-        - `max` means that global max pooling will
-            be applied.
-      num_classes: optional number of classes to classify images
-        into, only to be specified if `include_top` is True, and
-        if no `weights` argument is specified.
-      classifier_activation: A `str` or callable. The activation function to use
-        on the "top" layer. Ignored unless `include_top=True`. Set
-        `classifier_activation=None` to return the logits of the "top" layer.
-        When loading pretrained weights, `classifier_activation` can only
-        be `None` or `"softmax"`.
-      **kwargs: Pass-through keyword arguments to `tf.keras.Model`.
+        stackwise_filters: number of filters for each stack in the model.
+        stackwise_blocks: number of blocks for each stack in the model.
+        stackwise_strides: stride for each stack in the model.
+        include_rescaling: whether or not to Rescale the inputs. If set to True,
+            inputs will be passed through a `Rescaling(1/255.0)` layer.
+            name: string, model name.
+        include_top: whether to include the fully-connected
+            layer at the top of the network.
+        weights: one of `None` (random initialization),
+            or the path to the weights file to be loaded.
+        input_shape: optional shape tuple, defaults to (None, None, 3).
+        pooling: optional pooling mode for feature extraction
+            when `include_top` is `False`.
+            - `None` means that the output of the model will be
+                the 4D tensor output of the
+                last convolutional layer.
+            - `avg` means that global average pooling
+                will be applied to the output of the
+                last convolutional layer, and thus
+                the output of the model will be a 2D tensor.
+            - `max` means that global max pooling will
+                be applied.
+        num_classes: optional number of classes to classify images
+            into, only to be specified if `include_top` is True, and
+            if no `weights` argument is specified.
+        classifier_activation: A `str` or callable. The activation function to use
+            on the "top" layer. Ignored unless `include_top=True`. Set
+            `classifier_activation=None` to return the logits of the "top" layer.
+        **kwargs: Pass-through keyword arguments to `tf.keras.Model`.
 
     Returns:
       A `keras.Model` instance.

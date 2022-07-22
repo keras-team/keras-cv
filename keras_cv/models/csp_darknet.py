@@ -87,8 +87,7 @@ def CSPDarkNet(
         classifier_activation: A `str` or callable. The activation function to use
             on the "top" layer. Ignored unless `include_top=True`. Set
             `classifier_activation=None` to return the logits of the "top" layer.
-            When loading pretrained weights, `classifier_activation` can only
-            be `None` or `"softmax"`.
+
         name: (Optional) name to pass to the model.  Defaults to "DarkNet".
     Returns:
         A `keras.Model` instance.
