@@ -30,7 +30,6 @@ def main():
         factor=0.5, bounding_box_format="rel_xyxy"
     )
     result = dataset.map(random_rotation, num_parallel_calls=tf.data.AUTOTUNE)
-    # outputs = random_rotation_layer(input)
     demo_utils.visualize_data(result, bounding_box_format="rel_xyxy")
 
 
