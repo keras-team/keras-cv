@@ -16,11 +16,12 @@ import warnings
 import tensorflow as tf
 
 import keras_cv
+from keras_cv import bounding_box
 from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
     BaseImageAugmentationLayer,
 )
 from keras_cv.utils import preprocessing
-from keras_cv import bounding_box
+
 
 @tf.keras.utils.register_keras_serializable(package="keras_cv")
 class RandomShear(BaseImageAugmentationLayer):
@@ -183,7 +184,9 @@ class RandomShear(BaseImageAugmentationLayer):
             )
 
         bounding_boxes = self._convert_to_four_coordinate(extended_bboxes, x, y)
-        bounding_boxes = bounding_box.clip_to_image(bounding_boxes, images=image, bounding_box_format='xyxy')
+        bounding_boxes = bounding_box.clip_to_image(
+            bounding_boxes, images=image, bounding_box_format="xyxy"
+        )
         # join rest of the axes with bbox axes
         bounding_boxes = tf.concat(
             [bounding_boxes, rest_axes],
@@ -217,7 +220,6 @@ class RandomShear(BaseImageAugmentationLayer):
     def _format_transform(transform):
         transform = tf.convert_to_tensor(transform, dtype=tf.float32)
         return transform[tf.newaxis]
-
 
     @staticmethod
     def _convert_to_four_coordinate(extended_bboxes, x, y):
@@ -276,9 +278,7 @@ class RandomShear(BaseImageAugmentationLayer):
         )
 
     @staticmethod
-    def _apply_horizontal_transformation_to_bounding_box(
-        extended_bounding_boxes, x
-    ):
+    def _apply_horizontal_transformation_to_bounding_box(extended_bounding_boxes, x):
         # create transformation matrix [1,4]
         matrix = tf.stack([1.0, -x, 0, 1.0], axis=0)
         # reshape it to [2,2]
@@ -292,9 +292,7 @@ class RandomShear(BaseImageAugmentationLayer):
         return transformed_bboxes
 
     @staticmethod
-    def _apply_vertical_transformation_to_bounding_box(
-        extended_bounding_boxes, y
-    ):
+    def _apply_vertical_transformation_to_bounding_box(extended_bounding_boxes, y):
         # create transformation matrix [1,4]
         matrix = tf.stack([1.0, 0, -y, 1.0], axis=0)
         # reshape it to [2,2]
