@@ -38,8 +38,8 @@ def compute_iou(boxes1, boxes2, bounding_box_format):
         boxes2.
     """
 
-    boxes1_rank = tf.rank(boxes1)
-    boxes2_rank = tf.rank(boxes2)
+    boxes1_rank = len(boxes1.shape)
+    boxes2_rank = len(boxes2.shape)
 
     if (
         boxes1_rank != boxes2_rank
