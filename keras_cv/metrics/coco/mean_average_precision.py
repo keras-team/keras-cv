@@ -223,7 +223,7 @@ class COCOMeanAveragePrecision(tf.keras.metrics.Metric):
                     c_i, tf.shape(ground_truths_by_category)[0]
                 )
 
-                ious = iou_lib.compute_ious_for_image(
+                ious = iou_lib.compute_iou(
                     ground_truths_by_category, detections_by_category, "yxyx"
                 )
 

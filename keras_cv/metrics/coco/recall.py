@@ -196,7 +196,7 @@ class COCORecall(keras.metrics.Metric):
                     y_true_for_image, value=category, axis=bounding_box.XYXY.CLASS
                 )
 
-                ious = iou_lib.compute_ious_for_image(ground_truths, detections, "yxyx")
+                ious = iou_lib.compute_iou(ground_truths, detections, "yxyx")
 
                 for t_i in tf.range(num_thresholds):
                     threshold = iou_thresholds[t_i]

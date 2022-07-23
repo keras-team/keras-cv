@@ -93,7 +93,7 @@ class UtilTest(tf.test.TestCase):
             ]
         )
 
-        ious = iou_lib.compute_ious_for_image(y_true, y_pred, "yxyx")
+        ious = iou_lib.compute_iou(y_true, y_pred, "yxyx")
         self.assertEqual(utils.match_boxes(ious, 0.5).shape, [3])
 
     def test_sort_bounding_boxes_unsorted_list(self):
