@@ -16,6 +16,7 @@ import tensorflow as tf
 
 from keras_cv import bounding_box
 
+
 def compute_iou(boxes1, boxes2, bounding_box_format):
     """Computes a lookup table vector containing the ious for a given set boxes.
 
@@ -40,13 +41,17 @@ def compute_iou(boxes1, boxes2, bounding_box_format):
     boxes1_rank = tf.rank(boxes1)
     boxes2_rank = tf.rank(boxes2)
 
-    if boxes1_rank != boxes2_rank or boxes1_rank not in [2, 3] or boxes2_rank not in [2, 3]:
+    if (
+        boxes1_rank != boxes2_rank
+        or boxes1_rank not in [2, 3]
+        or boxes2_rank not in [2, 3]
+    ):
         raise ValueError(
-                "compute_iou() expects both boxes to be batched, or both "
-                f"boxes to be unbatched.  Received len(boxes1.shape)={boxes1_rank}, "
-                f"len(boxes2.shape)={boxes2_rank}.  Expected either len(boxes1.shape)=2 AND "
-                "len(boxes2.shape)=2, or len(boxes1.shape)=3 AND len(boxes2.shape)=3."
-            )
+            "compute_iou() expects both boxes to be batched, or both "
+            f"boxes to be unbatched.  Received len(boxes1.shape)={boxes1_rank}, "
+            f"len(boxes2.shape)={boxes2_rank}.  Expected either len(boxes1.shape)=2 AND "
+            "len(boxes2.shape)=2, or len(boxes1.shape)=3 AND len(boxes2.shape)=3."
+        )
 
     if bounding_box_format.startswith("rel"):
         target = "rel_yxyx"
@@ -86,8 +91,10 @@ def compute_iou(boxes1, boxes2, bounding_box_format):
 
         union_area = boxes1_area + boxes2_area - intersect_area
         return tf.math.divide_no_nan(intersect_area, union_area)
-    
+
     if boxes1_rank == 2:
         return compute_iou_for_batch((boxes1, boxes2))
     else:
-        return tf.map_fn(compute_iou_for_batch, elems=(boxes1, boxes2), dtype=boxes1.dtype)
+        return tf.map_fn(
+            compute_iou_for_batch, elems=(boxes1, boxes2), dtype=boxes1.dtype
+        )

@@ -56,7 +56,7 @@ class IoUTest(tf.test.TestCase):
 
         result = iou_lib.compute_iou(sample_y_true, sample_y_pred, "yxyx")
         self.assertAllClose(expected_result, result.numpy())
-        
+
     def test_batched_compute_iou(self):
 
         bb1 = [100, 101, 200, 201]
@@ -79,13 +79,15 @@ class IoUTest(tf.test.TestCase):
             [
                 [bb1, top_left_bounding_box, far_away_box],
                 [bb1, top_left_bounding_box, far_away_box],
-            ], dtype=tf.float32
+            ],
+            dtype=tf.float32,
         )
         sample_y_pred = tf.constant(
             [
                 [bb1_off_by_1_pred, top_left_bounding_box, another_far_away_pred],
                 [bb1_off_by_1_pred, top_left_bounding_box, another_far_away_pred],
-            ], dtype=tf.float32,
+            ],
+            dtype=tf.float32,
         )
 
         result = iou_lib.compute_iou(sample_y_true, sample_y_pred, "yxyx")
