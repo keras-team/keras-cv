@@ -11,28 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""
-Title: Training a DenseNet for Imagenet Classification with KerasCV
-Author: [ianjjohnson](https://github.com/ianjjohnson)
-Date created: 2022/07/25
-Last modified: 2022/07/25
-Description: Use KerasCV to train a DenseNet using modern best practices for image classification
-"""
-
-"""
-## Overview
-KerasCV makes training state-of-the-art classification models easy by providing implementations of modern models, preprocessing techniques, and layers.
-In this tutorial, we walk through training a DenseNet model against the Imagenet dataset using Keras and KerasCV.
-"""
-
-"""
-## Imports & setup
-This tutorial requires you to have KerasCV installed:
-```shell
-pip install keras-cv
-```
-We begin by importing all required packages:
-"""
 import sys
 
 import tensorflow as tf
@@ -47,10 +25,26 @@ import keras_cv
 from keras_cv.models import DenseNet121
 
 """
-## Data loading
-This guide uses the
-[Imagenet dataset](https://www.tensorflow.org/datasets/catalog/imagenet2012). Note that this requires manual download, and does not work out-of-the-box with TFDS.
-To get started, we first load the dataset from a command-line specified directory where ImageNet is stored as TFRecords.
+Title: Training a DenseNet for Imagenet Classification with KerasCV
+Author: [ianjjohnson](https://github.com/ianjjohnson)
+Date created: 2022/07/25
+Last modified: 2022/07/25
+Description: Use KerasCV to train a DenseNet using modern best practices for image classification
+"""
+
+"""
+## Overview
+KerasCV makes training state-of-the-art classification models easy by providing implementations of modern models, preprocessing techniques, and layers.
+In this tutorial, we walk through training a DenseNet model against the Imagenet dataset using Keras and KerasCV.
+This tutorial requires you to have KerasCV installed:
+```shell
+pip install keras-cv
+```
+"""
+
+"""
+## Setup and flags
+
 """
 
 flags.DEFINE_string("imagenet_path", None, "Directory from which to load Imagenet.")
@@ -68,6 +62,13 @@ NUM_CLASSES = 1000
 BATCH_SIZE = 256
 IMAGE_SIZE = (300, 300)
 EPOCHS = 250
+
+"""
+## Data loading
+This guide uses the
+[Imagenet dataset](https://www.tensorflow.org/datasets/catalog/imagenet2012). Note that this requires manual download, and does not work out-of-the-box with TFDS.
+To get started, we first load the dataset from a command-line specified directory where ImageNet is stored as TFRecords.
+"""
 
 
 def parse_imagenet_example(example, IMAGE_SIZE):
