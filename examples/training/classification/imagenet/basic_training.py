@@ -1,0 +1,209 @@
+# Copyright 2022 The KerasCV Authors
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+"""
+Title: Training a DenseNet for Imagenet Classification with KerasCV
+Author: [ianjjohnson](https://github.com/ianjjohnson)
+Date created: 2022/07/25
+Last modified: 2022/07/25
+Description: Use KerasCV to train a DenseNet using modern best practives for image classification
+"""
+
+"""
+## Overview
+KerasCV makes training state-of-the-art classification models easy by providing implementations of modern models, preprocessing techniques, and layers. In this tutorial, we walk through training a DenseNet model against the cats and dogs dataset using Keras and KerasCV.
+"""
+
+"""
+## Imports & setup
+This tutorial requires you to have KerasCV installed:
+```shell
+pip install keras-cv
+```
+We begin by importing all required packages:
+"""
+import json
+import os
+
+import tensorflow as tf
+from absl import app
+from absl import flags
+from keras.callbacks import BackupAndRestore
+from keras.callbacks import EarlyStopping
+from keras.callbacks import ModelCheckpoint
+from keras.callbacks import TensorBoard
+from keras.optimizers import Adam
+from tensorflow.keras.optimizers.schedules import PolynomialDecay
+from utils import augment
+from utils import load_cats_and_dogs_dataset
+from utils import save_training_results
+
+import keras_cv
+from keras_cv.models import DenseNet121
+
+"""
+## Data loading
+This guide uses the
+[Imagenet dataset](https://www.tensorflow.org/datasets/catalog/imagenet2012). Note that this requires manual download, and does not work out-of-the-box with TFDS.
+To get started, we first load the dataset from a command-line specified directory where ImageNet is stored as TFRecords.
+"""
+
+IMAGENET_PATH = sys.argv[1]
+BACKUP_PATH = sys.argv[2]
+WEIGHTS_PATH = sys.argv[3]
+NUM_CLASSES = 1000
+BATCH_SIZE = 1024
+IMAGE_SIZE = (300, 300)
+
+
+def parse_imagenet_example(example, IMAGE_SIZE):
+    # Read example
+    image_key = "image/encoded"
+    label_key = "image/class/label"
+    keys_to_features = {
+        image_key: tf.io.FixedLenFeature((), tf.string, ""),
+        label_key: tf.io.FixedLenFeature([], tf.int64, -1),
+    }
+    parsed = tf.io.parse_single_example(example, keys_to_features)
+
+    # Decode and resize image
+    image_bytes = tf.reshape(parsed[image_key], shape=[])
+    image = tf.io.decode_jpeg(image_bytes, channels=3)
+    image = tf.image.resize(image, IMAGE_SIZE)
+
+    # Decode label
+    label = tf.cast(tf.reshape(parsed[label_key], shape=()), dtype=tf.int32) - 1
+    label = tf.one_hot(label, NUM_CLASSES)
+    return image, label
+
+
+def load_imagenet_dataset():
+    train_filenames = [
+        f"{IMAGENET_PATH}/train-{i:05d}-of-01024" for i in range(0, 1024)
+    ]
+    validation_filenames = [
+        f"{IMAGENET_PATH}/validation-{i:05d}-of-00128" for i in range(0, 128)
+    ]
+
+    train_dataset = tf.data.TFRecordDataset(filenames=train_filenames)
+    validation_dataset = tf.data.TFRecordDataset(filenames=validation_filenames)
+
+    train_dataset = train_dataset.map(
+        lambda x: parse_imagenet_example(x, IMAGE_SIZE),
+        num_parallel_calls=tf.data.AUTOTUNE,
+    )
+    validation_dataset = validation_dataset.map(
+        lambda x: parse_imagenet_example(x, IMAGE_SIZE),
+        num_parallel_calls=tf.data.AUTOTUNE,
+    )
+
+    return train_dataset.batch(BATCH_SIZE), validate_dataset.batch(BATCH_SIZE)
+
+
+train, test = load_imagenet_dataset()
+
+
+"""
+Next, we augment our dataset. We define a set of augmentation layers and then apply them to our input dataset using the `apply_augmentation` method from our KerasCV training utils.
+"""
+
+AUGMENT_LAYERS = [
+    keras_cv.layers.RandomFlip(),
+    keras_cv.layers.RandAugment(value_range=(0, 255), magnitude=0.3),
+    keras_cv.layers.RandomCutout(height_factor=0.1, width_factor=0.1),
+]
+train = train.map(
+    augment(AUGMENT_LAYERS), num_parallel_calls=tf.data.AUTOTUNE
+).prefetch(tf.data.AUTOTUNE)
+
+
+"""
+Now we can begin training our model. We begin by loading a DenseNet model from KerasCV.
+"""
+
+
+def get_model():
+    return DenseNet121(
+        include_rescaling=True,
+        include_top=True,
+        num_classes=NUM_CLASSES,
+        input_shape=IMAGE_SIZE + (3,),
+    )
+
+
+"""
+Next, we pick an optimizer. Here we use Adam with a linearly decaying learning rate.
+"""
+
+
+def get_optimizer():
+    return Adam(
+        learning_rate=PolynomialDecay(
+            initial_learning_rate=0.005,
+            decay_steps=train.cardinality().numpy() * EPOCHS,
+            end_learning_rate=0.0001,
+        )
+    )
+
+
+"""
+Next, we pick a loss function. Here we use a built-in Keras loss function, so we simply specify it as a string.
+"""
+
+
+def get_loss_fn():
+    return "categorical_crossentropy"
+
+
+"""
+Next, we specify the metrics that we want to track. For this example, we track accuracy. Once again, accuracy is a built-in metric in Keras so we can specify it as a string.
+"""
+
+
+def get_metrics():
+    return ["accuracy"]
+
+
+"""
+As a last piece of configuration, we configure callbacks for the method. We use EarlyStopping, BackupAndRestore, and a model checkpointing callback.
+"""
+
+
+def get_callbacks():
+    return [
+        EarlyStopping(patience=10),
+        BackupAndRestore(BACKUP_PATH),
+        ModelCheckpoint(WEIGHTS_PATH),
+    ]
+
+
+"""
+We can now compile the model and fit it to the training dataset.
+"""
+
+with tf.distribute.MirroredStrategy().scope():
+    model = get_model()
+
+    model.compile(
+        optimizer=get_optimizer(),
+        loss=get_loss_fn(),
+        metrics=get_metrics(),
+    )
+
+    model.fit(
+        train,
+        batch_size=BATCH_SIZE,
+        epochs=EPOCHS,
+        callbacks=get_callbacks(),
+        validation_data=test,
+    )
