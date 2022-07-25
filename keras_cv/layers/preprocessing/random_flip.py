@@ -153,7 +153,7 @@ class RandomFlip(BaseImageAugmentationLayer):
                 ],
                 axis=-1,
             )
-        bounding_boxes_out = utils.preprocessing.clip_bounding_box(
+        bounding_boxes_out = bounding_box.clip_to_image(
             bounding_boxes_out,
             bounding_box_format="xyxy",
             images=image,
