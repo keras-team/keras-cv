@@ -42,7 +42,6 @@ from absl import flags
 from keras.callbacks import BackupAndRestore
 from keras.callbacks import EarlyStopping
 from keras.callbacks import ModelCheckpoint
-from keras.callbacks import TensorBoard
 from keras.optimizers import Adam
 from tensorflow.keras.optimizers.schedules import PolynomialDecay
 
