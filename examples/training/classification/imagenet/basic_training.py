@@ -56,13 +56,19 @@ This guide uses the
 To get started, we first load the dataset from a command-line specified directory where ImageNet is stored as TFRecords.
 """
 
-IMAGENET_PATH = sys.argv[1]
-BACKUP_PATH = sys.argv[2]
-WEIGHTS_PATH = sys.argv[3]
+FLAGS = flags.FLAGS
+flags.DEFINE_string("imagenet_path", None, "Directory from which to load Imagenet.")
+flags.DEFINE_string(
+    "backup_path", None, "Directory which will be used for training backups"
+)
+flags.DEFINE_string(
+    "weights_path", None, "Directory which will be used to store weight checkpoints."
+)
+
 NUM_CLASSES = 1000
 BATCH_SIZE = 256
 IMAGE_SIZE = (300, 300)
-EPOCHS=250
+EPOCHS = 250
 
 
 def parse_imagenet_example(example, IMAGE_SIZE):
@@ -88,10 +94,10 @@ def parse_imagenet_example(example, IMAGE_SIZE):
 
 def load_imagenet_dataset():
     train_filenames = [
-        f"{IMAGENET_PATH}/train-{i:05d}-of-01024" for i in range(0, 1024)
+        f"{FLAGS.imagenet_path}/train-{i:05d}-of-01024" for i in range(0, 1024)
     ]
     validation_filenames = [
-        f"{IMAGENET_PATH}/validation-{i:05d}-of-00128" for i in range(0, 128)
+        f"{FLAGS.imagenet_path}/validation-{i:05d}-of-00128" for i in range(0, 128)
     ]
 
     train_dataset = tf.data.TFRecordDataset(filenames=train_filenames)
@@ -191,8 +197,8 @@ As a last piece of configuration, we configure callbacks for the method. We use 
 def get_callbacks():
     return [
         EarlyStopping(patience=10),
-        BackupAndRestore(BACKUP_PATH),
-        ModelCheckpoint(WEIGHTS_PATH),
+        BackupAndRestore(FLAGS.backup_path),
+        ModelCheckpoint(FLAGS.weights_path),
     ]
 
 
