@@ -236,6 +236,11 @@ def convert_format(boxes, source, target, images=None, dtype="float32"):
     if source == target:
         return boxes
 
+    # rel->rel conversions should not require images
+    if source.startswith("rel") and target.startswith("rel"):
+        source = source.replace("rel_", "", 1)
+        target = target.replace("rel_", "", 1)
+
     boxes, images, squeeze = _format_inputs(boxes, images)
 
     to_xyxy_fn = TO_XYXY_CONVERTERS[source]
