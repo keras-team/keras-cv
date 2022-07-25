@@ -21,7 +21,8 @@ Description: Use KerasCV to train a DenseNet using modern best practices for ima
 
 """
 ## Overview
-KerasCV makes training state-of-the-art classification models easy by providing implementations of modern models, preprocessing techniques, and layers. In this tutorial, we walk through training a DenseNet model against the Imagenet dataset using Keras and KerasCV.
+KerasCV makes training state-of-the-art classification models easy by providing implementations of modern models, preprocessing techniques, and layers.
+In this tutorial, we walk through training a DenseNet model against the Imagenet dataset using Keras and KerasCV.
 """
 
 """
@@ -32,12 +33,9 @@ pip install keras-cv
 ```
 We begin by importing all required packages:
 """
-import json
-import os
 import sys
 
 import tensorflow as tf
-from absl import app
 from absl import flags
 from keras.callbacks import BackupAndRestore
 from keras.callbacks import EarlyStopping
