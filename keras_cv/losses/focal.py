@@ -13,9 +13,8 @@
 # limitations under the License.
 
 import tensorflow as tf
-from tensorflow import keras
-
 import tensorflow.keras.backend as K
+from tensorflow import keras
 
 
 @tf.keras.utils.register_keras_serializable(package="keras_cv")
@@ -24,7 +23,7 @@ class FocalLoss(tf.losses.Loss):
 
     Focal loss is a modified cross-entropy designed to perform better with
     class imbalance. For this reason, it's commonly used with object detectors.
-    
+
     Args:
         alpha: a float value between 0 and 1 representing a weighting factor
             used to deal with class imbalance. Positive classes and negative
@@ -57,7 +56,13 @@ class FocalLoss(tf.losses.Loss):
     """
 
     def __init__(
-        self, alpha = 0.25, gamma = 2, from_logits = False, label_smoothing = 0, reduction="none", name="FocalLoss"
+        self,
+        alpha=0.25,
+        gamma=2,
+        from_logits=False,
+        label_smoothing=0,
+        reduction="none",
+        name="FocalLoss",
     ):
         super().__init__(reduction=reduction, name=name)
         self._alpha = float(alpha)
@@ -67,7 +72,9 @@ class FocalLoss(tf.losses.Loss):
 
     def _smooth_labels(self, y_true, y_pred):
         num_classes = tf.cast(tf.shape(y_true)[-1], y_pred.dtype)
-        return y_true * (1.0 - self.label_smoothing) + (self.label_smoothing / num_classes)
+        return y_true * (1.0 - self.label_smoothing) + (
+            self.label_smoothing / num_classes
+        )
 
     def call(self, y_true, y_pred):
         y_pred = tf.convert_to_tensor(y_pred)
