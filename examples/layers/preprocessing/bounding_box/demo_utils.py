@@ -51,6 +51,7 @@ def load_voc_dataset(
 
 
 def visualize_data(data, bounding_box_format):
+    data = next(iter(data))
     images = data["images"]
     bounding_boxes = data["bounding_boxes"]
     output_images = visualize_bounding_boxes(
