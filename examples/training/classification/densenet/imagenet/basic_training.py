@@ -16,12 +16,12 @@ Title: Training a DenseNet for Imagenet Classification with KerasCV
 Author: [ianjjohnson](https://github.com/ianjjohnson)
 Date created: 2022/07/25
 Last modified: 2022/07/25
-Description: Use KerasCV to train a DenseNet using modern best practives for image classification
+Description: Use KerasCV to train a DenseNet using modern best practices for image classification
 """
 
 """
 ## Overview
-KerasCV makes training state-of-the-art classification models easy by providing implementations of modern models, preprocessing techniques, and layers. In this tutorial, we walk through training a DenseNet model against the cats and dogs dataset using Keras and KerasCV.
+KerasCV makes training state-of-the-art classification models easy by providing implementations of modern models, preprocessing techniques, and layers. In this tutorial, we walk through training a DenseNet model against the Imagenet dataset using Keras and KerasCV.
 """
 
 """
