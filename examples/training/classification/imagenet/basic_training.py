@@ -56,7 +56,6 @@ This guide uses the
 To get started, we first load the dataset from a command-line specified directory where ImageNet is stored as TFRecords.
 """
 
-FLAGS = flags.FLAGS
 flags.DEFINE_string("imagenet_path", None, "Directory from which to load Imagenet.")
 flags.DEFINE_string(
     "backup_path", None, "Directory which will be used for training backups"
@@ -64,6 +63,9 @@ flags.DEFINE_string(
 flags.DEFINE_string(
     "weights_path", None, "Directory which will be used to store weight checkpoints."
 )
+
+FLAGS = flags.FLAGS
+FLAGS(sys.argv)
 
 NUM_CLASSES = 1000
 BATCH_SIZE = 256
