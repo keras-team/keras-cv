@@ -34,6 +34,7 @@ We begin by importing all required packages:
 """
 import json
 import os
+import sys
 
 import tensorflow as tf
 from absl import app
@@ -59,8 +60,9 @@ IMAGENET_PATH = sys.argv[1]
 BACKUP_PATH = sys.argv[2]
 WEIGHTS_PATH = sys.argv[3]
 NUM_CLASSES = 1000
-BATCH_SIZE = 1024
+BATCH_SIZE = 256
 IMAGE_SIZE = (300, 300)
+EPOCHS=250
 
 
 def parse_imagenet_example(example, IMAGE_SIZE):
@@ -104,7 +106,7 @@ def load_imagenet_dataset():
         num_parallel_calls=tf.data.AUTOTUNE,
     )
 
-    return train_dataset.batch(BATCH_SIZE), validate_dataset.batch(BATCH_SIZE)
+    return train_dataset.batch(BATCH_SIZE), validation_dataset.batch(BATCH_SIZE)
 
 
 train, test = load_imagenet_dataset()
