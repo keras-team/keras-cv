@@ -44,9 +44,6 @@ from keras.callbacks import ModelCheckpoint
 from keras.callbacks import TensorBoard
 from keras.optimizers import Adam
 from tensorflow.keras.optimizers.schedules import PolynomialDecay
-from utils import augment
-from utils import load_cats_and_dogs_dataset
-from utils import save_training_results
 
 import keras_cv
 from keras_cv.models import DenseNet121
@@ -122,9 +119,19 @@ AUGMENT_LAYERS = [
     keras_cv.layers.RandAugment(value_range=(0, 255), magnitude=0.3),
     keras_cv.layers.RandomCutout(height_factor=0.1, width_factor=0.1),
 ]
-train = train.map(
-    augment(AUGMENT_LAYERS), num_parallel_calls=tf.data.AUTOTUNE
-).prefetch(tf.data.AUTOTUNE)
+
+
+@tf.function
+def augment(img, label):
+    inputs = {"images": img, "labels": label}
+    for layer in AUGMENT_LAYERS:
+        inputs = layer(inputs)
+    return inputs["images"], inputs["labels"]
+
+
+train = train.map(augment, num_parallel_calls=tf.data.AUTOTUNE).prefetch(
+    tf.data.AUTOTUNE
+)
 
 
 """
