@@ -22,6 +22,8 @@ import tensorflow as tf
 from keras import backend
 from keras import layers
 
+from keras_cv.layers import SqueezeAndExcite2D
+
 # The widths and depths are deduced from a quantized linear function. For
 # more information, please refer to "Designing Network Design Spaces" by
 # Radosavovic et al.
@@ -205,13 +207,9 @@ BASE_DOCSTRING = """Instantiates the {name} architecture.
     - [Designing Network Design Spaces](https://arxiv.org/abs/2003.13678)
     (CVPR 2020)
 
-  For image classification use cases, see
-  [this page for detailed examples](
-  https://keras.io/api/applications/#usage-examples-for-image-classification-models).
+  For image classification use cases, see [this page for detailed examples](https://keras.io/api/applications/#usage-examples-for-image-classification-models).
 
-  For transfer learning use cases, make sure to read the
-  [guide to transfer learning & fine-tuning](
-    https://keras.io/guides/transfer_learning/).
+  For transfer learning use cases, make sure to read the [guide to transfer learning & fine-tuning](https://keras.io/guides/transfer_learning/).
 
 
   The naming of models is as follows: `RegNet<block_type><flops>` where
@@ -281,44 +279,6 @@ def Stem(name=None):
             momentum=0.9, epsilon=1e-5, name=name + "_stem_bn"
         )(x)
         x = layers.ReLU(name=name + "_stem_relu")(x)
-        return x
-
-    return apply
-
-
-def SqueezeAndExciteBlock(filters_in, se_filters, name=None):
-    """Implements the Squeeze and excite block (https://arxiv.org/abs/1709.01507).
-
-    Args:
-      filters_in: input filters to the block
-      se_filters: filters to squeeze to
-      name: name prefix
-
-    Returns:
-      A function object
-    """
-    if name is None:
-        name = str(backend.get_uid("squeeze_and_excite"))
-
-    def apply(inputs):
-        x = layers.GlobalAveragePooling2D(
-            name=name + "_squeeze_and_excite_gap", keepdims=True
-        )(inputs)
-        x = layers.Conv2D(
-            se_filters,
-            (1, 1),
-            activation="relu",
-            kernel_initializer="he_normal",
-            name=name + "_squeeze_and_excite_squeeze",
-        )(x)
-        x = layers.Conv2D(
-            filters_in,
-            (1, 1),
-            activation="sigmoid",
-            kernel_initializer="he_normal",
-            name=name + "_squeeze_and_excite_excite",
-        )(x)
-        x = tf.math.multiply(x, inputs)
         return x
 
     return apply
@@ -452,7 +412,6 @@ def YBlock(
             )
 
         groups = filters_out // group_width
-        se_filters = int(filters_in * squeeze_excite_ratio)
 
         if stride != 1:
             skip = layers.Conv2D(
@@ -500,7 +459,7 @@ def YBlock(
         x = layers.ReLU(name=name + "_conv_3x3_relu")(x)
 
         # Squeeze-Excitation block
-        x = SqueezeAndExciteBlock(filters_out, se_filters, name=name)(x)
+        x = SqueezeAndExcite2D(filters_out, ratio=squeeze_excite_ratio, name=name)(x)
 
         # conv_1x1_2
         x = layers.Conv2D(
@@ -556,7 +515,6 @@ def ZBlock(
             )
 
         groups = filters_out // group_width
-        se_filters = int(filters_in * squeeze_excite_ratio)
 
         inv_btlneck_filters = int(filters_out / bottleneck_ratio)
 
@@ -591,7 +549,9 @@ def ZBlock(
         x = tf.nn.silu(x)
 
         # Squeeze-Excitation block
-        x = SqueezeAndExciteBlock(inv_btlneck_filters, se_filters, name=name)
+        x = SqueezeAndExcite2D(
+            inv_btlneck_filters, ratio=squeeze_excite_ratio, name=name
+        )
 
         # conv_1x1_2
         x = layers.Conv2D(
