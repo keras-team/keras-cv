@@ -89,6 +89,16 @@ class ConvertersTestCase(tf.test.TestCase, parameterized.TestCase):
             target_box,
         )
 
+    def test_rel_to_rel_without_images(self):
+        source_box = boxes["rel_xyxy"]
+        target_box = boxes["rel_yxyx"]
+        self.assertAllClose(
+            bounding_box.convert_format(
+                source_box, source="rel_xyxy", target="rel_yxyx"
+            ),
+            target_box,
+        )
+
     @parameterized.named_parameters(*test_cases)
     def test_ragged_bounding_box(self, source, target):
         source_box = _raggify(boxes[source])

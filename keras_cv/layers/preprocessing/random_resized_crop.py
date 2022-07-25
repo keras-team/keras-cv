@@ -191,6 +191,9 @@ class RandomResizedCrop(BaseImageAugmentationLayer):
                 f"aspect_ratio_factor={aspect_ratio_factor}"
             )
 
+    def augment_target(self, augment_target, **kwargs):
+        return augment_target
+
     def get_config(self):
         config = super().get_config()
         config.update(
