@@ -67,8 +67,8 @@ class RandomShear(BaseImageAugmentationLayer):
              constant".  Defaults to `0.0`.
         seed: Integer. Used to create a random seed.
         bounding_box_format: The format of bounding boxes of input dataset. Refer
-        https://github.com/keras-team/keras-cv/blob/master/keras_cv/bounding_box/converters.py
-        for more details on supported bounding box formats.
+            https://github.com/keras-team/keras-cv/blob/master/keras_cv/bounding_box/converters.py
+            for more details on supported bounding box formats.
     """
 
     def __init__(

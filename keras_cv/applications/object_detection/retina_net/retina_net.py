@@ -47,7 +47,9 @@ class RetinaNet(keras.Model):
 
     Args:
         num_classes:
-        bounding_box_format:
+        bounding_box_format: The format of bounding boxes of input dataset. Refer
+            https://github.com/keras-team/keras-cv/blob/master/keras_cv/bounding_box/converters.py
+            for more details on supported bounding box formats.
         backbone: Either 'resnet50' or a custom backbone model.  Please see {link} to see
             how to construct your own backbone.
         include_rescaling: Required if provided backbone is a pre-configured model.
@@ -185,7 +187,7 @@ class RetinaNet(keras.Model):
             target=self.label_encoder.bounding_box_format,
             images=x,
         )
-        y_training_target = self.label_encoder.encode_batch(x, y)
+        y_training_target = self.label_encoder(x, y)
         y_training_target = bounding_box.convert_format(
             y_training_target,
             source=self.label_encoder.bounding_box_format,

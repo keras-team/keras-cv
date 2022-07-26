@@ -13,27 +13,34 @@
 # limitations under the License.
 
 import tensorflow as tf
+from tensorflow.keras import layers
 
 from keras_cv import bounding_box
 from keras_cv.applications.object_detection.retina_net.__internal__ import utils
 
 
-class LabelEncoder:
+class LabelEncoder(layers.Layer):
     """Transforms the raw labels into targets for training.
 
     This class has operations to generate targets for a batch of samples which
     is made up of the input images, bounding boxes for the objects present and
     their class ids.
-    Attributes:
-      anchor_box: Anchor box generator to encode the bounding boxes.
-      box_variance: The scaling factors used to scale the bounding box targets.
+
+    Args:
+        bounding_box_format:  The format of bounding boxes of input dataset. Refer
+            https://github.com/keras-team/keras-cv/blob/master/keras_cv/bounding_box/converters.py
+            for more details on supported bounding box formats.
+        anchor_box: Anchor box generator to encode the bounding boxes.
+        box_variance: The scaling factors used to scale the bounding box targets.
     """
 
-    def __init__(self, bounding_box_format):
+    def __init__(self, bounding_box_format, anchor_box_generator=None, box_variance=None):
         self.bounding_box_format = bounding_box_format
-        self._anchor_box = utils.AnchorBox()
+        self._anchor_box = anchor_box_generator or utils.AnchorBox(bounding_box_format=bounding_box_format)
+
+        box_variance = box_variance or [0.1, 0.1, 0.2, 0.2]
         self._box_variance = tf.convert_to_tensor(
-            [0.1, 0.1, 0.2, 0.2], dtype=tf.float32
+            box_variance, dtype=tf.float32
         )
 
     def _match_anchor_boxes(
@@ -66,7 +73,7 @@ class LabelEncoder:
           ignore_mask: A mask for anchor boxes that need to by ignored during
             training
         """
-        iou_matrix = keras_cv.bounding_box.compute_iou(anchor_boxes, gt_boxes, bounding_box_format="xywh")
+        iou_matrix = keras_cv.bounding_box.compute_iou(anchor_boxes, gt_boxes, bounding_box_format=self.bounding_box_format)
         max_iou = tf.reduce_max(iou_matrix, axis=1)
         matched_gt_idx = tf.argmax(iou_matrix, axis=1)
         positive_mask = tf.greater_equal(max_iou, match_iou)
@@ -110,7 +117,7 @@ class LabelEncoder:
         label = tf.concat([box_target, cls_target], axis=-1)
         return label
 
-    def encode_batch(self, batch_images, boxes):
+    def call(self, batch_images, boxes):
         """Creates box and classification targets for a batch"""
         boxes = bounding_box.convert_format(
             boxes, source=self.bounding_box_format, target="xywh"

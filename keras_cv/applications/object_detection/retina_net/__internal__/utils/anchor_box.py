@@ -13,33 +13,34 @@
 # limitations under the License.
 
 import tensorflow as tf
-
-# TODO(lukewood): evaluate if this really needs a class.  This seems like it could
-# pretty easily be handled by a non-class.
+import keras_cv
 
 
-class AnchorBox:
+class AnchorBox(tf.keras.layers.Layer):
     """Generates anchor boxes.
 
     This class has operations to generate anchor boxes for feature maps at
-    strides `[8, 16, 32, 64, 128]`. Where each anchor each box is of the
-    format `[x, y, width, height]`.
+    strides `[8, 16, 32, 64, 128]`.
 
     Args:
-      aspect_ratios: A list of float values representing the aspect ratios of
-        the anchor boxes at each location on the feature map
-      scales: A list of float values representing the scale of the anchor boxes
-        at each location on the feature map.
-      num_anchors: The number of anchor boxes at each location on feature map
-      areas: A list of float values representing the areas of the anchor
-        boxes for each feature map in the feature pyramid.
-      strides: A list of float value representing the strides for each feature
-        map in the feature pyramid.
+        bounding_box_format:   The format of bounding boxes of input dataset. Refer
+            https://github.com/keras-team/keras-cv/blob/master/keras_cv/bounding_box/converters.py
+            for more details on supported bounding box formats.
+        aspect_ratios: A list of float values representing the aspect ratios of
+            the anchor boxes at each location on the feature map
+        scales: A list of float values representing the scale of the anchor boxes
+            at each location on the feature map.
+        num_anchors: The number of anchor boxes at each location on feature map
+        areas: A list of float values representing the areas of the anchor
+            boxes for each feature map in the feature pyramid.
+        strides: A list of float value representing the strides for each feature
+            map in the feature pyramid.
 
     To customize these values, please fork the RetinaNet model repo.
     """
 
-    def __init__(self, aspect_ratios=None, scales=None, strides=None, areas=None):
+    def __init__(self, bounding_box_format, aspect_ratios=None, scales=None, strides=None, areas=None):
+        self.bounding_box_format = bounding_box
         self.aspect_ratios = aspect_ratios or [0.5, 1.0, 2.0]
         self.scales = scales or [2**x for x in [0, 1 / 3, 2 / 3]]
 
@@ -90,7 +91,7 @@ class AnchorBox:
             anchors, [feature_height * feature_width * self._num_anchors, 4]
         )
 
-    def get_anchors(self, image_height, image_width):
+    def call(self, image_height, image_width):
         """Generates anchor boxes for all the feature maps of the feature pyramid.
         Arguments:
           image_height: Height of the input image.
@@ -107,4 +108,4 @@ class AnchorBox:
             )
             for i in range(3, 8)
         ]
-        return tf.concat(anchors, axis=0)
+        return keras_cv.bounding_box.transform_format(tf.concat(anchors, axis=0), source='xywh', target=self.bounding_box_format)
