@@ -23,9 +23,9 @@ from keras_cv.utils import iou as iou_lib
 class COCOMeanAveragePrecision(tf.keras.metrics.Metric):
     """COCOMeanAveragePrecision computes an approximation of MaP.
 
-    A usage guide is available on keras.io: 
+    A usage guide is available on keras.io:
     [Using KerasCV COCO metrics](https://keras.io/guides/keras_cv/coco_metrics/).
-    Full implementation details are available in the 
+    Full implementation details are available in the
     [KerasCV COCO metrics whitepaper](https://arxiv.org/abs/2207.12120).
 
     Args:
