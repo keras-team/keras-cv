@@ -12,27 +12,27 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import matplotlib.pyplot as plt
+import numpy as np
 import tensorflow as tf
 import tensorflow_datasets as tfds
-from tensorflow import keras
 
 from keras_cv import bounding_box
+from keras_cv.layers import preprocessing
+
+IMG_SIZE = (256, 256)
+BATCH_SIZE = 9
 
 
-def unpackage_pascalvoc(bounding_box_format, img_size):
+def unpackage(format):
     """mapping function to create batched image and bbox coordinates"""
 
-    resizing = keras.layers.Resizing(
-        height=img_size[0], width=img_size[1], crop_to_aspect_ratio=False
-    )
-
     def apply(inputs):
-        inputs["image"] = resizing(inputs["image"])
+        inputs["image"] = tf.image.resize(inputs["image"], IMG_SIZE)
         inputs["objects"]["bbox"] = bounding_box.convert_format(
             inputs["objects"]["bbox"],
             images=inputs["image"],
             source="rel_yxyx",
-            target=bounding_box_format,
+            target=format,
         )
 
         bounding_boxes = inputs["objects"]["bbox"]
@@ -44,41 +44,34 @@ def unpackage_pascalvoc(bounding_box_format, img_size):
     return apply
 
 
-def load_pascal_voc(
-    split, bounding_box_format, batch_size, shuffle=True, img_size=(512, 512)
-):
+def load_pascal_voc(split, bounding_box_format, batch_size):
     dataset, dataset_info = tfds.load(
-        "voc/2007", split=split, shuffle_files=shuffle, with_info=True
+        "voc/2007", split=split, shuffle_files=True, with_info=True
     )
     dataset = dataset.map(
-        unpackage_pascalvoc(bounding_box_format=bounding_box_format, img_size=img_size),
-        num_parallel_calls=tf.data.AUTOTUNE,
+        unpackage(format=bounding_box_format), num_parallel_calls=tf.data.AUTOTUNE
     )
-    dataset = dataset.shuffle(100)
     dataset = dataset.apply(
         tf.data.experimental.dense_to_ragged_batch(batch_size=batch_size)
     )
-    dataset = dataset.prefetch(tf.data.AUTOTUNE)
     return dataset, dataset_info
 
 
 def main():
-    batch_size = 9
-    dataset, ds_info = load_pascal_voc(
-        split="train", bounding_box_format="rel_yxyx", batch_size=batch_size
+    dataset = load_pascal_voc(
+        split="train", bounding_box_format="rel_yxyx", batch_size=9
     )
 
     for example in dataset.take(1):
         images, boxes = example["images"], example["bounding_boxes"]
         boxes = boxes.to_tensor(default_value=-1)
-        print(boxes)
         color = tf.constant(((255.0, 0, 0),))
         plotted_images = tf.image.draw_bounding_boxes(
             images, boxes[..., :4], color, name=None
         )
         plt.figure(figsize=(10, 10))
-        for i in range(batch_size):
-            plt.subplot(batch_size // 3, batch_size // 3, i + 1)
+        for i in range(BATCH_SIZE):
+            plt.subplot(BATCH_SIZE // 3, BATCH_SIZE // 3, i + 1)
             plt.imshow(plotted_images[i].numpy().astype("uint8"))
             plt.axis("off")
         plt.show()

@@ -46,14 +46,14 @@ class DecodePredictions(tf.keras.layers.Layer):
         super().__init__(**kwargs)
         self.bounding_box_format = bounding_box_format
         self.non_max_suppression = layers.NonMaxSuppression(
-            bounding_box_format="xyxy",
+            bounding_box_format=bounding_box_format,
             num_classes=num_classes,
             confidence_threshold=confidence_threshold,
             iou_threshold=iou_threshold,
             max_detections=max_detections,
             max_detections_per_class=max_detections_per_class,
         )
-        self._anchor_box = utils.AnchorBox()
+        self._anchor_box = utils.AnchorBox(bounding_box_format=bounding_box_format)
         self._box_variance = tf.convert_to_tensor(
             [0.1, 0.1, 0.2, 0.2], dtype=tf.float32
         )
@@ -67,9 +67,6 @@ class DecodePredictions(tf.keras.layers.Layer):
             ],
             axis=-1,
         )
-        boxes_transformed = bounding_box.convert_format(
-            boxes, source=self.bounding_box_format, target="xyxy"
-        )
         return boxes_transformed
 
     def call(self, images, predictions):
@@ -81,8 +78,4 @@ class DecodePredictions(tf.keras.layers.Layer):
 
         boxes = tf.concat([boxes, cls_predictions], axis=-1)
 
-        result = self.non_max_suppression(boxes)
-        result = bounding_box.convert_format(
-            result, source="xyxy", target=self.bounding_box_format
-        )
-        return result
+        return self.non_max_suppression(boxes)
