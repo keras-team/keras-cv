@@ -53,7 +53,7 @@ class RetinaNet(keras.Model):
         backbone: Either 'resnet50' or a custom backbone model.  Please see {link} to see
             how to construct your own backbone.
         include_rescaling: Required if provided backbone is a pre-configured model.
-            Whether or not to rescale inputs in the backbone.
+            If set to True, inputs will be passed through a Rescaling(1/255.0) layer.
         backbone_weights: (Optional) if using a KerasCV provided backbone, the
             underlying backbone model will be loaded using the weights provided in this
             argument.  Can be a model checkpoint path, or a string from the supported
@@ -276,6 +276,11 @@ def _parse_backbone(backbone, include_rescaling, backbone_weights):
             f"backbone_weights are not supported.  Received backbone={backbone}, "
             f"include_rescaling={include_rescaling}, and "
             f"backbone_weights={backbone_weights}."
+        )
+    if not callable(backbone):
+        raise ValueError(
+            "Custom backbones should be subclasses of a keras.Model. "
+            f"Received backbone={backbone}."
         )
     return backbone
 
