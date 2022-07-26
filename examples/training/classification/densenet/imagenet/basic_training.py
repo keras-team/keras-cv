@@ -18,6 +18,9 @@ from absl import flags
 from keras.callbacks import BackupAndRestore
 from keras.callbacks import EarlyStopping
 from keras.callbacks import ModelCheckpoint
+from keras.callbacks import TensorBoard
+from keras.layers import Resizing
+from keras.losses import CategoricalCrossentropy
 from keras.optimizers import Adam
 from tensorflow.keras.optimizers.schedules import PolynomialDecay
 
@@ -54,13 +57,16 @@ flags.DEFINE_string(
 flags.DEFINE_string(
     "weights_path", None, "Directory which will be used to store weight checkpoints."
 )
+flags.DEFINE_string(
+    "tensorboard_path", None, "Directory which will be used to store tensorboard logs."
+)
 
 FLAGS = flags.FLAGS
 FLAGS(sys.argv)
 
 NUM_CLASSES = 1000
 BATCH_SIZE = 256
-IMAGE_SIZE = (300, 300)
+IMAGE_SIZE = (224, 224)
 EPOCHS = 250
 
 """
@@ -71,7 +77,7 @@ To get started, we first load the dataset from a command-line specified director
 """
 
 
-def parse_imagenet_example(example, IMAGE_SIZE):
+def parse_imagenet_example(example):
     # Read example
     image_key = "image/encoded"
     label_key = "image/class/label"
@@ -84,7 +90,7 @@ def parse_imagenet_example(example, IMAGE_SIZE):
     # Decode and resize image
     image_bytes = tf.reshape(parsed[image_key], shape=[])
     image = tf.io.decode_jpeg(image_bytes, channels=3)
-    image = tf.image.resize(image, IMAGE_SIZE)
+    image = Resizing(IMAGE_SIZE, crop_to_aspect_ratio=True)(image)
 
     # Decode label
     label = tf.cast(tf.reshape(parsed[label_key], shape=()), dtype=tf.int32) - 1
@@ -104,18 +110,18 @@ def load_imagenet_dataset():
     validation_dataset = tf.data.TFRecordDataset(filenames=validation_filenames)
 
     train_dataset = train_dataset.map(
-        lambda x: parse_imagenet_example(x, IMAGE_SIZE),
+        parse_imagenet_example,
         num_parallel_calls=tf.data.AUTOTUNE,
     )
     validation_dataset = validation_dataset.map(
-        lambda x: parse_imagenet_example(x, IMAGE_SIZE),
+        parse_imagenet_example,
         num_parallel_calls=tf.data.AUTOTUNE,
     )
 
     return train_dataset.batch(BATCH_SIZE), validation_dataset.batch(BATCH_SIZE)
 
 
-train, test = load_imagenet_dataset()
+train_ds, test_ds = load_imagenet_dataset()
 
 
 """
@@ -137,9 +143,10 @@ def augment(img, label):
     return inputs["images"], inputs["labels"]
 
 
-train = train.map(augment, num_parallel_calls=tf.data.AUTOTUNE).prefetch(
+train_ds = train_ds.map(augment, num_parallel_calls=tf.data.AUTOTUNE).prefetch(
     tf.data.AUTOTUNE
 )
+test_ds = test_ds.prefetch(tf.data.AUTOTUNE)
 
 
 """
@@ -165,7 +172,7 @@ def get_optimizer():
     return Adam(
         learning_rate=PolynomialDecay(
             initial_learning_rate=0.005,
-            decay_steps=train.cardinality().numpy() * EPOCHS,
+            decay_steps=train_ds.cardinality().numpy() * EPOCHS / 2,
             end_learning_rate=0.0001,
         )
     )
@@ -177,7 +184,7 @@ Next, we pick a loss function. Here we use a built-in Keras loss function, so we
 
 
 def get_loss_fn():
-    return "categorical_crossentropy"
+    return CategoricalCrossentropy(label_smoothing=0.1)
 
 
 """
@@ -196,9 +203,10 @@ As a last piece of configuration, we configure callbacks for the method. We use 
 
 def get_callbacks():
     return [
-        EarlyStopping(patience=10),
+        EarlyStopping(patience=30),
         BackupAndRestore(FLAGS.backup_path),
         ModelCheckpoint(FLAGS.weights_path),
+        TensorBoard(log_dir=FLAGS.tensorboard_path),
     ]
 
 
@@ -216,9 +224,9 @@ with tf.distribute.MirroredStrategy().scope():
     )
 
     model.fit(
-        train,
+        train_ds,
         batch_size=BATCH_SIZE,
         epochs=EPOCHS,
         callbacks=get_callbacks(),
-        validation_data=test,
+        validation_data=test_ds,
     )
