@@ -15,14 +15,10 @@ import sys
 
 import tensorflow as tf
 from absl import flags
-from keras.callbacks import BackupAndRestore
-from keras.callbacks import EarlyStopping
-from keras.callbacks import ModelCheckpoint
-from keras.callbacks import TensorBoard
-from keras.layers import Resizing
-from keras.losses import CategoricalCrossentropy
-from keras.optimizers import Adam
-from tensorflow.keras.optimizers.schedules import PolynomialDecay
+from tensorflow.keras import callbacks
+from tensorflow.keras import layers
+from tensorflow.keras import losses
+from tensorflow.keras import optimizers
 
 import keras_cv
 from keras_cv.models import DenseNet121
@@ -90,7 +86,7 @@ def parse_imagenet_example(example):
     # Decode and resize image
     image_bytes = tf.reshape(parsed[image_key], shape=[])
     image = tf.io.decode_jpeg(image_bytes, channels=3)
-    image = Resizing(
+    image = layers.Resizing(
         width=IMAGE_SIZE[0], height=IMAGE_SIZE[1], crop_to_aspect_ratio=True
     )(image)
 
@@ -171,8 +167,8 @@ Next, we pick an optimizer. Here we use Adam with a linearly decaying learning r
 
 
 def get_optimizer():
-    return Adam(
-        learning_rate=PolynomialDecay(
+    return optimizers.Adam(
+        learning_rate=optimizers.schedules.PolynomialDecay(
             initial_learning_rate=0.005,
             decay_steps=train_ds.cardinality().numpy() * EPOCHS / 2,
             end_learning_rate=0.0001,
@@ -186,7 +182,7 @@ Next, we pick a loss function. Here we use a built-in Keras loss function, so we
 
 
 def get_loss_fn():
-    return CategoricalCrossentropy(label_smoothing=0.1)
+    return losses.CategoricalCrossentropy(label_smoothing=0.1)
 
 
 """
@@ -205,10 +201,10 @@ As a last piece of configuration, we configure callbacks for the method. We use 
 
 def get_callbacks():
     return [
-        EarlyStopping(patience=30),
-        BackupAndRestore(FLAGS.backup_path),
-        ModelCheckpoint(FLAGS.weights_path),
-        TensorBoard(log_dir=FLAGS.tensorboard_path),
+        callbacks.EarlyStopping(patience=30),
+        callbacks.BackupAndRestore(FLAGS.backup_path),
+        callbacks.ModelCheckpoint(FLAGS.weights_path),
+        callbacks.TensorBoard(log_dir=FLAGS.tensorboard_path),
     ]
 
 
