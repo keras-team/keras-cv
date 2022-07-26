@@ -13,8 +13,7 @@
 # limitations under the License.
 
 import tensorflow as tf
-from retina_net.utils import AnchorBox
-
+from keras_cv.applications.object_detection.retina_net.__internal__ import utils
 from keras_cv import bounding_box
 from keras_cv import layers
 
@@ -53,7 +52,7 @@ class DecodePredictions(tf.keras.layers.Layer):
             max_detections=max_detections,
             max_detections_per_class=max_detections_per_class,
         )
-        self._anchor_box = AnchorBox()
+        self._anchor_box = utils.AnchorBox()
         self._box_variance = tf.convert_to_tensor(
             [0.1, 0.1, 0.2, 0.2], dtype=tf.float32
         )
