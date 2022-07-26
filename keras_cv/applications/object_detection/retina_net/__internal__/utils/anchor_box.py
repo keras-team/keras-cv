@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import tensorflow as tf
+
 import keras_cv
 
 
@@ -39,8 +40,17 @@ class AnchorBox(tf.keras.layers.Layer):
     To customize these values, please fork the RetinaNet model repo.
     """
 
-    def __init__(self, bounding_box_format, aspect_ratios=None, scales=None, strides=None, areas=None):
-        self.bounding_box_format = bounding_box
+    def __init__(
+        self,
+        bounding_box_format,
+        aspect_ratios=None,
+        scales=None,
+        strides=None,
+        areas=None,
+        **kwargs
+    ):
+        super().__init__(**kwargs)
+        self.bounding_box_format = bounding_box_format
         self.aspect_ratios = aspect_ratios or [0.5, 1.0, 2.0]
         self.scales = scales or [2**x for x in [0, 1 / 3, 2 / 3]]
 
@@ -108,4 +118,6 @@ class AnchorBox(tf.keras.layers.Layer):
             )
             for i in range(3, 8)
         ]
-        return keras_cv.bounding_box.transform_format(tf.concat(anchors, axis=0), source='xywh', target=self.bounding_box_format)
+        return keras_cv.bounding_box.convert_format(
+            tf.concat(anchors, axis=0), source="xywh", target=self.bounding_box_format
+        )

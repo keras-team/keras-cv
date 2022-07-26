@@ -34,14 +34,21 @@ class LabelEncoder(layers.Layer):
         box_variance: The scaling factors used to scale the bounding box targets.
     """
 
-    def __init__(self, bounding_box_format, anchor_box_generator=None, box_variance=None):
+    def __init__(
+        self,
+        bounding_box_format,
+        anchor_box_generator=None,
+        box_variance=None,
+        **kwargs
+    ):
+        super().__init__(**kwargs)
         self.bounding_box_format = bounding_box_format
-        self._anchor_box = anchor_box_generator or utils.AnchorBox(bounding_box_format=bounding_box_format)
+        self._anchor_box = anchor_box_generator or utils.AnchorBox(
+            bounding_box_format=bounding_box_format
+        )
 
         box_variance = box_variance or [0.1, 0.1, 0.2, 0.2]
-        self._box_variance = tf.convert_to_tensor(
-            box_variance, dtype=tf.float32
-        )
+        self._box_variance = tf.convert_to_tensor(box_variance, dtype=tf.float32)
 
     def _match_anchor_boxes(
         self, anchor_boxes, gt_boxes, match_iou=0.5, ignore_iou=0.4
@@ -73,7 +80,9 @@ class LabelEncoder(layers.Layer):
           ignore_mask: A mask for anchor boxes that need to by ignored during
             training
         """
-        iou_matrix = keras_cv.bounding_box.compute_iou(anchor_boxes, gt_boxes, bounding_box_format=self.bounding_box_format)
+        iou_matrix = bounding_box.compute_iou(
+            anchor_boxes, gt_boxes, bounding_box_format=self.bounding_box_format
+        )
         max_iou = tf.reduce_max(iou_matrix, axis=1)
         matched_gt_idx = tf.argmax(iou_matrix, axis=1)
         positive_mask = tf.greater_equal(max_iou, match_iou)
@@ -101,7 +110,7 @@ class LabelEncoder(layers.Layer):
         """Creates box and classification targets for a single sample"""
         cls_ids = gt_boxes[:, 4]
         gt_boxes = gt_boxes[:, :4]
-        anchor_boxes = self._anchor_box.get_anchors(image_shape[1], image_shape[2])
+        anchor_boxes = self._anchor_box(image_shape[1], image_shape[2])
         cls_ids = tf.cast(cls_ids, dtype=tf.float32)
         matched_gt_idx, positive_mask, ignore_mask = self._match_anchor_boxes(
             anchor_boxes, gt_boxes
