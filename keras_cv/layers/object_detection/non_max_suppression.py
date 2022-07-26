@@ -31,7 +31,7 @@ class NonMaxSuppression(tf.keras.layers.Layer):
     Args:
         num_classes: an integer representing the number of classes that a bounding
             box can belong to.
-        bounding_box_format: a case-sensitive string which is one of `"xyxy"`,
+        bounding_box_format: a case-insensitive string which is one of `"xyxy"`,
             `"rel_xyxy"`, `"xyWH"`, `"center_xyWH"`, `"yxyx"`, `"rel_yxyx"`. The
             position and shape of the bounding box will be followed by the class and
             confidence values (in that order). This is required for proper ranking of
