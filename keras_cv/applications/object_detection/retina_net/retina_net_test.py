@@ -1,7 +1,9 @@
 import tensorflow as tf
 from absl.testing import parameterized
 from tensorflow.keras import backend
+
 import keras_cv
+
 
 class RetinaNetTest(tf.test.TestCase, parameterized.TestCase):
     def test_retina_net_construction(self):
@@ -38,12 +40,12 @@ class RetinaNetTest(tf.test.TestCase, parameterized.TestCase):
                 optimizer="adam",
                 metrics=[
                     keras_cv.metrics.COCOMeanAveragePrecision(
-                        class_ids=ids,
+                        class_ids=range(20),
                         bounding_box_format="xyxy",
                         name="Standard MaP",
                     ),
                     keras_cv.metrics.COCOMeanAveragePrecision(
-                        class_ids=ids,
+                        class_ids=range(20),
                         bounding_box_format="rel_xyxy",
                         name="Standard MaP",
                     ),
