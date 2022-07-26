@@ -90,7 +90,9 @@ def parse_imagenet_example(example):
     # Decode and resize image
     image_bytes = tf.reshape(parsed[image_key], shape=[])
     image = tf.io.decode_jpeg(image_bytes, channels=3)
-    image = Resizing(IMAGE_SIZE, crop_to_aspect_ratio=True)(image)
+    image = Resizing(
+        width=IMAGE_SIZE[0], height=IMAGE_SIZE[1], crop_to_aspect_ratio=True
+    )(image)
 
     # Decode label
     label = tf.cast(tf.reshape(parsed[label_key], shape=()), dtype=tf.int32) - 1
