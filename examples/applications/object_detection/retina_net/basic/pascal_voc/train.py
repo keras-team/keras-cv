@@ -1,11 +1,11 @@
-from loader import load_pascal_voc
 import tensorflow as tf
+from loader import load_pascal_voc
+from loss import FocalLoss
+from tensorflow.keras import callbacks as callbacks_lib
+from wandb.keras import WandbCallback
+
 import keras_cv
 import wandb
-from wandb.keras import WandbCallback
-from tensorflow.keras import callbacks as callbacks_lib
-import metrics as metrics_lib
-from loss import FocalLoss
 
 wandb.init(project="pascalvoc-retinanet", entity="keras-team-testing")
 
@@ -44,16 +44,16 @@ model.compile(
     metrics=[
         keras_cv.metrics.COCOMeanAveragePrecision(
             class_ids=range(20),
-            bounding_box_format='xywh'',
+            bounding_box_format="xywh",
             name="Standard MaP",
         ),
         keras_cv.metrics.COCORecall(
             class_ids=range(20),
-            bounding_box_format='xywh'',
+            bounding_box_format="xywh",
             max_detections=100,
             name="Standard Recall",
         ),
-    ]
+    ],
 )
 
 callbacks = [

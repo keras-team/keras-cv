@@ -20,7 +20,7 @@ class FeaturePyramid(keras.layers.Layer):
     """Builds the Feature Pyramid with the feature maps from the backbone."""
 
     def __init__(self, **kwargs):
-        super().__init__(name="FeaturePyramid", **kwargs)
+        super().__init__(**kwargs)
         self.conv_c3_1x1 = keras.layers.Conv2D(256, 1, 1, "same")
         self.conv_c4_1x1 = keras.layers.Conv2D(256, 1, 1, "same")
         self.conv_c5_1x1 = keras.layers.Conv2D(256, 1, 1, "same")
