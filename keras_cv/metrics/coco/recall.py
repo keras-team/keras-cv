@@ -25,6 +25,11 @@ from keras_cv.utils import iou as iou_lib
 class COCORecall(keras.metrics.Metric):
     """COCORecall computes the COCO recall metric.
 
+    A usage guide is available on keras.io: 
+    [Using KerasCV COCO metrics](https://keras.io/guides/keras_cv/coco_metrics/).
+    Full implementation details are available in the 
+    [KerasCV COCO metrics whitepaper](https://arxiv.org/abs/2207.12120).
+
     Args:
         class_ids: The class IDs to evaluate the metric for.  To evaluate for
             all classes in over a set of sequentially labelled classes, pass
