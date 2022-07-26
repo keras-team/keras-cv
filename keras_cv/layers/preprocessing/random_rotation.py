@@ -148,15 +148,19 @@ class RandomRotation(BaseImageAugmentationLayer):
             )
         else:
             bounding_boxes = bounding_box.convert_format(
-                bounding_boxes, source=self.bounding_box_format, target="xyxy"
+                bounding_boxes,
+                source=self.bounding_box_format,
+                target="xyxy",
+                images=image,
             )
-        image = tf.expand_dims(image, 0)
         image_shape = tf.shape(image)
         h = image_shape[H_AXIS]
         w = image_shape[W_AXIS]
         # origin coordinates, all the points on the image are rotated around
         # this point
-        origin_x, origin_y = int(h / 2), int(w / 2)
+        origin_x, origin_y = tf.cast(w / 2, dtype=self.compute_dtype), tf.cast(
+            h / 2, dtype=self.compute_dtype
+        )
         angle = transformation["angle"]
         angle = -angle
         # calculate coordinates of all four corners of the bounding box
@@ -201,12 +205,18 @@ class RandomRotation(BaseImageAugmentationLayer):
         min_cordinates = tf.math.reduce_min(out, axis=1)
         max_cordinates = tf.math.reduce_max(out, axis=1)
         bounding_boxes_out = tf.concat([min_cordinates, max_cordinates], axis=1)
+        bounding_boxes_out = bounding_box.clip_to_image(
+            bounding_boxes_out,
+            bounding_box_format="xyxy",
+            images=image,
+        )
         # cordinates cannot be float values, it is casted to int32
         bounding_boxes_out = bounding_box.convert_format(
             bounding_boxes_out,
             source="xyxy",
             target=self.bounding_box_format,
             dtype=self.compute_dtype,
+            images=image,
         )
         return bounding_boxes_out
 
