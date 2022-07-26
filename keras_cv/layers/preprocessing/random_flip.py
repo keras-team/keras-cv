@@ -92,9 +92,9 @@ class RandomFlip(BaseImageAugmentationLayer):
     def augment_image(self, image, transformation, **kwargs):
         image = utils.preprocessing.ensure_tensor(image, self.compute_dtype)
         flipped_output = image
-        if self.horizontal and transformation["flip_horizontal"]:
+        if transformation["flip_horizontal"]:
             flipped_output = tf.image.flip_left_right(flipped_output)
-        if self.vertical and transformation["flip_vertical"]:
+        if transformation["flip_vertical"]:
             flipped_output = tf.image.flip_up_down(flipped_output)
         flipped_output.set_shape(image.shape)
         return flipped_output
@@ -111,9 +111,9 @@ class RandomFlip(BaseImageAugmentationLayer):
             "flip_vertical": flip_vertical,
         }
 
-    def augment_bounding_boxes(self, bounding_boxes, transformation=None, **kwargs):
-        image = None
-        image = kwargs.get("image")
+    def augment_bounding_boxes(
+        self, bounding_boxes, transformation=None, image=None, **kwargs
+    ):
         if self.bounding_box_format is None:
             raise ValueError(
                 "`RandomFlip()` was called with bounding boxes,"
@@ -121,14 +121,14 @@ class RandomFlip(BaseImageAugmentationLayer):
                 "Please specify a bounding box format in the constructor. i.e."
                 "`RandomFlip(bounding_box_format='xyxy')`"
             )
-        else:
-            bounding_boxes = bounding_box.convert_format(
-                bounding_boxes,
-                source=self.bounding_box_format,
-                target="xyxy",
-                images=image,
-            )
-        transformation = transformation or self.get_random_transformation()
+
+        bounding_boxes = bounding_box.convert_format(
+            bounding_boxes,
+            source=self.bounding_box_format,
+            target="xyxy",
+            images=image,
+        )
+        transformation = transformation
         image_shape = tf.shape(image)
         h = tf.cast(image_shape[H_AXIS], dtype="float32")
         w = tf.cast(image_shape[W_AXIS], dtype="float32")
