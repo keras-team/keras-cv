@@ -1,11 +1,11 @@
 import tensorflow as tf
+import wandb
 from loader import load_pascal_voc
 from loss import FocalLoss
 from tensorflow.keras import callbacks as callbacks_lib
 from wandb.keras import WandbCallback
 
 import keras_cv
-import wandb
 
 wandb.init(project="pascalvoc-retinanet", entity="keras-team-testing")
 
