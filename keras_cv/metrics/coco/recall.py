@@ -18,8 +18,8 @@ import tensorflow.keras as keras
 import tensorflow.keras.initializers as initializers
 
 from keras_cv import bounding_box
+from keras_cv.bounding_box import iou as iou_lib
 from keras_cv.metrics.coco import utils
-from keras_cv.utils import iou as iou_lib
 
 
 class COCORecall(keras.metrics.Metric):
@@ -201,7 +201,7 @@ class COCORecall(keras.metrics.Metric):
                     y_true_for_image, value=category, axis=bounding_box.XYXY.CLASS
                 )
 
-                ious = iou_lib.compute_ious_for_image(ground_truths, detections)
+                ious = iou_lib.compute_iou(ground_truths, detections, "yxyx")
 
                 for t_i in tf.range(num_thresholds):
                     threshold = iou_thresholds[t_i]
