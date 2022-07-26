@@ -28,10 +28,22 @@ from keras_cv.applications.object_detection.retina_net.__internal__ import (
 class RetinaNet(keras.Model):
     """A Keras model implementing the RetinaNet architecture.
 
-    TODO: describe how it works, output formats, metrics, etc.
+    RetinaNet implements the RetinaNet architecture for object detection.  The class
+    requires a number of classes, bounding_box format and a backbone.  Optionally, a
+    custom label encoder, feature pyramid network, and prediction decoder may all be
+    provided.  Please see {LINK} for an example of how to implement a custom version of
+    each of these components.
 
     Usage:
-        TODO
+    ```
+    retina_net = keras_cv.applications.RetinaNet(
+        num_classes=20,
+        bounding_box_format="xywh",
+        backbone="resnet50",
+        backbone_weights="imagenet",
+        include_rescaling=True,
+    )
+    ```
 
     Args:
         num_classes:
