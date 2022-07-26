@@ -76,7 +76,8 @@ class RetinaNet(keras.Model):
         **kwargs,
     ):
         super().__init__(name=name, **kwargs)
-        if backbone is None and include_rescaling is None:
+
+        if backbone is not None and include_rescaling is None:
             raise ValueError(
                 "Either `backbone` OR `include_rescaling` must be set when "
                 "constructing a `keras_cv.models.RetinaNet()` model. "
@@ -106,6 +107,7 @@ class RetinaNet(keras.Model):
         self.prediction_decoder = prediction_decoder or layers_lib.DecodePredictions(
             num_classes=num_classes, bounding_box_format=bounding_box_format
         )
+        self._metrics_bounding_box_format = None
 
     def compile(self, metrics=None, **kwargs):
         metrics = metrics or []
