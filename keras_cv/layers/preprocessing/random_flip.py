@@ -128,7 +128,6 @@ class RandomFlip(BaseImageAugmentationLayer):
             target="xyxy",
             images=image,
         )
-        transformation = transformation
         image_shape = tf.shape(image)
         h = tf.cast(image_shape[H_AXIS], dtype="float32")
         w = tf.cast(image_shape[W_AXIS], dtype="float32")
