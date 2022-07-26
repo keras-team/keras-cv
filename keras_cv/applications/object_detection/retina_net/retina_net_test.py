@@ -1,13 +1,12 @@
 import tensorflow as tf
 from absl.testing import parameterized
-from tensorflow.keras import backend
 
 import keras_cv
 
 
 class RetinaNetTest(tf.test.TestCase, parameterized.TestCase):
     def test_retina_net_construction(self):
-        retina_net = keras_cv.applications.RetinaNet(
+        _ = keras_cv.applications.RetinaNet(
             num_classes=20,
             bounding_box_format="xywh",
             backbone="resnet50",
@@ -17,7 +16,7 @@ class RetinaNetTest(tf.test.TestCase, parameterized.TestCase):
 
     def test_retina_net_include_rescaling_required_with_default_backbone(self):
         with self.assertRaises(ValueError):
-            retina_net = keras_cv.applications.RetinaNet(
+            _ = keras_cv.applications.RetinaNet(
                 num_classes=20,
                 bounding_box_format="xywh",
                 backbone="resnet50",
@@ -51,3 +50,8 @@ class RetinaNetTest(tf.test.TestCase, parameterized.TestCase):
                     ),
                 ],
             )
+
+    def test_overfits_single_bounding_box(self):
+        # TODO(lukewood): overfit a single stacked bounding box, make sure the format
+        # is correct
+        pass
