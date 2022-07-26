@@ -1,30 +1,9 @@
-
 import tensorflow as tf
 from absl.testing import parameterized
 from tensorflow.keras import backend
-
-from keras_cv.models import csp_darknet
-from keras_cv.models import darknet
-from keras_cv.models import densenet
-from keras_cv.models import mlp_mixer
-from keras_cv.models import vgg19
-
-MODEL_LIST = [
-    (csp_darknet.CSPDarkNet, 1024),
-    (darknet.DarkNet21, 512),
-    (darknet.DarkNet53, 512),
-    (densenet.DenseNet121, 1024),
-    (densenet.DenseNet169, 1664),
-    (densenet.DenseNet201, 1920),
-    (mlp_mixer.MLPMixerB16, 768),
-    (mlp_mixer.MLPMixerB32, 768),
-    (mlp_mixer.MLPMixerL16, 1024),
-    (vgg19.VGG19, 512),
-]
-
+import keras_cv
 
 class RetinaNetTest(tf.test.TestCase, parameterized.TestCase):
-
     def test_retina_net_construction(self):
         retina_net = keras_cv.applications.RetinaNet(
             num_classes=20,
@@ -56,17 +35,17 @@ class RetinaNetTest(tf.test.TestCase, parameterized.TestCase):
         # all metric formats must match
         with self.assertRaises(ValueError):
             retina_net.compile(
-                optimizer='adam',
+                optimizer="adam",
                 metrics=[
                     keras_cv.metrics.COCOMeanAveragePrecision(
                         class_ids=ids,
-                        bounding_box_format='xyxy',
+                        bounding_box_format="xyxy",
                         name="Standard MaP",
                     ),
                     keras_cv.metrics.COCOMeanAveragePrecision(
                         class_ids=ids,
-                        bounding_box_format='rel_xyxy',
+                        bounding_box_format="rel_xyxy",
                         name="Standard MaP",
                     ),
-                ]
+                ],
             )
