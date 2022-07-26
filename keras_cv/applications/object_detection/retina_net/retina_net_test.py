@@ -27,6 +27,7 @@ class RetinaNetTest(tf.test.TestCase, parameterized.TestCase):
             backbone_weights=None,
             include_rescaling=True,
         )
+        # TODO(lukewood): test compile with the FocalLoss class
 
     def test_retina_net_include_rescaling_required_with_default_backbone(self):
         with self.assertRaises(ValueError):
@@ -37,6 +38,7 @@ class RetinaNetTest(tf.test.TestCase, parameterized.TestCase):
                 backbone_weights=None,
                 # Note no include_rescaling is provided
             )
+            # TODO(lukewood): test compile with the FocalLoss class
 
     def test_all_metric_formats_must_match(self):
         retina_net = keras_cv.applications.RetinaNet(
