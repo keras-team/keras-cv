@@ -30,8 +30,17 @@ class RetinaNetTest(tf.test.TestCase, parameterized.TestCase):
         retina_net.compile(
             loss="mse",
             optimizer="adam",
-            metrics=[keras_cv.metrics.COCOMeanAveragePrecision(class_ids=range(2))],
+            metrics=[
+                keras_cv.metrics.COCOMeanAveragePrecision(
+                    class_ids=range(20),
+                    bounding_box_format="xyxy",
+                    name="Standard MaP",
+                ),
+            ],
         )
+
+        # TODO(lukewood) uncomment when using keras_cv.models.ResNet50
+        # self.assertIsNotNone(retina_net.backbone.get_layer(name="rescaling"))
         # TODO(lukewood): test compile with the FocalLoss class
 
     def test_retina_net_include_rescaling_required_with_default_backbone(self):
