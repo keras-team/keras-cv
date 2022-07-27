@@ -18,7 +18,7 @@ from absl.testing import parameterized
 import keras_cv
 
 
-class RetinaNetTest(tf.test.TestCase, parameterized.TestCase):
+class RetinaNetTest(tf.test.TestCase):
     def test_retina_net_construction(self):
         retina_net = keras_cv.applications.RetinaNet(
             num_classes=20,
