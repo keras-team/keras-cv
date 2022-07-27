@@ -13,7 +13,6 @@
 # limitations under the License.
 
 import tensorflow as tf
-from absl.testing import parameterized
 
 import keras_cv
 
@@ -81,7 +80,7 @@ class RetinaNetTest(tf.test.TestCase):
                 ],
             )
 
-    def test_overfits_single_bounding_box(self):
-        # TODO(lukewood): overfit a single stacked bounding box, make sure the format
-        # is correct
-        pass
+    # def test_overfits_single_bounding_box(self):
+    #     # TODO(lukewood): overfit a single stacked bounding box, make sure the format
+    #     # is correct
+    #     pass
