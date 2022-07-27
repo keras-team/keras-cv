@@ -14,7 +14,6 @@
 
 import tensorflow as tf
 
-from keras_cv import bounding_box
 from keras_cv import layers
 from keras_cv.applications.object_detection.retina_net.__internal__ import utils
 

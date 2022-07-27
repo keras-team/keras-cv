@@ -12,12 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import matplotlib.pyplot as plt
-import numpy as np
 import tensorflow as tf
 import tensorflow_datasets as tfds
 
 from keras_cv import bounding_box
-from keras_cv.layers import preprocessing
 
 IMG_SIZE = (256, 256)
 BATCH_SIZE = 9
