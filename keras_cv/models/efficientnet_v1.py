@@ -25,11 +25,8 @@ import copy
 import math
 
 import tensorflow as tf
-
 from keras import backend
 from keras import layers
-
-
 
 DEFAULT_BLOCKS_ARGS = [
     {
@@ -143,7 +140,7 @@ BASE_DOCSTRING = """Instantiates the {name} architecture.
         include_rescaling: whether or not to Rescale the inputs.If set to True,
                     inputs will be passed through a `Rescaling(1/255.0)` layer.
         include_top: Whether to include the fully-connected
-            layer at the top of the network. 
+            layer at the top of the network.
         weights: One of `None` (random initialization),
                 or the path to the weights file to be loaded.
         input_shape: Optional shape tuple.
@@ -201,13 +198,128 @@ def correct_pad(inputs, kernel_size):
     )
 
 
+def EfficientNetBlock(
+    activation="swish",
+    drop_rate=0.0,
+    name="",
+    filters_in=32,
+    filters_out=16,
+    kernel_size=3,
+    strides=1,
+    expand_ratio=1,
+    se_ratio=0.0,
+    id_skip=True,
+):
+    """An inverted residual block.
+
+    Args:
+        inputs: input tensor.
+        activation: activation function.
+        drop_rate: float between 0 and 1, fraction of the input units to drop.
+        name: string, block label.
+        filters_in: integer, the number of input filters.
+        filters_out: integer, the number of output filters.
+        kernel_size: integer, the dimension of the convolution window.
+        strides: integer, the stride of the convolution.
+        expand_ratio: integer, scaling coefficient for the input filters.
+        se_ratio: float between 0 and 1, fraction to squeeze the input filters.
+        id_skip: boolean.
+
+    Returns:
+        output tensor for the block.
+    """
+
+    # Expansion phase
+    def apply(inputs):
+        filters = filters_in * expand_ratio
+        if expand_ratio != 1:
+            x = layers.Conv2D(
+                filters,
+                1,
+                padding="same",
+                use_bias=False,
+                kernel_initializer=CONV_KERNEL_INITIALIZER,
+                name=name + "expand_conv",
+            )(inputs)
+            x = layers.BatchNormalization(axis=BN_AXIS, name=name + "expand_bn")(x)
+            x = layers.Activation(activation, name=name + "expand_activation")(x)
+        else:
+            x = inputs
+
+        # Depthwise Convolution
+        if strides == 2:
+            x = layers.ZeroPadding2D(
+                padding=correct_pad(x, kernel_size),
+                name=name + "dwconv_pad",
+            )(x)
+            conv_pad = "valid"
+        else:
+            conv_pad = "same"
+        x = layers.DepthwiseConv2D(
+            kernel_size,
+            strides=strides,
+            padding=conv_pad,
+            use_bias=False,
+            depthwise_initializer=CONV_KERNEL_INITIALIZER,
+            name=name + "dwconv",
+        )(x)
+        x = layers.BatchNormalization(axis=BN_AXIS, name=name + "bn")(x)
+        x = layers.Activation(activation, name=name + "activation")(x)
+
+        # Squeeze and Excitation phase
+        if 0 < se_ratio <= 1:
+            filters_se = max(1, int(filters_in * se_ratio))
+            se = layers.GlobalAveragePooling2D(name=name + "se_squeeze")(x)
+            if BN_AXIS == 1:
+                se_shape = (filters, 1, 1)
+            else:
+                se_shape = (1, 1, filters)
+            se = layers.Reshape(se_shape, name=name + "se_reshape")(se)
+            se = layers.Conv2D(
+                filters_se,
+                1,
+                padding="same",
+                activation=activation,
+                kernel_initializer=CONV_KERNEL_INITIALIZER,
+                name=name + "se_reduce",
+            )(se)
+            se = layers.Conv2D(
+                filters,
+                1,
+                padding="same",
+                activation="sigmoid",
+                kernel_initializer=CONV_KERNEL_INITIALIZER,
+                name=name + "se_expand",
+            )(se)
+            x = layers.multiply([x, se], name=name + "se_excite")
+
+        # Output phase
+        x = layers.Conv2D(
+            filters_out,
+            1,
+            padding="same",
+            use_bias=False,
+            kernel_initializer=CONV_KERNEL_INITIALIZER,
+            name=name + "project_conv",
+        )(x)
+        x = layers.BatchNormalization(axis=BN_AXIS, name=name + "project_bn")(x)
+        if id_skip and strides == 1 and filters_in == filters_out:
+            if drop_rate > 0:
+                x = layers.Dropout(
+                    drop_rate, noise_shape=(None, 1, 1, 1), name=name + "drop"
+                )(x)
+            x = layers.add([x, inputs], name=name + "add")
+        return x
+
+    return apply
+
 
 def EfficientNet(
+    include_rescaling,
+    include_top,
     width_coefficient,
     depth_coefficient,
     default_size,
-    include_top,
-    include_rescaling,
     dropout_rate=0.2,
     drop_connect_rate=0.2,
     depth_divisor=8,
@@ -269,7 +381,7 @@ def EfficientNet(
     """
     if blocks_args == "default":
         blocks_args = DEFAULT_BLOCKS_ARGS
-    
+
     if weights and not tf.io.gfile.exists(weights):
         raise ValueError(
             "The `weights` argument should be either `None` or the path to the "
@@ -288,16 +400,12 @@ def EfficientNet(
             f"Received pooling={pooling} and include_top={include_top}. "
         )
 
-
-
     img_input = layers.Input(shape=input_shape)
 
     def round_filters(filters, divisor=depth_divisor):
         """Round number of filters based on depth multiplier."""
         filters *= width_coefficient
-        new_filters = max(
-            divisor, int(filters + divisor / 2) // divisor * divisor
-        )
+        new_filters = max(divisor, int(filters + divisor / 2) // divisor * divisor)
         # Make sure that round down does not go down by more than 10%.
         if new_filters < 0.9 * filters:
             new_filters += divisor
@@ -309,7 +417,7 @@ def EfficientNet(
 
     # Build stem
     x = img_input
-    
+
     if include_rescaling:
         # Note that the normaliztion layer uses square value of STDDEV as the
         # variance for the layer: result = (input - mean) / sqrt(var)
@@ -322,11 +430,12 @@ def EfficientNet(
         x = layers.Normalization(axis=BN_AXIS)(x)
         x = layers.Rescaling(1.0 / tf.math.sqrt(IMAGENET_STDDEV_RGB))(x)
 
+    x = layers.ZeroPadding2D(padding=correct_pad(x, 3), name="stem_conv_pad")(x)
     x = layers.Conv2D(
         round_filters(32),
         3,
         strides=2,
-        padding=correct_pad(x, 3),
+        padding="valid",
         use_bias=False,
         kernel_initializer=CONV_KERNEL_INITIALIZER,
         name="stem_conv",
@@ -355,7 +464,7 @@ def EfficientNet(
                 activation,
                 drop_connect_rate * b / blocks,
                 name="block{}{}_".format(i + 1, chr(j + 97)),
-                **args
+                **args,
             )(x)
             b += 1
 
@@ -394,120 +503,8 @@ def EfficientNet(
     # Load weights.
     if weights is not None:
         model.load_weights(weights)
-        
+
     return model
-
-
-def EfficientNetBlock(
-    activation="swish",
-    drop_rate=0.0,
-    name="",
-    filters_in=32,
-    filters_out=16,
-    kernel_size=3,
-    strides=1,
-    expand_ratio=1,
-    se_ratio=0.0,
-    id_skip=True,
-):
-    """An inverted residual block.
-
-    Args:
-        inputs: input tensor.
-        activation: activation function.
-        drop_rate: float between 0 and 1, fraction of the input units to drop.
-        name: string, block label.
-        filters_in: integer, the number of input filters.
-        filters_out: integer, the number of output filters.
-        kernel_size: integer, the dimension of the convolution window.
-        strides: integer, the stride of the convolution.
-        expand_ratio: integer, scaling coefficient for the input filters.
-        se_ratio: float between 0 and 1, fraction to squeeze the input filters.
-        id_skip: boolean.
-
-    Returns:
-        output tensor for the block.
-    """
-    
-    # Expansion phase
-    def apply(inputs):
-        filters = filters_in * expand_ratio
-        if expand_ratio != 1:
-            x = layers.Conv2D(
-                filters,
-                1,
-                padding="same",
-                use_bias=False,
-                kernel_initializer=CONV_KERNEL_INITIALIZER,
-                name=name + "expand_conv",
-            )(inputs)
-            x = layers.BatchNormalization(axis=BN_AXIS, name=name + "expand_bn")(x)
-            x = layers.Activation(activation, name=name + "expand_activation")(x)
-        else:
-            x = inputs
-
-        # Depthwise Convolution
-        if strides == 2:
-            conv_pad = correct_pad(x, kernel_size)
-        else:
-            conv_pad = "same"
-        x = layers.DepthwiseConv2D(
-            kernel_size,
-            strides=strides,
-            padding=conv_pad,
-            use_bias=False,
-            depthwise_initializer=CONV_KERNEL_INITIALIZER,
-            name=name + "dwconv",
-        )(x)
-        x = layers.BatchNormalization(axis=BN_AXIS, name=name + "bn")(x)
-        x = layers.Activation(activation, name=name + "activation")(x)
-
-        # Squeeze and Excitation phase
-        if 0 < se_ratio <= 1:
-            filters_se = max(1, int(filters_in * se_ratio))
-            se = layers.GlobalAveragePooling2D(name=name + "se_squeeze")(x)
-            if BN_AXIS == 1:
-                se_shape = (filters, 1, 1)
-            else:
-                se_shape = (1, 1, filters)
-            se = layers.Reshape(se_shape, name=name + "se_reshape")(se)
-            se = layers.Conv2D(
-                filters_se,
-                1,
-                padding="same",
-                activation=activation,
-                kernel_initializer=CONV_KERNEL_INITIALIZER,
-                name=name + "se_reduce",
-            )(se)
-            se = layers.Conv2D(
-                filters,
-                1,
-                padding="same",
-                activation="sigmoid",
-                kernel_initializer=CONV_KERNEL_INITIALIZER,
-                name=name + "se_expand",
-            )(se)
-            x = layers.multiply([x, se], name=name + "se_excite")
-
-        # Output phase
-        x = layers.Conv2D(
-            filters_out,
-            1,
-            padding="same",
-            use_bias=False,
-            kernel_initializer=CONV_KERNEL_INITIALIZER,
-            name=name + "project_conv",
-        )(x)
-        x = layers.BatchNormalization(axis=BN_AXIS, name=name + "project_bn")(x)
-        if id_skip and strides == 1 and filters_in == filters_out:
-            if drop_rate > 0:
-                x = layers.Dropout(
-                    drop_rate, noise_shape=(None, 1, 1, 1), name=name + "drop"
-                )(x)
-            x = layers.add([x, inputs], name=name + "add")
-        return x
-    return apply
-
 
 
 def EfficientNetB0(
@@ -518,24 +515,23 @@ def EfficientNetB0(
     input_shape=(None, None, 3),
     pooling=None,
     classifier_activation="softmax",
-    **kwargs
+    **kwargs,
 ):
     return EfficientNet(
-        include_top,
         include_rescaling,
-        1.0,
-        1.0,
-        224,
-        0.2,
+        include_top,
+        width_coefficient=1.0,
+        depth_coefficient=1.0,
+        default_size=224,
+        dropout_rate=0.2,
         model_name="efficientnetb0",
         weights=weights,
         input_shape=input_shape,
         pooling=pooling,
         num_classes=num_classes,
         classifier_activation=classifier_activation,
-        **kwargs
+        **kwargs,
     )
-
 
 
 def EfficientNetB1(
@@ -546,24 +542,23 @@ def EfficientNetB1(
     input_shape=(None, None, 3),
     pooling=None,
     classifier_activation="softmax",
-    **kwargs
+    **kwargs,
 ):
     return EfficientNet(
-        include_top,
         include_rescaling,
-        1.0,
-        1.1,
-        240,
-        0.2,
+        include_top,
+        width_coefficient=1.0,
+        depth_coefficient=1.1,
+        default_size=240,
+        dropout_rate=0.2,
         model_name="efficientnetb1",
         weights=weights,
         input_shape=input_shape,
         pooling=pooling,
         num_classes=num_classes,
         classifier_activation=classifier_activation,
-        **kwargs
+        **kwargs,
     )
-
 
 
 def EfficientNetB2(
@@ -574,24 +569,23 @@ def EfficientNetB2(
     input_shape=(None, None, 3),
     pooling=None,
     classifier_activation="softmax",
-    **kwargs
+    **kwargs,
 ):
     return EfficientNet(
-        include_top,
         include_rescaling,
-        1.1,
-        1.2,
-        260,
-        0.3,
+        include_top,
+        width_coefficient=1.1,
+        depth_coefficient=1.2,
+        default_size=260,
+        dropout_rate=0.3,
         model_name="efficientnetb2",
         weights=weights,
         input_shape=input_shape,
         pooling=pooling,
         num_classes=num_classes,
         classifier_activation=classifier_activation,
-        **kwargs
+        **kwargs,
     )
-
 
 
 def EfficientNetB3(
@@ -602,24 +596,23 @@ def EfficientNetB3(
     input_shape=(None, None, 3),
     pooling=None,
     classifier_activation="softmax",
-    **kwargs
+    **kwargs,
 ):
     return EfficientNet(
-        include_top,
         include_rescaling,
-        1.2,
-        1.4,
-        300,
-        0.3,
+        include_top,
+        width_coefficient=1.2,
+        depth_coefficient=1.4,
+        default_size=300,
+        dropout_rate=0.3,
         model_name="efficientnetb3",
         weights=weights,
         input_shape=input_shape,
         pooling=pooling,
         num_classes=num_classes,
         classifier_activation=classifier_activation,
-        **kwargs
+        **kwargs,
     )
-
 
 
 def EfficientNetB4(
@@ -630,24 +623,23 @@ def EfficientNetB4(
     input_shape=(None, None, 3),
     pooling=None,
     classifier_activation="softmax",
-    **kwargs
+    **kwargs,
 ):
     return EfficientNet(
-        include_top,
         include_rescaling,
-        1.4,
-        1.8,
-        380,
-        0.4,
+        include_top,
+        width_coefficient=1.4,
+        depth_coefficient=1.8,
+        default_size=380,
+        dropout_rate=0.4,
         model_name="efficientnetb4",
         weights=weights,
         input_shape=input_shape,
         pooling=pooling,
         num_classes=num_classes,
         classifier_activation=classifier_activation,
-        **kwargs
+        **kwargs,
     )
-
 
 
 def EfficientNetB5(
@@ -658,24 +650,23 @@ def EfficientNetB5(
     input_shape=(None, None, 3),
     pooling=None,
     classifier_activation="softmax",
-    **kwargs
+    **kwargs,
 ):
     return EfficientNet(
-        include_top,
         include_rescaling,
-        1.6,
-        2.2,
-        456,
-        0.4,
+        include_top,
+        width_coefficient=1.6,
+        depth_coefficient=2.2,
+        default_size=456,
+        dropout_rate=0.4,
         model_name="efficientnetb5",
         weights=weights,
         input_shape=input_shape,
         pooling=pooling,
         num_classes=num_classes,
         classifier_activation=classifier_activation,
-        **kwargs
+        **kwargs,
     )
-
 
 
 def EfficientNetB6(
@@ -686,24 +677,23 @@ def EfficientNetB6(
     input_shape=(None, None, 3),
     pooling=None,
     classifier_activation="softmax",
-    **kwargs
+    **kwargs,
 ):
     return EfficientNet(
-        include_top,
         include_rescaling,
-        1.8,
-        2.6,
-        528,
-        0.5,
+        include_top,
+        width_coefficient=1.8,
+        depth_coefficient=2.6,
+        default_size=528,
+        dropout_rate=0.5,
         model_name="efficientnetb6",
         weights=weights,
         input_shape=input_shape,
         pooling=pooling,
         num_classes=num_classes,
         classifier_activation=classifier_activation,
-        **kwargs
+        **kwargs,
     )
-
 
 
 def EfficientNetB7(
@@ -714,22 +704,22 @@ def EfficientNetB7(
     input_shape=(None, None, 3),
     pooling=None,
     classifier_activation="softmax",
-    **kwargs
+    **kwargs,
 ):
     return EfficientNet(
-        include_top,
         include_rescaling,
-        2.0,
-        3.1,
-        600,
-        0.5,
+        include_top,
+        width_coefficient=2.0,
+        depth_coefficient=3.1,
+        default_size=600,
+        dropout_rate=0.5,
         model_name="efficientnetb7",
         weights=weights,
         input_shape=input_shape,
         pooling=pooling,
         num_classes=num_classes,
         classifier_activation=classifier_activation,
-        **kwargs
+        **kwargs,
     )
 
 
