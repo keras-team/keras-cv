@@ -20,12 +20,17 @@ import keras_cv
 
 class RetinaNetTest(tf.test.TestCase, parameterized.TestCase):
     def test_retina_net_construction(self):
-        _ = keras_cv.applications.RetinaNet(
+        retina_net = keras_cv.applications.RetinaNet(
             num_classes=20,
             bounding_box_format="xywh",
             backbone="resnet50",
             backbone_weights=None,
             include_rescaling=True,
+        )
+        retina_net.compile(
+            loss="mse",
+            optimizer="adam",
+            metrics=[keras_cv.metrics.COCOMeanAveragePrecision(class_ids=range(2))],
         )
         # TODO(lukewood): test compile with the FocalLoss class
 

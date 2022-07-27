@@ -25,14 +25,15 @@ from keras_cv.applications.object_detection.retina_net.__internal__ import (
 )
 
 
+# TODO(lukewood): update docstring to include documentation on creating a custom label
+# decoder/etc.
 class RetinaNet(keras.Model):
     """A Keras model implementing the RetinaNet architecture.
 
-    RetinaNet implements the RetinaNet architecture for object detection.  The class
-    requires a number of classes, bounding_box format and a backbone.  Optionally, a
+    Implements the RetinaNet architecture for object detection.  The constructor
+    requires `num_classes`, `bounding_box_format` and a `backbone`.  Optionally, a
     custom label encoder, feature pyramid network, and prediction decoder may all be
-    provided.  Please see {LINK} for an example of how to implement a custom version of
-    each of these components.
+    provided.
 
     Usage:
     ```
@@ -60,9 +61,23 @@ class RetinaNet(keras.Model):
             underlying backbone model will be loaded using the weights provided in this
             argument.  Can be a model checkpoint path, or a string from the supported
             weight sets in the underlying model.
-        label_encoder:
-        feature_pyramid:
-        prediction_decoder:
+        label_encoder: (Optional) a keras.Layer that accepts an image Tensor and a
+            bounding box Tensor to its `call()` method, and returns RetinaNet training
+            targets.  By default, a KerasCV standard LabelEncoder is created and used.
+            Results of this `call()` method are passed to the `loss` object passed into
+            `compile()` as the `y_true` argument.
+        feature_pyramid: (Optional) A `keras.Model` representing a feature pyramid
+            network (FPN).  The feature pyramid network is called on the outputs of the
+            `backbone`.  The keras_cv default backbones return three outputs in a list,
+            but custom backbones may be written and used with custom feature pyramid
+            networks.  If not provided, a default feature pyramid neetwork is produced
+            by the library.  The default feature pyramid network is compatible with all
+            standard keras_cv backbones.
+        prediction_decoder: (Optional)  A `keras.layer` that is responsible for
+            transforming retina_net predictions into usable bounding box Tensors.  If
+            not provided, a default is provided.  The default PredictionDecoder layer
+            operates using an AnchorBox matching algorithm and a NonMaxSuppression
+            operation.
         name: (Optional) name for the model, defaults to RetinaNet.
     """
 
