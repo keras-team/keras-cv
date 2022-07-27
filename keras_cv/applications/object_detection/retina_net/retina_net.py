@@ -46,7 +46,9 @@ class RetinaNet(keras.Model):
     ```
 
     Args:
-        num_classes:
+        num_classes: the number of classes in your dataset excluding the background
+            class.  Classes should be represented by integers in the range
+            [0, num_classes).
         bounding_box_format: The format of bounding boxes of input dataset. Refer
             https://github.com/keras-team/keras-cv/blob/master/keras_cv/bounding_box/converters.py
             for more details on supported bounding box formats.
