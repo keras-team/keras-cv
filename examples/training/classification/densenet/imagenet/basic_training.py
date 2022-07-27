@@ -215,16 +215,16 @@ We can now compile the model and fit it to the training dataset.
 with tf.distribute.MirroredStrategy().scope():
     model = get_model()
 
-    model.compile(
-        optimizer=get_optimizer(),
-        loss=get_loss_fn(),
-        metrics=get_metrics(),
-    )
+model.compile(
+    optimizer=get_optimizer(),
+    loss=get_loss_fn(),
+    metrics=get_metrics(),
+)
 
-    model.fit(
-        train_ds,
-        batch_size=BATCH_SIZE,
-        epochs=EPOCHS,
-        callbacks=get_callbacks(),
-        validation_data=test_ds,
-    )
+model.fit(
+    train_ds,
+    batch_size=BATCH_SIZE,
+    epochs=EPOCHS,
+    callbacks=get_callbacks(),
+    validation_data=test_ds,
+)
