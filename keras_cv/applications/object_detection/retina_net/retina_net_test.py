@@ -81,6 +81,8 @@ class RetinaNetTest(tf.test.TestCase):
             )
 
     # def test_overfits_single_bounding_box(self):
+    #     bounding_box_format = 'xyxy'
+    #
     #     # TODO(lukewood): overfit a single stacked bounding box, make sure the format
     #     # is correct
     #     pass
