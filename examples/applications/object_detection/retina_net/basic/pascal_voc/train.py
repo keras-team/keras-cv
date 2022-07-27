@@ -72,7 +72,7 @@ model.compile(
 
 callbacks = [
     callbacks_lib.TensorBoard(log_dir="logs"),
-    WandbCallback(),
+    WandbCallback(save_model=False),
     callbacks_lib.EarlyStopping(patience=30),
 ]
 
