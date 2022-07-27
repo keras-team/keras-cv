@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import numpy as np
 import tensorflow as tf
 from tensorflow import keras
 
@@ -116,7 +115,7 @@ class RetinaNet(keras.Model):
         )
         self.feature_pyramid = feature_pyramid or layers_lib.FeaturePyramid()
 
-        prior_probability = tf.constant_initializer(-np.log((1 - 0.01) / 0.01))
+        prior_probability = tf.constant_initializer(-tf.math.log((1 - 0.01) / 0.01))
         self.classification_head = layers_lib.PredictionHead(
             output_filters=9 * num_classes, bias_initializer=prior_probability
         )
