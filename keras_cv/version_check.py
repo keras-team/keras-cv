@@ -15,8 +15,6 @@
 """KerasCV Version check."""
 
 
-import warnings
-
 import tensorflow as tf
 from packaging.version import parse
 
@@ -24,13 +22,10 @@ MIN_VERSION = "2.9.0"
 
 
 def check_tf_version():
-    if parse(tf.__version__) < parse(MIN_VERSION):
-        warnings.warn(
-            f"The Tensorflow package version needs to be at least {MIN_VERSION} \n"
-            "for KerasCV to run. Currently, your TensorFlow version is \n"
-            f"{tf.__version__}. Please upgrade with \n"
-            "`$ pip install --upgrade tensorflow`. \n"
-            "You can use `pip freeze` to check afterwards that everything is "
-            "ok.",
-            ImportWarning,
+    if parse(tf.__version__) <= parse(MIN_VERSION):
+        raise RuntimeError(
+            f"The Tensorflow package version needs to be at least {MIN_VERSION} "
+            "for KerasCV to run. Currently, your TensorFlow version is "
+            f"{tf.__version__}. Please upgrade with `$ pip install --upgrade tensorflow`. "
+            "You can use `pip freeze` to check afterwards that everything is ok."
         )
