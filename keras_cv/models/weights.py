@@ -17,8 +17,10 @@ def parse_weights(weights, include_top, model_type):
     if not a or tf.io.gfile.exists(weights):
         return weights
     if weights in WEIGHTS_CONFIG[model_type]:
+        if not include_top:
+            weights = weights + '-notop'
         return data_utils.get_file(
-            f"{BASE_PATH}/{model_type}/{weights}{'' if include_top else '-notop'}.h5",
+            f"{BASE_PATH}/{model_type}/{weights}.h5",
             cache_subdir="models",
             file_hash=WEIGHTS_CONFIG[model_type][weights],
         )
@@ -30,8 +32,12 @@ def parse_weights(weights, include_top, model_type):
 BASE_PATH = "https://storage.googleapis.com/tensorflow/keras-cv/models"
 WEIGHTS_CONFIG = {
     "densenet121": {
-        "imagenet": "todo-some-hash",
-        "imagenet-v0": "todo-some-hash",
+        # Current best weights are imagenet-v0
+        "imagenet": "5c51af007f7f3722b50d9390db4b2082962d5ba1ab5d184c3f531f3886200894",
+        "imagenet-notop": "5c51af007f7f3722b50d9390db4b2082962d5ba1ab5d184c3f531f3886200894",
+        "imagenet-v0": "5c51af007f7f3722b50d9390db4b2082962d5ba1ab5d184c3f531f3886200894",
+        "imagenet-v0-notop": "5c51af007f7f3722b50d9390db4b2082962d5ba1ab5d184c3f531f3886200894",
+
     },
     "densenet169": {},
     "densenet201": {},
