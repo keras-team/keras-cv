@@ -58,15 +58,21 @@ Once the pull request is approved, a team member will take care of merging.
 
 ## Contributing training scripts
 
-The KerasCV team is working to include a catalog of high-performing model training scripts for the models included in KerasCV.models and KerasCV.applications, and is welcoming contributions for these scripts.
+The KerasCV team is working to include a catalog of high-performing model training scripts for the models included in KerasCV.models and KerasCV.applications, and is welcoming contributions for these scripts. These training scripts serve as documentation of good training techniques and will be used to train weights that will be offered in KerasCV models through the package.
 
-See [this example PR](https://github.com/keras-team/keras-cv/pull/618) which added an initial training script for DenseNets on ImageNet. Please follow the pattern of this training script in contributing your own script. New scripts should either:
+The KerasCV team will run submitted training scripts to produce weights for KerasCV, and will attribute strong weights to contributors via a training script ranking system. Stay tuned for the detail of that.
+
+See [this example PR](https://github.com/keras-team/keras-cv/pull/618) which added an initial training script for DenseNets on ImageNet. Please follow the structure of this training script in contributing your own script. New scripts should either:
 - Train a model or application for which we don't have a training script already
 - Include a meaningfully different training approach for a given model (e.g. a specific type of pretraining)
 
-Incremental improvements to training scripts are welcome, provided that they come with evidence of improved validation performance.
+Incremental improvements to existing training scripts are welcome, provided that they come with evidence of improved validation performance.
 
 When contributing training scripts, please include documentation to support decisions about training including hyperparameter choices. Examples of good documentation would be recent literature or a reference to a hyperparameter search.
+
+By default, we will be training weights on ImageNet. Because we cannot distribute this dataset, you will need to modify your dataloading step to load the dataset on your system. You are also welcome to locally train against a different dataset, provided that you include documentation in your PR supporting the idea that your script will still perform well against ImageNet.
+
+We look forward to delivering great pre-trained models in KerasCV with your contributions!
 
 ## Setup environment
 
