@@ -286,9 +286,9 @@ def Stem(name=None):
 
 def XBlock(filters_in, filters_out, group_width, stride=1, name=None):
     """Implementation of X Block.
+    References:
+        - [Designing Network Design Spaces](https://arxiv.org/abs/2003.13678)
 
-    Reference: [Designing Network Design
-    Spaces](https://arxiv.org/abs/2003.13678)
     Args:
       filters_in: filters in the input tensor
       filters_out: filters in the output tensor
@@ -386,9 +386,9 @@ def YBlock(
     name=None,
 ):
     """Implementation of Y Block.
+    References:
+        - [Designing Network Design Spaces](https://arxiv.org/abs/2003.13678)
 
-    Reference: [Designing Network Design
-    Spaces](https://arxiv.org/abs/2003.13678)
     Args:
       filters_in: filters in the input tensor
       filters_out: filters in the output tensor
@@ -489,8 +489,10 @@ def ZBlock(
     bottleneck_ratio=0.25,
     name=None,
 ):
-    """Implementation of Z block Reference: [Fast and Accurate Model
-    Scaling](https://arxiv.org/abs/2103.06877).
+    """Implementation of Z block.
+
+    References:
+        - [Fast and Accurate Model Scaling](https://arxiv.org/abs/2103.06877).
 
     Args:
       filters_in: filters in the input tensor
