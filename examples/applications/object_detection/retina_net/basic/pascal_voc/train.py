@@ -49,7 +49,7 @@ def unpackage_dict(inputs):
 train_ds = train_ds.map(unpackage_dict, num_parallel_calls=tf.data.AUTOTUNE)
 val_ds = val_ds.map(unpackage_dict, num_parallel_calls=tf.data.AUTOTUNE)
 
-optimizer = tf.keras.optimizers.Adam(learning_rate=0.001/2, global_clipnorm=10.0)
+optimizer = tf.keras.optimizers.Adam(learning_rate=0.001 / 2, global_clipnorm=10.0)
 
 # TODO(lukewood): add FocalLoss to KerasCV
 

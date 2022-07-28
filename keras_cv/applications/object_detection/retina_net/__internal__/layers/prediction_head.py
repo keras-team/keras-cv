@@ -34,7 +34,7 @@ def PredictionHead(output_filters, bias_initializer):
                 256,
                 3,
                 padding="same",
-                kernel_initializer=tf.initializers.RandomNormal(0.0, 0.01)
+                kernel_initializer=tf.initializers.RandomNormal(0.0, 0.01),
             )
         )
         head.add(keras.layers.ReLU())

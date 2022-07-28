@@ -14,8 +14,8 @@
 
 import tensorflow as tf
 
-from keras_cv.layers.object_detection.non_max_suppression import NonMaxSuppression
 from keras_cv.applications.object_detection.retina_net.__internal__ import utils
+from keras_cv.layers.object_detection.non_max_suppression import NonMaxSuppression
 
 
 class DecodePredictions(tf.keras.layers.Layer):
