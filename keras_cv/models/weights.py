@@ -29,7 +29,7 @@ def parse_weights(weights, include_top, model_type):
         "Invalid weights parameter. Must be either `None`, a path to local weights, or a supported pre-trained weights name. See weights.py for a list of supported pre-trained weights"
     )
 
-BASE_PATH = "https://storage.googleapis.com/tensorflow/keras-cv/models"
+BASE_PATH = "https://storage.googleapis.com/keras-cv/models"
 WEIGHTS_CONFIG = {
     "densenet121": {
         # Current best weights are imagenet-v0
