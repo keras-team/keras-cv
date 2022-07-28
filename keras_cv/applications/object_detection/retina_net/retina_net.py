@@ -308,8 +308,6 @@ def _resnet50_backbone(include_rescaling, backbone_weights):
     inputs = keras.layers.Input(shape=(None, None, 3))
     x = inputs
 
-    print('backbone_weights', backbone_weights)
-
     if include_rescaling:
         x = keras.applications.resnet.preprocess_input(x)
 
