@@ -15,7 +15,7 @@
 import tensorflow as tf
 
 
-class FocalLoss(tf.losses.Loss):
+class FocalLoss(tf.keras.losses.Loss):
     def __init__(self, num_classes, alpha=0.25, gamma=2.0, delta=1.0, **kwargs):
         super().__init__(**kwargs)
         self.num_classes = num_classes
@@ -53,11 +53,11 @@ class FocalLoss(tf.losses.Loss):
 
         classification_loss = tf.math.reduce_sum(classification_loss, axis=-1)
         box_loss = tf.math.reduce_sum(box_loss, axis=-1)
-        return (classification_loss + box_loss, classification_loss, box_loss)
+        return classification_loss + box_loss
 
 
 # --- Implementing Smooth L1 loss and Focal Loss as keras custom losses ---
-class RetinaNetBoxLoss(tf.losses.Loss):
+class RetinaNetBoxLoss(tf.keras.losses.Loss):
     """Implements Smooth L1 loss"""
 
     def __init__(self, delta, name="RetinaNetBoxLoss", reduction="none", **kwargs):
@@ -76,7 +76,7 @@ class RetinaNetBoxLoss(tf.losses.Loss):
         return tf.reduce_sum(loss, axis=-1)
 
 
-class RetinaNetClassificationLoss(tf.losses.Loss):
+class RetinaNetClassificationLoss(tf.keras.losses.Loss):
     """Implements Focal loss"""
 
     def __init__(
