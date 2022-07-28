@@ -10,6 +10,8 @@
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
+import tensorflow as tf
+
 from keras.utils import data_utils
 
 
@@ -20,13 +22,15 @@ def parse_weights(weights, include_top, model_type):
         if not include_top:
             weights = weights + '-notop'
         return data_utils.get_file(
-            f"{BASE_PATH}/{model_type}/{weights}.h5",
+            origin=f"{BASE_PATH}/{model_type}/{weights}.h5",
             cache_subdir="models",
             file_hash=WEIGHTS_CONFIG[model_type][weights],
         )
 
     raise ValueError(
-        "Invalid weights parameter. Must be either `None`, a path to local weights, or a supported pre-trained weights name. See weights.py for a list of supported pre-trained weights"
+        "The `weights` argument should be either `None`, a the path to the "
+        "weights file to be loaded, or the name of pre-trained weights from "
+        "`weights.py`.  Invalid `weights` argument: {weights}"
     )
 
 BASE_PATH = "https://storage.googleapis.com/keras-cv/models"

@@ -199,12 +199,6 @@ def DenseNet(
     Returns:
       A `keras.Model` instance.
     """
-    if weights and not tf.io.gfile.exists(weights):
-        raise ValueError(
-            "The `weights` argument should be either `None` or the path to the "
-            "weights file to be loaded. Weights file not found at location: {weights}"
-        )
-
     if include_top and not num_classes:
         raise ValueError(
             "If `include_top` is True, you should specify `num_classes`. "
