@@ -12,9 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import numpy as np
 import tensorflow as tf
 from tensorflow import keras
-import numpy as np
 
 from keras_cv import bounding_box
 from keras_cv import models

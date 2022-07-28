@@ -12,13 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import sys
+
 import tensorflow as tf
 import wandb
+from absl import flags
 from loader import load_pascal_voc
 from loss import FocalLoss
 from tensorflow.keras import callbacks as callbacks_lib
 from wandb.keras import WandbCallback
-from absl import flags
 
 import keras_cv
 
@@ -83,7 +84,9 @@ callbacks = [
 ]
 
 if FLAGS.wandb:
-    callbacks += [WandbCallback(save_model=False),]
+    callbacks += [
+        WandbCallback(save_model=False),
+    ]
 
 model.fit(
     train_ds,

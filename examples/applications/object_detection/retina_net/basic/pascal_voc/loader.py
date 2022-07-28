@@ -22,7 +22,9 @@ from keras_cv import bounding_box
 def unpackage_pascalvoc(format, img_size):
     """mapping function to create batched image and bbox coordinates"""
 
-    resizing = keras.layers.Resizing(height=img_size[0], width=img_size[1], crop_to_aspect_ratio=False)
+    resizing = keras.layers.Resizing(
+        height=img_size[0], width=img_size[1], crop_to_aspect_ratio=False
+    )
 
     def apply(inputs):
         inputs["image"] = resizing(inputs["image"])
@@ -43,12 +45,15 @@ def unpackage_pascalvoc(format, img_size):
     return apply
 
 
-def load_pascal_voc(split, bounding_box_format, batch_size, shuffle=True, img_size=(512, 512)):
+def load_pascal_voc(
+    split, bounding_box_format, batch_size, shuffle=True, img_size=(512, 512)
+):
     dataset, dataset_info = tfds.load(
         "voc/2007", split=split, shuffle_files=shuffle, with_info=True
     )
     dataset = dataset.map(
-        unpackage_pascalvoc(format=bounding_box_format, img_size=img_size), num_parallel_calls=tf.data.AUTOTUNE
+        unpackage_pascalvoc(format=bounding_box_format, img_size=img_size),
+        num_parallel_calls=tf.data.AUTOTUNE,
     )
     dataset = dataset.apply(
         tf.data.experimental.dense_to_ragged_batch(batch_size=batch_size)
@@ -57,7 +62,7 @@ def load_pascal_voc(split, bounding_box_format, batch_size, shuffle=True, img_si
 
 
 def main():
-    batch_size=9
+    batch_size = 9
     dataset, ds_info = load_pascal_voc(
         split="train", bounding_box_format="rel_yxyx", batch_size=batch_size
     )
