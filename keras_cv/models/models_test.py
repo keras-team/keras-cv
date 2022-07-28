@@ -33,8 +33,6 @@ MODEL_LIST = [
     (densenet.DenseNet121, 1024, {}),
     (densenet.DenseNet169, 1664, {}),
     (densenet.DenseNet201, 1920, {}),
-    (densenet.DenseNet169, 1664, {}),
-    (densenet.DenseNet201, 1920, {}),
     (regnet.RegNetX002, 368, {}),
     (regnet.RegNetX004, 384, {}),
     (regnet.RegNetX006, 528, {}),
