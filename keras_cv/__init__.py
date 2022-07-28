@@ -13,6 +13,7 @@
 # limitations under the License.
 
 from keras_cv import layers
+from keras_cv import losses
 from keras_cv import metrics
 from keras_cv import models
 from keras_cv import utils
