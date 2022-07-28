@@ -34,10 +34,10 @@ if FLAGS.wandb:
 # train_ds is batched as a (images, bounding_boxes) tuple
 # bounding_boxes are ragged
 train_ds, train_dataset_info = load_pascal_voc(
-    bounding_box_format="xywh", split="train", batch_size=64
+    bounding_box_format="xywh", split="train", batch_size=16
 )
 val_ds, val_dataset_info = load_pascal_voc(
-    bounding_box_format="xywh", split="validation", batch_size=64
+    bounding_box_format="xywh", split="validation", batch_size=16
 )
 
 
