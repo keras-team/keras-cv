@@ -19,7 +19,7 @@ from tensorflow import keras
 from keras_cv import bounding_box
 
 
-def unpackage_pascalvoc(format, img_size):
+def unpackage_pascalvoc(bounding_box_format, img_size):
     """mapping function to create batched image and bbox coordinates"""
 
     resizing = keras.layers.Resizing(
@@ -32,7 +32,7 @@ def unpackage_pascalvoc(format, img_size):
             inputs["objects"]["bbox"],
             images=inputs["image"],
             source="rel_yxyx",
-            target=format,
+            target=bounding_box_format,
         )
 
         bounding_boxes = inputs["objects"]["bbox"]
@@ -51,7 +51,7 @@ def load_pascal_voc(
         "voc/2007", split=split, shuffle_files=shuffle, with_info=True
     )
     dataset = dataset.map(
-        unpackage_pascalvoc(format=bounding_box_format, img_size=img_size),
+        unpackage_pascalvoc(bounding_box_format=bounding_box_format, img_size=img_size),
         num_parallel_calls=tf.data.AUTOTUNE,
     )
     dataset = dataset.apply(
