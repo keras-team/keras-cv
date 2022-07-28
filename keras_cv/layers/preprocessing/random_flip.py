@@ -69,6 +69,7 @@ class RandomFlip(BaseImageAugmentationLayer):
     ):
         super().__init__(seed=seed, force_generator=True, **kwargs)
         self.mode = mode
+        self.seed = seed
         if mode == HORIZONTAL:
             self.horizontal = True
             self.vertical = False
@@ -172,6 +173,7 @@ class RandomFlip(BaseImageAugmentationLayer):
     def get_config(self):
         config = {
             "mode": self.mode,
+            "seed": self.seed,
         }
         base_config = super().get_config()
         return dict(list(base_config.items()) + list(config.items()))
