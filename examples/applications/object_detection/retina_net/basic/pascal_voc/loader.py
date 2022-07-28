@@ -54,9 +54,11 @@ def load_pascal_voc(
         unpackage_pascalvoc(bounding_box_format=bounding_box_format, img_size=img_size),
         num_parallel_calls=tf.data.AUTOTUNE,
     )
+    dataset = dataset.shuffle(100)
     dataset = dataset.apply(
         tf.data.experimental.dense_to_ragged_batch(batch_size=batch_size)
     )
+    dataset = dataset.prefetch(tf.data.AUTOTUNE)
     return dataset, dataset_info
 
 
