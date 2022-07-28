@@ -14,18 +14,19 @@
 import matplotlib.pyplot as plt
 import tensorflow as tf
 import tensorflow_datasets as tfds
+from tensorflow import keras
 
 from keras_cv import bounding_box
 
-IMG_SIZE = (256, 256)
-BATCH_SIZE = 9
 
-
-def unpackage(format):
+def unpackage(format, img_size):
     """mapping function to create batched image and bbox coordinates"""
 
+    resizing = keras.layers.Resizing(height=img_size[0], width=img_size[1], crop_to_aspect_ratio=False)
+
     def apply(inputs):
-        inputs["image"] = tf.image.resize(inputs["image"], IMG_SIZE)
+        inputs["image"] = resizing(inputs["image"])
+        print(inputs["image"].shape)
         inputs["objects"]["bbox"] = bounding_box.convert_format(
             inputs["objects"]["bbox"],
             images=inputs["image"],
@@ -42,12 +43,12 @@ def unpackage(format):
     return apply
 
 
-def load_pascal_voc(split, bounding_box_format, batch_size):
+def load_pascal_voc(split, bounding_box_format, batch_size, shuffle=True, img_size=(500, 500)):
     dataset, dataset_info = tfds.load(
-        "voc/2007", split=split, shuffle_files=True, with_info=True
+        "voc/2007", split=split, shuffle_files=shuffle, with_info=True
     )
     dataset = dataset.map(
-        unpackage(format=bounding_box_format), num_parallel_calls=tf.data.AUTOTUNE
+        unpackage(format=bounding_box_format, img_size=img_size), num_parallel_calls=tf.data.AUTOTUNE
     )
     dataset = dataset.apply(
         tf.data.experimental.dense_to_ragged_batch(batch_size=batch_size)
@@ -56,20 +57,22 @@ def load_pascal_voc(split, bounding_box_format, batch_size):
 
 
 def main():
-    dataset = load_pascal_voc(
-        split="train", bounding_box_format="rel_yxyx", batch_size=9
+    batch_size=9
+    dataset, ds_info = load_pascal_voc(
+        split="train", bounding_box_format="rel_yxyx", batch_size=batch_size
     )
 
     for example in dataset.take(1):
         images, boxes = example["images"], example["bounding_boxes"]
         boxes = boxes.to_tensor(default_value=-1)
+        print(boxes)
         color = tf.constant(((255.0, 0, 0),))
         plotted_images = tf.image.draw_bounding_boxes(
             images, boxes[..., :4], color, name=None
         )
         plt.figure(figsize=(10, 10))
-        for i in range(BATCH_SIZE):
-            plt.subplot(BATCH_SIZE // 3, BATCH_SIZE // 3, i + 1)
+        for i in range(batch_size):
+            plt.subplot(batch_size // 3, batch_size // 3, i + 1)
             plt.imshow(plotted_images[i].numpy().astype("uint8"))
             plt.axis("off")
         plt.show()

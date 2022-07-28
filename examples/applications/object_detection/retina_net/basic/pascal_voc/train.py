@@ -11,17 +11,24 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
+import sys
 import tensorflow as tf
 import wandb
 from loader import load_pascal_voc
 from loss import FocalLoss
 from tensorflow.keras import callbacks as callbacks_lib
 from wandb.keras import WandbCallback
+from absl import flags
 
 import keras_cv
 
-wandb.init(project="pascalvoc-retinanet", entity="keras-team-testing")
+flags.DEFINE_boolean("wandb", False, "Whether or not to use wandb.")
+
+FLAGS = flags.FLAGS
+FLAGS(sys.argv)
+
+if FLAGS.wandb:
+    wandb.init(project="pascalvoc-retinanet", entity="keras-team-testing")
 
 # train_ds is batched as a (images, bounding_boxes) tuple
 # bounding_boxes are ragged
@@ -72,9 +79,11 @@ model.compile(
 
 callbacks = [
     callbacks_lib.TensorBoard(log_dir="logs"),
-    WandbCallback(save_model=False),
     callbacks_lib.EarlyStopping(patience=30),
 ]
+
+if FLAGS.wandb:
+    callbacks += [WandbCallback(save_model=False),]
 
 model.fit(
     train_ds,

@@ -12,11 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import numpy as np
 import tensorflow as tf
 from tensorflow import keras
+import numpy as np
 
 from keras_cv import bounding_box
+from keras_cv import models
 from keras_cv.applications.object_detection.retina_net.__internal__ import (
     layers as layers_lib,
 )
@@ -141,7 +142,7 @@ class RetinaNet(keras.Model):
         if not all_have_format:
             raise ValueError(
                 "All metrics passed to RetinaNet.compile() must have "
-                "a `bounding_box_format` attribute."
+                f"a `bounding_box_format` attribute.  Received metrics={metrics}"
             )
 
         if len(metrics) != 0:
@@ -159,7 +160,8 @@ class RetinaNet(keras.Model):
             raise ValueError(
                 "All metrics passed to RetinaNet.compile() must have "
                 "the same `bounding_box_format` attribute.  For example, if one metric "
-                "uses 'xyxy', all other metrics must use 'xyxy'"
+                "uses 'xyxy', all other metrics must use 'xyxy'.  Received "
+                f"metrics={metrics}"
             )
 
     def call(self, x, training=False):
@@ -294,7 +296,7 @@ def _parse_backbone(backbone, include_rescaling, backbone_weights):
             f"include_rescaling={include_rescaling}, and "
             f"backbone_weights={backbone_weights}."
         )
-    if not callable(backbone):
+    if not isinstance(backbone, keras.Model):
         raise ValueError(
             "Custom backbones should be subclasses of a keras.Model. "
             f"Received backbone={backbone}."
@@ -302,10 +304,11 @@ def _parse_backbone(backbone, include_rescaling, backbone_weights):
     return backbone
 
 
-# --- Building the ResNet50 backbone ---
 def _resnet50_backbone(include_rescaling, backbone_weights):
     inputs = keras.layers.Input(shape=(None, None, 3))
     x = inputs
+
+    print('backbone_weights', backbone_weights)
 
     if include_rescaling:
         x = keras.applications.resnet.preprocess_input(x)
