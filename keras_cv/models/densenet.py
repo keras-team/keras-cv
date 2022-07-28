@@ -19,11 +19,11 @@ Reference:
   - [Based on the Original keras.applications DenseNet](https://github.com/keras-team/keras/blob/master/keras/applications/densenet.py)
 """
 
-import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras import backend
 from tensorflow.keras import layers
-from weights import parse_weights
+
+from keras_cv.models.weights import parse_weights
 
 BN_AXIS = 3
 
