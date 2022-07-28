@@ -10,7 +10,7 @@ Before making any changes, we recommend opening an issue (if one doesn't already
 exist) and discussing your proposed changes. This way, we can give you feedback
 and validate the proposed changes.
 
-If your code change involves the fixing of a bug, please include a 
+If your code change involves the fixing of a bug, please include a
 [Colab](https://colab.research.google.com/) notebook that shows
 how to reproduce the broken behavior.
 
@@ -23,7 +23,7 @@ To make code changes, you need to fork the repository. You will need to setup a
 development environment and run the unit tests. This is covered in section
 "Setup environment".
 
-If your code change involves introducing a new API change, please see our 
+If your code change involves introducing a new API change, please see our
 [API Design Guidelines](API_DESIGN.md).
 
 **Notes**
@@ -37,7 +37,7 @@ the master branch in [keras-team/keras-cv](https://github.com/keras-team/keras-c
 
 ### Step 4. Sign the Contributor License Agreement
 
-After creating the pull request, you will need to sign the Google CLA agreement. 
+After creating the pull request, you will need to sign the Google CLA agreement.
 The agreement can be found at [https://cla.developers.google.com/clas](https://cla.developers.google.com/clas).
 
 
@@ -55,6 +55,18 @@ approved by the reviewer.
 ### Step 6. Merging
 
 Once the pull request is approved, a team member will take care of merging.
+
+## Contributing training scripts
+
+The KerasCV team is working to include a catalog of high-performing model training scripts for the models included in KerasCV.models and KerasCV.applications, and is welcoming contributions for these scripts.
+
+See [this example PR](https://github.com/keras-team/keras-cv/pull/618) which added an initial training script for DenseNets on ImageNet. Please follow the pattern of this training script in contributing your own script. New scripts should either:
+- Train a model or application for which we don't have a training script already
+- Include a meaningfully different training approach for a given model (e.g. a specific type of pretraining)
+
+Incremental improvements to training scripts are welcome, provided that they come with evidence of improved validation performance.
+
+When contributing training scripts, please include documentation to support decisions about training including hyperparameter choices. Examples of good documentation would be recent literature or a reference to a hyperparameter search.
 
 ## Setup environment
 
@@ -109,7 +121,7 @@ the following commands manually every time you want to format your code:
 - Run `shell/lint.sh` to check the result.
 
 If after running these the CI flow is still failing, try updating `flake8`, `isort` and `black`.
-This can be done by running `pip install --upgrade black`, `pip install --upgrade flake8`, and 
+This can be done by running `pip install --upgrade black`, `pip install --upgrade flake8`, and
 `pip install --upgrade isort`.
 
 Note: The linting checks could be automated activating  
@@ -118,4 +130,3 @@ Note: The linting checks could be automated activating
 ## Community Guidelines
 
 This project follows [Google's Open Source Community Guidelines](https://opensource.google/conduct/).
-
