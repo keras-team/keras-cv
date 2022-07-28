@@ -14,7 +14,7 @@ from keras.utils import data_utils
 
 
 def parse_weights(weights, include_top, model_type):
-    if not a or tf.io.gfile.exists(weights):
+    if not weights or tf.io.gfile.exists(weights):
         return weights
     if weights in WEIGHTS_CONFIG[model_type]:
         if not include_top:
