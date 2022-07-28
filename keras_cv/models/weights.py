@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 import tensorflow as tf
-
 from keras.utils import data_utils
 
 
@@ -33,6 +32,7 @@ def parse_weights(weights, include_top, model_type):
         "`weights.py`.  Invalid `weights` argument: {weights}"
     )
 
+
 BASE_PATH = "https://storage.googleapis.com/keras-cv/models"
 WEIGHTS_CONFIG = {
     "densenet121": {
@@ -41,7 +41,6 @@ WEIGHTS_CONFIG = {
         "imagenet-notop": "ae7f98aff700fca5b28877e8a80750c465e0162a4098898c06d2b6c4b9e109c3",
         "imagenet-v0": "5c51af007f7f3722b50d9390db4b2082962d5ba1ab5d184c3f531f3886200894",
         "imagenet-v0-notop": "ae7f98aff700fca5b28877e8a80750c465e0162a4098898c06d2b6c4b9e109c3",
-
     },
     "densenet169": {},
     "densenet201": {},
