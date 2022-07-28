@@ -28,7 +28,6 @@ def unpackage_pascalvoc(format, img_size):
 
     def apply(inputs):
         inputs["image"] = resizing(inputs["image"])
-        print(inputs["image"].shape)
         inputs["objects"]["bbox"] = bounding_box.convert_format(
             inputs["objects"]["bbox"],
             images=inputs["image"],
