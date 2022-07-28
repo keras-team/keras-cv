@@ -24,6 +24,7 @@ from wandb.keras import WandbCallback
 import keras_cv
 
 flags.DEFINE_boolean("wandb", False, "Whether or not to use wandb.")
+flags.DEFINE_integer("batch_size", 8, "Training and eval batch size.")
 
 FLAGS = flags.FLAGS
 FLAGS(sys.argv)
@@ -34,10 +35,10 @@ if FLAGS.wandb:
 # train_ds is batched as a (images, bounding_boxes) tuple
 # bounding_boxes are ragged
 train_ds, train_dataset_info = load_pascal_voc(
-    bounding_box_format="xywh", split="train", batch_size=16
+    bounding_box_format="xywh", split="train", batch_size=FLAGS.batch_size
 )
 val_ds, val_dataset_info = load_pascal_voc(
-    bounding_box_format="xywh", split="validation", batch_size=16
+    bounding_box_format="xywh", split="validation", batch_size=FLAGS.batch_size
 )
 
 
