@@ -34,21 +34,21 @@ if FLAGS.wandb:
 # train_ds is batched as a (images, bounding_boxes) tuple
 # bounding_boxes are ragged
 train_ds, train_dataset_info = load_pascal_voc(
-    bounding_box_format="xywh", split="train", batch_size=2
+    bounding_box_format="xywh", split="train", batch_size=64
 )
 val_ds, val_dataset_info = load_pascal_voc(
-    bounding_box_format="xywh", split="validation", batch_size=2
+    bounding_box_format="xywh", split="validation", batch_size=64
 )
 
 
 def unpackage_dict(inputs):
-    return inputs["images"] / 255.0, inputs["bounding_boxes"]
+    return inputs["images"], inputs["bounding_boxes"]
 
 
 train_ds = train_ds.map(unpackage_dict, num_parallel_calls=tf.data.AUTOTUNE)
 val_ds = val_ds.map(unpackage_dict, num_parallel_calls=tf.data.AUTOTUNE)
 
-optimizer = tf.keras.optimizers.Adam(global_clipnorm=10.0)
+optimizer = tf.keras.optimizers.Adam(learning_rate=0.001/2, global_clipnorm=10.0)
 
 # TODO(lukewood): add FocalLoss to KerasCV
 
