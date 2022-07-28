@@ -62,6 +62,8 @@ The KerasCV team is working to include a catalog of high-performing model traini
 
 The KerasCV team will run submitted training scripts to produce weights for KerasCV, and will attribute strong weights to contributors via a training script ranking system. Stay tuned for the detail of that.
 
+To contribute a script, start by opening an issue and tagging @ianjjohnson and @LukeWood to discuss the model and dataset for which you'd like to add a script. Once they've taken a look, you can prepare a PR to introduce the new training script.
+
 See [this example PR](https://github.com/keras-team/keras-cv/pull/618) which added an initial training script for DenseNets on ImageNet. Please follow the structure of this training script in contributing your own script. New scripts should either:
 - Train a model or application for which we don't have a training script already
 - Include a meaningfully different training approach for a given model (e.g. a specific type of pretraining)
