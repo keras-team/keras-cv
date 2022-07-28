@@ -23,6 +23,7 @@ import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras import backend
 from tensorflow.keras import layers
+from weights import parse_weights
 
 BN_AXIS = 3
 
@@ -44,8 +45,8 @@ BASE_DOCSTRING = """Instantiates the {name} architecture.
         num_classes: optional number of classes to classify images into, only to be
             specified if `include_top` is True, and if no `weights` argument is
             specified.
-        weights: one of `None` (random initialization), or a pretrained weight file
-            path.
+        weights: one of `None` (random initialization), a pretrained weight file
+            path, or a reference to pre-trained weights (e.g. 'imagenet') (see available pre-trained weights in weights.py)
         input_shape: optional shape tuple, defaults to (None, None, 3).
         pooling: optional pooling mode for feature extraction
             when `include_top` is `False`.
@@ -266,7 +267,7 @@ def DenseNet121(
         include_rescaling=include_rescaling,
         include_top=include_top,
         num_classes=num_classes,
-        weights=weights,
+        weights=parse_weights(weights, include_top, "densenet121"),
         input_shape=input_shape,
         pooling=pooling,
         name=name,
@@ -289,7 +290,7 @@ def DenseNet169(
         include_rescaling=include_rescaling,
         include_top=include_top,
         num_classes=num_classes,
-        weights=weights,
+        weights=parse_weights(weights, include_top, "densenet169"),
         input_shape=input_shape,
         pooling=pooling,
         name=name,
@@ -312,7 +313,7 @@ def DenseNet201(
         include_rescaling=include_rescaling,
         include_top=include_top,
         num_classes=num_classes,
-        weights=weights,
+        weights=parse_weights(weights, include_top, "densenet201"),
         input_shape=input_shape,
         pooling=pooling,
         name=name,
