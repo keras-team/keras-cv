@@ -17,7 +17,7 @@ import tensorflow.keras.backend as K
 
 
 @tf.keras.utils.register_keras_serializable(package="keras_cv")
-class FocalLoss(tf.losses.Loss):
+class FocalLoss(tf.keras.losses.Loss):
     """Implements Focal loss
 
     Focal loss is a modified cross-entropy designed to perform better with
@@ -39,18 +39,18 @@ class FocalLoss(tf.losses.Loss):
             `0.9 + 0.1 / num_classes` for target labels. Default to `0.0`.
 
     References:
-        [Focal Loss paper](https://arxiv.org/abs/1708.02002)
+        - [Focal Loss paper](https://arxiv.org/abs/1708.02002)
 
     Standalone usage:
     ```python
-        y_true = tf.random.uniform([10], 0, maxval=4)
-        y_pred = tf.random.uniform([10], 0, maxval=4)
-        loss = FocalLoss()
-        loss(y_true, y_pred).numpy()
+    y_true = tf.random.uniform([10], 0, maxval=4)
+    y_pred = tf.random.uniform([10], 0, maxval=4)
+    loss = FocalLoss()
+    loss(y_true, y_pred).numpy()
     ```
     Usage with the `compile()` API:
     ```python
-        model.compile(optimizer='adam', loss=keras_cv.losses.FocalLoss())
+    model.compile(optimizer='adam', loss=keras_cv.losses.FocalLoss())
     ```
     """
 
@@ -60,7 +60,7 @@ class FocalLoss(tf.losses.Loss):
         gamma=2,
         from_logits=False,
         label_smoothing=0,
-        reduction="none",
+        reduction="auto",
         name="FocalLoss",
     ):
         super().__init__(reduction=reduction, name=name)
@@ -80,9 +80,7 @@ class FocalLoss(tf.losses.Loss):
         y_true = tf.cast(y_true, y_pred.dtype)
 
         if self.from_logits:
-            probs = tf.nn.sigmoid(y_pred)
-        else:
-            probs = y_pred
+            y_pred = tf.nn.sigmoid(y_pred)
 
         if self.label_smoothing:
             y_true = self._smooth_labels(y_true, y_pred)
@@ -92,9 +90,10 @@ class FocalLoss(tf.losses.Loss):
         )
 
         alpha = tf.where(tf.equal(y_true, 1.0), self._alpha, (1.0 - self._alpha))
-        pt = tf.where(tf.equal(y_true, 1.0), probs, 1.0 - probs)
+        pt = y_true * y_pred + (1.0 - y_true) * (1.0 - y_pred)
         loss = alpha * tf.pow(1.0 - pt, self._gamma) * cross_entropy
-        return tf.reduce_sum(loss, axis=-1)
+
+        return tf.reduce_mean(loss, axis=-1)
 
     def get_config(self):
         config = super().get_config()
