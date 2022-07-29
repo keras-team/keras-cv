@@ -795,11 +795,11 @@ def RegNet(
 def RegNetX002(
     include_rescaling,
     include_top,
-    model_name="regnetx002",
+    num_classes=None,
     weights=None,
     input_shape=(None, None, 3),
     pooling=None,
-    num_classes=None,
+    model_name="regnetx002",
     classifier_activation="softmax",
     **kwargs,
 ):
@@ -823,11 +823,11 @@ def RegNetX002(
 def RegNetX004(
     include_rescaling,
     include_top,
-    model_name="regnetx004",
+    num_classes=None,
     weights=None,
     input_shape=(None, None, 3),
     pooling=None,
-    num_classes=None,
+    model_name="regnetx004",
     classifier_activation="softmax",
     **kwargs,
 ):
@@ -851,11 +851,11 @@ def RegNetX004(
 def RegNetX006(
     include_rescaling,
     include_top,
-    model_name="regnetx006",
+    num_classes=None,
     weights=None,
     input_shape=(None, None, 3),
     pooling=None,
-    num_classes=None,
+    model_name="regnetx006",
     classifier_activation="softmax",
     **kwargs,
 ):
@@ -879,11 +879,11 @@ def RegNetX006(
 def RegNetX008(
     include_rescaling,
     include_top,
-    model_name="regnetx008",
+    num_classes=None,
     weights=None,
     input_shape=(None, None, 3),
     pooling=None,
-    num_classes=None,
+    model_name="regnetx008",
     classifier_activation="softmax",
     **kwargs,
 ):
@@ -907,11 +907,11 @@ def RegNetX008(
 def RegNetX016(
     include_rescaling,
     include_top,
-    model_name="regnetx016",
+    num_classes=None,
     weights=None,
     input_shape=(None, None, 3),
     pooling=None,
-    num_classes=None,
+    model_name="regnetx016",
     classifier_activation="softmax",
     **kwargs,
 ):
@@ -935,11 +935,11 @@ def RegNetX016(
 def RegNetX032(
     include_rescaling,
     include_top,
-    model_name="regnetx032",
+    num_classes=None,
     weights=None,
     input_shape=(None, None, 3),
     pooling=None,
-    num_classes=None,
+    model_name="regnetx032",
     classifier_activation="softmax",
     **kwargs,
 ):
@@ -963,11 +963,11 @@ def RegNetX032(
 def RegNetX040(
     include_rescaling,
     include_top,
-    model_name="regnetx040",
+    num_classes=None,
     weights=None,
     input_shape=(None, None, 3),
     pooling=None,
-    num_classes=None,
+    model_name="regnetx040",
     classifier_activation="softmax",
     **kwargs,
 ):
@@ -991,11 +991,11 @@ def RegNetX040(
 def RegNetX064(
     include_rescaling,
     include_top,
-    model_name="regnetx064",
+    num_classes=None,
     weights=None,
     input_shape=(None, None, 3),
     pooling=None,
-    num_classes=None,
+    model_name="regnetx064",
     classifier_activation="softmax",
     **kwargs,
 ):
@@ -1019,11 +1019,11 @@ def RegNetX064(
 def RegNetX080(
     include_rescaling,
     include_top,
-    model_name="regnetx080",
+    num_classes=None,
     weights=None,
     input_shape=(None, None, 3),
     pooling=None,
-    num_classes=None,
+    model_name="regnetx080",
     classifier_activation="softmax",
     **kwargs,
 ):
@@ -1047,11 +1047,11 @@ def RegNetX080(
 def RegNetX120(
     include_rescaling,
     include_top,
-    model_name="regnetx120",
+    num_classes=None,
     weights=None,
     input_shape=(None, None, 3),
     pooling=None,
-    num_classes=None,
+    model_name="regnetx120",
     classifier_activation="softmax",
     **kwargs,
 ):
@@ -1075,11 +1075,11 @@ def RegNetX120(
 def RegNetX160(
     include_rescaling,
     include_top,
-    model_name="regnetx160",
+    num_classes=None,
     weights=None,
     input_shape=(None, None, 3),
     pooling=None,
-    num_classes=None,
+    model_name="regnetx160",
     classifier_activation="softmax",
     **kwargs,
 ):
@@ -1103,11 +1103,11 @@ def RegNetX160(
 def RegNetX320(
     include_rescaling,
     include_top,
-    model_name="regnetx320",
+    num_classes=None,
     weights=None,
     input_shape=(None, None, 3),
     pooling=None,
-    num_classes=None,
+    model_name="regnetx320",
     classifier_activation="softmax",
     **kwargs,
 ):
@@ -1131,11 +1131,11 @@ def RegNetX320(
 def RegNetY002(
     include_rescaling,
     include_top,
-    model_name="regnety002",
+    num_classes=None,
     weights=None,
     input_shape=(None, None, 3),
     pooling=None,
-    num_classes=None,
+    model_name="regnety002",
     classifier_activation="softmax",
     **kwargs,
 ):
@@ -1159,11 +1159,11 @@ def RegNetY002(
 def RegNetY004(
     include_rescaling,
     include_top,
-    model_name="regnety004",
+    num_classes=None,
     weights=None,
     input_shape=(None, None, 3),
     pooling=None,
-    num_classes=None,
+    model_name="regnety004",
     classifier_activation="softmax",
     **kwargs,
 ):
@@ -1187,11 +1187,11 @@ def RegNetY004(
 def RegNetY006(
     include_rescaling,
     include_top,
-    model_name="regnety006",
+    num_classes=None,
     weights=None,
     input_shape=(None, None, 3),
     pooling=None,
-    num_classes=None,
+    model_name="regnety006",
     classifier_activation="softmax",
     **kwargs,
 ):
@@ -1215,11 +1215,11 @@ def RegNetY006(
 def RegNetY008(
     include_rescaling,
     include_top,
-    model_name="regnety008",
+    num_classes=None,
     weights=None,
     input_shape=(None, None, 3),
     pooling=None,
-    num_classes=None,
+    model_name="regnety008",
     classifier_activation="softmax",
     **kwargs,
 ):
@@ -1243,11 +1243,11 @@ def RegNetY008(
 def RegNetY016(
     include_rescaling,
     include_top,
-    model_name="regnety016",
+    num_classes=None,
     weights=None,
     input_shape=(None, None, 3),
     pooling=None,
-    num_classes=None,
+    model_name="regnety016",
     classifier_activation="softmax",
     **kwargs,
 ):
@@ -1271,11 +1271,11 @@ def RegNetY016(
 def RegNetY032(
     include_rescaling,
     include_top,
-    model_name="regnety032",
+    num_classes=None,
     weights=None,
     input_shape=(None, None, 3),
     pooling=None,
-    num_classes=None,
+    model_name="regnety032",
     classifier_activation="softmax",
     **kwargs,
 ):
@@ -1299,11 +1299,11 @@ def RegNetY032(
 def RegNetY040(
     include_rescaling,
     include_top,
-    model_name="regnety040",
+    num_classes=None,
     weights=None,
     input_shape=(None, None, 3),
     pooling=None,
-    num_classes=None,
+    model_name="regnety040",
     classifier_activation="softmax",
     **kwargs,
 ):
@@ -1327,11 +1327,11 @@ def RegNetY040(
 def RegNetY064(
     include_rescaling,
     include_top,
-    model_name="regnety064",
+    num_classes=None,
     weights=None,
     input_shape=(None, None, 3),
     pooling=None,
-    num_classes=None,
+    model_name="regnety064",
     classifier_activation="softmax",
     **kwargs,
 ):
@@ -1355,11 +1355,11 @@ def RegNetY064(
 def RegNetY080(
     include_rescaling,
     include_top,
-    model_name="regnety080",
+    num_classes=None,
     weights=None,
     input_shape=(None, None, 3),
     pooling=None,
-    num_classes=None,
+    model_name="regnety080",
     classifier_activation="softmax",
     **kwargs,
 ):
@@ -1383,11 +1383,11 @@ def RegNetY080(
 def RegNetY120(
     include_rescaling,
     include_top,
-    model_name="regnety120",
+    num_classes=None,
     weights=None,
     input_shape=(None, None, 3),
     pooling=None,
-    num_classes=None,
+    model_name="regnety120",
     classifier_activation="softmax",
     **kwargs,
 ):
@@ -1411,11 +1411,11 @@ def RegNetY120(
 def RegNetY160(
     include_rescaling,
     include_top,
-    model_name="regnety160",
+    num_classes=None,
     weights=None,
     input_shape=(None, None, 3),
     pooling=None,
-    num_classes=None,
+    model_name="regnety160",
     classifier_activation="softmax",
     **kwargs,
 ):
@@ -1439,11 +1439,11 @@ def RegNetY160(
 def RegNetY320(
     include_rescaling,
     include_top,
-    model_name="regnety320",
+    num_classes=None,
     weights=None,
     input_shape=(None, None, 3),
     pooling=None,
-    num_classes=None,
+    model_name="regnety320",
     classifier_activation="softmax",
     **kwargs,
 ):
