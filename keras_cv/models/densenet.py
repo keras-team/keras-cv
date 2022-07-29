@@ -46,7 +46,7 @@ BASE_DOCSTRING = """Instantiates the {name} architecture.
             specified if `include_top` is True, and if no `weights` argument is
             specified.
         weights: one of `None` (random initialization), a pretrained weight file
-            path, or a reference to pre-trained weights (e.g. 'imagenet') (see available pre-trained weights in weights.py)
+            path, or a reference to pre-trained weights (e.g. 'imagenet/classification') (see available pre-trained weights in weights.py)
         input_shape: optional shape tuple, defaults to (None, None, 3).
         pooling: optional pooling mode for feature extraction
             when `include_top` is `False`.
