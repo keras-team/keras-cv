@@ -78,4 +78,4 @@ class DecodePredictions(tf.keras.layers.Layer):
 
         boxes = tf.concat([boxes, cls_predictions], axis=-1)
 
-        return self.non_max_suppression(boxes)
+        return self.non_max_suppression(boxes, images=images)
