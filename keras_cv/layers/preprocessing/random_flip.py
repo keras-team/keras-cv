@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import numpy as np
 import tensorflow as tf
 
 from keras_cv import bounding_box
@@ -104,9 +103,14 @@ class RandomFlip(BaseImageAugmentationLayer):
         flip_horizontal = False
         flip_vertical = False
         if self.horizontal:
-            flip_horizontal = np.random.choice([True, False])
+            flip_horizontal = (
+                True
+                if (tf.random.uniform(shape=[], minval=0, maxval=1) > 0.5)
+                else False
+            )
         if self.vertical:
-            flip_vertical = np.random.choice([True, False])
+            a = tf.random.uniform(shape=[], minval=0, maxval=1)
+            flip_vertical = True if a > 0.5 else False
         return {
             "flip_horizontal": flip_horizontal,
             "flip_vertical": flip_vertical,

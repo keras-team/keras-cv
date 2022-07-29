@@ -11,10 +11,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""
-   random_flip_demo.py shows how to use the RandomFlip preprocessing layer
-   for object detection.
-"""
+"""random_flip_demo.py shows how to use the RandomFlip preprocessing layer for
+ object detection."""
 import demo_utils
 import tensorflow as tf
 

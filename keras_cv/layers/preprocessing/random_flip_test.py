@@ -25,7 +25,7 @@ class RandomFlipTest(tf.test.TestCase):
         orig_width = 8
         channels = 3
         if mock_random is None:
-            mock_random = [True for _ in range(num_samples)]
+            mock_random = [0.6 for _ in range(num_samples)]
             if mode == "horizontal_and_vertical":
                 mock_random *= 2
         inp = np.random.random((num_samples, orig_height, orig_width, channels))
@@ -36,8 +36,8 @@ class RandomFlipTest(tf.test.TestCase):
             if mode == "vertical" or mode == "horizontal_and_vertical":
                 expected_output = np.flip(expected_output, axis=1)
         with tf.compat.v1.test.mock.patch.object(
-            np.random,
-            "choice",
+            tf.random,
+            "uniform",
             side_effect=mock_random,
         ):
             layer = RandomFlip(mode)
@@ -51,19 +51,33 @@ class RandomFlipTest(tf.test.TestCase):
 
     def test_random_flip_horizontal_half(self):
         np.random.seed(1337)
-        mock_random = [True, False]
-        input_images = np.random.random((2, 5, 8, 3)).astype(np.float32)
+        mock_random = [0.6, 0.2]
+        input_images = np.random.random((2, 2, 2, 1)).astype(np.float32)
         expected_output = input_images.copy()
         expected_output[0, :, :, :] = np.flip(input_images[0, :, :, :], axis=1)
-        self._run_test("horizontal", expected_output, mock_random)
+        with tf.compat.v1.test.mock.patch.object(
+            tf.random,
+            "uniform",
+            side_effect=mock_random,
+        ):
+            layer = RandomFlip("horizontal")
+            actual_output = layer(input_images, training=True)
+            self.assertAllClose(expected_output, actual_output)
 
     def test_random_flip_vertical_half(self):
         np.random.seed(1337)
-        mock_random = [True, False]
-        input_images = np.random.random((2, 5, 8, 3)).astype(np.float32)
+        mock_random = [0.6, 0.2]
+        input_images = np.random.random((2, 2, 2, 1)).astype(np.float32)
         expected_output = input_images.copy()
         expected_output[0, :, :, :] = np.flip(input_images[0, :, :, :], axis=0)
-        self._run_test("vertical", expected_output, mock_random)
+        with tf.compat.v1.test.mock.patch.object(
+            tf.random,
+            "uniform",
+            side_effect=mock_random,
+        ):
+            layer = RandomFlip("vertical")
+            actual_output = layer(input_images, training=True)
+            self.assertAllClose(expected_output, actual_output)
 
     def test_random_flip_inference(self):
         input_images = np.random.random((2, 5, 8, 3)).astype(np.float32)
@@ -75,10 +89,10 @@ class RandomFlipTest(tf.test.TestCase):
     def test_random_flip_default(self):
         input_images = np.random.random((2, 5, 8, 3)).astype(np.float32)
         expected_output = np.flip(np.flip(input_images, axis=1), axis=2)
-        mock_random = [True, True, True, True]
+        mock_random = [0.6, 0.6, 0.6, 0.6]
         with tf.compat.v1.test.mock.patch.object(
-            np.random,
-            "choice",
+            tf.random,
+            "uniform",
             side_effect=mock_random,
         ):
             with self.cached_session():
@@ -95,10 +109,10 @@ class RandomFlipTest(tf.test.TestCase):
     def test_random_flip_unbatched_image(self):
         input_image = np.random.random((4, 4, 1)).astype(np.float32)
         expected_output = np.flip(input_image, axis=0)
-        mock_random = [True, True, True, True]
+        mock_random = [0.6, 0.6, 0.6, 0.6]
         with tf.compat.v1.test.mock.patch.object(
-            np.random,
-            "choice",
+            tf.random,
+            "uniform",
             side_effect=mock_random,
         ):
             layer = RandomFlip("vertical")
@@ -122,10 +136,10 @@ class RandomFlipTest(tf.test.TestCase):
             dtype="float32",
         )
         input = {"images": [image, image], "bounding_boxes": bboxes}
-        mock_random = [True, True, True, True]
+        mock_random = [0.6, 0.6, 0.6, 0.6]
         with tf.compat.v1.test.mock.patch.object(
-            np.random,
-            "choice",
+            tf.random,
+            "uniform",
             side_effect=mock_random,
         ):
             layer = RandomFlip(bounding_box_format="xyxy")
