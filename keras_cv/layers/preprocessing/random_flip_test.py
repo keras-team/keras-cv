@@ -11,6 +11,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import unittest
+
 import numpy as np
 import tensorflow as tf
 
@@ -36,7 +38,7 @@ class RandomFlipTest(tf.test.TestCase):
             if mode == "vertical" or mode == "horizontal_and_vertical":
                 expected_output = np.flip(expected_output, axis=1)
         layer = RandomFlip(mode)
-        with tf.compat.v1.test.mock.patch.object(
+        with unittest.mock.patch.object(
             layer._random_generator,
             "random_uniform",
             side_effect=mock_random,
@@ -56,7 +58,7 @@ class RandomFlipTest(tf.test.TestCase):
         expected_output = input_images.copy()
         expected_output[0, :, :, :] = np.flip(input_images[0, :, :, :], axis=1)
         layer = RandomFlip("horizontal")
-        with tf.compat.v1.test.mock.patch.object(
+        with unittest.mock.patch.object(
             layer._random_generator,
             "random_uniform",
             side_effect=mock_random,
@@ -71,12 +73,12 @@ class RandomFlipTest(tf.test.TestCase):
         expected_output = input_images.copy()
         expected_output[0, :, :, :] = np.flip(input_images[0, :, :, :], axis=0)
         layer = RandomFlip("vertical")
-        with tf.compat.v1.test.mock.patch.object(
+        with unittest.mock.patch.object(
             layer._random_generator,
             "random_uniform",
             side_effect=mock_random,
         ):
-            
+
             actual_output = layer(input_images, training=True)
             self.assertAllClose(expected_output, actual_output)
 
@@ -92,11 +94,11 @@ class RandomFlipTest(tf.test.TestCase):
         expected_output = np.flip(np.flip(input_images, axis=1), axis=2)
         mock_random = [0.6, 0.6, 0.6, 0.6]
         layer = RandomFlip()
-        with tf.compat.v1.test.mock.patch.object(
+        with unittest.mock.patch.object(
             layer._random_generator,
             "random_uniform",
             side_effect=mock_random,
-        ):      
+        ):
             actual_output = layer(input_images, training=True)
             self.assertAllClose(expected_output, actual_output)
 
@@ -111,7 +113,7 @@ class RandomFlipTest(tf.test.TestCase):
         expected_output = np.flip(input_image, axis=0)
         mock_random = [0.6, 0.6, 0.6, 0.6]
         layer = RandomFlip("vertical")
-        with tf.compat.v1.test.mock.patch.object(
+        with unittest.mock.patch.object(
             layer._random_generator,
             "random_uniform",
             side_effect=mock_random,
@@ -138,7 +140,7 @@ class RandomFlipTest(tf.test.TestCase):
         input = {"images": [image, image], "bounding_boxes": bboxes}
         mock_random = [0.6, 0.6, 0.6, 0.6]
         layer = RandomFlip(bounding_box_format="xyxy")
-        with tf.compat.v1.test.mock.patch.object(
+        with unittest.mock.patch.object(
             layer._random_generator,
             "random_uniform",
             side_effect=mock_random,
