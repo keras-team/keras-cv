@@ -17,7 +17,6 @@ import tensorflow as tf
 from tensorflow import keras
 
 from keras_cv import bounding_box
-from keras_cv import models
 from keras_cv.applications.object_detection.retina_net.__internal__ import (
     layers as layers_lib,
 )
