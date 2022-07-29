@@ -53,7 +53,6 @@ BASE_DOCSTRING = """Instantiates the {name} architecture.
         learning & fine-tuning](https://keras.io/guides/transfer_learning/).
 
     Args:
-
         include_rescaling: whether or not to Rescale the inputs.If set to True,
             inputs will be passed through a `Rescaling(scale=1 / 255)`
             layer, defaults to True.
@@ -258,17 +257,17 @@ def InvertedResBlock(
 
 def MobileNetV3(
     stack_fn,
-    last_point_ch,
-    input_shape=(None, None, 3),
-    alpha=1.0,
+    include_rescaling=True,
     include_top=True,
-    weights=None,
     num_classes=None,
+    weights=None,
+    input_shape=(None, None, 3),
     pooling=None,
+    alpha=1.0,
+    minimalistic=True,
     dropout_rate=0.2,
     classifier_activation="softmax",
-    include_rescaling=True,
-    minimalistic=True,
+    last_point_ch,
     name="MobileNetV3",
     **kwargs,
 ):
