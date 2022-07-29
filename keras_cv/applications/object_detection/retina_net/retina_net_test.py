@@ -80,9 +80,39 @@ class RetinaNetTest(tf.test.TestCase):
                 ],
             )
 
-    # def test_overfits_single_bounding_box(self):
-    #     bounding_box_format = 'xyxy'
-    #
-    #     # TODO(lukewood): overfit a single stacked bounding box, make sure the format
-    #     # is correct
-    #     pass
+#     TODO(lukewood): reintroduce this when FocalLoss is added.
+#     def test_overfits_single_bounding_box(self):
+#         bounding_box_format = 'xywh'
+#         retina_net = keras_cv.applications.RetinaNet(
+#             num_classes=1,
+#             bounding_box_format="xywh",
+#             backbone="resnet50",
+#             backbone_weights=None,
+#             include_rescaling=False,
+#         )
+#         metric = keras_cv.metrics.COCOMeanAveragePrecision(
+#             class_ids=range(1),
+#             bounding_box_format="xywh",
+#             name="Standard MaP",
+#         )
+#         retina_net.compile(
+#             optimizer="adam",
+#             loss='mse',
+#             metrics=[metric]
+#         )
+#
+#         xs, ys = create_bounding_box_dataset(bounding_box_format)
+#         for _ in range(20):
+#             retina_net.fit(xs, ys, epochs=1)
+#             if metric.result() == 1.:
+#                 break
+#
+#         self.assertEqual(metric.result(), 1.)
+#
+#
+# def create_bounding_box_dataset(bounding_box_format):
+#     xs = tf.ones((4, 512, 512, 3), tf.float32)
+#     # To use MSE we have to provide a confidence score too.
+#     ys = tf.ones((4, 4, 6), tf.float32)
+#     ys = keras_cv.bounding_box.convert_format(ys, source='xywh', target=bounding_box_format, dtype=tf.float32)
+#     return xs, ys
