@@ -15,7 +15,6 @@
 import tensorflow as tf
 
 from keras_cv import bounding_box
-from keras_cv import utils
 from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
     BaseImageAugmentationLayer,
 )
@@ -83,14 +82,13 @@ class RandomFlip(BaseImageAugmentationLayer):
                 "RandomFlip layer {name} received an unknown mode="
                 "{arg}".format(name=self.name, arg=mode)
             )
-        self.auto_vectorize = False
+        self.auto_vectorize = True
         self.bounding_box_format = bounding_box_format
 
     def augment_label(self, label, transformation, **kwargs):
         return label
 
     def augment_image(self, image, transformation, **kwargs):
-        image = utils.preprocessing.ensure_tensor(image, self.compute_dtype)
         flipped_output = image
         if transformation["flip_horizontal"]:
             flipped_output = tf.image.flip_left_right(flipped_output)
@@ -103,19 +101,14 @@ class RandomFlip(BaseImageAugmentationLayer):
         flip_horizontal = False
         flip_vertical = False
         if self.horizontal:
-            flip_horizontal = (
-                True
-                if (tf.random.uniform(shape=[], minval=0, maxval=1) > 0.5)
-                else False
-            )
+            flip_horizontal = self._random_generator.random_uniform(shape=[]) > 0.5
         if self.vertical:
-            a = tf.random.uniform(shape=[], minval=0, maxval=1)
-            flip_vertical = True if a > 0.5 else False
+            flip_vertical = self._random_generator.random_uniform(shape=[]) > 0.5
         return {
             "flip_horizontal": flip_horizontal,
             "flip_vertical": flip_vertical,
         }
-
+        
     def augment_bounding_boxes(
         self, bounding_boxes, transformation=None, image=None, **kwargs
     ):
