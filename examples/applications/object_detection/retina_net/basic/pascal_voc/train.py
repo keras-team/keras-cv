@@ -61,6 +61,8 @@ model = keras_cv.applications.RetinaNet(
     backbone_weights="imagenet",
     include_rescaling=True,
 )
+model.backbone.trainable = False
+
 model.compile(
     optimizer=optimizer,
     loss=FocalLoss(num_classes=20),
