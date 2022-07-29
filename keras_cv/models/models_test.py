@@ -22,9 +22,9 @@ from keras_cv.models import darknet
 from keras_cv.models import densenet
 from keras_cv.models import mlp_mixer
 from keras_cv.models import mobilenet_v3
-from keras_cv.models import vgg19
 from keras_cv.models import resnet_v1
 from keras_cv.models import resnet_v2
+from keras_cv.models import vgg19
 
 MODEL_LIST = [
     (csp_darknet.CSPDarkNet, 1024, {}),
