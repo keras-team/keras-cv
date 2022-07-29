@@ -424,16 +424,16 @@ def MobileNetV3(
 
 
 def MobileNetV3Small(
+    include_rescaling=True,
+    include_top=True,
+    num_classes=None,
+    weights=None,
     input_shape=(None, None, 3),
+    pooling=None,
     alpha=1.0,
     minimalistic=False,
-    include_top=True,
-    weights=None,
-    num_classes=None,
-    pooling=None,
     dropout_rate=0.2,
     classifier_activation="softmax",
-    include_rescaling=True,
     name="MobileNetV3Small",
     **kwargs,
 ):
@@ -491,16 +491,16 @@ def MobileNetV3Small(
 
 
 def MobileNetV3Large(
+    include_rescaling=True,
+    include_top=True,
+    num_classes=None,
+    weights=None,
     input_shape=(None, None, 3),
+    pooling=None,
     alpha=1.0,
     minimalistic=False,
-    include_top=True,
-    weights=None,
-    num_classes=None,
-    pooling=None,
     dropout_rate=0.2,
     classifier_activation="softmax",
-    include_rescaling=True,
     name="MobileNetV3Large",
     **kwargs,
 ):
