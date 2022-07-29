@@ -53,7 +53,26 @@ BASE_DOCSTRING = """Instantiates the {name} architecture.
         learning & fine-tuning](https://keras.io/guides/transfer_learning/).
 
     Args:
+
+        include_rescaling: whether or not to Rescale the inputs.If set to True,
+            inputs will be passed through a `Rescaling(scale=1 / 255)`
+            layer, defaults to True.
+        include_top: whether to include the fully-connected layer at the top of the
+            network.  If provided, `num_classes` must be provided.
+        num_classes: optional number of num_classes to classify images into, only to be
+            specified if `include_top` is True, and if no `weights` argument is
+            specified.
+        weights: one of `None` (random initialization), or a pretrained weight file
+            path.
         input_shape: optional shape tuple, defaults to (None, None, 3).
+        pooling: optional pooling mode for feature extraction
+            when `include_top` is `False`.
+            - `None` means that the output of the model will be the 4D tensor output
+                of the last convolutional block.
+            - `avg` means that global average pooling will be applied to the output
+                of the last convolutional block, and thus the output of the model will
+                be a 2D tensor.
+            - `max` means that global max pooling will be applied.
         alpha: controls the width of the network. This is known as the
             depth multiplier in the MobileNetV3 paper, but the name is kept for
             consistency with MobileNetV1 in Keras.
@@ -69,27 +88,9 @@ BASE_DOCSTRING = """Instantiates the {name} architecture.
             utilize any of the advanced blocks (squeeze-and-excite units, hard-swish,
             and 5x5 convolutions). While these models are less efficient on CPU, they
             are much more performant on GPU/DSP.
-        include_top: whether to include the fully-connected layer at the top of the
-            network.  If provided, `num_classes` must be provided.
-        weights: one of `None` (random initialization), or a pretrained weight file
-            path.
-        num_classes: optional number of num_classes to classify images into, only to be
-            specified if `include_top` is True, and if no `weights` argument is
-            specified.
-        pooling: optional pooling mode for feature extraction
-            when `include_top` is `False`.
-            - `None` means that the output of the model will be the 4D tensor output
-                of the last convolutional block.
-            - `avg` means that global average pooling will be applied to the output
-                of the last convolutional block, and thus the output of the model will
-                be a 2D tensor.
-            - `max` means that global max pooling will be applied.
         dropout_rate: a float between 0 and 1 denoting the fraction of input units to
             drop, defaults to 0.2.
         classifier_activation: the activation function to use, defaults to softmax.
-        include_rescaling: whether or not to Rescale the inputs.If set to True,
-            inputs will be passed through a `Rescaling(scale=1 / 255)`
-            layer, defaults to True.
         name: (Optional) name to pass to the model. Defaults to "{name}".
 
     Returns:
