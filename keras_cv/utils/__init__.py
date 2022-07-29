@@ -13,7 +13,6 @@
 # limitations under the License.
 
 from keras_cv.utils.fill_utils import fill_rectangle
-from keras_cv.utils.iou import compute_ious_for_image
 from keras_cv.utils.preprocessing import blend
 from keras_cv.utils.preprocessing import parse_factor
 from keras_cv.utils.preprocessing import transform
