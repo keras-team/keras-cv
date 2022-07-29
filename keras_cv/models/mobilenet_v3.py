@@ -257,6 +257,7 @@ def InvertedResBlock(
 
 def MobileNetV3(
     stack_fn,
+    last_point_ch,
     include_rescaling=True,
     include_top=True,
     num_classes=None,
@@ -267,7 +268,6 @@ def MobileNetV3(
     minimalistic=True,
     dropout_rate=0.2,
     classifier_activation="softmax",
-    last_point_ch,
     name="MobileNetV3",
     **kwargs,
 ):
@@ -473,18 +473,18 @@ def MobileNetV3Small(
         return x
 
     return MobileNetV3(
-        stack_fn,
-        1024,
-        input_shape,
-        alpha,
-        include_top,
-        weights,
-        num_classes,
-        pooling,
-        dropout_rate,
-        classifier_activation,
-        include_rescaling,
-        minimalistic,
+        stack_fn=stack_fn,
+        last_point_ch=1024,
+        include_rescaling=include_rescaling,
+        include_top=include_top,
+        num_classes=num_classes,
+        weights=weights,
+        input_shape=input_shape,
+        pooling=pooling,
+        alpha=alpha,
+        minimalistic=minimalistic,
+        dropout_rate=dropout_rate,
+        classifier_activation=classifier_activation,
         name=name,
         **kwargs,
     )
@@ -536,18 +536,18 @@ def MobileNetV3Large(
         return x
 
     return MobileNetV3(
-        stack_fn,
-        1280,
-        input_shape,
-        alpha,
-        include_top,
-        weights,
-        num_classes,
-        pooling,
-        dropout_rate,
-        classifier_activation,
-        include_rescaling,
-        minimalistic,
+        stack_fn=stack_fn,
+        last_point_ch=1280,
+        include_rescaling=include_rescaling,
+        include_top=include_top,
+        num_classes=num_classes,
+        weights=weights,
+        input_shape=input_shape,
+        pooling=pooling,
+        alpha=alpha,
+        minimalistic=minimalistic,
+        dropout_rate=dropout_rate,
+        classifier_activation=classifier_activation,
         name=name,
         **kwargs,
     )

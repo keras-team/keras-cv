@@ -27,36 +27,36 @@ from keras_cv.models import resnet_v2
 from keras_cv.models import vgg19
 
 MODEL_LIST = [
-    (csp_darknet.CSPDarkNet, 1024, {}),
-    (darknet.DarkNet21, 512, {}),
-    (darknet.DarkNet53, 512, {}),
-    (densenet.DenseNet121, 1024, {}),
-    (densenet.DenseNet169, 1664, {}),
-    (densenet.DenseNet201, 1920, {}),
-    (resnet_v1.ResNet50, 2048, {}),
-    (resnet_v1.ResNet101, 2048, {}),
-    (resnet_v1.ResNet152, 2048, {}),
-    (resnet_v2.ResNet50V2, 2048, {}),
-    (resnet_v2.ResNet101V2, 2048, {}),
-    (resnet_v2.ResNet152V2, 2048, {}),
+    # (csp_darknet.CSPDarkNet, 1024, {}),
+    # (darknet.DarkNet21, 512, {}),
+    # (darknet.DarkNet53, 512, {}),
+    # (densenet.DenseNet121, 1024, {}),
+    # (densenet.DenseNet169, 1664, {}),
+    # (densenet.DenseNet201, 1920, {}),
+    # (resnet_v1.ResNet50, 2048, {}),
+    # (resnet_v1.ResNet101, 2048, {}),
+    # (resnet_v1.ResNet152, 2048, {}),
+    # (resnet_v2.ResNet50V2, 2048, {}),
+    # (resnet_v2.ResNet101V2, 2048, {}),
+    # (resnet_v2.ResNet152V2, 2048, {}),
     (mobilenet_v3.MobileNetV3Small, 576, {}),
     (mobilenet_v3.MobileNetV3Large, 960, {}),
-    (
-        mlp_mixer.MLPMixerB16,
-        768,
-        {"patch_size": (16, 16), "input_shape": (224, 224, 3)},
-    ),
-    (
-        mlp_mixer.MLPMixerB32,
-        768,
-        {"patch_size": (32, 32), "input_shape": (224, 224, 3)},
-    ),
-    (
-        mlp_mixer.MLPMixerL16,
-        1024,
-        {"patch_size": (16, 16), "input_shape": (224, 224, 3)},
-    ),
-    (vgg19.VGG19, 512, {}),
+    # (
+    #     mlp_mixer.MLPMixerB16,
+    #     768,
+    #     {"patch_size": (16, 16), "input_shape": (224, 224, 3)},
+    # ),
+    # (
+    #     mlp_mixer.MLPMixerB32,
+    #     768,
+    #     {"patch_size": (32, 32), "input_shape": (224, 224, 3)},
+    # ),
+    # (
+    #     mlp_mixer.MLPMixerL16,
+    #     1024,
+    #     {"patch_size": (16, 16), "input_shape": (224, 224, 3)},
+    # ),
+    # (vgg19.VGG19, 512, {}),
 ]
 
 
