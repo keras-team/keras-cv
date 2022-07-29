@@ -141,11 +141,7 @@ class NonMaxSuppression(tf.keras.layers.Layer):
 
     def _decode_nms_boxes_to_tensor(self, nmsed_boxes):
         boxes = tf.TensorArray(
-            tf.float32,
-            size=0,
-            infer_shape=False,
-            element_shape=(6,),
-            dynamic_size=True,
+            tf.float32, size=0, infer_shape=False, element_shape=(6,), dynamic_size=True
         )
 
         for i in tf.range(tf.shape(nmsed_boxes.nmsed_boxes)[0]):
