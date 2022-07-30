@@ -14,7 +14,6 @@
 
 from keras_cv import version_check
 
-
 version_check.check_tf_version()
 
 
@@ -27,6 +26,5 @@ from keras_cv.core import ConstantFactorSampler
 from keras_cv.core import FactorSampler
 from keras_cv.core import NormalFactorSampler
 from keras_cv.core import UniformFactorSampler
-
 
 __version__ = "0.2.9"

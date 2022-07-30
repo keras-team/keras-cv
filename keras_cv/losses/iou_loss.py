@@ -14,7 +14,9 @@
 
 
 import tensorflow as tf
+
 from keras_cv.bounding_box import compute_iou
+
 
 class IoULoss(tf.keras.losses.Loss):
     """Implements the IoU Loss
@@ -22,7 +24,7 @@ class IoULoss(tf.keras.losses.Loss):
     IoU loss is commonly used for object detection. This loss aims to directly
     optimize the IoU score between true boxes and predicted boxes. The length of the
     last dimension should be atleast 4 to represent the bounding boxes.
-    
+
     Args:
         bounding_box_format: a case-insensitive string which is one of `"xyxy"`,
             `"rel_xyxy"`, `"xyWH"`, `"center_xyWH"`, `"yxyx"`, `"rel_yxyx"`. The
@@ -53,29 +55,29 @@ class IoULoss(tf.keras.losses.Loss):
     ```
     """
 
-    def __init__(self, bounding_box_format, mode = 'log', **kwargs):
+    def __init__(self, bounding_box_format, mode="log", **kwargs):
         super().__init__(**kwargs)
         self.bounding_box_format = bounding_box_format
         self.mode = mode
 
-        if self.mode not in ['linear', 'square', 'log']:
+        if self.mode not in ["linear", "square", "log"]:
             raise ValueError(
-            "IoULoss expects mode to be one of 'linear', 'square' or 'log' "
-            f"Received mode={self.mode}, "
-        )
+                "IoULoss expects mode to be one of 'linear', 'square' or 'log' "
+                f"Received mode={self.mode}, "
+            )
 
     def call(self, y_true, y_pred):
         y_pred = tf.convert_to_tensor(y_pred)
         y_true = tf.cast(y_true, y_pred.dtype)
 
         ious = compute_iou(y_true, y_pred, self.bounding_box_format)
-        iou = tf.reduce_mean(ious, axis = [-2, -1])
+        iou = tf.reduce_mean(ious, axis=[-2, -1])
 
-        if self.mode == 'linear':
+        if self.mode == "linear":
             loss = 1 - iou
-        elif self.mode == 'square':
+        elif self.mode == "square":
             loss = 1 - iou**2
-        elif self.mode == 'log':
+        elif self.mode == "log":
             loss = -tf.math.log(iou)
 
         return loss
