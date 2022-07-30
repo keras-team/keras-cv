@@ -62,7 +62,7 @@ class FocalLoss(tf.keras.losses.Loss):
         label_smoothing=0,
         **kwargs,
     ):
-        super().__init__(reduction=reduction, **kwargs)
+        super().__init__(**kwargs)
         self._alpha = float(alpha)
         self._gamma = float(gamma)
         self.from_logits = from_logits
