@@ -41,6 +41,7 @@ class IoUTest(tf.test.TestCase):
                     [0.4, 0.5, 0.5, 0.6, 3, 0.89],
                     [0.2, 0.2, 0.3, 0.3, 6, 0.04],
                 ]
+
         y_pred = [
                     [0.0, 0.0, 0.5, 0.6, 4, 0.9],
                     [0.0, 0.0, 0.7, 0.3, 1, 0.76],
@@ -52,10 +53,21 @@ class IoUTest(tf.test.TestCase):
 
         self.assertAllEqual(iou_loss(y_true, y_pred).shape, [])
 
-    def test_1d_output(self):
-        y_true = [0.0, 1.0, 1.0]
-        y_pred = [0.1, 0.7, 0.9]
+    def test_output_value(self):
+        y_true = [
+                    [0, 0, 1, 1, 4, 0.9],
+                    [0, 0, 2, 3, 4, 0.76],
+                    [4, 5, 3, 6, 3, 0.89],
+                    [2, 2, 3, 3, 6, 0.04],
+                ]
 
-        focal_loss = FocalLoss()
+        y_pred = [
+                    [0, 0, 5, 6, 4, 0.9],
+                    [0, 0, 7, 3, 1, 0.76],
+                    [4, 5, 5, 6, 4, 0.04],
+                    [2, 1, 3, 3, 7, 0.48],
+                ]
 
-        self.assertAllClose(focal_loss(y_true, y_pred), 0.00302626)
+        iou_loss = IoULoss(bounding_box_format="xywh")
+
+        self.assertAllClose(iou_loss(y_true, y_pred), 2.0311017)
