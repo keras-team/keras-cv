@@ -61,9 +61,9 @@ class FocalLoss(tf.keras.losses.Loss):
         from_logits=False,
         label_smoothing=0,
         reduction="auto",
-        name="FocalLoss",
+        **kwargs,
     ):
-        super().__init__(reduction=reduction, name=name)
+        super().__init__(reduction=reduction, **kwargs)
         self._alpha = float(alpha)
         self._gamma = float(gamma)
         self.from_logits = from_logits
@@ -78,9 +78,6 @@ class FocalLoss(tf.keras.losses.Loss):
     def call(self, y_true, y_pred):
         y_pred = tf.convert_to_tensor(y_pred)
         y_true = tf.cast(y_true, y_pred.dtype)
-
-        if self.from_logits:
-            y_pred = tf.nn.sigmoid(y_pred)
 
         if self.label_smoothing:
             y_true = self._smooth_labels(y_true, y_pred)
