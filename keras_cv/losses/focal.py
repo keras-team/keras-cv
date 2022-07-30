@@ -60,7 +60,6 @@ class FocalLoss(tf.keras.losses.Loss):
         gamma=2,
         from_logits=False,
         label_smoothing=0,
-        reduction="auto",
         **kwargs,
     ):
         super().__init__(reduction=reduction, **kwargs)
