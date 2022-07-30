@@ -33,10 +33,10 @@ class FocalLoss(tf.keras.losses.Loss):
         from_logits: Whether `y_pred` is expected to be a logits tensor. By
             default, `y_pred` is assumed to encode a probability distribution.
             Default to `False`.
-        label_smoothing: Float in [0, 1]. When > 0, label values are smoothed,
-            meaning the confidence on label values are relaxed. For example, if
-            `0.1`, use `0.1 / num_classes` for non-target labels and
-            `0.9 + 0.1 / num_classes` for target labels. Default to `0.0`.
+        label_smoothing: Float in `[0, 1]`. If higher than 0 then smooth the
+            labels by squeezing them towards `0.5`, i.e., using `1. - 0.5 * label_smoothing`
+            for the target class and `0.5 * label_smoothing` for the non-target
+            class.
 
     References:
         - [Focal Loss paper](https://arxiv.org/abs/1708.02002)
@@ -69,18 +69,15 @@ class FocalLoss(tf.keras.losses.Loss):
         self.from_logits = from_logits
         self.label_smoothing = label_smoothing
 
-    def _smooth_labels(self, y_true, y_pred):
-        num_classes = tf.cast(tf.shape(y_true)[-1], y_pred.dtype)
-        return y_true * (1.0 - self.label_smoothing) + (
-            self.label_smoothing / num_classes
-        )
+    def _smooth_labels(self, y_true):
+        return y_true * (1.0 - self.label_smoothing) + 0.5 * self.label_smoothing
 
     def call(self, y_true, y_pred):
         y_pred = tf.convert_to_tensor(y_pred)
         y_true = tf.cast(y_true, y_pred.dtype)
 
         if self.label_smoothing:
-            y_true = self._smooth_labels(y_true, y_pred)
+            y_true = self._smooth_labels(y_true)
 
         cross_entropy = K.binary_crossentropy(
             y_true, y_pred, from_logits=self.from_logits
