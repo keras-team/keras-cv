@@ -11,3 +11,51 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+import tensorflow as tf
+
+from keras_cv.losses.iou_loss import IoULoss
+
+
+class IoUTest(tf.test.TestCase):
+    def test_output_shape(self):
+        y_true = tf.random.uniform(shape=[2, 2, 4], minval=0, maxval=10, dtype=tf.int32)
+        y_pred = tf.random.uniform(shape=[2, 2, 4], minval=0, maxval=20, dtype=tf.int32)
+
+        iou_loss = IoULoss(bounding_box_format="xywh")
+
+        self.assertAllEqual(iou_loss(y_true, y_pred).shape, [])
+
+    def test_output_shape_reduction_none(self):
+        y_true = tf.random.uniform(shape=[2, 2, 4], minval=0, maxval=10, dtype=tf.int32)
+        y_pred = tf.random.uniform(shape=[2, 2, 4], minval=0, maxval=20, dtype=tf.int32)
+
+        iou_loss = IoULoss(bounding_box_format="xywh", reduction="none")
+
+        self.assertAllEqual(iou_loss(y_true, y_pred).shape, [2,])
+
+    def test_output_shape_relative(self):
+        y_true = [
+                    [0.0, 0.0, 0.1, 0.1, 4, 0.9],
+                    [0.0, 0.0, 0.2, 0.3, 4, 0.76],
+                    [0.4, 0.5, 0.5, 0.6, 3, 0.89],
+                    [0.2, 0.2, 0.3, 0.3, 6, 0.04],
+                ]
+        y_pred = [
+                    [0.0, 0.0, 0.5, 0.6, 4, 0.9],
+                    [0.0, 0.0, 0.7, 0.3, 1, 0.76],
+                    [0.4, 0.5, 0.5, 0.6, 4, 0.04],
+                    [0.2, 0.1, 0.3, 0.3, 7, 0.48],
+                ]
+
+        iou_loss = IoULoss(bounding_box_format="rel_xyxy")
+
+        self.assertAllEqual(iou_loss(y_true, y_pred).shape, [])
+
+    def test_1d_output(self):
+        y_true = [0.0, 1.0, 1.0]
+        y_pred = [0.1, 0.7, 0.9]
+
+        focal_loss = FocalLoss()
+
+        self.assertAllClose(focal_loss(y_true, y_pred), 0.00302626)
