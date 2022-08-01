@@ -33,9 +33,9 @@ class RetinaNetLoss(tf.keras.losses.Loss):
             raise ValueError("y_true should have shape [None, None, 5].  Got "
             f"y_true.shape={y_true.shape}")
 
-        if y_pred.shape[-1] != 6:
-            raise ValueError("y_pred should have shape [None, None, 5].  Got "
-            f"y_pred.shape={y_pred.shape}")
+        if y_pred.shape[-1] != self.num_classes + 4:
+            raise ValueError("y_pred should have shape [None, None, 4+num_classes]. "
+            f"Got y_pred.shape={y_pred.shape}.")
 
         cls_labels = tf.one_hot(
             tf.cast(y_true[:, :, 4], dtype=tf.int32),
@@ -58,9 +58,6 @@ class RetinaNetLoss(tf.keras.losses.Loss):
             tf.reduce_sum(classification_loss, axis=-1), normalizer
         )
         box_loss = tf.math.divide_no_nan(tf.reduce_sum(box_loss, axis=-1), normalizer)
-
-        classification_loss = tf.math.reduce_sum(classification_loss, axis=-1)
-        box_loss = tf.math.reduce_sum(box_loss, axis=-1)
         return classification_loss + box_loss
 
 

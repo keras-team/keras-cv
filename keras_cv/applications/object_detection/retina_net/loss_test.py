@@ -19,3 +19,13 @@ import keras_cv
 
 class RetinaNetTest(tf.test.TestCase):
     def test_requires_proper_bounding_box_shapes(self):
+        loss = keras_cv.applications.RetinaNetLoss(num_classes=20, reduction='none')
+
+        with self.assertRaisesRegex(ValueError, 'y_true should have shape'):
+            loss(y_true=tf.random.uniform((20, 300, 24)), y_pred=tf.random.uniform((20, 300, 24)))
+
+        with self.assertRaisesRegex(ValueError, 'y_pred should have shape'):
+            loss(y_true=tf.random.uniform((20, 300, 5)), y_pred=tf.random.uniform((20, 300, 6)))
+
+        result = loss(y_true=tf.random.uniform((20, 300, 5)), y_pred=tf.random.uniform((20, 300, 24)))
+        self.assertEqual(result.shape, [20,])
