@@ -16,14 +16,15 @@ import tensorflow as tf
 
 
 class RetinaNetLoss(tf.keras.losses.Loss):
-    def __init__(self, num_classes, alpha=0.25, gamma=2.0, delta=1.0, **kwargs):
-        super().__init__(**kwargs)
+    def __init__(self, num_classes, alpha=0.25, gamma=2.0, delta=1.0, reduction='auto', **kwargs):
+        super().__init__(**kwargs, reduction=reduction)
         self.num_classes = num_classes
         self.classification_loss = RetinaNetClassificationLoss(
             alpha=alpha,
             gamma=gamma,
+            reduction=reduction
         )
-        self.box_loss = RetinaNetBoxLoss(delta=delta)
+        self.box_loss = RetinaNetBoxLoss(delta=delta, reduction=reduction)
 
     def call(self, y_true, y_pred):
         box_labels = y_true[:, :, :4]
@@ -65,8 +66,8 @@ class RetinaNetLoss(tf.keras.losses.Loss):
 class RetinaNetBoxLoss(tf.keras.losses.Loss):
     """Implements Smooth L1 loss"""
 
-    def __init__(self, delta, name="RetinaNetBoxLoss", reduction="none", **kwargs):
-        super().__init__(reduction=reduction, name=name)
+    def __init__(self, delta, reduction="none", **kwargs):
+        super().__init__(reduction=reduction, **kwargs)
         self._delta = delta
 
     def call(self, y_true, y_pred):
@@ -85,9 +86,9 @@ class RetinaNetClassificationLoss(tf.keras.losses.Loss):
     """Implements Focal loss"""
 
     def __init__(
-        self, alpha, gamma, reduction="none", name="RetinaNetClassificationLoss"
+        self, alpha, gamma, reduction="none", **kwargs
     ):
-        super().__init__(reduction=reduction, name=name)
+        super().__init__(reduction=reduction, **kwargs)
         self._alpha = alpha
         self._gamma = gamma
 

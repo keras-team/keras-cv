@@ -15,9 +15,11 @@
 import pytest
 import tensorflow as tf
 import keras_cv
+from absl.testing import parameterized
 
 
-class RetinaNetTest(tf.test.TestCase):
+class RetinaNetTest(tf.test.TestCase, parameterized.TestCase):
+
     def test_requires_proper_bounding_box_shapes(self):
         loss = keras_cv.applications.RetinaNetLoss(num_classes=20, reduction='none')
 
@@ -27,5 +29,13 @@ class RetinaNetTest(tf.test.TestCase):
         with self.assertRaisesRegex(ValueError, 'y_pred should have shape'):
             loss(y_true=tf.random.uniform((20, 300, 5)), y_pred=tf.random.uniform((20, 300, 6)))
 
+
+    @parameterized.named_parameters(
+        ('none', 'none', (20,)),
+        ('sum', 'sum', ()),
+        ('sum_over_batch_size', 'sum_over_batch_size', ()),
+    )
+    def test_proper_output_shapes(self, reduction, target_size):
+        loss = keras_cv.applications.RetinaNetLoss(num_classes=20, reduction=reduction)
         result = loss(y_true=tf.random.uniform((20, 300, 5)), y_pred=tf.random.uniform((20, 300, 24)))
-        self.assertEqual(result.shape, [20,])
+        self.assertEqual(result.shape, target_size)
