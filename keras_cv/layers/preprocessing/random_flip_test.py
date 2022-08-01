@@ -17,26 +17,26 @@ import numpy as np
 import tensorflow as tf
 
 from keras_cv.layers.preprocessing.random_flip import RandomFlip
+from absl.testing import parameterized
 
 
-class RandomFlipTest(tf.test.TestCase):
-    def _run_test(self, mode, expected_output=None, mock_random=None):
+class RandomFlipTest(tf.test.TestCase, parameterized.TestCase):
+    @parameterized.named_parameters(
+        ("random_flip_horizontal", "horizontal"),
+        ("random_flip_vertical", "vertical"),
+        ("random_flip_both", "horizontal_and_vertical"),
+    )
+    def test_random_flip(self, mode):
         np.random.seed(1337)
-        num_samples = 2
-        orig_height = 5
-        orig_width = 8
-        channels = 3
-        if mock_random is None:
-            mock_random = [0.6 for _ in range(num_samples)]
-            if mode == "horizontal_and_vertical":
-                mock_random *= 2
-        inp = np.random.random((num_samples, orig_height, orig_width, channels))
-        if expected_output is None:
-            expected_output = inp
-            if mode == "horizontal" or mode == "horizontal_and_vertical":
-                expected_output = np.flip(expected_output, axis=2)
-            if mode == "vertical" or mode == "horizontal_and_vertical":
-                expected_output = np.flip(expected_output, axis=1)
+        mock_random = [0.6, 0.6]
+        if mode == "horizontal_and_vertical":
+            mock_random *= 2
+        inp = np.random.random((2, 5, 8, 3))
+        expected_output = inp
+        if mode == "horizontal" or mode == "horizontal_and_vertical":
+            expected_output = np.flip(expected_output, axis=2)
+        if mode == "vertical" or mode == "horizontal_and_vertical":
+            expected_output = np.flip(expected_output, axis=1)
         layer = RandomFlip(mode)
         with unittest.mock.patch.object(
             layer._random_generator,
@@ -45,11 +45,6 @@ class RandomFlipTest(tf.test.TestCase):
         ):
             actual_output = layer(inp, training=True)
             self.assertAllClose(expected_output, actual_output)
-
-    def test_random_flip(self):
-        modes = ["horizontal", "vertical", "horizontal_and_vertical"]
-        for mode in modes:
-            self._run_test(mode)
 
     def test_random_flip_inference(self):
         input_images = np.random.random((2, 5, 8, 3)).astype(np.float32)
