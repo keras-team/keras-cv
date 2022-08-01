@@ -23,6 +23,8 @@ from tensorflow import keras
 from tensorflow.keras import backend
 from tensorflow.keras import layers
 
+from keras_cv.models import utils
+
 
 def MLPBlock(mlp_dim, name=None):
     """An MLP block consisting of two linear layers with GELU activation in
@@ -185,13 +187,7 @@ def MLPMixer(
     if input_shape[0] % patch_size[0] != 0:
         raise ValueError("Input resolution should be divisible by the patch size.")
 
-    if input_tensor is None:
-        inputs = layers.Input(shape=input_shape)
-    else:
-        if not keras.backend.is_keras_tensor(input_tensor):
-            inputs = layers.Input(tensor=input_tensor, shape=input_shape)
-        else:
-            inputs = input_tensor
+    inputs = utils.parse_model_inputs(input_shape, input_tensor)
 
     x = inputs
     if include_rescaling:

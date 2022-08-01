@@ -23,6 +23,8 @@ import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras import layers
 
+from keras_cv.models import utils
+
 
 def VGG19(
     include_rescaling,
@@ -88,13 +90,7 @@ def VGG19(
             f"Received: num_classes={num_classes}"
         )
 
-    if input_tensor is None:
-        inputs = layers.Input(shape=input_shape)
-    else:
-        if not keras.backend.is_keras_tensor(input_tensor):
-            inputs = layers.Input(tensor=input_tensor, shape=input_shape)
-        else:
-            inputs = input_tensor
+    inputs = utils.parse_model_inputs(input_shape, input_tensor)
 
     x = inputs
     if include_rescaling:

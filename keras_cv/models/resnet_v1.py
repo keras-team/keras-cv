@@ -18,9 +18,10 @@ Reference:
 """
 
 import tensorflow as tf
-from tensorflow import keras
 from tensorflow.keras import backend
 from tensorflow.keras import layers
+
+from keras_cv.models import utils
 
 MODEL_CONFIGS = {
     "ResNet50": {
@@ -232,13 +233,7 @@ def ResNet(
             f"Received pooling={pooling} and include_top={include_top}. "
         )
 
-    if input_tensor is None:
-        inputs = layers.Input(shape=input_shape)
-    else:
-        if not keras.backend.is_keras_tensor(input_tensor):
-            inputs = layers.Input(tensor=input_tensor, shape=input_shape)
-        else:
-            inputs = input_tensor
+    inputs = utils.parse_model_inputs(input_shape, input_tensor)
     x = inputs
 
     if include_rescaling:
