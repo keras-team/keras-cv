@@ -18,8 +18,6 @@ import keras_cv
 
 
 class RetinaNetTest(tf.test.TestCase):
-    # TODO(after RetinaNetTest clean this up with the keras.session)
-
     @pytest.fixture(autouse=True)
     def cleanup_global_session(self):
         # Code before yield runs before the test

@@ -47,7 +47,7 @@ class AnchorBox(tf.keras.layers.Layer):
         scales=None,
         strides=None,
         areas=None,
-        **kwargs
+        **kwargs,
     ):
         super().__init__(**kwargs)
         self.bounding_box_format = bounding_box_format
@@ -101,15 +101,23 @@ class AnchorBox(tf.keras.layers.Layer):
             anchors, [feature_height * feature_width * self._num_anchors, 4]
         )
 
-    def call(self, image_height, image_width):
+    def call(self, images):
         """Generates anchor boxes for all the feature maps of the feature pyramid.
         Arguments:
-          image_height: Height of the input image.
-          image_width: Width of the input image.
+          images: batch of images with shape [batch_size, height, width, 3].
         Returns:
           anchor boxes for all the feature maps, stacked as a single tensor
             with shape `(total_anchors, 4)`
         """
+        if isinstance(images, tf.RaggedTensor):
+            raise ValueError(
+                "AnchorBox() does not support tf.RaggedTensor inputs. "
+                f"Received images={images}"
+            )
+        images_shape = tf.shape(images)
+        image_height = images_shape[1]
+        image_width = images_shape[2]
+
         anchors = [
             self._get_anchors(
                 tf.math.ceil(image_height / 2**i),
@@ -119,5 +127,9 @@ class AnchorBox(tf.keras.layers.Layer):
             for i in range(3, 8)
         ]
         return keras_cv.bounding_box.convert_format(
-            tf.concat(anchors, axis=0), source="xywh", target=self.bounding_box_format
+            tf.concat(anchors, axis=0),
+            source="xywh",
+            target=self.bounding_box_format,
+            # anchor_box generates unbatched AnchorBoxes
+            images=images[0],
         )
