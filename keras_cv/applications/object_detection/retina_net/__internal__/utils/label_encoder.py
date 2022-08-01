@@ -80,12 +80,8 @@ class LabelEncoder(layers.Layer):
           ignore_mask: A mask for anchor boxes that need to by ignored during
             training
         """
-        batch_size = tf.shape(gt_boxes)[0]
-
-        anchor_boxes_repeated = tf.expand_dims(anchor_box, axis=0)
-        anchor_boxes_repeated = tf.repeat(anchor_boxes_repeated, repeats=batch_size, axis=0)
         iou_matrix = bounding_box.compute_iou(
-            anchor_boxes_repeated, gt_boxes, bounding_box_format=self.bounding_box_format
+            anchor_boxes, gt_boxes, bounding_box_format=self.bounding_box_format
         )
         max_iou = tf.reduce_max(iou_matrix, axis=1)
         matched_gt_idx = tf.argmax(iou_matrix, axis=1)
@@ -115,6 +111,7 @@ class LabelEncoder(layers.Layer):
         cls_ids = gt_boxes[:, 4]
         gt_boxes = gt_boxes[:, :4]
         cls_ids = tf.cast(cls_ids, dtype=tf.float32)
+
         matched_gt_idx, positive_mask, ignore_mask = self._match_anchor_boxes(
             anchor_boxes, gt_boxes
         )
@@ -141,7 +138,7 @@ class LabelEncoder(layers.Layer):
             boxes = boxes.to_tensor(default_value=-1)
 
         result = tf.map_fn(
-            elems=(images), fn=lambda x: self._encode_sample(x, anchor_boxes)
+            elems=(boxes), fn=lambda x: self._encode_sample(x, anchor_boxes)
         )
         return bounding_box.convert_format(
             result, source="xywh", target=self.bounding_box_format, images=images
