@@ -84,7 +84,7 @@ class NonMaxSuppression(tf.keras.layers.Layer):
         iou_threshold=0.5,
         max_detections=100,
         max_detections_per_class=100,
-        **kwargs
+        **kwargs,
     ):
         super().__init__(**kwargs)
         self.num_classes = num_classes
@@ -95,6 +95,13 @@ class NonMaxSuppression(tf.keras.layers.Layer):
         self.max_detections_per_class = max_detections_per_class
 
     def call(self, predictions, images=None):
+        if predictions.shape[2] != 6:
+            raise ValueError(
+                "Expected predictions.shape[-1] = 6, representing the position, shape, "
+                "class and confidence values of the box. Received predictions.shape[-1] = "
+                f"{predictions.shape[-1]}."
+            )
+
         # convert to yxyx for the TF NMS operation
         predictions = bounding_box.convert_format(
             predictions,
