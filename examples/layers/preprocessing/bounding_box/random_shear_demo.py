@@ -12,10 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """
-random_shear_bboxdemo.py shows how to use the RandomShear preprocessing layer
-for object detection.Operates on the voc dataset.  In this script the images
-and bboxes are loaded, then are passed through the preprocessing layers.
-Finally, they are shown using matplotlib.
+random_shear_demo.py shows how to use the RandomShear preprocessing layer
+for object detection.
 """
 import demo_utils
 import tensorflow as tf

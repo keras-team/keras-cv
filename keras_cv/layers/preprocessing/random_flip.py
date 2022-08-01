@@ -38,10 +38,6 @@ class RandomFlip(BaseImageAugmentationLayer):
     `mode` attribute. During inference time, the output will be identical to
     input. Call the layer with `training=True` to flip the input.
 
-    Input pixel values can be of any range (e.g. `[0., 1.)` or `[0, 255]`) and
-    of integer or floating point dtype. By default, the layer will output
-    floats.
-
     Input shape:
       3D (unbatched) or 4D (batched) tensor with shape:
       `(..., height, width, channels)`, in `"channels_last"` format.
@@ -94,14 +90,14 @@ class RandomFlip(BaseImageAugmentationLayer):
         def flip_horizontal():
             return tf.image.flip_left_right(flipped_output)
 
-        def flip_vertical():
-            return tf.image.flip_up_down(flipped_output)
-
         flipped_output = tf.cond(
             tf.cast(transformation["flip_horizontal"], dtype=tf.bool),
             flip_horizontal,
             lambda: flipped_output,
         )
+
+        def flip_vertical():
+            return tf.image.flip_up_down(flipped_output)
 
         flipped_output = tf.cond(
             tf.cast(transformation["flip_vertical"], dtype=tf.bool),
@@ -156,6 +152,12 @@ class RandomFlip(BaseImageAugmentationLayer):
                 axis=-1,
             )
 
+        bounding_boxes_out = tf.cond(
+            tf.cast(transformation["flip_horizontal"], dtype=tf.bool),
+            flip_horizontal,
+            lambda: bounding_boxes_out,
+        )
+
         def flip_vertical():
             return tf.stack(
                 [
@@ -166,12 +168,6 @@ class RandomFlip(BaseImageAugmentationLayer):
                 ],
                 axis=-1,
             )
-
-        bounding_boxes_out = tf.cond(
-            tf.cast(transformation["flip_horizontal"], dtype=tf.bool),
-            flip_horizontal,
-            lambda: bounding_boxes_out,
-        )
 
         bounding_boxes_out = tf.cond(
             tf.cast(transformation["flip_vertical"], dtype=tf.bool),
