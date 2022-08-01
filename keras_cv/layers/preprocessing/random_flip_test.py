@@ -51,37 +51,6 @@ class RandomFlipTest(tf.test.TestCase):
         for mode in modes:
             self._run_test(mode)
 
-    def test_random_flip_horizontal_half(self):
-        np.random.seed(1337)
-        mock_random = [0.6, 0.2]
-        input_images = np.random.random((2, 2, 2, 1)).astype(np.float32)
-        expected_output = input_images.copy()
-        expected_output[0, :, :, :] = np.flip(input_images[0, :, :, :], axis=1)
-        layer = RandomFlip("horizontal")
-        with unittest.mock.patch.object(
-            layer._random_generator,
-            "random_uniform",
-            side_effect=mock_random,
-        ):
-            actual_output = layer(input_images, training=True)
-            self.assertAllClose(expected_output, actual_output)
-
-    def test_random_flip_vertical_half(self):
-        np.random.seed(1337)
-        mock_random = [0.6, 0.2]
-        input_images = np.random.random((2, 2, 2, 1)).astype(np.float32)
-        expected_output = input_images.copy()
-        expected_output[0, :, :, :] = np.flip(input_images[0, :, :, :], axis=0)
-        layer = RandomFlip("vertical")
-        with unittest.mock.patch.object(
-            layer._random_generator,
-            "random_uniform",
-            side_effect=mock_random,
-        ):
-
-            actual_output = layer(input_images, training=True)
-            self.assertAllClose(expected_output, actual_output)
-
     def test_random_flip_inference(self):
         input_images = np.random.random((2, 5, 8, 3)).astype(np.float32)
         expected_output = input_images
