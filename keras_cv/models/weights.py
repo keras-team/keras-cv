@@ -29,7 +29,8 @@ def parse_weights(weights, include_top, model_type):
     raise ValueError(
         "The `weights` argument should be either `None`, a the path to the "
         "weights file to be loaded, or the name of pre-trained weights from "
-        "`weights.py`.  Invalid `weights` argument: {weights}"
+        "https://github.com/keras-team/keras-cv/blob/master/keras_cv/models/weights.py. "
+        "Invalid `weights` argument: {weights}"
     )
 
 
