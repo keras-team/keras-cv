@@ -18,10 +18,11 @@ FLAGS = flags.FLAGS
 FLAGS(sys.argv)
 
 # Find the single validation logs in the supplied logs dir
-files = [filename for _, _, filename in os.walk(FLAGS.logs_path)]
-assert len(files) == 1
-assert len(files[0]) == 1
-filename = FLAGS.logs_path + "/" + files[0][0]
+files = os.listdir(FLAGS.logs_path)
+# Tensorboard logs are named based on timestamp, so the largest name alphabetically is the most recent.
+most_recent_file = max(files)
+
+filename = FLAGS.logs_path + "/" + most_recent_file
 
 events = [e for e in summary_iterator(filename)]
 
