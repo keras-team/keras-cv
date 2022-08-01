@@ -92,30 +92,30 @@ class RetinaNetTest(tf.test.TestCase):
         retina_net = keras_cv.applications.RetinaNet(
             num_classes=2,
             bounding_box_format="xywh",
-            backbone="resnet50",
+            backbone='resnet50',
             backbone_weights=None,
             include_rescaling=False,
         )
-        metric = keras_cv.metrics.COCOMeanAveragePrecision(
-            class_ids=range(1),
-            bounding_box_format="xywh",
-            name="Standard MaP",
-        )
         retina_net.compile(
             optimizer="adam",
-            loss=keras_cv.applications.RetinaNetLoss(num_classes=2),
-            metrics=[metric],
+            loss=keras_cv.applications.RetinaNetLoss(num_classes=2, reduction="sum"),
+            metrics=[
+                keras_cv.metrics.COCOMeanAveragePrecision(
+                    class_ids=range(1),
+                    bounding_box_format="xywh",
+                    name="Standard MaP",
+                )
+            ],
         )
 
         xs, ys = create_bounding_box_dataset(bounding_box_format)
         for _ in range(50):
-            retina_net.fit(xs, ys, epochs=1)
-            map = retina_net.evaluate(xs, return_dict=True)["Standard MaP"]
+            retina_net.fit(x=xs, y=ys, epochs=1)
+            map = retina_net.evaluate(x=xs, y=ys, return_dict=True)["Standard MaP"]
             if map == 1.0:
                 break
 
         self.assertEqual(metric.result(), 1.0)
-
 
 def create_bounding_box_dataset(bounding_box_format):
     xs = tf.ones((32, 512, 512, 3), tf.float32)
