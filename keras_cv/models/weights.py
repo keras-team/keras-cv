@@ -37,10 +37,10 @@ BASE_PATH = "https://storage.googleapis.com/keras-cv/models"
 WEIGHTS_CONFIG = {
     "densenet121": {
         # Current best weights are imagenet-v0
-        "imagenet/classification": "5c51af007f7f3722b50d9390db4b2082962d5ba1ab5d184c3f531f3886200894",
-        "imagenet/classification-notop": "ae7f98aff700fca5b28877e8a80750c465e0162a4098898c06d2b6c4b9e109c3",
-        "imagenet/classification-v0": "5c51af007f7f3722b50d9390db4b2082962d5ba1ab5d184c3f531f3886200894",
-        "imagenet/classification-v0-notop": "ae7f98aff700fca5b28877e8a80750c465e0162a4098898c06d2b6c4b9e109c3",
+        "imagenet/classification": "13de3d077ad9d9816b9a0acc78215201d9b6e216c7ed8e71d69cc914f8f0775b",
+        "imagenet/classification-notop": "709afe0321d9f2b2562e562ff9d0dc44cca10ed09e0e2cfba08d783ff4dab6bf",
+        "imagenet/classification-v0": "13de3d077ad9d9816b9a0acc78215201d9b6e216c7ed8e71d69cc914f8f0775b",
+        "imagenet/classification-v0-notop": "709afe0321d9f2b2562e562ff9d0dc44cca10ed09e0e2cfba08d783ff4dab6bf",
     },
     "densenet169": {},
     "densenet201": {},
