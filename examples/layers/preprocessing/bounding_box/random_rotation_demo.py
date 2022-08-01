@@ -12,8 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """
-   random_rotation_demo.py shows how to use the RandomRotation preprocessing layer
-   for object detection.
+random_rotation_demo.py shows how to use the RandomRotation preprocessing layer
+for object detection.
 """
 import demo_utils
 import tensorflow as tf

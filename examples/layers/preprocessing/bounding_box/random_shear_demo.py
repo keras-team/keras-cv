@@ -11,10 +11,10 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""random_shear_bboxdemo.py shows how to use the RandomShear preprocessing layer
-   for object detection.
-Operates on the voc dataset.  In this script the images and bboxes
-are loaded, then are passed through the preprocessing layers.
+"""
+random_shear_bboxdemo.py shows how to use the RandomShear preprocessing layer
+for object detection.Operates on the voc dataset.  In this script the images 
+and bboxes are loaded, then are passed through the preprocessing layers.
 Finally, they are shown using matplotlib.
 """
 import demo_utils
