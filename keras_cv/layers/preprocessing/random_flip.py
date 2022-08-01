@@ -168,13 +168,13 @@ class RandomFlip(BaseImageAugmentationLayer):
             )
 
         bounding_boxes_out = tf.cond(
-            transformation["flip_horizontal"],
+            tf.cast(transformation["flip_horizontal"], dtype=tf.bool),
             flip_horizontal,
             lambda: bounding_boxes_out,
         )
 
         bounding_boxes_out = tf.cond(
-            transformation["flip_vertical"],
+            tf.cast(transformation["flip_vertical"], dtype=tf.bool),
             flip_vertical,
             lambda: bounding_boxes_out,
         )
