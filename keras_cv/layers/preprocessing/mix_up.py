@@ -30,8 +30,8 @@ class MixUp(BaseImageAugmentationLayer):
         seed: Integer. Used to create a random seed.
 
     References:
-        [MixUp paper](https://arxiv.org/abs/1710.09412).
-        [MixUp for Object Detection paper](https://arxiv.org/pdf/1902.04103).
+        - [MixUp paper](https://arxiv.org/abs/1710.09412).
+        - [MixUp for Object Detection paper](https://arxiv.org/pdf/1902.04103).
 
     Sample usage:
     ```python
