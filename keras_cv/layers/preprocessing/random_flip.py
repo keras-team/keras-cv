@@ -122,7 +122,7 @@ class RandomFlip(BaseImageAugmentationLayer):
             "flip_horizontal": flip_horizontal,
             "flip_vertical": flip_vertical,
         }
-        
+
     def augment_bounding_boxes(
         self, bounding_boxes, transformation=None, image=None, **kwargs
     ):
