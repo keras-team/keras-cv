@@ -18,6 +18,7 @@ Reference:
 """
 
 import tensorflow as tf
+from tensorflow import keras
 from tensorflow.keras import backend
 from tensorflow.keras import layers
 
@@ -66,6 +67,8 @@ BASE_DOCSTRING = """Instantiates the {name} architecture.
         weights: one of `None` (random initialization), or a pretrained weight file
             path.
         input_shape: optional shape tuple, defaults to (None, None, 3).
+        input_tensor: optional Keras tensor (i.e. output of `layers.Input()`)
+            to use as image input for the model.
         pooling: optional pooling mode for feature extraction
             when `include_top` is `False`.
             - `None` means that the output of the model will be the 4D tensor output
@@ -167,6 +170,7 @@ def ResNet(
     name="ResNet",
     weights=None,
     input_shape=(None, None, 3),
+    input_tensor=None,
     pooling=None,
     num_classes=None,
     classifier_activation="softmax",
@@ -186,6 +190,8 @@ def ResNet(
         weights: one of `None` (random initialization),
             or the path to the weights file to be loaded.
         input_shape: optional shape tuple, defaults to (None, None, 3).
+        input_tensor: optional Keras tensor (i.e. output of `layers.Input()`)
+            to use as image input for the model.
         pooling: optional pooling mode for feature extraction
             when `include_top` is `False`.
             - `None` means that the output of the model will be
@@ -226,8 +232,14 @@ def ResNet(
             f"Received pooling={pooling} and include_top={include_top}. "
         )
 
-    img_input = layers.Input(shape=input_shape)
-    x = img_input
+    if input_tensor is None:
+        inputs = layers.Input(shape=input_shape)
+    else:
+        if not keras.backend.is_keras_tensor(input_tensor):
+            inputs = layers.Input(tensor=input_tensor, shape=input_shape)
+        else:
+            inputs = input_tensor
+    x = inputs
 
     if include_rescaling:
         x = layers.Rescaling(1 / 255.0)(x)
@@ -262,7 +274,7 @@ def ResNet(
             x = layers.GlobalMaxPooling2D(name="max_pool")(x)
 
     # Create model.
-    model = tf.keras.Model(img_input, x, name=name, **kwargs)
+    model = tf.keras.Model(inputs, x, name=name, **kwargs)
 
     if weights is not None:
         model.load_weights(weights)
@@ -276,6 +288,7 @@ def ResNet50(
     num_classes=None,
     weights=None,
     input_shape=(None, None, 3),
+    input_tensor=None,
     pooling=None,
     classifier_activation="softmax",
     name="resnet50",
@@ -292,6 +305,7 @@ def ResNet50(
         name=name,
         weights=weights,
         input_shape=input_shape,
+        input_tensor=input_tensor,
         pooling=pooling,
         num_classes=num_classes,
         classifier_activation=classifier_activation,
@@ -305,6 +319,7 @@ def ResNet101(
     num_classes=None,
     weights=None,
     input_shape=(None, None, 3),
+    input_tensor=None,
     pooling=None,
     classifier_activation="softmax",
     name="resnet101",
@@ -320,6 +335,7 @@ def ResNet101(
         include_top=include_top,
         weights=weights,
         input_shape=input_shape,
+        input_tensor=input_tensor,
         pooling=pooling,
         num_classes=num_classes,
         classifier_activation=classifier_activation,
@@ -333,6 +349,7 @@ def ResNet152(
     num_classes=None,
     weights=None,
     input_shape=(None, None, 3),
+    input_tensor=None,
     pooling=None,
     classifier_activation="softmax",
     name="resnet152",
@@ -348,6 +365,7 @@ def ResNet152(
         name=name,
         weights=weights,
         input_shape=input_shape,
+        input_tensor=input_tensor,
         pooling=pooling,
         num_classes=num_classes,
         classifier_activation=classifier_activation,

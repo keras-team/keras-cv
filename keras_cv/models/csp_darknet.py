@@ -40,6 +40,7 @@ def CSPDarkNet(
     num_classes=None,
     weights=None,
     input_shape=(None, None, 3),
+    input_tensor=None,
     pooling=None,
     classifier_activation="softmax",
     name=None,
@@ -75,6 +76,8 @@ def CSPDarkNet(
             specified.
         weights: one of `None` (random initialization), or a pretrained weight
             file path.
+        input_tensor: optional Keras tensor (i.e. output of `layers.Input()`)
+            to use as image input for the model.
         input_shape: optional shape tuple, defaults to (None, None, 3).
         pooling: optional pooling mode for feature extraction when `include_top`
             is `False`.
@@ -109,7 +112,13 @@ def CSPDarkNet(
     base_channels = int(width_multiplier * 64)
     base_depth = max(round(depth_multiplier * 3), 1)
 
-    inputs = layers.Input(shape=input_shape)
+    if input_tensor is None:
+        inputs = layers.Input(shape=input_shape)
+    else:
+        if not keras.backend.is_keras_tensor(input_tensor):
+            inputs = layers.Input(tensor=input_tensor, shape=input_shape)
+        else:
+            inputs = input_tensor
 
     x = inputs
     if include_rescaling:

@@ -87,6 +87,7 @@ def MLPMixer(
     include_rescaling,
     include_top,
     num_classes=None,
+    input_tensor=None,
     weights=None,
     pooling=None,
     classifier_activation="softmax",
@@ -123,6 +124,8 @@ def MLPMixer(
         if no `weights` argument is specified.
       weights: one of `None` (random initialization), or a pretrained
         weight file path.
+      input_tensor: optional Keras tensor (i.e. output of `layers.Input()`)
+        to use as image input for the model.
       pooling: optional pooling mode for feature extraction
         when `include_top` is `False`.
         - `None` means that the output of the model will be
@@ -182,7 +185,13 @@ def MLPMixer(
     if input_shape[0] % patch_size[0] != 0:
         raise ValueError("Input resolution should be divisible by the patch size.")
 
-    inputs = layers.Input(shape=input_shape)
+    if input_tensor is None:
+        inputs = layers.Input(shape=input_shape)
+    else:
+        if not keras.backend.is_keras_tensor(input_tensor):
+            inputs = layers.Input(tensor=input_tensor, shape=input_shape)
+        else:
+            inputs = input_tensor
 
     x = inputs
     if include_rescaling:
@@ -226,6 +235,7 @@ def MLPMixerB16(
     include_rescaling,
     include_top,
     num_classes=None,
+    input_tensor=None,
     weights=None,
     pooling=None,
     name="mlp_mixer_b16",
@@ -241,6 +251,7 @@ def MLPMixerB16(
         include_rescaling=include_rescaling,
         include_top=include_top,
         num_classes=num_classes,
+        input_tensor=input_tensor,
         weights=weights,
         pooling=pooling,
         name=name,
@@ -254,6 +265,7 @@ def MLPMixerB32(
     include_rescaling,
     include_top,
     num_classes=None,
+    input_tensor=None,
     weights=None,
     pooling=None,
     name="mlp_mixer_b32",
@@ -269,6 +281,7 @@ def MLPMixerB32(
         include_rescaling=include_rescaling,
         include_top=include_top,
         num_classes=num_classes,
+        input_tensor=input_tensor,
         weights=weights,
         pooling=pooling,
         name=name,
@@ -282,6 +295,7 @@ def MLPMixerL16(
     include_rescaling,
     include_top,
     num_classes=None,
+    input_tensor=None,
     weights=None,
     pooling=None,
     name="mlp_mixer_l16",
@@ -297,6 +311,7 @@ def MLPMixerL16(
         include_rescaling=include_rescaling,
         include_top=include_top,
         num_classes=num_classes,
+        input_tensor=input_tensor,
         weights=weights,
         pooling=pooling,
         name=name,
