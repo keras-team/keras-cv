@@ -70,11 +70,18 @@ class DecodePredictions(tf.keras.layers.Layer):
         return boxes
 
     def call(self, images, predictions):
-        image_shape = tf.cast(tf.shape(images), dtype=tf.float32)
-        anchor_boxes = self._anchor_box(image_shape[1], image_shape[2])
+        anchor_boxes = self._anchor_box(images)
         box_predictions = predictions[:, :, :4]
         cls_predictions = tf.nn.sigmoid(predictions[:, :, 4:])
+
+        classes = tf.math.argmax(cls_predictions, axis=-1)
+        classes = tf.cast(classes, box_predictions.dtype)
+        confidence = tf.math.reduce_max(cls_predictions, axis=-1)
+
+        classes = tf.expand_dims(classes, axis=-1)
+        confidence = tf.expand_dims(confidence, axis=-1)
+
         boxes = self._decode_box_predictions(anchor_boxes[None, ...], box_predictions)
-        boxes = tf.concat([boxes, cls_predictions], axis=-1)
+        boxes = tf.concat([boxes, classes, confidence], axis=-1)
 
         return self.non_max_suppression(boxes, images=images)

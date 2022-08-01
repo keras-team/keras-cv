@@ -106,11 +106,10 @@ class LabelEncoder(layers.Layer):
         box_target = box_target / self._box_variance
         return box_target
 
-    def _encode_sample(self, image_shape, gt_boxes):
+    def _encode_sample(self, gt_boxes, anchor_boxes):
         """Creates box and classification targets for a single sample"""
         cls_ids = gt_boxes[:, 4]
         gt_boxes = gt_boxes[:, :4]
-        anchor_boxes = self._anchor_box(image_shape[1], image_shape[2])
         cls_ids = tf.cast(cls_ids, dtype=tf.float32)
         matched_gt_idx, positive_mask, ignore_mask = self._match_anchor_boxes(
             anchor_boxes, gt_boxes
@@ -126,12 +125,20 @@ class LabelEncoder(layers.Layer):
         label = tf.concat([box_target, cls_target], axis=-1)
         return label
 
-    def call(self, batch_images, boxes):
+    def call(self, images, boxes):
         """Creates box and classification targets for a batch"""
         boxes = bounding_box.convert_format(
-            boxes, source=self.bounding_box_format, target="xywh"
+            boxes, source=self.bounding_box_format, target="xywh", images=images
         )
-        images_shape = tf.shape(batch_images)
+
+        anchor_boxes = self._anchor_box(images)
+
         if isinstance(boxes, tf.RaggedTensor):
             boxes = boxes.to_tensor(default_value=-1)
-        return tf.map_fn(elems=boxes, fn=lambda x: self._encode_sample(images_shape, x))
+
+        result = tf.map_fn(
+            elems=(images), fn=lambda x: self._encode_sample(x, anchor_boxes)
+        )
+        return bounding_box.convert_format(
+            result, source="xywh", target=self.bounding_box_format, images=images
+        )
