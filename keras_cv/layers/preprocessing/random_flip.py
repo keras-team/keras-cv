@@ -90,10 +90,24 @@ class RandomFlip(BaseImageAugmentationLayer):
 
     def augment_image(self, image, transformation, **kwargs):
         flipped_output = image
-        if transformation["flip_horizontal"]:
-            flipped_output = tf.image.flip_left_right(flipped_output)
-        if transformation["flip_vertical"]:
-            flipped_output = tf.image.flip_up_down(flipped_output)
+
+        def flip_horizontal():
+            return tf.image.flip_left_right(flipped_output)
+
+        def flip_vertical():
+            return tf.image.flip_up_down(flipped_output)
+
+        flipped_output = tf.cond(
+            tf.cast(transformation["flip_horizontal"], dtype=tf.bool),
+            flip_horizontal,
+            lambda: flipped_output,
+        )
+
+        flipped_output = tf.cond(
+            tf.cast(transformation["flip_vertical"], dtype=tf.bool),
+            flip_vertical,
+            lambda: flipped_output,
+        )
         flipped_output.set_shape(image.shape)
         return flipped_output
 
@@ -130,8 +144,9 @@ class RandomFlip(BaseImageAugmentationLayer):
         h = tf.cast(image_shape[H_AXIS], dtype="float32")
         w = tf.cast(image_shape[W_AXIS], dtype="float32")
         bounding_boxes_out = tf.identity(bounding_boxes)
-        if transformation["flip_horizontal"]:
-            bounding_boxes_out = tf.stack(
+
+        def flip_horizontal():
+            return tf.stack(
                 [
                     w - bounding_boxes_out[:, 2],
                     bounding_boxes_out[:, 1],
@@ -140,8 +155,9 @@ class RandomFlip(BaseImageAugmentationLayer):
                 ],
                 axis=-1,
             )
-        if transformation["flip_vertical"]:
-            bounding_boxes_out = tf.stack(
+
+        def flip_vertical():
+            return tf.stack(
                 [
                     bounding_boxes_out[:, 0],
                     h - bounding_boxes_out[:, 3],
@@ -150,6 +166,19 @@ class RandomFlip(BaseImageAugmentationLayer):
                 ],
                 axis=-1,
             )
+
+        bounding_boxes_out = tf.cond(
+            transformation["flip_horizontal"],
+            flip_horizontal,
+            lambda: bounding_boxes_out,
+        )
+
+        bounding_boxes_out = tf.cond(
+            transformation["flip_vertical"],
+            flip_vertical,
+            lambda: bounding_boxes_out,
+        )
+
         bounding_boxes_out = bounding_box.clip_to_image(
             bounding_boxes_out,
             bounding_box_format="xyxy",
