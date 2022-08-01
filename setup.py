@@ -32,6 +32,7 @@ setup(
     author_email="keras-cv@google.com",
     license="Apache License 2.0",
     install_requires=["packaging", "absl-py"],
+    python_requires=">=3.7",
     extras_require={
         "tests": ["flake8", "isort", "black", "pytest"],
         "examples": ["tensorflow_datasets", "matplotlib"],

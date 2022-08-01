@@ -31,7 +31,7 @@ class FourierMix(BaseImageAugmentationLayer):
             recommended in the paper.
         seed: Integer. Used to create a random seed.
     References:
-        [FMix paper](https://arxiv.org/abs/2002.12047).
+        - [FMix paper](https://arxiv.org/abs/2002.12047).
 
     Sample usage:
     ```python
