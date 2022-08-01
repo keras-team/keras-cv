@@ -67,7 +67,7 @@ model.backbone.trainable = False
 
 model.compile(
     optimizer=optimizer,
-    loss=keras_cv.applications.RetinaNetLoss(num_classes=20),
+    loss=keras_cv.applications.RetinaNetLoss(num_classes=20, reduction="sum"),
     metrics=[
         keras_cv.metrics.COCOMeanAveragePrecision(
             class_ids=range(20),
