@@ -15,9 +15,9 @@ import unittest
 
 import numpy as np
 import tensorflow as tf
+from absl.testing import parameterized
 
 from keras_cv.layers.preprocessing.random_flip import RandomFlip
-from absl.testing import parameterized
 
 
 class RandomFlipTest(tf.test.TestCase, parameterized.TestCase):
