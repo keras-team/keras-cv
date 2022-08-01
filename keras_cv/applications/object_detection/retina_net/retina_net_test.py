@@ -86,41 +86,41 @@ class RetinaNetTest(tf.test.TestCase):
                 ],
             )
 
-    #     TODO(lukewood): reintroduce this when FocalLoss is added.
-    def test_overfits_single_bounding_box(self):
-        bounding_box_format = "xywh"
-        retina_net = keras_cv.applications.RetinaNet(
-            num_classes=2,
-            bounding_box_format="xywh",
-            backbone='resnet50',
-            backbone_weights=None,
-            include_rescaling=False,
-        )
-        retina_net.compile(
-            optimizer="adam",
-            loss=keras_cv.applications.RetinaNetLoss(num_classes=2, reduction="sum"),
-            metrics=[
-                keras_cv.metrics.COCOMeanAveragePrecision(
-                    class_ids=range(1),
-                    bounding_box_format="xywh",
-                    name="Standard MaP",
-                )
-            ],
-        )
-
-        xs, ys = create_bounding_box_dataset(bounding_box_format)
-        for _ in range(50):
-            retina_net.fit(x=xs, y=ys, epochs=1)
-            map = retina_net.evaluate(x=xs, y=ys, return_dict=True)["Standard MaP"]
-            if map == 1.0:
-                break
-
-        self.assertEqual(metric.result(), 1.0)
-
-def create_bounding_box_dataset(bounding_box_format):
-    xs = tf.ones((32, 512, 512, 3), tf.float32)
-    ys = tf.ones((32, 4, 6), tf.float32)
-    ys = keras_cv.bounding_box.convert_format(
-        ys, source="xywh", target=bounding_box_format, dtype=tf.float32
-    )
-    return xs, ys
+#     #     TODO(lukewood): reintroduce this when FocalLoss is added.
+#     def test_overfits_single_bounding_box(self):
+#         bounding_box_format = "xywh"
+#         retina_net = keras_cv.applications.RetinaNet(
+#             num_classes=2,
+#             bounding_box_format="xywh",
+#             backbone='resnet50',
+#             backbone_weights=None,
+#             include_rescaling=False,
+#         )
+#         retina_net.compile(
+#             optimizer="adam",
+#             loss=keras_cv.applications.RetinaNetLoss(num_classes=2, reduction="sum"),
+#             metrics=[
+#                 keras_cv.metrics.COCOMeanAveragePrecision(
+#                     class_ids=range(1),
+#                     bounding_box_format="xywh",
+#                     name="Standard MaP",
+#                 )
+#             ],
+#         )
+#
+#         xs, ys = create_bounding_box_dataset(bounding_box_format)
+#         for _ in range(50):
+#             retina_net.fit(x=xs, y=ys, epochs=1)
+#             map = retina_net.evaluate(x=xs, y=ys, return_dict=True)["Standard MaP"]
+#             if map == 1.0:
+#                 break
+#
+#         self.assertEqual(metric.result(), 1.0)
+#
+# def create_bounding_box_dataset(bounding_box_format):
+#     xs = tf.ones((32, 512, 512, 3), tf.float32)
+#     ys = tf.ones((32, 4, 6), tf.float32)
+#     ys = keras_cv.bounding_box.convert_format(
+#         ys, source="xywh", target=bounding_box_format, dtype=tf.float32
+#     )
+#     return xs, ys
