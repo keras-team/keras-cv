@@ -12,10 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import pytest
 import tensorflow as tf
 from tensorflow.python.eager import context
+
 import keras_cv
-import pytest
+
 
 class RetinaNetTest(tf.test.TestCase):
     # TODO(after RetinaNetTest clean this up with the keras.session)
@@ -87,6 +89,7 @@ class RetinaNetTest(tf.test.TestCase):
                     ),
                 ],
             )
+
 
 #     TODO(lukewood): reintroduce this when FocalLoss is added.
 #     def test_overfits_single_bounding_box(self):
