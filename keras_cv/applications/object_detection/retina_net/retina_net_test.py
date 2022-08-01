@@ -13,11 +13,19 @@
 # limitations under the License.
 
 import tensorflow as tf
-
+from tensorflow.python.eager import context
 import keras_cv
-
+import pytest
 
 class RetinaNetTest(tf.test.TestCase):
+    # TODO(after RetinaNetTest clean this up with the keras.session)
+
+    @pytest.fixture(autouse=True)
+    def cleanup_global_session(self):
+        # Code before yield runs before the test
+        yield
+        tf.keras.backend.clear_session()
+
     def test_retina_net_construction(self):
         retina_net = keras_cv.applications.RetinaNet(
             num_classes=20,
@@ -51,7 +59,7 @@ class RetinaNetTest(tf.test.TestCase):
                 backbone_weights=None,
                 # Note no include_rescaling is provided
             )
-            # TODO(lukewood): test compile with the FocalLoss class
+        # TODO(lukewood): test compile with the FocalLoss class
 
     def test_all_metric_formats_must_match(self):
         retina_net = keras_cv.applications.RetinaNet(

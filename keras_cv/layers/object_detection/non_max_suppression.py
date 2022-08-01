@@ -109,14 +109,10 @@ class NonMaxSuppression(tf.keras.layers.Layer):
             target="yxyx",
             images=images,
         )
-        tf.print('incoming boxes.shape', tf.shape(boxes))
         # preparing the predictions for TF NMS op
         boxes = tf.expand_dims(predictions[..., :4], axis=2)
         classes = tf.cast(predictions[..., 4], tf.int32)
         scores = predictions[..., 5]
-        tf.print('scores.shape', tf.shape(scores))
-        tf.print('min score', tf.math.reduce_min(scores))
-        tf.print('max score', tf.math.reduce_max(scores))
 
         classes = tf.one_hot(classes, self.num_classes)
         scores = tf.expand_dims(scores, axis=-1) * classes
@@ -134,18 +130,14 @@ class NonMaxSuppression(tf.keras.layers.Layer):
 
         # output will be a ragged tensor because num_boxes will change across the batch
         boxes = self._decode_nms_boxes_to_tensor(nmsed_boxes)
-        tf.print('decoded_boxes.shape', tf.shape(boxes))
         # converting all boxes to the original format
         boxes = self._encode_to_ragged(boxes, nmsed_boxes.valid_detections)
-        tf.print('ragged boxes.shape', tf.shape(boxes))
-
         boxes = bounding_box.convert_format(
             boxes,
             source="yxyx",
             target=self.bounding_box_format,
             images=images,
         )
-        tf.print('boxes.shape after conversion', tf.shape(boxes))
 
         return boxes
 
