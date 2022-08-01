@@ -93,32 +93,35 @@ class NonMaxSuppressionTest(tf.test.TestCase):
 
         boxes = layer(predictions)
         self.assertEqual(boxes.shape, [3, None, 6])
-    
+
     def test_ragged_output_with_differing_shapes(self):
-        layer = NonMaxSuppression(8, "xywh", iou_threshold = 0.1)
+        layer = NonMaxSuppression(8, "xywh", iou_threshold=0.1)
         images = tf.ones((2, 480, 480, 3))
 
-        predictions = tf.convert_to_tensor([
-                        [
-                           [0, 0, 1, 1, 4, 0.9],
-                           [0, 0, 2, 3, 4, 0.76],
-                           [4, 5, 3, 6, 3, 0.89],
-                           [2, 2, 3, 3, 6, 0.04],
-                        ],
-                          [
-                           [0, 0, 5, 6, 4, 0.9],
-                           [0, 0, 7, 3, 1, 0.76],
-                           [4, 5, 5, 6, 4, 0.04],
-                           [2, 1, 3, 3, 7, 0.48],
-                        ],
-            ], dtype = tf.float32)
+        predictions = tf.convert_to_tensor(
+            [
+                [
+                    [0, 0, 1, 1, 4, 0.9],
+                    [0, 0, 2, 3, 4, 0.76],
+                    [4, 5, 3, 6, 3, 0.89],
+                    [2, 2, 3, 3, 6, 0.04],
+                ],
+                [
+                    [0, 0, 5, 6, 4, 0.9],
+                    [0, 0, 7, 3, 1, 0.76],
+                    [4, 5, 5, 6, 4, 0.04],
+                    [2, 1, 3, 3, 7, 0.48],
+                ],
+            ],
+            dtype=tf.float32,
+        )
 
         boxes = layer(predictions, images)
         self.assertEqual(boxes[0].shape, [2, 6])
         self.assertEqual(boxes[1].shape, [3, 6])
-        
+
     def test_ragged_output_with_zero_boxes(self):
-        layer = NonMaxSuppression(8, "xywh", confidence_threshold = 0.1)
+        layer = NonMaxSuppression(8, "xywh", confidence_threshold=0.1)
         images = tf.ones((2, 480, 480, 3))
 
         boxes = tf.cast(tf.random.uniform((3, 5, 4), 0, 480, tf.int32), tf.float32)
@@ -130,3 +133,16 @@ class NonMaxSuppressionTest(tf.test.TestCase):
         boxes = layer(predictions, images)
         self.assertEqual(boxes[0].shape, [0, 6])
         self.assertEqual(boxes[1].shape, [0, 6])
+
+    def test_input_box_shape(self):
+        layer = NonMaxSuppression(8, "xywh", confidence_threshold=0.1)
+        images = tf.ones((2, 480, 480, 3))
+
+        boxes = tf.cast(tf.random.uniform((3, 5, 5), 0, 480, tf.int32), tf.float32)
+        classes = tf.cast(tf.random.uniform((3, 5, 1), 0, 4, tf.int32), tf.float32)
+        scores = tf.random.uniform((3, 5, 1), 0, 0.1, tf.float32)
+
+        predictions = tf.concat([boxes, classes, scores], axis=-1)
+
+        with self.assertRaises(ValueError):
+            boxes = layer(predictions, images)
