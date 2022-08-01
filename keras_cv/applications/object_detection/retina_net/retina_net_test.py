@@ -14,8 +14,6 @@
 
 import pytest
 import tensorflow as tf
-from tensorflow.python.eager import context
-
 import keras_cv
 
 
