@@ -180,9 +180,9 @@ class ApplicationsTest(tf.test.TestCase, parameterized.TestCase):
 
     @parameterized.parameters(*MODEL_LIST)
     def test_model_can_be_used_as_backbone(self, app, last_dim, args):
-        inputs = keras.layers.Input(shape=(None, None, 3))
+        inputs = keras.layers.Input(shape=(224, 224, 3))
         backbone = app(
-            include_rescaling=False, include_top=False, input_tensor=inputs, **args
+            include_rescaling=False, include_top=False, input_tensor=inputs, pooling='avg', **args
         )
 
         x = inputs
