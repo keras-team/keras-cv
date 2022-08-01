@@ -109,7 +109,7 @@ class NonMaxSuppression(tf.keras.layers.Layer):
             target="yxyx",
             images=images,
         )
-
+        tf.print('incoming boxes.shape', tf.shape(boxes))
         # preparing the predictions for TF NMS op
         boxes = tf.expand_dims(predictions[..., :4], axis=2)
         classes = tf.cast(predictions[..., 4], tf.int32)
