@@ -203,7 +203,9 @@ def get_callbacks():
     return [
         callbacks.EarlyStopping(patience=30),
         callbacks.BackupAndRestore(FLAGS.backup_path),
-        callbacks.ModelCheckpoint(FLAGS.weights_path, save_weights_only=True),
+        callbacks.ModelCheckpoint(
+            FLAGS.weights_path, save_best_only=True, save_weights_only=True
+        ),
         callbacks.TensorBoard(log_dir=FLAGS.tensorboard_path),
     ]
 
