@@ -15,8 +15,8 @@
 
 import tensorflow as tf
 from absl.testing import parameterized
-from tensorflow.keras import backend
 from tensorflow import keras
+from tensorflow.keras import backend
 
 from keras_cv.models import csp_darknet
 from keras_cv.models import darknet
@@ -181,7 +181,9 @@ class ApplicationsTest(tf.test.TestCase, parameterized.TestCase):
     @parameterized.parameters(*MODEL_LIST)
     def test_model_can_be_used_as_backbone(self, app, last_dim, args):
         inputs = keras.layers.Input(shape=(None, None, 3))
-        backbone = app(include_rescaling=False, include_top=False, input_tensor=inputs, **args)
+        backbone = app(
+            include_rescaling=False, include_top=False, input_tensor=inputs, **args
+        )
 
         x = inputs
         x = backbone(x)
@@ -190,6 +192,7 @@ class ApplicationsTest(tf.test.TestCase, parameterized.TestCase):
 
         model = keras.Model(inputs=inputs, outputs=[backbone_output])
         model.compile()
+
 
 if __name__ == "__main__":
     tf.test.main()
