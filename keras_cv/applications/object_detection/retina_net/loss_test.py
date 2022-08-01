@@ -12,5 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from keras_cv.applications.object_detection.retina_net.retina_net import RetinaNet
-from keras_cv.applications.object_detection.retina_net.loss import RetinaNetLoss
+import pytest
+import tensorflow as tf
+import keras_cv
+
+
+class RetinaNetTest(tf.test.TestCase):
+    def test_requires_proper_bounding_box_shapes(self):

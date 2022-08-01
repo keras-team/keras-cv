@@ -21,7 +21,6 @@ from keras_cv.applications.object_detection.retina_net.__internal__.layers impor
 
 
 class RetinaNetTest(tf.test.TestCase):
-
     def test_decode_predictions_output_shapes(self):
         num_classes = 10
         images_shape = (8, 512, 1024, 3)

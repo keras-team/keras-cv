@@ -111,9 +111,11 @@ class NonMaxSuppression(tf.keras.layers.Layer):
         )
 
         if predictions.shape[-1] != 6:
-            raise ValueError("keras_cv.layers.NonMaxSuppression() expects `call()` "
-            "argument `predictions` to be of shape [None, None, 6].  Received "
-            f"predictions.shape={predictions.shape}.")
+            raise ValueError(
+                "keras_cv.layers.NonMaxSuppression() expects `call()` "
+                "argument `predictions` to be of shape [None, None, 6].  Received "
+                f"predictions.shape={predictions.shape}."
+            )
         # preparing the predictions for TF NMS op
         boxes = tf.expand_dims(predictions[..., :4], axis=2)
         classes = tf.cast(predictions[..., 4], tf.int32)

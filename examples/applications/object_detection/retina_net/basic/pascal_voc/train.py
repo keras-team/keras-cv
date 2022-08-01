@@ -17,7 +17,6 @@ import tensorflow as tf
 import wandb
 from absl import flags
 from loader import load_pascal_voc
-from loss import FocalLoss
 from tensorflow.keras import callbacks as callbacks_lib
 from wandb.keras import WandbCallback
 
@@ -65,7 +64,7 @@ model.backbone.trainable = False
 
 model.compile(
     optimizer=optimizer,
-    loss=FocalLoss(num_classes=20),
+    loss=keras_cv.applications.RetinaNetLoss(num_classes=20),
     metrics=[
         keras_cv.metrics.COCOMeanAveragePrecision(
             class_ids=range(20),

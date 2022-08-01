@@ -15,7 +15,7 @@
 import tensorflow as tf
 
 
-class FocalLoss(tf.keras.losses.Loss):
+class RetinaNetLoss(tf.keras.losses.Loss):
     def __init__(self, num_classes, alpha=0.25, gamma=2.0, delta=1.0, **kwargs):
         super().__init__(**kwargs)
         self.num_classes = num_classes
@@ -28,6 +28,14 @@ class FocalLoss(tf.keras.losses.Loss):
     def call(self, y_true, y_pred):
         box_labels = y_true[:, :, :4]
         box_predictions = y_pred[:, :, :4]
+
+        if y_true.shape[-1] != 5:
+            raise ValueError("y_true should have shape [None, None, 5].  Got "
+            f"y_true.shape={y_true.shape}")
+
+        if y_pred.shape[-1] != 6:
+            raise ValueError("y_pred should have shape [None, None, 5].  Got "
+            f"y_pred.shape={y_pred.shape}")
 
         cls_labels = tf.one_hot(
             tf.cast(y_true[:, :, 4], dtype=tf.int32),
