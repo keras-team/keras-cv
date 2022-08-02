@@ -29,6 +29,7 @@ NUM_CLASSES = 2
 BATCH_SIZE = 32
 EPOCHS = 20
 
+
 # Loading the TFDS dataset with batching, resizing, and one-hot encoding.
 def load_cats_vs_dogs():
     train_ds, test_ds = tfds.load(
