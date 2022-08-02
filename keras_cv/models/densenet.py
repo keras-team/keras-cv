@@ -23,6 +23,7 @@ from tensorflow import keras
 from tensorflow.keras import backend
 from tensorflow.keras import layers
 
+from keras_cv.models import utils
 from keras_cv.models.weights import parse_weights
 
 BN_AXIS = 3
@@ -48,6 +49,8 @@ BASE_DOCSTRING = """Instantiates the {name} architecture.
         weights: one of `None` (random initialization), a pretrained weight file
             path, or a reference to pre-trained weights (e.g. 'imagenet/classification') (see available pre-trained weights in weights.py)
         input_shape: optional shape tuple, defaults to (None, None, 3).
+        input_tensor: optional Keras tensor (i.e. output of `layers.Input()`)
+            to use as image input for the model.
         pooling: optional pooling mode for feature extraction
             when `include_top` is `False`.
             - `None` means that the output of the model will be the 4D tensor output
@@ -155,6 +158,7 @@ def DenseNet(
     num_classes=None,
     weights=None,
     input_shape=(None, None, 3),
+    input_tensor=None,
     pooling=None,
     classifier_activation="softmax",
     name="DenseNet",
@@ -182,6 +186,8 @@ def DenseNet(
         weights: one of `None` (random initialization), or a pretrained weight file
             path.
         input_shape: optional shape tuple, defaults to (None, None, 3).
+        input_tensor: optional Keras tensor (i.e. output of `layers.Input()`)
+            to use as image input for the model.
         pooling: optional pooling mode for feature extraction
             when `include_top` is `False`.
             - `None` means that the output of the model will be the 4D tensor output
@@ -205,7 +211,7 @@ def DenseNet(
             f"Received: num_classes={num_classes}"
         )
 
-    inputs = layers.Input(shape=input_shape)
+    inputs = utils.parse_model_inputs(input_shape, input_tensor)
 
     x = inputs
     if include_rescaling:
@@ -252,6 +258,7 @@ def DenseNet121(
     num_classes=None,
     weights=None,
     input_shape=(None, None, 3),
+    input_tensor=None,
     pooling=None,
     name="DenseNet121",
     **kwargs,
@@ -263,6 +270,7 @@ def DenseNet121(
         num_classes=num_classes,
         weights=parse_weights(weights, include_top, "densenet121"),
         input_shape=input_shape,
+        input_tensor=input_tensor,
         pooling=pooling,
         name=name,
         **kwargs,
@@ -275,6 +283,7 @@ def DenseNet169(
     num_classes=None,
     weights=None,
     input_shape=(None, None, 3),
+    input_tensor=None,
     pooling=None,
     name="DenseNet169",
     **kwargs,
@@ -286,6 +295,7 @@ def DenseNet169(
         num_classes=num_classes,
         weights=parse_weights(weights, include_top, "densenet169"),
         input_shape=input_shape,
+        input_tensor=input_tensor,
         pooling=pooling,
         name=name,
         **kwargs,
@@ -298,6 +308,7 @@ def DenseNet201(
     num_classes=None,
     weights=None,
     input_shape=(None, None, 3),
+    input_tensor=None,
     pooling=None,
     name="DenseNet201",
     **kwargs,
@@ -309,6 +320,7 @@ def DenseNet201(
         num_classes=num_classes,
         weights=parse_weights(weights, include_top, "densenet201"),
         input_shape=input_shape,
+        input_tensor=input_tensor,
         pooling=pooling,
         name=name,
         **kwargs,
