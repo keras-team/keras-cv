@@ -22,6 +22,7 @@ import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras import layers
 
+from keras_cv.models import utils
 from keras_cv.models.__internal__.darknet_utils import DarknetConvBlock
 from keras_cv.models.__internal__.darknet_utils import ResidualBlocks
 from keras_cv.models.__internal__.darknet_utils import SpatialPyramidPoolingBottleneck
@@ -50,6 +51,8 @@ BASE_DOCSTRING = """Instantiates the {name} architecture.
         weights: one of `None` (random initialization), or a pretrained weight
             file path.
         input_shape: optional shape tuple, defaults to (None, None, 3).
+        input_tensor: optional Keras tensor (i.e. output of `layers.Input()`)
+            to use as image input for the model.
         pooling: optional pooling mode for feature extraction when `include_top`
             is `False`.
             - `None` means that the output of the model will be the 4D tensor output
@@ -71,6 +74,7 @@ def DarkNet(
     num_classes=None,
     weights=None,
     input_shape=(None, None, 3),
+    input_tensor=None,
     pooling=None,
     classifier_activation="softmax",
     name=None,
@@ -101,6 +105,8 @@ def DarkNet(
         weights: one of `None` (random initialization), or a pretrained weight
             file path.
         input_shape: optional shape tuple, defaults to (None, None, 3).
+        input_tensor: optional Keras tensor (i.e. output of `layers.Input()`)
+            to use as image input for the model.
         pooling: optional pooling mode for feature extraction when `include_top`
             is `False`.
             - `None` means that the output of the model will be the 4D tensor output
@@ -129,7 +135,7 @@ def DarkNet(
             f"num_classes={num_classes}"
         )
 
-    inputs = layers.Input(shape=input_shape)
+    inputs = utils.parse_model_inputs(input_shape, input_tensor)
 
     x = inputs
     if include_rescaling:
@@ -209,6 +215,7 @@ def DarkNet21(
     num_classes=None,
     weights=None,
     input_shape=(None, None, 3),
+    input_tensor=None,
     pooling=None,
     name="DarkNet21",
     **kwargs,
@@ -220,6 +227,7 @@ def DarkNet21(
         num_classes=num_classes,
         weights=weights,
         input_shape=input_shape,
+        input_tensor=input_tensor,
         pooling=pooling,
         name=name,
         **kwargs,
@@ -232,6 +240,7 @@ def DarkNet53(
     num_classes=None,
     weights=None,
     input_shape=(None, None, 3),
+    input_tensor=None,
     pooling=None,
     name="DarkNet53",
     **kwargs,
@@ -243,6 +252,7 @@ def DarkNet53(
         num_classes=num_classes,
         weights=weights,
         input_shape=input_shape,
+        input_tensor=input_tensor,
         pooling=pooling,
         name=name,
         **kwargs,

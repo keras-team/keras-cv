@@ -24,6 +24,7 @@ import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras import layers
 
+from keras_cv.models import utils
 from keras_cv.models.__internal__.darknet_utils import CrossStagePartial
 from keras_cv.models.__internal__.darknet_utils import DarknetConvBlock
 from keras_cv.models.__internal__.darknet_utils import DarknetConvBlockDepthwise
@@ -40,6 +41,7 @@ def CSPDarkNet(
     num_classes=None,
     weights=None,
     input_shape=(None, None, 3),
+    input_tensor=None,
     pooling=None,
     classifier_activation="softmax",
     name=None,
@@ -75,6 +77,8 @@ def CSPDarkNet(
             specified.
         weights: one of `None` (random initialization), or a pretrained weight
             file path.
+        input_tensor: optional Keras tensor (i.e. output of `layers.Input()`)
+            to use as image input for the model.
         input_shape: optional shape tuple, defaults to (None, None, 3).
         pooling: optional pooling mode for feature extraction when `include_top`
             is `False`.
@@ -109,7 +113,7 @@ def CSPDarkNet(
     base_channels = int(width_multiplier * 64)
     base_depth = max(round(depth_multiplier * 3), 1)
 
-    inputs = layers.Input(shape=input_shape)
+    inputs = utils.parse_model_inputs(input_shape, input_tensor)
 
     x = inputs
     if include_rescaling:

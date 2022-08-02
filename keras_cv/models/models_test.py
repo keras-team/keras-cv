@@ -15,6 +15,7 @@
 
 import tensorflow as tf
 from absl.testing import parameterized
+from tensorflow import keras
 from tensorflow.keras import backend
 
 from keras_cv.models import csp_darknet
@@ -176,6 +177,25 @@ class ApplicationsTest(tf.test.TestCase, parameterized.TestCase):
             self.assertShapeEqual(output_shape, (None, num_patches, last_dim))
 
         backend.clear_session()
+
+    @parameterized.parameters(*MODEL_LIST)
+    def test_model_can_be_used_as_backbone(self, app, last_dim, args):
+        inputs = keras.layers.Input(shape=(224, 224, 3))
+        backbone = app(
+            include_rescaling=False,
+            include_top=False,
+            input_tensor=inputs,
+            pooling="avg",
+            **args
+        )
+
+        x = inputs
+        x = backbone(x)
+
+        backbone_output = backbone.get_layer(index=-1).output
+
+        model = keras.Model(inputs=inputs, outputs=[backbone_output])
+        model.compile()
 
 
 if __name__ == "__main__":
