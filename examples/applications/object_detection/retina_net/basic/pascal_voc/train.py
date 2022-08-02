@@ -51,8 +51,15 @@ val_ds = val_ds.map(unpackage_dict, num_parallel_calls=tf.data.AUTOTUNE)
 train_ds = train_ds.prefetch(tf.data.AUTOTUNE)
 val_ds = val_ds.prefetch(tf.data.AUTOTUNE)
 
-optimizer = tf.keras.optimizers.Adam(learning_rate=0.001 / 2, global_clipnorm=10.0)
+learning_rates = [2.5e-06, 0.000625, 0.00125, 0.0025, 0.00025, 2.5e-05]
+learning_rate_boundaries = [125, 250, 500, 240000, 360000]
+learning_rate_fn = tf.optimizers.schedules.PiecewiseConstantDecay(
+    boundaries=learning_rate_boundaries, values=learning_rates
+)
 
+optimizer = tf.optimizers.SGD(
+    learning_rate=learning_rate_fn, momentum=0.9, global_clipnorm=10.0
+)
 # TODO(lukewood): add FocalLoss to KerasCV
 
 # No rescaling

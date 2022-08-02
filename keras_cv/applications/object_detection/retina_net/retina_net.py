@@ -223,6 +223,8 @@ class RetinaNet(keras.Model):
             predictions = self(x, training=True)
             # predictions technically do not have a format
             # loss accepts
+
+            # TODO(lukewood): allow distinct 'classification' and 'box' loss objects.
             loss = self.compiled_loss(
                 y_training_target,
                 predictions["train_preds"],
