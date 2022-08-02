@@ -20,6 +20,8 @@ from loader import load_pascal_voc
 from tensorflow.keras import callbacks as callbacks_lib
 from wandb.keras import WandbCallback
 
+import loss as loss_lib
+
 import keras_cv
 
 flags.DEFINE_boolean("wandb", False, "Whether or not to use wandb.")
@@ -74,7 +76,7 @@ model.backbone.trainable = False
 
 model.compile(
     optimizer=optimizer,
-    loss=keras_cv.applications.RetinaNetLoss(num_classes=20, reduction="sum"),
+    loss=loss_lib.RetinaNetLoss(num_classes=20, reduction="auto"),
     metrics=[
         keras_cv.metrics.COCOMeanAveragePrecision(
             class_ids=range(20),
