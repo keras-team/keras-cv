@@ -2,53 +2,42 @@ import json
 import os
 import struct
 import sys
+import tensorboard as tb
 
-from absl import flags
 from tensorflow.python.summary.summary_iterator import summary_iterator
 
-flags.DEFINE_string("logs_path", None, "Path of TensorBoard validation logs to load")
-flags.DEFINE_string(
-    "training_script_json",
-    None,
-    "Path to the JSON file for run history for the producing training script",
-)
-flags.DEFINE_string("weights_version", None, "The version of these weights (e.g. 'v0')")
+training_script_path = input("Input the path to your training script\n")
+training_script_json_path = training_script_path.replace(".py", ".json")
 
-FLAGS = flags.FLAGS
-FLAGS(sys.argv)
+weights_version = input("Input the weights version for your script\n")
 
-# Find the single validation logs in the supplied logs dir
-files = os.listdir(FLAGS.logs_path)
-# Tensorboard logs are named based on timestamp, so the largest name alphabetically is the most recent.
-most_recent_file = max(files)
+tensorboard_logs_path = input('Input the path to the TensorBoard logs\n')
+tensorboard_experiment_id = os.popen(f"tensorboard dev upload --logdir {tensorboard_logs_path} --one_shot --verbose 0").read().split('/')[-2]
 
-filename = FLAGS.logs_path + "/" + most_recent_file
+tensorboard_experiment = tb.data.experimental.ExperimentFromDev(tensorboard_experiment_id)
 
-events = [e for e in summary_iterator(filename)]
+tensorboard_results = tensorboard_experiment.get_scalars()
 
-max_validation_accuracy = 0
-for event in events[1:]:
-    assert len(event.summary.value) == 1
-    if not event.summary.value[0].tag == "evaluation_accuracy_vs_iterations":
-        continue
-    validation_accuracy = struct.unpack(
-        "f", event.summary.value[0].tensor.tensor_content
-    )[0]
-    max_validation_accuracy = max(max_validation_accuracy, validation_accuracy)
+training_epochs = max(tensorboard_results[tensorboard_results.run == "train"].step)
+max_validation_accuracy = max(tensorboard_results[(tensorboard_results.run == "validation") & (tensorboard_results.tag == "epoch_accuracy")].value)
 
-max_validation_accuracy = f"{max_validation_accuracy:.4f}"
 
-print(f"Max validation accuracy: {max_validation_accuracy}")
 
-new_results = {FLAGS.weights_version: {"validation_accuracy": max_validation_accuracy}}
 
-# Check if the file already exists
-results_file = open(FLAGS.training_script_json, "r")
-results_string = results_file.read()
-results = json.loads(results_string) if results_string != "" else {}
-results_file.close()
 
-results_file = open(FLAGS.training_script_json, "w")
-results[FLAGS.weights_version] = {"validation_accuracy": max_validation_accuracy}
-json.dump(results, results_file)
-results_file.close()
+###
+#
+# max_validation_accuracy = None
+#
+# new_results = {weights_version: {"validation_accuracy": max_validation_accuracy, "tensorboard_logs": f"https://tensorboard.dev/experiment/{tensorboard_experiment_id}}/"}}
+#
+# # Check if the file already exists
+# results_file = open(FLAGS.training_script_json, "r")
+# results_string = results_file.read()
+# results = json.loads(results_string) if results_string != "" else {}
+# results_file.close()
+#
+# results_file = open(FLAGS.training_script_json, "w")
+# results[FLAGS.weights_version] = {"validation_accuracy": max_validation_accuracy}
+# json.dump(results, results_file)
+# results_file.close()
