@@ -86,12 +86,12 @@ class RandomFlip(BaseImageAugmentationLayer):
 
     def augment_image(self, image, transformation, **kwargs):
         flipped_output = tf.cond(
-            tf.cast(transformation["flip_horizontal"], dtype=tf.bool),
+            transformation["flip_horizontal"],
             lambda: tf.image.flip_left_right(image),
             lambda: image,
         )
         flipped_output = tf.cond(
-            tf.cast(transformation["flip_vertical"], dtype=tf.bool),
+            transformation["flip_vertical"],
             lambda: tf.image.flip_up_down(flipped_output),
             lambda: flipped_output,
         )
@@ -106,8 +106,8 @@ class RandomFlip(BaseImageAugmentationLayer):
         if self.vertical:
             flip_vertical = self._random_generator.random_uniform(shape=[]) > 0.5
         return {
-            "flip_horizontal": flip_horizontal,
-            "flip_vertical": flip_vertical,
+            "flip_horizontal": tf.cast(flip_horizontal, dtype=tf.bool),
+            "flip_vertical": tf.cast(flip_vertical, dtype=tf.bool),
         }
 
     def augment_bounding_boxes(
@@ -128,12 +128,12 @@ class RandomFlip(BaseImageAugmentationLayer):
             images=image,
         )
         bounding_boxes_out = tf.cond(
-            tf.cast(transformation["flip_horizontal"], dtype=tf.bool),
+            transformation["flip_horizontal"],
             lambda: self._flip_bounding_boxes_horizontal(bounding_boxes),
             lambda: bounding_boxes,
         )
         bounding_boxes_out = tf.cond(
-            tf.cast(transformation["flip_vertical"], dtype=tf.bool),
+            transformation["flip_vertical"],
             lambda: self._flip_bounding_boxes_vertical(bounding_boxes_out),
             lambda: bounding_boxes_out,
         )
