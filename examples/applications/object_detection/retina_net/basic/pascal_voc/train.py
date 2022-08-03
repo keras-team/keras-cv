@@ -40,7 +40,7 @@ FLAGS = flags.FLAGS
 
 try:
     FLAGS(sys.argv, known_only=True)
-except e:
+except:
     pass
 
 if FLAGS.wandb:
