@@ -153,9 +153,14 @@ test_ds = test_ds.prefetch(tf.data.AUTOTUNE)
 """
 Now we can begin training our model. We begin by loading a DenseNet model from KerasCV.
 Note that we also specify a distribution strategy while creating the model.
+Different distribution strategies may be used for different training hardware, as indicated below.
 """
 
-with tf.distribute.MirroredStrategy().scope():
+# For TPU training, use tf.distribute.TPUStrategy()
+# MirroredStrategy is best for a single machine with multiple GPUs
+strategy = tf.distribute.MirroredStrategy()
+
+with strategy.scope():
     model = DenseNet121(
         include_rescaling=True,
         include_top=True,
