@@ -99,3 +99,14 @@ class PosterizationTest(tf.test.TestCase):
         lookup_table &= mask
 
         return tf.cast(lookup_table[image], dtype)
+
+    def test_augment_bounding_box_dict_input(self):
+        bits = self._get_random_bits()
+        input_image = tf.random.uniform((2, 512, 512, 3), 0, 255, dtype=tf.float32)
+        bounding_boxes = tf.convert_to_tensor(
+            [[200, 200, 400, 400], [100, 100, 300, 300]]
+        )
+        input = {"images": input_image, "bounding_boxes": bounding_boxes}
+        layer = Posterization(bits=bits, value_range=[0, 255])
+        output = layer(input)
+        self.assertAllClose(bounding_boxes, output["bounding_boxes"])

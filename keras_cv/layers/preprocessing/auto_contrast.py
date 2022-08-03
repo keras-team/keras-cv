@@ -64,6 +64,9 @@ class AutoContrast(BaseImageAugmentationLayer):
         result = tf.where(tf.math.is_nan(result), original_image, result)
         return result
 
+    def augment_bounding_boxes(self, bounding_boxes, transformation, **kwargs):
+        return bounding_boxes
+
     def augment_label(self, label, transformation=None, **kwargs):
         return label
 

@@ -235,6 +235,9 @@ class GridMask(BaseImageAugmentationLayer):
 
         return tf.where(mask, fill_value, image)
 
+    def augment_bounding_boxes(self, bounding_boxes, transformation, **kwargs):
+        return bounding_boxes
+
     def augment_label(self, label, transformation=None, **kwargs):
         return label
 

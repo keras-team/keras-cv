@@ -90,6 +90,9 @@ class Posterization(BaseImageAugmentationLayer):
             target_range=self._value_range,
         )
 
+    def augment_bounding_boxes(self, bounding_boxes, transformation, **kwargs):
+        return bounding_boxes
+
     def _batch_augment(self, inputs):
         # Skip the use of vectorized_map or map_fn as the implementation is already
         # vectorized
