@@ -32,13 +32,14 @@ class LabelEncoder(layers.Layer):
             for more details on supported bounding box formats.
         anchor_box: Anchor box generator to encode the bounding boxes.
         box_variance: The scaling factors used to scale the bounding box targets.
+            Defaults to [0.1, 0.1, 0.2, 0.2].
     """
 
     def __init__(
         self,
         bounding_box_format,
         anchor_box_generator=None,
-        box_variance=None,
+        box_variance=(0.1, 0.1, 0.2, 0.2),
         **kwargs
     ):
         super().__init__(**kwargs)
@@ -46,8 +47,6 @@ class LabelEncoder(layers.Layer):
         self._anchor_box = anchor_box_generator or utils.AnchorBox(
             bounding_box_format=bounding_box_format
         )
-
-        box_variance = box_variance or [0.1, 0.1, 0.2, 0.2]
         self._box_variance = tf.convert_to_tensor(box_variance, dtype=tf.float32)
 
     def _match_anchor_boxes(

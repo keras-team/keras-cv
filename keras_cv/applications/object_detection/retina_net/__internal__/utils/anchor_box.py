@@ -31,13 +31,10 @@ class AnchorBox(tf.keras.layers.Layer):
             the anchor boxes at each location on the feature map
         scales: A list of float values representing the scale of the anchor boxes
             at each location on the feature map.
-        num_anchors: The number of anchor boxes at each location on feature map
-        areas: A list of float values representing the areas of the anchor
-            boxes for each feature map in the feature pyramid.
         strides: A list of float value representing the strides for each feature
             map in the feature pyramid.
-
-    To customize these values, please fork the RetinaNet model repo.
+        areas: A list of float values representing the areas of the anchor
+            boxes for each feature map in the feature pyramid.
     """
 
     def __init__(
@@ -60,9 +57,7 @@ class AnchorBox(tf.keras.layers.Layer):
         self._anchor_dims = self._compute_dims()
 
     def _compute_dims(self):
-        """Computes anchor box dimensions for all ratios and scales at all levels
-        of the feature pyramid.
-        """
+        """Computes anchor box dimensions at all levels of the feature pyramid."""
         anchor_dims_all = []
         for area in self._areas:
             anchor_dims = []
@@ -79,7 +74,8 @@ class AnchorBox(tf.keras.layers.Layer):
 
     def _get_anchors(self, feature_height, feature_width, level):
         """Generates anchor boxes for a given feature map size and level
-        Arguments:
+
+        Args:
           feature_height: An integer representing the height of the feature map.
           feature_width: An integer representing the width of the feature map.
           level: An integer representing the level of the feature map in the
