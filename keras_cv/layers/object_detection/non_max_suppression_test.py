@@ -19,7 +19,7 @@ from keras_cv.layers import NonMaxSuppression
 
 class NonMaxSuppressionTest(tf.test.TestCase):
     def test_return_shapes(self):
-        layer = NonMaxSuppression(num_classes=4, bounding_box_format="xyWH")
+        layer = NonMaxSuppression(classes=4, bounding_box_format="xyWH")
         images = tf.ones((3, 480, 480, 3))
 
         boxes = tf.cast(tf.random.uniform((3, 5, 4), 0, 480, tf.int32), tf.float32)
@@ -32,7 +32,7 @@ class NonMaxSuppressionTest(tf.test.TestCase):
         self.assertEqual(boxes.shape, [3, None, 6])
 
     def test_non_square_images(self):
-        layer = NonMaxSuppression(num_classes=4, bounding_box_format="xyxy")
+        layer = NonMaxSuppression(classes=4, bounding_box_format="xyxy")
 
         boxes = tf.cast(tf.random.uniform((2, 5, 4), 0, 480, tf.int32), tf.float32)
         classes = tf.cast(tf.random.uniform((2, 5, 1), 0, 4, tf.int32), tf.float32)
@@ -51,7 +51,7 @@ class NonMaxSuppressionTest(tf.test.TestCase):
         self.assertEqual(boxes.shape, [2, None, 6])
 
     def test_different_channels(self):
-        layer = NonMaxSuppression(num_classes=4, bounding_box_format="xyWH")
+        layer = NonMaxSuppression(classes=4, bounding_box_format="xyWH")
         images = tf.ones((3, 480, 480, 5))
 
         boxes = tf.cast(tf.random.uniform((3, 5, 4), 0, 480, tf.int32), tf.float32)
@@ -66,7 +66,7 @@ class NonMaxSuppressionTest(tf.test.TestCase):
     def test_in_a_model(self):
         input1 = tf.keras.layers.Input([5, 6])
         input2 = tf.keras.layers.Input([480, 480, 3])
-        layer = NonMaxSuppression(num_classes=4, bounding_box_format="xyWH")
+        layer = NonMaxSuppression(classes=4, bounding_box_format="xyWH")
         outputs = layer(input1, input2)
 
         model = tf.keras.models.Model(inputs=[input1, input2], outputs=outputs)
@@ -83,7 +83,7 @@ class NonMaxSuppressionTest(tf.test.TestCase):
         self.assertEqual(boxes.shape, [3, None, 6])
 
     def test_without_images(self):
-        layer = NonMaxSuppression(num_classes=4, bounding_box_format="xyWH")
+        layer = NonMaxSuppression(classes=4, bounding_box_format="xyWH")
 
         boxes = tf.cast(tf.random.uniform((3, 5, 4), 0, 480, tf.int32), tf.float32)
         classes = tf.cast(tf.random.uniform((3, 5, 1), 0, 4, tf.int32), tf.float32)

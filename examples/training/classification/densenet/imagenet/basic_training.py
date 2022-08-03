@@ -60,7 +60,7 @@ flags.DEFINE_string(
 FLAGS = flags.FLAGS
 FLAGS(sys.argv)
 
-NUM_CLASSES = 1000
+classes = 1000
 BATCH_SIZE = 256
 IMAGE_SIZE = (224, 224)
 EPOCHS = 250
@@ -92,7 +92,7 @@ def parse_imagenet_example(example):
 
     # Decode label
     label = tf.cast(tf.reshape(parsed[label_key], shape=()), dtype=tf.int32) - 1
-    label = tf.one_hot(label, NUM_CLASSES)
+    label = tf.one_hot(label, classes)
     return image, label
 
 
@@ -156,7 +156,7 @@ def get_model():
     return DenseNet121(
         include_rescaling=True,
         include_top=True,
-        classes=NUM_CLASSES,
+        classes=classes,
         input_shape=IMAGE_SIZE + (3,),
     )
 
