@@ -40,7 +40,7 @@ class RetinaNetTest(tf.test.TestCase):
             classification_loss=keras_cv.losses.FocalLoss(
                 from_logits=True, reduction="none"
             ),
-            box_loss=keras_cv.losses.SmoothL1Loss(cutoff=1.0, reduction="none"),
+            box_loss=keras_cv.losses.SmoothL1Loss(l1_cutoff=1.0, reduction="none"),
             reduction="auto",
         )
         retina_net.compile(
@@ -124,7 +124,7 @@ class RetinaNetTest(tf.test.TestCase):
             classification_loss=keras_cv.losses.FocalLoss(
                 from_logits=True, reduction="none"
             ),
-            box_loss=keras_cv.losses.SmoothL1Loss(delta=1.0, reduction="none"),
+            box_loss=keras_cv.losses.SmoothL1Loss(l1_cutoff=1.0, reduction="none"),
             reduction="sum",
         )
         retina_net.compile(

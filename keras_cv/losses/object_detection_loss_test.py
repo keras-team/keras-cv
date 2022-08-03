@@ -25,7 +25,7 @@ class ObjectDetectionLossTest(tf.test.TestCase, parameterized.TestCase):
             classification_loss=keras_cv.losses.FocalLoss(
                 from_logits=True, reduction="none"
             ),
-            box_loss=keras_cv.losses.SmoothL1Loss(cutoff=1.0, reduction="none"),
+            box_loss=keras_cv.losses.SmoothL1Loss(l1_cutoff=1.0, reduction="none"),
             reduction="auto",
         )
 
@@ -52,7 +52,7 @@ class ObjectDetectionLossTest(tf.test.TestCase, parameterized.TestCase):
             classification_loss=keras_cv.losses.FocalLoss(
                 from_logits=True, reduction="none"
             ),
-            box_loss=keras_cv.losses.SmoothL1Loss(cutoff=1.0, reduction="none"),
+            box_loss=keras_cv.losses.SmoothL1Loss(l1_cutoff=1.0, reduction="none"),
             reduction=reduction,
         )
         result = loss(
