@@ -14,6 +14,7 @@
 
 import pytest
 import tensorflow as tf
+
 import keras_cv
 
 
@@ -85,6 +86,7 @@ class RetinaNetTest(tf.test.TestCase):
                     ),
                 ],
             )
+
 
 #     #     TODO(lukewood): reintroduce this when FocalLoss is added.
 #     def test_overfits_single_bounding_box(self):

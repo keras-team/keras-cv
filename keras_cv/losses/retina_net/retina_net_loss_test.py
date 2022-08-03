@@ -14,8 +14,9 @@
 
 import pytest
 import tensorflow as tf
-import keras_cv
 from absl.testing import parameterized
+
+import keras_cv
 
 
 class RetinaNetTest(tf.test.TestCase, parameterized.TestCase):

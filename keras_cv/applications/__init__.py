@@ -12,5 +12,5 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from keras_cv.applications.object_detection.retina_net.retina_net import RetinaNet
 from keras_cv.applications.object_detection.retina_net.loss import RetinaNetLoss
+from keras_cv.applications.object_detection.retina_net.retina_net import RetinaNet
