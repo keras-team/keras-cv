@@ -112,11 +112,11 @@ class NonMaxSuppression(tf.keras.layers.Layer):
 
         # preparing the predictions for TF NMS op
         boxes = tf.expand_dims(predictions[..., :4], axis=2)
-        targets = tf.cast(predictions[..., 4], tf.int32)
+        class_predictions = tf.cast(predictions[..., 4], tf.int32)
         scores = predictions[..., 5]
 
-        targets = tf.one_hot(targets, self.classes)
-        scores = tf.expand_dims(scores, axis=-1) * targets
+        class_predictions = tf.one_hot(class_predictions, self.classes)
+        scores = tf.expand_dims(scores, axis=-1) * class_predictions
 
         # applying the NMS operation
         nmsed_boxes = tf.image.combined_non_max_suppression(
