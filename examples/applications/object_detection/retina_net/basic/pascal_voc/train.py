@@ -42,6 +42,7 @@ try:
     FLAGS(sys.argv, known_only=True)
 except e:
     pass
+
 if FLAGS.wandb:
     wandb.init(project="pascalvoc-retinanet", entity="keras-team-testing")
 
