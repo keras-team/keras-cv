@@ -26,8 +26,8 @@ from absl import flags
 from tensorflow.keras import callbacks
 from tensorflow.keras import layers
 from tensorflow.keras import losses
-from tensorflow.keras import optimizers
 from tensorflow.keras import metrics
+from tensorflow.keras import optimizers
 
 import keras_cv
 from keras_cv.models import DenseNet121
@@ -175,12 +175,12 @@ Next, we pick an optimizer. Here we use Adam with a linearly decaying learning r
 
 
 optimizer = optimizers.Adam(
-        learning_rate=optimizers.schedules.PolynomialDecay(
-            initial_learning_rate=0.005,
-            decay_steps=int(train_ds.cardinality().numpy()) * EPOCHS / 2,
-            end_learning_rate=0.0001,
-        )
+    learning_rate=optimizers.schedules.PolynomialDecay(
+        initial_learning_rate=0.005,
+        decay_steps=int(train_ds.cardinality().numpy()) * EPOCHS / 2,
+        end_learning_rate=0.0001,
     )
+)
 
 
 """
