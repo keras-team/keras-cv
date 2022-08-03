@@ -216,6 +216,7 @@ model.compile(
     optimizer=optimizer,
     loss=loss_fn,
     metrics=metrics,
+    jit_compile=True,
 )
 
 model.fit(
