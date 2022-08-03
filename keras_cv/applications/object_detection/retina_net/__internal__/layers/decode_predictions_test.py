@@ -12,10 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import pytest
 import tensorflow as tf
 
-import keras_cv
 from keras_cv.applications.object_detection.retina_net.__internal__.layers import (
     DecodePredictions,
 )
