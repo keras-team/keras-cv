@@ -28,7 +28,6 @@ from absl import flags
 from tensorflow import keras
 from tensorflow.keras import callbacks as callbacks_lib
 from tensorflow.keras import optimizers
-from wandb.keras import WandbCallback
 
 import keras_cv
 from keras_cv import bounding_box
@@ -298,7 +297,7 @@ callbacks = [
 ]
 if FLAGS.wandb:
     callbacks += [
-        WandbCallback(save_model=False),
+        wandb.keras.WandbCallback(save_model=False),
     ]
 
 """
