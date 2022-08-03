@@ -194,7 +194,7 @@ class RetinaNet(keras.Model):
             target=self.bounding_box_format,
             images=x,
         )
-        return {"train_preds": train_preds, "inference": pred_for_inference}
+        return {"train_predictions": train_preds, "inference": pred_for_inference}
 
     def _encode_data(self, x, y):
         y_for_metrics = y
@@ -227,7 +227,7 @@ class RetinaNet(keras.Model):
             # TODO(lukewood): allow distinct 'classification' and 'box' loss objects.
             loss = self.compiled_loss(
                 y_training_target,
-                predictions["train_preds"],
+                predictions["train_predictions"],
                 regularization_losses=self.losses,
             )
 
@@ -250,7 +250,7 @@ class RetinaNet(keras.Model):
         predictions = self(x)
         loss = self.compiled_loss(
             y_training_target,
-            predictions["train_preds"],
+            predictions["train_predictions"],
             regularization_losses=self.losses,
         )
 

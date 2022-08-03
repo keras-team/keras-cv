@@ -60,6 +60,20 @@ class RetinaNetTest(tf.test.TestCase):
             )
         # TODO(lukewood): test compile with the FocalLoss class
 
+    def test_retina_net_call(self):
+        retina_net = keras_cv.applications.RetinaNet(
+            num_classes=20,
+            bounding_box_format="xywh",
+            backbone="resnet50",
+            backbone_weights=None,
+            include_rescaling=True,
+        )
+        images = tf.random.uniform((2, 512, 512, 3))
+        outputs = retina_net(images)
+        self.assertIn('inference', outputs)
+        self.assertIn('train_predictions', outputs)
+
+
     def test_all_metric_formats_must_match(self):
         retina_net = keras_cv.applications.RetinaNet(
             num_classes=20,
