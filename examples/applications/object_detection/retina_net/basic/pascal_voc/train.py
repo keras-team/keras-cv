@@ -22,7 +22,10 @@ Description: Use KerasCV to train a RetinaNet on Pascal VOC 2007.
 
 """
 # Overview
-TODO
+
+KerasCV offers a complete set of APIs to allow you to train your own state of the art
+production grade object detection model.  These APIs include object detection specific
+data augmentation techniques, models, and COCO metrics.
 
 To get started, lets sort out all of our imports and create some global constants.  To
 support long training runs, [Weights & Biases](https://wandb.ai), and dynamic batch
@@ -31,17 +34,18 @@ sizing we define some constants as command line flags.
 
 import sys
 
+import matplotlib.pyplot as plt
 import tensorflow as tf
 import tensorflow_datasets as tfds
-from matplotlib.pyplot import plt
 import wandb
 from absl import flags
-from loader import load_pascal_voc
-from tensorflow.keras import callbacks as callbacks_lib
-from wandb.keras import WandbCallback
 from tensorflow import keras
-from keras_cv import bounding_box
+from tensorflow.keras import callbacks as callbacks_lib
+from tensorflow.keras import optimizers
+from wandb.keras import WandbCallback
+
 import keras_cv
+from keras_cv import bounding_box
 
 flags.DEFINE_boolean("wandb", False, "Whether or not to use wandb.")
 flags.DEFINE_integer("batch_size", 8, "Training and eval batch size.")
@@ -56,10 +60,11 @@ if FLAGS.wandb:
 """
 ## Data Loading
 
-First, lets get started by writing a function: `load_pascal_voc()`.  When working with
-KerasCV, it is recommended that your data loader support a `bounding_box_format`
-argument.  This allows makes it very clear to those invoking your data loader what
-format the bounding boxes are in.
+First, lets get started by writing a function: `load_pascal_voc()`.  KerasCV supports a
+`bounding_box_format` argument in all components that process bounding boxes.  To match
+the KerasCV style, it is recommended that when writing a data loader, you support a
+`bounding_box_format` argument.  This allows makes it very clear to those invoking your
+data loader what format the bounding boxes are in.
 
 For example:
 ```
@@ -67,7 +72,7 @@ load_pascal_voc(split='train', bounding_box_format='xywh', batch_size=8)
 ```
 
 Very clearly yields bounding boxes in the format `xywh`.  You can read more about
-KerasCV bounding box formats at {LINK}.
+[KerasCV bounding box formats in the API docs](https://keras.io/api/keras_cv/bounding_box/formats/).
 """
 
 
@@ -110,46 +115,55 @@ def load_pascal_voc(
     dataset = dataset.apply(
         tf.data.experimental.dense_to_ragged_batch(batch_size=batch_size)
     )
-    dataset = dataset.prefetch(tf.data.AUTOTUNE)
     return dataset
 
-"""
-Next, lets load our data and verify that the boxes look right.
-"""
-
-dataset = load_pascal_voc(
-    split="train", bounding_box_format="rel_yxyx", batch_size=9
-)
-
-example = next(iter(dataset.take(1)))
-images, boxes = example["images"], example["bounding_boxes"]
-boxes = boxes.to_tensor(default_value=-1)
-color = tf.constant(((255.0, 0, 0),))
-plotted_images = tf.image.draw_bounding_boxes(
-    images, boxes[..., :4], color, name=None
-)
-plt.figure(figsize=(10, 10))
-for i in range(batch_size):
-    plt.subplot(batch_size // 3, batch_size // 3, i + 1)
-    plt.imshow(plotted_images[i].numpy().astype("uint8"))
-    plt.axis("off")
-plt.show()
 
 """
-Great!  Now we can begin constructing our training pipeline
+Great!  Our data is now loaded into the format
+`{"images": images, "bounding_boxes": bounding_boxes}`.  This format is supported in all
+KerasCV preprocessing components.
+
+Lets load some data and verify that our data looks as we expect it to.
+"""
+
+dataset = load_pascal_voc(split="train", bounding_box_format="xywh", batch_size=9)
+
+
+def visualize_dataset(dataset, bounding_box_format):
+    color = tf.constant(((255.0, 0, 0),))
+    plt.figure(figsize=(10, 10))
+    iterator = iter(dataset)
+    for i in range(9):
+        example = next(iterator)
+        images, boxes = example["images"], example["bounding_boxes"]
+        boxes = keras_cv.bounding_box.convert_format(
+            boxes, source=bounding_box_format, target="rel_yxyx", images=images
+        )
+        boxes = boxes.to_tensor(default_value=-1)
+        plotted_images = tf.image.draw_bounding_boxes(images, boxes[..., :4], color)
+        plt.subplot(9 // 3, 9 // 3, i + 1)
+        plt.imshow(plotted_images[0].numpy().astype("uint8"))
+        plt.axis("off")
+    plt.show()
+
+
+visualize_dataset(dataset, bounding_box_format="xywh")
+"""
+Looks like everything is structured as expected.  Now we can move on to constructing our
+data augmentation pipeline.
 """
 
 """
 # Data Augmentation
 
-One of the most labor intensive tasks when constructing object detection pipeliens is data
-augmentation.  Image augmentation techniques must be aware of the underlying bounding
-boxes, and must update them accordingly.
+One of the most labor intensive tasks when constructing object detection pipeliens is
+data augmentation.  Image augmentation techniques must be aware of the underlying
+bounding boxes, and must update them accordingly.
 
 Luckily, KerasCV natively supports bounding box augmentation with its extensive library
-of [data augmentation layers](TODO).  The code below loads the Pascal VOC dataset,
-and performs on-the-fly bounding box friendly data augmentation inside of a `tf.data`
-pipeline.
+of [data augmentation layers](https://keras.io/api/keras_cv/layers/preprocessing/).
+The code below loads the Pascal VOC dataset, and performs on-the-fly bounding box
+friendly data augmentation inside of a `tf.data` pipeline.
 """
 # train_ds is batched as a (images, bounding_boxes) tuple
 # bounding_boxes are ragged
@@ -161,19 +175,32 @@ val_ds = load_pascal_voc(
 )
 
 augmentation_layers = [
-    keras_cv.layers.RandomRotation(factor=0.2),
+    # keras_cv.layers.RandomShear(x_factor=0.1, bounding_box_format='xywh'),
     # TODO(lukewood): add color jitter and others
 ]
+
 
 def augment(sample):
     for layer in augmentation_layers:
         sample = layer(sample)
     return sample
 
+
+train_ds = train_ds.map(augment, num_parallel_calls=tf.data.AUTOTUNE)
+
+visualize_dataset(train_ds, bounding_box_format="xywh")
+
+"""
+Great!  We now have a bounding box friendly augmentation pipeline.
+
+Next, lets unpackage our inputs from the preprocessing dictionary, and prepare to feed
+the inputs into our model.
+"""
+
+
 def unpackage_dict(inputs):
     return inputs["images"], inputs["bounding_boxes"]
 
-train_ds = train_ds.map(augment, num_parallel_calls=tf.data.AUTOTUNE)
 
 train_ds = train_ds.map(unpackage_dict, num_parallel_calls=tf.data.AUTOTUNE)
 val_ds = val_ds.map(unpackage_dict, num_parallel_calls=tf.data.AUTOTUNE)
@@ -182,13 +209,13 @@ train_ds = train_ds.prefetch(tf.data.AUTOTUNE)
 val_ds = val_ds.prefetch(tf.data.AUTOTUNE)
 
 """
-Great!  We now have a bounding box friendly augmentation pipeline.
+Our data pipeline is now complete.  We can now move on to model creation and training.
 """
 
 """
 ## Model Creation
 
-Next, we'll use the KerasCV API to construct a RetinaNet model.  In this tutorial we use
+We'll use the KerasCV API to construct a RetinaNet model.  In this tutorial we use
 a pretrained ResNet50 backbone using weights.  In order to perform fine tuning, we
 freeze the backbone before training.  When `include_rescaling=True` is set, inputs to
 the model are expected to be in the range [0, 255].
@@ -204,68 +231,115 @@ model = keras_cv.applications.RetinaNet(
 model.backbone.trainable = False
 
 """
+That is all it takes to construct a KerasCV RetinaNet.  The RetinaNet accepts tuples of
+dense image Tensors and ragged bounding box Tensors to `fit()` and `train_on_batch()`
+This matches what we have constructed in our input pipeline above.
+
+The RetinaNet call method outputs two values: training targets and inference targets.
+In this guide, we are primarily concerned with the inference targets.  Internally, the
+training targets are used by `keras_cv.losses.RetinaNetLoss()` to train the network.
+"""
+
+"""
 ## Optimizer
 
-For training, we use
+For training, we use a SGD optimizer with a piece-wise learning rate schedule
+consisting of a warm up followed by a ramp up, then a ramp.
+Below, we construct this using a `keras.optimizers.schedules.PiecewiseConstantDecay`
+schedule.
 """
 
 learning_rates = [2.5e-06, 0.000625, 0.00125, 0.0025, 0.00025, 2.5e-05]
 learning_rate_boundaries = [125, 250, 500, 240000, 360000]
-learning_rate_fn = tf.optimizers.schedules.PiecewiseConstantDecay(
+learning_rate_fn = optimizers.schedules.PiecewiseConstantDecay(
     boundaries=learning_rate_boundaries, values=learning_rates
 )
 
-optimizer = tf.optimizers.SGD(
+optimizer = optimizers.SGD(
     learning_rate=learning_rate_fn, momentum=0.9, global_clipnorm=10.0
 )
-# TODO(lukewood): add FocalLoss to KerasCV
 
 """
-## Training
+## COCO Metric Integration
+
+KerasCV offers a suite of in-graph COCO metrics that support batch-wise evaluation.
+More information on these metrics is available in:
+
+- [Efficient Graph-Friendly COCO Metric Computation for Train-Time Model Evaluation](https://arxiv.org/abs/2207.12120)
+- [Using KerasCV COCO Metrics](https://keras.io/guides/keras_cv/coco_metrics/)
+
+Lets construct two COCO metrics, an instance of
+`keras_cv.metrics.COCOMeanAveragePrecision` with the parameterization to match the
+standard COCO Mean Average Precision metric, and `keras_cv.metrics.COCORecall`
+parameterized to match the standard COCO Recall metric.
+"""
+
+metrics = [
+    keras_cv.metrics.COCOMeanAveragePrecision(
+        class_ids=range(20),
+        bounding_box_format="xywh",
+        name="Mean Average Precision",
+    ),
+    keras_cv.metrics.COCORecall(
+        class_ids=range(20),
+        bounding_box_format="xywh",
+        max_detections=100,
+        name="Recall",
+    ),
+]
+
+"""
+## Training Our Model
+
+All that is left to do is train our model.  KerasCV object detection models follow the
+standard Keras workflow, leveraging `compile()` and `fit()`.
+
+Let's compile our model:
 """
 
 model.compile(
-    optimizer=optimizer,
     loss=keras_cv.losses.RetinaNetLoss(num_classes=20, reduction="auto"),
-    metrics=[
-        keras_cv.metrics.COCOMeanAveragePrecision(
-            class_ids=range(20),
-            bounding_box_format="xywh",
-            name="Mean Average Precision",
-        ),
-        keras_cv.metrics.COCORecall(
-            class_ids=range(20),
-            bounding_box_format="xywh",
-            max_detections=100,
-            name="Recall",
-        ),
-    ],
+    optimizer=optimizer,
+    metrics=metrics,
 )
 
 """
-Finally, all that is left to do is run `model.fit()`.
+All that is left to do is construct some callbacks:
 """
 
 callbacks = [
     callbacks_lib.TensorBoard(log_dir="logs"),
     callbacks_lib.EarlyStopping(patience=30),
 ]
-
 if FLAGS.wandb:
     callbacks += [
         WandbCallback(save_model=False),
     ]
 
+"""
+and run `model.fit()`!
+"""
+
 model.fit(
     train_ds,
     validation_data=val_ds,
-    epochs=500,
+    epochs=FLAGS.epochs,
     callbacks=callbacks,
 )
 
 """
 ## Results and Conclusions
 
-TODO(lukewood): 
+KerasCV makes it easy to construct state of the art object detection pipelines.  All of
+the KerasCV object detection components can be used independently, but also have deep
+integration with each other.  With KerasCV, bounding box augmentation, train time COCO
+metric  evaluation, and more are all made simple.
+
+By default, this script runs for a single epoch.  To run this script to convergence,
+invoke the script with a command line flag `--epochs=500`.  To save you the effort of
+running the script for 500 epochs, I have produced a Weights and Biases report covering
+the training results below!  As a bonus, the report includes a training run with and
+without data augmentation.
+
 TODO(lukewood): add link to the WandB run.
 """
