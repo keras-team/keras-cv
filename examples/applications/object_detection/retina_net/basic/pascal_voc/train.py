@@ -37,8 +37,11 @@ flags.DEFINE_integer("batch_size", 8, "Training and eval batch size.")
 flags.DEFINE_integer("epochs", 1, "Number of training epochs.")
 
 FLAGS = flags.FLAGS
-FLAGS(sys.argv)
 
+try:
+    FLAGS(sys.argv, known_only=True)
+except e:
+    pass
 if FLAGS.wandb:
     wandb.init(project="pascalvoc-retinanet", entity="keras-team-testing")
 
