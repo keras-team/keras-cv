@@ -24,28 +24,26 @@ def PredictionHead(output_filters, bias_initializer):
       bias_initializer: Bias Initializer for the final convolution layer.
 
     Returns:
-      A keras sequential model representing either the classification
+      A function representing either the classification
         or the box regression head depending on `output_filters`.
     """
-    head = keras.Sequential([keras.Input(shape=[None, None, 256])])
-    for _ in range(4):
-        head.add(
-            keras.layers.Conv2D(
+
+    def apply(x):
+        for _ in range(4):
+            x = keras.layers.Conv2D(
                 256,
                 3,
                 padding="same",
                 kernel_initializer=tf.initializers.RandomNormal(0.0, 0.01),
-            )
-        )
-        head.add(keras.layers.ReLU())
-    head.add(
-        keras.layers.Conv2D(
+                activation="relu",
+            )(x)
+        x = keras.layers.Conv2D(
             output_filters,
             3,
             1,
             padding="same",
             kernel_initializer=tf.initializers.RandomNormal(0.0, 0.01),
             bias_initializer=bias_initializer,
-        )
-    )
-    return head
+        )(x)
+
+    return apply
