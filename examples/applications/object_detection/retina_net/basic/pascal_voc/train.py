@@ -57,7 +57,7 @@ data loader what format the bounding boxes are in.
 
 For example:
 ```
-load_pascal_voc(split='train', bounding_box_format='xywh', batch_size=8)
+train_ds = load_pascal_voc(split='train', bounding_box_format='xywh', batch_size=8)
 ```
 
 Very clearly yields bounding boxes in the format `xywh`.  You can read more about
@@ -210,7 +210,7 @@ the model are expected to be in the range [0, 255].
 """
 
 model = keras_cv.applications.RetinaNet(
-    num_classes=20,
+    classes=20,
     bounding_box_format="xywh",
     backbone="resnet50",
     backbone_weights="imagenet",
@@ -225,7 +225,8 @@ This matches what we have constructed in our input pipeline above.
 
 The RetinaNet call method outputs two values: training targets and inference targets.
 In this guide, we are primarily concerned with the inference targets.  Internally, the
-training targets are used by `keras_cv.losses.RetinaNetLoss()` to train the network.
+training targets are used by `keras_cv.losses.ObjectDetectionLoss()` to train the
+network.
 """
 
 """
@@ -285,8 +286,15 @@ standard Keras workflow, leveraging `compile()` and `fit()`.
 Let's compile our model:
 """
 
+loss=keras_cv.losses.ObjectDetectionLoss(
+    classes=20,
+    classification_loss=keras_cv.losses.FocalLoss(from_logits=True, reduction='none'),
+    box_loss=keras_cv.losses.SmoothL1Loss(cutoff=1.0, reduction='none'),
+    reduction="auto"
+)
+
 model.compile(
-    loss=keras_cv.losses.RetinaNetLoss(num_classes=20, reduction="auto"),
+    loss=loss,
     optimizer=optimizer,
     metrics=metrics,
 )

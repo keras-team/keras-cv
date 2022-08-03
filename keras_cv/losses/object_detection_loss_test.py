@@ -19,9 +19,14 @@ from absl.testing import parameterized
 import keras_cv
 
 
-class RetinaNetTest(tf.test.TestCase, parameterized.TestCase):
+class ObjectDetectionLossTest(tf.test.TestCase, parameterized.TestCase):
     def test_requires_proper_bounding_box_shapes(self):
-        loss = keras_cv.losses.RetinaNetLoss(num_classes=20, reduction="none")
+        loss=keras_cv.losses.ObjectDetectionLoss(
+            classes=20,
+            classification_loss=keras_cv.losses.FocalLoss(from_logits=True, reduction='none'),
+            box_loss=keras_cv.losses.SmoothL1Loss(cutoff=1.0, reduction='none'),
+            reduction="auto"
+        )
 
         with self.assertRaisesRegex(ValueError, "y_true should have shape"):
             loss(
@@ -41,7 +46,12 @@ class RetinaNetTest(tf.test.TestCase, parameterized.TestCase):
         ("sum_over_batch_size", "sum_over_batch_size", ()),
     )
     def test_proper_output_shapes(self, reduction, target_size):
-        loss = keras_cv.losses.RetinaNetLoss(num_classes=20, reduction=reduction)
+        loss=keras_cv.losses.ObjectDetectionLoss(
+            classes=20,
+            classification_loss=keras_cv.losses.FocalLoss(from_logits=True, reduction='none'),
+            box_loss=keras_cv.losses.SmoothL1Loss(cutoff=1.0, reduction='none'),
+            reduction=reduction
+        )
         result = loss(
             y_true=tf.random.uniform((20, 300, 5)),
             y_pred=tf.random.uniform((20, 300, 24)),

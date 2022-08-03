@@ -31,14 +31,14 @@ class RetinaNet(keras.Model):
     """A Keras model implementing the RetinaNet architecture.
 
     Implements the RetinaNet architecture for object detection.  The constructor
-    requires `num_classes`, `bounding_box_format` and a `backbone`.  Optionally, a
+    requires `classes`, `bounding_box_format` and a `backbone`.  Optionally, a
     custom label encoder, feature pyramid network, and prediction decoder may all be
     provided.
 
     Usage:
     ```
     retina_net = keras_cv.applications.RetinaNet(
-        num_classes=20,
+        classes=20,
         bounding_box_format="xywh",
         backbone="resnet50",
         backbone_weights="imagenet",
@@ -47,9 +47,9 @@ class RetinaNet(keras.Model):
     ```
 
     Args:
-        num_classes: the number of classes in your dataset excluding the background
+        classes: the number of classes in your dataset excluding the background
             class.  Classes should be represented by integers in the range
-            [0, num_classes).
+            [0, classes).
         bounding_box_format: The format of bounding boxes of input dataset. Refer
             https://github.com/keras-team/keras-cv/blob/master/keras_cv/bounding_box/converters.py
             for more details on supported bounding box formats.
@@ -83,7 +83,7 @@ class RetinaNet(keras.Model):
 
     def __init__(
         self,
-        num_classes,
+        classes,
         bounding_box_format,
         backbone,
         include_rescaling=None,
@@ -108,7 +108,7 @@ class RetinaNet(keras.Model):
             )
 
         self.bounding_box_format = bounding_box_format
-        self.num_classes = num_classes
+        self.classes = classes
         self.backbone = _parse_backbone(backbone, include_rescaling, backbone_weights)
 
         self.label_encoder = label_encoder or utils_lib.LabelEncoder(
@@ -118,13 +118,13 @@ class RetinaNet(keras.Model):
 
         prior_probability = tf.constant_initializer(-np.log((1 - 0.01) / 0.01))
         self.classification_head = layers_lib.PredictionHead(
-            output_filters=9 * num_classes, bias_initializer=prior_probability
+            output_filters=9 * classes, bias_initializer=prior_probability
         )
         self.box_head = layers_lib.PredictionHead(
             output_filters=9 * 4, bias_initializer="zeros"
         )
         self.prediction_decoder = prediction_decoder or layers_lib.DecodePredictions(
-            num_classes=num_classes, bounding_box_format=bounding_box_format
+            classes=classes, bounding_box_format=bounding_box_format
         )
         self._metrics_bounding_box_format = None
 
@@ -173,7 +173,7 @@ class RetinaNet(keras.Model):
         for feature in features:
             box_outputs.append(tf.reshape(self.box_head(feature), [N, -1, 4]))
             cls_outputs.append(
-                tf.reshape(self.classification_head(feature), [N, -1, self.num_classes])
+                tf.reshape(self.classification_head(feature), [N, -1, self.classes])
             )
 
         cls_outputs = tf.concat(cls_outputs, axis=1)
@@ -224,7 +224,7 @@ class RetinaNet(keras.Model):
             # predictions technically do not have a format
             # loss accepts
 
-            # TODO(lukewood): allow distinct 'classification' and 'box' loss objects.
+            # TODO(lukewood): allow distinct 'classification' and 'box' loss metrics
             loss = self.compiled_loss(
                 y_training_target,
                 predictions["train_predictions"],

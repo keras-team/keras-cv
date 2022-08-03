@@ -17,6 +17,7 @@ import tensorflow as tf
 
 import keras_cv
 
+tf.debugging.disable_traceback_filtering()
 
 class RetinaNetTest(tf.test.TestCase):
     @pytest.fixture(autouse=True)
@@ -27,14 +28,20 @@ class RetinaNetTest(tf.test.TestCase):
 
     def test_retina_net_construction(self):
         retina_net = keras_cv.applications.RetinaNet(
-            num_classes=20,
+            classes=20,
             bounding_box_format="xywh",
             backbone="resnet50",
             backbone_weights=None,
             include_rescaling=True,
         )
+        loss=keras_cv.losses.ObjectDetectionLoss(
+            classes=20,
+            classification_loss=keras_cv.losses.FocalLoss(from_logits=True, reduction='none'),
+            box_loss=keras_cv.losses.SmoothL1Loss(cutoff=1.0, reduction='none'),
+            reduction="auto"
+        )
         retina_net.compile(
-            loss="mse",
+            loss=loss,
             optimizer="adam",
             metrics=[
                 keras_cv.metrics.COCOMeanAveragePrecision(
@@ -52,7 +59,7 @@ class RetinaNetTest(tf.test.TestCase):
     def test_retina_net_include_rescaling_required_with_default_backbone(self):
         with self.assertRaises(ValueError):
             _ = keras_cv.applications.RetinaNet(
-                num_classes=20,
+                classes=20,
                 bounding_box_format="xywh",
                 backbone="resnet50",
                 backbone_weights=None,
@@ -62,7 +69,7 @@ class RetinaNetTest(tf.test.TestCase):
 
     def test_retina_net_call(self):
         retina_net = keras_cv.applications.RetinaNet(
-            num_classes=20,
+            classes=20,
             bounding_box_format="xywh",
             backbone="resnet50",
             backbone_weights=None,
@@ -75,7 +82,7 @@ class RetinaNetTest(tf.test.TestCase):
 
     def test_all_metric_formats_must_match(self):
         retina_net = keras_cv.applications.RetinaNet(
-            num_classes=20,
+            classes=20,
             bounding_box_format="xywh",
             backbone="resnet50",
             backbone_weights=None,
@@ -103,15 +110,21 @@ class RetinaNetTest(tf.test.TestCase):
     def test_fit_coco_metrics(self):
         bounding_box_format = "xywh"
         retina_net = keras_cv.applications.RetinaNet(
-            num_classes=2,
+            classes=2,
             bounding_box_format="xywh",
             backbone="resnet50",
             backbone_weights=None,
             include_rescaling=False,
         )
+        loss=keras_cv.losses.ObjectDetectionLoss(
+            classes=2,
+            classification_loss=keras_cv.losses.FocalLoss(from_logits=True, reduction='none'),
+            box_loss=keras_cv.losses.SmoothL1Loss(delta=1.0, reduction='none'),
+            reduction="sum"
+        )
         retina_net.compile(
             optimizer="adam",
-            loss=keras_cv.losses.RetinaNetLoss(num_classes=2, reduction="sum"),
+            loss=loss,
             metrics=[
                 keras_cv.metrics.COCOMeanAveragePrecision(
                     class_ids=range(1),

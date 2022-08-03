@@ -12,4 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from keras_cv.losses.retina_net.retina_net_loss import RetinaNetLoss
+from keras_cv.losses.smooth_l1 import SmoothL1Loss
+from keras_cv.losses.focal import FocalLoss
+from keras_cv.losses.object_detection_loss import ObjectDetectionLoss

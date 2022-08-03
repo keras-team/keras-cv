@@ -22,7 +22,7 @@ class DecodePredictions(tf.keras.layers.Layer):
     """A Keras layer that decodes predictions of the RetinaNet model.
 
     Attributes:
-      num_classes: Number of classes in the dataset.
+      classes: Number of classes in the dataset.
       confidence_threshold: Minimum class probability, below which detections are
         pruned.
       nms_iou_threshold: IOU threshold for the NMS operation.
@@ -33,7 +33,7 @@ class DecodePredictions(tf.keras.layers.Layer):
 
     def __init__(
         self,
-        num_classes,
+        classes,
         bounding_box_format,
         confidence_threshold=0.05,
         iou_threshold=0.5,
@@ -46,7 +46,7 @@ class DecodePredictions(tf.keras.layers.Layer):
         self.bounding_box_format = bounding_box_format
         self.non_max_suppression = NonMaxSuppression(
             bounding_box_format=bounding_box_format,
-            num_classes=num_classes,
+            classes=classes,
             confidence_threshold=confidence_threshold,
             iou_threshold=iou_threshold,
             max_detections=max_detections,
