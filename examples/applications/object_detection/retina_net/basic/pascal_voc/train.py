@@ -286,11 +286,11 @@ standard Keras workflow, leveraging `compile()` and `fit()`.
 Let's compile our model:
 """
 
-loss=keras_cv.losses.ObjectDetectionLoss(
+loss = keras_cv.losses.ObjectDetectionLoss(
     classes=20,
-    classification_loss=keras_cv.losses.FocalLoss(from_logits=True, reduction='none'),
-    box_loss=keras_cv.losses.SmoothL1Loss(cutoff=1.0, reduction='none'),
-    reduction="auto"
+    classification_loss=keras_cv.losses.FocalLoss(from_logits=True, reduction="none"),
+    box_loss=keras_cv.losses.SmoothL1Loss(cutoff=1.0, reduction="none"),
+    reduction="auto",
 )
 
 model.compile(

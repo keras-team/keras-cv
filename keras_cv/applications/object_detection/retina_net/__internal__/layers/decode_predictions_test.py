@@ -31,9 +31,7 @@ class RetinaNetTest(tf.test.TestCase):
         predictions = tf.random.uniform(
             shape=predictions_shape, minval=0.0, maxval=1.0, dtype=tf.float32
         )
-        layer = DecodePredictions(
-            classes=classes, bounding_box_format="rel_xyxy"
-        )
+        layer = DecodePredictions(classes=classes, bounding_box_format="rel_xyxy")
 
         result = layer(images=images, predictions=predictions)
 

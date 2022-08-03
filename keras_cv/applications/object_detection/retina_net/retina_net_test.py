@@ -19,6 +19,7 @@ import keras_cv
 
 tf.debugging.disable_traceback_filtering()
 
+
 class RetinaNetTest(tf.test.TestCase):
     @pytest.fixture(autouse=True)
     def cleanup_global_session(self):
@@ -34,11 +35,13 @@ class RetinaNetTest(tf.test.TestCase):
             backbone_weights=None,
             include_rescaling=True,
         )
-        loss=keras_cv.losses.ObjectDetectionLoss(
+        loss = keras_cv.losses.ObjectDetectionLoss(
             classes=20,
-            classification_loss=keras_cv.losses.FocalLoss(from_logits=True, reduction='none'),
-            box_loss=keras_cv.losses.SmoothL1Loss(cutoff=1.0, reduction='none'),
-            reduction="auto"
+            classification_loss=keras_cv.losses.FocalLoss(
+                from_logits=True, reduction="none"
+            ),
+            box_loss=keras_cv.losses.SmoothL1Loss(cutoff=1.0, reduction="none"),
+            reduction="auto",
         )
         retina_net.compile(
             loss=loss,
@@ -116,11 +119,13 @@ class RetinaNetTest(tf.test.TestCase):
             backbone_weights=None,
             include_rescaling=False,
         )
-        loss=keras_cv.losses.ObjectDetectionLoss(
+        loss = keras_cv.losses.ObjectDetectionLoss(
             classes=2,
-            classification_loss=keras_cv.losses.FocalLoss(from_logits=True, reduction='none'),
-            box_loss=keras_cv.losses.SmoothL1Loss(delta=1.0, reduction='none'),
-            reduction="sum"
+            classification_loss=keras_cv.losses.FocalLoss(
+                from_logits=True, reduction="none"
+            ),
+            box_loss=keras_cv.losses.SmoothL1Loss(delta=1.0, reduction="none"),
+            reduction="sum",
         )
         retina_net.compile(
             optimizer="adam",

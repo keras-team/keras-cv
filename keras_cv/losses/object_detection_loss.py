@@ -14,6 +14,7 @@
 
 import tensorflow as tf
 
+
 class ObjectDetectionLoss(tf.keras.losses.Loss):
     """ObjectDetectionLoss formats object detection predictions for loss computation.
 
@@ -29,24 +30,28 @@ class ObjectDetectionLoss(tf.keras.losses.Loss):
     """
 
     def __init__(
-        self, classes, classification_loss, box_loss, reduction='auto', **kwargs
+        self, classes, classification_loss, box_loss, reduction="auto", **kwargs
     ):
         super().__init__(**kwargs, reduction=reduction)
 
         # TODO(lukewood): can we just update reductions to 'none'?
-        if classification_loss.reduction != 'none':
-            raise ValueError("When using `keras_cv.losses.ObjectDetectionLoss()`, "
-            "please pass `reduction='none'` to both `classification_loss` and "
-            "`box_loss` and pass `reduction` to `keras_cv.losses.ObjectDetectionLoss()` "
-            "to handle reduction.  Received "
-            f"classification_loss.reduction={classification_loss.reduction}")
+        if classification_loss.reduction != "none":
+            raise ValueError(
+                "When using `keras_cv.losses.ObjectDetectionLoss()`, "
+                "please pass `reduction='none'` to both `classification_loss` and "
+                "`box_loss` and pass `reduction` to `keras_cv.losses.ObjectDetectionLoss()` "
+                "to handle reduction.  Received "
+                f"classification_loss.reduction={classification_loss.reduction}"
+            )
 
-        if box_loss.reduction != 'none':
-            raise ValueError("When using `keras_cv.losses.ObjectDetectionLoss()`, "
-            "please pass `reduction='none'` to both `classification_loss` and "
-            "`box_loss` and pass `reduction` to `keras_cv.losses.ObjectDetectionLoss()` "
-            "to handle reduction.  Received "
-            f"box_loss.reduction={box_loss.reduction}")
+        if box_loss.reduction != "none":
+            raise ValueError(
+                "When using `keras_cv.losses.ObjectDetectionLoss()`, "
+                "please pass `reduction='none'` to both `classification_loss` and "
+                "`box_loss` and pass `reduction` to `keras_cv.losses.ObjectDetectionLoss()` "
+                "to handle reduction.  Received "
+                f"box_loss.reduction={box_loss.reduction}"
+            )
 
         self.classes = classes
         self.classification_loss = classification_loss
@@ -92,4 +97,4 @@ class ObjectDetectionLoss(tf.keras.losses.Loss):
         )
         box_loss = tf.math.divide_no_nan(tf.reduce_sum(box_loss, axis=-1), normalizer)
 
-        return  box_loss + classification_loss
+        return box_loss + classification_loss

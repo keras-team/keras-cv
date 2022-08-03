@@ -14,10 +14,21 @@
 
 import pytest
 import tensorflow as tf
+from absl.testing import parameterized
+
 import keras_cv
 
 
-class SmoothL1LossTest(tf.test.TestCase):
-
-    def test_smooth_l1_loss_delta_value(self):
-        loss = keras_cv.losses.SmoothL1Loss(delta=0.5)
+class SmoothL1LossTest(tf.test.TestCase, parameterized.TestCase):
+    @parameterized.named_parameters(
+        ("none", "none", (20,)),
+        ("sum", "sum", ()),
+        ("sum_over_batch_size", "sum_over_batch_size", ()),
+    )
+    def test_proper_output_shapes(self, reduction, target_size):
+        loss = keras_cv.losses.SmoothL1Loss(cutoff=0.5, reduction=reduction)
+        result = loss(
+            y_true=tf.random.uniform((20, 300)),
+            y_pred=tf.random.uniform((20, 300)),
+        )
+        self.assertEqual(result.shape, target_size)
