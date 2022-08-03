@@ -180,6 +180,7 @@ class RandomFlip(BaseImageAugmentationLayer):
         config = {
             "mode": self.mode,
             "seed": self.seed,
+            "bounding_box_format": self.bounding_box_format,
         }
         base_config = super().get_config()
         return dict(list(base_config.items()) + list(config.items()))
