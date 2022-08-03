@@ -21,23 +21,41 @@ from keras_cv.layers.preprocessing.random_flip import RandomFlip
 
 
 class RandomFlipTest(tf.test.TestCase, parameterized.TestCase):
-    @parameterized.named_parameters(
-        ("random_flip_horizontal", "horizontal"),
-        ("random_flip_vertical", "vertical"),
-        ("random_flip_both", "horizontal_and_vertical"),
-    )
-    def test_random_flip(self, mode):
+    def test_horizontal_flip(self):
         np.random.seed(1337)
         mock_random = [0.6, 0.6]
-        if mode == "horizontal_and_vertical":
-            mock_random *= 2
         inp = np.random.random((2, 5, 8, 3))
-        expected_output = inp
-        if mode == "horizontal" or mode == "horizontal_and_vertical":
-            expected_output = np.flip(expected_output, axis=2)
-        if mode == "vertical" or mode == "horizontal_and_vertical":
-            expected_output = np.flip(expected_output, axis=1)
-        layer = RandomFlip(mode)
+        expected_output = np.flip(inp, axis=2)
+        layer = RandomFlip("horizontal")
+        with unittest.mock.patch.object(
+            layer._random_generator,
+            "random_uniform",
+            side_effect=mock_random,
+        ):
+            actual_output = layer(inp, training=True)
+            self.assertAllClose(expected_output, actual_output)
+
+    def test_vertical_flip(self):
+        np.random.seed(1337)
+        mock_random = [0.6, 0.6]
+        inp = np.random.random((2, 5, 8, 3))
+        expected_output = np.flip(inp, axis=1)
+        layer = RandomFlip("vertical")
+        with unittest.mock.patch.object(
+            layer._random_generator,
+            "random_uniform",
+            side_effect=mock_random,
+        ):
+            actual_output = layer(inp, training=True)
+            self.assertAllClose(expected_output, actual_output)
+
+    def test_flip_both(self):
+        np.random.seed(1337)
+        mock_random = [0.6, 0.6, 0.6, 0.6]
+        inp = np.random.random((2, 5, 8, 3))
+        expected_output = np.flip(inp, axis=2)
+        expected_output = np.flip(expected_output, axis=1)
+        layer = RandomFlip("horizontal_and_vertical")
         with unittest.mock.patch.object(
             layer._random_generator,
             "random_uniform",

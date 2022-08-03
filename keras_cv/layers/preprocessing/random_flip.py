@@ -110,6 +110,28 @@ class RandomFlip(BaseImageAugmentationLayer):
             "flip_vertical": tf.cast(flip_vertical, dtype=tf.bool),
         }
 
+    def _flip_bounding_boxes_horizontal(bounding_boxes):
+        return tf.stack(
+            [
+                1 - bounding_boxes[:, 2],
+                bounding_boxes[:, 1],
+                1 - bounding_boxes[:, 0],
+                bounding_boxes[:, 3],
+            ],
+            axis=-1,
+        )
+
+    def _flip_bounding_boxes_vertical(bounding_boxes):
+        return tf.stack(
+            [
+                bounding_boxes[:, 0],
+                1 - bounding_boxes[:, 3],
+                bounding_boxes[:, 2],
+                1 - bounding_boxes[:, 1],
+            ],
+            axis=-1,
+        )
+
     def augment_bounding_boxes(
         self, bounding_boxes, transformation=None, image=None, **kwargs
     ):
@@ -127,51 +149,29 @@ class RandomFlip(BaseImageAugmentationLayer):
             target="rel_xyxy",
             images=image,
         )
-        bounding_boxes_out = tf.cond(
+        bounding_boxes = tf.cond(
             transformation["flip_horizontal"],
-            lambda: self._flip_bounding_boxes_horizontal(bounding_boxes),
+            lambda: RandomFlip._flip_bounding_boxes_horizontal(bounding_boxes),
             lambda: bounding_boxes,
         )
-        bounding_boxes_out = tf.cond(
+        bounding_boxes = tf.cond(
             transformation["flip_vertical"],
-            lambda: self._flip_bounding_boxes_vertical(bounding_boxes_out),
-            lambda: bounding_boxes_out,
+            lambda: RandomFlip._flip_bounding_boxes_vertical(bounding_boxes),
+            lambda: bounding_boxes,
         )
-        bounding_boxes_out = bounding_box.clip_to_image(
-            bounding_boxes_out,
+        bounding_boxes = bounding_box.clip_to_image(
+            bounding_boxes,
             bounding_box_format="rel_xyxy",
             images=image,
         )
-        bounding_boxes_out = bounding_box.convert_format(
-            bounding_boxes_out,
+        bounding_boxes = bounding_box.convert_format(
+            bounding_boxes,
             source="rel_xyxy",
             target=self.bounding_box_format,
             dtype=self.compute_dtype,
             images=image,
         )
-        return bounding_boxes_out
-
-    def _flip_bounding_boxes_horizontal(self, bounding_boxes):
-        return tf.stack(
-            [
-                1 - bounding_boxes[:, 2],
-                bounding_boxes[:, 1],
-                1 - bounding_boxes[:, 0],
-                bounding_boxes[:, 3],
-            ],
-            axis=-1,
-        )
-
-    def _flip_bounding_boxes_vertical(self, bounding_boxes):
-        return tf.stack(
-            [
-                bounding_boxes[:, 0],
-                1 - bounding_boxes[:, 3],
-                bounding_boxes[:, 2],
-                1 - bounding_boxes[:, 1],
-            ],
-            axis=-1,
-        )
+        return bounding_boxes
 
     def compute_output_shape(self, input_shape):
         return input_shape
