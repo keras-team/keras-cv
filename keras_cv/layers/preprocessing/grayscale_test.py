@@ -104,8 +104,10 @@ class GrayscaleTest(tf.test.TestCase):
 
     def test_augment_bbox_dict_input(self):
         input_image = tf.random.uniform((2, 512, 512, 3), 0, 255, dtype=tf.float32)
-        bboxes = tf.convert_to_tensor([[200, 200, 400, 400], [100, 100, 300, 300]])
-        input = {"images": input_image, "bounding_boxes": bboxes}
-        layer = preprocessing.Grayscale(value_range=(0, 255))
-        output_bbox = layer(input)
-        self.assertAllClose(bboxes, output_bbox["bounding_boxes"])
+        bounding_boxes = tf.convert_to_tensor(
+            [[200, 200, 400, 400], [100, 100, 300, 300]]
+        )
+        input = {"images": input_image, "bounding_boxes": bounding_boxes}
+        layer = preprocessing.Grayscale(output_channels=1)
+        output = layer(input)
+        self.assertAllClose(bounding_boxes, output["bounding_boxes"])

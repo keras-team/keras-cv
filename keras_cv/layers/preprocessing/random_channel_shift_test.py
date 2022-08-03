@@ -16,7 +16,7 @@ import numpy as np
 import tensorflow as tf
 from absl.testing import parameterized
 
-from keras_cv.layers.preprocessing.random_channel_shift import RandomChannelShift
+from keras_cv.layers import preprocessing
 
 
 class RandomChannelShiftTest(tf.test.TestCase, parameterized.TestCase):
@@ -118,6 +118,6 @@ class RandomChannelShiftTest(tf.test.TestCase, parameterized.TestCase):
             [[200, 200, 400, 400], [100, 100, 300, 300]]
         )
         input = {"images": input_image, "bounding_boxes": bounding_boxes}
-        layer = RandomChannelShift(factor=0.8, value_range=(0, 255))
+        layer = preprocessing.RandomChannelShift(factor=0.8, value_range=(0, 255))
         output = layer(input)
         self.assertAllClose(bounding_boxes, output["bounding_boxes"])
