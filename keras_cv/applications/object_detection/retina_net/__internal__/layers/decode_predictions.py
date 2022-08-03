@@ -46,7 +46,7 @@ class DecodePredictions(tf.keras.layers.Layer):
         self.bounding_box_format = bounding_box_format
         self.non_max_suppression = NonMaxSuppression(
             bounding_box_format=bounding_box_format,
-            classes=classes,
+            num_classes=classes,
             confidence_threshold=confidence_threshold,
             iou_threshold=iou_threshold,
             max_detections=max_detections,
