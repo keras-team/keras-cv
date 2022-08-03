@@ -23,9 +23,9 @@ def produce_random_data(include_confidence=False, num_images=128, classes=20):
     images = []
     for _ in range(num_images):
         num_boxes = math.floor(25 * random.uniform(0, 1))
-        classes = np.floor(np.random.rand(num_boxes, 1) * classes)
+        classes_in_image = np.floor(np.random.rand(num_boxes, 1) * classes)
         bboxes = np.random.rand(num_boxes, 4)
-        boxes = np.concatenate([bboxes, classes], axis=-1)
+        boxes = np.concatenate([bboxes, classes_in_image], axis=-1)
         if include_confidence:
             confidence = np.random.rand(num_boxes, 1)
             boxes = np.concatenate([boxes, confidence], axis=-1)
