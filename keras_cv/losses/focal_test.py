@@ -14,7 +14,7 @@
 
 import tensorflow as tf
 
-from keras_cv.losses.focal import FocalLoss
+from keras_cv.losses import FocalLoss
 
 
 class FocalTest(tf.test.TestCase):
