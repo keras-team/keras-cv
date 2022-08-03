@@ -11,19 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import sys
-
-import tensorflow as tf
-from absl import flags
-from tensorflow.keras import callbacks
-from tensorflow.keras import layers
-from tensorflow.keras import losses
-from tensorflow.keras import metrics
-from tensorflow.keras import optimizers
-
-import keras_cv
-from keras_cv.models import DenseNet121
-
 """
 Title: Training a DenseNet for Imagenet Classification with KerasCV
 Author: [ianjjohnson](https://github.com/ianjjohnson)
@@ -31,6 +18,19 @@ Date created: 2022/07/25
 Last modified: 2022/07/25
 Description: Use KerasCV to train a DenseNet using modern best practices for image classification
 """
+
+import sys
+
+import tensorflow as tf
+from absl import flags
+from tensorflow.keras import callbacks
+from tensorflow.keras import layers
+from tensorflow.keras import losses
+from tensorflow.keras import optimizers
+from tensorflow.keras import metrics
+
+import keras_cv
+from keras_cv.models import DenseNet121
 
 """
 ## Overview
@@ -170,12 +170,12 @@ Next, we pick an optimizer. Here we use Adam with a linearly decaying learning r
 
 
 optimizer = optimizers.Adam(
-    learning_rate=optimizers.schedules.PolynomialDecay(
-        initial_learning_rate=0.005,
-        decay_steps=train_ds.cardinality().numpy() * EPOCHS / 2,
-        end_learning_rate=0.0001,
+        learning_rate=optimizers.schedules.PolynomialDecay(
+            initial_learning_rate=0.005,
+            decay_steps=int(train_ds.cardinality().numpy()) * EPOCHS / 2,
+            end_learning_rate=0.0001,
+        )
     )
-)
 
 
 """
