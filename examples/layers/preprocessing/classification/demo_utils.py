@@ -32,7 +32,7 @@ def load_oxford_dataset(
     # Load dataset.
     data, ds_info = tfds.load(name, as_supervised=as_supervised, with_info=True)
     train_ds = data["train"]
-    classes = ds_info.features["label"].classes
+    classes = ds_info.features["label"].num_classes
 
     # Get tf dataset.
     train_ds = train_ds.map(
