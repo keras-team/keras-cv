@@ -18,6 +18,7 @@ from absl import flags
 from tensorflow.keras import callbacks
 from tensorflow.keras import layers
 from tensorflow.keras import losses
+from tensorflow.keras import metrics
 from tensorflow.keras import optimizers
 
 import keras_cv
@@ -68,7 +69,8 @@ EPOCHS = 250
 """
 ## Data loading
 This guide uses the
-[Imagenet dataset](https://www.tensorflow.org/datasets/catalog/imagenet2012). Note that this requires manual download, and does not work out-of-the-box with TFDS.
+[Imagenet dataset](https://www.tensorflow.org/datasets/catalog/imagenet2012).
+Note that this requires manual download, and does not work out-of-the-box with TFDS.
 To get started, we first load the dataset from a command-line specified directory where ImageNet is stored as TFRecords.
 """
 
@@ -123,13 +125,14 @@ train_ds, test_ds = load_imagenet_dataset()
 
 
 """
-Next, we augment our dataset. We define a set of augmentation layers and then apply them to our input dataset using the `apply_augmentation` method from our KerasCV training utils.
+Next, we augment our dataset.
+We define a set of augmentation layers and then apply them to our input dataset.
 """
 
 AUGMENT_LAYERS = [
     keras_cv.layers.RandomFlip(),
     keras_cv.layers.RandAugment(value_range=(0, 255), magnitude=0.3),
-    keras_cv.layers.RandomCutout(height_factor=0.1, width_factor=0.1),
+    keras_cv.layers.CutMix(),
 ]
 
 
@@ -149,11 +152,11 @@ test_ds = test_ds.prefetch(tf.data.AUTOTUNE)
 
 """
 Now we can begin training our model. We begin by loading a DenseNet model from KerasCV.
+Note that we also specify a distribution strategy while creating the model.
 """
 
-
-def get_model():
-    return DenseNet121(
+with tf.distribute.MirroredStrategy().scope():
+    model = DenseNet121(
         include_rescaling=True,
         include_top=True,
         num_classes=NUM_CLASSES,
@@ -166,67 +169,59 @@ Next, we pick an optimizer. Here we use Adam with a linearly decaying learning r
 """
 
 
-def get_optimizer():
-    return optimizers.Adam(
-        learning_rate=optimizers.schedules.PolynomialDecay(
-            initial_learning_rate=0.005,
-            decay_steps=train_ds.cardinality().numpy() * EPOCHS / 2,
-            end_learning_rate=0.0001,
-        )
+optimizer = optimizers.Adam(
+    learning_rate=optimizers.schedules.PolynomialDecay(
+        initial_learning_rate=0.005,
+        decay_steps=train_ds.cardinality().numpy() * EPOCHS / 2,
+        end_learning_rate=0.0001,
     )
+)
 
 
 """
-Next, we pick a loss function. Here we use a built-in Keras loss function, so we simply specify it as a string.
+Next, we pick a loss function. We use CategoricalCrossentropy with label smoothing.
 """
 
 
-def get_loss_fn():
-    return losses.CategoricalCrossentropy(label_smoothing=0.1)
+loss_fn = losses.CategoricalCrossentropy(label_smoothing=0.1)
 
 
 """
-Next, we specify the metrics that we want to track. For this example, we track accuracy. Once again, accuracy is a built-in metric in Keras so we can specify it as a string.
+Next, we specify the metrics that we want to track. For this example, we track accuracy.
 """
 
 
-def get_metrics():
-    return ["accuracy"]
+metrics = [metrics.CategoricalAccuracy()]
 
 
 """
-As a last piece of configuration, we configure callbacks for the method. We use EarlyStopping, BackupAndRestore, and a model checkpointing callback.
+As a last piece of configuration, we configure callbacks for the method.
+We use EarlyStopping, BackupAndRestore, and a model checkpointing callback.
 """
 
 
-def get_callbacks():
-    return [
-        callbacks.EarlyStopping(patience=30),
-        callbacks.BackupAndRestore(FLAGS.backup_path),
-        callbacks.ModelCheckpoint(
-            FLAGS.weights_path, save_best_only=True, save_weights_only=True
-        ),
-        callbacks.TensorBoard(log_dir=FLAGS.tensorboard_path),
-    ]
+callbacks = [
+    callbacks.EarlyStopping(patience=30),
+    callbacks.BackupAndRestore(FLAGS.backup_path),
+    callbacks.ModelCheckpoint(FLAGS.weights_path, save_weights_only=True),
+    callbacks.TensorBoard(log_dir=FLAGS.tensorboard_path),
+]
 
 
 """
 We can now compile the model and fit it to the training dataset.
 """
 
-with tf.distribute.MirroredStrategy().scope():
-    model = get_model()
-
 model.compile(
-    optimizer=get_optimizer(),
-    loss=get_loss_fn(),
-    metrics=get_metrics(),
+    optimizer=optimizer,
+    loss=loss_fn,
+    metrics=metrics,
 )
 
 model.fit(
     train_ds,
     batch_size=BATCH_SIZE,
     epochs=EPOCHS,
-    callbacks=get_callbacks(),
+    callbacks=callbacks,
     validation_data=test_ds,
 )
