@@ -42,8 +42,8 @@ BASE_DOCSTRING = """Instantiates the {name} architecture.
         include_rescaling: whether or not to Rescale the inputs.If set to True,
             inputs will be passed through a `Rescaling(1/255.0)` layer.
         include_top: whether to include the fully-connected layer at the top of the
-            network.  If provided, num_classes must be provided.
-        num_classes: optional number of classes to classify images into, only to be
+            network.  If provided, classes must be provided.
+        classes: optional number of classes to classify images into, only to be
             specified if `include_top` is True, and if no `weights` argument is
             specified.
         weights: one of `None` (random initialization), a pretrained weight file
@@ -155,7 +155,7 @@ def DenseNet(
     blocks,
     include_rescaling,
     include_top,
-    num_classes=None,
+    classes=None,
     weights=None,
     input_shape=(None, None, 3),
     input_tensor=None,
@@ -179,8 +179,8 @@ def DenseNet(
         include_rescaling: whether or not to Rescale the inputs.If set to True,
             inputs will be passed through a `Rescaling(1/255.0)` layer.
         include_top: whether to include the fully-connected layer at the top of the
-            network.  If provided, num_classes must be provided.
-        num_classes: optional number of classes to classify images into, only to be
+            network.  If provided, classes must be provided.
+        classes: optional number of classes to classify images into, only to be
             specified if `include_top` is True, and if no `weights` argument is
             specified.
         weights: one of `None` (random initialization), or a pretrained weight file
@@ -205,10 +205,10 @@ def DenseNet(
     Returns:
       A `keras.Model` instance.
     """
-    if include_top and not num_classes:
+    if include_top and not classes:
         raise ValueError(
-            "If `include_top` is True, you should specify `num_classes`. "
-            f"Received: num_classes={num_classes}"
+            "If `include_top` is True, you should specify `classes`. "
+            f"Received: classes={classes}"
         )
 
     inputs = utils.parse_model_inputs(input_shape, input_tensor)
@@ -237,9 +237,9 @@ def DenseNet(
 
     if include_top:
         x = layers.GlobalAveragePooling2D(name="avg_pool")(x)
-        x = layers.Dense(
-            num_classes, activation=classifier_activation, name="predictions"
-        )(x)
+        x = layers.Dense(classes, activation=classifier_activation, name="predictions")(
+            x
+        )
     elif pooling == "avg":
         x = layers.GlobalAveragePooling2D(name="avg_pool")(x)
     elif pooling == "max":
@@ -255,7 +255,7 @@ def DenseNet(
 def DenseNet121(
     include_rescaling,
     include_top,
-    num_classes=None,
+    classes=None,
     weights=None,
     input_shape=(None, None, 3),
     input_tensor=None,
@@ -267,7 +267,7 @@ def DenseNet121(
         [6, 12, 24, 16],
         include_rescaling=include_rescaling,
         include_top=include_top,
-        num_classes=num_classes,
+        classes=classes,
         weights=parse_weights(weights, include_top, "densenet121"),
         input_shape=input_shape,
         input_tensor=input_tensor,
@@ -280,7 +280,7 @@ def DenseNet121(
 def DenseNet169(
     include_rescaling,
     include_top,
-    num_classes=None,
+    classes=None,
     weights=None,
     input_shape=(None, None, 3),
     input_tensor=None,
@@ -292,7 +292,7 @@ def DenseNet169(
         [6, 12, 32, 32],
         include_rescaling=include_rescaling,
         include_top=include_top,
-        num_classes=num_classes,
+        classes=classes,
         weights=parse_weights(weights, include_top, "densenet169"),
         input_shape=input_shape,
         input_tensor=input_tensor,
@@ -305,7 +305,7 @@ def DenseNet169(
 def DenseNet201(
     include_rescaling,
     include_top,
-    num_classes=None,
+    classes=None,
     weights=None,
     input_shape=(None, None, 3),
     input_tensor=None,
@@ -317,7 +317,7 @@ def DenseNet201(
         blocks=[6, 12, 48, 32],
         include_rescaling=include_rescaling,
         include_top=include_top,
-        num_classes=num_classes,
+        classes=classes,
         weights=parse_weights(weights, include_top, "densenet201"),
         input_shape=input_shape,
         input_tensor=input_tensor,
