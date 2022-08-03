@@ -13,7 +13,7 @@
 # limitations under the License.
 
 import tensorflow as tf
-from tensorflow import keras
+from tensorflow.keras import layers
 
 
 def PredictionHead(output_filters, bias_initializer):
@@ -27,24 +27,30 @@ def PredictionHead(output_filters, bias_initializer):
       A function representing either the classification
         or the box regression head depending on `output_filters`.
     """
-
-    def apply(x):
-        for _ in range(4):
-            x = keras.layers.Conv2D(
-                256,
-                3,
-                padding="same",
-                kernel_initializer=tf.initializers.RandomNormal(0.0, 0.01),
-                activation="relu",
-            )(x)
-        x = keras.layers.Conv2D(
+    conv_layers = [
+        layers.Conv2D(
+            256,
+            3,
+            padding="same",
+            kernel_initializer=tf.initializers.RandomNormal(0.0, 0.01),
+            activation="relu",
+        )
+        for _ in range(4)
+    ]
+    conv_layers += [
+        layers.Conv2D(
             output_filters,
             3,
             1,
             padding="same",
             kernel_initializer=tf.initializers.RandomNormal(0.0, 0.01),
             bias_initializer=bias_initializer,
-        )(x)
+        )
+    ]
+
+    def apply(x):
+        for layer in conv_layers:
+            x = layer(x)
         return x
 
     return apply
