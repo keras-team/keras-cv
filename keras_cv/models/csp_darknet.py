@@ -38,7 +38,7 @@ def CSPDarkNet(
     depth_multiplier=1.0,
     width_multiplier=1.0,
     use_depthwise=False,
-    num_classes=None,
+    classes=None,
     weights=None,
     input_shape=(None, None, 3),
     input_tensor=None,
@@ -65,14 +65,14 @@ def CSPDarkNet(
         include_rescaling: whether or not to Rescale the inputs.If set to True,
             inputs will be passed through a `Rescaling(1/255.0)` layer.
         include_top: whether to include the fully-connected layer at the top of
-            the network.  If provided, `num_classes` must be provided.
+            the network.  If provided, `classes` must be provided.
         depth_multiplier: A float value used to calculate the base depth of the model
             this changes based the detection model being used. Defaults to 1.0.
         width_multiplier: A float value used to calculate the base width of the model
             this changes based the detection model being used. Defaults to 1.0.
         use_depthwise: a boolean value used to decide whether a depthwise conv block
             should be used over a regular darknet block. Defaults to False
-        num_classes: optional number of classes to classify images into, only to be
+        classes: optional number of classes to classify images into, only to be
             specified if `include_top` is True, and if no `weights` argument is
             specified.
         weights: one of `None` (random initialization), or a pretrained weight
@@ -102,10 +102,10 @@ def CSPDarkNet(
             f"weights file to be loaded. Weights file not found at location: {weights}"
         )
 
-    if include_top and not num_classes:
+    if include_top and not classes:
         raise ValueError(
-            "If `include_top` is True, you should specify `num_classes`. Received: "
-            f"num_classes={num_classes}"
+            "If `include_top` is True, you should specify `classes`. Received: "
+            f"classes={classes}"
         )
 
     ConvBlock = DarknetConvBlockDepthwise if use_depthwise else DarknetConvBlock
@@ -165,9 +165,9 @@ def CSPDarkNet(
 
     if include_top:
         x = layers.GlobalAveragePooling2D(name="avg_pool")(x)
-        x = layers.Dense(
-            num_classes, activation=classifier_activation, name="predictions"
-        )(x)
+        x = layers.Dense(classes, activation=classifier_activation, name="predictions")(
+            x
+        )
     elif pooling == "avg":
         x = layers.GlobalAveragePooling2D(name="avg_pool")(x)
     elif pooling == "max":

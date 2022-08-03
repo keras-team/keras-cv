@@ -156,7 +156,7 @@ def get_model():
     return DenseNet121(
         include_rescaling=True,
         include_top=True,
-        num_classes=NUM_CLASSES,
+        classes=NUM_CLASSES,
         input_shape=IMAGE_SIZE + (3,),
     )
 
