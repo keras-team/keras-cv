@@ -11,6 +11,10 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+"""
+"""
+
 import sys
 
 import tensorflow as tf
@@ -19,8 +23,6 @@ from absl import flags
 from loader import load_pascal_voc
 from tensorflow.keras import callbacks as callbacks_lib
 from wandb.keras import WandbCallback
-
-import loss as loss_lib
 
 import keras_cv
 
@@ -76,7 +78,7 @@ model.backbone.trainable = False
 
 model.compile(
     optimizer=optimizer,
-    loss=loss_lib.RetinaNetLoss(num_classes=20, reduction="auto"),
+    loss=keras_cv.losses.RetinaNetLoss(num_classes=20, reduction="auto"),
     metrics=[
         keras_cv.metrics.COCOMeanAveragePrecision(
             class_ids=range(20),
