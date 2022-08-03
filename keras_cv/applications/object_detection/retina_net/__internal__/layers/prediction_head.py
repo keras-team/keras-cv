@@ -45,5 +45,6 @@ def PredictionHead(output_filters, bias_initializer):
             kernel_initializer=tf.initializers.RandomNormal(0.0, 0.01),
             bias_initializer=bias_initializer,
         )(x)
+        return x
 
     return apply
