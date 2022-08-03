@@ -120,7 +120,7 @@ def MLPMixer(
         If set to True, inputs will be passed through a
         `Rescaling(1/255.0)` layer.
       include_top: whether to include the fully-connected
-        layer at the top of the network.  If provided, num_classes must be provided.
+        layer at the top of the network.  If provided, classes must be provided.
       classes: optional number of classes to classify images
         into, only to be specified if `include_top` is True, and
         if no `weights` argument is specified.
