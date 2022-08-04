@@ -77,10 +77,10 @@ class ChannelShuffle(BaseImageAugmentationLayer):
 
         return image
 
-    def augment_bounding_boxes(self, bounding_boxes, transformation, **kwargs):
+    def augment_bounding_boxes(self, bounding_boxes, **kwargs):
         return bounding_boxes
 
-    def augment_label(self, label, transformation=None, **kwargs):
+    def augment_label(self, label, **kwargs):
         return label
 
     def get_config(self):

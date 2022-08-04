@@ -73,7 +73,7 @@ class Posterization(BaseImageAugmentationLayer):
         self._shift = 8 - bits
         self._value_range = value_range
 
-    def augment_image(self, image, transformation=None, **kwargs):
+    def augment_image(self, image, **kwargs):
         image = transform_value_range(
             images=image,
             original_range=self._value_range,
@@ -90,7 +90,7 @@ class Posterization(BaseImageAugmentationLayer):
             target_range=self._value_range,
         )
 
-    def augment_bounding_boxes(self, bounding_boxes, transformation, **kwargs):
+    def augment_bounding_boxes(self, bounding_boxes, **kwargs):
         return bounding_boxes
 
     def _batch_augment(self, inputs):
@@ -103,7 +103,7 @@ class Posterization(BaseImageAugmentationLayer):
             tf.bitwise.right_shift(image, self._shift), self._shift
         )
 
-    def augment_label(self, label, transformation=None, **kwargs):
+    def augment_label(self, label, **kwargs):
         return label
 
     def get_config(self):

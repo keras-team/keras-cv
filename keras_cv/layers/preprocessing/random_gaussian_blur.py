@@ -83,10 +83,10 @@ class RandomGaussianBlur(BaseImageAugmentationLayer):
 
         return tf.squeeze(blurred, axis=0)
 
-    def augment_bounding_boxes(self, bounding_boxes, transformation, **kwargs):
+    def augment_bounding_boxes(self, bounding_boxes, **kwargs):
         return bounding_boxes
 
-    def augment_label(self, label, transformation=None, **kwargs):
+    def augment_label(self, label, **kwargs):
         return label
 
     @staticmethod
