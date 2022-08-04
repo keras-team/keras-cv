@@ -11,18 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import sys
-
-import tensorflow as tf
-from absl import flags
-from tensorflow.keras import callbacks
-from tensorflow.keras import layers
-from tensorflow.keras import losses
-from tensorflow.keras import optimizers
-
-import keras_cv
-from keras_cv import models
-
 """
 Title: Training a KerasCV model for Imagenet Classification
 Author: [ianjjohnson](https://github.com/ianjjohnson)
