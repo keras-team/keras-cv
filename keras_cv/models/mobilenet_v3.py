@@ -258,8 +258,8 @@ def InvertedResBlock(
 def MobileNetV3(
     stack_fn,
     last_point_ch,
-    include_rescaling=True,
-    include_top=True,
+    include_rescaling,
+    include_top,
     num_classes=None,
     weights=None,
     input_shape=(None, None, 3),
@@ -425,8 +425,8 @@ def MobileNetV3(
 
 
 def MobileNetV3Small(
-    include_rescaling=True,
-    include_top=True,
+    include_rescaling,
+    include_top,
     num_classes=None,
     weights=None,
     input_shape=(None, None, 3),
@@ -492,8 +492,8 @@ def MobileNetV3Small(
 
 
 def MobileNetV3Large(
-    include_rescaling=True,
-    include_top=True,
+    include_rescaling,
+    include_top,
     num_classes=None,
     weights=None,
     input_shape=(None, None, 3),
