@@ -73,7 +73,6 @@ TEST_CONFIGURATIONS = [
         preprocessing.RandomSharpness,
         {"factor": 0.5, "value_range": (0, 255)},
     ),
-    ("RandomShear", preprocessing.RandomShear, {"x_factor": 0.3, "x_factor": 0.3}),
     ("Solarization", preprocessing.Solarization, {"value_range": (0, 255)}),
 ]
 
@@ -81,6 +80,7 @@ TEST_CONFIGURATIONS = [
 # geometry. i.e. `augment_bounding_boxes()` and `augment_keypoints()`
 # are expected to modify bounding boxes or keypoints.
 GEOMETRIC_TEST_CONFIGURATIONS = [
+    ("RandomShear", preprocessing.RandomShear, {"x_factor": 0.3, "x_factor": 0.3}),
     (
         "RandomResizedCrop",
         preprocessing.RandomResizedCrop,
