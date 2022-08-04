@@ -21,20 +21,20 @@ from tensorflow.keras import losses
 from tensorflow.keras import optimizers
 
 import keras_cv
-from keras_cv.models import DenseNet121
+from keras_cv import models
 
 """
-Title: Training a DenseNet for Imagenet Classification with KerasCV
+Title: Training a KerasCV model for Imagenet Classification
 Author: [ianjjohnson](https://github.com/ianjjohnson)
 Date created: 2022/07/25
 Last modified: 2022/07/25
-Description: Use KerasCV to train a DenseNet using modern best practices for image classification
+Description: Use KerasCV to train an image classifier using modern best practices
 """
 
 """
 ## Overview
 KerasCV makes training state-of-the-art classification models easy by providing implementations of modern models, preprocessing techniques, and layers.
-In this tutorial, we walk through training a DenseNet model against the Imagenet dataset using Keras and KerasCV.
+In this tutorial, we walk through training a model against the Imagenet dataset using Keras and KerasCV.
 This tutorial requires you to have KerasCV installed:
 ```shell
 pip install keras-cv
@@ -46,6 +46,9 @@ pip install keras-cv
 
 """
 
+flags.DEFINE_string(
+    "model_name", None, "The name of the model in KerasCV.models to use."
+)
 flags.DEFINE_string("imagenet_path", None, "Directory from which to load Imagenet.")
 flags.DEFINE_string(
     "backup_path", None, "Directory which will be used for training backups"
@@ -56,12 +59,12 @@ flags.DEFINE_string(
 flags.DEFINE_string(
     "tensorboard_path", None, "Directory which will be used to store tensorboard logs."
 )
+flags.DEFINE_string("batch_size", 256, "Batch size for training and evaluation")
 
 FLAGS = flags.FLAGS
 FLAGS(sys.argv)
 
-NUM_CLASSES = 1000
-BATCH_SIZE = 256
+CLASSES = 1000
 IMAGE_SIZE = (224, 224)
 EPOCHS = 250
 
@@ -92,7 +95,7 @@ def parse_imagenet_example(example):
 
     # Decode label
     label = tf.cast(tf.reshape(parsed[label_key], shape=()), dtype=tf.int32) - 1
-    label = tf.one_hot(label, NUM_CLASSES)
+    label = tf.one_hot(label, CLASSES)
     return image, label
 
 
@@ -116,7 +119,7 @@ def load_imagenet_dataset():
         num_parallel_calls=tf.data.AUTOTUNE,
     )
 
-    return train_dataset.batch(BATCH_SIZE), validation_dataset.batch(BATCH_SIZE)
+    return train_dataset.batch(FLAGS.batch_size), validation_dataset.batch(FLAGS.batch_size)
 
 
 train_ds, test_ds = load_imagenet_dataset()
@@ -148,32 +151,28 @@ test_ds = test_ds.prefetch(tf.data.AUTOTUNE)
 
 
 """
-Now we can begin training our model. We begin by loading a DenseNet model from KerasCV.
+Now we can begin training our model. We begin by loading a model from KerasCV.
 """
 
 
 def get_model():
-    return DenseNet121(
+    model = eval(f"models.{FLAGS.model_name}")
+    return model(
         include_rescaling=True,
         include_top=True,
-        num_classes=NUM_CLASSES,
+        classes=CLASSES,
         input_shape=IMAGE_SIZE + (3,),
     )
 
 
 """
-Next, we pick an optimizer. Here we use Adam with a linearly decaying learning rate.
+Next, we pick an optimizer. Here we use Adam with a constant learning rate.
+Note that learning rate will decrease over time due to the ReduceLROnPlateau callback.
 """
 
 
 def get_optimizer():
-    return optimizers.Adam(
-        learning_rate=optimizers.schedules.PolynomialDecay(
-            initial_learning_rate=0.005,
-            decay_steps=train_ds.cardinality().numpy() * EPOCHS / 2,
-            end_learning_rate=0.0001,
-        )
-    )
+    return optimizers.Adam(learning_rate=0.01)
 
 
 """
@@ -201,6 +200,9 @@ As a last piece of configuration, we configure callbacks for the method. We use 
 
 def get_callbacks():
     return [
+        callbacks.ReduceLROnPlateau(
+            monitor="val_loss", factor=0.3, patience=5, min_lr=0.0005
+        ),
         callbacks.EarlyStopping(patience=30),
         callbacks.BackupAndRestore(FLAGS.backup_path),
         callbacks.ModelCheckpoint(
@@ -225,7 +227,7 @@ model.compile(
 
 model.fit(
     train_ds,
-    batch_size=BATCH_SIZE,
+    batch_size=FLAGS.batch_size,
     epochs=EPOCHS,
     callbacks=get_callbacks(),
     validation_data=test_ds,
