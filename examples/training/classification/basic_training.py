@@ -68,7 +68,7 @@ flags.DEFINE_boolean(
 FLAGS = flags.FLAGS
 FLAGS(sys.argv)
 
-if not FLAGS.model_name in models.__dict__:
+if FLAGS.model_name not in models.__dict__:
     raise ValueError(f"Invalid model name: {FLAGS.model_name}")
 
 CLASSES = 1000
