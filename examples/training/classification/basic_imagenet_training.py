@@ -26,6 +26,7 @@ from absl import flags
 from tensorflow.keras import callbacks
 from tensorflow.keras import layers
 from tensorflow.keras import losses
+from tensorflow.keras import metrics
 from tensorflow.keras import optimizers
 
 import keras_cv
@@ -202,8 +203,8 @@ loss_fn = losses.CategoricalCrossentropy(label_smoothing=0.1)
 Next, we specify the metrics that we want to track. For this example, we track accuracy.
 """
 
-
-metrics = ["accuracy"]
+with strategy.scope():
+    training_metrics = [metrics.CategoricalAccuracy()]
 
 
 """
@@ -214,9 +215,9 @@ We use EarlyStopping, BackupAndRestore, and a model checkpointing callback.
 
 callbacks = [
     callbacks.ReduceLROnPlateau(
-        monitor="val_loss", factor=0.3, patience=5, min_lr=0.0001
+        monitor="val_loss", factor=0.3, patience=20, min_lr=0.0001
     ),
-    callbacks.EarlyStopping(patience=30),
+    callbacks.EarlyStopping(patience=40),
     callbacks.BackupAndRestore(FLAGS.backup_path),
     callbacks.ModelCheckpoint(FLAGS.weights_path, save_weights_only=True),
     callbacks.TensorBoard(log_dir=FLAGS.tensorboard_path),
@@ -230,7 +231,7 @@ We can now compile the model and fit it to the training dataset.
 model.compile(
     optimizer=optimizer,
     loss=loss_fn,
-    metrics=metrics,
+    metrics=training_metrics,
     jit_compile=FLAGS.use_xla,
 )
 
