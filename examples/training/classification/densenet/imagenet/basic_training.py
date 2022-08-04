@@ -42,7 +42,7 @@ from tensorflow.keras import metrics
 from tensorflow.keras import optimizers
 
 import keras_cv
-from keras_cv.models import DenseNet121
+from keras_cv import models
 
 """
 ## Overview
@@ -72,10 +72,12 @@ flags.DEFINE_string(
 flags.DEFINE_string(
     "tensorboard_path", None, "Directory which will be used to store tensorboard logs."
 )
-flags.DEFINE_string("batch_size", 256, "Batch size for training and evaluation")
+flags.DEFINE_integer("batch_size", 256, "Batch size for training and evaluation")
 
 FLAGS = flags.FLAGS
 FLAGS(sys.argv)
+
+assert FLAGS.model_name
 
 CLASSES = 1000
 IMAGE_SIZE = (224, 224)
@@ -133,7 +135,9 @@ def load_imagenet_dataset():
         num_parallel_calls=tf.data.AUTOTUNE,
     )
 
-    return train_dataset.batch(FLAGS.batch_size), validation_dataset.batch(FLAGS.batch_size)
+    return train_dataset.batch(FLAGS.batch_size), validation_dataset.batch(
+        FLAGS.batch_size
+    )
 
 
 train_ds, test_ds = load_imagenet_dataset()
@@ -177,7 +181,7 @@ strategy = tf.distribute.MirroredStrategy()
 
 with strategy.scope():
     model = eval(f"models.{FLAGS.model_name}")
-    return model(
+    model = model(
         include_rescaling=True,
         include_top=True,
         classes=CLASSES,
@@ -191,7 +195,7 @@ Note that learning rate will decrease over time due to the ReduceLROnPlateau cal
 """
 
 
-optimizer = return optimizers.Adam(learning_rate=0.01)
+optimizer = optimizers.Adam(learning_rate=0.01)
 
 
 """
@@ -207,7 +211,7 @@ Next, we specify the metrics that we want to track. For this example, we track a
 """
 
 
-metrics = [metrics.CategoricalAccuracy()]
+metrics = ["accuracy"]
 
 
 """
