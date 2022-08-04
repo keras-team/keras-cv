@@ -5,6 +5,9 @@ import sys
 import tensorboard as tb
 from absl import flags
 
+flags.DEFINE_string(
+    "model_name", None, "The name of the KerasCV.model that was trained"
+)
 flags.DEFINE_string("tensorboard_logs_path", None, "Path to tensorboard logs to load")
 flags.DEFINE_string("training_script_path", None, "Path to the training script")
 flags.DEFINE_string(
@@ -13,15 +16,15 @@ flags.DEFINE_string(
     "The version of the training script used to produce the latest weights. For example, v0",
 )
 flags.DEFINE_string(
-    "pr_number", None, "The PR number that merged the training script into KerasCV"
-)
-flags.DEFINE_string(
-    "pr_author", None, "The GitHub username of the author of the training script"
+    "contributor", None, "The GitHub username of the contributor of these results"
 )
 
 FLAGS = flags.FLAGS
 FLAGS(sys.argv)
 
+model_name = FLAGS.model_name or input(
+    "Input the name of the KerasCV.model that was trained\n"
+)
 weights_version = FLAGS.weights_version or input(
     "Input the weights version for your script\n"
 )
@@ -32,14 +35,12 @@ training_script_path = FLAGS.training_script_path or input(
 training_script_json_path = training_script_path.replace(".py", ".json")
 full_training_script_path = os.path.abspath(training_script_path)
 
-# Build an experiment name structured as dataset/task-version (this experiment name will then match the name of the weights in GCS)
+# Build an experiment name structured as task/training_script_name/model_name-version
 training_script_rooted_at_training = full_training_script_path[
     full_training_script_path.index("keras-cv/examples/training/") + 27 :
 ]
 training_script_dirs = training_script_rooted_at_training.split("/")
-tensorboard_experiment_name = (
-    f"{training_script_dirs[2]}/{training_script_dirs[0]}-{weights_version}"
-)
+tensorboard_experiment_name = f"{training_script_dirs[0]}/{training_script_dirs[1][:-3]}/{model_name}-{weights_version}"
 
 tensorboard_logs_path = FLAGS.tensorboard_logs_path or input(
     "Input the path to the TensorBoard logs\n"
@@ -67,24 +68,29 @@ max_validation_accuracy = max(
 )
 max_validation_accuracy = f"{max_validation_accuracy:.4f}"
 
-pr_link = (
-    f"https://github.com/keras-team/keras-cv/pull/{FLAGS.pr_number}"
-    if FLAGS.pr_number
-    else None
+contributor = FLAGS.contributor or input(
+    "Input your GitHub username (or the username of the contributor, if it's not you)\n"
 )
-pr_link = pr_link or input(
-    "Input a link to the PR that merged your script into KerasCV\n"
+
+args = input(
+    "Input any training arguments used for the training script.\n"
+    "Use comma-separate, colon-split key-value pairs. For example:\n"
+    "arg1:value, arg2:value\n"
 )
-pr_author = FLAGS.pr_author or input(
-    "Input your GitHub username (or the username of the PR author, if you're not the author)\n"
-)
+
+args_dict = {}
+for arg in args.split(","):
+    if len(arg.strip()) == 0:
+        continue
+    key_value_pair = [s.strip() for s in arg.split(":")]
+    args_dict[key_value_pair[0]] = key_value_pair[1]
 
 new_results = {
     "validation_accuracy": max_validation_accuracy,
     "epochs_trained": training_epochs,
     "tensorboard_logs": f"https://tensorboard.dev/experiment/{tensorboard_experiment_id}/",
-    "pr_author": pr_author,
-    "pr_link": pr_link,
+    "contributor": contributor,
+    "args": args_dict,
 }
 
 # Check if the JSON file already exists
@@ -93,7 +99,15 @@ results_string = results_file.read()
 results = json.loads(results_string) if results_string != "" else {}
 results_file.close()
 
+# If we've never run this script on this model, insert a record for it
+if model_name not in results:
+    results[model_name] = {}
+
+# Add this run's results to the model's record
+model_results = results[model_name]
+model_results[weights_version] = new_results
+
+# Save the updated results
 results_file = open(training_script_json_path, "w")
-results[weights_version] = new_results
-json.dump(results, results_file)
+json.dump(results, results_file, indent=4, sort_keys=True)
 results_file.close()
