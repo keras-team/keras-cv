@@ -29,7 +29,7 @@ from keras_cv.models import utils
 def VGG19(
     include_rescaling,
     include_top,
-    num_classes=None,
+    classes=None,
     weights=None,
     input_shape=(224, 224, 3),
     input_tensor=None,
@@ -49,8 +49,8 @@ def VGG19(
       include_rescaling: whether or not to Rescale the inputs.If set to True,
         inputs will be passed through a `Rescaling(1/255.0)` layer.
       include_top: whether to include the 3 fully-connected
-        layers at the top of the network. If provided, num_classes must be provided.
-      num_classes: optional number of classes to classify images into, only to be
+        layers at the top of the network. If provided, classes must be provided.
+      classes: optional number of classes to classify images into, only to be
         specified if `include_top` is True, and if no `weights` argument is
         specified.
       weights: one of `None` (random initialization), or a pretrained weight file path.
@@ -84,10 +84,10 @@ def VGG19(
             "weights file to be loaded. Weights file not found at location: {weights}"
         )
 
-    if include_top and not num_classes:
+    if include_top and not classes:
         raise ValueError(
-            "If `include_top` is True, you should specify `num_classes`. "
-            f"Received: num_classes={num_classes}"
+            "If `include_top` is True, you should specify `classes`. "
+            f"Received: classes={classes}"
         )
 
     inputs = utils.parse_model_inputs(input_shape, input_tensor)
@@ -163,9 +163,9 @@ def VGG19(
         x = layers.Flatten(name="flatten")(x)
         x = layers.Dense(4096, activation="relu", name="fc1")(x)
         x = layers.Dense(4096, activation="relu", name="fc2")(x)
-        x = layers.Dense(
-            num_classes, activation=classifier_activation, name="predictions"
-        )(x)
+        x = layers.Dense(classes, activation=classifier_activation, name="predictions")(
+            x
+        )
     else:
         if pooling == "avg":
             x = layers.GlobalAveragePooling2D()(x)
