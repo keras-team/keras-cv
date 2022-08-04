@@ -17,6 +17,8 @@ from keras.utils import data_utils
 def parse_weights(weights, include_top, model_type):
     if not weights or tf.io.gfile.exists(weights):
         return weights
+    if weights in ALIASES[model_type]:
+        weights = ALIASES[model_type][weights]
     if weights in WEIGHTS_CONFIG[model_type]:
         if not include_top:
             weights = weights + "-notop"
@@ -35,17 +37,24 @@ def parse_weights(weights, include_top, model_type):
 
 
 BASE_PATH = "https://storage.googleapis.com/keras-cv/models"
+
+ALIASES = {
+    "densenet121": {
+        "imagenet": "imagenet/classification-v0",
+        "imagenet/classification": "imagenet/classification-v0",
+    },
+    "densenet169": {
+        "imagenet": "imagenet/classification-v0",
+        "imagenet/classification": "imagenet/classification-v0",
+    },
+}
+
 WEIGHTS_CONFIG = {
     "densenet121": {
-        # Current best weights are imagenet-v0
-        "imagenet/classification": "13de3d077ad9d9816b9a0acc78215201d9b6e216c7ed8e71d69cc914f8f0775b",
-        "imagenet/classification-notop": "709afe0321d9f2b2562e562ff9d0dc44cca10ed09e0e2cfba08d783ff4dab6bf",
         "imagenet/classification-v0": "13de3d077ad9d9816b9a0acc78215201d9b6e216c7ed8e71d69cc914f8f0775b",
         "imagenet/classification-v0-notop": "709afe0321d9f2b2562e562ff9d0dc44cca10ed09e0e2cfba08d783ff4dab6bf",
     },
     "densenet169": {
-        "imagenet/classification": "4cd2a661d0cb2378574073b23129ee4d06ea53c895c62a8863c44ee039e236a1",
-        "imagenet/classification-notop": "a99d1bb2cbe1a59a1cdd1f435fb265453a97c2a7b723d26f4ebee96e5fb49d62",
         "imagenet/classification-v0": "4cd2a661d0cb2378574073b23129ee4d06ea53c895c62a8863c44ee039e236a1",
         "imagenet/classification-v0-notop": "a99d1bb2cbe1a59a1cdd1f435fb265453a97c2a7b723d26f4ebee96e5fb49d62",
     },
