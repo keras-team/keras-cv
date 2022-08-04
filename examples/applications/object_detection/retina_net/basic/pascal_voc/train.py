@@ -13,7 +13,7 @@ KerasCV offers a complete set of APIs to allow you to train your own state-of-th
 production-grade object detection model.  These APIs include object detection specific
 data augmentation techniques, models, and COCO metrics.
 
-To get started, let's sort out all of our imports and define global configuration parameters. 
+To get started, let's sort out all of our imports and define global configuration parameters.
 To support long training runs, experiment tracking via [Weights & Biases](https://wandb.ai),
 and dynamic batch sizing, we define our configuration parameters as command line flags.
 """
