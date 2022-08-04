@@ -30,7 +30,7 @@ class CutMix(BaseImageAugmentationLayer):
             when training an imagenet1k classification model.
         seed: Integer. Used to create a random seed.
     References:
-       [CutMix paper]( https://arxiv.org/abs/1905.04899).
+       - [CutMix paper]( https://arxiv.org/abs/1905.04899).
 
     Sample usage:
     ```python

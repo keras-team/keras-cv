@@ -31,7 +31,7 @@ class COCOMeanAveragePrecision(tf.keras.metrics.Metric):
     Args:
         class_ids: The class IDs to evaluate the metric for.  To evaluate for
             all classes in over a set of sequentially labelled classes, pass
-            `range(num_classes)`.
+            `range(classes)`.
         bounding_box_format: Format of the incoming bounding boxes.  Supported values
             are "xywh", "center_xywh", "xyxy".
         iou_thresholds: IoU thresholds over which to evaluate the recall.  Must

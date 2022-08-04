@@ -244,7 +244,7 @@ class SerializationTest(tf.test.TestCase, parameterized.TestCase):
             "NonMaxSuppression",
             object_detection.NonMaxSuppression,
             {
-                "num_classes": 5,
+                "classes": 5,
                 "bounding_box_format": "xyxy",
                 "confidence_threshold": 0.5,
                 "iou_threshold": 0.5,

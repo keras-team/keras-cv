@@ -11,16 +11,20 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""
-visualization_demo.py is used to visualize the dataset with bounding boxes.
-"""
-import demo_utils
+"""Tests for KerasCV model utils."""
+
+import tensorflow as tf
+from keras import layers
+
+from keras_cv.models import utils
 
 
-def main():
-    inputs = demo_utils.load_voc_dataset(bounding_box_format="rel_xyxy")
-    demo_utils.visualize_data(inputs, bounding_box_format="rel_xyxy")
+class ModelUtilTestCase(tf.test.TestCase):
+    def test_parse_model_inputs(self):
+        input_shape = (224, 244, 3)
 
+        inputs = utils.parse_model_inputs(input_shape, None)
+        self.assertEqual(inputs.shape.as_list(), list((None,) + input_shape))
 
-if __name__ == "__main__":
-    main()
+        input_tensor = layers.Input(shape=input_shape)
+        self.assertIs(utils.parse_model_inputs(input_shape, input_tensor), input_tensor)

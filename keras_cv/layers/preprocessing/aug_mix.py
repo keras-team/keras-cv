@@ -52,9 +52,9 @@ class AugMix(BaseImageAugmentationLayer):
         seed: Integer. Used to create a random seed.
 
     References:
-        [AugMix paper](https://arxiv.org/pdf/1912.02781)
-        [Official Code](https://github.com/google-research/augmix)
-        [Unoffial TF Code](https://github.com/szacho/augmix-tf)
+        - [AugMix paper](https://arxiv.org/pdf/1912.02781)
+        - [Official Code](https://github.com/google-research/augmix)
+        - [Unoffial TF Code](https://github.com/szacho/augmix-tf)
 
     Sample Usage:
     ```python

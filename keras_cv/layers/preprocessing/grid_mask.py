@@ -86,7 +86,7 @@ class GridMask(BaseImageAugmentationLayer):
     ```
 
     References:
-        - https://arxiv.org/abs/2001.04086
+        - [GridMask paper](https://arxiv.org/abs/2001.04086)
     """
 
     def __init__(
