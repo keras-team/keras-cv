@@ -46,7 +46,7 @@ ALIASES = {
     "densenet169": {
         "imagenet": "imagenet/classification-v0",
         "imagenet/classification": "imagenet/classification-v0",
-    }
+    },
 }
 
 WEIGHTS_CONFIG = {
