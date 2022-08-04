@@ -1,5 +1,4 @@
 {
-    "script_authors": ["ianjjohnson"]
     "densenet121": {
         "v0": {
             "args": {
@@ -7,6 +6,7 @@
             },
             "contributor": "ianjjohnson",
             "epochs_trained": 84,
+            "script": "basic_training.py",
             "tensorboard_logs": "https://tensorboard.dev/experiment/K5Q0gAk0RayXwP0WsLPpMA/",
             "validation_accuracy": "0.6771"
         }
@@ -18,8 +18,12 @@
             },
             "contributor": "ianjjohnson",
             "epochs_trained": 50,
-            "tensorboard_logs": "https://tensorboard.dev/experiment/zEfeczRPRTKej6W8nuYBTQ/",
+            "script": "basic_training.py",
+            "tensorboard_logs": "https://tensorboard.dev/experiment/aQIvxQEgTqajldKxp688Nw/",
             "validation_accuracy": "0.6613"
         }
+    },
+    "script_authors": {
+        "basic_training.py": ["ianjjohnson"]
     }
 }
