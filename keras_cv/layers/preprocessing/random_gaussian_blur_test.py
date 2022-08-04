@@ -104,13 +104,3 @@ class RandomGaussianBlurTest(tf.test.TestCase):
         xs = layer(xs)
 
         self.assertAllClose(xs, result)
-
-    def test_augment_bounding_box_dict_input(self):
-        input_image = tf.random.uniform((2, 512, 512, 3), 0, 255, dtype=tf.float32)
-        bounding_boxes = tf.convert_to_tensor(
-            [[200, 200, 400, 400], [100, 100, 300, 300]]
-        )
-        input = {"images": input_image, "bounding_boxes": bounding_boxes}
-        layer = preprocessing.RandomGaussianBlur(kernel_size=(3, 7), factor=(0, 2))
-        output = layer(input)
-        self.assertAllClose(bounding_boxes, output["bounding_boxes"])
