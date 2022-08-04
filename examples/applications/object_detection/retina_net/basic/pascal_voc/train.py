@@ -32,15 +32,14 @@ from tensorflow.keras import optimizers
 import keras_cv
 from keras_cv import bounding_box
 
-flags.DEFINE_boolean("wandb", False, "Whether or not to use wandb.")
 flags.DEFINE_integer("batch_size", 8, "Training and eval batch size.")
 flags.DEFINE_integer("epochs", 1, "Number of training epochs.")
-flags.DEFINE_string("wandb_entity", "keras-team-testing", "wandb entity to use.")
+flags.DEFINE_string("wandb_entity", None, "wandb entity to use.")
 FLAGS = flags.FLAGS
 
 FLAGS(sys.argv)
 
-if FLAGS.wandb:
+if FLAGS.wandb_entity:
     wandb.init(project="pascalvoc-retinanet", entity=FLAGS.wandb_entity)
 
 """
@@ -64,7 +63,7 @@ KerasCV bounding box formats [in the API docs](https://keras.io/api/keras_cv/bou
 
 
 def curry_map_function(bounding_box_format, img_size):
-    """mapping function to create batched image and bbox coordinates"""
+    """Mapping function to create batched image and bbox coordinates"""
 
     resizing = keras.layers.Resizing(
         height=img_size[0], width=img_size[1], crop_to_aspect_ratio=False
@@ -307,7 +306,7 @@ callbacks = [
     callbacks_lib.TensorBoard(log_dir="logs"),
     callbacks_lib.EarlyStopping(patience=30),
 ]
-if FLAGS.wandb:
+if FLAGS.wandb_entity:
     callbacks += [
         wandb.keras.WandbCallback(save_model=False),
     ]
