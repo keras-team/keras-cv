@@ -72,14 +72,12 @@ TEST_CONFIGURATIONS = [
 
 class WithLabelsTest(tf.test.TestCase, parameterized.TestCase):
     @parameterized.named_parameters(*TEST_CONFIGURATIONS)
-    def test_can_run_with_boudning_boxes(self, layer_cls, init_args):
+    def test_can_run_with_bounding_boxes(self, layer_cls, init_args):
         layer = layer_cls(**init_args)
-
         img = tf.random.uniform(
             shape=(3, 512, 512, 3), minval=0, maxval=1, dtype=tf.float32
         )
         bounding_boxes = tf.random.uniform((3, 2, 4), 0, 255, dtype=tf.float32)
-
         inputs = {"images": img, "bounding_boxes": bounding_boxes}
         _ = layer(inputs)
 
@@ -90,6 +88,5 @@ class WithLabelsTest(tf.test.TestCase, parameterized.TestCase):
             shape=(512, 512, 3), minval=0, maxval=1, dtype=tf.float32
         )
         bounding_boxes = tf.random.uniform((2, 4), 0, 255, dtype=tf.float32)
-
         inputs = {"images": img, "bounding_boxes": bounding_boxes}
         _ = layer(inputs)
