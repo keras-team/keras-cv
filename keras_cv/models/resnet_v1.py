@@ -61,8 +61,8 @@ BASE_DOCSTRING = """Instantiates the {name} architecture.
         include_rescaling: whether or not to Rescale the inputs.If set to True,
             inputs will be passed through a `Rescaling(1/255.0)` layer.
         include_top: whether to include the fully-connected layer at the top of the
-            network.  If provided, num_classes must be provided.
-        num_classes: optional number of classes to classify images into, only to be
+            network.  If provided, classes must be provided.
+        classes: optional number of classes to classify images into, only to be
             specified if `include_top` is True, and if no `weights` argument is
             specified.
         weights: one of `None` (random initialization), or a pretrained weight file
@@ -173,7 +173,7 @@ def ResNet(
     input_shape=(None, None, 3),
     input_tensor=None,
     pooling=None,
-    num_classes=None,
+    classes=None,
     classifier_activation="softmax",
     **kwargs,
 ):
@@ -204,7 +204,7 @@ def ResNet(
                 the output of the model will be a 2D tensor.
             - `max` means that global max pooling will
                 be applied.
-        num_classes: optional number of classes to classify images
+        classes: optional number of classes to classify images
             into, only to be specified if `include_top` is True, and
             if no `weights` argument is specified.
         classifier_activation: A `str` or callable. The activation function to use
@@ -221,10 +221,10 @@ def ResNet(
             "weights file to be loaded. Weights file not found at location: {weights}"
         )
 
-    if include_top and not num_classes:
+    if include_top and not classes:
         raise ValueError(
-            "If `include_top` is True, you should specify `num_classes`. "
-            f"Received: num_classes={num_classes}"
+            "If `include_top` is True, you should specify `classes`. "
+            f"Received: classes={classes}"
         )
 
     if include_top and pooling:
@@ -259,9 +259,9 @@ def ResNet(
 
     if include_top:
         x = layers.GlobalAveragePooling2D(name="avg_pool")(x)
-        x = layers.Dense(
-            num_classes, activation=classifier_activation, name="predictions"
-        )(x)
+        x = layers.Dense(classes, activation=classifier_activation, name="predictions")(
+            x
+        )
     else:
         if pooling == "avg":
             x = layers.GlobalAveragePooling2D(name="avg_pool")(x)
@@ -280,7 +280,7 @@ def ResNet(
 def ResNet50(
     include_rescaling,
     include_top,
-    num_classes=None,
+    classes=None,
     weights=None,
     input_shape=(None, None, 3),
     input_tensor=None,
@@ -302,7 +302,7 @@ def ResNet50(
         input_shape=input_shape,
         input_tensor=input_tensor,
         pooling=pooling,
-        num_classes=num_classes,
+        classes=classes,
         classifier_activation=classifier_activation,
         **kwargs,
     )
@@ -311,7 +311,7 @@ def ResNet50(
 def ResNet101(
     include_rescaling,
     include_top,
-    num_classes=None,
+    classes=None,
     weights=None,
     input_shape=(None, None, 3),
     input_tensor=None,
@@ -332,7 +332,7 @@ def ResNet101(
         input_shape=input_shape,
         input_tensor=input_tensor,
         pooling=pooling,
-        num_classes=num_classes,
+        classes=classes,
         classifier_activation=classifier_activation,
         **kwargs,
     )
@@ -341,7 +341,7 @@ def ResNet101(
 def ResNet152(
     include_rescaling,
     include_top,
-    num_classes=None,
+    classes=None,
     weights=None,
     input_shape=(None, None, 3),
     input_tensor=None,
@@ -362,7 +362,7 @@ def ResNet152(
         input_shape=input_shape,
         input_tensor=input_tensor,
         pooling=pooling,
-        num_classes=num_classes,
+        classes=classes,
         classifier_activation=classifier_activation,
         **kwargs,
     )

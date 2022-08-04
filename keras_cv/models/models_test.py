@@ -65,7 +65,7 @@ class ModelsTest(tf.test.TestCase, parameterized.TestCase):
     @parameterized.parameters(*MODEL_LIST)
     def test_application_base(self, app, _, args):
         # Can be instantiated with default arguments
-        model = app(include_top=True, num_classes=1000, include_rescaling=False, **args)
+        model = app(include_top=True, classes=1000, include_rescaling=False, **args)
 
         # Can be serialized and deserialized
         config = model.get_config()
