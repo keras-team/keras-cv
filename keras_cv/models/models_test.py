@@ -58,7 +58,7 @@ MODEL_LIST = [
 ]
 
 
-class ApplicationsTest(tf.test.TestCase, parameterized.TestCase):
+class ModelsTest(tf.test.TestCase, parameterized.TestCase):
     def assertShapeEqual(self, shape1, shape2):
         self.assertEqual(tf.TensorShape(shape1), tf.TensorShape(shape2))
 
