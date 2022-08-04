@@ -15,7 +15,7 @@
 
 import tensorflow as tf
 
-from keras_cv.bounding_box import compute_iou
+from keras_cv import bounding_box
 
 
 class IoULoss(tf.keras.losses.Loss):
@@ -70,7 +70,7 @@ class IoULoss(tf.keras.losses.Loss):
         y_pred = tf.convert_to_tensor(y_pred)
         y_true = tf.cast(y_true, y_pred.dtype)
 
-        ious = compute_iou(y_true, y_pred, self.bounding_box_format)
+        ious = bounding_box.compute_iou(y_true, y_pred, self.bounding_box_format)
         iou = tf.reduce_mean(ious, axis=[-2, -1])
 
         if self.mode == "linear":
