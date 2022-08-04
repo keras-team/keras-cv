@@ -71,24 +71,20 @@ TEST_CONFIGURATIONS = [
 
 
 class WithLabelsTest(tf.test.TestCase, parameterized.TestCase):
-    @parameterized.named_parameters(
-        *TEST_CONFIGURATIONS,
-        ("CutMix", preprocessing.CutMix, {}),
-    )
-    def test_can_run_with_labels(self, layer_cls, init_args):
+    @parameterized.named_parameters(*TEST_CONFIGURATIONS)
+    def test_can_run_with_boudning_boxes(self, layer_cls, init_args):
         layer = layer_cls(**init_args)
 
         img = tf.random.uniform(
             shape=(3, 512, 512, 3), minval=0, maxval=1, dtype=tf.float32
         )
-        labels = tf.ones((3,), dtype=tf.float32)
+        bounding_boxes = tf.random.uniform((3, 2, 4), 0, 255, dtype=tf.float32)
 
-        inputs = {"images": img, "labels": labels}
+        inputs = {"images": img, "bounding_boxes": bounding_boxes}
         _ = layer(inputs)
 
-    # this has to be a separate test case to exclude CutMix and MixUp
     @parameterized.named_parameters(*TEST_CONFIGURATIONS)
-    def test_can_run_with_labels_single_image(self, layer_cls, init_args):
+    def test_can_run_with_bounding_boxes_single_image(self, layer_cls, init_args):
         layer = layer_cls(**init_args)
         img = tf.random.uniform(
             shape=(512, 512, 3), minval=0, maxval=1, dtype=tf.float32
