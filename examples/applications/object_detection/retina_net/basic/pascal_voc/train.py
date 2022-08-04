@@ -7,7 +7,7 @@ Description: Use KerasCV to train a RetinaNet on Pascal VOC 2007.
 """
 
 """
-# Overview
+## Overview
 
 KerasCV offers a complete set of APIs to allow you to train your own state of the art
 production grade object detection model.  These APIs include object detection specific
@@ -35,16 +35,13 @@ from keras_cv import bounding_box
 flags.DEFINE_boolean("wandb", False, "Whether or not to use wandb.")
 flags.DEFINE_integer("batch_size", 8, "Training and eval batch size.")
 flags.DEFINE_integer("epochs", 1, "Number of training epochs.")
-
+flags.DEFINE_string("wandb_entity", "keras-team-testing", "wandb entity to use.")
 FLAGS = flags.FLAGS
 
-try:
-    FLAGS(sys.argv, known_only=True)
-except:
-    pass
+FLAGS(sys.argv)
 
 if FLAGS.wandb:
-    wandb.init(project="pascalvoc-retinanet", entity="keras-team-testing")
+    wandb.init(project="pascalvoc-retinanet", entity=FLAGS.wandb_entity)
 
 """
 ## Data Loading
@@ -56,7 +53,7 @@ the KerasCV style, it is recommended that when writing a data loader, you suppor
 data loader what format the bounding boxes are in.
 
 For example:
-```
+```python
 train_ds = load_pascal_voc(split='train', bounding_box_format='xywh', batch_size=8)
 ```
 
@@ -100,7 +97,7 @@ def load_pascal_voc(
         curry_map_function(bounding_box_format=bounding_box_format, img_size=img_size),
         num_parallel_calls=tf.data.AUTOTUNE,
     )
-    dataset = dataset.shuffle(100)
+    dataset = dataset.shuffle(8*batch_size)
     dataset = dataset.apply(
         tf.data.experimental.dense_to_ragged_batch(batch_size=batch_size)
     )
@@ -137,13 +134,14 @@ def visualize_dataset(dataset, bounding_box_format):
 
 
 visualize_dataset(dataset, bounding_box_format="xywh")
+
 """
 Looks like everything is structured as expected.  Now we can move on to constructing our
 data augmentation pipeline.
 """
 
 """
-# Data Augmentation
+## Data Augmentation
 
 One of the most labor intensive tasks when constructing object detection pipeliens is
 data augmentation.  Image augmentation techniques must be aware of the underlying
@@ -337,5 +335,5 @@ running the script for 500 epochs, I have produced a Weights and Biases report c
 the training results below!  As a bonus, the report includes a training run with and
 without data augmentation.
 
-TODO(lukewood): add link to the WandB run.
+TODO(lukewood): add link to the WandB run once preprocessing bugs are resolved.
 """
