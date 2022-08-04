@@ -173,7 +173,7 @@ Different distribution strategies may be used for different training hardware, a
 strategy = tf.distribute.MirroredStrategy()
 
 with strategy.scope():
-    model = eval(f"models.{FLAGS.model_name}")
+    model = models.__dict__[FLAGS.model_name]
     model = model(
         include_rescaling=True,
         include_top=True,
