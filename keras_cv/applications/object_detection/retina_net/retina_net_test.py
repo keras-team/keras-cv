@@ -17,8 +17,6 @@ import tensorflow as tf
 
 import keras_cv
 
-tf.debugging.disable_traceback_filtering()
-
 
 class RetinaNetTest(tf.test.TestCase):
     @pytest.fixture(autouse=True)
