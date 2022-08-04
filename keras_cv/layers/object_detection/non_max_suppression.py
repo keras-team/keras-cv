@@ -95,11 +95,11 @@ class NonMaxSuppression(tf.keras.layers.Layer):
         self.max_detections_per_class = max_detections_per_class
 
     def call(self, predictions, images=None):
-        if predictions.shape[2] != 6:
+        if predictions.shape[-1] != 6:
             raise ValueError(
-                "Expected predictions.shape[-1] = 6, representing the position, shape, "
-                "class and confidence values of the box. Received predictions.shape[-1] = "
-                f"{predictions.shape[-1]}."
+                "keras_cv.layers.NonMaxSuppression() expects `call()` "
+                "argument `predictions` to be of shape (None, None, 6).  Received "
+                f"predictions.shape={tuple(predictions.shape)}."
             )
 
         # convert to yxyx for the TF NMS operation
@@ -110,12 +110,6 @@ class NonMaxSuppression(tf.keras.layers.Layer):
             images=images,
         )
 
-        if predictions.shape[-1] != 6:
-            raise ValueError(
-                "keras_cv.layers.NonMaxSuppression() expects `call()` "
-                "argument `predictions` to be of shape [None, None, 6].  Received "
-                f"predictions.shape={predictions.shape}."
-            )
         # preparing the predictions for TF NMS op
         boxes = tf.expand_dims(predictions[..., :4], axis=2)
         classes = tf.cast(predictions[..., 4], tf.int32)
@@ -139,16 +133,12 @@ class NonMaxSuppression(tf.keras.layers.Layer):
         boxes = self._decode_nms_boxes_to_tensor(nmsed_boxes)
         # converting all boxes to the original format
         boxes = self._encode_to_ragged(boxes, nmsed_boxes.valid_detections)
-        boxes = bounding_box.convert_format(
+        return bounding_box.convert_format(
             boxes,
             source="yxyx",
             target=self.bounding_box_format,
             images=images,
         )
-
-        return boxes
-
-        return boxes
 
     def _decode_nms_boxes_to_tensor(self, nmsed_boxes):
         boxes = tf.TensorArray(

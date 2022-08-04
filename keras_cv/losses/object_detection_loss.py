@@ -63,14 +63,14 @@ class ObjectDetectionLoss(tf.keras.losses.Loss):
 
         if y_true.shape[-1] != 5:
             raise ValueError(
-                "y_true should have shape [None, None, 5].  Got "
-                f"y_true.shape={y_true.shape}"
+                "y_true should have shape (None, None, 5).  Got "
+                f"y_true.shape={tuple(y_true.shape)}"
             )
 
         if y_pred.shape[-1] != self.classes + 4:
             raise ValueError(
-                "y_pred should have shape [None, None, 4+classes]. "
-                f"Got y_pred.shape={y_pred.shape}.  Does your model's `classes` "
+                "y_pred should have shape (None, None, classes + 4). "
+                f"Got y_pred.shape={tuple(y_pred.shape)}.  Does your model's `classes` "
                 "parameter match your losses `classes` parameter?"
             )
 
