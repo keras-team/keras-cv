@@ -68,7 +68,6 @@ class RetinaNetTest(tf.test.TestCase):
                 backbone_weights=None,
                 # Note no include_rescaling is provided
             )
-        # TODO(lukewood): test compile with the FocalLoss class
 
     def test_retina_net_call(self):
         retina_net = keras_cv.applications.RetinaNet(

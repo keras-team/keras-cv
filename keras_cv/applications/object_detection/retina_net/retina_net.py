@@ -96,17 +96,6 @@ class RetinaNet(keras.Model):
     ):
         super().__init__(name=name, **kwargs)
 
-        if backbone is not None and include_rescaling is None:
-            raise ValueError(
-                "Either `backbone` OR `include_rescaling` must be set when "
-                "constructing a `keras_cv.models.RetinaNet()` model. "
-                "When `include_rescaling` is set, a ResNet50 backbone will be used. "
-                "Rescaling will be performed according to the include_rescaling parameter. "
-                "When `backbone` is set, rescaling will be the responsibility of the "
-                "backbone.  Please read more about input scaling at {LINK}. "
-                f"Received backbone={backbone}, include_rescaling={include_rescaling}."
-            )
-
         self.bounding_box_format = bounding_box_format
         self.classes = classes
         self.backbone = _parse_backbone(backbone, include_rescaling, backbone_weights)
@@ -281,6 +270,17 @@ class RetinaNet(keras.Model):
 
 
 def _parse_backbone(backbone, include_rescaling, backbone_weights):
+    if isinstance(backbone, str) and include_rescaling is None:
+        raise ValueError(
+            "When using a preconfigured backbone, please do provide a "
+            "`include_rescaling` parameter.  `include_rescaling` is passed to the "
+            "keras_cv.models constructor for the provided backbone.  When "
+            "`include_rescaling=True`, image inputs are passed through a "
+            "`layers.Rescaling(1/255.0)` layer. When `include_rescaling=False`, no "
+            "downscaling is performed. "
+            f"Received backbone={backbone}, include_rescaling={include_rescaling}."
+        )
+
     if isinstance(backbone, str):
         if backbone == "resnet50":
             return _resnet50_backbone(include_rescaling, backbone_weights)

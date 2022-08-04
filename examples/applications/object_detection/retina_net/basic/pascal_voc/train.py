@@ -97,7 +97,7 @@ def load_pascal_voc(
         curry_map_function(bounding_box_format=bounding_box_format, img_size=img_size),
         num_parallel_calls=tf.data.AUTOTUNE,
     )
-    dataset = dataset.shuffle(8*batch_size)
+    dataset = dataset.shuffle(8 * batch_size)
     dataset = dataset.apply(
         tf.data.experimental.dense_to_ragged_batch(batch_size=batch_size)
     )
