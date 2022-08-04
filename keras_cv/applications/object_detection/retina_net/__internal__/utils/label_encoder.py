@@ -28,11 +28,11 @@ class LabelEncoder(layers.Layer):
 
     Args:
         bounding_box_format:  The format of bounding boxes of input dataset. Refer
-            https://github.com/keras-team/keras-cv/blob/master/keras_cv/bounding_box/converters.py
+            [to the keras.io docs](https://keras.io/api/keras_cv/bounding_box/formats/)
             for more details on supported bounding box formats.
         anchor_box: Anchor box generator to encode the bounding boxes.
         box_variance: The scaling factors used to scale the bounding box targets.
-            Defaults to [0.1, 0.1, 0.2, 0.2].
+            Defaults to (0.1, 0.1, 0.2, 0.2).
     """
 
     def __init__(

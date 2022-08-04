@@ -27,6 +27,7 @@ from keras_cv.applications.object_detection.retina_net.__internal__ import (
 
 # TODO(lukewood): update docstring to include documentation on creating a custom label
 # decoder/etc.
+# TODO(lukewood): link to keras.io guide on creating custom backbone and FPN.
 class RetinaNet(keras.Model):
     """A Keras model implementing the RetinaNet architecture.
 
@@ -36,7 +37,7 @@ class RetinaNet(keras.Model):
     provided.
 
     Usage:
-    ```
+    ```python
     retina_net = keras_cv.applications.RetinaNet(
         classes=20,
         bounding_box_format="xywh",
@@ -51,12 +52,12 @@ class RetinaNet(keras.Model):
             class.  Classes should be represented by integers in the range
             [0, classes).
         bounding_box_format: The format of bounding boxes of input dataset. Refer
-            https://github.com/keras-team/keras-cv/blob/master/keras_cv/bounding_box/converters.py
+            [to the keras.io docs](https://keras.io/api/keras_cv/bounding_box/formats/)
             for more details on supported bounding box formats.
-        backbone: Either 'resnet50' or a custom backbone model.  Please see {link} to see
-            how to construct your own backbone.
+        backbone: Either `"resnet50"` or a custom backbone model.
         include_rescaling: Required if provided backbone is a pre-configured model.
-            If set to True, inputs will be passed through a Rescaling(1/255.0) layer.
+            If set to `True`, inputs will be passed through a `Rescaling(1/255.0)`
+            layer.
         backbone_weights: (Optional) if using a KerasCV provided backbone, the
             underlying backbone model will be loaded using the weights provided in this
             argument.  Can be a model checkpoint path, or a string from the supported
@@ -68,17 +69,17 @@ class RetinaNet(keras.Model):
             `compile()` as the `y_true` argument.
         feature_pyramid: (Optional) A `keras.Model` representing a feature pyramid
             network (FPN).  The feature pyramid network is called on the outputs of the
-            `backbone`.  The keras_cv default backbones return three outputs in a list,
+            `backbone`.  The KerasCV default backbones return three outputs in a list,
             but custom backbones may be written and used with custom feature pyramid
             networks.  If not provided, a default feature pyramid neetwork is produced
             by the library.  The default feature pyramid network is compatible with all
             standard keras_cv backbones.
         prediction_decoder: (Optional)  A `keras.layer` that is responsible for
-            transforming retina_net predictions into usable bounding box Tensors.  If
-            not provided, a default is provided.  The default PredictionDecoder layer
-            operates using an AnchorBox matching algorithm and a NonMaxSuppression
+            transforming RetinaNet predictions into usable bounding box Tensors.  If
+            not provided, a default is provided.  The default `PredictionDecoder` layer
+            operates using an AnchorBox matching algorithm and a `NonMaxSuppression`
             operation.
-        name: (Optional) name for the model, defaults to RetinaNet.
+        name: (Optional) name for the model, defaults to `"RetinaNet"`.
     """
 
     def __init__(
@@ -274,7 +275,7 @@ def _parse_backbone(backbone, include_rescaling, backbone_weights):
         raise ValueError(
             "When using a preconfigured backbone, please do provide a "
             "`include_rescaling` parameter.  `include_rescaling` is passed to the "
-            "keras_cv.models constructor for the provided backbone.  When "
+            "Keras application constructor for the provided backbone.  When "
             "`include_rescaling=True`, image inputs are passed through a "
             "`layers.Rescaling(1/255.0)` layer. When `include_rescaling=False`, no "
             "downscaling is performed. "
