@@ -64,7 +64,7 @@ flags.DEFINE_string(
 )
 flags.DEFINE_string("imagenet_path", None, "Directory from which to load Imagenet.")
 flags.DEFINE_string(
-    "backup_path", None, "Directory which will be used for training backups"
+    "backup_path", None, "Directory which will be used for training backups."
 )
 flags.DEFINE_string(
     "weights_path", None, "Directory which will be used to store weight checkpoints."
@@ -72,7 +72,11 @@ flags.DEFINE_string(
 flags.DEFINE_string(
     "tensorboard_path", None, "Directory which will be used to store tensorboard logs."
 )
-flags.DEFINE_integer("batch_size", 256, "Batch size for training and evaluation")
+flags.DEFINE_integer("batch_size", 256, "Batch size for training and evaluation.")
+flags.DEFINE_boolean(
+    "use_xla", True, "Whether or not to use XLA (jit_compile) for training."
+)
+
 
 FLAGS = flags.FLAGS
 FLAGS(sys.argv)
@@ -239,7 +243,7 @@ model.compile(
     optimizer=optimizer,
     loss=loss_fn,
     metrics=metrics,
-    jit_compile=True,
+    jit_compile=FLAGS.use_xla,
 )
 
 model.fit(
