@@ -68,7 +68,8 @@ flags.DEFINE_boolean(
 FLAGS = flags.FLAGS
 FLAGS(sys.argv)
 
-assert FLAGS.model_name
+if not FLAGS.model_name in models.__dict__:
+    raise ValueError(f"Invalid model name: {FLAGS.model_name}")
 
 CLASSES = 1000
 IMAGE_SIZE = (224, 224)
