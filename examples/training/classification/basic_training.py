@@ -187,7 +187,7 @@ Note that learning rate will decrease over time due to the ReduceLROnPlateau cal
 """
 
 
-optimizer = optimizers.Adam(learning_rate=0.0005)
+optimizer = optimizers.Adam(learning_rate=0.005)
 
 
 """
@@ -214,7 +214,7 @@ We use EarlyStopping, BackupAndRestore, and a model checkpointing callback.
 
 callbacks = [
     callbacks.ReduceLROnPlateau(
-        monitor="val_loss", factor=0.3, patience=5, min_lr=0.00005
+        monitor="val_loss", factor=0.3, patience=5, min_lr=0.0001
     ),
     callbacks.EarlyStopping(patience=30),
     callbacks.BackupAndRestore(FLAGS.backup_path),
