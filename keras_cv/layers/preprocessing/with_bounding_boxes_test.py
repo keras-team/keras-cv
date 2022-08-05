@@ -38,7 +38,6 @@ class WithBoundingBoxesTest(tf.test.TestCase, parameterized.TestCase):
     @parameterized.named_parameters(
         *TEST_CONFIGURATIONS,
         *GEOMETRIC_TEST_CONFIGURATIONS,
-        ("CutMix", preprocessing.CutMix, {}),
     )
     def test_can_run_with_bounding_boxes(self, layer_cls, init_args):
         layer = layer_cls(**init_args)
@@ -66,3 +65,15 @@ class WithBoundingBoxesTest(tf.test.TestCase, parameterized.TestCase):
         inputs = {"images": img, "bounding_boxes": bounding_boxes}
         outputs = layer(inputs)
         self.assertTrue("bounding_boxes" in outputs)
+
+    # CutMix needs labels data
+    def test_cut_mix_keeps_bounding_box_data(self):
+        layer = preprocessing.CutMix()
+        img = tf.ones(shape=(3, 512, 512, 3), dtype=tf.float32)
+        labels = tf.ones((3), dtype=tf.float32)
+        bounding_boxes = tf.reshape(
+            tf.range(3 * 2 * 4, dtype=tf.float32), shape=(3, 2, 4)
+        )
+        inputs = {"images": img, "bounding_boxes": bounding_boxes, "labels": labels}
+        outputs = layer(inputs)
+        self.assertAllEqual(inputs["bounding_boxes"], outputs["bounding_boxes"])
