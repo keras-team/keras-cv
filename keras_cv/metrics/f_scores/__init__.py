@@ -12,6 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from keras_cv.metrics.coco.mean_average_precision import COCOMeanAveragePrecision
-from keras_cv.metrics.coco.recall import COCORecall
-from keras_cv.metrics.f_scores import FBetaScore, F1Score, F2Score, SparseFBetaScore, SparseF1Score, SparseF2Score
+from keras_cv.metrics.f_scores.f_beta_score import FBetaScore
+from keras_cv.metrics.f_scores.f_1_score import F1Score
+from keras_cv.metrics.f_scores.f_2_score import F2Score
+from keras_cv.metrics.f_scores.sparse_f_beta_score import SparseFBetaScore
+from keras_cv.metrics.f_scores.sparse_f_1_score import SparseF1Score
+from keras_cv.metrics.f_scores.sparse_f_2_score import SparseF2Score
