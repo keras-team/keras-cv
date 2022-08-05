@@ -32,9 +32,7 @@ class WithKeypointsTest(tf.test.TestCase, parameterized.TestCase):
     def test_can_run_with_keypoints(self, layer_cls, init_args):
         layer = layer_cls(**init_args)
 
-        img = tf.random.uniform(
-            shape=(3, 512, 512, 3), minval=0, maxval=1, dtype=tf.float32
-        )
+        img = tf.ones(shape=(3, 4, 4, 3), dtype=tf.float32)
         keypoints = tf.ones((3, 2, 6, 2), dtype=tf.float32)
 
         inputs = {"images": img, "keypoints": keypoints}
@@ -48,9 +46,7 @@ class WithKeypointsTest(tf.test.TestCase, parameterized.TestCase):
     )
     def test_can_run_with_keypoints_single_image(self, layer_cls, init_args):
         layer = layer_cls(**init_args)
-        img = tf.random.uniform(
-            shape=(512, 512, 3), minval=0, maxval=1, dtype=tf.float32
-        )
+        img = tf.ones(shape=(4, 4, 3), dtype=tf.float32)
         keypoints = tf.ones((3, 8, 2), dtype=tf.float32)
         inputs = {"images": img, "keypoints": keypoints}
         outputs = layer(inputs)
@@ -59,7 +55,7 @@ class WithKeypointsTest(tf.test.TestCase, parameterized.TestCase):
     # CutMix needs labels data
     def test_cut_mix_keeps_keypoints_data(self):
         layer = preprocessing.CutMix()
-        img = tf.ones(shape=(3, 512, 512, 3), dtype=tf.float32)
+        img = tf.ones(shape=(3, 4, 4, 3), dtype=tf.float32)
         labels = tf.ones((3), dtype=tf.float32)
         keypoints = tf.reshape(
             tf.range(3 * 2 * 6 * 2, dtype=tf.float32), shape=(3, 2, 6, 2)

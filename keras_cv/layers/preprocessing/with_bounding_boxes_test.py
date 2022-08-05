@@ -42,9 +42,7 @@ class WithBoundingBoxesTest(tf.test.TestCase, parameterized.TestCase):
     def test_can_run_with_bounding_boxes(self, layer_cls, init_args):
         layer = layer_cls(**init_args)
 
-        img = tf.random.uniform(
-            shape=(3, 512, 512, 3), minval=0, maxval=1, dtype=tf.float32
-        )
+        img = tf.ones(shape=(3, 4, 4, 3), dtype=tf.float32)
         bounding_boxes = tf.ones((3, 2, 4), dtype=tf.float32)
 
         inputs = {"images": img, "bounding_boxes": bounding_boxes}
@@ -58,9 +56,7 @@ class WithBoundingBoxesTest(tf.test.TestCase, parameterized.TestCase):
     )
     def test_can_run_with_bouding_boxes_single_image(self, layer_cls, init_args):
         layer = layer_cls(**init_args)
-        img = tf.random.uniform(
-            shape=(512, 512, 3), minval=0, maxval=1, dtype=tf.float32
-        )
+        img = tf.ones(shape=(4, 4, 3), dtype=tf.float32)
         bounding_boxes = tf.ones((3, 4), dtype=tf.float32)
         inputs = {"images": img, "bounding_boxes": bounding_boxes}
         outputs = layer(inputs)
@@ -69,7 +65,7 @@ class WithBoundingBoxesTest(tf.test.TestCase, parameterized.TestCase):
     # CutMix needs labels data
     def test_cut_mix_keeps_bounding_box_data(self):
         layer = preprocessing.CutMix()
-        img = tf.ones(shape=(3, 512, 512, 3), dtype=tf.float32)
+        img = tf.ones(shape=(3, 4, 4, 3), dtype=tf.float32)
         labels = tf.ones((3), dtype=tf.float32)
         bounding_boxes = tf.reshape(
             tf.range(3 * 2 * 4, dtype=tf.float32), shape=(3, 2, 4)
