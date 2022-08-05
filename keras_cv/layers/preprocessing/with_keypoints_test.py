@@ -31,17 +31,14 @@ class WithKeypointsTest(tf.test.TestCase, parameterized.TestCase):
         ("CutMix", preprocessing.CutMix, {}),
     )
     def test_can_run_with_keypoints(self, layer_cls, init_args):
-        if "clip_points_to_image_size" in init_args:
-            init_args["clip_points_to_image_size"] = False
         layer = layer_cls(**init_args)
 
         img = tf.random.uniform(
             shape=(3, 512, 512, 3), minval=0, maxval=1, dtype=tf.float32
         )
-        labels = tf.ones((3, 2), dtype=tf.float32)
         keypoints = tf.ones((3, 2, 6, 2), dtype=tf.float32)
 
-        inputs = {"images": img, "labels": labels, "keypoints": keypoints}
+        inputs = {"images": img, "keypoints": keypoints}
         outputs = layer(inputs)
         self.assertTrue("keypoints" in outputs)
 
@@ -51,14 +48,11 @@ class WithKeypointsTest(tf.test.TestCase, parameterized.TestCase):
         *GEOMETRIC_TEST_CONFIGURATIONS,
     )
     def test_can_run_with_keypoints_single_image(self, layer_cls, init_args):
-        if "clip_points_to_image_size" in init_args:
-            init_args["clip_points_to_image_size"] = True
         layer = layer_cls(**init_args)
         img = tf.random.uniform(
             shape=(512, 512, 3), minval=0, maxval=1, dtype=tf.float32
         )
-        labels = tf.ones((3), dtype=tf.float32)
         keypoints = tf.ones((3, 8, 2), dtype=tf.float32)
-        inputs = {"images": img, "labels": labels, "keypoints": keypoints}
+        inputs = {"images": img, "keypoints": keypoints}
         outputs = layer(inputs)
         self.assertTrue("keypoints" in outputs)

@@ -46,10 +46,9 @@ class WithBoundingBoxesTest(tf.test.TestCase, parameterized.TestCase):
         img = tf.random.uniform(
             shape=(3, 512, 512, 3), minval=0, maxval=1, dtype=tf.float32
         )
-        labels = tf.ones((3, 2), dtype=tf.float32)
         bounding_boxes = tf.ones((3, 2, 4), dtype=tf.float32)
 
-        inputs = {"images": img, "labels": labels, "bounding_boxes": bounding_boxes}
+        inputs = {"images": img, "bounding_boxes": bounding_boxes}
         outputs = layer(inputs)
         self.assertTrue("bounding_boxes" in outputs)
 
@@ -63,8 +62,7 @@ class WithBoundingBoxesTest(tf.test.TestCase, parameterized.TestCase):
         img = tf.random.uniform(
             shape=(512, 512, 3), minval=0, maxval=1, dtype=tf.float32
         )
-        labels = tf.ones((3), dtype=tf.float32)
         bounding_boxes = tf.ones((3, 4), dtype=tf.float32)
-        inputs = {"images": img, "labels": labels, "bounding_boxes": bounding_boxes}
+        inputs = {"images": img, "bounding_boxes": bounding_boxes}
         outputs = layer(inputs)
         self.assertTrue("bounding_boxes" in outputs)
