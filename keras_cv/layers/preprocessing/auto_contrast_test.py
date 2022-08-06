@@ -27,8 +27,8 @@ class AutoContrastTest(tf.test.TestCase):
         layer = preprocessing.AutoContrast(value_range=(0, 255))
         ys = layer(img)
 
-        self.assertTrue(tf.math.reduce_any(ys[0] == 1.0))
-        self.assertTrue(tf.math.reduce_any(ys[0] == 1.0))
+        self.assertAllEqual(tf.math.reduce_any(ys[0] == 1.0), True)
+        self.assertAllEqual(tf.math.reduce_any(ys[0] == 1.0), True)
 
     def test_auto_contrast_expands_value_range(self):
         img = tf.constant([0, 128], dtype=tf.float32)
@@ -39,8 +39,8 @@ class AutoContrastTest(tf.test.TestCase):
         layer = preprocessing.AutoContrast(value_range=(0, 255))
         ys = layer(img)
 
-        self.assertTrue(tf.math.reduce_any(ys[0] == 0.0))
-        self.assertTrue(tf.math.reduce_any(ys[0] == 255.0))
+        self.assertAllEqual(tf.math.reduce_any(ys[0] == 0.0), True)
+        self.assertAllEqual(tf.math.reduce_any(ys[0] == 255.0), True)
 
     def test_auto_contrast_different_values_per_channel(self):
         img = tf.constant(
@@ -51,11 +51,11 @@ class AutoContrastTest(tf.test.TestCase):
         layer = preprocessing.AutoContrast(value_range=(0, 255))
         ys = layer(img)
 
-        self.assertTrue(tf.math.reduce_any(ys[0, ..., 0] == 0.0))
-        self.assertTrue(tf.math.reduce_any(ys[0, ..., 1] == 0.0))
+        self.assertAllEqual(tf.math.reduce_any(ys[0, ..., 0] == 0.0), True)
+        self.assertAllEqual(tf.math.reduce_any(ys[0, ..., 1] == 0.0), True)
 
-        self.assertTrue(tf.math.reduce_any(ys[0, ..., 0] == 255.0))
-        self.assertTrue(tf.math.reduce_any(ys[0, ..., 1] == 255.0))
+        self.assertAllEqual(tf.math.reduce_any(ys[0, ..., 0] == 255.0), True)
+        self.assertAllEqual(tf.math.reduce_any(ys[0, ..., 1] == 255.0), True)
 
         self.assertAllClose(
             ys,
@@ -76,8 +76,8 @@ class AutoContrastTest(tf.test.TestCase):
         layer = preprocessing.AutoContrast(value_range=(0, 255))
         ys = layer(img)
 
-        self.assertTrue(tf.math.reduce_any(ys[0] == 0.0))
-        self.assertTrue(tf.math.reduce_any(ys[0] == 255.0))
+        self.assertAllEqual(tf.math.reduce_any(ys[0] == 0.0), True)
+        self.assertAllEqual(tf.math.reduce_any(ys[0] == 255.0), True)
 
     def test_auto_contrast_properly_converts_value_range(self):
         img = tf.constant([0, 0.5], dtype=tf.float32)
@@ -88,5 +88,5 @@ class AutoContrastTest(tf.test.TestCase):
         layer = preprocessing.AutoContrast(value_range=(0, 1))
         ys = layer(img)
 
-        self.assertTrue(tf.math.reduce_any(ys[0] == 0.0))
-        self.assertTrue(tf.math.reduce_any(ys[0] == 1.0))
+        self.assertAllEqual(tf.math.reduce_any(ys[0] == 0.0), True)
+        self.assertAllEqual(tf.math.reduce_any(ys[0] == 1.0), True)

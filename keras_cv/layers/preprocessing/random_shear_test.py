@@ -34,10 +34,10 @@ class RandomShearTest(tf.test.TestCase):
         xs = layer(xs)
 
         # Some pixels should be replaced with fill value
-        self.assertTrue(tf.math.reduce_any(xs[0] == fill_value))
-        self.assertTrue(tf.math.reduce_any(xs[0] == 2.0))
-        self.assertTrue(tf.math.reduce_any(xs[1] == fill_value))
-        self.assertTrue(tf.math.reduce_any(xs[1] == 1.0))
+        self.assertAllEqual(tf.math.reduce_any(xs[0] == fill_value), True)
+        self.assertAllEqual(tf.math.reduce_any(xs[0] == 2.0), True)
+        self.assertAllEqual(tf.math.reduce_any(xs[1] == fill_value), True)
+        self.assertAllEqual(tf.math.reduce_any(xs[1] == 1.0), True)
 
     def test_return_shapes(self):
         """test return dict keys and value pairs"""

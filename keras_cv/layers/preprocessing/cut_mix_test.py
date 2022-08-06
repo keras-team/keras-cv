@@ -48,10 +48,10 @@ class CutMixTest(tf.test.TestCase):
         xs, ys = outputs["images"], outputs["labels"]
 
         # At least some pixels should be replaced in the CutMix operation
-        self.assertTrue(tf.math.reduce_any(xs[0] == 1.0))
-        self.assertTrue(tf.math.reduce_any(xs[0] == 2.0))
-        self.assertTrue(tf.math.reduce_any(xs[1] == 1.0))
-        self.assertTrue(tf.math.reduce_any(xs[1] == 2.0))
+        self.assertAllEqual(tf.math.reduce_any(xs[0] == 1.0), True)
+        self.assertAllEqual(tf.math.reduce_any(xs[0] == 2.0), True)
+        self.assertAllEqual(tf.math.reduce_any(xs[1] == 1.0), True)
+        self.assertAllEqual(tf.math.reduce_any(xs[1] == 2.0), True)
         # No labels should still be close to their original values
         self.assertNotAllClose(ys, 1.0)
         self.assertNotAllClose(ys, 0.0)
@@ -71,10 +71,10 @@ class CutMixTest(tf.test.TestCase):
         xs, ys = outputs["images"], outputs["labels"]
 
         # At least some pixels should be replaced in the CutMix operation
-        self.assertTrue(tf.math.reduce_any(xs[0] == 1.0))
-        self.assertTrue(tf.math.reduce_any(xs[0] == 2.0))
-        self.assertTrue(tf.math.reduce_any(xs[1] == 1.0))
-        self.assertTrue(tf.math.reduce_any(xs[1] == 2.0))
+        self.assertAllEqual(tf.math.reduce_any(xs[0] == 1.0), True)
+        self.assertAllEqual(tf.math.reduce_any(xs[0] == 2.0), True)
+        self.assertAllEqual(tf.math.reduce_any(xs[1] == 1.0), True)
+        self.assertAllEqual(tf.math.reduce_any(xs[1] == 2.0), True)
         # No labels should still be close to their original values
         self.assertNotAllClose(ys, 1.0)
         self.assertNotAllClose(ys, 0.0)
@@ -96,10 +96,10 @@ class CutMixTest(tf.test.TestCase):
         xs, ys = outputs["images"], outputs["labels"]
 
         # At least some pixels should be replaced in the CutMix operation
-        self.assertTrue(tf.math.reduce_any(xs[0] == 1.0))
-        self.assertTrue(tf.math.reduce_any(xs[0] == 2.0))
-        self.assertTrue(tf.math.reduce_any(xs[1] == 1.0))
-        self.assertTrue(tf.math.reduce_any(xs[1] == 2.0))
+        self.assertAllEqual(tf.math.reduce_any(xs[0] == 1.0), True)
+        self.assertAllEqual(tf.math.reduce_any(xs[0] == 2.0), True)
+        self.assertAllEqual(tf.math.reduce_any(xs[1] == 1.0), True)
+        self.assertAllEqual(tf.math.reduce_any(xs[1] == 2.0), True)
         # No labels should still be close to their original values
         self.assertNotAllClose(ys, 1.0)
         self.assertNotAllClose(ys, 0.0)

@@ -47,10 +47,10 @@ class GridMaskTest(tf.test.TestCase):
         xs = layer(xs, training=True)
 
         # Some pixels should be replaced with fill_value
-        self.assertTrue(tf.math.reduce_any(xs[0] == float(fill_value)))
-        self.assertTrue(tf.math.reduce_any(xs[0] == 3.0))
-        self.assertTrue(tf.math.reduce_any(xs[1] == float(fill_value)))
-        self.assertTrue(tf.math.reduce_any(xs[1] == 2.0))
+        self.assertAllEqual(tf.math.reduce_any(xs[0] == float(fill_value)), True)
+        self.assertAllEqual(tf.math.reduce_any(xs[0] == 3.0), True)
+        self.assertAllEqual(tf.math.reduce_any(xs[1] == float(fill_value)), True)
+        self.assertAllEqual(tf.math.reduce_any(xs[1] == 2.0), True)
 
     def test_non_square_image(self):
         xs = tf.cast(
@@ -71,10 +71,10 @@ class GridMaskTest(tf.test.TestCase):
         xs = layer(xs, training=True)
 
         # Some pixels should be replaced with fill_value
-        self.assertTrue(tf.math.reduce_any(xs[0] == float(fill_value)))
-        self.assertTrue(tf.math.reduce_any(xs[0] == 2.0))
-        self.assertTrue(tf.math.reduce_any(xs[1] == float(fill_value)))
-        self.assertTrue(tf.math.reduce_any(xs[1] == 1.0))
+        self.assertAllEqual(tf.math.reduce_any(xs[0] == float(fill_value)), True)
+        self.assertAllEqual(tf.math.reduce_any(xs[0] == 2.0), True)
+        self.assertAllEqual(tf.math.reduce_any(xs[1] == float(fill_value)), True)
+        self.assertAllEqual(tf.math.reduce_any(xs[1] == 1.0), True)
 
     def test_in_tf_function(self):
         xs = tf.cast(
@@ -97,10 +97,10 @@ class GridMaskTest(tf.test.TestCase):
         xs = augment(xs)
 
         # Some pixels should be replaced with fill_value
-        self.assertTrue(tf.math.reduce_any(xs[0] == float(fill_value)))
-        self.assertTrue(tf.math.reduce_any(xs[0] == 2.0))
-        self.assertTrue(tf.math.reduce_any(xs[1] == float(fill_value)))
-        self.assertTrue(tf.math.reduce_any(xs[1] == 1.0))
+        self.assertAllEqual(tf.math.reduce_any(xs[0] == float(fill_value)), True)
+        self.assertAllEqual(tf.math.reduce_any(xs[0] == 2.0), True)
+        self.assertAllEqual(tf.math.reduce_any(xs[1] == float(fill_value)), True)
+        self.assertAllEqual(tf.math.reduce_any(xs[1] == 1.0), True)
 
     def test_in_single_image(self):
         xs = tf.cast(
@@ -110,5 +110,5 @@ class GridMaskTest(tf.test.TestCase):
 
         layer = GridMask(ratio_factor=(0.5, 0.5), fill_mode="constant", fill_value=0.0)
         xs = layer(xs, training=True)
-        self.assertTrue(tf.math.reduce_any(xs == 0.0))
-        self.assertTrue(tf.math.reduce_any(xs == 1.0))
+        self.assertAllEqual(tf.math.reduce_any(xs == 0.0), True)
+        self.assertAllEqual(tf.math.reduce_any(xs == 1.0), True)

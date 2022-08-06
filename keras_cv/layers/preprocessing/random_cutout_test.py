@@ -36,10 +36,10 @@ class RandomCutoutTest(tf.test.TestCase):
         xs = layer(xs)
 
         # Some pixels should be replaced with fill value
-        self.assertTrue(tf.math.reduce_any(xs[0] == fill_value))
-        self.assertTrue(tf.math.reduce_any(xs[0] == 2.0))
-        self.assertTrue(tf.math.reduce_any(xs[1] == fill_value))
-        self.assertTrue(tf.math.reduce_any(xs[1] == 1.0))
+        self.assertAllEqual(tf.math.reduce_any(xs[0] == fill_value), True)
+        self.assertAllEqual(tf.math.reduce_any(xs[0] == 2.0), True)
+        self.assertAllEqual(tf.math.reduce_any(xs[1] == fill_value), True)
+        self.assertAllEqual(tf.math.reduce_any(xs[1] == 1.0), True)
 
     def test_return_shapes(self):
         xs = tf.ones((2, 512, 512, 3))
@@ -91,10 +91,10 @@ class RandomCutoutTest(tf.test.TestCase):
         xs = layer(xs)
 
         # Some pixels should be replaced with fill value
-        self.assertTrue(tf.math.reduce_any(xs[0] == patch_value))
-        self.assertTrue(tf.math.reduce_any(xs[0] == 2.0))
-        self.assertTrue(tf.math.reduce_any(xs[1] == patch_value))
-        self.assertTrue(tf.math.reduce_any(xs[1] == 1.0))
+        self.assertAllEqual(tf.math.reduce_any(xs[0] == patch_value), True)
+        self.assertAllEqual(tf.math.reduce_any(xs[0] == 2.0), True)
+        self.assertAllEqual(tf.math.reduce_any(xs[1] == patch_value), True)
+        self.assertAllEqual(tf.math.reduce_any(xs[1] == 1.0), True)
 
     def test_random_cutout_call_tiny_image(self):
         img_shape = (4, 4, 3)
@@ -115,10 +115,10 @@ class RandomCutoutTest(tf.test.TestCase):
         xs = layer(xs)
 
         # Some pixels should be replaced with fill value
-        self.assertTrue(tf.math.reduce_any(xs[0] == fill_value))
-        self.assertTrue(tf.math.reduce_any(xs[0] == 2.0))
-        self.assertTrue(tf.math.reduce_any(xs[1] == fill_value))
-        self.assertTrue(tf.math.reduce_any(xs[1] == 1.0))
+        self.assertAllEqual(tf.math.reduce_any(xs[0] == fill_value), True)
+        self.assertAllEqual(tf.math.reduce_any(xs[0] == 2.0), True)
+        self.assertAllEqual(tf.math.reduce_any(xs[1] == fill_value), True)
+        self.assertAllEqual(tf.math.reduce_any(xs[1] == 1.0), True)
 
     def test_in_tf_function(self):
         xs = tf.cast(
@@ -142,7 +142,7 @@ class RandomCutoutTest(tf.test.TestCase):
         xs = augment(xs)
 
         # Some pixels should be replaced with fill value
-        self.assertTrue(tf.math.reduce_any(xs[0] == patch_value))
-        self.assertTrue(tf.math.reduce_any(xs[0] == 2.0))
-        self.assertTrue(tf.math.reduce_any(xs[1] == patch_value))
-        self.assertTrue(tf.math.reduce_any(xs[1] == 1.0))
+        self.assertAllEqual(tf.math.reduce_any(xs[0] == patch_value), True)
+        self.assertAllEqual(tf.math.reduce_any(xs[0] == 2.0), True)
+        self.assertAllEqual(tf.math.reduce_any(xs[1] == patch_value), True)
+        self.assertAllEqual(tf.math.reduce_any(xs[1] == 1.0), True)

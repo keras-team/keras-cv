@@ -40,8 +40,8 @@ class RandomChannelShiftTest(tf.test.TestCase, parameterized.TestCase):
         )
 
         xs = layer(xs, training=True)
-        self.assertFalse(tf.math.reduce_any(xs[0] == 2.0))
-        self.assertFalse(tf.math.reduce_any(xs[1] == 1.0))
+        self.assertAllEqual(tf.math.reduce_any(xs[0] == 2.0), False)
+        self.assertAllEqual(tf.math.reduce_any(xs[1] == 1.0), False)
 
     def test_in_tf_function(self):
         xs = tf.cast(
@@ -55,8 +55,8 @@ class RandomChannelShiftTest(tf.test.TestCase, parameterized.TestCase):
             return layer(x, training=True)
 
         xs = augment(xs)
-        self.assertFalse(tf.math.reduce_any(xs[0] == 2.0))
-        self.assertFalse(tf.math.reduce_any(xs[1] == 1.0))
+        self.assertAllEqual(tf.math.reduce_any(xs[0] == 2.0), False)
+        self.assertAllEqual(tf.math.reduce_any(xs[1] == 1.0), False)
 
     def test_5_channels(self):
         xs = tf.cast(
@@ -67,7 +67,7 @@ class RandomChannelShiftTest(tf.test.TestCase, parameterized.TestCase):
             factor=0.4, channels=5, value_range=(0, 255)
         )
         xs = layer(xs, training=True)
-        self.assertFalse(tf.math.reduce_any(xs == 1.0))
+        self.assertAllEqual(tf.math.reduce_any(xs == 1.0), False)
 
     def test_1_channel(self):
         xs = tf.cast(
@@ -78,7 +78,7 @@ class RandomChannelShiftTest(tf.test.TestCase, parameterized.TestCase):
             factor=0.4, channels=1, value_range=(0, 255)
         )
         xs = layer(xs, training=True)
-        self.assertFalse(tf.math.reduce_any(xs == 1.0))
+        self.assertAllEqual(tf.math.reduce_any(xs == 1.0), False)
 
     def test_in_single_image(self):
         xs = tf.cast(
@@ -87,7 +87,7 @@ class RandomChannelShiftTest(tf.test.TestCase, parameterized.TestCase):
         )
         layer = preprocessing.RandomChannelShift(factor=0.4, value_range=(0, 255))
         xs = layer(xs, training=True)
-        self.assertFalse(tf.math.reduce_any(xs == 1.0))
+        self.assertAllEqual(tf.math.reduce_any(xs == 1.0), False)
 
     def test_config(self):
         layer = preprocessing.RandomChannelShift(

@@ -40,7 +40,7 @@ class EqualizationTest(tf.test.TestCase, parameterized.TestCase):
         xs = layer(xs)
 
         for i in range(0, 256):
-            self.assertTrue(tf.math.reduce_any(xs == i))
+            self.assertAllEqual(tf.math.reduce_any(xs == i), True)
 
     @parameterized.named_parameters(
         ("float32", tf.float32), ("int32", tf.int32), ("int64", tf.int64)
@@ -51,7 +51,7 @@ class EqualizationTest(tf.test.TestCase, parameterized.TestCase):
         xs = layer(xs)
 
         for i in range(0, 256):
-            self.assertTrue(tf.math.reduce_any(xs == i))
+            self.assertAllEqual(tf.math.reduce_any(xs == i), True)
         self.assertAllInRange(xs, 0, 255)
 
     @parameterized.named_parameters(("0_255", 0, 255), ("0_1", 0, 1))

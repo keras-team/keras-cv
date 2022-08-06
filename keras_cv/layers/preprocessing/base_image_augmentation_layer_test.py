@@ -68,7 +68,7 @@ class BaseImageAugmentationLayerTest(tf.test.TestCase):
 
     def test_auto_vectorize_disabled(self):
         vectorize_disabled_layer = VectorizeDisabledLayer()
-        self.assertFalse(vectorize_disabled_layer.auto_vectorize)
+        self.assertAllEqual(vectorize_disabled_layer.auto_vectorize, False)
         self.assertEqual(vectorize_disabled_layer._map_fn, tf.map_fn)
 
     def test_augment_casts_dtypes(self):

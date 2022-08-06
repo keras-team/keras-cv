@@ -36,8 +36,8 @@ class ChannelShuffleTest(tf.test.TestCase):
 
         layer = ChannelShuffle(groups=1)
         xs = layer(xs, training=True)
-        self.assertTrue(tf.math.reduce_any(xs[0] == 3.0))
-        self.assertTrue(tf.math.reduce_any(xs[1] == 2.0))
+        self.assertAllEqual(tf.math.reduce_any(xs[0] == 3.0), True)
+        self.assertAllEqual(tf.math.reduce_any(xs[1] == 2.0), True)
 
     def test_channel_shuffle_call_results_multi_channel(self):
         xs = tf.cast(
@@ -50,8 +50,8 @@ class ChannelShuffleTest(tf.test.TestCase):
 
         layer = ChannelShuffle(groups=5)
         xs = layer(xs, training=True)
-        self.assertTrue(tf.math.reduce_any(xs[0] == 3.0))
-        self.assertTrue(tf.math.reduce_any(xs[1] == 2.0))
+        self.assertAllEqual(tf.math.reduce_any(xs[0] == 3.0), True)
+        self.assertAllEqual(tf.math.reduce_any(xs[1] == 2.0), True)
 
     def test_non_square_image(self):
         xs = tf.cast(
@@ -64,8 +64,8 @@ class ChannelShuffleTest(tf.test.TestCase):
 
         layer = ChannelShuffle(groups=1)
         xs = layer(xs, training=True)
-        self.assertTrue(tf.math.reduce_any(xs[0] == 2.0))
-        self.assertTrue(tf.math.reduce_any(xs[1] == 1.0))
+        self.assertAllEqual(tf.math.reduce_any(xs[0] == 2.0), True)
+        self.assertAllEqual(tf.math.reduce_any(xs[1] == 1.0), True)
 
     def test_in_tf_function(self):
         xs = tf.cast(
@@ -80,8 +80,8 @@ class ChannelShuffleTest(tf.test.TestCase):
             return layer(x, training=True)
 
         xs = augment(xs)
-        self.assertTrue(tf.math.reduce_any(xs[0] == 2.0))
-        self.assertTrue(tf.math.reduce_any(xs[1] == 1.0))
+        self.assertAllEqual(tf.math.reduce_any(xs[0] == 2.0), True)
+        self.assertAllEqual(tf.math.reduce_any(xs[1] == 1.0), True)
 
     def test_in_single_image(self):
         xs = tf.cast(
@@ -91,4 +91,4 @@ class ChannelShuffleTest(tf.test.TestCase):
 
         layer = ChannelShuffle(groups=1)
         xs = layer(xs, training=True)
-        self.assertTrue(tf.math.reduce_any(xs == 1.0))
+        self.assertAllEqual(tf.math.reduce_any(xs == 1.0), True)

@@ -43,7 +43,7 @@ class RandAugmentTest(tf.test.TestCase, parameterized.TestCase):
         )
         xs = tf.random.uniform((2, 512, 512, 3), low, high, dtype=tf.float32)
         ys = rand_augment(xs)
-        self.assertTrue(tf.math.reduce_all(tf.logical_and(ys >= low, ys <= high)))
+        self.assertAllEqual(tf.math.reduce_all(tf.logical_and(ys >= low, ys <= high)), True)
 
     @parameterized.named_parameters(
         ("float32", tf.float32),

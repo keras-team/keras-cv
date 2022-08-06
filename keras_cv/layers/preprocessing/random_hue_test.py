@@ -91,7 +91,7 @@ class RandomHueTest(tf.test.TestCase, parameterized.TestCase):
     def test_config(self):
         layer = preprocessing.RandomHue(factor=(0.3, 0.8), value_range=(0, 255))
         config = layer.get_config()
-        self.assertTrue(isinstance(config["factor"], core.UniformFactorSampler))
+        self.assertAllEqual(isinstance(config["factor"], core.UniformFactorSampler), True)
         self.assertEqual(config["factor"].get_config()["lower"], 0.3)
         self.assertEqual(config["factor"].get_config()["upper"], 0.8)
         self.assertEqual(config["value_range"], (0, 255))
