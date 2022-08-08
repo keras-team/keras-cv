@@ -22,7 +22,6 @@ from keras_cv.models import csp_darknet
 from keras_cv.models import darknet
 from keras_cv.models import densenet
 from keras_cv.models import mlp_mixer
-from keras_cv.models import regnet
 from keras_cv.models import resnet_v1
 from keras_cv.models import resnet_v2
 from keras_cv.models import vgg19
@@ -34,30 +33,6 @@ MODEL_LIST = [
     (densenet.DenseNet121, 1024, {}),
     (densenet.DenseNet169, 1664, {}),
     (densenet.DenseNet201, 1920, {}),
-    (regnet.RegNetX002, 368, {}),
-    (regnet.RegNetX004, 384, {}),
-    (regnet.RegNetX006, 528, {}),
-    (regnet.RegNetX008, 672, {}),
-    (regnet.RegNetX016, 912, {}),
-    (regnet.RegNetX032, 1008, {}),
-    (regnet.RegNetX040, 1360, {}),
-    (regnet.RegNetX064, 1624, {}),
-    (regnet.RegNetX080, 1920, {}),
-    (regnet.RegNetX120, 2240, {}),
-    (regnet.RegNetX160, 2048, {}),
-    (regnet.RegNetX320, 2520, {}),
-    (regnet.RegNetY002, 368, {}),
-    (regnet.RegNetY004, 440, {}),
-    (regnet.RegNetY006, 608, {}),
-    (regnet.RegNetY008, 768, {}),
-    (regnet.RegNetY016, 888, {}),
-    (regnet.RegNetY032, 1512, {}),
-    (regnet.RegNetY040, 1088, {}),
-    (regnet.RegNetY064, 1296, {}),
-    (regnet.RegNetY080, 2016, {}),
-    (regnet.RegNetY120, 2240, {}),
-    (regnet.RegNetY160, 3024, {}),
-    (regnet.RegNetY320, 3712, {}),
     (resnet_v1.ResNet50, 2048, {}),
     (resnet_v1.ResNet101, 2048, {}),
     (resnet_v1.ResNet152, 2048, {}),
