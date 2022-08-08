@@ -44,8 +44,8 @@ class IoULoss(tf.keras.losses.Loss):
 
     Sample Usage:
     ```python
-    y_true = tf.random.uniform([5, 10, 6], minval=0, maxval=10, dtype=tf.dtypes.int32)
-    y_pred = tf.random.uniform([5, 10, 4], minval=0, maxval=10, dtype=tf.dtypes.int32)
+    y_true = tf.random.uniform((5, 10, 5), minval=0, maxval=10, dtype=tf.dtypes.int32)
+    y_pred = tf.random.uniform((5, 10, 4), minval=0, maxval=10, dtype=tf.dtypes.int32)
     loss = IoULoss(bounding_box_format = "xyWH")
     loss(y_true, y_pred).numpy()
     ```
@@ -70,15 +70,27 @@ class IoULoss(tf.keras.losses.Loss):
         y_pred = tf.convert_to_tensor(y_pred)
         y_true = tf.cast(y_true, y_pred.dtype)
 
+        if y_pred.shape[-1] < 4:
+            raise ValueError(
+                "IoULoss expects y_pred.shape[-1] to be at least 4 to represent "
+                f"the bounding boxes. Received y_pred.shape[-1]={y_pred.shape[-1]}."
+            )
+
+        if y_true.shape[-1] < 4:
+            raise ValueError(
+                "IoULoss expects y_true.shape[-1] to be at least 4 to represent "
+                f"the bounding boxes. Received y_true.shape[-1]={y_true.shape[-1]}."
+            )
+
         ious = bounding_box.compute_iou(y_true, y_pred, self.bounding_box_format)
-        iou = tf.reduce_mean(ious, axis=[-2, -1])
+        mean_iou = tf.reduce_mean(ious, axis=[-2, -1])
 
         if self.mode == "linear":
-            loss = 1 - iou
+            loss = 1 - mean_iou
         elif self.mode == "square":
-            loss = 1 - iou**2
+            loss = 1 - mean_iou**2
         elif self.mode == "log":
-            loss = -tf.math.log(iou)
+            loss = -tf.math.log(mean_iou)
 
         return loss
 

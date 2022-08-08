@@ -19,16 +19,16 @@ from keras_cv.losses.iou_loss import IoULoss
 
 class IoUTest(tf.test.TestCase):
     def test_output_shape(self):
-        y_true = tf.random.uniform(shape=[2, 2, 4], minval=0, maxval=10, dtype=tf.int32)
-        y_pred = tf.random.uniform(shape=[2, 2, 4], minval=0, maxval=20, dtype=tf.int32)
+        y_true = tf.random.uniform(shape=(2, 2, 4), minval=0, maxval=10, dtype=tf.int32)
+        y_pred = tf.random.uniform(shape=(2, 2, 4), minval=0, maxval=20, dtype=tf.int32)
 
         iou_loss = IoULoss(bounding_box_format="xywh")
 
-        self.assertAllEqual(iou_loss(y_true, y_pred).shape, [])
+        self.assertAllEqual(iou_loss(y_true, y_pred).shape, ())
 
     def test_output_shape_reduction_none(self):
-        y_true = tf.random.uniform(shape=[2, 2, 4], minval=0, maxval=10, dtype=tf.int32)
-        y_pred = tf.random.uniform(shape=[2, 2, 4], minval=0, maxval=20, dtype=tf.int32)
+        y_true = tf.random.uniform(shape=(2, 2, 4), minval=0, maxval=10, dtype=tf.int32)
+        y_pred = tf.random.uniform(shape=(2, 2, 4), minval=0, maxval=20, dtype=tf.int32)
 
         iou_loss = IoULoss(bounding_box_format="xywh", reduction="none")
 
@@ -56,7 +56,7 @@ class IoUTest(tf.test.TestCase):
 
         iou_loss = IoULoss(bounding_box_format="rel_xyxy")
 
-        self.assertAllEqual(iou_loss(y_true, y_pred).shape, [])
+        self.assertAllEqual(iou_loss(y_true, y_pred).shape, ())
 
     def test_output_value(self):
         y_true = [
@@ -75,4 +75,5 @@ class IoUTest(tf.test.TestCase):
 
         iou_loss = IoULoss(bounding_box_format="xywh")
 
+        # -log(compute_iou(y_true, y_pred)) = 2.0311017
         self.assertAllClose(iou_loss(y_true, y_pred), 2.0311017)
