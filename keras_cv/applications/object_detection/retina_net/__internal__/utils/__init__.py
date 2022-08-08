@@ -12,7 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from keras_cv.losses.focal import FocalLoss
-from keras_cv.losses.iou_loss import IoULoss
-from keras_cv.losses.object_detection_loss import ObjectDetectionLoss
-from keras_cv.losses.smooth_l1 import SmoothL1Loss
+from keras_cv.applications.object_detection.retina_net.__internal__.utils.anchor_box import (
+    AnchorBox,
+)
+from keras_cv.applications.object_detection.retina_net.__internal__.utils.label_encoder import (
+    LabelEncoder,
+)

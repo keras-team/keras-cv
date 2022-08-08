@@ -95,11 +95,11 @@ class NonMaxSuppression(tf.keras.layers.Layer):
         self.max_detections_per_class = max_detections_per_class
 
     def call(self, predictions, images=None):
-        if predictions.shape[2] != 6:
+        if predictions.shape[-1] != 6:
             raise ValueError(
-                "Expected predictions.shape[-1] = 6, representing the position, shape, "
-                "class and confidence values of the box. Received predictions.shape[-1] = "
-                f"{predictions.shape[-1]}."
+                "keras_cv.layers.NonMaxSuppression() expects `call()` "
+                "argument `predictions` to be of shape (None, None, 6).  Received "
+                f"predictions.shape={tuple(predictions.shape)}."
             )
 
         # convert to yxyx for the TF NMS operation
@@ -128,6 +128,7 @@ class NonMaxSuppression(tf.keras.layers.Layer):
             self.confidence_threshold,
             clip_boxes=False,
         )
+
         # output will be a ragged tensor because num_boxes will change across the batch
         boxes = self._decode_nms_boxes_to_tensor(nmsed_boxes)
         # converting all boxes to the original format
@@ -141,11 +142,7 @@ class NonMaxSuppression(tf.keras.layers.Layer):
 
     def _decode_nms_boxes_to_tensor(self, nmsed_boxes):
         boxes = tf.TensorArray(
-            tf.float32,
-            size=0,
-            infer_shape=False,
-            element_shape=(6,),
-            dynamic_size=True,
+            tf.float32, size=0, infer_shape=False, element_shape=(6,), dynamic_size=True
         )
 
         for i in tf.range(tf.shape(nmsed_boxes.nmsed_boxes)[0]):
