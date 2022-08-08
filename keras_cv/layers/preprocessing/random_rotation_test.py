@@ -75,7 +75,7 @@ class RandomRotationTest(tf.test.TestCase):
         layer = RandomRotation(0.5, dtype="uint8")
         self.assertAllEqual(layer(inputs).dtype, "uint8")
 
-    def test_ragged(self):
+    def test_ragged_bounding_boxes(self):
         input_image = np.random.random((2, 512, 512, 3)).astype(np.float32)
         bboxes = tf.ragged.constant(
             [[[200, 200, 400, 400], [100, 100, 300, 300]], [[200, 200, 400, 400]]]
