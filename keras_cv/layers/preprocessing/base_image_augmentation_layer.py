@@ -293,7 +293,14 @@ class BaseImageAugmentationLayer(tf.keras.__internal__.layers.BaseRandomLayer):
         return result
 
     def _batch_augment(self, inputs):
-        return self._map_fn(self._augment, inputs)
+        if BOUNDING_BOXES in inputs:
+            inputs[BOUNDING_BOXES] = self._pad_bounding_boxes(inputs[BOUNDING_BOXES])
+        augmented_batch = self._map_fn(self._augment, inputs)
+        if BOUNDING_BOXES in inputs:
+            augmented_batch[BOUNDING_BOXES] = self._filter_padded_boxes(
+                augmented_batch[BOUNDING_BOXES]
+            )
+        return augmented_batch
 
     def _format_inputs(self, inputs):
         if tf.is_tensor(inputs):
@@ -333,3 +340,29 @@ class BaseImageAugmentationLayer(tf.keras.__internal__.layers.BaseRandomLayer):
                 self.compute_dtype,
             )
         return inputs
+
+    def _pad_bounding_boxes(self, bounding_boxes):
+        padded_bounding_box = bounding_boxes.to_tensor(-1)
+        return padded_bounding_box
+
+    def _filter_padded_boxes(self, bounding_boxes):
+        def is_padded(box):
+            if box[0] == box[1] == box[2] == box[3]:
+                return False
+            return True
+
+        # initialize output tensor with first tensor
+        mask = [is_padded(box) for box in bounding_boxes[0]]
+        filtered_bounding_boxes = tf.cast(
+            tf.boolean_mask(bounding_boxes[0], mask), dtype=self.compute_dtype
+        )
+        for boxes in bounding_boxes[1:]:
+            mask = [is_padded(box) for box in boxes]
+            masked_bounding_boxes = tf.cast(
+                tf.boolean_mask(boxes, mask), dtype=self.compute_dtype
+            )
+            # stack ragged bounding boxes for rest of the inputs
+            filtered_bounding_boxes = tf.ragged.stack(
+                [filtered_bounding_boxes, masked_bounding_boxes]
+            )
+        return filtered_bounding_boxes

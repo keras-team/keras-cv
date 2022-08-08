@@ -74,3 +74,19 @@ class RandomRotationTest(tf.test.TestCase):
         self.assertAllEqual(layer(inputs).dtype, "float32")
         layer = RandomRotation(0.5, dtype="uint8")
         self.assertAllEqual(layer(inputs).dtype, "uint8")
+
+    def test_ragged(self):
+        input_image = np.random.random((2, 512, 512, 3)).astype(np.float32)
+        bboxes = tf.ragged.constant(
+            [[[200, 200, 400, 400], [100, 100, 300, 300]], [[200, 200, 400, 400]]]
+        )
+        input = {"images": input_image, "bounding_boxes": bboxes}
+        layer = RandomRotation(factor=(0.5, 0.5), bounding_box_format="xyxy")
+        output = layer(input)
+        expected_output = tf.ragged.constant(
+            [
+                [[112.0, 112.0, 312.0, 312.0], [212.0, 212.0, 412.0, 412.0]],
+                [[112.0, 112.0, 312.0, 312.0]],
+            ]
+        )
+        self.assertAllClose(expected_output, output["bounding_boxes"])
