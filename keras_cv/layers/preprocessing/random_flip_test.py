@@ -128,8 +128,11 @@ class RandomFlipTest(tf.test.TestCase, parameterized.TestCase):
             side_effect=mock_random,
         ):
             output = layer(input, training=True)
-        expected_output = [
-            [[10, 10, 20, 20], [8, 8, 16, 16]],
-            [[10, 10, 20, 20], [8, 8, 16, 16]],
-        ]
-        self.assertAllClose(expected_output, output["bounding_boxes"])
+        expected_output = np.array(
+            [
+                [[10, 10, 20, 20], [8, 8, 16, 16]],
+                [[10, 10, 20, 20], [8, 8, 16, 16]],
+            ],
+            dtype=np.float32,
+        )
+        self.assertAllClose(expected_output, output["bounding_boxes"].to_tensor())

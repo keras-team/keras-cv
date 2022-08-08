@@ -342,7 +342,9 @@ class BaseImageAugmentationLayer(tf.keras.__internal__.layers.BaseRandomLayer):
         return inputs
 
     def _pad_bounding_boxes(self, bounding_boxes):
-        padded_bounding_box = bounding_boxes.to_tensor(-1)
+        bounding_boxes = tf.RaggedTensor.from_tensor(bounding_boxes)
+        pad_value = tf.cast(-1, dtype=self.compute_dtype)
+        padded_bounding_box = bounding_boxes.to_tensor(pad_value)
         return padded_bounding_box
 
     def _filter_padded_boxes(self, bounding_boxes):
