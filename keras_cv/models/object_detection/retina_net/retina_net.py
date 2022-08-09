@@ -20,9 +20,7 @@ from keras_cv import bounding_box
 from keras_cv.models.object_detection.retina_net.__internal__ import (
     layers as layers_lib,
 )
-from keras_cv.models.object_detection.retina_net.__internal__ import (
-    utils as utils_lib,
-)
+from keras_cv.models.object_detection.retina_net.__internal__ import utils as utils_lib
 
 
 # TODO(lukewood): update docstring to include documentation on creating a custom label
