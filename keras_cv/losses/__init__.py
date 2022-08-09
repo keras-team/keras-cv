@@ -13,5 +13,6 @@
 # limitations under the License.
 
 from keras_cv.losses.focal import FocalLoss
+from keras_cv.losses.giou_loss import GIoULoss
 from keras_cv.losses.object_detection_loss import ObjectDetectionLoss
 from keras_cv.losses.smooth_l1 import SmoothL1Loss
