@@ -24,6 +24,7 @@ import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras import layers
 
+from keras_cv.models import utils
 from keras_cv.models.__internal__.darknet_utils import CrossStagePartial
 from keras_cv.models.__internal__.darknet_utils import DarknetConvBlock
 from keras_cv.models.__internal__.darknet_utils import DarknetConvBlockDepthwise
@@ -37,9 +38,10 @@ def CSPDarkNet(
     depth_multiplier=1.0,
     width_multiplier=1.0,
     use_depthwise=False,
-    num_classes=None,
+    classes=None,
     weights=None,
     input_shape=(None, None, 3),
+    input_tensor=None,
     pooling=None,
     classifier_activation="softmax",
     name=None,
@@ -63,18 +65,20 @@ def CSPDarkNet(
         include_rescaling: whether or not to Rescale the inputs.If set to True,
             inputs will be passed through a `Rescaling(1/255.0)` layer.
         include_top: whether to include the fully-connected layer at the top of
-            the network.  If provided, `num_classes` must be provided.
+            the network.  If provided, `classes` must be provided.
         depth_multiplier: A float value used to calculate the base depth of the model
             this changes based the detection model being used. Defaults to 1.0.
         width_multiplier: A float value used to calculate the base width of the model
             this changes based the detection model being used. Defaults to 1.0.
         use_depthwise: a boolean value used to decide whether a depthwise conv block
             should be used over a regular darknet block. Defaults to False
-        num_classes: optional number of classes to classify images into, only to be
+        classes: optional number of classes to classify images into, only to be
             specified if `include_top` is True, and if no `weights` argument is
             specified.
         weights: one of `None` (random initialization), or a pretrained weight
             file path.
+        input_tensor: optional Keras tensor (i.e. output of `layers.Input()`)
+            to use as image input for the model.
         input_shape: optional shape tuple, defaults to (None, None, 3).
         pooling: optional pooling mode for feature extraction when `include_top`
             is `False`.
@@ -87,8 +91,7 @@ def CSPDarkNet(
         classifier_activation: A `str` or callable. The activation function to use
             on the "top" layer. Ignored unless `include_top=True`. Set
             `classifier_activation=None` to return the logits of the "top" layer.
-            When loading pretrained weights, `classifier_activation` can only
-            be `None` or `"softmax"`.
+
         name: (Optional) name to pass to the model.  Defaults to "DarkNet".
     Returns:
         A `keras.Model` instance.
@@ -99,10 +102,10 @@ def CSPDarkNet(
             f"weights file to be loaded. Weights file not found at location: {weights}"
         )
 
-    if include_top and not num_classes:
+    if include_top and not classes:
         raise ValueError(
-            "If `include_top` is True, you should specify `num_classes`. Received: "
-            f"num_classes={num_classes}"
+            "If `include_top` is True, you should specify `classes`. Received: "
+            f"classes={classes}"
         )
 
     ConvBlock = DarknetConvBlockDepthwise if use_depthwise else DarknetConvBlock
@@ -110,7 +113,7 @@ def CSPDarkNet(
     base_channels = int(width_multiplier * 64)
     base_depth = max(round(depth_multiplier * 3), 1)
 
-    inputs = layers.Input(shape=input_shape)
+    inputs = utils.parse_model_inputs(input_shape, input_tensor)
 
     x = inputs
     if include_rescaling:
@@ -162,9 +165,9 @@ def CSPDarkNet(
 
     if include_top:
         x = layers.GlobalAveragePooling2D(name="avg_pool")(x)
-        x = layers.Dense(
-            num_classes, activation=classifier_activation, name="predictions"
-        )(x)
+        x = layers.Dense(classes, activation=classifier_activation, name="predictions")(
+            x
+        )
     elif pooling == "avg":
         x = layers.GlobalAveragePooling2D(name="avg_pool")(x)
     elif pooling == "max":

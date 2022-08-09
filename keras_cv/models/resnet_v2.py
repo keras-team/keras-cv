@@ -21,6 +21,8 @@ import tensorflow as tf
 from tensorflow.keras import backend
 from tensorflow.keras import layers
 
+from keras_cv.models import utils
+
 MODEL_CONFIGS = {
     "ResNet50V2": {
         "stackwise_filters": [64, 128, 256, 512],
@@ -58,13 +60,15 @@ BASE_DOCSTRING = """Instantiates the {name} architecture.
         include_rescaling: whether or not to Rescale the inputs.If set to True,
             inputs will be passed through a `Rescaling(1/255.0)` layer.
         include_top: whether to include the fully-connected layer at the top of the
-            network.  If provided, num_classes must be provided.
-        num_classes: optional number of classes to classify images into, only to be
+            network.  If provided, classes must be provided.
+        classes: optional number of classes to classify images into, only to be
             specified if `include_top` is True, and if no `weights` argument is
             specified.
         weights: one of `None` (random initialization), or a pretrained weight file
             path.
         input_shape: optional shape tuple, defaults to (None, None, 3).
+        input_tensor: optional Keras tensor (i.e. output of `layers.Input()`)
+            to use as image input for the model.
         pooling: optional pooling mode for feature extraction
             when `include_top` is `False`.
             - `None` means that the output of the model will be the 4D tensor output
@@ -74,6 +78,9 @@ BASE_DOCSTRING = """Instantiates the {name} architecture.
                 be a 2D tensor.
             - `max` means that global max pooling will be applied.
         name: (Optional) name to pass to the model.  Defaults to "{name}".
+        classifier_activation: A `str` or callable. The activation function to use
+            on the "top" layer. Ignored unless `include_top=True`. Set
+            `classifier_activation=None` to return the logits of the "top" layer.
     Returns:
       A `keras.Model` instance.
 """
@@ -170,45 +177,46 @@ def ResNetV2(
     name="ResNetV2",
     weights=None,
     input_shape=(None, None, 3),
+    input_tensor=None,
     pooling=None,
-    num_classes=None,
+    classes=None,
     classifier_activation="softmax",
     **kwargs,
 ):
     """Instantiates the ResNetV2 architecture.
 
     Args:
-      stackwise_filters: number of filters for each stack in the model.
-      stackwise_blocks: number of blocks for each stack in the model.
-      stackwise_strides: stride for each stack in the model.
-      include_rescaling: whether or not to Rescale the inputs. If set to True,
-        inputs will be passed through a `Rescaling(1/255.0)` layer.
-      name: string, model name.
-      include_top: whether to include the fully-connected
-        layer at the top of the network.
-      weights: one of `None` (random initialization),
-        or the path to the weights file to be loaded.
-      input_shape: optional shape tuple, defaults to (None, None, 3).
-      pooling: optional pooling mode for feature extraction
-        when `include_top` is `False`.
-        - `None` means that the output of the model will be
-            the 4D tensor output of the
-            last convolutional layer.
-        - `avg` means that global average pooling
-            will be applied to the output of the
-            last convolutional layer, and thus
-            the output of the model will be a 2D tensor.
-        - `max` means that global max pooling will
-            be applied.
-      num_classes: optional number of classes to classify images
-        into, only to be specified if `include_top` is True, and
-        if no `weights` argument is specified.
-      classifier_activation: A `str` or callable. The activation function to use
-        on the "top" layer. Ignored unless `include_top=True`. Set
-        `classifier_activation=None` to return the logits of the "top" layer.
-        When loading pretrained weights, `classifier_activation` can only
-        be `None` or `"softmax"`.
-      **kwargs: Pass-through keyword arguments to `tf.keras.Model`.
+        stackwise_filters: number of filters for each stack in the model.
+        stackwise_blocks: number of blocks for each stack in the model.
+        stackwise_strides: stride for each stack in the model.
+        include_rescaling: whether or not to Rescale the inputs. If set to True,
+            inputs will be passed through a `Rescaling(1/255.0)` layer.
+            name: string, model name.
+        include_top: whether to include the fully-connected
+            layer at the top of the network.
+        weights: one of `None` (random initialization),
+            or the path to the weights file to be loaded.
+        input_shape: optional shape tuple, defaults to (None, None, 3).
+        input_tensor: optional Keras tensor (i.e. output of `layers.Input()`)
+            to use as image input for the model.
+        pooling: optional pooling mode for feature extraction
+            when `include_top` is `False`.
+            - `None` means that the output of the model will be
+                the 4D tensor output of the
+                last convolutional layer.
+            - `avg` means that global average pooling
+                will be applied to the output of the
+                last convolutional layer, and thus
+                the output of the model will be a 2D tensor.
+            - `max` means that global max pooling will
+                be applied.
+        classes: optional number of classes to classify images
+            into, only to be specified if `include_top` is True, and
+            if no `weights` argument is specified.
+        classifier_activation: A `str` or callable. The activation function to use
+            on the "top" layer. Ignored unless `include_top=True`. Set
+            `classifier_activation=None` to return the logits of the "top" layer.
+        **kwargs: Pass-through keyword arguments to `tf.keras.Model`.
 
     Returns:
       A `keras.Model` instance.
@@ -219,10 +227,10 @@ def ResNetV2(
             "weights file to be loaded. Weights file not found at location: {weights}"
         )
 
-    if include_top and not num_classes:
+    if include_top and not classes:
         raise ValueError(
-            "If `include_top` is True, you should specify `num_classes`. "
-            f"Received: num_classes={num_classes}"
+            "If `include_top` is True, you should specify `classes`. "
+            f"Received: classes={classes}"
         )
 
     if include_top and pooling:
@@ -231,8 +239,8 @@ def ResNetV2(
             f"Received pooling={pooling} and include_top={include_top}. "
         )
 
-    img_input = layers.Input(shape=input_shape)
-    x = img_input
+    inputs = utils.parse_model_inputs(input_shape, input_tensor)
+    x = inputs
 
     if include_rescaling:
         x = layers.Rescaling(1 / 255.0)(x)
@@ -257,9 +265,9 @@ def ResNetV2(
 
     if include_top:
         x = layers.GlobalAveragePooling2D(name="avg_pool")(x)
-        x = layers.Dense(
-            num_classes, activation=classifier_activation, name="predictions"
-        )(x)
+        x = layers.Dense(classes, activation=classifier_activation, name="predictions")(
+            x
+        )
     else:
         if pooling == "avg":
             x = layers.GlobalAveragePooling2D(name="avg_pool")(x)
@@ -267,7 +275,7 @@ def ResNetV2(
             x = layers.GlobalMaxPooling2D(name="max_pool")(x)
 
     # Create model.
-    model = tf.keras.Model(img_input, x, name=name, **kwargs)
+    model = tf.keras.Model(inputs, x, name=name, **kwargs)
 
     if weights is not None:
         model.load_weights(weights)
@@ -278,9 +286,10 @@ def ResNetV2(
 def ResNet50V2(
     include_rescaling,
     include_top,
-    num_classes=None,
+    classes=None,
     weights=None,
     input_shape=(None, None, 3),
+    input_tensor=None,
     pooling=None,
     classifier_activation="softmax",
     name="resnet50v2",
@@ -297,8 +306,9 @@ def ResNet50V2(
         name=name,
         weights=weights,
         input_shape=input_shape,
+        input_tensor=input_tensor,
         pooling=pooling,
-        num_classes=num_classes,
+        classes=classes,
         classifier_activation=classifier_activation,
         **kwargs,
     )
@@ -307,9 +317,10 @@ def ResNet50V2(
 def ResNet101V2(
     include_rescaling,
     include_top,
-    num_classes=None,
+    classes=None,
     weights=None,
     input_shape=(None, None, 3),
+    input_tensor=None,
     pooling=None,
     classifier_activation="softmax",
     name="resnet101v2",
@@ -325,8 +336,9 @@ def ResNet101V2(
         include_top=include_top,
         weights=weights,
         input_shape=input_shape,
+        input_tensor=input_tensor,
         pooling=pooling,
-        num_classes=num_classes,
+        classes=classes,
         classifier_activation=classifier_activation,
         **kwargs,
     )
@@ -335,9 +347,10 @@ def ResNet101V2(
 def ResNet152V2(
     include_rescaling,
     include_top,
-    num_classes=None,
+    classes=None,
     weights=None,
     input_shape=(None, None, 3),
+    input_tensor=None,
     pooling=None,
     classifier_activation="softmax",
     name="resnet152v2",
@@ -353,8 +366,9 @@ def ResNet152V2(
         name=name,
         weights=weights,
         input_shape=input_shape,
+        input_tensor=input_tensor,
         pooling=pooling,
-        num_classes=num_classes,
+        classes=classes,
         classifier_activation=classifier_activation,
         **kwargs,
     )

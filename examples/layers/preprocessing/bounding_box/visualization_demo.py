@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """
-   visualization_demo.py is used to visualize the dataset with bounding boxes.
+visualization_demo.py is used to visualize the dataset with bounding boxes.
 """
 import demo_utils
 

@@ -16,17 +16,22 @@ import warnings
 import tensorflow as tf
 
 from keras_cv import bounding_box
+from keras_cv.bounding_box import iou as iou_lib
 from keras_cv.metrics.coco import utils
-from keras_cv.utils import iou as iou_lib
 
 
 class COCOMeanAveragePrecision(tf.keras.metrics.Metric):
     """COCOMeanAveragePrecision computes an approximation of MaP.
 
+    A usage guide is available on keras.io:
+    [Using KerasCV COCO metrics](https://keras.io/guides/keras_cv/coco_metrics/).
+    Full implementation details are available in the
+    [KerasCV COCO metrics whitepaper](https://arxiv.org/abs/2207.12120).
+
     Args:
         class_ids: The class IDs to evaluate the metric for.  To evaluate for
             all classes in over a set of sequentially labelled classes, pass
-            `range(num_classes)`.
+            `range(classes)`.
         bounding_box_format: Format of the incoming bounding boxes.  Supported values
             are "xywh", "center_xywh", "xyxy".
         iou_thresholds: IoU thresholds over which to evaluate the recall.  Must
@@ -223,8 +228,8 @@ class COCOMeanAveragePrecision(tf.keras.metrics.Metric):
                     c_i, tf.shape(ground_truths_by_category)[0]
                 )
 
-                ious = iou_lib.compute_ious_for_image(
-                    ground_truths_by_category, detections_by_category
+                ious = iou_lib.compute_iou(
+                    ground_truths_by_category, detections_by_category, "yxyx"
                 )
 
                 for iou_i in tf.range(self.num_iou_thresholds):

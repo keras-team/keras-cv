@@ -97,7 +97,7 @@ class Equalization(BaseImageAugmentationLayer):
 
         return result
 
-    def augment_image(self, image, transformation=None, **kwargs):
+    def augment_image(self, image, **kwargs):
         image = preprocessing.transform_value_range(
             image, self.value_range, (0, 255), dtype=image.dtype
         )
@@ -111,6 +111,9 @@ class Equalization(BaseImageAugmentationLayer):
         image = tf.cast(image, tf.float32)
         image = preprocessing.transform_value_range(image, (0, 255), self.value_range)
         return image
+
+    def augment_bounding_boxes(self, bounding_boxes, **kwargs):
+        return bounding_boxes
 
     def augment_label(self, label, transformation=None, **kwargs):
         return label
