@@ -263,11 +263,9 @@ class SerializationTest(tf.test.TestCase, parameterized.TestCase):
         config = model.get_config()
         self.assertAllInitParametersAreInConfig(model_cls, config)
 
-        test_model_config = model.get_config()
-
-        reconstructed_model = tf.keras.Model.from_config(test_model_config)
+        reconstructed_model = tf.keras.Model.from_config(config)
         self.assertTrue(
-            config_equals(reconstructed_model.get_config(), test_model_config)
+            config_equals(reconstructed_model.get_config(), config)
         )
 
 
