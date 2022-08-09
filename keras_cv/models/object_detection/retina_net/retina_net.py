@@ -17,10 +17,10 @@ import tensorflow as tf
 from tensorflow import keras
 
 from keras_cv import bounding_box
-from keras_cv.applications.object_detection.retina_net.__internal__ import (
+from keras_cv.models.object_detection.retina_net.__internal__ import (
     layers as layers_lib,
 )
-from keras_cv.applications.object_detection.retina_net.__internal__ import (
+from keras_cv.models.object_detection.retina_net.__internal__ import (
     utils as utils_lib,
 )
 
@@ -38,7 +38,7 @@ class RetinaNet(keras.Model):
 
     Usage:
     ```python
-    retina_net = keras_cv.applications.RetinaNet(
+    retina_net = keras_cv.models.RetinaNet(
         classes=20,
         bounding_box_format="xywh",
         backbone="resnet50",

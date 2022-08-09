@@ -14,7 +14,7 @@
 
 import tensorflow as tf
 
-from keras_cv.applications.object_detection.retina_net.__internal__.layers import (
+from keras_cv.models.object_detection.retina_net.__internal__.layers import (
     DecodePredictions,
 )
 

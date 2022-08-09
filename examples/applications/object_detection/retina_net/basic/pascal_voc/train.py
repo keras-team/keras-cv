@@ -208,7 +208,7 @@ freeze the backbone before training.  When `include_rescaling=True` is set, inpu
 the model are expected to be in the range `[0, 255]`.
 """
 
-model = keras_cv.applications.RetinaNet(
+model = keras_cv.models.RetinaNet(
     classes=20,
     bounding_box_format="xywh",
     backbone="resnet50",
