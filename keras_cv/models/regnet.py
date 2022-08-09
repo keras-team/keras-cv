@@ -23,6 +23,7 @@ from keras import backend
 from keras import layers
 
 from keras_cv.layers import SqueezeAndExcite2D
+from keras_cv.models import utils
 
 # The widths and depths are deduced from a quantized linear function. For
 # more information, please refer to "Designing Network Design Spaces" by
@@ -222,11 +223,13 @@ BASE_DOCSTRING = """Instantiates the {name} architecture.
         inputs will be passed through a `Rescaling(1/255.0)` layer.
     include_top: Whether to include the fully-connected
         layer at the top of the network.
-    num_classes: Optional number of classes to classify images
+    classes: Optional number of classes to classify images
         into, only to be specified if `include_top` is True, and
         if no `weights` argument is specified.
     weights: One of `None` (random initialization), or the path to the weights
           file to be loaded. Defaults to `None`.
+    input_tensor: Optional Keras tensor (i.e. output of `layers.Input()`)
+        to use as image input for the model.
     input_shape: Optional shape tuple, defaults to (None, None, 3).
         It should have exactly 3 inputs channels.
     pooling: Optional pooling mode for feature extraction
@@ -649,11 +652,11 @@ def Stage(block_type, depth, group_width, filters_in, filters_out, name=None):
     return apply
 
 
-def Head(num_classes=None, name=None, activation=None):
+def Head(classes=None, name=None, activation=None):
     """Implementation of classification head of RegNet.
 
     Args:
-      num_classes: number of classes for Dense layer
+      classes: number of classes for Dense layer
       name: name prefix
 
     Returns:
@@ -664,7 +667,7 @@ def Head(num_classes=None, name=None, activation=None):
 
     def apply(x):
         x = layers.GlobalAveragePooling2D(name=name + "_head_gap")(x)
-        x = layers.Dense(num_classes, name=name + "head_dense", activation=activation)(
+        x = layers.Dense(classes, name=name + "head_dense", activation=activation)(
             x
         )
         return x
@@ -679,9 +682,10 @@ def RegNet(
     block_type,
     include_rescaling,
     include_top,
-    num_classes=None,
+    classes=None,
     model_name="regnet",
     weights=None,
+    input_tensor=None,
     input_shape=(None, None, 3),
     pooling=None,
     classifier_activation="softmax",
@@ -704,11 +708,13 @@ def RegNet(
             inputs will be passed through a `Rescaling(1/255.0)` layer.
         include_top: Whether to include the fully-connected
             layer at the top of the network.
-        num_classes: Optional number of classes to classify images
+        classes: Optional number of classes to classify images
             into, only to be specified if `include_top` is True, and
             if no `weights` argument is specified.
         weights: One of `None` (random initialization), or the path to the
             weights file to be loaded. Defaults to `None`.
+        input_tensor: Optional Keras tensor (i.e. output of `layers.Input()`)
+            to use as image input for the model.
         input_shape: Optional shape tuple, defaults to (None, None, 3).
             It should have exactly 3 inputs channels.
         pooling: Optional pooling mode for feature extraction
@@ -737,10 +743,10 @@ def RegNet(
             "or the path to the weights file to be loaded."
         )
 
-    if include_top and not num_classes:
+    if include_top and not classes:
         raise ValueError(
-            "If `include_top` is True, you should specify `num_classes`. "
-            f"Received: num_classes={num_classes}"
+            "If `include_top` is True, you should specify `classes`. "
+            f"Received: classes={classes}"
         )
 
     if include_top and pooling:
@@ -749,9 +755,9 @@ def RegNet(
             f"Received pooling={pooling} and include_top={include_top}. "
         )
 
-    img_input = layers.Input(shape=input_shape)
-
+    img_input = utils.parse_model_inputs(input_shape, input_tensor)
     x = img_input
+
     if include_rescaling:
         x = layers.Rescaling(scale=1.0 / 255.0)(x)
     x = Stem(name=model_name)(x)
@@ -773,7 +779,7 @@ def RegNet(
         in_channels = out_channels
 
     if include_top:
-        x = Head(num_classes=num_classes, activation=classifier_activation)(x)
+        x = Head(classes=classes, activation=classifier_activation)(x)
     else:
         if pooling == "avg":
             x = layers.GlobalAveragePooling2D()(x)
@@ -795,8 +801,9 @@ def RegNet(
 def RegNetX002(
     include_rescaling,
     include_top,
-    num_classes=None,
+    classes=None,
     weights=None,
+    input_tensor=None,
     input_shape=(None, None, 3),
     pooling=None,
     model_name="regnetx002",
@@ -812,9 +819,10 @@ def RegNetX002(
         include_top=include_top,
         include_rescaling=include_rescaling,
         weights=weights,
+        input_tensor=input_tensor,
         input_shape=input_shape,
         pooling=pooling,
-        num_classes=num_classes,
+        classes=classes,
         classifier_activation=classifier_activation,
         **kwargs,
     )
@@ -823,8 +831,9 @@ def RegNetX002(
 def RegNetX004(
     include_rescaling,
     include_top,
-    num_classes=None,
+    classes=None,
     weights=None,
+    input_tensor=None,
     input_shape=(None, None, 3),
     pooling=None,
     model_name="regnetx004",
@@ -840,9 +849,10 @@ def RegNetX004(
         include_top=include_top,
         include_rescaling=include_rescaling,
         weights=weights,
+        input_tensor=input_tensor,
         input_shape=input_shape,
         pooling=pooling,
-        num_classes=num_classes,
+        classes=classes,
         classifier_activation=classifier_activation,
         **kwargs,
     )
@@ -851,8 +861,9 @@ def RegNetX004(
 def RegNetX006(
     include_rescaling,
     include_top,
-    num_classes=None,
+    classes=None,
     weights=None,
+    input_tensor=None,
     input_shape=(None, None, 3),
     pooling=None,
     model_name="regnetx006",
@@ -868,9 +879,10 @@ def RegNetX006(
         include_top=include_top,
         include_rescaling=include_rescaling,
         weights=weights,
+        input_tensor=input_tensor,
         input_shape=input_shape,
         pooling=pooling,
-        num_classes=num_classes,
+        classes=classes,
         classifier_activation=classifier_activation,
         **kwargs,
     )
@@ -879,8 +891,9 @@ def RegNetX006(
 def RegNetX008(
     include_rescaling,
     include_top,
-    num_classes=None,
+    classes=None,
     weights=None,
+    input_tensor=None,
     input_shape=(None, None, 3),
     pooling=None,
     model_name="regnetx008",
@@ -896,9 +909,10 @@ def RegNetX008(
         include_top=include_top,
         include_rescaling=include_rescaling,
         weights=weights,
+        input_tensor=input_tensor,
         input_shape=input_shape,
         pooling=pooling,
-        num_classes=num_classes,
+        classes=classes,
         classifier_activation=classifier_activation,
         **kwargs,
     )
@@ -907,8 +921,9 @@ def RegNetX008(
 def RegNetX016(
     include_rescaling,
     include_top,
-    num_classes=None,
+    classes=None,
     weights=None,
+    input_tensor=None,
     input_shape=(None, None, 3),
     pooling=None,
     model_name="regnetx016",
@@ -924,9 +939,10 @@ def RegNetX016(
         include_top=include_top,
         include_rescaling=include_rescaling,
         weights=weights,
+        input_tensor=input_tensor,
         input_shape=input_shape,
         pooling=pooling,
-        num_classes=num_classes,
+        classes=classes,
         classifier_activation=classifier_activation,
         **kwargs,
     )
@@ -935,8 +951,9 @@ def RegNetX016(
 def RegNetX032(
     include_rescaling,
     include_top,
-    num_classes=None,
+    classes=None,
     weights=None,
+    input_tensor=None,
     input_shape=(None, None, 3),
     pooling=None,
     model_name="regnetx032",
@@ -952,9 +969,10 @@ def RegNetX032(
         include_top=include_top,
         include_rescaling=include_rescaling,
         weights=weights,
+        input_tensor=input_tensor,
         input_shape=input_shape,
         pooling=pooling,
-        num_classes=num_classes,
+        classes=classes,
         classifier_activation=classifier_activation,
         **kwargs,
     )
@@ -963,8 +981,9 @@ def RegNetX032(
 def RegNetX040(
     include_rescaling,
     include_top,
-    num_classes=None,
+    classes=None,
     weights=None,
+    input_tensor=None,
     input_shape=(None, None, 3),
     pooling=None,
     model_name="regnetx040",
@@ -980,9 +999,10 @@ def RegNetX040(
         include_top=include_top,
         include_rescaling=include_rescaling,
         weights=weights,
+        input_tensor=input_tensor,
         input_shape=input_shape,
         pooling=pooling,
-        num_classes=num_classes,
+        classes=classes,
         classifier_activation=classifier_activation,
         **kwargs,
     )
@@ -991,8 +1011,9 @@ def RegNetX040(
 def RegNetX064(
     include_rescaling,
     include_top,
-    num_classes=None,
+    classes=None,
     weights=None,
+    input_tensor=None,
     input_shape=(None, None, 3),
     pooling=None,
     model_name="regnetx064",
@@ -1008,9 +1029,10 @@ def RegNetX064(
         include_top=include_top,
         include_rescaling=include_rescaling,
         weights=weights,
+        input_tensor=input_tensor,
         input_shape=input_shape,
         pooling=pooling,
-        num_classes=num_classes,
+        classes=classes,
         classifier_activation=classifier_activation,
         **kwargs,
     )
@@ -1019,8 +1041,9 @@ def RegNetX064(
 def RegNetX080(
     include_rescaling,
     include_top,
-    num_classes=None,
+    classes=None,
     weights=None,
+    input_tensor=None,
     input_shape=(None, None, 3),
     pooling=None,
     model_name="regnetx080",
@@ -1036,9 +1059,10 @@ def RegNetX080(
         include_top=include_top,
         include_rescaling=include_rescaling,
         weights=weights,
+        input_tensor=input_tensor,
         input_shape=input_shape,
         pooling=pooling,
-        num_classes=num_classes,
+        classes=classes,
         classifier_activation=classifier_activation,
         **kwargs,
     )
@@ -1047,8 +1071,9 @@ def RegNetX080(
 def RegNetX120(
     include_rescaling,
     include_top,
-    num_classes=None,
+    classes=None,
     weights=None,
+    input_tensor=None,
     input_shape=(None, None, 3),
     pooling=None,
     model_name="regnetx120",
@@ -1064,9 +1089,10 @@ def RegNetX120(
         include_top=include_top,
         include_rescaling=include_rescaling,
         weights=weights,
+        input_tensor=input_tensor,
         input_shape=input_shape,
         pooling=pooling,
-        num_classes=num_classes,
+        classes=classes,
         classifier_activation=classifier_activation,
         **kwargs,
     )
@@ -1075,8 +1101,9 @@ def RegNetX120(
 def RegNetX160(
     include_rescaling,
     include_top,
-    num_classes=None,
+    classes=None,
     weights=None,
+    input_tensor=None,
     input_shape=(None, None, 3),
     pooling=None,
     model_name="regnetx160",
@@ -1092,9 +1119,10 @@ def RegNetX160(
         include_top=include_top,
         include_rescaling=include_rescaling,
         weights=weights,
+        input_tensor=input_tensor,
         input_shape=input_shape,
         pooling=pooling,
-        num_classes=num_classes,
+        classes=classes,
         classifier_activation=classifier_activation,
         **kwargs,
     )
@@ -1103,8 +1131,9 @@ def RegNetX160(
 def RegNetX320(
     include_rescaling,
     include_top,
-    num_classes=None,
+    classes=None,
     weights=None,
+    input_tensor=None,
     input_shape=(None, None, 3),
     pooling=None,
     model_name="regnetx320",
@@ -1120,9 +1149,10 @@ def RegNetX320(
         include_top=include_top,
         include_rescaling=include_rescaling,
         weights=weights,
+        input_tensor=input_tensor,
         input_shape=input_shape,
         pooling=pooling,
-        num_classes=num_classes,
+        classes=classes,
         classifier_activation=classifier_activation,
         **kwargs,
     )
@@ -1131,8 +1161,9 @@ def RegNetX320(
 def RegNetY002(
     include_rescaling,
     include_top,
-    num_classes=None,
+    classes=None,
     weights=None,
+    input_tensor=None,
     input_shape=(None, None, 3),
     pooling=None,
     model_name="regnety002",
@@ -1148,9 +1179,10 @@ def RegNetY002(
         include_top=include_top,
         include_rescaling=include_rescaling,
         weights=weights,
+        input_tensor=input_tensor,
         input_shape=input_shape,
         pooling=pooling,
-        num_classes=num_classes,
+        classes=classes,
         classifier_activation=classifier_activation,
         **kwargs,
     )
@@ -1159,8 +1191,9 @@ def RegNetY002(
 def RegNetY004(
     include_rescaling,
     include_top,
-    num_classes=None,
+    classes=None,
     weights=None,
+    input_tensor=None,
     input_shape=(None, None, 3),
     pooling=None,
     model_name="regnety004",
@@ -1176,9 +1209,10 @@ def RegNetY004(
         include_top=include_top,
         include_rescaling=include_rescaling,
         weights=weights,
+        input_tensor=input_tensor,
         input_shape=input_shape,
         pooling=pooling,
-        num_classes=num_classes,
+        classes=classes,
         classifier_activation=classifier_activation,
         **kwargs,
     )
@@ -1187,8 +1221,9 @@ def RegNetY004(
 def RegNetY006(
     include_rescaling,
     include_top,
-    num_classes=None,
+    classes=None,
     weights=None,
+    input_tensor=None,
     input_shape=(None, None, 3),
     pooling=None,
     model_name="regnety006",
@@ -1204,9 +1239,10 @@ def RegNetY006(
         include_top=include_top,
         include_rescaling=include_rescaling,
         weights=weights,
+        input_tensor=input_tensor,
         input_shape=input_shape,
         pooling=pooling,
-        num_classes=num_classes,
+        classes=classes,
         classifier_activation=classifier_activation,
         **kwargs,
     )
@@ -1215,8 +1251,9 @@ def RegNetY006(
 def RegNetY008(
     include_rescaling,
     include_top,
-    num_classes=None,
+    classes=None,
     weights=None,
+    input_tensor=None,
     input_shape=(None, None, 3),
     pooling=None,
     model_name="regnety008",
@@ -1232,9 +1269,10 @@ def RegNetY008(
         include_top=include_top,
         include_rescaling=include_rescaling,
         weights=weights,
+        input_tensor=input_tensor,
         input_shape=input_shape,
         pooling=pooling,
-        num_classes=num_classes,
+        classes=classes,
         classifier_activation=classifier_activation,
         **kwargs,
     )
@@ -1243,8 +1281,9 @@ def RegNetY008(
 def RegNetY016(
     include_rescaling,
     include_top,
-    num_classes=None,
+    classes=None,
     weights=None,
+    input_tensor=None,
     input_shape=(None, None, 3),
     pooling=None,
     model_name="regnety016",
@@ -1260,9 +1299,10 @@ def RegNetY016(
         include_top=include_top,
         include_rescaling=include_rescaling,
         weights=weights,
+        input_tensor=input_tensor,
         input_shape=input_shape,
         pooling=pooling,
-        num_classes=num_classes,
+        classes=classes,
         classifier_activation=classifier_activation,
         **kwargs,
     )
@@ -1271,8 +1311,9 @@ def RegNetY016(
 def RegNetY032(
     include_rescaling,
     include_top,
-    num_classes=None,
+    classes=None,
     weights=None,
+    input_tensor=None,
     input_shape=(None, None, 3),
     pooling=None,
     model_name="regnety032",
@@ -1288,9 +1329,10 @@ def RegNetY032(
         include_top=include_top,
         include_rescaling=include_rescaling,
         weights=weights,
+        input_tensor=input_tensor,
         input_shape=input_shape,
         pooling=pooling,
-        num_classes=num_classes,
+        classes=classes,
         classifier_activation=classifier_activation,
         **kwargs,
     )
@@ -1299,8 +1341,9 @@ def RegNetY032(
 def RegNetY040(
     include_rescaling,
     include_top,
-    num_classes=None,
+    classes=None,
     weights=None,
+    input_tensor=None,
     input_shape=(None, None, 3),
     pooling=None,
     model_name="regnety040",
@@ -1316,9 +1359,10 @@ def RegNetY040(
         include_top=include_top,
         include_rescaling=include_rescaling,
         weights=weights,
+        input_tensor=input_tensor,
         input_shape=input_shape,
         pooling=pooling,
-        num_classes=num_classes,
+        classes=classes,
         classifier_activation=classifier_activation,
         **kwargs,
     )
@@ -1327,8 +1371,9 @@ def RegNetY040(
 def RegNetY064(
     include_rescaling,
     include_top,
-    num_classes=None,
+    classes=None,
     weights=None,
+    input_tensor=None,
     input_shape=(None, None, 3),
     pooling=None,
     model_name="regnety064",
@@ -1344,9 +1389,10 @@ def RegNetY064(
         include_top=include_top,
         include_rescaling=include_rescaling,
         weights=weights,
+        input_tensor=input_tensor,
         input_shape=input_shape,
         pooling=pooling,
-        num_classes=num_classes,
+        classes=classes,
         classifier_activation=classifier_activation,
         **kwargs,
     )
@@ -1355,8 +1401,9 @@ def RegNetY064(
 def RegNetY080(
     include_rescaling,
     include_top,
-    num_classes=None,
+    classes=None,
     weights=None,
+    input_tensor=None,
     input_shape=(None, None, 3),
     pooling=None,
     model_name="regnety080",
@@ -1372,9 +1419,10 @@ def RegNetY080(
         include_top=include_top,
         include_rescaling=include_rescaling,
         weights=weights,
+        input_tensor=input_tensor,
         input_shape=input_shape,
         pooling=pooling,
-        num_classes=num_classes,
+        classes=classes,
         classifier_activation=classifier_activation,
         **kwargs,
     )
@@ -1383,8 +1431,9 @@ def RegNetY080(
 def RegNetY120(
     include_rescaling,
     include_top,
-    num_classes=None,
+    classes=None,
     weights=None,
+    input_tensor=None,
     input_shape=(None, None, 3),
     pooling=None,
     model_name="regnety120",
@@ -1400,9 +1449,10 @@ def RegNetY120(
         include_top=include_top,
         include_rescaling=include_rescaling,
         weights=weights,
+        input_tensor=input_tensor,
         input_shape=input_shape,
         pooling=pooling,
-        num_classes=num_classes,
+        classes=classes,
         classifier_activation=classifier_activation,
         **kwargs,
     )
@@ -1411,8 +1461,9 @@ def RegNetY120(
 def RegNetY160(
     include_rescaling,
     include_top,
-    num_classes=None,
+    classes=None,
     weights=None,
+    input_tensor=None,
     input_shape=(None, None, 3),
     pooling=None,
     model_name="regnety160",
@@ -1428,9 +1479,10 @@ def RegNetY160(
         include_top=include_top,
         include_rescaling=include_rescaling,
         weights=weights,
+        input_tensor=input_tensor,
         input_shape=input_shape,
         pooling=pooling,
-        num_classes=num_classes,
+        classes=classes,
         classifier_activation=classifier_activation,
         **kwargs,
     )
@@ -1439,8 +1491,9 @@ def RegNetY160(
 def RegNetY320(
     include_rescaling,
     include_top,
-    num_classes=None,
+    classes=None,
     weights=None,
+    input_tensor=None,
     input_shape=(None, None, 3),
     pooling=None,
     model_name="regnety320",
@@ -1456,9 +1509,10 @@ def RegNetY320(
         include_top=include_top,
         include_rescaling=include_rescaling,
         weights=weights,
+        input_tensor=input_tensor,
         input_shape=input_shape,
         pooling=pooling,
-        num_classes=num_classes,
+        classes=classes,
         classifier_activation=classifier_activation,
         **kwargs,
     )
