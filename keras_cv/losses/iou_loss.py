@@ -30,8 +30,8 @@ class IoULoss(tf.keras.losses.Loss):
             `"rel_xyxy"`, `"xyWH"`, `"center_xyWH"`, `"yxyx"`, `"rel_yxyx"`.
             Each bounding box is defined by at least these 4 values. The inputs
             may contain additional information such as classes and confidence after
-            these 4 values but this loss will ignore these values while calculating
-            the loss. For detailed information on the supported formats, see the
+            these 4 values but these values will be ignored while calculating
+            this loss. For detailed information on the supported formats, see the
             [KerasCV bounding box documentation](https://keras.io/api/keras_cv/bounding_box/formats/).
         mode: must be one of
             - `"linear"`. The loss will be calculated as 1 - iou
