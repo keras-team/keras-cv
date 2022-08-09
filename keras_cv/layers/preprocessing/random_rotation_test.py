@@ -78,7 +78,8 @@ class RandomRotationTest(tf.test.TestCase):
     def test_ragged_bounding_boxes(self):
         input_image = np.random.random((2, 512, 512, 3)).astype(np.float32)
         bboxes = tf.ragged.constant(
-            [[[200, 200, 400, 400], [100, 100, 300, 300]], [[200, 200, 400, 400]]]
+            [[[200, 200, 400, 400], [100, 100, 300, 300]], [[200, 200, 400, 400]]],
+            dtype=tf.float32,
         )
         input = {"images": input_image, "bounding_boxes": bboxes}
         layer = RandomRotation(factor=(0.5, 0.5), bounding_box_format="xyxy")

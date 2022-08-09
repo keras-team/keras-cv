@@ -342,24 +342,29 @@ class BaseImageAugmentationLayer(tf.keras.__internal__.layers.BaseRandomLayer):
         return inputs
 
     def _pad_bounding_boxes(self, bounding_boxes):
-        bounding_boxes = tf.RaggedTensor.from_tensor(bounding_boxes)
+        if not isinstance(bounding_boxes, tf.RaggedTensor):
+            bounding_boxes = tf.RaggedTensor.from_tensor(bounding_boxes)
         pad_value = tf.cast(-1, dtype=self.compute_dtype)
         padded_bounding_box = bounding_boxes.to_tensor(pad_value)
         return padded_bounding_box
 
     def _filter_padded_boxes(self, bounding_boxes):
         def is_padded(box):
-            if box[0] == box[1] == box[2] == box[3]:
-                return False
-            return True
+            return tf.logical_not(
+                tf.logical_and(
+                    tf.equal(box[0], box[1]),
+                    tf.equal(box[1], box[2]),
+                    tf.equal(box[0], box[3]),
+                )
+            )
 
         # initialize output tensor with first tensor
-        mask = [is_padded(box) for box in bounding_boxes[0]]
+        mask = tf.map_fn(is_padded, bounding_boxes[0], fn_output_signature=tf.bool)
         filtered_bounding_boxes = tf.cast(
             tf.boolean_mask(bounding_boxes[0], mask), dtype=self.compute_dtype
         )
         for boxes in bounding_boxes[1:]:
-            mask = [is_padded(box) for box in boxes]
+            mask = tf.map_fn(is_padded, boxes, fn_output_signature=tf.bool)
             masked_bounding_boxes = tf.cast(
                 tf.boolean_mask(boxes, mask), dtype=self.compute_dtype
             )
