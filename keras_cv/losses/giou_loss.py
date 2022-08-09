@@ -17,6 +17,7 @@ import tensorflow as tf
 
 from keras_cv import bounding_box
 
+
 class GIoULoss(tf.keras.losses.Loss):
     """Implements the GIoU Loss
 
@@ -26,8 +27,8 @@ class GIoULoss(tf.keras.losses.Loss):
     smallest box enclosing both the boxes being considered for the iou. The length of
     the last dimension should be atleast 4 to represent the bounding boxes. While
     this dimension can have more than 4 values, these values will be ignored for the
-    calculation of this loss. 
-    
+    calculation of this loss.
+
     Args:
         bounding_box_format: a case-insensitive string which is one of `"xyxy"`,
             `"rel_xyxy"`, `"xyWH"`, `"center_xyWH"`, `"yxyx"`, `"rel_yxyx"`.
@@ -111,7 +112,7 @@ class GIoULoss(tf.keras.losses.Loss):
 
             union_area = boxes1_area + boxes2_area - intersect_area
             iou = tf.math.divide_no_nan(intersect_area, union_area)
-            
+
             # giou calculation
             enclose_ymin = tf.minimum(boxes1_ymin, boxes2_ymin)
             enclose_xmin = tf.minimum(boxes1_xmin, boxes2_xmin)
@@ -120,8 +121,10 @@ class GIoULoss(tf.keras.losses.Loss):
             enclose_width = tf.maximum(zero, enclose_xmax - enclose_xmin)
             enclose_height = tf.maximum(zero, enclose_ymax - enclose_ymin)
             enclose_area = enclose_width * enclose_height
-            return iou - tf.math.divide_no_nan((enclose_area - union_area), enclose_area)
-        
+            return iou - tf.math.divide_no_nan(
+                (enclose_area - union_area), enclose_area
+            )
+
         if boxes1_rank == 2:
             return compute_giou_for_batch((boxes1, boxes2))
         else:
@@ -134,7 +137,7 @@ class GIoULoss(tf.keras.losses.Loss):
         y_true = tf.cast(y_true, y_pred.dtype)
 
         giou = self._compute_giou(y_true, y_pred)
-        mean_giou = tf.reduce_mean(giou, axis = [-2, -1])
+        mean_giou = tf.reduce_mean(giou, axis=[-2, -1])
 
         return 1 - mean_giou
 
