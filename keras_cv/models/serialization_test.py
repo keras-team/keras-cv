@@ -33,8 +33,51 @@ from keras_cv.models.resnet_v2 import ResNet101V2
 from keras_cv.models.resnet_v2 import ResNet152V2
 from keras_cv.models.vgg19 import VGG19
 
-def exhaustive_compare(v1, v2):
-    pass
+def exhaustive_compare(obj1, obj2):
+    classes_supporting_get_config = (
+    )
+
+    # If both objects are either one of list or tuple then their individual
+    # elements also must be checked exhaustively.
+    if isinstance(obj1, (list, tuple)) and isinstance(obj2, (list, tuple)):
+        # Length based checks.
+        if len(obj1) == 0 and len(obj2) == 0:
+            return True
+        if len(obj1) != len(obj2):
+            return False
+
+        # Exhaustive check for all elements.
+        for v1, v2 in list(zip(obj1, obj2)):
+            return exhaustive_compare(v1, v2)
+
+    # If the objects are dicts then we simply call the `config_equals` function
+    # which supports dicts.
+    elif isinstance(obj1, (dict)) and isinstance(obj2, (dict)):
+        return config_equals(obj1, obj2)
+
+    # If both objects are subclasses of Keras classes that support `get_config`
+    # method, then we compare their individual attributes using `config_equals`.
+    elif isinstance(obj1, classes_supporting_get_config) and isinstance(
+        obj2, classes_supporting_get_config
+    ):
+        return config_equals(obj1.get_config(), obj2.get_config())
+
+    # Following checks are if either of the objects are _functions_, not methods
+    # or callables, since Layers and other unforeseen objects may also fit into
+    # this category. Specifically for Keras activation functions.
+    elif inspect.isfunction(obj1) and inspect.isfunction(obj2):
+        return tf.keras.utils.serialize_keras_object(
+            obj1
+        ) == tf.keras.utils.serialize_keras_object(obj2)
+    elif inspect.isfunction(obj1) and not inspect.isfunction(obj2):
+        return tf.keras.utils.serialize_keras_object(obj1) == obj2
+    elif inspect.isfunction(obj2) and not inspect.isfunction(obj1):
+        return obj1 == tf.keras.utils.serialize_keras_object(obj2)
+
+    # Lastly check for primitive datatypes and objects that don't need
+    # additional preprocessing.
+    else:
+        return obj1 == obj2
 
 def config_equals(config1, config2):
     if config1.keys() != config2.keys():
@@ -112,8 +155,12 @@ class SerializationTest(tf.test.TestCase, parameterized.TestCase):
         (
             "MLPMixerB16", 
             MLPMixerB16, 
-            {
-
+            {   
+                "input_shape": (224, 224, 3),
+                "patch_size": (16, 16),
+                "include_rescaling": True,
+                "include_top": True,
+                "classes" : 4
             }
         ),
 
@@ -121,7 +168,11 @@ class SerializationTest(tf.test.TestCase, parameterized.TestCase):
             "MLPMixerB32", 
             MLPMixerB32, 
             {
-
+                "input_shape": (224, 224, 3),
+                "patch_size": (16, 16),
+                "include_rescaling": True,
+                "include_top": True,
+                "classes" : 4
             }
         ),
 
@@ -129,7 +180,11 @@ class SerializationTest(tf.test.TestCase, parameterized.TestCase):
             "MLPMixerL16", 
             MLPMixerL16, 
             {
-
+                "input_shape": (224, 224, 3),
+                "patch_size": (16, 16),
+                "include_rescaling": True,
+                "include_top": True,
+                "classes" : 4
             }
         ),
 
@@ -208,11 +263,9 @@ class SerializationTest(tf.test.TestCase, parameterized.TestCase):
         config = model.get_config()
         self.assertAllInitParametersAreInConfig(model_cls, config)
 
-        test_model = model
-        test_model_config = test_model.get_config()
+        test_model_config = model.get_config()
 
-        reconstructed_model = tf.keras.Sequential().from_config(test_model_config)
-
+        reconstructed_model = tf.keras.Model.from_config(test_model_config)
         self.assertTrue(
             config_equals(reconstructed_model.get_config(), test_model_config)
         )
