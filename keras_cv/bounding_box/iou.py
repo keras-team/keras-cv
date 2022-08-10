@@ -28,7 +28,7 @@ def compute_iou(boxes1, boxes2, bounding_box_format):
       boxes1: a list of bounding boxes in 'corners' format. Can be batched or unbatched.
       boxes2: a list of bounding boxes in 'corners' format. This should match the rank and
         shape of boxes1.
-      bounding_box_format: a case-sensitive string which is one of `"xyxy"`,
+      bounding_box_format: a case-insensitive string which is one of `"xyxy"`,
         `"rel_xyxy"`, `"xyWH"`, `"center_xyWH"`, `"yxyx"`, `"rel_yxyx"`.
         For detailed information on the supported format, see the
         [KerasCV bounding box documentation](https://keras.io/api/keras_cv/bounding_box/formats/).
