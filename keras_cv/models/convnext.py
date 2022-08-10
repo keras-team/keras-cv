@@ -146,10 +146,10 @@ def ConvNeXtBlock(
             )(x)
         if drop_path_rate:
             layer = StochasticDepth(drop_path_rate, name=name + "_stochastic_depth")
+            return layer([inputs, x])
         else:
             layer = layers.Activation("linear", name=name + "_identity")
-
-        return inputs + layer(x)
+            return inputs + layer(x)
 
     return apply
 
@@ -251,6 +251,12 @@ def ConvNeXt(
             "If `include_top` is True, "
             "you should specify `classes`. "
             f"Received: classes={classes}"
+        )
+
+    if include_top and pooling:
+        raise ValueError(
+            f"`pooling` must be `None` when `include_top=True`."
+            f"Received pooling={pooling} and include_top={include_top}. "
         )
 
     inputs = utils.parse_model_inputs(input_shape, input_tensor)
@@ -443,8 +449,8 @@ def ConvNeXtLarge(
 ):
     return ConvNeXt(
         include_rescaling=include_rescaling,
-        depths=MODEL_CONFIGS["base"]["depths"],
-        projection_dims=MODEL_CONFIGS["base"]["projection_dims"],
+        depths=MODEL_CONFIGS["large"]["depths"],
+        projection_dims=MODEL_CONFIGS["large"]["projection_dims"],
         drop_path_rate=drop_path_rate,
         layer_scale_init_value=layer_scale_init_value,
         include_top=include_top,
@@ -473,8 +479,8 @@ def ConvNeXtXLarge(
 ):
     return ConvNeXt(
         include_rescaling=include_rescaling,
-        depths=MODEL_CONFIGS["base"]["depths"],
-        projection_dims=MODEL_CONFIGS["base"]["projection_dims"],
+        depths=MODEL_CONFIGS["xlarge"]["depths"],
+        projection_dims=MODEL_CONFIGS["xlarge"]["projection_dims"],
         drop_path_rate=drop_path_rate,
         layer_scale_init_value=layer_scale_init_value,
         include_top=include_top,

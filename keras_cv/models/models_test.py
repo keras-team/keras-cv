@@ -16,9 +16,11 @@
 import pytest
 import tensorflow as tf
 from absl.testing import parameterized
+from keras import utils
 from tensorflow import keras
 from tensorflow.keras import backend
 
+from keras_cv.models import convnext
 from keras_cv.models import csp_darknet
 from keras_cv.models import darknet
 from keras_cv.models import densenet
@@ -29,6 +31,34 @@ from keras_cv.models import resnet_v2
 from keras_cv.models import vgg19
 
 MODEL_LIST = [
+    (
+        convnext.ConvNeXtTiny,
+        768,
+        {"drop_path_rate": 0.1, "layer_scale_init_value": 1e-6},
+    ),
+    (
+        convnext.ConvNeXtSmall,
+        768,
+        {
+            "drop_path_rate": 0.1,
+            "layer_scale_init_value": 1e-6,
+        },
+    ),
+    (
+        convnext.ConvNeXtBase,
+        1024,
+        {"drop_path_rate": 0.1, "layer_scale_init_value": 1e-6},
+    ),
+    (
+        convnext.ConvNeXtLarge,
+        1536,
+        {"drop_path_rate": 0.1, "layer_scale_init_value": 1e-6},
+    ),
+    (
+        convnext.ConvNeXtXLarge,
+        2048,
+        {"drop_path_rate": 0.1, "layer_scale_init_value": 1e-6},
+    ),
     (csp_darknet.CSPDarkNet, 1024, {}),
     (darknet.DarkNet21, 512, {}),
     (darknet.DarkNet53, 512, {}),
@@ -79,7 +109,12 @@ class ModelsTest(tf.test.TestCase, parameterized.TestCase):
 
         # Can be serialized and deserialized
         config = model.get_config()
-        reconstructed_model = model.__class__.from_config(config)
+        if "ConvNeXt" in app.__name__:
+            custom_objects = {"LayerScale": convnext.LayerScale}
+            with utils.custom_object_scope(custom_objects):
+                reconstructed_model = model.__class__.from_config(config)
+        else:
+            reconstructed_model = model.__class__.from_config(config)
         self.assertEqual(len(model.weights), len(reconstructed_model.weights))
 
         # There is no rescaling layer bcause include_rescaling=False
