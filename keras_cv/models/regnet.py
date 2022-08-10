@@ -667,9 +667,7 @@ def Head(classes=None, name=None, activation=None):
 
     def apply(x):
         x = layers.GlobalAveragePooling2D(name=name + "_head_gap")(x)
-        x = layers.Dense(classes, name=name + "head_dense", activation=activation)(
-            x
-        )
+        x = layers.Dense(classes, name=name + "head_dense", activation=activation)(x)
         return x
 
     return apply
