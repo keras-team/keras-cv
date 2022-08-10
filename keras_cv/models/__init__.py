@@ -21,6 +21,7 @@ from keras_cv.models.densenet import DenseNet201
 from keras_cv.models.mlp_mixer import MLPMixerB16
 from keras_cv.models.mlp_mixer import MLPMixerB32
 from keras_cv.models.mlp_mixer import MLPMixerL16
+from keras_cv.models.object_detection.retina_net.retina_net import RetinaNet
 from keras_cv.models.regnet import RegNetX002
 from keras_cv.models.regnet import RegNetX004
 from keras_cv.models.regnet import RegNetX006

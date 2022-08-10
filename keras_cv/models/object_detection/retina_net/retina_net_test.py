@@ -26,7 +26,7 @@ class RetinaNetTest(tf.test.TestCase):
         tf.keras.backend.clear_session()
 
     def test_retina_net_construction(self):
-        retina_net = keras_cv.applications.RetinaNet(
+        retina_net = keras_cv.models.RetinaNet(
             classes=20,
             bounding_box_format="xywh",
             backbone="resnet50",
@@ -59,7 +59,7 @@ class RetinaNetTest(tf.test.TestCase):
 
     def test_retina_net_include_rescaling_required_with_default_backbone(self):
         with self.assertRaises(ValueError):
-            _ = keras_cv.applications.RetinaNet(
+            _ = keras_cv.models.RetinaNet(
                 classes=20,
                 bounding_box_format="xywh",
                 backbone="resnet50",
@@ -68,7 +68,7 @@ class RetinaNetTest(tf.test.TestCase):
             )
 
     def test_retina_net_call(self):
-        retina_net = keras_cv.applications.RetinaNet(
+        retina_net = keras_cv.models.RetinaNet(
             classes=20,
             bounding_box_format="xywh",
             backbone="resnet50",
@@ -81,7 +81,7 @@ class RetinaNetTest(tf.test.TestCase):
         self.assertIn("train_predictions", outputs)
 
     def test_all_metric_formats_must_match(self):
-        retina_net = keras_cv.applications.RetinaNet(
+        retina_net = keras_cv.models.RetinaNet(
             classes=20,
             bounding_box_format="xywh",
             backbone="resnet50",
@@ -109,7 +109,7 @@ class RetinaNetTest(tf.test.TestCase):
 
     def test_fit_coco_metrics(self):
         bounding_box_format = "xywh"
-        retina_net = keras_cv.applications.RetinaNet(
+        retina_net = keras_cv.models.RetinaNet(
             classes=2,
             bounding_box_format="xywh",
             backbone="resnet50",

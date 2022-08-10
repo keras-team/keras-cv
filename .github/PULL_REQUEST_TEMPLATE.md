@@ -22,7 +22,7 @@ Fixes # (issue)
 - [ ] Was this discussed/approved via a Github issue? Please add a link
       to it if that's the case.
 - [ ] Did you write any new necessary tests?
-
+- [ ] If this adds a new model, can you run a few training steps on TPU in Colab to ensure that no XLA incompatible OP are used?
 
 ## Who can review?
 
