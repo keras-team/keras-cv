@@ -234,9 +234,7 @@ class BaseImageAugmentationLayer(tf.keras.__internal__.layers.BaseRandomLayer):
             if images.shape.rank == 3:
                 return self._format_output(self._augment(inputs), meta_data)
             elif images.shape.rank == 4:
-                return self._format_output(
-                    self._batch_augment(inputs), meta_data
-                )
+                return self._format_output(self._batch_augment(inputs), meta_data)
             else:
                 raise ValueError(
                     "Image augmentation layers are expecting inputs to be "
@@ -299,33 +297,42 @@ class BaseImageAugmentationLayer(tf.keras.__internal__.layers.BaseRandomLayer):
     def _format_inputs(self, inputs):
         if tf.is_tensor(inputs):
             # single image input tensor
-            meta_data = {'is_dict': False, 'use_targets' : False}
+            meta_data = {"is_dict": False, "use_targets": False}
             inputs = {IMAGES: inputs}
         elif isinstance(inputs, dict) and TARGETS in inputs:
             # TODO(scottzhu): Check if it only contains the valid keys
             inputs[LABELS] = inputs[TARGETS]
             del inputs[TARGETS]
-            meta_data =  {'is_dict': True, 'use_targets' : True}
+            meta_data = {"is_dict": True, "use_targets": True}
         elif isinstance(inputs, dict):
-            meta_data =  {'is_dict': True, 'use_targets' : False}
+            meta_data = {"is_dict": True, "use_targets": False}
         else:
             raise ValueError(
                 f"Expect the inputs to be image tensor or dict. Got {inputs}"
             )
         if BOUNDING_BOXES in inputs:
             if isinstance(inputs[BOUNDING_BOXES], tf.RaggedTensor):
-                meta_data['is_bounding_boxes_ragged'] = True
+                meta_data["is_bounding_boxes_ragged"] = True
+                meta_data["ragged_row_lengths"] = inputs[
+                    BOUNDING_BOXES
+                ].nested_row_lengths()
+                inputs[BOUNDING_BOXES] = inputs[BOUNDING_BOXES].to_tensor()
+            else:
+                meta_data["is_bounding_boxes_ragged"] = False
         return inputs, meta_data
 
     def _format_output(self, output, meta_data):
-        if not meta_data['is_dict']:
+        if not meta_data["is_dict"]:
             return output[IMAGES]
-        elif meta_data['use_targets']:
+        elif meta_data["use_targets"]:
             output[TARGETS] = output[LABELS]
             del output[LABELS]
-        # if BOUNDING_BOXES in output:
-        #     if not meta_data['is_bounding_boxes_ragged']:
-        #         output[BOUNDING_BOXES] = output[BOUNDING_BOXES].to_tensor()
+        if BOUNDING_BOXES in output:
+            if meta_data["is_bounding_boxes_ragged"]:
+                output[BOUNDING_BOXES] = tf.RaggedTensor.from_tensor(
+                    output[BOUNDING_BOXES],
+                    lengths=meta_data["ragged_row_lengths"],
+                )
         return output
 
     def _ensure_inputs_are_compute_dtype(self, inputs):
