@@ -229,13 +229,13 @@ class BaseImageAugmentationLayer(tf.keras.__internal__.layers.BaseRandomLayer):
     def call(self, inputs, training=True):
         inputs = self._ensure_inputs_are_compute_dtype(inputs)
         if training:
-            inputs, is_dict, use_targets = self._format_inputs(inputs)
+            inputs, meta_data = self._format_inputs(inputs)
             images = inputs[IMAGES]
             if images.shape.rank == 3:
-                return self._format_output(self._augment(inputs), is_dict, use_targets)
+                return self._format_output(self._augment(inputs), meta_data)
             elif images.shape.rank == 4:
                 return self._format_output(
-                    self._batch_augment(inputs), is_dict, use_targets
+                    self._batch_augment(inputs), meta_data
                 )
             else:
                 raise ValueError(
@@ -293,40 +293,40 @@ class BaseImageAugmentationLayer(tf.keras.__internal__.layers.BaseRandomLayer):
         return result
 
     def _batch_augment(self, inputs):
-        if BOUNDING_BOXES in inputs:
-            inputs[BOUNDING_BOXES] = self._pad_bounding_boxes(inputs[BOUNDING_BOXES])
         augmented_batch = self._map_fn(self._augment, inputs)
-        if BOUNDING_BOXES in inputs:
-            augmented_batch[BOUNDING_BOXES] = self._filter_padded_boxes(
-                augmented_batch[BOUNDING_BOXES]
-            )
         return augmented_batch
 
     def _format_inputs(self, inputs):
         if tf.is_tensor(inputs):
             # single image input tensor
-            return {IMAGES: inputs}, False, False
+            meta_data = {'is_dict': False, 'use_targets' : False}
+            inputs = {IMAGES: inputs}
         elif isinstance(inputs, dict) and TARGETS in inputs:
             # TODO(scottzhu): Check if it only contains the valid keys
             inputs[LABELS] = inputs[TARGETS]
             del inputs[TARGETS]
-            return inputs, True, True
+            meta_data =  {'is_dict': True, 'use_targets' : True}
         elif isinstance(inputs, dict):
-            return inputs, True, False
+            meta_data =  {'is_dict': True, 'use_targets' : False}
         else:
             raise ValueError(
                 f"Expect the inputs to be image tensor or dict. Got {inputs}"
             )
+        if BOUNDING_BOXES in inputs:
+            if isinstance(inputs[BOUNDING_BOXES], tf.RaggedTensor):
+                meta_data['is_bounding_boxes_ragged'] = True
+        return inputs, meta_data
 
-    def _format_output(self, output, is_dict, use_targets):
-        if not is_dict:
+    def _format_output(self, output, meta_data):
+        if not meta_data['is_dict']:
             return output[IMAGES]
-        elif use_targets:
+        elif meta_data['use_targets']:
             output[TARGETS] = output[LABELS]
             del output[LABELS]
-            return output
-        else:
-            return output
+        # if BOUNDING_BOXES in output:
+        #     if not meta_data['is_bounding_boxes_ragged']:
+        #         output[BOUNDING_BOXES] = output[BOUNDING_BOXES].to_tensor()
+        return output
 
     def _ensure_inputs_are_compute_dtype(self, inputs):
         if isinstance(inputs, dict):
@@ -340,31 +340,3 @@ class BaseImageAugmentationLayer(tf.keras.__internal__.layers.BaseRandomLayer):
                 self.compute_dtype,
             )
         return inputs
-
-    def _pad_bounding_boxes(self, bounding_boxes):
-        if not isinstance(bounding_boxes, tf.RaggedTensor):
-            bounding_boxes = tf.RaggedTensor.from_tensor(bounding_boxes)
-        pad_value = tf.cast(-1, dtype=self.compute_dtype)
-        padded_bounding_box = bounding_boxes.to_tensor(pad_value)
-        return padded_bounding_box
-
-    def _filter_padded_boxes(self, bounding_boxes):
-        def is_padded(box):
-            return tf.multiply((box[0] - box[2]), (box[1] - box[3])) > 0
-
-        # initialize output tensor with first tensor
-        mask = tf.map_fn(is_padded, bounding_boxes[0], fn_output_signature=tf.bool)
-        filtered_bounding_boxes = tf.cast(
-            tf.boolean_mask(bounding_boxes[0], mask), dtype=self.compute_dtype
-        )
-        batch_size = tf.shape(bounding_boxes)[0]
-        for i in range(1, batch_size):
-            mask = tf.map_fn(is_padded, bounding_boxes[i], fn_output_signature=tf.bool)
-            masked_bounding_boxes = tf.cast(
-                tf.boolean_mask(bounding_boxes[i], mask), dtype=self.compute_dtype
-            )
-            # stack ragged bounding boxes for rest of the inputs
-            filtered_bounding_boxes = tf.ragged.stack(
-                [filtered_bounding_boxes, masked_bounding_boxes]
-            )
-        return filtered_bounding_boxes

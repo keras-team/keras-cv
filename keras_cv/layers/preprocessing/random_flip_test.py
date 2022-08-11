@@ -135,4 +135,4 @@ class RandomFlipTest(tf.test.TestCase, parameterized.TestCase):
             ],
             dtype=np.float32,
         )
-        self.assertAllClose(expected_output, output["bounding_boxes"].to_tensor())
+        self.assertAllClose(expected_output, output["bounding_boxes"])

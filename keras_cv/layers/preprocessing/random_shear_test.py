@@ -64,7 +64,7 @@ class RandomShearTest(tf.test.TestCase):
         xs, ys_labels, ys_bounding_boxes = (
             outputs["images"],
             outputs["labels"],
-            outputs["bounding_boxes"].to_tensor(),
+            outputs["bounding_boxes"],
         )
         self.assertEqual(xs.shape, [2, 512, 512, 3])
         self.assertEqual(ys_labels.shape, [2, 10])
@@ -146,7 +146,7 @@ class RandomShearTest(tf.test.TestCase):
             return layer({"images": x, "bounding_boxes": y})
 
         outputs = augment(xs, ys)
-        xs, ys = outputs["images"], outputs["bounding_boxes"].to_tensor()
+        xs, ys = outputs["images"], outputs["bounding_boxes"]
 
         # None of the individual values should still be close to 1 or 0
         self.assertNotAllClose(xs, 1.0)
@@ -180,7 +180,7 @@ class RandomShearTest(tf.test.TestCase):
             x_factor=0, y_factor=0, bounding_box_format="rel_xyxy"
         )
         outputs = layer({"images": xs, "bounding_boxes": ys})
-        output_xs, output_ys = outputs["images"], outputs["bounding_boxes"].to_tensor()
+        output_xs, output_ys = outputs["images"], outputs["bounding_boxes"]
         self.assertAllEqual(xs, output_xs)
         self.assertAllEqual(ys, output_ys)
 
@@ -209,7 +209,7 @@ class RandomShearTest(tf.test.TestCase):
             x_factor=0.5, y_factor=0, bounding_box_format="rel_xyxy"
         )
         outputs = layer({"images": xs, "bounding_boxes": ys})
-        _, output_ys = outputs["images"], outputs["bounding_boxes"].to_tensor()
+        _, output_ys = outputs["images"], outputs["bounding_boxes"]
         self.assertAllEqual(ys[..., 1], output_ys[..., 1])
         self.assertNotAllClose(ys[..., 0], output_ys[..., 0])
         self.assertAllEqual(ys[..., 3], output_ys[..., 3])
@@ -238,7 +238,7 @@ class RandomShearTest(tf.test.TestCase):
             x_factor=0, y_factor=0.5, bounding_box_format="rel_xyxy"
         )
         outputs = layer({"images": xs, "bounding_boxes": ys})
-        _, output_ys = outputs["images"], outputs["bounding_boxes"].to_tensor()
+        _, output_ys = outputs["images"], outputs["bounding_boxes"]
         self.assertAllEqual(ys[..., 0], output_ys[..., 0])
         self.assertNotAllClose(ys[..., 1], output_ys[..., 1])
         self.assertAllEqual(ys[..., 2], output_ys[..., 2])
@@ -267,7 +267,7 @@ class RandomShearTest(tf.test.TestCase):
             x_factor=0, y_factor=0, bounding_box_format="rel_xyxy"
         )
         outputs = layer({"images": xs, "bounding_boxes": ys})
-        _, output_ys = outputs["images"], outputs["bounding_boxes"].to_tensor()
+        _, output_ys = outputs["images"], outputs["bounding_boxes"]
         self.assertAllEqual(ys, output_ys)
 
     def test_xyxy(self):
@@ -293,7 +293,7 @@ class RandomShearTest(tf.test.TestCase):
             x_factor=0, y_factor=0, bounding_box_format="xyxy"
         )
         outputs = layer({"images": xs, "bounding_boxes": ys})
-        _, output_ys = outputs["images"], outputs["bounding_boxes"].to_tensor()
+        _, output_ys = outputs["images"], outputs["bounding_boxes"]
         self.assertAllClose(ys, output_ys)
 
     def test_clip_bounding_box(self):
@@ -329,7 +329,7 @@ class RandomShearTest(tf.test.TestCase):
             x_factor=0, y_factor=0, bounding_box_format="xyxy"
         )
         outputs = layer({"images": xs, "bounding_boxes": ys})
-        _, output_ys = outputs["images"], outputs["bounding_boxes"].to_tensor()
+        _, output_ys = outputs["images"], outputs["bounding_boxes"]
         self.assertAllEqual(ground_truth, output_ys)
 
     def test_dtype(self):
@@ -391,5 +391,5 @@ class RandomShearTest(tf.test.TestCase):
             x_factor=0.2, y_factor=0.2, bounding_box_format="xyxy"
         )
         outputs = layer({"images": xs, "bounding_boxes": ys})
-        _, output_ys = outputs["images"], outputs["bounding_boxes"].to_tensor()
+        _, output_ys = outputs["images"], outputs["bounding_boxes"]
         self.assertAllClose(true_ys, output_ys, rtol=1e-02, atol=1e-03)
