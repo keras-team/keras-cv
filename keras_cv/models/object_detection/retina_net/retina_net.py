@@ -224,10 +224,9 @@ class RetinaNet(keras.Model):
         gradients = tape.gradient(loss, trainable_vars)
         self.optimizer.apply_gradients(zip(gradients, trainable_vars))
 
-        # To minimize GPU transfers, we update metrics AFTER we take grades and apply
+        # To minimize GPU transfers, we update metrics AFTER we take grads and apply
         # them.
-
-        # TODO(lukewood): assert that all metric formats are the same
+        # TODO(lukewood): ensure this runs on TPU.
         self._update_metrics(y_for_metrics, predictions["inference"])
         return self._metrics_result(loss)
 
@@ -321,3 +320,11 @@ def _resnet50_backbone(include_rescaling, backbone_weights):
         for layer_name in ["conv3_block4_out", "conv4_block6_out", "conv5_block3_out"]
     ]
     return keras.Model(inputs=inputs, outputs=[c3_output, c4_output, c5_output])
+
+
+def _scale_loss_for_distribution(loss_value):
+    """Scales and returns the given loss value by the number of replicas."""
+    num_replicas = tf.distribute.get_strategy().num_replicas_in_sync
+    if num_replicas > 1:
+        loss_value *= 1.0 / num_replicas
+    return loss_value

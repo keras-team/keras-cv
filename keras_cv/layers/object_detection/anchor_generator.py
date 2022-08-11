@@ -133,7 +133,7 @@ class _SingleAnchorGenerator:
     def __init__(
         self,
         bounding_box_format,
-        anchor_size,
+        anchor_sizes,
         scales,
         aspect_ratios,
         stride,

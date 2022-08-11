@@ -20,9 +20,6 @@ import keras_cv
 class AnchorBox(tf.keras.layers.Layer):
     """Generates anchor boxes.
 
-    This class has operations to generate anchor boxes for feature maps at
-    strides `[8, 16, 32, 64, 128]`.
-
     Args:
         bounding_box_format:   The format of bounding boxes of input dataset. Refer
             https://github.com/keras-team/keras-cv/blob/master/keras_cv/bounding_box/converters.py
@@ -40,19 +37,19 @@ class AnchorBox(tf.keras.layers.Layer):
     def __init__(
         self,
         bounding_box_format,
-        aspect_ratios=None,
+        aspect_ratios=(0.5, 1.0, 2.0),
         scales=None,
-        strides=None,
+        strides=(8, 16, 32, 64, 128),
         areas=None,
         **kwargs,
     ):
         super().__init__(**kwargs)
         self.bounding_box_format = bounding_box_format
-        self.aspect_ratios = aspect_ratios or [0.5, 1.0, 2.0]
+        self.aspect_ratios = aspect_ratios
         self.scales = scales or [2**x for x in [0, 1 / 3, 2 / 3]]
 
         self._num_anchors = len(self.aspect_ratios) * len(self.scales)
-        self._strides = strides or [2**i for i in range(3, 8)]
+        self._strides = strides
         self._areas = areas or [x**2 for x in [32.0, 64.0, 128.0, 256.0, 512.0]]
         self._anchor_dims = self._compute_dims()
 
@@ -105,11 +102,6 @@ class AnchorBox(tf.keras.layers.Layer):
           anchor boxes for all the feature maps, stacked as a single tensor
             with shape `(total_anchors, 4)`
         """
-        if isinstance(images, tf.RaggedTensor):
-            raise ValueError(
-                "AnchorBox() does not support tf.RaggedTensor inputs. "
-                f"Received images={images}"
-            )
         images_shape = tf.shape(images)
         image_height = images_shape[1]
         image_width = images_shape[2]
