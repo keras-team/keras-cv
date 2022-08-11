@@ -54,7 +54,6 @@ class AnchorGenerator(keras.layers.Layer):
         self.bounding_box_format = bounding_box_format
         # aspect_ratio is a single list that is the same across all levels.
         anchor_sizes, strides = self._format_anchor_sizes_and_strides(anchor_sizes, strides)
-        strides = self._ensure_anchor_sizes_is_dict(strides)
         aspect_ratios = self._match_param_structure_to_anchor_sizes(aspect_ratios, anchor_sizes)
         scales = self._match_param_structure_to_anchor_sizes(scales, anchor_sizes)
 
@@ -157,6 +156,7 @@ class _SingleAnchorGenerator:
             each anchor.
           clip_boxes: Boolean to represent whether the anchor coordinates should be
             clipped to the image size. Defaults to `False`.
+
         Input shape: the size of the image, `[H, W, C]`
         Output shape: the size of anchors, `[(H / stride) * (W / stride), 4]`
         """
@@ -200,11 +200,17 @@ class _SingleAnchorGenerator:
         cx_grid = tf.expand_dims(cx_grid, axis=-1)
         cy_grid = tf.expand_dims(cy_grid, axis=-1)
 
-        # [H, W, K, 1]
-        y_min = tf.expand_dims(cy_grid - half_anchor_heights, axis=-1)
-        y_max = tf.expand_dims(cy_grid + half_anchor_heights, axis=-1)
-        x_min = tf.expand_dims(cx_grid - half_anchor_widths, axis=-1)
-        x_max = tf.expand_dims(cx_grid + half_anchor_widths, axis=-1)
+
+        y_min = tf.reshape(cy_grid - half_anchor_heights, (-1,))
+        y_max = tf.reshape(cy_grid + half_anchor_heights, (-1,))
+        x_min = tf.reshape(cx_grid - half_anchor_widths, (-1,))
+        x_max = tf.reshape(cx_grid + half_anchor_widths, (-1,))
+
+        # [H * W * K, 1]
+        y_min = tf.expand_dims(y_min, axis=-1)
+        y_max = tf.expand_dims(y_max, axis=-1)
+        x_min = tf.expand_dims(x_min, axis=-1)
+        x_max = tf.expand_dims(x_max, axis=-1)
 
         if self.clip_boxes:
             y_min = tf.maximum(tf.minimum(y_min, image_height), 0.0)
@@ -212,11 +218,8 @@ class _SingleAnchorGenerator:
             x_min = tf.maximum(tf.minimum(x_min, image_width), 0.0)
             x_max = tf.maximum(tf.minimum(x_max, image_width), 0.0)
 
-        # [H, W, K, 4]
+        # [H * W * K, 4]
         result = tf.concat([y_min, x_min, y_max, x_max], axis=-1)
-        shape = result.shape.as_list()
-        # [H, W, K * 4]
-        result = tf.reshape(result, [shape[0], shape[1], shape[2] * shape[3]])
         return bounding_box.convert_format(
             result,
             source="yxyx",
