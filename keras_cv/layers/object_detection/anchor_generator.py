@@ -49,7 +49,9 @@ class AnchorGenerator(keras.layers.Layer):
         aspect_ratios,
         strides,
         clip_boxes=False,
+        **kwargs,
     ):
+        super().__init__(**kwargs)
         self.bounding_box_format = bounding_box_format
         # aspect_ratio is a single list that is the same across all levels.
         anchor_sizes, strides = self._format_anchor_sizes_and_strides(
@@ -126,10 +128,16 @@ class AnchorGenerator(keras.layers.Layer):
     def __call__(self, image):
         image_shape = tf.shape(image)
         anchor_generators = tf.nest.flatten(self.anchor_generators)
-        results = [
-            anchor_gen(image_shape, image=image) for anchor_gen in anchor_generators
-        ]
-        return tf.nest.pack_sequence_as(self.anchor_generators, results)
+        results = [anchor_gen(image_shape) for anchor_gen in anchor_generators]
+        results = tf.nest.pack_sequence_as(self.anchor_generators, results)
+        for key in results:
+            results[key] = bounding_box.convert_format(
+                results[key],
+                source="yxyx",
+                target=self.bounding_box_format,
+                images=image,
+            )
+        return results
 
 
 # TODO(tanzheny): consider having customized anchor offset.
@@ -155,9 +163,6 @@ class _SingleAnchorGenerator:
         """Constructs single scale anchor.
 
         Args:
-          bounding_box_format: The format of bounding boxes to generate. Refer
-            [to the keras.io docs](https://keras.io/api/keras_cv/bounding_box/formats/)
-            for more details on supported bounding box formats.
           anchor_sizes: A single int represents the base anchor size. The anchor
             height will be `anchor_size / sqrt(aspect_ratio)`, anchor width will be
             `anchor_size * sqrt(aspect_ratio)`.
@@ -173,14 +178,13 @@ class _SingleAnchorGenerator:
         Input shape: the size of the image, `[H, W, C]`
         Output shape: the size of anchors, `[(H / stride) * (W / stride), 4]`
         """
-        self.bounding_box_format = bounding_box_format
         self.anchor_sizes = anchor_sizes
         self.scales = scales
         self.aspect_ratios = aspect_ratios
         self.stride = stride
         self.clip_boxes = clip_boxes
 
-    def __call__(self, image_size, image=None):
+    def __call__(self, image_size):
         image_height = tf.cast(image_size[0], tf.float32)
         image_width = tf.cast(image_size[1], tf.float32)
 
@@ -231,10 +235,4 @@ class _SingleAnchorGenerator:
             x_max = tf.maximum(tf.minimum(x_max, image_width), 0.0)
 
         # [H * W * K, 4]
-        result = tf.concat([y_min, x_min, y_max, x_max], axis=-1)
-        return bounding_box.convert_format(
-            result,
-            source="yxyx",
-            target=self.bounding_box_format,
-            images=image,
-        )
+        return tf.concat([y_min, x_min, y_max, x_max], axis=-1)

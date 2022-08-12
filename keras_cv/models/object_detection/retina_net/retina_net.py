@@ -17,7 +17,7 @@ import tensorflow as tf
 from tensorflow import keras
 
 from keras_cv import bounding_box
-from keras_cv.layers import layers as cv_layers
+from keras_cv import layers as cv_layers
 from keras_cv.models.object_detection.retina_net.__internal__ import (
     layers as layers_lib,
 )
@@ -79,7 +79,7 @@ class RetinaNet(keras.Model):
             `backbone`.  The KerasCV default backbones return three outputs in a list,
             but custom backbones may be written and used with custom feature pyramid
             networks.  If not provided, a default feature pyramid neetwork is produced
-            by the library.  The default feature pyramid network is compatible with all
+            by the library.  The default feature pyramid network is ompatible with all
             standard keras_cv backbones.
         name: (Optional) name for the model, defaults to `"RetinaNet"`.
     """

@@ -14,9 +14,7 @@
 
 import tensorflow as tf
 
-from keras_cv.layers.object_detection.object_detection_prediction_decoder import (
-    ObjectDetectionPredictionDecoder,
-)
+from keras_cv import layers as cv_layers
 
 
 class ObjectDetectionPredictionDecoderTest(tf.test.TestCase):
@@ -34,14 +32,14 @@ class ObjectDetectionPredictionDecoderTest(tf.test.TestCase):
         sizes = [x**2 for x in [32.0, 64.0, 128.0, 256.0, 512.0]]
         aspect_ratios = [0.5, 1.0, 2.0]
 
-        anchor_generator = AnchorGenerator(
+        anchor_generator = cv_layers.AnchorGenerator(
             bounding_box_format="yxyx",
             anchor_sizes=sizes,
             aspect_ratios=aspect_ratios,
             scales=scales,
             strides=strides,
         )
-        layer = ObjectDetectionPredictionDecoder(
+        layer = cv_layers.ObjectDetectionPredictionDecoder(
             anchor_generator=anchor_generator,
             classes=classes,
             bounding_box_format="rel_xyxy",

@@ -51,7 +51,7 @@ class ObjectDetectionPredictionDecoder(tf.keras.layers.Layer):
                 f"classes={classes}`"
             )
         self.bounding_box_format = bounding_box_format
-        self.suppression_layer = self.suppression_layer or cv_layers.NonMaxSuppression(
+        self.suppression_layer = suppression_layer or cv_layers.NonMaxSuppression(
             classes=classes,
             bounding_box_format=bounding_box_format,
             confidence_threshold=0.05,
@@ -59,7 +59,7 @@ class ObjectDetectionPredictionDecoder(tf.keras.layers.Layer):
             max_detections=100,
             max_detections_per_class=100,
         )
-        if suppression_layer.bounding_box_format != self.bounding_box_format:
+        if self.suppression_layer.bounding_box_format != self.bounding_box_format:
             raise ValueError(
                 "`suppression_layer` must have the same `bounding_box_format` "
                 "as the `ObjectDetectionPredictionDecoder()` layer. "
@@ -93,7 +93,7 @@ class ObjectDetectionPredictionDecoder(tf.keras.layers.Layer):
             anchor_boxes,
             source=self.anchor_generator.bounding_box_format,
             target=self.bounding_box_format,
-            images=images,
+            images=images[0],
         )
         box_predictions = predictions[:, :, :4]
         cls_predictions = tf.nn.sigmoid(predictions[:, :, 4:])
