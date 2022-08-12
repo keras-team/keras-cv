@@ -118,7 +118,6 @@ class AnchorGenerator(keras.layers.Layer):
         return tf.nest.pack_sequence_as(self.anchor_generators, results)
 
 
-# TODO(lukewood): should we name this "StandardAnchorGenerator" to scale our naming?
 # TODO(tanzheny): consider having customized anchor offset.
 class _SingleAnchorGenerator:
     """Internal utility to generate anchors for a single feature map in `yxyx` format.
@@ -145,7 +144,7 @@ class _SingleAnchorGenerator:
           bounding_box_format: The format of bounding boxes to generate. Refer
             [to the keras.io docs](https://keras.io/api/keras_cv/bounding_box/formats/)
             for more details on supported bounding box formats.
-          anchor_size: A single int represents the base anchor size. The anchor
+          anchor_sizes: A single int represents the base anchor size. The anchor
             height will be `anchor_size / sqrt(aspect_ratio)`, anchor width will be
             `anchor_size * sqrt(aspect_ratio)`.
           scales: A list/tuple, or a list/tuple of a list/tuple of positive
@@ -161,7 +160,7 @@ class _SingleAnchorGenerator:
         Output shape: the size of anchors, `[(H / stride) * (W / stride), 4]`
         """
         self.bounding_box_format = bounding_box_format
-        self.anchor_size = anchor_size
+        self.anchor_sizes = anchor_sizes
         self.scales = scales
         self.aspect_ratios = aspect_ratios
         self.stride = stride
@@ -173,7 +172,7 @@ class _SingleAnchorGenerator:
 
         aspect_ratios = tf.cast(self.aspect_ratios, tf.float32)
         aspect_ratios_sqrt = tf.cast(tf.sqrt(aspect_ratios), dtype=tf.float32)
-        anchor_size = tf.cast(self.anchor_size, tf.float32)
+        anchor_size = tf.cast(self.anchor_sizes, tf.float32)
 
         # [K]
         anchor_heights = []

@@ -14,7 +14,6 @@ class AnchorGeneratorTest(tf.test.TestCase, parameterized.TestCase):
         # construct generator, check assertion
         pass
 
-
     def test_output_shapes(self):
         pass
 
