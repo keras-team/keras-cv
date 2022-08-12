@@ -84,8 +84,6 @@ class ObjectDetectionLabelEncoder(layers.Layer):
         iou_matrix = bounding_box.compute_iou(
             anchor_boxes, gt_boxes, bounding_box_format=self.bounding_box_format
         )
-        tf.print("anchor_boxes", anchor_boxes)
-        tf.print("gt_boxes", gt_boxes)
         max_iou = tf.reduce_max(iou_matrix, axis=1)
         matched_gt_idx = tf.argmax(iou_matrix, axis=1)
         positive_mask = tf.greater_equal(max_iou, match_iou)
