@@ -114,14 +114,14 @@ class RetinaNetTest(tf.test.TestCase):
     def test_fit_coco_metrics(self):
         bounding_box_format = "xywh"
         retina_net = keras_cv.models.RetinaNet(
-            classes=2,
+            classes=4,
             bounding_box_format="xywh",
             backbone="resnet50",
             backbone_weights=None,
             include_rescaling=False,
         )
         loss = keras_cv.losses.ObjectDetectionLoss(
-            classes=2,
+            classes=4,
             classification_loss=keras_cv.losses.FocalLoss(
                 from_logits=True, reduction="none"
             ),
@@ -143,13 +143,20 @@ class RetinaNetTest(tf.test.TestCase):
         xs, ys = _create_bounding_box_dataset(bounding_box_format)
         retina_net.fit(x=xs, y=ys, epochs=1)
         metrics = retina_net.evaluate(x=xs, y=ys, return_dict=True)
+        self.assertNotEqual(metrics["loss"], 0.0)
         self.assertIn("Standard MaP", metrics)
 
 
 def _create_bounding_box_dataset(bounding_box_format):
     xs = tf.ones((2, 512, 512, 3), tf.float32)
-    ys = tf.ones((2, 4, 6), tf.float32)
+
+    y_classes = tf.random.uniform(shape=(2, 10, 1), dtype=tf.float32)
+    y_classes = tf.cast(4 * y_classes, dtype=tf.int32)
+    y_classes = tf.cast(y_classes, dtype=tf.float32)
+
+    ys = tf.random.uniform(shape=(2, 10, 4), dtype=tf.float32)
+    ys = tf.concat([ys, y_classes], axis=-1)
     ys = keras_cv.bounding_box.convert_format(
-        ys, source="xywh", target=bounding_box_format, dtype=tf.float32
+        ys, source="rel_xywh", target=bounding_box_format, images=xs, dtype=tf.float32
     )
     return xs, ys

@@ -155,10 +155,11 @@ class RetinaNet(keras.Model):
                 f"`label_encoder.box_variance={label_encoder.box_variance}`."
             )
 
-    def compile(self, metrics=None, **kwargs):
+    def compile(self, metrics=None, loss=None, **kwargs):
         metrics = metrics or []
-        super().compile(metrics=metrics, **kwargs)
-
+        super().compile(metrics=metrics, loss=loss, **kwargs)
+        # if loss.classes != self.classes:
+        #     raise ValueError("RetinaNet.classes != loss.classes, di")
         all_have_format = any(
             [
                 m.bounding_box_format != self._metrics_bounding_box_format
@@ -245,7 +246,6 @@ class RetinaNet(keras.Model):
         x, y = data
         # y comes in in self.bounding_box_format
         y_for_metrics, y_training_target = self._encode_data(x, y)
-
         with tf.GradientTape() as tape:
             predictions = self(x, training=True)
             # predictions technically do not have a format
@@ -361,21 +361,13 @@ def _resnet50_backbone(include_rescaling, backbone_weights):
     return keras.Model(inputs=inputs, outputs=[c3_output, c4_output, c5_output])
 
 
-def _scale_loss_for_distribution(loss_value):
-    """Scales and returns the given loss value by the number of replicas."""
-    num_replicas = tf.distribute.get_strategy().num_replicas_in_sync
-    if num_replicas > 1:
-        loss_value *= 1.0 / num_replicas
-    return loss_value
-
-
 def _default_anchor_generator(bounding_box_format):
     strides = [2**i for i in range(3, 8)]
     scales = [2**x for x in [0, 1 / 3, 2 / 3]]
     sizes = [x**2 for x in [32.0, 64.0, 128.0, 256.0, 512.0]]
     aspect_ratios = [0.5, 1.0, 2.0]
     return cv_layers.AnchorGenerator(
-        bounding_box_format="yxyx",
+        bounding_box_format=bounding_box_format,
         anchor_sizes=sizes,
         aspect_ratios=aspect_ratios,
         scales=scales,

@@ -40,12 +40,16 @@ class ObjectDetectionLabelEncoder(layers.Layer):
         bounding_box_format,
         anchor_generator,
         box_variance=(0.1, 0.1, 0.2, 0.2),
+        background_class=-1.0,
+        ignore_class=-2.0,
         **kwargs,
     ):
         super().__init__(**kwargs)
         self.bounding_box_format = bounding_box_format
         self.anchor_generator = anchor_generator
         self.box_variance = tf.convert_to_tensor(box_variance, dtype=tf.float32)
+        self.background_class = background_class
+        self.ignore_class = ignore_class
 
     def _match_anchor_boxes(
         self, anchor_boxes, gt_boxes, match_iou=0.5, ignore_iou=0.4
@@ -80,6 +84,8 @@ class ObjectDetectionLabelEncoder(layers.Layer):
         iou_matrix = bounding_box.compute_iou(
             anchor_boxes, gt_boxes, bounding_box_format=self.bounding_box_format
         )
+        tf.print("anchor_boxes", anchor_boxes)
+        tf.print("gt_boxes", gt_boxes)
         max_iou = tf.reduce_max(iou_matrix, axis=1)
         matched_gt_idx = tf.argmax(iou_matrix, axis=1)
         positive_mask = tf.greater_equal(max_iou, match_iou)
@@ -108,17 +114,19 @@ class ObjectDetectionLabelEncoder(layers.Layer):
         cls_ids = gt_boxes[:, 4]
         gt_boxes = gt_boxes[:, :4]
         cls_ids = tf.cast(cls_ids, dtype=tf.float32)
-
+        tf.print("_encoder_sample.gt_boxes.dtype", gt_boxes.dtype)
         matched_gt_idx, positive_mask, ignore_mask = self._match_anchor_boxes(
             anchor_boxes, gt_boxes
         )
+        tf.print("matched_gt_idx", matched_gt_idx)
+        tf.print("positive_mask", tf.math.reduce_max(positive_mask))
         matched_gt_boxes = tf.gather(gt_boxes, matched_gt_idx)
         box_target = self._compute_box_target(anchor_boxes, matched_gt_boxes)
         matched_gt_cls_ids = tf.gather(cls_ids, matched_gt_idx)
         cls_target = tf.where(
-            tf.not_equal(positive_mask, 1.0), -1.0, matched_gt_cls_ids
+            tf.not_equal(positive_mask, 1.0), self.background_class, matched_gt_cls_ids
         )
-        cls_target = tf.where(tf.equal(ignore_mask, 1.0), -2.0, cls_target)
+        cls_target = tf.where(tf.equal(ignore_mask, 1.0), self.ignore_class, cls_target)
         cls_target = tf.expand_dims(cls_target, axis=-1)
         label = tf.concat([box_target, cls_target], axis=-1)
         return label
@@ -133,18 +141,26 @@ class ObjectDetectionLabelEncoder(layers.Layer):
                 f"`type(images)={type(images)}`."
             )
 
+        tf.print("boxes.dtype", boxes.dtype)
         boxes = bounding_box.convert_format(
             boxes, source=self.bounding_box_format, target="xywh", images=images
         )
-
         anchor_boxes = self.anchor_generator(images[0])
         anchor_boxes = tf.concat(list(anchor_boxes.values()), axis=0)
+        anchor_boxes = bounding_box.convert_format(
+            anchor_boxes,
+            source=self.anchor_generator.bounding_box_format,
+            target="xywh",
+            images=images[0],
+        )
+        tf.print("anchor_boxes.dtype", anchor_boxes)
         if isinstance(boxes, tf.RaggedTensor):
             boxes = boxes.to_tensor(default_value=-1)
 
         result = tf.map_fn(
-            elems=(boxes), fn=lambda x: self._encode_sample(x, anchor_boxes)
+            elems=(boxes), fn=lambda box_set: self._encode_sample(box_set, anchor_boxes)
         )
+        tf.print("result.shape", result.shape)
         return bounding_box.convert_format(
             result, source="xywh", target=self.bounding_box_format, images=images
         )
