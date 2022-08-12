@@ -35,12 +35,13 @@ from keras_cv import bounding_box
 flags.DEFINE_integer("batch_size", 8, "Training and eval batch size.")
 flags.DEFINE_integer("epochs", 1, "Number of training epochs.")
 flags.DEFINE_string("wandb_entity", None, "wandb entity to use.")
+flags.DEFINE_string("experiment_name", None, "wandb run name to use.")
 FLAGS = flags.FLAGS
 
 FLAGS(sys.argv)
 
 if FLAGS.wandb_entity:
-    wandb.init(project="pascalvoc-retinanet", entity=FLAGS.wandb_entity)
+    wandb.init(project="pascalvoc-retinanet", entity=FLAGS.wandb_entity, name=FLAGS.experiment_name)
 
 """
 ## Data loading
