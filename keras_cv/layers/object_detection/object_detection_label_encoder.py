@@ -82,7 +82,7 @@ class ObjectDetectionLabelEncoder(layers.Layer):
             training
         """
         iou_matrix = bounding_box.compute_iou(
-            anchor_boxes, gt_boxes, bounding_box_format=self.bounding_box_format
+            anchor_boxes, gt_boxes, bounding_box_format="xywh"
         )
         max_iou = tf.reduce_max(iou_matrix, axis=1)
         matched_gt_idx = tf.argmax(iou_matrix, axis=1)
@@ -144,7 +144,7 @@ class ObjectDetectionLabelEncoder(layers.Layer):
         anchor_boxes = bounding_box.convert_format(
             anchor_boxes,
             source=self.anchor_generator.bounding_box_format,
-            target="xywh",
+            target=self.bounding_box_format,
             images=images[0],
         )
         if isinstance(boxes, tf.RaggedTensor):
