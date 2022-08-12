@@ -62,6 +62,9 @@ class RandomColorDegeneration(BaseImageAugmentationLayer):
         result = preprocessing.blend(image, degenerate, transformation)
         return result
 
+    def augment_bounding_boxes(self, bounding_boxes, **kwargs):
+        return bounding_boxes
+
     def augment_label(self, label, transformation=None, **kwargs):
         return label
 

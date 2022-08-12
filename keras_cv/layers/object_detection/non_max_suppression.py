@@ -29,7 +29,7 @@ class NonMaxSuppression(tf.keras.layers.Layer):
         - [Yolo paper](https://arxiv.org/pdf/1506.02640)
 
     Args:
-        num_classes: an integer representing the number of classes that a bounding
+        classes: an integer representing the number of classes that a bounding
             box can belong to.
         bounding_box_format: a case-insensitive string which is one of `"xyxy"`,
             `"rel_xyxy"`, `"xyWH"`, `"center_xyWH"`, `"yxyx"`, `"rel_yxyx"`. The
@@ -67,7 +67,7 @@ class NonMaxSuppression(tf.keras.layers.Layer):
     ], dtype = np.float32)
 
     nms = NonMaxSuppression(
-        num_classes=8,
+        classes=8,
         bounding_box_format="center_xyWH",
         iou_threshold=0.1
     )
@@ -78,16 +78,16 @@ class NonMaxSuppression(tf.keras.layers.Layer):
 
     def __init__(
         self,
-        num_classes,
+        classes,
         bounding_box_format,
         confidence_threshold=0.05,
         iou_threshold=0.5,
         max_detections=100,
         max_detections_per_class=100,
-        **kwargs
+        **kwargs,
     ):
         super().__init__(**kwargs)
-        self.num_classes = num_classes
+        self.classes = classes
         self.bounding_box_format = bounding_box_format
         self.confidence_threshold = confidence_threshold
         self.iou_threshold = iou_threshold
@@ -95,6 +95,13 @@ class NonMaxSuppression(tf.keras.layers.Layer):
         self.max_detections_per_class = max_detections_per_class
 
     def call(self, predictions, images=None):
+        if predictions.shape[-1] != 6:
+            raise ValueError(
+                "keras_cv.layers.NonMaxSuppression() expects `call()` "
+                "argument `predictions` to be of shape (None, None, 6).  Received "
+                f"predictions.shape={tuple(predictions.shape)}."
+            )
+
         # convert to yxyx for the TF NMS operation
         predictions = bounding_box.convert_format(
             predictions,
@@ -105,11 +112,11 @@ class NonMaxSuppression(tf.keras.layers.Layer):
 
         # preparing the predictions for TF NMS op
         boxes = tf.expand_dims(predictions[..., :4], axis=2)
-        classes = tf.cast(predictions[..., 4], tf.int32)
+        class_predictions = tf.cast(predictions[..., 4], tf.int32)
         scores = predictions[..., 5]
 
-        classes = tf.one_hot(classes, self.num_classes)
-        scores = tf.expand_dims(scores, axis=-1) * classes
+        class_predictions = tf.one_hot(class_predictions, self.classes)
+        scores = tf.expand_dims(scores, axis=-1) * class_predictions
 
         # applying the NMS operation
         nmsed_boxes = tf.image.combined_non_max_suppression(
@@ -121,6 +128,7 @@ class NonMaxSuppression(tf.keras.layers.Layer):
             self.confidence_threshold,
             clip_boxes=False,
         )
+
         # output will be a ragged tensor because num_boxes will change across the batch
         boxes = self._decode_nms_boxes_to_tensor(nmsed_boxes)
         # converting all boxes to the original format
@@ -133,7 +141,9 @@ class NonMaxSuppression(tf.keras.layers.Layer):
         )
 
     def _decode_nms_boxes_to_tensor(self, nmsed_boxes):
-        boxes = tf.TensorArray(tf.float32, size=0, dynamic_size=True)
+        boxes = tf.TensorArray(
+            tf.float32, size=0, infer_shape=False, element_shape=(6,), dynamic_size=True
+        )
 
         for i in tf.range(tf.shape(nmsed_boxes.nmsed_boxes)[0]):
             num_detections = nmsed_boxes.valid_detections[i]
@@ -168,7 +178,7 @@ class NonMaxSuppression(tf.keras.layers.Layer):
 
     def get_config(self):
         config = {
-            "num_classes": self.num_classes,
+            "classes": self.classes,
             "bounding_box_format": self.bounding_box_format,
             "confidence_threshold": self.confidence_threshold,
             "iou_threshold": self.iou_threshold,
