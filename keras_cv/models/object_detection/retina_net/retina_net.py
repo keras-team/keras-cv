@@ -21,7 +21,6 @@ from keras_cv import layers as cv_layers
 from keras_cv.models.object_detection.retina_net.__internal__ import (
     layers as layers_lib,
 )
-from keras_cv.models.object_detection.retina_net.__internal__ import utils as utils_lib
 
 
 # TODO(lukewood): update docstring to include documentation on creating a custom label
@@ -119,11 +118,20 @@ class RetinaNet(keras.Model):
         self.classes = classes
         self.backbone = _parse_backbone(backbone, include_rescaling, backbone_weights)
 
-        self.label_encoder = label_encoder or utils_lib.LabelEncoder(
+        self.label_encoder = label_encoder or cv_layers.ObjectDetectionLabelEncoder(
             bounding_box_format=bounding_box_format, anchor_generator=anchor_generator
         )
-        self.feature_pyramid = feature_pyramid or layers_lib.FeaturePyramid()
+        self.prediction_decoder = (
+            prediction_decoder
+            or cv_layers.ObjectDetectionPredictionDecoder(
+                bounding_box_format=bounding_box_format,
+                anchor_generator=anchor_generator,
+                classes=classes,
+            )
+        )
 
+        # initialize trainable networks
+        self.feature_pyramid = feature_pyramid or layers_lib.FeaturePyramid()
         prior_probability = tf.constant_initializer(-np.log((1 - 0.01) / 0.01))
         self.classification_head = layers_lib.PredictionHead(
             output_filters=9 * classes, bias_initializer=prior_probability
@@ -131,15 +139,17 @@ class RetinaNet(keras.Model):
         self.box_head = layers_lib.PredictionHead(
             output_filters=9 * 4, bias_initializer="zeros"
         )
-        self.prediction_decoder = (
-            prediction_decoder
-            or layers_lib.ObjectDetectionPredictionDecoder(
-                bounding_box_format=bounding_box_format,
-                anchor_generator=anchor_generator,
-                classes=classes,
-            )
-        )
         self._metrics_bounding_box_format = None
+
+        if self.prediction_decoder.box_variance != self.label_encoder.box_variance:
+            raise ValueError(
+                "`prediction_decoder` and `label_encoder` must "
+                "have matching `box_variance` arguments.  Did you customize the "
+                "`box_variance` in either `prediction_decoder` or `label_encoder`? "
+                "If so, please also customize the other.  Received: "
+                f"`prediction_decoder.box_variance={prediction_decoder.box_variance}`, "
+                f"`label_encoder.box_variance={label_encoder.box_variance}`."
+            )
 
     def compile(self, metrics=None, **kwargs):
         metrics = metrics or []

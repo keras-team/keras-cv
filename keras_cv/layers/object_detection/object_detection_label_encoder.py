@@ -16,10 +16,9 @@ import tensorflow as tf
 from tensorflow.keras import layers
 
 from keras_cv import bounding_box
-from keras_cv.models.object_detection.retina_net.__internal__ import utils
 
 
-class LabelEncoder(layers.Layer):
+class ObjectDetectionLabelEncoder(layers.Layer):
     """Transforms the raw labels into targets for training.
 
     This class has operations to generate targets for a batch of samples which
@@ -30,7 +29,8 @@ class LabelEncoder(layers.Layer):
         bounding_box_format:  The format of bounding boxes of input dataset. Refer
             [to the keras.io docs](https://keras.io/api/keras_cv/bounding_box/formats/)
             for more details on supported bounding box formats.
-        anchor_box: Anchor box generator to encode the bounding boxes.
+        anchor_generator: `keras_cv.layers.AnchorGenerator` instance to produce anchor
+            boxes.  Boxes are then used to encode labels on a per-image basis.
         box_variance: The scaling factors used to scale the bounding box targets.
             Defaults to (0.1, 0.1, 0.2, 0.2).
     """
@@ -38,16 +38,14 @@ class LabelEncoder(layers.Layer):
     def __init__(
         self,
         bounding_box_format,
-        anchor_box_generator=None,
+        anchor_generator,
         box_variance=(0.1, 0.1, 0.2, 0.2),
-        **kwargs
+        **kwargs,
     ):
         super().__init__(**kwargs)
         self.bounding_box_format = bounding_box_format
-        self._anchor_box = anchor_box_generator or utils.AnchorBox(
-            bounding_box_format=bounding_box_format
-        )
-        self._box_variance = tf.convert_to_tensor(box_variance, dtype=tf.float32)
+        self.anchor_generator = anchor_generator
+        self.box_variance = tf.convert_to_tensor(box_variance, dtype=tf.float32)
 
     def _match_anchor_boxes(
         self, anchor_boxes, gt_boxes, match_iou=0.5, ignore_iou=0.4
@@ -102,7 +100,7 @@ class LabelEncoder(layers.Layer):
             ],
             axis=-1,
         )
-        box_target = box_target / self._box_variance
+        box_target = box_target / self.box_variance
         return box_target
 
     def _encode_sample(self, gt_boxes, anchor_boxes):
@@ -127,12 +125,20 @@ class LabelEncoder(layers.Layer):
 
     def call(self, images, boxes):
         """Creates box and classification targets for a batch"""
+
+        if isinstance(images, tf.RaggedTensor):
+            raise ValueError(
+                "`ObjectDetectionLabelEncoder`'s `call()` method does not "
+                "support RaggedTensor inputs for the `images` argument.  Received "
+                f"`type(images)={type(images)}`."
+            )
+
         boxes = bounding_box.convert_format(
             boxes, source=self.bounding_box_format, target="xywh", images=images
         )
 
-        anchor_boxes = self._anchor_box(images)
-
+        anchor_boxes = self.anchor_generator(images[0])
+        anchor_boxes = tf.concat(list(anchor_boxes.values()), axis=0)
         if isinstance(boxes, tf.RaggedTensor):
             boxes = boxes.to_tensor(default_value=-1)
 

@@ -57,6 +57,10 @@ class RetinaNetTest(tf.test.TestCase):
         # self.assertIsNotNone(retina_net.backbone.get_layer(name="rescaling"))
         # TODO(lukewood): test compile with the FocalLoss class
 
+    def test_raises_when_box_variances_dont_match(self):
+        # TODO(lukewood): write test
+        pass
+
     def test_retina_net_include_rescaling_required_with_default_backbone(self):
         with self.assertRaises(ValueError):
             _ = keras_cv.models.RetinaNet(
