@@ -17,6 +17,7 @@ import tensorflow as tf
 from tensorflow import keras
 
 from keras_cv import bounding_box
+from keras_cv.layers import layers as cv_layers
 from keras_cv.models.object_detection.retina_net.__internal__ import (
     layers as layers_lib,
 )
@@ -60,11 +61,19 @@ class RetinaNet(keras.Model):
             underlying backbone model will be loaded using the weights provided in this
             argument.  Can be a model checkpoint path, or a string from the supported
             weight sets in the underlying model.
+        anchor_generator: (Optional) a `keras_cv.layers.AnchorGenerator`.  If provided,
+            the anchor generator will be passed to both the `label_encoder` and the
+            `prediction_decoder`.  Only to be used when both `label_encoder` and
+            `prediction_decoder` are both `None`.
         label_encoder: (Optional) a keras.Layer that accepts an image Tensor and a
             bounding box Tensor to its `call()` method, and returns RetinaNet training
             targets.  By default, a KerasCV standard LabelEncoder is created and used.
             Results of this `call()` method are passed to the `loss` object passed into
             `compile()` as the `y_true` argument.
+        prediction_decoder: (Optional)  A `keras.layer` that is responsible for
+            transforming RetinaNet predictions into usable bounding box Tensors.  If
+            not provided, a default is provided.  The default `prediction_decoder` layer
+            uses a `NonMaxSuppression` operation for box pruning.
         feature_pyramid: (Optional) A `keras.Model` representing a feature pyramid
             network (FPN).  The feature pyramid network is called on the outputs of the
             `backbone`.  The KerasCV default backbones return three outputs in a list,
@@ -72,11 +81,6 @@ class RetinaNet(keras.Model):
             networks.  If not provided, a default feature pyramid neetwork is produced
             by the library.  The default feature pyramid network is compatible with all
             standard keras_cv backbones.
-        prediction_decoder: (Optional)  A `keras.layer` that is responsible for
-            transforming RetinaNet predictions into usable bounding box Tensors.  If
-            not provided, a default is provided.  The default `PredictionDecoder` layer
-            operates using an AnchorBox matching algorithm and a `NonMaxSuppression`
-            operation.
         name: (Optional) name for the model, defaults to `"RetinaNet"`.
     """
 
@@ -87,20 +91,36 @@ class RetinaNet(keras.Model):
         backbone,
         include_rescaling=None,
         backbone_weights=None,
+        anchor_generator=None,
         label_encoder=None,
-        feature_pyramid=None,
         prediction_decoder=None,
+        feature_pyramid=None,
         name="RetinaNet",
         **kwargs,
     ):
         super().__init__(name=name, **kwargs)
 
+        if anchor_generator is not None and (prediction_decoder or label_encoder):
+            raise ValueError(
+                "`anchor_generator` is only to be provided when "
+                "both `label_encoder` and `prediction_decoder` are both `None`. "
+                f"Received `anchor_generator={anchor_generator}` "
+                f"`label_encoder={label_encoder}`, "
+                f"`prediction_decoder={prediction_decoder}`. To customize the behavior of "
+                "the anchor_generator inside of a custom `label_encoder` or custom "
+                "`prediction_decoder` you should provide both to `RetinaNet`, and ensure "
+                "that the `anchor_generator` provided to both is identical"
+            )
+
         self.bounding_box_format = bounding_box_format
+        anchor_generator = anchor_generator or _default_anchor_generator(
+            bounding_box_format
+        )
         self.classes = classes
         self.backbone = _parse_backbone(backbone, include_rescaling, backbone_weights)
 
         self.label_encoder = label_encoder or utils_lib.LabelEncoder(
-            bounding_box_format=bounding_box_format
+            bounding_box_format=bounding_box_format, anchor_generator=anchor_generator
         )
         self.feature_pyramid = feature_pyramid or layers_lib.FeaturePyramid()
 
@@ -111,8 +131,13 @@ class RetinaNet(keras.Model):
         self.box_head = layers_lib.PredictionHead(
             output_filters=9 * 4, bias_initializer="zeros"
         )
-        self.prediction_decoder = prediction_decoder or layers_lib.DecodePredictions(
-            classes=classes, bounding_box_format=bounding_box_format
+        self.prediction_decoder = (
+            prediction_decoder
+            or layers_lib.ObjectDetectionPredictionDecoder(
+                bounding_box_format=bounding_box_format,
+                anchor_generator=anchor_generator,
+                classes=classes,
+            )
         )
         self._metrics_bounding_box_format = None
 
@@ -328,3 +353,17 @@ def _scale_loss_for_distribution(loss_value):
     if num_replicas > 1:
         loss_value *= 1.0 / num_replicas
     return loss_value
+
+
+def _default_anchor_generator(bounding_box_format):
+    strides = [2**i for i in range(3, 8)]
+    scales = [2**x for x in [0, 1 / 3, 2 / 3]]
+    sizes = [x**2 for x in [32.0, 64.0, 128.0, 256.0, 512.0]]
+    aspect_ratios = [0.5, 1.0, 2.0]
+    return cv_layers.AnchorGenerator(
+        bounding_box_format="yxyx",
+        anchor_sizes=sizes,
+        aspect_ratios=aspect_ratios,
+        scales=scales,
+        strides=strides,
+    )

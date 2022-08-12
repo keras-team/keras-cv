@@ -30,8 +30,7 @@ class AnchorGenerator(keras.layers.Layer):
 
     Usage:
     ```python
-    anchor_gen = AnchorGenerator([32, 64], [.5, 1., 2.],
-      strides=[16, 32])
+    # TODO(lukewood): fill out a construction.
     image = tf.random.uniform((512, 512, 3))
     anchors = anchor_gen(image)
     ```
@@ -53,25 +52,40 @@ class AnchorGenerator(keras.layers.Layer):
     ):
         self.bounding_box_format = bounding_box_format
         # aspect_ratio is a single list that is the same across all levels.
-        anchor_sizes, strides = self._format_anchor_sizes_and_strides(anchor_sizes, strides)
-        aspect_ratios = self._match_param_structure_to_anchor_sizes(aspect_ratios, anchor_sizes)
+        anchor_sizes, strides = self._format_anchor_sizes_and_strides(
+            anchor_sizes, strides
+        )
+        aspect_ratios = self._match_param_structure_to_anchor_sizes(
+            aspect_ratios, anchor_sizes
+        )
         scales = self._match_param_structure_to_anchor_sizes(scales, anchor_sizes)
 
         self.anchor_generators = {}
         for k in anchor_sizes.keys():
             self.anchor_generators[k] = _SingleAnchorGenerator(
-                bounding_box_format, anchor_sizes[k], scales[k], aspect_ratios[k], strides[k], clip_boxes
+                bounding_box_format,
+                anchor_sizes[k],
+                scales[k],
+                aspect_ratios[k],
+                strides[k],
+                clip_boxes,
             )
 
     @staticmethod
     def _format_anchor_sizes_and_strides(anchor_sizes, strides):
-        result_anchor_sizes = AnchorGenerator._ensure_param_is_levels_dict(anchor_sizes, 'anchor_sizes')
-        result_strides = AnchorGenerator._ensure_param_is_levels_dict(strides, 'strides')
+        result_anchor_sizes = AnchorGenerator._ensure_param_is_levels_dict(
+            anchor_sizes, "anchor_sizes"
+        )
+        result_strides = AnchorGenerator._ensure_param_is_levels_dict(
+            strides, "strides"
+        )
 
         if sorted(result_strides.keys()) != sorted(result_anchor_sizes.keys()):
-            raise ValueError('Expected anchor_sizes and strides to be either lists of'
-            'the same length, or dictionaries with the same keys.  Received '
-            f'anchor_sizes={anchor_sizes}, strides={strides}')
+            raise ValueError(
+                "Expected anchor_sizes and strides to be either lists of"
+                "the same length, or dictionaries with the same keys.  Received "
+                f"anchor_sizes={anchor_sizes}, strides={strides}"
+            )
 
         return result_anchor_sizes, result_strides
 
@@ -93,7 +107,7 @@ class AnchorGenerator(keras.layers.Layer):
 
         result = {}
         for i in range(len(param)):
-            result[f'level_{i}'] = param[i]
+            result[f"level_{i}"] = param[i]
         return result
 
     @staticmethod
@@ -198,7 +212,6 @@ class _SingleAnchorGenerator:
         # [H, W, 1]
         cx_grid = tf.expand_dims(cx_grid, axis=-1)
         cy_grid = tf.expand_dims(cy_grid, axis=-1)
-
 
         y_min = tf.reshape(cy_grid - half_anchor_heights, (-1,))
         y_max = tf.reshape(cy_grid + half_anchor_heights, (-1,))

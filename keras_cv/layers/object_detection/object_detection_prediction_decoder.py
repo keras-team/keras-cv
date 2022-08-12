@@ -14,14 +14,15 @@
 
 import tensorflow as tf
 
-from keras_cv import layers as cv_layers
 from keras_cv import bounding_box
+from keras_cv import layers as cv_layers
+
 
 class ObjectDetectionPredictionDecoder(tf.keras.layers.Layer):
     """A Keras layer that decodes predictions of an object detection model.
 
-    By default, ObjectDetectionPredictionDecoder uses a `keras_cv.layers.NonMaxSuppression` layer to
-    perform the decoding.
+    By default, ObjectDetectionPredictionDecoder uses a
+    `keras_cv.layers.NonMaxSuppression` layer to perform box pruning.
 
     Attributes:
       classes: Number of classes in the dataset.
@@ -29,7 +30,6 @@ class ObjectDetectionPredictionDecoder(tf.keras.layers.Layer):
         [to the keras.io docs](https://keras.io/api/keras_cv/bounding_box/formats/)
         for more details on supported bounding box formats.
       anchor_generator:
-      classes:
       suppression_layer:
       box_variance:
     """
@@ -41,14 +41,15 @@ class ObjectDetectionPredictionDecoder(tf.keras.layers.Layer):
         classes=None,
         suppression_layer=None,
         box_variance=(0.1, 0.1, 0.2, 0.2),
-        **kwargs
+        **kwargs,
     ):
         super().__init__(**kwargs)
         if not suppression_layer and not classes:
             raise ValueError(
                 "ObjectDetectionPredictionDecoder() requires either `suppression_layer` "
                 f"or `classes`.  Received `suppression_layer={suppression_layer} and "
-                f"classes={classes}`")
+                f"classes={classes}`"
+            )
         self.bounding_box_format = bounding_box_format
         self.suppression_layer = self.suppression_layer or cv_layers.NonMaxSuppression(
             classes=classes,
@@ -66,9 +67,7 @@ class ObjectDetectionPredictionDecoder(tf.keras.layers.Layer):
                 f"{self.bounding_box_format}`, `suppression_layer={suppression_layer}`."
             )
         self.anchor_generator = anchor_generator
-        self.box_variance = tf.convert_to_tensor(
-            box_variance, dtype=tf.float32
-        )
+        self.box_variance = tf.convert_to_tensor(box_variance, dtype=tf.float32)
 
     def _decode_box_predictions(self, anchor_boxes, box_predictions):
         boxes = box_predictions * self.box_variance
@@ -89,11 +88,12 @@ class ObjectDetectionPredictionDecoder(tf.keras.layers.Layer):
             )
 
         anchor_boxes = self.anchor_generator(images[0])
+        anchor_boxes = tf.concat(list(anchor_boxes.values()), axis=0)
         anchor_boxes = bounding_box.convert_format(
             anchor_boxes,
             source=self.anchor_generator.bounding_box_format,
             target=self.bounding_box_format,
-            images=images
+            images=images,
         )
         box_predictions = predictions[:, :, :4]
         cls_predictions = tf.nn.sigmoid(predictions[:, :, 4:])
