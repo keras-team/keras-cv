@@ -114,12 +114,9 @@ class ObjectDetectionLabelEncoder(layers.Layer):
         cls_ids = gt_boxes[:, 4]
         gt_boxes = gt_boxes[:, :4]
         cls_ids = tf.cast(cls_ids, dtype=tf.float32)
-        tf.print("_encoder_sample.gt_boxes.dtype", gt_boxes.dtype)
         matched_gt_idx, positive_mask, ignore_mask = self._match_anchor_boxes(
             anchor_boxes, gt_boxes
         )
-        tf.print("matched_gt_idx", matched_gt_idx)
-        tf.print("positive_mask", tf.math.reduce_max(positive_mask))
         matched_gt_boxes = tf.gather(gt_boxes, matched_gt_idx)
         box_target = self._compute_box_target(anchor_boxes, matched_gt_boxes)
         matched_gt_cls_ids = tf.gather(cls_ids, matched_gt_idx)
@@ -141,7 +138,6 @@ class ObjectDetectionLabelEncoder(layers.Layer):
                 f"`type(images)={type(images)}`."
             )
 
-        tf.print("boxes.dtype", boxes.dtype)
         boxes = bounding_box.convert_format(
             boxes, source=self.bounding_box_format, target="xywh", images=images
         )
@@ -153,14 +149,12 @@ class ObjectDetectionLabelEncoder(layers.Layer):
             target="xywh",
             images=images[0],
         )
-        tf.print("anchor_boxes.dtype", anchor_boxes)
         if isinstance(boxes, tf.RaggedTensor):
             boxes = boxes.to_tensor(default_value=-1)
 
         result = tf.map_fn(
             elems=(boxes), fn=lambda box_set: self._encode_sample(box_set, anchor_boxes)
         )
-        tf.print("result.shape", result.shape)
         return bounding_box.convert_format(
             result, source="xywh", target=self.bounding_box_format, images=images
         )

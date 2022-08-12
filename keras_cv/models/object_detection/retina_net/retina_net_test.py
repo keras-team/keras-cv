@@ -14,11 +14,12 @@
 
 import pytest
 import tensorflow as tf
+from absl.testing import parameterized
 
 import keras_cv
 
 
-class RetinaNetTest(tf.test.TestCase):
+class RetinaNetTest(tf.test.TestCase, parameterized.TestCase):
     @pytest.fixture(autouse=True)
     def cleanup_global_session(self):
         # Code before yield runs before the test

@@ -41,7 +41,11 @@ FLAGS = flags.FLAGS
 FLAGS(sys.argv)
 
 if FLAGS.wandb_entity:
-    wandb.init(project="pascalvoc-retinanet", entity=FLAGS.wandb_entity, name=FLAGS.experiment_name)
+    wandb.init(
+        project="pascalvoc-retinanet",
+        entity=FLAGS.wandb_entity,
+        name=FLAGS.experiment_name,
+    )
 
 """
 ## Data loading

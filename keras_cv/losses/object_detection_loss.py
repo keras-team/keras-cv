@@ -79,7 +79,6 @@ class ObjectDetectionLoss(tf.keras.losses.Loss):
             depth=self.classes,
             dtype=tf.float32,
         )
-        tf.print("cls_labels", tf.math.reduce_max(y_true[:, :, 4]))
         cls_predictions = y_pred[:, :, 4:]
 
         positive_mask = tf.cast(tf.greater(y_true[:, :, 4], -1.0), dtype=tf.float32)

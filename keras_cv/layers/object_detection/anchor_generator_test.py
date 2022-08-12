@@ -38,12 +38,13 @@ class AnchorGeneratorTest(tf.test.TestCase, parameterized.TestCase):
         self.assertEqual(boxes.shape, [49104, 4])
 
     def test_output_dictionary_keys(self):
+        # TODO(lukewood): write and fix this.
         pass
 
     def test_relative_generation(self):
-        strides = [2**i for i in range(3, 8)]
-        scales = [2**x for x in [0, 1 / 3, 2 / 3]]
-        sizes = [x**2 for x in [32.0, 64.0, 128.0, 256.0, 512.0]]
+        strides = [8, 16, 32]
+        scales = [1, 1.2599210498948732, 1.5874010519681994]
+        sizes = [32.0, 64.0, 128.0]
         aspect_ratios = [0.5, 1.0, 2.0]
 
         image = tf.random.uniform((512, 512, 3))
@@ -57,5 +58,5 @@ class AnchorGeneratorTest(tf.test.TestCase, parameterized.TestCase):
         )
         boxes = anchor_generator(image)
         boxes = tf.concat(list(boxes.values()), axis=0)
-        self.assertAllLessEqual(boxes, 1.0)
-        self.assertAllGreaterEqual(boxes, 0.0)
+        self.assertAllLessEqual(boxes, 1.5)
+        self.assertAllGreaterEqual(boxes, -0.50)
