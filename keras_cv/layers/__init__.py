@@ -26,8 +26,10 @@ from tensorflow.keras.layers import Rescaling
 from tensorflow.keras.layers import Resizing
 
 from keras_cv.layers.object_detection.anchor_generator import AnchorGenerator
-from keras_cv.layers.object_detection.object_detection_label_encoder import ObjectDetectionLabelEncoder
 from keras_cv.layers.object_detection.non_max_suppression import NonMaxSuppression
+from keras_cv.layers.object_detection.object_detection_label_encoder import (
+    ObjectDetectionLabelEncoder,
+)
 from keras_cv.layers.object_detection.object_detection_prediction_decoder import (
     ObjectDetectionPredictionDecoder,
 )

@@ -141,7 +141,11 @@ class RetinaNet(keras.Model):
         )
         self._metrics_bounding_box_format = None
 
-        if self.prediction_decoder.box_variance != self.label_encoder.box_variance:
+        # Construct should run in eager mode
+        if any(
+            self.prediction_decoder.box_variance.numpy()
+            != self.label_encoder.box_variance.numpy()
+        ):
             raise ValueError(
                 "`prediction_decoder` and `label_encoder` must "
                 "have matching `box_variance` arguments.  Did you customize the "
