@@ -261,25 +261,8 @@ class SerializationTest(tf.test.TestCase, parameterized.TestCase):
     def test_model_serialization(self, model_cls, init_args):
         model = model_cls(**init_args)
         config = model.get_config()
-        self.assertAllInitParametersAreInConfig(model_cls, config)
 
         reconstructed_model = tf.keras.Model.from_config(config)
         self.assertTrue(
             config_equals(reconstructed_model.get_config(), config)
         )
-
-
-    def assertAllInitParametersAreInConfig(self, model_cls, config):
-        exclude_name = ["args", "kwargs", "*"]
-        parameter_names = {
-            v for v in inspect.signature(model_cls).parameters.keys() 
-            if v not in exclude_name
-        }
-
-        intersection_with_config = {
-            v for v in config.keys() 
-            if v in parameter_names
-        }
-        
-        self.assertSetEqual(parameter_names, intersection_with_config)
-        
