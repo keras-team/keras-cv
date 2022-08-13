@@ -12,10 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# isort:off
 from keras_cv import version_check
 
 version_check.check_tf_version()
-
+# isort:on
 
 from keras_cv import layers
 from keras_cv import losses
