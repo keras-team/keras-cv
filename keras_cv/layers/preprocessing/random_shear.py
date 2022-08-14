@@ -65,10 +65,10 @@ class RandomShear(BaseImageAugmentationLayer):
         fill_value: fill_value in the `ImageProjectiveTransformV3` op.
              A `Tensor` of type `float32`. The value to be filled when fill_mode is
              constant".  Defaults to `0.0`.
+        bounding_box_format: The format of bounding boxes of input dataset. Refer to
+             https://github.com/keras-team/keras-cv/blob/master/keras_cv/bounding_box/converters.py
+             for more details on supported bounding box formats.
         seed: Integer. Used to create a random seed.
-        bounding_box_format: The format of bounding boxes of input dataset. Refer
-        https://github.com/keras-team/keras-cv/blob/master/keras_cv/bounding_box/converters.py
-        for more details on supported bounding box formats.
     """
 
     def __init__(
@@ -78,8 +78,8 @@ class RandomShear(BaseImageAugmentationLayer):
         interpolation="bilinear",
         fill_mode="reflect",
         fill_value=0.0,
-        seed=None,
         bounding_box_format=None,
+        seed=None,
         **kwargs,
     ):
         super().__init__(seed=seed, **kwargs)

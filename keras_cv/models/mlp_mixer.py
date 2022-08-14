@@ -23,6 +23,8 @@ from tensorflow import keras
 from tensorflow.keras import backend
 from tensorflow.keras import layers
 
+from keras_cv.models import utils
+
 
 def MLPBlock(mlp_dim, name=None):
     """An MLP block consisting of two linear layers with GELU activation in
@@ -86,7 +88,8 @@ def MLPMixer(
     channels_mlp_dim,
     include_rescaling,
     include_top,
-    num_classes=None,
+    classes=None,
+    input_tensor=None,
     weights=None,
     pooling=None,
     classifier_activation="softmax",
@@ -117,12 +120,14 @@ def MLPMixer(
         If set to True, inputs will be passed through a
         `Rescaling(1/255.0)` layer.
       include_top: whether to include the fully-connected
-        layer at the top of the network.  If provided, num_num_classes must be provided.
-      num_classes: optional number of num_classes to classify images
+        layer at the top of the network.  If provided, classes must be provided.
+      classes: optional number of classes to classify images
         into, only to be specified if `include_top` is True, and
         if no `weights` argument is specified.
       weights: one of `None` (random initialization), or a pretrained
         weight file path.
+      input_tensor: optional Keras tensor (i.e. output of `layers.Input()`)
+        to use as image input for the model.
       pooling: optional pooling mode for feature extraction
         when `include_top` is `False`.
         - `None` means that the output of the model will be
@@ -151,11 +156,11 @@ def MLPMixer(
             f"Weights file not found at location: {weights}"
         )
 
-    if include_top and not num_classes:
+    if include_top and not classes:
         raise ValueError(
             "If `include_top` is True, "
-            "you should specify `num_classes`. "
-            f"Received: num_classes={num_classes}"
+            "you should specify `classes`. "
+            f"Received: classes={classes}"
         )
 
     if (not isinstance(input_shape, tuple)) and (not isinstance(patch_size, tuple)):
@@ -182,7 +187,7 @@ def MLPMixer(
     if input_shape[0] % patch_size[0] != 0:
         raise ValueError("Input resolution should be divisible by the patch size.")
 
-    inputs = layers.Input(shape=input_shape)
+    inputs = utils.parse_model_inputs(input_shape, input_tensor)
 
     x = inputs
     if include_rescaling:
@@ -204,9 +209,9 @@ def MLPMixer(
 
     if include_top:
         x = layers.GlobalAveragePooling1D(name="avg_pool")(x)
-        x = layers.Dense(
-            num_classes, activation=classifier_activation, name="predictions"
-        )(x)
+        x = layers.Dense(classes, activation=classifier_activation, name="predictions")(
+            x
+        )
 
     elif pooling == "avg":
         x = layers.GlobalAveragePooling1D(name="avg_pool")(x)
@@ -225,7 +230,8 @@ def MLPMixerB16(
     patch_size,
     include_rescaling,
     include_top,
-    num_classes=None,
+    classes=None,
+    input_tensor=None,
     weights=None,
     pooling=None,
     name="mlp_mixer_b16",
@@ -240,7 +246,8 @@ def MLPMixerB16(
         channels_mlp_dim=3072,
         include_rescaling=include_rescaling,
         include_top=include_top,
-        num_classes=num_classes,
+        classes=classes,
+        input_tensor=input_tensor,
         weights=weights,
         pooling=pooling,
         name=name,
@@ -253,7 +260,8 @@ def MLPMixerB32(
     patch_size,
     include_rescaling,
     include_top,
-    num_classes=None,
+    classes=None,
+    input_tensor=None,
     weights=None,
     pooling=None,
     name="mlp_mixer_b32",
@@ -268,7 +276,8 @@ def MLPMixerB32(
         channels_mlp_dim=3072,
         include_rescaling=include_rescaling,
         include_top=include_top,
-        num_classes=num_classes,
+        classes=classes,
+        input_tensor=input_tensor,
         weights=weights,
         pooling=pooling,
         name=name,
@@ -281,7 +290,8 @@ def MLPMixerL16(
     patch_size,
     include_rescaling,
     include_top,
-    num_classes=None,
+    classes=None,
+    input_tensor=None,
     weights=None,
     pooling=None,
     name="mlp_mixer_l16",
@@ -296,7 +306,8 @@ def MLPMixerL16(
         channels_mlp_dim=4096,
         include_rescaling=include_rescaling,
         include_top=include_top,
-        num_classes=num_classes,
+        classes=classes,
+        input_tensor=input_tensor,
         weights=weights,
         pooling=pooling,
         name=name,

@@ -73,7 +73,7 @@ class Posterization(BaseImageAugmentationLayer):
         self._shift = 8 - bits
         self._value_range = value_range
 
-    def augment_image(self, image, transformation=None, **kwargs):
+    def augment_image(self, image, **kwargs):
         image = transform_value_range(
             images=image,
             original_range=self._value_range,
@@ -89,6 +89,9 @@ class Posterization(BaseImageAugmentationLayer):
             original_range=[0, 255],
             target_range=self._value_range,
         )
+
+    def augment_bounding_boxes(self, bounding_boxes, **kwargs):
+        return bounding_boxes
 
     def _batch_augment(self, inputs):
         # Skip the use of vectorized_map or map_fn as the implementation is already

@@ -86,7 +86,7 @@ class GridMask(BaseImageAugmentationLayer):
     ```
 
     References:
-        - https://arxiv.org/abs/2001.04086
+        - [GridMask paper](https://arxiv.org/abs/2001.04086)
     """
 
     def __init__(
@@ -234,6 +234,9 @@ class GridMask(BaseImageAugmentationLayer):
         mask = tf.cast(mask, tf.bool)
 
         return tf.where(mask, fill_value, image)
+
+    def augment_bounding_boxes(self, bounding_boxes, **kwargs):
+        return bounding_boxes
 
     def augment_label(self, label, transformation=None, **kwargs):
         return label

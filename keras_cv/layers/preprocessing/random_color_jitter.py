@@ -132,6 +132,9 @@ class RandomColorJitter(BaseImageAugmentationLayer):
         )
         return image
 
+    def augment_bounding_boxes(self, bounding_boxes, **kwargs):
+        return bounding_boxes
+
     def augment_label(self, label, transformation=None, **kwargs):
         return label
 

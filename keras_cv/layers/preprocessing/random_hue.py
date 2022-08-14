@@ -71,6 +71,9 @@ class RandomHue(BaseImageAugmentationLayer):
         image = preprocessing.transform_value_range(image, (0, 1), self.value_range)
         return image
 
+    def augment_bounding_boxes(self, bounding_boxes, **kwargs):
+        return bounding_boxes
+
     def augment_label(self, label, transformation=None, **kwargs):
         return label
 
