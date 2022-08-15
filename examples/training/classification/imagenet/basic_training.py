@@ -64,6 +64,11 @@ flags.DEFINE_integer("batch_size", 256, "Batch size for training and evaluation.
 flags.DEFINE_boolean(
     "use_xla", True, "Whether or not to use XLA (jit_compile) for training."
 )
+flags.DEFINE_boolean(
+    "initial_learning_rate",
+    0.005,
+    "Initial learning rate which will reduce on plateau.",
+)
 
 
 FLAGS = flags.FLAGS
@@ -188,7 +193,7 @@ Note that learning rate will decrease over time due to the ReduceLROnPlateau cal
 """
 
 
-optimizer = optimizers.Adam(learning_rate=0.005)
+optimizer = optimizers.Adam(learning_rate=FLAGS.initial_learning_rate)
 
 
 """
