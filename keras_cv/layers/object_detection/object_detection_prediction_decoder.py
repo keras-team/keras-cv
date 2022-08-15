@@ -99,14 +99,11 @@ class ObjectDetectionPredictionDecoder(tf.keras.layers.Layer):
         anchor_boxes = bounding_box.convert_format(
             anchor_boxes,
             source=self.anchor_generator.bounding_box_format,
-            target='xywh',
+            target="xywh",
             images=images[0],
         )
         predictions = bounding_box.convert_format(
-            predictions,
-            source=self.bounding_box_format,
-            target='xywh',
-            images=images
+            predictions, source=self.bounding_box_format, target="xywh", images=images
         )
         box_predictions = predictions[:, :, :4]
         cls_predictions = tf.nn.sigmoid(predictions[:, :, 4:])
@@ -114,7 +111,6 @@ class ObjectDetectionPredictionDecoder(tf.keras.layers.Layer):
         classes = tf.math.argmax(cls_predictions, axis=-1)
         classes = tf.cast(classes, box_predictions.dtype)
         confidence = tf.math.reduce_max(cls_predictions, axis=-1)
-
         classes = tf.expand_dims(classes, axis=-1)
         confidence = tf.expand_dims(confidence, axis=-1)
 
@@ -123,14 +119,8 @@ class ObjectDetectionPredictionDecoder(tf.keras.layers.Layer):
 
         boxes = bounding_box.convert_format(
             boxes,
-            source='xywh',
+            source="xywh",
             target=self.suppression_layer.bounding_box_format,
-            images=images
+            images=images,
         )
-        boxes = self.suppression_layer(boxes, images=images)
-        return bounding_box.convert_format(
-            boxes,
-            source=self.suppression_layer.bounding_box_format,
-            target=self.bounding_box_format,
-            images=images
-        )
+        return self.suppression_layer(boxes, images=images)

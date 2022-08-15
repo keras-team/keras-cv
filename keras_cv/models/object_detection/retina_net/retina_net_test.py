@@ -12,10 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import os
+
 import pytest
 import tensorflow as tf
 from absl.testing import parameterized
-
+from tensorflow.keras import optimizers
+import statistics
 import keras_cv
 
 
@@ -112,9 +115,41 @@ class RetinaNetTest(tf.test.TestCase, parameterized.TestCase):
                 ],
             )
 
+    def test_fit_coco_metrics(self):
+        retina_net = keras_cv.models.RetinaNet(
+            classes=2,
+            bounding_box_format="xywh",
+            backbone="resnet50",
+            backbone_weights=None,
+            include_rescaling=False,
+        )
+        loss = keras_cv.losses.ObjectDetectionLoss(
+            classes=1,
+            classification_loss=keras_cv.losses.FocalLoss(
+                from_logits=True, reduction="none"
+            ),
+            box_loss=keras_cv.losses.SmoothL1Loss(l1_cutoff=1.0, reduction="none"),
+            reduction="sum",
+        )
+
+        with self.assertRaisesRegExp(
+            ValueError,
+            "Does your model's `classes` parameter match your losses `classes` parameter",
+        ):
+            retina_net.compile(
+                optimizer=optimizers.SGD(learning_rate=0.25),
+                loss=loss,
+            )
+
+    @pytest.mark.skipif(
+        not "INTEGRATION" in os.environ,
+        reason="Takes a long time to run, only runs when INTEGRATION "
+        "environment variable is set.",
+    )
     @parameterized.named_parameters(
         ("xywh", "xywh"),
-        ("xyxy", "xyxy")
+        # ("xyxy", "xyxy"),
+        # ("rel_xyxy", "rel_xyxy")
     )
     def test_fit_coco_metrics(self, bounding_box_format):
         retina_net = keras_cv.models.RetinaNet(
@@ -134,7 +169,7 @@ class RetinaNetTest(tf.test.TestCase, parameterized.TestCase):
         )
 
         retina_net.compile(
-            optimizer="adam",
+            optimizer=optimizers.SGD(),
             loss=loss,
             metrics=[
                 keras_cv.metrics.COCOMeanAveragePrecision(
@@ -146,30 +181,34 @@ class RetinaNetTest(tf.test.TestCase, parameterized.TestCase):
                     class_ids=range(1),
                     bounding_box_format=bounding_box_format,
                     name="Recall",
-                )
+                ),
             ],
         )
 
         xs, ys = _create_bounding_box_dataset(bounding_box_format)
 
-        retina_net.fit(x=xs, y=ys, epochs=5)
-        metrics = retina_net.evaluate(x=xs, y=ys, return_dict=True)
-        self.assertNotEqual(metrics["loss"], 0.0)
-        self.assertNotEqual(metrics["Recall"], 0.0)
-        self.assertNotEqual(metrics["MaP"], 0.0)
+        for _ in range(50):
+            history = retina_net.fit(x=xs, y=ys, epochs=1)
+            metrics = history.history
+            metrics = [metrics["loss"], metrics["Recall"], metrics["MaP"]]
+            metrics = [statistics.mean(metric) for metric in metrics]
+            nonzero = [x != 0.0 for x in metrics]
+            if all(nonzero):
+                return
+        raise ValueError("Did not achieve better than 0.0 for all metrics in 50 epochs")
 
 
 def _create_bounding_box_dataset(bounding_box_format):
 
     # Just about the easiest dataset you can have, all classes are 0, all boxes are
     # exactly the same.  [1, 1, 2, 2] are the coordinates in xyxy
-    xs = tf.ones((2, 512, 512, 3), dtype=tf.float32)
-    y_classes = tf.ones((2, 10, 1), dtype=tf.float32)
+    xs = tf.ones((10, 512, 512, 3), dtype=tf.float32)
+    y_classes = tf.ones((10, 10, 1), dtype=tf.float32)
 
     ys = tf.constant([0.25, 0.25, 0.1, 0.1], dtype=tf.float32)
     ys = tf.expand_dims(ys, axis=0)
     ys = tf.expand_dims(ys, axis=0)
-    ys = tf.tile(ys, [2, 10, 1])
+    ys = tf.tile(ys, [10, 10, 1])
     ys = tf.concat([ys, y_classes], axis=-1)
 
     ys = keras_cv.bounding_box.convert_format(

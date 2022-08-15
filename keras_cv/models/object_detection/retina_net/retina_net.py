@@ -248,9 +248,9 @@ class RetinaNet(keras.Model):
         y_for_metrics, y_training_target = self._encode_data(x, y)
         with tf.GradientTape() as tape:
             predictions = self(x, training=True)
-            # predictions technically do not have a format
-            # loss accepts
-
+            # predictions technically do not have a format, so loss accepts whatever
+            # is output by the model.  This actually causes scaling issues if you use
+            # a rel_ format, or a different format.
             # TODO(lukewood): allow distinct 'classification' and 'box' loss metrics
             loss = self.compiled_loss(
                 y_training_target,
