@@ -28,7 +28,7 @@ from absl import flags
 from tensorflow import keras
 from tensorflow.keras import callbacks as callbacks_lib
 from tensorflow.keras import optimizers
-
+import wandb_prediction_visualizer
 import keras_cv
 from keras_cv import bounding_box
 
@@ -106,7 +106,7 @@ def load_pascal_voc(
     dataset = dataset.apply(
         tf.data.experimental.dense_to_ragged_batch(batch_size=batch_size)
     )
-    return dataset
+    return dataset, dataset_info
 
 
 """
@@ -117,7 +117,7 @@ KerasCV preprocessing components.
 Lets load some data and verify that our data looks as we expect it to.
 """
 
-dataset = load_pascal_voc(split="train", bounding_box_format="xywh", batch_size=9)
+dataset, dataset_info = load_pascal_voc(split="train", bounding_box_format="xywh", batch_size=9)
 
 
 def visualize_dataset(dataset, bounding_box_format):
@@ -160,10 +160,10 @@ friendly data augmentation inside of a `tf.data` pipeline.
 
 # train_ds is batched as a (images, bounding_boxes) tuple
 # bounding_boxes are ragged
-train_ds = load_pascal_voc(
+train_ds, train_dataset_info = load_pascal_voc(
     bounding_box_format="xywh", split="train", batch_size=FLAGS.batch_size
 )
-val_ds = load_pascal_voc(
+val_ds, val_dataset_info = load_pascal_voc(
     bounding_box_format="xywh", split="validation", batch_size=FLAGS.batch_size
 )
 
@@ -315,6 +315,13 @@ if FLAGS.wandb_entity:
     callbacks += [
         wandb.keras.WandbCallback(save_model=False),
     ]
+    callbacks += [wandb_prediction_visualizer.WandbPredictionVisualizer(
+        val_ds,
+        val_dataset_info,
+        num_classes=20,
+        bounding_box_format="xywh",
+        num_samples=10
+    )]
 
 """
 And run `model.fit()`!
