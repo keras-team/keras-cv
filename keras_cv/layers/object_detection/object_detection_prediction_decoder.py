@@ -81,6 +81,13 @@ class ObjectDetectionPredictionDecoder(tf.keras.layers.Layer):
         return boxes
 
     def call(self, images, predictions):
+        """Accepts images and raw predictions, and returns bounding box predictions.
+
+        Args:
+            images: Tensor of shape [batch, height, width, channels].
+            predictions: Dense Tensor of shape [batch, anchor_boxes, 6] in the
+                `bounding_box_format` specified in the constructor.
+        """
         if isinstance(images, tf.RaggedTensor):
             raise ValueError(
                 "DecodePredictions() does not support tf.RaggedTensor inputs. "
@@ -92,8 +99,14 @@ class ObjectDetectionPredictionDecoder(tf.keras.layers.Layer):
         anchor_boxes = bounding_box.convert_format(
             anchor_boxes,
             source=self.anchor_generator.bounding_box_format,
-            target=self.bounding_box_format,
+            target='xywh',
             images=images[0],
+        )
+        predictions = bounding_box.convert_format(
+            predictions,
+            source=self.bounding_box_format,
+            target='xywh',
+            images=images
         )
         box_predictions = predictions[:, :, :4]
         cls_predictions = tf.nn.sigmoid(predictions[:, :, 4:])
@@ -107,4 +120,17 @@ class ObjectDetectionPredictionDecoder(tf.keras.layers.Layer):
 
         boxes = self._decode_box_predictions(anchor_boxes[None, ...], box_predictions)
         boxes = tf.concat([boxes, classes, confidence], axis=-1)
-        return self.suppression_layer(boxes, images=images)
+
+        boxes = bounding_box.convert_format(
+            boxes,
+            source='xywh',
+            target=self.suppression_layer.bounding_box_format,
+            images=images
+        )
+        boxes = self.suppression_layer(boxes, images=images)
+        return bounding_box.convert_format(
+            boxes,
+            source=self.suppression_layer.bounding_box_format,
+            target=self.bounding_box_format,
+            images=images
+        )
