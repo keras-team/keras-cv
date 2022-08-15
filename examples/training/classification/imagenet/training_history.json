@@ -23,7 +23,22 @@
             "validation_accuracy": "0.6613"
         }
     },
+    "resnet50v2": {
+        "v0": {
+            "args": {
+                "batch_size": "64",
+                "initial_learning_rate": "0.005"
+            },
+            "contributor": "ianjjohnson",
+            "epochs_trained": 132,
+            "script": "basic_training.py",
+            "tensorboard_logs": "https://tensorboard.dev/experiment/QlkKjMkqQxm3jbzOlzBvWA/",
+            "validation_accuracy": "0.6337"
+        }
+    },
     "script_authors": {
-        "basic_training.py": ["ianjjohnson"]
+        "basic_training.py": [
+            "ianjjohnson"
+        ]
     }
 }

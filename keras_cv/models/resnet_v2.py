@@ -302,7 +302,7 @@ def ResNet50V2(
         include_rescaling=include_rescaling,
         include_top=include_top,
         name=name,
-        weights=weights,
+        weights=parse_weights(weights, include_top, "resnet50v2"),
         input_shape=input_shape,
         input_tensor=input_tensor,
         pooling=pooling,
