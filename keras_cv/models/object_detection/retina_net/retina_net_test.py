@@ -144,7 +144,10 @@ class RetinaNetTest(tf.test.TestCase, parameterized.TestCase):
     @pytest.mark.skipif(
         not "INTEGRATION" in os.environ,
         reason="Takes a long time to run, only runs when INTEGRATION "
-        "environment variable is set.",
+        "environment variable is set.  To run the test please run: \n"
+        "`INTEGRATION=true pytest "
+        "keras_cv/models/object_detection/retina_net/retina_net_test.py -k "
+        "test_fit_coco_metrics -s`",
     )
     @parameterized.named_parameters(
         ("xywh", "xywh"),
