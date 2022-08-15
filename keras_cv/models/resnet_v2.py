@@ -22,6 +22,7 @@ from tensorflow.keras import backend
 from tensorflow.keras import layers
 
 from keras_cv.models import utils
+from keras_cv.models.weights import parse_weights
 
 MODEL_CONFIGS = {
     "ResNet50V2": {
