@@ -172,7 +172,7 @@ class RetinaNetTest(tf.test.TestCase, parameterized.TestCase):
         )
 
         retina_net.compile(
-            optimizer=optimizers.SGD(),
+            optimizer=optimizers.Adam(),
             loss=loss,
             metrics=[
                 keras_cv.metrics.COCOMeanAveragePrecision(
