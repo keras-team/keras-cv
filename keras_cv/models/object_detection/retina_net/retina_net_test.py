@@ -112,51 +112,66 @@ class RetinaNetTest(tf.test.TestCase, parameterized.TestCase):
                 ],
             )
 
-    def test_fit_coco_metrics(self):
-        bounding_box_format = "xywh"
+    @parameterized.named_parameters(
+        ("xywh", "xywh"),
+        ("xyxy", "xyxy")
+    )
+    def test_fit_coco_metrics(self, bounding_box_format):
         retina_net = keras_cv.models.RetinaNet(
-            classes=4,
-            bounding_box_format="xywh",
+            classes=1,
+            bounding_box_format=bounding_box_format,
             backbone="resnet50",
             backbone_weights=None,
             include_rescaling=False,
         )
         loss = keras_cv.losses.ObjectDetectionLoss(
-            classes=4,
+            classes=1,
             classification_loss=keras_cv.losses.FocalLoss(
                 from_logits=True, reduction="none"
             ),
             box_loss=keras_cv.losses.SmoothL1Loss(l1_cutoff=1.0, reduction="none"),
             reduction="sum",
         )
+
         retina_net.compile(
             optimizer="adam",
             loss=loss,
             metrics=[
                 keras_cv.metrics.COCOMeanAveragePrecision(
                     class_ids=range(1),
-                    bounding_box_format="xywh",
-                    name="Standard MaP",
+                    bounding_box_format=bounding_box_format,
+                    name="MaP",
+                ),
+                keras_cv.metrics.COCORecall(
+                    class_ids=range(1),
+                    bounding_box_format=bounding_box_format,
+                    name="Recall",
                 )
             ],
         )
 
         xs, ys = _create_bounding_box_dataset(bounding_box_format)
-        retina_net.fit(x=xs, y=ys, epochs=1)
+
+        retina_net.fit(x=xs, y=ys, epochs=5)
         metrics = retina_net.evaluate(x=xs, y=ys, return_dict=True)
         self.assertNotEqual(metrics["loss"], 0.0)
-        self.assertIn("Standard MaP", metrics)
+        self.assertNotEqual(metrics["Recall"], 0.0)
+        self.assertNotEqual(metrics["MaP"], 0.0)
 
 
 def _create_bounding_box_dataset(bounding_box_format):
-    xs = tf.ones((2, 512, 512, 3), tf.float32)
 
-    y_classes = tf.random.uniform(shape=(2, 10, 1), dtype=tf.float32)
-    y_classes = tf.cast(4 * y_classes, dtype=tf.int32)
-    y_classes = tf.cast(y_classes, dtype=tf.float32)
+    # Just about the easiest dataset you can have, all classes are 0, all boxes are
+    # exactly the same.  [1, 1, 2, 2] are the coordinates in xyxy
+    xs = tf.ones((2, 512, 512, 3), dtype=tf.float32)
+    y_classes = tf.ones((2, 10, 1), dtype=tf.float32)
 
-    ys = tf.random.uniform(shape=(2, 10, 4), dtype=tf.float32)
+    ys = tf.constant([0.25, 0.25, 0.1, 0.1], dtype=tf.float32)
+    ys = tf.expand_dims(ys, axis=0)
+    ys = tf.expand_dims(ys, axis=0)
+    ys = tf.tile(ys, [2, 10, 1])
     ys = tf.concat([ys, y_classes], axis=-1)
+
     ys = keras_cv.bounding_box.convert_format(
         ys, source="rel_xywh", target=bounding_box_format, images=xs, dtype=tf.float32
     )
