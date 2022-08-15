@@ -31,7 +31,10 @@
             },
             "contributor": "ianjjohnson",
             "epochs_trained": 132,
-            "script": "basic_training.py",
+            "script": {
+                "name": "basic_training.py",
+                "version": "3288c3ab31ce1c35fe7505e245fdfa9c593af78e",
+            }
             "tensorboard_logs": "https://tensorboard.dev/experiment/QlkKjMkqQxm3jbzOlzBvWA/",
             "validation_accuracy": "0.6337"
         }
