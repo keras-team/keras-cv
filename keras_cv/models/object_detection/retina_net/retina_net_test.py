@@ -198,7 +198,7 @@ class RetinaNetTest(tf.test.TestCase, parameterized.TestCase):
             nonzero = [x != 0.0 for x in metrics]
             if all(nonzero):
                 return
-        raise ValueError("Did not achieve better than 0.0 for all metrics in 50 epochs")
+        raise ValueError("Did not achieve better than 0.5 for all metrics in 50 epochs")
 
 
 def _create_bounding_box_dataset(bounding_box_format):
