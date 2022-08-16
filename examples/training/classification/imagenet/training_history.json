@@ -6,7 +6,10 @@
             },
             "contributor": "ianjjohnson",
             "epochs_trained": 84,
-            "script": "basic_training.py",
+            "script": {
+                "name": "basic_training.py",
+                "version": "90d4c3548a2e989fe52d6cf7ae7439af794f0ae6",
+            }
             "tensorboard_logs": "https://tensorboard.dev/experiment/K5Q0gAk0RayXwP0WsLPpMA/",
             "validation_accuracy": "0.6771"
         }
@@ -18,7 +21,10 @@
             },
             "contributor": "ianjjohnson",
             "epochs_trained": 50,
-            "script": "basic_training.py",
+            "script": {
+                "name": "basic_training.py",
+                "version": "90d4c3548a2e989fe52d6cf7ae7439af794f0ae6",
+            }
             "tensorboard_logs": "https://tensorboard.dev/experiment/aQIvxQEgTqajldKxp688Nw/",
             "validation_accuracy": "0.6613"
         }
