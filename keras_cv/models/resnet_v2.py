@@ -22,6 +22,7 @@ from tensorflow.keras import backend
 from tensorflow.keras import layers
 
 from keras_cv.models import utils
+from keras_cv.models.weights import parse_weights
 
 MODEL_CONFIGS = {
     "ResNet50V2": {
@@ -62,8 +63,7 @@ BASE_DOCSTRING = """Instantiates the {name} architecture.
         include_top: whether to include the fully-connected layer at the top of the
             network.  If provided, classes must be provided.
         classes: optional number of classes to classify images into, only to be
-            specified if `include_top` is True, and if no `weights` argument is
-            specified.
+            specified if `include_top` is True.
         weights: one of `None` (random initialization), or a pretrained weight file
             path.
         input_shape: optional shape tuple, defaults to (None, None, 3).
@@ -211,8 +211,7 @@ def ResNetV2(
             - `max` means that global max pooling will
                 be applied.
         classes: optional number of classes to classify images
-            into, only to be specified if `include_top` is True, and
-            if no `weights` argument is specified.
+            into, only to be specified if `include_top` is True.
         classifier_activation: A `str` or callable. The activation function to use
             on the "top" layer. Ignored unless `include_top=True`. Set
             `classifier_activation=None` to return the logits of the "top" layer.
@@ -304,7 +303,7 @@ def ResNet50V2(
         include_rescaling=include_rescaling,
         include_top=include_top,
         name=name,
-        weights=weights,
+        weights=parse_weights(weights, include_top, "resnet50v2"),
         input_shape=input_shape,
         input_tensor=input_tensor,
         pooling=pooling,

@@ -73,8 +73,7 @@ def CSPDarkNet(
         use_depthwise: a boolean value used to decide whether a depthwise conv block
             should be used over a regular darknet block. Defaults to False
         classes: optional number of classes to classify images into, only to be
-            specified if `include_top` is True, and if no `weights` argument is
-            specified.
+            specified if `include_top` is True.
         weights: one of `None` (random initialization), or a pretrained weight
             file path.
         input_tensor: optional Keras tensor (i.e. output of `layers.Input()`)
