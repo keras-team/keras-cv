@@ -25,6 +25,10 @@ class AnchorGenerator(keras.layers.Layer):
     sizes, scales, aspect ratios, and strides provided.  To invoke AnchorGenerator, call
     it on the image that needs anchor boxes.
 
+    `anchor_sizes` and `strides` must match structurally - they are pairs.  Scales and a
+    spect ratios can either be a list, that is then used for all of the sizes
+    (aka levels), or a dictionary from `{'level_{number}': [parameters at scale...]}`.
+
     Args:
       bounding_box_format: The format of bounding boxes to generate. Refer
         [to the keras.io docs](https://keras.io/api/keras_cv/bounding_box/formats/)
@@ -44,9 +48,25 @@ class AnchorGenerator(keras.layers.Layer):
 
     Usage:
     ```python
-    # TODO(lukewood): fill out a construction.
+    strides = [8, 16, 32]
+    scales = [1, 1.2599210498948732, 1.5874010519681994]
+    sizes = [32.0, 64.0, 128.0]
+    aspect_ratios = [0.5, 1.0, 2.0]
+
     image = tf.random.uniform((512, 512, 3))
-    anchors = anchor_gen(image)
+    anchor_generator = cv_layers.AnchorGenerator(
+        bounding_box_format="rel_yxyx",
+        anchor_sizes=sizes,
+        aspect_ratios=aspect_ratios,
+        scales=scales,
+        strides=strides,
+        clip_boxes=True,
+    )
+    boxes = anchor_generator(image)
+    image = tf.random.uniform((512, 512, 3))
+    anchors = anchor_generator(image)
+    print(anchors)
+    # > {'level_1': ..., 'level_2': ..., 'level_3': ...}
     ```
 
     Input shape: an image with shape `[H, W, C]`
