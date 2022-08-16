@@ -14,6 +14,7 @@
 
 import tensorflow as tf
 
+from keras_cv import bounding_box
 from keras_cv.utils import preprocessing
 
 # In order to support both unbatched and batched inputs, the horizontal
@@ -316,9 +317,16 @@ class BaseImageAugmentationLayer(tf.keras.__internal__.layers.BaseRandomLayer):
                 meta_data["ragged_row_lengths"] = inputs[
                     BOUNDING_BOXES
                 ].nested_row_lengths()
-                inputs[BOUNDING_BOXES] = inputs[BOUNDING_BOXES].to_tensor()
+                inputs[BOUNDING_BOXES] = bounding_box.pad_with_sentinels(
+                    inputs[BOUNDING_BOXES]
+                )
             else:
                 meta_data["is_bounding_boxes_ragged"] = False
+            if tf.shape(inputs[BOUNDING_BOXES])[-1] != 5:
+                raise ValueError(
+                    "Bounding boxes are missing class_id. If you would like to pad the "
+                    "bounding boxes with '0' class_id, use `keras_cv.bounding_box.pad_with_class_id`"
+                )
         return inputs, meta_data
 
     def _format_output(self, output, meta_data):
@@ -332,6 +340,9 @@ class BaseImageAugmentationLayer(tf.keras.__internal__.layers.BaseRandomLayer):
                 output[BOUNDING_BOXES] = tf.RaggedTensor.from_tensor(
                     output[BOUNDING_BOXES],
                     lengths=meta_data["ragged_row_lengths"],
+                )
+                output[BOUNDING_BOXES] = bounding_box.filter_sentinels(
+                    output[BOUNDING_BOXES]
                 )
         return output
 

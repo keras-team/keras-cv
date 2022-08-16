@@ -146,7 +146,7 @@ class BaseImageAugmentationLayerTest(tf.test.TestCase):
     def test_augment_image_and_localization_data(self):
         add_layer = RandomAddLayer(fixed_value=2.0)
         images = np.random.random(size=(8, 8, 3)).astype("float32")
-        bounding_boxes = np.random.random(size=(3, 4)).astype("float32")
+        bounding_boxes = np.random.random(size=(3, 5)).astype("float32")
         keypoints = np.random.random(size=(3, 5, 2)).astype("float32")
 
         output = add_layer(
@@ -163,7 +163,7 @@ class BaseImageAugmentationLayerTest(tf.test.TestCase):
     def test_augment_batch_image_and_localization_data(self):
         add_layer = RandomAddLayer()
         images = np.random.random(size=(2, 8, 8, 3)).astype("float32")
-        bounding_boxes = np.random.random(size=(2, 3, 4)).astype("float32")
+        bounding_boxes = np.random.random(size=(2, 3, 5)).astype("float32")
         keypoints = np.random.random(size=(2, 3, 5, 2)).astype("float32")
 
         output = add_layer(

@@ -87,3 +87,30 @@ def _format_outputs(boxes, squeeze):
     if squeeze:
         return tf.squeeze(boxes, axis=0)
     return boxes
+
+
+def pad_with_sentinels(bounding_boxes):
+    # padded ragged bounding box tensor with -1s to create a tensor
+    # This enables vectorized map execution
+    return bounding_boxes.to_tensor(-1)
+
+
+def filter_sentinels(bounding_boxes):
+    # filter the padded bounding boxes
+    def is_sentinel(box):
+        return tf.cond(box[4] == -1, lambda: False, lambda: True)
+
+    def drop_padded_boxes(bounding_boxes):
+        mask = tf.map_fn(is_sentinel, bounding_boxes, fn_output_signature=tf.bool)
+        filtered_bounding_boxes = tf.boolean_mask(
+            bounding_boxes.to_tensor(), mask, axis=0
+        )
+        return tf.RaggedTensor.from_tensor(filtered_bounding_boxes)
+
+    return tf.map_fn(drop_padded_boxes, bounding_boxes)
+
+
+def pad_with_class_id(bounding_boxes):
+    # pad bounding boxes with '0' class
+    paddings = tf.constant([[0, 0], [0, 0], [0, 1]])
+    return tf.pad(bounding_boxes, paddings=paddings, mode="CONSTANT", constant_values=0)
