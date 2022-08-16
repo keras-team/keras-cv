@@ -55,6 +55,48 @@ MODEL_CONFIGS = {
     },
 }
 
+BASE_DOCSTRING = """Instantiates the {name} architecture.
+    - [A ConvNet for the 2020s](https://arxiv.org/abs/2201.03545)
+    (CVPR 2022)
+
+    This function returns a Keras {name} model.
+
+    Args:
+        include_rescaling: whether or not to Rescale the inputs.If set to True,
+            inputs will be passed through a `Rescaling(1/255.0)` layer.
+        include_top: whether to include the fully-connected layer at the top of the
+            network.  If provided, classes must be provided.
+        depths: an iterable containing depths for each individual stages.
+        projection_dims: An iterable containing output number of channels of
+            each individual stages.
+        drop_path_rate: stochastic depth probability, if 0.0, then stochastic
+            depth won't be used.
+        layer_scale_init_value: layer scale coefficient, if 0.0, layer scaling
+            won't be used.
+        weights:
+        input_shape: optional shape tuple, defaults to (None, None, 3).
+        input_tensor: optional Keras tensor (i.e. output of `layers.Input()`)
+            to use as image input for the model.
+        pooling: optional pooling mode for feature extraction
+            when `include_top` is `False`.
+            - `None` means that the output of the model will be the 4D tensor output
+                of the last convolutional block.
+            - `avg` means that global average pooling will be applied to the output
+                of the last convolutional block, and thus the output of the model will
+                be a 2D tensor.
+            - `max` means that global max pooling will be applied.
+        classes: optional number of classes to classify images into, only to be
+            specified if `include_top` is True.
+        classifier_activation: A `str` or callable. The activation function to use
+            on the "top" layer. Ignored unless `include_top=True`. Set
+            `classifier_activation=None` to return the logits of the "top" layer.
+            Defaults to `"softmax"`.
+        name: (Optional) name to pass to the model.  Defaults to "{name}".
+
+    Returns:
+      A `keras.Model` instance.
+"""
+
 
 class LayerScale(layers.Layer):
     """Layer scale module.
@@ -191,7 +233,7 @@ def ConvNeXt(
     pooling=None,
     classes=None,
     classifier_activation="softmax",
-    model_name="convnext",
+    name="convnext",
 ):
     """Instantiates ConvNeXt architecture given specific configuration.
 
@@ -207,8 +249,7 @@ def ConvNeXt(
         depth won't be used.
       layer_scale_init_value: Layer scale coefficient. If 0.0, layer scaling
         won't be used.
-      weights: one of `None` (random initialization), `"imagenet"` (pre-training
-        on ImageNet-1k), or the path to the weights file to be loaded.
+      weights:
       input_shape: optional shape tuple, defaults to (None, None, 3).
       input_tensor: optional Keras tensor (i.e. output of `layers.Input()`).
       pooling: optional pooling mode for feature extraction when `include_top`
@@ -224,7 +265,7 @@ def ConvNeXt(
       classifier_activation: A `str` or callable. The activation function to use
         on the "top" layer. Ignored unless `include_top=True`. Set
         `classifier_activation=None` to return the logits of the "top" layer.
-      model_name: An optional name for the model.
+      name: An optional name for the model.
 
     Returns:
       A `keras.Model` instance.
@@ -269,13 +310,11 @@ def ConvNeXt(
                 projection_dims[0],
                 kernel_size=4,
                 strides=4,
-                name=model_name + "_stem_conv",
+                name=name + "_stem_conv",
             ),
-            layers.LayerNormalization(
-                epsilon=1e-6, name=model_name + "_stem_layernorm"
-            ),
+            layers.LayerNormalization(epsilon=1e-6, name=name + "_stem_layernorm"),
         ],
-        name=model_name + "_stem",
+        name=name + "_stem",
     )
 
     # Downsampling blocks.
@@ -288,16 +327,16 @@ def ConvNeXt(
             [
                 layers.LayerNormalization(
                     epsilon=1e-6,
-                    name=model_name + "_downsampling_layernorm_" + str(i),
+                    name=name + "_downsampling_layernorm_" + str(i),
                 ),
                 layers.Conv2D(
                     projection_dims[i + 1],
                     kernel_size=2,
                     strides=2,
-                    name=model_name + "_downsampling_conv_" + str(i),
+                    name=name + "_downsampling_conv_" + str(i),
                 ),
             ],
-            name=model_name + "_downsampling_block_" + str(i),
+            name=name + "_downsampling_block_" + str(i),
         )
         downsample_layers.append(downsample_layer)
 
@@ -317,7 +356,7 @@ def ConvNeXt(
                 projection_dim=projection_dims[i],
                 drop_path_rate=depth_drop_rates[cur + j],
                 layer_scale_init_value=layer_scale_init_value,
-                name=model_name + f"_stage_{i}_block_{j}",
+                name=name + f"_stage_{i}_block_{j}",
             )(x)
         cur += depths[i]
 
@@ -325,7 +364,7 @@ def ConvNeXt(
         x = Head(
             num_classes=classes,
             activation=classifier_activation,
-            name=model_name,
+            name=name,
         )(x)
 
     else:
@@ -335,7 +374,7 @@ def ConvNeXt(
             x = layers.GlobalMaxPooling2D()(x)
         x = layers.LayerNormalization(epsilon=1e-6)(x)
 
-    model = keras.Model(inputs=inputs, outputs=x, name=model_name)
+    model = keras.Model(inputs=inputs, outputs=x, name=name)
 
     if weights is not None:
         model.load_weights(weights)
@@ -354,7 +393,7 @@ def ConvNeXtTiny(
     pooling=None,
     classes=None,
     classifier_activation="softmax",
-    model_name="convnext_tiny",
+    name="convnext_tiny",
 ):
     return ConvNeXt(
         include_rescaling=include_rescaling,
@@ -369,7 +408,7 @@ def ConvNeXtTiny(
         pooling=pooling,
         classes=classes,
         classifier_activation=classifier_activation,
-        model_name=model_name,
+        name=name,
     )
 
 
@@ -384,7 +423,7 @@ def ConvNeXtSmall(
     pooling=None,
     classes=None,
     classifier_activation="softmax",
-    model_name="convnext_small",
+    name="convnext_small",
 ):
     return ConvNeXt(
         include_rescaling=include_rescaling,
@@ -399,7 +438,7 @@ def ConvNeXtSmall(
         pooling=pooling,
         classes=classes,
         classifier_activation=classifier_activation,
-        model_name=model_name,
+        name=name,
     )
 
 
@@ -414,7 +453,7 @@ def ConvNeXtBase(
     pooling=None,
     classes=None,
     classifier_activation="softmax",
-    model_name="convnext_base",
+    name="convnext_base",
 ):
     return ConvNeXt(
         include_rescaling=include_rescaling,
@@ -429,7 +468,7 @@ def ConvNeXtBase(
         pooling=pooling,
         classes=classes,
         classifier_activation=classifier_activation,
-        model_name=model_name,
+        name=name,
     )
 
 
@@ -444,7 +483,7 @@ def ConvNeXtLarge(
     pooling=None,
     classes=None,
     classifier_activation="softmax",
-    model_name="convnext_large",
+    name="convnext_large",
 ):
     return ConvNeXt(
         include_rescaling=include_rescaling,
@@ -459,7 +498,7 @@ def ConvNeXtLarge(
         pooling=pooling,
         classes=classes,
         classifier_activation=classifier_activation,
-        model_name=model_name,
+        name=name,
     )
 
 
@@ -474,7 +513,7 @@ def ConvNeXtXLarge(
     pooling=None,
     classes=None,
     classifier_activation="softmax",
-    model_name="convnext_xlarge",
+    name="convnext_xlarge",
 ):
     return ConvNeXt(
         include_rescaling=include_rescaling,
@@ -489,5 +528,12 @@ def ConvNeXtXLarge(
         pooling=pooling,
         classes=classes,
         classifier_activation=classifier_activation,
-        model_name=model_name,
+        name=name,
     )
+
+
+ConvNeXtTiny.__doc__ = BASE_DOCSTRING.format(name="ConvNeXtTiny")
+ConvNeXtSmall.__doc__ = BASE_DOCSTRING.format(name="ConvNeXtSmall")
+ConvNeXtBase.__doc__ = BASE_DOCSTRING.format(name="ConvNeXtBase")
+ConvNeXtLarge.__doc__ = BASE_DOCSTRING.format(name="ConvNeXtLarge")
+ConvNeXtXLarge.__doc__ = BASE_DOCSTRING.format(name="ConvNeXtXLarge")
