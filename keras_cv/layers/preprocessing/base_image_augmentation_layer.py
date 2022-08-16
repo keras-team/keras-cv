@@ -305,11 +305,12 @@ class BaseImageAugmentationLayer(tf.keras.__internal__.layers.BaseRandomLayer):
             # single image input tensor
             metadata = {"is_dict": False, "use_targets": False}
             inputs = {IMAGES: inputs}
-        elif isinstance(inputs, dict) and TARGETS in inputs:
-            # TODO(scottzhu): Check if it only contains the valid keys
-            inputs[LABELS] = inputs[TARGETS]
-            del inputs[TARGETS]
-            metadata = {"is_dict": True, "use_targets": True}
+        elif isinstance(inputs, dict):
+            if TARGETS in inputs:
+                # TODO(scottzhu): Check if it only contains the valid keys
+                inputs[LABELS] = inputs[TARGETS]
+                del inputs[TARGETS]
+                metadata = {"is_dict": True, "use_targets": True}
         elif isinstance(inputs, dict):
             metadata = {"is_dict": True, "use_targets": False}
 
