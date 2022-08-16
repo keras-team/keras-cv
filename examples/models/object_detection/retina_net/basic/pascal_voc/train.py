@@ -243,9 +243,7 @@ Below, we construct this using a `keras.optimizers.schedules.PiecewiseConstantDe
 schedule.
 """
 
-optimizer = optimizers.SGD(
-    learning_rate=0.1, momentum=0.9, global_clipnorm=10.0
-)
+optimizer = optimizers.SGD(learning_rate=0.1, momentum=0.9, global_clipnorm=10.0)
 
 """
 ## COCO metrics monitoring
@@ -305,7 +303,7 @@ All that is left to do is construct some callbacks:
 callbacks = [
     callbacks_lib.TensorBoard(log_dir="logs"),
     callbacks_lib.EarlyStopping(patience=50),
-    callbacks_lib.ReduceLROnPlateau(patience=20)
+    callbacks_lib.ReduceLROnPlateau(patience=20),
 ]
 if FLAGS.wandb_entity:
     callbacks += [
