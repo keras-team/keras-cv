@@ -23,13 +23,14 @@ import sys
 import matplotlib.pyplot as plt
 import tensorflow as tf
 import tensorflow_datasets as tfds
-import wandb
+import wandb_prediction_visualizer
 from absl import flags
 from tensorflow import keras
 from tensorflow.keras import callbacks as callbacks_lib
 from tensorflow.keras import optimizers
-import wandb_prediction_visualizer
+
 import keras_cv
+import wandb
 from keras_cv import bounding_box
 
 flags.DEFINE_integer("batch_size", 8, "Training and eval batch size.")
@@ -117,7 +118,9 @@ KerasCV preprocessing components.
 Lets load some data and verify that our data looks as we expect it to.
 """
 
-dataset, dataset_info = load_pascal_voc(split="train", bounding_box_format="xywh", batch_size=9)
+dataset, dataset_info = load_pascal_voc(
+    split="train", bounding_box_format="xywh", batch_size=9
+)
 
 
 def visualize_dataset(dataset, bounding_box_format):
@@ -309,13 +312,15 @@ if FLAGS.wandb_entity:
     callbacks += [
         wandb.keras.WandbCallback(save_model=False),
     ]
-    callbacks += [wandb_prediction_visualizer.WandbPredictionVisualizer(
-        val_ds,
-        val_dataset_info,
-        num_classes=20,
-        bounding_box_format="xywh",
-        num_samples=10
-    )]
+    callbacks += [
+        wandb_prediction_visualizer.WandbPredictionVisualizer(
+            val_ds,
+            val_dataset_info,
+            num_classes=20,
+            bounding_box_format="xywh",
+            num_samples=10,
+        )
+    ]
 
 """
 And run `model.fit()`!

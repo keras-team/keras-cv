@@ -13,12 +13,13 @@
 # limitations under the License.
 
 import os
+import statistics
 
 import pytest
 import tensorflow as tf
 from absl.testing import parameterized
 from tensorflow.keras import optimizers
-import statistics
+
 import keras_cv
 
 

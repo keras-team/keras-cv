@@ -1,13 +1,15 @@
-import wandb
-
 import tensorflow as tf
+
+import wandb
 from keras_cv import bounding_box
+
 
 class WandbTablesBuilder:
     """
     Utility class that contains useful methods to create W&B Tables,
     and log it to W&B.
     """
+
     def init_data_table(self, column_names: list):
         """Initialize the W&B Tables for validation data.
         Call this method `on_train_begin` or equivalent hook. This is followed by
@@ -28,10 +30,9 @@ class WandbTablesBuilder:
         """
         self.pred_table = wandb.Table(columns=column_names)
 
-    def log_data_table(self,
-                    name: str='val',
-                    type: str='dataset',
-                    table_name: str='val_data'):
+    def log_data_table(
+        self, name: str = "val", type: str = "dataset", table_name: str = "val_data"
+    ):
         """Log the `data_table` as W&B artifact and call
         `use_artifact` on it so that the evaluation table can use the reference
         of already uploaded data (images, text, scalar, etc.).
@@ -55,9 +56,7 @@ class WandbTablesBuilder:
         # We get the reference table.
         self.data_table_ref = data_artifact.get(table_name)
 
-    def log_pred_table(self,
-                    type: str='evaluation',
-                    table_name: str='eval_data'):
+    def log_pred_table(self, type: str = "evaluation", table_name: str = "eval_data"):
         """Log the W&B Tables for model evaluation.
         The table will be logged multiple times creating new version. Use this
         to compare models at different intervals interactively.
@@ -67,8 +66,7 @@ class WandbTablesBuilder:
                 differentiate artifacts. (default is 'val_data')
             table_name (str): The name of the table as will be displayed in the UI.
         """
-        pred_artifact = wandb.Artifact(
-            f'run_{wandb.run.id}_pred', type=type)
+        pred_artifact = wandb.Artifact(f"run_{wandb.run.id}_pred", type=type)
         pred_artifact.add(self.pred_table, table_name)
         # TODO: Add aliases
         wandb.run.log_artifact(pred_artifact)
@@ -148,7 +146,7 @@ class WandbPredictionVisualizer(tf.keras.callbacks.Callback):
     def on_train_begin(self, logs=None):
         # Initialize W&B table to log validation data
         self.tables_builder.init_data_table(
-            column_names = ["image_index", "ground_truth"]
+            column_names=["image_index", "ground_truth"]
         )
         # Add validation data to the table
         self.add_ground_truth()
@@ -158,8 +156,7 @@ class WandbPredictionVisualizer(tf.keras.callbacks.Callback):
     def on_epoch_end(self, epoch, logs=None):
         # Initialize a prediction wandb table
         self.tables_builder.init_pred_table(
-            column_names = ["epoch", "image_index",
-                            "ground_truth", "prediction"]
+            column_names=["epoch", "image_index", "ground_truth", "prediction"]
         )
         # Add prediction to the table
         self.add_model_predictions(epoch)

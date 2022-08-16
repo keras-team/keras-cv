@@ -13,18 +13,21 @@
 # limitations under the License.
 
 import os
+import statistics
 
+import matplotlib.pyplot as plt
+import numpy as np
 import pytest
 import tensorflow as tf
 from absl.testing import parameterized
 from tensorflow.keras import optimizers
-import statistics
+
 import keras_cv
 from keras_cv import bounding_box
-import numpy as np
-import matplotlib.pyplot as plt
+
+
 def main():
-    bounding_box_format = 'xywh'
+    bounding_box_format = "xywh"
     retina_net = keras_cv.models.RetinaNet(
         classes=1,
         bounding_box_format=bounding_box_format,
@@ -68,13 +71,17 @@ def main():
         nonzero = [x != 0.0 for x in metrics]
 
         predictions = retina_net.inference(xs)
-        print('predictions:', predictions)
-        visualization = visualize_bounding_boxes(xs, ys, bounding_box_format, color=(255.0, 0, 0))
-        visualization = visualize_bounding_boxes(visualization, predictions, bounding_box_format, color=(0, 255.0, 0))
-        gallery_show(visualization.numpy ())
+        print("predictions:", predictions)
+        visualization = visualize_bounding_boxes(
+            xs, ys, bounding_box_format, color=(255.0, 0, 0)
+        )
+        visualization = visualize_bounding_boxes(
+            visualization, predictions, bounding_box_format, color=(0, 255.0, 0)
+        )
+        gallery_show(visualization.numpy())
 
         entry = input("continue?  enter c to continue, q to quit.")
-        if entry == 'q':
+        if entry == "q":
             break
 
 
@@ -97,7 +104,9 @@ def _create_bounding_box_dataset(bounding_box_format):
     return xs, ys
 
 
-def visualize_bounding_boxes(image, bounding_boxes, bounding_box_format, color=(255.0, 0, 0)):
+def visualize_bounding_boxes(
+    image, bounding_boxes, bounding_box_format, color=(255.0, 0, 0)
+):
     color = np.array([color])
     bounding_boxes = bounding_box.convert_format(
         bounding_boxes,
@@ -107,7 +116,9 @@ def visualize_bounding_boxes(image, bounding_boxes, bounding_box_format, color=(
     )
     if isinstance(bounding_boxes, tf.RaggedTensor):
         bounding_boxes = bounding_boxes.to_tensor(default_value=-1)
-    return tf.image.draw_bounding_boxes(image, bounding_boxes[..., :4], color, name=None)
+    return tf.image.draw_bounding_boxes(
+        image, bounding_boxes[..., :4], color, name=None
+    )
 
 
 def gallery_show(images):
@@ -119,5 +130,6 @@ def gallery_show(images):
         plt.axis("off")
     plt.show()
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     main()
