@@ -66,7 +66,7 @@ flags.DEFINE_boolean(
 )
 flags.DEFINE_float(
     "initial_learning_rate",
-    0.01,
+    0.1,
     "Initial learning rate which will reduce on plateau.",
 )
 
@@ -220,7 +220,7 @@ We use EarlyStopping, BackupAndRestore, and a model checkpointing callback.
 
 callbacks = [
     callbacks.ReduceLROnPlateau(
-        monitor="val_loss", factor=0.3, patience=10, min_lr=0.0001
+        monitor="val_loss", factor=0.1, patience=10, min_lr=0.0001
     ),
     callbacks.EarlyStopping(patience=20),
     callbacks.BackupAndRestore(FLAGS.backup_path),
