@@ -50,6 +50,7 @@ class Grayscale(BaseImageAugmentationLayer):
     def __init__(self, output_channels=1, **kwargs):
         super().__init__(**kwargs)
         self.output_channels = output_channels
+        self.auto_vectorize = False
 
     def _check_input_params(self, output_channels):
         if output_channels not in [1, 3]:
