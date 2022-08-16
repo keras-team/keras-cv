@@ -164,18 +164,22 @@ class RetinaNet(keras.Model):
     def compile(self, metrics=None, loss=None, **kwargs):
         metrics = metrics or []
         super().compile(metrics=metrics, loss=loss, **kwargs)
-        # if loss.classes != self.classes:
-        #     raise ValueError("RetinaNet.classes != loss.classes, di")
+        if loss.classes != self.classes:
+            raise ValueError(
+                "RetinaNet.classes != loss.classes.  Your RetinaNet and "
+                "loss must have the same number of classes specified in the constructor. "
+                f"Received `loss.classes={loss.classes}`, `self.classes={self.classes}`."
+            )
         all_have_format = any(
             [
                 m.bounding_box_format != self._metrics_bounding_box_format
                 for m in metrics
             ]
         )
-        if not all_have_format:
+        if metrics and not all_have_format:
             raise ValueError(
                 "All metrics passed to RetinaNet.compile() must have "
-                f"a `bounding_box_format` attribute.  Received metrics={metrics}"
+                f"a `bounding_box_format` attribute.  Received metrics={metrics}."
             )
 
         if len(metrics) != 0:
@@ -194,7 +198,7 @@ class RetinaNet(keras.Model):
                 "All metrics passed to RetinaNet.compile() must have "
                 "the same `bounding_box_format` attribute.  For example, if one metric "
                 "uses 'xyxy', all other metrics must use 'xyxy'.  Received "
-                f"metrics={metrics}"
+                f"metrics={metrics}."
             )
 
     def call(self, x, training=False):

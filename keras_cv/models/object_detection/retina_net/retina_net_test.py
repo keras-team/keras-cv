@@ -133,14 +133,36 @@ class RetinaNetTest(tf.test.TestCase, parameterized.TestCase):
             reduction="sum",
         )
 
-        with self.assertRaisesRegExp(
+        with self.assertRaisesRegex(
             ValueError,
-            "Does your model's `classes` parameter match your losses `classes` parameter",
+            "RetinaNet.classes != loss.classes",
         ):
             retina_net.compile(
                 optimizer=optimizers.SGD(learning_rate=0.25),
                 loss=loss,
             )
+
+    def test_no_metrics(self):
+        retina_net = keras_cv.models.RetinaNet(
+            classes=2,
+            bounding_box_format="xywh",
+            backbone="resnet50",
+            backbone_weights=None,
+            include_rescaling=False,
+        )
+        loss = keras_cv.losses.ObjectDetectionLoss(
+            classes=2,
+            classification_loss=keras_cv.losses.FocalLoss(
+                from_logits=True, reduction="none"
+            ),
+            box_loss=keras_cv.losses.SmoothL1Loss(l1_cutoff=1.0, reduction="none"),
+            reduction="sum",
+        )
+
+        retina_net.compile(
+            optimizer=optimizers.SGD(learning_rate=0.25),
+            loss=loss,
+        )
 
     # TODO(lukewood): configure for other coordinate systems.
     @pytest.mark.skipif(
