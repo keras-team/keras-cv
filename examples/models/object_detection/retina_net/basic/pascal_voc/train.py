@@ -23,7 +23,6 @@ import sys
 import matplotlib.pyplot as plt
 import tensorflow as tf
 import tensorflow_datasets as tfds
-import wandb_prediction_visualizer
 from absl import flags
 from tensorflow import keras
 from tensorflow.keras import callbacks as callbacks_lib
@@ -311,15 +310,6 @@ callbacks = [
 if FLAGS.wandb_entity:
     callbacks += [
         wandb.keras.WandbCallback(save_model=False),
-    ]
-    callbacks += [
-        wandb_prediction_visualizer.WandbPredictionVisualizer(
-            val_ds,
-            val_dataset_info,
-            num_classes=20,
-            bounding_box_format="xywh",
-            num_samples=10,
-        )
     ]
 
 """

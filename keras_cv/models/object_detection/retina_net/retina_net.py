@@ -98,7 +98,13 @@ class RetinaNet(keras.Model):
         **kwargs,
     ):
         super().__init__(name=name, **kwargs)
-
+        if bounding_box_format.lower() != "xywh":
+            raise ValueError(
+                "`keras_cv.models.RetinaNet` only supports the 'xywh' "
+                "`bounding_box_format`.  In future releases, more formats will be "
+                "supported.  For now, please pass `bounding_box_format='xywh'`. "
+                f"Received `bounding_box_format={bounding_box_format}`"
+            )
         if anchor_generator is not None and (prediction_decoder or label_encoder):
             raise ValueError(
                 "`anchor_generator` is only to be provided when "

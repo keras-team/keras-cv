@@ -116,7 +116,7 @@ class RetinaNetTest(tf.test.TestCase, parameterized.TestCase):
                 ],
             )
 
-    def test_fit_coco_metrics(self):
+    def test_mismatching_classes(self):
         retina_net = keras_cv.models.RetinaNet(
             classes=2,
             bounding_box_format="xywh",
@@ -142,8 +142,9 @@ class RetinaNetTest(tf.test.TestCase, parameterized.TestCase):
                 loss=loss,
             )
 
+    # TODO(lukewood): configure for other coordinate systems.
     @pytest.mark.skipif(
-        not "INTEGRATION" in os.environ,
+        "INTEGRATION" not in os.environ,
         reason="Takes a long time to run, only runs when INTEGRATION "
         "environment variable is set.  To run the test please run: \n"
         "`INTEGRATION=true pytest "
@@ -152,8 +153,6 @@ class RetinaNetTest(tf.test.TestCase, parameterized.TestCase):
     )
     @parameterized.named_parameters(
         ("xywh", "xywh"),
-        # ("xyxy", "xyxy"),
-        # ("rel_xyxy", "rel_xyxy")
     )
     def test_fit_coco_metrics(self, bounding_box_format):
         retina_net = keras_cv.models.RetinaNet(

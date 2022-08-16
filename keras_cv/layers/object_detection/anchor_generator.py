@@ -104,7 +104,7 @@ class AnchorGenerator(keras.layers.Layer):
         if not isinstance(param, (list, tuple)):
             raise ValueError(
                 f"Expected {param_name} to be a dict, list or tuple, received "
-                f"{param_name}={anchor_sizes}"
+                f"{param_name}={param}"
             )
 
         result = {}

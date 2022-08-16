@@ -12,14 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import os
-import statistics
-
 import matplotlib.pyplot as plt
 import numpy as np
-import pytest
 import tensorflow as tf
-from absl.testing import parameterized
 from tensorflow.keras import optimizers
 
 import keras_cv
@@ -64,12 +59,7 @@ def main():
     xs, ys = _create_bounding_box_dataset(bounding_box_format)
 
     while True:
-        history = retina_net.fit(x=xs, y=ys, epochs=10)
-        metrics = history.history
-        metrics = [metrics["loss"], metrics["Recall"], metrics["MaP"]]
-        metrics = [statistics.mean(metric) for metric in metrics]
-        nonzero = [x != 0.0 for x in metrics]
-
+        retina_net.fit(x=xs, y=ys, epochs=10)
         predictions = retina_net.inference(xs)
         print("predictions:", predictions)
         visualization = visualize_bounding_boxes(

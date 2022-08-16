@@ -37,10 +37,6 @@ class AnchorGeneratorTest(tf.test.TestCase, parameterized.TestCase):
         boxes = tf.concat(list(boxes.values()), axis=0)
         self.assertEqual(boxes.shape, [49104, 4])
 
-    def test_output_dictionary_keys(self):
-        # TODO(lukewood): write and fix this.
-        pass
-
     def test_relative_generation(self):
         strides = [8, 16, 32]
         scales = [1, 1.2599210498948732, 1.5874010519681994]
