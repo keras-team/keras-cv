@@ -109,7 +109,7 @@ class AnchorGenerator(keras.layers.Layer):
 
         result = {}
         for i in range(len(param)):
-            result[f"level_{i}"] = param[i]
+            result[f"level_{i+1}"] = param[i]
         return result
 
     @staticmethod

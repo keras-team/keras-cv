@@ -21,7 +21,7 @@ generator=_default_anchor_generator(bounding_box_format='xywh')
 def pair_with_anchor_boxes(inputs):
     images = inputs['images']
     anchor_boxes = generator(images[0])
-    anchor_boxes = anchor_boxes['level_0']
+    anchor_boxes = anchor_boxes['level_1']
     anchor_boxes = tf.expand_dims(anchor_boxes, axis=0)
     anchor_boxes = tf.tile(anchor_boxes, [tf.shape(images)[0], 1, 1])
     inputs['bounding_boxes'] = anchor_boxes
