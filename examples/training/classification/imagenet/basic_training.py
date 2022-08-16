@@ -64,7 +64,7 @@ flags.DEFINE_integer("batch_size", 256, "Batch size for training and evaluation.
 flags.DEFINE_boolean(
     "use_xla", True, "Whether or not to use XLA (jit_compile) for training."
 )
-flags.DEFINE_boolean(
+flags.DEFINE_float(
     "initial_learning_rate",
     0.005,
     "Initial learning rate which will reduce on plateau.",
