@@ -1,7 +1,9 @@
 import pytest
 import tensorflow as tf
-
+import os
 
 @pytest.fixture(scope="session")
 def disable_traceback_filtering(request):
-    tf.debugging.disable_traceback_filtering()
+    # Allows us to disable traceback filtering at-will from the command line.
+    if os.environ['DEBUG']:
+        tf.debugging.disable_traceback_filtering()
