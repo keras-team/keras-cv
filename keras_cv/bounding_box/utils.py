@@ -8,7 +8,7 @@
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either exness or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Utility functions for working with bounding boxes."""
@@ -112,5 +112,19 @@ def filter_sentinels(bounding_boxes):
 
 def pad_with_class_id(bounding_boxes):
     # pad bounding boxes with '0' class
+    if isinstance(bounding_boxes, tf.RaggedTensor):
+        row_lengths = list(bounding_boxes.nested_row_lengths())
+        row_lengths[1] = row_lengths[1] + 1
+        dense_bounding_boxes = bounding_boxes.to_tensor()
+    else:
+        dense_bounding_boxes = bounding_boxes
     paddings = tf.constant([[0, 0], [0, 0], [0, 1]])
-    return tf.pad(bounding_boxes, paddings=paddings, mode="CONSTANT", constant_values=0)
+    padded_bounding_boxes = tf.pad(
+        dense_bounding_boxes, paddings=paddings, mode="CONSTANT", constant_values=0
+    )
+    if isinstance(bounding_boxes, tf.RaggedTensor):
+        padded_bounding_boxes = tf.RaggedTensor.from_tensor(
+            padded_bounding_boxes,
+            lengths=row_lengths,
+        )
+    return padded_bounding_boxes

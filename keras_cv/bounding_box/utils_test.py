@@ -56,7 +56,11 @@ class BoundingBoxUtilTestCase(tf.test.TestCase):
         self.assertAllEqual(filtered_bounding_boxes, expected_output)
 
     def test_pad_with_class_id(self):
-        bounding_boxes = tf.convert_to_tensor([[[1, 2, 3, 4], [1, 2, 3, 4]]])
+        bounding_boxes = tf.ragged.constant(
+            [[[1, 2, 3, 4], [1, 2, 3, 4]], [[1, 2, 3, 4]]]
+        )
         padded_bounding_boxes = bounding_box.pad_with_class_id(bounding_boxes)
-        expected_output = tf.convert_to_tensor([[[1, 2, 3, 4, 0], [1, 2, 3, 4, 0]]])
+        expected_output = tf.ragged.constant(
+            [[[1, 2, 3, 4, 0], [1, 2, 3, 4, 0]], [[1, 2, 3, 4, 0]]]
+        )
         self.assertAllEqual(padded_bounding_boxes, expected_output)
