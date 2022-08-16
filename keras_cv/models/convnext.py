@@ -19,7 +19,6 @@ References:
   (CVPR 2022)
 """
 
-import numpy as np
 import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras import backend
@@ -78,7 +77,9 @@ class LayerScale(layers.Layer):
         self.projection_dim = projection_dim
 
     def build(self, input_shape):
-        self.gamma = tf.Variable(self.init_values * tf.ones((self.projection_dim,)))
+        self.gamma = tf.Variable(
+            self.init_values * tf.ones((self.projection_dim,))
+        )
 
     def call(self, x):
         return x * self.gamma
@@ -145,7 +146,9 @@ def ConvNeXtBlock(
                 name=name + "_layer_scale",
             )(x)
         if drop_path_rate:
-            layer = StochasticDepth(drop_path_rate, name=name + "_stochastic_depth")
+            layer = StochasticDepth(
+                drop_path_rate, name=name + "_stochastic_depth"
+            )
             return layer([inputs, x])
         else:
             layer = layers.Activation("linear", name=name + "_identity")
@@ -154,7 +157,7 @@ def ConvNeXtBlock(
     return apply
 
 
-def Head(num_classes=1000, activation="softmax", name=None):
+def Head(num_classes, activation="softmax", name=None):
     """Implementation of classification head of RegNet.
 
     Args:
@@ -170,10 +173,12 @@ def Head(num_classes=1000, activation="softmax", name=None):
 
     def apply(x):
         x = layers.GlobalAveragePooling2D(name=name + "_head_gap")(x)
-        x = layers.LayerNormalization(epsilon=1e-6, name=name + "_head_layernorm")(x)
-        x = layers.Dense(num_classes, activation=activation, name=name + "_head_dense")(
-            x
-        )
+        x = layers.LayerNormalization(
+            epsilon=1e-6, name=name + "_head_layernorm"
+        )(x)
+        x = layers.Dense(
+            num_classes, activation=activation, name=name + "_head_dense"
+        )(x)
         return x
 
     return apply
@@ -181,16 +186,16 @@ def Head(num_classes=1000, activation="softmax", name=None):
 
 def ConvNeXt(
     include_rescaling,
+    include_top,
     depths,
     projection_dims,
     drop_path_rate=0.0,
     layer_scale_init_value=1e-6,
-    include_top=True,
     weights=None,
     input_shape=(None, None, 3),
     input_tensor=None,
     pooling=None,
-    classes=1000,
+    classes=None,
     classifier_activation="softmax",
     model_name="convnext",
 ):
@@ -199,6 +204,8 @@ def ConvNeXt(
     Args:
       include_rescaling: whether or not to Rescale the inputs. If set to True,
         inputs will be passed through a `Rescaling(1/255.0)` layer.
+      include_top: Boolean denoting whether to include classification head to
+        the model.
       depths: An iterable containing depths for each individual stages.
       projection_dims: An iterable containing output number of channels of
       each individual stages.
@@ -206,8 +213,6 @@ def ConvNeXt(
         depth won't be used.
       layer_scale_init_value: Layer scale coefficient. If 0.0, layer scaling
         won't be used.
-      include_top: Boolean denoting whether to include classification head to
-        the model.
       weights: one of `None` (random initialization), `"imagenet"` (pre-training
         on ImageNet-1k), or the path to the weights file to be loaded.
       input_shape: optional shape tuple, defaults to (None, None, 3).
@@ -221,8 +226,7 @@ def ConvNeXt(
           be a 2D tensor.
         - `max` means that global max pooling will be applied.
       classes: optional number of classes to classify images into, only to be
-        specified if `include_top` is True, and if no `weights` argument is
-        specified.
+        specified if `include_top` is True.
       classifier_activation: A `str` or callable. The activation function to use
         on the "top" layer. Ignored unless `include_top=True`. Set
         `classifier_activation=None` to return the logits of the "top" layer.
@@ -236,8 +240,7 @@ def ConvNeXt(
           or invalid input shape.
         ValueError: if `classifier_activation` is not `softmax`, or `None`
           when using a pretrained top layer.
-        ValueError: if `include_top` is True but `num_classes` is not 1000
-          when using ImageNet.
+        ValueError: if `include_top` is True but `classes` is not specified.
     """
     if weights and not tf.io.gfile.exists(weights):
         raise ValueError(
@@ -307,7 +310,9 @@ def ConvNeXt(
     # Stochastic depth schedule.
     # This is referred from the original ConvNeXt codebase:
     # https://github.com/facebookresearch/ConvNeXt/blob/main/models/convnext.py#L86
-    depth_drop_rates = [float(x) for x in np.linspace(0.0, drop_path_rate, sum(depths))]
+    depth_drop_rates = [
+        float(x) for x in tf.linspace(0.0, drop_path_rate, sum(depths))
+    ]
 
     # First apply downsampling blocks and then apply ConvNeXt stages.
     cur = 0
@@ -326,7 +331,9 @@ def ConvNeXt(
 
     if include_top:
         x = Head(
-            num_classes=classes, activation=classifier_activation, name=model_name
+            num_classes=classes,
+            activation=classifier_activation,
+            name=model_name,
         )(x)
 
     else:
@@ -346,9 +353,9 @@ def ConvNeXt(
 
 def ConvNeXtTiny(
     include_rescaling,
+    include_top,
     drop_path_rate,
     layer_scale_init_value,
-    include_top,
     weights=None,
     input_shape=(None, None, 3),
     input_tensor=None,
@@ -359,11 +366,11 @@ def ConvNeXtTiny(
 ):
     return ConvNeXt(
         include_rescaling=include_rescaling,
+        include_top=include_top,
         depths=MODEL_CONFIGS["tiny"]["depths"],
         projection_dims=MODEL_CONFIGS["tiny"]["projection_dims"],
         drop_path_rate=drop_path_rate,
         layer_scale_init_value=layer_scale_init_value,
-        include_top=include_top,
         weights=weights,
         input_tensor=input_tensor,
         input_shape=input_shape,
@@ -376,9 +383,9 @@ def ConvNeXtTiny(
 
 def ConvNeXtSmall(
     include_rescaling,
+    include_top,
     drop_path_rate,
     layer_scale_init_value,
-    include_top,
     weights=None,
     input_shape=(None, None, 3),
     input_tensor=None,
@@ -389,11 +396,11 @@ def ConvNeXtSmall(
 ):
     return ConvNeXt(
         include_rescaling=include_rescaling,
+        include_top=include_top,
         depths=MODEL_CONFIGS["small"]["depths"],
         projection_dims=MODEL_CONFIGS["small"]["projection_dims"],
         drop_path_rate=drop_path_rate,
         layer_scale_init_value=layer_scale_init_value,
-        include_top=include_top,
         weights=weights,
         input_tensor=input_tensor,
         input_shape=input_shape,
@@ -406,9 +413,9 @@ def ConvNeXtSmall(
 
 def ConvNeXtBase(
     include_rescaling,
+    include_top,
     drop_path_rate,
     layer_scale_init_value,
-    include_top,
     weights=None,
     input_shape=(None, None, 3),
     input_tensor=None,
@@ -419,11 +426,11 @@ def ConvNeXtBase(
 ):
     return ConvNeXt(
         include_rescaling=include_rescaling,
+        include_top=include_top,
         depths=MODEL_CONFIGS["base"]["depths"],
         projection_dims=MODEL_CONFIGS["base"]["projection_dims"],
         drop_path_rate=drop_path_rate,
         layer_scale_init_value=layer_scale_init_value,
-        include_top=include_top,
         weights=weights,
         input_tensor=input_tensor,
         input_shape=input_shape,
@@ -436,9 +443,9 @@ def ConvNeXtBase(
 
 def ConvNeXtLarge(
     include_rescaling,
+    include_top,
     drop_path_rate,
     layer_scale_init_value,
-    include_top,
     weights=None,
     input_shape=(None, None, 3),
     input_tensor=None,
@@ -449,11 +456,11 @@ def ConvNeXtLarge(
 ):
     return ConvNeXt(
         include_rescaling=include_rescaling,
+        include_top=include_top,
         depths=MODEL_CONFIGS["large"]["depths"],
         projection_dims=MODEL_CONFIGS["large"]["projection_dims"],
         drop_path_rate=drop_path_rate,
         layer_scale_init_value=layer_scale_init_value,
-        include_top=include_top,
         weights=weights,
         input_tensor=input_tensor,
         input_shape=input_shape,
@@ -466,9 +473,9 @@ def ConvNeXtLarge(
 
 def ConvNeXtXLarge(
     include_rescaling,
+    include_top,
     drop_path_rate,
     layer_scale_init_value,
-    include_top,
     weights=None,
     input_shape=(None, None, 3),
     input_tensor=None,
@@ -479,11 +486,11 @@ def ConvNeXtXLarge(
 ):
     return ConvNeXt(
         include_rescaling=include_rescaling,
+        include_top=include_top,
         depths=MODEL_CONFIGS["xlarge"]["depths"],
         projection_dims=MODEL_CONFIGS["xlarge"]["projection_dims"],
         drop_path_rate=drop_path_rate,
         layer_scale_init_value=layer_scale_init_value,
-        include_top=include_top,
         weights=weights,
         input_tensor=input_tensor,
         input_shape=input_shape,
