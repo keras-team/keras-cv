@@ -21,32 +21,30 @@ from keras_cv.layers import preprocessing
 from keras_cv.losses import SimCLRLoss
 
 
-class SimCLR(keras.Model):
+class SimCLRTrainer(keras.Model):
     def __init__(
         self,
         encoder,
-        include_probing,
+        include_probe,
         classes=None,
         projection_width=128,
         augmenter=None,
-        include_rescaling=None,
+        value_range=None,
     ):
         super().__init__()
 
-        self.include_probing = include_probing
+        self.include_probe = include_probe
         self.projection_width = projection_width
 
-        if not augmenter and not include_rescaling:
-            raise ValueError(
-                "`include_rescaling` is required when using the default augmenter."
-            )
+        if not augmenter and not value_range:
+            raise ValueError("`value` is required when using the default augmenter.")
         self.augmenter = augmenter or preprocessing.Augmenter(
             [
                 preprocessing.RandomFlip("horizontal"),
                 preprocessing.RandomTranslation(0.25, 0.25),
                 preprocessing.RandomZoom((-0.5, 0.0), (-0.5, 0.0)),
                 preprocessing.RandomColorJitter(
-                    value_range=[0, 255] if include_rescaling else [0, 1],
+                    value_range=value_range,
                     brightness_factor=0.5,
                     contrast_factor=0.5,
                     saturation_factor=(0.3, 0.7),
@@ -66,10 +64,10 @@ class SimCLR(keras.Model):
             name="projection_top",
         )
 
-        if self.include_probing:
+        if self.include_probe:
             if not classes:
                 raise ValueError(
-                    "`classes` must be specified when `include_probing` is `True`."
+                    "`classes` must be specified when `include_probe` is `True`."
                 )
             self.probing_top = keras.Sequential(
                 [
@@ -91,7 +89,7 @@ class SimCLR(keras.Model):
         self.simclr_loss = SimCLRLoss(temperature)
         self.simclr_loss_metric = keras.metrics.Mean(name="simclr_loss")
 
-        if self.include_probing:
+        if self.include_probe:
             self.probe_loss = keras.losses.SparseCategoricalCrossentropy(
                 from_logits=True
             )
@@ -102,7 +100,7 @@ class SimCLR(keras.Model):
 
             if not probe_optimizer:
                 raise ValueError(
-                    "`probe_optimizer` must be specified when `include_probing` is `True`."
+                    "`probe_optimizer` must be specified when `include_probe` is `True`."
                 )
             self.probe_optimizer = probe_optimizer
 
@@ -111,24 +109,24 @@ class SimCLR(keras.Model):
         metrics = [
             self.simclr_loss_metric,
         ]
-        if self.include_probing:
+        if self.include_probe:
             metrics += [
                 self.probe_loss_metric,
                 self.probe_accuracy,
             ]
-        return metrics
+        return super().metrics + metrics
 
     def train_step(self, data):
-        if self.include_probing:
+        if self.include_probe:
             if type(data) is not tuple or len(data) != 2:
                 raise ValueError(
-                    "Targets must be provided when `include_probing` is True"
+                    "Targets must be provided when `include_probe` is True"
                 )
             images, labels = data
         else:
             if type(data) is tuple:
                 raise ValueError(
-                    "Targets must not be provided when `include_probing` is False"
+                    "Targets must not be provided when `include_probe` is False"
                 )
             images = data
 
@@ -142,7 +140,7 @@ class SimCLR(keras.Model):
             projections_1 = self.projection_top(features_1, training=True)
             projections_2 = self.projection_top(features_2, training=True)
 
-            simclr_loss = self.simclr_loss.call(projections_1, projections_2)
+            simclr_loss = self.simclr_loss(projections_1, projections_2)
 
         gradients = tape.gradient(
             simclr_loss,
@@ -157,7 +155,7 @@ class SimCLR(keras.Model):
         )
         self.simclr_loss_metric.update_state(simclr_loss)
 
-        if self.include_probing:
+        if self.include_probe:
             with tf.GradientTape() as tape:
                 features = self.encoder(images, training=False)
                 class_logits = self.probing_top(features, training=True)

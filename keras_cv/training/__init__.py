@@ -12,4 +12,4 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from keras_cv.training.simclr.simclr import SimCLR
+from keras_cv.training.simclr.simclr_trainer import SimCLRTrainer

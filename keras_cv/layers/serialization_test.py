@@ -88,6 +88,7 @@ def config_equals(config1, config2):
 
 class SerializationTest(tf.test.TestCase, parameterized.TestCase):
     @parameterized.named_parameters(
+        ("Augmenter", preprocessing.Augmenter, {"layers": [preprocessing.Grayscale()]}),
         ("AutoContrast", preprocessing.AutoContrast, {"value_range": (0, 255)}),
         ("ChannelShuffle", preprocessing.ChannelShuffle, {"seed": 1}),
         ("CutMix", preprocessing.CutMix, {"seed": 1}),

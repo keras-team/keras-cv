@@ -17,16 +17,16 @@ import tensorflow as tf
 
 @tf.keras.utils.register_keras_serializable(package="keras_cv")
 class Augmenter(tf.keras.layers.Layer):
-    def __init__(self, augmentation_layers, **kwargs):
+    def __init__(self, layers, **kwargs):
         super().__init__(**kwargs)
-        self.augmentation_layers = augmentation_layers
+        self.layers = layers
 
     def call(self, inputs):
-        for layer in self.augmentation_layers:
+        for layer in self.layers:
             inputs = layer(inputs)
         return inputs
 
     def get_config(self):
         config = super().get_config()
-        config.update({"augmentation_layers": self.augmentation_layers})
+        config.update({"layers": self.layers})
         return config
