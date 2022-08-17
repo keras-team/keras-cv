@@ -48,7 +48,7 @@ class RetinaNetLabelEncoderTest(tf.test.TestCase):
         self.assertEqual(result.shape, [8, 49104, 5])
 
     def test_ragged_encoding(self):
-        images_shape = (8, 512, 512, 3)
+        images_shape = (2, 512, 512, 3)
 
         images = tf.random.uniform(shape=images_shape)
         y_true = tf.ragged.stack(
@@ -77,4 +77,4 @@ class RetinaNetLabelEncoderTest(tf.test.TestCase):
         result = encoder(images, y_true)
 
         # 49104 is the anchor generator shape
-        self.assertEqual(result.shape, [8, 49104, 5])
+        self.assertEqual(result.shape, [2, 49104, 5])

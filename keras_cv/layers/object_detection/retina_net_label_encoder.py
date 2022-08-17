@@ -131,7 +131,6 @@ class RetinaNetLabelEncoder(layers.Layer):
 
     def call(self, images, target_boxes):
         """Creates box and classification targets for a batch"""
-
         if isinstance(images, tf.RaggedTensor):
             raise ValueError(
                 "`RetinaNetLabelEncoder`'s `call()` method does not "
