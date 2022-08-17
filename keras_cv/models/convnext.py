@@ -73,8 +73,9 @@ BASE_DOCSTRING = """Instantiates the {name} architecture.
             depth won't be used.
         layer_scale_init_value: layer scale coefficient, if 0.0, layer scaling
             won't be used.
-        weights:
-        input_shape: optional shape tuple, defaults to (None, None, 3).
+        weights: one of `None` (random initialization), or a pretrained weight
+            file path.
+        input_shape: optional shape tuple, defaults to `(None, None, 3)`.
         input_tensor: optional Keras tensor (i.e. output of `layers.Input()`)
             to use as image input for the model.
         pooling: optional pooling mode for feature extraction
@@ -196,7 +197,7 @@ def ConvNeXtBlock(
 
 
 def Head(num_classes, activation="softmax", name=None):
-    """Implementation of classification head of RegNet.
+    """Implementation of classification head of ConvNeXt.
 
     Args:
       num_classes: number of classes for Dense layer
@@ -249,8 +250,9 @@ def ConvNeXt(
         depth won't be used.
       layer_scale_init_value: Layer scale coefficient. If 0.0, layer scaling
         won't be used.
-      weights:
-      input_shape: optional shape tuple, defaults to (None, None, 3).
+      weights: One of `None` (random initialization), or a pretrained weight
+        file path.
+      input_shape: optional shape tuple, defaults to `(None, None, 3)`.
       input_tensor: optional Keras tensor (i.e. output of `layers.Input()`).
       pooling: optional pooling mode for feature extraction when `include_top`
         is `False`.
