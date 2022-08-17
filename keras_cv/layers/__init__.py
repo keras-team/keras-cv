@@ -31,7 +31,7 @@ from keras_cv.layers.object_detection.object_detection_label_encoder import (
     RetinaNetLabelEncoder,
 )
 from keras_cv.layers.object_detection.object_detection_prediction_decoder import (
-    ObjectDetectionPredictionDecoder,
+    NmsPredictionDecoder,
 )
 from keras_cv.layers.preprocessing.aug_mix import AugMix
 from keras_cv.layers.preprocessing.auto_contrast import AutoContrast

@@ -127,13 +127,10 @@ class RetinaNet(keras.Model):
         self.label_encoder = label_encoder or cv_layers.RetinaNetLabelEncoder(
             bounding_box_format=bounding_box_format, anchor_generator=anchor_generator
         )
-        self.prediction_decoder = (
-            prediction_decoder
-            or cv_layers.ObjectDetectionPredictionDecoder(
-                bounding_box_format=bounding_box_format,
-                anchor_generator=anchor_generator,
-                classes=classes,
-            )
+        self.prediction_decoder = prediction_decoder or cv_layers.NmsPredictionDecoder(
+            bounding_box_format=bounding_box_format,
+            anchor_generator=anchor_generator,
+            classes=classes,
         )
 
         # initialize trainable networks

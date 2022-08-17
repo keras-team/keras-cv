@@ -17,7 +17,7 @@ import tensorflow as tf
 from keras_cv import layers as cv_layers
 
 
-class ObjectDetectionPredictionDecoderTest(tf.test.TestCase):
+class NmsPredictionDecoderTest(tf.test.TestCase):
     def test_decode_predictions_output_shapes(self):
         classes = 10
         images_shape = (8, 512, 1024, 3)
@@ -39,7 +39,7 @@ class ObjectDetectionPredictionDecoderTest(tf.test.TestCase):
             scales=scales,
             strides=strides,
         )
-        layer = cv_layers.ObjectDetectionPredictionDecoder(
+        layer = cv_layers.NmsPredictionDecoder(
             anchor_generator=anchor_generator,
             classes=classes,
             bounding_box_format="rel_xyxy",

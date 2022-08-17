@@ -18,20 +18,27 @@ from keras_cv import bounding_box
 from keras_cv import layers as cv_layers
 
 
-class ObjectDetectionPredictionDecoder(tf.keras.layers.Layer):
+class NmsPredictionDecoder(tf.keras.layers.Layer):
     """A Keras layer that decodes predictions of an object detection model.
 
-    By default, ObjectDetectionPredictionDecoder uses a
-    `keras_cv.layers.NonMaxSuppression` layer to perform box pruning.
+    By default, NmsPredictionDecoder uses a
+    `keras_cv.layers.NonMaxSuppression` layer to perform box pruning.  The layer may
+    optionally take a `suppression_layer`, which can perform an alternative suppression
+    operation, such as SoftNonMaxSuppression.
 
-    Attributes:
+    Arguments:
       classes: Number of classes in the dataset.
       bounding_box_format: The format of bounding boxes of input dataset. Refer
         [to the keras.io docs](https://keras.io/api/keras_cv/bounding_box/formats/)
         for more details on supported bounding box formats.
-      anchor_generator:
-      suppression_layer:
-      box_variance:
+      anchor_generator: a `keras_cv.layers.AnchorGenerator`.
+      suppression_layer: (Optional) a `keras.layers.Layer` that follows the same API
+        signature of the `keras_cv.layers.NonMaxSuppression` layer.  This layer should
+        perform a suppression operation such as NonMaxSuppression, or
+        SoftNonMaxSuppression.
+      box_variance: (Optional) The scaling factors used to scale the bounding box
+        targets.  Defaults to `(0.1, 0.1, 0.2, 0.2)`.  **Important Note:**
+        `box_variance` is applied to the boxes in `xywh` format.
     """
 
     def __init__(
@@ -46,7 +53,7 @@ class ObjectDetectionPredictionDecoder(tf.keras.layers.Layer):
         super().__init__(**kwargs)
         if not suppression_layer and not classes:
             raise ValueError(
-                "ObjectDetectionPredictionDecoder() requires either `suppression_layer` "
+                "NmsPredictionDecoder() requires either `suppression_layer` "
                 f"or `classes`.  Received `suppression_layer={suppression_layer} and "
                 f"classes={classes}`"
             )
@@ -62,8 +69,8 @@ class ObjectDetectionPredictionDecoder(tf.keras.layers.Layer):
         if self.suppression_layer.bounding_box_format != self.bounding_box_format:
             raise ValueError(
                 "`suppression_layer` must have the same `bounding_box_format` "
-                "as the `ObjectDetectionPredictionDecoder()` layer. "
-                "Received `ObjectDetectionPredictionDecoder.bounding_box_format="
+                "as the `NmsPredictionDecoder()` layer. "
+                "Received `NmsPredictionDecoder.bounding_box_format="
                 f"{self.bounding_box_format}`, `suppression_layer={suppression_layer}`."
             )
         self.anchor_generator = anchor_generator
