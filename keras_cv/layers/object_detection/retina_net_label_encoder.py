@@ -114,7 +114,7 @@ class RetinaNetLabelEncoder(layers.Layer):
         """Creates box and classification targets for a single sample"""
         cls_ids = gt_boxes[:, 4]
         gt_boxes = gt_boxes[:, :4]
-        cls_ids = tf.cast(cls_ids, dtype == self.dtype)
+        cls_ids = tf.cast(cls_ids, dtype=self.dtype)
         matched_gt_idx, positive_mask, ignore_mask = self._match_anchor_boxes(
             anchor_boxes, gt_boxes
         )
@@ -129,7 +129,7 @@ class RetinaNetLabelEncoder(layers.Layer):
         label = tf.concat([box_target, cls_target], axis=-1)
         return label
 
-    def call(self, images, target_box):
+    def call(self, images, target_boxes):
         """Creates box and classification targets for a batch"""
 
         if isinstance(images, tf.RaggedTensor):

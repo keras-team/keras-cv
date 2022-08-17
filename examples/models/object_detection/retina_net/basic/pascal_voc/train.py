@@ -333,5 +333,7 @@ running the script for 500 epochs, we have produced a Weights and Biases report 
 the training results below!  As a bonus, the report includes a training run with and
 without data augmentation.
 
-[Metrics from a 500 epoch Weights and Biases Run are available here](https://wandb.ai/keras-team-testing/pascalvoc-retinanet/reports/PascalVOC-RetinaNet-w-Stable-Components--VmlldzoyNDg5Njk5?accessToken=8ftt7kxdm5p5a2l4vi2hdovmusnhew26oxlane1oggw7qd18zyis49osqrttqkk4)
+[Metrics from a 500 epoch Weights and Biases Run are available here](
+    https://tinyurl.com/y34xx65w
+)
 """
