@@ -23,13 +23,13 @@ import sys
 import matplotlib.pyplot as plt
 import tensorflow as tf
 import tensorflow_datasets as tfds
-import wandb
 from absl import flags
 from tensorflow import keras
 from tensorflow.keras import callbacks as callbacks_lib
 from tensorflow.keras import optimizers
 
 import keras_cv
+import wandb
 from keras_cv import bounding_box
 
 flags.DEFINE_integer("batch_size", 8, "Training and eval batch size.")
@@ -117,9 +117,7 @@ KerasCV preprocessing components.
 Lets load some data and verify that our data looks as we expect it to.
 """
 
-dataset, _ = load_pascal_voc(
-    split="train", bounding_box_format="xywh", batch_size=9
-)
+dataset, _ = load_pascal_voc(split="train", bounding_box_format="xywh", batch_size=9)
 
 
 def visualize_dataset(dataset, bounding_box_format):

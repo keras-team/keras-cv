@@ -18,7 +18,7 @@ from tensorflow.keras import layers
 from keras_cv import bounding_box
 
 
-class ObjectDetectionLabelEncoder(layers.Layer):
+class RetinaNetLabelEncoder(layers.Layer):
     """Transforms the raw labels into targets for training.
 
     This class has operations to generate targets for a batch of samples which
@@ -33,6 +33,9 @@ class ObjectDetectionLabelEncoder(layers.Layer):
             boxes.  Boxes are then used to encode labels on a per-image basis.
         box_variance: The scaling factors used to scale the bounding box targets.
             Defaults to (0.1, 0.1, 0.2, 0.2).
+        background_class: (Optional) The class ID used for the background class.
+            Defaults to -1.
+        ignore_class: (Optional) The class ID used for the ignore class. Defaults to -2.
     """
 
     def __init__(
@@ -47,7 +50,7 @@ class ObjectDetectionLabelEncoder(layers.Layer):
         super().__init__(**kwargs)
         self.bounding_box_format = bounding_box_format
         self.anchor_generator = anchor_generator
-        self.box_variance = tf.convert_to_tensor(box_variance, dtype=tf.float32)
+        self.box_variance = tf.convert_to_tensor(box_variance, dtype=self.dtype)
         self.background_class = background_class
         self.ignore_class = ignore_class
 
@@ -91,8 +94,8 @@ class ObjectDetectionLabelEncoder(layers.Layer):
         ignore_mask = tf.logical_not(tf.logical_or(positive_mask, negative_mask))
         return (
             matched_gt_idx,
-            tf.cast(positive_mask, dtype=tf.float32),
-            tf.cast(ignore_mask, dtype=tf.float32),
+            tf.cast(positive_mask, dtype=self.dtype),
+            tf.cast(ignore_mask, dtype=self.dtype),
         )
 
     def _compute_box_target(self, anchor_boxes, matched_gt_boxes):
@@ -111,7 +114,7 @@ class ObjectDetectionLabelEncoder(layers.Layer):
         """Creates box and classification targets for a single sample"""
         cls_ids = gt_boxes[:, 4]
         gt_boxes = gt_boxes[:, :4]
-        cls_ids = tf.cast(cls_ids, dtype=tf.float32)
+        cls_ids = tf.cast(cls_ids, dtype == self.dtype)
         matched_gt_idx, positive_mask, ignore_mask = self._match_anchor_boxes(
             anchor_boxes, gt_boxes
         )
@@ -126,18 +129,18 @@ class ObjectDetectionLabelEncoder(layers.Layer):
         label = tf.concat([box_target, cls_target], axis=-1)
         return label
 
-    def call(self, images, boxes):
+    def call(self, images, target_box):
         """Creates box and classification targets for a batch"""
 
         if isinstance(images, tf.RaggedTensor):
             raise ValueError(
-                "`ObjectDetectionLabelEncoder`'s `call()` method does not "
+                "`RetinaNetLabelEncoder`'s `call()` method does not "
                 "support RaggedTensor inputs for the `images` argument.  Received "
                 f"`type(images)={type(images)}`."
             )
 
-        boxes = bounding_box.convert_format(
-            boxes, source=self.bounding_box_format, target="xywh", images=images
+        target_boxes = bounding_box.convert_format(
+            target_boxes, source=self.bounding_box_format, target="xywh", images=images
         )
         anchor_boxes = self.anchor_generator(images[0])
         anchor_boxes = tf.concat(list(anchor_boxes.values()), axis=0)
@@ -147,11 +150,13 @@ class ObjectDetectionLabelEncoder(layers.Layer):
             target=self.bounding_box_format,
             images=images[0],
         )
-        if isinstance(boxes, tf.RaggedTensor):
-            boxes = boxes.to_tensor(default_value=-1)
+
+        if isinstance(target_boxes, tf.RaggedTensor):
+            target_boxes = target_boxes.to_tensor(default_value=-1)
 
         result = tf.map_fn(
-            elems=(boxes), fn=lambda box_set: self._encode_sample(box_set, anchor_boxes)
+            elems=(target_boxes),
+            fn=lambda box_set: self._encode_sample(box_set, anchor_boxes),
         )
         return bounding_box.convert_format(
             result, source="xywh", target=self.bounding_box_format, images=images

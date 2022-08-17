@@ -17,7 +17,7 @@ import tensorflow as tf
 from keras_cv import layers as cv_layers
 
 
-class ObjectDetectionLabelEncoderTest(tf.test.TestCase):
+class RetinaNetLabelEncoderTest(tf.test.TestCase):
     def test_label_encoder_output_shapes(self):
         images_shape = (8, 512, 512, 3)
         boxes_shape = (8, 10, 5)
@@ -33,12 +33,12 @@ class ObjectDetectionLabelEncoderTest(tf.test.TestCase):
 
         anchor_generator = cv_layers.AnchorGenerator(
             bounding_box_format="yxyx",
-            anchor_sizes=sizes,
+            sizes=sizes,
             aspect_ratios=aspect_ratios,
             scales=scales,
             strides=strides,
         )
-        encoder = cv_layers.ObjectDetectionLabelEncoder(
+        encoder = cv_layers.RetinaNetLabelEncoder(
             anchor_generator=anchor_generator,
             bounding_box_format="rel_xyxy",
         )

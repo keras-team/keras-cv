@@ -188,8 +188,11 @@ def convert_format(boxes, source, target, images=None, dtype="float32"):
     - `"rel_xyxy"`.  In this format, the axes are the same as `"xyxy"` but the x
         coordinates are normalized using the image width, and the y axes the image
         height.  All values in `rel_xyxy` are in the range (0, 1).
-    - `"xyWH"`.  In this format the first four axes represent
+    - `"xywh"`.  In this format the first four axes represent
         [left, top, width, height].
+    - `"rel_xywh".  In this formats the first four axes represent
+        [left, top, width, height], just like `"xywh"`.  Unlike `"xywh"`, the values
+        are in the range (0, 1) instead of absolute pixel values.
     - `"center_xyWH"`.  In this format the first two coordinates represent the x and y
         coordinates of the center of the bounding box, while the last two represent
         the width and height of the bounding box.

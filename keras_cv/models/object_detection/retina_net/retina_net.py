@@ -124,7 +124,7 @@ class RetinaNet(keras.Model):
         self.classes = classes
         self.backbone = _parse_backbone(backbone, include_rescaling, backbone_weights)
 
-        self.label_encoder = label_encoder or cv_layers.ObjectDetectionLabelEncoder(
+        self.label_encoder = label_encoder or cv_layers.RetinaNetLabelEncoder(
             bounding_box_format=bounding_box_format, anchor_generator=anchor_generator
         )
         self.prediction_decoder = (
@@ -370,7 +370,7 @@ def _default_anchor_generator(bounding_box_format):
     aspect_ratios = [0.5, 1.0, 2.0]
     return cv_layers.AnchorGenerator(
         bounding_box_format=bounding_box_format,
-        anchor_sizes=sizes,
+        sizes=sizes,
         aspect_ratios=aspect_ratios,
         scales=scales,
         strides=strides,

@@ -34,7 +34,7 @@ class ObjectDetectionPredictionDecoderTest(tf.test.TestCase):
 
         anchor_generator = cv_layers.AnchorGenerator(
             bounding_box_format="yxyx",
-            anchor_sizes=sizes,
+            sizes=sizes,
             aspect_ratios=aspect_ratios,
             scales=scales,
             strides=strides,
