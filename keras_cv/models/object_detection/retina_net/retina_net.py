@@ -64,7 +64,7 @@ class RetinaNet(keras.Model):
             the anchor generator will be passed to both the `label_encoder` and the
             `prediction_decoder`.  Only to be used when both `label_encoder` and
             `prediction_decoder` are both `None`.  Defaults to an anchor generator with
-            the parameterization: `strides=[2**i for i in range(3, 8)]`, 
+            the parameterization: `strides=[2**i for i in range(3, 8)]`,
             `scales=[2**x for x in [0, 1 / 3, 2 / 3]]`,
             `sizes=[32.0, 64.0, 128.0, 256.0, 512.0]`,
             and `aspect_ratios=[0.5, 1.0, 2.0]`.
@@ -75,7 +75,7 @@ class RetinaNet(keras.Model):
             `compile()` as the `y_true` argument.
         prediction_decoder: (Optional)  A `keras.layer` that is responsible for
             transforming RetinaNet predictions into usable bounding box Tensors.  If
-            not provided, a default is provided.  The default `prediction_decoder` 
+            not provided, a default is provided.  The default `prediction_decoder`
             layer uses a `NonMaxSuppression` operation for box pruning.
         feature_pyramid: (Optional) A `keras.Model` representing a feature pyramid
             network (FPN).  The feature pyramid network is called on the outputs of the
