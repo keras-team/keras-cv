@@ -174,3 +174,22 @@ class BaseImageAugmentationLayerTest(tf.test.TestCase):
         keypoints_diff = output["keypoints"] - keypoints
         self.assertNotAllClose(bounding_boxes_diff[0], bounding_boxes_diff[1])
         self.assertNotAllClose(keypoints_diff[0], keypoints_diff[1])
+
+    def test_raise_error_missing_class_id(self):
+        add_layer = RandomAddLayer()
+        images = np.random.random(size=(2, 8, 8, 3)).astype("float32")
+        bounding_boxes = np.random.random(size=(2, 3, 4)).astype("float32")
+        keypoints = np.random.random(size=(2, 3, 5, 2)).astype("float32")
+        with self.assertRaisesRegex(
+            ValueError,
+            "Bounding boxes are missing class_id. If you would like to pad the "
+            "bounding boxes with '0' class_id, use `keras_cv.bounding_box.pad_with_"
+            "class_id`",
+        ):
+            add_layer(
+                {
+                    "images": images,
+                    "bounding_boxes": bounding_boxes,
+                    "keypoints": keypoints,
+                }
+            )
