@@ -117,7 +117,7 @@ KerasCV preprocessing components.
 Lets load some data and verify that our data looks as we expect it to.
 """
 
-dataset, dataset_info = load_pascal_voc(
+dataset, _ = load_pascal_voc(
     split="train", bounding_box_format="xywh", batch_size=9
 )
 
@@ -162,10 +162,10 @@ friendly data augmentation inside of a `tf.data` pipeline.
 
 # train_ds is batched as a (images, bounding_boxes) tuple
 # bounding_boxes are ragged
-train_ds, train_dataset_info = load_pascal_voc(
+train_ds, _ = load_pascal_voc(
     bounding_box_format="xywh", split="train", batch_size=FLAGS.batch_size
 )
-val_ds, val_dataset_info = load_pascal_voc(
+val_ds, _ = load_pascal_voc(
     bounding_box_format="xywh", split="validation", batch_size=FLAGS.batch_size
 )
 
@@ -335,5 +335,5 @@ running the script for 500 epochs, we have produced a Weights and Biases report 
 the training results below!  As a bonus, the report includes a training run with and
 without data augmentation.
 
-TODO(lukewood): add link to the WandB run once preprocessing bugs are resolved.
+[Metrics from a 500 epoch Weights and Biases Run are available here](https://wandb.ai/keras-team-testing/pascalvoc-retinanet/reports/PascalVOC-RetinaNet-w-Stable-Components--VmlldzoyNDg5Njk5?accessToken=8ftt7kxdm5p5a2l4vi2hdovmusnhew26oxlane1oggw7qd18zyis49osqrttqkk4)
 """
