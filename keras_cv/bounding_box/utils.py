@@ -8,7 +8,7 @@
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either exness or implied.
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Utility functions for working with bounding boxes."""
@@ -96,14 +96,12 @@ def pad_with_sentinels(bounding_boxes):
 
 
 def filter_sentinels(bounding_boxes):
-    # filter the padded bounding boxes
-    def is_sentinel(box):
-        return tf.cond(box[4] == -1, lambda: False, lambda: True)
 
     def drop_padded_boxes(bounding_boxes):
-        mask = tf.map_fn(is_sentinel, bounding_boxes, fn_output_signature=tf.bool)
+        bounding_boxes = bounding_boxes.to_tensor()
+        mask = bounding_boxes[:, 4] != -1
         filtered_bounding_boxes = tf.boolean_mask(
-            bounding_boxes.to_tensor(), mask, axis=0
+            bounding_boxes, mask, axis=0
         )
         return tf.RaggedTensor.from_tensor(filtered_bounding_boxes)
 

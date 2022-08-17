@@ -44,7 +44,12 @@ class BoundingBoxUtilTestCase(tf.test.TestCase):
             [[[1, 2, 3, 4, 5], [1, 2, 3, 4, 5]], [[1, 2, 3, 4, 5]]]
         )
         padded_bounding_boxes = bounding_box.pad_with_sentinels(bounding_boxes)
-        expected_output = bounding_boxes.to_tensor(-1)
+        expected_output = tf.constant(
+            [
+                [[1, 2, 3, 4, 5], [1, 2, 3, 4, 5]],
+                [[1, 2, 3, 4, 5], [-1, -1, -1, -1, -1]],
+            ]
+        )
         self.assertAllEqual(padded_bounding_boxes, expected_output)
 
     def test_filter_sentinels(self):

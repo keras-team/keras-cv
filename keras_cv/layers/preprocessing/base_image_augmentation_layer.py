@@ -292,43 +292,50 @@ class BaseImageAugmentationLayer(tf.keras.__internal__.layers.BaseRandomLayer):
         return result
 
     def _batch_augment(self, inputs):
-        augmented_batch = self._map_fn(self._augment, inputs)
-        return augmented_batch
+        return self._map_fn(self._augment, inputs)
+
+    def _format_bounding_boxes(self, bounding_boxes):
+        metadata = {}
+        if isinstance(bounding_boxes, tf.RaggedTensor):
+            metadata["is_bounding_boxes_ragged"] = True
+            metadata["ragged_row_lengths"] = bounding_boxes.nested_row_lengths()
+            bounding_boxes = bounding_box.pad_with_sentinels(bounding_boxes)
+        else:
+            metadata["is_bounding_boxes_ragged"] = False
+        if tf.shape(bounding_boxes)[-1] < 5:
+            raise ValueError(
+                "Bounding boxes are missing class_id. If you would like to pad the "
+                "bounding boxes with '0' class_id, use `keras_cv.bounding_box.pad_with_class_id`"
+            )
+        return bounding_boxes, metadata
 
     def _format_inputs(self, inputs):
-        metadata = {"is_dict": False, "use_targets": False}
+        metadata = {}
         if tf.is_tensor(inputs):
             # single image input tensor
-            metadata = {"is_dict": False, "use_targets": False}
+            metadata["is_dict"] = False
+            metadata["use_targets"] = False
             inputs = {IMAGES: inputs}
             return inputs, metadata
-        elif isinstance(inputs, dict) and TARGETS in inputs:
+
+        if isinstance(inputs, dict) and TARGETS in inputs:
             # TODO(scottzhu): Check if it only contains the valid keys
             inputs[LABELS] = inputs[TARGETS]
             del inputs[TARGETS]
-            metadata = {"is_dict": True, "use_targets": True}
+            metadata["is_dict"] = True
+            metadata["use_targets"] = True
         elif isinstance(inputs, dict):
-            metadata = {"is_dict": True, "use_targets": False}
+            metadata["is_dict"] = True
+            metadata["use_targets"] = False
         else:
             raise ValueError(
                 f"Expect the inputs to be image tensor or dict. Got {inputs}"
             )
         if BOUNDING_BOXES in inputs:
-            if isinstance(inputs[BOUNDING_BOXES], tf.RaggedTensor):
-                metadata["is_bounding_boxes_ragged"] = True
-                metadata["ragged_row_lengths"] = inputs[
-                    BOUNDING_BOXES
-                ].nested_row_lengths()
-                inputs[BOUNDING_BOXES] = bounding_box.pad_with_sentinels(
-                    inputs[BOUNDING_BOXES]
-                )
-            else:
-                metadata["is_bounding_boxes_ragged"] = False
-            if tf.shape(inputs[BOUNDING_BOXES])[-1] <5:
-                raise ValueError(
-                    "Bounding boxes are missing class_id. If you would like to pad the "
-                    "bounding boxes with '0' class_id, use `keras_cv.bounding_box.pad_with_class_id`"
-                )
+            inputs[BOUNDING_BOXES], updates = self._format_bounding_boxes(
+                inputs[BOUNDING_BOXES]
+            )
+            metadata.update(updates)
         return inputs, metadata
 
     def _format_output(self, output, metadata):
