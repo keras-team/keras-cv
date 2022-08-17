@@ -23,8 +23,8 @@ import sys
 import matplotlib.pyplot as plt
 import tensorflow as tf
 import tensorflow_datasets as tfds
-from absl import flags
 import wandb
+from absl import flags
 from tensorflow import keras
 from tensorflow.keras import callbacks as callbacks_lib
 from tensorflow.keras import optimizers
