@@ -54,6 +54,61 @@ class AnchorGeneratorTest(tf.test.TestCase, parameterized.TestCase):
         # This unit test was written to ensure compatibility with the existing model.
         self.assertEqual(boxes.shape, [49104, 4])
 
+    def test_hand_crafted_aspect_ratios(self):
+        strides = [4]
+        scales = [1.0]
+        sizes = [4]
+        aspect_ratios = [3 / 4, 1.0, 4 / 3]
+        anchor_generator = cv_layers.AnchorGenerator(
+            bounding_box_format="xyxy",
+            sizes=sizes,
+            aspect_ratios=aspect_ratios,
+            scales=scales,
+            strides=strides,
+        )
+
+        image = tf.random.uniform((8, 8, 3))
+        boxes = anchor_generator(image)
+        level_0 = boxes[0]
+
+        # width/4 * height/4 * aspect_ratios =
+        self.assertAllEqual(level_0.shape, [12, 4])
+
+        image = tf.random.uniform((4, 4, 3))
+        boxes = anchor_generator(image)
+        level_0 = boxes[0]
+
+        expected_boxes = [
+            [0.267949224, -0.309401035, 3.7320509, 4.30940104],
+            [0, 0, 4, 4],
+            [-0.309401035, 0.267949104, 4.30940104, 3.7320509],
+        ]
+        self.assertAllClose(level_0, expected_boxes)
+
+    def test_hand_crafted_strides(self):
+        strides = [4]
+        scales = [1.0]
+        sizes = [4]
+        aspect_ratios = [1.0]
+        anchor_generator = cv_layers.AnchorGenerator(
+            bounding_box_format="xyxy",
+            sizes=sizes,
+            aspect_ratios=aspect_ratios,
+            scales=scales,
+            strides=strides,
+        )
+
+        image = tf.random.uniform((8, 8, 3))
+        boxes = anchor_generator(image)
+        level_0 = boxes[0]
+        expected_boxes = [
+            [0, 0, 4, 4],
+            [4, 0, 8, 4],
+            [0, 4, 4, 8],
+            [4, 4, 8, 8],
+        ]
+        self.assertAllClose(level_0, expected_boxes)
+
     def test_relative_generation(self):
         strides = [8, 16, 32]
 
