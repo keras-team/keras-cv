@@ -761,9 +761,9 @@ def RegNet(
     x = Stem(name=model_name)(x)
 
     in_channels = x.shape[-1]  # Output from Stem
-    
+
     NUM_STAGES = 4
-    
+
     for stage_index in range(NUM_STAGES):
         depth = depths[stage_index]
         out_channels = widths[stage_index]
