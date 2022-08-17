@@ -24,12 +24,12 @@ import matplotlib.pyplot as plt
 import tensorflow as tf
 import tensorflow_datasets as tfds
 from absl import flags
+import wandb
 from tensorflow import keras
 from tensorflow.keras import callbacks as callbacks_lib
 from tensorflow.keras import optimizers
 
 import keras_cv
-import wandb
 from keras_cv import bounding_box
 
 flags.DEFINE_integer("batch_size", 8, "Training and eval batch size.")
