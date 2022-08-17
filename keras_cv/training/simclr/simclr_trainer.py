@@ -57,7 +57,6 @@ class SimCLRTrainer(keras.Model):
 
         self.projection_top = keras.Sequential(
             [
-                keras.Input(shape=(self.encoder.output.shape[-1],)),
                 layers.Dense(self.projection_width, activation="relu"),
                 layers.Dense(self.projection_width),
             ],
@@ -69,24 +68,13 @@ class SimCLRTrainer(keras.Model):
                 raise ValueError(
                     "`classes` must be specified when `include_probe` is `True`."
                 )
-            self.probing_top = keras.Sequential(
-                [
-                    layers.Input(shape=(self.encoder.output.shape[-1],)),
-                    layers.Dense(classes),
-                ],
-                name="linear_probe",
-            )
+            self.probing_top = layers.Dense(classes, name="linear_probe")
 
-    def compile(
-        self, contrastive_optimizer, probe_optimizer=None, temperature=0.1, **kwargs
-    ):
+    def compile(self, optimizer, loss, probe_optimizer=None, **kwargs):
         super().compile(**kwargs)
 
-        # We call the contrastive optimizer `optimizer` so that Keras components
-        # such as the ReduceLROnPlateau callback can correctly update this
-        # optimizer.
-        self.optimizer = contrastive_optimizer
-        self.simclr_loss = SimCLRLoss(temperature)
+        self.optimizer = optimizer
+        self.loss = loss
         self.simclr_loss_metric = keras.metrics.Mean(name="simclr_loss")
 
         if self.include_probe:
@@ -140,7 +128,7 @@ class SimCLRTrainer(keras.Model):
             projections_1 = self.projection_top(features_1, training=True)
             projections_2 = self.projection_top(features_2, training=True)
 
-            simclr_loss = self.simclr_loss(projections_1, projections_2)
+            simclr_loss = self.loss(projections_1, projections_2)
 
         gradients = tape.gradient(
             simclr_loss,
