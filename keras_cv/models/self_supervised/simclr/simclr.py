@@ -30,13 +30,14 @@ class SimCLR(keras.Model):
         input_shape=(None, None, 3),
         temperature=0.1,
         projection_head_width=128,
+        augmenter=None,
     ):
         super().__init__()
 
         self.temperature = temperature
         self.projection_head_width = projection_head_width
 
-        self.contrastive_augmenter = keras.Sequential(
+        self.augmenter = augmenter or keras.Sequential(
             [
                 keras.Input(shape=input_shape),
                 preprocessing.RandomFlip("horizontal"),
@@ -112,8 +113,8 @@ class SimCLR(keras.Model):
     def train_step(self, data):
         images = data
 
-        augmented_images_1 = self.contrastive_augmenter(images, training=True)
-        augmented_images_2 = self.contrastive_augmenter(images, training=True)
+        augmented_images_1 = self.augmenter(images, training=True)
+        augmented_images_2 = self.augmenter(images, training=True)
 
         with tf.GradientTape() as tape:
             features_1 = self.encoder(augmented_images_1, training=True)
