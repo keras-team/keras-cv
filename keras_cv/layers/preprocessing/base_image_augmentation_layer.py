@@ -317,7 +317,11 @@ class BaseImageAugmentationLayer(tf.keras.__internal__.layers.BaseRandomLayer):
             metadata["use_targets"] = False
             inputs = {IMAGES: inputs}
             return inputs, metadata
-
+        if BOUNDING_BOXES in inputs:
+            inputs[BOUNDING_BOXES], updates = self._format_bounding_boxes(
+                inputs[BOUNDING_BOXES]
+            )
+            metadata.update(updates)
         if isinstance(inputs, dict) and TARGETS in inputs:
             # TODO(scottzhu): Check if it only contains the valid keys
             inputs[LABELS] = inputs[TARGETS]
@@ -331,11 +335,6 @@ class BaseImageAugmentationLayer(tf.keras.__internal__.layers.BaseRandomLayer):
             raise ValueError(
                 f"Expect the inputs to be image tensor or dict. Got {inputs}"
             )
-        if BOUNDING_BOXES in inputs:
-            inputs[BOUNDING_BOXES], updates = self._format_bounding_boxes(
-                inputs[BOUNDING_BOXES]
-            )
-            metadata.update(updates)
         return inputs, metadata
 
     def _format_output(self, output, metadata):
