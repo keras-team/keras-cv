@@ -12,8 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# Adapted from https://keras.io/examples/vision/semisupervised_simclr/#introduction
-# This is a work-in-progress
 
 import tensorflow as tf
 from tensorflow import keras
