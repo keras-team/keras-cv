@@ -20,29 +20,26 @@ from tensorflow import keras
 from tensorflow.keras import layers
 
 from keras_cv.layers import preprocessing
+from keras_cv.losses import SimCLRLoss
 
 
 class SimCLR(keras.Model):
     def __init__(
         self,
-        model,
+        encoder,
         include_rescaling,
-        input_shape=(None, None, 3),
-        temperature=0.1,
         projection_head_width=128,
         augmenter=None,
     ):
         super().__init__()
 
-        self.temperature = temperature
         self.projection_head_width = projection_head_width
 
-        self.augmenter = augmenter or keras.Sequential(
+        self.augmenter = augmenter or preprocessing.Augmenter(
             [
-                keras.Input(shape=input_shape),
                 preprocessing.RandomFlip("horizontal"),
-                layers.RandomTranslation(0.25, 0.25),
-                layers.RandomZoom((-0.5, 0.0), (-0.5, 0.0)),
+                preprocessing.RandomTranslation(0.25, 0.25),
+                preprocessing.RandomZoom((-0.5, 0.0), (-0.5, 0.0)),
                 preprocessing.RandomColorJitter(
                     value_range=[0, 255] if include_rescaling else [0, 1],
                     brightness_factor=0.5,
@@ -53,9 +50,7 @@ class SimCLR(keras.Model):
             ]
         )
 
-        self.encoder = model(
-            include_rescaling=include_rescaling, include_top=False, pooling="avg"
-        )
+        self.encoder = encoder
 
         self.projection_head = keras.Sequential(
             [
@@ -66,49 +61,19 @@ class SimCLR(keras.Model):
             name="projection_head",
         )
 
-    def compile(self, contrastive_optimizer, **kwargs):
+    def compile(self, contrastive_optimizer, temperature=0.1, **kwargs):
         super().compile(**kwargs)
 
         self.contrastive_optimizer = contrastive_optimizer
+        self.simclr_loss = SimCLRLoss(temperature)
 
-        self.contrastive_loss_metric = keras.metrics.Mean(name="contrastive_loss")
-        self.contrastive_accuracy = keras.metrics.SparseCategoricalAccuracy(
-            name="contrastive_accuracy"
-        )
+        self.simclr_loss_metric = keras.metrics.Mean(name="simclr_loss")
 
     @property
     def metrics(self):
         return [
-            self.contrastive_loss_metric,
-            self.contrastive_accuracy,
+            self.simclr_loss_metric,
         ]
-
-    def contrastive_loss(self, projections_1, projections_2):
-        # Cosine similarity: the dot product of the l2-normalized feature vectors
-        projections_1 = tf.math.l2_normalize(projections_1, axis=1)
-        projections_2 = tf.math.l2_normalize(projections_2, axis=1)
-        similarities = (
-            tf.matmul(projections_1, projections_2, transpose_b=True) / self.temperature
-        )
-
-        # The similarity between the representations of two augmented views of the
-        # same image should be higher than their similarity with other views
-        batch_size = tf.shape(projections_1)[0]
-        contrastive_labels = tf.range(batch_size)
-        self.contrastive_accuracy.update_state(contrastive_labels, similarities)
-        self.contrastive_accuracy.update_state(
-            contrastive_labels, tf.transpose(similarities)
-        )
-
-        # The temperature-scaled similarities are used as logits for cross-entropy
-        # a symmetrized version of the loss is used here
-        loss_1_2 = keras.losses.sparse_categorical_crossentropy(
-            contrastive_labels, similarities, from_logits=True
-        )
-        loss_2_1 = keras.losses.sparse_categorical_crossentropy(
-            contrastive_labels, tf.transpose(similarities), from_logits=True
-        )
-        return (loss_1_2 + loss_2_1) / 2
 
     def train_step(self, data):
         images = data
@@ -123,10 +88,10 @@ class SimCLR(keras.Model):
             projections_1 = self.projection_head(features_1, training=True)
             projections_2 = self.projection_head(features_2, training=True)
 
-            contrastive_loss = self.contrastive_loss(projections_1, projections_2)
+            simclr_loss = self.simclr_loss.call(projections_1, projections_2)
 
         gradients = tape.gradient(
-            contrastive_loss,
+            simclr_loss,
             self.encoder.trainable_weights + self.projection_head.trainable_weights,
         )
 
@@ -136,9 +101,18 @@ class SimCLR(keras.Model):
                 self.encoder.trainable_weights + self.projection_head.trainable_weights,
             )
         )
-        self.contrastive_loss_metric.update_state(contrastive_loss)
+        self.simclr_loss_metric.update_state(simclr_loss)
 
         return {metric.name: metric.result() for metric in self.metrics}
 
-    def test_step(self, data):
-        return {}
+    def call(self, inputs):
+        raise NotImplementedError("SimCLR models cannot be used for inference")
+
+
+# Testing code
+# from keras_cv.models import DenseNet121
+# encoder = DenseNet121(include_rescaling=True, include_top=False, pooling='avg')
+# simclr = SimCLR(encoder, include_rescaling=True)
+# simclr.compile(keras.optimizers.Adam())
+# (x_train, y_train), (x_test, y_test) = keras.datasets.cifar10.load_data()
+# simclr.fit(x_train[:500])

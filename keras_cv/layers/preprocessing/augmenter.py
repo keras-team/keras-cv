@@ -12,8 +12,21 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from keras_cv.losses.focal import FocalLoss
-from keras_cv.losses.iou_loss import IoULoss
-from keras_cv.losses.object_detection_loss import ObjectDetectionLoss
-from keras_cv.losses.simclr_loss import SimCLRLoss
-from keras_cv.losses.smooth_l1 import SmoothL1Loss
+import tensorflow as tf
+
+
+@tf.keras.utils.register_keras_serializable(package="keras_cv")
+class Augmenter(tf.keras.layers.Layer):
+    def __init__(self, augmentation_layers, **kwargs):
+        super().__init__(**kwargs)
+        self.augmentation_layers = augmentation_layers
+
+    def call(self, inputs):
+        for layer in self.augmentation_layers:
+            inputs = layer(inputs)
+        return inputs
+
+    def get_config(self):
+        config = super().get_config()
+        config.update({"augmentation_layers": self.augmentation_layers})
+        return config
