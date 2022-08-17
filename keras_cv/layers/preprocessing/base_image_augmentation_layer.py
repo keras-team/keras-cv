@@ -324,7 +324,7 @@ class BaseImageAugmentationLayer(tf.keras.__internal__.layers.BaseRandomLayer):
                 )
             else:
                 metadata["is_bounding_boxes_ragged"] = False
-            if tf.shape(inputs[BOUNDING_BOXES])[-1] != 5:
+            if tf.shape(inputs[BOUNDING_BOXES])[-1] <5:
                 raise ValueError(
                     "Bounding boxes are missing class_id. If you would like to pad the "
                     "bounding boxes with '0' class_id, use `keras_cv.bounding_box.pad_with_class_id`"
