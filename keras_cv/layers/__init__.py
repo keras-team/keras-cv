@@ -27,10 +27,10 @@ from tensorflow.keras.layers import Resizing
 
 from keras_cv.layers.object_detection.anchor_generator import AnchorGenerator
 from keras_cv.layers.object_detection.non_max_suppression import NonMaxSuppression
-from keras_cv.layers.object_detection.object_detection_label_encoder import (
+from keras_cv.layers.object_detection.retina_net_label_encoder import (
     RetinaNetLabelEncoder,
 )
-from keras_cv.layers.object_detection.object_detection_prediction_decoder import (
+from keras_cv.layers.object_detection.nms_prediction_decoder import (
     NmsPredictionDecoder,
 )
 from keras_cv.layers.preprocessing.aug_mix import AugMix
