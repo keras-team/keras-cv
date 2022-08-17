@@ -66,7 +66,11 @@ flags.DEFINE_boolean(
 )
 flags.DEFINE_float(
     "initial_learning_rate",
+<<<<<<< HEAD
     0.1,
+=======
+    0.005,
+>>>>>>> master
     "Initial learning rate which will reduce on plateau.",
 )
 
@@ -193,7 +197,11 @@ Note that learning rate will decrease over time due to the ReduceLROnPlateau cal
 """
 
 
+<<<<<<< HEAD
 optimizer = optimizers.SGD(learning_rate=FLAGS.initial_learning_rate, momentum=0.9)
+=======
+optimizer = optimizers.Adam(learning_rate=FLAGS.initial_learning_rate)
+>>>>>>> master
 
 
 """

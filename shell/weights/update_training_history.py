@@ -11,6 +11,11 @@ flags.DEFINE_string(
 flags.DEFINE_string("tensorboard_logs_path", None, "Path to tensorboard logs to load")
 flags.DEFINE_string("training_script_path", None, "Path to the training script")
 flags.DEFINE_string(
+    "script_version",
+    None,
+    "commit hash of the latest commit in KerasCV/master for the training script",
+)
+flags.DEFINE_string(
     "weights_version",
     None,
     "The version of the training script used to produce the latest weights. For example, v0",
@@ -44,6 +49,10 @@ tensorboard_experiment_name = f"{training_script_dirs[0]}/{'/'.join(training_scr
 training_script_json_path = full_training_script_path[
     : full_training_script_path.index("keras-cv/examples/training/") + 27
 ] + "/".join(training_script_dirs[:2] + ["training_history.json"])
+
+script_version = FLAGS.script_version or input(
+    "Input the commit hash of the latest commit in KerasCV/master for the training script used for training."
+)
 
 tensorboard_logs_path = FLAGS.tensorboard_logs_path or input(
     "Input the path to the TensorBoard logs\n"
@@ -89,7 +98,7 @@ for arg in args.split(","):
     args_dict[key_value_pair[0]] = key_value_pair[1]
 
 new_results = {
-    "script": "/".join(training_script_dirs[2:]),
+    "script": {"name": "/".join(training_script_dirs[2:]), "version": script_version},
     "validation_accuracy": max_validation_accuracy,
     "epochs_trained": training_epochs,
     "tensorboard_logs": f"https://tensorboard.dev/experiment/{tensorboard_experiment_id}/",
