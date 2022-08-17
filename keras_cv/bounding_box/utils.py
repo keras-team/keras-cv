@@ -90,26 +90,54 @@ def _format_outputs(boxes, squeeze):
 
 
 def pad_with_sentinels(bounding_boxes):
-    # padded ragged bounding box tensor with -1s to create a tensor
-    # This enables vectorized map execution
+    """Pads the given bounding boxes to convert it from a ragged tensor to
+    a regular tensor.
+
+    Args:
+      bounding_boxes: a ragged tensor of bounding boxes in 'corners' format.
+      Can be batched or unbatched.
+
+    Returns:
+      bounding_boxes_tensor: a tensor containing the -1 padded bounding boxes.
+    """
     return bounding_boxes.to_tensor(-1)
 
 
 def filter_sentinels(bounding_boxes):
+    """filters the -1 padded bounding boxes to convert it from a regular
+       tensor to a ragged tensor.
+
+    Args:
+      bounding_boxes: a tensor of bounding boxes in 'corners' format.
+      Can be batched or unbatched.
+
+    Returns:
+      bounding_boxes_tensor: a ragged tensor containing filtered bounding boxes.
+    """
+    if isinstance(bounding_boxes, tf.Tensor):
+        tf.RaggedTensor.from_tensor(bounding_boxes)
 
     def drop_padded_boxes(bounding_boxes):
         bounding_boxes = bounding_boxes.to_tensor()
         mask = bounding_boxes[:, 4] != -1
-        filtered_bounding_boxes = tf.boolean_mask(
-            bounding_boxes, mask, axis=0
-        )
+        filtered_bounding_boxes = tf.boolean_mask(bounding_boxes, mask, axis=0)
         return tf.RaggedTensor.from_tensor(filtered_bounding_boxes)
 
     return tf.map_fn(drop_padded_boxes, bounding_boxes)
 
 
-def pad_with_class_id(bounding_boxes):
-    # pad bounding boxes with '0' class
+def pad_with_class_id(bounding_boxes, class_id=0):
+    """pads bounding boxes with class id
+
+    Args:
+      bounding_boxes: a tensor of bounding boxes in 'corners' format.
+        Can be batched or unbatched.
+      class_id: The value of class id that needs to be padded.
+        The default value is 0
+
+    Returns:
+      bounding_boxes_tensor: a tensor containing class id padded bounding boxes.
+    """
     if isinstance(bounding_boxes, tf.RaggedTensor):
         row_lengths = list(bounding_boxes.nested_row_lengths())
         row_lengths[1] = row_lengths[1] + 1
@@ -118,7 +146,10 @@ def pad_with_class_id(bounding_boxes):
         dense_bounding_boxes = bounding_boxes
     paddings = tf.constant([[0, 0], [0, 0], [0, 1]])
     padded_bounding_boxes = tf.pad(
-        dense_bounding_boxes, paddings=paddings, mode="CONSTANT", constant_values=0
+        dense_bounding_boxes,
+        paddings=paddings,
+        mode="CONSTANT",
+        constant_values=class_id,
     )
     if isinstance(bounding_boxes, tf.RaggedTensor):
         padded_bounding_boxes = tf.RaggedTensor.from_tensor(
