@@ -12,10 +12,4 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import tensorflow as tf
-
-
-class SimCLRLossTest(tf.test.TestCase):
-    def test(self):
-        # TODO(ianstenbit) add tests
-        pass
+from keras_cv.training.simclr.simclr import SimCLR

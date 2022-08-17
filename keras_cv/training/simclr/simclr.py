@@ -27,14 +27,21 @@ class SimCLR(keras.Model):
     def __init__(
         self,
         encoder,
-        include_rescaling,
-        projection_head_width=128,
+        include_probing,
+        classes=None,
+        projection_width=128,
         augmenter=None,
+        include_rescaling=None,
     ):
         super().__init__()
 
-        self.projection_head_width = projection_head_width
+        self.include_probing = include_probing
+        self.projection_width = projection_width
 
+        if not augmenter and not include_rescaling:
+            raise ValueError(
+                "`include_rescaling` is required when using the default augmenter."
+            )
         self.augmenter = augmenter or preprocessing.Augmenter(
             [
                 preprocessing.RandomFlip("horizontal"),
@@ -52,31 +59,80 @@ class SimCLR(keras.Model):
 
         self.encoder = encoder
 
-        self.projection_head = keras.Sequential(
+        self.projection_top = keras.Sequential(
             [
                 keras.Input(shape=(self.encoder.output.shape[-1],)),
-                layers.Dense(self.projection_head_width, activation="relu"),
-                layers.Dense(self.projection_head_width),
+                layers.Dense(self.projection_width, activation="relu"),
+                layers.Dense(self.projection_width),
             ],
-            name="projection_head",
+            name="projection_top",
         )
 
-    def compile(self, contrastive_optimizer, temperature=0.1, **kwargs):
+        if self.include_probing:
+            if not classes:
+                raise ValueError(
+                    "`classes` must be specified when `include_probing` is `True`."
+                )
+            self.probing_top = keras.Sequential(
+                [
+                    layers.Input(shape=(self.encoder.output.shape[-1],)),
+                    layers.Dense(classes),
+                ],
+                name="linear_probe",
+            )
+
+    def compile(
+        self, contrastive_optimizer, probe_optimizer=None, temperature=0.1, **kwargs
+    ):
         super().compile(**kwargs)
 
-        self.contrastive_optimizer = contrastive_optimizer
+        # We call the contrastive optimizer `optimizer` so that Keras components
+        # such as the ReduceLROnPlateau callback can correctly update this
+        # optimizer.
+        self.optimizer = contrastive_optimizer
         self.simclr_loss = SimCLRLoss(temperature)
-
         self.simclr_loss_metric = keras.metrics.Mean(name="simclr_loss")
+
+        if self.include_probing:
+            self.probe_loss = keras.losses.SparseCategoricalCrossentropy(
+                from_logits=True
+            )
+            self.probe_loss_metric = keras.metrics.Mean(name="probe_loss")
+            self.probe_accuracy = keras.metrics.SparseCategoricalAccuracy(
+                name="probe_accuracy"
+            )
+
+            if not probe_optimizer:
+                raise ValueError(
+                    "`probe_optimizer` must be specified when `include_probing` is `True`."
+                )
+            self.probe_optimizer = probe_optimizer
 
     @property
     def metrics(self):
-        return [
+        metrics = [
             self.simclr_loss_metric,
         ]
+        if self.include_probing:
+            metrics += [
+                self.probe_loss_metric,
+                self.probe_accuracy,
+            ]
+        return metrics
 
     def train_step(self, data):
-        images = data
+        if self.include_probing:
+            if type(data) is not tuple or len(data) != 2:
+                raise ValueError(
+                    "Targets must be provided when `include_probing` is True"
+                )
+            images, labels = data
+        else:
+            if type(data) is tuple:
+                raise ValueError(
+                    "Targets must not be provided when `include_probing` is False"
+                )
+            images = data
 
         augmented_images_1 = self.augmenter(images, training=True)
         augmented_images_2 = self.augmenter(images, training=True)
@@ -85,34 +141,37 @@ class SimCLR(keras.Model):
             features_1 = self.encoder(augmented_images_1, training=True)
             features_2 = self.encoder(augmented_images_2, training=True)
 
-            projections_1 = self.projection_head(features_1, training=True)
-            projections_2 = self.projection_head(features_2, training=True)
+            projections_1 = self.projection_top(features_1, training=True)
+            projections_2 = self.projection_top(features_2, training=True)
 
             simclr_loss = self.simclr_loss.call(projections_1, projections_2)
 
         gradients = tape.gradient(
             simclr_loss,
-            self.encoder.trainable_weights + self.projection_head.trainable_weights,
+            self.encoder.trainable_weights + self.projection_top.trainable_weights,
         )
 
-        self.contrastive_optimizer.apply_gradients(
+        self.optimizer.apply_gradients(
             zip(
                 gradients,
-                self.encoder.trainable_weights + self.projection_head.trainable_weights,
+                self.encoder.trainable_weights + self.projection_top.trainable_weights,
             )
         )
         self.simclr_loss_metric.update_state(simclr_loss)
+
+        if self.include_probing:
+            with tf.GradientTape() as tape:
+                features = self.encoder(images, training=False)
+                class_logits = self.probing_top(features, training=True)
+                probe_loss = self.probe_loss(labels, class_logits)
+            gradients = tape.gradient(probe_loss, self.probing_top.trainable_weights)
+            self.probe_optimizer.apply_gradients(
+                zip(gradients, self.probing_top.trainable_weights)
+            )
+            self.probe_loss_metric.update_state(probe_loss)
+            self.probe_accuracy.update_state(labels, class_logits)
 
         return {metric.name: metric.result() for metric in self.metrics}
 
     def call(self, inputs):
         raise NotImplementedError("SimCLR models cannot be used for inference")
-
-
-# Testing code
-# from keras_cv.models import DenseNet121
-# encoder = DenseNet121(include_rescaling=True, include_top=False, pooling='avg')
-# simclr = SimCLR(encoder, include_rescaling=True)
-# simclr.compile(keras.optimizers.Adam())
-# (x_train, y_train), (x_test, y_test) = keras.datasets.cifar10.load_data()
-# simclr.fit(x_train[:500])

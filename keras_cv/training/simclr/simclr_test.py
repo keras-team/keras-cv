@@ -15,7 +15,7 @@
 import tensorflow as tf
 
 
-class SimCLRLossTest(tf.test.TestCase):
+class SimCLRTest(tf.test.TestCase):
     def test(self):
         # TODO(ianstenbit) add tests
         pass
