@@ -17,6 +17,7 @@ import numpy as np
 import tensorflow as tf
 from absl.testing import parameterized
 
+from keras_cv import bounding_box
 from keras_cv.layers.preprocessing.random_flip import RandomFlip
 
 
@@ -113,12 +114,9 @@ class RandomFlipTest(tf.test.TestCase, parameterized.TestCase):
     def test_augment_bbox_batched_input(self):
         image = tf.zeros([20, 20, 3])
         bboxes = tf.convert_to_tensor(
-            [
-                [[0, 0, 10, 10], [4, 4, 12, 12]],
-                [[0, 0, 10, 10], [4, 4, 12, 12]],
-            ],
-            dtype="float32",
+            [[[0, 0, 10, 10], [4, 4, 12, 12]], [[0, 0, 10, 10], [4, 4, 12, 12]]]
         )
+        bboxes = bounding_box.pad_with_class_id(bboxes)
         input = {"images": [image, image], "bounding_boxes": bboxes}
         mock_random = [0.6, 0.6, 0.6, 0.6]
         layer = RandomFlip(bounding_box_format="xyxy")
@@ -128,11 +126,11 @@ class RandomFlipTest(tf.test.TestCase, parameterized.TestCase):
             side_effect=mock_random,
         ):
             output = layer(input, training=True)
-        expected_output = np.array(
+        expected_output = np.asarray(
             [
-                [[10, 10, 20, 20], [8, 8, 16, 16]],
-                [[10, 10, 20, 20], [8, 8, 16, 16]],
-            ],
-            dtype=np.float32,
+                [[10, 10, 20, 20, 0], [8, 8, 16, 16, 0]],
+                [[10, 10, 20, 20, 0], [8, 8, 16, 16, 0]],
+            ]
         )
+        expected_output = np.reshape(expected_output, (2, 2, 5))
         self.assertAllClose(expected_output, output["bounding_boxes"])

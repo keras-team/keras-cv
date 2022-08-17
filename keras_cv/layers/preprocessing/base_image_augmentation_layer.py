@@ -296,24 +296,23 @@ class BaseImageAugmentationLayer(tf.keras.__internal__.layers.BaseRandomLayer):
         return augmented_batch
 
     def _format_inputs(self, inputs):
-        if not isinstance(inputs, dict):
-            raise ValueError(
-                f"Expect the inputs to be image tensor or dict. Got {inputs}"
-            )
-        metadata = {"is_dict": True}
+        metadata = {"is_dict": False, "use_targets": False}
         if tf.is_tensor(inputs):
             # single image input tensor
             metadata = {"is_dict": False, "use_targets": False}
             inputs = {IMAGES: inputs}
-        elif isinstance(inputs, dict):
-            if TARGETS in inputs:
-                # TODO(scottzhu): Check if it only contains the valid keys
-                inputs[LABELS] = inputs[TARGETS]
-                del inputs[TARGETS]
-                metadata = {"is_dict": True, "use_targets": True}
+            return inputs, metadata
+        elif isinstance(inputs, dict) and TARGETS in inputs:
+            # TODO(scottzhu): Check if it only contains the valid keys
+            inputs[LABELS] = inputs[TARGETS]
+            del inputs[TARGETS]
+            metadata = {"is_dict": True, "use_targets": True}
         elif isinstance(inputs, dict):
             metadata = {"is_dict": True, "use_targets": False}
-
+        else:
+            raise ValueError(
+                f"Expect the inputs to be image tensor or dict. Got {inputs}"
+            )
         if BOUNDING_BOXES in inputs:
             if isinstance(inputs[BOUNDING_BOXES], tf.RaggedTensor):
                 metadata["is_bounding_boxes_ragged"] = True
