@@ -190,7 +190,7 @@ def convert_format(boxes, source, target, images=None, dtype="float32"):
         height.  All values in `rel_xyxy` are in the range (0, 1).
     - `"xywh"`.  In this format the first four axes represent
         [left, top, width, height].
-    - `"rel_xywh".  In this formats the first four axes represent
+    - `"rel_xywh".  In this format the first four axes represent
         [left, top, width, height], just like `"xywh"`.  Unlike `"xywh"`, the values
         are in the range (0, 1) instead of absolute pixel values.
     - `"center_xyWH"`.  In this format the first two coordinates represent the x and y

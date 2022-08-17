@@ -25,8 +25,8 @@ class AnchorGenerator(keras.layers.Layer):
     sizes, scales, aspect ratios, and strides provided.  To invoke AnchorGenerator, call
     it on the image that needs anchor boxes.
 
-    `sizes` and `strides` must match structurally - they are pairs.  Scales and a
-    spect ratios can either be a list, that is then used for all of the sizes
+    `sizes` and `strides` must match structurally - they are pairs.  Scales and
+    aspect ratios can either be a list, that is then used for all of the sizes
     (aka levels), or a dictionary from `{'level_{number}': [parameters at scale...]}`.
 
     Args:
