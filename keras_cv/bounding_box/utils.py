@@ -90,7 +90,7 @@ def _format_outputs(boxes, squeeze):
 
 
 def pad_with_sentinels(bounding_boxes):
-    """Pads the given bounding box tensor with -1s. 
+    """Pads the given bounding box tensor with -1s.
 
        This is done to convert RaggedTensors to be converted into
        standard Dense tensors, which have better performance and
