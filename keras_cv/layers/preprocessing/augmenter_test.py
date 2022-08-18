@@ -14,8 +14,50 @@
 
 import tensorflow as tf
 
+from keras_cv.layers import preprocessing
+
 
 class AugmenterTest(tf.test.TestCase):
-    def test(self):
-        # TODO(ianstenbit) add tests
-        pass
+    def test_return_shapes(self):
+        input = tf.ones((2, 512, 512, 3))
+
+        layer = preprocessing.Augmenter(
+            [
+                preprocessing.Grayscale(
+                    output_channels=1,
+                ),
+                preprocessing.RandomResizedCrop(
+                    target_size=(100, 100),
+                    crop_area_factor=(1, 1),
+                    aspect_ratio_factor=(1, 1),
+                ),
+            ]
+        )
+
+        output = layer(input, training=True)
+
+        self.assertEqual(output.shape, [2, 100, 100, 1])
+
+    def test_in_tf_function(self):
+        input = tf.ones((2, 512, 512, 3))
+
+        layer = preprocessing.Augmenter(
+            [
+                preprocessing.Grayscale(
+                    output_channels=1,
+                ),
+                preprocessing.RandomResizedCrop(
+                    target_size=(100, 100),
+                    crop_area_factor=(1, 1),
+                    aspect_ratio_factor=(1, 1),
+                ),
+            ]
+        )
+
+        @tf.function
+        def augment(x):
+            return layer(x, training=True)
+
+        output = augment(input)
+
+        self.assertEqual(output.shape, [2, 100, 100, 1])
