@@ -175,6 +175,53 @@ class BaseImageAugmentationLayerTest(tf.test.TestCase):
         self.assertNotAllClose(bounding_boxes_diff[0], bounding_boxes_diff[1])
         self.assertNotAllClose(keypoints_diff[0], keypoints_diff[1])
 
+    def test_augment_batch_image_and_localization_data(self):
+        add_layer = RandomAddLayer()
+        images = np.random.random(size=(2, 8, 8, 3)).astype("float32")
+        bounding_boxes = np.random.random(size=(2, 3, 5)).astype("float32")
+        keypoints = np.random.random(size=(2, 3, 5, 2)).astype("float32")
+
+        output = add_layer(
+            {"images": images, "bounding_boxes": bounding_boxes, "keypoints": keypoints}
+        )
+
+        bounding_boxes_diff = output["bounding_boxes"] - bounding_boxes
+        keypoints_diff = output["keypoints"] - keypoints
+        self.assertNotAllClose(bounding_boxes_diff[0], bounding_boxes_diff[1])
+        self.assertNotAllClose(keypoints_diff[0], keypoints_diff[1])
+
+        @tf.function
+        def in_tf_function(inputs):
+            return add_layer(inputs)
+
+        output = in_tf_function(
+            {"images": images, "bounding_boxes": bounding_boxes, "keypoints": keypoints}
+        )
+
+        bounding_boxes_diff = output["bounding_boxes"] - bounding_boxes
+        keypoints_diff = output["keypoints"] - keypoints
+        self.assertNotAllClose(bounding_boxes_diff[0], bounding_boxes_diff[1])
+        self.assertNotAllClose(keypoints_diff[0], keypoints_diff[1])
+
+    def test_augment_all_data_in_tf_function(self):
+        add_layer = RandomAddLayer()
+        images = np.random.random(size=(2, 8, 8, 3)).astype("float32")
+        bounding_boxes = np.random.random(size=(2, 3, 5)).astype("float32")
+        keypoints = np.random.random(size=(2, 3, 5, 2)).astype("float32")
+
+        @tf.function
+        def in_tf_function(inputs):
+            return add_layer(inputs)
+
+        output = in_tf_function(
+            {"images": images, "bounding_boxes": bounding_boxes, "keypoints": keypoints}
+        )
+
+        bounding_boxes_diff = output["bounding_boxes"] - bounding_boxes
+        keypoints_diff = output["keypoints"] - keypoints
+        self.assertNotAllClose(bounding_boxes_diff[0], bounding_boxes_diff[1])
+        self.assertNotAllClose(keypoints_diff[0], keypoints_diff[1])
+
     def test_raise_error_missing_class_id(self):
         add_layer = RandomAddLayer()
         images = np.random.random(size=(2, 8, 8, 3)).astype("float32")
