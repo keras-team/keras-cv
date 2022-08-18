@@ -31,12 +31,16 @@ center_xywh_box = tf.constant(
     [[[60, 70, 100, 100], [70, 80, 100, 100]]], dtype=tf.float32
 )
 xywh_box = tf.constant([[[10, 20, 100, 100], [20, 30, 100, 100]]], dtype=tf.float32)
+rel_xywh_box = tf.constant(
+    [[[0.01, 0.02, 0.1, 0.1], [0.02, 0.03, 0.1, 0.1]]], dtype=tf.float32
+)
 
 images = tf.ones([2, 1000, 1000, 3])
 
 boxes = {
     "xyxy": xyxy_box,
     "center_xywh": center_xywh_box,
+    "rel_xywh": rel_xywh_box,
     "xywh": xywh_box,
     "rel_xyxy": rel_xyxy_box,
     "yxyx": yxyx_box,
