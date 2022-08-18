@@ -24,8 +24,10 @@ class ContrastiveTrainer(keras.Model):
     Args:
         encoder: a `keras.Model` to be pre-trained. In most cases, this encoder
             should not include a top dense layer.
-        augmenter: a preprocessing layer to randomly augment input images for contrastive learning.
-        projector: a projection model for contrastive training
+        augmenter: a preprocessing layer to randomly augment input images for contrastive learning,
+            or a tuple of two separate augmenters for the two sides of the contrastive pipeline.
+        projector: a projection model for contrastive training, or a tuple of two separate
+            projectors for the two sides of the contrastive pipeline.
         include_probe: Whether to include a single fully-connected layer during
             training for probing classification accuracy using the learned encoding.
             Note that this should be specified iff training with labeled images.
@@ -36,6 +38,28 @@ class ContrastiveTrainer(keras.Model):
 
     Returns:
       A `keras.Model` instance.
+
+
+    Usage:
+    ```python
+    encoder = keras_cv.models.DenseNet121(include_rescaling=False, include_top=False, pooling="avg")
+    augmenter = keras_cv.layers.preprocessing.RandomFlip()
+    projector = keras.layers.Dense(64)
+
+    trainer = keras_cv.training.ContrastiveTrainer(
+        encoder,
+        augmenter,
+        projector
+    )
+
+    trainer.compile(
+        optimizer=keras.optimizers.Adam(),
+        loss=keras_cv.losses.SimCLRLoss()
+    )
+
+    unlabeled_images = load_data()
+    trainer.fit(unlabeled_images)
+    ```
 
     """
 
@@ -58,15 +82,29 @@ class ContrastiveTrainer(keras.Model):
                     "`classes` must be specified when `include_probe` is `True`."
                 )
 
-        self.include_probe = include_probe
+        if type(augmenter) is tuple and len(augmenter) != 2:
+            raise ValueError(
+                "`augmenter` must be either a single augmenter or a tuple of exactly 2 augmenters."
+            )
 
-        self.augmenter = augmenter
+        if type(projector) is tuple and len(projector) != 2:
+            raise ValueError(
+                "`augmenter` must be either a single augmenter or a tuple of exactly 2 augmenters."
+            )
+
+        self.augmenters = (
+            augmenter if type(augmenter) is tuple else (augmenter, augmenter)
+        )
         self.encoder = encoder
-        self.projector = projector
+        self.projectors = (
+            projector if type(projector) is tuple else (projector, projector)
+        )
 
         self.loss_metric = keras.metrics.Mean(name="loss")
         self.probe_loss_metric = keras.metrics.Mean(name="probe_loss")
         self.probe_metrics = []
+
+        self.include_probe = include_probe
 
         if self.include_probe:
             self.probing_top = layers.Dense(classes, name="linear_probe")
@@ -119,27 +157,31 @@ class ContrastiveTrainer(keras.Model):
                 )
             images = data
 
-        augmented_images_1 = self.augmenter(images, training=True)
-        augmented_images_2 = self.augmenter(images, training=True)
+        augmented_images_0 = self.augmenters[0](images, training=True)
+        augmented_images_1 = self.augmenters[1](images, training=True)
 
         with tf.GradientTape() as tape:
+            features_0 = self.encoder(augmented_images_0, training=True)
             features_1 = self.encoder(augmented_images_1, training=True)
-            features_2 = self.encoder(augmented_images_2, training=True)
 
-            projections_1 = self.projector(features_1, training=True)
-            projections_2 = self.projector(features_2, training=True)
+            projections_0 = self.projectors[0](features_0, training=True)
+            projections_1 = self.projectors[1](features_1, training=True)
 
-            loss = self.loss(projections_1, projections_2)
+            loss = self.loss(projections_0, projections_1)
 
         gradients = tape.gradient(
             loss,
-            self.encoder.trainable_weights + self.projector.trainable_weights,
+            self.encoder.trainable_weights
+            + self.projectors[0].trainable_weights
+            + self.projectors[1].trainable_weights,
         )
 
         self.optimizer.apply_gradients(
             zip(
                 gradients,
-                self.encoder.trainable_weights + self.projector.trainable_weights,
+                self.encoder.trainable_weights
+                + self.projectors[0].trainable_weights
+                + self.projectors[1].trainable_weights,
             )
         )
         self.loss_metric.update_state(loss)

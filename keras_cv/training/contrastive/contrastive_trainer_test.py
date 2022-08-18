@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import tensorflow as tf
+from tensorflow import keras
 from tensorflow.keras import layers
 from tensorflow.keras import metrics
 from tensorflow.keras import optimizers
@@ -135,6 +136,30 @@ class ContrastiveTrainerTest(tf.test.TestCase):
                 self.build_projector(),
                 include_probe=False,
             )
+
+    def test_with_multiple_augmenters_and_projectors(self):
+        augmenter0 = preprocessing.RandomFlip("horizontal")
+        augmenter1 = preprocessing.RandomFlip("vertical")
+
+        projector0 = layers.Dense(64, name="projector0")
+        projector1 = keras.Sequential(
+            [projector0, layers.ReLU(), layers.Dense(64, name="projector1")]
+        )
+
+        trainer_without_probing = ContrastiveTrainer(
+            self.build_encoder(),
+            (augmenter0, augmenter1),
+            (projector0, projector1),
+            include_probe=False,
+        )
+
+        images = tf.random.uniform((10, 512, 512, 3))
+
+        trainer_without_probing.compile(
+            optimizers.Adam(), loss=SimCLRLoss(temperature=0.5)
+        )
+
+        trainer_without_probing.fit(images)
 
     def build_augmenter(self):
         return preprocessing.RandomFlip("horizontal")
