@@ -64,13 +64,20 @@ class SimCLRTrainer(keras.Model):
         if encoder.output.shape.rank != 2:
             raise ValueError("Encoder must have a flattened output")
 
-        self.include_probe = include_probe
-        self.projection_width = projection_width
+        if self.include_probe:
+            if not classes:
+                raise ValueError(
+                    "`classes` must be specified when `include_probe` is `True`."
+                )
 
         if not augmenter and not value_range:
             raise ValueError(
                 "`value_range` is required when using the default augmenter."
             )
+
+        self.include_probe = include_probe
+        self.projection_width = projection_width
+
         self.augmenter = augmenter or preprocessing.Augmenter(
             [
                 preprocessing.RandomFlip("horizontal"),
@@ -97,18 +104,19 @@ class SimCLRTrainer(keras.Model):
         )
 
         if self.include_probe:
-            if not classes:
-                raise ValueError(
-                    "`classes` must be specified when `include_probe` is `True`."
-                )
             self.probing_top = layers.Dense(classes, name="linear_probe")
 
     def compile(self, optimizer, loss, probe_optimizer=None, **kwargs):
         super().compile(**kwargs)
 
+        if self.include_probe and not probe_optimizer:
+            raise ValueError(
+                "`probe_optimizer` must be specified when `include_probe` is `True`."
+            )
+
         self.optimizer = optimizer
         self.loss = loss
-        self.simclr_loss_metric = keras.metrics.Mean(name="simclr_loss")
+        self.simclr_loss_metric = keras.metrics.Mean(name="loss")
 
         if self.include_probe:
             self.probe_loss = keras.losses.CategoricalCrossentropy(from_logits=True)
@@ -117,10 +125,6 @@ class SimCLRTrainer(keras.Model):
                 name="probe_accuracy"
             )
 
-            if not probe_optimizer:
-                raise ValueError(
-                    "`probe_optimizer` must be specified when `include_probe` is `True`."
-                )
             self.probe_optimizer = probe_optimizer
 
     @property
@@ -189,4 +193,6 @@ class SimCLRTrainer(keras.Model):
         return {metric.name: metric.result() for metric in self.metrics}
 
     def call(self, inputs):
-        raise NotImplementedError("SimCLR models cannot be used for inference")
+        raise NotImplementedError(
+            "SimCLRTrainer.call() is not implemented - please call your model directly."
+        )
