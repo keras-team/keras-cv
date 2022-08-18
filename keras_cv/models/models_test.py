@@ -13,6 +13,7 @@
 # limitations under the License.
 """Integration tests for KerasCV models."""
 
+import pytest
 import tensorflow as tf
 from absl.testing import parameterized
 from tensorflow import keras
