@@ -110,13 +110,7 @@ class ContrastiveTrainer(keras.Model):
             self.probing_top = layers.Dense(classes, name="linear_probe")
 
     def compile(
-        self,
-        optimizer,
-        loss,
-        probe_optimizer=None,
-        probe_loss=keras.losses.CategoricalCrossentropy(from_logits=True),
-        probe_metrics=[keras.metrics.CategoricalAccuracy(name="probe_accuracy")],
-        **kwargs
+        self, probe_optimizer=None, probe_loss=None, probe_metrics=None, **kwargs
     ):
         super().compile(**kwargs)
 
@@ -125,8 +119,10 @@ class ContrastiveTrainer(keras.Model):
                 "`probe_optimizer` must be specified when `include_probe` is `True`."
             )
 
-        self.optimizer = optimizer
-        self.loss = loss
+        if self.include_probe and not probe_loss:
+            raise ValueError(
+                "`probe_loss` must be specified when `include_probe` is `True`."
+            )
 
         if self.include_probe:
             self.probe_loss = probe_loss
@@ -167,7 +163,8 @@ class ContrastiveTrainer(keras.Model):
             projections_0 = self.projectors[0](features_0, training=True)
             projections_1 = self.projectors[1](features_1, training=True)
 
-            loss = self.loss(projections_0, projections_1)
+            # TODO(ianstenbit), add regularization_losses from encoder and projectors
+            loss = self.compiled_loss(projections_0, projections_1)
 
         gradients = tape.gradient(
             loss,

@@ -30,6 +30,18 @@ class SimCLRLossTest(tf.test.TestCase):
 
         self.assertAllEqual(simclr_loss(projections_1, projections_2).shape, ())
 
+    def test_output_shape_reduction_none(self):
+        projections_1 = tf.random.uniform(
+            shape=(10, 128), minval=0, maxval=10, dtype=tf.float32
+        )
+        projections_2 = tf.random.uniform(
+            shape=(10, 128), minval=0, maxval=10, dtype=tf.float32
+        )
+
+        simclr_loss = SimCLRLoss(temperature=1, reduction="none")
+
+        self.assertAllEqual(simclr_loss(projections_1, projections_2).shape, (10,))
+
     def test_output_value(self):
         projections_1 = [
             [1.0, 2.0, 3.0, 4.0],

@@ -65,5 +65,5 @@ class SimCLRTrainer(ContrastiveTrainer):
             **kwargs,
         )
 
-    def compile(self, optimizer, loss=SimCLRLoss(temperature=0.5), **kwargs):
-        super().compile(optimizer, loss, **kwargs)
+    def compile(self, loss=None, **kwargs):
+        super().compile(loss=loss or SimCLRLoss(temperature=0.5), **kwargs)
