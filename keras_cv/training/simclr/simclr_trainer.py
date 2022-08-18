@@ -61,11 +61,16 @@ class SimCLRTrainer(keras.Model):
     ):
         super().__init__()
 
+        if encoder.output.shape.rank != 2:
+            raise ValueError("Encoder must have a flattened output")
+
         self.include_probe = include_probe
         self.projection_width = projection_width
 
         if not augmenter and not value_range:
-            raise ValueError("`value` is required when using the default augmenter.")
+            raise ValueError(
+                "`value_range` is required when using the default augmenter."
+            )
         self.augmenter = augmenter or preprocessing.Augmenter(
             [
                 preprocessing.RandomFlip("horizontal"),
@@ -106,11 +111,9 @@ class SimCLRTrainer(keras.Model):
         self.simclr_loss_metric = keras.metrics.Mean(name="simclr_loss")
 
         if self.include_probe:
-            self.probe_loss = keras.losses.SparseCategoricalCrossentropy(
-                from_logits=True
-            )
+            self.probe_loss = keras.losses.CategoricalCrossentropy(from_logits=True)
             self.probe_loss_metric = keras.metrics.Mean(name="probe_loss")
-            self.probe_accuracy = keras.metrics.SparseCategoricalAccuracy(
+            self.probe_accuracy = keras.metrics.CategoricalAccuracy(
                 name="probe_accuracy"
             )
 
