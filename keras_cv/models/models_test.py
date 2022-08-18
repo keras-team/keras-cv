@@ -65,6 +65,13 @@ class ModelsTest(tf.test.TestCase, parameterized.TestCase):
     def assertShapeEqual(self, shape1, shape2):
         self.assertEqual(tf.TensorShape(shape1), tf.TensorShape(shape2))
 
+    @pytest.fixture(autouse=True)
+    def cleanup_global_session(self):
+        # Code before yield runs before the test
+        yield
+        tf.keras.backend.clear_session()
+        tf.reset_default_graph()
+
     @parameterized.parameters(*MODEL_LIST)
     def test_application_base(self, app, _, args):
         # Can be instantiated with default arguments
@@ -78,8 +85,6 @@ class ModelsTest(tf.test.TestCase, parameterized.TestCase):
         # There is no rescaling layer bcause include_rescaling=False
         with self.assertRaises(ValueError):
             model.get_layer(name="rescaling")
-
-        backend.clear_session()
 
     @parameterized.parameters(*MODEL_LIST)
     def test_application_with_rescaling(self, app, last_dim, args):
@@ -100,8 +105,6 @@ class ModelsTest(tf.test.TestCase, parameterized.TestCase):
 
         self.assertIsNotNone(model.get_layer(name="rescaling"))
 
-        backend.clear_session()
-
     @parameterized.parameters(*MODEL_LIST)
     def test_application_notop(self, app, last_dim, args):
         model = app(include_rescaling=False, include_top=False, **args)
@@ -118,8 +121,6 @@ class ModelsTest(tf.test.TestCase, parameterized.TestCase):
         elif "MixerB32" in app.__name__:
             num_patches = 49
             self.assertShapeEqual(output_shape, (None, num_patches, last_dim))
-
-        backend.clear_session()
 
     @parameterized.parameters(*MODEL_LIST)
     def test_application_pooling(self, app, last_dim, args):
@@ -178,8 +179,6 @@ class ModelsTest(tf.test.TestCase, parameterized.TestCase):
         elif "MixerB32" in app.__name__:
             num_patches = 49
             self.assertShapeEqual(output_shape, (None, num_patches, last_dim))
-
-        backend.clear_session()
 
     @parameterized.parameters(*MODEL_LIST)
     def test_model_can_be_used_as_backbone(self, app, last_dim, args):
