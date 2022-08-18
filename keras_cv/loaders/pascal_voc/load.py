@@ -32,7 +32,7 @@ def curry_map_function(bounding_box_format, img_size):
 
 
 def load(
-    split, bounding_box_format, batch_size=None, shuffle=True, img_size=(512, 512)
+    split, bounding_box_format, batch_size=None, shuffle=True, shuffle_buffer=None, img_size=(512, 512)
 ):
     """Loads the PascalVOC 2007 dataset.
 
@@ -63,7 +63,15 @@ def load(
         curry_map_function(bounding_box_format=bounding_box_format, img_size=img_size),
         num_parallel_calls=tf.data.AUTOTUNE,
     )
-    dataset = dataset.shuffle(8 * batch_size)
+
+    if shuffle:
+        if not batch_size and not shuffle_buffer:
+            raise ValueError(
+                "If `shuffle=True`, either a `batch_size` or `shuffle_buffer` must be "
+                "provided to `keras_cv.loaders.pascal_voc.load().`"
+            )
+        shuffle_buffer = shuffle_buffer or 8 * batch_size
+        dataset = dataset.shuffle(shuffle_buffer)
 
     if batch_size is not None:
         dataset = dataset.apply(
