@@ -80,9 +80,6 @@ class RetinaNetTest(tf.test.TestCase, parameterized.TestCase):
         "keras_cv/models/object_detection/retina_net/retina_net_test.py -k "
         "test_fit_coco_metrics -s`",
     )
-    @parameterized.named_parameters(
-        ("xywh", "xywh"),
-    )
     def test_retina_net_call(self):
         retina_net = keras_cv.models.RetinaNet(
             classes=20,
