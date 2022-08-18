@@ -29,7 +29,6 @@ class RetinaNetTest(tf.test.TestCase, parameterized.TestCase):
         # Code before yield runs before the test
         yield
         tf.keras.backend.clear_session()
-        tf.reset_default_graph()
 
     def test_retina_net_construction(self):
         retina_net = keras_cv.models.RetinaNet(
