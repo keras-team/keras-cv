@@ -122,8 +122,7 @@ def MLPMixer(
       include_top: whether to include the fully-connected
         layer at the top of the network.  If provided, classes must be provided.
       classes: optional number of classes to classify images
-        into, only to be specified if `include_top` is True, and
-        if no `weights` argument is specified.
+        into, only to be specified if `include_top` is True.
       weights: one of `None` (random initialization), or a pretrained
         weight file path.
       input_tensor: optional Keras tensor (i.e. output of `layers.Input()`)
