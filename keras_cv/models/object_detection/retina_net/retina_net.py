@@ -21,12 +21,13 @@ from keras_cv import layers as cv_layers
 from keras_cv.models.object_detection.retina_net.__internal__ import (
     layers as layers_lib,
 )
+from keras_cv.models.object_detection.object_detection_base_model import ObjectDetectionBaseModel
 
 
 # TODO(lukewood): update docstring to include documentation on creating a custom label
 # decoder/etc.
 # TODO(lukewood): link to keras.io guide on creating custom backbone and FPN.
-class RetinaNet(keras.Model):
+class RetinaNet(ObjectDetectionBaseModel):
     """A Keras model implementing the RetinaNet architecture.
 
     Implements the RetinaNet architecture for object detection.  The constructor
