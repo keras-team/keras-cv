@@ -92,16 +92,16 @@ def _format_outputs(boxes, squeeze):
 def pad_with_sentinels(bounding_boxes):
     """Pads the given bounding box tensor with -1s.
 
-       This is done to convert RaggedTensors to be converted into
-       standard Dense tensors, which have better performance and
-       compatibility within the TensorFlow ecosystem.
+    This is done to convert RaggedTensors to be converted into
+    standard Dense tensors, which have better performance and
+    compatibility within the TensorFlow ecosystem.
 
     Args:
-      bounding_boxes: a ragged tensor of bounding boxes.
-      Can be batched or unbatched.
+        bounding_boxes: a ragged tensor of bounding boxes.
+        Can be batched or unbatched.
 
     Returns:
-      bounding_boxes_tensor: a tensor containing the -1 padded bounding boxes.
+        a Tensor containing the -1 padded bounding boxes.
     """
     return bounding_boxes.to_tensor(-1)
 
@@ -110,11 +110,10 @@ def filter_sentinels(bounding_boxes):
     """converts a Dense padded bounding box `Tensor` to a `tf.RaggedTensor`.
 
     Args:
-      bounding_boxes: a tensor of bounding boxes.
-      Can be batched or unbatched.
+        bounding_boxes: a Tensor of bounding boxes.  May be batched, or unbatched.
 
     Returns:
-      bounding_boxes_tensor: a ragged tensor containing filtered bounding boxes.
+        `tf.RaggedTensor` containing the filtered bounding boxes.
     """
     if isinstance(bounding_boxes, tf.Tensor):
         bounding_boxes = tf.RaggedTensor.from_tensor(bounding_boxes)
@@ -131,38 +130,38 @@ def filter_sentinels(bounding_boxes):
 def add_class_id(bounding_boxes, class_id=0):
     """Add class ID to the innermost Tensor or RaggedTensor representing bounding boxes.
 
-       Bounding box utilities in Keras_CV expects bounding boxes to have class IDs
-       along with bounding box cordinates. This utility adds a class ID to the
-       innermost tensor representing the bounding boxes.
+    Bounding box utilities in Keras_CV expects bounding boxes to have class IDs
+    along with bounding box cordinates. This utility adds a class ID to the
+    innermost tensor representing the bounding boxes.
 
-       Usage example:
-        bounding_boxes = tf.random.uniform(shape=[2, 2, 4])
-        bounding_boxes_with_class_id = keras_cv.bounding_box.add_class_id(
-                                        bounding_boxes, class_id=1)
-        bounding_boxes_with_class_id is a Tensor of shape [2, 2, 5]
+    Usage:
+    ```python
+    bounding_boxes = tf.random.uniform(shape=[2, 2, 4])
+    bounding_boxes_with_class_id = keras_cv.bounding_box.add_class_id(
+                                    bounding_boxes, class_id=1)
+    bounding_boxes_with_class_id is a Tensor of shape [2, 2, 5]
+    ```
 
     Args:
-      bounding_boxes: a tensor of bounding boxes.
-        Can be batched or unbatched.
-      class_id: The value of class id that needs to be padded.
-        The default value is 0
+        bounding_boxes: a `tf.Tensor` of bounding_boxes, may be batched unbatched.
+        class_id: (Optional) The value of class id that needs to be padded.
+            Defaults to 0.
 
     Returns:
-      bounding_boxes_tensor: a tensor containing class id padded bounding boxes.
+        `tf.Tensor` with an additional class id padded to the original bounding boxes.
     """
     # format input bounding boxes
     is_ragged = isinstance(bounding_boxes, tf.RaggedTensor)
+
     if is_ragged:
         row_lengths = list(bounding_boxes.nested_row_lengths())
         row_lengths[1] = row_lengths[1] + 1
-        dense_bounding_boxes = bounding_boxes.to_tensor()
-    else:
-        dense_bounding_boxes = bounding_boxes
+        bounding_boxes = bounding_boxes.to_tensor()
 
     # pad input bounding boxes
     paddings = tf.constant([[0, 0], [0, 0], [0, 1]])
-    padded_bounding_boxes = tf.pad(
-        dense_bounding_boxes,
+    bounding_boxes = tf.pad(
+        bounding_boxes,
         paddings=paddings,
         mode="CONSTANT",
         constant_values=class_id,
@@ -170,8 +169,8 @@ def add_class_id(bounding_boxes, class_id=0):
 
     # format output bounding boxes
     if isinstance(bounding_boxes, tf.RaggedTensor):
-        padded_bounding_boxes = tf.RaggedTensor.from_tensor(
-            padded_bounding_boxes,
+        bounding_boxes = tf.RaggedTensor.from_tensor(
+            bounding_boxes,
             lengths=row_lengths,
         )
-    return padded_bounding_boxes
+    return bounding_boxes
