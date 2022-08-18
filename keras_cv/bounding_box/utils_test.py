@@ -64,7 +64,7 @@ class BoundingBoxUtilTestCase(tf.test.TestCase):
         bounding_boxes = tf.ragged.constant(
             [[[1, 2, 3, 4], [1, 2, 3, 4]], [[1, 2, 3, 4]]]
         )
-        padded_bounding_boxes = bounding_box.pad_with_class_id(bounding_boxes)
+        padded_bounding_boxes = bounding_box.add_class_id(bounding_boxes)
         expected_output = tf.ragged.constant(
             [[[1, 2, 3, 4, 0], [1, 2, 3, 4, 0]], [[1, 2, 3, 4, 0]]]
         )
