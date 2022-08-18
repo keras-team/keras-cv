@@ -25,7 +25,8 @@ from tensorflow.keras import backend
 from tensorflow.keras import layers
 from tensorflow.keras.utils import custom_object_scope
 
-import keras_cv.layers
+from keras_cv import layers as cv_layers
+from keras_cv.models import utils
 
 channel_axis = -1
 
@@ -57,13 +58,15 @@ BASE_DOCSTRING = """Instantiates the {name} architecture.
             inputs will be passed through a `Rescaling(scale=1 / 255)`
             layer, defaults to True.
         include_top: whether to include the fully-connected layer at the top of the
-            network.  If provided, `num_classes` must be provided.
-        num_classes: optional number of num_classes to classify images into, only to be
+            network.  If provided, `classes` must be provided.
+        classes: optional number of classes to classify images into, only to be
             specified if `include_top` is True, and if no `weights` argument is
             specified.
         weights: one of `None` (random initialization), or a pretrained weight file
             path.
         input_shape: optional shape tuple, defaults to (None, None, 3).
+        input_tensor: optional Keras tensor (i.e. output of `layers.Input()`)
+            to use as image input for the model.
         pooling: optional pooling mode for feature extraction
             when `include_top` is `False`.
             - `None` means that the output of the model will be the 4D tensor output
@@ -226,7 +229,7 @@ def InvertedResBlock(
 
         if se_ratio:
             with custom_object_scope({"hard_sigmoid": HardSigmoid()}):
-                x = keras_cv.layers.SqueezeAndExcite2D(
+                x = cv_layers.SqueezeAndExcite2D(
                     filters=depth(infilters * expansion),
                     ratio=se_ratio,
                     squeeze_activation="relu",
@@ -260,9 +263,10 @@ def MobileNetV3(
     last_point_ch,
     include_rescaling,
     include_top,
-    num_classes=None,
+    classes=None,
     weights=None,
     input_shape=(None, None, 3),
+    input_tensor=None,
     pooling=None,
     alpha=1.0,
     minimalistic=True,
@@ -290,13 +294,15 @@ def MobileNetV3(
             inputs will be passed through a `Rescaling(scale=1 / 255)`
             layer, defaults to True.
         include_top: whether to include the fully-connected layer at the top of the
-            network.  If provided, `num_classes` must be provided.
-        num_classes: optional number of classes to classify images into, only to be
+            network.  If provided, `classes` must be provided.
+        classes: optional number of classes to classify images into, only to be
             specified if `include_top` is True, and if no `weights` argument is
             specified.
         weights: one of `None` (random initialization), or a pretrained weight file
             path.
         input_shape: optional shape tuple, defaults to (None, None, 3).
+        input_tensor: optional Keras tensor (i.e. output of `layers.Input()`)
+            to use as image input for the model.
         pooling: optional pooling mode for feature extraction
             when `include_top` is `False`.
             - `None` means that the output of the model will be the 4D tensor output
@@ -332,7 +338,7 @@ def MobileNetV3(
     Raises:
         ValueError: if `weights` represents an invalid path to weights file and is not
             None.
-        ValueError: if `include_top` is True and `num_classes` is not specified.
+        ValueError: if `include_top` is True and `classes` is not specified.
     """
     if weights and not tf.io.gfile.exists(weights):
         raise ValueError(
@@ -341,11 +347,11 @@ def MobileNetV3(
             f"Weights file not found at location: {weights}"
         )
 
-    if include_top and not num_classes:
+    if include_top and not classes:
         raise ValueError(
             "If `include_top` is True, "
-            "you should specify `num_classes`. "
-            f"Received: num_classes={num_classes}"
+            "you should specify `classes`. "
+            f"Received: classes={classes}"
         )
 
     if minimalistic:
@@ -357,7 +363,7 @@ def MobileNetV3(
         activation = HardSwish()
         se_ratio = 0.25
 
-    inputs = layers.Input(shape=input_shape)
+    inputs = utils.parse_model_inputs(input_shape, input_tensor)
 
     x = inputs
 
@@ -409,7 +415,7 @@ def MobileNetV3(
 
         if dropout_rate > 0:
             x = layers.Dropout(dropout_rate)(x)
-        x = layers.Conv2D(num_classes, kernel_size=1, padding="same", name="Logits")(x)
+        x = layers.Conv2D(classes, kernel_size=1, padding="same", name="Logits")(x)
         x = layers.Flatten()(x)
         x = layers.Activation(activation=classifier_activation, name="Predictions")(x)
     elif pooling == "avg":
@@ -427,9 +433,10 @@ def MobileNetV3(
 def MobileNetV3Small(
     include_rescaling,
     include_top,
-    num_classes=None,
+    classes=None,
     weights=None,
     input_shape=(None, None, 3),
+    input_tensor=None,
     pooling=None,
     alpha=1.0,
     minimalistic=False,
@@ -478,9 +485,10 @@ def MobileNetV3Small(
         last_point_ch=1024,
         include_rescaling=include_rescaling,
         include_top=include_top,
-        num_classes=num_classes,
+        classes=classes,
         weights=weights,
         input_shape=input_shape,
+        input_tensor=input_tensor,
         pooling=pooling,
         alpha=alpha,
         minimalistic=minimalistic,
@@ -494,9 +502,10 @@ def MobileNetV3Small(
 def MobileNetV3Large(
     include_rescaling,
     include_top,
-    num_classes=None,
+    classes=None,
     weights=None,
     input_shape=(None, None, 3),
+    input_tensor=None,
     pooling=None,
     alpha=1.0,
     minimalistic=False,
@@ -541,9 +550,10 @@ def MobileNetV3Large(
         last_point_ch=1280,
         include_rescaling=include_rescaling,
         include_top=include_top,
-        num_classes=num_classes,
+        classes=classes,
         weights=weights,
         input_shape=input_shape,
+        input_tensor=input_tensor,
         pooling=pooling,
         alpha=alpha,
         minimalistic=minimalistic,
