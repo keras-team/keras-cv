@@ -62,10 +62,6 @@ class RetinaNetTest(tf.test.TestCase, parameterized.TestCase):
         # self.assertIsNotNone(retina_net.backbone.get_layer(name="rescaling"))
         # TODO(lukewood): test compile with the FocalLoss class
 
-    def test_raises_when_box_variances_dont_match(self):
-        # TODO(lukewood): write test
-        pass
-
     def test_retina_net_include_rescaling_required_with_default_backbone(self):
         with self.assertRaises(ValueError):
             _ = keras_cv.models.RetinaNet(
@@ -76,6 +72,17 @@ class RetinaNetTest(tf.test.TestCase, parameterized.TestCase):
                 # Note no include_rescaling is provided
             )
 
+    @pytest.mark.skipif(
+        "INTEGRATION" not in os.environ,
+        reason="Takes a long time to run, only runs when INTEGRATION "
+        "environment variable is set.  To run the test please run: \n"
+        "`INTEGRATION=true pytest "
+        "keras_cv/models/object_detection/retina_net/retina_net_test.py -k "
+        "test_fit_coco_metrics -s`",
+    )
+    @parameterized.named_parameters(
+        ("xywh", "xywh"),
+    )
     def test_retina_net_call(self):
         retina_net = keras_cv.models.RetinaNet(
             classes=20,
