@@ -44,11 +44,16 @@ def load(
     ```
 
     Args:
-        split:
-        bounding_box_format:
-        batch_size:
-        shuffle:
-        img_size:
+        split: the split string passed to the `tensorflow_datasets.load()` call.  Should
+            be one of "train", "test", or "validation."
+        bounding_box_format: the keras_cv bounding box format to load the boxes into.
+            For a list of supported formats, please  Refer
+            [to the keras.io docs](https://keras.io/api/keras_cv/bounding_box/formats/)
+            for more details on supported bounding box formats.
+        batch_size: how many instances to include in batches after loading
+        shuffle: whether or not to shuffle the dataset.  Defaults to True.
+        shuffle_buffer: the size of the buffer to use in shuffling.
+        img_size: the size to resize the images to.
 
     Returns:
         tf.data.Dataset containing PascalVOC.  Each entry is a dictionary containing
