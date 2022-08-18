@@ -13,11 +13,14 @@
 # limitations under the License.
 
 from tensorflow import keras
+from tensorflow.keras import layers
 
 from keras_cv.layers import preprocessing
+from keras_cv.losses import SimCLRLoss
+from keras_cv.training import ContrastiveTrainer
 
 
-class SimCLRTrainer(preprocessing.Augmenter):
+class SimCLRTrainer(ContrastiveTrainer):
     """Creates a SimCLRTrainer.
 
     References:
@@ -32,10 +35,12 @@ class SimCLRTrainer(preprocessing.Augmenter):
             on how your preprocessing pipeline is setup.
     """
 
-    def __init__(self, encoder, value_range):
+    def __init__(
+        self, encoder, include_probe, value_range, projection_width=128, **kwargs
+    ):
         super().__init__(
             encoder=encoder,
-            augmentor=preprocessing.Augmenter(
+            augmenter=preprocessing.Augmenter(
                 [
                     preprocessing.RandomFlip(),
                     preprocessing.RandomTranslation(0.25, 0.25),
@@ -51,9 +56,20 @@ class SimCLRTrainer(preprocessing.Augmenter):
             ),
             projector=keras.Sequential(
                 [
-                    layers.Dense(self.projection_width, activation="relu"),
-                    layers.Dense(self.projection_width),
+                    layers.Dense(projection_width, activation="relu"),
+                    layers.Dense(projection_width),
                 ],
                 name="projector",
             ),
+            include_probe=include_probe,
+            **kwargs,
         )
+
+    def compile(
+        self,
+        optimizer,
+        loss=SimCLRLoss(temperature=0.5),
+        probe_optimizer=None,
+        **kwargs
+    ):
+        super().compile(optimizer, loss, **kwargs)

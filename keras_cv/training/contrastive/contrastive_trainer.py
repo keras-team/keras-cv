@@ -17,8 +17,6 @@ import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras import layers
 
-from keras_cv.layers import preprocessing
-
 
 class ContrastiveTrainer(keras.Model):
     """Creates a self-supervised contrastive trainer for a model.
@@ -47,7 +45,6 @@ class ContrastiveTrainer(keras.Model):
         augmenter,
         projector,
         include_probe,
-        probe_metrics=[keras.metrics.CategoricalAccuracy(name="probe_accuracy")],
         classes=None,
     ):
         super().__init__()
@@ -69,12 +66,20 @@ class ContrastiveTrainer(keras.Model):
 
         self.loss_metric = keras.metrics.Mean(name="loss")
         self.probe_loss_metric = keras.metrics.Mean(name="probe_loss")
-        self.probe_metrics = probe_metrics or []
+        self.probe_metrics = []
 
         if self.include_probe:
             self.probing_top = layers.Dense(classes, name="linear_probe")
 
-    def compile(self, optimizer, loss, probe_optimizer=None, **kwargs):
+    def compile(
+        self,
+        optimizer,
+        loss,
+        probe_optimizer=None,
+        probe_loss=keras.losses.CategoricalCrossentropy(from_logits=True),
+        probe_metrics=[keras.metrics.CategoricalAccuracy(name="probe_accuracy")],
+        **kwargs
+    ):
         super().compile(**kwargs)
 
         if self.include_probe and not probe_optimizer:
@@ -86,8 +91,9 @@ class ContrastiveTrainer(keras.Model):
         self.loss = loss
 
         if self.include_probe:
-            self.probe_loss = keras.losses.CategoricalCrossentropy(from_logits=True)
+            self.probe_loss = probe_loss
             self.probe_optimizer = probe_optimizer
+            self.probe_metrics = probe_metrics or []
 
     @property
     def metrics(self):
