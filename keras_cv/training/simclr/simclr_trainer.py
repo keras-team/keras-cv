@@ -21,6 +21,35 @@ from keras_cv.layers import preprocessing
 
 
 class SimCLRTrainer(keras.Model):
+    """Creates a self-supervised SimCLR trainer for a model.
+
+    References:
+        - [SimCLR paper](https://arxiv.org/pdf/2002.05709)
+
+    Args:
+        encoder: a `keras.Model` to be pre-trained. In most cases, this encoder
+            should not include a top dense layer.
+        include_probe: Whether to include a single fully-connected layer during
+            training for probing classification accuracy using the learned encoding.
+            Note that this should be specified iff training with labeled images.
+            If provided, `classes` must be provided.
+        classes: optional number of classes to classify images into, only to be
+            specified if `include_top` is True.
+        projection_width: an optional width for the projection MLP in the SimCLR architecture
+        augmenter: a preprocessing layer to randomly augment input images for contrastive learning.
+            If no custom augmenter is provided, a default augmenter will be used,
+            and `value_range` must be provided.
+        value_range: the range of values the incoming images will have.
+            Required iff no `augmenter` is provided.
+            Represented as a two number tuple written [low, high].
+            This is typically either `[0, 1]` or `[0, 255]` depending
+            on how your preprocessing pipeline is setup.
+
+    Returns:
+      A `keras.Model` instance.
+
+    """
+
     def __init__(
         self,
         encoder,

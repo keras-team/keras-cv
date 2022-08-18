@@ -86,14 +86,14 @@ def config_equals(config1, config2):
 
 class SerializationTest(tf.test.TestCase, parameterized.TestCase):
     @parameterized.named_parameters(
-        ("Augmenter", preprocessing.Augmenter, {"layers": [preprocessing.Grayscale()]}),
-        ("AutoContrast", preprocessing.AutoContrast, {"value_range": (0, 255)}),
-        ("ChannelShuffle", preprocessing.ChannelShuffle, {"seed": 1}),
-        ("CutMix", preprocessing.CutMix, {"seed": 1}),
-        ("Equalization", preprocessing.Equalization, {"value_range": (0, 255)}),
-        ("Grayscale", preprocessing.Grayscale, {}),
-        ("GridMask", preprocessing.GridMask, {"seed": 1}),
-        ("MixUp", preprocessing.MixUp, {"seed": 1}),
+        ("Augmenter", cv_layers.Augmenter, {"layers": [cv_layers.Grayscale()]}),
+        ("AutoContrast", cv_layers.AutoContrast, {"value_range": (0, 255)}),
+        ("ChannelShuffle", cv_layers.ChannelShuffle, {"seed": 1}),
+        ("CutMix", cv_layers.CutMix, {"seed": 1}),
+        ("Equalization", cv_layers.Equalization, {"value_range": (0, 255)}),
+        ("Grayscale", cv_layers.Grayscale, {}),
+        ("GridMask", cv_layers.GridMask, {"seed": 1}),
+        ("MixUp", cv_layers.MixUp, {"seed": 1}),
         (
             "RandomChannelShift",
             cv_layers.RandomChannelShift,
