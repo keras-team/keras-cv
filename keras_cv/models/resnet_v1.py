@@ -105,7 +105,7 @@ def Block(filters, kernel_size=3, stride=1, conv_shortcut=True, name=None):
     def apply(x):
         if conv_shortcut:
             shortcut = layers.Conv2D(
-                4 * filters, 1, strides=stride, name=name + "_0_conv"
+                4 * filters, 1, strides=stride, use_bias=False, name=name + "_0_conv"
             )(x)
             shortcut = layers.BatchNormalization(
                 axis=BN_AXIS, epsilon=1.001e-5, name=name + "_0_bn"
@@ -113,21 +113,23 @@ def Block(filters, kernel_size=3, stride=1, conv_shortcut=True, name=None):
         else:
             shortcut = x
 
-        x = layers.Conv2D(filters, 1, strides=stride, name=name + "_1_conv")(x)
+        x = layers.Conv2D(
+            filters, 1, strides=stride, use_bias=False, name=name + "_1_conv"
+        )(x)
         x = layers.BatchNormalization(
             axis=BN_AXIS, epsilon=1.001e-5, name=name + "_1_bn"
         )(x)
         x = layers.Activation("relu", name=name + "_1_relu")(x)
 
-        x = layers.Conv2D(filters, kernel_size, padding="SAME", name=name + "_2_conv")(
-            x
-        )
+        x = layers.Conv2D(
+            filters, kernel_size, padding="SAME", use_bias=False, name=name + "_2_conv"
+        )(x)
         x = layers.BatchNormalization(
             axis=BN_AXIS, epsilon=1.001e-5, name=name + "_2_bn"
         )(x)
         x = layers.Activation("relu", name=name + "_2_relu")(x)
 
-        x = layers.Conv2D(4 * filters, 1, name=name + "_3_conv")(x)
+        x = layers.Conv2D(4 * filters, 1, use_bias=False, name=name + "_3_conv")(x)
         x = layers.BatchNormalization(
             axis=BN_AXIS, epsilon=1.001e-5, name=name + "_3_bn"
         )(x)
@@ -238,7 +240,7 @@ def ResNet(
         x = layers.Rescaling(1 / 255.0)(x)
 
     x = layers.Conv2D(
-        64, 7, strides=2, use_bias=True, padding="same", name="conv1_conv"
+        64, 7, strides=2, use_bias=False, padding="same", name="conv1_conv"
     )(x)
 
     x = layers.BatchNormalization(axis=BN_AXIS, epsilon=1.001e-5, name="conv1_bn")(x)
