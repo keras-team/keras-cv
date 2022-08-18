@@ -61,7 +61,7 @@ class ContrastiveTrainerTest(tf.test.TestCase):
             include_probe=False,
         )
 
-        images = tf.random.uniform((10, 512, 512, 3))
+        images = tf.random.uniform((1, 50, 50, 3))
         targets = tf.ones((10, 20))
 
         trainer_with_probing.compile(
@@ -87,8 +87,8 @@ class ContrastiveTrainerTest(tf.test.TestCase):
             classes=20,
         )
 
-        images = tf.random.uniform((10, 512, 512, 3))
-        targets = tf.ones((10, 20))
+        images = tf.random.uniform((1, 50, 50, 3))
+        targets = tf.ones((1, 20))
 
         trainer_with_probing.compile(
             optimizers.Adam(),
@@ -107,7 +107,7 @@ class ContrastiveTrainerTest(tf.test.TestCase):
             include_probe=False,
         )
 
-        images = tf.random.uniform((10, 512, 512, 3))
+        images = tf.random.uniform((1, 50, 50, 3))
 
         trainer_without_probing.compile(
             optimizers.Adam(), loss=SimCLRLoss(temperature=0.5)
@@ -125,7 +125,7 @@ class ContrastiveTrainerTest(tf.test.TestCase):
         trainer.compile(optimizer=optimizers.Adam(), loss=SimCLRLoss(temperature=0.5))
 
         with self.assertRaises(NotImplementedError):
-            trainer(tf.ones((10, 250, 250, 3)))
+            trainer(tf.ones((1, 50, 50, 3)))
 
     def test_encoder_must_have_flat_output(self):
         with self.assertRaises(ValueError):
@@ -153,7 +153,7 @@ class ContrastiveTrainerTest(tf.test.TestCase):
             include_probe=False,
         )
 
-        images = tf.random.uniform((10, 512, 512, 3))
+        images = tf.random.uniform((1, 50, 50, 3))
 
         trainer_without_probing.compile(
             optimizers.Adam(), loss=SimCLRLoss(temperature=0.5)
