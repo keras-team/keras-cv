@@ -122,6 +122,32 @@ class XYWH:
     CONFIDENCE = 5
 
 
+class REL_XYWH:
+    """REL_XYWH contains axis indices for the XYWH format.
+
+    REL_XYXY is like XYWH, but each value is relative to the width and height of the
+    origin image.  Values are percentages of the origin images' width and height
+    respectively.
+
+    - X: X coordinate of the left of the bounding box
+    - Y: Y coordinate of the top of the bounding box
+    - WIDTH: width of the bounding box
+    - HEIGHT: height of the bounding box
+
+    and the following optional indices, used in some KerasCV components:
+
+    - 4: class of the object contained in the bounding box
+    - 5: confidence that the box is valid, used in predictions
+    """
+
+    X = 0
+    Y = 1
+    WIDTH = 2
+    HEIGHT = 3
+    CLASS = 4
+    CONFIDENCE = 5
+
+
 class YXYX:
     """YXYX contains axis indices for the YXYX format.
 

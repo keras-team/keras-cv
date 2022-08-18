@@ -22,7 +22,7 @@ MIN_VERSION = "2.9.0"
 
 
 def check_tf_version():
-    if parse(tf.__version__) <= parse(MIN_VERSION):
+    if parse(tf.__version__) < parse(MIN_VERSION):
         raise RuntimeError(
             f"The Tensorflow package version needs to be at least {MIN_VERSION} "
             "for KerasCV to run. Currently, your TensorFlow version is "

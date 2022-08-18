@@ -12,9 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from keras_cv.models.object_detection.retina_net.__internal__.layers.decode_predictions import (
-    DecodePredictions,
-)
 from keras_cv.models.object_detection.retina_net.__internal__.layers.feature_pyramid import (
     FeaturePyramid,
 )

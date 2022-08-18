@@ -66,7 +66,7 @@ flags.DEFINE_boolean(
 )
 flags.DEFINE_float(
     "initial_learning_rate",
-    0.005,
+    0.1,
     "Initial learning rate which will reduce on plateau.",
 )
 
@@ -193,7 +193,7 @@ Note that learning rate will decrease over time due to the ReduceLROnPlateau cal
 """
 
 
-optimizer = optimizers.Adam(learning_rate=FLAGS.initial_learning_rate)
+optimizer = optimizers.SGD(learning_rate=FLAGS.initial_learning_rate, momentum=0.9)
 
 
 """
@@ -220,9 +220,9 @@ We use EarlyStopping, BackupAndRestore, and a model checkpointing callback.
 
 callbacks = [
     callbacks.ReduceLROnPlateau(
-        monitor="val_loss", factor=0.3, patience=20, min_lr=0.0001
+        monitor="val_loss", factor=0.1, patience=10, min_lr=0.0001
     ),
-    callbacks.EarlyStopping(patience=40),
+    callbacks.EarlyStopping(patience=20),
     callbacks.BackupAndRestore(FLAGS.backup_path),
     callbacks.ModelCheckpoint(FLAGS.weights_path, save_weights_only=True),
     callbacks.TensorBoard(log_dir=FLAGS.tensorboard_path),

@@ -17,16 +17,14 @@ import tensorflow as tf
 from absl.testing import parameterized
 
 from keras_cv import core
-from keras_cv.layers import object_detection
-from keras_cv.layers import preprocessing
-from keras_cv.layers import regularization
+from keras_cv import layers as cv_layers
 
 
 def exhaustive_compare(obj1, obj2):
     classes_supporting_get_config = (
         core.FactorSampler,
         tf.keras.layers.Layer,
-        preprocessing.BaseImageAugmentationLayer,
+        cv_layers.BaseImageAugmentationLayer,
     )
 
     # If both objects are either one of list or tuple then their individual
@@ -98,48 +96,48 @@ class SerializationTest(tf.test.TestCase, parameterized.TestCase):
         ("MixUp", preprocessing.MixUp, {"seed": 1}),
         (
             "RandomChannelShift",
-            preprocessing.RandomChannelShift,
+            cv_layers.RandomChannelShift,
             {"value_range": (0, 255), "factor": 0.5},
         ),
         (
             "Posterization",
-            preprocessing.Posterization,
+            cv_layers.Posterization,
             {"bits": 3, "value_range": (0, 255)},
         ),
         (
             "RandomColorDegeneration",
-            preprocessing.RandomColorDegeneration,
+            cv_layers.RandomColorDegeneration,
             {"factor": 0.5, "seed": 1},
         ),
         (
             "RandomCutout",
-            preprocessing.RandomCutout,
+            cv_layers.RandomCutout,
             {"height_factor": 0.2, "width_factor": 0.2, "seed": 1},
         ),
         (
             "RandomHue",
-            preprocessing.RandomHue,
+            cv_layers.RandomHue,
             {"factor": 0.5, "value_range": (0, 255), "seed": 1},
         ),
         (
             "RandomSaturation",
-            preprocessing.RandomSaturation,
+            cv_layers.RandomSaturation,
             {"factor": 0.5, "seed": 1},
         ),
         (
             "RandomSharpness",
-            preprocessing.RandomSharpness,
+            cv_layers.RandomSharpness,
             {"factor": 0.5, "value_range": (0, 255), "seed": 1},
         ),
         (
             "RandomShear",
-            preprocessing.RandomShear,
+            cv_layers.RandomShear,
             {"x_factor": 0.3, "x_factor": 0.3, "seed": 1},
         ),
-        ("Solarization", preprocessing.Solarization, {"value_range": (0, 255)}),
+        ("Solarization", cv_layers.Solarization, {"value_range": (0, 255)}),
         (
             "RandAugment",
-            preprocessing.RandAugment,
+            cv_layers.RandAugment,
             {
                 "value_range": (0, 255),
                 "magnitude": 0.5,
@@ -150,11 +148,11 @@ class SerializationTest(tf.test.TestCase, parameterized.TestCase):
         ),
         (
             "RandomAugmentationPipeline",
-            preprocessing.RandomAugmentationPipeline,
+            cv_layers.RandomAugmentationPipeline,
             {
                 "layers": [
-                    preprocessing.RandomSaturation(factor=0.5),
-                    preprocessing.RandomColorDegeneration(factor=0.5),
+                    cv_layers.RandomSaturation(factor=0.5),
+                    cv_layers.RandomColorDegeneration(factor=0.5),
                 ],
                 "augmentations_per_image": 1,
                 "rate": 1.0,
@@ -162,12 +160,12 @@ class SerializationTest(tf.test.TestCase, parameterized.TestCase):
         ),
         (
             "RandomChoice",
-            preprocessing.RandomChoice,
+            cv_layers.RandomChoice,
             {"layers": [], "seed": 3, "auto_vectorize": False},
         ),
         (
             "RandomColorJitter",
-            preprocessing.RandomColorJitter,
+            cv_layers.RandomColorJitter,
             {
                 "value_range": (0, 255),
                 "brightness_factor": (-0.2, 0.5),
@@ -179,7 +177,7 @@ class SerializationTest(tf.test.TestCase, parameterized.TestCase):
         ),
         (
             "RandomResizedCrop",
-            preprocessing.RandomResizedCrop,
+            cv_layers.RandomResizedCrop,
             {
                 "target_size": (224, 224),
                 "crop_area_factor": (0.08, 1.0),
@@ -190,17 +188,17 @@ class SerializationTest(tf.test.TestCase, parameterized.TestCase):
         ),
         (
             "DropBlock2D",
-            regularization.DropBlock2D,
+            cv_layers.DropBlock2D,
             {"rate": 0.1, "block_size": (7, 7), "seed": 1234},
         ),
         (
             "StochasticDepth",
-            regularization.StochasticDepth,
+            cv_layers.StochasticDepth,
             {"rate": 0.1},
         ),
         (
             "SqueezeAndExcite2D",
-            regularization.SqueezeAndExcite2D,
+            cv_layers.SqueezeAndExcite2D,
             {
                 "filters": 16,
                 "ratio": 0.25,
@@ -210,14 +208,14 @@ class SerializationTest(tf.test.TestCase, parameterized.TestCase):
         ),
         (
             "DropPath",
-            regularization.DropPath,
+            cv_layers.DropPath,
             {
                 "rate": 0.2,
             },
         ),
         (
             "MaybeApply",
-            preprocessing.MaybeApply,
+            cv_layers.MaybeApply,
             {
                 "rate": 0.5,
                 "layer": None,
@@ -226,12 +224,12 @@ class SerializationTest(tf.test.TestCase, parameterized.TestCase):
         ),
         (
             "RandomJpegQuality",
-            preprocessing.RandomJpegQuality,
+            cv_layers.RandomJpegQuality,
             {"factor": (75, 100)},
         ),
         (
             "AugMix",
-            preprocessing.AugMix,
+            cv_layers.AugMix,
             {
                 "value_range": (0, 255),
                 "severity": 0.3,
@@ -243,7 +241,7 @@ class SerializationTest(tf.test.TestCase, parameterized.TestCase):
         ),
         (
             "NonMaxSuppression",
-            object_detection.NonMaxSuppression,
+            cv_layers.NonMaxSuppression,
             {
                 "classes": 5,
                 "bounding_box_format": "xyxy",
@@ -255,7 +253,7 @@ class SerializationTest(tf.test.TestCase, parameterized.TestCase):
         ),
         (
             "RandomRotation",
-            preprocessing.RandomRotation,
+            cv_layers.RandomRotation,
             {
                 "factor": 0.5,
             },
