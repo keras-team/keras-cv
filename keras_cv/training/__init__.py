@@ -12,4 +12,5 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from keras_cv.training.simclr.simclr_trainer import SimCLRTrainer
+from keras_cv.training.contrastive.contrastive_trainer import ContrastiveTrainer
+from keras_cv.training.contrastive.simclr_trainer import SimCLRTrainer

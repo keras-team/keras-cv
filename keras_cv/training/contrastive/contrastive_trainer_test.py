@@ -13,45 +13,51 @@
 # limitations under the License.
 
 import tensorflow as tf
+from tensorflow.keras import layers
 from tensorflow.keras import optimizers
 
+from keras_cv.layers import preprocessing
 from keras_cv.losses import SimCLRLoss
 from keras_cv.models import DenseNet121
+from keras_cv.training import ContrastiveTrainer
 from keras_cv.training import SimCLRTrainer
 
 
-class SimCLRTrainerTest(tf.test.TestCase):
-    def test_default_augmenter_requires_value_range(self):
-        with self.assertRaises(ValueError):
-            _ = SimCLRTrainer(
-                self.build_encoder(),
-                include_probe=False,
-                augmenter=None,
-                value_range=None,
-            )
-
+class ContrastiveTrainerTest(tf.test.TestCase):
     def test_include_probe_requires_classes(self):
         with self.assertRaises(ValueError):
-            _ = SimCLRTrainer(
+            _ = ContrastiveTrainer(
                 self.build_encoder(),
+                self.build_augmenter(),
+                self.build_projector(),
                 include_probe=True,
                 classes=None,
-                value_range=(0, 1),
             )
 
     def test_include_probe_requires_probe_optimizer(self):
-        simclr = SimCLRTrainer(
-            self.build_encoder(), include_probe=True, classes=10, value_range=(0, 1)
+        simclr = ContrastiveTrainer(
+            self.build_encoder(),
+            self.build_augmenter(),
+            self.build_projector(),
+            include_probe=True,
+            classes=10,
         )
         with self.assertRaises(ValueError):
             simclr.compile(optimizers.Adam(), SimCLRLoss(temperature=0.5))
 
     def test_targets_required_iff_probing(self):
-        simclr_with_probing = SimCLRTrainer(
-            self.build_encoder(), include_probe=True, classes=20, value_range=(0, 1)
+        simclr_with_probing = ContrastiveTrainer(
+            self.build_encoder(),
+            self.build_augmenter(),
+            self.build_projector(),
+            include_probe=True,
+            classes=20,
         )
-        simclr_without_probing = SimCLRTrainer(
-            self.build_encoder(), include_probe=False, value_range=(0, 1)
+        simclr_without_probing = ContrastiveTrainer(
+            self.build_encoder(),
+            self.build_augmenter(),
+            self.build_projector(),
+            include_probe=False,
         )
 
         images = tf.random.uniform((10, 512, 512, 3))
@@ -72,8 +78,12 @@ class SimCLRTrainerTest(tf.test.TestCase):
             simclr_without_probing.fit(images, targets)
 
     def test_train_with_probing(self):
-        simclr_with_probing = SimCLRTrainer(
-            self.build_encoder(), include_probe=True, classes=20, value_range=(0, 1)
+        simclr_with_probing = ContrastiveTrainer(
+            self.build_encoder(),
+            self.build_augmenter(),
+            self.build_projector(),
+            include_probe=True,
+            classes=20,
         )
 
         images = tf.random.uniform((10, 512, 512, 3))
@@ -88,8 +98,11 @@ class SimCLRTrainerTest(tf.test.TestCase):
         simclr_with_probing.fit(images, targets)
 
     def test_train_without_probing(self):
-        simclr_without_probing = SimCLRTrainer(
-            self.build_encoder(), include_probe=False, value_range=(0, 1)
+        simclr_without_probing = ContrastiveTrainer(
+            self.build_encoder(),
+            self.build_augmenter(),
+            self.build_projector(),
+            include_probe=False,
         )
 
         images = tf.random.uniform((10, 512, 512, 3))
@@ -101,8 +114,11 @@ class SimCLRTrainerTest(tf.test.TestCase):
         simclr_without_probing.fit(images)
 
     def test_inference_not_supported(self):
-        simclr = SimCLRTrainer(
-            self.build_encoder(), include_probe=False, value_range=(0, 1)
+        simclr = ContrastiveTrainer(
+            self.build_encoder(),
+            self.build_augmenter(),
+            self.build_projector(),
+            include_probe=False,
         )
         simclr.compile(optimizer=optimizers.Adam(), loss=SimCLRLoss(temperature=0.5))
 
@@ -111,13 +127,19 @@ class SimCLRTrainerTest(tf.test.TestCase):
 
     def test_encoder_must_have_flat_output(self):
         with self.assertRaises(ValueError):
-            _ = SimCLRTrainer(
+            _ = ContrastiveTrainer(
                 # A DenseNet without pooling does not have a flat output
                 DenseNet121(include_rescaling=False, include_top=False),
+                self.build_augmenter(),
+                self.build_projector(),
                 include_probe=False,
-                augmenter=None,
-                value_range=None,
             )
+
+    def build_augmenter(self):
+        return preprocessing.RandomFlip("horizontal")
 
     def build_encoder(self):
         return DenseNet121(include_rescaling=False, include_top=False, pooling="avg")
+
+    def build_projector(self):
+        return layers.Dense(128)

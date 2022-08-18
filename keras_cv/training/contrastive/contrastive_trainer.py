@@ -20,30 +20,21 @@ from tensorflow.keras import layers
 from keras_cv.layers import preprocessing
 
 
-class SimCLRTrainer(keras.Model):
-    """Creates a self-supervised SimCLR trainer for a model.
-
-    References:
-        - [SimCLR paper](https://arxiv.org/pdf/2002.05709)
+class ContrastiveTrainer(keras.Model):
+    """Creates a self-supervised contrastive trainer for a model.
 
     Args:
         encoder: a `keras.Model` to be pre-trained. In most cases, this encoder
             should not include a top dense layer.
+        augmenter: a preprocessing layer to randomly augment input images for contrastive learning.
+        projector: a projection model for contrastive training
         include_probe: Whether to include a single fully-connected layer during
             training for probing classification accuracy using the learned encoding.
             Note that this should be specified iff training with labeled images.
             If provided, `classes` must be provided.
+        probe_metrics: a list of metrics for the linear probe, only used if `include_probe` is True.
         classes: optional number of classes to classify images into, only to be
-            specified if `include_top` is True.
-        projection_width: an optional width for the projection MLP in the SimCLR architecture
-        augmenter: a preprocessing layer to randomly augment input images for contrastive learning.
-            If no custom augmenter is provided, a default augmenter will be used,
-            and `value_range` must be provided.
-        value_range: the range of values the incoming images will have.
-            Required iff no `augmenter` is provided.
-            Represented as a two number tuple written [low, high].
-            This is typically either `[0, 1]` or `[0, 255]` depending
-            on how your preprocessing pipeline is setup.
+            specified if `include_probe` is True.
 
     Returns:
       A `keras.Model` instance.
@@ -53,55 +44,32 @@ class SimCLRTrainer(keras.Model):
     def __init__(
         self,
         encoder,
+        augmenter,
+        projector,
         include_probe,
+        probe_metrics=[keras.metrics.CategoricalAccuracy(name="probe_accuracy")],
         classes=None,
-        projection_width=128,
-        augmenter=None,
-        value_range=None,
     ):
         super().__init__()
 
         if encoder.output.shape.rank != 2:
             raise ValueError("Encoder must have a flattened output")
 
-        if self.include_probe:
+        if include_probe:
             if not classes:
                 raise ValueError(
                     "`classes` must be specified when `include_probe` is `True`."
                 )
 
-        if not augmenter and not value_range:
-            raise ValueError(
-                "`value_range` is required when using the default augmenter."
-            )
-
         self.include_probe = include_probe
-        self.projection_width = projection_width
 
-        self.augmenter = augmenter or preprocessing.Augmenter(
-            [
-                preprocessing.RandomFlip("horizontal"),
-                preprocessing.RandomTranslation(0.25, 0.25),
-                preprocessing.RandomZoom((-0.5, 0.0), (-0.5, 0.0)),
-                preprocessing.RandomColorJitter(
-                    value_range=value_range,
-                    brightness_factor=0.5,
-                    contrast_factor=0.5,
-                    saturation_factor=(0.3, 0.7),
-                    hue_factor=0.5,
-                ),
-            ]
-        )
-
+        self.augmenter = augmenter
         self.encoder = encoder
+        self.projector = projector
 
-        self.projection_top = keras.Sequential(
-            [
-                layers.Dense(self.projection_width, activation="relu"),
-                layers.Dense(self.projection_width),
-            ],
-            name="projection_top",
-        )
+        self.loss_metric = keras.metrics.Mean(name="loss")
+        self.probe_loss_metric = keras.metrics.Mean(name="probe_loss")
+        self.probe_metrics = probe_metrics or []
 
         if self.include_probe:
             self.probing_top = layers.Dense(classes, name="linear_probe")
@@ -116,27 +84,19 @@ class SimCLRTrainer(keras.Model):
 
         self.optimizer = optimizer
         self.loss = loss
-        self.simclr_loss_metric = keras.metrics.Mean(name="loss")
 
         if self.include_probe:
             self.probe_loss = keras.losses.CategoricalCrossentropy(from_logits=True)
-            self.probe_loss_metric = keras.metrics.Mean(name="probe_loss")
-            self.probe_accuracy = keras.metrics.CategoricalAccuracy(
-                name="probe_accuracy"
-            )
-
             self.probe_optimizer = probe_optimizer
 
     @property
     def metrics(self):
         metrics = [
-            self.simclr_loss_metric,
+            self.loss_metric,
         ]
         if self.include_probe:
-            metrics += [
-                self.probe_loss_metric,
-                self.probe_accuracy,
-            ]
+            metrics += [self.probe_loss_metric]
+            metrics += self.probe_metrics
         return super().metrics + metrics
 
     def train_step(self, data):
@@ -160,23 +120,23 @@ class SimCLRTrainer(keras.Model):
             features_1 = self.encoder(augmented_images_1, training=True)
             features_2 = self.encoder(augmented_images_2, training=True)
 
-            projections_1 = self.projection_top(features_1, training=True)
-            projections_2 = self.projection_top(features_2, training=True)
+            projections_1 = self.projector(features_1, training=True)
+            projections_2 = self.projector(features_2, training=True)
 
-            simclr_loss = self.loss(projections_1, projections_2)
+            loss = self.loss(projections_1, projections_2)
 
         gradients = tape.gradient(
-            simclr_loss,
-            self.encoder.trainable_weights + self.projection_top.trainable_weights,
+            loss,
+            self.encoder.trainable_weights + self.projector.trainable_weights,
         )
 
         self.optimizer.apply_gradients(
             zip(
                 gradients,
-                self.encoder.trainable_weights + self.projection_top.trainable_weights,
+                self.encoder.trainable_weights + self.projector.trainable_weights,
             )
         )
-        self.simclr_loss_metric.update_state(simclr_loss)
+        self.loss_metric.update_state(loss)
 
         if self.include_probe:
             with tf.GradientTape() as tape:
@@ -188,11 +148,12 @@ class SimCLRTrainer(keras.Model):
                 zip(gradients, self.probing_top.trainable_weights)
             )
             self.probe_loss_metric.update_state(probe_loss)
-            self.probe_accuracy.update_state(labels, class_logits)
+            for metric in self.probe_metrics:
+                metric.update_state(labels, class_logits)
 
         return {metric.name: metric.result() for metric in self.metrics}
 
     def call(self, inputs):
         raise NotImplementedError(
-            "SimCLRTrainer.call() is not implemented - please call your model directly."
+            "ContrastiveTrainer.call() is not implemented - please call your model directly."
         )
