@@ -34,6 +34,28 @@ def curry_map_function(bounding_box_format, img_size):
 def load(
     split, bounding_box_format, batch_size=None, shuffle=True, img_size=(512, 512)
 ):
+    """Loads the PascalVOC 2007 dataset.
+
+    Usage:
+    ```python
+    dataset, ds_info = keras_cv.loaders.pascal_voc.load(
+        split="train", bounding_box_format="xywh", batch_size=9
+    )
+    ```
+
+    Args:
+        split:
+        bounding_box_format:
+        batch_size:
+        shuffle:
+        img_size:
+
+    Returns:
+        tf.data.Dataset containing PascalVOC.  Each entry is a dictionary containing
+        keys {"images": images, "bounding_boxes": bounding_boxes} where images is a
+        Tensor of shape [batch, H, W, 3] and bounding_boxes is a `tf.RaggedTensor` of
+        shape [batch, None, 5].
+    """
     dataset, dataset_info = tfds.load(
         "voc/2007", split=split, shuffle_files=shuffle, with_info=True
     )
