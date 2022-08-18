@@ -35,12 +35,17 @@ from keras_cv import bounding_box
 flags.DEFINE_integer("batch_size", 8, "Training and eval batch size.")
 flags.DEFINE_integer("epochs", 1, "Number of training epochs.")
 flags.DEFINE_string("wandb_entity", None, "wandb entity to use.")
+flags.DEFINE_string("experiment_name", None, "wandb run name to use.")
 FLAGS = flags.FLAGS
 
 FLAGS(sys.argv)
 
 if FLAGS.wandb_entity:
-    wandb.init(project="pascalvoc-retinanet", entity=FLAGS.wandb_entity)
+    wandb.init(
+        project="pascalvoc-retinanet",
+        entity=FLAGS.wandb_entity,
+        name=FLAGS.experiment_name,
+    )
 
 """
 ## Data loading
@@ -101,7 +106,7 @@ def load_pascal_voc(
     dataset = dataset.apply(
         tf.data.experimental.dense_to_ragged_batch(batch_size=batch_size)
     )
-    return dataset
+    return dataset, dataset_info
 
 
 """
@@ -112,7 +117,7 @@ KerasCV preprocessing components.
 Lets load some data and verify that our data looks as we expect it to.
 """
 
-dataset = load_pascal_voc(split="train", bounding_box_format="xywh", batch_size=9)
+dataset, _ = load_pascal_voc(split="train", bounding_box_format="xywh", batch_size=9)
 
 
 def visualize_dataset(dataset, bounding_box_format):
@@ -155,10 +160,10 @@ friendly data augmentation inside of a `tf.data` pipeline.
 
 # train_ds is batched as a (images, bounding_boxes) tuple
 # bounding_boxes are ragged
-train_ds = load_pascal_voc(
+train_ds, _ = load_pascal_voc(
     bounding_box_format="xywh", split="train", batch_size=FLAGS.batch_size
 )
-val_ds = load_pascal_voc(
+val_ds, _ = load_pascal_voc(
     bounding_box_format="xywh", split="validation", batch_size=FLAGS.batch_size
 )
 
@@ -215,7 +220,6 @@ model = keras_cv.models.RetinaNet(
     backbone_weights="imagenet",
     include_rescaling=True,
 )
-model.backbone.trainable = False
 
 """
 That is all it takes to construct a KerasCV RetinaNet.  The RetinaNet accepts tuples of
@@ -237,15 +241,7 @@ Below, we construct this using a `keras.optimizers.schedules.PiecewiseConstantDe
 schedule.
 """
 
-learning_rates = [2.5e-06, 0.000625, 0.00125, 0.0025, 0.00025, 2.5e-05]
-learning_rate_boundaries = [125, 250, 500, 240000, 360000]
-learning_rate_fn = optimizers.schedules.PiecewiseConstantDecay(
-    boundaries=learning_rate_boundaries, values=learning_rates
-)
-
-optimizer = optimizers.SGD(
-    learning_rate=learning_rate_fn, momentum=0.9, global_clipnorm=10.0
-)
+optimizer = optimizers.SGD(learning_rate=0.1, momentum=0.9, global_clipnorm=10.0)
 
 """
 ## COCO metrics monitoring
@@ -304,7 +300,8 @@ All that is left to do is construct some callbacks:
 
 callbacks = [
     callbacks_lib.TensorBoard(log_dir="logs"),
-    callbacks_lib.EarlyStopping(patience=30),
+    callbacks_lib.EarlyStopping(patience=50),
+    callbacks_lib.ReduceLROnPlateau(patience=20),
 ]
 if FLAGS.wandb_entity:
     callbacks += [
@@ -336,5 +333,7 @@ running the script for 500 epochs, we have produced a Weights and Biases report 
 the training results below!  As a bonus, the report includes a training run with and
 without data augmentation.
 
-TODO(lukewood): add link to the WandB run once preprocessing bugs are resolved.
+[Metrics from a 500 epoch Weights and Biases Run are available here](
+    https://tinyurl.com/y34xx65w
+)
 """
