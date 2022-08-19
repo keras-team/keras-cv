@@ -38,7 +38,10 @@ class ObjectDetectionBaseModelTest(tf.test.TestCase):
     def test_numpy_array(self):
         model = DummySubclass()
         model.compile()
-        model.fit(np.ones((8, 512, 512, 3)), np.ones((8, 4, 5)))
+
+        x=np.ones((8, 512, 512, 3))
+        y=np.ones((8, 4, 5))
+        model.fit(x, y, validation_data=(x, y))
         model.evaluate(np.ones((8, 512, 512, 3)), np.ones((8, 4, 5)))
 
     def test_tf_dataset(self):
@@ -48,7 +51,7 @@ class ObjectDetectionBaseModelTest(tf.test.TestCase):
             (np.ones((8, 512, 512, 3)), np.ones((8, 4, 5)))
         )
         my_ds = my_ds.batch(8)
-        model.fit(my_ds)
+        model.fit(my_ds, validation_data=my_ds)
         model.evaluate(np.ones((8, 512, 512, 3)), np.ones((8, 4, 5)))
 
     def test_with_sample_weight(self):

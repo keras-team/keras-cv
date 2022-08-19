@@ -35,10 +35,15 @@ class ObjectDetectionBaseModel(keras.Model):
 
         self.label_encoder.build((None, None, None))
 
-    def fit(self, x=None, y=None, sample_weight=None, batch_size=None, **kwargs):
+    def fit(self, x=None, y=None, validation_data=None, sample_weight=None, batch_size=None, **kwargs):
         dataset = _convert_inputs_to_tf_dataset(
             x=x, y=y, sample_weight=sample_weight, batch_size=batch_size
         )
+
+        if validation_data is not None:
+            validation_data = _convert_inputs_to_tf_dataset(*validation_data, batch_size=batch_size)
+            validation_data = validation_data.map(self.encode_data, num_parallel_calls=tf.data.AUTOTUNE)
+
         dataset = dataset.map(self.encode_data, num_parallel_calls=tf.data.AUTOTUNE)
         return super().fit(x=dataset, **kwargs)
 
