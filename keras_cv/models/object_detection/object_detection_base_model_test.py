@@ -13,12 +13,13 @@
 # limitations under the License.
 
 
+import numpy as np
 import tensorflow as tf
+
+from keras_cv import layers as cv_layers
 from keras_cv.models.object_detection.object_detection_base_model import (
     ObjectDetectionBaseModel,
 )
-from keras_cv import layers as cv_layers
-import numpy as np
 
 
 class ObjectDetectionBaseModelTest(tf.test.TestCase):
@@ -42,7 +43,9 @@ class ObjectDetectionBaseModelTest(tf.test.TestCase):
     def test_fit_tf_dataset(self):
         model = DummySubclass()
         model.compile()
-        my_ds = tf.data.Dataset.from_tensor_slices((np.ones((8, 512, 512, 3)), np.ones((8, 4, 5))))
+        my_ds = tf.data.Dataset.from_tensor_slices(
+            (np.ones((8, 512, 512, 3)), np.ones((8, 4, 5)))
+        )
         my_ds = my_ds.batch(8)
         model.fit(my_ds)
 

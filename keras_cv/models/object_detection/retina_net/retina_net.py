@@ -18,11 +18,11 @@ from tensorflow import keras
 
 from keras_cv import bounding_box
 from keras_cv import layers as cv_layers
-from keras_cv.models.object_detection.retina_net.__internal__ import (
-    layers as layers_lib,
-)
 from keras_cv.models.object_detection.object_detection_base_model import (
     ObjectDetectionBaseModel,
+)
+from keras_cv.models.object_detection.retina_net.__internal__ import (
+    layers as layers_lib,
 )
 
 
