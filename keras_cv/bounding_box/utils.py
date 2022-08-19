@@ -155,11 +155,29 @@ def add_class_id(bounding_boxes, class_id=0):
 
     if is_ragged:
         row_lengths = list(bounding_boxes.nested_row_lengths())
+        # increase row length to account for clas-id addition
         row_lengths[1] = row_lengths[1] + 1
         bounding_boxes = bounding_boxes.to_tensor()
 
     # pad input bounding boxes
-    paddings = tf.constant([[0, 0], [0, 0], [0, 1]])
+    if bounding_boxes.shape[-1] > 4:
+        raise ValueError(
+            "Class ID of bounding boxes already exists. The number of "
+            "values along the bounding box axis is expected to be 4. But received {}.".format(
+                bounding_boxes.shape[-1]
+            )
+        )
+    bounding_box_rank = len(tf.shape(bounding_boxes))
+    if bounding_box_rank == 2:
+        paddings = tf.constant([[0, 0], [0, 1]])
+    elif bounding_box_rank == 3:
+        paddings = tf.constant([[0, 0], [0, 0], [0, 1]])
+    else:
+        raise ValueError(
+            "The bounding boxes should be of rank 2 or 3. However "
+            "add_class_id received bounding_boxes of rank {}.".format(bounding_box_rank)
+        )
+
     bounding_boxes = tf.pad(
         bounding_boxes,
         paddings=paddings,
@@ -168,7 +186,7 @@ def add_class_id(bounding_boxes, class_id=0):
     )
 
     # format output bounding boxes
-    if isinstance(bounding_boxes, tf.RaggedTensor):
+    if is_ragged:
         bounding_boxes = tf.RaggedTensor.from_tensor(
             bounding_boxes,
             lengths=row_lengths,

@@ -60,7 +60,20 @@ class BoundingBoxUtilTestCase(tf.test.TestCase):
         expected_output = tf.ragged.constant([[[1, 2, 3, 4, 5]], [[1, 2, 3, 4, 5]]])
         self.assertAllEqual(filtered_bounding_boxes, expected_output)
 
-    def test_pad_with_class_id(self):
+    def test_filter_sentinels_tensor(self):
+        bounding_boxes = tf.ragged.constant(
+            [
+                [[1, 2, 3, 4, 5], [1, 2, 3, 4, 5], [1, 2, 3, 4, -1]],
+                [[1, 2, 3, 4, 5], [1, 2, 3, 4, -1]],
+            ]
+        )
+        filtered_bounding_boxes = bounding_box.filter_sentinels(bounding_boxes)
+        expected_output = tf.ragged.constant(
+            [[[1, 2, 3, 4, 5], [1, 2, 3, 4, 5]], [[1, 2, 3, 4, 5]]]
+        )
+        self.assertAllEqual(filtered_bounding_boxes, expected_output)
+
+    def test_pad_with_class_id_ragged(self):
         bounding_boxes = tf.ragged.constant(
             [[[1, 2, 3, 4], [1, 2, 3, 4]], [[1, 2, 3, 4]]]
         )
@@ -69,3 +82,31 @@ class BoundingBoxUtilTestCase(tf.test.TestCase):
             [[[1, 2, 3, 4, 0], [1, 2, 3, 4, 0]], [[1, 2, 3, 4, 0]]]
         )
         self.assertAllEqual(padded_bounding_boxes, expected_output)
+
+    def test_pad_with_class_id_unbatched(self):
+        bounding_boxes = tf.convert_to_tensor([[1, 2, 3, 4], [1, 2, 3, 4]])
+        padded_bounding_boxes = bounding_box.add_class_id(bounding_boxes)
+        expected_output = tf.convert_to_tensor([[1, 2, 3, 4, 0], [1, 2, 3, 4, 0]])
+        self.assertAllEqual(padded_bounding_boxes, expected_output)
+
+    def test_pad_with_class_id_exists(self):
+        bounding_boxes = tf.ragged.constant(
+            [[[1, 2, 3, 4, 0], [1, 2, 3, 4, 0]], [[1, 2, 3, 4, 0]]]
+        )
+        with self.assertRaisesRegex(
+            ValueError,
+            "Class ID of bounding boxes already exists. The number of "
+            "values along the bounding box axis is expected to be 4. But received 5.",
+        ):
+            bounding_box.add_class_id(bounding_boxes)
+
+    def test_pad_with_class_id_wrong_rank(self):
+        bounding_boxes = tf.ragged.constant(
+            [[[[1, 2, 3, 4], [1, 2, 3, 4]], [[1, 2, 3, 4]]]]
+        )
+        with self.assertRaisesRegex(
+            ValueError,
+            "The bounding boxes should be of rank 2 or 3. However "
+            "add_class_id received bounding_boxes of rank 4.",
+        ):
+            bounding_box.add_class_id(bounding_boxes)
