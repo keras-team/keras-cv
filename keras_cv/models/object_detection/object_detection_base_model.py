@@ -36,12 +36,18 @@ class ObjectDetectionBaseModel(keras.Model):
         self.label_encoder.build((None, None, None))
 
     def fit(self, x=None, y=None, sample_weight=None, batch_size=None, **kwargs):
-        if sample_weight is not None:
-            raise ValueError("RetinaNet does not yet support `sample_weight`.")
-
-        dataset = _convert_inputs_to_tf_dataset(x=x, y=y, batch_size=batch_size)
+        dataset = _convert_inputs_to_tf_dataset(
+            x=x, y=y, sample_weight=sample_weight, batch_size=batch_size
+        )
         dataset = dataset.map(self.encode_data, num_parallel_calls=tf.data.AUTOTUNE)
         return super().fit(x=dataset, **kwargs)
+
+    def evaluate(self, x=None, y=None, sample_weight=None, batch_size=None, **kwargs):
+        dataset = _convert_inputs_to_tf_dataset(
+            x=x, y=y, sample_weight=sample_weight, batch_size=batch_size
+        )
+        dataset = dataset.map(self.encode_data, num_parallel_calls=tf.data.AUTOTUNE)
+        return super().evaluate(x=dataset, **kwargs)
 
     def encode_data(self, x, y):
         y_for_metrics = y
@@ -62,7 +68,10 @@ class ObjectDetectionBaseModel(keras.Model):
         return x, (y_for_metrics, y_training_target)
 
 
-def _convert_inputs_to_tf_dataset(x=None, y=None, batch_size=None):
+def _convert_inputs_to_tf_dataset(x=None, y=None, sample_weight=None, batch_size=None):
+    if sample_weight is not None:
+        raise ValueError("RetinaNet does not yet support `sample_weight`.")
+
     if isinstance(x, tf.data.Dataset):
         if y is not None or batch_size is not None:
             raise ValueError(

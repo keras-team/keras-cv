@@ -35,12 +35,13 @@ class ObjectDetectionBaseModelTest(tf.test.TestCase):
         with self.assertRaisesRegex(ValueError, "When `x` is a `tf.data.Dataset`,"):
             model.fit(x=x, y=y)
 
-    def test_fit_numpy_array(self):
+    def test_numpy_array(self):
         model = DummySubclass()
         model.compile()
         model.fit(np.ones((8, 512, 512, 3)), np.ones((8, 4, 5)))
+        model.evaluate(np.ones((8, 512, 512, 3)), np.ones((8, 4, 5)))
 
-    def test_fit_tf_dataset(self):
+    def test_tf_dataset(self):
         model = DummySubclass()
         model.compile()
         my_ds = tf.data.Dataset.from_tensor_slices(
@@ -48,6 +49,7 @@ class ObjectDetectionBaseModelTest(tf.test.TestCase):
         )
         my_ds = my_ds.batch(8)
         model.fit(my_ds)
+        model.evaluate(np.ones((8, 512, 512, 3)), np.ones((8, 4, 5)))
 
     def test_with_sample_weight(self):
         # TODO(lukewood): support sample_weight
@@ -61,6 +63,11 @@ class DummySubclass(ObjectDetectionBaseModel):
         )
 
     def train_step(self, data):
+        x, y = data
+        y_for_metrics, y_training_target = data
+        return {"loss": 0}
+
+    def test_step(self, data):
         x, y = data
         y_for_metrics, y_training_target = data
         return {"loss": 0}
