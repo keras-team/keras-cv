@@ -89,8 +89,8 @@ def parse_imagenet_example(example):
     # Decode label
     label = tf.cast(tf.reshape(parsed[label_key], shape=()), dtype=tf.int32) - 1
     label = tf.one_hot(label, CLASSES)
-    return image, label
-
+    #return image, label
+    return image
 
 def load_imagenet_dataset():
     train_filenames = [
@@ -133,7 +133,7 @@ with strategy.scope():
         pooling="avg",
     )
     trainer = training.SimCLRTrainer(
-        encoder=model, include_probe=True, classes=CLASSES, value_range=(0, 255)
+        encoder=model, include_probe=False, classes=CLASSES, value_range=(0, 255)
     )
 
     optimizer = optimizers.SGD(learning_rate=FLAGS.initial_learning_rate, momentum=0.9)
@@ -157,9 +157,9 @@ callbacks = [
 
 trainer.compile(
     optimizer=optimizer,
-    probe_optimizer=optimizers.Adam(),
-    probe_metrics=training_metrics,
-    probe_loss=probe_loss,
+    #probe_optimizer=optimizers.Adam(),
+    #probe_metrics=training_metrics,
+    #probe_loss=probe_loss,
     jit_compile=FLAGS.use_xla,
 )
 
