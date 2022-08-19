@@ -32,6 +32,7 @@ class ObjectDetectionBaseModel(keras.Model):
         super().__init__(**kwargs)
         self.bounding_box_format = bounding_box_format
         self.label_encoder = label_encoder
+        self.built = True
 
     def fit(self, x=None, y=None, sample_weight=None, batch_size=None, **kwargs):
         if sample_weight is not None:
