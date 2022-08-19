@@ -116,7 +116,7 @@ class ContrastiveTrainer(keras.Model):
         probe_optimizer=None,
         probe_loss=None,
         probe_metrics=None,
-        **kwargs,
+        **kwargs
     ):
         super().compile(optimizer=optimizer, loss=loss, **kwargs)
 
@@ -126,9 +126,7 @@ class ContrastiveTrainer(keras.Model):
             )
 
         if self.include_probe and not probe_loss:
-            raise ValueError(
-                "`probe_loss` must be specified when `include_probe` is `True`."
-            )
+            raise ValueError("`probe_loss` must be specified when `include_probe` is `True`.")
 
         if self.include_probe:
             self.probe_loss = probe_loss
@@ -158,8 +156,6 @@ class ContrastiveTrainer(keras.Model):
         )
 
         dataset = dataset.map(self.run_augmenters, num_parallel_calls=tf.data.AUTOTUNE)
-
-        print(dataset)
 
         return super().fit(x=dataset, **kwargs)
 
@@ -229,7 +225,6 @@ class ContrastiveTrainer(keras.Model):
         raise NotImplementedError(
             "ContrastiveTrainer.call() is not implemented - please call your model directly."
         )
-
 
 # TODO(ianstenbit): Adapt or share this. Currently shamelessly stolen from https://github.com/keras-team/keras-cv/pull/705
 def _convert_inputs_to_tf_dataset(x=None, y=None, sample_weight=None, batch_size=None):
