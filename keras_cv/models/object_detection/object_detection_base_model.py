@@ -19,7 +19,6 @@ from keras_cv import bounding_box
 
 
 class ObjectDetectionBaseModel(keras.Model):
-
     """ObjectDetectionBaseModel performs asynchonous label encoding.
 
     ObjectDetectionBaseModel invokes the provided `label_encoder` in the `tf.data`
@@ -27,7 +26,6 @@ class ObjectDetectionBaseModel(keras.Model):
     methods `train_on_batch()`, `fit()`, `test_on_batch()`, and `evaluate()`.
 
     """
-
     def __init__(self, bounding_box_format, label_encoder, **kwargs):
         super().__init__(**kwargs)
         self.bounding_box_format = bounding_box_format
@@ -35,18 +33,13 @@ class ObjectDetectionBaseModel(keras.Model):
 
         self.label_encoder.build((None, None, None))
 
-    def fit(
-        self,
-        x=None,
-        y=None,
-        validation_data=None,
-        sample_weight=None,
-        batch_size=None,
-        **kwargs,
-    ):
+    def fit(self, x=None, y=None, validation_data=None, validation_split=None, sample_weight=None, batch_size=None, **kwargs):
         dataset = _convert_inputs_to_tf_dataset(
             x=x, y=y, sample_weight=sample_weight, batch_size=batch_size
         )
+
+        if validation_split is not None:
+            raise ValueError("`validation_split` yet supported")
 
         if validation_data is not None:
             val_x, val_y, val_sample = _split_validation_data(validation_data)
