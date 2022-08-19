@@ -263,7 +263,7 @@ class RetinaNet(ObjectDetectionBaseModel):
         # them.
         # TODO(lukewood): ensure this runs on TPU.
         self._update_metrics(y_for_metrics, predictions["inference"])
-        return self._metrics_result(loss)
+        return self._metrics_result({"loss": loss})
 
     def test_step(self, data):
         x, y = data
@@ -277,7 +277,7 @@ class RetinaNet(ObjectDetectionBaseModel):
         )
 
         self._update_metrics(y_for_metrics, predictions["inference"])
-        return self._metrics_result(loss)
+        return self._metrics_result({"val_loss": loss})
 
     def _update_metrics(self, y_true, y_pred):
         y_true = bounding_box.convert_format(
@@ -292,9 +292,9 @@ class RetinaNet(ObjectDetectionBaseModel):
         )
         self.compiled_metrics.update_state(y_true, y_pred)
 
-    def _metrics_result(self, loss):
+    def _metrics_result(self, extra_metrics):
         metrics_result = {m.name: m.result() for m in self.metrics}
-        metrics_result["loss"] = loss
+        metrics_result.update(extra_metrics)
         return metrics_result
 
     def inference(self, x):
