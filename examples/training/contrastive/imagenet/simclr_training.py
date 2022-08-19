@@ -137,8 +137,8 @@ with strategy.scope():
     )
 
     optimizer = optimizers.SGD(learning_rate=FLAGS.initial_learning_rate, momentum=0.9)
-    loss_fn = losses.SimCLRLoss(temperature=0.5, reduction="sum")
-    probe_loss = keras.losses.CategoricalCrossentropy(from_logits=True, reduction="sum")
+    loss_fn = losses.SimCLRLoss(temperature=0.5, reduction="none")
+    probe_loss = keras.losses.CategoricalCrossentropy(from_logits=True, reduction="none")
 
 with strategy.scope():
     training_metrics = [
