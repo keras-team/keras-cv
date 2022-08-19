@@ -116,7 +116,7 @@ class ContrastiveTrainer(keras.Model):
         probe_optimizer=None,
         probe_loss=None,
         probe_metrics=None,
-        **kwargs
+        **kwargs,
     ):
         super().compile(optimizer=optimizer, loss=loss, **kwargs)
 
@@ -145,22 +145,43 @@ class ContrastiveTrainer(keras.Model):
             metrics += self.probe_metrics
         return super().metrics + metrics
 
+    def fit(
+        self,
+        x=None,
+        y=None,
+        sample_weight=None,
+        batch_size=None,
+        **kwargs,
+    ):
+        dataset = _convert_inputs_to_tf_dataset(
+            x=x, y=y, sample_weight=sample_weight, batch_size=batch_size
+        )
+
+        dataset = dataset.map(self.run_augmenters, num_parallel_calls=tf.data.AUTOTUNE)
+
+        print(dataset)
+
+        return super().fit(x=dataset, **kwargs)
+
+    def run_augmenters(self, x, y=None):
+        if y is not None:
+            return x, self.augmenters[0](x), self.augmenters[1](x), y
+        else:
+            return x, self.augmenters[0](x), self.augmenters[1](x)
+
     def train_step(self, data):
         if self.include_probe:
-            if type(data) is not tuple or len(data) != 2:
+            if len(data) != 4:
                 raise ValueError(
                     "Targets must be provided when `include_probe` is True"
                 )
-            images, labels = data
+            images, augmented_images_0, augmented_images_1, labels = data
         else:
-            if type(data) is tuple:
+            if len(data) != 3:
                 raise ValueError(
                     "Targets must not be provided when `include_probe` is False"
                 )
-            images = data
-
-        augmented_images_0 = self.augmenters[0](images, training=True)
-        augmented_images_1 = self.augmenters[1](images, training=True)
+            images, augmented_images_0, augmented_images_1 = data
 
         with tf.GradientTape() as tape:
             features_0 = self.encoder(augmented_images_0, training=True)
@@ -208,3 +229,30 @@ class ContrastiveTrainer(keras.Model):
         raise NotImplementedError(
             "ContrastiveTrainer.call() is not implemented - please call your model directly."
         )
+
+
+# TODO(ianstenbit): Adapt or share this. Currently shamelessly stolen from https://github.com/keras-team/keras-cv/pull/705
+def _convert_inputs_to_tf_dataset(x=None, y=None, sample_weight=None, batch_size=None):
+    if sample_weight is not None:
+        raise ValueError("Contrastive trainers do not yet support `sample_weight`.")
+
+    if isinstance(x, tf.data.Dataset):
+        if y is not None or batch_size is not None:
+            raise ValueError(
+                "When `x` is a `tf.data.Dataset`, please do not provide a value for "
+                f"`y` or `batch_size`.  Got `y={y}`, `batch_size={batch_size}`."
+            )
+        return x
+
+    # batch_size defaults to 32, as it does in fit().
+    batch_size = batch_size or 32
+    # Parse inputs
+    inputs = x
+    if y is not None:
+        inputs = (x, y)
+
+    # Construct tf.data.Dataset
+    dataset = tf.data.Dataset.from_tensor_slices(inputs)
+    if batch_size is not None:
+        dataset = dataset.batch(batch_size)
+    return dataset
