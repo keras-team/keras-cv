@@ -21,7 +21,9 @@ from keras_cv import layers as cv_layers
 from keras_cv.models.object_detection.retina_net.__internal__ import (
     layers as layers_lib,
 )
-from keras_cv.models.object_detection.object_detection_base_model import ObjectDetectionBaseModel
+from keras_cv.models.object_detection.object_detection_base_model import (
+    ObjectDetectionBaseModel,
+)
 
 
 # TODO(lukewood): update docstring to include documentation on creating a custom label
@@ -102,14 +104,6 @@ class RetinaNet(ObjectDetectionBaseModel):
         name="RetinaNet",
         **kwargs,
     ):
-        super().__init__(name=name, **kwargs)
-        if bounding_box_format.lower() != "xywh":
-            raise ValueError(
-                "`keras_cv.models.RetinaNet` only supports the 'xywh' "
-                "`bounding_box_format`.  In future releases, more formats will be "
-                "supported.  For now, please pass `bounding_box_format='xywh'`. "
-                f"Received `bounding_box_format={bounding_box_format}`"
-            )
         if anchor_generator is not None and (prediction_decoder or label_encoder):
             raise ValueError(
                 "`anchor_generator` is only to be provided when "
@@ -121,17 +115,33 @@ class RetinaNet(ObjectDetectionBaseModel):
                 "`prediction_decoder` you should provide both to `RetinaNet`, and ensure "
                 "that the `anchor_generator` provided to both is identical"
             )
-
-        self.bounding_box_format = bounding_box_format
         anchor_generator = anchor_generator or _default_anchor_generator(
             bounding_box_format
         )
+        label_encoder = label_encoder or cv_layers.RetinaNetLabelEncoder(
+            bounding_box_format=bounding_box_format, anchor_generator=anchor_generator
+        )
+        super().__init__(
+            bounding_box_format=bounding_box_format,
+            label_encoder=label_encoder,
+            name=name,
+            **kwargs,
+        )
+
+        self.label_encoder = label_encoder
+        self.anchor_generator = anchor_generator
+        if bounding_box_format.lower() != "xywh":
+            raise ValueError(
+                "`keras_cv.models.RetinaNet` only supports the 'xywh' "
+                "`bounding_box_format`.  In future releases, more formats will be "
+                "supported.  For now, please pass `bounding_box_format='xywh'`. "
+                f"Received `bounding_box_format={bounding_box_format}`"
+            )
+
+        self.bounding_box_format = bounding_box_format
         self.classes = classes
         self.backbone = _parse_backbone(backbone, include_rescaling, backbone_weights)
 
-        self.label_encoder = label_encoder or cv_layers.RetinaNetLabelEncoder(
-            bounding_box_format=bounding_box_format, anchor_generator=anchor_generator
-        )
         self.prediction_decoder = prediction_decoder or cv_layers.NmsPredictionDecoder(
             bounding_box_format=bounding_box_format,
             anchor_generator=anchor_generator,
@@ -228,28 +238,10 @@ class RetinaNet(ObjectDetectionBaseModel):
         )
         return {"train_predictions": train_preds, "inference": pred_for_inference}
 
-    def _encode_data(self, x, y):
-        y_for_metrics = y
-
-        y = bounding_box.convert_format(
-            y,
-            source=self.bounding_box_format,
-            target=self.label_encoder.bounding_box_format,
-            images=x,
-        )
-        y_training_target = self.label_encoder(x, y)
-        y_training_target = bounding_box.convert_format(
-            y_training_target,
-            source=self.label_encoder.bounding_box_format,
-            target=self.bounding_box_format,
-            images=x,
-        )
-        return y_for_metrics, y_training_target
-
     def train_step(self, data):
         x, y = data
-        # y comes in in self.bounding_box_format
-        y_for_metrics, y_training_target = self._encode_data(x, y)
+        y_for_metrics, y_training_target = y
+
         with tf.GradientTape() as tape:
             predictions = self(x, training=True)
             # predictions technically do not have a format, so loss accepts whatever
@@ -275,7 +267,7 @@ class RetinaNet(ObjectDetectionBaseModel):
 
     def test_step(self, data):
         x, y = data
-        y_for_metrics, y_training_target = self._encode_data(x, y)
+        y_for_metrics, y_training_target = y
 
         predictions = self(x)
         loss = self.compiled_loss(
