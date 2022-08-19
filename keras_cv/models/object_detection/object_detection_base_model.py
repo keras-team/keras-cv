@@ -35,14 +35,27 @@ class ObjectDetectionBaseModel(keras.Model):
 
         self.label_encoder.build((None, None, None))
 
-    def fit(self, x=None, y=None, validation_data=None, sample_weight=None, batch_size=None, **kwargs):
+    def fit(
+        self,
+        x=None,
+        y=None,
+        validation_data=None,
+        sample_weight=None,
+        batch_size=None,
+        **kwargs,
+    ):
         dataset = _convert_inputs_to_tf_dataset(
             x=x, y=y, sample_weight=sample_weight, batch_size=batch_size
         )
 
         if validation_data is not None:
-            validation_data = _convert_inputs_to_tf_dataset(*validation_data, batch_size=batch_size)
-            validation_data = validation_data.map(self.encode_data, num_parallel_calls=tf.data.AUTOTUNE)
+            val_x, val_y, val_sample = _split_validation_data(validation_data)
+            validation_data = _convert_inputs_to_tf_dataset(
+                x=val_x, y=val_y, sample_weight=val_sample, batch_size=batch_size
+            )
+            validation_data = validation_data.map(
+                self.encode_data, num_parallel_calls=tf.data.AUTOTUNE
+            )
 
         dataset = dataset.map(self.encode_data, num_parallel_calls=tf.data.AUTOTUNE)
         return super().fit(x=dataset, **kwargs)
@@ -71,6 +84,23 @@ class ObjectDetectionBaseModel(keras.Model):
             images=x,
         )
         return x, (y_for_metrics, y_training_target)
+
+
+def _split_validation_data(validation_data):
+    if isinstance(validation_data, tf.data.Dataset):
+        return validation_data, None, None
+    if len(validation_data) == 1:
+        return validation_data[0], None, None
+    if len(validation_data) == 2:
+        return validation_data[0], validation_data[1], None
+    if len(validation_data) == 3:
+        return validation_data[0], validation_data[1], validation_data[2]
+    else:
+        raise ValueError(
+            "`validation_data` should be a `tf.data.Dataset`, or a "
+            "tuple of 1, 2, or 3 elements. "
+            f"Got `validation_data={validation_data}`."
+        )
 
 
 def _convert_inputs_to_tf_dataset(x=None, y=None, sample_weight=None, batch_size=None):
