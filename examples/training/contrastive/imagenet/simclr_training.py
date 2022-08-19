@@ -165,7 +165,6 @@ trainer.compile(
 
 trainer.fit(
     train_ds,
-    batch_size=FLAGS.batch_size,
     epochs=EPOCHS,
     callbacks=callbacks,
 )
