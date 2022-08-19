@@ -68,6 +68,7 @@ class ContrastiveTrainerTest(tf.test.TestCase):
             optimizers.Adam(),
             loss=SimCLRLoss(temperature=0.5),
             probe_optimizer=optimizers.Adam(),
+            probe_loss=keras.losses.CategoricalCrossentropy(from_logits=True),
         )
         trainer_without_probing.compile(
             optimizers.Adam(), loss=SimCLRLoss(temperature=0.5)
@@ -95,6 +96,7 @@ class ContrastiveTrainerTest(tf.test.TestCase):
             loss=SimCLRLoss(temperature=0.5),
             probe_metrics=[metrics.TopKCategoricalAccuracy(3, "top3_probe_accuracy")],
             probe_optimizer=optimizers.Adam(),
+            probe_loss=keras.losses.CategoricalCrossentropy(from_logits=True),
         )
 
         trainer_with_probing.fit(images, targets)

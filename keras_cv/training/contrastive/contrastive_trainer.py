@@ -110,9 +110,15 @@ class ContrastiveTrainer(keras.Model):
             self.probing_top = layers.Dense(classes, name="linear_probe")
 
     def compile(
-        self, probe_optimizer=None, probe_loss=None, probe_metrics=None, **kwargs
+        self,
+        optimizer,
+        loss,
+        probe_optimizer=None,
+        probe_loss=None,
+        probe_metrics=None,
+        **kwargs
     ):
-        super().compile(**kwargs)
+        super().compile(optimizer=optimizer, loss=loss, **kwargs)
 
         if self.include_probe and not probe_optimizer:
             raise ValueError(
