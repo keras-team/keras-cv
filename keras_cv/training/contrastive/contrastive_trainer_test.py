@@ -44,7 +44,9 @@ class ContrastiveTrainerTest(tf.test.TestCase):
             classes=10,
         )
         with self.assertRaises(ValueError):
-            trainer.compile(optimizers.Adam(), SimCLRLoss(temperature=0.5))
+            trainer.compile(
+                optimizer=optimizers.Adam(), loss=SimCLRLoss(temperature=0.5)
+            )
 
     def test_targets_required_iff_probing(self):
         trainer_with_probing = ContrastiveTrainer(
@@ -65,13 +67,13 @@ class ContrastiveTrainerTest(tf.test.TestCase):
         targets = tf.ones((10, 20))
 
         trainer_with_probing.compile(
-            optimizers.Adam(),
+            optimizer=optimizers.Adam(),
             loss=SimCLRLoss(temperature=0.5),
             probe_optimizer=optimizers.Adam(),
             probe_loss=keras.losses.CategoricalCrossentropy(from_logits=True),
         )
         trainer_without_probing.compile(
-            optimizers.Adam(), loss=SimCLRLoss(temperature=0.5)
+            optimizer=optimizers.Adam(), loss=SimCLRLoss(temperature=0.5)
         )
 
         with self.assertRaises(ValueError):
@@ -92,7 +94,7 @@ class ContrastiveTrainerTest(tf.test.TestCase):
         targets = tf.ones((1, 20))
 
         trainer_with_probing.compile(
-            optimizers.Adam(),
+            optimizer=optimizers.Adam(),
             loss=SimCLRLoss(temperature=0.5),
             probe_metrics=[metrics.TopKCategoricalAccuracy(3, "top3_probe_accuracy")],
             probe_optimizer=optimizers.Adam(),
@@ -112,7 +114,7 @@ class ContrastiveTrainerTest(tf.test.TestCase):
         images = tf.random.uniform((1, 50, 50, 3))
 
         trainer_without_probing.compile(
-            optimizers.Adam(), loss=SimCLRLoss(temperature=0.5)
+            optimizer=optimizers.Adam(), loss=SimCLRLoss(temperature=0.5)
         )
 
         trainer_without_probing.fit(images)
@@ -158,7 +160,7 @@ class ContrastiveTrainerTest(tf.test.TestCase):
         images = tf.random.uniform((1, 50, 50, 3))
 
         trainer_without_probing.compile(
-            optimizers.Adam(), loss=SimCLRLoss(temperature=0.5)
+            optimizer=optimizers.Adam(), loss=SimCLRLoss(temperature=0.5)
         )
 
         trainer_without_probing.fit(images)
