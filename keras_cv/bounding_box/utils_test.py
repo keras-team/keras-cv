@@ -54,22 +54,35 @@ class BoundingBoxUtilTestCase(tf.test.TestCase):
 
     def test_filter_sentinels(self):
         bounding_boxes = tf.ragged.constant(
-            [[[1, 2, 3, 4, 5], [1, 2, 3, 4, -1]], [[1, 2, 3, 4, 5]]]
+            [[[1, 2, 3, 4, 5], [1, 2, 3, 4, 5], [1, 2, 3, 4, -1]], [[1, 2, 3, 4, 5]]]
         )
         filtered_bounding_boxes = bounding_box.filter_sentinels(bounding_boxes)
-        expected_output = tf.ragged.constant([[[1, 2, 3, 4, 5]], [[1, 2, 3, 4, 5]]])
+        expected_output = tf.ragged.constant(
+            [[[1, 2, 3, 4, 5], [1, 2, 3, 4, 5]], [[1, 2, 3, 4, 5]]], ragged_rank=1
+        )
+        self.assertAllEqual(filtered_bounding_boxes, expected_output)
+
+    def test_filter_sentinels_unbatched(self):
+        bounding_boxes = tf.convert_to_tensor(
+            [[1, 2, 3, 4, 5], [1, 2, 3, 4, 5], [1, 2, 3, 4, -1]]
+        )
+        filtered_bounding_boxes = bounding_box.filter_sentinels(bounding_boxes)
+        expected_output = tf.ragged.constant(
+            [[1, 2, 3, 4, 5], [1, 2, 3, 4, 5]], ragged_rank=1
+        )
         self.assertAllEqual(filtered_bounding_boxes, expected_output)
 
     def test_filter_sentinels_tensor(self):
-        bounding_boxes = tf.ragged.constant(
+        bounding_boxes = tf.convert_to_tensor(
             [
-                [[1, 2, 3, 4, 5], [1, 2, 3, 4, 5], [1, 2, 3, 4, -1]],
+                [[1, 2, 3, 4, 5], [1, 2, 3, 4, 5]],
                 [[1, 2, 3, 4, 5], [1, 2, 3, 4, -1]],
             ]
         )
         filtered_bounding_boxes = bounding_box.filter_sentinels(bounding_boxes)
+
         expected_output = tf.ragged.constant(
-            [[[1, 2, 3, 4, 5], [1, 2, 3, 4, 5]], [[1, 2, 3, 4, 5]]]
+            [[[1, 2, 3, 4, 5], [1, 2, 3, 4, 5]], [[1, 2, 3, 4, 5]]], ragged_rank=1
         )
         self.assertAllEqual(filtered_bounding_boxes, expected_output)
 

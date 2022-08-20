@@ -115,16 +115,18 @@ def filter_sentinels(bounding_boxes):
     Returns:
         `tf.RaggedTensor` containing the filtered bounding boxes.
     """
-    if isinstance(bounding_boxes, tf.Tensor):
-        bounding_boxes = tf.RaggedTensor.from_tensor(bounding_boxes)
-
-    def drop_padded_boxes(bounding_boxes):
-        bounding_boxes = bounding_boxes.to_tensor()
+    is_ragged = isinstance(bounding_boxes, tf.RaggedTensor)
+    is_batched = len(bounding_boxes.shape) == 3
+    if is_batched:
+        if is_ragged:
+            bounding_boxes = bounding_boxes.to_tensor(-1)
+        mask = bounding_boxes[:, :, 4] != -1
+        filtered_bounding_boxes = tf.ragged.boolean_mask(bounding_boxes, mask)
+    else:
         mask = bounding_boxes[:, 4] != -1
-        filtered_bounding_boxes = tf.boolean_mask(bounding_boxes, mask, axis=0)
-        return tf.RaggedTensor.from_tensor(filtered_bounding_boxes)
-
-    return tf.map_fn(drop_padded_boxes, bounding_boxes)
+        filtered_bounding_boxes = tf.boolean_mask(bounding_boxes, mask)
+        filtered_bounding_boxes = tf.RaggedTensor.from_tensor(filtered_bounding_boxes)
+    return filtered_bounding_boxes
 
 
 def add_class_id(bounding_boxes, class_id=0):

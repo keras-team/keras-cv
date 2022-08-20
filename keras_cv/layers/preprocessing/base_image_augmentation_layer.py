@@ -27,6 +27,9 @@ LABELS = "labels"
 TARGETS = "targets"
 BOUNDING_BOXES = "bounding_boxes"
 KEYPOINTS = "keypoints"
+RAGGED_BOUNDING_BOXES = "ragged_bounding_boxes"
+IS_DICT = "is_dict"
+USE_TARGETS = "use_targets"
 
 
 @tf.keras.utils.register_keras_serializable(package="keras_cv")
@@ -295,10 +298,10 @@ class BaseImageAugmentationLayer(tf.keras.__internal__.layers.BaseRandomLayer):
         return self._map_fn(self._augment, inputs)
 
     def _format_inputs(self, inputs):
-        metadata = {"is_dict": True, "use_targets": False}
+        metadata = {IS_DICT: True, USE_TARGETS: False}
         if tf.is_tensor(inputs):
             # single image input tensor
-            metadata["is_dict"] = False
+            metadata[IS_DICT] = False
             inputs = {IMAGES: inputs}
             return inputs, metadata
 
@@ -317,15 +320,15 @@ class BaseImageAugmentationLayer(tf.keras.__internal__.layers.BaseRandomLayer):
             # TODO(scottzhu): Check if it only contains the valid keys
             inputs[LABELS] = inputs[TARGETS]
             del inputs[TARGETS]
-            metadata["use_targets"] = True
+            metadata[USE_TARGETS] = True
             return inputs, metadata
 
         return inputs, metadata
 
     def _format_bounding_boxes(self, bounding_boxes):
-        metadata = {"ragged_bounding_boxes": False}
+        metadata = {RAGGED_BOUNDING_BOXES: False}
         if isinstance(bounding_boxes, tf.RaggedTensor):
-            metadata["ragged_row_lengths"] = bounding_boxes.nested_row_lengths()
+            metadata = {RAGGED_BOUNDING_BOXES: True}
             bounding_boxes = bounding_box.pad_with_sentinels(bounding_boxes)
 
         if bounding_boxes.shape[-1] < 5:
@@ -336,17 +339,14 @@ class BaseImageAugmentationLayer(tf.keras.__internal__.layers.BaseRandomLayer):
         return bounding_boxes, metadata
 
     def _format_output(self, output, metadata):
-        if not metadata["is_dict"]:
+        if not metadata[IS_DICT]:
             return output[IMAGES]
-        elif metadata["use_targets"]:
+        elif metadata[USE_TARGETS]:
             output[TARGETS] = output[LABELS]
             del output[LABELS]
+
         if BOUNDING_BOXES in output:
-            if metadata["ragged_bounding_boxes"]:
-                output[BOUNDING_BOXES] = tf.RaggedTensor.from_tensor(
-                    output[BOUNDING_BOXES],
-                    lengths=metadata["ragged_row_lengths"],
-                )
+            if metadata[RAGGED_BOUNDING_BOXES]:
                 output[BOUNDING_BOXES] = bounding_box.filter_sentinels(
                     output[BOUNDING_BOXES]
                 )
