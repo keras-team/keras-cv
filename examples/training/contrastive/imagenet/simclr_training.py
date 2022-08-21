@@ -133,7 +133,7 @@ with strategy.scope():
         pooling="avg",
     )
     trainer = training.SimCLRTrainer(
-        encoder=model, include_probe=True, classes=CLASSES, value_range=(0, 255)
+        encoder=model, include_probe=True, classes=CLASSES, value_range=(0, 255), target_size=IMAGE_SIZE,
     )
 
     optimizer = optimizers.SGD(learning_rate=FLAGS.initial_learning_rate, momentum=0.9)
