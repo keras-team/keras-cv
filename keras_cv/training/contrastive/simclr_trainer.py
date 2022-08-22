@@ -57,7 +57,7 @@ class SimCLRTrainer(ContrastiveTrainer):
                     preprocessing.RandomFlip(),
                     preprocessing.RandomResizedCrop(
                         target_size,
-                        crop_area_factor=(0.25, 1),
+                        crop_area_factor=(0.08, 1),
                         aspect_ratio_factor=(3 / 4, 4 / 3),
                     ),
                     preprocessing.RandomColorJitter(
