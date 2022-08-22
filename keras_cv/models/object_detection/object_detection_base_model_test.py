@@ -44,6 +44,9 @@ class ObjectDetectionBaseModelTest(tf.test.TestCase):
         model.fit(x, y, validation_data=(x, y))
         model.evaluate(np.ones((8, 512, 512, 3)), np.ones((8, 4, 5)))
 
+        model.train_on_batch(x, y)
+        model.test_on_batch(x, y)
+
     def test_validation_split(self):
         model = DummySubclass()
         model.compile()

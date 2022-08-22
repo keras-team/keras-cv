@@ -16,28 +16,22 @@ import functools
 import math
 
 import numpy as np
-import pandas as pd
 import tensorflow as tf
 
+try:
+    import pandas as pd
+except ImportError:
+    pd = None
 
-def _split_validation_data(validation_data):
-    if isinstance(validation_data, tf.data.Dataset):
-        return validation_data, None, None
-    if len(validation_data) == 1:
-        return validation_data[0], None, None
-    if len(validation_data) == 2:
-        return validation_data[0], validation_data[1], None
-    if len(validation_data) == 3:
-        return validation_data[0], validation_data[1], validation_data[2]
+
+def _get_tensor_types():
+    if pd is None:
+        return (tf.Tensor, np.ndarray)
     else:
-        raise ValueError(
-            "`validation_data` should be a `tf.data.Dataset`, or a "
-            "tuple of 1, 2, or 3 elements. "
-            f"Got `validation_data={validation_data}`."
-        )
+        return (tf.Tensor, np.ndarray, pd.Series, pd.DataFrame)
 
 
-def _convert_inputs_to_tf_dataset(x=None, y=None, sample_weight=None, batch_size=None):
+def convert_inputs_to_tf_dataset(x=None, y=None, sample_weight=None, batch_size=None):
     if sample_weight is not None:
         raise ValueError("RetinaNet does not yet support `sample_weight`.")
 
@@ -58,13 +52,15 @@ def _convert_inputs_to_tf_dataset(x=None, y=None, sample_weight=None, batch_size
 
     # Construct tf.data.Dataset
     dataset = tf.data.Dataset.from_tensor_slices(inputs)
-    if batch_size is not None:
+    if batch_size == "full":
+        dataset = dataset.batch(x.shape[0])
+    elif batch_size is not None:
         dataset = dataset.batch(batch_size)
     return dataset
 
 
 # TODO(lukewood): remove once exported from Keras core.
-def _train_validation_split(arrays, validation_split):
+def train_validation_split(arrays, validation_split):
     """Split arrays into train and validation subsets in deterministic order.
 
     The last part of data will become validation data.
@@ -80,7 +76,7 @@ def _train_validation_split(arrays, validation_split):
     """
 
     def _can_split(t):
-        tensor_types = (tf.Tensor, np.ndarray, pd.Series, pd.DataFrame)
+        tensor_types = _get_tensor_types()
         return isinstance(t, tensor_types) or t is None
 
     flat_arrays = tf.nest.flatten(arrays)
