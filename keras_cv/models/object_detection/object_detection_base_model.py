@@ -13,10 +13,14 @@
 # limitations under the License.
 
 import tensorflow as tf
+import numpy as np
+import pandas as pd
 from tensorflow import keras
 
 from keras_cv import bounding_box
-
+from keras_cv.models.object_detection.__internal__ import _convert_inputs_to_tf_dataset
+from keras_cv.models.object_detection.__internal__ import _train_validation_split
+from keras_cv.models.object_detection.__internal__ import _split_validation_data
 
 class ObjectDetectionBaseModel(keras.Model):
     """ObjectDetectionBaseModel performs asynchonous label encoding.
@@ -48,8 +52,14 @@ class ObjectDetectionBaseModel(keras.Model):
             x=x, y=y, sample_weight=sample_weight, batch_size=batch_size
         )
 
-        if validation_split is not None:
-            raise ValueError("`validation_split` yet supported")
+        if validation_split and validation_data is None:
+            (
+                x,
+                y,
+                sample_weight,
+            ), validation_data = _train_validation_split(
+                (x, y, sample_weight), validation_split=validation_split
+            )
 
         if validation_data is not None:
             val_x, val_y, val_sample = _split_validation_data(validation_data)
@@ -87,46 +97,3 @@ class ObjectDetectionBaseModel(keras.Model):
             images=x,
         )
         return x, (y_for_metrics, y_training_target)
-
-
-def _split_validation_data(validation_data):
-    if isinstance(validation_data, tf.data.Dataset):
-        return validation_data, None, None
-    if len(validation_data) == 1:
-        return validation_data[0], None, None
-    if len(validation_data) == 2:
-        return validation_data[0], validation_data[1], None
-    if len(validation_data) == 3:
-        return validation_data[0], validation_data[1], validation_data[2]
-    else:
-        raise ValueError(
-            "`validation_data` should be a `tf.data.Dataset`, or a "
-            "tuple of 1, 2, or 3 elements. "
-            f"Got `validation_data={validation_data}`."
-        )
-
-
-def _convert_inputs_to_tf_dataset(x=None, y=None, sample_weight=None, batch_size=None):
-    if sample_weight is not None:
-        raise ValueError("RetinaNet does not yet support `sample_weight`.")
-
-    if isinstance(x, tf.data.Dataset):
-        if y is not None or batch_size is not None:
-            raise ValueError(
-                "When `x` is a `tf.data.Dataset`, please do not provide a value for "
-                f"`y` or `batch_size`.  Got `y={y}`, `batch_size={batch_size}`."
-            )
-        return x
-
-    # batch_size defaults to 32, as it does in fit().
-    batch_size = batch_size or 32
-    # Parse inputs
-    inputs = x
-    if y is not None:
-        inputs = (x, y)
-
-    # Construct tf.data.Dataset
-    dataset = tf.data.Dataset.from_tensor_slices(inputs)
-    if batch_size is not None:
-        dataset = dataset.batch(batch_size)
-    return dataset

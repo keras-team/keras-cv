@@ -15,7 +15,6 @@
 
 import numpy as np
 import tensorflow as tf
-
 from keras_cv import layers as cv_layers
 from keras_cv.models.object_detection.object_detection_base_model import (
     ObjectDetectionBaseModel,
@@ -42,6 +41,16 @@ class ObjectDetectionBaseModelTest(tf.test.TestCase):
         x = np.ones((8, 512, 512, 3))
         y = np.ones((8, 4, 5))
         model.fit(x, y, validation_data=(x, y))
+        model.evaluate(np.ones((8, 512, 512, 3)), np.ones((8, 4, 5)))
+
+
+    def test_validation_split(self):
+        model = DummySubclass()
+        model.compile()
+
+        x = np.ones((8, 512, 512, 3))
+        y = np.ones((8, 4, 5))
+        model.fit(x, y, validation_split=0.2)
         model.evaluate(np.ones((8, 512, 512, 3)), np.ones((8, 4, 5)))
 
     def test_tf_dataset(self):
