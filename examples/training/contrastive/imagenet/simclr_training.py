@@ -106,11 +106,11 @@ def load_imagenet_dataset():
     train_dataset = train_dataset.map(
         parse_imagenet_example,
         num_parallel_calls=tf.data.AUTOTUNE,
-    )
+    ).shuffle(5000, reshuffle_each_iteration=True)
     validation_dataset = validation_dataset.map(
         parse_imagenet_example,
         num_parallel_calls=tf.data.AUTOTUNE,
-    )
+    ).shuffle(5000, reshuffle_each_iteration=True)
 
     return train_dataset.batch(FLAGS.batch_size), validation_dataset.batch(
         FLAGS.batch_size
@@ -133,12 +133,18 @@ with strategy.scope():
         pooling="avg",
     )
     trainer = training.SimCLRTrainer(
-        encoder=model, include_probe=True, classes=CLASSES, value_range=(0, 255), target_size=IMAGE_SIZE,
+        encoder=model,
+        include_probe=True,
+        classes=CLASSES,
+        value_range=(0, 255),
+        target_size=IMAGE_SIZE,
     )
 
     optimizer = optimizers.SGD(learning_rate=FLAGS.initial_learning_rate, momentum=0.9)
     loss_fn = losses.SimCLRLoss(temperature=0.5, reduction="none")
-    probe_loss = keras.losses.CategoricalCrossentropy(from_logits=True, reduction="none")
+    probe_loss = keras.losses.CategoricalCrossentropy(
+        from_logits=True, reduction="none"
+    )
 
 with strategy.scope():
     training_metrics = [
