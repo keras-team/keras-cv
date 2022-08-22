@@ -16,7 +16,6 @@
 import pytest
 import tensorflow as tf
 from absl.testing import parameterized
-from keras import utils
 from tensorflow import keras
 from tensorflow.keras import backend
 
@@ -109,12 +108,7 @@ class ModelsTest(tf.test.TestCase, parameterized.TestCase):
 
         # Can be serialized and deserialized
         config = model.get_config()
-        if "ConvNeXt" in app.__name__:
-            custom_objects = {"LayerScale": convnext.LayerScale}
-            with utils.custom_object_scope(custom_objects):
-                reconstructed_model = model.__class__.from_config(config)
-        else:
-            reconstructed_model = model.__class__.from_config(config)
+        reconstructed_model = model.__class__.from_config(config)
         self.assertEqual(len(model.weights), len(reconstructed_model.weights))
 
         # There is no rescaling layer bcause include_rescaling=False
