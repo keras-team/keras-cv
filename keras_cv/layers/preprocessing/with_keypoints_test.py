@@ -17,7 +17,7 @@ from absl.testing import parameterized
 from keras_cv.layers import preprocessing
 
 # Imports from with_labels the list of augmentation that should perform a No-Op.
-from keras_cv.layers.preprocessing.with_labels_test import TEST_CONFIGURATIONS
+from keras_cv.layers.preprocessing.layers_configurations_test import TEST_CONFIGURATIONS
 
 # List here the layers that are expected to modify keypoints with
 # their specific parameters.

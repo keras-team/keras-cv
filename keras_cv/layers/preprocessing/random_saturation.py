@@ -71,9 +71,6 @@ class RandomSaturation(BaseImageAugmentationLayer):
         adjust_factor = transformation / (1 - transformation)
         return tf.image.adjust_saturation(image, saturation_factor=adjust_factor)
 
-    def augment_bounding_boxes(self, bounding_boxes, transformation=None, **kwargs):
-        return bounding_boxes
-
     def augment_label(self, label, transformation=None, **kwargs):
         return label
 

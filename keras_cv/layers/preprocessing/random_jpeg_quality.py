@@ -61,9 +61,6 @@ class RandomJpegQuality(BaseImageAugmentationLayer):
         jpeg_quality = transformation
         return tf.image.adjust_jpeg_quality(image, jpeg_quality)
 
-    def augment_bounding_boxes(self, bounding_boxes, **kwargs):
-        return bounding_boxes
-
     def augment_label(self, label, transformation=None, **kwargs):
         return label
 

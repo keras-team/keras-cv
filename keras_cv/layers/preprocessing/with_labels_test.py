@@ -15,82 +15,10 @@ import tensorflow as tf
 from absl.testing import parameterized
 
 from keras_cv.layers import preprocessing
-
-# List of augmentation layers that do not modify
-# geometry. i.e. `augment_bounding_boxes()` and `augment_keypoints()`
-# is a No-Op.
-TEST_CONFIGURATIONS = [
-    ("AutoContrast", preprocessing.AutoContrast, {"value_range": (0, 255)}),
-    ("Equalization", preprocessing.Equalization, {"value_range": (0, 255)}),
-    ("Grayscale", preprocessing.Grayscale, {}),
-    ("GridMask", preprocessing.GridMask, {}),
-    (
-        "Posterization",
-        preprocessing.Posterization,
-        {"bits": 3, "value_range": (0, 255)},
-    ),
-    (
-        "RandomColorDegeneration",
-        preprocessing.RandomColorDegeneration,
-        {"factor": 0.5},
-    ),
-    (
-        "RandomCutout",
-        preprocessing.RandomCutout,
-        {"height_factor": 0.2, "width_factor": 0.2},
-    ),
-    (
-        "RandomHue",
-        preprocessing.RandomHue,
-        {"factor": 0.5, "value_range": (0, 255)},
-    ),
-    (
-        "RandomChannelShift",
-        preprocessing.RandomChannelShift,
-        {"value_range": (0, 255), "factor": 0.5},
-    ),
-    (
-        "RandomColorJitter",
-        preprocessing.RandomColorJitter,
-        {
-            "value_range": (0, 255),
-            "brightness_factor": (-0.2, 0.5),
-            "contrast_factor": (0.5, 0.9),
-            "saturation_factor": (0.5, 0.9),
-            "hue_factor": (0.5, 0.9),
-            "seed": 1,
-        },
-    ),
-    (
-        "RandomGaussianBlur",
-        preprocessing.RandomGaussianBlur,
-        {"kernel_size": 3, "factor": (0.0, 3.0)},
-    ),
-    ("RandomJpegQuality", preprocessing.RandomJpegQuality, {"factor": (75, 100)}),
-    ("RandomSaturation", preprocessing.RandomSaturation, {"factor": 0.5}),
-    (
-        "RandomSharpness",
-        preprocessing.RandomSharpness,
-        {"factor": 0.5, "value_range": (0, 255)},
-    ),
-    ("Solarization", preprocessing.Solarization, {"value_range": (0, 255)}),
-]
-
-# List of augmentation layers that does modify
-# geometry. i.e. `augment_bounding_boxes()` and `augment_keypoints()`
-# are expected to modify bounding boxes or keypoints.
-GEOMETRIC_TEST_CONFIGURATIONS = [
-    ("RandomShear", preprocessing.RandomShear, {"x_factor": 0.3, "x_factor": 0.3}),
-    (
-        "RandomResizedCrop",
-        preprocessing.RandomResizedCrop,
-        {
-            "target_size": (224, 224),
-            "crop_area_factor": (0.8, 1.0),
-            "aspect_ratio_factor": (3 / 4, 4 / 3),
-        },
-    ),
-]
+from keras_cv.layers.preprocessing.layers_configurations_test import (
+    GEOMETRIC_TEST_CONFIGURATIONS,
+)
+from keras_cv.layers.preprocessing.layers_configurations_test import TEST_CONFIGURATIONS
 
 
 class WithLabelsTest(tf.test.TestCase, parameterized.TestCase):
