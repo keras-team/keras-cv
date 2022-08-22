@@ -16,7 +16,7 @@ import numpy as np
 import tensorflow as tf
 
 
-def rle_to_mask2d(mask_rle: str, shape) -> tf.Tensor:
+def rle_to_mask2d(mask_rle, shape):
     """Converts a Run-length encoded segmentation map to a 2-dimensional segmentation map.
 
     Args:
@@ -51,7 +51,7 @@ def rle_to_mask2d(mask_rle: str, shape) -> tf.Tensor:
     return mask
 
 
-def mask2d_to_rle(mask: tf.Tensor) -> str:
+def mask2d_to_rle(mask):
     """Converts a 2-dimensional segmentation map to a Run-length encoded segmentation map.
 
     Args:
