@@ -19,7 +19,7 @@ version_check.check_tf_version()
 # isort:on
 
 from keras_cv import layers
-from keras_cv import loaders
+from keras_cv import datasets
 from keras_cv import losses
 from keras_cv import metrics
 from keras_cv import models
