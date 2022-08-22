@@ -15,6 +15,8 @@
 import tensorflow as tf
 from tensorflow import keras
 
+LARGE_NUM = 1e9
+
 
 class SimCLRLoss(tf.keras.losses.Loss):
     """Implements SimCLR Cosine Similarity loss.
@@ -45,25 +47,39 @@ class SimCLRLoss(tf.keras.losses.Loss):
         Returns:
             A tensor with the SimCLR loss computed from the input projections
         """
-        # Compute the dot product of the L2 norms of the projections
+        # Normalize the projections
         projections_1 = tf.math.l2_normalize(projections_1, axis=1)
         projections_2 = tf.math.l2_normalize(projections_2, axis=1)
-        similarities = (
-            tf.matmul(projections_1, projections_2, transpose_b=True) / self.temperature
-        )
 
         # Produce artificial labels, 1 for each image in the batch.
         batch_size = tf.shape(projections_1)[0]
-        contrastive_labels = tf.range(batch_size)
+        labels = tf.one_hot(tf.range(batch_size), batch_size * 2)
+        masks = tf.one_hot(tf.range(batch_size), batch_size)
 
-        # The similarities are used as logits for cross-entropy against the artificial labels.
-        loss_1_2 = keras.losses.sparse_categorical_crossentropy(
-            contrastive_labels, similarities, from_logits=True
+        # Compute logits
+        logits_11 = (
+            tf.matmul(projections_1, projections_1, transpose_b=True) / self.temperature
         )
-        loss_2_1 = keras.losses.sparse_categorical_crossentropy(
-            contrastive_labels, tf.transpose(similarities), from_logits=True
+        logits_11 = logits_11 - masks * LARGE_NUM
+        logits_22 = (
+            tf.matmul(projections_2, projections_2, transpose_b=True) / self.temperature
         )
-        return (loss_1_2 + loss_2_1) / 2
+        logits_22 = logits_22 - masks * LARGE_NUM
+        logits_12 = (
+            tf.matmul(projections_1, projections_2, transpose_b=True) / self.temperature
+        )
+        logits_21 = (
+            tf.matmul(projections_2, projections_1, transpose_b=True) / self.temperature
+        )
+
+        loss_a = keras.losses.categorical_crossentropy(
+            labels, tf.concat([logits_12, logits_11], 1), from_logits=True
+        )
+        loss_b = keras.losses.categorical_crossentropy(
+            labels, tf.concat([logits_21, logits_22], 1), from_logits=True
+        )
+
+        return loss_a + loss_b
 
     def get_config(self):
         config = super().get_config()

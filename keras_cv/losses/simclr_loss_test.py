@@ -56,7 +56,7 @@ class SimCLRLossTest(tf.test.TestCase):
         ]
 
         simclr_loss = SimCLRLoss(temperature=0.5)
-        self.assertAllClose(simclr_loss(projections_1, projections_2), 1.0945123)
+        self.assertAllClose(simclr_loss(projections_1, projections_2), 3.566689)
 
         simclr_loss = SimCLRLoss(temperature=0.1)
-        self.assertAllClose(simclr_loss(projections_1, projections_2), 1.1511706)
+        self.assertAllClose(simclr_loss(projections_1, projections_2), 5.726100)
