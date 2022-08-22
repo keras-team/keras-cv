@@ -158,7 +158,7 @@ class RetinaNet(ObjectDetectionBaseModel):
             output_filters=9 * 4, bias_initializer="zeros"
         )
         self._metrics_bounding_box_format = None
-
+        self.loss_metric = tf.keras.metrics.Mean(name="loss")
         # Construct should run in eager mode
         if any(
             self.prediction_decoder.box_variance.numpy()
@@ -204,6 +204,10 @@ class RetinaNet(ObjectDetectionBaseModel):
                 "uses 'xyxy', all other metrics must use 'xyxy'.  Received "
                 f"metrics={metrics}."
             )
+
+    @property
+    def metrics(self):
+        return super().metrics + [self.loss_metric]
 
     def call(self, x, training=False):
         backbone_outputs = self.backbone(x, training=training)
@@ -258,12 +262,12 @@ class RetinaNet(ObjectDetectionBaseModel):
         trainable_vars = self.trainable_variables
         gradients = tape.gradient(loss, trainable_vars)
         self.optimizer.apply_gradients(zip(gradients, trainable_vars))
-
+        self.loss_metric.update_state(loss)
         # To minimize GPU transfers, we update metrics AFTER we take grads and apply
         # them.
         # TODO(lukewood): ensure this runs on TPU.
         self._update_metrics(y_for_metrics, predictions["inference"])
-        return self._metrics_result({"loss": loss})
+        return {m.name: m.result() for m in self.metrics}
 
     def test_step(self, data):
         x, y = data
@@ -275,9 +279,9 @@ class RetinaNet(ObjectDetectionBaseModel):
             predictions["train_predictions"],
             regularization_losses=self.losses,
         )
-
+        self.loss_metric.update_state(loss)
         self._update_metrics(y_for_metrics, predictions["inference"])
-        return self._metrics_result({"val_loss": loss})
+        return {m.name: m.result() for m in self.metrics}
 
     def _update_metrics(self, y_true, y_pred):
         y_true = bounding_box.convert_format(
@@ -291,11 +295,6 @@ class RetinaNet(ObjectDetectionBaseModel):
             target=self._metrics_bounding_box_format,
         )
         self.compiled_metrics.update_state(y_true, y_pred)
-
-    def _metrics_result(self, extra_metrics):
-        metrics_result = {m.name: m.result() for m in self.metrics}
-        metrics_result.update(extra_metrics)
-        return metrics_result
 
     def inference(self, x):
         predictions = self.predict(x)

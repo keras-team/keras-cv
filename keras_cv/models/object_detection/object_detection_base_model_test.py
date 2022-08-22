@@ -39,8 +39,8 @@ class ObjectDetectionBaseModelTest(tf.test.TestCase):
         model = DummySubclass()
         model.compile()
 
-        x=np.ones((8, 512, 512, 3))
-        y=np.ones((8, 4, 5))
+        x = np.ones((8, 512, 512, 3))
+        y = np.ones((8, 4, 5))
         model.fit(x, y, validation_data=(x, y))
         model.evaluate(np.ones((8, 512, 512, 3)), np.ones((8, 4, 5)))
 
