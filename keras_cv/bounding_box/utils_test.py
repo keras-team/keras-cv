@@ -109,8 +109,8 @@ class BoundingBoxUtilTestCase(tf.test.TestCase):
         )
         with self.assertRaisesRegex(
             ValueError,
-            "Class ID of bounding boxes already exists. The number of "
-            "values along the bounding box axis is expected to be 4. But received 5.",
+            "The number of values along the bounding box axis is "
+            "expected to be 4. But got 5.",
         ):
             bounding_box.add_class_id(bounding_boxes)
 

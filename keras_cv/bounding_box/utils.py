@@ -158,12 +158,10 @@ def add_class_id(bounding_boxes, class_id=0):
         bounding_boxes = bounding_boxes.to_tensor()
 
     # pad input bounding boxes
-    if bounding_boxes.shape[-1] > 4:
+    if bounding_boxes.shape[-1] != 4:
         raise ValueError(
-            "Class ID of bounding boxes already exists. The number of "
-            "values along the bounding box axis is expected to be 4. But received {}.".format(
-                bounding_boxes.shape[-1]
-            )
+            "The number of values along the bounding box axis is "
+            "expected to be 4. But got {}.".format(bounding_boxes.shape[-1])
         )
     bounding_box_rank = len(tf.shape(bounding_boxes))
     if bounding_box_rank == 2:
