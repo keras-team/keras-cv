@@ -98,7 +98,7 @@ def pad_with_sentinels(bounding_boxes, sentinel_value=-1):
 
     Args:
         bounding_boxes: a ragged tensor of bounding boxes.
-        Can be batched or unbatched.
+            Can be batched or unbatched.
 
     Returns:
         a Tensor containing the -1 padded bounding boxes.
