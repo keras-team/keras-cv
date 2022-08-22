@@ -89,12 +89,12 @@ def _format_outputs(boxes, squeeze):
     return boxes
 
 
-def pad_with_sentinels(bounding_boxes, default_value=-1):
+def pad_with_sentinels(bounding_boxes, sentinel_value=-1):
     """Pads the given bounding box tensor with -1s.
 
-    This is done to convert RaggedTensors to be converted into
-    standard Dense tensors, which have better performance and
-    compatibility within the TensorFlow ecosystem.
+    This is done to convert RaggedTensors into standard Dense
+    tensors, which have better performance and compatibility
+    within the TensorFlow ecosystem.
 
     Args:
         bounding_boxes: a ragged tensor of bounding boxes.
@@ -103,10 +103,10 @@ def pad_with_sentinels(bounding_boxes, default_value=-1):
     Returns:
         a Tensor containing the -1 padded bounding boxes.
     """
-    return bounding_boxes.to_tensor(default_value)
+    return bounding_boxes.to_tensor(default_value=sentinel_value)
 
 
-def filter_sentinels(bounding_boxes, default_value=-1):
+def filter_sentinels(bounding_boxes, sentinel_value=-1):
     """converts a Dense padded bounding box `Tensor` to a `tf.RaggedTensor`.
 
     Args:
@@ -118,26 +118,25 @@ def filter_sentinels(bounding_boxes, default_value=-1):
     is_ragged = isinstance(bounding_boxes, tf.RaggedTensor)
     if is_ragged:
         bounding_boxes = bounding_box.pad_with_sentinels(
-            bounding_boxes, default_value=default_value
+            bounding_boxes, sentinel_value=sentinel_value
         )
-    mask = bounding_boxes[..., 4] != default_value
+    mask = bounding_boxes[..., 4] != sentinel_value
     filtered_bounding_boxes = tf.ragged.boolean_mask(bounding_boxes, mask)
     return filtered_bounding_boxes
 
 
 def add_class_id(bounding_boxes, class_id=0):
-    """Add class ID to the innermost Tensor or RaggedTensor representing bounding boxes.
+    """Add class ID to a new dimension of the final axis of a bounding box Tensor.
 
-    Bounding box utilities in Keras_CV expects bounding boxes to have class IDs
-    along with bounding box cordinates. This utility adds a class ID to the
-    innermost tensor representing the bounding boxes.
+    Bounding box utilities in KerasCV expect bounding boxes to have class IDs.
+    This utility adds a class ID to a new axis of the provided tf.Tensor.
 
     Usage:
     ```python
     bounding_boxes = tf.random.uniform(shape=[2, 2, 4])
     bounding_boxes_with_class_id = keras_cv.bounding_box.add_class_id(
                                     bounding_boxes, class_id=1)
-    bounding_boxes_with_class_id is a Tensor of shape [2, 2, 5]
+    # bounding_boxes_with_class_id is a Tensor of shape [2, 2, 5]
     ```
 
     Args:
@@ -160,7 +159,7 @@ def add_class_id(bounding_boxes, class_id=0):
     # pad input bounding boxes
     if bounding_boxes.shape[-1] != 4:
         raise ValueError(
-            "The number of values along the bounding box axis is "
+            "The number of values along the final axis of `bounding_boxes` is "
             "expected to be 4. But got {}.".format(bounding_boxes.shape[-1])
         )
     bounding_box_rank = len(tf.shape(bounding_boxes))
@@ -170,8 +169,8 @@ def add_class_id(bounding_boxes, class_id=0):
         paddings = tf.constant([[0, 0], [0, 0], [0, 1]])
     else:
         raise ValueError(
-            "The bounding boxes should be of rank 2 or 3. However "
-            "add_class_id received bounding_boxes of rank {}.".format(bounding_box_rank)
+            f"`bounding_boxes` should be of rank 2 or 3. However "
+            f"add_class_id received `bounding_boxes` of rank={bounding_box_rank}"
         )
 
     bounding_boxes = tf.pad(

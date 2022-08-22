@@ -109,7 +109,7 @@ class BoundingBoxUtilTestCase(tf.test.TestCase):
         )
         with self.assertRaisesRegex(
             ValueError,
-            "The number of values along the bounding box axis is "
+            "The number of values along the final axis of `bounding_boxes` is "
             "expected to be 4. But got 5.",
         ):
             bounding_box.add_class_id(bounding_boxes)
@@ -120,7 +120,7 @@ class BoundingBoxUtilTestCase(tf.test.TestCase):
         )
         with self.assertRaisesRegex(
             ValueError,
-            "The bounding boxes should be of rank 2 or 3. However "
-            "add_class_id received bounding_boxes of rank 4.",
+            f"`bounding_boxes` should be of rank 2 or 3. However "
+            f"add_class_id received `bounding_boxes` of rank={4}",
         ):
             bounding_box.add_class_id(bounding_boxes)
