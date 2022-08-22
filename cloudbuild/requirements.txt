@@ -1,6 +1,8 @@
 absl-py
 packaging
+pandas
 tensorflow
+tensorflow-datasets
 flake8
 isort
 black
