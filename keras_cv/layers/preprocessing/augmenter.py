@@ -18,7 +18,6 @@ import tensorflow as tf
 @tf.keras.utils.register_keras_serializable(package="keras_cv")
 class Augmenter(tf.keras.layers.Layer):
     """Augmenter performs a series of preprocessing operations on input data.
-
     Args:
         layers: A list of Keras layers to be applied in sequence to input data.
     """
