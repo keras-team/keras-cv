@@ -12,12 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import tensorflow as tf
+import functools
+import math
+
 import numpy as np
 import pandas as pd
+import tensorflow as tf
 from tensorflow import keras
-import math
-import functools
 
 
 def _split_validation_data(validation_data):

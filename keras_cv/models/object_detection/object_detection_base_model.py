@@ -12,15 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import tensorflow as tf
 import numpy as np
 import pandas as pd
+import tensorflow as tf
 from tensorflow import keras
 
 from keras_cv import bounding_box
 from keras_cv.models.object_detection.__internal__ import _convert_inputs_to_tf_dataset
-from keras_cv.models.object_detection.__internal__ import _train_validation_split
 from keras_cv.models.object_detection.__internal__ import _split_validation_data
+from keras_cv.models.object_detection.__internal__ import _train_validation_split
 
 
 class ObjectDetectionBaseModel(keras.Model):
