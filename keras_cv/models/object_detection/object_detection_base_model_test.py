@@ -43,7 +43,6 @@ class ObjectDetectionBaseModelTest(tf.test.TestCase):
         model.fit(x, y, validation_data=(x, y))
         model.evaluate(np.ones((8, 512, 512, 3)), np.ones((8, 4, 5)))
 
-
     def test_validation_split(self):
         model = DummySubclass()
         model.compile()
@@ -64,7 +63,6 @@ class ObjectDetectionBaseModelTest(tf.test.TestCase):
         model.evaluate(np.ones((8, 512, 512, 3)), np.ones((8, 4, 5)))
 
     def test_with_sample_weight(self):
-        # TODO(lukewood): support sample_weight
         pass
 
 

@@ -22,6 +22,7 @@ from keras_cv.models.object_detection.__internal__ import _convert_inputs_to_tf_
 from keras_cv.models.object_detection.__internal__ import _train_validation_split
 from keras_cv.models.object_detection.__internal__ import _split_validation_data
 
+
 class ObjectDetectionBaseModel(keras.Model):
     """ObjectDetectionBaseModel performs asynchonous label encoding.
 
@@ -53,11 +54,7 @@ class ObjectDetectionBaseModel(keras.Model):
         )
 
         if validation_split and validation_data is None:
-            (
-                x,
-                y,
-                sample_weight,
-            ), validation_data = _train_validation_split(
+            (x, y, sample_weight,), validation_data = _train_validation_split(
                 (x, y, sample_weight), validation_split=validation_split
             )
 

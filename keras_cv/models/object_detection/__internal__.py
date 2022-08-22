@@ -19,6 +19,7 @@ from tensorflow import keras
 import math
 import functools
 
+
 def _split_validation_data(validation_data):
     if isinstance(validation_data, tf.data.Dataset):
         return validation_data, None, None
