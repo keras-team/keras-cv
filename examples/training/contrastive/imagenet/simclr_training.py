@@ -11,14 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""
-Title: Training a KerasCV model for Imagenet Classification
-Author: [ianjjohnson](https://github.com/ianjjohnson)
-Date created: 2022/07/25
-Last modified: 2022/07/25
-Description: Use KerasCV to train an image classifier using modern best practices
-"""
-
 import sys
 
 import tensorflow as tf
@@ -161,7 +153,6 @@ callbacks = [
     callbacks.ModelCheckpoint(FLAGS.weights_path, save_weights_only=True),
     callbacks.TensorBoard(log_dir=FLAGS.tensorboard_path),
 ]
-
 
 trainer.compile(
     optimizer=optimizer,
