@@ -148,12 +148,14 @@ with strategy.scope():
 
 with strategy.scope():
     training_metrics = [
-        metrics.CategoricalAccuracy(),
-        metrics.TopKCategoricalAccuracy(k=5),
+        metrics.CategoricalAccuracy(name="probe_accuracy"),
+        metrics.TopKCategoricalAccuracy(name="probe_top5_accuracy", k=5),
     ]
 
 callbacks = [
-    callbacks.ReduceLROnPlateau(monitor="loss", factor=0.1, patience=10, min_lr=0.0001),
+    callbacks.ReduceLROnPlateau(
+        monitor="probe_accuracy", factor=0.1, patience=5, min_lr=0.0001, min_delta=0.005
+    ),
     callbacks.EarlyStopping(patience=20),
     callbacks.BackupAndRestore(FLAGS.backup_path),
     callbacks.ModelCheckpoint(FLAGS.weights_path, save_weights_only=True),
