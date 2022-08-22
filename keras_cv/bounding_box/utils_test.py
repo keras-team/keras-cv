@@ -67,9 +67,10 @@ class BoundingBoxUtilTestCase(tf.test.TestCase):
             [[1, 2, 3, 4, 5], [1, 2, 3, 4, 5], [1, 2, 3, 4, -1]]
         )
         filtered_bounding_boxes = bounding_box.filter_sentinels(bounding_boxes)
-        expected_output = tf.ragged.constant(
-            [[1, 2, 3, 4, 5], [1, 2, 3, 4, 5]], ragged_rank=1
+        expected_output = tf.convert_to_tensor(
+            [[1, 2, 3, 4, 5], [1, 2, 3, 4, 5]],
         )
+        print(filtered_bounding_boxes, expected_output)
         self.assertAllEqual(filtered_bounding_boxes, expected_output)
 
     def test_filter_sentinels_tensor(self):

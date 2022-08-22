@@ -89,7 +89,7 @@ def _format_outputs(boxes, squeeze):
     return boxes
 
 
-def pad_with_sentinels(bounding_boxes):
+def pad_with_sentinels(bounding_boxes, default_value=-1):
     """Pads the given bounding box tensor with -1s.
 
     This is done to convert RaggedTensors to be converted into
@@ -103,29 +103,25 @@ def pad_with_sentinels(bounding_boxes):
     Returns:
         a Tensor containing the -1 padded bounding boxes.
     """
-    return bounding_boxes.to_tensor(-1)
+    return bounding_boxes.to_tensor(default_value)
 
 
-def filter_sentinels(bounding_boxes):
+def filter_sentinels(bounding_boxes, default_value=-1):
     """converts a Dense padded bounding box `Tensor` to a `tf.RaggedTensor`.
 
     Args:
         bounding_boxes: a Tensor of bounding boxes.  May be batched, or unbatched.
 
     Returns:
-        `tf.RaggedTensor` containing the filtered bounding boxes.
+        `tf.RaggedTensor`or 'tf.Tensor' containing the filtered bounding boxes.
     """
     is_ragged = isinstance(bounding_boxes, tf.RaggedTensor)
-    is_batched = len(bounding_boxes.shape) == 3
-    if is_batched:
-        if is_ragged:
-            bounding_boxes = bounding_boxes.to_tensor(-1)
-        mask = bounding_boxes[:, :, 4] != -1
-        filtered_bounding_boxes = tf.ragged.boolean_mask(bounding_boxes, mask)
-    else:
-        mask = bounding_boxes[:, 4] != -1
-        filtered_bounding_boxes = tf.boolean_mask(bounding_boxes, mask)
-        filtered_bounding_boxes = tf.RaggedTensor.from_tensor(filtered_bounding_boxes)
+    if is_ragged:
+        bounding_boxes = bounding_box.pad_with_sentinels(
+            bounding_boxes, default_value=default_value
+        )
+    mask = bounding_boxes[..., 4] != default_value
+    filtered_bounding_boxes = tf.ragged.boolean_mask(bounding_boxes, mask)
     return filtered_bounding_boxes
 
 
