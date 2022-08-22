@@ -66,6 +66,7 @@ class ObjectDetectionBaseModel(keras.Model):
             )
 
         dataset = dataset.map(self.encode_data, num_parallel_calls=tf.data.AUTOTUNE)
+        dataset = dataset.prefetch(tf.data.AUTOTUNE)
         return super().fit(x=dataset, **kwargs)
 
     def evaluate(self, x=None, y=None, sample_weight=None, batch_size=None, **kwargs):
@@ -73,6 +74,7 @@ class ObjectDetectionBaseModel(keras.Model):
             x=x, y=y, sample_weight=sample_weight, batch_size=batch_size
         )
         dataset = dataset.map(self.encode_data, num_parallel_calls=tf.data.AUTOTUNE)
+        dataset = dataset.prefetch(tf.data.AUTOTUNE)
         return super().evaluate(x=dataset, **kwargs)
 
     def encode_data(self, x, y):
