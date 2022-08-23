@@ -73,6 +73,7 @@ class SimCLRTrainer(ContrastiveTrainer):
                 [
                     layers.Dense(projection_width, activation="relu"),
                     layers.Dense(projection_width),
+                    layers.BatchNormalization(),
                 ],
                 name="projector",
             ),

@@ -182,8 +182,9 @@ class ContrastiveTrainer(keras.Model):
             projections_0 = self.projectors[0](features_0, training=True)
             projections_1 = self.projectors[1](features_1, training=True)
 
-            # TODO(ianstenbit), add regularization_losses from encoder and projectors
-            loss = self.compiled_loss(projections_0, projections_1)
+            loss = self.compiled_loss(
+                projections_0, projections_1, regularization_losses=self.encoder.losses
+            )
 
         gradients = tape.gradient(
             loss,
