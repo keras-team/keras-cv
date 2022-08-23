@@ -57,7 +57,7 @@ def load(
 
     Usage:
     ```python
-    dataset, ds_info = keras_cv.loaders.pascal_voc.load(
+    dataset, ds_info = keras_cv.datasets.pascal_voc.load(
         split="train", bounding_box_format="xywh", batch_size=9
     )
     ```
@@ -92,7 +92,7 @@ def load(
         if not batch_size and not shuffle_buffer:
             raise ValueError(
                 "If `shuffle=True`, either a `batch_size` or `shuffle_buffer` must be "
-                "provided to `keras_cv.loaders.pascal_voc.load().`"
+                "provided to `keras_cv.datasets.pascal_voc.load().`"
             )
         shuffle_buffer = shuffle_buffer or 8 * batch_size
         dataset = dataset.shuffle(shuffle_buffer)
