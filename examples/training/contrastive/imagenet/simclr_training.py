@@ -48,6 +48,11 @@ flags.DEFINE_float(
     0.1,
     "Initial learning rate which will reduce on plateau.",
 )
+flags.DEFINE_boolean(
+    "include_probe",
+    True,
+    "Whether to include probing during training.",
+)
 
 
 FLAGS = flags.FLAGS
@@ -81,7 +86,10 @@ def parse_imagenet_example(example):
     # Decode label
     label = tf.cast(tf.reshape(parsed[label_key], shape=()), dtype=tf.int32) - 1
     label = tf.one_hot(label, CLASSES)
-    return image, label
+    if FLAGS.include_probe:
+        return image, label
+    else:
+        return image
 
 
 def load_imagenet_dataset():
@@ -126,7 +134,7 @@ with strategy.scope():
     )
     trainer = training.SimCLRTrainer(
         encoder=model,
-        include_probe=True,
+        include_probe=FLAGS.include_probe,
         classes=CLASSES,
         value_range=(0, 255),
         target_size=IMAGE_SIZE,
@@ -142,15 +150,23 @@ with strategy.scope():
         metrics.TopKCategoricalAccuracy(name="probe_top5_accuracy", k=5),
     ]
 
-callbacks = [
-    callbacks.ReduceLROnPlateau(
-        monitor="probe_accuracy", factor=0.1, patience=5, min_lr=0.0001, min_delta=0.005
-    ),
+training_callbacks = [
     callbacks.EarlyStopping(monitor="probe_accuracy", patience=20),
     callbacks.BackupAndRestore(FLAGS.backup_path),
     callbacks.ModelCheckpoint(FLAGS.weights_path, save_weights_only=True),
     callbacks.TensorBoard(log_dir=FLAGS.tensorboard_path),
 ]
+
+if FLAGS.include_probe:
+    training_callbacks += [
+        callbacks.ReduceLROnPlateau(
+            monitor="probe_accuracy",
+            factor=0.1,
+            patience=5,
+            min_lr=0.0001,
+            min_delta=0.005,
+        )
+    ]
 
 trainer.compile(
     optimizer=optimizer,
@@ -164,5 +180,5 @@ trainer.compile(
 trainer.fit(
     train_ds,
     epochs=EPOCHS,
-    callbacks=callbacks,
+    callbacks=training_callbacks,
 )
