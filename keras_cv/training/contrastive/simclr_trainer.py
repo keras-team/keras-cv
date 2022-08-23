@@ -72,7 +72,7 @@ class SimCLRTrainer(ContrastiveTrainer):
             projector=keras.Sequential(
                 [
                     layers.Dense(projection_width, activation="relu"),
-                    layers.Dense(projection_width, activation="softmax"),
+                    layers.Dense(projection_width),
                 ],
                 name="projector",
             ),
