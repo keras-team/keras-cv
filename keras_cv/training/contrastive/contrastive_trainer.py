@@ -92,9 +92,13 @@ class ContrastiveTrainer(keras.Model):
                 "`augmenter` must be either a single augmenter or a tuple of exactly 2 augmenters."
             )
 
-        self.augmenter = augmenter
+        self.augmenters = (
+            augmenter if type(augmenter) is tuple else (augmenter, augmenter)
+        )
         self.encoder = encoder
-        self.projector = projector
+        self.projectors = (
+            projector if type(projector) is tuple else (projector, projector)
+        )
 
         self.loss_metric = keras.metrics.Mean(name="loss")
 
@@ -155,9 +159,9 @@ class ContrastiveTrainer(keras.Model):
 
     def run_augmenters(self, x, y=None):
         if y is not None:
-            return x, self.augmenter(x), self.augmenter(x), y
+            return x, self.augmenters[0](x), self.augmenters[1](x), y
         else:
-            return x, self.augmenter(x), self.augmenter(x)
+            return x, self.augmenters[0](x), self.augmenters[1](x)
 
     def train_step(self, data):
         if self.include_probe:
@@ -177,20 +181,25 @@ class ContrastiveTrainer(keras.Model):
             features_0 = self.encoder(augmented_images_0, training=True)
             features_1 = self.encoder(augmented_images_1, training=True)
 
-            projections_0 = self.projector(features_0, training=True)
-            projections_1 = self.projector(features_1, training=True)
+            projections_0 = self.projectors[0](features_0, training=True)
+            projections_1 = self.projectors[1](features_1, training=True)
 
             # TODO(ianstenbit), add regularization_losses from encoder and projectors
             loss = self.compiled_loss(projections_0, projections_1)
 
         gradients = tape.gradient(
-            loss, self.encoder.trainable_weights + self.projector.trainable_weights
+            loss,
+            self.encoder.trainable_weights
+            + self.projectors[0].trainable_weights
+            + self.projectors[1].trainable_weights,
         )
 
         self.optimizer.apply_gradients(
             zip(
                 gradients,
-                self.encoder.trainable_weights + self.projector.trainable_weights,
+                self.encoder.trainable_weights
+                + self.projectors[0].trainable_weights
+                + self.projectors[1].trainable_weights,
             )
         )
         self.loss_metric.update_state(loss)
