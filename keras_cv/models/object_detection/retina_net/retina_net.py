@@ -18,6 +18,9 @@ from tensorflow import keras
 
 from keras_cv import bounding_box
 from keras_cv import layers as cv_layers
+from keras_cv.models.object_detection.object_detection_base_model import (
+    ObjectDetectionBaseModel,
+)
 from keras_cv.models.object_detection.retina_net.__internal__ import (
     layers as layers_lib,
 )
@@ -26,7 +29,7 @@ from keras_cv.models.object_detection.retina_net.__internal__ import (
 # TODO(lukewood): update docstring to include documentation on creating a custom label
 # decoder/etc.
 # TODO(lukewood): link to keras.io guide on creating custom backbone and FPN.
-class RetinaNet(keras.Model):
+class RetinaNet(ObjectDetectionBaseModel):
     """A Keras model implementing the RetinaNet architecture.
 
     Implements the RetinaNet architecture for object detection.  The constructor
@@ -101,14 +104,6 @@ class RetinaNet(keras.Model):
         name="RetinaNet",
         **kwargs,
     ):
-        super().__init__(name=name, **kwargs)
-        if bounding_box_format.lower() != "xywh":
-            raise ValueError(
-                "`keras_cv.models.RetinaNet` only supports the 'xywh' "
-                "`bounding_box_format`.  In future releases, more formats will be "
-                "supported.  For now, please pass `bounding_box_format='xywh'`. "
-                f"Received `bounding_box_format={bounding_box_format}`"
-            )
         if anchor_generator is not None and (prediction_decoder or label_encoder):
             raise ValueError(
                 "`anchor_generator` is only to be provided when "
@@ -120,17 +115,33 @@ class RetinaNet(keras.Model):
                 "`prediction_decoder` you should provide both to `RetinaNet`, and ensure "
                 "that the `anchor_generator` provided to both is identical"
             )
-
-        self.bounding_box_format = bounding_box_format
         anchor_generator = anchor_generator or _default_anchor_generator(
             bounding_box_format
         )
+        label_encoder = label_encoder or cv_layers.RetinaNetLabelEncoder(
+            bounding_box_format=bounding_box_format, anchor_generator=anchor_generator
+        )
+        super().__init__(
+            bounding_box_format=bounding_box_format,
+            label_encoder=label_encoder,
+            name=name,
+            **kwargs,
+        )
+
+        self.label_encoder = label_encoder
+        self.anchor_generator = anchor_generator
+        if bounding_box_format.lower() != "xywh":
+            raise ValueError(
+                "`keras_cv.models.RetinaNet` only supports the 'xywh' "
+                "`bounding_box_format`.  In future releases, more formats will be "
+                "supported.  For now, please pass `bounding_box_format='xywh'`. "
+                f"Received `bounding_box_format={bounding_box_format}`"
+            )
+
+        self.bounding_box_format = bounding_box_format
         self.classes = classes
         self.backbone = _parse_backbone(backbone, include_rescaling, backbone_weights)
 
-        self.label_encoder = label_encoder or cv_layers.RetinaNetLabelEncoder(
-            bounding_box_format=bounding_box_format, anchor_generator=anchor_generator
-        )
         self.prediction_decoder = prediction_decoder or cv_layers.NmsPredictionDecoder(
             bounding_box_format=bounding_box_format,
             anchor_generator=anchor_generator,
@@ -147,7 +158,7 @@ class RetinaNet(keras.Model):
             output_filters=9 * 4, bias_initializer="zeros"
         )
         self._metrics_bounding_box_format = None
-
+        self.loss_metric = tf.keras.metrics.Mean(name="loss")
         # Construct should run in eager mode
         if any(
             self.prediction_decoder.box_variance.numpy()
@@ -194,6 +205,10 @@ class RetinaNet(keras.Model):
                 f"metrics={metrics}."
             )
 
+    @property
+    def metrics(self):
+        return super().metrics + [self.loss_metric]
+
     def call(self, x, training=False):
         backbone_outputs = self.backbone(x, training=training)
         features = self.feature_pyramid(backbone_outputs, training=training)
@@ -227,28 +242,10 @@ class RetinaNet(keras.Model):
         )
         return {"train_predictions": train_preds, "inference": pred_for_inference}
 
-    def _encode_data(self, x, y):
-        y_for_metrics = y
-
-        y = bounding_box.convert_format(
-            y,
-            source=self.bounding_box_format,
-            target=self.label_encoder.bounding_box_format,
-            images=x,
-        )
-        y_training_target = self.label_encoder(x, y)
-        y_training_target = bounding_box.convert_format(
-            y_training_target,
-            source=self.label_encoder.bounding_box_format,
-            target=self.bounding_box_format,
-            images=x,
-        )
-        return y_for_metrics, y_training_target
-
     def train_step(self, data):
         x, y = data
-        # y comes in in self.bounding_box_format
-        y_for_metrics, y_training_target = self._encode_data(x, y)
+        y_for_metrics, y_training_target = y
+
         with tf.GradientTape() as tape:
             predictions = self(x, training=True)
             # predictions technically do not have a format, so loss accepts whatever
@@ -265,16 +262,16 @@ class RetinaNet(keras.Model):
         trainable_vars = self.trainable_variables
         gradients = tape.gradient(loss, trainable_vars)
         self.optimizer.apply_gradients(zip(gradients, trainable_vars))
-
+        self.loss_metric.update_state(loss)
         # To minimize GPU transfers, we update metrics AFTER we take grads and apply
         # them.
         # TODO(lukewood): ensure this runs on TPU.
         self._update_metrics(y_for_metrics, predictions["inference"])
-        return self._metrics_result(loss)
+        return {m.name: m.result() for m in self.metrics}
 
     def test_step(self, data):
         x, y = data
-        y_for_metrics, y_training_target = self._encode_data(x, y)
+        y_for_metrics, y_training_target = y
 
         predictions = self(x)
         loss = self.compiled_loss(
@@ -282,9 +279,9 @@ class RetinaNet(keras.Model):
             predictions["train_predictions"],
             regularization_losses=self.losses,
         )
-
+        self.loss_metric.update_state(loss)
         self._update_metrics(y_for_metrics, predictions["inference"])
-        return self._metrics_result(loss)
+        return {m.name: m.result() for m in self.metrics}
 
     def _update_metrics(self, y_true, y_pred):
         y_true = bounding_box.convert_format(
@@ -298,11 +295,6 @@ class RetinaNet(keras.Model):
             target=self._metrics_bounding_box_format,
         )
         self.compiled_metrics.update_state(y_true, y_pred)
-
-    def _metrics_result(self, loss):
-        metrics_result = {m.name: m.result() for m in self.metrics}
-        metrics_result["loss"] = loss
-        return metrics_result
 
     def inference(self, x):
         predictions = self.predict(x)
