@@ -26,6 +26,9 @@ def rle_to_mask2d(mask_rle, shape):
     Returns:
       mask: 2-dimensional segmentation map.
     
+    Raises:
+      ValueError if the resultant flattened mask cannot be reshaped to `shape`.
+    
     Reference:
       - [StackOverflow Answer by jdehesa](https://stackoverflow.com/questions/58693261/decoding-rle-run-length-encoding-mask-with-tensorflow-datasets/58842473#58842473)
     
@@ -61,7 +64,11 @@ def rle_to_mask2d(mask_rle, shape):
     mask_flat = tf.scatter_nd(tf.expand_dims(idx, 1), ones, [size])
     
     # Transpose and Reshape into mask
-    mask = tf.transpose(tf.reshape(mask_flat, shape))
+    try:
+        reshaped_mask = tf.reshape(mask_flat, shape)
+    except ValueError as value_error:
+        print(value_error)
+    mask = tf.transpose(reshaped_mask)
     return mask
 
 
