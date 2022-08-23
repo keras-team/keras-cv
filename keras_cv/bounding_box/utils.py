@@ -90,7 +90,7 @@ def _format_outputs(boxes, squeeze):
 
 
 def pad_with_sentinels(bounding_boxes, sentinel_value=-1):
-    """Pads the given bounding box tensor with -1s.
+    """Pads the given bounding box tensor with sentinel_value.
 
     This is done to convert RaggedTensors into standard Dense
     tensors, which have better performance and compatibility
@@ -99,18 +99,22 @@ def pad_with_sentinels(bounding_boxes, sentinel_value=-1):
     Args:
         bounding_boxes: a ragged tensor of bounding boxes.
             Can be batched or unbatched.
+        sentinel_value: Value to set for indices not specified 
+            in bounding_boxes. Defaults to -1.
 
     Returns:
-        a Tensor containing the -1 padded bounding boxes.
+        a Tensor containing the sentinel_value padded bounding boxes.
     """
     return bounding_boxes.to_tensor(default_value=sentinel_value)
 
 
 def filter_sentinels(bounding_boxes, sentinel_value=-1):
-    """converts a Dense padded bounding box `Tensor` to a `tf.RaggedTensor`.
+    """converts a Dense padded bounding box `tf.Tensor` to a `tf.RaggedTensor`.
 
     Args:
         bounding_boxes: a Tensor of bounding boxes.  May be batched, or unbatched.
+        sentinel_value: Value used to filter dense bounding box tensor.
+            bounding_boxes with class_id equal to sentinel_value will be dropped.
 
     Returns:
         `tf.RaggedTensor`or 'tf.Tensor' containing the filtered bounding boxes.
