@@ -98,11 +98,11 @@ def load_imagenet_dataset():
     train_dataset = train_dataset.map(
         parse_imagenet_example,
         num_parallel_calls=tf.data.AUTOTUNE,
-    )  # .shuffle(2000, reshuffle_each_iteration=True)
+    ).shuffle(2000, reshuffle_each_iteration=True)
     validation_dataset = validation_dataset.map(
         parse_imagenet_example,
         num_parallel_calls=tf.data.AUTOTUNE,
-    )  # .shuffle(2000, reshuffle_each_iteration=True)
+    ).shuffle(2000, reshuffle_each_iteration=True)
 
     return train_dataset.batch(FLAGS.batch_size), validation_dataset.batch(
         FLAGS.batch_size
