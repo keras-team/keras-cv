@@ -72,15 +72,10 @@ class SimCLRTrainer(ContrastiveTrainer):
             projector=keras.Sequential(
                 [
                     layers.Dense(projection_width, activation="relu"),
-                    layers.Dense(projection_width),
+                    layers.Dense(projection_width, activation="softmax"),
                 ],
                 name="projector",
             ),
             include_probe=include_probe,
             **kwargs,
-        )
-
-    def compile(self, optimizer, loss=None, **kwargs):
-        super().compile(
-            optimizer=optimizer, loss=loss or SimCLRLoss(temperature=0.5), **kwargs
         )
