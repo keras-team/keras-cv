@@ -111,6 +111,11 @@ def pad_with_sentinels(bounding_boxes, sentinel_value=-1):
 def filter_sentinels(bounding_boxes, sentinel_value=-1):
     """converts a Dense padded bounding box `tf.Tensor` to a `tf.RaggedTensor`.
 
+    Bounding boxes are ragged tensors in most use cases. Converting them to a dense
+    tensor makes it easier to work with Tensorflow ecosystem.
+    This function can be used to filter out the padded bounding boxes by
+    checking for padded sentinel value of the class_id axis of the bounding_boxes.
+
     Args:
         bounding_boxes: a Tensor of bounding boxes.  May be batched, or unbatched.
         sentinel_value: Value used to filter dense bounding box tensor.
