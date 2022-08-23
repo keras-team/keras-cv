@@ -53,18 +53,22 @@ class SimCLRTrainer(ContrastiveTrainer):
             encoder=encoder,
             augmenter=preprocessing.Augmenter(
                 [
-                    preprocessing.RandomFlip(),
+                    preprocessing.RandomFlip("horizontal"),
                     preprocessing.RandomResizedCrop(
                         target_size,
                         crop_area_factor=(0.08, 1),
                         aspect_ratio_factor=(3 / 4, 4 / 3),
                     ),
-                    preprocessing.RandomColorJitter(
-                        value_range=value_range,
-                        brightness_factor=0.25,
-                        contrast_factor=0.5,
-                        saturation_factor=(0.3, 0.7),
-                        hue_factor=0.2,
+                    preprocessing.MaybeApply(preprocessing.Grayscale(), rate=0.2),
+                    preprocessing.MaybeApply(
+                        preprocessing.RandomColorJitter(
+                            value_range=value_range,
+                            brightness_factor=0.25,
+                            contrast_factor=0.5,
+                            saturation_factor=(0.3, 0.7),
+                            hue_factor=0.2,
+                        ),
+                        rate=0.8,
                     ),
                 ]
             ),
