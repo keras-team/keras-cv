@@ -140,7 +140,7 @@ with strategy.scope():
         target_size=IMAGE_SIZE,
     )
 
-    optimizer = optimizers.SGD(learning_rate=FLAGS.initial_learning_rate, momentum=0.9)
+    optimizer = optimizers.SGD(learning_rate=FLAGS.initial_learning_rate, momentum=0.9, global_clipnorm=10)
     loss_fn = losses.SimCLRLoss(temperature=0.5, reduction="none")
     probe_loss = keras.losses.CategoricalCrossentropy(reduction="none")
 
