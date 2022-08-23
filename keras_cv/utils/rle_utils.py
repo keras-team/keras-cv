@@ -28,15 +28,19 @@ def rle_to_mask2d(mask_rle, shape):
     """
     shape = tf.convert_to_tensor(shape, tf.int64)
     size = tf.math.reduce_prod(shape)
+    
     # Split string
     s = tf.strings.split(mask_rle)
     s = tf.strings.to_number(s, tf.int64)
+    
     # Get starts and lengths
     starts = s[::2] - 1
     lengths = s[1::2]
+    
     # Make ones to be scattered
     total_ones = tf.reduce_sum(lengths)
     ones = tf.ones([total_ones], tf.uint8)
+    
     # Make scattering indices
     r = tf.range(total_ones)
     cumulative_sum_of_lengths = tf.math.cumsum(lengths)
@@ -44,8 +48,10 @@ def rle_to_mask2d(mask_rle, shape):
     idx = r + tf.gather(
         starts - tf.pad(cumulative_sum_of_lengths[:-1], [(1, 0)]), s
     )  # Search where r goes in cumulative_sum_of_lengths
+    
     # Scatter ones into flattened mask
     mask_flat = tf.scatter_nd(tf.expand_dims(idx, 1), ones, [size])
+    
     # Transpose and Reshape into mask
     mask = tf.transpose(tf.reshape(mask_flat, shape))
     return mask
@@ -60,10 +66,17 @@ def mask2d_to_rle(mask):
     Returns:
       mask_rle: a string that represents the run-length encoded segmentation map.
     """
+    # Transpose the mask
     mask = tf.transpose(mask).numpy()
+    
+    # Get pixel values from the mask
     pixels = mask.flatten()
     pixels = np.concatenate([[0], pixels, [0]])
+    
+    # Get run-length encoding
     runs = np.where(pixels[1:] != pixels[:-1])[0] + 1
     runs[1::2] -= runs[::2]
+    
+    # Join run-length encodings
     mask_rle = " ".join(str(x) for x in runs)
     return mask_rle
