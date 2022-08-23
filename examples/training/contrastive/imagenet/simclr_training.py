@@ -140,13 +140,9 @@ with strategy.scope():
         target_size=IMAGE_SIZE,
     )
 
-    optimizer = optimizers.SGD(
-        learning_rate=FLAGS.initial_learning_rate, momentum=0.9, global_clipnorm=10
-    )
+    optimizer = optimizers.SGD(learning_rate=FLAGS.initial_learning_rate, momentum=0.9, global_clipnorm=10)
     loss_fn = losses.SimCLRLoss(temperature=0.5, reduction="none")
-    probe_loss = keras.losses.CategoricalCrossentropy(
-        reduction="none", from_logits=True
-    )
+    probe_loss = keras.losses.CategoricalCrossentropy(reduction="none", from_logits=True)
 
 with strategy.scope():
     training_metrics = [
@@ -175,7 +171,7 @@ if FLAGS.include_probe:
 trainer.compile(
     optimizer=optimizer,
     loss=loss_fn,
-    probe_optimizer=optimizers.Adam(),
+    probe_optimizer=optimizers.Adam(global_clipnorm=10),
     probe_metrics=training_metrics,
     probe_loss=probe_loss,
     jit_compile=FLAGS.use_xla,
