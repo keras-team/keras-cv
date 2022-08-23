@@ -11,11 +11,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-## TMP
-import os
 import sys
 
-import matplotlib.pyplot as plt
 import tensorflow as tf
 from absl import flags
 from tensorflow import keras
@@ -29,8 +26,11 @@ from keras_cv import losses
 from keras_cv import models
 from keras_cv import training
 
+## TMP
+import os
+import matplotlib.pyplot as plt
 
-def visualize_dataset(data, path):
+def visualize_dataset(data, path, title):
     plt.figure(figsize=(10, 10)).suptitle(title, fontsize=18)
     images0, images1, images2, labels = data
     for i in range(9):
@@ -43,18 +43,19 @@ def visualize_dataset(data, path):
         plt.subplot(9, 3, 3 * i + 3)
         plt.imshow(images2[i].numpy().astype("uint8"))
         plt.axis("off")
-    plt.savefig(fname=path, pad_inches=0, bbox_inches="tight", transparent=True)
+    plt.savefig(fname=path, pad_inches=0, bbox_inches='tight', transparent=True)
     plt.close()
 
-
 class VisualizeAugmentationsEachStep(keras.callbacks.Callback):
-    def __init__(self, model, save_path, rows=3, cols=6, **kwargs):
+    def __init__(self, trainer, save_path, **kwargs):
         super().__init__(**kwargs)
         self.save_path = save_path
+        self.trainer = trainer
 
     def on_train_batch_end(self, batch, logs=None):
-        visualize_dataset(self.data, path=f"{self.save_path}/{batch}.png")
-
+        visualize_dataset(
+            self.trainer.data, path=f"{self.save_path}/{batch}.png", title=f"Batch {batch}"
+        )
 
 flags.DEFINE_string(
     "model_name", None, "The name of the model in KerasCV.models to use."
@@ -128,11 +129,11 @@ def load_imagenet_dataset():
     train_dataset = train_dataset.map(
         parse_imagenet_example,
         num_parallel_calls=tf.data.AUTOTUNE,
-    ).shuffle(2000, reshuffle_each_iteration=True)
+    )#.shuffle(2000, reshuffle_each_iteration=True)
     validation_dataset = validation_dataset.map(
         parse_imagenet_example,
         num_parallel_calls=tf.data.AUTOTUNE,
-    ).shuffle(2000, reshuffle_each_iteration=True)
+    )#.shuffle(2000, reshuffle_each_iteration=True)
 
     return train_dataset.batch(FLAGS.batch_size), validation_dataset.batch(
         FLAGS.batch_size
@@ -142,8 +143,8 @@ def load_imagenet_dataset():
 train_ds, test_ds = load_imagenet_dataset()
 
 
-# For TPU training, use tf.distribute.TPUStrategy()
-# MirroredStrategy is best for a single machine with multiple GPUs
+#For TPU training, use tf.distribute.TPUStrategy()
+#MirroredStrategy is best for a single machine with multiple GPUs
 strategy = tf.distribute.MirroredStrategy()
 
 with strategy.scope():
@@ -182,7 +183,7 @@ callbacks = [
     callbacks.BackupAndRestore(FLAGS.backup_path),
     callbacks.ModelCheckpoint(FLAGS.weights_path, save_weights_only=True),
     callbacks.TensorBoard(log_dir=FLAGS.tensorboard_path),
-    VisualizeAugmentationsEachStep("./viz"),
+    VisualizeAugmentationsEachStep(trainer, "./viz"),
 ]
 
 trainer.compile(
