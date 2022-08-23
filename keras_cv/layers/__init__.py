@@ -32,6 +32,7 @@ from keras_cv.layers.object_detection.retina_net_label_encoder import (
     RetinaNetLabelEncoder,
 )
 from keras_cv.layers.preprocessing.aug_mix import AugMix
+from keras_cv.layers.preprocessing.augmenter import Augmenter
 from keras_cv.layers.preprocessing.auto_contrast import AutoContrast
 from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
     BaseImageAugmentationLayer,
