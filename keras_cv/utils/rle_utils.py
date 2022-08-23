@@ -25,6 +25,14 @@ def rle_to_mask2d(mask_rle, shape):
 
     Returns:
       mask: 2-dimensional segmentation map.
+    
+    Reference:
+      - [StackOverflow Answer by jdehesa](https://stackoverflow.com/questions/58693261/decoding-rle-run-length-encoding-mask-with-tensorflow-datasets/58842473#58842473)
+    
+    Sample Usage:
+    ```python
+    sample_mask = rle_to_mask2d(sample_rle, shape=(768, 768))
+    ```
     """
     shape = tf.convert_to_tensor(shape, tf.int64)
     size = tf.math.reduce_prod(shape)
@@ -65,6 +73,11 @@ def mask2d_to_rle(mask):
 
     Returns:
       mask_rle: a string that represents the run-length encoded segmentation map.
+    
+    Sample Usage:
+    ```python
+    sample_rle_mask = mask2d_to_rle(sample_mask)
+    ```
     """
     # Transpose the mask
     mask = tf.transpose(mask).numpy()
