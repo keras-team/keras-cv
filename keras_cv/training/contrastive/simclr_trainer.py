@@ -16,7 +16,6 @@ from tensorflow import keras
 from tensorflow.keras import layers
 
 from keras_cv.layers import preprocessing
-from keras_cv.losses import SimCLRLoss
 from keras_cv.training import ContrastiveTrainer
 
 
