@@ -11,11 +11,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-## TMP
-import os
+
 import sys
 
-import matplotlib.pyplot as plt
 import tensorflow as tf
 from absl import flags
 from tensorflow import keras
@@ -24,43 +22,9 @@ from tensorflow.keras import layers
 from tensorflow.keras import metrics
 from tensorflow.keras import optimizers
 
-import keras_cv
 from keras_cv import losses
 from keras_cv import models
 from keras_cv import training
-from keras_cv.layers import preprocessing
-
-
-def visualize_dataset(data, path, title):
-    plt.figure(figsize=(10, 10)).suptitle(title, fontsize=18)
-    images0, images1, images2, labels = data
-    for i in range(9):
-        plt.subplot(9, 3, 3 * i + 1)
-        plt.imshow(images0[i].numpy().astype("uint8"))
-        plt.axis("off")
-        plt.subplot(9, 3, 3 * i + 2)
-        plt.imshow(images1[i].numpy().astype("uint8"))
-        plt.axis("off")
-        plt.subplot(9, 3, 3 * i + 3)
-        plt.imshow(images2[i].numpy().astype("uint8"))
-        plt.axis("off")
-    plt.savefig(fname=path, pad_inches=0, bbox_inches="tight", transparent=True)
-    plt.close()
-
-
-class VisualizeAugmentationsEachStep(keras.callbacks.Callback):
-    def __init__(self, trainer, save_path, **kwargs):
-        super().__init__(**kwargs)
-        self.save_path = save_path
-        self.trainer = trainer
-
-    def on_train_batch_end(self, batch, logs=None):
-        visualize_dataset(
-            self.trainer.data,
-            path=f"{self.save_path}/{batch}.png",
-            title=f"Batch {batch}",
-        )
-
 
 flags.DEFINE_string(
     "model_name", None, "The name of the model in KerasCV.models to use."
@@ -204,51 +168,3 @@ trainer.fit(
     epochs=EPOCHS,
     callbacks=callbacks,
 )
-
-# import matplotlib.pyplot as plt
-#
-# from keras_cv.layers import preprocessing
-# from keras_cv.losses import SimCLRLoss
-# from keras_cv.training import ContrastiveTrainer
-#
-# def visualize_dataset(dataset, title):
-#     plt.figure(figsize=(10, 10)).suptitle(title, fontsize=18)
-#     for i, samples in enumerate(iter(dataset.take(9))):
-#         images0, images1, images2, labels = samples
-#         plt.subplot(9, 3, 3 * i + 1)
-#         plt.imshow(images0[0].numpy().astype("uint8"))
-#         plt.axis("off")
-#         plt.subplot(9, 3, 3 * i + 2)
-#         plt.imshow(images1[0].numpy().astype("uint8"))
-#         plt.axis("off")
-#         plt.subplot(9, 3, 3 * i + 3)
-#         plt.imshow(images2[0].numpy().astype("uint8"))
-#         plt.axis("off")
-#     plt.show()
-#
-#
-# aug=preprocessing.Augmenter(
-#                 [
-#                     preprocessing.RandomFlip(),
-#                     preprocessing.RandomResizedCrop(
-#                         IMAGE_SIZE,
-#                         crop_area_factor=(0.08, 1),
-#                         aspect_ratio_factor=(3 / 4, 4 / 3),
-#                     ),
-#                     preprocessing.RandomColorJitter(
-#                         value_range=(0,255),
-#                         brightness_factor=0.25,
-#                         contrast_factor=0.5,
-#                         saturation_factor=(0.3, 0.7),
-#                         hue_factor=0.2,
-#                     ),
-#                 ]
-#             )
-#
-# @tf.function
-# def augment_data(x, y):
-#     return x, aug(x), aug(x), y
-#
-#
-# augmented = train_ds.map(augment_data)
-# visualize_dataset(augmented, "Augmented 1")
