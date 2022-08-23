@@ -105,9 +105,7 @@ class ContrastiveTrainer(keras.Model):
         self.include_probe = include_probe
 
         if self.include_probe:
-            self.probing_top = layers.Dense(
-                classes, activation="softmax", name="linear_probe"
-            )
+            self.probing_top = layers.Dense(classes, name="linear_probe")
             self.probe_loss_metric = keras.metrics.Mean(name="probe_loss")
             self.probe_metrics = []
 
