@@ -160,18 +160,12 @@ with strategy.scope():
         input_shape=IMAGE_SIZE + (3,),
         pooling="avg",
     )
-    trainer = training.ContrastiveTrainer(
+    trainer = training.SimCLRTrainer(
         encoder=model,
-        augmenter=preprocessing.Augmenter([]),
-        projector=keras.Sequential(
-            [
-                layers.Dense(128, activation="relu"),
-                layers.Dense(128),
-            ],
-            name="projector",
-        ),
         include_probe=True,
         classes=CLASSES,
+        value_range=(0, 255),
+        target_size=IMAGE_SIZE,
     )
 
     optimizer = optimizers.SGD(learning_rate=FLAGS.initial_learning_rate, momentum=0.9)
@@ -190,7 +184,7 @@ callbacks = [
     callbacks.ReduceLROnPlateau(
         monitor="probe_accuracy", factor=0.1, patience=5, min_lr=0.0001, min_delta=0.005
     ),
-    callbacks.EarlyStopping(patience=20),
+    callbacks.EarlyStopping(monitor="probe_accuracy", patience=20),
     callbacks.BackupAndRestore(FLAGS.backup_path),
     callbacks.ModelCheckpoint(FLAGS.weights_path, save_weights_only=True),
     callbacks.TensorBoard(log_dir=FLAGS.tensorboard_path),
@@ -198,6 +192,7 @@ callbacks = [
 
 trainer.compile(
     optimizer=optimizer,
+    loss=loss_fn,
     probe_optimizer=optimizers.Adam(),
     probe_metrics=training_metrics,
     probe_loss=probe_loss,
