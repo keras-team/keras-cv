@@ -15,6 +15,7 @@
 import tensorflow as tf
 from tensorflow.keras import optimizers
 
+from keras_cv.losses import SimCLRLoss
 from keras_cv.models import ResNet50V2
 from keras_cv.training import SimCLRTrainer
 
@@ -27,7 +28,9 @@ class SimCLRTrainerTest(tf.test.TestCase):
 
         images = tf.random.uniform((10, 512, 512, 3))
 
-        simclr_without_probing.compile(optimizers.Adam())
+        simclr_without_probing.compile(
+            optimizer=optimizers.Adam(), loss=SimCLRLoss(temperature=0.5)
+        )
         simclr_without_probing.fit(images)
 
     def build_encoder(self):
