@@ -14,6 +14,7 @@
 import numpy as np
 import tensorflow as tf
 
+from keras_cv import bounding_box
 from keras_cv.layers.preprocessing.random_rotation import RandomRotation
 
 
@@ -57,15 +58,17 @@ class RandomRotationTest(tf.test.TestCase):
 
     def test_augment_bbox_dict_input(self):
         input_image = np.random.random((512, 512, 3)).astype(np.float32)
-        bboxes = tf.convert_to_tensor([[200, 200, 400, 400], [100, 100, 300, 300]])
+        bboxes = tf.convert_to_tensor(
+            [[200, 200, 400, 400, 1], [100, 100, 300, 300, 2]]
+        )
         input = {"images": input_image, "bounding_boxes": bboxes}
         # 180 rotation.
         layer = RandomRotation(factor=(0.5, 0.5), bounding_box_format="xyxy")
         output_bbox = layer(input)
         expected_output = np.asarray(
-            [[112.0, 112.0, 312.0, 312.0], [212.0, 212.0, 412.0, 412.0]],
+            [[112.0, 112.0, 312.0, 312.0, 1], [212.0, 212.0, 412.0, 412.0, 2]],
         )
-        expected_output = np.reshape(expected_output, (2, 4))
+        expected_output = np.reshape(expected_output, (2, 5))
         self.assertAllClose(expected_output, output_bbox["bounding_boxes"])
 
     def test_output_dtypes(self):
@@ -74,3 +77,25 @@ class RandomRotationTest(tf.test.TestCase):
         self.assertAllEqual(layer(inputs).dtype, "float32")
         layer = RandomRotation(0.5, dtype="uint8")
         self.assertAllEqual(layer(inputs).dtype, "uint8")
+
+    def test_ragged_bounding_boxes(self):
+        input_image = np.random.random((2, 512, 512, 3)).astype(np.float32)
+        bboxes = tf.ragged.constant(
+            [
+                [[200, 200, 400, 400], [100, 100, 300, 300]],
+                [[200, 200, 400, 400]],
+            ],
+            dtype=tf.float32,
+        )
+        bboxes = bounding_box.add_class_id(bboxes)
+        input = {"images": input_image, "bounding_boxes": bboxes}
+        layer = RandomRotation(factor=(0.5, 0.5), bounding_box_format="xyxy")
+        output = layer(input)
+        expected_output = tf.ragged.constant(
+            [
+                [[112.0, 112.0, 312.0, 312.0, 0], [212.0, 212.0, 412.0, 412.0, 0]],
+                [[112.0, 112.0, 312.0, 312.0, 0]],
+            ],
+            ragged_rank=1,
+        )
+        self.assertAllClose(expected_output, output["bounding_boxes"])
