@@ -99,7 +99,7 @@ def pad_with_sentinels(bounding_boxes, sentinel_value=-1):
     Args:
         bounding_boxes: a ragged tensor of bounding boxes.
             Can be batched or unbatched.
-        sentinel_value: Value to set for indices not specified 
+        sentinel_value: Value to set for indices not specified
             in bounding_boxes. Defaults to -1.
 
     Returns:
