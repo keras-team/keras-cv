@@ -41,37 +41,11 @@ class SimCLRTrainer(ContrastiveTrainer):
     """
 
     def __init__(
-        self,
-        encoder,
-        include_probe,
-        value_range,
-        target_size=(128, 128),
-        projection_width=128,
-        **kwargs
+        self, encoder, include_probe, augmenter, projection_width=128, **kwargs
     ):
         super().__init__(
             encoder=encoder,
-            augmenter=preprocessing.Augmenter(
-                [
-                    preprocessing.RandomFlip("horizontal"),
-                    preprocessing.RandomResizedCrop(
-                        target_size,
-                        crop_area_factor=(0.08, 1),
-                        aspect_ratio_factor=(3 / 4, 4 / 3),
-                    ),
-                    preprocessing.MaybeApply(preprocessing.Grayscale(), rate=0.2),
-                    preprocessing.MaybeApply(
-                        preprocessing.RandomColorJitter(
-                            value_range=value_range,
-                            brightness_factor=0.25,
-                            contrast_factor=0.5,
-                            saturation_factor=(0.3, 0.7),
-                            hue_factor=0.2,
-                        ),
-                        rate=0.8,
-                    ),
-                ]
-            ),
+            augmenter=augmenter,
             projector=keras.Sequential(
                 [
                     layers.Dense(projection_width, activation="relu"),
@@ -81,5 +55,46 @@ class SimCLRTrainer(ContrastiveTrainer):
                 name="projector",
             ),
             include_probe=include_probe,
+            **kwargs,
+        )
+
+
+class SimCLRAugmenter(preprocessing.Augmenter):
+    def __init__(
+        self,
+        value_range,
+        target_size=(128, 128),
+        crop_area_factor=(0.08, 1),
+        aspect_ratio_factor=(3 / 4, 4 / 3),
+        grayscale_rate=0.2,
+        color_jitter_rate=0.8,
+        brightness_factor=0.25,
+        contrast_factor=0.5,
+        saturation_factor=(0.3, 0.7),
+        hue_factor=0.2,
+        **kwargs,
+    ):
+        return super().__init__(
+            [
+                preprocessing.RandomFlip("horizontal"),
+                preprocessing.RandomResizedCrop(
+                    target_size,
+                    crop_area_factor=crop_area_factor,
+                    aspect_ratio_factor=aspect_ratio_factor,
+                ),
+                preprocessing.MaybeApply(
+                    preprocessing.Grayscale(), rate=grayscale_rate
+                ),
+                preprocessing.MaybeApply(
+                    preprocessing.RandomColorJitter(
+                        value_range=value_range,
+                        brightness_factor=brightness_factor,
+                        contrast_factor=contrast_factor,
+                        saturation_factor=saturation_factor,
+                        hue_factor=hue_factor,
+                    ),
+                    rate=color_jitter_rate,
+                ),
+            ],
             **kwargs,
         )
