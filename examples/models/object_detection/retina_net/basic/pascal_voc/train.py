@@ -19,7 +19,6 @@ and dynamic batch sizing, we define our configuration parameters as command line
 """
 
 import sys
-import wandb
 
 import matplotlib.pyplot as plt
 import tensorflow as tf
@@ -39,6 +38,8 @@ FLAGS = flags.FLAGS
 FLAGS(sys.argv)
 
 if FLAGS.wandb_entity:
+    import wandb
+
     wandb.init(
         project="pascalvoc-retinanet",
         entity=FLAGS.wandb_entity,
@@ -250,6 +251,8 @@ callbacks = [
     callbacks_lib.ReduceLROnPlateau(patience=20),
 ]
 if FLAGS.wandb_entity:
+    import wandb.keras
+
     callbacks += [
         wandb.keras.WandbCallback(save_model=False),
     ]
