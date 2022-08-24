@@ -93,6 +93,7 @@ class NonMaxSuppression(tf.keras.layers.Layer):
         self.iou_threshold = iou_threshold
         self.max_detections = max_detections
         self.max_detections_per_class = max_detections_per_class
+        self.built = True
 
     def call(self, predictions, images=None):
         if predictions.shape[-1] != 6:
