@@ -87,6 +87,12 @@ class RetinaNet(ObjectDetectionBaseModel):
             networks.  If not provided, a default feature pyramid neetwork is produced
             by the library.  The default feature pyramid network is compatible with all
             standard keras_cv backbones.
+        train_time_metrics: (Optional) whether or not to evaluate metrics passed in
+            `compile()` inside of the `train_step()`.  This is NOT recommended, as it
+            dramatically reduces performance due to the synchronous label decoding and
+            COCO metric evaluation.  For example, on a single GPU on the
+            PascalVOC dataset epoch time goes from 3 minutes to 30 minutes with this
+            set to `True`. Defaults to `False`.
         name: (Optional) name for the model, defaults to `"RetinaNet"`.
     """
 
@@ -159,6 +165,13 @@ class RetinaNet(ObjectDetectionBaseModel):
         )
         self._metrics_bounding_box_format = None
         self.loss_metric = tf.keras.metrics.Mean(name="loss")
+        self.classification_loss_metric = tf.keras.metrics.Mean(
+            name="classification_loss"
+        )
+        self.box_loss_metric = tf.keras.metrics.Mean(name="box_loss")
+        self.regularization_loss_metric = tf.keras.metrics.Mean(
+            name="regularization_loss"
+        )
         # Construct should run in eager mode
         if any(
             self.prediction_decoder.box_variance.numpy()
@@ -207,7 +220,15 @@ class RetinaNet(ObjectDetectionBaseModel):
 
     @property
     def metrics(self):
-        return super().metrics + [self.loss_metric]
+        return super().metrics + self.train_metrics
+
+    @property
+    def train_metrics(self):
+        return [
+            self.loss_metric,
+            self.classification_loss_metric,
+            self.box_loss_metric,
+        ]
 
     def call(self, x, training=False):
         backbone_outputs = self.backbone(x, training=training)
@@ -224,63 +245,127 @@ class RetinaNet(ObjectDetectionBaseModel):
 
         cls_outputs = tf.concat(cls_outputs, axis=1)
         box_outputs = tf.concat(box_outputs, axis=1)
-        train_preds = tf.concat([box_outputs, cls_outputs], axis=-1)
+        return tf.concat([box_outputs, cls_outputs], axis=-1)
 
+    def decode_training_predictions(self, train_predictions):
         # no-op if default decoder is used.
         pred_for_inference = bounding_box.convert_format(
-            train_preds,
+            train_predictions,
             source=self.bounding_box_format,
             target=self.prediction_decoder.bounding_box_format,
             images=x,
         )
         pred_for_inference = self.prediction_decoder(x, pred_for_inference)
-        pred_for_inference = bounding_box.convert_format(
+        return bounding_box.convert_format(
             pred_for_inference,
             source=self.prediction_decoder.bounding_box_format,
             target=self.bounding_box_format,
             images=x,
         )
-        return {"train_predictions": train_preds, "inference": pred_for_inference}
+
+    def compile(self, box_loss, classification_loss, loss=None, **kwargs):
+        super.compile(**kwargs)
+        if loss is not None:
+            raise ValueError(
+                "`RetinaNet` does not accept a `loss` to `compile()`. "
+                "Instead, please pass `box_loss` and `classification_loss`. "
+                "`loss` will be ignored during training."
+            )
+        self.box_loss = box_loss
+        self.classification_loss = classification_loss
+
+    def compute_losses(self, y_true, y_pred):
+        box_labels = y_true[:, :, :4]
+        box_predictions = y_pred[:, :, :4]
+
+        if y_true.shape[-1] != 5:
+            raise ValueError(
+                "y_true should have shape (None, None, 5).  Got "
+                f"y_true.shape={tuple(y_true.shape)}"
+            )
+
+        if y_pred.shape[-1] != self.classes + 4:
+            raise ValueError(
+                "y_pred should have shape (None, None, classes + 4). "
+                f"Got y_pred.shape={tuple(y_pred.shape)}.  Does your model's `classes` "
+                "parameter match your losses `classes` parameter?"
+            )
+
+        cls_labels = tf.one_hot(
+            tf.cast(y_true[:, :, 4], dtype=tf.int32),
+            depth=self.classes,
+            dtype=tf.float32,
+        )
+        cls_predictions = y_pred[:, :, 4:]
+
+        positive_mask = tf.cast(tf.greater(y_true[:, :, 4], -1.0), dtype=tf.float32)
+        ignore_mask = tf.cast(tf.equal(y_true[:, :, 4], -2.0), dtype=tf.float32)
+
+        classification_loss = self.classification_loss(cls_labels, cls_predictions)
+        box_loss = self.box_loss(box_labels, box_predictions)
+
+        classification_loss = tf.where(
+            tf.equal(ignore_mask, 1.0), 0.0, classification_loss
+        )
+        box_loss = tf.where(tf.equal(positive_mask, 1.0), box_loss, 0.0)
+        normalizer = tf.reduce_sum(positive_mask, axis=-1)
+        classification_loss = tf.math.divide_no_nan(
+            tf.reduce_sum(classification_loss, axis=-1), normalizer
+        )
+        box_loss = tf.math.divide_no_nan(tf.reduce_sum(box_loss, axis=-1), normalizer)
+
+        return classification_loss, box_loss
+
+    def _backward(self, y_true, y_pred):
+        # predictions technically do not have a format, so loss accepts whatever
+        # is output by the model.  This actually causes scaling issues if you use
+        # a rel_ format, or a different format.
+        # TODO(lukewood): allow distinct 'classification' and 'box' loss metrics
+        classification_loss, box_loss = self.compute_losses(
+            y_training_target,
+            y_pred,
+        )
+        regularization_losses = 0.0
+        for loss in self.losses:
+            regularization_losses += keras_cv.utils.scale_loss_for_distribution(loss)
+        loss = classification_loss + box_loss + regularization_loss
+
+        self.classification_loss_metric.update_state(classification_loss)
+        self.box_loss_metric.update_state(box_loss)
+        self.regularization_loss_metric.update_state(regularization_loss)
+        self.loss_metric.update_state(loss)
+        return loss
 
     def train_step(self, data):
         x, y = data
         y_for_metrics, y_training_target = y
 
         with tf.GradientTape() as tape:
-            predictions = self(x, training=True)
-            # predictions technically do not have a format, so loss accepts whatever
-            # is output by the model.  This actually causes scaling issues if you use
-            # a rel_ format, or a different format.
-            # TODO(lukewood): allow distinct 'classification' and 'box' loss metrics
-            loss = self.compiled_loss(
-                y_training_target,
-                predictions["train_predictions"],
-                regularization_losses=self.losses,
-            )
-
+            y_pred = self(x)
+            loss = self._backward(y_training_target, y_pred)
         # Training specific code
         trainable_vars = self.trainable_variables
         gradients = tape.gradient(loss, trainable_vars)
         self.optimizer.apply_gradients(zip(gradients, trainable_vars))
-        self.loss_metric.update_state(loss)
-        # To minimize GPU transfers, we update metrics AFTER we take grads and apply
-        # them.
-        # TODO(lukewood): ensure this runs on TPU.
-        self._update_metrics(y_for_metrics, predictions["inference"])
+
+        # Early exit for no train time metrics
+        if not self.train_time_metrics:
+            # To minimize GPU transfers, we update metrics AFTER we take grads and apply
+            # them.
+            return {m.name: m.result() for m in self.train_metrics}
+
+        predictions = self.decode_training_predictions(y_pred)
+        self._update_metrics(y_for_metrics, predictions)
         return {m.name: m.result() for m in self.metrics}
 
     def test_step(self, data):
         x, y = data
         y_for_metrics, y_training_target = y
+        y_pred = self(x)
+        loss = self._backward(y_training_target, y_pred)
 
-        predictions = self(x)
-        loss = self.compiled_loss(
-            y_training_target,
-            predictions["train_predictions"],
-            regularization_losses=self.losses,
-        )
-        self.loss_metric.update_state(loss)
-        self._update_metrics(y_for_metrics, predictions["inference"])
+        predictions = self.decode_training_predictions(y_pred)
+        self._update_metrics(y_for_metrics, predictions)
         return {m.name: m.result() for m in self.metrics}
 
     def _update_metrics(self, y_true, y_pred):
@@ -295,10 +380,6 @@ class RetinaNet(ObjectDetectionBaseModel):
             target=self._metrics_bounding_box_format,
         )
         self.compiled_metrics.update_state(y_true, y_pred)
-
-    def inference(self, x):
-        predictions = self.predict(x)
-        return predictions["inference"]
 
 
 def _parse_backbone(backbone, include_rescaling, backbone_weights):
