@@ -220,7 +220,7 @@ We use EarlyStopping, BackupAndRestore, and a model checkpointing callback.
 
 callbacks = [
     callbacks.ReduceLROnPlateau(
-        monitor="val_loss", factor=0.1, patience=10, min_lr=0.0001
+        monitor="val_loss", factor=0.1, patience=5, min_delta=0.001, min_lr=0.0001
     ),
     callbacks.EarlyStopping(patience=20),
     callbacks.BackupAndRestore(FLAGS.backup_path),
