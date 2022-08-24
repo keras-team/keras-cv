@@ -336,7 +336,7 @@ class RetinaNet(ObjectDetectionBaseModel):
         )
         regularization_loss = 0.0
         for loss in self.losses:
-            regularization_loss += keras_cv.utils.scale_loss_for_distribution(loss)
+            regularization_loss += tf.nn.scale_regularization_loss(loss)
         loss = classification_loss + box_loss + regularization_loss
 
         self.classification_loss_metric.update_state(classification_loss)
