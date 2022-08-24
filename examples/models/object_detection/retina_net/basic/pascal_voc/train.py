@@ -123,7 +123,7 @@ val_ds, _ = keras_cv.datasets.pascal_voc.load(
 )
 
 augmentation_layers = [
-    keras_cv.layers.RandomShear(x_factor=0.1, bounding_box_format="xywh"),
+    keras_cv.layers.RandomShear(x_factor=0.2, bounding_box_format="xywh"),
     # TODO(lukewood): add color jitter and others
 ]
 
@@ -259,10 +259,14 @@ And run `model.fit()`!
 
 model.fit(
     train_ds,
-    validation_data=val_ds,
+    validation_data=val_ds.take(100),
     epochs=FLAGS.epochs,
     callbacks=callbacks,
 )
+
+
+print("Final Metrics:")
+print(model.evaluate(val_ds, return_dict=True))
 
 """
 ## Results and conclusions
