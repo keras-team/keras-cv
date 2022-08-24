@@ -216,7 +216,7 @@ class RetinaNet(ObjectDetectionBaseModel):
         box_outputs = tf.concat(box_outputs, axis=1)
         return tf.concat([box_outputs, cls_outputs], axis=-1)
 
-    def decode_training_predictions(self, train_predictions):
+    def decode_training_predictions(self, x, train_predictions):
         # no-op if default decoder is used.
         pred_for_inference = bounding_box.convert_format(
             train_predictions,
@@ -232,7 +232,7 @@ class RetinaNet(ObjectDetectionBaseModel):
             images=x,
         )
 
-    def compile(self, box_loss, classification_loss, loss=None, metrics=None, **kwargs):
+    def compile(self, box_loss=None, classification_loss=None, loss=None, metrics=None, **kwargs):
         super().compile(metrics=metrics, **kwargs)
         if loss is not None:
             raise ValueError(
@@ -360,7 +360,7 @@ class RetinaNet(ObjectDetectionBaseModel):
             # them.
             return {m.name: m.result() for m in self.train_metrics}
 
-        predictions = self.decode_training_predictions(y_pred)
+        predictions = self.decode_training_predictions(x, y_pred)
         self._update_metrics(y_for_metrics, predictions)
         return {m.name: m.result() for m in self.metrics}
 
@@ -370,7 +370,7 @@ class RetinaNet(ObjectDetectionBaseModel):
         y_pred = self(x)
         loss = self._backward(y_training_target, y_pred)
 
-        predictions = self.decode_training_predictions(y_pred)
+        predictions = self.decode_training_predictions(x, y_pred)
         self._update_metrics(y_for_metrics, predictions)
         return {m.name: m.result() for m in self.metrics}
 
