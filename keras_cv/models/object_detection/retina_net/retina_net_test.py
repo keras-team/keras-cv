@@ -130,9 +130,7 @@ class RetinaNetTest(tf.test.TestCase, parameterized.TestCase):
         ):
             retina_net.compile(
                 optimizer=optimizers.SGD(learning_rate=0.25),
-                classification_loss=keras_cv.losses.FocalLoss(
-                    from_logits=False
-                ),
+                classification_loss=keras_cv.losses.FocalLoss(from_logits=False),
                 box_loss=keras_cv.losses.SmoothL1Loss(l1_cutoff=1.0),
             )
 
@@ -151,10 +149,8 @@ class RetinaNetTest(tf.test.TestCase, parameterized.TestCase):
         ):
             retina_net.compile(
                 optimizer=optimizers.SGD(learning_rate=0.25),
-                classification_loss=keras_cv.losses.FocalLoss(
-                    from_logits=True
-                ),
-                box_loss=keras_cv.losses.IoULoss(bounding_box_format='xyxy'),
+                classification_loss=keras_cv.losses.FocalLoss(from_logits=True),
+                box_loss=keras_cv.losses.IoULoss(bounding_box_format="xyxy"),
             )
 
     def test_no_metrics(self):
@@ -168,9 +164,7 @@ class RetinaNetTest(tf.test.TestCase, parameterized.TestCase):
 
         retina_net.compile(
             optimizer=optimizers.SGD(learning_rate=0.25),
-            classification_loss=keras_cv.losses.FocalLoss(
-                from_logits=True
-            ),
+            classification_loss=keras_cv.losses.FocalLoss(from_logits=True),
             box_loss=keras_cv.losses.SmoothL1Loss(l1_cutoff=1.0),
         )
 
@@ -198,9 +192,7 @@ class RetinaNetTest(tf.test.TestCase, parameterized.TestCase):
 
         retina_net.compile(
             optimizer=optimizers.Adam(),
-            classification_loss=keras_cv.losses.FocalLoss(
-                from_logits=True
-            ),
+            classification_loss=keras_cv.losses.FocalLoss(from_logits=True),
             box_loss=keras_cv.losses.SmoothL1Loss(l1_cutoff=1.0),
             metrics=[
                 keras_cv.metrics.COCOMeanAveragePrecision(

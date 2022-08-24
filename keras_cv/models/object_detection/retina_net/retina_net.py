@@ -232,7 +232,9 @@ class RetinaNet(ObjectDetectionBaseModel):
             images=x,
         )
 
-    def compile(self, box_loss=None, classification_loss=None, loss=None, metrics=None, **kwargs):
+    def compile(
+        self, box_loss=None, classification_loss=None, loss=None, metrics=None, **kwargs
+    ):
         super().compile(metrics=metrics, **kwargs)
         if loss is not None:
             raise ValueError(
