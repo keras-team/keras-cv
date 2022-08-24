@@ -170,7 +170,7 @@ class RetinaNetTest(tf.test.TestCase, parameterized.TestCase):
 
     # TODO(lukewood): configure for other coordinate systems.
     @pytest.mark.skipif(
-        "INTEGRATION" not in os.environ or os.environ['INTEGRATION'] != 'true',
+        "INTEGRATION" not in os.environ or os.environ["INTEGRATION"] != "true",
         reason="Takes a long time to run, only runs when INTEGRATION "
         "environment variable is set.  To run the test please run: \n"
         "`INTEGRATION=true pytest "
@@ -192,8 +192,10 @@ class RetinaNetTest(tf.test.TestCase, parameterized.TestCase):
 
         retina_net.compile(
             optimizer=optimizers.Adam(),
-            classification_loss=keras_cv.losses.FocalLoss(from_logits=True),
-            box_loss=keras_cv.losses.SmoothL1Loss(l1_cutoff=1.0),
+            classification_loss=keras_cv.losses.FocalLoss(
+                from_logits=True, reduction="sum"
+            ),
+            box_loss=keras_cv.losses.SmoothL1Loss(l1_cutoff=1.0, reduction="sum"),
             metrics=[
                 keras_cv.metrics.COCOMeanAveragePrecision(
                     class_ids=range(1),
