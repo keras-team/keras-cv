@@ -14,13 +14,9 @@
 
 import tensorflow as tf
 
-from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
-    BaseImageAugmentationLayer,
-)
-
 
 @tf.keras.utils.register_keras_serializable(package="keras_cv")
-class Augmenter(BaseImageAugmentationLayer):
+class Augmenter(tf.keras.layers.Layer):
     """Augmenter performs a series of preprocessing operations on input data.
     Args:
         layers: A list of Keras layers to be applied in sequence to input data.
@@ -30,9 +26,9 @@ class Augmenter(BaseImageAugmentationLayer):
         super().__init__(**kwargs)
         self.layers = layers
 
-    def call(self, inputs):
+    def call(self, inputs, training=True):
         for layer in self.layers:
-            inputs = layer(inputs)
+            inputs = layer(inputs, training=training)
         return inputs
 
     def get_config(self):

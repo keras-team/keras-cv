@@ -157,9 +157,18 @@ class ContrastiveTrainer(keras.Model):
 
     def run_augmenters(self, x, y=None):
         if y is not None:
-            return x, self.augmenters[0](x), self.augmenters[1](x), y
+            return (
+                x,
+                self.augmenters[0](x, training=True),
+                self.augmenters[1](x, training=True),
+                y,
+            )
         else:
-            return x, self.augmenters[0](x), self.augmenters[1](x)
+            return (
+                x,
+                self.augmenters[0](x, training=True),
+                self.augmenters[1](x, training=True),
+            )
 
     def train_step(self, data):
         if self.include_probe:
