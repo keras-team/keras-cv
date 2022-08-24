@@ -76,8 +76,8 @@ class RetinaNetTest(tf.test.TestCase, parameterized.TestCase):
             include_rescaling=True,
         )
         images = tf.random.uniform((2, 512, 512, 3))
-        outputs = retina_net(images)
-        predictions = retina_net.predict(images)
+        _ = retina_net(images)
+        _ = retina_net.predict(images)
 
     def test_all_metric_formats_must_match(self):
         retina_net = keras_cv.models.RetinaNet(
