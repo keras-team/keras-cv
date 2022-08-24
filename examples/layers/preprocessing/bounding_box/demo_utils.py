@@ -29,6 +29,7 @@ def preprocess_voc(inputs, format, image_size):
         source="rel_yxyx",
         target=format,
     )
+    inputs["objects"]["bbox"] = bounding_box.add_class_id(inputs["objects"]["bbox"])
     return {"images": inputs["image"], "bounding_boxes": inputs["objects"]["bbox"]}
 
 
@@ -39,13 +40,10 @@ def load_voc_dataset(
     image_size=(224, 224),
 ):
 
-    dataset = tfds.load(name, split=tfds.Split.TRAIN, shuffle_files=True)
+    dataset = tfds.load(name, split=tfds.Split.TRAIN, shuffle_files=True, batch_size=batch_size)
     dataset = dataset.map(
         lambda x: preprocess_voc(x, format=bounding_box_format, image_size=image_size),
         num_parallel_calls=tf.data.AUTOTUNE,
-    )
-    dataset = dataset.padded_batch(
-        batch_size, padding_values={"images": None, "bounding_boxes": -1.0}
     )
     return dataset
 
@@ -62,6 +60,7 @@ def visualize_data(data, bounding_box_format):
 
 def visualize_bounding_boxes(image, bounding_boxes, bounding_box_format):
     color = np.array([[255.0, 0.0, 0.0]])
+    bounding_boxes = bounding_boxes[..., :4]
     bounding_boxes = bounding_box.convert_format(
         bounding_boxes,
         source=bounding_box_format,
