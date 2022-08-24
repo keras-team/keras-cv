@@ -214,7 +214,7 @@ class ContrastiveTrainer(keras.Model):
 
         if self.include_probe:
             with tf.GradientTape() as tape:
-                features = self.encoder(images, training=False)
+                features = tf.stop_gradient(self.encoder(images, training=False))
                 class_logits = self.probing_top(features, training=True)
                 probe_loss = self.probe_loss(labels, class_logits)
             gradients = tape.gradient(probe_loss, self.probing_top.trainable_weights)
