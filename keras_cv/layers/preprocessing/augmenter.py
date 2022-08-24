@@ -14,9 +14,13 @@
 
 import tensorflow as tf
 
+from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
+    BaseImageAugmentationLayer,
+)
+
 
 @tf.keras.utils.register_keras_serializable(package="keras_cv")
-class Augmenter(tf.keras.layers.Layer):
+class Augmenter(BaseImageAugmentationLayer):
     """Augmenter performs a series of preprocessing operations on input data.
     Args:
         layers: A list of Keras layers to be applied in sequence to input data.
