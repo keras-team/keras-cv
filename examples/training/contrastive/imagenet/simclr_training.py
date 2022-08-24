@@ -112,9 +112,12 @@ def load_imagenet_dataset():
         num_parallel_calls=tf.data.AUTOTUNE,
     ).shuffle(2000, reshuffle_each_iteration=True)
 
-    return train_dataset.batch(FLAGS.batch_size), validation_dataset.batch(
-        FLAGS.batch_size
+    train_dataset = train_dataset.batch(FLAGS.batch_size).prefetch(tf.data.AUTOTUNE)
+    validation_dataset = validation_dataset.batch(FLAGS.batch_size).prefetch(
+        tf.data.AUTOTUNE
     )
+
+    return train_dataset, validation_dataset
 
 
 train_ds, test_ds = load_imagenet_dataset()
