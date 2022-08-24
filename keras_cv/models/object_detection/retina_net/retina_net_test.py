@@ -38,16 +38,11 @@ class RetinaNetTest(tf.test.TestCase, parameterized.TestCase):
             backbone_weights=None,
             include_rescaling=True,
         )
-        loss = keras_cv.losses.ObjectDetectionLoss(
-            classes=20,
-            classification_loss=keras_cv.losses.FocalLoss(
-                from_logits=True, reduction="none"
-            ),
-            box_loss=keras_cv.losses.SmoothL1Loss(l1_cutoff=1.0, reduction="none"),
-            reduction="auto",
-        )
         retina_net.compile(
-            loss=loss,
+            classification_loss=keras_cv.losses.FocalLoss(
+                from_logits=True,
+            ),
+            box_loss=keras_cv.losses.SmoothL1Loss(l1_cutoff=1.0),
             optimizer="adam",
             metrics=[
                 keras_cv.metrics.COCOMeanAveragePrecision(
@@ -120,7 +115,7 @@ class RetinaNetTest(tf.test.TestCase, parameterized.TestCase):
                 ],
             )
 
-    def test_mismatching_classes(self):
+    def test_wrong_logits(self):
         retina_net = keras_cv.models.RetinaNet(
             classes=2,
             bounding_box_format="xywh",
@@ -128,22 +123,38 @@ class RetinaNetTest(tf.test.TestCase, parameterized.TestCase):
             backbone_weights=None,
             include_rescaling=False,
         )
-        loss = keras_cv.losses.ObjectDetectionLoss(
-            classes=1,
-            classification_loss=keras_cv.losses.FocalLoss(
-                from_logits=True, reduction="none"
-            ),
-            box_loss=keras_cv.losses.SmoothL1Loss(l1_cutoff=1.0, reduction="none"),
-            reduction="sum",
+
+        with self.assertRaisesRegex(
+            ValueError,
+            "from_logits",
+        ):
+            retina_net.compile(
+                optimizer=optimizers.SGD(learning_rate=0.25),
+                classification_loss=keras_cv.losses.FocalLoss(
+                    from_logits=False
+                ),
+                box_loss=keras_cv.losses.SmoothL1Loss(l1_cutoff=1.0),
+            )
+
+    def test_wrong_box_format_loss(self):
+        retina_net = keras_cv.models.RetinaNet(
+            classes=2,
+            bounding_box_format="xywh",
+            backbone="resnet50",
+            backbone_weights=None,
+            include_rescaling=False,
         )
 
         with self.assertRaisesRegex(
             ValueError,
-            "RetinaNet.classes != loss.classes",
+            "bounding_box_format",
         ):
             retina_net.compile(
                 optimizer=optimizers.SGD(learning_rate=0.25),
-                loss=loss,
+                classification_loss=keras_cv.losses.FocalLoss(
+                    from_logits=True
+                ),
+                box_loss=keras_cv.losses.IoULoss(bounding_box_format='xyxy'),
             )
 
     def test_no_metrics(self):
@@ -154,18 +165,13 @@ class RetinaNetTest(tf.test.TestCase, parameterized.TestCase):
             backbone_weights=None,
             include_rescaling=False,
         )
-        loss = keras_cv.losses.ObjectDetectionLoss(
-            classes=2,
-            classification_loss=keras_cv.losses.FocalLoss(
-                from_logits=True, reduction="none"
-            ),
-            box_loss=keras_cv.losses.SmoothL1Loss(l1_cutoff=1.0, reduction="none"),
-            reduction="sum",
-        )
 
         retina_net.compile(
             optimizer=optimizers.SGD(learning_rate=0.25),
-            loss=loss,
+            classification_loss=keras_cv.losses.FocalLoss(
+                from_logits=True
+            ),
+            box_loss=keras_cv.losses.SmoothL1Loss(l1_cutoff=1.0),
         )
 
     # TODO(lukewood): configure for other coordinate systems.
@@ -187,19 +193,15 @@ class RetinaNetTest(tf.test.TestCase, parameterized.TestCase):
             backbone="resnet50",
             backbone_weights=None,
             include_rescaling=False,
-        )
-        loss = keras_cv.losses.ObjectDetectionLoss(
-            classes=1,
-            classification_loss=keras_cv.losses.FocalLoss(
-                from_logits=True, reduction="none"
-            ),
-            box_loss=keras_cv.losses.SmoothL1Loss(l1_cutoff=1.0, reduction="none"),
-            reduction="sum",
+            evaluate_train_time_metrics=True,
         )
 
         retina_net.compile(
             optimizer=optimizers.Adam(),
-            loss=loss,
+            classification_loss=keras_cv.losses.FocalLoss(
+                from_logits=True
+            ),
+            box_loss=keras_cv.losses.SmoothL1Loss(l1_cutoff=1.0),
             metrics=[
                 keras_cv.metrics.COCOMeanAveragePrecision(
                     class_ids=range(1),

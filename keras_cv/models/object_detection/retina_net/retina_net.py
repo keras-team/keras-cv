@@ -87,11 +87,11 @@ class RetinaNet(ObjectDetectionBaseModel):
             networks.  If not provided, a default feature pyramid neetwork is produced
             by the library.  The default feature pyramid network is compatible with all
             standard keras_cv backbones.
-        train_time_metrics: (Optional) whether or not to evaluate metrics passed in
-            `compile()` inside of the `train_step()`.  This is NOT recommended, as it
-            dramatically reduces performance due to the synchronous label decoding and
-            COCO metric evaluation.  For example, on a single GPU on the
-            PascalVOC dataset epoch time goes from 3 minutes to 30 minutes with this
+        evaluate_train_time_metrics: (Optional) whether or not to evaluate metrics
+            passed in `compile()` inside of the `train_step()`.  This is NOT
+            recommended, as it dramatically reduces performance due to the synchronous
+            label decoding and COCO metric evaluation.  For example, on a single GPU on
+            the PascalVOC dataset epoch time goes from 3 minutes to 30 minutes with this
             set to `True`. Defaults to `False`.
         name: (Optional) name for the model, defaults to `"RetinaNet"`.
     """
@@ -107,6 +107,7 @@ class RetinaNet(ObjectDetectionBaseModel):
         label_encoder=None,
         prediction_decoder=None,
         feature_pyramid=None,
+        evaluate_train_time_metrics=False,
         name="RetinaNet",
         **kwargs,
     ):
@@ -133,7 +134,7 @@ class RetinaNet(ObjectDetectionBaseModel):
             name=name,
             **kwargs,
         )
-
+        self.evaluate_train_time_metrics = evaluate_train_time_metrics
         self.label_encoder = label_encoder
         self.anchor_generator = anchor_generator
         if bounding_box_format.lower() != "xywh":
@@ -186,38 +187,6 @@ class RetinaNet(ObjectDetectionBaseModel):
                 f"`label_encoder.box_variance={label_encoder.box_variance}`."
             )
 
-    def compile(self, metrics=None, loss=None, **kwargs):
-        metrics = metrics or []
-        super().compile(metrics=metrics, loss=loss, **kwargs)
-
-        # Verify loss validity
-        if loss is not None:
-            if loss.classes != self.classes:
-                raise ValueError(
-                    "RetinaNet.classes != loss.classes.  Your RetinaNet and "
-                    "loss must have the same number of classes specified in the constructor. "
-                    f"Received `loss.classes={loss.classes}`, `self.classes={self.classes}`."
-                )
-
-        if len(metrics) != 0:
-            self._metrics_bounding_box_format = metrics[0].bounding_box_format
-        else:
-            self._metrics_bounding_box_format = self.bounding_box_format
-
-        any_wrong_format = any(
-            [
-                m.bounding_box_format != self._metrics_bounding_box_format
-                for m in metrics
-            ]
-        )
-        if metrics and any_wrong_format:
-            raise ValueError(
-                "All metrics passed to RetinaNet.compile() must have "
-                "the same `bounding_box_format` attribute.  For example, if one metric "
-                "uses 'xyxy', all other metrics must use 'xyxy'.  Received "
-                f"metrics={metrics}."
-            )
-
     @property
     def metrics(self):
         return super().metrics + self.train_metrics
@@ -263,8 +232,8 @@ class RetinaNet(ObjectDetectionBaseModel):
             images=x,
         )
 
-    def compile(self, box_loss, classification_loss, loss=None, **kwargs):
-        super.compile(**kwargs)
+    def compile(self, box_loss, classification_loss, loss=None, metrics=None, **kwargs):
+        super().compile(metrics=metrics, **kwargs)
         if loss is not None:
             raise ValueError(
                 "`RetinaNet` does not accept a `loss` to `compile()`. "
@@ -273,6 +242,43 @@ class RetinaNet(ObjectDetectionBaseModel):
             )
         self.box_loss = box_loss
         self.classification_loss = classification_loss
+        metrics = metrics or []
+
+        if hasattr(classification_loss, "from_logits"):
+            if not classification_loss.from_logits:
+                raise ValueError(
+                    "RetinaNet.compile() expects `from_logits` to be True for "
+                    "`classification_loss`. Got "
+                    "`classification_loss.from_logits="
+                    f"{classification_loss.from_logits}`"
+                )
+        if hasattr(box_loss, "bounding_box_format"):
+            if box_loss.bounding_box_format != self.bounding_box_format:
+                raise ValueError(
+                    "Wrong `bounding_box_format` passed to `box_loss` in "
+                    "`RetinaNet.compile()`. "
+                    f"Got `box_loss.bounding_box_format={box_loss.bounding_box_format}`, "
+                    f"want `box_loss.bounding_box_format={self.bounding_box_format}`"
+                )
+
+        if len(metrics) != 0:
+            self._metrics_bounding_box_format = metrics[0].bounding_box_format
+        else:
+            self._metrics_bounding_box_format = self.bounding_box_format
+
+        any_wrong_format = any(
+            [
+                m.bounding_box_format != self._metrics_bounding_box_format
+                for m in metrics
+            ]
+        )
+        if metrics and any_wrong_format:
+            raise ValueError(
+                "All metrics passed to RetinaNet.compile() must have "
+                "the same `bounding_box_format` attribute.  For example, if one metric "
+                "uses 'xyxy', all other metrics must use 'xyxy'.  Received "
+                f"metrics={metrics}."
+            )
 
     def compute_losses(self, y_true, y_pred):
         box_labels = y_true[:, :, :4]
@@ -322,12 +328,12 @@ class RetinaNet(ObjectDetectionBaseModel):
         # a rel_ format, or a different format.
         # TODO(lukewood): allow distinct 'classification' and 'box' loss metrics
         classification_loss, box_loss = self.compute_losses(
-            y_training_target,
+            y_true,
             y_pred,
         )
-        regularization_losses = 0.0
+        regularization_loss = 0.0
         for loss in self.losses:
-            regularization_losses += keras_cv.utils.scale_loss_for_distribution(loss)
+            regularization_loss += keras_cv.utils.scale_loss_for_distribution(loss)
         loss = classification_loss + box_loss + regularization_loss
 
         self.classification_loss_metric.update_state(classification_loss)
@@ -349,7 +355,7 @@ class RetinaNet(ObjectDetectionBaseModel):
         self.optimizer.apply_gradients(zip(gradients, trainable_vars))
 
         # Early exit for no train time metrics
-        if not self.train_time_metrics:
+        if not self.evaluate_train_time_metrics:
             # To minimize GPU transfers, we update metrics AFTER we take grads and apply
             # them.
             return {m.name: m.result() for m in self.train_metrics}
