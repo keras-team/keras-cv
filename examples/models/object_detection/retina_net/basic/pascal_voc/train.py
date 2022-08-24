@@ -19,6 +19,7 @@ and dynamic batch sizing, we define our configuration parameters as command line
 """
 
 import sys
+import wandb
 
 import matplotlib.pyplot as plt
 import tensorflow as tf
@@ -28,7 +29,6 @@ from tensorflow.keras import optimizers
 
 import keras_cv
 import keras_cv.datasets
-import wandb
 
 flags.DEFINE_integer("batch_size", 8, "Training and eval batch size.")
 flags.DEFINE_integer("epochs", 1, "Number of training epochs.")
