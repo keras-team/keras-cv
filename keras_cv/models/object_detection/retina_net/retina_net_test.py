@@ -170,7 +170,7 @@ class RetinaNetTest(tf.test.TestCase, parameterized.TestCase):
 
     # TODO(lukewood): configure for other coordinate systems.
     @pytest.mark.skipif(
-        "INTEGRATION" not in os.environ,
+        "INTEGRATION" not in os.environ or os.environ['INTEGRATION'] != 'true',
         reason="Takes a long time to run, only runs when INTEGRATION "
         "environment variable is set.  To run the test please run: \n"
         "`INTEGRATION=true pytest "

@@ -370,7 +370,7 @@ class RetinaNet(ObjectDetectionBaseModel):
         x, y = data
         y_for_metrics, y_training_target = y
         y_pred = self(x)
-        loss = self._backward(y_training_target, y_pred)
+        _ = self._backward(y_training_target, y_pred)
 
         predictions = self.decode_training_predictions(x, y_pred)
         self._update_metrics(y_for_metrics, predictions)
