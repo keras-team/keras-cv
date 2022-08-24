@@ -25,7 +25,7 @@ class RandomSaturation(BaseImageAugmentationLayer):
 
     This layer will randomly increase/reduce the saturation for the input RGB
     images. At inference time, the output will be identical to the input.
-    Call the layer with `training=True` to adjust the brightness of the input.
+    Call the layer with `training=True` to adjust the saturation of the input.
 
     Args:
         factor: A tuple of two floats, a single float or `keras_cv.FactorSampler`.
