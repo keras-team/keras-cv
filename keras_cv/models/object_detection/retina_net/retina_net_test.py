@@ -67,14 +67,6 @@ class RetinaNetTest(tf.test.TestCase, parameterized.TestCase):
                 # Note no include_rescaling is provided
             )
 
-    @pytest.mark.skipif(
-        "INTEGRATION" not in os.environ,
-        reason="Takes a long time to run, only runs when INTEGRATION "
-        "environment variable is set.  To run the test please run: \n"
-        "`INTEGRATION=true pytest "
-        "keras_cv/models/object_detection/retina_net/retina_net_test.py -k "
-        "test_fit_coco_metrics -s`",
-    )
     def test_retina_net_call(self):
         retina_net = keras_cv.models.RetinaNet(
             classes=20,
@@ -85,8 +77,7 @@ class RetinaNetTest(tf.test.TestCase, parameterized.TestCase):
         )
         images = tf.random.uniform((2, 512, 512, 3))
         outputs = retina_net(images)
-        self.assertIn("inference", outputs)
-        self.assertIn("train_predictions", outputs)
+        predictions = retina_net.predict(images)
 
     def test_all_metric_formats_must_match(self):
         retina_net = keras_cv.models.RetinaNet(

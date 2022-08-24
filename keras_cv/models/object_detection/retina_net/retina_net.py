@@ -379,7 +379,7 @@ class RetinaNet(ObjectDetectionBaseModel):
 
     def predict(self, x, **kwargs):
         predictions = super().predict(x, **kwargs)
-        return self.decode_training_predictions(predictions)
+        return self.decode_training_predictions(x, predictions)
 
     def _update_metrics(self, y_true, y_pred):
         y_true = bounding_box.convert_format(
