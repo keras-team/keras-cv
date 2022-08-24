@@ -134,10 +134,11 @@ with strategy.scope():
     )
     trainer = training.SimCLRTrainer(
         encoder=model,
+        augmenter=training.SimCLRAugmenter(
+            value_range=(0, 255), target_size=IMAGE_SIZE
+        ),
         include_probe=FLAGS.include_probe,
         classes=CLASSES,
-        value_range=(0, 255),
-        target_size=IMAGE_SIZE,
     )
 
     optimizer = optimizers.SGD(
