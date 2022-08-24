@@ -22,12 +22,13 @@ import sys
 
 import matplotlib.pyplot as plt
 import tensorflow as tf
-import wandb
 from absl import flags
 from tensorflow.keras import callbacks as callbacks_lib
 from tensorflow.keras import optimizers
-import keras_cv.datasets
+
 import keras_cv
+import keras_cv.datasets
+import wandb
 
 flags.DEFINE_integer("batch_size", 8, "Training and eval batch size.")
 flags.DEFINE_integer("epochs", 1, "Number of training epochs.")
@@ -123,7 +124,7 @@ val_ds, _ = keras_cv.datasets.pascal_voc.load(
 )
 
 augmentation_layers = [
-    keras_cv.layers.RandomShear(x_factor=0.2, bounding_box_format="xywh"),
+    keras_cv.layers.RandomShear(x_factor=0.1, bounding_box_format="xywh"),
     # TODO(lukewood): add color jitter and others
 ]
 
@@ -259,14 +260,10 @@ And run `model.fit()`!
 
 model.fit(
     train_ds,
-    validation_data=val_ds.take(100),
+    validation_data=val_ds,
     epochs=FLAGS.epochs,
     callbacks=callbacks,
 )
-
-
-print("Final Metrics:")
-print(model.evaluate(val_ds, return_dict=True))
 
 """
 ## Results and conclusions
