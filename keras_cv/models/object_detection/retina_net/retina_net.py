@@ -283,8 +283,6 @@ class RetinaNet(ObjectDetectionBaseModel):
             )
 
     def compute_losses(self, y_true, y_pred):
-        box_labels = y_true[:, :, :4]
-        box_predictions = y_pred[:, :, :4]
 
         if y_true.shape[-1] != 5:
             raise ValueError(
@@ -298,6 +296,9 @@ class RetinaNet(ObjectDetectionBaseModel):
                 f"Got y_pred.shape={tuple(y_pred.shape)}.  Does your model's `classes` "
                 "parameter match your losses `classes` parameter?"
             )
+
+        box_labels = y_true[:, :, :4]
+        box_predictions = y_pred[:, :, :4]
 
         cls_labels = tf.one_hot(
             tf.cast(y_true[:, :, 4], dtype=tf.int32),
@@ -349,7 +350,7 @@ class RetinaNet(ObjectDetectionBaseModel):
         y_for_metrics, y_training_target = y
 
         with tf.GradientTape() as tape:
-            y_pred = self(x)
+            y_pred = self(x, training=True)
             loss = self._backward(y_training_target, y_pred)
         # Training specific code
         trainable_vars = self.trainable_variables
@@ -369,12 +370,16 @@ class RetinaNet(ObjectDetectionBaseModel):
     def test_step(self, data):
         x, y = data
         y_for_metrics, y_training_target = y
-        y_pred = self(x)
+        y_pred = self(x, training=False)
         _ = self._backward(y_training_target, y_pred)
 
         predictions = self.decode_training_predictions(x, y_pred)
         self._update_metrics(y_for_metrics, predictions)
         return {m.name: m.result() for m in self.metrics}
+
+    def predict(self, x, **kwargs):
+        predictions = super().predict(x, **kwargs)
+        return self.decode_training_predictions(predictions)
 
     def _update_metrics(self, y_true, y_pred):
         y_true = bounding_box.convert_format(
