@@ -40,10 +40,13 @@ def load_voc_dataset(
     image_size=(224, 224),
 ):
 
-    dataset = tfds.load(name, split=tfds.Split.TRAIN, shuffle_files=True, batch_size=batch_size)
+    dataset = tfds.load(name, split=tfds.Split.TRAIN, shuffle_files=True)
     dataset = dataset.map(
         lambda x: preprocess_voc(x, format=bounding_box_format, image_size=image_size),
         num_parallel_calls=tf.data.AUTOTUNE,
+    )
+    dataset = dataset.padded_batch(
+        batch_size, padding_values={"images": None, "bounding_boxes": -1.0}
     )
     return dataset
 
