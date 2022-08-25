@@ -96,31 +96,20 @@ def load_imagenet_dataset():
     train_filenames = [
         f"{FLAGS.imagenet_path}/train-{i:05d}-of-01024" for i in range(0, 1024)
     ]
-    validation_filenames = [
-        f"{FLAGS.imagenet_path}/validation-{i:05d}-of-00128" for i in range(0, 128)
-    ]
 
     train_dataset = tf.data.TFRecordDataset(filenames=train_filenames)
-    validation_dataset = tf.data.TFRecordDataset(filenames=validation_filenames)
 
     train_dataset = train_dataset.map(
         parse_imagenet_example,
         num_parallel_calls=tf.data.AUTOTUNE,
     ).shuffle(2000, reshuffle_each_iteration=True)
-    validation_dataset = validation_dataset.map(
-        parse_imagenet_example,
-        num_parallel_calls=tf.data.AUTOTUNE,
-    ).shuffle(2000, reshuffle_each_iteration=True)
 
     train_dataset = train_dataset.batch(FLAGS.batch_size).prefetch(tf.data.AUTOTUNE)
-    validation_dataset = validation_dataset.batch(FLAGS.batch_size).prefetch(
-        tf.data.AUTOTUNE
-    )
 
-    return train_dataset, validation_dataset
+    return train_dataset
 
 
-train_ds, test_ds = load_imagenet_dataset()
+train_ds = load_imagenet_dataset()
 
 
 # For TPU training, use tf.distribute.TPUStrategy()
