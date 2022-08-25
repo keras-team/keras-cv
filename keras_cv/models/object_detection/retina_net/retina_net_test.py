@@ -70,9 +70,7 @@ class RetinaNetTest(tf.test.TestCase):
         "INTEGRATION" not in os.environ or os.environ["INTEGRATION"] != "true",
         reason="Takes a long time to run, only runs when INTEGRATION "
         "environment variable is set.  To run the test please run: \n"
-        "`INTEGRATION=true pytest "
-        "keras_cv/models/object_detection/retina_net/retina_net_test.py -k "
-        "test_retina_net_call -s`",
+        "`INTEGRATION=true pytest keras_cv/",
     )
     def test_retina_net_call(self):
         retina_net = keras_cv.models.RetinaNet(
@@ -176,7 +174,7 @@ class RetinaNetTest(tf.test.TestCase):
         "test_fit_coco_metrics -s`",
     )
     def test_fit_coco_metrics(self):
-        bounding_box_format = 'xywh'
+        bounding_box_format = "xywh"
         retina_net = keras_cv.models.RetinaNet(
             classes=1,
             bounding_box_format=bounding_box_format,

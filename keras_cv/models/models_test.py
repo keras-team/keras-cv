@@ -101,6 +101,12 @@ class ModelsTest(tf.test.TestCase, parameterized.TestCase):
         yield
         tf.keras.backend.clear_session()
 
+    @pytest.mark.skipif(
+        "INTEGRATION" not in os.environ or os.environ["INTEGRATION"] != "true",
+        reason="Takes a long time to run, only runs when INTEGRATION "
+        "environment variable is set.  To run the test please run: \n"
+        "`INTEGRATION=true pytest keras_cv/",
+    )
     @parameterized.parameters(*MODEL_LIST)
     def test_application_base(self, app, _, args):
         # Can be instantiated with default arguments
@@ -115,6 +121,12 @@ class ModelsTest(tf.test.TestCase, parameterized.TestCase):
         with self.assertRaises(ValueError):
             model.get_layer(name="rescaling")
 
+    @pytest.mark.skipif(
+        "INTEGRATION" not in os.environ or os.environ["INTEGRATION"] != "true",
+        reason="Takes a long time to run, only runs when INTEGRATION "
+        "environment variable is set.  To run the test please run: \n"
+        "`INTEGRATION=true pytest keras_cv/",
+    )
     @parameterized.parameters(*MODEL_LIST)
     def test_application_with_rescaling(self, app, last_dim, args):
         model = app(include_rescaling=True, include_top=False, **args)
