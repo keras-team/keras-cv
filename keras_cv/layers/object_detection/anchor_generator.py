@@ -101,6 +101,7 @@ class AnchorGenerator(keras.layers.Layer):
                 clip_boxes,
                 dtype=self.compute_dtype,
             )
+        self.built = True
 
     @staticmethod
     def _format_sizes_and_strides(sizes, strides):

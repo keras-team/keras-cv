@@ -12,10 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from keras_cv.utils.fill_utils import fill_rectangle
-from keras_cv.utils.preprocessing import blend
-from keras_cv.utils.preprocessing import parse_factor
-from keras_cv.utils.preprocessing import transform
-from keras_cv.utils.preprocessing import transform_value_range
-from keras_cv.utils.train import convert_inputs_to_tf_dataset
-from keras_cv.utils.train import scale_loss_for_distribution
+import tensorflow as tf
+
+
+def scale_loss_for_distribution(loss_value):
+    """Scales and returns the given loss value by the number of replicas."""
+    num_replicas = tf.distribute.get_strategy().num_replicas_in_sync
+    if num_replicas > 1:
+        loss_value *= 1.0 / num_replicas
+    return loss_value
