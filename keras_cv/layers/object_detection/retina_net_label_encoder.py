@@ -53,6 +53,7 @@ class RetinaNetLabelEncoder(layers.Layer):
         self.box_variance = tf.convert_to_tensor(box_variance, dtype=self.dtype)
         self.background_class = background_class
         self.ignore_class = ignore_class
+        self.built = True
 
     def _match_anchor_boxes(
         self, anchor_boxes, gt_boxes, match_iou=0.5, ignore_iou=0.4
