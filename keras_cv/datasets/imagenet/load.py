@@ -16,7 +16,7 @@ import tensorflow as tf
 from tensorflow.keras import layers
 
 
-def parse_imagenet_example(example, image_size):
+def parse_imagenet_example(example, img_size, crop_to_aspect_ratio):
     """Function to parse a TFRecord example into an image and label"""
     # Read example
     image_key = "image/encoded"
@@ -31,7 +31,7 @@ def parse_imagenet_example(example, image_size):
     image_bytes = tf.reshape(parsed[image_key], shape=[])
     image = tf.io.decode_jpeg(image_bytes, channels=3)
     image = layers.Resizing(
-        width=image_size[0], height=image_size[1], crop_to_aspect_ratio=True
+        width=img_size[0], height=img_size[1], crop_to_aspect_ratio=crop_to_aspect_ratio
     )(image)
 
     # Decode label
@@ -49,6 +49,7 @@ def load(
     shuffle_buffer=None,
     reshuffle_each_iteration=False,
     img_size=(512, 512),
+    crop_to_aspect_ratio=True,
 ):
     """Loads the ImageNet dataset from TFRecords
 
@@ -85,7 +86,7 @@ def load(
     dataset = tf.data.TFRecordDataset(filenames=filenames)
 
     dataset = dataset.map(
-        lambda example: parse_imagenet_example(example, img_size),
+        lambda example: parse_imagenet_example(example, img_size, crop_to_aspect_ratio),
         num_parallel_calls=tf.data.AUTOTUNE,
     )
 
