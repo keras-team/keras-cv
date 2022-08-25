@@ -119,3 +119,7 @@ class ModelsTest:
 
         model = keras.Model(inputs=inputs, outputs=[backbone_output])
         model.compile()
+
+
+if __name__ == "__main__":
+    tf.test.main()
