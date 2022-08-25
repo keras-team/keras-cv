@@ -28,21 +28,13 @@ class SimCLRTrainer(ContrastiveTrainer):
     Args:
         encoder: a `keras.Model` to be pre-trained. In most cases, this encoder
             should not include a top dense layer.
-        include_probe: Whether to include a single fully-connected layer during
-            training for probing classification accuracy using the learned encoding.
-            Note that this should be specified iff training with labeled images.
-            If provided, `classes` must be provided.
-        value_range: the range of values the incoming images will have.
-            Represented as a two number tuple written [low, high].
-            This is typically either `[0, 1]` or `[0, 255]` depending
-            on how your preprocessing pipeline is setup.
-        target_size: A tuple of two integers used as the target size to resize
-            images to in the augmentation setp.
+        augmenter: a SimCLRAugmenter layer to randomly augment input
+            images for contrastive learning
+        projection_width: the width of the two-layer dense model used for
+            projection in the SimCLR paper
     """
 
-    def __init__(
-        self, encoder, include_probe, augmenter, projection_width=128, **kwargs
-    ):
+    def __init__(self, encoder, augmenter, projection_width=128, **kwargs):
         super().__init__(
             encoder=encoder,
             augmenter=augmenter,
@@ -54,7 +46,6 @@ class SimCLRTrainer(ContrastiveTrainer):
                 ],
                 name="projector",
             ),
-            include_probe=include_probe,
             **kwargs,
         )
 

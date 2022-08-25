@@ -15,7 +15,8 @@
 
 import tensorflow as tf
 from tensorflow import keras
-from tensorflow.keras import layers
+
+from keras_cv.utils.training import convert_inputs_to_tf_dataset
 
 
 class ContrastiveTrainer(keras.Model):
@@ -28,13 +29,9 @@ class ContrastiveTrainer(keras.Model):
             or a tuple of two separate augmenters for the two sides of the contrastive pipeline.
         projector: a projection model for contrastive training, or a tuple of two separate
             projectors for the two sides of the contrastive pipeline.
-        include_probe: Whether to include a single fully-connected layer during
-            training for probing classification accuracy using the learned encoding.
+        probe: An optional Keras layer or model which will be trained against
+            class labels at train-time using the encoder output as input.
             Note that this should be specified iff training with labeled images.
-            If provided, `classes` must be provided.
-        probe_metrics: a list of metrics for the linear probe, only used if `include_probe` is True.
-        classes: optional number of classes to classify images into, only to be
-            specified if `include_probe` is True.
 
     Returns:
       A `keras.Model` instance.
@@ -45,16 +42,21 @@ class ContrastiveTrainer(keras.Model):
     encoder = keras_cv.models.DenseNet121(include_rescaling=False, include_top=False, pooling="avg")
     augmenter = keras_cv.layers.preprocessing.RandomFlip()
     projector = keras.layers.Dense(64)
+    probe = keras.layers.Dense(10)
 
     trainer = keras_cv.training.ContrastiveTrainer(
-        encoder,
-        augmenter,
-        projector
+        encoder=encoder,
+        augmenter=augmenter,
+        projector=projector,
+        probe=probe
     )
 
     trainer.compile(
         optimizer=keras.optimizers.Adam(),
-        loss=keras_cv.losses.SimCLRLoss()
+        loss=keras_cv.losses.SimCLRLoss(),
+        probe_optimizer=keras.optimizers.Adam(),
+        probe_loss=keras.losses.CategoricalCrossentropy(from_logits=True),
+        probe_metrics=keras.metrics.CategoricalAccuracy(name="probe_accuracy")
     )
 
     unlabeled_images = load_data()
@@ -68,19 +70,12 @@ class ContrastiveTrainer(keras.Model):
         encoder,
         augmenter,
         projector,
-        include_probe,
-        classes=None,
+        probe=None,
     ):
         super().__init__()
 
         if encoder.output.shape.rank != 2:
             raise ValueError("Encoder must have a flattened output")
-
-        if include_probe:
-            if not classes:
-                raise ValueError(
-                    "`classes` must be specified when `include_probe` is `True`."
-                )
 
         if type(augmenter) is tuple and len(augmenter) != 2:
             raise ValueError(
@@ -99,13 +94,11 @@ class ContrastiveTrainer(keras.Model):
         self.projectors = (
             projector if type(projector) is tuple else (projector, projector)
         )
+        self.probe = probe
 
         self.loss_metric = keras.metrics.Mean(name="loss")
 
-        self.include_probe = include_probe
-
-        if self.include_probe:
-            self.probing_top = layers.Dense(classes, name="linear_probe")
+        if probe is not None:
             self.probe_loss_metric = keras.metrics.Mean(name="probe_loss")
             self.probe_metrics = []
 
@@ -114,17 +107,15 @@ class ContrastiveTrainer(keras.Model):
     ):
         super().compile(**kwargs)
 
-        if self.include_probe and not probe_optimizer:
+        if self.probe and not probe_optimizer:
             raise ValueError(
-                "`probe_optimizer` must be specified when `include_probe` is `True`."
+                "`probe_optimizer` must be specified when a probe is included."
             )
 
-        if self.include_probe and not probe_loss:
-            raise ValueError(
-                "`probe_loss` must be specified when `include_probe` is `True`."
-            )
+        if self.probe and not probe_loss:
+            raise ValueError("`probe_loss` must be specified when a probe is included.")
 
-        if self.include_probe:
+        if self.probe:
             self.probe_loss = probe_loss
             self.probe_optimizer = probe_optimizer
             self.probe_metrics = probe_metrics or []
@@ -134,7 +125,7 @@ class ContrastiveTrainer(keras.Model):
         metrics = [
             self.loss_metric,
         ]
-        if self.include_probe:
+        if self.probe:
             metrics += [self.probe_loss_metric]
             metrics += self.probe_metrics
         return super().metrics + metrics
@@ -147,42 +138,33 @@ class ContrastiveTrainer(keras.Model):
         batch_size=None,
         **kwargs,
     ):
-        dataset = _convert_inputs_to_tf_dataset(
+        if self.probe and y is None:
+            raise ValueError("Targets must not be provided when a probe is specified")
+
+        dataset = convert_inputs_to_tf_dataset(
             x=x, y=y, sample_weight=sample_weight, batch_size=batch_size
         )
 
         dataset = dataset.map(self.run_augmenters, num_parallel_calls=tf.data.AUTOTUNE)
+        dataset = dataset.prefetch(tf.data.AUTOTUNE)
 
         return super().fit(x=dataset, **kwargs)
 
     def run_augmenters(self, x, y=None):
+        inputs = {"images": x}
         if y is not None:
-            return (
-                x,
-                self.augmenters[0](x, training=True),
-                self.augmenters[1](x, training=True),
-                y,
-            )
-        else:
-            return (
-                x,
-                self.augmenters[0](x, training=True),
-                self.augmenters[1](x, training=True),
-            )
+            inputs["labels"] = y
+
+        inputs["augmented_images_0"] = self.augmenters[0](x, training=True)
+        inputs["augmented_images_1"] = self.augmenters[1](x, training=True)
+
+        return inputs
 
     def train_step(self, data):
-        if self.include_probe:
-            if len(data) != 4:
-                raise ValueError(
-                    "Targets must be provided when `include_probe` is True"
-                )
-            images, augmented_images_0, augmented_images_1, labels = data
-        else:
-            if len(data) != 3:
-                raise ValueError(
-                    "Targets must not be provided when `include_probe` is False"
-                )
-            images, augmented_images_0, augmented_images_1 = data
+        images = data["images"]
+        labels = data["labels"] if "labels" in data else None
+        augmented_images_0 = data["augmented_images_0"]
+        augmented_images_1 = data["augmented_images_1"]
 
         with tf.GradientTape() as tape:
             features_0 = self.encoder(augmented_images_0, training=True)
@@ -212,14 +194,14 @@ class ContrastiveTrainer(keras.Model):
         )
         self.loss_metric.update_state(loss)
 
-        if self.include_probe:
+        if self.probe:
             with tf.GradientTape() as tape:
                 features = tf.stop_gradient(self.encoder(images, training=False))
-                class_logits = self.probing_top(features, training=True)
+                class_logits = self.probe(features, training=True)
                 probe_loss = self.probe_loss(labels, class_logits)
-            gradients = tape.gradient(probe_loss, self.probing_top.trainable_weights)
+            gradients = tape.gradient(probe_loss, self.probe.trainable_weights)
             self.probe_optimizer.apply_gradients(
-                zip(gradients, self.probing_top.trainable_weights)
+                zip(gradients, self.probe.trainable_weights)
             )
             self.probe_loss_metric.update_state(probe_loss)
             for metric in self.probe_metrics:
@@ -231,30 +213,3 @@ class ContrastiveTrainer(keras.Model):
         raise NotImplementedError(
             "ContrastiveTrainer.call() is not implemented - please call your model directly."
         )
-
-
-# TODO(ianstenbit): Adapt or share this. Currently shamelessly stolen from https://github.com/keras-team/keras-cv/pull/705
-def _convert_inputs_to_tf_dataset(x=None, y=None, sample_weight=None, batch_size=None):
-    if sample_weight is not None:
-        raise ValueError("Contrastive trainers do not yet support `sample_weight`.")
-
-    if isinstance(x, tf.data.Dataset):
-        if y is not None or batch_size is not None:
-            raise ValueError(
-                "When `x` is a `tf.data.Dataset`, please do not provide a value for "
-                f"`y` or `batch_size`.  Got `y={y}`, `batch_size={batch_size}`."
-            )
-        return x
-
-    # batch_size defaults to 32, as it does in fit().
-    batch_size = batch_size or 32
-    # Parse inputs
-    inputs = x
-    if y is not None:
-        inputs = (x, y)
-
-    # Construct tf.data.Dataset
-    dataset = tf.data.Dataset.from_tensor_slices(inputs)
-    if batch_size is not None:
-        dataset = dataset.batch(batch_size)
-    return dataset

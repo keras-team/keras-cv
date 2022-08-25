@@ -25,46 +25,33 @@ from keras_cv.training import ContrastiveTrainer
 
 
 class ContrastiveTrainerTest(tf.test.TestCase):
-    def test_include_probe_requires_classes(self):
-        with self.assertRaises(ValueError):
-            _ = ContrastiveTrainer(
-                self.build_encoder(),
-                self.build_augmenter(),
-                self.build_projector(),
-                include_probe=True,
-                classes=None,
-            )
-
-    def test_include_probe_requires_probe_optimizer(self):
+    def test_probe_requires_probe_optimizer(self):
         trainer = ContrastiveTrainer(
-            self.build_encoder(),
-            self.build_augmenter(),
-            self.build_projector(),
-            include_probe=True,
-            classes=10,
+            encoder=self.build_encoder(),
+            augmenter=self.build_augmenter(),
+            projector=self.build_projector(),
+            probe=self.build_probe(),
         )
         with self.assertRaises(ValueError):
             trainer.compile(
                 optimizer=optimizers.Adam(), loss=SimCLRLoss(temperature=0.5)
             )
 
-    def test_targets_required_iff_probing(self):
+    def test_targets_required_if_probing(self):
         trainer_with_probing = ContrastiveTrainer(
-            self.build_encoder(),
-            self.build_augmenter(),
-            self.build_projector(),
-            include_probe=True,
-            classes=20,
+            encoder=self.build_encoder(),
+            augmenter=self.build_augmenter(),
+            projector=self.build_projector(),
+            probe=self.build_probe(),
         )
         trainer_without_probing = ContrastiveTrainer(
-            self.build_encoder(),
-            self.build_augmenter(),
-            self.build_projector(),
-            include_probe=False,
+            encoder=self.build_encoder(),
+            augmenter=self.build_augmenter(),
+            projector=self.build_projector(),
+            probe=None,
         )
 
         images = tf.random.uniform((1, 50, 50, 3))
-        targets = tf.ones((10, 20))
 
         trainer_with_probing.compile(
             optimizer=optimizers.Adam(),
@@ -78,16 +65,13 @@ class ContrastiveTrainerTest(tf.test.TestCase):
 
         with self.assertRaises(ValueError):
             trainer_with_probing.fit(images)
-        with self.assertRaises(ValueError):
-            trainer_without_probing.fit(images, targets)
 
     def test_train_with_probing(self):
         trainer_with_probing = ContrastiveTrainer(
-            self.build_encoder(),
-            self.build_augmenter(),
-            self.build_projector(),
-            include_probe=True,
-            classes=20,
+            encoder=self.build_encoder(),
+            augmenter=self.build_augmenter(),
+            projector=self.build_projector(),
+            probe=self.build_probe(classes=20),
         )
 
         images = tf.random.uniform((1, 50, 50, 3))
@@ -105,26 +89,28 @@ class ContrastiveTrainerTest(tf.test.TestCase):
 
     def test_train_without_probing(self):
         trainer_without_probing = ContrastiveTrainer(
-            self.build_encoder(),
-            self.build_augmenter(),
-            self.build_projector(),
-            include_probe=False,
+            encoder=self.build_encoder(),
+            augmenter=self.build_augmenter(),
+            projector=self.build_projector(),
+            probe=None,
         )
 
         images = tf.random.uniform((1, 50, 50, 3))
+        targets = tf.ones((1, 20))
 
         trainer_without_probing.compile(
             optimizer=optimizers.Adam(), loss=SimCLRLoss(temperature=0.5)
         )
 
         trainer_without_probing.fit(images)
+        trainer_without_probing.fit(images, targets)
 
     def test_inference_not_supported(self):
         trainer = ContrastiveTrainer(
-            self.build_encoder(),
-            self.build_augmenter(),
-            self.build_projector(),
-            include_probe=False,
+            encoder=self.build_encoder(),
+            augmenter=self.build_augmenter(),
+            projector=self.build_projector(),
+            probe=None,
         )
         trainer.compile(optimizer=optimizers.Adam(), loss=SimCLRLoss(temperature=0.5))
 
@@ -135,10 +121,10 @@ class ContrastiveTrainerTest(tf.test.TestCase):
         with self.assertRaises(ValueError):
             _ = ContrastiveTrainer(
                 # A DenseNet without pooling does not have a flat output
-                DenseNet121(include_rescaling=False, include_top=False),
-                self.build_augmenter(),
-                self.build_projector(),
-                include_probe=False,
+                encoder=DenseNet121(include_rescaling=False, include_top=False),
+                augmenter=self.build_augmenter(),
+                projector=self.build_projector(),
+                probe=None,
             )
 
     def test_with_multiple_augmenters_and_projectors(self):
@@ -151,10 +137,10 @@ class ContrastiveTrainerTest(tf.test.TestCase):
         )
 
         trainer_without_probing = ContrastiveTrainer(
-            self.build_encoder(),
-            (augmenter0, augmenter1),
-            (projector0, projector1),
-            include_probe=False,
+            encoder=self.build_encoder(),
+            augmenter=(augmenter0, augmenter1),
+            projector=(projector0, projector1),
+            probe=None,
         )
 
         images = tf.random.uniform((1, 50, 50, 3))
@@ -173,3 +159,6 @@ class ContrastiveTrainerTest(tf.test.TestCase):
 
     def build_projector(self):
         return layers.Dense(128)
+
+    def build_probe(self, classes=20):
+        return layers.Dense(classes)

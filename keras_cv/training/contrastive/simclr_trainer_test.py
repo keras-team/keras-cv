@@ -25,7 +25,6 @@ class SimCLRTrainerTest(tf.test.TestCase):
     def test_train_without_probing(self):
         simclr_without_probing = SimCLRTrainer(
             self.build_encoder(),
-            include_probe=False,
             augmenter=SimCLRAugmenter(value_range=(0, 255)),
         )
 
