@@ -138,12 +138,12 @@ class ContrastiveTrainer(keras.Model):
         batch_size=None,
         **kwargs,
     ):
-        if self.probe and y is None:
-            raise ValueError("Targets must not be provided when a probe is specified")
-
         dataset = convert_inputs_to_tf_dataset(
             x=x, y=y, sample_weight=sample_weight, batch_size=batch_size
         )
+
+        if self.probe and "labels" not in dataset:
+            raise ValueError("Targets must be provided when a probe is specified")
 
         dataset = dataset.map(self.run_augmenters, num_parallel_calls=tf.data.AUTOTUNE)
         dataset = dataset.prefetch(tf.data.AUTOTUNE)
