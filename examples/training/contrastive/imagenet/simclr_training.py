@@ -140,8 +140,7 @@ with strategy.scope():
         augmenter=training.SimCLRAugmenter(
             value_range=(0, 255), target_size=IMAGE_SIZE
         ),
-        include_probe=FLAGS.include_probe,
-        classes=CLASSES,
+        probe=layers.Dense(CLASSES, name="linear_probe"),
     )
 
     optimizer = optimizers.SGD(
