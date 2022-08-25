@@ -142,9 +142,6 @@ class ContrastiveTrainer(keras.Model):
             x=x, y=y, sample_weight=sample_weight, batch_size=batch_size
         )
 
-        if self.probe and "labels" not in dataset:
-            raise ValueError("Targets must be provided when a probe is specified")
-
         dataset = dataset.map(self.run_augmenters, num_parallel_calls=tf.data.AUTOTUNE)
         dataset = dataset.prefetch(tf.data.AUTOTUNE)
 
@@ -195,6 +192,8 @@ class ContrastiveTrainer(keras.Model):
         self.loss_metric.update_state(loss)
 
         if self.probe:
+            if labels is None:
+                raise ValueError("Targets must be provided when a probe is specified")
             with tf.GradientTape() as tape:
                 features = tf.stop_gradient(self.encoder(images, training=False))
                 class_logits = self.probe(features, training=True)
