@@ -16,29 +16,35 @@ import tensorflow as tf
 from tensorflow.keras import layers
 
 
-def parse_imagenet_example(example, img_size, crop_to_aspect_ratio):
+def parse_imagenet_example(img_size, crop_to_aspect_ratio):
     """Function to parse a TFRecord example into an image and label"""
-    # Read example
-    image_key = "image/encoded"
-    label_key = "image/class/label"
-    keys_to_features = {
-        image_key: tf.io.FixedLenFeature((), tf.string, ""),
-        label_key: tf.io.FixedLenFeature([], tf.int64, -1),
-    }
-    parsed = tf.io.parse_single_example(example, keys_to_features)
 
-    # Decode and resize image
-    image_bytes = tf.reshape(parsed[image_key], shape=[])
-    image = tf.io.decode_jpeg(image_bytes, channels=3)
-    image = layers.Resizing(
+    resizing = layers.Resizing(
         width=img_size[0], height=img_size[1], crop_to_aspect_ratio=crop_to_aspect_ratio
-    )(image)
+    )
 
-    # Decode label
-    label = tf.cast(tf.reshape(parsed[label_key], shape=()), dtype=tf.int32) - 1
-    label = tf.one_hot(label, 1000)
+    def apply(example):
+        # Read example
+        image_key = "image/encoded"
+        label_key = "image/class/label"
+        keys_to_features = {
+            image_key: tf.io.FixedLenFeature((), tf.string, ""),
+            label_key: tf.io.FixedLenFeature([], tf.int64, -1),
+        }
+        parsed = tf.io.parse_single_example(example, keys_to_features)
 
-    return image, label
+        # Decode and resize image
+        image_bytes = tf.reshape(parsed[image_key], shape=[])
+        image = tf.io.decode_jpeg(image_bytes, channels=3)
+        image = resizing(image)
+
+        # Decode label
+        label = tf.cast(tf.reshape(parsed[label_key], shape=()), dtype=tf.int32) - 1
+        label = tf.one_hot(label, 1000)
+
+        return image, label
+
+    return apply
 
 
 def load(
@@ -86,7 +92,7 @@ def load(
     dataset = tf.data.TFRecordDataset(filenames=filenames)
 
     dataset = dataset.map(
-        lambda example: parse_imagenet_example(example, img_size, crop_to_aspect_ratio),
+        parse_imagenet_example(img_size, crop_to_aspect_ratio),
         num_parallel_calls=tf.data.AUTOTUNE,
     )
 
