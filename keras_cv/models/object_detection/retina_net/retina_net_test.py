@@ -17,13 +17,12 @@ import statistics
 
 import pytest
 import tensorflow as tf
-from absl.testing import parameterized
 from tensorflow.keras import optimizers
 
 import keras_cv
 
 
-class RetinaNetTest(tf.test.TestCase, parameterized.TestCase):
+class RetinaNetTest(tf.test.TestCase):
     @pytest.fixture(autouse=True)
     def cleanup_global_session(self):
         # Code before yield runs before the test
@@ -67,6 +66,12 @@ class RetinaNetTest(tf.test.TestCase, parameterized.TestCase):
                 # Note no include_rescaling is provided
             )
 
+    @pytest.mark.skipif(
+        "INTEGRATION" not in os.environ or os.environ["INTEGRATION"] != "true",
+        reason="Takes a long time to run, only runs when INTEGRATION "
+        "environment variable is set.  To run the test please run: \n"
+        "`INTEGRATION=true pytest keras_cv/",
+    )
     def test_retina_net_call(self):
         retina_net = keras_cv.models.RetinaNet(
             classes=20,
@@ -168,10 +173,8 @@ class RetinaNetTest(tf.test.TestCase, parameterized.TestCase):
         "keras_cv/models/object_detection/retina_net/retina_net_test.py -k "
         "test_fit_coco_metrics -s`",
     )
-    @parameterized.named_parameters(
-        ("xywh", "xywh"),
-    )
-    def test_fit_coco_metrics(self, bounding_box_format):
+    def test_fit_coco_metrics(self):
+        bounding_box_format = "xywh"
         retina_net = keras_cv.models.RetinaNet(
             classes=1,
             bounding_box_format=bounding_box_format,

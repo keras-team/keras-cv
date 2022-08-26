@@ -15,54 +15,11 @@
 
 import pytest
 import tensorflow as tf
-from absl.testing import parameterized
 from tensorflow import keras
 from tensorflow.keras import backend
 
-from keras_cv.models import csp_darknet
-from keras_cv.models import darknet
-from keras_cv.models import densenet
-from keras_cv.models import mlp_mixer
-from keras_cv.models import mobilenet_v3
-from keras_cv.models import resnet_v1
-from keras_cv.models import resnet_v2
-from keras_cv.models import vgg19
 
-MODEL_LIST = [
-    (csp_darknet.CSPDarkNet, 1024, {}),
-    (darknet.DarkNet21, 512, {}),
-    (darknet.DarkNet53, 512, {}),
-    (densenet.DenseNet121, 1024, {}),
-    (densenet.DenseNet169, 1664, {}),
-    (densenet.DenseNet201, 1920, {}),
-    (resnet_v1.ResNet50, 2048, {}),
-    (resnet_v1.ResNet101, 2048, {}),
-    (resnet_v1.ResNet152, 2048, {}),
-    (resnet_v2.ResNet50V2, 2048, {}),
-    (resnet_v2.ResNet101V2, 2048, {}),
-    (resnet_v2.ResNet152V2, 2048, {}),
-    (mobilenet_v3.MobileNetV3Small, 576, {}),
-    (mobilenet_v3.MobileNetV3Large, 960, {}),
-    (
-        mlp_mixer.MLPMixerB16,
-        768,
-        {"patch_size": (16, 16), "input_shape": (224, 224, 3)},
-    ),
-    (
-        mlp_mixer.MLPMixerB32,
-        768,
-        {"patch_size": (32, 32), "input_shape": (224, 224, 3)},
-    ),
-    (
-        mlp_mixer.MLPMixerL16,
-        1024,
-        {"patch_size": (16, 16), "input_shape": (224, 224, 3)},
-    ),
-    (vgg19.VGG19, 512, {}),
-]
-
-
-class ModelsTest(tf.test.TestCase, parameterized.TestCase):
+class ModelsTest:
     def assertShapeEqual(self, shape1, shape2):
         self.assertEqual(tf.TensorShape(shape1), tf.TensorShape(shape2))
 
@@ -72,8 +29,7 @@ class ModelsTest(tf.test.TestCase, parameterized.TestCase):
         yield
         tf.keras.backend.clear_session()
 
-    @parameterized.parameters(*MODEL_LIST)
-    def test_application_base(self, app, _, args):
+    def _test_application_base(self, app, _, args):
         # Can be instantiated with default arguments
         model = app(include_top=True, classes=1000, include_rescaling=False, **args)
 
@@ -86,21 +42,16 @@ class ModelsTest(tf.test.TestCase, parameterized.TestCase):
         with self.assertRaises(ValueError):
             model.get_layer(name="rescaling")
 
-    @parameterized.parameters(*MODEL_LIST)
-    def test_application_with_rescaling(self, app, last_dim, args):
+    def _test_application_with_rescaling(self, app, last_dim, args):
         model = app(include_rescaling=True, include_top=False, **args)
         self.assertIsNotNone(model.get_layer(name="rescaling"))
 
-    @pytest.mark.skip(reason="temporarily reducing test load to prevent OOM")
-    @parameterized.parameters(*MODEL_LIST)
-    def test_application_pooling(self, app, last_dim, args):
+    def _test_application_pooling(self, app, last_dim, args):
         model = app(include_rescaling=False, include_top=False, pooling="avg", **args)
 
         self.assertShapeEqual(model.output_shape, (None, last_dim))
 
-    @pytest.mark.skip(reason="temporarily reducing test load to prevent OOM")
-    @parameterized.parameters(*MODEL_LIST)
-    def test_application_variable_input_channels(self, app, last_dim, args):
+    def _test_application_variable_input_channels(self, app, last_dim, args):
         # Make a local copy of args because we modify them in the test
         args = dict(args)
 
@@ -151,9 +102,7 @@ class ModelsTest(tf.test.TestCase, parameterized.TestCase):
             num_patches = 49
             self.assertShapeEqual(output_shape, (None, num_patches, last_dim))
 
-    @pytest.mark.skip(reason="temporarily reducing test load to prevent OOM")
-    @parameterized.parameters(*MODEL_LIST)
-    def test_model_can_be_used_as_backbone(self, app, last_dim, args):
+    def _test_model_can_be_used_as_backbone(self, app, last_dim, args):
         inputs = keras.layers.Input(shape=(224, 224, 3))
         backbone = app(
             include_rescaling=False,

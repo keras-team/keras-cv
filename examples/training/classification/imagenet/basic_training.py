@@ -24,13 +24,13 @@ import sys
 import tensorflow as tf
 from absl import flags
 from tensorflow.keras import callbacks
-from tensorflow.keras import layers
 from tensorflow.keras import losses
 from tensorflow.keras import metrics
 from tensorflow.keras import optimizers
 
 import keras_cv
 from keras_cv import models
+from keras_cv.datasets import imagenet
 
 """
 ## Overview
@@ -85,66 +85,30 @@ EPOCHS = 250
 ## Data loading
 This guide uses the
 [Imagenet dataset](https://www.tensorflow.org/datasets/catalog/imagenet2012).
-Note that this requires manual download, and does not work out-of-the-box with TFDS.
-To get started, we first load the dataset from a command-line specified directory where ImageNet is stored as TFRecords.
+Note that this requires manual download and preprocessing. You can find more
+information about preparing this dataset at keras_cv/datasets/imagenet/README.md
 """
 
 
-def parse_imagenet_example(example):
-    # Read example
-    image_key = "image/encoded"
-    label_key = "image/class/label"
-    keys_to_features = {
-        image_key: tf.io.FixedLenFeature((), tf.string, ""),
-        label_key: tf.io.FixedLenFeature([], tf.int64, -1),
-    }
-    parsed = tf.io.parse_single_example(example, keys_to_features)
-
-    # Decode and resize image
-    image_bytes = tf.reshape(parsed[image_key], shape=[])
-    image = tf.io.decode_jpeg(image_bytes, channels=3)
-    image = layers.Resizing(
-        width=IMAGE_SIZE[0], height=IMAGE_SIZE[1], crop_to_aspect_ratio=True
-    )(image)
-
-    # Decode label
-    label = tf.cast(tf.reshape(parsed[label_key], shape=()), dtype=tf.int32) - 1
-    label = tf.one_hot(label, CLASSES)
-    return image, label
-
-
-def load_imagenet_dataset():
-    train_filenames = [
-        f"{FLAGS.imagenet_path}/train-{i:05d}-of-01024" for i in range(0, 1024)
-    ]
-    validation_filenames = [
-        f"{FLAGS.imagenet_path}/validation-{i:05d}-of-00128" for i in range(0, 128)
-    ]
-
-    train_dataset = tf.data.TFRecordDataset(filenames=train_filenames)
-    validation_dataset = tf.data.TFRecordDataset(filenames=validation_filenames)
-
-    train_dataset = train_dataset.map(
-        parse_imagenet_example,
-        num_parallel_calls=tf.data.AUTOTUNE,
-    )
-    validation_dataset = validation_dataset.map(
-        parse_imagenet_example,
-        num_parallel_calls=tf.data.AUTOTUNE,
-    )
-
-    return train_dataset.batch(FLAGS.batch_size), validation_dataset.batch(
-        FLAGS.batch_size
-    )
-
-
-train_ds, test_ds = load_imagenet_dataset()
+train_ds = imagenet.load(
+    split="train",
+    tfrecord_path=FLAGS.imagenet_path,
+    batch_size=FLAGS.batch_size,
+    img_size=IMAGE_SIZE,
+)
+test_ds = imagenet.load(
+    split="validation",
+    tfrecord_path=FLAGS.imagenet_path,
+    batch_size=FLAGS.batch_size,
+    img_size=IMAGE_SIZE,
+)
 
 
 """
 Next, we augment our dataset.
 We define a set of augmentation layers and then apply them to our input dataset.
 """
+
 
 AUGMENT_LAYERS = [
     keras_cv.layers.RandomFlip(),
