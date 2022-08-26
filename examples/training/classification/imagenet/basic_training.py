@@ -92,13 +92,13 @@ information about preparing this dataset at keras_cv/datasets/imagenet/README.md
 
 train_ds = imagenet.load(
     split="train",
-    tfrecords_path=FLAGS.imagenet_path,
+    tfrecord_path=FLAGS.imagenet_path,
     batch_size=FLAGS.batch_size,
     img_size=IMAGE_SIZE,
 )
 test_ds = imagenet.load(
     split="validation",
-    tfrecords_path=FLAGS.imagenet_path,
+    tfrecord_path=FLAGS.imagenet_path,
     batch_size=FLAGS.batch_size,
     img_size=IMAGE_SIZE,
 )
