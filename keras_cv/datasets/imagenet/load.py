@@ -43,7 +43,7 @@ def parse_imagenet_example(example, img_size, crop_to_aspect_ratio):
 
 def load(
     split,
-    tfrecords_path,
+    tfrecord_path,
     batch_size=None,
     shuffle=True,
     shuffle_buffer=None,
@@ -56,13 +56,13 @@ def load(
     Usage:
     ```python
     dataset, ds_info = keras_cv.datasets.imagenet.load(
-        split="train", tfrecords_path="gs://my-bucket/imagenet-tfrecords"
+        split="train", tfrecord_path="gs://my-bucket/imagenet-tfrecords"
     )
     ```
 
     Args:
         split: the split to load.  Should be one of "train" or "validation."
-        tfrecords_path: the path to your preprocessed ImageNet TFRecords.
+        tfrecord_path: the path to your preprocessed ImageNet TFRecords.
             See keras_cv/datasets/imagenet/README.md for preprocessing instructions.
         batch_size: how many instances to include in batches after loading
         shuffle: whether or not to shuffle the dataset.  Defaults to True.
@@ -79,7 +79,7 @@ def load(
 
     num_splits = 1024 if split == "train" else 128
     filenames = [
-        f"{tfrecords_path}/{split}-{i:05d}-of-{num_splits:05d}"
+        f"{tfrecord_path}/{split}-{i:05d}-of-{num_splits:05d}"
         for i in range(0, num_splits)
     ]
 
