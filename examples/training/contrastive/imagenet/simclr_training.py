@@ -25,6 +25,7 @@ from tensorflow.keras import optimizers
 from keras_cv import losses
 from keras_cv import models
 from keras_cv import training
+from keras_cv.datasets import imagenet
 
 flags.DEFINE_string(
     "model_name", None, "The name of the model in KerasCV.models to use."
@@ -66,51 +67,15 @@ IMAGE_SIZE = (224, 224)
 EPOCHS = 250
 
 
-def parse_imagenet_example(example):
-    # Read example
-    image_key = "image/encoded"
-    label_key = "image/class/label"
-    keys_to_features = {
-        image_key: tf.io.FixedLenFeature((), tf.string, ""),
-        label_key: tf.io.FixedLenFeature([], tf.int64, -1),
-    }
-    parsed = tf.io.parse_single_example(example, keys_to_features)
-
-    # Decode and resize image
-    image_bytes = tf.reshape(parsed[image_key], shape=[])
-    image = tf.io.decode_jpeg(image_bytes, channels=3)
-    image = layers.Resizing(
-        width=IMAGE_SIZE[0], height=IMAGE_SIZE[1], crop_to_aspect_ratio=True
-    )(image)
-
-    # Decode label
-    label = tf.cast(tf.reshape(parsed[label_key], shape=()), dtype=tf.int32) - 1
-    label = tf.one_hot(label, CLASSES)
-    if FLAGS.include_probe:
-        return image, label
-    else:
-        return image
-
-
-def load_imagenet_dataset():
-    train_filenames = [
-        f"{FLAGS.imagenet_path}/train-{i:05d}-of-01024" for i in range(0, 1024)
-    ]
-
-    train_dataset = tf.data.TFRecordDataset(filenames=train_filenames)
-
-    train_dataset = train_dataset.map(
-        parse_imagenet_example,
-        num_parallel_calls=tf.data.AUTOTUNE,
-    ).shuffle(2000, reshuffle_each_iteration=True)
-
-    train_dataset = train_dataset.batch(FLAGS.batch_size).prefetch(tf.data.AUTOTUNE)
-
-    return train_dataset
-
-
-train_ds = load_imagenet_dataset()
-
+train_ds = imagenet.load(
+    split="train",
+    tfrecord_path=FLAGS.imagenet_path,
+    batch_size=FLAGS.batch_size,
+    img_size=IMAGE_SIZE,
+    shuffle=True,
+    shuffle_buffer=2000,
+    reshuffle_each_iteration=True,
+)
 
 # For TPU training, use tf.distribute.TPUStrategy()
 # MirroredStrategy is best for a single machine with multiple GPUs
