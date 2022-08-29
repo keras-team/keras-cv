@@ -64,7 +64,7 @@ class FocalTest(tf.test.TestCase):
 
         focal_loss = FocalLoss()
 
-        self.assertAllClose(focal_loss(y_true, y_pred), 0.00302626)
+        self.assertAllClose(focal_loss(y_true, y_pred), 3 * 0.00302626)
 
     def test_1d_output_from_logits(self):
         y_true = [0.0, 1.0, 1.0]
@@ -72,7 +72,7 @@ class FocalTest(tf.test.TestCase):
 
         focal_loss = FocalLoss(from_logits=True)
 
-        self.assertAllClose(focal_loss(y_true, y_pred), 0.00302626)
+        self.assertAllClose(focal_loss(y_true, y_pred), 3 * 0.00302626)
 
     def test_from_logits_argument(self):
         y_true = tf.random.uniform((2, 8, 10))
