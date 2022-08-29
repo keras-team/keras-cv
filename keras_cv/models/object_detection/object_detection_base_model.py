@@ -59,15 +59,11 @@ class ObjectDetectionBaseModel(keras.Model):
             validation_data = convert_inputs_to_tf_dataset(
                 x=val_x, y=val_y, sample_weight=val_sample, batch_size=batch_size
             )
-            # validation_data = validation_data.map(
-            #     self.encode_data, num_parallel_calls=tf.data.AUTOTUNE
-            # )
 
         dataset = dataset.map(self.encode_data, num_parallel_calls=tf.data.AUTOTUNE)
         dataset = dataset.prefetch(tf.data.AUTOTUNE)
         return super().fit(x=dataset, validation_data=validation_data, **kwargs)
 
-    #
     def train_on_batch(self, x, y=None, **kwargs):
         x, y = self.encode_data(x, y)
         return super().train_on_batch(x=x, y=y, **kwargs)
