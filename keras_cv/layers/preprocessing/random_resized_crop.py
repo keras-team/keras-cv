@@ -100,35 +100,37 @@ class RandomResizedCrop(BaseImageAugmentationLayer):
             tf.round(self.target_size[1] / zoom_factor),
         )
 
-        new_height = tf.clip_by_value(
-            crop_size[0] / tf.sqrt(aspect_ratio),
-            0.0,
-            tf.cast(original_height, tf.float32),
-        )  # to avoid unwanted/unintuitive effects
-        new_width = tf.clip_by_value(
-            crop_size[1] * tf.sqrt(aspect_ratio),
-            0.0,
-            tf.cast(original_width, tf.float32),
+        new_height = crop_size[0] / tf.sqrt(aspect_ratio)
+
+        new_width = crop_size[1] * tf.sqrt(aspect_ratio)
+
+        new_height, new_width = self._get_corrected_crop_dimensions(
+            new_height, new_width, original_height, original_width
         )
+
+        new_height_ratio = new_height / original_height
+        new_width_ratio = new_width / original_width
 
         height_offset = self._random_generator.random_uniform(
             (),
-            minval=tf.minimum(0.0, 1.0 - new_height),
-            maxval=tf.maximum(0.0, 1.0 - new_height),
+            minval=tf.minimum(0.0, 1.0 - new_height_ratio),
+            maxval=tf.maximum(0.0, 1.0 - new_height_ratio),
             dtype=tf.float32,
         )
 
         width_offset = self._random_generator.random_uniform(
             (),
-            minval=tf.minimum(0.0, 1.0 - new_width),
-            maxval=tf.maximum(0.0, 1.0 - new_width),
+            minval=tf.minimum(0.0, 1.0 - new_width_ratio),
+            maxval=tf.maximum(0.0, 1.0 - new_width_ratio),
             dtype=tf.float32,
         )
 
+        # these are all values between 0 and 1
+
         y1 = height_offset
-        y2 = height_offset + new_height
+        y2 = height_offset + new_height_ratio
         x1 = width_offset
-        x2 = width_offset + new_width
+        x2 = width_offset + new_width_ratio
 
         return [[y1, x1, y2, x2]]
 
@@ -160,6 +162,35 @@ class RandomResizedCrop(BaseImageAugmentationLayer):
         )
 
         return tf.squeeze(augmented_image, axis=0)
+
+    def _get_corrected_crop_dimensions(
+        self, new_height, new_width, original_height, original_width
+    ):
+        if new_height > original_height and new_width > original_width:
+            if new_width >= new_height:
+                new_height = (original_width / new_width) * new_height
+                new_width = original_width
+            else:
+                new_width = (original_height / new_height) * new_width
+                new_height = original_height
+
+        if new_height < original_height and new_width > original_width:
+            if new_width >= new_height:
+                new_width = (original_height / new_height) * new_width
+                new_height = original_height
+            else:
+                new_height = (original_width / new_width) * new_height
+                new_width = original_width
+
+        if new_height > original_height and new_width < original_width:
+            if new_width >= new_height:
+                new_width = (original_height / new_height) * new_width
+                new_height = original_height
+            else:
+                new_height = (original_width / new_width) * new_height
+                new_width = original_width
+
+        return new_height, new_width
 
     def _resize(self, image):
         outputs = tf.keras.preprocessing.image.smart_resize(image, self.target_size)
