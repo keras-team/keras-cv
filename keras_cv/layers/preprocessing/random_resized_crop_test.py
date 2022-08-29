@@ -32,7 +32,7 @@ class RandomResizedCropTest(tf.test.TestCase, parameterized.TestCase):
         layer = preprocessing.RandomResizedCrop(
             target_size=self.target_size,
             aspect_ratio_factor=(3 / 4, 4 / 3),
-            crop_area_factor=(0.8, 1.0),
+            zoom_factor=(0.8, 1.0),
             seed=self.seed,
         )
         output = layer(image, training=True)
@@ -48,7 +48,7 @@ class RandomResizedCropTest(tf.test.TestCase, parameterized.TestCase):
         layer = preprocessing.RandomResizedCrop(
             target_size=self.target_size,
             aspect_ratio_factor=(3 / 4, 4 / 3),
-            crop_area_factor=(0.8, 1.0),
+            zoom_factor=(0.8, 1.0),
         )
         output = layer(image, training=True)
 
@@ -64,7 +64,7 @@ class RandomResizedCropTest(tf.test.TestCase, parameterized.TestCase):
         layer = preprocessing.RandomResizedCrop(
             target_size=self.target_size,
             aspect_ratio_factor=(3 / 4, 4 / 3),
-            crop_area_factor=(0.8, 1.0),
+            zoom_factor=(0.8, 1.0),
         )
 
         input_resized = tf.image.resize(image, self.target_size)
@@ -86,7 +86,7 @@ class RandomResizedCropTest(tf.test.TestCase, parameterized.TestCase):
             _ = preprocessing.RandomResizedCrop(
                 target_size=target_size,
                 aspect_ratio_factor=(3 / 4, 4 / 3),
-                crop_area_factor=(0.8, 1.0),
+                zoom_factor=(0.8, 1.0),
             )
 
     @parameterized.named_parameters(
@@ -103,7 +103,7 @@ class RandomResizedCropTest(tf.test.TestCase, parameterized.TestCase):
             _ = preprocessing.RandomResizedCrop(
                 target_size=(224, 224),
                 aspect_ratio_factor=aspect_ratio_factor,
-                crop_area_factor=(0.8, 1.0),
+                zoom_factor=(0.8, 1.0),
             )
 
     @parameterized.named_parameters(
@@ -111,15 +111,15 @@ class RandomResizedCropTest(tf.test.TestCase, parameterized.TestCase):
         ("Single integer", 5),
         ("Single float", 5.0),
     )
-    def test_crop_area_factor_errors(self, crop_area_factor):
+    def test_zoom_factor_errors(self, zoom_factor):
         with self.assertRaisesRegex(
             ValueError,
-            "`crop_area_factor` must be tuple of two positive floats less than or "
-            "equal to 1 or keras_cv.core.FactorSampler instance. Received "
-            "crop_area_factor=(.*)",
+            "`zoom_factor` must be tuple of two positive floats"
+            " or keras_cv.core.FactorSampler instance. Received "
+            "zoom_factor=(.*)",
         ):
             _ = preprocessing.RandomResizedCrop(
                 target_size=(224, 224),
                 aspect_ratio_factor=(3 / 4, 4 / 3),
-                crop_area_factor=crop_area_factor,
+                zoom_factor=zoom_factor,
             )

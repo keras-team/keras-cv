@@ -25,26 +25,19 @@ from keras_cv.utils import preprocessing
 class RandomResizedCrop(BaseImageAugmentationLayer):
     """Randomly crops a part of an image and resizes it to provided size.
 
-    This implementation takes an intuitive approach, where we crop the images to a
-    random height and width, and then resize them. To do this, we first sample a
-    random value for area using `crop_area_factor` and a value for aspect ratio using
-    `aspect_ratio_factor`. Further we get the new height and width by
-    dividing and multiplying the old height and width by the random area
-    respectively. We then sample offsets for height and width and clip them such
-    that the cropped area does not exceed image boundaries. Finally we do the
-    actual cropping operation and resize the image to `target_size`.
+    This implementation takes a distortion-oriented approach, which means the
+    amount of distortion in the image is proportional to the `zoom_factor`
+    argument. To do this, we first sample a random value for `zoom_factor` and
+    `aspect_ratio_factor`. Further we deduce a `crop_size` which abides by the
+    calculated aspect ratio. Finally we do the actual cropping operation and
+    resize the image to `target_size`.
 
     Args:
         target_size: A tuple of two integers used as the target size to ultimately crop
             images to.
-        crop_area_factor: A tuple of two floats, ConstantFactorSampler or
-            UniformFactorSampler. The ratio of area of the cropped part to
-            that of original image is sampled using this factor. Represents the
-            lower and upper bounds for the area relative to the original image
-            of the cropped image before resizing it to `target_size`.  For
-            self-supervised pretraining a common value for this parameter is
-            `(0.08, 1.0)`.  For fine tuning and classification a common value for this
-            is `0.8, 1.0`.
+        zoom_factor: A tuple of two floats, ConstantFactorSampler or
+            UniformFactorSampler. Represents the area relative to the original image
+            of the cropped image before resizing it to `target_size`.
         aspect_ratio_factor: A tuple of two floats, ConstantFactorSampler or
             UniformFactorSampler. Aspect ratio means the ratio of width to
             height of the cropped image. In the context of this layer, the aspect ratio
@@ -60,7 +53,7 @@ class RandomResizedCrop(BaseImageAugmentationLayer):
     def __init__(
         self,
         target_size,
-        crop_area_factor,
+        zoom_factor,
         aspect_ratio_factor,
         interpolation="bilinear",
         seed=None,
@@ -68,7 +61,7 @@ class RandomResizedCrop(BaseImageAugmentationLayer):
     ):
         super().__init__(seed=seed, **kwargs)
 
-        self._check_class_arguments(target_size, crop_area_factor, aspect_ratio_factor)
+        self._check_class_arguments(target_size, zoom_factor, aspect_ratio_factor)
 
         self.target_size = target_size
         self.aspect_ratio_factor = preprocessing.parse_factor(
@@ -78,10 +71,11 @@ class RandomResizedCrop(BaseImageAugmentationLayer):
             param_name="aspect_ratio_factor",
             seed=seed,
         )
-        self.crop_area_factor = preprocessing.parse_factor(
-            crop_area_factor,
-            max_value=1.0,
-            param_name="crop_area_factor",
+        self.zoom_factor = preprocessing.parse_factor(
+            zoom_factor,
+            min_value=0.0,
+            max_value=None,
+            param_name="zoom_factor",
             seed=seed,
         )
 
@@ -91,13 +85,31 @@ class RandomResizedCrop(BaseImageAugmentationLayer):
     def get_random_transformation(
         self, image=None, label=None, bounding_box=None, **kwargs
     ):
-        crop_area_factor = self.crop_area_factor()
+        zoom_factor = self.zoom_factor()
         aspect_ratio = self.aspect_ratio_factor()
 
+        if image.shape.rank == 3:
+            original_height = image.shape[0]
+            original_width = image.shape[1]
+        elif image.shape.rank == 4:
+            original_height = image.shape[1]
+            original_width = image.shape[2]
+
+        crop_size = (
+            tf.round(self.target_size[0] / zoom_factor),
+            tf.round(self.target_size[1] / zoom_factor),
+        )
+
         new_height = tf.clip_by_value(
-            tf.sqrt(crop_area_factor / aspect_ratio), 0.0, 1.0
+            crop_size[0] / tf.sqrt(aspect_ratio),
+            0.0,
+            tf.cast(original_height, tf.float32),
         )  # to avoid unwanted/unintuitive effects
-        new_width = tf.clip_by_value(tf.sqrt(crop_area_factor * aspect_ratio), 0.0, 1.0)
+        new_width = tf.clip_by_value(
+            crop_size[1] * tf.sqrt(aspect_ratio),
+            0.0,
+            tf.cast(original_width, tf.float32),
+        )
 
         height_offset = self._random_generator.random_uniform(
             (),
@@ -154,9 +166,7 @@ class RandomResizedCrop(BaseImageAugmentationLayer):
         # smart_resize will always output float32, so we need to re-cast.
         return tf.cast(outputs, self.compute_dtype)
 
-    def _check_class_arguments(
-        self, target_size, crop_area_factor, aspect_ratio_factor
-    ):
+    def _check_class_arguments(self, target_size, zoom_factor, aspect_ratio_factor):
         if (
             not isinstance(target_size, (tuple, list))
             or len(target_size) != 2
@@ -170,14 +180,14 @@ class RandomResizedCrop(BaseImageAugmentationLayer):
             )
 
         if (
-            not isinstance(crop_area_factor, (tuple, list, core.FactorSampler))
-            or isinstance(crop_area_factor, float)
-            or isinstance(crop_area_factor, int)
+            not isinstance(zoom_factor, (tuple, list, core.FactorSampler))
+            or isinstance(zoom_factor, float)
+            or isinstance(zoom_factor, int)
         ):
             raise ValueError(
-                "`crop_area_factor` must be tuple of two positive floats less than "
-                "or equal to 1 or keras_cv.core.FactorSampler instance. Received "
-                f"crop_area_factor={crop_area_factor}"
+                "`zoom_factor` must be tuple of two positive floats"
+                " or keras_cv.core.FactorSampler instance. Received "
+                f"zoom_factor={zoom_factor}"
             )
 
         if (
@@ -199,7 +209,7 @@ class RandomResizedCrop(BaseImageAugmentationLayer):
         config.update(
             {
                 "target_size": self.target_size,
-                "crop_area_factor": self.crop_area_factor,
+                "zoom_factor": self.zoom_factor,
                 "aspect_ratio_factor": self.aspect_ratio_factor,
                 "interpolation": self.interpolation,
                 "seed": self.seed,
