@@ -34,8 +34,6 @@ class ObjectDetectionBaseModel(keras.Model):
         self.bounding_box_format = bounding_box_format
         self.label_encoder = label_encoder
 
-        self.label_encoder.build((None, None, None))
-
     def fit(
         self,
         x=None,
@@ -61,15 +59,11 @@ class ObjectDetectionBaseModel(keras.Model):
             validation_data = convert_inputs_to_tf_dataset(
                 x=val_x, y=val_y, sample_weight=val_sample, batch_size=batch_size
             )
-            validation_data = validation_data.map(
-                self.encode_data, num_parallel_calls=tf.data.AUTOTUNE
-            )
 
         dataset = dataset.map(self.encode_data, num_parallel_calls=tf.data.AUTOTUNE)
         dataset = dataset.prefetch(tf.data.AUTOTUNE)
-        return super().fit(x=dataset, **kwargs)
+        return super().fit(x=dataset, validation_data=validation_data, **kwargs)
 
-    #
     def train_on_batch(self, x, y=None, **kwargs):
         x, y = self.encode_data(x, y)
         return super().train_on_batch(x=x, y=y, **kwargs)
@@ -78,13 +72,27 @@ class ObjectDetectionBaseModel(keras.Model):
         x, y = self.encode_data(x, y)
         return super().test_on_batch(x=x, y=y, **kwargs)
 
-    def evaluate(self, x=None, y=None, sample_weight=None, batch_size=None, **kwargs):
+    def evaluate(
+        self,
+        x=None,
+        y=None,
+        sample_weight=None,
+        batch_size=None,
+        _use_cached_eval_dataset=None,
+        **kwargs,
+    ):
         dataset = convert_inputs_to_tf_dataset(
             x=x, y=y, sample_weight=sample_weight, batch_size=batch_size
         )
         dataset = dataset.map(self.encode_data, num_parallel_calls=tf.data.AUTOTUNE)
         dataset = dataset.prefetch(tf.data.AUTOTUNE)
-        return super().evaluate(x=dataset, **kwargs)
+
+        # force _use_cached_eval_dataset=False
+        # this is required to override evaluate().
+        # We can remove _use_cached_eval_dataset=False when
+        # https://github.com/keras-team/keras/issues/16958
+        # is fixed
+        return super().evaluate(x=dataset, _use_cached_eval_dataset=False, **kwargs)
 
     def encode_data(self, x, y):
         y_for_metrics = y
