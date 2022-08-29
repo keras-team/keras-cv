@@ -16,10 +16,9 @@ import tensorflow as tf
 from tensorflow.keras import layers
 
 from keras_cv import bounding_box
-from keras_cv.models.object_detection.retina_net.__internal__ import utils
 
 
-class LabelEncoder(layers.Layer):
+class RetinaNetLabelEncoder(layers.Layer):
     """Transforms the raw labels into targets for training.
 
     This class has operations to generate targets for a batch of samples which
@@ -30,24 +29,31 @@ class LabelEncoder(layers.Layer):
         bounding_box_format:  The format of bounding boxes of input dataset. Refer
             [to the keras.io docs](https://keras.io/api/keras_cv/bounding_box/formats/)
             for more details on supported bounding box formats.
-        anchor_box: Anchor box generator to encode the bounding boxes.
+        anchor_generator: `keras_cv.layers.AnchorGenerator` instance to produce anchor
+            boxes.  Boxes are then used to encode labels on a per-image basis.
         box_variance: The scaling factors used to scale the bounding box targets.
             Defaults to (0.1, 0.1, 0.2, 0.2).
+        background_class: (Optional) The class ID used for the background class.
+            Defaults to -1.
+        ignore_class: (Optional) The class ID used for the ignore class. Defaults to -2.
     """
 
     def __init__(
         self,
         bounding_box_format,
-        anchor_box_generator=None,
+        anchor_generator,
         box_variance=(0.1, 0.1, 0.2, 0.2),
-        **kwargs
+        background_class=-1.0,
+        ignore_class=-2.0,
+        **kwargs,
     ):
         super().__init__(**kwargs)
         self.bounding_box_format = bounding_box_format
-        self._anchor_box = anchor_box_generator or utils.AnchorBox(
-            bounding_box_format=bounding_box_format
-        )
-        self._box_variance = tf.convert_to_tensor(box_variance, dtype=tf.float32)
+        self.anchor_generator = anchor_generator
+        self.box_variance = tf.convert_to_tensor(box_variance, dtype=self.dtype)
+        self.background_class = background_class
+        self.ignore_class = ignore_class
+        self.built = True
 
     def _match_anchor_boxes(
         self, anchor_boxes, gt_boxes, match_iou=0.5, ignore_iou=0.4
@@ -80,7 +86,7 @@ class LabelEncoder(layers.Layer):
             training
         """
         iou_matrix = bounding_box.compute_iou(
-            anchor_boxes, gt_boxes, bounding_box_format=self.bounding_box_format
+            anchor_boxes, gt_boxes, bounding_box_format="xywh"
         )
         max_iou = tf.reduce_max(iou_matrix, axis=1)
         matched_gt_idx = tf.argmax(iou_matrix, axis=1)
@@ -89,8 +95,8 @@ class LabelEncoder(layers.Layer):
         ignore_mask = tf.logical_not(tf.logical_or(positive_mask, negative_mask))
         return (
             matched_gt_idx,
-            tf.cast(positive_mask, dtype=tf.float32),
-            tf.cast(ignore_mask, dtype=tf.float32),
+            tf.cast(positive_mask, dtype=self.dtype),
+            tf.cast(ignore_mask, dtype=self.dtype),
         )
 
     def _compute_box_target(self, anchor_boxes, matched_gt_boxes):
@@ -102,15 +108,14 @@ class LabelEncoder(layers.Layer):
             ],
             axis=-1,
         )
-        box_target = box_target / self._box_variance
+        box_target = box_target / self.box_variance
         return box_target
 
     def _encode_sample(self, gt_boxes, anchor_boxes):
         """Creates box and classification targets for a single sample"""
         cls_ids = gt_boxes[:, 4]
         gt_boxes = gt_boxes[:, :4]
-        cls_ids = tf.cast(cls_ids, dtype=tf.float32)
-
+        cls_ids = tf.cast(cls_ids, dtype=self.dtype)
         matched_gt_idx, positive_mask, ignore_mask = self._match_anchor_boxes(
             anchor_boxes, gt_boxes
         )
@@ -118,26 +123,40 @@ class LabelEncoder(layers.Layer):
         box_target = self._compute_box_target(anchor_boxes, matched_gt_boxes)
         matched_gt_cls_ids = tf.gather(cls_ids, matched_gt_idx)
         cls_target = tf.where(
-            tf.not_equal(positive_mask, 1.0), -1.0, matched_gt_cls_ids
+            tf.not_equal(positive_mask, 1.0), self.background_class, matched_gt_cls_ids
         )
-        cls_target = tf.where(tf.equal(ignore_mask, 1.0), -2.0, cls_target)
+        cls_target = tf.where(tf.equal(ignore_mask, 1.0), self.ignore_class, cls_target)
         cls_target = tf.expand_dims(cls_target, axis=-1)
         label = tf.concat([box_target, cls_target], axis=-1)
         return label
 
-    def call(self, images, boxes):
+    def call(self, images, target_boxes):
         """Creates box and classification targets for a batch"""
-        boxes = bounding_box.convert_format(
-            boxes, source=self.bounding_box_format, target="xywh", images=images
+        if isinstance(images, tf.RaggedTensor):
+            raise ValueError(
+                "`RetinaNetLabelEncoder`'s `call()` method does not "
+                "support RaggedTensor inputs for the `images` argument.  Received "
+                f"`type(images)={type(images)}`."
+            )
+
+        target_boxes = bounding_box.convert_format(
+            target_boxes, source=self.bounding_box_format, target="xywh", images=images
+        )
+        anchor_boxes = self.anchor_generator(images[0])
+        anchor_boxes = tf.concat(list(anchor_boxes.values()), axis=0)
+        anchor_boxes = bounding_box.convert_format(
+            anchor_boxes,
+            source=self.anchor_generator.bounding_box_format,
+            target=self.bounding_box_format,
+            images=images[0],
         )
 
-        anchor_boxes = self._anchor_box(images)
-
-        if isinstance(boxes, tf.RaggedTensor):
-            boxes = boxes.to_tensor(default_value=-1)
+        if isinstance(target_boxes, tf.RaggedTensor):
+            target_boxes = target_boxes.to_tensor(default_value=-1)
 
         result = tf.map_fn(
-            elems=(boxes), fn=lambda x: self._encode_sample(x, anchor_boxes)
+            elems=(target_boxes),
+            fn=lambda box_set: self._encode_sample(box_set, anchor_boxes),
         )
         return bounding_box.convert_format(
             result, source="xywh", target=self.bounding_box_format, images=images

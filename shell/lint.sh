@@ -17,6 +17,8 @@ isort -c $files
 if ! [ $? -eq 0 ]
 then
   echo "Please run \"sh shell/format.sh\" to format the code."
+  isort --version
+  black --version
   exit 1
 fi
 [ $# -eq 0  ] && echo "no issues with isort"

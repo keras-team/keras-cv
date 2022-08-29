@@ -29,6 +29,7 @@ def preprocess_voc(inputs, format, image_size):
         source="rel_yxyx",
         target=format,
     )
+    inputs["objects"]["bbox"] = bounding_box.add_class_id(inputs["objects"]["bbox"])
     return {"images": inputs["image"], "bounding_boxes": inputs["objects"]["bbox"]}
 
 
@@ -62,6 +63,7 @@ def visualize_data(data, bounding_box_format):
 
 def visualize_bounding_boxes(image, bounding_boxes, bounding_box_format):
     color = np.array([[255.0, 0.0, 0.0]])
+    bounding_boxes = bounding_boxes[..., :4]
     bounding_boxes = bounding_box.convert_format(
         bounding_boxes,
         source=bounding_box_format,

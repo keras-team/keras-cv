@@ -13,82 +13,23 @@
 # limitations under the License.
 """Integration tests for KerasCV models."""
 
+import pytest
 import tensorflow as tf
-from absl.testing import parameterized
 from tensorflow import keras
 from tensorflow.keras import backend
 
-from keras_cv.models import csp_darknet
-from keras_cv.models import darknet
-from keras_cv.models import densenet
-from keras_cv.models import mlp_mixer
-from keras_cv.models import regnet
-from keras_cv.models import resnet_v1
-from keras_cv.models import resnet_v2
-from keras_cv.models import vgg19
 
-MODEL_LIST = [
-    (csp_darknet.CSPDarkNet, 1024, {}),
-    (darknet.DarkNet21, 512, {}),
-    (darknet.DarkNet53, 512, {}),
-    (densenet.DenseNet121, 1024, {}),
-    (densenet.DenseNet169, 1664, {}),
-    (densenet.DenseNet201, 1920, {}),
-    (regnet.RegNetX002, 368, {}),
-    (regnet.RegNetX004, 384, {}),
-    (regnet.RegNetX006, 528, {}),
-    (regnet.RegNetX008, 672, {}),
-    (regnet.RegNetX016, 912, {}),
-    (regnet.RegNetX032, 1008, {}),
-    (regnet.RegNetX040, 1360, {}),
-    (regnet.RegNetX064, 1624, {}),
-    (regnet.RegNetX080, 1920, {}),
-    (regnet.RegNetX120, 2240, {}),
-    (regnet.RegNetX160, 2048, {}),
-    (regnet.RegNetX320, 2520, {}),
-    (regnet.RegNetY002, 368, {}),
-    (regnet.RegNetY004, 440, {}),
-    (regnet.RegNetY006, 608, {}),
-    (regnet.RegNetY008, 768, {}),
-    (regnet.RegNetY016, 888, {}),
-    (regnet.RegNetY032, 1512, {}),
-    (regnet.RegNetY040, 1088, {}),
-    (regnet.RegNetY064, 1296, {}),
-    (regnet.RegNetY080, 2016, {}),
-    (regnet.RegNetY120, 2240, {}),
-    (regnet.RegNetY160, 3024, {}),
-    (regnet.RegNetY320, 3712, {}),
-    (resnet_v1.ResNet50, 2048, {}),
-    (resnet_v1.ResNet101, 2048, {}),
-    (resnet_v1.ResNet152, 2048, {}),
-    (resnet_v2.ResNet50V2, 2048, {}),
-    (resnet_v2.ResNet101V2, 2048, {}),
-    (resnet_v2.ResNet152V2, 2048, {}),
-    (
-        mlp_mixer.MLPMixerB16,
-        768,
-        {"patch_size": (16, 16), "input_shape": (224, 224, 3)},
-    ),
-    (
-        mlp_mixer.MLPMixerB32,
-        768,
-        {"patch_size": (32, 32), "input_shape": (224, 224, 3)},
-    ),
-    (
-        mlp_mixer.MLPMixerL16,
-        1024,
-        {"patch_size": (16, 16), "input_shape": (224, 224, 3)},
-    ),
-    (vgg19.VGG19, 512, {}),
-]
-
-
-class ModelsTest(tf.test.TestCase, parameterized.TestCase):
+class ModelsTest:
     def assertShapeEqual(self, shape1, shape2):
         self.assertEqual(tf.TensorShape(shape1), tf.TensorShape(shape2))
 
-    @parameterized.parameters(*MODEL_LIST)
-    def test_application_base(self, app, _, args):
+    @pytest.fixture(autouse=True)
+    def cleanup_global_session(self):
+        # Code before yield runs before the test
+        yield
+        tf.keras.backend.clear_session()
+
+    def _test_application_base(self, app, _, args):
         # Can be instantiated with default arguments
         model = app(include_top=True, classes=1000, include_rescaling=False, **args)
 
@@ -101,56 +42,16 @@ class ModelsTest(tf.test.TestCase, parameterized.TestCase):
         with self.assertRaises(ValueError):
             model.get_layer(name="rescaling")
 
-        backend.clear_session()
-
-    @parameterized.parameters(*MODEL_LIST)
-    def test_application_with_rescaling(self, app, last_dim, args):
+    def _test_application_with_rescaling(self, app, last_dim, args):
         model = app(include_rescaling=True, include_top=False, **args)
-
-        output_shape = model.output_shape
-
-        if "VGG" in app.__name__:
-            self.assertShapeEqual(output_shape, (None, 7, 7, last_dim))
-        elif "Mixer" not in app.__name__:
-            self.assertShapeEqual(output_shape, (None, None, None, last_dim))
-        elif "MixerB16" in app.__name__ or "MixerL16" in app.__name__:
-            num_patches = 196
-            self.assertShapeEqual(output_shape, (None, num_patches, last_dim))
-        elif "MixerB32" in app.__name__:
-            num_patches = 49
-            self.assertShapeEqual(output_shape, (None, num_patches, last_dim))
-
         self.assertIsNotNone(model.get_layer(name="rescaling"))
 
-        backend.clear_session()
-
-    @parameterized.parameters(*MODEL_LIST)
-    def test_application_notop(self, app, last_dim, args):
-        model = app(include_rescaling=False, include_top=False, **args)
-
-        output_shape = model.output_shape
-
-        if "VGG" in app.__name__:
-            self.assertShapeEqual(output_shape, (None, 7, 7, last_dim))
-        elif "Mixer" not in app.__name__:
-            self.assertShapeEqual(output_shape, (None, None, None, last_dim))
-        elif "MixerB16" in app.__name__ or "MixerL16" in app.__name__:
-            num_patches = 196
-            self.assertShapeEqual(output_shape, (None, num_patches, last_dim))
-        elif "MixerB32" in app.__name__:
-            num_patches = 49
-            self.assertShapeEqual(output_shape, (None, num_patches, last_dim))
-
-        backend.clear_session()
-
-    @parameterized.parameters(*MODEL_LIST)
-    def test_application_pooling(self, app, last_dim, args):
+    def _test_application_pooling(self, app, last_dim, args):
         model = app(include_rescaling=False, include_top=False, pooling="avg", **args)
 
         self.assertShapeEqual(model.output_shape, (None, last_dim))
 
-    @parameterized.parameters(*MODEL_LIST)
-    def test_application_variable_input_channels(self, app, last_dim, args):
+    def _test_application_variable_input_channels(self, app, last_dim, args):
         # Make a local copy of args because we modify them in the test
         args = dict(args)
 
@@ -201,10 +102,7 @@ class ModelsTest(tf.test.TestCase, parameterized.TestCase):
             num_patches = 49
             self.assertShapeEqual(output_shape, (None, num_patches, last_dim))
 
-        backend.clear_session()
-
-    @parameterized.parameters(*MODEL_LIST)
-    def test_model_can_be_used_as_backbone(self, app, last_dim, args):
+    def _test_model_can_be_used_as_backbone(self, app, last_dim, args):
         inputs = keras.layers.Input(shape=(224, 224, 3))
         backbone = app(
             include_rescaling=False,

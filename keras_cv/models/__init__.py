@@ -12,6 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from keras_cv.models.convnext import ConvNeXtBase
+from keras_cv.models.convnext import ConvNeXtLarge
+from keras_cv.models.convnext import ConvNeXtSmall
+from keras_cv.models.convnext import ConvNeXtTiny
+from keras_cv.models.convnext import ConvNeXtXLarge
 from keras_cv.models.csp_darknet import CSPDarkNet
 from keras_cv.models.darknet import DarkNet21
 from keras_cv.models.darknet import DarkNet53
@@ -21,6 +26,8 @@ from keras_cv.models.densenet import DenseNet201
 from keras_cv.models.mlp_mixer import MLPMixerB16
 from keras_cv.models.mlp_mixer import MLPMixerB32
 from keras_cv.models.mlp_mixer import MLPMixerL16
+from keras_cv.models.mobilenet_v3 import MobileNetV3Large
+from keras_cv.models.mobilenet_v3 import MobileNetV3Small
 from keras_cv.models.object_detection.retina_net.retina_net import RetinaNet
 from keras_cv.models.regnet import RegNetX002
 from keras_cv.models.regnet import RegNetX004

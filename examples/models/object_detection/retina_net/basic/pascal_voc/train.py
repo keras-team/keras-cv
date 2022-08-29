@@ -22,97 +22,59 @@ import sys
 
 import matplotlib.pyplot as plt
 import tensorflow as tf
-import tensorflow_datasets as tfds
-import wandb
 from absl import flags
-from tensorflow import keras
 from tensorflow.keras import callbacks as callbacks_lib
 from tensorflow.keras import optimizers
 
 import keras_cv
-from keras_cv import bounding_box
+import keras_cv.datasets
 
 flags.DEFINE_integer("batch_size", 8, "Training and eval batch size.")
 flags.DEFINE_integer("epochs", 1, "Number of training epochs.")
 flags.DEFINE_string("wandb_entity", None, "wandb entity to use.")
+flags.DEFINE_string("experiment_name", None, "wandb run name to use.")
 FLAGS = flags.FLAGS
 
 FLAGS(sys.argv)
 
 if FLAGS.wandb_entity:
-    wandb.init(project="pascalvoc-retinanet", entity=FLAGS.wandb_entity)
+    import wandb
+
+    wandb.init(
+        project="pascalvoc-retinanet",
+        entity=FLAGS.wandb_entity,
+        name=FLAGS.experiment_name,
+    )
 
 """
 ## Data loading
 
-First, let's define the data-loading function: `load_pascal_voc()`.  KerasCV supports a
-`bounding_box_format` argument in all components that process bounding boxes.  To match
-the KerasCV API style, it is recommended that when writing a data loader, you support a
-`bounding_box_format` argument.  This makes it clear to those invoking your
-data loader what format the bounding boxes are in.
+In this guide, we use the data-loading function: `keras_cv.datasets.pascal_voc.load()`.
+KerasCV supports a `bounding_box_format` argument in all components that process
+bounding boxes.  To match the KerasCV API style, it is recommended that when writing a
+custom data loader, you also support a `bounding_box_format` argument.
+This makes it clear to those invoking your data loader what format the bounding boxes
+are in.
 
 For example:
 
 ```python
-train_ds = load_pascal_voc(split='train', bounding_box_format='xywh', batch_size=8)
+train_ds, ds_info = keras_cv.datasets.pascal_voc.load(split='train', bounding_box_format='xywh', batch_size=8)
 ```
 
 Clearly yields bounding boxes in the format `xywh`.  You can read more about
 KerasCV bounding box formats [in the API docs](https://keras.io/api/keras_cv/bounding_box/formats/).
-"""
 
-
-def curry_map_function(bounding_box_format, img_size):
-    """Mapping function to create batched image and bbox coordinates"""
-
-    resizing = keras.layers.Resizing(
-        height=img_size[0], width=img_size[1], crop_to_aspect_ratio=False
-    )
-
-    def apply(inputs):
-        inputs["image"] = resizing(inputs["image"])
-        inputs["objects"]["bbox"] = bounding_box.convert_format(
-            inputs["objects"]["bbox"],
-            images=inputs["image"],
-            source="rel_yxyx",
-            target=bounding_box_format,
-        )
-
-        bounding_boxes = inputs["objects"]["bbox"]
-        labels = tf.cast(inputs["objects"]["label"], tf.float32)
-        labels = tf.expand_dims(labels, axis=-1)
-        bounding_boxes = tf.concat([bounding_boxes, labels], axis=-1)
-        return {"images": inputs["image"], "bounding_boxes": bounding_boxes}
-
-    return apply
-
-
-def load_pascal_voc(
-    split, bounding_box_format, batch_size, shuffle=True, img_size=(512, 512)
-):
-    dataset, dataset_info = tfds.load(
-        "voc/2007", split=split, shuffle_files=shuffle, with_info=True
-    )
-    dataset = dataset.map(
-        curry_map_function(bounding_box_format=bounding_box_format, img_size=img_size),
-        num_parallel_calls=tf.data.AUTOTUNE,
-    )
-    dataset = dataset.shuffle(8 * batch_size)
-    dataset = dataset.apply(
-        tf.data.experimental.dense_to_ragged_batch(batch_size=batch_size)
-    )
-    return dataset
-
-
-"""
-Great!  Our data is now loaded into the format
+Our data comesloaded into the format
 `{"images": images, "bounding_boxes": bounding_boxes}`.  This format is supported in all
 KerasCV preprocessing components.
 
 Lets load some data and verify that our data looks as we expect it to.
 """
 
-dataset = load_pascal_voc(split="train", bounding_box_format="xywh", batch_size=9)
+dataset, _ = keras_cv.datasets.pascal_voc.load(
+    split="train", bounding_box_format="xywh", batch_size=9
+)
 
 
 def visualize_dataset(dataset, bounding_box_format):
@@ -155,15 +117,15 @@ friendly data augmentation inside of a `tf.data` pipeline.
 
 # train_ds is batched as a (images, bounding_boxes) tuple
 # bounding_boxes are ragged
-train_ds = load_pascal_voc(
+train_ds, _ = keras_cv.datasets.pascal_voc.load(
     bounding_box_format="xywh", split="train", batch_size=FLAGS.batch_size
 )
-val_ds = load_pascal_voc(
+val_ds, _ = keras_cv.datasets.pascal_voc.load(
     bounding_box_format="xywh", split="validation", batch_size=FLAGS.batch_size
 )
 
 augmentation_layers = [
-    # keras_cv.layers.RandomShear(x_factor=0.1, bounding_box_format='xywh'),
+    keras_cv.layers.RandomShear(x_factor=0.1, bounding_box_format="xywh"),
     # TODO(lukewood): add color jitter and others
 ]
 
@@ -214,18 +176,13 @@ model = keras_cv.models.RetinaNet(
     backbone="resnet50",
     backbone_weights="imagenet",
     include_rescaling=True,
+    evaluate_train_time_metrics=False,
 )
-model.backbone.trainable = False
 
 """
 That is all it takes to construct a KerasCV RetinaNet.  The RetinaNet accepts tuples of
 dense image Tensors and ragged bounding box Tensors to `fit()` and `train_on_batch()`
 This matches what we have constructed in our input pipeline above.
-
-The RetinaNet `call()` method outputs two values: training targets and inference targets.
-In this guide, we are primarily concerned with the inference targets.  Internally, the
-training targets are used by `keras_cv.losses.ObjectDetectionLoss()` to train the
-network.
 """
 
 """
@@ -237,15 +194,7 @@ Below, we construct this using a `keras.optimizers.schedules.PiecewiseConstantDe
 schedule.
 """
 
-learning_rates = [2.5e-06, 0.000625, 0.00125, 0.0025, 0.00025, 2.5e-05]
-learning_rate_boundaries = [125, 250, 500, 240000, 360000]
-learning_rate_fn = optimizers.schedules.PiecewiseConstantDecay(
-    boundaries=learning_rate_boundaries, values=learning_rates
-)
-
-optimizer = optimizers.SGD(
-    learning_rate=learning_rate_fn, momentum=0.9, global_clipnorm=10.0
-)
+optimizer = optimizers.SGD(learning_rate=0.1, momentum=0.9, global_clipnorm=10.0)
 
 """
 ## COCO metrics monitoring
@@ -285,15 +234,9 @@ standard Keras workflow, leveraging `compile()` and `fit()`.
 Let's compile our model:
 """
 
-loss = keras_cv.losses.ObjectDetectionLoss(
-    classes=20,
-    classification_loss=keras_cv.losses.FocalLoss(from_logits=True, reduction="none"),
-    box_loss=keras_cv.losses.SmoothL1Loss(l1_cutoff=1.0, reduction="none"),
-    reduction="auto",
-)
-
 model.compile(
-    loss=loss,
+    classification_loss=keras_cv.losses.FocalLoss(from_logits=True),
+    box_loss=keras_cv.losses.SmoothL1Loss(l1_cutoff=1.0),
     optimizer=optimizer,
     metrics=metrics,
 )
@@ -304,9 +247,12 @@ All that is left to do is construct some callbacks:
 
 callbacks = [
     callbacks_lib.TensorBoard(log_dir="logs"),
-    callbacks_lib.EarlyStopping(patience=30),
+    callbacks_lib.EarlyStopping(patience=50),
+    callbacks_lib.ReduceLROnPlateau(patience=20),
 ]
 if FLAGS.wandb_entity:
+    import wandb.keras
+
     callbacks += [
         wandb.keras.WandbCallback(save_model=False),
     ]
@@ -336,5 +282,7 @@ running the script for 500 epochs, we have produced a Weights and Biases report 
 the training results below!  As a bonus, the report includes a training run with and
 without data augmentation.
 
-TODO(lukewood): add link to the WandB run once preprocessing bugs are resolved.
+[Metrics from a 500 epoch Weights and Biases Run are available here](
+    https://tinyurl.com/y34xx65w
+)
 """

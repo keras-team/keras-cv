@@ -111,26 +111,39 @@ class RandomFlip(BaseImageAugmentationLayer):
         }
 
     def _flip_bounding_boxes_horizontal(bounding_boxes):
-        return tf.stack(
+        x1, x2, x3, x4, rest = tf.split(
+            bounding_boxes, [1, 1, 1, 1, bounding_boxes.shape[-1] - 4], axis=-1
+        )
+        output = tf.stack(
             [
-                1 - bounding_boxes[:, 2],
-                bounding_boxes[:, 1],
-                1 - bounding_boxes[:, 0],
-                bounding_boxes[:, 3],
+                1 - x3,
+                x2,
+                1 - x1,
+                x4,
+                rest,
             ],
             axis=-1,
         )
 
+        output = tf.squeeze(output)
+        return output
+
     def _flip_bounding_boxes_vertical(bounding_boxes):
-        return tf.stack(
+        x1, x2, x3, x4, rest = tf.split(
+            bounding_boxes, [1, 1, 1, 1, bounding_boxes.shape[-1] - 4], axis=-1
+        )
+        output = tf.stack(
             [
-                bounding_boxes[:, 0],
-                1 - bounding_boxes[:, 3],
-                bounding_boxes[:, 2],
-                1 - bounding_boxes[:, 1],
+                x1,
+                1 - x4,
+                x3,
+                1 - x2,
+                rest,
             ],
             axis=-1,
         )
+        output = tf.squeeze(output)
+        return output
 
     def augment_bounding_boxes(
         self, bounding_boxes, transformation=None, image=None, **kwargs

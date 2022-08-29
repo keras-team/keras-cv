@@ -1,0 +1,23 @@
+# Copyright 2022 The KerasCV Authors
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import tensorflow as tf
+
+
+def scale_loss_for_distribution(loss_value):
+    """Scales and returns the given loss value by the number of replicas."""
+    num_replicas = tf.distribute.get_strategy().num_replicas_in_sync
+    if num_replicas > 1:
+        loss_value *= 1.0 / num_replicas
+    return loss_value
