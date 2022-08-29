@@ -4,12 +4,12 @@
             "args": {
                 "batch_size": "64"
             },
-            "contributor": "ianjjohnson",
+            "contributor": "ianstenbit",
             "epochs_trained": 84,
             "script": {
                 "name": "basic_training.py",
-                "version": "90d4c3548a2e989fe52d6cf7ae7439af794f0ae6",
-            }
+                "version": "90d4c3548a2e989fe52d6cf7ae7439af794f0ae6"
+            },
             "tensorboard_logs": "https://tensorboard.dev/experiment/K5Q0gAk0RayXwP0WsLPpMA/",
             "validation_accuracy": "0.6771"
         }
@@ -19,12 +19,12 @@
             "args": {
                 "batch_size": "64"
             },
-            "contributor": "ianjjohnson",
+            "contributor": "ianstenbit",
             "epochs_trained": 50,
             "script": {
                 "name": "basic_training.py",
-                "version": "90d4c3548a2e989fe52d6cf7ae7439af794f0ae6",
-            }
+                "version": "90d4c3548a2e989fe52d6cf7ae7439af794f0ae6"
+            },
             "tensorboard_logs": "https://tensorboard.dev/experiment/aQIvxQEgTqajldKxp688Nw/",
             "validation_accuracy": "0.6613"
         }
@@ -35,19 +35,32 @@
                 "batch_size": "64",
                 "initial_learning_rate": "0.005"
             },
-            "contributor": "ianjjohnson",
+            "contributor": "ianstenbit",
             "epochs_trained": 132,
             "script": {
                 "name": "basic_training.py",
-                "version": "3288c3ab31ce1c35fe7505e245fdfa9c593af78e",
-            }
+                "version": "3288c3ab31ce1c35fe7505e245fdfa9c593af78e"
+            },
             "tensorboard_logs": "https://tensorboard.dev/experiment/QlkKjMkqQxm3jbzOlzBvWA/",
             "validation_accuracy": "0.6337"
+        },
+        "v1": {
+            "args": {
+                "batch_size": "128"
+            },
+            "contributor": "ianstenbit",
+            "epochs_trained": 168,
+            "script": {
+                "name": "basic_training.py",
+                "version": "8fcffd9ee81ca9892f73d8ec3ac0ba475d2f1426"
+            },
+            "tensorboard_logs": "https://tensorboard.dev/experiment/TQ5r1EhXS4SDDagBD84rgA/",
+            "validation_accuracy": "0.7550"
         }
     },
     "script_authors": {
         "basic_training.py": [
-            "ianjjohnson"
+            "ianstenbit"
         ]
     }
 }

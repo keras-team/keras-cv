@@ -59,7 +59,7 @@ tensorboard_logs_path = FLAGS.tensorboard_logs_path or input(
 )
 tensorboard_experiment_id = (
     os.popen(
-        f"tensorboard dev upload --logdir {tensorboard_logs_path} --name {tensorboard_experiment_name} --one_shot --verbose 0"
+        f"python3 -m tensorboard.main dev upload --logdir {tensorboard_logs_path} --name {tensorboard_experiment_name} --one_shot --verbose 0"
     )
     .read()
     .split("/")[-2]
@@ -75,7 +75,7 @@ training_epochs = max(tensorboard_results[tensorboard_results.run == "train"].st
 max_validation_accuracy = max(
     tensorboard_results[
         (tensorboard_results.run == "validation")
-        & (tensorboard_results.tag == "epoch_accuracy")
+        & (tensorboard_results.tag == "epoch_categorical_accuracy")
     ].value
 )
 max_validation_accuracy = f"{max_validation_accuracy:.4f}"
