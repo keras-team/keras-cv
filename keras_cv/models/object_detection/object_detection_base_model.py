@@ -72,7 +72,15 @@ class ObjectDetectionBaseModel(keras.Model):
         x, y = self.encode_data(x, y)
         return super().test_on_batch(x=x, y=y, **kwargs)
 
-    def evaluate(self, x=None, y=None, sample_weight=None, batch_size=None, _use_cached_eval_dataset=None, **kwargs):
+    def evaluate(
+        self,
+        x=None,
+        y=None,
+        sample_weight=None,
+        batch_size=None,
+        _use_cached_eval_dataset=None,
+        **kwargs,
+    ):
         dataset = convert_inputs_to_tf_dataset(
             x=x, y=y, sample_weight=sample_weight, batch_size=batch_size
         )
