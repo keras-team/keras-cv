@@ -25,7 +25,7 @@ class FocalTest(tf.test.TestCase):
         )
         y_pred = tf.random.uniform(shape=[2, 5], minval=0, maxval=1, dtype=tf.float32)
 
-        focal_loss = FocalLoss()
+        focal_loss = FocalLoss(reduction='sum')
 
         self.assertAllEqual(focal_loss(y_true, y_pred).shape, [])
 
@@ -41,7 +41,7 @@ class FocalTest(tf.test.TestCase):
         self.assertAllEqual(
             focal_loss(y_true, y_pred).shape,
             [
-                2,
+                2
             ],
         )
 
