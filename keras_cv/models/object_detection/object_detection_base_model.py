@@ -89,6 +89,9 @@ class ObjectDetectionBaseModel(keras.Model):
 
         # force _use_cached_eval_dataset=False
         # this is required to override evaluate().
+        # We can remove _use_cached_eval_dataset=False when
+        # https://github.com/keras-team/keras/issues/16958
+        # is fixed
         return super().evaluate(x=dataset, _use_cached_eval_dataset=False, **kwargs)
 
     def encode_data(self, x, y):
