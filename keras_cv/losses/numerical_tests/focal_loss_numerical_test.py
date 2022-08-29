@@ -49,7 +49,7 @@ class ModelGardenFocalLoss(tf.keras.losses.Loss):
 class FocalLossModelGardenComparisonTest(tf.test.TestCase):
     def test_model_garden_implementation_has_same_outputs(self):
         focal_loss = FocalLoss(
-            alpha=0.25, gamma=2.0, from_logits=True, reduction="auto"
+            alpha=0.25, gamma=2.0, from_logits=True, reduction="sum"
         )
         model_garden_focal_loss = ModelGardenFocalLoss(
             alpha=0.25, gamma=2.0, reduction="auto"

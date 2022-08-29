@@ -41,7 +41,7 @@ class SmoothL1Loss(tf.keras.losses.Loss):
             0.5 * squared_difference,
             absolute_difference - 0.5,
         )
-        return tf.reduce_sum(loss, axis=-1)
+        return tf.reduce_mean(loss, axis=-1)
 
     def get_config(self):
         config = {

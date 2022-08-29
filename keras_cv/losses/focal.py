@@ -87,7 +87,7 @@ class FocalLoss(tf.keras.losses.Loss):
         pt = y_true * y_pred + (1.0 - y_true) * (1.0 - y_pred)
         loss = alpha * tf.pow(1.0 - pt, self._gamma) * cross_entropy
 
-        return tf.reduce_sum(loss, axis=-1)
+        return tf.reduce_mean(loss, axis=-1)
 
     def get_config(self):
         config = super().get_config()
