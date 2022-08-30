@@ -144,7 +144,7 @@ class BaseImageAugmentationLayer(tf.keras.__internal__.layers.BaseRandomLayer):
             `layer.call()`.
           transformation: The transformation object produced by
             `get_random_transformation`. Used to coordinate the randomness
-            between image, label and bounding box.
+            between image, label, bounding box, keypoints, and segmentation mask.
 
         Returns:
           output 3D tensor, which will be forward to `layer.call()`.
@@ -158,7 +158,7 @@ class BaseImageAugmentationLayer(tf.keras.__internal__.layers.BaseRandomLayer):
           label: 1D label to the layer. Forwarded from `layer.call()`.
           transformation: The transformation object produced by
             `get_random_transformation`. Used to coordinate the randomness
-            between image, label and bounding box.
+            between image, label, bounding box, keypoints, and segmentation mask.
 
         Returns:
           output 1D tensor, which will be forward to `layer.call()`.
@@ -172,7 +172,7 @@ class BaseImageAugmentationLayer(tf.keras.__internal__.layers.BaseRandomLayer):
           target: 1D label to the layer. Forwarded from `layer.call()`.
           transformation: The transformation object produced by
             `get_random_transformation`. Used to coordinate the randomness
-            between image, label and bounding box.
+            between image, label, bounding box, keypoints, and segmentation mask.
 
         Returns:
           output 1D tensor, which will be forward to `layer.call()`.
@@ -189,7 +189,7 @@ class BaseImageAugmentationLayer(tf.keras.__internal__.layers.BaseRandomLayer):
             `call()`.
           transformation: The transformation object produced by
             `get_random_transformation`. Used to coordinate the randomness
-            between image, label and bounding box.
+            between image, label, bounding box, keypoints, and segmentation mask.
 
         Returns:
           output 2D tensor, which will be forward to `layer.call()`.
@@ -204,7 +204,7 @@ class BaseImageAugmentationLayer(tf.keras.__internal__.layers.BaseRandomLayer):
             `layer.call()`.
           transformation: The transformation object produced by
             `get_random_transformation`. Used to coordinate the randomness
-            between image, label and bounding box.
+            between image, label, bounding box, keypoints, and segmentation mask.
 
         Returns:
           output 2D tensor, which will be forward to `layer.call()`.
@@ -216,13 +216,14 @@ class BaseImageAugmentationLayer(tf.keras.__internal__.layers.BaseRandomLayer):
 
         Args:
           segmentation_mask: 3D segmentation mask input tensor to the layer.
+            This should generally have the shape [H, W, 1], or in some cases [H, W, C] for multilabeled data.
             Forwarded from `layer.call()`.
           transformation: The transformation object produced by
             `get_random_transformation`. Used to coordinate the randomness
-            between image, label, and segmentation mask.
+            between image, label, bounding box, keypoints, and segmentation mask.
 
         Returns:
-          output 3D tensor, which will be forward to `layer.call()`.
+          output 3D tensor containing the augmented segmentation mask, which will be forward to `layer.call()`.
         """
         raise NotImplementedError()
 
