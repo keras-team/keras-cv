@@ -151,7 +151,7 @@ class BaseImageAugmentationLayerTest(tf.test.TestCase):
         images = np.random.random(size=(8, 8, 3)).astype("float32")
         bounding_boxes = np.random.random(size=(3, 5)).astype("float32")
         keypoints = np.random.random(size=(3, 5, 2)).astype("float32")
-        segmentation_mask = np.random.random(size=(8, 8, 2)).astype("float32")
+        segmentation_mask = np.random.random(size=(8, 8, 1)).astype("float32")
 
         output = add_layer(
             {
@@ -175,7 +175,7 @@ class BaseImageAugmentationLayerTest(tf.test.TestCase):
         images = np.random.random(size=(2, 8, 8, 3)).astype("float32")
         bounding_boxes = np.random.random(size=(2, 3, 5)).astype("float32")
         keypoints = np.random.random(size=(2, 3, 5, 2)).astype("float32")
-        segmentation_mask = np.random.random(size=(2, 8, 8, 2)).astype("float32")
+        segmentation_mask = np.random.random(size=(2, 8, 8, 1)).astype("float32")
 
         output = add_layer(
             {
@@ -218,7 +218,7 @@ class BaseImageAugmentationLayerTest(tf.test.TestCase):
         images = np.random.random(size=(2, 8, 8, 3)).astype("float32")
         bounding_boxes = np.random.random(size=(2, 3, 5)).astype("float32")
         keypoints = np.random.random(size=(2, 3, 5, 2)).astype("float32")
-        segmentation_mask = np.random.random(size=(2, 8, 8, 2)).astype("float32")
+        segmentation_mask = np.random.random(size=(2, 8, 8, 1)).astype("float32")
 
         @tf.function
         def in_tf_function(inputs):
@@ -245,7 +245,7 @@ class BaseImageAugmentationLayerTest(tf.test.TestCase):
         images = np.random.random(size=(2, 8, 8, 3)).astype("float32")
         bounding_boxes = np.random.random(size=(2, 3, 4)).astype("float32")
         keypoints = np.random.random(size=(2, 3, 5, 2)).astype("float32")
-        segmentation_mask = np.random.random(size=(2, 8, 8, 2)).astype("float32")
+        segmentation_mask = np.random.random(size=(2, 8, 8, 1)).astype("float32")
 
         with self.assertRaisesRegex(
             ValueError,
