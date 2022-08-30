@@ -69,6 +69,11 @@ flags.DEFINE_float(
     0.1,
     "Initial learning rate which will reduce on plateau.",
 )
+flags.DEFINE_string(
+    "model_kwargs",
+    "{}",
+    "Keyword argument dictionary to pass to the constructor of the model being trained",
+)
 
 
 FLAGS = flags.FLAGS
@@ -148,6 +153,7 @@ with strategy.scope():
         include_top=True,
         classes=CLASSES,
         input_shape=IMAGE_SIZE + (3,),
+        **eval(FLAGS.model_kwargs),
     )
 
 
