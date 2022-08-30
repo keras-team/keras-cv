@@ -28,7 +28,7 @@ TARGETS = "targets"
 BOUNDING_BOXES = "bounding_boxes"
 KEYPOINTS = "keypoints"
 RAGGED_BOUNDING_BOXES = "ragged_bounding_boxes"
-SEGMENTATION_MASK = "segmentation_mask"
+SEGMENTATION_MASK = "segmentation_masks"
 IS_DICT = "is_dict"
 USE_TARGETS = "use_targets"
 
