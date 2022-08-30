@@ -88,12 +88,8 @@ class RandomResizedCrop(BaseImageAugmentationLayer):
         zoom_factor = self.zoom_factor()
         aspect_ratio = self.aspect_ratio_factor()
 
-        if image.shape.rank == 3:
-            original_height = image.shape[0]
-            original_width = image.shape[1]
-        elif image.shape.rank == 4:
-            original_height = image.shape[1]
-            original_width = image.shape[2]
+        original_height = tf.shape(image)[-3]
+        original_width = tf.shape(image)[-2]
 
         crop_size = (
             tf.round(self.target_size[0] / zoom_factor),
