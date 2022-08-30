@@ -83,7 +83,9 @@ class WithSegmentationMasksTest(tf.test.TestCase, parameterized.TestCase):
         )
 
         inputs = {"images": img, "segmentation_masks": segmentation_masks}
-        _ = layer(inputs)
+        outputs = layer(inputs)
+
+        self.assertIn("segmentation_masks", outputs)
 
     # This has to be a separate test case to exclude CutMix and MixUp
     # (which are not yet supported for segmentation mask augmentation)
@@ -98,4 +100,6 @@ class WithSegmentationMasksTest(tf.test.TestCase, parameterized.TestCase):
         )
 
         inputs = {"images": img, "segmentation_masks": segmentation_mask}
-        _ = layer(inputs)
+        outputs = layer(inputs)
+
+        self.assertIn("segmentation_masks", outputs)

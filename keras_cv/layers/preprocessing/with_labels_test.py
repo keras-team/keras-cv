@@ -99,7 +99,9 @@ class WithLabelsTest(tf.test.TestCase, parameterized.TestCase):
         labels = tf.ones((3,), dtype=tf.float32)
 
         inputs = {"images": img, "labels": labels}
-        _ = layer(inputs)
+        outputs = layer(inputs)
+
+        self.assertIn("labels", outputs)
 
     # this has to be a separate test case to exclude CutMix and MixUp
     @parameterized.named_parameters(*TEST_CONFIGURATIONS)
@@ -111,4 +113,6 @@ class WithLabelsTest(tf.test.TestCase, parameterized.TestCase):
         labels = tf.ones((), dtype=tf.float32)
 
         inputs = {"images": img, "labels": labels}
-        _ = layer(inputs)
+        outputs = layer(inputs)
+
+        self.assertIn("labels", outputs)
