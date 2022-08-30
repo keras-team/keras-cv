@@ -89,6 +89,9 @@ class RandomGaussianBlur(BaseImageAugmentationLayer):
     def augment_label(self, label, transformation=None, **kwargs):
         return label
 
+    def augment_segmentation_mask(self, segmentation_mask, transformation, **kwargs):
+        return segmentation_mask
+
     @staticmethod
     def get_kernel(factor, filter_size):
         x = tf.cast(
