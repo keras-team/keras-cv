@@ -2,13 +2,15 @@
 
 Follow these steps to submit your code contribution.
 
+[You can find a list of issues that we are looking for contributors on here!](https://github.com/keras-team/keras-cv/labels/contribution-welcome)
+
 ### Step 1. Open an issue
 
 Before making any changes, we recommend opening an issue (if one doesn't already
 exist) and discussing your proposed changes. This way, we can give you feedback
 and validate the proposed changes.
 
-If your code change involves the fixing of a bug, please include a 
+If your code change involves the fixing of a bug, please include a
 [Colab](https://colab.research.google.com/) notebook that shows
 how to reproduce the broken behavior.
 
@@ -21,8 +23,12 @@ To make code changes, you need to fork the repository. You will need to setup a
 development environment and run the unit tests. This is covered in section
 "Setup environment".
 
-If your code change involves introducing a new API change, please see our 
+If your code change involves introducing a new API change, please see our
 [API Design Guidelines](API_DESIGN.md).
+
+**Notes**
+
+- Make sure to add a new entry to [serialization tests](https://github.com/keras-team/keras-cv/blob/master/keras_cv/layers/serialization_test.py#L37) for new layers.
 
 ### Step 3. Create a pull request
 
@@ -31,7 +37,7 @@ the master branch in [keras-team/keras-cv](https://github.com/keras-team/keras-c
 
 ### Step 4. Sign the Contributor License Agreement
 
-After creating the pull request, you will need to sign the Google CLA agreement. 
+After creating the pull request, you will need to sign the Google CLA agreement.
 The agreement can be found at [https://cla.developers.google.com/clas](https://cla.developers.google.com/clas).
 
 
@@ -49,6 +55,29 @@ approved by the reviewer.
 ### Step 6. Merging
 
 Once the pull request is approved, a team member will take care of merging.
+
+## Contributing training scripts
+
+KerasCV is working to include a catalog of high-performing model training scripts for the models included in KerasCV.models and is welcoming contributions for these scripts. These training scripts serve as documentation of good training techniques and will be used to train weights that will be offered in KerasCV models through the package.
+
+The KerasCV team will run submitted training scripts to produce weights for KerasCV, and will attribute strong weights to contributors via a training script ranking system. Stay tuned for more details about that.
+
+Incremental improvements to existing training scripts are welcome, provided that they come with evidence of improved validation performance.
+
+You can also open an issue to add weights for a specific model using a pre-existing script! In your issue, provide your training logs and resulting weights. Specify the arguments that were used to run the script, and provide support for those choices. If your weights beat our current weights, they'll become our default pre-trained weights for your model/task in KerasCV.models!
+
+To contribute a new script, start by opening an issue and tagging @ianjjohnson and @LukeWood to discuss the task, dataset, and/or model for which you'd like to add a script. Once they've taken a look, you can prepare a PR to introduce the new training script.
+
+See [this example script](https://github.com/keras-team/keras-cv/blob/master/examples/training/classification/imagenet/basic_training.py) for training ImageNet classification. Please follow the structure of this training script in contributing your own script. New scripts should either:
+- Train a task for which we don't have a training script already
+- Include a meaningfully different training approach for a given task
+- Introduce a custom training method for a specific model or dataset, based on empirical evidence of efficacy.
+
+When contributing training scripts or proposing runs, please include documentation to support decisions about training including hyperparameter choices. Examples of good documentation would be recent literature or a reference to a hyperparameter search.
+
+Our default training scripts train using ImageNet. Because we cannot distribute this dataset, you will need to modify your dataloading step to load the dataset on your system if you wish to run training yourself. You are also welcome to locally train against a different dataset, provided that you include documentation in your PR supporting the claim that your script will still perform well against ImageNet.
+
+We look forward to delivering great pre-trained models in KerasCV with the help of your contributions!
 
 ## Setup environment
 
@@ -103,10 +132,12 @@ the following commands manually every time you want to format your code:
 - Run `shell/lint.sh` to check the result.
 
 If after running these the CI flow is still failing, try updating `flake8`, `isort` and `black`.
-This can be done by running `pip install --upgrade black`, `pip install --upgrade flake8`, and 
+This can be done by running `pip install --upgrade black`, `pip install --upgrade flake8`, and
 `pip install --upgrade isort`.
+
+Note: The linting checks could be automated activating  
+      pre-commit hooks with `git config core.hooksPath .github/.githooks`
 
 ## Community Guidelines
 
 This project follows [Google's Open Source Community Guidelines](https://opensource.google/conduct/).
-

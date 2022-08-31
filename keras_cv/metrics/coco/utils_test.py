@@ -15,16 +15,16 @@
 
 import tensorflow as tf
 
+from keras_cv import bounding_box
+from keras_cv.bounding_box import iou as iou_lib
 from keras_cv.metrics.coco import utils
-from keras_cv.utils import bounding_box
-from keras_cv.utils import iou as iou_lib
 
 
 class UtilTest(tf.test.TestCase):
     def test_filter_bounding_boxes_empty(self):
         # set of bounding_boxes
         y_pred = tf.stack([_dummy_bounding_box(category=1)])
-        result = utils.filter_boxes(y_pred, 2, axis=bounding_box.CLASS)
+        result = utils.filter_boxes(y_pred, 2, axis=bounding_box.XYXY.CLASS)
 
         self.assertEqual(result.shape[0], 0)
 
@@ -38,7 +38,7 @@ class UtilTest(tf.test.TestCase):
         y_pred = tf.stack(
             [_dummy_bounding_box(category=1), _dummy_bounding_box(category=2)]
         )
-        result = utils.filter_boxes(y_pred, 2, axis=bounding_box.CLASS)
+        result = utils.filter_boxes(y_pred, 2, axis=bounding_box.XYXY.CLASS)
 
         self.assertAllClose(result, tf.stack([_dummy_bounding_box(category=2)]))
 
@@ -93,7 +93,7 @@ class UtilTest(tf.test.TestCase):
             ]
         )
 
-        ious = iou_lib.compute_ious_for_image(y_true, y_pred)
+        ious = iou_lib.compute_iou(y_true, y_pred, "yxyx")
         self.assertEqual(utils.match_boxes(ious, 0.5).shape, [3])
 
     def test_sort_bounding_boxes_unsorted_list(self):
@@ -119,7 +119,7 @@ class UtilTest(tf.test.TestCase):
             ),
             axis=0,
         )
-        y_sorted = utils.sort_bounding_boxes(y_pred, bounding_box.CONFIDENCE)
+        y_sorted = utils.sort_bounding_boxes(y_pred, bounding_box.XYXY.CONFIDENCE)
         self.assertAllClose(y_sorted, want)
 
     def test_sort_bounding_boxes_empty_list(self):

@@ -1,4 +1,6 @@
 keras_cv.egg-info/
+wandb/
+logs/
 dist/
 .DS_Store
 build/

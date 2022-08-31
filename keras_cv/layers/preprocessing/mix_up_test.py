@@ -15,23 +15,34 @@ import tensorflow as tf
 
 from keras_cv.layers.preprocessing.mix_up import MixUp
 
-NUM_CLASSES = 10
+classes = 10
 
 
 class MixUpTest(tf.test.TestCase):
     def test_return_shapes(self):
         xs = tf.ones((2, 512, 512, 3))
         # randomly sample labels
-        ys = tf.random.categorical(tf.math.log([[0.5, 0.5]]), 2)
-        ys = tf.squeeze(ys)
-        ys = tf.one_hot(ys, NUM_CLASSES)
+        ys_labels = tf.random.categorical(tf.math.log([[0.5, 0.5]]), 2)
+        ys_labels = tf.squeeze(ys_labels)
+        ys_labels = tf.one_hot(ys_labels, classes)
+
+        # randomly sample bounding boxes
+        ys_bounding_boxes = tf.random.uniform((2, 3, 5), 0, 1)
 
         layer = MixUp()
-        outputs = layer({"images": xs, "labels": ys})
-        xs, ys = outputs["images"], outputs["labels"]
+        # mixup on labels
+        outputs = layer(
+            {"images": xs, "labels": ys_labels, "bounding_boxes": ys_bounding_boxes}
+        )
+        xs, ys_labels, ys_bounding_boxes = (
+            outputs["images"],
+            outputs["labels"],
+            outputs["bounding_boxes"],
+        )
 
         self.assertEqual(xs.shape, [2, 512, 512, 3])
-        self.assertEqual(ys.shape, [2, 10])
+        self.assertEqual(ys_labels.shape, [2, 10])
+        self.assertEqual(ys_bounding_boxes.shape, [2, 6, 5])
 
     def test_mix_up_call_results(self):
         xs = tf.cast(
@@ -100,3 +111,19 @@ class MixUpTest(tf.test.TestCase):
             ValueError, "MixUp received a single image to `call`"
         ):
             _ = layer(inputs)
+
+    def test_int_labels(self):
+        xs = tf.ones((2, 512, 512, 3))
+        ys = tf.one_hot(tf.constant([1, 0]), 2, dtype=tf.int32)
+        inputs = {"images": xs, "labels": ys}
+        layer = MixUp()
+        with self.assertRaisesRegexp(ValueError, "MixUp received labels with type"):
+            _ = layer(inputs)
+
+    def test_image_input(self):
+        xs = tf.ones((2, 512, 512, 3))
+        layer = MixUp()
+        with self.assertRaisesRegexp(
+            ValueError, "MixUp expects inputs in a dictionary with format"
+        ):
+            _ = layer(xs)

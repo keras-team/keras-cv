@@ -13,11 +13,14 @@
 # limitations under the License.
 import tensorflow as tf
 
+from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
+    BaseImageAugmentationLayer,
+)
 from keras_cv.utils import preprocessing
 
 
 @tf.keras.utils.register_keras_serializable(package="keras_cv")
-class Equalization(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
+class Equalization(BaseImageAugmentationLayer):
     """Equalization performs histogram equalization on a channel-wise basis.
 
     Args:
@@ -94,12 +97,12 @@ class Equalization(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
 
         return result
 
-    def augment_image(self, image, transformation=None):
+    def augment_image(self, image, **kwargs):
         image = preprocessing.transform_value_range(
             image, self.value_range, (0, 255), dtype=image.dtype
         )
         image = tf.cast(image, tf.int32)
-        image = tf.vectorized_map(
+        image = tf.map_fn(
             lambda channel: self.equalize_channel(image, channel),
             tf.range(tf.shape(image)[-1]),
         )
@@ -108,6 +111,12 @@ class Equalization(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
         image = tf.cast(image, tf.float32)
         image = preprocessing.transform_value_range(image, (0, 255), self.value_range)
         return image
+
+    def augment_bounding_boxes(self, bounding_boxes, **kwargs):
+        return bounding_boxes
+
+    def augment_label(self, label, transformation=None, **kwargs):
+        return label
 
     def get_config(self):
         config = super().get_config()

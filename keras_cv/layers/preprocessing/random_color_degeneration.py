@@ -13,11 +13,14 @@
 # limitations under the License.
 import tensorflow as tf
 
+from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
+    BaseImageAugmentationLayer,
+)
 from keras_cv.utils import preprocessing
 
 
 @tf.keras.utils.register_keras_serializable(package="keras_cv")
-class RandomColorDegeneration(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
+class RandomColorDegeneration(BaseImageAugmentationLayer):
     """Randomly performs the color degeneration operation on given images.
 
     The sharpness operation first converts an image to gray scale, then back to color.
@@ -36,27 +39,36 @@ class RandomColorDegeneration(tf.keras.__internal__.layers.BaseImageAugmentation
             is used, a value between `0.0` and the passed float is sampled.  In order to
             ensure the value is always the same, please pass a tuple with two identical
             floats: `(0.5, 0.5)`.
+        seed: Integer. Used to create a random seed.
     """
 
     def __init__(
         self,
         factor,
+        seed=None,
         **kwargs,
     ):
         super().__init__(**kwargs)
         self.factor = preprocessing.parse_factor(
             factor,
         )
+        self.seed = seed
 
-    def get_random_transformation(self, image=None, label=None, bounding_box=None):
+    def get_random_transformation(self, **kwargs):
         return self.factor()
 
-    def augment_image(self, image, transformation=None):
+    def augment_image(self, image, transformation=None, **kwargs):
         degenerate = tf.image.grayscale_to_rgb(tf.image.rgb_to_grayscale(image))
         result = preprocessing.blend(image, degenerate, transformation)
         return result
 
+    def augment_bounding_boxes(self, bounding_boxes, **kwargs):
+        return bounding_boxes
+
+    def augment_label(self, label, transformation=None, **kwargs):
+        return label
+
     def get_config(self):
         config = super().get_config()
-        config.update({"factor": self.factor})
+        config.update({"factor": self.factor, "seed": self.seed})
         return config

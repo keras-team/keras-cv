@@ -14,7 +14,7 @@
 """Contains shared utilities for Keras COCO metrics."""
 import tensorflow as tf
 
-from keras_cv.utils import bounding_box
+from keras_cv import bounding_box
 
 
 def filter_boxes_by_area_range(boxes, min_area, max_area):
@@ -30,8 +30,8 @@ def bounding_box_area(boxes):
     Returns:
         areas: Tensor of areas of shape `[...]`.
     """
-    w = boxes[..., bounding_box.RIGHT] - boxes[..., bounding_box.LEFT]
-    h = boxes[..., bounding_box.BOTTOM] - boxes[..., bounding_box.TOP]
+    w = boxes[..., bounding_box.XYXY.RIGHT] - boxes[..., bounding_box.XYXY.LEFT]
+    h = boxes[..., bounding_box.XYXY.BOTTOM] - boxes[..., bounding_box.XYXY.TOP]
     return tf.math.multiply(w, h)
 
 
@@ -72,14 +72,14 @@ def filter_out_sentinels(boxes):
     Returns:
         boxes: A new Tensor of bounding boxes, where boxes[axis]!=-1.
     """
-    return tf.gather_nd(boxes, tf.where(boxes[:, bounding_box.CLASS] != -1))
+    return tf.gather_nd(boxes, tf.where(boxes[:, bounding_box.XYXY.CLASS] != -1))
 
 
 def sort_bounding_boxes(boxes, axis=5):
     """sort_bounding_boxes is used to sort a list of bounding boxes by a given axis.
 
-    The most common use case for this is to sort by bounding_box.CONFIDENCE, as this is
-    a part of computing both COCORecall and COCOMeanAveragePrecision.
+    The most common use case for this is to sort by bounding_box.XYXY.CONFIDENCE, as
+    this is a part of computing both COCORecall and COCOMeanAveragePrecision.
     Args:
         boxes: Tensor of bounding boxes in format `[images, bounding_boxes, 6]`
         axis: Integer identifying the axis on which to sort, default 5
@@ -91,7 +91,7 @@ def sort_bounding_boxes(boxes, axis=5):
     for img in tf.range(num_images):
         preds_for_img = boxes[img, :, :]
         prediction_scores = preds_for_img[:, axis]
-        _, idx = tf.math.top_k(prediction_scores, preds_for_img.shape[0])
+        _, idx = tf.math.top_k(prediction_scores, tf.shape(preds_for_img)[0])
         boxes_sorted_list = boxes_sorted_list.write(
             img, tf.gather(preds_for_img, idx, axis=0)
         )

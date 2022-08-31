@@ -12,8 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import tensorflow as tf
-from tensorflow.keras.__internal__.layers import BaseImageAugmentationLayer
 
+from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
+    BaseImageAugmentationLayer,
+)
 from keras_cv.utils.preprocessing import transform_value_range
 
 
@@ -71,7 +73,7 @@ class Posterization(BaseImageAugmentationLayer):
         self._shift = 8 - bits
         self._value_range = value_range
 
-    def augment_image(self, image, transformation=None):
+    def augment_image(self, image, **kwargs):
         image = transform_value_range(
             images=image,
             original_range=self._value_range,
@@ -88,6 +90,9 @@ class Posterization(BaseImageAugmentationLayer):
             target_range=self._value_range,
         )
 
+    def augment_bounding_boxes(self, bounding_boxes, **kwargs):
+        return bounding_boxes
+
     def _batch_augment(self, inputs):
         # Skip the use of vectorized_map or map_fn as the implementation is already
         # vectorized
@@ -97,6 +102,9 @@ class Posterization(BaseImageAugmentationLayer):
         return tf.bitwise.left_shift(
             tf.bitwise.right_shift(image, self._shift), self._shift
         )
+
+    def augment_label(self, label, transformation=None, **kwargs):
+        return label
 
     def get_config(self):
         config = {"bits": 8 - self._shift, "value_range": self._value_range}

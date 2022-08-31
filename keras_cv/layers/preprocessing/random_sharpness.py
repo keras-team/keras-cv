@@ -13,11 +13,14 @@
 # limitations under the License.
 import tensorflow as tf
 
+from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
+    BaseImageAugmentationLayer,
+)
 from keras_cv.utils import preprocessing
 
 
 @tf.keras.utils.register_keras_serializable(package="keras_cv")
-class RandomSharpness(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
+class RandomSharpness(BaseImageAugmentationLayer):
     """Randomly performs the sharpness operation on given images.
 
     The sharpness operation first performs a blur operation, then blends between the
@@ -41,24 +44,25 @@ class RandomSharpness(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
         value_range: the range of values the incoming images will have.
             Represented as a two number tuple written [low, high].
             This is typically either `[0, 1]` or `[0, 255]` depending
-            on how your preprocessing pipeline is setup.  Defaults to
-            `[0, 255].`
+            on how your preprocessing pipeline is setup.
     """
 
     def __init__(
         self,
         factor,
         value_range,
+        seed=None,
         **kwargs,
     ):
-        super().__init__(**kwargs)
+        super().__init__(seed=seed, **kwargs)
         self.value_range = value_range
         self.factor = preprocessing.parse_factor(factor)
+        self.seed = seed
 
-    def get_random_transformation(self, image=None, label=None, bounding_box=None):
+    def get_random_transformation(self, **kwargs):
         return self.factor()
 
-    def augment_image(self, image, transformation=None):
+    def augment_image(self, image, transformation=None, **kwargs):
         image = preprocessing.transform_value_range(
             image, original_range=self.value_range, target_range=(0, 255)
         )
@@ -107,7 +111,15 @@ class RandomSharpness(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
         )
         return result
 
+    def augment_bounding_boxes(self, bounding_boxes, transformation, **kwargs):
+        return bounding_boxes
+
+    def augment_label(self, label, transformation=None, **kwargs):
+        return label
+
     def get_config(self):
         config = super().get_config()
-        config.update({"factor": self.factor, "value_range": self.value_range})
+        config.update(
+            {"factor": self.factor, "value_range": self.value_range, "seed": self.seed}
+        )
         return config

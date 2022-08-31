@@ -17,6 +17,7 @@ import numpy as np
 import tensorflow as tf
 from tensorflow import keras
 
+from keras_cv import bounding_box
 from keras_cv.metrics import COCOMeanAveragePrecision
 
 
@@ -26,6 +27,7 @@ class COCOMeanAveragePrecisionTest(tf.test.TestCase):
         model = keras.Model(i, i)
 
         mean_average_precision = COCOMeanAveragePrecision(
+            bounding_box_format="xyxy",
             max_detections=100,
             num_buckets=4,
             class_ids=[1],
@@ -48,6 +50,7 @@ class COCOMeanAveragePrecisionTest(tf.test.TestCase):
 
     def test_first_buckets_have_no_boxes(self):
         mean_average_precision = COCOMeanAveragePrecision(
+            bounding_box_format="xyxy",
             iou_thresholds=[0.33],
             class_ids=[1],
             max_detections=100,
@@ -105,6 +108,7 @@ class COCOMeanAveragePrecisionTest(tf.test.TestCase):
 
     def test_result_method_with_direct_assignment_one_threshold(self):
         mean_average_precision = COCOMeanAveragePrecision(
+            bounding_box_format="xyxy",
             iou_thresholds=[0.33],
             class_ids=[1],
             max_detections=100,
@@ -161,6 +165,7 @@ class COCOMeanAveragePrecisionTest(tf.test.TestCase):
 
     def test_result_method_with_direct_assignment_missing_class(self):
         mean_average_precision = COCOMeanAveragePrecision(
+            bounding_box_format="xyxy",
             iou_thresholds=[0.33],
             class_ids=[1, 2],
             max_detections=100,
@@ -172,20 +177,8 @@ class COCOMeanAveragePrecisionTest(tf.test.TestCase):
 
         # one class
         true_positives = [
-            [
-                [
-                    0,
-                    1,
-                    2,
-                ]
-            ],
-            [
-                [
-                    0,
-                    0,
-                    0,
-                ]
-            ],
+            [[0, 1, 2]],
+            [[0, 0, 0]],
         ]
 
         false_positives = [
@@ -202,3 +195,87 @@ class COCOMeanAveragePrecisionTest(tf.test.TestCase):
         mean_average_precision.false_positive_buckets.assign(false_positives)
 
         self.assertEqual(mean_average_precision.result(), 0.625)
+
+    def test_counting_with_missing_class_present_in_data(self):
+        y_true = tf.constant(
+            [
+                [
+                    [0, 0, 100, 100, 15],
+                    [0, 0, 100, 100, 1],
+                ]
+            ],
+            dtype=tf.float64,
+        )
+        y_pred = tf.constant(
+            [[[0, 50, 100, 150, 1, 1.0], [0, 50, 100, 150, 33, 1.0]]], dtype=tf.float32
+        )
+
+        y_true = bounding_box.pad_batch_to_shape(y_true, (1, 20, 5))
+        metric = COCOMeanAveragePrecision(
+            bounding_box_format="xyxy",
+            iou_thresholds=[0.15],
+            class_ids=[1000, 1],
+            max_detections=1,
+        )
+        metric.update_state(y_true, y_pred)
+        self.assertAllEqual(metric.ground_truths, [0, 1])
+        metric.update_state(y_true, y_pred)
+        self.assertAllEqual(metric.ground_truths, [0, 2])
+
+    def test_bounding_box_counting(self):
+        y_true = tf.constant([[[0, 0, 100, 100, 1]]], dtype=tf.float64)
+        y_pred = tf.constant([[[0, 50, 100, 150, 1, 1.0]]], dtype=tf.float32)
+
+        y_true = bounding_box.pad_batch_to_shape(y_true, (1, 20, 5))
+
+        metric = COCOMeanAveragePrecision(
+            bounding_box_format="xyxy",
+            iou_thresholds=[0.15],
+            class_ids=[1],
+            max_detections=1,
+        )
+        metric.update_state(y_true, y_pred)
+        self.assertEqual(metric.ground_truths, [1])
+        metric.update_state(y_true, y_pred)
+        self.assertEqual(metric.ground_truths, [2])
+
+    def test_mixed_dtypes(self):
+        y_true = tf.constant([[[0, 0, 100, 100, 1]]], dtype=tf.float64)
+        y_pred = tf.constant([[[0, 50, 100, 150, 1, 1.0]]], dtype=tf.float32)
+
+        metric = COCOMeanAveragePrecision(
+            bounding_box_format="xyxy",
+            iou_thresholds=[0.15],
+            class_ids=[1],
+            max_detections=1,
+        )
+        metric.update_state(y_true, y_pred)
+        self.assertEqual(metric.result(), 1.0)
+
+    def test_runs_with_confidence_over_1(self):
+        mean_average_precision = COCOMeanAveragePrecision(
+            bounding_box_format="xyxy",
+            iou_thresholds=[0.33],
+            class_ids=[1, 2],
+            max_detections=100,
+            num_buckets=3,
+            recall_thresholds=[0.3, 0.5],
+        )
+
+        y_true = tf.ragged.stack(
+            [
+                tf.constant([[0, 0, 10, 10, 1], [5, 5, 10, 10, 1]], tf.float32),
+                tf.constant([[0, 0, 10, 10, 1]], tf.float32),
+            ]
+        )
+        y_pred = tf.ragged.stack(
+            [
+                tf.constant([[5, 5, 10, 10, 1, 0.9]], tf.float32),
+                # this box is out of the valid confidence range.
+                tf.constant(
+                    [[0, 0, 10, 10, 1, 1.0], [5, 5, 10, 10, 1, 1.1]], tf.float32
+                ),
+            ]
+        )
+        mean_average_precision.update_state(y_true, y_pred)
+        self.assertEqual(mean_average_precision.result(), 2 / 3)

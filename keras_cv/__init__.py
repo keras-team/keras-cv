@@ -12,11 +12,21 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from keras_cv import layers
-from keras_cv import metrics
-from keras_cv import utils
-from keras_cv.core.factor_sampler.constant_factor_sampler import ConstantFactorSampler
-from keras_cv.core.factor_sampler.factor_sampler import FactorSampler
-from keras_cv.core.factor_sampler.uniform_factor_sampler import UniformFactorSampler
+# isort:off
+from keras_cv import version_check
 
-__version__ = "master"
+version_check.check_tf_version()
+# isort:on
+
+from keras_cv import datasets
+from keras_cv import layers
+from keras_cv import losses
+from keras_cv import metrics
+from keras_cv import models
+from keras_cv import utils
+from keras_cv.core import ConstantFactorSampler
+from keras_cv.core import FactorSampler
+from keras_cv.core import NormalFactorSampler
+from keras_cv.core import UniformFactorSampler
+
+__version__ = "0.3.1"

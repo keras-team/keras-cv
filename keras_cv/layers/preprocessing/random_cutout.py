@@ -13,12 +13,15 @@
 # limitations under the License.
 import tensorflow as tf
 
+from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
+    BaseImageAugmentationLayer,
+)
 from keras_cv.utils import fill_utils
 from keras_cv.utils import preprocessing
 
 
 @tf.keras.utils.register_keras_serializable(package="keras_cv")
-class RandomCutout(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
+class RandomCutout(BaseImageAugmentationLayer):
     """Randomly cut out rectangles from images and fill them.
 
     Args:
@@ -48,6 +51,7 @@ class RandomCutout(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
             - *gaussian_noise*: Pixels are filled with random gaussian noise.
         fill_value: a float represents the value to be filled inside the patches
             when `fill_mode="constant"`.
+        seed: Integer. Used to create a random seed.
 
     Sample usage:
     ```python
@@ -66,7 +70,7 @@ class RandomCutout(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
         seed=None,
         **kwargs,
     ):
-        super().__init__(**kwargs)
+        super().__init__(seed=seed, **kwargs)
 
         self.height_factor = preprocessing.parse_factor(
             height_factor, param_name="height_factor", seed=seed
@@ -90,12 +94,12 @@ class RandomCutout(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
         else:
             return type(factor)(0), factor
 
-    def get_random_transformation(self, image=None, label=None, bounding_box=None):
+    def get_random_transformation(self, image=None, **kwargs):
         center_x, center_y = self._compute_rectangle_position(image)
         rectangle_height, rectangle_width = self._compute_rectangle_size(image)
         return center_x, center_y, rectangle_height, rectangle_width
 
-    def augment_image(self, image, transformation=None):
+    def augment_image(self, image, transformation=None, **kwargs):
         """Apply random cutout."""
         inputs = tf.expand_dims(image, 0)
         center_x, center_y, rectangle_height, rectangle_width = transformation
@@ -110,6 +114,9 @@ class RandomCutout(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
             rectangle_fill,
         )
         return inputs[0]
+
+    def augment_label(self, label, transformation=None, **kwargs):
+        return label
 
     def _compute_rectangle_position(self, inputs):
         input_shape = tf.shape(inputs)

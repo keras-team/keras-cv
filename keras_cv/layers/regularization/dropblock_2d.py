@@ -17,6 +17,7 @@ from tensorflow.keras.__internal__.layers import BaseRandomLayer
 from keras_cv.utils import conv_utils
 
 
+@tf.keras.utils.register_keras_serializable(package="keras_cv")
 class DropBlock2D(BaseRandomLayer):
     """Applies DropBlock regularization to input features.
 
@@ -35,22 +36,16 @@ class DropBlock2D(BaseRandomLayer):
     )
 
     Args:
-        dropout_rate: float. Probability of dropping a unit. Must be between 0 and 1.
+        rate: float. Probability of dropping a unit. Must be between 0 and 1.
             For best results, the value should be between 0.05-0.25.
-        dropblock_size: integer, or tuple of integers. The size of the block to be
+        block_size: integer, or tuple of integers. The size of the block to be
             dropped. In case of an integer a square block will be dropped. In case of a
             tuple, the numbers are block's (height, width).
             Must be bigger than 0, and should not be bigger than the input feature map
-            size. The paper authors use `dropblock_size=7` for input feature's of size
+            size. The paper authors use `block_size=7` for input feature's of size
             `14x14xchannels`.
             If this value is greater or equal to the input feature map size you will
             encounter `nan` values.
-        data_format: string. One of channels_last (default) or channels_first. The
-            ordering of the dimensions in the inputs. channels_last corresponds to
-            inputs with shape (batch_size, height, width, channels) while channels_first
-            corresponds to inputs with shape (batch_size, channels,height, width). It
-            defaults to the image_data_format value found in your Keras config file at
-            ~/.keras/keras.json. If you never set it, then it will be channels_last.
         seed: integer. To use as random seed.
         name: string. The name of the layer.
 
@@ -61,7 +56,7 @@ class DropBlock2D(BaseRandomLayer):
     x = Conv2D(32, (1, 1))(x)
     x = BatchNormalization()(x)
     x = ReLU()(x)
-    x = DropBlock2D(0.1, dropblock_size=7)(x)
+    x = DropBlock2D(0.1, block_size=7)(x)
     # (...)
     ```
     When used directly, the layer will zero-out some inputs in a contiguous region and
@@ -80,7 +75,7 @@ class DropBlock2D(BaseRandomLayer):
     #   [0.38977218 0.80855536 0.6040567  0.10502195]]], shape=(1, 4, 4),
     # dtype=float32)
 
-    layer = DropBlock2D(0.1, dropblock_size=2, seed=1234) # Small size for demonstration
+    layer = DropBlock2D(0.1, block_size=2, seed=1234) # Small size for demonstration
     output = layer(features, training=True)
 
     # Preview the feature map after dropblock:
@@ -139,33 +134,28 @@ class DropBlock2D(BaseRandomLayer):
 
     def __init__(
         self,
-        dropout_rate,
-        dropblock_size,
-        data_format=None,
+        rate,
+        block_size,
         seed=None,
-        name=None,
+        **kwargs,
     ):
-        super().__init__(seed=seed, name=name, force_generator=True)
-        if not 0.0 <= dropout_rate <= 1.0:
+        super().__init__(seed=seed, **kwargs)
+        if not 0.0 <= rate <= 1.0:
             raise ValueError(
-                f"dropout_rate must be a number between 0 and 1. "
-                f"Received: {dropout_rate}"
+                f"rate must be a number between 0 and 1. " f"Received: {rate}"
             )
 
-        self._dropout_rate = dropout_rate
+        self._rate = rate
         self._dropblock_height, self._dropblock_width = conv_utils.normalize_tuple(
-            value=dropblock_size, n=2, name="dropblock_size", allow_zero=False
+            value=block_size, n=2, name="block_size", allow_zero=False
         )
-        self._data_format = conv_utils.normalize_data_format(data_format)
+        self.seed = seed
 
     def call(self, x, training=None):
-        if not training or self._dropout_rate == 0.0:
+        if not training or self._rate == 0.0:
             return x
 
-        if self._data_format == "channels_last":
-            _, height, width, _ = tf.split(tf.shape(x), 4)
-        else:
-            _, _, height, width = tf.split(tf.shape(x), 4)
+        _, height, width, _ = tf.split(tf.shape(x), 4)
 
         # Unnest scalar values
         height = tf.squeeze(height)
@@ -175,7 +165,7 @@ class DropBlock2D(BaseRandomLayer):
         dropblock_width = tf.math.minimum(self._dropblock_width, width)
 
         gamma = (
-            self._dropout_rate
+            self._rate
             * tf.cast(width * height, dtype=tf.float32)
             / tf.cast(dropblock_height * dropblock_width, dtype=tf.float32)
             / tf.cast(
@@ -198,10 +188,7 @@ class DropBlock2D(BaseRandomLayer):
             ),
         )
 
-        if self._data_format == "channels_last":
-            valid_block = tf.reshape(valid_block, [1, height, width, 1])
-        else:
-            valid_block = tf.reshape(valid_block, [1, 1, height, width])
+        valid_block = tf.reshape(valid_block, [1, height, width, 1])
 
         random_noise = self._random_generator.random_uniform(
             tf.shape(x), dtype=tf.float32
@@ -211,10 +198,7 @@ class DropBlock2D(BaseRandomLayer):
         block_pattern = (1 - valid_block + seed_keep_rate + random_noise) >= 1
         block_pattern = tf.cast(block_pattern, dtype=tf.float32)
 
-        if self._data_format == "channels_last":
-            window_size = [1, self._dropblock_height, self._dropblock_width, 1]
-        else:
-            window_size = [1, 1, self._dropblock_height, self._dropblock_width]
+        window_size = [1, self._dropblock_height, self._dropblock_width, 1]
 
         # Double negative and max_pool is essentially min_pooling
         block_pattern = -tf.nn.max_pool(
@@ -222,7 +206,6 @@ class DropBlock2D(BaseRandomLayer):
             ksize=window_size,
             strides=[1, 1, 1, 1],
             padding="SAME",
-            data_format="NHWC" if self._data_format == "channels_last" else "NCHW",
         )
 
         # Slightly scale the values, to account for magnitude change
@@ -233,9 +216,9 @@ class DropBlock2D(BaseRandomLayer):
 
     def get_config(self):
         config = {
-            "dropout_rate": self._dropout_rate,
-            "dropblock_size": (self._dropblock_height, self._dropblock_width),
-            "data_format": self._data_format,
+            "rate": self._rate,
+            "block_size": (self._dropblock_height, self._dropblock_width),
+            "seed": self.seed,
         }
         base_config = super().get_config()
         return dict(list(base_config.items()) + list(config.items()))

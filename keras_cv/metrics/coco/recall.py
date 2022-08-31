@@ -17,18 +17,25 @@ import tensorflow as tf
 import tensorflow.keras as keras
 import tensorflow.keras.initializers as initializers
 
+from keras_cv import bounding_box
+from keras_cv.bounding_box import iou as iou_lib
 from keras_cv.metrics.coco import utils
-from keras_cv.utils import bounding_box
-from keras_cv.utils import iou as iou_lib
 
 
 class COCORecall(keras.metrics.Metric):
     """COCORecall computes the COCO recall metric.
 
+    A usage guide is available on keras.io:
+    [Using KerasCV COCO metrics](https://keras.io/guides/keras_cv/coco_metrics/).
+    Full implementation details are available in the
+    [KerasCV COCO metrics whitepaper](https://arxiv.org/abs/2207.12120).
+
     Args:
         class_ids: The class IDs to evaluate the metric for.  To evaluate for
             all classes in over a set of sequentially labelled classes, pass
-            `range(num_classes)`.
+            `range(classes)`.
+        bounding_box_format: Format of the incoming bounding boxes.  Supported values
+            are "xywh", "center_xywh", "xyxy".
         iou_thresholds: IoU thresholds over which to evaluate the recall.  Must
             be a tuple of floats, defaults to [0.5:0.05:0.95].
         area_range: area range to constrict the considered bounding boxes in
@@ -54,10 +61,11 @@ class COCORecall(keras.metrics.Metric):
     account for this, you may either pass a `tf.RaggedTensor`, or pad Tensors
     with `-1`s to indicate unused boxes.  A utility function to perform this
     padding is available at
-    `keras_cv_.utils.bounding_box.pad_bounding_box_batch_to_shape`.
+    `keras_cv.bounding_box.pad_batch_to_shape`.
 
     ```python
     coco_recall = keras_cv.metrics.COCORecall(
+        bounding_box_format='xyxy',
         max_detections=100,
         class_ids=[1]
     )
@@ -75,24 +83,30 @@ class COCORecall(keras.metrics.Metric):
     def __init__(
         self,
         class_ids,
+        bounding_box_format,
         iou_thresholds=None,
         area_range=None,
         max_detections=100,
-        **kwargs
+        **kwargs,
     ):
         super().__init__(**kwargs)
         # Initialize parameter values
-
+        self.bounding_box_format = bounding_box_format
         iou_thresholds = iou_thresholds or [x / 100.0 for x in range(50, 100, 5)]
-        self.iou_thresholds = iou_thresholds
-        self.class_ids = class_ids
 
+        self.iou_thresholds = iou_thresholds
+        self.class_ids = list(class_ids)
         self.area_range = area_range
         self.max_detections = max_detections
 
         # Initialize result counters
         num_thresholds = len(iou_thresholds)
         num_categories = len(class_ids)
+
+        if any([c < 0 for c in class_ids]):
+            raise ValueError(
+                "class_ids must be positive.  Got " f"class_ids={class_ids}"
+            )
 
         self.true_positives = self.add_weight(
             name="true_positives",
@@ -123,6 +137,8 @@ class COCORecall(keras.metrics.Metric):
             warnings.warn(
                 "sample_weight is not yet supported in keras_cv COCO metrics."
             )
+        y_true = tf.cast(y_true, self.compute_dtype)
+        y_pred = tf.cast(y_pred, self.compute_dtype)
 
         # TODO(lukewood): Add first party RaggedTensor support.  Currently
         # this could cause an OOM error if users are not expecting to convert
@@ -132,6 +148,21 @@ class COCORecall(keras.metrics.Metric):
         if isinstance(y_pred, tf.RaggedTensor):
             y_pred = y_pred.to_tensor(default_value=-1)
 
+        y_true = bounding_box.convert_format(
+            y_true,
+            source=self.bounding_box_format,
+            target="xyxy",
+            dtype=self.compute_dtype,
+        )
+        y_pred = bounding_box.convert_format(
+            y_pred,
+            source=self.bounding_box_format,
+            target="xyxy",
+            dtype=self.compute_dtype,
+        )
+
+        y_pred = utils.sort_bounding_boxes(y_pred, axis=bounding_box.XYXY.CONFIDENCE)
+
         num_images = tf.shape(y_true)[0]
 
         iou_thresholds = tf.constant(self.iou_thresholds, dtype=tf.float32)
@@ -140,7 +171,6 @@ class COCORecall(keras.metrics.Metric):
         num_thresholds = tf.shape(iou_thresholds)[0]
         num_categories = tf.shape(class_ids)[0]
 
-        # Sort by bounding_box.CONFIDENCE to make maxDetections easy to compute.
         true_positives_update = tf.zeros_like(self.true_positives)
         ground_truth_boxes_update = tf.zeros_like(self.ground_truth_boxes)
 
@@ -160,7 +190,7 @@ class COCORecall(keras.metrics.Metric):
                 category = class_ids[k_i]
 
                 category_filtered_y_pred = utils.filter_boxes(
-                    y_pred_for_image, value=category, axis=bounding_box.CLASS
+                    y_pred_for_image, value=category, axis=bounding_box.XYXY.CLASS
                 )
 
                 detections = category_filtered_y_pred
@@ -168,10 +198,10 @@ class COCORecall(keras.metrics.Metric):
                     detections = category_filtered_y_pred[: self.max_detections]
 
                 ground_truths = utils.filter_boxes(
-                    y_true_for_image, value=category, axis=bounding_box.CLASS
+                    y_true_for_image, value=category, axis=bounding_box.XYXY.CLASS
                 )
 
-                ious = iou_lib.compute_ious_for_image(ground_truths, detections)
+                ious = iou_lib.compute_iou(ground_truths, detections, "yxyx")
 
                 for t_i in tf.range(num_thresholds):
                     threshold = iou_thresholds[t_i]
@@ -213,3 +243,16 @@ class COCORecall(keras.metrics.Metric):
             tf.math.reduce_sum(recalls, axis=-1) / n_present_categories
         )
         return tf.math.reduce_mean(recalls_per_threshold)
+
+    def get_config(self):
+        config = super().get_config()
+        config.update(
+            {
+                "class_ids": self.class_ids,
+                "bounding_box_format": self.bounding_box_format,
+                "iou_thresholds": self.iou_thresholds,
+                "area_range": self.area_range,
+                "max_detections": self.max_detections,
+            }
+        )
+        return config

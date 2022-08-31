@@ -13,16 +13,19 @@
 # limitations under the License.
 import tensorflow as tf
 
+from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
+    BaseImageAugmentationLayer,
+)
 from keras_cv.utils import preprocessing
 
 
 @tf.keras.utils.register_keras_serializable(package="keras_cv")
-class RandomSaturation(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
+class RandomSaturation(BaseImageAugmentationLayer):
     """Randomly adjusts the saturation on given images.
 
     This layer will randomly increase/reduce the saturation for the input RGB
     images. At inference time, the output will be identical to the input.
-    Call the layer with `training=True` to adjust the brightness of the input.
+    Call the layer with `training=True` to adjust the saturation of the input.
 
     Args:
         factor: A tuple of two floats, a single float or `keras_cv.FactorSampler`.
@@ -35,21 +38,22 @@ class RandomSaturation(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
             float is used, a value between `0.0` and the passed float is sampled.
             In order to ensure the value is always the same, please pass a tuple with
             two identical floats: `(0.5, 0.5)`.
+        seed: Integer. Used to create a random seed.
     """
 
-    def __init__(self, factor, **kwargs):
-        super().__init__(**kwargs)
+    def __init__(self, factor, seed=None, **kwargs):
+        super().__init__(seed=seed, **kwargs)
         self.factor = preprocessing.parse_factor(
             factor,
             min_value=0.0,
             max_value=1.0,
         )
+        self.seed = seed
 
-    def get_random_transformation(self, image=None, label=None, bounding_box=None):
-        del image, label, bounding_box
+    def get_random_transformation(self, **kwargs):
         return self.factor()
 
-    def augment_image(self, image, transformation=None):
+    def augment_image(self, image, transformation=None, **kwargs):
         # Convert the factor range from [0, 1] to [0, +inf]. Note that the
         # tf.image.adjust_saturation is trying to apply the following math formula
         # `output_saturation = input_saturation * factor`. We use the following
@@ -67,9 +71,16 @@ class RandomSaturation(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
         adjust_factor = transformation / (1 - transformation)
         return tf.image.adjust_saturation(image, saturation_factor=adjust_factor)
 
+    def augment_bounding_boxes(self, bounding_boxes, transformation=None, **kwargs):
+        return bounding_boxes
+
+    def augment_label(self, label, transformation=None, **kwargs):
+        return label
+
     def get_config(self):
         config = {
             "factor": self.factor,
+            "seed": self.seed,
         }
         base_config = super().get_config()
         return dict(list(base_config.items()) + list(config.items()))

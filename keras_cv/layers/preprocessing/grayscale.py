@@ -14,9 +14,13 @@
 
 import tensorflow as tf
 
+from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
+    BaseImageAugmentationLayer,
+)
+
 
 @tf.keras.utils.register_keras_serializable(package="keras_cv")
-class Grayscale(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
+class Grayscale(BaseImageAugmentationLayer):
     """Grayscale is a preprocessing layer that transforms RGB images to Grayscale images.
     Input images should have values in the range of [0, 255].
 
@@ -46,6 +50,8 @@ class Grayscale(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
     def __init__(self, output_channels=1, **kwargs):
         super().__init__(**kwargs)
         self.output_channels = output_channels
+        # This layer may raise an error when running on GPU using auto_vectorize
+        self.auto_vectorize = False
 
     def _check_input_params(self, output_channels):
         if output_channels not in [1, 3]:
@@ -55,7 +61,7 @@ class Grayscale(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
             )
         self.output_channels = output_channels
 
-    def augment_image(self, image, transformation=None):
+    def augment_image(self, image, transformation=None, **kwargs):
         grayscale = tf.image.rgb_to_grayscale(image)
         if self.output_channels == 1:
             return grayscale
@@ -63,6 +69,12 @@ class Grayscale(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
             return tf.image.grayscale_to_rgb(grayscale)
         else:
             raise ValueError("Unsupported value for `output_channels`.")
+
+    def augment_bounding_boxes(self, bounding_boxes, **kwargs):
+        return bounding_boxes
+
+    def augment_label(self, label, transformation=None, **kwargs):
+        return label
 
     def get_config(self):
         config = {

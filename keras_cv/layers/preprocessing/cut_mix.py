@@ -13,11 +13,14 @@
 # limitations under the License.
 import tensorflow as tf
 
+from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
+    BaseImageAugmentationLayer,
+)
 from keras_cv.utils import fill_utils
 
 
 @tf.keras.utils.register_keras_serializable(package="keras_cv")
-class CutMix(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
+class CutMix(BaseImageAugmentationLayer):
     """CutMix implements the CutMix data augmentation technique.
 
     Args:
@@ -25,14 +28,17 @@ class CutMix(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
             distribution.  This controls the shape of the distribution from which the
             smoothing values are sampled.  Defaults 1.0, which is a recommended value
             when training an imagenet1k classification model.
+        seed: Integer. Used to create a random seed.
     References:
-       [CutMix paper]( https://arxiv.org/abs/1905.04899).
+       - [CutMix paper]( https://arxiv.org/abs/1905.04899).
 
     Sample usage:
     ```python
     (images, labels), _ = tf.keras.datasets.cifar10.load_data()
+    labels = tf.one_hot(labels.squeeze(), 10)
+
     cutmix = keras_cv.layers.preprocessing.cut_mix.CutMix(10)
-    output = cutmix({'images': images, 'labels': labels})
+    output = cutmix({"images": images[:32], "labels": labels[:32]})
     # output == {'images': updated_images, 'labels': updated_labels}
     ```
     """
@@ -42,13 +48,17 @@ class CutMix(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
         self.alpha = alpha
         self.seed = seed
 
-    @staticmethod
-    def _sample_from_beta(alpha, beta, shape):
-        sample_alpha = tf.random.gamma(shape, 1.0, beta=alpha)
-        sample_beta = tf.random.gamma(shape, 1.0, beta=beta)
+    def _sample_from_beta(self, alpha, beta, shape):
+        sample_alpha = tf.random.gamma(
+            shape, 1.0, beta=alpha, seed=self._random_generator.make_legacy_seed()
+        )
+        sample_beta = tf.random.gamma(
+            shape, 1.0, beta=beta, seed=self._random_generator.make_legacy_seed()
+        )
         return sample_alpha / (sample_alpha + sample_beta)
 
     def _batch_augment(self, inputs):
+        self._validate_inputs(inputs)
         images = inputs.get("images", None)
         labels = inputs.get("labels", None)
         if images is None or labels is None:
@@ -79,7 +89,7 @@ class CutMix(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
         )
 
         permutation_order = tf.random.shuffle(tf.range(0, batch_size), seed=self.seed)
-        lambda_sample = CutMix._sample_from_beta(self.alpha, self.alpha, (batch_size,))
+        lambda_sample = self._sample_from_beta(self.alpha, self.alpha, (batch_size,))
 
         ratio = tf.math.sqrt(1 - lambda_sample)
 
@@ -118,6 +128,23 @@ class CutMix(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
         lambda_sample = tf.reshape(lambda_sample, [-1, 1])
         labels = lambda_sample * labels + (1.0 - lambda_sample) * cutout_labels
         return images, labels
+
+    def _validate_inputs(self, inputs):
+        labels = inputs.get("labels", None)
+        if labels is None:
+            raise ValueError(
+                "CutMix expects 'labels' to be present in its inputs. "
+                "CutMix relies on both images an labels. "
+                "Please pass a dictionary with keys 'images' "
+                "containing the image Tensor, and 'labels' containing "
+                "the classification labels. "
+                "For example, `cut_mix({'images': images, 'labels': labels})`."
+            )
+        if not labels.dtype.is_floating:
+            raise ValueError(
+                f"CutMix received labels with type {labels.dtype}. "
+                "Labels must be of type float."
+            )
 
     def get_config(self):
         config = {

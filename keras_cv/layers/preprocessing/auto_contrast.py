@@ -14,11 +14,14 @@
 
 import tensorflow as tf
 
+from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
+    BaseImageAugmentationLayer,
+)
 from keras_cv.utils import preprocessing
 
 
 @tf.keras.utils.register_keras_serializable(package="keras_cv")
-class AutoContrast(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
+class AutoContrast(BaseImageAugmentationLayer):
     """Performs the AutoContrast operation on an image.
 
     Auto contrast stretches the values of an image across the entire available
@@ -41,7 +44,7 @@ class AutoContrast(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
         super().__init__(**kwargs)
         self.value_range = value_range
 
-    def augment_image(self, image, transformation=None):
+    def augment_image(self, image, transformation=None, **kwargs):
         original_image = image
         image = preprocessing.transform_value_range(
             image, original_range=self.value_range, target_range=(0, 255)
@@ -60,6 +63,12 @@ class AutoContrast(tf.keras.__internal__.layers.BaseImageAugmentationLayer):
         # don't process NaN channels
         result = tf.where(tf.math.is_nan(result), original_image, result)
         return result
+
+    def augment_bounding_boxes(self, bounding_boxes, **kwargs):
+        return bounding_boxes
+
+    def augment_label(self, label, transformation=None, **kwargs):
+        return label
 
     def get_config(self):
         config = super().get_config()

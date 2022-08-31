@@ -15,7 +15,7 @@ import tensorflow as tf
 
 from keras_cv.layers.preprocessing.cut_mix import CutMix
 
-NUM_CLASSES = 10
+classes = 10
 
 
 class CutMixTest(tf.test.TestCase):
@@ -24,7 +24,7 @@ class CutMixTest(tf.test.TestCase):
         # randomly sample labels
         ys = tf.random.categorical(tf.math.log([[0.5, 0.5]]), 2)
         ys = tf.squeeze(ys)
-        ys = tf.one_hot(ys, NUM_CLASSES)
+        ys = tf.one_hot(ys, classes)
 
         layer = CutMix(seed=1)
         outputs = layer({"images": xs, "labels": ys})
@@ -104,15 +104,6 @@ class CutMixTest(tf.test.TestCase):
         self.assertNotAllClose(ys, 1.0)
         self.assertNotAllClose(ys, 0.0)
 
-    def test_image_input_only(self):
-        xs = tf.cast(
-            tf.stack([2 * tf.ones((100, 100, 1)), tf.ones((100, 100, 1))], axis=0),
-            tf.float32,
-        )
-        layer = CutMix()
-        with self.assertRaisesRegexp(ValueError, "expects inputs in a dictionary"):
-            _ = layer(xs)
-
     def test_single_image_input(self):
         xs = tf.ones((512, 512, 3))
         ys = tf.one_hot(tf.constant([1]), 2)
@@ -122,3 +113,26 @@ class CutMixTest(tf.test.TestCase):
             ValueError, "CutMix received a single image to `call`"
         ):
             _ = layer(inputs)
+
+    def test_missing_labels(self):
+        xs = tf.ones((2, 512, 512, 3))
+        inputs = {"images": xs}
+        layer = CutMix()
+        with self.assertRaisesRegexp(ValueError, "CutMix expects 'labels'"):
+            _ = layer(inputs)
+
+    def test_int_labels(self):
+        xs = tf.ones((2, 512, 512, 3))
+        ys = tf.one_hot(tf.constant([1, 0]), 2, dtype=tf.int32)
+        inputs = {"images": xs, "labels": ys}
+        layer = CutMix()
+        with self.assertRaisesRegexp(ValueError, "CutMix received labels with type"):
+            _ = layer(inputs)
+
+    def test_image_input(self):
+        xs = tf.ones((2, 512, 512, 3))
+        layer = CutMix()
+        with self.assertRaisesRegexp(
+            ValueError, "CutMix expects 'labels' to be present in its inputs"
+        ):
+            _ = layer(xs)
