@@ -29,4 +29,4 @@ from keras_cv.core import FactorSampler
 from keras_cv.core import NormalFactorSampler
 from keras_cv.core import UniformFactorSampler
 
-__version__ = "0.2.10"
+__version__ = "0.3.1"
