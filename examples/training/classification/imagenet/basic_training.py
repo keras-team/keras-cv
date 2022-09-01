@@ -64,6 +64,9 @@ flags.DEFINE_integer("batch_size", 256, "Batch size for training and evaluation.
 flags.DEFINE_boolean(
     "use_xla", True, "Whether or not to use XLA (jit_compile) for training."
 )
+flags.DEFINE_boolean(
+    "use_tpu", False, "Whether or not this training is happening on a TPU VM."
+)
 flags.DEFINE_float(
     "initial_learning_rate",
     0.1,
@@ -142,15 +145,14 @@ Note that we also specify a distribution strategy while creating the model.
 Different distribution strategies may be used for different training hardware, as indicated below.
 """
 
-# For TPU training, use tf.distribute.TPUStrategy()
-# MirroredStrategy is best for a single machine with multiple GPUs
-try:
+
+if FLAGS.use_tpu:
     tpu = tf.distribute.cluster_resolver.TPUClusterResolver()
-    print("Device:", tpu.master())
+    print("TPU Device:", tpu.master())
     tf.config.experimental_connect_to_cluster(tpu)
     tf.tpu.experimental.initialize_tpu_system(tpu)
     strategy = tf.distribute.TPUStrategy(tpu)
-except:
+else:
     strategy = tf.distribute.MirroredStrategy()
 
 
