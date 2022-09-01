@@ -202,7 +202,6 @@ class RetinaNet(ObjectDetectionBaseModel):
             clip_boxes=True,
         )
 
-
     @property
     def metrics(self):
         return super().metrics + self.train_metrics
