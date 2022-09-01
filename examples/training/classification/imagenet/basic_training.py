@@ -144,7 +144,15 @@ Different distribution strategies may be used for different training hardware, a
 
 # For TPU training, use tf.distribute.TPUStrategy()
 # MirroredStrategy is best for a single machine with multiple GPUs
-strategy = tf.distribute.MirroredStrategy()
+try:
+    tpu = tf.distribute.cluster_resolver.TPUClusterResolver()
+    print("Device:", tpu.master())
+    tf.config.experimental_connect_to_cluster(tpu)
+    tf.tpu.experimental.initialize_tpu_system(tpu)
+    strategy = tf.distribute.TPUStrategy(tpu)
+except:
+    strategy = tf.distribute.MirroredStrategy()
+
 
 with strategy.scope():
     model = models.__dict__[FLAGS.model_name]
