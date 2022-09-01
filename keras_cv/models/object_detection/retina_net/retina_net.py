@@ -122,7 +122,7 @@ class RetinaNet(ObjectDetectionBaseModel):
                 "`prediction_decoder` you should provide both to `RetinaNet`, and ensure "
                 "that the `anchor_generator` provided to both is identical"
             )
-        anchor_generator = anchor_generator or _default_anchor_generator(
+        anchor_generator = anchor_generator or RetinaNet.default_anchor_generator(
             bounding_box_format
         )
         label_encoder = label_encoder or cv_layers.RetinaNetLabelEncoder(
@@ -186,6 +186,22 @@ class RetinaNet(ObjectDetectionBaseModel):
                 f"`prediction_decoder.box_variance={prediction_decoder.box_variance}`, "
                 f"`label_encoder.box_variance={label_encoder.box_variance}`."
             )
+
+    @static
+    def default_anchor_generator(bounding_box_format):
+        strides = [2**i for i in range(3, 8)]
+        scales = [2**x for x in [0, 1 / 3, 2 / 3]]
+        sizes = [32.0, 64.0, 128.0, 256.0, 512.0]
+        aspect_ratios = [0.5, 1.0, 2.0]
+        return cv_layers.AnchorGenerator(
+            bounding_box_format=bounding_box_format,
+            sizes=sizes,
+            aspect_ratios=aspect_ratios,
+            scales=scales,
+            strides=strides,
+            clip_boxes=True,
+        )
+
 
     @property
     def metrics(self):
@@ -448,18 +464,3 @@ def _resnet50_backbone(include_rescaling, backbone_weights):
         for layer_name in ["conv3_block4_out", "conv4_block6_out", "conv5_block3_out"]
     ]
     return keras.Model(inputs=inputs, outputs=[c3_output, c4_output, c5_output])
-
-
-def _default_anchor_generator(bounding_box_format):
-    strides = [2**i for i in range(3, 8)]
-    scales = [2**x for x in [0, 1 / 3, 2 / 3]]
-    sizes = [32.0, 64.0, 128.0, 256.0, 512.0]
-    aspect_ratios = [0.5, 1.0, 2.0]
-    return cv_layers.AnchorGenerator(
-        bounding_box_format=bounding_box_format,
-        sizes=sizes,
-        aspect_ratios=aspect_ratios,
-        scales=scales,
-        strides=strides,
-        clip_boxes=True,
-    )
