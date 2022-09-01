@@ -158,7 +158,7 @@ class BaseImageAugmentationLayerTest(tf.test.TestCase):
                 "images": images,
                 "bounding_boxes": bounding_boxes,
                 "keypoints": keypoints,
-                "segmentation_mask": segmentation_mask,
+                "segmentation_masks": segmentation_mask,
             }
         )
 
@@ -166,7 +166,7 @@ class BaseImageAugmentationLayerTest(tf.test.TestCase):
             "images": images + 2.0,
             "bounding_boxes": bounding_boxes + 2.0,
             "keypoints": keypoints + 2.0,
-            "segmentation_mask": segmentation_mask + 2.0,
+            "segmentation_masks": segmentation_mask + 2.0,
         }
         self.assertAllClose(output, expected_output)
 
@@ -175,20 +175,20 @@ class BaseImageAugmentationLayerTest(tf.test.TestCase):
         images = np.random.random(size=(2, 8, 8, 3)).astype("float32")
         bounding_boxes = np.random.random(size=(2, 3, 5)).astype("float32")
         keypoints = np.random.random(size=(2, 3, 5, 2)).astype("float32")
-        segmentation_mask = np.random.random(size=(2, 8, 8, 1)).astype("float32")
+        segmentation_masks = np.random.random(size=(2, 8, 8, 1)).astype("float32")
 
         output = add_layer(
             {
                 "images": images,
                 "bounding_boxes": bounding_boxes,
                 "keypoints": keypoints,
-                "segmentation_mask": segmentation_mask,
+                "segmentation_masks": segmentation_masks,
             }
         )
 
         bounding_boxes_diff = output["bounding_boxes"] - bounding_boxes
         keypoints_diff = output["keypoints"] - keypoints
-        segmentation_mask_diff = output["segmentation_mask"] - segmentation_mask
+        segmentation_mask_diff = output["segmentation_masks"] - segmentation_masks
         self.assertNotAllClose(bounding_boxes_diff[0], bounding_boxes_diff[1])
         self.assertNotAllClose(keypoints_diff[0], keypoints_diff[1])
         self.assertNotAllClose(segmentation_mask_diff[0], segmentation_mask_diff[1])
@@ -202,13 +202,13 @@ class BaseImageAugmentationLayerTest(tf.test.TestCase):
                 "images": images,
                 "bounding_boxes": bounding_boxes,
                 "keypoints": keypoints,
-                "segmentation_mask": segmentation_mask,
+                "segmentation_masks": segmentation_masks,
             }
         )
 
         bounding_boxes_diff = output["bounding_boxes"] - bounding_boxes
         keypoints_diff = output["keypoints"] - keypoints
-        segmentation_mask_diff = output["segmentation_mask"] - segmentation_mask
+        segmentation_mask_diff = output["segmentation_masks"] - segmentation_masks
         self.assertNotAllClose(bounding_boxes_diff[0], bounding_boxes_diff[1])
         self.assertNotAllClose(keypoints_diff[0], keypoints_diff[1])
         self.assertNotAllClose(segmentation_mask_diff[0], segmentation_mask_diff[1])
@@ -218,7 +218,7 @@ class BaseImageAugmentationLayerTest(tf.test.TestCase):
         images = np.random.random(size=(2, 8, 8, 3)).astype("float32")
         bounding_boxes = np.random.random(size=(2, 3, 5)).astype("float32")
         keypoints = np.random.random(size=(2, 3, 5, 2)).astype("float32")
-        segmentation_mask = np.random.random(size=(2, 8, 8, 1)).astype("float32")
+        segmentation_masks = np.random.random(size=(2, 8, 8, 1)).astype("float32")
 
         @tf.function
         def in_tf_function(inputs):
@@ -229,13 +229,13 @@ class BaseImageAugmentationLayerTest(tf.test.TestCase):
                 "images": images,
                 "bounding_boxes": bounding_boxes,
                 "keypoints": keypoints,
-                "segmentation_mask": segmentation_mask,
+                "segmentation_masks": segmentation_masks,
             }
         )
 
         bounding_boxes_diff = output["bounding_boxes"] - bounding_boxes
         keypoints_diff = output["keypoints"] - keypoints
-        segmentation_mask_diff = output["segmentation_mask"] - segmentation_mask
+        segmentation_mask_diff = output["segmentation_masks"] - segmentation_masks
         self.assertNotAllClose(bounding_boxes_diff[0], bounding_boxes_diff[1])
         self.assertNotAllClose(keypoints_diff[0], keypoints_diff[1])
         self.assertNotAllClose(segmentation_mask_diff[0], segmentation_mask_diff[1])
@@ -245,7 +245,7 @@ class BaseImageAugmentationLayerTest(tf.test.TestCase):
         images = np.random.random(size=(2, 8, 8, 3)).astype("float32")
         bounding_boxes = np.random.random(size=(2, 3, 4)).astype("float32")
         keypoints = np.random.random(size=(2, 3, 5, 2)).astype("float32")
-        segmentation_mask = np.random.random(size=(2, 8, 8, 1)).astype("float32")
+        segmentation_masks = np.random.random(size=(2, 8, 8, 1)).astype("float32")
 
         with self.assertRaisesRegex(
             ValueError,
@@ -258,6 +258,6 @@ class BaseImageAugmentationLayerTest(tf.test.TestCase):
                     "images": images,
                     "bounding_boxes": bounding_boxes,
                     "keypoints": keypoints,
-                    "segmentation_mask": segmentation_mask,
+                    "segmentation_masks": segmentation_masks,
                 }
             )
