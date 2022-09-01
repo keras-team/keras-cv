@@ -39,10 +39,10 @@ class ContrastiveTrainer(keras.Model):
 
     Usage:
     ```python
-    encoder = keras_cv.models.DenseNet121(include_rescaling=False, include_top=False, pooling="avg")
+    encoder = keras_cv.models.DenseNet121(include_rescaling=True, include_top=False, pooling="avg")
     augmenter = keras_cv.layers.preprocessing.RandomFlip()
     projector = keras.layers.Dense(64)
-    probe = keras.layers.Dense(10)
+    probe = keras_cv.training.ContrastiveTrainer.linear_probe(classes=10)
 
     trainer = keras_cv.training.ContrastiveTrainer(
         encoder=encoder,
@@ -53,14 +53,16 @@ class ContrastiveTrainer(keras.Model):
 
     trainer.compile(
         optimizer=keras.optimizers.Adam(),
-        loss=keras_cv.losses.SimCLRLoss(),
+        loss=keras_cv.losses.SimCLRLoss(temperature=0.5),
         probe_optimizer=keras.optimizers.Adam(),
         probe_loss=keras.losses.CategoricalCrossentropy(from_logits=True),
-        probe_metrics=keras.metrics.CategoricalAccuracy(name="probe_accuracy")
+        probe_metrics=[keras.metrics.CategoricalAccuracy(name="probe_accuracy")]
     )
 
-    unlabeled_images = load_data()
-    trainer.fit(unlabeled_images)
+    (x_train, y_train), (x_test, y_test) = keras.datasets.cifar10.load_data()
+    y_train = keras.utils.to_categorical(y_train, 10)
+
+    trainer.fit(x_train, y_train)
     ```
 
     """
@@ -75,7 +77,9 @@ class ContrastiveTrainer(keras.Model):
         super().__init__()
 
         if encoder.output.shape.rank != 2:
-            raise ValueError("Encoder must have a flattened output")
+            raise ValueError(
+                f"`encoder` must have a flattened output.  Expected rank(encoder.output.shape)=2, got encoder.output.shape={encoder.output.shape}"
+            )
 
         if type(augmenter) is tuple and len(augmenter) != 2:
             raise ValueError(
@@ -84,7 +88,7 @@ class ContrastiveTrainer(keras.Model):
 
         if type(projector) is tuple and len(projector) != 2:
             raise ValueError(
-                "`augmenter` must be either a single augmenter or a tuple of exactly 2 augmenters."
+                "`projector` must be either a single augmenter or a tuple of exactly 2 augmenters."
             )
 
         self.augmenters = (
@@ -212,3 +216,7 @@ class ContrastiveTrainer(keras.Model):
         raise NotImplementedError(
             "ContrastiveTrainer.call() is not implemented - please call your model directly."
         )
+
+    @staticmethod
+    def linear_probe(classes, **kwargs):
+        return keras.Sequential(keras.layers.Dense(classes), **kwargs)
