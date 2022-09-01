@@ -187,7 +187,7 @@ class RetinaNet(ObjectDetectionBaseModel):
                 f"`label_encoder.box_variance={label_encoder.box_variance}`."
             )
 
-    @static
+    @staticmethod
     def default_anchor_generator(bounding_box_format):
         strides = [2**i for i in range(3, 8)]
         scales = [2**x for x in [0, 1 / 3, 2 / 3]]
