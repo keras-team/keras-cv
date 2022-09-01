@@ -28,7 +28,7 @@ TARGETS = "targets"
 BOUNDING_BOXES = "bounding_boxes"
 KEYPOINTS = "keypoints"
 RAGGED_BOUNDING_BOXES = "ragged_bounding_boxes"
-SEGMENTATION_MASK = "segmentation_mask"
+SEGMENTATION_MASKS = "segmentation_masks"
 IS_DICT = "is_dict"
 USE_TARGETS = "use_targets"
 
@@ -276,7 +276,7 @@ class BaseImageAugmentationLayer(tf.keras.__internal__.layers.BaseRandomLayer):
         label = inputs.get(LABELS, None)
         bounding_boxes = inputs.get(BOUNDING_BOXES, None)
         keypoints = inputs.get(KEYPOINTS, None)
-        segmentation_mask = inputs.get(SEGMENTATION_MASK, None)
+        segmentation_mask = inputs.get(SEGMENTATION_MASKS, None)
         transformation = self.get_random_transformation(
             image=image,
             label=label,
@@ -321,7 +321,7 @@ class BaseImageAugmentationLayer(tf.keras.__internal__.layers.BaseRandomLayer):
                 segmentation_mask,
                 transformation=transformation,
             )
-            result[SEGMENTATION_MASK] = segmentation_mask
+            result[SEGMENTATION_MASKS] = segmentation_mask
 
         # preserve any additional inputs unmodified by this layer.
         for key in inputs.keys() - result.keys():
