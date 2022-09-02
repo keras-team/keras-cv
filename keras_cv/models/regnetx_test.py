@@ -18,18 +18,6 @@ MODEL_LIST = [
     (regnet.RegNetX120, 2240, {}),
     (regnet.RegNetX160, 2048, {}),
     (regnet.RegNetX320, 2520, {}),
-    (regnet.RegNetY002, 368, {}),
-    (regnet.RegNetY004, 440, {}),
-    (regnet.RegNetY006, 608, {}),
-    (regnet.RegNetY008, 768, {}),
-    (regnet.RegNetY016, 888, {}),
-    (regnet.RegNetY032, 1512, {}),
-    (regnet.RegNetY040, 1088, {}),
-    (regnet.RegNetY064, 1296, {}),
-    (regnet.RegNetY080, 2016, {}),
-    (regnet.RegNetY120, 2240, {}),
-    (regnet.RegNetY160, 3024, {}),
-    (regnet.RegNetY320, 3712, {}),
 ]
 
 
