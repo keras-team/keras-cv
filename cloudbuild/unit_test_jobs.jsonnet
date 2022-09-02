@@ -31,7 +31,6 @@ local unittest = base.BaseTest {
     'pytest',
     'keras_cv',
   ],
-  env: 
 };
 
 std.manifestYamlDoc(unittest.oneshotJob, quote_keys=false)
