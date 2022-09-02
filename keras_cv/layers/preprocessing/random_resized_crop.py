@@ -126,12 +126,12 @@ class RandomResizedCrop(BaseImageAugmentationLayer):
             return super().call(inputs, training)
         else:
             inputs = self._ensure_inputs_are_compute_dtype(inputs)
-            inputs, is_dict, use_targets = self._format_inputs(inputs)
+            inputs, meta_data = self._format_inputs(inputs)
             output = inputs
             # self._resize() returns valid results for both batched and
             # unbatched
             output["images"] = self._resize(inputs["images"])
-            return self._format_output(output, is_dict, use_targets)
+            return self._format_output(output, meta_data)
 
     def augment_image(self, image, transformation, **kwargs):
         image = tf.expand_dims(image, axis=0)

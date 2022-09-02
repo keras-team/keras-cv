@@ -25,7 +25,7 @@ class RandomSaturation(BaseImageAugmentationLayer):
 
     This layer will randomly increase/reduce the saturation for the input RGB
     images. At inference time, the output will be identical to the input.
-    Call the layer with `training=True` to adjust the brightness of the input.
+    Call the layer with `training=True` to adjust the saturation of the input.
 
     Args:
         factor: A tuple of two floats, a single float or `keras_cv.FactorSampler`.
@@ -76,6 +76,9 @@ class RandomSaturation(BaseImageAugmentationLayer):
 
     def augment_label(self, label, transformation=None, **kwargs):
         return label
+
+    def augment_segmentation_mask(self, segmentation_mask, transformation, **kwargs):
+        return segmentation_mask
 
     def get_config(self):
         config = {

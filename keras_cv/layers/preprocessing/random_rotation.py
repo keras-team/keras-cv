@@ -156,6 +156,9 @@ class RandomRotation(BaseImageAugmentationLayer):
         image_shape = tf.shape(image)
         h = image_shape[H_AXIS]
         w = image_shape[W_AXIS]
+        _, _, _, _, rest = tf.split(
+            bounding_boxes, [1, 1, 1, 1, bounding_boxes.shape[-1] - 4], axis=-1
+        )
         # origin coordinates, all the points on the image are rotated around
         # this point
         origin_x, origin_y = tf.cast(w / 2, dtype=self.compute_dtype), tf.cast(
@@ -204,7 +207,7 @@ class RandomRotation(BaseImageAugmentationLayer):
         # format
         min_cordinates = tf.math.reduce_min(out, axis=1)
         max_cordinates = tf.math.reduce_max(out, axis=1)
-        bounding_boxes_out = tf.concat([min_cordinates, max_cordinates], axis=1)
+        bounding_boxes_out = tf.concat([min_cordinates, max_cordinates, rest], axis=1)
         bounding_boxes_out = bounding_box.clip_to_image(
             bounding_boxes_out,
             bounding_box_format="xyxy",

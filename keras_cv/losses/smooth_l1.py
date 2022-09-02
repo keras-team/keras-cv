@@ -28,8 +28,8 @@ class SmoothL1Loss(tf.keras.losses.Loss):
             treated as `L1` values
     """
 
-    def __init__(self, l1_cutoff=1.0, reduction="none", **kwargs):
-        super().__init__(reduction=reduction, **kwargs)
+    def __init__(self, l1_cutoff=1.0, **kwargs):
+        super().__init__(**kwargs)
         self.l1_cutoff = l1_cutoff
 
     def call(self, y_true, y_pred):
@@ -41,7 +41,7 @@ class SmoothL1Loss(tf.keras.losses.Loss):
             0.5 * squared_difference,
             absolute_difference - 0.5,
         )
-        return tf.reduce_sum(loss, axis=-1)
+        return loss
 
     def get_config(self):
         config = {

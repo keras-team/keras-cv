@@ -14,6 +14,7 @@
 
 import tensorflow as tf
 
+from keras_cv import bounding_box
 from keras_cv.utils import preprocessing
 
 # In order to support both unbatched and batched inputs, the horizontal
@@ -26,6 +27,10 @@ LABELS = "labels"
 TARGETS = "targets"
 BOUNDING_BOXES = "bounding_boxes"
 KEYPOINTS = "keypoints"
+RAGGED_BOUNDING_BOXES = "ragged_bounding_boxes"
+SEGMENTATION_MASKS = "segmentation_masks"
+IS_DICT = "is_dict"
+USE_TARGETS = "use_targets"
 
 
 @tf.keras.utils.register_keras_serializable(package="keras_cv")
@@ -139,7 +144,7 @@ class BaseImageAugmentationLayer(tf.keras.__internal__.layers.BaseRandomLayer):
             `layer.call()`.
           transformation: The transformation object produced by
             `get_random_transformation`. Used to coordinate the randomness
-            between image, label and bounding box.
+            between image, label, bounding box, keypoints, and segmentation mask.
 
         Returns:
           output 3D tensor, which will be forward to `layer.call()`.
@@ -153,7 +158,7 @@ class BaseImageAugmentationLayer(tf.keras.__internal__.layers.BaseRandomLayer):
           label: 1D label to the layer. Forwarded from `layer.call()`.
           transformation: The transformation object produced by
             `get_random_transformation`. Used to coordinate the randomness
-            between image, label and bounding box.
+            between image, label, bounding box, keypoints, and segmentation mask.
 
         Returns:
           output 1D tensor, which will be forward to `layer.call()`.
@@ -167,7 +172,7 @@ class BaseImageAugmentationLayer(tf.keras.__internal__.layers.BaseRandomLayer):
           target: 1D label to the layer. Forwarded from `layer.call()`.
           transformation: The transformation object produced by
             `get_random_transformation`. Used to coordinate the randomness
-            between image, label and bounding box.
+            between image, label, bounding box, keypoints, and segmentation mask.
 
         Returns:
           output 1D tensor, which will be forward to `layer.call()`.
@@ -184,7 +189,7 @@ class BaseImageAugmentationLayer(tf.keras.__internal__.layers.BaseRandomLayer):
             `call()`.
           transformation: The transformation object produced by
             `get_random_transformation`. Used to coordinate the randomness
-            between image, label and bounding box.
+            between image, label, bounding box, keypoints, and segmentation mask.
 
         Returns:
           output 2D tensor, which will be forward to `layer.call()`.
@@ -199,15 +204,36 @@ class BaseImageAugmentationLayer(tf.keras.__internal__.layers.BaseRandomLayer):
             `layer.call()`.
           transformation: The transformation object produced by
             `get_random_transformation`. Used to coordinate the randomness
-            between image, label and bounding box.
+            between image, label, bounding box, keypoints, and segmentation mask.
 
         Returns:
           output 2D tensor, which will be forward to `layer.call()`.
         """
         raise NotImplementedError()
 
+    def augment_segmentation_mask(self, segmentation_mask, transformation, **kwargs):
+        """Augment a single image's segmentation mask during training.
+
+        Args:
+          segmentation_mask: 3D segmentation mask input tensor to the layer.
+            This should generally have the shape [H, W, 1], or in some cases [H, W, C] for multilabeled data.
+            Forwarded from `layer.call()`.
+          transformation: The transformation object produced by
+            `get_random_transformation`. Used to coordinate the randomness
+            between image, label, bounding box, keypoints, and segmentation mask.
+
+        Returns:
+          output 3D tensor containing the augmented segmentation mask, which will be forward to `layer.call()`.
+        """
+        raise NotImplementedError()
+
     def get_random_transformation(
-        self, image=None, label=None, bounding_boxes=None, keypoints=None
+        self,
+        image=None,
+        label=None,
+        bounding_boxes=None,
+        keypoints=None,
+        segmentation_mask=None,
     ):
         """Produce random transformation config for one single input.
 
@@ -218,6 +244,7 @@ class BaseImageAugmentationLayer(tf.keras.__internal__.layers.BaseRandomLayer):
           image: 3D image tensor from inputs.
           label: optional 1D label tensor from inputs.
           bounding_box: optional 2D bounding boxes tensor from inputs.
+          segmentation_mask: optional 3D segmentation mask tensor from inputs.
 
         Returns:
           Any type of object, which will be forwarded to `augment_image`,
@@ -229,14 +256,12 @@ class BaseImageAugmentationLayer(tf.keras.__internal__.layers.BaseRandomLayer):
     def call(self, inputs, training=True):
         inputs = self._ensure_inputs_are_compute_dtype(inputs)
         if training:
-            inputs, is_dict, use_targets = self._format_inputs(inputs)
+            inputs, metadata = self._format_inputs(inputs)
             images = inputs[IMAGES]
             if images.shape.rank == 3:
-                return self._format_output(self._augment(inputs), is_dict, use_targets)
+                return self._format_output(self._augment(inputs), metadata)
             elif images.shape.rank == 4:
-                return self._format_output(
-                    self._batch_augment(inputs), is_dict, use_targets
-                )
+                return self._format_output(self._batch_augment(inputs), metadata)
             else:
                 raise ValueError(
                     "Image augmentation layers are expecting inputs to be "
@@ -251,8 +276,13 @@ class BaseImageAugmentationLayer(tf.keras.__internal__.layers.BaseRandomLayer):
         label = inputs.get(LABELS, None)
         bounding_boxes = inputs.get(BOUNDING_BOXES, None)
         keypoints = inputs.get(KEYPOINTS, None)
+        segmentation_mask = inputs.get(SEGMENTATION_MASKS, None)
         transformation = self.get_random_transformation(
-            image=image, label=label, bounding_boxes=bounding_boxes, keypoints=keypoints
+            image=image,
+            label=label,
+            bounding_boxes=bounding_boxes,
+            keypoints=keypoints,
+            segmentation_mask=segmentation_mask,
         )
         image = self.augment_image(
             image,
@@ -286,6 +316,12 @@ class BaseImageAugmentationLayer(tf.keras.__internal__.layers.BaseRandomLayer):
                 image=image,
             )
             result[KEYPOINTS] = keypoints
+        if segmentation_mask is not None:
+            segmentation_mask = self.augment_segmentation_mask(
+                segmentation_mask,
+                transformation=transformation,
+            )
+            result[SEGMENTATION_MASKS] = segmentation_mask
 
         # preserve any additional inputs unmodified by this layer.
         for key in inputs.keys() - result.keys():
@@ -296,30 +332,59 @@ class BaseImageAugmentationLayer(tf.keras.__internal__.layers.BaseRandomLayer):
         return self._map_fn(self._augment, inputs)
 
     def _format_inputs(self, inputs):
+        metadata = {IS_DICT: True, USE_TARGETS: False}
         if tf.is_tensor(inputs):
             # single image input tensor
-            return {IMAGES: inputs}, False, False
-        elif isinstance(inputs, dict) and TARGETS in inputs:
+            metadata[IS_DICT] = False
+            inputs = {IMAGES: inputs}
+            return inputs, metadata
+
+        if not isinstance(inputs, dict):
+            raise ValueError(
+                f"Expect the inputs to be image tensor or dict. Got inputs={inputs}"
+            )
+
+        if BOUNDING_BOXES in inputs:
+            inputs[BOUNDING_BOXES], updates = self._format_bounding_boxes(
+                inputs[BOUNDING_BOXES]
+            )
+            metadata.update(updates)
+
+        if isinstance(inputs, dict) and TARGETS in inputs:
             # TODO(scottzhu): Check if it only contains the valid keys
             inputs[LABELS] = inputs[TARGETS]
             del inputs[TARGETS]
-            return inputs, True, True
-        elif isinstance(inputs, dict):
-            return inputs, True, False
-        else:
-            raise ValueError(
-                f"Expect the inputs to be image tensor or dict. Got {inputs}"
-            )
+            metadata[USE_TARGETS] = True
+            return inputs, metadata
 
-    def _format_output(self, output, is_dict, use_targets):
-        if not is_dict:
+        return inputs, metadata
+
+    def _format_bounding_boxes(self, bounding_boxes):
+        metadata = {RAGGED_BOUNDING_BOXES: False}
+        if isinstance(bounding_boxes, tf.RaggedTensor):
+            metadata = {RAGGED_BOUNDING_BOXES: True}
+            bounding_boxes = bounding_box.pad_with_sentinels(bounding_boxes)
+
+        if bounding_boxes.shape[-1] < 5:
+            raise ValueError(
+                "Bounding boxes are missing class_id. If you would like to pad the "
+                "bounding boxes with class_id, use `keras_cv.bounding_box.add_class_id`"
+            )
+        return bounding_boxes, metadata
+
+    def _format_output(self, output, metadata):
+        if not metadata[IS_DICT]:
             return output[IMAGES]
-        elif use_targets:
+        elif metadata[USE_TARGETS]:
             output[TARGETS] = output[LABELS]
             del output[LABELS]
-            return output
-        else:
-            return output
+
+        if BOUNDING_BOXES in output:
+            if metadata[RAGGED_BOUNDING_BOXES]:
+                output[BOUNDING_BOXES] = bounding_box.filter_sentinels(
+                    output[BOUNDING_BOXES]
+                )
+        return output
 
     def _ensure_inputs_are_compute_dtype(self, inputs):
         if isinstance(inputs, dict):

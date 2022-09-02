@@ -14,6 +14,7 @@
 
 import numpy as np
 import tensorflow as tf
+from absl.testing import parameterized
 
 from keras_cv.losses import FocalLoss
 
@@ -46,13 +47,15 @@ class ModelGardenFocalLoss(tf.keras.losses.Loss):
         return weighted_loss
 
 
-class FocalLossModelGardenComparisonTest(tf.test.TestCase):
-    def test_model_garden_implementation_has_same_outputs(self):
+class FocalLossModelGardenComparisonTest(tf.test.TestCase, parameterized.TestCase):
+    @parameterized.named_parameters(("auto", "auto"), ("sum", "sum"))
+    def test_model_garden_implementation_has_same_outputs(self, reduction):
+
         focal_loss = FocalLoss(
-            alpha=0.25, gamma=2.0, from_logits=True, reduction="auto"
+            alpha=0.25, gamma=2.0, from_logits=True, reduction=reduction
         )
         model_garden_focal_loss = ModelGardenFocalLoss(
-            alpha=0.25, gamma=2.0, reduction="auto"
+            alpha=0.25, gamma=2.0, reduction=reduction
         )
 
         for _ in range(10):

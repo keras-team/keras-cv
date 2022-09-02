@@ -47,6 +47,10 @@ ALIASES = {
         "imagenet": "imagenet/classification-v0",
         "imagenet/classification": "imagenet/classification-v0",
     },
+    "resnet50v2": {
+        "imagenet": "imagenet/classification-v1",
+        "imagenet/classification": "imagenet/classification-v1",
+    },
 }
 
 WEIGHTS_CONFIG = {
@@ -59,4 +63,10 @@ WEIGHTS_CONFIG = {
         "imagenet/classification-v0-notop": "a99d1bb2cbe1a59a1cdd1f435fb265453a97c2a7b723d26f4ebee96e5fb49d62",
     },
     "densenet201": {},
+    "resnet50v2": {
+        "imagenet/classification-v0": "11bde945b54d1dca65101be2648048abca8a96a51a42820d87403486389790db",
+        "imagenet/classification-v0-notop": "5b4aca4932c433d84f6aef58135472a4312ed2fa565d53fedcd6b0c24b54ab4a",
+        "imagenet/classification-v1": "a32e5d9998e061527f6f947f36d8e794ad54dad71edcd8921cda7804912f3ee7",
+        "imagenet/classification-v1-notop": "ac46b82c11070ab2f69673c41fbe5039c9eb686cca4f34cd1d79412fd136f1ae",
+    },
 }

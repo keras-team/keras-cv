@@ -50,6 +50,8 @@ class Grayscale(BaseImageAugmentationLayer):
     def __init__(self, output_channels=1, **kwargs):
         super().__init__(**kwargs)
         self.output_channels = output_channels
+        # This layer may raise an error when running on GPU using auto_vectorize
+        self.auto_vectorize = False
 
     def _check_input_params(self, output_channels):
         if output_channels not in [1, 3]:
@@ -73,6 +75,9 @@ class Grayscale(BaseImageAugmentationLayer):
 
     def augment_label(self, label, transformation=None, **kwargs):
         return label
+
+    def augment_segmentation_mask(self, segmentation_mask, transformation, **kwargs):
+        return segmentation_mask
 
     def get_config(self):
         config = {
