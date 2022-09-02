@@ -30,8 +30,7 @@ class GIoULoss(tf.keras.losses.Loss):
     calculation of this loss.
 
     Args:
-        bounding_box_format: a case-insensitive string which is one of `"xyxy"`,
-            `"rel_xyxy"`, `"xyWH"`, `"center_xyWH"`, `"yxyx"`, `"rel_yxyx"`.
+        bounding_box_format: a case-insensitive string (for example, "xyxy").
             Each bounding box is defined by at least these 4 values. The inputs
             may contain additional information such as classes and confidence after
             these 4 values but these values will be ignored while calculating
@@ -40,6 +39,7 @@ class GIoULoss(tf.keras.losses.Loss):
 
     References:
         - [GIoU paper](https://arxiv.org/pdf/1902.09630)
+        - [TFAddons Implementation](https://www.tensorflow.org/addons/api_docs/python/tfa/losses/GIoULoss)
 
     Sample Usage:
     ```python
@@ -68,10 +68,10 @@ class GIoULoss(tf.keras.losses.Loss):
             or boxes2_rank not in [2, 3]
         ):
             raise ValueError(
-                "_compute_giou() expects both boxes to be batched, or both "
-                f"boxes to be unbatched.  Received len(boxes1.shape)={boxes1_rank}, "
-                f"len(boxes2.shape)={boxes2_rank}.  Expected either len(boxes1.shape)=2 AND "
-                "len(boxes2.shape)=2, or len(boxes1.shape)=3 AND len(boxes2.shape)=3."
+                "`GIoULoss` expects both boxes to be batched, or both "
+                f"boxes to be unbatched.  Received `len(boxes1.shape)`={boxes1_rank}, "
+                f"`len(boxes2.shape)`={boxes2_rank}.  Expected either `len(boxes1.shape)`=2 AND "
+                "`len(boxes2.shape)`=2, or `len(boxes1.shape)`=3 AND `len(boxes2.shape)`=3."
             )
 
         if self.bounding_box_format.startswith("rel"):
@@ -128,8 +128,8 @@ class GIoULoss(tf.keras.losses.Loss):
         if boxes1_rank == 2:
             return compute_giou_for_batch((boxes1, boxes2))
         else:
-            return tf.map_fn(
-                compute_giou_for_batch, elems=(boxes1, boxes2), dtype=boxes1.dtype
+            return tf.vectorized_map(
+                compute_giou_for_batch, elems=(boxes1, boxes2)
             )
 
     def call(self, y_true, y_pred):
