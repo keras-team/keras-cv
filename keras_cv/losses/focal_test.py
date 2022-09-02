@@ -40,7 +40,9 @@ class FocalTest(tf.test.TestCase):
 
         self.assertAllEqual(
             focal_loss(y_true, y_pred).shape,
-            [2,],
+            [
+                2,
+            ],
         )
 
     def test_output_shape_from_logits(self):
@@ -54,8 +56,12 @@ class FocalTest(tf.test.TestCase):
 
         focal_loss = FocalLoss(reduction="none", from_logits=True)
 
-        self.assertAllEqual(focal_loss(y_true, y_pred).shape, [2,])
-
+        self.assertAllEqual(
+            focal_loss(y_true, y_pred).shape,
+            [
+                2,
+            ],
+        )
 
     def test_from_logits_argument(self):
         y_true = tf.random.uniform((2, 8, 10))

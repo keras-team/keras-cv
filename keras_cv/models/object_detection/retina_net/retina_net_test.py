@@ -120,23 +120,29 @@ class RetinaNetTest(tf.test.TestCase):
             backbone_weights=None,
             include_rescaling=True,
         )
-        xs, ys = _create_bounding_box_dataset('xywh')
+        xs, ys = _create_bounding_box_dataset("xywh")
 
         # all metric formats must match
         retina_net.compile(
             optimizer="adam",
             box_loss=keras_cv.losses.SmoothL1Loss(reduction="none"),
-            classification_loss=keras_cv.losses.FocalLoss(from_logits=True, reduction="sum"),
+            classification_loss=keras_cv.losses.FocalLoss(
+                from_logits=True, reduction="sum"
+            ),
         )
 
-        with self.assertRaisesRegex(ValueError, "output shape of `classification_loss`"):
+        with self.assertRaisesRegex(
+            ValueError, "output shape of `classification_loss`"
+        ):
             retina_net.fit(x=xs, y=ys, epochs=1)
 
         # all metric formats must match
         retina_net.compile(
             optimizer="adam",
             box_loss=keras_cv.losses.SmoothL1Loss(reduction="sum"),
-            classification_loss=keras_cv.losses.FocalLoss(from_logits=True, reduction="none"),
+            classification_loss=keras_cv.losses.FocalLoss(
+                from_logits=True, reduction="none"
+            ),
         )
         with self.assertRaisesRegex(ValueError, "output shape of `box_loss`"):
             retina_net.fit(x=xs, y=ys, epochs=1)
@@ -173,8 +179,10 @@ class RetinaNetTest(tf.test.TestCase):
 
         retina_net.compile(
             optimizer=optimizers.SGD(learning_rate=0.25),
-            classification_loss=keras_cv.losses.FocalLoss(from_logits=True, reduction='none'),
-            box_loss=keras_cv.losses.SmoothL1Loss(l1_cutoff=1.0, reduction='none'),
+            classification_loss=keras_cv.losses.FocalLoss(
+                from_logits=True, reduction="none"
+            ),
+            box_loss=keras_cv.losses.SmoothL1Loss(l1_cutoff=1.0, reduction="none"),
         )
 
     # TODO(lukewood): configure for other coordinate systems.
