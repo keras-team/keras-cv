@@ -112,7 +112,7 @@ class RetinaNetTest(tf.test.TestCase):
                 ],
             )
 
-    def test_all_metric_formats_must_match(self):
+    def test_loss_output_shape_error_messages(self):
         retina_net = keras_cv.models.RetinaNet(
             classes=20,
             bounding_box_format="xywh",
@@ -120,14 +120,26 @@ class RetinaNetTest(tf.test.TestCase):
             backbone_weights=None,
             include_rescaling=True,
         )
+        xs, ys = _create_bounding_box_dataset('xywh')
 
         # all metric formats must match
-        with self.assertRaises(ValueError):
-            retina_net.compile(
-                optimizer="adam",
-                box_loss=keras_cv.losses.SmoothL1Loss(reduction="auto"),
-                classification_loss=keras_cv.losses.FocalLoss(reduction="auto"),
-            )
+        retina_net.compile(
+            optimizer="adam",
+            box_loss=keras_cv.losses.SmoothL1Loss(reduction="none"),
+            classification_loss=keras_cv.losses.FocalLoss(from_logits=True, reduction="auto"),
+        )
+
+        with self.assertRaisesRegex(ValueError, "output shape of `classification_loss`"):
+            retina_net.fit(x=xs, y=ys, epochs=1)
+
+        # all metric formats must match
+        retina_net.compile(
+            optimizer="adam",
+            box_loss=keras_cv.losses.SmoothL1Loss(reduction="auto"),
+            classification_loss=keras_cv.losses.FocalLoss(from_logits=True, reduction="none"),
+        )
+        with self.assertRaisesRegex(ValueError, "output shape of `box_loss`"):
+            retina_net.fit(x=xs, y=ys, epochs=1)
 
     def test_wrong_logits(self):
         retina_net = keras_cv.models.RetinaNet(

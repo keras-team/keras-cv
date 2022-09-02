@@ -261,15 +261,6 @@ class RetinaNet(ObjectDetectionBaseModel):
         self.classification_loss = classification_loss
         metrics = metrics or []
 
-        if (box_loss and box_loss.reduction != "none") or (
-            classification_loss and classification_loss.reduction != "none"
-        ):
-            raise ValueError(
-                "RetinaNet.compile() expects `reduction` to be 'none' "
-                "for both `box_loss` and `classification_loss`. "
-                f"got box_loss.reduction={box_loss.reduction}, "
-                f"classification_loss.reduction={classification_loss.reduction}"
-            )
         if hasattr(classification_loss, "from_logits"):
             if not classification_loss.from_logits:
                 raise ValueError(
@@ -340,8 +331,27 @@ class RetinaNet(ObjectDetectionBaseModel):
         classification_loss = tf.where(
             tf.equal(ignore_mask, 1.0), 0.0, classification_loss
         )
+
+        if len(classification_loss.shape) != 2:
+            raise ValueError(
+                "RetinaNet expects the output shape of `classification_loss` to be "
+                "`(batch_size, num_anchor_boxes)`.  Expected "
+                f"classification_loss(predictions)={box_predictions.shape[:2]}, got "
+                f"classification_loss(predictions)={classification_loss.shape}. "
+                "Try passing `reduction='none'` to your classification_loss's "
+                "constructor."
+            )
         box_loss = tf.where(tf.equal(positive_mask, 1.0), box_loss, 0.0)
 
+        if len(box_loss.shape) != 2:
+            raise ValueError(
+                "RetinaNet expects the output shape of `box_loss` to be "
+                "`(batch_size, num_anchor_boxes)`.  Expected "
+                f"box_loss(predictions)={box_predictions.shape[:2]}, got "
+                f"box_loss(predictions)={box_loss.shape}. "
+                "Try passing `reduction='none'` to your box_loss's "
+                "constructor."
+            )
         normalizer = tf.reduce_sum(positive_mask, axis=-1)
         classification_loss = tf.math.divide_no_nan(
             tf.reduce_sum(classification_loss, axis=-1), normalizer
@@ -350,10 +360,6 @@ class RetinaNet(ObjectDetectionBaseModel):
         return classification_loss, box_loss
 
     def _backward(self, y_true, y_pred):
-        # predictions technically do not have a format, so loss accepts whatever
-        # is output by the model.  This actually causes scaling issues if you use
-        # a rel_ format, or a different format.
-        # TODO(lukewood): allow distinct 'classification' and 'box' loss metrics
         classification_loss, box_loss = self.compute_losses(
             y_true,
             y_pred,
