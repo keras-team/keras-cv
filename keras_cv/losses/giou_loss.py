@@ -128,9 +128,7 @@ class GIoULoss(tf.keras.losses.Loss):
         if boxes1_rank == 2:
             return compute_giou_for_batch((boxes1, boxes2))
         else:
-            return tf.vectorized_map(
-                compute_giou_for_batch, elems=(boxes1, boxes2)
-            )
+            return tf.vectorized_map(compute_giou_for_batch, elems=(boxes1, boxes2))
 
     def call(self, y_true, y_pred):
         y_pred = tf.convert_to_tensor(y_pred)
