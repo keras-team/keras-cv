@@ -126,7 +126,7 @@ class RetinaNetTest(tf.test.TestCase):
         retina_net.compile(
             optimizer="adam",
             box_loss=keras_cv.losses.SmoothL1Loss(reduction="none"),
-            classification_loss=keras_cv.losses.FocalLoss(from_logits=True, reduction="auto"),
+            classification_loss=keras_cv.losses.FocalLoss(from_logits=True, reduction="sum"),
         )
 
         with self.assertRaisesRegex(ValueError, "output shape of `classification_loss`"):
@@ -135,7 +135,7 @@ class RetinaNetTest(tf.test.TestCase):
         # all metric formats must match
         retina_net.compile(
             optimizer="adam",
-            box_loss=keras_cv.losses.SmoothL1Loss(reduction="auto"),
+            box_loss=keras_cv.losses.SmoothL1Loss(reduction="sum"),
             classification_loss=keras_cv.losses.FocalLoss(from_logits=True, reduction="none"),
         )
         with self.assertRaisesRegex(ValueError, "output shape of `box_loss`"):

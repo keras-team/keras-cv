@@ -327,11 +327,6 @@ class RetinaNet(ObjectDetectionBaseModel):
 
         classification_loss = self.classification_loss(cls_labels, cls_predictions)
         box_loss = self.box_loss(box_labels, box_predictions)
-
-        classification_loss = tf.where(
-            tf.equal(ignore_mask, 1.0), 0.0, classification_loss
-        )
-
         if len(classification_loss.shape) != 2:
             raise ValueError(
                 "RetinaNet expects the output shape of `classification_loss` to be "
@@ -341,8 +336,6 @@ class RetinaNet(ObjectDetectionBaseModel):
                 "Try passing `reduction='none'` to your classification_loss's "
                 "constructor."
             )
-        box_loss = tf.where(tf.equal(positive_mask, 1.0), box_loss, 0.0)
-
         if len(box_loss.shape) != 2:
             raise ValueError(
                 "RetinaNet expects the output shape of `box_loss` to be "
@@ -352,6 +345,12 @@ class RetinaNet(ObjectDetectionBaseModel):
                 "Try passing `reduction='none'` to your box_loss's "
                 "constructor."
             )
+        classification_loss = tf.where(
+            tf.equal(ignore_mask, 1.0), 0.0, classification_loss
+        )
+
+        box_loss = tf.where(tf.equal(positive_mask, 1.0), box_loss, 0.0)
+
         normalizer = tf.reduce_sum(positive_mask, axis=-1)
         classification_loss = tf.math.divide_no_nan(
             tf.reduce_sum(classification_loss, axis=-1), normalizer
