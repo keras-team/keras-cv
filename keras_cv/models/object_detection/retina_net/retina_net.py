@@ -261,6 +261,15 @@ class RetinaNet(ObjectDetectionBaseModel):
         self.classification_loss = classification_loss
         metrics = metrics or []
 
+        if (box_loss and box_loss.reduction != "none") or (
+            classification_loss and classification_loss.reduction != "none"
+        ):
+            raise ValueError(
+                "RetinaNet.compile() expects `reduction` to be 'none' "
+                "for both `box_loss` and `classification_loss`. "
+                f"got box_loss.reduction={box_loss.reduction}, "
+                f"classification_loss.reduction={classification_loss.reduction}"
+            )
         if hasattr(classification_loss, "from_logits"):
             if not classification_loss.from_logits:
                 raise ValueError(
@@ -332,12 +341,12 @@ class RetinaNet(ObjectDetectionBaseModel):
             tf.equal(ignore_mask, 1.0), 0.0, classification_loss
         )
         box_loss = tf.where(tf.equal(positive_mask, 1.0), box_loss, 0.0)
+
         normalizer = tf.reduce_sum(positive_mask, axis=-1)
         classification_loss = tf.math.divide_no_nan(
             tf.reduce_sum(classification_loss, axis=-1), normalizer
         )
         box_loss = tf.math.divide_no_nan(tf.reduce_sum(box_loss, axis=-1), normalizer)
-
         return classification_loss, box_loss
 
     def _backward(self, y_true, y_pred):
