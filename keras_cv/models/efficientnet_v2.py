@@ -28,6 +28,9 @@ import tensorflow as tf
 from keras import backend
 from keras import layers
 
+from keras_cv.models import utils
+from keras_cv.models.weights import parse_weights
+
 DEFAULT_BLOCKS_ARGS = {
     "efficientnetv2-s": [
         {
@@ -531,6 +534,8 @@ BASE_DOCSTRING = """Instantiates the {name} architecture.
                 or the path to the weights file to be loaded.
         input_shape: Optional shape tuple.
             It should have exactly 3 inputs channels.
+        input_tensor: optional Keras tensor (i.e. output of `layers.Input()`)
+            to use as image input for the model.
         pooling: Optional pooling mode for feature extraction
             when `include_top` is `False`. Defaults to None.
             - `None` means that the output of the model will be
@@ -803,6 +808,7 @@ def EfficientNetV2(
     model_name="efficientnet",
     weights=None,
     input_shape=(None, None, 3),
+    input_tensor=None,
     pooling=None,
     num_classes=None,
     classifier_activation="softmax",
@@ -830,6 +836,8 @@ def EfficientNetV2(
             or the path to the weights file to be loaded.
         input_shape: optional shape tuple,
             It should have exactly 3 inputs channels.
+        input_tensor: optional Keras tensor (i.e. output of `layers.Input()`)
+            to use as image input for the model.
         pooling: optional pooling mode for feature extraction
             when `include_top` is `False`.
             - `None` means that the output of the model will be
@@ -880,24 +888,13 @@ def EfficientNetV2(
         )
 
     # Determine proper input shape
-
-    img_input = layers.Input(shape=input_shape)
+    img_input = utils.parse_model_inputs(input_shape, input_tensor)
 
     x = img_input
 
     if include_rescaling:
-        # Apply original V1 preprocessing for Bx variants
-        # if number of channels allows it
-        num_channels = input_shape[BN_AXIS - 1]
-        if model_name.split("-")[-1].startswith("b") and num_channels == 3:
-            x = layers.Rescaling(scale=1.0 / 255)(x)
-            x = layers.Normalization(
-                mean=[0.485, 0.456, 0.406],
-                variance=[0.229**2, 0.224**2, 0.225**2],
-                axis=BN_AXIS,
-            )(x)
-        else:
-            x = layers.Rescaling(scale=1.0 / 128.0, offset=-1)(x)
+        # Use common rescaling strategy across keras_cv
+        x = layers.Rescaling(scale=1.0 / 128.0, offset=-1)(x)
 
     # Build stem
     stem_filters = round_filters(
@@ -1024,6 +1021,7 @@ def EfficientNetV2B0(
     include_top,
     weights=None,
     input_shape=(None, None, 3),
+    input_tensor=None,
     pooling=None,
     num_classes=None,
     classifier_activation="softmax",
@@ -1036,8 +1034,13 @@ def EfficientNetV2B0(
         depth_coefficient=1.0,
         default_size=224,
         model_name="efficientnetv2-b0",
+<<<<<<< HEAD
         weights=weights,
+=======
+        weights=parse_weights(weights, include_top, "eefficientnetv2-b0"),
+>>>>>>> 7a8c67cf (fixed efficientnets)
         input_shape=input_shape,
+        input_tensor=input_tensor,
         pooling=pooling,
         num_classes=num_classes,
         classifier_activation=classifier_activation,
@@ -1050,6 +1053,7 @@ def EfficientNetV2B1(
     include_top,
     weights=None,
     input_shape=(None, None, 3),
+    input_tensor=None,
     pooling=None,
     num_classes=None,
     classifier_activation="softmax",
@@ -1062,8 +1066,13 @@ def EfficientNetV2B1(
         depth_coefficient=1.1,
         default_size=240,
         model_name="efficientnetv2-b1",
+<<<<<<< HEAD
         weights=weights,
+=======
+        weights=parse_weights(weights, include_top, "eefficientnetv2-b1"),
+>>>>>>> 7a8c67cf (fixed efficientnets)
         input_shape=input_shape,
+        input_tensor=input_tensor,
         pooling=pooling,
         num_classes=num_classes,
         classifier_activation=classifier_activation,
@@ -1076,6 +1085,7 @@ def EfficientNetV2B2(
     include_top,
     weights=None,
     input_shape=(None, None, 3),
+    input_tensor=None,
     pooling=None,
     num_classes=None,
     classifier_activation="softmax",
@@ -1088,8 +1098,13 @@ def EfficientNetV2B2(
         depth_coefficient=1.2,
         default_size=260,
         model_name="efficientnetv2-b2",
+<<<<<<< HEAD
         weights=weights,
+=======
+        weights=parse_weights(weights, include_top, "eefficientnetv2-b2"),
+>>>>>>> 7a8c67cf (fixed efficientnets)
         input_shape=input_shape,
+        input_tensor=input_tensor,
         pooling=pooling,
         num_classes=num_classes,
         classifier_activation=classifier_activation,
@@ -1102,6 +1117,7 @@ def EfficientNetV2B3(
     include_top,
     weights=None,
     input_shape=(None, None, 3),
+    input_tensor=None,
     pooling=None,
     num_classes=None,
     classifier_activation="softmax",
@@ -1114,8 +1130,13 @@ def EfficientNetV2B3(
         depth_coefficient=1.4,
         default_size=300,
         model_name="efficientnetv2-b3",
+<<<<<<< HEAD
         weights=weights,
+=======
+        weights=parse_weights(weights, include_top, "eefficientnetv2-b3"),
+>>>>>>> 7a8c67cf (fixed efficientnets)
         input_shape=input_shape,
+        input_tensor=input_tensor,
         pooling=pooling,
         num_classes=num_classes,
         classifier_activation=classifier_activation,
@@ -1128,6 +1149,7 @@ def EfficientNetV2S(
     include_top,
     weights=None,
     input_shape=(None, None, 3),
+    input_tensor=None,
     pooling=None,
     num_classes=None,
     classifier_activation="softmax",
@@ -1140,8 +1162,13 @@ def EfficientNetV2S(
         depth_coefficient=1.0,
         default_size=384,
         model_name="efficientnetv2-s",
+<<<<<<< HEAD
         weights=weights,
+=======
+        weights=parse_weights(weights, include_top, "efficientnetv2-s"),
+>>>>>>> 7a8c67cf (fixed efficientnets)
         input_shape=input_shape,
+        input_tensor=input_tensor,
         pooling=pooling,
         num_classes=num_classes,
         classifier_activation=classifier_activation,
@@ -1154,6 +1181,7 @@ def EfficientNetV2M(
     include_top,
     weights=None,
     input_shape=(None, None, 3),
+    input_tensor=None,
     pooling=None,
     num_classes=None,
     classifier_activation="softmax",
@@ -1166,8 +1194,13 @@ def EfficientNetV2M(
         depth_coefficient=1.0,
         default_size=480,
         model_name="efficientnetv2-m",
+<<<<<<< HEAD
         weights=weights,
+=======
+        weights=parse_weights(weights, include_top, "efficientnetv2-m"),
+>>>>>>> 7a8c67cf (fixed efficientnets)
         input_shape=input_shape,
+        input_tensor=input_tensor,
         pooling=pooling,
         num_classes=num_classes,
         classifier_activation=classifier_activation,
@@ -1180,6 +1213,7 @@ def EfficientNetV2L(
     include_top,
     weights=None,
     input_shape=(None, None, 3),
+    input_tensor=None,
     pooling=None,
     num_classes=None,
     classifier_activation="softmax",
@@ -1192,8 +1226,13 @@ def EfficientNetV2L(
         depth_coefficient=1.0,
         default_size=480,
         model_name="efficientnetv2-l",
+<<<<<<< HEAD
         weights=weights,
+=======
+        weights=parse_weights(weights, include_top, "efficientnetv2-l"),
+>>>>>>> 7a8c67cf (fixed efficientnets)
         input_shape=input_shape,
+        input_tensor=input_tensor,
         pooling=pooling,
         num_classes=num_classes,
         classifier_activation=classifier_activation,
