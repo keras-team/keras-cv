@@ -27,9 +27,11 @@ local unittest = base.BaseTest {
     |||
   ],
   command: [
+    'INTEGRATION=true',
     'pytest',
     'keras_cv',
   ],
+  env: 
 };
 
 std.manifestYamlDoc(unittest.oneshotJob, quote_keys=false)
