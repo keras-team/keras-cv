@@ -48,7 +48,7 @@ class ModelGardenFocalLoss(tf.keras.losses.Loss):
 
 
 class FocalLossModelGardenComparisonTest(tf.test.TestCase, parameterized.TestCase):
-    @parameterized.named_parameters(("sum", "sum"))
+    @parameterized.named_parameters(("sum_over_batch_size", "sum_over_batch_size"), ("auto", "auto"))
     def test_model_garden_implementation_has_same_outputs(self, reduction):
 
         focal_loss = FocalLoss(
