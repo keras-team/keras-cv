@@ -356,6 +356,25 @@ class RetinaNet(ObjectDetectionBaseModel):
             tf.reduce_sum(classification_loss, axis=-1), normalizer
         )
         box_loss = tf.math.divide_no_nan(tf.reduce_sum(box_loss, axis=-1), normalizer)
+
+        classification_loss = tf.reduce_sum(classification_loss, axis=-1)
+        box_loss = tf.reduce_sum(box_loss, axis=-1)
+
+        # ensure losses are scalars
+        # only runs at trace time
+        if tuple(classification_loss.shape) != ():
+            raise ValueError(
+                "Expected `classification_loss` to be a scalar by the "
+                "end of `compute_losses()`, instead got "
+                f"`classification_loss.shape={classification_loss.shape}`"
+            )
+        if tuple(box_loss.shape) != ():
+            raise ValueError(
+                "Expected `box_loss` to be a scalar by the "
+                "end of `compute_losses()`, instead got "
+                f"`box_loss.shape={box_loss.shape}`"
+            )
+
         return classification_loss, box_loss
 
     def _backward(self, y_true, y_pred):
