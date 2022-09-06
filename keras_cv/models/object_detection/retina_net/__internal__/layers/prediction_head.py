@@ -34,9 +34,6 @@ class PredictionHead(layers.Layer):
         super().__init__(**kwargs)
         self.output_filters = output_filters
         self.bias_initializer = bias_initializer
-        self.conv_layers = None
-
-    def build(self, input_shape):
         conv_layers = [
             layers.Conv2D(
                 256,
