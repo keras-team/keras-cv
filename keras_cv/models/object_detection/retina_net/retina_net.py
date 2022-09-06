@@ -88,7 +88,11 @@ class RetinaNet(ObjectDetectionBaseModel):
             by the library.  The default feature pyramid network is compatible with all
             standard keras_cv backbones.
         classification_head: (Optional) A `keras.Layer` that performs classification of
-            the bounding boxes.  If not provided, a single Conv layer will be used.
+            the bounding boxes.  If not provided, a simple ConvNet with 1 layer will be
+            used.
+        box_head: (Optional) A `keras.Layer` that performs regression of
+            the bounding boxes.  If not provided, a simple ConvNet with 1 layer will be
+            used.
         evaluate_train_time_metrics: (Optional) whether or not to evaluate metrics
             passed in `compile()` inside of the `train_step()`.  This is NOT
             recommended, as it dramatically reduces performance due to the synchronous
