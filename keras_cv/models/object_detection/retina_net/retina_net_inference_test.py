@@ -96,10 +96,10 @@ class RetinaNetTest(tf.test.TestCase):
 def _get_retina_net_layers(model):
     return [
         model.backbone,
+        model.feature_pyramid,
         model.prediction_decoder,
         model.anchor_generator,
         model.label_encoder,
-        model.feature_pyramid,
         model.classification_head,
         model.box_head,
     ]
