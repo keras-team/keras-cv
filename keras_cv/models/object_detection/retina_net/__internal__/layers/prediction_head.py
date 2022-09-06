@@ -16,9 +16,7 @@ import tensorflow as tf
 from tensorflow.keras import initializers
 from tensorflow.keras import layers
 
-
-@tf.keras.utils.register_keras_serializable(package="keras_cv")
-class PredictionHead(layers.Layer):
+def PredictionHead(output_filters, bias_initializer):
     """The class/box predictions head.
 
     Arguments:
@@ -29,42 +27,19 @@ class PredictionHead(layers.Layer):
       A function representing either the classification
         or the box regression head depending on `output_filters`.
     """
-
-    def __init__(self, output_filters, bias_initializer, **kwargs):
-        super().__init__(**kwargs)
-        self.output_filters = output_filters
-        self.bias_initializer = bias_initializer
-        conv_layers = [
-            layers.Conv2D(
-                256,
-                3,
-                padding="same",
-                kernel_initializer=initializers.RandomNormal(0.0, 0.01),
-                activation="relu",
-            )
-            for _ in range(4)
-        ]
-        conv_layers += [
-            layers.Conv2D(
-                self.output_filters,
-                3,
-                1,
-                padding="same",
-                kernel_initializer=initializers.RandomNormal(0.0, 0.01),
-                bias_initializer=self.bias_initializer,
-            )
-        ]
-        self.conv_layers = conv_layers
-
-    def call(self, x, training=False):
-        for layer in self.conv_layers:
-            x = layer(x)
-        return x
-
-    def get_config(self):
-        config = {
-            "bias_initializer": self.bias_initializer,
-            "output_filters": self.output_filters,
-        }
-        base_config = super().get_config()
-        return dict(list(base_config.items()) + list(config.items()))
+    return tf.keras.Sequential(
+        [layers.Conv2D(
+            256,
+            3,
+            padding="same",
+            kernel_initializer=initializers.RandomNormal(0.0, 0.01),
+            activation="relu",
+        ) for _ in range(4)] + [layers.Conv2D(
+            self.output_filters,
+            3,
+            1,
+            padding="same",
+            kernel_initializer=initializers.RandomNormal(0.0, 0.01),
+            bias_initializer=self.bias_initializer,
+        )]
+    )
