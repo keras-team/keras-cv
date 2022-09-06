@@ -37,7 +37,7 @@ class PredictionHead(layers.Layer):
         self.conv_layers = [
             layers.Conv2D(
                 256,
-                3,
+                kernel_size=1,
                 padding="same",
                 kernel_initializer=tf.keras.initializers.Orthogonal(),
                 activation="relu",
@@ -46,8 +46,8 @@ class PredictionHead(layers.Layer):
         ]
         self.prediction_layer = layers.Conv2D(
             self.output_filters,
-            3,
-            1,
+            kernel_size=3,
+            strides=1,
             padding="same",
             kernel_initializer=tf.keras.initializers.Orthogonal(),
             bias_initializer=self.bias_initializer,
