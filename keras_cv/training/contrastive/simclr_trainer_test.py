@@ -31,7 +31,8 @@ class SimCLRTrainerTest(tf.test.TestCase):
         images = tf.random.uniform((10, 512, 512, 3))
 
         simclr_without_probing.compile(
-            optimizer=optimizers.Adam(), loss=SimCLRLoss(temperature=0.5)
+            encoder_optimizer=optimizers.Adam(),
+            encoder_loss=SimCLRLoss(temperature=0.5),
         )
         simclr_without_probing.fit(images)
 

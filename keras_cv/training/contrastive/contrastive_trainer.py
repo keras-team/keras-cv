@@ -52,8 +52,8 @@ class ContrastiveTrainer(keras.Model):
     )
 
     trainer.compile(
-        optimizer=keras.optimizers.Adam(),
-        loss=keras_cv.losses.SimCLRLoss(temperature=0.5),
+        encoder_optimizer=keras.optimizers.Adam(),
+        encoder_loss=keras_cv.losses.SimCLRLoss(temperature=0.5),
         probe_optimizer=keras.optimizers.Adam(),
         probe_loss=keras.losses.CategoricalCrossentropy(from_logits=True),
         probe_metrics=[keras.metrics.CategoricalAccuracy(name="probe_accuracy")]
@@ -107,9 +107,21 @@ class ContrastiveTrainer(keras.Model):
             self.probe_metrics = []
 
     def compile(
-        self, probe_optimizer=None, probe_loss=None, probe_metrics=None, **kwargs
+        self,
+        encoder_loss,
+        encoder_optimizer,
+        encoder_metrics=None,
+        probe_optimizer=None,
+        probe_loss=None,
+        probe_metrics=None,
+        **kwargs,
     ):
-        super().compile(**kwargs)
+        super().compile(
+            loss=encoder_loss,
+            optimizer=encoder_optimizer,
+            metrics=encoder_metrics,
+            **kwargs,
+        )
 
         if self.probe and not probe_optimizer:
             raise ValueError(
@@ -118,6 +130,21 @@ class ContrastiveTrainer(keras.Model):
 
         if self.probe and not probe_loss:
             raise ValueError("`probe_loss` must be specified when a probe is included.")
+
+        if "loss" in kwargs:
+            raise ValueError(
+                "`loss` parameter in ContrastiveTrainer.compile is ambiguous. Please specify `encoder_loss` or `probe_loss`."
+            )
+
+        if "optimizer" in kwargs:
+            raise ValueError(
+                "`optimizer` parameter in ContrastiveTrainer.compile is ambiguous. Please specify `encoder_optimizer` or `probe_optimizer`."
+            )
+
+        if "metrics" in kwargs:
+            raise ValueError(
+                "`metrics` parameter in ContrastiveTrainer.compile is ambiguous. Please specify `encoder_metrics` or `probe_metrics`."
+            )
 
         if self.probe:
             self.probe_loss = probe_loss

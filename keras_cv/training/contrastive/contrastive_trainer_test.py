@@ -34,7 +34,8 @@ class ContrastiveTrainerTest(tf.test.TestCase):
         )
         with self.assertRaises(ValueError):
             trainer.compile(
-                optimizer=optimizers.Adam(), loss=SimCLRLoss(temperature=0.5)
+                encoder_optimizer=optimizers.Adam(),
+                encoder_loss=SimCLRLoss(temperature=0.5),
             )
 
     def test_targets_required_if_probing(self):
@@ -54,13 +55,14 @@ class ContrastiveTrainerTest(tf.test.TestCase):
         images = tf.random.uniform((1, 50, 50, 3))
 
         trainer_with_probing.compile(
-            optimizer=optimizers.Adam(),
-            loss=SimCLRLoss(temperature=0.5),
+            encoder_optimizer=optimizers.Adam(),
+            encoder_loss=SimCLRLoss(temperature=0.5),
             probe_optimizer=optimizers.Adam(),
             probe_loss=keras.losses.CategoricalCrossentropy(from_logits=True),
         )
         trainer_without_probing.compile(
-            optimizer=optimizers.Adam(), loss=SimCLRLoss(temperature=0.5)
+            encoder_optimizer=optimizers.Adam(),
+            encoder_loss=SimCLRLoss(temperature=0.5),
         )
 
         with self.assertRaises(ValueError):
@@ -78,8 +80,8 @@ class ContrastiveTrainerTest(tf.test.TestCase):
         targets = tf.ones((1, 20))
 
         trainer_with_probing.compile(
-            optimizer=optimizers.Adam(),
-            loss=SimCLRLoss(temperature=0.5),
+            encoder_optimizer=optimizers.Adam(),
+            encoder_loss=SimCLRLoss(temperature=0.5),
             probe_metrics=[metrics.TopKCategoricalAccuracy(3, "top3_probe_accuracy")],
             probe_optimizer=optimizers.Adam(),
             probe_loss=keras.losses.CategoricalCrossentropy(from_logits=True),
@@ -99,7 +101,8 @@ class ContrastiveTrainerTest(tf.test.TestCase):
         targets = tf.ones((1, 20))
 
         trainer_without_probing.compile(
-            optimizer=optimizers.Adam(), loss=SimCLRLoss(temperature=0.5)
+            encoder_optimizer=optimizers.Adam(),
+            encoder_loss=SimCLRLoss(temperature=0.5),
         )
 
         trainer_without_probing.fit(images)
@@ -112,7 +115,10 @@ class ContrastiveTrainerTest(tf.test.TestCase):
             projector=self.build_projector(),
             probe=None,
         )
-        trainer.compile(optimizer=optimizers.Adam(), loss=SimCLRLoss(temperature=0.5))
+        trainer.compile(
+            encoder_optimizer=optimizers.Adam(),
+            encoder_loss=SimCLRLoss(temperature=0.5),
+        )
 
         with self.assertRaises(NotImplementedError):
             trainer(tf.ones((1, 50, 50, 3)))
@@ -146,7 +152,8 @@ class ContrastiveTrainerTest(tf.test.TestCase):
         images = tf.random.uniform((1, 50, 50, 3))
 
         trainer_without_probing.compile(
-            optimizer=optimizers.Adam(), loss=SimCLRLoss(temperature=0.5)
+            encoder_optimizer=optimizers.Adam(),
+            encoder_loss=SimCLRLoss(temperature=0.5),
         )
 
         trainer_without_probing.fit(images)
