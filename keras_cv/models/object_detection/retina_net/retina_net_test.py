@@ -210,16 +210,22 @@ class RetinaNetTest(tf.test.TestCase):
         _ = retina_net(xs)
         original_fpn_weights = retina_net.feature_pyramid.get_weights()
         original_box_head_weights = retina_net.box_head.get_weights()
-        original_classification_head_weights = retina_net.classification_head.get_weights()
+        original_classification_head_weights = (
+            retina_net.classification_head.get_weights()
+        )
 
         retina_net.fit(x=xs, y=ys, epochs=1)
         fpn_after_fit = retina_net.feature_pyramid.get_weights()
         box_head_after_fit_weights = retina_net.box_head.get_weights()
-        classification_head_after_fit_weights = retina_net.classification_head.get_weights()
+        classification_head_after_fit_weights = (
+            retina_net.classification_head.get_weights()
+        )
 
         # print('after_fit', after_fit)
 
-        for w1, w2 in zip(original_classification_head_weights, classification_head_after_fit_weights):
+        for w1, w2 in zip(
+            original_classification_head_weights, classification_head_after_fit_weights
+        ):
             self.assertNotAllClose(w1, w2)
 
         for w1, w2 in zip(original_box_head_weights, box_head_after_fit_weights):
