@@ -30,7 +30,7 @@ class PredictionHead(layers.Layer):
         or the box regression head depending on `output_filters`.
     """
 
-    def __init__(self, output_filters, bias_initializer, **kwargs):
+    def __init__(self, output_filters, bias_initializer, conv_layers=1, **kwargs):
         super().__init__(**kwargs)
         self.output_filters = output_filters
         self.bias_initializer = bias_initializer
@@ -39,10 +39,9 @@ class PredictionHead(layers.Layer):
                 256,
                 3,
                 padding="same",
-                kernel_initializer=initializers.RandomNormal(0.0, 0.01),
                 activation="relu",
             )
-            for _ in range(4)
+            for _ in range(conv_layers)
         ]
         conv_layers += [
             layers.Conv2D(
@@ -50,7 +49,6 @@ class PredictionHead(layers.Layer):
                 3,
                 1,
                 padding="same",
-                kernel_initializer=initializers.RandomNormal(0.0, 0.01),
                 bias_initializer=self.bias_initializer,
             )
         ]

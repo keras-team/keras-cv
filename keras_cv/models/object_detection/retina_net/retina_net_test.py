@@ -185,6 +185,31 @@ class RetinaNetTest(tf.test.TestCase):
             box_loss=keras_cv.losses.SmoothL1Loss(l1_cutoff=1.0, reduction="none"),
         )
 
+    def test_weights_contained_in_trainable_variables(self):
+        bounding_box_format = "xywh"
+        retina_net = keras_cv.models.RetinaNet(
+            classes=1,
+            bounding_box_format=bounding_box_format,
+            backbone="resnet50",
+            backbone_weights=None,
+            include_rescaling=False,
+            evaluate_train_time_metrics=False,
+        )
+        retina_net.backbone.trainable = False
+        retina_net.compile(
+            optimizer=optimizers.Adam(),
+            classification_loss=keras_cv.losses.FocalLoss(
+                from_logits=True, reduction="none"
+            ),
+            box_loss=keras_cv.losses.SmoothL1Loss(l1_cutoff=1.0, reduction="none"),
+            metrics=[],
+        )
+        xs, ys = _create_bounding_box_dataset(bounding_box_format)
+
+        # call once
+        _ = retina_net(xs)
+        print([x.name for x in retina_net.trainable_variables])
+
     def test_weights_change(self):
         bounding_box_format = "xywh"
         retina_net = keras_cv.models.RetinaNet(
