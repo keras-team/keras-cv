@@ -67,6 +67,16 @@ class RetinaNetTest(tf.test.TestCase):
         self.assertNotEqual(new_decoder.suppression_layer.iou_threshold, pretrained_decoder.suppression_layer.iou_threshold)
 
 
+    def test_savedmodel_creation(self):
+        x, y = _create_bounding_box_dataset(bounding_box_format="xywh")
+        pretrained_retina_net, new_retina_net = _create_retina_nets(x, y, epochs=1)
+
+        tmp = tempfile.mkdtemp()
+        pretrained_retina_net.save(f"{tmp}/checkpoint/")
+        load_model = tf.saved_model.load(f"{tmp}/checkpoint/")
+        _ = load_model(x)
+
+
     @pytest.mark.skipif(os.name == "nt", reason="tempfile does not work on windows")
     def test_weight_loading(self):
         x, y = _create_bounding_box_dataset(bounding_box_format="xywh")
