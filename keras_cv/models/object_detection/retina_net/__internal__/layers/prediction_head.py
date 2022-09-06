@@ -35,11 +35,11 @@ def PredictionHead(output_filters, bias_initializer):
             kernel_initializer=initializers.RandomNormal(0.0, 0.01),
             activation="relu",
         ) for _ in range(4)] + [layers.Conv2D(
-            self.output_filters,
+            output_filters,
             3,
             1,
             padding="same",
             kernel_initializer=initializers.RandomNormal(0.0, 0.01),
-            bias_initializer=self.bias_initializer,
+            bias_initializer=bias_initializer,
         )]
     )
