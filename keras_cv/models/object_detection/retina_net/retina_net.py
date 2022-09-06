@@ -87,6 +87,8 @@ class RetinaNet(ObjectDetectionBaseModel):
             networks.  If not provided, a default feature pyramid neetwork is produced
             by the library.  The default feature pyramid network is compatible with all
             standard keras_cv backbones.
+        classification_head: (Optional) A `keras.Layer` that performs classification of
+            the bounding boxes.  If not provided, a single Conv layer will be used.
         evaluate_train_time_metrics: (Optional) whether or not to evaluate metrics
             passed in `compile()` inside of the `train_step()`.  This is NOT
             recommended, as it dramatically reduces performance due to the synchronous
@@ -107,6 +109,8 @@ class RetinaNet(ObjectDetectionBaseModel):
         label_encoder=None,
         prediction_decoder=None,
         feature_pyramid=None,
+        classification_head=None,
+        box_head=None,
         evaluate_train_time_metrics=False,
         name="RetinaNet",
         **kwargs,
@@ -158,14 +162,17 @@ class RetinaNet(ObjectDetectionBaseModel):
         # initialize trainable networks
         self.feature_pyramid = feature_pyramid or layers_lib.FeaturePyramid()
         prior_probability = tf.constant_initializer(-np.log((1 - 0.01) / 0.01))
-        self.classification_head = layers_lib.PredictionHead(
+
+        self.classification_head = classification_head or layers_lib.PredictionHead(
             output_filters=9 * classes, bias_initializer=prior_probability
         )
         self.classification_head.trainable = False
+        
         self.box_head = layers_lib.PredictionHead(
             output_filters=9 * 4, bias_initializer="zeros"
         )
         self.box_head.trainable = False
+
         self._metrics_bounding_box_format = None
         self.loss_metric = tf.keras.metrics.Mean(name="loss")
         self.classification_loss_metric = tf.keras.metrics.Mean(

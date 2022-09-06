@@ -30,11 +30,12 @@ class PredictionHead(layers.Layer):
         or the box regression head depending on `output_filters`.
     """
 
-    def __init__(self, output_filters, bias_initializer, conv_layers=4, **kwargs):
+    def __init__(self, output_filters, bias_initializer, num_conv_layers=0, **kwargs):
         super().__init__(**kwargs)
         self.output_filters = output_filters
         self.bias_initializer = bias_initializer
-        conv_layers = [
+
+        self.conv_layers = [
             layers.Conv2D(
                 256,
                 3,
@@ -44,27 +45,26 @@ class PredictionHead(layers.Layer):
             )
             for _ in range(conv_layers)
         ]
-        conv_layers += [
-            layers.Conv2D(
-                self.output_filters,
-                3,
-                1,
-                padding="same",
-                kernel_initializer=initializers.RandomNormal(0.0, 0.01),
-                bias_initializer=self.bias_initializer,
-            )
-        ]
-        self.conv_layers = conv_layers
+        self.prediction_layer = layers.Conv2D(
+            self.output_filters,
+            3,
+            1,
+            padding="same",
+            kernel_initializer=initializers.RandomNormal(0.0, 0.01),
+            bias_initializer=self.bias_initializer,
+        )
 
     def call(self, x, training=False):
         for layer in self.conv_layers:
             x = layer(x, training=training)
+        x = self.prediction_layer(x, training=training)
         return x
 
     def get_config(self):
         config = {
             "bias_initializer": self.bias_initializer,
             "output_filters": self.output_filters,
+            "conv_layers": self.num_conv_layers
         }
         base_config = super().get_config()
         return dict(list(base_config.items()) + list(config.items()))
