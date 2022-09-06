@@ -67,18 +67,12 @@ class RetinaNetTest(tf.test.TestCase):
             ):
                 self.assertAllEqual(weight, weight_new)
 
-        # manually check layers to make sure nothing is missed
+        # manually check layers to make sure nothing is missed in `get_weights()`
         for layer_original, layer_new in zip(retina_net.layers, new_retina_net.layers):
             for weight, weight_new in zip(
                 layer_original.get_weights(), layer_new.get_weights()
             ):
                 self.assertAllEqual(weight, weight_new)
-
-        # check if all weights that show up via `get_weights()` are loaded
-        for retina_net_weight, post_load_weight in zip(
-            retina_net.get_weights(), new_retina_net.get_weights()
-        ):
-            self.assertAllEqual(retina_net_weight, post_load_weight)
 
     @pytest.mark.skipif(
         "INTEGRATION" not in os.environ or os.environ["INTEGRATION"] != "true",
