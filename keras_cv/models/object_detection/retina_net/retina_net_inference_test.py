@@ -30,19 +30,19 @@ class RetinaNetTest(tf.test.TestCase):
 
     def test_weight_setting(self):
         x, y = _create_bounding_box_dataset(bounding_box_format="xywh")
-        retina_net, new_retina_net = _create_retina_nets(x, y, epochs=1)
+        pretrained_retina_net, new_retina_net = _create_retina_nets(x, y, epochs=1)
 
-        new_retina_net.set_weights(retina_net.get_weights())
+        new_retina_net.set_weights(pretrained_retina_net.get_weights())
 
         # check if all weights that show up via `get_weights()` are loaded
         for retina_net_weight, post_load_weight in zip(
-            retina_net.get_weights(), new_retina_net.get_weights()
+            pretrained_retina_net.get_weights(), new_retina_net.get_weights()
         ):
             self.assertAllEqual(retina_net_weight, post_load_weight)
 
         for layer_original, layer_new in zip(
             # manually check layers to make sure nothing is missed
-            _get_retina_net_layers(retina_net),
+            _get_retina_net_layers(pretrained_retina_net),
             _get_retina_net_layers(new_retina_net),
         ):
             for weight, weight_new in zip(
@@ -50,18 +50,36 @@ class RetinaNetTest(tf.test.TestCase):
             ):
                 self.assertAllEqual(weight, weight_new)
 
+    def test_decoder_doesnt_get_updated(self):
+        x, y = _create_bounding_box_dataset(bounding_box_format="xywh")
+        pretrained_retina_net, new_retina_net = _create_retina_nets(x, y, epochs=1, custom_decoder=True)
+        new_retina_net.set_weights(pretrained_retina_net.get_weights())
+
+        # check if all weights that show up via `get_weights()` are loaded
+        for retina_net_weight, post_load_weight in zip(
+            pretrained_retina_net.get_weights(), new_retina_net.get_weights()
+        ):
+            self.assertAllEqual(retina_net_weight, post_load_weight)
+
+        pretrained_decoder = pretrained_retina_net.prediction_decoder
+        new_decoder = new_retina_net.prediction_decoder
+        self.assertEqual(new_decoder.suppression_layer.iou_threshold, 0.75)
+        self.assertNotEqual(new_decoder.suppression_layer.iou_threshold, pretrained_decoder.suppression_layer.iou_threshold)
+
+
     @pytest.mark.skipif(os.name == "nt", reason="tempfile does not work on windows")
     def test_weight_loading(self):
         x, y = _create_bounding_box_dataset(bounding_box_format="xywh")
-        retina_net, new_retina_net = _create_retina_nets(x, y, epochs=1)
+        pretrained_retina_net, new_retina_net = _create_retina_nets(x, y, epochs=1)
 
         tmp = tempfile.mkdtemp()
-        retina_net.save_weights(f"{tmp}/checkpoint.h5")
+        pretrained_retina_net.save_weights(f"{tmp}/checkpoint.h5")
         new_retina_net.load_weights(f"{tmp}/checkpoint.h5")
 
         # manually check layers to make sure nothing is missed
         for layer_original, layer_new in zip(
-            _get_retina_net_layers(retina_net), _get_retina_net_layers(new_retina_net)
+            _get_retina_net_layers(pretrained_retina_net),
+            _get_retina_net_layers(new_retina_net),
         ):
             for weight, weight_new in zip(
                 layer_original.get_weights(), layer_new.get_weights()
@@ -69,7 +87,9 @@ class RetinaNetTest(tf.test.TestCase):
                 self.assertAllEqual(weight, weight_new)
 
         # manually check layers to make sure nothing is missed in `get_weights()`
-        for layer_original, layer_new in zip(retina_net.layers, new_retina_net.layers):
+        for layer_original, layer_new in zip(
+            pretrained_retina_net.layers, new_retina_net.layers
+        ):
             for weight, weight_new in zip(
                 layer_original.get_weights(), layer_new.get_weights()
             ):
@@ -83,13 +103,13 @@ class RetinaNetTest(tf.test.TestCase):
     )
     def test_weight_loading_via_metrics(self):
         x, y = _create_bounding_box_dataset(bounding_box_format="xywh")
-        retina_net, new_retina_net = _create_retina_nets(x, y, epochs=30)
+        pretrained_retina_net, new_retina_net = _create_retina_nets(x, y, epochs=30)
 
         tmp = tempfile.mkdtemp()
-        retina_net.save_weights(f"{tmp}/checkpoint.h5")
+        pretrained_retina_net.save_weights(f"{tmp}/checkpoint.h5")
         new_retina_net.load_weights(f"{tmp}/checkpoint.h5")
 
-        metrics = retina_net.evaluate(x, y, return_dict=True)
+        metrics = pretrained_retina_net.evaluate(x, y, return_dict=True)
         new_metrics = new_retina_net.evaluate(x, y, return_dict=True)
 
         for key in metrics:
@@ -108,15 +128,15 @@ def _get_retina_net_layers(model):
     ]
 
 
-def _create_retina_nets(x, y, epochs=1):
-    retina_net = keras_cv.models.RetinaNet(
+def _create_retina_nets(x, y, epochs=1, custom_decoder=False):
+    pretrained_retina_net = keras_cv.models.RetinaNet(
         classes=20,
         bounding_box_format="xywh",
         backbone="resnet50",
         backbone_weights="imagenet",
         include_rescaling=True,
     )
-    retina_net.compile(
+    pretrained_retina_net.compile(
         classification_loss=keras_cv.losses.FocalLoss(
             from_logits=True,
             reduction="none",
@@ -136,16 +156,35 @@ def _create_retina_nets(x, y, epochs=1):
             ),
         ],
     )
-    retina_net.build((None, None, None, 3))
+    pretrained_retina_net.build((None, None, None, 3))
+    # we need to fit the pretrained retina net to ensure the classification_head and
+    # regression head get updated.
     if epochs != 0:
-        retina_net.fit(x, y, epochs=epochs)
+        pretrained_retina_net.fit(x, y, epochs=epochs)
 
+    # New RetinaNet is constructed with a custom prediction decoder, and no
+    # pretrained backbone weights
+    prediction_decoder = None
+    if custom_decoder:
+        prediction_decoder = keras_cv.layers.NmsPredictionDecoder(
+            bounding_box_format="xywh",
+            anchor_generator=keras_cv.models.RetinaNet.default_anchor_generator(
+                bounding_box_format="xywh"
+            ),
+            suppression_layer=keras_cv.layers.NonMaxSuppression(
+                iou_threshold=0.75,
+                bounding_box_format="xywh",
+                classes=20,
+                confidence_threshold=0.85,
+            ),
+        )
     new_retina_net = keras_cv.models.RetinaNet(
         classes=20,
         bounding_box_format="xywh",
         backbone="resnet50",
         backbone_weights=None,
         include_rescaling=True,
+        prediction_decoder=prediction_decoder
     )
     new_retina_net.compile(
         classification_loss=keras_cv.losses.FocalLoss(
@@ -168,7 +207,7 @@ def _create_retina_nets(x, y, epochs=1):
         ],
     )
     new_retina_net.build((None, None, None, 3))
-    return retina_net, new_retina_net
+    return pretrained_retina_net, new_retina_net
 
 
 def _create_bounding_box_dataset(bounding_box_format):
