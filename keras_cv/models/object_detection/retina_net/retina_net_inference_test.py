@@ -50,6 +50,7 @@ class RetinaNetTest(tf.test.TestCase):
             ):
                 self.assertAllEqual(weight, weight_new)
 
+    @pytest.mark.skipif(os.name == "nt", reason="tempfile does not work on windows")
     def test_weight_loading(self):
         x, y = _create_bounding_box_dataset(bounding_box_format="xywh")
         retina_net, new_retina_net = _create_retina_nets(x, y, epochs=1)
