@@ -88,7 +88,7 @@ class RetinaNetTest(tf.test.TestCase):
     )
     def test_weight_loading_via_metrics(self):
         x, y = _create_bounding_box_dataset(bounding_box_format="xywh")
-        retina_net, new_retina_net = _create_retina_nets(x, y, epochs=10)
+        retina_net, new_retina_net = _create_retina_nets(x, y, epochs=30)
 
         tmp = tempfile.mkdtemp()
         retina_net.save_weights(f"{tmp}/checkpoint.h5")
