@@ -50,11 +50,6 @@ class RetinaNetTest(tf.test.TestCase):
             ):
                 self.assertAllEqual(weight, weight_new)
 
-    def test_model_saving_savedmodel_format(self):
-        retina_net, new_retina_net = _create_retina_nets(x=None, y=None, epochs=0)
-        tmp = tempfile.mkdtemp()
-        retina_net.save(f"{tmp}/checkpoint/")
-
     def test_weight_loading(self):
         x, y = _create_bounding_box_dataset(bounding_box_format="xywh")
         retina_net, new_retina_net = _create_retina_nets(x, y, epochs=1)
