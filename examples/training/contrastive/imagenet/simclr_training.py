@@ -130,8 +130,8 @@ if FLAGS.include_probe:
     ]
 
 trainer.compile(
-    optimizer=optimizer,
-    loss=loss_fn,
+    encoder_optimizer=optimizer,
+    encoder_loss=loss_fn,
     probe_optimizer=optimizers.Adam(global_clipnorm=10),
     probe_metrics=training_metrics,
     probe_loss=probe_loss,
