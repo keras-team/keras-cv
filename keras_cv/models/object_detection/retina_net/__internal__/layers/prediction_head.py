@@ -39,7 +39,7 @@ class PredictionHead(layers.Layer):
                 256,
                 3,
                 padding="same",
-                kernel_initializer=initializers.RandomNormal(0.0, 0.01),
+                kernel_initializer=tf.keras.initializers.Orthogonal(),
                 activation="relu",
             )
             for _ in range(num_conv_layers)
@@ -49,7 +49,7 @@ class PredictionHead(layers.Layer):
             3,
             1,
             padding="same",
-            kernel_initializer=initializers.RandomNormal(0.0, 0.01),
+            kernel_initializer=tf.keras.initializers.Orthogonal(),
             bias_initializer=self.bias_initializer,
         )
 
@@ -63,7 +63,7 @@ class PredictionHead(layers.Layer):
         config = {
             "bias_initializer": self.bias_initializer,
             "output_filters": self.output_filters,
-            "conv_layers": self.num_conv_layers
+            "num_conv_layers": self.num_conv_layers
         }
         base_config = super().get_config()
         return dict(list(base_config.items()) + list(config.items()))
