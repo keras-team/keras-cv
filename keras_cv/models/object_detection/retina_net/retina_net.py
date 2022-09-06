@@ -222,9 +222,14 @@ class RetinaNet(ObjectDetectionBaseModel):
         cls_outputs = []
         box_outputs = []
         for feature in features:
-            box_outputs.append(tf.reshape(self.box_head(feature), [N, -1, 4]))
+            box_outputs.append(
+                tf.reshape(self.box_head(feature, training=training), [N, -1, 4])
+            )
             cls_outputs.append(
-                tf.reshape(self.classification_head(feature), [N, -1, self.classes])
+                tf.reshape(
+                    self.classification_head(feature, training=training),
+                    [N, -1, self.classes],
+                )
             )
 
         cls_outputs = tf.concat(cls_outputs, axis=1)
