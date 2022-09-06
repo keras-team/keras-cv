@@ -161,9 +161,11 @@ class RetinaNet(ObjectDetectionBaseModel):
         self.classification_head = layers_lib.PredictionHead(
             output_filters=9 * classes, bias_initializer=prior_probability
         )
+        self.classification_head.trainable = False
         self.box_head = layers_lib.PredictionHead(
             output_filters=9 * 4, bias_initializer="zeros"
         )
+        self.box_head.trainable = False
         self._metrics_bounding_box_format = None
         self.loss_metric = tf.keras.metrics.Mean(name="loss")
         self.classification_loss_metric = tf.keras.metrics.Mean(

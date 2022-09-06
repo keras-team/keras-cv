@@ -112,7 +112,7 @@ class RandomFlip(BaseImageAugmentationLayer):
 
     def _flip_bounding_boxes_horizontal(bounding_boxes):
         x1, x2, x3, x4, rest = tf.split(
-            bounding_boxes, [1, 1, 1, 1, bounding_boxes.shape[-1] - 4], axis=-1
+            bounding_boxes, [1, 1, 1, 1, tf.shape(bounding_boxes)[-1] - 4], axis=-1
         )
         output = tf.stack(
             [
@@ -130,7 +130,7 @@ class RandomFlip(BaseImageAugmentationLayer):
 
     def _flip_bounding_boxes_vertical(bounding_boxes):
         x1, x2, x3, x4, rest = tf.split(
-            bounding_boxes, [1, 1, 1, 1, bounding_boxes.shape[-1] - 4], axis=-1
+            bounding_boxes, [1, 1, 1, 1, tf.shape(bounding_boxes)[-1] - 4], axis=-1
         )
         output = tf.stack(
             [
@@ -171,11 +171,6 @@ class RandomFlip(BaseImageAugmentationLayer):
             transformation["flip_vertical"],
             lambda: RandomFlip._flip_bounding_boxes_vertical(bounding_boxes),
             lambda: bounding_boxes,
-        )
-        bounding_boxes = bounding_box.clip_to_image(
-            bounding_boxes,
-            bounding_box_format="rel_xyxy",
-            images=image,
         )
         bounding_boxes = bounding_box.convert_format(
             bounding_boxes,
