@@ -29,7 +29,6 @@ class PredictionHead(layers.Layer):
       A function representing either the classification
         or the box regression head depending on `output_filters`.
     """
-
     def __init__(self, output_filters, bias_initializer, num_conv_layers=0, **kwargs):
         super().__init__(**kwargs)
         self.output_filters = output_filters

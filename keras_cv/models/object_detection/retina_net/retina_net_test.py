@@ -304,9 +304,9 @@ class RetinaNetTest(tf.test.TestCase):
         for _ in range(50):
             history = retina_net.fit(x=xs, y=ys, epochs=1)
             metrics = history.history
-            metrics = [metrics["loss"], metrics["Recall"], metrics["MaP"]]
+            metrics = [metrics["Recall"], metrics["MaP"]]
             metrics = [statistics.mean(metric) for metric in metrics]
-            nonzero = [x != 0.0 for x in metrics]
+            nonzero = [x > 0.3 for x in metrics]
             if all(nonzero):
                 return
         raise ValueError("Did not achieve better than 0.5 for all metrics in 50 epochs")
