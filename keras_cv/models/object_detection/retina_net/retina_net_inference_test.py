@@ -94,8 +94,8 @@ class RetinaNetTest(tf.test.TestCase):
         retina_net.save_weights(f"{tmp}/checkpoint.h5")
         new_retina_net.load_weights(f"{tmp}/checkpoint.h5")
 
-        metrics = retina_net.evaluate(x, y)
-        new_metrics = new_retina_net.evaluate(x, y)
+        metrics = retina_net.evaluate(x, y, return_dict=True)
+        new_metrics = new_retina_net.evaluate(x, y, return_dict=True)
 
         for key in metrics:
             self.assertEqual(metrics[key], new_metrics[key])
