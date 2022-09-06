@@ -157,7 +157,7 @@ class RetinaNet(ObjectDetectionBaseModel):
         self.classes = classes
         self.backbone = _parse_backbone(backbone, include_rescaling, backbone_weights)
 
-        self.prediction_decoder = prediction_decoder or cv_layers.NmsPredictionDecoder(
+        self._prediction_decoder = prediction_decoder or cv_layers.NmsPredictionDecoder(
             bounding_box_format=bounding_box_format,
             anchor_generator=anchor_generator,
             classes=classes,
@@ -199,6 +199,17 @@ class RetinaNet(ObjectDetectionBaseModel):
                 f"`prediction_decoder.box_variance={prediction_decoder.box_variance}`, "
                 f"`label_encoder.box_variance={label_encoder.box_variance}`."
             )
+
+    @property
+    def prediction_decoder(self):
+        return self._prediction_decoder
+
+    @prediction_decoder.setter
+    def prediction_decoder(self, prediction_decoder):
+        self._prediction_decoder = prediction_decoder
+        self.make_predict_function(force=True)
+        self.make_test_function(force=True)
+        self.make_train_function(force=True)
 
     @staticmethod
     def default_anchor_generator(bounding_box_format):

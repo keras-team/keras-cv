@@ -302,7 +302,7 @@ class RetinaNetTest(tf.test.TestCase):
         xs, ys = _create_bounding_box_dataset(bounding_box_format)
 
         for _ in range(50):
-            history = retina_net.fit(x=xs, y=ys, epochs=1)
+            history = retina_net.fit(x=xs, y=ys, epochs=10)
             metrics = history.history
             metrics = [metrics["Recall"], metrics["MaP"]]
             metrics = [statistics.mean(metric) for metric in metrics]

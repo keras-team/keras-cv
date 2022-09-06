@@ -71,6 +71,7 @@ class RetinaNetTest(tf.test.TestCase):
             pretrained_decoder.suppression_layer.iou_threshold,
         )
 
+    @pytest.mark.skipif(os.name == "nt", reason="tempfile does not work on windows")
     def test_savedmodel_creation(self):
         x, y = _create_bounding_box_dataset(bounding_box_format="xywh")
         pretrained_retina_net, new_retina_net = _create_retina_nets(x, y, epochs=1)
@@ -79,6 +80,25 @@ class RetinaNetTest(tf.test.TestCase):
         pretrained_retina_net.save(f"{tmp}/checkpoint/")
         load_model = tf.saved_model.load(f"{tmp}/checkpoint/")
         _ = load_model(x)
+
+    def test_set_prediction_decoder(self):
+        x, y = _create_bounding_box_dataset(bounding_box_format="xywh")
+        pretrained_retina_net, _ = _create_retina_nets(x, y, epochs=0)
+
+        prediction_decoder = keras_cv.layers.NmsPredictionDecoder(
+            bounding_box_format="xywh",
+            anchor_generator=keras_cv.models.RetinaNet.default_anchor_generator(
+                bounding_box_format="xywh"
+            ),
+            suppression_layer=keras_cv.layers.NonMaxSuppression(
+                iou_threshold=0.75,
+                bounding_box_format="xywh",
+                classes=20,
+                confidence_threshold=0.85,
+            ),
+        )
+        pretrained_retina_net.prediction_decoder = prediction_decoder
+        result = pretrained_retina_net.predict(x)
 
     @pytest.mark.skipif(os.name == "nt", reason="tempfile does not work on windows")
     def test_weight_loading(self):
