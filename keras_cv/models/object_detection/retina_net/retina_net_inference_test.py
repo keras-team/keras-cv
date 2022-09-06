@@ -132,7 +132,12 @@ def _create_retina_nets(x, y, epochs=1):
             keras_cv.metrics.COCOMeanAveragePrecision(
                 class_ids=range(20),
                 bounding_box_format="xyxy",
-                name="Standard MaP",
+                name="MaP",
+            ),
+            keras_cv.metrics.COCORecall(
+                class_ids=range(20),
+                bounding_box_format="xyxy",
+                name="Recall",
             ),
         ],
     )
@@ -158,7 +163,12 @@ def _create_retina_nets(x, y, epochs=1):
             keras_cv.metrics.COCOMeanAveragePrecision(
                 class_ids=range(20),
                 bounding_box_format="xyxy",
-                name="Standard MaP",
+                name="MaP",
+            ),
+            keras_cv.metrics.COCORecall(
+                class_ids=range(20),
+                bounding_box_format="xyxy",
+                name="Recall",
             ),
         ],
     )
