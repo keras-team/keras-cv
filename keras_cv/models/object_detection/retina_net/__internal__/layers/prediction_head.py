@@ -39,6 +39,7 @@ class PredictionHead(layers.Layer):
                 256,
                 3,
                 padding="same",
+                kernel_initializer=initializers.RandomNormal(0.0, 0.01),
                 activation="relu",
             )
             for _ in range(conv_layers)
@@ -49,6 +50,7 @@ class PredictionHead(layers.Layer):
                 3,
                 1,
                 padding="same",
+                kernel_initializer=initializers.RandomNormal(0.0, 0.01),
                 bias_initializer=self.bias_initializer,
             )
         ]
