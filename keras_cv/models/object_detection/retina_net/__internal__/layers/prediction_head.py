@@ -43,7 +43,7 @@ class PredictionHead(layers.Layer):
                 kernel_initializer=initializers.RandomNormal(0.0, 0.01),
                 activation="relu",
             )
-            for _ in range(conv_layers)
+            for _ in range(num_conv_layers)
         ]
         self.prediction_layer = layers.Conv2D(
             self.output_filters,
