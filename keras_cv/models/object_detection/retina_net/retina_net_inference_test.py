@@ -66,15 +66,30 @@ class RetinaNetTest(tf.test.TestCase):
         for layer_original, layer_new in zip(
             _get_retina_net_layers(retina_net), _get_retina_net_layers(new_retina_net)
         ):
+            print('Layer', layer_original.name, layer_new.name)
             for weight, weight_new in zip(
                 layer_original.get_weights(), layer_new.get_weights()
             ):
                 self.assertAllEqual(weight, weight_new)
 
+
+        # manually check layers to make sure nothing is missed
+        for layer_original, layer_new in zip(
+            retina_net.layers, new_retina_net.layers
+        ):
+            print('Layer', layer_original.name, layer_new.name)
+            for weight, weight_new in zip(
+                layer_original.get_weights(), layer_new.get_weights()
+            ):
+                self.assertAllEqual(weight, weight_new)
+
+
+
         # check if all weights that show up via `get_weights()` are loaded
         for retina_net_weight, post_load_weight in zip(
             retina_net.get_weights(), new_retina_net.get_weights()
         ):
+            print('weight')
             self.assertAllEqual(retina_net_weight, post_load_weight)
 
 
