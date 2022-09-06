@@ -38,7 +38,7 @@ class PredictionHead(layers.Layer):
         self.conv_layers = [
             layers.Conv2D(
                 256,
-                kernel_size=1,
+                kernel_size=3,
                 padding="same",
                 kernel_initializer=tf.keras.initializers.Orthogonal(),
                 activation="relu",
