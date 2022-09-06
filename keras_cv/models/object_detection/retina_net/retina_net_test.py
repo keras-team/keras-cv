@@ -306,10 +306,14 @@ class RetinaNetTest(tf.test.TestCase):
             metrics = history.history
             metrics = [metrics["Recall"], metrics["MaP"]]
             metrics = [statistics.mean(metric) for metric in metrics]
-            nonzero = [x > 0.3 for x in metrics]
+            minimum = 0.3
+            nonzero = [x > minimum for x in metrics]
             if all(nonzero):
                 return
-        raise ValueError("Did not achieve better than 0.5 for all metrics in 50 epochs")
+
+        raise ValueError(
+            f"Did not achieve better than {minimum} for all metrics in 50 epochs"
+        )
 
 
 def _create_bounding_box_dataset(bounding_box_format):
