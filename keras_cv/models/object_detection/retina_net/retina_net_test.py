@@ -185,6 +185,49 @@ class RetinaNetTest(tf.test.TestCase):
             box_loss=keras_cv.losses.SmoothL1Loss(l1_cutoff=1.0, reduction="none"),
         )
 
+    def test_weights_change(self):
+        bounding_box_format = "xywh"
+        retina_net = keras_cv.models.RetinaNet(
+            classes=1,
+            bounding_box_format=bounding_box_format,
+            backbone="resnet50",
+            backbone_weights=None,
+            include_rescaling=False,
+            evaluate_train_time_metrics=False,
+        )
+
+        retina_net.compile(
+            optimizer=optimizers.Adam(),
+            classification_loss=keras_cv.losses.FocalLoss(
+                from_logits=True, reduction="none"
+            ),
+            box_loss=keras_cv.losses.SmoothL1Loss(l1_cutoff=1.0, reduction="none"),
+            metrics=[],
+        )
+        xs, ys = _create_bounding_box_dataset(bounding_box_format)
+
+        # call once
+        _ = retina_net(xs)
+        original_fpn_weights = retina_net.feature_pyramid.get_weights()
+        original_box_head_weights = retina_net.box_head.get_weights()
+        original_classification_head_weights = retina_net.classification_head.get_weights()
+
+        retina_net.fit(x=xs, y=ys, epochs=1)
+        fpn_after_fit = retina_net.feature_pyramid.get_weights()
+        box_head_after_fit_weights = retina_net.box_head.get_weights()
+        classification_head_after_fit_weights = retina_net.classification_head.get_weights()
+
+        # print('after_fit', after_fit)
+
+        for w1, w2 in zip(original_classification_head_weights, classification_head_after_fit_weights):
+            self.assertNotAllClose(w1, w2)
+
+        for w1, w2 in zip(original_box_head_weights, box_head_after_fit_weights):
+            self.assertNotAllClose(w1, w2)
+
+        for w1, w2 in zip(original_fpn_weights, fpn_after_fit):
+            self.assertNotAllClose(w1, w2)
+
     # TODO(lukewood): configure for other coordinate systems.
     @pytest.mark.skipif(
         "INTEGRATION" not in os.environ or os.environ["INTEGRATION"] != "true",
