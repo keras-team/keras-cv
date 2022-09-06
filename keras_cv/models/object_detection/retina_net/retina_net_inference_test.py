@@ -13,12 +13,10 @@
 # limitations under the License.
 
 import os
-import statistics
 import tempfile
 
 import pytest
 import tensorflow as tf
-from tensorflow.keras import optimizers
 
 import keras_cv
 
@@ -31,7 +29,8 @@ class RetinaNetTest(tf.test.TestCase):
         tf.keras.backend.clear_session()
 
     def test_weight_setting(self):
-        retina_net, new_retina_net = _create_retina_nets(fit=True)
+        x, y = _create_bounding_box_dataset(bounding_box_format="xywh")
+        retina_net, new_retina_net = _create_retina_nets(x, y, epochs=1)
 
         new_retina_net.set_weights(retina_net.get_weights())
 
@@ -43,7 +42,8 @@ class RetinaNetTest(tf.test.TestCase):
 
         for layer_original, layer_new in zip(
             # manually check layers to make sure nothing is missed
-            _get_retina_net_layers(retina_net), _get_retina_net_layers(new_retina_net)
+            _get_retina_net_layers(retina_net),
+            _get_retina_net_layers(new_retina_net),
         ):
             for weight, weight_new in zip(
                 layer_original.get_weights(), layer_new.get_weights()
@@ -51,12 +51,13 @@ class RetinaNetTest(tf.test.TestCase):
                 self.assertAllEqual(weight, weight_new)
 
     def test_model_saving_savedmodel_format(self):
-        retina_net, new_retina_net = _create_retina_nets(fit=True)
+        retina_net, new_retina_net = _create_retina_nets(x=None, y=None, fit=False)
         tmp = tempfile.mkdtemp()
         retina_net.save(f"{tmp}/checkpoint/")
 
     def test_weight_loading(self):
-        retina_net, new_retina_net = _create_retina_nets(fit=True)
+        x, y = _create_bounding_box_dataset(bounding_box_format="xywh")
+        retina_net, new_retina_net = _create_retina_nets(x, y, epochs=1)
 
         tmp = tempfile.mkdtemp()
         retina_net.save_weights(f"{tmp}/checkpoint.h5")
@@ -66,31 +67,43 @@ class RetinaNetTest(tf.test.TestCase):
         for layer_original, layer_new in zip(
             _get_retina_net_layers(retina_net), _get_retina_net_layers(new_retina_net)
         ):
-            print('Layer', layer_original.name, layer_new.name)
             for weight, weight_new in zip(
                 layer_original.get_weights(), layer_new.get_weights()
             ):
                 self.assertAllEqual(weight, weight_new)
-
 
         # manually check layers to make sure nothing is missed
-        for layer_original, layer_new in zip(
-            retina_net.layers, new_retina_net.layers
-        ):
-            print('Layer', layer_original.name, layer_new.name)
+        for layer_original, layer_new in zip(retina_net.layers, new_retina_net.layers):
             for weight, weight_new in zip(
                 layer_original.get_weights(), layer_new.get_weights()
             ):
                 self.assertAllEqual(weight, weight_new)
-
-
 
         # check if all weights that show up via `get_weights()` are loaded
         for retina_net_weight, post_load_weight in zip(
             retina_net.get_weights(), new_retina_net.get_weights()
         ):
-            print('weight')
             self.assertAllEqual(retina_net_weight, post_load_weight)
+
+    @pytest.mark.skipif(
+        "INTEGRATION" not in os.environ or os.environ["INTEGRATION"] != "true",
+        reason="Takes a long time to run, only runs when INTEGRATION "
+        "environment variable is set.  To run the test please run: \n"
+        "`INTEGRATION=true pytest keras_cv/",
+    )
+    def test_weight_loading_via_metrics(self):
+        x, y = _create_bounding_box_dataset(bounding_box_format="xywh")
+        retina_net, new_retina_net = _create_retina_nets(x, y, epochs=10)
+
+        tmp = tempfile.mkdtemp()
+        retina_net.save_weights(f"{tmp}/checkpoint.h5")
+        new_retina_net.load_weights(f"{tmp}/checkpoint.h5")
+
+        metrics = retina_net.evaluate(x, y)
+        new_metrics = new_retina_net.evaluate(x, y)
+
+        for key in metrics:
+            self.assertEqual(metrics[key], new_metrics[key])
 
 
 def _get_retina_net_layers(model):
@@ -105,7 +118,7 @@ def _get_retina_net_layers(model):
     ]
 
 
-def _create_retina_nets(fit=True):
+def _create_retina_nets(x, y, epochs=1):
     retina_net = keras_cv.models.RetinaNet(
         classes=20,
         bounding_box_format="xywh",
@@ -129,30 +142,30 @@ def _create_retina_nets(fit=True):
         ],
     )
     retina_net.build((None, None, None, 3))
+    if epochs != 0:
+        retina_net.fit(x, y, epochs=epochs)
 
-    x, y = _create_bounding_box_dataset(bounding_box_format="xywh")
-    if fit:
-        retina_net.fit(x, y)
-    # Custom prediction decoder
-    prediction_decoder = keras_cv.layers.NmsPredictionDecoder(
-        bounding_box_format="xywh",
-        anchor_generator=keras_cv.models.RetinaNet.default_anchor_generator(
-            bounding_box_format="xywh"
-        ),
-        suppression_layer=keras_cv.layers.NonMaxSuppression(
-            iou_threshold=0.75,
-            bounding_box_format="xywh",
-            classes=20,
-            confidence_threshold=0.85,
-        ),
-    )
     new_retina_net = keras_cv.models.RetinaNet(
-        prediction_decoder=prediction_decoder,
         classes=20,
         bounding_box_format="xywh",
         backbone="resnet50",
         backbone_weights=None,
         include_rescaling=True,
+    )
+    new_retina_net.compile(
+        classification_loss=keras_cv.losses.FocalLoss(
+            from_logits=True,
+            reduction="none",
+        ),
+        box_loss=keras_cv.losses.SmoothL1Loss(l1_cutoff=1.0, reduction="none"),
+        optimizer="adam",
+        metrics=[
+            keras_cv.metrics.COCOMeanAveragePrecision(
+                class_ids=range(20),
+                bounding_box_format="xyxy",
+                name="Standard MaP",
+            ),
+        ],
     )
     new_retina_net.build((None, None, None, 3))
     return retina_net, new_retina_net
