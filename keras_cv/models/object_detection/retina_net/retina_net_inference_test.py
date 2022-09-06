@@ -52,7 +52,9 @@ class RetinaNetTest(tf.test.TestCase):
 
     def test_decoder_doesnt_get_updated(self):
         x, y = _create_bounding_box_dataset(bounding_box_format="xywh")
-        pretrained_retina_net, new_retina_net = _create_retina_nets(x, y, epochs=1, custom_decoder=True)
+        pretrained_retina_net, new_retina_net = _create_retina_nets(
+            x, y, epochs=1, custom_decoder=True
+        )
         new_retina_net.set_weights(pretrained_retina_net.get_weights())
 
         # check if all weights that show up via `get_weights()` are loaded
@@ -64,8 +66,10 @@ class RetinaNetTest(tf.test.TestCase):
         pretrained_decoder = pretrained_retina_net.prediction_decoder
         new_decoder = new_retina_net.prediction_decoder
         self.assertEqual(new_decoder.suppression_layer.iou_threshold, 0.75)
-        self.assertNotEqual(new_decoder.suppression_layer.iou_threshold, pretrained_decoder.suppression_layer.iou_threshold)
-
+        self.assertNotEqual(
+            new_decoder.suppression_layer.iou_threshold,
+            pretrained_decoder.suppression_layer.iou_threshold,
+        )
 
     def test_savedmodel_creation(self):
         x, y = _create_bounding_box_dataset(bounding_box_format="xywh")
@@ -75,7 +79,6 @@ class RetinaNetTest(tf.test.TestCase):
         pretrained_retina_net.save(f"{tmp}/checkpoint/")
         load_model = tf.saved_model.load(f"{tmp}/checkpoint/")
         _ = load_model(x)
-
 
     @pytest.mark.skipif(os.name == "nt", reason="tempfile does not work on windows")
     def test_weight_loading(self):
@@ -194,7 +197,7 @@ def _create_retina_nets(x, y, epochs=1, custom_decoder=False):
         backbone="resnet50",
         backbone_weights=None,
         include_rescaling=True,
-        prediction_decoder=prediction_decoder
+        prediction_decoder=prediction_decoder,
     )
     new_retina_net.compile(
         classification_loss=keras_cv.losses.FocalLoss(
