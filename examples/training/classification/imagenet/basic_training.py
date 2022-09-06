@@ -146,14 +146,12 @@ Different distribution strategies may be used for different training hardware, a
 """
 
 
-if FLAGS.use_tpu:
-    tpu = tf.distribute.cluster_resolver.TPUClusterResolver()
-    print("TPU Device:", tpu.master())
-    tf.config.experimental_connect_to_cluster(tpu)
-    tf.tpu.experimental.initialize_tpu_system(tpu)
+try:
+    tpu = tf.distribute.cluster_resolver.TPUClusterResolver.connect()
     strategy = tf.distribute.TPUStrategy(tpu)
-else:
+except ValueError:
     strategy = tf.distribute.MirroredStrategy()
+print("Number of accelerators: ", strategy.num_replicas_in_sync)
 
 
 with strategy.scope():
