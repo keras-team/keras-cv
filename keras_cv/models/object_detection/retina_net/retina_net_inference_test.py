@@ -28,8 +28,6 @@ class RetinaNetTest(tf.test.TestCase):
         yield
         tf.keras.backend.clear_session()
 
-            )
-
     @pytest.mark.skipif(
         "INTEGRATION" not in os.environ or os.environ["INTEGRATION"] != "true",
         reason="Takes a long time to run, only runs when INTEGRATION "
@@ -58,8 +56,6 @@ class RetinaNetTest(tf.test.TestCase):
             ):
                 self.assertAllEqual(weight, weight_new)
 
-            )
-
     @pytest.mark.skipif(
         "INTEGRATION" not in os.environ or os.environ["INTEGRATION"] != "true",
         reason="Takes a long time to run, only runs when INTEGRATION "
@@ -87,8 +83,6 @@ class RetinaNetTest(tf.test.TestCase):
             pretrained_decoder.suppression_layer.iou_threshold,
         )
 
-            )
-
     @pytest.mark.skipif(
         "INTEGRATION" not in os.environ or os.environ["INTEGRATION"] != "true",
         reason="Takes a long time to run, only runs when INTEGRATION "
@@ -104,8 +98,6 @@ class RetinaNetTest(tf.test.TestCase):
         pretrained_retina_net.save(f"{tmp}/checkpoint/")
         load_model = tf.saved_model.load(f"{tmp}/checkpoint/")
         _ = load_model(x)
-
-            )
 
     @pytest.mark.skipif(
         "INTEGRATION" not in os.environ or os.environ["INTEGRATION"] != "true",
