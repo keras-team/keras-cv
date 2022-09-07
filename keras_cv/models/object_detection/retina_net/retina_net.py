@@ -454,13 +454,8 @@ class RetinaNet(ObjectDetectionBaseModel):
         self._update_metrics(y_for_metrics, predictions)
         return {m.name: m.result() for m in self.metrics}
 
-    # make a setter for prediction decoder
-    # bust the train_step... caches
-    # def predict_step(self, x)...
-
-    def predict(self, x, **kwargs):
-        # TODO(lukewood): implement graph mode predict function
-        predictions = super().predict(x, **kwargs)
+    def predict_step(self, x):
+        predictions = super().predict_step(x)
         return self.decode_training_predictions(x, predictions)
 
     def _update_metrics(self, y_true, y_pred):
