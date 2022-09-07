@@ -89,8 +89,14 @@ class RetinaNetTest(tf.test.TestCase):
 
         tmp = tempfile.mkdtemp()
         pretrained_retina_net.save_weights(f"{tmp}/checkpoint/")
-        load_model = tf.saved_model.load_weights(f"{tmp}/checkpoint/")
-        _ = load_model(x)
+        new_retina_net.load_weights(f"{tmp}/checkpoint/")
+        for layer_original, layer_new in zip(
+            pretrained_retina_net.layers, new_retina_net.layers
+        ):
+            for weight, weight_new in zip(
+                layer_original.get_weights(), layer_new.get_weights()
+            ):
+                self.assertAllEqual(weight, weight_new)
 
     def test_set_prediction_decoder(self):
         x, y = _create_bounding_box_dataset(bounding_box_format="xywh")
