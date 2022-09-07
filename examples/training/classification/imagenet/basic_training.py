@@ -142,11 +142,12 @@ Note that we also specify a distribution strategy while creating the model.
 Different distribution strategies may be used for different training hardware, as indicated below.
 """
 
-
+# Try to detect an available TPU. If none is present, default to MirroredStrategy
 try:
     tpu = tf.distribute.cluster_resolver.TPUClusterResolver.connect()
     strategy = tf.distribute.TPUStrategy(tpu)
 except ValueError:
+    # MirroredStrategy is best for a single machine with one or multiple GPUs
     strategy = tf.distribute.MirroredStrategy()
 print("Number of accelerators: ", strategy.num_replicas_in_sync)
 
