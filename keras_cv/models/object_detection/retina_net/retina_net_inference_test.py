@@ -28,6 +28,14 @@ class RetinaNetTest(tf.test.TestCase):
         yield
         tf.keras.backend.clear_session()
 
+            )
+
+    @pytest.mark.skipif(
+        "INTEGRATION" not in os.environ or os.environ["INTEGRATION"] != "true",
+        reason="Takes a long time to run, only runs when INTEGRATION "
+        "environment variable is set.  To run the test please run: \n"
+        "`INTEGRATION=true pytest keras_cv/",
+    )
     def test_weight_setting(self):
         x, y = _create_bounding_box_dataset(bounding_box_format="xywh")
         pretrained_retina_net, new_retina_net = _create_retina_nets(x, y, epochs=1)
@@ -50,6 +58,14 @@ class RetinaNetTest(tf.test.TestCase):
             ):
                 self.assertAllEqual(weight, weight_new)
 
+            )
+
+    @pytest.mark.skipif(
+        "INTEGRATION" not in os.environ or os.environ["INTEGRATION"] != "true",
+        reason="Takes a long time to run, only runs when INTEGRATION "
+        "environment variable is set.  To run the test please run: \n"
+        "`INTEGRATION=true pytest keras_cv/",
+    )
     def test_decoder_doesnt_get_updated(self):
         x, y = _create_bounding_box_dataset(bounding_box_format="xywh")
         pretrained_retina_net, new_retina_net = _create_retina_nets(
@@ -71,6 +87,14 @@ class RetinaNetTest(tf.test.TestCase):
             pretrained_decoder.suppression_layer.iou_threshold,
         )
 
+            )
+
+    @pytest.mark.skipif(
+        "INTEGRATION" not in os.environ or os.environ["INTEGRATION"] != "true",
+        reason="Takes a long time to run, only runs when INTEGRATION "
+        "environment variable is set.  To run the test please run: \n"
+        "`INTEGRATION=true pytest keras_cv/",
+    )
     @pytest.mark.skipif(os.name == "nt", reason="tempfile does not work on windows")
     def test_savedmodel_creation(self):
         x, y = _create_bounding_box_dataset(bounding_box_format="xywh")
@@ -81,6 +105,14 @@ class RetinaNetTest(tf.test.TestCase):
         load_model = tf.saved_model.load(f"{tmp}/checkpoint/")
         _ = load_model(x)
 
+            )
+
+    @pytest.mark.skipif(
+        "INTEGRATION" not in os.environ or os.environ["INTEGRATION"] != "true",
+        reason="Takes a long time to run, only runs when INTEGRATION "
+        "environment variable is set.  To run the test please run: \n"
+        "`INTEGRATION=true pytest keras_cv/",
+    )
     @pytest.mark.skipif(os.name == "nt", reason="tempfile does not work on windows")
     def test_savedmodel_format_weight_loading(self):
         x, y = _create_bounding_box_dataset(bounding_box_format="xywh")
