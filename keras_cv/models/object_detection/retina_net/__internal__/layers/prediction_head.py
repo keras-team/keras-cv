@@ -34,6 +34,7 @@ class PredictionHead(layers.Layer):
         super().__init__(**kwargs)
         self.output_filters = output_filters
         self.bias_initializer = bias_initializer
+        self.num_conv_layers = num_conv_layers
 
         self.conv_layers = [
             layers.Conv2D(
