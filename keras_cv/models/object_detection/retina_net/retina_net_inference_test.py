@@ -81,7 +81,6 @@ class RetinaNetTest(tf.test.TestCase):
         load_model = tf.saved_model.load(f"{tmp}/checkpoint/")
         _ = load_model(x)
 
-
     @pytest.mark.skipif(os.name == "nt", reason="tempfile does not work on windows")
     def test_savedmodel_format_weight_loading(self):
         x, y = _create_bounding_box_dataset(bounding_box_format="xywh")
