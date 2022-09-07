@@ -98,7 +98,7 @@ class RetinaNetTest(tf.test.TestCase):
             ),
         )
         pretrained_retina_net.prediction_decoder = prediction_decoder
-        result = pretrained_retina_net.predict(x)
+        _ = pretrained_retina_net.predict(x)
 
     @pytest.mark.skipif(os.name == "nt", reason="tempfile does not work on windows")
     def test_weight_loading(self):
