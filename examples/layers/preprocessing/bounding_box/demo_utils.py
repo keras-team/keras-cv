@@ -13,10 +13,17 @@
 # limitations under the License.
 """Utility functions for preprocessing demos."""
 import tensorflow as tf
+
 import keras_cv
+
 
 def visualize_data(data, bounding_box_format):
     data = next(iter(data))
     images = data["images"]
     bounding_boxes = data["bounding_boxes"]
-    keras_cv.visualization.plot_bounding_box_gallery(images, value_range=(0, 255), bounding_box_format=bounding_box_format, y_true=bounding_boxes)
+    keras_cv.visualization.plot_bounding_box_gallery(
+        images,
+        value_range=(0, 255),
+        bounding_box_format=bounding_box_format,
+        y_true=bounding_boxes,
+    )

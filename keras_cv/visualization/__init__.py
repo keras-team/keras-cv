@@ -13,5 +13,5 @@
 # limitations under the License.
 
 from keras_cv.visualization.get_plt import get_plt
-from keras_cv.visualization.plot_gallery import plot_gallery
 from keras_cv.visualization.plot_bounding_box_gallery import plot_bounding_box_gallery
+from keras_cv.visualization.plot_gallery import plot_gallery

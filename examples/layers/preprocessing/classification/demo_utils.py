@@ -15,7 +15,9 @@
 import matplotlib.pyplot as plt
 import tensorflow as tf
 import tensorflow_datasets as tfds
+
 import keras_cv
+
 
 def resize(image, label, img_size=(224, 224), classes=10):
     image = tf.image.resize(image, img_size)
@@ -45,6 +47,7 @@ def visualize_dataset(ds):
     outputs = next(iter(ds.take(1)))
     images = outputs["images"]
     keras_cv.visualization.plot_gallery(images, value_range=(0, 255))
+
 
 def load_elephant_tensor(output_size=(300, 300)):
     elephants = tf.keras.utils.get_file(

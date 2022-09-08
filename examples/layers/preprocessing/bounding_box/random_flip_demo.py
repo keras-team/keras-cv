@@ -26,7 +26,9 @@ BATCH_SIZE = 9
 
 
 def main():
-    dataset, _ = keras_cv.datasets.pascal_voc.load(split='train', batch_size=9, bounding_box_format="rel_xyxy")
+    dataset, _ = keras_cv.datasets.pascal_voc.load(
+        split="train", batch_size=9, bounding_box_format="rel_xyxy"
+    )
     random_rotation = preprocessing.RandomFlip(bounding_box_format="rel_xyxy")
     result = dataset.map(random_rotation, num_parallel_calls=tf.data.AUTOTUNE)
     demo_utils.visualize_data(result, bounding_box_format="rel_xyxy")

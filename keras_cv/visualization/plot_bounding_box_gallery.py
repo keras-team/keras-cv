@@ -13,11 +13,14 @@
 # limitations under the License.
 
 
-import keras_cv
 import tensorflow as tf
 
+import keras_cv
 
-def plot_bounding_box_gallery(images, value_range, bounding_box_format, y_true=None, y_pred=None, **kwargs):
+
+def plot_bounding_box_gallery(
+    images, value_range, bounding_box_format, y_true=None, y_pred=None, **kwargs
+):
     """plots a gallery of images with corresponding bounding box annotations
 
     Args:
@@ -41,7 +44,9 @@ def plot_bounding_box_gallery(images, value_range, bounding_box_format, y_true=N
         )
         if isinstance(y_pred, tf.RaggedTensor):
             y_pred = y_pred.to_tensor(default_value=-1)
-        plotted_images = tf.image.draw_bounding_boxes(plotted_images, y_pred[..., :4], pred_color)
+        plotted_images = tf.image.draw_bounding_boxes(
+            plotted_images, y_pred[..., :4], pred_color
+        )
 
     if y_true is not None:
         y_true = keras_cv.bounding_box.convert_format(
@@ -49,6 +54,8 @@ def plot_bounding_box_gallery(images, value_range, bounding_box_format, y_true=N
         )
         if isinstance(y_true, tf.RaggedTensor):
             y_true = y_true.to_tensor(default_value=-1)
-        plotted_images = tf.image.draw_bounding_boxes(plotted_images, y_true[..., :4], true_color)
+        plotted_images = tf.image.draw_bounding_boxes(
+            plotted_images, y_true[..., :4], true_color
+        )
 
     keras_cv.visualization.plot_gallery(plotted_images, value_range, **kwargs)

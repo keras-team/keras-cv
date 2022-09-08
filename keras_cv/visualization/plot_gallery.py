@@ -13,8 +13,9 @@
 # limitations under the License.
 
 
-import keras_cv
 import tensorflow as tf
+
+import keras_cv
 
 
 def plot_gallery(images, value_range, rows=3, columns=3, scale=2, path=None):
@@ -35,7 +36,9 @@ def plot_gallery(images, value_range, rows=3, columns=3, scale=2, path=None):
     plt.margins(x=0, y=0)
     plt.axis("off")
 
-    images = keras_cv.utils.transform_value_range(images, original_range=value_range, target_range=(0, 255))
+    images = keras_cv.utils.transform_value_range(
+        images, original_range=value_range, target_range=(0, 255)
+    )
     if isinstance(images, tf.Tensor):
         images = images.numpy()
 

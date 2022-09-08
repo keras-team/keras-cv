@@ -43,7 +43,6 @@ class PredictionHead(layers.Layer):
                 padding="same",
                 kernel_initializer=tf.keras.initializers.Orthogonal(),
                 activation="relu",
-                kernel_regularizer=regularizers.L1L2(l1=1e-5, l2=1e-4),
             )
             for _ in range(num_conv_layers)
         ]
@@ -54,7 +53,6 @@ class PredictionHead(layers.Layer):
             padding="same",
             kernel_initializer=tf.keras.initializers.Orthogonal(),
             bias_initializer=self.bias_initializer,
-            kernel_regularizer=regularizers.L1L2(l1=1e-5, l2=1e-4),
         )
 
     def call(self, x, training=False):

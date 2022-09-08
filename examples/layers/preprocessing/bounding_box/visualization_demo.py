@@ -18,7 +18,9 @@ import demo_utils
 
 
 def main():
-    dataset, _ = keras_cv.datasets.pascal_voc.load(split='train', batch_size=9, bounding_box_format="rel_xyxy")
+    dataset, _ = keras_cv.datasets.pascal_voc.load(
+        split="train", batch_size=9, bounding_box_format="rel_xyxy"
+    )
     demo_utils.visualize_data(inputs, bounding_box_format="rel_xyxy")
 
 
