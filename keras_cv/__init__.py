@@ -25,6 +25,7 @@ from keras_cv import metrics
 from keras_cv import models
 from keras_cv import training
 from keras_cv import utils
+from keras_cv import visualization
 from keras_cv.core import ConstantFactorSampler
 from keras_cv.core import FactorSampler
 from keras_cv.core import NormalFactorSampler

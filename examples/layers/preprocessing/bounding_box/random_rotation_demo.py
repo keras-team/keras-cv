@@ -17,7 +17,7 @@ for object detection.
 """
 import demo_utils
 import tensorflow as tf
-
+import keras_cv
 from keras_cv.layers import preprocessing
 
 IMG_SIZE = (256, 256)
@@ -25,7 +25,7 @@ BATCH_SIZE = 9
 
 
 def main():
-    dataset = demo_utils.load_voc_dataset(bounding_box_format="rel_xyxy")
+    dataset, _ = keras_cv.datasets.pascal_voc.load(split='train', batch_size=9, bounding_box_format="rel_xyxy")
     random_rotation = preprocessing.RandomRotation(
         factor=0.5, bounding_box_format="rel_xyxy"
     )

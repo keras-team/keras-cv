@@ -25,7 +25,7 @@ BATCH_SIZE = 9
 
 
 def main():
-    dataset = demo_utils.load_voc_dataset(bounding_box_format="rel_xyxy")
+    dataset, _ = keras_cv.datasets.pascal_voc.load(split='train', batch_size=9, bounding_box_format="rel_xyxy")
     random_shear = preprocessing.RandomShear(
         x_factor=(0.1, 0.5),
         y_factor=(0.1, 0.5),

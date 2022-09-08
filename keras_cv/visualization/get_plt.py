@@ -11,12 +11,20 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Utility functions for preprocessing demos."""
-import tensorflow as tf
-import keras_cv
 
-def visualize_data(data, bounding_box_format):
-    data = next(iter(data))
-    images = data["images"]
-    bounding_boxes = data["bounding_boxes"]
-    keras_cv.visualization.plot_bounding_box_gallery(images, value_range=(0, 255), bounding_box_format=bounding_box_format, y_true=bounding_boxes)
+
+try:
+    import matplotlib.pyplot as plt
+except ImportError:
+    plt = None
+
+
+def get_plt():
+    """returns matplotlib, or raises an ImportError if matplotlib is not found."""
+    if plt is None:
+        raise ImportError(
+            "matplotlib is not installed in the "
+            "environment. Please use `pip install matplotlib` to install matplotlib "
+            "if you would like to use KerasCV visualization tools"
+        )
+    return plt
