@@ -136,6 +136,7 @@ class RandomFlipTest(tf.test.TestCase, parameterized.TestCase):
         self.assertAllClose(expected_output, output["bounding_boxes"])
 
     def test_augment_segmentation_mask(self):
+        np.random.seed(1337)
         image = np.random.random((1, 20, 20, 3)).astype(np.float32)
         mask = np.random.randint(2, size=(1, 20, 20, 1)).astype(np.float32)
 
