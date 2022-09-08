@@ -123,3 +123,28 @@ class RandomResizedCropTest(tf.test.TestCase, parameterized.TestCase):
                 aspect_ratio_factor=(3 / 4, 4 / 3),
                 crop_area_factor=crop_area_factor,
             )
+
+    def test_augment_with_segmentation_mask(self):
+        input_image_shape = (self.batch_size, self.height, self.width, 3)
+        mask_shape = (self.batch_size, self.height, self.width, 1)
+        image = tf.random.uniform(shape=input_image_shape, seed=self.seed)
+        mask = tf.cast(
+            tf.random.uniform(shape=mask_shape, seed=self.seed) > 0.5, tf.float32
+        )
+
+        input = {"images": image, "segmentation_masks": mask}
+
+        layer = preprocessing.RandomResizedCrop(
+            target_size=self.target_size,
+            aspect_ratio_factor=(3 / 4, 4 / 3),
+            crop_area_factor=(0.8, 1.0),
+            seed=self.seed,
+        )
+
+        input_mask_resized = tf.image.resize(mask, self.target_size)
+
+        output = layer(input, training=True)
+        self.assertNotAllClose(output["segmentation_masks"], input_mask_resized)
+
+        output = layer(input, training=False)
+        self.assertAllClose(output["segmentation_masks"], input_mask_resized)
