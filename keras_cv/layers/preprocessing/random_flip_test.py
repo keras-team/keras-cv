@@ -134,3 +134,24 @@ class RandomFlipTest(tf.test.TestCase, parameterized.TestCase):
         )
         expected_output = np.reshape(expected_output, (2, 2, 5))
         self.assertAllClose(expected_output, output["bounding_boxes"])
+
+    def test_augment_segmentation_mask(self):
+        image = np.random.random((1, 20, 20, 3)).astype(np.float32)
+        mask = np.random.randint(2, size=(1, 20, 20, 1)).astype(np.float32)
+
+        input = {"images": image, "segmentation_masks": mask}
+
+        # Flip both vertically and horizontally
+        mock_random = [0.6, 0.6]
+        layer = RandomFlip()
+
+        with unittest.mock.patch.object(
+            layer._random_generator,
+            "random_uniform",
+            side_effect=mock_random,
+        ):
+            output = layer(input, training=True)
+
+        expected_mask = np.flip(np.flip(mask, axis=1), axis=2)
+
+        self.assertAllClose(expected_mask, output["segmentation_masks"])

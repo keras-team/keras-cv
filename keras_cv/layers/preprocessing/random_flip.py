@@ -186,6 +186,22 @@ class RandomFlip(BaseImageAugmentationLayer):
         )
         return bounding_boxes
 
+    def augment_segmentation_mask(
+        self, segmentation_mask, transformation=None, **kwargs
+    ):
+        flipped_mask = tf.cond(
+            transformation["flip_horizontal"],
+            lambda: tf.image.flip_left_right(segmentation_mask),
+            lambda: segmentation_mask,
+        )
+        flipped_mask = tf.cond(
+            transformation["flip_vertical"],
+            lambda: tf.image.flip_up_down(flipped_mask),
+            lambda: flipped_mask,
+        )
+        flipped_mask.set_shape(segmentation_mask.shape)
+        return flipped_mask
+
     def compute_output_shape(self, input_shape):
         return input_shape
 
