@@ -131,6 +131,12 @@ class RandomResizedCrop(BaseImageAugmentationLayer):
             # self._resize() returns valid results for both batched and
             # unbatched
             output["images"] = self._resize(inputs["images"])
+
+            if "segmentation_masks" in inputs:
+                output["segmentation_masks"] = self._resize(
+                    inputs["segmentation_masks"]
+                )
+
             return self._format_output(output, meta_data)
 
     def augment_image(self, image, transformation, **kwargs):

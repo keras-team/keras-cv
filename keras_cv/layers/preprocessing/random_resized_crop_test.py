@@ -145,3 +145,6 @@ class RandomResizedCropTest(tf.test.TestCase, parameterized.TestCase):
 
         output = layer(input, training=True)
         self.assertNotAllClose(output["segmentation_masks"], input_mask_resized)
+
+        output = layer(input, training=False)
+        self.assertAllClose(output["segmentation_masks"], input_mask_resized)
