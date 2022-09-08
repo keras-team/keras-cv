@@ -14,18 +14,18 @@ import keras_cv
 from keras_cv import bounding_box
 import os
 
-def _create_bounding_box_dataset(bounding_box_format):
+def _create_bounding_box_dataset(num_samples, bounding_box_format):
 
     # Just about the easiest dataset you can have, all classes are 0, all boxes are
     # exactly the same.  [1, 1, 2, 2] are the coordinates in xyxy
     xs = tf.random.uniform((1, 512, 512, 3), dtype=tf.float32)
-    xs = tf.repeat(xs, repeats=64, axis=0)
-    y_classes = tf.zeros((64, 1, 1), dtype=tf.float32)
+    xs = tf.repeat(xs, repeats=num_samples, axis=0)
+    y_classes = tf.zeros((num_samples, 1, 1), dtype=tf.float32)
 
     ys = tf.constant([0.25, 0.25, 0.1, 0.1], dtype=tf.float32)
     ys = tf.expand_dims(ys, axis=0)
     ys = tf.expand_dims(ys, axis=0)
-    ys = tf.tile(ys, [64, 1, 1])
+    ys = tf.tile(ys, [num_samples, 1, 1])
     ys = tf.concat([ys, y_classes], axis=-1)
 
     ys = keras_cv.bounding_box.convert_format(
@@ -67,7 +67,7 @@ model.compile(
 )
 
 
-x, y = _create_bounding_box_dataset("xywh")
+x, y = _create_bounding_box_dataset(num_samples=16, bounding_box_format="xywh")
 callbacks = [
     keras_cv.callbacks.VisualizeObjectDetectionPredictions(x, y,
     value_range=(0, 255), bounding_box_format='xywh', artifacts_dir="artifacts/"),

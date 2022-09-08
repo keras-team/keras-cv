@@ -40,7 +40,7 @@ def plot_bounding_box_gallery(
 
     if y_pred is not None:
         y_pred = keras_cv.bounding_box.convert_format(
-            predictions, source=bounding_box_format, target="rel_yxyx", images=images
+            y_pred, source=bounding_box_format, target="rel_yxyx", images=images
         )
         if isinstance(y_pred, tf.RaggedTensor):
             y_pred = y_pred.to_tensor(default_value=-1)

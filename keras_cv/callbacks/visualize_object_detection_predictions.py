@@ -31,5 +31,5 @@ class VisualizeObjectDetectionPredictions(tf.keras.callbacks.Callback):
         y_pred = self.model.predict(self.x)
         path = None if self.artifacts_dir is None else f"{self.artifacts_dir}/{epoch}.png"
         keras_cv.visualization.plot_bounding_box_gallery(
-            self.x, y_true=self.y, value_range=self.value_range, bounding_box_format=self.bounding_box_format, y_pred=y_pred, path=path
+            self.x, value_range=self.value_range, bounding_box_format=self.bounding_box_format, y_true=self.y, y_pred=y_pred, path=path
         )
