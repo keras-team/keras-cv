@@ -14,15 +14,22 @@
 import tensorflow as tf
 import keras_cv
 
+import matplotlib.pyplot as plt
+from tensorflow import keras
+
+
 class VisualizeObjectDetectionPredictions(tf.keras.callbacks.Callback):
-    def __init__(self, x, y, artifacts_dir=None):
+    def __init__(self, x, y, value_range, bounding_box_format, artifacts_dir=None):
         self.x = x
         self.y = y
         self.artifacts_dir = artifacts_dir
+        self.value_range = value_range
+        self.bounding_box_format = bounding_box_format
+        keras_cv.utils.ensure_exists(artifacts_dir)
 
     def on_epoch_end(self, epoch, logs):
         y_pred = self.model.predict(self.x)
         path = None if self.artifacts_dir is None else f"{self.artifacts_dir}/{epoch}.png"
         keras_cv.visualization.plot_bounding_box_gallery(
-            self.x, y_true=self.y, y_pred=y_pred, path=path
+            self.x, y_true=self.y, value_range=self.value_range, bounding_box_format=self.bounding_box_format, y_pred=y_pred, path=path
         )

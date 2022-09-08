@@ -69,13 +69,14 @@ model.compile(
 
 x, y = _create_bounding_box_dataset("xywh")
 callbacks = [
-    keras_cv.callbacks.VisualizeDetections(x, y, "artifacts/"),
+    keras_cv.callbacks.VisualizeObjectDetectionPredictions(x, y,
+    value_range=(0, 255), bounding_box_format='xywh', artifacts_dir="artifacts/"),
 ]
 
 model.fit(
     x,
     y,
-    batch_size=BATCH_SIZE,
-    epochs=EPOCHS,
+    batch_size=8,
+    epochs=100,
     callbacks=callbacks,
 )
