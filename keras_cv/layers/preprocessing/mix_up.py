@@ -117,7 +117,7 @@ class MixUp(BaseImageAugmentationLayer):
                 '{"images": images, "bounding_boxes": bounding_boxes}'
                 f"Got: inputs = {inputs}"
             )
-        if not labels.dtype.is_floating:
+        if labels is not None and not labels.dtype.is_floating:
             raise ValueError(
                 f"MixUp received labels with type {labels.dtype}. "
                 "Labels must be of type float."
