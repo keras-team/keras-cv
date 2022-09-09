@@ -100,15 +100,32 @@ class RandomRotationTest(tf.test.TestCase):
         )
         self.assertAllClose(expected_output, output["bounding_boxes"])
 
-    def test_augment_segmentation_mask(self):
-        input_image = np.random.random((2, 20, 20, 2)).astype(np.float32)
-        mask = np.random.randint(2, size=(2, 20, 20, 1)).astype(np.float32)
-        inputs = {"images": input_image, "segmentation_masks": mask}
+    def test_augment_sparse_segmentation_mask(self):
+        classes = 8
+
+        input_images = np.random.random((2, 20, 20, 3)).astype(np.float32)
+        masks = np.random.randint(classes, size=(2, 20, 20, 1))
+        inputs = {"images": input_images, "segmentation_masks": masks}
+
+        # 90 rotation.
+        layer = RandomRotation(factor=(0.25, 0.25), segmentation_classes=classes)
+        outputs = layer(inputs)
+
+        expected_masks = np.rot90(masks, axes=(1, 2))
+
+        self.assertAllClose(expected_masks, outputs["segmentation_masks"])
+
+    def test_augment_one_hot_segmentation_mask(self):
+        classes = 8
+
+        input_images = np.random.random((2, 20, 20, 3)).astype(np.float32)
+        masks = tf.one_hot(np.random.randint(classes, size=(2, 20, 20)), classes)
+        inputs = {"images": input_images, "segmentation_masks": masks}
 
         # 90 rotation.
         layer = RandomRotation(factor=(0.25, 0.25))
         outputs = layer(inputs)
 
-        expected_mask = np.rot90(mask, axes=(1, 2))
+        expected_masks = np.rot90(masks, axes=(1, 2))
 
-        self.assertAllClose(expected_mask, outputs["segmentation_masks"], atol=1e-5)
+        self.assertAllClose(expected_masks, outputs["segmentation_masks"])
