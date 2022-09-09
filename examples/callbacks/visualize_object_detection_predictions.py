@@ -1,19 +1,9 @@
-#!/usr/bin/env python
-# coding: utf-8
-
-# In[1]:
-
-
 import os
 
 import matplotlib.pyplot as plt
 import tensorflow as tf
-import tensorflow_datasets as tfds
-from tensorflow import keras
-from tensorflow.keras import optimizers
 
 import keras_cv
-from keras_cv import bounding_box
 
 
 def _create_bounding_box_dataset(num_samples, bounding_box_format):
