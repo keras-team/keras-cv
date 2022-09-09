@@ -109,6 +109,6 @@ class RandomRotationTest(tf.test.TestCase):
         layer = RandomRotation(factor=(0.25, 0.25))
         outputs = layer(inputs)
 
-        expected_mask = np.rot90(mask, axes=(1,2))
+        expected_mask = np.rot90(mask, axes=(1, 2))
 
         self.assertAllClose(expected_mask, outputs["segmentation_masks"], atol=1e-5)
