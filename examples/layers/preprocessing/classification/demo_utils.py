@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Utility functions for preprocessing demos."""
-import matplotlib.pyplot as plt
 import tensorflow as tf
 import tensorflow_datasets as tfds
 

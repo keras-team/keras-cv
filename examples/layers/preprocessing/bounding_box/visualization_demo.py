@@ -16,12 +16,14 @@ visualization_demo.py is used to visualize the dataset with bounding boxes.
 """
 import demo_utils
 
+import keras_cv
+
 
 def main():
     dataset, _ = keras_cv.datasets.pascal_voc.load(
         split="train", batch_size=9, bounding_box_format="rel_xyxy"
     )
-    demo_utils.visualize_data(inputs, bounding_box_format="rel_xyxy")
+    demo_utils.visualize_data(dataset, bounding_box_format="rel_xyxy")
 
 
 if __name__ == "__main__":

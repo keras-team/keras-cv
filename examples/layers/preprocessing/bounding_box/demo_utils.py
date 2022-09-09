@@ -12,8 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Utility functions for preprocessing demos."""
-import tensorflow as tf
-
 import keras_cv
 
 

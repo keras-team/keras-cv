@@ -18,6 +18,7 @@ for object detection.
 import demo_utils
 import tensorflow as tf
 
+import keras_cv
 from keras_cv.layers import preprocessing
 
 IMG_SIZE = (256, 256)

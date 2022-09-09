@@ -1,6 +1,3 @@
-import os
-
-import matplotlib.pyplot as plt
 import tensorflow as tf
 
 import keras_cv
