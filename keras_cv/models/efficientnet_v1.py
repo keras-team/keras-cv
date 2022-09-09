@@ -525,11 +525,7 @@ def EfficientNetB0(
         default_size=224,
         dropout_rate=0.2,
         model_name="efficientnetb0",
-<<<<<<< HEAD
-        weights=weights,
-=======
         weights=parse_weights(weights, include_top, "efficientnetb0"),
->>>>>>> 7a8c67cf (fixed efficientnets)
         input_shape=input_shape,
         input_tensor=input_tensor,
         pooling=pooling,
@@ -558,11 +554,7 @@ def EfficientNetB1(
         default_size=240,
         dropout_rate=0.2,
         model_name="efficientnetb1",
-<<<<<<< HEAD
-        weights=weights,
-=======
         weights=parse_weights(weights, include_top, "efficientnetb1"),
->>>>>>> 7a8c67cf (fixed efficientnets)
         input_shape=input_shape,
         input_tensor=input_tensor,
         pooling=pooling,
@@ -591,11 +583,7 @@ def EfficientNetB2(
         default_size=260,
         dropout_rate=0.3,
         model_name="efficientnetb2",
-<<<<<<< HEAD
-        weights=weights,
-=======
         weights=parse_weights(weights, include_top, "efficientnetb2"),
->>>>>>> 7a8c67cf (fixed efficientnets)
         input_shape=input_shape,
         input_tensor=input_tensor,
         pooling=pooling,
@@ -624,11 +612,7 @@ def EfficientNetB3(
         default_size=300,
         dropout_rate=0.3,
         model_name="efficientnetb3",
-<<<<<<< HEAD
-        weights=weights,
-=======
         weights=parse_weights(weights, include_top, "efficientnetb3"),
->>>>>>> 7a8c67cf (fixed efficientnets)
         input_shape=input_shape,
         input_tensor=input_tensor,
         pooling=pooling,
@@ -657,11 +641,7 @@ def EfficientNetB4(
         default_size=380,
         dropout_rate=0.4,
         model_name="efficientnetb4",
-<<<<<<< HEAD
-        weights=weights,
-=======
         weights=parse_weights(weights, include_top, "efficientnetb4"),
->>>>>>> 7a8c67cf (fixed efficientnets)
         input_shape=input_shape,
         input_tensor=input_tensor,
         pooling=pooling,
@@ -690,11 +670,7 @@ def EfficientNetB5(
         default_size=456,
         dropout_rate=0.4,
         model_name="efficientnetb5",
-<<<<<<< HEAD
-        weights=weights,
-=======
         weights=parse_weights(weights, include_top, "efficientnetb5"),
->>>>>>> 7a8c67cf (fixed efficientnets)
         input_shape=input_shape,
         input_tensor=input_tensor,
         pooling=pooling,
@@ -723,11 +699,7 @@ def EfficientNetB6(
         default_size=528,
         dropout_rate=0.5,
         model_name="efficientnetb6",
-<<<<<<< HEAD
-        weights=weights,
-=======
         weights=parse_weights(weights, include_top, "efficientnetb6"),
->>>>>>> 7a8c67cf (fixed efficientnets)
         input_shape=input_shape,
         input_tensor=input_tensor,
         pooling=pooling,
@@ -756,11 +728,7 @@ def EfficientNetB7(
         default_size=600,
         dropout_rate=0.5,
         model_name="efficientnetb7",
-<<<<<<< HEAD
-        weights=weights,
-=======
         weights=parse_weights(weights, include_top, "efficientnetb7"),
->>>>>>> 7a8c67cf (fixed efficientnets)
         input_shape=input_shape,
         input_tensor=input_tensor,
         pooling=pooling,

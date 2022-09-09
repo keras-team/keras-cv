@@ -1034,11 +1034,7 @@ def EfficientNetV2B0(
         depth_coefficient=1.0,
         default_size=224,
         model_name="efficientnetv2-b0",
-<<<<<<< HEAD
-        weights=weights,
-=======
-        weights=parse_weights(weights, include_top, "eefficientnetv2-b0"),
->>>>>>> 7a8c67cf (fixed efficientnets)
+        weights=parse_weights(weights, include_top, "efficientnetv2-b0"),
         input_shape=input_shape,
         input_tensor=input_tensor,
         pooling=pooling,
@@ -1066,11 +1062,7 @@ def EfficientNetV2B1(
         depth_coefficient=1.1,
         default_size=240,
         model_name="efficientnetv2-b1",
-<<<<<<< HEAD
-        weights=weights,
-=======
-        weights=parse_weights(weights, include_top, "eefficientnetv2-b1"),
->>>>>>> 7a8c67cf (fixed efficientnets)
+        weights=parse_weights(weights, include_top, "efficientnetv2-b1"),
         input_shape=input_shape,
         input_tensor=input_tensor,
         pooling=pooling,
@@ -1098,11 +1090,7 @@ def EfficientNetV2B2(
         depth_coefficient=1.2,
         default_size=260,
         model_name="efficientnetv2-b2",
-<<<<<<< HEAD
-        weights=weights,
-=======
-        weights=parse_weights(weights, include_top, "eefficientnetv2-b2"),
->>>>>>> 7a8c67cf (fixed efficientnets)
+        weights=parse_weights(weights, include_top, "efficientnetv2-b2"),
         input_shape=input_shape,
         input_tensor=input_tensor,
         pooling=pooling,
@@ -1130,11 +1118,7 @@ def EfficientNetV2B3(
         depth_coefficient=1.4,
         default_size=300,
         model_name="efficientnetv2-b3",
-<<<<<<< HEAD
-        weights=weights,
-=======
-        weights=parse_weights(weights, include_top, "eefficientnetv2-b3"),
->>>>>>> 7a8c67cf (fixed efficientnets)
+        weights=parse_weights(weights, include_top, "efficientnetv2-b3"),
         input_shape=input_shape,
         input_tensor=input_tensor,
         pooling=pooling,
@@ -1162,11 +1146,7 @@ def EfficientNetV2S(
         depth_coefficient=1.0,
         default_size=384,
         model_name="efficientnetv2-s",
-<<<<<<< HEAD
-        weights=weights,
-=======
         weights=parse_weights(weights, include_top, "efficientnetv2-s"),
->>>>>>> 7a8c67cf (fixed efficientnets)
         input_shape=input_shape,
         input_tensor=input_tensor,
         pooling=pooling,
@@ -1194,11 +1174,7 @@ def EfficientNetV2M(
         depth_coefficient=1.0,
         default_size=480,
         model_name="efficientnetv2-m",
-<<<<<<< HEAD
-        weights=weights,
-=======
         weights=parse_weights(weights, include_top, "efficientnetv2-m"),
->>>>>>> 7a8c67cf (fixed efficientnets)
         input_shape=input_shape,
         input_tensor=input_tensor,
         pooling=pooling,
@@ -1226,11 +1202,7 @@ def EfficientNetV2L(
         depth_coefficient=1.0,
         default_size=480,
         model_name="efficientnetv2-l",
-<<<<<<< HEAD
-        weights=weights,
-=======
         weights=parse_weights(weights, include_top, "efficientnetv2-l"),
->>>>>>> 7a8c67cf (fixed efficientnets)
         input_shape=input_shape,
         input_tensor=input_tensor,
         pooling=pooling,
