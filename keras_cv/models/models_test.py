@@ -15,6 +15,7 @@
 
 import pytest
 import tensorflow as tf
+import tensorflow_datasets as tfds
 from tensorflow import keras
 from tensorflow.keras import backend
 
@@ -119,6 +120,39 @@ class ModelsTest:
 
         model = keras.Model(inputs=inputs, outputs=[backbone_output])
         model.compile()
+
+    def _test_model_convergence(self, app, args, accuracy):
+        tf.random.set_seed(1337)
+
+        train_ds = tfds.load(
+            "mnist",
+            # We load the test DS for convergence tests because it's smaler
+            # (10k records vs 60k in train)
+            split=["test"],
+            as_supervised=True,
+        )[0].batch(32)
+
+        @tf.function
+        def preprocess(image, label):
+            return image, tf.one_hot(label, 10)
+
+        train_ds = train_ds.map(preprocess)
+
+        with tf.distribute.MirroredStrategy().scope():
+            model = app(
+                include_top=True,
+                classes=10,
+                include_rescaling=True,
+                input_shape=(28, 28, 1),
+                **args
+            )
+            model.compile(
+                optimizer="adam", loss="categorical_crossentropy", metrics=["accuracy"]
+            )
+
+        results = model.fit(train_ds)
+
+        self.assertAlmostEqual(results.history["accuracy"][0], accuracy)
 
 
 if __name__ == "__main__":
