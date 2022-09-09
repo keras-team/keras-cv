@@ -44,13 +44,13 @@ class ObjectDetectionBaseModel(keras.Model):
         batch_size=None,
         **kwargs,
     ):
-        dataset = convert_inputs_to_tf_dataset(
-            x=x, y=y, sample_weight=sample_weight, batch_size=batch_size
-        )
         if validation_split and validation_data is None:
             (x, y, sample_weight,), validation_data = train_validation_split(
                 (x, y, sample_weight), validation_split=validation_split
             )
+        dataset = convert_inputs_to_tf_dataset(
+            x=x, y=y, sample_weight=sample_weight, batch_size=batch_size
+        )
 
         if validation_data is not None:
             val_x, val_y, val_sample = keras.utils.unpack_x_y_sample_weight(

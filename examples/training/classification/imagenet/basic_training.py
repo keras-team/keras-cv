@@ -195,7 +195,7 @@ callbacks = [
     callbacks.EarlyStopping(patience=20),
     callbacks.BackupAndRestore(FLAGS.backup_path),
     callbacks.ModelCheckpoint(FLAGS.weights_path, save_weights_only=True),
-    callbacks.TensorBoard(log_dir=FLAGS.tensorboard_path),
+    callbacks.TensorBoard(log_dir=FLAGS.tensorboard_path, write_steps_per_second=True),
 ]
 
 

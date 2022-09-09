@@ -86,7 +86,15 @@ class FocalLoss(tf.keras.losses.Loss):
         alpha = tf.where(tf.equal(y_true, 1.0), self._alpha, (1.0 - self._alpha))
         pt = y_true * y_pred + (1.0 - y_true) * (1.0 - y_pred)
         loss = alpha * tf.pow(1.0 - pt, self._gamma) * cross_entropy
-        return loss
+        # In most losses you mean over the final axis to achieve a scalar
+        # Focal loss however is a special case in that it is meant to focus on
+        # a small number of hard examples in a batch.  Most of the time this
+        # comes in the form of thousands of background class boxes and a few
+        # positive boxes.
+        # If you mean over the final axis you will get a number close to 0,
+        # which will encourage your model to exclusively predict background
+        # class boxes.
+        return K.sum(loss, axis=-1)
 
     def get_config(self):
         config = super().get_config()

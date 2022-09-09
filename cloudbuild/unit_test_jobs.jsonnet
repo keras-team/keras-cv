@@ -22,8 +22,8 @@ local unittest = base.BaseTest {
     'bash',
     '-c',
     |||
+      export INTEGRATION=true
       # Run whatever is in `command` here.
-      cd keras-cv
       ${@:0}
     |||
   ],

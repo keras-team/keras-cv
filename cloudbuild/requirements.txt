@@ -7,4 +7,3 @@ flake8
 isort
 black
 pytest
-tensorflow_datasets
