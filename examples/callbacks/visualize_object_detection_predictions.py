@@ -4,6 +4,8 @@
 # In[1]:
 
 
+import os
+
 import matplotlib.pyplot as plt
 import tensorflow as tf
 import tensorflow_datasets as tfds
@@ -12,7 +14,7 @@ from tensorflow.keras import optimizers
 
 import keras_cv
 from keras_cv import bounding_box
-import os
+
 
 def _create_bounding_box_dataset(num_samples, bounding_box_format):
 
@@ -32,6 +34,7 @@ def _create_bounding_box_dataset(num_samples, bounding_box_format):
         ys, source="rel_xywh", target=bounding_box_format, images=xs, dtype=tf.float32
     )
     return xs, ys
+
 
 model = keras_cv.models.RetinaNet(
     classes=20,
@@ -69,8 +72,13 @@ model.compile(
 
 x, y = _create_bounding_box_dataset(num_samples=16, bounding_box_format="xywh")
 callbacks = [
-    keras_cv.callbacks.VisualizeObjectDetectionPredictions(x, y,
-    value_range=(0, 255), bounding_box_format='xywh', artifacts_dir="artifacts/"),
+    keras_cv.callbacks.VisualizeObjectDetectionPredictions(
+        x,
+        y,
+        value_range=(0, 255),
+        bounding_box_format="xywh",
+        artifacts_dir="artifacts/",
+    ),
 ]
 
 model.fit(
