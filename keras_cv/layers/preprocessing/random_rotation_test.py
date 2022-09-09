@@ -99,3 +99,16 @@ class RandomRotationTest(tf.test.TestCase):
             ragged_rank=1,
         )
         self.assertAllClose(expected_output, output["bounding_boxes"])
+
+    def test_augment_segmentation_mask(self):
+        input_image = np.random.random((2, 20, 20, 2)).astype(np.float32)
+        mask = np.random.randint(2, size=(2, 20, 20, 1)).astype(np.float32)
+        inputs = {"images": input_image, "segmentation_masks": mask}
+
+        # 90 rotation.
+        layer = RandomRotation(factor=(0.25, 0.25))
+        outputs = layer(inputs)
+
+        expected_mask = np.rot90(mask, axes=(1,2))
+
+        self.assertAllClose(expected_mask, outputs["segmentation_masks"], atol=1e-5)

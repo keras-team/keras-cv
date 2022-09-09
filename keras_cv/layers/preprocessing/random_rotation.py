@@ -118,6 +118,9 @@ class RandomRotation(BaseImageAugmentationLayer):
         return {"angle": angle}
 
     def augment_image(self, image, transformation, **kwargs):
+        return self._rotate_image(image, transformation)
+
+    def _rotate_image(self, image, transformation):
         image = preprocessing.ensure_tensor(image, self.compute_dtype)
         original_shape = image.shape
         image = tf.expand_dims(image, 0)
@@ -225,6 +228,9 @@ class RandomRotation(BaseImageAugmentationLayer):
 
     def augment_label(self, label, transformation, **kwargs):
         return label
+
+    def augment_segmentation_mask(self, segmentation_mask, transformation, **kwargs):
+        return self._rotate_image(segmentation_mask, transformation)
 
     def compute_output_shape(self, input_shape):
         return input_shape
