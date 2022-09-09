@@ -18,69 +18,8 @@ import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras import backend
 
-<<<<<<< HEAD
 
 class ModelsTest:
-=======
-from keras_cv.models import csp_darknet
-from keras_cv.models import darknet
-from keras_cv.models import densenet
-from keras_cv.models import efficientnet_v1
-from keras_cv.models import efficientnet_v2
-from keras_cv.models import mlp_mixer
-from keras_cv.models import resnet_v1
-from keras_cv.models import resnet_v2
-from keras_cv.models import vgg19
-
-MODEL_LIST = [
-    (csp_darknet.CSPDarkNet, 1024, {}),
-    (darknet.DarkNet21, 512, {}),
-    (darknet.DarkNet53, 512, {}),
-    (densenet.DenseNet121, 1024, {}),
-    (densenet.DenseNet169, 1664, {}),
-    (densenet.DenseNet201, 1920, {}),
-    (efficientnet_v1.EfficientNetB0, 1280, {}),
-    (efficientnet_v1.EfficientNetB1, 1280, {}),
-    (efficientnet_v1.EfficientNetB2, 1408, {}),
-    (efficientnet_v1.EfficientNetB3, 1536, {}),
-    (efficientnet_v1.EfficientNetB4, 1792, {}),
-    (efficientnet_v1.EfficientNetB5, 2048, {}),
-    (efficientnet_v1.EfficientNetB6, 2304, {}),
-    (efficientnet_v1.EfficientNetB7, 2560, {}),
-    (efficientnet_v2.EfficientNetV2B0, 1280, {}),
-    (efficientnet_v2.EfficientNetV2B1, 1280, {}),
-    (efficientnet_v2.EfficientNetV2B2, 1408, {}),
-    (efficientnet_v2.EfficientNetV2B3, 1536, {}),
-    (efficientnet_v2.EfficientNetV2S, 1280, {}),
-    (efficientnet_v2.EfficientNetV2M, 1280, {}),
-    (efficientnet_v2.EfficientNetV2L, 1280, {}),
-    (resnet_v1.ResNet50, 2048, {}),
-    (resnet_v1.ResNet101, 2048, {}),
-    (resnet_v1.ResNet152, 2048, {}),
-    (resnet_v2.ResNet50V2, 2048, {}),
-    (resnet_v2.ResNet101V2, 2048, {}),
-    (resnet_v2.ResNet152V2, 2048, {}),
-    (
-        mlp_mixer.MLPMixerB16,
-        768,
-        {"patch_size": (16, 16), "input_shape": (224, 224, 3)},
-    ),
-    (
-        mlp_mixer.MLPMixerB32,
-        768,
-        {"patch_size": (32, 32), "input_shape": (224, 224, 3)},
-    ),
-    (
-        mlp_mixer.MLPMixerL16,
-        1024,
-        {"patch_size": (16, 16), "input_shape": (224, 224, 3)},
-    ),
-    (vgg19.VGG19, 512, {}),
-]
-
-
-class ApplicationsTest(tf.test.TestCase, parameterized.TestCase):
->>>>>>> 10493d09 (Made necessary changes)
     def assertShapeEqual(self, shape1, shape2):
         self.assertEqual(tf.TensorShape(shape1), tf.TensorShape(shape2))
 
