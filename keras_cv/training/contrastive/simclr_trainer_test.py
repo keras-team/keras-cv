@@ -17,15 +17,15 @@ from tensorflow.keras import optimizers
 
 from keras_cv.losses import SimCLRLoss
 from keras_cv.models import ResNet50V2
-from keras_cv.training import SimCLRAugmenter
-from keras_cv.training import SimCLRTrainer
+from keras_cv.training import _SimCLRAugmenter
+from keras_cv.training import _SimCLRTrainer
 
 
 class SimCLRTrainerTest(tf.test.TestCase):
     def test_train_without_probing(self):
-        simclr_without_probing = SimCLRTrainer(
+        simclr_without_probing = _SimCLRTrainer(
             self.build_encoder(),
-            augmenter=SimCLRAugmenter(value_range=(0, 255)),
+            augmenter=_SimCLRAugmenter(value_range=(0, 255)),
         )
 
         images = tf.random.uniform((10, 512, 512, 3))

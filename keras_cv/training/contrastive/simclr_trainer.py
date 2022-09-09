@@ -16,10 +16,10 @@ from tensorflow import keras
 from tensorflow.keras import layers
 
 from keras_cv.layers import preprocessing
-from keras_cv.training import ContrastiveTrainer
+from keras_cv.training import _ContrastiveTrainer
 
 
-class SimCLRTrainer(ContrastiveTrainer):
+class _SimCLRTrainer(_ContrastiveTrainer):
     """Creates a SimCLRTrainer.
 
     References:
@@ -50,7 +50,7 @@ class SimCLRTrainer(ContrastiveTrainer):
         )
 
 
-class SimCLRAugmenter(preprocessing.Augmenter):
+class _SimCLRAugmenter(preprocessing.Augmenter):
     def __init__(
         self,
         value_range,

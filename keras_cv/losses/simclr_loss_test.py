@@ -14,7 +14,7 @@
 
 import tensorflow as tf
 
-from keras_cv.losses.simclr_loss import SimCLRLoss
+from keras_cv.losses.simclr_loss import _SimCLRLoss
 
 
 class SimCLRLossTest(tf.test.TestCase):
@@ -26,7 +26,7 @@ class SimCLRLossTest(tf.test.TestCase):
             shape=(10, 128), minval=0, maxval=10, dtype=tf.float32
         )
 
-        simclr_loss = SimCLRLoss(temperature=1)
+        simclr_loss = _SimCLRLoss(temperature=1)
 
         self.assertAllEqual(simclr_loss(projections_1, projections_2).shape, ())
 
@@ -38,7 +38,7 @@ class SimCLRLossTest(tf.test.TestCase):
             shape=(10, 128), minval=0, maxval=10, dtype=tf.float32
         )
 
-        simclr_loss = SimCLRLoss(temperature=1, reduction="none")
+        simclr_loss = _SimCLRLoss(temperature=1, reduction="none")
 
         self.assertAllEqual(simclr_loss(projections_1, projections_2).shape, (10,))
 
@@ -55,8 +55,8 @@ class SimCLRLossTest(tf.test.TestCase):
             [4.0, 3.0, 2.0, 1.0],
         ]
 
-        simclr_loss = SimCLRLoss(temperature=0.5)
+        simclr_loss = _SimCLRLoss(temperature=0.5)
         self.assertAllClose(simclr_loss(projections_1, projections_2), 3.566689)
 
-        simclr_loss = SimCLRLoss(temperature=0.1)
+        simclr_loss = _SimCLRLoss(temperature=0.1)
         self.assertAllClose(simclr_loss(projections_1, projections_2), 5.726100)

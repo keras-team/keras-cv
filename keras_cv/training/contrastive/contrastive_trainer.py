@@ -19,7 +19,7 @@ from tensorflow import keras
 from keras_cv.utils.train import convert_inputs_to_tf_dataset
 
 
-class ContrastiveTrainer(keras.Model):
+class _ContrastiveTrainer(keras.Model):
     """Creates a self-supervised contrastive trainer for a model.
 
     Args:

@@ -21,12 +21,12 @@ from tensorflow.keras import optimizers
 from keras_cv.layers import preprocessing
 from keras_cv.losses import SimCLRLoss
 from keras_cv.models import DenseNet121
-from keras_cv.training import ContrastiveTrainer
+from keras_cv.training import _ContrastiveTrainer
 
 
 class ContrastiveTrainerTest(tf.test.TestCase):
     def test_probe_requires_probe_optimizer(self):
-        trainer = ContrastiveTrainer(
+        trainer = _ContrastiveTrainer(
             encoder=self.build_encoder(),
             augmenter=self.build_augmenter(),
             projector=self.build_projector(),
@@ -39,13 +39,13 @@ class ContrastiveTrainerTest(tf.test.TestCase):
             )
 
     def test_targets_required_if_probing(self):
-        trainer_with_probing = ContrastiveTrainer(
+        trainer_with_probing = _ContrastiveTrainer(
             encoder=self.build_encoder(),
             augmenter=self.build_augmenter(),
             projector=self.build_projector(),
             probe=self.build_probe(),
         )
-        trainer_without_probing = ContrastiveTrainer(
+        trainer_without_probing = _ContrastiveTrainer(
             encoder=self.build_encoder(),
             augmenter=self.build_augmenter(),
             projector=self.build_projector(),
@@ -69,7 +69,7 @@ class ContrastiveTrainerTest(tf.test.TestCase):
             trainer_with_probing.fit(images)
 
     def test_train_with_probing(self):
-        trainer_with_probing = ContrastiveTrainer(
+        trainer_with_probing = _ContrastiveTrainer(
             encoder=self.build_encoder(),
             augmenter=self.build_augmenter(),
             projector=self.build_projector(),
@@ -90,7 +90,7 @@ class ContrastiveTrainerTest(tf.test.TestCase):
         trainer_with_probing.fit(images, targets)
 
     def test_train_without_probing(self):
-        trainer_without_probing = ContrastiveTrainer(
+        trainer_without_probing = _ContrastiveTrainer(
             encoder=self.build_encoder(),
             augmenter=self.build_augmenter(),
             projector=self.build_projector(),
@@ -109,7 +109,7 @@ class ContrastiveTrainerTest(tf.test.TestCase):
         trainer_without_probing.fit(images, targets)
 
     def test_inference_not_supported(self):
-        trainer = ContrastiveTrainer(
+        trainer = _ContrastiveTrainer(
             encoder=self.build_encoder(),
             augmenter=self.build_augmenter(),
             projector=self.build_projector(),
@@ -125,7 +125,7 @@ class ContrastiveTrainerTest(tf.test.TestCase):
 
     def test_encoder_must_have_flat_output(self):
         with self.assertRaises(ValueError):
-            _ = ContrastiveTrainer(
+            _ = _ContrastiveTrainer(
                 # A DenseNet without pooling does not have a flat output
                 encoder=DenseNet121(include_rescaling=False, include_top=False),
                 augmenter=self.build_augmenter(),
@@ -142,7 +142,7 @@ class ContrastiveTrainerTest(tf.test.TestCase):
             [projector0, layers.ReLU(), layers.Dense(64, name="projector1")]
         )
 
-        trainer_without_probing = ContrastiveTrainer(
+        trainer_without_probing = _ContrastiveTrainer(
             encoder=self.build_encoder(),
             augmenter=(augmenter0, augmenter1),
             projector=(projector0, projector1),

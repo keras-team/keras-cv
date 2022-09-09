@@ -12,6 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from keras_cv.training.contrastive.contrastive_trainer import ContrastiveTrainer
-from keras_cv.training.contrastive.simclr_trainer import SimCLRAugmenter
-from keras_cv.training.contrastive.simclr_trainer import SimCLRTrainer
+from keras_cv.training.contrastive.contrastive_trainer import _ContrastiveTrainer
+from keras_cv.training.contrastive.simclr_trainer import _SimCLRAugmenter
+from keras_cv.training.contrastive.simclr_trainer import _SimCLRTrainer
