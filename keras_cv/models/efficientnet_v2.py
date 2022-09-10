@@ -893,8 +893,7 @@ def EfficientNetV2(
     x = img_input
 
     if include_rescaling:
-        # Use common rescaling strategy across keras_cv
-        x = layers.Rescaling(scale=1.0 / 128.0, offset=-1)(x)
+        x = layers.Rescaling(scale=1/255.0)(x)
 
     # Build stem
     stem_filters = round_filters(
