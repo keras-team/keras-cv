@@ -161,7 +161,7 @@ BASE_DOCSTRING = """Instantiates the {name} architecture.
                 the output of the model will be a 2D tensor.
             - `max` means that global max pooling will
                 be applied.
-        num_classes: Optional number of num_classes to classify images
+        classes: Optional number of classes to classify images
             into, only to be specified if `include_top` is True, and
             if no `weights` argument is specified. Defaults to None.
         classifier_activation: A `str` or callable. The activation function to use
@@ -334,7 +334,7 @@ def EfficientNet(
     input_shape=(None, None, 3),
     input_tensor=None,
     pooling=None,
-    num_classes=None,
+    classes=None,
     classifier_activation="softmax",
 ):
     """Instantiates the EfficientNet architecture using given scaling coefficients.
@@ -370,7 +370,7 @@ def EfficientNet(
                 the output of the model will be a 2D tensor.
             - `max` means that global max pooling will
                 be applied.
-        num_classes: optional number of num_classes to classify images
+        classes: optional number of classes to classify images
             into, only to be specified if `include_top` is True, and
             if no `weights` argument is specified.
         classifier_activation: A `str` or callable. The activation function to use
@@ -395,10 +395,10 @@ def EfficientNet(
             "weights file to be loaded. Weights file not found at location: {weights}"
         )
 
-    if include_top and not num_classes:
+    if include_top and not classes:
         raise ValueError(
-            "If `include_top` is True, you should specify `num_classes`. "
-            f"Received: num_classes={num_classes}"
+            "If `include_top` is True, you should specify `classes`. "
+            f"Received: classes={classes}"
         )
 
     if include_top and pooling:
@@ -483,7 +483,7 @@ def EfficientNet(
         if dropout_rate > 0:
             x = layers.Dropout(dropout_rate, name="top_dropout")(x)
         x = layers.Dense(
-            num_classes,
+            classes,
             activation=classifier_activation,
             kernel_initializer=DENSE_KERNEL_INITIALIZER,
             name="predictions",
@@ -509,7 +509,7 @@ def EfficientNet(
 def EfficientNetB0(
     include_rescaling,
     include_top,
-    num_classes=None,
+    classes=None,
     weights=None,
     input_shape=(None, None, 3),
     input_tensor=None,
@@ -529,7 +529,7 @@ def EfficientNetB0(
         input_shape=input_shape,
         input_tensor=input_tensor,
         pooling=pooling,
-        num_classes=num_classes,
+        classes=classes,
         classifier_activation=classifier_activation,
         **kwargs,
     )
@@ -538,7 +538,7 @@ def EfficientNetB0(
 def EfficientNetB1(
     include_rescaling,
     include_top,
-    num_classes=None,
+    classes=None,
     weights=None,
     input_shape=(None, None, 3),
     input_tensor=None,
@@ -558,7 +558,7 @@ def EfficientNetB1(
         input_shape=input_shape,
         input_tensor=input_tensor,
         pooling=pooling,
-        num_classes=num_classes,
+        classes=classes,
         classifier_activation=classifier_activation,
         **kwargs,
     )
@@ -567,7 +567,7 @@ def EfficientNetB1(
 def EfficientNetB2(
     include_rescaling,
     include_top,
-    num_classes=None,
+    classes=None,
     weights=None,
     input_shape=(None, None, 3),
     input_tensor=None,
@@ -587,7 +587,7 @@ def EfficientNetB2(
         input_shape=input_shape,
         input_tensor=input_tensor,
         pooling=pooling,
-        num_classes=num_classes,
+        classes=classes,
         classifier_activation=classifier_activation,
         **kwargs,
     )
@@ -596,7 +596,7 @@ def EfficientNetB2(
 def EfficientNetB3(
     include_rescaling,
     include_top,
-    num_classes=None,
+    classes=None,
     weights=None,
     input_shape=(None, None, 3),
     input_tensor=None,
@@ -616,7 +616,7 @@ def EfficientNetB3(
         input_shape=input_shape,
         input_tensor=input_tensor,
         pooling=pooling,
-        num_classes=num_classes,
+        classes=classes,
         classifier_activation=classifier_activation,
         **kwargs,
     )
@@ -625,7 +625,7 @@ def EfficientNetB3(
 def EfficientNetB4(
     include_rescaling,
     include_top,
-    num_classes=None,
+    classes=None,
     weights=None,
     input_shape=(None, None, 3),
     input_tensor=None,
@@ -645,7 +645,7 @@ def EfficientNetB4(
         input_shape=input_shape,
         input_tensor=input_tensor,
         pooling=pooling,
-        num_classes=num_classes,
+        classes=classes,
         classifier_activation=classifier_activation,
         **kwargs,
     )
@@ -654,7 +654,7 @@ def EfficientNetB4(
 def EfficientNetB5(
     include_rescaling,
     include_top,
-    num_classes=None,
+    classes=None,
     weights=None,
     input_shape=(None, None, 3),
     input_tensor=None,
@@ -674,7 +674,7 @@ def EfficientNetB5(
         input_shape=input_shape,
         input_tensor=input_tensor,
         pooling=pooling,
-        num_classes=num_classes,
+        classes=classes,
         classifier_activation=classifier_activation,
         **kwargs,
     )
@@ -683,7 +683,7 @@ def EfficientNetB5(
 def EfficientNetB6(
     include_rescaling,
     include_top,
-    num_classes=None,
+    classes=None,
     weights=None,
     input_shape=(None, None, 3),
     input_tensor=None,
@@ -703,7 +703,7 @@ def EfficientNetB6(
         input_shape=input_shape,
         input_tensor=input_tensor,
         pooling=pooling,
-        num_classes=num_classes,
+        classes=classes,
         classifier_activation=classifier_activation,
         **kwargs,
     )
@@ -712,7 +712,7 @@ def EfficientNetB6(
 def EfficientNetB7(
     include_rescaling,
     include_top,
-    num_classes=None,
+    classes=None,
     weights=None,
     input_shape=(None, None, 3),
     input_tensor=None,
@@ -732,7 +732,7 @@ def EfficientNetB7(
         input_shape=input_shape,
         input_tensor=input_tensor,
         pooling=pooling,
-        num_classes=num_classes,
+        classes=classes,
         classifier_activation=classifier_activation,
         **kwargs,
     )

@@ -547,7 +547,7 @@ BASE_DOCSTRING = """Instantiates the {name} architecture.
                 the output of the model will be a 2D tensor.
             - `max` means that global max pooling will
                 be applied.
-        num_classes: Optional number of lasses to classify images
+        classes: Optional number of lasses to classify images
             into, only to be specified if `include_top` is True, and
             if no `weights` argument is specified. Defaults to None.
         classifier_activation: A `str` or callable. The activation function to use
@@ -810,7 +810,7 @@ def EfficientNetV2(
     input_shape=(None, None, 3),
     input_tensor=None,
     pooling=None,
-    num_classes=None,
+    classes=None,
     classifier_activation="softmax",
     **kwargs,
 ):
@@ -849,7 +849,7 @@ def EfficientNetV2(
                 the output of the model will be a 2D tensor.
             - `max` means that global max pooling will
                 be applied.
-        num_classes: optional number of classes to classify images
+        classes: optional number of classes to classify images
             into, only to be specified if `include_top` is True, and
             if no `weights` argument is specified.
         classifier_activation: A `str` or callable. The activation function to use
@@ -875,10 +875,10 @@ def EfficientNetV2(
             "weights file to be loaded. Weights file not found at location: {weights}"
         )
 
-    if include_top and not num_classes:
+    if include_top and not classes:
         raise ValueError(
-            "If `include_top` is True, you should specify `num_classes`. "
-            f"Received: num_classes={num_classes}"
+            "If `include_top` is True, you should specify `classes`. "
+            f"Received: classes={classes}"
         )
 
     if include_top and pooling:
@@ -992,7 +992,7 @@ def EfficientNetV2(
         if dropout_rate > 0:
             x = layers.Dropout(dropout_rate, name="top_dropout")(x)
         x = layers.Dense(
-            num_classes,
+            classes,
             activation=classifier_activation,
             kernel_initializer=DENSE_KERNEL_INITIALIZER,
             bias_initializer=tf.constant_initializer(0),
@@ -1023,7 +1023,7 @@ def EfficientNetV2B0(
     input_shape=(None, None, 3),
     input_tensor=None,
     pooling=None,
-    num_classes=None,
+    classes=None,
     classifier_activation="softmax",
     **kwargs,
 ):
@@ -1038,7 +1038,7 @@ def EfficientNetV2B0(
         input_shape=input_shape,
         input_tensor=input_tensor,
         pooling=pooling,
-        num_classes=num_classes,
+        classes=classes,
         classifier_activation=classifier_activation,
         **kwargs,
     )
@@ -1051,7 +1051,7 @@ def EfficientNetV2B1(
     input_shape=(None, None, 3),
     input_tensor=None,
     pooling=None,
-    num_classes=None,
+    classes=None,
     classifier_activation="softmax",
     **kwargs,
 ):
@@ -1066,7 +1066,7 @@ def EfficientNetV2B1(
         input_shape=input_shape,
         input_tensor=input_tensor,
         pooling=pooling,
-        num_classes=num_classes,
+        classes=classes,
         classifier_activation=classifier_activation,
         **kwargs,
     )
@@ -1079,7 +1079,7 @@ def EfficientNetV2B2(
     input_shape=(None, None, 3),
     input_tensor=None,
     pooling=None,
-    num_classes=None,
+    classes=None,
     classifier_activation="softmax",
     **kwargs,
 ):
@@ -1094,7 +1094,7 @@ def EfficientNetV2B2(
         input_shape=input_shape,
         input_tensor=input_tensor,
         pooling=pooling,
-        num_classes=num_classes,
+        classes=classes,
         classifier_activation=classifier_activation,
         **kwargs,
     )
@@ -1107,7 +1107,7 @@ def EfficientNetV2B3(
     input_shape=(None, None, 3),
     input_tensor=None,
     pooling=None,
-    num_classes=None,
+    classes=None,
     classifier_activation="softmax",
     **kwargs,
 ):
@@ -1122,7 +1122,7 @@ def EfficientNetV2B3(
         input_shape=input_shape,
         input_tensor=input_tensor,
         pooling=pooling,
-        num_classes=num_classes,
+        classes=classes,
         classifier_activation=classifier_activation,
         **kwargs,
     )
@@ -1135,7 +1135,7 @@ def EfficientNetV2S(
     input_shape=(None, None, 3),
     input_tensor=None,
     pooling=None,
-    num_classes=None,
+    classes=None,
     classifier_activation="softmax",
     **kwargs,
 ):
@@ -1150,7 +1150,7 @@ def EfficientNetV2S(
         input_shape=input_shape,
         input_tensor=input_tensor,
         pooling=pooling,
-        num_classes=num_classes,
+        classes=classes,
         classifier_activation=classifier_activation,
         **kwargs,
     )
@@ -1163,7 +1163,7 @@ def EfficientNetV2M(
     input_shape=(None, None, 3),
     input_tensor=None,
     pooling=None,
-    num_classes=None,
+    classes=None,
     classifier_activation="softmax",
     **kwargs,
 ):
@@ -1178,7 +1178,7 @@ def EfficientNetV2M(
         input_shape=input_shape,
         input_tensor=input_tensor,
         pooling=pooling,
-        num_classes=num_classes,
+        classes=classes,
         classifier_activation=classifier_activation,
         **kwargs,
     )
@@ -1191,7 +1191,7 @@ def EfficientNetV2L(
     input_shape=(None, None, 3),
     input_tensor=None,
     pooling=None,
-    num_classes=None,
+    classes=None,
     classifier_activation="softmax",
     **kwargs,
 ):
@@ -1206,7 +1206,7 @@ def EfficientNetV2L(
         input_shape=input_shape,
         input_tensor=input_tensor,
         pooling=pooling,
-        num_classes=num_classes,
+        classes=classes,
         classifier_activation=classifier_activation,
         **kwargs,
     )
