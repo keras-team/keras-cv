@@ -893,7 +893,7 @@ def EfficientNetV2(
     x = img_input
 
     if include_rescaling:
-        x = layers.Rescaling(scale=1/255.0)(x)
+        x = layers.Rescaling(scale=1 / 255.0)(x)
 
     # Build stem
     stem_filters = round_filters(
