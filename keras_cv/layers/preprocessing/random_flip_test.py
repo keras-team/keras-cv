@@ -111,7 +111,7 @@ class RandomFlipTest(tf.test.TestCase, parameterized.TestCase):
         layer = RandomFlip(dtype="uint8")
         self.assertAllEqual(layer(inputs).dtype, "uint8")
 
-    def test_augment_bbox_batched_input(self):
+    def test_augment_bounding_box_batched_input(self):
         image = tf.zeros([20, 20, 3])
         bboxes = tf.convert_to_tensor(
             [[[0, 0, 10, 10], [4, 4, 12, 12]], [[4, 4, 12, 12], [0, 0, 10, 10]]]
@@ -134,6 +134,20 @@ class RandomFlipTest(tf.test.TestCase, parameterized.TestCase):
         )
         expected_output = np.reshape(expected_output, (2, 2, 5))
         self.assertAllClose(expected_output, output["bounding_boxes"])
+
+    def test_ragged_bounding_boxes(self):
+        input_image = np.random.random((2, 512, 512, 3)).astype(np.float32)
+        bboxes = tf.ragged.constant(
+            [
+                [[200, 200, 400, 400], [100, 100, 300, 300]],
+                [[200, 200, 400, 400]],
+            ],
+            dtype=tf.float32,
+        )
+        bboxes = bounding_box.add_class_id(bboxes)
+        input = {"images": input_image, "bounding_boxes": bboxes}
+        layer = RandomFlip(bounding_box_format="xyxy")
+        _ = layer(input)
 
     def test_augment_segmentation_mask(self):
         np.random.seed(1337)
