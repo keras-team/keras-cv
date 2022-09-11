@@ -513,7 +513,7 @@ def _resnet50_backbone(include_rescaling, backbone_weights):
     x = inputs
 
     # TODO(lukewood): this should really be calling keras_cv.models.ResNet50
-    backbone = keras.models.ResNet50V2(
+    backbone = keras_cv.models.ResNet50V2(
         include_top=False,
         input_tensor=x,
         include_rescaling=include_top,
