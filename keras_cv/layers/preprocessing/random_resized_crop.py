@@ -172,8 +172,8 @@ class RandomResizedCrop(BaseImageAugmentationLayer):
 
         if new_height < original_height and new_width > original_width:
             if new_width >= new_height:
-                new_width = (original_height / new_height) * new_width
-                new_height = original_height
+                new_height = (original_width / new_width) * original_height
+                new_width = original_width
             else:
                 new_height = (original_width / new_width) * new_height
                 new_width = original_width
@@ -183,8 +183,8 @@ class RandomResizedCrop(BaseImageAugmentationLayer):
                 new_width = (original_height / new_height) * new_width
                 new_height = original_height
             else:
-                new_height = (original_width / new_width) * new_height
-                new_width = original_width
+                new_width = (original_height / new_height) * new_width
+                new_height = original_height
 
         return new_height, new_width
 
