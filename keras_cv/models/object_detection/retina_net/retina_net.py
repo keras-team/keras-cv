@@ -16,6 +16,7 @@ import numpy as np
 import tensorflow as tf
 from tensorflow import keras
 
+import keras_cv.models.resnet_v2
 from keras_cv import bounding_box
 from keras_cv import layers as cv_layers
 from keras_cv.models.object_detection.object_detection_base_model import (
@@ -513,7 +514,7 @@ def _resnet50_backbone(include_rescaling, backbone_weights):
     x = inputs
 
     # TODO(lukewood): this should really be calling keras_cv.models.ResNet50
-    backbone = keras_cv.models.ResNet50V2(
+    backbone = keras_cv.models.resnet_v2.ResNet50V2(
         include_top=False,
         input_tensor=x,
         include_rescaling=include_top,
