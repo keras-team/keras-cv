@@ -517,7 +517,7 @@ def _resnet50_backbone(include_rescaling, backbone_weights):
     backbone = keras_cv.models.resnet_v2.ResNet50V2(
         include_top=False,
         input_tensor=x,
-        include_rescaling=include_top,
+        include_rescaling=include_rescaling,
         weights=backbone_weights,
     )
     x = backbone(x)
