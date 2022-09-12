@@ -152,7 +152,7 @@ class ModelsTest:
 
         results = model.fit(train_ds)
 
-        self.assertAlmostEqual(results.history["accuracy"][0], accuracy)
+        self.assertGreaterEqual(results.history["accuracy"][0], accuracy)
 
 
 if __name__ == "__main__":
