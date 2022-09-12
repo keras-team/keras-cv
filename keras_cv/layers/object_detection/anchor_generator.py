@@ -152,12 +152,17 @@ class AnchorGenerator(keras.layers.Layer):
 
         return tf.nest.map_structure(lambda _: params, sizes)
 
-    def __call__(self, images=None, image_shape=None):
-        if images is None and image_shape is None:
+    def __call__(self, image=None, image_shape=None):
+        if image is None and image_shape is None:
             raise ValueError("AnchorGenerator() requires `images` or `image_shape`.")
 
-        if images is not None:
-            image_shape = tf.shape(images)
+        if image is not None:
+            if image.shape.rank != 3:
+                raise ValueError(
+                    "Expected `image` to be a Tensor of rank 3.  Got "
+                    f"image.shape.rank={image.shape.rank}"
+                )
+            image_shape = tf.shape(image)
 
         anchor_generators = tf.nest.flatten(self.anchor_generators)
         results = [anchor_gen(image_shape) for anchor_gen in anchor_generators]
@@ -220,15 +225,7 @@ class _SingleAnchorGenerator:
         self.clip_boxes = clip_boxes
         self.dtype = dtype
 
-    def __call__(self, image=None, image_size=None):
-        if image is not None and image_size is not None:
-            raise ValueError("AnchorGenerator.call() expects either `image` or "
-            f"`image_shape`, got image={image} "
-            f"image_shape={image_shape}")
-
-        if image_size is None:
-            image_size = tf.shape(image)
-
+    def __call__(self, image_size):
         image_height = tf.cast(image_size[0], tf.float32)
         image_width = tf.cast(image_size[1], tf.float32)
 

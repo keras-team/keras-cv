@@ -142,7 +142,7 @@ class RetinaNetLabelEncoder(layers.Layer):
         target_boxes = bounding_box.convert_format(
             target_boxes, source=self.bounding_box_format, target="xywh", images=images
         )
-        anchor_boxes = self.anchor_generator(images[0])
+        anchor_boxes = self.anchor_generator(image_shape=tf.shape(images[0]))
         anchor_boxes = tf.concat(list(anchor_boxes.values()), axis=0)
         anchor_boxes = bounding_box.convert_format(
             anchor_boxes,

@@ -32,6 +32,23 @@ class AnchorGeneratorTest(tf.test.TestCase, parameterized.TestCase):
                 scales=[0.5, 1.0, 1.5],
             )
 
+    def test_raises_batched_images(self):
+        strides = [4]
+        scales = [1.0]
+        sizes = [4]
+        aspect_ratios = [1.0]
+        anchor_generator = cv_layers.AnchorGenerator(
+            bounding_box_format="xyxy",
+            sizes=sizes,
+            aspect_ratios=aspect_ratios,
+            scales=scales,
+            strides=strides,
+        )
+
+        image = tf.random.uniform((4, 8, 8, 3))
+        with self.assertRaisesRegex(ValueError, "rank"):
+            _ = anchor_generator(image=image)
+
     def test_output_shapes_image(self):
         strides = [2**i for i in range(3, 8)]
         scales = [2**x for x in [0, 1 / 3, 2 / 3]]
@@ -91,14 +108,14 @@ class AnchorGeneratorTest(tf.test.TestCase, parameterized.TestCase):
         )
 
         image = tf.random.uniform((8, 8, 3))
-        boxes = anchor_generator(image)
+        boxes = anchor_generator(image=image)
         level_0 = boxes[0]
 
         # width/4 * height/4 * aspect_ratios =
         self.assertAllEqual(level_0.shape, [12, 4])
 
         image = tf.random.uniform((4, 4, 3))
-        boxes = anchor_generator(image)
+        boxes = anchor_generator(image=image)
         level_0 = boxes[0]
 
         expected_boxes = [
@@ -122,7 +139,7 @@ class AnchorGeneratorTest(tf.test.TestCase, parameterized.TestCase):
         )
 
         image = tf.random.uniform((8, 8, 3))
-        boxes = anchor_generator(image)
+        boxes = anchor_generator(image=image)
         level_0 = boxes[0]
         expected_boxes = [
             [0, 0, 4, 4],
@@ -149,7 +166,7 @@ class AnchorGeneratorTest(tf.test.TestCase, parameterized.TestCase):
             strides=strides,
             clip_boxes=False,
         )
-        boxes = anchor_generator(image)
+        boxes = anchor_generator(image=image)
         boxes = tf.concat(list(boxes.values()), axis=0)
         self.assertAllLessEqual(boxes, 1.5)
         self.assertAllGreaterEqual(boxes, -0.50)
