@@ -30,6 +30,13 @@ MODEL_LIST = [
 ]
 
 
+
+@pytest.mark.skipif(
+    "INTEGRATION" not in os.environ or os.environ["INTEGRATION"] != "true",
+    reason="Takes a long time to run, only runs when INTEGRATION "
+    "environment variable is set.  To run the test please run: \n"
+    "`INTEGRATION=true pytest keras_cv/",
+)
 class EfficientNetV2Test(ModelsTest, tf.test.TestCase, parameterized.TestCase):
     @parameterized.parameters(*MODEL_LIST)
     def test_application_base(self, app, _, args):
