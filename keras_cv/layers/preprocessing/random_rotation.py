@@ -78,8 +78,10 @@ class RandomRotation(BaseImageAugmentationLayer):
       bounding_box_format: The format of bounding boxes of input dataset. Refer
         https://github.com/keras-team/keras-cv/blob/master/keras_cv/bounding_box/converters.py
         for more details on supported bounding box formats.
-      segmentation_classes: The number of classes in the input segmentation mask.
-        Required iff augmenting data with sparse (non one-hot) segmentation masks.
+      segmentation_classes: an optional integer with the number of classes in
+        the input segmentation mask. Required iff augmenting data with sparse
+        (non one-hot) segmentation masks. Include the background class in this
+        count (e.g. for segmenting dog vs background, this should be set to 2).
     """
 
     def __init__(
@@ -236,24 +238,20 @@ class RandomRotation(BaseImageAugmentationLayer):
     def augment_segmentation_mask(self, segmentation_mask, transformation, **kwargs):
         # If segmentation_classes is specified, we have a dense segmentation mask.
         # We therefore one-hot encode before rotation to avoid bad interpolation
-        # during the rotation transformation. Later, we make the mask sparse
+        # during the rotation transformation. We then make the mask sparse
         # again using tf.argmax.
         if self.segmentation_classes:
             one_hot_mask = tf.one_hot(
                 tf.squeeze(segmentation_mask, axis=-1), self.segmentation_classes
             )
-        else:
-            one_hot_mask = segmentation_mask
-
-        rotated_one_hot_mask = self._rotate_image(one_hot_mask, transformation)
-
-        if self.segmentation_classes:
+            rotated_one_hot_mask = self._rotate_image(one_hot_mask, transformation)
             rotated_mask = tf.argmax(rotated_one_hot_mask, axis=-1)
             return tf.expand_dims(rotated_mask, axis=-1)
         else:
+            rotated_mask = self._rotate_image(segmentation_mask, transformation)
             # Round because we are in one-hot encoding, and we may have
             # pixels with ambugious value due to floating point math for rotation.
-            return tf.round(rotated_one_hot_mask)
+            return tf.round(rotated_mask)
 
     def compute_output_shape(self, input_shape):
         return input_shape
