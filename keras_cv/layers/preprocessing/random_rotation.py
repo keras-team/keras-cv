@@ -248,6 +248,13 @@ class RandomRotation(BaseImageAugmentationLayer):
             rotated_mask = tf.argmax(rotated_one_hot_mask, axis=-1)
             return tf.expand_dims(rotated_mask, axis=-1)
         else:
+            if segmentation_mask.shape[-1] == 1:
+                raise ValueError(
+                    "Segmentation masks must be one-hot encoded, or "
+                    "RandomRotate must be initialized with "
+                    "`segmentation_classes`. `segmentation_classes` was not "
+                    f"specified, and mask has shape {segmentation_mask.shape}"
+                )
             rotated_mask = self._rotate_image(segmentation_mask, transformation)
             # Round because we are in one-hot encoding, and we may have
             # pixels with ambugious value due to floating point math for rotation.
