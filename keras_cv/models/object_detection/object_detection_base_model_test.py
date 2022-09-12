@@ -22,12 +22,6 @@ from keras_cv.models.object_detection.object_detection_base_model import (
 )
 
 
-@pytest.mark.skipif(
-    "INTEGRATION" not in os.environ or os.environ["INTEGRATION"] != "true",
-    reason="Takes a long time to run, only runs when INTEGRATION "
-    "environment variable is set.  To run the test please run: \n"
-    "`INTEGRATION=true pytest keras_cv/",
-)
 class ObjectDetectionBaseModelTest(tf.test.TestCase):
     def test_raises_error_when_y_provided_with_dataset(self):
         x = tf.data.Dataset.from_tensor_slices(
