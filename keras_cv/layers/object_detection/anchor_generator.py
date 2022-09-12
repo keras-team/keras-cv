@@ -220,7 +220,15 @@ class _SingleAnchorGenerator:
         self.clip_boxes = clip_boxes
         self.dtype = dtype
 
-    def __call__(self, image_size):
+    def __call__(self, image=None, image_size=None):
+        if image is not None and image_size is not None:
+            raise ValueError("AnchorGenerator.call() expects either `image` or "
+            f"`image_shape`, got image={image} "
+            f"image_shape={image_shape}")
+
+        if image_size is None:
+            image_size = tf.shape(image)
+
         image_height = tf.cast(image_size[0], tf.float32)
         image_width = tf.cast(image_size[1], tf.float32)
 
