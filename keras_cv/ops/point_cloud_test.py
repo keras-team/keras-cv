@@ -126,8 +126,8 @@ class Boxes3DTestCase(tf.test.TestCase, parameterized.TestCase):
             )
             return tf.matmul(bbox, rotation_matrix)
 
-        rotated_bbox = _rotate(boxes, angle)
-        res = ops._box_area(boxes)
+        rotated_bboxes = _rotate(boxes, angle)
+        res = ops._box_area(rotated_bboxes)
         self.assertAllClose(expected, res)
 
     def test_within_box3d(self):
