@@ -111,7 +111,7 @@ class RandomRotationTest(tf.test.TestCase):
 
         # Attempting to rotate a sparse mask without specifying classes fails.
         bad_layer = RandomRotation(factor=(0.25, 0.25))
-        with self.assertRaises(ValueError):
+        with self.assertRaisesRegex(ValueError, "masks must be one-hot"):
             outputs = bad_layer(inputs)
 
         # 90 degree rotation.
