@@ -179,7 +179,7 @@ FROM_XYXY_CONVERTERS = {
 }
 
 
-def convert_format(boxes, source, target, images=None, dtype="float32"):
+def convert_format(boxes, source, target, images=None, image_shape=None, dtype="float32"):
     f"""Converts bounding_boxes from one format to another.
 
     Supported formats are:
