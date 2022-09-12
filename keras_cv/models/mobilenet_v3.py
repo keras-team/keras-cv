@@ -486,7 +486,7 @@ def MobileNetV3Small(
         include_rescaling=include_rescaling,
         include_top=include_top,
         classes=classes,
-        weights=weights,
+        weights=parse_weights(weights, include_top, "mobilenetv3small-minimalistic" if minimalistic else "mobilenetv3small")
         input_shape=input_shape,
         input_tensor=input_tensor,
         pooling=pooling,
