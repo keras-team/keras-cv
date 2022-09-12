@@ -30,7 +30,6 @@ MODEL_LIST = [
 ]
 
 
-
 @pytest.mark.skipif(
     "INTEGRATION" not in os.environ or os.environ["INTEGRATION"] != "true",
     reason="Takes a long time to run, only runs when INTEGRATION "
