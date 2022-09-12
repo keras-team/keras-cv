@@ -32,7 +32,7 @@
         }
     },
     "densenet201": {
-        "v1": {
+        "v0": {
             "accelerators": 8,
             "args": {
                 "batch_size": "512"
