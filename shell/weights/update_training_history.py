@@ -23,6 +23,9 @@ flags.DEFINE_string(
 flags.DEFINE_string(
     "contributor", None, "The GitHub username of the contributor of these results"
 )
+flags.DEFINE_string(
+    "accelerators", None, "The number of accelerators used for training."
+)
 
 FLAGS = flags.FLAGS
 FLAGS(sys.argv)
@@ -84,6 +87,10 @@ contributor = FLAGS.contributor or input(
     "Input your GitHub username (or the username of the contributor, if it's not you)\n"
 )
 
+accelerators = FLAGS.accelerators or input(
+    "Input the number of accelerators used during training.\n"
+)
+
 args = input(
     "Input any training arguments used for the training script.\n"
     "Use comma-separate, colon-split key-value pairs. For example:\n"
@@ -104,6 +111,7 @@ new_results = {
     "tensorboard_logs": f"https://tensorboard.dev/experiment/{tensorboard_experiment_id}/",
     "contributor": contributor,
     "args": args_dict,
+    "accelerators": int(accelerators),
 }
 
 # Check if the JSON file already exists
