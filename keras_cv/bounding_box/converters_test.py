@@ -114,6 +114,17 @@ class ConvertersTestCase(tf.test.TestCase, parameterized.TestCase):
             target_box,
         )
 
+    @parameterized.named_parameters(*test_cases)
+    def test_ragged_bounding_box_with_image_shape(self, source, target):
+        source_box = _raggify(boxes[source])
+        target_box = _raggify(boxes[target])
+        self.assertAllClose(
+            bounding_box.convert_format(
+                source_box, source=source, target=target, image_shape=(1000, 1000, 3)
+            ),
+            target_box,
+        )
+
 
 def _raggify(tensor, row_lengths=[[2, 0], [0, 0]]):
     return tf.RaggedTensor.from_row_lengths(tensor[0], [2, 0])

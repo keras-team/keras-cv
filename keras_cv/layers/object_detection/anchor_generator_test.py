@@ -32,7 +32,6 @@ class AnchorGeneratorTest(tf.test.TestCase, parameterized.TestCase):
                 scales=[0.5, 1.0, 1.5],
             )
 
-
     def test_output_shapes_image_shape(self):
         strides = [2**i for i in range(3, 8)]
         scales = [2**x for x in [0, 1 / 3, 2 / 3]]
@@ -55,7 +54,6 @@ class AnchorGeneratorTest(tf.test.TestCase, parameterized.TestCase):
         # PR https://github.com/keras-team/keras-cv/pull/609
         # This unit test was written to ensure compatibility with the existing model.
         self.assertEqual(boxes.shape, [49104, 4])
-
 
     def test_output_shapes_image_shape(self):
         strides = [2**i for i in range(3, 8)]
