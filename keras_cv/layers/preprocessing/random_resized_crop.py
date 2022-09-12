@@ -134,7 +134,7 @@ class RandomResizedCrop(BaseImageAugmentationLayer):
 
             if "segmentation_masks" in inputs:
                 output["segmentation_masks"] = self._resize(
-                    inputs["segmentation_masks"]
+                    inputs["segmentation_masks"], interpolation="nearest"
                 )
 
             return self._format_output(output, meta_data)
@@ -142,8 +142,10 @@ class RandomResizedCrop(BaseImageAugmentationLayer):
     def augment_image(self, image, transformation, **kwargs):
         return self._crop_and_resize(image, transformation)
 
-    def _resize(self, image):
-        outputs = tf.keras.preprocessing.image.smart_resize(image, self.target_size)
+    def _resize(self, image, **kwargs):
+        outputs = tf.keras.preprocessing.image.smart_resize(
+            image, self.target_size, **kwargs
+        )
         # smart_resize will always output float32, so we need to re-cast.
         return tf.cast(outputs, self.compute_dtype)
 
