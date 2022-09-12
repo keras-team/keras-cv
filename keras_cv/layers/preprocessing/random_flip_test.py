@@ -154,7 +154,9 @@ class RandomFlipTest(tf.test.TestCase, parameterized.TestCase):
             [
                 [[10, 10, 20, 20, 0], [8, 8, 16, 16, 0]],
                 [[10, 10, 20, 20, 0]],
-            ], dtype=tf.float32, ragged_rank=1
+            ],
+            dtype=tf.float32,
+            ragged_rank=1,
         )
         tf.print("output bounding box", output["bounding_boxes"])
         self.assertAllClose(expected_output, output["bounding_boxes"])
