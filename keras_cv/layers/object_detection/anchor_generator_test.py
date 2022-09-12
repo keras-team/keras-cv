@@ -32,7 +32,7 @@ class AnchorGeneratorTest(tf.test.TestCase, parameterized.TestCase):
                 scales=[0.5, 1.0, 1.5],
             )
 
-    def test_output_shapes_image_shape(self):
+    def test_output_shapes_image(self):
         strides = [2**i for i in range(3, 8)]
         scales = [2**x for x in [0, 1 / 3, 2 / 3]]
         sizes = [x**2 for x in [32.0, 64.0, 128.0, 256.0, 512.0]]

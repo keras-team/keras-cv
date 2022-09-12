@@ -154,7 +154,7 @@ class AnchorGenerator(keras.layers.Layer):
 
     def __call__(self, images=None, image_shape=None):
         if images is None and image_shape is None:
-            raise ValueError(f"AnchorGenerator() requires `images` or `image_shape`.")
+            raise ValueError("AnchorGenerator() requires `images` or `image_shape`.")
 
         if images is not None:
             image_shape = tf.shape(images)
