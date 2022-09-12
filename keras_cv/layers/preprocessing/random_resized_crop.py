@@ -54,6 +54,10 @@ class RandomResizedCrop(BaseImageAugmentationLayer):
             should be `(3/4, 4/3)`.  To perform a no-op provide the value `(1.0, 1.0)`.
         interpolation: (Optional) A string specifying the sampling method for
             resizing. Defaults to "bilinear".
+        segmentation_classes: an optional integer with the number of classes in
+            the input segmentation mask. Required iff augmenting data with sparse
+            (non one-hot) segmentation masks. Include the background class in this
+            count (e.g. for segmenting dog vs background, this should be set to 2).
         seed: (Optional) Used to create a random seed. Defaults to None.
     """
 
@@ -63,6 +67,7 @@ class RandomResizedCrop(BaseImageAugmentationLayer):
         crop_area_factor,
         aspect_ratio_factor,
         interpolation="bilinear",
+        segmentation_classes=None,
         seed=None,
         **kwargs,
     ):
@@ -86,6 +91,7 @@ class RandomResizedCrop(BaseImageAugmentationLayer):
         )
 
         self.interpolation = interpolation
+        self.segmentation_classes = segmentation_classes
         self.seed = seed
 
     def get_random_transformation(
@@ -188,7 +194,35 @@ class RandomResizedCrop(BaseImageAugmentationLayer):
         return augment_target
 
     def augment_segmentation_mask(self, segmentation_mask, transformation, **kwargs):
-        return self._crop_and_resize(segmentation_mask, transformation)
+        # If segmentation_classes is specified, we have a dense segmentation mask.
+        # We therefore one-hot encode before rotation to avoid bad interpolation
+        # during the crop and resize. We then make the mask sparse again using
+        # tf.argmax.
+        if self.segmentation_classes:
+            one_hot_mask = tf.one_hot(
+                tf.squeeze(segmentation_mask, axis=-1), self.segmentation_classes
+            )
+            cropped_and_resized_one_hot_mask = self._crop_and_resize(
+                one_hot_mask, transformation
+            )
+            cropped_and_resized_mask = tf.argmax(
+                cropped_and_resized_one_hot_mask, axis=-1
+            )
+            return tf.expand_dims(cropped_and_resized_mask, axis=-1)
+        else:
+            if segmentation_mask.shape[-1] == 1:
+                raise ValueError(
+                    "Segmentation masks must be one-hot encoded, or "
+                    "RandomResizedCrop must be initialized with "
+                    "`segmentation_classes`. `segmentation_classes` was not "
+                    f"specified, and mask has shape {segmentation_mask.shape}"
+                )
+            cropped_and_resized_mask = self._crop_and_resize(
+                segmentation_mask, transformation
+            )
+            # Round because we are in one-hot encoding, and we may have
+            # pixels with ambugious value due to interpolation during resizing.
+            return tf.round(cropped_and_resized_mask)
 
     def get_config(self):
         config = super().get_config()
