@@ -152,8 +152,18 @@ class AnchorGenerator(keras.layers.Layer):
 
         return tf.nest.map_structure(lambda _: params, sizes)
 
-    def __call__(self, image):
-        image_shape = tf.shape(image)
+    def __call__(self, image=None, image_shape=None):
+        if image is None and image_shape is None:
+            raise ValueError("AnchorGenerator() requires `images` or `image_shape`.")
+
+        if image is not None:
+            if image.shape.rank != 3:
+                raise ValueError(
+                    "Expected `image` to be a Tensor of rank 3.  Got "
+                    f"image.shape.rank={image.shape.rank}"
+                )
+            image_shape = tf.shape(image)
+
         anchor_generators = tf.nest.flatten(self.anchor_generators)
         results = [anchor_gen(image_shape) for anchor_gen in anchor_generators]
         results = tf.nest.pack_sequence_as(self.anchor_generators, results)
@@ -162,7 +172,7 @@ class AnchorGenerator(keras.layers.Layer):
                 results[key],
                 source="yxyx",
                 target=self.bounding_box_format,
-                images=image,
+                image_shape=image_shape,
             )
         return results
 

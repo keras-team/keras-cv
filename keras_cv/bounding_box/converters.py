@@ -22,7 +22,7 @@ class RequiresImagesException(Exception):
     pass
 
 
-def _center_xywh_to_xyxy(boxes, images=None):
+def _center_xywh_to_xyxy(boxes, images=None, image_shape=None):
     x, y, width, height, rest = tf.split(
         boxes, [1, 1, 1, 1, boxes.shape[-1] - 4], axis=-1
     )
@@ -32,15 +32,15 @@ def _center_xywh_to_xyxy(boxes, images=None):
     )
 
 
-def _xywh_to_xyxy(boxes, images=None):
+def _xywh_to_xyxy(boxes, images=None, image_shape=None):
     x, y, width, height, rest = tf.split(
         boxes, [1, 1, 1, 1, boxes.shape[-1] - 4], axis=-1
     )
     return tf.concat([x, y, x + width, y + height, rest], axis=-1)
 
 
-def _rel_xywh_to_xyxy(boxes, images=None):
-    image_height, image_width = _image_shape(images, boxes)
+def _rel_xywh_to_xyxy(boxes, images=None, image_shape=None):
+    image_height, image_width = _image_shape(images, image_shape, boxes)
     x, y, width, height, rest = tf.split(
         boxes, [1, 1, 1, 1, boxes.shape[-1] - 4], axis=-1
     )
@@ -56,11 +56,11 @@ def _rel_xywh_to_xyxy(boxes, images=None):
     )
 
 
-def _xyxy_no_op(boxes, images=None):
+def _xyxy_no_op(boxes, images=None, image_shape=None):
     return boxes
 
 
-def _xyxy_to_xywh(boxes, images=None):
+def _xyxy_to_xywh(boxes, images=None, image_shape=None):
     left, top, right, bottom, rest = tf.split(
         boxes, [1, 1, 1, 1, boxes.shape[-1] - 4], axis=-1
     )
@@ -70,8 +70,8 @@ def _xyxy_to_xywh(boxes, images=None):
     )
 
 
-def _xyxy_to_rel_xywh(boxes, images=None):
-    image_height, image_width = _image_shape(images, boxes)
+def _xyxy_to_rel_xywh(boxes, images=None, image_shape=None):
+    image_height, image_width = _image_shape(images, image_shape, boxes)
     left, top, right, bottom, rest = tf.split(
         boxes, [1, 1, 1, 1, boxes.shape[-1] - 4], axis=-1
     )
@@ -86,7 +86,7 @@ def _xyxy_to_rel_xywh(boxes, images=None):
     )
 
 
-def _xyxy_to_center_xywh(boxes, images=None):
+def _xyxy_to_center_xywh(boxes, images=None, image_shape=None):
     left, top, right, bottom, rest = tf.split(
         boxes, [1, 1, 1, 1, boxes.shape[-1] - 4], axis=-1
     )
@@ -96,8 +96,8 @@ def _xyxy_to_center_xywh(boxes, images=None):
     )
 
 
-def _rel_xyxy_to_xyxy(boxes, images=None):
-    image_height, image_width = _image_shape(images, boxes)
+def _rel_xyxy_to_xyxy(boxes, images=None, image_shape=None):
+    image_height, image_width = _image_shape(images, image_shape, boxes)
     left, top, right, bottom, rest = tf.split(
         boxes, [1, 1, 1, 1, boxes.shape[-1] - 4], axis=-1
     )
@@ -109,8 +109,8 @@ def _rel_xyxy_to_xyxy(boxes, images=None):
     )
 
 
-def _xyxy_to_rel_xyxy(boxes, images=None):
-    image_height, image_width = _image_shape(images, boxes)
+def _xyxy_to_rel_xyxy(boxes, images=None, image_shape=None):
+    image_height, image_width = _image_shape(images, image_shape, boxes)
     left, top, right, bottom, rest = tf.split(
         boxes, [1, 1, 1, 1, boxes.shape[-1] - 4], axis=-1
     )
@@ -122,13 +122,13 @@ def _xyxy_to_rel_xyxy(boxes, images=None):
     )
 
 
-def _yxyx_to_xyxy(boxes, images=None):
+def _yxyx_to_xyxy(boxes, images=None, image_shape=None):
     y1, x1, y2, x2, rest = tf.split(boxes, [1, 1, 1, 1, boxes.shape[-1] - 4], axis=-1)
     return tf.concat([x1, y1, x2, y2, rest], axis=-1)
 
 
-def _rel_yxyx_to_xyxy(boxes, images=None):
-    image_height, image_width = _image_shape(images, boxes)
+def _rel_yxyx_to_xyxy(boxes, images=None, image_shape=None):
+    image_height, image_width = _image_shape(images, image_shape, boxes)
     top, left, bottom, right, rest = tf.split(
         boxes, [1, 1, 1, 1, boxes.shape[-1] - 4], axis=-1
     )
@@ -140,13 +140,13 @@ def _rel_yxyx_to_xyxy(boxes, images=None):
     )
 
 
-def _xyxy_to_yxyx(boxes, images=None):
+def _xyxy_to_yxyx(boxes, images=None, image_shape=None):
     x1, y1, x2, y2, rest = tf.split(boxes, [1, 1, 1, 1, boxes.shape[-1] - 4], axis=-1)
     return tf.concat([y1, x1, y2, x2, rest], axis=-1)
 
 
-def _xyxy_to_rel_yxyx(boxes, images=None):
-    image_height, image_width = _image_shape(images, boxes)
+def _xyxy_to_rel_yxyx(boxes, images=None, image_shape=None):
+    image_height, image_width = _image_shape(images, image_shape, boxes)
     left, top, right, bottom, rest = tf.split(
         boxes, [1, 1, 1, 1, boxes.shape[-1] - 4], axis=-1
     )
@@ -179,7 +179,9 @@ FROM_XYXY_CONVERTERS = {
 }
 
 
-def convert_format(boxes, source, target, images=None, dtype="float32"):
+def convert_format(
+    boxes, source, target, images=None, image_shape=None, dtype="float32"
+):
     f"""Converts bounding_boxes from one format to another.
 
     Supported formats are:
@@ -238,6 +240,13 @@ def convert_format(boxes, source, target, images=None, dtype="float32"):
         dtype: the data type to use when transforming the boxes.  Defaults to
             `tf.float32`.
     """
+    if images is not None and image_shape is not None:
+        raise ValueError(
+            "convert_format() expects either `images` or `image_shape`, "
+            f"but not both.  Received images={images} image_shape={image_shape}"
+        )
+
+    _validate_image_shape(image_shape)
 
     source = source.lower()
     target = target.lower()
@@ -264,19 +273,18 @@ def convert_format(boxes, source, target, images=None, dtype="float32"):
         target = target.replace("rel_", "", 1)
 
     boxes, images, squeeze = _format_inputs(boxes, images)
-
     to_xyxy_fn = TO_XYXY_CONVERTERS[source]
     from_xyxy_fn = FROM_XYXY_CONVERTERS[target]
 
     try:
-        in_xyxy = to_xyxy_fn(boxes, images=images)
-        result = from_xyxy_fn(in_xyxy, images=images)
+        in_xyxy = to_xyxy_fn(boxes, images=images, image_shape=image_shape)
+        result = from_xyxy_fn(in_xyxy, images=images, image_shape=image_shape)
     except RequiresImagesException:
         raise ValueError(
-            "convert_format() must receive `images` when transforming "
+            "convert_format() must receive `images` or `image_shape` when transforming "
             f"between relative and absolute formats."
             f"convert_format() received source=`{format}`, target=`{format}, "
-            f"but images={images}"
+            f"but images={images} and image_shape={image_shape}."
         )
 
     return _format_outputs(result, squeeze)
@@ -314,15 +322,53 @@ def _format_inputs(boxes, images):
     return boxes, images, False
 
 
+def _validate_image_shape(image_shape):
+    # Escape early if image_shape is None and skip validation.
+    if image_shape is None:
+        return
+    # tuple/list
+    if isinstance(image_shape, (tuple, list)):
+        if len(image_shape) != 3:
+            raise ValueError(
+                "image_shape should be of length 3, but got "
+                f"image_shape={image_shape}"
+            )
+        return
+
+    # tensor
+    if isinstance(image_shape, tf.Tensor):
+        if len(image_shape.shape) > 1:
+            raise ValueError(
+                "image_shape.shape should be (3), but got "
+                f"image_shape.shape={image_shape.shape}"
+            )
+        if image_shape.shape[0] != 3:
+            raise ValueError(
+                "image_shape.shape should be (3), but got "
+                f"image_shape.shape={image_shape.shape}"
+            )
+        return
+
+    # Warn about failure cases
+    raise ValueError(
+        "Expected image_shape to be either a tuple, list, Tensor.  "
+        f"Received image_shape={image_shape}"
+    )
+
+
 def _format_outputs(boxes, squeeze):
     if squeeze:
         return tf.squeeze(boxes, axis=0)
     return boxes
 
 
-def _image_shape(images, boxes):
-    if images is None:
+def _image_shape(images, image_shape, boxes):
+    if images is None and image_shape is None:
         raise RequiresImagesException()
-    shape = tf.shape(images)
-    height, width = shape[1], shape[2]
+
+    if image_shape is None:
+        image_shape = tf.shape(images)
+        height, width = image_shape[1], image_shape[2]
+    else:
+        height, width = image_shape[0], image_shape[1]
     return tf.cast(height, boxes.dtype), tf.cast(width, boxes.dtype)
