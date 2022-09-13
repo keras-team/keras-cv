@@ -89,9 +89,9 @@ class RandAugmentTest(tf.test.TestCase, parameterized.TestCase):
             geometric=False,
             value_range=(0, 255),
         )
-        xs = tf.random.uniform((512, 512, 3), 0, 255, dtype=tf.float32)
-        ys = rand_augment(xs)
-        self.assertEqual(xs.shape, ys.shape)
         self.assertFalse(
             any([isinstance(x, layers.RandomTranslation) for x in rand_augment.layers])
+        )
+        self.assertFalse(
+            any([isinstance(x, layers.RandomShear) for x in rand_augment.layers])
         )
