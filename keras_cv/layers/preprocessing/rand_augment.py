@@ -64,7 +64,7 @@ class RandAugment(RandomAugmentationPipeline):
             sampling an Identity augmentation 10/11th of the time.
             Defaults to `1.0`.
         geometric: whether or not to include geometric augmentations.  This should be
-            set to False when performing object detection.
+            set to False when performing object detection.  Defaults to True.
     Usage:
     ```python
     (x_test, y_test), _ = tf.keras.datasets.cifar10.load_data()
@@ -110,6 +110,7 @@ class RandAugment(RandomAugmentationPipeline):
         self.magnitude = float(magnitude)
         self.value_range = value_range
         self.seed = seed
+        self.geometric = geometric
         self.magnitude_stddev = float(magnitude_stddev)
 
     def _augment(self, sample):
@@ -176,6 +177,7 @@ class RandAugment(RandomAugmentationPipeline):
                 "magnitude": self.magnitude,
                 "magnitude_stddev": self.magnitude_stddev,
                 "rate": self.rate,
+                "geometric": self.geometric,
                 "seed": self.seed,
             }
         )
