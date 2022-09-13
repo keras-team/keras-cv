@@ -17,7 +17,7 @@ import itertools
 import tensorflow as tf
 from absl.testing import parameterized
 
-from keras_cv import keypoint
+from keras_cv import ops
 
 xy_keypoints = tf.constant(
     [[[10, 20], [110, 120], [210, 220]], [[20, 30], [120, 130], [220, 230]]],
@@ -50,7 +50,7 @@ class ConvertersTestCase(tf.test.TestCase, parameterized.TestCase):
         source_keypoints = keypoints[source]
         target_keypoints = keypoints[target]
         self.assertAllClose(
-            keypoint.convert_format(
+            ops.convert_format(
                 source_keypoints, source=source, target=target, images=images
             ),
             target_keypoints,
@@ -62,7 +62,7 @@ class ConvertersTestCase(tf.test.TestCase, parameterized.TestCase):
         target_keypoints = keypoints[target][0]
 
         self.assertAllClose(
-            keypoint.convert_format(
+            ops.convert_format(
                 source_keypoints, source=source, target=target, images=images[0]
             ),
             target_keypoints,
@@ -83,7 +83,7 @@ class ConvertersTestCase(tf.test.TestCase, parameterized.TestCase):
         target_keypoints = create_ragged_group(target_keypoints)
 
         self.assertAllClose(
-            keypoint.convert_format(
+            ops.convert_format(
                 source_keypoints, source=source, target=target, images=images
             ),
             target_keypoints,
@@ -101,7 +101,7 @@ class ConvertersTestCase(tf.test.TestCase, parameterized.TestCase):
         target_keypoints = add_metadata(target_keypoints)
 
         self.assertAllClose(
-            keypoint.convert_format(
+            ops.convert_format(
                 source_keypoints, source=source, target=target, images=images
             ),
             target_keypoints,
@@ -109,7 +109,7 @@ class ConvertersTestCase(tf.test.TestCase, parameterized.TestCase):
 
     def test_raise_errors_when_missing_shape(self):
         with self.assertRaises(ValueError) as e:
-            keypoint.convert_format(keypoints["xy"], source="xy", target="rel_xy")
+            ops.convert_format(keypoints["xy"], source="xy", target="rel_xy")
 
         self.assertEqual(
             str(e.exception),
@@ -143,7 +143,7 @@ class ConvertersTestCase(tf.test.TestCase, parameterized.TestCase):
     )
     def test_input_format_exception(self, keypoints, images, expected):
         with self.assertRaises(ValueError) as e:
-            keypoint.convert_format(
+            ops.convert_format(
                 keypoints, source="xy", target="rel_xy", images=images
             )
         self.assertEqual(str(e.exception), expected)

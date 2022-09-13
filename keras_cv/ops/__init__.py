@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from keras_cv.keypoint.converters import convert_format
-from keras_cv.keypoint.formats import REL_XY
-from keras_cv.keypoint.formats import XY
-from keras_cv.keypoint.utils import filter_out_of_image
+from keras_cv.ops.keypoint_converters import convert_format
+from keras_cv.ops.keypoint_formats import REL_XY
+from keras_cv.ops.keypoint_formats import XY
+from keras_cv.ops.keypoint_utils import filter_out_of_image
