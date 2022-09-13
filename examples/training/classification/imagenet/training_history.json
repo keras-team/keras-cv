@@ -31,6 +31,22 @@
             "validation_accuracy": "0.6613"
         }
     },
+    "densenet201": {
+        "v0": {
+            "accelerators": 8,
+            "args": {
+                "batch_size": "512"
+            },
+            "contributor": "ianstenbit",
+            "epochs_trained": 166,
+            "script": {
+                "name": "basic_training.py",
+                "version": "b0b349612e00ab34c25af5467ddd3b48d6fbf7a3"
+            },
+            "tensorboard_logs": "https://tensorboard.dev/experiment/6iLPGz5RSEiyPymgzJbKIQ/",
+            "validation_accuracy": "0.7469"
+        }
+    },
     "resnet50v2": {
         "v0": {
             "accelerators": 2,

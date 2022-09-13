@@ -212,7 +212,7 @@ class RetinaNetTest(tf.test.TestCase):
         # classification_head
         self.assertIn("RetinaNet/prediction_head/conv2d_8/kernel:0", variable_names)
         # box_head
-        self.assertIn("RetinaNet/prediction_head_1/conv2d_11/kernel:0", variable_names)
+        self.assertIn("RetinaNet/prediction_head_1/conv2d_12/kernel:0", variable_names)
 
     def test_weights_change(self):
         bounding_box_format = "xywh"
