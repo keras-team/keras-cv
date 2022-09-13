@@ -143,7 +143,5 @@ class ConvertersTestCase(tf.test.TestCase, parameterized.TestCase):
     )
     def test_input_format_exception(self, keypoints, images, expected):
         with self.assertRaises(ValueError) as e:
-            ops.convert_format(
-                keypoints, source="xy", target="rel_xy", images=images
-            )
+            ops.convert_format(keypoints, source="xy", target="rel_xy", images=images)
         self.assertEqual(str(e.exception), expected)
