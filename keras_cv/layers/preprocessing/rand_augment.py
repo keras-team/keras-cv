@@ -122,7 +122,7 @@ class RandAugment(RandomAugmentationPipeline):
         return result
 
     @staticmethod
-    def get_standard_policy(value_range, magnitude, magnitude_stddev, seed=None):
+    def get_standard_policy(value_range, magnitude, magnitude_stddev, geometric=True, seed=None):
         policy = create_rand_augment_policy(magnitude, magnitude_stddev)
 
         auto_contrast = cv_preprocessing.AutoContrast(
@@ -141,15 +141,8 @@ class RandAugment(RandomAugmentationPipeline):
         brightness = cv_preprocessing.RandomBrightness(
             **policy["brightness"], value_range=value_range, seed=seed
         )
-        shear_x = cv_preprocessing.RandomShear(**policy["shear_x"], seed=seed)
-        shear_y = cv_preprocessing.RandomShear(**policy["shear_y"], seed=seed)
-        translate_x = cv_preprocessing.RandomTranslation(
-            **policy["translate_x"], seed=seed
-        )
-        translate_y = cv_preprocessing.RandomTranslation(
-            **policy["translate_y"], seed=seed
-        )
-        return [
+
+        layers = [
             auto_contrast,
             equalize,
             solarize,
@@ -161,6 +154,21 @@ class RandAugment(RandomAugmentationPipeline):
             translate_x,
             translate_y,
         ]
+
+        if geometric:
+            shear_x = cv_preprocessing.RandomShear(**policy["shear_x"], seed=seed)
+            shear_y = cv_preprocessing.RandomShear(**policy["shear_y"], seed=seed)
+            translate_x = cv_preprocessing.RandomTranslation(
+                **policy["translate_x"], seed=seed
+            )
+            translate_y = cv_preprocessing.RandomTranslation(
+                **policy["translate_y"], seed=seed
+            )
+            layers += [
+                shear_x, shear_y, translate_x, translate_y
+            ]
+        return layers
+
 
     def get_config(self):
         config = super().get_config()
