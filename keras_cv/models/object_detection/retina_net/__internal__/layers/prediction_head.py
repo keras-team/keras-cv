@@ -14,7 +14,6 @@
 
 import tensorflow as tf
 from tensorflow.keras import layers
-from tensorflow.keras import regularizers
 
 
 @tf.keras.utils.register_keras_serializable(package="keras_cv")
