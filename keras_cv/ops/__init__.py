@@ -15,4 +15,4 @@
 from keras_cv.ops.keypoint_converters import convert_keypoint_format
 from keras_cv.ops.keypoint_formats import REL_XY
 from keras_cv.ops.keypoint_formats import XY
-from keras_cv.ops.keypoint_utils import filter_out_of_image
+from keras_cv.ops.keypoint_utils import filter_keypoints
