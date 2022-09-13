@@ -136,12 +136,12 @@ class RandomFlipTest(tf.test.TestCase, parameterized.TestCase):
         self.assertAllClose(expected_output, output["bounding_boxes"])
 
     def test_augment_bbox_ragged(self):
-        image = tf.zeros([20, 20, 3])
+        image = tf.zeros([2, 20, 20, 3])
         bboxes = tf.ragged.constant(
             [[[0, 0, 10, 10], [4, 4, 12, 12]], [[0, 0, 10, 10]]], dtype=tf.float32
         )
         bboxes = bounding_box.add_class_id(bboxes)
-        input = {"images": [image, image], "bounding_boxes": bboxes}
+        input = {"images": image, "bounding_boxes": bboxes}
         mock_random = [0.6, 0.6, 0.6]
         layer = RandomFlip(bounding_box_format="xyxy")
         with unittest.mock.patch.object(
@@ -158,7 +158,6 @@ class RandomFlipTest(tf.test.TestCase, parameterized.TestCase):
             dtype=tf.float32,
             ragged_rank=1,
         )
-        tf.print("output bounding box", output["bounding_boxes"])
         self.assertAllClose(expected_output, output["bounding_boxes"])
 
     def test_augment_segmentation_mask(self):
@@ -182,3 +181,17 @@ class RandomFlipTest(tf.test.TestCase, parameterized.TestCase):
         expected_mask = np.flip(np.flip(mask, axis=1), axis=2)
 
         self.assertAllClose(expected_mask, output["segmentation_masks"])
+
+    def test_ragged_bounding_boxes(self):
+        input_image = np.random.random((2, 512, 512, 3)).astype(np.float32)
+        bboxes = tf.ragged.constant(
+            [
+                [[200, 200, 400, 400], [100, 100, 300, 300]],
+                [[200, 200, 400, 400]],
+            ],
+            dtype=tf.float32,
+        )
+        bboxes = bounding_box.add_class_id(bboxes)
+        input = {"images": input_image, "bounding_boxes": bboxes}
+        layer = RandomFlip(bounding_box_format="xyxy")
+        _ = layer(input)

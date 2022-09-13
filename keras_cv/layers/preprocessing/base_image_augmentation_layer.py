@@ -275,6 +275,7 @@ class BaseImageAugmentationLayer(tf.keras.__internal__.layers.BaseRandomLayer):
         image = inputs.get(IMAGES, None)
         label = inputs.get(LABELS, None)
         bounding_boxes = inputs.get(BOUNDING_BOXES, None)
+
         keypoints = inputs.get(KEYPOINTS, None)
         segmentation_mask = inputs.get(SEGMENTATION_MASKS, None)
         transformation = self.get_random_transformation(
@@ -284,6 +285,7 @@ class BaseImageAugmentationLayer(tf.keras.__internal__.layers.BaseRandomLayer):
             keypoints=keypoints,
             segmentation_mask=segmentation_mask,
         )
+
         image = self.augment_image(
             image,
             transformation=transformation,

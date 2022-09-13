@@ -127,8 +127,7 @@ class RandomFlip(BaseImageAugmentationLayer):
             ],
             axis=-1,
         )
-
-        output = tf.squeeze(output)
+        output = tf.squeeze(output, axis=1)
         return output
 
     def _flip_bounding_boxes_vertical(bounding_boxes):
@@ -145,7 +144,7 @@ class RandomFlip(BaseImageAugmentationLayer):
             ],
             axis=-1,
         )
-        output = tf.squeeze(output)
+        output = tf.squeeze(output, axis=1)
         return output
 
     def augment_bounding_boxes(
