@@ -81,6 +81,7 @@ class RandAugment(RandomAugmentationPipeline):
         magnitude=0.5,
         magnitude_stddev=0.15,
         rate=10 / 11,
+        geometric=True,
         seed=None,
         **kwargs,
     ):
@@ -98,7 +99,7 @@ class RandAugment(RandomAugmentationPipeline):
 
         super().__init__(
             layers=RandAugment.get_standard_policy(
-                (0, 255), magnitude, magnitude_stddev, seed=seed
+                (0, 255), magnitude, magnitude_stddev, geometric=geometric, seed=seed
             ),
             augmentations_per_image=augmentations_per_image,
             rate=rate,
@@ -122,7 +123,9 @@ class RandAugment(RandomAugmentationPipeline):
         return result
 
     @staticmethod
-    def get_standard_policy(value_range, magnitude, magnitude_stddev, geometric=True, seed=None):
+    def get_standard_policy(
+        value_range, magnitude, magnitude_stddev, geometric=True, seed=None
+    ):
         policy = create_rand_augment_policy(magnitude, magnitude_stddev)
 
         auto_contrast = cv_preprocessing.AutoContrast(
@@ -164,11 +167,8 @@ class RandAugment(RandomAugmentationPipeline):
             translate_y = cv_preprocessing.RandomTranslation(
                 **policy["translate_y"], seed=seed
             )
-            layers += [
-                shear_x, shear_y, translate_x, translate_y
-            ]
+            layers += [shear_x, shear_y, translate_x, translate_y]
         return layers
-
 
     def get_config(self):
         config = super().get_config()

@@ -1,4 +1,4 @@
-# Copyright 2022 The KerasCV Authors
+keras_cv/layers/preprocessing/rand_augment_test.py# Copyright 2022 The KerasCV Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -80,3 +80,18 @@ class RandAugmentTest(tf.test.TestCase, parameterized.TestCase):
         xs = tf.random.uniform((512, 512, 3), 0, 255, dtype=tf.float32)
         ys = rand_augment(xs)
         self.assertEqual(xs.shape, ys.shape)
+
+    def test_runs_no_geo(self):
+        rand_augment = layers.RandAugment(
+            augmentations_per_image=2,
+            magnitude=0.5,
+            rate=1.0,
+            geometric=False,
+            value_range=(0, 255),
+        )
+        xs = tf.random.uniform((512, 512, 3), 0, 255, dtype=tf.float32)
+        ys = rand_augment(xs)
+        self.assertEqual(xs.shape, ys.shape)
+        self.assertFalse(
+            any([isinstance(x, layers.RandomTranslation) for x in rand_augment.layers])
+        )
