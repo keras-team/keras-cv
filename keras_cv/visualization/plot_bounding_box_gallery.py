@@ -19,7 +19,14 @@ import keras_cv
 
 
 def plot_bounding_box_gallery(
-    images, value_range, bounding_box_format, y_true=None, y_pred=None, **kwargs
+    images,
+    value_range,
+    bounding_box_format,
+    pred_color=(255.0, 0, 0),
+    true_color=(0, 255.0, 255.0),
+    y_true=None,
+    y_pred=None,
+    **kwargs
 ):
     """plots a gallery of images with corresponding bounding box annotations
 
@@ -31,31 +38,30 @@ def plot_bounding_box_gallery(
         y_true: a Tensor or RaggedTensor representing the ground truth bounding boxes.
         y_pred: a Tensor or RaggedTensor representing the predicted truth bounding
             boxes.
+        pred_color: three element tuple representing the color to use for plotting
+            predicted bounding boxes.
+        true_color: three element tuple representing the color to use for plotting
+            true bounding boxes.
         kwargs: keyword arguments to propagate to
             `keras_cv.visualization.gallery_show()`.
     """
-    pred_color = tf.constant(((255.0, 0, 0),))
-    true_color = tf.constant(((0, 255.0, 255.0),))
+
     plotted_images = images
 
     if y_pred is not None:
-        y_pred = keras_cv.bounding_box.convert_format(
-            y_pred, source=bounding_box_format, target="rel_yxyx", images=images
-        )
-        if isinstance(y_pred, tf.RaggedTensor):
-            y_pred = y_pred.to_tensor(default_value=-1)
-        plotted_images = tf.image.draw_bounding_boxes(
-            plotted_images, y_pred[..., :4], pred_color
+        plotted_images = keras_cv.visualization.draw_bounding_boxes(
+            plotted_images,
+            y_pred[..., :4],
+            pred_color,
+            bounding_box_format=bounding_box_format,
         )
 
     if y_true is not None:
-        y_true = keras_cv.bounding_box.convert_format(
-            y_true, source=bounding_box_format, target="rel_yxyx", images=images
-        )
-        if isinstance(y_true, tf.RaggedTensor):
-            y_true = y_true.to_tensor(default_value=-1)
-        plotted_images = tf.image.draw_bounding_boxes(
-            plotted_images, y_true[..., :4], true_color
+        plotted_images = keras_cv.visualization.draw_bounding_boxes(
+            plotted_images,
+            y_true[..., :4],
+            true_color,
+            bounding_box_format=bounding_box_format,
         )
 
     keras_cv.visualization.plot_gallery(plotted_images, value_range, **kwargs)

@@ -13,12 +13,14 @@
 # limitations under the License.
 
 
+import warnings
+
 import tensorflow as tf
 
 import keras_cv
 
 
-def plot_gallery(images, value_range, rows=3, columns=3, scale=2, path=None):
+def plot_gallery(images, value_range, rows=3, columns=3, scale=2, path=None, show=None):
     """gallery_show shows a gallery of images.
 
     Args:
@@ -28,7 +30,16 @@ def plot_gallery(images, value_range, rows=3, columns=3, scale=2, path=None):
         columns: number of columns in the gallery to show.
         scale: how large to scale the images in the gallery
         path: (Optional) path to save the resulting gallery to.
+        show: (Optional) whether or not to show the gallery of images.
     """
+    if path is None and show is None:
+        # Default to showing the image
+        show = True
+    if path is not None and show:
+        raise ValueError(
+            "plot_gallery() expects either `path` to be set, or `show` " "to be true."
+        )
+
     plt = keras_cv.visualization.get_plt()
     fig = plt.figure(figsize=(columns * scale, rows * scale))
     fig.tight_layout()  # Or equivalently,  "plt.tight_layout()"
@@ -51,8 +62,11 @@ def plot_gallery(images, value_range, rows=3, columns=3, scale=2, path=None):
             plt.axis("off")
             plt.margins(x=0, y=0)
 
+    if path is None and not show:
+        return
     if path is not None:
         plt.savefig(fname=path, pad_inches=0, bbox_inches="tight")
-    else:
+        plt.close()
+    elif show:
         plt.show()
-    plt.close()
+        plt.close()

@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from keras_cv.visualization.draw_bounding_boxes import draw_bounding_boxes
 from keras_cv.visualization.get_plt import get_plt
 from keras_cv.visualization.plot_bounding_box_gallery import plot_bounding_box_gallery
 from keras_cv.visualization.plot_gallery import plot_gallery
