@@ -310,7 +310,7 @@ class RetinaNetTest(tf.test.TestCase):
             metrics = history.history
             metrics = [metrics["Recall"], metrics["MaP"]]
             metrics = [statistics.mean(metric) for metric in metrics]
-            minimum = 0.1
+            minimum = 0.3
             nonzero = [x > minimum for x in metrics]
             if all(nonzero):
                 return
@@ -321,15 +321,16 @@ class RetinaNetTest(tf.test.TestCase):
 
 
 def _create_bounding_box_dataset(bounding_box_format):
+
     # Just about the easiest dataset you can have, all classes are 0, all boxes are
     # exactly the same.  [1, 1, 2, 2] are the coordinates in xyxy
     xs = tf.ones((10, 512, 512, 3), dtype=tf.float32)
-    y_classes = tf.zeros((10, 1, 1), dtype=tf.float32)
+    y_classes = tf.zeros((10, 10, 1), dtype=tf.float32)
 
     ys = tf.constant([0.25, 0.25, 0.1, 0.1], dtype=tf.float32)
     ys = tf.expand_dims(ys, axis=0)
     ys = tf.expand_dims(ys, axis=0)
-    ys = tf.tile(ys, [10, 1, 1])
+    ys = tf.tile(ys, [10, 10, 1])
     ys = tf.concat([ys, y_classes], axis=-1)
 
     ys = keras_cv.bounding_box.convert_format(
