@@ -60,14 +60,18 @@ flags.DEFINE_string(
 flags.DEFINE_string(
     "tensorboard_path", None, "Directory which will be used to store tensorboard logs."
 )
-flags.DEFINE_integer("batch_size", 256, "Batch size for training and evaluation.")
+flags.DEFINE_integer(
+    "batch_size",
+    128,
+    "Batch size for training and evaluation. This will be multiplied by the number of accelerators in use.",
+)
 flags.DEFINE_boolean(
     "use_xla", True, "Whether or not to use XLA (jit_compile) for training."
 )
 flags.DEFINE_float(
     "initial_learning_rate",
-    0.1,
-    "Initial learning rate which will reduce on plateau.",
+    0.05,
+    "Initial learning rate which will reduce on plateau. This will be multiplied by the number of accelerators in use",
 )
 flags.DEFINE_string(
     "model_kwargs",
@@ -87,6 +91,24 @@ IMAGE_SIZE = (224, 224)
 EPOCHS = 250
 
 """
+We start by detecting the type of accelerators we have available and picking an
+appropriate distribution strategy accordingly. We scale our learning rate and
+batch size based on the number of accelerators being used.
+"""
+
+# Try to detect an available TPU. If none is present, default to MirroredStrategy
+try:
+    tpu = tf.distribute.cluster_resolver.TPUClusterResolver.connect()
+    strategy = tf.distribute.TPUStrategy(tpu)
+except ValueError:
+    # MirroredStrategy is best for a single machine with one or multiple GPUs
+    strategy = tf.distribute.MirroredStrategy()
+print("Number of accelerators: ", strategy.num_replicas_in_sync)
+
+BATCH_SIZE = FLAGS.batch_size * strategy.num_replicas_in_sync
+INITIAL_LEARNING_RATE = FLAGS.initial_learning_rate * strategy.num_replicas_in_sync
+
+"""
 ## Data loading
 This guide uses the
 [Imagenet dataset](https://www.tensorflow.org/datasets/catalog/imagenet2012).
@@ -98,13 +120,13 @@ information about preparing this dataset at keras_cv/datasets/imagenet/README.md
 train_ds = imagenet.load(
     split="train",
     tfrecord_path=FLAGS.imagenet_path,
-    batch_size=FLAGS.batch_size,
+    batch_size=BATCH_SIZE,
     img_size=IMAGE_SIZE,
 )
 test_ds = imagenet.load(
     split="validation",
     tfrecord_path=FLAGS.imagenet_path,
-    batch_size=FLAGS.batch_size,
+    batch_size=BATCH_SIZE,
     img_size=IMAGE_SIZE,
 )
 
@@ -138,13 +160,7 @@ test_ds = test_ds.prefetch(tf.data.AUTOTUNE)
 
 """
 Now we can begin training our model. We begin by loading a model from KerasCV.
-Note that we also specify a distribution strategy while creating the model.
-Different distribution strategies may be used for different training hardware, as indicated below.
 """
-
-# For TPU training, use tf.distribute.TPUStrategy()
-# MirroredStrategy is best for a single machine with multiple GPUs
-strategy = tf.distribute.MirroredStrategy()
 
 with strategy.scope():
     model = models.__dict__[FLAGS.model_name]
@@ -163,7 +179,7 @@ Note that learning rate will decrease over time due to the ReduceLROnPlateau cal
 """
 
 
-optimizer = optimizers.SGD(learning_rate=FLAGS.initial_learning_rate, momentum=0.9)
+optimizer = optimizers.SGD(learning_rate=INITIAL_LEARNING_RATE, momentum=0.9)
 
 
 """
@@ -195,7 +211,7 @@ callbacks = [
     callbacks.EarlyStopping(patience=20),
     callbacks.BackupAndRestore(FLAGS.backup_path),
     callbacks.ModelCheckpoint(FLAGS.weights_path, save_weights_only=True),
-    callbacks.TensorBoard(log_dir=FLAGS.tensorboard_path),
+    callbacks.TensorBoard(log_dir=FLAGS.tensorboard_path, write_steps_per_second=True),
 ]
 
 
@@ -212,7 +228,7 @@ model.compile(
 
 model.fit(
     train_ds,
-    batch_size=FLAGS.batch_size,
+    batch_size=BATCH_SIZE,
     epochs=EPOCHS,
     callbacks=callbacks,
     validation_data=test_ds,
