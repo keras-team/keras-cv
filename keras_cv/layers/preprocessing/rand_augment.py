@@ -63,7 +63,8 @@ class RandAugment(RandomAugmentationPipeline):
             the rate to 10/11 in our implementation, the behavior is identical to
             sampling an Identity augmentation 10/11th of the time.
             Defaults to `1.0`.
-
+        geometric: whether or not to include geometric augmentations.  This should be
+            set to False when performing object detection.
     Usage:
     ```python
     (x_test, y_test), _ = tf.keras.datasets.cifar10.load_data()
