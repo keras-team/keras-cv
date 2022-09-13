@@ -152,10 +152,6 @@ class RandAugment(RandomAugmentationPipeline):
             color,
             contrast,
             brightness,
-            shear_x,
-            shear_y,
-            translate_x,
-            translate_y,
         ]
 
         if geometric:
