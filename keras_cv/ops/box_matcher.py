@@ -51,17 +51,17 @@ class ArgmaxBoxMatcher:
 
     Args:
         thresholds: A sorted list of floats to classify the matches into
-        different results (e.g. positive or negative or ignored match). The
-        list will be prepended with -Inf and and appended with +Inf.
+          different results (e.g. positive or negative or ignored match). The
+          list will be prepended with -Inf and and appended with +Inf.
         match_values: A list of integers representing matched results (e.g.
-        positive or negative or ignored match). len(`match_values`) must
-        equal to len(`thresholds`) + 1.
+          positive or negative or ignored match). len(`match_values`) must
+          equal to len(`thresholds`) + 1.
         force_match_for_each_col: each row will be argmax matched to at
-        least one column. This means some columns will be matched to
-        multiple rows while some columns will not be matched to any rows.
-        Filtering by `thresholds` will make less columns match to positive
-        result. Setting this to True guarantees that each column will be
-        matched to positive result to at least one row.
+          least one column. This means some columns will be matched to
+          multiple rows while some columns will not be matched to any rows.
+          Filtering by `thresholds` will make less columns match to positive
+          result. Setting this to True guarantees that each column will be
+          matched to positive result to at least one row.
 
     Raises:
         ValueError: if `thresholds` not sorted or
@@ -128,10 +128,10 @@ class ArgmaxBoxMatcher:
             a tensor of -1's to indicate that the rows do not match to any columns.
             Returns:
                 matched_columns: An integer tensor of shape [batch_size, num_rows]
-                storing the index of the matched column for each row.
+                  storing the index of the matched column for each row.
                 matched_values: An integer tensor of shape [batch_size, num_rows]
-                storing the match type indicator (e.g. positive or negative
-                or ignored match).
+                  storing the match type indicator (e.g. positive or negative
+                  or ignored match).
             """
             with tf.name_scope("empty_gt_boxes"):
                 matched_columns = tf.zeros([batch_size, num_rows], dtype=tf.int32)
@@ -142,10 +142,10 @@ class ArgmaxBoxMatcher:
             """Performs matching when the rows of similarity matrix are non empty.
             Returns:
                 matched_columns: An integer tensor of shape [batch_size, num_rows]
-                storing the index of the matched column for each row.
+                  storing the index of the matched column for each row.
                 matched_values: An integer tensor of shape [batch_size, num_rows]
-                storing the match type indicator (e.g. positive or negative
-                or ignored match).
+                  storing the match type indicator (e.g. positive or negative
+                  or ignored match).
             """
             with tf.name_scope("non_empty_gt_boxes"):
                 matched_columns = tf.argmax(
