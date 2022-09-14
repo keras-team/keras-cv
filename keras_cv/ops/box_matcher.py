@@ -42,6 +42,11 @@ class ArgmaxBoxMatcher:
        argmax result is below negative_threshold, and the rows will be assigned
        to negative_value if its argmax result is between negative_threshold and
        positive_threshold.
+    3) thresholds=[positive_threshold], and
+       indicators=[negative_values, positive_value]: the rows will be assigned to
+       positive value if its argmax result is above positive_threshold; the rows
+       will be assigned to negative_value if its argmax result is below
+       negative_threshold.
 
     Usage:
 
