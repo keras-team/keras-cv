@@ -95,6 +95,7 @@ class SerializationTest(tf.test.TestCase, parameterized.TestCase):
         ("Grayscale", cv_layers.Grayscale, {}),
         ("GridMask", cv_layers.GridMask, {"seed": 1}),
         ("MixUp", cv_layers.MixUp, {"seed": 1}),
+        ("Mosaic", cv_layers.Mosaic, {"seed": 1}),
         (
             "RandomChannelShift",
             cv_layers.RandomChannelShift,
