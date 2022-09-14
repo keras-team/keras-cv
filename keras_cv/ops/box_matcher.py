@@ -21,7 +21,7 @@ import tensorflow as tf
 
 
 class ArgmaxBoxMatcher:
-    """Box matching logic based on argmax of highest value (e.g., iou).
+    """Box matching logic based on argmax of highest value (e.g., IOU).
 
     This class computes matches from a similarity matrix. Each row will be
     matched to at least one column, the matched result can either be positive
@@ -29,24 +29,43 @@ class ArgmaxBoxMatcher:
 
     The settings include `thresholds` and `match_values`, for example if:
     1) thresholds=[negative_threshold, positive_threshold], and
-       match_values=[negative_value, ignore_value, positive_value]: the rows will
+       match_values=[negative_value=0, ignore_value=-1, positive_value=1]: the rows will
        be assigned to positive_value if its argmax result is above
        positive_threshold; the rows will be assigned to negative_value if its
        argmax result is below negative_threshold, and the rows will be assigned
        to ignore_value if its argmax result is between negative_threshold and
        positive_threshold.
     2) thresholds=[negative_threshold, positive_threshold], and
-       match_values=[ignore_value, negative_value, positive_value]: the rows will
+       match_values=[ignore_value=-1, negative_value=0, positive_value=1]: the rows will
        be assigned to positive_value if its argmax result is above
        positive_threshold; the rows will be assigned to ignore_value if its
        argmax result is below negative_threshold, and the rows will be assigned
        to negative_value if its argmax result is between negative_threshold and
-       positive_threshold.
+       positive_threshold. This is different from case 1) by swapping first two
+       values.
     3) thresholds=[positive_threshold], and
        match_values=[negative_values, positive_value]: the rows will be assigned to
        positive value if its argmax result is above positive_threshold; the rows
        will be assigned to negative_value if its argmax result is below
        negative_threshold.
+
+    Args:
+        thresholds: A sorted list of floats to classify the matches into
+        different results (e.g. positive or negative or ignored match). The
+        list will be prepended with -Inf and and appended with +Inf.
+        match_values: A list of integers representing matched results (e.g.
+        positive or negative or ignored match). len(`match_values`) must
+        equal to len(`thresholds`) + 1.
+        force_match_for_each_col: each row will be argmax matched to at
+        least one column. This means some columns will be matched to
+        multiple rows while some columns will not be matched to any rows.
+        Filtering by `thresholds` will make less columns match to positive
+        result. Setting this to True guarantees that each column will be
+        matched to positive result to at least one row.
+
+    Raises:
+        ValueError: if `thresholds` not sorted or
+        len(`match_values`) != len(`thresholds`) + 1
 
     Usage:
 
@@ -67,35 +86,14 @@ class ArgmaxBoxMatcher:
         match_values: List[int],
         force_match_for_each_col: bool = False,
     ):
-        """Constructs ArgmaxBoxMatcher.
-
-        Args:
-          thresholds: A sorted list of floats to classify the matches into
-            different results (e.g. positive or negative or ignored match). The
-            list will be prepended with -Inf and and appended with +Inf.
-          match_values: A list of integers representing matched results (e.g.
-            positive or negative or ignored match). len(`match_values`) must
-            equal to len(`thresholds`) + 1.
-          force_match_for_each_col: each row will be argmax matched to at
-            least one column. This means some columns will be matched to
-            multiple rows while some columns will not be matched to any rows.
-            Filtering by `thresholds` will make less columns match to positive
-            result. Setting this to True guarantees that each column will be
-            matched to positive result to at least one row.
-
-        Raises:
-          ValueError: if `thresholds` not sorted or
-            len(`match_values`) != len(`thresholds`) + 1
-        """
-        if not all([lo <= hi for (lo, hi) in zip(thresholds[:-1], thresholds[1:])]):
-            raise ValueError("`threshold` must be sorted, got {}".format(thresholds))
+        if sorted(thresholds) != thresholds:
+            raise ValueError(f"`threshold` must be sorted, got {thresholds}")
         self.match_values = match_values
         if len(match_values) != len(thresholds) + 1:
             raise ValueError(
-                "len(`match_values`) must be len(`thresholds`) + 1, got "
-                "match_values {}, thresholds {}".format(match_values, thresholds)
+                f"len(`match_values`) must be len(`thresholds`) + 1, got "
+                f"match_values {match_values}, thresholds {thresholds}"
             )
-        thresholds = thresholds[:]
         thresholds.insert(0, -float("inf"))
         thresholds.append(float("inf"))
         self.thresholds = thresholds
@@ -104,6 +102,7 @@ class ArgmaxBoxMatcher:
     def __call__(self, similarity_matrix: tf.Tensor) -> Tuple[tf.Tensor, tf.Tensor]:
         """Matches each row to a column based on argmax
 
+        TODO(tanzhenyu): consider swapping rows and cols.
         Args:
           similarity_matrix: A float Tensor of shape [num_rows, num_cols] or
             [batch_size, num_rows, num_cols] representing any similarity metric.
@@ -128,10 +127,10 @@ class ArgmaxBoxMatcher:
             When the rows are empty, all detections are false positives. So we return
             a tensor of -1's to indicate that the rows do not match to any columns.
             Returns:
-                matched_columns: An integer tensor of shape [num_rows] or [batch_size,
-                num_rows] storing the index of the matched column for each row.
-                matched_values: An integer tensor of shape [num_rows] or [batch_size,
-                num_rows] storing the match type indicator (e.g. positive or negative
+                matched_columns: An integer tensor of shape [batch_size, num_rows]
+                storing the index of the matched column for each row.
+                matched_values: An integer tensor of shape [batch_size, num_rows]
+                storing the match type indicator (e.g. positive or negative
                 or ignored match).
             """
             with tf.name_scope("empty_gt_boxes"):
@@ -142,10 +141,10 @@ class ArgmaxBoxMatcher:
         def _match_when_cols_are_non_empty():
             """Performs matching when the rows of similarity matrix are non empty.
             Returns:
-                matched_columns: An integer tensor of shape [num_rows] or [batch_size,
-                num_rows] storing the index of the matched column for each row.
-                matched_values: An integer tensor of shape [num_rows] or [batch_size,
-                num_rows] storing the match type indicator (e.g. positive or negative
+                matched_columns: An integer tensor of shape [batch_size, num_rows]
+                storing the index of the matched column for each row.
+                matched_values: An integer tensor of shape [batch_size, num_rows]
+                storing the match type indicator (e.g. positive or negative
                 or ignored match).
             """
             with tf.name_scope("non_empty_gt_boxes"):
