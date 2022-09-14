@@ -26,7 +26,7 @@ BATCH_SIZE = 9
 
 def main():
     dataset = demo_utils.load_voc_dataset(bounding_box_format="rel_xyxy")
-    mosaic = preprocessing.Mosaic(bounding_box_format="rel_xyxy")
+    mosaic = preprocessing.mosaic(bounding_box_format="rel_xyxy")
     result = dataset.map(mosaic, num_parallel_calls=tf.data.AUTOTUNE)
     demo_utils.visualize_data(result, bounding_box_format="rel_xyxy")
 

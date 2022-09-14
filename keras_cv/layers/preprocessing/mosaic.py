@@ -115,7 +115,7 @@ class Mosaic(BaseImageAugmentationLayer):
         if labels is not None:
             labels = tf.vectorized_map(
                 lambda index: self._update_label(
-                    images, labels, permutation_order, mosaic_centers, index
+                    labels, permutation_order, mosaic_centers, index
                 ),
                 tf.range(batch_size),
             )
@@ -189,7 +189,7 @@ class Mosaic(BaseImageAugmentationLayer):
         )
         return tf.squeeze(output)
 
-    def _update_label(self, images, labels, permutation_order, mosaic_centers, index):
+    def _update_label(self, labels, permutation_order, mosaic_centers, index):
         # updates labels for one output mosaic
         input_height, input_width, _ = images.shape[1:]
         labels_for_mosaic = tf.gather(labels, permutation_order[index])
