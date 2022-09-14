@@ -43,7 +43,14 @@ class ArgmaxBoxMatcher:
        to negative_value if its argmax result is between negative_threshold and
        positive_threshold.
 
-    Note: If
+    Usage:
+
+    ```python
+    box_matcher = keras_cv.ops.ArgmaxBoxMatcher([0.3, 0.7], [-1, 0, 1])
+    iou_metric = keras_cv.bounding_box.compute_iou(anchors, gt_boxes)
+    matched_columns, matched_indicators = box_matcher(iou_metric)
+    cls_mask = tf.less_equal(matched_indicators, 0)
+    ```
 
     TODO(tanzhenyu): document when to use which mode.
 
