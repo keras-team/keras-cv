@@ -235,8 +235,8 @@ Let's compile our model:
 """
 
 model.compile(
-    classification_loss=keras_cv.losses.FocalLoss(from_logits=True),
-    box_loss=keras_cv.losses.SmoothL1Loss(l1_cutoff=1.0),
+    classification_loss=keras_cv.losses.FocalLoss(from_logits=True, reduction='none'),
+    box_loss=keras_cv.losses.SmoothL1Loss(l1_cutoff=1.0, reduction='none'),
     optimizer=optimizer,
     metrics=metrics,
 )
