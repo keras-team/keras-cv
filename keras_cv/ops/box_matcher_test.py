@@ -27,16 +27,16 @@ class ArgmaxBoxMatcherTest(tf.test.TestCase):
 
         matcher = ArgmaxBoxMatcher(
             thresholds=[bg_thresh_lo, bg_thresh_hi, fg_threshold],
-            indicators=[-3, -2, -1, 1],
+            match_values=[-3, -2, -1, 1],
         )
-        match_indices, match_indicators = matcher(sim_matrix)
-        positive_matches = tf.greater_equal(match_indicators, 0)
-        negative_matches = tf.equal(match_indicators, -2)
+        match_indices, matched_values = matcher(sim_matrix)
+        positive_matches = tf.greater_equal(matched_values, 0)
+        negative_matches = tf.equal(matched_values, -2)
 
         self.assertAllEqual(positive_matches.numpy(), [False, True])
         self.assertAllEqual(negative_matches.numpy(), [True, False])
         self.assertAllEqual(match_indices.numpy(), [0, 2])
-        self.assertAllEqual(match_indicators.numpy(), [-2, 1])
+        self.assertAllEqual(matched_values.numpy(), [-2, 1])
 
     def test_box_matcher_batched(self):
         sim_matrix = tf.constant([[[0.04, 0, 0, 0], [0, 0, 1.0, 0]]], dtype=tf.float32)
@@ -47,13 +47,13 @@ class ArgmaxBoxMatcherTest(tf.test.TestCase):
 
         matcher = ArgmaxBoxMatcher(
             thresholds=[bg_thresh_lo, bg_thresh_hi, fg_threshold],
-            indicators=[-3, -2, -1, 1],
+            match_values=[-3, -2, -1, 1],
         )
-        match_indices, match_indicators = matcher(sim_matrix)
-        positive_matches = tf.greater_equal(match_indicators, 0)
-        negative_matches = tf.equal(match_indicators, -2)
+        match_indices, matched_values = matcher(sim_matrix)
+        positive_matches = tf.greater_equal(matched_values, 0)
+        negative_matches = tf.equal(matched_values, -2)
 
         self.assertAllEqual(positive_matches.numpy(), [[False, True]])
         self.assertAllEqual(negative_matches.numpy(), [[True, False]])
         self.assertAllEqual(match_indices.numpy(), [[0, 2]])
-        self.assertAllEqual(match_indicators.numpy(), [[-2, 1]])
+        self.assertAllEqual(matched_values.numpy(), [[-2, 1]])

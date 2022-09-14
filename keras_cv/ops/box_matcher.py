@@ -21,29 +21,29 @@ import tensorflow as tf
 
 
 class ArgmaxBoxMatcher:
-    """Box matching logic based on argmax of highest value (iou).
+    """Box matching logic based on argmax of highest value (e.g., iou).
 
     This class computes matches from a similarity matrix. Each row will be
     matched to at least one column, the matched result can either be positive
      / negative, or simply ignored depending on the setting.
 
-    The settings include `thresholds` and `indicators`, for example if:
+    The settings include `thresholds` and `match_values`, for example if:
     1) thresholds=[negative_threshold, positive_threshold], and
-       indicators=[negative_value, ignore_value, positive_value]: the rows will
+       match_values=[negative_value, ignore_value, positive_value]: the rows will
        be assigned to positive_value if its argmax result is above
        positive_threshold; the rows will be assigned to negative_value if its
        argmax result is below negative_threshold, and the rows will be assigned
        to ignore_value if its argmax result is between negative_threshold and
        positive_threshold.
     2) thresholds=[negative_threshold, positive_threshold], and
-       indicators=[ignore_value, negative_value, positive_value]: the rows will
+       match_values=[ignore_value, negative_value, positive_value]: the rows will
        be assigned to positive_value if its argmax result is above
        positive_threshold; the rows will be assigned to ignore_value if its
        argmax result is below negative_threshold, and the rows will be assigned
        to negative_value if its argmax result is between negative_threshold and
        positive_threshold.
     3) thresholds=[positive_threshold], and
-       indicators=[negative_values, positive_value]: the rows will be assigned to
+       match_values=[negative_values, positive_value]: the rows will be assigned to
        positive value if its argmax result is above positive_threshold; the rows
        will be assigned to negative_value if its argmax result is below
        negative_threshold.
@@ -53,8 +53,8 @@ class ArgmaxBoxMatcher:
     ```python
     box_matcher = keras_cv.ops.ArgmaxBoxMatcher([0.3, 0.7], [-1, 0, 1])
     iou_metric = keras_cv.bounding_box.compute_iou(anchors, gt_boxes)
-    matched_columns, matched_indicators = box_matcher(iou_metric)
-    cls_mask = tf.less_equal(matched_indicators, 0)
+    matched_columns, matched_match_values = box_matcher(iou_metric)
+    cls_mask = tf.less_equal(matched_match_values, 0)
     ```
 
     TODO(tanzhenyu): document when to use which mode.
@@ -64,7 +64,7 @@ class ArgmaxBoxMatcher:
     def __init__(
         self,
         thresholds: List[float],
-        indicators: List[int],
+        match_values: List[int],
         force_match_for_each_col: bool = False,
     ):
         """Constructs ArgmaxBoxMatcher.
@@ -73,8 +73,8 @@ class ArgmaxBoxMatcher:
           thresholds: A sorted list of floats to classify the matches into
             different results (e.g. positive or negative or ignored match). The
             list will be prepended with -Inf and and appended with +Inf.
-          indicators: A list of integers representing matched results (e.g.
-            positive or negative or ignored match). len(`indicators`) must
+          match_values: A list of integers representing matched results (e.g.
+            positive or negative or ignored match). len(`match_values`) must
             equal to len(`thresholds`) + 1.
           force_match_for_each_col: each row will be argmax matched to at
             least one column. This means some columns will be matched to
@@ -85,15 +85,15 @@ class ArgmaxBoxMatcher:
 
         Raises:
           ValueError: if `thresholds` not sorted or
-            len(`indicators`) != len(`thresholds`) + 1
+            len(`match_values`) != len(`thresholds`) + 1
         """
         if not all([lo <= hi for (lo, hi) in zip(thresholds[:-1], thresholds[1:])]):
             raise ValueError("`threshold` must be sorted, got {}".format(thresholds))
-        self.indicators = indicators
-        if len(indicators) != len(thresholds) + 1:
+        self.match_values = match_values
+        if len(match_values) != len(thresholds) + 1:
             raise ValueError(
-                "len(`indicators`) must be len(`thresholds`) + 1, got "
-                "indicators {}, thresholds {}".format(indicators, thresholds)
+                "len(`match_values`) must be len(`thresholds`) + 1, got "
+                "match_values {}, thresholds {}".format(match_values, thresholds)
             )
         thresholds = thresholds[:]
         thresholds.insert(0, -float("inf"))
@@ -111,7 +111,7 @@ class ArgmaxBoxMatcher:
         Returns:
           matched_columns: An integer tensor of shape [num_rows] or [batch_size,
             num_rows] storing the index of the matched colum for each row.
-          match_indicators: An integer tensor of shape [num_rows] or [batch_size,
+          matched_values: An integer tensor of shape [num_rows] or [batch_size,
             num_rows] storing the match result (positive match, negative match,
             ignored match).
         """
@@ -130,21 +130,21 @@ class ArgmaxBoxMatcher:
             Returns:
                 matched_columns: An integer tensor of shape [num_rows] or [batch_size,
                 num_rows] storing the index of the matched column for each row.
-                match_indicators: An integer tensor of shape [num_rows] or [batch_size,
+                matched_values: An integer tensor of shape [num_rows] or [batch_size,
                 num_rows] storing the match type indicator (e.g. positive or negative
                 or ignored match).
             """
             with tf.name_scope("empty_gt_boxes"):
                 matched_columns = tf.zeros([batch_size, num_rows], dtype=tf.int32)
-                match_indicators = -tf.ones([batch_size, num_rows], dtype=tf.int32)
-                return matched_columns, match_indicators
+                matched_values = -tf.ones([batch_size, num_rows], dtype=tf.int32)
+                return matched_columns, matched_values
 
         def _match_when_cols_are_non_empty():
             """Performs matching when the rows of similarity matrix are non empty.
             Returns:
                 matched_columns: An integer tensor of shape [num_rows] or [batch_size,
                 num_rows] storing the index of the matched column for each row.
-                match_indicators: An integer tensor of shape [num_rows] or [batch_size,
+                matched_values: An integer tensor of shape [num_rows] or [batch_size,
                 num_rows] storing the match type indicator (e.g. positive or negative
                 or ignored match).
             """
@@ -155,11 +155,11 @@ class ArgmaxBoxMatcher:
 
                 # Get logical indices of ignored and unmatched columns as tf.int64
                 matched_vals = tf.reduce_max(similarity_matrix, axis=-1)
-                match_indicators = tf.zeros([batch_size, num_rows], tf.int32)
+                matched_values = tf.zeros([batch_size, num_rows], tf.int32)
 
                 match_dtype = matched_vals.dtype
                 for (ind, low, high) in zip(
-                    self.indicators, self.thresholds[:-1], self.thresholds[1:]
+                    self.match_values, self.thresholds[:-1], self.thresholds[1:]
                 ):
                     low_threshold = tf.cast(low, match_dtype)
                     high_threshold = tf.cast(high, match_dtype)
@@ -167,8 +167,8 @@ class ArgmaxBoxMatcher:
                         tf.greater_equal(matched_vals, low_threshold),
                         tf.less(matched_vals, high_threshold),
                     )
-                    match_indicators = self._set_values_using_indicator(
-                        match_indicators, mask, ind
+                    matched_values = self._set_values_using_indicator(
+                        matched_values, mask, ind
                     )
 
                 if self._force_match_for_each_col:
@@ -197,19 +197,19 @@ class ArgmaxBoxMatcher:
                         force_matched_columns,
                         matched_columns,
                     )
-                    match_indicators = tf.where(
+                    matched_values = tf.where(
                         force_matched_column_mask,
-                        self.indicators[-1]
+                        self.match_values[-1]
                         * tf.ones([batch_size, num_rows], dtype=tf.int32),
-                        match_indicators,
+                        matched_values,
                     )
 
-                return matched_columns, match_indicators
+                return matched_columns, matched_values
 
         num_gt_boxes = (
             similarity_matrix.shape.as_list()[-1] or tf.shape(similarity_matrix)[-1]
         )
-        matched_columns, match_indicators = tf.cond(
+        matched_columns, matched_values = tf.cond(
             pred=tf.greater(num_gt_boxes, 0),
             true_fn=_match_when_cols_are_non_empty,
             false_fn=_match_when_cols_are_empty,
@@ -217,9 +217,9 @@ class ArgmaxBoxMatcher:
 
         if squeeze_result:
             matched_columns = tf.squeeze(matched_columns, axis=0)
-            match_indicators = tf.squeeze(match_indicators, axis=0)
+            matched_values = tf.squeeze(matched_values, axis=0)
 
-        return matched_columns, match_indicators
+        return matched_columns, matched_values
 
     def _set_values_using_indicator(self, x, indicator, val):
         """Set the indicated fields of x to val.
