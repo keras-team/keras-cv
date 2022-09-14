@@ -23,7 +23,7 @@ class ArgmaxBoxMatcherTest(tf.test.TestCase):
         bg_thresh_hi = 0.2
         bg_thresh_lo = 0.0
 
-        with self.assertRaises(ValueError):
+        with self.assertRaisesRegex(ValueError, "must be len"):
             _ = ArgmaxBoxMatcher(
                 thresholds=[bg_thresh_lo, bg_thresh_hi, fg_threshold],
                 match_values=[-3, -2, -1],
@@ -34,10 +34,10 @@ class ArgmaxBoxMatcherTest(tf.test.TestCase):
         bg_thresh_hi = 0.2
         bg_thresh_lo = 0.0
 
-        with self.assertRaises(ValueError):
+        with self.assertRaisesRegex(ValueError, "must be sorted"):
             _ = ArgmaxBoxMatcher(
                 thresholds=[bg_thresh_hi, bg_thresh_lo, fg_threshold],
-                match_values=[-3, -2, -1],
+                match_values=[-3, -2, -1, 1],
             )
 
     def test_box_matcher_unbatched(self):
