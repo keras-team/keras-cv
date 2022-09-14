@@ -14,8 +14,7 @@
 
 import tensorflow as tf
 
-import keras_cv as kcv
-import keras_cv.models
+import keras_cv
 
 
 class DeepLabV3(tf.keras.models.Model):
