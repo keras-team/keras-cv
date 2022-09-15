@@ -70,7 +70,7 @@ class AnchorGenerator(keras.layers.Layer):
     Input shape: an image with shape `[H, W, C]`
     Output: a dictionary with integer keys corresponding to each level of the feature
         pyramid.  The size of the anchors at each level will be
-        `(H/strides * W/strides * anchors_per_location, 4)`.
+        `(H/strides * W/strides * len(scales) * len(aspect_ratios), 4)`.
     """
 
     def __init__(
