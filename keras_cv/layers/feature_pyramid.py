@@ -84,14 +84,14 @@ class FeaturePyramid(tf.keras.layers.Layer):
     """
 
     def __init__(
-            self,
-            pyramid_levels,
-            num_channels=256,
-            lateral_layers=None,
-            output_layers=None,
-            top_down_op=None,
-            merge_op=None,
-            **kwargs,
+        self,
+        pyramid_levels,
+        num_channels=256,
+        lateral_layers=None,
+        output_layers=None,
+        top_down_op=None,
+        merge_op=None,
+        **kwargs,
     ):
         super(FeaturePyramid, self).__init__(**kwargs)
         self.pyramid_levels = sorted(pyramid_levels)
@@ -116,10 +116,14 @@ class FeaturePyramid(tf.keras.layers.Layer):
                 )
 
         else:
-            if not isinstance(lateral_layers, dict) or sorted(
-                    lateral_layers.keys()) != self.pyramid_levels:
-                raise ValueError(f"Expect lateral_layers to be a dict with keys as "
-                                 f"{self.pyramid_levels}, got {lateral_layers}")
+            if (
+                not isinstance(lateral_layers, dict)
+                or sorted(lateral_layers.keys()) != self.pyramid_levels
+            ):
+                raise ValueError(
+                    f"Expect lateral_layers to be a dict with keys as "
+                    f"{self.pyramid_levels}, got {lateral_layers}"
+                )
             self.lateral_layers = lateral_layers
 
         # Output conv2d layers.
@@ -134,10 +138,14 @@ class FeaturePyramid(tf.keras.layers.Layer):
                     name=f"output_P{i}",
                 )
         else:
-            if not isinstance(output_layers, dict) or sorted(
-                    output_layers.keys()) != self.pyramid_levels:
-                raise ValueError(f"Expect output_layers to be a dict with keys as "
-                                 f"{self.pyramid_levels}, got {output_layers}")
+            if (
+                not isinstance(output_layers, dict)
+                or sorted(output_layers.keys()) != self.pyramid_levels
+            ):
+                raise ValueError(
+                    f"Expect output_layers to be a dict with keys as "
+                    f"{self.pyramid_levels}, got {output_layers}"
+                )
             self.output_layers = output_layers
 
         # the same upsampling layer is used for all levels
@@ -154,10 +162,14 @@ class FeaturePyramid(tf.keras.layers.Layer):
     def call(self, features):
         # Note that this assertion might not be true for all the subclasses. It is
         # possible to have FPN that has high levels than the height of backbone outputs.
-        if not isinstance(features, dict) or sorted(
-                features.keys()) != self.pyramid_levels:
-            raise ValueError('Expect the input features to be a dict with int keys that'
-                             f'matches to the {self.pyramid_levels}, got: {features}')
+        if (
+            not isinstance(features, dict)
+            or sorted(features.keys()) != self.pyramid_levels
+        ):
+            raise ValueError(
+                "Expect the input features to be a dict with int keys that"
+                f"matches to the {self.pyramid_levels}, got: {features}"
+            )
         return self.build_feature_pyramid(features)
 
     def build_feature_pyramid(self, input_features):
@@ -181,7 +193,7 @@ class FeaturePyramid(tf.keras.layers.Layer):
             if level < reversed_levels[0]:
                 # for the top most output, it doesn't need to merge with any upper stream
                 # outputs
-                upstream_output = self.top_down_op(output_features[level+1])
+                upstream_output = self.top_down_op(output_features[level + 1])
                 output = self.merge_op([output, upstream_output])
             output_features[level] = output
 
