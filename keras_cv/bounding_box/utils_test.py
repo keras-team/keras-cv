@@ -38,31 +38,37 @@ class BoundingBoxUtilTestCase(tf.test.TestCase):
         )
         self.assertAllLessEqual(bboxes_out, 1)
 
-
     def test_clip_to_image_filters_fully_out_bounding_boxes(self):
         # Test xyxy format unbatched
         height = 256
         width = 256
-        bounding_boxes = tf.convert_to_tensor([[257, 257, 400, 400, 0], [100, 100, 300, 300, 0]])
+        bounding_boxes = tf.convert_to_tensor(
+            [[257, 257, 400, 400, 0], [100, 100, 300, 300, 0]]
+        )
         image = tf.ones(shape=(height, width, 3))
         bounding_boxes = bounding_box.clip_to_image(
             bounding_boxes, bounding_box_format="xyxy", images=image
         )
-        self.assertAllEqual(bounding_boxes, tf.convert_to_tensor([[-1, -1, -1, -1, -1], [100, 100, 256, 256, 0]]))
-
+        self.assertAllEqual(
+            bounding_boxes,
+            tf.convert_to_tensor([[-1, -1, -1, -1, -1], [100, 100, 256, 256, 0]]),
+        )
 
     def test_clip_to_image_filters_fully_out_bounding_boxes_negative_area(self):
         # Test xyxy format unbatched
         height = 256
         width = 256
-        bounding_boxes = tf.convert_to_tensor([[257, 257, 100, 100, 0], [100, 100, 300, 300, 0]])
+        bounding_boxes = tf.convert_to_tensor(
+            [[257, 257, 100, 100, 0], [100, 100, 300, 300, 0]]
+        )
         image = tf.ones(shape=(height, width, 3))
         bounding_boxes = bounding_box.clip_to_image(
             bounding_boxes, bounding_box_format="xyxy", images=image
         )
-        self.assertAllEqual(bounding_boxes, tf.convert_to_tensor([[-1, -1, -1, -1, -1], [100, 100, 256, 256, 0]]))
-
-
+        self.assertAllEqual(
+            bounding_boxes,
+            tf.convert_to_tensor([[-1, -1, -1, -1, -1], [100, 100, 256, 256, 0]]),
+        )
 
     def test_pad_with_sentinels(self):
         bounding_boxes = tf.ragged.constant(

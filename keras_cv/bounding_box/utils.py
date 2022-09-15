@@ -18,6 +18,7 @@ import tensorflow as tf
 from keras_cv import bounding_box
 from keras_cv.bounding_box.formats import XYWH
 
+
 def _relative_area(bounding_boxes, bounding_box_format, images):
     bounding_boxes = bounding_box.convert_format(
         bounding_boxes,
@@ -53,14 +54,18 @@ def clip_to_image(bounding_boxes, images, bounding_box_format):
         ],
         axis=-1,
     )
-    areas = _relative_area(clipped_bounding_boxes, bounding_box_format='rel_xyxy', images=images)
+    areas = _relative_area(
+        clipped_bounding_boxes, bounding_box_format="rel_xyxy", images=images
+    )
     clipped_bounding_boxes = bounding_box.convert_format(
         clipped_bounding_boxes,
         source="rel_xyxy",
         target=bounding_box_format,
         images=images,
     )
-    clipped_bounding_boxes = tf.where(tf.expand_dims(areas > 0.0, axis=-1), clipped_bounding_boxes, -1.0)
+    clipped_bounding_boxes = tf.where(
+        tf.expand_dims(areas > 0.0, axis=-1), clipped_bounding_boxes, -1.0
+    )
     clipped_bounding_boxes = _format_outputs(clipped_bounding_boxes, squeeze)
     return clipped_bounding_boxes
 
