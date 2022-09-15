@@ -187,10 +187,11 @@ class FeaturePyramid(tf.keras.layers.Layer):
         # input_l3 -> conv2d_1x1_l3 -> Add -> conv2d_3x3_l3 -> output_l3
 
         output_features = {}
-        reversed_levels = list(reversed(input_features.keys()))
+        reversed_levels = list(sorted(input_features.keys(), reverse=True))
+        top_level = reversed_levels[0]
         for level in reversed_levels:
             output = self.lateral_layers[level](input_features[level])
-            if level < reversed_levels[0]:
+            if level < top_level:
                 # for the top most output, it doesn't need to merge with any upper stream
                 # outputs
                 upstream_output = self.top_down_op(output_features[level + 1])
