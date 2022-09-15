@@ -33,7 +33,19 @@ def _relative_area(bounding_boxes, bounding_box_format, images):
 
 
 def clip_to_image(bounding_boxes, images, bounding_box_format):
-    """clips bounding boxes to image boundaries"""
+    """clips bounding boxes to image boundaries.
+
+    clip_to_image() clips bounding boxes that have coordinates out of bounds of an image
+    down to the boundaries of the image.  This is done by converting the bounding box to
+    relative formats, then clipping them to the [0, 1] range.  Additionally, bounding
+    boxes that end up with a zero area have their class ID set to -1, indicating that
+    there is no object present in them.
+
+    Args:
+        bounding_boxes: bounding box tensor to clip.
+        images: list of images to clip the bounding boxes to.
+        bounding_box_format: the KerasCV bounding box format the bounding boxes are in.
+    """
     bounding_boxes = bounding_box.convert_format(
         bounding_boxes,
         source=bounding_box_format,
