@@ -25,7 +25,10 @@ def _relative_area(bounding_boxes, bounding_box_format, images):
         target="rel_xywh",
         images=images,
     )
-    return bounding_boxes[..., XYWH.WIDTH] * bounding_boxes[..., XYWH.HEIGHT]
+    widths = bounding_boxes[..., XYWH.WIDTH]
+    heights = bounding_boxes[..., XYWH.HEIGHT]
+    # handle corner case where shear performs a full inversion.
+    return tf.where(tf.math.logical_and(widths > 0, heights > 0), widths * heights, 0.0)
 
 
 def clip_to_image(bounding_boxes, images, bounding_box_format):
@@ -51,7 +54,6 @@ def clip_to_image(bounding_boxes, images, bounding_box_format):
         axis=-1,
     )
     areas = _relative_area(clipped_bounding_boxes, bounding_box_format='rel_xyxy', images=images)
-
     clipped_bounding_boxes = bounding_box.convert_format(
         clipped_bounding_boxes,
         source="rel_xyxy",
