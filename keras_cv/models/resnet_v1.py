@@ -501,8 +501,8 @@ def ResNet152(
     )
 
 
-setattr(ResNet50, "__doc__", BASE_DOCSTRING.format(name="ResNet18"))
-setattr(ResNet50, "__doc__", BASE_DOCSTRING.format(name="ResNet34"))
+setattr(ResNet18, "__doc__", BASE_DOCSTRING.format(name="ResNet18"))
+setattr(ResNet34, "__doc__", BASE_DOCSTRING.format(name="ResNet34"))
 setattr(ResNet50, "__doc__", BASE_DOCSTRING.format(name="ResNet50"))
 setattr(ResNet101, "__doc__", BASE_DOCSTRING.format(name="ResNet101"))
 setattr(ResNet152, "__doc__", BASE_DOCSTRING.format(name="ResNet152"))
