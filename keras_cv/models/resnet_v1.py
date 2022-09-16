@@ -95,6 +95,7 @@ BASE_DOCSTRING = """Instantiates the {name} architecture.
       A `keras.Model` instance.
 """
 
+
 def BasicBlock(filters, kernel_size=3, stride=1, conv_shortcut=True, name=None):
     """A basic residual block.
     Args:
