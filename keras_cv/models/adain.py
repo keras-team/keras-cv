@@ -41,30 +41,26 @@ def get_mini_vgg19_encoder(include_rescaling, image_size):
 
 def get_adain_decoder():
     config = {"kernel_size": 3, "strides": 1, "padding": "same", "activation": "relu"}
-    decoder = keras.Sequential(
-        [
-            layers.InputLayer((None, None, 512)),
-            layers.Conv2D(filters=512, **config),
-            layers.UpSampling2D(),
-            layers.Conv2D(filters=256, **config),
-            layers.Conv2D(filters=256, **config),
-            layers.Conv2D(filters=256, **config),
-            layers.Conv2D(filters=256, **config),
-            layers.UpSampling2D(),
-            layers.Conv2D(filters=128, **config),
-            layers.Conv2D(filters=128, **config),
-            layers.UpSampling2D(),
-            layers.Conv2D(filters=64, **config),
-            layers.Conv2D(
+    inputs = layers.InputLayer((None, None, 512))
+    x = layers.Conv2D(filters=512, **config)(inputs)
+    x = layers.UpSampling2D()(x)
+    x = layers.Conv2D(filters=256, **config)(x)
+    x = layers.Conv2D(filters=256, **config)(x)
+    x = layers.Conv2D(filters=256, **config)(x)
+    x = layers.Conv2D(filters=256, **config)(x)
+    x = layers.UpSampling2D()(x)
+    x = layers.Conv2D(filters=128, **config)(x)
+    x = layers.Conv2D(filters=128, **config)(x)
+    x = layers.UpSampling2D()(x)
+    x = layers.Conv2D(filters=64, **config)(x)
+    x = layers.Conv2D(
                 filters=3,
                 kernel_size=3,
                 strides=1,
                 padding="same",
-                activation="sigmoid",
-            ),
-        ]
-    )
-    return decoder    
+                activation="sigmoid")(x)
+    outputs = tf.clip_by_value(x * 255., 0., 255.0)            
+    return keras.Model(inputs, outputs, name="decoder")    
 
 
 def get_loss_net(include_rescaling, image_size=(None, None)):
@@ -91,7 +87,7 @@ def get_mean_std(x):
     standard_deviation = tf.sqrt(variance + 1e-5)
     return mean, standard_deviation
 
-
+@tf.keras.utils.register_keras_serializable(package="keras_cv")
 class AdaIN(layers.Layer):
     def __init__(self, name='AdaIN', **kwargs):
         super(AdaIN, self).__init__(name=name, **kwargs)
@@ -131,14 +127,12 @@ def create_adain_model(include_rescaling, image_size):
 
 
 class AdaInTrainer(keras.Model):
-    def __init__(self, include_rescaling, optimizer, image_size=(None, None), style_weight=4.0, **kwargs):
+    def __init__(self, include_rescaling, image_size=(None, None), style_weight=4.0, **kwargs):
         super().__init__(**kwargs)
         self.image_size = image_size
         self.encoder, self.decoder, self.model = create_adain_model(include_rescaling, image_size)
         self.loss_net = get_loss_net(include_rescaling, image_size)
         self.style_weight = style_weight
-        self.optimizer = optimizer
-        self.loss_fn = get_loss_net(include_rescaling, image_size)
         self.style_loss_tracker = keras.metrics.Mean(name="style_loss")
         self.content_loss_tracker = keras.metrics.Mean(name="content_loss")
         self.total_loss_tracker = keras.metrics.Mean(name="total_loss")
@@ -158,26 +152,8 @@ class AdaInTrainer(keras.Model):
         
 
     def train_step(self, inputs):
-        style, content = inputs
-
-        # Initialize the content and style loss.
-        loss_content = 0.0
-        loss_style = 0.0
-
         with tf.GradientTape() as tape:
-            reconstructed_image, t = self(inputs)
-            # Compute the losses.
-            reconstructed_vgg_features = self.loss_net(reconstructed_image)
-            style_vgg_features = self.loss_net(style)
-            loss_content = self.loss_fn(t, reconstructed_vgg_features[-1])
-            for inp, out in zip(style_vgg_features, reconstructed_vgg_features):
-                mean_inp, std_inp = get_mean_std(inp)
-                mean_out, std_out = get_mean_std(out)
-                loss_style += self.loss_fn(mean_inp, mean_out) + self.loss_fn(
-                    std_inp, std_out
-                )
-            loss_style = self.style_weight * loss_style
-            total_loss = loss_content + loss_style
+            loss_style, loss_content, total_loss = self.__compute_loss(inputs)
 
         # Compute gradients and optimize the decoder.
         trainable_vars = self.decoder.trainable_variables
@@ -195,28 +171,7 @@ class AdaInTrainer(keras.Model):
         }
 
     def test_step(self, inputs):
-        style, content = inputs
-
-        # Initialize the content and style loss.
-        loss_content = 0.0
-        loss_style = 0.0
-
-        # Generate the neural style transferred image.
-        reconstructed_image, t = self(inputs)
-
-        # Compute the losses.
-        recons_vgg_features = self.loss_net(reconstructed_image)
-        style_vgg_features = self.loss_net(style)
-        loss_content = self.loss_fn(t, recons_vgg_features[-1])
-        for inp, out in zip(style_vgg_features, recons_vgg_features):
-            mean_inp, std_inp = get_mean_std(inp)
-            mean_out, std_out = get_mean_std(out)
-            loss_style += self.loss_fn(mean_inp, mean_out) + self.loss_fn(
-                std_inp, std_out
-            )
-        loss_style = self.style_weight * loss_style
-        total_loss = loss_content + loss_style
-
+        loss_style, loss_content, total_loss = self.__compute_loss(inputs)
         # Update the trackers.
         self.style_loss_tracker.update_state(loss_style)
         self.content_loss_tracker.update_state(loss_content)
@@ -226,6 +181,27 @@ class AdaInTrainer(keras.Model):
             "content_loss": self.content_loss_tracker.result(),
             "total_loss": self.total_loss_tracker.result(),
         }
+        
+    def __compute_loss(self, inputs):
+    	style, content = inputs
+
+        # Initialize the content and style loss.
+        loss_content = 0.0
+        loss_style = 0.0
+	reconstructed_image, t = self(inputs)
+	
+	# Compute the losses.
+	reconstructed_vgg_features = self.loss_net(reconstructed_image)
+	style_vgg_features = self.loss_net(style)
+	loss_content = self.compiled_loss(t, reconstructed_vgg_features[-1])
+	for inp, out in zip(style_vgg_features, reconstructed_vgg_features):
+	    mean_inp, std_inp = get_mean_std(inp)
+	    mean_out, std_out = get_mean_std(out)
+	    loss_style += self.compiled_loss(mean_inp, mean_out) + self.compiled_loss(std_inp, std_out)
+
+	loss_style = self.style_weight * loss_style
+	total_loss = loss_content + loss_style
+	return loss_content, loss_style, total_loss
 
     @property
     def metrics(self):
