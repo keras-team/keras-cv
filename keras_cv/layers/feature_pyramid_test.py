@@ -58,7 +58,7 @@ class FeaturePyramidTest(tf.test.TestCase):
             self.assertEquals(output[level].shape[2], inputs[level].shape[2])
             self.assertEquals(output[level].shape[3], layer.num_channels)
 
-    def test_keras_tensor(self):
+    def test_with_keras_input_tensor(self):
         # This mimic the model building with Backbone network
         layer = FeaturePyramid(min_level=2, max_level=5)
         c2 = tf.keras.layers.Input([64, 64, 3])
