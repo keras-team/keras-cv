@@ -25,6 +25,8 @@ class ROIGenerator(tf.keras.layers.Layer):
     """
     Generates region of interests (ROI, or proposal) from scores.
 
+    Mainly used in Region CNN (RCNN) networks.
+
     This works for a multi-level input, both boxes and scores are dictionary
     inputs with the same set of keys.
 
@@ -39,11 +41,7 @@ class ROIGenerator(tf.keras.layers.Layer):
     4) post_nms_topk scores and rois sorted and selected
 
     Args:
-        bounding_box_format: a case-insensitive string which is one of `"xyxy"`,
-            `"rel_xyxy"`, `"xyWH"`, `"center_xyWH"`, `"yxyx"`, `"rel_yxyx"`. The
-            position and shape of the bounding box will be followed by the class and
-            confidence values (in that order). This is required for proper ranking of
-            the bounding boxes. Therefore, each bounding box is defined by 6 values.
+        bounding_box_format: a case-insensitive string.
             For detailed information on the supported format, see the
             [KerasCV bounding box documentation](https://keras.io/api/keras_cv/bounding_box/formats/).
         pre_nms_topk_train: int. number of top k scoring proposals to keep before applying NMS in training mode.
