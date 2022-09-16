@@ -200,7 +200,9 @@ def Block(filters, kernel_size=3, stride=1, conv_shortcut=True, name=None):
     return apply
 
 
-def Stack(filters, blocks, stride=2, name=None, block_type='block', first_shortcut=True):
+def Stack(
+    filters, blocks, stride=2, name=None, block_type="block", first_shortcut=True
+):
     """A set of stacked residual blocks.
     Args:
       filters: integer, filters of the bottleneck layer in a block.
@@ -213,10 +215,12 @@ def Stack(filters, blocks, stride=2, name=None, block_type='block', first_shortc
     if name is None:
         name = f"v1_stack_{backend.get_uid('v1_stack')}"
 
-    block_fn = Block if block_type == 'block' else BasicBlock
+    block_fn = Block if block_type == "block" else BasicBlock
 
     def apply(x):
-        x = block_fn(filters, stride=stride, name=name + "_block1", conv_shortcut=first_shortcut)(x)
+        x = block_fn(
+            filters, stride=stride, name=name + "_block1", conv_shortcut=first_shortcut
+        )(x)
         for i in range(2, blocks + 1):
             x = block_fn(filters, conv_shortcut=False, name=name + "_block" + str(i))(x)
         return x
@@ -237,7 +241,7 @@ def ResNet(
     pooling=None,
     classes=None,
     classifier_activation="softmax",
-    block_type='block',
+    block_type="block",
     **kwargs,
 ):
     """Instantiates the ResNet architecture.
@@ -319,7 +323,7 @@ def ResNet(
             blocks=stackwise_blocks[stack_index],
             stride=stackwise_strides[stack_index],
             block_type=block_type,
-            first_shortcut=block_type == 'block' or stack_index > 0,
+            first_shortcut=block_type == "block" or stack_index > 0,
         )(x)
 
     if include_top:
@@ -369,7 +373,7 @@ def ResNet18(
         pooling=pooling,
         classes=classes,
         classifier_activation=classifier_activation,
-        block_type='basic_block',
+        block_type="basic_block",
         **kwargs,
     )
 
@@ -401,7 +405,7 @@ def ResNet34(
         pooling=pooling,
         classes=classes,
         classifier_activation=classifier_activation,
-        block_type='basic_block',
+        block_type="basic_block",
         **kwargs,
     )
 
