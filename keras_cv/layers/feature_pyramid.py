@@ -27,9 +27,10 @@ class FeaturePyramid(tf.keras.layers.Layer):
       (https://arxiv.org/pdf/1612.03144)
 
     Feature Pyramid Networks (FPNs) are basic components that are added to an
-    existing CNN to extract features at different scales. For the basic FPN, the
-    inputs are features `Ci` from different levels of a CNN, where the feature is
-    scaled from the image size by `1/2^i` for any level `i`.
+    existing feature extractor (CNN) to combine features at different scales. For the
+    basic FPN, the inputs are features `Ci` from different levels of a CNN, which is
+    usually the last block for each level, where the feature is scaled from the image
+    by a factor of `1/2^i`.
 
     There is an output associated with each level in the basic FPN. The output Pi
     at level `i` (corresponding to Ci) is given by performing a merge operation on
@@ -38,7 +39,7 @@ class FeaturePyramid(tf.keras.layers.Layer):
     1) a lateral operation on Ci (usually a conv2D layer with kernel = 1 and strides = 1)
     2) a top-down upsampling operation from Pi+1 (except for the top most level)
 
-    The final output of each level  will also have a conv2D operation
+    The final output of each level will also have a conv2D operation
     (usually with kernel = 3 and strides = 1).
 
     The inputs to the layer should be a dict with int keys should match the
@@ -49,23 +50,22 @@ class FeaturePyramid(tf.keras.layers.Layer):
     and value for each of the level.
 
     Args:
-        pyramid_levels: a sorted python int list that specifies all the values of level
-            `i` for which the feature Ci will be specified.
+        min_level: a python int for the lowest level of the pyramid for
+            feature extraction.
+        max_level: a python int for the highest level of the pyramid for
+            feature extraction.
         num_channels: an integer representing the number of channels for the FPN
             operations. Defaults to 256.
         lateral_layers: a python dict with int keys that matches to each of the pyramid
             level. The values of the dict should be `keras.Layer`, which will be called
-            with feature inputs from backbone at each level. Default to None, and a
-            `keras.Conv2D` layer with kernel 1x1 will be created for each pyramid level.
+            with feature activation outputs from backbone at each level. Default to
+            None, and a `keras.Conv2D` layer with kernel 1x1 will be created for each
+            pyramid level.
         output_layers: a python dict with int keys that matches to each of the pyramid
             level. The values of the dict should be `keras.Layer`, which will be called
             with feature inputs and merged result from upstream levels. Default to None,
             and a `keras.Conv2D` layer with kernel 3x3 will be created for each pyramid
             level.
-        top_down_op: optional upsampling op between each layer. Default to None, and
-            `keras.layers.UpSampling2D` with 2x will be used.
-        merge_op: optional merge op for lateral result and upstream result. Default to
-            None, and `keras.layers.Add` will be used.
 
     Sample Usage:
     ```python
@@ -79,29 +79,28 @@ class FeaturePyramid(tf.keras.layers.Layer):
         backbone_outputs[i+2] = backbone.get_layer(layer_name).output
 
     # output_dict is a dict with 2, 3, 4, 5 as keys
-    output_dict = keras_cv.layers.FeaturePyramid([2,3,4,5])(backbone_outputs)
+    output_dict = keras_cv.layers.FeaturePyramid(min_level=2, max_level=5)(backbone_outputs)
     ```
     """
 
     def __init__(
         self,
-        pyramid_levels,
+        min_level,
+        max_level,
         num_channels=256,
         lateral_layers=None,
         output_layers=None,
-        top_down_op=None,
-        merge_op=None,
         **kwargs,
     ):
-        super(FeaturePyramid, self).__init__(**kwargs)
-        self.pyramid_levels = sorted(pyramid_levels)
+        super().__init__(**kwargs)
+        self.min_level = min_level
+        self.max_level = max_level
+        self.pyramid_levels = list(range(min_level, max_level + 1))
         self.num_channels = num_channels
 
         # required for successful serialization
         self.lateral_layers_passed = lateral_layers
         self.output_layers_passed = output_layers
-        self.top_down_op_passed = top_down_op
-        self.merge_op_passed = merge_op
 
         if not lateral_layers:
             # populate self.lateral_ops with default FPN Conv2D 1X1 layers
@@ -114,16 +113,8 @@ class FeaturePyramid(tf.keras.layers.Layer):
                     padding="same",
                     name=f"lateral_P{i}",
                 )
-
         else:
-            if (
-                not isinstance(lateral_layers, dict)
-                or sorted(lateral_layers.keys()) != self.pyramid_levels
-            ):
-                raise ValueError(
-                    f"Expect lateral_layers to be a dict with keys as "
-                    f"{self.pyramid_levels}, got {lateral_layers}"
-                )
+            self._validate_user_layers(lateral_layers, "lateral_layers")
             self.lateral_layers = lateral_layers
 
         # Output conv2d layers.
@@ -138,26 +129,23 @@ class FeaturePyramid(tf.keras.layers.Layer):
                     name=f"output_P{i}",
                 )
         else:
-            if (
-                not isinstance(output_layers, dict)
-                or sorted(output_layers.keys()) != self.pyramid_levels
-            ):
-                raise ValueError(
-                    f"Expect output_layers to be a dict with keys as "
-                    f"{self.pyramid_levels}, got {output_layers}"
-                )
+            self._validate_user_layers(output_layers, "output_layers")
             self.output_layers = output_layers
 
         # the same upsampling layer is used for all levels
-        if not top_down_op:
-            self.top_down_op = tf.keras.layers.UpSampling2D(size=2)
-        else:
-            self.top_down_op = top_down_op
+        self.top_down_op = tf.keras.layers.UpSampling2D(size=2)
         # the same merge layer is used for all levels
-        if not merge_op:
-            self.merge_op = tf.keras.layers.Add()
-        else:
-            self.merge_op = merge_op
+        self.merge_op = tf.keras.layers.Add()
+
+    def _validate_user_layers(self, user_input, param_name):
+        if (
+            not isinstance(user_input, dict)
+            or sorted(user_input.keys()) != self.pyramid_levels
+        ):
+            raise ValueError(
+                f"Expect {param_name} to be a dict with keys as "
+                f"{self.pyramid_levels}, got {user_input}"
+            )
 
     def call(self, features):
         # Note that this assertion might not be true for all the subclasses. It is
@@ -167,8 +155,9 @@ class FeaturePyramid(tf.keras.layers.Layer):
             or sorted(features.keys()) != self.pyramid_levels
         ):
             raise ValueError(
-                "Expect the input features to be a dict with int keys that"
-                f"matches to the {self.pyramid_levels}, got: {features}"
+                "FeaturePyramid expects input features to be a dict with int keys "
+                "that match the values provided in pyramid_levels. "
+                f"Expect feature keys: {self.pyramid_levels}, got: {features}"
             )
         return self.build_feature_pyramid(features)
 
@@ -204,5 +193,13 @@ class FeaturePyramid(tf.keras.layers.Layer):
 
         return output_features
 
-    # TODO(scottzhu): Add serialization with get_config/from_config(). It might have
-    # some issue for sub-layers serialization.
+    def get_config(self):
+        config = {
+            "min_level": self.min_level,
+            "max_level": self.max_level,
+            "num_channels": self.num_channels,
+            "lateral_layers": self.lateral_layers_passed,
+            "output_layers": self.output_layers_passed,
+        }
+        base_config = super().get_config()
+        return dict(list(base_config.items()) + list(config.items()))
