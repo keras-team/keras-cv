@@ -112,7 +112,7 @@ class RandomResizedCrop(BaseImageAugmentationLayer):
             (),
             minval=tf.minimum(0, original_width - new_width),
             maxval=tf.maximum(0, original_width - new_width),
-            dtype=tf.int64,
+            dtype=tf.float32,
         )
 
         new_height = new_height / original_height
