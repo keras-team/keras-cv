@@ -195,10 +195,10 @@ class ROIGenerator(tf.keras.layers.Layer):
             "nms_score_threshold_train": self.nms_score_threshold_train,
             "nms_iou_threshold_train": self.nms_iou_threshold_train,
             "post_nms_topk_train": self.post_nms_topk_train,
-            "pre_nms_topk_train": self.pre_nms_topk_test,
-            "nms_score_threshold_train": self.nms_score_threshold_test,
-            "nms_iou_threshold_train": self.nms_iou_threshold_test,
-            "post_nms_topk_train": self.post_nms_topk_test,
+            "pre_nms_topk_test": self.pre_nms_topk_test,
+            "nms_score_threshold_test": self.nms_score_threshold_test,
+            "nms_iou_threshold_test": self.nms_iou_threshold_test,
+            "post_nms_topk_test": self.post_nms_topk_test,
         }
         base_config = super().get_config()
         return dict(list(base_config.items()) + list(config.items()))

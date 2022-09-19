@@ -171,6 +171,5 @@ class ROIGeneratorTest(tf.test.TestCase):
         ]
         rpn_scores = {2: rpn_scores[0:1], 3: rpn_scores[1:2]}
         rois, roi_scores = roi_generator(rpn_boxes, rpn_scores, training=True)
-        print(rois)
         self.assertAllClose(expected_rois, rois)
         self.assertAllClose(expected_roi_scores, roi_scores)
