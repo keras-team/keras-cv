@@ -23,7 +23,6 @@ local unittest = base.BaseTest {
     '-c',
     |||
       # Run whatever is in `command` here.
-      cd keras-cv
       ${@:0}
     |||
   ],

@@ -61,7 +61,7 @@ class NmsPredictionDecoder(tf.keras.layers.Layer):
         self.suppression_layer = suppression_layer or cv_layers.NonMaxSuppression(
             classes=classes,
             bounding_box_format=bounding_box_format,
-            confidence_threshold=0.05,
+            confidence_threshold=0.5,
             iou_threshold=0.5,
             max_detections=100,
             max_detections_per_class=100,

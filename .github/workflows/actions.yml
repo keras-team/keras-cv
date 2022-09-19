@@ -36,7 +36,7 @@ jobs:
         pip install -e ".[tests]" --progress-bar off --upgrade
     - name: Test with pytest
       run: |
-        pytest keras_cv/
+        pytest keras_cv/ --ignore keras_cv/models
   format:
     name: Check the code format
     runs-on: ubuntu-latest

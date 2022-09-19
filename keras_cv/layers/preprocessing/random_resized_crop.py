@@ -133,6 +133,12 @@ class RandomResizedCrop(BaseImageAugmentationLayer):
             # self._resize() returns valid results for both batched and
             # unbatched
             output["images"] = self._resize(inputs["images"])
+
+            if "segmentation_masks" in inputs:
+                output["segmentation_masks"] = self._resize(
+                    inputs["segmentation_masks"], interpolation="nearest"
+                )
+
             return self._format_output(output, meta_data)
 
     def augment_image(self, image, transformation, **kwargs):
@@ -215,6 +221,11 @@ class RandomResizedCrop(BaseImageAugmentationLayer):
     def augment_target(self, augment_target, **kwargs):
         return augment_target
 
+    def augment_segmentation_mask(self, segmentation_mask, transformation, **kwargs):
+        return self._crop_and_resize(
+            segmentation_mask, transformation, method="nearest"
+        )
+
     def get_config(self):
         config = super().get_config()
         config.update(
@@ -227,3 +238,20 @@ class RandomResizedCrop(BaseImageAugmentationLayer):
             }
         )
         return config
+
+    def _crop_and_resize(self, image, transformation, method=None):
+        image = tf.expand_dims(image, axis=0)
+        boxes = transformation
+
+        # See bit.ly/tf_crop_resize for more details
+        augmented_image = tf.image.crop_and_resize(
+            image,  # image shape: [B, H, W, C]
+            boxes,  # boxes: (1, 4) in this case; represents area
+            # to be cropped from the original image
+            [0],  # box_indices: maps boxes to images along batch axis
+            # [0] since there is only one image
+            self.target_size,  # output size
+            method=method or self.interpolation,
+        )
+
+        return tf.squeeze(augmented_image, axis=0)

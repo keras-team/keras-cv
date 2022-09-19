@@ -23,6 +23,9 @@ flags.DEFINE_string(
 flags.DEFINE_string(
     "contributor", None, "The GitHub username of the contributor of these results"
 )
+flags.DEFINE_string(
+    "accelerators", None, "The number of accelerators used for training."
+)
 
 FLAGS = flags.FLAGS
 FLAGS(sys.argv)
@@ -59,7 +62,7 @@ tensorboard_logs_path = FLAGS.tensorboard_logs_path or input(
 )
 tensorboard_experiment_id = (
     os.popen(
-        f"tensorboard dev upload --logdir {tensorboard_logs_path} --name {tensorboard_experiment_name} --one_shot --verbose 0"
+        f"python3 -m tensorboard.main dev upload --logdir {tensorboard_logs_path} --name {tensorboard_experiment_name} --one_shot --verbose 0"
     )
     .read()
     .split("/")[-2]
@@ -75,13 +78,17 @@ training_epochs = max(tensorboard_results[tensorboard_results.run == "train"].st
 max_validation_accuracy = max(
     tensorboard_results[
         (tensorboard_results.run == "validation")
-        & (tensorboard_results.tag == "epoch_accuracy")
+        & (tensorboard_results.tag == "epoch_categorical_accuracy")
     ].value
 )
 max_validation_accuracy = f"{max_validation_accuracy:.4f}"
 
 contributor = FLAGS.contributor or input(
     "Input your GitHub username (or the username of the contributor, if it's not you)\n"
+)
+
+accelerators = FLAGS.accelerators or input(
+    "Input the number of accelerators used during training.\n"
 )
 
 args = input(
@@ -104,6 +111,7 @@ new_results = {
     "tensorboard_logs": f"https://tensorboard.dev/experiment/{tensorboard_experiment_id}/",
     "contributor": contributor,
     "args": args_dict,
+    "accelerators": int(accelerators),
 }
 
 # Check if the JSON file already exists

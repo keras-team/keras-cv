@@ -41,8 +41,7 @@ class UniformFactorSampler(FactorSampler):
         self.upper = upper
         self.seed = seed
 
-    def __call__(self, shape=None, dtype="float32"):
-        shape = shape or ()
+    def __call__(self, shape=(), dtype="float32"):
         return tf.random.uniform(
             shape, seed=self.seed, minval=self.lower, maxval=self.upper, dtype=dtype
         )

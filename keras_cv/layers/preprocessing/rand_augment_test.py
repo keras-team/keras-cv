@@ -80,3 +80,18 @@ class RandAugmentTest(tf.test.TestCase, parameterized.TestCase):
         xs = tf.random.uniform((512, 512, 3), 0, 255, dtype=tf.float32)
         ys = rand_augment(xs)
         self.assertEqual(xs.shape, ys.shape)
+
+    def test_runs_no_geo(self):
+        rand_augment = layers.RandAugment(
+            augmentations_per_image=2,
+            magnitude=0.5,
+            rate=1.0,
+            geometric=False,
+            value_range=(0, 255),
+        )
+        self.assertFalse(
+            any([isinstance(x, layers.RandomTranslation) for x in rand_augment.layers])
+        )
+        self.assertFalse(
+            any([isinstance(x, layers.RandomShear) for x in rand_augment.layers])
+        )
