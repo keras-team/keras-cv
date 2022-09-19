@@ -136,7 +136,11 @@ class RandomResizedCrop(BaseImageAugmentationLayer):
             return self._format_output(output, meta_data)
 
     def augment_image(self, image, transformation, **kwargs):
-        height, width, _ = tf.shape(image)
+        image_shape = tf.shape(image)
+        
+        height = image_shape[-3]
+        width = image_shape[-2]
+
         image = tf.expand_dims(image, axis=0)
         new_height, new_width, height_offset, width_offset = transformation
 
