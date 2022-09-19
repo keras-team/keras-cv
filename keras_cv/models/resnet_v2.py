@@ -127,7 +127,9 @@ def BasicBlock(filters, kernel_size=3, stride=1, conv_shortcut=False, name=None)
         else:
             shortcut = layers.MaxPooling2D(1, strides=stride)(x) if stride > 1 else x
 
-        x = layers.Conv2D(filters, kernel_size, strides=1, use_bias=False, name=name + "_1_conv")(
+        x = layers.Conv2D(
+            filters, kernel_size, padding="SAME", strides=1, use_bias=False, name=name + "_1_conv"
+        )(
             use_preactivation
         )
         x = layers.BatchNormalization(
