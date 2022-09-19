@@ -181,7 +181,7 @@ class SerializationTest(tf.test.TestCase, parameterized.TestCase):
             {
                 "height": 224,
                 "width": 224,
-                "crop_area_factor": (0.08, 1.0),
+                "zoom_factor": (0.08, 1.0),
                 "aspect_ratio_factor": (3.0 / 4.0, 4.0 / 3.0),
                 "interpolation": "bilinear",
                 "seed": 1,
