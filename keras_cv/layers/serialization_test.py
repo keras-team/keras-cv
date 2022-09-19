@@ -179,7 +179,8 @@ class SerializationTest(tf.test.TestCase, parameterized.TestCase):
             "RandomResizedCrop",
             cv_layers.RandomResizedCrop,
             {
-                "target_size": (224, 224),
+                "height": 224,
+                "width": 224,
                 "crop_area_factor": (0.08, 1.0),
                 "aspect_ratio_factor": (3.0 / 4.0, 4.0 / 3.0),
                 "interpolation": "bilinear",

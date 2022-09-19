@@ -37,13 +37,13 @@ class RandomResizedCrop(BaseImageAugmentationLayer):
         width: The width of the output shape.
         zoom_factor: A tuple of two floats, ConstantFactorSampler or
             UniformFactorSampler. Represents the area relative to the original image
-            of the cropped image before resizing it to `target_size`.
+            of the cropped image before resizing it to `(height, width)`.
         aspect_ratio_factor: A tuple of two floats, ConstantFactorSampler or
             UniformFactorSampler. Aspect ratio means the ratio of width to
             height of the cropped image. In the context of this layer, the aspect ratio
             sampled represents a value to distort the aspect ratio by.
             Represents the lower and upper bound for the aspect ratio of the
-            cropped image before resizing it to `target_size`.  For most tasks, this
+            cropped image before resizing it to `(height, width)`.  For most tasks, this
             should be `(3/4, 4/3)`.  To perform a no-op provide the value `(1.0, 1.0)`.
         interpolation: (Optional) A string specifying the sampling method for
             resizing. Defaults to "bilinear".
@@ -61,8 +61,6 @@ class RandomResizedCrop(BaseImageAugmentationLayer):
         **kwargs,
     ):
         super().__init__(seed=seed, **kwargs)
-
-        self.target_size = (height, width)
         self.height = height
         self.width = width
         self.aspect_ratio_factor = preprocessing.parse_factor(
@@ -95,8 +93,8 @@ class RandomResizedCrop(BaseImageAugmentationLayer):
         original_width = tf.cast(tf.shape(image)[-2], tf.float32)
 
         crop_size = (
-            tf.round(self.target_size[0] / zoom_factor),
-            tf.round(self.target_size[1] / zoom_factor),
+            tf.round(self.height / zoom_factor),
+            tf.round(self.width / zoom_factor),
         )
 
         new_height = crop_size[0] / tf.sqrt(aspect_ratio)
@@ -168,7 +166,7 @@ class RandomResizedCrop(BaseImageAugmentationLayer):
         image = preprocessing.transform(
             images=image,
             transforms=transform,
-            output_shape=self.target_size,
+            output_shape=(self.height, self.width),
             interpolation=self.interpolation,
             fill_mode="reflect",
         )
@@ -181,7 +179,9 @@ class RandomResizedCrop(BaseImageAugmentationLayer):
         return transform[tf.newaxis]
 
     def _resize(self, image):
-        outputs = tf.keras.preprocessing.image.smart_resize(image, self.target_size)
+        outputs = tf.keras.preprocessing.image.smart_resize(
+            image, (self.height, self.width)
+        )
         # smart_resize will always output float32, so we need to re-cast.
         return tf.cast(outputs, self.compute_dtype)
 
@@ -247,7 +247,7 @@ class RandomResizedCrop(BaseImageAugmentationLayer):
             # to be cropped from the original image
             [0],  # box_indices: maps boxes to images along batch axis
             # [0] since there is only one image
-            self.target_size,  # output size
+            (self.height, self.width),  # output size
             method=method or self.interpolation,
         )
 
