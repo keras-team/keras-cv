@@ -46,6 +46,12 @@ def clip_to_image(bounding_boxes, images, bounding_box_format):
         images: list of images to clip the bounding boxes to.
         bounding_box_format: the KerasCV bounding box format the bounding boxes are in.
     """
+    if bounding_boxes.shape[-1] < 5:
+        raise ValueError(
+            "`bounding_boxes` must include a class_id index on the final "
+            "axis.  This is used to set `bounding_boxes` that are fully outside of the "
+            "provided image to the background class, -1."
+        )
     bounding_boxes = bounding_box.convert_format(
         bounding_boxes,
         source=bounding_box_format,
@@ -75,6 +81,7 @@ def clip_to_image(bounding_boxes, images, bounding_box_format):
         target=bounding_box_format,
         images=images,
     )
+
     clipped_bounding_boxes = tf.where(
         tf.expand_dims(areas > 0.0, axis=-1), clipped_bounding_boxes, -1.0
     )
