@@ -41,5 +41,6 @@ def main():
     augmented = layer(many_elephants)
     demo_utils.gallery_show(augmented.numpy())
 
+
 if __name__ == "__main__":
     main()

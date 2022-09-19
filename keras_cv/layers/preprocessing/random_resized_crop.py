@@ -30,11 +30,11 @@ class RandomResizedCrop(BaseImageAugmentationLayer):
     argument. To do this, we first sample a random value for `zoom_factor` and
     `aspect_ratio_factor`. Further we deduce a `crop_size` which abides by the
     calculated aspect ratio. Finally we do the actual cropping operation and
-    resize the image to `target_size`.
+    resize the image to `(height, width)`.
 
     Args:
-        target_size: A tuple of two integers used as the target size to ultimately crop
-            images to.
+        height: The height of the output shape.
+        width: The width of the output shape.
         zoom_factor: A tuple of two floats, ConstantFactorSampler or
             UniformFactorSampler. Represents the area relative to the original image
             of the cropped image before resizing it to `target_size`.
@@ -63,6 +63,8 @@ class RandomResizedCrop(BaseImageAugmentationLayer):
         super().__init__(seed=seed, **kwargs)
 
         self.target_size = (height, width)
+        self.height = height
+        self.width = width
         self.aspect_ratio_factor = preprocessing.parse_factor(
             aspect_ratio_factor,
             min_value=0.0,
@@ -78,7 +80,7 @@ class RandomResizedCrop(BaseImageAugmentationLayer):
             seed=seed,
         )
 
-        self._check_class_arguments(self.target_size, zoom_factor, aspect_ratio_factor)
+        self._check_class_arguments(height, width, zoom_factor, aspect_ratio_factor)
 
         self.interpolation = interpolation
         self.seed = seed
@@ -137,7 +139,7 @@ class RandomResizedCrop(BaseImageAugmentationLayer):
 
     def augment_image(self, image, transformation, **kwargs):
         image_shape = tf.shape(image)
-        
+
         height = tf.cast(image_shape[-3], tf.float32)
         width = tf.cast(image_shape[-2], tf.float32)
 
@@ -177,18 +179,12 @@ class RandomResizedCrop(BaseImageAugmentationLayer):
         # smart_resize will always output float32, so we need to re-cast.
         return tf.cast(outputs, self.compute_dtype)
 
-    def _check_class_arguments(self, target_size, zoom_factor, aspect_ratio_factor):
-        if (
-            not isinstance(target_size, (tuple, list))
-            or len(target_size) != 2
-            or not isinstance(target_size[0], int)
-            or not isinstance(target_size[1], int)
-            or isinstance(target_size, int)
-        ):
-            raise ValueError(
-                "`target_size` must be tuple of two integers. "
-                f"Received target_size={target_size}"
-            )
+    def _check_class_arguments(self, height, width, zoom_factor, aspect_ratio_factor):
+        if not isinstance(height, int):
+            raise ValueError("`height` must be an integer. Received height={height}")
+
+        if not isinstance(width, int):
+            raise ValueError("`width` must be an integer. Received width={width}")
 
         if (
             not isinstance(zoom_factor, (tuple, list, core.FactorSampler))
@@ -219,7 +215,8 @@ class RandomResizedCrop(BaseImageAugmentationLayer):
         config = super().get_config()
         config.update(
             {
-                "target_size": self.target_size,
+                "height": self.height,
+                "width": self.width,
                 "zoom_factor": self.zoom_factor,
                 "aspect_ratio_factor": self.aspect_ratio_factor,
                 "interpolation": self.interpolation,
