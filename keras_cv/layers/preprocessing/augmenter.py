@@ -26,9 +26,9 @@ class Augmenter(tf.keras.layers.Layer):
         super().__init__(**kwargs)
         self.layers = layers
 
-    def call(self, inputs):
+    def call(self, inputs, training=True):
         for layer in self.layers:
-            inputs = layer(inputs)
+            inputs = layer(inputs, training=training)
         return inputs
 
     def get_config(self):

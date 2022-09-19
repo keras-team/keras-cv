@@ -23,10 +23,11 @@ from keras_cv import layers
 from keras_cv import losses
 from keras_cv import metrics
 from keras_cv import models
+from keras_cv import training
 from keras_cv import utils
 from keras_cv.core import ConstantFactorSampler
 from keras_cv.core import FactorSampler
 from keras_cv.core import NormalFactorSampler
 from keras_cv.core import UniformFactorSampler
 
-__version__ = "0.2.10"
+__version__ = "0.3.1"

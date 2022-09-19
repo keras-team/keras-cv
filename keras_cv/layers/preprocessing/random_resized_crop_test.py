@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import numpy as np
 import tensorflow as tf
 from absl.testing import parameterized
 
@@ -145,3 +146,62 @@ class RandomResizedCropTest(tf.test.TestCase, parameterized.TestCase):
                 aspect_ratio_factor=(3 / 4, 4 / 3),
                 zoom_factor=zoom_factor,
             )
+
+    def test_augment_sparse_segmentation_mask(self):
+        classes = 8
+
+        input_image_shape = (1, self.height, self.width, 3)
+        mask_shape = (1, self.height, self.width, 1)
+        image = tf.random.uniform(shape=input_image_shape, seed=self.seed)
+        mask = np.random.randint(2, size=mask_shape) * (classes - 1)
+
+        inputs = {"images": image, "segmentation_masks": mask}
+
+        # Crop-only to exactly 1/2 of the size
+        layer = preprocessing.RandomResizedCrop(
+            target_size=(150, 150),
+            aspect_ratio_factor=(1, 1),
+            crop_area_factor=(1, 1),
+            seed=self.seed,
+        )
+        input_mask_resized = tf.image.crop_and_resize(
+            mask, [[0, 0, 1, 1]], [0], (150, 150), "nearest"
+        )
+        output = layer(inputs, training=True)
+        self.assertAllClose(output["segmentation_masks"], input_mask_resized)
+
+        # Crop to an arbitrary size and make sure we don't do bad interpolation
+        layer = preprocessing.RandomResizedCrop(
+            target_size=(233, 233),
+            aspect_ratio_factor=(3 / 4, 4 / 3),
+            crop_area_factor=(0.8, 1.0),
+            seed=self.seed,
+        )
+        output = layer(inputs, training=True)
+        self.assertAllInSet(output["segmentation_masks"], [0, 7])
+
+    def test_augment_one_hot_segmentation_mask(self):
+        classes = 8
+
+        input_image_shape = (1, self.height, self.width, 3)
+        mask_shape = (1, self.height, self.width, 1)
+        image = tf.random.uniform(shape=input_image_shape, seed=self.seed)
+        mask = tf.one_hot(
+            tf.squeeze(np.random.randint(2, size=mask_shape) * (classes - 1), axis=-1),
+            classes,
+        )
+
+        inputs = {"images": image, "segmentation_masks": mask}
+
+        # Crop-only to exactly 1/2 of the size
+        layer = preprocessing.RandomResizedCrop(
+            target_size=(150, 150),
+            aspect_ratio_factor=(1, 1),
+            crop_area_factor=(1, 1),
+            seed=self.seed,
+        )
+        input_mask_resized = tf.image.crop_and_resize(
+            mask, [[0, 0, 1, 1]], [0], (150, 150), "nearest"
+        )
+        output = layer(inputs, training=True)
+        self.assertAllClose(output["segmentation_masks"], input_mask_resized)

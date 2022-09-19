@@ -16,7 +16,6 @@ from tensorflow.keras.layers import CenterCrop
 from tensorflow.keras.layers import RandomBrightness
 from tensorflow.keras.layers import RandomContrast
 from tensorflow.keras.layers import RandomCrop
-from tensorflow.keras.layers import RandomFlip
 from tensorflow.keras.layers import RandomHeight
 from tensorflow.keras.layers import RandomRotation
 from tensorflow.keras.layers import RandomTranslation
@@ -57,6 +56,7 @@ from keras_cv.layers.preprocessing.random_color_degeneration import (
 )
 from keras_cv.layers.preprocessing.random_color_jitter import RandomColorJitter
 from keras_cv.layers.preprocessing.random_cutout import RandomCutout
+from keras_cv.layers.preprocessing.random_flip import RandomFlip
 from keras_cv.layers.preprocessing.random_gaussian_blur import RandomGaussianBlur
 from keras_cv.layers.preprocessing.random_hue import RandomHue
 from keras_cv.layers.preprocessing.random_jpeg_quality import RandomJpegQuality

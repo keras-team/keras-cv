@@ -6,4 +6,9 @@ RUN apt-get update && apt-get install -y \
   locales \
   && rm -rf /var/lib/apt/lists/*
 
-RUN pip install flake8 isort black pytest
+RUN pip install \
+  black \
+  flake8 \
+  isort \
+  pytest \
+  tensorflow_datasets
