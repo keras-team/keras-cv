@@ -30,15 +30,15 @@ class ROIGenerator(tf.keras.layers.Layer):
     This works for a multi-level input, both boxes and scores are dictionary
     inputs with the same set of keys.
 
-    Users can configure topk and threshold differently in train and inference.
+    Users can configure top k and threshold differently in train and inference.
 
-    Users can choose to combine all levels if nms across all levels are desired.
+    Users can choose to combine all levels if NMS across all levels are desired.
 
     The following steps are applied to pair of (boxes, scores):
     1) pre_nms_topk scores and boxes sorted and selected per level
-    2) nms applied and selected post_nms_topk scores and rois per level
-    3) combined scores and rois across all levels
-    4) post_nms_topk scores and rois sorted and selected
+    2) nms applied and selected post_nms_topk scores and ROIs per level
+    3) combined scores and ROIs across all levels
+    4) post_nms_topk scores and ROIs sorted and selected
 
     Args:
         bounding_box_format: a case-insensitive string.
@@ -60,6 +60,14 @@ class ROIGenerator(tf.keras.layers.Layer):
         post_nms_topk_test: int. number of top k scoring proposals to keep after applying NMS in inference mode.
             When RPN is run on multiple feature maps / levels (as in FPN) this number is per
             feature map / level.
+
+    Usage:
+    ```python
+    roi_generator = ROIGenerator("xyxy")
+    boxes = {2: tf.random.normal([32, 5, 4])}
+    scores = {2: tf.random.normal([32, 5])}
+    rois, roi_scores = roi_generator(boxes, scores, training=True)
+    ```
 
     """
 
@@ -90,8 +98,8 @@ class ROIGenerator(tf.keras.layers.Layer):
 
     def call(
         self,
-        multi_level_boxes: Mapping[str, tf.Tensor],
-        multi_level_scores: Mapping[str, tf.Tensor],
+        multi_level_boxes: Mapping[int, tf.Tensor],
+        multi_level_scores: Mapping[int, tf.Tensor],
         training: Optional[bool] = None,
     ) -> Tuple[tf.Tensor, tf.Tensor]:
         """
@@ -179,3 +187,18 @@ class ROIGenerator(tf.keras.layers.Layer):
         rois = tf.gather(rois, sorted_indices, batch_dims=1)
 
         return rois, roi_scores
+
+    def get_config(self):
+        config = {
+            "bounding_box_format": self.bounding_box_format,
+            "pre_nms_topk_train": self.pre_nms_topk_train,
+            "nms_score_threshold_train": self.nms_score_threshold_train,
+            "nms_iou_threshold_train": self.nms_iou_threshold_train,
+            "post_nms_topk_train": self.post_nms_topk_train,
+            "pre_nms_topk_train": self.pre_nms_topk_test,
+            "nms_score_threshold_train": self.nms_score_threshold_test,
+            "nms_iou_threshold_train": self.nms_iou_threshold_test,
+            "post_nms_topk_train": self.post_nms_topk_test,
+        }
+        base_config = super().get_config()
+        return dict(list(base_config.items()) + list(config.items()))
