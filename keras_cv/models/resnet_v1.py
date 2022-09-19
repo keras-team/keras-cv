@@ -205,10 +205,13 @@ def Stack(
 ):
     """A set of stacked residual blocks.
     Args:
-      filters: integer, filters of the bottleneck layer in a block.
+      filters: integer, filters of the layers in a block.
       blocks: integer, blocks in the stacked blocks.
       stride1: default 2, stride of the first layer in the first block.
       name: string, stack label.
+      block_type: string, "block" or "basic_block".
+      first_shortcut: default True, use convolution shortcut if True,
+          otherwise identity shortcut.
     Returns:
       Output tensor for the stacked blocks.
     """
