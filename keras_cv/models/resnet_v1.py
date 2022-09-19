@@ -100,8 +100,8 @@ def BasicBlock(filters, kernel_size=3, stride=1, conv_shortcut=True, name=None):
     """A basic residual block.
     Args:
       x: input tensor.
-      filters: integer, filters of the bottleneck layer.
-      kernel_size: default 3, kernel size of the bottleneck layer.
+      filters: integer, filters of the basic layer.
+      kernel_size: default 3, kernel size of the basic layer.
       stride: default 1, stride of the first layer.
       conv_shortcut: default True, use convolution shortcut if True,
           otherwise identity shortcut.
