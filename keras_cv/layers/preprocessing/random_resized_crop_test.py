@@ -82,7 +82,7 @@ class RandomResizedCropTest(tf.test.TestCase, parameterized.TestCase):
         ("Members not int", (2.3, 4.5)),
         ("Single float", 1.5),
     )
-    def test_height_errors(self, height, width):
+    def test_height_errors(self, height):
         with self.assertRaisesRegex(
             ValueError,
             "`height` must be an integer. Received height=(.*)",
