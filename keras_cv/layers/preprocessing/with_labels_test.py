@@ -24,8 +24,9 @@ TEST_CONFIGURATIONS = [
         "RandomResizedCrop",
         preprocessing.RandomResizedCrop,
         {
-            "target_size": (224, 224),
-            "crop_area_factor": (0.8, 1.0),
+            "height": 224,
+            "width": 224,
+            "zoom_factor": (0.8, 1.0),
             "aspect_ratio_factor": (3 / 4, 4 / 3),
         },
     ),
