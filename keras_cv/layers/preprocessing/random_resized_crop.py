@@ -110,8 +110,8 @@ class RandomResizedCrop(BaseImageAugmentationLayer):
 
         width_offset = self._random_generator.random_uniform(
             (),
-            minval=tf.minimum(0, original_width - new_width),
-            maxval=tf.maximum(0, original_width - new_width),
+            minval=tf.minimum(0.0, original_width - new_width),
+            maxval=tf.maximum(0.0, original_width - new_width),
             dtype=tf.float32,
         )
 
