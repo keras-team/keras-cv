@@ -159,3 +159,9 @@ class ROIPoolTest(tf.test.TestCase):
         pooled_feature_map = roi_pooler(feature_map, rois)
         # all outputs should be top-left pixel
         self.assertAllClose(tf.ones([1, 2, 2, 1]), pooled_feature_map)
+
+    def test_invalid_image_shape(self):
+        with self.assertRaisesRegex(ValueError, "dynamic shape"):
+            roi_pooler = ROIPooler(
+                "rel_yxyx", target_size=[2, 2], image_shape=[None, 224, 3]
+            )

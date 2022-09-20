@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from curses import noecho
+
 import tensorflow as tf
 
 from keras_cv import bounding_box
@@ -47,6 +49,7 @@ class ROIPooler(tf.keras.layers.Layer):
     def __init__(
         self,
         bounding_box_format,
+        # TODO(consolidate size vs shape for KPL and here)
         target_size,
         image_shape,
         **kwargs,
@@ -58,6 +61,10 @@ class ROIPooler(tf.keras.layers.Layer):
         if len(target_size) != 2:
             raise ValueError(
                 f"Expected `target_size` to be size 2, got {len(target_size)}"
+            )
+        if image_shape[0] is None or image_shape[1] is None or image_shape[2] is None:
+            raise ValueError(
+                f"`image_shape` cannot have dynamic shape, got {image_shape}"
             )
         super().__init__(**kwargs)
         self.bounding_box_format = bounding_box_format
