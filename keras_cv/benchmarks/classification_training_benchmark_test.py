@@ -50,7 +50,7 @@ class ClassificationTrainingBenchmark(
                 num_parallel_calls=tf.data.AUTOTUNE,
             )
             .batch(self.batch_size)
-        )
+        ).take(10)
         self.epochs = 1
         self.strategy = tf.distribute.OneDeviceStrategy("device:GPU:0")
 
@@ -72,7 +72,7 @@ class ClassificationTrainingBenchmark(
             compile_time = time.time() - t0
 
         train_start_time = time.time()
-        model.fit(
+        training_results = model.fit(
             self.dataset,
             batch_size=self.batch_size,
             epochs=self.epochs,
@@ -86,6 +86,9 @@ class ClassificationTrainingBenchmark(
         metrics.append({"name": "compile_time", "value": compile_time})
         metrics.append({"name": "avg_epoch_time", "value": training_time / self.epochs})
         metrics.append({"name": "epochs", "value": self.epochs})
+        metrics.append(
+            {"name": "accuracy", "value": training_results.history["accuracy"][0]}
+        )
 
         self.report_benchmark(wall_time=total_time, metrics=metrics)
 
