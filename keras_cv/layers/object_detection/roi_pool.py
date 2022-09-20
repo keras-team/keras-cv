@@ -32,12 +32,13 @@ class ROIPooler(tf.keras.layers.Layer):
             For detailed information on the supported format, see the
             [KerasCV bounding box documentation](https://keras.io/api/keras_cv/bounding_box/formats/).
         target_size: List or Tuple of 2 integers of the pooled shape
-        image_shape: List of Tuple of 3 integers, or `TensorShape` of the image shape.
+        image_shape: List of Tuple of 3 integers, or `TensorShape` of the input image shape.
 
     Usage:
     ```python
     feature_map = tf.random.normal([2, 16, 16, 512])
-    roi_pooler = ROIPooler("yxyx", [7, 7], [224, 224, 3])
+    roi_pooler = ROIPooler(bounding_box_format="yxyx", target_size=[7, 7],
+      image_shape=[224, 224, 3])
     rois = tf.constant([[[15., 30., 25., 45.]], [[22., 1., 30., 32.]]])
     pooled_feature_map = roi_pooler(feature_map, rois)
     ```
@@ -96,6 +97,7 @@ class ROIPooler(tf.keras.layers.Layer):
         feature_map, rois = args
         num_rois = rois.get_shape().as_list()[0]
         height, width, channel = feature_map.get_shape().as_list()
+        # TODO (consider vectorize it for better performance)
         for n in range(num_rois):
             # [4]
             roi = rois[n, :]

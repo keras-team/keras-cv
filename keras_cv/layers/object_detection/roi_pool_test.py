@@ -45,15 +45,15 @@ class ROIPoolTest(tf.test.TestCase):
         rois = tf.reshape(tf.constant([0.0, 0.0, 224, 220]), [1, 1, 4])
         pooled_feature_map = roi_pooler(feature_map, rois)
         # the maximum value would be at bottom-right at each block, roi sharded into 2x2 blocks
-        # | 0, 1, 2             | 3, 4, 5, 6            |
-        # | 8, 9, 10            | 11, 12, 13, 14        |
-        # | 16, 17, 18          | 20, 21, 22, 23        |
-        # | 24, 25, 26(max)     | 27, 28, 29, 30(max)   |
+        # | 0, 1, 2             | 3, 4, 5, 6            | 7 (removed)
+        # | 8, 9, 10            | 11, 12, 13, 14        | 15 (removed)
+        # | 16, 17, 18          | 19, 20, 21, 22        | 23 (removed)
+        # | 24, 25, 26(max)     | 27, 28, 29, 30(max)   | 31 (removed)
         # --------------------------------------------
-        # | 32, 33, 34          | 35, 36, 37, 38        |
-        # | 40, 41, 42          | 43, 44, 45, 46        |
-        # | 48, 49, 50          | 51, 52, 53, 54        |
-        # | 56, 57, 58(max)     | 59, 60, 61, 62(max)   |
+        # | 32, 33, 34          | 35, 36, 37, 38        | 39 (removed)
+        # | 40, 41, 42          | 43, 44, 45, 46        | 47 (removed)
+        # | 48, 49, 50          | 51, 52, 53, 54        | 55 (removed)
+        # | 56, 57, 58(max)     | 59, 60, 61, 62(max)   | 63 (removed)
         # --------------------------------------------
         expected_feature_map = tf.reshape(tf.constant([26, 30, 58, 62]), [1, 2, 2, 1])
         self.assertAllClose(expected_feature_map, pooled_feature_map)
@@ -83,7 +83,7 @@ class ROIPoolTest(tf.test.TestCase):
         pooled_feature_map = roi_pooler(feature_map, rois)
         # the maximum value would be at bottom-right at each block, roi sharded into 3x2 blocks
         # | 0, 1, 2, 3          | 4, 5, 6, 7            |
-        # | 8, 9, 10, 11        | 12, 13, 14, 15        |
+        # | 8, 9, 10, 11(max)   | 12, 13, 14, 15(max)   |
         # --------------------------------------------
         # | 16, 17, 18, 19      | 20, 21, 22, 23        |
         # | 24, 25, 26, 27      | 28, 29, 30, 31        |
