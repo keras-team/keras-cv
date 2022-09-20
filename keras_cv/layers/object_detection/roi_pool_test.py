@@ -162,6 +162,4 @@ class ROIPoolTest(tf.test.TestCase):
 
     def test_invalid_image_shape(self):
         with self.assertRaisesRegex(ValueError, "dynamic shape"):
-            roi_pooler = ROIPooler(
-                "rel_yxyx", target_size=[2, 2], image_shape=[None, 224, 3]
-            )
+            _ = ROIPooler("rel_yxyx", target_size=[2, 2], image_shape=[None, 224, 3])
