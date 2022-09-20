@@ -124,7 +124,12 @@ def BasicBlock(filters, kernel_size=3, stride=1, conv_shortcut=True, name=None):
             shortcut = x
 
         x = layers.Conv2D(
-            filters, kernel_size, padding="SAME", strides=stride, use_bias=False, name=name + "_1_conv"
+            filters,
+            kernel_size,
+            padding="SAME",
+            strides=stride,
+            use_bias=False,
+            name=name + "_1_conv",
         )(x)
         x = layers.BatchNormalization(
             axis=BN_AXIS, epsilon=1.001e-5, name=name + "_1_bn"
@@ -200,9 +205,7 @@ def Block(filters, kernel_size=3, stride=1, conv_shortcut=True, name=None):
     return apply
 
 
-def Stack(
-    filters, blocks, stride=2, name=None, block_fn=Block, first_shortcut=True
-):
+def Stack(filters, blocks, stride=2, name=None, block_fn=Block, first_shortcut=True):
     """A set of stacked residual blocks.
     Args:
       filters: integer, filters of the layers in a block.

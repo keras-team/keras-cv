@@ -121,17 +121,20 @@ def BasicBlock(filters, kernel_size=3, stride=1, conv_shortcut=False, name=None)
         )(use_preactivation)
 
         if conv_shortcut:
-            shortcut = layers.Conv2D(
-                filters, 1, strides=stride, name=name + "_0_conv"
-            )(use_preactivation)
+            shortcut = layers.Conv2D(filters, 1, strides=stride, name=name + "_0_conv")(
+                use_preactivation
+            )
         else:
             shortcut = layers.MaxPooling2D(1, strides=stride)(x) if stride > 1 else x
 
         x = layers.Conv2D(
-            filters, kernel_size, padding="SAME", strides=1, use_bias=False, name=name + "_1_conv"
-        )(
-            use_preactivation
-        )
+            filters,
+            kernel_size,
+            padding="SAME",
+            strides=1,
+            use_bias=False,
+            name=name + "_1_conv",
+        )(use_preactivation)
         x = layers.BatchNormalization(
             axis=BN_AXIS, epsilon=1.001e-5, name=name + "_1_bn"
         )(x)
@@ -211,9 +214,7 @@ def Block(filters, kernel_size=3, stride=1, conv_shortcut=False, name=None):
     return apply
 
 
-def Stack(
-    filters, blocks, stride=2, name=None, block_fn=Block, first_shortcut=True
-):
+def Stack(filters, blocks, stride=2, name=None, block_fn=Block, first_shortcut=True):
     """A set of stacked blocks.
     Args:
         filters: integer, filters of the layer in a block.
@@ -230,9 +231,7 @@ def Stack(
         name = f"v2_stack_{backend.get_uid('v2_stack')}"
 
     def apply(x):
-        x = block_fn(
-            filters, conv_shortcut=first_shortcut, name=name + "_block1"
-        )(x)
+        x = block_fn(filters, conv_shortcut=first_shortcut, name=name + "_block1")(x)
         for i in range(2, blocks):
             x = block_fn(filters, name=name + "_block" + str(i))(x)
         x = block_fn(filters, stride=stride, name=name + "_block" + str(blocks))(x)
