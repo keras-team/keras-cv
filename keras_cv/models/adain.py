@@ -28,7 +28,7 @@ def get_mini_vgg19_encoder(include_rescaling, image_size):
     inputs = layers.Input([*image_size, 3])
     x = inputs
     if include_rescaling:
-         x = keras.applications.vgg19.preprocess_inputs(x)
+         x = keras.applications.vgg19.preprocess_input(x)
     backbone = keras.applications.VGG19(
         include_top=False,
         weights="imagenet",
@@ -36,12 +36,12 @@ def get_mini_vgg19_encoder(include_rescaling, image_size):
     )
     x = backbone(x)
     backbone.trainable = False
-    return keras.Model(inputs, vgg19.get_layer("block4_conv1").output, name="mini_vgg19")
+    return keras.Model(inputs, backbone.get_layer("block4_conv1").output, name="mini_vgg19")
 
 
 def get_adain_decoder():
     config = {"kernel_size": 3, "strides": 1, "padding": "same", "activation": "relu"}
-    inputs = layers.InputLayer((None, None, 512))
+    inputs = keras.Input((None, None, 512))
     x = layers.Conv2D(filters=512, **config)(inputs)
     x = layers.UpSampling2D()(x)
     x = layers.Conv2D(filters=256, **config)(x)
@@ -67,7 +67,7 @@ def get_loss_net(include_rescaling, image_size=(None, None)):
     inputs = layers.Input([*image_size, 3])
     x = inputs
     if include_rescaling:
-    	x = keras.applications.vgg19.preprocess_inputs(x) 
+    	x = keras.applications.vgg19.preprocess_input(x) 
     vgg19 = keras.applications.VGG19(
         include_top=False, weights="imagenet", input_tensor=x
     )
@@ -113,9 +113,9 @@ def create_adain_model(include_rescaling, image_size):
     encoder = get_mini_vgg19_encoder(include_rescaling, image_size)
     decoder = get_adain_decoder()
     adain_layer = AdaIn()
-    style_input = layers.Input([*self.image_size, 3])
+    style_input = layers.Input([*image_size, 3])
     style_encoded = encoder(style_input)
-    content_input = layers.Input([*self.image_size, 3])
+    content_input = layers.Input([*image_size, 3])
     content_encoded = encoder(content_input)
 
     adain_feature_map = adain_layer((style_encoded, content_encoded))

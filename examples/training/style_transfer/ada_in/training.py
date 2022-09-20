@@ -38,7 +38,7 @@ flags.DEFINE_string(
     "style_images", None, "The directory of style images."
 )
 flags.DEFINE_integer(
-    "epochs", 1, "The number of epoch for training.",
+    "epochs", 30, "The number of epoch for training.",
 )
 
 FLAGS = flags.FLAGS
