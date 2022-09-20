@@ -277,7 +277,8 @@ def ResNet(
         classifier_activation: A `str` or callable. The activation function to use
             on the "top" layer. Ignored unless `include_top=True`. Set
             `classifier_activation=None` to return the logits of the "top" layer.
-        block_fn: callable, `Block` or `BasicBlock`, the block function to stack. Use 'basic_block' for ResNet18 and ResNet34.
+        block_fn: callable, `Block` or `BasicBlock`, the block function to stack.
+            Use 'basic_block' for ResNet18 and ResNet34.
         **kwargs: Pass-through keyword arguments to `tf.keras.Model`.
 
     Returns:
@@ -323,7 +324,7 @@ def ResNet(
             filters=stackwise_filters[stack_index],
             blocks=stackwise_blocks[stack_index],
             stride=stackwise_strides[stack_index],
-            block_type=block_fn,
+            block_fn=block_fn,
             first_shortcut=block_fn == Block or stack_index > 0,
         )(x)
 
