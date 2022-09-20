@@ -7,28 +7,54 @@ in this document.
 
 # Complex Arguments
 
-In many of our layers and models, a parameter representing a complex component
+In many of our layers and models, a parameter representing a complex sub-component
 such as `loss`, or `suppression_layer` may be required.
+Prefer exposing the actual sub-component.  This prevents us
+from duplicating the entire list of customization arguments
+inside of every component that uses the sub-component.
 
+For example, many layers use a `layers.NonMaxSuppression` layer.  We should provide a
+single, consistent API for customizing a `NonMaxSuppression` operation.  Its clear and
+simple for users to know the following:
+
+> In KerasCV,
+you customize NMS by constructing an `layers.NonMaxSuppression` object and passing it to
+the sub-component that uses it.
+
+This is a clearer story than:
+
+> For comonent X, I pass `pre_nms_threshold=0.5`.
+
+
+As a result,
 Instead of:
 
 ```
 RetinaNetPredictionDecoder(
    nms_threshold=0.05,
-   nms_param_two=
+   nms_param_two=...,
+   nms_param_three=...
 )
 ```
 
-prefer
+prefer:
 
 ```
+decoder_nms = NonMaxSuppression(
+    threshold=0.05
+    param_two=...,
+    param_three=...
+)
+RetinaNetPredictionDecoder(
+  suppression_layer=decoder_nms
+)
 ```
 
 ## Complex Argument Validation
 
 Often times, there are aggressive constraints as to the behavior of these components.
-An example of these constraints is that the `classification_loss` of a 
-`keras_cv.RetinaNet` must output a box-wise loss of shape 
+An example of these constraints is that the `classification_loss` of a
+`keras_cv.RetinaNet` must output a box-wise loss of shape
 `[batch_size, boxes]`.  Users must provide a loss to produce Tensors of these shapes.
 
 Instead of simply assuming that users will
@@ -41,16 +67,16 @@ Strong examples of such error messages:
 
 When providing a default of a complex component, a default should be provided
 via a static method on the consuming class.  This static method should be
-configurable via parameters that cannot be inferred, such as 
+configurable via parameters that cannot be inferred, such as
 `bounding_box_format`.
 
 [An example of a default static method is RetinaNet.default_anchor_generator](https://github.com/keras-team/keras-cv/blob/master/keras_cv/models/object_detection/retina_net/retina_net.py#L133)
 
 # Label Names
-When working with `bounding_box` and `segmentation_map` labels the 
-abbreviations `bbox` and `segm` are often used.  In KerasCV, we will *not* be 
-using these abbreviations.  This is done to ensure full consistency in our 
-naming convention.  While the team is fond of the abbreviation `bbox`, we are 
+When working with `bounding_box` and `segmentation_map` labels the
+abbreviations `bbox` and `segm` are often used.  In KerasCV, we will *not* be
+using these abbreviations.  This is done to ensure full consistency in our
+naming convention.  While the team is fond of the abbreviation `bbox`, we are
 less fond of `segm`.  In order to ensure full consistency, we have decided to
 use the full names for label types in our code base.
 
@@ -68,7 +94,7 @@ Additionally, factors should support both float and tuples as inputs.  If a floa
 passed, such as `factor=0.5`, the layer should default to the range `[0, factor]`.
 
 ## BaseImageAugmentationLayer
-When implementing preprocessing, we encourage users to subclass the 
+When implementing preprocessing, we encourage users to subclass the
 `keras_cv.layers.preprocessing.BaseImageAugmentationLayer`.  This layer provides
  a common `call()` method, auto vectorization, and more.  
 
@@ -81,14 +107,14 @@ When subclassing `BaseImageAugmentationLayer`, several methods can overridden:
 [`RandomShear` serves as a canonical example of how to subclass `BaseImageAugmentationLayer`](https://github.com/keras-team/keras-cv/blob/master/keras_cv/layers/preprocessing/random_shear.py)
 
 ## Vectorization
-`BaseImageAugmentationLayer` requires you to implement augmentations in an 
-image-wise basis instead of using a vectorized approach.  This design choice 
-was based made on the  results found in the 
-[vectorization\_strategy\_benchmark.py](../benchmarks/vectorization_strategy_benchmark.py) 
+`BaseImageAugmentationLayer` requires you to implement augmentations in an
+image-wise basis instead of using a vectorized approach.  This design choice
+was based made on the  results found in the
+[vectorization\_strategy\_benchmark.py](../benchmarks/vectorization_strategy_benchmark.py)
 benchmark.
 
 In short, the benchmark shows that making use of `tf.vectorized_map()` performs
-almost identically to a manually vectorized implementation.  As such, we have 
+almost identically to a manually vectorized implementation.  As such, we have
 decided to rely on `tf.vectorized_map()` for performance.
 
 ![Results of vectorization strategy benchmark](images/runtime-plot.png)
@@ -96,7 +122,7 @@ decided to rely on `tf.vectorized_map()` for performance.
 ## Color Based Preprocessing Layers
 Some preprocessing layers in KerasCV perform color based transformations.  This
 includes `RandomBrightness`, `Equalize`, `Solarization`, and more.  
-Preprocessing layers that perform color based transformations make the 
+Preprocessing layers that perform color based transformations make the
 following assumptions:
 
 - these layers must accept a `value_range`, which is a tuple of numbers.
@@ -126,4 +152,3 @@ to:
 ```python
 keras_cv.layers.regularization.stochastic_depth.StochasticDepth
 ```
-
