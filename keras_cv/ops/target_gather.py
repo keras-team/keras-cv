@@ -25,7 +25,8 @@ def _target_gather(
 ):
     """A utility function wrapping tf.gather, which deals with:
      1) both batched and unbatched `targets`
-     2) when batched `indices` have empty rows
+     2) when unbatched `targets` have empty rows, the result will be filled
+        with `mask_val`
      3) target masking.
 
     Args:
