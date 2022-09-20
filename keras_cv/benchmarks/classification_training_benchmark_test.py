@@ -50,9 +50,9 @@ class ClassificationTrainingBenchmark(
                 num_parallel_calls=tf.data.AUTOTUNE,
             )
             .batch(self.batch_size)
-        ).take(10)
+        )
         self.epochs = 1
-        self.strategy = tf.distribute.OneDeviceStrategy("device:GPU:0")
+        self.strategy = tf.distribute.MirroredStrategy()
 
     def benchmark_classification_training(self, app):
         with self.strategy.scope():
