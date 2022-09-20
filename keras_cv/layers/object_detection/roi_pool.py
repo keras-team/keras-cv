@@ -94,15 +94,15 @@ class ROIPooler(tf.keras.layers.Layer):
           pooled_feature_map: [target_size, C] float Tensor
         """
         feature_map, rois = args
-        N = rois.get_shape().as_list()[0]
-        H, W, C = feature_map.get_shape().as_list()
-        for n in range(N):
+        num_rois = rois.get_shape().as_list()[0]
+        height, width, channel = feature_map.get_shape().as_list()
+        for n in range(num_rois):
             # [4]
             roi = rois[n, :]
-            y_start = H * roi[0]
-            x_start = W * roi[1]
-            region_height = H * (roi[2] - roi[0])
-            region_width = W * (roi[3] - roi[1])
+            y_start = height * roi[0]
+            x_start = width * roi[1]
+            region_height = height * (roi[2] - roi[0])
+            region_width = width * (roi[3] - roi[1])
             h_step = region_height / self.target_height
             w_step = region_width / self.target_width
             regions = []
@@ -127,7 +127,7 @@ class ROIPooler(tf.keras.layers.Layer):
                     # target_height * target_width * [C]
                     regions.append(tf.reduce_max(region, axis=[0, 1]))
             regions = tf.reshape(
-                tf.stack(regions), [self.target_height, self.target_width, C]
+                tf.stack(regions), [self.target_height, self.target_width, channel]
             )
             return regions
 
