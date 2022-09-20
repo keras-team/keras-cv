@@ -212,7 +212,7 @@ def Block(filters, kernel_size=3, stride=1, conv_shortcut=False, name=None):
 
 
 def Stack(
-    filters, blocks, stride=2, name=None, block_type="block", first_shortcut=True
+    filters, blocks, stride=2, name=None, block_fn=Block, first_shortcut=True
 ):
     """A set of stacked blocks.
     Args:
@@ -220,7 +220,7 @@ def Stack(
         blocks: integer, blocks in the stacked blocks.
         stride: default 2, stride of the first layer in the first block.
         name: string, stack label.
-        block_type: string, "block" or "basic_block".
+        block_fn: callable, `Block` or `BasicBlock`, the block function to stack.
         first_shortcut: default True, use convolution shortcut if True,
           otherwise identity shortcut.
     Returns:
@@ -228,8 +228,6 @@ def Stack(
     """
     if name is None:
         name = f"v2_stack_{backend.get_uid('v2_stack')}"
-
-    block_fn = Block if block_type == "block" else BasicBlock
 
     def apply(x):
         x = block_fn(
@@ -256,7 +254,7 @@ def ResNetV2(
     pooling=None,
     classes=None,
     classifier_activation="softmax",
-    block_type="block",
+    block_fn=Block,
     **kwargs,
 ):
     """Instantiates the ResNetV2 architecture.
@@ -334,8 +332,8 @@ def ResNetV2(
             filters=stackwise_filters[stack_index],
             blocks=stackwise_blocks[stack_index],
             stride=stackwise_strides[stack_index],
-            block_type=block_type,
-            first_shortcut=block_type == "block" or stack_index > 0,
+            block_type=block_fn,
+            first_shortcut=block_fn == Block or stack_index > 0,
         )(x)
 
     x = layers.BatchNormalization(axis=BN_AXIS, epsilon=1.001e-5, name="post_bn")(x)
@@ -388,7 +386,7 @@ def ResNet18V2(
         pooling=pooling,
         classes=classes,
         classifier_activation=classifier_activation,
-        block_type="basic_block",
+        block_fn=BasicBlock,
         **kwargs,
     )
 
@@ -420,7 +418,7 @@ def ResNet34V2(
         pooling=pooling,
         classes=classes,
         classifier_activation=classifier_activation,
-        block_type="basic_block",
+        block_fn=BasicBlock,
         **kwargs,
     )
 

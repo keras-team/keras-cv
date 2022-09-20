@@ -201,7 +201,7 @@ def Block(filters, kernel_size=3, stride=1, conv_shortcut=True, name=None):
 
 
 def Stack(
-    filters, blocks, stride=2, name=None, block_type="block", first_shortcut=True
+    filters, blocks, stride=2, name=None, block_fn=Block, first_shortcut=True
 ):
     """A set of stacked residual blocks.
     Args:
@@ -209,7 +209,7 @@ def Stack(
       blocks: integer, blocks in the stacked blocks.
       stride1: default 2, stride of the first layer in the first block.
       name: string, stack label.
-      block_type: string, "block" or "basic_block".
+      block_fn: callable, `Block` or `BasicBlock`, the block function to stack.
       first_shortcut: default True, use convolution shortcut if True,
           otherwise identity shortcut.
     Returns:
@@ -217,8 +217,6 @@ def Stack(
     """
     if name is None:
         name = f"v1_stack_{backend.get_uid('v1_stack')}"
-
-    block_fn = Block if block_type == "block" else BasicBlock
 
     def apply(x):
         x = block_fn(
@@ -244,7 +242,7 @@ def ResNet(
     pooling=None,
     classes=None,
     classifier_activation="softmax",
-    block_type="block",
+    block_fn=Block,
     **kwargs,
 ):
     """Instantiates the ResNet architecture.
@@ -279,7 +277,7 @@ def ResNet(
         classifier_activation: A `str` or callable. The activation function to use
             on the "top" layer. Ignored unless `include_top=True`. Set
             `classifier_activation=None` to return the logits of the "top" layer.
-        block_type: 'block' or 'basic_block'. Use 'basic_block' for ResNet18 and ResNet34.
+        block_fn: callable, `Block` or `BasicBlock`, the block function to stack. Use 'basic_block' for ResNet18 and ResNet34.
         **kwargs: Pass-through keyword arguments to `tf.keras.Model`.
 
     Returns:
@@ -325,8 +323,8 @@ def ResNet(
             filters=stackwise_filters[stack_index],
             blocks=stackwise_blocks[stack_index],
             stride=stackwise_strides[stack_index],
-            block_type=block_type,
-            first_shortcut=block_type == "block" or stack_index > 0,
+            block_type=block_fn,
+            first_shortcut=block_fn == Block or stack_index > 0,
         )(x)
 
     if include_top:
@@ -376,7 +374,7 @@ def ResNet18(
         pooling=pooling,
         classes=classes,
         classifier_activation=classifier_activation,
-        block_type="basic_block",
+        block_fn=BasicBlock,
         **kwargs,
     )
 
@@ -408,7 +406,7 @@ def ResNet34(
         pooling=pooling,
         classes=classes,
         classifier_activation=classifier_activation,
-        block_type="basic_block",
+        block_fn=BasicBlock,
         **kwargs,
     )
 
