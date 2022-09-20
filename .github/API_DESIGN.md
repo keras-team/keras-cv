@@ -5,6 +5,47 @@ In general, KerasCV abides to the
 There are a few API guidelines that apply only to KerasCV.  These are discussed
 in this document.
 
+# Complex Arguments
+
+In many of our layers and models, a parameter representing a complex component
+such as `loss`, or `suppression_layer` may be required.
+
+Instead of:
+
+```
+RetinaNetPredictionDecoder(
+   nms_threshold=0.05,
+   nms_param_two=
+)
+```
+
+prefer
+
+```
+```
+
+## Complex Argument Validation
+
+Often times, there are aggressive constraints as to the behavior of these components.
+An example of these constraints is that the `classification_loss` of a 
+`keras_cv.RetinaNet` must output a box-wise loss of shape 
+`[batch_size, boxes]`.  Users must provide a loss to produce Tensors of these shapes.
+
+Instead of simply assuming that users will
+
+Strong examples of such error messages:
+- [classification_loss shape](https://github.com/keras-team/keras-cv/blob/master/keras_cv/models/object_detection/retina_net/retina_net.py#L361)
+- [loss from_logits=True check](https://github.com/keras-team/keras-cv/blob/master/keras_cv/models/object_detection/retina_net/retina_net.py#L297)
+
+## Provide a sensible, configurable default via a static method
+
+When providing a default of a complex component, a default should be provided
+via a static method on the consuming class.  This static method should be
+configurable via parameters that cannot be inferred, such as 
+`bounding_box_format`.
+
+[An example of a default static method is RetinaNet.default_anchor_generator](https://github.com/keras-team/keras-cv/blob/master/keras_cv/models/object_detection/retina_net/retina_net.py#L133)
+
 # Label Names
 When working with `bounding_box` and `segmentation_map` labels the 
 abbreviations `bbox` and `segm` are often used.  In KerasCV, we will *not* be 
