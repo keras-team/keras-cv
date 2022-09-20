@@ -37,8 +37,7 @@ class ConstantFactorSampler(FactorSampler):
     def __init__(self, value):
         self.value = value
 
-    def __call__(self, shape=None, dtype="float32"):
-        shape = shape or ()
+    def __call__(self, shape=(), dtype="float32"):
         return tf.ones(shape=shape, dtype=dtype) * self.value
 
     def get_config(self):

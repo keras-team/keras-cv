@@ -89,7 +89,9 @@ def load(
         for i in range(0, num_splits)
     ]
 
-    dataset = tf.data.TFRecordDataset(filenames=filenames)
+    dataset = tf.data.TFRecordDataset(
+        filenames=filenames, num_parallel_reads=tf.data.AUTOTUNE
+    )
 
     dataset = dataset.map(
         parse_imagenet_example(img_size, crop_to_aspect_ratio),
@@ -110,4 +112,4 @@ def load(
     if batch_size is not None:
         dataset = dataset.batch(batch_size)
 
-    return dataset
+    return dataset.prefetch(tf.data.AUTOTUNE)

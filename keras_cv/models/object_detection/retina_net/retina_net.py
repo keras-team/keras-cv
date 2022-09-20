@@ -235,6 +235,7 @@ class RetinaNet(ObjectDetectionBaseModel):
         return [
             self.loss_metric,
             self.classification_loss_metric,
+            self.regularization_loss_metric,
             self.box_loss_metric,
         ]
 
@@ -518,7 +519,6 @@ def _resnet50_backbone(include_rescaling, backbone_weights):
     backbone = keras.applications.ResNet50(
         include_top=False, input_tensor=x, weights=backbone_weights
     )
-    x = backbone(x)
 
     c3_output, c4_output, c5_output = [
         backbone.get_layer(layer_name).output

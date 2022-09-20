@@ -20,6 +20,13 @@ def get_rank(tensor):
 
 
 def _center_xyzWHD_to_corner_xyz(boxes):
+    """convert from center format to corner format.
+    Args:
+      boxes: [..., num_boxes, 7] float32 Tensor for 3d boxes in [x, y, z, dx,
+        dy, dz, phi].
+    Returns:
+      corners: [..., num_boxes, 8, 3] float32 Tensor for 3d corners in [x, y, z].
+    """
     # relative corners w.r.t to origin point
     # this will return all corners in top-down counter clockwise instead of
     # only left top and bottom right.
