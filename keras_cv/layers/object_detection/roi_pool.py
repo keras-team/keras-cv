@@ -12,8 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from email.mime import image
-
 import tensorflow as tf
 
 from keras_cv import bounding_box
