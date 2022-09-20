@@ -38,7 +38,7 @@ class TargetGatherTest(tf.test.TestCase):
         res = _target_gather(target_boxes, indices)
         self.assertAllClose(expected_boxes, res)
 
-    def test_target_gather_boxes_batched(self):
+    def test_target_gather_classes_batched(self):
         target_classes = tf.constant([[1, 2, 3, 4]])
         target_classes = target_classes[..., tf.newaxis]
         indices = tf.constant([[0, 2]], dtype=tf.int32)
@@ -47,7 +47,7 @@ class TargetGatherTest(tf.test.TestCase):
         res = _target_gather(target_classes, indices)
         self.assertAllClose(expected_classes, res)
 
-    def test_target_gather_boxes_unbatched(self):
+    def test_target_gather_classes_unbatched(self):
         target_classes = tf.constant([1, 2, 3, 4])
         target_classes = target_classes[..., tf.newaxis]
         indices = tf.constant([0, 2], dtype=tf.int32)
