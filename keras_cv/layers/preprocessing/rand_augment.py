@@ -257,12 +257,12 @@ def shear_y_policy(magnitude, magnitude_stddev):
 
 def translate_x_policy(magnitude, magnitude_stddev):
     # TODO(lukewood): should we integrate RandomTranslation with `factor`?
-    return {"width_factor": magnitude, "height_factor": 0}
+    return {"x_factor": magnitude, "y_factor": 0}
 
 
 def translate_y_policy(magnitude, magnitude_stddev):
     # TODO(lukewood): should we integrate RandomTranslation with `factor`?
-    return {"width_factor": 0, "height_factor": magnitude}
+    return {"x_factor": 0, "y_factor": magnitude}
 
 
 POLICY_PAIRS = {

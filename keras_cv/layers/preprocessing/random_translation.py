@@ -83,7 +83,7 @@ class RandomTranslation(BaseImageAugmentationLayer):
         bounding_box_format=None,
         **kwargs
     ):
-        super().__init__(seed=seed, force_generator=True, **kwargs)
+        super().__init__(seed=seed, **kwargs)
         self.seed = seed
         if x_factor is not None:
             self.x_factor = preprocessing.parse_factor(
@@ -102,11 +102,12 @@ class RandomTranslation(BaseImageAugmentationLayer):
                 "RandomTranslation received both `x_factor=None` and `y_factor=None`.  "
                 "As a result, the layer will perform no augmentation."
             )
-        self.auto_vectorize = True
-        self.bounding_box_format = bounding_box_format
+        self.interpolation = interpolation
         self.fill_mode = fill_mode
         self.fill_value = fill_value
-        self.interpolation = interpolation
+        self.seed = seed
+        self.bounding_box_format = bounding_box_format
+        # self.auto_vectorize = True
 
     def augment_label(self, label, transformation, **kwargs):
         return label
@@ -234,13 +235,13 @@ class RandomTranslation(BaseImageAugmentationLayer):
 
     def get_config(self):
         config = {
-            "seed": self.seed,
             "x_factor": self.x_factor,
             "y_factor": self.y_factor,
-            "bounding_box_format": self.bounding_box_format,
+            "interpolation": self.interpolation,
             "fill_mode": self.fill_mode,
             "fill_value": self.fill_value,
-            "interpolation": self.interpolation,
+            "bounding_box_format": self.bounding_box_format,
+            "seed": self.seed,
         }
         base_config = super().get_config()
         return dict(list(base_config.items()) + list(config.items()))
