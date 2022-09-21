@@ -18,13 +18,78 @@ from tensorflow.keras import layers
 
 @tf.keras.utils.register_keras_serializable(package="keras_cv")
 class SegmentationHead(layers.Layer):
+    """Prediction head for the segmentation model
 
-    def __init__(self, classes, level):
-        pass
+    The head will take the output from decoder (eg FPN or ASPP), and produce production
+    (pixel level classifications) as the output for the model.
 
-    def build(self, input_shape):
-        pass
+    Args:
+        classes: int, the number of output classes for the prediction.
+        convs: int, the number of conv2D layers that are stacked before the final
+            classification layer. Default to 2.
+        channels: int, the number of filter/channels for the the conv2D layers. Default
+            to 256.
+        activations: str or 'tf.keras.activations', activation functions between the
+            conv2D layers and the final classification layer. Default to 'relu'
+    """
+
+    def __init__(self, classes, convs=2, channels=256, activations="relu", **kwargs):
+        """"""
+        super().__init__(**kwargs)
+        self.classes = classes
+        self.convs = convs
+        self.channels = channels
+        self.activations = activations
+
+        self._conv_layers = []
+        self._bn_layers = []
+        for i in range(self.convs):
+            conv_name = "segmentation_head_conv_{}".format(i)
+            self._conv_layers.append(
+                tf.keras.layers.Conv2D(
+                    name=conv_name,
+                    filters=self.channels,
+                    kernel_size=3,
+                    padding="same",
+                    use_bias=False,
+                )
+            )
+            norm_name = "segmentation_head_norm_{}".format(i)
+            self._bn_layers.append(tf.keras.layers.BatchNormalization(name=norm_name))
+
+        self._classification_layer = tf.keras.layers.Conv2D(
+            name="segmentation_output",
+            filters=self.classes,
+            kernel_size=1,
+            padding="same",
+        )
 
     def call(self, inputs):
+        """Forward path for the segmentation head.
 
+        For now, it accepts the output from the decoder only, which is a dict with int
+        key and tensor as value (level-> processed feature output). The head will use the
+        lowest level of feature output as the input for the head.
+        """
+        if not isinstance(inputs, dict):
+            raise ValueError(f"Expect the inputs to be a dict, but received {inputs}")
 
+        lowest_level = next(iter(sorted(inputs)))
+        x = inputs[lowest_level]
+        for conv_layer, bn_layer in zip(self._conv_layers, self._bn_layers):
+            x = conv_layer(x)
+            x = bn_layer(x)
+            x = tf.keras.activations.get(self.activations)(x)
+
+        x = self._classification_layer(x)
+        return x
+
+    def get_config(self):
+        config = {
+            "classes": self.classes,
+            "convs": self.convs,
+            "channels": self.channels,
+            "activations": self.activations,
+        }
+        base_config = super().get_config()
+        return dict(list(base_config.items()) + list(config.items()))
