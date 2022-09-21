@@ -54,10 +54,6 @@ class FeaturePyramid(tf.keras.layers.Layer):
             feature extraction.
         max_level: a python int for the highest level of the pyramid for
             feature extraction.
-        extra_levels: int, extra level of pyramid on top of existing `max_level` features.
-            This is used in case like RetinaNet, described in
-            (https://arxiv.org/pdf/1708.02002). Those extra levels will use features
-            from the top most level.
         num_channels: an integer representing the number of channels for the FPN
             operations. Defaults to 256.
         lateral_layers: a python dict with int keys that matches to each of the pyramid
@@ -70,6 +66,12 @@ class FeaturePyramid(tf.keras.layers.Layer):
             with feature inputs and merged result from upstream levels. Default to None,
             and a `keras.Conv2D` layer with kernel 3x3 will be created for each pyramid
             level.
+        num_extra_level: int, extra level of pyramid on top of existing `max_level`
+            features. This is used in case like RetinaNet, described in
+            (https://arxiv.org/pdf/1708.02002). Those extra levels will use features
+            from the top most level as inputs.
+        activation: str or `tf.keras.activations` function. Only used for the extra levels
+            of feature outputs. Default to 'relu'.
 
     Sample Usage:
     ```python
@@ -91,18 +93,20 @@ class FeaturePyramid(tf.keras.layers.Layer):
         self,
         min_level,
         max_level,
-        extra_levels=0,
         num_channels=256,
         lateral_layers=None,
         output_layers=None,
+        extra_levels=0,
+        activations='relu',
         **kwargs,
     ):
         super().__init__(**kwargs)
         self.min_level = min_level
         self.max_level = max_level
-        self.extra_levels = extra_levels
         self.pyramid_levels = list(range(min_level, max_level + 1))
         self.num_channels = num_channels
+        self.extra_levels = extra_levels
+        self.activations = activations
 
         # required for successful serialization
         self.lateral_layers_passed = lateral_layers
@@ -143,6 +147,20 @@ class FeaturePyramid(tf.keras.layers.Layer):
         # the same merge layer is used for all levels
         self.merge_op = tf.keras.layers.Add()
 
+        if self.extra_levels:
+            self.extra_level_layers = {}
+            # Note that the extra levels starts with self.max_level + 1
+            for i in range(self.extra_levels):
+                level = i + self.max_level + 1
+                self.extra_level_layers[level] = tf.keras.layers.Conv2D(
+                    self.num_channels,
+                    kernel_size=3,
+                    strides=2,
+                    padding="same",
+                    name=f"output_P{i}",
+                )
+
+
     def _validate_user_layers(self, user_input, param_name):
         if (
             not isinstance(user_input, dict)
@@ -169,17 +187,22 @@ class FeaturePyramid(tf.keras.layers.Layer):
 
     def build_feature_pyramid(self, input_features):
         # To illustrate the connection/topology, the basic flow for a FPN with level
-        # 3, 4, 5 is like below:
+        # 3, 4, 5 is like below. When there are extra level setting, there will be more
+        # layers on top of existing pyramid.
         #
-        # input_l5 -> conv2d_1x1_l5 ----V---> conv2d_3x3_l5 -> output_l5
-        #                               V
-        #                          upsample2d
-        #                               V
-        # input_l4 -> conv2d_1x1_l4 -> Add -> conv2d_3x3_l4 -> output_l4
-        #                               V
-        #                          upsample2d
-        #                               V
-        # input_l3 -> conv2d_1x1_l3 -> Add -> conv2d_3x3_l3 -> output_l3
+        #  (extra level)                  > relu -> conv2d_3x3_l7 -> output_l7
+        #                                 |
+        #  (extra level)  ->conv2d_3x3_l6 -------------------------> output_l6
+        #                 |
+        #       input_l5 -> conv2d_1x1_l5 ----V---> conv2d_3x3_l5 -> output_l5
+        #                                     V
+        #                                upsample2d
+        #                                     V
+        #       input_l4 -> conv2d_1x1_l4 -> Add -> conv2d_3x3_l4 -> output_l4
+        #                                     V
+        #                                upsample2d
+        #                                     V
+        #       input_l3 -> conv2d_1x1_l3 -> Add -> conv2d_3x3_l3 -> output_l3
 
         output_features = {}
         reversed_levels = list(sorted(input_features.keys(), reverse=True))
@@ -197,7 +220,25 @@ class FeaturePyramid(tf.keras.layers.Layer):
         for level in reversed_levels:
             output_features[level] = self.output_layers[level](output_features[level])
 
-        if
+        # Build the extra level of FPN on top of existing input feature maps.
+        # This is used by cases like Retina-net
+        if self.extra_levels:
+            for i in range(self.extra_levels):
+                level = i + self.max_level + 1
+                # For the first extra level, it will use the feature map input from the
+                # top most pyramid level
+                if level == self.max_level + 1:
+                    inputs = input_features[self.max_level]
+                else:
+                    inputs = output_features[level - 1]
+
+                # Apply activations to all the levels except for the first one
+                # This follows the implementation in original code in
+                # https://github.com/facebookresearch/Detectron/blob/1809dd41c1ffc881c0d6b1c16ea38d08894f8b6d/detectron/modeling/FPN.py#L239
+                if level > self.max_level + 1:
+                    inputs = tf.keras.activations.get(self.activations)(inputs)
+                output_features[level] = self.extra_level_layers[level](inputs)
+
         return output_features
 
     def get_config(self):
@@ -207,6 +248,8 @@ class FeaturePyramid(tf.keras.layers.Layer):
             "num_channels": self.num_channels,
             "lateral_layers": self.lateral_layers_passed,
             "output_layers": self.output_layers_passed,
+            "extra_levels": self.extra_levels,
+            "activations": self.activations,
         }
         base_config = super().get_config()
         return dict(list(base_config.items()) + list(config.items()))

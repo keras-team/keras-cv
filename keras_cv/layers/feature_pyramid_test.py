@@ -111,3 +111,22 @@ class FeaturePyramidTest(tf.test.TestCase):
         dict_input_with_missing_feature = {2: c2, 3: c3, 4: c4}
         with self.assertRaisesRegexp(ValueError, "Expect feature keys.*[2, 3, 4, 5]"):
             layer(dict_input_with_missing_feature)
+
+    def test_extra_levels(self):
+        # This is a typical retina-net setting
+        layer = FeaturePyramid(min_level=3, max_level=5, extra_levels=2)
+        c3 = tf.ones([2, 32, 32, 3])
+        c4 = tf.ones([2, 16, 16, 3])
+        c5 = tf.ones([2, 8, 8, 3])
+
+        inputs = {3: c3, 4: c4, 5: c5}
+        output = layer(inputs)
+        self.assertLen(output, 5)   # Should have 3 + 2 outputs
+        for level in inputs.keys():
+            self.assertEquals(output[level].shape[1], inputs[level].shape[1])
+            self.assertEquals(output[level].shape[2], inputs[level].shape[2])
+            self.assertEquals(output[level].shape[3], layer.num_channels)
+
+        # Check the extra level output
+        self.assertEquals(output[6].shape, [2, 4, 4, 256])
+        self.assertEquals(output[7].shape, [2, 2, 2, 256])
