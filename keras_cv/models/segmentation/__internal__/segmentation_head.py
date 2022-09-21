@@ -31,6 +31,20 @@ class SegmentationHead(layers.Layer):
             to 256.
         activations: str or 'tf.keras.activations', activation functions between the
             conv2D layers and the final classification layer. Default to 'relu'
+
+    Sample code
+    ```python
+    # Mimic a FPN output dict
+    p3 = tf.ones([2, 32, 32, 3])
+    p4 = tf.ones([2, 16, 16, 3])
+    p5 = tf.ones([2, 8, 8, 3])
+    inputs = {3: p3, 4: p4, 5: p5}
+
+    head = SegmentationHead(classes=11)
+
+    output = head(inputs)
+    # output tensor has shape [2, 32, 32, 11]. It has the same resolution as the p3.
+    ```
     """
 
     def __init__(self, classes, convs=2, channels=256, activations="relu", **kwargs):
