@@ -54,6 +54,10 @@ class FeaturePyramid(tf.keras.layers.Layer):
             feature extraction.
         max_level: a python int for the highest level of the pyramid for
             feature extraction.
+        extra_levels: int, extra level of pyramid on top of existing `max_level` features.
+            This is used in case like RetinaNet, described in
+            (https://arxiv.org/pdf/1708.02002). Those extra levels will use features
+            from the top most level.
         num_channels: an integer representing the number of channels for the FPN
             operations. Defaults to 256.
         lateral_layers: a python dict with int keys that matches to each of the pyramid
@@ -87,6 +91,7 @@ class FeaturePyramid(tf.keras.layers.Layer):
         self,
         min_level,
         max_level,
+        extra_levels=0,
         num_channels=256,
         lateral_layers=None,
         output_layers=None,
@@ -95,6 +100,7 @@ class FeaturePyramid(tf.keras.layers.Layer):
         super().__init__(**kwargs)
         self.min_level = min_level
         self.max_level = max_level
+        self.extra_levels = extra_levels
         self.pyramid_levels = list(range(min_level, max_level + 1))
         self.num_channels = num_channels
 
@@ -191,6 +197,7 @@ class FeaturePyramid(tf.keras.layers.Layer):
         for level in reversed_levels:
             output_features[level] = self.output_layers[level](output_features[level])
 
+        if
         return output_features
 
     def get_config(self):
