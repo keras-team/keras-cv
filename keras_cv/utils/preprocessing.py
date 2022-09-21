@@ -94,12 +94,44 @@ def blend(image1: tf.Tensor, image2: tf.Tensor, factor: float) -> tf.Tensor:
     return tf.clip_by_value(temp, 0.0, 255.0)
 
 
-def parse_factor(param, min_value=0.0, max_value=1.0, param_name="factor", seed=None):
+def parse_factor(
+    param,
+    min_value=0.0,
+    max_value=1.0,
+    param_name="factor",
+    seed=None,
+    range_mode="non-negative",
+):
+    """A factor parameter parsing and validation function.
+
+    Arguments:
+        param: A single number, a tuple of two numbers or a `keras_cv.FactorSampler`.
+        min_value: Minimum allowed `param` value.
+        max_value: Maximum allowed `param` value.
+        param_name: Name of the passed `param`. Used to provide clear error message
+            when provided `param` has incorrect value.
+        seed: Integer. Used to create a random seed.
+        range_mode: Method used to interpret value of param if a single number is
+            provided. Supported values are `"non-negative"` which results in param
+            bounds `(min_value, param)` and `"symmetric"` with bounds `(-param, param)`.
+
+    Returns: `keras_cv.ConstantFactorSampler` or `keras_cv.UniformFactorSampler`
+
+    """
+    allowed_range_modes = {"non-negative", "symmetric"}
+    if range_mode not in allowed_range_modes:
+        raise ValueError(
+            f"`range_mode` should be one of {allowed_range_modes}. "
+            f"Got range_mode={range_mode}"
+        )
     if isinstance(param, core.FactorSampler):
         return param
 
-    if isinstance(param, float) or isinstance(param, int):
+    if isinstance(param, (float, int)) and range_mode == "non-negative":
         param = (min_value, param)
+
+    if isinstance(param, (float, int)) and range_mode == "symmetric":
+        param = (-param, param)
 
     if param[0] > param[1]:
         raise ValueError(

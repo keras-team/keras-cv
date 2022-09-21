@@ -24,11 +24,11 @@ from keras_cv.utils import preprocessing
 
 @tf.keras.utils.register_keras_serializable(package="keras_cv")
 class RandomTranslation(BaseImageAugmentationLayer):
-    """A preprocessing layer which randomly flips images during training.
+    """A preprocessing layer which randomly translates images during training.
 
-    This layer will flip the images horizontally and or vertically based on the
+    This layer will translate the images horizontally and or vertically based on the
     `mode` attribute. During inference time, the output will be identical to
-    input. Call the layer with `training=True` to flip the input.
+    input. Call the layer with `training=True` to translate the input.
 
     Input shape:
       3D (unbatched) or 4D (batched) tensor with shape:
@@ -42,7 +42,7 @@ class RandomTranslation(BaseImageAugmentationLayer):
         x_factor: A tuple of two floats, a single float or a
             `keras_cv.FactorSampler`. For each augmented image a value is sampled
             from the provided range. If a float is passed, the range is interpreted as
-            `(0, x_factor)`.  Values represent a percentage of the image to translate
+            `(-x_factor, x_factor)`.  Values represent a percentage of the image to translate
              over. For example, 0.3 translates pixels up to 30% of the way across the
              image. All provided values should be positive.  If `None` is passed, no
              translation occurs on the X axis.
@@ -50,7 +50,7 @@ class RandomTranslation(BaseImageAugmentationLayer):
         y_factor: A tuple of two floats, a single float or a
             `keras_cv.FactorSampler`. For each augmented image a value is sampled
             from the provided range. If a float is passed, the range is interpreted as
-            `(0, y_factor)`. Values represent a percentage of the image to translate
+            `(-y_factor, y_factor)`. Values represent a percentage of the image to translate
              over. For example, 0.3 translates pixels up to 30% of the way across the
              image. All provided values should be positive.  If `None` is passed, no
              translation occurs on the Y axis.
@@ -87,13 +87,23 @@ class RandomTranslation(BaseImageAugmentationLayer):
         self.seed = seed
         if x_factor is not None:
             self.x_factor = preprocessing.parse_factor(
-                x_factor, max_value=None, param_name="x_factor", seed=seed
+                x_factor,
+                min_value=-1.0,
+                max_value=1.0,
+                param_name="x_factor",
+                seed=seed,
+                range_mode="symmetric",
             )
         else:
             self.x_factor = x_factor
         if y_factor is not None:
             self.y_factor = preprocessing.parse_factor(
-                y_factor, max_value=None, param_name="y_factor", seed=seed
+                y_factor,
+                min_value=-1.0,
+                max_value=1.0,
+                param_name="y_factor",
+                seed=seed,
+                range_mode="symmetric",
             )
         else:
             self.y_factor = y_factor
