@@ -96,7 +96,7 @@ class FeaturePyramid(tf.keras.layers.Layer):
         num_channels=256,
         lateral_layers=None,
         output_layers=None,
-        extra_levels=0,
+        num_extra_level=0,
         activations="relu",
         **kwargs,
     ):
@@ -105,7 +105,7 @@ class FeaturePyramid(tf.keras.layers.Layer):
         self.max_level = max_level
         self.pyramid_levels = list(range(min_level, max_level + 1))
         self.num_channels = num_channels
-        self.extra_levels = extra_levels
+        self.num_extra_level = num_extra_level
         self.activations = activations
 
         # required for successful serialization
@@ -147,10 +147,10 @@ class FeaturePyramid(tf.keras.layers.Layer):
         # the same merge layer is used for all levels
         self.merge_op = tf.keras.layers.Add()
 
-        if self.extra_levels:
+        if self.num_extra_level:
             self.extra_level_layers = {}
             # Note that the extra levels starts with self.max_level + 1
-            for i in range(self.extra_levels):
+            for i in range(self.num_extra_level):
                 level = i + self.max_level + 1
                 self.extra_level_layers[level] = tf.keras.layers.Conv2D(
                     self.num_channels,
@@ -221,8 +221,8 @@ class FeaturePyramid(tf.keras.layers.Layer):
 
         # Build the extra level of FPN on top of existing input feature maps.
         # This is used by cases like Retina-net
-        if self.extra_levels:
-            for i in range(self.extra_levels):
+        if self.num_extra_level:
+            for i in range(self.num_extra_level):
                 level = i + self.max_level + 1
                 # For the first extra level, it will use the feature map input from the
                 # top most pyramid level
@@ -247,7 +247,7 @@ class FeaturePyramid(tf.keras.layers.Layer):
             "num_channels": self.num_channels,
             "lateral_layers": self.lateral_layers_passed,
             "output_layers": self.output_layers_passed,
-            "extra_levels": self.extra_levels,
+            "num_extra_level": self.num_extra_level,
             "activations": self.activations,
         }
         base_config = super().get_config()

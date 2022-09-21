@@ -114,7 +114,7 @@ class FeaturePyramidTest(tf.test.TestCase):
 
     def test_extra_levels(self):
         # This is a typical retina-net setting
-        layer = FeaturePyramid(min_level=3, max_level=5, extra_levels=2)
+        layer = FeaturePyramid(min_level=3, max_level=5, num_extra_level=2)
         c3 = tf.ones([2, 32, 32, 3])
         c4 = tf.ones([2, 16, 16, 3])
         c5 = tf.ones([2, 8, 8, 3])
