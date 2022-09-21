@@ -64,19 +64,20 @@ def get_adain_decoder():
 
 
 def get_loss_net(include_rescaling, image_size=(None, None)):
-    inputs = layers.Input([*image_size, 3])
-    x = inputs
-    if include_rescaling:
-    	x = keras.applications.vgg19.preprocess_input(x) 
     vgg19 = keras.applications.VGG19(
-        include_top=False, weights="imagenet", input_tensor=x
+        include_top=False, weights="imagenet", input_shape=(*image_size, 3)
     )
-    x = vgg19(x)
     vgg19.trainable = False
     layer_names = ["block1_conv1", "block2_conv1", "block3_conv1", "block4_conv1"]
     outputs = [vgg19.get_layer(name).output for name in layer_names]
-    mini_vgg19 = keras.Model(x, outputs)
-    mini_vgg19_out = mini_vgg19(inputs)
+    mini_vgg19 = keras.Model(vgg19.input, outputs)
+
+    
+    inputs = keras.Input([*image_size, 3])
+    x = inputs
+    if include_rescaling:
+        x = keras.applications.vgg19.preprocess_input(x) 
+    mini_vgg19_out = mini_vgg19(x)
     return keras.Model(inputs, mini_vgg19_out, name="loss_net")
 
 
@@ -88,9 +89,9 @@ def get_mean_std(x):
     return mean, standard_deviation
 
 @tf.keras.utils.register_keras_serializable(package="keras_cv")
-class AdaIN(layers.Layer):
-    def __init__(self, name='AdaIN', **kwargs):
-        super(AdaIN, self).__init__(name=name, **kwargs)
+class AdaIn(layers.Layer):
+    def __init__(self, name='AdaIn', **kwargs):
+        super(AdaIn, self).__init__(name=name, **kwargs)
 
     def call(self, inputs):
         """Computes the AdaIn feature map.
@@ -122,7 +123,7 @@ def create_adain_model(include_rescaling, image_size):
     content_decoded = decoder(adain_feature_map)
         
     model=keras.Model([style_input, content_input], content_decoded, name="adain_style_transfer")
-    return encoder, decoder, model
+    return encoder, decoder, adain_layer, model
     
 
 
@@ -130,7 +131,7 @@ class AdaInTrainer(keras.Model):
     def __init__(self, include_rescaling, image_size=(None, None), style_weight=4.0, **kwargs):
         super().__init__(**kwargs)
         self.image_size = image_size
-        self.encoder, self.decoder, self.model = create_adain_model(include_rescaling, image_size)
+        self.encoder, self.decoder, self.adain_layer, self.model = create_adain_model(include_rescaling, image_size)
         self.loss_net = get_loss_net(include_rescaling, image_size)
         self.style_weight = style_weight
         self.style_loss_tracker = keras.metrics.Mean(name="style_loss")

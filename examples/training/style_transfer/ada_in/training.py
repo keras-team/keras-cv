@@ -136,7 +136,6 @@ val_ds = (
     tf.data.Dataset.zip((val_style_ds, val_content_ds))
     .shuffle(BATCH_SIZE * 2)
     .apply(tf.data.experimental.dense_to_ragged_batch(batch_size=BATCH_SIZE))
-    .batch(BATCH_SIZE)
     .prefetch(AUTOTUNE)
 )
 
@@ -144,11 +143,10 @@ test_ds = (
     tf.data.Dataset.zip((test_style_ds, test_content_ds))
     .shuffle(BATCH_SIZE * 2)
     .apply(tf.data.experimental.dense_to_ragged_batch(batch_size=BATCH_SIZE))
-    .batch(BATCH_SIZE)
     .prefetch(AUTOTUNE)
 )
 
-trainer = AdaInTrainer(include_rescaling=True)
+trainer = AdaInTrainer(include_rescaling=True, image_size=IMAGE_SIZE)
 optimizer = keras.optimizers.Adam(learning_rate=1e-5)
 loss_fn = keras.losses.MeanSquaredError()
 
@@ -162,7 +160,7 @@ class TrainMonitor(tf.keras.callbacks.Callback):
         test_content_encoded = self.model.encoder(test_content)
 
         # Compute the AdaIN features.
-        test_t = AdaIN()((test_style_encoded, test_content_encoded))
+        test_t = AdaIn()((test_style_encoded, test_content_encoded))
         test_reconstructed_image = self.model.decoder(test_t)
 
         # Plot the Style, Content and the NST image.
@@ -181,7 +179,7 @@ class TrainMonitor(tf.keras.callbacks.Callback):
         plt.show()
         plt.close()
 
-trainer.compile(optimizer=optimizer, loss_fn=loss_fn)
+trainer.compile(optimizer=optimizer, loss=loss_fn)
 history = trainer.fit(
     train_ds,
     epochs=flags.EPOCHS,
