@@ -65,7 +65,7 @@ class RandomTranslation(BaseImageAugmentationLayer):
              which won't have an associated bounding box.
         fill_value: fill_value in the `ImageProjectiveTransformV3` op.
              A `Tensor` of type `float32`. The value to be filled when fill_mode is
-             constant".  Defaults to `0.0`.
+             `"constant"`.  Defaults to `0.0`.
         bounding_box_format: The format of bounding boxes of input dataset. Refer to
              https://github.com/keras-team/keras-cv/blob/master/keras_cv/bounding_box/converters.py
              for more details on supported bounding box formats.
@@ -128,9 +128,9 @@ class RandomTranslation(BaseImageAugmentationLayer):
 
     def _translate_image(self, image, transformation):
         image = preprocessing.ensure_tensor(image, self.compute_dtype)
-        image_shape = tf.cast(image.shape, tf.float32)
-        image_width = image_shape[1]
-        image_height = image_shape[0]
+        image_shape = image.shape
+        image_width = tf.cast(image_shape[1], tf.float32)
+        image_height = tf.cast(image_shape[0], tf.float32)
         element = tf.stack(
             [
                 transformation["translate_horizontal"] * image_width,
