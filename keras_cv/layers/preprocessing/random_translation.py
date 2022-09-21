@@ -117,7 +117,6 @@ class RandomTranslation(BaseImageAugmentationLayer):
         self.fill_value = fill_value
         self.seed = seed
         self.bounding_box_format = bounding_box_format
-        # self.auto_vectorize = True
 
     def augment_label(self, label, transformation, **kwargs):
         return label
