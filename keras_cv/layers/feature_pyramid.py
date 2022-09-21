@@ -97,7 +97,7 @@ class FeaturePyramid(tf.keras.layers.Layer):
         lateral_layers=None,
         output_layers=None,
         extra_levels=0,
-        activations='relu',
+        activations="relu",
         **kwargs,
     ):
         super().__init__(**kwargs)
@@ -159,7 +159,6 @@ class FeaturePyramid(tf.keras.layers.Layer):
                     padding="same",
                     name=f"output_P{i}",
                 )
-
 
     def _validate_user_layers(self, user_input, param_name):
         if (

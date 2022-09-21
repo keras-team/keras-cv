@@ -121,7 +121,7 @@ class FeaturePyramidTest(tf.test.TestCase):
 
         inputs = {3: c3, 4: c4, 5: c5}
         output = layer(inputs)
-        self.assertLen(output, 5)   # Should have 3 + 2 outputs
+        self.assertLen(output, 5)  # Should have 3 + 2 outputs
         for level in inputs.keys():
             self.assertEquals(output[level].shape[1], inputs[level].shape[1])
             self.assertEquals(output[level].shape[2], inputs[level].shape[2])
