@@ -24,7 +24,8 @@ class SegmentationHead(layers.Layer):
     (pixel level classifications) as the output for the model.
 
     Args:
-        classes: int, the number of output classes for the prediction.
+        classes: int, the number of output classes for the prediction. This should
+            include all the classes (eg background) for the model to predict.
         convs: int, the number of conv2D layers that are stacked before the final
             classification layer. Default to 2.
         channels: int, the number of filter/channels for the the conv2D layers. Default
