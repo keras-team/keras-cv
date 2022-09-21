@@ -30,24 +30,22 @@ class ArgmaxBoxMatcher:
     The settings include `thresholds` and `match_values`, for example if:
     1) thresholds=[negative_threshold, positive_threshold], and
        match_values=[negative_value=0, ignore_value=-1, positive_value=1]: the rows will
-       be assigned to positive_value if its argmax result is above
+       be assigned to positive_value if its argmax result >=
        positive_threshold; the rows will be assigned to negative_value if its
-       argmax result is below negative_threshold, and the rows will be assigned
-       to ignore_value if its argmax result is between negative_threshold and
-       positive_threshold.
+       argmax result < negative_threshold, and the rows will be assigned
+       to ignore_value if its argmax result is between [negative_threshold, positive_threshold).
     2) thresholds=[negative_threshold, positive_threshold], and
        match_values=[ignore_value=-1, negative_value=0, positive_value=1]: the rows will
-       be assigned to positive_value if its argmax result is above
+       be assigned to positive_value if its argmax result >=
        positive_threshold; the rows will be assigned to ignore_value if its
-       argmax result is below negative_threshold, and the rows will be assigned
-       to negative_value if its argmax result is between negative_threshold and
-       positive_threshold. This is different from case 1) by swapping first two
+       argmax result < negative_threshold, and the rows will be assigned
+       to negative_value if its argmax result is between [negative_threshold ,positive_threshold).
+       This is different from case 1) by swapping first two
        values.
     3) thresholds=[positive_threshold], and
        match_values=[negative_values, positive_value]: the rows will be assigned to
-       positive value if its argmax result is above positive_threshold; the rows
-       will be assigned to negative_value if its argmax result is below
-       negative_threshold.
+       positive value if its argmax result >= positive_threshold; the rows
+       will be assigned to negative_value if its argmax result < negative_threshold.
 
     Args:
         thresholds: A sorted list of floats to classify the matches into
