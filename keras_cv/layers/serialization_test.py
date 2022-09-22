@@ -177,7 +177,7 @@ class SerializationTest(tf.test.TestCase, parameterized.TestCase):
         ),
         (
             "RandomCropAndResize",
-            cv_layers.RandomCropAndResize,
+            preprocessing.RandomCropAndResize,
             {
                 "height": 224,
                 "width": 224,
@@ -187,7 +187,7 @@ class SerializationTest(tf.test.TestCase, parameterized.TestCase):
         ),
         (
             "RandomlyZoomedCrop",
-            cv_layers.RandomlyZoomedCrop,
+            preprocessing.RandomlyZoomedCrop,
             {
                 "height": 224,
                 "width": 224,
