@@ -44,6 +44,8 @@ from keras_cv.models.mlp_mixer import MLPMixerL16
 from keras_cv.models.mobilenet_v3 import MobileNetV3Large
 from keras_cv.models.mobilenet_v3 import MobileNetV3Small
 from keras_cv.models.object_detection.retina_net.retina_net import RetinaNet
+from keras_cv.models.resnet_v1 import ResNet18
+from keras_cv.models.resnet_v1 import ResNet34
 from keras_cv.models.resnet_v1 import ResNet50
 from keras_cv.models.resnet_v1 import ResNet101
 from keras_cv.models.resnet_v1 import ResNet152
