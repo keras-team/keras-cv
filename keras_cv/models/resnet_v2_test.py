@@ -51,24 +51,30 @@ class ResNetV2Test(ModelsTest, tf.test.TestCase, parameterized.TestCase):
 
     def test_model_backbone_layer_names_stability(self):
         model = resnet_v2.ResNet50V2(
-            include_rescaling=False, include_top=False, classes=2048,
-            input_shape=[256, 256, 3]
+            include_rescaling=False,
+            include_top=False,
+            classes=2048,
+            input_shape=[256, 256, 3],
         )
         model_2 = resnet_v2.ResNet50V2(
-            include_rescaling=False, include_top=False, classes=2048,
-            input_shape=[256, 256, 3]
+            include_rescaling=False,
+            include_top=False,
+            classes=2048,
+            input_shape=[256, 256, 3],
         )
         layers_1 = model.layers
         layers_2 = model_2.layers
         for i in range(len(layers_1)):
-            if 'input' in layers_1[i].name:
+            if "input" in layers_1[i].name:
                 continue
             self.assertEquals(layers_1[i].name, layers_2[i].name)
 
     def test_create_backbone_model_from_application_model(self):
         model = resnet_v2.ResNet50V2(
-            include_rescaling=False, include_top=False, classes=2048,
-            input_shape=[256, 256, 3]
+            include_rescaling=False,
+            include_top=False,
+            classes=2048,
+            input_shape=[256, 256, 3],
         )
         backbone_model = resnet_v2.create_backbone_model(model)
         inputs = tf.keras.Input(shape=[256, 256, 3])

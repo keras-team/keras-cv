@@ -125,8 +125,11 @@ def BasicBlock(filters, kernel_size=3, stride=1, conv_shortcut=False, name=None)
                 use_preactivation
             )
         else:
-            shortcut = layers.MaxPooling2D(
-                1, strides=stride, name=name + "_0_max_pooling")(x) if stride > 1 else x
+            shortcut = (
+                layers.MaxPooling2D(1, strides=stride, name=name + "_0_max_pooling")(x)
+                if stride > 1
+                else x
+            )
 
         x = layers.Conv2D(
             filters,
@@ -185,8 +188,11 @@ def Block(filters, kernel_size=3, stride=1, conv_shortcut=False, name=None):
                 4 * filters, 1, strides=stride, name=name + "_0_conv"
             )(use_preactivation)
         else:
-            shortcut = layers.MaxPooling2D(
-                1, strides=stride, name=name + "_0_max_pooling")(x) if stride > 1 else x
+            shortcut = (
+                layers.MaxPooling2D(1, strides=stride, name=name + "_0_max_pooling")(x)
+                if stride > 1
+                else x
+            )
 
         x = layers.Conv2D(filters, 1, strides=1, use_bias=False, name=name + "_1_conv")(
             use_preactivation
@@ -216,8 +222,15 @@ def Block(filters, kernel_size=3, stride=1, conv_shortcut=False, name=None):
     return apply
 
 
-def Stack(filters, blocks, stride=2, name=None, block_fn=Block, first_shortcut=True,
-          stack_index=1):
+def Stack(
+    filters,
+    blocks,
+    stride=2,
+    name=None,
+    block_fn=Block,
+    first_shortcut=True,
+    stack_index=1,
+):
     """A set of stacked blocks.
     Args:
         filters: integer, filters of the layer in a block.
@@ -338,7 +351,7 @@ def ResNetV2(
             stride=stackwise_strides[stack_index],
             block_fn=block_fn,
             first_shortcut=block_fn == Block or stack_index > 0,
-            stack_index=stack_index
+            stack_index=stack_index,
         )(x)
         stack_level_outputs[stack_index + 2] = x
 
@@ -369,11 +382,11 @@ def ResNetV2(
 
 
 def create_backbone_model(model):
-    if hasattr(model, '_backbone_level_outputs'):
+    if hasattr(model, "_backbone_level_outputs"):
         backbone_level_outputs = model._backbone_level_outputs
         return tf.keras.Model(inputs=model.inputs, outputs=backbone_level_outputs)
     else:
-        raise ValueError('The current model doesn\'t have any backbone information.')
+        raise ValueError("The current model doesn't have any backbone information.")
 
 
 def ResNet18V2(
