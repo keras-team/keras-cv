@@ -26,7 +26,7 @@ def main():
     augmented = layer(many_elephants)
     demo_utils.gallery_show(augmented.numpy())
 
-    layer = RandomResizedCrop(
+    layer = RandomlyZoomedCrop(
         target_size=(224, 224),
         zoom_factor=(0.08, 2.0),
         aspect_ratio_factor=(3.0 / 4.0, 4.0 / 3.0),
