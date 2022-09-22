@@ -69,7 +69,7 @@ class SimCLRAugmenter(preprocessing.Augmenter):
         return super().__init__(
             [
                 preprocessing.RandomFlip("horizontal"),
-                preprocessing.RandomResizedCrop(
+                preprocessing.RandomCropAndResize(
                     height=height,
                     width=width,
                     zoom_factor=zoom_factor,
