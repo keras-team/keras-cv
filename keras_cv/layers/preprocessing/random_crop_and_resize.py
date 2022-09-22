@@ -142,6 +142,9 @@ class RandomCropAndResize(BaseImageAugmentationLayer):
     def augment_image(self, image, transformation, **kwargs):
         return self._crop_and_resize(image, transformation)
 
+    def augment_target(self, target, **kwargs):
+        return target
+
     def _resize(self, image, **kwargs):
         outputs = tf.keras.preprocessing.image.smart_resize(
             image, self.target_size, **kwargs
