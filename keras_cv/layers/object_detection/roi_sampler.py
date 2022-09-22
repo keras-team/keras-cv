@@ -151,7 +151,11 @@ class _ROISampler(tf.keras.layers.Layer):
         # [batch_size, num_sampled_rois, 4]
         sampled_rois = target_gather._target_gather(rois, sampled_indices)
         # [batch_size, num_sampled_rois, 4]
-        sampled_gt_boxes = target_gather._target_gather(matched_gt_boxes, sampled_indices)
+        sampled_gt_boxes = target_gather._target_gather(
+            matched_gt_boxes, sampled_indices
+        )
         # [batch_size, num_sampled_rois, 1]
-        sampled_gt_classes = target_gather._target_gather(matched_gt_classes, sampled_indices)
+        sampled_gt_classes = target_gather._target_gather(
+            matched_gt_classes, sampled_indices
+        )
         return sampled_rois, sampled_gt_boxes, sampled_gt_classes
