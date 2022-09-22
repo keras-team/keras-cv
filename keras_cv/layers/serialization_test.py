@@ -18,6 +18,7 @@ from absl.testing import parameterized
 
 from keras_cv import core
 from keras_cv import layers as cv_layers
+from keras_cv.models.segmentation.__internal__ import SegmentationHead
 
 
 def exhaustive_compare(obj1, obj2):
@@ -86,6 +87,7 @@ def config_equals(config1, config2):
 
 class SerializationTest(tf.test.TestCase, parameterized.TestCase):
     @parameterized.named_parameters(
+        ("Augmenter", cv_layers.Augmenter, {"layers": [cv_layers.Grayscale()]}),
         ("AutoContrast", cv_layers.AutoContrast, {"value_range": (0, 255)}),
         ("ChannelShuffle", cv_layers.ChannelShuffle, {"seed": 1}),
         ("CutMix", cv_layers.CutMix, {"seed": 1}),
@@ -255,6 +257,16 @@ class SerializationTest(tf.test.TestCase, parameterized.TestCase):
             cv_layers.RandomRotation,
             {
                 "factor": 0.5,
+            },
+        ),
+        (
+            "SegmentationHead",
+            SegmentationHead,
+            {
+                "classes": 11,
+                "convs": 3,
+                "filters": 256,
+                "activations": tf.keras.activations.relu,
             },
         ),
     )

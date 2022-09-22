@@ -16,6 +16,7 @@ import tensorflow as tf
 from tensorflow import keras
 
 
+@tf.keras.utils.register_keras_serializable(package="keras_cv")
 class FeaturePyramid(keras.layers.Layer):
     """Builds the Feature Pyramid with the feature maps from the backbone."""
 
@@ -33,14 +34,14 @@ class FeaturePyramid(keras.layers.Layer):
 
     def call(self, inputs, training=False):
         c3_output, c4_output, c5_output = inputs
-        p3_output = self.conv_c3_1x1(c3_output)
-        p4_output = self.conv_c4_1x1(c4_output)
-        p5_output = self.conv_c5_1x1(c5_output)
-        p4_output = p4_output + self.upsample_2x(p5_output)
-        p3_output = p3_output + self.upsample_2x(p4_output)
-        p3_output = self.conv_c3_3x3(p3_output)
-        p4_output = self.conv_c4_3x3(p4_output)
-        p5_output = self.conv_c5_3x3(p5_output)
-        p6_output = self.conv_c6_3x3(c5_output)
-        p7_output = self.conv_c7_3x3(tf.nn.relu(p6_output))
+        p3_output = self.conv_c3_1x1(c3_output, training=training)
+        p4_output = self.conv_c4_1x1(c4_output, training=training)
+        p5_output = self.conv_c5_1x1(c5_output, training=training)
+        p4_output = p4_output + self.upsample_2x(p5_output, training=training)
+        p3_output = p3_output + self.upsample_2x(p4_output, training=training)
+        p3_output = self.conv_c3_3x3(p3_output, training=training)
+        p4_output = self.conv_c4_3x3(p4_output, training=training)
+        p5_output = self.conv_c5_3x3(p5_output, training=training)
+        p6_output = self.conv_c6_3x3(c5_output, training=training)
+        p7_output = self.conv_c7_3x3(tf.nn.relu(p6_output), training=training)
         return p3_output, p4_output, p5_output, p6_output, p7_output

@@ -185,9 +185,7 @@ class RandomShearTest(tf.test.TestCase):
         self.assertAllEqual(xs, output_xs)
         self.assertAllEqual(ys, output_ys)
 
-    def test_x_augmentation(self):
-        """test for shear bbox augmentation is horizontal direction
-        only i.e y_factor=0"""
+    def test_bounding_box_x_augmentation(self):
         xs = tf.cast(
             tf.stack(
                 [2 * tf.ones((4, 4, 3)), tf.ones((4, 4, 3))],
@@ -198,8 +196,8 @@ class RandomShearTest(tf.test.TestCase):
         ys = tf.cast(
             tf.stack(
                 [
-                    tf.constant([[0.3, 0.4, 0.5, 0.6], [0.9, 0.8, 1.0, 1.0]]),
-                    tf.constant([[0.3, 0.4, 0.5, 0.6], [0.9, 0.8, 1.0, 1.0]]),
+                    tf.constant([[0.3, 0.4, 0.5, 0.6], [0.4, 0.8, 1.0, 1.0]]),
+                    tf.constant([[0.3, 0.4, 0.5, 0.6], [0.4, 0.8, 1.0, 1.0]]),
                 ],
                 axis=0,
             ),
@@ -211,13 +209,16 @@ class RandomShearTest(tf.test.TestCase):
         )
         outputs = layer({"images": xs, "bounding_boxes": ys})
         _, output_ys = outputs["images"], outputs["bounding_boxes"]
+
+        # assert ys are unchanged
         self.assertAllEqual(ys[..., 1], output_ys[..., 1])
-        self.assertNotAllClose(ys[..., 0], output_ys[..., 0])
         self.assertAllEqual(ys[..., 3], output_ys[..., 3])
+
+        # assert xs are changed
+        self.assertNotAllClose(ys[..., 0], output_ys[..., 0])
         self.assertNotAllClose(ys[..., 2], output_ys[..., 2])
 
-    def test_y_augmentation(self):
-        """test for shear bbox augmentation is vertical direction only i.e x_factor=0"""
+    def test_bounding_box_y_augmentation(self):
         xs = tf.cast(
             tf.stack(
                 [2 * tf.ones((4, 4, 3)), tf.ones((4, 4, 3))],
@@ -228,8 +229,8 @@ class RandomShearTest(tf.test.TestCase):
         ys = tf.cast(
             tf.stack(
                 [
-                    tf.constant([[0.3, 0.4, 0.5, 0.6], [0.9, 0.8, 1.0, 1.0]]),
-                    tf.constant([[0.3, 0.4, 0.5, 0.6], [0.9, 0.8, 1.0, 1.0]]),
+                    tf.constant([[0.3, 0.4, 0.5, 0.6], [0.9, 0.2, 1.0, 1.0]]),
+                    tf.constant([[0.3, 0.4, 0.5, 0.6], [0.9, 0.2, 1.0, 1.0]]),
                 ],
                 axis=0,
             ),

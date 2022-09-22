@@ -78,6 +78,10 @@ class RandomRotation(BaseImageAugmentationLayer):
       bounding_box_format: The format of bounding boxes of input dataset. Refer
         https://github.com/keras-team/keras-cv/blob/master/keras_cv/bounding_box/converters.py
         for more details on supported bounding box formats.
+      segmentation_classes: an optional integer with the number of classes in
+        the input segmentation mask. Required iff augmenting data with sparse
+        (non one-hot) segmentation masks. Include the background class in this
+        count (e.g. for segmenting dog vs background, this should be set to 2).
     """
 
     def __init__(
@@ -88,6 +92,7 @@ class RandomRotation(BaseImageAugmentationLayer):
         seed=None,
         fill_value=0.0,
         bounding_box_format=None,
+        segmentation_classes=None,
         **kwargs,
     ):
         super().__init__(seed=seed, force_generator=True, **kwargs)
@@ -108,6 +113,7 @@ class RandomRotation(BaseImageAugmentationLayer):
         self.interpolation = interpolation
         self.seed = seed
         self.bounding_box_format = bounding_box_format
+        self.segmentation_classes = segmentation_classes
 
     def get_random_transformation(self, **kwargs):
         min_angle = self.lower * 2.0 * np.pi
@@ -118,6 +124,9 @@ class RandomRotation(BaseImageAugmentationLayer):
         return {"angle": angle}
 
     def augment_image(self, image, transformation, **kwargs):
+        return self._rotate_image(image, transformation)
+
+    def _rotate_image(self, image, transformation):
         image = preprocessing.ensure_tensor(image, self.compute_dtype)
         original_shape = image.shape
         image = tf.expand_dims(image, 0)
@@ -226,6 +235,31 @@ class RandomRotation(BaseImageAugmentationLayer):
     def augment_label(self, label, transformation, **kwargs):
         return label
 
+    def augment_segmentation_mask(self, segmentation_mask, transformation, **kwargs):
+        # If segmentation_classes is specified, we have a dense segmentation mask.
+        # We therefore one-hot encode before rotation to avoid bad interpolation
+        # during the rotation transformation. We then make the mask sparse
+        # again using tf.argmax.
+        if self.segmentation_classes:
+            one_hot_mask = tf.one_hot(
+                tf.squeeze(segmentation_mask, axis=-1), self.segmentation_classes
+            )
+            rotated_one_hot_mask = self._rotate_image(one_hot_mask, transformation)
+            rotated_mask = tf.argmax(rotated_one_hot_mask, axis=-1)
+            return tf.expand_dims(rotated_mask, axis=-1)
+        else:
+            if segmentation_mask.shape[-1] == 1:
+                raise ValueError(
+                    "Segmentation masks must be one-hot encoded, or "
+                    "RandomRotate must be initialized with "
+                    "`segmentation_classes`. `segmentation_classes` was not "
+                    f"specified, and mask has shape {segmentation_mask.shape}"
+                )
+            rotated_mask = self._rotate_image(segmentation_mask, transformation)
+            # Round because we are in one-hot encoding, and we may have
+            # pixels with ambugious value due to floating point math for rotation.
+            return tf.round(rotated_mask)
+
     def compute_output_shape(self, input_shape):
         return input_shape
 
@@ -236,6 +270,7 @@ class RandomRotation(BaseImageAugmentationLayer):
             "fill_value": self.fill_value,
             "interpolation": self.interpolation,
             "bounding_box_format": self.bounding_box_format,
+            "segmentation_classes": self.segmentation_classes,
             "seed": self.seed,
         }
         base_config = super().get_config()
