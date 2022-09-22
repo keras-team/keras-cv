@@ -20,15 +20,15 @@ from tensorflow.keras import layers
 class SegmentationHead(layers.Layer):
     """Prediction head for the segmentation model
 
-    The head will take the output from decoder (eg FPN or ASPP), and produce production
-    (pixel level classifications) as the output for the model.
+    The head will take the output from decoder (eg FPN or ASPP), and produce a
+    segmentation mask (pixel level classifications) as the output for the model.
 
     Args:
         classes: int, the number of output classes for the prediction. This should
             include all the classes (eg background) for the model to predict.
         convs: int, the number of conv2D layers that are stacked before the final
             classification layer. Default to 2.
-        channels: int, the number of filter/channels for the the conv2D layers. Default
+        filters: int, the number of filter/channels for the the conv2D layers. Default
             to 256.
         activations: str or 'tf.keras.activations', activation functions between the
             conv2D layers and the final classification layer. Default to 'relu'
@@ -48,12 +48,12 @@ class SegmentationHead(layers.Layer):
     ```
     """
 
-    def __init__(self, classes, convs=2, channels=256, activations="relu", **kwargs):
+    def __init__(self, classes, convs=2, filters=256, activations="relu", **kwargs):
         """"""
         super().__init__(**kwargs)
         self.classes = classes
         self.convs = convs
-        self.channels = channels
+        self.filters = filters
         self.activations = activations
 
         self._conv_layers = []
@@ -63,7 +63,7 @@ class SegmentationHead(layers.Layer):
             self._conv_layers.append(
                 tf.keras.layers.Conv2D(
                     name=conv_name,
-                    filters=self.channels,
+                    filters=self.filters,
                     kernel_size=3,
                     padding="same",
                     use_bias=False,
@@ -103,7 +103,7 @@ class SegmentationHead(layers.Layer):
         config = {
             "classes": self.classes,
             "convs": self.convs,
-            "channels": self.channels,
+            "filters": self.filters,
             "activations": self.activations,
         }
         base_config = super().get_config()

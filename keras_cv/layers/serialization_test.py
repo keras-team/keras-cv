@@ -265,7 +265,7 @@ class SerializationTest(tf.test.TestCase, parameterized.TestCase):
             {
                 "classes": 11,
                 "convs": 3,
-                "channels": 256,
+                "filters": 256,
                 "activations": tf.keras.activations.relu,
             },
         ),

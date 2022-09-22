@@ -47,6 +47,18 @@ class ResNetV2Test(ModelsTest, tf.test.TestCase, parameterized.TestCase):
     def test_model_can_be_used_as_backbone(self, app, last_dim, args):
         super()._test_model_can_be_used_as_backbone(app, last_dim, args)
 
+    def test_model_backbone_layer_names(self):
+        model = resnet_v2.ResNet50V2(
+            include_rescaling=False, include_top=False, classes=2048
+        )
+        for l in model.layers:
+            print(l.name)
+        model2 = resnet_v2.ResNet50V2(
+            include_rescaling=False, include_top=False, classes=2048
+        )
+        for l in model2.layers:
+            print(l.name)
+
 
 if __name__ == "__main__":
     tf.test.main()
