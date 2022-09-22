@@ -26,10 +26,9 @@ class AugmenterTest(tf.test.TestCase):
                 preprocessing.Grayscale(
                     output_channels=1,
                 ),
-                preprocessing.RandomResizedCrop(
-                    height=100,
-                    width=100,
-                    zoom_factor=(1, 1),
+                preprocessing.RandomCropAndResize(
+                    target_size=(100, 100),
+                    crop_area_factor=(1, 1),
                     aspect_ratio_factor=(1, 1),
                 ),
             ]
@@ -47,10 +46,9 @@ class AugmenterTest(tf.test.TestCase):
                 preprocessing.Grayscale(
                     output_channels=1,
                 ),
-                preprocessing.RandomResizedCrop(
-                    height=100,
-                    width=100,
-                    zoom_factor=(1, 1),
+                preprocessing.RandomCropAndResize(
+                    target_size=(100, 100),
+                    crop_area_factor=(1, 1),
                     aspect_ratio_factor=(1, 1),
                 ),
             ]

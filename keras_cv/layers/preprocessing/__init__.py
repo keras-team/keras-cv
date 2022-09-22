@@ -51,14 +51,15 @@ from keras_cv.layers.preprocessing.random_color_degeneration import (
     RandomColorDegeneration,
 )
 from keras_cv.layers.preprocessing.random_color_jitter import RandomColorJitter
+from keras_cv.layers.preprocessing.random_crop_and_resize import RandomCropAndResize
 from keras_cv.layers.preprocessing.random_cutout import RandomCutout
 from keras_cv.layers.preprocessing.random_flip import RandomFlip
 from keras_cv.layers.preprocessing.random_gaussian_blur import RandomGaussianBlur
 from keras_cv.layers.preprocessing.random_hue import RandomHue
 from keras_cv.layers.preprocessing.random_jpeg_quality import RandomJpegQuality
-from keras_cv.layers.preprocessing.random_resized_crop import RandomResizedCrop
 from keras_cv.layers.preprocessing.random_rotation import RandomRotation
 from keras_cv.layers.preprocessing.random_saturation import RandomSaturation
 from keras_cv.layers.preprocessing.random_sharpness import RandomSharpness
 from keras_cv.layers.preprocessing.random_shear import RandomShear
+from keras_cv.layers.preprocessing.randomly_zoomed_crop import RandomlyZoomedCrop
 from keras_cv.layers.preprocessing.solarization import Solarization
