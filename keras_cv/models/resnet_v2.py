@@ -17,6 +17,8 @@ Reference:
   - [Based on the original keras.applications ResNet](https://github.com/keras-team/keras/blob/master/keras/applications/resnet_v2.py)
 """
 
+import types
+
 import tensorflow as tf
 from tensorflow.keras import backend
 from tensorflow.keras import layers
@@ -378,15 +380,35 @@ def ResNetV2(
     # resolution level.
     model._backbone_level_outputs = stack_level_outputs
 
+    def to_backbone_model(self):
+        """Convert the Resnet application model into a model backbone for other tasks.
+
+        The backbone model will usually take same inputs as the original application
+        model, but produce multiple outputs, one for each feature level. Those outputs
+        can be feed to network downstream, like FPN and PRN.
+
+        The output of the backbone model will be a dict with int as key and tensor as
+        value. The int key represent the level of the feature output.
+
+        Returns:
+            a `tf.keras.Model` which has dict as outputs.
+        Raises:
+            ValueError: When the model is lack of information for feature level, and can't
+            be converted to backbone model
+        """
+        if hasattr(self, "_backbone_level_outputs"):
+            backbone_level_outputs = self._backbone_level_outputs
+            return tf.keras.Model(inputs=self.inputs, outputs=backbone_level_outputs)
+        else:
+            raise ValueError(
+                "The current model doesn't have any feature level "
+                "information and can't be convert to backbone model."
+            )
+
+    # Bind the `to_backbone_model` method to the application model.
+    model.to_backbone_model = types.MethodType(to_backbone_model, model)
+
     return model
-
-
-def create_backbone_model(model):
-    if hasattr(model, "_backbone_level_outputs"):
-        backbone_level_outputs = model._backbone_level_outputs
-        return tf.keras.Model(inputs=model.inputs, outputs=backbone_level_outputs)
-    else:
-        raise ValueError("The current model doesn't have any backbone information.")
 
 
 def ResNet18V2(
