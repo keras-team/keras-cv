@@ -56,7 +56,7 @@ class SimCLRAugmenter(preprocessing.Augmenter):
         value_range,
         height=128,
         width=128,
-        zoom_factor=(0.2, 1.8),
+        crop_area_factor=(0.08, 1.0),
         aspect_ratio_factor=(3 / 4, 4 / 3),
         grayscale_rate=0.2,
         color_jitter_rate=0.8,
@@ -72,7 +72,7 @@ class SimCLRAugmenter(preprocessing.Augmenter):
                 preprocessing.RandomCropAndResize(
                     height=height,
                     width=width,
-                    zoom_factor=zoom_factor,
+                    crop_area_factor=crop_area_factor,
                     aspect_ratio_factor=aspect_ratio_factor,
                 ),
                 preprocessing.MaybeApply(
