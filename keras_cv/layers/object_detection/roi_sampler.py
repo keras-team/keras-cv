@@ -15,17 +15,17 @@
 import tensorflow as tf
 
 from keras_cv import bounding_box
-from keras_cv.bounding_box.iou import compute_iou
-from keras_cv.ops.box_matcher import ArgmaxBoxMatcher
-from keras_cv.ops.sampling import balanced_sample
-from keras_cv.ops.target_gather import _target_gather
+from keras_cv.bounding_box import iou
+from keras_cv.ops import box_matcher
+from keras_cv.ops import sampling
+from keras_cv.ops import target_gather
 
 
 class _ROISampler(tf.keras.layers.Layer):
     """
     Sample ROIs for loss related calucation.
 
-    With proposals (ROIs) and ground truth, tt performs the following:
+    With proposals (ROIs) and ground truth, it performs the following:
     1) compute IOU similarity matrix
     2) match each proposal to ground truth box based on IOU
     3) samples positive matches and negative matches and return
@@ -58,11 +58,11 @@ class _ROISampler(tf.keras.layers.Layer):
     def __init__(
         self,
         bounding_box_format: str,
-        roi_matcher: ArgmaxBoxMatcher,
+        roi_matcher: box_matcher.ArgmaxBoxMatcher,
         positive_fraction: float = 0.25,
         background_class: int = 0,
         num_sampled_rois: int = 256,
-        append_labels: bool = True,
+        append_gt_boxes: bool = True,
         **kwargs,
     ):
         super().__init__(**kwargs)
@@ -71,7 +71,7 @@ class _ROISampler(tf.keras.layers.Layer):
         self.positive_fraction = positive_fraction
         self.background_class = background_class
         self.num_sampled_rois = num_sampled_rois
-        self.append_labels = append_labels
+        self.append_gt_boxes = append_gt_boxes
         self.built = True
 
     def call(
@@ -91,7 +91,7 @@ class _ROISampler(tf.keras.layers.Layer):
           sampled_gt_classes: [batch_size, num_sampled_rois, 1]
         """
         # TODO (tanzhenyu): Add masking in bounding_box.compute_iou
-        if self.append_labels:
+        if self.append_gt_boxes:
             # num_rois += num_gt
             rois = tf.concat([rois, gt_boxes], axis=1)
         num_rois = rois.get_shape().as_list()[1]
@@ -108,16 +108,16 @@ class _ROISampler(tf.keras.layers.Layer):
             gt_boxes, source=self.bounding_box_format, target="xyxy"
         )
         # [batch_size, num_rois, num_gt]
-        iou = compute_iou(rois, gt_boxes, bounding_box_format="xyxy")
+        similarity_mat = iou.compute_iou(rois, gt_boxes, bounding_box_format="xyxy")
         # [batch_size, num_rois] | [batch_size, num_rois]
-        matched_gt_cols, matched_vals = self.roi_matcher(iou)
+        matched_gt_cols, matched_vals = self.roi_matcher(similarity_mat)
         # [batch_size, num_rois]
         positive_matches = tf.math.equal(matched_vals, 1)
         negative_matches = tf.math.equal(matched_vals, -1)
         # [batch_size, num_rois, 1]
         background_mask = tf.expand_dims(tf.logical_not(positive_matches), axis=-1)
         # [batch_size, num_rois, 1]
-        matched_gt_classes = _target_gather(
+        matched_gt_classes = target_gather._target_gather(
             gt_classes, matched_gt_cols, background_mask
         )
         # also set all background matches to `background_class`
@@ -130,7 +130,7 @@ class _ROISampler(tf.keras.layers.Layer):
             matched_gt_classes,
         )
         # [batch_size, num_rois, 4]
-        matched_gt_boxes = _target_gather(
+        matched_gt_boxes = target_gather._target_gather(
             gt_boxes, matched_gt_cols, tf.tile(background_mask, [1, 1, 4])
         )
         # also set all background matches to 0 coordinates
@@ -138,7 +138,7 @@ class _ROISampler(tf.keras.layers.Layer):
             background_mask, tf.zeros_like(matched_gt_boxes), matched_gt_boxes
         )
         # [batch_size, num_rois]
-        sampled_indicators = balanced_sample(
+        sampled_indicators = sampling.balanced_sample(
             positive_matches,
             negative_matches,
             self.num_sampled_rois,
@@ -149,9 +149,9 @@ class _ROISampler(tf.keras.layers.Layer):
             sampled_indicators, k=self.num_sampled_rois, sorted=True
         )
         # [batch_size, num_sampled_rois, 4]
-        sampled_rois = _target_gather(rois, sampled_indices)
+        sampled_rois = target_gather._target_gather(rois, sampled_indices)
         # [batch_size, num_sampled_rois, 4]
-        sampled_gt_boxes = _target_gather(matched_gt_boxes, sampled_indices)
+        sampled_gt_boxes = target_gather._target_gather(matched_gt_boxes, sampled_indices)
         # [batch_size, num_sampled_rois, 1]
-        sampled_gt_classes = _target_gather(matched_gt_classes, sampled_indices)
+        sampled_gt_classes = target_gather._target_gather(matched_gt_classes, sampled_indices)
         return sampled_rois, sampled_gt_boxes, sampled_gt_classes
