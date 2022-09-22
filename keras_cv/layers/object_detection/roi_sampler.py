@@ -159,3 +159,22 @@ class _ROISampler(tf.keras.layers.Layer):
             matched_gt_classes, sampled_indices
         )
         return sampled_rois, sampled_gt_boxes, sampled_gt_classes
+
+    def get_config(self):
+        config = {
+            "bounding_box_format": self.bounding_box_format,
+            "positive_fraction": self.positive_fraction,
+            "background_class": self.background_class,
+            "num_sampled_rois": self.num_sampled_rois,
+            "append_gt_boxes": self.append_gt_boxes,
+            "roi_matcher": self.roi_matcher.get_config(),
+        }
+        base_config = super().get_config()
+        return dict(list(base_config.items()) + list(config.items()))
+
+    @classmethod
+    def from_config(cls, config, custom_objects=None):
+        roi_matcher = box_matcher.ArgmaxBoxMatcher.from_config(
+            config.pop("roi_matcher")
+        )
+        return cls(roi_matcher=roi_matcher, **config)
