@@ -208,3 +208,91 @@ class RandomTranslationTest(tf.test.TestCase, parameterized.TestCase):
         output_images, output_bboxes = outputs["images"], outputs["bounding_boxes"]
         self.assertAllClose(bboxes, output_bboxes)
         self.assertAllClose(images, output_images)
+
+    def test_translation_with_reflect(self):
+        input_image = np.reshape(np.arange(0, 25), (1, 5, 5, 1))
+        # Shift by 2 pixels up
+        layer = RandomTranslation(
+            y_factor=(-0.4, -0.4), x_factor=(0, 0), fill_mode="reflect"
+        )
+        output_image = layer(input_image)
+
+        expected_output = np.reshape(
+            np.asarray(
+                [
+                    [10, 11, 12, 13, 14],
+                    [15, 16, 17, 18, 19],
+                    [20, 21, 22, 23, 24],
+                    [20, 21, 22, 23, 24],
+                    [15, 16, 17, 18, 19],
+                ]
+            ),
+            (1, 5, 5, 1),
+        )
+        self.assertAllEqual(expected_output, output_image)
+
+    def test_translation_with_constant(self):
+        input_image = np.reshape(np.arange(0, 25), (1, 5, 5, 1))
+        # Shift by 2 pixels up
+        layer = RandomTranslation(
+            y_factor=(-0.4, -0.4),
+            x_factor=(0, 0),
+            fill_mode="constant",
+            fill_value=0,
+        )
+        output_image = layer(input_image)
+        expected_output = np.reshape(
+            np.asarray(
+                [
+                    [10, 11, 12, 13, 14],
+                    [15, 16, 17, 18, 19],
+                    [20, 21, 22, 23, 24],
+                    [0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0],
+                ]
+            ),
+            (1, 5, 5, 1),
+        )
+        self.assertAllEqual(expected_output, output_image)
+
+    def test_translation_with_wrap(self):
+        input_image = np.reshape(np.arange(0, 25), (1, 5, 5, 1))
+        # Shift by 2 pixels up
+        layer = RandomTranslation(
+            y_factor=(-0.4, -0.4), x_factor=(0, 0), fill_mode="wrap"
+        )
+        output_image = layer(input_image)
+        expected_output = np.reshape(
+            np.asarray(
+                [
+                    [10, 11, 12, 13, 14],
+                    [15, 16, 17, 18, 19],
+                    [20, 21, 22, 23, 24],
+                    [0, 1, 2, 3, 4],
+                    [5, 6, 7, 8, 9],
+                ]
+            ),
+            (1, 5, 5, 1),
+        )
+        self.assertAllEqual(expected_output, output_image)
+
+    def test_translation_with_nearest(self):
+        input_image = np.reshape(np.arange(0, 25), (1, 5, 5, 1))
+        # Shift by 2 pixels up
+        layer = RandomTranslation(
+            y_factor=(-0.4, -0.4), x_factor=(0, 0), fill_mode="nearest"
+        )
+        output_image = layer(input_image)
+        expected_output = np.reshape(
+            np.asarray(
+                [
+                    [10, 11, 12, 13, 14],
+                    [15, 16, 17, 18, 19],
+                    [20, 21, 22, 23, 24],
+                    [20, 21, 22, 23, 24],
+                    [20, 21, 22, 23, 24],
+                ]
+            ),
+            (1, 5, 5, 1),
+        )
+        self.assertAllEqual(expected_output, output_image)
