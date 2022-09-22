@@ -19,6 +19,72 @@ def get_rank(tensor):
     return tensor.shape.ndims or tf.rank(tensor)
 
 
+def _get_3d_rotation_matrix(yaw, roll, pitch):
+    """Creates 3x3 rotation matrix from yaw, roll, pitch (angles in radians).
+
+    Note: Yaw -> Z, Roll -> X, Pitch -> Y
+
+    Args:
+      yaw: float tensor representing a yaw angle in radians.
+      roll: float tensor representing a roll angle in radians.
+      pitch: float tensor representing a pitch angle in radians.
+
+    Returns:
+      A [3, 3] tensor corresponding to a rotation matrix.
+
+    """
+
+    def _UnitX(angle):
+        return tf.reshape(
+            [
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                tf.cos(angle),
+                -tf.sin(angle),
+                0.0,
+                tf.sin(angle),
+                tf.cos(angle),
+            ],
+            shape=[3, 3],
+        )
+
+    def _UnitY(angle):
+        return tf.reshape(
+            [
+                tf.cos(angle),
+                0.0,
+                tf.sin(angle),
+                0.0,
+                1.0,
+                0.0,
+                -tf.sin(angle),
+                0.0,
+                tf.cos(angle),
+            ],
+            shape=[3, 3],
+        )
+
+    def _UnitZ(angle):
+        return tf.reshape(
+            [
+                tf.cos(angle),
+                -tf.sin(angle),
+                0.0,
+                tf.sin(angle),
+                tf.cos(angle),
+                0.0,
+                0.0,
+                0.0,
+                1.0,
+            ],
+            shape=[3, 3],
+        )
+
+    return tf.matmul(tf.matmul(_UnitZ(yaw), _UnitX(roll)), _UnitY(pitch))
+
+
 def _center_xyzWHD_to_corner_xyz(boxes):
     """convert from center format to corner format.
     Args:
@@ -189,3 +255,57 @@ def is_within_box3d(points, boxes):
         tf.less_equal(points_z, top), tf.greater_equal(points_z, bottom)
     )
     return tf.math.logical_and(is_inside_z, is_inside_2d)
+
+
+def coordinate_transform(points, pose):
+    """
+    Translate 'points' to coordinates according to 'pose' vector.
+    pose should contain 6 floating point values:
+      translate_x, translate_y, translate_z: The translation to apply.
+      yaw, roll, pitch: The rotation angles in radians.
+
+    Args:
+      points: Float shape [..., 3]: Points to transform to new coordinates.
+      pose: Float shape [6]: [translate_x, translate_y, translate_z, yaw, roll,
+        pitch]. The pose in the frame that 'points' comes from, and the definition
+        of the rotation and translation angles to apply to points.
+    Returns:
+    'points' transformed to the coordinates defined by 'pose'.
+    """
+    translate_x = pose[0]
+    translate_y = pose[1]
+    translate_z = pose[2]
+
+    # Translate the points so the origin is the pose's center.
+    translation = tf.reshape([translate_x, translate_y, translate_z], shape=[3])
+    translated_points = points + translation
+
+    # Compose the rotations along the three axes.
+    #
+    # Note: Yaw->Z, Roll->X, Pitch->Y.
+    yaw, roll, pitch = pose[3], pose[4], pose[5]
+    rotation_matrix = _get_3d_rotation_matrix(yaw, roll, pitch)
+    # Finally, rotate the points about the pose's origin according to the
+    # rotation matrix.
+    rotated_points = tf.einsum("...i,...ij->...j", translated_points, rotation_matrix)
+    return rotated_points
+
+
+def spherical_coordinate_transform(points):
+    """Converts points from xyz coordinates to spherical coordinates.
+    https://en.wikipedia.org/wiki/Spherical_coordinate_system#Coordinate_system_conversions
+    for definitions of the transformations.
+    Args:
+      points_xyz: A floating point tensor with shape [..., 3], where the inner 3
+        dimensions correspond to xyz coordinates.
+    Returns:
+      A floating point tensor with the same shape [..., 3], where the inner
+      dimensions correspond to (dist, theta, phi), where phi corresponds to
+      azimuth/yaw (rotation around z), and theta corresponds to pitch/inclination
+      (rotation around y).
+    """
+    dist = tf.sqrt(tf.reduce_sum(tf.square(points), axis=-1))
+    theta = tf.acos(points[..., 2] / tf.maximum(dist, 1e-7))
+    # Note: tf.atan2 takes in (y, x).
+    phi = tf.atan2(points[..., 1], points[..., 0])
+    return tf.stack([dist, theta, phi], axis=-1)
