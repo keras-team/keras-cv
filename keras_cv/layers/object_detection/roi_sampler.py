@@ -174,7 +174,6 @@ class _ROISampler(tf.keras.layers.Layer):
 
     @classmethod
     def from_config(cls, config, custom_objects=None):
-        roi_matcher = box_matcher.ArgmaxBoxMatcher.from_config(
-            config.pop("roi_matcher")
-        )
+        roi_matcher_config = config.pop("roi_matcher")
+        roi_matcher = box_matcher.ArgmaxBoxMatcher(**roi_matcher_config)
         return cls(roi_matcher=roi_matcher, **config)

@@ -95,7 +95,7 @@ class ArgmaxBoxMatcher:
         thresholds.insert(0, -float("inf"))
         thresholds.append(float("inf"))
         self.thresholds = thresholds
-        self._force_match_for_each_col = force_match_for_each_col
+        self.force_match_for_each_col = force_match_for_each_col
 
     def __call__(self, similarity_matrix: tf.Tensor) -> Tuple[tf.Tensor, tf.Tensor]:
         """Matches each row to a column based on argmax
@@ -168,7 +168,7 @@ class ArgmaxBoxMatcher:
                         matched_values, mask, ind
                     )
 
-                if self._force_match_for_each_col:
+                if self.force_match_for_each_col:
                     # [batch_size, num_cols], for each column (groundtruth_box), find the
                     # best matching row (anchor).
                     matching_rows = tf.argmax(
@@ -230,3 +230,11 @@ class ArgmaxBoxMatcher:
         """
         indicator = tf.cast(indicator, x.dtype)
         return tf.add(tf.multiply(x, 1 - indicator), val * indicator)
+
+    def get_config(self):
+        config = {
+            "thresholds": self.thresholds[1:-1],
+            "match_values": self.match_values,
+            "force_match_for_each_col": self.force_match_for_each_col,
+        }
+        return config

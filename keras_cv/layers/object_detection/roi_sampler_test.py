@@ -212,3 +212,16 @@ class ROISamplerTest(tf.test.TestCase):
         gt_classes = gt_classes[..., tf.newaxis]
         with self.assertRaisesRegex(ValueError, "must be less than"):
             _, _, _ = roi_sampler(rois, gt_boxes, gt_classes)
+
+    def test_serialization(self):
+        box_matcher = ArgmaxBoxMatcher(thresholds=[0.95], match_values=[-1, 1])
+        roi_sampler = _ROISampler(
+            bounding_box_format="xyxy",
+            roi_matcher=box_matcher,
+            positive_fraction=0.5,
+            num_sampled_rois=200,
+            append_gt_boxes=True,
+        )
+        sampler_config = roi_sampler.get_config()
+        new_sampler = _ROISampler.from_config(sampler_config)
+        self.assertAllEqual(new_sampler.roi_matcher.match_values, [-1, 1])
