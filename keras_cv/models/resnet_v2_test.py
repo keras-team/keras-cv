@@ -76,7 +76,7 @@ class ResNetV2Test(ModelsTest, tf.test.TestCase, parameterized.TestCase):
             classes=2048,
             input_shape=[256, 256, 3],
         )
-        backbone_model = model.to_backbone_model()
+        backbone_model = model.as_backbone()
         inputs = tf.keras.Input(shape=[256, 256, 3])
         outputs = backbone_model(inputs)
         # Resnet50 backbone has 4 level of features (2 ~ 5)

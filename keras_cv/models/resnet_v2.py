@@ -380,7 +380,7 @@ def ResNetV2(
     # resolution level.
     model._backbone_level_outputs = stack_level_outputs
 
-    def to_backbone_model(self):
+    def as_backbone(self):
         """Convert the Resnet application model into a model backbone for other tasks.
 
         The backbone model will usually take same inputs as the original application
@@ -406,7 +406,7 @@ def ResNetV2(
             )
 
     # Bind the `to_backbone_model` method to the application model.
-    model.to_backbone_model = types.MethodType(to_backbone_model, model)
+    model.as_backbone = types.MethodType(as_backbone, model)
 
     return model
 
