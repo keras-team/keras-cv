@@ -49,6 +49,38 @@ class ResNetV2Test(ModelsTest, tf.test.TestCase, parameterized.TestCase):
     def test_model_can_be_used_as_backbone(self, app, last_dim, args):
         super()._test_model_can_be_used_as_backbone(app, last_dim, args)
 
+    def test_model_backbone_layer_names_stability(self):
+        model = resnet_v2.ResNet50V2(
+            include_rescaling=False, include_top=False, classes=2048,
+            input_shape=[256, 256, 3]
+        )
+        model_2 = resnet_v2.ResNet50V2(
+            include_rescaling=False, include_top=False, classes=2048,
+            input_shape=[256, 256, 3]
+        )
+        layers_1 = model.layers
+        layers_2 = model_2.layers
+        for i in range(len(layers_1)):
+            if 'input' in layers_1[i].name:
+                continue
+            self.assertEquals(layers_1[i].name, layers_2[i].name)
+
+    def test_create_backbone_model_from_application_model(self):
+        model = resnet_v2.ResNet50V2(
+            include_rescaling=False, include_top=False, classes=2048,
+            input_shape=[256, 256, 3]
+        )
+        backbone_model = resnet_v2.create_backbone_model(model)
+        inputs = tf.keras.Input(shape=[256, 256, 3])
+        outputs = backbone_model(inputs)
+        # Resnet50 backbone has 4 level of features (2 ~ 5)
+        self.assertLen(outputs, 4)
+        self.assertEquals(list(outputs.keys()), [2, 3, 4, 5])
+        self.assertEquals(outputs[2].shape, [None, 64, 64, 256])
+        self.assertEquals(outputs[3].shape, [None, 32, 32, 512])
+        self.assertEquals(outputs[4].shape, [None, 16, 16, 1024])
+        self.assertEquals(outputs[5].shape, [None, 8, 8, 2048])
+
 
 if __name__ == "__main__":
     tf.test.main()
