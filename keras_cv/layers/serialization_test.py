@@ -177,14 +177,22 @@ class SerializationTest(tf.test.TestCase, parameterized.TestCase):
             },
         ),
         (
-            "RandomResizedCrop",
-            cv_layers.RandomResizedCrop,
+            "RandomCropAndResize",
+            cv_layers.RandomCropAndResize,
             {
                 "target_size": (224, 224),
-                "crop_area_factor": (0.08, 1.0),
-                "aspect_ratio_factor": (3.0 / 4.0, 4.0 / 3.0),
-                "interpolation": "bilinear",
-                "seed": 1,
+                "crop_area_factor": (0.8, 1.0),
+                "aspect_ratio_factor": (3 / 4, 4 / 3),
+            },
+        ),
+        (
+            "RandomlyZoomedCrop",
+            cv_layers.RandomlyZoomedCrop,
+            {
+                "height": 224,
+                "width": 224,
+                "zoom_factor": (0.8, 1.0),
+                "aspect_ratio_factor": (3 / 4, 4 / 3),
             },
         ),
         (
