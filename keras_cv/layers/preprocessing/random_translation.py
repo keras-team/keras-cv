@@ -122,7 +122,7 @@ class RandomTranslation(BaseImageAugmentationLayer):
         return label
 
     def augment_image(self, image, transformation, **kwargs):
-        return self._translate_image(image, transformation)
+        return self._translate_image(image, transformation, self.interpolation)
 
     def get_random_transformation(self, **kwargs):
         translate_horizontal = 0.0
@@ -136,7 +136,7 @@ class RandomTranslation(BaseImageAugmentationLayer):
             "translate_vertical": tf.cast(translate_vertical, dtype=tf.float32),
         }
 
-    def _translate_image(self, image, transformation):
+    def _translate_image(self, image, transformation, interpolation_method):
         image = preprocessing.ensure_tensor(image, self.compute_dtype)
         image_shape = image.shape
         image_width = tf.cast(image_shape[1], tf.float32)
@@ -152,40 +152,22 @@ class RandomTranslation(BaseImageAugmentationLayer):
             preprocessing.get_translation_matrix(tf.expand_dims(element, axis=0)),
             fill_mode=self.fill_mode,
             fill_value=self.fill_value,
-            interpolation=self.interpolation,
+            interpolation=interpolation_method,
         )
         output = tf.squeeze(output, 0)
         output.set_shape(image_shape)
         return output
 
     @staticmethod
-    def _translate_bounding_boxes_horizontal(bounding_boxes, dx):
+    def _translate_bounding_boxes(bounding_boxes, dx, dy):
         x1, x2, x3, x4, rest = tf.split(
             bounding_boxes, [1, 1, 1, 1, bounding_boxes.shape[-1] - 4], axis=-1
         )
         output = tf.stack(
             [
                 x1 + dx,
-                x2,
-                x3 + dx,
-                x4,
-                rest,
-            ],
-            axis=-1,
-        )
-        output = tf.squeeze(output, axis=1)
-        return output
-
-    @staticmethod
-    def _translate_bounding_boxes_vertical(bounding_boxes, dy):
-        x1, x2, x3, x4, rest = tf.split(
-            bounding_boxes, [1, 1, 1, 1, bounding_boxes.shape[-1] - 4], axis=-1
-        )
-        output = tf.stack(
-            [
-                x1,
                 x2 + dy,
-                x3,
+                x3 + dx,
                 x4 + dy,
                 rest,
             ],
@@ -202,7 +184,7 @@ class RandomTranslation(BaseImageAugmentationLayer):
                 "`RandomTranslation()` was called with bounding boxes,"
                 "but no `bounding_box_format` was specified in the constructor."
                 "Please specify a bounding box format in the constructor. i.e."
-                "`RandomFlip(bounding_box_format='xyxy')`"
+                "`RandomTranslation(bounding_box_format='xyxy')`"
             )
 
         bounding_boxes = bounding_box.convert_format(
@@ -211,12 +193,9 @@ class RandomTranslation(BaseImageAugmentationLayer):
             target="rel_xyxy",
             images=image,
         )
-        bounding_boxes = RandomTranslation._translate_bounding_boxes_horizontal(
+        bounding_boxes = RandomTranslation._translate_bounding_boxes(
             bounding_boxes,
             transformation["translate_horizontal"],
-        )
-        bounding_boxes = RandomTranslation._translate_bounding_boxes_vertical(
-            bounding_boxes,
             transformation["translate_vertical"],
         )
 
@@ -237,7 +216,9 @@ class RandomTranslation(BaseImageAugmentationLayer):
     def augment_segmentation_mask(
         self, segmentation_mask, transformation=None, **kwargs
     ):
-        return self._translate_image(segmentation_mask, transformation)
+        return self._translate_image(
+            segmentation_mask, transformation, interpolation_method="nearest"
+        )
 
     def compute_output_shape(self, input_shape):
         return input_shape
