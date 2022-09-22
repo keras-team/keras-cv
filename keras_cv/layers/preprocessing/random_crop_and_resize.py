@@ -14,6 +14,7 @@
 
 import tensorflow as tf
 
+from keras_cv import bounding_box
 from keras_cv import core
 from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
     BaseImageAugmentationLayer,
@@ -52,6 +53,9 @@ class RandomCropAndResize(BaseImageAugmentationLayer):
             Represents the lower and upper bound for the aspect ratio of the
             cropped image before resizing it to `target_size`.  For most tasks, this
             should be `(3/4, 4/3)`.  To perform a no-op provide the value `(1.0, 1.0)`.
+        bounding_box_format: The format of bounding boxes of input dataset. Refer to
+            https://github.com/keras-team/keras-cv/blob/master/keras_cv/bounding_box/converters.py
+            for more details on supported bounding box formats.
         interpolation: (Optional) A string specifying the sampling method for
             resizing. Defaults to "bilinear".
         seed: (Optional) Used to create a random seed. Defaults to None.
@@ -64,6 +68,7 @@ class RandomCropAndResize(BaseImageAugmentationLayer):
         aspect_ratio_factor,
         interpolation="bilinear",
         seed=None,
+        bounding_box_format=None,
         **kwargs,
     ):
         super().__init__(seed=seed, **kwargs)
@@ -84,7 +89,7 @@ class RandomCropAndResize(BaseImageAugmentationLayer):
             param_name="crop_area_factor",
             seed=seed,
         )
-
+        self.bounding_box_format = bounding_box_format
         self.interpolation = interpolation
         self.seed = seed
 
@@ -142,6 +147,76 @@ class RandomCropAndResize(BaseImageAugmentationLayer):
     def augment_image(self, image, transformation, **kwargs):
         return self._crop_and_resize(image, transformation)
 
+    def augment_target(self, augment_target, **kwargs):
+        return augment_target
+
+    def augment_segmentation_mask(self, segmentation_mask, transformation, **kwargs):
+        return self._crop_and_resize(
+            segmentation_mask, transformation, method="nearest"
+        )
+
+    def augment_bounding_boxes(
+        self, bounding_boxes, transformation, image=None, **kwargs
+    ):
+        if self.bounding_box_format is None:
+            raise ValueError(
+                "`RandomCropAndResize()` was called with bounding boxes,"
+                "but no `bounding_box_format` was specified in the constructor."
+                "Please specify a bounding box format in the constructor. i.e."
+                "`RandomCropAndResize(bounding_box_format='xyxy')`"
+            )
+
+        lower_y, upper_y, lower_x, upper_x = transformation[0]
+
+        bounding_boxes = bounding_box.convert_format(
+            bounding_boxes,
+            source=self.bounding_box_format,
+            target="rel_xyxy",
+            images=image,
+            dtype=self.compute_dtype,
+        )
+
+        x1, y1, x2, y2, rest = tf.split(
+            bounding_boxes, [1, 1, 1, 1, bounding_boxes.shape[-1] - 4], axis=-1
+        )
+
+        clipped_bounding_boxes = tf.concat(
+            [
+                tf.clip_by_value(x1, clip_value_min=lower_x, clip_value_max=upper_x),
+                tf.clip_by_value(y1, clip_value_min=lower_y, clip_value_max=upper_y),
+                tf.clip_by_value(x2, clip_value_min=lower_x, clip_value_max=upper_x),
+                tf.clip_by_value(y2, clip_value_min=lower_y, clip_value_max=upper_y),
+                rest,
+            ],
+            axis=-1,
+        )
+
+        clipped_bounding_boxes = bounding_box.convert_format(
+            clipped_bounding_boxes,
+            source="rel_xyxy",
+            target=self.bounding_box_format,
+            images=image,
+            dtype=self.compute_dtype,
+        )
+        return clipped_bounding_boxes
+
+    def _crop_and_resize(self, image, transformation, method=None):
+        image = tf.expand_dims(image, axis=0)
+        boxes = transformation
+
+        # See bit.ly/tf_crop_resize for more details
+        augmented_image = tf.image.crop_and_resize(
+            image,  # image shape: [B, H, W, C]
+            boxes,  # boxes: (1, 4) in this case; represents area
+            # to be cropped from the original image
+            [0],  # box_indices: maps boxes to images along batch axis
+            # [0] since there is only one image
+            self.target_size,  # output size
+            method=method or self.interpolation,
+        )
+
+        return tf.squeeze(augmented_image, axis=0)
+
     def _resize(self, image, **kwargs):
         outputs = tf.keras.preprocessing.image.smart_resize(
             image, self.target_size, **kwargs
@@ -186,14 +261,6 @@ class RandomCropAndResize(BaseImageAugmentationLayer):
                 f"aspect_ratio_factor={aspect_ratio_factor}"
             )
 
-    def augment_target(self, augment_target, **kwargs):
-        return augment_target
-
-    def augment_segmentation_mask(self, segmentation_mask, transformation, **kwargs):
-        return self._crop_and_resize(
-            segmentation_mask, transformation, method="nearest"
-        )
-
     def get_config(self):
         config = super().get_config()
         config.update(
@@ -206,20 +273,3 @@ class RandomCropAndResize(BaseImageAugmentationLayer):
             }
         )
         return config
-
-    def _crop_and_resize(self, image, transformation, method=None):
-        image = tf.expand_dims(image, axis=0)
-        boxes = transformation
-
-        # See bit.ly/tf_crop_resize for more details
-        augmented_image = tf.image.crop_and_resize(
-            image,  # image shape: [B, H, W, C]
-            boxes,  # boxes: (1, 4) in this case; represents area
-            # to be cropped from the original image
-            [0],  # box_indices: maps boxes to images along batch axis
-            # [0] since there is only one image
-            self.target_size,  # output size
-            method=method or self.interpolation,
-        )
-
-        return tf.squeeze(augmented_image, axis=0)
