@@ -189,9 +189,6 @@ class RandomCropAndResize(BaseImageAugmentationLayer):
                 f"aspect_ratio_factor={aspect_ratio_factor}"
             )
 
-    def augment_target(self, augment_target, **kwargs):
-        return augment_target
-
     def augment_segmentation_mask(self, segmentation_mask, transformation, **kwargs):
         return self._crop_and_resize(
             segmentation_mask, transformation, method="nearest"
