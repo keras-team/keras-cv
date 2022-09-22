@@ -70,8 +70,7 @@ class SimCLRAugmenter(preprocessing.Augmenter):
             [
                 preprocessing.RandomFlip("horizontal"),
                 preprocessing.RandomCropAndResize(
-                    height=height,
-                    width=width,
+                    target_size=(height, width),
                     crop_area_factor=crop_area_factor,
                     aspect_ratio_factor=aspect_ratio_factor,
                 ),
