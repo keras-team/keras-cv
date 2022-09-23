@@ -159,20 +159,95 @@ class RandomTranslation(BaseImageAugmentationLayer):
         return output
 
     @staticmethod
+    def _transform_bounding_boxes(bounding_boxes, dx, dy, fill_mode):
+        output = RandomTranslation._translate_bounding_boxes(bounding_boxes, dx, dy)
+        if fill_mode == "reflect":
+            output_reflected_x = tf.cond(
+                dx != 0,
+                lambda: tf.cond(
+                    dx > 0,
+                    lambda: RandomTranslation._reflect_bbox_coordinates(
+                        bounding_boxes, dx=0, dy=None
+                    ),
+                    lambda: RandomTranslation._reflect_bbox_coordinates(
+                        bounding_boxes, dx=1, dy=None
+                    ),
+                ),
+                lambda: bounding_boxes,
+            )
+            output_reflected_translated_x = RandomTranslation._translate_bounding_boxes(
+                output_reflected_x, dx, 0
+            )
+            output_reflected_y = tf.cond(
+                dy != 0,
+                lambda: tf.cond(
+                    dy > 0,
+                    lambda: RandomTranslation._reflect_bbox_coordinates(
+                        output_reflected_translated_x, dx=None, dy=0
+                    ),
+                    lambda: RandomTranslation._reflect_bbox_coordinates(
+                        output_reflected_translated_x, dx=None, dy=1
+                    ),
+                ),
+                lambda: output_reflected_translated_x,
+            )
+
+            output_reflected_translated_y = RandomTranslation._translate_bounding_boxes(
+                output_reflected_y, 0, dy
+            )
+            output = tf.concat(
+                [output, output_reflected_translated_y],
+                axis=0,
+            )
+
+        return output
+
+    @staticmethod
     def _translate_bounding_boxes(bounding_boxes, dx, dy):
-        x1, x2, x3, x4, rest = tf.split(
+        x1, y1, x2, y2, rest = tf.split(
             bounding_boxes, [1, 1, 1, 1, bounding_boxes.shape[-1] - 4], axis=-1
         )
         output = tf.stack(
             [
                 x1 + dx,
-                x2 + dy,
-                x3 + dx,
-                x4 + dy,
+                y1 + dy,
+                x2 + dx,
+                y2 + dy,
                 rest,
             ],
             axis=-1,
         )
+        output = tf.squeeze(output, axis=1)
+        return output
+
+    @staticmethod
+    def _reflect_bbox_coordinates(bounding_boxes, dx=None, dy=None):
+        x1, y1, x2, y2, rest = tf.split(
+            bounding_boxes, [1, 1, 1, 1, bounding_boxes.shape[-1] - 4], axis=-1
+        )
+        if dx is not None:
+            output = tf.stack(
+                [
+                    2 * dx - x2,
+                    y1,
+                    2 * dx - x1,
+                    y2,
+                    rest,
+                ],
+                axis=-1,
+            )
+
+        if dy is not None:
+            output = tf.stack(
+                [
+                    x1,
+                    2 * dy - y2,
+                    x2,
+                    2 * dy - y1,
+                    rest,
+                ],
+                axis=-1,
+            )
         output = tf.squeeze(output, axis=1)
         return output
 
@@ -193,10 +268,11 @@ class RandomTranslation(BaseImageAugmentationLayer):
             target="rel_xyxy",
             images=image,
         )
-        bounding_boxes = RandomTranslation._translate_bounding_boxes(
+        bounding_boxes = RandomTranslation._transform_bounding_boxes(
             bounding_boxes,
             transformation["translate_horizontal"],
             transformation["translate_vertical"],
+            self.fill_mode,
         )
 
         bounding_boxes = bounding_box.clip_to_image(

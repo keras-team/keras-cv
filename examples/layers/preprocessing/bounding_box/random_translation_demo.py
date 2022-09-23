@@ -28,9 +28,9 @@ def main():
     dataset = demo_utils.load_voc_dataset(bounding_box_format="rel_xyxy")
     random_translation = preprocessing.RandomTranslation(
         bounding_box_format="rel_xyxy",
-        fill_mode="constant",
-        x_factor=0.5,
-        y_factor=0.5,
+        fill_mode="reflect",
+        y_factor=[0.5, 0.5],
+        x_factor=[0.5, 0.5],
     )
     result = dataset.map(random_translation, num_parallel_calls=tf.data.AUTOTUNE)
     demo_utils.visualize_data(result, bounding_box_format="rel_xyxy")

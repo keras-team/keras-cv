@@ -209,15 +209,22 @@ class RandomTranslationTest(tf.test.TestCase, parameterized.TestCase):
         self.assertAllClose(bboxes, output_bboxes)
         self.assertAllClose(images, output_images)
 
-    def test_translation_with_reflect(self):
+    def test_translation_up_with_reflect(self):
         input_image = np.reshape(np.arange(0, 25), (1, 5, 5, 1))
+        bboxes = np.array(
+            [0.0, 0.0, 1.0, 1.0, 0.0],
+        ).reshape((1, 1, 5))
         # Shift by 2 pixels up
         layer = RandomTranslation(
-            y_factor=(-0.4, -0.4), x_factor=(0, 0), fill_mode="reflect"
+            y_factor=(-0.4, -0.4),
+            x_factor=(0, 0),
+            fill_mode="reflect",
+            bounding_box_format="rel_xyxy",
         )
-        output_image = layer(input_image)
+        outputs = layer({"images": input_image, "bounding_boxes": bboxes})
+        output_images, output_bboxes = outputs["images"], outputs["bounding_boxes"]
 
-        expected_output = np.reshape(
+        expected_image = np.reshape(
             np.asarray(
                 [
                     [10, 11, 12, 13, 14],
@@ -229,19 +236,143 @@ class RandomTranslationTest(tf.test.TestCase, parameterized.TestCase):
             ),
             (1, 5, 5, 1),
         )
-        self.assertAllEqual(expected_output, output_image)
+        expected_bboxes = np.array(
+            [
+                [0.0, 0.0, 1.0, 0.6, 0.0],
+                [0.0, 0.6, 1.0, 1.0, 0.0],
+            ]
+        ).reshape((1, 2, 5))
+        self.assertAllCloseAccordingToType(expected_image, output_images)
+        self.assertAllCloseAccordingToType(expected_bboxes, output_bboxes)
+
+    def test_translation_down_with_reflect(self):
+        input_image = np.reshape(np.arange(0, 25), (1, 5, 5, 1))
+        bboxes = np.array(
+            [0.0, 0.0, 1.0, 1.0, 0.0],
+        ).reshape((1, 1, 5))
+        # Shift by 2 pixels down
+        layer = RandomTranslation(
+            y_factor=(0.4, 0.4),
+            x_factor=(0, 0),
+            fill_mode="reflect",
+            bounding_box_format="rel_xyxy",
+        )
+        outputs = layer({"images": input_image, "bounding_boxes": bboxes})
+        output_images, output_bboxes = outputs["images"], outputs["bounding_boxes"]
+
+        expected_image = np.reshape(
+            np.asarray(
+                [
+                    [5, 6, 7, 8, 9],
+                    [0, 1, 2, 3, 4],
+                    [0, 1, 2, 3, 4],
+                    [5, 6, 7, 8, 9],
+                    [10, 11, 12, 13, 14],
+                ]
+            ),
+            (1, 5, 5, 1),
+        )
+        expected_bboxes = np.array(
+            [
+                [0.0, 0.4, 1.0, 1.0, 0.0],
+                [0.0, 0.0, 1.0, 0.4, 0.0],
+            ]
+        ).reshape((1, 2, 5))
+        self.assertAllCloseAccordingToType(expected_image, output_images)
+        self.assertAllCloseAccordingToType(expected_bboxes, output_bboxes)
+
+    def test_translation_right_with_reflect(self):
+        input_image = np.reshape(np.arange(0, 25), (1, 5, 5, 1))
+        bboxes = np.array(
+            [0.0, 0.0, 1.0, 1.0, 0.0],
+        ).reshape((1, 1, 5))
+        # Shift by 2 pixels right
+        layer = RandomTranslation(
+            y_factor=(0.0, 0.0),
+            x_factor=(0.4, 0.4),
+            fill_mode="reflect",
+            bounding_box_format="rel_xyxy",
+        )
+        outputs = layer({"images": input_image, "bounding_boxes": bboxes})
+        output_images, output_bboxes = outputs["images"], outputs["bounding_boxes"]
+
+        expected_image = np.reshape(
+            np.asarray(
+                [
+                    [5, 6, 7, 8, 9],
+                    [0, 1, 2, 3, 4],
+                    [0, 1, 2, 3, 4],
+                    [5, 6, 7, 8, 9],
+                    [10, 11, 12, 13, 14],
+                ]
+            ),
+            (1, 5, 5, 1),
+        )
+        expected_bboxes = np.array(
+            [
+                [0.0, 0.4, 1.0, 1.0, 0.0],
+                [0.0, 0.0, 1.0, 0.4, 0.0],
+            ]
+        ).reshape((1, 2, 5))
+
+        self.assertTrue(False)  # TODO add correct expected BBoxes
+        self.assertAllCloseAccordingToType(expected_image, output_images)
+        self.assertAllCloseAccordingToType(expected_bboxes, output_bboxes)
+
+    def test_translation_down_and_right_with_reflect(self):
+        input_image = np.reshape(np.arange(0, 25), (1, 5, 5, 1))
+        bboxes = np.array(
+            [0.0, 0.0, 1.0, 1.0, 0.0],
+        ).reshape((1, 1, 5))
+        # Shift by 2 pixels down
+        layer = RandomTranslation(
+            y_factor=(0.4, 0.4),
+            x_factor=(0.4, 0.4),
+            fill_mode="reflect",
+            bounding_box_format="rel_xyxy",
+        )
+        outputs = layer({"images": input_image, "bounding_boxes": bboxes})
+        output_images, output_bboxes = outputs["images"], outputs["bounding_boxes"]
+
+        expected_image = np.reshape(
+            np.asarray(
+                [
+                    [5, 6, 7, 8, 9],
+                    [0, 1, 2, 3, 4],
+                    [0, 1, 2, 3, 4],
+                    [5, 6, 7, 8, 9],
+                    [10, 11, 12, 13, 14],
+                ]
+            ),
+            (1, 5, 5, 1),
+        )
+        expected_bboxes = np.array(
+            [
+                [0.0, 0.4, 1.0, 1.0, 0.0],
+                [0.0, 0.0, 1.0, 0.4, 0.0],
+            ]
+        ).reshape((1, 2, 5))
+        self.assertTrue(False)  # TODO add correct expected BBoxes and image
+        self.assertAllCloseAccordingToType(expected_image, output_images)
+        self.assertAllCloseAccordingToType(expected_bboxes, output_bboxes)
 
     def test_translation_with_constant(self):
-        input_image = np.reshape(np.arange(0, 25), (1, 5, 5, 1))
+        input_image = np.arange(0, 25).reshape((1, 5, 5, 1))
+        bboxes = np.array(
+            [0.0, 0.0, 1.0, 1.0, 0.0],
+            dtype=np.float32,
+        ).reshape((1, 1, 5))
         # Shift by 2 pixels up
         layer = RandomTranslation(
             y_factor=(-0.4, -0.4),
             x_factor=(0, 0),
             fill_mode="constant",
             fill_value=0,
+            bounding_box_format="rel_xyxy",
         )
-        output_image = layer(input_image)
-        expected_output = np.reshape(
+        outputs = layer({"images": input_image, "bounding_boxes": bboxes})
+        output_images, output_bboxes = outputs["images"], outputs["bounding_boxes"]
+        expected_image = np.reshape(
             np.asarray(
                 [
                     [10, 11, 12, 13, 14],
@@ -253,16 +384,28 @@ class RandomTranslationTest(tf.test.TestCase, parameterized.TestCase):
             ),
             (1, 5, 5, 1),
         )
-        self.assertAllEqual(expected_output, output_image)
+        expected_bboxes = np.array(
+            [0.0, 0.0, 1.0, 0.6, 0.0],
+            dtype=np.float32,
+        ).reshape((1, 1, 5))
+        self.assertAllEqual(expected_image, output_images)
+        self.assertAllEqual(expected_bboxes, output_bboxes)
 
     def test_translation_with_wrap(self):
         input_image = np.reshape(np.arange(0, 25), (1, 5, 5, 1))
+        bboxes = np.array([0.0, 0.0, 1.0, 1.0, 0.0], dtype=np.float32).reshape(
+            (1, 1, 5)
+        )
         # Shift by 2 pixels up
         layer = RandomTranslation(
-            y_factor=(-0.4, -0.4), x_factor=(0, 0), fill_mode="wrap"
+            y_factor=(-0.4, -0.4),
+            x_factor=(0, 0),
+            fill_mode="wrap",
+            bounding_box_format="rel_xyxy",
         )
-        output_image = layer(input_image)
-        expected_output = np.reshape(
+        outputs = layer({"images": input_image, "bounding_boxes": bboxes})
+        output_images, output_bboxes = outputs["images"], outputs["bounding_boxes"]
+        expected_image = np.reshape(
             np.asarray(
                 [
                     [10, 11, 12, 13, 14],
@@ -274,7 +417,13 @@ class RandomTranslationTest(tf.test.TestCase, parameterized.TestCase):
             ),
             (1, 5, 5, 1),
         )
-        self.assertAllEqual(expected_output, output_image)
+        expected_bboxes = np.array(
+            [0.0, 0.0, 1.0, 0.6, 0.0],
+            [0.0, 0.6, 1.0, 1.0, 0.0],
+            dtype=np.float32,
+        ).reshape((1, 2, 5))
+        self.assertAllEqual(expected_image, output_images)
+        self.assertAllEqual(expected_bboxes, output_bboxes)
 
     def test_translation_with_nearest(self):
         input_image = np.reshape(np.arange(0, 25), (1, 5, 5, 1))
