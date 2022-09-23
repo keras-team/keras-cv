@@ -30,24 +30,22 @@ class ArgmaxBoxMatcher:
     The settings include `thresholds` and `match_values`, for example if:
     1) thresholds=[negative_threshold, positive_threshold], and
        match_values=[negative_value=0, ignore_value=-1, positive_value=1]: the rows will
-       be assigned to positive_value if its argmax result is above
+       be assigned to positive_value if its argmax result >=
        positive_threshold; the rows will be assigned to negative_value if its
-       argmax result is below negative_threshold, and the rows will be assigned
-       to ignore_value if its argmax result is between negative_threshold and
-       positive_threshold.
+       argmax result < negative_threshold, and the rows will be assigned
+       to ignore_value if its argmax result is between [negative_threshold, positive_threshold).
     2) thresholds=[negative_threshold, positive_threshold], and
        match_values=[ignore_value=-1, negative_value=0, positive_value=1]: the rows will
-       be assigned to positive_value if its argmax result is above
+       be assigned to positive_value if its argmax result >=
        positive_threshold; the rows will be assigned to ignore_value if its
-       argmax result is below negative_threshold, and the rows will be assigned
-       to negative_value if its argmax result is between negative_threshold and
-       positive_threshold. This is different from case 1) by swapping first two
+       argmax result < negative_threshold, and the rows will be assigned
+       to negative_value if its argmax result is between [negative_threshold ,positive_threshold).
+       This is different from case 1) by swapping first two
        values.
     3) thresholds=[positive_threshold], and
        match_values=[negative_values, positive_value]: the rows will be assigned to
-       positive value if its argmax result is above positive_threshold; the rows
-       will be assigned to negative_value if its argmax result is below
-       negative_threshold.
+       positive value if its argmax result >= positive_threshold; the rows
+       will be assigned to negative_value if its argmax result < negative_threshold.
 
     Args:
         thresholds: A sorted list of floats to classify the matches into
@@ -97,7 +95,7 @@ class ArgmaxBoxMatcher:
         thresholds.insert(0, -float("inf"))
         thresholds.append(float("inf"))
         self.thresholds = thresholds
-        self._force_match_for_each_col = force_match_for_each_col
+        self.force_match_for_each_col = force_match_for_each_col
 
     def __call__(self, similarity_matrix: tf.Tensor) -> Tuple[tf.Tensor, tf.Tensor]:
         """Matches each row to a column based on argmax
@@ -170,7 +168,7 @@ class ArgmaxBoxMatcher:
                         matched_values, mask, ind
                     )
 
-                if self._force_match_for_each_col:
+                if self.force_match_for_each_col:
                     # [batch_size, num_cols], for each column (groundtruth_box), find the
                     # best matching row (anchor).
                     matching_rows = tf.argmax(
@@ -232,3 +230,11 @@ class ArgmaxBoxMatcher:
         """
         indicator = tf.cast(indicator, x.dtype)
         return tf.add(tf.multiply(x, 1 - indicator), val * indicator)
+
+    def get_config(self):
+        config = {
+            "thresholds": self.thresholds[1:-1],
+            "match_values": self.match_values,
+            "force_match_for_each_col": self.force_match_for_each_col,
+        }
+        return config
