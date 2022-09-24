@@ -14,6 +14,8 @@ from keras_cv.models.generative.stable_diffusion.constants import (
     _ALPHAS_CUMPROD,
 )
 
+MAX_PROMPT_LENGTH = 77
+
 
 class StableDiffusion:
     def __init__(self, img_height=512, img_width=512, jit_compile=False):
@@ -21,10 +23,29 @@ class StableDiffusion:
         self.img_width = img_width
         self.tokenizer = SimpleTokenizer()
 
-        text_encoder, diffusion_model, decoder = get_models(img_height, img_width)
-        self.text_encoder = text_encoder
-        self.diffusion_model = diffusion_model
-        self.decoder = decoder
+        # Create models
+        self.text_encoder = TextEncoder(MAX_PROMPT_LENGTH)
+        self.diffusion_model = DiffusionModel(img_height, img_width, MAX_PROMPT_LENGTH)
+        self.decoder = Decoder(img_height, img_width)
+
+        # Load weights
+        text_encoder_weights_fpath = keras.utils.get_file(
+            origin="https://huggingface.co/fchollet/stable-diffusion/resolve/main/kcv_encoder.h5",
+            file_hash="4789e63e07c0e54d6a34a29b45ce81ece27060c499a709d556c7755b42bb0dc4",
+        )
+        diffusion_model_weights_fpath = keras.utils.get_file(
+            origin="https://huggingface.co/fchollet/stable-diffusion/resolve/main/kcv_diffusion_model.h5",
+            file_hash="8799ff9763de13d7f30a683d653018e114ed24a6a819667da4f5ee10f9e805fe",
+        )
+        decoder_weights_fpath = keras.utils.get_file(
+            origin="https://huggingface.co/fchollet/stable-diffusion/resolve/main/kcv_decoder.h5",
+            file_hash="ad350a65cc8bc4a80c8103367e039a3329b4231c2469a1093869a345f55b1962",
+        )
+
+        self.text_encoder.load_weights(text_encoder_weights_fpath)
+        self.diffusion_model.load_weights(diffusion_model_weights_fpath)
+        self.decoder.load_weights(decoder_weights_fpath)
+
         if jit_compile:
             self.text_encoder.compile(jit_compile=True)
             self.diffusion_model.compile(jit_compile=True)
@@ -41,13 +62,14 @@ class StableDiffusion:
     ):
         # Tokenize prompt (i.e. starting context)
         inputs = self.tokenizer.encode(prompt)
-        assert len(inputs) < 77, "Prompt is too long (should be < 77 tokens)"
-        phrase = inputs + [49407] * (77 - len(inputs))
+        if len(inputs) > MAX_PROMPT_LENGTH:
+            raise ValueError(f"Prompt is too long (should be <= {MAX_PROMPT_LENGTH} tokens)")
+        phrase = inputs + [49407] * (MAX_PROMPT_LENGTH - len(inputs))
         phrase = np.array(phrase)[None].astype("int32")
         phrase = np.repeat(phrase, batch_size, axis=0)
 
         # Encode prompt tokens (and their positions) into a "context vector"
-        pos_ids = np.array(list(range(77)))[None].astype("int32")
+        pos_ids = np.array(list(range(MAX_PROMPT_LENGTH)))[None].astype("int32")
         pos_ids = np.repeat(pos_ids, batch_size, axis=0)
         context = self.text_encoder.predict_on_batch([phrase, pos_ids])
 
@@ -68,7 +90,7 @@ class StableDiffusion:
         progbar = tqdm(list(enumerate(timesteps))[::-1])
         for index, timestep in progbar:
             progbar.set_description(f"{index:3d} {timestep:3d}")
-            e_t = self.get_model_output(
+            e_t = self.diffusion_step(
                 latent,
                 timestep,
                 context,
@@ -77,7 +99,7 @@ class StableDiffusion:
                 batch_size,
             )
             a_t, a_prev = alphas[index], alphas_prev[index]
-            latent, pred_x0 = self.get_x_prev_and_pred_x0(
+            latent, _ = self.get_x_prev_and_pred_x0(
                 latent, e_t, index, a_t, a_prev, temperature, seed
             )
 
@@ -95,7 +117,7 @@ class StableDiffusion:
         embedding = np.concatenate([np.cos(args), np.sin(args)])
         return tf.convert_to_tensor(embedding.reshape(1, -1))
 
-    def get_model_output(
+    def diffusion_step(
         self,
         latent,
         t,
@@ -133,35 +155,6 @@ class StableDiffusion:
         alphas_prev = [1.0] + alphas[:-1]
         latent = tf.random.normal((batch_size, n_h, n_w, 4), seed=seed)
         return latent, alphas, alphas_prev
-
-
-def get_models(img_height, img_width, max_text_length=77):
-    # Create text encoder
-    text_encoder = TextEncoder(max_text_length)
-
-    # Creation diffusion UNet
-    diffusion_model = DiffusionModel(img_height, img_width, max_text_length)
-
-    # Create decoder
-    decoder = Decoder(img_height, img_width)
-
-    text_encoder_weights_fpath = keras.utils.get_file(
-        origin="https://huggingface.co/fchollet/stable-diffusion/resolve/main/kcv_encoder.h5",
-        file_hash="4789e63e07c0e54d6a34a29b45ce81ece27060c499a709d556c7755b42bb0dc4",
-    )
-    diffusion_model_weights_fpath = keras.utils.get_file(
-        origin="https://huggingface.co/fchollet/stable-diffusion/resolve/main/kcv_diffusion_model.h5",
-        file_hash="8799ff9763de13d7f30a683d653018e114ed24a6a819667da4f5ee10f9e805fe",
-    )
-    decoder_weights_fpath = keras.utils.get_file(
-        origin="https://huggingface.co/fchollet/stable-diffusion/resolve/main/kcv_decoder.h5",
-        file_hash="ad350a65cc8bc4a80c8103367e039a3329b4231c2469a1093869a345f55b1962",
-    )
-
-    text_encoder.load_weights(text_encoder_weights_fpath)
-    diffusion_model.load_weights(diffusion_model_weights_fpath)
-    decoder.load_weights(decoder_weights_fpath)
-    return text_encoder, diffusion_model, decoder
 
 
 if __name__ == "__main__":
