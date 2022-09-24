@@ -19,6 +19,7 @@ from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
     BaseImageAugmentationLayer,
 )
 from keras_cv.utils import preprocessing
+from keras_cv import bounding_box
 
 
 @tf.keras.utils.register_keras_serializable(package="keras_cv")
@@ -63,6 +64,7 @@ class RandomCropAndResize(BaseImageAugmentationLayer):
         crop_area_factor,
         aspect_ratio_factor,
         interpolation="bilinear",
+        bounding_box_format=None,
         seed=None,
         **kwargs,
     ):
@@ -84,7 +86,8 @@ class RandomCropAndResize(BaseImageAugmentationLayer):
             param_name="crop_area_factor",
             seed=seed,
         )
-
+        self.resizing
+        self.bounding_box_format = bounding_box_format
         self.interpolation = interpolation
         self.seed = seed
 
@@ -94,10 +97,8 @@ class RandomCropAndResize(BaseImageAugmentationLayer):
         crop_area_factor = self.crop_area_factor()
         aspect_ratio = self.aspect_ratio_factor()
 
-        new_height = tf.clip_by_value(
-            tf.sqrt(crop_area_factor / aspect_ratio), 0.0, 1.0
-        )  # to avoid unwanted/unintuitive effects
-        new_width = tf.clip_by_value(tf.sqrt(crop_area_factor * aspect_ratio), 0.0, 1.0)
+        new_height = tf.sqrt(crop_area_factor / aspect_ratio)
+        new_width = tf.sqrt(crop_area_factor * aspect_ratio)
 
         height_offset = self._random_generator.random_uniform(
             (),
@@ -117,8 +118,13 @@ class RandomCropAndResize(BaseImageAugmentationLayer):
         y2 = height_offset + new_height
         x1 = width_offset
         x2 = width_offset + new_width
-
-        return [[y1, x1, y2, x2]]
+        return {
+            "x1": x1,
+            "y1": y1,
+            "x2": x2,
+            "y2": y2,
+            "aspect_ratio_distortion": aspect_ratio,
+        }
 
     def call(self, inputs, training=True):
 
@@ -132,6 +138,11 @@ class RandomCropAndResize(BaseImageAugmentationLayer):
             # unbatched
             output["images"] = self._resize(inputs["images"])
 
+            if "bounding_boxes" in inputs:
+                output["bounding_boxes"] = self._resize_bounding_boxes(
+                    inputs["bounding_boxes"]
+                )
+
             if "segmentation_masks" in inputs:
                 output["segmentation_masks"] = self._resize(
                     inputs["segmentation_masks"], interpolation="nearest"
@@ -140,7 +151,15 @@ class RandomCropAndResize(BaseImageAugmentationLayer):
             return self._format_output(output, meta_data)
 
     def augment_image(self, image, transformation, **kwargs):
-        return self._crop_and_resize(image, transformation)
+        crop_box = [
+            [
+                transformation["y1"],
+                transformation["x1"],
+                transformation["y2"],
+                transformation["x2"],
+            ]
+        ]
+        return self._crop_and_resize(image, crop_box)
 
     def augment_target(self, target, **kwargs):
         return target
@@ -190,9 +209,60 @@ class RandomCropAndResize(BaseImageAugmentationLayer):
             )
 
     def augment_segmentation_mask(self, segmentation_mask, transformation, **kwargs):
+        crop_box = [
+            [
+                transformation["y1"],
+                transformation["x1"],
+                transformation["y2"],
+                transformation["x2"],
+            ]
+        ]
         return self._crop_and_resize(
             segmentation_mask, transformation, method="nearest"
         )
+
+    def augment_bounding_boxes(self, bounding_boxes, transformation, image, **args):
+        if self.bounding_box_format is None:
+            raise ValueError(
+                "`RandomCropAndResize` requires `bounding_box_format` "
+                "to be specified when augmenting bounding boxes.  Please provide one "
+                "when constructing `RandomCropAndResize()`, i.e. "
+                "`RandomCropAndResize(bounding_box_format='xywh')`."
+            )
+
+        original_shape = tf.shape(image)
+        final_image_shape = [
+            tf.cast(original_shape[0], tf.float32) * (transformation["y2"] - transformation["y1"]),
+            tf.cast(original_shape[1], tf.float32) * (transformation["x2"] - transformation["x1"]),
+            # the 3 is unused
+            3,
+        ]
+        bounding_boxes = bounding_box.convert_format(
+            bounding_boxes,
+            source=self.bounding_box_format,
+            target="rel_xyxy",
+            # pass in image_shape to prevent an extra tf.shape() call
+            image_shape=original_shape,
+        )
+        x1, y1, x2, y2, rest = tf.split(
+            bounding_boxes, [1, 1, 1, 1, bounding_boxes.shape[-1] - 4], axis=-1
+        )
+        x1 = x1 - transformation['x1']
+        x2 = x2 - transformation['x1']
+        y1 = y1 - transformation['y1']
+        y2 = y2 - transformation['y1']
+
+        bounding_boxes = tf.concat([x1, y1, x2, y2, rest], axis=-1)
+        bounding_boxes = bounding_box.clip_to_image(
+            bounding_boxes, image_shape=final_image_shape, bounding_box_format="rel_xyxy",
+        )
+        bounding_boxes = bounding_box.convert_format(
+            bounding_boxes,
+            source="rel_xyxy",
+            target=self.bounding_box_format,
+            image_shape=final_image_shape,
+        )
+        return bounding_boxes
 
     def get_config(self):
         config = super().get_config()
@@ -207,13 +277,11 @@ class RandomCropAndResize(BaseImageAugmentationLayer):
         )
         return config
 
-    def _crop_and_resize(self, image, transformation, method=None):
+    def _crop_and_resize(self, image, boxes, method=None):
         image = tf.expand_dims(image, axis=0)
-        boxes = transformation
-
         # See bit.ly/tf_crop_resize for more details
         augmented_image = tf.image.crop_and_resize(
-            image,  # image shape: [B, H, W, C]
+            image,  # image shape: [1, H, W, C]
             boxes,  # boxes: (1, 4) in this case; represents area
             # to be cropped from the original image
             [0],  # box_indices: maps boxes to images along batch axis
