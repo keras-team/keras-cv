@@ -12,10 +12,10 @@ from keras_cv.models.generative.stable_diffusion.__internal__.layers.group_norma
 class DiffusionModel(keras.Model):
     def __init__(self, img_height, img_width, max_text_length, name=None):
         context = keras.layers.Input((max_text_length, 768))
-        embed_input = keras.layers.Input((320,))
+        t_embed_input = keras.layers.Input((320,))
         latent = keras.layers.Input((img_height // 8, img_width // 8, 4))
 
-        t_emb = keras.layers.Dense(1280)(embed_input)
+        t_emb = keras.layers.Dense(1280)(t_embed_input)
         t_emb = keras.layers.Activation("swish")(t_emb)
         t_emb = keras.layers.Dense(1280)(t_emb)
 
@@ -86,23 +86,23 @@ class DiffusionModel(keras.Model):
         x = keras.layers.Activation("swish")(x)
         output = PaddedConv2D(4, kernel_size=3, padding=1)(x)
 
-        super().__init__([latent, embed_input, context], output, name=name)
+        super().__init__([latent, t_embed_input, context], output, name=name)
 
 
 class ResBlock(keras.layers.Layer):
     def __init__(self, output_dim, **kwargs):
         super().__init__(**kwargs)
         self.output_dim = output_dim
-        self.in_layers = [
+        self.entry_flow = [
             GroupNormalization(epsilon=1e-5),
             keras.layers.Activation("swish"),
             PaddedConv2D(output_dim, 3, padding=1),
         ]
-        self.emb_layers = [
+        self.embedding_flow = [
             keras.layers.Activation("swish"),
             keras.layers.Dense(output_dim),
         ]
-        self.out_layers = [
+        self.exit_flow = [
             GroupNormalization(epsilon=1e-5),
             keras.layers.Activation("swish"),
             PaddedConv2D(output_dim, 3, padding=1),
@@ -115,14 +115,14 @@ class ResBlock(keras.layers.Layer):
             self.residual_projection = lambda x: x
 
     def call(self, inputs):
-        inputs, emb = inputs
+        inputs, embeddings = inputs
         x = inputs
-        for layer in self.in_layers:
+        for layer in self.entry_flow:
             x = layer(x)
-        for layer in self.emb_layers:
-            emb = layer(emb)
-        x = x + emb[:, None, None]
-        for layer in self.out_layers:
+        for layer in self.embedding_flow:
+            embeddings = layer(embeddings)
+        x = x + embeddings[:, None, None]
+        for layer in self.exit_flow:
             x = layer(x)
         return x + self.residual_projection(inputs)
 
@@ -132,19 +132,19 @@ class SpatialTransformer(keras.layers.Layer):
         super().__init__(**kwargs)
         self.norm = GroupNormalization(epsilon=1e-5)
         channels = num_heads * head_size
-        self.proj_in = PaddedConv2D(num_heads * head_size, 1)
+        self.conv1 = PaddedConv2D(num_heads * head_size, 1)
         self.transformer_block = BasicTransformerBlock(channels, num_heads, head_size)
-        self.proj_out = PaddedConv2D(channels, 1)
+        self.conv2 = PaddedConv2D(channels, 1)
 
     def call(self, inputs):
         inputs, context = inputs
         _, h, w, c = inputs.shape
         x = self.norm(inputs)
-        x = self.proj_in(x)
+        x = self.conv1(x)
         x = tf.reshape(x, (-1, h * w, c))
         x = self.transformer_block([x, context])
         x = tf.reshape(x, (-1, h, w, c))
-        return self.proj_out(x) + inputs
+        return self.conv2(x) + inputs
 
 
 class BasicTransformerBlock(keras.layers.Layer):
