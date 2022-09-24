@@ -106,8 +106,8 @@ class SimpleTokenizer:
 
     def _create_pat(self):
         return re.compile(
-            "|".join([re.escape(key) for key in self.special_tokens.keys()]) +
-            r"""|'s|'t|'re|'ve|'m|'ll|'d|[\p{L}]+|[\p{N}]|[^\s\p{L}\p{N}]+""",
+            "|".join([re.escape(key) for key in self.special_tokens.keys()])
+            + r"""|'s|'t|'re|'ve|'m|'ll|'d|[\p{L}]+|[\p{N}]|[^\s\p{L}\p{N}]+""",
             re.IGNORECASE,
         )
 
