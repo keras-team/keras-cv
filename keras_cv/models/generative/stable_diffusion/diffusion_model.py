@@ -21,28 +21,28 @@ class DiffusionModel(keras.Model):
         x1 = x
 
         x = ResBlock(320)([x, t_emb])
-        x = SpatialTransformer(320, 8, 40)([x, context])
+        x = SpatialTransformer(8, 40)([x, context])
         x2 = x
         x = ResBlock(320)([x, t_emb])
-        x = SpatialTransformer(320, 8, 40)([x, context])
+        x = SpatialTransformer(8, 40)([x, context])
         x3 = x
         x = Downsample(320)(x)
         x4 = x
 
         x = ResBlock(640)([x, t_emb])
-        x = SpatialTransformer(640, 8, 80)([x, context])
+        x = SpatialTransformer(8, 80)([x, context])
         x5 = x
         x = ResBlock(640)([x, t_emb])
-        x = SpatialTransformer(640, 8, 80)([x, context])
+        x = SpatialTransformer(8, 80)([x, context])
         x6 = x
         x = Downsample(640)(x)
         x7 = x
 
         x = ResBlock(1280)([x, t_emb])
-        x = SpatialTransformer(1280, 8, 160)([x, context])
+        x = SpatialTransformer(8, 160)([x, context])
         x8 = x
         x = ResBlock(1280)([x, t_emb])
-        x = SpatialTransformer(1280, 8, 160)([x, context])
+        x = SpatialTransformer(8, 160)([x, context])
         x9 = x
         x = Downsample(1280)(x)
         x10 = x
@@ -55,7 +55,7 @@ class DiffusionModel(keras.Model):
         # Middle flow
 
         x = ResBlock(1280)([x, t_emb])
-        x = SpatialTransformer(1280, 8, 160)([x, context])
+        x = SpatialTransformer(8, 160)([x, context])
         x = ResBlock(1280)([x, t_emb])
 
         # Upsampling flow
@@ -72,41 +72,41 @@ class DiffusionModel(keras.Model):
 
         x = keras.layers.Concatenate()([x, x9])
         x = ResBlock(1280)([x, t_emb])
-        x = SpatialTransformer(1280, 8, 160)([x, context])
+        x = SpatialTransformer(8, 160)([x, context])
 
         x = keras.layers.Concatenate()([x, x8])
         x = ResBlock(1280)([x, t_emb])
-        x = SpatialTransformer(1280, 8, 160)([x, context])
+        x = SpatialTransformer(8, 160)([x, context])
 
         x = keras.layers.Concatenate()([x, x7])
         x = ResBlock(1280)([x, t_emb])
-        x = SpatialTransformer(1280, 8, 160)([x, context])
+        x = SpatialTransformer(8, 160)([x, context])
         x = Upsample(1280)(x)
 
         x = keras.layers.Concatenate()([x, x6])
         x = ResBlock(640)([x, t_emb])
-        x = SpatialTransformer(640, 8, 80)([x, context])
+        x = SpatialTransformer(8, 80)([x, context])
 
         x = keras.layers.Concatenate()([x, x5])
         x = ResBlock(640)([x, t_emb])
-        x = SpatialTransformer(640, 8, 80)([x, context])
+        x = SpatialTransformer(8, 80)([x, context])
 
         x = keras.layers.Concatenate()([x, x4])
         x = ResBlock(640)([x, t_emb])
-        x = SpatialTransformer(640, 8, 80)([x, context])
+        x = SpatialTransformer(8, 80)([x, context])
         x = Upsample(640)(x)
 
         x = keras.layers.Concatenate()([x, x3])
         x = ResBlock(320)([x, t_emb])
-        x = SpatialTransformer(320, 8, 40)([x, context])
+        x = SpatialTransformer(8, 40)([x, context])
 
         x = keras.layers.Concatenate()([x, x2])
         x = ResBlock(320)([x, t_emb])
-        x = SpatialTransformer(320, 8, 40)([x, context])
+        x = SpatialTransformer(8, 40)([x, context])
 
         x = keras.layers.Concatenate()([x, x1])
         x = ResBlock(320)([x, t_emb])
-        x = SpatialTransformer(320, 8, 40)([x, context])
+        x = SpatialTransformer(8, 40)([x, context])
 
         # Exit flow
 
@@ -157,12 +157,12 @@ class ResBlock(keras.layers.Layer):
 
 
 class SpatialTransformer(keras.layers.Layer):
-    def __init__(self, channels, n_heads, d_head, **kwargs):
+    def __init__(self, n_heads, d_head, **kwargs):
         super().__init__(**kwargs)
         self.norm = GroupNormalization(epsilon=1e-5)
-        assert channels == n_heads * d_head
+        channels = n_heads * d_head
         self.proj_in = PaddedConv2D(n_heads * d_head, 1)
-        self.transformer_blocks = [BasicTransformerBlock(channels, n_heads, d_head)]
+        self.transformer_block = BasicTransformerBlock(channels, n_heads, d_head)
         self.proj_out = PaddedConv2D(channels, 1)
 
     def call(self, inputs):
@@ -171,8 +171,7 @@ class SpatialTransformer(keras.layers.Layer):
         x = self.norm(inputs)
         x = self.proj_in(x)
         x = tf.reshape(x, (-1, h * w, c))
-        for block in self.transformer_blocks:
-            x = block([x, context])
+        x = self.transformer_block([x, context])
         x = tf.reshape(x, (-1, h, w, c))
         return self.proj_out(x) + inputs
 
