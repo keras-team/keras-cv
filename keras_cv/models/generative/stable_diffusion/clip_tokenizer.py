@@ -9,15 +9,6 @@ from tensorflow import keras
 
 
 @lru_cache()
-def default_bpe():
-    # TODO: add hash
-    return keras.utils.get_file(
-        "bpe_simple_vocab_16e6.txt.gz",
-        "https://github.com/openai/CLIP/blob/main/clip/bpe_simple_vocab_16e6.txt.gz?raw=true",
-    )
-
-
-@lru_cache()
 def bytes_to_unicode():
     """Return a list of utf-8 bytes and a corresponding list of unicode strings.
 
@@ -70,7 +61,12 @@ def whitespace_clean(text):
 
 
 class SimpleTokenizer:
-    def __init__(self, bpe_path: str = default_bpe()):
+    def __init__(self, bpe_path=None):
+        bpe_path = bpe_path or keras.utils.get_file(
+            "bpe_simple_vocab_16e6.txt.gz",
+            "https://github.com/openai/CLIP/blob/main/clip/bpe_simple_vocab_16e6.txt.gz?raw=true",
+            file_hash="924691ac288e54409236115652ad4aa250f48203de50a9e4722a6ecd48d6804a",
+        )
         self.byte_encoder = bytes_to_unicode()
         self.byte_decoder = {v: k for k, v in self.byte_encoder.items()}
         merges = gzip.open(bpe_path).read().decode("utf-8").split("\n")
