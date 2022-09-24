@@ -93,6 +93,11 @@ class SimpleTokenizer:
         self.encoder = dict(zip(vocab, range(len(vocab))))
         self.decoder = {v: k for k, v in self.encoder.items()}
         self.bpe_ranks = dict(zip(merges, range(len(merges))))
+
+        self.special_tokens = {
+            "<|startoftext|>": "<|startoftext|>",
+            "<|endoftext|>": "<|endoftext|>",
+        }
         self.cache = {
             "<|startoftext|>": "<|startoftext|>",
             "<|endoftext|>": "<|endoftext|>",
@@ -100,9 +105,9 @@ class SimpleTokenizer:
         self.pat = self._create_pat()
 
     def _create_pat(self):
-        special_tokens = [re.escape(key) for key in self.cache.keys()]
         return re.compile(
-            rf"{'|'.join(special_tokens)}" + r"""|'s|'t|'re|'ve|'m|'ll|'d|[\p{L}]+|[\p{N}]|[^\s\p{L}\p{N}]+""",
+            "|".join([re.escape(key) for key in self.special_tokens.keys()]) +
+            r"""|'s|'t|'re|'ve|'m|'ll|'d|[\p{L}]+|[\p{N}]|[^\s\p{L}\p{N}]+""",
             re.IGNORECASE,
         )
 
@@ -117,6 +122,7 @@ class SimpleTokenizer:
     def add_tokens(self, *args):
         self.vocab.extend([*args])
         for arg in args:
+            self.special_tokens[arg] = arg
             self.cache[arg] = arg
         self.encoder = dict(zip(self.vocab, range(len(self.vocab))))
         self.decoder = {v: k for k, v in self.encoder.items()}
