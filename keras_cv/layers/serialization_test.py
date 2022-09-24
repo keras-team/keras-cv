@@ -18,6 +18,7 @@ from absl.testing import parameterized
 
 from keras_cv import core
 from keras_cv import layers as cv_layers
+from keras_cv.models.segmentation.__internal__ import SegmentationHead
 
 
 def exhaustive_compare(obj1, obj2):
@@ -176,14 +177,22 @@ class SerializationTest(tf.test.TestCase, parameterized.TestCase):
             },
         ),
         (
-            "RandomResizedCrop",
-            cv_layers.RandomResizedCrop,
+            "RandomCropAndResize",
+            cv_layers.RandomCropAndResize,
             {
                 "target_size": (224, 224),
-                "crop_area_factor": (0.08, 1.0),
-                "aspect_ratio_factor": (3.0 / 4.0, 4.0 / 3.0),
-                "interpolation": "bilinear",
-                "seed": 1,
+                "crop_area_factor": (0.8, 1.0),
+                "aspect_ratio_factor": (3 / 4, 4 / 3),
+            },
+        ),
+        (
+            "RandomlyZoomedCrop",
+            cv_layers.RandomlyZoomedCrop,
+            {
+                "height": 224,
+                "width": 224,
+                "zoom_factor": (0.8, 1.0),
+                "aspect_ratio_factor": (3 / 4, 4 / 3),
             },
         ),
         (
@@ -256,6 +265,16 @@ class SerializationTest(tf.test.TestCase, parameterized.TestCase):
             cv_layers.RandomRotation,
             {
                 "factor": 0.5,
+            },
+        ),
+        (
+            "SegmentationHead",
+            SegmentationHead,
+            {
+                "classes": 11,
+                "convs": 3,
+                "filters": 256,
+                "activations": tf.keras.activations.relu,
             },
         ),
     )

@@ -21,11 +21,21 @@ TEST_CONFIGURATIONS = [
     ("ChannelShuffle", preprocessing.ChannelShuffle, {}),
     ("Equalization", preprocessing.Equalization, {"value_range": (0, 255)}),
     (
-        "RandomResizedCrop",
-        preprocessing.RandomResizedCrop,
+        "RandomCropAndResize",
+        preprocessing.RandomCropAndResize,
         {
             "target_size": (224, 224),
             "crop_area_factor": (0.8, 1.0),
+            "aspect_ratio_factor": (3 / 4, 4 / 3),
+        },
+    ),
+    (
+        "RandomlyZoomedCrop",
+        preprocessing.RandomlyZoomedCrop,
+        {
+            "height": 224,
+            "width": 224,
+            "zoom_factor": (0.8, 1.0),
             "aspect_ratio_factor": (3 / 4, 4 / 3),
         },
     ),

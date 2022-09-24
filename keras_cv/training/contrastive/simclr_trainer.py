@@ -54,8 +54,9 @@ class SimCLRAugmenter(preprocessing.Augmenter):
     def __init__(
         self,
         value_range,
-        target_size=(128, 128),
-        crop_area_factor=(0.08, 1),
+        height=128,
+        width=128,
+        crop_area_factor=(0.08, 1.0),
         aspect_ratio_factor=(3 / 4, 4 / 3),
         grayscale_rate=0.2,
         color_jitter_rate=0.8,
@@ -68,8 +69,8 @@ class SimCLRAugmenter(preprocessing.Augmenter):
         return super().__init__(
             [
                 preprocessing.RandomFlip("horizontal"),
-                preprocessing.RandomResizedCrop(
-                    target_size,
+                preprocessing.RandomCropAndResize(
+                    target_size=(height, width),
                     crop_area_factor=crop_area_factor,
                     aspect_ratio_factor=aspect_ratio_factor,
                 ),

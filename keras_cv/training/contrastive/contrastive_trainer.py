@@ -28,10 +28,14 @@ class ContrastiveTrainer(keras.Model):
         augmenter: a preprocessing layer to randomly augment input images for contrastive learning,
             or a tuple of two separate augmenters for the two sides of the contrastive pipeline.
         projector: a projection model for contrastive training, or a tuple of two separate
-            projectors for the two sides of the contrastive pipeline.
+            projectors for the two sides of the contrastive pipeline. This shrinks
+            the feature map produced by the encoder, and is usually a 1 or
+            2-layer dense MLP.
         probe: An optional Keras layer or model which will be trained against
             class labels at train-time using the encoder output as input.
             Note that this should be specified iff training with labeled images.
+            This predicts class labels based on the feature map produced by the
+            encoder and is usually a 1 or 2-layer dense MLP.
 
     Returns:
       A `keras.Model` instance.

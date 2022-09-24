@@ -165,7 +165,7 @@ class RandomShear(BaseImageAugmentationLayer):
         bounding_boxes = keras_cv.bounding_box.convert_format(
             bounding_boxes,
             source=self.bounding_box_format,
-            target="xyxy",
+            target="rel_xyxy",
             images=image,
             dtype=self.compute_dtype,
         )
@@ -184,18 +184,18 @@ class RandomShear(BaseImageAugmentationLayer):
             )
 
         bounding_boxes = self._convert_to_four_coordinate(extended_bboxes, x, y)
-        bounding_boxes = bounding_box.clip_to_image(
-            bounding_boxes, images=image, bounding_box_format="xyxy"
-        )
         # join rest of the axes with bbox axes
         bounding_boxes = tf.concat(
             [bounding_boxes, rest_axes],
             axis=-1,
         )
+        bounding_boxes = bounding_box.clip_to_image(
+            bounding_boxes, images=image, bounding_box_format="rel_xyxy"
+        )
         # convert to universal output format
         bounding_boxes = keras_cv.bounding_box.convert_format(
             bounding_boxes,
-            source="xyxy",
+            source="rel_xyxy",
             target=self.bounding_box_format,
             images=image,
             dtype=self.compute_dtype,

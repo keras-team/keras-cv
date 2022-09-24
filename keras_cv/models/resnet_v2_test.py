@@ -20,6 +20,8 @@ from keras_cv.models import resnet_v2
 from .models_test import ModelsTest
 
 MODEL_LIST = [
+    (resnet_v2.ResNet18V2, 512, {}),
+    (resnet_v2.ResNet34V2, 512, {}),
     (resnet_v2.ResNet50V2, 2048, {}),
     (resnet_v2.ResNet101V2, 2048, {}),
     (resnet_v2.ResNet152V2, 2048, {}),
