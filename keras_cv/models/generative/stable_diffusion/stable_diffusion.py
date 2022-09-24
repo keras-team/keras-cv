@@ -9,7 +9,10 @@ from keras_cv.models.generative.stable_diffusion.decoder import Decoder
 from keras_cv.models.generative.stable_diffusion.diffusion_model import DiffusionModel
 from keras_cv.models.generative.stable_diffusion.text_encoder import TextEncoder
 from keras_cv.models.generative.stable_diffusion.clip_tokenizer import SimpleTokenizer
-from keras_cv.models.generative.stable_diffusion.constants import _UNCONDITIONAL_TOKENS, _ALPHAS_CUMPROD
+from keras_cv.models.generative.stable_diffusion.constants import (
+    _UNCONDITIONAL_TOKENS,
+    _ALPHAS_CUMPROD,
+)
 
 
 class StableDiffusion:

@@ -1,8 +1,12 @@
 import tensorflow as tf
 from tensorflow import keras
 
-from keras_cv.models.generative.stable_diffusion.__internal__.layers.padded_conv2d import PaddedConv2D
-from keras_cv.models.generative.stable_diffusion.__internal__.layers.group_normalization import GroupNormalization
+from keras_cv.models.generative.stable_diffusion.__internal__.layers.padded_conv2d import (
+    PaddedConv2D,
+)
+from keras_cv.models.generative.stable_diffusion.__internal__.layers.group_normalization import (
+    GroupNormalization,
+)
 
 
 class DiffusionModel(keras.Model):
@@ -16,7 +20,6 @@ class DiffusionModel(keras.Model):
         t_emb = keras.layers.Dense(1280)(t_emb)
 
         # Downsampling flow
-
         x = PaddedConv2D(320, kernel_size=3, padding=1)(latent)
         x1 = x
 
@@ -194,7 +197,6 @@ class CrossAttention(keras.layers.Layer):
         x, context = inputs
         context = x if context is None else context
         q, k, v = self.to_q(x), self.to_k(context), self.to_v(context)
-        assert len(x.shape) == 3
         q = tf.reshape(q, (-1, x.shape[1], self.num_heads, self.head_size))
         k = tf.reshape(k, (-1, context.shape[1], self.num_heads, self.head_size))
         v = tf.reshape(v, (-1, context.shape[1], self.num_heads, self.head_size))
@@ -240,8 +242,8 @@ class Downsample(keras.layers.Layer):
         super().__init__(**kwargs)
         self.conv2d = PaddedConv2D(channels, 3, strides=2, padding=1)
 
-    def call(self, x):
-        return self.conv2d(x)
+    def call(self, inputs):
+        return self.conv2d(inputs)
 
 
 class Upsample(keras.layers.Layer):
@@ -250,8 +252,8 @@ class Upsample(keras.layers.Layer):
         self.ups = keras.layers.UpSampling2D(2)
         self.conv = PaddedConv2D(channels, 3, padding=1)
 
-    def call(self, x):
-        x = self.ups(x)
+    def call(self, inputs):
+        x = self.ups(inputs)
         return self.conv(x)
 
 
@@ -264,12 +266,11 @@ class GEGLU(keras.layers.Layer):
     def call(self, inputs):
         x = self.dense(inputs)
         x, gate = x[..., : self.output_dim], x[..., self.output_dim :]
-        return x * gelu(gate)
-
-
-def gelu(x):
-    tanh_res = keras.activations.tanh(x * 0.7978845608 * (1 + 0.044715 * (x**2)))
-    return 0.5 * x * (1 + tanh_res)
+        tanh_res = keras.activations.tanh(
+            gate * 0.7978845608 * (1 + 0.044715 * (gate**2))
+        )
+        gelu_gate = 0.5 * gate * (1 + tanh_res)
+        return x * gelu_gate
 
 
 def td_dot(a, b):

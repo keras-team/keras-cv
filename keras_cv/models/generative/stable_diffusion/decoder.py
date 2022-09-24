@@ -1,8 +1,12 @@
 import tensorflow as tf
 from tensorflow import keras
 
-from keras_cv.models.generative.stable_diffusion.__internal__.layers.padded_conv2d import PaddedConv2D
-from keras_cv.models.generative.stable_diffusion.__internal__.layers.group_normalization import GroupNormalization
+from keras_cv.models.generative.stable_diffusion.__internal__.layers.padded_conv2d import (
+    PaddedConv2D,
+)
+from keras_cv.models.generative.stable_diffusion.__internal__.layers.group_normalization import (
+    GroupNormalization,
+)
 
 
 class Decoder(keras.Sequential):
@@ -37,7 +41,8 @@ class Decoder(keras.Sequential):
                 GroupNormalization(epsilon=1e-5),
                 keras.layers.Activation("swish"),
                 PaddedConv2D(3, 3, padding=1),
-            ]
+            ],
+            name=name,
         )
 
 
@@ -90,6 +95,6 @@ class ResnetBlock(keras.layers.Layer):
             self.residual_projection = lambda x: x
 
     def call(self, inputs):
-        h = self.conv1(keras.activations.swish(self.norm1(inputs)))
-        h = self.conv2(keras.activations.swish(self.norm2(h)))
-        return h + self.residual_projection(inputs)
+        x = self.conv1(keras.activations.swish(self.norm1(inputs)))
+        x = self.conv2(keras.activations.swish(self.norm2(x)))
+        return x + self.residual_projection(inputs)
