@@ -20,12 +20,8 @@ class TextEncoder(keras.Model):
 class CLIPEmbedding(keras.layers.Layer):
     def __init__(self, input_dim=49408, output_dim=768, max_length=77, **kwargs):
         super().__init__(**kwargs)
-        self.token_embedding = keras.layers.Embedding(
-            input_dim, output_dim, name="token_embedding"
-        )
-        self.position_embedding = keras.layers.Embedding(
-            max_length, output_dim, name="position_embedding"
-        )
+        self.token_embedding = keras.layers.Embedding(input_dim, output_dim)
+        self.position_embedding = keras.layers.Embedding(max_length, output_dim)
 
     def call(self, inputs):
         tokens, positions = inputs
@@ -51,7 +47,7 @@ class CLIPEncoderLayer(keras.layers.Layer):
         residual = x
         x = self.layer_norm2(x)
         x = self.fc1(x)
-        x = x * tf.sigmoid(x * 1.702)  # quick gelu
+        x = x * tf.sigmoid(x * 1.702)  # Quick gelu
         x = self.fc2(x)
         return x + residual
 
@@ -69,9 +65,9 @@ class CLIPAttention(keras.layers.Layer):
         self.v_proj = keras.layers.Dense(self.embed_dim)
         self.out_proj = keras.layers.Dense(self.embed_dim)
 
-    def _shape(self, x, sequence_length, batch_size):
+    def reshape_states(self, x, sequence_length, batch_size):
         x = tf.reshape(x, (batch_size, sequence_length, self.num_heads, self.head_dim))
-        return tf.transpose(x, (0, 2, 1, 3))  # bs, n_head, sequence_length, head_dim
+        return tf.transpose(x, (0, 2, 1, 3))  # bs, heads, sequence_length, head_dim
 
     def call(self, inputs, attention_mask=None):
         if attention_mask is None and self.causal:
@@ -80,11 +76,11 @@ class CLIPAttention(keras.layers.Layer):
 
         _, tgt_len, embed_dim = inputs.shape
         query_states = self.q_proj(inputs) * self.scale
-        key_states = self._shape(self.k_proj(inputs), tgt_len, -1)
-        value_states = self._shape(self.v_proj(inputs), tgt_len, -1)
+        key_states = self.reshape_states(self.k_proj(inputs), tgt_len, -1)
+        value_states = self.reshape_states(self.v_proj(inputs), tgt_len, -1)
 
         proj_shape = (-1, tgt_len, self.head_dim)
-        query_states = self._shape(query_states, tgt_len, -1)
+        query_states = self.reshape_states(query_states, tgt_len, -1)
         query_states = tf.reshape(query_states, proj_shape)
         key_states = tf.reshape(key_states, proj_shape)
 

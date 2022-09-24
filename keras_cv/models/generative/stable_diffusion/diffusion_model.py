@@ -119,13 +119,12 @@ class ResBlock(keras.layers.Layer):
         x = inputs
         for layer in self.in_layers:
             x = layer(x)
-        y = emb
         for layer in self.emb_layers:
-            y = layer(y)
-        z = x + y[:, None, None]
+            emb = layer(emb)
+        x = x + emb[:, None, None]
         for layer in self.out_layers:
-            z = layer(z)
-        return z + self.residual_projection(inputs)
+            x = layer(x)
+        return x + self.residual_projection(inputs)
 
 
 class SpatialTransformer(keras.layers.Layer):
@@ -148,42 +147,6 @@ class SpatialTransformer(keras.layers.Layer):
         return self.proj_out(x) + inputs
 
 
-class CrossAttention(keras.layers.Layer):
-    def __init__(self, num_heads, head_size, **kwargs):
-        super().__init__(**kwargs)
-        self.to_q = keras.layers.Dense(num_heads * head_size, use_bias=False)
-        self.to_k = keras.layers.Dense(num_heads * head_size, use_bias=False)
-        self.to_v = keras.layers.Dense(num_heads * head_size, use_bias=False)
-        self.scale = head_size**-0.5
-        self.num_heads = num_heads
-        self.head_size = head_size
-        self.to_out = [keras.layers.Dense(num_heads * head_size)]
-
-    def call(self, inputs):
-        assert type(inputs) is list
-        if len(inputs) == 1:
-            inputs = inputs + [None]
-        x, context = inputs
-        context = x if context is None else context
-        q, k, v = self.to_q(x), self.to_k(context), self.to_v(context)
-        q = tf.reshape(q, (-1, x.shape[1], self.num_heads, self.head_size))
-        k = tf.reshape(k, (-1, context.shape[1], self.num_heads, self.head_size))
-        v = tf.reshape(v, (-1, context.shape[1], self.num_heads, self.head_size))
-
-        q = tf.transpose(q, (0, 2, 1, 3))  # (bs, num_heads, time, head_size)
-        k = tf.transpose(k, (0, 2, 3, 1))  # (bs, num_heads, head_size, time)
-        v = tf.transpose(v, (0, 2, 1, 3))  # (bs, num_heads, time, head_size)
-
-        score = td_dot(q, k) * self.scale
-        weights = keras.activations.softmax(score)  # (bs, num_heads, time, time)
-        attn = td_dot(weights, v)
-        attn = tf.transpose(attn, (0, 2, 1, 3))  # (bs, time, num_heads, head_size)
-        x = tf.reshape(attn, (-1, x.shape[1], self.num_heads * self.head_size))
-        for layer in self.to_out:
-            x = layer(x)
-        return x
-
-
 class BasicTransformerBlock(keras.layers.Layer):
     def __init__(self, dim, num_heads, head_size, **kwargs):
         super().__init__(**kwargs)
@@ -197,9 +160,40 @@ class BasicTransformerBlock(keras.layers.Layer):
 
     def call(self, inputs):
         inputs, context = inputs
-        x = self.attn1([self.norm1(inputs)]) + inputs
+        x = self.attn1([self.norm1(inputs), None]) + inputs
         x = self.attn2([self.norm2(x), context]) + x
         return self.dense(self.geglu(self.norm3(x))) + x
+
+
+class CrossAttention(keras.layers.Layer):
+    def __init__(self, num_heads, head_size, **kwargs):
+        super().__init__(**kwargs)
+        self.to_q = keras.layers.Dense(num_heads * head_size, use_bias=False)
+        self.to_k = keras.layers.Dense(num_heads * head_size, use_bias=False)
+        self.to_v = keras.layers.Dense(num_heads * head_size, use_bias=False)
+        self.scale = head_size**-0.5
+        self.num_heads = num_heads
+        self.head_size = head_size
+        self.out_proj = keras.layers.Dense(num_heads * head_size)
+
+    def call(self, inputs):
+        inputs, context = inputs
+        context = inputs if context is None else context
+        q, k, v = self.to_q(inputs), self.to_k(context), self.to_v(context)
+        q = tf.reshape(q, (-1, inputs.shape[1], self.num_heads, self.head_size))
+        k = tf.reshape(k, (-1, context.shape[1], self.num_heads, self.head_size))
+        v = tf.reshape(v, (-1, context.shape[1], self.num_heads, self.head_size))
+
+        q = tf.transpose(q, (0, 2, 1, 3))  # (bs, num_heads, time, head_size)
+        k = tf.transpose(k, (0, 2, 3, 1))  # (bs, num_heads, head_size, time)
+        v = tf.transpose(v, (0, 2, 1, 3))  # (bs, num_heads, time, head_size)
+
+        score = td_dot(q, k) * self.scale
+        weights = keras.activations.softmax(score)  # (bs, num_heads, time, time)
+        attn = td_dot(weights, v)
+        attn = tf.transpose(attn, (0, 2, 1, 3))  # (bs, time, num_heads, head_size)
+        out = tf.reshape(attn, (-1, inputs.shape[1], self.num_heads * self.head_size))
+        return self.out_proj(out)
 
 
 class Upsample(keras.layers.Layer):
@@ -209,8 +203,7 @@ class Upsample(keras.layers.Layer):
         self.conv = PaddedConv2D(channels, 3, padding=1)
 
     def call(self, inputs):
-        x = self.ups(inputs)
-        return self.conv(x)
+        return self.conv(self.ups(inputs))
 
 
 class GEGLU(keras.layers.Layer):
@@ -225,8 +218,7 @@ class GEGLU(keras.layers.Layer):
         tanh_res = keras.activations.tanh(
             gate * 0.7978845608 * (1 + 0.044715 * (gate**2))
         )
-        gelu_gate = 0.5 * gate * (1 + tanh_res)
-        return x * gelu_gate
+        return x * 0.5 * gate * (1 + tanh_res)
 
 
 def td_dot(a, b):

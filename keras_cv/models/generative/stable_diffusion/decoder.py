@@ -57,26 +57,26 @@ class AttentionBlock(keras.layers.Layer):
         self.proj_out = PaddedConv2D(output_dim, 1)
 
     def call(self, inputs):
-        h_ = self.norm(inputs)
-        q, k, v = self.q(h_), self.k(h_), self.v(h_)
+        x = self.norm(inputs)
+        q, k, v = self.q(x), self.k(x), self.v(x)
 
         # Compute attention
         _, h, w, c = q.shape
         q = tf.reshape(q, (-1, h * w, c))  # b, hw, c
         k = tf.transpose(k, (0, 3, 1, 2))
         k = tf.reshape(k, (-1, c, h * w))  # b, c, hw
-        w_ = q @ k
-        w_ = w_ * (c ** (-0.5))
-        w_ = keras.activations.softmax(w_)
+        y = q @ k
+        y = y * (c**-0.5)
+        y = keras.activations.softmax(y)
 
         # Attend to values
         v = tf.transpose(v, (0, 3, 1, 2))
         v = tf.reshape(v, (-1, c, h * w))
-        w_ = tf.transpose(w_, (0, 2, 1))
-        h_ = v @ w_
-        h_ = tf.transpose(h_, (0, 2, 1))
-        h_ = tf.reshape(h_, (-1, h, w, c))
-        return self.proj_out(h_) + inputs
+        y = tf.transpose(y, (0, 2, 1))
+        x = v @ y
+        x = tf.transpose(x, (0, 2, 1))
+        x = tf.reshape(x, (-1, h, w, c))
+        return self.proj_out(x) + inputs
 
 
 class ResnetBlock(keras.layers.Layer):
