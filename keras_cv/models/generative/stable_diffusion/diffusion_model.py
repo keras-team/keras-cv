@@ -1,8 +1,8 @@
 import tensorflow as tf
 from tensorflow import keras
 
-from __internal__.layers.padded_conv2d import PaddedConv2D
-from __internal__.layers.group_normalization import GroupNormalization
+from keras_cv.models.generative.stable_diffusion.__internal__.layers.padded_conv2d import PaddedConv2D
+from keras_cv.models.generative.stable_diffusion.__internal__.layers.group_normalization import GroupNormalization
 
 
 class DiffusionModel(keras.Model):
