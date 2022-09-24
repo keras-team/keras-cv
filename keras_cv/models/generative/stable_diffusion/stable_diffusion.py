@@ -142,34 +142,28 @@ def get_models(img_height, img_width, max_text_length=77):
     # Create decoder
     decoder = Decoder(img_height, img_width)
 
-    # TODO: upload new files and update the below
-    # text_encoder_weights_fpath = keras.utils.get_file(
-    #     origin="https://huggingface.co/fchollet/stable-diffusion/resolve/main/text_encoder.h5",
-    #     file_hash="d7805118aeb156fc1d39e38a9a082b05501e2af8c8fbdc1753c9cb85212d6619",
-    # )
-    # diffusion_model_weights_fpath = keras.utils.get_file(
-    #     origin="https://huggingface.co/fchollet/stable-diffusion/resolve/main/diffusion_model.h5",
-    #     file_hash="a5b2eea58365b18b40caee689a2e5d00f4c31dbcb4e1d58a9cf1071f55bbbd3a",
-    # )
-    # decoder_weights_fpath = keras.utils.get_file(
-    #     origin="https://huggingface.co/fchollet/stable-diffusion/resolve/main/decoder.h5",
-    #     file_hash="6d3c5ba91d5cc2b134da881aaa157b2d2adc648e5625560e3ed199561d0e39d5",
-    # )
+    text_encoder_weights_fpath = keras.utils.get_file(
+        origin="https://huggingface.co/fchollet/stable-diffusion/resolve/main/kcv_encoder.h5",
+        file_hash="4789e63e07c0e54d6a34a29b45ce81ece27060c499a709d556c7755b42bb0dc4",
+    )
+    diffusion_model_weights_fpath = keras.utils.get_file(
+        origin="https://huggingface.co/fchollet/stable-diffusion/resolve/main/kcv_diffusion_model.h5",
+        file_hash="8799ff9763de13d7f30a683d653018e114ed24a6a819667da4f5ee10f9e805fe",
+    )
+    decoder_weights_fpath = keras.utils.get_file(
+        origin="https://huggingface.co/fchollet/stable-diffusion/resolve/main/kcv_decoder.h5",
+        file_hash="ad350a65cc8bc4a80c8103367e039a3329b4231c2469a1093869a345f55b1962",
+    )
 
-    # text_encoder.load_weights(text_encoder_weights_fpath)
-    # diffusion_model.load_weights(diffusion_model_weights_fpath)
-    # decoder.load_weights(decoder_weights_fpath)
+    text_encoder.load_weights(text_encoder_weights_fpath)
+    diffusion_model.load_weights(diffusion_model_weights_fpath)
+    decoder.load_weights(decoder_weights_fpath)
     return text_encoder, diffusion_model, decoder
 
 
 if __name__ == "__main__":
     # TODO: delete later, this is for testing only
     stablediff = StableDiffusion()
-
-    stablediff.text_encoder.load_weights("kcv_encoder.h5")
-    stablediff.diffusion_model.load_weights("kcv_diffusion_model.h5")
-    stablediff.decoder.load_weights("kcv_decoder.h5")
-
     img = stablediff.text_to_image("an astronaut riding a horse")
     from PIL import Image
 

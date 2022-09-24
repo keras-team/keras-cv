@@ -20,92 +20,92 @@ class DiffusionModel(keras.Model):
         x = PaddedConv2D(320, kernel_size=3, padding=1)(latent)
         x1 = x
 
-        x = ResBlock(320, 320)([x, t_emb])
+        x = ResBlock(320)([x, t_emb])
         x = SpatialTransformer(320, 8, 40)([x, context])
         x2 = x
-        x = ResBlock(320, 320)([x, t_emb])
+        x = ResBlock(320)([x, t_emb])
         x = SpatialTransformer(320, 8, 40)([x, context])
         x3 = x
         x = Downsample(320)(x)
         x4 = x
 
-        x = ResBlock(320, 640)([x, t_emb])
+        x = ResBlock(640)([x, t_emb])
         x = SpatialTransformer(640, 8, 80)([x, context])
         x5 = x
-        x = ResBlock(640, 640)([x, t_emb])
+        x = ResBlock(640)([x, t_emb])
         x = SpatialTransformer(640, 8, 80)([x, context])
         x6 = x
         x = Downsample(640)(x)
         x7 = x
 
-        x = ResBlock(640, 1280)([x, t_emb])
+        x = ResBlock(1280)([x, t_emb])
         x = SpatialTransformer(1280, 8, 160)([x, context])
         x8 = x
-        x = ResBlock(1280, 1280)([x, t_emb])
+        x = ResBlock(1280)([x, t_emb])
         x = SpatialTransformer(1280, 8, 160)([x, context])
         x9 = x
         x = Downsample(1280)(x)
         x10 = x
 
-        x = ResBlock(1280, 1280)([x, t_emb])
+        x = ResBlock(1280)([x, t_emb])
         x11 = x
-        x = ResBlock(1280, 1280)([x, t_emb])
+        x = ResBlock(1280)([x, t_emb])
         x12 = x
 
         # Middle flow
 
-        x = ResBlock(1280, 1280)([x, t_emb])
+        x = ResBlock(1280)([x, t_emb])
         x = SpatialTransformer(1280, 8, 160)([x, context])
-        x = ResBlock(1280, 1280)([x, t_emb])
+        x = ResBlock(1280)([x, t_emb])
 
         # Upsampling flow
 
         x = keras.layers.Concatenate()([x, x12])
-        x = ResBlock(2560, 1280)([x, t_emb])
+        x = ResBlock(1280)([x, t_emb])
 
         x = keras.layers.Concatenate()([x, x11])
-        x = ResBlock(2560, 1280)([x, t_emb])
+        x = ResBlock(1280)([x, t_emb])
 
         x = keras.layers.Concatenate()([x, x10])
-        x = ResBlock(2560, 1280)([x, t_emb])
+        x = ResBlock(1280)([x, t_emb])
         x = Upsample(1280)(x)
 
         x = keras.layers.Concatenate()([x, x9])
-        x = ResBlock(2560, 1280)([x, t_emb])
+        x = ResBlock(1280)([x, t_emb])
         x = SpatialTransformer(1280, 8, 160)([x, context])
 
         x = keras.layers.Concatenate()([x, x8])
-        x = ResBlock(2560, 1280)([x, t_emb])
+        x = ResBlock(1280)([x, t_emb])
         x = SpatialTransformer(1280, 8, 160)([x, context])
 
         x = keras.layers.Concatenate()([x, x7])
-        x = ResBlock(1920, 1280)([x, t_emb])
+        x = ResBlock(1280)([x, t_emb])
         x = SpatialTransformer(1280, 8, 160)([x, context])
         x = Upsample(1280)(x)
 
         x = keras.layers.Concatenate()([x, x6])
-        x = ResBlock(1920, 640)([x, t_emb])
+        x = ResBlock(640)([x, t_emb])
         x = SpatialTransformer(640, 8, 80)([x, context])
 
         x = keras.layers.Concatenate()([x, x5])
-        x = ResBlock(1280, 640)([x, t_emb])
+        x = ResBlock(640)([x, t_emb])
         x = SpatialTransformer(640, 8, 80)([x, context])
 
         x = keras.layers.Concatenate()([x, x4])
-        x = ResBlock(960, 640)([x, t_emb])
+        x = ResBlock(640)([x, t_emb])
         x = SpatialTransformer(640, 8, 80)([x, context])
         x = Upsample(640)(x)
 
         x = keras.layers.Concatenate()([x, x3])
-        x = ResBlock(960, 320)([x, t_emb])
+        x = ResBlock(320)([x, t_emb])
         x = SpatialTransformer(320, 8, 40)([x, context])
 
         x = keras.layers.Concatenate()([x, x2])
-        x = ResBlock(640, 320)([x, t_emb])
+        x = ResBlock(320)([x, t_emb])
         x = SpatialTransformer(320, 8, 40)([x, context])
 
         x = keras.layers.Concatenate()([x, x1])
-        x = ResBlock(640, 320)([x, t_emb])
+        x = ResBlock(320)([x, t_emb])
         x = SpatialTransformer(320, 8, 40)([x, context])
 
         # Exit flow
@@ -118,7 +118,7 @@ class DiffusionModel(keras.Model):
 
 
 class ResBlock(keras.layers.Layer):
-    def __init__(self, input_dim, output_dim, **kwargs):
+    def __init__(self, output_dim, **kwargs):
         super().__init__(**kwargs)
         self.output_dim = output_dim
         self.in_layers = [
@@ -138,9 +138,7 @@ class ResBlock(keras.layers.Layer):
 
     def build(self, input_shape):
         if input_shape[0][-1] != self.output_dim:
-            self.residual_projection = PaddedConv2D(
-                self.output_dim, 1, name="residual_projection"
-            )
+            self.residual_projection = PaddedConv2D(self.output_dim, 1)
         else:
             self.residual_projection = lambda x: x
 
@@ -168,16 +166,15 @@ class SpatialTransformer(keras.layers.Layer):
         self.proj_out = PaddedConv2D(channels, 1)
 
     def call(self, inputs):
-        x, context = inputs
-        b, h, w, c = x.shape
-        x_in = x
-        x = self.norm(x)
+        inputs, context = inputs
+        _, h, w, c = inputs.shape
+        x = self.norm(inputs)
         x = self.proj_in(x)
         x = tf.reshape(x, (-1, h * w, c))
         for block in self.transformer_blocks:
             x = block([x, context])
         x = tf.reshape(x, (-1, h, w, c))
-        return self.proj_out(x) + x_in
+        return self.proj_out(x) + inputs
 
 
 class CrossAttention(keras.layers.Layer):
@@ -233,8 +230,8 @@ class BasicTransformerBlock(keras.layers.Layer):
         self.dense = keras.layers.Dense(dim)
 
     def call(self, inputs):
-        x, context = inputs
-        x = self.attn1([self.norm1(x)]) + x
+        inputs, context = inputs
+        x = self.attn1([self.norm1(inputs)]) + inputs
         x = self.attn2([self.norm2(x), context]) + x
         return self.dense(self.geglu(self.norm3(x))) + x
 
@@ -251,7 +248,7 @@ class Downsample(keras.layers.Layer):
 class Upsample(keras.layers.Layer):
     def __init__(self, channels, **kwargs):
         super().__init__(**kwargs)
-        self.ups = keras.layers.UpSampling2D(size=(2, 2))
+        self.ups = keras.layers.UpSampling2D(2)
         self.conv = PaddedConv2D(channels, 3, padding=1)
 
     def call(self, x):

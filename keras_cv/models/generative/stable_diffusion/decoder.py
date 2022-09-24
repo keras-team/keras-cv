@@ -13,27 +13,27 @@ class Decoder(keras.Sequential):
                 keras.layers.Rescaling(1.0 / 0.18215),
                 PaddedConv2D(4, 1),
                 PaddedConv2D(512, 3, padding=1),
-                ResnetBlock(512, 512),
+                ResnetBlock(512),
                 AttentionBlock(512),
-                ResnetBlock(512, 512),
-                ResnetBlock(512, 512),
-                ResnetBlock(512, 512),
-                ResnetBlock(512, 512),
-                keras.layers.UpSampling2D(size=(2, 2)),
+                ResnetBlock(512),
+                ResnetBlock(512),
+                ResnetBlock(512),
+                ResnetBlock(512),
+                keras.layers.UpSampling2D(2),
                 PaddedConv2D(512, 3, padding=1),
-                ResnetBlock(512, 512),
-                ResnetBlock(512, 512),
-                ResnetBlock(512, 512),
-                keras.layers.UpSampling2D(size=(2, 2)),
+                ResnetBlock(512),
+                ResnetBlock(512),
+                ResnetBlock(512),
+                keras.layers.UpSampling2D(2),
                 PaddedConv2D(512, 3, padding=1),
-                ResnetBlock(512, 256),
-                ResnetBlock(256, 256),
-                ResnetBlock(256, 256),
-                keras.layers.UpSampling2D(size=(2, 2)),
+                ResnetBlock(256),
+                ResnetBlock(256),
+                ResnetBlock(256),
+                keras.layers.UpSampling2D(2),
                 PaddedConv2D(256, 3, padding=1),
-                ResnetBlock(256, 128),
-                ResnetBlock(128, 128),
-                ResnetBlock(128, 128),
+                ResnetBlock(128),
+                ResnetBlock(128),
+                ResnetBlock(128),
                 GroupNormalization(epsilon=1e-5),
                 keras.layers.Activation("swish"),
                 PaddedConv2D(3, 3, padding=1),
@@ -75,7 +75,7 @@ class AttentionBlock(keras.layers.Layer):
 
 
 class ResnetBlock(keras.layers.Layer):
-    def __init__(self, input_dim, output_dim, **kwargs):
+    def __init__(self, output_dim, **kwargs):
         super().__init__(**kwargs)
         self.output_dim = output_dim
         self.norm1 = GroupNormalization(epsilon=1e-5)
@@ -85,9 +85,7 @@ class ResnetBlock(keras.layers.Layer):
 
     def build(self, input_shape):
         if input_shape[-1] != self.output_dim:
-            self.residual_projection = PaddedConv2D(
-                self.output_dim, 1, name="residual_projection"
-            )
+            self.residual_projection = PaddedConv2D(self.output_dim, 1)
         else:
             self.residual_projection = lambda x: x
 
