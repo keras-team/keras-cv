@@ -103,6 +103,7 @@ class SimpleTokenizer:
             "<|endoftext|>": "<|endoftext|>",
         }
         self.pat = self._create_pat()
+        self._overridden = False
 
     def _create_pat(self):
         return re.compile(
@@ -120,7 +121,16 @@ class SimpleTokenizer:
         return self.encoder["<|startoftext|>"]
 
     def add_tokens(self, *args):
-        self.vocab.extend([*args])
+        token = args[0]
+        if self._overridden:
+            raise ValueError("For now KerasCV can only finetune on one special token.")
+        self._overridden = True
+        self.vocab[48973] = token
+        # 48973 is the index of ðŁĺĤðŁĺĤðŁĺĤðŁĺĤðŁĺĤðŁĺĤðŁĺĤ</w>"
+        # clearly a garbage token we can override.
+        
+        # we can find more garbage IDs and override them.
+        # rest of the code operates as it would if we could add limitless token.
         for arg in args:
             self.special_tokens[arg] = arg
             self.cache[arg] = arg
