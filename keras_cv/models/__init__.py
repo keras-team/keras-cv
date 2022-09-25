@@ -38,6 +38,7 @@ from keras_cv.models.efficientnet_v2 import EfficientNetV2B3
 from keras_cv.models.efficientnet_v2 import EfficientNetV2L
 from keras_cv.models.efficientnet_v2 import EfficientNetV2M
 from keras_cv.models.efficientnet_v2 import EfficientNetV2S
+from keras_cv.models.generative.stable_diffusion import StableDiffusion
 from keras_cv.models.mlp_mixer import MLPMixerB16
 from keras_cv.models.mlp_mixer import MLPMixerB32
 from keras_cv.models.mlp_mixer import MLPMixerL16
