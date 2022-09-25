@@ -175,7 +175,7 @@ class StableDiffusion:
         freqs = tf.math.exp(
             -math.log(max_period) * tf.range(0, half, dtype=tf.float32) / half
         )
-        args = tf.convert_to_tensor([timestep],dtype=tf.float32) * freqs
+        args = tf.convert_to_tensor([timestep], dtype=tf.float32) * freqs
         embedding = tf.concat([tf.math.cos(args), tf.math.sin(args)], 0)
         embedding = tf.reshape(embedding, [1, -1])
         return tf.repeat(embedding, batch_size, axis=0)
