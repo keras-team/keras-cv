@@ -4,6 +4,7 @@ pandas
 tensorflow
 tensorflow-datasets
 flake8
+regex
 isort
 black
 pytest
