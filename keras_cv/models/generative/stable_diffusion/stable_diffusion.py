@@ -1,5 +1,18 @@
+# Copyright 2022 The KerasCV Authors
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 import numpy as np
-from tqdm import tqdm
 import math
 
 import tensorflow as tf
@@ -88,9 +101,9 @@ class StableDiffusion:
         latent, alphas, alphas_prev = self.get_initial_parameters(
             timesteps, batch_size, seed
         )
-        progbar = tqdm(list(enumerate(timesteps))[::-1])
-        for index, timestep in progbar:
-            progbar.set_description(f"{index:3d} {timestep:3d}")
+        progbar = keras.utils.Progbar(len(timesteps))
+        iteration = 0
+        for index, timestep in list(enumerate(timesteps))[::-1]:
             latent_prev = latent  # Set aside the previous latent vector
             t_emb = self.get_timestep_embedding(timestep, batch_size)
             unconditional_latent = self.diffusion_model.predict_on_batch(
@@ -103,6 +116,8 @@ class StableDiffusion:
             a_t, a_prev = alphas[index], alphas_prev[index]
             pred_x0 = (latent_prev - math.sqrt(1 - a_t) * latent) / math.sqrt(a_t)
             latent = latent * math.sqrt(1.0 - a_prev) + math.sqrt(a_prev) * pred_x0
+            iteration += 1
+            progbar.update(iteration)
 
         # Decoding stage
         decoded = self.decoder.predict_on_batch(latent)
@@ -126,13 +141,3 @@ class StableDiffusion:
             (batch_size, self.img_height // 8, self.img_width // 8, 4), seed=seed
         )
         return noise, alphas, alphas_prev
-
-
-if __name__ == "__main__":
-    # TODO: delete later, this is for testing only
-    stablediff = StableDiffusion()
-    img = stablediff.text_to_image("epic breathtaking crystal caves on mars")
-    from PIL import Image
-
-    Image.fromarray(img[0]).save("test.png")
-    print(f"saved at test.png")
