@@ -1,8 +1,8 @@
 import gzip
 import html
 from functools import lru_cache
-import regex as re
 
+import regex as re
 from tensorflow import keras
 
 

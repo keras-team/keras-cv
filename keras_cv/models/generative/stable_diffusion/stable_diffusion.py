@@ -21,20 +21,18 @@ Credits:
 The current implementation is a rewrite of the initial TF/Keras port by Divam Gupta.
 """
 
-import numpy as np
 import math
 
+import numpy as np
 import tensorflow as tf
 from tensorflow import keras
 
+from keras_cv.models.generative.stable_diffusion.clip_tokenizer import SimpleTokenizer
+from keras_cv.models.generative.stable_diffusion.constants import _ALPHAS_CUMPROD
+from keras_cv.models.generative.stable_diffusion.constants import _UNCONDITIONAL_TOKENS
 from keras_cv.models.generative.stable_diffusion.decoder import Decoder
 from keras_cv.models.generative.stable_diffusion.diffusion_model import DiffusionModel
 from keras_cv.models.generative.stable_diffusion.text_encoder import TextEncoder
-from keras_cv.models.generative.stable_diffusion.clip_tokenizer import SimpleTokenizer
-from keras_cv.models.generative.stable_diffusion.constants import (
-    _UNCONDITIONAL_TOKENS,
-    _ALPHAS_CUMPROD,
-)
 
 MAX_PROMPT_LENGTH = 77
 
