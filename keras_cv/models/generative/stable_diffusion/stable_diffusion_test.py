@@ -13,10 +13,10 @@
 # limitations under the License.
 
 import tensorflow as tf
+from tensorflow.keras import mixed_precision
 
 from keras_cv.models import StableDiffusion
-from keras_cv.models import StableDiffusion
-from tensorflow.keras import mixed_precision
+
 
 class StableDiffusioNTest(tf.test.TestCase):
     def DISABLED_test_end_to_end_golden_value(self):
@@ -27,7 +27,7 @@ class StableDiffusioNTest(tf.test.TestCase):
         self.assertAllClose(img[0][64:65, 64:65, :][0][0], [255, 232, 18], atol=1e-4)
 
     def DISABLED_test_mixed_precision(self):
-        mixed_precision.set_global_policy('mixed_float16')
+        mixed_precision.set_global_policy("mixed_float16")
         stablediff = StableDiffusion(128, 128)
         _ = stablediff.text_to_image("Testing123 haha!")
 
