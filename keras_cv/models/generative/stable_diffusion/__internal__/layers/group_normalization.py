@@ -14,12 +14,14 @@
 
 import tensorflow as tf
 
+
 class GroupNormalization(tf.keras.layers.Layer):
     """GroupNormalization layer.
 
     This layer is only here temporarily and will be removed
     as we introduce GroupNormalization in core Keras.
     """
+
     def __init__(
         self,
         groups=32,
