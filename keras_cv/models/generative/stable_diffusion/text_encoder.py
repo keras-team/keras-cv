@@ -85,7 +85,10 @@ class CLIPAttention(keras.layers.Layer):
     def call(self, inputs, attention_mask=None):
         if attention_mask is None and self.causal:
             length = tf.shape(inputs)[1]
-            attention_mask = tfnp.triu(tf.ones((1, 1, length, length)) * -tfnp.inf, k=1)
+            attention_mask = tfnp.triu(
+                tf.ones((1, 1, length, length), dtype=self.compute_dtype) * -tfnp.inf,
+                k=1,
+            )
 
         _, tgt_len, embed_dim = inputs.shape
         query_states = self.q_proj(inputs) * self.scale
