@@ -11,4 +11,5 @@ RUN pip install \
   flake8 \
   isort \
   pytest \
+  regex \
   tensorflow_datasets
