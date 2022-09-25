@@ -128,7 +128,7 @@ class SimpleTokenizer:
         self.vocab[48973] = token
         # 48973 is the index of ðŁĺĤðŁĺĤðŁĺĤðŁĺĤðŁĺĤðŁĺĤðŁĺĤ</w>"
         # clearly a garbage token we can override.
-        
+
         # we can find more garbage IDs and override them.
         # rest of the code operates as it would if we could add limitless token.
         for arg in args:
