@@ -26,7 +26,7 @@ class StableDiffusioNTest(tf.test.TestCase):
         )
         self.assertAllClose(img[0][64:65, 64:65, :][0][0], [255, 232, 18], atol=1e-4)
 
-    def test_mixed_precision(self):
+    def DISABLED_test_mixed_precision(self):
         mixed_precision.set_global_policy('mixed_float16')
         stablediff = StableDiffusion(128, 128)
         _ = stablediff.text_to_image("Testing123 haha!")
