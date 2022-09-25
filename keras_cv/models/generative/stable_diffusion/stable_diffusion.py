@@ -138,7 +138,6 @@ class StableDiffusion:
             [_UNCONDITIONAL_TOKENS], dtype=tf.int32
         )
         self.unconditional_tokens = tf.repeat(unconditional_tokens, batch_size, axis=0)
-        # self.unconditional_tokens = tf.convert_to_tensor(unconditional_tokens)
         unconditional_context = self.text_encoder.predict_on_batch(
             [self.unconditional_tokens, pos_ids]
         )
