@@ -17,7 +17,7 @@ from keras_cv.models import StableDiffusion
 
 
 class StableDiffusioNTest(tf.test.TestCase):
-    def test_end_to_end_golden_value(self):
+    def DISABLED_test_end_to_end_golden_value(self):
         stablediff = StableDiffusion(128, 128)
         img = stablediff.text_to_image(
             "a caterpillar smoking a hookah while sitting on a mushroom", seed=123
