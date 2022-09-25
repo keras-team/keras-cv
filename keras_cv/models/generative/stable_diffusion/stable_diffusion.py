@@ -11,6 +11,15 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+"""Keras implementation of StableDiffusion.
+
+Credits:
+
+- Original implementation: https://github.com/CompVis/stable-diffusion
+- Initial TF/Keras port: https://github.com/divamgupta/stable-diffusion-tensorflow
+
+The current implementation is a rewrite of the initial TF/Keras port by Divam Gupta.
+"""
 
 import numpy as np
 import math
@@ -31,6 +40,45 @@ MAX_PROMPT_LENGTH = 77
 
 
 class StableDiffusion:
+    """Keras implementation of Stable Diffusion.
+
+    Stable Diffusion is a powerful image generation model that can be used,
+    among other things, to generate pictures according to a short text description
+    (called a "prompt").
+
+    Arguments:
+        img_height: Height of the images to generate, in pixel. Note that only
+            multiples of 128 are supported; the value provided will be rounded
+            to the nearest valid value. Default: 512.
+        img_width: Width of the images to generate, in pixel. Note that only
+            multiples of 128 are supported; the value provided will be rounded
+            to the nearest valid value. Default: 512.
+        jit_compile: Whether to compile the underlying models to XLA.
+            This can lead to a significant speedup on some systems. Default: False.
+
+    Example:
+
+    ```python
+    from keras_cv.models import StableDiffusion
+    from PIL import Image
+
+    model = StableDiffusion(img_height=512, img_width=512, jit_compile=True)
+    img = model.text_to_image(
+        prompt="A beautiful horse running through a field",
+        batch_size=1,  # How many images to generate at once
+        num_steps=25,  # Number of iterations (controls image quality)
+        seed=123,  # Set this to always get the same image from the same prompt
+    )
+    Image.fromarray(img[0]).save("horse.png")
+    print("saved at horse.png")
+    ```
+
+    References:
+
+    - [About Stable Diffusion](https://stability.ai/blog/stable-diffusion-announcement)
+    - [Original implementation](https://github.com/CompVis/stable-diffusion)
+    """
+
     def __init__(self, img_height=512, img_width=512, jit_compile=False):
         # UNet requires multiples of 2**7 = 128
         img_height = round(img_height / 128) * 128
@@ -98,14 +146,14 @@ class StableDiffusion:
 
         # Iterative reverse diffusion stage
         timesteps = np.arange(1, 1000, 1000 // num_steps)
-        latent, alphas, alphas_prev = self.get_initial_parameters(
+        latent, alphas, alphas_prev = self._get_initial_parameters(
             timesteps, batch_size, seed
         )
         progbar = keras.utils.Progbar(len(timesteps))
         iteration = 0
         for index, timestep in list(enumerate(timesteps))[::-1]:
             latent_prev = latent  # Set aside the previous latent vector
-            t_emb = self.get_timestep_embedding(timestep, batch_size)
+            t_emb = self._get_timestep_embedding(timestep, batch_size)
             unconditional_latent = self.diffusion_model.predict_on_batch(
                 [latent, t_emb, unconditional_context]
             )
@@ -124,7 +172,7 @@ class StableDiffusion:
         decoded = ((decoded + 1) / 2) * 255
         return np.clip(decoded, 0, 255).astype("uint8")
 
-    def get_timestep_embedding(self, timestep, batch_size, dim=320, max_period=10000):
+    def _get_timestep_embedding(self, timestep, batch_size, dim=320, max_period=10000):
         half = dim // 2
         freqs = np.exp(
             -math.log(max_period) * np.arange(0, half, dtype="float32") / half
@@ -134,7 +182,7 @@ class StableDiffusion:
         embedding = tf.convert_to_tensor(embedding.reshape(1, -1))
         return np.repeat(embedding, batch_size, axis=0)
 
-    def get_initial_parameters(self, timesteps, batch_size, seed=None):
+    def _get_initial_parameters(self, timesteps, batch_size, seed=None):
         alphas = [_ALPHAS_CUMPROD[t] for t in timesteps]
         alphas_prev = [1.0] + alphas[:-1]
         noise = tf.random.normal(
