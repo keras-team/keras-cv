@@ -23,6 +23,7 @@ The current implementation is a rewrite of the initial TF/Keras port by Divam Gu
 
 import math
 
+import numpy as np
 import tensorflow as tf
 from tensorflow import keras
 
@@ -168,7 +169,7 @@ class StableDiffusion:
         # Decoding stage
         decoded = self.decoder.predict_on_batch(latent)
         decoded = ((decoded + 1) / 2) * 255
-        return tf.cast(tf.clip_by_value(decoded, 0, 255), dtype=tf.uint8)
+        return np.clip(decoded, 0, 255).astype("uint8")
 
     def _get_timestep_embedding(self, timestep, batch_size, dim=320, max_period=10000):
         half = dim // 2
