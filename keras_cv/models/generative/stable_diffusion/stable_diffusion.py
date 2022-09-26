@@ -210,8 +210,8 @@ class StableDiffusion:
 
         if walking:
             noise = tf.repeat(tf.random.normal(
-                (1, self.img_height // 8, self.img_width // 8, 4), batch_size, seed=seed
-            ))
+                (1, self.img_height // 8, self.img_width // 8, 4), seed=seed
+            ), batch_size)
         else:
             noise = tf.random.normal(
                 (batch_size, self.img_height // 8, self.img_width // 8, 4), seed=seed
