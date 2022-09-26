@@ -433,7 +433,6 @@ class RetinaNet(ObjectDetectionBaseModel):
         # Training specific code
         trainable_vars = self.trainable_variables
         gradients = tape.gradient(loss, trainable_vars)
-
         self.optimizer.apply_gradients(zip(gradients, trainable_vars))
 
         # Early exit for no train time metrics
