@@ -136,7 +136,7 @@ class RetinaNetLabelEncoder(layers.Layer):
         # properly handle this edge-case.
         label = tf.where(
             tf.expand_dims(tf.math.reduce_any(tf.math.is_nan(label), axis=-1), axis=-1),
-            -2.0,
+            self.ignore_class,
             label,
         )
         return label
