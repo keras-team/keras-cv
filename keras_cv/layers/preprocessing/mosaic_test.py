@@ -22,15 +22,17 @@ classes = 10
 
 
 class MosaicTest(tf.test.TestCase):
-
     def test_integration_retina_net(self):
         batch_size = 16
         train_ds, train_dataset_info = keras_cv.datasets.pascal_voc.load(
             bounding_box_format="xywh", split="train", batch_size=9
         )
-        mosaic = keras_cv.layers.Mosaic(bounding_box_format='xywh')
+        mosaic = keras_cv.layers.Mosaic(bounding_box_format="xywh")
         train_ds = train_ds.map(mosaic, num_parallel_calls=tf.data.AUTOTUNE)
-        train_ds = train_ds.map(lambda inputs: (inputs["images"], inputs["bounding_boxes"]), num_parallel_calls=tf.data.AUTOTUNE)
+        train_ds = train_ds.map(
+            lambda inputs: (inputs["images"], inputs["bounding_boxes"]),
+            num_parallel_calls=tf.data.AUTOTUNE,
+        )
         model = keras_cv.models.RetinaNet(
             classes=20,
             bounding_box_format="xywh",
@@ -42,17 +44,19 @@ class MosaicTest(tf.test.TestCase):
         model.backbone.trainable = False
         optimizer = tf.optimizers.SGD(global_clipnorm=10.0)
         model.compile(
-            classification_loss=keras_cv.losses.FocalLoss(from_logits=True, reduction="none"),
+            classification_loss=keras_cv.losses.FocalLoss(
+                from_logits=True, reduction="none"
+            ),
             box_loss=keras_cv.losses.SmoothL1Loss(l1_cutoff=1.0, reduction="none"),
             optimizer=optimizer,
         )
         callbacks = [
             tf.keras.callbacks.ReduceLROnPlateau(patience=5),
-            tf.keras.callbacks.TerminateOnNaN()
+            tf.keras.callbacks.TerminateOnNaN(),
         ]
         history = model.fit(train_ds, epochs=20)
 
-        for loss in history.history['loss']:
+        for loss in history.history["loss"]:
             self.assertFalse(tf.is_nan(loss))
 
     def test_return_shapes(self):
