@@ -117,8 +117,8 @@ class StableDiffusion:
         batch_size=1,
         num_steps=25,
         unconditional_guidance_scale=7.5,
+        diffusion_noise=None,
         seed=None,
-        walk_breadth=1e-3
     ):
         # Tokenize prompt (i.e. starting context)
         inputs = self.tokenizer.encode(prompt)
@@ -147,23 +147,13 @@ class StableDiffusion:
         )
         unconditional_context = tf.repeat(unconditional_context, batch_size, axis=0)
 
-        if walk_breadth:
-            walk_noise = tf.random.uniform(context.shape[1:], maxval=walk_breadth, dtype=tf.float64)
-            walk_scale = tf.cos(tf.linspace(0, batch_size-1, batch_size) * 2 * math.pi / batch_size)
-            walk_adjustments = tf.tensordot(walk_scale, walk_noise, axes=0)
+        return self._generate_image(unconditional_context, context, num_steps, unconditional_guidance_scale, batch_size, diffusion_noise, seed)
 
-            walk_adjustments = tf.cast(walk_adjustments, context.dtype)
-            # context = tf.add(context, walk_adjustments)
-
-            return self._generate_image(unconditional_context, context, num_steps, unconditional_guidance_scale, batch_size, seed, walk_breadth=walk_breadth)
-        else:
-            return self._generate_image(unconditional_context, context, num_steps, unconditional_guidance_scale, batch_size, seed)
-
-    def _generate_image(self, unconditional_context, context, num_steps, unconditional_guidance_scale, batch_size, seed, walk_breadth=None):
+    def _generate_image(self, unconditional_context, context, num_steps, unconditional_guidance_scale, batch_size, diffusion_noise, seed):
         # Iterative reverse diffusion stage
         timesteps = tf.range(1, 1000, 1000 // num_steps)
         latent, alphas, alphas_prev = self._get_initial_parameters(
-            timesteps, batch_size, walk_breadth, seed
+            timesteps, batch_size, diffusion_noise, seed
         )
         progbar = keras.utils.Progbar(len(timesteps))
         iteration = 0
@@ -198,24 +188,12 @@ class StableDiffusion:
         embedding = tf.reshape(embedding, [1, -1])
         return tf.repeat(embedding, batch_size, axis=0)
 
-    def _get_initial_parameters(self, timesteps, batch_size, walk_breadth=.05, seed=None):
+    def _get_initial_parameters(self, timesteps, batch_size, diffusion_noise, seed=None):
         alphas = [_ALPHAS_CUMPROD[t] for t in timesteps]
         alphas_prev = [1.0] + alphas[:-1]
 
-        noise = tf.random.normal(
+        noise = diffusion_noise or tf.random.normal(
             (batch_size, self.img_height // 8, self.img_width // 8, 4), seed=seed
         )
-
-        if walk_breadth:
-            noise = tf.repeat(tf.random.normal(
-                (1, self.img_height // 8, self.img_width // 8, 4), seed=seed
-            ), batch_size, axis=0)
-
-            walk_noise = tf.random.uniform(noise.shape[1:], maxval=walk_breadth, dtype=tf.float64)
-            walk_scale = tf.cos(tf.linspace(0, batch_size-1, batch_size) * 2 * math.pi / batch_size)
-            walk_adjustments = tf.tensordot(walk_scale, walk_noise, axes=0)
-            walk_adjustments = tf.cast(walk_adjustments, noise.dtype)
-
-            noise = tf.add(noise, walk_adjustments)
 
         return noise, alphas, alphas_prev
