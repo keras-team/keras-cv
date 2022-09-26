@@ -20,6 +20,7 @@ from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
 )
 from keras_cv.utils import preprocessing
 
+
 @tf.keras.utils.register_keras_serializable(package="keras_cv")
 class Mosaic(BaseImageAugmentationLayer):
     """Mosaic implements the mosaic data augmentation technique.
