@@ -119,6 +119,7 @@ class StableDiffusion:
         unconditional_guidance_scale=7.5,
         seed=None,
         walk_size=None,
+        walk_breadth=1e-3
     ):
         # Tokenize prompt (i.e. starting context)
         inputs = self.tokenizer.encode(prompt)
@@ -147,7 +148,7 @@ class StableDiffusion:
 
         if walk_size:
             images = []
-            walk_noise = tf.random.uniform(tf.shape(context))
+            walk_noise = tf.random.uniform(tf.shape(context), maxval=walk_breadth)
             for walk_step in range(walk_size):
                 step_noise = walk_noise * math.cos(2*math.pi / walk_size)
                 images.append(self._generate_image(unconditional_context, context+step_noise, num_steps, unconditional_guidance_scale, batch_size=1, seed=seed))
