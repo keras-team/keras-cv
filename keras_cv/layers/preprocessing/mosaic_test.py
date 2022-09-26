@@ -44,6 +44,7 @@ class MosaicTest(tf.test.TestCase):
         model.backbone.trainable = False
         optimizer = tf.optimizers.SGD(global_clipnorm=10.0)
         model.compile(
+            run_eagerly=True,
             classification_loss=keras_cv.losses.FocalLoss(
                 from_logits=True, reduction="none"
             ),
@@ -57,7 +58,7 @@ class MosaicTest(tf.test.TestCase):
         history = model.fit(train_ds, epochs=20, callbacks=callbacks)
 
         for loss in history.history["loss"]:
-            self.assertFalse(tf.is_nan(loss))
+            self.assertFalse(tf.math.is_nan(loss))
 
     def test_return_shapes(self):
         xs = tf.ones((2, 512, 512, 3))

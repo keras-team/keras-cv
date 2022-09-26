@@ -426,13 +426,22 @@ class RetinaNet(ObjectDetectionBaseModel):
     def train_step(self, data):
         x, y = data
         y_for_metrics, y_training_target = y
+        tf.debugging.assert_all_finite(y_for_metrics.to_tensor(-1), 'y_for_metrics')
+        if tf.math.reduce_any(tf.math.is_nan(y_training_target)):
+            tf.print(y_for_metrics, 'y_for_metrics')
+        tf.debugging.assert_all_finite(y_training_target, 'y_training_target')
 
         with tf.GradientTape() as tape:
             y_pred = self(x, training=True)
+            tf.debugging.assert_all_finite(y_pred, 'y_pred')
             loss = self._backward(y_training_target, y_pred)
+            tf.debugging.assert_all_finite(loss, 'loss')
         # Training specific code
         trainable_vars = self.trainable_variables
         gradients = tape.gradient(loss, trainable_vars)
+        for gradient in gradients:
+            tf.debugging.assert_all_finite(gradient, 'gradient')
+
         self.optimizer.apply_gradients(zip(gradients, trainable_vars))
 
         # Early exit for no train time metrics

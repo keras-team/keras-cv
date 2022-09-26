@@ -86,8 +86,11 @@ class RetinaNetLabelEncoder(layers.Layer):
             training
         """
         iou_matrix = bounding_box.compute_iou(
-            anchor_boxes, gt_boxes, bounding_box_format="xywh"
+            anchor_boxes,
+            gt_boxes[:, :4],
+            bounding_box_format="xywh",
         )
+
         max_iou = tf.reduce_max(iou_matrix, axis=1)
         matched_gt_idx = tf.argmax(iou_matrix, axis=1)
         positive_mask = tf.greater_equal(max_iou, match_iou)
@@ -103,18 +106,22 @@ class RetinaNetLabelEncoder(layers.Layer):
         """Transforms the ground truth boxes into targets for training"""
         box_target = tf.concat(
             [
-                (matched_gt_boxes[:, :2] - anchor_boxes[:, :2]) / anchor_boxes[:, 2:],
-                tf.math.log(matched_gt_boxes[:, 2:] / anchor_boxes[:, 2:]),
+                (matched_gt_boxes[:, :2:4] - anchor_boxes[:, :2]) / anchor_boxes[:, 2:],
+                tf.math.log(matched_gt_boxes[:, 2:4] / anchor_boxes[:, 2:]),
             ],
             axis=-1,
         )
         box_target = box_target / self.box_variance
+        # filter -1 matched_gt_boxes
+        ignore_indices = matched_gt_boxes[:, 4] == -1
+        ignore_indices = tf.expand_dims(ignore_indices, axis=-1)
+        box_target = tf.where(ignore_indices, -1.0, box_target)
         return box_target
 
     def _encode_sample(self, gt_boxes, anchor_boxes):
         """Creates box and classification targets for a single sample"""
         cls_ids = gt_boxes[:, 4]
-        gt_boxes = gt_boxes[:, :4]
+        # gt_boxes = gt_boxes[:, :4]
         cls_ids = tf.cast(cls_ids, dtype=self.dtype)
         matched_gt_idx, positive_mask, ignore_mask = self._match_anchor_boxes(
             anchor_boxes, gt_boxes
