@@ -15,15 +15,12 @@ import tensorflow as tf
 
 import keras_cv
 from keras_cv.layers.preprocessing.mosaic import Mosaic
-from keras_cv.models import RetinaNet
-from keras_cv.datasets import pascal_voc
 
 classes = 10
 
 
 class MosaicTest(tf.test.TestCase):
     def DISABLED_test_integration_retina_net(self):
-        batch_size = 16
         train_ds, train_dataset_info = keras_cv.datasets.pascal_voc.load(
             bounding_box_format="xywh", split="train", batch_size=9
         )
