@@ -113,8 +113,14 @@ class RetinaNetLabelEncoder(layers.Layer):
         )
         box_target = box_target / self.box_variance
         # filter -1 matched_gt_boxes
+        # this is an edge case that can occur when a bounding box
+        # is really close to the top left corner of an image.
+        # if the box near the top left corner has an IoU threshold
+        # that is large enough, an invalid box is encoded and
+        # training will fail.
         ignore_indices = matched_gt_boxes[:, 4] == -1
         ignore_indices = tf.expand_dims(ignore_indices, axis=-1)
+        # assign boxes matched with all -1s to the background class
         box_target = tf.where(ignore_indices, -1.0, box_target)
         return box_target
 
