@@ -121,6 +121,9 @@ class StableDiffusion:
         walk_size=None,
         walk_breadth=1e-3
     ):
+        if walk_size:
+            batch_size = walk_size
+
         # Tokenize prompt (i.e. starting context)
         inputs = self.tokenizer.encode(prompt)
         if len(inputs) > MAX_PROMPT_LENGTH:
@@ -147,12 +150,18 @@ class StableDiffusion:
 
 
         if walk_size:
-            images = []
-            walk_noise = tf.random.uniform(tf.shape(context), maxval=walk_breadth)
-            for walk_step in range(walk_size):
-                step_noise = walk_noise * math.cos(2*math.pi / walk_size)
-                images.append(self._generate_image(unconditional_context, context+step_noise, num_steps, unconditional_guidance_scale, batch_size=1, seed=seed))
-            return np.array(images)
+            walk_noise = tf.random.uniform(context.shape[1:], maxval=walk_breadth, dtype=tf.float64)
+            walk_scale = tf.cos(tf.linspace(0, walk_size-1, walk_size) * 2 * math.pi / walk_size)
+            walk_adjustments = tf.tensordot(walk_scale, walk_noise, axes=0)
+
+            print(context)
+            print(context.shape)
+            walk_adjustments = tf.cast(walk_adjustments, context.dtype)
+            context = tf.add(context, walk_adjustments)
+            print(context)
+            print(context.shape)
+
+            return self._generate_image(unconditional_context, context, num_steps, unconditional_guidance_scale, batch_size, seed)
         else:
             return self._generate_image(unconditional_context, context, num_steps, unconditional_guidance_scale, batch_size, seed)
 
