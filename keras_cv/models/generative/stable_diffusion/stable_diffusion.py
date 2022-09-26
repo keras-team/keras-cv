@@ -147,19 +147,13 @@ class StableDiffusion:
         )
         unconditional_context = tf.repeat(unconditional_context, batch_size, axis=0)
 
-
         if walk_breadth:
-            #print(context.shape)
-            #print(context)
-
-            walk_noise = tf.zeros(context.shape[1:], dtype=tf.float64)
+            walk_noise = tf.random.uniform(context.shape[1:], maxval=walk_breadth, dtype=tf.float64)
             walk_scale = tf.cos(tf.linspace(0, batch_size-1, batch_size) * 2 * math.pi / batch_size)
             walk_adjustments = tf.tensordot(walk_scale, walk_noise, axes=0)
 
             walk_adjustments = tf.cast(walk_adjustments, context.dtype)
             context = tf.add(context, walk_adjustments)
-
-            #print(context)
 
             return self._generate_image(unconditional_context, context, num_steps, unconditional_guidance_scale, batch_size, seed, walking=True)
         else:
@@ -216,8 +210,5 @@ class StableDiffusion:
             noise = tf.random.normal(
                 (batch_size, self.img_height // 8, self.img_width // 8, 4), seed=seed
             )
-
-        print(noise)
-        print(noise.shape)
 
         return noise, alphas, alphas_prev
