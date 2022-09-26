@@ -81,9 +81,12 @@ def clip_to_image(bounding_boxes, images, bounding_box_format):
         target=bounding_box_format,
         images=images,
     )
-
     clipped_bounding_boxes = tf.where(
         tf.expand_dims(areas > 0.0, axis=-1), clipped_bounding_boxes, -1.0
+    )
+    nan_indices = tf.math.reduce_any(tf.math.is_nan(clipped_bounding_boxes), axis=-1)
+    clipped_bounding_boxes = tf.where(
+        tf.expand_dims(nan_indices, axis=-1), -1.0, clipped_bounding_boxes
     )
     clipped_bounding_boxes = _format_outputs(clipped_bounding_boxes, squeeze)
     return clipped_bounding_boxes
