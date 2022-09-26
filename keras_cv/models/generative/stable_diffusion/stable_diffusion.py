@@ -118,12 +118,8 @@ class StableDiffusion:
         num_steps=25,
         unconditional_guidance_scale=7.5,
         seed=None,
-        walk_size=None,
         walk_breadth=1e-3
     ):
-        if walk_size:
-            batch_size = walk_size
-
         # Tokenize prompt (i.e. starting context)
         inputs = self.tokenizer.encode(prompt)
         if len(inputs) > MAX_PROMPT_LENGTH:
@@ -132,44 +128,48 @@ class StableDiffusion:
             )
         phrase = inputs + [49407] * (MAX_PROMPT_LENGTH - len(inputs))
         phrase = tf.convert_to_tensor([phrase], dtype=tf.int32)
-        phrase = tf.repeat(phrase, batch_size, axis=0)
+        #phrase = tf.repeat(phrase, batch_size, axis=0)
 
         # Encode prompt tokens + positions into a "context" vector
         pos_ids = tf.convert_to_tensor([list(range(MAX_PROMPT_LENGTH))], dtype=tf.int32)
-        pos_ids = tf.repeat(pos_ids, batch_size, axis=0)
+        #pos_ids = tf.repeat(pos_ids, batch_size, axis=0)
         context = self.text_encoder.predict_on_batch([phrase, pos_ids])
+
+        context = tf.repeat(context, batch_size, axis=0)
 
         # Encode unconditional tokens + positions as "unconditional context"
         unconditional_tokens = tf.convert_to_tensor(
             [_UNCONDITIONAL_TOKENS], dtype=tf.int32
         )
-        self.unconditional_tokens = tf.repeat(unconditional_tokens, batch_size, axis=0)
+        #self.unconditional_tokens = tf.repeat(unconditional_tokens, batch_size, axis=0)
         unconditional_context = self.text_encoder.predict_on_batch(
-            [self.unconditional_tokens, pos_ids]
+            [unconditional_tokens, pos_ids]
         )
+        unconditional_context = tf.repeat(unconditional_context, batch_size, axis=0)
 
 
-        if walk_size:
-            walk_noise = tf.random.uniform(context.shape[1:], maxval=walk_breadth, dtype=tf.float64)
-            walk_scale = tf.cos(tf.linspace(0, walk_size-1, walk_size) * 2 * math.pi / walk_size)
+        if walk_breadth:
+            #print(context.shape)
+            #print(context)
+
+            walk_noise = tf.zeros(context.shape[1:], dtype=tf.float64)
+            walk_scale = tf.cos(tf.linspace(0, batch_size-1, batch_size) * 2 * math.pi / batch_size)
             walk_adjustments = tf.tensordot(walk_scale, walk_noise, axes=0)
 
-            print(context)
-            print(context.shape)
             walk_adjustments = tf.cast(walk_adjustments, context.dtype)
             context = tf.add(context, walk_adjustments)
-            print(context)
-            print(context.shape)
 
-            return self._generate_image(unconditional_context, context, num_steps, unconditional_guidance_scale, batch_size, seed)
+            #print(context)
+
+            return self._generate_image(unconditional_context, context, num_steps, unconditional_guidance_scale, batch_size, seed, walking=True)
         else:
             return self._generate_image(unconditional_context, context, num_steps, unconditional_guidance_scale, batch_size, seed)
 
-    def _generate_image(self, unconditional_context, context, num_steps, unconditional_guidance_scale, batch_size, seed):
+    def _generate_image(self, unconditional_context, context, num_steps, unconditional_guidance_scale, batch_size, seed, walking=False):
         # Iterative reverse diffusion stage
         timesteps = tf.range(1, 1000, 1000 // num_steps)
         latent, alphas, alphas_prev = self._get_initial_parameters(
-            timesteps, batch_size, seed
+            timesteps, batch_size, walking, seed
         )
         progbar = keras.utils.Progbar(len(timesteps))
         iteration = 0
@@ -204,10 +204,17 @@ class StableDiffusion:
         embedding = tf.reshape(embedding, [1, -1])
         return tf.repeat(embedding, batch_size, axis=0)
 
-    def _get_initial_parameters(self, timesteps, batch_size, seed=None):
+    def _get_initial_parameters(self, timesteps, batch_size, walking, seed=None):
         alphas = [_ALPHAS_CUMPROD[t] for t in timesteps]
         alphas_prev = [1.0] + alphas[:-1]
-        noise = tf.random.normal(
-            (batch_size, self.img_height // 8, self.img_width // 8, 4), seed=seed
-        )
+
+        if walking:
+            noise = tf.repeat(tf.random.normal(
+                (1, self.img_height // 8, self.img_width // 8, 4), batch_size, seed=seed
+            ))
+        else:
+            noise = tf.random.normal(
+                (batch_size, self.img_height // 8, self.img_width // 8, 4), seed=seed
+            )
+
         return noise, alphas, alphas_prev
