@@ -385,7 +385,7 @@ def ResNetV2(
 
         The backbone model will usually take same inputs as the original application
         model, but produce multiple outputs, one for each feature level. Those outputs
-        can be feed to network downstream, like FPN and PRN.
+        can be feed to network downstream, like FPN and RPN.
 
         The output of the backbone model will be a dict with int as key and tensor as
         value. The int key represent the level of the feature output.
