@@ -367,8 +367,12 @@ def _image_shape(images, image_shape, boxes):
         raise RequiresImagesException()
 
     if image_shape is None:
-        image_shape = tf.shape(images)
-        height, width = image_shape[1], image_shape[2]
+        if not isinstance(images, tf.RaggedTensor):
+            image_shape = tf.shape(images)
+            height, width = image_shape[1], image_shape[2]
+        else:
+            height = tf.reshape(images.row_lengths(), (-1, 1))
+            width = tf.reshape(tf.reduce_max(images.row_lengths(axis=2), 1), (-1, 1))
     else:
         height, width = image_shape[0], image_shape[1]
     return tf.cast(height, boxes.dtype), tf.cast(width, boxes.dtype)

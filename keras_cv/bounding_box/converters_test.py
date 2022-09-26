@@ -14,11 +14,14 @@
 
 import itertools
 
+import numpy as np
 import tensorflow as tf
 from absl.testing import parameterized
 
 from keras_cv import bounding_box
 
+# TODO: How we want to refactor this test data to support both ragged
+#       and same size "standard" images?
 xyxy_box = tf.constant([[[10, 20, 110, 120], [20, 30, 120, 130]]], dtype=tf.float32)
 yxyx_box = tf.constant([[[20, 10, 120, 110], [30, 20, 130, 120]]], dtype=tf.float32)
 rel_xyxy_box = tf.constant(
@@ -35,7 +38,15 @@ rel_xywh_box = tf.constant(
     [[[0.01, 0.02, 0.1, 0.1], [0.02, 0.03, 0.1, 0.1]]], dtype=tf.float32
 )
 
-images = tf.ones([2, 1000, 1000, 3])
+# TODO: We need to use a smaller size or to use a faster initializer:
+#       See https://github.com/tensorflow/tensorflow/issues/47853
+
+images = tf.ragged.constant(
+    [np.ones(shape=[1000, 1000, 3]), np.ones(shape=[1000, 1000, 3])],  # 2 images
+    ragged_rank=2,
+)
+
+# images = tf.ones([2, 1000, 1000, 3])
 
 boxes = {
     "xyxy": xyxy_box,
@@ -127,4 +138,4 @@ class ConvertersTestCase(tf.test.TestCase, parameterized.TestCase):
 
 
 def _raggify(tensor, row_lengths=[[2, 0], [0, 0]]):
-    return tf.RaggedTensor.from_row_lengths(tensor[0], [2, 0])
+    return tf.RaggedTensor.from_row_lengths(tensor[0], [2])
