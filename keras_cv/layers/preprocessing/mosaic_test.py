@@ -22,7 +22,7 @@ classes = 10
 
 
 class MosaicTest(tf.test.TestCase):
-    def test_integration_retina_net(self):
+    def DISABLED_test_integration_retina_net(self):
         batch_size = 16
         train_ds, train_dataset_info = keras_cv.datasets.pascal_voc.load(
             bounding_box_format="xywh", split="train", batch_size=9
