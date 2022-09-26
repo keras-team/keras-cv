@@ -54,7 +54,7 @@ class MosaicTest(tf.test.TestCase):
             tf.keras.callbacks.ReduceLROnPlateau(patience=5),
             tf.keras.callbacks.TerminateOnNaN(),
         ]
-        history = model.fit(train_ds, epochs=20)
+        history = model.fit(train_ds, epochs=20, callbacks=callbacks)
 
         for loss in history.history["loss"]:
             self.assertFalse(tf.is_nan(loss))
