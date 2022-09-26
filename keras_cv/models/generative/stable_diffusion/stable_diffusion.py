@@ -192,7 +192,7 @@ class StableDiffusion:
         alphas = [_ALPHAS_CUMPROD[t] for t in timesteps]
         alphas_prev = [1.0] + alphas[:-1]
 
-        noise = diffusion_noise or tf.random.normal(
+        noise = diffusion_noise if diffusion_noise is not None else or tf.random.normal(
             (batch_size, self.img_height // 8, self.img_width // 8, 4), seed=seed
         )
 
