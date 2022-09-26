@@ -211,10 +211,13 @@ class StableDiffusion:
         if walking:
             noise = tf.repeat(tf.random.normal(
                 (1, self.img_height // 8, self.img_width // 8, 4), seed=seed
-            ), batch_size)
+            ), batch_size, axis=0)
         else:
             noise = tf.random.normal(
                 (batch_size, self.img_height // 8, self.img_width // 8, 4), seed=seed
             )
+
+        print(noise)
+        print(noise.shape)
 
         return noise, alphas, alphas_prev
