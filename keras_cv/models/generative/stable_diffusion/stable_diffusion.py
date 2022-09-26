@@ -214,6 +214,7 @@ class StableDiffusion:
             walk_noise = tf.random.uniform(noise.shape[1:], maxval=walk_breadth, dtype=tf.float64)
             walk_scale = tf.cos(tf.linspace(0, batch_size-1, batch_size) * 2 * math.pi / batch_size)
             walk_adjustments = tf.tensordot(walk_scale, walk_noise, axes=0)
+            walk_adjustments = tf.cast(walk_adjustments, noise.dtype)
 
             noise = tf.add(noise, walk_adjustments)
 
