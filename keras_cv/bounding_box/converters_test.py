@@ -25,8 +25,14 @@ yxyx_box = tf.constant([[[20, 10, 120, 110], [30, 20, 130, 120]]], dtype=tf.floa
 rel_xyxy_box = tf.constant(
     [[[0.01, 0.02, 0.11, 0.12], [0.02, 0.03, 0.12, 0.13]]], dtype=tf.float32
 )
+rel_xyxy_box_ragged_images = tf.constant(
+    [[[0.10, 0.20, 1.1, 1.20], [0.40, 0.6, 2.40, 2.6]]], dtype=tf.float32
+)
 rel_yxyx_box = tf.constant(
     [[[0.02, 0.01, 0.12, 0.11], [0.03, 0.02, 0.13, 0.12]]], dtype=tf.float32
+)
+rel_yxyx_box_ragged_images = tf.constant(
+    [[[0.2, 0.1, 1.2, 1.1], [0.6, 0.4, 2.6, 2.4]]], dtype=tf.float32
 )
 center_xywh_box = tf.constant(
     [[[60, 70, 100, 100], [70, 80, 100, 100]]], dtype=tf.float32
@@ -34,6 +40,9 @@ center_xywh_box = tf.constant(
 xywh_box = tf.constant([[[10, 20, 100, 100], [20, 30, 100, 100]]], dtype=tf.float32)
 rel_xywh_box = tf.constant(
     [[[0.01, 0.02, 0.1, 0.1], [0.02, 0.03, 0.1, 0.1]]], dtype=tf.float32
+)
+rel_xywh_box_ragged_images = tf.constant(
+    [[[0.1, 0.2, 1, 1], [0.4, 0.6, 2, 2]]], dtype=tf.float32
 )
 
 ragged_images = tf.ragged.constant(
@@ -56,11 +65,11 @@ boxes = {
 boxes_ragged_images = {
     "xyxy": xyxy_box,
     "center_xywh": center_xywh_box,
-    "rel_xywh": rel_xywh_box * tf.constant([[10.0], [20.0]]),
+    "rel_xywh": rel_xywh_box_ragged_images,
     "xywh": xywh_box,
-    "rel_xyxy": rel_xyxy_box * tf.constant([[10.0], [20.0]]),
+    "rel_xyxy": rel_xyxy_box_ragged_images,
     "yxyx": yxyx_box,
-    "rel_yxyx": rel_yxyx_box * tf.constant([[10.0], [20.0]]),
+    "rel_yxyx": rel_yxyx_box_ragged_images,
 }
 
 test_cases = [
