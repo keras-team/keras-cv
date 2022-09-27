@@ -127,21 +127,21 @@ class StableDiffusion:
             )
         phrase = inputs + [49407] * (MAX_PROMPT_LENGTH - len(inputs))
         phrase = tf.convert_to_tensor([phrase], dtype=tf.int32)
-        phrase = tf.repeat(phrase, batch_size, axis=0)
 
         # Encode prompt tokens + positions into a "context" vector
         pos_ids = tf.convert_to_tensor([list(range(MAX_PROMPT_LENGTH))], dtype=tf.int32)
-        pos_ids = tf.repeat(pos_ids, batch_size, axis=0)
+
         context = self.text_encoder.predict_on_batch([phrase, pos_ids])
+        context = tf.repeat(context, batch_size, axis=0)
 
         # Encode unconditional tokens + positions as "unconditional context"
         unconditional_tokens = tf.convert_to_tensor(
             [_UNCONDITIONAL_TOKENS], dtype=tf.int32
         )
-        self.unconditional_tokens = tf.repeat(unconditional_tokens, batch_size, axis=0)
         unconditional_context = self.text_encoder.predict_on_batch(
-            [self.unconditional_tokens, pos_ids]
+            [unconditional_tokens, pos_ids]
         )
+        unconditional_context = tf.repeat(unconditional_context, batch_size, axis=0)
 
         # Iterative reverse diffusion stage
         timesteps = tf.range(1, 1000, 1000 // num_steps)
