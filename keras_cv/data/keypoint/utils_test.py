@@ -15,7 +15,7 @@
 import tensorflow as tf
 from absl.testing import parameterized
 
-from keras_cv.ops.keypoint_utils import filter_keypoints
+from keras_cv.data.keypoint import clip_to_image
 
 
 class UtilsTestCase(tf.test.TestCase, parameterized.TestCase):
@@ -48,4 +48,4 @@ class UtilsTestCase(tf.test.TestCase, parameterized.TestCase):
         ),
     )
     def test_result(self, keypoints, image, expected):
-        self.assertAllClose(filter_keypoints(keypoints, image), expected)
+        self.assertAllClose(clip_to_image(keypoints, image), expected)
