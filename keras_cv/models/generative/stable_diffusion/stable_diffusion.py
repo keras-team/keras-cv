@@ -152,6 +152,13 @@ class StableDiffusion:
         diffusion_noise=None,
         seed=None,
     ):
+        if diffusion_noise is not None and seed is not None:
+            raise ValueError(
+                "`diffusion_noise` and `seed` should not both be passed to "
+                "`generate_image`. `seed` is only used to generate diffusion "
+                "noise when it's not already user-specified."
+            )
+
         context = tf.repeat(encoded_text, batch_size, axis=0)
         unconditional_context = tf.repeat(
             self._get_unconditional_context(), batch_size, axis=0

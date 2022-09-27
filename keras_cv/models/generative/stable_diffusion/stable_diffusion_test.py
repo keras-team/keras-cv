@@ -39,6 +39,18 @@ class StableDiffusionTest(tf.test.TestCase):
         stablediff = StableDiffusion(128, 128)
         _ = stablediff.text_to_image("Testing123 haha!")
 
+    def DISABLED_test_generate_image_rejects_noise_and_seed(self):
+        stablediff = StableDiffusion(128, 128)
+
+        with self.assertRaisesRegex(
+            ValueError, r"`diffusion_noise` and `seed` should not both be passed"
+        ):
+            _ = stablediff.generate_image(
+                stablediff.encode_text("thou shall not render"),
+                diffusion_noise=tf.random.normal((1, 16, 16, 4)),
+                seed=1337,
+            )
+
 
 if __name__ == "__main__":
     tf.test.main()
