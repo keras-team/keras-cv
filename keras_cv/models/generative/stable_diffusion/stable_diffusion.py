@@ -117,9 +117,19 @@ class StableDiffusion:
         batch_size=1,
         num_steps=25,
         unconditional_guidance_scale=7.5,
-        diffusion_noise=None,
         seed=None,
     ):
+        context = self.encode_text(prompt)
+
+        return self.generate_image(
+            context,
+            batch_size=batch_size,
+            num_steps=num_steps,
+            unconditional_guidance_scale=unconditional_guidance_scale,
+            seed=seed,
+        )
+
+    def encode_text(self, prompt):
         # Tokenize prompt (i.e. starting context)
         inputs = self.tokenizer.encode(prompt)
         if len(inputs) > MAX_PROMPT_LENGTH:
@@ -128,33 +138,33 @@ class StableDiffusion:
             )
         phrase = inputs + [49407] * (MAX_PROMPT_LENGTH - len(inputs))
         phrase = tf.convert_to_tensor([phrase], dtype=tf.int32)
-        #phrase = tf.repeat(phrase, batch_size, axis=0)
 
-        # Encode prompt tokens + positions into a "context" vector
-        pos_ids = tf.convert_to_tensor([list(range(MAX_PROMPT_LENGTH))], dtype=tf.int32)
-        #pos_ids = tf.repeat(pos_ids, batch_size, axis=0)
-        context = self.text_encoder.predict_on_batch([phrase, pos_ids])
+        context = self.text_encoder.predict_on_batch([phrase, self._get_pos_ids()])
 
-        context = tf.repeat(context, batch_size, axis=0)
+        return context
 
-        # Encode unconditional tokens + positions as "unconditional context"
-        unconditional_tokens = tf.convert_to_tensor(
-            [_UNCONDITIONAL_TOKENS], dtype=tf.int32
+    def generate_image(
+        self,
+        encoded_text,
+        batch_size=1,
+        num_steps=25,
+        unconditional_guidance_scale=7.5,
+        diffusion_noise=None,
+        seed=None,
+    ):
+        context = tf.repeat(encoded_text, batch_size, axis=0)
+        unconditional_context = tf.repeat(
+            self._get_unconditional_context(), batch_size, axis=0
         )
-        #self.unconditional_tokens = tf.repeat(unconditional_tokens, batch_size, axis=0)
-        unconditional_context = self.text_encoder.predict_on_batch(
-            [unconditional_tokens, pos_ids]
-        )
-        unconditional_context = tf.repeat(unconditional_context, batch_size, axis=0)
 
-        return self._generate_image(unconditional_context, context, num_steps, unconditional_guidance_scale, batch_size, diffusion_noise, seed)
+        if diffusion_noise:
+            latent = diffusion_noise
+        else:
+            latent = self._get_initial_diffusion_noise(batch_size, seed)
 
-    def _generate_image(self, unconditional_context, context, num_steps, unconditional_guidance_scale, batch_size, diffusion_noise, seed):
         # Iterative reverse diffusion stage
         timesteps = tf.range(1, 1000, 1000 // num_steps)
-        latent, alphas, alphas_prev = self._get_initial_parameters(
-            timesteps, batch_size, diffusion_noise, seed
-        )
+        alphas, alphas_prev = self._get_initial_alphas(timesteps)
         progbar = keras.utils.Progbar(len(timesteps))
         iteration = 0
         for index, timestep in list(enumerate(timesteps))[::-1]:
@@ -178,6 +188,16 @@ class StableDiffusion:
         decoded = ((decoded + 1) / 2) * 255
         return np.clip(decoded, 0, 255).astype("uint8")
 
+    def _get_unconditional_context(self):
+        unconditional_tokens = tf.convert_to_tensor(
+            [_UNCONDITIONAL_TOKENS], dtype=tf.int32
+        )
+        unconditional_context = self.text_encoder.predict_on_batch(
+            [unconditional_tokens, self._get_pos_ids()]
+        )
+
+        return unconditional_context
+
     def _get_timestep_embedding(self, timestep, batch_size, dim=320, max_period=10000):
         half = dim // 2
         freqs = tf.math.exp(
@@ -188,12 +208,17 @@ class StableDiffusion:
         embedding = tf.reshape(embedding, [1, -1])
         return tf.repeat(embedding, batch_size, axis=0)
 
-    def _get_initial_parameters(self, timesteps, batch_size, diffusion_noise, seed=None):
+    def _get_initial_alphas(self, timesteps):
         alphas = [_ALPHAS_CUMPROD[t] for t in timesteps]
         alphas_prev = [1.0] + alphas[:-1]
 
-        noise = diffusion_noise if diffusion_noise is not None else tf.random.normal(
+        return alphas, alphas_prev
+
+    def _get_initial_diffusion_noise(self, batch_size, seed):
+        return tf.random.normal(
             (batch_size, self.img_height // 8, self.img_width // 8, 4), seed=seed
         )
 
-        return noise, alphas, alphas_prev
+    @staticmethod
+    def _get_pos_ids():
+        return tf.convert_to_tensor([list(range(MAX_PROMPT_LENGTH))], dtype=tf.int32)
