@@ -11,23 +11,25 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+"""mosaic_demo.py shows how to use the Mosaic preprocessing layer.
 
-# isort:off
-from keras_cv import version_check
+Operates on the oxford_flowers102 dataset.  In this script the flowers
+are loaded, then are passed through the preprocessing layers.
+Finally, they are shown using matplotlib.
+"""
 
-version_check.check_tf_version()
-# isort:on
+import demo_utils
+import tensorflow as tf
 
-from keras_cv import datasets
 from keras_cv import layers
-from keras_cv import losses
-from keras_cv import metrics
-from keras_cv import models
-from keras_cv import training
-from keras_cv import utils
-from keras_cv.core import ConstantFactorSampler
-from keras_cv.core import FactorSampler
-from keras_cv.core import NormalFactorSampler
-from keras_cv.core import UniformFactorSampler
 
-__version__ = "0.3.3"
+
+def main():
+    mosaic = layers.Mosaic()
+    ds = demo_utils.load_oxford_dataset()
+    ds = ds.map(mosaic, num_parallel_calls=tf.data.AUTOTUNE)
+    demo_utils.visualize_dataset(ds)
+
+
+if __name__ == "__main__":
+    main()

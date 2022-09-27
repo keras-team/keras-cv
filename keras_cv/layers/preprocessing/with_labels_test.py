@@ -99,6 +99,7 @@ class WithLabelsTest(tf.test.TestCase, parameterized.TestCase):
     @parameterized.named_parameters(
         *TEST_CONFIGURATIONS,
         ("CutMix", preprocessing.CutMix, {}),
+        ("Mosaic", preprocessing.Mosaic, {}),
     )
     def test_can_run_with_labels(self, layer_cls, init_args):
         layer = layer_cls(**init_args)
@@ -113,7 +114,7 @@ class WithLabelsTest(tf.test.TestCase, parameterized.TestCase):
 
         self.assertIn("labels", outputs)
 
-    # this has to be a separate test case to exclude CutMix and MixUp
+    # this has to be a separate test case to exclude CutMix, MixUp, Mosaic etc.
     @parameterized.named_parameters(*TEST_CONFIGURATIONS)
     def test_can_run_with_labels_single_image(self, layer_cls, init_args):
         layer = layer_cls(**init_args)

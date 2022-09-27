@@ -17,6 +17,8 @@ Reference:
   - [Based on the original keras.applications ResNet](https://github.com/keras-team/keras/blob/master/keras/applications/resnet_v2.py)
 """
 
+import types
+
 import tensorflow as tf
 from tensorflow.keras import backend
 from tensorflow.keras import layers
@@ -125,7 +127,11 @@ def BasicBlock(filters, kernel_size=3, stride=1, conv_shortcut=False, name=None)
                 use_preactivation
             )
         else:
-            shortcut = layers.MaxPooling2D(1, strides=stride)(x) if stride > 1 else x
+            shortcut = (
+                layers.MaxPooling2D(1, strides=stride, name=name + "_0_max_pooling")(x)
+                if stride > 1
+                else x
+            )
 
         x = layers.Conv2D(
             filters,
@@ -184,7 +190,11 @@ def Block(filters, kernel_size=3, stride=1, conv_shortcut=False, name=None):
                 4 * filters, 1, strides=stride, name=name + "_0_conv"
             )(use_preactivation)
         else:
-            shortcut = layers.MaxPooling2D(1, strides=stride)(x) if stride > 1 else x
+            shortcut = (
+                layers.MaxPooling2D(1, strides=stride, name=name + "_0_max_pooling")(x)
+                if stride > 1
+                else x
+            )
 
         x = layers.Conv2D(filters, 1, strides=1, use_bias=False, name=name + "_1_conv")(
             use_preactivation
@@ -214,7 +224,15 @@ def Block(filters, kernel_size=3, stride=1, conv_shortcut=False, name=None):
     return apply
 
 
-def Stack(filters, blocks, stride=2, name=None, block_fn=Block, first_shortcut=True):
+def Stack(
+    filters,
+    blocks,
+    stride=2,
+    name=None,
+    block_fn=Block,
+    first_shortcut=True,
+    stack_index=1,
+):
     """A set of stacked blocks.
     Args:
         filters: integer, filters of the layer in a block.
@@ -228,7 +246,7 @@ def Stack(filters, blocks, stride=2, name=None, block_fn=Block, first_shortcut=T
         Output tensor for the stacked blocks.
     """
     if name is None:
-        name = f"v2_stack_{backend.get_uid('v2_stack')}"
+        name = f"v2_stack_{stack_index}"
 
     def apply(x):
         x = block_fn(filters, conv_shortcut=first_shortcut, name=name + "_block1")(x)
@@ -327,6 +345,7 @@ def ResNetV2(
 
     num_stacks = len(stackwise_filters)
 
+    stack_level_outputs = {}
     for stack_index in range(num_stacks):
         x = Stack(
             filters=stackwise_filters[stack_index],
@@ -334,7 +353,9 @@ def ResNetV2(
             stride=stackwise_strides[stack_index],
             block_fn=block_fn,
             first_shortcut=block_fn == Block or stack_index > 0,
+            stack_index=stack_index,
         )(x)
+        stack_level_outputs[stack_index + 2] = x
 
     x = layers.BatchNormalization(axis=BN_AXIS, epsilon=1.001e-5, name="post_bn")(x)
     x = layers.Activation("relu", name="post_relu")(x)
@@ -355,6 +376,37 @@ def ResNetV2(
 
     if weights is not None:
         model.load_weights(weights)
+    # Set this private attribute for recreate backbone model with outputs at each of the
+    # resolution level.
+    model._backbone_level_outputs = stack_level_outputs
+
+    def as_backbone(self):
+        """Convert the Resnet application model into a model backbone for other tasks.
+
+        The backbone model will usually take same inputs as the original application
+        model, but produce multiple outputs, one for each feature level. Those outputs
+        can be feed to network downstream, like FPN and RPN.
+
+        The output of the backbone model will be a dict with int as key and tensor as
+        value. The int key represent the level of the feature output.
+
+        Returns:
+            a `tf.keras.Model` which has dict as outputs.
+        Raises:
+            ValueError: When the model is lack of information for feature level, and can't
+            be converted to backbone model
+        """
+        if hasattr(self, "_backbone_level_outputs"):
+            backbone_level_outputs = self._backbone_level_outputs
+            return tf.keras.Model(inputs=self.inputs, outputs=backbone_level_outputs)
+        else:
+            raise ValueError(
+                "The current model doesn't have any feature level "
+                "information and can't be convert to backbone model."
+            )
+
+    # Bind the `to_backbone_model` method to the application model.
+    model.as_backbone = types.MethodType(as_backbone, model)
 
     return model
 

@@ -101,6 +101,14 @@ class SimpleTokenizer:
             re.IGNORECASE,
         )
 
+    @property
+    def end_of_text(self):
+        return self.encoder["<|endoftext|>"]
+
+    @property
+    def start_of_text(self):
+        return self.encoder["<|startoftext|>"]
+
     def bpe(self, token):
         if token in self.cache:
             return self.cache[token]
@@ -150,7 +158,7 @@ class SimpleTokenizer:
             bpe_tokens.extend(
                 self.encoder[bpe_token] for bpe_token in self.bpe(token).split(" ")
             )
-        return [49406] + bpe_tokens + [49407]
+        return [self.start_of_text] + bpe_tokens + [self.end_of_text]
 
     def decode(self, tokens):
         text = "".join([self.decoder[token] for token in tokens])

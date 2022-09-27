@@ -63,6 +63,22 @@ class BoundingBoxUtilTestCase(tf.test.TestCase):
         height = 256
         width = 256
         bounding_boxes = tf.convert_to_tensor(
+            [[0, float("NaN"), 100, 100, 0], [100, 100, 300, 300, 0]]
+        )
+        image = tf.ones(shape=(height, width, 3))
+        bounding_boxes = bounding_box.clip_to_image(
+            bounding_boxes, bounding_box_format="xyxy", images=image
+        )
+        self.assertAllEqual(
+            bounding_boxes,
+            tf.convert_to_tensor([[-1, -1, -1, -1, -1], [100, 100, 256, 256, 0]]),
+        )
+
+    def test_clip_to_image_filters_nans(self):
+        # Test xyxy format unbatched
+        height = 256
+        width = 256
+        bounding_boxes = tf.convert_to_tensor(
             [[257, 257, 100, 100, 0], [100, 100, 300, 300, 0]]
         )
         image = tf.ones(shape=(height, width, 3))

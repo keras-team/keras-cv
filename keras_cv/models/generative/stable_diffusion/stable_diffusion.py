@@ -167,6 +167,7 @@ class StableDiffusion:
         unconditional_context = tf.repeat(
             self._get_unconditional_context(), batch_size, axis=0
         )
+        unconditional_context = tf.repeat(unconditional_context, batch_size, axis=0)
 
         if diffusion_noise is not None:
             diffusion_noise = tf.squeeze(diffusion_noise)
