@@ -119,10 +119,10 @@ class StableDiffusion:
         unconditional_guidance_scale=7.5,
         seed=None,
     ):
-        context = self.encode_text(prompt)
+        encoded_text = self.encode_text(prompt)
 
         return self.generate_image(
-            context,
+            encoded_text,
             batch_size=batch_size,
             num_steps=num_steps,
             unconditional_guidance_scale=unconditional_guidance_scale,
@@ -159,12 +159,19 @@ class StableDiffusion:
                 "noise when it's not already user-specified."
             )
 
-        context = tf.repeat(encoded_text, batch_size, axis=0)
+        encoded_text = tf.squeeze(encoded_text)
+        if encoded_text.shape.rank == 2:
+            encoded_text = tf.tile(encoded_text, batch_size)
+
+        context = encoded_text
         unconditional_context = tf.repeat(
             self._get_unconditional_context(), batch_size, axis=0
         )
 
         if diffusion_noise is not None:
+            diffusion_noise = tf.squeeze(diffusion_noise)
+            if diffusion_noise.shape.rank == 2:
+                diffusion_noise = tf.tile(diffusion_noise, batch_size)
             latent = diffusion_noise
         else:
             latent = self._get_initial_diffusion_noise(batch_size, seed)
