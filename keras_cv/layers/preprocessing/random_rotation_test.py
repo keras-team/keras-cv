@@ -14,7 +14,7 @@
 import numpy as np
 import tensorflow as tf
 
-from keras_cv import bounding_box
+from keras_cv.data import bounding_box
 from keras_cv.layers.preprocessing.random_rotation import RandomRotation
 
 

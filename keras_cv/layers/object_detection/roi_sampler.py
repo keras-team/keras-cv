@@ -14,8 +14,8 @@
 
 import tensorflow as tf
 
-from keras_cv import bounding_box
-from keras_cv.bounding_box import iou
+from keras_cv.data import bounding_box
+from keras_cv.data.bounding_box import iou
 from keras_cv.ops import box_matcher
 from keras_cv.ops import sampling
 from keras_cv.ops import target_gather

@@ -16,7 +16,7 @@ import tensorflow as tf
 import tensorflow_datasets as tfds
 from tensorflow import keras
 
-from keras_cv import bounding_box
+from keras_cv.data import bounding_box
 
 
 def curry_map_function(bounding_box_format, img_size):

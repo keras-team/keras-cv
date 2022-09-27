@@ -84,7 +84,7 @@ def visualize_dataset(dataset, bounding_box_format):
     for i in range(9):
         example = next(iterator)
         images, boxes = example["images"], example["bounding_boxes"]
-        boxes = keras_cv.bounding_box.convert_format(
+        boxes = keras_cv.data.bounding_box.convert_format(
             boxes, source=bounding_box_format, target="rel_yxyx", images=images
         )
         boxes = boxes.to_tensor(default_value=-1)

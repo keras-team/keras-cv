@@ -16,8 +16,8 @@ import numpy as np
 import tensorflow as tf
 from tensorflow import keras
 
-from keras_cv import bounding_box
 from keras_cv import layers as cv_layers
+from keras_cv.data import bounding_box
 from keras_cv.models.object_detection.object_detection_base_model import (
     ObjectDetectionBaseModel,
 )

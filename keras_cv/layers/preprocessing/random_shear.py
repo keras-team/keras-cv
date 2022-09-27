@@ -16,7 +16,7 @@ import warnings
 import tensorflow as tf
 
 import keras_cv
-from keras_cv import bounding_box
+from keras_cv.data import bounding_box
 from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
     BaseImageAugmentationLayer,
 )
@@ -162,7 +162,7 @@ class RandomShear(BaseImageAugmentationLayer):
                 "Please specify a bounding box format in the constructor. i.e."
                 "`RandomShear(bounding_box_format='xyxy')`"
             )
-        bounding_boxes = keras_cv.bounding_box.convert_format(
+        bounding_boxes = keras_cv.data.bounding_box.convert_format(
             bounding_boxes,
             source=self.bounding_box_format,
             target="rel_xyxy",
@@ -193,7 +193,7 @@ class RandomShear(BaseImageAugmentationLayer):
             bounding_boxes, images=image, bounding_box_format="rel_xyxy"
         )
         # convert to universal output format
-        bounding_boxes = keras_cv.bounding_box.convert_format(
+        bounding_boxes = keras_cv.data.bounding_box.convert_format(
             bounding_boxes,
             source="rel_xyxy",
             target=self.bounding_box_format,

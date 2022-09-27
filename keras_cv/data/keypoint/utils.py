@@ -18,7 +18,7 @@ H_AXIS = -3
 W_AXIS = -2
 
 
-def filter_keypoints(keypoints, image):
+def clip_to_image(keypoints, image):
     """Discards keypoints if falling outside of the image.
 
     Args:

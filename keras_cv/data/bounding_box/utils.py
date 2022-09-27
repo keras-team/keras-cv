@@ -15,8 +15,8 @@
 
 import tensorflow as tf
 
-from keras_cv import bounding_box
-from keras_cv.bounding_box.formats import XYWH
+from keras_cv.data import bounding_box
+from keras_cv.data.bounding_box.formats import XYWH
 
 
 def _relative_area(bounding_boxes, bounding_box_format, images):
@@ -184,7 +184,7 @@ def add_class_id(bounding_boxes, class_id=0):
     Usage:
     ```python
     bounding_boxes = tf.random.uniform(shape=[2, 2, 4])
-    bounding_boxes_with_class_id = keras_cv.bounding_box.add_class_id(
+    bounding_boxes_with_class_id = keras_cv.data.bounding_box.add_class_id(
                                     bounding_boxes, class_id=1)
     # bounding_boxes_with_class_id is a Tensor of shape [2, 2, 5]
     ```

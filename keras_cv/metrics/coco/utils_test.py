@@ -15,8 +15,8 @@
 
 import tensorflow as tf
 
-from keras_cv import bounding_box
-from keras_cv.bounding_box import iou as iou_lib
+from keras_cv.data import bounding_box
+from keras_cv.data.bounding_box import iou as iou_lib
 from keras_cv.metrics.coco import utils
 
 

@@ -69,7 +69,7 @@ class ArgmaxBoxMatcher:
 
     ```python
     box_matcher = keras_cv.ops.ArgmaxBoxMatcher([0.3, 0.7], [-1, 0, 1])
-    iou_metric = keras_cv.bounding_box.compute_iou(anchors, gt_boxes)
+    iou_metric = keras_cv.data.bounding_box.compute_iou(anchors, gt_boxes)
     matched_columns, matched_match_values = box_matcher(iou_metric)
     cls_mask = tf.less_equal(matched_match_values, 0)
     ```

@@ -216,7 +216,7 @@ def convert_format(
 
     ```python
     boxes = load_coco_dataset()
-    boxes_in_xywh = keras_cv.bounding_box.convert_format(
+    boxes_in_xywh = keras_cv.data.bounding_box.convert_format(
         boxes,
         source='xyxy',
         target='xyWH'

@@ -18,7 +18,7 @@ from typing import Tuple
 
 import tensorflow as tf
 
-from keras_cv import bounding_box
+from keras_cv.data import bounding_box
 
 
 class ROIGenerator(tf.keras.layers.Layer):

@@ -17,8 +17,8 @@ import tensorflow as tf
 import tensorflow.keras as keras
 import tensorflow.keras.initializers as initializers
 
-from keras_cv import bounding_box
-from keras_cv.bounding_box import iou as iou_lib
+from keras_cv.data import bounding_box
+from keras_cv.data.bounding_box import iou as iou_lib
 from keras_cv.metrics.coco import utils
 
 
@@ -61,7 +61,7 @@ class COCORecall(keras.metrics.Metric):
     account for this, you may either pass a `tf.RaggedTensor`, or pad Tensors
     with `-1`s to indicate unused boxes.  A utility function to perform this
     padding is available at
-    `keras_cv.bounding_box.pad_batch_to_shape`.
+    `keras_cv.data.bounding_box.pad_batch_to_shape`.
 
     ```python
     coco_recall = keras_cv.metrics.COCORecall(

@@ -250,7 +250,7 @@ class BaseImageAugmentationLayerTest(tf.test.TestCase):
         with self.assertRaisesRegex(
             ValueError,
             "Bounding boxes are missing class_id. If you would like to pad the "
-            "bounding boxes with class_id, use `keras_cv.bounding_box.add_"
+            "bounding boxes with class_id, use `keras_cv.data.bounding_box.add_"
             "class_id`",
         ):
             add_layer(

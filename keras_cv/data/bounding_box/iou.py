@@ -14,7 +14,7 @@
 """Contains functions to compute ious of bounding boxes."""
 import tensorflow as tf
 
-from keras_cv import bounding_box
+from keras_cv.data import bounding_box
 
 
 def compute_iou(boxes1, boxes2, bounding_box_format):

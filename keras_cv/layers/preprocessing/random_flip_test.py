@@ -17,7 +17,7 @@ import numpy as np
 import tensorflow as tf
 from absl.testing import parameterized
 
-from keras_cv import bounding_box
+from keras_cv.data import bounding_box
 from keras_cv.layers.preprocessing.random_flip import RandomFlip
 
 

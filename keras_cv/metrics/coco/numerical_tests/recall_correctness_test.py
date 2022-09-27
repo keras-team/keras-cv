@@ -18,7 +18,7 @@ import os
 import numpy as np
 import tensorflow as tf
 
-from keras_cv import bounding_box
+from keras_cv.data import bounding_box
 from keras_cv.metrics import COCORecall
 
 SAMPLE_FILE = os.path.dirname(os.path.abspath(__file__)) + "/sample_boxes.npz"

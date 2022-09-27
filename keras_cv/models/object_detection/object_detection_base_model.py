@@ -15,7 +15,7 @@
 import tensorflow as tf
 from tensorflow import keras
 
-from keras_cv import bounding_box
+from keras_cv.data import bounding_box
 from keras_cv.models.object_detection.__internal__ import convert_inputs_to_tf_dataset
 from keras_cv.models.object_detection.__internal__ import train_validation_split
 

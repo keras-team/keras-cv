@@ -17,7 +17,7 @@ import numpy as np
 import tensorflow as tf
 import tensorflow_datasets as tfds
 
-from keras_cv import bounding_box
+from keras_cv.data import bounding_box
 
 
 def preprocess_voc(inputs, format, image_size):

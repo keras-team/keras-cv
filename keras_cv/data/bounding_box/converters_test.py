@@ -18,7 +18,7 @@ import numpy as np
 import tensorflow as tf
 from absl.testing import parameterized
 
-from keras_cv import bounding_box
+from keras_cv.data import bounding_box
 
 xyxy_box = tf.constant([[[10, 20, 110, 120], [20, 30, 120, 130]]], dtype=tf.float32)
 yxyx_box = tf.constant([[[20, 10, 120, 110], [30, 20, 130, 120]]], dtype=tf.float32)

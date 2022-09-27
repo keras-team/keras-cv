@@ -14,7 +14,7 @@
 
 import tensorflow as tf
 
-from keras_cv import bounding_box
+from keras_cv.data import bounding_box
 from keras_cv.utils import preprocessing
 
 # In order to support both unbatched and batched inputs, the horizontal
@@ -368,7 +368,7 @@ class BaseImageAugmentationLayer(tf.keras.__internal__.layers.BaseRandomLayer):
         if bounding_boxes.shape[-1] < 5:
             raise ValueError(
                 "Bounding boxes are missing class_id. If you would like to pad the "
-                "bounding boxes with class_id, use `keras_cv.bounding_box.add_class_id`"
+                "bounding boxes with class_id, use `keras_cv.data.bounding_box.add_class_id`"
             )
         return bounding_boxes, metadata
 

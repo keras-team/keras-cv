@@ -272,7 +272,7 @@ def _create_bounding_box_dataset(bounding_box_format):
     ys = tf.tile(ys, [10, 10, 1])
     ys = tf.concat([ys, y_classes], axis=-1)
 
-    ys = keras_cv.bounding_box.convert_format(
+    ys = keras_cv.data.bounding_box.convert_format(
         ys, source="rel_xywh", target=bounding_box_format, images=xs, dtype=tf.float32
     )
     return xs, ys

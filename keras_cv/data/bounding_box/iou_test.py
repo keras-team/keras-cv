@@ -16,7 +16,7 @@
 import numpy as np
 import tensorflow as tf
 
-from keras_cv.bounding_box import iou as iou_lib
+from keras_cv.data.bounding_box import iou as iou_lib
 
 
 class IoUTest(tf.test.TestCase):
