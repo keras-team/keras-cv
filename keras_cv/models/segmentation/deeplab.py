@@ -30,7 +30,6 @@ class DeepLabV3(tf.keras.models.Model):
         backbone: an optional backbone network for the model. Can be a `tf.keras.Model`
             instance. The supported pre-defined backbone models are:
             1. "resnet50_v2", a ResNet50 V2 model
-            2. "mobilenet_v3", a MobileNet V3 model.
             Default to 'resnet50_v2'.
         backbone_weights: optional pre-trained weights for the backbone model. The weights
             can be a list of tensors, which will be set to backbone model
@@ -51,40 +50,44 @@ class DeepLabV3(tf.keras.models.Model):
         self,
         classes,
         include_rescaling,
-        backbone='resnet50_v2',
+        backbone="resnet50_v2",
         backbone_weights=None,
-        decoder='fpn',
+        decoder="fpn",
         segmentation_head=None,
         **kwargs,
     ):
         super().__init__(**kwargs)
 
+        self.classes = classes
         # ================== Backbone and weights. ==================
         if isinstance(backbone, str):
             supported_premade_backbone = [
                 "resnet50_v2",
-                "mobilenet_v3",
             ]
             if backbone not in supported_premade_backbone:
                 raise ValueError(
                     "Supported premade backbones are: "
-                     f'{supported_premade_backbone}, received "{backbone}"')
+                    f'{supported_premade_backbone}, received "{backbone}"'
+                )
+            self._backbone_passed = backbone
             if backbone == "resnet50_v2":
                 backbone = keras_cv.models.ResNet50V2(
                     include_rescaling=include_rescaling,
                     include_top=False,
-                    weights=backbone_weights)
-            elif backbone == 'mobilenet_v3':
-                backbone = keras_cv.models.MobileNetV3Small(
-                    include_rescaling=include_rescaling,
-                    include_top=False,
-                    weights=backbone_weights)
+                    weights=backbone_weights,
+                )
+                backbone = backbone.as_backbone()
+                self.backbone = backbone
         else:
             # TODO(scottzhu): Might need to do more assertion about the model
             if not isinstance(backbone, tf.keras.Model):
                 raise ValueError(
                     "Backbone need to be a `tf.keras.Model`, " f"received {backbone}"
                 )
+            self.backbone = backbone
+
+        if backbone_weights is not None:
+            raise NotImplementedError("backbone_weights is not supported for now.")
 
         # ================== decoder ==================
         if isinstance(decoder, str):
@@ -95,5 +98,46 @@ class DeepLabV3(tf.keras.models.Model):
                     "Supported premade decoder are: "
                     f'{supported_premade_decoder}, received "{decoder}"'
                 )
+            self._decoder_passed = decoder
             if decoder == "fpn":
-                decoder = keras_cv.layers.F
+                # Infer the FPN level from the backbone. If user need to customize
+                # this setting, they should manually create the FPN and backbone.
+                if not isinstance(backbone.output, dict):
+                    raise ValueError(
+                        "Expect the backbone's output to be dict, "
+                        f"received {backbone.output}"
+                    )
+                backbone_levels = list(backbone.output.keys())
+                min_level = backbone_levels[0]
+                max_level = backbone_levels[-1]
+                decoder = keras_cv.layers.FeaturePyramid(
+                    min_level=min_level, max_level=max_level
+                )
+
+        # TODO(scottzhu): do more validation for the decoder when we have a common
+        # interface.
+        self.decoder = decoder
+
+        self._segmentation_head_passed = segmentation_head
+        if segmentation_head is None:
+            segmentation_head = (
+                keras_cv.models.segmentation.__internal__.SegmentationHead(
+                    classes=classes
+                )
+            )
+        self.segmentation_head = segmentation_head
+
+    def call(self, inputs, training=None):
+        backbone_output = self.backbone(inputs, training=training)
+        decoder_output = self.decoder(backbone_output, training=training)
+        return self.segmentation_head(decoder_output, training=training)
+
+    def get_config(self):
+        config = {
+            "classes": self.classes,
+            "backbone": self._backbone_passed,
+            "decoder": self._decoder_passed,
+            "segmentation_head": self._segmentation_head_passed,
+        }
+        base_config = super().get_config()
+        return dict(list(base_config.items()) + list(config.items()))

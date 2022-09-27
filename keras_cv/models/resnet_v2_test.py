@@ -87,6 +87,21 @@ class ResNetV2Test(ModelsTest, tf.test.TestCase, parameterized.TestCase):
         self.assertEquals(outputs[4].shape, [None, 16, 16, 1024])
         self.assertEquals(outputs[5].shape, [None, 8, 8, 2048])
 
+    def test_create_backbone_model_with_level_config(self):
+        model = resnet_v2.ResNet50V2(
+            include_rescaling=False,
+            include_top=False,
+            classes=2048,
+            input_shape=[256, 256, 3],
+        )
+        backbone_model = model.as_backbone(min_level=3, max_level=4)
+        inputs = tf.keras.Input(shape=[256, 256, 3])
+        outputs = backbone_model(inputs)
+        self.assertLen(outputs, 2)
+        self.assertEquals(list(outputs.keys()), [3, 4])
+        self.assertEquals(outputs[3].shape, [None, 32, 32, 512])
+        self.assertEquals(outputs[4].shape, [None, 16, 16, 1024])
+
 
 if __name__ == "__main__":
     tf.test.main()
