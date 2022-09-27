@@ -85,3 +85,14 @@ class IouSimilarity(tf.keras.layers.Layer):
             )
         iou_lookup_table = tf.where(background_mask, mask_val_t, result)
         return iou_lookup_table
+
+    def get_config(self):
+        config = {
+            "box1_format": self.box1_format,
+            "box2_format": self.box2_format,
+            "box1_mask": self.box1_mask,
+            "box2_mask": self.box2_mask,
+            "mask_val": self.mask_val,
+        }
+        base_config = super().get_config()
+        return dict(list(base_config.items()) + list(config.items()))
