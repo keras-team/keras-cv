@@ -58,7 +58,7 @@ FROM_XY_CONVERTERS = {
 }
 
 
-def convert_keypoint_format(keypoints, source, target, images=None, dtype=None):
+def convert_format(keypoints, source, target, images=None, dtype=None):
     """Converts keypoints from one format to another.
 
     Supported formats are:
