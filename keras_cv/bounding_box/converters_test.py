@@ -38,15 +38,34 @@ rel_xywh_box = tf.constant(
     [[[0.01, 0.02, 0.1, 0.1], [0.02, 0.03, 0.1, 0.1]]], dtype=tf.float32
 )
 
-# TODO: We need to use a smaller size or to use a faster initializer:
-#       See https://github.com/tensorflow/tensorflow/issues/47853
+xyxy_box_image_ragged = tf.constant(
+    [[[10, 20, 110, 120], [20, 30, 120, 130]]], dtype=tf.float32
+)
+yxyx_box_image_ragged = tf.constant(
+    [[[20, 10, 120, 110], [30, 20, 130, 120]]], dtype=tf.float32
+)
+rel_xyxy_box_image_ragged = tf.constant(
+    [[[0.01, 0.02, 0.11, 0.12], [0.02, 0.03, 0.12, 0.13]]], dtype=tf.float32
+) / tf.constant([[2.0], [4.0]])
+rel_yxyx_box_image_ragged = tf.constant(
+    [[[0.02, 0.01, 0.12, 0.11], [0.03, 0.02, 0.13, 0.12]]], dtype=tf.float32
+)
+center_xywh_box_image_ragged = tf.constant(
+    [[[60, 70, 100, 100], [70, 80, 100, 100]]], dtype=tf.float32
+)
+xywh_box_image_ragged = tf.constant(
+    [[[10, 20, 100, 100], [20, 30, 100, 100]]], dtype=tf.float32
+)
+rel_xywh_box_image_ragged = tf.constant(
+    [[[0.01, 0.02, 0.1, 0.1], [0.02, 0.03, 0.1, 0.1]]], dtype=tf.float32
+) * tf.constant([[2.0], [4.0]])
 
-images = tf.ragged.constant(
-    [np.ones(shape=[1000, 1000, 3]), np.ones(shape=[1000, 1000, 3])],  # 2 images
+ragged_images = tf.ragged.constant(
+    [np.ones(shape=[500, 500, 3]), np.ones(shape=[250, 250, 3])],  # 2 images
     ragged_rank=2,
 )
 
-# images = tf.ones([2, 1000, 1000, 3])
+images = tf.ones([2, 1000, 1000, 3])
 
 boxes = {
     "xyxy": xyxy_box,
@@ -58,9 +77,24 @@ boxes = {
     "rel_yxyx": rel_yxyx_box,
 }
 
+boxes_ragged_images = {
+    "xyxy": xyxy_box_image_ragged,
+    "center_xywh": center_xywh_box,
+    "rel_xywh": rel_xywh_box * tf.constant([[2.0], [4.0]]),
+    "xywh": xywh_box,
+    "rel_xyxy": rel_xyxy_box * tf.constant([[2.0], [4.0]]),
+    "yxyx": yxyx_box_image_ragged,
+    "rel_yxyx": rel_yxyx_box * tf.constant([[2.0], [4.0]]),
+}
+
 test_cases = [
     (f"{source}_{target}", source, target)
     for (source, target) in itertools.permutations(boxes.keys(), 2)
+] + [("xyxy_xyxy", "xyxy", "xyxy")]
+
+test_image_ragged = [
+    (f"{source}_{target}", source, target)
+    for (source, target) in itertools.permutations(boxes_ragged_images.keys(), 2)
 ] + [("xyxy_xyxy", "xyxy", "xyxy")]
 
 
@@ -73,6 +107,17 @@ class ConvertersTestCase(tf.test.TestCase, parameterized.TestCase):
         self.assertAllClose(
             bounding_box.convert_format(
                 source_box, source=source, target=target, images=images
+            ),
+            target_box,
+        )
+
+    @parameterized.named_parameters(*test_image_ragged)
+    def test_converters_ragged_images(self, source, target):
+        source_box = boxes_ragged_images[source]
+        target_box = boxes_ragged_images[target]
+        self.assertAllClose(
+            bounding_box.convert_format(
+                source_box, source=source, target=target, images=ragged_images
             ),
             target_box,
         )
@@ -121,6 +166,17 @@ class ConvertersTestCase(tf.test.TestCase, parameterized.TestCase):
         self.assertAllClose(
             bounding_box.convert_format(
                 source_box, source=source, target=target, images=images
+            ),
+            target_box,
+        )
+
+    @parameterized.named_parameters(*test_image_ragged)
+    def test_ragged_bounding_box_ragged_images(self, source, target):
+        source_box = _raggify(boxes_ragged_images[source])
+        target_box = _raggify(boxes_ragged_images[target])
+        self.assertAllClose(
+            bounding_box.convert_format(
+                source_box, source=source, target=target, images=ragged_images
             ),
             target_box,
         )
