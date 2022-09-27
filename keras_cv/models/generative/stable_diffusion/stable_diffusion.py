@@ -164,7 +164,7 @@ class StableDiffusion:
             self._get_unconditional_context(), batch_size, axis=0
         )
 
-        if diffusion_noise:
+        if diffusion_noise is not None:
             latent = diffusion_noise
         else:
             latent = self._get_initial_diffusion_noise(batch_size, seed)
