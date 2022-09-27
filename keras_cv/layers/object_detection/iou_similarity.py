@@ -24,6 +24,11 @@ class IouSimilarity(tf.keras.layers.Layer):
     are unbatched and by [`batch`, `boxes1_index`,`boxes2_index`] if the boxes are
     batched.
 
+    Users can configure to mask the result. `box1_mask` will mask `boxes1` and `box2_mask`
+    will mask `boxes2`, the result will be masked by `mask_val`. Boxes are masked when they're
+    out of the boundary, i.e., all their coodinates are less than 0. Users can pad ground truth
+    boxes with -1. in order for it to be masked here.
+
     Args:
       boxes1: a list of bounding boxes in 'corners' format. Can be batched or unbatched.
       boxes2: a list of bounding boxes in 'corners' format. This should match the rank and
