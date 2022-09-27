@@ -20,8 +20,6 @@ from absl.testing import parameterized
 
 from keras_cv import bounding_box
 
-# TODO: How we want to refactor this test data to support both ragged
-#       and same size "standard" images?
 xyxy_box = tf.constant([[[10, 20, 110, 120], [20, 30, 120, 130]]], dtype=tf.float32)
 yxyx_box = tf.constant([[[20, 10, 120, 110], [30, 20, 130, 120]]], dtype=tf.float32)
 rel_xyxy_box = tf.constant(
