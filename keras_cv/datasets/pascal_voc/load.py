@@ -54,6 +54,7 @@ def load(
     bounding_box_format,
     batch_size=None,
     shuffle_buffer=None,
+    shuffle_files=True,
     img_size=None,
 ):
     """Loads the PascalVOC 2007 dataset.
@@ -74,7 +75,8 @@ def load(
             for more details on supported bounding box formats.
         batch_size: (Optional) how many instances to include in batches after loading. If
             not provided, no batching will occur.
-        shuffle_buffer: the size of the buffer to use in shuffling.
+        shuffle_buffer: (Optional) the size of the buffer to use in shuffling.
+        shuffle_files: (Optional) whether or not to shuffle files, defaults to True.
         img_size: (Optional) size to resize the images to.  By default, images are not
             resized `tf.RaggedTensor` batches are produced if batching occurs.
 
@@ -85,7 +87,7 @@ def load(
         shape [batch, None, 5].
     """
     dataset, dataset_info = tfds.load(
-        "voc/2007", split=split, shuffle_files=shuffle, with_info=True
+        "voc/2007", split=split, shuffle_files=shuffle_files, with_info=True
     )
     dataset = dataset.map(
         curry_map_function(bounding_box_format=bounding_box_format, img_size=img_size),
