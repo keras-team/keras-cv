@@ -22,13 +22,17 @@ from keras_cv import bounding_box
 def curry_map_function(bounding_box_format, img_size):
     """Mapping function to create batched image and bbox coordinates"""
 
-    resizing = keras.layers.Resizing(
-        height=img_size[0], width=img_size[1], crop_to_aspect_ratio=False
-    )
+    if img_size is not None:
+        resizing = keras.layers.Resizing(
+            height=img_size[0], width=img_size[1], crop_to_aspect_ratio=False
+        )
 
     # TODO(lukewood): update `keras.layers.Resizing` to support bounding boxes.
     def apply(inputs):
-        inputs["image"] = resizing(inputs["image"])
+        # Support image size none.
+        if img_size is not None:
+            inputs["image"] = resizing(inputs["image"])
+
         inputs["objects"]["bbox"] = bounding_box.convert_format(
             inputs["objects"]["bbox"],
             images=inputs["image"],
