@@ -63,7 +63,7 @@ class Resizing(BaseImageAugmentationLayer):
         self.width = width
         self.interpolation = interpolation
         self.crop_to_aspect_ratio = crop_to_aspect_ratio
-        self._interpolation_method = utils.get_interpolation(interpolation)
+        self._interpolation_method = keras_cv.utils.get_interpolation(interpolation)
         self.bounding_box_format = bounding_box_format
         if crop_to_aspect_ratio and bounding_box_format:
             # TODO(lukewood): support `bounding_box.smart_resize()`
@@ -74,10 +74,34 @@ class Resizing(BaseImageAugmentationLayer):
             )
         super().__init__(**kwargs)
 
+    def _augment(self, inputs):
+        images = inputs.get('images', None)
+        bounding_boxes = inputs.get('bounding_boxes', None)
+
+        if images is not None:
+            images = tf.expand_dims(images, axis=0)
+        if bounding_boxes is not None:
+            bounding_boxes = tf.expand_dims(bounding_boxes, axis=0)
+
+        inputs['images'] = images
+        inputs['bounding_boxes'] = bounding_boxes
+
+        inputs = self._batch_augment(inputs)
+
+        if images is not None:
+            images = tf.squeeze(images, axis=0)
+        if bounding_boxes is not None:
+            bounding_boxes = tf.squeeze(bounding_boxes, axis=0)
+
+        inputs['images'] = images
+        inputs['bounding_boxes'] = bounding_boxes
+        return inputs
     def _batch_augment(self, inputs):
-        self._validate_inputs(inputs)
         images = inputs.get("images", None)
         bounding_boxes = inputs.get("bounding_boxes", None)
+
+        tf.print('images.shape', images.shape)
+        tf.print('bounding_boxes.shape', bounding_boxes.shape)
 
         if images is None:
             raise ValueError(
@@ -126,7 +150,7 @@ class Resizing(BaseImageAugmentationLayer):
                 images, size=size, method=self._interpolation_method
             )
 
-        images = tf.cast(outputs, self.compute_dtype)
+        images = tf.cast(images, self.compute_dtype)
         inputs["images"] = images
         if bounding_boxes is not None:
             inputs["bounding_boxes"] = bounding_box.convert_format(

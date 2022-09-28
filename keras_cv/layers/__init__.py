@@ -22,7 +22,6 @@ from tensorflow.keras.layers import RandomTranslation
 from tensorflow.keras.layers import RandomWidth
 from tensorflow.keras.layers import RandomZoom
 from tensorflow.keras.layers import Rescaling
-from tensorflow.keras.layers import Resizing
 
 from keras_cv.layers.feature_pyramid import FeaturePyramid
 from keras_cv.layers.object_detection.anchor_generator import AnchorGenerator
@@ -56,6 +55,7 @@ from keras_cv.layers.preprocessing.random_choice import RandomChoice
 from keras_cv.layers.preprocessing.random_color_degeneration import (
     RandomColorDegeneration,
 )
+from keras_cv.layers.preprocessing.resizing import Resizing
 from keras_cv.layers.preprocessing.random_color_jitter import RandomColorJitter
 from keras_cv.layers.preprocessing.random_crop_and_resize import RandomCropAndResize
 from keras_cv.layers.preprocessing.random_cutout import RandomCutout
