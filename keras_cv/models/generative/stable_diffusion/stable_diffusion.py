@@ -139,7 +139,7 @@ class StableDiffusion:
         between two prompts.
 
         Args:
-            prompt: a string to encode, must be 77 characters or shorter.
+            prompt: a string to encode, must be 77 tokens or shorter.
 
         Example:
 
