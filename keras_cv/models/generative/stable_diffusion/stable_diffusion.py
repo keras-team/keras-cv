@@ -130,6 +130,27 @@ class StableDiffusion:
         )
 
     def encode_text(self, prompt):
+        """Encodes a prompt into a latent text encoding.
+
+        The encoding produced by this method should be used as the
+        `encoded_text` parameter of `StableDiffusion.generate_image`. Encoding
+        text separately from generating an image can be used to arbitrarily
+        modify the text encoding priot to image generation, e.g. for walking
+        between two prompts.
+
+        Args:
+            prompt: a string to encode, must be 77 characters or shorter.
+
+        Example:
+
+        ```python
+        from keras_cv.models import StableDiffusion
+
+        model = StableDiffusion(img_height=512, img_width=512, jit_compile=True)
+        encoded_text  = model.encode_text("Tacos at dawn")
+        img = model.generate_image(encoded_text)
+        ```
+        """
         # Tokenize prompt (i.e. starting context)
         inputs = self.tokenizer.encode(prompt)
         if len(inputs) > MAX_PROMPT_LENGTH:
@@ -152,6 +173,45 @@ class StableDiffusion:
         diffusion_noise=None,
         seed=None,
     ):
+        """Generates an image based on encoded text.
+
+        The encoding passed to this method should be derived from
+        `StableDiffusion.encode_text`.
+
+        Args:
+            encoded_text: Tensor of shape (`batch_size`, 77, 768), or a Tensor
+            of shape (77, 768). When the batch axis is omitted, the same encoded
+            text will be used to produce every generated image.
+            batch_size: number of images to generate. Default: 1.
+            num_steps: number of diffusion steps (controls image quality).
+                Default: 25.
+            unconditional_guidance_scale: float controling how closely the image
+                should adhere to the prompt. Larger values result in more
+                closely adhering to the prompt, but will make the image noisier.
+                Default: 7.5.
+            diffusion_noise: Tensor of shape (`batch_size`, img_height // 8,
+                img_width // 8, 4), or a Tensor of shape (img_height // 8,
+                img_width // 8, 4). Optional custom noise to seed the diffusion
+                process. When the batch axis is omitted, the same noise will be
+                used to seed diffusion for every generated image.
+            seed: integer which is used to seed the random generation of
+                diffusion noise, only to be specified if `diffusion_noise` is
+                None.
+
+        Example:
+
+        ```python
+        from keras_cv.models import StableDiffusion
+
+        batch_size = 8
+        model = StableDiffusion(img_height=512, img_width=512, jit_compile=True)
+        e_tacos = model.encode_text("Tacos at dawn")
+        e_watermelons = model.encode_text("Watermelons at dusk")
+
+        e_interpolated = tf.linspace(e_tacos, e_watermelons, batch_size)
+        images = model.generate_image(e_interpolated, batch_size=batch_size)
+        ```
+        """
         if diffusion_noise is not None and seed is not None:
             raise ValueError(
                 "`diffusion_noise` and `seed` should not both be passed to "
