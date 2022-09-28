@@ -55,7 +55,7 @@ def load(
     batch_size=None,
     shuffle=True,
     shuffle_buffer=None,
-    img_size=(512, 512),
+    img_size=None,
 ):
     """Loads the PascalVOC 2007 dataset.
 
