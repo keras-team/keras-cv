@@ -24,7 +24,10 @@ def curry_map_function(bounding_box_format, img_size):
 
     if img_size is not None:
         resizing = keras.layers.Resizing(
-            height=img_size[0], width=img_size[1], crop_to_aspect_ratio=False
+            height=img_size[0],
+            width=img_size[1],
+            bounding_box_format=bounding_box_format,
+            crop_to_aspect_ratio=False,
         )
 
     # TODO(lukewood): update `keras.layers.Resizing` to support bounding boxes.

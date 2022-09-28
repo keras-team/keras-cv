@@ -17,5 +17,7 @@ from keras_cv.utils.preprocessing import blend
 from keras_cv.utils.preprocessing import parse_factor
 from keras_cv.utils.preprocessing import transform
 from keras_cv.utils.preprocessing import transform_value_range
+from keras_cv.utils.preprocessing import get_interpolation
 from keras_cv.utils.train import convert_inputs_to_tf_dataset
 from keras_cv.utils.train import scale_loss_for_distribution
+from keras_cv.utils.preprocessing import ensure_tensor
