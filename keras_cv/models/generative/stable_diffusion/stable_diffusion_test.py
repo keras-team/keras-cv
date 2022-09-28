@@ -37,7 +37,7 @@ class StableDiffusionTest(tf.test.TestCase):
         stablediff = StableDiffusion(128, 128)
         _ = stablediff.text_to_image("Testing123 haha!")
 
-    def test_add_tokens(self):
+    def DISABLED_test_add_tokens(self):
         stablediff = StableDiffusion(128, 128)
         old_token_weights = (
             stablediff.text_encoder.embedding.token_embedding.get_weights()
