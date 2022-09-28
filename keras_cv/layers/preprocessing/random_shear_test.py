@@ -389,10 +389,12 @@ class RandomShearTest(tf.test.TestCase):
             tf.stack(
                 [
                     tf.constant(
-                        [[7.60, 20.58, 39.04, 53.02, 0], [9.4, 22.7, 40.9, 57.1, 0]]
+                        [[7.60, 20.43, 39.04, 51.79, 0.],
+                         [9.41, 22.52, 40.94, 55.88, 0.]]
                     ),
                     tf.constant(
-                        [[13.6, 20.9, 49.2, 53.5, 0], [16.0, 23.1, 51.9, 57.7, 0]]
+                        [[13.68, 22.51, 49.20, 59.05, 0],
+                         [16.04, 24.95, 51.940, 63.56, 0]]
                     ),
                 ],
                 axis=0,
@@ -400,7 +402,7 @@ class RandomShearTest(tf.test.TestCase):
             tf.float32,
         )
         layer = preprocessing.RandomShear(
-            x_factor=0.2, y_factor=0.2, bounding_box_format="xyxy"
+            x_factor=0.2, y_factor=0.2, bounding_box_format="xyxy", seed=1
         )
         outputs = layer({"images": xs, "bounding_boxes": ys})
         _, output_ys = outputs["images"], outputs["bounding_boxes"]
