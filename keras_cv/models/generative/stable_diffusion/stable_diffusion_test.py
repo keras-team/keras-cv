@@ -37,17 +37,31 @@ class StableDiffusionTest(tf.test.TestCase):
         stablediff = StableDiffusion(128, 128)
         _ = stablediff.text_to_image("Testing123 haha!")
 
-    def DISABLED_test_generate_image_rejects_noise_and_seed(self):
+    def test_add_tokens(self):
         stablediff = StableDiffusion(128, 128)
+        old_token_weights = (
+            stablediff.text_encoder.embedding.token_embedding.get_weights()
+        )
+        old_position_weights = (
+            stablediff.text_encoder.embedding.position_embedding.get_weights()
+        )
+        self.assertEqual(len(old_token_weights), 1)
+        self.assertEqual(len(old_position_weights), 1)
 
-        with self.assertRaisesRegex(
-            ValueError, r"`diffusion_noise` and `seed` should not both be passed"
-        ):
-            _ = stablediff.generate_image(
-                stablediff.encode_text("thou shall not render"),
-                diffusion_noise=tf.random.normal((1, 16, 16, 4)),
-                seed=1337,
-            )
+        stablediff.add_tokens("<my-silly-cat-token>")
+        new_token_weights = (
+            stablediff.text_encoder.embedding.token_embedding.get_weights()
+        )
+
+        self.assertEqual(len(new_token_weights), 1)
+        self.assertAllEqual(old_token_weights[0][:49408], new_token_weights[0][:49408])
+        self.assertEqual(len(new_token_weights[0]), 49409)
+
+        stablediff.add_tokens("<keras-token>")
+        new_token_weights = (
+            stablediff.text_encoder.embedding.token_embedding.get_weights()
+        )
+        self.assertEqual(len(new_token_weights[0]), 49410)
 
 
 if __name__ == "__main__":

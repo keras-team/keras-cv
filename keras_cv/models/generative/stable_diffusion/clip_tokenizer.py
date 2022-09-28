@@ -90,8 +90,8 @@ class SimpleTokenizer:
             vocab.append("".join(merge))
         vocab.extend(["<|startoftext|>", "<|endoftext|>"])
         self.vocab = vocab
-        self.encoder = dict(zip(vocab, range(len(vocab))))
-        self.decoder = {v: k for k, v in self.encoder.items()}
+        self.encoder = self._create_encoder(self.vocab)
+        self.decoder = self._create_decoder(self.encoder)
         self.bpe_ranks = dict(zip(merges, range(len(merges))))
 
         self.special_tokens = {
@@ -103,7 +103,12 @@ class SimpleTokenizer:
             "<|endoftext|>": "<|endoftext|>",
         }
         self.pat = self._create_pat()
-        self._overridden = False
+
+    def _create_encoder(self, vocab):
+        return dict(zip(vocab, range(len(vocab))))
+
+    def _create_decoder(self, encoder):
+        return {v: k for k, v in encoder.items()}
 
     def _create_pat(self):
         return re.compile(
@@ -120,23 +125,21 @@ class SimpleTokenizer:
     def start_of_text(self):
         return self.encoder["<|startoftext|>"]
 
-    def add_tokens(self, *args):
-        token = args[0]
-        if self._overridden:
-            raise ValueError("For now KerasCV can only finetune on one special token.")
-        self._overridden = True
-        self.vocab[48973] = token
-        # 48973 is the index of ðŁĺĤðŁĺĤðŁĺĤðŁĺĤðŁĺĤðŁĺĤðŁĺĤ</w>"
-        # clearly a garbage token we can override.
-
-        # we can find more garbage IDs and override them.
-        # rest of the code operates as it would if we could add limitless token.
-        for arg in args:
-            self.special_tokens[arg] = arg
-            self.cache[arg] = arg
-        self.encoder = dict(zip(self.vocab, range(len(self.vocab))))
-        self.decoder = {v: k for k, v in self.encoder.items()}
+    def add_tokens(self, tokens):
+        if isinstance(tokens, str):
+            tokens = [tokens]
+        tokens_added = 0
+        for token in tokens:
+            if token in self.vocab:
+                continue
+            tokens_added += 1
+            self.vocab.append(token)
+            self.special_tokens[token] = token
+            self.cache[token] = token
+        self.encoder = self._create_encoder(self.vocab)
+        self.decoder = self._create_decoder(self.encoder)
         self.pat = self._create_pat()
+        return tokens_added
 
     def bpe(self, token):
         if token in self.cache:

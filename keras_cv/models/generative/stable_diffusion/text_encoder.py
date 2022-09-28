@@ -18,16 +18,21 @@ from tensorflow.experimental import numpy as tfnp
 
 
 class TextEncoder(keras.Model):
-    def __init__(self, max_length, name=None, download_weights=True):
+    def __init__(self, max_length, vocab_size=49408, name=None):
         tokens = keras.layers.Input(shape=(max_length,), dtype="int32", name="tokens")
         positions = keras.layers.Input(
             shape=(max_length,), dtype="int32", name="positions"
         )
-        x = CLIPEmbedding(49408, 768, max_length)([tokens, positions])
+
+        self.vocab_size = vocab_size
+        embedding = CLIPEmbedding(vocab_size, 768, max_length)
+        x = embedding([tokens, positions])
         for _ in range(12):
             x = CLIPEncoderLayer()(x)
+
         embedded = keras.layers.LayerNormalization(epsilon=1e-5)(x)
         super().__init__([tokens, positions], embedded, name=name)
+        self.embedding = embedding
 
         if download_weights:
             text_encoder_weights_fpath = keras.utils.get_file(
