@@ -53,7 +53,7 @@ def load(
     split,
     bounding_box_format,
     batch_size=None,
-    shuffle=True,
+    shuffle=None,
     shuffle_buffer=None,
     img_size=None,
 ):
@@ -73,10 +73,13 @@ def load(
             For a list of supported formats, please  Refer
             [to the keras.io docs](https://keras.io/api/keras_cv/bounding_box/formats/)
             for more details on supported bounding box formats.
-        batch_size: how many instances to include in batches after loading
-        shuffle: whether or not to shuffle the dataset.  Defaults to True.
+        batch_size: (Optional) how many instances to include in batches after loading. If
+            not provided, no batching will occur.
+        shuffle: whether or not to shuffle the dataset.  Defaults to None, which indicates
+            shuffling will only occur if a `shuffle_buffer` is provided.
         shuffle_buffer: the size of the buffer to use in shuffling.
-        img_size: the size to resize the images to.
+        img_size: (Optional) size to resize the images to.  By default, images are not
+            resized and ragged batches are produced if batching occurs.
 
     Returns:
         tf.data.Dataset containing PascalVOC.  Each entry is a dictionary containing
@@ -92,14 +95,16 @@ def load(
         num_parallel_calls=tf.data.AUTOTUNE,
     )
 
+    if shuffle is None and shuffle_buffer is not None:
+        shuffle = True
+
     if shuffle:
-        if not batch_size and not shuffle_buffer:
+        if not shuffle_buffer:
             raise ValueError(
                 "If `shuffle=True`, either a `batch_size` or `shuffle_buffer` must be "
                 "provided to `keras_cv.datasets.pascal_voc.load().`"
             )
-        shuffle_buffer = shuffle_buffer or 8 * batch_size
-        dataset = dataset.shuffle(shuffle_buffer)
+        dataset = dataset.shuffle(shuffle_buffer, reshuffle_each_iteration=True)
 
     if batch_size is not None:
         dataset = dataset.apply(
