@@ -389,8 +389,8 @@ def ResNetV2(
 
         The output of the backbone model will be a dict with int as key and tensor as
         value. The int key represent the level of the feature output.
-        A typical feature pyramid has five levels corresponding to scales P3, P4, P5, 
-        P6, P7 in the backbone. Scale Pn represents a feature map 2n times smaller in 
+        A typical feature pyramid has five levels corresponding to scales P3, P4, P5,
+        P6, P7 in the backbone. Scale Pn represents a feature map 2n times smaller in
         width and height than the input image.
 
         Returns:
