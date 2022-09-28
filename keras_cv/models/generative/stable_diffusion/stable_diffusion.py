@@ -94,6 +94,11 @@ class StableDiffusion:
             self.diffusion_model.compile(jit_compile=True)
             self.decoder.compile(jit_compile=True)
 
+        print(
+            "By using this model checkpoint, you acknowledge that its usage is "
+            "subject to the terms of the CreativeML Open RAIL-M license at "
+            "https://raw.githubusercontent.com/CompVis/stable-diffusion/main/LICENSE"
+        )
         # Load weights
         text_encoder_weights_fpath = keras.utils.get_file(
             origin="https://huggingface.co/fchollet/stable-diffusion/resolve/main/kcv_encoder.h5",
