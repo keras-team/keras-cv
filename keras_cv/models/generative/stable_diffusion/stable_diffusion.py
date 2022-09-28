@@ -231,7 +231,7 @@ class StableDiffusion:
 
         if diffusion_noise is not None:
             diffusion_noise = tf.squeeze(diffusion_noise)
-            if diffusion_noise.shape.rank == 2:
+            if diffusion_noise.shape.rank == 3:
                 diffusion_noise = tf.tile(diffusion_noise, batch_size)
             latent = diffusion_noise
         else:
