@@ -221,7 +221,9 @@ class StableDiffusion:
 
         encoded_text = tf.squeeze(encoded_text)
         if encoded_text.shape.rank == 2:
-            encoded_text = tf.tile(encoded_text, batch_size)
+            encoded_text = tf.repeat(
+                tf.expand_dims(encoded_text, axis=0), batch_size, axis=0
+            )
 
         context = encoded_text
         unconditional_context = tf.repeat(
@@ -232,7 +234,9 @@ class StableDiffusion:
         if diffusion_noise is not None:
             diffusion_noise = tf.squeeze(diffusion_noise)
             if diffusion_noise.shape.rank == 3:
-                diffusion_noise = tf.tile(diffusion_noise, batch_size)
+                diffusion_noise = tf.repeat(
+                    tf.expand_dims(diffusion_noise, axis=0), batch_size, axis=0
+                )
             latent = diffusion_noise
         else:
             latent = self._get_initial_diffusion_noise(batch_size, seed)
