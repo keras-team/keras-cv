@@ -15,7 +15,7 @@
 import tensorflow as tf
 from absl.testing import parameterized
 
-from keras_cv.ops.keypoint_utils import filter_out_of_image
+from keras_cv.keypoint.utils import filter_out_of_image
 
 
 class UtilsTestCase(tf.test.TestCase, parameterized.TestCase):
