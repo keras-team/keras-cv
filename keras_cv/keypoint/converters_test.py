@@ -17,7 +17,7 @@ import itertools
 import tensorflow as tf
 from absl.testing import parameterized
 
-from keras_cv import ops
+from keras_cv import keypoint
 
 xy_keypoints = tf.constant(
     [[[10, 20], [110, 120], [210, 220]], [[20, 30], [120, 130], [220, 230]]],
