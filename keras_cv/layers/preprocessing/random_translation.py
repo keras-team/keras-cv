@@ -59,7 +59,7 @@ class RandomTranslation(BaseImageAugmentationLayer):
              Supported values are `"nearest"` and `"bilinear"`.
              Defaults to `"bilinear"`.
         fill_mode: fill_mode in the `ImageProjectiveTransformV3` op.
-             Supported values are `"reflect"`, `"wrap"`, `"constant"`, and `"nearest"`.
+             Supported values are `"reflect"`, `"constant"`, and `"nearest"`.
              Defaults to `"reflect"`. Note, that using reflect in combination with
              large y_factor or x_factor might generate a mirror image of an object,
              which won't have an associated bounding box.
@@ -81,8 +81,13 @@ class RandomTranslation(BaseImageAugmentationLayer):
         fill_value=0.0,
         seed=None,
         bounding_box_format=None,
-        **kwargs
+        **kwargs,
     ):
+        if fill_mode == "warp":
+            raise ValueError(
+                f"fill_mode={fill_mode} is not supported yet, "
+                f"please use one of reflect|constant|nearest"
+            )
         super().__init__(seed=seed, **kwargs)
         self.seed = seed
         if x_factor is not None:
@@ -160,47 +165,77 @@ class RandomTranslation(BaseImageAugmentationLayer):
 
     @staticmethod
     def _transform_bounding_boxes(bounding_boxes, dx, dy, fill_mode):
-        output = RandomTranslation._translate_bounding_boxes(bounding_boxes, dx, dy)
         if fill_mode == "reflect":
-            output_reflected_x = tf.cond(
-                dx != 0,
-                lambda: tf.cond(
-                    dx > 0,
-                    lambda: RandomTranslation._reflect_bbox_coordinates(
-                        bounding_boxes, dx=0, dy=None
-                    ),
-                    lambda: RandomTranslation._reflect_bbox_coordinates(
-                        bounding_boxes, dx=1, dy=None
-                    ),
-                ),
-                lambda: bounding_boxes,
+            boxes_reflected_x = RandomTranslation._reflect_x(bounding_boxes, dx)
+            boxes_reflected_y = RandomTranslation._reflect_y(bounding_boxes, dy)
+
+            boxes_reflected_x_translated_x = (
+                RandomTranslation._translate_bounding_boxes(boxes_reflected_x, dx, 0)
             )
-            output_reflected_translated_x = RandomTranslation._translate_bounding_boxes(
-                output_reflected_x, dx, 0
-            )
-            output_reflected_y = tf.cond(
-                dy != 0,
-                lambda: tf.cond(
-                    dy > 0,
-                    lambda: RandomTranslation._reflect_bbox_coordinates(
-                        output_reflected_translated_x, dx=None, dy=0
-                    ),
-                    lambda: RandomTranslation._reflect_bbox_coordinates(
-                        output_reflected_translated_x, dx=None, dy=1
-                    ),
-                ),
-                lambda: output_reflected_translated_x,
+            boxes_reflected_y_translated_x = (
+                RandomTranslation._translate_bounding_boxes(boxes_reflected_y, dx, 0)
             )
 
-            output_reflected_translated_y = RandomTranslation._translate_bounding_boxes(
-                output_reflected_y, 0, dy
+            boxes_reflected_x_translated_reflected_y = RandomTranslation._reflect_y(
+                boxes_reflected_x_translated_x, dy
             )
-            output = tf.concat(
-                [output, output_reflected_translated_y],
+            boxes_reflected_y = tf.concat(
+                [
+                    boxes_reflected_y_translated_x,
+                    boxes_reflected_x_translated_reflected_y,
+                    boxes_reflected_x_translated_x,
+                ],
                 axis=0,
             )
 
-        return output
+            boxes_reflected_y_translated_y = (
+                RandomTranslation._translate_bounding_boxes(boxes_reflected_y, 0, dy)
+            )
+            return tf.concat(
+                [
+                    RandomTranslation._translate_bounding_boxes(bounding_boxes, dx, dy),
+                    boxes_reflected_y_translated_y,
+                ],
+                axis=0,
+            )
+        else:
+            return RandomTranslation._translate_bounding_boxes(bounding_boxes, dx, dy)
+
+    @staticmethod
+    def _reflect_y(bounding_boxes, dy):
+        return tf.cond(
+            dy != 0,
+            lambda: tf.cond(
+                dy > 0,
+                lambda: RandomTranslation._reflect_bbox_coordinates(
+                    tf.concat([bounding_boxes], axis=0),
+                    dx=None,
+                    dy=0,
+                ),
+                lambda: RandomTranslation._reflect_bbox_coordinates(
+                    tf.concat([bounding_boxes], axis=0),
+                    dx=None,
+                    dy=1,
+                ),
+            ),
+            lambda: bounding_boxes,
+        )
+
+    @staticmethod
+    def _reflect_x(bounding_boxes, dx):
+        return tf.cond(
+            dx != 0,
+            lambda: tf.cond(
+                dx > 0,
+                lambda: RandomTranslation._reflect_bbox_coordinates(
+                    bounding_boxes, dx=0, dy=None
+                ),
+                lambda: RandomTranslation._reflect_bbox_coordinates(
+                    bounding_boxes, dx=1, dy=None
+                ),
+            ),
+            lambda: bounding_boxes,
+        )
 
     @staticmethod
     def _translate_bounding_boxes(bounding_boxes, dx, dy):
