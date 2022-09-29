@@ -83,7 +83,7 @@ class RandomTranslation(BaseImageAugmentationLayer):
         bounding_box_format=None,
         **kwargs,
     ):
-        if fill_mode == "warp":
+        if fill_mode == "wrap":
             raise ValueError(
                 f"fill_mode={fill_mode} is not supported yet, "
                 f"please use one of reflect|constant|nearest"
@@ -208,17 +208,13 @@ class RandomTranslation(BaseImageAugmentationLayer):
             lambda: tf.cond(
                 dy > 0,
                 lambda: RandomTranslation._reflect_bbox_coordinates(
-                    tf.concat([bounding_boxes], axis=0),
-                    dx=None,
-                    dy=0,
+                    bounding_boxes, dx=None, dy=0
                 ),
                 lambda: RandomTranslation._reflect_bbox_coordinates(
-                    tf.concat([bounding_boxes], axis=0),
-                    dx=None,
-                    dy=1,
+                    bounding_boxes, dx=None, dy=1
                 ),
             ),
-            lambda: bounding_boxes,
+            lambda: tf.zeros([0, bounding_boxes.shape[-1]]),
         )
 
     @staticmethod
@@ -234,7 +230,7 @@ class RandomTranslation(BaseImageAugmentationLayer):
                     bounding_boxes, dx=1, dy=None
                 ),
             ),
-            lambda: bounding_boxes,
+            lambda: tf.zeros([0, bounding_boxes.shape[-1]]),
         )
 
     @staticmethod

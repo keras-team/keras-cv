@@ -100,7 +100,7 @@ def parse_factor(
     max_value=1.0,
     param_name="factor",
     seed=None,
-    range_mode="non-negative",
+    range_mode="asymmetric",
 ):
     """A factor parameter parsing and validation function.
 
@@ -112,13 +112,13 @@ def parse_factor(
             when provided `param` has incorrect value.
         seed: Integer. Used to create a random seed.
         range_mode: Method used to interpret value of param if a single number is
-            provided. Supported values are `"non-negative"` which results in param
+            provided. Supported values are `"asymmetric"` which results in param
             bounds `(min_value, param)` and `"symmetric"` with bounds `(-param, param)`.
 
     Returns: `keras_cv.ConstantFactorSampler` or `keras_cv.UniformFactorSampler`
 
     """
-    allowed_range_modes = {"non-negative", "symmetric"}
+    allowed_range_modes = {"asymmetric", "symmetric"}
     if range_mode not in allowed_range_modes:
         raise ValueError(
             f"`range_mode` should be one of {allowed_range_modes}. "
