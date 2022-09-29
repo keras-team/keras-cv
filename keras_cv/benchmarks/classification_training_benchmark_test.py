@@ -52,10 +52,15 @@ class ClassificationTrainingBenchmark(
             .batch(self.batch_size)
         )
         self.epochs = 1
-        self.strategy = tf.distribute.MirroredStrategy()
 
-    def benchmark_classification_training(self, app):
-        with self.strategy.scope():
+    def benchmark_classification_training_single_gpu(self, app):
+        self._run_benchmark(app, tf.distribute.OneDeviceStrategy("/gpu:0"))
+
+    def benchmark_classification_training_multi_gpu(self, app):
+        self._run_benchmark(app, tf.distribute.MirroredStrategy())
+
+    def _run_benchmark(self, app, strategy):
+        with strategy.scope():
             t0 = time.time()
 
             model = app(
