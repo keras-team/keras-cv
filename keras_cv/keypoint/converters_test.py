@@ -50,7 +50,7 @@ class ConvertersTestCase(tf.test.TestCase, parameterized.TestCase):
         source_keypoints = keypoints[source]
         target_keypoints = keypoints[target]
         self.assertAllClose(
-            ops.convert_keypoint_format(
+            keypoint.convert_format(
                 source_keypoints, source=source, target=target, images=images
             ),
             target_keypoints,
@@ -62,7 +62,7 @@ class ConvertersTestCase(tf.test.TestCase, parameterized.TestCase):
         target_keypoints = keypoints[target][0]
 
         self.assertAllClose(
-            ops.convert_keypoint_format(
+            keypoint.convert_format(
                 source_keypoints, source=source, target=target, images=images[0]
             ),
             target_keypoints,
@@ -83,7 +83,7 @@ class ConvertersTestCase(tf.test.TestCase, parameterized.TestCase):
         target_keypoints = create_ragged_group(target_keypoints)
 
         self.assertAllClose(
-            ops.convert_keypoint_format(
+            keypoint.convert_format(
                 source_keypoints, source=source, target=target, images=images
             ),
             target_keypoints,
@@ -101,7 +101,7 @@ class ConvertersTestCase(tf.test.TestCase, parameterized.TestCase):
         target_keypoints = add_metadata(target_keypoints)
 
         self.assertAllClose(
-            ops.convert_keypoint_format(
+            keypoint.convert_format(
                 source_keypoints, source=source, target=target, images=images
             ),
             target_keypoints,
@@ -109,12 +109,12 @@ class ConvertersTestCase(tf.test.TestCase, parameterized.TestCase):
 
     def test_raise_errors_when_missing_shape(self):
         with self.assertRaises(ValueError) as e:
-            ops.convert_keypoint_format(keypoints["xy"], source="xy", target="rel_xy")
+            keypoint.convert_format(keypoints["xy"], source="xy", target="rel_xy")
 
         self.assertEqual(
             str(e.exception),
-            "convert_keypoint_format() must receive `images` when transforming "
-            "between relative and absolute formats. convert_keypoint_format() "
+            "convert_format() must receive `images` when transforming "
+            "between relative and absolute formats. convert_format() "
             "received source=`xy`, target=`rel_xy`, but images=None",
         )
 
@@ -135,7 +135,7 @@ class ConvertersTestCase(tf.test.TestCase, parameterized.TestCase):
             "batch_mismatch",
             tf.ones([2, 4, 2]),
             tf.ones([35, 35, 3]),
-            "convert_keypoint_format() expects both `keypoints` and `images` to be batched or "
+            "convert_format() expects both `keypoints` and `images` to be batched or "
             "both unbatched. Received len(keypoints.shape)=3, len(images.shape)=3. "
             "Expected either len(keypoints.shape)=2 and len(images.shape)=3, or "
             "len(keypoints.shape)>=3 and len(images.shape)=4.",
@@ -143,7 +143,7 @@ class ConvertersTestCase(tf.test.TestCase, parameterized.TestCase):
     )
     def test_input_format_exception(self, keypoints, images, expected):
         with self.assertRaises(ValueError) as e:
-            ops.convert_keypoint_format(
+            keypoint.convert_format(
                 keypoints, source="xy", target="rel_xy", images=images
             )
         self.assertEqual(str(e.exception), expected)
