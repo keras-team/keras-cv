@@ -380,6 +380,7 @@ def ResNetV2(
     # resolution level.
     model._backbone_level_outputs = stack_level_outputs
 
+    # TODO(scottzhu): Extract this into a standalone util function.
     def as_backbone(self, min_level=None, max_level=None):
         """Convert the Resnet application model into a model backbone for other tasks.
 

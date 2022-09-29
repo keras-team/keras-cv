@@ -56,6 +56,12 @@ class DeeplabTest(tf.test.TestCase):
             segmentation.DeepLabV3(
                 classes=11, include_rescaling=True, backbone="resnet_v3"
             )
+        with self.assertRaisesRegex(
+            ValueError, "Backbone need to be a `tf.keras.layers.Layer`"
+        ):
+            segmentation.DeepLabV3(
+                classes=11, include_rescaling=True, backbone=tf.Module()
+            )
 
     def test_invalid_decoder(self):
         with self.assertRaisesRegex(ValueError, "Supported premade decoder are: .*fpn"):
