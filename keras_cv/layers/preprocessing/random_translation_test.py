@@ -41,11 +41,70 @@ class RandomTranslationTest(tf.test.TestCase, parameterized.TestCase):
         outputs = layer(inp, training=True)
         output_images, output_bboxes = outputs["images"], outputs["bounding_boxes"]
         expected_bboxes = np.array([[[0.5, 0.0, 1.0, 1.0, 0.0]]])
-        self.assertAllClose(expected_bboxes, output_bboxes)
         expected_images = np.ones((4, 4, 3)).astype(np.float32)
         expected_images[:, :2, :] = 0
         expected_images = np.expand_dims(expected_images, axis=0)
         self.assertAllClose(expected_images, output_images)
+        self.assertAllClose(expected_bboxes, output_bboxes)
+
+    def test_full_horizontal_translation(self):
+        images = tf.cast(
+            np.ones((4, 4, 3)),
+            tf.float32,
+        )
+        images = tf.expand_dims(images, axis=0)
+        bboxes = tf.cast(
+            tf.constant(
+                [
+                    [0.0, 0.0, 1.0, 1.0, 0.0],
+                ]
+            ),
+            tf.float32,
+        )
+        bboxes = tf.expand_dims(bboxes, axis=0)
+        layer = RandomTranslation(
+            x_factor=[1.0, 1.0],
+            bounding_box_format="rel_xyxy",
+            fill_mode="constant",
+            fill_value=0.0,
+        )
+        inp = {"images": images, "bounding_boxes": bboxes}
+        outputs = layer(inp, training=True)
+        output_images, output_bboxes = outputs["images"], outputs["bounding_boxes"]
+        expected_bboxes = np.empty(shape=(1, 0, 5))
+        expected_images = np.zeros((1, 4, 4, 3)).astype(np.float32)
+        self.assertAllClose(expected_images, output_images)
+        self.assertAllClose(expected_bboxes, output_bboxes)
+
+    def test_full_horizontal_translation_multiple_images(self):
+        images = tf.cast(
+            np.ones((2, 4, 4, 3)),
+            tf.float32,
+        )
+        # TODO boxes for second image
+        bboxes = tf.cast(
+            tf.constant(
+                [
+                    [0.0, 0.0, 1.0, 1.0, 0.0],
+                    [0.0, 0.0, 1.0, 1.0, 0.0],
+                ]
+            ),
+            tf.float32,
+        )
+        bboxes = tf.expand_dims(bboxes, axis=0)
+        layer = RandomTranslation(
+            x_factor=[1.0, 1.0],
+            bounding_box_format="rel_xyxy",
+            fill_mode="constant",
+            fill_value=0.0,
+        )
+        inp = {"images": images, "bounding_boxes": bboxes}
+        outputs = layer(inp, training=True)
+        output_images, output_bboxes = outputs["images"], outputs["bounding_boxes"]
+        expected_bboxes = np.empty(shape=(2, 0, 5))
+        expected_images = np.zeros((2, 4, 4, 3)).astype(np.float32)
+        self.assertAllClose(expected_images, output_images)
+        self.assertAllClose(expected_bboxes, output_bboxes)
 
     def test_negative_horizontal_translation(self):
         images = tf.cast(
@@ -54,7 +113,11 @@ class RandomTranslationTest(tf.test.TestCase, parameterized.TestCase):
         )
         images = tf.expand_dims(images, axis=0)
         bboxes = tf.cast(
-            tf.constant([[0.0, 0.0, 1.0, 1.0, 0.0]]),
+            tf.constant(
+                [
+                    [0.0, 0.0, 1.0, 1.0, 0.0],
+                ]
+            ),
             tf.float32,
         )
         bboxes = tf.expand_dims(bboxes, axis=0)
@@ -68,11 +131,11 @@ class RandomTranslationTest(tf.test.TestCase, parameterized.TestCase):
         outputs = layer(inp, training=True)
         output_images, output_bboxes = outputs["images"], outputs["bounding_boxes"]
         expected_bboxes = np.array([[[0.0, 0.0, 0.5, 1.0, 0.0]]])
-        self.assertAllClose(expected_bboxes, output_bboxes)
         expected_images = np.ones((4, 4, 3)).astype(np.float32)
         expected_images[:, 2:, :] = 0
         expected_images = np.expand_dims(expected_images, axis=0)
         self.assertAllClose(expected_images, output_images)
+        self.assertAllClose(expected_bboxes, output_bboxes)
 
     def test_vertical_translation(self):
         images = tf.cast(

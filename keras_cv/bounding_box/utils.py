@@ -196,3 +196,27 @@ def add_class_id(bounding_boxes, class_id=0):
             lengths=row_lengths,
         )
     return bounding_boxes
+
+
+def reject_empty(bounding_boxes, images, bounding_box_format, epsilon=1e-8):
+    """rejects bounding boxes with area smaller then epsilon"""
+    bounding_boxes = bounding_box.convert_format(
+        bounding_boxes,
+        source=bounding_box_format,
+        target="xywh",
+        images=images,
+    )
+    bounding_boxes, images, squeeze = _format_inputs(bounding_boxes, images)
+    area = bounding_boxes[:, :, 2] * bounding_boxes[:, :, 3]
+    mask = area > epsilon
+    filtered_boxes = tf.gather_nd(bounding_boxes, tf.where(mask))
+    filtered_boxes = tf.expand_dims(filtered_boxes, 0)
+
+    filtered_boxes = bounding_box.convert_format(
+        filtered_boxes,
+        source="xywh",
+        target=bounding_box_format,
+        images=images,
+    )
+    filtered_boxes = _format_outputs(filtered_boxes, squeeze)
+    return filtered_boxes
