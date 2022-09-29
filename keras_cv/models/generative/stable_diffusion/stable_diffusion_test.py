@@ -18,18 +18,38 @@ from tensorflow.keras import mixed_precision
 from keras_cv.models import StableDiffusion
 
 
-class StableDiffusioNTest(tf.test.TestCase):
+class StableDiffusionTest(tf.test.TestCase):
     def DISABLED_test_end_to_end_golden_value(self):
+        prompt = "a caterpillar smoking a hookah while sitting on a mushroom"
         stablediff = StableDiffusion(128, 128)
-        img = stablediff.text_to_image(
-            "a caterpillar smoking a hookah while sitting on a mushroom", seed=123
-        )
-        self.assertAllClose(img[0][64:65, 64:65, :][0][0], [255, 232, 18], atol=1e-4)
+
+        # Using TF global random seed to guarantee that subsequent text-to-image
+        # runs are seeded identically.
+        tf.random.set_seed(8675309)
+        img = stablediff.text_to_image(prompt)
+        self.assertAllClose(img[0][64:65, 64:65, :][0][0], [124, 188, 114], atol=1e-4)
+
+        # Verify that the step-by-step creation flow creates an identical output
+        tf.random.set_seed(8675309)
+        text_encoding = stablediff.encode_text(prompt)
+        self.assertAllClose(img, stablediff.generate_image(text_encoding), atol=1e-4)
 
     def DISABLED_test_mixed_precision(self):
         mixed_precision.set_global_policy("mixed_float16")
         stablediff = StableDiffusion(128, 128)
         _ = stablediff.text_to_image("Testing123 haha!")
+
+    def DISABLED_test_generate_image_rejects_noise_and_seed(self):
+        stablediff = StableDiffusion(128, 128)
+
+        with self.assertRaisesRegex(
+            ValueError, r"`diffusion_noise` and `seed` should not both be passed"
+        ):
+            _ = stablediff.generate_image(
+                stablediff.encode_text("thou shall not render"),
+                diffusion_noise=tf.random.normal((1, 16, 16, 4)),
+                seed=1337,
+            )
 
 
 if __name__ == "__main__":

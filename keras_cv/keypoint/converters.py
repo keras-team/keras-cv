@@ -58,7 +58,7 @@ FROM_XY_CONVERTERS = {
 }
 
 
-def convert_keypoint_format(keypoints, source, target, images=None, dtype=None):
+def convert_format(keypoints, source, target, images=None, dtype=None):
     """Converts keypoints from one format to another.
 
     Supported formats are:
@@ -81,7 +81,7 @@ def convert_keypoint_format(keypoints, source, target, images=None, dtype=None):
 
     ```python
     images, keypoints = load_my_dataset()
-    keypoints_in_rel = keras_cv.ops.convert_keypoint_format(
+    keypoints_in_rel = keras_cv.keypoint.convert_format(
         keypoint,
         source='xy',
         target='rel_xy',
@@ -117,13 +117,13 @@ def convert_keypoint_format(keypoints, source, target, images=None, dtype=None):
     target = target.lower()
     if source not in TO_XY_CONVERTERS:
         raise ValueError(
-            f"convert_keypoint_format() received an unsupported format for the argument "
+            f"convert_format() received an unsupported format for the argument "
             f"`source`. `source` should be one of {TO_XY_CONVERTERS.keys()}. "
             f"Got source={source}"
         )
     if target not in FROM_XY_CONVERTERS:
         raise ValueError(
-            f"convert_keypoint_format() received an unsupported format for the argument "
+            f"convert_format() received an unsupported format for the argument "
             f"`target`. `target` should be one of {FROM_XY_CONVERTERS.keys()}. "
             f"Got target={target}"
         )
@@ -141,9 +141,9 @@ def convert_keypoint_format(keypoints, source, target, images=None, dtype=None):
         result = FROM_XY_CONVERTERS[target](in_xy, images=images)
     except _RequiresImagesException:
         raise ValueError(
-            "convert_keypoint_format() must receive `images` when transforming "
+            "convert_format() must receive `images` when transforming "
             f"between relative and absolute formats. "
-            f"convert_keypoint_format() received source=`{source}`, target=`{target}`, "
+            f"convert_format() received source=`{source}`, target=`{target}`, "
             f"but images={images}"
         )
 
@@ -169,7 +169,7 @@ def _format_inputs(keypoints, images):
         images_include_batch = images_rank == 4
         if keypoints_includes_batch != images_include_batch:
             raise ValueError(
-                "convert_keypoint_format() expects both `keypoints` and `images` to be batched "
+                "convert_format() expects both `keypoints` and `images` to be batched "
                 f"or both unbatched. Received len(keypoints.shape)={keypoints_rank}, "
                 f"len(images.shape)={images_rank}. Expected either "
                 "len(keypoints.shape)=2 and len(images.shape)=3, or "
