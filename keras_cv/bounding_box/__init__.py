@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from keras_cv.bounding_box.converters import _decode
+from keras_cv.bounding_box.converters import _encode
 from keras_cv.bounding_box.converters import convert_format
 from keras_cv.bounding_box.formats import CENTER_XYWH
 from keras_cv.bounding_box.formats import REL_XYXY

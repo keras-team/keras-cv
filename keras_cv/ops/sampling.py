@@ -40,46 +40,48 @@ def balanced_sample(
         indicating the index is not sampled.
     """
 
-    def balanced_single_sample(positive_match, negative_match):
-        num_pos_matches = tf.reduce_sum(tf.cast(positive_match, tf.int32))
-        num_neg_matches = tf.reduce_sum(tf.cast(negative_match, tf.int32))
-        num_pos = tf.cast(num_samples * positive_fraction, tf.int32)
-        # if there are not enough positive samples, obtain all
-        num_pos = tf.minimum(num_pos, num_pos_matches)
-        num_neg = num_samples - num_pos
-        # if there are not enough negative samples, obtain all
-        num_neg = tf.minimum(num_neg, num_neg_matches)
-
-        # we choose to use random generator instead of random shuffle since the latter
-        # does not work on GPU.
-
-        # randomly generate positive values for positive match, and 0 for negative match
-        random_pos = tf.random.uniform(tf.shape(positive_match), minval=0.0, maxval=1.0)
-        zeros = tf.zeros_like(random_pos)
-        random_pos = tf.where(positive_match, random_pos, zeros)
-        # pick the top k values as random positive indices
-        _, positive_indices = tf.math.top_k(random_pos, k=num_pos)
-
-        # randomly generate positive values for negative match, and 0 for positive match
-        random_neg = tf.random.uniform(tf.shape(negative_match), minval=0.0, maxval=1.0)
-        random_neg = tf.where(negative_match, random_neg, zeros)
-        # pick the top k values as random negative indices
-        _, negative_indices = tf.math.top_k(random_neg, k=num_neg)
-
-        selected_indices = tf.concat([positive_indices, negative_indices], axis=0)
-        selected_indicators = tf.scatter_nd(
-            tf.expand_dims(selected_indices, axis=-1),
-            tf.ones_like(selected_indices, dtype=tf.int32),
-            tf.shape(positive_match),
+    N = positive_matches.get_shape().as_list()[-1]
+    if N < num_samples:
+        raise ValueError(
+            f"passed in {positive_matches.shape} has less element than {num_samples}"
         )
-        return selected_indicators
-
-    if len(positive_matches.get_shape().as_list()) == 1:
-        return balanced_single_sample(positive_matches, negative_matches)
-    else:
-
-        def balance_fn(args):
-            pos, neg = args
-            return balanced_single_sample(pos, neg)
-
-        return tf.vectorized_map(balance_fn, (positive_matches, negative_matches))
+    # random_val = tf.random.uniform(tf.shape(positive_matches), minval=0., maxval=1.)
+    zeros = tf.zeros_like(positive_matches, dtype=tf.float32)
+    ones = tf.ones_like(positive_matches, dtype=tf.float32)
+    halfs = 0.5 * tf.ones_like(positive_matches, dtype=tf.float32)
+    values = zeros
+    values = tf.where(positive_matches, ones, values)
+    values = tf.where(negative_matches, halfs, values)
+    num_pos_samples = int(num_samples * positive_fraction)
+    valid_matches = tf.logical_or(positive_matches, negative_matches)
+    num_valid_samples = tf.reduce_sum(tf.cast(valid_matches, tf.int32), axis=-1)
+    tf.debugging.assert_greater_equal(
+        num_valid_samples,
+        num_pos_samples,
+        message=f"num_valid_samples > num_pos_samples {num_pos_samples}",
+    )
+    # this might contain negative samples as well
+    _, positive_indices = tf.math.top_k(values, k=num_pos_samples)
+    selected_indicators = tf.cast(
+        tf.reduce_sum(tf.one_hot(positive_indices, depth=N), axis=-2), tf.bool
+    )
+    # setting all selected samples to zeros
+    values = tf.where(selected_indicators, zeros, values)
+    # setting all excessive positive matches to zeros as well
+    values = tf.where(positive_matches, zeros, values)
+    num_neg_samples = num_samples - num_pos_samples
+    tf.debugging.assert_greater_equal(
+        num_valid_samples,
+        num_pos_samples,
+        message=f"num_valid_samples > num_neg_samples {num_neg_samples}",
+    )
+    _, negative_indices = tf.math.top_k(values, k=num_neg_samples)
+    selected_indices = tf.concat([positive_indices, negative_indices], axis=-1)
+    selected_indicators = tf.reduce_sum(tf.one_hot(selected_indices, depth=N), axis=-2)
+    selected_indicators = tf.minimum(
+        selected_indicators, tf.ones_like(selected_indicators)
+    )
+    selected_indicators = tf.where(
+        valid_matches, selected_indicators, tf.zeros_like(selected_indicators)
+    )
+    return selected_indicators

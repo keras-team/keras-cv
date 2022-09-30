@@ -17,7 +17,13 @@ import tensorflow as tf
 from keras_cv import bounding_box
 
 
-def compute_iou(boxes1, boxes2, bounding_box_format):
+def compute_iou(
+    boxes1,
+    boxes2,
+    bounding_box_format,
+    use_masking=False,
+    mask_val=-1,
+):
     """Computes a lookup table vector containing the ious for a given set boxes.
 
     The lookup vector is to be indexed by [`boxes1_index`,`boxes2_index`] if boxes
@@ -93,8 +99,20 @@ def compute_iou(boxes1, boxes2, bounding_box_format):
         return tf.math.divide_no_nan(intersect_area, union_area)
 
     if boxes1_rank == 2:
-        return compute_iou_for_batch((boxes1, boxes2))
+        res = compute_iou_for_batch((boxes1, boxes2))
+        perm = [1, 0]
     else:
-        return tf.map_fn(
+        res = tf.map_fn(
             compute_iou_for_batch, elems=(boxes1, boxes2), dtype=boxes1.dtype
         )
+        perm = [0, 2, 1]
+
+    if not use_masking:
+        return res
+
+    mask_val_t = tf.cast(mask_val, res.dtype) * tf.ones_like(res)
+    boxes1_mask = tf.less(tf.reduce_max(boxes1, axis=-1, keepdims=True), 0.0)
+    boxes2_mask = tf.less(tf.reduce_max(boxes2, axis=-1, keepdims=True), 0.0)
+    background_mask = tf.logical_or(boxes1_mask, tf.transpose(boxes2_mask, perm))
+    iou_lookup_table = tf.where(background_mask, mask_val_t, res)
+    return iou_lookup_table

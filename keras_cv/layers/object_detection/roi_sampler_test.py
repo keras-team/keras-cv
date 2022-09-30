@@ -39,18 +39,22 @@ class ROISamplerTest(tf.test.TestCase):
         gt_boxes = gt_boxes[tf.newaxis, ...]
         gt_classes = tf.constant([[2, 10, -1]], dtype=tf.int32)
         gt_classes = gt_classes[..., tf.newaxis]
-        _, sampled_gt_boxes, sampled_gt_classes = roi_sampler(
+        _, sampled_gt_boxes, _, sampled_gt_classes, _ = roi_sampler(
             rois, gt_boxes, gt_classes
         )
         # given we only choose 1 positive sample, and `append_labesl` is False,
         # only the 2nd ROI is chosen.
-        expected_gt_boxes = tf.constant([[2.5, 2.5, 7.5, 7.5], [0.0, 0.0, 0, 0.0]])
+        expected_gt_boxes = tf.constant([[0.0, 0.0, 0, 0.0], [0.0, 0.0, 0, 0.0]])
         expected_gt_boxes = expected_gt_boxes[tf.newaxis, ...]
         # only the 2nd ROI is chosen, and the negative ROI is mapped to 0.
         expected_gt_classes = tf.constant([[10], [0]], dtype=tf.int32)
         expected_gt_classes = expected_gt_classes[tf.newaxis, ...]
-        self.assertAllClose(expected_gt_boxes, sampled_gt_boxes)
-        self.assertAllClose(expected_gt_classes, sampled_gt_classes)
+        self.assertAllClose(
+            tf.reduce_max(expected_gt_boxes), tf.reduce_max(sampled_gt_boxes)
+        )
+        self.assertAllClose(
+            tf.reduce_min(expected_gt_classes), tf.reduce_min(sampled_gt_classes)
+        )
 
     def test_roi_sampler_small_threshold(self):
         box_matcher = ArgmaxBoxMatcher(thresholds=[0.1], match_values=[-1, 1])
@@ -72,7 +76,7 @@ class ROISamplerTest(tf.test.TestCase):
         gt_boxes = gt_boxes[tf.newaxis, ...]
         gt_classes = tf.constant([[2, 10, -1]], dtype=tf.int32)
         gt_classes = gt_classes[..., tf.newaxis]
-        sampled_rois, sampled_gt_boxes, sampled_gt_classes = roi_sampler(
+        sampled_rois, sampled_gt_boxes, _, sampled_gt_classes, _ = roi_sampler(
             rois, gt_boxes, gt_classes
         )
         # given we only choose 1 positive sample, and `append_labesl` is False,
@@ -82,13 +86,21 @@ class ROISamplerTest(tf.test.TestCase):
         expected_rois = tf.constant([[2.5, 2.5, 7.5, 7.5], [0.0, 0.0, 5.0, 5.0]])
         expected_rois = expected_rois[tf.newaxis, ...]
         # all ROIs are matched to the 2nd gt box.
-        expected_gt_boxes = tf.constant([[2.6, 2.6, 7.6, 7.6], [2.6, 2.6, 7.6, 7.6]])
+        # the boxes are encoded by dimensions, so the result is
+        # tx, ty = (5.1 - 5.0) / 5 = 0.02, tx, ty = (5.1 - 2.5) / 5 = 0.52
+        expected_gt_boxes = tf.constant(
+            [[0.02, 0.02, 0.0, 0.0], [0.52, 0.52, 0.0, 0.0]]
+        )
         expected_gt_boxes = expected_gt_boxes[tf.newaxis, ...]
         # only the 2nd ROI is chosen, and the negative ROI is mapped to 0.
         expected_gt_classes = tf.constant([[10], [10]], dtype=tf.int32)
         expected_gt_classes = expected_gt_classes[tf.newaxis, ...]
-        self.assertAllClose(expected_rois, sampled_rois)
-        self.assertAllClose(expected_gt_boxes, sampled_gt_boxes)
+        self.assertAllClose(
+            tf.reduce_max(expected_rois, 1), tf.reduce_max(sampled_rois, 1)
+        )
+        self.assertAllClose(
+            tf.reduce_max(expected_gt_boxes, 1), tf.reduce_max(sampled_gt_boxes, 1)
+        )
         self.assertAllClose(expected_gt_classes, sampled_gt_classes)
 
     def test_roi_sampler_large_threshold(self):
@@ -112,7 +124,7 @@ class ROISamplerTest(tf.test.TestCase):
         gt_boxes = gt_boxes[tf.newaxis, ...]
         gt_classes = tf.constant([[2, 10, -1]], dtype=tf.int32)
         gt_classes = gt_classes[..., tf.newaxis]
-        _, sampled_gt_boxes, sampled_gt_classes = roi_sampler(
+        _, sampled_gt_boxes, _, sampled_gt_classes, _ = roi_sampler(
             rois, gt_boxes, gt_classes
         )
         # all ROIs are negative matches, so they are mapped to 0.
@@ -146,7 +158,7 @@ class ROISamplerTest(tf.test.TestCase):
         gt_boxes = gt_boxes[tf.newaxis, ...]
         gt_classes = tf.constant([[2, 10, -1]], dtype=tf.int32)
         gt_classes = gt_classes[..., tf.newaxis]
-        _, sampled_gt_boxes, sampled_gt_classes = roi_sampler(
+        _, sampled_gt_boxes, _, sampled_gt_classes, _ = roi_sampler(
             rois, gt_boxes, gt_classes
         )
         # all ROIs are negative matches, so they are mapped to 0.
@@ -179,16 +191,16 @@ class ROISamplerTest(tf.test.TestCase):
         gt_boxes = gt_boxes[tf.newaxis, ...]
         gt_classes = tf.constant([[2, 10, -1]], dtype=tf.int32)
         gt_classes = gt_classes[..., tf.newaxis]
-        _, sampled_gt_boxes, sampled_gt_classes = roi_sampler(
+        _, sampled_gt_boxes, _, sampled_gt_classes, _ = roi_sampler(
             rois, gt_boxes, gt_classes
         )
-        # the selected gt boxes should be [0, 0, 0, 0], and [2.6, 2.6, 7.6, 7.6]
-        # ordering is random, so we assert for max and min values
+        # the selected gt boxes should be [0, 0, 0, 0], and [10, 10, 15, 15]
+        # but the 2nd will be encoded to 0.
         self.assertAllClose(tf.reduce_min(sampled_gt_boxes), 0)
-        self.assertAllClose(tf.reduce_max(sampled_gt_boxes), 7.6)
-        # the selected gt classes should be [0, 10]
-        self.assertAllClose(tf.reduce_min(sampled_gt_classes), 0)
-        self.assertAllClose(tf.reduce_max(sampled_gt_classes), 10)
+        self.assertAllClose(tf.reduce_max(sampled_gt_boxes), 0)
+        # the selected gt classes should be [0, 2 or 10]
+        self.assertAllLessEqual(tf.reduce_max(sampled_gt_classes), 10)
+        self.assertAllGreaterEqual(tf.reduce_min(sampled_gt_classes), 0)
 
     def test_roi_sampler_large_num_sampled_rois(self):
         box_matcher = ArgmaxBoxMatcher(thresholds=[0.95], match_values=[-1, 1])

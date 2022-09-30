@@ -13,6 +13,9 @@
 # limitations under the License.
 """Converter functions for working with bounding box formats."""
 
+from typing import List
+from typing import Optional
+
 import tensorflow as tf
 
 
@@ -20,6 +23,69 @@ import tensorflow as tf
 # needs it
 class RequiresImagesException(Exception):
     pass
+
+
+def _encode(
+    anchors: tf.Tensor,
+    boxes: tf.Tensor,
+    anchor_format: str,
+    box_format: str,
+    variance: Optional[List[float]] = None,
+):
+    if variance and len(variance) != 4:
+        raise ValueError(f"`variance` must be length 4, got {variance}")
+    anchors = convert_format(
+        anchors,
+        source=anchor_format,
+        target="xywh",
+    )
+    boxes = convert_format(
+        boxes,
+        source=box_format,
+        target="xywh",
+    )
+    anchor_dimensions = tf.maximum(anchors[..., 2:], tf.keras.backend.epsilon())
+    box_dimensions = tf.maximum(boxes[..., 2:], tf.keras.backend.epsilon())
+    # anchors be unbatched, boxes can either be batched or unbatched.
+    boxes_delta = tf.concat(
+        [
+            (boxes[..., :2] - anchors[..., :2]) / anchor_dimensions,
+            tf.math.log(box_dimensions / anchor_dimensions),
+        ],
+        axis=-1,
+    )
+    if variance:
+        boxes_delta /= variance
+    return boxes_delta
+
+
+def _decode(
+    anchors: tf.Tensor,
+    boxes_delta: tf.Tensor,
+    anchor_format: str,
+    variance: Optional[List[float]] = None,
+):
+    if variance and len(variance) != 4:
+        raise ValueError(f"`variance` must be length 4, got {variance}")
+    anchors = convert_format(
+        anchors,
+        source=anchor_format,
+        target="center_xywh",
+    )
+    # tf.print("center_xywh_anchors", anchors)
+    if variance:
+        boxes_delta = boxes_delta * variance
+    # print(f"boxes_delta {boxes_delta[..., :2].shape}")
+    # print(f"anchors {anchors[..., 2:].shape}")
+    # anchors be unbatched, boxes can either be batched or unbatched.
+    boxes = tf.concat(
+        [
+            boxes_delta[..., :2] * anchors[..., 2:] + anchors[..., :2],
+            tf.math.exp(boxes_delta[..., 2:]) * anchors[..., 2:],
+        ],
+        axis=-1,
+    )
+    return boxes
 
 
 def _center_xywh_to_xyxy(boxes, images=None, image_shape=None):

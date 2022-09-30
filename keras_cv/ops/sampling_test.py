@@ -97,12 +97,10 @@ class BalancedSamplingTest(tf.test.TestCase):
         # users want to get 20 samples, but only 10 are available
         num_samples = 20
         positive_fraction = 0.1
-        res = balanced_sample(
-            positive_matches, negative_matches, num_samples, positive_fraction
-        )
-        # only 1 positive sample exists, thus it is chosen
-        self.assertAllClose(res[0], 1)
-        self.assertAllClose(res.shape, [10])
+        with self.assertRaisesRegex(ValueError, "has less element"):
+            res = balanced_sample(
+                positive_matches, negative_matches, num_samples, positive_fraction
+            )
 
     def test_balanced_sampling_no_positive(self):
         positive_matches = tf.constant(
@@ -110,15 +108,15 @@ class BalancedSamplingTest(tf.test.TestCase):
         )
         # the rest are neither positive nor negative, but ignord matches
         negative_matches = tf.constant(
-            [False, False, True, False, False, True, False, False, False, False]
+            [False, False, True, False, False, True, False, False, True, False]
         )
         num_samples = 5
         positive_fraction = 0.5
         res = balanced_sample(
             positive_matches, negative_matches, num_samples, positive_fraction
         )
-        # given only 2 negative and 0 positive, select all of them
-        self.assertAllClose(res, [0, 0, 1, 0, 0, 1, 0, 0, 0, 0])
+        # given only 3 negative and 0 positive, select all of them
+        self.assertAllClose(res, [0, 0, 1, 0, 0, 1, 0, 0, 1, 0])
 
     def test_balanced_sampling_no_negative(self):
         positive_matches = tf.constant(
@@ -133,3 +131,15 @@ class BalancedSamplingTest(tf.test.TestCase):
         )
         # given only 2 positive and 0 negative, select all of them.
         self.assertAllClose(res, [1, 1, 0, 0, 0, 0, 0, 0, 0, 0])
+
+    def test_balanced_sampling_many_samples(self):
+        positive_matches = tf.random.uniform(
+            [2, 1000], minval=0, maxval=1, dtype=tf.float32
+        )
+        positive_matches = positive_matches > 0.98
+        negative_matches = tf.logical_not(positive_matches)
+        num_samples = 256
+        positive_fraction = 0.25
+        _ = balanced_sample(
+            positive_matches, negative_matches, num_samples, positive_fraction
+        )
