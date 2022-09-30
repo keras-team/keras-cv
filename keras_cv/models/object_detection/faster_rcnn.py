@@ -17,10 +17,10 @@ import tensorflow as tf
 from keras_cv import bounding_box
 from keras_cv.bounding_box.converters import _decode
 from keras_cv.layers.object_detection.anchor_generator import AnchorGenerator
+from keras_cv.layers.object_detection.roi_align import _ROIAligner
 from keras_cv.layers.object_detection.roi_generator import ROIGenerator
 from keras_cv.layers.object_detection.roi_sampler import _ROISampler
 from keras_cv.layers.object_detection.rpn_label_encoder import _RpnLabelEncoder
-from keras_cv.layers.object_detection.roi_align import _ROIAligner
 from keras_cv.ops.box_matcher import ArgmaxBoxMatcher
 
 
