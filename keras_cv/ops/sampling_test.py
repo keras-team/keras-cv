@@ -98,7 +98,7 @@ class BalancedSamplingTest(tf.test.TestCase):
         num_samples = 20
         positive_fraction = 0.1
         with self.assertRaisesRegex(ValueError, "has less element"):
-            res = balanced_sample(
+            _ = balanced_sample(
                 positive_matches, negative_matches, num_samples, positive_fraction
             )
 
