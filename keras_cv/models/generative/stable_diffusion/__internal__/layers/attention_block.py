@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import tensorflow as tf
 from tensorflow import keras
 
 from keras_cv.models.generative.stable_diffusion.__internal__.layers.group_normalization import (

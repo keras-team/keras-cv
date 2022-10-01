@@ -40,6 +40,17 @@ class VAEEncoder(keras.Sequential):
                 PaddedConv2D(8, 1),
                 # TODO(lukewood): can this be refactored to be a Rescaling layer?
                 # Perhaps some sort of rescale and gather?
+                # why is it the case we only take four dimensions anyways?
+                # shouldn't we have 8 dimensions, or bottleneck the representation in a
+                # smaller space instead of discarding?  This just seems very strange to
+                # me.
+                #
+                # ... But, Divam has done this in his implementation.  I'll ask him what
+                # the reason for this is, and look around other implementations a bit.
+                #
+                # Come to think of it, does anyone know why the latent spaces has a
+                # final dimension of 4 channels instead of 3 channels?  How does that
+                # work with a diffusion model anyways...
                 keras.layers.Lambda(lambda x: x[..., :4] * 0.18215),
             ]
         )
