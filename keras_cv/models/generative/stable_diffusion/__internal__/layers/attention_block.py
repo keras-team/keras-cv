@@ -1,4 +1,4 @@
-# Copyright 2022 The KerasCV Authors. All Rights Reserved.
+# Copyright 2022 The TensorFlow Authors. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import tensorflow as tf
 from tensorflow import keras
 
 from keras_cv.models.generative.stable_diffusion.__internal__.layers.group_normalization import (
@@ -24,33 +23,32 @@ from keras_cv.models.generative.stable_diffusion.__internal__.layers.padded_conv
 
 
 class AttentionBlock(keras.layers.Layer):
-    def __init__(self, output_dim, **kwargs):
-        super().__init__(**kwargs)
-        self.output_dim = output_dim
+    def __init__(self, channels):
+        super().__init__()
         self.norm = GroupNormalization(epsilon=1e-5)
-        self.q = PaddedConv2D(output_dim, 1)
-        self.k = PaddedConv2D(output_dim, 1)
-        self.v = PaddedConv2D(output_dim, 1)
-        self.proj_out = PaddedConv2D(output_dim, 1)
+        self.q = PaddedConv2D(channels, 1)
+        self.k = PaddedConv2D(channels, 1)
+        self.v = PaddedConv2D(channels, 1)
+        self.proj_out = PaddedConv2D(channels, 1)
 
-    def call(self, inputs):
-        x = self.norm(inputs)
-        q, k, v = self.q(x), self.k(x), self.v(x)
+    def call(self, x):
+        h_ = self.norm(x)
+        q, k, v = self.q(h_), self.k(h_), self.v(h_)
 
         # Compute attention
-        _, h, w, c = q.shape
-        q = tf.reshape(q, (-1, h * w, c))  # b, hw, c
-        k = tf.transpose(k, (0, 3, 1, 2))
-        k = tf.reshape(k, (-1, c, h * w))  # b, c, hw
-        y = q @ k
-        y = y * (c**-0.5)
-        y = keras.activations.softmax(y)
+        b, h, w, c = q.shape
+        q = tf.reshape(q, (-1, h * w, c))  # b,hw,c
+        k = keras.layers.Permute((3, 1, 2))(k)
+        k = tf.reshape(k, (-1, c, h * w))  # b,c,hw
+        w_ = q @ k
+        w_ = w_ * (c ** (-0.5))
+        w_ = keras.activations.softmax(w_)
 
         # Attend to values
-        v = tf.transpose(v, (0, 3, 1, 2))
+        v = keras.layers.Permute((3, 1, 2))(v)
         v = tf.reshape(v, (-1, c, h * w))
-        y = tf.transpose(y, (0, 2, 1))
-        x = v @ y
-        x = tf.transpose(x, (0, 2, 1))
-        x = tf.reshape(x, (-1, h, w, c))
-        return self.proj_out(x) + inputs
+        w_ = keras.layers.Permute((2, 1))(w_)
+        h_ = v @ w_
+        h_ = keras.layers.Permute((2, 1))(h_)
+        h_ = tf.reshape(h_, (-1, h, w, c))
+        return x + self.proj_out(h_)

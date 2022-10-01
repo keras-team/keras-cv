@@ -34,6 +34,7 @@ from keras_cv.models.generative.stable_diffusion.decoder import Decoder
 from keras_cv.models.generative.stable_diffusion.diffusion_model import DiffusionModel
 from keras_cv.models.generative.stable_diffusion.image_encoder import ImageEncoder
 from keras_cv.models.generative.stable_diffusion.text_encoder import TextEncoder
+from keras_cv.models.generative.stable_diffusion.vae_encoder import VAEEncoder
 
 MAX_PROMPT_LENGTH = 77
 
@@ -94,17 +95,38 @@ class StableDiffusion:
         self.text_encoder = TextEncoder(MAX_PROMPT_LENGTH)
         self.diffusion_model = DiffusionModel(img_height, img_width, MAX_PROMPT_LENGTH)
         self.decoder = Decoder(img_height, img_width)
-        self.jit_compile = jit_compile
+
+        # TODO(lukewood): should we support variable size image inputs here?
+        self.image_encoder = VAEEncoder()
+
         if jit_compile:
             self.text_encoder.compile(jit_compile=True)
             self.diffusion_model.compile(jit_compile=True)
             self.decoder.compile(jit_compile=True)
+            self.image_encoder.compile(jit_compile=True)
 
         print(
             "By using this model checkpoint, you acknowledge that its usage is "
             "subject to the terms of the CreativeML Open RAIL-M license at "
             "https://raw.githubusercontent.com/CompVis/stable-diffusion/main/LICENSE"
         )
+        # Load weights
+        text_encoder_weights_fpath = keras.utils.get_file(
+            origin="https://huggingface.co/fchollet/stable-diffusion/resolve/main/kcv_encoder.h5",
+            file_hash="4789e63e07c0e54d6a34a29b45ce81ece27060c499a709d556c7755b42bb0dc4",
+        )
+        diffusion_model_weights_fpath = keras.utils.get_file(
+            origin="https://huggingface.co/fchollet/stable-diffusion/resolve/main/kcv_diffusion_model.h5",
+            file_hash="8799ff9763de13d7f30a683d653018e114ed24a6a819667da4f5ee10f9e805fe",
+        )
+        decoder_weights_fpath = keras.utils.get_file(
+            origin="https://huggingface.co/fchollet/stable-diffusion/resolve/main/kcv_decoder.h5",
+            file_hash="ad350a65cc8bc4a80c8103367e039a3329b4231c2469a1093869a345f55b1962",
+        )
+        # TODO(lukewood): load the VAE Encoder weights
+        self.text_encoder.load_weights(text_encoder_weights_fpath)
+        self.diffusion_model.load_weights(diffusion_model_weights_fpath)
+        self.decoder.load_weights(decoder_weights_fpath)
 
     def add_tokens(self, tokens):
         added_tokens = self.tokenizer.add_tokens(tokens)
