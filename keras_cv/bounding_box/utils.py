@@ -16,10 +16,42 @@
 import tensorflow as tf
 
 from keras_cv import bounding_box
+from keras_cv.bounding_box.formats import XYWH
+
+
+def _relative_area(bounding_boxes, bounding_box_format, images):
+    bounding_boxes = bounding_box.convert_format(
+        bounding_boxes,
+        source=bounding_box_format,
+        target="rel_xywh",
+        images=images,
+    )
+    widths = bounding_boxes[..., XYWH.WIDTH]
+    heights = bounding_boxes[..., XYWH.HEIGHT]
+    # handle corner case where shear performs a full inversion.
+    return tf.where(tf.math.logical_and(widths > 0, heights > 0), widths * heights, 0.0)
 
 
 def clip_to_image(bounding_boxes, images, bounding_box_format):
-    """clips bounding boxes to image boundaries"""
+    """clips bounding boxes to image boundaries.
+
+    `clip_to_image()` clips bounding boxes that have coordinates out of bounds of an
+    image down to the boundaries of the image.  This is done by converting the bounding
+    box to relative formats, then clipping them to the `[0, 1]` range.  Additionally,
+    bounding boxes that end up with a zero area have their class ID set to -1,
+    indicating that there is no object present in them.
+
+    Args:
+        bounding_boxes: bounding box tensor to clip.
+        images: list of images to clip the bounding boxes to.
+        bounding_box_format: the KerasCV bounding box format the bounding boxes are in.
+    """
+    if bounding_boxes.shape[-1] < 5:
+        raise ValueError(
+            "`bounding_boxes` must include a class_id index on the final "
+            "axis.  This is used to set `bounding_boxes` that are fully outside of the "
+            "provided image to the background class, -1."
+        )
     bounding_boxes = bounding_box.convert_format(
         bounding_boxes,
         source=bounding_box_format,
@@ -40,12 +72,18 @@ def clip_to_image(bounding_boxes, images, bounding_box_format):
         ],
         axis=-1,
     )
-
+    areas = _relative_area(
+        clipped_bounding_boxes, bounding_box_format="rel_xyxy", images=images
+    )
     clipped_bounding_boxes = bounding_box.convert_format(
         clipped_bounding_boxes,
         source="rel_xyxy",
         target=bounding_box_format,
         images=images,
+    )
+
+    clipped_bounding_boxes = tf.where(
+        tf.expand_dims(areas > 0.0, axis=-1), clipped_bounding_boxes, -1.0
     )
     clipped_bounding_boxes = _format_outputs(clipped_bounding_boxes, squeeze)
     return clipped_bounding_boxes
