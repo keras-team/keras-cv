@@ -33,6 +33,7 @@ from keras_cv.models.generative.stable_diffusion.constants import _UNCONDITIONAL
 from keras_cv.models.generative.stable_diffusion.decoder import Decoder
 from keras_cv.models.generative.stable_diffusion.diffusion_model import DiffusionModel
 from keras_cv.models.generative.stable_diffusion.text_encoder import TextEncoder
+from keras_cv.models.generative.stable_diffusion.vae_encoder import VAEEncoder
 
 MAX_PROMPT_LENGTH = 77
 
@@ -89,10 +90,15 @@ class StableDiffusion:
         self.text_encoder = TextEncoder(MAX_PROMPT_LENGTH)
         self.diffusion_model = DiffusionModel(img_height, img_width, MAX_PROMPT_LENGTH)
         self.decoder = Decoder(img_height, img_width)
+
+        # TODO(lukewood): should we support variable size image inputs here?
+        self.image_encoder = VAEEncoder()
+
         if jit_compile:
             self.text_encoder.compile(jit_compile=True)
             self.diffusion_model.compile(jit_compile=True)
             self.decoder.compile(jit_compile=True)
+            self.image_encoder.compile(jit_compile=True)
 
         print(
             "By using this model checkpoint, you acknowledge that its usage is "
@@ -112,6 +118,7 @@ class StableDiffusion:
             origin="https://huggingface.co/fchollet/stable-diffusion/resolve/main/kcv_decoder.h5",
             file_hash="ad350a65cc8bc4a80c8103367e039a3329b4231c2469a1093869a345f55b1962",
         )
+        # TODO(lukewood): load the VAE Encoder weights
         self.text_encoder.load_weights(text_encoder_weights_fpath)
         self.diffusion_model.load_weights(diffusion_model_weights_fpath)
         self.decoder.load_weights(decoder_weights_fpath)
