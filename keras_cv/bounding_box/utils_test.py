@@ -159,3 +159,73 @@ class BoundingBoxUtilTestCase(tf.test.TestCase):
             f"add_class_id received `bounding_boxes` of rank={4}",
         ):
             bounding_box.add_class_id(bounding_boxes)
+
+    def test_reject_empty(self):
+        image = tf.zeros(shape=(2, 4, 4, 3))
+        bboxes = tf.cast(
+            tf.constant(
+                [
+                    [
+                        [0.0, 0.0, 0.0, 1.0, 0.0],
+                        [0.0, 0.0, 1.0, 1.0, 0.0],
+                    ],
+                    [
+                        [0.0, 0.0, 0.0, 1.0, 0.0],
+                        [0.0, 0.0, 1.0, 1.0, 0.0],
+                    ],
+                ]
+            ),
+            tf.float32,
+        )
+        filtered_boxes = bounding_box.reject_empty(
+            bboxes, image, bounding_box_format="rel_xyxy"
+        )
+        expected_bboxes = tf.cast(
+            tf.ragged.constant(
+                [
+                    [
+                        [0.0, 0.0, 1.0, 1.0, 0.0],
+                    ],
+                    [
+                        [0.0, 0.0, 1.0, 1.0, 0.0],
+                    ],
+                ],
+                ragged_rank=1,
+            ),
+            tf.float32,
+        )
+        self.assertAllEqual(expected_bboxes, filtered_boxes)
+
+    def test_reject_empty_ragged_inputs(self):
+        image = tf.zeros(shape=(2, 4, 4, 3))
+        bboxes = tf.cast(
+            tf.constant(
+                [
+                    [
+                        [0.0, 0.0, 0.0, 1.0, 0.0],
+                        [0.0, 0.0, 1.0, 1.0, 0.0],
+                    ],
+                    [
+                        [0.0, 0.0, 0.0, 1.0, 0.0],
+                        [0.0, 0.0, 0.0, 1.0, 0.0],
+                    ],
+                ]
+            ),
+            tf.float32,
+        )
+        filtered_boxes = bounding_box.reject_empty(
+            bboxes, image, bounding_box_format="rel_xyxy"
+        )
+        expected_bboxes = tf.cast(
+            tf.ragged.constant(
+                [
+                    [
+                        [0.0, 0.0, 1.0, 1.0, 0.0],
+                    ],
+                    [],
+                ],
+                ragged_rank=1,
+            ),
+            tf.float32,
+        )
+        self.assertAllEqual(expected_bboxes, filtered_boxes)
