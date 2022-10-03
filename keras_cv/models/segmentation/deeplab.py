@@ -109,9 +109,16 @@ class DeepLabV3(tf.keras.models.Model):
 
         self._segmentation_head_passed = segmentation_head
         if segmentation_head is None:
+            # Scale up the output when using FPN, to keep the output shape same as the
+            # input shape.
+            if isinstance(self.decoder, keras_cv.layers.FeaturePyramid):
+                output_scale_factor = pow(2, self.decoder.min_level)
+            else:
+                output_scale_factor = None
+
             segmentation_head = (
                 keras_cv.models.segmentation.__internal__.SegmentationHead(
-                    classes=classes
+                    classes=classes, output_scale_factor=output_scale_factor
                 )
             )
         self.segmentation_head = segmentation_head

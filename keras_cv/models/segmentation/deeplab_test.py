@@ -29,9 +29,7 @@ class DeeplabTest(tf.test.TestCase):
         input_image = tf.random.uniform(shape=[2, 256, 256, 3])
         output = model(input_image, training=True)
 
-        # Note that there are 2^2 down scale for the output, so the output mask size is
-        # [64, 64]
-        self.assertEquals(output.shape, [2, 64, 64, 11])
+        self.assertEquals(output.shape, [2, 256, 256, 11])
 
     def test_deeplab_model_with_components(self):
         backbone = models.ResNet50V2(
@@ -48,6 +46,15 @@ class DeeplabTest(tf.test.TestCase):
         # Note that we pick the min_level to be 3, which means there is a 2^3 scale for
         # the output.
         self.assertEquals(output.shape, [2, 32, 32, 11])
+
+    def test_mixed_precision(self):
+        tf.keras.mixed_precision.set_global_policy('mixed_float16')
+        model = segmentation.DeepLabV3(classes=11, include_rescaling=True)
+        input_image = tf.random.uniform(shape=[2, 256, 256, 3], dtype=)
+        output = model(input_image, training=True)
+
+        self.assertEquals(output.dtype, tf.float32)
+
 
     def test_invalid_backbone_model(self):
         with self.assertRaisesRegex(
