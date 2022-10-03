@@ -18,7 +18,7 @@ from absl.testing import parameterized
 from keras_cv.layers import preprocessing
 
 
-class RandomResizedCropTest(tf.test.TestCase, parameterized.TestCase):
+class RandomCropAndResizeTest(tf.test.TestCase, parameterized.TestCase):
     height, width = 300, 300
     batch_size = 4
     target_size = (224, 224)
@@ -30,7 +30,7 @@ class RandomResizedCropTest(tf.test.TestCase, parameterized.TestCase):
         input_image_shape = (self.batch_size, self.height, self.width, 3)
         image = tf.random.uniform(shape=input_image_shape, seed=self.seed)
 
-        layer = preprocessing.RandomResizedCrop(
+        layer = preprocessing.RandomCropAndResize(
             target_size=self.target_size,
             aspect_ratio_factor=(3 / 4, 4 / 3),
             crop_area_factor=(0.8, 1.0),
@@ -46,7 +46,7 @@ class RandomResizedCropTest(tf.test.TestCase, parameterized.TestCase):
         input_image_shape = (self.batch_size, self.height, self.width, 1)
         image = tf.random.uniform(shape=input_image_shape)
 
-        layer = preprocessing.RandomResizedCrop(
+        layer = preprocessing.RandomCropAndResize(
             target_size=self.target_size,
             aspect_ratio_factor=(3 / 4, 4 / 3),
             crop_area_factor=(0.8, 1.0),
@@ -62,7 +62,7 @@ class RandomResizedCropTest(tf.test.TestCase, parameterized.TestCase):
         image_shape = (self.batch_size, self.height, self.width, 3)
         image = tf.random.uniform(shape=image_shape)
 
-        layer = preprocessing.RandomResizedCrop(
+        layer = preprocessing.RandomCropAndResize(
             target_size=self.target_size,
             aspect_ratio_factor=(3 / 4, 4 / 3),
             crop_area_factor=(0.8, 1.0),
@@ -84,7 +84,7 @@ class RandomResizedCropTest(tf.test.TestCase, parameterized.TestCase):
             ValueError,
             "`target_size` must be tuple of two integers. Received target_size=(.*)",
         ):
-            _ = preprocessing.RandomResizedCrop(
+            _ = preprocessing.RandomCropAndResize(
                 target_size=target_size,
                 aspect_ratio_factor=(3 / 4, 4 / 3),
                 crop_area_factor=(0.8, 1.0),
@@ -101,7 +101,7 @@ class RandomResizedCropTest(tf.test.TestCase, parameterized.TestCase):
             "`aspect_ratio_factor` must be tuple of two positive floats or "
             "keras_cv.core.FactorSampler instance. Received aspect_ratio_factor=(.*)",
         ):
-            _ = preprocessing.RandomResizedCrop(
+            _ = preprocessing.RandomCropAndResize(
                 target_size=(224, 224),
                 aspect_ratio_factor=aspect_ratio_factor,
                 crop_area_factor=(0.8, 1.0),
@@ -119,7 +119,7 @@ class RandomResizedCropTest(tf.test.TestCase, parameterized.TestCase):
             "equal to 1 or keras_cv.core.FactorSampler instance. Received "
             "crop_area_factor=(.*)",
         ):
-            _ = preprocessing.RandomResizedCrop(
+            _ = preprocessing.RandomCropAndResize(
                 target_size=(224, 224),
                 aspect_ratio_factor=(3 / 4, 4 / 3),
                 crop_area_factor=crop_area_factor,
@@ -136,7 +136,7 @@ class RandomResizedCropTest(tf.test.TestCase, parameterized.TestCase):
         inputs = {"images": image, "segmentation_masks": mask}
 
         # Crop-only to exactly 1/2 of the size
-        layer = preprocessing.RandomResizedCrop(
+        layer = preprocessing.RandomCropAndResize(
             target_size=(150, 150),
             aspect_ratio_factor=(1, 1),
             crop_area_factor=(1, 1),
@@ -149,7 +149,7 @@ class RandomResizedCropTest(tf.test.TestCase, parameterized.TestCase):
         self.assertAllClose(output["segmentation_masks"], input_mask_resized)
 
         # Crop to an arbitrary size and make sure we don't do bad interpolation
-        layer = preprocessing.RandomResizedCrop(
+        layer = preprocessing.RandomCropAndResize(
             target_size=(233, 233),
             aspect_ratio_factor=(3 / 4, 4 / 3),
             crop_area_factor=(0.8, 1.0),
@@ -172,7 +172,7 @@ class RandomResizedCropTest(tf.test.TestCase, parameterized.TestCase):
         inputs = {"images": image, "segmentation_masks": mask}
 
         # Crop-only to exactly 1/2 of the size
-        layer = preprocessing.RandomResizedCrop(
+        layer = preprocessing.RandomCropAndResize(
             target_size=(150, 150),
             aspect_ratio_factor=(1, 1),
             crop_area_factor=(1, 1),

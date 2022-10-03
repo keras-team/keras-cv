@@ -20,14 +20,22 @@ Finally, they are shown using matplotlib.
 
 import demo_utils
 
-from keras_cv.layers.preprocessing import RandomResizedCrop
+from keras_cv.layers import RandomCropAndResize
 
 
 def main():
     many_elephants = demo_utils.load_elephant_tensor(output_size=(300, 300))
-    layer = RandomResizedCrop(
+    layer = RandomCropAndResize(
         target_size=(224, 224),
-        crop_area_factor=(0.08, 1.0),
+        crop_area_factor=(0.8, 1.0),
+        aspect_ratio_factor=(3.0 / 4.0, 4.0 / 3.0),
+    )
+    augmented = layer(many_elephants)
+    demo_utils.gallery_show(augmented.numpy())
+
+    layer = RandomCropAndResize(
+        target_size=(224, 224),
+        crop_area_factor=(0.01, 1.0),
         aspect_ratio_factor=(3.0 / 4.0, 4.0 / 3.0),
     )
     augmented = layer(many_elephants)

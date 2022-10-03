@@ -206,3 +206,56 @@ class Boxes3DTestCase(tf.test.TestCase, parameterized.TestCase):
         self.assertAllEqual([batch_size, num_points, num_boxes], is_inside.shape)
         for batch_idx in range(batch_size):
             self.assertAllEqual(expected_is_inside, is_inside[batch_idx])
+
+    def testCoordinateTransform(self):
+        # This is a validated test case from a real scene.
+        #
+        # A single point [1, 1, 3].
+        point = tf.constant(
+            [[[5736.94580078, 1264.85168457, 45.0271225]]], dtype=tf.float32
+        )
+        # Replicate the point to test broadcasting behavior.
+        replicated_points = tf.tile(point, [2, 4, 1])
+
+        # Pose of the car (x, y, z, yaw, roll, pitch).
+        #
+        # We negate the translations so that the coordinates are translated
+        # such that the car is at the origin.
+        pose = tf.constant(
+            [
+                -5728.77148438,
+                -1264.42236328,
+                -45.06399918,
+                -3.10496902,
+                0.03288471,
+                0.00115049,
+            ],
+            dtype=tf.float32,
+        )
+
+        result = ops.coordinate_transform(replicated_points, pose)
+
+        # We expect the point to be translated close to the car, and then rotated
+        # mostly around the x-axis.
+        # the result is device dependent, skip or ignore this test locally if it fails.
+        expected = np.tile([[[-8.184512, -0.13086952, -0.04200769]]], [2, 4, 1])
+
+        self.assertAllClose(expected, result)
+
+    def testSphericalCoordinatesTransform(self):
+        np_xyz = np.random.randn(5, 6, 3)
+        points = tf.constant(np_xyz, dtype=tf.float32)
+        spherical_coordinates = ops.spherical_coordinate_transform(points)
+
+        # Convert coordinates back to xyz to verify.
+        dist = spherical_coordinates[..., 0]
+        theta = spherical_coordinates[..., 1]
+        phi = spherical_coordinates[..., 2]
+
+        x = dist * np.sin(theta) * np.cos(phi)
+        y = dist * np.sin(theta) * np.sin(phi)
+        z = dist * np.cos(theta)
+
+        self.assertAllClose(x, np_xyz[..., 0])
+        self.assertAllClose(y, np_xyz[..., 1])
+        self.assertAllClose(z, np_xyz[..., 2])

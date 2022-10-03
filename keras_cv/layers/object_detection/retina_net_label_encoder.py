@@ -128,6 +128,17 @@ class RetinaNetLabelEncoder(layers.Layer):
         cls_target = tf.where(tf.equal(ignore_mask, 1.0), self.ignore_class, cls_target)
         cls_target = tf.expand_dims(cls_target, axis=-1)
         label = tf.concat([box_target, cls_target], axis=-1)
+
+        # In the case that a box in the corner of an image matches with an all -1 box
+        # that is outside of the image, we should assign the box to the ignore class
+        # There are rare cases where a -1 box can be matched, resulting in a NaN during
+        # training.  The unit test passing all -1s to the label encoder ensures that we
+        # properly handle this edge-case.
+        label = tf.where(
+            tf.expand_dims(tf.math.reduce_any(tf.math.is_nan(label), axis=-1), axis=-1),
+            self.ignore_class,
+            label,
+        )
         return label
 
     def call(self, images, target_boxes):
