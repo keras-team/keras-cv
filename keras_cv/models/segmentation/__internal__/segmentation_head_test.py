@@ -58,7 +58,7 @@ class SegmentationHeadTest(tf.test.TestCase):
         p5 = tf.ones([2, 8, 8, 3])
         inputs = {3: p3, 4: p4, 5: p5}
 
-        tf.keras.mixed_precision.set_global_policy('mixed_float16')
+        tf.keras.mixed_precision.set_global_policy("mixed_float16")
         head = SegmentationHead(classes=11, output_scale_factor=4)
 
         _ = head(inputs)

@@ -54,8 +54,15 @@ class SegmentationHead(layers.Layer):
     ```
     """
 
-    def __init__(self, classes, convs=2, filters=256, activations="relu",
-                 output_scale_factor=None, **kwargs):
+    def __init__(
+        self,
+        classes,
+        convs=2,
+        filters=256,
+        activations="relu",
+        output_scale_factor=None,
+        **kwargs,
+    ):
         """"""
         super().__init__(**kwargs)
         self.classes = classes
