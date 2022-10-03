@@ -315,6 +315,7 @@ class RandomTranslation(BaseImageAugmentationLayer):
             bounding_boxes,
             bounding_box_format="rel_xyxy",
             images=image,
+            ragged_output=False,
         )
 
         bounding_boxes = bounding_box.convert_format(

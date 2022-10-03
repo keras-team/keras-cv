@@ -65,12 +65,10 @@ class RandomTranslationTest(tf.test.TestCase, parameterized.TestCase):
         inp = {"images": images, "bounding_boxes": bboxes}
         outputs = layer(inp, training=True)
         output_images, output_bboxes = outputs["images"], outputs["bounding_boxes"]
-        expected_bboxes = np.zeros((1, 0, 5))
-        # expected_bboxes[:, :, -1] = -1
         expected_images = np.zeros((1, 4, 4, 3)).astype(np.float32)
         self.assertAllClose(expected_images, output_images)
         # actual coordinates don't matter as the class id is set to -1
-        self.assertAllClose(expected_bboxes[:, :, -1], output_bboxes[:, :, -1])
+        self.assertTrue(np.all(output_bboxes[:, :, -1] == -1))
 
     def test_full_horizontal_translation_multiple_images(self):
         images = np.ones((1, 4, 4, 3), dtype=np.float32)
@@ -97,12 +95,10 @@ class RandomTranslationTest(tf.test.TestCase, parameterized.TestCase):
         inp = {"images": images, "bounding_boxes": bboxes}
         outputs = layer(inp, training=True)
         output_images, output_bboxes = outputs["images"], outputs["bounding_boxes"]
-        expected_bboxes = np.zeros((2, 0, 5))
-        # expected_bboxes[:, :, -1] = -1
         expected_images = np.zeros((2, 4, 4, 3)).astype(np.float32)
         self.assertAllClose(expected_images, output_images)
         # actual coordinates don't matter as the class id is set to -1
-        self.assertAllClose(expected_bboxes[:, :, -1], output_bboxes[:, :, -1])
+        self.assertTrue(np.all(output_bboxes[:, :, -1] == -1))
 
     def test_full_horizontal_translation_on_some_bboxes(self):
         images = np.ones((2, 4, 4, 3), dtype=np.float32)
@@ -132,10 +128,12 @@ class RandomTranslationTest(tf.test.TestCase, parameterized.TestCase):
         expected_bboxes = np.array(
             [
                 [
+                    [-0.25, -0.25, -0.5, -0.5, -1.0],
                     [0.5, 0.0, 1.0, 1.0, 0.0],
                 ],
                 [
                     [0.5, 0.0, 1.0, 1.0, 0.0],
+                    [-0.25, -0.25, -0.5, -0.5, -1.0],
                 ],
             ],
         )

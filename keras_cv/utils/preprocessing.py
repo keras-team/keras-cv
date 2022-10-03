@@ -127,7 +127,7 @@ def parse_factor(
     if isinstance(param, core.FactorSampler):
         return param
 
-    if isinstance(param, (float, int)) and range_mode == "non-negative":
+    if isinstance(param, (float, int)) and range_mode == "asymmetric":
         param = (min_value, param)
 
     if isinstance(param, (float, int)) and range_mode == "symmetric":

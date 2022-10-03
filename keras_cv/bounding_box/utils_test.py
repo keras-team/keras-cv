@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import numpy as np
 import tensorflow as tf
 
 from keras_cv import bounding_box
@@ -160,7 +161,7 @@ class BoundingBoxUtilTestCase(tf.test.TestCase):
         ):
             bounding_box.add_class_id(bounding_boxes)
 
-    def test_reject_empty(self):
+    def test_reject_empty_ragged_output(self):
         image = tf.zeros(shape=(2, 4, 4, 3))
         bboxes = tf.cast(
             tf.constant(
@@ -178,7 +179,7 @@ class BoundingBoxUtilTestCase(tf.test.TestCase):
             tf.float32,
         )
         filtered_boxes = bounding_box.reject_empty(
-            bboxes, image, bounding_box_format="rel_xyxy"
+            bboxes, image, bounding_box_format="rel_xyxy", ragged_output=True
         )
         expected_bboxes = tf.cast(
             tf.ragged.constant(
@@ -196,25 +197,59 @@ class BoundingBoxUtilTestCase(tf.test.TestCase):
         )
         self.assertAllEqual(expected_bboxes, filtered_boxes)
 
-    def test_reject_empty_ragged_inputs(self):
-        image = tf.zeros(shape=(2, 4, 4, 3))
-        bboxes = tf.cast(
-            tf.constant(
+    def test_reject_empty(self):
+        image = np.zeros(shape=(2, 4, 4, 3), dtype=np.float32)
+        bboxes = np.array(
+            [
                 [
-                    [
-                        [0.0, 0.0, 0.0, 1.0, 0.0],
-                        [0.0, 0.0, 1.0, 1.0, 0.0],
-                    ],
-                    [
-                        [0.0, 0.0, 0.0, 1.0, 0.0],
-                        [0.0, 0.0, 0.0, 1.0, 0.0],
-                    ],
-                ]
-            ),
-            tf.float32,
+                    [0.0, 0.0, 0.0, 1.0, 0.0],
+                    [0.0, 0.0, 1.0, 1.0, 0.0],
+                ],
+                [
+                    [0.0, 0.0, 0.0, 1.0, 0.0],
+                    [0.0, 0.0, 1.0, 1.0, 0.0],
+                ],
+            ],
+            dtype=np.float32,
         )
         filtered_boxes = bounding_box.reject_empty(
-            bboxes, image, bounding_box_format="rel_xyxy"
+            bboxes, image, bounding_box_format="rel_xyxy", ragged_output=False
+        )
+        expected_bboxes = np.array(
+            [
+                [
+                    [-0.25, -0.25, -0.5, -0.5, -1.0],
+                    [0.0, 0.0, 1.0, 1.0, 0.0],
+                ],
+                [
+                    [-0.25, -0.25, -0.5, -0.5, -1.0],
+                    [0.0, 0.0, 1.0, 1.0, 0.0],
+                ],
+            ],
+            dtype=np.float32,
+        )
+        self.assertAllEqual(expected_bboxes, filtered_boxes)
+
+    def test_reject_empty_ragged_outputs(self):
+        image = np.zeros(shape=(2, 4, 4, 3))
+        bboxes = np.array(
+            [
+                [
+                    [0.0, 0.0, 0.0, 1.0, 0.0],
+                    [0.0, 0.0, 1.0, 1.0, 0.0],
+                ],
+                [
+                    [0.0, 0.0, 0.0, 1.0, 0.0],
+                    [0.0, 0.0, 0.0, 1.0, 0.0],
+                ],
+            ],
+            dtype=np.float32,
+        )
+        filtered_boxes = bounding_box.reject_empty(
+            bboxes,
+            image,
+            bounding_box_format="rel_xyxy",
+            ragged_output=True,
         )
         expected_bboxes = tf.cast(
             tf.ragged.constant(
@@ -227,5 +262,38 @@ class BoundingBoxUtilTestCase(tf.test.TestCase):
                 ragged_rank=1,
             ),
             tf.float32,
+        )
+        self.assertAllEqual(expected_bboxes, filtered_boxes)
+
+    def test_reject_empty_padded_outputs(self):
+        image = np.zeros(shape=(2, 4, 4, 3), dtype=np.float32)
+        bboxes = np.array(
+            [
+                [
+                    [0.0, 0.0, 0.0, 1.0, 0.0],
+                    [0.0, 0.0, 1.0, 1.0, 0.0],
+                ],
+                [
+                    [0.0, 0.0, 0.0, 1.0, 0.0],
+                    [0.0, 0.0, 0.0, 1.0, 0.0],
+                ],
+            ],
+            dtype=np.float32,
+        )
+        filtered_boxes = bounding_box.reject_empty(
+            bboxes, image, bounding_box_format="rel_xyxy", ragged_output=False
+        )
+        expected_bboxes = np.array(
+            [
+                [
+                    [-0.25, -0.25, -0.5, -0.5, -1.0],
+                    [0.0, 0.0, 1.0, 1.0, 0.0],
+                ],
+                [
+                    [-0.25, -0.25, -0.5, -0.5, -1.0],
+                    [-0.25, -0.25, -0.5, -0.5, -1.0],
+                ],
+            ],
+            dtype=np.float32,
         )
         self.assertAllEqual(expected_bboxes, filtered_boxes)

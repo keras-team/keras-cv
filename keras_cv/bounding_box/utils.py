@@ -236,7 +236,14 @@ def add_class_id(bounding_boxes, class_id=0):
     return bounding_boxes
 
 
-def reject_empty(bounding_boxes, images, bounding_box_format, epsilon=1e-8):
+def reject_empty(
+    bounding_boxes,
+    images,
+    bounding_box_format,
+    epsilon=1e-8,
+    ragged_output=False,
+    sentinel_value=-1,
+):
     """Rejects bounding boxes with area smaller then epsilon
 
     Args:
@@ -245,6 +252,10 @@ def reject_empty(bounding_boxes, images, bounding_box_format, epsilon=1e-8):
         bounding_box_format: the KerasCV bounding box format the bounding boxes are in.
         epsilon: bbox area threshold to reject bounding boxes - the ones smaller than
             epsilon will be removed.
+        ragged_output: if True function may return RaggedTensor with bboxes removed,
+            if set to False the bboxes values are replaced with `sentinel_value`
+        sentinel_value: Value to set for coordinates and class ids in bounding_boxes
+            which should be remove if `ragged_output` is disabled.
 
     Returns:
         `tf.RaggedTensor`or 'tf.Tensor' containing the filtered bounding boxes.
@@ -259,7 +270,15 @@ def reject_empty(bounding_boxes, images, bounding_box_format, epsilon=1e-8):
     )
     area = bounding_boxes[:, :, 2] * bounding_boxes[:, :, 3]
     mask = area > epsilon
-    filtered_boxes = tf.ragged.boolean_mask(bounding_boxes, mask)
+
+    if ragged_output:
+        filtered_boxes = tf.ragged.boolean_mask(bounding_boxes, mask)
+    else:
+        filtered_boxes = tf.where(
+            tf.expand_dims(mask, axis=-1),
+            bounding_boxes,
+            sentinel_value,
+        )
 
     filtered_boxes = bounding_box.convert_format(
         filtered_boxes,
