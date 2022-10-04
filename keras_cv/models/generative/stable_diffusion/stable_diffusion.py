@@ -120,13 +120,13 @@ class StableDiffusion:
         )
         image_encoder_weights_fpath = keras.utils.get_file(
             origin="https://huggingface.co/fchollet/stable-diffusion/blob/main/vae_encoder.h5",
-            file_hash="7ae08f918d4e3a686807474706a6821ca1ff3c71b84d98ba33081e6cb7aab9e3",
+            file_hash="f142c8c94c6853cd19d8bfb9c10aa762c057566f54456398beea6a70a639bf48",
         )
 
         self.text_encoder.load_weights(text_encoder_weights_fpath)
         self.diffusion_model.load_weights(diffusion_model_weights_fpath)
         self.decoder.load_weights(decoder_weights_fpath)
-        self.image_encoder.load_weights(image_encoder_weights_fpath)
+        self.image_encoder.load_weights("/Users/lukewood/Desktop/vae_encoder.h5")
 
     def text_to_image(
         self,
