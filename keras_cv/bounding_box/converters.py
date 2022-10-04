@@ -32,6 +32,7 @@ def _encode_box_to_deltas(
     box_format: str,
     variance: Optional[List[float]] = None,
 ):
+    """Converts bounding_boxes from `center_yxhw` to delta format."""
     if variance and len(variance) != 4:
         raise ValueError(f"`variance` must be length 4, got {variance}")
     anchors = convert_format(
@@ -65,6 +66,7 @@ def _decode_deltas_to_boxes(
     anchor_format: str,
     variance: Optional[List[float]] = None,
 ):
+    """Converts bounding_boxes from delta format to `center_yxhw`."""
     if variance and len(variance) != 4:
         raise ValueError(f"`variance` must be length 4, got {variance}")
     anchors = convert_format(
