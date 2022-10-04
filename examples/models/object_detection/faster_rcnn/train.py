@@ -17,7 +17,7 @@ train_ds = tfds.load(
     "voc/2007", split="train+test", with_info=False, shuffle_files=True
 )
 
-model = keras_cv.models.FasterRCNN(classes=20, bounding_box_format="xyxy")
+model = keras_cv.models.FasterRCNN(classes=20, bounding_box_format="yxyx")
 
 
 def proc_train_fn(bounding_box_format, img_size):
@@ -74,7 +74,7 @@ def filter_fn(examples):
 
 train_ds = train_ds.filter(filter_fn)
 train_ds = train_ds.map(
-    proc_train_fn("xyxy", [256, 256, 3]), num_parallel_calls=tf.data.AUTOTUNE
+    proc_train_fn("yxyx", [256, 256, 3]), num_parallel_calls=tf.data.AUTOTUNE
 )
 train_ds = train_ds.apply(
     tf.data.experimental.dense_to_ragged_batch(global_batch, drop_remainder=True)

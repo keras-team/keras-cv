@@ -14,6 +14,7 @@
 
 from typing import Dict
 from typing import Mapping
+from typing import Optional
 from typing import Tuple
 
 import tensorflow as tf
@@ -24,7 +25,9 @@ from keras_cv import bounding_box
 def _feature_bilinear_interpolation(
     features: tf.Tensor, kernel_y: tf.Tensor, kernel_x: tf.Tensor
 ) -> tf.Tensor:
-    """Feature bilinear interpolation.
+    """
+    Feature bilinear interpolation.
+
     The RoIAlign feature f can be computed by bilinear interpolation
     of four neighboring feature points f0, f1, f2, and f3.
     f(y, x) = [hy, ly] * [[f00, f01], * [hx, lx]^T
@@ -33,11 +36,13 @@ def _feature_bilinear_interpolation(
     f(y, x) = w00*f00 + w01*f01 + w10*f10 + w11*f11
     kernel_y = [hy, ly]
     kernel_x = [hx, lx]
+
     Args:
       features: The features are in shape of [batch_size, num_boxes, output_size *
         2, output_size * 2, num_filters].
       kernel_y: Tensor of size [batch_size, boxes, output_size, 2, 1].
       kernel_x: Tensor of size [batch_size, boxes, output_size, 2, 1].
+
     Returns:
       A 5-D tensor representing feature crop of shape
       [batch_size, num_boxes, output_size, output_size, num_filters].
@@ -75,8 +80,9 @@ def _feature_bilinear_interpolation(
 def _compute_grid_positions(
     boxes: tf.Tensor, boundaries: tf.Tensor, output_size: int, sample_offset: float
 ) -> Tuple[tf.Tensor, tf.Tensor, tf.Tensor, tf.Tensor]:
-    """Computes the grid position w.r.t.
-    the corresponding feature map.
+    """
+    Computes the grid position w.r.t. the corresponding feature map.
+
     Args:
       boxes: a 3-D tensor of shape [batch_size, num_boxes, 4] encoding the
         information of each box w.r.t. the corresponding feature map.
@@ -89,6 +95,7 @@ def _compute_grid_positions(
       output_size: a scalar indicating the output crop size.
       sample_offset: a float number in [0, 1] indicates the subpixel sample offset
         from grid point.
+
     Returns:
       kernel_y: Tensor of size [batch_size, boxes, output_size, 2, 1].
       kernel_x: Tensor of size [batch_size, boxes, output_size, 2, 1].
@@ -149,10 +156,13 @@ def multilevel_crop_and_resize(
     output_size: int = 7,
     sample_offset: float = 0.5,
 ) -> tf.Tensor:
-    """Crop and resize on multilevel feature pyramid.
+    """
+    Crop and resize on multilevel feature pyramid.
+
     Generate the (output_size, output_size) set of pixels for each input box
     by first locating the box into the correct feature level, and then cropping
     and resizing it using the correspoding feature map of that level.
+
     Args:
       features: A dictionary with key as pyramid level and value as features. The
         features are in shape of [batch_size, height_l, width_l, num_filters].
@@ -161,6 +171,7 @@ def multilevel_crop_and_resize(
       output_size: A scalar to indicate the output crop size.
       sample_offset: a float number in [0, 1] indicates the subpixel sample offset
         from grid point.
+
     Returns:
       A 5-D tensor representing feature crop of shape
       [batch_size, num_boxes, output_size, output_size, num_filters].
@@ -322,7 +333,9 @@ class _ROIAligner(tf.keras.layers.Layer):
     def __init__(
         self, bounding_box_format, target_size=7, sample_offset: float = 0.5, **kwargs
     ):
-        """Initializes a ROI aligner.
+        """
+        Generates ROI Aligner.
+
         Args:
           bounding_box_format: the input format for boxes.
           crop_size: An `int` of the output size of the cropped features.
@@ -334,12 +347,16 @@ class _ROIAligner(tf.keras.layers.Layer):
             "crop_size": target_size,
             "sample_offset": sample_offset,
         }
-        super(_ROIAligner, self).__init__(**kwargs)
+        super().__init__(**kwargs)
 
     def call(
-        self, features: Mapping[str, tf.Tensor], boxes: tf.Tensor, training: bool = None
+        self,
+        features: Mapping[str, tf.Tensor],
+        boxes: tf.Tensor,
+        training: Optional[bool] = None,
     ):
-        """Generates ROIs.
+        """
+
         Args:
           features: A dictionary with key as pyramid level and value as features.
             The features are in shape of

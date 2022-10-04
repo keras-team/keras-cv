@@ -110,14 +110,14 @@ class _ROISampler(tf.keras.layers.Layer):
                 f"num_rois must be less than `num_sampled_rois` ({self.num_sampled_rois}), got {num_rois}"
             )
         rois = bounding_box.convert_format(
-            rois, source=self.bounding_box_format, target="xyxy"
+            rois, source=self.bounding_box_format, target="yxyx"
         )
         gt_boxes = bounding_box.convert_format(
-            gt_boxes, source=self.bounding_box_format, target="xyxy"
+            gt_boxes, source=self.bounding_box_format, target="yxyx"
         )
         # [batch_size, num_rois, num_gt]
         similarity_mat = iou.compute_iou(
-            rois, gt_boxes, bounding_box_format="xyxy", use_masking=True
+            rois, gt_boxes, bounding_box_format="yxyx", use_masking=True
         )
         # [batch_size, num_rois] | [batch_size, num_rois]
         matched_gt_cols, matched_vals = self.roi_matcher(similarity_mat)
@@ -140,7 +140,7 @@ class _ROISampler(tf.keras.layers.Layer):
         )
         # [batch_size, num_rois, 4]
         matched_gt_boxes = target_gather._target_gather(gt_boxes, matched_gt_cols)
-        encoded_matched_gt_boxes = bounding_box._encode(
+        encoded_matched_gt_boxes = bounding_box._encode_box_to_deltas(
             rois, matched_gt_boxes, "xyxy", "xyxy"
         )
         # also set all background matches to 0 coordinates

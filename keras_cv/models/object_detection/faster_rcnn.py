@@ -15,7 +15,7 @@
 import tensorflow as tf
 
 from keras_cv import bounding_box
-from keras_cv.bounding_box.converters import _decode
+from keras_cv.bounding_box.converters import _decode_deltas_to_boxes
 from keras_cv.layers.object_detection.anchor_generator import AnchorGenerator
 from keras_cv.layers.object_detection.roi_align import _ROIAligner
 from keras_cv.layers.object_detection.roi_generator import ROIGenerator
@@ -24,9 +24,12 @@ from keras_cv.layers.object_detection.rpn_label_encoder import _RpnLabelEncoder
 from keras_cv.ops.box_matcher import ArgmaxBoxMatcher
 
 
-def _resnet50_backbone():
+def _resnet50_backbone(include_rescaling=False):
     inputs = tf.keras.layers.Input(shape=(None, None, 3))
     x = inputs
+
+    if include_rescaling:
+        x = tf.keras.applications.resnet.preprocess_input(x)
 
     backbone = tf.keras.applications.ResNet50(include_top=False, input_tensor=x)
 
@@ -98,7 +101,7 @@ class RPNHead(tf.keras.layers.Layer):
         num_anchors_per_location=3,
         **kwargs,
     ):
-        super(RPNHead, self).__init__(**kwargs)
+        super().__init__(**kwargs)
         self.num_anchors = num_anchors_per_location
 
     def build(self, input_shape):
@@ -186,7 +189,7 @@ class RCNNHead(tf.keras.layers.Layer):
         fc_dims=[1024, 1024],
         **kwargs,
     ):
-        super(RCNNHead, self).__init__(**kwargs)
+        super().__init__(**kwargs)
         self.num_classes = classes
         self.conv_dims = conv_dims
         self.fc_dims = fc_dims
@@ -229,17 +232,46 @@ class RCNNHead(tf.keras.layers.Layer):
 
 # TODO(tanzheny): add more configurations
 class FasterRCNN(tf.keras.Model):
+    """A Keras model implementing the FasterRCNN architecture.
+
+    Implements the FasterRCNN architecture for object detection.  The constructor
+    requires `classes`, `bounding_box_format` and a `backbone`.
+
+    Usage:
+    ```python
+    retina_net = keras_cv.models.FasterRCNN(
+        classes=20,
+        bounding_box_format="xywh",
+        backbone="resnet50",
+        include_rescaling=False,
+    )
+    ```
+
+    Args:
+        classes: the number of classes in your dataset excluding the background
+            class.  Classes should be represented by integers in the range
+            [0, classes).
+        bounding_box_format: The format of bounding boxes of input dataset. Refer
+            [to the keras.io docs](https://keras.io/api/keras_cv/bounding_box/formats/)
+            for more details on supported bounding box formats.
+        backbone: Either `"resnet50"` or a custom backbone model.
+        include_rescaling: Required if provided backbone is a pre-configured model.
+            If set to `True`, inputs will be passed through a `Rescaling(1/255.0)`
+            layer. Default to False.
+    """
+
     def __init__(
         self,
         classes,
         bounding_box_format,
         backbone=None,
+        include_rescaling=False,
         **kwargs,
     ):
         self.bounding_box_format = bounding_box_format
-        super(FasterRCNN, self).__init__(**kwargs)
+        super().__init__(**kwargs)
         self.anchor_generator = AnchorGenerator(
-            bounding_box_format="xyxy",
+            bounding_box_format="yxyx",
             sizes={2: 16.0, 3: 32.0, 4: 64.0, 5: 128.0, 6: 256.0},
             scales=[2**x for x in [0, 1 / 3, 2 / 3]],
             aspect_ratios=[0.5, 1.0, 2.0],
@@ -247,22 +279,22 @@ class FasterRCNN(tf.keras.Model):
             clip_boxes=True,
         )
         self.rpn_head = RPNHead(num_anchors_per_location=9)
-        self.roi_generator = ROIGenerator(bounding_box_format="xyxy")
+        self.roi_generator = ROIGenerator(bounding_box_format="yxyx")
         self.box_matcher = ArgmaxBoxMatcher(
             thresholds=[0.0, 0.5], match_values=[-2, -1, 1]
         )
         self.roi_sampler = _ROISampler(
-            bounding_box_format="xyxy",
+            bounding_box_format="yxyx",
             roi_matcher=self.box_matcher,
             background_class=classes,
             num_sampled_rois=512,
         )
-        self.roi_pooler = _ROIAligner(bounding_box_format="xyxy")
+        self.roi_pooler = _ROIAligner(bounding_box_format="yxyx")
         self.rcnn_head = RCNNHead(classes)
-        self.backbone = backbone or _resnet50_backbone()
+        self.backbone = backbone or _resnet50_backbone(include_rescaling)
         self.feature_pyramid = FeaturePyramid()
         self.rpn_labeler = _RpnLabelEncoder(
-            anchor_format="xyxy",
+            anchor_format="yxyx",
             gt_box_format="yxyx",
             positive_threshold=0.7,
             negative_threshold=0.3,
@@ -280,9 +312,9 @@ class FasterRCNN(tf.keras.Model):
             anchors = tf.concat(tf.nest.flatten(anchors), axis=0)
         anchors = tf.reshape(anchors, [-1, 4])
         # the decoded format is center_xywh
-        decoded_rpn_boxes = _decode(anchors, rpn_boxes, "xyxy")
+        decoded_rpn_boxes = _decode_deltas_to_boxes(anchors, rpn_boxes, "yxyx")
         decoded_rpn_boxes = bounding_box.convert_format(
-            decoded_rpn_boxes, source="center_xywh", target="xyxy"
+            decoded_rpn_boxes, source="center_yxhw", target="yxyx"
         )
         rois, _ = self.roi_generator(
             decoded_rpn_boxes, tf.squeeze(rpn_scores, axis=-1), training=training
@@ -314,11 +346,12 @@ class FasterRCNN(tf.keras.Model):
             res["rcnn_cls_targets"] = rcnn_cls_targets
             res["rcnn_cls_weights"] = rcnn_cls_weights
         else:
-            # now it will be on "center_xywh" format
-            rois = bounding_box.convert_format(rois, source="yxyx", target="xyxy")
-            rcnn_box_pred = _decode(rois, rcnn_box_pred, anchor_format="xyxy")
+            # now it will be on "center_yxhw" format
+            rcnn_box_pred = _decode_deltas_to_boxes(
+                rois, rcnn_box_pred, anchor_format="yxyx"
+            )
             rcnn_box_pred = bounding_box.convert_format(
-                rcnn_box_pred, source="center_xywh", target="yxyx"
+                rcnn_box_pred, source="center_yxhw", target="yxyx"
             )
             res["rcnn_box_pred"] = rcnn_box_pred
             res["rcnn_cls_pred"] = rcnn_cls_pred

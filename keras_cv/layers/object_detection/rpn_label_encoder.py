@@ -102,13 +102,13 @@ class _RpnLabelEncoder(tf.keras.layers.Layer):
             pack = True
             anchors = tf.concat(tf.nest.flatten(anchors), axis=0)
         anchors = bounding_box.convert_format(
-            anchors, source=self.anchor_format, target="xyxy"
+            anchors, source=self.anchor_format, target="yxyx"
         )
         gt_boxes = bounding_box.convert_format(
-            gt_boxes, source=self.gt_box_format, target="xyxy"
+            gt_boxes, source=self.gt_box_format, target="yxyx"
         )
         # [num_anchors, num_gt]
-        similarity_mat = iou.compute_iou(anchors, gt_boxes, bounding_box_format="xyxy")
+        similarity_mat = iou.compute_iou(anchors, gt_boxes, bounding_box_format="yxyx")
         # [num_anchors]
         matched_gt_indices, matched_vals = self.box_matcher(similarity_mat)
         # [num_anchors]
@@ -117,8 +117,8 @@ class _RpnLabelEncoder(tf.keras.layers.Layer):
         # [num_anchors, 4]
         matched_gt_boxes = target_gather._target_gather(gt_boxes, matched_gt_indices)
         # [num_anchors, 4], used as `y_true` for regression loss
-        encoded_box_targets = bounding_box._encode(
-            anchors, matched_gt_boxes, anchor_format="xyxy", box_format="xyxy"
+        encoded_box_targets = bounding_box._encode_box_to_deltas(
+            anchors, matched_gt_boxes, anchor_format="yxyx", box_format="yxyx"
         )
         # [num_anchors, 1]
         box_sample_weights = tf.cast(positive_matches[..., tf.newaxis], gt_boxes.dtype)
