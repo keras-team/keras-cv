@@ -21,7 +21,7 @@ class RpnLabelEncoderTest(tf.test.TestCase):
     def test_rpn_label_encoder(self):
         rpn_encoder = _RpnLabelEncoder(
             anchor_format="xyxy",
-            gt_box_format="xyxy",
+            ground_truth_box_format="xyxy",
             positive_threshold=0.7,
             negative_threshold=0.3,
             positive_fraction=0.5,
@@ -59,7 +59,7 @@ class RpnLabelEncoderTest(tf.test.TestCase):
     def test_rpn_label_encoder_multi_level(self):
         rpn_encoder = _RpnLabelEncoder(
             anchor_format="xyxy",
-            gt_box_format="xyxy",
+            ground_truth_box_format="xyxy",
             positive_threshold=0.7,
             negative_threshold=0.3,
             positive_fraction=0.5,
