@@ -32,7 +32,7 @@ class SegmentationHead(layers.Layer):
             to 256.
         activations: str or 'tf.keras.activations', activation functions between the
             conv2D layers and the final classification layer. Default to 'relu'
-        output_scale_factor: int, or a pair of ints, for scale up the output mask.
+        output_scale_factor: int, or a pair of ints, for upsample the output mask.
             This is useful to scale the output mask back to same size as the input
             image. When single int is provided, the mask will be scaled with same
             ratio on both width and height. When a pair of ints are provided, they will
