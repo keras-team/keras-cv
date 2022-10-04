@@ -43,7 +43,7 @@ class DeeplabTest(tf.test.TestCase):
         input_image = tf.random.uniform(shape=[2, 256, 256, 3])
         output = model(input_image, training=True)
 
-        self.assertEquals(output.shape, [2, 256, 256 11])
+        self.assertEquals(output.shape, [2, 256, 256, 11])
 
     def test_mixed_precision(self):
         tf.keras.mixed_precision.set_global_policy("mixed_float16")
