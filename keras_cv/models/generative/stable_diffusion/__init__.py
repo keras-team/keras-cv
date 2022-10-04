@@ -17,4 +17,4 @@ from keras_cv.models.generative.stable_diffusion.stable_diffusion import Diffusi
 from keras_cv.models.generative.stable_diffusion.stable_diffusion import ImageEncoder
 from keras_cv.models.generative.stable_diffusion.stable_diffusion import SimpleTokenizer
 from keras_cv.models.generative.stable_diffusion.stable_diffusion import StableDiffusion
-from keras_cv.models.generative.stable_diffusion.stable_diffusion import TextEncoder
+from keras_cv.models.generative.stable_diffusion.vae_encoder import VAEEncoder

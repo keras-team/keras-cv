@@ -123,10 +123,15 @@ class StableDiffusion:
             origin="https://huggingface.co/fchollet/stable-diffusion/resolve/main/kcv_decoder.h5",
             file_hash="ad350a65cc8bc4a80c8103367e039a3329b4231c2469a1093869a345f55b1962",
         )
-        # TODO(lukewood): load the VAE Encoder weights
+        image_encoder_weights_fpath = keras.utils.get_file(
+            origin="https://huggingface.co/fchollet/stable-diffusion/blob/main/vae_encoder.h5",
+            file_hash="005390320d6095734833d0b442d11f413aae42c4d42872f3b352f7f53b5da122",
+        )
+
         self.text_encoder.load_weights(text_encoder_weights_fpath)
         self.diffusion_model.load_weights(diffusion_model_weights_fpath)
         self.decoder.load_weights(decoder_weights_fpath)
+        self.image_encoder.load_weights(image_encoder_weights_fpath)
 
     def add_tokens(self, tokens):
         added_tokens = self.tokenizer.add_tokens(tokens)
