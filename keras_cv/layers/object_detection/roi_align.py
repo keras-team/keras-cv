@@ -327,6 +327,7 @@ def multilevel_crop_and_resize(
         return features_per_box
 
 
+# TODO(tanzheny): Remove this implementation once roi_pool has better performance.
 class _ROIAligner(tf.keras.layers.Layer):
     """Performs ROIAlign for the second stage processing."""
 

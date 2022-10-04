@@ -29,8 +29,8 @@ class _RpnLabelEncoder(tf.keras.layers.Layer):
     # TODO(tanzhenyu): consider unifying with _ROISampler.
     This is different from _ROISampler for a couple of reasons:
     1) This deals with unbatched input, dict of anchors and potentially ragged labels
-    2) This deals with gt boxes, while _ROISampler deals with padded gt
-       boxes with value -1 and padded gt classes with value -1
+    2) This deals with ground truth boxes, while _ROISampler deals with padded ground truth
+       boxes with value -1 and padded ground truth classes with value -1
     3) this returns positive class target as 1, while _ROISampler returns
        positive class target as-is. (All negative class target are 0)
        The final classification loss will use one hot and #num_fg_classes + 1
@@ -44,10 +44,10 @@ class _RpnLabelEncoder(tf.keras.layers.Layer):
       anchor_format: The format of bounding boxes for anchors to generate. Refer
         [to the keras.io docs](https://keras.io/api/keras_cv/bounding_box/formats/)
         for more details on supported bounding box formats.
-      gt_box_format: The format of bounding boxes for ground truth boxes to generate.
-      positive_threshold: the threshold to set an anchor to positive match to gt box.
+      ground_truth_box_format: The format of bounding boxes for ground truth boxes to generate.
+      positive_threshold: the float threshold to set an anchor to positive match to gt box.
         values above it are positive matches.
-      negative_threshold: the threshold to set an anchor to negative match to gt box.
+      negative_threshold: the float threshold to set an anchor to negative match to gt box.
         values below it are negative matches.
       samples_per_image: for each image, the number of positive and negative samples
         to generate.
@@ -58,7 +58,7 @@ class _RpnLabelEncoder(tf.keras.layers.Layer):
     def __init__(
         self,
         anchor_format,
-        gt_box_format,
+        ground_truth_box_format,
         positive_threshold,
         negative_threshold,
         samples_per_image,
@@ -67,7 +67,7 @@ class _RpnLabelEncoder(tf.keras.layers.Layer):
     ):
         super().__init__(**kwargs)
         self.anchor_format = anchor_format
-        self.gt_box_format = gt_box_format
+        self.ground_truth_box_format = ground_truth_box_format
         self.positive_threshold = positive_threshold
         self.negative_threshold = negative_threshold
         self.samples_per_image = samples_per_image
@@ -105,7 +105,7 @@ class _RpnLabelEncoder(tf.keras.layers.Layer):
             anchors, source=self.anchor_format, target="yxyx"
         )
         gt_boxes = bounding_box.convert_format(
-            gt_boxes, source=self.gt_box_format, target="yxyx"
+            gt_boxes, source=self.ground_truth_box_format, target="yxyx"
         )
         # [num_anchors, num_gt]
         similarity_mat = iou.compute_iou(anchors, gt_boxes, bounding_box_format="yxyx")
@@ -167,7 +167,7 @@ class _RpnLabelEncoder(tf.keras.layers.Layer):
     def get_config(self):
         config = {
             "anchor_format": self.anchor_format,
-            "gt_box_format": self.gt_box_format,
+            "ground_truth_box_format": self.ground_truth_box_format,
             "positive_threshold": self.positive_threshold,
             "negative_threshold": self.negative_threshold,
             "samples_per_image": self.samples_per_image,

@@ -273,12 +273,14 @@ class FasterRCNN(tf.keras.Model):
         self.anchor_generator = AnchorGenerator(
             bounding_box_format="yxyx",
             sizes={2: 16.0, 3: 32.0, 4: 64.0, 5: 128.0, 6: 256.0},
-            scales=[2**x for x in [0, 1 / 3, 2 / 3]],
-            aspect_ratios=[0.5, 1.0, 2.0],
+            # scales=[2**x for x in [0, 1 / 3, 2 / 3]],
+            scales=[2**x for x in [0]],
+            # aspect_ratios=[0.5, 1.0, 2.0],
+            aspect_ratios=[1.0],
             strides={i: 2**i for i in range(2, 7)},
             clip_boxes=True,
         )
-        self.rpn_head = RPNHead(num_anchors_per_location=9)
+        self.rpn_head = RPNHead(num_anchors_per_location=1)
         self.roi_generator = ROIGenerator(bounding_box_format="yxyx")
         self.box_matcher = ArgmaxBoxMatcher(
             thresholds=[0.0, 0.5], match_values=[-2, -1, 1]
@@ -295,7 +297,7 @@ class FasterRCNN(tf.keras.Model):
         self.feature_pyramid = FeaturePyramid()
         self.rpn_labeler = _RpnLabelEncoder(
             anchor_format="yxyx",
-            gt_box_format="yxyx",
+            ground_truth_box_format="yxyx",
             positive_threshold=0.7,
             negative_threshold=0.3,
             samples_per_image=256,
