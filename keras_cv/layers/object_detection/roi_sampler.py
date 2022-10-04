@@ -73,7 +73,8 @@ class _ROISampler(tf.keras.layers.Layer):
         self.num_sampled_rois = num_sampled_rois
         self.append_gt_boxes = append_gt_boxes
         self.built = True
-        self.positives = self.add_weight(
+        # for debugging.
+        self._positives = self.add_weight(
             shape=[],
             initializer="zeros",
             dtype=tf.float32,
@@ -123,7 +124,7 @@ class _ROISampler(tf.keras.layers.Layer):
         matched_gt_cols, matched_vals = self.roi_matcher(similarity_mat)
         # [batch_size, num_rois]
         positive_matches = tf.math.equal(matched_vals, 1)
-        self.positives.assign_add(tf.reduce_sum(tf.cast(positive_matches, tf.float32)))
+        self._positives.assign_add(tf.reduce_sum(tf.cast(positive_matches, tf.float32)))
         negative_matches = tf.math.equal(matched_vals, -1)
         # [batch_size, num_rois, 1]
         background_mask = tf.expand_dims(tf.logical_not(positive_matches), axis=-1)
