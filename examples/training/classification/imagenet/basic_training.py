@@ -71,7 +71,7 @@ flags.DEFINE_boolean(
 )
 flags.DEFINE_boolean(
     "use_mixed_precision",
-    True,
+    False,
     "Whether or not to use FP16 mixed precision for training.",
 )
 flags.DEFINE_float(
