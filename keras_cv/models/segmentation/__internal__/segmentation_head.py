@@ -32,6 +32,12 @@ class SegmentationHead(layers.Layer):
             to 256.
         activations: str or 'tf.keras.activations', activation functions between the
             conv2D layers and the final classification layer. Default to 'relu'
+        output_scale_factor: int, or a pair of ints, for upsample the output mask.
+            This is useful to scale the output mask back to same size as the input
+            image. When single int is provided, the mask will be scaled with same
+            ratio on both width and height. When a pair of ints are provided, they will
+            be parsed as (height_factor, width_factor). Default to None, which means
+            no resize will happen to the output mask tensor.
 
     Sample code
     ```python
@@ -48,13 +54,22 @@ class SegmentationHead(layers.Layer):
     ```
     """
 
-    def __init__(self, classes, convs=2, filters=256, activations="relu", **kwargs):
+    def __init__(
+        self,
+        classes,
+        convs=2,
+        filters=256,
+        activations="relu",
+        output_scale_factor=None,
+        **kwargs,
+    ):
         """"""
         super().__init__(**kwargs)
         self.classes = classes
         self.convs = convs
         self.filters = filters
         self.activations = activations
+        self.output_scale_factor = output_scale_factor
 
         self._conv_layers = []
         self._bn_layers = []
@@ -77,6 +92,9 @@ class SegmentationHead(layers.Layer):
             filters=self.classes,
             kernel_size=1,
             padding="same",
+            # Force the dtype of the classification head to float32 to avoid the NAN loss
+            # issue when used with mixed precision API.
+            dtype=tf.float32,
         )
 
     def call(self, inputs):
@@ -96,6 +114,8 @@ class SegmentationHead(layers.Layer):
             x = bn_layer(x)
             x = tf.keras.activations.get(self.activations)(x)
 
+        if self.output_scale_factor is not None:
+            x = tf.keras.layers.UpSampling2D(self.output_scale_factor)(x)
         x = self._classification_layer(x)
         return x
 
