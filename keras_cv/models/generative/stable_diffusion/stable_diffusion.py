@@ -126,7 +126,7 @@ class StableDiffusion:
         self.text_encoder.load_weights(text_encoder_weights_fpath)
         self.diffusion_model.load_weights(diffusion_model_weights_fpath)
         self.decoder.load_weights(decoder_weights_fpath)
-        self.image_encoder.load_weights("/Users/lukewood/Desktop/vae_encoder.h5")
+        self.image_encoder.load_weights(image_encoder_weights_fpath)
 
     def text_to_image(
         self,
