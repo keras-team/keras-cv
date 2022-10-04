@@ -17,6 +17,13 @@ This test is powered by [ml-testing-accelerators](https://github.com/GoogleCloud
 
 
 ### Adding Test Dependencies
+You must be authorized to run builds in the `keras-team-test` GCP project.
+If you are not, please open a GitHub issue and ping a team member.
+To authorize yourself with `keras-team-test`, run:
+
+```bash
+gcloud config set project keras-team-test
+```
 
 To add a dependency for GPU tests:
 - Create a PR adding the dependency to `requirements.txt`
