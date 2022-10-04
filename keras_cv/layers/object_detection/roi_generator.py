@@ -15,6 +15,7 @@
 from typing import Mapping
 from typing import Optional
 from typing import Tuple
+from typing import Union
 
 import tensorflow as tf
 
@@ -98,17 +99,17 @@ class ROIGenerator(tf.keras.layers.Layer):
 
     def call(
         self,
-        multi_level_boxes: Mapping[int, tf.Tensor],
-        multi_level_scores: Mapping[int, tf.Tensor],
+        multi_level_boxes: Union[tf.Tensor, Mapping[int, tf.Tensor]],
+        multi_level_scores: Union[tf.Tensor, Mapping[int, tf.Tensor]],
         training: Optional[bool] = None,
     ) -> Tuple[tf.Tensor, tf.Tensor]:
         """
         Args:
-          multi_level_boxes: float Tensor. A dictionary of boxes, one per level. shape is
+          multi_level_boxes: float Tensor. A dictionary or single Tensor of boxes, one per level. shape is
             [batch_size, num_boxes, 4] each level, in `bounding_box_format`.
             The boxes from RPNs are usually encoded as deltas w.r.t to anchors,
             they need to be decoded before passing in here.
-          multi_level_scores: float Tensor. A dictionary of scores, usually confidence scores,
+          multi_level_scores: float Tensor. A dictionary or single Tensor of scores, usually confidence scores,
             one per level. shape is [batch_size, num_boxes] each level.
 
         Returns:
@@ -127,11 +128,7 @@ class ROIGenerator(tf.keras.layers.Layer):
             nms_score_threshold = self.nms_score_threshold_test
             nms_iou_threshold = self.nms_iou_threshold_test
 
-        rois = []
-        roi_scores = []
-        for level in sorted(multi_level_scores.keys()):
-            scores = multi_level_scores[level]
-            boxes = multi_level_boxes[level]
+        def per_level_gen(boxes, scores):
             _, num_boxes = scores.get_shape().as_list()
             level_pre_nms_topk = min(num_boxes, pre_nms_topk)
             level_post_nms_topk = min(num_boxes, post_nms_topk)
@@ -174,6 +171,17 @@ class ROIGenerator(tf.keras.layers.Layer):
                 < tf.reshape(num_valid, [-1, 1]),
                 level_roi_scores.dtype,
             )
+            return level_rois, level_roi_scores
+
+        if not isinstance(multi_level_boxes, dict):
+            return per_level_gen(multi_level_boxes, multi_level_scores)
+
+        rois = []
+        roi_scores = []
+        for level in sorted(multi_level_scores.keys()):
+            boxes = multi_level_boxes[level]
+            scores = multi_level_scores[level]
+            level_rois, level_roi_scores = per_level_gen(boxes, scores)
             rois.append(level_rois)
             roi_scores.append(level_roi_scores)
 

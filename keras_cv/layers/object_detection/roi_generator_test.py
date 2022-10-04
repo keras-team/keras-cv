@@ -18,6 +18,28 @@ from keras_cv.layers.object_detection.roi_generator import ROIGenerator
 
 
 class ROIGeneratorTest(tf.test.TestCase):
+    def test_single_tensor(self):
+        roi_generator = ROIGenerator("xyxy", nms_iou_threshold_train=0.96)
+        rpn_boxes = tf.constant(
+            [
+                [[0, 0, 10, 10], [0.1, 0.1, 9.9, 9.9], [5, 5, 10, 10], [2, 2, 8, 8]],
+            ]
+        )
+        expected_rois = tf.gather(rpn_boxes, [[1, 3, 2]], batch_dims=1)
+        expected_rois = tf.concat([expected_rois, tf.zeros([1, 1, 4])], axis=1)
+        rpn_scores = tf.constant(
+            [
+                [0.6, 0.9, 0.2, 0.3],
+            ]
+        )
+        # selecting the 1st, then 3rd, then 2nd as they don't overlap
+        # 0th box overlaps with 1st box
+        expected_roi_scores = tf.gather(rpn_scores, [[1, 3, 2]], batch_dims=1)
+        expected_roi_scores = tf.concat([expected_roi_scores, tf.zeros([1, 1])], axis=1)
+        rois, roi_scores = roi_generator(rpn_boxes, rpn_scores, training=True)
+        self.assertAllClose(expected_rois, rois)
+        self.assertAllClose(expected_roi_scores, roi_scores)
+
     def test_single_level_single_batch_roi_ignore_box(self):
         roi_generator = ROIGenerator("xyxy", nms_iou_threshold_train=0.96)
         rpn_boxes = tf.constant(
