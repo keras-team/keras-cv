@@ -66,12 +66,16 @@ class Mosaic(BaseImageAugmentationLayer):
     """
 
     def __init__(
-        self, offset=(0.25, 0.75), bounding_box_format=None, seed=None, **kwargs
+        self, offset=(0.1, 0.9), bounding_box_format=None, seed=None, **kwargs
     ):
         super().__init__(seed=seed, **kwargs)
         self.offset = offset
         self.bounding_box_format = bounding_box_format
-        self.center_sampler = preprocessing.parse_factor(offset, seed=seed)
+        self.center_sampler = preprocessing.parse_factor(
+            offset, 
+            param_name='offset', 
+            seed=seed
+        )
         self.seed = seed
 
     def _batch_augment(self, inputs):
