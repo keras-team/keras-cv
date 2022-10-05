@@ -288,8 +288,8 @@ class SerializationTest(tf.test.TestCase, parameterized.TestCase):
                 "num_channels": 256,
                 "activation": "relu",
                 "dropout": 0.1,
-            }
-        )
+            },
+        ),
     )
     def test_layer_serialization(self, layer_cls, init_args):
         layer = layer_cls(**init_args)

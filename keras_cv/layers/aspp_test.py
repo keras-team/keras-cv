@@ -16,8 +16,8 @@ import tensorflow as tf
 
 from keras_cv.layers import ASPP
 
-class ASPPTest(tf.test.TestCase):
 
+class ASPPTest(tf.test.TestCase):
     def test_return_type_and_shape(self):
         layer = ASPP(level=4, dilation_rates=[6, 12, 18])
         c2 = tf.ones([2, 64, 64, 3])
@@ -49,6 +49,6 @@ class ASPPTest(tf.test.TestCase):
         c4 = tf.keras.layers.Input([16, 16, 3])
 
         with self.assertRaisesRegexp(
-                ValueError, "Expect the inputs to be a dict with int keys"):
+            ValueError, "Expect the inputs to be a dict with int keys"
+        ):
             layer(c4, training=True)
-

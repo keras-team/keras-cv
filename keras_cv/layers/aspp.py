@@ -139,12 +139,16 @@ class ASPP(tf.keras.layers.Layer):
         self.aspp_parallel_channels.append(pool_sequential)
 
         # Final projection layers
-        self.projection = tf.keras.Sequential([
-            tf.keras.layers.Conv2D(
-                filters=self.num_channels, kernel_size=(1, 1), use_bias=False),
-            tf.keras.layers.BatchNormalization(),
-            tf.keras.layers.Activation(self.activation),
-            tf.keras.layers.Dropout(rate=self.dropout)])
+        self.projection = tf.keras.Sequential(
+            [
+                tf.keras.layers.Conv2D(
+                    filters=self.num_channels, kernel_size=(1, 1), use_bias=False
+                ),
+                tf.keras.layers.BatchNormalization(),
+                tf.keras.layers.Activation(self.activation),
+                tf.keras.layers.Dropout(rate=self.dropout),
+            ]
+        )
 
     def call(self, inputs, training=None):
         """Calls the Atrous Spatial Pyramid Pooling (ASPP) layer on an input.
@@ -165,13 +169,18 @@ class ASPP(tf.keras.layers.Layer):
             - values: A `tf.Tensor` of output of ASPP module.
         """
         if not isinstance(inputs, dict):
-            raise ValueError("ASPP expects input features to be a dict with int keys, "
-                             f"received {inputs}")
+            raise ValueError(
+                "ASPP expects input features to be a dict with int keys, "
+                f"received {inputs}"
+            )
         input_at_level = inputs[self.level]
         result = []
         for channel in self.aspp_parallel_channels:
-            result.append(tf.cast(channel(input_at_level, training=training),
-                                  input_at_level.dtype))
+            result.append(
+                tf.cast(
+                    channel(input_at_level, training=training), input_at_level.dtype
+                )
+            )
         result = tf.concat(result, axis=-1)
         result = self.projection(result, training=training)
         return {self.level: result}
