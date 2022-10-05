@@ -20,7 +20,7 @@ from typing import Union
 import tensorflow as tf
 
 
-# @tf.keras.utils.register_keras_serializable(package="keras_cv")
+@tf.keras.utils.register_keras_serializable(package="keras_cv")
 class ASPP(tf.keras.layers.Layer):
     """Implements the Atrous Spatial Pyramid Pooling.
 
