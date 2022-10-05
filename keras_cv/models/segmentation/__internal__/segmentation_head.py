@@ -125,6 +125,7 @@ class SegmentationHead(layers.Layer):
             "convs": self.convs,
             "filters": self.filters,
             "activations": self.activations,
+            "output_scale_factor": self.output_scale_factor,
         }
         base_config = super().get_config()
         return dict(list(base_config.items()) + list(config.items()))
