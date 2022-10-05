@@ -276,6 +276,7 @@ class SerializationTest(tf.test.TestCase, parameterized.TestCase):
                 "convs": 3,
                 "filters": 256,
                 "activations": tf.keras.activations.relu,
+                "output_scale_factor": None,
             },
         ),
     )
