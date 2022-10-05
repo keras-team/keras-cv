@@ -72,8 +72,8 @@ class Mosaic(BaseImageAugmentationLayer):
         self.offset = offset
         self.bounding_box_format = bounding_box_format
         self.center_sampler = preprocessing.parse_factor(
-            offset, 
-            param_name='offset', 
+            offset,
+            param_name='offset',
             seed=seed
         )
         self.seed = seed
