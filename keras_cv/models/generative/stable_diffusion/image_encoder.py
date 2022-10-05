@@ -58,7 +58,7 @@ class ImageEncoder(keras.Sequential):
                 keras.layers.Lambda(lambda x: x[..., :4] * 0.18215),
             ]
         )
-        
+
         if self.download_weights:
             image_encoder_weights_fpath = keras.utils.get_file(
                 origin="https://huggingface.co/fchollet/stable-diffusion/blob/main/vae_encoder.h5",
