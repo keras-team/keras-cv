@@ -14,8 +14,6 @@
 from typing import Any
 from typing import List
 from typing import Mapping
-from typing import Optional
-from typing import Union
 
 import tensorflow as tf
 
