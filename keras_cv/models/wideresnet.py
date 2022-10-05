@@ -63,7 +63,7 @@ MODEL_CONFIGS = {
         "l": 2,
         "stackwise_strides": [1, 2, 2],
     },
-     "WRN28_12": {
+    "WRN28_12": {
         "stackwise_filters": [16, 32, 64],
         "stackwise_blocks": 4,
         "k": 12,
@@ -77,7 +77,6 @@ MODEL_CONFIGS = {
         "l": 2,
         "stackwise_strides": [1, 2, 2],
     },
-
 }
 
 BN_AXIS = 3
@@ -124,7 +123,17 @@ BASE_DOCSTRING = """Instantiates the {name} architecture.
       A `keras.Model` instance.
 """
 
-def WideDropoutBlock(filters, kernel_size=3, stride=1, conv_shortcut=True, l=2, k=1, dropout=0.3, name=None):
+
+def WideDropoutBlock(
+    filters,
+    kernel_size=3,
+    stride=1,
+    conv_shortcut=True,
+    l=2,
+    k=1,
+    dropout=0.3,
+    name=None,
+):
 
     """A wide residual block with dropout.
     Args:
@@ -142,24 +151,53 @@ def WideDropoutBlock(filters, kernel_size=3, stride=1, conv_shortcut=True, l=2, 
     """
     if name is None:
         name = f"block_{backend.get_uid('block')}"
+
     def apply(x):
         if conv_shortcut:
-            shortcut = layers.BatchNormalization(axis=BN_AXIS, epsilon=1.001e-5, name=name+'_shortcut_bn')(x)
-            shortcut = layers.Activation("relu", name=name+'_shortcut_relu')(shortcut)
-            shortcut = layers.Conv2D(k*filters, kernel_size, strides=stride, padding="same", use_bias=False, name=name+'_shortcut_conv', kernel_regularizer=tf.keras.regularizers.l2(0.0005))(shortcut)
+            shortcut = layers.BatchNormalization(
+                axis=BN_AXIS, epsilon=1.001e-5, name=name + "_shortcut_bn"
+            )(x)
+            shortcut = layers.Activation("relu", name=name + "_shortcut_relu")(shortcut)
+            shortcut = layers.Conv2D(
+                k * filters,
+                kernel_size,
+                strides=stride,
+                padding="same",
+                use_bias=False,
+                name=name + "_shortcut_conv",
+                kernel_regularizer=tf.keras.regularizers.l2(0.0005),
+            )(shortcut)
         else:
             shortcut = x
 
         for n in range(l):
-            x = layers.BatchNormalization(axis=BN_AXIS, epsilon=1.001e-5, name=name+f'_{n}_bn')(x)
-            x = layers.Activation("relu", name=name+f'_{n}_relu')(x)
+            x = layers.BatchNormalization(
+                axis=BN_AXIS, epsilon=1.001e-5, name=name + f"_{n}_bn"
+            )(x)
+            x = layers.Activation("relu", name=name + f"_{n}_relu")(x)
             if n == 0:
-              x = layers.Conv2D(k*filters, kernel_size, strides=stride, padding="same", use_bias=False, name=name+'_0_strided_conv', kernel_regularizer=tf.keras.regularizers.l2(0.0005))(x)
+                x = layers.Conv2D(
+                    k * filters,
+                    kernel_size,
+                    strides=stride,
+                    padding="same",
+                    use_bias=False,
+                    name=name + "_0_strided_conv",
+                    kernel_regularizer=tf.keras.regularizers.l2(0.0005),
+                )(x)
             else:
-              x = layers.Conv2D(k*filters, kernel_size, strides=1, padding="same", use_bias=False, name=name+'_1_conv',kernel_regularizer=tf.keras.regularizers.l2(0.0005))(x)
+                x = layers.Conv2D(
+                    k * filters,
+                    kernel_size,
+                    strides=1,
+                    padding="same",
+                    use_bias=False,
+                    name=name + "_1_conv",
+                    kernel_regularizer=tf.keras.regularizers.l2(0.0005),
+                )(x)
 
             if n % 2 == 0:
-              x = layers.SpatialDropout2D(dropout, name=name+'_0_dropout')(x)
+                x = layers.SpatialDropout2D(dropout, name=name + "_0_dropout")(x)
 
         x = layers.Add(name=name + "_add")([shortcut, x])
         x = layers.Activation("relu", name=name + "_out")(x)
@@ -168,7 +206,17 @@ def WideDropoutBlock(filters, kernel_size=3, stride=1, conv_shortcut=True, l=2, 
     return apply
 
 
-def Stack(filters, blocks, stride=2, name=None, block_fn=WideDropoutBlock, first_shortcut=True, l=2, k=1, dropout=0.3):
+def Stack(
+    filters,
+    blocks,
+    stride=2,
+    name=None,
+    block_fn=WideDropoutBlock,
+    first_shortcut=True,
+    l=2,
+    k=1,
+    dropout=0.3,
+):
     """A set of stacked wide residual blocks. Called 'groups' in the original paper.
     Args:
       filters: integer, filters of the layers in a block.
@@ -186,10 +234,26 @@ def Stack(filters, blocks, stride=2, name=None, block_fn=WideDropoutBlock, first
     """
     if name is None:
         name = f"stack_{backend.get_uid('stack')}"
+
     def apply(x):
-        x = block_fn(filters, stride=stride, conv_shortcut=first_shortcut, l=1, k=k, dropout=dropout, name=name+'_conv1')(x)
+        x = block_fn(
+            filters,
+            stride=stride,
+            conv_shortcut=first_shortcut,
+            l=1,
+            k=k,
+            dropout=dropout,
+            name=name + "_conv1",
+        )(x)
         for i in range(2, blocks + 1):
-            x = block_fn(filters, conv_shortcut=False, l=l, k=k, dropout=dropout, name=f'{name}_conv{i}')(x)
+            x = block_fn(
+                filters,
+                conv_shortcut=False,
+                l=l,
+                k=k,
+                dropout=dropout,
+                name=f"{name}_conv{i}",
+            )(x)
         return x
 
     return apply
@@ -279,11 +343,19 @@ def WideResNet(
     if include_rescaling:
         x = layers.Rescaling(1 / 255.0)(x)
 
-    x = layers.Conv2D(16, 3, strides=1, use_bias=False, padding="same", name="conv0_conv", kernel_regularizer=tf.keras.regularizers.l2(0.0005))(x)
+    x = layers.Conv2D(
+        16,
+        3,
+        strides=1,
+        use_bias=False,
+        padding="same",
+        name="conv0_conv",
+        kernel_regularizer=tf.keras.regularizers.l2(0.0005),
+    )(x)
 
     num_stacks = len(stackwise_filters)
     for stack_index in range(num_stacks):
-      x = Stack(
+        x = Stack(
             filters=stackwise_filters[stack_index],
             blocks=stackwise_blocks,
             stride=stackwise_strides[stack_index],
@@ -292,7 +364,7 @@ def WideResNet(
             l=l,
             dropout=dropout,
             first_shortcut=block_fn == WideDropoutBlock or stack_index > 0,
-            name=f'group{stack_index}'
+            name=f"group{stack_index}",
         )(x)
 
     if include_top:
@@ -313,7 +385,6 @@ def WideResNet(
         model.load_weights(weights)
 
     return model
-
 
 
 def WideResNet16_8(
@@ -466,6 +537,7 @@ def WideResNet22_10(
         block_fn=WideDropoutBlock,
         **kwargs,
     )
+
 
 def WideResNet28_10(
     include_rescaling,
