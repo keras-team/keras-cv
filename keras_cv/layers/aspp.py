@@ -61,8 +61,9 @@ class ASPP(tf.keras.layers.Layer):
                 sample choice of rates are [6, 12, 18].
             num_channels: An `int` number of output channels in ASPP. Default to 256.
             activation: A `str` activation to be used in ASPP. Default to 'relu'.
-            dropout: A `float` for the dropout rate of the final projection output. Default
-                to 0.0, which means no dropout is applied to the output.
+            dropout: A `float` for the dropout rate of the final projection output after
+                the activations and batch norm. Default to 0.0, which means no dropout is
+                applied to the output.
             **kwargs: Additional keyword arguments to be passed.
         """
         super().__init__(**kwargs)
@@ -76,7 +77,13 @@ class ASPP(tf.keras.layers.Layer):
         # Retrieve the input at the level so that we can get the exact shape.
         if not isinstance(input_shape, dict):
             raise ValueError(
-                f"Expect the inputs to be a dict with int keys, got {input_shape}"
+                "ASPP expects input features to be a dict with int keys, "
+                f"received {input_shape}"
+            )
+        if self.level not in input_shape:
+            raise ValueError(
+                f"ASPP expect the input dict to contain key {self.level}, "
+                f"received {input_shape}"
             )
         input_shape_at_level = input_shape[self.level]
 
@@ -129,9 +136,7 @@ class ASPP(tf.keras.layers.Layer):
                 ),
                 tf.keras.layers.BatchNormalization(),
                 tf.keras.layers.Activation(self.activation),
-                tf.keras.layers.experimental.preprocessing.Resizing(
-                    height, width, interpolation="bilinear"
-                ),
+                tf.keras.layers.Resizing(height, width, interpolation="bilinear"),
             ]
         )
         self.aspp_parallel_channels.append(pool_sequential)
@@ -164,11 +169,17 @@ class ASPP(tf.keras.layers.Layer):
         Returns:
           A `dict` of `tf.Tensor` where
             - key: A `int` of the level of the multilevel feature maps.
-            - values: A `tf.Tensor` of output of ASPP module.
+            - values: A `tf.Tensor` of output of ASPP module. The shape of the output
+              should be [batch, height_l, width_l, num_channels]
         """
         if not isinstance(inputs, dict):
             raise ValueError(
                 "ASPP expects input features to be a dict with int keys, "
+                f"received {inputs}"
+            )
+        if self.level not in inputs:
+            raise ValueError(
+                f"ASPP expect the input dict to contain key {self.level}, "
                 f"received {inputs}"
             )
         input_at_level = inputs[self.level]

@@ -49,6 +49,19 @@ class ASPPTest(tf.test.TestCase):
         c4 = tf.keras.layers.Input([16, 16, 3])
 
         with self.assertRaisesRegexp(
-            ValueError, "Expect the inputs to be a dict with int keys"
+            ValueError, "ASPP expects input features to be a dict with int keys"
         ):
             layer(c4, training=True)
+
+    def test_invalid_input_level(self):
+        layer = ASPP(level=4, dilation_rates=[6, 12, 18])
+        c2 = tf.keras.layers.Input([64, 64, 3])
+        c3 = tf.keras.layers.Input([32, 32, 3])
+        c5 = tf.keras.layers.Input([8, 8, 3])
+
+        inputs = {2: c2, 3: c3, 5: c5}
+
+        with self.assertRaisesRegexp(
+            ValueError, "ASPP expect the input dict to contain key 4"
+        ):
+            layer(inputs, training=True)
