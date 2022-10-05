@@ -1,6 +1,6 @@
 ARG VARIANT
 
-FROM tensorflow/tensorflow:2.10${VARIANT}
+FROM tensorflow/tensorflow:2.10.0${VARIANT}
 
 RUN apt-get update && apt-get install -y \
   locales \
