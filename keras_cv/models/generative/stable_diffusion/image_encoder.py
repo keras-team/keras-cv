@@ -28,11 +28,11 @@ from keras_cv.models.generative.stable_diffusion.__internal__.layers.resnet_bloc
 )
 
 
-class VAEEncoder(keras.Sequential):
-    def __init__(self):
+class ImageEncoder(keras.Sequential):
+    def __init__(self, img_height=512, img_width=512, download_weights=True):
         super().__init__(
             [
-                keras.layers.Input((512, 512, 3)),
+                keras.layers.Input((img_height, img_width, 3)),
                 PaddedConv2D(128, 3, padding=1),
                 ResnetBlock(128),
                 ResnetBlock(128),
@@ -58,3 +58,10 @@ class VAEEncoder(keras.Sequential):
                 keras.layers.Lambda(lambda x: x[..., :4] * 0.18215),
             ]
         )
+        
+        if self.download_weights:
+            image_encoder_weights_fpath = keras.utils.get_file(
+                origin="https://huggingface.co/fchollet/stable-diffusion/blob/main/vae_encoder.h5",
+                file_hash="f142c8c94c6853cd19d8bfb9c10aa762c057566f54456398beea6a70a639bf48",
+            )
+            self.load_weights(image_encoder_weights_fpath)

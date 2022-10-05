@@ -32,8 +32,8 @@ from keras_cv.models.generative.stable_diffusion.constants import _ALPHAS_CUMPRO
 from keras_cv.models.generative.stable_diffusion.constants import _UNCONDITIONAL_TOKENS
 from keras_cv.models.generative.stable_diffusion.decoder import Decoder
 from keras_cv.models.generative.stable_diffusion.diffusion_model import DiffusionModel
+from keras_cv.models.generative.stable_diffusion.image_encoder import ImageEncoder
 from keras_cv.models.generative.stable_diffusion.text_encoder import TextEncoder
-from keras_cv.models.generative.stable_diffusion.vae_encoder import VAEEncoder
 
 MAX_PROMPT_LENGTH = 77
 
@@ -52,6 +52,10 @@ class StableDiffusion:
         img_width: Width of the images to generate, in pixel. Note that only
             multiples of 128 are supported; the value provided will be rounded
             to the nearest valid value. Default: 512.
+        input_img_height: Height of the image input to the `ImageEncoder`.  This model
+            is used in fine tuning and image to image workflows. Default: 512.
+        input_img_width: Width of the image input to the `ImageEncoder`.  This model
+            is used in fine tuning and image to image workflows. Default: 512.
         jit_compile: Whether to compile the underlying models to XLA.
             This can lead to a significant speedup on some systems. Default: False.
 
@@ -91,8 +95,9 @@ class StableDiffusion:
         self.diffusion_model = DiffusionModel(img_height, img_width, MAX_PROMPT_LENGTH)
         self.decoder = Decoder(img_height, img_width)
 
-        # TODO(lukewood): should we support variable size image inputs here?
-        self.image_encoder = VAEEncoder()
+        self.input_img_height = input_img_height
+        self.input_img_width = input_img_width
+        self._image_encoder = None
 
         if jit_compile:
             self.text_encoder.compile(jit_compile=True)
@@ -118,15 +123,10 @@ class StableDiffusion:
             origin="https://huggingface.co/fchollet/stable-diffusion/resolve/main/kcv_decoder.h5",
             file_hash="ad350a65cc8bc4a80c8103367e039a3329b4231c2469a1093869a345f55b1962",
         )
-        image_encoder_weights_fpath = keras.utils.get_file(
-            origin="https://huggingface.co/fchollet/stable-diffusion/blob/main/vae_encoder.h5",
-            file_hash="f142c8c94c6853cd19d8bfb9c10aa762c057566f54456398beea6a70a639bf48",
-        )
 
         self.text_encoder.load_weights(text_encoder_weights_fpath)
         self.diffusion_model.load_weights(diffusion_model_weights_fpath)
         self.decoder.load_weights(decoder_weights_fpath)
-        self.image_encoder.load_weights(image_encoder_weights_fpath)
 
     def text_to_image(
         self,
@@ -292,6 +292,14 @@ class StableDiffusion:
         )
 
         return unconditional_context
+
+    @property
+    def image_encoder(self):
+        if self._image_encoder is None:
+            self._image_encoder = ImageEncoder(
+                self.input_img_height, self.input_img_width
+            )
+        return self._image_encoder
 
     def _get_timestep_embedding(self, timestep, batch_size, dim=320, max_period=10000):
         half = dim // 2
