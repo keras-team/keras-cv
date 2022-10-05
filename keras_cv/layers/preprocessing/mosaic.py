@@ -66,7 +66,7 @@ class Mosaic(BaseImageAugmentationLayer):
     """
 
     def __init__(
-        self, offset=(0.1, 0.9), bounding_box_format=None, seed=None, **kwargs
+        self, offset=(0.25, 0.75), bounding_box_format=None, seed=None, **kwargs
     ):
         super().__init__(seed=seed, **kwargs)
         self.offset = offset
