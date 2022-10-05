@@ -13,4 +13,3 @@
 # limitations under the License.
 
 from keras_cv.models.generative.stable_diffusion.stable_diffusion import StableDiffusion
-from keras_cv.models.generative.stable_diffusion.vae_encoder import VAEEncoder
