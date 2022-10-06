@@ -56,6 +56,9 @@ approved by the reviewer.
 
 Once the pull request is approved, a team member will take care of merging.
 
+## Contributing models
+When contributing new models, please validate model performance by providing training results. You can do this using our existing [ImageNet training script](https://github.com/keras-team/keras-cv/blob/master/examples/training/classification/imagenet/basic_training.py) or by contributing a custom training script of your own (see "Contributing training scripts" below). Training results can be added to the training history log with [this script](https://github.com/keras-team/keras-cv/blob/master/shell/weights/update_training_history.py), or shared with the team via Google Drive (we'll need TensorBoard logs as well as weights). Either way, the KerasCV team will need to upload the weights to our GCS bucket for distribution.
+
 ## Contributing training scripts
 
 KerasCV is working to include a catalog of high-performing model training scripts for the models included in KerasCV.models and is welcoming contributions for these scripts. These training scripts serve as documentation of good training techniques and will be used to train weights that will be offered in KerasCV models through the package.
