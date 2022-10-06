@@ -146,13 +146,13 @@ def BasicBlock(filters, kernel_size=3, stride=1, conv_shortcut=False, name=None)
         )(x)
         x = layers.Activation("relu", name=name + "_1_relu")(x)
 
-        x = layers.ZeroPadding2D(padding=((1, 1), (1, 1)), name=name + "_2_pad")(x)
         x = layers.Conv2D(
             filters,
             kernel_size,
             strides=stride,
             use_bias=False,
             name=name + "_2_conv",
+            padding="SAME",
         )(x)
 
         x = layers.Add(name=name + "_out")([shortcut, x])
@@ -204,13 +204,13 @@ def Block(filters, kernel_size=3, stride=1, conv_shortcut=False, name=None):
         )(x)
         x = layers.Activation("relu", name=name + "_1_relu")(x)
 
-        x = layers.ZeroPadding2D(padding=((1, 1), (1, 1)), name=name + "_2_pad")(x)
         x = layers.Conv2D(
             filters,
             kernel_size,
             strides=stride,
             use_bias=False,
             name=name + "_2_conv",
+            padding="SAME",
         )(x)
         x = layers.BatchNormalization(
             axis=BN_AXIS, epsilon=1.001e-5, name=name + "_2_bn"
