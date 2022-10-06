@@ -37,11 +37,11 @@ class SmoothL1Loss(tf.keras.losses.Loss):
         absolute_difference = tf.abs(difference)
         squared_difference = difference**2
         loss = tf.where(
-            tf.less(absolute_difference, self.l1_cutoff),
+            absolute_difference < self.l1_cutoff,
             0.5 * squared_difference,
             absolute_difference - 0.5,
         )
-        return loss
+        return tf.keras.backend.mean(loss, axis=-1)
 
     def get_config(self):
         config = {

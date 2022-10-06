@@ -70,7 +70,7 @@ class AnchorGenerator(keras.layers.Layer):
     Input shape: an image with shape `[H, W, C]`
     Output: a dictionary with integer keys corresponding to each level of the feature
         pyramid.  The size of the anchors at each level will be
-        `(H/strides * W/strides, 4)`.
+        `(H/strides[i] * W/strides[i] * len(scales) * len(aspect_ratios), 4)`.
     """
 
     def __init__(
@@ -152,8 +152,18 @@ class AnchorGenerator(keras.layers.Layer):
 
         return tf.nest.map_structure(lambda _: params, sizes)
 
-    def __call__(self, image):
-        image_shape = tf.shape(image)
+    def __call__(self, image=None, image_shape=None):
+        if image is None and image_shape is None:
+            raise ValueError("AnchorGenerator() requires `images` or `image_shape`.")
+
+        if image is not None:
+            if image.shape.rank != 3:
+                raise ValueError(
+                    "Expected `image` to be a Tensor of rank 3.  Got "
+                    f"image.shape.rank={image.shape.rank}"
+                )
+            image_shape = tf.shape(image)
+
         anchor_generators = tf.nest.flatten(self.anchor_generators)
         results = [anchor_gen(image_shape) for anchor_gen in anchor_generators]
         results = tf.nest.pack_sequence_as(self.anchor_generators, results)
@@ -162,7 +172,7 @@ class AnchorGenerator(keras.layers.Layer):
                 results[key],
                 source="yxyx",
                 target=self.bounding_box_format,
-                images=image,
+                image_shape=image_shape,
             )
         return results
 
@@ -239,9 +249,9 @@ class _SingleAnchorGenerator:
 
         stride = tf.cast(self.stride, tf.float32)
         # [W]
-        cx = tf.range(0.5 * stride, image_width, stride)
+        cx = tf.range(0.5 * stride, image_width + 1, stride)
         # [H]
-        cy = tf.range(0.5 * stride, image_height, stride)
+        cy = tf.range(0.5 * stride, image_height + 1, stride)
         # [H, W]
         cx_grid, cy_grid = tf.meshgrid(cx, cy)
         # [H, W, 1]

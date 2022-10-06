@@ -21,11 +21,21 @@ TEST_CONFIGURATIONS = [
     ("ChannelShuffle", preprocessing.ChannelShuffle, {}),
     ("Equalization", preprocessing.Equalization, {"value_range": (0, 255)}),
     (
-        "RandomResizedCrop",
-        preprocessing.RandomResizedCrop,
+        "RandomCropAndResize",
+        preprocessing.RandomCropAndResize,
         {
             "target_size": (224, 224),
             "crop_area_factor": (0.8, 1.0),
+            "aspect_ratio_factor": (3 / 4, 4 / 3),
+        },
+    ),
+    (
+        "RandomlyZoomedCrop",
+        preprocessing.RandomlyZoomedCrop,
+        {
+            "height": 224,
+            "width": 224,
+            "zoom_factor": (0.8, 1.0),
             "aspect_ratio_factor": (3 / 4, 4 / 3),
         },
     ),
@@ -89,6 +99,7 @@ class WithLabelsTest(tf.test.TestCase, parameterized.TestCase):
     @parameterized.named_parameters(
         *TEST_CONFIGURATIONS,
         ("CutMix", preprocessing.CutMix, {}),
+        ("Mosaic", preprocessing.Mosaic, {}),
     )
     def test_can_run_with_labels(self, layer_cls, init_args):
         layer = layer_cls(**init_args)
@@ -103,7 +114,7 @@ class WithLabelsTest(tf.test.TestCase, parameterized.TestCase):
 
         self.assertIn("labels", outputs)
 
-    # this has to be a separate test case to exclude CutMix and MixUp
+    # this has to be a separate test case to exclude CutMix, MixUp, Mosaic etc.
     @parameterized.named_parameters(*TEST_CONFIGURATIONS)
     def test_can_run_with_labels_single_image(self, layer_cls, init_args):
         layer = layer_cls(**init_args)

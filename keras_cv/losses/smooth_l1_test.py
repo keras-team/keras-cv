@@ -20,7 +20,7 @@ import keras_cv
 
 class SmoothL1LossTest(tf.test.TestCase, parameterized.TestCase):
     @parameterized.named_parameters(
-        ("none", "none", (20, 300)),
+        ("none", "none", (20,)),
         ("sum", "sum", ()),
         ("sum_over_batch_size", "sum_over_batch_size", ()),
     )

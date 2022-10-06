@@ -77,6 +77,7 @@ class NmsPredictionDecoder(tf.keras.layers.Layer):
         self.box_variance = tf.convert_to_tensor(box_variance, dtype=tf.float32)
         self.built = True
 
+    # TODO(lukewood): provide this as general utility on top of bounding_box_format.
     def _decode_box_predictions(self, anchor_boxes, box_predictions):
         boxes = box_predictions * self.box_variance
         boxes = tf.concat(

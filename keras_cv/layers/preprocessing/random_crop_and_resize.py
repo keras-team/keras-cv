@@ -22,7 +22,7 @@ from keras_cv.utils import preprocessing
 
 
 @tf.keras.utils.register_keras_serializable(package="keras_cv")
-class RandomResizedCrop(BaseImageAugmentationLayer):
+class RandomCropAndResize(BaseImageAugmentationLayer):
     """Randomly crops a part of an image and resizes it to provided size.
 
     This implementation takes an intuitive approach, where we crop the images to a
@@ -131,26 +131,24 @@ class RandomResizedCrop(BaseImageAugmentationLayer):
             # self._resize() returns valid results for both batched and
             # unbatched
             output["images"] = self._resize(inputs["images"])
+
+            if "segmentation_masks" in inputs:
+                output["segmentation_masks"] = self._resize(
+                    inputs["segmentation_masks"], interpolation="nearest"
+                )
+
             return self._format_output(output, meta_data)
 
     def augment_image(self, image, transformation, **kwargs):
-        image = tf.expand_dims(image, axis=0)
-        boxes = transformation
+        return self._crop_and_resize(image, transformation)
 
-        # See bit.ly/tf_crop_resize for more details
-        augmented_image = tf.image.crop_and_resize(
-            image,  # image shape: [B, H, W, C]
-            boxes,  # boxes: (1, 4) in this case; represents area
-            # to be cropped from the original image
-            [0],  # box_indices: maps boxes to images along batch axis
-            # [0] since there is only one image
-            self.target_size,  # output size
+    def augment_target(self, target, **kwargs):
+        return target
+
+    def _resize(self, image, **kwargs):
+        outputs = tf.keras.preprocessing.image.smart_resize(
+            image, self.target_size, **kwargs
         )
-
-        return tf.squeeze(augmented_image, axis=0)
-
-    def _resize(self, image):
-        outputs = tf.keras.preprocessing.image.smart_resize(image, self.target_size)
         # smart_resize will always output float32, so we need to re-cast.
         return tf.cast(outputs, self.compute_dtype)
 
@@ -191,8 +189,10 @@ class RandomResizedCrop(BaseImageAugmentationLayer):
                 f"aspect_ratio_factor={aspect_ratio_factor}"
             )
 
-    def augment_target(self, augment_target, **kwargs):
-        return augment_target
+    def augment_segmentation_mask(self, segmentation_mask, transformation, **kwargs):
+        return self._crop_and_resize(
+            segmentation_mask, transformation, method="nearest"
+        )
 
     def get_config(self):
         config = super().get_config()
@@ -206,3 +206,20 @@ class RandomResizedCrop(BaseImageAugmentationLayer):
             }
         )
         return config
+
+    def _crop_and_resize(self, image, transformation, method=None):
+        image = tf.expand_dims(image, axis=0)
+        boxes = transformation
+
+        # See bit.ly/tf_crop_resize for more details
+        augmented_image = tf.image.crop_and_resize(
+            image,  # image shape: [B, H, W, C]
+            boxes,  # boxes: (1, 4) in this case; represents area
+            # to be cropped from the original image
+            [0],  # box_indices: maps boxes to images along batch axis
+            # [0] since there is only one image
+            self.target_size,  # output size
+            method=method or self.interpolation,
+        )
+
+        return tf.squeeze(augmented_image, axis=0)
