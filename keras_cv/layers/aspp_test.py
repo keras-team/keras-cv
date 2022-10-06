@@ -26,7 +26,7 @@ class ASPPTest(tf.test.TestCase):
         c5 = tf.ones([2, 8, 8, 3])
 
         inputs = {2: c2, 3: c3, 4: c4, 5: c5}
-        output = layer(inputs)
+        output = layer(inputs, training=True)
         self.assertTrue(isinstance(output, dict))
         self.assertLen(output, 1)
         self.assertEquals(output[4].shape, [2, 16, 16, 256])
@@ -39,7 +39,7 @@ class ASPPTest(tf.test.TestCase):
         c5 = tf.keras.layers.Input([8, 8, 3])
 
         inputs = {2: c2, 3: c3, 4: c4, 5: c5}
-        output = layer(inputs)
+        output = layer(inputs, training=True)
         self.assertTrue(isinstance(output, dict))
         self.assertLen(output, 1)
         self.assertEquals(output[4].shape, [None, 16, 16, 256])
