@@ -24,7 +24,6 @@ from tensorflow.keras.layers import RandomZoom
 from tensorflow.keras.layers import Rescaling
 from tensorflow.keras.layers import Resizing
 
-from keras_cv.layers.aspp import ASPP
 from keras_cv.layers.feature_pyramid import FeaturePyramid
 from keras_cv.layers.object_detection.anchor_generator import AnchorGenerator
 from keras_cv.layers.object_detection.nms_prediction_decoder import NmsPredictionDecoder
@@ -73,3 +72,4 @@ from keras_cv.layers.regularization.drop_path import DropPath
 from keras_cv.layers.regularization.dropblock_2d import DropBlock2D
 from keras_cv.layers.regularization.squeeze_excite import SqueezeAndExcite2D
 from keras_cv.layers.regularization.stochastic_depth import StochasticDepth
+from keras_cv.layers.spatial_pyramid import SpatialPyramidPooling

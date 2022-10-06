@@ -19,7 +19,7 @@ import tensorflow as tf
 
 
 @tf.keras.utils.register_keras_serializable(package="keras_cv")
-class ASPP(tf.keras.layers.Layer):
+class SpatialPyramidPooling(tf.keras.layers.Layer):
     """Implements the Atrous Spatial Pyramid Pooling.
 
     References:
@@ -38,7 +38,8 @@ class ASPP(tf.keras.layers.Layer):
 
     # output_dict is a dict with 4 as keys, since it only process the level 4 backbone
     # inputs
-    output_dict = keras_cv.layers.ASPP(level=4, dilation_rates=[6, 12, 18])(backbone_outputs)
+    output_dict = keras_cv.layers.SpatialPyramidPooling(
+        level=4, dilation_rates=[6, 12, 18])(backbone_outputs)
 
     # output[4].shape = [None, 16, 16, 256]
     """
@@ -52,15 +53,15 @@ class ASPP(tf.keras.layers.Layer):
         dropout: float = 0.0,
         **kwargs,
     ):
-        """Initializes an Atrous Spatial Pyramid Pooling (ASPP) layer.
+        """Initializes an Atrous Spatial Pyramid Pooling layer.
 
         Args:
-            level: An `int` level to apply ASPP. This will be used to get the exact input
-                tensor from the input dict in `call()`.
+            level: An `int` level to apply spatial pyramid pooling. This will be used to
+                get the exact input tensor from the input dict in `call()`.
             dilation_rates: A `list` of integers for parallel dilated conv. Usually a
                 sample choice of rates are [6, 12, 18].
-            num_channels: An `int` number of output channels in ASPP. Default to 256.
-            activation: A `str` activation to be used in ASPP. Default to 'relu'.
+            num_channels: An `int` number of output channels. Default to 256.
+            activation: A `str` activation to be used. Default to 'relu'.
             dropout: A `float` for the dropout rate of the final projection output after
                 the activations and batch norm. Default to 0.0, which means no dropout is
                 applied to the output.
@@ -77,12 +78,12 @@ class ASPP(tf.keras.layers.Layer):
         # Retrieve the input at the level so that we can get the exact shape.
         if not isinstance(input_shape, dict):
             raise ValueError(
-                "ASPP expects input features to be a dict with int keys, "
+                "SpatialPyramidPooling expects input features to be a dict with int keys, "
                 f"received {input_shape}"
             )
         if self.level not in input_shape:
             raise ValueError(
-                f"ASPP expect the input dict to contain key {self.level}, "
+                f"SpatialPyramidPooling expect the input dict to contain key {self.level}, "
                 f"received {input_shape}"
             )
         input_shape_at_level = input_shape[self.level]
@@ -154,11 +155,11 @@ class ASPP(tf.keras.layers.Layer):
         )
 
     def call(self, inputs, training=None):
-        """Calls the Atrous Spatial Pyramid Pooling (ASPP) layer on an input.
+        """Calls the Atrous Spatial Pyramid Pooling layer on an input.
 
-        The input the of the ASPP will be a dict of {`level`, `tf.Tensor`}, and ASPP layer
+        The input the of the layer will be a dict of {`level`, `tf.Tensor`}, and layer
         will pick the actual input based on the `level` from its init args.
-        The output of ASPP will be a dict of {`level`, `tf.Tensor`} with only one level.
+        The output of the layer will be a dict of {`level`, `tf.Tensor`} with only one level.
 
         Args:
           inputs: A `dict` of `tf.Tensor` where
@@ -169,17 +170,17 @@ class ASPP(tf.keras.layers.Layer):
         Returns:
           A `dict` of `tf.Tensor` where
             - key: A `int` of the level of the multilevel feature maps.
-            - values: A `tf.Tensor` of output of ASPP module. The shape of the output
-              should be [batch, height_l, width_l, num_channels]
+            - values: A `tf.Tensor` of output of SpatialPyramidPooling module. The shape
+              of the output should be [batch, height_l, width_l, num_channels]
         """
         if not isinstance(inputs, dict):
             raise ValueError(
-                "ASPP expects input features to be a dict with int keys, "
+                "SpatialPyramidPooling expects input features to be a dict with int keys, "
                 f"received {inputs}"
             )
         if self.level not in inputs:
             raise ValueError(
-                f"ASPP expect the input dict to contain key {self.level}, "
+                f"SpatialPyramidPooling expect the input dict to contain key {self.level}, "
                 f"received {inputs}"
             )
         input_at_level = inputs[self.level]

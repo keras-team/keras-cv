@@ -280,8 +280,8 @@ class SerializationTest(tf.test.TestCase, parameterized.TestCase):
             },
         ),
         (
-            "ASPP",
-            cv_layers.ASPP,
+            "SpatialPyramidPooling",
+            cv_layers.SpatialPyramidPooling,
             {
                 "level": 3,
                 "dilation_rates": [6, 12, 18],

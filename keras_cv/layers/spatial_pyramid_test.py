@@ -14,12 +14,12 @@
 
 import tensorflow as tf
 
-from keras_cv.layers import ASPP
+from keras_cv.layers import SpatialPyramidPooling
 
 
-class ASPPTest(tf.test.TestCase):
+class SpatialPyramidPoolingTest(tf.test.TestCase):
     def test_return_type_and_shape(self):
-        layer = ASPP(level=4, dilation_rates=[6, 12, 18])
+        layer = SpatialPyramidPooling(level=4, dilation_rates=[6, 12, 18])
         c2 = tf.ones([2, 64, 64, 3])
         c3 = tf.ones([2, 32, 32, 3])
         c4 = tf.ones([2, 16, 16, 3])
@@ -32,7 +32,7 @@ class ASPPTest(tf.test.TestCase):
         self.assertEquals(output[4].shape, [2, 16, 16, 256])
 
     def test_with_keras_tensor(self):
-        layer = ASPP(level=4, dilation_rates=[6, 12, 18])
+        layer = SpatialPyramidPooling(level=4, dilation_rates=[6, 12, 18])
         c2 = tf.keras.layers.Input([64, 64, 3])
         c3 = tf.keras.layers.Input([32, 32, 3])
         c4 = tf.keras.layers.Input([16, 16, 3])
@@ -45,16 +45,17 @@ class ASPPTest(tf.test.TestCase):
         self.assertEquals(output[4].shape, [None, 16, 16, 256])
 
     def test_invalid_input_type(self):
-        layer = ASPP(level=4, dilation_rates=[6, 12, 18])
+        layer = SpatialPyramidPooling(level=4, dilation_rates=[6, 12, 18])
         c4 = tf.keras.layers.Input([16, 16, 3])
 
         with self.assertRaisesRegexp(
-            ValueError, "ASPP expects input features to be a dict with int keys"
+            ValueError,
+            "SpatialPyramidPooling expects input features to be a dict with int keys",
         ):
             layer(c4, training=True)
 
     def test_invalid_input_level(self):
-        layer = ASPP(level=4, dilation_rates=[6, 12, 18])
+        layer = SpatialPyramidPooling(level=4, dilation_rates=[6, 12, 18])
         c2 = tf.keras.layers.Input([64, 64, 3])
         c3 = tf.keras.layers.Input([32, 32, 3])
         c5 = tf.keras.layers.Input([8, 8, 3])
@@ -62,6 +63,6 @@ class ASPPTest(tf.test.TestCase):
         inputs = {2: c2, 3: c3, 5: c5}
 
         with self.assertRaisesRegexp(
-            ValueError, "ASPP expect the input dict to contain key 4"
+            ValueError, "SpatialPyramidPooling expect the input dict to contain key 4"
         ):
             layer(inputs, training=True)
