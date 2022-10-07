@@ -83,7 +83,10 @@ def get_tf_header_dir():
 
 
 def get_cpp_version():
-    return "c++17"
+    cpp_version = "c++14"
+    if Version(tf.__version__) >= Version("2.10"):
+        cpp_version = "c++17"
+    return cpp_version
 
 
 def get_tf_shared_lib_dir():
