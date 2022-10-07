@@ -34,6 +34,10 @@ jobs:
       run: |
         pip install tensorflow==2.10.0
         pip install -e ".[tests]" --progress-bar off --upgrade
+    - name: Build custom ops for tests
+      run: |
+        bazel build keras_cv/custom_ops:all
+        cp bazel-bin/keras_cv/custom_ops/*.so keras_cv/custom_ops/ 
     - name: Test with pytest
       run: |
         pytest keras_cv/ --ignore keras_cv/models

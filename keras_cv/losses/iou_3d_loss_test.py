@@ -18,11 +18,11 @@ import tensorflow as tf
 from keras_cv.losses import IoU3DLoss
 
 
-class IoU3DTest(test.TestCase):
+class IoU3DTest(tf.test.TestCase):
 
   def testOpCall(self):
       self.assertAllClose(
-          IoU3DLoss([[1, 2], [3, 4]]), np.array([[1, 0], [0, 0]]))
+          IoU3DLoss([[1, 2], [3, 4]]), [[1, 0], [0, 0]])
 
 
 if __name__ == '__main__':
