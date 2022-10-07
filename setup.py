@@ -61,4 +61,5 @@ setup(
         "Topic :: Software Development",
     ],
     packages=find_packages(exclude=("*_test.py",)),
+    include_package_data=True,
 )
