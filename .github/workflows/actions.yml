@@ -37,7 +37,7 @@ jobs:
     - name: Build custom ops for tests
       run: |
         python build_deps/configure.py
-        bazel build keras_cv/custom_ops:all --verbose_failures
+        bazel build keras_cv/custom_ops:all
         cp bazel-bin/keras_cv/custom_ops/*.so keras_cv/custom_ops/
     - name: Test with pytest
       run: |
