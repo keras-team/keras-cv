@@ -373,6 +373,9 @@ def _image_shape(images, image_shape, boxes):
         else:
             height = tf.reshape(images.row_lengths(), (-1, 1))
             width = tf.reshape(tf.reduce_max(images.row_lengths(axis=2), 1), (-1, 1))
+            if isinstance(boxes, tf.RaggedTensor):
+                height = tf.expand_dims(height, axis=-1)
+                width = tf.expand_dims(width, axis=-1)
     else:
         height, width = image_shape[0], image_shape[1]
     return tf.cast(height, boxes.dtype), tf.cast(width, boxes.dtype)
