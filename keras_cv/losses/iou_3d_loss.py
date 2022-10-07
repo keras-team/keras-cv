@@ -1,4 +1,4 @@
-# Copyright 2018 The Sonnet Authors. All Rights Reserved.
+# Copyright 2022 The KerasCV Authors. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ============================================================================
-"""Use iou_3d ops in python."""
+"""IoU3DLoss in python using a custom TF op."""
 
 from tensorflow.python.framework import load_library
 from tensorflow.python.platform import resource_loader
