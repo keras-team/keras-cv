@@ -123,7 +123,7 @@ def get_shared_lib_name():
 
 def create_build_configuration():
     print()
-    print("Configuring TensorFlow Addons to be built from source...")
+    print("Configuring KerasCV to be built from source...")
 
     if os.path.isfile(_TFA_BAZELRC):
         os.remove(_TFA_BAZELRC)
