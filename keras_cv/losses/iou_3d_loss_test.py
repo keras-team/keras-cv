@@ -19,11 +19,9 @@ from keras_cv.losses import IoU3DLoss
 
 
 class IoU3DTest(tf.test.TestCase):
-
-  def testOpCall(self):
-      self.assertAllClose(
-          IoU3DLoss([[1, 2], [3, 4]]), [[1, 0], [0, 0]])
+    def testOpCall(self):
+        self.assertAllClose(IoU3DLoss([[1, 2], [3, 4]]), [[1, 0], [0, 0]])
 
 
-if __name__ == '__main__':
-  test.main()
+if __name__ == "__main__":
+    tf.test.main()

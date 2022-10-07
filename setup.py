@@ -25,13 +25,13 @@ README = (HERE / "README.md").read_text()
 
 
 class BinaryDistribution(Distribution):
-  """This class is needed in order to create OS specific wheels."""
+    """This class is needed in order to create OS specific wheels."""
 
-  def has_ext_modules(self):
-    return True
+    def has_ext_modules(self):
+        return True
 
-  def is_pure(self):
-    return False
+    def is_pure(self):
+        return False
 
 
 setup(

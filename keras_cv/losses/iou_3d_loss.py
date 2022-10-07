@@ -18,5 +18,6 @@ from tensorflow.python.framework import load_library
 from tensorflow.python.platform import resource_loader
 
 iou_3d_ops = load_library.load_op_library(
-    resource_loader.get_path_to_datafile('../custom_ops/_zero_out_ops.so'))
+    resource_loader.get_path_to_datafile("../custom_ops/_zero_out_ops.so")
+)
 iou_3d = iou_3d_ops.zero_out

@@ -16,13 +16,12 @@
 #
 
 
+import logging
 import os
 import pathlib
 import platform
-import logging
 
 import tensorflow as tf
-
 from packaging.version import Version
 
 _TFA_BAZELRC = ".bazelrc"
