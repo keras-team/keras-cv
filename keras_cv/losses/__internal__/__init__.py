@@ -12,8 +12,4 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from keras_cv.losses.__internal__ import ZeroOutLoss as _ZeroOutLoss
-from keras_cv.losses.focal import FocalLoss
-from keras_cv.losses.iou_loss import IoULoss
-from keras_cv.losses.simclr_loss import SimCLRLoss
-from keras_cv.losses.smooth_l1 import SmoothL1Loss
+from keras_cv.losses.__internal__.zero_out_loss import zero_out as ZeroOutLoss

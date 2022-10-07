@@ -79,6 +79,12 @@ Our default training scripts train using ImageNet. Because we cannot distribute 
 
 We look forward to delivering great pre-trained models in KerasCV with the help of your contributions!
 
+## Contributing custom ops
+
+We do not plan to accept contributed custom ops due to the maintenance burden that they introduce. If there is a clear need for a specific custom op that should live in KerasCV, please consult the KerasCV team before implementing it, as we expect to reject contributions of custom ops by default.
+
+We currently support only a small handful of ops that run on CPU and are not used at inference time.
+
 ## Setup environment
 
 Setting up your KerasCV development environment requires you to fork the KerasCV repository,
@@ -123,6 +129,16 @@ You can run the unit tests for KerasCV by running:
 ```
 pytest keras_cv/
 ```
+
+### Tests that require custom ops
+For tests that require custom ops, you'll have to compile the custom ops and make them available to your local Python code:
+```shell
+python build_deps/configure.py
+bazel build keras_cv/custom_ops:all
+cp bazel-bin/keras_cv/custom_ops/*.so keras_cv/custom_ops/
+```
+
+You can also skip all tests which use custom ops by setting the environment variable `SKIP_CUSTOM_OPS=true`
 
 ## Formatting the Code
 We use `flake8`, `isort` and `black` for code formatting.  You can run

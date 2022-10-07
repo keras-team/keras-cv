@@ -37,6 +37,22 @@ Thank you to all of our wonderful contributors!
   <img src="https://contrib.rocks/image?repo=keras-team/keras-cv" />
 </a>
 
+## Installing from Source
+Installing from source requires the [Bazel](https://bazel.build/) build system
+(version >= 1.0.0).
+
+```
+git clone https://github.com/keras-team/keras-cv.git
+cd keras-cv
+
+python3 build_deps/configure.py
+
+bazel build build_pip_pkg
+bazel-bin/build_pip_pkg wheels
+
+pip install wheels/keras-cv-*.whl
+```
+
 ## Citing KerasCV
 
 If KerasCV helps your research, we appreciate your citations.
