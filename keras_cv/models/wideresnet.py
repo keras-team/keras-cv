@@ -17,7 +17,6 @@ Reference:
   - [Wide Residual Networks](https://arxiv.org/abs/1605.07146) (2016)
 """
 
-
 import tensorflow as tf
 from tensorflow.keras import backend
 from tensorflow.keras import layers
@@ -30,52 +29,66 @@ Stackwise (groupwise) blocks depend on the desired depth: blocks = (depth-4) / 6
 MODEL_CONFIGS = {
     "WRN16_8": {
         "stackwise_filters": [16, 32, 64],
-        "stackwise_blocks": 2,
+        "stackwise_blocks": [2, 2, 2],
         "k": 8,
         "l": 2,
         "stackwise_strides": [1, 2, 2],
     },
     "WRN16_10": {
         "stackwise_filters": [16, 32, 64],
-        "stackwise_blocks": 2,
+        "stackwise_blocks": [2, 2, 2],
         "k": 10,
         "l": 2,
         "stackwise_strides": [1, 2, 2],
     },
     "WRN22_8": {
         "stackwise_filters": [16, 32, 64],
-        "stackwise_blocks": 3,
+        "stackwise_blocks": [3, 3, 3],
         "k": 8,
         "l": 2,
         "stackwise_strides": [1, 2, 2],
     },
     "WRN22_10": {
         "stackwise_filters": [16, 32, 64],
-        "stackwise_blocks": 3,
+        "stackwise_blocks": [3, 3, 3],
         "k": 10,
         "l": 2,
         "stackwise_strides": [1, 2, 2],
     },
     "WRN28_10": {
         "stackwise_filters": [16, 32, 64],
-        "stackwise_blocks": 4,
+        "stackwise_blocks": [4, 4, 4],
         "k": 10,
         "l": 2,
         "stackwise_strides": [1, 2, 2],
     },
     "WRN28_12": {
         "stackwise_filters": [16, 32, 64],
-        "stackwise_blocks": 4,
+        "stackwise_blocks": [4, 4, 4],
         "k": 12,
         "l": 2,
         "stackwise_strides": [1, 2, 2],
     },
     "WRN40_8": {
         "stackwise_filters": [16, 32, 64],
-        "stackwise_blocks": 6,
+        "stackwise_blocks": [6, 6, 6],
         "k": 8,
         "l": 2,
         "stackwise_strides": [1, 2, 2],
+    },
+    "WRN50_2": {
+        "stackwise_filters": [64, 128, 256, 512],
+        "stackwise_blocks": [3, 4, 6, 3],
+        "k": 2,
+        "l": 2,
+        "stackwise_strides": [1, 2, 2, 2],
+    },
+    "WRN101_2": {
+        "stackwise_filters": [64, 128, 256, 512],
+        "stackwise_blocks": [3, 4, 23, 3],
+        "k": 2,
+        "l": 2,
+        "stackwise_strides": [1, 2, 2, 2],
     },
 }
 
@@ -134,12 +147,11 @@ def WideDropoutBlock(
     dropout=0.3,
     name=None,
 ):
-
     """A wide residual block with dropout.
     Args:
       x: input tensor.
-      filters: integer, filters of the bottleneck layer.
-      kernel_size: default 3, kernel size of the bottleneck layer.
+      filters: integer, filters of the wide layer.
+      kernel_size: default 3, kernel size of the wide layer.
       stride: default 1, stride of the first layer.
       conv_shortcut: default True, use convolution shortcut if True,
           otherwise identity shortcut.
@@ -197,7 +209,101 @@ def WideDropoutBlock(
                 )(x)
 
             if n % 2 == 0:
-                x = layers.SpatialDropout2D(dropout, name=name + "_0_dropout")(x)
+                x = layers.Dropout(dropout, name=name + "_0_dropout")(x)
+
+        x = layers.Add(name=name + "_add")([shortcut, x])
+        x = layers.Activation("relu", name=name + "_out")(x)
+        return x
+
+    return apply
+
+
+def BottleneckBlock(
+    filters,
+    kernel_size=3,
+    stride=1,
+    conv_shortcut=True,
+    l=2,
+    k=1,
+    dropout=None,
+    name=None,
+):
+    """A bottleneck residual block with a variable width factor.
+    Args:
+      x: input tensor.
+      filters: integer, filters of the bottleneck layer.
+      kernel_size: default 3, kernel size of the bottleneck layer.
+      stride: default 1, stride of the first layer.
+      conv_shortcut: default True, use convolution shortcut if True,
+          otherwise identity shortcut.
+      l: default 2, depth multiplier (number of Conv2D layers in each block)
+      k: default 1, width multiplier (k*filters in each Conv2D layer)
+      name: string, block label.
+    Returns:
+      Output tensor for the residual block.
+    """
+    if name is None:
+        name = f"block_{backend.get_uid('block')}"
+
+    def apply(x):
+        if conv_shortcut:
+            shortcut = layers.BatchNormalization(
+                axis=BN_AXIS, epsilon=1.001e-5, name=name + "_shortcut_bn"
+            )(x)
+            shortcut = layers.Activation("relu", name=name + "_shortcut_relu")(shortcut)
+            shortcut = layers.Conv2D(
+                4 * filters,
+                1,
+                strides=stride,
+                padding="same",
+                use_bias=False,
+                name=name + "_shortcut_conv",
+                kernel_regularizer=tf.keras.regularizers.l2(0.0005),
+            )(shortcut)
+        else:
+            shortcut = x
+
+        x = layers.BatchNormalization(
+            axis=BN_AXIS, epsilon=1.001e-5, name=name + "_0_bn"
+        )(x)
+        x = layers.Activation("relu", name=name + "_0_relu")(x)
+        x = layers.Conv2D(
+            filters,
+            1,
+            strides=stride,
+            padding="same",
+            use_bias=False,
+            name=name + "_0_strided_conv",
+            kernel_regularizer=tf.keras.regularizers.l2(0.0005),
+        )(x)
+
+        x = layers.BatchNormalization(
+            axis=BN_AXIS, epsilon=1.001e-5, name=name + "_1_bn"
+        )(x)
+        x = layers.Activation("relu", name=name + "_1_relu")(x)
+        x = layers.Conv2D(
+            k * filters,
+            kernel_size,
+            strides=1,
+            padding="same",
+            use_bias=False,
+            name=name + "_1_strided_conv",
+            kernel_regularizer=tf.keras.regularizers.l2(0.0005),
+        )(x)
+
+        x = layers.BatchNormalization(
+            axis=BN_AXIS, epsilon=1.001e-5, name=name + "_2_bn"
+        )(x)
+        x = layers.Activation("relu", name=name + "_2_relu")(x)
+        x = layers.Conv2D(
+            4 * filters,
+            1,
+            strides=1,
+            padding="same",
+            use_bias=False,
+            name=name + "_2_conv",
+            kernel_regularizer=tf.keras.regularizers.l2(0.0005),
+        )(x)
 
         x = layers.Add(name=name + "_add")([shortcut, x])
         x = layers.Activation("relu", name=name + "_out")(x)
@@ -223,7 +329,7 @@ def Stack(
       blocks: integer, blocks in the stacked blocks.
       stride: default 2, stride of the first layer in the first block.
       name: string, stack label.
-      block_fn: callable, `WideDropoutBlock`, the block function to stack.
+      block_fn: callable, `WideDropoutBlock` or `BottleneckBlock`, the block function to stack.
       first_shortcut: default True, use convolution shortcut if True,
           otherwise identity shortcut.
       l: default 2, depth multiplier (number of Conv2D layers in each block)
@@ -312,8 +418,7 @@ def WideResNet(
         classifier_activation: A `str` or callable. The activation function to use
             on the "top" layer. Ignored unless `include_top=True`. Set
             `classifier_activation=None` to return the logits of the "top" layer.
-        block_fn: callable, `Block` or `BasicBlock`, the block function to stack.
-            Use 'basic_block' for ResNet18 and ResNet34.
+        block_fn: callable, `WideDropoutBlock` or `BottleneckBlock`, the block function to stack.
         **kwargs: Pass-through keyword arguments to `tf.keras.Model`.
     Returns:
       A `keras.Model` instance.
@@ -343,27 +448,45 @@ def WideResNet(
     if include_rescaling:
         x = layers.Rescaling(1 / 255.0)(x)
 
-    x = layers.Conv2D(
-        16,
-        3,
-        strides=1,
-        use_bias=False,
-        padding="same",
-        name="conv0_conv",
-        kernel_regularizer=tf.keras.regularizers.l2(0.0005),
-    )(x)
+    if block_fn == WideDropoutBlock:
+        x = layers.Conv2D(
+            16,
+            3,
+            strides=1,
+            use_bias=False,
+            padding="same",
+            name="conv0_conv",
+            kernel_regularizer=tf.keras.regularizers.l2(0.0005),
+        )(x)
+    else:
+        x = layers.Conv2D(
+            64,
+            7,
+            strides=2,
+            use_bias=False,
+            padding="same",
+            name="conv0_conv",
+            kernel_regularizer=tf.keras.regularizers.l2(0.0005),
+        )(x)
+        x = layers.BatchNormalization(axis=BN_AXIS, epsilon=1.001e-5, name="conv0_bn")(
+            x
+        )
+        x = layers.Activation("relu", name="conv0_relu")(x)
+        x = layers.MaxPooling2D(3, strides=2, padding="same", name="pool0_pool")(x)
 
     num_stacks = len(stackwise_filters)
     for stack_index in range(num_stacks):
         x = Stack(
             filters=stackwise_filters[stack_index],
-            blocks=stackwise_blocks,
+            blocks=stackwise_blocks[stack_index],
             stride=stackwise_strides[stack_index],
             block_fn=block_fn,
             k=k,
             l=l,
             dropout=dropout,
-            first_shortcut=block_fn == WideDropoutBlock or stack_index > 0,
+            first_shortcut=block_fn == WideDropoutBlock
+            or BottleneckBlock
+            or stack_index > 0,
             name=f"group{stack_index}",
         )(x)
 
@@ -653,6 +776,82 @@ def WideResNet40_8(
     )
 
 
+def WideResNet50_2(
+    include_rescaling,
+    include_top,
+    classes=None,
+    weights=None,
+    k=None,
+    l=None,
+    dropout=None,
+    input_shape=(None, None, 3),
+    input_tensor=None,
+    pooling=None,
+    classifier_activation="softmax",
+    name="wideresnet50_2",
+    **kwargs,
+):
+    """Instantiates the WideResNet50_2 architecture."""
+
+    return WideResNet(
+        stackwise_filters=MODEL_CONFIGS["WRN50_2"]["stackwise_filters"],
+        stackwise_blocks=MODEL_CONFIGS["WRN50_2"]["stackwise_blocks"],
+        stackwise_strides=MODEL_CONFIGS["WRN50_2"]["stackwise_strides"],
+        k=MODEL_CONFIGS["WRN50_2"]["k"],
+        l=MODEL_CONFIGS["WRN50_2"]["l"],
+        include_rescaling=include_rescaling,
+        include_top=include_top,
+        name=name,
+        weights=weights,
+        dropout=dropout,
+        input_shape=input_shape,
+        input_tensor=input_tensor,
+        pooling=pooling,
+        classes=classes,
+        classifier_activation=classifier_activation,
+        block_fn=BottleneckBlock,
+        **kwargs,
+    )
+
+
+def WideResNet101_2(
+    include_rescaling,
+    include_top,
+    classes=None,
+    weights=None,
+    k=None,
+    l=None,
+    dropout=None,
+    input_shape=(None, None, 3),
+    input_tensor=None,
+    pooling=None,
+    classifier_activation="softmax",
+    name="wideresnet101_2",
+    **kwargs,
+):
+    """Instantiates the WideResNet101_2 architecture."""
+
+    return WideResNet(
+        stackwise_filters=MODEL_CONFIGS["WRN101_2"]["stackwise_filters"],
+        stackwise_blocks=MODEL_CONFIGS["WRN101_2"]["stackwise_blocks"],
+        stackwise_strides=MODEL_CONFIGS["WRN101_2"]["stackwise_strides"],
+        k=MODEL_CONFIGS["WRN101_2"]["k"],
+        l=MODEL_CONFIGS["WRN101_2"]["l"],
+        include_rescaling=include_rescaling,
+        include_top=include_top,
+        name=name,
+        weights=weights,
+        dropout=dropout,
+        input_shape=input_shape,
+        input_tensor=input_tensor,
+        pooling=pooling,
+        classes=classes,
+        classifier_activation=classifier_activation,
+        block_fn=BottleneckBlock,
+        **kwargs,
+    )
+
+
 setattr(WideResNet16_8, "__doc__", BASE_DOCSTRING.format(name="WideResNet16_8"))
 setattr(WideResNet16_10, "__doc__", BASE_DOCSTRING.format(name="WideResNet16_10"))
 setattr(WideResNet22_8, "__doc__", BASE_DOCSTRING.format(name="WideResNet22_8"))
@@ -660,3 +859,5 @@ setattr(WideResNet22_10, "__doc__", BASE_DOCSTRING.format(name="WideResNet22_10"
 setattr(WideResNet28_10, "__doc__", BASE_DOCSTRING.format(name="WideResNet28_10"))
 setattr(WideResNet28_12, "__doc__", BASE_DOCSTRING.format(name="WideResNet28_12"))
 setattr(WideResNet40_8, "__doc__", BASE_DOCSTRING.format(name="WideResNet40_8"))
+setattr(WideResNet50_2, "__doc__", BASE_DOCSTRING.format(name="WideResNet50_2"))
+setattr(WideResNet101_2, "__doc__", BASE_DOCSTRING.format(name="WideResNet101_2"))
