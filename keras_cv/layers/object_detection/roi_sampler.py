@@ -74,13 +74,8 @@ class _ROISampler(tf.keras.layers.Layer):
         self.append_gt_boxes = append_gt_boxes
         self.built = True
         # for debugging.
-        self._positives = self.add_weight(
-            shape=[],
-            initializer="zeros",
-            dtype=tf.float32,
-            name="positive_rpns",
-            trainable=False,
-        )
+        self._positives = tf.keras.metrics.Mean()
+        self._negatives = tf.keras.metrics.Mean()
 
     def call(
         self,
@@ -124,8 +119,13 @@ class _ROISampler(tf.keras.layers.Layer):
         matched_gt_cols, matched_vals = self.roi_matcher(similarity_mat)
         # [batch_size, num_rois]
         positive_matches = tf.math.equal(matched_vals, 1)
-        self._positives.assign_add(tf.reduce_sum(tf.cast(positive_matches, tf.float32)))
         negative_matches = tf.math.equal(matched_vals, -1)
+        self._positives.update_state(
+            tf.reduce_sum(tf.cast(positive_matches, tf.float32), axis=-1)
+        )
+        self._negatives.update_state(
+            tf.reduce_sum(tf.cast(negative_matches, tf.float32), axis=-1)
+        )
         # [batch_size, num_rois, 1]
         background_mask = tf.expand_dims(tf.logical_not(positive_matches), axis=-1)
         # [batch_size, num_rois, 1]
@@ -142,7 +142,7 @@ class _ROISampler(tf.keras.layers.Layer):
         # [batch_size, num_rois, 4]
         matched_gt_boxes = target_gather._target_gather(gt_boxes, matched_gt_cols)
         encoded_matched_gt_boxes = bounding_box._encode_box_to_deltas(
-            rois, matched_gt_boxes, "xyxy", "xyxy"
+            rois, matched_gt_boxes, "yxyx", "yxyx", [0.1, 0.1, 0.2, 0.2]
         )
         # also set all background matches to 0 coordinates
         encoded_matched_gt_boxes = tf.where(
