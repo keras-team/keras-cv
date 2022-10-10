@@ -5,8 +5,6 @@ on: # rebuild any PRs and main branch changes
       - 'setup.*'
       - '.devcontainer/**'
   push:
-    branches:
-      - main
     paths:
       - 'setup.*'
       - '.devcontainer/**'
