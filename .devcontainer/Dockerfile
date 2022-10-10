@@ -1,4 +1,4 @@
-ARG VARIANT
+ARG VARIANT=""
 
 FROM tensorflow/tensorflow:2.10.0${VARIANT}
 
