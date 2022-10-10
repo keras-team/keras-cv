@@ -25,7 +25,7 @@ class RequiresImagesException(Exception):
     pass
 
 
-def clip_boxes(boxes, box_format, image_shape):
+def _clip_boxes(boxes, box_format, image_shape):
     """Clip boxes to the boundaries of the image shape"""
     if boxes.shape[-1] != 4:
         raise ValueError(

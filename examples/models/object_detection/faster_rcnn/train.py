@@ -38,7 +38,7 @@ eval_ds = tfds.load("voc/2007", split="test", with_info=False)
 
 model = keras_cv.models.FasterRCNN(classes=20, bounding_box_format="yxyx")
 
-
+# TODO: migrate to KPL.
 def resize_and_crop_image(
     image,
     desired_size,
