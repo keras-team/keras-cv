@@ -25,25 +25,6 @@ class RequiresImagesException(Exception):
     pass
 
 
-def _clip_boxes(boxes, box_format, image_shape):
-    """Clip boxes to the boundaries of the image shape"""
-    if boxes.shape[-1] != 4:
-        raise ValueError(
-            "boxes.shape[-1] is {:d}, but must be 4.".format(boxes.shape[-1])
-        )
-
-    if isinstance(image_shape, list) or isinstance(image_shape, tuple):
-        height, width, _ = image_shape
-        max_length = [height, width, height, width]
-    else:
-        image_shape = tf.cast(image_shape, dtype=boxes.dtype)
-        height, width, _ = tf.unstack(image_shape, axis=-1)
-        max_length = tf.stack([height, width, height, width], axis=-1)
-
-    clipped_boxes = tf.math.maximum(tf.math.minimum(boxes, max_length), 0.0)
-    return clipped_boxes
-
-
 def _encode_box_to_deltas(
     anchors: tf.Tensor,
     boxes: tf.Tensor,
