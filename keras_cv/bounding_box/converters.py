@@ -25,6 +25,25 @@ class RequiresImagesException(Exception):
     pass
 
 
+def clip_boxes(boxes, box_format, image_shape):
+    """Clip boxes to the boundaries of the image shape"""
+    if boxes.shape[-1] != 4:
+        raise ValueError(
+            "boxes.shape[-1] is {:d}, but must be 4.".format(boxes.shape[-1])
+        )
+
+    if isinstance(image_shape, list) or isinstance(image_shape, tuple):
+        height, width, _ = image_shape
+        max_length = [height, width, height, width]
+    else:
+        image_shape = tf.cast(image_shape, dtype=boxes.dtype)
+        height, width, _ = tf.unstack(image_shape, axis=-1)
+        max_length = tf.stack([height, width, height, width], axis=-1)
+
+    clipped_boxes = tf.math.maximum(tf.math.minimum(boxes, max_length), 0.0)
+    return clipped_boxes
+
+
 def _encode_box_to_deltas(
     anchors: tf.Tensor,
     boxes: tf.Tensor,
@@ -35,7 +54,7 @@ def _encode_box_to_deltas(
     """Converts bounding_boxes from `center_yxhw` to delta format."""
     if variance and len(variance) != 4:
         raise ValueError(f"`variance` must be length 4, got {variance}")
-    anchors = convert_format(
+    encoded_anchors = convert_format(
         anchors,
         source=anchor_format,
         target="center_yxhw",
@@ -45,12 +64,12 @@ def _encode_box_to_deltas(
         source=box_format,
         target="center_yxhw",
     )
-    anchor_dimensions = tf.maximum(anchors[..., 2:], tf.keras.backend.epsilon())
+    anchor_dimensions = tf.maximum(encoded_anchors[..., 2:], tf.keras.backend.epsilon())
     box_dimensions = tf.maximum(boxes[..., 2:], tf.keras.backend.epsilon())
     # anchors be unbatched, boxes can either be batched or unbatched.
     boxes_delta = tf.concat(
         [
-            (boxes[..., :2] - anchors[..., :2]) / anchor_dimensions,
+            (boxes[..., :2] - encoded_anchors[..., :2]) / anchor_dimensions,
             tf.math.log(box_dimensions / anchor_dimensions),
         ],
         axis=-1,
@@ -69,7 +88,7 @@ def _decode_deltas_to_boxes(
     """Converts bounding_boxes from delta format to `center_yxhw`."""
     if variance and len(variance) != 4:
         raise ValueError(f"`variance` must be length 4, got {variance}")
-    anchors = convert_format(
+    encoded_anchors = convert_format(
         anchors,
         source=anchor_format,
         target="center_yxhw",
@@ -79,8 +98,8 @@ def _decode_deltas_to_boxes(
     # anchors be unbatched, boxes can either be batched or unbatched.
     boxes = tf.concat(
         [
-            boxes_delta[..., :2] * anchors[..., 2:] + anchors[..., :2],
-            tf.math.exp(boxes_delta[..., 2:]) * anchors[..., 2:],
+            boxes_delta[..., :2] * encoded_anchors[..., 2:] + encoded_anchors[..., :2],
+            tf.math.exp(boxes_delta[..., 2:]) * encoded_anchors[..., 2:],
         ],
         axis=-1,
     )
