@@ -53,4 +53,13 @@ from keras_cv.models.resnet_v1 import ResNet152
 from keras_cv.models.resnet_v2 import ResNet50V2
 from keras_cv.models.resnet_v2 import ResNet101V2
 from keras_cv.models.resnet_v2 import ResNet152V2
+from keras_cv.models.wideresnet import WideResNet16_8
+from keras_cv.models.wideresnet import WideResNet16_10
+from keras_cv.models.wideresnet import WideResNet22_8
+from keras_cv.models.wideresnet import WideResNet22_10
+from keras_cv.models.wideresnet import WideResNet28_10
+from keras_cv.models.wideresnet import WideResNet28_12
+from keras_cv.models.wideresnet import WideResNet40_8
+from keras_cv.models.wideresnet import WideResNet50_2
+from keras_cv.models.wideresnet import WideResNet101_2
 from keras_cv.models.vgg19 import VGG19
