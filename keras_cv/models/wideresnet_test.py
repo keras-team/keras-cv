@@ -26,6 +26,8 @@ MODEL_LIST = [
     (wideresnet.WideResNet28_10, 640, {}),
     (wideresnet.WideResNet28_12, 768, {}),
     (wideresnet.WideResNet40_8, 512, {}),
+    (wideresnet.WideResNet50_2, 2048, {}),
+    (wideresnet.WideResNet101_2, 2048, {}),
 ]
 
 
