@@ -1,4 +1,4 @@
-ARG VARIANT
+ARG VERSION
 
 FROM tensorflow/tensorflow:${VERSION}
 
