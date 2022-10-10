@@ -19,18 +19,11 @@ Last modified: 2022/09/27
 Description: Use KerasCV to train a RetinaNet on Pascal VOC 2007.
 """
 from datetime import datetime
-from typing import Any
-from typing import Mapping
-from typing import Optional
-from typing import Union
 
 import tensorflow as tf
 import tensorflow_datasets as tfds
 
 import keras_cv
-
-physical_devices = tf.config.list_physical_devices("GPU")
-tf.config.set_visible_devices(physical_devices[:1], "GPU")
 
 # parameters from FasterRCNN [paper](https://arxiv.org/pdf/1506.01497.pdf)
 
