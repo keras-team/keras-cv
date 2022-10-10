@@ -30,64 +30,64 @@ MODEL_CONFIGS = {
     "WRN16_8": {
         "stackwise_filters": [16, 32, 64],
         "stackwise_blocks": [2, 2, 2],
-        "k": 8,
-        "l": 2,
+        "width_factor": 8,
+        "depth_factor": 2,
         "stackwise_strides": [1, 2, 2],
     },
     "WRN16_10": {
         "stackwise_filters": [16, 32, 64],
         "stackwise_blocks": [2, 2, 2],
-        "k": 10,
-        "l": 2,
+        "width_factor": 10,
+        "depth_factor": 2,
         "stackwise_strides": [1, 2, 2],
     },
     "WRN22_8": {
         "stackwise_filters": [16, 32, 64],
         "stackwise_blocks": [3, 3, 3],
-        "k": 8,
-        "l": 2,
+        "width_factor": 8,
+        "depth_factor": 2,
         "stackwise_strides": [1, 2, 2],
     },
     "WRN22_10": {
         "stackwise_filters": [16, 32, 64],
         "stackwise_blocks": [3, 3, 3],
-        "k": 10,
-        "l": 2,
+        "width_factor": 10,
+        "depth_factor": 2,
         "stackwise_strides": [1, 2, 2],
     },
     "WRN28_10": {
         "stackwise_filters": [16, 32, 64],
         "stackwise_blocks": [4, 4, 4],
-        "k": 10,
-        "l": 2,
+        "width_factor": 10,
+        "depth_factor": 2,
         "stackwise_strides": [1, 2, 2],
     },
     "WRN28_12": {
         "stackwise_filters": [16, 32, 64],
         "stackwise_blocks": [4, 4, 4],
-        "k": 12,
-        "l": 2,
+        "width_factor": 12,
+        "depth_factor": 2,
         "stackwise_strides": [1, 2, 2],
     },
     "WRN40_8": {
         "stackwise_filters": [16, 32, 64],
         "stackwise_blocks": [6, 6, 6],
-        "k": 8,
-        "l": 2,
+        "width_factor": 8,
+        "depth_factor": 2,
         "stackwise_strides": [1, 2, 2],
     },
     "WRN50_2": {
         "stackwise_filters": [64, 128, 256, 512],
         "stackwise_blocks": [3, 4, 6, 3],
-        "k": 2,
-        "l": 2,
+        "width_factor": 2,
+        "depth_factor": 2,
         "stackwise_strides": [1, 2, 2, 2],
     },
     "WRN101_2": {
         "stackwise_filters": [64, 128, 256, 512],
         "stackwise_blocks": [3, 4, 23, 3],
-        "k": 2,
-        "l": 2,
+        "width_factor": 2,
+        "depth_factor": 2,
         "stackwise_strides": [1, 2, 2, 2],
     },
 }
@@ -131,7 +131,7 @@ BASE_DOCSTRING = """Instantiates the {name} architecture.
             `classifier_activation=None` to return the logits of the "top" layer.
         dropout: default 0.3, the dropout rate between Conv2D layers in each block.
         depth_factor: default 2, depth multiplier (number of Conv2D layers in each block).
-        width_factor: default 1, width multiplier (k*filters in each Conv2D layer).
+        width_factor: default 1, width multiplier (width_factor*filters in each Conv2D layer).
     Returns:
       A `keras.Model` instance.
 """
@@ -156,7 +156,8 @@ def WideDropoutBlock(
       conv_shortcut: default True, use convolution shortcut if True,
           otherwise identity shortcut.
       depth_factor: default 2, depth multiplier (number of Conv2D layers in each block)
-      width_factor: default 1, width multiplier (k*filters in each Conv2D layer)
+      width_factor: default 1, width multiplier (width_factor*filters in each Conv2D layer)
+      dropout: default 0.3, dropout rate for spatial dropout
       name: string, block label.
     Returns:
       Output tensor for the residual block.
@@ -171,7 +172,7 @@ def WideDropoutBlock(
             )(x)
             shortcut = layers.Activation("relu", name=name + "_shortcut_relu")(shortcut)
             shortcut = layers.Conv2D(
-                k * filters,
+                width_factor * filters,
                 kernel_size,
                 strides=stride,
                 padding="same",
@@ -182,14 +183,14 @@ def WideDropoutBlock(
         else:
             shortcut = x
 
-        for n in range(l):
+        for n in range(depth_factor):
             x = layers.BatchNormalization(
                 axis=BN_AXIS, epsilon=1.001e-5, name=name + f"_{n}_bn"
             )(x)
             x = layers.Activation("relu", name=name + f"_{n}_relu")(x)
             if n == 0:
                 x = layers.Conv2D(
-                    k * filters,
+                    width_factor * filters,
                     kernel_size,
                     strides=stride,
                     padding="same",
@@ -199,7 +200,7 @@ def WideDropoutBlock(
                 )(x)
             else:
                 x = layers.Conv2D(
-                    k * filters,
+                    width_factor * filters,
                     kernel_size,
                     strides=1,
                     padding="same",
@@ -237,7 +238,7 @@ def BottleneckBlock(
       conv_shortcut: default True, use convolution shortcut if True,
           otherwise identity shortcut.
       depth_factor: default 2, depth multiplier (number of Conv2D layers in each block)
-      width_factor: default 1, width multiplier (k*filters in each Conv2D layer)
+      width_factor: default 1, width multiplier (width_factor*filters in each Conv2D layer)
       name: string, block label.
     Returns:
       Output tensor for the residual block.
@@ -282,7 +283,7 @@ def BottleneckBlock(
         )(x)
         x = layers.Activation("relu", name=name + "_1_relu")(x)
         x = layers.Conv2D(
-            k * filters,
+            width_factor * filters,
             kernel_size,
             strides=1,
             padding="same",
@@ -333,7 +334,7 @@ def Stack(
       first_shortcut: default True, use convolution shortcut if True,
           otherwise identity shortcut.
       depth_factor: default 2, depth multiplier (number of Conv2D layers in each block)
-      width_factor: default 1, width multiplier (k*filters in each Conv2D layer)
+      width_factor: default 1, width multiplier (width_factor*filters in each Conv2D layer)
       dropout: default 0.3, dropout rate in spatial dropout layers
     Returns:
       Output tensor for the stacked blocks.
@@ -347,7 +348,7 @@ def Stack(
             stride=stride,
             conv_shortcut=first_shortcut,
             depth_factor=1,
-            width_factor=k,
+            width_factor=width_factor,
             dropout=dropout,
             name=name + "_conv1",
         )(x)
@@ -355,8 +356,8 @@ def Stack(
             x = block_fn(
                 filters,
                 conv_shortcut=False,
-                depth_factor=l,
-                width_factor=k,
+                depth_factor=depth_factor,
+                width_factor=width_factor,
                 dropout=dropout,
                 name=f"{name}_conv{i}",
             )(x)
@@ -390,7 +391,7 @@ def WideResNet(
         stackwise_blocks: number of blocks for each stack in the model.
         stackwise_strides: stride for each stack in the model.
         depth_factor: depth multiplier (number of Conv2D layers in each block).
-        width_factor: width multiplier (k*filters in each Conv2D layer).
+        width_factor: width multiplier (width_factor*filters in each Conv2D layer).
         dropout: the dropout rate between Conv2D layers in each block.
         include_rescaling: whether or not to Rescale the inputs. If set to True,
             inputs will be passed through a `Rescaling(1/255.0)` layer.
@@ -448,7 +449,7 @@ def WideResNet(
     if include_rescaling:
         x = layers.Rescaling(1 / 255.0)(x)
 
-    if block_fn == WideDropoutBlocwidth_factor:
+    if block_fn == WideDropoutBlock:
         x = layers.Conv2D(
             16,
             3,
@@ -481,8 +482,8 @@ def WideResNet(
             blocks=stackwise_blocks[stack_index],
             stride=stackwise_strides[stack_index],
             block_fn=block_fn,
-            width_factor=k,
-            depth_factor=l,
+            width_factor=width_factor,
+            depth_factor=depth_factor,
             dropout=dropout,
             first_shortcut=block_fn == WideDropoutBlock
             or BottleneckBlock
@@ -531,8 +532,8 @@ def WideResNet16_8(
         stackwise_filters=MODEL_CONFIGS["WRN16_8"]["stackwise_filters"],
         stackwise_blocks=MODEL_CONFIGS["WRN16_8"]["stackwise_blocks"],
         stackwise_strides=MODEL_CONFIGS["WRN16_8"]["stackwise_strides"],
-        width_factor=MODEL_CONFIGS["WRN16_8"]["k"],
-        depth_factor=MODEL_CONFIGS["WRN16_8"]["l"],
+        width_factor=MODEL_CONFIGS["WRN16_8"]["width_factor"],
+        depth_factor=MODEL_CONFIGS["WRN16_8"]["depth_factor"],
         include_rescaling=include_rescaling,
         include_top=include_top,
         name=name,
@@ -569,8 +570,8 @@ def WideResNet16_10(
         stackwise_filters=MODEL_CONFIGS["WRN16_10"]["stackwise_filters"],
         stackwise_blocks=MODEL_CONFIGS["WRN16_10"]["stackwise_blocks"],
         stackwise_strides=MODEL_CONFIGS["WRN16_10"]["stackwise_strides"],
-        width_factor=MODEL_CONFIGS["WRN16_10"]["k"],
-        depth_factor=MODEL_CONFIGS["WRN16_10"]["l"],
+        width_factor=MODEL_CONFIGS["WRN16_10"]["width_factor"],
+        depth_factor=MODEL_CONFIGS["WRN16_10"]["depth_factor"],
         include_rescaling=include_rescaling,
         include_top=include_top,
         name=name,
@@ -607,8 +608,8 @@ def WideResNet22_8(
         stackwise_filters=MODEL_CONFIGS["WRN22_8"]["stackwise_filters"],
         stackwise_blocks=MODEL_CONFIGS["WRN22_8"]["stackwise_blocks"],
         stackwise_strides=MODEL_CONFIGS["WRN22_8"]["stackwise_strides"],
-        width_factor=MODEL_CONFIGS["WRN22_8"]["k"],
-        depth_factor=MODEL_CONFIGS["WRN22_8"]["l"],
+        width_factor=MODEL_CONFIGS["WRN22_8"]["width_factor"],
+        depth_factor=MODEL_CONFIGS["WRN22_8"]["depth_factor"],
         include_rescaling=include_rescaling,
         include_top=include_top,
         name=name,
@@ -645,8 +646,8 @@ def WideResNet22_10(
         stackwise_filters=MODEL_CONFIGS["WRN22_10"]["stackwise_filters"],
         stackwise_blocks=MODEL_CONFIGS["WRN22_10"]["stackwise_blocks"],
         stackwise_strides=MODEL_CONFIGS["WRN22_10"]["stackwise_strides"],
-        width_factor=MODEL_CONFIGS["WRN22_10"]["k"],
-        depth_factor=MODEL_CONFIGS["WRN22_10"]["l"],
+        width_factor=MODEL_CONFIGS["WRN22_10"]["width_factor"],
+        depth_factor=MODEL_CONFIGS["WRN22_10"]["depth_factor"],
         include_rescaling=include_rescaling,
         include_top=include_top,
         name=name,
@@ -683,8 +684,8 @@ def WideResNet28_10(
         stackwise_filters=MODEL_CONFIGS["WRN28_10"]["stackwise_filters"],
         stackwise_blocks=MODEL_CONFIGS["WRN28_10"]["stackwise_blocks"],
         stackwise_strides=MODEL_CONFIGS["WRN28_10"]["stackwise_strides"],
-        width_factor=MODEL_CONFIGS["WRN28_10"]["k"],
-        depth_factor=MODEL_CONFIGS["WRN28_10"]["l"],
+        width_factor=MODEL_CONFIGS["WRN28_10"]["width_factor"],
+        depth_factor=MODEL_CONFIGS["WRN28_10"]["depth_factor"],
         include_rescaling=include_rescaling,
         include_top=include_top,
         name=name,
@@ -721,8 +722,8 @@ def WideResNet28_12(
         stackwise_filters=MODEL_CONFIGS["WRN28_12"]["stackwise_filters"],
         stackwise_blocks=MODEL_CONFIGS["WRN28_12"]["stackwise_blocks"],
         stackwise_strides=MODEL_CONFIGS["WRN28_12"]["stackwise_strides"],
-        width_factor=MODEL_CONFIGS["WRN28_12"]["k"],
-        depth_factor=MODEL_CONFIGS["WRN28_12"]["l"],
+        width_factor=MODEL_CONFIGS["WRN28_12"]["width_factor"],
+        depth_factor=MODEL_CONFIGS["WRN28_12"]["depth_factor"],
         include_rescaling=include_rescaling,
         include_top=include_top,
         name=name,
@@ -759,8 +760,8 @@ def WideResNet40_8(
         stackwise_filters=MODEL_CONFIGS["WRN40_8"]["stackwise_filters"],
         stackwise_blocks=MODEL_CONFIGS["WRN40_8"]["stackwise_blocks"],
         stackwise_strides=MODEL_CONFIGS["WRN40_8"]["stackwise_strides"],
-        width_factor=MODEL_CONFIGS["WRN40_8"]["k"],
-        depth_factor=MODEL_CONFIGS["WRN40_8"]["l"],
+        width_factor=MODEL_CONFIGS["WRN40_8"]["width_factor"],
+        depth_factor=MODEL_CONFIGS["WRN40_8"]["depth_factor"],
         include_rescaling=include_rescaling,
         include_top=include_top,
         name=name,
@@ -797,8 +798,8 @@ def WideResNet50_2(
         stackwise_filters=MODEL_CONFIGS["WRN50_2"]["stackwise_filters"],
         stackwise_blocks=MODEL_CONFIGS["WRN50_2"]["stackwise_blocks"],
         stackwise_strides=MODEL_CONFIGS["WRN50_2"]["stackwise_strides"],
-        width_factor=MODEL_CONFIGS["WRN50_2"]["k"],
-        depth_factor=MODEL_CONFIGS["WRN50_2"]["l"],
+        width_factor=MODEL_CONFIGS["WRN50_2"]["width_factor"],
+        depth_factor=MODEL_CONFIGS["WRN50_2"]["depth_factor"],
         include_rescaling=include_rescaling,
         include_top=include_top,
         name=name,
@@ -835,8 +836,8 @@ def WideResNet101_2(
         stackwise_filters=MODEL_CONFIGS["WRN101_2"]["stackwise_filters"],
         stackwise_blocks=MODEL_CONFIGS["WRN101_2"]["stackwise_blocks"],
         stackwise_strides=MODEL_CONFIGS["WRN101_2"]["stackwise_strides"],
-        width_factor=MODEL_CONFIGS["WRN101_2"]["k"],
-        depth_factor=MODEL_CONFIGS["WRN101_2"]["l"],
+        width_factor=MODEL_CONFIGS["WRN101_2"]["width_factor"],
+        depth_factor=MODEL_CONFIGS["WRN101_2"]["depth_factor"],
         include_rescaling=include_rescaling,
         include_top=include_top,
         name=name,
