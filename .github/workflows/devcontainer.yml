@@ -1,4 +1,4 @@
-name: 'devconateiner' 
+name: 'devconatiner' 
 on: # rebuild any PRs and main branch changes
   pull_request:
   push:
