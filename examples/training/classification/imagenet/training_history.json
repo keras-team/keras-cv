@@ -58,7 +58,7 @@
             "epochs_trained": 320,
             "script": {
                 "name": "basic_training.py",
-                "version": "04af57f1bdc55bd3d82bfaf7fb43255043814e70"
+                "version": "e349ca5563b05548996f438fa03b2f34a8231ca3"
             },
             "tensorboard_logs": "https://tensorboard.dev/experiment/kBs9YZkwQAeVNfv8JPKCLw/",
             "validation_accuracy": "0.7527"
