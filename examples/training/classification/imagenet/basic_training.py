@@ -97,6 +97,7 @@ if FLAGS.use_mixed_precision:
 
 CLASSES = 1000
 IMAGE_SIZE = (224, 224)
+# An upper bound for number of epochs (this script uses EarlyStopping).
 EPOCHS = 1000
 
 """
