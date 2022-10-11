@@ -188,7 +188,9 @@ Note that learning rate will decrease over time due to the ReduceLROnPlateau cal
 """
 
 
-optimizer = optimizers.SGD(learning_rate=INITIAL_LEARNING_RATE, momentum=0.9, global_clipnorm=10)
+optimizer = optimizers.SGD(
+    learning_rate=INITIAL_LEARNING_RATE, momentum=0.9, global_clipnorm=10
+)
 
 """
 Next, we pick a loss function. We use CategoricalCrossentropy with label smoothing.
