@@ -85,6 +85,12 @@ flags.DEFINE_string(
     "Keyword argument dictionary to pass to the constructor of the model being trained",
 )
 
+flags.DEFINE_string(
+    "use_warmup_schedule",
+    False,
+    "Boolean as to whether to use the warmup cosine schedule or not",
+)
+
 
 FLAGS = flags.FLAGS
 FLAGS(sys.argv)
@@ -110,6 +116,8 @@ batch size based on the number of accelerators being used.
 try:
     tpu = tf.distribute.cluster_resolver.TPUClusterResolver.connect()
     strategy = tf.distribute.TPUStrategy(tpu)
+    if FLAGS.use_mixed_precision:
+        keras.mixed_precision.set_global_policy("mixed_bfloat16")
 except ValueError:
     # MirroredStrategy is best for a single machine with one or multiple GPUs
     strategy = tf.distribute.MirroredStrategy()
@@ -182,17 +190,72 @@ with strategy.scope():
         **eval(FLAGS.model_kwargs),
     )
 
+"""
+Optional LR schedule with cosine decay instead of ReduceLROnPlateau
+"""
+def lr_warmup_cosine_decay(global_step,
+                           warmup_steps,
+                           hold=0,
+                           total_steps=0,
+                           start_lr=0.0,
+                           target_lr=1e-3):
+    # Cosine decay
+    # There is no tf.pi :(
+    learning_rate = 0.5 * target_lr * (1 + tf.cos(
+        tf.constant(3.141592653) * (global_step - warmup_steps - hold) / float(total_steps - warmup_steps - hold)))
+    warmup_lr = target_lr * (global_step / warmup_steps)
+
+    if hold > 0:
+        learning_rate = tf.where(global_step > warmup_steps + hold,
+                                 learning_rate, target_lr)
+
+    learning_rate = tf.where(global_step < warmup_steps, warmup_lr, learning_rate)
+    return learning_rate
+
+class WarmUpCosineDecay(keras.optimizers.schedules.LearningRateSchedule):
+    def __init__(self, start_lr, target_lr, warmup_steps, total_steps, hold):
+        super().__init__()
+        self.start_lr = start_lr
+        self.target_lr = target_lr
+        self.warmup_steps = warmup_steps
+        self.total_steps = total_steps
+        self.hold = hold
+
+    def __call__(self, step):
+        lr = lr_warmup_cosine_decay(global_step=step,
+                                    total_steps=self.total_steps,
+                                    warmup_steps=self.warmup_steps,
+                                    start_lr=self.start_lr,
+                                    target_lr=self.target_lr,
+                                    hold=self.hold)
+
+        return tf.where(
+            step > self.total_steps, 0.0, lr, name="learning_rate"
+        )
+
+# If batched
+total_steps = len(train_ds) * EPOCHS
+warmup_steps = int(0.05 * total_steps)
+schedule = WarmUpCosineDecay(start_lr=0.0,
+                             target_lr=INITIAL_LEARNING_RATE,
+                             warmup_steps=warmup_steps,
+                             total_steps=total_steps,
+                             hold=warmup_steps)
+
 
 """
-Next, we pick an optimizer. Here we use Adam with a constant learning rate.
-Note that learning rate will decrease over time due to the ReduceLROnPlateau callback.
+Next, we pick an optimizer. Here we use SGD.
+Note that learning rate will decrease over time due to the ReduceLROnPlateau callback or with the LRWarmup scheduler.
 """
 
-
-optimizer = optimizers.SGD(
-    learning_rate=INITIAL_LEARNING_RATE, momentum=0.9, global_clipnorm=10
-)
-
+if FLAGS.use_warmup_scheduele:
+    optimizer = optimizers.SGD(
+        learning_rate=schedule, momentum=0.9, global_clipnorm=10
+    )
+else:
+    optimizer = optimizers.SGD(
+        learning_rate=INITIAL_LEARNING_RATE, momentum=0.9, global_clipnorm=10
+    )
 """
 Next, we pick a loss function. We use CategoricalCrossentropy with label smoothing.
 """
@@ -208,7 +271,6 @@ Next, we specify the metrics that we want to track. For this example, we track a
 with strategy.scope():
     training_metrics = [metrics.CategoricalAccuracy()]
 
-
 """
 As a last piece of configuration, we configure callbacks for the method.
 We use EarlyStopping, BackupAndRestore, and a model checkpointing callback.
@@ -216,14 +278,14 @@ We use EarlyStopping, BackupAndRestore, and a model checkpointing callback.
 
 
 callbacks = [
-    callbacks.ReduceLROnPlateau(
-        monitor="val_loss", factor=0.1, patience=10, min_delta=0.001, min_lr=0.0001
-    ),
     callbacks.EarlyStopping(patience=20),
     callbacks.BackupAndRestore(FLAGS.backup_path),
     callbacks.ModelCheckpoint(FLAGS.weights_path, save_weights_only=True),
     callbacks.TensorBoard(log_dir=FLAGS.tensorboard_path, write_steps_per_second=True),
 ]
+
+if not FLAGS.use_warmup_schedule:
+    callbacks.append(callbacks.ReduceLROnPlateau(monitor="val_loss", factor=0.1, patience=10, min_delta=0.001, min_lr=0.0001))
 
 
 """
@@ -244,3 +306,4 @@ model.fit(
     callbacks=callbacks,
     validation_data=test_ds,
 )
+
