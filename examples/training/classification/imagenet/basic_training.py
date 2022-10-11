@@ -91,6 +91,18 @@ flags.DEFINE_string(
     "Boolean as to whether to use the warmup cosine schedule or not",
 )
 
+flags.DEFINE_string(
+    "warmup_steps_percentage",
+    10,
+    "For how many steps expressed in percentage of total steps should the schedule warm up",
+)
+
+flags.DEFINE_string(
+    "warmup_hold_steps_percentage",
+    10,
+    "For how many steps expressed in percentage of total steps should the schedule hold the initial learning rate",
+)
+
 
 FLAGS = flags.FLAGS
 FLAGS(sys.argv)
@@ -235,12 +247,12 @@ class WarmUpCosineDecay(keras.optimizers.schedules.LearningRateSchedule):
 
 # If batched
 total_steps = len(train_ds) * EPOCHS
-warmup_steps = int(0.05 * total_steps)
+warmup_steps = int(FLAGS.warmup_steps_percentage * total_steps)
 schedule = WarmUpCosineDecay(start_lr=0.0,
                              target_lr=INITIAL_LEARNING_RATE,
                              warmup_steps=warmup_steps,
                              total_steps=total_steps,
-                             hold=warmup_steps)
+                             hold=FLAGS.warmup_hold_steps_percentage)
 
 
 """
