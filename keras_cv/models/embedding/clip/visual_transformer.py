@@ -2,7 +2,6 @@ import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras import layers as klayers
 
-from .layers import LayerNorm
 from .transformer import Transformer
 
 
@@ -42,9 +41,9 @@ class VisualTransformer(keras.Model):
                 * tf.random.normal(((input_resolution // patch_size) ** 2 + 1, width)),
                 name="positional_embedding",
             )
-            self.ln_pre = LayerNorm(name="ln_pre")
+            self.ln_pre = layers.LayerNormalization(epsilon=1e-05, name="ln_pre")
 
-            self.ln_post = LayerNorm(name="ln_post")
+            self.ln_post = layers.LayerNormalization(epsilon=1e-05, name="ln_post")
             self.proj = tf.Variable(
                 scale * tf.random.normal((width, output_dim)), name="proj"
             )

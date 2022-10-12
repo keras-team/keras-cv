@@ -2,12 +2,10 @@ import sys
 
 import tensorflow as tf
 from tensorflow import keras
-from tensorflow.keras import layers as klayers
-
-from .layers import LayerNorm
+from tensorflow.keras import layers as layers
 
 
-class QuickGELU(klayers.Layer):
+class QuickGELU(layers.Layer):
     def __init__(self, name="QuickGELU"):
         super(QuickGELU, self).__init__(name=name)
 
@@ -15,7 +13,7 @@ class QuickGELU(klayers.Layer):
         return x * tf.sigmoid(1.702 * x)
 
 
-class ResidualAttentionBlock(klayers.Layer):
+class ResidualAttentionBlock(layers.Layer):
     def __init__(
         self,
         d_model: int,
@@ -24,25 +22,25 @@ class ResidualAttentionBlock(klayers.Layer):
         name="ResidualAttentionBlock",
         idx=0,
     ):
-        super().__init__(name=name)
+        super().__init__(epsilon=1e-05, name=name)
         self.idx = idx
 
         self.d_model = d_model
         self.n_head = n_head
 
-        self.attn = klayers.MultiHeadAttention(
+        self.attn = layers.MultiHeadAttention(
             num_heads=n_head, key_dim=d_model // n_head, name="attn"
         )
-        self.ln_1 = LayerNorm(name="ln_1")
+        self.ln_1 = layers.LayerNormalization(name="ln_1")
         self.mlp = keras.Sequential(
             [
-                klayers.Dense(d_model * 4, name=name + "/mlp/c_fc"),
+                layers.Dense(d_model * 4, name=name + "/mlp/c_fc"),
                 QuickGELU(name=name + "/mlp/gelu"),
-                klayers.Dense(d_model, name=name + "/mlp/c_proj"),
+                layers.Dense(d_model, name=name + "/mlp/c_proj"),
             ],
             name="mlp",
         )
-        self.ln_2 = LayerNorm(name="ln_2")
+        self.ln_2 = layers.LayerNormalization(epsilon=1e-05, name="ln_2")
         self.attn_mask = attn_mask
 
     def attention(self, x: tf.Tensor):

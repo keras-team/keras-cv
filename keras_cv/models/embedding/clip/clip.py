@@ -74,7 +74,7 @@ class CLIP(keras.Model):
             tf.zeros((self.context_length, transformer_width)),
             name="positional_embedding",
         )
-        self.ln_final = LayerNorm(name="ln_final")
+        self.ln_final = layers.LayerNormalization(epsilon=1e-05, name="ln_final")
 
         self.text_projection = tf.Variable(
             tf.zeros((transformer_width, embed_dim)), name="text_projection"
@@ -207,9 +207,7 @@ class CLIP(keras.Model):
         image, text = input
         image_features = self.encode_image(image)
 
-        text = tf.squeeze(
-            text, axis=0
-        )
+        text = tf.squeeze(text, axis=0)
         # TODO(lukewood): support batching - perhaps with vmap?
         text_features = self.encode_text(text)
 
