@@ -405,7 +405,7 @@ for epoch in range(1, 19):
         step += 1
         if step % step_size == 0:
             print(
-                "step {} rpn_reg {:.4}, rpn_cls {:.4}, rcnn_reg {:.4}, rcnn_cls {:.4}, l2 {:.4}, pos_rois {:.4}, neg_rois {:.4}, pos_anchors {:.4}".format(
+                "step {} rpn_reg {:.4}, rpn_cls {:.4}, rcnn_reg {:.4}, rcnn_cls {:.4}, l2 {:.4}, pos_rois {:.4}, neg_rois {:.4}".format(
                     step,
                     rpn_reg_loss / step_size,
                     rpn_cls_loss / step_size,
@@ -414,7 +414,6 @@ for epoch in range(1, 19):
                     l2_loss / step_size,
                     model.roi_sampler._positives.result(),
                     model.roi_sampler._negatives.result(),
-                    model.rpn_labeler._positives.result(),
                 )
             )
             rpn_reg_loss = 0.0
@@ -424,7 +423,6 @@ for epoch in range(1, 19):
             l2_loss = 0.0
             model.roi_sampler._positives.reset_state()
             model.roi_sampler._negatives.reset_state()
-            model.rpn_labeler._positives.reset_state()
     for examples in dist_eval_ds:
         _ = distributed_eval_step(examples)
     print(
