@@ -27,16 +27,21 @@ import keras_cv
 
 # parameters from FasterRCNN [paper](https://arxiv.org/pdf/1506.01497.pdf)
 
-global_batch = 4
+strategy = tf.distribute.MirroredStrategy()
+local_batch = 4
+global_batch = local_batch * strategy.num_replicas_in_sync
+base_lr = 0.01 * global_batch / 16
 image_size = [640, 640, 3]
 train_ds = tfds.load(
-    "voc/2007", split="train+validation", with_info=False, shuffle_files=True
-).concatenate(
+    "voc/2007", split="train+test", with_info=False, shuffle_files=True
+)
+train_ds = train_ds.concatenate(
     tfds.load("voc/2012", split="train+validation", with_info=False, shuffle_files=True)
 )
 eval_ds = tfds.load("voc/2007", split="test", with_info=False)
 
-model = keras_cv.models.FasterRCNN(classes=20, bounding_box_format="yxyx")
+with strategy.scope():
+    model = keras_cv.models.FasterRCNN(classes=20, bounding_box_format="yxyx")
 
 
 # TODO: migrate to KPL.
@@ -242,31 +247,33 @@ eval_ds = eval_ds.map(pad_fn, num_parallel_calls=tf.data.AUTOTUNE)
 eval_ds = eval_ds.prefetch(2)
 
 
-# The keras huber loss will sum all losses and divide by BS * N * 4, instead we want divide by BS
-# using NONE reduction as also summing creates issues
-rpn_reg_loss_fn = tf.keras.losses.Huber(reduction=tf.keras.losses.Reduction.NONE)
-rpn_cls_loss_fn = tf.keras.losses.BinaryCrossentropy(
-    from_logits=True, reduction=tf.keras.losses.Reduction.NONE
-)
-rcnn_reg_loss_fn = tf.keras.losses.Huber(reduction=tf.keras.losses.Reduction.NONE)
-rcnn_cls_loss_fn = tf.keras.losses.SparseCategoricalCrossentropy(
-    from_logits=True, reduction=tf.keras.losses.Reduction.NONE
-)
+with strategy.scope():
+    # The keras huber loss will sum all losses and divide by BS * N * 4, instead we want divide by BS
+    # using NONE reduction as also summing creates issues
+    rpn_reg_loss_fn = tf.keras.losses.Huber(reduction=tf.keras.losses.Reduction.NONE)
+    rpn_cls_loss_fn = tf.keras.losses.BinaryCrossentropy(
+        from_logits=True, reduction=tf.keras.losses.Reduction.NONE
+    )
+    rcnn_reg_loss_fn = tf.keras.losses.Huber(reduction=tf.keras.losses.Reduction.NONE)
+    rcnn_cls_loss_fn = tf.keras.losses.SparseCategoricalCrossentropy(
+        reduction=tf.keras.losses.Reduction.NONE
+    )
 
-rpn_reg_metric = tf.keras.metrics.Mean()
-rpn_cls_metric = tf.keras.metrics.Mean()
-rcnn_reg_metric = tf.keras.metrics.Mean()
-rcnn_cls_metric = tf.keras.metrics.Mean()
+    rpn_reg_metric = tf.keras.metrics.Mean()
+    rpn_cls_metric = tf.keras.metrics.Mean()
+    rcnn_reg_metric = tf.keras.metrics.Mean()
+    rcnn_cls_metric = tf.keras.metrics.Mean()
 
-lr_decay = tf.keras.optimizers.schedules.PiecewiseConstantDecay(
-    boundaries=[36000, 50000], values=[0.005, 0.0005, 0.00005]
-)
+    lr_decay = tf.keras.optimizers.schedules.PiecewiseConstantDecay(
+        boundaries=[12000 * 16 / global_batch, 16000 * 16 / global_batch],
+        values=[base_lr, 0.1 * base_lr, 0.01 * base_lr],
+    )
 
-optimizer = tf.keras.optimizers.SGD(
-    learning_rate=lr_decay, momentum=0.9, global_clipnorm=10.0
-)
+    optimizer = tf.keras.optimizers.SGD(
+        learning_rate=lr_decay, momentum=0.9, global_clipnorm=10.0
+    )
 
-weight_decay = 0.0003
+weight_decay = 0.0001
 step = 0
 
 
@@ -294,6 +301,7 @@ def compute_loss(examples, training):
         rpn_cls_loss_fn(cls_targets, rpn_cls_pred, cls_weights)
     )
     rpn_cls_loss /= model.rpn_labeler.samples_per_image * global_batch
+
     rcnn_reg_loss = tf.reduce_sum(
         rcnn_reg_loss_fn(
             outputs["rcnn_box_targets"],
@@ -341,13 +349,32 @@ def train_step(examples):
 
 @tf.function
 def eval_step(examples):
-    rpn_reg_loss, rpn_cls_loss, rcnn_reg_loss, rcnn_cls_loss, _, _ = compute_loss(
-        examples, training=True
-    )
-    rpn_reg_metric.update_state(rpn_reg_loss)
-    rpn_cls_metric.update_state(rpn_cls_loss)
-    rcnn_reg_metric.update_state(rcnn_reg_loss)
-    rcnn_cls_metric.update_state(rcnn_cls_loss)
+    (
+        rpn_reg_loss,
+        rpn_cls_loss,
+        rcnn_reg_loss,
+        rcnn_cls_loss,
+        _,
+        total_loss,
+    ) = compute_loss(examples, training=True)
+    # the loss is already divided by global batch, so Mean metrics need to scale back
+    num_syncs = strategy.num_replicas_in_sync
+    rpn_reg_metric.update_state(rpn_reg_loss * num_syncs)
+    rpn_cls_metric.update_state(rpn_cls_loss * num_syncs)
+    rcnn_reg_metric.update_state(rcnn_reg_loss * num_syncs)
+    rcnn_cls_metric.update_state(rcnn_cls_loss * num_syncs)
+    return total_loss
+
+
+@tf.function
+def distributed_train_step(dataset_inputs):
+    per_replica_losses = strategy.run(train_step, args=(dataset_inputs,))
+    return strategy.reduce(tf.distribute.ReduceOp.SUM, per_replica_losses, axis=None)
+
+
+@tf.function
+def distributed_eval_step(dataset_inputs):
+    return strategy.run(eval_step, args=(dataset_inputs,))
 
 
 rpn_reg_loss = 0.0
@@ -357,8 +384,11 @@ rcnn_cls_loss = 0.0
 l2_loss = 0.0
 step_size = 500
 
-for epoch in range(1, 21):
-    for examples in train_ds:
+dist_train_ds = strategy.experimental_distribute_dataset(train_ds)
+dist_eval_ds = strategy.experimental_distribute_dataset(eval_ds)
+
+for epoch in range(1, 19):
+    for examples in dist_train_ds:
         (
             step_rpn_reg_loss,
             step_rpn_cls_loss,
@@ -366,7 +396,7 @@ for epoch in range(1, 21):
             step_rcnn_cls_loss,
             step_l2_loss,
             total_loss,
-        ) = train_step(examples)
+        ) = distributed_train_step(examples)
         rpn_reg_loss += step_rpn_reg_loss
         rpn_cls_loss += step_rpn_cls_loss
         rcnn_reg_loss += step_rcnn_reg_loss
@@ -375,7 +405,7 @@ for epoch in range(1, 21):
         step += 1
         if step % step_size == 0:
             print(
-                "step {} rpn_reg {:.4}, rpn_cls {:.4}, rcnn_reg {:.4}, rcnn_cls {:.4}, l2 {:.4}, pos_rois {:.4}, neg_rois {:.4}, pos_anchors {:.4}".format(
+                "step {} rpn_reg {:.4}, rpn_cls {:.4}, rcnn_reg {:.4}, rcnn_cls {:.4}, l2 {:.4}, pos_rois {:.4}, neg_rois {:.4}".format(
                     step,
                     rpn_reg_loss / step_size,
                     rpn_cls_loss / step_size,
@@ -384,7 +414,6 @@ for epoch in range(1, 21):
                     l2_loss / step_size,
                     model.roi_sampler._positives.result(),
                     model.roi_sampler._negatives.result(),
-                    model.rpn_labeler._positives.result(),
                 )
             )
             rpn_reg_loss = 0.0
@@ -394,9 +423,8 @@ for epoch in range(1, 21):
             l2_loss = 0.0
             model.roi_sampler._positives.reset_state()
             model.roi_sampler._negatives.reset_state()
-            model.rpn_labeler._positives.reset_state()
-    for examples in eval_ds:
-        eval_step(examples)
+    for examples in dist_eval_ds:
+        _ = distributed_eval_step(examples)
     print(
         "epoch {} rpn reg loss {:.4}, rpn cls loss {:.4}, rcnn reg loss {:.4}, rcnn cls loss {:.4}".format(
             epoch,
@@ -410,6 +438,6 @@ for epoch in range(1, 21):
     rpn_cls_metric.reset_state()
     rcnn_reg_metric.reset_state()
     rcnn_cls_metric.reset_state()
-    print("{} finished epoch {}".format(datetime.now(), epoch))
+    print(f"{datetime.now()} finished epoch {epoch}", flush=True)
 
     model.save_weights(f"./weights_{epoch}.h5")
