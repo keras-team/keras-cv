@@ -86,21 +86,21 @@ flags.DEFINE_string(
 )
 
 flags.DEFINE_string(
-    "use_warmup_schedule",
-    False,
-    "Boolean as to whether to use the warmup cosine schedule or not",
+    "learning_rate_schedule",
+    "ReduceLROnPlateau",
+    "String denoting the type of learning rate schedule to be used",
 )
 
 flags.DEFINE_string(
     "warmup_steps_percentage",
     10,
-    "For how many steps expressed in percentage of total steps should the schedule warm up",
+    "For how many steps expressed in percentage of total steps should the schedule warm up if we're using the warmup schedule",
 )
 
 flags.DEFINE_string(
     "warmup_hold_steps_percentage",
     10,
-    "For how many steps expressed in percentage of total steps should the schedule hold the initial learning rate",
+    "For how many steps expressed in percentage of total steps should the schedule hold the initial learning rate if we're using the warmup schedule",
 )
 
 # An upper bound for number of epochs (this script uses EarlyStopping).
@@ -265,7 +265,7 @@ Next, we pick an optimizer. Here we use SGD.
 Note that learning rate will decrease over time due to the ReduceLROnPlateau callback or with the LRWarmup scheduler.
 """
 
-if FLAGS.use_warmup_scheduele:
+if FLAGS.learning_rate_schedule == 'CosineDecayWithWarmup':
     optimizer = optimizers.SGD(
         learning_rate=schedule, momentum=0.9, global_clipnorm=10
     )
@@ -296,7 +296,7 @@ callbacks = [
     callbacks.TensorBoard(log_dir=FLAGS.tensorboard_path, write_steps_per_second=True),
 ]
 
-if not FLAGS.use_warmup_schedule:
+if FLAGS.learning_rate_schedule == 'ReduceLROnPlateau':
     callbacks.append(callbacks.ReduceLROnPlateau(monitor="val_loss", factor=0.1, patience=10, min_delta=0.001, min_lr=0.0001))
 
 
