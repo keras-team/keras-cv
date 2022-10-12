@@ -33,6 +33,8 @@ import keras_cv
 from keras_cv import models
 from keras_cv.datasets import imagenet
 
+import numpy as np
+
 """
 ## Overview
 KerasCV makes training state-of-the-art classification models easy by providing implementations of modern models, preprocessing techniques, and layers.
@@ -45,7 +47,6 @@ pip install keras-cv
 
 """
 ## Setup, constants and flags
-
 """
 
 flags.DEFINE_string(
@@ -219,7 +220,7 @@ def lr_warmup_cosine_decay(global_step,
     # Cosine decay
     # There is no tf.pi :(
     learning_rate = 0.5 * target_lr * (1 + tf.cos(
-        tf.constant(3.141592653) * (global_step - warmup_steps - hold) / float(total_steps - warmup_steps - hold)))
+        tf.constant(np.pi) * (global_step - warmup_steps - hold) / float(total_steps - warmup_steps - hold)))
     warmup_lr = target_lr * (global_step / warmup_steps)
 
     if hold > 0:
