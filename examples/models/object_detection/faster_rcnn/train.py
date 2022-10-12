@@ -265,7 +265,8 @@ with strategy.scope():
     rcnn_cls_metric = tf.keras.metrics.Mean()
 
     lr_decay = tf.keras.optimizers.schedules.PiecewiseConstantDecay(
-        boundaries=[12000, 16000], values=[base_lr, 0.1 * base_lr, 0.01 * base_lr]
+        boundaries=[12000 * 16 / global_batch, 16000 * 16 / global_batch],
+        values=[base_lr, 0.1 * base_lr, 0.01 * base_lr],
     )
 
     optimizer = tf.keras.optimizers.SGD(
