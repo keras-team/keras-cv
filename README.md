@@ -43,7 +43,8 @@ all of these weights are trained using Keras and KerasCV components and training
 repository. Models may not be trained with the same parameters described in their original papers.
 Performance metrics for pre-trained weights can be found in the training history for each task.
 For example, see ImageNet classification training history for backbone models [here](examples/training/classification/imagenet/training_history.json).
-All results are reproducible using the training scripts in this repository.
+All results are reproducible using the training scripts in this repository. Pre-trained weights
+operate on images that have been rescaled using a simple `1/255` rescaling layer.
 
 ## Citing KerasCV
 
