@@ -209,7 +209,8 @@ class CLIP(keras.Model):
 
         text = tf.squeeze(
             text, axis=0
-        )  # TODO: find another way to feed data, but keras requires that all input tensors have to have the same batch size
+        )
+        # TODO(lukewood): support batching - perhaps with vmap?
         text_features = self.encode_text(text)
 
         # normalized features
