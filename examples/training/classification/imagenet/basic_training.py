@@ -204,6 +204,7 @@ with strategy.scope():
 
 """
 Optional LR schedule with cosine decay instead of ReduceLROnPlateau
+TODO: Replace with Core Keras LRWarmup when it's released. This is a temporary solution.
 """
 def lr_warmup_cosine_decay(global_step,
                            warmup_steps,
