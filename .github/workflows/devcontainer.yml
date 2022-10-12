@@ -1,9 +1,10 @@
 name: 'devconatiner' 
 on: # rebuild any PRs and main branch changes
   pull_request:
+    paths:
+      - 'setup.*'
+      - '.devcontainer/**'
   push:
-    branches:
-      - main
     paths:
       - 'setup.*'
       - '.devcontainer/**'
