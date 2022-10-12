@@ -1,5 +1,6 @@
-from .clip import CLIP
+from  keras_cv.models.embedding.clip.clip import CLIP
 
+# TODO(Lukewood): support weight loading.
 
 def build_model(state_dict: dict):
     vit = "visual.proj" in state_dict

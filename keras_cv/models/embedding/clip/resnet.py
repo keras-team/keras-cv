@@ -1,9 +1,9 @@
 import tensorflow as tf
 from tensorflow import keras
-from tensorflow.keras import layers as klayers
+from tensorflow.keras import layers
 
 
-class Bottleneck(klayers.Layer):
+class Bottleneck(layers.Layer):
     expansion = 4
 
     def __init__(self, inplanes, planes, stride=1, name: str = "bottleneck"):
@@ -11,21 +11,21 @@ class Bottleneck(klayers.Layer):
 
         with tf.name_scope(name):
             # all conv layers have stride 1. an avgpool is performed after the second convolution when stride > 1
-            self.conv1 = klayers.Conv2D(planes, 1, use_bias=False, name="conv1")
-            self.bn1 = klayers.BatchNormalization(name="bn1", epsilon=1e-5)
+            self.conv1 = layers.Conv2D(planes, 1, use_bias=False, name="conv1")
+            self.bn1 = layers.BatchNormalization(name="bn1", epsilon=1e-5)
 
-            self.conv2_padding = klayers.ZeroPadding2D(padding=((1, 1), (1, 1)))
-            self.conv2 = klayers.Conv2D(planes, 3, use_bias=False, name="conv2")
-            self.bn2 = klayers.BatchNormalization(name="bn2", epsilon=1e-5)
+            self.conv2_padding = layers.ZeroPadding2D(padding=((1, 1), (1, 1)))
+            self.conv2 = layers.Conv2D(planes, 3, use_bias=False, name="conv2")
+            self.bn2 = layers.BatchNormalization(name="bn2", epsilon=1e-5)
 
-            self.avgpool = klayers.AveragePooling2D(stride) if stride > 1 else None
+            self.avgpool = layers.AveragePooling2D(stride) if stride > 1 else None
 
-            self.conv3 = klayers.Conv2D(
+            self.conv3 = layers.Conv2D(
                 planes * self.expansion, 1, use_bias=False, name="conv3"
             )
-            self.bn3 = klayers.BatchNormalization(name="bn3", epsilon=1e-5)
+            self.bn3 = layers.BatchNormalization(name="bn3", epsilon=1e-5)
 
-            self.relu = klayers.ReLU()
+            self.relu = layers.ReLU()
             self.downsample = None
             self.stride = stride
 
@@ -36,17 +36,17 @@ class Bottleneck(klayers.Layer):
                 # downsampling layer is prepended with an avgpool, and the subsequent convolution has stride 1
                 self.downsample = keras.Sequential(
                     [
-                        klayers.AveragePooling2D(
+                        layers.AveragePooling2D(
                             stride, name=name + "/downsample/avgpool"
                         ),
-                        klayers.Conv2D(
+                        layers.Conv2D(
                             planes * self.expansion,
                             1,
                             strides=1,
                             use_bias=False,
                             name=name + "/downsample/0",
                         ),
-                        klayers.BatchNormalization(
+                        layers.BatchNormalization(
                             name=name + "/downsample/1", epsilon=1e-5
                         ),
                     ],
@@ -83,7 +83,7 @@ class Bottleneck(klayers.Layer):
         return out
 
 
-class AttentionPool2d(klayers.Layer):
+class AttentionPool2d(layers.Layer):
     def __init__(
         self,
         spatial_dim: int,
@@ -108,7 +108,7 @@ class AttentionPool2d(klayers.Layer):
         self.num_heads = num_heads
         self._key_dim = embed_dim
 
-        self.multi_head_attention = klayers.MultiHeadAttention(
+        self.multi_head_attention = layers.MultiHeadAttention(
             num_heads=num_heads,
             key_dim=embed_dim // num_heads,
             output_shape=output_dim or embed_dim,
@@ -169,25 +169,25 @@ class ModifiedResNet(keras.Model):
         self.width = width
 
         # the 3-layer stem
-        self.conv1_padding = klayers.ZeroPadding2D(
+        self.conv1_padding = layers.ZeroPadding2D(
             padding=((1, 1), (1, 1)), name="conv1_padding"
         )
-        self.conv1 = klayers.Conv2D(
+        self.conv1 = layers.Conv2D(
             width // 2, 3, strides=2, use_bias=False, name="conv1"
         )
-        self.bn1 = klayers.BatchNormalization(name="bn1", epsilon=1e-5)
-        self.conv2_padding = klayers.ZeroPadding2D(
+        self.bn1 = layers.BatchNormalization(name="bn1", epsilon=1e-5)
+        self.conv2_padding = layers.ZeroPadding2D(
             padding=((1, 1), (1, 1)), name="conv2_padding"
         )
-        self.conv2 = klayers.Conv2D(width // 2, 3, use_bias=False, name="conv2")
-        self.bn2 = klayers.BatchNormalization(name="bn2", epsilon=1e-5)
-        self.conv3_padding = klayers.ZeroPadding2D(
+        self.conv2 = layers.Conv2D(width // 2, 3, use_bias=False, name="conv2")
+        self.bn2 = layers.BatchNormalization(name="bn2", epsilon=1e-5)
+        self.conv3_padding = layers.ZeroPadding2D(
             padding=((1, 1), (1, 1)), name="conv3_padding"
         )
-        self.conv3 = klayers.Conv2D(width, 3, use_bias=False, name="conv3")
-        self.bn3 = klayers.BatchNormalization(name="bn3", epsilon=1e-5)
-        self.avgpool = klayers.AveragePooling2D(2, name="avgpool")
-        self.relu = klayers.ReLU()
+        self.conv3 = layers.Conv2D(width, 3, use_bias=False, name="conv3")
+        self.bn3 = layers.BatchNormalization(name="bn3", epsilon=1e-5)
+        self.avgpool = layers.AveragePooling2D(2, name="avgpool")
+        self.relu = layers.ReLU()
 
         # residual layers
         self._inplanes = width  # this is a *mutable* variable used during construction

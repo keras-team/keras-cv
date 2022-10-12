@@ -7,6 +7,8 @@ import ftfy
 import regex as re
 
 
+# TODO(Lukewood): port the StableDiffusion CLIP to this directory.
+
 @lru_cache()
 def default_bpe():
     return os.path.join(

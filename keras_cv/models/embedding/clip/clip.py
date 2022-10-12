@@ -6,10 +6,10 @@ import numpy as np
 import tensorflow as tf
 from tensorflow import keras
 
-from .layers import LayerNorm
-from .resnet import ModifiedResNet
-from .transformer import Transformer
-from .visual_transformer import VisualTransformer
+from  keras_cv.models.embedding.clip.layers import LayerNorm
+from  keras_cv.models.embedding.clip.resnet import ModifiedResNet
+from  keras_cv.models.embedding.clip.transformer import Transformer
+from  keras_cv.models.embedding.clip.visual_transformer import VisualTransformer
 
 
 class CLIP(keras.Model):

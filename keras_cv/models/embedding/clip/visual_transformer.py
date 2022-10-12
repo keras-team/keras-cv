@@ -2,7 +2,7 @@ import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras import layers as klayers
 
-from .transformer import Transformer
+from keras_cv.models.embedding.clip.transformer import Transformer
 
 
 class VisualTransformer(keras.Model):
