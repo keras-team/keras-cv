@@ -157,8 +157,6 @@ class RPNHead(tf.keras.layers.Layer):
                 rpn_box, rpn_score = call_single_level(f_map)
                 rpn_boxes.append(rpn_box)
                 rpn_scores.append(rpn_score)
-            rpn_boxes = tf.concat(rpn_boxes, axis=1)
-            rpn_scores = tf.concat(rpn_scores, axis=1)
             return rpn_boxes, rpn_scores
         else:
             rpn_boxes = {}
@@ -167,8 +165,6 @@ class RPNHead(tf.keras.layers.Layer):
                 rpn_box, rpn_score = call_single_level(f_map)
                 rpn_boxes[lvl] = rpn_box
                 rpn_scores[lvl] = rpn_score
-            rpn_boxes = tf.concat(tf.nest.flatten(rpn_boxes), axis=1)
-            rpn_scores = tf.concat(tf.nest.flatten(rpn_scores), axis=1)
             return rpn_boxes, rpn_scores
 
     def get_config(self):
@@ -207,7 +203,7 @@ class RCNNHead(tf.keras.layers.Layer):
             layer = tf.keras.layers.Dense(units=fc_dim, activation="relu")
             self.fcs.append(layer)
         self.box_pred = tf.keras.layers.Dense(units=4)
-        self.cls_score = tf.keras.layers.Dense(units=classes + 1)
+        self.cls_score = tf.keras.layers.Dense(units=classes + 1, activation="softmax")
 
     def call(self, feature_map):
         x = feature_map
@@ -236,6 +232,9 @@ class FasterRCNN(tf.keras.Model):
     Implements the FasterRCNN architecture for object detection.  The constructor
     requires `classes`, `bounding_box_format` and a `backbone`.
 
+    References:
+        - [FasterRCNN](https://arxiv.org/pdf/1506.01497.pdf)
+
     Usage:
     ```python
     retina_net = keras_cv.models.FasterRCNN(
@@ -250,13 +249,32 @@ class FasterRCNN(tf.keras.Model):
         classes: the number of classes in your dataset excluding the background
             class.  Classes should be represented by integers in the range
             [0, classes).
-        bounding_box_format: The format of bounding boxes of input dataset. Refer
+        bounding_box_format: The format of bounding boxes of model output. Refer
             [to the keras.io docs](https://keras.io/api/keras_cv/bounding_box/formats/)
             for more details on supported bounding box formats.
-        backbone: Either `"resnet50"` or a custom backbone model.
+        backbone: Either `"resnet50"` or a custom backbone model. For now, only a backbone
+            with per level dict output is supported. Default to ResNet50 with FPN, which
+            uses the last conv block from stage 2 to stage 6 and add a max pooling at
+            stage 7.
         include_rescaling: Required if provided backbone is a pre-configured model.
             If set to `True`, inputs will be passed through a `Rescaling(1/255.0)`
             layer. Default to False.
+        anchor_generator: (Optional) a `keras_cv.layers.AnchorGeneratot`. It is used
+            in the model to match ground truth boxes and labels with anchors, or with
+            region proposals. By default it uses the sizes and ratios from the paper,
+            that is optimized for image size between [640, 800]. The users should pass
+            their own anchor generator if the input image size differs from paper.
+            For now, only anchor generator with per level dict output is supported,
+        rpn_head: (Optional) a `keras.layers.Layer` that takes input feature map and
+            returns a box delta prediction (in reference to anchors) and binary prediction
+            (foreground vs background) with per level dict output is supported. By default
+            it uses the rpn head from paper, which is 3x3 conv followed by 1 box regressor
+            and 1 binary classifier.
+        rcnn_head: (Optional) a `keras.layers.Layer` that takes input feature map and
+            returns a box delta prediction (in reference to rois) and multi-class prediction
+            (all foreground classes + one background class). By default it uses the rcnn head
+            from paper, which is 2 FC layer with 1024 dimension, 1 box regressor and 1
+            softmax classifier.
     """
 
     def __init__(
@@ -265,22 +283,24 @@ class FasterRCNN(tf.keras.Model):
         bounding_box_format,
         backbone=None,
         include_rescaling=False,
+        anchor_generator=None,
+        rpn_head=None,
+        rcnn_head=None,
         **kwargs,
     ):
         self.bounding_box_format = bounding_box_format
         super().__init__(**kwargs)
         scales = [2**x for x in [0]]
         aspect_ratios = [0.5, 1.0, 2.0]
-        self.anchor_generator = AnchorGenerator(
+        self.anchor_generator = anchor_generator or AnchorGenerator(
             bounding_box_format="yxyx",
-            # sizes={2: 16.0, 3: 32.0, 4: 64.0, 5: 128.0, 6: 256.0},
             sizes={2: 32.0, 3: 64.0, 4: 128.0, 5: 256.0, 6: 512.0},
             scales=scales,
             aspect_ratios=aspect_ratios,
             strides={i: 2**i for i in range(2, 7)},
             clip_boxes=True,
         )
-        self.rpn_head = RPNHead(
+        self.rpn_head = rpn_head or RPNHead(
             num_anchors_per_location=len(scales) * len(aspect_ratios)
         )
         self.roi_generator = ROIGenerator(
@@ -298,7 +318,7 @@ class FasterRCNN(tf.keras.Model):
             num_sampled_rois=512,
         )
         self.roi_pooler = _ROIAligner(bounding_box_format="yxyx")
-        self.rcnn_head = RCNNHead(classes)
+        self.rcnn_head = rcnn_head or RCNNHead(classes)
         self.backbone = backbone or _resnet50_backbone(include_rescaling)
         self.feature_pyramid = FeaturePyramid()
         self.rpn_labeler = _RpnLabelEncoder(
@@ -310,6 +330,7 @@ class FasterRCNN(tf.keras.Model):
             positive_fraction=0.5,
         )
 
+    # TODO(tanzhenyu): override train_step and improve call output signature.
     def call(self, images, gt_boxes=None, gt_classes=None, training=None):
         image_shape = tf.shape(images[0])
         feature_map = self.backbone(images, training=training)
@@ -317,24 +338,17 @@ class FasterRCNN(tf.keras.Model):
         # [BS, num_anchors, 4], [BS, num_anchors, 1]
         rpn_boxes, rpn_scores = self.rpn_head(feature_map)
         anchors = self.anchor_generator(image_shape=image_shape)
-        if isinstance(anchors, (dict, list, tuple)):
-            anchors = tf.concat(tf.nest.flatten(anchors), axis=0)
-        anchors = tf.reshape(anchors, [-1, 4])
         # the decoded format is center_xywh
         decoded_rpn_boxes = _decode_deltas_to_boxes(
             anchors=anchors,
             boxes_delta=rpn_boxes,
             anchor_format="yxyx",
+            box_format="yxyx",
             variance=[0.1, 0.1, 0.2, 0.2],
         )
-        decoded_rpn_boxes = bounding_box.convert_format(
-            decoded_rpn_boxes, source="center_yxhw", target="yxyx"
-        )
-        rois, _ = self.roi_generator(
-            decoded_rpn_boxes, tf.squeeze(rpn_scores, axis=-1), training=training
-        )
+        rois, _ = self.roi_generator(decoded_rpn_boxes, rpn_scores, training=training)
+        rois = _clip_boxes(rois, "yxyx", image_shape)
         if training:
-            rois = _clip_boxes(rois, "yxyx", image_shape)
             rois = tf.stop_gradient(rois)
             (
                 rois,
@@ -354,8 +368,8 @@ class FasterRCNN(tf.keras.Model):
         if training:
             res["rcnn_box_pred"] = rcnn_box_pred
             res["rcnn_cls_pred"] = rcnn_cls_pred
-            res["rpn_box_pred"] = rpn_boxes
-            res["rpn_cls_pred"] = rpn_scores
+            res["rpn_box_pred"] = tf.concat(tf.nest.flatten(rpn_boxes), axis=1)
+            res["rpn_cls_pred"] = tf.concat(tf.nest.flatten(rpn_scores), axis=1)
             res["rcnn_box_targets"] = rcnn_box_targets
             res["rcnn_box_weights"] = rcnn_box_weights
             res["rcnn_cls_targets"] = rcnn_cls_targets
@@ -366,10 +380,8 @@ class FasterRCNN(tf.keras.Model):
                 anchors=rois,
                 boxes_delta=rcnn_box_pred,
                 anchor_format="yxyx",
+                box_format=self.bounding_box_format,
                 variance=[0.1, 0.1, 0.2, 0.2],
-            )
-            rcnn_box_pred = bounding_box.convert_format(
-                rcnn_box_pred, source="center_yxhw", target="yxyx"
             )
             res["rcnn_box_pred"] = rcnn_box_pred
             res["rcnn_cls_pred"] = rcnn_cls_pred

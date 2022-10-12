@@ -114,9 +114,10 @@ class _RpnLabelEncoder(tf.keras.layers.Layer):
         matched_gt_indices, matched_vals = self.box_matcher(similarity_mat)
         # [num_anchors]
         positive_matches = tf.math.equal(matched_vals, 1)
-        self._positives.update_state(
-            tf.reduce_sum(tf.cast(positive_matches, tf.float32), axis=-1)
-        )
+        # currently SyncOnReadVariable does not support `assign_add` in cross-replica.
+        #        self._positives.update_state(
+        #            tf.reduce_sum(tf.cast(positive_matches, tf.float32), axis=-1)
+        #        )
 
         negative_matches = tf.math.equal(matched_vals, -1)
         # [num_anchors, 4]

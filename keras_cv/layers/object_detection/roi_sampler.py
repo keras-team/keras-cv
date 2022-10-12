@@ -142,7 +142,11 @@ class _ROISampler(tf.keras.layers.Layer):
         # [batch_size, num_rois, 4]
         matched_gt_boxes = target_gather._target_gather(gt_boxes, matched_gt_cols)
         encoded_matched_gt_boxes = bounding_box._encode_box_to_deltas(
-            rois, matched_gt_boxes, "yxyx", "yxyx", [0.1, 0.1, 0.2, 0.2]
+            rois,
+            matched_gt_boxes,
+            "yxyx",
+            "yxyx",
+            variance=[0.1, 0.1, 0.2, 0.2],
         )
         # also set all background matches to 0 coordinates
         encoded_matched_gt_boxes = tf.where(
