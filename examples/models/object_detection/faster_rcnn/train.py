@@ -438,6 +438,6 @@ for epoch in range(1, 19):
     rpn_cls_metric.reset_state()
     rcnn_reg_metric.reset_state()
     rcnn_cls_metric.reset_state()
-    print("{} finished epoch {}".format(datetime.now(), epoch), flush=True)
+    print(f"{datetime.now()} finished epoch {epoch}", flush=True)
 
     model.save_weights(f"./weights_{epoch}.h5")
