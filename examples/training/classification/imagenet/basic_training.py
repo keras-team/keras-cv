@@ -44,7 +44,7 @@ pip install keras-cv
 """
 
 """
-## Setup and flags
+## Setup, constants and flags
 
 """
 
@@ -87,7 +87,7 @@ flags.DEFINE_string(
 
 flags.DEFINE_string(
     "learning_rate_schedule",
-    "ReduceLROnPlateau",
+    "ReduceOnPlateau",
     "String denoting the type of learning rate schedule to be used",
 )
 
@@ -113,15 +113,16 @@ flags.DEFINE_string(
 FLAGS = flags.FLAGS
 FLAGS(sys.argv)
 
+CLASSES = 1000
+IMAGE_SIZE = (224, 224)
+REDUCE_ON_PLATEAU = "ReduceOnPlateau"
+COSINE_DECAY_WITH_WARMUP = "CosineDecayWithWarmup"
+
 if FLAGS.model_name not in models.__dict__:
     raise ValueError(f"Invalid model name: {FLAGS.model_name}")
 
 if FLAGS.use_mixed_precision:
     keras.mixed_precision.set_global_policy("mixed_float16")
-
-CLASSES = 1000
-IMAGE_SIZE = (224, 224)
-
 
 """
 We start by detecting the type of accelerators we have available and picking an
@@ -151,7 +152,6 @@ Note that this requires manual download and preprocessing. You can find more
 information about preparing this dataset at keras_cv/datasets/imagenet/README.md
 """
 
-
 train_ds = imagenet.load(
     split="train",
     tfrecord_path=FLAGS.imagenet_path,
@@ -164,7 +164,6 @@ test_ds = imagenet.load(
     batch_size=BATCH_SIZE,
     img_size=IMAGE_SIZE,
 )
-
 
 """
 Next, we augment our dataset.
@@ -265,7 +264,7 @@ Next, we pick an optimizer. Here we use SGD.
 Note that learning rate will decrease over time due to the ReduceLROnPlateau callback or with the LRWarmup scheduler.
 """
 
-if FLAGS.learning_rate_schedule == 'CosineDecayWithWarmup':
+if FLAGS.learning_rate_schedule == COSINE_DECAY_WITH_WARMUP:
     optimizer = optimizers.SGD(
         learning_rate=schedule, momentum=0.9, global_clipnorm=10
     )
@@ -296,7 +295,7 @@ callbacks = [
     callbacks.TensorBoard(log_dir=FLAGS.tensorboard_path, write_steps_per_second=True),
 ]
 
-if FLAGS.learning_rate_schedule == 'ReduceLROnPlateau':
+if FLAGS.learning_rate_schedule == REDUCE_ON_PLATEAU:
     callbacks.append(callbacks.ReduceLROnPlateau(monitor="val_loss", factor=0.1, patience=10, min_delta=0.001, min_lr=0.0001))
 
 
