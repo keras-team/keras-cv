@@ -1,5 +1,5 @@
-from tensorflow import keras
 import tensorflow as tf
+from tensorflow import keras
 from tensorflow.keras import layers as klayers
 
 
@@ -20,7 +20,9 @@ class Bottleneck(klayers.Layer):
 
             self.avgpool = klayers.AveragePooling2D(stride) if stride > 1 else None
 
-            self.conv3 = klayers.Conv2D(planes * self.expansion, 1, use_bias=False, name="conv3")
+            self.conv3 = klayers.Conv2D(
+                planes * self.expansion, 1, use_bias=False, name="conv3"
+            )
             self.bn3 = klayers.BatchNormalization(name="bn3", epsilon=1e-5)
 
             self.relu = klayers.ReLU()
@@ -32,18 +34,31 @@ class Bottleneck(klayers.Layer):
 
             if stride > 1 or inplanes != planes * Bottleneck.expansion:
                 # downsampling layer is prepended with an avgpool, and the subsequent convolution has stride 1
-                self.downsample = keras.Sequential([
-                    klayers.AveragePooling2D(stride, name=name + "/downsample/avgpool"),
-                    klayers.Conv2D(planes * self.expansion, 1, strides=1, use_bias=False, name=name + "/downsample/0"),
-                    klayers.BatchNormalization(name=name + "/downsample/1", epsilon=1e-5)
-                ], name="downsample")
+                self.downsample = keras.Sequential(
+                    [
+                        klayers.AveragePooling2D(
+                            stride, name=name + "/downsample/avgpool"
+                        ),
+                        klayers.Conv2D(
+                            planes * self.expansion,
+                            1,
+                            strides=1,
+                            use_bias=False,
+                            name=name + "/downsample/0",
+                        ),
+                        klayers.BatchNormalization(
+                            name=name + "/downsample/1", epsilon=1e-5
+                        ),
+                    ],
+                    name="downsample",
+                )
 
     def get_config(self):
         return {
             "inplanes": self.inplanes,
             "planes": self.planes,
             "stride": self.stride,
-            "name": self.name
+            "name": self.name,
         }
 
     @classmethod
@@ -69,8 +84,14 @@ class Bottleneck(klayers.Layer):
 
 
 class AttentionPool2d(klayers.Layer):
-    def __init__(self, spatial_dim: int, embed_dim: int, num_heads: int, output_dim: int = None,
-                 name="AttentionPool2d"):
+    def __init__(
+        self,
+        spatial_dim: int,
+        embed_dim: int,
+        num_heads: int,
+        output_dim: int = None,
+        name="AttentionPool2d",
+    ):
         super().__init__(name=name)
 
         self.spatial_dim = spatial_dim
@@ -80,8 +101,8 @@ class AttentionPool2d(klayers.Layer):
 
         with tf.name_scope(name):
             self.positional_embedding = tf.Variable(
-                tf.random.normal((spatial_dim ** 2 + 1, embed_dim)) / embed_dim ** 0.5,
-                name="positional_embedding"
+                tf.random.normal((spatial_dim**2 + 1, embed_dim)) / embed_dim**0.5,
+                name="positional_embedding",
             )
 
         self.num_heads = num_heads
@@ -91,7 +112,7 @@ class AttentionPool2d(klayers.Layer):
             num_heads=num_heads,
             key_dim=embed_dim // num_heads,
             output_shape=output_dim or embed_dim,
-            name="mha"
+            name="mha",
         )
 
     def get_config(self):
@@ -100,7 +121,7 @@ class AttentionPool2d(klayers.Layer):
             "embed_dim": self.embed_dim,
             "num_heads": self.num_heads,
             "output_dim": self.output_dim,
-            "name": self.name
+            "name": self.name,
         }
 
     @classmethod
@@ -109,7 +130,9 @@ class AttentionPool2d(klayers.Layer):
 
     def call(self, x, training=None):
         x_shape = tf.shape(x)
-        x = tf.reshape(x, (x_shape[0], x_shape[1] * x_shape[2], x_shape[3]))  # NHWC -> N(HW)C
+        x = tf.reshape(
+            x, (x_shape[0], x_shape[1] * x_shape[2], x_shape[3])
+        )  # NHWC -> N(HW)C
 
         x = tf.concat([tf.reduce_mean(x, axis=1, keepdims=True), x], axis=1)  # N(HW+1)C
         x = x + tf.cast(self.positional_embedding[None, :, :], x.dtype)  # N(HW+1)C
@@ -129,7 +152,15 @@ class ModifiedResNet(keras.Model):
     - The final pooling layer is a QKV attention instead of an average pool
     """
 
-    def __init__(self, layers, output_dim, heads, input_resolution=224, width=64, name="ModifiedResNet"):
+    def __init__(
+        self,
+        layers,
+        output_dim,
+        heads,
+        input_resolution=224,
+        width=64,
+        name="ModifiedResNet",
+    ):
         super().__init__(name=name)
         self.layers_config = layers
         self.output_dim = output_dim
@@ -138,13 +169,21 @@ class ModifiedResNet(keras.Model):
         self.width = width
 
         # the 3-layer stem
-        self.conv1_padding = klayers.ZeroPadding2D(padding=((1, 1), (1, 1)), name="conv1_padding")
-        self.conv1 = klayers.Conv2D(width // 2, 3, strides=2, use_bias=False, name="conv1")
+        self.conv1_padding = klayers.ZeroPadding2D(
+            padding=((1, 1), (1, 1)), name="conv1_padding"
+        )
+        self.conv1 = klayers.Conv2D(
+            width // 2, 3, strides=2, use_bias=False, name="conv1"
+        )
         self.bn1 = klayers.BatchNormalization(name="bn1", epsilon=1e-5)
-        self.conv2_padding = klayers.ZeroPadding2D(padding=((1, 1), (1, 1)), name="conv2_padding")
+        self.conv2_padding = klayers.ZeroPadding2D(
+            padding=((1, 1), (1, 1)), name="conv2_padding"
+        )
         self.conv2 = klayers.Conv2D(width // 2, 3, use_bias=False, name="conv2")
         self.bn2 = klayers.BatchNormalization(name="bn2", epsilon=1e-5)
-        self.conv3_padding = klayers.ZeroPadding2D(padding=((1, 1), (1, 1)), name="conv3_padding")
+        self.conv3_padding = klayers.ZeroPadding2D(
+            padding=((1, 1), (1, 1)), name="conv3_padding"
+        )
         self.conv3 = klayers.Conv2D(width, 3, use_bias=False, name="conv3")
         self.bn3 = klayers.BatchNormalization(name="bn3", epsilon=1e-5)
         self.avgpool = klayers.AveragePooling2D(2, name="avgpool")
@@ -153,13 +192,21 @@ class ModifiedResNet(keras.Model):
         # residual layers
         self._inplanes = width  # this is a *mutable* variable used during construction
         self.layer1 = self._make_layer(width, layers[0], name=name + "/layer1")
-        self.layer2 = self._make_layer(width * 2, layers[1], stride=2, name=name + "/layer2")
-        self.layer3 = self._make_layer(width * 4, layers[2], stride=2, name=name + "/layer3")
-        self.layer4 = self._make_layer(width * 8, layers[3], stride=2, name=name + "/layer4")
+        self.layer2 = self._make_layer(
+            width * 2, layers[1], stride=2, name=name + "/layer2"
+        )
+        self.layer3 = self._make_layer(
+            width * 4, layers[2], stride=2, name=name + "/layer3"
+        )
+        self.layer4 = self._make_layer(
+            width * 8, layers[3], stride=2, name=name + "/layer4"
+        )
 
         embed_dim = width * 32  # the ResNet feature dimension
         with tf.name_scope(name):
-            self.attnpool = AttentionPool2d(input_resolution // 32, embed_dim, heads, output_dim, name="attnpool")
+            self.attnpool = AttentionPool2d(
+                input_resolution // 32, embed_dim, heads, output_dim, name="attnpool"
+            )
 
     def get_config(self):
         return {
@@ -168,7 +215,7 @@ class ModifiedResNet(keras.Model):
             "heads": self.heads,
             "input_resolution": self.input_resolution,
             "width": self.width,
-            "name": self.name
+            "name": self.name,
         }
 
     @classmethod
@@ -190,7 +237,7 @@ class ModifiedResNet(keras.Model):
             for conv_pad, conv, bn in [
                 (self.conv1_padding, self.conv1, self.bn1),
                 (self.conv2_padding, self.conv2, self.bn2),
-                (self.conv3_padding, self.conv3, self.bn3)
+                (self.conv3_padding, self.conv3, self.bn3),
             ]:
                 x = self.relu(bn(conv(conv_pad(x))))
             x = self.avgpool(x)
