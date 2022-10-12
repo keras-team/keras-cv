@@ -14,7 +14,6 @@
 
 import tensorflow as tf
 
-from keras_cv import bounding_box
 from keras_cv.bounding_box.converters import _decode_deltas_to_boxes
 from keras_cv.bounding_box.utils import _clip_boxes
 from keras_cv.layers.object_detection.anchor_generator import AnchorGenerator
