@@ -103,6 +103,12 @@ flags.DEFINE_string(
     "For how many steps expressed in percentage of total steps should the schedule hold the initial learning rate",
 )
 
+# An upper bound for number of epochs (this script uses EarlyStopping).
+flags.DEFINE_string(
+    "epochs",
+     1000,
+    "Epochs to train for"
+)
 
 FLAGS = flags.FLAGS
 FLAGS(sys.argv)
@@ -115,8 +121,7 @@ if FLAGS.use_mixed_precision:
 
 CLASSES = 1000
 IMAGE_SIZE = (224, 224)
-# An upper bound for number of epochs (this script uses EarlyStopping).
-EPOCHS = 1000
+
 
 """
 We start by detecting the type of accelerators we have available and picking an
@@ -247,14 +252,13 @@ class WarmUpCosineDecay(keras.optimizers.schedules.LearningRateSchedule):
         )
 
 # If batched
-total_steps = len(train_ds) * EPOCHS
+total_steps = len(train_ds) * FLAGS.epochs
 warmup_steps = int(FLAGS.warmup_steps_percentage * total_steps)
 schedule = WarmUpCosineDecay(start_lr=0.0,
                              target_lr=INITIAL_LEARNING_RATE,
                              warmup_steps=warmup_steps,
                              total_steps=total_steps,
                              hold=FLAGS.warmup_hold_steps_percentage)
-
 
 """
 Next, we pick an optimizer. Here we use SGD.
@@ -272,15 +276,12 @@ else:
 """
 Next, we pick a loss function. We use CategoricalCrossentropy with label smoothing.
 """
-
-
 loss_fn = losses.CategoricalCrossentropy(label_smoothing=0.1)
 
 
 """
 Next, we specify the metrics that we want to track. For this example, we track accuracy.
 """
-
 with strategy.scope():
     training_metrics = [metrics.CategoricalAccuracy()]
 
@@ -288,8 +289,6 @@ with strategy.scope():
 As a last piece of configuration, we configure callbacks for the method.
 We use EarlyStopping, BackupAndRestore, and a model checkpointing callback.
 """
-
-
 callbacks = [
     callbacks.EarlyStopping(patience=20),
     callbacks.BackupAndRestore(FLAGS.backup_path),
@@ -315,7 +314,7 @@ model.compile(
 model.fit(
     train_ds,
     batch_size=BATCH_SIZE,
-    epochs=EPOCHS,
+    epochs=FLAGS.epochs,
     callbacks=callbacks,
     validation_data=test_ds,
 )
