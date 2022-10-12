@@ -75,9 +75,10 @@ class _RpnLabelEncoder(tf.keras.layers.Layer):
         self.box_matcher = box_matcher.ArgmaxBoxMatcher(
             thresholds=[negative_threshold, positive_threshold],
             match_values=[-1, -2, 1],
-            force_match_for_each_col=True,
+            force_match_for_each_col=False,
         )
         self.built = True
+        self._positives = tf.keras.metrics.Mean()
 
     def call(
         self,
@@ -113,12 +114,20 @@ class _RpnLabelEncoder(tf.keras.layers.Layer):
         matched_gt_indices, matched_vals = self.box_matcher(similarity_mat)
         # [num_anchors]
         positive_matches = tf.math.equal(matched_vals, 1)
+        self._positives.update_state(
+            tf.reduce_sum(tf.cast(positive_matches, tf.float32), axis=-1)
+        )
+
         negative_matches = tf.math.equal(matched_vals, -1)
         # [num_anchors, 4]
         matched_gt_boxes = target_gather._target_gather(gt_boxes, matched_gt_indices)
         # [num_anchors, 4], used as `y_true` for regression loss
         encoded_box_targets = bounding_box._encode_box_to_deltas(
-            anchors, matched_gt_boxes, anchor_format="yxyx", box_format="yxyx"
+            anchors,
+            matched_gt_boxes,
+            anchor_format="yxyx",
+            box_format="yxyx",
+            variance=[0.1, 0.1, 0.2, 0.2],
         )
         # [num_anchors, 1]
         box_sample_weights = tf.cast(positive_matches[..., tf.newaxis], gt_boxes.dtype)

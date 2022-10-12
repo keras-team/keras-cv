@@ -67,6 +67,6 @@ class FasterRCNNTest(tf.test.TestCase):
         # 512 sampled proposals in inference
         self.assertAllEqual([2, 512, 81], outputs["rcnn_cls_pred"].shape)
         self.assertAllEqual([2, 512, 4], outputs["rcnn_box_pred"].shape)
-        # (128*128 + 64*64 + 32*32+16*16+8*8) * 9 = 196416
-        self.assertAllEqual([2, 196416, 4], outputs["rpn_box_pred"].shape)
-        self.assertAllEqual([2, 196416, 1], outputs["rpn_cls_pred"].shape)
+        # (128*128 + 64*64 + 32*32+16*16+8*8) * 3 = 65472
+        self.assertAllEqual([2, 65472, 4], outputs["rpn_box_pred"].shape)
+        self.assertAllEqual([2, 65472, 1], outputs["rpn_cls_pred"].shape)

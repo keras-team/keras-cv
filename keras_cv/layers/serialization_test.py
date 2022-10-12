@@ -279,6 +279,17 @@ class SerializationTest(tf.test.TestCase, parameterized.TestCase):
                 "output_scale_factor": None,
             },
         ),
+        (
+            "SpatialPyramidPooling",
+            cv_layers.SpatialPyramidPooling,
+            {
+                "level": 3,
+                "dilation_rates": [6, 12, 18],
+                "num_channels": 256,
+                "activation": "relu",
+                "dropout": 0.1,
+            },
+        ),
     )
     def test_layer_serialization(self, layer_cls, init_args):
         layer = layer_cls(**init_args)

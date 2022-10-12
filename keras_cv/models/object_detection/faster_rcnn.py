@@ -16,6 +16,7 @@ import tensorflow as tf
 
 from keras_cv import bounding_box
 from keras_cv.bounding_box.converters import _decode_deltas_to_boxes
+from keras_cv.bounding_box.utils import _clip_boxes
 from keras_cv.layers.object_detection.anchor_generator import AnchorGenerator
 from keras_cv.layers.object_detection.roi_align import _ROIAligner
 from keras_cv.layers.object_detection.roi_generator import ROIGenerator
@@ -56,7 +57,6 @@ class FeaturePyramid(tf.keras.layers.Layer):
         self.conv_c3_1x1 = tf.keras.layers.Conv2D(256, 1, 1, "same")
         self.conv_c4_1x1 = tf.keras.layers.Conv2D(256, 1, 1, "same")
         self.conv_c5_1x1 = tf.keras.layers.Conv2D(256, 1, 1, "same")
-        self.conv_c6_1x1 = tf.keras.layers.Conv2D(256, 1, 1, "same")
 
         self.conv_c2_3x3 = tf.keras.layers.Conv2D(256, 3, 1, "same")
         self.conv_c3_3x3 = tf.keras.layers.Conv2D(256, 3, 1, "same")
@@ -70,13 +70,12 @@ class FeaturePyramid(tf.keras.layers.Layer):
         c2_output, c3_output, c4_output, c5_output = inputs
 
         c6_output = self.conv_c6_pool(c5_output)
-        p6_output = self.conv_c6_1x1(c6_output)
+        p6_output = c6_output
         p5_output = self.conv_c5_1x1(c5_output)
         p4_output = self.conv_c4_1x1(c4_output)
         p3_output = self.conv_c3_1x1(c3_output)
         p2_output = self.conv_c2_1x1(c2_output)
 
-        p5_output = p5_output + self.upsample_2x(p6_output)
         p4_output = p4_output + self.upsample_2x(p5_output)
         p3_output = p3_output + self.upsample_2x(p4_output)
         p2_output = p2_output + self.upsample_2x(p3_output)
@@ -270,16 +269,25 @@ class FasterRCNN(tf.keras.Model):
     ):
         self.bounding_box_format = bounding_box_format
         super().__init__(**kwargs)
+        scales = [2**x for x in [0]]
+        aspect_ratios = [0.5, 1.0, 2.0]
         self.anchor_generator = AnchorGenerator(
             bounding_box_format="yxyx",
-            sizes={2: 16.0, 3: 32.0, 4: 64.0, 5: 128.0, 6: 256.0},
-            scales=[2**x for x in [0, 1 / 3, 2 / 3]],
-            aspect_ratios=[0.5, 1.0, 2.0],
+            # sizes={2: 16.0, 3: 32.0, 4: 64.0, 5: 128.0, 6: 256.0},
+            sizes={2: 32.0, 3: 64.0, 4: 128.0, 5: 256.0, 6: 512.0},
+            scales=scales,
+            aspect_ratios=aspect_ratios,
             strides={i: 2**i for i in range(2, 7)},
             clip_boxes=True,
         )
-        self.rpn_head = RPNHead(num_anchors_per_location=9)
-        self.roi_generator = ROIGenerator(bounding_box_format="yxyx")
+        self.rpn_head = RPNHead(
+            num_anchors_per_location=len(scales) * len(aspect_ratios)
+        )
+        self.roi_generator = ROIGenerator(
+            bounding_box_format="yxyx",
+            nms_score_threshold_train=float("-inf"),
+            nms_score_threshold_test=float("-inf"),
+        )
         self.box_matcher = ArgmaxBoxMatcher(
             thresholds=[0.0, 0.5], match_values=[-2, -1, 1]
         )
@@ -303,16 +311,22 @@ class FasterRCNN(tf.keras.Model):
         )
 
     def call(self, images, gt_boxes=None, gt_classes=None, training=None):
+        image_shape = tf.shape(images[0])
         feature_map = self.backbone(images, training=training)
         feature_map = self.feature_pyramid(feature_map, training=training)
         # [BS, num_anchors, 4], [BS, num_anchors, 1]
         rpn_boxes, rpn_scores = self.rpn_head(feature_map)
-        anchors = self.anchor_generator(image_shape=tf.shape(images[0]))
+        anchors = self.anchor_generator(image_shape=image_shape)
         if isinstance(anchors, (dict, list, tuple)):
             anchors = tf.concat(tf.nest.flatten(anchors), axis=0)
         anchors = tf.reshape(anchors, [-1, 4])
         # the decoded format is center_xywh
-        decoded_rpn_boxes = _decode_deltas_to_boxes(anchors, rpn_boxes, "yxyx")
+        decoded_rpn_boxes = _decode_deltas_to_boxes(
+            anchors=anchors,
+            boxes_delta=rpn_boxes,
+            anchor_format="yxyx",
+            variance=[0.1, 0.1, 0.2, 0.2],
+        )
         decoded_rpn_boxes = bounding_box.convert_format(
             decoded_rpn_boxes, source="center_yxhw", target="yxyx"
         )
@@ -320,6 +334,7 @@ class FasterRCNN(tf.keras.Model):
             decoded_rpn_boxes, tf.squeeze(rpn_scores, axis=-1), training=training
         )
         if training:
+            rois = _clip_boxes(rois, "yxyx", image_shape)
             rois = tf.stop_gradient(rois)
             (
                 rois,
@@ -348,7 +363,10 @@ class FasterRCNN(tf.keras.Model):
         else:
             # now it will be on "center_yxhw" format
             rcnn_box_pred = _decode_deltas_to_boxes(
-                rois, rcnn_box_pred, anchor_format="yxyx"
+                anchors=rois,
+                boxes_delta=rcnn_box_pred,
+                anchor_format="yxyx",
+                variance=[0.1, 0.1, 0.2, 0.2],
             )
             rcnn_box_pred = bounding_box.convert_format(
                 rcnn_box_pred, source="center_yxhw", target="yxyx"

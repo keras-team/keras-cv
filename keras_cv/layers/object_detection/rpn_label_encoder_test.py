@@ -38,13 +38,16 @@ class RpnLabelEncoderTest(tf.test.TestCase):
             rois, gt_boxes, gt_classes
         )
         # all rois will be matched to the 2nd gt boxes, and encoded
-        expected_box_targets = tf.constant(
-            [
-                [0.5, 0.5, 0.0, 0.0],
-                [0.0, 0.0, 0.0, 0.0],
-                [-0.5, -0.5, 0.0, 0.0],
-                [0.5, 0.5, 0.0, 0.0],
-            ]
+        expected_box_targets = (
+            tf.constant(
+                [
+                    [0.5, 0.5, 0.0, 0.0],
+                    [0.0, 0.0, 0.0, 0.0],
+                    [-0.5, -0.5, 0.0, 0.0],
+                    [0.5, 0.5, 0.0, 0.0],
+                ]
+            )
+            / 0.1
         )
         self.assertAllClose(expected_box_targets, box_targets)
         # only foreground and background classes
@@ -76,8 +79,8 @@ class RpnLabelEncoderTest(tf.test.TestCase):
         _, _, _, cls_weights = rpn_encoder(rois, gt_boxes, gt_classes)
         # the 2nd level found 2 positive matches, the 3rd level found no match
         expected_cls_weights = {
-            2: tf.constant([[1.0], [1.0]]),
-            3: tf.constant([[0.0], [0.0]]),
+            2: tf.constant([[0.0], [1.0]]),
+            3: tf.constant([[0.0], [1.0]]),
         }
         self.assertAllClose(expected_cls_weights[2], cls_weights[2])
         self.assertAllClose(expected_cls_weights[3], cls_weights[3])
