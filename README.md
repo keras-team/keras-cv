@@ -37,6 +37,14 @@ Thank you to all of our wonderful contributors!
   <img src="https://contrib.rocks/image?repo=keras-team/keras-cv" />
 </a>
 
+## Pretrained Weights
+Many models in KerasCV come with pre-trained weights. With the exception of StableDiffusion,
+all of these weights are trained using Keras and KerasCV components and training scripts in this
+repository. Models may not be trained with the same parameters described in their original papers.
+Performance metrics for pre-trained weights can be found in the training history for each task.
+For example, see ImageNet classification training history for backbone models [here](examples/training/classification/imagenet/training_history.json).
+All results are reproducible using the training scripts in this repository.
+
 ## Citing KerasCV
 
 If KerasCV helps your research, we appreciate your citations.
