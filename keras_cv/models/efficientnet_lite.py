@@ -177,7 +177,7 @@ def correct_pad(inputs, kernel_size):
     Returns:
       A tuple.
     """
-    img_dim = 2
+    img_dim = 1
     input_size = backend.int_shape(inputs)[img_dim : (img_dim + 2)]
     if isinstance(kernel_size, int):
         kernel_size = (kernel_size, kernel_size)
