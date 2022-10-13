@@ -4,13 +4,11 @@ https://github.com/rwightman/pytorch-image-models/blob/master/timm/models/swin_t
 https://github.com/sayakpaul/swin-transformers-tf/blob/main/swins/layers/window_attn.py
 """
 
-
 import collections.abc
 from typing import Tuple, Union
 
 import tensorflow as tf
 from tensorflow.keras import layers
-
 
 def get_relative_position_index(win_h, win_w):
     # get pair-wise relative position index for each token inside the window

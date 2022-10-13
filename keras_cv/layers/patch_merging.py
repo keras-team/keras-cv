@@ -7,10 +7,9 @@ https://github.com/sayakpaul/swin-transformers-tf/blob/main/swins/layers/patch_m
 from functools import partial
 
 import tensorflow as tf
-from tensorflow.keras import layers as L
+from tensorflow.keras import layers
 
-
-class PatchMerging(L.Layer):
+class PatchMerging(layers.Layer):
     """Patch Merging Layer.
     Args:
         input_resolution (tuple[int]): Resolution of input feature.
@@ -22,7 +21,7 @@ class PatchMerging(L.Layer):
         input_resolution,
         dim,
         out_dim=None,
-        norm_layer=partial(L.LayerNormalization, epsilon=1e-5),
+        norm_layer=partial(layers.LayerNormalization, epsilon=1e-5),
         **kwargs
     ):
         super().__init__(**kwargs)
@@ -31,7 +30,7 @@ class PatchMerging(L.Layer):
         self.dim = dim
         self.out_dim = out_dim or 2 * dim
         self.norm = norm_layer()
-        self.reduction = L.Dense(self.out_dim, use_bias=False)
+        self.reduction = layers.Dense(self.out_dim, use_bias=False)
 
     def call(self, x):
         """
