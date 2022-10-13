@@ -59,7 +59,7 @@ def ViT(
     activation=None,
     head_units=None,
     project_dim=None,
-    num_classes=None,
+    classes=None,
     classifier_activation="softmax",
     **kwargs,
 ):
@@ -109,7 +109,7 @@ def ViT(
     # Add MLP.
     features =  mlp_ffn(representation, hidden_units=head_units, dropout_rate=0.5)
     # Classify outputs.
-    logits = layers.Dense(num_classes)(features)
+    logits = layers.Dense(classes)(features)
 
     model = keras.Model(inputs=inputs, outputs=logits)
     return model
@@ -131,7 +131,6 @@ def ViT1(
     dropout=None,
     activation=None,
     project_dim=None,
-    num_classes=None,
     classifier_activation="softmax",
     **kwargs,
 ):
@@ -152,7 +151,7 @@ def ViT1(
         num_heads=MODEL_CONFIGS["ViT"]["num_heads"],
         dropout=MODEL_CONFIGS["ViT"]["dropout"],
         activation=MODEL_CONFIGS["ViT"]["activation"],
-        num_classes=num_classes,
+        classes=classes,
         classifier_activation="softmax",
         **kwargs,
     )

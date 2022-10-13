@@ -1,5 +1,6 @@
 """Transformer encoder block implementation as a Keras Layer."""
 
+import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras import layers
 from keras_cv.transformers import mlp_ffn
