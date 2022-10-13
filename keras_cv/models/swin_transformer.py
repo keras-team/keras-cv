@@ -337,7 +337,7 @@ class SwinTransformer(keras.Model):
             float(x) for x in tf.linspace(0.0, drop_path_rate, sum(depths))
         ]  # stochastic depth decay rule
 
-        layers = [
+        swin_layers = [
             BasicLayer(
                 dim=self.embed_dim[i],
                 out_dim=embed_out_dim[i],
@@ -360,7 +360,7 @@ class SwinTransformer(keras.Model):
             )
             for i in range(self.num_layers)
         ]
-        self.swin_layers = layers
+        self.swin_layers = swin_layers
 
         self.norm = norm_layer()
 
