@@ -26,7 +26,7 @@ def _compute_area(box):
     Returns:
       a float Tensor of [N] or [batch_size, N]
     """
-    y_min, x_min, y_max, x_max = tf.split(box, num_or_size_splits=4, axis=-1)
+    y_min, x_min, y_max, x_max = tf.split(box[..., :4], num_or_size_splits=4, axis=-1)
     return tf.squeeze((y_max - y_min) * (x_max - x_min), axis=-1)
 
 
@@ -39,8 +39,12 @@ def _compute_intersection(boxes1, boxes2):
     Returns:
       a [N, M] or [batch_size, N, M] float Tensor.
     """
-    y_min1, x_min1, y_max1, x_max1 = tf.split(boxes1, num_or_size_splits=4, axis=-1)
-    y_min2, x_min2, y_max2, x_max2 = tf.split(boxes2, num_or_size_splits=4, axis=-1)
+    y_min1, x_min1, y_max1, x_max1 = tf.split(
+        boxes1[..., :4], num_or_size_splits=4, axis=-1
+    )
+    y_min2, x_min2, y_max2, x_max2 = tf.split(
+        boxes2[..., :4], num_or_size_splits=4, axis=-1
+    )
     boxes2_rank = len(boxes2.shape)
     perm = [1, 0] if boxes2_rank == 2 else [0, 2, 1]
     # [N, M] or [batch_size, N, M]
