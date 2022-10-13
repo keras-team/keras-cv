@@ -76,5 +76,7 @@ from keras_cv.layers.spatial_pyramid import SpatialPyramidPooling
 from keras_cv.layers.patch_merging import PatchMerging
 from keras_cv.layers.stochastic_depth import StochasticDepth
 from keras_cv.layers.window_attention import WindowAttention
-#from keras_cv.layers.patching import Patching
+from keras_cv.layers.patching import Patching
 from keras_cv.layers.patch_encoder import PatchEncoder
+from keras_cv.layers.transformer_encoder import TransformerEncoder
+

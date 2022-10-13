@@ -4,7 +4,7 @@ from tensorflow import keras
 from tensorflow.keras import layers
 from keras_cv.transformers import mlp_ffn
 
-
+@tf.keras.utils.register_keras_serializable(package="keras_cv")
 class TransformerEncoder(layers.Layer):
     def __init__(self, project_dims,
                  num_heads,
@@ -14,7 +14,7 @@ class TransformerEncoder(layers.Layer):
                  transformer_units=None):
         super(TransformerEncoder, self).__init__()
 
-        self.project_dims = project_dims
+        self.project_dim = project_dim
         self.num_heads = num_heads
         self.dropout = dropout
         self.activation = activation
@@ -25,7 +25,7 @@ class TransformerEncoder(layers.Layer):
         x1 = layers.LayerNormalization(epsilon=1e-6)(input)
         # Create a multi-head attention layer.
         attention_output = layers.MultiHeadAttention(
-            num_heads=self.num_heads, key_dim=self.project_dims, dropout=self.dropout
+            num_heads=self.num_heads, key_dim=self.project_dim, dropout=self.dropout
         )(x1, x1)
         # Skip connection 1.
         x2 = layers.Add()([attention_output, input])
@@ -47,7 +47,7 @@ class TransformerEncoder(layers.Layer):
         config = super().get_config()
         config.update(
             {
-                "project_dims": self.project_dims,
+                "project_dim": self.project_dim,
                 "num_heads": self.num_heads,
                 "dropout": self.dropout,
                 "activation": keras.activations.serialize(self.activation),

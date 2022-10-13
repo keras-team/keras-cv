@@ -21,9 +21,12 @@ import tensorflow as tf
 from tensorflow.keras import backend
 from tensorflow.keras import layers
 from tensorflow import keras
-import keras_cv
 
 from keras_cv.transformers import mlp_ffn
+from keras_cv.layers import Patching
+from keras_cv.layers import PatchEncoder
+from keras_cv.layers import TransformerEncoder
+
 from keras_cv.models import utils
 
 MODEL_CONFIGS = {
@@ -32,7 +35,10 @@ MODEL_CONFIGS = {
         "transformer_layer_num" : 2,
         #"num_patches" : [],
         "project_dim" : 64,
-        "head_units" : [2048, 1024]
+        "head_units" : [2048, 1024],
+        "num_heads" : 4,
+        "dropout" : 0.1,
+        "activation" : tf.nn.gelu()
     },
 }
 
@@ -48,6 +54,9 @@ def ViT(
     patch_size=None,
     transformer_layer_num=None,
     num_patches=None,
+    num_heads=None,
+    dropout=None,
+    activation=None,
     head_units=None,
     project_dim=None,
     num_classes=None,
@@ -79,15 +88,19 @@ def ViT(
     if include_rescaling:
         x = layers.Rescaling(1 / 255.0)(x)
 
-    patches = keras_cv.layers.Patching(patch_size)(x)
+    patches = Patching(patch_size)(x)
     # Encode patches.
     """Temp: calc num_patches"""
     num_patches = (inputs.shape[0] // patch_size) ** 2
-    encoded_patches = keras_cv.transformers.PatchEncoder(num_patches, project_dim)(patches)
+    encoded_patches = PatchEncoder(num_patches, project_dim)(patches)
 
     # Create multiple layers of the Transformer block.
     for _ in range(transformer_layer_num):
-        x = keras_cv.transformers.TransformerEncoder()(encoded_patches)
+        x = TransformerEncoder(project_dim=project_dim,
+                               num_heads=num_heads,
+                               dropout=dropout,
+                               activation=activation,
+                               transformer_units=None)(encoded_patches)
 
     # Create a [batch_size, projection_dim] tensor.
     representation = layers.LayerNormalization(epsilon=1e-6)(x)
@@ -114,6 +127,9 @@ def ViT1(
     patch_size=None,
     transformer_layer_num=None,
     num_patches=None,
+    num_heads=None,
+    dropout=None,
+    activation=None,
     project_dim=None,
     num_classes=None,
     classifier_activation="softmax",
@@ -133,6 +149,9 @@ def ViT1(
         transformer_layer_num=MODEL_CONFIGS["ViT"]["transformer_layer_num"],
         num_patches=MODEL_CONFIGS["ViT"]["num_patches"],
         project_dim=MODEL_CONFIGS["ViT"]["project_dim"],
+        num_heads=MODEL_CONFIGS["ViT"]["num_heads"],
+        dropout=MODEL_CONFIGS["ViT"]["dropout"],
+        activation=MODEL_CONFIGS["ViT"]["activation"],
         num_classes=num_classes,
         classifier_activation="softmax",
         **kwargs,
