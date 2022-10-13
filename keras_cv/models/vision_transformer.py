@@ -22,7 +22,7 @@ from tensorflow.keras import backend
 from tensorflow.keras import layers
 from tensorflow import keras
 
-from keras_cv.transformers import mlp_ffn
+from keras_cv.transformers.mlp_ffn import mlp_head
 from keras_cv.layers import Patching
 from keras_cv.layers import PatchEncoder
 from keras_cv.layers import TransformerEncoder
@@ -35,10 +35,10 @@ MODEL_CONFIGS = {
         "transformer_layer_num" : 2,
         #"num_patches" : [],
         "project_dim" : 64,
-        "head_units" : [2048, 1024],
+        "head_units" : [512, 256],
         "num_heads" : 4,
         "dropout" : 0.1,
-        "activation" : tf.nn.gelu()
+        "activation" : "relu"
     },
 }
 
@@ -59,7 +59,6 @@ def ViT(
     activation=None,
     head_units=None,
     project_dim=None,
-    classes=None,
     classifier_activation="softmax",
     **kwargs,
 ):
@@ -91,7 +90,7 @@ def ViT(
     patches = Patching(patch_size)(x)
     # Encode patches.
     """Temp: calc num_patches"""
-    num_patches = (inputs.shape[0] // patch_size) ** 2
+    num_patches = (input_shape[0] // patch_size) ** 2
     encoded_patches = PatchEncoder(num_patches, project_dim)(patches)
 
     # Create multiple layers of the Transformer block.
@@ -99,15 +98,14 @@ def ViT(
         x = TransformerEncoder(project_dim=project_dim,
                                num_heads=num_heads,
                                dropout=dropout,
-                               activation=activation,
-                               transformer_units=None)(encoded_patches)
+                               activation=activation)(encoded_patches)
 
     # Create a [batch_size, projection_dim] tensor.
     representation = layers.LayerNormalization(epsilon=1e-6)(x)
     representation = layers.Flatten()(representation)
     representation = layers.Dropout(0.5)(representation)
     # Add MLP.
-    features =  mlp_ffn(representation, hidden_units=head_units, dropout_rate=0.5)
+    features =  mlp_head(representation, hidden_units=head_units, dropout_rate=0.5)
     # Classify outputs.
     logits = layers.Dense(classes)(features)
 
@@ -126,11 +124,11 @@ def ViT1(
     classes=None,
     patch_size=None,
     transformer_layer_num=None,
-    num_patches=None,
     num_heads=None,
     dropout=None,
     activation=None,
     project_dim=None,
+    head_units=None,
     classifier_activation="softmax",
     **kwargs,
 ):
@@ -146,12 +144,11 @@ def ViT1(
         classes=classes,
         patch_size=MODEL_CONFIGS["ViT"]["patch_size"],
         transformer_layer_num=MODEL_CONFIGS["ViT"]["transformer_layer_num"],
-        num_patches=MODEL_CONFIGS["ViT"]["num_patches"],
         project_dim=MODEL_CONFIGS["ViT"]["project_dim"],
         num_heads=MODEL_CONFIGS["ViT"]["num_heads"],
         dropout=MODEL_CONFIGS["ViT"]["dropout"],
         activation=MODEL_CONFIGS["ViT"]["activation"],
-        classes=classes,
-        classifier_activation="softmax",
+        head_units=MODEL_CONFIGS["ViT"]["head_units"],
+        classifier_activation=classifier_activation,
         **kwargs,
     )

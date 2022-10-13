@@ -14,7 +14,7 @@ from tensorflow.keras import layers as L
 
 from keras_cv.layers import StochasticDepth, WindowAttention
 from keras_cv.transformers import utils
-from keras_cv.transformers import mlp_ffn
+from keras_cv.transformers.mlp_ffn import mlp_head
 
 
 class SwinTransformerBlock(keras.Model):

@@ -6,7 +6,7 @@ from tensorflow.keras import layers
 """
 Layer to patch images with 
 """
-@tf.keras.utils.register_keras_serializable(package="keras_cv")
+#@tf.keras.utils.register_keras_serializable(package="keras_cv")
 class Patching(layers.Layer):
     def __init__(self, patch_size):
         super(Patching, self).__init__()

@@ -3,11 +3,11 @@
 import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras import layers
-from keras_cv.transformers import mlp_ffn
+from keras_cv.transformers.mlp_ffn import mlp_head
 
-@tf.keras.utils.register_keras_serializable(package="keras_cv")
+#@tf.keras.utils.register_keras_serializable(package="keras_cv")
 class TransformerEncoder(layers.Layer):
-    def __init__(self, project_dims,
+    def __init__(self, project_dim,
                  num_heads,
                  dropout=0.1,
                  activation="relu",
@@ -38,7 +38,7 @@ class TransformerEncoder(layers.Layer):
             self.project_dim * 2,
             self.project_dim,
         ]
-        x3 = mlp_ffn.mlp_ffn(x3, hidden_units=transformer_units, dropout_rate=0.1)
+        x3 = mlp_head(x3, dropout_rate=self.dropout, hidden_units=transformer_units)
         # Skip connection 2.
         encoded_patches = layers.Add()([x3, x2])
 

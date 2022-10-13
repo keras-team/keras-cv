@@ -5,7 +5,7 @@ from tensorflow.keras import layers
 """
 Linear projection of patches made with `Patching` layer
 """
-@tf.keras.utils.register_keras_serializable(package="keras_cv")
+#@tf.keras.utils.register_keras_serializable(package="keras_cv")
 class PatchEncoder(layers.Layer):
     def __init__(self, num_patches, projection_dim):
         super(PatchEncoder, self).__init__()
