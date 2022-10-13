@@ -83,7 +83,7 @@ class SwinTransformerBlock(keras.Model):
             StochasticDepth(drop_path) if drop_path > 0.0 else tf.identity
         )
         self.norm2 = norm_layer()
-        self.mlp = mlp_block(
+        self.mlp = mlp_ffn(
             dropout_rate=drop, hidden_units=[int(dim * mlp_ratio), dim]
         )
 

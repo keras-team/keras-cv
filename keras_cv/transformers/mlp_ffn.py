@@ -5,7 +5,7 @@ from tensorflow import keras
 from tensorflow.keras import layers
 
 
-def mlp_block(dropout_rate: float, hidden_units: List[int], name: str = "mlp"):
+def mlp_ffn(dropout_rate: float, hidden_units: List[int], name: str = "mlp"):
     """FFN for a Transformer block."""
     ffn = keras.Sequential(name=name)
     for (idx, units) in enumerate(hidden_units):
