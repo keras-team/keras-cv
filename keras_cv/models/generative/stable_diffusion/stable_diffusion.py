@@ -101,6 +101,8 @@ class StableDiffusion:
         self.text_encoder = TextEncoder(MAX_PROMPT_LENGTH)
         self.diffusion_model = DiffusionModel(img_height, img_width, MAX_PROMPT_LENGTH)
         self.decoder = Decoder(img_height, img_width)
+        
+        self.jit_compile = jit_compile
 
         self.input_img_height = input_img_height
         self.input_img_width = input_img_width
@@ -110,7 +112,6 @@ class StableDiffusion:
             self.text_encoder.compile(jit_compile=True)
             self.diffusion_model.compile(jit_compile=True)
             self.decoder.compile(jit_compile=True)
-            self.image_encoder.compile(jit_compile=True)
 
         print(
             "By using this model checkpoint, you acknowledge that its usage is "
@@ -306,6 +307,8 @@ class StableDiffusion:
             self._image_encoder = ImageEncoder(
                 self.input_img_height, self.input_img_width
             )
+        if self.jit_compile:
+            self._image_encoder.compile(jit_compile=True)
         return self._image_encoder
 
     def _get_timestep_embedding(self, timestep, batch_size, dim=320, max_period=10000):
