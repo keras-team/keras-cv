@@ -101,7 +101,7 @@ class StableDiffusion:
         self.text_encoder = TextEncoder(MAX_PROMPT_LENGTH)
         self.diffusion_model = DiffusionModel(img_height, img_width, MAX_PROMPT_LENGTH)
         self.decoder = Decoder(img_height, img_width)
-        
+
         self.jit_compile = jit_compile
 
         self.input_img_height = input_img_height

@@ -30,6 +30,7 @@ from keras_cv.models.generative.stable_diffusion.__internal__.layers.resnet_bloc
 
 class ImageEncoder(keras.Sequential):
     """ImageEncoder is the VAE Encoder for StableDiffusion."""
+
     def __init__(self, img_height=512, img_width=512, download_weights=True):
         super().__init__(
             [
