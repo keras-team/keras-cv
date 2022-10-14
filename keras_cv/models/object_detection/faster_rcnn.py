@@ -367,9 +367,6 @@ class FasterRCNN(tf.keras.Model):
             )
         return rcnn_box_pred, rcnn_cls_pred
 
-    # def train_step(self, data):
-    #     print("data is {}".format(data))
-
     # TODO(tanzhenyu): override train_step and improve call output signature.
     def call(self, images, gt_boxes=None, gt_classes=None, training=None):
         image_shape = tf.shape(images[0])
