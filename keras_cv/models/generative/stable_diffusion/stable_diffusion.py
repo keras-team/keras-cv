@@ -295,6 +295,15 @@ class StableDiffusion:
 
     @property
     def image_encoder(self):
+        """image_encoder returns the VAE Encoder with pretrained weights.
+
+        Usage:
+        ```python
+        sd = keras_cv.models.StableDiffusion()
+        my_image = np.ones((512, 512, 3))
+        latent_representation = sd.image_encoder.predict(my_image)
+        ```
+        """
         if self._image_encoder is None:
             self._image_encoder = ImageEncoder(self.img_height, self.img_width)
         if self.jit_compile:
