@@ -329,6 +329,44 @@ class FasterRCNN(tf.keras.Model):
             positive_fraction=0.5,
         )
 
+    def _call_rpn(self, images, training=None):
+        image_shape = tf.shape(images[0])
+        feature_map = self.backbone(images, training=training)
+        feature_map = self.feature_pyramid(feature_map, training=training)
+        # [BS, num_anchors, 4], [BS, num_anchors, 1]
+        rpn_boxes, rpn_scores = self.rpn_head(feature_map)
+        anchors = self.anchor_generator(image_shape=image_shape)
+        # the decoded format is center_xywh, convert to yxyx
+        decoded_rpn_boxes = _decode_deltas_to_boxes(
+            anchors=anchors,
+            boxes_delta=rpn_boxes,
+            anchor_format="yxyx",
+            box_format="yxyx",
+            variance=[0.1, 0.1, 0.2, 0.2],
+        )
+        rois, _ = self.roi_generator(decoded_rpn_boxes, rpn_scores, training=training)
+        rois = _clip_boxes(rois, "yxyx", image_shape)
+        return rois, feature_map, rpn_boxes, rpn_scores
+
+    def _call_rcnn(self, rois, feature_map, training=None):
+        feature_map = self.roi_pooler(feature_map, rois)
+        # [BS, H*W*K, pool_shape*C]
+        feature_map = tf.reshape(
+            feature_map, tf.concat([tf.shape(rois)[:2], [-1]], axis=0)
+        )
+        # [BS, H*W*K, 4], [BS, H*W*K, num_classes + 1]
+        rcnn_box_pred, rcnn_cls_pred = self.rcnn_head(feature_map)
+        if not training:
+            # now it will be on "center_yxhw" format, convert to target format
+            rcnn_box_pred = _decode_deltas_to_boxes(
+                anchors=rois,
+                boxes_delta=rcnn_box_pred,
+                anchor_format="yxyx",
+                box_format=self.bounding_box_format,
+                variance=[0.1, 0.1, 0.2, 0.2],
+            )
+        return rcnn_box_pred, rcnn_cls_pred
+
     # TODO(tanzhenyu): override train_step and improve call output signature.
     def call(self, images, gt_boxes=None, gt_classes=None, training=None):
         image_shape = tf.shape(images[0])
