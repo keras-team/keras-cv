@@ -34,7 +34,6 @@ from keras_cv.models.generative.stable_diffusion.decoder import Decoder
 from keras_cv.models.generative.stable_diffusion.diffusion_model import DiffusionModel
 from keras_cv.models.generative.stable_diffusion.image_encoder import ImageEncoder
 from keras_cv.models.generative.stable_diffusion.text_encoder import TextEncoder
-from keras_cv.models.generative.stable_diffusion.vae_encoder import VAEEncoder
 
 MAX_PROMPT_LENGTH = 77
 
@@ -95,15 +94,10 @@ class StableDiffusion:
         self.text_encoder = TextEncoder(MAX_PROMPT_LENGTH)
         self.diffusion_model = DiffusionModel(img_height, img_width, MAX_PROMPT_LENGTH)
         self.decoder = Decoder(img_height, img_width)
-
-        # TODO(lukewood): should we support variable size image inputs here?
-        self.image_encoder = VAEEncoder()
-
         if jit_compile:
             self.text_encoder.compile(jit_compile=True)
             self.diffusion_model.compile(jit_compile=True)
             self.decoder.compile(jit_compile=True)
-            self.image_encoder.compile(jit_compile=True)
 
         print(
             "By using this model checkpoint, you acknowledge that its usage is "
@@ -123,44 +117,9 @@ class StableDiffusion:
             origin="https://huggingface.co/fchollet/stable-diffusion/resolve/main/kcv_decoder.h5",
             file_hash="ad350a65cc8bc4a80c8103367e039a3329b4231c2469a1093869a345f55b1962",
         )
-        image_encoder_weights_fpath = keras.utils.get_file(
-            origin="https://huggingface.co/fchollet/stable-diffusion/blob/main/vae_encoder.h5",
-            file_hash="f142c8c94c6853cd19d8bfb9c10aa762c057566f54456398beea6a70a639bf48",
-        )
-
         self.text_encoder.load_weights(text_encoder_weights_fpath)
         self.diffusion_model.load_weights(diffusion_model_weights_fpath)
         self.decoder.load_weights(decoder_weights_fpath)
-        self.image_encoder.load_weights(image_encoder_weights_fpath)
-
-    def add_tokens(self, tokens):
-        added_tokens = self.tokenizer.add_tokens(tokens)
-        new_vocab_size = self.text_encoder.vocab_size + added_tokens
-
-        old_token_weights = self.text_encoder.embedding.token_embedding.get_weights()
-        old_position_weights = (
-            self.text_encoder.embedding.position_embedding.get_weights()
-        )
-        if len(old_token_weights) > 1:
-            # this should never happen, but we should warn users if something unexpected
-            # changes upstream.
-            raise ValueError("Invalid old_token_weights or old_position_weights")
-
-        old_token_weights = old_token_weights[0]
-        new_weights = np.mean(old_token_weights, axis=0)
-        new_weights = np.expand_dims(new_weights, axis=0)
-        new_weights = np.repeat(new_weights, added_tokens, axis=0)
-        new_weights = np.concatenate([old_token_weights, new_weights], axis=0)
-
-        new_vocab_size = self.text_encoder.vocab_size + added_tokens
-        new_encoder = TextEncoder(MAX_PROMPT_LENGTH, vocab_size=new_vocab_size)
-
-        new_encoder.embedding.token_embedding.set_weights([new_weights])
-        new_encoder.embedding.position_embedding.set_weights(old_position_weights)
-        self.text_encoder = new_encoder
-
-        if self.jit_compile:
-            self.text_encoder.compile(jit_compile=True)
 
     def text_to_image(
         self,
@@ -208,9 +167,7 @@ class StableDiffusion:
             raise ValueError(
                 f"Prompt is too long (should be <= {MAX_PROMPT_LENGTH} tokens)"
             )
-        phrase = inputs + [self.tokenizer.start_of_text] * (
-            MAX_PROMPT_LENGTH - len(inputs)
-        )
+        phrase = inputs + [49407] * (MAX_PROMPT_LENGTH - len(inputs))
         phrase = tf.convert_to_tensor([phrase], dtype=tf.int32)
 
         context = self.text_encoder.predict_on_batch([phrase, self._get_pos_ids()])
@@ -468,68 +425,6 @@ class StableDiffusion:
         )
 
         return unconditional_context
-
-    @property
-    def image_encoder(self):
-        """image_encoder returns the VAE Encoder with pretrained weights.
-
-        Usage:
-        ```python
-        sd = keras_cv.models.StableDiffusion()
-        my_image = np.ones((512, 512, 3))
-        latent_representation = sd.image_encoder.predict(my_image)
-        ```
-        """
-        if self._image_encoder is None:
-            self._image_encoder = ImageEncoder(self.img_height, self.img_width)
-        if self.jit_compile:
-            self._image_encoder.compile(jit_compile=True)
-        return self._image_encoder
-
-    @property
-    def text_encoder(self):
-        """text_encoder returns the text encoder with pretrained weights.
-        Can be overriden for tasks like textual inversion where the text encoder
-        needs to be modified.
-        """
-        if self._text_encoder is None:
-            self._text_encoder = TextEncoder(MAX_PROMPT_LENGTH)
-        if self.jit_compile:
-            self._text_encoder.compile(jit_compile=True)
-        return self._text_encoder
-
-    @property
-    def diffusion_model(self):
-        """diffusion_model returns the diffusion model with pretrained weights.
-        Can be overriden for tasks where the diffusion model needs to be modified.
-        """
-        if self._diffusion_model is None:
-            self._diffusion_model = DiffusionModel(
-                self.img_height, self.img_width, MAX_PROMPT_LENGTH
-            )
-        if self.jit_compile:
-            self._diffusion_model.compile(jit_compile=True)
-        return self._diffusion_model
-
-    @property
-    def decoder(self):
-        """decoder returns the diffusion image decoder model with pretrained weights.
-        Can be overriden for tasks where the decoder needs to be modified.
-        """
-        if self._decoder is None:
-            self._decoder = Decoder(self.img_height, self.img_width)
-        if self.jit_compile:
-            self._decoder.compile(jit_compile=True)
-        return self._decoder
-
-    @property
-    def tokenizer(self):
-        """tokenizer returns the tokenizer used for text inputs.
-        Can be overriden for tasks like textual inversion where the tokenizer needs to be modified.
-        """
-        if self._tokenizer is None:
-            self._tokenizer = SimpleTokenizer()
-        return self._tokenizer
 
     def _get_timestep_embedding(self, timestep, batch_size, dim=320, max_period=10000):
         half = dim // 2
