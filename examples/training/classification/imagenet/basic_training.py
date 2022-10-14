@@ -91,13 +91,13 @@ flags.DEFINE_string(
     "String denoting the type of learning rate schedule to be used",
 )
 
-flags.DEFINE_string(
+flags.DEFINE_integer(
     "warmup_steps_percentage",
     10,
     "For how many steps expressed in percentage of total steps should the schedule warm up if we're using the warmup schedule",
 )
 
-flags.DEFINE_string(
+flags.DEFINE_integer(
     "warmup_hold_steps_percentage",
     10,
     "For how many steps expressed in percentage of total steps should the schedule hold the initial learning rate if we're using the warmup schedule",
@@ -296,7 +296,7 @@ with strategy.scope():
 As a last piece of configuration, we configure callbacks for the method.
 We use EarlyStopping, BackupAndRestore, and a model checkpointing callback.
 """
-callbacks = [
+model_callbacks = [
     callbacks.EarlyStopping(patience=20),
     callbacks.BackupAndRestore(FLAGS.backup_path),
     callbacks.ModelCheckpoint(FLAGS.weights_path, save_weights_only=True),
@@ -304,7 +304,7 @@ callbacks = [
 ]
 
 if FLAGS.learning_rate_schedule == REDUCE_ON_PLATEAU:
-    callbacks.append(
+    model_callbacks.append(
         callbacks.ReduceLROnPlateau(
             monitor="val_loss", factor=0.1, patience=10, min_delta=0.001, min_lr=0.0001
         )
@@ -326,6 +326,6 @@ model.fit(
     train_ds,
     batch_size=BATCH_SIZE,
     epochs=FLAGS.epochs,
-    callbacks=callbacks,
+    callbacks=model_callbacks,
     validation_data=test_ds,
 )
