@@ -52,10 +52,6 @@ class StableDiffusion:
         img_width: Width of the images to generate, in pixel. Note that only
             multiples of 128 are supported; the value provided will be rounded
             to the nearest valid value. Default: 512.
-        input_img_height: Height of the image input to the `ImageEncoder`.  This model
-            is used in fine tuning and image to image workflows. Default: 512.
-        input_img_width: Width of the image input to the `ImageEncoder`.  This model
-            is used in fine tuning and image to image workflows. Default: 512.
         jit_compile: Whether to compile the underlying models to XLA.
             This can lead to a significant speedup on some systems. Default: False.
 
@@ -86,8 +82,6 @@ class StableDiffusion:
         self,
         img_height=512,
         img_width=512,
-        input_img_height=512,
-        input_img_width=512,
         jit_compile=False,
     ):
         # UNet requires multiples of 2**7 = 128
@@ -304,9 +298,7 @@ class StableDiffusion:
     @property
     def image_encoder(self):
         if self._image_encoder is None:
-            self._image_encoder = ImageEncoder(
-                self.input_img_height, self.input_img_width
-            )
+            self._image_encoder = ImageEncoder(self.img_height, self.img_width)
         if self.jit_compile:
             self._image_encoder.compile(jit_compile=True)
         return self._image_encoder
