@@ -100,7 +100,6 @@ class StableDiffusion:
 
         self.jit_compile = jit_compile
 
-
         if jit_compile:
             self.text_encoder.compile(jit_compile=True)
             self.diffusion_model.compile(jit_compile=True)
