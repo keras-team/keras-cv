@@ -384,6 +384,8 @@ class FasterRCNN(tf.keras.Model):
         weight_decay=0.0001,
         **kwargs,
     ):
+        # TODO(tanzhenyu): Add metrics support once COCOMap issue is addressed.
+        # https://github.com/keras-team/keras-cv/issues/915
         if "metrics" in kwargs.keys():
             raise ValueError("currently metrics support is not supported intentionally")
         reduction_type = tf.keras.losses.Reduction.SUM
