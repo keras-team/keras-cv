@@ -95,12 +95,11 @@ class StableDiffusion:
         self.text_encoder = TextEncoder(MAX_PROMPT_LENGTH)
         self.diffusion_model = DiffusionModel(img_height, img_width, MAX_PROMPT_LENGTH)
         self.decoder = Decoder(img_height, img_width)
+        # lazy initialize image encoder
+        self._image_encoder = None
 
         self.jit_compile = jit_compile
 
-        self.input_img_height = input_img_height
-        self.input_img_width = input_img_width
-        self._image_encoder = None
 
         if jit_compile:
             self.text_encoder.compile(jit_compile=True)
