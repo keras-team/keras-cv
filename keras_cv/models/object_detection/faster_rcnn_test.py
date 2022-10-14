@@ -43,3 +43,9 @@ class FasterRCNNTest(tf.test.TestCase):
                     from_logits=False
                 )
             )
+        with self.assertRaisesRegex(ValueError, "SUM"):
+            model.compile(
+                rpn_box_loss=tf.keras.losses.Huber(
+                    reduction=tf.keras.losses.Reduction.AUTO
+                )
+            )
