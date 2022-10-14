@@ -21,6 +21,7 @@ Description: Use KerasCV to train an image classifier using modern best practice
 
 import sys
 
+import numpy as np
 import tensorflow as tf
 from absl import flags
 from tensorflow import keras
@@ -32,8 +33,6 @@ from tensorflow.keras import optimizers
 import keras_cv
 from keras_cv import models
 from keras_cv.datasets import imagenet
-
-import numpy as np
 
 """
 ## Overview
@@ -105,11 +104,7 @@ flags.DEFINE_string(
 )
 
 # An upper bound for number of epochs (this script uses EarlyStopping).
-flags.DEFINE_string(
-    "epochs",
-     1000,
-    "Epochs to train for"
-)
+flags.DEFINE_string("epochs", 1000, "Epochs to train for")
 
 FLAGS = flags.FLAGS
 FLAGS(sys.argv)
@@ -211,24 +206,35 @@ with strategy.scope():
 Optional LR schedule with cosine decay instead of ReduceLROnPlateau
 TODO: Replace with Core Keras LRWarmup when it's released. This is a temporary solution.
 """
-def lr_warmup_cosine_decay(global_step,
-                           warmup_steps,
-                           hold=0,
-                           total_steps=0,
-                           start_lr=0.0,
-                           target_lr=1e-3):
+
+
+def lr_warmup_cosine_decay(
+    global_step, warmup_steps, hold=0, total_steps=0, start_lr=0.0, target_lr=1e-3
+):
     # Cosine decay
     # There is no tf.pi :(
-    learning_rate = 0.5 * target_lr * (1 + tf.cos(
-        tf.constant(np.pi) * (global_step - warmup_steps - hold) / float(total_steps - warmup_steps - hold)))
+    learning_rate = (
+        0.5
+        * target_lr
+        * (
+            1
+            + tf.cos(
+                tf.constant(np.pi)
+                * (global_step - warmup_steps - hold)
+                / float(total_steps - warmup_steps - hold)
+            )
+        )
+    )
     warmup_lr = target_lr * (global_step / warmup_steps)
 
     if hold > 0:
-        learning_rate = tf.where(global_step > warmup_steps + hold,
-                                 learning_rate, target_lr)
+        learning_rate = tf.where(
+            global_step > warmup_steps + hold, learning_rate, target_lr
+        )
 
     learning_rate = tf.where(global_step < warmup_steps, warmup_lr, learning_rate)
     return learning_rate
+
 
 class WarmUpCosineDecay(keras.optimizers.schedules.LearningRateSchedule):
     def __init__(self, start_lr, target_lr, warmup_steps, total_steps, hold):
@@ -240,25 +246,28 @@ class WarmUpCosineDecay(keras.optimizers.schedules.LearningRateSchedule):
         self.hold = hold
 
     def __call__(self, step):
-        lr = lr_warmup_cosine_decay(global_step=step,
-                                    total_steps=self.total_steps,
-                                    warmup_steps=self.warmup_steps,
-                                    start_lr=self.start_lr,
-                                    target_lr=self.target_lr,
-                                    hold=self.hold)
-
-        return tf.where(
-            step > self.total_steps, 0.0, lr, name="learning_rate"
+        lr = lr_warmup_cosine_decay(
+            global_step=step,
+            total_steps=self.total_steps,
+            warmup_steps=self.warmup_steps,
+            start_lr=self.start_lr,
+            target_lr=self.target_lr,
+            hold=self.hold,
         )
+
+        return tf.where(step > self.total_steps, 0.0, lr, name="learning_rate")
+
 
 # If batched
 total_steps = len(train_ds) * FLAGS.epochs
 warmup_steps = int(FLAGS.warmup_steps_percentage * total_steps)
-schedule = WarmUpCosineDecay(start_lr=0.0,
-                             target_lr=INITIAL_LEARNING_RATE,
-                             warmup_steps=warmup_steps,
-                             total_steps=total_steps,
-                             hold=FLAGS.warmup_hold_steps_percentage)
+schedule = WarmUpCosineDecay(
+    start_lr=0.0,
+    target_lr=INITIAL_LEARNING_RATE,
+    warmup_steps=warmup_steps,
+    total_steps=total_steps,
+    hold=FLAGS.warmup_hold_steps_percentage,
+)
 
 """
 Next, we pick an optimizer. Here we use SGD.
@@ -266,9 +275,7 @@ Note that learning rate will decrease over time due to the ReduceLROnPlateau cal
 """
 
 if FLAGS.learning_rate_schedule == COSINE_DECAY_WITH_WARMUP:
-    optimizer = optimizers.SGD(
-        learning_rate=schedule, momentum=0.9, global_clipnorm=10
-    )
+    optimizer = optimizers.SGD(learning_rate=schedule, momentum=0.9, global_clipnorm=10)
 else:
     optimizer = optimizers.SGD(
         learning_rate=INITIAL_LEARNING_RATE, momentum=0.9, global_clipnorm=10
@@ -297,7 +304,11 @@ callbacks = [
 ]
 
 if FLAGS.learning_rate_schedule == REDUCE_ON_PLATEAU:
-    callbacks.append(callbacks.ReduceLROnPlateau(monitor="val_loss", factor=0.1, patience=10, min_delta=0.001, min_lr=0.0001))
+    callbacks.append(
+        callbacks.ReduceLROnPlateau(
+            monitor="val_loss", factor=0.1, patience=10, min_delta=0.001, min_lr=0.0001
+        )
+    )
 
 
 """
@@ -318,4 +329,3 @@ model.fit(
     callbacks=callbacks,
     validation_data=test_ds,
 )
-
