@@ -75,10 +75,15 @@ def compute_iou(
     are unbatched and by [`batch`, `boxes1_index`,`boxes2_index`] if the boxes are
     batched.
 
+    The users can pass `boxes1` and `boxes2` to be different ranks. For example:
+    1) `boxes1`: [batch_size, M, 4], `boxes2`: [batch_size, N, 4] -> return [batch_size, M, N].
+    2) `boxes1`: [batch_size, M, 4], `boxes2`: [N, 4] -> return [batch_size, M, N]
+    3) `boxes1`: [M, 4], `boxes2`: [batch_size, N, 4] -> return [batch_size, M, N]
+    4) `boxes1`: [M, 4], `boxes2`: [N, 4] -> return [M, N]
+
     Args:
       boxes1: a list of bounding boxes in 'corners' format. Can be batched or unbatched.
-      boxes2: a list of bounding boxes in 'corners' format. This should match the rank and
-        shape of boxes1.
+      boxes2: a list of bounding boxes in 'corners' format. Can be batched or unbatched.
       bounding_box_format: a case-insensitive string which is one of `"xyxy"`,
         `"rel_xyxy"`, `"xyWH"`, `"center_xyWH"`, `"yxyx"`, `"rel_yxyx"`.
         For detailed information on the supported format, see the
