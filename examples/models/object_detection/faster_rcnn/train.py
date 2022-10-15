@@ -27,11 +27,13 @@ from absl import flags
 import keras_cv
 
 flags.DEFINE_string(
-    "weights_path", "weights_{epoch:02d}.h5", "Directory which will be used to store weight checkpoints."
+    "weights_path",
+    "weights_{epoch:02d}.h5",
+    "Directory which will be used to store weight checkpoints.",
 )
 flags.DEFINE_string(
     "tensorboard_path",
-    "~/logs",
+    "logs",
     "Directory which will be used to store tensorboard logs.",
 )
 FLAGS = flags.FLAGS
