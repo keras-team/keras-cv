@@ -26,14 +26,12 @@ class TransformerEncoder(layers.Layer):
         - dropout: default 0.1, the dropout rate to apply inside the MLP head of the encoder
         - activation: default tf.nn.gelu(), the activation function to apply in the MLP head
         - layer_norm_epsilon: default 1e-06, the epsilon for `LayerNormalization` layers
-        - transformer_units: list of dimensionalities for the `Dense` layers in the MLP head
     """
     def __init__(self, project_dim,
                  num_heads,
                  dropout=0.1,
                  activation=tf.nn.gelu,
                  layer_norm_epsilon=1e-06,
-                 transformer_units=None,
                  **kwargs):
         super().__init__(**kwargs)
 
@@ -45,13 +43,15 @@ class TransformerEncoder(layers.Layer):
         self.transformer_units = transformer_units
 
     def call(self, inputs):
+        transformer_units = [inputs.shape[0], self.project_dim]
+
         x1 = layers.LayerNormalization(epsilon=self.layer_norm_epsilon)(inputs)
         attention_output = layers.MultiHeadAttention(
             num_heads=self.num_heads, key_dim=self.project_dim, dropout=self.dropout
         )(x1, x1)
         x2 = layers.Add()([attention_output, inputs])
         x3 = layers.LayerNormalization(epsilon=self.layer_norm_epsilon)(x2)
-        x3 = mlp_head(x3, dropout_rate=self.dropout, activation=self.activation, hidden_units=self.transformer_units)
+        x3 = mlp_head(x3, dropout_rate=self.dropout, hidden_units=transformer_units, activation=self.activation)
         encoded_patches = layers.Add()([x3, x2])
 
         return encoded_patches
