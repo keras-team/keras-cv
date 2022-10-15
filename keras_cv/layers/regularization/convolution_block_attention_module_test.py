@@ -22,7 +22,7 @@ class CBAMTest(tf.test.TestCase):
         input_shape = (1, 4, 4, 8)
         inputs = tf.random.uniform(input_shape)
 
-        layer = CBAM(8, ratio=0.25)
+        layer = CBAM(8, ratio = 0.25)
         outputs = layer(inputs)
         self.assertEquals(inputs.shape, outputs.shape)
 
