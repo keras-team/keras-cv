@@ -76,3 +76,4 @@ from keras_cv.layers.spatial_pyramid import SpatialPyramidPooling
 from keras_cv.layers.vit_patching import Patching
 from keras_cv.layers.vit_patch_encoding import PatchEncoding
 from keras_cv.layers.transformer_encoder import TransformerEncoder
+from keras_cv.layers.vit_class_tokenizing import ClassTokenizing

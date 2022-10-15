@@ -16,7 +16,14 @@ import tensorflow as tf
 from tensorflow.keras import layers
 
 @tf.keras.utils.register_keras_serializable(package="keras_cv")
-class ClassToken(layers.Layer):
+class ClassTokenizing(layers.Layer):
+    """
+    Layer to concat learnable class token to input for Vision Transformers from:
+        - An Image is Worth 16x16 Words: Transformers for Image Recognition at Scale
+        by Alexey Dosovitskiy et al. (https://arxiv.org/abs/2010.11929)
+
+    Based on: https://github.com/faustomorales/vit-keras
+    """
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
