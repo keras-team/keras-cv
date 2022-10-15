@@ -21,7 +21,7 @@ from keras_cv.layers.vit_class_tokenizing import ClassTokenizing
 @tf.keras.utils.register_keras_serializable(package="keras_cv")
 class PatchEncoding(layers.Layer):
     """
-    Layer to positionally embed and create a projection of patches made with `Patching` layer
+    Layer to add a class token, positionally embed and create a projection of patches made with the `Patching` layer
     for Vision Transformers from:
         - An Image is Worth 16x16 Words: Transformers for Image Recognition at Scale
         by Alexey Dosovitskiy et al. (https://arxiv.org/abs/2010.11929)
@@ -56,7 +56,8 @@ class PatchEncoding(layers.Layer):
     def call(self, patch):
         # Add learnable class token before positional embedding
         patch = ClassTokenizing()(patch)
-        positions = tf.range(start=0, limit=self.num_patches, delta=1)
+        # num_patches + class token
+        positions = tf.range(start=0, limit=self.num_patches+1, delta=1)
         encoded = self.project_dim(patch) + self.position_embedding(positions)
         return encoded
 
