@@ -42,7 +42,7 @@ class TransformerEncoder(layers.Layer):
         self.layer_norm_epsilon = layer_norm_epsilon
 
     def call(self, inputs):
-        transformer_units = [inputs.shape[0], self.project_dim]
+        transformer_units = [2*inputs.shape[0], self.project_dim]
 
         x1 = layers.LayerNormalization(epsilon=self.layer_norm_epsilon)(inputs)
         attention_output = layers.MultiHeadAttention(
