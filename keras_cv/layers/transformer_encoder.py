@@ -15,7 +15,6 @@
 import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras import layers
-from keras_cv.transformers.mlp_ffn import mlp_head
 
 @tf.keras.utils.register_keras_serializable(package="keras_cv")
 class TransformerEncoder(layers.Layer):
