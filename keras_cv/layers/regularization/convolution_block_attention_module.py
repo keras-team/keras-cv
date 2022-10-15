@@ -21,6 +21,9 @@ class CBAM(layers.Layer):
     """
         Implements Convolution Block Attention Module (CBAM) as in
         [Convolution-Block-Attention--Module](https://arxiv.org/pdf/1807.06521.pdf).
+        CBAM is applied as a layer in every convolutional block of a convolutional neural network model. 
+        It takes in a tensor containing the feature maps from the previous convolutional layer and first refines it by applying channel attention using CAM.
+        Subsequently this refined tensor is passed to SAM where the spatial attention is applied, thus resulting in the output refined feature maps
 
         Args:
             filters: Number of input and output filters. The number of input and
