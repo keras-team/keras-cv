@@ -36,14 +36,14 @@ class TransformerEncoder(layers.Layer):
     intermediate_dim = 1024
     num_heads = 4
 
-    patches = keras_cv.layers.Patching(patch_size)(batch_img)
+    patches = keras_cv.layers.Patching(patch_size)(batch_img) # (1, 196, 768)
     encoded_patches = keras_cv.layers.PatchEncoding(num_patches=patches.shape[1],
-                                                    project_dim=project_dim)(patches) # (1, 196, 1024)
+                                                    project_dim=project_dim)(patches) # (1, 197, 1024)
     trans_encoded = keras_cv.layers.TransformerEncoder(project_dim=project_dim,
                                                        intermediate_dim=intermediate_dim,
                                                        num_heads=num_heads)(encoded_patches)
 
-    print(trans_encoded.shape) # (1, 196, 1024)
+    print(trans_encoded.shape) # (1, 197, 1024)
     ```
     """
 
