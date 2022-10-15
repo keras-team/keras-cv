@@ -40,7 +40,6 @@ class TransformerEncoder(layers.Layer):
         self.dropout = dropout
         self.activation = activation
         self.layer_norm_epsilon = layer_norm_epsilon
-        self.transformer_units = transformer_units
 
     def call(self, inputs):
         transformer_units = [inputs.shape[0], self.project_dim]
@@ -64,8 +63,7 @@ class TransformerEncoder(layers.Layer):
                 "num_heads": self.num_heads,
                 "dropout": self.dropout,
                 "activation": keras.activations.serialize(self.activation),
-                "layer_norm_epsilon": self.layer_norm_epsilon,
-                "transformer_units": self.transformer_units
+                "layer_norm_epsilon": self.layer_norm_epsilon
             }
         )
         return config
