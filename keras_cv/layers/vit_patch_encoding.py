@@ -17,7 +17,7 @@ from tensorflow.keras import layers
 
 
 @tf.keras.utils.register_keras_serializable(package="keras_cv")
-class PatchEncoder(layers.Layer):
+class PatchEncoding(layers.Layer):
     """
     Layer to positionally embed and create a projection of patches made with `Patching` layer
     for Vision Transformers from:
@@ -29,7 +29,7 @@ class PatchEncoder(layers.Layer):
         - project_dim: the dimensionality of the project_dim
     """
     def __init__(self, num_patches, project_dim):
-        super(PatchEncoder, self).__init__()
+        super().__init__()
         self.num_patches = num_patches
         self.project_dim = layers.Dense(units=project_dim)
         self.position_embedding = layers.Embedding(

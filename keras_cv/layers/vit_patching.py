@@ -26,7 +26,7 @@ class Patching(layers.Layer):
         - patch_size: the size (patch_size, patch_size) of each patch created from the image
     """
     def __init__(self, patch_size):
-        super(Patching, self).__init__()
+        super().__init__()
         self.patch_size = patch_size
 
     def call(self, images):
