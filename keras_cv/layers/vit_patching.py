@@ -26,22 +26,23 @@ class Patching(layers.Layer):
 
     The layer expects a batch of input images and returns batches of patches.
 
+    args:
+        - patch_size: the size (patch_size, patch_size) of each patch created from the image
+
     Basic usage:
 
     ```
     img = url_to_array(url)
-    img = np.expand_dims(img, 0)
+    batch_img = np.expand_dims(img, 0)
 
     patch_size = 16
-    patches = keras_cv.layers.Patching(patch_size)(img)
-    print(f"Image size: {img.shape}")                # Image size: (1, 224, 224, 3)
+    patches = keras_cv.layers.Patching(patch_size)(batch_img)
+    print(f"Image size: {batch_img.shape}")                # Image size: (1, 224, 224, 3)
     print(f"Patch size: {(patch_size, patch_size)}") # Patch size: (16, 16)
     print(f"Patches: {patches.shape[1]}")            # Patches: 196
     ```
-
-    args:
-        - patch_size: the size (patch_size, patch_size) of each patch created from the image
     """
+
     def __init__(self, patch_size, **kwargs):
         super().__init__(**kwargs)
         self.patch_size = patch_size

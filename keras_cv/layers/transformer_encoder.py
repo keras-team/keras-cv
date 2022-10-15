@@ -27,6 +27,23 @@ class TransformerEncoder(layers.Layer):
         - dropout: default 0.1, the dropout rate to apply inside the MLP head of the encoder
         - activation: default tf.nn.gelu(), the activation function to apply in the MLP head
         - layer_norm_epsilon: default 1e-06, the epsilon for `LayerNormalization` layers
+
+    Basic usage:
+
+    ```
+    project_dim = 1024
+    intermediate_dim = 1024
+    num_heads = 4
+
+    patches = keras_cv.layers.Patching(patch_size)(batch_img)
+    encoded_patches = keras_cv.layers.PatchEncoding(num_patches=patches.shape[1],
+                                                    project_dim=project_dim)(patches) # (1, 196, 1024)
+    trans_encoded = keras_cv.layers.TransformerEncoder(project_dim=project_dim,
+                                                       intermediate_dim=intermediate_dim,
+                                                       num_heads=num_heads)(encoded_patches)
+
+    print(trans_encoded.shape) # (1, 196, 1024)
+    ```
     """
     def __init__(self, project_dim,
                  intermediate_dim,
