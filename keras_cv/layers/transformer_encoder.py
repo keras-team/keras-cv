@@ -34,8 +34,9 @@ class TransformerEncoder(layers.Layer):
                  dropout=0.1,
                  activation=tf.nn.gelu(),
                  layer_norm_epsilon=1e-06,
-                 transformer_units=None):
-        super().__init__()
+                 transformer_units=None,
+                 **kwargs):
+        super().__init__(**kwargs)
 
         self.project_dim = project_dim
         self.num_heads = num_heads

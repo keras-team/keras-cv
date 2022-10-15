@@ -28,8 +28,8 @@ class PatchEncoding(layers.Layer):
         - num_patches: the number of input patches to project
         - project_dim: the dimensionality of the project_dim
     """
-    def __init__(self, num_patches, project_dim):
-        super().__init__()
+    def __init__(self, num_patches, project_dim, **kwargs):
+        super().__init__(**kwargs)
         self.num_patches = num_patches
         self.project_dim = layers.Dense(units=project_dim)
         self.position_embedding = layers.Embedding(
