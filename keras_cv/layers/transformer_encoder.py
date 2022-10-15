@@ -31,7 +31,7 @@ class TransformerEncoder(layers.Layer):
     def __init__(self, project_dim,
                  num_heads,
                  dropout=0.1,
-                 activation=tf.nn.gelu(),
+                 activation=tf.nn.gelu,
                  layer_norm_epsilon=1e-06,
                  transformer_units=None,
                  **kwargs):
