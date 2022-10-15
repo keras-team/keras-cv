@@ -15,6 +15,7 @@
 import tensorflow as tf
 from tensorflow.keras import layers
 
+
 @tf.keras.utils.register_keras_serializable(package="keras_cv")
 class ClassTokenizing(layers.Layer):
     """
@@ -31,7 +32,9 @@ class ClassTokenizing(layers.Layer):
     def call(self, inputs):
         input_shape = tf.shape(inputs)
         batch_size = input_shape[0]
-        learnable_class_token = tf.Variable(initial_value=tf.random.normal([1, 1, input_shape[-1]]))
+        learnable_class_token = tf.Variable(
+            initial_value=tf.random.normal([1, 1, input_shape[-1]])
+        )
 
         class_token_broadcast = tf.cast(
             tf.broadcast_to(learnable_class_token, [batch_size, 1, input_shape[-1]]),

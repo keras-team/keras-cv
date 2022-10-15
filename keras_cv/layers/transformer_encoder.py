@@ -16,6 +16,7 @@ import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras import layers
 
+
 @tf.keras.utils.register_keras_serializable(package="keras_cv")
 class TransformerEncoder(layers.Layer):
     """
@@ -45,13 +46,17 @@ class TransformerEncoder(layers.Layer):
     print(trans_encoded.shape) # (1, 196, 1024)
     ```
     """
-    def __init__(self, project_dim,
-                 intermediate_dim,
-                 num_heads,
-                 dropout=0.1,
-                 activation=tf.nn.gelu,
-                 layer_norm_epsilon=1e-06,
-                 **kwargs):
+
+    def __init__(
+        self,
+        project_dim,
+        intermediate_dim,
+        num_heads,
+        dropout=0.1,
+        activation=tf.nn.gelu,
+        layer_norm_epsilon=1e-06,
+        **kwargs
+    ):
         super().__init__(**kwargs)
 
         self.project_dim = project_dim
@@ -70,7 +75,12 @@ class TransformerEncoder(layers.Layer):
         )(x1, x1)
         x2 = layers.Add()([attention_output, inputs])
         x3 = layers.LayerNormalization(epsilon=self.layer_norm_epsilon)(x2)
-        x3 = mlp_head(x3, dropout_rate=self.dropout, hidden_units=transformer_units, activation=self.activation)
+        x3 = mlp_head(
+            x3,
+            dropout_rate=self.dropout,
+            hidden_units=transformer_units,
+            activation=self.activation,
+        )
         encoded_patches = layers.Add()([x3, x2])
 
         return encoded_patches
@@ -84,14 +94,17 @@ class TransformerEncoder(layers.Layer):
                 "num_heads": self.num_heads,
                 "dropout": self.dropout,
                 "activation": keras.activations.serialize(self.activation),
-                "layer_norm_epsilon": self.layer_norm_epsilon
+                "layer_norm_epsilon": self.layer_norm_epsilon,
             }
         )
         return config
 
+
 """
 Helper method for creating an MLP head
 """
+
+
 def mlp_head(x, dropout_rate, hidden_units, activation):
     for (idx, units) in enumerate(hidden_units):
         x = layers.Dense(units, activation=activation if idx == 0 else None)(x)

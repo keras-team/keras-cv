@@ -14,6 +14,7 @@
 
 import tensorflow as tf
 from tensorflow.keras import layers
+
 from keras_cv.layers import ClassTokenizing
 
 
@@ -43,6 +44,7 @@ class PatchEncoding(layers.Layer):
     print(encoded_patches.shape) # (1, 196, 1024)
     ```
     """
+
     def __init__(self, num_patches, project_dim, **kwargs):
         super().__init__(**kwargs)
         self.num_patches = num_patches
