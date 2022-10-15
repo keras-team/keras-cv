@@ -32,7 +32,7 @@ class CBAM(layers.Layer):
                 be applied after squeeze convolution. Defaults to `relu`.
             spatial_activation: (Optional) String, callable (or tf.keras.layers.Layer) or
                 tf.keras.activations.Activation instance denoting activation to
-                be applied after excite convolution. Defaults to `sigmoid`
+                be applied after excite convolution. Defaults to `sigmoid`.
         Usage:
         ```python
         # (...)
