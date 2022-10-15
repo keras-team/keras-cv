@@ -19,10 +19,10 @@ from convolution_block_attention_module import CBAM
 
 class CBAMTest(tf.test.TestCase):
     def test_maintains_shape(self):
-        input_shape = (1, 4, 4, 8)
+        input_shape = (1, 128, 128, 32)
         inputs = tf.random.uniform(input_shape)
 
-        layer = CBAM(8, ratio = 0.25)
+        layer = CBAM(32, ratio=0.25)
         outputs = layer(inputs)
         self.assertEquals(inputs.shape, outputs.shape)
 
@@ -30,11 +30,11 @@ class CBAMTest(tf.test.TestCase):
         def custom_activation(x):
             return x * tf.random.uniform(x.shape, seed=42)
 
-        input_shape = (1, 4, 4, 8)
+        input_shape = (1, 128, 128, 32)
         inputs = tf.random.uniform(input_shape)
 
         layer = CBAM(
-            8,
+            32,
             ratio=0.25,
             channel_activation=custom_activation,
             spatial_activation=custom_activation,
@@ -46,10 +46,10 @@ class CBAMTest(tf.test.TestCase):
         with self.assertRaisesRegex(
             ValueError, "`ratio` should be a float" " between 0 and 1. Got (.*?)"
         ):
-            _ = CBAM(8, ratio=1.1)
+            _ = CBAM(32, ratio=1.1)
 
     def test_raises_invalid_filters_error(self):
         with self.assertRaisesRegex(
             ValueError, "`filters` should be a positive" " integer. Got (.*?)"
         ):
-            _ = CBAM(-8.7)
+            _ = CBAM(-32.7)
