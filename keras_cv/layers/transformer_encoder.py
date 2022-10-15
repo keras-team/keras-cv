@@ -28,6 +28,7 @@ class TransformerEncoder(layers.Layer):
         - layer_norm_epsilon: default 1e-06, the epsilon for `LayerNormalization` layers
     """
     def __init__(self, project_dim,
+                 intermediate_dim,
                  num_heads,
                  dropout=0.1,
                  activation=tf.nn.gelu,
@@ -36,13 +37,14 @@ class TransformerEncoder(layers.Layer):
         super().__init__(**kwargs)
 
         self.project_dim = project_dim
+        self.intermediate_dim = intermediate_dim
         self.num_heads = num_heads
         self.dropout = dropout
         self.activation = activation
         self.layer_norm_epsilon = layer_norm_epsilon
 
     def call(self, inputs):
-        transformer_units = [2*inputs.shape[0], self.project_dim]
+        transformer_units = [self.intermediate_dim, self.project_dim]
 
         x1 = layers.LayerNormalization(epsilon=self.layer_norm_epsilon)(inputs)
         attention_output = layers.MultiHeadAttention(
@@ -60,6 +62,7 @@ class TransformerEncoder(layers.Layer):
         config.update(
             {
                 "project_dim": self.project_dim,
+                "intermediate_dim": self.intermediate_dim,
                 "num_heads": self.num_heads,
                 "dropout": self.dropout,
                 "activation": keras.activations.serialize(self.activation),
