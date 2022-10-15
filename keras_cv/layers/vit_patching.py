@@ -21,6 +21,23 @@ class Patching(layers.Layer):
     Layer to turn images into a sequence of patches for Vision Transformers from:
         - An Image is Worth 16x16 Words: Transformers for Image Recognition at Scale
         by Alexey Dosovitskiy et al. (https://arxiv.org/abs/2010.11929)
+    Based on Khalid Salama's implementation for:
+        - https://github.com/keras-team/keras-io/blob/master/examples/vision/image_classification_with_vision_transformer.py
+
+    The layer expects a batch of input images and returns batches of patches.
+
+    Basic usage:
+
+    ```
+    img = url_to_array(url)
+    img = np.expand_dims(img, 0)
+
+    patch_size = 16
+    patches = keras_cv.layers.Patching(patch_size)(img)
+    print(f"Image size: {img.shape}")                # Image size: (1, 224, 224, 3)
+    print(f"Patch size: {(patch_size, patch_size)}") # Patch size: (16, 16)
+    print(f"Patches: {patches.shape[1]}")            # Patches: 196
+    ```
 
     args:
         - patch_size: the size (patch_size, patch_size) of each patch created from the image

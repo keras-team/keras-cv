@@ -44,14 +44,14 @@ class TransformerEncoder(layers.Layer):
         self.layer_norm_epsilon = layer_norm_epsilon
         self.transformer_units = transformer_units
 
-    def call(self, input):
-        x1 = layers.LayerNormalization(epsilon=self.layer_norm_epsilon)(input)
+    def call(self, inputs):
+        x1 = layers.LayerNormalization(epsilon=self.layer_norm_epsilon)(inputs)
         attention_output = layers.MultiHeadAttention(
             num_heads=self.num_heads, key_dim=self.project_dim, dropout=self.dropout
         )(x1, x1)
-        x2 = layers.Add()([attention_output, input])
+        x2 = layers.Add()([attention_output, inputs])
         x3 = layers.LayerNormalization(epsilon=self.layer_norm_epsilon)(x2)
-        x3 = mlp_head(x3, dropout_rate=self.dropout, hidden_units=self.transformer_units)
+        x3 = mlp_head(x3, dropout_rate=self.dropout, activation=self.activation, hidden_units=self.transformer_units)
         encoded_patches = layers.Add()([x3, x2])
 
         return encoded_patches

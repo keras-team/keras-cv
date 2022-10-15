@@ -24,6 +24,18 @@ class PatchEncoding(layers.Layer):
         - An Image is Worth 16x16 Words: Transformers for Image Recognition at Scale
         by Alexey Dosovitskiy et al. (https://arxiv.org/abs/2010.11929)
 
+    Basic usage:
+
+    ```
+    patches = keras_cv.layers.Patching(patch_size)(img)
+
+    project_dim = 1024
+    num_patches = patches.shape[1] # 196
+
+    encoded_patches = keras_cv.layers.PatchEncoding(num_patches, project_dim)(patches)
+    print(encoded_patches.shape) # (1, 196, 1024)
+    ```
+
     args:
         - num_patches: the number of input patches to project
         - project_dim: the dimensionality of the project_dim
