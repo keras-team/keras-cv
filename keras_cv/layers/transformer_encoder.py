@@ -48,14 +48,14 @@ class TransformerEncoder(layers.Layer):
     """
 
     def __init__(
-        self,
-        project_dim,
-        intermediate_dim,
-        num_heads,
-        dropout=0.1,
-        activation=tf.nn.gelu,
-        layer_norm_epsilon=1e-06,
-        **kwargs
+            self,
+            project_dim,
+            intermediate_dim,
+            num_heads,
+            dropout=0.1,
+            activation=tf.nn.gelu,
+            layer_norm_epsilon=1e-06,
+            **kwargs
     ):
         super().__init__(**kwargs)
 
@@ -65,9 +65,9 @@ class TransformerEncoder(layers.Layer):
         self.dropout = dropout
         self.activation = activation
         self.layer_norm_epsilon = layer_norm_epsilon
+        self.mlp_units = [intermediate_dim, project_dim]
 
     def call(self, inputs):
-        transformer_units = [self.intermediate_dim, self.project_dim]
 
         x1 = layers.LayerNormalization(epsilon=self.layer_norm_epsilon)(inputs)
         attention_output = layers.MultiHeadAttention(
@@ -78,7 +78,7 @@ class TransformerEncoder(layers.Layer):
         x3 = mlp_head(
             x3,
             dropout_rate=self.dropout,
-            hidden_units=transformer_units,
+            hidden_units=self.mlp_units,
             activation=self.activation,
         )
         encoded_patches = layers.Add()([x3, x2])
