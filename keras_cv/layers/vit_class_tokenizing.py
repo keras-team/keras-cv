@@ -34,9 +34,11 @@ class ClassTokenizing(layers.Layer):
         batch_size = input_shape[0]
 
         class_token_broadcast = tf.cast(
-            tf.broadcast_to(tf.random.normal([1, 1, input_shape[-1]], name="class_token"),
-                            [batch_size, 1, input_shape[-1]]),
-                            dtype=inputs.dtype,
+            tf.broadcast_to(
+                tf.random.normal([1, 1, input_shape[-1]], name="class_token"),
+                [batch_size, 1, input_shape[-1]],
+            ),
+            dtype=inputs.dtype,
         )
         return tf.concat([class_token_broadcast, inputs], 1)
 

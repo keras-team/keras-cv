@@ -48,14 +48,14 @@ class TransformerEncoder(layers.Layer):
     """
 
     def __init__(
-            self,
-            project_dim,
-            intermediate_dim,
-            num_heads,
-            dropout=0.1,
-            activation=tf.nn.gelu,
-            layer_norm_epsilon=1e-06,
-            **kwargs
+        self,
+        project_dim,
+        intermediate_dim,
+        num_heads,
+        dropout=0.1,
+        activation=tf.nn.gelu,
+        layer_norm_epsilon=1e-06,
+        **kwargs
     ):
         super().__init__(**kwargs)
 
@@ -73,7 +73,6 @@ class TransformerEncoder(layers.Layer):
         )
         self.dense1 = layers.Dense(self.mlp_units[0], activation=activation)
         self.dense2 = layers.Dense(self.mlp_units[1])
-
 
     def call(self, inputs):
 
