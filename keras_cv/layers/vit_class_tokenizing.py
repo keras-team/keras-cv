@@ -32,11 +32,11 @@ class ClassTokenizing(layers.Layer):
     def call(self, inputs):
         input_shape = tf.shape(inputs)
         batch_size = input_shape[0]
-        learnable_class_token = tf.Variable(
-            initial_value=tf.zeros_initializer([1, 1, input_shape[-1]], name="class_token"),
-            trainable=True
-        )
-
+        with tf.init_scope():
+            learnable_class_token = tf.Variable(
+                initial_value=tf.zeros_initializer([1, 1, input_shape[-1]]),
+                trainable=True
+            )
         class_token_broadcast = tf.cast(
             tf.broadcast_to(learnable_class_token, [batch_size, 1, input_shape[-1]]),
             dtype=inputs.dtype,
