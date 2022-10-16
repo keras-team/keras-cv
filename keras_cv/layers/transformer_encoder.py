@@ -82,9 +82,9 @@ class TransformerEncoder(layers.Layer):
         x2 = layers.Add()([attention_output, inputs])
         x3 = self.layer_norm(x2)
         x3 = self.dense1(x3)
-        x3 = layers.Dropout(self.dropout_rate)(x3)
+        x3 = layers.Dropout(self.dropout)(x3)
         x3 = self.dense2(x3)
-        x3 = layers.Dropout(self.dropout_rate)(x3)
+        x3 = layers.Dropout(self.dropout)(x3)
 
         encoded_patches = layers.Add()([x3, x2])
 
