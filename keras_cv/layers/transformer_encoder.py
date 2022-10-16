@@ -80,7 +80,7 @@ class TransformerEncoder(layers.Layer):
         x1 = self.layer_norm(inputs)
         attention_output = self.attn(x1, x1)
         x2 = layers.Add()([attention_output, inputs])
-        x3 = self.layer_norm(epsilon=self.layer_norm_epsilon)(x2)
+        x3 = self.layer_norm(x2)
         x3 = self.dense1(x3)
         x3 = layers.Dropout(self.dropout_rate)(x3)
         x3 = self.dense2(x3)
