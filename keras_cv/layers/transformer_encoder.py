@@ -67,20 +67,25 @@ class TransformerEncoder(layers.Layer):
         self.layer_norm_epsilon = layer_norm_epsilon
         self.mlp_units = [intermediate_dim, project_dim]
 
+        self.layer_norm = layers.LayerNormalization(epsilon=self.layer_norm_epsilon)
+        self.attn = layers.MultiHeadAttention(
+            num_heads=self.num_heads, key_dim=self.project_dim, dropout=self.dropout
+        )
+        self.dense1 = layers.Dense(self.mlp_units[0], activation=activation)
+        self.dense2 = layers.Dense(self.mlp_units[1])
+
+
     def call(self, inputs):
 
-        x1 = layers.LayerNormalization(epsilon=self.layer_norm_epsilon)(inputs)
-        attention_output = layers.MultiHeadAttention(
-            num_heads=self.num_heads, key_dim=self.project_dim, dropout=self.dropout
-        )(x1, x1)
+        x1 = self.layer_norm(inputs)
+        attention_output = self.attn(x1, x1)
         x2 = layers.Add()([attention_output, inputs])
-        x3 = layers.LayerNormalization(epsilon=self.layer_norm_epsilon)(x2)
-        x3 = mlp_head(
-            x3,
-            dropout_rate=self.dropout,
-            hidden_units=self.mlp_units,
-            activation=self.activation,
-        )
+        x3 = self.layer_norm(epsilon=self.layer_norm_epsilon)(x2)
+        x3 = self.dense1(x3)
+        x3 = layers.Dropout(self.dropout_rate)(x3)
+        x3 = self.dense2(x3)
+        x3 = layers.Dropout(self.dropout_rate)(x3)
+
         encoded_patches = layers.Add()([x3, x2])
 
         return encoded_patches
@@ -98,15 +103,3 @@ class TransformerEncoder(layers.Layer):
             }
         )
         return config
-
-
-"""
-Helper method for creating an MLP head
-"""
-
-
-def mlp_head(x, dropout_rate, hidden_units, activation):
-    for (idx, units) in enumerate(hidden_units):
-        x = layers.Dense(units, activation=activation if idx == 0 else None)(x)
-        x = layers.Dropout(dropout_rate)(x)
-    return x

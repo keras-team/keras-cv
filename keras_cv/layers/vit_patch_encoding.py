@@ -48,16 +48,17 @@ class PatchEncoding(layers.Layer):
     def __init__(self, num_patches, project_dim, **kwargs):
         super().__init__(**kwargs)
         self.num_patches = num_patches
-        self.project_dim = project_dim
+        self.project_dim = layers.Dense(units=project_dim)
+        self.position_embedding = layers.Embedding(
+            input_dim=num_patches, output_dim=project_dim
+        )
 
     def call(self, patch):
         # Add learnable class token before positional embedding
         patch = ClassTokenizing()(patch)
         # num_patches + class token
         positions = tf.range(start=0, limit=self.num_patches + 1, delta=1)
-        projected = layers.Dense(units=self.project_dim)(patch)
-        positional_embedding = layers.Embedding(input_dim=self.num_patches, output_dim=self.project_dim)(positions)
-        encoded = projected + positional_embedding
+        encoded = self.project_dim(patch) + self.position_embedding(positions)
         return encoded
 
     def get_config(self):
