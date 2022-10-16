@@ -2,7 +2,7 @@
 [![](https://github.com/keras-team/keras-cv/workflows/Tests/badge.svg?branch=master)](https://github.com/keras-team/keras-cv/actions?query=workflow%3ATests+branch%3Amaster)
 ![Downloads](https://img.shields.io/pypi/dm/keras-cv.svg)
 ![Python](https://img.shields.io/badge/python-v3.7.0+-success.svg)
-![Tensorflow](https://img.shields.io/badge/tensorflow-v2.8.0+-success.svg)
+![Tensorflow](https://img.shields.io/badge/tensorflow-v2.9.0+-success.svg)
 [![Contributions Welcome](https://img.shields.io/badge/contributions-welcome-brightgreen.svg?style=flat)](https://github.com/keras-team/keras-cv/issues)
 
 KerasCV is a repository of modular building blocks (layers, metrics, losses, data-augmentation) that
@@ -36,6 +36,16 @@ Thank you to all of our wonderful contributors!
 <a href="https://github.com/keras-team/keras-cv/graphs/contributors">
   <img src="https://contrib.rocks/image?repo=keras-team/keras-cv" />
 </a>
+
+## Pretrained Weights
+Many models in KerasCV come with pre-trained weights. With the exception of StableDiffusion,
+all of these weights are trained using Keras and KerasCV components and training scripts in this
+repository. Models may not be trained with the same parameters or preprocessing pipeline
+described in their original papers. Performance metrics for pre-trained weights can be found
+in the training history for each task. For example, see ImageNet classification training
+history for backbone models [here](examples/training/classification/imagenet/training_history.json).
+All results are reproducible using the training scripts in this repository. Pre-trained weights
+operate on images that have been rescaled using a simple `1/255` rescaling layer.
 
 ## Citing KerasCV
 

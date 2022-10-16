@@ -61,7 +61,7 @@ class NmsPredictionDecoder(tf.keras.layers.Layer):
         self.suppression_layer = suppression_layer or cv_layers.NonMaxSuppression(
             classes=classes,
             bounding_box_format=bounding_box_format,
-            confidence_threshold=0.05,
+            confidence_threshold=0.5,
             iou_threshold=0.5,
             max_detections=100,
             max_detections_per_class=100,
@@ -75,7 +75,9 @@ class NmsPredictionDecoder(tf.keras.layers.Layer):
             )
         self.anchor_generator = anchor_generator
         self.box_variance = tf.convert_to_tensor(box_variance, dtype=tf.float32)
+        self.built = True
 
+    # TODO(lukewood): provide this as general utility on top of bounding_box_format.
     def _decode_box_predictions(self, anchor_boxes, box_predictions):
         boxes = box_predictions * self.box_variance
         boxes = tf.concat(

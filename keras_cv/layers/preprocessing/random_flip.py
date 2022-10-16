@@ -49,18 +49,12 @@ class RandomFlip(BaseImageAugmentationLayer):
     Arguments:
       mode: String indicating which flip mode to use. Can be `"horizontal"`,
         `"vertical"`, or `"horizontal_and_vertical"`. Defaults to
-        `"horizontal_and_vertical"`. `"horizontal"` is a left-right flip and
-        `"vertical"` is a top-bottom flip.
+        `"horizontal"`. `"horizontal"` is a left-right flip and `"vertical"` is
+        a top-bottom flip.
       seed: Integer. Used to create a random seed.
     """
 
-    def __init__(
-        self,
-        mode=HORIZONTAL_AND_VERTICAL,
-        seed=None,
-        bounding_box_format=None,
-        **kwargs
-    ):
+    def __init__(self, mode=HORIZONTAL, seed=None, bounding_box_format=None, **kwargs):
         super().__init__(seed=seed, force_generator=True, **kwargs)
         self.mode = mode
         self.seed = seed
@@ -85,18 +79,7 @@ class RandomFlip(BaseImageAugmentationLayer):
         return label
 
     def augment_image(self, image, transformation, **kwargs):
-        flipped_output = tf.cond(
-            transformation["flip_horizontal"],
-            lambda: tf.image.flip_left_right(image),
-            lambda: image,
-        )
-        flipped_output = tf.cond(
-            transformation["flip_vertical"],
-            lambda: tf.image.flip_up_down(flipped_output),
-            lambda: flipped_output,
-        )
-        flipped_output.set_shape(image.shape)
-        return flipped_output
+        return RandomFlip._flip_image(image, transformation)
 
     def get_random_transformation(self, **kwargs):
         flip_horizontal = False
@@ -110,27 +93,53 @@ class RandomFlip(BaseImageAugmentationLayer):
             "flip_vertical": tf.cast(flip_vertical, dtype=tf.bool),
         }
 
+    def _flip_image(image, transformation):
+        flipped_output = tf.cond(
+            transformation["flip_horizontal"],
+            lambda: tf.image.flip_left_right(image),
+            lambda: image,
+        )
+        flipped_output = tf.cond(
+            transformation["flip_vertical"],
+            lambda: tf.image.flip_up_down(flipped_output),
+            lambda: flipped_output,
+        )
+        flipped_output.set_shape(image.shape)
+        return flipped_output
+
     def _flip_bounding_boxes_horizontal(bounding_boxes):
-        return tf.stack(
+        x1, x2, x3, x4, rest = tf.split(
+            bounding_boxes, [1, 1, 1, 1, bounding_boxes.shape[-1] - 4], axis=-1
+        )
+        output = tf.stack(
             [
-                1 - bounding_boxes[:, 2],
-                bounding_boxes[:, 1],
-                1 - bounding_boxes[:, 0],
-                bounding_boxes[:, 3],
+                1 - x3,
+                x2,
+                1 - x1,
+                x4,
+                rest,
             ],
             axis=-1,
         )
+        output = tf.squeeze(output, axis=1)
+        return output
 
     def _flip_bounding_boxes_vertical(bounding_boxes):
-        return tf.stack(
+        x1, x2, x3, x4, rest = tf.split(
+            bounding_boxes, [1, 1, 1, 1, bounding_boxes.shape[-1] - 4], axis=-1
+        )
+        output = tf.stack(
             [
-                bounding_boxes[:, 0],
-                1 - bounding_boxes[:, 3],
-                bounding_boxes[:, 2],
-                1 - bounding_boxes[:, 1],
+                x1,
+                1 - x4,
+                x3,
+                1 - x2,
+                rest,
             ],
             axis=-1,
         )
+        output = tf.squeeze(output, axis=1)
+        return output
 
     def augment_bounding_boxes(
         self, bounding_boxes, transformation=None, image=None, **kwargs
@@ -172,6 +181,11 @@ class RandomFlip(BaseImageAugmentationLayer):
             images=image,
         )
         return bounding_boxes
+
+    def augment_segmentation_mask(
+        self, segmentation_mask, transformation=None, **kwargs
+    ):
+        return RandomFlip._flip_image(segmentation_mask, transformation)
 
     def compute_output_shape(self, input_shape):
         return input_shape

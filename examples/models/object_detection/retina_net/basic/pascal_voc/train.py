@@ -22,12 +22,12 @@ import sys
 
 import matplotlib.pyplot as plt
 import tensorflow as tf
-import wandb
 from absl import flags
 from tensorflow.keras import callbacks as callbacks_lib
 from tensorflow.keras import optimizers
 
 import keras_cv
+import keras_cv.datasets
 
 flags.DEFINE_integer("batch_size", 8, "Training and eval batch size.")
 flags.DEFINE_integer("epochs", 1, "Number of training epochs.")
@@ -38,6 +38,8 @@ FLAGS = flags.FLAGS
 FLAGS(sys.argv)
 
 if FLAGS.wandb_entity:
+    import wandb
+
     wandb.init(
         project="pascalvoc-retinanet",
         entity=FLAGS.wandb_entity,
@@ -47,7 +49,7 @@ if FLAGS.wandb_entity:
 """
 ## Data loading
 
-In this guide, we use the data-loading function: `keras_cv.loaders.pascal_voc.load()`.
+In this guide, we use the data-loading function: `keras_cv.datasets.pascal_voc.load()`.
 KerasCV supports a `bounding_box_format` argument in all components that process
 bounding boxes.  To match the KerasCV API style, it is recommended that when writing a
 custom data loader, you also support a `bounding_box_format` argument.
@@ -57,7 +59,7 @@ are in.
 For example:
 
 ```python
-train_ds, ds_info = keras_cv.loaders.pascal_voc.load(split='train', bounding_box_format='xywh', batch_size=8)
+train_ds, ds_info = keras_cv.datasets.pascal_voc.load(split='train', bounding_box_format='xywh', batch_size=8)
 ```
 
 Clearly yields bounding boxes in the format `xywh`.  You can read more about
@@ -70,7 +72,7 @@ KerasCV preprocessing components.
 Lets load some data and verify that our data looks as we expect it to.
 """
 
-dataset, _ = keras_cv.loaders.pascal_voc.load(
+dataset, _ = keras_cv.datasets.pascal_voc.load(
     split="train", bounding_box_format="xywh", batch_size=9
 )
 
@@ -115,15 +117,15 @@ friendly data augmentation inside of a `tf.data` pipeline.
 
 # train_ds is batched as a (images, bounding_boxes) tuple
 # bounding_boxes are ragged
-train_ds, _ = keras_cv.loaders.pascal_voc.load(
+train_ds, _ = keras_cv.datasets.pascal_voc.load(
     bounding_box_format="xywh", split="train", batch_size=FLAGS.batch_size
 )
-val_ds, _ = keras_cv.loaders.pascal_voc.load(
+val_ds, _ = keras_cv.datasets.pascal_voc.load(
     bounding_box_format="xywh", split="validation", batch_size=FLAGS.batch_size
 )
 
 augmentation_layers = [
-    # keras_cv.layers.RandomShear(x_factor=0.1, bounding_box_format='xywh'),
+    keras_cv.layers.RandomShear(x_factor=0.1, bounding_box_format="xywh"),
     # TODO(lukewood): add color jitter and others
 ]
 
@@ -174,17 +176,13 @@ model = keras_cv.models.RetinaNet(
     backbone="resnet50",
     backbone_weights="imagenet",
     include_rescaling=True,
+    evaluate_train_time_metrics=False,
 )
 
 """
 That is all it takes to construct a KerasCV RetinaNet.  The RetinaNet accepts tuples of
 dense image Tensors and ragged bounding box Tensors to `fit()` and `train_on_batch()`
 This matches what we have constructed in our input pipeline above.
-
-The RetinaNet `call()` method outputs two values: training targets and inference targets.
-In this guide, we are primarily concerned with the inference targets.  Internally, the
-training targets are used by `keras_cv.losses.ObjectDetectionLoss()` to train the
-network.
 """
 
 """
@@ -236,15 +234,9 @@ standard Keras workflow, leveraging `compile()` and `fit()`.
 Let's compile our model:
 """
 
-loss = keras_cv.losses.ObjectDetectionLoss(
-    classes=20,
+model.compile(
     classification_loss=keras_cv.losses.FocalLoss(from_logits=True, reduction="none"),
     box_loss=keras_cv.losses.SmoothL1Loss(l1_cutoff=1.0, reduction="none"),
-    reduction="auto",
-)
-
-model.compile(
-    loss=loss,
     optimizer=optimizer,
     metrics=metrics,
 )
@@ -259,6 +251,8 @@ callbacks = [
     callbacks_lib.ReduceLROnPlateau(patience=20),
 ]
 if FLAGS.wandb_entity:
+    import wandb.keras
+
     callbacks += [
         wandb.keras.WandbCallback(save_model=False),
     ]

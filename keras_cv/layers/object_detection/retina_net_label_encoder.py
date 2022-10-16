@@ -53,6 +53,7 @@ class RetinaNetLabelEncoder(layers.Layer):
         self.box_variance = tf.convert_to_tensor(box_variance, dtype=self.dtype)
         self.background_class = background_class
         self.ignore_class = ignore_class
+        self.built = True
 
     def _match_anchor_boxes(
         self, anchor_boxes, gt_boxes, match_iou=0.5, ignore_iou=0.4
@@ -127,6 +128,17 @@ class RetinaNetLabelEncoder(layers.Layer):
         cls_target = tf.where(tf.equal(ignore_mask, 1.0), self.ignore_class, cls_target)
         cls_target = tf.expand_dims(cls_target, axis=-1)
         label = tf.concat([box_target, cls_target], axis=-1)
+
+        # In the case that a box in the corner of an image matches with an all -1 box
+        # that is outside of the image, we should assign the box to the ignore class
+        # There are rare cases where a -1 box can be matched, resulting in a NaN during
+        # training.  The unit test passing all -1s to the label encoder ensures that we
+        # properly handle this edge-case.
+        label = tf.where(
+            tf.expand_dims(tf.math.reduce_any(tf.math.is_nan(label), axis=-1), axis=-1),
+            self.ignore_class,
+            label,
+        )
         return label
 
     def call(self, images, target_boxes):
@@ -141,7 +153,7 @@ class RetinaNetLabelEncoder(layers.Layer):
         target_boxes = bounding_box.convert_format(
             target_boxes, source=self.bounding_box_format, target="xywh", images=images
         )
-        anchor_boxes = self.anchor_generator(images[0])
+        anchor_boxes = self.anchor_generator(image_shape=tf.shape(images[0]))
         anchor_boxes = tf.concat(list(anchor_boxes.values()), axis=0)
         anchor_boxes = bounding_box.convert_format(
             anchor_boxes,

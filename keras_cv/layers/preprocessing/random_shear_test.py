@@ -13,6 +13,7 @@
 # limitations under the License.
 import tensorflow as tf
 
+from keras_cv import bounding_box
 from keras_cv.layers import preprocessing
 
 classes = 10
@@ -73,7 +74,7 @@ class RandomShearTest(tf.test.TestCase):
     def test_single_image_input(self):
         """test for single image input"""
         xs = tf.ones((512, 512, 3))
-        ys = tf.ones(shape=(5, 4))
+        ys = tf.ones(shape=(5, 5))
         inputs = {"images": xs, "bounding_boxes": ys}
         layer = preprocessing.RandomShear(
             x_factor=(3, 3),
@@ -87,13 +88,13 @@ class RandomShearTest(tf.test.TestCase):
             outputs["bounding_boxes"],
         )
         self.assertEqual(xs.shape, [512, 512, 3])
-        self.assertEqual(ys_bounding_boxes.shape, [5, 4])
+        self.assertEqual(ys_bounding_boxes.shape, [5, 5])
 
     def test_area(self):
         """test for shear bbox transformation since new bbox will be
         greater than old bbox"""
         xs = tf.ones((512, 512, 3))
-        ys = tf.constant([[0.3, 0.4, 0.5, 0.6], [0.9, 0.8, 1.0, 1.0]])
+        ys = tf.constant([[0.3, 0.4, 0.5, 0.6, 2], [0.9, 0.8, 1.0, 1.0, 3]])
         inputs = {"images": xs, "bounding_boxes": ys}
         layer = preprocessing.RandomShear(
             x_factor=(0.3, 0.7),
@@ -136,7 +137,7 @@ class RandomShearTest(tf.test.TestCase):
             ),
             tf.float32,
         )
-
+        ys = bounding_box.add_class_id(ys)
         layer = preprocessing.RandomShear(
             x_factor=0.2, y_factor=0.2, bounding_box_format="rel_xyxy"
         )
@@ -175,7 +176,7 @@ class RandomShearTest(tf.test.TestCase):
             ),
             tf.float32,
         )
-
+        ys = bounding_box.add_class_id(ys)
         layer = preprocessing.RandomShear(
             x_factor=0, y_factor=0, bounding_box_format="rel_xyxy"
         )
@@ -184,9 +185,7 @@ class RandomShearTest(tf.test.TestCase):
         self.assertAllEqual(xs, output_xs)
         self.assertAllEqual(ys, output_ys)
 
-    def test_x_augmentation(self):
-        """test for shear bbox augmentation is horizontal direction
-        only i.e y_factor=0"""
+    def test_bounding_box_x_augmentation(self):
         xs = tf.cast(
             tf.stack(
                 [2 * tf.ones((4, 4, 3)), tf.ones((4, 4, 3))],
@@ -197,26 +196,29 @@ class RandomShearTest(tf.test.TestCase):
         ys = tf.cast(
             tf.stack(
                 [
-                    tf.constant([[0.3, 0.4, 0.5, 0.6], [0.9, 0.8, 1.0, 1.0]]),
-                    tf.constant([[0.3, 0.4, 0.5, 0.6], [0.9, 0.8, 1.0, 1.0]]),
+                    tf.constant([[0.3, 0.4, 0.5, 0.6], [0.4, 0.8, 1.0, 1.0]]),
+                    tf.constant([[0.3, 0.4, 0.5, 0.6], [0.4, 0.8, 1.0, 1.0]]),
                 ],
                 axis=0,
             ),
             tf.float32,
         )
-
+        ys = bounding_box.add_class_id(ys)
         layer = preprocessing.RandomShear(
             x_factor=0.5, y_factor=0, bounding_box_format="rel_xyxy"
         )
         outputs = layer({"images": xs, "bounding_boxes": ys})
         _, output_ys = outputs["images"], outputs["bounding_boxes"]
+
+        # assert ys are unchanged
         self.assertAllEqual(ys[..., 1], output_ys[..., 1])
-        self.assertNotAllClose(ys[..., 0], output_ys[..., 0])
         self.assertAllEqual(ys[..., 3], output_ys[..., 3])
+
+        # assert xs are changed
+        self.assertNotAllClose(ys[..., 0], output_ys[..., 0])
         self.assertNotAllClose(ys[..., 2], output_ys[..., 2])
 
-    def test_y_augmentation(self):
-        """test for shear bbox augmentation is vertical direction only i.e x_factor=0"""
+    def test_bounding_box_y_augmentation(self):
         xs = tf.cast(
             tf.stack(
                 [2 * tf.ones((4, 4, 3)), tf.ones((4, 4, 3))],
@@ -227,13 +229,14 @@ class RandomShearTest(tf.test.TestCase):
         ys = tf.cast(
             tf.stack(
                 [
-                    tf.constant([[0.3, 0.4, 0.5, 0.6], [0.9, 0.8, 1.0, 1.0]]),
-                    tf.constant([[0.3, 0.4, 0.5, 0.6], [0.9, 0.8, 1.0, 1.0]]),
+                    tf.constant([[0.3, 0.4, 0.5, 0.6], [0.9, 0.2, 1.0, 1.0]]),
+                    tf.constant([[0.3, 0.4, 0.5, 0.6], [0.9, 0.2, 1.0, 1.0]]),
                 ],
                 axis=0,
             ),
             tf.float32,
         )
+        ys = bounding_box.add_class_id(ys)
         layer = preprocessing.RandomShear(
             x_factor=0, y_factor=0.5, bounding_box_format="rel_xyxy"
         )
@@ -263,6 +266,7 @@ class RandomShearTest(tf.test.TestCase):
             ),
             tf.float32,
         )
+        ys = bounding_box.add_class_id(ys)
         layer = preprocessing.RandomShear(
             x_factor=0, y_factor=0, bounding_box_format="rel_xyxy"
         )
@@ -289,6 +293,7 @@ class RandomShearTest(tf.test.TestCase):
             ),
             tf.float32,
         )
+        ys = bounding_box.add_class_id(ys)
         layer = preprocessing.RandomShear(
             x_factor=0, y_factor=0, bounding_box_format="xyxy"
         )
@@ -308,18 +313,19 @@ class RandomShearTest(tf.test.TestCase):
         ys = tf.cast(
             tf.stack(
                 [
-                    tf.constant([[10.0, 20.0, 40.0, 50.0], [12.0, 22.0, 42.0, 54.0]]),
-                    tf.constant([[10.0, 20.0, 40.0, 50.0], [12.0, 22.0, 42.0, 54.0]]),
+                    tf.constant([[0.0, 0.0, 40.0, 50.0], [0.0, 0.0, 42.0, 54.0]]),
+                    tf.constant([[0.0, 0.0, 40.0, 50.0], [0.0, 0.0, 42.0, 54.0]]),
                 ],
                 axis=0,
             ),
             tf.float32,
         )
+        ys = bounding_box.add_class_id(ys)
         ground_truth = tf.cast(
             tf.stack(
                 [
-                    tf.constant([[4, 4, 4, 4], [4, 4, 4, 4]]),
-                    tf.constant([[4, 4, 4, 4], [4, 4, 4, 4]]),
+                    tf.constant([[0, 0, 4, 4, 0], [0, 0, 4, 4, 0]]),
+                    tf.constant([[0, 0, 4, 4, 0], [0, 0, 4, 4, 0]]),
                 ],
                 axis=0,
             ),
@@ -351,6 +357,7 @@ class RandomShearTest(tf.test.TestCase):
             ),
             tf.float32,
         )
+        ys = bounding_box.add_class_id(ys)
         layer = preprocessing.RandomShear(
             x_factor=0, y_factor=0, bounding_box_format="xyxy"
         )
@@ -375,20 +382,31 @@ class RandomShearTest(tf.test.TestCase):
                 ],
                 axis=0,
             ),
-            tf.int32,
+            tf.float32,
         )
+        ys = bounding_box.add_class_id(ys)
         true_ys = tf.cast(
             tf.stack(
                 [
-                    tf.constant([[7.60, 20.58, 39.04, 53.02], [9.4, 22.7, 40.9, 57.1]]),
-                    tf.constant([[13.6, 20.9, 49.2, 53.5], [16.0, 23.1, 51.9, 57.7]]),
+                    tf.constant(
+                        [
+                            [7.60, 20.43, 39.04, 51.79, 0.0],
+                            [9.41, 22.52, 40.94, 55.88, 0.0],
+                        ]
+                    ),
+                    tf.constant(
+                        [
+                            [13.68, 22.51, 49.20, 59.05, 0],
+                            [16.04, 24.95, 51.940, 63.56, 0],
+                        ]
+                    ),
                 ],
                 axis=0,
             ),
             tf.float32,
         )
         layer = preprocessing.RandomShear(
-            x_factor=0.2, y_factor=0.2, bounding_box_format="xyxy"
+            x_factor=0.2, y_factor=0.2, bounding_box_format="xyxy", seed=1
         )
         outputs = layer({"images": xs, "bounding_boxes": ys})
         _, output_ys = outputs["images"], outputs["bounding_boxes"]

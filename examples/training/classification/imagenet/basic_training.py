@@ -23,14 +23,15 @@ import sys
 
 import tensorflow as tf
 from absl import flags
+from tensorflow import keras
 from tensorflow.keras import callbacks
-from tensorflow.keras import layers
 from tensorflow.keras import losses
 from tensorflow.keras import metrics
 from tensorflow.keras import optimizers
 
 import keras_cv
 from keras_cv import models
+from keras_cv.datasets import imagenet
 
 """
 ## Overview
@@ -60,14 +61,28 @@ flags.DEFINE_string(
 flags.DEFINE_string(
     "tensorboard_path", None, "Directory which will be used to store tensorboard logs."
 )
-flags.DEFINE_integer("batch_size", 256, "Batch size for training and evaluation.")
+flags.DEFINE_integer(
+    "batch_size",
+    128,
+    "Batch size for training and evaluation. This will be multiplied by the number of accelerators in use.",
+)
 flags.DEFINE_boolean(
     "use_xla", True, "Whether or not to use XLA (jit_compile) for training."
 )
+flags.DEFINE_boolean(
+    "use_mixed_precision",
+    False,
+    "Whether or not to use FP16 mixed precision for training.",
+)
 flags.DEFINE_float(
     "initial_learning_rate",
-    0.1,
-    "Initial learning rate which will reduce on plateau.",
+    0.05,
+    "Initial learning rate which will reduce on plateau. This will be multiplied by the number of accelerators in use",
+)
+flags.DEFINE_string(
+    "model_kwargs",
+    "{}",
+    "Keyword argument dictionary to pass to the constructor of the model being trained",
 )
 
 
@@ -77,68 +92,53 @@ FLAGS(sys.argv)
 if FLAGS.model_name not in models.__dict__:
     raise ValueError(f"Invalid model name: {FLAGS.model_name}")
 
+if FLAGS.use_mixed_precision:
+    keras.mixed_precision.set_global_policy("mixed_float16")
+
 CLASSES = 1000
 IMAGE_SIZE = (224, 224)
-EPOCHS = 250
+# An upper bound for number of epochs (this script uses EarlyStopping).
+EPOCHS = 1000
+
+"""
+We start by detecting the type of accelerators we have available and picking an
+appropriate distribution strategy accordingly. We scale our learning rate and
+batch size based on the number of accelerators being used.
+"""
+
+# Try to detect an available TPU. If none is present, default to MirroredStrategy
+try:
+    tpu = tf.distribute.cluster_resolver.TPUClusterResolver.connect()
+    strategy = tf.distribute.TPUStrategy(tpu)
+except ValueError:
+    # MirroredStrategy is best for a single machine with one or multiple GPUs
+    strategy = tf.distribute.MirroredStrategy()
+print("Number of accelerators: ", strategy.num_replicas_in_sync)
+
+BATCH_SIZE = FLAGS.batch_size * strategy.num_replicas_in_sync
+INITIAL_LEARNING_RATE = FLAGS.initial_learning_rate * strategy.num_replicas_in_sync
 
 """
 ## Data loading
 This guide uses the
 [Imagenet dataset](https://www.tensorflow.org/datasets/catalog/imagenet2012).
-Note that this requires manual download, and does not work out-of-the-box with TFDS.
-To get started, we first load the dataset from a command-line specified directory where ImageNet is stored as TFRecords.
+Note that this requires manual download and preprocessing. You can find more
+information about preparing this dataset at keras_cv/datasets/imagenet/README.md
 """
 
 
-def parse_imagenet_example(example):
-    # Read example
-    image_key = "image/encoded"
-    label_key = "image/class/label"
-    keys_to_features = {
-        image_key: tf.io.FixedLenFeature((), tf.string, ""),
-        label_key: tf.io.FixedLenFeature([], tf.int64, -1),
-    }
-    parsed = tf.io.parse_single_example(example, keys_to_features)
-
-    # Decode and resize image
-    image_bytes = tf.reshape(parsed[image_key], shape=[])
-    image = tf.io.decode_jpeg(image_bytes, channels=3)
-    image = layers.Resizing(
-        width=IMAGE_SIZE[0], height=IMAGE_SIZE[1], crop_to_aspect_ratio=True
-    )(image)
-
-    # Decode label
-    label = tf.cast(tf.reshape(parsed[label_key], shape=()), dtype=tf.int32) - 1
-    label = tf.one_hot(label, CLASSES)
-    return image, label
-
-
-def load_imagenet_dataset():
-    train_filenames = [
-        f"{FLAGS.imagenet_path}/train-{i:05d}-of-01024" for i in range(0, 1024)
-    ]
-    validation_filenames = [
-        f"{FLAGS.imagenet_path}/validation-{i:05d}-of-00128" for i in range(0, 128)
-    ]
-
-    train_dataset = tf.data.TFRecordDataset(filenames=train_filenames)
-    validation_dataset = tf.data.TFRecordDataset(filenames=validation_filenames)
-
-    train_dataset = train_dataset.map(
-        parse_imagenet_example,
-        num_parallel_calls=tf.data.AUTOTUNE,
-    )
-    validation_dataset = validation_dataset.map(
-        parse_imagenet_example,
-        num_parallel_calls=tf.data.AUTOTUNE,
-    )
-
-    return train_dataset.batch(FLAGS.batch_size), validation_dataset.batch(
-        FLAGS.batch_size
-    )
-
-
-train_ds, test_ds = load_imagenet_dataset()
+train_ds = imagenet.load(
+    split="train",
+    tfrecord_path=FLAGS.imagenet_path,
+    batch_size=BATCH_SIZE,
+    img_size=IMAGE_SIZE,
+)
+test_ds = imagenet.load(
+    split="validation",
+    tfrecord_path=FLAGS.imagenet_path,
+    batch_size=BATCH_SIZE,
+    img_size=IMAGE_SIZE,
+)
 
 
 """
@@ -146,8 +146,9 @@ Next, we augment our dataset.
 We define a set of augmentation layers and then apply them to our input dataset.
 """
 
+
 AUGMENT_LAYERS = [
-    keras_cv.layers.RandomFlip(),
+    keras_cv.layers.RandomFlip(mode="horizontal"),
     keras_cv.layers.RandAugment(value_range=(0, 255), magnitude=0.3),
     keras_cv.layers.CutMix(),
 ]
@@ -169,13 +170,7 @@ test_ds = test_ds.prefetch(tf.data.AUTOTUNE)
 
 """
 Now we can begin training our model. We begin by loading a model from KerasCV.
-Note that we also specify a distribution strategy while creating the model.
-Different distribution strategies may be used for different training hardware, as indicated below.
 """
-
-# For TPU training, use tf.distribute.TPUStrategy()
-# MirroredStrategy is best for a single machine with multiple GPUs
-strategy = tf.distribute.MirroredStrategy()
 
 with strategy.scope():
     model = models.__dict__[FLAGS.model_name]
@@ -184,6 +179,7 @@ with strategy.scope():
         include_top=True,
         classes=CLASSES,
         input_shape=IMAGE_SIZE + (3,),
+        **eval(FLAGS.model_kwargs),
     )
 
 
@@ -193,8 +189,9 @@ Note that learning rate will decrease over time due to the ReduceLROnPlateau cal
 """
 
 
-optimizer = optimizers.SGD(learning_rate=FLAGS.initial_learning_rate, momentum=0.9)
-
+optimizer = optimizers.SGD(
+    learning_rate=INITIAL_LEARNING_RATE, momentum=0.9, global_clipnorm=10
+)
 
 """
 Next, we pick a loss function. We use CategoricalCrossentropy with label smoothing.
@@ -220,12 +217,12 @@ We use EarlyStopping, BackupAndRestore, and a model checkpointing callback.
 
 callbacks = [
     callbacks.ReduceLROnPlateau(
-        monitor="val_loss", factor=0.1, patience=10, min_lr=0.0001
+        monitor="val_loss", factor=0.1, patience=10, min_delta=0.001, min_lr=0.0001
     ),
     callbacks.EarlyStopping(patience=20),
     callbacks.BackupAndRestore(FLAGS.backup_path),
     callbacks.ModelCheckpoint(FLAGS.weights_path, save_weights_only=True),
-    callbacks.TensorBoard(log_dir=FLAGS.tensorboard_path),
+    callbacks.TensorBoard(log_dir=FLAGS.tensorboard_path, write_steps_per_second=True),
 ]
 
 
@@ -242,7 +239,7 @@ model.compile(
 
 model.fit(
     train_ds,
-    batch_size=FLAGS.batch_size,
+    batch_size=BATCH_SIZE,
     epochs=EPOCHS,
     callbacks=callbacks,
     validation_data=test_ds,
