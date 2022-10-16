@@ -33,7 +33,8 @@ class ClassTokenizing(layers.Layer):
         input_shape = tf.shape(inputs)
         batch_size = input_shape[0]
         learnable_class_token = tf.Variable(
-            initial_value=tf.random.normal([1, 1, input_shape[-1]])
+            initial_value=tf.zeros_initializer([1, 1, input_shape[-1]], name="class_token"),
+            trainable=True
         )
 
         class_token_broadcast = tf.cast(
