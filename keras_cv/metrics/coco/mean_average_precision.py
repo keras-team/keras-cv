@@ -229,7 +229,7 @@ class COCOMeanAveragePrecision(tf.keras.metrics.Metric):
                 )
 
                 ious = iou_lib.compute_iou(
-                    ground_truths_by_category, detections_by_category, "yxyx"
+                    ground_truths_by_category, detections_by_category, "xyxy"
                 )
 
                 for iou_i in tf.range(self.num_iou_thresholds):
