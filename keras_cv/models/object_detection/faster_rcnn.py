@@ -490,9 +490,11 @@ class FasterRCNN(tf.keras.Model):
         return self.compute_metrics(images, {}, {}, sample_weight={})
 
     def test_step(self, data):
-        images = data["images"]
-        gt_boxes = data["gt_boxes"]
-        gt_classes = data["gt_classes"]
+        images, y, sample_weight = tf.keras.utils.unpack_x_y_sample_weight(data)
+        if sample_weight is not None:
+            raise ValueError("`sample_weight` is currently not supported.")
+        gt_boxes = y["gt_boxes"]
+        gt_classes = y["gt_classes"]
         self.compute_loss(images, gt_boxes, gt_classes, training=False)
         return self.compute_metrics(images, {}, {}, sample_weight={})
 
