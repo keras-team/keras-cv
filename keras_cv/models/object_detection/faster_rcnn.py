@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import tensorflow as tf
+from absl import logging
 
 from keras_cv.bounding_box.converters import _decode_deltas_to_boxes
 from keras_cv.bounding_box.utils import _clip_boxes
@@ -375,12 +376,13 @@ class FasterRCNN(tf.keras.Model):
             )
         return box_pred, cls_pred
 
+    # TODO(tanzhenyu): Support compile with metrics.
     def compile(
         self,
-        box_loss=None,
-        classification_loss=None,
-        rpn_box_loss=None,
-        rpn_classification_loss=None,
+        box_loss="Huber",
+        classification_loss="SparseCategoricalCrossentropy",
+        rpn_box_loss="Huber",
+        rpn_classification_loss="BinaryCrossentropy",
         weight_decay=0.0001,
         **kwargs,
     ):
@@ -388,23 +390,18 @@ class FasterRCNN(tf.keras.Model):
         # https://github.com/keras-team/keras-cv/issues/915
         if "metrics" in kwargs.keys():
             raise ValueError("currently metrics support is not supported intentionally")
-        reduction_type = tf.keras.losses.Reduction.SUM
-        if not box_loss:
-            box_loss = tf.keras.losses.Huber(reduction=reduction_type)
-        if not classification_loss:
-            classification_loss = tf.keras.losses.SparseCategoricalCrossentropy(
-                reduction=reduction_type
-            )
-        if not rpn_box_loss:
-            rpn_box_loss = tf.keras.losses.Huber(reduction=reduction_type)
-        if not rpn_classification_loss:
+        box_loss = _validate_and_get_loss(box_loss, "box_loss")
+        classification_loss = _validate_and_get_loss(
+            classification_loss, "classification_loss"
+        )
+        rpn_box_loss = _validate_and_get_loss(rpn_box_loss, "rpn_box_loss")
+        if rpn_classification_loss == "BinaryCrossentropy":
             rpn_classification_loss = tf.keras.losses.BinaryCrossentropy(
-                from_logits=True, reduction=reduction_type
+                from_logits=True, reduction=tf.keras.losses.Reduction.SUM
             )
-        _validate_loss(box_loss, "box_loss")
-        _validate_loss(classification_loss, "classification_loss")
-        _validate_loss(rpn_box_loss, "rpn_box_loss")
-        _validate_loss(rpn_classification_loss, "rpn_classification_loss")
+        rpn_classification_loss = _validate_and_get_loss(
+            rpn_classification_loss, "rpn_cls_loss"
+        )
         if not rpn_classification_loss.from_logits:
             raise ValueError(
                 "`rpn_classification_loss` must come with `from_logits`=True"
@@ -475,9 +472,11 @@ class FasterRCNN(tf.keras.Model):
         )
 
     def train_step(self, data):
-        images = data["images"]
-        gt_boxes = data["gt_boxes"]
-        gt_classes = data["gt_classes"]
+        images, y, sample_weight = tf.keras.utils.unpack_x_y_sample_weight(data)
+        if sample_weight is not None:
+            raise ValueError("`sample_weight` is currently not supported.")
+        gt_boxes = y["gt_boxes"]
+        gt_classes = y["gt_classes"]
         with tf.GradientTape() as tape:
             total_loss = self.compute_loss(images, gt_boxes, gt_classes, training=True)
             reg_losses = []
@@ -498,12 +497,16 @@ class FasterRCNN(tf.keras.Model):
         return self.compute_metrics(images, {}, {}, sample_weight={})
 
 
-def _validate_loss(loss, loss_name):
+def _validate_and_get_loss(loss, loss_name):
+    if isinstance(loss, str):
+        loss = tf.keras.losses.get(loss)
     if not isinstance(loss, tf.keras.losses.Loss):
         raise ValueError(
             f"FasterRCNN only accepts `tf.keras.losses.Loss` for {loss_name}, got {loss}"
         )
     if loss.reduction != tf.keras.losses.Reduction.SUM:
-        raise ValueError(
-            f"FasterRCNN only accepts `SUM` reduction, got {loss.reduction}"
+        logging.info(
+            f"FasterRCNN only accepts `SUM` reduction, got {loss.reduction}, automatically converted."
         )
+        loss.reduction = tf.keras.losses.Reduction.SUM
+    return loss

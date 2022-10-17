@@ -229,13 +229,9 @@ def proc_train_fn(bounding_box_format, img_size):
 def pad_fn(examples):
     gt_boxes = examples.pop("gt_boxes")
     gt_classes = examples.pop("gt_classes")
-    examples["gt_boxes"] = gt_boxes.to_tensor(
-        default_value=-1.0, shape=[global_batch, 32, 4]
-    )
-    examples["gt_classes"] = gt_classes.to_tensor(
-        default_value=-1.0, shape=[global_batch, 32, 1]
-    )
-    return examples
+    gt_boxes = gt_boxes.to_tensor(default_value=-1.0, shape=[global_batch, 32, 4])
+    gt_classes = gt_classes.to_tensor(default_value=-1.0, shape=[global_batch, 32, 1])
+    return examples["images"], {"gt_boxes": gt_boxes, "gt_classes": gt_classes}
 
 
 train_ds = train_ds.map(
@@ -261,22 +257,6 @@ eval_ds = eval_ds.prefetch(2)
 
 
 with strategy.scope():
-    # The keras huber loss will sum all losses and divide by BS * N * 4, instead we want divide by BS
-    # using NONE reduction as also summing creates issues
-    rpn_reg_loss_fn = tf.keras.losses.Huber(reduction=tf.keras.losses.Reduction.SUM)
-    rpn_cls_loss_fn = tf.keras.losses.BinaryCrossentropy(
-        from_logits=True, reduction=tf.keras.losses.Reduction.SUM
-    )
-    rcnn_reg_loss_fn = tf.keras.losses.Huber(reduction=tf.keras.losses.Reduction.SUM)
-    rcnn_cls_loss_fn = tf.keras.losses.SparseCategoricalCrossentropy(
-        reduction=tf.keras.losses.Reduction.SUM
-    )
-
-    rpn_reg_metric = tf.keras.metrics.Mean()
-    rpn_cls_metric = tf.keras.metrics.Mean()
-    rcnn_reg_metric = tf.keras.metrics.Mean()
-    rcnn_cls_metric = tf.keras.metrics.Mean()
-
     lr_decay = tf.keras.optimizers.schedules.PiecewiseConstantDecay(
         boundaries=[12000 * 16 / global_batch, 16000 * 16 / global_batch],
         values=[base_lr, 0.1 * base_lr, 0.01 * base_lr],
