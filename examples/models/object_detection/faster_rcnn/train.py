@@ -179,9 +179,6 @@ def flip_fn(image, boxes):
 
 
 def proc_train_fn(bounding_box_format, img_size):
-    anchors = model.anchor_generator(image_shape=img_size)
-    anchors = tf.concat(tf.nest.flatten(anchors), axis=0)
-
     def apply(inputs):
         image = inputs["image"]
         image = tf.cast(image, tf.float32)
@@ -197,15 +194,9 @@ def proc_train_fn(bounding_box_format, img_size):
         gt_classes = tf.cast(inputs["objects"]["label"], tf.float32)
         image, gt_boxes, gt_classes = resize_fn(image, gt_boxes, gt_classes)
         gt_classes = tf.expand_dims(gt_classes, axis=-1)
-        box_targets, box_weights, cls_targets, cls_weights = model.rpn_labeler(
-            anchors, gt_boxes, gt_classes
-        )
+
         return {
             "images": image,
-            "rpn_box_targets": box_targets,
-            "rpn_box_weights": box_weights,
-            "rpn_cls_targets": cls_targets,
-            "rpn_cls_weights": cls_weights,
             "gt_boxes": gt_boxes,
             "gt_classes": gt_classes,
         }
@@ -278,14 +269,13 @@ step = 0
 
 
 def compute_loss(examples, training):
-    image, gt_boxes, gt_classes, box_targets, box_weights, cls_targets, cls_weights = (
-        examples["images"],
-        examples["gt_boxes"],
-        examples["gt_classes"],
-        examples["rpn_box_targets"],
-        examples["rpn_box_weights"],
-        examples["rpn_cls_targets"],
-        examples["rpn_cls_weights"],
+    image = examples["images"]
+    gt_boxes = examples["gt_boxes"]
+    gt_classes = examples["gt_classes"]
+    anchors = model.anchor_generator(image_shape=image_size)
+    anchors = tf.concat(tf.nest.flatten(anchors), axis=0)
+    box_targets, box_weights, cls_targets, cls_weights = model.rpn_labeler(
+        anchors, gt_boxes, gt_classes
     )
     outputs = model(image, gt_boxes=gt_boxes, gt_classes=gt_classes, training=training)
     rpn_box_pred, rpn_cls_pred = outputs["rpn_box_pred"], outputs["rpn_cls_pred"]
