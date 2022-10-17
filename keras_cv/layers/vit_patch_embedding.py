@@ -19,7 +19,7 @@ from keras_cv.layers.vit_class_tokenizing import ClassTokenizing
 
 
 @tf.keras.utils.register_keras_serializable(package="keras_cv")
-class PatchEncoding(layers.Layer):
+class PatchEmbedding(layers.Layer):
     """
     Layer to concat a class token, positionally embed and create a projection of patches made with the `Patching` layer
     for Vision Transformers from:
@@ -40,7 +40,7 @@ class PatchEncoding(layers.Layer):
     project_dim = 1024
     num_patches = patches.shape[1] # 196
 
-    encoded_patches = keras_cv.layers.PatchEncoding(num_patches, project_dim)(patches)
+    encoded_patches = keras_cv.layers.PatchEmbedding(num_patches, project_dim)(patches)
     print(encoded_patches.shape) # (1, 197, 1024)
     ```
     """
