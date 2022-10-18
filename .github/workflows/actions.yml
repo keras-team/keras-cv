@@ -39,9 +39,9 @@ jobs:
         python build_deps/configure.py
         bazel build keras_cv/custom_ops:all
         cp bazel-bin/keras_cv/custom_ops/*.so keras_cv/custom_ops/
-        export TEST_CUSTOM_OPS=true
     - name: Test with pytest
       run: |
+        export TEST_CUSTOM_OPS=true
         pytest keras_cv/ --ignore keras_cv/models
   format:
     name: Check the code format
