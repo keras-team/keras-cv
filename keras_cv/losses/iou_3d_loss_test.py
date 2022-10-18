@@ -24,7 +24,7 @@ from keras_cv.losses import IoU3DLoss
 
 class IoU3DTest(tf.test.TestCase):
     @pytest.mark.skipif(
-        "SKIP_CUSTOM_OPS" in os.environ and os.environ["SKIP_CUSTOM_OPS"] == "true",
+        "TEST_CUSTOM_OPS" not in os.environ or os.environ["TEST_CUSTOM_OPS"] != "true",
         reason="Requires binaries compiled from source",
     )
     def testOpCall(self):
@@ -38,7 +38,7 @@ class IoU3DTest(tf.test.TestCase):
         )
 
     @pytest.mark.skipif(
-        "SKIP_CUSTOM_OPS" in os.environ and os.environ["SKIP_CUSTOM_OPS"] == "true",
+        "TEST_CUSTOM_OPS" not in os.environ or os.environ["TEST_CUSTOM_OPS"] != "true",
         reason="Requires binaries compiled from source",
     )
     def test_output_shape(self):
@@ -50,7 +50,7 @@ class IoU3DTest(tf.test.TestCase):
         self.assertAllEqual(iou_3d_loss(y_true, y_pred).shape, ())
 
     @pytest.mark.skipif(
-        "SKIP_CUSTOM_OPS" in os.environ and os.environ["SKIP_CUSTOM_OPS"] == "true",
+        "TEST_CUSTOM_OPS" not in os.environ or os.environ["TEST_CUSTOM_OPS"] != "true",
         reason="Requires binaries compiled from source",
     )
     def test_output_shape_reduction_none(self):

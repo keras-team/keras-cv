@@ -63,7 +63,7 @@ Thank you to all of our wonderful contributors!
 </a>
 
 
-## Installing from Source
+## Installing Custom Ops from Source
 Installing from source requires the [Bazel](https://bazel.build/) build system
 (version >= 1.0.0).
 

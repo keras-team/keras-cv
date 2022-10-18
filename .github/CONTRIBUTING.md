@@ -143,7 +143,7 @@ bazel build keras_cv/custom_ops:all
 cp bazel-bin/keras_cv/custom_ops/*.so keras_cv/custom_ops/
 ```
 
-You can also skip all tests which use custom ops by setting the environment variable `SKIP_CUSTOM_OPS=true`
+Tests which use custom ops are disabled by default, but can be run by setting the environment variable `TEST_CUSTOM_OPS=true`.
 
 ## Formatting the Code
 We use `flake8`, `isort` and `black` for code formatting.  You can run
