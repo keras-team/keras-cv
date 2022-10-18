@@ -21,52 +21,25 @@ class FasterRCNNTest(tf.test.TestCase):
     def test_faster_rcnn_infer(self):
         model = FasterRCNN(classes=80, bounding_box_format="xyxy")
         images = tf.random.normal([2, 512, 512, 3])
-        gt_boxes = tf.constant(
-            [
-                [[32.0, 32.0, 64.0, 64.0], [-1.0, -1.0, -1.0, -1.0]],
-                [[32.0, 32.0, 128.0, 128.0], [128.0, 128.0, 156.0, 156.0]],
-            ]
-        )
-        gt_classes = tf.constant(
-            [
-                [[1.0], [-1.0]],
-                [
-                    [
-                        25.0,
-                    ],
-                    [76.0],
-                ],
-            ]
-        )
-        outputs = model(images, gt_boxes, gt_classes, training=False)
+        outputs = model(images, training=False)
         # 1000 proposals in inference
-        self.assertAllEqual([2, 1000, 81], outputs["rcnn_cls_pred"].shape)
-        self.assertAllEqual([2, 1000, 4], outputs["rcnn_box_pred"].shape)
+        self.assertAllEqual([2, 1000, 81], outputs[1].shape)
+        self.assertAllEqual([2, 1000, 4], outputs[0].shape)
 
     def test_faster_rcnn_train(self):
         model = FasterRCNN(classes=80, bounding_box_format="xyxy")
         images = tf.random.normal([2, 512, 512, 3])
-        gt_boxes = tf.constant(
-            [
-                [[32.0, 32.0, 64.0, 64.0], [-1.0, -1.0, -1.0, -1.0]],
-                [[32.0, 32.0, 128.0, 128.0], [128.0, 128.0, 156.0, 156.0]],
-            ]
-        )
-        gt_classes = tf.constant(
-            [
-                [[1.0], [-1.0]],
-                [
-                    [
-                        25.0,
-                    ],
-                    [76.0],
-                ],
-            ]
-        )
-        outputs = model(images, gt_boxes, gt_classes, training=True)
-        # 512 sampled proposals in inference
-        self.assertAllEqual([2, 512, 81], outputs["rcnn_cls_pred"].shape)
-        self.assertAllEqual([2, 512, 4], outputs["rcnn_box_pred"].shape)
-        # (128*128 + 64*64 + 32*32+16*16+8*8) * 3 = 65472
-        self.assertAllEqual([2, 65472, 4], outputs["rpn_box_pred"].shape)
-        self.assertAllEqual([2, 65472, 1], outputs["rpn_cls_pred"].shape)
+        outputs = model(images, training=True)
+        self.assertAllEqual([2, 1000, 81], outputs[1].shape)
+        self.assertAllEqual([2, 1000, 4], outputs[0].shape)
+
+    def test_invalid_compile(self):
+        model = FasterRCNN(classes=80, bounding_box_format="yxyx")
+        with self.assertRaisesRegex(ValueError, "only accepts"):
+            model.compile(rpn_box_loss="binary_crossentropy")
+        with self.assertRaisesRegex(ValueError, "only accepts"):
+            model.compile(
+                rpn_classification_loss=tf.keras.losses.BinaryCrossentropy(
+                    from_logits=False
+                )
+            )
