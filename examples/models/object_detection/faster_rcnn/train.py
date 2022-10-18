@@ -275,5 +275,11 @@ callbacks = [
         log_dir=FLAGS.tensorboard_path, write_steps_per_second=True
     ),
 ]
-model.compile(optimizer=optimizer)
+model.compile(
+    optimizer=optimizer,
+    box_loss="Huber",
+    classification_loss="SparseCategoricalCrossentropy",
+    rpn_box_loss="Huber",
+    rpn_classification_loss="BinaryCrossentropy",
+)
 model.fit(train_ds, epochs=18, validation_data=eval_ds, callbacks=callbacks)

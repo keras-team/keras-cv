@@ -379,17 +379,24 @@ class FasterRCNN(tf.keras.Model):
     # TODO(tanzhenyu): Support compile with metrics.
     def compile(
         self,
-        box_loss="Huber",
-        classification_loss="SparseCategoricalCrossentropy",
-        rpn_box_loss="Huber",
-        rpn_classification_loss="BinaryCrossentropy",
+        box_loss=None,
+        classification_loss=None,
+        rpn_box_loss=None,
+        rpn_classification_loss=None,
         weight_decay=0.0001,
+        loss=None,
         **kwargs,
     ):
         # TODO(tanzhenyu): Add metrics support once COCOMap issue is addressed.
         # https://github.com/keras-team/keras-cv/issues/915
         if "metrics" in kwargs.keys():
             raise ValueError("currently metrics support is not supported intentionally")
+        if loss is not None:
+            raise ValueError(
+                "`FasterRCNN` does not accept a `loss` to `compile()`. "
+                "Instead, please pass `box_loss` and `classification_loss`. "
+                "`loss` will be ignored during training."
+            )
         box_loss = _validate_and_get_loss(box_loss, "box_loss")
         classification_loss = _validate_and_get_loss(
             classification_loss, "classification_loss"
@@ -502,7 +509,7 @@ class FasterRCNN(tf.keras.Model):
 def _validate_and_get_loss(loss, loss_name):
     if isinstance(loss, str):
         loss = tf.keras.losses.get(loss)
-    if not isinstance(loss, tf.keras.losses.Loss):
+    if loss is None or not isinstance(loss, tf.keras.losses.Loss):
         raise ValueError(
             f"FasterRCNN only accepts `tf.keras.losses.Loss` for {loss_name}, got {loss}"
         )
