@@ -16,10 +16,13 @@ import tensorflow as tf
 from tensorflow.keras import mixed_precision
 
 from keras_cv.models import StableDiffusion
+from keras_cv.testing import integration
 
 
 class StableDiffusionTest(tf.test.TestCase):
-    def DISABLED_test_end_to_end_golden_value(self):
+
+    @integration
+    def test_end_to_end_golden_value(self):
         prompt = "a caterpillar smoking a hookah while sitting on a mushroom"
         stablediff = StableDiffusion(128, 128)
 
@@ -34,12 +37,14 @@ class StableDiffusionTest(tf.test.TestCase):
         text_encoding = stablediff.encode_text(prompt)
         self.assertAllClose(img, stablediff.generate_image(text_encoding), atol=1e-4)
 
-    def DISABLED_test_mixed_precision(self):
+    @integration
+    def test_mixed_precision(self):
         mixed_precision.set_global_policy("mixed_float16")
         stablediff = StableDiffusion(128, 128)
         _ = stablediff.text_to_image("Testing123 haha!")
 
-    def DISABLED_test_generate_image_rejects_noise_and_seed(self):
+    @integration
+    def test_generate_image_rejects_noise_and_seed(self):
         stablediff = StableDiffusion(128, 128)
 
         with self.assertRaisesRegex(
