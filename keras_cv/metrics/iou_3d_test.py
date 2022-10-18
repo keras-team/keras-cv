@@ -62,12 +62,12 @@ class IoU3DTest(tf.test.TestCase):
 
         iou_3d = IoU3D()
 
-        # These would match if they were in the area range
+        # Two pairs of boxes with 100% IoU
         y_true = np.array(
             [[0, 0, 0, 2, 2, 2, 0], [1, 1, 1, 2, 2, 2, 3 * math.pi / 4]]
         ).astype(np.float32)
         y_pred = np.array(
-            [[0, 0, 0, 2, 2, 2, 0], [1, 1, 1, 2, 2, 2, 3 * math.pi / 4]]
+            [[0, 0, 0, 2, 2, 2, math.pi], [1, 1, 1, 2, 2, 2, math.pi / 4]]
         ).astype(np.float32)
 
         model.compile(metrics=[iou_3d])
