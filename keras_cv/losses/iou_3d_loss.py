@@ -12,12 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ============================================================================
-"""Zero-out loss (for testing only) using a custom TF op."""
+"""IoU3D loss using a custom TF op."""
 
 from tensorflow.python.framework import load_library
 from tensorflow.python.platform import resource_loader
 
-zero_out_ops = load_library.load_op_library(
-    resource_loader.get_path_to_datafile("../../custom_ops/_zero_out_ops.so")
+pairwise_iou_op = load_library.load_op_library(
+    resource_loader.get_path_to_datafile("../custom_ops/_pairwise_iou_op.so")
 )
-zero_out = zero_out_ops.zero_out
+print(pairwise_iou_op.__dict__.keys())
+iou_3d = pairwise_iou_op.pairwise_iou3d

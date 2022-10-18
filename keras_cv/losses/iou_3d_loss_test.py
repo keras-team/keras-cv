@@ -12,22 +12,28 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ============================================================================
-"""Tests for ZeroOutLoss using custom op."""
+"""Tests for IoU3DLoss using custom op."""
+import math
 import os
 
 import pytest
 import tensorflow as tf
 
-from keras_cv.losses.__internal__ import ZeroOutLoss
+from keras_cv.losses import IoU3DLoss
 
 
-class ZeroOutTest(tf.test.TestCase):
+class IoU3DTest(tf.test.TestCase):
     @pytest.mark.skipif(
         "SKIP_CUSTOM_OPS" in os.environ and os.environ["SKIP_CUSTOM_OPS"] == "true",
         reason="Requires binaries compiled from source",
     )
     def testOpCall(self):
-        self.assertAllClose(ZeroOutLoss([[1, 2], [3, 4]]), [[1, 0], [0, 0]])
+        box_preds = [[0, 0, 0, 2, 2, 2, 0], [1, 1, 1, 2, 2, 2, 3 * math.pi / 4]]
+        box_gt = [[1, 1, 1, 2, 2, 2, math.pi / 4], [1, 1, 1, 2, 2, 2, 0]]
+
+        self.assertAllClose(
+            IoU3DLoss(box_preds, box_gt), [[2 / 30, 2 / 30], [1, 0.707107]]
+        )
 
 
 if __name__ == "__main__":
