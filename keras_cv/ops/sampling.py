@@ -35,7 +35,7 @@ def balanced_sample(
         of all collected samples.
 
     Returns:
-      selected_indicators: [`num_samples`] or [batch_size, `num_samples`]
+      selected_indicators: [N] or [batch_size, N]
         integer Tensor, 1 for indicating the index is sampled, 0 for
         indicating the index is not sampled.
     """

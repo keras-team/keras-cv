@@ -63,7 +63,7 @@ class _RpnLabelEncoder(tf.keras.layers.Layer):
         negative_threshold,
         samples_per_image,
         positive_fraction,
-        **kwargs
+        **kwargs,
     ):
         super().__init__(**kwargs)
         self.anchor_format = anchor_format
@@ -88,11 +88,12 @@ class _RpnLabelEncoder(tf.keras.layers.Layer):
     ):
         """
         Args:
-          anchors: dict of [num_anchors, 4] for each level.
-          gt_boxes: [num_gt, 4]
-          gt_classes: [num_gt, 1]
+          anchors: dict of [num_anchors, 4] or [batch_size, num_anchors, 4]
+            float Tensor for each level.
+          gt_boxes: [num_gt, 4] or [batch_size, num_anchors] float Tensor.
+          gt_classes: [num_gt, 1] float or integer Tensor.
         Returns:
-          box_targets: dict of [num_anchors, 4] for each level.
+          box_targets: dict of [num_anchors, 4] or  for each level.
           box_weights: dict of [num_anchors, 1] for each level.
           class_targets: dict of [num_anchors, 1] for each level.
           class_weights: dict of [num_anchors, 1] for each level.
@@ -108,11 +109,11 @@ class _RpnLabelEncoder(tf.keras.layers.Layer):
         gt_boxes = bounding_box.convert_format(
             gt_boxes, source=self.ground_truth_box_format, target="yxyx"
         )
-        # [num_anchors, num_gt]
+        # [num_anchors, num_gt] or [batch_size, num_anchors, num_gt]
         similarity_mat = iou.compute_iou(anchors, gt_boxes, bounding_box_format="yxyx")
-        # [num_anchors]
+        # [num_anchors] or [batch_size, num_anchors]
         matched_gt_indices, matched_vals = self.box_matcher(similarity_mat)
-        # [num_anchors]
+        # [num_anchors] or [batch_size, num_anchors]
         positive_matches = tf.math.equal(matched_vals, 1)
         # currently SyncOnReadVariable does not support `assign_add` in cross-replica.
         #        self._positives.update_state(
@@ -120,9 +121,9 @@ class _RpnLabelEncoder(tf.keras.layers.Layer):
         #        )
 
         negative_matches = tf.math.equal(matched_vals, -1)
-        # [num_anchors, 4]
+        # [num_anchors, 4] or [batch_size, num_anchors, 4]
         matched_gt_boxes = target_gather._target_gather(gt_boxes, matched_gt_indices)
-        # [num_anchors, 4], used as `y_true` for regression loss
+        # [num_anchors, 4] or [batch_size, num_anchors, 4], used as `y_true` for regression loss
         encoded_box_targets = bounding_box._encode_box_to_deltas(
             anchors,
             matched_gt_boxes,
@@ -130,24 +131,25 @@ class _RpnLabelEncoder(tf.keras.layers.Layer):
             box_format="yxyx",
             variance=[0.1, 0.1, 0.2, 0.2],
         )
-        # [num_anchors, 1]
+        # [num_anchors, 1] or [batch_size, num_anchors, 1]
         box_sample_weights = tf.cast(positive_matches[..., tf.newaxis], gt_boxes.dtype)
 
-        # [num_anchors, 1]
+        # [num_anchors, 1] or [batch_size, num_anchors, 1]
         positive_mask = tf.expand_dims(positive_matches, axis=-1)
         # set all negative and ignored matches to 0, and all positive matches to 1
+        # [num_anchors, 1] or [batch_size, num_anchors, 1]
         positive_classes = tf.ones_like(positive_mask, dtype=gt_classes.dtype)
         negative_classes = tf.zeros_like(positive_mask, dtype=gt_classes.dtype)
-        # [num_anchors, 1]
+        # [num_anchors, 1] or [batch_size, num_anchors, 1]
         class_targets = tf.where(positive_mask, positive_classes, negative_classes)
-        # [num_anchors]
+        # [num_anchors] or [batch_size, num_anchors]
         sampled_indicators = sampling.balanced_sample(
             positive_matches,
             negative_matches,
             self.samples_per_image,
             self.positive_fraction,
         )
-        # [num_anchors, 1]
+        # [num_anchors, 1] or [batch_size, num_anchors, 1]
         class_sample_weights = tf.cast(
             sampled_indicators[..., tf.newaxis], gt_classes.dtype
         )
@@ -166,11 +168,21 @@ class _RpnLabelEncoder(tf.keras.layers.Layer):
         )
 
     def unpack_targets(self, targets, anchors_dict):
+        target_shape = len(targets.get_shape().as_list())
+        if target_shape != 2 and target_shape != 3:
+            raise ValueError(
+                f"unpacking targets must be rank 2 or rank 3, got {target_shape}"
+            )
         unpacked_targets = {}
         count = 0
         for level, anchors in anchors_dict.items():
             num_anchors_lvl = anchors.get_shape().as_list()[0]
-            unpacked_targets[level] = targets[count : count + num_anchors_lvl, ...]
+            if target_shape == 2:
+                unpacked_targets[level] = targets[count : count + num_anchors_lvl, ...]
+            else:
+                unpacked_targets[level] = targets[
+                    :, count : count + num_anchors_lvl, ...
+                ]
             count += num_anchors_lvl
         return unpacked_targets
 

@@ -32,6 +32,7 @@ from keras_cv.models.generative.stable_diffusion.constants import _ALPHAS_CUMPRO
 from keras_cv.models.generative.stable_diffusion.constants import _UNCONDITIONAL_TOKENS
 from keras_cv.models.generative.stable_diffusion.decoder import Decoder
 from keras_cv.models.generative.stable_diffusion.diffusion_model import DiffusionModel
+from keras_cv.models.generative.stable_diffusion.image_encoder import ImageEncoder
 from keras_cv.models.generative.stable_diffusion.text_encoder import TextEncoder
 
 MAX_PROMPT_LENGTH = 77
@@ -77,7 +78,12 @@ class StableDiffusion:
     - [Original implementation](https://github.com/CompVis/stable-diffusion)
     """
 
-    def __init__(self, img_height=512, img_width=512, jit_compile=False):
+    def __init__(
+        self,
+        img_height=512,
+        img_width=512,
+        jit_compile=False,
+    ):
         # UNet requires multiples of 2**7 = 128
         img_height = round(img_height / 128) * 128
         img_width = round(img_width / 128) * 128
@@ -89,6 +95,11 @@ class StableDiffusion:
         self.text_encoder = TextEncoder(MAX_PROMPT_LENGTH)
         self.diffusion_model = DiffusionModel(img_height, img_width, MAX_PROMPT_LENGTH)
         self.decoder = Decoder(img_height, img_width)
+        # lazy initialize image encoder
+        self._image_encoder = None
+
+        self.jit_compile = jit_compile
+
         if jit_compile:
             self.text_encoder.compile(jit_compile=True)
             self.diffusion_model.compile(jit_compile=True)
@@ -112,6 +123,7 @@ class StableDiffusion:
             origin="https://huggingface.co/fchollet/stable-diffusion/resolve/main/kcv_decoder.h5",
             file_hash="ad350a65cc8bc4a80c8103367e039a3329b4231c2469a1093869a345f55b1962",
         )
+
         self.text_encoder.load_weights(text_encoder_weights_fpath)
         self.diffusion_model.load_weights(diffusion_model_weights_fpath)
         self.decoder.load_weights(decoder_weights_fpath)
@@ -280,6 +292,23 @@ class StableDiffusion:
         )
 
         return unconditional_context
+
+    @property
+    def image_encoder(self):
+        """image_encoder returns the VAE Encoder with pretrained weights.
+
+        Usage:
+        ```python
+        sd = keras_cv.models.StableDiffusion()
+        my_image = np.ones((512, 512, 3))
+        latent_representation = sd.image_encoder.predict(my_image)
+        ```
+        """
+        if self._image_encoder is None:
+            self._image_encoder = ImageEncoder(self.img_height, self.img_width)
+        if self.jit_compile:
+            self._image_encoder.compile(jit_compile=True)
+        return self._image_encoder
 
     def _get_timestep_embedding(self, timestep, batch_size, dim=320, max_period=10000):
         half = dim // 2
