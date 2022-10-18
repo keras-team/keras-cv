@@ -12,14 +12,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ============================================================================
-"""Tests for IoU3DLoss using custom op."""
+"""Tests for IoU3D using custom op."""
 import math
 import os
 
+import numpy as np
 import pytest
 import tensorflow as tf
+from tensorflow import keras
 
-from keras_cv.losses import IoU3DLoss
+from keras_cv.metrics import IoU3D
 
 
 class IoU3DTest(tf.test.TestCase):
@@ -37,44 +39,41 @@ class IoU3DTest(tf.test.TestCase):
         box_preds = [[0, 0, 0, 2, 2, 2, 0], [1, 1, 1, 2, 2, 2, 3 * math.pi / 4]]
         box_gt = [[1, 1, 1, 2, 2, 2, math.pi / 4], [1, 1, 1, 2, 2, 2, 0]]
 
-        # Predicted box 0 and both ground truth boxes overlap by 1/8th of the box.
+        # Predicted box 0 and both ground truth box 0 overlap by 1/8th of the box.
         # Therefore, IiU is 1/15
-        # Predicted box 1 is the same as ground truth box 0, therefore IoU is 1
         # Predicted box 1 shares an origin with ground truth box 1, but is rotated by 135 degrees.
         # Their IoU can be reduced to that of two overlapping squares that share a center with
         # the same offset of 135 degrees, which reduces to the square root of 0.5.
-        expected_ious = [[1 / 15, 1 / 15], [1, 0.5**0.5]]
+        expected_ious = [1 / 15, 0.5**0.5]
+        expected_mean_iou = np.mean(expected_ious)
 
-        iou_3d_loss = IoU3DLoss(reduction="none")
+        iou_3d = IoU3D()
+        iou_3d.update_state(box_preds, box_gt)
 
-        self.assertAllClose(iou_3d_loss(box_preds, box_gt), expected_ious)
-
-    @pytest.mark.skipif(
-        "TEST_CUSTOM_OPS" not in os.environ or os.environ["TEST_CUSTOM_OPS"] != "true",
-        reason="Requires binaries compiled from source",
-    )
-    def test_output_shape(self):
-        y_true = tf.random.uniform(shape=(2, 7), minval=0, maxval=10)
-        y_pred = tf.random.uniform(shape=(2, 7), minval=0, maxval=20)
-
-        iou_3d_loss = IoU3DLoss()
-
-        self.assertAllEqual(iou_3d_loss(y_true, y_pred).shape, ())
+        self.assertAllClose(iou_3d.result(), expected_mean_iou)
 
     @pytest.mark.skipif(
         "TEST_CUSTOM_OPS" not in os.environ or os.environ["TEST_CUSTOM_OPS"] != "true",
         reason="Requires binaries compiled from source",
     )
-    def test_output_shape_reduction_none(self):
-        y_true = tf.random.uniform(shape=(2, 7), minval=0, maxval=10)
-        y_pred = tf.random.uniform(shape=(2, 7), minval=0, maxval=20)
+    def test_runs_inside_model(self):
+        i = keras.layers.Input((None, None, 6))
+        model = keras.Model(i, i)
 
-        iou_3d_loss = IoU3DLoss(reduction="none")
+        iou_3d = IoU3D()
 
-        self.assertAllEqual(
-            iou_3d_loss(y_true, y_pred).shape,
-            [2, 2],
-        )
+        # These would match if they were in the area range
+        y_true = np.array(
+            [[0, 0, 0, 2, 2, 2, 0], [1, 1, 1, 2, 2, 2, 3 * math.pi / 4]]
+        ).astype(np.float32)
+        y_pred = np.array(
+            [[0, 0, 0, 2, 2, 2, 0], [1, 1, 1, 2, 2, 2, 3 * math.pi / 4]]
+        ).astype(np.float32)
+
+        model.compile(metrics=[iou_3d])
+        model.evaluate(y_pred, y_true)
+
+        self.assertAllEqual(iou_3d.result(), 1.0)
 
 
 if __name__ == "__main__":

@@ -44,22 +44,23 @@ class PairwiseIoUOp : public OpKernel {
     OP_REQUIRES(ctx, 7 == b.dim_size(1),
                 errors::InvalidArgument("Matrix size-incompatible: In[1]: ",
                                         b.shape().DebugString()));
+    OP_REQUIRES(ctx, a.dim_size(0) == b.dim_size(0),
+                errors::InvalidArgument("Input shapes do not match: ",
+                                        a.shape().DebugString(),
+                                        b.shape().DebugString()));
 
     const int n_a = a.dim_size(0);
-    const int n_b = b.dim_size(0);
 
     Tensor* iou_a_b = nullptr;
     OP_REQUIRES_OK(
-        ctx, ctx->allocate_output("iou", TensorShape({n_a, n_b}), &iou_a_b));
+        ctx, ctx->allocate_output("iou", TensorShape({n_a}), &iou_a_b));
 
-    auto t_iou_a_b = iou_a_b->matrix<float>();
+    auto t_iou_a_b = iou_a_b->vec<float>();
 
     std::vector<box::Upright3DBox> box_a = box::ParseBoxesFromTensor(a);
     std::vector<box::Upright3DBox> box_b = box::ParseBoxesFromTensor(b);
-    for (int i_a = 0; i_a < n_a; ++i_a) {
-      for (int i_b = 0; i_b < n_b; ++i_b) {
-        t_iou_a_b(i_a, i_b) = box_a[i_a].IoU(box_b[i_b]);
-      }
+    for (int index = 0; index < n_a; ++index) {
+        t_iou_a_b(index) = box_a[index].IoU(box_b[index]);
     }
   }
 };

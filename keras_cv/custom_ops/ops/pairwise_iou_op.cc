@@ -23,8 +23,8 @@ REGISTER_OP("PairwiseIou3D")
     .Input("boxes_b: float")
     .Output("iou: float")
     .SetShapeFn([](tensorflow::shape_inference::InferenceContext* c) {
-      c->set_output(
-          0, c->MakeShape({c->Dim(c->input(0), 0), c->Dim(c->input(1), 0)}));
+      shape_inference::ShapeHandle boxes_a_shape;
+      c->set_output(0, c->MakeShape({c->Dim(boxes_a_shape, 0)}));
       return tensorflow::Status();
     })
     .Doc(R"doc(
