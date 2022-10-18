@@ -116,7 +116,6 @@ class RetinaNet(ObjectDetectionBaseModel):
         classification_head=None,
         box_head=None,
         evaluate_train_time_metrics=False,
-        name="RetinaNet",
         **kwargs,
     ):
         if anchor_generator is not None and (prediction_decoder or label_encoder):
@@ -285,8 +284,8 @@ class RetinaNet(ObjectDetectionBaseModel):
                 "Instead, please pass `box_loss` and `classification_loss`. "
                 "`loss` will be ignored during training."
             )
-        self.box_loss = box_loss
-        self.classification_loss = classification_loss
+        self.box_loss = _parse_box_loss(box_loss)
+        self.classification_loss = _parse_classification_loss(classification_loss)
         metrics = metrics or []
 
         if hasattr(classification_loss, "from_logits"):
@@ -326,7 +325,6 @@ class RetinaNet(ObjectDetectionBaseModel):
             )
 
     def compute_losses(self, y_true, y_pred):
-
         if y_true.shape[-1] != 5:
             raise ValueError(
                 "y_true should have shape (None, None, 5).  Got "
@@ -504,6 +502,36 @@ def _parse_backbone(backbone, include_rescaling, backbone_weights):
             f"Received backbone={backbone}."
         )
     return backbone
+
+
+def _parse_box_loss(loss):
+    if not isinstance(loss, str):
+        # support arbitrary callables
+        return loss
+
+    # case insensitive comparison
+    if loss.lower() == "smoothl1":
+        return keras_cv.losses.SmoothL1Loss(l1_cutoff=1.0, reduction="none")
+
+    raise ValueError(
+        "Expected `box_loss` to be either a Keras Loss, "
+        f"callable, or the string 'SmoothL1'.  Got loss={loss}."
+    )
+
+
+def _parse_classification_loss(loss):
+    if not isinstance(loss, str):
+        # support arbitrary callables
+        return loss
+
+    # case insensitive comparison
+    if loss.lower() == "focal":
+        return keras_cv.losses.FocalLoss(from_logits=True, reduction="none")
+
+    raise ValueError(
+        "Expected `classification_loss` to be either a Keras Loss, "
+        f"callable, or the string 'Focal'.  Got loss={loss}."
+    )
 
 
 def _resnet50_backbone(include_rescaling, backbone_weights):
