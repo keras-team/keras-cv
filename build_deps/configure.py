@@ -13,7 +13,7 @@
 # limitations under the License.
 # ==============================================================================
 # Usage: python configure.py
-#
+"""Configures local environment to prepare for building KerasCV from source."""
 
 
 import logging

@@ -13,6 +13,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ==============================================================================
+
+# Builds a wheel of KerasCV for Pip. Requires Bazel.
+# Adapted from https://github.com/tensorflow/addons/blob/master/build_deps/build_pip_pkg.sh
+
 set -e
 set -x
 
