@@ -129,6 +129,10 @@ class ROIGenerator(tf.keras.layers.Layer):
             nms_iou_threshold = self.nms_iou_threshold_test
 
         def per_level_gen(boxes, scores):
+            scores_shape = scores.get_shape().as_list()
+            # scores can also be [batch_size, num_boxes, 1]
+            if len(scores_shape) == 3:
+                scores = tf.squeeze(scores, axis=-1)
             _, num_boxes = scores.get_shape().as_list()
             level_pre_nms_topk = min(num_boxes, pre_nms_topk)
             level_post_nms_topk = min(num_boxes, post_nms_topk)

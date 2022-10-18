@@ -226,9 +226,10 @@ def multilevel_crop_and_resize(
             tf.cast(box_height, tf.float32) * tf.cast(box_width, tf.float32)
         )
 
+        # following the FPN paper to divide by 224.
         levels = tf.cast(
             tf.math.floordiv(
-                tf.math.log(tf.math.divide_no_nan(areas_sqrt, 256.0)), tf.math.log(2.0)
+                tf.math.log(tf.math.divide_no_nan(areas_sqrt, 224.0)), tf.math.log(2.0)
             )
             + 4.0,
             dtype=tf.int32,
