@@ -567,4 +567,4 @@ eval_ds = eval_ds.apply(
 eval_ds = eval_df.prefetch(2)
 
 keras_cv_metrics = model.evaluate(eval_ds, return_dict=True)
-print(keras_cv_metrics)
+print("Metrics:", keras_cv_metrics)
