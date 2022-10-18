@@ -131,7 +131,6 @@ train_ds = imagenet.load(
     split="train",
     tfrecord_path=FLAGS.imagenet_path,
     batch_size=BATCH_SIZE,
-    img_size=IMAGE_SIZE,
 )
 test_ds = imagenet.load(
     split="validation",
@@ -148,6 +147,11 @@ We define a set of augmentation layers and then apply them to our input dataset.
 
 
 AUGMENT_LAYERS = [
+    keras_cv.layers.RandomCropAndResize(
+        target_size=IMAGE_SIZE,
+        crop_area_factor=(0.8, 1),
+        aspect_ratio_factor=(3 / 4, 4 / 3),
+    ),
     keras_cv.layers.RandomFlip(mode="horizontal"),
     keras_cv.layers.RandAugment(value_range=(0, 255), magnitude=0.3),
     keras_cv.layers.CutMix(),
