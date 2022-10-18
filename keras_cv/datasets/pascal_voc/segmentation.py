@@ -37,14 +37,10 @@ import tarfile
 import xml
 
 import numpy as np
+import tensorflow as tf
 from PIL import Image
 
-import tensorflow as tf
-
-logging.info = print
-
-
-DATA_URL = 'http://host.robots.ox.ac.uk/pascal/VOC/voc2012/VOCtrainval_11-May-2012.tar'
+DATA_URL = "http://host.robots.ox.ac.uk/pascal/VOC/voc2012/VOCtrainval_11-May-2012.tar"
 
 CLASSES = [
     "aeroplane",
@@ -68,6 +64,9 @@ CLASSES = [
     "train",
     "tvmonitor",
 ]
+# This is used to map between string class to index.
+CLASS_TO_INDEX = {name: index for index, name in enumerate(CLASSES)}
+
 
 def _download_pascal_voc_2012(data_url, local_dir_path=None, override_extract=False):
     """Fetch the original Pascal VOC 2012 from remote URL.
@@ -79,20 +78,21 @@ def _download_pascal_voc_2012(data_url, local_dir_path=None, override_extract=Fa
         the path to the folder of extracted Pascal VOC data.
     """
     if not local_dir_path:
-        local_dir_path = 'pascal_voc_2012/data.tar'
-    data_file_path = tf.keras.utils.get_file(
-        fname=local_dir_path, origin=data_url)
-    logging.info('Received data file from %s', data_file_path)
+        local_dir_path = "pascal_voc_2012/data.tar"
+    data_file_path = tf.keras.utils.get_file(fname=local_dir_path, origin=data_url)
+    logging.info("Received data file from %s", data_file_path)
     # Extra the data into the same directory as the tar file.
     data_directory = os.path.dirname(data_file_path)
     # Note that the extracted data will be located in a folder `VOCdevkit` (from tar).
     # If the folder is already there and `override_extract` is False, then we will skip
     # extracting the folder again.
-    if override_extract or not os.path.exists(os.path.join(data_directory, 'VOCdevkit')):
-        logging.info(f'Extract data into %s', data_directory)
+    if override_extract or not os.path.exists(
+        os.path.join(data_directory, "VOCdevkit")
+    ):
+        logging.info(f"Extract data into %s", data_directory)
         with tarfile.open(data_file_path) as f:
             f.extractall(data_directory)
-    return os.path.join(data_directory, 'VOCdevkit', 'VOC2012')
+    return os.path.join(data_directory, "VOCdevkit", "VOC2012")
 
 
 def _parse_annotation_data(annotation_file_path):
@@ -111,42 +111,43 @@ def _parse_annotation_data(annotation_file_path):
         objects = []
         for obj in root.findall("object"):
             # Get object's label name.
-            label = obj.find("name").text.lower()
+            label = CLASS_TO_INDEX[obj.find("name").text.lower()]
             # Get objects' pose name.
             pose = obj.find("pose").text.lower()
-            is_truncated = (obj.find("truncated").text == "1")
-            is_difficult = (obj.find("difficult").text == "1")
+            is_truncated = obj.find("truncated").text == "1"
+            is_difficult = obj.find("difficult").text == "1"
             bndbox = obj.find("bndbox")
             xmax = int(bndbox.find("xmax").text)
             xmin = int(bndbox.find("xmin").text)
             ymax = int(bndbox.find("ymax").text)
             ymin = int(bndbox.find("ymin").text)
-            objects.append({
-                "label": label,
-                "pose": pose,
-                "bbox": [ymin, xmin, ymax, xmax],
-                "is_truncated": is_truncated,
-                "is_difficult": is_difficult,
-            })
+            objects.append(
+                {
+                    "label": label,
+                    "pose": pose,
+                    "bbox": [ymin, xmin, ymax, xmax],
+                    "is_truncated": is_truncated,
+                    "is_difficult": is_difficult,
+                }
+            )
 
-        return {
-            "width": width,
-            "height": height,
-            "objects": objects
-        }
+        return {"width": width, "height": height, "objects": objects}
 
 
 def _get_image_ids(data_dir, split):
-    data_file_mapping = {
-        'train': 'train.txt', 'eval': 'val.txt', None: 'trainval.txt'
-    }
-    with tf.io.gfile.GFile(os.path.join(
-            data_dir, 'ImageSets', 'Segmentation', data_file_mapping[split]), 'r') as f:
+    data_file_mapping = {"train": "train.txt", "eval": "val.txt", None: "trainval.txt"}
+    with tf.io.gfile.GFile(
+        os.path.join(data_dir, "ImageSets", "Segmentation", data_file_mapping[split]),
+        "r",
+    ) as f:
         image_ids = f.read().splitlines()
-        logging.info(f'Received {len(image_ids)} images for {split} dataset.')
+        logging.info(f"Received {len(image_ids)} images for {split} dataset.")
+        return image_ids
 
 
-def _convert_pascal_voc_segmentation_mask_encoding(segmentation_file_path, use_cache=True):
+def _convert_pascal_voc_segmentation_mask_encoding(
+    segmentation_file_path, use_cache=True
+):
     """Convert the original segmentation PNG file to proper encoding for tf.io API.
 
     The original PNG was in a 2D (without channel dimension), which will get a wrong value
@@ -164,11 +165,11 @@ def _convert_pascal_voc_segmentation_mask_encoding(segmentation_file_path, use_c
         the file path for converted PNG file, it will be suffixed with '_converted'.
     """
     dir_and_file_name, _ = os.path.splitext(segmentation_file_path)
-    updated_file_path = dir_and_file_name + '_updated.png'
+    updated_file_path = dir_and_file_name + "_updated.png"
     if os.path.exists(updated_file_path) and use_cache:
         return updated_file_path
 
-    with tf.io.gfile.GFile(segmentation_file_path, 'rb') as f:
+    with tf.io.gfile.GFile(segmentation_file_path, "rb") as f:
         mask = Image.open(f)
 
     original_mask = np.expand_dims(np.asarray(mask), axis=-1)
@@ -182,93 +183,112 @@ def parse_single_image(image_file_path):
     data_dir = os.path.normpath(os.path.join(data_dir, os.path.pardir))
     image_id, _ = os.path.splitext(image_file_name)
     class_segmentation_file_path = os.path.join(
-        data_dir, 'SegmentationClass', image_id + '.png')
+        data_dir, "SegmentationClass", image_id + ".png"
+    )
     class_segmentation_file_path = _convert_pascal_voc_segmentation_mask_encoding(
-        class_segmentation_file_path)
+        class_segmentation_file_path
+    )
     object_segmentation_file_path = os.path.join(
-        data_dir, 'SegmentationObject', image_id + '.png')
+        data_dir, "SegmentationObject", image_id + ".png"
+    )
     object_segmentation_file_path = _convert_pascal_voc_segmentation_mask_encoding(
-        object_segmentation_file_path)
-    annotation_file_path = os.path.join(data_dir, 'Annotations', image_id + '.xml')
+        object_segmentation_file_path
+    )
+    annotation_file_path = os.path.join(data_dir, "Annotations", image_id + ".xml")
     image_annotations = _parse_annotation_data(annotation_file_path)
 
     result = {
-        'image/filename': image_id + '.jpg',
-        'image/file_path': image_file_path,
-        'segmentation/class/file_path': class_segmentation_file_path,
-        'segmentation/object/file_path': object_segmentation_file_path,
+        "image/filename": image_id + ".jpg",
+        "image/file_path": image_file_path,
+        "segmentation/class/file_path": class_segmentation_file_path,
+        "segmentation/object/file_path": object_segmentation_file_path,
     }
     result.update(image_annotations)
     # Labels field should be same as the 'object.label'
-    labels = list(set([o['label'] for o in result['objects']]))
-    result['labels'] = labels
+    labels = list(set([o["label"] for o in result["objects"]]))
+    result["labels"] = sorted(labels)
     return result
+
 
 def _build_metadata(data_dir, image_ids):
     # Parallel process all the images.
+    image_file_paths = [
+        os.path.join(data_dir, "JPEGImages", i + ".jpg") for i in image_ids
+    ]
     p = multiprocessing.Pool(10)
-    image_file_paths = [os.path.join(data_dir, 'JPEGImages', i + '.jpg')
-                        for i in image_ids]
     metadata = p.map(parse_single_image, image_file_paths)
 
     # Transpose the metadata which convert from list of dict to dict of list.
-    keys = ['image/filename', 'image/file_path', 'segmentation/class/file_path',
-            'segmentation/object/file_path', 'labels', 'width', 'height']
+    keys = [
+        "image/filename",
+        "image/file_path",
+        "segmentation/class/file_path",
+        "segmentation/object/file_path",
+        "labels",
+        "width",
+        "height",
+    ]
     result = {}
     for key in keys:
         values = [value[key] for value in metadata]
         result[key] = values
 
     # The ragged objects need some special handling
-    for key in ['label', 'pose', 'bbox', 'is_truncated', 'is_difficult']:
+    for key in ["label", "pose", "bbox", "is_truncated", "is_difficult"]:
         values = []
-        objects = [value['objects'] for value in metadata]
+        objects = [value["objects"] for value in metadata]
         for object in objects:
             values.append([o[key] for o in object])
-        result['objects/' + key] = values
+        result["objects/" + key] = values
     return result
 
 
-def _load_images(record):
-    # TODO(scottzhu): Fix the pop() issue.
-    image_file_path = record.pop['image/file_path']
-    segmentation_class_file_path = record.pop['segmentation_class_file_path']
-    segmentation_object_file_path = record.pop['segmentation_object_file_path']
+def _load_images(example):
+    image_file_path = example.pop("image/file_path")
+    segmentation_class_file_path = example.pop("segmentation/class/file_path")
+    segmentation_object_file_path = example.pop("segmentation/object/file_path")
     image = tf.io.read_file(image_file_path)
     image = tf.image.decode_jpeg(image)
 
     segmentation_class_mask = tf.io.read_file(segmentation_class_file_path)
-    segmentation_class_mask = tf.image.decode_png(
-        segmentation_class_mask)
+    segmentation_class_mask = tf.image.decode_png(segmentation_class_mask)
 
     segmentation_object_mask = tf.io.read_file(segmentation_object_file_path)
-    segmentation_object_mask = tf.image.decode_png(
-        segmentation_object_mask)
+    segmentation_object_mask = tf.image.decode_png(segmentation_object_mask)
 
-    record.update({
-        'image': image,
-        'class_segmentation': segmentation_class_mask,
-        'object_segmentation': segmentation_object_mask})
-    return record
+    example.update(
+        {
+            "image": image,
+            "class_segmentation": segmentation_class_mask,
+            "object_segmentation": segmentation_object_mask,
+        }
+    )
+    return example
 
 
 def _build_dataset_from_metadata(metadata):
     # The objects need some manual conversion to ragged tensor.
-    metadata['labels'] = tf.ragged.constant(metadata['labels'])
-    metadata['objects/label'] = tf.ragged.constant(metadata['objects/label'])
-    metadata['objects/pose'] = tf.ragged.constant(metadata['objects/pose'])
-    metadata['objects/is_truncated'] = tf.ragged.constant(metadata['objects/is_truncated'])
-    metadata['objects/is_difficult'] = tf.ragged.constant(metadata['objects/is_difficult'])
-    metadata['objects/bbox'] = tf.ragged.constant(metadata['objects/bbox'], ragged_rank=1)
+    metadata["labels"] = tf.ragged.constant(metadata["labels"])
+    metadata["objects/label"] = tf.ragged.constant(metadata["objects/label"])
+    metadata["objects/pose"] = tf.ragged.constant(metadata["objects/pose"])
+    metadata["objects/is_truncated"] = tf.ragged.constant(
+        metadata["objects/is_truncated"]
+    )
+    metadata["objects/is_difficult"] = tf.ragged.constant(
+        metadata["objects/is_difficult"]
+    )
+    metadata["objects/bbox"] = tf.ragged.constant(
+        metadata["objects/bbox"], ragged_rank=1
+    )
 
     dataset = tf.data.Dataset.from_tensor_slices(metadata)
-    dataset = dataset.map(_load_images,
-                      num_parallel_calls=tf.data.AUTOTUNE)
+    dataset = dataset.map(_load_images, num_parallel_calls=tf.data.AUTOTUNE)
     return dataset
 
+
 def load(
-        split='train',
-        data_dir=None,
+    split="train",
+    data_dir=None,
 ):
     """Load the Pacal VOC 2012 dataset.
 
@@ -282,10 +302,12 @@ def load(
             download the data file, and unzip. It will be used as a cach directory.
             Default to None, and `~/.keras/pascal_voc_2012` will be used.
     """
-    supported_split_value = ['train', 'eval', None]
+    supported_split_value = ["train", "eval", None]
     if split not in supported_split_value:
-        raise ValueError(f'The support value for `split` are {supported_split_value}. '
-                         f'Got: {split}')
+        raise ValueError(
+            f"The support value for `split` are {supported_split_value}. "
+            f"Got: {split}"
+        )
 
     if data_dir is not None:
         data_dir = os.path.expanduser(data_dir)
@@ -293,27 +315,6 @@ def load(
     data_dir = _download_pascal_voc_2012(DATA_URL, local_dir_path=data_dir)
     image_ids = _get_image_ids(data_dir, split)
     metadata = _build_metadata(data_dir, image_ids)
-
+    dataset = _build_dataset_from_metadata(metadata)
 
     return dataset
-
-
-if __name__ == "__main__":
-    data_path = _download_pascal_voc_2012(DATA_URL)
-    test_image_ids = [
-        "2011_003066",
-        "2011_003078",
-        "2011_003121",
-        "2011_003141",
-        "2011_003151",
-        "2011_003184",
-        "2011_003216",
-        "2011_003238",
-        "2011_003246",
-        "2011_003255",
-    ]
-    metadata = _build_metadata(data_path, test_image_ids)
-    dataset = _build_dataset_from_metadata(metadata)
-    for data in dataset:
-        print(data)
-    # print(metadata)
