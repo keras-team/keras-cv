@@ -31,8 +31,37 @@ class IoU3DTest(tf.test.TestCase):
         box_preds = [[0, 0, 0, 2, 2, 2, 0], [1, 1, 1, 2, 2, 2, 3 * math.pi / 4]]
         box_gt = [[1, 1, 1, 2, 2, 2, math.pi / 4], [1, 1, 1, 2, 2, 2, 0]]
 
+        iou_3d_loss = IoU3DLoss(reduction="none")
+
         self.assertAllClose(
-            IoU3DLoss(box_preds, box_gt), [[2 / 30, 2 / 30], [1, 0.707107]]
+            iou_3d_loss(box_preds, box_gt), [[2 / 30, 2 / 30], [1, 0.5**0.5]]
+        )
+
+    @pytest.mark.skipif(
+        "SKIP_CUSTOM_OPS" in os.environ and os.environ["SKIP_CUSTOM_OPS"] == "true",
+        reason="Requires binaries compiled from source",
+    )
+    def test_output_shape(self):
+        y_true = tf.random.uniform(shape=(2, 7), minval=0, maxval=10)
+        y_pred = tf.random.uniform(shape=(2, 7), minval=0, maxval=20)
+
+        iou_3d_loss = IoU3DLoss()
+
+        self.assertAllEqual(iou_3d_loss(y_true, y_pred).shape, ())
+
+    @pytest.mark.skipif(
+        "SKIP_CUSTOM_OPS" in os.environ and os.environ["SKIP_CUSTOM_OPS"] == "true",
+        reason="Requires binaries compiled from source",
+    )
+    def test_output_shape_reduction_none(self):
+        y_true = tf.random.uniform(shape=(2, 7), minval=0, maxval=10)
+        y_pred = tf.random.uniform(shape=(2, 7), minval=0, maxval=20)
+
+        iou_3d_loss = IoU3DLoss(reduction="none")
+
+        self.assertAllEqual(
+            iou_3d_loss(y_true, y_pred).shape,
+            [2, 2],
         )
 
 

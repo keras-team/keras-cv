@@ -13,7 +13,7 @@
 # limitations under the License.
 
 from keras_cv.losses.focal import FocalLoss
-from keras_cv.losses.iou_3d_loss import iou_3d as IoU3DLoss
+from keras_cv.losses.iou_3d_loss import IoU3DLoss
 from keras_cv.losses.iou_loss import IoULoss
 from keras_cv.losses.simclr_loss import SimCLRLoss
 from keras_cv.losses.smooth_l1 import SmoothL1Loss
