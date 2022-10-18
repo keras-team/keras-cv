@@ -163,35 +163,11 @@ def create_build_configuration():
         write("build --cxxopt=-std=" + get_cpp_version())
         write("build --host_cxxopt=-std=" + get_cpp_version())
 
-    if os.getenv("TF_NEED_CUDA", "0") == "1":
-        print("> Building GPU & CPU ops")
-        configure_cuda()
-    else:
-        print("> Building only CPU ops")
+    print("> Building only CPU ops")
 
     print()
     print("Build configurations successfully written to", _TFA_BAZELRC, ":\n")
     print(pathlib.Path(_TFA_BAZELRC).read_text())
-
-
-def configure_cuda():
-    write_action_env("TF_NEED_CUDA", "1")
-    write_action_env(
-        "CUDA_TOOLKIT_PATH", os.getenv("CUDA_TOOLKIT_PATH", "/usr/local/cuda")
-    )
-    write_action_env(
-        "CUDNN_INSTALL_PATH",
-        os.getenv("CUDNN_INSTALL_PATH", "/usr/lib/x86_64-linux-gnu"),
-    )
-    write_action_env("TF_CUDA_VERSION", os.getenv("TF_CUDA_VERSION", "11.2"))
-    write_action_env("TF_CUDNN_VERSION", os.getenv("TF_CUDNN_VERSION", "8"))
-
-    write("test --config=cuda")
-    write("build --config=cuda")
-    write("build:cuda --define=using_cuda=true --define=using_cuda_nvcc=true")
-    write(
-        "build:cuda --crosstool_top=@ubuntu20.04-gcc9_manylinux2014-cuda11.2-cudnn8.1-tensorrt7.2_config_cuda//crosstool:toolchain"
-    )
 
 
 if __name__ == "__main__":
