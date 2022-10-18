@@ -30,7 +30,7 @@ local unittest = base.BaseTest {
     'pytest',
     'keras_cv',
     '-n',
-    '4',
+    '2',
   ],
 };
 
