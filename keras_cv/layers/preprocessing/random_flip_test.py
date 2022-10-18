@@ -74,7 +74,7 @@ class RandomFlipTest(tf.test.TestCase, parameterized.TestCase):
 
     def test_random_flip_default(self):
         input_images = np.random.random((2, 5, 8, 3)).astype(np.float32)
-        expected_output = np.flip(np.flip(input_images, axis=1), axis=2)
+        expected_output = np.flip(input_images, axis=2)
         mock_random = [0.6, 0.6, 0.6, 0.6]
         layer = RandomFlip()
         with unittest.mock.patch.object(
@@ -119,7 +119,7 @@ class RandomFlipTest(tf.test.TestCase, parameterized.TestCase):
         bboxes = bounding_box.add_class_id(bboxes)
         input = {"images": [image, image], "bounding_boxes": bboxes}
         mock_random = [0.6, 0.6, 0.6, 0.6]
-        layer = RandomFlip(bounding_box_format="xyxy")
+        layer = RandomFlip("horizontal_and_vertical", bounding_box_format="xyxy")
         with unittest.mock.patch.object(
             layer._random_generator,
             "random_uniform",
@@ -143,7 +143,7 @@ class RandomFlipTest(tf.test.TestCase, parameterized.TestCase):
         bboxes = bounding_box.add_class_id(bboxes)
         input = {"images": image, "bounding_boxes": bboxes}
         mock_random = [0.6, 0.6, 0.6]
-        layer = RandomFlip(bounding_box_format="xyxy")
+        layer = RandomFlip("horizontal_and_vertical", bounding_box_format="xyxy")
         with unittest.mock.patch.object(
             layer._random_generator,
             "random_uniform",
@@ -169,7 +169,7 @@ class RandomFlipTest(tf.test.TestCase, parameterized.TestCase):
 
         # Flip both vertically and horizontally
         mock_random = [0.6, 0.6]
-        layer = RandomFlip()
+        layer = RandomFlip("horizontal_and_vertical")
 
         with unittest.mock.patch.object(
             layer._random_generator,

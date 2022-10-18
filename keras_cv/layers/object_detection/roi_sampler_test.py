@@ -83,13 +83,14 @@ class ROISamplerTest(tf.test.TestCase):
         # only the 2nd ROI is chosen. No negative samples exist given we
         # select positive_threshold to be 0.1. (the minimum IOU is 1/7)
         # given num_sampled_rois=2, it selects the 1st ROI as well.
-        expected_rois = tf.constant([[2.5, 2.5, 7.5, 7.5], [0.0, 0.0, 5.0, 5.0]])
+        expected_rois = tf.constant([[5, 5, 10, 10], [0.0, 0.0, 5.0, 5.0]])
         expected_rois = expected_rois[tf.newaxis, ...]
         # all ROIs are matched to the 2nd gt box.
         # the boxes are encoded by dimensions, so the result is
         # tx, ty = (5.1 - 5.0) / 5 = 0.02, tx, ty = (5.1 - 2.5) / 5 = 0.52
-        expected_gt_boxes = tf.constant(
-            [[0.02, 0.02, 0.0, 0.0], [0.52, 0.52, 0.0, 0.0]]
+        # then divide by 0.1 as box variance.
+        expected_gt_boxes = (
+            tf.constant([[0.02, 0.02, 0.0, 0.0], [0.52, 0.52, 0.0, 0.0]]) / 0.1
         )
         expected_gt_boxes = expected_gt_boxes[tf.newaxis, ...]
         # only the 2nd ROI is chosen, and the negative ROI is mapped to 0.
