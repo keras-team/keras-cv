@@ -95,27 +95,6 @@ def _download_pascal_voc_2012(data_url, local_dir_path=None, override_extract=Fa
     return os.path.join(data_directory, 'VOCdevkit', 'VOC2012')
 
 
-def _preprocess_segmentation_mask_file(mask_file_path):
-    """Preprocess the segmentation mask PNG file.
-
-    Due to the content encoding for the PNG image, the original segmentation mask can't
-    be decoded correctly with tf.image ops. This function will try to read the original
-    PNG, reformat, and save it to a PNG with new file name.
-
-    Args:
-        mask_file_path: string, the file path to the original segmentation mask PNG file.
-    """
-    with tf.io.gfile.GFile(mask_file_path, 'rb') as f:
-        mask = Image.open(f)
-
-    # Expand the mask to 3D (H, W, 1) so that it can be saved correctly as PNG by TF.
-    mask = np.expand_dims(np.asarray(mask), axis=-1)
-    encoded_png = tf.io.encode_png(mask)
-    dir_name, mask_file_path = os.path.split(mask_file_path)
-    new_mask_file_path = os.path.join(dir_name, 'updated_' + mask_file_path)
-    tf.io.write_file(new_mask_file_path, encoded_png)
-
-
 def _parse_annotation_data(annotation_file_path):
     """Parse the annotation XML file for the image.
 
