@@ -90,6 +90,8 @@ We do not plan to accept contributed custom ops due to the maintenance burden th
 
 We currently support only a small handful of ops that run on CPU and are not used at inference time.
 
+If you are updating existing custom ops, you can re-compile the binaries from source using the instructions in the `Tests that require custom ops` section below.
+
 ## Setup environment
 
 Setting up your KerasCV development environment requires you to fork the KerasCV repository,

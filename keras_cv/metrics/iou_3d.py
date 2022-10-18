@@ -40,7 +40,9 @@ class IoU3D(tf.keras.metrics.MeanMetricWrapper):
 
     def __init__(self, name="IoU3D", **kwargs):
         pairwise_iou_op = load_library.load_op_library(
-            resource_loader.get_path_to_datafile("../custom_ops/_pairwise_iou_op.so")
+            resource_loader.get_path_to_datafile(
+                "../custom_ops/_keras_cv_custom_ops.so"
+            )
         )
         iou_3d = pairwise_iou_op.pairwise_iou3d
 

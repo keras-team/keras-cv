@@ -22,7 +22,7 @@ cc_library(
 )
 
 cc_binary(
-    name = '_pairwise_iou_op.so',
+    name = '_keras_cv_custom_ops.so',
     srcs = [
         "kernels/pairwise_iou_kernel.cc",
         "ops/pairwise_iou_op.cc"
