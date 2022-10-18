@@ -1,12 +1,13 @@
+import os
+
 import tensorflow as tf
 import tensorflow_datasets as tfds
+from luketils import visualization
 from tensorflow import keras
 from tensorflow.keras import optimizers
 
 import keras_cv
 from keras_cv import bounding_box
-import os
-from luketils import visualization
 
 BATCH_SIZE = 16
 EPOCHS = 100
