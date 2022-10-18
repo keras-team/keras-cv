@@ -130,7 +130,7 @@ information about preparing this dataset at keras_cv/datasets/imagenet/README.md
 train_ds = imagenet.load(
     split="train",
     tfrecord_path=FLAGS.imagenet_path,
-    shuffle_buffer=BATCH_SIZE*2,
+    shuffle_buffer=BATCH_SIZE * 2,
 )
 test_ds = imagenet.load(
     split="validation",
@@ -150,23 +150,29 @@ random_crop_and_resize = keras_cv.layers.RandomCropAndResize(
     crop_area_factor=(0.8, 1),
     aspect_ratio_factor=(3 / 4, 4 / 3),
 )
+
+
 @tf.function
 def crop_and_resize(img, label):
     inputs = {"images": img, "labels": label}
     inputs = random_crop_and_resize(inputs)
     return inputs["images"], inputs["labels"]
 
+
 AUGMENT_LAYERS = [
     keras_cv.layers.RandomFlip(mode="horizontal"),
     keras_cv.layers.RandAugment(value_range=(0, 255), magnitude=0.3),
     keras_cv.layers.CutMix(),
 ]
+
+
 @tf.function
 def augment(img, label):
     inputs = {"images": img, "labels": label}
     for layer in AUGMENT_LAYERS:
         inputs = layer(inputs)
     return inputs["images"], inputs["labels"]
+
 
 train_ds = (
     train_ds.map(crop_and_resize, num_parallel_calls=tf.data.AUTOTUNE)
