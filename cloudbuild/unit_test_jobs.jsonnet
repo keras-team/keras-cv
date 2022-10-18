@@ -29,8 +29,8 @@ local unittest = base.BaseTest {
   command: [
     'pytest',
     'keras_cv',
-    '-n'
-    '4'
+    '-n',
+    '4',
   ],
 };
 
