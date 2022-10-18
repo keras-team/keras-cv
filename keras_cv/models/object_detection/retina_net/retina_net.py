@@ -16,6 +16,7 @@ import numpy as np
 import tensorflow as tf
 from tensorflow import keras
 
+import keras_cv
 from keras_cv import bounding_box
 from keras_cv import layers as cv_layers
 from keras_cv.models.object_detection.object_detection_base_model import (
@@ -99,7 +100,6 @@ class RetinaNet(ObjectDetectionBaseModel):
             label decoding and COCO metric evaluation.  For example, on a single GPU on
             the PascalVOC dataset epoch time goes from 3 minutes to 30 minutes with this
             set to `True`. Defaults to `False`.
-        name: (Optional) name for the model, defaults to `"RetinaNet"`.
     """
 
     def __init__(
@@ -138,7 +138,6 @@ class RetinaNet(ObjectDetectionBaseModel):
         super().__init__(
             bounding_box_format=bounding_box_format,
             label_encoder=label_encoder,
-            name=name,
             **kwargs,
         )
         self.evaluate_train_time_metrics = evaluate_train_time_metrics
