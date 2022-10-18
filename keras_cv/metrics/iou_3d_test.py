@@ -39,7 +39,7 @@ class IoU3DTest(tf.test.TestCase):
         box_preds = [[0, 0, 0, 2, 2, 2, 0], [1, 1, 1, 2, 2, 2, 3 * math.pi / 4]]
         box_gt = [[1, 1, 1, 2, 2, 2, math.pi / 4], [1, 1, 1, 2, 2, 2, 0]]
 
-        # Predicted box 0 and both ground truth box 0 overlap by 1/8th of the box.
+        # Predicted box 0 and ground truth box 0 overlap by 1/8th of the box.
         # Therefore, IiU is 1/15
         # Predicted box 1 shares an origin with ground truth box 1, but is rotated by 135 degrees.
         # Their IoU can be reduced to that of two overlapping squares that share a center with
