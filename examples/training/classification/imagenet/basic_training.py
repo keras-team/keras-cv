@@ -130,6 +130,7 @@ information about preparing this dataset at keras_cv/datasets/imagenet/README.md
 train_ds = imagenet.load(
     split="train",
     tfrecord_path=FLAGS.imagenet_path,
+    shuffle_buffer=BATCH_SIZE*2,
 )
 test_ds = imagenet.load(
     split="validation",
