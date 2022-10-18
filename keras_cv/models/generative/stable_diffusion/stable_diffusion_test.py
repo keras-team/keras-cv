@@ -20,7 +20,6 @@ from keras_cv.testing import integration
 
 
 class StableDiffusionTest(tf.test.TestCase):
-
     @integration
     def test_end_to_end_golden_value(self):
         prompt = "a caterpillar smoking a hookah while sitting on a mushroom"
