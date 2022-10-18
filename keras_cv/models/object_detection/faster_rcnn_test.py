@@ -37,7 +37,7 @@ class FasterRCNNTest(tf.test.TestCase):
         model = FasterRCNN(classes=80, bounding_box_format="yxyx")
         with self.assertRaisesRegex(ValueError, "only accepts"):
             model.compile(rpn_box_loss="binary_crossentropy")
-        with self.assertRaisesRegex(ValueError, "from_logits"):
+        with self.assertRaisesRegex(ValueError, "only accepts"):
             model.compile(
                 rpn_classification_loss=tf.keras.losses.BinaryCrossentropy(
                     from_logits=False
