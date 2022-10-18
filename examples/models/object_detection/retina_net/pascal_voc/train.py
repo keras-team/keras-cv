@@ -1,13 +1,9 @@
-import os
-
 import tensorflow as tf
 import tensorflow_datasets as tfds
 from luketils import visualization
 from tensorflow import keras
-from tensorflow.keras import optimizers
 
 import keras_cv
-from keras_cv import bounding_box
 
 BATCH_SIZE = 16
 EPOCHS = 100
@@ -66,6 +62,7 @@ class_ids = [
     "Tvmonitor",
     "Total",
 ]
+class_mapping = dict(zip(range(len(class_ids)), class_ids))
 
 image_size = [640, 640, 3]
 train_ds = tfds.load(
@@ -75,6 +72,8 @@ train_ds = train_ds.concatenate(
     tfds.load("voc/2012", split="train+validation", with_info=False, shuffle_files=True)
 )
 eval_ds = tfds.load("voc/2007", split="test", with_info=False)
+
+
 # TODO: migrate to KPL.
 def resize_and_crop_image(
     image,
@@ -368,7 +367,7 @@ metrics_to_plot = {
     "Validation Classification Loss": metrics["val_classification_loss"],
 }
 
-luketils.visualization.line_plot(
+visualization.line_plot(
     data=metrics_to_plot,
     title="Loss",
     xlabel="Epochs",
@@ -381,7 +380,7 @@ metrics_to_plot = {
     "Mean Average Precision": metrics["val_MaP"],
     "Recall": metrics["val_Recall"],
 }
-luketils.visualization.line_plot(
+visualization.line_plot(
     data=metrics_to_plot,
     title="Loss",
     xlabel="Epochs",
@@ -510,9 +509,6 @@ model.load_weights(CHECKPOINT_PATH)
 
 def proc_eval_fn(bounding_box_format, target_size):
     def apply(inputs):
-        source_id = tf.strings.to_number(
-            tf.strings.split(inputs["image/filename"], ".")[0], tf.int64
-        )
         raw_image = inputs["image"]
         raw_image = tf.cast(raw_image, tf.float32)
 
@@ -565,7 +561,7 @@ eval_ds = eval_ds.map(
 eval_ds = eval_ds.apply(
     tf.data.experimental.dense_to_ragged_batch(8, drop_remainder=True)
 )
-eval_ds = eval_df.prefetch(2)
+eval_ds = eval_ds.prefetch(2)
 
 keras_cv_metrics = model.evaluate(eval_ds, return_dict=True)
 print("Metrics:", keras_cv_metrics)
