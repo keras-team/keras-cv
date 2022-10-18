@@ -130,7 +130,6 @@ information about preparing this dataset at keras_cv/datasets/imagenet/README.md
 train_ds = imagenet.load(
     split="train",
     tfrecord_path=FLAGS.imagenet_path,
-    batch_size=BATCH_SIZE,
 )
 test_ds = imagenet.load(
     split="validation",
@@ -166,8 +165,10 @@ def augment(img, label):
     return inputs["images"], inputs["labels"]
 
 
-train_ds = train_ds.map(augment, num_parallel_calls=tf.data.AUTOTUNE).prefetch(
-    tf.data.AUTOTUNE
+train_ds = (
+    train_ds.map(augment, num_parallel_calls=tf.data.AUTOTUNE)
+    .batch(BATCH_SIZE)
+    .prefetch(tf.data.AUTOTUNE)
 )
 test_ds = test_ds.prefetch(tf.data.AUTOTUNE)
 

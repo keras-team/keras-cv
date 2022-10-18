@@ -75,7 +75,9 @@ def load(
         split: the split to load.  Should be one of "train" or "validation."
         tfrecord_path: the path to your preprocessed ImageNet TFRecords.
             See keras_cv/datasets/imagenet/README.md for preprocessing instructions.
-        batch_size: how many instances to include in batches after loading
+        batch_size: how many instances to include in batches after loading.
+            Should only be specified if img_size is specified (so that images
+            can be resized to the same size before batching).
         shuffle: whether or not to shuffle the dataset.  Defaults to True.
         shuffle_buffer: the size of the buffer to use in shuffling.
         reshuffle_each_iteration: whether to reshuffle the dataset on every epoch.
@@ -88,6 +90,9 @@ def load(
         keys {"image": image, "label": label} where images is a Tensor of shape
         [H, W, 3] and label is a Tensor of shape [1000].
     """
+
+    if batch_size is not None and img_size is None:
+        raise ValueError("Batching can only be performed if images are resized.")
 
     num_splits = 1024 if split == "train" else 128
     filenames = [
