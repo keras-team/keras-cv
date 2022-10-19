@@ -1,8 +1,13 @@
+import resource
+
 import tensorflow as tf
 import tensorflow_datasets as tfds
 from tensorflow import keras
 
 import keras_cv
+
+low, high = resource.getrlimit(resource.RLIMIT_NOFILE)
+resource.setrlimit(resource.RLIMIT_NOFILE, (high, high))
 
 BATCH_SIZE = 8
 EPOCHS = 100

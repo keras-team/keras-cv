@@ -284,8 +284,8 @@ class RetinaNet(ObjectDetectionBaseModel):
                 "Instead, please pass `box_loss` and `classification_loss`. "
                 "`loss` will be ignored during training."
             )
-        self.box_loss = _parse_box_loss(box_loss)
-        self.classification_loss = _parse_classification_loss(classification_loss)
+        box_loss = _parse_box_loss(box_loss)
+        classification_loss = _parse_classification_loss(classification_loss)
         metrics = metrics or []
 
         if hasattr(classification_loss, "from_logits"):
@@ -304,6 +304,9 @@ class RetinaNet(ObjectDetectionBaseModel):
                     f"Got `box_loss.bounding_box_format={box_loss.bounding_box_format}`, "
                     f"want `box_loss.bounding_box_format={self.bounding_box_format}`"
                 )
+
+        self.box_loss = box_loss
+        self.classification_loss = classification_loss
 
         if len(metrics) != 0:
             self._metrics_bounding_box_format = metrics[0].bounding_box_format
