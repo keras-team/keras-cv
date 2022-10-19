@@ -99,7 +99,7 @@ def _download_pascal_voc_2012(data_url, local_dir_path=None, override_extract=Fa
     if override_extract or not os.path.exists(
         os.path.join(data_directory, "VOCdevkit")
     ):
-        logging.info(f"Extract data into %s", data_directory)
+        logging.info("Extract data into %s", data_directory)
         with tarfile.open(data_file_path) as f:
             f.extractall(data_directory)
     return os.path.join(data_directory, "VOCdevkit", "VOC2012")
