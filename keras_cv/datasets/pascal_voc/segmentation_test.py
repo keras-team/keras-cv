@@ -37,7 +37,7 @@ class PascalVocSegmentationDataTest(tf.test.TestCase):
             flags.FLAGS.test_tmpdir
         except flags.UnparsedFlagAccessError:
             # Need to initialize flags when running `pytest`.
-            flags.FLAGS(sys.argv)
+            flags.FLAGS(sys.argv, known_only=True)
         return self.create_tempdir().full_path
 
     def test_download_data(self):
