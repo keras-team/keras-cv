@@ -1,43 +1,12 @@
 import tensorflow as tf
 import tensorflow_datasets as tfds
-from luketils import visualization
 from tensorflow import keras
 
 import keras_cv
 
-BATCH_SIZE = 16
+BATCH_SIZE = 8
 EPOCHS = 100
 CHECKPOINT_PATH = "checkpoint/"
-
-"""
-## Data loading
-
-In this guide, we use the data-loading function: `keras_cv.datasets.pascal_voc.load()`.
-KerasCV supports a `bounding_box_format` argument in all components that process
-bounding boxes.  To match the KerasCV API style, it is recommended that when writing a
-custom data loader, you also support a `bounding_box_format` argument.
-This makes it clear to those invoking your data loader what format the bounding boxes
-are in.
-
-For example:
-
-```python
-train_ds, ds_info = keras_cv.datasets.pascal_voc.load(split='train', bounding_box_format='xywh', batch_size=8)
-```
-
-Clearly yields bounding boxes in the format `xywh`.  You can read more about
-KerasCV bounding box formats [in the API docs](https://keras.io/api/keras_cv/bounding_box/formats/).
-
-Our data comesloaded into the format
-`{"images": images, "bounding_boxes": bounding_boxes}`.  This format is supported in all
-KerasCV preprocessing components.
-
-Lets load some data and verify that our data looks as we expect it to.
-"""
-
-dataset, dataset_info = keras_cv.datasets.pascal_voc.load(
-    split="train", bounding_box_format="xywh", batch_size=9
-)
 
 class_ids = [
     "Aeroplane",
@@ -236,43 +205,22 @@ train_ds = train_ds.map(
     proc_train_fn("xywh", image_size), num_parallel_calls=tf.data.AUTOTUNE
 )
 train_ds = train_ds.apply(
-    tf.data.experimental.dense_to_ragged_batch(8, drop_remainder=True)
+    tf.data.experimental.dense_to_ragged_batch(BATCH_SIZE, drop_remainder=True)
 )
 eval_ds = eval_ds.map(
     proc_train_fn(bounding_box_format="xywh", img_size=image_size),
     num_parallel_calls=tf.data.AUTOTUNE,
 )
 eval_ds = eval_ds.apply(
-    tf.data.experimental.dense_to_ragged_batch(8, drop_remainder=True)
+    tf.data.experimental.dense_to_ragged_batch(BATCH_SIZE, drop_remainder=True)
 )
 
-
-def visualize_dataset(dataset, bounding_box_format, path=None):
-    example = next(iter(dataset))
-    images, boxes = example["images"], example["bounding_boxes"]
-    visualization.plot_bounding_box_gallery(
-        images,
-        value_range=(0, 255),
-        bounding_box_format=bounding_box_format,
-        y_true=boxes,
-        scale=4,
-        rows=2,
-        cols=4,
-        thickness=4,
-        font_scale=1,
-        class_mapping=class_mapping,
-        path=path,
-    )
-
-
-visualize_dataset(train_ds, bounding_box_format="xywh", path="train_ground_truths.png")
-visualize_dataset(eval_ds, bounding_box_format="xywh", path="eval_ground_truths.png")
 """
 Looks like everything is structured as expected.  Now we can move on to constructing our
 data augmentation pipeline.
 """
 train_ds = train_ds.prefetch(2)
-train_ds = train_ds.shuffle(8)
+train_ds = train_ds.shuffle(BATCH_SIZE)
 eval_ds = eval_ds.prefetch(2)
 
 
@@ -298,7 +246,7 @@ the model are expected to be in the range `[0, 255]`.
 
 model = keras_cv.models.RetinaNet(
     # number of classes to be used in box classification
-    classes=20,
+    classes=len(class_ids),
     # For more info on supported bounding box formats, visit
     # https://keras.io/api/keras_cv/bounding_box/
     bounding_box_format="xywh",
@@ -352,63 +300,6 @@ history = model.fit(
     validation_data=eval_ds.take(10),
     epochs=100,
     callbacks=callbacks,
-)
-
-"""
-## Training Process Visualization
-"""
-metrics = history.history
-metrics_to_plot = {
-    "Train": metrics["loss"],
-    "Validation": metrics["val_loss"],
-    "Train Box Loss": metrics["box_loss"],
-    "Validation Box Loss": metrics["val_box_loss"],
-    "Train Classification Loss": metrics["classification_loss"],
-    "Validation Classification Loss": metrics["val_classification_loss"],
-}
-
-visualization.line_plot(
-    data=metrics_to_plot,
-    title="Loss",
-    xlabel="Epochs",
-    ylabel="Loss",
-    transparent=True,
-    path="learning_curve.png",
-)
-
-metrics_to_plot = {
-    "Mean Average Precision": metrics["val_MaP"],
-    "Recall": metrics["val_Recall"],
-}
-visualization.line_plot(
-    data=metrics_to_plot,
-    title="Loss",
-    xlabel="Epochs",
-    ylabel="Loss",
-    transparent=True,
-    path="coco_metrics.png",
-)
-
-"""
-## Inference
-"""
-
-images, y_true = next(iter(eval_ds.take(1)))
-y_pred = model.predict(images)
-visualization.plot_bounding_box_gallery(
-    images,
-    value_range=(0, 255),
-    bounding_box_format="xywh",
-    y_true=y_true,
-    y_pred=y_pred,
-    scale=4,
-    rows=2,
-    cols=4,
-    show=True,
-    thickness=4,
-    font_scale=1,
-    class_mapping=class_mapping,
-    path="inference.png",
 )
 
 """
@@ -559,9 +450,9 @@ eval_ds = eval_ds.map(
     proc_eval_fn("xywh", [640, 640, 3]), num_parallel_calls=tf.data.AUTOTUNE
 )
 eval_ds = eval_ds.apply(
-    tf.data.experimental.dense_to_ragged_batch(8, drop_remainder=True)
+    tf.data.experimental.dense_to_ragged_batch(BATCH_SIZE, drop_remainder=True)
 )
-eval_ds = eval_ds.prefetch(2)
+eval_ds = eval_ds.prefetch(tf.data.AUTOTUNE)
 
 keras_cv_metrics = model.evaluate(eval_ds, return_dict=True)
 print("Metrics:", keras_cv_metrics)
