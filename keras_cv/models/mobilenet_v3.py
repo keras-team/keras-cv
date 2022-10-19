@@ -33,7 +33,7 @@ channel_axis = -1
 BASE_DOCSTRING = """Instantiates the {name} architecture.
 
     References:
-        - [Searching for MobileNetV3](https://arxiv.org/pdf/1905.02244.pdf)
+        - [Searching for MobileNetV3](https://arxiv.org/abs/1905.02244)
         - [Based on the Original keras.applications MobileNetv3](https://github.com/keras-team/keras/blob/master/keras/applications/mobilenet_v3.py)
 
     This function returns a Keras {name} model.
