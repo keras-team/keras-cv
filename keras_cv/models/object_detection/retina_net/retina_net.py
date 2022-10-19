@@ -116,6 +116,7 @@ class RetinaNet(ObjectDetectionBaseModel):
         classification_head=None,
         box_head=None,
         evaluate_train_time_metrics=False,
+        name="RetinaNet",
         **kwargs,
     ):
         if anchor_generator is not None and (prediction_decoder or label_encoder):
@@ -511,6 +512,8 @@ def _parse_box_loss(loss):
     # case insensitive comparison
     if loss.lower() == "smoothl1":
         return keras_cv.losses.SmoothL1Loss(l1_cutoff=1.0, reduction="none")
+    if loss.lower() == "huber":
+        return keras.losses.Huber(reduction="none")
 
     raise ValueError(
         "Expected `box_loss` to be either a Keras Loss, "
