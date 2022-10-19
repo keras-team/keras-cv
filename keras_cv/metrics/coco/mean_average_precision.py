@@ -242,9 +242,10 @@ class COCOMeanAveragePrecision(tf.keras.metrics.Metric):
                     false_positives = pred_matches == -1
 
                     dt_scores_clipped = tf.clip_by_value(dt_scores, 0.0, 1.0)
+                    dt_scores_mapped = _custom_sigmoid(dt_scores_clipped)
                     # We must divide by 1.01 to prevent off by one errors.
                     confidence_buckets = tf.cast(
-                        tf.math.floor(self.num_buckets * (dt_scores_clipped / 1.01)),
+                        tf.math.floor(self.num_buckets * (dt_scores_mapped / 1.01)),
                         tf.int32,
                     )
                     true_positives_by_bucket = tf.gather_nd(
@@ -374,3 +375,23 @@ class COCOMeanAveragePrecision(tf.keras.metrics.Metric):
             }
         )
         return config
+
+RANGE_SCALE = 13
+SIGMOID_MEAN_SCALE = 9/10
+
+def _unnormalized_custom_sigmoid(x):
+  x = x * RANGE_SCALE
+  x = x - RANGE_SCALE/2
+
+
+  delta = (RANGE_SCALE/2) * SIGMOID_MEAN_SCALE
+  sigmoid_one = tf.sigmoid(x-delta)
+  sigmoid_two = tf.sigmoid(x+delta)
+  return (sigmoid_one + sigmoid_two) / 2
+
+def _custom_sigmoid(x):
+  x = _unnormalized_custom_sigmoid(x)
+  minval = _unnormalized_custom_sigmoid(0)
+  maxval = _unnormalized_custom_sigmoid(1)
+  x = (x - minval) / (maxval - minval)
+  return tf.clip_by_value(x, 0., 1.)
