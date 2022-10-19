@@ -18,7 +18,9 @@ The image classification and object detection (bounding box) data is covered by 
 TF datasets in https://www.tensorflow.org/datasets/catalog/voc. The segmentation data (
 both class segmentation and instance segmentation) are included in the VOC 2012, but not
 offered by TF-DS yet. This module is trying to fill this gap while TFDS team can
-address this feature (b/252870855 and https://github.com/tensorflow/datasets/issues/27).
+address this feature (b/252870855, https://github.com/tensorflow/datasets/issues/27 and
+https://github.com/tensorflow/datasets/pull/1198).
+
 The schema design is similar to the existing design of TFDS, but trimmed to fit the need
 of Keras CV models.
 
@@ -42,6 +44,9 @@ from PIL import Image
 
 DATA_URL = "http://host.robots.ox.ac.uk/pascal/VOC/voc2012/VOCtrainval_11-May-2012.tar"
 
+# Note that this list doesn't contain the background class. In the classification use
+# case, the label is 0 based (aeroplane -> 0), whereas in segmentation use case, the 0 is
+# reserved for background, so aeroplane maps to 1.
 CLASSES = [
     "aeroplane",
     "bicycle",
@@ -78,8 +83,13 @@ def _download_pascal_voc_2012(data_url, local_dir_path=None, override_extract=Fa
         the path to the folder of extracted Pascal VOC data.
     """
     if not local_dir_path:
-        local_dir_path = "pascal_voc_2012/data.tar"
-    data_file_path = tf.keras.utils.get_file(fname=local_dir_path, origin=data_url)
+        fname = "pascal_voc_2012/data.tar"
+    else:
+        # Make sure the directory exists
+        if not os.path.exists(local_dir_path):
+            os.makedirs(local_dir_path, exist_ok=True)
+        fname = os.path.join(local_dir_path, "data.tar")
+    data_file_path = tf.keras.utils.get_file(fname=fname, origin=data_url)
     logging.info("Received data file from %s", data_file_path)
     # Extra the data into the same directory as the tar file.
     data_directory = os.path.dirname(data_file_path)
@@ -176,9 +186,10 @@ def _convert_pascal_voc_segmentation_mask_encoding(
     # # Write the mask to PNG via the TF io API, so that it can be read properly.
     encoded_png = tf.io.encode_png(original_mask)
     tf.io.write_file(updated_file_path, encoded_png)
+    return updated_file_path
 
 
-def parse_single_image(image_file_path):
+def _parse_single_image(image_file_path):
     data_dir, image_file_name = os.path.split(image_file_path)
     data_dir = os.path.normpath(os.path.join(data_dir, os.path.pardir))
     image_id, _ = os.path.splitext(image_file_name)
@@ -215,8 +226,9 @@ def _build_metadata(data_dir, image_ids):
     image_file_paths = [
         os.path.join(data_dir, "JPEGImages", i + ".jpg") for i in image_ids
     ]
-    p = multiprocessing.Pool(10)
-    metadata = p.map(parse_single_image, image_file_paths)
+    pool_size = 10 if len(image_ids) > 10 else len(image_ids)
+    with multiprocessing.Pool(pool_size) as p:
+        metadata = p.map(_parse_single_image, image_file_paths)
 
     # Transpose the metadata which convert from list of dict to dict of list.
     keys = [

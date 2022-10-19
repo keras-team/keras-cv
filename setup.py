@@ -34,7 +34,15 @@ setup(
     install_requires=["packaging", "absl-py", "regex"],
     python_requires=">=3.7",
     extras_require={
-        "tests": ["flake8", "isort", "black", "pytest", "tensorflow-datasets"],
+        "datasets": ["tensorflow-datasets", "Pillow"],
+        "tests": [
+            "flake8",
+            "isort",
+            "black",
+            "pytest",
+            "tensorflow-datasets",
+            "Pillow",
+        ],
         "examples": ["tensorflow_datasets", "matplotlib"],
     },
     classifiers=[
