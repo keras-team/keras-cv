@@ -4,7 +4,7 @@
 		"dockerfile": "Dockerfile",
 		"args": { 
 			"VERSION": "2.10.0"
-			// Uncomment this if GPU support it is required
+			// Uncomment this if GPU support is required
 			// "VERSION": "2.10.0-gpu",
 		}
 	},
@@ -33,7 +33,7 @@
 		}
 	},
 
-	// Uncomment this if GPU support it is required
+	// Uncomment this if GPU support is required
 	// "runArgs": [
     //     "--gpus=all"
 	// ],
