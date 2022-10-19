@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import os
+import pathlib
 import sys
 
 import tensorflow as tf
@@ -45,7 +46,8 @@ class PascalVocSegmentationDataTest(tf.test.TestCase):
         # replacement.
         local_data_dir = os.path.join(self.tempdir, "pascal_voc_2012/")
         test_data_dir = segmentation._download_pascal_voc_2012(
-            data_url="file://" + self.test_data_tar_path, local_dir_path=local_data_dir
+            data_url=pathlib.Path(self.test_data_tar_path).as_uri(),
+            local_dir_path=local_data_dir,
         )
 
         self.assertTrue(os.path.exists(test_data_dir))
@@ -63,14 +65,15 @@ class PascalVocSegmentationDataTest(tf.test.TestCase):
     def test_skip_download_and_override(self):
         local_data_dir = os.path.join(self.tempdir, "pascal_voc_2012/")
         test_data_dir = segmentation._download_pascal_voc_2012(
-            data_url="file://" + self.test_data_tar_path, local_dir_path=local_data_dir
+            data_url=pathlib.Path(self.test_data_tar_path).as_uri(),
+            local_dir_path=local_data_dir,
         )
 
         # Touch a file in the test_data_dir and make sure it exists (not being override)
         # when invoke the _download_pascal_voc_2012 again
         os.makedirs(os.path.join(test_data_dir, "Annotations", "dummy_dir"))
         segmentation._download_pascal_voc_2012(
-            data_url="file://" + self.test_data_tar_path,
+            data_url=pathlib.Path(self.test_data_tar_path).as_uri(),
             local_dir_path=local_data_dir,
             override_extract=False,
         )
@@ -81,7 +84,8 @@ class PascalVocSegmentationDataTest(tf.test.TestCase):
     def test_get_image_ids(self):
         local_data_dir = os.path.join(self.tempdir, "pascal_voc_2012/")
         data_dir = segmentation._download_pascal_voc_2012(
-            data_url="file://" + self.test_data_tar_path, local_dir_path=local_data_dir
+            data_url=pathlib.Path(self.test_data_tar_path).as_uri(),
+            local_dir_path=local_data_dir,
         )
         train_ids = ["2007_000032", "2007_000039", "2007_000063"]
         eval_ids = ["2007_000033"]
@@ -93,7 +97,8 @@ class PascalVocSegmentationDataTest(tf.test.TestCase):
     def test_parse_annotation_file(self):
         local_data_dir = os.path.join(self.tempdir, "pascal_voc_2012/")
         data_dir = segmentation._download_pascal_voc_2012(
-            data_url="file://" + self.test_data_tar_path, local_dir_path=local_data_dir
+            data_url=pathlib.Path(self.test_data_tar_path).as_uri(),
+            local_dir_path=local_data_dir,
         )
         # One of the train file.
         annotation_file = os.path.join(data_dir, "Annotations", "2007_000032.xml")
@@ -137,7 +142,8 @@ class PascalVocSegmentationDataTest(tf.test.TestCase):
     def test_convert_pascal_voc_segmentation_mask_encoding(self):
         local_data_dir = os.path.join(self.tempdir, "pascal_voc_2012/")
         data_dir = segmentation._download_pascal_voc_2012(
-            data_url="file://" + self.test_data_tar_path, local_dir_path=local_data_dir
+            data_url=pathlib.Path(self.test_data_tar_path).as_uri(),
+            local_dir_path=local_data_dir,
         )
         mask_file = os.path.join(data_dir, "SegmentationClass", "2007_000032.png")
         updated_file = segmentation._convert_pascal_voc_segmentation_mask_encoding(
@@ -157,7 +163,8 @@ class PascalVocSegmentationDataTest(tf.test.TestCase):
     def test_parse_single_image(self):
         local_data_dir = os.path.join(self.tempdir, "pascal_voc_2012/")
         data_dir = segmentation._download_pascal_voc_2012(
-            data_url="file://" + self.test_data_tar_path, local_dir_path=local_data_dir
+            data_url=pathlib.Path(self.test_data_tar_path).as_uri(),
+            local_dir_path=local_data_dir,
         )
         image_file = os.path.join(data_dir, "JPEGImages", "2007_000032.jpg")
         result_dict = segmentation._parse_single_image(image_file)
@@ -209,7 +216,8 @@ class PascalVocSegmentationDataTest(tf.test.TestCase):
     def test_build_metadata(self):
         local_data_dir = os.path.join(self.tempdir, "pascal_voc_2012/")
         data_dir = segmentation._download_pascal_voc_2012(
-            data_url="file://" + self.test_data_tar_path, local_dir_path=local_data_dir
+            data_url=pathlib.Path(self.test_data_tar_path).as_uri(),
+            local_dir_path=local_data_dir,
         )
         image_ids = segmentation._get_image_ids(data_dir, None)
         metadata = segmentation._build_metadata(data_dir, image_ids)
@@ -243,7 +251,8 @@ class PascalVocSegmentationDataTest(tf.test.TestCase):
     def test_build_dataset(self):
         local_data_dir = os.path.join(self.tempdir, "pascal_voc_2012/")
         data_dir = segmentation._download_pascal_voc_2012(
-            data_url="file://" + self.test_data_tar_path, local_dir_path=local_data_dir
+            data_url=pathlib.Path(self.test_data_tar_path).as_uri(),
+            local_dir_path=local_data_dir,
         )
         image_ids = segmentation._get_image_ids(data_dir, None)
         metadata = segmentation._build_metadata(data_dir, image_ids)
