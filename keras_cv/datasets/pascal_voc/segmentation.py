@@ -38,7 +38,6 @@ import os.path
 import tarfile
 import xml
 
-import numpy as np
 import tensorflow as tf
 
 DATA_URL = "http://host.robots.ox.ac.uk/pascal/VOC/voc2012/VOCtrainval_11-May-2012.tar"
@@ -187,40 +186,6 @@ def _get_image_ids(data_dir, split):
         image_ids = f.read().splitlines()
         logging.info(f"Received {len(image_ids)} images for {split} dataset.")
         return image_ids
-
-
-# def _convert_pascal_voc_segmentation_mask_encoding(
-#     segmentation_file_path, use_cache=True
-# ):
-#     """Convert the original segmentation PNG file to proper encoding for tf.io API.
-#
-#     The original PNG was in a 2D (without channel dimension), which will get a wrong value
-#     when directly read by tf.io API. In this function, the original image will be first
-#     read with PIL.image API, expand the last dimention and save back by TF API. This will
-#     ensure the converted image can be properly consumed by TF API.
-#
-#     If a file with `xxx_converted.png` already exists, and `use_cache` is True, the
-#     conversion will be skipped.
-#
-#     Args:
-#         segmentation_file_path: string, the original PNG file path from the dataset.
-#         override: boolean, whether to use the existing cached file result.
-#     Returns:
-#         the file path for converted PNG file, it will be suffixed with '_converted'.
-#     """
-#     dir_and_file_name, _ = os.path.splitext(segmentation_file_path)
-#     updated_file_path = dir_and_file_name + "_updated.png"
-#     if os.path.exists(updated_file_path) and use_cache:
-#         return updated_file_path
-#
-#     with tf.io.gfile.GFile(segmentation_file_path, "rb") as f:
-#         mask = Image.open(f)
-#
-#     original_mask = np.expand_dims(np.asarray(mask), axis=-1)
-#     # # Write the mask to PNG via the TF io API, so that it can be read properly.
-#     encoded_png = tf.io.encode_png(original_mask)
-#     tf.io.write_file(updated_file_path, encoded_png)
-#     return updated_file_path
 
 
 def _parse_single_image(image_file_path):
