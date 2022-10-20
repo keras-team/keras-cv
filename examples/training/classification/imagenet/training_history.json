@@ -110,6 +110,21 @@
             },
             "tensorboard_logs": "https://tensorboard.dev/experiment/TQ5r1EhXS4SDDagBD84rgA/",
             "validation_accuracy": "0.7550"
+        },
+        "v2": {
+            "accelerators": 8,
+            "args": {
+                "batch_size": "64",
+                "initial_learning_rate": ".0125"
+            },
+            "contributor": "ianstenbit",
+            "epochs_trained": 150,
+            "script": {
+                "name": "basic_training.py",
+                "version": "02b41ea91b972cdd29c27dbc4d79e6a0b4e90de2"
+            },
+            "tensorboard_logs": "https://tensorboard.dev/experiment/ReyWQHwETwah0nqlXl8BOA/",
+            "validation_accuracy": "0.7612"
         }
     },
     "script_authors": {
