@@ -259,6 +259,9 @@ def _build_metadata(data_dir, image_ids):
     return result
 
 
+# With jit_compile=True, there will be 0.4 sec compilation overhead, but save about 0.2
+# sec per 1000 images. See https://github.com/keras-team/keras-cv/pull/943#discussion_r1001092882
+# for more details.
 @tf.function(jit_compile=True)
 def _decode_png_mask(mask):
     """Decode the raw PNG image and convert it to 2D tensor with probably class."""
