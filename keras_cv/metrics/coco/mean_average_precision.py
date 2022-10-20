@@ -57,7 +57,13 @@ class COCOMeanAveragePrecision(tf.keras.metrics.Metric):
             buckets improves performance.  This is a tradeoff you must weight
             for your use case.  Defaults to 10,000 which is sufficiently large
             for most use cases.
-
+        bucketizer: (Optional) one of 'linear' or 'exponential'.  Determines which
+            function to use to map confidence scores to buckets.  If your model
+            consistently predicts high confidence values for true positives you should
+            select 'exponential', and if your model predicts confidence values uniformly
+            you should select 'linear'.  Defaults to 'exponential', which prioritizes
+            models that regularly select high confidence scores (i.e. RetinaNet).
+        confidence_range: Range for confidence values.
     Usage:
 
     COCOMeanAveragePrecision accepts two Tensors as input to it's
@@ -98,6 +104,8 @@ class COCOMeanAveragePrecision(tf.keras.metrics.Metric):
         area_range=None,
         max_detections=100,
         num_buckets=10000,
+        bucketizer="linear",
+        confidence_range=(0.0, 1.0),
         **kwargs,
     ):
         super().__init__(**kwargs)
@@ -109,6 +117,25 @@ class COCOMeanAveragePrecision(tf.keras.metrics.Metric):
         self.class_ids = list(class_ids)
         self.recall_thresholds = recall_thresholds or [x / 100 for x in range(0, 101)]
         self.num_buckets = num_buckets
+        self.bucketizer = bucketizer
+
+        if bucketizer not in ["linear", "exponential"]:
+            raise ValueError(
+                "`bucketizer` must be one of ['linear', 'exponential'], "
+                f"but got `bucketizer={bucketizer}`"
+            )
+
+        self.confidence_range = confidence_range
+
+        if (
+            not isinstance(confidence_range, tuple)
+            or len(confidence_range) != 2
+            or confidence_range[0] > confidence_range[1]
+        ):
+            raise ValueError(
+                "`confidence_range` must be a tuple of two ordered numbers "
+                f"i.e. (0.,  1.) but got `confidence_range={confidence_range}`."
+            )
 
         self.num_iou_thresholds = len(self.iou_thresholds)
         self.num_class_ids = len(self.class_ids)
@@ -241,15 +268,7 @@ class COCOMeanAveragePrecision(tf.keras.metrics.Metric):
                     true_positives = pred_matches != -1
                     false_positives = pred_matches == -1
 
-                    dt_scores_clipped = tf.clip_by_value(dt_scores, 0.0, 1.0)
-                    dt_scores_mapped = my_custom_exponential(
-                        dt_scores_clipped, minval=0.5, maxval=1.0
-                    )
-                    # We must divide by 1.01 to prevent off by one errors.
-                    confidence_buckets = tf.cast(
-                        tf.math.floor(self.num_buckets * (dt_scores_mapped / 1.01)),
-                        tf.int32,
-                    )
+                    confidence_buckets = self._map_to_confidence_buckets(dt_scores)
                     true_positives_by_bucket = tf.gather_nd(
                         confidence_buckets, indices=tf.where(true_positives)
                     )
@@ -363,6 +382,35 @@ class COCOMeanAveragePrecision(tf.keras.metrics.Metric):
         )
         return result
 
+    def _map_to_confidence_buckets(self, x):
+        # normalize to [0, 1]
+        minval, maxval = self.confidence_range
+        x = (x - minval) / (maxval - minval)
+        x = tf.clip_by_value(x, 0.0, 1.0)
+
+        dt_scores_mapped = self.bucketizer_fn(x)
+
+        # normalize back to the range [0, 1]
+        minval = self.bucketizer_fn(0.0)
+        maxval = self.bucketizer_fn(1.0)
+
+        dt_scores_mapped =  (x - minval) / (maxval - minval)
+        dt_scores_mapped = tf.clip_by_value(dt_scores_mapped, 0.0, 1.0)
+        # We must divide by 1.01 to prevent off by one errors.
+        dt_scores_mapped / 1.01
+        return tf.cast(
+            tf.math.floor(self.num_buckets * dt_scores_mapped),
+            tf.int32,
+        )
+
+    @property
+    def bucketizer_fn(self):
+        if self.bucketizer == "exponential":
+            return _exponential_bucketizer
+        if self.bucketizer == "linear":
+            return _linear_bucketizer
+        raise ValueError(f"Unimplemented bucketizer {bucketizer}")
+
     def get_config(self):
         config = super().get_config()
         config.update(
@@ -374,19 +422,14 @@ class COCOMeanAveragePrecision(tf.keras.metrics.Metric):
                 "area_range": self.area_range,
                 "max_detections": self.max_detections,
                 "num_buckets": self.num_buckets,
+                "bucketizer": self.bucketizer,
+                "confidence_range": self.confidence_range,
             }
         )
         return config
 
+def _linear_bucketizer(x):
+    return x
 
-def _unnormalized_custom_exponential(x, scale):
+def _exponential_bucketizer(x, scale=10.):
     return 2 ** (x * scale)
-
-
-def my_custom_exponential(x, scale=10, minval=0.5, maxval=1.0):
-    # normalize to [0, 1]
-    x = (x - minval) / (maxval - minval)
-    x = _unnormalized_custom_exponential(x, scale=scale)
-    minval = _unnormalized_custom_exponential(0.0, scale=scale)
-    maxval = _unnormalized_custom_exponential(1.0, scale=scale)
-    return (x - minval) / (maxval - minval)
