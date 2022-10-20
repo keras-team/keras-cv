@@ -24,6 +24,16 @@ from tensorflow.keras import layers
 from keras_cv.models import utils
 
 MODEL_CONFIGS = {
+    "ResNet18": {
+        "stackwise_filters": [64, 128, 256, 512],
+        "stackwise_blocks": [2, 2, 2, 2],
+        "stackwise_strides": [1, 2, 2, 2],
+    },
+    "ResNet34": {
+        "stackwise_filters": [64, 128, 256, 512],
+        "stackwise_blocks": [3, 4, 6, 3],
+        "stackwise_strides": [1, 2, 2, 2],
+    },
     "ResNet50": {
         "stackwise_filters": [64, 128, 256, 512],
         "stackwise_blocks": [3, 4, 6, 3],
@@ -86,6 +96,60 @@ BASE_DOCSTRING = """Instantiates the {name} architecture.
 """
 
 
+def BasicBlock(filters, kernel_size=3, stride=1, conv_shortcut=True, name=None):
+    """A basic residual block.
+    Args:
+      x: input tensor.
+      filters: integer, filters of the basic layer.
+      kernel_size: default 3, kernel size of the basic layer.
+      stride: default 1, stride of the first layer.
+      conv_shortcut: default True, use convolution shortcut if True,
+          otherwise identity shortcut.
+      name: string, block label.
+    Returns:
+      Output tensor for the residual block.
+    """
+    if name is None:
+        name = f"v1_basic_block_{backend.get_uid('v1_basic_block_')}"
+
+    def apply(x):
+        if conv_shortcut:
+            shortcut = layers.Conv2D(
+                filters, 1, strides=stride, use_bias=False, name=name + "_0_conv"
+            )(x)
+            shortcut = layers.BatchNormalization(
+                axis=BN_AXIS, epsilon=1.001e-5, name=name + "_0_bn"
+            )(shortcut)
+        else:
+            shortcut = x
+
+        x = layers.Conv2D(
+            filters,
+            kernel_size,
+            padding="SAME",
+            strides=stride,
+            use_bias=False,
+            name=name + "_1_conv",
+        )(x)
+        x = layers.BatchNormalization(
+            axis=BN_AXIS, epsilon=1.001e-5, name=name + "_1_bn"
+        )(x)
+        x = layers.Activation("relu", name=name + "_1_relu")(x)
+
+        x = layers.Conv2D(
+            filters, kernel_size, padding="SAME", use_bias=False, name=name + "_2_conv"
+        )(x)
+        x = layers.BatchNormalization(
+            axis=BN_AXIS, epsilon=1.001e-5, name=name + "_2_bn"
+        )(x)
+
+        x = layers.Add(name=name + "_add")([shortcut, x])
+        x = layers.Activation("relu", name=name + "_out")(x)
+        return x
+
+    return apply
+
+
 def Block(filters, kernel_size=3, stride=1, conv_shortcut=True, name=None):
     """A residual block.
     Args:
@@ -141,13 +205,16 @@ def Block(filters, kernel_size=3, stride=1, conv_shortcut=True, name=None):
     return apply
 
 
-def Stack(filters, blocks, stride=2, name=None):
+def Stack(filters, blocks, stride=2, name=None, block_fn=Block, first_shortcut=True):
     """A set of stacked residual blocks.
     Args:
-      filters: integer, filters of the bottleneck layer in a block.
+      filters: integer, filters of the layers in a block.
       blocks: integer, blocks in the stacked blocks.
       stride1: default 2, stride of the first layer in the first block.
       name: string, stack label.
+      block_fn: callable, `Block` or `BasicBlock`, the block function to stack.
+      first_shortcut: default True, use convolution shortcut if True,
+          otherwise identity shortcut.
     Returns:
       Output tensor for the stacked blocks.
     """
@@ -155,9 +222,11 @@ def Stack(filters, blocks, stride=2, name=None):
         name = f"v1_stack_{backend.get_uid('v1_stack')}"
 
     def apply(x):
-        x = Block(filters, stride=stride, name=name + "_block1")(x)
+        x = block_fn(
+            filters, stride=stride, name=name + "_block1", conv_shortcut=first_shortcut
+        )(x)
         for i in range(2, blocks + 1):
-            x = Block(filters, conv_shortcut=False, name=name + "_block" + str(i))(x)
+            x = block_fn(filters, conv_shortcut=False, name=name + "_block" + str(i))(x)
         return x
 
     return apply
@@ -176,6 +245,7 @@ def ResNet(
     pooling=None,
     classes=None,
     classifier_activation="softmax",
+    block_fn=Block,
     **kwargs,
 ):
     """Instantiates the ResNet architecture.
@@ -210,6 +280,8 @@ def ResNet(
         classifier_activation: A `str` or callable. The activation function to use
             on the "top" layer. Ignored unless `include_top=True`. Set
             `classifier_activation=None` to return the logits of the "top" layer.
+        block_fn: callable, `Block` or `BasicBlock`, the block function to stack.
+            Use 'basic_block' for ResNet18 and ResNet34.
         **kwargs: Pass-through keyword arguments to `tf.keras.Model`.
 
     Returns:
@@ -255,6 +327,8 @@ def ResNet(
             filters=stackwise_filters[stack_index],
             blocks=stackwise_blocks[stack_index],
             stride=stackwise_strides[stack_index],
+            block_fn=block_fn,
+            first_shortcut=block_fn == Block or stack_index > 0,
         )(x)
 
     if include_top:
@@ -275,6 +349,70 @@ def ResNet(
         model.load_weights(weights)
 
     return model
+
+
+def ResNet18(
+    include_rescaling,
+    include_top,
+    classes=None,
+    weights=None,
+    input_shape=(None, None, 3),
+    input_tensor=None,
+    pooling=None,
+    classifier_activation="softmax",
+    name="resnet18",
+    **kwargs,
+):
+    """Instantiates the ResNet18 architecture."""
+
+    return ResNet(
+        stackwise_filters=MODEL_CONFIGS["ResNet18"]["stackwise_filters"],
+        stackwise_blocks=MODEL_CONFIGS["ResNet18"]["stackwise_blocks"],
+        stackwise_strides=MODEL_CONFIGS["ResNet18"]["stackwise_strides"],
+        include_rescaling=include_rescaling,
+        include_top=include_top,
+        name=name,
+        weights=weights,
+        input_shape=input_shape,
+        input_tensor=input_tensor,
+        pooling=pooling,
+        classes=classes,
+        classifier_activation=classifier_activation,
+        block_fn=BasicBlock,
+        **kwargs,
+    )
+
+
+def ResNet34(
+    include_rescaling,
+    include_top,
+    classes=None,
+    weights=None,
+    input_shape=(None, None, 3),
+    input_tensor=None,
+    pooling=None,
+    classifier_activation="softmax",
+    name="resnet34",
+    **kwargs,
+):
+    """Instantiates the ResNet34 architecture."""
+
+    return ResNet(
+        stackwise_filters=MODEL_CONFIGS["ResNet34"]["stackwise_filters"],
+        stackwise_blocks=MODEL_CONFIGS["ResNet34"]["stackwise_blocks"],
+        stackwise_strides=MODEL_CONFIGS["ResNet34"]["stackwise_strides"],
+        include_rescaling=include_rescaling,
+        include_top=include_top,
+        name=name,
+        weights=weights,
+        input_shape=input_shape,
+        input_tensor=input_tensor,
+        pooling=pooling,
+        classes=classes,
+        classifier_activation=classifier_activation,
+        block_fn=BasicBlock,
+        **kwargs,
+    )
 
 
 def ResNet50(
@@ -368,6 +506,8 @@ def ResNet152(
     )
 
 
+setattr(ResNet18, "__doc__", BASE_DOCSTRING.format(name="ResNet18"))
+setattr(ResNet34, "__doc__", BASE_DOCSTRING.format(name="ResNet34"))
 setattr(ResNet50, "__doc__", BASE_DOCSTRING.format(name="ResNet50"))
 setattr(ResNet101, "__doc__", BASE_DOCSTRING.format(name="ResNet101"))
 setattr(ResNet152, "__doc__", BASE_DOCSTRING.format(name="ResNet152"))

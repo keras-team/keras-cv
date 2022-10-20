@@ -23,6 +23,7 @@ import sys
 
 import tensorflow as tf
 from absl import flags
+from tensorflow import keras
 from tensorflow.keras import callbacks
 from tensorflow.keras import losses
 from tensorflow.keras import metrics
@@ -68,6 +69,11 @@ flags.DEFINE_integer(
 flags.DEFINE_boolean(
     "use_xla", True, "Whether or not to use XLA (jit_compile) for training."
 )
+flags.DEFINE_boolean(
+    "use_mixed_precision",
+    False,
+    "Whether or not to use FP16 mixed precision for training.",
+)
 flags.DEFINE_float(
     "initial_learning_rate",
     0.05,
@@ -86,9 +92,13 @@ FLAGS(sys.argv)
 if FLAGS.model_name not in models.__dict__:
     raise ValueError(f"Invalid model name: {FLAGS.model_name}")
 
+if FLAGS.use_mixed_precision:
+    keras.mixed_precision.set_global_policy("mixed_float16")
+
 CLASSES = 1000
 IMAGE_SIZE = (224, 224)
-EPOCHS = 250
+# An upper bound for number of epochs (this script uses EarlyStopping).
+EPOCHS = 1000
 
 """
 We start by detecting the type of accelerators we have available and picking an
@@ -138,7 +148,7 @@ We define a set of augmentation layers and then apply them to our input dataset.
 
 
 AUGMENT_LAYERS = [
-    keras_cv.layers.RandomFlip(),
+    keras_cv.layers.RandomFlip(mode="horizontal"),
     keras_cv.layers.RandAugment(value_range=(0, 255), magnitude=0.3),
     keras_cv.layers.CutMix(),
 ]
@@ -179,8 +189,9 @@ Note that learning rate will decrease over time due to the ReduceLROnPlateau cal
 """
 
 
-optimizer = optimizers.SGD(learning_rate=INITIAL_LEARNING_RATE, momentum=0.9)
-
+optimizer = optimizers.SGD(
+    learning_rate=INITIAL_LEARNING_RATE, momentum=0.9, global_clipnorm=10
+)
 
 """
 Next, we pick a loss function. We use CategoricalCrossentropy with label smoothing.

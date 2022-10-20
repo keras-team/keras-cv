@@ -1,6 +1,6 @@
-ARG VARIANT
+ARG VERSION
 
-FROM tensorflow/tensorflow:2.9.1${VARIANT}
+FROM tensorflow/tensorflow:${VERSION}
 
 RUN apt-get update && apt-get install -y \
   locales \
@@ -11,4 +11,5 @@ RUN pip install \
   flake8 \
   isort \
   pytest \
+  regex \
   tensorflow_datasets

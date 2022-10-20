@@ -49,18 +49,12 @@ class RandomFlip(BaseImageAugmentationLayer):
     Arguments:
       mode: String indicating which flip mode to use. Can be `"horizontal"`,
         `"vertical"`, or `"horizontal_and_vertical"`. Defaults to
-        `"horizontal_and_vertical"`. `"horizontal"` is a left-right flip and
-        `"vertical"` is a top-bottom flip.
+        `"horizontal"`. `"horizontal"` is a left-right flip and `"vertical"` is
+        a top-bottom flip.
       seed: Integer. Used to create a random seed.
     """
 
-    def __init__(
-        self,
-        mode=HORIZONTAL_AND_VERTICAL,
-        seed=None,
-        bounding_box_format=None,
-        **kwargs
-    ):
+    def __init__(self, mode=HORIZONTAL, seed=None, bounding_box_format=None, **kwargs):
         super().__init__(seed=seed, force_generator=True, **kwargs)
         self.mode = mode
         self.seed = seed

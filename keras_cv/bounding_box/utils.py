@@ -81,12 +81,35 @@ def clip_to_image(bounding_boxes, images, bounding_box_format):
         target=bounding_box_format,
         images=images,
     )
-
     clipped_bounding_boxes = tf.where(
         tf.expand_dims(areas > 0.0, axis=-1), clipped_bounding_boxes, -1.0
     )
+    nan_indices = tf.math.reduce_any(tf.math.is_nan(clipped_bounding_boxes), axis=-1)
+    clipped_bounding_boxes = tf.where(
+        tf.expand_dims(nan_indices, axis=-1), -1.0, clipped_bounding_boxes
+    )
     clipped_bounding_boxes = _format_outputs(clipped_bounding_boxes, squeeze)
     return clipped_bounding_boxes
+
+
+# TODO (tanzhenyu): merge with clip_to_image
+def _clip_boxes(boxes, box_format, image_shape):
+    """Clip boxes to the boundaries of the image shape"""
+    if boxes.shape[-1] != 4:
+        raise ValueError(
+            "boxes.shape[-1] is {:d}, but must be 4.".format(boxes.shape[-1])
+        )
+
+    if isinstance(image_shape, list) or isinstance(image_shape, tuple):
+        height, width, _ = image_shape
+        max_length = [height, width, height, width]
+    else:
+        image_shape = tf.cast(image_shape, dtype=boxes.dtype)
+        height, width, _ = tf.unstack(image_shape, axis=-1)
+        max_length = tf.stack([height, width, height, width], axis=-1)
+
+    clipped_boxes = tf.math.maximum(tf.math.minimum(boxes, max_length), 0.0)
+    return clipped_boxes
 
 
 def _format_inputs(boxes, images):
