@@ -40,7 +40,6 @@ import xml
 
 import numpy as np
 import tensorflow as tf
-from PIL import Image
 
 DATA_URL = "http://host.robots.ox.ac.uk/pascal/VOC/voc2012/VOCtrainval_11-May-2012.tar"
 
@@ -71,6 +70,41 @@ CLASSES = [
 ]
 # This is used to map between string class to index.
 CLASS_TO_INDEX = {name: index for index, name in enumerate(CLASSES)}
+
+# For the mask data in the PNG file, the encoded raw pixel value need be to converted
+# to the proper class index. In the following map, [0, 0, 0] will be convert to 0, and
+# [128, 0, 0] will be conveted to 1, so on so forth. Also note that the mask class is 1
+# base since class 0 is reserved for the background. The [128, 0, 0] (class 1) is mapped
+# to `aeroplane`.
+VOC_PNG_COLOR_VALUE = [
+    [0, 0, 0],
+    [128, 0, 0],
+    [0, 128, 0],
+    [128, 128, 0],
+    [0, 0, 128],
+    [128, 0, 128],
+    [0, 128, 128],
+    [128, 128, 128],
+    [64, 0, 0],
+    [192, 0, 0],
+    [64, 128, 0],
+    [192, 128, 0],
+    [64, 0, 128],
+    [192, 0, 128],
+    [64, 128, 128],
+    [192, 128, 128],
+    [0, 64, 0],
+    [128, 64, 0],
+    [0, 192, 0],
+    [128, 192, 0],
+    [0, 64, 128],
+]
+VOC_PNG_COLOR_MAPPING = [0] * (256**3)
+for i, colormap in enumerate(VOC_PNG_COLOR_VALUE):
+    VOC_PNG_COLOR_MAPPING[(colormap[0] * 256 + colormap[1]) * 256 + colormap[2]] = i
+# There is a special mapping with [224, 224, 192] -> 255
+VOC_PNG_COLOR_MAPPING[224 * 256 * 256 + 224 * 256 + 192] = 255
+VOC_PNG_COLOR_MAPPING = tf.constant(VOC_PNG_COLOR_MAPPING)
 
 
 def _download_pascal_voc_2012(data_url, local_dir_path=None, override_extract=False):
@@ -155,38 +189,38 @@ def _get_image_ids(data_dir, split):
         return image_ids
 
 
-def _convert_pascal_voc_segmentation_mask_encoding(
-    segmentation_file_path, use_cache=True
-):
-    """Convert the original segmentation PNG file to proper encoding for tf.io API.
-
-    The original PNG was in a 2D (without channel dimension), which will get a wrong value
-    when directly read by tf.io API. In this function, the original image will be first
-    read with PIL.image API, expand the last dimention and save back by TF API. This will
-    ensure the converted image can be properly consumed by TF API.
-
-    If a file with `xxx_converted.png` already exists, and `use_cache` is True, the
-    conversion will be skipped.
-
-    Args:
-        segmentation_file_path: string, the original PNG file path from the dataset.
-        override: boolean, whether to use the existing cached file result.
-    Returns:
-        the file path for converted PNG file, it will be suffixed with '_converted'.
-    """
-    dir_and_file_name, _ = os.path.splitext(segmentation_file_path)
-    updated_file_path = dir_and_file_name + "_updated.png"
-    if os.path.exists(updated_file_path) and use_cache:
-        return updated_file_path
-
-    with tf.io.gfile.GFile(segmentation_file_path, "rb") as f:
-        mask = Image.open(f)
-
-    original_mask = np.expand_dims(np.asarray(mask), axis=-1)
-    # # Write the mask to PNG via the TF io API, so that it can be read properly.
-    encoded_png = tf.io.encode_png(original_mask)
-    tf.io.write_file(updated_file_path, encoded_png)
-    return updated_file_path
+# def _convert_pascal_voc_segmentation_mask_encoding(
+#     segmentation_file_path, use_cache=True
+# ):
+#     """Convert the original segmentation PNG file to proper encoding for tf.io API.
+#
+#     The original PNG was in a 2D (without channel dimension), which will get a wrong value
+#     when directly read by tf.io API. In this function, the original image will be first
+#     read with PIL.image API, expand the last dimention and save back by TF API. This will
+#     ensure the converted image can be properly consumed by TF API.
+#
+#     If a file with `xxx_converted.png` already exists, and `use_cache` is True, the
+#     conversion will be skipped.
+#
+#     Args:
+#         segmentation_file_path: string, the original PNG file path from the dataset.
+#         override: boolean, whether to use the existing cached file result.
+#     Returns:
+#         the file path for converted PNG file, it will be suffixed with '_converted'.
+#     """
+#     dir_and_file_name, _ = os.path.splitext(segmentation_file_path)
+#     updated_file_path = dir_and_file_name + "_updated.png"
+#     if os.path.exists(updated_file_path) and use_cache:
+#         return updated_file_path
+#
+#     with tf.io.gfile.GFile(segmentation_file_path, "rb") as f:
+#         mask = Image.open(f)
+#
+#     original_mask = np.expand_dims(np.asarray(mask), axis=-1)
+#     # # Write the mask to PNG via the TF io API, so that it can be read properly.
+#     encoded_png = tf.io.encode_png(original_mask)
+#     tf.io.write_file(updated_file_path, encoded_png)
+#     return updated_file_path
 
 
 def _parse_single_image(image_file_path):
@@ -196,14 +230,8 @@ def _parse_single_image(image_file_path):
     class_segmentation_file_path = os.path.join(
         data_dir, "SegmentationClass", image_id + ".png"
     )
-    class_segmentation_file_path = _convert_pascal_voc_segmentation_mask_encoding(
-        class_segmentation_file_path
-    )
     object_segmentation_file_path = os.path.join(
         data_dir, "SegmentationObject", image_id + ".png"
-    )
-    object_segmentation_file_path = _convert_pascal_voc_segmentation_mask_encoding(
-        object_segmentation_file_path
     )
     annotation_file_path = os.path.join(data_dir, "Annotations", image_id + ".xml")
     image_annotations = _parse_annotation_data(annotation_file_path)
@@ -255,6 +283,16 @@ def _build_metadata(data_dir, image_ids):
     return result
 
 
+def _decode_png_mask(mask):
+    """Decode the raw PNG image and convert it to 2D tensor with probably class."""
+    # Cast the mask to int32 since the original uint8 will overflow when multiple with 256
+    mask = tf.cast(mask, tf.int32)
+    mask = mask[:, :, 0] * 256 * 256 + mask[:, :, 1] * 256 + mask[:, :, 2]
+    mask = tf.expand_dims(tf.gather(VOC_PNG_COLOR_MAPPING, mask), -1)
+    mask = tf.cast(mask, tf.uint8)
+    return mask
+
+
 def _load_images(example):
     image_file_path = example.pop("image/file_path")
     segmentation_class_file_path = example.pop("segmentation/class/file_path")
@@ -264,9 +302,11 @@ def _load_images(example):
 
     segmentation_class_mask = tf.io.read_file(segmentation_class_file_path)
     segmentation_class_mask = tf.image.decode_png(segmentation_class_mask)
+    segmentation_class_mask = _decode_png_mask(segmentation_class_mask)
 
     segmentation_object_mask = tf.io.read_file(segmentation_object_file_path)
     segmentation_object_mask = tf.image.decode_png(segmentation_object_mask)
+    segmentation_object_mask = _decode_png_mask(segmentation_object_mask)
 
     example.update(
         {

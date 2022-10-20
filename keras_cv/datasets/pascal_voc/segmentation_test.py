@@ -139,26 +139,23 @@ class PascalVocSegmentationDataTest(tf.test.TestCase):
         }
         self.assertEquals(metadata, expected_result)
 
-    def test_convert_pascal_voc_segmentation_mask_encoding(self):
+    def test__decode_png_mask(self):
         local_data_dir = os.path.join(self.tempdir, "pascal_voc_2012/")
         data_dir = segmentation._download_pascal_voc_2012(
             data_url=pathlib.Path(self.test_data_tar_path).as_uri(),
             local_dir_path=local_data_dir,
         )
         mask_file = os.path.join(data_dir, "SegmentationClass", "2007_000032.png")
-        updated_file = segmentation._convert_pascal_voc_segmentation_mask_encoding(
-            mask_file
-        )
+        mask = tf.io.decode_png(tf.io.read_file(mask_file))
+        mask = segmentation._decode_png_mask(mask)
 
-        # Make sure the content of the converted PNG can properly read by TF.
-        png = tf.io.decode_png(tf.io.read_file(updated_file))
-        self.assertEquals(png.shape, (281, 500, 1))
-        self.assertEquals(tf.reduce_max(png), 255)  # The 255 value is for the boundary
-        self.assertEquals(tf.reduce_min(png), 0)  # The 0 value is for the background
+        self.assertEquals(mask.shape, (281, 500, 1))
+        self.assertEquals(tf.reduce_max(mask), 255)  # The 255 value is for the boundary
+        self.assertEquals(tf.reduce_min(mask), 0)  # The 0 value is for the background
         # The mask contains two classes, 1 and 15, see the label section in the previous
         # test case.
-        self.assertEquals(tf.reduce_sum(tf.cast(tf.equal(png, 1), tf.int32)), 4734)
-        self.assertEquals(tf.reduce_sum(tf.cast(tf.equal(png, 15), tf.int32)), 866)
+        self.assertEquals(tf.reduce_sum(tf.cast(tf.equal(mask, 1), tf.int32)), 4734)
+        self.assertEquals(tf.reduce_sum(tf.cast(tf.equal(mask, 15), tf.int32)), 866)
 
     def test_parse_single_image(self):
         local_data_dir = os.path.join(self.tempdir, "pascal_voc_2012/")
@@ -205,10 +202,10 @@ class PascalVocSegmentationDataTest(tf.test.TestCase):
             ],
             "labels": [0, 14],
             "segmentation/class/file_path": os.path.join(
-                data_dir, "SegmentationClass", "2007_000032_updated.png"
+                data_dir, "SegmentationClass", "2007_000032.png"
             ),
             "segmentation/object/file_path": os.path.join(
-                data_dir, "SegmentationObject", "2007_000032_updated.png"
+                data_dir, "SegmentationObject", "2007_000032.png"
             ),
         }
         self.assertEquals(result_dict, expected_result)
