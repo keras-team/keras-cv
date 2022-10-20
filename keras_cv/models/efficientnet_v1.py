@@ -128,8 +128,7 @@ BASE_DOCSTRING = """Instantiates the {name} architecture.
     - [EfficientNet: Rethinking Model Scaling for Convolutional Neural Networks](
         https://arxiv.org/abs/1905.11946) (ICML 2019)
 
-    This function returns a Keras image classification model,
-    optionally loaded with weights pre-trained on ImageNet.
+    This function returns a Keras image classification model.
 
     For image classification use cases, see
     [this page for detailed examples](

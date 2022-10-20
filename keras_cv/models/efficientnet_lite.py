@@ -119,8 +119,7 @@ BASE_DOCSTRING = """Instantiates the {name} architecture.
     - [EfficientNet: Rethinking Model Scaling for Convolutional Neural Networks](
         https://arxiv.org/abs/1905.11946) (ICML 2019)
 
-    This function returns a Keras image classification model,
-    optionally loaded with weights pre-trained on ImageNet.
+    This function returns a Keras image classification model.
 
     For image classification use cases, see
     [this page for detailed examples](
@@ -503,7 +502,6 @@ def EfficientNetLiteB0(
     classifier_activation="softmax",
     **kwargs,
 ):
-    """Create EfficientNetLite B0 variant."""
     return EfficientNetLite(
         include_rescaling,
         include_top,
@@ -511,8 +509,8 @@ def EfficientNetLiteB0(
         depth_coefficient=1.0,
         default_size=224,
         dropout_rate=0.2,
-        model_name="efficientnetlite0",
-        weights=parse_weights(weights, include_top, "efficientnetlite0"),
+        model_name="efficientnetliteb0",
+        weights=parse_weights(weights, include_top, "efficientnetliteb0"),
         input_shape=input_shape,
         input_tensor=input_tensor,
         pooling=pooling,
@@ -533,7 +531,6 @@ def EfficientNetLiteB1(
     classifier_activation="softmax",
     **kwargs,
 ):
-    """Create EfficientNetLite B1 variant."""
     return EfficientNetLite(
         include_rescaling,
         include_top,
@@ -541,8 +538,8 @@ def EfficientNetLiteB1(
         depth_coefficient=1.1,
         default_size=240,
         dropout_rate=0.2,
-        model_name="efficientnetlite1",
-        weights=parse_weights(weights, include_top, "efficientnetlite1"),
+        model_name="efficientnetliteb1",
+        weights=parse_weights(weights, include_top, "efficientnetliteb1"),
         input_shape=input_shape,
         input_tensor=input_tensor,
         pooling=pooling,
@@ -563,7 +560,6 @@ def EfficientNetLiteB2(
     classifier_activation="softmax",
     **kwargs,
 ):
-    """Create EfficientNetLite B2 variant."""
     return EfficientNetLite(
         include_rescaling,
         include_top,
@@ -571,8 +567,8 @@ def EfficientNetLiteB2(
         depth_coefficient=1.2,
         default_size=260,
         dropout_rate=0.3,
-        model_name="efficientnetlite2",
-        weights=parse_weights(weights, include_top, "efficientnetlite2"),
+        model_name="efficientnetliteb2",
+        weights=parse_weights(weights, include_top, "efficientnetliteb2"),
         input_shape=input_shape,
         input_tensor=input_tensor,
         pooling=pooling,
@@ -593,7 +589,6 @@ def EfficientNetLiteB3(
     classifier_activation="softmax",
     **kwargs,
 ):
-    """Create EfficientNetLite B3 variant."""
     return EfficientNetLite(
         include_rescaling,
         include_top,
@@ -601,8 +596,8 @@ def EfficientNetLiteB3(
         depth_coefficient=1.4,
         default_size=280,
         dropout_rate=0.3,
-        model_name="efficientnetlite3",
-        weights=parse_weights(weights, include_top, "efficientnetlite3"),
+        model_name="efficientnetliteb3",
+        weights=parse_weights(weights, include_top, "efficientnetliteb3"),
         input_shape=input_shape,
         input_tensor=input_tensor,
         pooling=pooling,
@@ -623,7 +618,6 @@ def EfficientNetLiteB4(
     classifier_activation="softmax",
     **kwargs,
 ):
-    """Create EfficientNetLite B4 variant."""
     return EfficientNetLite(
         include_rescaling,
         include_top,
@@ -631,8 +625,8 @@ def EfficientNetLiteB4(
         depth_coefficient=1.8,
         default_size=300,
         dropout_rate=0.3,
-        model_name="efficientnetlite4",
-        weights=parse_weights(weights, include_top, "efficientnetlite4"),
+        model_name="efficientnetliteb4",
+        weights=parse_weights(weights, include_top, "efficientnetliteb4"),
         input_shape=input_shape,
         input_tensor=input_tensor,
         pooling=pooling,
