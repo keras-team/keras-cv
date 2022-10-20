@@ -98,12 +98,23 @@ VOC_PNG_COLOR_VALUE = [
     [128, 192, 0],
     [0, 64, 128],
 ]
-VOC_PNG_COLOR_MAPPING = [0] * (256**3)
-for i, colormap in enumerate(VOC_PNG_COLOR_VALUE):
-    VOC_PNG_COLOR_MAPPING[(colormap[0] * 256 + colormap[1]) * 256 + colormap[2]] = i
-# There is a special mapping with [224, 224, 192] -> 255
-VOC_PNG_COLOR_MAPPING[224 * 256 * 256 + 224 * 256 + 192] = 255
-VOC_PNG_COLOR_MAPPING = tf.constant(VOC_PNG_COLOR_MAPPING)
+# Will be populated by _maybe_populate_voc_color_mapping() below.
+VOC_PNG_COLOR_MAPPING = None
+
+
+def _maybe_populate_voc_color_mapping():
+    # Lazy creation of VOC_PNG_COLOR_MAPPING, which could take 64M memory.
+    global VOC_PNG_COLOR_MAPPING
+    if VOC_PNG_COLOR_MAPPING is None:
+        VOC_PNG_COLOR_MAPPING = [0] * (256**3)
+        for i, colormap in enumerate(VOC_PNG_COLOR_VALUE):
+            VOC_PNG_COLOR_MAPPING[
+                (colormap[0] * 256 + colormap[1]) * 256 + colormap[2]
+            ] = i
+        # There is a special mapping with [224, 224, 192] -> 255
+        VOC_PNG_COLOR_MAPPING[224 * 256 * 256 + 224 * 256 + 192] = 255
+        VOC_PNG_COLOR_MAPPING = tf.constant(VOC_PNG_COLOR_MAPPING)
+    return VOC_PNG_COLOR_MAPPING
 
 
 def _download_pascal_voc_2012(data_url, local_dir_path=None, override_extract=False):
@@ -332,6 +343,7 @@ def load(
     data_dir = _download_pascal_voc_2012(DATA_URL, local_dir_path=data_dir)
     image_ids = _get_image_ids(data_dir, split)
     metadata = _build_metadata(data_dir, image_ids)
+    _maybe_populate_voc_color_mapping()
     dataset = _build_dataset_from_metadata(metadata)
 
     return dataset

@@ -139,7 +139,7 @@ class PascalVocSegmentationDataTest(tf.test.TestCase):
         }
         self.assertEquals(metadata, expected_result)
 
-    def test__decode_png_mask(self):
+    def test_decode_png_mask(self):
         local_data_dir = os.path.join(self.tempdir, "pascal_voc_2012/")
         data_dir = segmentation._download_pascal_voc_2012(
             data_url=pathlib.Path(self.test_data_tar_path).as_uri(),
@@ -147,6 +147,7 @@ class PascalVocSegmentationDataTest(tf.test.TestCase):
         )
         mask_file = os.path.join(data_dir, "SegmentationClass", "2007_000032.png")
         mask = tf.io.decode_png(tf.io.read_file(mask_file))
+        segmentation._maybe_populate_voc_color_mapping()
         mask = segmentation._decode_png_mask(mask)
 
         self.assertEquals(mask.shape, (281, 500, 1))
@@ -253,6 +254,7 @@ class PascalVocSegmentationDataTest(tf.test.TestCase):
         )
         image_ids = segmentation._get_image_ids(data_dir, None)
         metadata = segmentation._build_metadata(data_dir, image_ids)
+        segmentation._maybe_populate_voc_color_mapping()
         dataset = segmentation._build_dataset_from_metadata(metadata)
 
         entry = next(dataset.take(1).as_numpy_iterator())
