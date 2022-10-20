@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import math
+
 import tensorflow as tf
 from tensorflow.keras import layers
 
@@ -50,16 +52,80 @@ class PatchEmbedding(layers.Layer):
         self.num_patches = num_patches
         self.project_dim = layers.Dense(units=project_dim)
         self.position_embedding = layers.Embedding(
-            input_dim=num_patches, output_dim=project_dim
+            input_dim=num_patches + 1, output_dim=project_dim
         )
 
-    def call(self, patch):
-        # Add learnable class token before positional embedding
+    def call(
+        self,
+        patch,
+        interpolate=False,
+        interpolate_width=None,
+        interpolate_height=None,
+        patch_size=None,
+    ):
+        # Add learnable class token before linear projection and positional embedding
         patch = ClassTokenizing()(patch)
         # num_patches + class token
         positions = tf.range(start=0, limit=self.num_patches + 1, delta=1)
-        encoded = self.project_dim(patch) + self.position_embedding(positions)
+
+        if interpolate and None not in (
+            interpolate_width,
+            interpolate_height,
+            patch_size,
+        ):
+            encoded = self.project_dim(patch) + self.interpolate_positional_embeddings(
+                self.position_embedding(positions),
+                interpolate_width,
+                interpolate_height,
+                patch_size,
+            )
+        elif interpolate and None in (
+            interpolate_width,
+            interpolate_height,
+            patch_size,
+        ):
+            raise ValueError(
+                f"`None of `interpolate_width`, `interpolate_height` and `patch_size` cannot be None if `interpolate` is True"
+            )
+        else:
+            encoded = self.project_dim(patch) + self.position_embedding(positions)
         return encoded
+
+    def interpolate_positional_embeddings(self, embeddings, height, width, patch_size):
+        """
+        Allows for pre-trained position embedding interpolation. This trick allows you to fine-tune ViTs
+        on higher resolution images than it was trained on.
+        Based on:
+        https://github.com/huggingface/transformers/blob/main/src/transformers/models/vit/modeling_tf_vit.py
+        """
+
+        seq_len, project_dim = embeddings.shape
+        num_positions = seq_len - 1
+
+        if self.num_patches == num_positions and height == width:
+            return embeddings
+
+        class_token = embeddings[:, :1]
+        embeddings = embeddings[:, 1:]
+        h0 = height // patch_size
+        w0 = width // patch_size
+
+        embeddings = tf.image.resize(
+            images=tf.reshape(
+                embeddings,
+                shape=(
+                    1,
+                    int(math.sqrt(num_positions)),
+                    int(math.sqrt(num_positions)),
+                    project_dim,
+                ),
+            ),
+            size=(h0, w0),
+            method="bicubic",
+        )
+
+        embeddings = tf.reshape(tensor=embeddings, shape=(1, -1, project_dim))
+        return tf.concat([class_token, embeddings], 1)
 
     def get_config(self):
         config = {
