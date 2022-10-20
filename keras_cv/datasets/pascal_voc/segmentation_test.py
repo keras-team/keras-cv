@@ -25,7 +25,7 @@ class PascalVocSegmentationDataTest(tf.test.TestCase):
     def setUp(self):
         super().setUp()
         self.tempdir = self.get_tempdir()
-        # Note that this will not work with bazel, can need to be rewrite into rely on
+        # Note that this will not work with bazel, need to be rewrite into relying on
         # FLAGS.test_srcdir
         self.test_data_tar_path = os.path.abspath(
             os.path.join(
