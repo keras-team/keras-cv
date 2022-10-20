@@ -33,6 +33,7 @@
 		}
 	},
 
+	// TODO: Improve to allow dynamic runArgs, see microsoft/vscode-remote-release#3972
 	// Uncomment this if GPU support is required
 	// "runArgs": [
     //     "--gpus=all"
