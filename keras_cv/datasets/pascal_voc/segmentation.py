@@ -259,6 +259,7 @@ def _build_metadata(data_dir, image_ids):
     return result
 
 
+@tf.function(jit_compile=True)
 def _decode_png_mask(mask):
     """Decode the raw PNG image and convert it to 2D tensor with probably class."""
     # Cast the mask to int32 since the original uint8 will overflow when multiple with 256
