@@ -242,7 +242,9 @@ class COCOMeanAveragePrecision(tf.keras.metrics.Metric):
                     false_positives = pred_matches == -1
 
                     dt_scores_clipped = tf.clip_by_value(dt_scores, 0.0, 1.0)
-                    dt_scores_mapped = _custom_sigmoid(dt_scores_clipped)
+                    dt_scores_mapped = my_custom_exponential(
+                        dt_scores_clipped, minval=0.5, maxval=1.0
+                    )
                     # We must divide by 1.01 to prevent off by one errors.
                     confidence_buckets = tf.cast(
                         tf.math.floor(self.num_buckets * (dt_scores_mapped / 1.01)),
@@ -376,22 +378,15 @@ class COCOMeanAveragePrecision(tf.keras.metrics.Metric):
         )
         return config
 
-RANGE_SCALE = 13
-SIGMOID_MEAN_SCALE = 9/10
 
-def _unnormalized_custom_sigmoid(x):
-  x = x * RANGE_SCALE
-  x = x - RANGE_SCALE/2
+def _unnormalized_custom_exponential(x, scale):
+    return 2 ** (x * scale)
 
 
-  delta = (RANGE_SCALE/2) * SIGMOID_MEAN_SCALE
-  sigmoid_one = tf.sigmoid(x-delta)
-  sigmoid_two = tf.sigmoid(x+delta)
-  return (sigmoid_one + sigmoid_two) / 2
-
-def _custom_sigmoid(x):
-  x = _unnormalized_custom_sigmoid(x)
-  minval = _unnormalized_custom_sigmoid(0)
-  maxval = _unnormalized_custom_sigmoid(1)
-  x = (x - minval) / (maxval - minval)
-  return tf.clip_by_value(x, 0., 1.)
+def my_custom_exponential(x, scale=10, minval=0.5, maxval=1.0):
+    # normalize to [0, 1]
+    x = (x - minval) / (maxval - minval)
+    x = _unnormalized_custom_exponential(x, scale=scale)
+    minval = _unnormalized_custom_exponential(0.0, scale=scale)
+    maxval = _unnormalized_custom_exponential(1.0, scale=scale)
+    return (x - minval) / (maxval - minval)
