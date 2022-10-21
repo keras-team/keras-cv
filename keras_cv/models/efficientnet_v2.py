@@ -530,8 +530,9 @@ BASE_DOCSTRING = """Instantiates the {name} architecture.
                     inputs will be passed through a `Rescaling(1/255.0)` layer.
         include_top: Whether to include the fully-connected
             layer at the top of the network.
-        weights: One of `None` (random initialization),
-                or the path to the weights file to be loaded.
+        weights: one of `None` (random initialization), a pretrained weight file
+            path, or a reference to pre-trained weights (e.g. 'imagenet/classification')
+            (see available pre-trained weights in weights.py)
         input_shape: Optional shape tuple.
             It should have exactly 3 inputs channels.
         input_tensor: optional Keras tensor (i.e. output of `layers.Input()`)
