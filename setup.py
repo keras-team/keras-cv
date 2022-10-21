@@ -18,9 +18,21 @@ import pathlib
 
 from setuptools import find_packages
 from setuptools import setup
+from setuptools.dist import Distribution
 
 HERE = pathlib.Path(__file__).parent
 README = (HERE / "README.md").read_text()
+
+
+class BinaryDistribution(Distribution):
+    """This class is needed in order to create OS specific wheels."""
+
+    def has_ext_modules(self):
+        return True
+
+    def is_pure(self):
+        return False
+
 
 setup(
     name="keras-cv",
@@ -37,6 +49,7 @@ setup(
         "tests": ["flake8", "isort", "black", "pytest", "tensorflow-datasets"],
         "examples": ["tensorflow_datasets", "matplotlib"],
     },
+    distclass=BinaryDistribution,
     classifiers=[
         "Programming Language :: Python",
         "Programming Language :: Python :: 3.7",
@@ -48,4 +61,5 @@ setup(
         "Topic :: Software Development",
     ],
     packages=find_packages(exclude=("*_test.py",)),
+    include_package_data=True,
 )
