@@ -14,4 +14,3 @@
 
 from keras_cv.metrics.coco.mean_average_precision import COCOMeanAveragePrecision
 from keras_cv.metrics.coco.recall import COCORecall
-from keras_cv.metrics.iou_3d import IoU3D

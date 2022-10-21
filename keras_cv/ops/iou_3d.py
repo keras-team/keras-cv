@@ -12,15 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ============================================================================
-"""IoU3D metric using a custom TF op."""
+"""IoU3D using a custom TF op."""
 
-import tensorflow as tf
 from tensorflow.python.framework import load_library
 from tensorflow.python.platform import resource_loader
 
 
-class IoU3D(tf.keras.metrics.MeanMetricWrapper):
-    """Implements the IoU metric for 3D upright rotated bounding boxes.
+class IoU3D:
+    """Implements IoU computation for 3D upright rotated bounding boxes.
 
     Note that this is implemented using a custom TensorFlow op. Initializing an
     IoU3D object will attempt to load the binary for that op.
@@ -32,18 +31,18 @@ class IoU3D(tf.keras.metrics.MeanMetricWrapper):
     ```python
     y_true = [[0, 0, 0, 2, 2, 2, 0], [1, 1, 1, 2, 2, 2, 3 * math.pi / 4]]
     y_pred = [[1, 1, 1, 2, 2, 2, math.pi / 4], [1, 1, 1, 2, 2, 2, 0]]
-    metric = IoU3D()
-    metric.update_state(y_true, y_pred)
-    metric.result()
+    iou = IoU3D()
+    iou(y_true, y_pred)
     ```
     """
 
-    def __init__(self, name="IoU3D", **kwargs):
+    def __init__(self):
         pairwise_iou_op = load_library.load_op_library(
             resource_loader.get_path_to_datafile(
                 "../custom_ops/_keras_cv_custom_ops.so"
             )
         )
-        iou_3d = pairwise_iou_op.pairwise_iou3d
+        self.iou_3d = pairwise_iou_op.pairwise_iou3d
 
-        super().__init__(iou_3d, name=name, **kwargs)
+    def __call__(self, y_true, y_pred):
+        return self.iou_3d(y_true, y_pred)

@@ -16,12 +16,10 @@
 import math
 import os
 
-import numpy as np
 import pytest
 import tensorflow as tf
-from tensorflow import keras
 
-from keras_cv.metrics import IoU3D
+from keras_cv.ops import IoU3D
 
 
 class IoU3DTest(tf.test.TestCase):
@@ -45,35 +43,10 @@ class IoU3DTest(tf.test.TestCase):
         # Their IoU can be reduced to that of two overlapping squares that share a center with
         # the same offset of 135 degrees, which reduces to the square root of 0.5.
         expected_ious = [1 / 15, 0.5**0.5]
-        expected_mean_iou = np.mean(expected_ious)
-
-        iou_3d = IoU3D()
-        iou_3d.update_state(box_preds, box_gt)
-
-        self.assertAllClose(iou_3d.result(), expected_mean_iou)
-
-    @pytest.mark.skipif(
-        "TEST_CUSTOM_OPS" not in os.environ or os.environ["TEST_CUSTOM_OPS"] != "true",
-        reason="Requires binaries compiled from source",
-    )
-    def test_runs_inside_model(self):
-        i = keras.layers.Input((None, None, 6))
-        model = keras.Model(i, i)
 
         iou_3d = IoU3D()
 
-        # Two pairs of boxes with 100% IoU
-        y_true = np.array(
-            [[0, 0, 0, 2, 2, 2, 0], [1, 1, 1, 2, 2, 2, 3 * math.pi / 4]]
-        ).astype(np.float32)
-        y_pred = np.array(
-            [[0, 0, 0, 2, 2, 2, math.pi], [1, 1, 1, 2, 2, 2, math.pi / 4]]
-        ).astype(np.float32)
-
-        model.compile(metrics=[iou_3d])
-        model.evaluate(y_pred, y_true)
-
-        self.assertAllEqual(iou_3d.result(), 1.0)
+        self.assertAllClose(iou_3d(box_preds, box_gt), expected_ious)
 
 
 if __name__ == "__main__":
