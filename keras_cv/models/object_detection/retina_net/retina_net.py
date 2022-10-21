@@ -139,6 +139,7 @@ class RetinaNet(ObjectDetectionBaseModel):
         super().__init__(
             bounding_box_format=bounding_box_format,
             label_encoder=label_encoder,
+            name=name,
             **kwargs,
         )
         self.evaluate_train_time_metrics = evaluate_train_time_metrics
