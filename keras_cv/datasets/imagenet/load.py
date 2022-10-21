@@ -19,9 +19,13 @@ from tensorflow.keras import layers
 def parse_imagenet_example(img_size, crop_to_aspect_ratio):
     """Function to parse a TFRecord example into an image and label"""
 
-    resizing = layers.Resizing(
-        width=img_size[0], height=img_size[1], crop_to_aspect_ratio=crop_to_aspect_ratio
-    )
+    resizing = None
+    if img_size:
+        resizing = layers.Resizing(
+            width=img_size[0],
+            height=img_size[1],
+            crop_to_aspect_ratio=crop_to_aspect_ratio,
+        )
 
     def apply(example):
         # Read example
@@ -36,7 +40,8 @@ def parse_imagenet_example(img_size, crop_to_aspect_ratio):
         # Decode and resize image
         image_bytes = tf.reshape(parsed[image_key], shape=[])
         image = tf.io.decode_jpeg(image_bytes, channels=3)
-        image = resizing(image)
+        if resizing:
+            image = resizing(image)
 
         # Decode label
         label = tf.cast(tf.reshape(parsed[label_key], shape=()), dtype=tf.int32) - 1
@@ -54,7 +59,7 @@ def load(
     shuffle=True,
     shuffle_buffer=None,
     reshuffle_each_iteration=False,
-    img_size=(512, 512),
+    img_size=None,
     crop_to_aspect_ratio=True,
 ):
     """Loads the ImageNet dataset from TFRecords
@@ -70,18 +75,24 @@ def load(
         split: the split to load.  Should be one of "train" or "validation."
         tfrecord_path: the path to your preprocessed ImageNet TFRecords.
             See keras_cv/datasets/imagenet/README.md for preprocessing instructions.
-        batch_size: how many instances to include in batches after loading
+        batch_size: how many instances to include in batches after loading.
+            Should only be specified if img_size is specified (so that images
+            can be resized to the same size before batching).
         shuffle: whether or not to shuffle the dataset.  Defaults to True.
         shuffle_buffer: the size of the buffer to use in shuffling.
         reshuffle_each_iteration: whether to reshuffle the dataset on every epoch.
             Defaults to False.
-        img_size: the size to resize the images to. Defaults to (512, 512).
+        img_size: the size to resize the images to. Defaults to None, indicating
+            that images should not be resized.
 
     Returns:
         tf.data.Dataset containing ImageNet.  Each entry is a dictionary containing
         keys {"image": image, "label": label} where images is a Tensor of shape
         [H, W, 3] and label is a Tensor of shape [1000].
     """
+
+    if batch_size is not None and img_size is None:
+        raise ValueError("Batching can only be performed if images are resized.")
 
     num_splits = 1024 if split == "train" else 128
     filenames = [
