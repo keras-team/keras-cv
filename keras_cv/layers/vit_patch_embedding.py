@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+
 import math
 
 import tensorflow as tf
@@ -50,9 +51,10 @@ class PatchEmbedding(layers.Layer):
     def __init__(self, num_patches, project_dim, **kwargs):
         super().__init__(**kwargs)
         self.num_patches = num_patches
-        self.project_dim = layers.Dense(units=project_dim)
+        self.project_dim = project_dim
+        self.linear_projection = layers.Dense(self.project_dim)
         self.position_embedding = layers.Embedding(
-            input_dim=num_patches + 1, output_dim=project_dim
+            input_dim=self.num_patches + 1, output_dim=project_dim
         )
 
     def call(
@@ -73,7 +75,9 @@ class PatchEmbedding(layers.Layer):
             interpolate_height,
             patch_size,
         ):
-            encoded = self.project_dim(patch) + self.interpolate_positional_embeddings(
+            encoded = self.linear_projection(
+                patch
+            ) + self.interpolate_positional_embeddings(
                 self.position_embedding(positions),
                 interpolate_width,
                 interpolate_height,
@@ -88,44 +92,45 @@ class PatchEmbedding(layers.Layer):
                 f"`None of `interpolate_width`, `interpolate_height` and `patch_size` cannot be None if `interpolate` is True"
             )
         else:
-            encoded = self.project_dim(patch) + self.position_embedding(positions)
+            encoded = self.linear_projection(patch) + self.position_embedding(positions)
         return encoded
 
-    def interpolate_positional_embeddings(self, embeddings, height, width, patch_size):
+    def interpolate_positional_embeddings(self, embedding, height, width, patch_size):
         """
-        Allows for pre-trained position embedding interpolation. This trick allows you to fine-tune ViTs
+        Allows for pre-trained position embedding interpolation. This trick allows you to fine-tune a ViT
         on higher resolution images than it was trained on.
         Based on:
         https://github.com/huggingface/transformers/blob/main/src/transformers/models/vit/modeling_tf_vit.py
         """
 
-        seq_len, project_dim = embeddings.shape
-        num_positions = seq_len - 1
+        dimensionality = embedding.shape[-1]
 
-        if self.num_patches == num_positions and height == width:
-            return embeddings
+        class_token = tf.expand_dims(embedding[:1, :], 0)
+        patch_positional_embeddings = embedding[1:, :]
 
-        class_token = embeddings[:, :1]
-        embeddings = embeddings[:, 1:]
         h0 = height // patch_size
         w0 = width // patch_size
 
-        embeddings = tf.image.resize(
+        new_shape = tf.constant(int(math.sqrt(self.num_patches)))
+
+        interpolated_embeddings = tf.image.resize(
             images=tf.reshape(
-                embeddings,
+                patch_positional_embeddings,
                 shape=(
                     1,
-                    int(math.sqrt(num_positions)),
-                    int(math.sqrt(num_positions)),
-                    project_dim,
+                    new_shape,
+                    new_shape,
+                    dimensionality,
                 ),
             ),
             size=(h0, w0),
             method="bicubic",
         )
 
-        embeddings = tf.reshape(tensor=embeddings, shape=(1, -1, project_dim))
-        return tf.concat([class_token, embeddings], 1)
+        interpolated_embeddings = tf.reshape(
+            tensor=interpolated_embeddings, shape=(1, -1, dimensionality)
+        )
+        return tf.concat([class_token, interpolated_embeddings], 1)
 
     def get_config(self):
         config = {
