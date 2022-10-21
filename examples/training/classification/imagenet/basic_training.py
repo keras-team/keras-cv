@@ -100,11 +100,11 @@ flags.DEFINE_integer(
 flags.DEFINE_integer(
     "warmup_hold_steps_percentage",
     10,
-    "For how many steps expressed in percentage of total steps should the schedule hold the initial learning rate if we're using the warmup schedule",
+    "For how many steps expressed in percentage of total steps should the schedule hold the initial learning rate after warmup is finished, and before applying cosine decay.",
 )
 
 # An upper bound for number of epochs (this script uses EarlyStopping).
-flags.DEFINE_string("epochs", 1000, "Epochs to train for")
+flags.DEFINE_integer("epochs", 1000, "Epochs to train for")
 
 FLAGS = flags.FLAGS
 FLAGS(sys.argv)
@@ -276,12 +276,13 @@ class WarmUpCosineDecay(keras.optimizers.schedules.LearningRateSchedule):
 # If batched
 total_steps = len(train_ds) * FLAGS.epochs
 warmup_steps = int(FLAGS.warmup_steps_percentage * total_steps)
+hold_steps = int(FLAGS.warmup_hold_steps_percentage * total_steps)
 schedule = WarmUpCosineDecay(
     start_lr=0.0,
     target_lr=INITIAL_LEARNING_RATE,
     warmup_steps=warmup_steps,
     total_steps=total_steps,
-    hold=FLAGS.warmup_hold_steps_percentage,
+    hold=hold_steps,
 )
 
 """
