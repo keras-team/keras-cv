@@ -55,9 +55,13 @@ ALIASES = {
         "imagenet": "imagenet/classification-v0",
         "imagenet/classification": "imagenet/classification-v0",
     },
+    "efficientnetv2b1": {
+        "imagenet": "imagenet/classification-v0",
+        "imagenet/classification": "imagenet/classification-v0",
+    },
     "resnet50v2": {
-        "imagenet": "imagenet/classification-v1",
-        "imagenet/classification": "imagenet/classification-v1",
+        "imagenet": "imagenet/classification-v2",
+        "imagenet/classification": "imagenet/classification-v2",
     },
 }
 
@@ -78,10 +82,16 @@ WEIGHTS_CONFIG = {
         "imagenet/classification-v0": "da7975b6d4200dfdc3f859b0d028774e5e5dd4031d3e998a27dadc492dec4f3e",
         "imagenet/classification-v0-notop": "defe635bfa3cc3f2b9e89bfd53bbc3de28a1dc67026b4437a14f44476e7d0549",
     },
+    "efficientnetv2b1": {
+        "imagenet/classification-v0": "3f92fc9d7b141ec9e85ffe60d301fb49103ba17b148bdd638971a77f1b8db010",
+        "imagenet/classification-v0-notop": "359aaa5c1e863c8438d94052791e72ef29345d07703d06284e1069829f85932f",
+    },
     "resnet50v2": {
         "imagenet/classification-v0": "11bde945b54d1dca65101be2648048abca8a96a51a42820d87403486389790db",
         "imagenet/classification-v0-notop": "5b4aca4932c433d84f6aef58135472a4312ed2fa565d53fedcd6b0c24b54ab4a",
         "imagenet/classification-v1": "a32e5d9998e061527f6f947f36d8e794ad54dad71edcd8921cda7804912f3ee7",
         "imagenet/classification-v1-notop": "ac46b82c11070ab2f69673c41fbe5039c9eb686cca4f34cd1d79412fd136f1ae",
+        "imagenet/classification-v2": "5ee5a8ac650aaa59342bc48ffe770e6797a5550bcc35961e1d06685292c15921",
+        "imagenet/classification-v2-notop": "e711c83d6db7034871f6d345a476c8184eab99dbf3ffcec0c1d8445684890ad9",
     },
 }

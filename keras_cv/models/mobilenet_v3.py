@@ -32,20 +32,8 @@ channel_axis = -1
 
 BASE_DOCSTRING = """Instantiates the {name} architecture.
 
-    The following table describes the performance of MobileNets v3:
-    ------------------------------------------------------------------------
-    MACs stands for Multiply Adds
-    |Classification Checkpoint|MACs(M)|Parameters(M)|Top1 Accuracy|Pixel1 CPU(ms)|
-    |---|---|---|---|---|
-    | mobilenet_v3_large_1.0_224              | 217 | 5.4 |   75.6   |   51.2  |
-    | mobilenet_v3_large_0.75_224             | 155 | 4.0 |   73.3   |   39.8  |
-    | mobilenet_v3_large_minimalistic_1.0_224 | 209 | 3.9 |   72.3   |   44.1  |
-    | mobilenet_v3_small_1.0_224              | 66  | 2.9 |   68.1   |   15.8  |
-    | mobilenet_v3_small_0.75_224             | 44  | 2.4 |   65.4   |   12.8  |
-    | mobilenet_v3_small_minimalistic_1.0_224 | 65  | 2.0 |   61.9   |   12.2  |
-
     References:
-        - [Densely Connected Convolutional Networks (CVPR 2017)](https://arxiv.org/abs/1608.06993)
+        - [Searching for MobileNetV3](https://arxiv.org/abs/1905.02244)
         - [Based on the Original keras.applications MobileNetv3](https://github.com/keras-team/keras/blob/master/keras/applications/mobilenet_v3.py)
 
     This function returns a Keras {name} model.

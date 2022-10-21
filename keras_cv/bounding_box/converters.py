@@ -64,27 +64,40 @@ def _decode_deltas_to_boxes(
     anchors: tf.Tensor,
     boxes_delta: tf.Tensor,
     anchor_format: str,
+    box_format: str,
     variance: Optional[List[float]] = None,
 ):
     """Converts bounding_boxes from delta format to `center_yxhw`."""
     if variance and len(variance) != 4:
         raise ValueError(f"`variance` must be length 4, got {variance}")
-    encoded_anchors = convert_format(
-        anchors,
-        source=anchor_format,
-        target="center_yxhw",
-    )
-    if variance:
-        boxes_delta = boxes_delta * variance
-    # anchors be unbatched, boxes can either be batched or unbatched.
-    boxes = tf.concat(
-        [
-            boxes_delta[..., :2] * encoded_anchors[..., 2:] + encoded_anchors[..., :2],
-            tf.math.exp(boxes_delta[..., 2:]) * encoded_anchors[..., 2:],
-        ],
-        axis=-1,
-    )
-    return boxes
+    tf.nest.assert_same_structure(anchors, boxes_delta)
+
+    def decode_single_level(anchor, box_delta):
+        encoded_anchor = convert_format(
+            anchor,
+            source=anchor_format,
+            target="center_yxhw",
+        )
+        if variance:
+            box_delta = box_delta * variance
+        # anchors be unbatched, boxes can either be batched or unbatched.
+        box = tf.concat(
+            [
+                box_delta[..., :2] * encoded_anchor[..., 2:] + encoded_anchor[..., :2],
+                tf.math.exp(box_delta[..., 2:]) * encoded_anchor[..., 2:],
+            ],
+            axis=-1,
+        )
+        box = convert_format(box, source="center_yxhw", target=box_format)
+        return box
+
+    if isinstance(anchors, dict) and isinstance(boxes_delta, dict):
+        boxes = {}
+        for lvl, anchor in anchors.items():
+            boxes[lvl] = decode_single_level(anchor, boxes_delta[lvl])
+        return boxes
+    else:
+        return decode_single_level(anchors, boxes_delta)
 
 
 def _center_yxhw_to_xyxy(boxes, images=None, image_shape=None):

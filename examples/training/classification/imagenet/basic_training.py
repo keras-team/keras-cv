@@ -151,8 +151,7 @@ information about preparing this dataset at keras_cv/datasets/imagenet/README.md
 train_ds = imagenet.load(
     split="train",
     tfrecord_path=FLAGS.imagenet_path,
-    batch_size=BATCH_SIZE,
-    img_size=IMAGE_SIZE,
+    shuffle_buffer=BATCH_SIZE * 2,
 )
 test_ds = imagenet.load(
     split="validation",
@@ -165,6 +164,19 @@ test_ds = imagenet.load(
 Next, we augment our dataset.
 We define a set of augmentation layers and then apply them to our input dataset.
 """
+
+random_crop_and_resize = keras_cv.layers.RandomCropAndResize(
+    target_size=IMAGE_SIZE,
+    crop_area_factor=(0.8, 1),
+    aspect_ratio_factor=(3 / 4, 4 / 3),
+)
+
+
+@tf.function
+def crop_and_resize(img, label):
+    inputs = {"images": img, "labels": label}
+    inputs = random_crop_and_resize(inputs)
+    return inputs["images"], inputs["labels"]
 
 
 AUGMENT_LAYERS = [
@@ -182,8 +194,11 @@ def augment(img, label):
     return inputs["images"], inputs["labels"]
 
 
-train_ds = train_ds.map(augment, num_parallel_calls=tf.data.AUTOTUNE).prefetch(
-    tf.data.AUTOTUNE
+train_ds = (
+    train_ds.map(crop_and_resize, num_parallel_calls=tf.data.AUTOTUNE)
+    .batch(BATCH_SIZE)
+    .map(augment, num_parallel_calls=tf.data.AUTOTUNE)
+    .prefetch(tf.data.AUTOTUNE)
 )
 test_ds = test_ds.prefetch(tf.data.AUTOTUNE)
 

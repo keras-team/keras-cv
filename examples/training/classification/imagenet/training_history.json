@@ -64,6 +64,23 @@
             "validation_accuracy": "0.7527"
         }
     },
+    "efficientnetv2b1": {
+        "v0": {
+            "accelerators": 8,
+            "args": {
+                "batch_size": "64",
+                "initial_learning_rate": ".0125"
+            },
+            "contributor": "ianstenbit",
+            "epochs_trained": 288,
+            "script": {
+                "name": "basic_training.py",
+                "version": "e349ca5563b05548996f438fa03b2f34a8231ca3"
+            },
+            "tensorboard_logs": "https://tensorboard.dev/experiment/jQAQBh6LQUep18CDayP8ww/",
+            "validation_accuracy": "0.7560"
+        }
+    },
     "resnet50v2": {
         "v0": {
             "accelerators": 2,
@@ -93,6 +110,21 @@
             },
             "tensorboard_logs": "https://tensorboard.dev/experiment/TQ5r1EhXS4SDDagBD84rgA/",
             "validation_accuracy": "0.7550"
+        },
+        "v2": {
+            "accelerators": 8,
+            "args": {
+                "batch_size": "64",
+                "initial_learning_rate": ".0125"
+            },
+            "contributor": "ianstenbit",
+            "epochs_trained": 150,
+            "script": {
+                "name": "basic_training.py",
+                "version": "02b41ea91b972cdd29c27dbc4d79e6a0b4e90de2"
+            },
+            "tensorboard_logs": "https://tensorboard.dev/experiment/ReyWQHwETwah0nqlXl8BOA/",
+            "validation_accuracy": "0.7612"
         }
     },
     "script_authors": {
