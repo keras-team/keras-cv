@@ -43,7 +43,7 @@ class IoU3DTest(tf.test.TestCase):
         # Predicted box 1 shares an origin with ground truth box 1, but is rotated by 135 degrees.
         # Their IoU can be reduced to that of two overlapping squares that share a center with
         # the same offset of 135 degrees, which reduces to the square root of 0.5.
-        expected_ious = [[1/15, 1/15], [1, 0.5**0.5]]
+        expected_ious = [[1 / 15, 1 / 15], [1, 0.5**0.5]]
 
         iou_3d = IoU3D()
 
