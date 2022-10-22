@@ -19,9 +19,9 @@ Last modified: 2022/07/25
 Description: Use KerasCV to train an image classifier using modern best practices
 """
 
+import math
 import sys
 
-import numpy as np
 import tensorflow as tf
 from absl import flags
 from tensorflow import keras
@@ -91,16 +91,16 @@ flags.DEFINE_string(
     "String denoting the type of learning rate schedule to be used",
 )
 
-flags.DEFINE_integer(
+flags.DEFINE_float(
     "warmup_steps_percentage",
-    10,
-    "For how many steps expressed in percentage of total steps should the schedule warm up if we're using the warmup schedule",
+    0.1,
+    "For how many steps expressed in percentage (0..1 float) of total steps should the schedule warm up if we're using the warmup schedule",
 )
 
-flags.DEFINE_integer(
+flags.DEFINE_float(
     "warmup_hold_steps_percentage",
-    10,
-    "For how many steps expressed in percentage of total steps should the schedule hold the initial learning rate after warmup is finished, and before applying cosine decay.",
+    0.1,
+    "For how many steps expressed in percentage (0..1 float) of total steps should the schedule hold the initial learning rate after warmup is finished, and before applying cosine decay.",
 )
 
 # An upper bound for number of epochs (this script uses EarlyStopping).
@@ -139,6 +139,8 @@ print("Number of accelerators: ", strategy.num_replicas_in_sync)
 
 BATCH_SIZE = FLAGS.batch_size * strategy.num_replicas_in_sync
 INITIAL_LEARNING_RATE = FLAGS.initial_learning_rate * strategy.num_replicas_in_sync
+"""TFRecord-based tf.data.Dataset loads lazily so we can't get the length of the dataset. Temporary."""
+NUM_IMAGES = 1281167
 
 """
 ## Data loading
@@ -220,27 +222,30 @@ with strategy.scope():
 """
 Optional LR schedule with cosine decay instead of ReduceLROnPlateau
 TODO: Replace with Core Keras LRWarmup when it's released. This is a temporary solution.
+
+Convinience method for calculating LR at given timestep, for the WarmUpCosineDecay class.
 """
 
 
 def lr_warmup_cosine_decay(
-    global_step, warmup_steps, hold=0, total_steps=0, start_lr=0.0, target_lr=1e-3
+    global_step, warmup_steps, hold=0, total_steps=0, start_lr=0.0, target_lr=1e-2
 ):
     # Cosine decay
-    # There is no tf.pi :(
     learning_rate = (
         0.5
         * target_lr
         * (
             1
             + tf.cos(
-                tf.constant(np.pi)
-                * (global_step - warmup_steps - hold)
+                tf.constant(math.pi)
+                * tf.cast(global_step - warmup_steps - hold, tf.float32)
                 / float(total_steps - warmup_steps - hold)
             )
         )
     )
-    warmup_lr = target_lr * (global_step / warmup_steps)
+
+    target_lr = tf.cast(target_lr, tf.float32)
+    warmup_lr = tf.cast(target_lr * (global_step / warmup_steps), tf.float32)
 
     if hold > 0:
         learning_rate = tf.where(
@@ -251,8 +256,26 @@ def lr_warmup_cosine_decay(
     return learning_rate
 
 
+"""
+LearningRateSchedule implementing the learning rate warmup with cosine decay strategy.
+Learning rate warmup should help with initial training instability, 
+while the decay strategy may be variable, cosine being a popular choice.
+
+The schedule will start from 0.0 (or supplied start_lr) and gradually "warm up" linearly to the target_lr.
+From there, it will apply a cosine decay to the learning rate, after an optional holding period.
+
+args:
+    - [float] start_lr: default 0.0, the starting learning rate at the beginning of training from which the warmup starts
+    - [float] target_lr: default 1e-2, the target (initial) learning rate from which you'd usually start without a LR warmup schedule
+    - [int] warmup_steps: number of training steps to warm up for expressed in batches
+    - [int] total_steps: the total steps (epochs * number of batches per epoch) in the dataset
+    - [int] hold: optional argument to hold the target_lr before applying cosine decay on it
+
+"""
+
+
 class WarmUpCosineDecay(keras.optimizers.schedules.LearningRateSchedule):
-    def __init__(self, start_lr, target_lr, warmup_steps, total_steps, hold):
+    def __init__(self, warmup_steps, total_steps, hold, start_lr=0.0, target_lr=1e-2):
         super().__init__()
         self.start_lr = start_lr
         self.target_lr = target_lr
@@ -273,8 +296,7 @@ class WarmUpCosineDecay(keras.optimizers.schedules.LearningRateSchedule):
         return tf.where(step > self.total_steps, 0.0, lr, name="learning_rate")
 
 
-# If batched
-total_steps = len(train_ds) * FLAGS.epochs
+total_steps = (NUM_IMAGES // BATCH_SIZE) * FLAGS.epochs
 warmup_steps = int(FLAGS.warmup_steps_percentage * total_steps)
 hold_steps = int(FLAGS.warmup_hold_steps_percentage * total_steps)
 schedule = WarmUpCosineDecay(
@@ -291,7 +313,7 @@ Note that learning rate will decrease over time due to the ReduceLROnPlateau cal
 """
 
 if FLAGS.learning_rate_schedule == COSINE_DECAY_WITH_WARMUP:
-    optimizer = optimizers.SGD(learning_rate=schedule, momentum=0.9, global_clipnorm=10)
+    optimizer = optimizers.SGD(learning_rate=schedule, momentum=0.9)
 else:
     optimizer = optimizers.SGD(
         learning_rate=INITIAL_LEARNING_RATE, momentum=0.9, global_clipnorm=10
