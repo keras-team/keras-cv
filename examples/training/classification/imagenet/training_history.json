@@ -81,6 +81,23 @@
             "validation_accuracy": "0.7560"
         }
     },
+    "efficientnetv2b2": {
+        "v0": {
+            "accelerators": 8,
+            "args": {
+                "batch_size": "64",
+                "initial_learning_rate": ".0125"
+            },
+            "contributor": "ianstenbit",
+            "epochs_trained": 313,
+            "script": {
+                "name": "basic_training.py",
+                "version": "02b41ea91b972cdd29c27dbc4d79e6a0b4e90de2"
+            },
+            "tensorboard_logs": "https://tensorboard.dev/experiment/iyhN2qvIRrqj6C0Q328drg/",
+            "validation_accuracy": "0.7699"
+        }
+    },
     "resnet50v2": {
         "v0": {
             "accelerators": 2,
