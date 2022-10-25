@@ -113,7 +113,7 @@ Please report any issues running tests following these steps.
 
 Note that this will _not_ install custom ops. If you'd like to install custom ops from source, you can compile the binaries and add them to your local environment manually (requires Bazel):
 
-```
+```shell
 python build_deps/configure.py
 
 bazel build keras_cv/custom_ops:all
