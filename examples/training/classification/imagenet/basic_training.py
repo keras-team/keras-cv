@@ -258,7 +258,7 @@ def lr_warmup_cosine_decay(
 
 """
 LearningRateSchedule implementing the learning rate warmup with cosine decay strategy.
-Learning rate warmup should help with initial training instability, 
+Learning rate warmup should help with initial training instability,
 while the decay strategy may be variable, cosine being a popular choice.
 
 The schedule will start from 0.0 (or supplied start_lr) and gradually "warm up" linearly to the target_lr.
