@@ -29,8 +29,8 @@ strategy = tf.distribute.MirroredStrategy()
 local_batch = 2
 global_batch = local_batch * strategy.num_replicas_in_sync
 
-train_ds = load(split="train", data_dir="/home/overflow/code/")
-eval_ds = load(split="eval", data_dir="/home/overflow/code/")
+train_ds = load(split="train", data_dir=None)
+eval_ds = load(split="eval", data_dir=None)
 
 resize_layer = tf.keras.layers.Resizing(512, 512)
 
