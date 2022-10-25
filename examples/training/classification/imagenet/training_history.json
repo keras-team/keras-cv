@@ -146,7 +146,8 @@
     },
     "script_authors": {
         "basic_training.py": [
-            "ianstenbit"
+            "ianstenbit",
+            "DavidLandup0"
         ]
     }
 }

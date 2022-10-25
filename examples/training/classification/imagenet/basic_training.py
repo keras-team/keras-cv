@@ -19,6 +19,7 @@ Last modified: 2022/07/25
 Description: Use KerasCV to train an image classifier using modern best practices
 """
 
+import math
 import sys
 
 import tensorflow as tf
@@ -44,8 +45,7 @@ pip install keras-cv
 """
 
 """
-## Setup and flags
-
+## Setup, constants and flags
 """
 
 flags.DEFINE_string(
@@ -85,20 +85,40 @@ flags.DEFINE_string(
     "Keyword argument dictionary to pass to the constructor of the model being trained",
 )
 
+flags.DEFINE_string(
+    "learning_rate_schedule",
+    "ReduceOnPlateau",
+    "String denoting the type of learning rate schedule to be used",
+)
+
+flags.DEFINE_float(
+    "warmup_steps_percentage",
+    0.1,
+    "For how many steps expressed in percentage (0..1 float) of total steps should the schedule warm up if we're using the warmup schedule",
+)
+
+flags.DEFINE_float(
+    "warmup_hold_steps_percentage",
+    0.1,
+    "For how many steps expressed in percentage (0..1 float) of total steps should the schedule hold the initial learning rate after warmup is finished, and before applying cosine decay.",
+)
+
+# An upper bound for number of epochs (this script uses EarlyStopping).
+flags.DEFINE_integer("epochs", 1000, "Epochs to train for")
 
 FLAGS = flags.FLAGS
 FLAGS(sys.argv)
+
+CLASSES = 1000
+IMAGE_SIZE = (224, 224)
+REDUCE_ON_PLATEAU = "ReduceOnPlateau"
+COSINE_DECAY_WITH_WARMUP = "CosineDecayWithWarmup"
 
 if FLAGS.model_name not in models.__dict__:
     raise ValueError(f"Invalid model name: {FLAGS.model_name}")
 
 if FLAGS.use_mixed_precision:
     keras.mixed_precision.set_global_policy("mixed_float16")
-
-CLASSES = 1000
-IMAGE_SIZE = (224, 224)
-# An upper bound for number of epochs (this script uses EarlyStopping).
-EPOCHS = 1000
 
 """
 We start by detecting the type of accelerators we have available and picking an
@@ -110,6 +130,8 @@ batch size based on the number of accelerators being used.
 try:
     tpu = tf.distribute.cluster_resolver.TPUClusterResolver.connect()
     strategy = tf.distribute.TPUStrategy(tpu)
+    if FLAGS.use_mixed_precision:
+        keras.mixed_precision.set_global_policy("mixed_bfloat16")
 except ValueError:
     # MirroredStrategy is best for a single machine with one or multiple GPUs
     strategy = tf.distribute.MirroredStrategy()
@@ -117,6 +139,8 @@ print("Number of accelerators: ", strategy.num_replicas_in_sync)
 
 BATCH_SIZE = FLAGS.batch_size * strategy.num_replicas_in_sync
 INITIAL_LEARNING_RATE = FLAGS.initial_learning_rate * strategy.num_replicas_in_sync
+"""TFRecord-based tf.data.Dataset loads lazily so we can't get the length of the dataset. Temporary."""
+NUM_IMAGES = 1281167
 
 """
 ## Data loading
@@ -125,7 +149,6 @@ This guide uses the
 Note that this requires manual download and preprocessing. You can find more
 information about preparing this dataset at keras_cv/datasets/imagenet/README.md
 """
-
 
 train_ds = imagenet.load(
     split="train",
@@ -138,7 +161,6 @@ test_ds = imagenet.load(
     batch_size=BATCH_SIZE,
     img_size=IMAGE_SIZE,
 )
-
 
 """
 Next, we augment our dataset.
@@ -197,48 +219,134 @@ with strategy.scope():
         **eval(FLAGS.model_kwargs),
     )
 
+"""
+Optional LR schedule with cosine decay instead of ReduceLROnPlateau
+TODO: Replace with Core Keras LRWarmup when it's released. This is a temporary solution.
+
+Convinience method for calculating LR at given timestep, for the WarmUpCosineDecay class.
+"""
+
+
+def lr_warmup_cosine_decay(
+    global_step, warmup_steps, hold=0, total_steps=0, start_lr=0.0, target_lr=1e-2
+):
+    # Cosine decay
+    learning_rate = (
+        0.5
+        * target_lr
+        * (
+            1
+            + tf.cos(
+                tf.constant(math.pi)
+                * tf.cast(global_step - warmup_steps - hold, tf.float32)
+                / float(total_steps - warmup_steps - hold)
+            )
+        )
+    )
+
+    target_lr = tf.cast(target_lr, tf.float32)
+    warmup_lr = tf.cast(target_lr * (global_step / warmup_steps), tf.float32)
+
+    if hold > 0:
+        learning_rate = tf.where(
+            global_step > warmup_steps + hold, learning_rate, target_lr
+        )
+
+    learning_rate = tf.where(global_step < warmup_steps, warmup_lr, learning_rate)
+    return learning_rate
+
 
 """
-Next, we pick an optimizer. Here we use Adam with a constant learning rate.
-Note that learning rate will decrease over time due to the ReduceLROnPlateau callback.
+LearningRateSchedule implementing the learning rate warmup with cosine decay strategy.
+Learning rate warmup should help with initial training instability,
+while the decay strategy may be variable, cosine being a popular choice.
+
+The schedule will start from 0.0 (or supplied start_lr) and gradually "warm up" linearly to the target_lr.
+From there, it will apply a cosine decay to the learning rate, after an optional holding period.
+
+args:
+    - [float] start_lr: default 0.0, the starting learning rate at the beginning of training from which the warmup starts
+    - [float] target_lr: default 1e-2, the target (initial) learning rate from which you'd usually start without a LR warmup schedule
+    - [int] warmup_steps: number of training steps to warm up for expressed in batches
+    - [int] total_steps: the total steps (epochs * number of batches per epoch) in the dataset
+    - [int] hold: optional argument to hold the target_lr before applying cosine decay on it
+
 """
 
 
-optimizer = optimizers.SGD(
-    learning_rate=INITIAL_LEARNING_RATE, momentum=0.9, global_clipnorm=10
+class WarmUpCosineDecay(keras.optimizers.schedules.LearningRateSchedule):
+    def __init__(self, warmup_steps, total_steps, hold, start_lr=0.0, target_lr=1e-2):
+        super().__init__()
+        self.start_lr = start_lr
+        self.target_lr = target_lr
+        self.warmup_steps = warmup_steps
+        self.total_steps = total_steps
+        self.hold = hold
+
+    def __call__(self, step):
+        lr = lr_warmup_cosine_decay(
+            global_step=step,
+            total_steps=self.total_steps,
+            warmup_steps=self.warmup_steps,
+            start_lr=self.start_lr,
+            target_lr=self.target_lr,
+            hold=self.hold,
+        )
+
+        return tf.where(step > self.total_steps, 0.0, lr, name="learning_rate")
+
+
+total_steps = (NUM_IMAGES // BATCH_SIZE) * FLAGS.epochs
+warmup_steps = int(FLAGS.warmup_steps_percentage * total_steps)
+hold_steps = int(FLAGS.warmup_hold_steps_percentage * total_steps)
+schedule = WarmUpCosineDecay(
+    start_lr=0.0,
+    target_lr=INITIAL_LEARNING_RATE,
+    warmup_steps=warmup_steps,
+    total_steps=total_steps,
+    hold=hold_steps,
 )
 
 """
-Next, we pick a loss function. We use CategoricalCrossentropy with label smoothing.
+Next, we pick an optimizer. Here we use SGD.
+Note that learning rate will decrease over time due to the ReduceLROnPlateau callback or with the LRWarmup scheduler.
 """
 
-
+if FLAGS.learning_rate_schedule == COSINE_DECAY_WITH_WARMUP:
+    optimizer = optimizers.SGD(learning_rate=schedule, momentum=0.9)
+else:
+    optimizer = optimizers.SGD(
+        learning_rate=INITIAL_LEARNING_RATE, momentum=0.9, global_clipnorm=10
+    )
+"""
+Next, we pick a loss function. We use CategoricalCrossentropy with label smoothing.
+"""
 loss_fn = losses.CategoricalCrossentropy(label_smoothing=0.1)
 
 
 """
 Next, we specify the metrics that we want to track. For this example, we track accuracy.
 """
-
 with strategy.scope():
     training_metrics = [metrics.CategoricalAccuracy()]
-
 
 """
 As a last piece of configuration, we configure callbacks for the method.
 We use EarlyStopping, BackupAndRestore, and a model checkpointing callback.
 """
-
-
-callbacks = [
-    callbacks.ReduceLROnPlateau(
-        monitor="val_loss", factor=0.1, patience=10, min_delta=0.001, min_lr=0.0001
-    ),
+model_callbacks = [
     callbacks.EarlyStopping(patience=20),
     callbacks.BackupAndRestore(FLAGS.backup_path),
     callbacks.ModelCheckpoint(FLAGS.weights_path, save_weights_only=True),
     callbacks.TensorBoard(log_dir=FLAGS.tensorboard_path, write_steps_per_second=True),
 ]
+
+if FLAGS.learning_rate_schedule == REDUCE_ON_PLATEAU:
+    model_callbacks.append(
+        callbacks.ReduceLROnPlateau(
+            monitor="val_loss", factor=0.1, patience=10, min_delta=0.001, min_lr=0.0001
+        )
+    )
 
 
 """
@@ -255,7 +363,7 @@ model.compile(
 model.fit(
     train_ds,
     batch_size=BATCH_SIZE,
-    epochs=EPOCHS,
-    callbacks=callbacks,
+    epochs=FLAGS.epochs,
+    callbacks=model_callbacks,
     validation_data=test_ds,
 )
