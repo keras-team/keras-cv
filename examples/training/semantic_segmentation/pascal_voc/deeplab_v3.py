@@ -56,8 +56,8 @@ local_batch = 4
 global_batch = local_batch * strategy.num_replicas_in_sync
 base_lr = 0.007 * global_batch / 16
 
-train_ds = load(split="train", data_dir="/home/overflow/.keras/datasets/")
-eval_ds = load(split="eval", data_dir="/home/overflow/.keras/datasets/")
+train_ds = load(split="train", data_dir=None)
+eval_ds = load(split="eval", data_dir=None)
 
 resize_layer = tf.keras.layers.Resizing(512, 512)
 
@@ -89,7 +89,7 @@ with strategy.scope():
         values=[base_lr, 0.1 * base_lr],
     )
     backbone = keras_cv.models.ResNet50V2(
-        include_rescaling=True, weights="imagenet/classification-v2", include_top=False
+        include_rescaling=True, weights="imagenet", include_top=False
     ).as_backbone()
     model = DeepLabV3(classes=21, backbone=backbone, include_rescaling=True)
     optimizer = tf.keras.optimizers.SGD(
