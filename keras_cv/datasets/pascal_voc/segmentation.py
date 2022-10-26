@@ -37,8 +37,9 @@ import multiprocessing
 import os.path
 import tarfile
 import xml
-import scipy.io
 
+import numpy as np
+import scipy.io
 import tensorflow as tf
 
 VOC_URL = "http://host.robots.ox.ac.uk/pascal/VOC/voc2012/VOCtrainval_11-May-2012.tar"
@@ -127,37 +128,10 @@ def _maybe_populate_voc_color_mapping():
         VOC_PNG_COLOR_MAPPING = tf.constant(VOC_PNG_COLOR_MAPPING)
     return VOC_PNG_COLOR_MAPPING
 
-def _download_pascal_voc_2012(data_url, local_dir_path=None, override_extract=False):
-    """Fetch the original Pascal VOC 2012 from remote URL.
 
-    Args:
-        data_url: string, the URL for the Pascal VOC data, should be in a tar package.
-        local_dir_path: string, the local directory path to save the data.
-    Returns:
-        the path to the folder of extracted Pascal VOC data.
-    """
-    if not local_dir_path:
-        fname = "VOCtrainval_11-May-2012.tar"
-    else:
-        # Make sure the directory exists
-        if not os.path.exists(local_dir_path):
-            os.makedirs(local_dir_path, exist_ok=True)
-        fname = os.path.join(local_dir_path, "VOCtrainval_11-May-2012.tar")
-    data_directory = os.path.join(os.path.dirname(fname), "VOCdevkit/VOC2012")
-    if not override_extract and os.path.exists(data_directory):
-        logging.info("data directory %s already exist", data_directory)
-        return data_directory
-    data_file_path = tf.keras.utils.get_file(fname=fname, origin=data_url)
-    logging.info("Received data file from %s", data_file_path)
-    # Extra the data into the same directory as the tar file.
-    data_directory = os.path.dirname(data_file_path)
-
-    logging.info("Extract data into %s", data_directory)
-    with tarfile.open(data_file_path) as f:
-        f.extractall(data_directory)
-    return os.path.join(data_directory, "VOCdevkit", "VOC2012")
-
-def _download_data_file(data_url, extracted_dir, local_dir_path=None, override_extract=False):
+def _download_data_file(
+    data_url, extracted_dir, local_dir_path=None, override_extract=False
+):
     """Fetch the original VOC or Semantic Boundaries Dataset from remote URL.
 
     Args:
@@ -166,10 +140,10 @@ def _download_data_file(data_url, extracted_dir, local_dir_path=None, override_e
     Returns:
         the path to the folder of extracted SBD data.
     """
-    fname = os.path.basename(data_url)
     if not local_dir_path:
         # download to ~/.keras/datasets/fname
-        fname = os.path.basename(data_url)
+        cache_dir = os.path.join(os.path.expanduser("~"), ".keras/datasets")
+        fname = os.path.join(cache_dir, os.path.basename(data_url))
     else:
         # Make sure the directory exists
         if not os.path.exists(local_dir_path):
@@ -188,36 +162,6 @@ def _download_data_file(data_url, extracted_dir, local_dir_path=None, override_e
         f.extractall(data_directory)
     return os.path.join(data_directory, extracted_dir)
 
-def _download_sbd(data_url, local_dir_path=None, override_extract=False):
-    """Fetch the original Semantic Boundaries Dataset 2011 from remote URL.
-
-    Args:
-        data_url: string, the URL for the SBD data, should be in a zipped tar package.
-        local_dir_path: string, the local directory path to save the data.
-    Returns:
-        the path to the folder of extracted SBD data.
-    """
-    if not local_dir_path:
-        # download to ~/.keras/datasets/benchmark.tgz
-        fname = "benchmark.tgz"
-    else:
-        # Make sure the directory exists
-        if not os.path.exists(local_dir_path):
-            os.makedirs(local_dir_path, exist_ok=True)
-        # download to local_dir_path/benchmark.tgz
-        fname = os.path.join(local_dir_path, "benchmark.tgz")
-    data_directory = os.path.join(os.path.dirname(fname), "benchmark_RELEASE/dataset")
-    if not override_extract and os.path.exists(data_directory):
-        logging.info("data directory %s already exist", data_directory)
-        return data_directory
-    data_file_path = tf.keras.utils.get_file(fname=fname, origin=data_url)
-    # Extra the data into the same directory as the tar file.
-    data_directory = os.path.dirname(data_file_path)
-    logging.info("Extract data into %s", data_directory)
-    with tarfile.open(data_file_path) as f:
-        f.extractall(data_directory)
-    return os.path.join(data_directory, "benchmark_RELEASE", "dataset")
-    
 
 def _parse_annotation_data(annotation_file_path):
     """Parse the annotation XML file for the image.
@@ -259,7 +203,11 @@ def _parse_annotation_data(annotation_file_path):
 
 
 def _get_image_ids(data_dir, split):
-    data_file_mapping = {"train": "train.txt", "eval": "val.txt", None: "trainval.txt"}
+    data_file_mapping = {
+        "train": "train.txt",
+        "eval": "val.txt",
+        "trainval": "trainval.txt",
+    }
     with tf.io.gfile.GFile(
         os.path.join(data_dir, "ImageSets", "Segmentation", data_file_mapping[split]),
         "r",
@@ -268,8 +216,9 @@ def _get_image_ids(data_dir, split):
         logging.info(f"Received {len(image_ids)} images for {split} dataset.")
         return image_ids
 
+
 def _get_sbd_image_ids(data_dir, split):
-    data_file_mapping = {"train": "train.txt", "eval": "val.txt"}
+    data_file_mapping = {"sbd_train": "train.txt", "sbd_eval": "val.txt"}
     with tf.io.gfile.GFile(
         os.path.join(data_dir, data_file_mapping[split]),
         "r",
@@ -277,6 +226,7 @@ def _get_sbd_image_ids(data_dir, split):
         image_ids = f.read().splitlines()
         logging.info(f"Received {len(image_ids)} images for {split} dataset.")
         return image_ids
+
 
 def _parse_single_image(image_file_path):
     data_dir, image_file_name = os.path.split(image_file_path)
@@ -303,16 +253,13 @@ def _parse_single_image(image_file_path):
     result["labels"] = sorted(labels)
     return result
 
+
 def _parse_single_sbd_image(image_file_path):
     data_dir, image_file_name = os.path.split(image_file_path)
     data_dir = os.path.normpath(os.path.join(data_dir, os.path.pardir))
     image_id, _ = os.path.splitext(image_file_name)
-    class_segmentation_file_path = os.path.join(
-        data_dir, "cls", image_id + ".mat"
-    )
-    object_segmentation_file_path = os.path.join(
-        data_dir, "inst", image_id + ".mat"
-    )
+    class_segmentation_file_path = os.path.join(data_dir, "cls", image_id + ".mat")
+    object_segmentation_file_path = os.path.join(data_dir, "inst", image_id + ".mat")
     result = {
         "image/filename": image_id + ".jpg",
         "image/file_path": image_file_path,
@@ -320,6 +267,7 @@ def _parse_single_sbd_image(image_file_path):
         "segmentation/object/file_path": object_segmentation_file_path,
     }
     return result
+
 
 def _build_metadata(data_dir, image_ids):
     # Parallel process all the images.
@@ -354,15 +302,14 @@ def _build_metadata(data_dir, image_ids):
         result["objects/" + key] = values
     return result
 
+
 def _build_sbd_metadata(data_dir, image_ids):
     # Parallel process all the images.
-    image_file_paths = [
-        os.path.join(data_dir, "img", i + ".jpg") for i in image_ids
-    ]
+    image_file_paths = [os.path.join(data_dir, "img", i + ".jpg") for i in image_ids]
     pool_size = 10 if len(image_ids) > 10 else len(image_ids)
     with multiprocessing.Pool(pool_size) as p:
         metadata = p.map(_parse_single_sbd_image, image_file_paths)
-    
+
     keys = [
         "image/filename",
         "image/file_path",
@@ -416,23 +363,20 @@ def _load_images(example):
 
 
 def _load_sbd_images(image_file_path, seg_cls_file_path, seg_obj_file_path):
-    # print("example is {}".format(example))
-    # if "image/file_path" not in example:
-    #     print("examples is {}".format(example))
-    # image_file_path = example.pop("image/file_path")
-    # segmentation_class_file_path = example.pop("segmentation/class/file_path")
-    # segmentation_object_file_path = example.pop("segmentation/object/file_path")
     image = tf.io.read_file(image_file_path)
     image = tf.image.decode_jpeg(image)
 
     segmentation_class_mask = scipy.io.loadmat(seg_cls_file_path)
     segmentation_class_mask = segmentation_class_mask["GTcls"]["Segmentation"][0][0]
+    segmentation_class_mask = segmentation_class_mask[..., np.newaxis]
 
     segmentation_object_mask = scipy.io.loadmat(seg_obj_file_path)
     segmentation_object_mask = segmentation_object_mask["GTinst"]["Segmentation"][0][0]
+    segmentation_object_mask = segmentation_object_mask[..., np.newaxis]
+
     return {
-        "image": image, 
-        "class_segmentation": segmentation_class_mask, 
+        "image": image,
+        "class_segmentation": segmentation_class_mask,
         "object_segmentation": segmentation_object_mask,
     }
 
@@ -456,27 +400,31 @@ def _build_dataset_from_metadata(metadata):
     dataset = dataset.map(_load_images, num_parallel_calls=tf.data.AUTOTUNE)
     return dataset
 
+
 def _build_sbd_dataset_from_metadata(metadata):
-    img_filename = metadata["image/filename"]
     img_filepath = metadata["image/file_path"]
     cls_filepath = metadata["segmentation/class/file_path"]
     obj_file_path = metadata["segmentation/object/file_path"]
+
     def md_gen():
         for img_fp, cls_fp, obj_fp in zip(img_filepath, cls_filepath, obj_file_path):
             yield _load_sbd_images(img_fp, cls_fp, obj_fp)
-    
+
     dataset = tf.data.Dataset.from_generator(
         md_gen,
         output_signature=(
             {
                 "image": tf.TensorSpec(shape=(None, None, 3), dtype=tf.uint8),
-                "class_segmentation": tf.TensorSpec(shape=(None, None), dtype=tf.uint8),
-                "object_segmentation": tf.TensorSpec(shape=(None, None), dtype=tf.uint8),
+                "class_segmentation": tf.TensorSpec(
+                    shape=(None, None, 1), dtype=tf.uint8
+                ),
+                "object_segmentation": tf.TensorSpec(
+                    shape=(None, None, 1), dtype=tf.uint8
+                ),
             }
-        ))
+        ),
+    )
 
-    # dataset = tf.data.Dataset.from_tensor_slices(metadata)
-    # dataset = dataset.map(_load_sbd_images, num_parallel_calls=tf.data.AUTOTUNE)
     return dataset
 
 
@@ -496,7 +444,7 @@ def load(
             download the data file, and unzip. It will be used as a cach directory.
             Default to None, and `~/.keras/pascal_voc_2012` will be used.
     """
-    supported_split_value = ["train", "eval", None]
+    supported_split_value = ["train", "eval", "trainval", "sbd_train", "sbd_eval"]
     if split not in supported_split_value:
         raise ValueError(
             f"The support value for `split` are {supported_split_value}. "
@@ -506,7 +454,19 @@ def load(
     if data_dir is not None:
         data_dir = os.path.expanduser(data_dir)
 
-    data_dir = _download_pascal_voc_2012(VOC_URL, local_dir_path=data_dir)
+    if "sbd" in split:
+        return _load_sbd(split, data_dir)
+    else:
+        return _load_voc(split, data_dir)
+
+
+def _load_voc(
+    split="train",
+    data_dir=None,
+):
+    data_dir = _download_data_file(
+        VOC_URL, extracted_dir="VOCdevkit/VOC2012", local_dir_path=data_dir
+    )
     image_ids = _get_image_ids(data_dir, split)
     # len(metadata) = #samples, metadata[i] is a dict.
     metadata = _build_metadata(data_dir, image_ids)
@@ -515,12 +475,16 @@ def load(
 
     return dataset
 
-def load_sbd(
-    split="train",
+
+def _load_sbd(
+    split="sbd_train",
     data_dir=None,
 ):
-    data_dir = _download_data_file(SBD_URL, extracted_dir="benchmark_RELEASE/dataset", local_dir_path=data_dir)
+    data_dir = _download_data_file(
+        SBD_URL, extracted_dir="benchmark_RELEASE/dataset", local_dir_path=data_dir
+    )
     image_ids = _get_sbd_image_ids(data_dir, split)
+    # len(metadata) = #samples, metadata[i] is a dict.
     metadata = _build_sbd_metadata(data_dir, image_ids)
     dataset = _build_sbd_dataset_from_metadata(metadata)
     return dataset
