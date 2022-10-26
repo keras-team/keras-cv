@@ -52,7 +52,7 @@ print("Number of accelerators: ", strategy.num_replicas_in_sync)
 
 # parameters from FasterRCNN [paper](https://arxiv.org/pdf/1506.01497.pdf)
 
-local_batch = 2
+local_batch = 4
 global_batch = local_batch * strategy.num_replicas_in_sync
 base_lr = 0.007 * global_batch / 16
 
