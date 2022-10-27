@@ -133,19 +133,21 @@ def _download_pascal_voc_2012(data_url, local_dir_path=None, override_extract=Fa
         if not os.path.exists(local_dir_path):
             os.makedirs(local_dir_path, exist_ok=True)
         fname = os.path.join(local_dir_path, "data.tar")
+    # Note that the extracted data will be located in a folder `VOCdevkit` (from tar).
+    # If the folder is already there and `override_extract` is False, then we will skip
+    # extracting the folder again.
+    data_directory = os.path.join(os.path.dirname(fname), "VOCdevkit/VOC2012")
+    if not override_extract and os.path.exists(data_directory):
+        logging.info("data directory %s already exist", data_directory)
+        return data_directory
     data_file_path = tf.keras.utils.get_file(fname=fname, origin=data_url)
     logging.info("Received data file from %s", data_file_path)
     # Extra the data into the same directory as the tar file.
     data_directory = os.path.dirname(data_file_path)
-    # Note that the extracted data will be located in a folder `VOCdevkit` (from tar).
-    # If the folder is already there and `override_extract` is False, then we will skip
-    # extracting the folder again.
-    if override_extract or not os.path.exists(
-        os.path.join(data_directory, "VOCdevkit")
-    ):
-        logging.info("Extract data into %s", data_directory)
-        with tarfile.open(data_file_path) as f:
-            f.extractall(data_directory)
+
+    logging.info("Extract data into %s", data_directory)
+    with tarfile.open(data_file_path) as f:
+        f.extractall(data_directory)
     return os.path.join(data_directory, "VOCdevkit", "VOC2012")
 
 
@@ -259,6 +261,10 @@ def _build_metadata(data_dir, image_ids):
     return result
 
 
+# With jit_compile=True, there will be 0.4 sec compilation overhead, but save about 0.2
+# sec per 1000 images. See https://github.com/keras-team/keras-cv/pull/943#discussion_r1001092882
+# for more details.
+@tf.function(jit_compile=True)
 def _decode_png_mask(mask):
     """Decode the raw PNG image and convert it to 2D tensor with probably class."""
     # Cast the mask to int32 since the original uint8 will overflow when multiple with 256

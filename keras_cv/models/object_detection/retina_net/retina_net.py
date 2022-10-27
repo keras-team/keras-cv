@@ -16,6 +16,7 @@ import numpy as np
 import tensorflow as tf
 from tensorflow import keras
 
+import keras_cv
 from keras_cv import bounding_box
 from keras_cv import layers as cv_layers
 from keras_cv.models.object_detection.object_detection_base_model import (
@@ -99,7 +100,6 @@ class RetinaNet(ObjectDetectionBaseModel):
             label decoding and COCO metric evaluation.  For example, on a single GPU on
             the PascalVOC dataset epoch time goes from 3 minutes to 30 minutes with this
             set to `True`. Defaults to `False`.
-        name: (Optional) name for the model, defaults to `"RetinaNet"`.
     """
 
     def __init__(
@@ -285,8 +285,8 @@ class RetinaNet(ObjectDetectionBaseModel):
                 "Instead, please pass `box_loss` and `classification_loss`. "
                 "`loss` will be ignored during training."
             )
-        self.box_loss = box_loss
-        self.classification_loss = classification_loss
+        box_loss = _parse_box_loss(box_loss)
+        classification_loss = _parse_classification_loss(classification_loss)
         metrics = metrics or []
 
         if hasattr(classification_loss, "from_logits"):
@@ -305,6 +305,9 @@ class RetinaNet(ObjectDetectionBaseModel):
                     f"Got `box_loss.bounding_box_format={box_loss.bounding_box_format}`, "
                     f"want `box_loss.bounding_box_format={self.bounding_box_format}`"
                 )
+
+        self.box_loss = box_loss
+        self.classification_loss = classification_loss
 
         if len(metrics) != 0:
             self._metrics_bounding_box_format = metrics[0].bounding_box_format
@@ -326,7 +329,6 @@ class RetinaNet(ObjectDetectionBaseModel):
             )
 
     def compute_losses(self, y_true, y_pred):
-
         if y_true.shape[-1] != 5:
             raise ValueError(
                 "y_true should have shape (None, None, 5).  Got "
@@ -504,6 +506,38 @@ def _parse_backbone(backbone, include_rescaling, backbone_weights):
             f"Received backbone={backbone}."
         )
     return backbone
+
+
+def _parse_box_loss(loss):
+    if not isinstance(loss, str):
+        # support arbitrary callables
+        return loss
+
+    # case insensitive comparison
+    if loss.lower() == "smoothl1":
+        return keras_cv.losses.SmoothL1Loss(l1_cutoff=1.0, reduction="none")
+    if loss.lower() == "huber":
+        return keras.losses.Huber(reduction="none")
+
+    raise ValueError(
+        "Expected `box_loss` to be either a Keras Loss, "
+        f"callable, or the string 'SmoothL1'.  Got loss={loss}."
+    )
+
+
+def _parse_classification_loss(loss):
+    if not isinstance(loss, str):
+        # support arbitrary callables
+        return loss
+
+    # case insensitive comparison
+    if loss.lower() == "focal":
+        return keras_cv.losses.FocalLoss(from_logits=True, reduction="none")
+
+    raise ValueError(
+        "Expected `classification_loss` to be either a Keras Loss, "
+        f"callable, or the string 'Focal'.  Got loss={loss}."
+    )
 
 
 def _resnet50_backbone(include_rescaling, backbone_weights):

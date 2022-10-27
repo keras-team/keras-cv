@@ -4,7 +4,7 @@
 		"dockerfile": "Dockerfile",
 		"args": { 
 			"VERSION": "2.10.0"
-			// Uncomment this if GPU support it is required
+			// Uncomment this if GPU support is required
 			// "VERSION": "2.10.0-gpu",
 		}
 	},
@@ -32,6 +32,13 @@
 			"version": "os-provided"
 		}
 	},
+
+	// TODO: Improve to allow dynamic runArgs, see microsoft/vscode-remote-release#3972
+	// Uncomment this if GPU support is required
+	// "runArgs": [
+    	//     "--gpus=all"
+	// ],
+
 	"onCreateCommand": "locale-gen \"en_US.UTF-8\""
 	// Optional: install pre-commit hooks
 	// "postCreateCommand": "git config core.hooksPath .github/.githooks"

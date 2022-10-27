@@ -128,6 +128,26 @@ class DeepLabV3(tf.keras.models.Model):
         decoder_output = self.decoder(backbone_output, training=training)
         return self.segmentation_head(decoder_output, training=training)
 
+    # TODO(tanzhenyu): consolidate how regularization should be applied to KerasCV.
+    def compile(self, weight_decay=0.0001, **kwargs):
+        self.weight_decay = weight_decay
+        super().compile(**kwargs)
+
+    def train_step(self, data):
+        images, y_true, _ = tf.keras.utils.unpack_x_y_sample_weight(data)
+        with tf.GradientTape() as tape:
+            y_pred = self(images, training=True)
+            total_loss = self.compute_loss(images, y_true, y_pred)
+            reg_losses = []
+            if self.weight_decay:
+                for var in self.trainable_variables:
+                    if "bn" not in var.name:
+                        reg_losses.append(0.0001 * tf.nn.l2_loss(var))
+                l2_loss = tf.math.add_n(reg_losses)
+                total_loss += l2_loss
+        self.optimizer.minimize(total_loss, self.trainable_variables, tape=tape)
+        return self.compute_metrics(images, y_true, y_pred, sample_weight=None)
+
     def get_config(self):
         config = {
             "classes": self.classes,
