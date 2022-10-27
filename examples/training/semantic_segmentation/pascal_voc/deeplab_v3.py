@@ -56,8 +56,8 @@ local_batch = 4
 global_batch = local_batch * strategy.num_replicas_in_sync
 base_lr = 0.007 * global_batch / 16
 
-train_ds = load(split="train", data_dir=None)
-eval_ds = load(split="eval", data_dir=None)
+train_ds = load(split="sbd_train", data_dir=None)
+eval_ds = load(split="sbd_eval", data_dir=None)
 
 resize_layer = tf.keras.layers.Resizing(512, 512)
 
