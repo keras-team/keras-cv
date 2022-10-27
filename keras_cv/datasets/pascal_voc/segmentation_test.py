@@ -20,6 +20,8 @@ from absl import flags
 
 from keras_cv.datasets.pascal_voc import segmentation
 
+extracted_dir = os.path.join("VOCdevkit", "VOC2012")
+
 
 class PascalVocSegmentationDataTest(tf.test.TestCase):
     def setUp(self):
@@ -47,7 +49,7 @@ class PascalVocSegmentationDataTest(tf.test.TestCase):
         local_data_dir = os.path.join(self.tempdir, "pascal_voc_2012/")
         test_data_dir = segmentation._download_data_file(
             data_url=pathlib.Path(self.test_data_tar_path).as_uri(),
-            extracted_dir="VOCdevkit/VOC2012",
+            extracted_dir=extracted_dir,
             local_dir_path=local_data_dir,
         )
 
@@ -67,7 +69,7 @@ class PascalVocSegmentationDataTest(tf.test.TestCase):
         local_data_dir = os.path.join(self.tempdir, "pascal_voc_2012/")
         test_data_dir = segmentation._download_data_file(
             data_url=pathlib.Path(self.test_data_tar_path).as_uri(),
-            extracted_dir="VOCdevkit/VOC2012",
+            extracted_dir=extracted_dir,
             local_dir_path=local_data_dir,
         )
 
@@ -76,7 +78,7 @@ class PascalVocSegmentationDataTest(tf.test.TestCase):
         os.makedirs(os.path.join(test_data_dir, "Annotations", "dummy_dir"))
         segmentation._download_data_file(
             data_url=pathlib.Path(self.test_data_tar_path).as_uri(),
-            extracted_dir="VOCdevkit/VOC2012",
+            extracted_dir=extracted_dir,
             local_dir_path=local_data_dir,
             override_extract=False,
         )
@@ -88,7 +90,7 @@ class PascalVocSegmentationDataTest(tf.test.TestCase):
         local_data_dir = os.path.join(self.tempdir, "pascal_voc_2012/")
         data_dir = segmentation._download_data_file(
             data_url=pathlib.Path(self.test_data_tar_path).as_uri(),
-            extracted_dir="VOCdevkit/VOC2012",
+            extracted_dir=extracted_dir,
             local_dir_path=local_data_dir,
         )
         train_ids = ["2007_000032", "2007_000039", "2007_000063"]
@@ -104,7 +106,7 @@ class PascalVocSegmentationDataTest(tf.test.TestCase):
         local_data_dir = os.path.join(self.tempdir, "pascal_voc_2012/")
         data_dir = segmentation._download_data_file(
             data_url=pathlib.Path(self.test_data_tar_path).as_uri(),
-            extracted_dir="VOCdevkit/VOC2012",
+            extracted_dir=extracted_dir,
             local_dir_path=local_data_dir,
         )
         # One of the train file.
@@ -150,7 +152,7 @@ class PascalVocSegmentationDataTest(tf.test.TestCase):
         local_data_dir = os.path.join(self.tempdir, "pascal_voc_2012/")
         data_dir = segmentation._download_data_file(
             data_url=pathlib.Path(self.test_data_tar_path).as_uri(),
-            extracted_dir="VOCdevkit/VOC2012",
+            extracted_dir=extracted_dir,
             local_dir_path=local_data_dir,
         )
         mask_file = os.path.join(data_dir, "SegmentationClass", "2007_000032.png")
@@ -170,7 +172,7 @@ class PascalVocSegmentationDataTest(tf.test.TestCase):
         local_data_dir = os.path.join(self.tempdir, "pascal_voc_2012/")
         data_dir = segmentation._download_data_file(
             data_url=pathlib.Path(self.test_data_tar_path).as_uri(),
-            extracted_dir="VOCdevkit/VOC2012",
+            extracted_dir=extracted_dir,
             local_dir_path=local_data_dir,
         )
         image_file = os.path.join(data_dir, "JPEGImages", "2007_000032.jpg")
@@ -224,7 +226,7 @@ class PascalVocSegmentationDataTest(tf.test.TestCase):
         local_data_dir = os.path.join(self.tempdir, "pascal_voc_2012/")
         data_dir = segmentation._download_data_file(
             data_url=pathlib.Path(self.test_data_tar_path).as_uri(),
-            extracted_dir="VOCdevkit/VOC2012",
+            extracted_dir=extracted_dir,
             local_dir_path=local_data_dir,
         )
         image_ids = segmentation._get_image_ids(data_dir, "trainval")
@@ -260,7 +262,7 @@ class PascalVocSegmentationDataTest(tf.test.TestCase):
         local_data_dir = os.path.join(self.tempdir, "pascal_voc_2012/")
         data_dir = segmentation._download_data_file(
             data_url=pathlib.Path(self.test_data_tar_path).as_uri(),
-            extracted_dir="VOCdevkit/VOC2012",
+            extracted_dir=extracted_dir,
             local_dir_path=local_data_dir,
         )
         image_ids = segmentation._get_image_ids(data_dir, "train")

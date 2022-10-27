@@ -469,8 +469,9 @@ def _load_voc(
     split="train",
     data_dir=None,
 ):
+    extracted_dir = os.path.join("VOCdevkit", "VOC2012")
     data_dir = _download_data_file(
-        VOC_URL, extracted_dir="VOCdevkit/VOC2012", local_dir_path=data_dir
+        VOC_URL, extracted_dir=extracted_dir, local_dir_path=data_dir
     )
     image_ids = _get_image_ids(data_dir, split)
     # len(metadata) = #samples, metadata[i] is a dict.
@@ -485,8 +486,9 @@ def _load_sbd(
     split="sbd_train",
     data_dir=None,
 ):
+    extracted_dir = os.path.join("benchmark_RELEASE", "dataset")
     data_dir = _download_data_file(
-        SBD_URL, extracted_dir="benchmark_RELEASE/dataset", local_dir_path=data_dir
+        SBD_URL, extracted_dir=extracted_dir, local_dir_path=data_dir
     )
     image_ids = _get_sbd_image_ids(data_dir, split)
     # len(metadata) = #samples, metadata[i] is a dict.
