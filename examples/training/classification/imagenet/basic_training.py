@@ -244,8 +244,8 @@ def lr_warmup_cosine_decay(
         )
     )
 
-    target_lr = tf.cast(target_lr, tf.float32)
     warmup_lr = tf.cast(target_lr * (global_step / warmup_steps), tf.float32)
+    target_lr = tf.cast(target_lr, tf.float32)
 
     if hold > 0:
         learning_rate = tf.where(
