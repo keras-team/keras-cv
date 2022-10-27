@@ -135,10 +135,10 @@ def _download_data_file(
     """Fetch the original VOC or Semantic Boundaries Dataset from remote URL.
 
     Args:
-        data_url: string, the URL for the SBD data, should be in a zipped tar package.
+        data_url: string, the URL for the data to be downloaded, should be in a zipped tar package.
         local_dir_path: string, the local directory path to save the data.
     Returns:
-        the path to the folder of extracted SBD data.
+        the path to the folder of extracted data.
     """
     if not local_dir_path:
         # download to ~/.keras/datasets/fname
@@ -429,7 +429,7 @@ def _build_sbd_dataset_from_metadata(metadata):
 
 
 def load(
-    split="train",
+    split="sbd_train",
     data_dir=None,
 ):
     """Load the Pacal VOC 2012 dataset.
@@ -437,9 +437,12 @@ def load(
     This function will download the data tar file from remote if needed, and untar to
     the local `data_dir`, and build dataset from it.
 
+    It supports both VOC2012 and Semantic Boundaries Dataset (SBD)
+
     Args:
-        split: string, can be 'train', 'eval', or None. When None, both train and eval data
-            will be loaded. Default to `train`
+        split: string, can be 'train', 'eval', 'trainval", 'sbd_train', or 'sbd_eval'.
+            'sbd_train' represents the training dataset for SBD dataset, while 'train' represents
+            the training dataset for VOC2012 dataset. Default to `sbd_train`.
         data_dir: string, local directory path for the loaded data. This will be used to
             download the data file, and unzip. It will be used as a cach directory.
             Default to None, and `~/.keras/pascal_voc_2012` will be used.
