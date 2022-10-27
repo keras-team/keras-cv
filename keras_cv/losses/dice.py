@@ -111,7 +111,7 @@ class CategoricalDice(keras.losses.Loss):
       Usage with the `compile()` API:
       ```python
       model.compile(optimizer='adam', loss=keras_cv.losses.CategoricalDice())
-    ```
+      ```
     """
 
     def __init__(
@@ -143,7 +143,7 @@ class CategoricalDice(keras.losses.Loss):
             axis: An optional sequence of `int` specifying the axis to perform reduce
                 ops for raw dice score. For 2D model, it should be [1,2] or [2,3]
                 for the `channels_last` or `channels_first` format respectively. And for
-                3D mdoel, it should be [1,2,3] or [2,3,4] for the `channels_last` or
+                3D model, it should be [1,2,3] or [2,3,4] for the `channels_last` or
                 `channel_first` format respectively.
             loss_type: An optional `str` specifying the type of the dice score to
                 compute. Compute generalized or adaptive dice score if loss type is
@@ -154,7 +154,7 @@ class CategoricalDice(keras.losses.Loss):
                 `0.1`, use `0.1 / num_classes` for non-target labels and
                 `0.9 + 0.1 / num_classes` for target labels. Default to `0.0`.
             epsilon: Small float added to dice score to avoid dividing by zero.
-                Default to `1e-07`.
+                Default to `1e-07` (`backend.epsilon`).
             name: Optional name for the instance.
                 Defaults to 'dice'.
         """
@@ -232,7 +232,7 @@ class SparseDice(keras.losses.Loss):
 
       Use this sparse dice loss function when there are 2D and 3D semantic
       segmentaiton task. We expect labels to be provided in a `sparse`
-      representation.
+      representation (integer-encoded).
 
       In the snippet below, there are `num_classes` times channels per
       sample. The shape of `y_true` and `y_pred` are
@@ -254,7 +254,7 @@ class SparseDice(keras.losses.Loss):
       Usage with the `compile()` API:
       ```python
       model.compile(optimizer='adam', loss=keras_cv.losses.SparseDice())
-    ```
+      ```
     """
 
     def __init__(
@@ -284,20 +284,20 @@ class SparseDice(keras.losses.Loss):
                 to evaluate the loss. If it's `None`, all classes will be used to
                 calculate the loss. Default to `None`.
             axis: An optional sequence of `int` specifying the axis to perform reduce
-                ops for raw dice score. For 2D model, it should be [1,2] or [2,3]
+                ops for raw dice score. For 2D models, it should be [1,2] or [2,3]
                 for the `channels_last` or `channels_first` format respectively. And for
-                3D mdoel, it should be [1,2,3] or [2,3,4] for the `channels_last` or
+                3D model, it should be [1,2,3] or [2,3,4] for the `channels_last` or
                 `channel_first` format respectively.
             loss_type: An optional `str` specifying the type of the dice score to
                 compute. Compute generalized or adaptive dice score if loss type is
                 `generalized` or `adaptive`; otherwise compute original dice score.
-                Default to `None`.
+                Defaults to `None`.
             label_smoothing: Float in [0, 1]. When > 0, label values are smoothed,
                 meaning the confidence on label values are relaxed. For example, if
                 `0.1`, use `0.1 / num_classes` for non-target labels and
                 `0.9 + 0.1 / num_classes` for target labels. Default to `0.0`.
             epsilon: Small float added to dice score to avoid dividing by zero.
-                Default to `1e-07`.
+                Defaults to `1e-07` (`backend.epsilon`).
             name: Optional name for the instance.
                 Defaults to 'dice'.
         """
@@ -401,7 +401,7 @@ class BinaryDice(keras.losses.Loss):
       Usage with the `compile()` API:
       ```python
       model.compile(optimizer='adam', loss=keras_cv.losses.BinaryDice())
-    ```
+      ```
     """
 
     def __init__(
@@ -422,18 +422,18 @@ class BinaryDice(keras.losses.Loss):
             beta: A float or integer coefficient for balancing the precision
                 and recall. It determines the weight of recall and precision
                 in the combined score. The value of `beta` should be greather
-                than `0`. If `beta < 1`, precisoin will doninate; if `beta > 1`,
+                than `0`. If `beta < 1`, precision will dominate; if `beta > 1`,
                 recall will dominate. Default to `1`.
             from_logits: Whether `y_pred` is expected to be a logits tensor. By
                 default, we assume that `y_pred` encodes a probability distribution.
                 Default to `False`.
-            class_ids: An interger or a list of intergers within `range(num_classes)`
+            class_ids: An integer or a list of integers within `range(num_classes)`
                 to evaluate the loss. If it's `None`, all classes will be used to
                 calculate the loss. Default to `None`.
             axis: An optional sequence of `int` specifying the axis to perform reduce
                 ops for raw dice score. For 2D model, it should be [1,2] or [2,3]
                 for the `channels_last` or `channels_first` format respectively. And for
-                3D mdoel, it should be [1,2,3] or [2,3,4] for the `channels_last` or
+                3D model, it should be [1,2,3] or [2,3,4] for the `channels_last` or
                 `channel_first` format respectively.
             loss_type: An optional `str` specifying the type of the dice score to
                 compute. Compute generalized or adaptive dice score if loss type is
@@ -444,7 +444,7 @@ class BinaryDice(keras.losses.Loss):
                 `0.1`, use `0.1 / num_classes` for non-target labels and
                 `0.9 + 0.1 / num_classes` for target labels. Default to `0.0`.
             epsilon: Small float added to dice score to avoid dividing by zero.
-                Default to `1e-07`.
+                Default to `1e-07` (`backend.epsilon`).
             name: Optional name for the instance.
                 Defaults to 'dice'.
         """
