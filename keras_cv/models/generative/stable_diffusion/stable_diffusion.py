@@ -327,7 +327,7 @@ class StableDiffusion:
         return alphas, alphas_prev
 
     def _get_initial_diffusion_noise(self, batch_size, seed):
-        if seed:
+        if seed is not None:
             return tf.random.stateless_normal(
                 (batch_size, self.img_height // 8, self.img_width // 8, 4),
                 seed=[seed, seed],
