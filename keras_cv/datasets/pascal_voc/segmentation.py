@@ -39,8 +39,8 @@ import tarfile
 import xml
 
 import numpy as np
-import scipy.io
 import tensorflow as tf
+import tensorflow_datasets as tfds
 
 VOC_URL = "http://host.robots.ox.ac.uk/pascal/VOC/voc2012/VOCtrainval_11-May-2012.tar"
 
@@ -366,11 +366,11 @@ def _load_sbd_images(image_file_path, seg_cls_file_path, seg_obj_file_path):
     image = tf.io.read_file(image_file_path)
     image = tf.image.decode_jpeg(image)
 
-    segmentation_class_mask = scipy.io.loadmat(seg_cls_file_path)
+    segmentation_class_mask = tfds.core.lazy_imports.scipy.io.loadmat(seg_cls_file_path)
     segmentation_class_mask = segmentation_class_mask["GTcls"]["Segmentation"][0][0]
     segmentation_class_mask = segmentation_class_mask[..., np.newaxis]
 
-    segmentation_object_mask = scipy.io.loadmat(seg_obj_file_path)
+    segmentation_object_mask = tfds.core.lazy_imports.scipy.io.loadmat(seg_obj_file_path)
     segmentation_object_mask = segmentation_object_mask["GTinst"]["Segmentation"][0][0]
     segmentation_object_mask = segmentation_object_mask[..., np.newaxis]
 
