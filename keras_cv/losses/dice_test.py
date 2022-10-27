@@ -16,28 +16,107 @@ import tensorflow as tf
 from tensorflow import keras
 
 from keras_cv.losses.dice import CategoricalDice
-
-
-def get_2d_model(num_classes, activation=None):
-    input = keras.Input(shape=(None, None, 3))
-    output = keras.layers.Conv2D(num_classes, 1, activation=activation)(input)
-    model = keras.Model(input, output)
-    return model
-
+from keras_cv.losses.dice import SparseDice
+from keras_cv.losses.dice import BinaryDice
 
 class DiceTest(tf.test.TestCase):
-    def test_output_shape(self):
-        num_classes = 4
-        activation = None
+    def test_categorical_output_shape(self):
 
-        model = get_2d_model(num_classes=num_classes, activation=activation)
-        model.compile(loss=CategoricalDice(from_logits=True))
+        projections_1 = tf.random.uniform(
+            shape=(10, 128), minval=0, maxval=10, dtype=tf.float32
+        )
+        projections_2 = tf.random.uniform(
+            shape=(10, 128), minval=0, maxval=10, dtype=tf.float32
+        )
+        categorical_dice_loss = CategoricalDice()
+        self.assertAllEqual(categorical_dice_loss(projections_1, projections_2).shape, ())
 
-        y_true = tf.one_hot(
-            tf.random.uniform(shape=[2, 5, 5], minval=0, maxval=5, dtype=tf.int32),
-            depth=num_classes,
-        ).shape
+    def test_sparse_output_shape(self):
+        projections_1 = tf.random.uniform(
+            shape=(10, 128), minval=0, maxval=10, dtype=tf.float32
+        )
+        projections_2 = tf.random.uniform(
+            shape=(10, 128), minval=0, maxval=10, dtype=tf.float32
+        )
+        sparse_dice_loss = SparseDice()
+        self.assertAllEqual(sparse_dice_loss(projections_1, projections_2).shape, ())
 
-        y_pred = model(tf.random.uniform(shape=(2, 5, 5, 3)), training=False).shape
+    def test_binary_output_shape(self):
+        projections_1 = tf.random.uniform(
+            shape=(10, 128), minval=0, maxval=10, dtype=tf.float32
+        )
+        projections_2 = tf.random.uniform(
+            shape=(10, 128), minval=0, maxval=10, dtype=tf.float32
+        )
+        binary_dice_loss = BinaryDice()
+        self.assertAllEqual(binary_dice_loss(projections_1, projections_2).shape, ())
 
-        self.assertAllEqual(y_true, y_pred)
+    def test_binary_output_shape(self):
+        projections_1 = tf.random.uniform(
+            shape=(10, 128), minval=0, maxval=10, dtype=tf.float32
+        )
+        projections_2 = tf.random.uniform(
+            shape=(10, 128), minval=0, maxval=10, dtype=tf.float32
+        )
+        binary_dice_loss = BinaryDice()
+        self.assertAllEqual(binary_dice_loss(projections_1, projections_2).shape, ())
+
+    def test_axis(self):
+        self.assertAllEqual()
+
+    def test_categorical_output_value(self):
+        projections_1 = [
+            [1.0, 2.0, 3.0, 4.0],
+            [2.0, 3.0, 4.0, 5.0],
+            [3.0, 4.0, 5.0, 6.0],
+        ]
+
+        projections_2 = [
+            [6.0, 5.0, 4.0, 3.0],
+            [5.0, 4.0, 3.0, 2.0],
+            [4.0, 3.0, 2.0, 1.0],
+        ]
+
+        categorical_loss = CategoricalDice()
+        self.assertAllClose(categorical_loss(projections_1, projections_2), 3.566689)
+
+        categorical_loss = CategoricalDice()
+        self.assertAllClose(categorical_loss(projections_1, projections_2), 5.726100)
+
+    def test_sparse_output_value(self):
+        projections_1 = [
+            [1.0, 2.0, 3.0, 4.0],
+            [2.0, 3.0, 4.0, 5.0],
+            [3.0, 4.0, 5.0, 6.0],
+        ]
+
+        projections_2 = [
+            [6.0, 5.0, 4.0, 3.0],
+            [5.0, 4.0, 3.0, 2.0],
+            [4.0, 3.0, 2.0, 1.0],
+        ]
+
+        sparse_loss = SparseDice()
+        self.assertAllClose(sparse_loss(projections_1, projections_2), 3.566689)
+
+        sparse_loss = SparseDice()
+        self.assertAllClose(sparse_loss(projections_1, projections_2), 5.726100)
+
+    def test_binary_output_value(self):
+        projections_1 = [
+            [1.0, 2.0, 3.0, 4.0],
+            [2.0, 3.0, 4.0, 5.0],
+            [3.0, 4.0, 5.0, 6.0],
+        ]
+
+        projections_2 = [
+            [6.0, 5.0, 4.0, 3.0],
+            [5.0, 4.0, 3.0, 2.0],
+            [4.0, 3.0, 2.0, 1.0],
+        ]
+
+        binary_loss = BinaryDice()
+        self.assertAllClose(binary_loss(projections_1, projections_2), 3.566689)
+
+        binary_loss = BinaryDice()
+        self.assertAllClose(binary_loss(projections_1, projections_2), 5.726100)
