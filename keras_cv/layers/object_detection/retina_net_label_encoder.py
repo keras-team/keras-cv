@@ -36,6 +36,11 @@ class RetinaNetLabelEncoder(layers.Layer):
         background_class: (Optional) The class ID used for the background class.
             Defaults to -1.
         ignore_class: (Optional) The class ID used for the ignore class. Defaults to -2.
+        track_matched_boxes: (Optional) Whether or not to track the number of boxes that
+            are matched with an anchor box in a Keras metric.  To use this metric, you
+            can access the `percent_boxes_matched_with_anchor` field, which contains a
+            `keras.metrics.Metric` containing the percentage of boxes matched with a
+            ground truth box..
     """
 
     def __init__(
@@ -45,6 +50,7 @@ class RetinaNetLabelEncoder(layers.Layer):
         box_variance=(0.1, 0.1, 0.2, 0.2),
         background_class=-1.0,
         ignore_class=-2.0,
+        track_matched_boxes=True,
         **kwargs,
     ):
         super().__init__(**kwargs)
@@ -54,8 +60,9 @@ class RetinaNetLabelEncoder(layers.Layer):
         self.background_class = background_class
         self.ignore_class = ignore_class
         self.matched_boxes_metric = tf.keras.metrics.BinaryAccuracy(
-            name="matched_boxes"
+            name="percent_boxes_matched_with_anchor"
         )
+        self.track_matched_boxes = track_matched_boxes
         self.built = True
 
     def _match_anchor_boxes(
@@ -143,14 +150,16 @@ class RetinaNetLabelEncoder(layers.Layer):
             label,
         )
 
-        n_boxes = tf.shape(gt_boxes)[0]
-        box_ids = tf.range(n_boxes)
-
-        matched_ids = tf.expand_dims(matched_gt_idx, axis=1)
-        matches = tf.reduce_any(box_ids == matched_ids, axis=1)
-        self.matched_boxes_metric.update_state(
-            tf.cast(matches, tf.int32), tf.ones(tf.shape(matches), dtype=tf.int32)
-        )
+        if self.track_matched_boxes:
+            n_boxes = tf.shape(gt_boxes)[0]
+            box_ids = tf.range(n_boxes, dtype=matched_gt_idx.dtype)
+            matched_ids = tf.expand_dims(matched_gt_idx, axis=1)
+            matches = box_ids == matched_ids
+            matches = tf.math.reduce_any(matches, axis=0)
+            self.matched_boxes_metric.update_state(
+                tf.zeros((n_boxes,), dtype=tf.int32),
+                tf.cast(matches, tf.int32),
+            )
         return label
 
     def call(self, images, target_boxes):

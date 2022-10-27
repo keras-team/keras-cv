@@ -116,6 +116,7 @@ class RetinaNet(ObjectDetectionBaseModel):
         classification_head=None,
         box_head=None,
         evaluate_train_time_metrics=False,
+        track_matched_boxes=True,
         name="RetinaNet",
         **kwargs,
     ):
@@ -134,8 +135,11 @@ class RetinaNet(ObjectDetectionBaseModel):
             bounding_box_format
         )
         label_encoder = label_encoder or cv_layers.RetinaNetLabelEncoder(
-            bounding_box_format=bounding_box_format, anchor_generator=anchor_generator
+            bounding_box_format=bounding_box_format,
+            anchor_generator=anchor_generator,
+            track_matched_boxes=track_matched_boxes,
         )
+        self.track_matched_boxes = track_matched_boxes
         super().__init__(
             bounding_box_format=bounding_box_format,
             label_encoder=label_encoder,
@@ -230,12 +234,15 @@ class RetinaNet(ObjectDetectionBaseModel):
 
     @property
     def train_metrics(self):
-        return [
+        result = [
             self.loss_metric,
             self.classification_loss_metric,
             self.regularization_loss_metric,
             self.box_loss_metric,
         ]
+        if self.track_matched_boxes:
+            result = result + [self.label_encoder.matched_boxes_metric]
+        return result
 
     def call(self, x, training=False):
         backbone_outputs = self.backbone(x, training=training)
@@ -454,10 +461,6 @@ class RetinaNet(ObjectDetectionBaseModel):
         predictions = self.decode_training_predictions(x, y_pred)
         self._update_metrics(y_for_metrics, predictions)
         return {m.name: m.result() for m in self.metrics}
-
-    @property
-    def metrics(self):
-        return super().metrics + [self.label_encoder.matched_boxes_metric]
 
     def predict_step(self, x):
         predictions = super().predict_step(x)
