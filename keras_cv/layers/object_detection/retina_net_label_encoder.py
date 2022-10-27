@@ -53,6 +53,9 @@ class RetinaNetLabelEncoder(layers.Layer):
         self.box_variance = tf.convert_to_tensor(box_variance, dtype=self.dtype)
         self.background_class = background_class
         self.ignore_class = ignore_class
+        self.matched_boxes_metric = tf.keras.metrics.BinaryAccuracy(
+            name="matched_boxes"
+        )
         self.built = True
 
     def _match_anchor_boxes(
@@ -138,6 +141,15 @@ class RetinaNetLabelEncoder(layers.Layer):
             tf.expand_dims(tf.math.reduce_any(tf.math.is_nan(label), axis=-1), axis=-1),
             self.ignore_class,
             label,
+        )
+
+        n_boxes = tf.shape(gt_boxes)[0]
+        box_ids = tf.range(n_boxes)
+
+        matched_ids = tf.expand_dims(matched_gt_idx, axis=1)
+        matches = tf.reduce_any(box_ids == matched_ids, axis=1)
+        self.matched_boxes_metric.update_state(
+            tf.cast(matches, tf.int32), tf.ones(tf.shape(matches), dtype=tf.int32)
         )
         return label
 
