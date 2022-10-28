@@ -35,6 +35,7 @@ This module contains following functionalities:
 import logging
 import multiprocessing
 import os.path
+import random
 import tarfile
 import xml
 
@@ -207,6 +208,8 @@ def _get_image_ids(data_dir, split):
         "train": "train.txt",
         "eval": "val.txt",
         "trainval": "trainval.txt",
+        # TODO(tanzhenyu): add diff dataset
+        # "diff": "diff.txt",
     }
     with tf.io.gfile.GFile(
         os.path.join(data_dir, "ImageSets", "Segmentation", data_file_mapping[split]),
@@ -406,10 +409,13 @@ def _build_dataset_from_metadata(metadata):
 def _build_sbd_dataset_from_metadata(metadata):
     img_filepath = metadata["image/file_path"]
     cls_filepath = metadata["segmentation/class/file_path"]
-    obj_file_path = metadata["segmentation/object/file_path"]
+    obj_filepath = metadata["segmentation/object/file_path"]
 
     def md_gen():
-        for img_fp, cls_fp, obj_fp in zip(img_filepath, cls_filepath, obj_file_path):
+        c = list(zip(img_filepath, cls_filepath, obj_filepath))
+        random.shuffle(c)
+        for fp in c:
+            img_fp, cls_fp, obj_fp = fp
             yield _load_sbd_images(img_fp, cls_fp, obj_fp)
 
     dataset = tf.data.Dataset.from_generator(
