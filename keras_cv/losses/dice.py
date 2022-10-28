@@ -201,7 +201,7 @@ class CategoricalDice(keras.losses.Loss):
         If axis is [2, 3] or [2, 3, 4] - the input vector is in the channels_first format in 2D or 3D.
         If not - raise exception.
         """
-        if self.axis in [[1, 2], [1, 2, 3], [2, 3], [2, 3, 4]]:
+        if self.axis not in [[1, 2], [1, 2, 3], [2, 3], [2, 3, 4]]:
             raise ValueError(
                 f"`axis` value should be [1, 2] or [1, 2, 3] for 2D and 3D channels_last input respectively, and [2, 3] or [2, 3, 4] for 2D and 3D channels_first input respectively. Got {self.axis}"
             )
@@ -519,7 +519,7 @@ class BinaryDice(keras.losses.Loss):
         If axis is [2, 3] or [2, 3, 4] - the input vector is in the channels_first format in 2D or 3D.
         If not - raise exception.
         """
-        if self.axis in [[1, 2], [1, 2, 3], [2, 3], [2, 3, 4]]:
+        if self.axis not in [[1, 2], [1, 2, 3], [2, 3], [2, 3, 4]]:
             raise ValueError(
                 f"`axis` value should be [1, 2] or [1, 2, 3] for 2D and 3D channels_last input respectively, and [2, 3] or [2, 3, 4] for 2D and 3D channels_first input respectively. Got {self.axis}"
             )
