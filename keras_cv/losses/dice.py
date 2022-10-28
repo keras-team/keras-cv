@@ -354,10 +354,8 @@ class SparseDice(keras.losses.Loss):
         """
         If axis is [1, 2] or [1, 2, 3] - the input vector is in the channels_last format.
         The number of channels is thus y_pred.shape[-1].
-        
         If axis is [2, 3] or [2, 3, 4] - the input vector is in the channels_first format.
         The number of channels is thus y_pred.shape[0].
-        
         If none of these hold true - raise exception.
         """
         if self.axis in [[1, 2], [1, 2, 3]]:
