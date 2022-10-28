@@ -13,7 +13,6 @@
 # limitations under the License.
 
 import tensorflow as tf
-from tensorflow import keras
 
 from keras_cv.losses.dice import BinaryDice
 from keras_cv.losses.dice import CategoricalDice
