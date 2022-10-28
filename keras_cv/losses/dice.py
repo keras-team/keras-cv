@@ -123,6 +123,7 @@ class CategoricalDice(keras.losses.Loss):
         loss_type=None,
         label_smoothing=0.0,
         epsilon=1e-07,
+        per_image=False,
         name="categorical_dice",
         **kwargs,
     ):
@@ -153,6 +154,8 @@ class CategoricalDice(keras.losses.Loss):
                 meaning the confidence on label values are relaxed. For example, if
                 `0.1`, use `0.1 / num_classes` for non-target labels and
                 `0.9 + 0.1 / num_classes` for target labels. Default to `0.0`.
+            per_image: if True, calculates score as mean of all scores for each image in the batch,
+                respecting the channels_first or channels_last format. Default to False.
             epsilon: Small float added to dice score to avoid dividing by zero.
                 Default to `1e-07` (`backend.epsilon`).
             name: Optional name for the instance.
@@ -174,6 +177,7 @@ class CategoricalDice(keras.losses.Loss):
         self.label_smoothing = label_smoothing
         self.epsilon = epsilon
         self.class_ids = class_ids
+        self.per_image = per_image
         self.axis = axis
 
     def _smooth_labels(self, y_true, y_pred, label_smoothing):
@@ -220,7 +224,13 @@ class CategoricalDice(keras.losses.Loss):
         else:
             dice_score = numerator / denominator
 
-        dice_score = tf.reduce_mean(dice_score)
+        if self.per_image and self.axis in [[1, 2], [1, 2, 3]]:
+            dice_score = tf.reduce_mean(dice_score, axis=0)
+        elif self.per_image and self.axis in [[2, 3], [2, 3, 4]]:
+            dice_score = tf.reduce_mean(dice_score, axis=1)
+        else:
+            dice_score = tf.reduce_mean(dice_score)
+
         return 1 - dice_score
 
     def get_config(self):
@@ -233,6 +243,7 @@ class CategoricalDice(keras.losses.Loss):
                 "loss_type": self.loss_type,
                 "label_smoothing": self.label_smoothing,
                 "epsilon": self.epsilon,
+                "per_image": self.per_image,
                 "axis": self.axis,
             }
         )
@@ -279,6 +290,7 @@ class SparseDice(keras.losses.Loss):
         loss_type=None,
         label_smoothing=0.0,
         epsilon=1e-07,
+        per_image=False,
         name="sparse_dice",
         **kwargs,
     ):
@@ -309,6 +321,8 @@ class SparseDice(keras.losses.Loss):
                 meaning the confidence on label values are relaxed. For example, if
                 `0.1`, use `0.1 / num_classes` for non-target labels and
                 `0.9 + 0.1 / num_classes` for target labels. Default to `0.0`.
+            per_image: if True, calculates score as mean of all scores for each image in the batch,
+                respecting the channels_first or channels_last format. Default to False.
             epsilon: Small float added to dice score to avoid dividing by zero.
                 Defaults to `1e-07` (`backend.epsilon`).
             name: Optional name for the instance.
@@ -327,6 +341,7 @@ class SparseDice(keras.losses.Loss):
         self.label_smoothing = label_smoothing
         self.epsilon = epsilon
         self.class_ids = class_ids
+        self.per_image = per_image
         self.axis = axis
 
     def _smooth_labels(self, y_true, y_pred, label_smoothing):
@@ -384,7 +399,12 @@ class SparseDice(keras.losses.Loss):
         else:
             dice_score = numerator / denominator
 
-        dice_score = tf.reduce_mean(dice_score)
+        if self.per_image and self.axis in [[1, 2], [1, 2, 3]]:
+            dice_score = tf.reduce_mean(dice_score, axis=0)
+        elif self.per_image and self.axis in [[2, 3], [2, 3, 4]]:
+            dice_score = tf.reduce_mean(dice_score, axis=1)
+        else:
+            dice_score = tf.reduce_mean(dice_score)
 
         return 1 - dice_score
 
@@ -398,6 +418,7 @@ class SparseDice(keras.losses.Loss):
                 "loss_type": self.loss_type,
                 "label_smoothing": self.label_smoothing,
                 "epsilon": self.epsilon,
+                "per_image": self.per_image,
                 "axis": self.axis,
             }
         )
@@ -444,6 +465,7 @@ class BinaryDice(keras.losses.Loss):
         loss_type=None,
         label_smoothing=0.0,
         epsilon=1e-07,
+        per_image=False,
         name="binary_dice",
         **kwargs,
     ):
@@ -474,6 +496,8 @@ class BinaryDice(keras.losses.Loss):
                 meaning the confidence on label values are relaxed. For example, if
                 `0.1`, use `0.1 / num_classes` for non-target labels and
                 `0.9 + 0.1 / num_classes` for target labels. Default to `0.0`.
+            per_image: if True, calculates score as mean of all scores for each image in the batch,
+                respecting the channels_first or channels_last format. Default to False.
             epsilon: Small float added to dice score to avoid dividing by zero.
                 Default to `1e-07` (`backend.epsilon`).
             name: Optional name for the instance.
@@ -492,6 +516,7 @@ class BinaryDice(keras.losses.Loss):
         self.label_smoothing = label_smoothing
         self.epsilon = epsilon
         self.class_ids = class_ids
+        self.per_image = per_image
         self.axis = axis
 
     def _smooth_labels(self, y_true, y_pred, label_smoothing):
@@ -538,7 +563,12 @@ class BinaryDice(keras.losses.Loss):
         else:
             dice_score = numerator / denominator
 
-        dice_score = tf.reduce_mean(dice_score)
+        if self.per_image and self.axis in [[1, 2], [1, 2, 3]]:
+            dice_score = tf.reduce_mean(dice_score, axis=0)
+        elif self.per_image and self.axis in [[2, 3], [2, 3, 4]]:
+            dice_score = tf.reduce_mean(dice_score, axis=1)
+        else:
+            dice_score = tf.reduce_mean(dice_score)
 
         return 1 - dice_score
 
@@ -552,6 +582,7 @@ class BinaryDice(keras.losses.Loss):
                 "loss_type": self.loss_type,
                 "label_smoothing": self.label_smoothing,
                 "epsilon": self.epsilon,
+                "per_image": self.per_image,
                 "axis": self.axis,
             }
         )
