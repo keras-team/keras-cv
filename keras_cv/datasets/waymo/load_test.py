@@ -28,22 +28,11 @@ def simple_transformer(frame):
 class WaymoOpenDatasetLoadTest(tf.test.TestCase):
     def setUp(self):
         super().setUp()
-        self.tempdir = self.get_tempdir()
-        # Note that this will not work with bazel, need to be rewrite into relying on
-        # FLAGS.test_srcdir
         self.test_data_path = os.path.abspath(
             os.path.join(os.path.abspath(__file__), os.path.pardir, "test_data")
         )
         self.test_data_file = "mini.tfrecord"
         self.output_signature = {"timestamp_micros": tf.TensorSpec((), tf.int64)}
-
-    def get_tempdir(self):
-        try:
-            flags.FLAGS.test_tmpdir
-        except flags.UnparsedFlagAccessError:
-            # Need to initialize flags when running `pytest`.
-            flags.FLAGS(sys.argv, known_only=True)
-        return self.create_tempdir().full_path
 
     def test_load_from_directory(self):
         dataset = load(self.test_data_path, simple_transformer, self.output_signature)
