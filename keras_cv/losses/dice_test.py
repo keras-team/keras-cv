@@ -15,108 +15,141 @@
 import tensorflow as tf
 from tensorflow import keras
 
+from keras_cv.losses.dice import BinaryDice
 from keras_cv.losses.dice import CategoricalDice
 from keras_cv.losses.dice import SparseDice
-from keras_cv.losses.dice import BinaryDice
+
 
 class DiceTest(tf.test.TestCase):
     def test_categorical_output_shape(self):
+        """
+        Both y_true and y_pred are one-hot vectors
+        """
 
-        projections_1 = tf.random.uniform(
-            shape=(10, 128), minval=0, maxval=10, dtype=tf.float32
+        y_true = tf.random.uniform(
+            shape=(3, 10, 10), minval=0, maxval=5, dtype=tf.int32
         )
-        projections_2 = tf.random.uniform(
-            shape=(10, 128), minval=0, maxval=10, dtype=tf.float32
+
+        y_pred = tf.random.uniform(
+            shape=(3, 10, 10, 5), minval=0, maxval=5, dtype=tf.float32
         )
+
+        y_true = tf.one_hot(y_true, depth=5)
+
         categorical_dice_loss = CategoricalDice()
-        self.assertAllEqual(categorical_dice_loss(projections_1, projections_2).shape, ())
+        self.assertAllEqual(categorical_dice_loss(y_true, y_pred).shape, ())
+
+        sample_weight = [[0.5, 0.5, 0.2, 0.2, 0.5]]
+        self.assertAllEqual(
+            categorical_dice_loss(y_true, y_pred, sample_weight=sample_weight).shape, ()
+        )
 
     def test_sparse_output_shape(self):
-        projections_1 = tf.random.uniform(
-            shape=(10, 128), minval=0, maxval=10, dtype=tf.float32
+        """
+        y_true is a sparse vector, y_pred is a one-hot vector
+        """
+        y_true = tf.random.uniform(
+            shape=(3, 10, 10), minval=0, maxval=5, dtype=tf.int32
         )
-        projections_2 = tf.random.uniform(
-            shape=(10, 128), minval=0, maxval=10, dtype=tf.float32
+
+        y_pred = tf.random.uniform(
+            shape=(3, 10, 10, 5), minval=0, maxval=5, dtype=tf.float32
         )
+
         sparse_dice_loss = SparseDice()
-        self.assertAllEqual(sparse_dice_loss(projections_1, projections_2).shape, ())
+        self.assertAllEqual(sparse_dice_loss(y_true, y_pred).shape, ())
+
+        sample_weight = [[0.5, 0.5, 0.2, 0.2, 0.5]]
+        self.assertAllEqual(
+            sparse_dice_loss(y_true, y_pred, sample_weight=sample_weight).shape, ()
+        )
 
     def test_binary_output_shape(self):
-        projections_1 = tf.random.uniform(
-            shape=(10, 128), minval=0, maxval=10, dtype=tf.float32
+        y_true = tf.random.uniform(shape=(3, 5, 5), minval=0, maxval=2, dtype=tf.int32)
+        y_pred = tf.random.uniform(
+            shape=(3, 5, 5), minval=0, maxval=1, dtype=tf.float32
         )
-        projections_2 = tf.random.uniform(
-            shape=(10, 128), minval=0, maxval=10, dtype=tf.float32
-        )
-        binary_dice_loss = BinaryDice()
-        self.assertAllEqual(binary_dice_loss(projections_1, projections_2).shape, ())
 
-    def test_binary_output_shape(self):
-        projections_1 = tf.random.uniform(
-            shape=(10, 128), minval=0, maxval=10, dtype=tf.float32
-        )
-        projections_2 = tf.random.uniform(
-            shape=(10, 128), minval=0, maxval=10, dtype=tf.float32
-        )
         binary_dice_loss = BinaryDice()
-        self.assertAllEqual(binary_dice_loss(projections_1, projections_2).shape, ())
-
-    def test_axis(self):
-        self.assertAllEqual()
+        self.assertAllEqual(binary_dice_loss(y_true, y_pred).shape, ())
 
     def test_categorical_output_value(self):
-        projections_1 = [
-            [1.0, 2.0, 3.0, 4.0],
-            [2.0, 3.0, 4.0, 5.0],
-            [3.0, 4.0, 5.0, 6.0],
+        y_true = [[[0, 0, 0], [0, 0, 0], [0, 0, 0]]]
+
+        y_pred = [
+            [
+                [[0.0, 1.0, 0.0], [0.0, 1.0, 0.0], [0.0, 1.0, 0.0]],
+                [[0.0, 1.0, 0.0], [0.0, 1.0, 0.0], [0.0, 1.0, 0.0]],
+                [[0.0, 1.0, 0.0], [0.0, 1.0, 0.0], [0.0, 1.0, 0.0]],
+            ]
         ]
 
-        projections_2 = [
-            [6.0, 5.0, 4.0, 3.0],
-            [5.0, 4.0, 3.0, 2.0],
-            [4.0, 3.0, 2.0, 1.0],
-        ]
+        y_true = tf.one_hot(y_true, depth=3)
 
-        categorical_loss = CategoricalDice()
-        self.assertAllClose(categorical_loss(projections_1, projections_2), 3.566689)
+        categorical_dice_loss = CategoricalDice(from_logits=True)
+        self.assertAllClose(categorical_dice_loss(y_true, y_pred), 0.8834148)
 
-        categorical_loss = CategoricalDice()
-        self.assertAllClose(categorical_loss(projections_1, projections_2), 5.726100)
+        categorical_dice_loss = CategoricalDice(from_logits=False)
+        self.assertAllClose(categorical_dice_loss(y_true, y_pred), 0.6666666)
 
     def test_sparse_output_value(self):
-        projections_1 = [
-            [1.0, 2.0, 3.0, 4.0],
-            [2.0, 3.0, 4.0, 5.0],
-            [3.0, 4.0, 5.0, 6.0],
+        y_true = [[[0, 0, 0], [0, 0, 0], [0, 0, 0]]]
+
+        y_pred = [
+            [
+                [[1.0, 0.0, 0.0], [1.0, 0.0, 0.0], [1.0, 0.0, 0.0]],
+                [[1.0, 0.0, 0.0], [1.0, 0.0, 0.0], [1.0, 0.0, 0.0]],
+                [[1.0, 0.0, 0.0], [1.0, 0.0, 0.0], [1.0, 0.0, 0.0]],
+            ]
         ]
 
-        projections_2 = [
-            [6.0, 5.0, 4.0, 3.0],
-            [5.0, 4.0, 3.0, 2.0],
-            [4.0, 3.0, 2.0, 1.0],
+        sparse_dice_loss = SparseDice(from_logits=False)
+        self.assertAllClose(sparse_dice_loss(y_true, y_pred), 0.0)
+        sparse_dice_loss = SparseDice(from_logits=True)
+        self.assertAllClose(sparse_dice_loss(y_true, y_pred), 0.75631374)
+
+        y_true = [[[0, 0, 0], [0, 0, 0], [0, 0, 0]]]
+
+        y_pred = [
+            [
+                [[0.0, 1.0, 0.0], [0.0, 1.0, 0.0], [0.0, 1.0, 0.0]],
+                [[0.0, 1.0, 0.0], [0.0, 1.0, 0.0], [0.0, 1.0, 0.0]],
+                [[0.0, 1.0, 0.0], [0.0, 1.0, 0.0], [0.0, 1.0, 0.0]],
+            ]
         ]
 
-        sparse_loss = SparseDice()
-        self.assertAllClose(sparse_loss(projections_1, projections_2), 3.566689)
+        sparse_dice_loss = SparseDice(from_logits=False)
+        self.assertAllClose(sparse_dice_loss(y_true, y_pred), 0.6666666)
+        sparse_dice_loss = SparseDice(from_logits=True)
+        self.assertAllClose(sparse_dice_loss(y_true, y_pred), 0.8834148)
 
-        sparse_loss = SparseDice()
-        self.assertAllClose(sparse_loss(projections_1, projections_2), 5.726100)
+        y_true = [[[0, 0, 0], [0, 0, 0], [0, 0, 0]]]
+
+        y_pred = [
+            [
+                [[0.0, 1.0, 1.0], [0.0, 1.0, 1.0], [0.0, 1.0, 1.0]],
+                [[0.0, 1.0, 1.0], [0.0, 1.0, 1.0], [0.0, 1.0, 1.0]],
+                [[0.0, 1.0, 1.0], [0.0, 1.0, 1.0], [0.0, 1.0, 1.0]],
+            ]
+        ]
+
+        sparse_dice_loss = SparseDice(from_logits=False)
+        self.assertAllClose(sparse_dice_loss(y_true, y_pred), 1.0)
+        sparse_dice_loss = SparseDice(from_logits=True)
+        self.assertAllClose(sparse_dice_loss(y_true, y_pred), 0.9103528)
 
     def test_binary_output_value(self):
-        projections_1 = [
-            [1.0, 2.0, 3.0, 4.0],
-            [2.0, 3.0, 4.0, 5.0],
-            [3.0, 4.0, 5.0, 6.0],
+        y_true = [[[0, 0, 0], [0, 0, 0], [0, 0, 0]]]
+
+        y_pred = [
+            [
+                [[0.0, 1.0, 1.0], [0.0, 1.0, 1.0], [0.0, 1.0, 1.0]],
+                [[0.0, 1.0, 1.0], [0.0, 1.0, 1.0], [0.0, 1.0, 1.0]],
+                [[0.0, 1.0, 1.0], [0.0, 1.0, 1.0], [0.0, 1.0, 1.0]],
+            ]
         ]
 
-        projections_2 = [
-            [6.0, 5.0, 4.0, 3.0],
-            [5.0, 4.0, 3.0, 2.0],
-            [4.0, 3.0, 2.0, 1.0],
-        ]
-
-        binary_loss = BinaryDice()
-        self.assertAllClose(binary_loss(projections_1, projections_2), 3.566689)
-
-        binary_loss = BinaryDice()
-        self.assertAllClose(binary_loss(projections_1, projections_2), 5.726100)
+        binary_dice_loss = BinaryDice(from_logits=False)
+        self.assertAllClose(binary_dice_loss(y_true, y_pred), 0.6666666)
+        binary_dice_loss = BinaryDice(from_logits=True)
+        self.assertAllClose(binary_dice_loss(y_true, y_pred), 1.0)

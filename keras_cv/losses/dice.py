@@ -20,7 +20,7 @@ from keras_cv.utils import losses_utils
 
 
 def _calculate_dice_numerator_denominator(y_true, y_pred, beta, axis, epsilon):
-    """Calculate dice's numerator and denominator from equation."""
+    """Calculate Dice Loss' numerator and denominator from equation."""
     true_positive = tf.reduce_sum(y_true * y_pred, axis=axis)
     false_positive = tf.reduce_sum(y_pred, axis=axis) - true_positive
     false_negative = tf.reduce_sum(y_true, axis=axis) - true_positive
@@ -37,7 +37,7 @@ def _calculate_dice_numerator_denominator(y_true, y_pred, beta, axis, epsilon):
 
 
 def _generalized_dice_score(y_true, numerator, denominator, axis):
-    # Calculate the volume of groundtruth labels.
+    # Calculate the volume of ground truth labels.
     weight = tf.math.reciprocal(tf.square(tf.reduce_sum(y_true, axis=axis)))
 
     # Calculate the weighted dice score and normalizer.
@@ -86,32 +86,32 @@ def _check_input_params(beta, loss_type=None, class_ids=None):
 class CategoricalDice(keras.losses.Loss):
     """Compute the dice loss between the categorical labels and predictions.
 
-      Use this categorical dice loss function when there are 2D and 3D semantic
-      segmentaiton task. We expect labels to be provided in a `one_hot`
-      representation.
+    Use this categorical dice loss function when there are 2D and 3D semantic
+    segmentaiton task. We expect labels to be provided in a `one_hot`
+    representation.
 
-      In the snippet below, there are `num_classes` times channels per
-      sample. The shape of `y_true` and `y_pred` are
-      `[batch_size, height, width, num_classes]` or
-      `[batch_size, height, width, depth, num_classes]`.
+    In the snippet below, there are `num_classes` times channels per
+    sample. The shape of `y_true` and `y_pred` are
+    `[batch_size, height, width, num_classes]` or
+    `[batch_size, height, width, depth, num_classes]`.
 
-      Standalone usage:
+    Standalone usage:
 
-      >>> y_true = tf.random.uniform([5, 10, 10], 0, maxval=4, dtype=tf.int32)
-      >>> y_true = tf.one_hot(y_true, depth=4)
-      >>> y_pred = tf.random.uniform([5, 10, 10, 4], 0, maxval=4)
-      >>> dice = CategoricalDice()
-      >>> dice(y_true, y_pred).numpy()
-      0.5549314
+    >>> y_true = tf.random.uniform([5, 10, 10], 0, maxval=4, dtype=tf.int32)
+    >>> y_true = tf.one_hot(y_true, depth=4)
+    >>> y_pred = tf.random.uniform([5, 10, 10, 4], 0, maxval=4)
+    >>> dice = CategoricalDice()
+    >>> dice(y_true, y_pred).numpy()
+    0.5549314
 
-      >>> # Calling with 'sample_weight'.
-      >>> dice(y_true, y_pred, sample_weight=[[0.5, 0.5, 0.2, 0.2, 0.5]]).numpy()
-      0.24619368
+    >>> # Calling with 'sample_weight'.
+    >>> dice(y_true, y_pred, sample_weight=[[0.5, 0.5, 0.2, 0.2, 0.5]]).numpy()
+    0.24619368
 
-      Usage with the `compile()` API:
-      ```python
-      model.compile(optimizer='adam', loss=keras_cv.losses.CategoricalDice())
-      ```
+    Usage with the `compile()` API:
+    ```python
+    model.compile(optimizer='adam', loss=keras_cv.losses.CategoricalDice())
+    ```
     """
 
     def __init__(
@@ -131,13 +131,13 @@ class CategoricalDice(keras.losses.Loss):
         Args:
             beta: A float or integer coefficient for balancing the precision
                 and recall. It determines the weight of recall and precision
-                in the combined score. The value of `beta` should be greather
-                than `0`. If `beta < 1`, precisoin will doninate; if `beta > 1`,
+                in the combined score. The value of `beta` should be greater
+                than `0`. If `beta < 1`, precision will dominate; if `beta > 1`,
                 recall will dominate. Default to `1`.
             from_logits: Whether `y_pred` is expected to be a logits tensor. By
                 default, we assume that `y_pred` encodes a probability distribution.
                 Default to `False`.
-            class_ids: An interger or a list of intergers within `range(num_classes)`
+            class_ids: An integer or a list of integers within `range(num_classes)`
                 to evaluate the loss. If it's `None`, all classes will be used to
                 calculate the loss. Default to `None`.
             axis: An optional sequence of `int` specifying the axis to perform reduce
@@ -230,31 +230,31 @@ class CategoricalDice(keras.losses.Loss):
 class SparseDice(keras.losses.Loss):
     """Compute the dice loss between the sparse labels and predictions.
 
-      Use this sparse dice loss function when there are 2D and 3D semantic
-      segmentaiton task. We expect labels to be provided in a `sparse`
-      representation (integer-encoded).
+    Use this sparse dice loss function when there are 2D and 3D semantic
+    segmentaiton task. We expect labels to be provided in a `sparse`
+    representation (integer-encoded).
 
-      In the snippet below, there are `num_classes` times channels per
-      sample. The shape of `y_true` and `y_pred` are
-      `[batch_size, height, width, num_classes]` or
-      `[batch_size, height, width, depth, num_classes]`.
+    In the snippet below, there are `num_classes` times channels per
+    sample. The shape of `y_true` and `y_pred` are
+    `[batch_size, height, width, num_classes]` or
+    `[batch_size, height, width, depth, num_classes]`.
 
-      Standalone usage:
+    Standalone usage:
 
-      >>> y_true = tf.random.uniform([5, 10, 10], 0, maxval=4, dtype=tf.int32)
-      >>> y_pred = tf.random.uniform([5, 10, 10, 4], 0, maxval=4)
-      >>> dice = SparseDice()
-      >>> dice(y_true, y_pred).numpy()
-      0.5549314
+    >>> y_true = tf.random.uniform([5, 10, 10], 0, maxval=4, dtype=tf.int32)
+    >>> y_pred = tf.random.uniform([5, 10, 10, 4], 0, maxval=4)
+    >>> dice = SparseDice()
+    >>> dice(y_true, y_pred).numpy()
+    0.5549314
 
-      >>> # Calling with 'sample_weight'.
-      >>> dice(y_true, y_pred, sample_weight=tf.constant([[0.5, 0.5]])).numpy()
-      0.24619368
+    >>> # Calling with 'sample_weight'.
+    >>> dice(y_true, y_pred, sample_weight=tf.constant([[0.5, 0.5]])).numpy()
+    0.24619368
 
-      Usage with the `compile()` API:
-      ```python
-      model.compile(optimizer='adam', loss=keras_cv.losses.SparseDice())
-      ```
+    Usage with the `compile()` API:
+    ```python
+    model.compile(optimizer='adam', loss=keras_cv.losses.SparseDice())
+    ```
     """
 
     def __init__(
@@ -274,13 +274,13 @@ class SparseDice(keras.losses.Loss):
         Args:
             beta: A float or integer coefficient for balancing the precision
                 and recall. It determines the weight of recall and precision
-                in the combined score. The value of `beta` should be greather
-                than `0`. If `beta < 1`, precisoin will doninate; if `beta > 1`,
+                in the combined score. The value of `beta` should be greater
+                than `0`. If `beta < 1`, precision will dominate; if `beta > 1`,
                 recall will dominate. Default to `1`.
             from_logits: Whether `y_pred` is expected to be a logits tensor. By
                 default, we assume that `y_pred` encodes a probability distribution.
                 Default to `False`.
-            class_ids: An interger or a list of intergers within `range(num_classes)`
+            class_ids: An integer or a list of integers within `range(num_classes)`
                 to evaluate the loss. If it's `None`, all classes will be used to
                 calculate the loss. Default to `None`.
             axis: An optional sequence of `int` specifying the axis to perform reduce
@@ -377,31 +377,31 @@ class SparseDice(keras.losses.Loss):
 class BinaryDice(keras.losses.Loss):
     """Compute the dice loss between the binary labels and predictions.
 
-      Use this binary dice loss function when there are 2D and 3D semantic
-      segmentaiton task. We expect labels to be provided in a binary
-      representation.
+    Use this binary dice loss function when there are 2D and 3D semantic
+    segmentaiton task. We expect labels to be provided in a binary
+    representation.
 
-      In the snippet below, there are `num_classes` times channels per
-      sample. The shape of `y_true` and `y_pred` are
-      `[batch_size, height, width, num_classes]` or
-      `[batch_size, height, width, depth, num_classes]`.
+    In the snippet below, there are `num_classes` times channels per
+    sample. The shape of `y_true` and `y_pred` are
+    `[batch_size, height, width, num_classes]` or
+    `[batch_size, height, width, depth, num_classes]`.
 
-      Standalone usage:
+    Standalone usage:
 
-      >>> y_true = tf.random.uniform([5, 10, 10, 1], 0, maxval=4, dtype=tf.int32)
-      >>> y_pred = tf.random.uniform([5, 10, 10, 4], 0, maxval=4)
-      >>> dice = BinaryDice()
-      >>> dice(y_true, y_pred).numpy()
-      0.5549314
+    >>> y_true = tf.random.uniform([5, 10, 10, 1], 0, maxval=4, dtype=tf.int32)
+    >>> y_pred = tf.random.uniform([5, 10, 10, 4], 0, maxval=4)
+    >>> dice = BinaryDice()
+    >>> dice(y_true, y_pred).numpy()
+    0.5549314
 
-      >>> # Calling with 'sample_weight'.
-      >>> dice(y_true, y_pred, sample_weight=tf.constant([[0.5, 0.5]])).numpy()
-      0.24619368
+    >>> # Calling with 'sample_weight'.
+    >>> dice(y_true, y_pred, sample_weight=tf.constant([[0.5, 0.5]])).numpy()
+    0.24619368
 
-      Usage with the `compile()` API:
-      ```python
-      model.compile(optimizer='adam', loss=keras_cv.losses.BinaryDice())
-      ```
+    Usage with the `compile()` API:
+    ```python
+    model.compile(optimizer='adam', loss=keras_cv.losses.BinaryDice())
+    ```
     """
 
     def __init__(
@@ -421,7 +421,7 @@ class BinaryDice(keras.losses.Loss):
         Args:
             beta: A float or integer coefficient for balancing the precision
                 and recall. It determines the weight of recall and precision
-                in the combined score. The value of `beta` should be greather
+                in the combined score. The value of `beta` should be greater
                 than `0`. If `beta < 1`, precision will dominate; if `beta > 1`,
                 recall will dominate. Default to `1`.
             from_logits: Whether `y_pred` is expected to be a logits tensor. By
