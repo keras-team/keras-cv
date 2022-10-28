@@ -20,7 +20,7 @@ from keras_cv.utils import losses_utils
 
 
 def _calculate_dice_numerator_denominator(y_true, y_pred, beta, axis, epsilon):
-    """Calculate Dice Loss' numerator and denominator from equation."""
+    # Calculate Dice Loss' numerator and denominator from equation.
     true_positive = tf.reduce_sum(y_true * y_pred, axis=axis)
     false_positive = tf.reduce_sum(y_pred, axis=axis) - true_positive
     false_negative = tf.reduce_sum(y_true, axis=axis) - true_positive
