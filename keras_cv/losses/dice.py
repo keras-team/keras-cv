@@ -14,7 +14,6 @@
 
 
 import tensorflow as tf
-from tensorflow import keras
 
 from keras_cv.utils import losses_utils
 
@@ -83,7 +82,7 @@ def _check_input_params(beta, loss_type=None, class_ids=None):
 
 
 @tf.keras.utils.register_keras_serializable(package="keras_cv")
-class CategoricalDice(keras.losses.Loss):
+class CategoricalDice(tf.keras.losses.Loss):
     """Compute the dice loss between the categorical labels and predictions.
 
     Use this categorical dice loss function when there are 2D and 3D semantic
@@ -251,7 +250,7 @@ class CategoricalDice(keras.losses.Loss):
 
 
 @tf.keras.utils.register_keras_serializable(package="keras_cv")
-class SparseDice(keras.losses.Loss):
+class SparseDice(tf.keras.losses.Loss):
     """Compute the dice loss between the sparse labels and predictions.
 
     Use this sparse dice loss function when there are 2D and 3D semantic
@@ -424,7 +423,7 @@ class SparseDice(keras.losses.Loss):
 
 
 @tf.keras.utils.register_keras_serializable(package="keras_cv")
-class BinaryDice(keras.losses.Loss):
+class BinaryDice(tf.keras.losses.Loss):
     """Compute the dice loss between the binary labels and predictions.
 
     Use this binary dice loss function when there are 2D and 3D semantic
