@@ -88,7 +88,10 @@ class Solarization(BaseImageAugmentationLayer):
         self.value_range = value_range
 
     def get_random_transformation(self, **kwargs):
-        return (self.addition_factor(), self.threshold_factor())
+        return (
+            self.addition_factor(dtype=kwargs["image"].dtype),
+            self.threshold_factor(dtype=kwargs["image"].dtype),
+        )
 
     def augment_image(self, image, transformation=None, **kwargs):
         (addition, threshold) = transformation

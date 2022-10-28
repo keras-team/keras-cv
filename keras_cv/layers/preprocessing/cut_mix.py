@@ -109,7 +109,7 @@ class CutMix(BaseImageAugmentationLayer):
 
         bounding_box_area = cut_height * cut_width
         lambda_sample = 1.0 - bounding_box_area / (image_height * image_width)
-        lambda_sample = tf.cast(lambda_sample, dtype=tf.float32)
+        lambda_sample = tf.cast(lambda_sample, dtype=images.dtype)
 
         images = fill_utils.fill_rectangle(
             images,

@@ -94,36 +94,43 @@ TEST_CONFIGURATIONS = [
     ("Solarization", preprocessing.Solarization, {"value_range": (0, 255)}),
 ]
 
+NO_CPU_FP16_KERNEL_LAYERS = [
+    preprocessing.RandomSaturation,
+    preprocessing.RandomColorJitter,
+]
 
-class WithLabelsTest(tf.test.TestCase, parameterized.TestCase):
+
+class WithMixedPrecisionTest(tf.test.TestCase, parameterized.TestCase):
     @parameterized.named_parameters(
         *TEST_CONFIGURATIONS,
         ("CutMix", preprocessing.CutMix, {}),
         ("Mosaic", preprocessing.Mosaic, {}),
     )
-    def test_can_run_with_labels(self, layer_cls, init_args):
-        layer = layer_cls(**init_args)
+    def test_can_run_in_mixed_precision(self, layer_cls, init_args):
+        if not tf.config.list_physical_devices("GPU"):
+            if layer_cls in NO_CPU_FP16_KERNEL_LAYERS:
+                self.skipTest(
+                    "`RandomSaturation` and `RandomColorJitter` both use "
+                    "`tf.image.adjust_saturation`, which doesn't have FLOAT16 CPU "
+                    "kernel registered. Skipping."
+                )
+
+        tf.keras.mixed_precision.set_global_policy("mixed_float16")
 
         img = tf.random.uniform(
             shape=(3, 512, 512, 3), minval=0, maxval=255, dtype=tf.float32
         )
         labels = tf.ones((3,), dtype=tf.float32)
-
         inputs = {"images": img, "labels": labels}
-        outputs = layer(inputs)
 
-        self.assertIn("labels", outputs)
-
-    # this has to be a separate test case to exclude CutMix, MixUp, Mosaic etc.
-    @parameterized.named_parameters(*TEST_CONFIGURATIONS)
-    def test_can_run_with_labels_single_image(self, layer_cls, init_args):
         layer = layer_cls(**init_args)
-        img = tf.random.uniform(
-            shape=(512, 512, 3), minval=0, maxval=1, dtype=tf.float32
-        )
-        labels = tf.ones((), dtype=tf.float32)
+        layer(inputs)
 
-        inputs = {"images": img, "labels": labels}
-        outputs = layer(inputs)
+    @classmethod
+    def tearDownClass(cls) -> None:
+        # Do NOT affect other tests
+        tf.keras.mixed_precision.set_global_policy("float32")
 
-        self.assertIn("labels", outputs)
+
+if __name__ == "__main__":
+    tf.test.main()

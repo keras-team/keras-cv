@@ -199,12 +199,17 @@ class Mosaic(BaseImageAugmentationLayer):
         area = input_height * input_width
 
         # labels are in the same ratio as the area of the images
-        top_left_ratio = (center_x * center_y) / area
-        top_right_ratio = ((input_width - center_x) * center_y) / area
-        bottom_left_ratio = (center_x * (input_height - center_y)) / area
-        bottom_right_ratio = (
-            (input_width - center_x) * (input_height - center_y)
-        ) / area
+        top_left_ratio = tf.cast((center_x * center_y) / area, dtype=labels.dtype)
+        top_right_ratio = tf.cast(
+            ((input_width - center_x) * center_y) / area, dtype=labels.dtype
+        )
+        bottom_left_ratio = tf.cast(
+            (center_x * (input_height - center_y)) / area, dtype=labels.dtype
+        )
+        bottom_right_ratio = tf.cast(
+            ((input_width - center_x) * (input_height - center_y)) / area,
+            dtype=labels.dtype,
+        )
 
         label = (
             labels_for_mosaic[0] * top_left_ratio
