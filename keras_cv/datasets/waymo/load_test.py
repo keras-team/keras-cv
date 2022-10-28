@@ -12,11 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import os
-import pathlib
-import sys
 
 import tensorflow as tf
-from absl import flags
 
 from keras_cv.datasets.waymo import load
 
