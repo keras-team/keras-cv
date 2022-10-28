@@ -157,6 +157,9 @@ class CategoricalDice(keras.losses.Loss):
                 Default to `1e-07` (`backend.epsilon`).
             name: Optional name for the instance.
                 Defaults to 'dice'.
+
+        Returns:
+            Tensor representing the Dice Loss computed against the input vectors.
         """
         super().__init__(name=name, **kwargs)
 
@@ -191,6 +194,16 @@ class CategoricalDice(keras.losses.Loss):
         if self.class_ids is not None:
             y_true, y_pred = losses_utils.gather_channels(
                 y_true, y_pred, indices=self.class_ids
+            )
+
+        """
+        If axis is [1, 2] or [1, 2, 3] - the input vector is in the channels_last format in 2D or 3D.
+        If axis is [2, 3] or [2, 3, 4] - the input vector is in the channels_first format in 2D or 3D.
+        If not - raise exception.
+        """
+        if self.axis in [[1, 2], [1, 2, 3], [2, 3], [2, 3, 4]]:
+            raise ValueError(
+                f"`axis` value should be [1, 2] or [1, 2, 3] for 2D and 3D channels_last input respectively, and [2, 3] or [2, 3, 4] for 2D and 3D channels_first input respectively. Got {self.axis}"
             )
 
         # loss calculation: Fβ-score (in terms of Type I and type II error).
@@ -322,7 +335,25 @@ class SparseDice(keras.losses.Loss):
 
     def call(self, y_true, y_pred):
         y_pred = tf.convert_to_tensor(y_pred)
-        num_channels = tf.cast(y_pred.shape[-1], dtype=tf.int32)
+
+        """
+        If axis is [1, 2] or [1, 2, 3] - the input vector is in the channels_last format.
+        The number of channels is thus y_pred.shape[-1].
+        
+        If axis is [2, 3] or [2, 3, 4] - the input vector is in the channels_first format.
+        The number of channels is thus y_pred.shape[0].
+        
+        If none of these hold true - raise exception.
+        """
+        if self.axis in [[1, 2], [1, 2, 3]]:
+            num_channels = tf.cast(y_pred.shape[-1], dtype=tf.int32)
+        elif self.axis in [[2, 3], [2, 3, 4]]:
+            num_channels = tf.cast(y_pred.shape[0], dtype=tf.int32)
+        else:
+            raise ValueError(
+                f"`axis` value should be [1, 2] or [1, 2, 3] for 2D and 3D channels_last input respectively, and [2, 3] or [2, 3, 4] for 2D and 3D channels_first input respectively. Got {self.axis}"
+            )
+
         y_true = tf.one_hot(tf.cast(y_true, dtype=tf.int32), depth=num_channels)
 
         y_true = tf.cast(y_true, y_pred.dtype)
@@ -481,6 +512,16 @@ class BinaryDice(keras.losses.Loss):
         if self.class_ids is not None:
             y_true, y_pred = losses_utils.gather_channels(
                 y_true, y_pred, indices=self.class_ids
+            )
+
+        """
+        If axis is [1, 2] or [1, 2, 3] - the input vector is in the channels_last format in 2D or 3D.
+        If axis is [2, 3] or [2, 3, 4] - the input vector is in the channels_first format in 2D or 3D.
+        If not - raise exception.
+        """
+        if self.axis in [[1, 2], [1, 2, 3], [2, 3], [2, 3, 4]]:
+            raise ValueError(
+                f"`axis` value should be [1, 2] or [1, 2, 3] for 2D and 3D channels_last input respectively, and [2, 3] or [2, 3, 4] for 2D and 3D channels_first input respectively. Got {self.axis}"
             )
 
         # loss calculation: Fβ-score (in terms of Type I and type II error).
