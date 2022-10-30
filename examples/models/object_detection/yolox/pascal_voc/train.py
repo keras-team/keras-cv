@@ -10,7 +10,7 @@ low, high = resource.getrlimit(resource.RLIMIT_NOFILE)
 resource.setrlimit(resource.RLIMIT_NOFILE, (high, high))
 
 BATCH_SIZE = 8
-EPOCHS = 100
+EPOCHS = 10
 CHECKPOINT_PATH = "checkpoint/"
 
 class_ids = [
@@ -295,7 +295,7 @@ callbacks = [
 history = model.fit(
     train_ds,
     validation_data=eval_ds.take(10),
-    epochs=100,
+    epochs=10,
     callbacks=callbacks,
 )
 
@@ -386,10 +386,17 @@ coco_suite = [
     ),
 ]
 model.compile(
-    classification_loss=keras_cv.losses.FocalLoss(from_logits=True, reduction="none"),
-    box_loss=keras_cv.losses.SmoothL1Loss(l1_cutoff=1.0, reduction="none"),
+    classification_loss=tf.keras.losses.BinaryCrossentropy(
+        from_logits=True, reduction="none"
+    ),
+    objectness_loss=tf.keras.losses.BinaryCrossentropy(
+        from_logits=True, reduction="none"
+    ),
+    box_loss=keras_cv.losses.IoULoss(
+        bounding_box_format="center_xywh", mode="squared", reduction="none"
+    ),
     optimizer=optimizer,
-    metrics=coco_suite,
+    metrics=metrics,
 )
 
 model.load_weights(CHECKPOINT_PATH)
