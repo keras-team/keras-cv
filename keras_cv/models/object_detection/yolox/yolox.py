@@ -19,19 +19,12 @@ from tensorflow import keras
 
 import keras_cv
 from keras_cv import bounding_box
-<<<<<<< HEAD
 from keras_cv.models.object_detection.object_detection_base_model import (
     ObjectDetectionBaseModel,
 )
 from keras_cv.models.object_detection.yolox.__internal__.binary_crossentropy import (
     BinaryCrossentropy,
 )
-=======
-from keras_cv.models.convnext import BASE_DOCSTRING
-from keras_cv.models.object_detection.object_detection_base_model import (
-    ObjectDetectionBaseModel,
-)
->>>>>>> 21b3c91 (first attempt at introducing YoloX)
 from keras_cv.models.object_detection.yolox.__internal__.layers.yolox_decoder import (
     DecodePredictions,
 )
@@ -137,10 +130,6 @@ class YoloX(ObjectDetectionBaseModel):
 
         self.bounding_box_format = bounding_box_format
         self.classes = classes
-<<<<<<< HEAD
-=======
-        # TODO: check include rescaling relevance
->>>>>>> 21b3c91 (first attempt at introducing YoloX)
         self.backbone = _parse_backbone(
             backbone,
             include_rescaling,
@@ -195,7 +184,6 @@ class YoloX(ObjectDetectionBaseModel):
                 "Instead, please pass `box_loss`, `objectness_loss` and `classification_loss`. "
                 "`loss` will be ignored during training."
             )
-<<<<<<< HEAD
         self.box_loss = _parse_box_loss(box_loss)
         self.objectness_loss = _parse_objectness_loss(objectness_loss)
         self.classification_loss = _parse_classification_loss(classification_loss)
@@ -203,35 +191,18 @@ class YoloX(ObjectDetectionBaseModel):
 
         if hasattr(self.classification_loss, "from_logits"):
             if not self.classification_loss.from_logits:
-=======
-        self.box_loss = box_loss
-        self.objectness_loss = objectness_loss
-        self.classification_loss = classification_loss
-        metrics = metrics or []
-
-        if hasattr(classification_loss, "from_logits"):
-            if not classification_loss.from_logits:
->>>>>>> 21b3c91 (first attempt at introducing YoloX)
                 raise ValueError(
                     "YoloX.compile() expects `from_logits` to be True for "
                     "`classification_loss`. Got "
                     "`classification_loss.from_logits="
-<<<<<<< HEAD
                     f"{self.classification_loss.from_logits}`"
                 )
         if hasattr(self.objectness_loss, "from_logits"):
             if not self.objectness_loss.from_logits:
-=======
-                    f"{classification_loss.from_logits}`"
-                )
-        if hasattr(objectness_loss, "from_logits"):
-            if not objectness_loss.from_logits:
->>>>>>> 21b3c91 (first attempt at introducing YoloX)
                 raise ValueError(
                     "YoloX.compile() expects `from_logits` to be True for "
                     "`objectness_loss`. Got "
                     "`objectness_loss.from_logits="
-<<<<<<< HEAD
                     f"{self.objectness_loss.from_logits}`"
                 )
         # TODO: update compute_loss to support all formats
@@ -240,16 +211,6 @@ class YoloX(ObjectDetectionBaseModel):
                 raise ValueError(
                     "YoloX currently supports only `center_xywh`. "
                     f"Got `box_loss.bounding_box_format={self.box_loss.bounding_box_format}`, "
-=======
-                    f"{objectness_loss.from_logits}`"
-                )
-        # TODO: update compute_loss to support all formats
-        if hasattr(box_loss, "bounding_box_format"):
-            if box_loss.bounding_box_format != "center_xywh":
-                raise ValueError(
-                    "YoloX currently supports only `center_xywh`. "
-                    f"Got `box_loss.bounding_box_format={box_loss.bounding_box_format}`, "
->>>>>>> 21b3c91 (first attempt at introducing YoloX)
                 )
 
         if len(metrics) != 0:
@@ -354,11 +315,7 @@ class YoloX(ObjectDetectionBaseModel):
             output = y_pred[i]
 
             grid_shape = tf.shape(output)[1:3]
-<<<<<<< HEAD
             stride = input_shape[0] / tf.cast(grid_shape[0], tf.float32)
-=======
-            stride = input_shape[0] / grid_shape[0]
->>>>>>> 21b3c91 (first attempt at introducing YoloX)
 
             grid_x, grid_y = tf.meshgrid(
                 tf.range(grid_shape[1]), tf.range(grid_shape[0])
@@ -391,11 +348,7 @@ class YoloX(ObjectDetectionBaseModel):
 
         # this calculation would exclude the -1 boxes used to pad the input
         # RaggedTensor in label encoder.
-<<<<<<< HEAD
         nlabel = tf.reduce_sum(tf.cast(tf.reduce_sum(y_true, -1) > 0, tf.float32), -1)
-=======
-        nlabel = tf.reduce_sum(tf.reduce_sum(y_true, -1) > 0, -1)
->>>>>>> 21b3c91 (first attempt at introducing YoloX)
         num_anchor_points = tf.shape(outputs)[1]
 
         num_fg = 0.0
@@ -454,12 +407,8 @@ class YoloX(ObjectDetectionBaseModel):
                 pred_ious_this_matching = tf.expand_dims(pred_ious_this_matching, -1)
                 cls_target = tf.cast(
                     tf.one_hot(tf.cast(gt_matched_classes, tf.int32), self.classes)
-<<<<<<< HEAD
                     * pred_ious_this_matching,
                     tf.float32,
-=======
-                    * pred_ious_this_matching, tf.float32,
->>>>>>> 21b3c91 (first attempt at introducing YoloX)
                 )
                 obj_target = tf.cast(tf.expand_dims(fg_mask, -1), tf.float32)
                 return num_fg_img, cls_target, reg_target, obj_target, fg_mask
@@ -469,7 +418,6 @@ class YoloX(ObjectDetectionBaseModel):
             num_fg_img, cls_target, reg_target, obj_target, fg_mask = tf.cond(
                 tf.equal(num_gt, 0), return_empty_boxes, perform_label_assignment
             )
-<<<<<<< HEAD
             loss_iou_this_image = self.box_loss(
                 reg_target, tf.boolean_mask(bboxes_preds_per_image, fg_mask)
             )
@@ -483,22 +431,6 @@ class YoloX(ObjectDetectionBaseModel):
             loss_iou += tf.math.reduce_sum(loss_iou_this_image)
             loss_obj += tf.math.reduce_sum(loss_obj_this_image)
             loss_cls += tf.math.reduce_sum(loss_cls_this_image)
-=======
-            num_fg += num_fg_img
-            loss_iou += tf.math.reduce_sum(
-                self.box_loss(
-                    reg_target, tf.boolean_mask(bboxes_preds_per_image, fg_mask)
-                )
-            )
-            loss_obj += tf.math.reduce_sum(
-                self.objectness_loss(obj_target, obj_preds_per_image)
-            )
-            loss_cls += tf.math.reduce_sum(
-                self.classification_loss(
-                    cls_target, tf.boolean_mask(cls_preds_per_image, fg_mask)
-                )
-            )
->>>>>>> 21b3c91 (first attempt at introducing YoloX)
             return b + 1, num_fg, loss_iou, loss_obj, loss_cls
 
         _, num_fg, loss_iou, loss_obj, loss_cls = tf.while_loop(
@@ -508,11 +440,7 @@ class YoloX(ObjectDetectionBaseModel):
         )
 
         self.classification_loss_metric.update_state(loss_cls / num_fg)
-<<<<<<< HEAD
         self.box_loss_metric.update_state(loss_iou / num_fg)
-=======
-        self.box_loss_metric.update_state(reg_weight * loss_iou / num_fg)
->>>>>>> 21b3c91 (first attempt at introducing YoloX)
         self.objectness_loss_metric.update_state(loss_obj / num_fg)
 
         num_fg = tf.cast(tf.maximum(num_fg, 1), tf.float32)
@@ -558,7 +486,6 @@ class YoloX(ObjectDetectionBaseModel):
             tf.expand_dims(tf.one_hot(tf.cast(gt_classes, tf.int32), num_classes), 1),
             (1, num_in_boxes_anchor, 1),
         )
-<<<<<<< HEAD
         obj_preds_ = tf.math.sigmoid(
             tf.tile(tf.expand_dims(obj_preds_, 0), (num_gt, 1, 1))
         )
@@ -566,12 +493,6 @@ class YoloX(ObjectDetectionBaseModel):
             tf.math.sigmoid(tf.tile(tf.expand_dims(cls_preds_, 0), (num_gt, 1, 1)))
             * obj_preds_
         )
-=======
-        obj_preds_ = tf.math.sigmoid(tf.tile(tf.expand_dims(obj_preds_, 0), (num_gt, 1, 1)))
-        cls_preds_ = tf.math.sigmoid(
-            tf.tile(tf.expand_dims(cls_preds_, 0), (num_gt, 1, 1))
-        ) * obj_preds_
->>>>>>> 21b3c91 (first attempt at introducing YoloX)
         pair_wise_cls_loss = tf.reduce_sum(
             K.binary_crossentropy(gt_cls_per_image, tf.sqrt(cls_preds_)), -1
         )
@@ -579,12 +500,7 @@ class YoloX(ObjectDetectionBaseModel):
         cost = (
             pair_wise_cls_loss
             + 3.0 * pair_wise_ious_loss
-<<<<<<< HEAD
             + 100000.0 * tf.cast((~is_in_boxes_and_center), tf.float32)
-=======
-            + 100000.0
-            * tf.cast((~is_in_boxes_and_center), tf.float32)
->>>>>>> 21b3c91 (first attempt at introducing YoloX)
         )
 
         return self.dynamic_k_matching(
@@ -643,14 +559,7 @@ class YoloX(ObjectDetectionBaseModel):
         bbox_deltas = tf.stack([b_l, b_t, b_r, b_b], 2)
 
         is_in_boxes = tf.reduce_min(bbox_deltas, axis=-1) > 0.0
-<<<<<<< HEAD
         is_in_boxes_all = tf.reduce_sum(tf.cast(is_in_boxes, tf.float32), axis=0) > 0.0
-=======
-        is_in_boxes_all = (
-            tf.reduce_sum(is_in_boxes, axis=0)
-            > 0.0
-        )
->>>>>>> 21b3c91 (first attempt at introducing YoloX)
 
         gt_bboxes_per_image_l = tf.tile(
             tf.expand_dims(gt_bboxes_per_image[:, 0], 1), [1, num_anchor_points]
@@ -673,12 +582,7 @@ class YoloX(ObjectDetectionBaseModel):
 
         is_in_centers = tf.reduce_min(center_deltas, axis=-1) > 0.0
         is_in_centers_all = (
-<<<<<<< HEAD
             tf.reduce_sum(tf.cast(is_in_centers, tf.float32), axis=0) > 0.0
-=======
-            tf.reduce_sum(is_in_centers, axis=0)
-            > 0.0
->>>>>>> 21b3c91 (first attempt at introducing YoloX)
         )
 
         fg_mask = tf.cast(is_in_boxes_all | is_in_centers_all, tf.bool)
@@ -704,11 +608,7 @@ class YoloX(ObjectDetectionBaseModel):
                     tf.expand_dims(
                         tf.reduce_max(tf.one_hot(pos_idx, tf.shape(cost)[1]), 0), 0
                     ),
-<<<<<<< HEAD
                     matching_matrix[b + 1 :],
-=======
-                    matching_matrix[b + 1:],
->>>>>>> 21b3c91 (first attempt at introducing YoloX)
                 ],
                 axis=0,
             )
@@ -730,11 +630,7 @@ class YoloX(ObjectDetectionBaseModel):
                 [
                     matching_matrix[:, :anchor_index],
                     tf.expand_dims(tf.one_hot(gt_index, tf.cast(num_gt, tf.int32)), 1),
-<<<<<<< HEAD
                     matching_matrix[:, anchor_index + 1 :],
-=======
-                    matching_matrix[:, anchor_index + 1:],
->>>>>>> 21b3c91 (first attempt at introducing YoloX)
                 ],
                 axis=-1,
             )
@@ -747,11 +643,7 @@ class YoloX(ObjectDetectionBaseModel):
         )
 
         fg_mask_inboxes = tf.reduce_sum(matching_matrix, 0) > 0.0
-<<<<<<< HEAD
         num_fg = tf.reduce_sum(tf.cast(fg_mask_inboxes, tf.float32))
-=======
-        num_fg = tf.reduce_sum(fg_mask_inboxes)
->>>>>>> 21b3c91 (first attempt at introducing YoloX)
 
         fg_mask_indices = tf.reshape(tf.where(fg_mask), [-1])
         fg_mask_inboxes_indices = tf.reshape(tf.where(fg_mask_inboxes), [-1, 1])
@@ -856,7 +748,6 @@ def _parse_backbone(
     return backbone
 
 
-<<<<<<< HEAD
 def _parse_box_loss(loss):
     if not isinstance(loss, str):
         # support arbitrary callables
@@ -908,8 +799,6 @@ def _parse_objectness_loss(loss):
     )
 
 
-=======
->>>>>>> 21b3c91 (first attempt at introducing YoloX)
 def _cspdarknet_backbone(
     include_rescaling,
     backbone_weights,
@@ -939,12 +828,9 @@ def _cspdarknet_backbone(
 
 BASE_DOCSTRING = """Instantiates the {name} architecture using the given phi value.
 
-<<<<<<< HEAD
     {name} is an anchor-free network that utilizes SOTA techniques such as simOTA for
     label assignment.
 
-=======
->>>>>>> 21b3c91 (first attempt at introducing YoloX)
     Reference:
     - [YOLOX: Exceeding YOLO Series in 2021](https://arxiv.org/abs/2107.08430)
     - [Keras Implemenation of YoloX by bubbliiing](https://github.com/bubbliiiing/yolox-keras)
