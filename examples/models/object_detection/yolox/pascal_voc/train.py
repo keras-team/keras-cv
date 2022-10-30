@@ -272,9 +272,15 @@ metrics = [
 ]
 optimizer = tf.optimizers.SGD(global_clipnorm=10.0)
 model.compile(
-    classification_loss=tf.keras.losses.BinaryCrossentropy(from_logits=True, reduction="none"),
-    objectness_loss=tf.keras.losses.BinaryCrossentropy(from_logits=True, reduction="none"),
-    box_loss=keras_cv.losses.IoULoss(bounding_box_format="center_xywh", mode="squared", reduction="none"),
+    classification_loss=tf.keras.losses.BinaryCrossentropy(
+        from_logits=True, reduction="none"
+    ),
+    objectness_loss=tf.keras.losses.BinaryCrossentropy(
+        from_logits=True, reduction="none"
+    ),
+    box_loss=keras_cv.losses.IoULoss(
+        bounding_box_format="center_xywh", mode="squared", reduction="none"
+    ),
     optimizer=optimizer,
     metrics=metrics,
 )
