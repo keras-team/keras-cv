@@ -347,7 +347,9 @@ class YoloX(ObjectDetectionBaseModel):
 
         # this calculation would exclude the -1 boxes used to pad the input
         # RaggedTensor in label encoder.
-        nlabel = tf.reduce_sum(tf.reduce_sum(y_true, -1) > 0, -1)
+        nlabel = tf.reduce_sum(
+            tf.cast(tf.reduce_sum(y_true, -1) > 0, tf.float32), -1
+        )
         num_anchor_points = tf.shape(outputs)[1]
 
         num_fg = 0.0
