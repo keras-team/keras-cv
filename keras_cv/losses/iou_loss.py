@@ -87,6 +87,13 @@ class IoULoss(keras.losses.Loss):
                 "IoULoss expects y_true.shape[-1] to be 4 to represent "
                 f"the bounding boxes. Received y_true.shape[-1]={y_true.shape[-1]}."
             )
+        
+        if y_true.shape[-2] < y_pred.shape[-2]:
+            raise ValueError(
+                "IoULoss expects number of boxes in y_pred to be equal to the number "
+                f"of boxes in y_true. Received number of boxes in y_true={y_true.shape[-2]} "
+                f"and number of boxes in y_pred={y_pred.shape[-2]}."
+            )
 
         if y_true.shape[-2] != y_pred.shape[-2]:
             raise ValueError(
