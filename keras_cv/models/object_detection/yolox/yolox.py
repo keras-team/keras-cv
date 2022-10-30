@@ -581,7 +581,9 @@ class YoloX(ObjectDetectionBaseModel):
         center_deltas = tf.stack([c_l, c_t, c_r, c_b], 2)
 
         is_in_centers = tf.reduce_min(center_deltas, axis=-1) > 0.0
-        is_in_centers_all = tf.reduce_sum(is_in_centers, axis=0) > 0.0
+        is_in_centers_all = (
+            tf.reduce_sum(tf.cast(is_in_centers, tf.float32), axis=0) > 0.0
+        )
 
         fg_mask = tf.cast(is_in_boxes_all | is_in_centers_all, tf.bool)
 
