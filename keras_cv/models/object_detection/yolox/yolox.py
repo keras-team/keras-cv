@@ -314,7 +314,7 @@ class YoloX(ObjectDetectionBaseModel):
             output = y_pred[i]
 
             grid_shape = tf.shape(output)[1:3]
-            stride = input_shape[0] / grid_shape[0]
+            stride = input_shape[0] / tf.cast(grid_shape[0], tf.float32)
 
             grid_x, grid_y = tf.meshgrid(
                 tf.range(grid_shape[1]), tf.range(grid_shape[0])
@@ -406,7 +406,8 @@ class YoloX(ObjectDetectionBaseModel):
                 pred_ious_this_matching = tf.expand_dims(pred_ious_this_matching, -1)
                 cls_target = tf.cast(
                     tf.one_hot(tf.cast(gt_matched_classes, tf.int32), self.classes)
-                    * pred_ious_this_matching, tf.float32,
+                    * pred_ious_this_matching,
+                    tf.float32,
                 )
                 obj_target = tf.cast(tf.expand_dims(fg_mask, -1), tf.float32)
                 return num_fg_img, cls_target, reg_target, obj_target, fg_mask
@@ -485,10 +486,13 @@ class YoloX(ObjectDetectionBaseModel):
             tf.expand_dims(tf.one_hot(tf.cast(gt_classes, tf.int32), num_classes), 1),
             (1, num_in_boxes_anchor, 1),
         )
-        obj_preds_ = tf.math.sigmoid(tf.tile(tf.expand_dims(obj_preds_, 0), (num_gt, 1, 1)))
-        cls_preds_ = tf.math.sigmoid(
-            tf.tile(tf.expand_dims(cls_preds_, 0), (num_gt, 1, 1))
-        ) * obj_preds_
+        obj_preds_ = tf.math.sigmoid(
+            tf.tile(tf.expand_dims(obj_preds_, 0), (num_gt, 1, 1))
+        )
+        cls_preds_ = (
+            tf.math.sigmoid(tf.tile(tf.expand_dims(cls_preds_, 0), (num_gt, 1, 1)))
+            * obj_preds_
+        )
         pair_wise_cls_loss = tf.reduce_sum(
             K.binary_crossentropy(gt_cls_per_image, tf.sqrt(cls_preds_)), -1
         )
@@ -496,8 +500,7 @@ class YoloX(ObjectDetectionBaseModel):
         cost = (
             pair_wise_cls_loss
             + 3.0 * pair_wise_ious_loss
-            + 100000.0
-            * tf.cast((~is_in_boxes_and_center), tf.float32)
+            + 100000.0 * tf.cast((~is_in_boxes_and_center), tf.float32)
         )
 
         return self.dynamic_k_matching(
@@ -556,10 +559,7 @@ class YoloX(ObjectDetectionBaseModel):
         bbox_deltas = tf.stack([b_l, b_t, b_r, b_b], 2)
 
         is_in_boxes = tf.reduce_min(bbox_deltas, axis=-1) > 0.0
-        is_in_boxes_all = (
-            tf.reduce_sum(is_in_boxes, axis=0)
-            > 0.0
-        )
+        is_in_boxes_all = tf.reduce_sum(is_in_boxes, axis=0) > 0.0
 
         gt_bboxes_per_image_l = tf.tile(
             tf.expand_dims(gt_bboxes_per_image[:, 0], 1), [1, num_anchor_points]
@@ -581,10 +581,7 @@ class YoloX(ObjectDetectionBaseModel):
         center_deltas = tf.stack([c_l, c_t, c_r, c_b], 2)
 
         is_in_centers = tf.reduce_min(center_deltas, axis=-1) > 0.0
-        is_in_centers_all = (
-            tf.reduce_sum(is_in_centers, axis=0)
-            > 0.0
-        )
+        is_in_centers_all = tf.reduce_sum(is_in_centers, axis=0) > 0.0
 
         fg_mask = tf.cast(is_in_boxes_all | is_in_centers_all, tf.bool)
 
@@ -609,7 +606,7 @@ class YoloX(ObjectDetectionBaseModel):
                     tf.expand_dims(
                         tf.reduce_max(tf.one_hot(pos_idx, tf.shape(cost)[1]), 0), 0
                     ),
-                    matching_matrix[b + 1:],
+                    matching_matrix[b + 1 :],
                 ],
                 axis=0,
             )
@@ -631,7 +628,7 @@ class YoloX(ObjectDetectionBaseModel):
                 [
                     matching_matrix[:, :anchor_index],
                     tf.expand_dims(tf.one_hot(gt_index, tf.cast(num_gt, tf.int32)), 1),
-                    matching_matrix[:, anchor_index + 1:],
+                    matching_matrix[:, anchor_index + 1 :],
                 ],
                 axis=-1,
             )
