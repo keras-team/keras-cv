@@ -439,7 +439,7 @@ class YoloX(ObjectDetectionBaseModel):
         )
 
         self.classification_loss_metric.update_state(loss_cls / num_fg)
-        self.box_loss_metric.update_state(reg_weight * loss_iou / num_fg)
+        self.box_loss_metric.update_state(loss_iou / num_fg)
         self.objectness_loss_metric.update_state(loss_obj / num_fg)
 
         num_fg = tf.cast(tf.maximum(num_fg, 1), tf.float32)
