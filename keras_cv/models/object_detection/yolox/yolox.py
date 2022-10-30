@@ -19,7 +19,6 @@ from tensorflow import keras
 
 import keras_cv
 from keras_cv import bounding_box
-from keras_cv.models.convnext import BASE_DOCSTRING
 from keras_cv.models.object_detection.object_detection_base_model import (
     ObjectDetectionBaseModel,
 )
@@ -418,6 +417,13 @@ class YoloX(ObjectDetectionBaseModel):
                 tf.equal(num_gt, 0), return_empty_boxes, perform_label_assignment
             )
             num_fg += num_fg_img
+            reg_target = tf.ensure_shape(
+                reg_target, [tf.math.count_nonzero(fg_mask, dtype=tf.int32), 4]
+            )
+            bboxes_preds_per_image = tf.ensure_shape(
+                bboxes_preds_per_image,
+                [tf.math.count_nonzero(fg_mask, dtype=tf.int32), 4],
+            )
             loss_iou += tf.math.reduce_sum(
                 self.box_loss(
                     reg_target, tf.boolean_mask(bboxes_preds_per_image, fg_mask)
