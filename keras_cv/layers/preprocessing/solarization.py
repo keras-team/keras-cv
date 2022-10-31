@@ -89,20 +89,26 @@ class Solarization(BaseImageAugmentationLayer):
 
     def get_random_transformation(self, **kwargs):
         return (
-            self.addition_factor(dtype=kwargs["image"].dtype),
-            self.threshold_factor(dtype=kwargs["image"].dtype),
+            self.addition_factor(dtype=self.compute_dtype),
+            self.threshold_factor(dtype=self.compute_dtype),
         )
 
     def augment_image(self, image, transformation=None, **kwargs):
         (addition, threshold) = transformation
         image = preprocessing.transform_value_range(
-            image, original_range=self.value_range, target_range=(0, 255)
+            image,
+            original_range=self.value_range,
+            target_range=(0, 255),
+            dtype=self.compute_dtype,
         )
         result = image + addition
         result = tf.clip_by_value(result, 0, 255)
         result = tf.where(result < threshold, result, 255 - result)
         result = preprocessing.transform_value_range(
-            result, original_range=(0, 255), target_range=self.value_range
+            result,
+            original_range=(0, 255),
+            target_range=self.value_range,
+            dtype=self.compute_dtype,
         )
         return result
 

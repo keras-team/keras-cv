@@ -60,11 +60,14 @@ class RandomSharpness(BaseImageAugmentationLayer):
         self.seed = seed
 
     def get_random_transformation(self, **kwargs):
-        return self.factor(dtype=kwargs["image"].dtype)
+        return self.factor(dtype=self.compute_dtype)
 
     def augment_image(self, image, transformation=None, **kwargs):
         image = preprocessing.transform_value_range(
-            image, original_range=self.value_range, target_range=(0, 255)
+            image,
+            original_range=self.value_range,
+            target_range=(0, 255),
+            dtype=self.compute_dtype,
         )
         original_image = image
 
@@ -79,7 +82,9 @@ class RandomSharpness(BaseImageAugmentationLayer):
         # gaussian blur.
         kernel = (
             tf.constant(
-                [[1, 1, 1], [1, 5, 1], [1, 1, 1]], dtype=image.dtype, shape=[3, 3, 1, 1]
+                [[1, 1, 1], [1, 5, 1], [1, 1, 1]],
+                dtype=self.compute_dtype,
+                shape=[3, 3, 1, 1],
             )
             / 13.0
         )
@@ -107,7 +112,10 @@ class RandomSharpness(BaseImageAugmentationLayer):
         # Blend the final result.
         result = preprocessing.blend(original_image, result, transformation)
         result = preprocessing.transform_value_range(
-            result, original_range=(0, 255), target_range=self.value_range
+            result,
+            original_range=(0, 255),
+            target_range=self.value_range,
+            dtype=self.compute_dtype,
         )
         return result
 

@@ -92,27 +92,26 @@ TEST_CONFIGURATIONS = [
     ),
     ("RandomShear", preprocessing.RandomShear, {"x_factor": 0.3, "x_factor": 0.3}),
     ("Solarization", preprocessing.Solarization, {"value_range": (0, 255)}),
+    ("Mosaic", preprocessing.Mosaic, {}),
+    ("CutMix", preprocessing.CutMix, {}),
 ]
 
 NO_CPU_FP16_KERNEL_LAYERS = [
     preprocessing.RandomSaturation,
     preprocessing.RandomColorJitter,
+    preprocessing.RandomHue,
 ]
 
 
 class WithMixedPrecisionTest(tf.test.TestCase, parameterized.TestCase):
-    @parameterized.named_parameters(
-        *TEST_CONFIGURATIONS,
-        ("CutMix", preprocessing.CutMix, {}),
-        ("Mosaic", preprocessing.Mosaic, {}),
-    )
+    @parameterized.named_parameters(*TEST_CONFIGURATIONS)
     def test_can_run_in_mixed_precision(self, layer_cls, init_args):
         if not tf.config.list_physical_devices("GPU"):
             if layer_cls in NO_CPU_FP16_KERNEL_LAYERS:
                 self.skipTest(
-                    "`RandomSaturation` and `RandomColorJitter` both use "
-                    "`tf.image.adjust_saturation`, which doesn't have FLOAT16 CPU "
-                    "kernel registered. Skipping."
+                    "There is currently no float16 CPU kernel registered for operations"
+                    " `tf.image.adjust_saturation`, and `tf.image.adjust_hue`. "
+                    "Skipping."
                 )
 
         tf.keras.mixed_precision.set_global_policy("mixed_float16")
@@ -128,7 +127,7 @@ class WithMixedPrecisionTest(tf.test.TestCase, parameterized.TestCase):
 
     @classmethod
     def tearDownClass(cls) -> None:
-        # Do NOT affect other tests
+        # Do not affect other tests
         tf.keras.mixed_precision.set_global_policy("float32")
 
 

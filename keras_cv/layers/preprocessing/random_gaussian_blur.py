@@ -59,7 +59,7 @@ class RandomGaussianBlur(BaseImageAugmentationLayer):
                 )
 
     def get_random_transformation(self, **kwargs):
-        factor = self.factor(dtype=kwargs["image"].dtype)
+        factor = self.factor()
         blur_v = RandomGaussianBlur.get_kernel(factor, self.y)
         blur_h = RandomGaussianBlur.get_kernel(factor, self.x)
         blur_v = tf.reshape(blur_v, [self.y, 1, 1, 1])
@@ -72,8 +72,12 @@ class RandomGaussianBlur(BaseImageAugmentationLayer):
 
         num_channels = tf.shape(image)[-1]
         blur_v, blur_h = transformation
-        blur_h = tf.tile(blur_h, [1, 1, num_channels, 1])
-        blur_v = tf.tile(blur_v, [1, 1, num_channels, 1])
+        blur_h = tf.cast(
+            tf.tile(blur_h, [1, 1, num_channels, 1]), dtype=self.compute_dtype
+        )
+        blur_v = tf.cast(
+            tf.tile(blur_v, [1, 1, num_channels, 1]), dtype=self.compute_dtype
+        )
         blurred = tf.nn.depthwise_conv2d(
             image, blur_h, strides=[1, 1, 1, 1], padding="SAME"
         )
@@ -94,13 +98,12 @@ class RandomGaussianBlur(BaseImageAugmentationLayer):
 
     @staticmethod
     def get_kernel(factor, filter_size):
-
         x = tf.cast(
-            tf.range(-filter_size // 2 + 1, filter_size // 2 + 1), dtype=factor.dtype
+            tf.range(-filter_size // 2 + 1, filter_size // 2 + 1), dtype=tf.float32
         )
-        # TODO: are we ok with running this in FP16?
-        # The alternative is to compute in FP32 and cast return value to factor.dtype
-        blur_filter = tf.exp(-tf.pow(x, 2.0) / (2.0 * tf.pow(factor, 2.0)))
+        blur_filter = tf.exp(
+            -tf.pow(x, 2.0) / (2.0 * tf.pow(tf.cast(factor, dtype=tf.float32), 2.0))
+        )
         blur_filter /= tf.reduce_sum(blur_filter)
         return blur_filter
 
