@@ -98,6 +98,8 @@ class RandomGaussianBlur(BaseImageAugmentationLayer):
 
     @staticmethod
     def get_kernel(factor, filter_size):
+        # We are running this in float32, regardless of layer's self.compute_dtype.
+        # Calculating blur_filter in lower precision will corrupt the final results.
         x = tf.cast(
             tf.range(-filter_size // 2 + 1, filter_size // 2 + 1), dtype=tf.float32
         )
