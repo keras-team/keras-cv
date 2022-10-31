@@ -48,7 +48,8 @@ train_ds = train_ds.concatenate(
 eval_ds = tfds.load("voc/2007", split="test", with_info=False)
 
 
-# TODO: migrate to KPL.
+# TODO (lukewood): migrate to KPL, as this is mostly a duplciate of
+# https://github.com/tensorflow/models/blob/master/official/vision/ops/preprocess_ops.py#L138
 def resize_and_crop_image(
     image,
     desired_size,
