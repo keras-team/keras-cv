@@ -124,18 +124,19 @@ class COCOMeanAveragePrecision(tf.keras.metrics.Metric):
             dtype=tf.int32,
             initializer="zeros",
         )
-        self.bucket_counters = self.add_weight(
-            self.num_class_ids,
-            self.num_iou_thresholds,
+        self.bucket_counter = self.add_weight(
+            "bucket_counter",
+            shape=(),
             dtype=tf.int32,
             initializer="zeros",
+            synchronization=tf.VariableSynchronization.ON_WRITE,
         )
         self.bucket_thresholds = self.add_weight(
-            self.num_class_ids,
-            self.num_iou_thresholds,
-            self.num_buckets,
+            "bucket_thresholds",
+            shape=(self.num_buckets,),
             dtype=tf.float32,
             initializer="zeros",
+            synchronization=tf.VariableSynchronization.ON_WRITE,
         )
         self.true_positive_buckets = self.add_weight(
             "true_positive_buckets",
@@ -254,14 +255,7 @@ class COCOMeanAveragePrecision(tf.keras.metrics.Metric):
                     true_positives = pred_matches != -1
                     false_positives = pred_matches == -1
 
-                    dt_scores_clipped = tf.clip_by_value(dt_scores, 0.0, 1.0)
-                    # We must divide by 1.01 to prevent off by one errors.
-
-                    confidence_buckets = self.assign_confidence_buckets(dt_scores_clipped)
-                    confidence_buckets = tf.cast(
-                        tf.math.floor(self.num_buckets * (dt_scores_clipped / 1.01)),
-                        tf.int32,
-                    )
+                    confidence_buckets = self.map_to_confidence_buckets(dt_scores)
                     true_positives_by_bucket = tf.gather_nd(
                         confidence_buckets, indices=tf.where(true_positives)
                     )
@@ -311,6 +305,73 @@ class COCOMeanAveragePrecision(tf.keras.metrics.Metric):
         self.ground_truths.assign_add(ground_truth_boxes_update)
         self.true_positive_buckets.assign_add(true_positive_buckets_update)
         self.false_positive_buckets.assign_add(false_positive_buckets_update)
+
+    def _organize_buckets(self):
+        """_organize_buckets is called once after all of the buckets are filled up.
+
+        It organizes buckets to be sorted, allowing us to create a lookup table for
+        confidence scores.
+        """
+
+        pass
+
+    def _assign_new_buckets(self, dt_scores):
+        num_scores = tf.shape(dt_scores)[0]
+        # assign indices of buckets to the dt scores provided
+        bucket_idx = tf.range(self.bucket_counter, self.bucket_counter + num_scores)
+        # assign buckets their corresponding confidence scores
+        delta = tf.concat(
+            [
+                tf.zeros(
+                    self.bucket_counter,
+                ),
+                dt_scores,
+                tf.zeros(self.num_buckets - (self.bucket_counter + num_scores)),
+            ],
+            axis=0,
+        )
+        # assign buckets in the actual tf variable
+        self.bucket_thresholds.assign_add(delta)
+        # increment counter so buckets don't get re-assigned
+        self.bucket_counter.assign_add(num_scores)
+        tf.debugging.assert_less_equal(
+            self.num_buckets,
+            self.bucket_counter,
+            "_assign_new_buckets should never be called with more elements than can be "
+            "supported.  Don't call _assign_new_buckets as a user. "
+            "This message should never show up to a user - it is a sanity check for "
+            "library maintainers.",
+        )
+        # return new indices
+        return bucket_idx
+
+    def _map_scores_to_buckets(self, dt_scores):
+        """maps detection scores to buckets based on the registered bucket thresholds.
+
+        This method can only be called after the buckets are all filled with scores.
+        Otherwise, buckets should be assigned with `_assign_new_buckets`.
+        """
+        # Maps detection scores to corresponding confidence buckets
+        return tf.searchsorted(self.bucket_thresholds, dt_scores, side="left")
+
+    def map_to_confidence_buckets(self, dt_scores):
+        num_scores = tf.shape(dt_scores)[0]
+        num_buckets = self.num_buckets
+        after_update = self.bucket_counter + num_scores
+
+        # determine how many buckets are in overflow mode.
+        overflow = after_update - num_buckets
+        overflow = tf.math.maximum(overflow, 0)
+
+        dt_scores_new_buckets = dt_scores[:-overflow]
+        dt_scores_overflow = dt_scores[overflow:]
+
+        mapped_to_new_buckets = self._assign_new_buckets(dt_scores_new_buckets)
+        overflow_bucket_assignments = self._map_scores_to_buckets(dt_scores_overflow)
+
+        return tf.concatenate(
+            [mapped_to_new_buckets, overflow_bucket_assignments], axis=0
+        )
 
     @tf.function()
     def result(self):
