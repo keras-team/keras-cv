@@ -283,6 +283,140 @@ class StableDiffusion:
         decoded = ((decoded + 1) / 2) * 255
         return np.clip(decoded, 0, 255).astype("uint8")
 
+    def inpaint(
+        self,
+        encoded_text,
+        image,
+        mask,
+        num_resamples=1,
+        batch_size=1,
+        num_steps=25,
+        unconditional_guidance_scale=7.5,
+        diffusion_noise=None,
+        seed=None,
+    ):
+        """Generates an image based on encoded text.
+
+        The encoding passed to this method should be derived from
+        `StableDiffusion.encode_text`.
+
+        Args:
+            encoded_text: Tensor of shape (`batch_size`, 77, 768), or a Tensor
+            of shape (77, 768). When the batch axis is omitted, the same encoded
+            text will be used to produce every generated image.
+            image: Tensor of shape (`batch_size`, `image_height`, `image_width`,
+            3) with RGB values in [0, 255]. When the batch is omitted, the same
+            image will be used as the starting image.
+            mask: Tensor of shape (`batch_size`, `image_height`, `image_width`)
+            with binary values 0 or 1. When the batch is omitted, the same mask
+            will be used on all images.
+            batch_size: number of images to generate. Default: 1.
+            num_steps: number of diffusion steps (controls image quality).
+                Default: 25.
+            unconditional_guidance_scale: float controling how closely the image
+                should adhere to the prompt. Larger values result in more
+                closely adhering to the prompt, but will make the image noisier.
+                Default: 7.5.
+            diffusion_noise: Tensor of shape (`batch_size`, img_height // 8,
+                img_width // 8, 4), or a Tensor of shape (img_height // 8,
+                img_width // 8, 4). Optional custom noise to seed the diffusion
+                process. When the batch axis is omitted, the same noise will be
+                used to seed diffusion for every generated image.
+            seed: integer which is used to seed the random generation of
+                diffusion noise, only to be specified if `diffusion_noise` is
+                None.
+        """
+        if diffusion_noise is not None and seed is not None:
+            raise ValueError(
+                "`diffusion_noise` and `seed` should not both be passed to "
+                "`generate_image`. `seed` is only used to generate diffusion "
+                "noise when it's not already user-specified."
+            )
+
+        encoded_text = tf.squeeze(encoded_text)
+        if encoded_text.shape.rank == 2:
+            encoded_text = tf.repeat(
+                tf.expand_dims(encoded_text, axis=0), batch_size, axis=0
+            )
+
+        image = tf.squeeze(image)
+        image = tf.cast(image, dtype=tf.float32) * 2. - 1.
+        if image.shape.rank == 3:
+            image = tf.repeat(
+                tf.expand_dims(image, axis=0), batch_size, axis=0
+            )
+        known_x0 = self.image_encoder(image)
+
+        mask = tf.cast(tf.squeeze(mask), dtype=tf.float32)
+        if mask.shape.rank == 2:
+            mask = tf.repeat(
+                tf.expand_dims(mask, axis=0), batch_size, axis=0
+            )
+
+        context = encoded_text
+        unconditional_context = tf.repeat(
+            self._get_unconditional_context(), batch_size, axis=0
+        )
+
+        if diffusion_noise is not None:
+            diffusion_noise = tf.squeeze(diffusion_noise)
+            if diffusion_noise.shape.rank == 3:
+                diffusion_noise = tf.repeat(
+                    tf.expand_dims(diffusion_noise, axis=0), batch_size, axis=0
+                )
+            latent = diffusion_noise
+        else:
+            latent = self._get_initial_diffusion_noise(batch_size, seed)
+
+        # Iterative reverse diffusion stage
+        timesteps = tf.range(1, 1000, 1000 // num_steps)
+        alphas, alphas_prev = self._get_initial_alphas(timesteps)
+        progbar = keras.utils.Progbar(len(timesteps))
+        iteration = 0
+        for index, timestep in list(enumerate(timesteps))[::-1]:
+            a_t, a_prev = alphas[index], alphas_prev[index]
+            latent_prev = latent  # Set aside the previous latent vector
+            t_emb = self._get_timestep_embedding(timestep, batch_size)
+
+            for resample_index in range(num_resamples):
+                unconditional_latent = self.diffusion_model.predict_on_batch(
+                    [latent, t_emb, unconditional_context]
+                )
+                latent = self.diffusion_model.predict_on_batch([latent, t_emb, context])
+                latent = unconditional_latent + unconditional_guidance_scale * (
+                    latent - unconditional_latent
+                )
+                pred_x0 = (latent_prev - math.sqrt(1 - a_t) * latent) / math.sqrt(a_t)
+                latent = latent * math.sqrt(1.0 - a_prev) + math.sqrt(a_prev) * pred_x0
+
+                # Use known image (x0) to compute latent
+                if timestep > 1:
+                    noise = tf.random.normal(tf.shape(known_x0), seed=seed)
+                else:
+                    noise = 0.0
+                known_latent = (
+                    math.sqrt(a_prev) * known_x0 + math.sqrt(1 - a_prev) * noise
+                )
+                # Use known latent in unmasked regions
+                latent = mask * known_latent + (1 - mask) * latent
+                # Resample latent
+                if resample_index < num_resamples - 1 and timestep > 1:
+                    beta_prev = 1 - (a / a_prev)
+                    latent_prev = tf.random.normal(
+                        tf.shape(latent),
+                        mean=latent * math.sqrt(1 - beta_prev),
+                        stddev=math.sqrt(beta_prev),
+                        seed=seed,
+                    )
+
+            iteration += 1
+            progbar.update(iteration)
+
+        # Decoding stage
+        decoded = self.decoder.predict_on_batch(latent)
+        decoded = ((decoded + 1) / 2) * 255
+        return np.clip(decoded, 0, 255).astype("uint8")
+
     def _get_unconditional_context(self):
         unconditional_tokens = tf.convert_to_tensor(
             [_UNCONDITIONAL_TOKENS], dtype=tf.int32
