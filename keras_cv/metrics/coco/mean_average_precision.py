@@ -124,6 +124,19 @@ class COCOMeanAveragePrecision(tf.keras.metrics.Metric):
             dtype=tf.int32,
             initializer="zeros",
         )
+        self.bucket_counters = self.add_weight(
+            self.num_class_ids,
+            self.num_iou_thresholds,
+            dtype=tf.int32,
+            initializer="zeros",
+        )
+        self.bucket_thresholds = self.add_weight(
+            self.num_class_ids,
+            self.num_iou_thresholds,
+            self.num_buckets,
+            dtype=tf.float32,
+            initializer="zeros",
+        )
         self.true_positive_buckets = self.add_weight(
             "true_positive_buckets",
             shape=(
@@ -243,6 +256,8 @@ class COCOMeanAveragePrecision(tf.keras.metrics.Metric):
 
                     dt_scores_clipped = tf.clip_by_value(dt_scores, 0.0, 1.0)
                     # We must divide by 1.01 to prevent off by one errors.
+
+                    confidence_buckets = self.assign_confidence_buckets(dt_scores_clipped)
                     confidence_buckets = tf.cast(
                         tf.math.floor(self.num_buckets * (dt_scores_clipped / 1.01)),
                         tf.int32,
