@@ -327,9 +327,14 @@ class StableDiffusion:
         return alphas, alphas_prev
 
     def _get_initial_diffusion_noise(self, batch_size, seed):
-        return tf.random.normal(
-            (batch_size, self.img_height // 8, self.img_width // 8, 4), seed=seed
-        )
+        if seed is not None:
+            return tf.convert_to_tensor(np.random.RandomState(seed).randn(
+                batch_size, self.img_height // 8, self.img_width // 8, 4
+            ))
+        else:
+            return tf.convert_to_tensor(np.random.randn(
+                batch_size, self.img_height // 8, self.img_width // 8, 4
+            ))
 
     @staticmethod
     def _get_pos_ids():
