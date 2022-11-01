@@ -345,7 +345,12 @@ class StableDiffusion:
         if image.shape.rank == 3:
             known_x0 = tf.repeat(known_x0, batch_size, axis=0)
 
-        mask = tf.cast(tf.squeeze(mask), dtype=tf.float32)
+        mask = tf.expand_dims(mask, axis=-1)
+        mask = tf.cast(
+            tf.nn.max_pool2d(mask, ksize=8, strides=8, padding="SAME"),
+            dtype=tf.float32,
+        )
+        mask = tf.squeeze(mask)
         if mask.shape.rank == 2:
             mask = tf.repeat(
                 tf.expand_dims(mask, axis=0), batch_size, axis=0
