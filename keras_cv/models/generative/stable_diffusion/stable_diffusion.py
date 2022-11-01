@@ -285,7 +285,7 @@ class StableDiffusion:
 
     def inpaint(
         self,
-        encoded_text,
+        prompt,
         image,
         mask,
         num_resamples=1,
@@ -301,9 +301,7 @@ class StableDiffusion:
         `StableDiffusion.encode_text`.
 
         Args:
-            encoded_text: Tensor of shape (`batch_size`, 77, 768), or a Tensor
-            of shape (77, 768). When the batch axis is omitted, the same encoded
-            text will be used to produce every generated image.
+            prompt: A string representing the prompt for generation.
             image: Tensor of shape (`batch_size`, `image_height`, `image_width`,
             3) with RGB values in [0, 255]. When the batch is omitted, the same
             image will be used as the starting image.
@@ -333,6 +331,7 @@ class StableDiffusion:
                 "noise when it's not already user-specified."
             )
 
+        encoded_text = self.encode_text(prompt)
         encoded_text = tf.squeeze(encoded_text)
         if encoded_text.shape.rank == 2:
             encoded_text = tf.repeat(
@@ -340,18 +339,18 @@ class StableDiffusion:
             )
 
         image = tf.squeeze(image)
-        image = tf.cast(image, dtype=tf.float32) * 2. - 1.
-        if image.shape.rank == 3:
-            image = tf.repeat(
-                tf.expand_dims(image, axis=0), batch_size, axis=0
-            )
+        image = tf.cast(image, dtype=tf.float32) / 255. * 2. - 1.
+        image = tf.expand_dims(image, axis=0)
         known_x0 = self.image_encoder(image)
+        if image.shape.rank == 3:
+            known_x0 = tf.repeat(known_x0, batch_size, axis=0)
 
         mask = tf.cast(tf.squeeze(mask), dtype=tf.float32)
         if mask.shape.rank == 2:
             mask = tf.repeat(
                 tf.expand_dims(mask, axis=0), batch_size, axis=0
             )
+        mask = tf.expand_dims(mask, axis=-1)
 
         context = encoded_text
         unconditional_context = tf.repeat(
@@ -401,7 +400,7 @@ class StableDiffusion:
                 latent = mask * known_latent + (1 - mask) * latent
                 # Resample latent
                 if resample_index < num_resamples - 1 and timestep > 1:
-                    beta_prev = 1 - (a / a_prev)
+                    beta_prev = 1 - (a_t / a_prev)
                     latent_prev = tf.random.normal(
                         tf.shape(latent),
                         mean=latent * math.sqrt(1 - beta_prev),
