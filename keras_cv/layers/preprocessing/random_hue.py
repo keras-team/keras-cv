@@ -63,12 +63,17 @@ class RandomHue(BaseImageAugmentationLayer):
         return invert * self.factor() * 0.5
 
     def augment_image(self, image, transformation=None, **kwargs):
-        image = preprocessing.transform_value_range(image, self.value_range, (0, 1))
+        image = preprocessing.transform_value_range(
+            image, self.value_range, (0, 1), dtype=self.compute_dtype
+        )
+
         # tf.image.adjust_hue expects floats to be in range [0, 1]
         image = tf.image.adjust_hue(image, delta=transformation)
         # RandomHue is one of the rare KPLs that needs to clip
         image = tf.clip_by_value(image, 0, 1)
-        image = preprocessing.transform_value_range(image, (0, 1), self.value_range)
+        image = preprocessing.transform_value_range(
+            image, (0, 1), self.value_range, dtype=self.compute_dtype
+        )
         return image
 
     def augment_bounding_boxes(self, bounding_boxes, **kwargs):

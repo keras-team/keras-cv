@@ -47,7 +47,10 @@ class AutoContrast(BaseImageAugmentationLayer):
     def augment_image(self, image, transformation=None, **kwargs):
         original_image = image
         image = preprocessing.transform_value_range(
-            image, original_range=self.value_range, target_range=(0, 255)
+            image,
+            original_range=self.value_range,
+            target_range=(0, 255),
+            dtype=self.compute_dtype,
         )
 
         low = tf.reduce_min(tf.reduce_min(image, axis=0), axis=0)
@@ -58,7 +61,10 @@ class AutoContrast(BaseImageAugmentationLayer):
         image = image * scale[None, None] + offset[None, None]
         result = tf.clip_by_value(image, 0.0, 255.0)
         result = preprocessing.transform_value_range(
-            result, original_range=(0, 255), target_range=self.value_range
+            result,
+            original_range=(0, 255),
+            target_range=self.value_range,
+            dtype=self.compute_dtype,
         )
         # don't process NaN channels
         result = tf.where(tf.math.is_nan(result), original_image, result)
