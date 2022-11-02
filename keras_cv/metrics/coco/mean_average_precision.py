@@ -163,6 +163,8 @@ class COCOMeanAveragePrecision(tf.keras.metrics.Metric):
         self.true_positive_buckets.assign(tf.zeros_like(self.true_positive_buckets))
         self.false_positive_buckets.assign(tf.zeros_like(self.false_positive_buckets))
         self.ground_truths.assign(tf.zeros_like(self.ground_truths))
+        self.bucket_thresholds.assign(tf.ones_like(self.bucket_thresholds))
+        self.bucket_counter.assign(0)
 
     @tf.function()
     def update_state(self, y_true, y_pred, sample_weight=None):
@@ -249,7 +251,6 @@ class COCOMeanAveragePrecision(tf.keras.metrics.Metric):
                 for iou_i in tf.range(self.num_iou_thresholds):
                     iou_threshold = iou_thresholds[iou_i]
                     pred_matches = utils.match_boxes(ious, iou_threshold)
-
                     dt_scores = detections_by_category[:, bounding_box.XYXY.CONFIDENCE]
 
                     true_positives = pred_matches != -1
@@ -315,7 +316,6 @@ class COCOMeanAveragePrecision(tf.keras.metrics.Metric):
         """
         indices = tf.argsort(self.bucket_thresholds)
 
-
         tp_update = tf.transpose(self.true_positive_buckets, [2, 0, 1])
         tp_update = tf.gather(tp_update, indices=indices)
         tp_update = tf.transpose(tp_update, [1, 2, 0])
@@ -323,7 +323,7 @@ class COCOMeanAveragePrecision(tf.keras.metrics.Metric):
         fp_update = tf.gather(fp_update, indices=indices)
         fp_update = tf.transpose(fp_update, [1, 2, 0])
         self.true_positive_buckets.assign(
-        tp_update
+            tp_update
         )
         self.false_positive_buckets.assign(
             fp_update
@@ -339,16 +339,14 @@ class COCOMeanAveragePrecision(tf.keras.metrics.Metric):
         # assign buckets their corresponding confidence scores
         delta = tf.concat(
             [
-                tf.zeros(
-                    self.bucket_counter,
-                ),
+                self.bucket_thresholds[:self.bucket_counter],
                 dt_scores,
-                tf.zeros(self.num_buckets - (self.bucket_counter + num_scores)),
+                self.bucket_thresholds[(self.bucket_counter + num_scores):]
             ],
             axis=0,
         )
         # assign buckets in the actual tf variable
-        self.bucket_thresholds.assign_add(delta)
+        self.bucket_thresholds.assign(delta)
         # increment counter so buckets don't get re-assigned
         self.bucket_counter.assign_add(num_scores)
         tf.debugging.assert_less_equal(
@@ -381,10 +379,13 @@ class COCOMeanAveragePrecision(tf.keras.metrics.Metric):
         overflow = after_update - num_buckets
         overflow = tf.math.maximum(overflow, 0)
 
-        dt_scores_new_buckets = dt_scores[:-overflow]
-        dt_scores_overflow = dt_scores[overflow:]
+        dt_scores_new_buckets = dt_scores[:num_scores-overflow]
+        dt_scores_overflow = dt_scores[num_scores-overflow:]
 
         mapped_to_new_buckets = self._assign_new_buckets(dt_scores_new_buckets)
+
+        # assign if _organize_buckets()
+        tf.cond((num_scores-overflow > 0) and (overflow > 0), lambda: self._organize_buckets(), lambda: None)
         overflow_bucket_assignments = self._map_scores_to_buckets(dt_scores_overflow)
         return tf.concat(
             [mapped_to_new_buckets, overflow_bucket_assignments], axis=0

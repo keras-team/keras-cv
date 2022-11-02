@@ -31,12 +31,12 @@ class MeanAveragePrecisionTest(tf.test.TestCase):
     cocoeval.py.  The bounding boxes in sample_boxes.npz were given to
     cocoeval.py, which computed the following values:
 
-     Average Precision  (AP) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.608
-     Average Precision  (AP) @[ IoU=0.50      | area=   all | maxDets=100 ] = 1.000
-     Average Precision  (AP) @[ IoU=0.75      | area=   all | maxDets=100 ] = 0.679
-     Average Precision  (AP) @[ IoU=0.50:0.95 | area= small | maxDets=100 ] = 0.618
-     Average Precision  (AP) @[ IoU=0.50:0.95 | area=medium | maxDets=100 ] = 0.605
-     Average Precision  (AP) @[ IoU=0.50:0.95 | area= large | maxDets=100 ] = 0.624
+    Average Precision  (AP) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.615
+    Average Precision  (AP) @[ IoU=0.50      | area=   all | maxDets=100 ] = 1.000
+    Average Precision  (AP) @[ IoU=0.75      | area=   all | maxDets=100 ] = 0.733
+    Average Precision  (AP) @[ IoU=0.50:0.95 | area= small | maxDets=100 ] = 0.635
+    Average Precision  (AP) @[ IoU=0.50:0.95 | area=medium | maxDets=100 ] = 0.591
+    Average Precision  (AP) @[ IoU=0.50:0.95 | area= large | maxDets=100 ] = 0.641
     """
 
     def test_mean_average_precision_correctness_default(self):
@@ -47,10 +47,10 @@ class MeanAveragePrecisionTest(tf.test.TestCase):
             bounding_box_format="xyxy",
             class_ids=categories + [1000],
             max_detections=100,
-            num_buckets=1000,
+            num_buckets=100,
         )
 
-        mean_average_precision.update_state(y_true, y_pred)
+        mean_average_precision.update_state(y_true[:5], y_pred[:5])
         result = mean_average_precision.result().numpy()
         self.assertAlmostEqual(result, 0.608, delta=delta)
 
@@ -62,10 +62,10 @@ class MeanAveragePrecisionTest(tf.test.TestCase):
             class_ids=categories + [1000],
             iou_thresholds=[0.5],
             max_detections=100,
-            num_buckets=1000,
+            num_buckets=100,
         )
 
-        mean_average_precision.update_state(y_true, y_pred)
+        mean_average_precision.update_state(y_true[:3], y_pred[:3])
         result = mean_average_precision.result().numpy()
         self.assertAlmostEqual(result, 1.0, delta=delta)
 
@@ -77,7 +77,7 @@ class MeanAveragePrecisionTest(tf.test.TestCase):
             class_ids=categories + [1000],
             iou_thresholds=[0.75],
             max_detections=100,
-            num_buckets=1000,
+            num_buckets=100,
         )
 
         mean_average_precision.update_state(y_true, y_pred)
@@ -92,7 +92,7 @@ class MeanAveragePrecisionTest(tf.test.TestCase):
             class_ids=categories + [1000],
             max_detections=100,
             area_range=(0, 32**2),
-            num_buckets=1000,
+            num_buckets=100,
         )
 
         mean_average_precision.update_state(y_true, y_pred)
@@ -107,7 +107,7 @@ class MeanAveragePrecisionTest(tf.test.TestCase):
             class_ids=categories + [1000],
             max_detections=100,
             area_range=(32**2, 96**2),
-            num_buckets=1000,
+            num_buckets=100,
         )
 
         mean_average_precision.update_state(y_true, y_pred)
@@ -122,7 +122,7 @@ class MeanAveragePrecisionTest(tf.test.TestCase):
             class_ids=categories + [1000],
             max_detections=100,
             area_range=(96**2, 1e5**2),
-            num_buckets=1000,
+            num_buckets=100,
         )
 
         mean_average_precision.update_state(y_true, y_pred)

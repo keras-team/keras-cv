@@ -21,7 +21,7 @@ from keras_cv.metrics.coco import COCOMeanAveragePrecision
 
 SAMPLE_FILE = os.path.dirname(os.path.abspath(__file__)) + "/sample_boxes.npz"
 
-delta = 0.04
+delta = 0.02
 
 
 class MeanAveragePrecisionTest(tf.test.TestCase):
@@ -62,6 +62,7 @@ class MeanAveragePrecisionTest(tf.test.TestCase):
             class_ids=categories + [1000],
             iou_thresholds=[0.5],
             max_detections=100,
+            num_buckets=1000,
         )
 
         mean_average_precision.update_state(y_true, y_pred)
@@ -76,6 +77,7 @@ class MeanAveragePrecisionTest(tf.test.TestCase):
             class_ids=categories + [1000],
             iou_thresholds=[0.75],
             max_detections=100,
+            num_buckets=1000,
         )
 
         mean_average_precision.update_state(y_true, y_pred)
@@ -90,6 +92,7 @@ class MeanAveragePrecisionTest(tf.test.TestCase):
             class_ids=categories + [1000],
             max_detections=100,
             area_range=(0, 32**2),
+            num_buckets=1000,
         )
 
         mean_average_precision.update_state(y_true, y_pred)
@@ -104,6 +107,7 @@ class MeanAveragePrecisionTest(tf.test.TestCase):
             class_ids=categories + [1000],
             max_detections=100,
             area_range=(32**2, 96**2),
+            num_buckets=1000,
         )
 
         mean_average_precision.update_state(y_true, y_pred)
@@ -118,6 +122,7 @@ class MeanAveragePrecisionTest(tf.test.TestCase):
             class_ids=categories + [1000],
             max_detections=100,
             area_range=(96**2, 1e5**2),
+            num_buckets=1000,
         )
 
         mean_average_precision.update_state(y_true, y_pred)
