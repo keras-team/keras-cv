@@ -135,7 +135,7 @@ class COCOMeanAveragePrecision(tf.keras.metrics.Metric):
             "bucket_thresholds",
             shape=(self.num_buckets,),
             dtype=tf.float32,
-            initializer="zeros",
+            initializer="ones",
             synchronization=tf.VariableSynchronization.ON_WRITE,
         )
         self.true_positive_buckets = self.add_weight(
@@ -309,11 +309,28 @@ class COCOMeanAveragePrecision(tf.keras.metrics.Metric):
     def _organize_buckets(self):
         """_organize_buckets is called once after all of the buckets are filled up.
 
-        It organizes buckets to be sorted, allowing us to create a lookup table for
-        confidence scores.
+        It organizes buckets to be sorted by confidence score, allowing us to
+        create a lookup table for confidence scores.  This must be called before calling
+        `result()`, as well as once after all of the buckets are filled up.
         """
+        indices = tf.argsort(self.bucket_thresholds)
 
-        pass
+
+        tp_update = tf.transpose(self.true_positive_buckets, [2, 0, 1])
+        tp_update = tf.gather(tp_update, indices=indices)
+        tp_update = tf.transpose(tp_update, [1, 2, 0])
+        fp_update = tf.transpose(self.false_positive_buckets, [2, 0, 1])
+        fp_update = tf.gather(fp_update, indices=indices)
+        fp_update = tf.transpose(fp_update, [1, 2, 0])
+        self.true_positive_buckets.assign(
+        tp_update
+        )
+        self.false_positive_buckets.assign(
+            fp_update
+        )
+        self.bucket_thresholds.assign(
+            tf.gather(self.bucket_thresholds, indices=indices)
+        )
 
     def _assign_new_buckets(self, dt_scores):
         num_scores = tf.shape(dt_scores)[0]
@@ -335,8 +352,8 @@ class COCOMeanAveragePrecision(tf.keras.metrics.Metric):
         # increment counter so buckets don't get re-assigned
         self.bucket_counter.assign_add(num_scores)
         tf.debugging.assert_less_equal(
-            self.num_buckets,
             self.bucket_counter,
+            self.num_buckets,
             "_assign_new_buckets should never be called with more elements than can be "
             "supported.  Don't call _assign_new_buckets as a user. "
             "This message should never show up to a user - it is a sanity check for "
@@ -356,6 +373,7 @@ class COCOMeanAveragePrecision(tf.keras.metrics.Metric):
 
     def map_to_confidence_buckets(self, dt_scores):
         num_scores = tf.shape(dt_scores)[0]
+
         num_buckets = self.num_buckets
         after_update = self.bucket_counter + num_scores
 
@@ -368,13 +386,14 @@ class COCOMeanAveragePrecision(tf.keras.metrics.Metric):
 
         mapped_to_new_buckets = self._assign_new_buckets(dt_scores_new_buckets)
         overflow_bucket_assignments = self._map_scores_to_buckets(dt_scores_overflow)
-
-        return tf.concatenate(
+        return tf.concat(
             [mapped_to_new_buckets, overflow_bucket_assignments], axis=0
         )
 
     @tf.function()
     def result(self):
+        self._organize_buckets()
+
         true_positives = tf.cast(self.true_positive_buckets, self.dtype)
         false_positives = tf.cast(self.false_positive_buckets, self.dtype)
         ground_truths = tf.cast(self.ground_truths, self.dtype)
