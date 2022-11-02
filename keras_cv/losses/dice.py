@@ -357,6 +357,7 @@ class SparseDice(tf.keras.losses.Loss):
         The number of channels is thus y_pred.shape[0].
         If none of these hold true - raise exception.
         """
+
         if self.axis in [[1, 2], [1, 2, 3]]:
             num_channels = tf.cast(y_pred.shape[-1], dtype=tf.int32)
         elif self.axis in [[2, 3], [2, 3, 4]]:
@@ -365,8 +366,10 @@ class SparseDice(tf.keras.losses.Loss):
             raise ValueError(
                 f"`axis` value should be [1, 2] or [1, 2, 3] for 2D and 3D channels_last input respectively, and [2, 3] or [2, 3, 4] for 2D and 3D channels_first input respectively. Got {self.axis}"
             )
-
+        print(num_channels)
+        print(y_true.shape)
         y_true = tf.one_hot(tf.cast(y_true, dtype=tf.int32), depth=num_channels)
+        print(y_true.shape)
 
         y_true = tf.cast(y_true, y_pred.dtype)
         label_smoothing = tf.convert_to_tensor(self.label_smoothing, dtype=y_pred.dtype)
