@@ -136,7 +136,6 @@ class RetinaNet(ObjectDetectionBaseModel):
         label_encoder = label_encoder or cv_layers.RetinaNetLabelEncoder(
             bounding_box_format=bounding_box_format,
             anchor_generator=anchor_generator,
-            track_matched_boxes=True,
         )
         super().__init__(
             bounding_box_format=bounding_box_format,
