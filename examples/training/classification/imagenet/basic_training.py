@@ -186,6 +186,7 @@ AUGMENT_LAYERS = [
     keras_cv.layers.RandAugment(value_range=(0, 255), magnitude=0.3),
 ]
 
+
 @tf.function
 def augment(img, label):
     inputs = {"images": img, "labels": label}
