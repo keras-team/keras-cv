@@ -375,6 +375,9 @@ class COCOMeanAveragePrecision(tf.keras.metrics.Metric):
         num_buckets = self.num_buckets
         after_update = self.bucket_counter + num_scores
 
+        # Re-organize buckets if we fill up our round-robin bucket assignment
+        must_organize = after_update >= num_buckets and self.bucket_counter < num_buckets
+
         # determine how many buckets are in overflow mode.
         overflow = after_update - num_buckets
         overflow = tf.math.maximum(overflow, 0)
@@ -385,7 +388,7 @@ class COCOMeanAveragePrecision(tf.keras.metrics.Metric):
         mapped_to_new_buckets = self._assign_new_buckets(dt_scores_new_buckets)
 
         # assign if _organize_buckets()
-        tf.cond((num_scores-overflow > 0) and (overflow > 0), lambda: self._organize_buckets(), lambda: None)
+        tf.cond(must_organize, lambda: self._organize_buckets(), lambda: None)
         overflow_bucket_assignments = self._map_scores_to_buckets(dt_scores_overflow)
         return tf.concat(
             [mapped_to_new_buckets, overflow_bucket_assignments], axis=0
