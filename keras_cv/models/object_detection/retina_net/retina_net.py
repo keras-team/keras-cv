@@ -116,7 +116,6 @@ class RetinaNet(ObjectDetectionBaseModel):
         classification_head=None,
         box_head=None,
         evaluate_train_time_metrics=False,
-        track_matched_boxes=True,
         name="RetinaNet",
         **kwargs,
     ):
@@ -137,9 +136,8 @@ class RetinaNet(ObjectDetectionBaseModel):
         label_encoder = label_encoder or cv_layers.RetinaNetLabelEncoder(
             bounding_box_format=bounding_box_format,
             anchor_generator=anchor_generator,
-            track_matched_boxes=track_matched_boxes,
+            track_matched_boxes=True,
         )
-        self.track_matched_boxes = track_matched_boxes
         super().__init__(
             bounding_box_format=bounding_box_format,
             label_encoder=label_encoder,
@@ -239,9 +237,8 @@ class RetinaNet(ObjectDetectionBaseModel):
             self.classification_loss_metric,
             self.regularization_loss_metric,
             self.box_loss_metric,
+            self.label_encoder.matched_boxes_metric
         ]
-        if self.track_matched_boxes:
-            result = result + [self.label_encoder.matched_boxes_metric]
         return result
 
     def call(self, x, training=False):
