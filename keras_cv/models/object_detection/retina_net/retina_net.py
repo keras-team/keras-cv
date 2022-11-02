@@ -232,14 +232,13 @@ class RetinaNet(ObjectDetectionBaseModel):
 
     @property
     def train_metrics(self):
-        result = [
+        return [
             self.loss_metric,
             self.classification_loss_metric,
             self.regularization_loss_metric,
             self.box_loss_metric,
-            self.label_encoder.matched_boxes_metric
+            self.label_encoder.matched_boxes_metric,
         ]
-        return result
 
     def call(self, x, training=False):
         backbone_outputs = self.backbone(x, training=training)
