@@ -28,7 +28,7 @@ from tensorflow import keras
 from tensorflow.keras import callbacks
 from tensorflow.keras import losses
 from tensorflow.keras import metrics
-from tensorflow.keras import optimizers
+from tensorflow_addons import optimizers
 
 import keras_cv
 from keras_cv import models
@@ -101,6 +101,12 @@ flags.DEFINE_float(
     "warmup_hold_steps_percentage",
     0.1,
     "For how many steps expressed in percentage (0..1 float) of total steps should the schedule hold the initial learning rate after warmup is finished, and before applying cosine decay.",
+)
+
+flags.DEFINE_float(
+    "weight_decay",
+    0.02,
+    "Weight decay parameter for the optimizer",
 )
 
 # An upper bound for number of epochs (this script uses EarlyStopping).
@@ -313,10 +319,15 @@ Note that learning rate will decrease over time due to the ReduceLROnPlateau cal
 """
 
 if FLAGS.learning_rate_schedule == COSINE_DECAY_WITH_WARMUP:
-    optimizer = optimizers.SGD(learning_rate=schedule, momentum=0.9)
+    optimizer = optimizers.SGDW(
+        weight_decay=FLAGS.weight_decay, learning_rate=schedule, momentum=0.9
+    )
 else:
-    optimizer = optimizers.SGD(
-        learning_rate=INITIAL_LEARNING_RATE, momentum=0.9, global_clipnorm=10
+    optimizer = optimizers.SGDW(
+        weight_decay=FLAGS.weight_decay,
+        learning_rate=INITIAL_LEARNING_RATE,
+        momentum=0.9,
+        global_clipnorm=10,
     )
 """
 Next, we pick a loss function. We use CategoricalCrossentropy with label smoothing.
