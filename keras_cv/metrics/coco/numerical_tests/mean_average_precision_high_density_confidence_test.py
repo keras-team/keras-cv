@@ -31,12 +31,12 @@ class MeanAveragePrecisionTest(tf.test.TestCase):
     cocoeval.py.  The bounding boxes in sample_boxes.npz were given to
     cocoeval.py, which computed the following values:
 
-    Average Precision  (AP) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.617
-    Average Precision  (AP) @[ IoU=0.50      | area=   all | maxDets=100 ] = 1.000
-    Average Precision  (AP) @[ IoU=0.75      | area=   all | maxDets=100 ] = 0.707
-    Average Precision  (AP) @[ IoU=0.50:0.95 | area= small | maxDets=100 ] = 0.604
-    Average Precision  (AP) @[ IoU=0.50:0.95 | area=medium | maxDets=100 ] = 0.626
-    Average Precision  (AP) @[ IoU=0.50:0.95 | area= large | maxDets=100 ] = 0.610
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.598
+ Average Precision  (AP) @[ IoU=0.50      | area=   all | maxDets=100 ] = 1.000
+ Average Precision  (AP) @[ IoU=0.75      | area=   all | maxDets=100 ] = 0.723
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area= small | maxDets=100 ] = 0.613
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area=medium | maxDets=100 ] = 0.605
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area= large | maxDets=100 ] = 0.583
     """
 
     def test_mean_average_precision_correctness_default(self):
@@ -52,7 +52,7 @@ class MeanAveragePrecisionTest(tf.test.TestCase):
 
         mean_average_precision.update_state(y_true, y_pred)
         result = mean_average_precision.result().numpy()
-        self.assertAlmostEqual(result, 0.619, delta=delta)
+        self.assertAlmostEqual(result, 0.598, delta=delta)
 
     def test_mean_average_precision_correctness_iou_05(self):
         y_true, y_pred, categories = load_samples(SAMPLE_FILE)
@@ -80,35 +80,7 @@ class MeanAveragePrecisionTest(tf.test.TestCase):
 
         mean_average_precision.update_state(y_true, y_pred)
         result = mean_average_precision.result().numpy()
-        self.assertAlmostEqual(result, 0.700, delta=delta)
-
-    def test_mean_average_precision_correctness_medium(self):
-        y_true, y_pred, categories = load_samples(SAMPLE_FILE)
-
-        mean_average_precision = COCOMeanAveragePrecision(
-            bounding_box_format="xyxy",
-            class_ids=categories + [1000],
-            max_detections=100,
-            area_range=(32**2, 96**2),
-        )
-
-        mean_average_precision.update_state(y_true, y_pred)
-        result = mean_average_precision.result().numpy()
-        self.assertAlmostEqual(result, 0.609, delta=delta)
-
-    def test_mean_average_precision_correctness_large(self):
-        y_true, y_pred, categories = load_samples(SAMPLE_FILE)
-
-        mean_average_precision = COCOMeanAveragePrecision(
-            bounding_box_format="xyxy",
-            class_ids=categories + [1000],
-            max_detections=100,
-            area_range=(96**2, 1e5**2),
-        )
-
-        mean_average_precision.update_state(y_true, y_pred)
-        result = mean_average_precision.result().numpy()
-        self.assertAlmostEqual(result, 0.634, delta=delta)
+        self.assertAlmostEqual(result, 0.723, delta=delta)
 
     def test_mean_average_precision_correctness_small(self):
         y_true, y_pred, categories = load_samples(SAMPLE_FILE)
@@ -122,7 +94,35 @@ class MeanAveragePrecisionTest(tf.test.TestCase):
 
         mean_average_precision.update_state(y_true, y_pred)
         result = mean_average_precision.result().numpy()
-        self.assertAlmostEqual(result, 0.628, delta=delta)
+        self.assertAlmostEqual(result, 0.613, delta=delta)
+
+    def test_mean_average_precision_correctness_medium(self):
+        y_true, y_pred, categories = load_samples(SAMPLE_FILE)
+
+        mean_average_precision = COCOMeanAveragePrecision(
+            bounding_box_format="xyxy",
+            class_ids=categories + [1000],
+            max_detections=100,
+            area_range=(32**2, 96**2),
+        )
+
+        mean_average_precision.update_state(y_true, y_pred)
+        result = mean_average_precision.result().numpy()
+        self.assertAlmostEqual(result, 0.605, delta=delta)
+
+    def test_mean_average_precision_correctness_large(self):
+        y_true, y_pred, categories = load_samples(SAMPLE_FILE)
+
+        mean_average_precision = COCOMeanAveragePrecision(
+            bounding_box_format="xyxy",
+            class_ids=categories + [1000],
+            max_detections=100,
+            area_range=(96**2, 1e5**2),
+        )
+
+        mean_average_precision.update_state(y_true, y_pred)
+        result = mean_average_precision.result().numpy()
+        self.assertAlmostEqual(result, 0.583, delta=delta)
 
 
 def load_samples(fname):
