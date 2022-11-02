@@ -13,14 +13,13 @@
 # limitations under the License.
 
 
-"""EfficientNet models for Keras.
+"""EfficientNet Lite models for Keras.
 
 Reference:
     - [EfficientNet: Rethinking Model Scaling for Convolutional Neural Networks](
         https://arxiv.org/abs/1905.11946) (ICML 2019)
-    - [Based on the original keras.applications EfficientNet](https://github.com/keras-team/keras/blob/master/keras/applications/efficientnet.py)
+    - [Based on the original EfficientNet Lite's](https://github.com/tensorflow/tpu/tree/master/models/official/efficientnet/lite)
 """
-
 import copy
 import math
 
@@ -40,7 +39,6 @@ DEFAULT_BLOCKS_ARGS = [
         "expand_ratio": 1,
         "id_skip": True,
         "strides": 1,
-        "se_ratio": 0.25,
     },
     {
         "kernel_size": 3,
@@ -50,7 +48,6 @@ DEFAULT_BLOCKS_ARGS = [
         "expand_ratio": 6,
         "id_skip": True,
         "strides": 2,
-        "se_ratio": 0.25,
     },
     {
         "kernel_size": 5,
@@ -60,7 +57,6 @@ DEFAULT_BLOCKS_ARGS = [
         "expand_ratio": 6,
         "id_skip": True,
         "strides": 2,
-        "se_ratio": 0.25,
     },
     {
         "kernel_size": 3,
@@ -70,7 +66,6 @@ DEFAULT_BLOCKS_ARGS = [
         "expand_ratio": 6,
         "id_skip": True,
         "strides": 2,
-        "se_ratio": 0.25,
     },
     {
         "kernel_size": 5,
@@ -80,7 +75,6 @@ DEFAULT_BLOCKS_ARGS = [
         "expand_ratio": 6,
         "id_skip": True,
         "strides": 1,
-        "se_ratio": 0.25,
     },
     {
         "kernel_size": 5,
@@ -90,7 +84,6 @@ DEFAULT_BLOCKS_ARGS = [
         "expand_ratio": 6,
         "id_skip": True,
         "strides": 2,
-        "se_ratio": 0.25,
     },
     {
         "kernel_size": 3,
@@ -100,10 +93,8 @@ DEFAULT_BLOCKS_ARGS = [
         "expand_ratio": 6,
         "id_skip": True,
         "strides": 1,
-        "se_ratio": 0.25,
     },
 ]
-
 CONV_KERNEL_INITIALIZER = {
     "class_name": "VarianceScaling",
     "config": {
@@ -174,7 +165,6 @@ BASE_DOCSTRING = """Instantiates the {name} architecture.
         A `keras.Model` instance.
 """
 
-
 BN_AXIS = 3
 
 
@@ -201,8 +191,26 @@ def correct_pad(inputs, kernel_size):
     )
 
 
-def EfficientNetBlock(
-    activation="swish",
+def round_filters(filters, depth_divisor, width_coefficient):
+    """Round number of filters based on depth multiplier."""
+    filters *= width_coefficient
+    new_filters = max(
+        depth_divisor,
+        int(filters + depth_divisor / 2) // depth_divisor * depth_divisor,
+    )
+    # Make sure that round down does not go down by more than 10%.
+    if new_filters < 0.9 * filters:
+        new_filters += depth_divisor
+    return int(new_filters)
+
+
+def round_repeats(repeats, depth_coefficient):
+    """Round number of repeats based on depth multiplier."""
+    return int(math.ceil(depth_coefficient * repeats))
+
+
+def EfficientNetLiteBlock(
+    activation="relu6",
     drop_rate=0.0,
     name="",
     filters_in=32,
@@ -210,10 +218,9 @@ def EfficientNetBlock(
     kernel_size=3,
     strides=1,
     expand_ratio=1,
-    se_ratio=0.0,
     id_skip=True,
 ):
-    """An inverted residual block.
+    """An inverted residual block, without SE phase.
 
     Args:
         inputs: input tensor.
@@ -225,15 +232,14 @@ def EfficientNetBlock(
         kernel_size: integer, the dimension of the convolution window.
         strides: integer, the stride of the convolution.
         expand_ratio: integer, scaling coefficient for the input filters.
-        se_ratio: float between 0 and 1, fraction to squeeze the input filters.
         id_skip: boolean.
 
     Returns:
         output tensor for the block.
     """
 
-    # Expansion phase
     def apply(inputs):
+        # Expansion phase
         filters = filters_in * expand_ratio
         if expand_ratio != 1:
             x = layers.Conv2D(
@@ -269,33 +275,7 @@ def EfficientNetBlock(
         x = layers.BatchNormalization(axis=BN_AXIS, name=name + "bn")(x)
         x = layers.Activation(activation, name=name + "activation")(x)
 
-        # Squeeze and Excitation phase
-        if 0 < se_ratio <= 1:
-            filters_se = max(1, int(filters_in * se_ratio))
-            se = layers.GlobalAveragePooling2D(name=name + "se_squeeze")(x)
-            if BN_AXIS == 1:
-                se_shape = (filters, 1, 1)
-            else:
-                se_shape = (1, 1, filters)
-            se = layers.Reshape(se_shape, name=name + "se_reshape")(se)
-            se = layers.Conv2D(
-                filters_se,
-                1,
-                padding="same",
-                activation=activation,
-                kernel_initializer=CONV_KERNEL_INITIALIZER,
-                name=name + "se_reduce",
-            )(se)
-            se = layers.Conv2D(
-                filters,
-                1,
-                padding="same",
-                activation="sigmoid",
-                kernel_initializer=CONV_KERNEL_INITIALIZER,
-                name=name + "se_expand",
-            )(se)
-            x = layers.multiply([x, se], name=name + "se_excite")
-
+        # Skip SE block
         # Output phase
         x = layers.Conv2D(
             filters_out,
@@ -317,7 +297,7 @@ def EfficientNetBlock(
     return apply
 
 
-def EfficientNet(
+def EfficientNetLite(
     include_rescaling,
     include_top,
     width_coefficient,
@@ -326,9 +306,9 @@ def EfficientNet(
     dropout_rate=0.2,
     drop_connect_rate=0.2,
     depth_divisor=8,
-    activation="swish",
+    activation="relu6",
     blocks_args="default",
-    model_name="efficientnet",
+    model_name="efficientnetlite",
     weights=None,
     input_shape=(None, None, 3),
     input_tensor=None,
@@ -336,11 +316,11 @@ def EfficientNet(
     classes=None,
     classifier_activation="softmax",
 ):
-    """Instantiates the EfficientNet architecture using given scaling coefficients.
+    """Instantiates the EfficientNetLite architecture using given scaling coefficients.
 
     Args:
-        include_rescaling: whether or not to Rescale the inputs.If set to True,
-                inputs will be passed through a `Rescaling(1/255.0)` layer.
+        include_rescaling: whether to Rescale the inputs. If set to True,
+            inputs will be passed through a `Rescaling(1/255.0)` layer.
         include_top: whether to include the fully-connected
             layer at the top of the network.
         width_coefficient: float, scaling coefficient for network width.
@@ -376,15 +356,16 @@ def EfficientNet(
             on the "top" layer. Ignored unless `include_top=True`. Set
             `classifier_activation=None` to return the logits of the "top" layer.
 
-    Returns:
-      A `keras.Model` instance.
+        Returns:
+            A `keras.Model` instance.
 
-    Raises:
-      ValueError: in case of invalid argument for `weights`,
-        or invalid input shape.
-      ValueError: if `classifier_activation` is not `softmax` or `None` when
-        using a pretrained top layer.
+        Raises:
+            ValueError: in case of invalid argument for `weights`,
+                or invalid input shape.
+            ValueError: if `classifier_activation` is not `softmax` or `None` when
+                using a pretrained top layer.
     """
+
     if blocks_args == "default":
         blocks_args = DEFAULT_BLOCKS_ARGS
 
@@ -408,19 +389,6 @@ def EfficientNet(
 
     img_input = utils.parse_model_inputs(input_shape, input_tensor)
 
-    def round_filters(filters, divisor=depth_divisor):
-        """Round number of filters based on depth multiplier."""
-        filters *= width_coefficient
-        new_filters = max(divisor, int(filters + divisor / 2) // divisor * divisor)
-        # Make sure that round down does not go down by more than 10%.
-        if new_filters < 0.9 * filters:
-            new_filters += divisor
-        return int(new_filters)
-
-    def round_repeats(repeats):
-        """Round number of repeats based on depth multiplier."""
-        return int(math.ceil(depth_coefficient * repeats))
-
     # Build stem
     x = img_input
 
@@ -430,7 +398,7 @@ def EfficientNet(
 
     x = layers.ZeroPadding2D(padding=correct_pad(x, 3), name="stem_conv_pad")(x)
     x = layers.Conv2D(
-        round_filters(32),
+        32,
         3,
         strides=2,
         padding="valid",
@@ -445,30 +413,47 @@ def EfficientNet(
     blocks_args = copy.deepcopy(blocks_args)
 
     b = 0
-    blocks = float(sum(round_repeats(args["repeats"]) for args in blocks_args))
+    blocks = float(sum(args["repeats"] for args in blocks_args))
+
     for (i, args) in enumerate(blocks_args):
         assert args["repeats"] > 0
         # Update block input and output filters based on depth multiplier.
-        args["filters_in"] = round_filters(args["filters_in"])
-        args["filters_out"] = round_filters(args["filters_out"])
+        args["filters_in"] = round_filters(
+            filters=args["filters_in"],
+            width_coefficient=width_coefficient,
+            depth_divisor=depth_divisor,
+        )
+        args["filters_out"] = round_filters(
+            filters=args["filters_out"],
+            width_coefficient=width_coefficient,
+            depth_divisor=depth_divisor,
+        )
 
-        for j in range(round_repeats(args.pop("repeats"))):
+        if i == 0 or i == (len(blocks_args) - 1):
+            repeats = args.pop("repeats")
+        else:
+            repeats = round_repeats(
+                repeats=args.pop("repeats"), depth_coefficient=depth_coefficient
+            )
+
+        for j in range(repeats):
             # The first block needs to take care of stride and filter size
             # increase.
             if j > 0:
                 args["strides"] = 1
                 args["filters_in"] = args["filters_out"]
-            x = EfficientNetBlock(
-                activation,
-                drop_connect_rate * b / blocks,
+            x = EfficientNetLiteBlock(
+                activation=activation,
+                drop_rate=drop_connect_rate * b / blocks,
                 name="block{}{}_".format(i + 1, chr(j + 97)),
                 **args,
             )(x)
+
             b += 1
 
     # Build top
     x = layers.Conv2D(
-        round_filters(1280),
+        1280,
         1,
         padding="same",
         use_bias=False,
@@ -477,6 +462,7 @@ def EfficientNet(
     )(x)
     x = layers.BatchNormalization(axis=BN_AXIS, name="top_bn")(x)
     x = layers.Activation(activation, name="top_activation")(x)
+
     if include_top:
         x = layers.GlobalAveragePooling2D(name="avg_pool")(x)
         if dropout_rate > 0:
@@ -505,7 +491,7 @@ def EfficientNet(
     return model
 
 
-def EfficientNetB0(
+def EfficientNetLiteB0(
     include_rescaling,
     include_top,
     classes=None,
@@ -516,15 +502,15 @@ def EfficientNetB0(
     classifier_activation="softmax",
     **kwargs,
 ):
-    return EfficientNet(
+    return EfficientNetLite(
         include_rescaling,
         include_top,
         width_coefficient=1.0,
         depth_coefficient=1.0,
         default_size=224,
         dropout_rate=0.2,
-        model_name="efficientnetb0",
-        weights=parse_weights(weights, include_top, "efficientnetb0"),
+        model_name="efficientnetliteb0",
+        weights=parse_weights(weights, include_top, "efficientnetliteb0"),
         input_shape=input_shape,
         input_tensor=input_tensor,
         pooling=pooling,
@@ -534,7 +520,7 @@ def EfficientNetB0(
     )
 
 
-def EfficientNetB1(
+def EfficientNetLiteB1(
     include_rescaling,
     include_top,
     classes=None,
@@ -545,15 +531,15 @@ def EfficientNetB1(
     classifier_activation="softmax",
     **kwargs,
 ):
-    return EfficientNet(
+    return EfficientNetLite(
         include_rescaling,
         include_top,
         width_coefficient=1.0,
         depth_coefficient=1.1,
         default_size=240,
         dropout_rate=0.2,
-        model_name="efficientnetb1",
-        weights=parse_weights(weights, include_top, "efficientnetb1"),
+        model_name="efficientnetliteb1",
+        weights=parse_weights(weights, include_top, "efficientnetliteb1"),
         input_shape=input_shape,
         input_tensor=input_tensor,
         pooling=pooling,
@@ -563,7 +549,7 @@ def EfficientNetB1(
     )
 
 
-def EfficientNetB2(
+def EfficientNetLiteB2(
     include_rescaling,
     include_top,
     classes=None,
@@ -574,15 +560,15 @@ def EfficientNetB2(
     classifier_activation="softmax",
     **kwargs,
 ):
-    return EfficientNet(
+    return EfficientNetLite(
         include_rescaling,
         include_top,
         width_coefficient=1.1,
         depth_coefficient=1.2,
         default_size=260,
         dropout_rate=0.3,
-        model_name="efficientnetb2",
-        weights=parse_weights(weights, include_top, "efficientnetb2"),
+        model_name="efficientnetliteb2",
+        weights=parse_weights(weights, include_top, "efficientnetliteb2"),
         input_shape=input_shape,
         input_tensor=input_tensor,
         pooling=pooling,
@@ -592,7 +578,7 @@ def EfficientNetB2(
     )
 
 
-def EfficientNetB3(
+def EfficientNetLiteB3(
     include_rescaling,
     include_top,
     classes=None,
@@ -603,15 +589,15 @@ def EfficientNetB3(
     classifier_activation="softmax",
     **kwargs,
 ):
-    return EfficientNet(
+    return EfficientNetLite(
         include_rescaling,
         include_top,
         width_coefficient=1.2,
         depth_coefficient=1.4,
-        default_size=300,
+        default_size=280,
         dropout_rate=0.3,
-        model_name="efficientnetb3",
-        weights=parse_weights(weights, include_top, "efficientnetb3"),
+        model_name="efficientnetliteb3",
+        weights=parse_weights(weights, include_top, "efficientnetliteb3"),
         input_shape=input_shape,
         input_tensor=input_tensor,
         pooling=pooling,
@@ -621,7 +607,7 @@ def EfficientNetB3(
     )
 
 
-def EfficientNetB4(
+def EfficientNetLiteB4(
     include_rescaling,
     include_top,
     classes=None,
@@ -632,15 +618,15 @@ def EfficientNetB4(
     classifier_activation="softmax",
     **kwargs,
 ):
-    return EfficientNet(
+    return EfficientNetLite(
         include_rescaling,
         include_top,
         width_coefficient=1.4,
         depth_coefficient=1.8,
-        default_size=380,
-        dropout_rate=0.4,
-        model_name="efficientnetb4",
-        weights=parse_weights(weights, include_top, "efficientnetb4"),
+        default_size=300,
+        dropout_rate=0.3,
+        model_name="efficientnetliteb4",
+        weights=parse_weights(weights, include_top, "efficientnetliteb4"),
         input_shape=input_shape,
         input_tensor=input_tensor,
         pooling=pooling,
@@ -650,98 +636,8 @@ def EfficientNetB4(
     )
 
 
-def EfficientNetB5(
-    include_rescaling,
-    include_top,
-    classes=None,
-    weights=None,
-    input_shape=(None, None, 3),
-    input_tensor=None,
-    pooling=None,
-    classifier_activation="softmax",
-    **kwargs,
-):
-    return EfficientNet(
-        include_rescaling,
-        include_top,
-        width_coefficient=1.6,
-        depth_coefficient=2.2,
-        default_size=456,
-        dropout_rate=0.4,
-        model_name="efficientnetb5",
-        weights=parse_weights(weights, include_top, "efficientnetb5"),
-        input_shape=input_shape,
-        input_tensor=input_tensor,
-        pooling=pooling,
-        classes=classes,
-        classifier_activation=classifier_activation,
-        **kwargs,
-    )
-
-
-def EfficientNetB6(
-    include_rescaling,
-    include_top,
-    classes=None,
-    weights=None,
-    input_shape=(None, None, 3),
-    input_tensor=None,
-    pooling=None,
-    classifier_activation="softmax",
-    **kwargs,
-):
-    return EfficientNet(
-        include_rescaling,
-        include_top,
-        width_coefficient=1.8,
-        depth_coefficient=2.6,
-        default_size=528,
-        dropout_rate=0.5,
-        model_name="efficientnetb6",
-        weights=parse_weights(weights, include_top, "efficientnetb6"),
-        input_shape=input_shape,
-        input_tensor=input_tensor,
-        pooling=pooling,
-        classes=classes,
-        classifier_activation=classifier_activation,
-        **kwargs,
-    )
-
-
-def EfficientNetB7(
-    include_rescaling,
-    include_top,
-    classes=None,
-    weights=None,
-    input_shape=(None, None, 3),
-    input_tensor=None,
-    pooling=None,
-    classifier_activation="softmax",
-    **kwargs,
-):
-    return EfficientNet(
-        include_rescaling,
-        include_top,
-        width_coefficient=2.0,
-        depth_coefficient=3.1,
-        default_size=600,
-        dropout_rate=0.5,
-        model_name="efficientnetb7",
-        weights=parse_weights(weights, include_top, "efficientnetb7"),
-        input_shape=input_shape,
-        input_tensor=input_tensor,
-        pooling=pooling,
-        classes=classes,
-        classifier_activation=classifier_activation,
-        **kwargs,
-    )
-
-
-EfficientNetB0.__doc__ = BASE_DOCSTRING.format(name="EfficientNetB0")
-EfficientNetB1.__doc__ = BASE_DOCSTRING.format(name="EfficientNetB1")
-EfficientNetB2.__doc__ = BASE_DOCSTRING.format(name="EfficientNetB2")
-EfficientNetB3.__doc__ = BASE_DOCSTRING.format(name="EfficientNetB3")
-EfficientNetB4.__doc__ = BASE_DOCSTRING.format(name="EfficientNetB4")
-EfficientNetB5.__doc__ = BASE_DOCSTRING.format(name="EfficientNetB5")
-EfficientNetB6.__doc__ = BASE_DOCSTRING.format(name="EfficientNetB6")
-EfficientNetB7.__doc__ = BASE_DOCSTRING.format(name="EfficientNetB7")
+EfficientNetLiteB0.__doc__ = BASE_DOCSTRING.format(name="EfficientNetLiteB0")
+EfficientNetLiteB1.__doc__ = BASE_DOCSTRING.format(name="EfficientNetLiteB1")
+EfficientNetLiteB2.__doc__ = BASE_DOCSTRING.format(name="EfficientNetLiteB2")
+EfficientNetLiteB3.__doc__ = BASE_DOCSTRING.format(name="EfficientNetLiteB3")
+EfficientNetLiteB4.__doc__ = BASE_DOCSTRING.format(name="EfficientNetLiteB4")
