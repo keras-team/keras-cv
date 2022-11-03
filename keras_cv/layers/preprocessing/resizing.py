@@ -239,9 +239,7 @@ class Resizing(BaseImageAugmentationLayer):
 
     def call(self, inputs, training=True):
         # inputs = self._ensure_inputs_are_compute_dtype(inputs)
-        print("INPUTS", inputs)
         inputs, metadata = self._format_inputs(inputs)
-        print("INPUTS after", inputs)
         images = inputs["images"]
         if images.shape.rank == 3:
             return self._format_output(self._augment(inputs), metadata)

@@ -203,40 +203,6 @@ class ResizingTest(tf.test.TestCase, parameterized.TestCase):
         img_data = np.random.random(size=input_shape).astype("float32")
         tf_function(img_data)
 
-    def test_pad_to_size_with_bounding_boxes_ragged_images_tf_function(self):
-        images = tf.ragged.constant(
-            [
-                np.ones((8, 8, 3)),
-                np.ones((8, 4, 3)),
-                np.ones((4, 8, 3)),
-                np.ones((2, 2, 3)),
-            ],
-            dtype="float32",
-        )
-        boxes = tf.ragged.stack(
-            [
-                tf.ones((3, 5), dtype=tf.float32),
-                tf.ones((5, 5), dtype=tf.float32),
-                tf.ones((3, 5), dtype=tf.float32),
-                tf.ones((2, 5), dtype=tf.float32),
-            ],
-        )
-        layer = cv_layers.Resizing(
-            4, 4, pad_to_aspect_ratio=True, bounding_box_format="xywh"
-        )
-        unit_test = self
-        inputs = {"images": images, "bounding_boxes": boxes}
-
-        @tf.function
-        def tf_function(inputs):
-            outputs = layer(inputs)
-            unit_test.assertListEqual(
-                [4, 4, 3],
-                outputs["images"].shape.as_list()[-3:],
-            )
-
-        tf_function(inputs)
-
     def test_pad_to_size_with_bounding_boxes_ragged_images(self):
         images = tf.ragged.constant(
             [
@@ -257,17 +223,12 @@ class ResizingTest(tf.test.TestCase, parameterized.TestCase):
         )
         channels = 3
         layer = cv_layers.Resizing(
-            4, 4, pad_to_aspect_ratio=True, bounding_box_format="xywh"
+            4, 4, pad_to_aspect_ratio=True, bounding_box_format="xyxy"
         )
         unit_test = self
         inputs = {"images": images, "bounding_boxes": boxes}
-
-        # Test without tf.function
-        def non_tf_function(inputs):
-            outputs = layer(inputs)
-            unit_test.assertListEqual(
-                [4, 4, 3],
-                outputs["images"].shape.as_list()[-3:],
-            )
-
-        non_tf_function(inputs)
+        outputs = layer(inputs)
+        unit_test.assertListEqual(
+            [4, 4, 3],
+            outputs["images"].shape.as_list()[-3:],
+        )

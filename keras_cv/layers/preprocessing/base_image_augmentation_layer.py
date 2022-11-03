@@ -363,9 +363,10 @@ class BaseImageAugmentationLayer(tf.keras.__internal__.layers.BaseRandomLayer):
         metadata = {RAGGED_BOUNDING_BOXES: False}
         shape = None
         if isinstance(bounding_boxes, tf.RaggedTensor):
-            metadata = {RAGGED_BOUNDING_BOXES: True}
-            shape = bounding_boxes.bounding_shape()
+            metadata.update({RAGGED_BOUNDING_BOXES: True})
             bounding_boxes = bounding_box.pad_with_sentinels(bounding_boxes)
+            # hard code after pad_with_sentinels()
+            shape = [5]
         else:
             shape = bounding_boxes.shape
 
