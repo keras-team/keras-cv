@@ -14,7 +14,6 @@
 
 import tensorflow as tf
 import tensorflow_datasets as tfds
-from tensorflow import keras
 
 from keras_cv import bounding_box
 from keras_cv import layers as cv_layers
