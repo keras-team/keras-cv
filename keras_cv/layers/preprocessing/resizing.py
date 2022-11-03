@@ -113,34 +113,22 @@ class Resizing(BaseImageAugmentationLayer):
         images = inputs.get("images", None)
         bounding_boxes = inputs.get("bounding_boxes", None)
         if bounding_boxes is not None:
-            bounding_boxes = bounding_box.convert_format(
-                bounding_boxes,
-                source=self.bounding_box_format,
-                target="rel_xyxy",
-                # support potentially ragged shapes
-                images=images,
+            raise ValueError(
+                "Resizing() only supports bounding box inputs when "
+                "`pad_to_aspect_ratio=True`.  Please construct your layer with "
+                "`Resizing(pad_to_aspect_ratio=True)` when processing "
+                "bounding boxes."
             )
 
         size = [self.height, self.width]
         images = tf.image.resize(images, size=size, method=self._interpolation_method)
         images = tf.cast(images, self.compute_dtype)
 
-        if bounding_boxes is not None:
-            inputs["bounding_boxes"] = bounding_box.convert_format(
-                bounding_boxes,
-                target="rel_xyxy",
-                source=self.bounding_box_format,
-                # use static image shape, for optimal performance
-                image_shape=size
-                + [
-                    3,
-                ],
-            )
         inputs["images"] = images
         return inputs
 
     def _resize_with_pad(self, inputs):
-        def resize_with_pad_to_aspect(x):
+        def resize_single_with_pad_to_aspect(x):
             image = x.get("images", None)
             boxes = x.get("bounding_boxes", None)
             # images must be dense-able at this point.
@@ -198,7 +186,7 @@ class Resizing(BaseImageAugmentationLayer):
             dtype=inputs["bounding_boxes"].dtype,
         )
         return tf.map_fn(
-            resize_with_pad_to_aspect,
+            resize_single_with_pad_to_aspect,
             inputs,
             fn_output_signature={"images": img_spec, "bounding_boxes": boxes_spec},
         )

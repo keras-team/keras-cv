@@ -22,10 +22,6 @@ import tensorflow_datasets as tfds
 import keras_cv
 from keras_cv import layers
 
-train_ds = tfds.load(
-    "voc/2007", split="train+test", with_info=False, shuffle_files=True
-)
-
 
 def preproc(inputs):
     image = inputs["image"]
@@ -46,15 +42,42 @@ def preproc(inputs):
     return {"images": image, "bounding_boxes": bounding_boxes}
 
 
+# pad to aspect ratio height > width
+train_ds = tfds.load(
+    "voc/2007", split="train+test", with_info=False, shuffle_files=True
+)
 train_ds = train_ds.map(preproc)
 train_ds = train_ds.apply(
     tf.data.experimental.dense_to_ragged_batch(16, drop_remainder=True)
 )
-print(train_ds)
 resizing = layers.Resizing(
     height=600, width=400, pad_to_aspect_ratio=True, bounding_box_format="xywh"
 )
-
 train_ds = train_ds.map(resizing)
-next(iter(train_ds))
+demo_utils.visualize_data(train_ds, bounding_box_format="xywh")
+
+# pad to aspect ratio width > height
+train_ds = tfds.load(
+    "voc/2007", split="train+test", with_info=False, shuffle_files=True
+)
+train_ds = train_ds.map(preproc)
+train_ds = train_ds.apply(
+    tf.data.experimental.dense_to_ragged_batch(16, drop_remainder=True)
+)
+resizing = layers.Resizing(
+    height=400, width=600, pad_to_aspect_ratio=True, bounding_box_format="xywh"
+)
+train_ds = train_ds.map(resizing)
+demo_utils.visualize_data(train_ds, bounding_box_format="xywh")
+
+# resize with distortion
+train_ds = tfds.load(
+    "voc/2007", split="train+test", with_info=False, shuffle_files=True
+)
+train_ds = train_ds.map(preproc)
+train_ds = train_ds.apply(
+    tf.data.experimental.dense_to_ragged_batch(16, drop_remainder=True)
+)
+resizing = layers.Resizing(height=400, width=600, bounding_box_format="xywh")
+train_ds = train_ds.map(resizing)
 demo_utils.visualize_data(train_ds, bounding_box_format="xywh")
