@@ -230,12 +230,17 @@ class RetinaNet(ObjectDetectionBaseModel):
 
     @property
     def train_metrics(self):
-        return [
+        result = [
             self.loss_metric,
             self.classification_loss_metric,
-            self.regularization_loss_metric,
             self.box_loss_metric,
         ]
+
+        # only track regularization loss when at least one exists
+        if self._track_regularization:
+            result += [self.regularization_loss_metric]
+
+        return result
 
     def call(self, x, training=False):
         backbone_outputs = self.backbone(x, training=training)
@@ -419,9 +424,15 @@ class RetinaNet(ObjectDetectionBaseModel):
 
         self.classification_loss_metric.update_state(classification_loss)
         self.box_loss_metric.update_state(box_loss)
-        self.regularization_loss_metric.update_state(regularization_loss)
+
+        if self._track_regularization:
+            self.regularization_loss_metric.update_state(regularization_loss)
         self.loss_metric.update_state(loss)
         return loss
+
+    @property
+    def _track_regularization(self):
+        return len(self.losses) != 0
 
     def train_step(self, data):
         x, y = data
