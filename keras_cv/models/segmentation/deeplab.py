@@ -128,6 +128,9 @@ class DeepLabV3(tf.keras.models.Model):
                         padding="same",
                         use_bias=False,
                         activation="softmax",
+                        # Force the dtype of the classification head to float32 to avoid the NAN loss
+                        # issue when used with mixed precision API.
+                        dtype=tf.float32,
                     ),
                 ]
             )
