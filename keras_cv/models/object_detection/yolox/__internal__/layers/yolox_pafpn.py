@@ -13,7 +13,6 @@
 # limitations under the License.
 
 
-import tensorflow as tf
 from tensorflow import keras
 
 from keras_cv.models.__internal__.darknet_utils import CrossStagePartial
