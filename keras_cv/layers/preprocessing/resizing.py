@@ -15,7 +15,6 @@
 import tensorflow as tf
 
 import keras_cv.utils
-from keras_cv import bounding_box
 from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
     BaseImageAugmentationLayer,
 )
@@ -92,21 +91,21 @@ class Resizing(BaseImageAugmentationLayer):
 
         if images is not None:
             images = tf.expand_dims(images, axis=0)
+            inputs["images"] = images
+
         if bounding_boxes is not None:
             bounding_boxes = tf.expand_dims(bounding_boxes, axis=0)
+            inputs["bounding_boxes"] = bounding_boxes
 
-        inputs["images"] = images
-        inputs["bounding_boxes"] = bounding_boxes
-
-        inputs = self._batch_augment(inputs)
+        outputs = self._batch_augment(inputs)
 
         if images is not None:
-            images = tf.squeeze(images, axis=0)
-        if bounding_boxes is not None:
-            bounding_boxes = tf.squeeze(bounding_boxes, axis=0)
+            images = tf.squeeze(outputs["images"], axis=0)
+            inputs["images"] = images
 
-        inputs["images"] = images
-        inputs["bounding_boxes"] = bounding_boxes
+        if bounding_boxes is not None:
+            bounding_boxes = tf.squeeze(outputs["bounding_boxes"], axis=0)
+            inputs["bounding_boxes"] = bounding_boxes
         return inputs
 
     def _resize_with_distortion(self, inputs):
@@ -131,8 +130,11 @@ class Resizing(BaseImageAugmentationLayer):
         def resize_single_with_pad_to_aspect(x):
             image = x.get("images", None)
             boxes = x.get("bounding_boxes", None)
+
             # images must be dense-able at this point.
-            image = image.to_tensor()
+            if isinstance(image, tf.RaggedTensor):
+                image = image.to_tensor()
+
             img_size = tf.shape(image)
             img_height = tf.cast(img_size[H_AXIS], self.compute_dtype)
             img_width = tf.cast(img_size[W_AXIS], self.compute_dtype)
@@ -174,6 +176,7 @@ class Resizing(BaseImageAugmentationLayer):
                     target=self.bounding_box_format,
                 )
             inputs["images"] = image
+
             if boxes is not None:
                 inputs["bounding_boxes"] = tf.RaggedTensor.from_tensor(boxes)
             return inputs
@@ -181,14 +184,20 @@ class Resizing(BaseImageAugmentationLayer):
         size_as_shape = tf.TensorShape((self.height, self.width))
         shape = size_as_shape + inputs["images"].shape[-1:]
         img_spec = tf.TensorSpec(shape, self.compute_dtype)
-        boxes_spec = tf.RaggedTensorSpec(
-            shape=[None, inputs["bounding_boxes"].shape[2]],
-            dtype=inputs["bounding_boxes"].dtype,
-        )
+        fn_output_signature = {"images": img_spec}
+
+        bounding_boxes = inputs.get("bounding_boxes", None)
+        if bounding_boxes is not None:
+            boxes_spec = tf.RaggedTensorSpec(
+                shape=[None, bounding_boxes.shape[2]],
+                dtype=bounding_boxes.dtype,
+            )
+            fn_output_signature["bounding_boxes"] = boxes_spec
+
         return tf.map_fn(
             resize_single_with_pad_to_aspect,
             inputs,
-            fn_output_signature={"images": img_spec, "bounding_boxes": boxes_spec},
+            fn_output_signature=fn_output_signature,
         )
 
     def _resize_with_crop(self, inputs):
@@ -203,10 +212,15 @@ class Resizing(BaseImageAugmentationLayer):
         inputs["images"] = images
         size = [self.height, self.width]
 
+        if self.interpolation == "nearest":
+            input_dtype = self.compute_dtype
+        else:
+            input_dtype = tf.float32
+
         def resize_with_crop_to_aspect(x):
             if isinstance(x, tf.RaggedTensor):
                 x = x.to_tensor()
-            return tf.keras.utils.smart_resize(
+            return tf.keras.preprocessing.image.smart_resize(
                 x, size=size, interpolation=self._interpolation_method
             )
 
@@ -225,7 +239,9 @@ class Resizing(BaseImageAugmentationLayer):
 
     def call(self, inputs, training=True):
         # inputs = self._ensure_inputs_are_compute_dtype(inputs)
+        print("INPUTS", inputs)
         inputs, metadata = self._format_inputs(inputs)
+        print("INPUTS after", inputs)
         images = inputs["images"]
         if images.shape.rank == 3:
             return self._format_output(self._augment(inputs), metadata)
@@ -240,7 +256,7 @@ class Resizing(BaseImageAugmentationLayer):
 
     def _batch_augment(self, inputs):
         if (
-            inputs.get("bounding_boxes", None) is None
+            inputs.get("bounding_boxes", None) is not None
             and self.bounding_box_format is None
         ):
             raise ValueError(
