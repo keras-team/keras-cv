@@ -219,7 +219,7 @@ class Resizing(BaseImageAugmentationLayer):
                 resize_with_crop_to_aspect, images, fn_output_signature=spec
             )
         else:
-            images = resize_with_crop_to_aspect(inputs)
+            images = resize_with_crop_to_aspect(images)
 
         inputs["images"] = images
         return inputs
