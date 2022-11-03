@@ -30,10 +30,9 @@ class SpatialPyramidPooling(tf.keras.layers.Layer):
 
     inp = tf.keras.layers.Input((384, 384, 3))
     backbone = tf.keras.applications.EfficientNetB0(input_tensor=inp, include_top=False)
-    layer_names = ['block2b_add', 'block3b_add', 'block5c_add', 'top_activation']
-    backbone_outputs = backbone(inp)
+    output = backbone(inp)
     output = keras_cv.layers.SpatialPyramidPooling(
-        dilation_rates=[6, 12, 18])(backbone_outputs)
+        dilation_rates=[6, 12, 18])(output)
 
     # output[4].shape = [None, 16, 16, 256]
     """
@@ -117,9 +116,9 @@ class SpatialPyramidPooling(tf.keras.layers.Layer):
                     kernel_size=(1, 1),
                     use_bias=False,
                 ),
-                # TODO(tanzhenyu): File a bug to Keras for NAN issue if fused=False.
-                # tf.keras.layers.BatchNormalization(),
                 tf.keras.layers.experimental.SyncBatchNormalization(),
+                # TODO(tanzhenyu): File a bug to Keras for NAN issue.
+                # tf.keras.layers.BatchNormalization(momentum=0.9997, epsilon=1.001e-5, name='seq_pool_bn', fused=True),
                 tf.keras.layers.Activation(self.activation),
                 tf.keras.layers.Resizing(height, width, interpolation="bilinear"),
             ]
@@ -137,7 +136,7 @@ class SpatialPyramidPooling(tf.keras.layers.Layer):
                 tf.keras.layers.BatchNormalization(),
                 tf.keras.layers.Activation(self.activation),
                 tf.keras.layers.Dropout(rate=self.dropout),
-            ]
+            ],
         )
 
     def call(self, inputs, training=None):

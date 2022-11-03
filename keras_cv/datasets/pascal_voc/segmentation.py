@@ -413,6 +413,7 @@ def _build_sbd_dataset_from_metadata(metadata):
 
     def md_gen():
         c = list(zip(img_filepath, cls_filepath, obj_filepath))
+        # random shuffling for each generator boosts up the quality.
         random.shuffle(c)
         for fp in c:
             img_fp, cls_fp, obj_fp = fp

@@ -68,6 +68,7 @@ resize_layer = tf.keras.layers.Resizing(512, 512, interpolation="nearest")
 image_size = [512, 512, 3]
 
 
+# TODO(tanzhenyu): move to KPL.
 def flip_fn(image, cls_seg):
     if tf.random.uniform([], minval=0, maxval=1, dtype=tf.float32) > 0.5:
         image = tf.image.flip_left_right(image)
@@ -124,6 +125,7 @@ with strategy.scope():
     optimizer = tf.keras.optimizers.SGD(
         learning_rate=lr_decay, momentum=0.9, clipnorm=10.0
     )
+    # ignore 255 as the class for semantic boundary.
     loss_fn = tf.keras.losses.SparseCategoricalCrossentropy(ignore_class=255)
     metrics = [
         tf.keras.metrics.SparseCategoricalCrossentropy(ignore_class=255),

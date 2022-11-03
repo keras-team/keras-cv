@@ -113,11 +113,20 @@ class DeepLabV3(tf.keras.models.Model):
         if segmentation_head is None:
             segmentation_head = tf.keras.Sequential(
                 [
+                    tf.keras.layers.Conv2D(
+                        filters=256,
+                        kernel_size=(1, 1),
+                        padding="same",
+                        use_bias=False,
+                    ),
+                    tf.keras.layers.BatchNormalization(),
+                    tf.keras.layers.Activation("relu"),
                     tf.keras.layers.Dropout(0.2),
                     tf.keras.layers.Conv2D(
                         filters=classes,
                         kernel_size=(1, 1),
                         padding="same",
+                        use_bias=False,
                         activation="softmax",
                     ),
                 ]

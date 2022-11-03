@@ -283,7 +283,6 @@ class SerializationTest(tf.test.TestCase, parameterized.TestCase):
             "SpatialPyramidPooling",
             cv_layers.SpatialPyramidPooling,
             {
-                "level": 3,
                 "dilation_rates": [6, 12, 18],
                 "num_channels": 256,
                 "activation": "relu",
