@@ -22,6 +22,9 @@ from keras_cv import bounding_box
 from keras_cv.models.object_detection.object_detection_base_model import (
     ObjectDetectionBaseModel,
 )
+from keras_cv.models.object_detection.yolox.__internal__.binary_crossentropy import (
+    BinaryCrossentropy,
+)
 from keras_cv.models.object_detection.yolox.__internal__.layers.yolox_decoder import (
     DecodePredictions,
 )
@@ -127,7 +130,6 @@ class YoloX(ObjectDetectionBaseModel):
 
         self.bounding_box_format = bounding_box_format
         self.classes = classes
-        # TODO: check include rescaling relevance
         self.backbone = _parse_backbone(
             backbone,
             include_rescaling,
@@ -182,33 +184,33 @@ class YoloX(ObjectDetectionBaseModel):
                 "Instead, please pass `box_loss`, `objectness_loss` and `classification_loss`. "
                 "`loss` will be ignored during training."
             )
-        self.box_loss = box_loss
-        self.objectness_loss = objectness_loss
-        self.classification_loss = classification_loss
+        self.box_loss = _parse_box_loss(box_loss)
+        self.objectness_loss = _parse_objectness_loss(objectness_loss)
+        self.classification_loss = _parse_classification_loss(classification_loss)
         metrics = metrics or []
 
-        if hasattr(classification_loss, "from_logits"):
-            if not classification_loss.from_logits:
+        if hasattr(self.classification_loss, "from_logits"):
+            if not self.classification_loss.from_logits:
                 raise ValueError(
                     "YoloX.compile() expects `from_logits` to be True for "
                     "`classification_loss`. Got "
                     "`classification_loss.from_logits="
-                    f"{classification_loss.from_logits}`"
+                    f"{self.classification_loss.from_logits}`"
                 )
-        if hasattr(objectness_loss, "from_logits"):
-            if not objectness_loss.from_logits:
+        if hasattr(self.objectness_loss, "from_logits"):
+            if not self.objectness_loss.from_logits:
                 raise ValueError(
                     "YoloX.compile() expects `from_logits` to be True for "
                     "`objectness_loss`. Got "
                     "`objectness_loss.from_logits="
-                    f"{objectness_loss.from_logits}`"
+                    f"{self.objectness_loss.from_logits}`"
                 )
         # TODO: update compute_loss to support all formats
-        if hasattr(box_loss, "bounding_box_format"):
-            if box_loss.bounding_box_format != "center_xywh":
+        if hasattr(self.box_loss, "bounding_box_format"):
+            if self.box_loss.bounding_box_format != "center_xywh":
                 raise ValueError(
                     "YoloX currently supports only `center_xywh`. "
-                    f"Got `box_loss.bounding_box_format={box_loss.bounding_box_format}`, "
+                    f"Got `box_loss.bounding_box_format={self.box_loss.bounding_box_format}`, "
                 )
 
         if len(metrics) != 0:
@@ -416,20 +418,19 @@ class YoloX(ObjectDetectionBaseModel):
             num_fg_img, cls_target, reg_target, obj_target, fg_mask = tf.cond(
                 tf.equal(num_gt, 0), return_empty_boxes, perform_label_assignment
             )
+            loss_iou_this_image = self.box_loss(
+                reg_target, tf.boolean_mask(bboxes_preds_per_image, fg_mask)
+            )
+            loss_obj_this_image = self.objectness_loss(obj_target, obj_preds_per_image)
+            loss_cls_this_image = self.classification_loss(
+                cls_target, tf.boolean_mask(cls_preds_per_image, fg_mask)
+            )
+
+            # TODO: add assertions to ensure loss output shapes aren't wrong
             num_fg += num_fg_img
-            loss_iou += tf.math.reduce_sum(
-                self.box_loss(
-                    reg_target, tf.boolean_mask(bboxes_preds_per_image, fg_mask)
-                )
-            )
-            loss_obj += tf.math.reduce_sum(
-                self.objectness_loss(obj_target, obj_preds_per_image)
-            )
-            loss_cls += tf.math.reduce_sum(
-                self.classification_loss(
-                    cls_target, tf.boolean_mask(cls_preds_per_image, fg_mask)
-                )
-            )
+            loss_iou += tf.math.reduce_sum(loss_iou_this_image)
+            loss_obj += tf.math.reduce_sum(loss_obj_this_image)
+            loss_cls += tf.math.reduce_sum(loss_cls_this_image)
             return b + 1, num_fg, loss_iou, loss_obj, loss_cls
 
         _, num_fg, loss_iou, loss_obj, loss_cls = tf.while_loop(
@@ -747,6 +748,57 @@ def _parse_backbone(
     return backbone
 
 
+def _parse_box_loss(loss):
+    if not isinstance(loss, str):
+        # support arbitrary callables
+        return loss
+
+    # case insensitive comparison
+    if loss.lower() == "iou":
+        return keras_cv.losses.IoULoss(
+            bounding_box_format="center_xywh", mode="squared", reduction="none"
+        )
+    if loss.lower() == "giou":
+        return keras_cv.losses.GIoULoss(
+            bounding_box_format="center_xywh", reduction="none"
+        )
+
+    raise ValueError(
+        "Expected `box_loss` to be either a Keras Loss, "
+        f"callable, or one of ['IoU', GIoU].  Got loss={loss}."
+    )
+
+
+def _parse_classification_loss(loss):
+    if not isinstance(loss, str):
+        # support arbitrary callables
+        return loss
+
+    # case insensitive comparison
+    if loss.lower() == "binary_crossentropy":
+        return BinaryCrossentropy(from_logits=True, reduction="none")
+
+    raise ValueError(
+        "Expected `classification_loss` to be either a Keras Loss, "
+        f"callable, or the string 'binary_crossentropy'.  Got loss={loss}."
+    )
+
+
+def _parse_objectness_loss(loss):
+    if not isinstance(loss, str):
+        # support arbitrary callables
+        return loss
+
+    # case insensitive comparison
+    if loss.lower() == "binary_crossentropy":
+        return BinaryCrossentropy(from_logits=True, reduction="none")
+
+    raise ValueError(
+        "Expected `objectness_loss` to be either a Keras Loss, "
+        f"callable, or the string 'binary_crossentropy'.  Got loss={loss}."
+    )
+
+
 def _cspdarknet_backbone(
     include_rescaling,
     backbone_weights,
@@ -775,6 +827,9 @@ def _cspdarknet_backbone(
 
 
 BASE_DOCSTRING = """Instantiates the {name} architecture using the given phi value.
+
+    {name} is an anchor-free network that utilizes SOTA techniques such as simOTA for
+    label assignment.
 
     Reference:
     - [YOLOX: Exceeding YOLO Series in 2021](https://arxiv.org/abs/2107.08430)
