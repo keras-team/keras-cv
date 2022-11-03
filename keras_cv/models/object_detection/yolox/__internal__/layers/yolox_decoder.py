@@ -49,7 +49,6 @@ class DecodePredictions(keras.layers.Layer):
                 f"classes={classes}`"
             )
         self.bounding_box_format = bounding_box_format
-        self.classes = classes
 
         self.suppression_layer = suppression_layer or cv_layers.NonMaxSuppression(
             classes=classes,
@@ -59,6 +58,7 @@ class DecodePredictions(keras.layers.Layer):
             max_detections=100,
             max_detections_per_class=100,
         )
+        self.classes = self.suppression_layer.classes
         if self.suppression_layer.bounding_box_format != self.bounding_box_format:
             raise ValueError(
                 "`suppression_layer` must have the same `bounding_box_format` "
