@@ -16,7 +16,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 import tensorflow as tf
 import tensorflow_datasets as tfds
-tf.debugging.disable_traceback_filtering()
 
 from keras_cv import bounding_box
 
