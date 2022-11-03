@@ -20,8 +20,8 @@ from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
     BaseImageAugmentationLayer,
 )
 
-H_AXIS=-3
-W_AXIS=-2
+H_AXIS = -3
+W_AXIS = -2
 
 
 class Resizing(BaseImageAugmentationLayer):
@@ -110,8 +110,8 @@ class Resizing(BaseImageAugmentationLayer):
         return inputs
 
     def _resize_with_distortion(self, inputs):
-        images = inputs.get('images', None)
-        bounding_boxes = inputs.get('bounding_boxes', None)
+        images = inputs.get("images", None)
+        bounding_boxes = inputs.get("bounding_boxes", None)
         if bounding_boxes is not None:
             bounding_boxes = bounding_box.convert_format(
                 bounding_boxes,
@@ -166,18 +166,18 @@ class Resizing(BaseImageAugmentationLayer):
             target_width = img_width * resize_scale
 
             image = tf.image.resize(
-                image, size=(target_height, target_width), method=self._interpolation_method
+                image,
+                size=(target_height, target_width),
+                method=self._interpolation_method,
             )
             if boxes is not None:
                 boxes = keras_cv.bounding_box.convert_format(
                     boxes,
                     images=image,
                     source="rel_xyxy",
-                    target='xyxy',
+                    target="xyxy",
                 )
-            image = tf.image.pad_to_bounding_box(
-                image, 0, 0, self.height, self.width
-            )
+            image = tf.image.pad_to_bounding_box(image, 0, 0, self.height, self.width)
             if boxes is not None:
                 boxes = keras_cv.bounding_box.convert_format(
                     boxes,
@@ -185,20 +185,23 @@ class Resizing(BaseImageAugmentationLayer):
                     source="xyxy",
                     target=self.bounding_box_format,
                 )
-            inputs['images'] = image
+            inputs["images"] = image
             if boxes is not None:
-                inputs['bounding_boxes'] = tf.RaggedTensor.from_tensor(boxes)
+                inputs["bounding_boxes"] = tf.RaggedTensor.from_tensor(boxes)
             return inputs
+
         size_as_shape = tf.TensorShape((self.height, self.width))
-        shape = size_as_shape + inputs['images'].shape[-1:]
+        shape = size_as_shape + inputs["images"].shape[-1:]
         img_spec = tf.TensorSpec(shape, self.compute_dtype)
         boxes_spec = tf.RaggedTensorSpec(
-            shape=[None, inputs['bounding_boxes'].shape[2]],
-            dtype=inputs['bounding_boxes'].dtype
+            shape=[None, inputs["bounding_boxes"].shape[2]],
+            dtype=inputs["bounding_boxes"].dtype,
         )
-        return tf.map_fn(resize_with_pad_to_aspect, inputs, fn_output_signature={
-            'images': img_spec, 'bounding_boxes':boxes_spec
-            })
+        return tf.map_fn(
+            resize_with_pad_to_aspect,
+            inputs,
+            fn_output_signature={"images": img_spec, "bounding_boxes": boxes_spec},
+        )
 
     def _resize_with_crop(self, inputs):
         images = inputs.get("images", None)
@@ -224,7 +227,9 @@ class Resizing(BaseImageAugmentationLayer):
             size_as_shape = tf.TensorShape(size)
             shape = size_as_shape + images.shape[-1:]
             spec = tf.TensorSpec(shape, input_dtype)
-            images = tf.map_fn(resize_with_crop_to_aspect, images, fn_output_signature=spec)
+            images = tf.map_fn(
+                resize_with_crop_to_aspect, images, fn_output_signature=spec
+            )
         else:
             images = resize_with_crop_to_aspect(inputs)
 
@@ -234,7 +239,7 @@ class Resizing(BaseImageAugmentationLayer):
     def call(self, inputs, training=True):
         # inputs = self._ensure_inputs_are_compute_dtype(inputs)
         inputs, metadata = self._format_inputs(inputs)
-        images = inputs['images']
+        images = inputs["images"]
         if images.shape.rank == 3:
             return self._format_output(self._augment(inputs), metadata)
         elif images.shape.rank == 4:
@@ -245,6 +250,7 @@ class Resizing(BaseImageAugmentationLayer):
                 "rank 3 (HWC) or 4D (NHWC) tensors. Got shape: "
                 f"{images.shape}"
             )
+
     def _batch_augment(self, inputs):
         if (
             inputs.get("bounding_boxes", None) is None

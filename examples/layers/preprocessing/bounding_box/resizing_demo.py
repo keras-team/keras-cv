@@ -18,12 +18,14 @@ object detection.
 import demo_utils
 import tensorflow as tf
 import tensorflow_datasets as tfds
+
 import keras_cv
 from keras_cv import layers
 
 train_ds = tfds.load(
     "voc/2007", split="train+test", with_info=False, shuffle_files=True
 )
+
 
 def preproc(inputs):
     image = inputs["image"]
@@ -39,9 +41,10 @@ def preproc(inputs):
     gt_classes = tf.expand_dims(gt_classes, axis=-1)
     bounding_boxes = tf.concat([gt_boxes, gt_classes], axis=-1)
     bounding_boxes = keras_cv.bounding_box.convert_format(
-        bounding_boxes, images=image, source="yxyx", target='xywh'
+        bounding_boxes, images=image, source="yxyx", target="xywh"
     )
     return {"images": image, "bounding_boxes": bounding_boxes}
+
 
 train_ds = train_ds.map(preproc)
 train_ds = train_ds.apply(
@@ -49,8 +52,7 @@ train_ds = train_ds.apply(
 )
 print(train_ds)
 resizing = layers.Resizing(
-    height=600, width=400,
-    pad_to_aspect_ratio=True, bounding_box_format='xywh'
+    height=600, width=400, pad_to_aspect_ratio=True, bounding_box_format="xywh"
 )
 
 train_ds = train_ds.map(resizing)
