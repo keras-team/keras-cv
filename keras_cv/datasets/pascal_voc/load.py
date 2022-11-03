@@ -19,6 +19,7 @@ from tensorflow import keras
 from keras_cv import bounding_box
 from keras_cv import layers as cv_layers
 
+
 def curry_map_function(bounding_box_format, img_size):
     """Mapping function to create batched image and bbox coordinates"""
 
@@ -27,7 +28,7 @@ def curry_map_function(bounding_box_format, img_size):
             height=img_size[0],
             width=img_size[1],
             bounding_box_format=bounding_box_format,
-            crop_to_aspect_ratio=False,
+            pad_to_aspect_ratio=False,
         )
 
     def apply(inputs):
@@ -56,6 +57,7 @@ def load(
     bounding_box_format,
     img_size=None,
     batch_size=None,
+    shuffle_files=True,
     shuffle_buffer=None,
 ):
     """Loads the PascalVOC 2007 dataset.
