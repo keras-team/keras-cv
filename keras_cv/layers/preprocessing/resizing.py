@@ -12,12 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import tensorflow as tf
+
+import keras_cv.utils
+from keras_cv import bounding_box
 from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
     BaseImageAugmentationLayer,
 )
-import keras_cv.utils
-import tensorflow as tf
-from keras_cv import bounding_box
 
 
 class Resizing(BaseImageAugmentationLayer):
@@ -56,6 +57,7 @@ class Resizing(BaseImageAugmentationLayer):
         width,
         interpolation="bilinear",
         crop_to_aspect_ratio=False,
+        pad_to_aspect_ratio=False,
         bounding_box_format=None,
         **kwargs,
     ):
@@ -63,8 +65,15 @@ class Resizing(BaseImageAugmentationLayer):
         self.width = width
         self.interpolation = interpolation
         self.crop_to_aspect_ratio = crop_to_aspect_ratio
+        self.pad_to_aspect_ratio = pad_to_aspect_ratio
         self._interpolation_method = keras_cv.utils.get_interpolation(interpolation)
         self.bounding_box_format = bounding_box_format
+
+        if pad_to_aspect_ratio and crop_to_aspect_ratio:
+            raise ValueError(
+                "`Resizing()` expects either `crop_to_aspect_ratio` or "
+                "`pad_to_aspect_ratio`, but not both."
+            )
         if crop_to_aspect_ratio and bounding_box_format:
             # TODO(lukewood): support `bounding_box.smart_resize()`
             raise ValueError(
@@ -75,16 +84,16 @@ class Resizing(BaseImageAugmentationLayer):
         super().__init__(**kwargs)
 
     def _augment(self, inputs):
-        images = inputs.get('images', None)
-        bounding_boxes = inputs.get('bounding_boxes', None)
+        images = inputs.get("images", None)
+        bounding_boxes = inputs.get("bounding_boxes", None)
 
         if images is not None:
             images = tf.expand_dims(images, axis=0)
         if bounding_boxes is not None:
             bounding_boxes = tf.expand_dims(bounding_boxes, axis=0)
 
-        inputs['images'] = images
-        inputs['bounding_boxes'] = bounding_boxes
+        inputs["images"] = images
+        inputs["bounding_boxes"] = bounding_boxes
 
         inputs = self._batch_augment(inputs)
 
@@ -93,73 +102,87 @@ class Resizing(BaseImageAugmentationLayer):
         if bounding_boxes is not None:
             bounding_boxes = tf.squeeze(bounding_boxes, axis=0)
 
-        inputs['images'] = images
-        inputs['bounding_boxes'] = bounding_boxes
+        inputs["images"] = images
+        inputs["bounding_boxes"] = bounding_boxes
         return inputs
-    def _batch_augment(self, inputs):
-        images = inputs.get("images", None)
-        bounding_boxes = inputs.get("bounding_boxes", None)
 
-        tf.print('images.shape', images.shape)
-        tf.print('bounding_boxes.shape', bounding_boxes.shape)
-
-        if images is None:
-            raise ValueError(
-                "Resizing expects images as an input, weight as a raw input Tensor or "
-                "as a dictionary: "
-                '{"images": images, {"bounding_boxes": bounding_boxes}}.'
-                f"Got: inputs = {inputs}"
-            )
-        if self.interpolation == "nearest":
-            input_dtype = self.compute_dtype
-        else:
-            input_dtype = tf.float32
-
+    def _resize_with_distortion(self, inputs):
         if bounding_boxes is not None:
-            if self.bounding_box_format is None:
-                raise ValueError(
-                    "Resizing requires `bounding_box_format` to be set "
-                    "when augmenting bounding boxes, but `self.bounding_box_format=None`."
-                )
             bounding_boxes = bounding_box.convert_format(
                 bounding_boxes,
                 source=self.bounding_box_format,
                 target="rel_xyxy",
+                # support potentially ragged shapes
                 images=images,
             )
 
         size = [self.height, self.width]
-        if self.crop_to_aspect_ratio:
-
-            def resize_to_aspect(x):
-                if isinstance(x, tf.RaggedTensor):
-                    x = x.to_tensor()
-                return tf.keras.utils.smart_resize(
-                    x, size=size, interpolation=self._interpolation_method
-                )
-
-            if isinstance(images, tf.RaggedTensor):
-                size_as_shape = tf.TensorShape(size)
-                shape = size_as_shape + images.shape[-1:]
-                spec = tf.TensorSpec(shape, input_dtype)
-                images = tf.map_fn(resize_to_aspect, images, fn_output_signature=spec)
-            else:
-                images = resize_to_aspect(inputs)
-        else:
-            images = tf.image.resize(
-                images, size=size, method=self._interpolation_method
-            )
-
+        images = tf.image.resize(images, size=size, method=self._interpolation_method)
         images = tf.cast(images, self.compute_dtype)
-        inputs["images"] = images
+
         if bounding_boxes is not None:
             inputs["bounding_boxes"] = bounding_box.convert_format(
                 bounding_boxes,
                 target="rel_xyxy",
                 source=self.bounding_box_format,
-                images=images,
+                # use static image shape, for optimal performance
+                image_shape=size
+                + [
+                    3,
+                ],
             )
+        inputs["images"] = images
         return inputs
+
+    def _resize_with_pad(self, inputs):
+        pass
+
+    def _resize_with_crop(self, inputs):
+        images = inputs.get("images", None)
+        bounding_boxes = inputs.get("bounding_boxes", None)
+        if bounding_boxes is not None:
+            raise ValueError(
+                "Resizing(crop_to_aspect_ratio=True) does not support "
+                "bounding box inputs.  Please use `pad_to_aspect_ratio=True`, or "
+                "`crop_to_aspect_ratio=False` and `pad_to_aspect_ratio=False` when "
+                "passing bounding boxes to Resizing()."
+            )
+        inputs["images"] = images
+        size = [self.height, self.width]
+
+        def resize_to_aspect(x):
+            if isinstance(x, tf.RaggedTensor):
+                x = x.to_tensor()
+            return tf.keras.utils.smart_resize(
+                x, size=size, interpolation=self._interpolation_method
+            )
+
+        if isinstance(images, tf.RaggedTensor):
+            size_as_shape = tf.TensorShape(size)
+            shape = size_as_shape + images.shape[-1:]
+            spec = tf.TensorSpec(shape, input_dtype)
+            images = tf.map_fn(resize_to_aspect, images, fn_output_signature=spec)
+        else:
+            images = resize_to_aspect(inputs)
+
+        inputs["images"] = images
+        return inputs
+
+    def _batch_augment(self, inputs):
+        if (
+            inputs.get("bounding_boxes", None) is None
+            and self.bounding_box_format is None
+        ):
+            raise ValueError(
+                "Resizing requires `bounding_box_format` to be set "
+                "when augmenting bounding boxes, but `self.bounding_box_format=None`."
+            )
+
+        if self.crop_to_aspect_ratio:
+            return self._resize_with_crop(inputs)
+        if self.pad_to_aspect_ratio:
+            return self._resize_with_pad(inputs)
+        return self._resize_with_distortion(inputs)
 
     def compute_output_shape(self, input_shape):
         input_shape = tf.TensorShape(input_shape).as_list()
@@ -173,6 +196,7 @@ class Resizing(BaseImageAugmentationLayer):
             "width": self.width,
             "interpolation": self.interpolation,
             "crop_to_aspect_ratio": self.crop_to_aspect_ratio,
+            "pad_to_aspect_ratio": self.pad_to_aspect_ratio,
             "bounding_box_format": self.bounding_box_format,
         }
         base_config = super().get_config()

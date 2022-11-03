@@ -18,15 +18,13 @@ object detection.
 import demo_utils
 import tensorflow as tf
 
-from keras_cv import layers
 import keras_cv
+from keras_cv import layers
+
 
 def main():
     dataset, _ = keras_cv.datasets.pascal_voc.load(
-        split='train',
-        bounding_box_format="xyxy",
-        batch_size=9,
-        img_size=(512, 512)
+        split="train", bounding_box_format="xyxy", batch_size=9, img_size=(512, 512)
     )
     # ragged tensor of images
     # sample = next(iter(dataset))
