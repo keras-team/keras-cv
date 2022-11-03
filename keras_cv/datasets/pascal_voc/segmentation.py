@@ -446,7 +446,10 @@ def load(
     This function will download the data tar file from remote if needed, and untar to
     the local `data_dir`, and build dataset from it.
 
-    It supports both VOC2012 and Semantic Boundaries Dataset (SBD)
+    It supports both VOC2012 and Semantic Boundaries Dataset (SBD).
+
+    The returned segmentation masks will be int ranging from [0, num_classes), as well as
+    255 which is the boundary mask.
 
     Args:
         split: string, can be 'train', 'eval', 'trainval", 'sbd_train', or 'sbd_eval'.
