@@ -17,22 +17,42 @@ object detection.
 """
 import demo_utils
 import tensorflow as tf
-
+import tensorflow_datasets as tfds
 import keras_cv
 from keras_cv import layers
 
+train_ds = tfds.load(
+    "voc/2007", split="train+test", with_info=False, shuffle_files=True
+)
 
-def main():
-    dataset, _ = keras_cv.datasets.pascal_voc.load(
-        split="train", bounding_box_format="xyxy", batch_size=9, img_size=(512, 512)
+def preproc(inputs):
+    image = inputs["image"]
+    image = tf.cast(image, tf.float32)
+    gt_boxes = inputs["objects"]["bbox"]
+    gt_boxes = keras_cv.bounding_box.convert_format(
+        gt_boxes,
+        images=image,
+        source="rel_yxyx",
+        target="yxyx",
     )
-    # ragged tensor of images
-    # sample = next(iter(dataset))
-    # resizing = layers.Resizing(height=512, width=512, bounding_box_format='xyxy')
-    # outputs = resizing(sample)
-    # result = dataset.map(resizing, num_parallel_calls=tf.data.AUTOTUNE)
-    demo_utils.visualize_data(dataset, bounding_box_format="xyxy")
+    gt_classes = tf.cast(inputs["objects"]["label"], tf.float32)
+    gt_classes = tf.expand_dims(gt_classes, axis=-1)
+    bounding_boxes = tf.concat([gt_boxes, gt_classes], axis=-1)
+    bounding_boxes = keras_cv.bounding_box.convert_format(
+        bounding_boxes, images=image, source="yxyx", target='xywh'
+    )
+    return {"images": image, "bounding_boxes": bounding_boxes}
 
+train_ds = train_ds.map(preproc)
+train_ds = train_ds.apply(
+    tf.data.experimental.dense_to_ragged_batch(16, drop_remainder=True)
+)
+print(train_ds)
+resizing = layers.Resizing(
+    height=600, width=400,
+    pad_to_aspect_ratio=True, bounding_box_format='xywh'
+)
 
-if __name__ == "__main__":
-    main()
+train_ds = train_ds.map(resizing)
+next(iter(train_ds))
+demo_utils.visualize_data(train_ds, bounding_box_format="xywh")

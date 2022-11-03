@@ -16,6 +16,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import tensorflow as tf
 import tensorflow_datasets as tfds
+tf.debugging.disable_traceback_filtering()
 
 from keras_cv import bounding_box
 
@@ -63,13 +64,15 @@ def visualize_data(data, bounding_box_format):
 
 def visualize_bounding_boxes(image, bounding_boxes, bounding_box_format):
     color = np.array([[255.0, 0.0, 0.0]])
-    bounding_boxes = bounding_boxes[..., :4]
+    bounding_boxes = bounding_boxes[..., :4].to_tensor(-1)
     bounding_boxes = bounding_box.convert_format(
         bounding_boxes,
         source=bounding_box_format,
         target="rel_yxyx",
         images=image,
     )
+    if isinstance(bounding_boxes, tf.RaggedTensor):
+        bounding_boxes = bounding_boxes[..., :4].to_tensor(-1)
     return tf.image.draw_bounding_boxes(image, bounding_boxes, color, name=None)
 
 
