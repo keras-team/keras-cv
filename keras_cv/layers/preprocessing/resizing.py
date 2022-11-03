@@ -197,9 +197,8 @@ class Resizing(BaseImageAugmentationLayer):
         if bounding_boxes is not None:
             raise ValueError(
                 "Resizing(crop_to_aspect_ratio=True) does not support "
-                "bounding box inputs.  Please use `pad_to_aspect_ratio=True`, or "
-                "`crop_to_aspect_ratio=False` and `pad_to_aspect_ratio=False` when "
-                "passing bounding boxes to Resizing()."
+                "bounding box inputs.  Please use `pad_to_aspect_ratio=True` when "
+                "processing bounding boxes with Resizing()."
             )
         inputs["images"] = images
         size = [self.height, self.width]
