@@ -203,7 +203,7 @@ class ResizingTest(tf.test.TestCase, parameterized.TestCase):
         img_data = np.random.random(size=input_shape).astype("float32")
         tf_function(img_data)
 
-    def test_pad_to_size_with_bounding_boxes_ragged_images(self):
+    def test_pad_to_size_with_bounding_boxes_ragged_images_tf_function(self):
         images = tf.ragged.constant(
             [
                 np.ones((8, 8, 3)),
@@ -237,7 +237,7 @@ class ResizingTest(tf.test.TestCase, parameterized.TestCase):
 
         tf_function(inputs)
 
-    def test_pad_to_size_with_bounding_boxes_ragged_images_tf_function(self):
+    def test_pad_to_size_with_bounding_boxes_ragged_images(self):
         images = tf.ragged.constant(
             [
                 np.ones((8, 8, 3)),
