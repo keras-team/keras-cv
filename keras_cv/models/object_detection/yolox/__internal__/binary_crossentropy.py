@@ -42,6 +42,7 @@ class BinaryCrossentropy(tf.keras.losses.Loss):
     )
     ```
     """
+
     def __init__(self, from_logits=False, label_smoothing=0.0, axis=None, **kwargs):
         super().__init__(**kwargs)
         self.from_logits = from_logits
