@@ -99,7 +99,9 @@ BASE_DOCSTRING = """Instantiates the {name} architecture.
 """
 
 
-def BasicBlock(filters, kernel_size=3, stride=1, conv_shortcut=False, name=None):
+def BasicBlock(
+    filters, kernel_size=3, stride=1, dilation=1, conv_shortcut=False, name=None
+):
     """A basic residual block (v2).
     Args:
         filters: integer, filters of the basic layer.
@@ -123,14 +125,15 @@ def BasicBlock(filters, kernel_size=3, stride=1, conv_shortcut=False, name=None)
             "relu", name=name + "_use_preactivation_relu"
         )(use_preactivation)
 
+        s = stride if dilation == 1 else 1
         if conv_shortcut:
-            shortcut = layers.Conv2D(filters, 1, strides=stride, name=name + "_0_conv")(
+            shortcut = layers.Conv2D(filters, 1, strides=s, name=name + "_0_conv")(
                 use_preactivation
             )
         else:
             shortcut = (
                 layers.MaxPooling2D(1, strides=stride, name=name + "_0_max_pooling")(x)
-                if stride > 1
+                if s > 1
                 else x
             )
 
@@ -147,11 +150,12 @@ def BasicBlock(filters, kernel_size=3, stride=1, conv_shortcut=False, name=None)
         )(x)
         x = layers.Activation("relu", name=name + "_1_relu")(x)
 
-        x = layers.ZeroPadding2D(padding=((1, 1), (1, 1)), name=name + "_2_pad")(x)
         x = layers.Conv2D(
             filters,
             kernel_size,
-            strides=stride,
+            strides=s,
+            padding="same",
+            dilation_rate=dilation,
             use_bias=False,
             name=name + "_2_conv",
         )(x)
