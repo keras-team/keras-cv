@@ -221,7 +221,6 @@ class ResizingTest(tf.test.TestCase, parameterized.TestCase):
                 tf.ones((2, 5), dtype=tf.float32),
             ],
         )
-        channels = 3
         layer = cv_layers.Resizing(
             4, 4, pad_to_aspect_ratio=True, bounding_box_format="xyxy"
         )
