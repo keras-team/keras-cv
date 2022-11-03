@@ -135,7 +135,55 @@ class Resizing(BaseImageAugmentationLayer):
         return inputs
 
     def _resize_with_pad(self, inputs):
-        pass
+        def resize_with_pad_to_aspect(x):
+            images = x.get("images", None)
+            boxes = x.get("bounding_boxes", None)
+            img_size = tf.shape(x)
+            img_height = img_size[H_AXIS]
+            img_width = img_size[W_AXIS]
+
+            if boxes is not None:
+                boxes = keras_cv.bounding_box.convert_format(
+                    boxes,
+                    image_shape=img_size,
+                    source=self.bounding_box_format,
+                    target="rel_xyxy",
+                )
+
+            # how much we scale height by to hit target height
+            height_scale = self.height / img_height
+            width_scale = self.width / img_width
+
+            resize_scale = tf.math.minimum(height_scale, width_scale)
+            target_height = img_height * resize_scale
+            target_width = img_width * resize_scale
+
+            image = tf.image.resize(
+                image, size=(target_height, target_width), method=self._interpolation_method
+            )
+            if boxes is not None:
+                boxes = keras_cv.bounding_box.convert_format(
+                    boxes,
+                    images=image,
+                    source="rel_xyxy",
+                    target='xyxy',
+                )
+            image = tf.image.pad_to_bounding_box(
+                image, 0, 0, self.height, self.width
+            )
+            if boxes is not None:
+                boxes = keras_cv.bounding_box.convert_format(
+                    boxes,
+                    images=image,
+                    source="xyxy",
+                    target=self.bounding_box_format,
+                )
+            inputs['images'] = image
+            if boxes is not None:
+                inputs['bounding_boxes'] = boxes
+            return inputs
+
+        return tf.map_fn(resize_with_pad_to_aspect, inputs)
 
     def _resize_with_crop(self, inputs):
         images = inputs.get("images", None)
@@ -150,7 +198,7 @@ class Resizing(BaseImageAugmentationLayer):
         inputs["images"] = images
         size = [self.height, self.width]
 
-        def resize_to_aspect(x):
+        def resize_with_crop_to_aspect(x):
             if isinstance(x, tf.RaggedTensor):
                 x = x.to_tensor()
             return tf.keras.utils.smart_resize(
@@ -161,9 +209,9 @@ class Resizing(BaseImageAugmentationLayer):
             size_as_shape = tf.TensorShape(size)
             shape = size_as_shape + images.shape[-1:]
             spec = tf.TensorSpec(shape, input_dtype)
-            images = tf.map_fn(resize_to_aspect, images, fn_output_signature=spec)
+            images = tf.map_fn(resize_with_crop_to_aspect, images, fn_output_signature=spec)
         else:
-            images = resize_to_aspect(inputs)
+            images = resize_with_crop_to_aspect(inputs)
 
         inputs["images"] = images
         return inputs
