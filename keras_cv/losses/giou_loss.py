@@ -40,7 +40,7 @@ class GIoULoss(keras.losses.Loss):
     References:
         - [GIoU paper](https://arxiv.org/pdf/1902.09630)
         - [TFAddons Implementation](https://www.tensorflow.org/addons/api_docs/python/tfa/losses/GIoULoss)
-
+    
     Sample Usage:
     ```python
     y_true = tf.random.uniform((5, 10, 5), minval=0, maxval=10, dtype=tf.dtypes.int32)
@@ -48,7 +48,7 @@ class GIoULoss(keras.losses.Loss):
     loss = GIoULoss(bounding_box_format = "xyWH")
     loss(y_true, y_pred).numpy()
     ```
-
+    
     Usage with the `compile()` API:
     ```python
     model.compile(optimizer='adam', loss=keras_cv.losses.GIoULoss())

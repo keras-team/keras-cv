@@ -243,17 +243,17 @@ Our data pipeline is now complete.  We can now move on to model creation and tra
 """
 ## Model creation
 
-We'll use the KerasCV API to construct a YoloX model.  In this tutorial we use
+We'll use the KerasCV API to construct a YoloX_tiny model.  In this tutorial we use
 a pretrained ResNet50 backbone using weights.  In order to perform fine-tuning, we
 freeze the backbone before training.  When `include_rescaling=True` is set, inputs to
 the model are expected to be in the range `[0, 255]`.
 """
 
-model = keras_cv.models.YoloX_s(
+model = keras_cv.models.YoloX_tiny(
     classes=20,
     bounding_box_format="xywh",
     backbone="cspdarknet",
-    include_rescaling=False,
+    include_rescaling=True,
     evaluate_train_time_metrics=False,
 )
 

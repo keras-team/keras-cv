@@ -220,21 +220,21 @@ class YoloX(tf.keras.Model):
         objectness_loss = _parse_objectness_loss(objectness_loss)
         classification_loss = _parse_classification_loss(classification_loss)
 
-        if hasattr(classification_loss, "from_logits"):
-            if not classification_loss.from_logits:
+        if hasattr(self.classification_loss, "from_logits"):
+            if not self.classification_loss.from_logits:
                 raise ValueError(
                     "YoloX.compile() expects `from_logits` to be True for "
                     "`classification_loss`. Got "
                     "`classification_loss.from_logits="
-                    f"{classification_loss.from_logits}`"
+                    f"{self.classification_loss.from_logits}`"
                 )
-        if hasattr(objectness_loss, "from_logits"):
-            if not objectness_loss.from_logits:
+        if hasattr(self.objectness_loss, "from_logits"):
+            if not self.objectness_loss.from_logits:
                 raise ValueError(
                     "YoloX.compile() expects `from_logits` to be True for "
                     "`objectness_loss`. Got "
                     "`objectness_loss.from_logits="
-                    f"{objectness_loss.from_logits}`"
+                    f"{self.objectness_loss.from_logits}`"
                 )
 
         self.box_loss = box_loss
