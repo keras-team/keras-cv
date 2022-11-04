@@ -116,9 +116,7 @@ class SpatialPyramidPooling(tf.keras.layers.Layer):
                     kernel_size=(1, 1),
                     use_bias=False,
                 ),
-                tf.keras.layers.experimental.SyncBatchNormalization(),
-                # TODO(tanzhenyu): File a bug to Keras for NAN issue.
-                # tf.keras.layers.BatchNormalization(momentum=0.9997, epsilon=1.001e-5, name='seq_pool_bn', fused=True),
+                tf.keras.layers.BatchNormalization(),
                 tf.keras.layers.Activation(self.activation),
                 tf.keras.layers.Resizing(height, width, interpolation="bilinear"),
             ]

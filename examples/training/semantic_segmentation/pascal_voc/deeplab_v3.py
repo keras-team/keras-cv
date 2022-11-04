@@ -106,10 +106,10 @@ def proc_eval_fn(examples):
 
 
 train_ds = train_ds.map(proc_train_fn, num_parallel_calls=tf.data.AUTOTUNE)
-train_ds = train_ds.batch(global_batch)
+train_ds = train_ds.batch(global_batch, drop_remainder=True)
 
 eval_ds = eval_ds.map(proc_eval_fn, num_parallel_calls=tf.data.AUTOTUNE)
-eval_ds = eval_ds.batch(global_batch)
+eval_ds = eval_ds.batch(global_batch, drop_remainder=True)
 
 train_ds = train_ds.shuffle(8)
 train_ds = train_ds.prefetch(2)
