@@ -14,10 +14,6 @@
 
 import tensorflow as tf
 
-from keras_cv import bounding_box
-from keras_cv.utils import preprocessing
-
-
 POINT_CLOUDS = "point_clouds"
 BOUNDING_BOXES = "bounding_boxes"
 
@@ -31,9 +27,9 @@ class BaseAugmentationLayer3D(tf.keras.__internal__.layers.BaseRandomLayer):
     The subclasses could avoid making certain mistakes and reduce code
     duplications.
 
-    This layer requires you to implement one method: `augment_point_clouds()`, 
-    which augments one or a sequence of point clouds during the training. There are a few 
-    additional methods that you can implement for added functionality on the 
+    This layer requires you to implement one method: `augment_point_clouds()`,
+    which augments one or a sequence of point clouds during the training. There are a few
+    additional methods that you can implement for added functionality on the
     layer:
 
     `augment_bounding_boxes()`, which handles the bounding box augmentation, if
@@ -124,7 +120,9 @@ class BaseAugmentationLayer3D(tf.keras.__internal__.layers.BaseRandomLayer):
         else:
             return tf.map_fn
 
-    def augment_point_clouds_bounding_boxes(self, point_clouds, bounding_boxes, transformation, **kwargs):
+    def augment_point_clouds_bounding_boxes(
+        self, point_clouds, bounding_boxes, transformation, **kwargs
+    ):
         """Augment a single point cloud frame during training.
 
         Args:
@@ -140,7 +138,6 @@ class BaseAugmentationLayer3D(tf.keras.__internal__.layers.BaseRandomLayer):
           output 3D tensor, which will be forward to `layer.call()`.
         """
         raise NotImplementedError()
-
 
     def get_random_transformation(self, point_clouds=None, bounding_boxes=None):
         """Produce random transformation config for one single input.
@@ -161,7 +158,7 @@ class BaseAugmentationLayer3D(tf.keras.__internal__.layers.BaseRandomLayer):
     def call(self, inputs, training=True):
         if training:
             point_clouds = inputs[POINT_CLOUDS]
-            
+
             if point_clouds.shape.rank == 3:
                 return self._augment(inputs)
             elif point_clouds.shape.rank == 4:
@@ -179,8 +176,7 @@ class BaseAugmentationLayer3D(tf.keras.__internal__.layers.BaseRandomLayer):
         point_clouds = inputs.get(POINT_CLOUDS, None)
         bounding_boxes = inputs.get(BOUNDING_BOXES, None)
         transformation = self.get_random_transformation(
-            point_clouds=point_clouds,
-            bounding_boxes=bounding_boxes
+            point_clouds=point_clouds, bounding_boxes=bounding_boxes
         )
         point_clouds, bounding_boxes = self.augment_point_clouds_bounding_boxes(
             point_clouds,
@@ -197,5 +193,3 @@ class BaseAugmentationLayer3D(tf.keras.__internal__.layers.BaseRandomLayer):
 
     def _batch_augment(self, inputs):
         return self._map_fn(self._augment, inputs)
-
-
