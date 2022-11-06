@@ -294,41 +294,42 @@ class StableDiffusion:
         unconditional_guidance_scale=7.5,
         diffusion_noise=None,
         seed=None,
+        verbose=True,
     ):
-        """Generates an image based on encoded text.
-
-        The encoding passed to this method should be derived from
-        `StableDiffusion.encode_text`.
+        """Inpaints a masked section of the provided image based on the provided prompt.
 
         Args:
             prompt: A string representing the prompt for generation.
             image: Tensor of shape (`batch_size`, `image_height`, `image_width`,
-            3) with RGB values in [0, 255]. When the batch is omitted, the same
-            image will be used as the starting image.
+                3) with RGB values in [0, 255]. When the batch is omitted, the same
+                image will be used as the starting image.
             mask: Tensor of shape (`batch_size`, `image_height`, `image_width`)
-            with binary values 0 or 1. When the batch is omitted, the same mask
-            will be used on all images.
+                with binary values 0 or 1. When the batch is omitted, the same mask
+                will be used on all images.
+            num_resamples: number of times to resample the generated mask region.
+                Increasing the number of resamples improves the semantic fit of the
+                generated mask region w.r.t the rest of the image. Default: 1.
             batch_size: number of images to generate. Default: 1.
             num_steps: number of diffusion steps (controls image quality).
                 Default: 25.
-            unconditional_guidance_scale: float controling how closely the image
+            unconditional_guidance_scale: float controlling how closely the image
                 should adhere to the prompt. Larger values result in more
                 closely adhering to the prompt, but will make the image noisier.
                 Default: 7.5.
-            diffusion_noise: Tensor of shape (`batch_size`, img_height // 8,
-                img_width // 8, 4), or a Tensor of shape (img_height // 8,
-                img_width // 8, 4). Optional custom noise to seed the diffusion
-                process. When the batch axis is omitted, the same noise will be
-                used to seed diffusion for every generated image.
-            seed: integer which is used to seed the random generation of
-                diffusion noise, only to be specified if `diffusion_noise` is
-                None.
+            diffusion_noise: (Optional) Tensor of shape (`batch_size`,
+                img_height // 8, img_width // 8, 4), or a Tensor of shape
+                (img_height // 8, img_width // 8, 4). Optional custom noise to
+                seed the diffusion process. When the batch axis is omitted, the
+                same noise will be used to seed diffusion for every generated image.
+            seed: (Optional) integer which is used to seed the random generation of
+                diffusion noise, only to be specified if `diffusion_noise` is None.
+            verbose: whether to print progress bar. Default: True.
         """
         if diffusion_noise is not None and seed is not None:
             raise ValueError(
-                "`diffusion_noise` and `seed` should not both be passed to "
-                "`generate_image`. `seed` is only used to generate diffusion "
-                "noise when it's not already user-specified."
+                "Please pass either diffusion_noise or seed to inpaint(), seed "
+                "is only used to generate diffusion noise when it is not provided. "
+                "Received both diffusion_noise and seed."
             )
 
         encoded_text = self.encode_text(prompt)
@@ -375,8 +376,10 @@ class StableDiffusion:
         # Iterative reverse diffusion stage
         timesteps = tf.range(1, 1000, 1000 // num_steps)
         alphas, alphas_prev = self._get_initial_alphas(timesteps)
-        progbar = keras.utils.Progbar(len(timesteps))
-        iteration = 0
+        if verbose:
+            progbar = keras.utils.Progbar(len(timesteps))
+            iteration = 0
+
         for index, timestep in list(enumerate(timesteps))[::-1]:
             a_t, a_prev = alphas[index], alphas_prev[index]
             latent_prev = latent  # Set aside the previous latent vector
@@ -413,8 +416,9 @@ class StableDiffusion:
                         seed=seed,
                     )
 
-            iteration += 1
-            progbar.update(iteration)
+            if verbose:
+                iteration += 1
+                progbar.update(iteration)
 
         # Decoding stage
         decoded = self.decoder.predict_on_batch(latent)
