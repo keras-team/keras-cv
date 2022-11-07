@@ -275,3 +275,4 @@ class ResizingTest(tf.test.TestCase, parameterized.TestCase):
 
         self.assertAllEqual(outputs['images'][1][:, :8, :], tf.ones((16, 8, 3)))
         self.assertAllEqual(outputs['images'][1][:, -8:, :], tf.zeros((16, 8, 3)))
+        self.assertAllEqual(outputs['bounding_boxes'][1][0], [2, 2, 2, 2, 1])
