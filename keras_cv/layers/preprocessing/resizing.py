@@ -29,7 +29,7 @@ class Resizing(BaseImageAugmentationLayer):
     This layer resizes an image input to a target height and width. The input
     should be a 4D (batched) or 3D (unbatched) tensor in `"channels_last"`
     format.  Input pixel values can be of any range (e.g. `[0., 1.)` or `[0,
-    255]`) and of interger or floating point dtype. By default, the layer will
+    255]`) and of integer or floating point dtype. By default, the layer will
     output floats.
 
     This layer can be called on tf.RaggedTensor batches of input images of
@@ -40,17 +40,19 @@ class Resizing(BaseImageAugmentationLayer):
     [guide](https://www.tensorflow.org/guide/keras/preprocessing_layers).
 
     Args:
-      height: Integer, the height of the output shape.
-      width: Integer, the width of the output shape.
-      interpolation: String, the interpolation method. Defaults to `"bilinear"`.
-        Supports `"bilinear"`, `"nearest"`, `"bicubic"`, `"area"`, `"lanczos3"`,
-        `"lanczos5"`, `"gaussian"`, `"mitchellcubic"`.
-      crop_to_aspect_ratio: If True, resize the images without aspect
-        ratio distortion. When the original aspect ratio differs from the target
-        aspect ratio, the output image will be cropped so as to return the
-        largest possible window in the image (of size `(height, width)`) that
-        matches the target aspect ratio. By default
-        (`crop_to_aspect_ratio=False`), aspect ratio may not be preserved.
+        height: Integer, the height of the output shape.
+        width: Integer, the width of the output shape.
+        interpolation: String, the interpolation method. Defaults to `"bilinear"`.
+            Supports `"bilinear"`, `"nearest"`, `"bicubic"`, `"area"`, `"lanczos3"`,
+            `"lanczos5"`, `"gaussian"`, `"mitchellcubic"`.
+        crop_to_aspect_ratio: If True, resize the images without aspect
+            ratio distortion. When the original aspect ratio differs from the target
+            aspect ratio, the output image will be cropped so as to return the
+            largest possible window in the image (of size `(height, width)`) that
+            matches the target aspect ratio. By default
+            (`crop_to_aspect_ratio=False`), aspect ratio may not be preserved.
+        pad_to_aspect_ratio:
+        bounding_box_format:
     """
 
     def __init__(
@@ -73,15 +75,16 @@ class Resizing(BaseImageAugmentationLayer):
 
         if pad_to_aspect_ratio and crop_to_aspect_ratio:
             raise ValueError(
-                "`Resizing()` expects either `crop_to_aspect_ratio` or "
-                "`pad_to_aspect_ratio`, but not both."
+                "`Resizing()` expects at most one of `crop_to_aspect_ratio` or "
+                "`pad_to_aspect_ratio` to be True."
             )
-        if crop_to_aspect_ratio and bounding_box_format:
-            # TODO(lukewood): support `bounding_box.smart_resize()`
+
+        if not pad_to_aspect_ratio and bounding_box_format:
             raise ValueError(
-                "Resizing() does not support `crop_to_aspect_ratio=True` "
-                "and `bounding_box_format` at the same time.  In order to resize with "
-                "bounding boxes, please pass `crop_to_aspect_ratio=False`."
+                "Resizing() only supports bounding boxes when in "
+                "`pad_to_aspect_ratio=True` model.  "
+                "Please pass `pad_to_aspect_ratio=True`"
+                "when processing bounding boxes with `Resizing()`"
             )
         super().__init__(**kwargs)
 
@@ -110,14 +113,6 @@ class Resizing(BaseImageAugmentationLayer):
 
     def _resize_with_distortion(self, inputs):
         images = inputs.get("images", None)
-        bounding_boxes = inputs.get("bounding_boxes", None)
-        if bounding_boxes is not None:
-            raise ValueError(
-                "Resizing() only supports bounding box inputs when "
-                "`pad_to_aspect_ratio=True`.  Please construct your layer with "
-                "`Resizing(pad_to_aspect_ratio=True)` when processing "
-                "bounding boxes."
-            )
 
         size = [self.height, self.width]
         images = tf.image.resize(images, size=size, method=self._interpolation_method)

@@ -19,7 +19,7 @@ from keras_cv import layers as cv_layers
 
 
 class ResizingTest(tf.test.TestCase, parameterized.TestCase):
-    def _run_test(self, kwargs, height, width):
+    def _run_output_shape_test(self, kwargs, height, width):
         kwargs.update({"height": height, "width": width})
         layer = cv_layers.Resizing(**kwargs)
 
@@ -45,7 +45,7 @@ class ResizingTest(tf.test.TestCase, parameterized.TestCase):
         ),
     )
     def test_down_sampling(self, kwargs, height, width):
-        self._run_test(kwargs, height, width)
+        self._run_output_shape_test(kwargs, height, width)
 
     @parameterized.named_parameters(
         ("up_sample_bilinear_10_by_12", {"interpolation": "bilinear"}, 10, 12),
@@ -65,7 +65,7 @@ class ResizingTest(tf.test.TestCase, parameterized.TestCase):
         ),
     )
     def test_up_sampling(self, kwargs, expected_height, expected_width):
-        self._run_test(kwargs, expected_height, expected_width)
+        self._run_output_shape_test(kwargs, expected_height, expected_width)
 
     def test_down_sampling_numeric(self):
         for dtype in (np.int64, np.float32):
@@ -95,7 +95,7 @@ class ResizingTest(tf.test.TestCase, parameterized.TestCase):
         ("reshape_bilinear_10_by_4", {"interpolation": "bilinear"}, 10, 4)
     )
     def test_reshaping(self, kwargs, expected_height, expected_width):
-        self._run_test(kwargs, expected_height, expected_width)
+        self._run_output_shape_test(kwargs, expected_height, expected_width)
 
     def test_invalid_interpolation(self):
         with self.assertRaises(NotImplementedError):
@@ -237,10 +237,41 @@ class ResizingTest(tf.test.TestCase, parameterized.TestCase):
         layer = cv_layers.Resizing(
             4, 4, pad_to_aspect_ratio=True, bounding_box_format="xyxy"
         )
+        inputs = {"images": images, "bounding_boxes": boxes}
+        outputs = layer(inputs)
+        self.assertListEqual(
+            [4, 4, 4, 3],
+            outputs["images"].shape.as_list(),
+        )
+
+    def test_pad_to_size_with_bounding_boxes_ragged_images_upsample(self):
+        images = tf.ragged.constant(
+            [
+                np.ones((8, 8, 3)),
+                np.ones((8, 4, 3)),
+                np.ones((4, 8, 3)),
+                np.ones((2, 2, 3)),
+            ],
+            dtype="float32",
+        )
+        boxes = tf.ragged.stack(
+            [
+                tf.ones((3, 5), dtype=tf.float32),
+                tf.ones((5, 5), dtype=tf.float32),
+                tf.ones((3, 5), dtype=tf.float32),
+                tf.ones((2, 5), dtype=tf.float32),
+            ],
+        )
+        layer = cv_layers.Resizing(
+            16, 16, pad_to_aspect_ratio=True, bounding_box_format="xyxy"
+        )
         unit_test = self
         inputs = {"images": images, "bounding_boxes": boxes}
         outputs = layer(inputs)
-        unit_test.assertListEqual(
-            [4, 4, 3],
-            outputs["images"].shape.as_list()[-3:],
+        self.assertListEqual(
+            [4, 16, 16, 3],
+            outputs["images"].shape.as_list(),
         )
+
+        self.assertAllEqual(outputs['images'][1][:, :8, :], tf.ones((16, 8, 3)))
+        self.assertAllEqual(outputs['images'][1][:, -8:, :], tf.zeros((16, 8, 3)))
