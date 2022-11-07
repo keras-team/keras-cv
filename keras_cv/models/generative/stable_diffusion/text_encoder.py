@@ -18,7 +18,7 @@ from tensorflow.experimental import numpy as tfnp
 
 
 class TextEncoder(keras.Model):
-    def __init__(self, max_length, name=None):
+    def __init__(self, max_length, name=None, download_weights=True):
         tokens = keras.layers.Input(shape=(max_length,), dtype="int32", name="tokens")
         positions = keras.layers.Input(
             shape=(max_length,), dtype="int32", name="positions"
@@ -28,6 +28,13 @@ class TextEncoder(keras.Model):
             x = CLIPEncoderLayer()(x)
         embedded = keras.layers.LayerNormalization(epsilon=1e-5)(x)
         super().__init__([tokens, positions], embedded, name=name)
+
+        if download_weights:
+            text_encoder_weights_fpath = keras.utils.get_file(
+                origin="https://huggingface.co/fchollet/stable-diffusion/resolve/main/kcv_encoder.h5",
+                file_hash="4789e63e07c0e54d6a34a29b45ce81ece27060c499a709d556c7755b42bb0dc4",
+            )
+            self.load_weights(text_encoder_weights_fpath)
 
 
 class CLIPEmbedding(keras.layers.Layer):
