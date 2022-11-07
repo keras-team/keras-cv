@@ -265,7 +265,6 @@ class ResizingTest(tf.test.TestCase, parameterized.TestCase):
         layer = cv_layers.Resizing(
             16, 16, pad_to_aspect_ratio=True, bounding_box_format="xyxy"
         )
-        unit_test = self
         inputs = {"images": images, "bounding_boxes": boxes}
         outputs = layer(inputs)
         self.assertListEqual(
@@ -273,6 +272,6 @@ class ResizingTest(tf.test.TestCase, parameterized.TestCase):
             outputs["images"].shape.as_list(),
         )
 
-        self.assertAllEqual(outputs['images'][1][:, :8, :], tf.ones((16, 8, 3)))
-        self.assertAllEqual(outputs['images'][1][:, -8:, :], tf.zeros((16, 8, 3)))
-        self.assertAllEqual(outputs['bounding_boxes'][1][0], [2, 2, 2, 2, 1])
+        self.assertAllEqual(outputs["images"][1][:, :8, :], tf.ones((16, 8, 3)))
+        self.assertAllEqual(outputs["images"][1][:, -8:, :], tf.zeros((16, 8, 3)))
+        self.assertAllEqual(outputs["bounding_boxes"][1][0], [2, 2, 2, 2, 1])

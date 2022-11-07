@@ -27,7 +27,7 @@ def curry_map_function(bounding_box_format, img_size):
             height=img_size[0],
             width=img_size[1],
             bounding_box_format=bounding_box_format,
-            pad_to_aspect_ratio=False,
+            pad_to_aspect_ratio=True,
         )
 
     def apply(inputs):
@@ -54,10 +54,10 @@ def curry_map_function(bounding_box_format, img_size):
 def load(
     split,
     bounding_box_format,
-    img_size=None,
     batch_size=None,
     shuffle_files=True,
     shuffle_buffer=None,
+    img_size=None,
 ):
     """Loads the PascalVOC 2007 dataset.
 
