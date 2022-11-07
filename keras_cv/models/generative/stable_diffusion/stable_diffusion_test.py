@@ -19,7 +19,7 @@ from keras_cv.models import StableDiffusion
 
 
 class StableDiffusionTest(tf.test.TestCase):
-    def test_end_to_end_golden_value(self):
+    def DISABLED_test_end_to_end_golden_value(self):
         prompt = "a caterpillar smoking a hookah while sitting on a mushroom"
         stablediff = StableDiffusion(128, 128)
 
@@ -32,12 +32,12 @@ class StableDiffusionTest(tf.test.TestCase):
             img, stablediff.generate_image(text_encoding, seed=1337), atol=1e-4
         )
 
-    def test_mixed_precision(self):
+    def DISABLED_test_mixed_precision(self):
         mixed_precision.set_global_policy("mixed_float16")
         stablediff = StableDiffusion(128, 128)
         _ = stablediff.text_to_image("Testing123 haha!")
 
-    def test_generate_image_rejects_noise_and_seed(self):
+    def DISABLED_test_generate_image_rejects_noise_and_seed(self):
         stablediff = StableDiffusion(128, 128)
 
         with self.assertRaisesRegex(
