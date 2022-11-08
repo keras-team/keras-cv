@@ -31,6 +31,8 @@ class Patching(layers.Layer):
 
     args:
         - patch_size: the size (patch_size, patch_size) of each patch created from the image
+    returns:
+        - batch of patchified input images.
 
     Basic usage:
 
