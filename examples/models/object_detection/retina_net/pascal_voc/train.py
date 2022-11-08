@@ -415,6 +415,12 @@ def proc_eval_fn(bounding_box_format, target_size):
 
     def apply(inputs):
         image = tf.cast(inputs["image"], tf.float32)
+        gt_boxes = keras_cv.bounding_box.convert_format(
+            inputs["objects"]["bbox"],
+            images=image,
+            source="rel_yxyx",
+            target=bounding_box_format,
+        )
         gt_classes = tf.cast(inputs["objects"]["label"], tf.float32)
         gt_classes = tf.expand_dims(gt_classes, axis=-1)
         bounding_boxes = tf.concat([gt_boxes, gt_classes], axis=-1)
