@@ -14,15 +14,15 @@
 import tensorflow as tf
 from absl.testing import parameterized
 
-from keras_cv.layers import preprocessing
+from keras_cv import layers
 
 TEST_CONFIGURATIONS = [
-    ("AutoContrast", preprocessing.AutoContrast, {"value_range": (0, 255)}),
-    ("ChannelShuffle", preprocessing.ChannelShuffle, {}),
-    ("Equalization", preprocessing.Equalization, {"value_range": (0, 255)}),
+    ("AutoContrast", layers.AutoContrast, {"value_range": (0, 255)}),
+    ("ChannelShuffle", layers.ChannelShuffle, {}),
+    ("Equalization", layers.Equalization, {"value_range": (0, 255)}),
     (
         "RandomCropAndResize",
-        preprocessing.RandomCropAndResize,
+        layers.RandomCropAndResize,
         {
             "target_size": (224, 224),
             "crop_area_factor": (0.8, 1.0),
@@ -31,7 +31,7 @@ TEST_CONFIGURATIONS = [
     ),
     (
         "RandomlyZoomedCrop",
-        preprocessing.RandomlyZoomedCrop,
+        layers.RandomlyZoomedCrop,
         {
             "height": 224,
             "width": 224,
@@ -39,36 +39,36 @@ TEST_CONFIGURATIONS = [
             "aspect_ratio_factor": (3 / 4, 4 / 3),
         },
     ),
-    ("Grayscale", preprocessing.Grayscale, {}),
-    ("GridMask", preprocessing.GridMask, {}),
+    ("Grayscale", layers.Grayscale, {}),
+    ("GridMask", layers.GridMask, {}),
     (
         "Posterization",
-        preprocessing.Posterization,
+        layers.Posterization,
         {"bits": 3, "value_range": (0, 255)},
     ),
     (
         "RandomColorDegeneration",
-        preprocessing.RandomColorDegeneration,
+        layers.RandomColorDegeneration,
         {"factor": 0.5},
     ),
     (
         "RandomCutout",
-        preprocessing.RandomCutout,
+        layers.RandomCutout,
         {"height_factor": 0.2, "width_factor": 0.2},
     ),
     (
         "RandomHue",
-        preprocessing.RandomHue,
+        layers.RandomHue,
         {"factor": 0.5, "value_range": (0, 255)},
     ),
     (
         "RandomChannelShift",
-        preprocessing.RandomChannelShift,
+        layers.RandomChannelShift,
         {"value_range": (0, 255), "factor": 0.5},
     ),
     (
         "RandomColorJitter",
-        preprocessing.RandomColorJitter,
+        layers.RandomColorJitter,
         {
             "value_range": (0, 255),
             "brightness_factor": (-0.2, 0.5),
@@ -80,26 +80,34 @@ TEST_CONFIGURATIONS = [
     ),
     (
         "RandomGaussianBlur",
-        preprocessing.RandomGaussianBlur,
+        layers.RandomGaussianBlur,
         {"kernel_size": 3, "factor": (0.0, 3.0)},
     ),
-    ("RandomJpegQuality", preprocessing.RandomJpegQuality, {"factor": (75, 100)}),
-    ("RandomSaturation", preprocessing.RandomSaturation, {"factor": 0.5}),
+    ("RandomJpegQuality", layers.RandomJpegQuality, {"factor": (75, 100)}),
+    ("RandomSaturation", layers.RandomSaturation, {"factor": 0.5}),
     (
         "RandomSharpness",
-        preprocessing.RandomSharpness,
+        layers.RandomSharpness,
         {"factor": 0.5, "value_range": (0, 255)},
     ),
-    ("RandomShear", preprocessing.RandomShear, {"x_factor": 0.3, "x_factor": 0.3}),
-    ("Solarization", preprocessing.Solarization, {"value_range": (0, 255)}),
-    ("Mosaic", preprocessing.Mosaic, {}),
-    ("CutMix", preprocessing.CutMix, {}),
+    ("RandomShear", layers.RandomShear, {"x_factor": 0.3, "x_factor": 0.3}),
+    ("Solarization", layers.Solarization, {"value_range": (0, 255)}),
+    ("Mosaic", layers.Mosaic, {}),
+    ("CutMix", layers.CutMix, {}),
+    (
+        "Resizing",
+        layers.Resizing,
+        {
+            "height": 224,
+            "width": 224,
+        },
+    ),
 ]
 
 NO_CPU_FP16_KERNEL_LAYERS = [
-    preprocessing.RandomSaturation,
-    preprocessing.RandomColorJitter,
-    preprocessing.RandomHue,
+    layers.RandomSaturation,
+    layers.RandomColorJitter,
+    layers.RandomHue,
 ]
 
 
