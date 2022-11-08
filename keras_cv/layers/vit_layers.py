@@ -12,13 +12,63 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
 import math
 
 import tensorflow as tf
 from tensorflow.keras import layers
 
-from keras_cv.layers.vit_class_tokenizing import ClassTokenizing
+
+@tf.keras.utils.register_keras_serializable(package="keras_cv")
+class Patching(layers.Layer):
+    """
+    Layer to turn images into a sequence of patches for Vision Transformers from:
+        - An Image is Worth 16x16 Words: Transformers for Image Recognition at Scale
+        by Alexey Dosovitskiy et al. (https://arxiv.org/abs/2010.11929)
+    Based on Khalid Salama's implementation for:
+        - https://github.com/keras-team/keras-io/blob/master/examples/vision/image_classification_with_vision_transformer.py
+
+    The layer expects a batch of input images and returns batches of patches.
+
+    args:
+        - patch_size: the size (patch_size, patch_size) of each patch created from the image
+
+    Basic usage:
+
+    ```
+    img = url_to_array(url)
+    batch_img = np.expand_dims(img, 0)
+
+    patch_size = 16
+    patches = keras_cv.layers.Patching(patch_size)(batch_img)
+    print(f"Image size: {batch_img.shape}")                # Image size: (1, 224, 224, 3)
+    print(f"Patch size: {(patch_size, patch_size)}") # Patch size: (16, 16)
+    print(f"Patches: {patches.shape[1]}")            # Patches: 196
+    ```
+    """
+
+    def __init__(self, patch_size, **kwargs):
+        super().__init__(**kwargs)
+        self.patch_size = patch_size
+
+    def call(self, images):
+        batch_size = tf.shape(images)[0]
+        patches = tf.image.extract_patches(
+            images=images,
+            sizes=[1, self.patch_size, self.patch_size, 1],
+            strides=[1, self.patch_size, self.patch_size, 1],
+            rates=[1, 1, 1, 1],
+            padding="VALID",
+        )
+        patch_dims = patches.shape[-1]
+        patches = tf.reshape(patches, [batch_size, -1, patch_dims])
+        return patches
+
+    def get_config(self):
+        config = {
+            "patch_size": self.patch_size,
+        }
+        base_config = super().get_config()
+        return dict(list(base_config.items()) + list(config.items()))
 
 
 @tf.keras.utils.register_keras_serializable(package="keras_cv")
@@ -33,8 +83,8 @@ class PatchEmbedding(layers.Layer):
         - https://github.com/keras-team/keras-io/blob/master/examples/vision/image_classification_with_vision_transformer.py
 
     args:
-        - num_patches: the number of input patches to project
         - project_dim: the dimensionality of the project_dim
+
     Basic usage:
 
     ```
@@ -43,18 +93,21 @@ class PatchEmbedding(layers.Layer):
     project_dim = 1024
     num_patches = patches.shape[1] # 196
 
-    encoded_patches = keras_cv.layers.PatchEmbedding(num_patches, project_dim)(patches)
+    encoded_patches = keras_cv.layers.PatchEmbedding(project_dim=project_dim)(patches)
     print(encoded_patches.shape) # (1, 197, 1024)
     ```
     """
 
-    def __init__(self, num_patches, project_dim, **kwargs):
+    def __init__(self, project_dim, **kwargs):
         super().__init__(**kwargs)
-        self.num_patches = num_patches
         self.project_dim = project_dim
         self.linear_projection = layers.Dense(self.project_dim)
+
+    def build(self, input_shape):
+        self.class_token = tf.random.normal([1, 1, input_shape[-1]], name="class_token")
+        self.num_patches = input_shape[1]
         self.position_embedding = layers.Embedding(
-            input_dim=self.num_patches + 1, output_dim=project_dim
+            input_dim=self.num_patches + 1, output_dim=self.project_dim
         )
 
     def call(
@@ -66,7 +119,15 @@ class PatchEmbedding(layers.Layer):
         patch_size=None,
     ):
         # Add learnable class token before linear projection and positional embedding
-        patch = ClassTokenizing(input_shape=patch.shape[-1])(patch)
+        patch_shape = tf.shape(patch)
+        class_token_broadcast = tf.cast(
+            tf.broadcast_to(
+                self.class_token,
+                [patch_shape[0], 1, patch_shape[-1]],
+            ),
+            dtype=patch.dtype,
+        )
+        patch = tf.concat([class_token_broadcast, patch], 1)
         # num_patches + class token
         positions = tf.range(start=0, limit=self.num_patches + 1, delta=1)
 
