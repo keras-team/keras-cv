@@ -88,9 +88,9 @@ class TransformerEncoder(layers.Layer):
         x3 = self.dense2(x3)
         x3 = layers.Dropout(self.mlp_dropout)(x3)
 
-        encoded_patches = layers.Add()([x3, x2])
+        output = layers.Add()([x3, x2])
 
-        return encoded_patches
+        return output
 
     def get_config(self):
         config = super().get_config()
