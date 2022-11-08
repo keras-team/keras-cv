@@ -89,7 +89,7 @@ class PatchEmbedding(layers.Layer):
             patch_size,
         ):
             raise ValueError(
-                f"`None of `interpolate_width`, `interpolate_height` and `patch_size` cannot be None if `interpolate` is True"
+                "`None of `interpolate_width`, `interpolate_height` and `patch_size` cannot be None if `interpolate` is True"
             )
         else:
             encoded = self.linear_projection(patch) + self.position_embedding(positions)
