@@ -30,7 +30,7 @@ def main():
         target_size=IMG_SIZE,
         crop_area_factor=(0.5, 0.5),
         aspect_ratio_factor=(0.5, 0.5),
-        bounding_box_format="rel_xyxy"
+        bounding_box_format="rel_xyxy",
     )
     result = dataset.map(random_rotation, num_parallel_calls=tf.data.AUTOTUNE)
     demo_utils.visualize_data(result, bounding_box_format="rel_xyxy")

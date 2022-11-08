@@ -14,8 +14,8 @@
 
 import tensorflow as tf
 
-from keras_cv import core
 from keras_cv import bounding_box
+from keras_cv import core
 from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
     BaseImageAugmentationLayer,
 )
@@ -59,14 +59,14 @@ class RandomCropAndResize(BaseImageAugmentationLayer):
     """
 
     def __init__(
-            self,
-            target_size,
-            crop_area_factor,
-            aspect_ratio_factor,
-            interpolation="bilinear",
-            bounding_box_format=None,
-            seed=None,
-            **kwargs,
+        self,
+        target_size,
+        crop_area_factor,
+        aspect_ratio_factor,
+        interpolation="bilinear",
+        bounding_box_format=None,
+        seed=None,
+        **kwargs,
     ):
         super().__init__(seed=seed, **kwargs)
 
@@ -92,7 +92,7 @@ class RandomCropAndResize(BaseImageAugmentationLayer):
         self.bounding_box_format = bounding_box_format
 
     def get_random_transformation(
-            self, image=None, label=None, bounding_box=None, **kwargs
+        self, image=None, label=None, bounding_box=None, **kwargs
     ):
         crop_area_factor = self.crop_area_factor()
         aspect_ratio = self.aspect_ratio_factor()
@@ -169,7 +169,7 @@ class RandomCropAndResize(BaseImageAugmentationLayer):
         return output
 
     def augment_bounding_boxes(
-            self, bounding_boxes, transformation=None, image=None, **kwargs
+        self, bounding_boxes, transformation=None, image=None, **kwargs
     ):
         if self.bounding_box_format is None:
             raise ValueError(
@@ -186,7 +186,9 @@ class RandomCropAndResize(BaseImageAugmentationLayer):
             images=image,
         )
 
-        bounding_boxes = RandomCropAndResize._transform_bounding_boxes(bounding_boxes, transformation)
+        bounding_boxes = RandomCropAndResize._transform_bounding_boxes(
+            bounding_boxes, transformation
+        )
 
         bounding_boxes = bounding_box.clip_to_image(
             bounding_boxes,
@@ -210,14 +212,14 @@ class RandomCropAndResize(BaseImageAugmentationLayer):
         return tf.cast(outputs, self.compute_dtype)
 
     def _check_class_arguments(
-            self, target_size, crop_area_factor, aspect_ratio_factor
+        self, target_size, crop_area_factor, aspect_ratio_factor
     ):
         if (
-                not isinstance(target_size, (tuple, list))
-                or len(target_size) != 2
-                or not isinstance(target_size[0], int)
-                or not isinstance(target_size[1], int)
-                or isinstance(target_size, int)
+            not isinstance(target_size, (tuple, list))
+            or len(target_size) != 2
+            or not isinstance(target_size[0], int)
+            or not isinstance(target_size[1], int)
+            or isinstance(target_size, int)
         ):
             raise ValueError(
                 "`target_size` must be tuple of two integers. "
@@ -225,9 +227,9 @@ class RandomCropAndResize(BaseImageAugmentationLayer):
             )
 
         if (
-                not isinstance(crop_area_factor, (tuple, list, core.FactorSampler))
-                or isinstance(crop_area_factor, float)
-                or isinstance(crop_area_factor, int)
+            not isinstance(crop_area_factor, (tuple, list, core.FactorSampler))
+            or isinstance(crop_area_factor, float)
+            or isinstance(crop_area_factor, int)
         ):
             raise ValueError(
                 "`crop_area_factor` must be tuple of two positive floats less than "
@@ -236,9 +238,9 @@ class RandomCropAndResize(BaseImageAugmentationLayer):
             )
 
         if (
-                not isinstance(aspect_ratio_factor, (tuple, list, core.FactorSampler))
-                or isinstance(aspect_ratio_factor, float)
-                or isinstance(aspect_ratio_factor, int)
+            not isinstance(aspect_ratio_factor, (tuple, list, core.FactorSampler))
+            or isinstance(aspect_ratio_factor, float)
+            or isinstance(aspect_ratio_factor, int)
         ):
             raise ValueError(
                 "`aspect_ratio_factor` must be tuple of two positive floats or "
