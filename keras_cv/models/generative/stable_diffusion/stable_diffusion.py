@@ -90,36 +90,20 @@ class StableDiffusion:
         self.img_height = img_height
         self.img_width = img_width
 
-        # Create models
-        self.text_encoder = TextEncoder(MAX_PROMPT_LENGTH)
-        self.diffusion_model = DiffusionModel(img_height, img_width, MAX_PROMPT_LENGTH)
-        self.decoder = Decoder(img_height, img_width)
-        if jit_compile:
-            self.text_encoder.compile(jit_compile=True)
-            self.diffusion_model.compile(jit_compile=True)
-            self.decoder.compile(jit_compile=True)
+        # lazy initialize the component models and the tokenizer
+        self._image_encoder = None
+        self._text_encoder = None
+        self._diffusion_model = None
+        self._decoder = None
+        self._tokenizer = None
+
+        self.jit_compile = jit_compile
 
         print(
             "By using this model checkpoint, you acknowledge that its usage is "
             "subject to the terms of the CreativeML Open RAIL-M license at "
             "https://raw.githubusercontent.com/CompVis/stable-diffusion/main/LICENSE"
         )
-        # Load weights
-        text_encoder_weights_fpath = keras.utils.get_file(
-            origin="https://huggingface.co/fchollet/stable-diffusion/resolve/main/kcv_encoder.h5",
-            file_hash="4789e63e07c0e54d6a34a29b45ce81ece27060c499a709d556c7755b42bb0dc4",
-        )
-        diffusion_model_weights_fpath = keras.utils.get_file(
-            origin="https://huggingface.co/fchollet/stable-diffusion/resolve/main/kcv_diffusion_model.h5",
-            file_hash="8799ff9763de13d7f30a683d653018e114ed24a6a819667da4f5ee10f9e805fe",
-        )
-        decoder_weights_fpath = keras.utils.get_file(
-            origin="https://huggingface.co/fchollet/stable-diffusion/resolve/main/kcv_decoder.h5",
-            file_hash="ad350a65cc8bc4a80c8103367e039a3329b4231c2469a1093869a345f55b1962",
-        )
-        self.text_encoder.load_weights(text_encoder_weights_fpath)
-        self.diffusion_model.load_weights(diffusion_model_weights_fpath)
-        self.decoder.load_weights(decoder_weights_fpath)
 
     def text_to_image(
         self,
@@ -425,6 +409,68 @@ class StableDiffusion:
         )
 
         return unconditional_context
+
+    @property
+    def image_encoder(self):
+        """image_encoder returns the VAE Encoder with pretrained weights.
+
+        Usage:
+        ```python
+        sd = keras_cv.models.StableDiffusion()
+        my_image = np.ones((512, 512, 3))
+        latent_representation = sd.image_encoder.predict(my_image)
+        ```
+        """
+        if self._image_encoder is None:
+            self._image_encoder = ImageEncoder(self.img_height, self.img_width)
+        if self.jit_compile:
+            self._image_encoder.compile(jit_compile=True)
+        return self._image_encoder
+
+    @property
+    def text_encoder(self):
+        """text_encoder returns the text encoder with pretrained weights.
+        Can be overriden for tasks like textual inversion where the text encoder
+        needs to be modified.
+        """
+        if self._text_encoder is None:
+            self._text_encoder = TextEncoder(MAX_PROMPT_LENGTH)
+        if self.jit_compile:
+            self._text_encoder.compile(jit_compile=True)
+        return self._text_encoder
+
+    @property
+    def diffusion_model(self):
+        """diffusion_model returns the diffusion model with pretrained weights.
+        Can be overriden for tasks where the diffusion model needs to be modified.
+        """
+        if self._diffusion_model is None:
+            self._diffusion_model = DiffusionModel(
+                self.img_height, self.img_width, MAX_PROMPT_LENGTH
+            )
+        if self.jit_compile:
+            self._diffusion_model.compile(jit_compile=True)
+        return self._diffusion_model
+
+    @property
+    def decoder(self):
+        """decoder returns the diffusion image decoder model with pretrained weights.
+        Can be overriden for tasks where the decoder needs to be modified.
+        """
+        if self._decoder is None:
+            self._decoder = Decoder(self.img_height, self.img_width)
+        if self.jit_compile:
+            self._decoder.compile(jit_compile=True)
+        return self._decoder
+
+    @property
+    def tokenizer(self):
+        """tokenizer returns the tokenizer used for text inputs.
+        Can be overriden for tasks like textual inversion where the tokenizer needs to be modified.
+        """
+        if self._tokenizer is None:
+            self._tokenizer = SimpleTokenizer()
+        return self._tokenizer
 
     def _get_timestep_embedding(self, timestep, batch_size, dim=320, max_period=10000):
         half = dim // 2
