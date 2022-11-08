@@ -12,4 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from keras_cv.models.generative.stable_diffusion.stable_diffusion import Decoder
+from keras_cv.models.generative.stable_diffusion.stable_diffusion import DiffusionModel
+from keras_cv.models.generative.stable_diffusion.stable_diffusion import ImageEncoder
+from keras_cv.models.generative.stable_diffusion.stable_diffusion import SimpleTokenizer
 from keras_cv.models.generative.stable_diffusion.stable_diffusion import StableDiffusion
+from keras_cv.models.generative.stable_diffusion.stable_diffusion import TextEncoder
