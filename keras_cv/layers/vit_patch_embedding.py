@@ -66,7 +66,7 @@ class PatchEmbedding(layers.Layer):
         patch_size=None,
     ):
         # Add learnable class token before linear projection and positional embedding
-        patch = ClassTokenizing()(patch, patch.shape[0])
+        patch = ClassTokenizing(input_shape=patch.shape[-1])(patch)
         # num_patches + class token
         positions = tf.range(start=0, limit=self.num_patches + 1, delta=1)
 
