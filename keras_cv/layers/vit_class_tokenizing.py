@@ -27,6 +27,7 @@ class ClassTokenizing(layers.Layer):
     """
 
     def __init__(self, **kwargs):
+        self.class_token = tf.random.normal([1, 1, None], name="class_token")
         super().__init__(**kwargs)
 
     def call(self, inputs):
@@ -34,8 +35,7 @@ class ClassTokenizing(layers.Layer):
         batch_size = input_shape[0]
 
         class_token_broadcast = tf.cast(
-            tf.broadcast_to(
-                tf.random.normal([1, 1, input_shape[-1]], name="class_token"),
+            tf.broadcast_to(self.class_token,
                 [batch_size, 1, input_shape[-1]],
             ),
             dtype=inputs.dtype,
@@ -44,4 +44,7 @@ class ClassTokenizing(layers.Layer):
 
     def get_config(self):
         base_config = super().get_config()
+        base_config.update({
+                "class_token": self.class_token,
+            })
         return base_config
