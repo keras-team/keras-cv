@@ -23,7 +23,7 @@ class TransformerEncoder(layers.Layer):
     Transformer encoder block implementation as a Keras Layer.
     args:
         - project_dim: the dimensionality of the projection of the encoder
-        - intermediate_dim: the intermediate dimensionality in the MLP head
+        - intermediate_dim: default 768, the intermediate dimensionality in the MLP head
         - num_heads: the number of heads for the `MultiHeadAttention` layer
         - dropout: default 0.1, the dropout rate to apply inside the MLP head of the encoder
         - activation: default tf.nn.gelu(), the activation function to apply in the MLP head
@@ -50,8 +50,8 @@ class TransformerEncoder(layers.Layer):
     def __init__(
         self,
         project_dim,
-        intermediate_dim,
         num_heads,
+        intermediate_dim=768,
         dropout=0.1,
         activation=tf.nn.gelu,
         layer_norm_epsilon=1e-06,
