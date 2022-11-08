@@ -22,6 +22,8 @@ from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
 H_AXIS = -3
 W_AXIS = -2
 
+supported_keys = ["images", "labels", "targets", "bounding_boxes"]
+
 
 class Resizing(BaseImageAugmentationLayer):
     """A preprocessing layer which resizes images.
@@ -51,8 +53,15 @@ class Resizing(BaseImageAugmentationLayer):
             largest possible window in the image (of size `(height, width)`) that
             matches the target aspect ratio. By default
             (`crop_to_aspect_ratio=False`), aspect ratio may not be preserved.
-        pad_to_aspect_ratio:
-        bounding_box_format:
+        pad_to_aspect_ratio: If True, resize the images without aspect
+            ratio distortion. When the original aspect ratio differs from the target
+            aspect ratio, the output image will be padded so as to return the
+            largest possible resize of the image (of size `(height, width)`) that
+            matches the target aspect ratio. By default
+            (`pad_to_aspect_ratio=False`), aspect ratio may not be preserved.
+        bounding_box_format: The format of bounding boxes of input dataset. Refer to
+            https://github.com/keras-team/keras-cv/blob/master/keras_cv/bounding_box/converters.py
+            for more details on supported bounding box formats.
     """
 
     def __init__(
@@ -82,7 +91,7 @@ class Resizing(BaseImageAugmentationLayer):
         if not pad_to_aspect_ratio and bounding_box_format:
             raise ValueError(
                 "Resizing() only supports bounding boxes when in "
-                "`pad_to_aspect_ratio=True` model.  "
+                "`pad_to_aspect_ratio=True` mode.  "
                 "Please pass `pad_to_aspect_ratio=True`"
                 "when processing bounding boxes with `Resizing()`"
             )
@@ -235,6 +244,7 @@ class Resizing(BaseImageAugmentationLayer):
     def call(self, inputs, training=True):
         # inputs = self._ensure_inputs_are_compute_dtype(inputs)
         inputs, metadata = self._format_inputs(inputs)
+        self._check_inputs(inputs)
         images = inputs["images"]
         if images.shape.rank == 3:
             return self._format_output(self._augment(inputs), metadata)
@@ -246,6 +256,15 @@ class Resizing(BaseImageAugmentationLayer):
                 "rank 3 (HWC) or 4D (NHWC) tensors. Got shape: "
                 f"{images.shape}"
             )
+
+    def _check_inputs(self, inputs):
+        for key in inputs:
+            if key not in supported_keys:
+                raise ValueError(
+                    "Resizing() currently only supports keys "
+                    f"[{', '.join(supported_keys)}]. "
+                    f"Key `{key}` found in inputs to `Resizing()`. "
+                )
 
     def _batch_augment(self, inputs):
         if (
