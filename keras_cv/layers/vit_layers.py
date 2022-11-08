@@ -59,13 +59,12 @@ class Patching(layers.Layer):
         self.patch_size = patch_size
         self.padding = padding
 
-    """
-    Accepts a batch of images as input.
-    Returns a batch of patches, flattened into a sequence. 
-    When the shape is non-divisible, the specified padding is used, or 'VALID' by default.
-    """
-
     def call(self, images):
+        """
+        Accepts a batch of images as input.
+        Returns a batch of patches, flattened into a sequence.
+        When the shape is non-divisible, the specified padding is used, or 'VALID' by default.
+        """
         batch_size = tf.shape(images)[0]
         patches = tf.image.extract_patches(
             images=images,
@@ -74,7 +73,7 @@ class Patching(layers.Layer):
             rates=[1, 1, 1, 1],
             padding=self.padding,
         )
-        if self.padding not in ['SAME', 'VALID']:
+        if self.padding not in ["SAME", "VALID"]:
             raise ValueError(
                 f"Padding must be either 'SAME' or 'VALID', but {self.padding} was passed."
             )
@@ -138,12 +137,6 @@ class PatchEmbedding(layers.Layer):
             input_dim=self.num_patches + 1, output_dim=self.project_dim
         )
 
-    """
-    Accepts flattened sequence of patches and optional flags for interpolation, the interpolated width and
-    height and new patch size.
-    Returns a projection of the input sequences prepended with a class token, and positionally embedded.
-    """
-
     def call(
         self,
         patch,
@@ -152,6 +145,11 @@ class PatchEmbedding(layers.Layer):
         interpolate_height=None,
         patch_size=None,
     ):
+        """
+        Accepts flattened sequence of patches and optional flags for interpolation, the interpolated width and
+        height and new patch size.
+        Returns a projection of the input sequences prepended with a class token, and positionally embedded.
+        """
         # Add learnable class token before linear projection and positional embedding
         patch_shape = tf.shape(patch)
         class_token_broadcast = tf.cast(
