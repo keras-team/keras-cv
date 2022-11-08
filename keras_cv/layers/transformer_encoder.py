@@ -70,7 +70,8 @@ class TransformerEncoder(layers.Layer):
         self.layer_norm_epsilon = layer_norm_epsilon
         self.mlp_units = [intermediate_dim, project_dim]
 
-        self.layer_norm = layers.LayerNormalization(epsilon=self.layer_norm_epsilon)
+        self.layer_norm1 = layers.LayerNormalization(epsilon=self.layer_norm_epsilon)
+        self.layer_norm2 = layers.LayerNormalization(epsilon=self.layer_norm_epsilon)
         self.attn = layers.MultiHeadAttention(
             num_heads=self.num_heads, key_dim=self.project_dim, dropout=self.attention_dropout
         )
@@ -79,10 +80,10 @@ class TransformerEncoder(layers.Layer):
 
     def call(self, inputs):
 
-        x1 = self.layer_norm(inputs)
+        x1 = self.layer_norm1(inputs)
         attention_output = self.attn(x1, x1)
         x2 = layers.Add()([attention_output, inputs])
-        x3 = self.layer_norm(x2)
+        x3 = self.layer_norm2(x2)
         x3 = self.dense1(x3)
         x3 = layers.Dropout(self.mlp_dropout)(x3)
         x3 = self.dense2(x3)
