@@ -283,6 +283,24 @@ class RetinaNet(ObjectDetectionBaseModel):
     def compile(
         self, box_loss=None, classification_loss=None, loss=None, metrics=None, **kwargs
     ):
+        """compiles the RetinaNet.
+
+        compile() mirrors the standard Keras compile() method, but has a few key
+        distinctions.  Primarily, all metrics must support bounding boxes, and all
+        two losses must be provided: `box_loss` and `classification_loss`.
+
+        Args:
+            box_loss: a keras loss to use for box offset regression.  Preconfigured
+                losses are provided when the string "huber" or "smoothl1" are passed.
+            classification_loss: a keras loss to use for box classification.
+                A preconfigured `FocalLoss` is provided when the string "focal" is
+                passed.
+            metrics: a list of Keras Metrics that accept bounding boxes as inputs, i.e.
+                `keras_cv.metrics.COCORecall` or
+                `keras_cv.metrics.COCOMeanAveragePrecision`.
+            kwargs: most other `keras.Model.compile()` arguments are supported and
+                propagated to the `keras.Model` class.
+        """
         super().compile(metrics=metrics, **kwargs)
         if loss is not None:
             raise ValueError(
