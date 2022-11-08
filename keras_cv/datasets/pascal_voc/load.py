@@ -78,6 +78,7 @@ def load(
         batch_size: how many instances to include in batches after loading
         shuffle: whether or not to shuffle the dataset.  Defaults to True.
         shuffle_buffer: the size of the buffer to use in shuffling.
+        shuffle_files: (Optional) whether or not to shuffle files, defaults to True.
         img_size: (Optional) size to resize the images to, if not provided image batches
             will be of type `tf.RaggedTensor`.
 
