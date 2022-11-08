@@ -155,7 +155,7 @@ class RandomCropAndResize(BaseImageAugmentationLayer):
         x1, y1, x2, y2, rest = tf.split(
             bounding_boxes, [1, 1, 1, 1, bounding_boxes.shape[-1] - 4], axis=-1
         )
-        output = tf.stack(
+        output = tf.concat(
             [
                 (x1 - t_x1) / t_dx,
                 (y1 - t_y1) / t_dy,
@@ -165,7 +165,6 @@ class RandomCropAndResize(BaseImageAugmentationLayer):
             ],
             axis=-1,
         )
-        output = tf.squeeze(output, axis=1)
         return output
 
     def augment_bounding_boxes(
