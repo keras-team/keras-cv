@@ -88,6 +88,8 @@ class PatchEmbedding(layers.Layer):
 
     args:
         - project_dim: the dimensionality of the project_dim
+    returns:
+        - Linear projection of the input patches, including a prepended learnable class token with shape (batch, num_patches+1, project_dim)
 
     Basic usage:
 
