@@ -89,6 +89,11 @@ history for backbone models [here](examples/training/classification/imagenet/tra
 All results are reproducible using the training scripts in this repository. Pre-trained weights
 operate on images that have been rescaled using a simple `1/255` rescaling layer.
 
+## Disclaimer
+
+KeraCV provides access to pre-trained models via the `keras_cv.models` API.
+These pre-trained models are provided on an "as is" basis, without warranties
+or conditions of any kind.
 
 ## Citing KerasCV
 
