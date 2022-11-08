@@ -25,7 +25,8 @@ class TransformerEncoder(layers.Layer):
         - project_dim: the dimensionality of the projection of the encoder
         - intermediate_dim: default 768, the intermediate dimensionality in the MLP head
         - num_heads: the number of heads for the `MultiHeadAttention` layer
-        - dropout: default 0.1, the dropout rate to apply inside the MLP head of the encoder
+        - mlp_dropout: default 0.1, the dropout rate to apply between the layers of the MLP head of the encoder
+        - attention_dropout: default 0.1, the dropout rate to apply in the MultiHeadAttention layer
         - activation: default tf.nn.gelu(), the activation function to apply in the MLP head
         - layer_norm_epsilon: default 1e-06, the epsilon for `LayerNormalization` layers
 
@@ -52,7 +53,8 @@ class TransformerEncoder(layers.Layer):
         project_dim,
         num_heads,
         intermediate_dim=768,
-        dropout=0.1,
+        mlp_dropout=0.1,
+        attention_dropout=0.1,
         activation=tf.nn.gelu,
         layer_norm_epsilon=1e-06,
         **kwargs
@@ -62,14 +64,15 @@ class TransformerEncoder(layers.Layer):
         self.project_dim = project_dim
         self.intermediate_dim = intermediate_dim
         self.num_heads = num_heads
-        self.dropout = dropout
+        self.mlp_dropout = mlp_dropout
+        self.attention_dropout = attention_dropout
         self.activation = activation
         self.layer_norm_epsilon = layer_norm_epsilon
         self.mlp_units = [intermediate_dim, project_dim]
 
         self.layer_norm = layers.LayerNormalization(epsilon=self.layer_norm_epsilon)
         self.attn = layers.MultiHeadAttention(
-            num_heads=self.num_heads, key_dim=self.project_dim, dropout=self.dropout
+            num_heads=self.num_heads, key_dim=self.project_dim, dropout=self.attention_dropout
         )
         self.dense1 = layers.Dense(self.mlp_units[0], activation=activation)
         self.dense2 = layers.Dense(self.mlp_units[1])
@@ -81,9 +84,9 @@ class TransformerEncoder(layers.Layer):
         x2 = layers.Add()([attention_output, inputs])
         x3 = self.layer_norm(x2)
         x3 = self.dense1(x3)
-        x3 = layers.Dropout(self.dropout)(x3)
+        x3 = layers.Dropout(self.mlp_dropout)(x3)
         x3 = self.dense2(x3)
-        x3 = layers.Dropout(self.dropout)(x3)
+        x3 = layers.Dropout(self.mlp_dropout)(x3)
 
         encoded_patches = layers.Add()([x3, x2])
 
@@ -96,7 +99,8 @@ class TransformerEncoder(layers.Layer):
                 "project_dim": self.project_dim,
                 "intermediate_dim": self.intermediate_dim,
                 "num_heads": self.num_heads,
-                "dropout": self.dropout,
+                "attention_dropout": self.attention_dropout,
+                "mlp_dropout": self.mlp_dropout,
                 "activation": keras.activations.serialize(self.activation),
                 "layer_norm_epsilon": self.layer_norm_epsilon,
             }
