@@ -317,7 +317,7 @@ class StableDiffusion:
             )
 
         image = tf.squeeze(image)
-        image = tf.cast(image, dtype=tf.float32) / 255. * 2. - 1.
+        image = tf.cast(image, dtype=tf.float32) / 255.0 * 2.0 - 1.0
         image = tf.expand_dims(image, axis=0)
         known_x0 = self.image_encoder(image)
         if image.shape.rank == 3:
@@ -330,9 +330,7 @@ class StableDiffusion:
         )
         mask = tf.squeeze(mask)
         if mask.shape.rank == 2:
-            mask = tf.repeat(
-                tf.expand_dims(mask, axis=0), batch_size, axis=0
-            )
+            mask = tf.repeat(tf.expand_dims(mask, axis=0), batch_size, axis=0)
         mask = tf.expand_dims(mask, axis=-1)
 
         context = encoded_text
