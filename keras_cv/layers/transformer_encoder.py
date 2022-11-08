@@ -21,15 +21,15 @@ from tensorflow.keras import layers
 class TransformerEncoder(layers.Layer):
     """
     Transformer encoder block implementation as a Keras Layer.
-    args:
-        - project_dim: the dimensionality of the projection of the encoder
-        - intermediate_dim: default 768, the intermediate dimensionality of the transformer encoder
-        - mlp_dim: default 3072, the intermediate dimensionality of the MLP head before projecting to `project_dim`
-        - num_heads: the number of heads for the `MultiHeadAttention` layer
-        - mlp_dropout: default 0.1, the dropout rate to apply between the layers of the MLP head of the encoder
-        - attention_dropout: default 0.1, the dropout rate to apply in the MultiHeadAttention layer
-        - activation: default tf.nn.gelu(), the activation function to apply in the MLP head
-        - layer_norm_epsilon: default 1e-06, the epsilon for `LayerNormalization` layers
+    Args:
+        project_dim: the dimensionality of the projection of the encoder
+        intermediate_dim: default 768, the intermediate dimensionality of the transformer encoder
+        mlp_dim: default 3072, the intermediate dimensionality of the MLP head before projecting to `project_dim`
+        num_heads: the number of heads for the `MultiHeadAttention` layer
+        mlp_dropout: default 0.1, the dropout rate to apply between the layers of the MLP head of the encoder
+        attention_dropout: default 0.1, the dropout rate to apply in the MultiHeadAttention layer
+        activation: default tf.nn.gelu(), the activation function to apply in the MLP head
+        layer_norm_epsilon: default 1e-06, the epsilon for `LayerNormalization` layers
 
     Basic usage:
 

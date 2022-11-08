@@ -28,12 +28,12 @@ class Patching(layers.Layer):
         - https://github.com/keras-team/keras-io/blob/master/examples/vision/image_classification_with_vision_transformer.py
 
     The layer expects a batch of input images and returns batches of patches. If the height and width of the image
-    isn't divisible by the patch size, "VALID" padding is used.
+    isn't divisible by the patch size, the supplied padding type is used (or 'VALID' by default).
 
-    args:
-        - patch_size: the size (patch_size, patch_size) of each patch created from the image
-    returns:
-        - batch of "patchified" and then flattened input images.
+    Args:
+        patch_size: the size (patch_size, patch_size) of each patch created from the image
+    Returns:
+        batch of "patchified" and then flattened input images.
 
     Basic usage:
 
@@ -55,18 +55,24 @@ class Patching(layers.Layer):
 
     """
     Accepts a batch of images as input.
-    Returns a batch of patches, flattened into a sequence. When the shape is non-divisible, 'VALID' padding is used.
+    Returns a batch of patches, flattened into a sequence. 
+    When the shape is non-divisible, the specified padding is used, or 'VALID' by default.
     """
 
-    def call(self, images):
+    def call(self, images, padding='VALID'):
         batch_size = tf.shape(images)[0]
         patches = tf.image.extract_patches(
             images=images,
             sizes=[1, self.patch_size, self.patch_size, 1],
             strides=[1, self.patch_size, self.patch_size, 1],
             rates=[1, 1, 1, 1],
-            padding="VALID",
+            padding=padding,
         )
+        if padding not in ['SAME', 'VALID']:
+            raise ValueError(
+                f"Padding must be either 'SAME' or 'VALID', but {padding} was passed."
+            )
+
         patch_dims = patches.shape[-1]
         patches = tf.reshape(
             patches, [batch_size, patches.shape[-2] * patches.shape[-2], patch_dims]
@@ -92,10 +98,10 @@ class PatchEmbedding(layers.Layer):
     Based on Khalid Salama's implementation for:
         - https://github.com/keras-team/keras-io/blob/master/examples/vision/image_classification_with_vision_transformer.py
 
-    args:
-        - project_dim: the dimensionality of the project_dim
-    returns:
-        - Linear projection of the input patches, including a prepended learnable class token
+    Args:
+        project_dim: the dimensionality of the project_dim
+    Returns:
+        Linear projection of the input patches, including a prepended learnable class token
         with shape (batch, num_patches+1, project_dim)
 
     Basic usage:
