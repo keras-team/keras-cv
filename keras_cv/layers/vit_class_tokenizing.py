@@ -35,7 +35,8 @@ class ClassTokenizing(layers.Layer):
         batch_size = input_shape[0]
 
         class_token_broadcast = tf.cast(
-            tf.broadcast_to(self.class_token,
+            tf.broadcast_to(
+                self.class_token,
                 [batch_size, 1, input_shape[-1]],
             ),
             dtype=inputs.dtype,
@@ -44,7 +45,9 @@ class ClassTokenizing(layers.Layer):
 
     def get_config(self):
         base_config = super().get_config()
-        base_config.update({
+        base_config.update(
+            {
                 "class_token": self.class_token,
-            })
+            }
+        )
         return base_config

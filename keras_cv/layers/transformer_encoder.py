@@ -73,7 +73,9 @@ class TransformerEncoder(layers.Layer):
         self.layer_norm1 = layers.LayerNormalization(epsilon=self.layer_norm_epsilon)
         self.layer_norm2 = layers.LayerNormalization(epsilon=self.layer_norm_epsilon)
         self.attn = layers.MultiHeadAttention(
-            num_heads=self.num_heads, key_dim=self.project_dim, dropout=self.attention_dropout
+            num_heads=self.num_heads,
+            key_dim=self.project_dim,
+            dropout=self.attention_dropout,
         )
         self.dense1 = layers.Dense(self.mlp_units[0], activation=activation)
         self.dense2 = layers.Dense(self.mlp_units[1])
