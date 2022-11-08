@@ -16,16 +16,15 @@ from tensorflow.keras import backend
 
 from keras_cv import core
 
-ResizeMethod = tf.image.ResizeMethod
 _TF_INTERPOLATION_METHODS = {
-    "bilinear": ResizeMethod.BILINEAR,
-    "nearest": ResizeMethod.NEAREST_NEIGHBOR,
-    "bicubic": ResizeMethod.BICUBIC,
-    "area": ResizeMethod.AREA,
-    "lanczos3": ResizeMethod.LANCZOS3,
-    "lanczos5": ResizeMethod.LANCZOS5,
-    "gaussian": ResizeMethod.GAUSSIAN,
-    "mitchellcubic": ResizeMethod.MITCHELLCUBIC,
+    "bilinear": tf.image.ResizeMethod.BILINEAR,
+    "nearest": tf.image.ResizeMethod.NEAREST_NEIGHBOR,
+    "bicubic": tf.image.ResizeMethod.BICUBIC,
+    "area": tf.image.ResizeMethod.AREA,
+    "lanczos3": tf.image.ResizeMethod.LANCZOS3,
+    "lanczos5": tf.image.ResizeMethod.LANCZOS5,
+    "gaussian": tf.image.ResizeMethod.GAUSSIAN,
+    "mitchellcubic": tf.image.ResizeMethod.MITCHELLCUBIC,
 }
 
 
