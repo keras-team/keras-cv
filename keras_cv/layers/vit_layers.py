@@ -32,6 +32,8 @@ class Patching(layers.Layer):
 
     Args:
         patch_size: the size (patch_size, patch_size) of each patch created from the image
+        padding: default 'VALID', the padding to apply when extracting patches from images when the shape isn't
+            divisible by the patch_size
     Returns:
         batch of "patchified" and then flattened input images.
 
@@ -49,9 +51,10 @@ class Patching(layers.Layer):
     ```
     """
 
-    def __init__(self, patch_size, **kwargs):
+    def __init__(self, patch_size, padding, **kwargs):
         super().__init__(**kwargs)
         self.patch_size = patch_size
+        self.padding = padding
 
     """
     Accepts a batch of images as input.
@@ -59,18 +62,18 @@ class Patching(layers.Layer):
     When the shape is non-divisible, the specified padding is used, or 'VALID' by default.
     """
 
-    def call(self, images, padding='VALID'):
+    def call(self, images):
         batch_size = tf.shape(images)[0]
         patches = tf.image.extract_patches(
             images=images,
             sizes=[1, self.patch_size, self.patch_size, 1],
             strides=[1, self.patch_size, self.patch_size, 1],
             rates=[1, 1, 1, 1],
-            padding=padding,
+            padding=self.padding,
         )
-        if padding not in ['SAME', 'VALID']:
+        if self.padding not in ['SAME', 'VALID']:
             raise ValueError(
-                f"Padding must be either 'SAME' or 'VALID', but {padding} was passed."
+                f"Padding must be either 'SAME' or 'VALID', but {self.padding} was passed."
             )
 
         patch_dims = patches.shape[-1]
