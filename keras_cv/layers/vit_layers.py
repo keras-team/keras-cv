@@ -27,7 +27,8 @@ class Patching(layers.Layer):
     Based on Khalid Salama's implementation for:
         - https://github.com/keras-team/keras-io/blob/master/examples/vision/image_classification_with_vision_transformer.py
 
-    The layer expects a batch of input images and returns batches of patches.
+    The layer expects a batch of input images and returns batches of patches. If the height and width of the image
+    isn't divisible by the patch size, "VALID" padding is used.
 
     args:
         - patch_size: the size (patch_size, patch_size) of each patch created from the image
@@ -78,7 +79,7 @@ class Patching(layers.Layer):
 @tf.keras.utils.register_keras_serializable(package="keras_cv")
 class PatchEmbedding(layers.Layer):
     """
-    Layer to concat a class token, positionally embed and create a projection of patches made with the `Patching` layer
+    Layer to prepend a class token, positionally embed and create a projection of patches made with the `Patching` layer
     for Vision Transformers from:
         - An Image is Worth 16x16 Words: Transformers for Image Recognition at Scale
         by Alexey Dosovitskiy et al. (https://arxiv.org/abs/2010.11929)
@@ -89,7 +90,8 @@ class PatchEmbedding(layers.Layer):
     args:
         - project_dim: the dimensionality of the project_dim
     returns:
-        - Linear projection of the input patches, including a prepended learnable class token with shape (batch, num_patches+1, project_dim)
+        - Linear projection of the input patches, including a prepended learnable class token
+        with shape (batch, num_patches+1, project_dim)
 
     Basic usage:
 
@@ -98,7 +100,7 @@ class PatchEmbedding(layers.Layer):
 
     project_dim = 1024
     num_patches = patches.shape[1] # 196
-
+    # PatchEmbedding prepends a class token to the patch sequence, increasing the sequence length by one.
     encoded_patches = keras_cv.layers.PatchEmbedding(project_dim=project_dim)(patches)
     print(encoded_patches.shape) # (1, 197, 1024)
     ```
@@ -134,7 +136,6 @@ class PatchEmbedding(layers.Layer):
             dtype=patch.dtype,
         )
         patch = tf.concat([class_token_broadcast, patch], 1)
-        # num_patches + class token
         positions = tf.range(start=0, limit=self.num_patches + 1, delta=1)
 
         if interpolate and None not in (
@@ -144,7 +145,7 @@ class PatchEmbedding(layers.Layer):
         ):
             encoded = self.linear_projection(
                 patch
-            ) + self.interpolate_positional_embeddings(
+            ) + self.__interpolate_positional_embeddings(
                 self.position_embedding(positions),
                 interpolate_width,
                 interpolate_height,
@@ -162,7 +163,7 @@ class PatchEmbedding(layers.Layer):
             encoded = self.linear_projection(patch) + self.position_embedding(positions)
         return encoded
 
-    def interpolate_positional_embeddings(self, embedding, height, width, patch_size):
+    def __interpolate_positional_embeddings(self, embedding, height, width, patch_size):
         """
         Allows for pre-trained position embedding interpolation. This trick allows you to fine-tune a ViT
         on higher resolution images than it was trained on.
