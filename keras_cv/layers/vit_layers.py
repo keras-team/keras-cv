@@ -21,11 +21,14 @@ from tensorflow.keras import layers
 @tf.keras.utils.register_keras_serializable(package="keras_cv")
 class Patching(layers.Layer):
     """
-    Layer to turn images into a sequence of patches for Vision Transformers from:
-        - An Image is Worth 16x16 Words: Transformers for Image Recognition at Scale
+    Layer to turn images into a flat sequence of patches for Vision Transformers.
+
+    Reference:
+        An Image is Worth 16x16 Words: Transformers for Image Recognition at Scale
         by Alexey Dosovitskiy et al. (https://arxiv.org/abs/2010.11929)
+
     Based on Khalid Salama's implementation for:
-        - https://github.com/keras-team/keras-io/blob/master/examples/vision/image_classification_with_vision_transformer.py
+        https://github.com/keras-team/keras-io/blob/master/examples/vision/image_classification_with_vision_transformer.py
 
     The layer expects a batch of input images and returns batches of patches. If the height and width of the image
     isn't divisible by the patch size, the supplied padding type is used (or 'VALID' by default).
@@ -94,15 +97,18 @@ class Patching(layers.Layer):
 class PatchEmbedding(layers.Layer):
     """
     Layer to prepend a class token, positionally embed and create a projection of patches made with the `Patching` layer
-    for Vision Transformers from:
-        - An Image is Worth 16x16 Words: Transformers for Image Recognition at Scale
+    for Vision Transformers
+
+    Reference:
+        An Image is Worth 16x16 Words: Transformers for Image Recognition at Scale
         by Alexey Dosovitskiy et al. (https://arxiv.org/abs/2010.11929)
 
     Based on Khalid Salama's implementation for:
-        - https://github.com/keras-team/keras-io/blob/master/examples/vision/image_classification_with_vision_transformer.py
+        https://github.com/keras-team/keras-io/blob/master/examples/vision/image_classification_with_vision_transformer.py
 
     Args:
         project_dim: the dimensionality of the project_dim
+
     Returns:
         Linear projection of the input patches, including a prepended learnable class token
         with shape (batch, num_patches+1, project_dim)
@@ -187,6 +193,7 @@ class PatchEmbedding(layers.Layer):
         """
         Allows for pre-trained position embedding interpolation. This trick allows you to fine-tune a ViT
         on higher resolution images than it was trained on.
+
         Based on:
         https://github.com/huggingface/transformers/blob/main/src/transformers/models/vit/modeling_tf_vit.py
         """

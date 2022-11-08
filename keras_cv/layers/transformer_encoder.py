@@ -21,6 +21,7 @@ from tensorflow.keras import layers
 class TransformerEncoder(layers.Layer):
     """
     Transformer encoder block implementation as a Keras Layer.
+
     Args:
         project_dim: the dimensionality of the projection of the encoder
         intermediate_dim: default 768, the intermediate dimensionality of the transformer encoder
