@@ -124,9 +124,9 @@ class PatchEmbedding(layers.Layer):
         )
 
     """
-    Accepts flattened sequence of patches and optional flags for interpolation, the interpolated width and 
+    Accepts flattened sequence of patches and optional flags for interpolation, the interpolated width and
     height and new patch size.
-    Returns a projection of the input sequences prepended with a class token, and positionally embedded. 
+    Returns a projection of the input sequences prepended with a class token, and positionally embedded.
     """
 
     def call(
