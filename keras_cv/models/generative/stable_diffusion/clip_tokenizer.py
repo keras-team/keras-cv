@@ -89,15 +89,31 @@ class SimpleTokenizer:
         for merge in merges:
             vocab.append("".join(merge))
         vocab.extend(["<|startoftext|>", "<|endoftext|>"])
-        self.encoder = dict(zip(vocab, range(len(vocab))))
-        self.decoder = {v: k for k, v in self.encoder.items()}
+        self.vocab = vocab
+        self.encoder = self._create_encoder(self.vocab)
+        self.decoder = self._create_decoder(self.encoder)
         self.bpe_ranks = dict(zip(merges, range(len(merges))))
+
+        self.special_tokens = {
+            "<|startoftext|>": "<|startoftext|>",
+            "<|endoftext|>": "<|endoftext|>",
+        }
         self.cache = {
             "<|startoftext|>": "<|startoftext|>",
             "<|endoftext|>": "<|endoftext|>",
         }
-        self.pat = re.compile(
-            r"""<\|startoftext\|>|<\|endoftext\|>|'s|'t|'re|'ve|'m|'ll|'d|[\p{L}]+|[\p{N}]|[^\s\p{L}\p{N}]+""",
+        self.pat = self._create_pat()
+
+    def _create_encoder(self, vocab):
+        return dict(zip(vocab, range(len(vocab))))
+
+    def _create_decoder(self, encoder):
+        return {v: k for k, v in encoder.items()}
+
+    def _create_pat(self):
+        return re.compile(
+            "|".join([re.escape(key) for key in self.special_tokens.keys()])
+            + r"""|'s|'t|'re|'ve|'m|'ll|'d|[\p{L}]+|[\p{N}]|[^\s\p{L}\p{N}]+""",
             re.IGNORECASE,
         )
 
@@ -108,6 +124,22 @@ class SimpleTokenizer:
     @property
     def start_of_text(self):
         return self.encoder["<|startoftext|>"]
+
+    def add_tokens(self, tokens):
+        if isinstance(tokens, str):
+            tokens = [tokens]
+        tokens_added = 0
+        for token in tokens:
+            if token in self.vocab:
+                continue
+            tokens_added += 1
+            self.vocab.append(token)
+            self.special_tokens[token] = token
+            self.cache[token] = token
+        self.encoder = self._create_encoder(self.vocab)
+        self.decoder = self._create_decoder(self.encoder)
+        self.pat = self._create_pat()
+        return tokens_added
 
     def bpe(self, token):
         if token in self.cache:
