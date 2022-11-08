@@ -153,7 +153,8 @@ information about preparing this dataset at keras_cv/datasets/imagenet/README.md
 train_ds = imagenet.load(
     split="train",
     tfrecord_path=FLAGS.imagenet_path,
-    shuffle_buffer=BATCH_SIZE * 2,
+    shuffle_buffer=BATCH_SIZE * 8,
+    reshuffle_each_iteration=True,
 )
 test_ds = imagenet.load(
     split="validation",
@@ -337,7 +338,9 @@ We use EarlyStopping, BackupAndRestore, and a model checkpointing callback.
 model_callbacks = [
     callbacks.EarlyStopping(patience=20),
     callbacks.BackupAndRestore(FLAGS.backup_path),
-    callbacks.ModelCheckpoint(FLAGS.weights_path, save_weights_only=True),
+    callbacks.ModelCheckpoint(
+        FLAGS.weights_path, save_weights_only=True, save_best_only=True
+    ),
     callbacks.TensorBoard(log_dir=FLAGS.tensorboard_path, write_steps_per_second=True),
 ]
 

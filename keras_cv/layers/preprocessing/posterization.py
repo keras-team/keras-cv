@@ -88,6 +88,7 @@ class Posterization(BaseImageAugmentationLayer):
             images=image,
             original_range=[0, 255],
             target_range=self._value_range,
+            dtype=self.compute_dtype,
         )
 
     def augment_bounding_boxes(self, bounding_boxes, **kwargs):

@@ -73,10 +73,12 @@ class RandomChannelShift(BaseImageAugmentationLayer):
 
     def _get_shift(self):
         invert = preprocessing.random_inversion(self._random_generator)
-        return invert * self.factor() * 0.5
+        return tf.cast(invert * self.factor() * 0.5, dtype=self.compute_dtype)
 
     def augment_image(self, image, transformation=None, **kwargs):
-        image = preprocessing.transform_value_range(image, self.value_range, (0, 1))
+        image = preprocessing.transform_value_range(
+            image, self.value_range, (0, 1), dtype=self.compute_dtype
+        )
         unstack_rgb = tf.unstack(image, axis=-1)
 
         result = []
@@ -88,7 +90,9 @@ class RandomChannelShift(BaseImageAugmentationLayer):
             axis=-1,
         )
         result = tf.clip_by_value(result, 0.0, 1.0)
-        image = preprocessing.transform_value_range(result, (0, 1), self.value_range)
+        image = preprocessing.transform_value_range(
+            result, (0, 1), self.value_range, dtype=self.compute_dtype
+        )
         return image
 
     def augment_bounding_boxes(self, bounding_boxes, **kwargs):

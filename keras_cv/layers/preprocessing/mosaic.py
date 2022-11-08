@@ -97,10 +97,16 @@ class Mosaic(BaseImageAugmentationLayer):
         input_height, input_width, _ = images.shape[1:]
 
         mosaic_centers_x = (
-            self.center_sampler(tf.expand_dims(batch_size, axis=0)) * input_width
+            self.center_sampler(
+                tf.expand_dims(batch_size, axis=0), dtype=self.compute_dtype
+            )
+            * input_width
         )
         mosaic_centers_y = (
-            self.center_sampler(shape=tf.expand_dims(batch_size, axis=0)) * input_height
+            self.center_sampler(
+                shape=tf.expand_dims(batch_size, axis=0), dtype=self.compute_dtype
+            )
+            * input_height
         )
         mosaic_centers = tf.stack((mosaic_centers_x, mosaic_centers_y), axis=-1)
 
@@ -187,6 +193,8 @@ class Mosaic(BaseImageAugmentationLayer):
             [0],
             [input_height, input_width],
         )
+        # tf.image.crop_and_resize will always output float32, so we need to recast
+        output = tf.cast(output, self.compute_dtype)
         return tf.squeeze(output)
 
     def _update_label(self, images, labels, permutation_order, mosaic_centers, index):
@@ -205,7 +213,6 @@ class Mosaic(BaseImageAugmentationLayer):
         bottom_right_ratio = (
             (input_width - center_x) * (input_height - center_y)
         ) / area
-
         label = (
             labels_for_mosaic[0] * top_left_ratio
             + labels_for_mosaic[1] * top_right_ratio
@@ -223,6 +230,7 @@ class Mosaic(BaseImageAugmentationLayer):
             source=self.bounding_box_format,
             target="xyxy",
             images=images,
+            dtype=self.compute_dtype,
         )
 
         boxes_for_mosaic = tf.gather(bounding_boxes, permutation_order[index])
@@ -257,6 +265,7 @@ class Mosaic(BaseImageAugmentationLayer):
             source="xyxy",
             target=self.bounding_box_format,
             images=images[index],
+            dtype=self.compute_dtype,
         )
         return boxes_for_mosaic
 
