@@ -33,7 +33,7 @@ class Patching(layers.Layer):
     args:
         - patch_size: the size (patch_size, patch_size) of each patch created from the image
     returns:
-        - batch of patchified input images.
+        - batch of "patchified" and then flattened input images.
 
     Basic usage:
 
@@ -52,6 +52,11 @@ class Patching(layers.Layer):
     def __init__(self, patch_size, **kwargs):
         super().__init__(**kwargs)
         self.patch_size = patch_size
+
+    """
+    Accepts a batch of images as input.
+    Returns a batch of patches, flattened into a sequence. When the shape is non-divisible, 'VALID' padding is used.
+    """
 
     def call(self, images):
         batch_size = tf.shape(images)[0]
@@ -117,6 +122,12 @@ class PatchEmbedding(layers.Layer):
         self.position_embedding = layers.Embedding(
             input_dim=self.num_patches + 1, output_dim=self.project_dim
         )
+
+    """
+    Accepts flattened sequence of patches and optional flags for interpolation, the interpolated width and 
+    height and new patch size.
+    Returns a projection of the input sequences prepended with a class token, and positionally embedded. 
+    """
 
     def call(
         self,
