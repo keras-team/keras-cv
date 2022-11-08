@@ -26,8 +26,8 @@ class ClassTokenizing(layers.Layer):
     Based on: https://github.com/faustomorales/vit-keras
     """
 
-    def __init__(self, **kwargs):
-        self.class_token = tf.random.normal([1, 1, None], name="class_token")
+    def __init__(self, input_shape, **kwargs):
+        self.class_token = tf.random.normal([1, 1, input_shape], name="class_token")
         super().__init__(**kwargs)
 
     def call(self, inputs):
