@@ -23,7 +23,8 @@ class TransformerEncoder(layers.Layer):
     Transformer encoder block implementation as a Keras Layer.
     args:
         - project_dim: the dimensionality of the projection of the encoder
-        - intermediate_dim: default 768, the intermediate dimensionality in the MLP head
+        - intermediate_dim: default 768, the intermediate dimensionality of the transformer encoder
+        - mlp_dim: default 3072, the intermediate dimensionality of the MLP head before projecting to `project_dim`
         - num_heads: the number of heads for the `MultiHeadAttention` layer
         - mlp_dropout: default 0.1, the dropout rate to apply between the layers of the MLP head of the encoder
         - attention_dropout: default 0.1, the dropout rate to apply in the MultiHeadAttention layer
@@ -34,14 +35,15 @@ class TransformerEncoder(layers.Layer):
 
     ```
     project_dim = 1024
-    intermediate_dim = 1024
+    intermediate_dim = 768
+    mlp_dim = 3071
     num_heads = 4
 
-    patches = keras_cv.layers.Patching(patch_size)(batch_img) # (1, 196, 768)
-    encoded_patches = keras_cv.layers.PatchEmbedding(num_patches=patches.shape[1],
-                                                    project_dim=project_dim)(patches) # (1, 197, 1024)
+    patches = keras_cv.layers.Patching(patch_size)(cat_img)
+    encoded_patches = keras_cv.layers.PatchEmbedding(num_patches=patches.shape[1], project_dim=project_dim)(patches)
     trans_encoded = keras_cv.layers.TransformerEncoder(project_dim=project_dim,
                                                        intermediate_dim=intermediate_dim,
+                                                       mlp_dim = mlp_dim,
                                                        num_heads=num_heads)(encoded_patches)
 
     print(trans_encoded.shape) # (1, 197, 1024)
@@ -53,6 +55,7 @@ class TransformerEncoder(layers.Layer):
         project_dim,
         num_heads,
         intermediate_dim=768,
+        mlp_dim=3072,
         mlp_dropout=0.1,
         attention_dropout=0.1,
         activation=tf.nn.gelu,
@@ -63,12 +66,13 @@ class TransformerEncoder(layers.Layer):
 
         self.project_dim = project_dim
         self.intermediate_dim = intermediate_dim
+        self.mlp_dim = mlp_dim
         self.num_heads = num_heads
         self.mlp_dropout = mlp_dropout
         self.attention_dropout = attention_dropout
         self.activation = activation
         self.layer_norm_epsilon = layer_norm_epsilon
-        self.mlp_units = [intermediate_dim, project_dim]
+        self.mlp_units = [mlp_dim, project_dim]
 
         self.layer_norm1 = layers.LayerNormalization(epsilon=self.layer_norm_epsilon)
         self.layer_norm2 = layers.LayerNormalization(epsilon=self.layer_norm_epsilon)
@@ -101,6 +105,7 @@ class TransformerEncoder(layers.Layer):
             {
                 "project_dim": self.project_dim,
                 "intermediate_dim": self.intermediate_dim,
+                "mlp_dim": self.mlp_dim,
                 "num_heads": self.num_heads,
                 "attention_dropout": self.attention_dropout,
                 "mlp_dropout": self.mlp_dropout,
