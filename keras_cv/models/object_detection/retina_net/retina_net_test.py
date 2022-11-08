@@ -13,7 +13,6 @@
 # limitations under the License.
 
 import os
-import statistics
 
 import pytest
 import tensorflow as tf
@@ -273,7 +272,6 @@ class RetinaNetTest(tf.test.TestCase):
         "test_fit_coco_metrics -s`",
     )
     def test_fit_coco_metrics(self):
-        tf.config.set_soft_device_placement(False)
         bounding_box_format = "xywh"
         retina_net = keras_cv.models.RetinaNet(
             classes=1,
@@ -305,8 +303,8 @@ class RetinaNetTest(tf.test.TestCase):
         )
 
         xs, ys = _create_bounding_box_dataset(bounding_box_format)
-        history = retina_net.fit(x=xs, y=ys, epochs=10)
-        y_pred = model.predict(xs)
+        retina_net.fit(x=xs, y=ys, epochs=10)
+        _ = retina_net.predict(xs)
 
 
 def _create_bounding_box_dataset(bounding_box_format):
