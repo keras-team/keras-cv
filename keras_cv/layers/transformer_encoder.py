@@ -86,6 +86,13 @@ class TransformerEncoder(layers.Layer):
         self.dense2 = layers.Dense(self.mlp_units[1])
 
     def call(self, inputs):
+        """Calls the Transformer Encoder on an input sequence.
+        Args:
+            inputs: A `tf.Tensor` of shape [batch, height, width, channels]
+
+        Returns:
+            `A tf.Tensor` of shape [batch, patch_num+1, embedding_dim]
+        """
 
         x1 = self.layer_norm1(inputs)
         attention_output = self.attn(x1, x1)

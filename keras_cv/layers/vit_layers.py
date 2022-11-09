@@ -60,10 +60,12 @@ class Patching(layers.Layer):
         self.padding = padding
 
     def call(self, images):
-        """
-        Accepts a batch of images as input.
-        Returns a batch of patches, flattened into a sequence.
-        When the shape is non-divisible, the specified padding is used, or 'VALID' by default.
+        """Calls the Patching layer on a batch of images.
+        Args:
+            images: A `tf.Tensor` of shape [batch, height, width, channels]
+
+        Returns:
+            `A tf.Tensor` of shape [batch, patch_num, patch_dims]
         """
         batch_size = tf.shape(images)[0]
         patches = tf.image.extract_patches(
@@ -145,10 +147,17 @@ class PatchEmbedding(layers.Layer):
         interpolate_height=None,
         patch_size=None,
     ):
-        """
-        Accepts flattened sequence of patches and optional flags for interpolation, the interpolated width and
-        height and new patch size.
-        Returns a projection of the input sequences prepended with a class token, and positionally embedded.
+
+        """Calls the PatchEmbedding layer on a batch of flattened patches.
+        Args:
+            patch: A `tf.Tensor` of shape [batch, patch_num, patch_dims]
+            interpolate: A `bool` to enable or disable interpolation
+            interpolate_height: An `int` representing interpolated height
+            interpolate_width: An `int` representing interpolated width
+            patch_size: An `int` representing the new patch size if interpolation is used
+
+        Returns:
+            `A tf.Tensor` of shape [batch, patch_num+1, embedding_dim]
         """
         # Add learnable class token before linear projection and positional embedding
         patch_shape = tf.shape(patch)
