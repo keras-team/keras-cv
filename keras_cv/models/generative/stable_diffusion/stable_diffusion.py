@@ -448,7 +448,7 @@ class StableDiffusion:
             self._diffusion_model = DiffusionModel(
                 self.img_height, self.img_width, MAX_PROMPT_LENGTH
             )
-            if self.jit_compile: 
+            if self.jit_compile:
                 self._diffusion_model.compile(jit_compile=True)
         return self._diffusion_model
 
