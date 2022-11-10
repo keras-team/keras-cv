@@ -29,7 +29,7 @@ def main():
     random_rotation = preprocessing.RandomChoice(
         [
             preprocessing.RandomFlip(mode="horizontal", bounding_box_format="rel_xyxy"),
-            preprocessing.RandomFlip(mode="vertical", bounding_box_format="rel_xyxy")
+            preprocessing.RandomFlip(mode="vertical", bounding_box_format="rel_xyxy"),
         ]
     )
     result = dataset.map(random_rotation, num_parallel_calls=tf.data.AUTOTUNE)
