@@ -16,7 +16,6 @@ from tensorflow.keras.layers import CenterCrop
 from tensorflow.keras.layers import RandomBrightness
 from tensorflow.keras.layers import RandomContrast
 from tensorflow.keras.layers import RandomCrop
-from tensorflow.keras.layers import RandomHeight
 from tensorflow.keras.layers import RandomRotation
 from tensorflow.keras.layers import RandomTranslation
 from tensorflow.keras.layers import RandomWidth
@@ -65,6 +64,7 @@ from keras_cv.layers.preprocessing.random_jpeg_quality import RandomJpegQuality
 from keras_cv.layers.preprocessing.random_saturation import RandomSaturation
 from keras_cv.layers.preprocessing.random_sharpness import RandomSharpness
 from keras_cv.layers.preprocessing.random_shear import RandomShear
+from keras_cv.layers.preprocessing.random_height import RandomHeight
 from keras_cv.layers.preprocessing.randomly_zoomed_crop import RandomlyZoomedCrop
 from keras_cv.layers.preprocessing.resizing import Resizing
 from keras_cv.layers.preprocessing.solarization import Solarization
