@@ -87,9 +87,7 @@ class Patching(layers.Layer):
         return patches
 
     def get_config(self):
-        config = {
-            "patch_size": self.patch_size,
-        }
+        config = {"patch_size": self.patch_size, "padding": self.padding}
         base_config = super().get_config()
         return dict(list(base_config.items()) + list(config.items()))
 
@@ -236,7 +234,6 @@ class PatchEmbedding(layers.Layer):
 
     def get_config(self):
         config = {
-            "num_patches": self.num_patches,
             "project_dim": self.project_dim,
         }
         base_config = super().get_config()
