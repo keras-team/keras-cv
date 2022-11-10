@@ -6,6 +6,7 @@ from absl.testing import parameterized
 
 from keras_cv.layers.preprocessing.random_height import RandomHeight
 
+
 class RandomHeightTest(tf.test.TestCase, parameterized.TestCase):
     def _run_test(self, factor):
         np.random.seed(1337)
@@ -13,9 +14,7 @@ class RandomHeightTest(tf.test.TestCase, parameterized.TestCase):
         orig_height = 5
         orig_width = 8
         channels = 3
-        img = np.random.random(
-            (num_samples, orig_height, orig_width, channels)
-        )
+        img = np.random.random((num_samples, orig_height, orig_width, channels))
         layer = RandomHeight(factor)
         img_out = layer(img, training=True)
         self.assertEqual(img_out.shape[0], 2)
@@ -45,9 +44,7 @@ class RandomHeightTest(tf.test.TestCase, parameterized.TestCase):
 
     def test_random_height_longer_numeric(self):
         for dtype in (np.int64, np.float32):
-            input_image = np.reshape(np.arange(0, 6), (2, 3, 1)).astype(
-                dtype
-            )
+            input_image = np.reshape(np.arange(0, 6), (2, 3, 1)).astype(dtype)
             layer = RandomHeight(factor=(1.0, 1.0))
             # Return type of RandomHeight() is float32 if `interpolation` is
             # not set to `ResizeMethod.NEAREST_NEIGHBOR`; cast `layer` to
@@ -70,12 +67,8 @@ class RandomHeightTest(tf.test.TestCase, parameterized.TestCase):
 
     def test_random_height_shorter_numeric(self):
         for dtype in (np.int64, np.float32):
-            input_image = np.reshape(np.arange(0, 8), (4, 2, 1)).astype(
-                dtype
-            )
-            layer = RandomHeight(
-                factor=(-0.5, -0.5), interpolation="nearest"
-            )
+            input_image = np.reshape(np.arange(0, 8), (4, 2, 1)).astype(dtype)
+            layer = RandomHeight(factor=(-0.5, -0.5), interpolation="nearest")
             output_image = layer(np.expand_dims(input_image, axis=0))
             # pyformat: disable
             expected_output = np.asarray([[2, 3], [6, 7]]).astype(dtype)

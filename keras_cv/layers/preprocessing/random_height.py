@@ -5,26 +5,23 @@ from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
 )
 from keras_cv.utils import preprocessing
 
-BILINEAR = "bilinear"
-NEAREST = "nearest"
-BICUBIC = "bicubic"
-AREA = "area"
-LANCZOS3 = "lanczos3"
-GAUSSIAN = "gaussian"
-MITCHELLCUBIC = "mitchellcubic"
 HEIGHT_AXIS = -3
 WIDTH_AXIS = -2
 IMAGES = "images"
 BOUNDING_BOXES = "bounding_boxes"
 
+
 class RandomHeight(BaseImageAugmentationLayer):
     """A preprocessing layer which randomly varies image height during training.
+
     This layer adjusts the height of a batch of images by a random factor.
     The input should be a 3D (unbatched) or 4D (batched) tensor in the
     `"channels_last"` image data format. Input pixel values can be of any range
     (e.g. `[0., 1.)` or `[0, 255]`) and of interger or floating point dtype. By
     default, the layer will output floats.
+
     By default, this layer is inactive during inference.
+
     For an overview and full list of preprocessing layers, see the preprocessing
     [guide](https://www.tensorflow.org/guide/keras/preprocessing_layers).
     Args:
@@ -66,17 +63,18 @@ class RandomHeight(BaseImageAugmentationLayer):
             )
         if self.height_lower < -1.0 or self.height_upper < -1.0:
             raise ValueError(
-                "`factor` must have values larger than -1, "
-                "got {}".format(factor)
+                "`factor` must have values larger than -1, " "got {}".format(factor)
             )
         self.interpolation = interpolation
-        self._interpolation_method = preprocessing.get_interpolation(
-            interpolation
-        )
+        self._interpolation_method = preprocessing.get_interpolation(interpolation)
         self.seed = seed
 
     def get_random_transformation(
-        self, image=None, label=None, bounding_boxes=None, keypoints=None,
+        self,
+        image=None,
+        label=None,
+        bounding_boxes=None,
+        keypoints=None,
         segmentation_mask=None,
     ):
         height_factor = self._random_generator.random_uniform(
