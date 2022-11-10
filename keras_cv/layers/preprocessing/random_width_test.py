@@ -6,6 +6,7 @@ from absl.testing import parameterized
 
 from keras_cv.layers.preprocessing.random_width import RandomWidth
 
+
 class RandomWidthTest(tf.test.TestCase, parameterized.TestCase):
     def _run_test(self, factor):
         np.random.seed(1337)
@@ -13,9 +14,7 @@ class RandomWidthTest(tf.test.TestCase, parameterized.TestCase):
         orig_height = 5
         orig_width = 8
         channels = 3
-        img = np.random.random(
-            (num_samples, orig_height, orig_width, channels)
-        )
+        img = np.random.random((num_samples, orig_height, orig_width, channels))
         layer = RandomWidth(factor)
         img_out = layer(img, training=True)
         self.assertEqual(img_out.shape[0], 2)
@@ -36,18 +35,14 @@ class RandomWidthTest(tf.test.TestCase, parameterized.TestCase):
         img = np.random.random((12, 8, 5, 3))
         layer = RandomWidth(0.4)
         with unittest.mock.patch.object(
-            layer._random_generator,
-            "random_uniform",
-            return_value=mock_factor
+            layer._random_generator, "random_uniform", return_value=mock_factor
         ):
             img_out = layer(img, training=True)
             self.assertEqual(img_out.shape[2], 3)
 
     def test_random_width_longer_numeric(self):
         for dtype in (np.int64, np.float32):
-            input_image = np.reshape(np.arange(0, 6), (3, 2, 1)).astype(
-                dtype
-            )
+            input_image = np.reshape(np.arange(0, 6), (3, 2, 1)).astype(dtype)
             layer = RandomWidth(factor=(1.0, 1.0))
             # Return type of RandomWidth() is float32 if `interpolation` is
             # not set to `ResizeMethod.NEAREST_NEIGHBOR`; cast `layer` to
@@ -65,12 +60,8 @@ class RandomWidthTest(tf.test.TestCase, parameterized.TestCase):
 
     def test_random_width_shorter_numeric(self):
         for dtype in (np.int64, np.float32):
-            input_image = np.reshape(np.arange(0, 8), (2, 4, 1)).astype(
-                dtype
-            )
-            layer = RandomWidth(
-                factor=(-0.5, -0.5), interpolation="nearest"
-            )
+            input_image = np.reshape(np.arange(0, 8), (2, 4, 1)).astype(dtype)
+            layer = RandomWidth(factor=(-0.5, -0.5), interpolation="nearest")
             output_image = layer(np.expand_dims(input_image, axis=0))
             # pyformat: disable
             expected_output = np.asarray([[1, 3], [5, 7]]).astype(dtype)
@@ -85,7 +76,7 @@ class RandomWidthTest(tf.test.TestCase, parameterized.TestCase):
     def test_random_width_inference(self):
         input_images = np.random.random((2, 5, 8, 3)).astype(np.float32)
         expected_output = input_images
-        layer =RandomWidth(0.5)
+        layer = RandomWidth(0.5)
         actual_output = layer(input_images, training=False)
         self.assertAllClose(expected_output, actual_output)
 

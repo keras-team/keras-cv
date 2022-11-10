@@ -55,13 +55,7 @@ class RandomWidth(BaseImageAugmentationLayer):
       `(..., height, random_width, channels)`.
     """
 
-    def __init__(
-        self,
-        factor,
-        interpolation=BILINEAR,
-        seed=None,
-        **kwargs
-    ):
+    def __init__(self, factor, interpolation=BILINEAR, seed=None, **kwargs):
         super().__init__(seed=seed, force_generator=True, **kwargs)
         self.factor = factor
         if isinstance(factor, (tuple, list)):
@@ -115,7 +109,14 @@ class RandomWidth(BaseImageAugmentationLayer):
         output.set_shape(output_shape)
         return output
 
-    def get_random_transformation(self, image=None, label=None, bounding_boxes=None, keypoints=None, segmentation_mask=None):
+    def get_random_transformation(
+        self,
+        image=None,
+        label=None,
+        bounding_boxes=None,
+        keypoints=None,
+        segmentation_mask=None,
+    ):
         inputs_shape = tf.shape(image)
         img_weight_dim = tf.cast(inputs_shape[WIDTH_AXIS], tf.float32)
         width_factor = self._random_generator.random_uniform(
