@@ -3,7 +3,7 @@ import tensorflow as tf
 from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
     BaseImageAugmentationLayer,
 )
-from keras_cv.utils import preprocessing
+from keras_cv.utils import get_interpolation
 
 HEIGHT_AXIS = -3
 WIDTH_AXIS = -2
@@ -66,7 +66,7 @@ class RandomHeight(BaseImageAugmentationLayer):
                 "`factor` must have values larger than -1, " "got {}".format(factor)
             )
         self.interpolation = interpolation
-        self._interpolation_method = preprocessing.get_interpolation(interpolation)
+        self._interpolation_method = get_interpolation(interpolation)
         self.seed = seed
 
     def get_random_transformation(
