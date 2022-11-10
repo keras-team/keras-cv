@@ -11,9 +11,12 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import unittest
+
 import tensorflow as tf
 from absl.testing import parameterized
 
+from keras_cv import bounding_box
 from keras_cv import layers
 
 
@@ -69,3 +72,95 @@ class RandomAugmentationPipelineTest(tf.test.TestCase, parameterized.TestCase):
 
         total_calls = pipeline.layers[0].call_counter + pipeline.layers[1].call_counter
         self.assertEqual(total_calls, batch_size)
+
+    def test_augmentation_bounding_boxes(self):
+        images = tf.zeros([2, 10, 10, 3])
+        bboxes = tf.constant(
+            [
+                [[0.0, 0.1, 0.5, 0.5], [0.0, 0.2, 0.5, 0.6]],
+                [[0.0, 0.15, 0.55, 0.55], [0.0, 0.25, 0.55, 0.65]],
+            ],
+            dtype=tf.float32,
+        )
+        bboxes = bounding_box.add_class_id(bboxes, 0)
+        inputs = {"images": images, "bounding_boxes": bboxes}
+
+        layer = layers.RandomChoice(
+            layers=[
+                layers.RandomFlip(mode="horizontal", bounding_box_format="rel_xyxy"),
+                layers.RandomFlip(mode="vertical", bounding_box_format="rel_xyxy"),
+            ]
+        )
+
+        with unittest.mock.patch.object(
+            layer._random_generator,
+            "random_uniform",
+            side_effect=[tf.constant(0), tf.constant(1)],  # first, second
+        ):
+            with unittest.mock.patch.object(
+                layer.layers[0]._random_generator,
+                "random_uniform",
+                side_effect=[0.0],  # no flip
+            ):
+                with unittest.mock.patch.object(
+                    layer.layers[1]._random_generator,
+                    "random_uniform",
+                    side_effect=[1.0],  # no flip
+                ):
+                    output = layer(inputs)
+
+        expected_output1 = tf.constant(
+            [
+                [0.0, 1.0 - 0.55, 0.55, 1.0 - 0.15, 0.0],
+                [0.0, 1.0 - 0.65, 0.55, 1.0 - 0.25, 0.0],
+            ]
+        )
+
+        # the first one should not be transformed
+        self.assertAllClose(output["bounding_boxes"][0], inputs["bounding_boxes"][0])
+        self.assertAllClose(output["bounding_boxes"][1], expected_output1)
+
+    def test_augmentation_bounding_boxes_ragged(self):
+        images = tf.zeros([2, 10, 10, 3])
+        bboxes = tf.ragged.constant(
+            [
+                [[0.0, 0.1, 0.5, 0.5], [0.0, 0.2, 0.5, 0.6]],
+                [
+                    [0.0, 0.15, 0.55, 0.55],
+                ],
+            ],
+            dtype=tf.float32,
+        )
+        bboxes = bounding_box.add_class_id(bboxes, 0)
+        inputs = {"images": images, "bounding_boxes": bboxes}
+
+        layer = layers.RandomChoice(
+            layers=[
+                layers.RandomFlip(mode="horizontal", bounding_box_format="rel_xyxy"),
+                layers.RandomFlip(mode="vertical", bounding_box_format="rel_xyxy"),
+            ]
+        )
+
+        with unittest.mock.patch.object(
+            layer._random_generator,
+            "random_uniform",
+            side_effect=[tf.constant(0), tf.constant(1)],  # first, second
+        ):
+            with unittest.mock.patch.object(
+                layer.layers[0]._random_generator,
+                "random_uniform",
+                side_effect=[0.0],  # no flip
+            ):
+                with unittest.mock.patch.object(
+                    layer.layers[1]._random_generator,
+                    "random_uniform",
+                    side_effect=[1.0],  # no flip
+                ):
+                    output = layer(inputs)
+
+        expected_output1 = tf.constant([[0.0, 1.0 - 0.55, 0.55, 1.0 - 0.15, 0.0]])
+
+        self.assertAllClose(
+            output["bounding_boxes"][0], inputs["bounding_boxes"][0].to_tensor()
+        )
+        self.assertAllClose(output["bounding_boxes"][1], expected_output1)
