@@ -5,9 +5,9 @@ In general, KerasCV abides to the
 There are a few API guidelines that apply only to KerasCV.  These are discussed
 in this document.
 
-# Complex Arguments
+# Arguments that are Keras objects
 
-In many of our layers and models, a parameter representing a complex sub-component
+In many of our layers and models, a argument representing a complex sub-component
 such as `loss`, or `suppression_layer` may be required.
 Prefer exposing the actual sub-component.  This prevents us
 from duplicating the entire list of customization arguments
@@ -50,7 +50,9 @@ RetinaNetPredictionDecoder(
 )
 ```
 
-## Complex Argument Validation
+Additionally, we also strive to provide string shorthands for the most popular configs (e.g. suppression_layer="the_best_nms" (string)).
+
+## Keras object argument validation
 
 Often times, there are aggressive constraints as to the behavior of these components.
 An example of these constraints is that the `classification_loss` of a
@@ -60,14 +62,14 @@ An example of these constraints is that the `classification_loss` of a
 Instead of simply assuming that users will
 
 Strong examples of such error messages:
-- [classification_loss shape](https://github.com/keras-team/keras-cv/blob/master/keras_cv/models/object_detection/retina_net/retina_net.py#L361)
-- [loss from_logits=True check](https://github.com/keras-team/keras-cv/blob/master/keras_cv/models/object_detection/retina_net/retina_net.py#L297)
+- [`classification_loss` shape](https://github.com/keras-team/keras-cv/blob/master/keras_cv/models/object_detection/retina_net/retina_net.py#L361)
+- [loss `from_logits=True` check](https://github.com/keras-team/keras-cv/blob/master/keras_cv/models/object_detection/retina_net/retina_net.py#L297)
 
 ## Provide a sensible, configurable default via a static method
 
 When providing a default of a complex component, a default should be provided
 via a static method on the consuming class.  This static method should be
-configurable via parameters that cannot be inferred, such as
+configurable via arguments that cannot be inferred, such as
 `bounding_box_format`.
 
 [An example of a default static method is RetinaNet.default_anchor_generator](https://github.com/keras-team/keras-cv/blob/master/keras_cv/models/object_detection/retina_net/retina_net.py#L133)
@@ -81,8 +83,8 @@ less fond of `segm`.  In order to ensure full consistency, we have decided to
 use the full names for label types in our code base.
 
 # Preprocessing Layers
-## Strength Parameters
-Many augmentation layers take a parameter representing a strength, often called
+## Strength arguments
+Many augmentation layers take a argument representing a strength, often called
 `factor`.  When possible, factor values must conform to a the range: `[0, 1]`, with
 1 representing the strongest transformation and 0 representing a no-op transform.
 The strength of an augmentation should scale linearly with this factor.  If needed,
