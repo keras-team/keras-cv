@@ -29,6 +29,8 @@ class COCOPyMetric(Callback):
         self.model = model
 
     def on_epoch_end(self, epoch, logs=None):
+        logs = logs or {}
+
         dataset = self.model._eval_data_handler._dataset
         gt = {}
         preds = {}
@@ -49,6 +51,8 @@ class COCOPyMetric(Callback):
                     gt[k].append(v)
 
         metrics = compute_pycoco_metrics(gt, preds)
+        # Mark these as validation metrics by prepending a val_ prefix
+        metrics = {"val_" + name: val for name, val in metrics.items()}
 
         logs.update(metrics)
 
