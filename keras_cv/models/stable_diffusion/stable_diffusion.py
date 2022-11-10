@@ -27,19 +27,24 @@ import numpy as np
 import tensorflow as tf
 from tensorflow import keras
 
-from keras_cv.models.generative.stable_diffusion.clip_tokenizer import SimpleTokenizer
-from keras_cv.models.generative.stable_diffusion.constants import _ALPHAS_CUMPROD
-from keras_cv.models.generative.stable_diffusion.constants import _UNCONDITIONAL_TOKENS
-from keras_cv.models.generative.stable_diffusion.decoder import Decoder
-from keras_cv.models.generative.stable_diffusion.diffusion_model import DiffusionModel
-from keras_cv.models.generative.stable_diffusion.image_encoder import ImageEncoder
-from keras_cv.models.generative.stable_diffusion.text_encoder import TextEncoder
+from keras_cv.models.stable_diffusion.clip_tokenizer import SimpleTokenizer
+from keras_cv.models.stable_diffusion.constants import _ALPHAS_CUMPROD
+from keras_cv.models.stable_diffusion.constants import _UNCONDITIONAL_TOKENS
+from keras_cv.models.stable_diffusion.decoder import Decoder
+from keras_cv.models.stable_diffusion.diffusion_model import DiffusionModel
+from keras_cv.models.stable_diffusion.image_encoder import ImageEncoder
+from keras_cv.models.stable_diffusion.text_encoder import TextEncoder
 
 MAX_PROMPT_LENGTH = 77
 
 
 class StableDiffusion:
     """Keras implementation of Stable Diffusion.
+
+    Note that the StableDiffusion API, as well as the APIs of the sub-components
+    of StableDiffusion (e.g. ImageEncoder, DiffusionModel) should be considered
+    unstable at this point. We do not guarantee backwards compatability for
+    future changes to these APIs.
 
     Stable Diffusion is a powerful image generation model that can be used,
     among other things, to generate pictures according to a short text description
