@@ -1,8 +1,9 @@
+import copy
+
+import numpy as np
+import tensorflow as tf
 from pycocotools import coco
 from pycocotools import cocoeval
-import numpy as np
-import copy
-import tensorflow as tf
 
 METRIC_NAMES = [
     "AP",
@@ -80,19 +81,21 @@ class COCOWrapper(coco.COCO):
         res.createIndex()
         return res
 
+
 def _yxyx_to_xywh(boxes):
-  if boxes.shape[-1] != 4:
-    raise ValueError(
-        'boxes.shape[-1] is {:d}, but must be 4.'.format(boxes.shape[-1]))
+    if boxes.shape[-1] != 4:
+        raise ValueError(
+            "boxes.shape[-1] is {:d}, but must be 4.".format(boxes.shape[-1])
+        )
 
-  boxes_ymin = boxes[..., 0]
-  boxes_xmin = boxes[..., 1]
-  boxes_width = boxes[..., 3] - boxes[..., 1]
-  boxes_height = boxes[..., 2] - boxes[..., 0]
-  new_boxes = np.stack(
-      [boxes_xmin, boxes_ymin, boxes_width, boxes_height], axis=-1)
+    boxes_ymin = boxes[..., 0]
+    boxes_xmin = boxes[..., 1]
+    boxes_width = boxes[..., 3] - boxes[..., 1]
+    boxes_height = boxes[..., 2] - boxes[..., 0]
+    new_boxes = np.stack([boxes_xmin, boxes_ymin, boxes_width, boxes_height], axis=-1)
 
-  return new_boxes
+    return new_boxes
+
 
 def _convert_predictions_to_coco_annotations(predictions):
     coco_predictions = []

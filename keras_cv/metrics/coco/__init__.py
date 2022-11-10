@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from keras_cv.metrics.coco.mean_average_precision import COCOMeanAveragePrecision
-from keras_cv.metrics.coco.recall import COCORecall
-from keras_cv.metrics.coco.pycoco_utils import compute_pycoco_metrics
 from keras_cv.metrics.coco.coco_pymetric import COCOPyMetric
+from keras_cv.metrics.coco.mean_average_precision import COCOMeanAveragePrecision
+from keras_cv.metrics.coco.pycoco_utils import compute_pycoco_metrics
+from keras_cv.metrics.coco.recall import COCORecall
