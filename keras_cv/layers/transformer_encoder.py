@@ -29,7 +29,7 @@ class TransformerEncoder(layers.Layer):
         num_heads: the number of heads for the `MultiHeadAttention` layer
         mlp_dropout: default 0.1, the dropout rate to apply between the layers of the MLP head of the encoder
         attention_dropout: default 0.1, the dropout rate to apply in the MultiHeadAttention layer
-        activation: default tf.nn.gelu(), the activation function to apply in the MLP head
+        activation: default 'gelu', the activation function to apply in the MLP head
         layer_norm_epsilon: default 1e-06, the epsilon for `LayerNormalization` layers
 
     Basic usage:
@@ -59,7 +59,7 @@ class TransformerEncoder(layers.Layer):
         mlp_dim,
         mlp_dropout=0.1,
         attention_dropout=0.1,
-        activation=tf.nn.gelu,
+        activation="gelu",
         layer_norm_epsilon=1e-06,
         **kwargs
     ):
@@ -117,7 +117,7 @@ class TransformerEncoder(layers.Layer):
                 "num_heads": self.num_heads,
                 "attention_dropout": self.attention_dropout,
                 "mlp_dropout": self.mlp_dropout,
-                "activation": keras.activations.serialize(self.activation),
+                "activation": self.activation,
                 "layer_norm_epsilon": self.layer_norm_epsilon,
             }
         )

@@ -301,6 +301,20 @@ class SerializationTest(tf.test.TestCase, parameterized.TestCase):
             },
         ),
         ("PatchEmbedding", PatchEmbedding, {"project_dim": 128}),
+        (
+            "TransformerEncoder",
+            cv_layers.TransformerEncoder,
+            {
+                "project_dim": 128,
+                "num_heads": 2,
+                "intermediate_dim": 128,
+                "mlp_dim": 128,
+                "mlp_dropout": 0.1,
+                "attention_dropout": 0.1,
+                "activation": "gelu",
+                "layer_norm_epsilon": 1e-06,
+            },
+        ),
     )
     def test_layer_serialization(self, layer_cls, init_args):
         layer = layer_cls(**init_args)

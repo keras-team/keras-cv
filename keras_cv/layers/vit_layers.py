@@ -54,7 +54,7 @@ class Patching(layers.Layer):
     ```
     """
 
-    def __init__(self, patch_size, padding, **kwargs):
+    def __init__(self, patch_size, padding="VALID", **kwargs):
         super().__init__(**kwargs)
         self.patch_size = patch_size
         self.padding = padding
