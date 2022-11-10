@@ -61,11 +61,7 @@ from keras_cv.layers.preprocessing.random_rotation import RandomRotation
 from keras_cv.layers.preprocessing.random_saturation import RandomSaturation
 from keras_cv.layers.preprocessing.random_sharpness import RandomSharpness
 from keras_cv.layers.preprocessing.random_shear import RandomShear
-<<<<<<< HEAD
 from keras_cv.layers.preprocessing.random_height import RandomHeight
-=======
-from keras_cv.layers.preprocessing.random_width import RandomWidth
->>>>>>> 8c4015a (added changes to height layer as per comments)
 from keras_cv.layers.preprocessing.randomly_zoomed_crop import RandomlyZoomedCrop
 from keras_cv.layers.preprocessing.resizing import Resizing
 from keras_cv.layers.preprocessing.solarization import Solarization
