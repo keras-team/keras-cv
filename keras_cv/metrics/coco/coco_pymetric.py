@@ -2,6 +2,7 @@ import six
 from keras.callbacks import Callback
 
 from keras_cv.metrics.coco.pycoco_utils import compute_pycoco_metrics
+from keras_cv import bounding_box
 
 class COCOPyMetric(Callback):
 
@@ -43,7 +44,7 @@ class COCOPyMetric(Callback):
       height = images.shape[1]
       width = images.shape[2]
 
-      gt_boxes = keras_cv.bounding_box.convert_format(gt_boxes, source=self.bounding_box_format, target='yxyx')
+      gt_boxes = bounding_box.convert_format(gt_boxes, source=self.bounding_box_format, target='yxyx')
 
       gt_classes = gt_boxes[:, :, 4]
       gt_boxes = gt_boxes[:, :, :4]
@@ -61,7 +62,7 @@ class COCOPyMetric(Callback):
       ground_truth["classes"] = gt_classes
 
       y_pred = model.predict(images)
-      y_pred = keras_cv.bounding_box.convert_format(y_pred, source=self.bounding_box_format, target='yxyx')
+      y_pred = bounding_box.convert_format(y_pred, source=self.bounding_box_format, target='yxyx')
 
       predictions = {}
       predictions["num_detections"] = y_pred.row_lengths()
