@@ -2,6 +2,7 @@ from pycocotools import coco
 from pycocotools import cocoeval
 import numpy as np
 import copy
+import tensorflow as tf
 
 METRIC_NAMES = [
     "AP",

@@ -1,6 +1,8 @@
 import six
 from keras.callbacks import Callback
 
+import tensorflow as tf
+
 from keras_cv.metrics.coco.pycoco_utils import compute_pycoco_metrics
 from keras_cv import bounding_box
 
