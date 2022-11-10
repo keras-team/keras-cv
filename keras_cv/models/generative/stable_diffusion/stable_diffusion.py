@@ -423,8 +423,8 @@ class StableDiffusion:
         """
         if self._image_encoder is None:
             self._image_encoder = ImageEncoder(self.img_height, self.img_width)
-        if self.jit_compile:
-            self._image_encoder.compile(jit_compile=True)
+            if self.jit_compile:
+                self._image_encoder.compile(jit_compile=True)
         return self._image_encoder
 
     @property
@@ -435,8 +435,8 @@ class StableDiffusion:
         """
         if self._text_encoder is None:
             self._text_encoder = TextEncoder(MAX_PROMPT_LENGTH)
-        if self.jit_compile:
-            self._text_encoder.compile(jit_compile=True)
+            if self.jit_compile:
+                self._text_encoder.compile(jit_compile=True)
         return self._text_encoder
 
     @property
@@ -448,8 +448,8 @@ class StableDiffusion:
             self._diffusion_model = DiffusionModel(
                 self.img_height, self.img_width, MAX_PROMPT_LENGTH
             )
-        if self.jit_compile:
-            self._diffusion_model.compile(jit_compile=True)
+            if self.jit_compile:
+                self._diffusion_model.compile(jit_compile=True)
         return self._diffusion_model
 
     @property
@@ -459,8 +459,8 @@ class StableDiffusion:
         """
         if self._decoder is None:
             self._decoder = Decoder(self.img_height, self.img_width)
-        if self.jit_compile:
-            self._decoder.compile(jit_compile=True)
+            if self.jit_compile:
+                self._decoder.compile(jit_compile=True)
         return self._decoder
 
     @property
