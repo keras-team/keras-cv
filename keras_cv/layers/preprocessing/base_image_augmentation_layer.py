@@ -16,6 +16,7 @@ import tensorflow as tf
 
 from keras_cv import bounding_box
 from keras_cv.utils import preprocessing
+import functools
 
 # In order to support both unbatched and batched inputs, the horizontal
 # and verticle axis is reverse indexed
@@ -129,12 +130,57 @@ class BaseImageAugmentationLayer(tf.keras.__internal__.layers.BaseRandomLayer):
     def auto_vectorize(self, auto_vectorize):
         self._auto_vectorize = auto_vectorize
 
-    @property
-    def _map_fn(self):
+    def _compute_image_signature(self, images):
+        if isinstance(images, tf.RaggedTensor):
+            return tf.RaggedTensorSpec(
+                shape=images.shape[1:],
+                dtype=self.compute_dtype,
+            )
+        return tf.TensorSpec(images.shape[1:], self.compute_dtype)
+
+    def _compute_bounding_box_signature(self, bounding_boxes):
+        return tf.RaggedTensorSpec(
+            shape=[None, bounding_boxes.shape[2]],
+            dtype=bounding_boxes.dtype,
+        )
+
+    def _compute_output_signature(self, inputs):
+        fn_output_signature = {IMAGES: self._compute_image_signature(inputs[IMAGES])}
+        bounding_boxes = inputs.get(BOUNDING_BOXES, None)
+
+        if bounding_boxes:
+            fn_output_signature[BOUNDING_BOXES] = self._compute_bounding_box_signature(bounding_boxes)
+
+        segmentation_masks = inputs.get(SEGMENTATION_MASKS, None)
+        if segmentation_masks:
+            fn_output_signature[SEGMENTATION_MASKS] = self._compute_image_signature(segmentation_masks)
+
+        targets = inputs.get(TARGETS, None)
+        if targets:
+            fn_output_signature[targets] = self._compute_target_signature(targets)
+
+        return fn_output_signature
+
+    @staticmethod
+    def _any_ragged(inputs):
+        if isinstance(inputs[IMAGES], tf.RaggedTensor):
+            return True
+        if BOUNDING_BOXES in inputs:
+            return True
+        # TODO(lukewood): exhaustively check cases
+        return False
+
+    def _map_fn(self, func, inputs):
+        """Returns either tf.map_fn or tf.vectorized_map based on the provided inputs.
+
+        Args:
+            inputs: dictionary of inputs provided to map_fn.
+        """
+        if self._any_ragged(inputs):
+            return tf.map_fn(func, inputs, fn_output_signature=self._compute_output_signature(inputs))
         if self.auto_vectorize:
-            return tf.vectorized_map
-        else:
-            return tf.map_fn
+            return tf.vectorized_map(func, inputs)
+        return tf.map_fn(func, inputs)
 
     def augment_image(self, image, transformation, **kwargs):
         """Augment a single image during training.

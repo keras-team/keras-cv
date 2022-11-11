@@ -133,6 +133,11 @@ class BaseImageAugmentationLayerTest(tf.test.TestCase):
         self.assertNotAllClose(inputs["images"], outputs["images"])
         self.assertAllEqual(inputs["images"], images)  # Assert original unchanged
 
+
+    def test_augment_ragged_images(self):
+        add_layer = RandomAddLayer(fixed_value=0.5)
+        # TODO(lukewood): unit test
+
     def test_augment_leaves_batched_extra_dict_entries_unmodified(self):
         add_layer = RandomAddLayer(fixed_value=0.5)
         images = np.random.random(size=(2, 8, 8, 3)).astype("float32")
