@@ -90,8 +90,8 @@ class BaseImageAugmentationLayerTest(tf.test.TestCase):
         image = np.random.random(size=(8, 8, 3)).astype("float32")
         label = np.random.random(size=(1,)).astype("float32")
 
-        output = add_layer({"images": image, "labels": label})
-        expected_output = {"images": image + 2.0, "labels": label + 2.0}
+        output = add_layer({"images": image, "targets": label})
+        expected_output = {"images": image + 2.0, "targets": label + 2.0}
         self.assertAllClose(output, expected_output)
 
     def test_augment_image_and_target(self):
@@ -103,14 +103,14 @@ class BaseImageAugmentationLayerTest(tf.test.TestCase):
         expected_output = {"images": image + 2.0, "targets": label + 2.0}
         self.assertAllClose(output, expected_output)
 
-    def test_augment_batch_images_and_labels(self):
+    def test_augment_batch_images_and_targets(self):
         add_layer = RandomAddLayer()
         images = np.random.random(size=(2, 8, 8, 3)).astype("float32")
-        labels = np.random.random(size=(2, 1)).astype("float32")
-        output = add_layer({"images": images, "labels": labels})
+        targets = np.random.random(size=(2, 1)).astype("float32")
+        output = add_layer({"images": images, "targets": targets})
 
         image_diff = output["images"] - images
-        label_diff = output["labels"] - labels
+        label_diff = output["targets"] - targets
         # Make sure the first image and second image get different augmentation
         self.assertNotAllClose(image_diff[0], image_diff[1])
         self.assertNotAllClose(label_diff[0], label_diff[1])
@@ -121,36 +121,20 @@ class BaseImageAugmentationLayerTest(tf.test.TestCase):
         filenames = tf.constant("/path/to/first.jpg")
         inputs = {"images": images, "filenames": filenames}
 
-        outputs = add_layer(inputs)
-
-        self.assertListEqual(list(inputs.keys()), list(outputs.keys()))
-        self.assertAllEqual(inputs["filenames"], outputs["filenames"])
-        self.assertNotAllClose(inputs["images"], outputs["images"])
-        self.assertAllEqual(inputs["images"], images)  # Assert original unchanged
-
+        with self.assertRaises(ValueError):
+            outputs = add_layer(inputs)
 
     def test_augment_ragged_images(self):
-        images = tf.ragged.stack([
-            np.random.random(size=(8, 8, 3)).astype("float32"),
-            np.random.random(size=(16, 8, 3)).astype("float32"),
-        ])
+        images = tf.ragged.stack(
+            [
+                np.random.random(size=(8, 8, 3)).astype("float32"),
+                np.random.random(size=(16, 8, 3)).astype("float32"),
+            ]
+        )
         add_layer = RandomAddLayer(fixed_value=0.5)
         result = add_layer(images)
         self.assertAllClose(images + 0.5, result)
         # TODO(lukewood): unit test
-
-    def test_augment_leaves_batched_extra_dict_entries_unmodified(self):
-        add_layer = RandomAddLayer(fixed_value=0.5)
-        images = np.random.random(size=(2, 8, 8, 3)).astype("float32")
-        filenames = tf.constant(["/path/to/first.jpg", "/path/to/second.jpg"])
-        inputs = {"images": images, "filenames": filenames}
-
-        outputs = add_layer(inputs)
-
-        self.assertListEqual(list(inputs.keys()), list(outputs.keys()))
-        self.assertAllEqual(inputs["filenames"], outputs["filenames"])
-        self.assertNotAllClose(inputs["images"], outputs["images"])
-        self.assertAllEqual(inputs["images"], images)  # Assert original unchanged
 
     def test_augment_image_and_localization_data(self):
         add_layer = RandomAddLayer(fixed_value=2.0)
