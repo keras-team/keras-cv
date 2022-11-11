@@ -39,7 +39,7 @@ METRIC_NAMES = [
 ]
 
 
-class COCOWrapper(coco.COCO):
+class PyCOCOWrapper(coco.COCO):
     """COCO wrapper class.
     This class wraps COCO API object, which provides the following additional
     functionalities:
@@ -215,7 +215,7 @@ def compute_pycoco_metrics(groundtruths, predictions):
     groundtruths, predictions = _convert_to_numpy(groundtruths, predictions)
 
     gt_dataset = _convert_groundtruths_to_coco_dataset(groundtruths)
-    coco_gt = COCOWrapper(gt_dataset=gt_dataset)
+    coco_gt = PyCOCOWrapper(gt_dataset=gt_dataset)
     coco_predictions = _convert_predictions_to_coco_annotations(predictions)
     coco_dt = coco_gt.loadRes(predictions=coco_predictions)
     image_ids = [ann["image_id"] for ann in coco_predictions]
