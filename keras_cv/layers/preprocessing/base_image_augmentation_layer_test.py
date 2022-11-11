@@ -131,7 +131,13 @@ class BaseImageAugmentationLayerTest(tf.test.TestCase):
 
 
     def test_augment_ragged_images(self):
+        images = tf.ragged.stack([
+            np.random.random(size=(8, 8, 3)).astype("float32"),
+            np.random.random(size=(16, 8, 3)).astype("float32"),
+        ])
         add_layer = RandomAddLayer(fixed_value=0.5)
+        result = add_layer(images)
+        self.assertAllClose(images + 0.5, result)
         # TODO(lukewood): unit test
 
     def test_augment_leaves_batched_extra_dict_entries_unmodified(self):
