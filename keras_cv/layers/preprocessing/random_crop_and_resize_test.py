@@ -187,12 +187,18 @@ class RandomCropAndResizeTest(tf.test.TestCase, parameterized.TestCase):
         output = layer(inputs, training=True)
         self.assertAllClose(output["segmentation_masks"], input_mask_resized)
 
-    def test_augment_bbox(self):
+    def test_augment_bbox_single(self):
         image = tf.zeros([20, 20, 3])
-        bboxes = tf.convert_to_tensor([[[0, 0, 10, 10], [1, 1, 4, 4], [4, 4, 5, 5]]])
-
+        bboxes = tf.convert_to_tensor(
+                [
+                    [0, 0, 10, 10],
+                    [1, 1, 4, 4],
+                    [4, 4, 5, 5]
+                ]
+        )
+        bboxes = tf.cast(bboxes, tf.float32)
         bboxes = bounding_box.add_class_id(bboxes)
-        input = {"images": [image], "bounding_boxes": bboxes}
+        input = {"images": image, "bounding_boxes": bboxes}
         mock_random = [0.1, 0.1, 0.1, 0.1]
         layer = preprocessing.RandomCropAndResize(
             target_size=(10, 10),
@@ -209,16 +215,15 @@ class RandomCropAndResizeTest(tf.test.TestCase, parameterized.TestCase):
             output = layer(input, training=True)
 
         expected_output = np.asarray(
-            [[[0, 0, 10, 10, 0], [0, 0, 6, 6, 0], [6, 6, 8, 8, 0]]]
+            [[0, 0, 10, 10, 0], [0, 0, 6, 6, 0], [6, 6, 8, 8, 0]]
         )
-        expected_output = np.reshape(expected_output, (1, 3, 5))
         self.assertAllClose(expected_output, output["bounding_boxes"])
 
     def test_augment_bbox_batched_input(self):
         image = tf.zeros([20, 20, 3])
 
         bboxes = tf.convert_to_tensor(
-            [[[0, 0, 10, 10], [4, 4, 12, 12]], [[4, 4, 12, 12], [0, 0, 10, 10]]]
+            [[0, 0, 10, 10], [4, 4, 12, 12]], [[4, 4, 12, 12], [0, 0, 10, 10]]
         )
         bboxes = bounding_box.add_class_id(bboxes)
         input = {"images": [image, image], "bounding_boxes": bboxes}

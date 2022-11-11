@@ -467,7 +467,9 @@ class BaseImageAugmentationLayer(tf.keras.__internal__.layers.BaseRandomLayer):
         return inputs, metadata
 
     def _format_bounding_boxes(self, bounding_boxes):
-        if bounding_boxes.shape[-1] < 5:
+        # We can't catch the case where this is None, sometimes RaggedTensor drops this
+        # dimension
+        if bounding_boxes.shape[-1] is not None and bounding_boxes.shape[-1] < 5:
             raise ValueError(
                 "Bounding boxes are missing class_id. If you would like to pad the "
                 "bounding boxes with class_id, use `keras_cv.bounding_box.add_class_id`"
