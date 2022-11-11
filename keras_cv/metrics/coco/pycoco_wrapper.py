@@ -15,6 +15,7 @@ import copy
 
 import numpy as np
 import tensorflow as tf
+
 try:
     from pycocotools import coco
     from pycocotools import cocoeval
