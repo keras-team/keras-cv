@@ -69,11 +69,6 @@ class BaseImageAugmentationLayerTest(tf.test.TestCase):
 
         self.assertIsInstance(output, dict)
 
-    def test_auto_vectorize_disabled(self):
-        vectorize_disabled_layer = VectorizeDisabledLayer()
-        self.assertFalse(vectorize_disabled_layer.auto_vectorize)
-        self.assertEqual(vectorize_disabled_layer._map_fn, tf.map_fn)
-
     def test_augment_casts_dtypes(self):
         add_layer = RandomAddLayer(fixed_value=2.0)
         images = tf.ones((2, 8, 8, 3), dtype="uint8")
@@ -135,7 +130,13 @@ class BaseImageAugmentationLayerTest(tf.test.TestCase):
 
 
     def test_augment_ragged_images(self):
+        images = tf.ragged.stack([
+            np.random.random(size=(8, 8, 3)).astype("float32"),
+            np.random.random(size=(16, 8, 3)).astype("float32"),
+        ])
         add_layer = RandomAddLayer(fixed_value=0.5)
+        result = add_layer(images)
+        self.assertAllClose(images + 0.5, result)
         # TODO(lukewood): unit test
 
     def test_augment_leaves_batched_extra_dict_entries_unmodified(self):
@@ -154,8 +155,8 @@ class BaseImageAugmentationLayerTest(tf.test.TestCase):
     def test_augment_image_and_localization_data(self):
         add_layer = RandomAddLayer(fixed_value=2.0)
         images = np.random.random(size=(8, 8, 3)).astype("float32")
-        bounding_boxes = np.random.random(size=(3, 5)).astype("float32")
-        keypoints = np.random.random(size=(3, 5, 2)).astype("float32")
+        bounding_boxes = np.random.random(size=(8, 3, 5)).astype("float32")
+        keypoints = np.random.random(size=(8, 5, 2)).astype("float32")
         segmentation_mask = np.random.random(size=(8, 8, 1)).astype("float32")
 
         output = add_layer(
@@ -222,7 +223,7 @@ class BaseImageAugmentationLayerTest(tf.test.TestCase):
         add_layer = RandomAddLayer()
         images = np.random.random(size=(2, 8, 8, 3)).astype("float32")
         bounding_boxes = np.random.random(size=(2, 3, 5)).astype("float32")
-        keypoints = np.random.random(size=(2, 3, 5, 2)).astype("float32")
+        keypoints = np.random.random(size=(2, 5, 2)).astype("float32")
         segmentation_masks = np.random.random(size=(2, 8, 8, 1)).astype("float32")
 
         @tf.function
@@ -249,7 +250,7 @@ class BaseImageAugmentationLayerTest(tf.test.TestCase):
         add_layer = RandomAddLayer()
         images = np.random.random(size=(2, 8, 8, 3)).astype("float32")
         bounding_boxes = np.random.random(size=(2, 3, 4)).astype("float32")
-        keypoints = np.random.random(size=(2, 3, 5, 2)).astype("float32")
+        keypoints = np.random.random(size=(2, 5, 2)).astype("float32")
         segmentation_masks = np.random.random(size=(2, 8, 8, 1)).astype("float32")
 
         with self.assertRaisesRegex(
