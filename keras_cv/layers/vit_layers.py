@@ -88,7 +88,9 @@ class Patching(layers.Layer):
         )
 
         patch_dims = patches.shape[-1]
-        patches = tf.reshape(patches, [batch_size, -1, patch_dims])
+        patches = tf.reshape(
+            patches, [batch_size, patches.shape[-2] * patches.shape[-2], patch_dims]
+        )
         return patches
 
     def get_config(self):
