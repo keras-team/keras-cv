@@ -23,7 +23,9 @@ from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
 
 @tf.keras.utils.register_keras_serializable(package="keras_cv")
 class CenterCrop(BaseImageAugmentationLayer):
-    """A preprocessing layer which crops images.
+    """This layers crops the central portion of the images to a target size.
+    If an image is smaller than the target size, it will be resized and cropped
+    so as to return the largest possible window in the image that matches the target aspect ratio.
 
     The input images should have values in the `[0-255]` or `[0-1]` range.
 
