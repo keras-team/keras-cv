@@ -13,12 +13,12 @@
 # limitations under the License.
 
 import tensorflow as tf
+from tensorflow import keras
 
 from keras_cv import bounding_box
 from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
     BaseImageAugmentationLayer,
 )
-from tensorflow import keras
 
 
 @tf.keras.utils.register_keras_serializable(package="keras_cv")
@@ -54,7 +54,9 @@ class CenterCrop(BaseImageAugmentationLayer):
     ```
     """
 
-    def __init__(self, height: int, width: int, bounding_box_format=None, seed=None, **kwargs):
+    def __init__(
+        self, height: int, width: int, bounding_box_format=None, seed=None, **kwargs
+    ):
         super().__init__(seed=seed, **kwargs)
         self.height = height
         self.width = width
@@ -66,12 +68,12 @@ class CenterCrop(BaseImageAugmentationLayer):
         return image
 
     def get_random_transformation(
-            self,
-            image=None,
-            label=None,
-            bounding_boxes=None,
-            keypoints=None,
-            segmentation_mask=None,
+        self,
+        image=None,
+        label=None,
+        bounding_boxes=None,
+        keypoints=None,
+        segmentation_mask=None,
     ):
         image_shape = tf.shape(image)
         return image_shape[-3], image_shape[-2]
@@ -94,12 +96,12 @@ class CenterCrop(BaseImageAugmentationLayer):
             return target_height_, target_width_
 
         target_height, target_width = tf.cond(
-            do_crop,
-            lambda: (self.height, self.width),
-            upsample_target_dims
+            do_crop, lambda: (self.height, self.width), upsample_target_dims
         )
 
-        h_perc = keras.backend.cast(target_height / original_height, bounding_boxes.dtype)
+        h_perc = keras.backend.cast(
+            target_height / original_height, bounding_boxes.dtype
+        )
         w_perc = keras.backend.cast(target_width / original_width, bounding_boxes.dtype)
         h0 = 0.5 - 0.5 * h_perc
         w0 = 0.5 - 0.5 * w_perc
@@ -119,7 +121,9 @@ class CenterCrop(BaseImageAugmentationLayer):
 
         return bounding_boxes
 
-    def augment_bounding_boxes(self, bounding_boxes, transformation=None, image=None, **kwargs):
+    def augment_bounding_boxes(
+        self, bounding_boxes, transformation=None, image=None, **kwargs
+    ):
         if self.bounding_box_format is None:
             raise ValueError(
                 "`CenterCrop()` was called with bounding boxes,"
@@ -135,7 +139,7 @@ class CenterCrop(BaseImageAugmentationLayer):
             bounding_boxes,
             source=self.bounding_box_format,
             target="rel_xyxy",
-            image_shape=input_shape
+            image_shape=input_shape,
         )
 
         bounding_boxes = self._transform_bounding_boxes(bounding_boxes, transformation)
@@ -144,14 +148,14 @@ class CenterCrop(BaseImageAugmentationLayer):
             bounding_boxes,
             bounding_box_format="rel_xyxy",
             images=None,
-            image_shape=output_shape
+            image_shape=output_shape,
         )
         bounding_boxes = bounding_box.convert_format(
             bounding_boxes,
             source="rel_xyxy",
             target=self.bounding_box_format,
             dtype=self.compute_dtype,
-            image_shape=output_shape
+            image_shape=output_shape,
         )
         return bounding_boxes
 
