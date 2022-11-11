@@ -15,8 +15,13 @@ import copy
 
 import numpy as np
 import tensorflow as tf
-from pycocotools import coco
-from pycocotools import cocoeval
+try:
+    from pycocotools import coco
+    from pycocotools import cocoeval
+except ImportError:
+    print("Please install pycocotools to use the PyCoco metrics in KerasCV.")
+    coco = None
+    cocoeval = None
 
 METRIC_NAMES = [
     "AP",

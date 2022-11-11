@@ -16,10 +16,10 @@ import tensorflow as tf
 from keras.callbacks import Callback
 
 from keras_cv import bounding_box
-from keras_cv.metrics.coco.pycoco_utils import compute_pycoco_metrics
+from keras_cv.callbacks.pycoco_utils import compute_pycoco_metrics
 
 
-class COCOPyMetric(Callback):
+class COCOEvaluator(Callback):
     def __init__(self, bounding_box_format):
         self.model = None
         self.bounding_box_format = bounding_box_format
