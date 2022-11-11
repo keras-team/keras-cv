@@ -23,7 +23,10 @@ class IoULoss(tf.keras.losses.Loss):
 
     IoU loss is commonly used for object detection. This loss aims to directly
     optimize the IoU score between true boxes and predicted boxes. The length of the
-    last dimension should be at least 4 to represent the bounding boxes.
+    last dimension should be atleast 4 to represent the bounding boxes. This loss
+    uses IoUs according to box pairs and therefore, the number of boxes in both y_true
+    and y_pred are expected to be equal i.e. the i<sup>th</sup> y_true box in a batch
+    will be compared the i<sup>th</sup> y_pred box.
 
     Args:
         bounding_box_format: a case-insensitive string which is one of `"xyxy"`,
@@ -38,6 +41,8 @@ class IoULoss(tf.keras.losses.Loss):
             - `"squared"`. The loss will be calculated as 1 - iou<sup>2</sup>
             - `"log"`. The loss will be calculated as -ln(iou)
             Defaults to "log".
+        axis: the axis along which to mean the ious. Defaults to `None` which implies
+            mean across no axes.
 
     References:
         - [UnitBox paper](https://arxiv.org/pdf/1608.01471)
@@ -55,14 +60,15 @@ class IoULoss(tf.keras.losses.Loss):
     ```
     """
 
-    def __init__(self, bounding_box_format, mode="log", **kwargs):
+    def __init__(self, bounding_box_format, mode="log", axis=None, **kwargs):
         super().__init__(**kwargs)
         self.bounding_box_format = bounding_box_format
         self.mode = mode
+        self.axis = axis
 
-        if self.mode not in ["linear", "square", "log"]:
+        if self.mode not in ["linear", "squared", "log"]:
             raise ValueError(
-                "IoULoss expects mode to be one of 'linear', 'square' or 'log' "
+                "IoULoss expects mode to be one of 'linear', 'squared' or 'log' "
                 f"Received mode={self.mode}, "
             )
 
@@ -82,15 +88,26 @@ class IoULoss(tf.keras.losses.Loss):
                 f"the bounding boxes. Received y_true.shape[-1]={y_true.shape[-1]}."
             )
 
-        ious = bounding_box.compute_iou(y_true, y_pred, self.bounding_box_format)
-        mean_iou = tf.reduce_mean(ious, axis=[-2, -1])
+        if y_true.shape[-2] != y_pred.shape[-2]:
+            raise ValueError(
+                "IoULoss expects number of boxes in y_pred to be equal to the number "
+                f"of boxes in y_true. Received number of boxes in y_true={y_true.shape[-2]} "
+                f"and number of boxes in y_pred={y_pred.shape[-2]}."
+            )
+
+        iou = bounding_box.compute_iou(y_true, y_pred, self.bounding_box_format)
+        # pick out the diagonal for corresponding ious
+        iou = tf.linalg.diag_part(iou)
+
+        if self.axis is not None:
+            iou = tf.reduce_mean(iou, axis=self.axis)
 
         if self.mode == "linear":
-            loss = 1 - mean_iou
-        elif self.mode == "square":
-            loss = 1 - mean_iou**2
+            loss = 1 - iou
+        elif self.mode == "squared":
+            loss = 1 - iou**2
         elif self.mode == "log":
-            loss = -tf.math.log(mean_iou)
+            loss = -tf.math.log(iou)
 
         return loss
 
@@ -100,6 +117,7 @@ class IoULoss(tf.keras.losses.Loss):
             {
                 "bounding_box_format": self.bounding_box_format,
                 "mode": self.mode,
+                "axis": self.axis,
             }
         )
         return config
