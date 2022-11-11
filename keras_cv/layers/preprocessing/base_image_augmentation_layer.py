@@ -18,6 +18,7 @@ import tensorflow as tf
 
 from keras_cv import bounding_box
 from keras_cv.utils import preprocessing
+import functools
 
 # In order to support both unbatched and batched inputs, the horizontal
 # and verticle axis is reverse indexed
@@ -148,76 +149,34 @@ class BaseImageAugmentationLayer(tf.keras.__internal__.layers.BaseRandomLayer):
     def auto_vectorize(self, auto_vectorize):
         self._auto_vectorize = auto_vectorize
 
-    def compute_image_signature(self, images):
-        """Computes the output image signature for the `augment_image()` function.
-
-        Must be overridden to return tensors with different shapes than the input
-        images.  By default returns either a `tf.RaggedTensorSpec` matching the input
-        image spec, or a `tf.TensorSpec` matching the input image spec.
-        """
-        if self.force_output_dense_images:
-            return tf.TensorSpec(images.shape[1:], self.compute_dtype)
-        if self.force_output_ragged_images or isinstance(images, tf.RaggedTensor):
-            ragged_spec = tf.RaggedTensorSpec(
+    def _compute_image_signature(self, images):
+        if isinstance(images, tf.RaggedTensor):
+            return tf.RaggedTensorSpec(
                 shape=images.shape[1:],
-                ragged_rank=1,
                 dtype=self.compute_dtype,
             )
-            return ragged_spec
         return tf.TensorSpec(images.shape[1:], self.compute_dtype)
 
-    # TODO(lukewood): promote to user facing API if needed
     def _compute_bounding_box_signature(self, bounding_boxes):
-        ragged_spec = tf.RaggedTensorSpec(
+        return tf.RaggedTensorSpec(
             shape=[None, bounding_boxes.shape[2]],
-            ragged_rank=1,
-            dtype=self.compute_dtype,
+            dtype=bounding_boxes.dtype,
         )
-        return ragged_spec
-
-    # TODO(lukewood): promote to user facing API if needed
-    def _compute_keypoints_signature(self, keypoints):
-        if isinstance(keypoints, tf.RaggedTensor):
-            ragged_spec = tf.RaggedTensorSpec(
-                shape=keypoints.shape[1:],
-                ragged_rank=1,
-                dtype=self.compute_dtype,
-            )
-            return ragged_spec
-
-        return tf.TensorSpec(
-            shape=keypoints.shape[1:],
-            dtype=self.compute_dtype,
-        )
-
-    # TODO(lukewood): promote to user facing API if needed
-    def _compute_target_signature(self, targets):
-        return tf.TensorSpec(targets.shape[1:], self.compute_dtype)
 
     def _compute_output_signature(self, inputs):
-        fn_output_signature = {IMAGES: self.compute_image_signature(inputs[IMAGES])}
+        fn_output_signature = {IMAGES: self._compute_image_signature(inputs[IMAGES])}
         bounding_boxes = inputs.get(BOUNDING_BOXES, None)
 
-        if bounding_boxes is not None:
-            fn_output_signature[BOUNDING_BOXES] = self._compute_bounding_box_signature(
-                bounding_boxes
-            )
+        if bounding_boxes:
+            fn_output_signature[BOUNDING_BOXES] = self._compute_bounding_box_signature(bounding_boxes)
 
         segmentation_masks = inputs.get(SEGMENTATION_MASKS, None)
-        if segmentation_masks is not None:
-            fn_output_signature[SEGMENTATION_MASKS] = self.compute_image_signature(
-                segmentation_masks
-            )
+        if segmentation_masks:
+            fn_output_signature[SEGMENTATION_MASKS] = self._compute_image_signature(segmentation_masks)
 
-        keypoints = inputs.get(KEYPOINTS, None)
-        if keypoints is not None:
-            fn_output_signature[KEYPOINTS] = self._compute_keypoints_signature(
-                keypoints
-            )
-
-        labels = inputs.get(LABELS, None)
-        if labels is not None:
-            fn_output_signature[LABELS] = self._compute_target_signature(labels)
+        targets = inputs.get(TARGETS, None)
+        if targets:
+            fn_output_signature[targets] = self._compute_target_signature(targets)
 
         return fn_output_signature
 
@@ -237,9 +196,7 @@ class BaseImageAugmentationLayer(tf.keras.__internal__.layers.BaseRandomLayer):
             inputs: dictionary of inputs provided to map_fn.
         """
         if self._any_ragged(inputs):
-            return tf.map_fn(
-                func, inputs, fn_output_signature=self._compute_output_signature(inputs)
-            )
+            return tf.map_fn(func, inputs, fn_output_signature=self._compute_output_signature(inputs))
         if self.auto_vectorize:
             return tf.vectorized_map(func, inputs)
         return tf.map_fn(func, inputs)
