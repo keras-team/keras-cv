@@ -423,8 +423,8 @@ class StableDiffusion:
         """
         if self._image_encoder is None:
             self._image_encoder = ImageEncoder(self.img_height, self.img_width)
-            if self.jit_compile:
-                self._image_encoder.compile(jit_compile=True)
+        if self.jit_compile:
+            self._image_encoder.compile(jit_compile=True)
         return self._image_encoder
 
     @property
