@@ -18,7 +18,6 @@ import tensorflow as tf
 
 from keras_cv import bounding_box
 from keras_cv.utils import preprocessing
-import functools
 
 # In order to support both unbatched and batched inputs, the horizontal
 # and verticle axis is reverse indexed
@@ -170,7 +169,7 @@ class BaseImageAugmentationLayer(tf.keras.__internal__.layers.BaseRandomLayer):
 
         return tf.TensorSpec(
             shape=[None, bounding_boxes.shape[2]],
-                dtype=self.compute_dtype,
+            dtype=self.compute_dtype,
         )
 
     def _compute_keypoints_signature(self, keypoints):
@@ -195,15 +194,21 @@ class BaseImageAugmentationLayer(tf.keras.__internal__.layers.BaseRandomLayer):
         bounding_boxes = inputs.get(BOUNDING_BOXES, None)
 
         if bounding_boxes is not None:
-            fn_output_signature[BOUNDING_BOXES] = self._compute_bounding_box_signature(bounding_boxes)
+            fn_output_signature[BOUNDING_BOXES] = self._compute_bounding_box_signature(
+                bounding_boxes
+            )
 
         segmentation_masks = inputs.get(SEGMENTATION_MASKS, None)
         if segmentation_masks is not None:
-            fn_output_signature[SEGMENTATION_MASKS] = self._compute_image_signature(segmentation_masks)
+            fn_output_signature[SEGMENTATION_MASKS] = self._compute_image_signature(
+                segmentation_masks
+            )
 
         keypoints = inputs.get(KEYPOINTS, None)
         if keypoints is not None:
-            fn_output_signature[KEYPOINTS] = self._compute_keypoints_signature(keypoints)
+            fn_output_signature[KEYPOINTS] = self._compute_keypoints_signature(
+                keypoints
+            )
 
         targets = inputs.get(TARGETS, None)
         if targets is not None:
@@ -227,7 +232,9 @@ class BaseImageAugmentationLayer(tf.keras.__internal__.layers.BaseRandomLayer):
             inputs: dictionary of inputs provided to map_fn.
         """
         if self._any_ragged(inputs):
-            return tf.map_fn(func, inputs, fn_output_signature=self._compute_output_signature(inputs))
+            return tf.map_fn(
+                func, inputs, fn_output_signature=self._compute_output_signature(inputs)
+            )
         if self.auto_vectorize:
             return tf.vectorized_map(func, inputs)
         return tf.map_fn(func, inputs)
@@ -476,9 +483,7 @@ class BaseImageAugmentationLayer(tf.keras.__internal__.layers.BaseRandomLayer):
             )
 
         if BOUNDING_BOXES in inputs:
-            inputs[BOUNDING_BOXES] = self._format_bounding_boxes(
-                inputs[BOUNDING_BOXES]
-            )
+            inputs[BOUNDING_BOXES] = self._format_bounding_boxes(inputs[BOUNDING_BOXES])
 
         if isinstance(inputs, dict) and TARGETS in inputs:
             # TODO(scottzhu): Check if it only contains the valid keys

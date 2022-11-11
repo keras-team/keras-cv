@@ -37,12 +37,7 @@ class RandomFlipTest(tf.test.TestCase, parameterized.TestCase):
             self.assertAllClose(expected_output, actual_output)
 
     def test_flip_ragged(self):
-        inputs = tf.ragged.stack(
-            [
-                tf.ones((512, 512, 3)),
-                tf.ones((1002, 512, 3))
-            ]
-        )
+        inputs = tf.ragged.stack([tf.ones((512, 512, 3)), tf.ones((1002, 512, 3))])
         layer = RandomFlip(mode="horizontal")
         _ = layer(inputs)
 
