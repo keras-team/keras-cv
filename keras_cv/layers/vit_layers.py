@@ -67,6 +67,17 @@ class Patching(layers.Layer):
         Returns:
             `A tf.Tensor` of shape [batch, patch_num, patch_dims]
         """
+
+        if self.patch_size < 0:
+            raise ValueError(
+                f"The patch_size cannot be a negative number. Received {self.patch_size}"
+            )
+
+        if self.padding not in ["SAME", "VALID"]:
+            raise ValueError(
+                f"Padding must be either 'SAME' or 'VALID', but {self.padding} was passed."
+            )
+
         batch_size = tf.shape(images)[0]
         patches = tf.image.extract_patches(
             images=images,
@@ -75,15 +86,9 @@ class Patching(layers.Layer):
             rates=[1, 1, 1, 1],
             padding=self.padding,
         )
-        if self.padding not in ["SAME", "VALID"]:
-            raise ValueError(
-                f"Padding must be either 'SAME' or 'VALID', but {self.padding} was passed."
-            )
 
         patch_dims = patches.shape[-1]
-        patches = tf.reshape(
-            patches, [batch_size, patches.shape[-2] * patches.shape[-2], patch_dims]
-        )
+        patches = tf.reshape(patches, [batch_size, -1, patch_dims])
         return patches
 
     def get_config(self):
@@ -174,9 +179,8 @@ class PatchEmbedding(layers.Layer):
             interpolate_height,
             patch_size,
         ):
-            encoded = self.linear_projection(
-                patch
-            ) + self.__interpolate_positional_embeddings(
+            encoded = self.__interpolate_positional_embeddings(
+                patch,
                 self.position_embedding(positions),
                 interpolate_width,
                 interpolate_height,
@@ -194,7 +198,9 @@ class PatchEmbedding(layers.Layer):
             encoded = self.linear_projection(patch) + self.position_embedding(positions)
         return encoded
 
-    def __interpolate_positional_embeddings(self, embedding, height, width, patch_size):
+    def __interpolate_positional_embeddings(
+        self, patches, embedding, height, width, patch_size
+    ):
         """
         Allows for pre-trained position embedding interpolation. This trick allows you to fine-tune a ViT
         on higher resolution images than it was trained on.
@@ -227,10 +233,14 @@ class PatchEmbedding(layers.Layer):
             method="bicubic",
         )
 
-        interpolated_embeddings = tf.reshape(
+        reshaped_embeddings = tf.reshape(
             tensor=interpolated_embeddings, shape=(1, -1, dimensionality)
         )
-        return tf.concat([class_token, interpolated_embeddings], 1)
+
+        linear_projection = self.linear_projection(reshaped_embeddings)
+        addition = linear_projection + reshaped_embeddings
+
+        return tf.concat([class_token, addition], 1)
 
     def get_config(self):
         config = {
