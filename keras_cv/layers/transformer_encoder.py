@@ -61,7 +61,7 @@ class TransformerEncoder(layers.Layer):
         attention_dropout=0.1,
         activation="gelu",
         layer_norm_epsilon=1e-06,
-        **kwargs
+        **kwargs,
     ):
         super().__init__(**kwargs)
 
@@ -93,6 +93,11 @@ class TransformerEncoder(layers.Layer):
         Returns:
             `A tf.Tensor` of shape [batch, patch_num+1, embedding_dim]
         """
+
+        if inputs.shape[-1] != self.project_dim:
+            raise ValueError(
+                f"The input and output dimensionality must be the same, but the TransformerEncoder was provided with {inputs.shape[-1]} and {self.project_dim}"
+            )
 
         x1 = self.layer_norm1(inputs)
         attention_output = self.attn(x1, x1)
