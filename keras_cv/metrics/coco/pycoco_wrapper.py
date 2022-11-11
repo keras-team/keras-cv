@@ -15,14 +15,8 @@ import copy
 
 import numpy as np
 import tensorflow as tf
-
-try:
-    from pycocotools import coco
-    from pycocotools import cocoeval
-except ImportError:
-    print("Please install pycocotools to use the PyCoco metrics in KerasCV.")
-    coco = None
-    cocoeval = None
+from pycocotools.coco import COCO
+from pycocotools.cocoeval import COCOeval
 
 METRIC_NAMES = [
     "AP",
@@ -40,7 +34,7 @@ METRIC_NAMES = [
 ]
 
 
-class PyCOCOWrapper(coco.COCO):
+class PyCOCOWrapper(COCO):
     """COCO wrapper class.
     This class wraps COCO API object, which provides the following additional
     functionalities:
@@ -60,7 +54,7 @@ class PyCOCOWrapper(coco.COCO):
           gt_dataset: the groundtruth eval datatset in COCO API format.
         """
 
-        coco.COCO.__init__(self, annotation_file=None)
+        COCO.__init__(self, annotation_file=None)
         self._eval_type = "box"
         if gt_dataset:
             self.dataset = gt_dataset
@@ -78,7 +72,7 @@ class PyCOCOWrapper(coco.COCO):
           ValueError: if the set of image id from predictions is not the subset of
             the set of image id of the groundtruth dataset.
         """
-        res = coco.COCO()
+        res = COCO()
         res.dataset["images"] = copy.deepcopy(self.dataset["images"])
         res.dataset["categories"] = copy.deepcopy(self.dataset["categories"])
 
@@ -221,7 +215,7 @@ def compute_pycoco_metrics(groundtruths, predictions):
     coco_dt = coco_gt.loadRes(predictions=coco_predictions)
     image_ids = [ann["image_id"] for ann in coco_predictions]
 
-    coco_eval = cocoeval.COCOeval(coco_gt, coco_dt, iouType="bbox")
+    coco_eval = COCOeval(coco_gt, coco_dt, iouType="bbox")
     coco_eval.params.imgIds = image_ids
     coco_eval.evaluate()
     coco_eval.accumulate()
