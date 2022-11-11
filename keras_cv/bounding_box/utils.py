@@ -19,12 +19,13 @@ from keras_cv import bounding_box
 from keras_cv.bounding_box.formats import XYWH
 
 
-def _relative_area(bounding_boxes, bounding_box_format, images):
+def _relative_area(bounding_boxes, bounding_box_format, images, image_shape=None):
     bounding_boxes = bounding_box.convert_format(
         bounding_boxes,
         source=bounding_box_format,
         target="rel_xywh",
         images=images,
+        image_shape=image_shape
     )
     widths = bounding_boxes[..., XYWH.WIDTH]
     heights = bounding_boxes[..., XYWH.HEIGHT]
@@ -32,7 +33,7 @@ def _relative_area(bounding_boxes, bounding_box_format, images):
     return tf.where(tf.math.logical_and(widths > 0, heights > 0), widths * heights, 0.0)
 
 
-def clip_to_image(bounding_boxes, images, bounding_box_format):
+def clip_to_image(bounding_boxes, images, bounding_box_format, image_shape=None):
     """clips bounding boxes to image boundaries.
 
     `clip_to_image()` clips bounding boxes that have coordinates out of bounds of an
@@ -57,8 +58,9 @@ def clip_to_image(bounding_boxes, images, bounding_box_format):
         source=bounding_box_format,
         target="rel_xyxy",
         images=images,
+        image_shape=image_shape
     )
-    bounding_boxes, images, squeeze = _format_inputs(bounding_boxes, images)
+    bounding_boxes, images, squeeze = _format_inputs(bounding_boxes, images, image_shape)
     x1, y1, x2, y2, rest = tf.split(
         bounding_boxes, [1, 1, 1, 1, bounding_boxes.shape[-1] - 4], axis=-1
     )
@@ -73,13 +75,14 @@ def clip_to_image(bounding_boxes, images, bounding_box_format):
         axis=-1,
     )
     areas = _relative_area(
-        clipped_bounding_boxes, bounding_box_format="rel_xyxy", images=images
+        clipped_bounding_boxes, bounding_box_format="rel_xyxy", images=images, image_shape=image_shape
     )
     clipped_bounding_boxes = bounding_box.convert_format(
         clipped_bounding_boxes,
         source="rel_xyxy",
         target=bounding_box_format,
         images=images,
+        image_shape=image_shape
     )
     clipped_bounding_boxes = tf.where(
         tf.expand_dims(areas > 0.0, axis=-1), clipped_bounding_boxes, -1.0
@@ -112,7 +115,7 @@ def _clip_boxes(boxes, box_format, image_shape):
     return clipped_boxes
 
 
-def _format_inputs(boxes, images):
+def _format_inputs(boxes, images, image_shape):
     boxes_rank = len(boxes.shape)
     if boxes_rank > 3:
         raise ValueError(
@@ -138,6 +141,13 @@ def _format_inputs(boxes, images):
             )
         if not images_include_batch:
             images = tf.expand_dims(images, axis=0)
+
+    if image_shape is not None:
+        if len(image_shape) < 2 or len(image_shape) > 3:
+            raise ValueError(
+                "Expected len(image_shape)=2 or len(image_shape)=3, got"
+                f"len(image_shape)={len(image_shape)}"
+            )
 
     if not boxes_includes_batch:
         return tf.expand_dims(boxes, axis=0), images, True
