@@ -260,6 +260,7 @@ class RandomCropAndResize(BaseImageAugmentationLayer):
                 "crop_area_factor": self.crop_area_factor,
                 "aspect_ratio_factor": self.aspect_ratio_factor,
                 "interpolation": self.interpolation,
+                "bounding_box_format": self.bounding_box_format,
                 "seed": self.seed,
             }
         )
