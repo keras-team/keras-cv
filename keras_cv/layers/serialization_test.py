@@ -89,6 +89,7 @@ class SerializationTest(tf.test.TestCase, parameterized.TestCase):
     @parameterized.named_parameters(
         ("Augmenter", cv_layers.Augmenter, {"layers": [cv_layers.Grayscale()]}),
         ("AutoContrast", cv_layers.AutoContrast, {"value_range": (0, 255)}),
+        ("CenterCrop", cv_layers.CenterCrop, {"height": 224, "width": 224}),
         ("ChannelShuffle", cv_layers.ChannelShuffle, {"seed": 1}),
         ("CutMix", cv_layers.CutMix, {"seed": 1}),
         ("Equalization", cv_layers.Equalization, {"value_range": (0, 255)}),

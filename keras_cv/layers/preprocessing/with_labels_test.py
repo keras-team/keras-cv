@@ -18,6 +18,7 @@ from keras_cv import layers
 
 TEST_CONFIGURATIONS = [
     ("AutoContrast", layers.AutoContrast, {"value_range": (0, 255)}),
+    ("CenterCrop", layers.CenterCrop, {"height": 224, "width": 224}),
     ("ChannelShuffle", layers.ChannelShuffle, {}),
     ("Equalization", layers.Equalization, {"value_range": (0, 255)}),
     (
