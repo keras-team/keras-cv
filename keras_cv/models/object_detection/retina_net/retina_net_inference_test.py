@@ -35,6 +35,7 @@ class RetinaNetTest(tf.test.TestCase):
         yield
         # Reset soft device placement to not interfere with other unit test files
         tf.config.set_soft_device_placement(True)
+        # Clear global session to prevent OOM between test runs
         tf.keras.backend.clear_session()
 
     def test_weight_setting(self):
