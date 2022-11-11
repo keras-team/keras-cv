@@ -38,13 +38,11 @@ class ViTLayersTest(tf.test.TestCase):
             layer(inputs)
 
     def test_patching_wrong_padding(self):
-        layer = Patching(patch_size=16, padding="REFLECT")
-        inputs = tf.random.normal([1, 224, 224, 3])
         with self.assertRaisesRegexp(
             ValueError,
             "Padding must be either 'SAME' or 'VALID', but REFLECT was passed.",
         ):
-            layer(inputs)
+            Patching(patch_size=16, padding="REFLECT")
 
     def test_patch_embedding_return_type_and_shape(self):
         layer = PatchEmbedding(project_dim=128)

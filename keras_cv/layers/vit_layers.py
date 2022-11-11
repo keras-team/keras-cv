@@ -59,6 +59,11 @@ class Patching(layers.Layer):
         self.patch_size = patch_size
         self.padding = padding
 
+        if self.padding not in ["SAME", "VALID"]:
+            raise ValueError(
+                f"Padding must be either 'SAME' or 'VALID', but {self.padding} was passed."
+            )
+
     def call(self, images):
         """Calls the Patching layer on a batch of images.
         Args:
@@ -71,11 +76,6 @@ class Patching(layers.Layer):
         if self.patch_size < 0:
             raise ValueError(
                 f"The patch_size cannot be a negative number. Received {self.patch_size}"
-            )
-
-        if self.padding not in ["SAME", "VALID"]:
-            raise ValueError(
-                f"Padding must be either 'SAME' or 'VALID', but {self.padding} was passed."
             )
 
         batch_size = tf.shape(images)[0]
@@ -180,7 +180,6 @@ class PatchEmbedding(layers.Layer):
             patch_size,
         ):
             encoded = self.__interpolate_positional_embeddings(
-                patch,
                 self.position_embedding(positions),
                 interpolate_width,
                 interpolate_height,
@@ -198,9 +197,7 @@ class PatchEmbedding(layers.Layer):
             encoded = self.linear_projection(patch) + self.position_embedding(positions)
         return encoded
 
-    def __interpolate_positional_embeddings(
-        self, patches, embedding, height, width, patch_size
-    ):
+    def __interpolate_positional_embeddings(self, embedding, height, width, patch_size):
         """
         Allows for pre-trained position embedding interpolation. This trick allows you to fine-tune a ViT
         on higher resolution images than it was trained on.
