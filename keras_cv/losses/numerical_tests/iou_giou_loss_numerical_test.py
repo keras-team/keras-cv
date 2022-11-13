@@ -12,9 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import tensorflow as tf
-import keras_cv
 import numpy as np
+import tensorflow as tf
+
+import keras_cv
 
 
 def tf_calculate_giou(b1, b2, mode: str = "giou") -> tf.Tensor:
@@ -61,6 +62,7 @@ def tf_calculate_giou(b1, b2, mode: str = "giou") -> tf.Tensor:
     giou = iou - tf.math.divide_no_nan((enclose_area - union_area), enclose_area)
     return giou
 
+
 def tf_addons_giou_loss(y_true, y_pred, mode: str = "giou") -> tf.Tensor:
     """Implements the GIoU loss function.
     GIoU loss was first introduced in the
@@ -87,6 +89,7 @@ def tf_addons_giou_loss(y_true, y_pred, mode: str = "giou") -> tf.Tensor:
 
     return 1 - giou
 
+
 class IoULossAddonsComparisonTest(tf.test.TestCase):
     def test_iou_output_value(self):
         y_true = np.array(
@@ -107,8 +110,16 @@ class IoULossAddonsComparisonTest(tf.test.TestCase):
             ]
         )
 
-        iou_loss = keras_cv.losses.IoULoss(bounding_box_format="yxyx", mode="linear", reduction="none", axis="no_reduction")
-        self.assertAllClose(iou_loss(y_true, y_pred), tf_addons_giou_loss(y_true[:, :4], y_pred[:, :4], mode="iou"))
+        iou_loss = keras_cv.losses.IoULoss(
+            bounding_box_format="yxyx",
+            mode="linear",
+            reduction="none",
+            axis="no_reduction",
+        )
+        self.assertAllClose(
+            iou_loss(y_true, y_pred),
+            tf_addons_giou_loss(y_true[:, :4], y_pred[:, :4], mode="iou"),
+        )
 
     def test_giou_output_value(self):
         y_true = np.array(
@@ -129,5 +140,9 @@ class IoULossAddonsComparisonTest(tf.test.TestCase):
             ]
         )
 
-        giou_loss = keras_cv.losses.GIoULoss(bounding_box_format="yxyx", reduction="none", axis="no_reduction")
-        self.assertAllClose(giou_loss(y_true, y_pred), tf_addons_giou_loss(y_true[:, :4], y_pred[:, :4]))
+        giou_loss = keras_cv.losses.GIoULoss(
+            bounding_box_format="yxyx", reduction="none", axis="no_reduction"
+        )
+        self.assertAllClose(
+            giou_loss(y_true, y_pred), tf_addons_giou_loss(y_true[:, :4], y_pred[:, :4])
+        )
