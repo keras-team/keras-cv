@@ -22,7 +22,7 @@ class GIoUTest(tf.test.TestCase):
         y_true = tf.random.uniform(shape=(2, 2, 4), minval=0, maxval=10, dtype=tf.int32)
         y_pred = tf.random.uniform(shape=(2, 2, 4), minval=0, maxval=20, dtype=tf.int32)
 
-        giou_loss = GIoULoss(bounding_box_format="xywh", axis=-1)
+        giou_loss = GIoULoss(bounding_box_format="xywh")
 
         self.assertAllEqual(giou_loss(y_true, y_pred).shape, ())
 
@@ -30,7 +30,7 @@ class GIoUTest(tf.test.TestCase):
         y_true = tf.random.uniform(shape=(2, 2, 4), minval=0, maxval=10, dtype=tf.int32)
         y_pred = tf.random.uniform(shape=(2, 2, 4), minval=0, maxval=20, dtype=tf.int32)
 
-        giou_loss = GIoULoss(bounding_box_format="xywh", reduction="none", axis=-1)
+        giou_loss = GIoULoss(bounding_box_format="xywh", reduction="none")
 
         self.assertAllEqual(
             giou_loss(y_true, y_pred).shape,
@@ -54,6 +54,6 @@ class GIoUTest(tf.test.TestCase):
             [0.2, 0.1, 0.3, 0.3, 7, 0.48],
         ]
 
-        giou_loss = GIoULoss(bounding_box_format="rel_xyxy", axis=-1)
+        giou_loss = GIoULoss(bounding_box_format="rel_xyxy")
 
         self.assertAllEqual(giou_loss(y_true, y_pred).shape, ())

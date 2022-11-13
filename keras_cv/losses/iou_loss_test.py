@@ -22,7 +22,7 @@ class IoUTest(tf.test.TestCase):
         y_true = tf.random.uniform(shape=(2, 2, 4), minval=0, maxval=10, dtype=tf.int32)
         y_pred = tf.random.uniform(shape=(2, 2, 4), minval=0, maxval=20, dtype=tf.int32)
 
-        iou_loss = IoULoss(bounding_box_format="xywh", axis=-1)
+        iou_loss = IoULoss(bounding_box_format="xywh")
 
         self.assertAllEqual(iou_loss(y_true, y_pred).shape, ())
 
@@ -30,7 +30,7 @@ class IoUTest(tf.test.TestCase):
         y_true = tf.random.uniform(shape=(2, 2, 4), minval=0, maxval=10, dtype=tf.int32)
         y_pred = tf.random.uniform(shape=(2, 2, 4), minval=0, maxval=20, dtype=tf.int32)
 
-        iou_loss = IoULoss(bounding_box_format="xywh", axis=-1, reduction="none")
+        iou_loss = IoULoss(bounding_box_format="xywh", reduction="none")
 
         self.assertAllEqual(
             iou_loss(y_true, y_pred).shape,
@@ -54,7 +54,7 @@ class IoUTest(tf.test.TestCase):
             [0.2, 0.1, 0.3, 0.3],
         ]
 
-        iou_loss = IoULoss(bounding_box_format="rel_xyxy", axis=-1)
+        iou_loss = IoULoss(bounding_box_format="rel_xyxy")
 
         self.assertAllEqual(iou_loss(y_true, y_pred).shape, ())
 

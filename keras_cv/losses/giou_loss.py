@@ -34,8 +34,8 @@ class GIoULoss(tf.keras.losses.Loss):
             these 4 values but these values will be ignored while calculating
             this loss. For detailed information on the supported formats, see the
             [KerasCV bounding box documentation](https://keras.io/api/keras_cv/bounding_box/formats/).
-        axis: the axis along which to mean the ious. Defaults to `None` which implies
-            mean across no axes.
+        axis: the axis along which to mean the ious. Passing the string "no_reduction" implies
+            mean across no axes. Defaults to -1.
 
     References:
         - [GIoU paper](https://arxiv.org/pdf/1902.09630)
@@ -53,7 +53,7 @@ class GIoULoss(tf.keras.losses.Loss):
     ```
     """
 
-    def __init__(self, bounding_box_format, axis=None, **kwargs):
+    def __init__(self, bounding_box_format, axis=-1, **kwargs):
         super().__init__(**kwargs)
         self.bounding_box_format = bounding_box_format
         self.axis = axis
@@ -135,7 +135,7 @@ class GIoULoss(tf.keras.losses.Loss):
         y_true = tf.cast(y_true, y_pred.dtype)
 
         giou = self._compute_giou(y_true, y_pred)
-        if self.axis is not None:
+        if self.axis != "no_reduction":
             giou = tf.reduce_mean(giou, axis=self.axis)
 
         return 1 - giou

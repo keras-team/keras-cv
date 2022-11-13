@@ -41,8 +41,8 @@ class IoULoss(tf.keras.losses.Loss):
             - `"squared"`. The loss will be calculated as 1 - iou<sup>2</sup>
             - `"log"`. The loss will be calculated as -ln(iou)
             Defaults to "log".
-        axis: the axis along which to mean the ious. Defaults to `None` which implies
-            mean across no axes.
+        axis: the axis along which to mean the ious. Passing the string "no_reduction" implies
+            mean across no axes. Defaults to -1.
 
     References:
         - [UnitBox paper](https://arxiv.org/pdf/1608.01471)
@@ -60,7 +60,7 @@ class IoULoss(tf.keras.losses.Loss):
     ```
     """
 
-    def __init__(self, bounding_box_format, mode="log", axis=None, **kwargs):
+    def __init__(self, bounding_box_format, mode="log", axis=-1, **kwargs):
         super().__init__(**kwargs)
         self.bounding_box_format = bounding_box_format
         self.mode = mode
@@ -99,7 +99,7 @@ class IoULoss(tf.keras.losses.Loss):
         # pick out the diagonal for corresponding ious
         iou = tf.linalg.diag_part(iou)
 
-        if self.axis is not None:
+        if self.axis != "no_reduction":
             iou = tf.reduce_mean(iou, axis=self.axis)
 
         if self.mode == "linear":
