@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import pytest
 import tensorflow as tf
 
 import keras_cv
@@ -21,6 +22,12 @@ from keras_cv.models.object_detection.__test_utils__ import _create_bounding_box
 
 
 class PyCOCOCallbackTest(tf.test.TestCase):
+    @pytest.fixture(autouse=True)
+    def cleanup_global_session(self):
+        # Code before yield runs before the test
+        yield
+        tf.keras.backend.clear_session()
+
     def test_model_fit_retinanet(self):
         model = keras_cv.models.RetinaNet(
             classes=10,
