@@ -18,9 +18,10 @@ from absl.testing import parameterized
 
 from keras_cv import ops
 
+
 class AngleTest(tf.test.TestCase):
     def test_wrap_angle_rad(self):
-        self.assertAllClose(-np.pi+0.1, ops.point_cloud.wrap_angle_rad(np.pi+0.1))
+        self.assertAllClose(-np.pi + 0.1, ops.point_cloud.wrap_angle_rad(np.pi + 0.1))
         self.assertAllClose(0.0, ops.point_cloud.wrap_angle_rad(2 * np.pi))
 
 

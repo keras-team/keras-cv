@@ -1,4 +1,3 @@
-
 # Copyright 2022 The KerasCV Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,40 +17,40 @@ import tensorflow as tf
 from keras_cv.layers.preprocessing3d.base_augmentation_layer_3d import (
     BaseAugmentationLayer3D,
 )
-from keras_cv.ops.point_cloud import coordinate_transform, wrap_angle_rad
-
+from keras_cv.ops.point_cloud import coordinate_transform
+from keras_cv.ops.point_cloud import wrap_angle_rad
 
 POINT_CLOUDS = "point_clouds"
 BOUNDING_BOXES = "bounding_boxes"
+
 
 class GlobalZRotation(BaseAugmentationLayer3D):
     """A preprocessing layer which randomly rotates point clouds and bounding boxes along
     Z axis during training.
 
-    This layer will randomly rotate the whole scene along the Z axis based on a randomly sampled 
+    This layer will randomly rotate the whole scene along the Z axis based on a randomly sampled
     rotation angle between [-max_rotation_angle, max_rotation_angle] following a uniform distribution.
     During inference time, the output will be identical to input. Call the layer with `training=True` to rotate the input.
 
     Input shape:
-      point_clouds: 2D (single frame) or 3D (multi frames) float32 Tensor with shape 
-        [..., num of points, num of point features]. 
+      point_clouds: 2D (single frame) or 3D (multi frames) float32 Tensor with shape
+        [..., num of points, num of point features].
         The first 5 features are [x, y, z, class, range].
       bounding_boxes: 2D (single frame) or 3D (multi frames) float32 Tensor with shape
-        [..., num of boxes, num of box features]. 
+        [..., num of boxes, num of box features].
         The first 7 features are [x, y, z, dx, dy, dz, phi].
-    
+
     Output shape:
       A tuple of two Tensors (point_clouds, bounding_boxes) with the same shape as input Tensors.
 
     Arguments:
-      max_rotation_angle: A float scaler or Tensor sets the maximum rotation angle. 
+      max_rotation_angle: A float scaler or Tensor sets the maximum rotation angle.
     """
+
     def __init__(self, max_rotation_angle, **kwargs):
         super().__init__(**kwargs)
-        if max_rotation_angle<0:
-            raise ValueError(
-                "max_rotation_angle must be >=0."
-            )
+        if max_rotation_angle < 0:
+            raise ValueError("max_rotation_angle must be >=0.")
         self._max_rotation_angle = max_rotation_angle
 
     def get_random_transformation(self, **kwargs):
@@ -66,11 +65,17 @@ class GlobalZRotation(BaseAugmentationLayer3D):
         pose = transformation["pose"]
         point_clouds_xyz = coordinate_transform(point_clouds[..., :3], pose)
         point_clouds = tf.concat([point_clouds_xyz, point_clouds[..., 3:]], axis=-1)
-        
+
         bounding_boxes_xyz = coordinate_transform(bounding_boxes[..., :3], pose)
         bounding_boxes_heading = wrap_angle_rad(bounding_boxes[..., 6:7] - pose[3])
-        bounding_boxes = tf.concat([
-            bounding_boxes_xyz, bounding_boxes[..., 3:6], 
-            bounding_boxes_heading, bounding_boxes[..., 7:]], axis=-1)
+        bounding_boxes = tf.concat(
+            [
+                bounding_boxes_xyz,
+                bounding_boxes[..., 3:6],
+                bounding_boxes_heading,
+                bounding_boxes[..., 7:],
+            ],
+            axis=-1,
+        )
 
         return (point_clouds, bounding_boxes)

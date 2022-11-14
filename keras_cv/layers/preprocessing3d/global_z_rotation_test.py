@@ -16,13 +16,11 @@ import tensorflow as tf
 
 from keras_cv.layers.preprocessing3d.global_z_rotation import GlobalZRotation
 
-
 POINT_CLOUDS = "point_clouds"
 BOUNDING_BOXES = "bounding_boxes"
 
 
 class GlobalZRotationTest(tf.test.TestCase):
-
     def test_augment_point_clouds_and_bounding_boxes(self):
         add_layer = GlobalZRotation(max_rotation_angle=1.0)
         point_clouds = np.random.random(size=(2, 50, 10)).astype("float32")
