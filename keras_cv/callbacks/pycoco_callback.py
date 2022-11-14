@@ -20,8 +20,9 @@ from keras_cv.metrics.coco import compute_pycoco_metrics
 
 
 class PyCOCOCallback(Callback):
-    def __init__(self, bounding_box_format):
+    def __init__(self, validation_data, bounding_box_format):
         self.model = None
+        self.validation_data = validation_data
         self.bounding_box_format = bounding_box_format
         super().__init__()
 
@@ -31,11 +32,10 @@ class PyCOCOCallback(Callback):
     def on_epoch_end(self, epoch, logs=None):
         logs = logs or {}
 
-        dataset = self.model._eval_data_handler._dataset
         gt = {}
         preds = {}
 
-        for i, batch in enumerate(dataset):
+        for i, batch in enumerate(self.validation_data):
             gt_i, preds_i = self._eval_batch(batch, i)
 
             for k, v in six.iteritems(preds_i):
