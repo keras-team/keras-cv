@@ -18,8 +18,8 @@ from keras_cv.layers.preprocessing3d.base_augmentation_layer_3d import (
     BaseAugmentationLayer3D,
 )
 
-POINT_CLOUDS = BaseAugmentationLayer3D.POINT_CLOUDS
-BOUNDING_BOXES = BaseAugmentationLayer3D.BOUNDING_BOXES
+POINT_CLOUDS = "point_clouds"
+BOUNDING_BOXES = "bounding_boxes"
 
 
 class RandomAddLayer(BaseAugmentationLayer3D):
