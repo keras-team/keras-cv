@@ -151,14 +151,17 @@ class BaseImageAugmentationLayerTest(tf.test.TestCase):
                 "segmentation_masks": segmentation_mask,
             }
         )
-
         expected_output = {
             "images": images + 2.0,
-            "bounding_boxes": bounding_boxes + 2.0,
+            "bounding_boxes": tf.ragged.constant(bounding_boxes + 2.0),
             "keypoints": keypoints + 2.0,
             "segmentation_masks": segmentation_mask + 2.0,
         }
-        self.assertAllClose(output, expected_output)
+
+        self.assertAllClose(output['images'], expected_output['images'])
+        self.assertAllClose(output['keypoints'], expected_output['keypoints'])
+        self.assertAllClose(output['bounding_boxes'].to_tensor(-1), expected_output['bounding_boxes'].to_tensor(-1))
+        self.assertAllClose(output['segmentation_masks'], expected_output['segmentation_masks'])
 
     def test_augment_batch_image_and_localization_data(self):
         add_layer = RandomAddLayer()
