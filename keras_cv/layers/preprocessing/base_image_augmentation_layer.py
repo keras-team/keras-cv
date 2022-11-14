@@ -159,18 +159,12 @@ class BaseImageAugmentationLayer(tf.keras.__internal__.layers.BaseRandomLayer):
         return tf.TensorSpec(images.shape[1:], self.compute_dtype)
 
     def _compute_bounding_box_signature(self, bounding_boxes):
-        if isinstance(bounding_boxes, tf.RaggedTensor):
-            ragged_spec = tf.RaggedTensorSpec(
-                shape=[None, bounding_boxes.shape[2]],
-                ragged_rank=1,
-                dtype=self.compute_dtype,
-            )
-            return ragged_spec
-
-        return tf.TensorSpec(
+        ragged_spec = tf.RaggedTensorSpec(
             shape=[None, bounding_boxes.shape[2]],
+            ragged_rank=1,
             dtype=self.compute_dtype,
         )
+        return ragged_spec
 
     def _compute_keypoints_signature(self, keypoints):
         if isinstance(keypoints, tf.RaggedTensor):
