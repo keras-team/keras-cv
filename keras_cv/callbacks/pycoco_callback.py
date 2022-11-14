@@ -22,12 +22,9 @@ from keras_cv.metrics.coco import compute_pycoco_metrics
 class PyCOCOCallback(Callback):
     def __init__(self, validation_data, bounding_box_format):
         self.model = None
-        self.validation_data = validation_data
+        self.val_data = validation_data
         self.bounding_box_format = bounding_box_format
         super().__init__()
-
-    def set_model(self, model):
-        self.model = model
 
     def on_epoch_end(self, epoch, logs=None):
         logs = logs or {}
@@ -35,7 +32,7 @@ class PyCOCOCallback(Callback):
         gt = {}
         preds = {}
 
-        for i, batch in enumerate(self.validation_data):
+        for i, batch in enumerate(self.val_data):
             gt_i, preds_i = self._eval_batch(batch, i)
 
             for k, v in six.iteritems(preds_i):
@@ -57,7 +54,9 @@ class PyCOCOCallback(Callback):
         logs.update(metrics)
 
     def _eval_batch(self, batch, index):
-        images, gt_boxes = batch
+        images, y = batch
+        gt_boxes = y["gt_boxes"]
+        gt_classes = y["gt_classes"]
         batch_size = images.shape[0]
         height = images.shape[1]
         width = images.shape[2]
@@ -65,9 +64,6 @@ class PyCOCOCallback(Callback):
         gt_boxes = bounding_box.convert_format(
             gt_boxes, source=self.bounding_box_format, target="yxyx"
         )
-
-        gt_classes = gt_boxes[:, :, 4]
-        gt_boxes = gt_boxes[:, :, :4]
 
         source_ids = tf.strings.join(
             [
