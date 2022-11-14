@@ -22,7 +22,6 @@ from keras_cv.models.object_detection.__test_utils__ import _create_bounding_box
 
 class PyCOCOCallbackTest(tf.test.TestCase):
     def test_model_fit_retinanet(self):
-        tf.config.set_visible_devices([], "GPU")
         model = keras_cv.models.RetinaNet(
             classes=10,
             bounding_box_format="xywh",
