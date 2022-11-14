@@ -181,12 +181,20 @@ class PatchEmbedding(layers.Layer):
             interpolate_height,
             patch_size,
         ):
-            encoded = self.__interpolate_positional_embeddings(
+            (
+                interpolated_embeddings,
+                class_token,
+            ) = self.__interpolate_positional_embeddings(
                 self.position_embedding(positions),
                 interpolate_width,
                 interpolate_height,
                 patch_size,
             )
+            addition = (
+                self.linear_projection(interpolated_embeddings)
+                + interpolated_embeddings
+            )
+            encoded = tf.concat([class_token, addition], 1)
         elif interpolate and None in (
             interpolate_width,
             interpolate_height,
@@ -236,10 +244,11 @@ class PatchEmbedding(layers.Layer):
             tensor=interpolated_embeddings, shape=(1, -1, dimensionality)
         )
 
-        linear_projection = self.linear_projection(reshaped_embeddings)
-        addition = linear_projection + reshaped_embeddings
+        # linear_projection = self.linear_projection(reshaped_embeddings)
+        # addition = linear_projection + reshaped_embeddings
 
-        return tf.concat([class_token, addition], 1)
+        # return tf.concat([class_token, addition], 1)
+        return reshaped_embeddings, class_token
 
     def get_config(self):
         config = {

@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import numpy as np
 import tensorflow as tf
 
 from keras_cv.layers.vit_layers import PatchEmbedding
@@ -53,17 +54,61 @@ class ViTLayersTest(tf.test.TestCase):
         self.assertEquals(output.shape, [1, 197, 128])
 
     def test_patch_embedding_interpolation(self):
-        inputs = tf.random.normal([1, 196, 768])
-        layer = PatchEmbedding(project_dim=128)
+        inputs = tf.ones([1, 625, 432])
+        patch_embedding = PatchEmbedding(project_dim=128)
+        patch_embedding.build(inputs.shape)
 
-        output = layer(
-            patch=inputs,
-            interpolate=True,
-            interpolate_width=300,
-            interpolate_height=300,
-            patch_size=12,
+        positional_embeddings = tf.ones([626, 128])
+        (
+            output,
+            cls,
+        ) = patch_embedding._PatchEmbedding__interpolate_positional_embeddings(
+            positional_embeddings, height=450, width=450, patch_size=12
         )
 
         self.assertTrue(isinstance(output, tf.Tensor))
         self.assertLen(output, 1)
-        self.assertEquals(output.shape, [1, 626, 128])
+        self.assertEquals(output.shape, [1, 1369, 128])
+
+    def test_patch_embedding_interpolation_numerical(self):
+        inputs = tf.ones([1, 16, 3])
+        patch_embedding = PatchEmbedding(project_dim=4)
+        patch_embedding.build(inputs.shape)
+
+        positional_embeddings = tf.ones([17, 4])
+        (
+            output,
+            cls_token,
+        ) = patch_embedding._PatchEmbedding__interpolate_positional_embeddings(
+            positional_embeddings, height=8, width=8, patch_size=2
+        )
+
+        self.assertTrue(tf.reduce_all(tf.equal(output, tf.ones([1, 16, 4]))).numpy())
+
+    def test_patching_numerical(self):
+        layer = Patching(patch_size=1)
+        input_img = np.array(
+            [
+                [
+                    [[1.0, 20.0, 30.0], [40.0, 50.0, 60.0]],
+                    [[70.0, 80.0, 90.0], [100.0, 110.0, 120.0]],
+                ]
+            ]
+        )
+
+        input_img = tf.convert_to_tensor(input_img)
+        output = layer(input_img)
+
+        expected_output = np.array(
+            [
+                [
+                    [1.0, 20.0, 30.0],
+                    [40.0, 50.0, 60.0],
+                    [70.0, 80.0, 90.0],
+                    [100.0, 110.0, 120.0],
+                ]
+            ]
+        )
+
+        expected_output = tf.convert_to_tensor(expected_output, dtype=tf.float32)
+        self.assertTrue(tf.reduce_all(tf.equal(output, expected_output)).numpy())
