@@ -46,7 +46,14 @@ setup(
     install_requires=["packaging", "absl-py", "regex"],
     python_requires=">=3.7",
     extras_require={
-        "tests": ["flake8", "isort", "black", "pytest", "tensorflow-datasets", "pycocotools"],
+        "tests": [
+            "flake8",
+            "isort",
+            "black",
+            "pytest",
+            "tensorflow-datasets",
+            "pycocotools",
+        ],
         "examples": ["tensorflow_datasets", "matplotlib"],
     },
     distclass=BinaryDistribution,
