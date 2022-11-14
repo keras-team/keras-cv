@@ -18,6 +18,8 @@ from absl.testing import parameterized
 
 from keras_cv import core
 from keras_cv import layers as cv_layers
+from keras_cv.layers.vit_layers import PatchEmbedding
+from keras_cv.layers.vit_layers import Patching
 from keras_cv.models.segmentation.__internal__ import SegmentationHead
 
 
@@ -287,6 +289,29 @@ class SerializationTest(tf.test.TestCase, parameterized.TestCase):
                 "num_channels": 256,
                 "activation": "relu",
                 "dropout": 0.1,
+            },
+        ),
+        (
+            "Patching",
+            Patching,
+            {
+                "padding": "VALID",
+                "patch_size": 16,
+            },
+        ),
+        ("PatchEmbedding", PatchEmbedding, {"project_dim": 128}),
+        (
+            "TransformerEncoder",
+            cv_layers.TransformerEncoder,
+            {
+                "project_dim": 128,
+                "num_heads": 2,
+                "intermediate_dim": 128,
+                "mlp_dim": 128,
+                "mlp_dropout": 0.1,
+                "attention_dropout": 0.1,
+                "activation": "gelu",
+                "layer_norm_epsilon": 1e-06,
             },
         ),
     )
