@@ -13,11 +13,15 @@
 # limitations under the License.
 
 import tensorflow as tf
-
+import numpy as np
 
 def get_rank(tensor):
     return tensor.shape.ndims or tf.rank(tensor)
 
+def wrap_angle_rad(angles_rad, min_val=-np.pi, max_val=np.pi):
+  """Wrap the value of `angles_rad` to the range [min_val, max_val]."""
+  max_min_diff = max_val - min_val
+  return min_val + tf.math.floormod(angles_rad + max_val, max_min_diff)
 
 def _get_3d_rotation_matrix(yaw, roll, pitch):
     """Creates 3x3 rotation matrix from yaw, roll, pitch (angles in radians).
