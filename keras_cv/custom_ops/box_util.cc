@@ -335,7 +335,7 @@ std::vector<Vertex> ParseVerticesFromTensor(const Tensor& points_tensor) {
 // return points_size means all elements are < val
 int binary_search_first(double val, std::vector<double>& points) {
   size_t points_size = points.size();
-  size_t lower = 0, upper = points_size;
+  int lower = 0, upper = points_size;
   while (lower < upper) {
     int mid = (lower + upper) / 2;
     if (mid == points_size) return mid;
@@ -351,13 +351,14 @@ int binary_search_first(double val, std::vector<double>& points) {
 // return -1 means all elements > val
 int binary_search_last(double val, std::vector<double>& points) {
   size_t points_size = points.size();
-  size_t lower = -1, upper = points_size - 1;
+  int lower = -1, upper = points_size - 1;
   while (lower < upper) {
     int mid = (lower + upper) / 2;
     if (mid < 0) return mid;
     double mid_val = points[mid];
     if (mid_val > val) upper = mid - 1;
-    else lower = mid;
+    else if (points[mid + 1] > val) return mid;
+    else lower = mid + 1;
   }
   return lower;
 }

@@ -13,6 +13,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
+#define EIGEN_USE_THREADS
+
 #include "keras_cv/custom_ops/box_util.h"
 #include "tensorflow/core/framework/op_kernel.h"
 #include "tensorflow/core/framework/tensor.h"
@@ -20,6 +22,9 @@ limitations under the License.
 #include "tensorflow/core/lib/core/errors.h"
 
 namespace tensorflow {
+
+typedef Eigen::ThreadPoolDevice CPUDevice;
+
 namespace kerascv {
 
 class WithinBoxOp : public OpKernel {
@@ -60,28 +65,58 @@ class WithinBoxOp : public OpKernel {
     }
     std::vector<int> points_x_min = box::GetMinXIndexFromBoxes(boxes_vec, sorted_points_x);
     std::vector<int> points_x_max = box::GetMaxXIndexFromBoxes(boxes_vec, sorted_points_x);
-    std::vector<std::unordered_set<int>> points_x_indices;
-    for (auto i = 0; i < num_boxes; ++i) {
-      std::unordered_set<int> p_set;
-      int p_start = points_x_min[i];
-      int p_end = points_x_max[i];
-      for (auto p_idx = p_start; p_idx <= p_end; ++p_idx) {
-        p_set.insert(p_indices_x[p_idx]);
+    std::vector<std::unordered_set<int>> points_x_indices(num_boxes);
+    auto set_fn_x = [&points_x_min, &points_x_max, &p_indices_x, &points_x_indices](int64_t begin, int64_t end) {
+      for (int64_t idx = begin; idx < end; ++idx) {
+        std::unordered_set<int> p_set;
+        int p_start = points_x_min[idx];
+        int p_end = points_x_max[idx];
+        for (auto p_idx = p_start; p_idx <= p_end; ++p_idx) {
+          p_set.insert(p_indices_x[p_idx]);
+        }  
+        points_x_indices[idx] = p_set;
       }
-      points_x_indices.emplace_back(p_set);
-    }
+    };
+    const CPUDevice& device = ctx->eigen_device<CPUDevice>();
+    const Eigen::TensorOpCost cost(num_points, num_boxes, 3);
+    device.parallelFor(num_boxes, cost, set_fn_x);
+
+    // for (auto i = 0; i < num_boxes; ++i) {
+    //   std::unordered_set<int> p_set;
+    //   int p_start = points_x_min[i];
+    //   int p_end = points_x_max[i];
+    //   for (auto p_idx = p_start; p_idx <= p_end; ++p_idx) {
+    //     p_set.insert(p_indices_x[p_idx]);
+    //   }
+    //   points_x_indices.emplace_back(p_set);
+    // }
+
     std::vector<int> points_y_min = box::GetMinYIndexFromBoxes(boxes_vec, sorted_points_y);
     std::vector<int> points_y_max = box::GetMaxYIndexFromBoxes(boxes_vec, sorted_points_y);
-    std::vector<std::unordered_set<int>> points_y_indices;
-    for (auto i = 0; i < num_boxes; ++i) {
-      std::unordered_set<int> p_set;
-      int p_start = points_y_min[i];
-      int p_end = points_y_max[i];
-      for (auto p_idx = p_start; p_idx <= p_end; ++p_idx) {
-        p_set.insert(p_indices_y[p_idx]);
+    std::vector<std::unordered_set<int>> points_y_indices(num_boxes);
+    auto set_fn_y = [&points_y_min, &points_y_max, &p_indices_y, &points_y_indices](int64_t begin, int64_t end) {
+      for (int64_t idx = begin; idx < end; ++idx) {
+        std::unordered_set<int> p_set;
+        int p_start = points_y_min[idx];
+        int p_end = points_y_max[idx];
+        for (auto p_idx = p_start; p_idx <= p_end; ++p_idx) {
+          p_set.insert(p_indices_y[p_idx]);
+        }  
+        points_y_indices[idx] = p_set;
       }
-      points_y_indices.emplace_back(p_set);
-    }
+    };
+    device.parallelFor(num_boxes, cost, set_fn_y);
+
+    // for (auto i = 0; i < num_boxes; ++i) {
+    //   std::unordered_set<int> p_set;
+    //   int p_start = points_y_min[i];
+    //   int p_end = points_y_max[i];
+    //   for (auto p_idx = p_start; p_idx <= p_end; ++p_idx) {
+    //     p_set.insert(p_indices_y[p_idx]);
+    //   }
+    //   points_y_indices.emplace_back(p_set);
+    // }
+
     std::vector<std::unordered_set<int>> points_indices;
     for (auto i = 0; i < num_boxes; ++i) {
       std::unordered_set<int>& set_a = points_x_indices[i];
