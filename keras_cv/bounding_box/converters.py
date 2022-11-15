@@ -350,7 +350,6 @@ def convert_format(
         )
 
     _validate_image_shape(image_shape)
-
     source = source.lower()
     target = target.lower()
     if source not in TO_XYXY_CONVERTERS:
@@ -375,11 +374,27 @@ def convert_format(
         source = source.replace("rel_", "", 1)
         target = target.replace("rel_", "", 1)
 
-    boxes, images, squeeze = _format_inputs(boxes, images)
+    boxes, images, squeeze, is_ragged = _format_inputs(boxes, images)
     to_xyxy_fn = TO_XYXY_CONVERTERS[source]
     from_xyxy_fn = FROM_XYXY_CONVERTERS[target]
 
+    images_ragged = isinstance(images, tf.RaggedTensor)
+
     try:
+        # if images_ragged:
+        #     def _ragged_map(inputs):
+        #         x, i = inputs['boxes'], inputs['images']
+        #         x = tf.expand_dims(x, axis=0)
+        #         i = tf.expand_dims(i, axis=0)
+        #
+        #         x = to_xyxy_fn(x, images=i, image_shape=image_shape)
+        #         r = from_xyxy_fn(x, images=i, image_shape=image_shape)
+        #
+        #         r = tf.squeeze(r, axis=0)
+        #         return tf.RaggedTensor.from_tensor(r)
+        #     inputs = {"boxes": boxes, "images": images}
+        #     result = tf.map_fn(_ragged_map, elems=inputs, fn_output_signature=tf.RaggedTensorSpec(shape=(None, boxes.shape[-1])))
+        # else:
         in_xyxy = to_xyxy_fn(boxes, images=images, image_shape=image_shape)
         result = from_xyxy_fn(in_xyxy, images=images, image_shape=image_shape)
     except RequiresImagesException:
@@ -389,8 +404,8 @@ def convert_format(
             f"convert_format() received source=`{format}`, target=`{format}, "
             f"but images={images} and image_shape={image_shape}."
         )
-
-    return _format_outputs(result, squeeze)
+    output = _format_outputs(result, squeeze, is_ragged)
+    return output
 
 
 def _format_inputs(boxes, images):
@@ -400,6 +415,7 @@ def _format_inputs(boxes, images):
             "Expected len(boxes.shape)=2, or len(boxes.shape)=3, got "
             f"len(boxes.shape)={boxes_rank}"
         )
+    is_ragged = isinstance(boxes, tf.RaggedTensor)
     boxes_includes_batch = boxes_rank == 3
     # Determine if images needs an expand_dims() call
     if images is not None:
@@ -421,8 +437,8 @@ def _format_inputs(boxes, images):
             images = tf.expand_dims(images, axis=0)
 
     if not boxes_includes_batch:
-        return tf.expand_dims(boxes, axis=0), images, True
-    return boxes, images, False
+        return tf.expand_dims(boxes, axis=0), images, True, is_ragged
+    return boxes, images, False, is_ragged
 
 
 def _validate_image_shape(image_shape):
@@ -459,9 +475,11 @@ def _validate_image_shape(image_shape):
     )
 
 
-def _format_outputs(boxes, squeeze):
+def _format_outputs(boxes, squeeze, is_ragged):
     if squeeze:
-        return tf.squeeze(boxes, axis=0)
+        boxes = tf.squeeze(boxes, axis=0)
+    if is_ragged and not isinstance(boxes, tf.RaggedTensor):
+        boxes = tf.RaggedTensor.from_tensor(boxes)
     return boxes
 
 
