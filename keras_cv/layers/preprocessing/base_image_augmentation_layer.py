@@ -414,7 +414,7 @@ class BaseImageAugmentationLayer(tf.keras.__internal__.layers.BaseRandomLayer):
 
         if bounding_boxes is not None:
             if isinstance(bounding_boxes, tf.RaggedTensor):
-                bounding_boxes = bounding_boxes.to_tensor(default_value=-1)
+                bounding_boxes = bounding_boxes.to_tensor(-1)
             bounding_boxes = self.augment_bounding_boxes(
                 bounding_boxes,
                 transformation=transformation,
