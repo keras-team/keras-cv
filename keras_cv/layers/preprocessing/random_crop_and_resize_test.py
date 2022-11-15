@@ -189,13 +189,7 @@ class RandomCropAndResizeTest(tf.test.TestCase, parameterized.TestCase):
 
     def test_augment_bbox_single(self):
         image = tf.zeros([20, 20, 3])
-        bboxes = tf.convert_to_tensor(
-                [
-                    [0, 0, 10, 10],
-                    [1, 1, 4, 4],
-                    [4, 4, 5, 5]
-                ]
-        )
+        bboxes = tf.convert_to_tensor([[0, 0, 10, 10], [1, 1, 4, 4], [4, 4, 5, 5]])
         bboxes = tf.cast(bboxes, tf.float32)
         bboxes = bounding_box.add_class_id(bboxes)
         input = {"images": image, "bounding_boxes": bboxes}
