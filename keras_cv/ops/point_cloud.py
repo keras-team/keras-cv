@@ -44,6 +44,20 @@ def within_box3d_index(points, boxes):
 
 # TODO(lengzhaoqi/tanzhenyu): compare the performance with v1
 def is_within_box3d_v2(points, boxes):
+    """Checks if 3d points are within 3d bounding boxes.
+    Currently only xyz format is supported.
+    This v2 function assumes that bounding boxes DO NOT overlap with each other.
+
+    Args:
+      points: [..., num_points, 3] float32 Tensor for 3d points in xyz format.
+      boxes: [..., num_boxes, 7] float32 Tensor for 3d boxes in [x, y, z, dx,
+        dy, dz, phi].
+
+    Returns:
+      boolean Tensor of shape [..., num_points, num_boxes] indicating whether
+      the point belongs to the box.
+
+    """
     return tf.greater_equal(within_box3d_index(points, boxes), 0)
 
 
