@@ -225,8 +225,7 @@ BASE_DOCSTRING = """Instantiates the {name} architecture.
     include_top: Whether to include the fully-connected
         layer at the top of the network.
     classes: Optional number of classes to classify images
-        into, only to be specified if `include_top` is True, and
-        if no `weights` argument is specified.
+        into, only to be specified if `include_top` is True.
     weights: One of `None` (random initialization), or the path to the weights
           file to be loaded. Defaults to `None`.
     input_tensor: Optional Keras tensor (i.e. output of `layers.Input()`)
