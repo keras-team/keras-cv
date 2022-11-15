@@ -1,23 +1,85 @@
 import tensorflow as tf
+from tensorflow import keras
 from tensorflow.keras import backend
 from tensorflow.keras import layers
-from tensorflow import keras
 
-from keras_cv.layers.vit_layers import Patching
-from keras_cv.layers.vit_layers import PatchEmbedding
 from keras_cv.layers import TransformerEncoder
-
+from keras_cv.layers.vit_layers import PatchEmbedding
+from keras_cv.layers.vit_layers import Patching
 from keras_cv.models import utils
 
 MODEL_CONFIGS = {
-    "ViT_B_32": {
-        "patch_size":  32,
-        "transformer_layer_num" : 12,
-        "project_dim" : 768,
+    "ViT_Tiny_16": {
+        "patch_size": 16,
+        "transformer_layer_num": 12,
+        "project_dim": 192,
+        "mlp_dim": 768,
+        "num_heads": 3,
+        "mlp_dropout": 0.3,
+        "attention_dropout": 0.3,
+    },
+    "ViT_S_16": {
+        "patch_size": 16,
+        "transformer_layer_num": 12,
+        "project_dim": 384,
+        "mlp_dim": 1536,
+        "num_heads": 6,
+        "mlp_dropout": 0.3,
+        "attention_dropout": 0.3,
+    },
+    "ViT_B_16": {
+        "patch_size": 16,
+        "transformer_layer_num": 12,
+        "project_dim": 768,
         "mlp_dim": 3072,
-        "num_heads" : 12,
-        "mlp_dropout" : 0.3,
-        "attention_dropout" : 0.3
+        "num_heads": 12,
+        "mlp_dropout": 0.3,
+        "attention_dropout": 0.3,
+    },
+    "ViT_L_16": {
+        "patch_size": 16,
+        "transformer_layer_num": 24,
+        "project_dim": 1024,
+        "mlp_dim": 4096,
+        "num_heads": 16,
+        "mlp_dropout": 0.3,
+        "attention_dropout": 0.3,
+    },
+    "ViT_H_16": {
+        "patch_size": 16,
+        "transformer_layer_num": 32,
+        "project_dim": 1280,
+        "mlp_dim": 5120,
+        "num_heads": 16,
+        "mlp_dropout": 0.3,
+        "attention_dropout": 0.3,
+    },
+    "ViT_Tiny_32": {
+        "patch_size": 32,
+        "transformer_layer_num": 12,
+        "project_dim": 192,
+        "mlp_dim": 768,
+        "num_heads": 3,
+        "mlp_dropout": 0.3,
+        "attention_dropout": 0.3,
+    },
+    "ViT_S_32": {
+        "patch_size": 32,
+        "transformer_layer_num": 12,
+        "project_dim": 384,
+        "mlp_dim": 1536,
+        "num_heads": 6,
+        "mlp_dropout": 0.3,
+        "attention_dropout": 0.3,
+    },
+    "ViT_B_32": {
+        "patch_size": 32,
+        "transformer_layer_num": 12,
+        "project_dim": 768,
+        "mlp_dim": 3072,
+        "num_heads": 12,
+        "mlp_dropout": 0.3,
+        "attention_dropout": 0.3,
     },
     "ViT_L_32": {
         "patch_size": 32,
@@ -26,23 +88,24 @@ MODEL_CONFIGS = {
         "mlp_dim": 4096,
         "num_heads": 16,
         "mlp_dropout": 0.3,
-        "attention_dropout": 0.3
+        "attention_dropout": 0.3,
     },
     "ViT_H_32": {
         "patch_size": 32,
-        "transformer_layer_num": 24,
-        "project_dim": 1024,
-        "mlp_dim": 4096,
+        "transformer_layer_num": 32,
+        "project_dim": 1280,
+        "mlp_dim": 5120,
         "num_heads": 16,
         "mlp_dropout": 0.3,
-        "attention_dropout": 0.3
+        "attention_dropout": 0.3,
     },
 }
+
 
 def ViT(
     include_rescaling,
     include_top,
-    name="ViT_B_32",
+    name=None,
     weights=None,
     input_shape=(None, None, 3),
     input_tensor=None,
@@ -87,15 +150,15 @@ def ViT(
     patches = Patching(patch_size)(x)
     encoded_patches = PatchEmbedding(project_dim)(patches)
 
-
-
     for _ in range(transformer_layer_num):
-        encoded_patches = TransformerEncoder(project_dim=project_dim,
-                                             mlp_dim=mlp_dim,
-                                             num_heads=num_heads,
-                                             mlp_dropout=mlp_dropout,
-                                             attention_dropout=attention_dropout,
-                                             activation=activation)(encoded_patches)
+        encoded_patches = TransformerEncoder(
+            project_dim=project_dim,
+            mlp_dim=mlp_dim,
+            num_heads=num_heads,
+            mlp_dropout=mlp_dropout,
+            attention_dropout=attention_dropout,
+            activation=activation,
+        )(encoded_patches)
 
     output = layers.LayerNormalization(epsilon=1e-6)(encoded_patches)
 
@@ -104,13 +167,300 @@ def ViT(
         output = layers.Dense(classes, activation=classifier_activation)(output)
 
     else:
-      if pooling=='token_pooling':
-        output = layers.Lambda(lambda rep: rep[:, 0])(output)
-      else:
-        output = layers.GlobalAveragePooling1D()(output)
+        if pooling == "token_pooling":
+            output = layers.Lambda(lambda rep: rep[:, 0])(output)
+        else:
+            output = layers.GlobalAveragePooling1D()(output)
 
     model = keras.Model(inputs=inputs, outputs=output)
     return model
+
+
+def ViT_Tiny_16(
+    include_rescaling,
+    include_top,
+    name="ViT_Tiny_16",
+    weights=None,
+    input_shape=(None, None, 3),
+    input_tensor=None,
+    pooling=None,
+    classes=None,
+    patch_size=None,
+    transformer_layer_num=None,
+    num_heads=None,
+    mlp_dropout=None,
+    attention_dropout=None,
+    project_dim=None,
+    mlp_dim=None,
+    classifier_activation="softmax",
+    **kwargs,
+):
+
+    return ViT(
+        include_rescaling,
+        include_top,
+        name="ViT_Tiny_16",
+        weights=weights,
+        input_shape=input_shape,
+        input_tensor=input_tensor,
+        pooling=pooling,
+        classes=classes,
+        patch_size=MODEL_CONFIGS["ViT_Tiny_16"]["patch_size"],
+        transformer_layer_num=MODEL_CONFIGS["ViT_Tiny_16"]["transformer_layer_num"],
+        project_dim=MODEL_CONFIGS["ViT_Tiny_16"]["project_dim"],
+        mlp_dim=MODEL_CONFIGS["ViT_Tiny_16"]["mlp_dim"],
+        num_heads=MODEL_CONFIGS["ViT_Tiny_16"]["num_heads"],
+        mlp_dropout=MODEL_CONFIGS["ViT_Tiny_16"]["mlp_dropout"],
+        attention_dropout=MODEL_CONFIGS["ViT_Tiny_16"]["attention_dropout"],
+        classifier_activation=classifier_activation,
+        **kwargs,
+    )
+
+
+def ViT_S_16(
+    include_rescaling,
+    include_top,
+    name="ViT_S_16",
+    weights=None,
+    input_shape=(None, None, 3),
+    input_tensor=None,
+    pooling=None,
+    classes=None,
+    patch_size=None,
+    transformer_layer_num=None,
+    num_heads=None,
+    mlp_dropout=None,
+    attention_dropout=None,
+    project_dim=None,
+    mlp_dim=None,
+    classifier_activation="softmax",
+    **kwargs,
+):
+
+    return ViT(
+        include_rescaling,
+        include_top,
+        name="ViT_S_16",
+        weights=weights,
+        input_shape=input_shape,
+        input_tensor=input_tensor,
+        pooling=pooling,
+        classes=classes,
+        patch_size=MODEL_CONFIGS["ViT_S_16"]["patch_size"],
+        transformer_layer_num=MODEL_CONFIGS["ViT_B_32"]["transformer_layer_num"],
+        project_dim=MODEL_CONFIGS["ViT_S_16"]["project_dim"],
+        mlp_dim=MODEL_CONFIGS["ViT_S_16"]["mlp_dim"],
+        num_heads=MODEL_CONFIGS["ViT_S_16"]["num_heads"],
+        mlp_dropout=MODEL_CONFIGS["ViT_S_16"]["mlp_dropout"],
+        attention_dropout=MODEL_CONFIGS["ViT_S_16"]["attention_dropout"],
+        classifier_activation=classifier_activation,
+        **kwargs,
+    )
+
+
+def ViT_B_16(
+    include_rescaling,
+    include_top,
+    name="ViT_B_16",
+    weights=None,
+    input_shape=(None, None, 3),
+    input_tensor=None,
+    pooling=None,
+    classes=None,
+    patch_size=None,
+    transformer_layer_num=None,
+    num_heads=None,
+    mlp_dropout=None,
+    attention_dropout=None,
+    project_dim=None,
+    mlp_dim=None,
+    classifier_activation="softmax",
+    **kwargs,
+):
+
+    return ViT(
+        include_rescaling,
+        include_top,
+        name="ViT_B_16",
+        weights=weights,
+        input_shape=input_shape,
+        input_tensor=input_tensor,
+        pooling=pooling,
+        classes=classes,
+        patch_size=MODEL_CONFIGS["ViT_B_16"]["patch_size"],
+        transformer_layer_num=MODEL_CONFIGS["ViT_B_16"]["transformer_layer_num"],
+        project_dim=MODEL_CONFIGS["ViT_B_16"]["project_dim"],
+        mlp_dim=MODEL_CONFIGS["ViT_B_16"]["mlp_dim"],
+        num_heads=MODEL_CONFIGS["ViT_B_16"]["num_heads"],
+        mlp_dropout=MODEL_CONFIGS["ViT_B_16"]["mlp_dropout"],
+        attention_dropout=MODEL_CONFIGS["ViT_B_16"]["attention_dropout"],
+        classifier_activation=classifier_activation,
+        **kwargs,
+    )
+
+
+def ViT_L_16(
+    include_rescaling,
+    include_top,
+    name="ViT_L_16",
+    weights=None,
+    input_shape=(None, None, 3),
+    input_tensor=None,
+    pooling=None,
+    classes=None,
+    patch_size=None,
+    transformer_layer_num=None,
+    num_heads=None,
+    mlp_dropout=None,
+    attention_dropout=None,
+    project_dim=None,
+    mlp_dim=None,
+    classifier_activation="softmax",
+    **kwargs,
+):
+
+    return ViT(
+        include_rescaling,
+        include_top,
+        name="ViT_L_16",
+        weights=weights,
+        input_shape=input_shape,
+        input_tensor=input_tensor,
+        pooling=pooling,
+        classes=classes,
+        patch_size=MODEL_CONFIGS["ViT_L_16"]["patch_size"],
+        transformer_layer_num=MODEL_CONFIGS["ViT_L_16"]["transformer_layer_num"],
+        project_dim=MODEL_CONFIGS["ViT_L_16"]["project_dim"],
+        mlp_dim=MODEL_CONFIGS["ViT_L_16"]["mlp_dim"],
+        num_heads=MODEL_CONFIGS["ViT_L_16"]["num_heads"],
+        mlp_dropout=MODEL_CONFIGS["ViT_L_16"]["mlp_dropout"],
+        attention_dropout=MODEL_CONFIGS["ViT_L_16"]["attention_dropout"],
+        classifier_activation=classifier_activation,
+        **kwargs,
+    )
+
+
+def ViT_H_16(
+    include_rescaling,
+    include_top,
+    name="ViT_H_16",
+    weights=None,
+    input_shape=(None, None, 3),
+    input_tensor=None,
+    pooling=None,
+    classes=None,
+    patch_size=None,
+    transformer_layer_num=None,
+    num_heads=None,
+    mlp_dropout=None,
+    attention_dropout=None,
+    project_dim=None,
+    mlp_dim=None,
+    classifier_activation="softmax",
+    **kwargs,
+):
+
+    return ViT(
+        include_rescaling,
+        include_top,
+        name="ViT_H_16",
+        weights=weights,
+        input_shape=input_shape,
+        input_tensor=input_tensor,
+        pooling=pooling,
+        classes=classes,
+        patch_size=MODEL_CONFIGS["ViT_H_16"]["patch_size"],
+        transformer_layer_num=MODEL_CONFIGS["ViT_H_16"]["transformer_layer_num"],
+        project_dim=MODEL_CONFIGS["ViT_H_16"]["project_dim"],
+        mlp_dim=MODEL_CONFIGS["ViT_H_16"]["mlp_dim"],
+        num_heads=MODEL_CONFIGS["ViT_H_16"]["num_heads"],
+        mlp_dropout=MODEL_CONFIGS["ViT_H_16"]["mlp_dropout"],
+        attention_dropout=MODEL_CONFIGS["ViT_H_16"]["attention_dropout"],
+        classifier_activation=classifier_activation,
+        **kwargs,
+    )
+
+
+def ViT_Tiny_32(
+    include_rescaling,
+    include_top,
+    name="ViT_Tiny_32",
+    weights=None,
+    input_shape=(None, None, 3),
+    input_tensor=None,
+    pooling=None,
+    classes=None,
+    patch_size=None,
+    transformer_layer_num=None,
+    num_heads=None,
+    mlp_dropout=None,
+    attention_dropout=None,
+    project_dim=None,
+    mlp_dim=None,
+    classifier_activation="softmax",
+    **kwargs,
+):
+
+    return ViT(
+        include_rescaling,
+        include_top,
+        name="ViT_Tiny_32",
+        weights=weights,
+        input_shape=input_shape,
+        input_tensor=input_tensor,
+        pooling=pooling,
+        classes=classes,
+        patch_size=MODEL_CONFIGS["ViT_Tiny_32"]["patch_size"],
+        transformer_layer_num=MODEL_CONFIGS["ViT_Tiny_32"]["transformer_layer_num"],
+        project_dim=MODEL_CONFIGS["ViT_Tiny_32"]["project_dim"],
+        mlp_dim=MODEL_CONFIGS["ViT_Tiny_32"]["mlp_dim"],
+        num_heads=MODEL_CONFIGS["ViT_Tiny_32"]["num_heads"],
+        mlp_dropout=MODEL_CONFIGS["ViT_Tiny_32"]["mlp_dropout"],
+        attention_dropout=MODEL_CONFIGS["ViT_Tiny_32"]["attention_dropout"],
+        classifier_activation=classifier_activation,
+        **kwargs,
+    )
+
+
+def ViT_S_32(
+    include_rescaling,
+    include_top,
+    name="ViT_S_32",
+    weights=None,
+    input_shape=(None, None, 3),
+    input_tensor=None,
+    pooling=None,
+    classes=None,
+    patch_size=None,
+    transformer_layer_num=None,
+    num_heads=None,
+    mlp_dropout=None,
+    attention_dropout=None,
+    project_dim=None,
+    mlp_dim=None,
+    classifier_activation="softmax",
+    **kwargs,
+):
+
+    return ViT(
+        include_rescaling,
+        include_top,
+        name="ViT_S_32",
+        weights=weights,
+        input_shape=input_shape,
+        input_tensor=input_tensor,
+        pooling=pooling,
+        classes=classes,
+        patch_size=MODEL_CONFIGS["ViT_S_32"]["patch_size"],
+        transformer_layer_num=MODEL_CONFIGS["ViT_S_32"]["transformer_layer_num"],
+        project_dim=MODEL_CONFIGS["ViT_S_32"]["project_dim"],
+        mlp_dim=MODEL_CONFIGS["ViT_S_32"]["mlp_dim"],
+        num_heads=MODEL_CONFIGS["ViT_S_32"]["num_heads"],
+        mlp_dropout=MODEL_CONFIGS["ViT_S_32"]["mlp_dropout"],
+        attention_dropout=MODEL_CONFIGS["ViT_S_32"]["attention_dropout"],
+        classifier_activation=classifier_activation,
+        **kwargs,
+    )
 
 
 def ViT_B_32(
@@ -153,3 +503,84 @@ def ViT_B_32(
         **kwargs,
     )
 
+
+def ViT_L_32(
+    include_rescaling,
+    include_top,
+    name="ViT_L_32",
+    weights=None,
+    input_shape=(None, None, 3),
+    input_tensor=None,
+    pooling=None,
+    classes=None,
+    patch_size=None,
+    transformer_layer_num=None,
+    num_heads=None,
+    mlp_dropout=None,
+    attention_dropout=None,
+    project_dim=None,
+    mlp_dim=None,
+    classifier_activation="softmax",
+    **kwargs,
+):
+
+    return ViT(
+        include_rescaling,
+        include_top,
+        name="ViT_L_32",
+        weights=weights,
+        input_shape=input_shape,
+        input_tensor=input_tensor,
+        pooling=pooling,
+        classes=classes,
+        patch_size=MODEL_CONFIGS["ViT_L_32"]["patch_size"],
+        transformer_layer_num=MODEL_CONFIGS["ViT_L_32"]["transformer_layer_num"],
+        project_dim=MODEL_CONFIGS["ViT_L_32"]["project_dim"],
+        mlp_dim=MODEL_CONFIGS["ViT_L_32"]["mlp_dim"],
+        num_heads=MODEL_CONFIGS["ViT_L_32"]["num_heads"],
+        mlp_dropout=MODEL_CONFIGS["ViT_L_32"]["mlp_dropout"],
+        attention_dropout=MODEL_CONFIGS["ViT_L_32"]["attention_dropout"],
+        classifier_activation=classifier_activation,
+        **kwargs,
+    )
+
+
+def ViT_H_32(
+    include_rescaling,
+    include_top,
+    name="ViT_H_32",
+    weights=None,
+    input_shape=(None, None, 3),
+    input_tensor=None,
+    pooling=None,
+    classes=None,
+    patch_size=None,
+    transformer_layer_num=None,
+    num_heads=None,
+    mlp_dropout=None,
+    attention_dropout=None,
+    project_dim=None,
+    mlp_dim=None,
+    classifier_activation="softmax",
+    **kwargs,
+):
+
+    return ViT(
+        include_rescaling,
+        include_top,
+        name="ViT_H_32",
+        weights=weights,
+        input_shape=input_shape,
+        input_tensor=input_tensor,
+        pooling=pooling,
+        classes=classes,
+        patch_size=MODEL_CONFIGS["ViT_H_32"]["patch_size"],
+        transformer_layer_num=MODEL_CONFIGS["ViT_H_32"]["transformer_layer_num"],
+        project_dim=MODEL_CONFIGS["ViT_H_32"]["project_dim"],
+        mlp_dim=MODEL_CONFIGS["ViT_H_32"]["mlp_dim"],
+        num_heads=MODEL_CONFIGS["ViT_H_32"]["num_heads"],
+        mlp_dropout=MODEL_CONFIGS["ViT_H_32"]["mlp_dropout"],
+        attention_dropout=MODEL_CONFIGS["ViT_H_32"]["attention_dropout"],
+        classifier_activation=classifier_activation,
+        **kwargs,
+    )
