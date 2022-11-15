@@ -14,8 +14,8 @@
 import numpy as np
 import tensorflow as tf
 
+from keras_cv.layers.preprocessing3d import base_augmentation_layer_3d
 from keras_cv.layers.preprocessing3d.global_z_rotation import GlobalZRotation
-from keras_cv.layers.preprocessing3d  import base_augmentation_layer_3d
 
 POINT_CLOUDS = base_augmentation_layer_3d.POINT_CLOUDS
 BOUNDING_BOXES = base_augmentation_layer_3d.BOUNDING_BOXES

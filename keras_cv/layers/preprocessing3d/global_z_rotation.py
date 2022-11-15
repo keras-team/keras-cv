@@ -14,8 +14,7 @@
 
 import tensorflow as tf
 
-from keras_cv.layers.preprocessing3d  import base_augmentation_layer_3d
-
+from keras_cv.layers.preprocessing3d import base_augmentation_layer_3d
 from keras_cv.ops.point_cloud import coordinate_transform
 from keras_cv.ops.point_cloud import wrap_angle_radians
 
