@@ -20,7 +20,7 @@ from keras_cv.layers import TransformerEncoder
 class TransformerEncoderTest(tf.test.TestCase):
     def test_return_type_and_shape(self):
         layer = TransformerEncoder(
-            project_dim=128, num_heads=2, intermediate_dim=64, mlp_dim=128
+            project_dim=128, num_heads=2, mlp_dim=128
         )
 
         inputs = tf.random.normal([1, 197, 128])
@@ -31,7 +31,7 @@ class TransformerEncoderTest(tf.test.TestCase):
 
     def test_wrong_input_dims(self):
         layer = TransformerEncoder(
-            project_dim=128, num_heads=2, intermediate_dim=64, mlp_dim=128
+            project_dim=128, num_heads=2, mlp_dim=128
         )
         # Input dims must equal output dims because of the addition
         # of the residual to the final layer
@@ -44,7 +44,7 @@ class TransformerEncoderTest(tf.test.TestCase):
 
     def test_wrong_project_dims(self):
         layer = TransformerEncoder(
-            project_dim=256, num_heads=2, intermediate_dim=64, mlp_dim=128
+            project_dim=256, num_heads=2, mlp_dim=128
         )
         # Input dims must equal output dims because of the addition
         # of the residual to the final layer
