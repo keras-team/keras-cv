@@ -59,9 +59,7 @@ class TransformerEncoder(layers.Layer):
         **kwargs,
     ):
         super().__init__(**kwargs)
-        # hidden_dim by authors
         self.project_dim = project_dim
-        # intermediate_dim by authors
         self.mlp_dim = mlp_dim
         self.num_heads = num_heads
         self.mlp_dropout = mlp_dropout
