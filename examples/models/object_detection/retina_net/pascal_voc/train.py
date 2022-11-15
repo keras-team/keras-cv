@@ -1,6 +1,7 @@
 import os
 import resource
 
+import luketils
 import tensorflow as tf
 import tensorflow_datasets as tfds
 from luketils import visualization
@@ -191,6 +192,24 @@ callbacks = [
     keras.callbacks.EarlyStopping(patience=10),
     keras.callbacks.ModelCheckpoint(CHECKPOINT_PATH, save_weights_only=True),
 ]
+
+i = iter(train_ds)
+q = ""
+while q != "q":
+    inputs = next(i)
+    x, y = inputs
+    luketils.visualization.plot_bounding_box_gallery(
+        images=x,
+        y_true=y,
+        value_range=(0, 255),
+        rows=2,
+        cols=4,
+        scale=3,
+        bounding_box_format="xywh",
+    )
+    q = input("q?")
+
+exit()
 
 history = model.fit(
     train_ds,
