@@ -28,6 +28,15 @@ MODEL_CONFIGS = {
         "mlp_dropout": 0.3,
         "attention_dropout": 0.3
     },
+    "ViT_H_32": {
+        "patch_size": 32,
+        "transformer_layer_num": 24,
+        "project_dim": 1024,
+        "mlp_dim": 4096,
+        "num_heads": 16,
+        "mlp_dropout": 0.3,
+        "attention_dropout": 0.3
+    },
 }
 
 def ViT(
