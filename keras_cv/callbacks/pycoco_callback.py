@@ -20,11 +20,11 @@ from keras_cv.metrics.coco import compute_pycoco_metrics
 
 
 class PyCOCOCallback(Callback):
-    def __init__(self, validation_data, bounding_box_format):
+    def __init__(self, validation_data, bounding_box_format, **kwargs):
         self.model = None
         self.val_data = validation_data
         self.bounding_box_format = bounding_box_format
-        super().__init__()
+        super().__init__(**kwargs)
 
     def on_epoch_end(self, epoch, logs=None):
         logs = logs or {}
