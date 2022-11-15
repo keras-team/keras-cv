@@ -13,6 +13,16 @@
 # limitations under the License.
 
 import tensorflow as tf
+from tensorflow.python.framework import load_library
+from tensorflow.python.platform import resource_loader
+
+custom_ops = load_library.load_op_library(
+    resource_loader.get_path_to_datafile("../custom_ops/_keras_cv_custom_ops.so")
+)
+
+
+def is_within_box3d_v2(points, boxes):
+    return custom_ops.within_box(points, boxes)
 
 
 def get_rank(tensor):
