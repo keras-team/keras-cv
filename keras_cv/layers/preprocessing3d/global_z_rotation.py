@@ -14,17 +14,16 @@
 
 import tensorflow as tf
 
-from keras_cv.layers.preprocessing3d.base_augmentation_layer_3d import (
-    BaseAugmentationLayer3D,
-)
+from keras_cv.layers.preprocessing3d  import base_augmentation_layer_3d
+
 from keras_cv.ops.point_cloud import coordinate_transform
-from keras_cv.ops.point_cloud import wrap_angle_rad
+from keras_cv.ops.point_cloud import wrap_angle_radians
 
-POINT_CLOUDS = "point_clouds"
-BOUNDING_BOXES = "bounding_boxes"
+POINT_CLOUDS = base_augmentation_layer_3d.POINT_CLOUDS
+BOUNDING_BOXES = base_augmentation_layer_3d.BOUNDING_BOXES
 
 
-class GlobalZRotation(BaseAugmentationLayer3D):
+class GlobalZRotation(base_augmentation_layer_3d.BaseAugmentationLayer3D):
     """A preprocessing layer which randomly rotates point clouds and bounding boxes along
     Z axis during training.
 
@@ -67,7 +66,7 @@ class GlobalZRotation(BaseAugmentationLayer3D):
         point_clouds = tf.concat([point_clouds_xyz, point_clouds[..., 3:]], axis=-1)
 
         bounding_boxes_xyz = coordinate_transform(bounding_boxes[..., :3], pose)
-        bounding_boxes_heading = wrap_angle_rad(bounding_boxes[..., 6:7] - pose[3])
+        bounding_boxes_heading = wrap_angle_radians(bounding_boxes[..., 6:7] - pose[3])
         bounding_boxes = tf.concat(
             [
                 bounding_boxes_xyz,
