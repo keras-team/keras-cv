@@ -9,7 +9,6 @@ from tensorflow import keras
 
 import keras_cv
 from keras_cv import layers
-
 low, high = resource.getrlimit(resource.RLIMIT_NOFILE)
 resource.setrlimit(resource.RLIMIT_NOFILE, (high, high))
 os.makedirs("artifacts/", exist_ok=True)
@@ -43,8 +42,7 @@ class_ids = [
 ]
 class_mapping = dict(zip(range(len(class_ids)), class_ids))
 
-
-def unpackage_raw_tfds_inputs(inputs, bounding_box_format="xywh"):
+def unpackage_raw_tfds_inputs(inputs, bounding_box_format='xywh'):
     image = inputs["image"]
     image = tf.cast(image, tf.float32)
     gt_boxes = inputs["objects"]["bbox"]
@@ -56,13 +54,11 @@ def unpackage_raw_tfds_inputs(inputs, bounding_box_format="xywh"):
     )
     gt_classes = tf.cast(inputs["objects"]["label"], tf.float32)
     gt_classes = tf.expand_dims(gt_classes, axis=-1)
-    return {
-        "images": image,
-        "bounding_boxes": tf.concat([gt_boxes, gt_classes], axis=-1),
-    }
+    return {"images": image, "bounding_boxes": tf.concat([gt_boxes, gt_classes], axis=-1)}
 
-
-train_ds = tfds.load("voc/2007", split="train", with_info=False, shuffle_files=True)
+train_ds = tfds.load(
+    "voc/2007", split="train+test", with_info=False, shuffle_files=True
+)
 train_ds = train_ds.concatenate(
     tfds.load("voc/2012", split="train+validation", with_info=False, shuffle_files=True)
 )
@@ -71,45 +67,34 @@ eval_ds = tfds.load("voc/2007", split="test", with_info=False)
 train_ds = train_ds.map(unpackage_raw_tfds_inputs, num_parallel_calls=tf.data.AUTOTUNE)
 eval_ds = eval_ds.map(unpackage_raw_tfds_inputs, num_parallel_calls=tf.data.AUTOTUNE)
 
-eval_resizing = layers.Resizing(
-    640, 640, bounding_box_format="xywh", pad_to_aspect_ratio=True
-)
-
-
-ra = layers.RandAugment(value_range=(0, 255), magnitude=0.1, geometric=False)
-
-
-def lam(inputs):
-    inputs["images"] = ra(inputs["images"])
-    return inputs
-
-
+resizing = layers.Resizing(640, 640, bounding_box_format="xywh", pad_to_aspect_ratio=True)
 augmenter = layers.Augmenter(
     [
         layers.RandomFlip(mode="horizontal", bounding_box_format="xywh"),
-        layers.JitteredResize(
-            target_size=(640, 640),
-            scale_factor=(0.8, 1.25),
+        layers.RandomScale(factor=(0.75, 1.25), bounding_box_format="xywh"),
+        layers.RandomRaggedCrop(
+            height_factor=(0.3, 1.0),
+            width_factor=(0.3, 1.0),
             bounding_box_format="xywh",
         ),
-        layers.MaybeApply(
-            layers.Mosaic(bounding_box_format="xywh"), rate=0.5, batchwise=True
-        ),
-        layers.MaybeApply(layers.MixUp(), rate=0.5, batchwise=True),
+        resizing,
     ]
 )
 
 train_ds = train_ds.apply(
     tf.data.experimental.dense_to_ragged_batch(BATCH_SIZE, drop_remainder=True)
 )
-train_ds = train_ds.map(augmenter, num_parallel_calls=tf.data.AUTOTUNE)
+train_ds = train_ds.map(
+    augmenter, num_parallel_calls=tf.data.AUTOTUNE
+)
 eval_ds = eval_ds.apply(
     tf.data.experimental.dense_to_ragged_batch(BATCH_SIZE, drop_remainder=True)
 )
 eval_ds = eval_ds.map(
-    eval_resizing,
+    resizing,
     num_parallel_calls=tf.data.AUTOTUNE,
 )
+
 
 """
 Looks like everything is structured as expected.  Now we can move on to constructing our
@@ -193,24 +178,6 @@ callbacks = [
     keras.callbacks.ModelCheckpoint(CHECKPOINT_PATH, save_weights_only=True),
 ]
 
-i = iter(train_ds)
-q = ""
-while q != "q":
-    inputs = next(i)
-    x, y = inputs
-    luketils.visualization.plot_bounding_box_gallery(
-        images=x,
-        y_true=y,
-        value_range=(0, 255),
-        rows=2,
-        cols=4,
-        scale=3,
-        bounding_box_format="xywh",
-    )
-    q = input("q?")
-
-exit()
-
 history = model.fit(
     train_ds,
     validation_data=eval_ds.take(10),
@@ -218,6 +185,6 @@ history = model.fit(
     callbacks=callbacks,
 )
 
-# take() to prevent numerical issues that arise when evaluating on many inputs
 keras_cv_metrics = model.evaluate(eval_ds.take(20), return_dict=True)
 print("Metrics:", keras_cv_metrics)
+
