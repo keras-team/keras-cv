@@ -82,7 +82,7 @@ augmenter = layers.Augmenter(
         layers.RandomRaggedCrop(
             height_factor=(0.3, 1.0),
             width_factor=(0.3, 1.0),
-            bounding_box_format="xywh"
+            bounding_box_format="xywh",
         ),
         layers.Resizing(512, 512, bounding_box_format="xywh", pad_to_aspect_ratio=True),
     ]
