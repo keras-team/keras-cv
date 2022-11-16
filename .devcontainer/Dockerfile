@@ -12,4 +12,5 @@ RUN pip install \
   isort \
   pytest \
   regex \
-  tensorflow_datasets
+  tensorflow_datasets \
+  pycocotools

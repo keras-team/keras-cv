@@ -22,7 +22,7 @@ class TransformerEncoder(layers.Layer):
     Transformer encoder block implementation as a Keras Layer.
 
     Args:
-        project_dim: the dimensionality of the projection of the encoder
+        project_dim: the dimensionality of the projection of the encoder, and output of the `MultiHeadAttention`
         mlp_dim: the intermediate dimensionality of the MLP head before projecting to `project_dim`
         num_heads: the number of heads for the `MultiHeadAttention` layer
         mlp_dropout: default 0.1, the dropout rate to apply between the layers of the MLP head of the encoder
