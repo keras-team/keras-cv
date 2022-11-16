@@ -150,11 +150,10 @@ class Mosaic(BaseImageAugmentationLayer):
                 ],
                 axis=-1,
             )
-
             bounding_boxes = tf.vectorized_map(
                 lambda index: self._update_bounding_box(
                     images,
-                    bounding_boxes,
+                    bounding_boxes.to_tensor(-1),
                     permutation_order,
                     translate_x,
                     translate_y,
@@ -162,6 +161,7 @@ class Mosaic(BaseImageAugmentationLayer):
                 ),
                 tf.range(batch_size),
             )
+            bounding_boxes = bounding_box.filter_sentinels(bounding_boxes)
             inputs["bounding_boxes"] = bounding_boxes
         inputs["images"] = images
         return inputs
@@ -234,10 +234,10 @@ class Mosaic(BaseImageAugmentationLayer):
             images=images,
             dtype=self.compute_dtype,
         )
-
         boxes_for_mosaic = tf.gather(bounding_boxes, permutation_order[index])
+        # boxes_for_mosaic = boxes_for_mosaic.to_tensor(-1)
         boxes_for_mosaic, rest = tf.split(
-            boxes_for_mosaic, [4, bounding_boxes.shape[-1] - 4], axis=-1
+            boxes_for_mosaic, [4, boxes_for_mosaic.shape[-1] - 4], axis=-1
         )
 
         # stacking translate values such that the shape is (4, 1, 4) or (num_images, broadcast dim, coordinates)
