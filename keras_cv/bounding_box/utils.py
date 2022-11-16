@@ -32,7 +32,7 @@ def _relative_area(bounding_boxes, bounding_box_format, images):
     return tf.where(tf.math.logical_and(widths > 0, heights > 0), widths * heights, 0.0)
 
 
-def clip_to_image(bounding_boxes,  bounding_box_format,  images=None, image_shape=None):
+def clip_to_image(bounding_boxes, bounding_box_format, images=None, image_shape=None):
     """clips bounding boxes to image boundaries.
 
     `clip_to_image()` clips bounding boxes that have coordinates out of bounds of an
@@ -58,7 +58,7 @@ def clip_to_image(bounding_boxes,  bounding_box_format,  images=None, image_shap
         source=bounding_box_format,
         target="rel_xyxy",
         images=images,
-        image_shape=image_shape
+        image_shape=image_shape,
     )
     bounding_boxes, images, squeeze = _format_inputs(bounding_boxes, images)
     x1, y1, x2, y2, rest = tf.split(
@@ -82,7 +82,7 @@ def clip_to_image(bounding_boxes,  bounding_box_format,  images=None, image_shap
         source="rel_xyxy",
         target=bounding_box_format,
         images=images,
-        image_shape=image_shape
+        image_shape=image_shape,
     )
     clipped_bounding_boxes = tf.where(
         tf.expand_dims(areas > 0.0, axis=-1), clipped_bounding_boxes, -1.0
