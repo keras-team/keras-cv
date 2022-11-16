@@ -50,6 +50,7 @@ from keras_cv.layers.preprocessing.random_choice import RandomChoice
 from keras_cv.layers.preprocessing.random_color_degeneration import (
     RandomColorDegeneration,
 )
+from keras_cv.layers.preprocessing.random_scale import RandomScale
 from keras_cv.layers.preprocessing.random_color_jitter import RandomColorJitter
 from keras_cv.layers.preprocessing.random_crop_and_resize import RandomCropAndResize
 from keras_cv.layers.preprocessing.random_cutout import RandomCutout
