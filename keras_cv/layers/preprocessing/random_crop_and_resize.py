@@ -142,6 +142,12 @@ class RandomCropAndResize(BaseImageAugmentationLayer):
 
             return self._format_output(output, meta_data)
 
+    def compute_image_signature(self, images):
+        return tf.TensorSpec(
+            shape=(self.target_size[0], self.target_size[1], images.shape[-1]),
+            dtype=self.compute_dtype,
+        )
+
     def augment_image(self, image, transformation, **kwargs):
         return self._crop_and_resize(image, transformation)
 
