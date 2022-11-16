@@ -6,7 +6,7 @@ import tensorflow_datasets as tfds
 from tensorflow import keras
 
 import keras_cv
-
+from keras_cv import layers
 low, high = resource.getrlimit(resource.RLIMIT_NOFILE)
 resource.setrlimit(resource.RLIMIT_NOFILE, (high, high))
 
@@ -39,7 +39,20 @@ class_ids = [
 ]
 class_mapping = dict(zip(range(len(class_ids)), class_ids))
 
-image_size = [640, 640, 3]
+def unpackage_raw_tfds_inputs(inputs, bounding_box_format='xywh'):
+    image = inputs["image"]
+    image = tf.cast(image, tf.float32)
+    gt_boxes = inputs["objects"]["bbox"]
+    gt_boxes = keras_cv.bounding_box.convert_format(
+        gt_boxes,
+        images=image,
+        source="rel_yxyx",
+        target=bounding_box_format,
+    )
+    gt_classes = tf.cast(inputs["objects"]["label"], tf.float32)
+    gt_classes = tf.expand_dims(gt_classes, axis=-1)
+    return {"images": image, "bounding_boxes": tf.concat([gt_boxes, gt_classes], axis=-1)}
+
 train_ds = tfds.load(
     "voc/2007", split="train+test", with_info=False, shuffle_files=True
 )
@@ -48,7 +61,10 @@ train_ds = train_ds.concatenate(
 )
 eval_ds = tfds.load("voc/2007", split="test", with_info=False)
 
-resizing = layers.Resizing(512, 512, bounding_box_format="xywh", pad_to_aspect_ratio=True)
+train_ds = train_ds.map(unpackage_raw_tfds_inputs, num_parallel_calls=tf.data.AUTOTUNE)
+eval_ds = eval_ds.map(unpackage_raw_tfds_inputs, num_parallel_calls=tf.data.AUTOTUNE)
+
+resizing = layers.Resizing(640, 640, bounding_box_format="xywh", pad_to_aspect_ratio=True)
 augmenter = layers.Augmenter(
     [
         layers.RandomFlip(mode="horizontal", bounding_box_format="xywh"),
