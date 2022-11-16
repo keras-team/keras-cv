@@ -26,23 +26,26 @@ class RandomRaggedCrop(BaseImageAugmentationLayer):
     TODO
 
     Args:
-        factor:
+        height_factor:
+        width_factor:
     """
 
     def __init__(
-        self, factor, bounding_box_format=None, interpolation="bilinear", **kwargs
+        self, height_factor, width_factor, bounding_box_format=None, interpolation="bilinear", **kwargs
     ):
         super().__init__(**kwargs)
         self.interpolation = keras_cv.utils.get_interpolation(interpolation)
-        self.factor = keras_cv.utils.parse_factor(
-            factor, min_value=0.0, max_value=None, param_name="factor"
+        self.height_factor = keras_cv.utils.parse_factor(
+            height_factor, min_value=0.0, max_value=None, param_name="height_factor"
+        )
+        self.width_factor = keras_cv.utils.parse_factor(
+            width_factor, min_value=0.0, max_value=None, param_name="width_factor"
         )
         self.bounding_box_format = bounding_box_format
 
     def get_random_transformation(self, **kwargs):
-        crop_area_factor = self.factor(dtype=self.compute_dtype)
-        new_height = tf.sqrt(crop_area_factor)
-        new_width = tf.sqrt(crop_area_factor)
+        new_height = self.height_factor(dtype=self.compute_dtype)
+        new_width = self.width_factor(dtype=self.compute_dtype)
 
         height_offset = self._random_generator.random_uniform(
             (),
