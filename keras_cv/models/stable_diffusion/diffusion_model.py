@@ -15,16 +15,18 @@
 import tensorflow as tf
 from tensorflow import keras
 
-from keras_cv.models.generative.stable_diffusion.__internal__.layers.group_normalization import (
+from keras_cv.models.stable_diffusion.__internal__.layers.group_normalization import (
     GroupNormalization,
 )
-from keras_cv.models.generative.stable_diffusion.__internal__.layers.padded_conv2d import (
+from keras_cv.models.stable_diffusion.__internal__.layers.padded_conv2d import (
     PaddedConv2D,
 )
 
 
 class DiffusionModel(keras.Model):
-    def __init__(self, img_height, img_width, max_text_length, name=None):
+    def __init__(
+        self, img_height, img_width, max_text_length, name=None, download_weights=True
+    ):
         context = keras.layers.Input((max_text_length, 768))
         t_embed_input = keras.layers.Input((320,))
         latent = keras.layers.Input((img_height // 8, img_width // 8, 4))
@@ -101,6 +103,13 @@ class DiffusionModel(keras.Model):
         output = PaddedConv2D(4, kernel_size=3, padding=1)(x)
 
         super().__init__([latent, t_embed_input, context], output, name=name)
+
+        if download_weights:
+            diffusion_model_weights_fpath = keras.utils.get_file(
+                origin="https://huggingface.co/fchollet/stable-diffusion/resolve/main/kcv_diffusion_model.h5",
+                file_hash="8799ff9763de13d7f30a683d653018e114ed24a6a819667da4f5ee10f9e805fe",
+            )
+            self.load_weights(diffusion_model_weights_fpath)
 
 
 class ResBlock(keras.layers.Layer):
