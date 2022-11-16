@@ -34,7 +34,7 @@ MODEL_CONFIGS = {
         "channels_mlp_dim": 3072,
     },
     "MLPMixerB32": {
-        "patch_size": 16,
+        "patch_size": 32,
         "num_blocks": 12,
         "hidden_dim": 768,
         "tokens_mlp_dim": 384,
