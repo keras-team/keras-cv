@@ -148,7 +148,13 @@ class BaseImageAugmentationLayer(tf.keras.__internal__.layers.BaseRandomLayer):
     def auto_vectorize(self, auto_vectorize):
         self._auto_vectorize = auto_vectorize
 
-    def _compute_image_signature(self, images):
+    def compute_image_signature(self, images):
+        """Computes the output image signature for the `augment_image()` function.
+
+        Must be overridden to return tensors with different shapes than the input
+        images.  By default returns either a `tf.RaggedTensorSpec` matching the input
+        image spec, or a `tf.TensorSpec` matching the input image spec.
+        """
         if isinstance(images, tf.RaggedTensor):
             ragged_spec = tf.RaggedTensorSpec(
                 shape=images.shape[1:],
@@ -158,6 +164,7 @@ class BaseImageAugmentationLayer(tf.keras.__internal__.layers.BaseRandomLayer):
             return ragged_spec
         return tf.TensorSpec(images.shape[1:], self.compute_dtype)
 
+    # TODO(lukewood): promote to user facing API if needed
     def _compute_bounding_box_signature(self, bounding_boxes):
         ragged_spec = tf.RaggedTensorSpec(
             shape=[None, bounding_boxes.shape[2]],
@@ -166,6 +173,7 @@ class BaseImageAugmentationLayer(tf.keras.__internal__.layers.BaseRandomLayer):
         )
         return ragged_spec
 
+    # TODO(lukewood): promote to user facing API if needed
     def _compute_keypoints_signature(self, keypoints):
         if isinstance(keypoints, tf.RaggedTensor):
             ragged_spec = tf.RaggedTensorSpec(
@@ -180,11 +188,12 @@ class BaseImageAugmentationLayer(tf.keras.__internal__.layers.BaseRandomLayer):
             dtype=self.compute_dtype,
         )
 
+    # TODO(lukewood): promote to user facing API if needed
     def _compute_target_signature(self, targets):
         return tf.TensorSpec(targets.shape[1:], self.compute_dtype)
 
     def _compute_output_signature(self, inputs):
-        fn_output_signature = {IMAGES: self._compute_image_signature(inputs[IMAGES])}
+        fn_output_signature = {IMAGES: self.compute_image_signature(inputs[IMAGES])}
         bounding_boxes = inputs.get(BOUNDING_BOXES, None)
 
         if bounding_boxes is not None:
