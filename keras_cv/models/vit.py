@@ -159,6 +159,8 @@ BASE_DOCSTRING = """Instantiates the {name} architecture.
                 of the last convolutional block, and thus the output of the model will
                 be a 2D tensor.
             - `max` means that global max pooling will be applied.
+            - `token_pooling`, default, means that the token at the start of the 
+                sequences is used instead of regular pooling.
         name: (Optional) name to pass to the model.  Defaults to "{name}".
         classifier_activation: A `str` or callable. The activation function to use
             on the "top" layer. Ignored unless `include_top=True`. Set
@@ -212,6 +214,8 @@ def ViT(
                 the output of the model will be a 2D tensor.
             - `max` means that global max pooling will
                 be applied.
+            - `token_pooling`, default, means that the token at the start of the
+                sequences is used instead of regular pooling.
         classes: optional number of classes to classify images
             into, only to be specified if `include_top` is True.
                     mlp_dim:
