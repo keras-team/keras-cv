@@ -81,6 +81,15 @@ class ModelsTest:
             num_patches = 49
             self.assertShapeEqual(output_shape, (None, num_patches, last_dim))
 
+        if "ViT" not in app.__name__:
+            self.assertShapeEqual(output_shape, (None, None, None, last_dim))
+        elif "ViT_Tiny_16" in app.__name__ or "ViT_S_16" in app.__name__ or "ViT_B_16" in app.__name__ or "ViT_L_16" in app.__name__ or "ViT_H_16" in app.__name__:
+            num_patches = 197
+            self.assertShapeEqual(output_shape, (None, num_patches, last_dim))
+        elif "ViT_Tiny_32" in app.__name__ or "ViT_S_32" in app.__name__ or "ViT_B_32" in app.__name__ or "ViT_L_32" in app.__name__ or "ViT_H_32" in app.__name__:
+            num_patches = 50
+            self.assertShapeEqual(output_shape, (None, num_patches, last_dim))
+
         backend.clear_session()
 
         four_channel_input_shape = (input_shape[0], input_shape[1], 4)
