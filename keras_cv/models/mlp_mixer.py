@@ -85,6 +85,7 @@ BASE_DOCSTRING = """Instantiates the {name} architecture.
       A `keras.Model` instance.
 """
 
+
 def MLPBlock(mlp_dim, name=None):
     """An MLP block consisting of two linear layers with GELU activation in
     between.
@@ -156,16 +157,6 @@ def MLPMixer(
     **kwargs,
 ):
     """Instantiates the MLP Mixer architecture.
-
-    Reference:
-    - [MLP-Mixer: An all-MLP Architecture for Vision (NeurIPS 2021)](https://arxiv.org/abs/2105.01601)
-
-    This function returns a Keras MLP Mixer model.
-
-    For transfer learning use cases, make sure to read the
-    [guide to transfer learning & fine-tuning](https://keras.io/guides/transfer_learning/).
-
-    Note that the `input_shape` should be fully divisible by the `patch_size`.
 
     Args:
       input_shape: tuple denoting the input shape, (224, 224, 3) for example.
@@ -363,6 +354,7 @@ def MLPMixerL16(
         name=name,
         **kwargs,
     )
+
 
 setattr(MLPMixerB16, "__doc__", BASE_DOCSTRING.format(name="MLPMixerB16"))
 setattr(MLPMixerB32, "__doc__", BASE_DOCSTRING.format(name="MLPMixerB32"))
