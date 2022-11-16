@@ -142,8 +142,10 @@ class Resizing(BaseImageAugmentationLayer):
             img_size = tf.shape(image)
             img_height = tf.cast(img_size[H_AXIS], self.compute_dtype)
             img_width = tf.cast(img_size[W_AXIS], self.compute_dtype)
-
             if boxes is not None:
+                if isinstance(boxes, tf.RaggedTensor):
+                    boxes = boxes.to_tensor()
+
                 boxes = keras_cv.bounding_box.convert_format(
                     boxes,
                     image_shape=img_size,
