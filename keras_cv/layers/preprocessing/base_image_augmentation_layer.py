@@ -185,7 +185,7 @@ class BaseImageAugmentationLayer(tf.keras.__internal__.layers.BaseRandomLayer):
 
         segmentation_masks = inputs.get(SEGMENTATION_MASKS, None)
         if segmentation_masks is not None:
-            fn_output_signature[SEGMENTATION_MASKS] = self._compute_image_signature(
+            fn_output_signature[SEGMENTATION_MASKS] = self.compute_image_signature(
                 segmentation_masks
             )
 
