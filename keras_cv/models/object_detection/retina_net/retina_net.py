@@ -486,9 +486,7 @@ class RetinaNet(ObjectDetectionBaseModel):
             )
             if not isinstance(data, tf.Tensor):
                 data = tf.concat(data.values, axis=0)
-            return self.decode_training_predictions(
-                data, outputs
-            )
+            return self.decode_training_predictions(data, outputs)
 
         # Special case if steps_per_execution is one.
         if (
