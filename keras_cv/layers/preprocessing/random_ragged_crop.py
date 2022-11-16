@@ -31,7 +31,12 @@ class RandomRaggedCrop(BaseImageAugmentationLayer):
     """
 
     def __init__(
-        self, height_factor, width_factor, bounding_box_format=None, interpolation="bilinear", **kwargs
+        self,
+        height_factor,
+        width_factor,
+        bounding_box_format=None,
+        interpolation="bilinear",
+        **kwargs
     ):
         super().__init__(**kwargs)
         self.interpolation = keras_cv.utils.get_interpolation(interpolation)
@@ -67,7 +72,7 @@ class RandomRaggedCrop(BaseImageAugmentationLayer):
             "height": new_height,
         }
 
-    def _compute_image_signature(self, images):
+    def compute_image_signature(self, images):
         ragged_spec = tf.RaggedTensorSpec(
             shape=images.shape[1:],
             ragged_rank=1,
