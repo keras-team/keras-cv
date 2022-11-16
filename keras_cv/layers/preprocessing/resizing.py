@@ -97,6 +97,12 @@ class Resizing(BaseImageAugmentationLayer):
             )
         super().__init__(**kwargs)
 
+    def compute_image_signature(self, images):
+        return tf.TensorSpec(
+            shape=(self.height, self.width, images.shape[-1]),
+            dtype=self.compute_dtype,
+        )
+
     def _augment(self, inputs):
         images = inputs.get("images", None)
         bounding_boxes = inputs.get("bounding_boxes", None)
@@ -286,12 +292,6 @@ class Resizing(BaseImageAugmentationLayer):
         if self.pad_to_aspect_ratio:
             return self._resize_with_pad(inputs)
         return self._resize_with_distortion(inputs)
-
-    def compute_output_shape(self, input_shape):
-        input_shape = tf.TensorShape(input_shape).as_list()
-        input_shape[H_AXIS] = self.height
-        input_shape[W_AXIS] = self.width
-        return tf.TensorShape(input_shape)
 
     def get_config(self):
         config = {
