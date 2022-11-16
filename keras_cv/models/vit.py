@@ -123,7 +123,7 @@ BASE_DOCSTRING = """Instantiates the {name} architecture.
     Reference:
         - [An Image is Worth 16x16 Words: Transformers for Image Recognition at Scale](https://arxiv.org/abs/2010.11929v2) (ICLR 2021)
     This function returns a Keras {name} model.
-    
+
     The naming convention of ViT models follows: ViT_Size_Patch-size (i.e. ViT_S_16).
     The following sizes were released in the original paper:
         - S (Small)
@@ -132,7 +132,7 @@ BASE_DOCSTRING = """Instantiates the {name} architecture.
     But subsequent work from the same authors introduced:
         - Ti (Tiny)
         - H (Huge)
-        
+
     The parameter configurations for all of these sizes, at patch sizes 16 and 32 are made available, following the naming convention
     laid out above.
 
@@ -159,7 +159,7 @@ BASE_DOCSTRING = """Instantiates the {name} architecture.
                 of the last convolutional block, and thus the output of the model will
                 be a 2D tensor.
             - `max` means that global max pooling will be applied.
-            - `token_pooling`, default, means that the token at the start of the 
+            - `token_pooling`, default, means that the token at the start of the
                 sequences is used instead of regular pooling.
         name: (Optional) name to pass to the model.  Defaults to "{name}".
         classifier_activation: A `str` or callable. The activation function to use
