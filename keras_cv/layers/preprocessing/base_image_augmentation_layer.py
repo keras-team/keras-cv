@@ -213,9 +213,9 @@ class BaseImageAugmentationLayer(tf.keras.__internal__.layers.BaseRandomLayer):
                 keypoints
             )
 
-        targets = inputs.get(TARGETS, None)
-        if targets is not None:
-            fn_output_signature[targets] = self._compute_target_signature(targets)
+        labels = inputs.get(LABELS, None)
+        if labels is not None:
+            fn_output_signature[LABELS] = self._compute_target_signature(labels)
 
         return fn_output_signature
 
