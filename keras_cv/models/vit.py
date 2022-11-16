@@ -281,11 +281,10 @@ def ViT(
         output = layers.Lambda(lambda rep: rep[:, 0])(output)
         output = layers.Dense(classes, activation=classifier_activation)(output)
 
-    else:
-        if pooling == "token_pooling":
-            output = layers.Lambda(lambda rep: rep[:, 0])(output)
-        else:
-            output = layers.GlobalAveragePooling1D()(output)
+    elif pooling == "token_pooling":
+        output = layers.Lambda(lambda rep: rep[:, 0])(output)
+    elif pooling == "avg":
+        output = layers.GlobalAveragePooling1D()(output)
 
     model = keras.Model(inputs=inputs, outputs=output)
     return model
