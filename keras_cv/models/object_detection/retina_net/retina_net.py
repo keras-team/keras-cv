@@ -484,8 +484,10 @@ class RetinaNet(ObjectDetectionBaseModel):
             outputs = reduce_per_replica(
                 outputs, self.distribute_strategy, reduction="concat"
             )
+            if not isinstance(data, tf.Tensor):
+                data = tf.concat(data.values, axis=0)
             return self.decode_training_predictions(
-                tf.concat(data.values, axis=0), outputs
+                data, outputs
             )
 
         # Special case if steps_per_execution is one.
