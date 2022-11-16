@@ -117,24 +117,44 @@ class WithinBoxOp : public OpKernel {
     //   points_y_indices.emplace_back(p_set);
     // }
 
-    std::vector<std::unordered_set<int>> points_indices;
-    for (auto i = 0; i < num_boxes; ++i) {
-      std::unordered_set<int>& set_a = points_x_indices[i];
-      std::unordered_set<int>& set_b = points_y_indices[i];
-      std::unordered_set<int> p_set;
-      for (auto val : set_a) {
-        if (set_b.find(val) != set_b.end()) {
-          p_set.insert(val);
+    auto within_fn = [&points_x_indices, &points_y_indices, &boxes_vec, &points_vec, &boxes_indices_t](int64_t begin, int64_t end) {
+      for (int64_t idx = begin; idx < end; ++idx) {
+        std::unordered_set<int>& set_a = points_x_indices[idx];
+        std::unordered_set<int>& set_b = points_y_indices[idx];
+        std::unordered_set<int> p_set;
+        for (auto val : set_a) {
+          if (set_b.find(val) != set_b.end()) {
+            p_set.insert(val);
+          }
+        }
+        box::Upright3DBox& box = boxes_vec[idx];
+        for (auto p_idx : p_set) {
+          box::Vertex& point = points_vec[p_idx];
+          if (box.WithinBox3D(point)) {
+            boxes_indices_t(p_idx) = idx;
+          }
         }
       }
-      box::Upright3DBox& box = boxes_vec[i];
-      for (auto idx : p_set) {
-        box::Vertex& point = points_vec[idx];
-        if (box.WithinBox3D(point)) {
-          boxes_indices_t(idx) = i;
-        }
-      }
-    }
+    };
+    device.parallelFor(num_boxes, cost, within_fn);
+
+    // for (auto i = 0; i < num_boxes; ++i) {
+    //   std::unordered_set<int>& set_a = points_x_indices[i];
+    //   std::unordered_set<int>& set_b = points_y_indices[i];
+    //   std::unordered_set<int> p_set;
+    //   for (auto val : set_a) {
+    //     if (set_b.find(val) != set_b.end()) {
+    //       p_set.insert(val);
+    //     }
+    //   }
+    //   box::Upright3DBox& box = boxes_vec[i];
+    //   for (auto idx : p_set) {
+    //     box::Vertex& point = points_vec[idx];
+    //     if (box.WithinBox3D(point)) {
+    //       boxes_indices_t(idx) = i;
+    //     }
+    //   }
+    // }
   }
 };
 
