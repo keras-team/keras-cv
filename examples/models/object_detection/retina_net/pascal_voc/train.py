@@ -64,10 +64,7 @@ train_ds = train_ds.concatenate(
 )
 eval_ds = tfds.load("voc/2007", split="test", with_info=False)
 
-train_ds = train_ds.map(unpackage_raw_tfds_inputs, num_parallel_calls=tf.data.AUTOTUNE)
-eval_ds = eval_ds.map(unpackage_raw_tfds_inputs, num_parallel_calls=tf.data.AUTOTUNE)
-
-resizing = layers.Resizing(640, 640, bounding_box_format="xywh", pad_to_aspect_ratio=True)
+resizing = layers.Resizing(512, 512, bounding_box_format="xywh", pad_to_aspect_ratio=True)
 augmenter = layers.Augmenter(
     [
         layers.RandomFlip(mode="horizontal", bounding_box_format="xywh"),
