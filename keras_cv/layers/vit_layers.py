@@ -138,7 +138,7 @@ class PatchEmbedding(layers.Layer):
         self.linear_projection = layers.Dense(self.project_dim)
 
     def build(self, input_shape):
-        self.class_token = tf.random.normal([1, 1, input_shape[-1]], name="class_token")
+        self.class_token = self.add_weight(shape=[1, 1, input_shape[-1]], name="class_token", trainable=True)
         self.num_patches = input_shape[1]
         self.position_embedding = layers.Embedding(
             input_dim=self.num_patches + 1, output_dim=self.project_dim
