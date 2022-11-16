@@ -351,7 +351,8 @@ class BaseImageAugmentationLayer(tf.keras.__internal__.layers.BaseRandomLayer):
             return inputs
 
     def _augment(self, inputs):
-        image = inputs.get(IMAGES, None)
+        raw_image = inputs.get(IMAGES, None)
+        image = raw_image
         label = inputs.get(LABELS, None)
         bounding_boxes = inputs.get(BOUNDING_BOXES, None)
         keypoints = inputs.get(KEYPOINTS, None)
@@ -395,7 +396,7 @@ class BaseImageAugmentationLayer(tf.keras.__internal__.layers.BaseRandomLayer):
                 bounding_boxes,
                 transformation=transformation,
                 label=label,
-                image=image,
+                image=raw_image,
             )
             if not isinstance(bounding_boxes, tf.RaggedTensor):
                 bounding_boxes = tf.RaggedTensor.from_tensor(bounding_boxes)
