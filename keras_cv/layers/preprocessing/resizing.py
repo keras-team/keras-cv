@@ -150,7 +150,7 @@ class Resizing(BaseImageAugmentationLayer):
             img_width = tf.cast(img_size[W_AXIS], self.compute_dtype)
             if boxes is not None:
                 if isinstance(boxes, tf.RaggedTensor):
-                    boxes = boxes.to_tensor()
+                    boxes = boxes.to_tensor(-1)
 
                 boxes = keras_cv.bounding_box.convert_format(
                     boxes,
@@ -190,6 +190,7 @@ class Resizing(BaseImageAugmentationLayer):
             inputs["images"] = image
 
             if boxes is not None:
+                boxes = keras_cv.bounding_box.filter_sentinels(boxes)
                 inputs["bounding_boxes"] = tf.RaggedTensor.from_tensor(boxes)
             return inputs
 
