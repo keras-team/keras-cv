@@ -23,16 +23,14 @@ class StableDiffusionTest(tf.test.TestCase):
         prompt = "a caterpillar smoking a hookah while sitting on a mushroom"
         stablediff = StableDiffusion(128, 128)
 
-        # Using TF global random seed to guarantee that subsequent text-to-image
-        # runs are seeded identically.
-        tf.random.set_seed(8675309)
-        img = stablediff.text_to_image(prompt)
-        self.assertAllClose(img[0][64:65, 64:65, :][0][0], [124, 188, 114], atol=1e-4)
+        img = stablediff.text_to_image(prompt, seed=1337)
+        self.assertAllClose(img[0][13:14, 13:14, :][0][0], [15, 248, 229], atol=1e-4)
 
         # Verify that the step-by-step creation flow creates an identical output
-        tf.random.set_seed(8675309)
         text_encoding = stablediff.encode_text(prompt)
-        self.assertAllClose(img, stablediff.generate_image(text_encoding), atol=1e-4)
+        self.assertAllClose(
+            img, stablediff.generate_image(text_encoding, seed=1337), atol=1e-4
+        )
 
     def DISABLED_test_mixed_precision(self):
         mixed_precision.set_global_policy("mixed_float16")

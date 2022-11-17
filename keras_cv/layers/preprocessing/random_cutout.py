@@ -156,9 +156,10 @@ class RandomCutout(BaseImageAugmentationLayer):
         input_shape = tf.shape(inputs)
         if self.fill_mode == "constant":
             fill_value = tf.fill(input_shape, self.fill_value)
+            fill_value = tf.cast(fill_value, dtype=self.compute_dtype)
         else:
             # gaussian noise
-            fill_value = tf.random.normal(input_shape)
+            fill_value = tf.random.normal(input_shape, dtype=self.compute_dtype)
 
         return fill_value
 

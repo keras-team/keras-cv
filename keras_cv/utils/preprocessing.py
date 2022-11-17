@@ -16,6 +16,37 @@ from tensorflow.keras import backend
 
 from keras_cv import core
 
+_TF_INTERPOLATION_METHODS = {
+    "bilinear": tf.image.ResizeMethod.BILINEAR,
+    "nearest": tf.image.ResizeMethod.NEAREST_NEIGHBOR,
+    "bicubic": tf.image.ResizeMethod.BICUBIC,
+    "area": tf.image.ResizeMethod.AREA,
+    "lanczos3": tf.image.ResizeMethod.LANCZOS3,
+    "lanczos5": tf.image.ResizeMethod.LANCZOS5,
+    "gaussian": tf.image.ResizeMethod.GAUSSIAN,
+    "mitchellcubic": tf.image.ResizeMethod.MITCHELLCUBIC,
+}
+
+
+def get_interpolation(interpolation):
+    """fetches a valid interpolation method from `tf.image.ResizeMethod`.
+
+    Args:
+        interpolation: string representing an interpolation method.
+    Raises:
+        NotImplementedError: if the method passed is not recognized
+    Returns:
+        An interpolation method from `tf.image.ResizeMethod`
+
+    """
+    interpolation = interpolation.lower()
+    if interpolation not in _TF_INTERPOLATION_METHODS:
+        raise NotImplementedError(
+            "Value not recognized for `interpolation`: {}. Supported values "
+            "are: {}".format(interpolation, _TF_INTERPOLATION_METHODS.keys())
+        )
+    return _TF_INTERPOLATION_METHODS[interpolation]
+
 
 def transform_value_range(images, original_range, target_range, dtype=tf.float32):
     """transforms values in input tensor from original_range to target_range.

@@ -30,23 +30,15 @@ class SpatialPyramidPooling(tf.keras.layers.Layer):
 
     inp = tf.keras.layers.Input((384, 384, 3))
     backbone = tf.keras.applications.EfficientNetB0(input_tensor=inp, include_top=False)
-    layer_names = ['block2b_add', 'block3b_add', 'block5c_add', 'top_activation']
-
-    backbone_outputs = {}
-    for i, layer_name in enumerate(layer_names):
-        backbone_outputs[i+2] = backbone.get_layer(layer_name).output
-
-    # output_dict is a dict with 4 as keys, since it only process the level 4 backbone
-    # inputs
-    output_dict = keras_cv.layers.SpatialPyramidPooling(
-        level=4, dilation_rates=[6, 12, 18])(backbone_outputs)
+    output = backbone(inp)
+    output = keras_cv.layers.SpatialPyramidPooling(
+        dilation_rates=[6, 12, 18])(output)
 
     # output[4].shape = [None, 16, 16, 256]
     """
 
     def __init__(
         self,
-        level: int,
         dilation_rates: List[int],
         num_channels: int = 256,
         activation: str = "relu",
@@ -56,8 +48,6 @@ class SpatialPyramidPooling(tf.keras.layers.Layer):
         """Initializes an Atrous Spatial Pyramid Pooling layer.
 
         Args:
-            level: An `int` level to apply spatial pyramid pooling. This will be used to
-                get the exact input tensor from the input dict in `call()`.
             dilation_rates: A `list` of integers for parallel dilated conv. Usually a
                 sample choice of rates are [6, 12, 18].
             num_channels: An `int` number of output channels. Default to 256.
@@ -68,29 +58,16 @@ class SpatialPyramidPooling(tf.keras.layers.Layer):
             **kwargs: Additional keyword arguments to be passed.
         """
         super().__init__(**kwargs)
-        self.level = level
         self.dilation_rates = dilation_rates
         self.num_channels = num_channels
         self.activation = activation
         self.dropout = dropout
 
     def build(self, input_shape):
-        # Retrieve the input at the level so that we can get the exact shape.
-        if not isinstance(input_shape, dict):
-            raise ValueError(
-                "SpatialPyramidPooling expects input features to be a dict with int keys, "
-                f"received {input_shape}"
-            )
-        if self.level not in input_shape:
-            raise ValueError(
-                f"SpatialPyramidPooling expect the input dict to contain key {self.level}, "
-                f"received {input_shape}"
-            )
-        input_shape_at_level = input_shape[self.level]
 
-        height = input_shape_at_level[1]
-        width = input_shape_at_level[2]
-        channels = input_shape_at_level[3]
+        height = input_shape[1]
+        width = input_shape[2]
+        channels = input_shape[3]
 
         # This is the parallel networks that process the input features with different
         # dilation rates. The output from each channel will be merged together and feed
@@ -101,7 +78,9 @@ class SpatialPyramidPooling(tf.keras.layers.Layer):
         conv_sequential = tf.keras.Sequential(
             [
                 tf.keras.layers.Conv2D(
-                    filters=self.num_channels, kernel_size=(1, 1), use_bias=False
+                    filters=self.num_channels,
+                    kernel_size=(1, 1),
+                    use_bias=False,
                 ),
                 tf.keras.layers.BatchNormalization(),
                 tf.keras.layers.Activation(self.activation),
@@ -133,7 +112,9 @@ class SpatialPyramidPooling(tf.keras.layers.Layer):
                 tf.keras.layers.GlobalAveragePooling2D(),
                 tf.keras.layers.Reshape((1, 1, channels)),
                 tf.keras.layers.Conv2D(
-                    filters=self.num_channels, kernel_size=(1, 1), use_bias=False
+                    filters=self.num_channels,
+                    kernel_size=(1, 1),
+                    use_bias=False,
                 ),
                 tf.keras.layers.BatchNormalization(),
                 tf.keras.layers.Activation(self.activation),
@@ -146,58 +127,36 @@ class SpatialPyramidPooling(tf.keras.layers.Layer):
         self.projection = tf.keras.Sequential(
             [
                 tf.keras.layers.Conv2D(
-                    filters=self.num_channels, kernel_size=(1, 1), use_bias=False
+                    filters=self.num_channels,
+                    kernel_size=(1, 1),
+                    use_bias=False,
                 ),
                 tf.keras.layers.BatchNormalization(),
                 tf.keras.layers.Activation(self.activation),
                 tf.keras.layers.Dropout(rate=self.dropout),
-            ]
+            ],
         )
 
     def call(self, inputs, training=None):
         """Calls the Atrous Spatial Pyramid Pooling layer on an input.
 
-        The input the of the layer will be a dict of {`level`, `tf.Tensor`}, and layer
-        will pick the actual input based on the `level` from its init args.
-        The output of the layer will be a dict of {`level`, `tf.Tensor`} with only one level.
-
         Args:
-          inputs: A `dict` of `tf.Tensor` where
-            - key: A `int` of the level of the multilevel feature maps.
-            - values: A `tf.Tensor` of shape [batch, height_l, width_l,
-              filter_size].
+          inputs: A `tf.Tensor` of shape [batch, height, width, channels]
 
         Returns:
-          A `dict` of `tf.Tensor` where
-            - key: A `int` of the level of the multilevel feature maps.
-            - values: A `tf.Tensor` of output of SpatialPyramidPooling module. The shape
-              of the output should be [batch, height_l, width_l, num_channels]
+          A `tf.Tensor` of shape [batch, height, width, num_channels]
         """
-        if not isinstance(inputs, dict):
-            raise ValueError(
-                "SpatialPyramidPooling expects input features to be a dict with int keys, "
-                f"received {inputs}"
-            )
-        if self.level not in inputs:
-            raise ValueError(
-                f"SpatialPyramidPooling expect the input dict to contain key {self.level}, "
-                f"received {inputs}"
-            )
-        input_at_level = inputs[self.level]
         result = []
         for channel in self.aspp_parallel_channels:
-            result.append(
-                tf.cast(
-                    channel(input_at_level, training=training), input_at_level.dtype
-                )
-            )
+            temp = tf.cast(channel(inputs, training=training), inputs.dtype)
+            result.append(temp)
+
         result = tf.concat(result, axis=-1)
         result = self.projection(result, training=training)
-        return {self.level: result}
+        return result
 
     def get_config(self) -> Mapping[str, Any]:
         config = {
-            "level": self.level,
             "dilation_rates": self.dilation_rates,
             "num_channels": self.num_channels,
             "activation": self.activation,

@@ -66,7 +66,8 @@ with strategy.scope():
     model = keras_cv.models.FasterRCNN(classes=20, bounding_box_format="yxyx")
 
 
-# TODO: migrate to KPL.
+# TODO (tanzhenyu): migrate to KPL, as this is mostly a duplicate of
+# https://github.com/tensorflow/models/blob/master/official/vision/ops/preprocess_ops.py#L138
 def resize_and_crop_image(
     image,
     desired_size,

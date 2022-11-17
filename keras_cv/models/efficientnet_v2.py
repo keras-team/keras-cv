@@ -514,8 +514,7 @@ BASE_DOCSTRING = """Instantiates the {name} architecture.
     - [EfficientNetV2: Smaller Models and Faster Training](
         https://arxiv.org/abs/2104.00298) (ICML 2021)
 
-    This function returns a Keras image classification model,
-    optionally loaded with weights pre-trained on ImageNet.
+    This function returns a Keras image classification model.
 
     For image classification use cases, see
     [this page for detailed examples](

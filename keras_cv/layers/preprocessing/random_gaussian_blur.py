@@ -72,8 +72,12 @@ class RandomGaussianBlur(BaseImageAugmentationLayer):
 
         num_channels = tf.shape(image)[-1]
         blur_v, blur_h = transformation
-        blur_h = tf.tile(blur_h, [1, 1, num_channels, 1])
-        blur_v = tf.tile(blur_v, [1, 1, num_channels, 1])
+        blur_h = tf.cast(
+            tf.tile(blur_h, [1, 1, num_channels, 1]), dtype=self.compute_dtype
+        )
+        blur_v = tf.cast(
+            tf.tile(blur_v, [1, 1, num_channels, 1]), dtype=self.compute_dtype
+        )
         blurred = tf.nn.depthwise_conv2d(
             image, blur_h, strides=[1, 1, 1, 1], padding="SAME"
         )
@@ -94,6 +98,8 @@ class RandomGaussianBlur(BaseImageAugmentationLayer):
 
     @staticmethod
     def get_kernel(factor, filter_size):
+        # We are running this in float32, regardless of layer's self.compute_dtype.
+        # Calculating blur_filter in lower precision will corrupt the final results.
         x = tf.cast(
             tf.range(-filter_size // 2 + 1, filter_size // 2 + 1), dtype=tf.float32
         )

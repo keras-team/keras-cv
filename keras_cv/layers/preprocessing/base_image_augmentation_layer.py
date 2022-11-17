@@ -361,11 +361,16 @@ class BaseImageAugmentationLayer(tf.keras.__internal__.layers.BaseRandomLayer):
 
     def _format_bounding_boxes(self, bounding_boxes):
         metadata = {RAGGED_BOUNDING_BOXES: False}
+        shape = None
         if isinstance(bounding_boxes, tf.RaggedTensor):
-            metadata = {RAGGED_BOUNDING_BOXES: True}
+            metadata.update({RAGGED_BOUNDING_BOXES: True})
             bounding_boxes = bounding_box.pad_with_sentinels(bounding_boxes)
+            # hard code after pad_with_sentinels()
+            shape = [5]
+        else:
+            shape = bounding_boxes.shape
 
-        if bounding_boxes.shape[-1] < 5:
+        if shape[-1] < 5:
             raise ValueError(
                 "Bounding boxes are missing class_id. If you would like to pad the "
                 "bounding boxes with class_id, use `keras_cv.bounding_box.add_class_id`"

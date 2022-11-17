@@ -63,6 +63,10 @@ ALIASES = {
         "imagenet": "imagenet/classification-v0",
         "imagenet/classification": "imagenet/classification-v0",
     },
+    "efficientnetv2s": {
+        "imagenet": "imagenet/classification-v0",
+        "imagenet/classification": "imagenet/classification-v0",
+    },
     "resnet50v2": {
         "imagenet": "imagenet/classification-v2",
         "imagenet/classification": "imagenet/classification-v2",
@@ -93,6 +97,10 @@ WEIGHTS_CONFIG = {
     "efficientnetv2b2": {
         "imagenet/classification-v0": "1667d21b50e6c5b851a69c98503fa5ae707b82dbae8c900fe59ab1a93d60d694",
         "imagenet/classification-v0-notop": "e118aadfab7e93ff939fb81c88c189cbd7fb2b7ddd7314fbf2badb7c551aa119",
+    },
+    "efficientnetv2s": {
+        "imagenet/classification-v0": "77c8fb0ea9cbf6277c6c3cdfece00e610aa1d19edf3d76d15b4e6bcbbeada904",
+        "imagenet/classification-v0-notop": "9652f71d398c2de6c595c68b881f257d715bcf0cdc5adb80e95ce83e828ae2c6",
     },
     "resnet50v2": {
         "imagenet/classification-v0": "11bde945b54d1dca65101be2648048abca8a96a51a42820d87403486389790db",
