@@ -22,6 +22,14 @@ from keras_cv.bounding_box.formats import XYWH
 def _preserve_rel(target_bounding_box_format, bounding_box_format):
     """A util to add "rel_" to target_bounding_box_format for relative bounding_box_format
     """
+    if bounding_box_format.lower() not in bounding_box.converters.TO_XYXY_CONVERTERS:
+        raise ValueError(
+            "`_preserve_rel()` received an unsupported format for the argument "
+            f"`bounding_box_format`.  `bounding_box_format` should be one of " 
+            f"{bounding_box.converters.TO_XYXY_CONVERTERS.keys()}. "
+            f"Got bounding_box_format={bounding_box_format}"
+        )
+
     if target_bounding_box_format.startswith("rel"):
         raise ValueError(
             'Expected "target_bounding_box_format" to be non-relative. '
