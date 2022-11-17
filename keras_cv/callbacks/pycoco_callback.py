@@ -22,7 +22,8 @@ from keras_cv.metrics.coco import compute_pycoco_metrics
 class PyCOCOCallback(Callback):
     def __init__(self, validation_data, bounding_box_format, **kwargs):
         self.model = None
-        self.val_data = validation_data
+        # We cache the dataset to preserve a consistent iteration order.
+        self.val_data = validation_data.cache()
         self.bounding_box_format = bounding_box_format
         super().__init__(**kwargs)
 
