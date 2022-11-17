@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import six
 import tensorflow as tf
 from keras.callbacks import Callback
 
@@ -83,7 +82,6 @@ class PyCOCOCallback(Callback):
         ground_truth["height"] = [tf.tile(tf.constant([height]), [total_images])]
         ground_truth["width"] = [tf.tile(tf.constant([width]), [total_images])]
 
-        num_dets = gt_classes.get_shape().as_list()[1]
         ground_truth["num_detections"] = [gt_boxes.row_lengths(axis=1)]
         ground_truth["boxes"] = [gt_boxes.to_tensor(-1)]
         ground_truth["classes"] = [gt_classes.to_tensor(-1)]
