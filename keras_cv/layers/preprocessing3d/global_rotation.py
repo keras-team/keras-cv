@@ -22,11 +22,11 @@ POINT_CLOUDS = base_augmentation_layer_3d.POINT_CLOUDS
 BOUNDING_BOXES = base_augmentation_layer_3d.BOUNDING_BOXES
 
 
-class GlobalRandomZRotation(base_augmentation_layer_3d.BaseAugmentationLayer3D):
+class GlobalRandomRotation(base_augmentation_layer_3d.BaseAugmentationLayer3D):
     """A preprocessing layer which randomly rotates point clouds and bounding boxes along
-    Z axis during training.
+    X, Y and Z axes during training.
 
-    This layer will randomly rotate the whole scene along the Z axis based on a randomly sampled
+    This layer will randomly rotate the whole scene along the X, Y and Z axes based on a randomly sampled
     rotation angle between [-max_rotation_angle, max_rotation_angle] following a uniform distribution.
     During inference time, the output will be identical to input. Call the layer with `training=True` to rotate the input.
 
@@ -42,20 +42,35 @@ class GlobalRandomZRotation(base_augmentation_layer_3d.BaseAugmentationLayer3D):
       A tuple of two Tensors (point_clouds, bounding_boxes) with the same shape as input Tensors.
 
     Arguments:
-      max_rotation_angle: A float scaler or Tensor sets the maximum rotation angle.
+      max_rotation_angle_x: A float scaler or Tensor sets the maximum rotation angle along X axis.
+      max_rotation_angle_y: A float scaler or Tensor sets the maximum rotation angle along Y axis.
+      max_rotation_angle_z: A float scaler or Tensor sets the maximum rotation angle along Z axis.
+
     """
 
-    def __init__(self, max_rotation_angle, **kwargs):
+    def __init__(self, max_rotation_angle_x, max_rotation_angle_y, max_rotation_angle_z, **kwargs):
         super().__init__(**kwargs)
-        if max_rotation_angle < 0:
-            raise ValueError("max_rotation_angle must be >=0.")
-        self._max_rotation_angle = max_rotation_angle
+        if max_rotation_angle_x < 0:
+            raise ValueError("max_rotation_angle_x must be >=0.")
+        if max_rotation_angle_y < 0:
+            raise ValueError("max_rotation_angle_y must be >=0.")
+        if max_rotation_angle_z < 0:
+            raise ValueError("max_rotation_angle_z must be >=0.")
+        self._max_rotation_angle_x = max_rotation_angle_x
+        self._max_rotation_angle_y = max_rotation_angle_y
+        self._max_rotation_angle_z = max_rotation_angle_z
 
     def get_random_transformation(self, **kwargs):
-        random_rotation_z = self._random_generator.random_uniform(
-            (), minval=-self._max_rotation_angle, maxval=self._max_rotation_angle
+        random_rotation_x = self._random_generator.random_uniform(
+            (), minval=-self._max_rotation_angle_x, maxval=self._max_rotation_angle_x
         )
-        return {"pose": tf.stack([0, 0, 0, random_rotation_z, 0, 0], axis=0)}
+        random_rotation_y = self._random_generator.random_uniform(
+            (), minval=-self._max_rotation_angle_y, maxval=self._max_rotation_angle_y
+        )
+        random_rotation_z = self._random_generator.random_uniform(
+            (), minval=-self._max_rotation_angle_z, maxval=self._max_rotation_angle_z
+        )
+        return {"pose": tf.stack([0, 0, 0, random_rotation_z, random_rotation_x, random_rotation_y], axis=0)}
 
     def augment_point_clouds_bounding_boxes(
         self, point_clouds, bounding_boxes, transformation, **kwargs
