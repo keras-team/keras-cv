@@ -14,9 +14,6 @@
 
 import numpy as np
 import tensorflow as tf
-from keras.engine.training import _minimum_control_deps
-from keras.engine.training import reduce_per_replica
-from keras.utils import tf_utils
 from tensorflow import keras
 
 import keras_cv
@@ -264,20 +261,20 @@ class RetinaNet(ObjectDetectionBaseModel):
         box_outputs = tf.concat(box_outputs, axis=1)
         return tf.concat([box_outputs, cls_outputs], axis=-1)
 
-    def decode_training_predictions(self, x, train_predictions):
+    def decode_predictions(self, predictions, images):
         # no-op if default decoder is used.
         pred_for_inference = bounding_box.convert_format(
-            train_predictions,
+            predictions,
             source=self.bounding_box_format,
             target=self.prediction_decoder.bounding_box_format,
-            images=x,
+            images=images,
         )
-        pred_for_inference = self.prediction_decoder(x, pred_for_inference)
+        pred_for_inference = self.prediction_decoder(images, pred_for_inference)
         return bounding_box.convert_format(
             pred_for_inference,
             source=self.prediction_decoder.bounding_box_format,
             target=self.bounding_box_format,
-            images=x,
+            images=images,
         )
 
     def compile(
@@ -446,7 +443,7 @@ class RetinaNet(ObjectDetectionBaseModel):
             # them.
             return {m.name: m.result() for m in self.train_metrics}
 
-        predictions = self.decode_training_predictions(x, y_pred)
+        predictions = self.decode_predictions(y_pred, x)
         self._update_metrics(y_for_metrics, predictions)
         return {m.name: m.result() for m in self.metrics}
 
@@ -456,78 +453,9 @@ class RetinaNet(ObjectDetectionBaseModel):
         y_pred = self(x, training=False)
         _ = self._backward(y_training_target, y_pred)
 
-        predictions = self.decode_training_predictions(x, y_pred)
+        predictions = self.decode_predictions(y_pred, x)
         self._update_metrics(y_for_metrics, predictions)
         return {m.name: m.result() for m in self.metrics}
-
-    def make_predict_function(self, force=False):
-        if self.predict_function is not None and not force:
-            return self.predict_function
-
-        def step_function(model, iterator):
-            """Runs a single evaluation step."""
-
-            def run_step(data):
-                outputs = model.predict_step(data)
-                # Ensure counter is updated only if `test_step` succeeds.
-                with tf.control_dependencies(_minimum_control_deps(outputs)):
-                    model._predict_counter.assign_add(1)
-                return outputs
-
-            if self._jit_compile:
-                run_step = tf.function(
-                    run_step, jit_compile=True, reduce_retracing=True
-                )
-
-            data = next(iterator)
-            outputs = model.distribute_strategy.run(run_step, args=(data,))
-            outputs = reduce_per_replica(
-                outputs, self.distribute_strategy, reduction="concat"
-            )
-            if not isinstance(data, tf.Tensor):
-                data = tf.concat(data.values, axis=0)
-            return self.decode_training_predictions(data, outputs)
-
-        # Special case if steps_per_execution is one.
-        if (
-            self._steps_per_execution is None
-            or self._steps_per_execution.numpy().item() == 1
-        ):
-
-            def predict_function(iterator):
-                """Runs an evaluation execution with a single step."""
-                return step_function(self, iterator)
-
-        else:
-
-            def predict_function(iterator):
-                """Runs an evaluation execution with multiple steps."""
-                outputs = step_function(self, iterator)
-                for _ in tf.range(self._steps_per_execution - 1):
-                    tf.autograph.experimental.set_loop_options(
-                        shape_invariants=[
-                            (
-                                outputs,
-                                tf.nest.map_structure(
-                                    lambda t: tf_utils.get_tensor_spec(
-                                        t, dynamic_batch=True
-                                    ).shape,
-                                    outputs,
-                                ),
-                            )
-                        ]
-                    )
-                    step_outputs = step_function(self, iterator)
-                    outputs = tf.nest.map_structure(
-                        lambda t1, t2: tf.concat([t1, t2]), outputs, step_outputs
-                    )
-                return outputs
-
-        if not self.run_eagerly:
-            predict_function = tf.function(predict_function, reduce_retracing=True)
-        self.predict_function = predict_function
-
-        return self.predict_function
 
     def _update_metrics(self, y_true, y_pred):
         y_true = bounding_box.convert_format(
