@@ -24,10 +24,10 @@ from keras_cv.models import utils
 from keras_cv.models.weights import parse_weights
 
 MODEL_CONFIGS = {
-    'Xception': {
-        'entry_flow_filters': [32, 64, 128, 256, 728],
-        'middle_flow_filters': [728 for _ in range(8)],
-        'exit_flow_filters': [(728, 1024), 1536, 2048]
+    "Xception": {
+        "entry_flow_filters": [32, 64, 128, 256, 728],
+        "middle_flow_filters": [728 for _ in range(8)],
+        "exit_flow_filters": [(728, 1024), 1536, 2048],
     }
 }
 
@@ -39,7 +39,7 @@ BASE_DOCSTRING = """Instantiates the {name} architecture.
     This function returns a Keras {name} model.
 
     For transfer learning use cases, make sure to read the [guide to transfer
-        learning & fine-tuning](https://keras.io/guides/transfer_learning/).        
+        learning & fine-tuning](https://keras.io/guides/transfer_learning/).
     Args:
         include_rescaling: whether or not to Rescale the inputs.If set to True,
             inputs will be passed through a `Rescaling(1/255.0)` layer.
@@ -70,24 +70,39 @@ BASE_DOCSTRING = """Instantiates the {name} architecture.
 """
 
 
-def Conv2D(filters, kernel_size=(3, 3), strides=(1, 1), padding="same", separable=True, name=None):
+def Conv2D(
+    filters,
+    kernel_size=(3, 3),
+    strides=(1, 1),
+    padding="same",
+    separable=True,
+    name=None,
+):
     if name is None:
         name = f"conv_{backend.get_uid('conv')}"
 
     conv = layers.SeparableConv2D if separable else layers.Conv2D
 
     def apply(x):
-        x = conv(filters, kernel_size, strides, padding=padding, use_bias=False, name=name)(x)
-        x = layers.BatchNormalization(
-            axis=BN_AXIS, name=f"{name}_bn"
+        x = conv(
+            filters, kernel_size, strides, padding=padding, use_bias=False, name=name
         )(x)
+        x = layers.BatchNormalization(axis=BN_AXIS, name=f"{name}_bn")(x)
         return x
 
     return apply
 
 
-def BaseBlock(filters, kernel_size=(3, 3), strides=(1, 1), padding="same",
-              activation="relu", activation_loc="first", separable=True, name=None):
+def BaseBlock(
+    filters,
+    kernel_size=(3, 3),
+    strides=(1, 1),
+    padding="same",
+    activation="relu",
+    activation_loc="first",
+    separable=True,
+    name=None,
+):
     if name is None:
         name = f"block_{backend.get_uid('block')}"
 
@@ -116,7 +131,9 @@ def ResidualBlock(filters, kernel_size=(3, 3), num_blocks: int = 3, name=None):
     def apply(x):
         residual = x
         for i in range(num_blocks):
-            x = BaseBlock(filters, kernel_size, activation_loc="first", name=f"{name}_sepconv{i}")(x)
+            x = BaseBlock(
+                filters, kernel_size, activation_loc="first", name=f"{name}_sepconv{i}"
+            )(x)
         x = layers.add([x, residual])
         return x
 
@@ -136,10 +153,16 @@ def XceptionStack(filters, skip_first_act=False, name=None):
     activation_loc = "none" if skip_first_act else "first"
 
     def apply(x):
-        residual = Conv2D(filters1, (1, 1), strides=(2, 2), padding="same", separable=False)(x)
-        x = BaseBlock(filters0, (3, 3), activation_loc=activation_loc, name=f"{name}_sepconv1")(x)
+        residual = Conv2D(
+            filters1, (1, 1), strides=(2, 2), padding="same", separable=False
+        )(x)
+        x = BaseBlock(
+            filters0, (3, 3), activation_loc=activation_loc, name=f"{name}_sepconv1"
+        )(x)
         x = BaseBlock(filters1, (3, 3), name=f"{name}_sepconv2")(x)
-        x = layers.MaxPooling2D((3, 3), strides=(2, 2), padding="same", name=f"{name}_pool")(x)
+        x = layers.MaxPooling2D(
+            (3, 3), strides=(2, 2), padding="same", name=f"{name}_pool"
+        )(x)
         x = layers.add([x, residual])
         return x
 
@@ -147,19 +170,19 @@ def XceptionStack(filters, skip_first_act=False, name=None):
 
 
 def GeneralXception(
-        entry_flow_filters,
-        middle_flow_filters,
-        exit_flow_filters,
-        include_rescaling,
-        include_top,
-        name="Xception",
-        weights=None,
-        input_shape=(None, None, 3),
-        input_tensor=None,
-        pooling=None,
-        classes=None,
-        classifier_activation="softmax",
-        **kwargs,
+    entry_flow_filters,
+    middle_flow_filters,
+    exit_flow_filters,
+    include_rescaling,
+    include_top,
+    name="Xception",
+    weights=None,
+    input_shape=(None, None, 3),
+    input_tensor=None,
+    pooling=None,
+    classes=None,
+    classifier_activation="softmax",
+    **kwargs,
 ):
     """Instantiates the Xception architecture.
 
@@ -233,8 +256,21 @@ def GeneralXception(
         x = layers.Rescaling(scale=1 / 255.0)(x)
 
     # entry flow
-    x = BaseBlock(entry_flow_filters[0], strides=(2, 2), padding="valid", activation_loc="last", separable=False, name="block1_conv1")(x)
-    x = BaseBlock(entry_flow_filters[1], padding="valid", activation_loc="last", separable=False, name="block1_conv2")(x)
+    x = BaseBlock(
+        entry_flow_filters[0],
+        strides=(2, 2),
+        padding="valid",
+        activation_loc="last",
+        separable=False,
+        name="block1_conv1",
+    )(x)
+    x = BaseBlock(
+        entry_flow_filters[1],
+        padding="valid",
+        activation_loc="last",
+        separable=False,
+        name="block1_conv2",
+    )(x)
 
     for i, filters in enumerate(entry_flow_filters[2:]):
         x = XceptionStack(filters, skip_first_act=i == 0, name=f"entry_block_{i}")(x)
@@ -246,14 +282,18 @@ def GeneralXception(
     for i, filters in enumerate(exit_flow_filters[:-2]):
         x = XceptionStack(filters, name=f"exit_block_{i}")(x)
 
-    x = BaseBlock(exit_flow_filters[-2], (3, 3), activation_loc="last", name="block14_sepconv1")(x)
-    x = BaseBlock(exit_flow_filters[-1], (3, 3), activation_loc="last", name="block14_sepconv2")(x)
+    x = BaseBlock(
+        exit_flow_filters[-2], (3, 3), activation_loc="last", name="block14_sepconv1"
+    )(x)
+    x = BaseBlock(
+        exit_flow_filters[-1], (3, 3), activation_loc="last", name="block14_sepconv2"
+    )(x)
 
     if include_top:
         x = layers.GlobalAveragePooling2D(name="avg_pool")(x)
-        x = layers.Dense(
-            classes, activation=classifier_activation, name="predictions"
-        )(x)
+        x = layers.Dense(classes, activation=classifier_activation, name="predictions")(
+            x
+        )
     else:
         if pooling == "avg":
             x = layers.GlobalAveragePooling2D(name="avg_pool")(x)
@@ -271,21 +311,21 @@ def GeneralXception(
 
 
 def Xception(
-        include_rescaling,
-        include_top,
-        name="Xception",
-        weights=None,
-        input_shape=(None, None, 3),
-        input_tensor=None,
-        pooling=None,
-        classes=None,
-        classifier_activation="softmax",
-        **kwargs,
+    include_rescaling,
+    include_top,
+    name="Xception",
+    weights=None,
+    input_shape=(None, None, 3),
+    input_tensor=None,
+    pooling=None,
+    classes=None,
+    classifier_activation="softmax",
+    **kwargs,
 ):
     return GeneralXception(
-        MODEL_CONFIGS['Xception']['entry_flow_filters'],
-        MODEL_CONFIGS['Xception']['middle_flow_filters'],
-        MODEL_CONFIGS['Xception']['exit_flow_filters'],
+        MODEL_CONFIGS["Xception"]["entry_flow_filters"],
+        MODEL_CONFIGS["Xception"]["middle_flow_filters"],
+        MODEL_CONFIGS["Xception"]["exit_flow_filters"],
         include_rescaling,
         include_top,
         name=name,

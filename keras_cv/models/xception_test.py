@@ -19,9 +19,7 @@ from keras_cv.models import xception
 
 from .models_test import ModelsTest
 
-MODEL_LIST = [
-    (xception.Xception, 2048, {})
-]
+MODEL_LIST = [(xception.Xception, 2048, {})]
 
 
 class XceptionTest(ModelsTest, tf.test.TestCase, parameterized.TestCase):
