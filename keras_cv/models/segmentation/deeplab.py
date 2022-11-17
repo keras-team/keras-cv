@@ -14,7 +14,18 @@
 
 import tensorflow as tf
 
-import keras_cv
+from keras_cv.layers.spatial_pyramid import SpatialPyramidPooling
+from keras_cv.models.resnet_v2 import ResNetV2
+from keras_cv.models.weights import parse_weights
+
+BACKBONE_CONFIG = {
+    "ResNet50V2": {
+        "stackwise_filters": [64, 128, 256, 512],
+        "stackwise_blocks": [3, 4, 6, 3],
+        "stackwise_strides": [1, 2, 2, 2],
+        "stackwise_dilations": [1, 1, 1, 2],
+    }
+}
 
 
 class DeepLabV3(tf.keras.models.Model):
@@ -44,8 +55,9 @@ class DeepLabV3(tf.keras.models.Model):
         self,
         classes,
         include_rescaling,
-        backbone="resnet50_v2",
-        decoder="fpn",
+        backbone,
+        weights,
+        spatial_pyramid_pooling=None,
         segmentation_head=None,
         **kwargs,
     ):
@@ -64,11 +76,25 @@ class DeepLabV3(tf.keras.models.Model):
                 )
             self._backbone_passed = backbone
             if backbone == "resnet50_v2":
-                backbone = keras_cv.models.ResNet50V2(
-                    include_rescaling=include_rescaling, include_top=False
+                backbone = ResNetV2(
+                    stackwise_filters=BACKBONE_CONFIG["ResNet50V2"][
+                        "stackwise_filters"
+                    ],
+                    stackwise_blocks=BACKBONE_CONFIG["ResNet50V2"]["stackwise_blocks"],
+                    stackwise_strides=BACKBONE_CONFIG["ResNet50V2"][
+                        "stackwise_strides"
+                    ],
+                    stackwise_dilations=BACKBONE_CONFIG["ResNet50V2"][
+                        "stackwise_dilations"
+                    ],
+                    include_rescaling=include_rescaling,
+                    include_top=False,
+                    name="resnet50v2",
+                    weights=parse_weights(weights, False, "resnet50v2"),
+                    pooling=None,
+                    **kwargs,
                 )
-                backbone = backbone.as_backbone()
-                self.backbone = backbone
+
         else:
             # TODO(scottzhu): Might need to do more assertion about the model
             if not isinstance(backbone, tf.keras.layers.Layer):
@@ -76,57 +102,55 @@ class DeepLabV3(tf.keras.models.Model):
                     "Backbone need to be a `tf.keras.layers.Layer`, "
                     f"received {backbone}"
                 )
-            self.backbone = backbone
+        self.backbone = backbone
 
-        # ================== decoder ==================
-        if isinstance(decoder, str):
-            # TODO(scottzhu): Add ASPP decoder.
-            supported_premade_decoder = ["fpn"]
-            if decoder not in supported_premade_decoder:
-                raise ValueError(
-                    "Supported premade decoder are: "
-                    f'{supported_premade_decoder}, received "{decoder}"'
-                )
-            self._decoder_passed = decoder
-            if decoder == "fpn":
-                # Infer the FPN level from the backbone. If user need to customize
-                # this setting, they should manually create the FPN and backbone.
-                if not isinstance(backbone.output, dict):
-                    raise ValueError(
-                        "Expect the backbone's output to be dict, "
-                        f"received {backbone.output}"
-                    )
-                backbone_levels = list(backbone.output.keys())
-                min_level = backbone_levels[0]
-                max_level = backbone_levels[-1]
-                decoder = keras_cv.layers.FeaturePyramid(
-                    min_level=min_level, max_level=max_level
-                )
-
-        # TODO(scottzhu): do more validation for the decoder when we have a common
-        # interface.
-        self.decoder = decoder
+        if spatial_pyramid_pooling is None:
+            self.aspp = SpatialPyramidPooling(dilation_rates=[6, 12, 18])
+        else:
+            self.aspp = spatial_pyramid_pooling
 
         self._segmentation_head_passed = segmentation_head
         if segmentation_head is None:
-            # Scale up the output when using FPN, to keep the output shape same as the
-            # input shape.
-            if isinstance(self.decoder, keras_cv.layers.FeaturePyramid):
-                output_scale_factor = pow(2, self.decoder.min_level)
-            else:
-                output_scale_factor = None
-
-            segmentation_head = (
-                keras_cv.models.segmentation.__internal__.SegmentationHead(
-                    classes=classes, output_scale_factor=output_scale_factor
-                )
+            segmentation_head = tf.keras.Sequential(
+                [
+                    tf.keras.layers.Conv2D(
+                        filters=256,
+                        kernel_size=(1, 1),
+                        padding="same",
+                        use_bias=False,
+                    ),
+                    tf.keras.layers.BatchNormalization(),
+                    tf.keras.layers.Activation("relu"),
+                    tf.keras.layers.Dropout(0.2),
+                    tf.keras.layers.Conv2D(
+                        filters=classes,
+                        kernel_size=(1, 1),
+                        padding="same",
+                        use_bias=False,
+                        activation="softmax",
+                        # Force the dtype of the classification head to float32 to avoid the NAN loss
+                        # issue when used with mixed precision API.
+                        dtype=tf.float32,
+                    ),
+                ]
             )
         self.segmentation_head = segmentation_head
 
+    def build(self, input_shape):
+        height = input_shape[1]
+        width = input_shape[2]
+        feature_map_shape = self.backbone.compute_output_shape(input_shape)
+        self.up_layer = tf.keras.layers.UpSampling2D(
+            size=(height // feature_map_shape[1], width // feature_map_shape[2]),
+            interpolation="bilinear",
+        )
+
     def call(self, inputs, training=None):
-        backbone_output = self.backbone(inputs, training=training)
-        decoder_output = self.decoder(backbone_output, training=training)
-        return self.segmentation_head(decoder_output, training=training)
+        feature_map = self.backbone(inputs, training=training)
+        output = self.aspp(feature_map, training=training)
+        output = self.up_layer(output, training=training)
+        output = self.segmentation_head(output, training=training)
+        return output
 
     # TODO(tanzhenyu): consolidate how regularization should be applied to KerasCV.
     def compile(self, weight_decay=0.0001, **kwargs):
@@ -134,19 +158,19 @@ class DeepLabV3(tf.keras.models.Model):
         super().compile(**kwargs)
 
     def train_step(self, data):
-        images, y_true, _ = tf.keras.utils.unpack_x_y_sample_weight(data)
+        images, y_true, sample_weight = tf.keras.utils.unpack_x_y_sample_weight(data)
         with tf.GradientTape() as tape:
             y_pred = self(images, training=True)
-            total_loss = self.compute_loss(images, y_true, y_pred)
+            total_loss = self.compute_loss(images, y_true, y_pred, sample_weight)
             reg_losses = []
             if self.weight_decay:
                 for var in self.trainable_variables:
                     if "bn" not in var.name:
-                        reg_losses.append(0.0001 * tf.nn.l2_loss(var))
+                        reg_losses.append(self.weight_decay * tf.nn.l2_loss(var))
                 l2_loss = tf.math.add_n(reg_losses)
                 total_loss += l2_loss
         self.optimizer.minimize(total_loss, self.trainable_variables, tape=tape)
-        return self.compute_metrics(images, y_true, y_pred, sample_weight=None)
+        return self.compute_metrics(images, y_true, y_pred, sample_weight=sample_weight)
 
     def get_config(self):
         config = {

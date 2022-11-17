@@ -14,22 +14,22 @@
 
 from tensorflow import keras
 
-from keras_cv.models.generative.stable_diffusion.__internal__.layers.attention_block import (
+from keras_cv.models.stable_diffusion.__internal__.layers.attention_block import (
     AttentionBlock,
 )
-from keras_cv.models.generative.stable_diffusion.__internal__.layers.group_normalization import (
+from keras_cv.models.stable_diffusion.__internal__.layers.group_normalization import (
     GroupNormalization,
 )
-from keras_cv.models.generative.stable_diffusion.__internal__.layers.padded_conv2d import (
+from keras_cv.models.stable_diffusion.__internal__.layers.padded_conv2d import (
     PaddedConv2D,
 )
-from keras_cv.models.generative.stable_diffusion.__internal__.layers.resnet_block import (
+from keras_cv.models.stable_diffusion.__internal__.layers.resnet_block import (
     ResnetBlock,
 )
 
 
 class Decoder(keras.Sequential):
-    def __init__(self, img_height, img_width, name=None):
+    def __init__(self, img_height, img_width, name=None, download_weights=True):
         super().__init__(
             [
                 keras.layers.Input((img_height // 8, img_width // 8, 4)),
@@ -63,3 +63,10 @@ class Decoder(keras.Sequential):
             ],
             name=name,
         )
+
+        if download_weights:
+            decoder_weights_fpath = keras.utils.get_file(
+                origin="https://huggingface.co/fchollet/stable-diffusion/resolve/main/kcv_decoder.h5",
+                file_hash="ad350a65cc8bc4a80c8103367e039a3329b4231c2469a1093869a345f55b1962",
+            )
+            self.load_weights(decoder_weights_fpath)

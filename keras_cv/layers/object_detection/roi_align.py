@@ -328,7 +328,9 @@ def multilevel_crop_and_resize(
         return features_per_box
 
 
-# TODO(tanzheny): Remove this implementation once roi_pool has better performance.
+# TODO(tanzhenyu): Remove this implementation once roi_pool has better performance.
+# as this is mostly a duplicate of
+# https://github.com/tensorflow/models/blob/master/official/legacy/detection/ops/spatial_transform_ops.py#L324
 class _ROIAligner(tf.keras.layers.Layer):
     """Performs ROIAlign for the second stage processing."""
 
