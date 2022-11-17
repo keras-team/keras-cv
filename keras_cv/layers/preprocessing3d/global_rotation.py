@@ -48,7 +48,9 @@ class GlobalRandomRotation(base_augmentation_layer_3d.BaseAugmentationLayer3D):
 
     """
 
-    def __init__(self, max_rotation_angle_x, max_rotation_angle_y, max_rotation_angle_z, **kwargs):
+    def __init__(
+        self, max_rotation_angle_x, max_rotation_angle_y, max_rotation_angle_z, **kwargs
+    ):
         super().__init__(**kwargs)
         if max_rotation_angle_x < 0:
             raise ValueError("max_rotation_angle_x must be >=0.")
@@ -70,7 +72,12 @@ class GlobalRandomRotation(base_augmentation_layer_3d.BaseAugmentationLayer3D):
         random_rotation_z = self._random_generator.random_uniform(
             (), minval=-self._max_rotation_angle_z, maxval=self._max_rotation_angle_z
         )
-        return {"pose": tf.stack([0, 0, 0, random_rotation_z, random_rotation_x, random_rotation_y], axis=0)}
+        return {
+            "pose": tf.stack(
+                [0, 0, 0, random_rotation_z, random_rotation_x, random_rotation_y],
+                axis=0,
+            )
+        }
 
     def augment_point_clouds_bounding_boxes(
         self, point_clouds, bounding_boxes, transformation, **kwargs
