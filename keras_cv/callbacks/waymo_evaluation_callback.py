@@ -16,7 +16,7 @@ import tensorflow as tf
 from keras.callbacks import Callback
 
 from keras_cv import bounding_box
-from keras_cv.metrics.coco import compute_pycoco_metrics
+from waymo_open_dataset.metrics.python.wod_detection_evaluator import WODDetectionEvaluator
 
 
 class WaymoEvaluationCallback(Callback):
@@ -85,5 +85,5 @@ class WaymoEvaluationCallback(Callback):
 
         ground_truth = {}
         predictions = {}
-        
+
         return ground_truth, predictions
