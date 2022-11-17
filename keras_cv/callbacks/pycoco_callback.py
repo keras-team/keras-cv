@@ -20,10 +20,28 @@ from keras_cv.metrics.coco import compute_pycoco_metrics
 
 
 class PyCOCOCallback(Callback):
-    def __init__(self, validation_data, bounding_box_format, **kwargs):
+    def __init__(self, validation_data, bounding_box_format, cache=True, **kwargs):
+        """Creates a callback to evaluate PyCOCO metrics on a validation dataset.
+
+        Args:
+            validation_data: a tf.data.Dataset containing validation data. Entries
+                should have the form ```(images, {"gt_boxes": boxes,
+                "gt_classes": classes})```.
+            bounding_box_format: the KerasCV bounding box format used in the
+                validation dataset (e.g. "xywh")
+            cache: whether the callback should cache the dataset between iterations.
+                Note that if the validation dataset has shuffling of any kind
+                (e.g from `shuffle_files=True` in a call to TFDS.load or a call
+                to tf.data.Dataset.shuffle() with `reshuffle_each_iteration=True`),
+                you **must** cache the dataset to preserve iteration order. This
+                will store your entire dataset in main memory, so for large datasets
+                consider avoiding shuffle operations and passing `cache=False`.
+        """
         self.model = None
-        # We cache the dataset to preserve a consistent iteration order.
-        self.val_data = validation_data.cache()
+        self.val_data = validation_data
+        if cache:
+            # We cache the dataset to preserve a consistent iteration order.
+            self.val_data = self.val_data.cache()
         self.bounding_box_format = bounding_box_format
         super().__init__(**kwargs)
 
