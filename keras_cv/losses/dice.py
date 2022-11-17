@@ -405,7 +405,7 @@ class SparseDice(tf.keras.losses.Loss):
         else:
             dice_score = tf.reduce_mean(dice_score)
 
-        print(dice_score)
+        #print(dice_score)
 
         return 1 - dice_score
 
