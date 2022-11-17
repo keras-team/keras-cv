@@ -21,7 +21,7 @@ POINT_CLOUDS = base_augmentation_layer_3d.POINT_CLOUDS
 BOUNDING_BOXES = base_augmentation_layer_3d.BOUNDING_BOXES
 
 
-class GlobalDroppingPoints(base_augmentation_layer_3d.BaseAugmentationLayer3D):
+class GlobalRandomDroppingPoints(base_augmentation_layer_3d.BaseAugmentationLayer3D):
     """A preprocessing layer which randomly drops point during training.
 
     This layer will randomly drop points based on keep_probability.
