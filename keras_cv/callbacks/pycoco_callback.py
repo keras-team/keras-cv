@@ -36,7 +36,7 @@ class PyCOCOCallback(Callback):
             return boxes
 
         images_only_ds = self.val_data.map(images_only)
-        y_pred = model.predict(images_only_ds)
+        y_pred = self.model.predict(images_only_ds)
 
         gt = [boxes for boxes in self.val_data.map(boxes_only)]
         gt_boxes = tf.concat(
