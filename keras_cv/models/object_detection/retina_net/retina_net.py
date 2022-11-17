@@ -457,8 +457,8 @@ class RetinaNet(ObjectDetectionBaseModel):
         self._update_metrics(y_for_metrics, predictions)
         return {m.name: m.result() for m in self.metrics}
 
-    def predict(self, x, **kwargs):
-        predictions = super().predict(x, **kwargs)
+    def predict_step(self, x):
+        predictions = super().predict_step(x)
         return self.decode_training_predictions(x, predictions)
 
     def _update_metrics(self, y_true, y_pred):
