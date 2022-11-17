@@ -11,16 +11,10 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
-
 """Xception model for KerasCV.
-
-
+Reference:
+  - [Xception: Deep Learning with Depthwise Separable Convolutions](https://arxiv.org/abs/1610.02357) (CVPR 2017)
 """
-
-import copy
-import math
-import os
 
 import tensorflow as tf
 from keras import backend
@@ -29,7 +23,7 @@ from keras import layers
 from keras_cv.models import utils
 from keras_cv.models.weights import parse_weights
 
-MODEL_CONFIG = {
+MODEL_CONFIGS = {
     'Xception': {
         'entry_flow_filters': [32, 64, 128, 256, 728],
         'middle_flow_filters': [728 for _ in range(8)],
@@ -37,7 +31,43 @@ MODEL_CONFIG = {
     }
 }
 
-CHANNEL_AXIS = -1
+BN_AXIS = 3
+
+BASE_DOCSTRING = """Instantiates the {name} architecture.
+    Reference:
+        - [Xception: Deep Learning with Depthwise Separable Convolutions](https://arxiv.org/abs/1610.02357) (CVPR 2017)
+    This function returns a Keras {name} model.
+
+    For transfer learning use cases, make sure to read the [guide to transfer
+        learning & fine-tuning](https://keras.io/guides/transfer_learning/).        
+    Args:
+        include_rescaling: whether or not to Rescale the inputs.If set to True,
+            inputs will be passed through a `Rescaling(1/255.0)` layer.
+        include_top: whether to include the fully-connected layer at the top of the
+            network.  If provided, classes must be provided.
+        classes: optional number of classes to classify images into, only to be
+            specified if `include_top` is True.
+        weights: one of `None` (random initialization), a pretrained weight file
+            path, or a reference to pre-trained weights (e.g. 'imagenet/classification')
+            (see available pre-trained weights in weights.py)
+        input_shape: optional shape tuple, defaults to (None, None, 3).
+        input_tensor: optional Keras tensor (i.e. output of `layers.Input()`)
+            to use as image input for the model.
+        pooling: optional pooling mode for feature extraction
+            when `include_top` is `False`.
+            - `None` means that the output of the model will be the 4D tensor output
+                of the last convolutional block.
+            - `avg` means that global average pooling will be applied to the output
+                of the last convolutional block, and thus the output of the model will
+                be a 2D tensor.
+            - `max` means that global max pooling will be applied.
+        name: (Optional) name to pass to the model.  Defaults to "{name}".
+        classifier_activation: A `str` or callable. The activation function to use
+            on the "top" layer. Ignored unless `include_top=True`. Set
+            `classifier_activation=None` to return the logits of the "top" layer.
+    Returns:
+      A `keras.Model` instance.
+"""
 
 
 def Conv2D(filters, kernel_size=(3, 3), strides=(1, 1), padding="same", separable=True, name=None):
@@ -49,15 +79,15 @@ def Conv2D(filters, kernel_size=(3, 3), strides=(1, 1), padding="same", separabl
     def apply(x):
         x = conv(filters, kernel_size, strides, padding=padding, use_bias=False, name=name)(x)
         x = layers.BatchNormalization(
-            axis=CHANNEL_AXIS, name=f"{name}_bn"
+            axis=BN_AXIS, name=f"{name}_bn"
         )(x)
         return x
 
     return apply
 
 
-def Block(filters, kernel_size=(3, 3), strides=(1, 1), padding="same",
-          activation="relu", activation_loc="first", separable=True, name=None):
+def BaseBlock(filters, kernel_size=(3, 3), strides=(1, 1), padding="same",
+              activation="relu", activation_loc="first", separable=True, name=None):
     if name is None:
         name = f"block_{backend.get_uid('block')}"
 
@@ -86,7 +116,7 @@ def ResidualBlock(filters, kernel_size=(3, 3), num_blocks: int = 3, name=None):
     def apply(x):
         residual = x
         for i in range(num_blocks):
-            x = Block(filters, kernel_size, activation_loc="first", name=f"{name}_sepconv{i}")(x)
+            x = BaseBlock(filters, kernel_size, activation_loc="first", name=f"{name}_sepconv{i}")(x)
         x = layers.add([x, residual])
         return x
 
@@ -107,8 +137,8 @@ def XceptionStack(filters, skip_first_act=False, name=None):
 
     def apply(x):
         residual = Conv2D(filters1, (1, 1), strides=(2, 2), padding="same", separable=False)(x)
-        x = Block(filters0, activation_loc=activation_loc, name=f"{name}_sepconv1")(x)
-        x = Block(filters1, name=f"{name}_sepconv2")(x)
+        x = BaseBlock(filters0, (3, 3), activation_loc=activation_loc, name=f"{name}_sepconv1")(x)
+        x = BaseBlock(filters1, (3, 3), name=f"{name}_sepconv2")(x)
         x = layers.MaxPooling2D((3, 3), strides=(2, 2), padding="same", name=f"{name}_pool")(x)
         x = layers.add([x, residual])
         return x
@@ -122,7 +152,7 @@ def GeneralXception(
         exit_flow_filters,
         include_rescaling,
         include_top,
-        model_name="xception",
+        name="Xception",
         weights=None,
         input_shape=(None, None, 3),
         input_tensor=None,
@@ -131,15 +161,17 @@ def GeneralXception(
         classifier_activation="softmax",
         **kwargs,
 ):
-    """Instantiates the Xception architecture using given scaling
-        coefficients.
+    """Instantiates the Xception architecture.
 
     Args:
+        entry_flow_filters: list of filters to use for the blocks in the entry flow.
+        middle_flow_filters: list of filters to use for the blocks in the middle flow.
+        exit_flow_filters: list of filters to use for the blocks in the exit flow.
         include_rescaling: whether or not to Rescale the inputs.If set to True,
             inputs will be passed through a `Rescaling(1/255.0)` layer.
         include_top: whether to include the fully-connected
             layer at the top of the network.
-        model_name: string, model name.
+        name: string, model name.
         weights: one of `None` (random initialization),
             or the path to the weights file to be loaded.
         input_shape: optional shape tuple,
@@ -163,7 +195,6 @@ def GeneralXception(
         classifier_activation: A `str` or callable. The activation function to use
             on the "top" layer. Ignored unless `include_top=True`. Set
             `classifier_activation=None` to return the logits of the "top" layer.
-        entry_filters: TODO
 
     Returns:
       A `keras.Model` instance.
@@ -202,8 +233,8 @@ def GeneralXception(
         x = layers.Rescaling(scale=1 / 255.0)(x)
 
     # entry flow
-    x = Block(entry_flow_filters[0], strides=(2, 2), padding="valid", activation_loc="last", separable=False, name="block1_conv1")(x)
-    x = Block(entry_flow_filters[1], padding="valid", activation_loc="last", separable=False, name="block1_conv2")(x)
+    x = BaseBlock(entry_flow_filters[0], strides=(2, 2), padding="valid", activation_loc="last", separable=False, name="block1_conv1")(x)
+    x = BaseBlock(entry_flow_filters[1], padding="valid", activation_loc="last", separable=False, name="block1_conv2")(x)
 
     for i, filters in enumerate(entry_flow_filters[2:]):
         x = XceptionStack(filters, skip_first_act=i == 0, name=f"entry_block_{i}")(x)
@@ -215,8 +246,8 @@ def GeneralXception(
     for i, filters in enumerate(exit_flow_filters[:-2]):
         x = XceptionStack(filters, name=f"exit_block_{i}")(x)
 
-    x = Block(exit_flow_filters[-2], (3, 3), activation_loc="last", name="block14_sepconv1")(x)
-    x = Block(exit_flow_filters[-1], (3, 3), activation_loc="last", name="block14_sepconv2")(x)
+    x = BaseBlock(exit_flow_filters[-2], (3, 3), activation_loc="last", name="block14_sepconv1")(x)
+    x = BaseBlock(exit_flow_filters[-1], (3, 3), activation_loc="last", name="block14_sepconv2")(x)
 
     if include_top:
         x = layers.GlobalAveragePooling2D(name="avg_pool")(x)
@@ -231,7 +262,7 @@ def GeneralXception(
 
     inputs = img_input
 
-    model = tf.keras.Model(inputs, x, name=model_name, **kwargs)
+    model = tf.keras.Model(inputs, x, name=name, **kwargs)
 
     if weights is not None:
         model.load_weights(weights)
@@ -242,7 +273,7 @@ def GeneralXception(
 def Xception(
         include_rescaling,
         include_top,
-        model_name="xception",
+        name="Xception",
         weights=None,
         input_shape=(None, None, 3),
         input_tensor=None,
@@ -252,13 +283,13 @@ def Xception(
         **kwargs,
 ):
     return GeneralXception(
-        MODEL_CONFIG['Xception']['entry_flow_filters'],
-        MODEL_CONFIG['Xception']['middle_flow_filters'],
-        MODEL_CONFIG['Xception']['exit_flow_filters'],
+        MODEL_CONFIGS['Xception']['entry_flow_filters'],
+        MODEL_CONFIGS['Xception']['middle_flow_filters'],
+        MODEL_CONFIGS['Xception']['exit_flow_filters'],
         include_rescaling,
         include_top,
-        model_name=model_name,
-        weights=weights,
+        name=name,
+        weights=parse_weights(weights, include_top, "xception"),
         input_shape=input_shape,
         input_tensor=input_tensor,
         pooling=pooling,
@@ -266,3 +297,6 @@ def Xception(
         classifier_activation=classifier_activation,
         **kwargs,
     )
+
+
+setattr(Xception, "__doc__", BASE_DOCSTRING.format(name="Xception"))
