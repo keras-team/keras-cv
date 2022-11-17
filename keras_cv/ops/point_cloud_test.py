@@ -19,6 +19,14 @@ from absl.testing import parameterized
 from keras_cv import ops
 
 
+class AngleTest(tf.test.TestCase):
+    def test_wrap_angle_radians(self):
+        self.assertAllClose(
+            -np.pi + 0.1, ops.point_cloud.wrap_angle_radians(np.pi + 0.1)
+        )
+        self.assertAllClose(0.0, ops.point_cloud.wrap_angle_radians(2 * np.pi))
+
+
 class Boxes3DTestCase(tf.test.TestCase, parameterized.TestCase):
     def test_convert_center_to_corners(self):
         boxes = tf.constant(
