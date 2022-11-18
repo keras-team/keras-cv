@@ -194,7 +194,7 @@ class Resizing(BaseImageAugmentationLayer):
 
             if boxes is not None:
                 boxes = keras_cv.bounding_box.clip_to_image(
-                    boxes, image=image, bounding_box_format="xyxy"
+                    boxes, images=image, bounding_box_format="xyxy"
                 )
                 boxes = keras_cv.bounding_box.convert_format(
                     boxes,
@@ -274,7 +274,7 @@ class Resizing(BaseImageAugmentationLayer):
             image = tf.image.pad_to_bounding_box(image, 0, 0, self.height, self.width)
             if boxes is not None:
                 boxes = keras_cv.bounding_box.clip_to_image(
-                    boxes, image, bounding_box_format="xyxy"
+                    boxes, images=images, bounding_box_format="xyxy"
                 )
                 boxes = keras_cv.bounding_box.convert_format(
                     boxes,
