@@ -68,16 +68,18 @@ train_ds = train_ds.map(unpackage_raw_tfds_inputs, num_parallel_calls=tf.data.AU
 eval_ds = eval_ds.map(unpackage_raw_tfds_inputs, num_parallel_calls=tf.data.AUTOTUNE)
 
 resizing = layers.Resizing(640, 640, bounding_box_format="xywh", pad_to_aspect_ratio=True)
+
 augmenter = layers.Augmenter(
     [
         layers.RandomFlip(mode="horizontal", bounding_box_format="xywh"),
-        layers.RandomScale(factor=(0.75, 1.25), bounding_box_format="xywh"),
         layers.RandomRaggedCrop(
-            height_factor=(0.3, 1.0),
-            width_factor=(0.3, 1.0),
+            height_factor=(0.9, 1.0),
+            width_factor=(0.9, 1.0),
             bounding_box_format="xywh",
         ),
-        resizing,
+        layers.RandomScale(factor=(1.2, 2.0), bounding_box_format="xywh"),
+        layers.RandomAspectRatio(factor=(0.9, 1.1), bounding_box_format="xywh"),
+        layers.Resizing(640, 640, bounding_box_format="xywh", pad_only=True),
     ]
 )
 
