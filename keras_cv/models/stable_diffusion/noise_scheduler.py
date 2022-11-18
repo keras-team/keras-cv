@@ -16,6 +16,8 @@
 Adapted from https://github.com/huggingface/diffusers/blob/v0.3.0/src/diffusers/schedulers/scheduling_ddpm.py#L56
 """
 
+import tensorflow as tf
+
 
 class NoiseScheduler:
     """
