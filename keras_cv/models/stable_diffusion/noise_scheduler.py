@@ -54,6 +54,9 @@ class NoiseScheduler:
             self.betas = (
                 tf.linspace(beta_start**0.5, beta_end**0.5, train_timesteps) ** 2
             )
+        elif beta_schedule == "scaled_linear":
+            # this schedule is very specific to the latent diffusion model.
+            self.betas = np.linspace(beta_start**0.5, beta_end**0.5, num_train_timesteps, dtype=np.float32) ** 2
         else:
             raise ValueError(f"Invalid beta schedule: {beta_schedule}.")
 
