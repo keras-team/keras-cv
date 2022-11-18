@@ -9,6 +9,7 @@ from tensorflow import keras
 
 import keras_cv
 from keras_cv import layers
+
 low, high = resource.getrlimit(resource.RLIMIT_NOFILE)
 resource.setrlimit(resource.RLIMIT_NOFILE, (high, high))
 os.makedirs("artifacts/", exist_ok=True)
@@ -42,7 +43,8 @@ class_ids = [
 ]
 class_mapping = dict(zip(range(len(class_ids)), class_ids))
 
-def unpackage_raw_tfds_inputs(inputs, bounding_box_format='xywh'):
+
+def unpackage_raw_tfds_inputs(inputs, bounding_box_format="xywh"):
     image = inputs["image"]
     image = tf.cast(image, tf.float32)
     gt_boxes = inputs["objects"]["bbox"]
@@ -54,7 +56,11 @@ def unpackage_raw_tfds_inputs(inputs, bounding_box_format='xywh'):
     )
     gt_classes = tf.cast(inputs["objects"]["label"], tf.float32)
     gt_classes = tf.expand_dims(gt_classes, axis=-1)
-    return {"images": image, "bounding_boxes": tf.concat([gt_boxes, gt_classes], axis=-1)}
+    return {
+        "images": image,
+        "bounding_boxes": tf.concat([gt_boxes, gt_classes], axis=-1),
+    }
+
 
 train_ds = tfds.load(
     "voc/2007", split="train+test", with_info=False, shuffle_files=True
@@ -67,7 +73,7 @@ eval_ds = tfds.load("voc/2007", split="test", with_info=False)
 train_ds = train_ds.map(unpackage_raw_tfds_inputs, num_parallel_calls=tf.data.AUTOTUNE)
 eval_ds = eval_ds.map(unpackage_raw_tfds_inputs, num_parallel_calls=tf.data.AUTOTUNE)
 
-resizing = layers.Resizing(640, 640, bounding_box_format="xywh", pad_to_aspect_ratio=True)
+resizing = layers.Resizing(640, 640, bounding_box_format="xywh", pad_only=True)
 
 augmenter = layers.Augmenter(
     [
@@ -79,16 +85,14 @@ augmenter = layers.Augmenter(
         ),
         layers.RandomScale(factor=(1.2, 2.0), bounding_box_format="xywh"),
         layers.RandomAspectRatio(factor=(0.9, 1.1), bounding_box_format="xywh"),
-        layers.Resizing(640, 640, bounding_box_format="xywh", pad_only=True),
+        layers.Resizing(640, 640, bounding_box_format="xywh", pad_to_aspect_ratio=True),
     ]
 )
 
 train_ds = train_ds.apply(
     tf.data.experimental.dense_to_ragged_batch(BATCH_SIZE, drop_remainder=True)
 )
-train_ds = train_ds.map(
-    augmenter, num_parallel_calls=tf.data.AUTOTUNE
-)
+train_ds = train_ds.map(augmenter, num_parallel_calls=tf.data.AUTOTUNE)
 eval_ds = eval_ds.apply(
     tf.data.experimental.dense_to_ragged_batch(BATCH_SIZE, drop_remainder=True)
 )
@@ -189,4 +193,3 @@ history = model.fit(
 
 keras_cv_metrics = model.evaluate(eval_ds.take(20), return_dict=True)
 print("Metrics:", keras_cv_metrics)
-
