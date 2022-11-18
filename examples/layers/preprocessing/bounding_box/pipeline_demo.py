@@ -77,7 +77,7 @@ augmenter = layers.Augmenter(
             width_factor=(0.7, 1.0),
             bounding_box_format="xywh",
         ),
-        layers.RandomAspectRatio(factor=(0.8, 1.2), bounding_box_format='xywh'),
+        layers.RandomAspectRatio(factor=(0.8, 1.2), bounding_box_format="xywh"),
         layers.Resizing(512, 512, bounding_box_format="xywh", pad_to_aspect_ratio=True),
     ]
 )
