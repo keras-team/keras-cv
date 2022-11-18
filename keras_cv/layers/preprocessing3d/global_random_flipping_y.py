@@ -22,7 +22,7 @@ BOUNDING_BOXES = base_augmentation_layer_3d.BOUNDING_BOXES
 
 
 class GlobalRandomFlippingY(base_augmentation_layer_3d.BaseAugmentationLayer3D):
-    """A preprocessing layer which flips point clouds and bounding boxes along with respect to the Y axis during training.
+    """A preprocessing layer which flips point clouds and bounding boxes with respect to the Y axis during training.
 
     This layer will flip the whole scene with respect to the Y axis.
     During inference time, the output will be identical to input. Call the layer with `training=True` to flip the input.
