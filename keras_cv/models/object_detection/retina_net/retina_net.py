@@ -261,20 +261,20 @@ class RetinaNet(ObjectDetectionBaseModel):
         box_outputs = tf.concat(box_outputs, axis=1)
         return tf.concat([box_outputs, cls_outputs], axis=-1)
 
-    def decode_training_predictions(self, x, train_predictions):
+    def decode_predictions(self, predictions, images):
         # no-op if default decoder is used.
         pred_for_inference = bounding_box.convert_format(
-            train_predictions,
+            predictions,
             source=self.bounding_box_format,
             target=self.prediction_decoder.bounding_box_format,
-            images=x,
+            images=images,
         )
-        pred_for_inference = self.prediction_decoder(x, pred_for_inference)
+        pred_for_inference = self.prediction_decoder(images, pred_for_inference)
         return bounding_box.convert_format(
             pred_for_inference,
             source=self.prediction_decoder.bounding_box_format,
             target=self.bounding_box_format,
-            images=x,
+            images=images,
         )
 
     def compile(
@@ -443,7 +443,7 @@ class RetinaNet(ObjectDetectionBaseModel):
             # them.
             return {m.name: m.result() for m in self.train_metrics}
 
-        predictions = self.decode_training_predictions(x, y_pred)
+        predictions = self.decode_predictions(y_pred, x)
         self._update_metrics(y_for_metrics, predictions)
         return {m.name: m.result() for m in self.metrics}
 
@@ -453,13 +453,9 @@ class RetinaNet(ObjectDetectionBaseModel):
         y_pred = self(x, training=False)
         _ = self._backward(y_training_target, y_pred)
 
-        predictions = self.decode_training_predictions(x, y_pred)
+        predictions = self.decode_predictions(y_pred, x)
         self._update_metrics(y_for_metrics, predictions)
         return {m.name: m.result() for m in self.metrics}
-
-    def predict_step(self, x):
-        predictions = super().predict_step(x)
-        return self.decode_training_predictions(x, predictions)
 
     def _update_metrics(self, y_true, y_pred):
         y_true = bounding_box.convert_format(
