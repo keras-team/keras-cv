@@ -68,22 +68,16 @@ train_ds = train_ds.apply(
     tf.data.experimental.dense_to_ragged_batch(2, drop_remainder=True)
 )
 
-#
-# inputs = next(iter(train_ds))
-# x, y = inputs["images"], inputs["bounding_boxes"]
-# luketils.visualization.plot_bounding_box_gallery(
-#     images=x, y_true=y, value_range=(0, 255), rows=1, cols=4, bounding_box_format="xywh"
-# )
-
 augmenter = layers.Augmenter(
     [
         layers.RandomFlip(mode="horizontal", bounding_box_format="xywh"),
         layers.RandomScale(factor=(0.75, 1.25), bounding_box_format="xywh"),
         layers.RandomRaggedCrop(
-            height_factor=(0.3, 1.0),
-            width_factor=(0.3, 1.0),
+            height_factor=(0.7, 1.0),
+            width_factor=(0.7, 1.0),
             bounding_box_format="xywh",
         ),
+        layers.RandomAspectRatio(factor=(0.8, 1.2), bounding_box_format='xywh'),
         layers.Resizing(512, 512, bounding_box_format="xywh", pad_to_aspect_ratio=True),
     ]
 )
