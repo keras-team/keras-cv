@@ -51,9 +51,9 @@ class RandomScale(BaseImageAugmentationLayer):
     def get_random_transformation(self, **kwargs):
         return self.factor(dtype=self.compute_dtype)
 
-    def _compute_image_signature(self, images):
+    def compute_image_signature(self, images):
         ragged_spec = tf.RaggedTensorSpec(
-            shape=images.shape[1:],
+            shape=(None, None, images.shape[-1]),
             ragged_rank=1,
             dtype=self.compute_dtype,
         )
@@ -75,7 +75,6 @@ class RandomScale(BaseImageAugmentationLayer):
         return bounding_boxes
 
     def augment_image(self, image, transformation, **kwargs):
-        # images....transformation
         target_size = tf.cast(
             tf.cast(tf.shape(image)[:2], self.compute_dtype) * transformation, tf.int32
         )

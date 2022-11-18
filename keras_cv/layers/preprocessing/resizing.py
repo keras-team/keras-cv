@@ -162,8 +162,7 @@ class Resizing(BaseImageAugmentationLayer):
                     source=self.bounding_box_format,
                     target="rel_xyxy",
                 )
-
-            if img_height > height or img_width > width:
+            if img_height > self.height or img_width > self.width:
                 # how much we scale height by to hit target height
                 height_scale = self.height / img_height
                 width_scale = self.width / img_width
@@ -215,7 +214,7 @@ class Resizing(BaseImageAugmentationLayer):
             fn_output_signature["bounding_boxes"] = boxes_spec
 
         return tf.map_fn(
-            resize_single_with_pad_to_aspect,
+            resize_single_with_pad_only,
             inputs,
             fn_output_signature=fn_output_signature,
         )
@@ -375,6 +374,8 @@ class Resizing(BaseImageAugmentationLayer):
             return self._resize_with_crop(inputs)
         if self.pad_to_aspect_ratio:
             return self._resize_with_pad(inputs)
+        if self.pad_only:
+            return self._resize_with_pad_only(inputs)
         return self._resize_with_distortion(inputs)
 
     def get_config(self):
