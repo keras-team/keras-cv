@@ -59,9 +59,7 @@ def unpackage_raw_tfds_inputs(inputs, bounding_box_format="xywh"):
     }
 
 
-train_ds = tfds.load(
-    "voc/2007", split="train+test", with_info=False, shuffle_files=True
-)
+train_ds = tfds.load("voc/2007", split="train", with_info=False, shuffle_files=True)
 train_ds = train_ds.concatenate(
     tfds.load("voc/2012", split="train+validation", with_info=False, shuffle_files=True)
 )
@@ -70,7 +68,9 @@ eval_ds = tfds.load("voc/2007", split="test", with_info=False)
 train_ds = train_ds.map(unpackage_raw_tfds_inputs, num_parallel_calls=tf.data.AUTOTUNE)
 eval_ds = eval_ds.map(unpackage_raw_tfds_inputs, num_parallel_calls=tf.data.AUTOTUNE)
 
-resizing = layers.Resizing(640, 640, bounding_box_format="xywh", pad_only=True)
+eval_resizing = layers.Resizing(
+    640, 640, bounding_box_format="xywh", pad_to_aspect_ratio=True
+)
 
 augmenter = layers.Augmenter(
     [
@@ -82,7 +82,7 @@ augmenter = layers.Augmenter(
         ),
         layers.RandomScale(factor=(1.2, 2.0), bounding_box_format="xywh"),
         layers.RandomAspectRatio(factor=(0.9, 1.1), bounding_box_format="xywh"),
-        layers.Resizing(640, 640, bounding_box_format="xywh", pad_to_aspect_ratio=True),
+        layers.Resizing(640, 640, bounding_box_format="xywh", pad_only=True),
     ]
 )
 
@@ -94,7 +94,7 @@ eval_ds = eval_ds.apply(
     tf.data.experimental.dense_to_ragged_batch(BATCH_SIZE, drop_remainder=True)
 )
 eval_ds = eval_ds.map(
-    resizing,
+    eval_resizing,
     num_parallel_calls=tf.data.AUTOTUNE,
 )
 
