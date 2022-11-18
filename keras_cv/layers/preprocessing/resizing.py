@@ -64,6 +64,7 @@ class Resizing(BaseImageAugmentationLayer):
             https://github.com/keras-team/keras-cv/blob/master/keras_cv/bounding_box/converters.py
             for more details on supported bounding box formats.
     """
+
     def __init__(
         self,
         height,
@@ -84,7 +85,10 @@ class Resizing(BaseImageAugmentationLayer):
         self._interpolation_method = keras_cv.utils.get_interpolation(interpolation)
         self.bounding_box_format = bounding_box_format
 
-        if sum([int(x) for x in [pad_to_aspect_ratio, crop_to_aspect_ratio, pad_only]]) > 1:
+        if (
+            sum([int(x) for x in [pad_to_aspect_ratio, crop_to_aspect_ratio, pad_only]])
+            > 1
+        ):
             raise ValueError(
                 "`Resizing()` expects at most one of `crop_to_aspect_ratio`, "
                 "`pad_only` or "
@@ -188,12 +192,16 @@ class Resizing(BaseImageAugmentationLayer):
             image = tf.image.pad_to_bounding_box(image, 0, 0, self.height, self.width)
 
             if boxes is not None:
+                boxes = keras_cv.bounding_box.clip_to_image(
+                    boxes, image=image, bounding_box_format="xyxy"
+                )
                 boxes = keras_cv.bounding_box.convert_format(
                     boxes,
                     images=image,
                     source="xyxy",
                     target=self.bounding_box_format,
                 )
+
             inputs["images"] = image
 
             if boxes is not None:
