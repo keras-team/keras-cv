@@ -19,6 +19,7 @@ import tensorflow as tf
 from tensorflow.keras import optimizers
 
 import keras_cv
+from keras_cv.models.object_detection.__test_utils__ import _create_bounding_box_dataset
 
 
 class RetinaNetTest(tf.test.TestCase):

@@ -406,48 +406,27 @@ model.load_weights(CHECKPOINT_PATH)
 
 
 def proc_eval_fn(bounding_box_format, target_size):
+    resizer = keras_cv.layers.Resizing(
+        target_size[0],
+        target_size[1],
+        pad_to_aspect_ratio=True,
+        bounding_box_format=bounding_box_format,
+    )
+
     def apply(inputs):
-        raw_image = inputs["image"]
-        raw_image = tf.cast(raw_image, tf.float32)
-
-        img_size = tf.shape(raw_image)
-        height = img_size[0]
-        width = img_size[1]
-
-        target_height = tf.cond(
-            height > width,
-            lambda: 640.0,
-            lambda: tf.cast(height / width * 640.0, tf.float32),
-        )
-        target_width = tf.cond(
-            width > height,
-            lambda: 640.0,
-            lambda: tf.cast(width / height * 640.0, tf.float32),
-        )
-        image = tf.image.resize(
-            raw_image, (target_height, target_width), antialias=False
-        )
-
+        image = tf.cast(inputs["image"], tf.float32)
         gt_boxes = keras_cv.bounding_box.convert_format(
             inputs["objects"]["bbox"],
             images=image,
             source="rel_yxyx",
-            target="xyxy",
-        )
-        image = tf.image.pad_to_bounding_box(
-            image, 0, 0, target_size[0], target_size[1]
-        )
-        gt_boxes = keras_cv.bounding_box.convert_format(
-            gt_boxes,
-            images=image,
-            source="xyxy",
             target=bounding_box_format,
         )
-
         gt_classes = tf.cast(inputs["objects"]["label"], tf.float32)
         gt_classes = tf.expand_dims(gt_classes, axis=-1)
         bounding_boxes = tf.concat([gt_boxes, gt_classes], axis=-1)
-        return image, bounding_boxes
+        inputs = {"images": image, "bounding_boxes": bounding_boxes}
+        o = resizer(inputs)
+        return o["images"], o["bounding_boxes"]
 
     return apply
 

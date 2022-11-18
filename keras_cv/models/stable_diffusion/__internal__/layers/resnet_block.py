@@ -14,10 +14,10 @@
 
 from tensorflow import keras
 
-from keras_cv.models.generative.stable_diffusion.__internal__.layers.group_normalization import (
+from keras_cv.models.stable_diffusion.__internal__.layers.group_normalization import (
     GroupNormalization,
 )
-from keras_cv.models.generative.stable_diffusion.__internal__.layers.padded_conv2d import (
+from keras_cv.models.stable_diffusion.__internal__.layers.padded_conv2d import (
     PaddedConv2D,
 )
 

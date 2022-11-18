@@ -134,7 +134,8 @@ class RetinaNet(ObjectDetectionBaseModel):
             bounding_box_format
         )
         label_encoder = label_encoder or cv_layers.RetinaNetLabelEncoder(
-            bounding_box_format=bounding_box_format, anchor_generator=anchor_generator
+            bounding_box_format=bounding_box_format,
+            anchor_generator=anchor_generator,
         )
         super().__init__(
             bounding_box_format=bounding_box_format,
@@ -234,6 +235,7 @@ class RetinaNet(ObjectDetectionBaseModel):
             self.loss_metric,
             self.classification_loss_metric,
             self.box_loss_metric,
+            self.label_encoder.matched_boxes_metric,
         ]
 
         # only track regularization loss when at least one exists
