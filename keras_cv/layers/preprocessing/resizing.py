@@ -59,13 +59,11 @@ class Resizing(BaseImageAugmentationLayer):
             largest possible resize of the image (of size `(height, width)`) that
             matches the target aspect ratio. By default
             (`pad_to_aspect_ratio=False`), aspect ratio may not be preserved.
-        pad_only: If True, resize the images without aspect ratio distortion only using
-            padding.  The original image will occupy the top left of the result image.
+        pad_only:
         bounding_box_format: The format of bounding boxes of input dataset. Refer to
             https://github.com/keras-team/keras-cv/blob/master/keras_cv/bounding_box/converters.py
             for more details on supported bounding box formats.
     """
-
     def __init__(
         self,
         height,
@@ -87,15 +85,21 @@ class Resizing(BaseImageAugmentationLayer):
         self.bounding_box_format = bounding_box_format
         self.force_output_dense_images = True
 
-        if (
-            sum([int(x) for x in [pad_to_aspect_ratio, crop_to_aspect_ratio, pad_only]])
-            > 1
-        ):
+        if sum([int(x) for x in [pad_to_aspect_ratio, crop_to_aspect_ratio, pad_only]]) > 1:
             raise ValueError(
                 "`Resizing()` expects at most one of `crop_to_aspect_ratio`, "
                 "`pad_only` or "
                 "`pad_to_aspect_ratio` to be True."
             )
+
+        # if not pad_to_aspect_ratio and bounding_box_format:
+        #     raise ValueError(
+        #         "Resizing() only supports bounding boxes when in "
+        #         "`pad_to_aspect_ratio=True` mode.  "
+        #         "Please pass `pad_to_aspect_ratio=True`"
+        #         "when processing bounding boxes with `Resizing()`"
+        #     )
+
         super().__init__(**kwargs)
 
     def compute_image_signature(self, images):
@@ -159,7 +163,8 @@ class Resizing(BaseImageAugmentationLayer):
                     source=self.bounding_box_format,
                     target="rel_xyxy",
                 )
-            if img_height > self.height or img_width > self.width:
+
+            if img_height > height or img_width > width:
                 # how much we scale height by to hit target height
                 height_scale = self.height / img_height
                 width_scale = self.width / img_width
@@ -185,20 +190,15 @@ class Resizing(BaseImageAugmentationLayer):
             image = tf.image.pad_to_bounding_box(image, 0, 0, self.height, self.width)
 
             if boxes is not None:
-                boxes = keras_cv.bounding_box.clip_to_image(
-                    boxes, images=image, bounding_box_format="xyxy"
-                )
                 boxes = keras_cv.bounding_box.convert_format(
                     boxes,
                     images=image,
                     source="xyxy",
                     target=self.bounding_box_format,
                 )
-
             inputs["images"] = image
 
             if boxes is not None:
-                boxes = keras_cv.bounding_box.filter_sentinels(boxes)
                 inputs["bounding_boxes"] = tf.RaggedTensor.from_tensor(boxes)
             return inputs
 
@@ -216,7 +216,7 @@ class Resizing(BaseImageAugmentationLayer):
             fn_output_signature["bounding_boxes"] = boxes_spec
 
         return tf.map_fn(
-            resize_single_with_pad_only,
+            resize_single_with_pad_to_aspect,
             inputs,
             fn_output_signature=fn_output_signature,
         )
