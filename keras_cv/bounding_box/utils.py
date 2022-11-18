@@ -31,6 +31,25 @@ def _relative_area(bounding_boxes, bounding_box_format, images):
     # handle corner case where shear performs a full inversion.
     return tf.where(tf.math.logical_and(widths > 0, heights > 0), widths * heights, 0.0)
 
+def split(boxes):
+    """splits boxes into their four components, and the rest on a final axis.
+
+    Args:
+        boxes: boxes to split on the final axis.
+
+    Usage:
+    ```python
+    # XYWH format
+    boxes = tf.constant([[0, 1, 1, 1]])
+    x, y, w, h, rest = bounding_box.split_boxes(boxes)
+    # double box width
+    w = w * 2
+    boxes = tf.concat([x, y, w, h, rest], axis=-1)
+    ```
+    """
+    return tf.split(
+        boxes, [1, 1, 1, 1, boxes.shape[-1] - 4], axis=-1
+    )
 
 def clip_to_image(bounding_boxes, bounding_box_format, images=None, image_shape=None):
     """clips bounding boxes to image boundaries.

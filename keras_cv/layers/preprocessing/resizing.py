@@ -59,11 +59,11 @@ class Resizing(BaseImageAugmentationLayer):
             largest possible resize of the image (of size `(height, width)`) that
             matches the target aspect ratio. By default
             (`pad_to_aspect_ratio=False`), aspect ratio may not be preserved.
+        pad_only:
         bounding_box_format: The format of bounding boxes of input dataset. Refer to
             https://github.com/keras-team/keras-cv/blob/master/keras_cv/bounding_box/converters.py
             for more details on supported bounding box formats.
     """
-
     def __init__(
         self,
         height,
@@ -71,6 +71,7 @@ class Resizing(BaseImageAugmentationLayer):
         interpolation="bilinear",
         crop_to_aspect_ratio=False,
         pad_to_aspect_ratio=False,
+        pad_only=False,
         bounding_box_format=None,
         **kwargs,
     ):
@@ -79,22 +80,25 @@ class Resizing(BaseImageAugmentationLayer):
         self.interpolation = interpolation
         self.crop_to_aspect_ratio = crop_to_aspect_ratio
         self.pad_to_aspect_ratio = pad_to_aspect_ratio
+        self.pad_only = pad_only
         self._interpolation_method = keras_cv.utils.get_interpolation(interpolation)
         self.bounding_box_format = bounding_box_format
 
-        if pad_to_aspect_ratio and crop_to_aspect_ratio:
+        if sum([int(x) for x in [pad_to_aspect_ratio, crop_to_aspect_ratio, pad_only]]) > 1:
             raise ValueError(
-                "`Resizing()` expects at most one of `crop_to_aspect_ratio` or "
+                "`Resizing()` expects at most one of `crop_to_aspect_ratio`, "
+                "`pad_only` or "
                 "`pad_to_aspect_ratio` to be True."
             )
 
-        if not pad_to_aspect_ratio and bounding_box_format:
-            raise ValueError(
-                "Resizing() only supports bounding boxes when in "
-                "`pad_to_aspect_ratio=True` mode.  "
-                "Please pass `pad_to_aspect_ratio=True`"
-                "when processing bounding boxes with `Resizing()`"
-            )
+        # if not pad_to_aspect_ratio and bounding_box_format:
+        #     raise ValueError(
+        #         "Resizing() only supports bounding boxes when in "
+        #         "`pad_to_aspect_ratio=True` mode.  "
+        #         "Please pass `pad_to_aspect_ratio=True`"
+        #         "when processing bounding boxes with `Resizing()`"
+        #     )
+
         super().__init__(**kwargs)
 
     def compute_image_signature(self, images):
@@ -136,6 +140,86 @@ class Resizing(BaseImageAugmentationLayer):
         inputs["images"] = images
         return inputs
 
+    def _resize_with_pad_only(self, inputs):
+        def resize_single_with_pad_only(x):
+            image = x.get("images", None)
+            boxes = x.get("bounding_boxes", None)
+
+            # images must be dense-able at this point.
+            if isinstance(image, tf.RaggedTensor):
+                image = image.to_tensor()
+
+            img_size = tf.shape(image)
+            img_height = tf.cast(img_size[H_AXIS], self.compute_dtype)
+            img_width = tf.cast(img_size[W_AXIS], self.compute_dtype)
+            if boxes is not None:
+                if isinstance(boxes, tf.RaggedTensor):
+                    boxes = boxes.to_tensor(-1)
+
+                boxes = keras_cv.bounding_box.convert_format(
+                    boxes,
+                    image_shape=img_size,
+                    source=self.bounding_box_format,
+                    target="rel_xyxy",
+                )
+
+            if img_height > height or img_width > width:
+                # how much we scale height by to hit target height
+                height_scale = self.height / img_height
+                width_scale = self.width / img_width
+
+                resize_scale = tf.math.minimum(height_scale, width_scale)
+                target_height = img_height * resize_scale
+                target_width = img_width * resize_scale
+
+                image = tf.image.resize(
+                    image,
+                    size=(target_height, target_width),
+                    method=self._interpolation_method,
+                )
+
+            if boxes is not None:
+                boxes = keras_cv.bounding_box.convert_format(
+                    boxes,
+                    images=image,
+                    source="rel_xyxy",
+                    target="xyxy",
+                )
+
+            image = tf.image.pad_to_bounding_box(image, 0, 0, self.height, self.width)
+
+            if boxes is not None:
+                boxes = keras_cv.bounding_box.convert_format(
+                    boxes,
+                    images=image,
+                    source="xyxy",
+                    target=self.bounding_box_format,
+                )
+            inputs["images"] = image
+
+            if boxes is not None:
+                inputs["bounding_boxes"] = tf.RaggedTensor.from_tensor(boxes)
+            return inputs
+
+        size_as_shape = tf.TensorShape((self.height, self.width))
+        shape = size_as_shape + inputs["images"].shape[-1:]
+        img_spec = tf.TensorSpec(shape, self.compute_dtype)
+        fn_output_signature = {"images": img_spec}
+
+        bounding_boxes = inputs.get("bounding_boxes", None)
+        if bounding_boxes is not None:
+            boxes_spec = tf.RaggedTensorSpec(
+                shape=[None, bounding_boxes.shape[2]],
+                dtype=bounding_boxes.dtype,
+            )
+            fn_output_signature["bounding_boxes"] = boxes_spec
+
+        return tf.map_fn(
+            resize_single_with_pad_to_aspect,
+            inputs,
+            fn_output_signature=fn_output_signature,
+        )
+
     def _resize_with_pad(self, inputs):
         def resize_single_with_pad_to_aspect(x):
             image = x.get("images", None)
@@ -150,7 +234,7 @@ class Resizing(BaseImageAugmentationLayer):
             img_width = tf.cast(img_size[W_AXIS], self.compute_dtype)
             if boxes is not None:
                 if isinstance(boxes, tf.RaggedTensor):
-                    boxes = boxes.to_tensor()
+                    boxes = boxes.to_tensor(-1)
 
                 boxes = keras_cv.bounding_box.convert_format(
                     boxes,
