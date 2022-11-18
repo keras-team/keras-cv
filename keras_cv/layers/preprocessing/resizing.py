@@ -272,6 +272,9 @@ class Resizing(BaseImageAugmentationLayer):
                 )
             image = tf.image.pad_to_bounding_box(image, 0, 0, self.height, self.width)
             if boxes is not None:
+                boxes = keras_cv.bounding_box.clip_to_image(
+                    boxes, image, bounding_box_format="xyxy"
+                )
                 boxes = keras_cv.bounding_box.convert_format(
                     boxes,
                     images=image,
@@ -395,6 +398,7 @@ class Resizing(BaseImageAugmentationLayer):
             "crop_to_aspect_ratio": self.crop_to_aspect_ratio,
             "pad_to_aspect_ratio": self.pad_to_aspect_ratio,
             "bounding_box_format": self.bounding_box_format,
+            "pad_only": self.pad_only,
         }
         base_config = super().get_config()
         return dict(list(base_config.items()) + list(config.items()))
