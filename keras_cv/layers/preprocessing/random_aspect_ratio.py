@@ -77,7 +77,5 @@ class RandomAspectRatio(BaseImageAugmentationLayer):
         height = height / transformation
         width = width * transformation
 
-        target_size = tf.cast(
-            tf.stack([height, width]), tf.int32
-        )
+        target_size = tf.cast(tf.stack([height, width]), tf.int32)
         return tf.image.resize(image, size=target_size, method=self.interpolation)
