@@ -301,7 +301,6 @@ class SerializationTest(tf.test.TestCase, parameterized.TestCase):
             {
                 "project_dim": 128,
                 "num_heads": 2,
-                "patch_size": 16,
                 "mlp_dim": 128,
                 "mlp_dropout": 0.1,
                 "attention_dropout": 0.1,
