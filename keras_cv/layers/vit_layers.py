@@ -67,6 +67,12 @@ class PatchingAndEmbedding(layers.Layer):
             raise ValueError(
                 f"Padding must be either 'SAME' or 'VALID', but {padding} was passed."
             )
+        self.projection = layers.Conv2D(
+            filters=self.project_dim,
+            kernel_size=self.patch_size,
+            strides=self.patch_size,
+            padding=self.padding,
+        )
 
     def build(self, input_shape):
         self.class_token = self.add_weight(
@@ -100,12 +106,7 @@ class PatchingAndEmbedding(layers.Layer):
             `A tf.Tensor` of shape [batch, patch_num+1, embedding_dim]
         """
         # Turn images into patches and project them onto `project_dim`
-        patches = layers.Conv2D(
-            filters=self.project_dim,
-            kernel_size=self.patch_size,
-            strides=self.patch_size,
-            padding=self.padding,
-        )(images)
+        patches = self.projection(images)
         patch_shapes = tf.shape(patches)
         patches_flattened = tf.reshape(
             patches,
