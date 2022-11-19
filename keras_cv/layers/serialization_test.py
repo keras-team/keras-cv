@@ -291,7 +291,7 @@ class SerializationTest(tf.test.TestCase, parameterized.TestCase):
             },
         ),
         (
-            "PatchEmbedding",
+            "PatchingAndEmbedding",
             PatchingAndEmbedding,
             {"project_dim": 128, "patch_size": 16},
         ),
