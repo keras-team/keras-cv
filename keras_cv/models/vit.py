@@ -22,8 +22,9 @@ from tensorflow import keras
 from tensorflow.keras import layers
 
 from keras_cv.layers import TransformerEncoder
-from keras_cv.layers.vit_layers import PatchEmbedding
-from keras_cv.layers.vit_layers import Patching
+from keras_cv.layers.vit_layers import PatchingAndEmbedding
+
+# from keras_cv.layers.vit_layers import Patching
 from keras_cv.models import utils
 
 MODEL_CONFIGS = {
@@ -266,8 +267,8 @@ def ViT(
     if include_rescaling:
         x = layers.Rescaling(1 / 255.0)(x)
 
-    patches = Patching(patch_size)(x)
-    encoded_patches = PatchEmbedding(project_dim)(patches)
+    # patches = Patching(patch_size)(x)
+    encoded_patches = PatchingAndEmbedding(project_dim, patch_size)(x)
 
     for _ in range(transformer_layer_num):
         encoded_patches = TransformerEncoder(
