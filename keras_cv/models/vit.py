@@ -269,6 +269,7 @@ def ViT(
 
     # patches = Patching(patch_size)(x)
     encoded_patches = PatchingAndEmbedding(project_dim, patch_size)(x)
+    encoded_patches = layers.Dropout(mlp_dropout)(encoded_patches)
 
     for _ in range(transformer_layer_num):
         encoded_patches = TransformerEncoder(
