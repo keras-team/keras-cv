@@ -94,8 +94,10 @@ class TransformerEncoder(layers.Layer):
 
         x1 = self.layer_norm1(inputs)
         attention_output = self.attn(x1, x1)
+        attention_output = layers.Dropout(self.mlp_dropout)(attention_output)
         x2 = layers.Add()([attention_output, inputs])
         x3 = self.layer_norm2(x2)
+
         x3 = self.dense1(x3)
         x3 = layers.Dropout(self.mlp_dropout)(x3)
         x3 = self.dense2(x3)
