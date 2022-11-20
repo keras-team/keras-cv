@@ -92,18 +92,19 @@ class TransformerEncoder(layers.Layer):
                 f"The input and output dimensionality must be the same, but the TransformerEncoder was provided with {inputs.shape[-1]} and {self.project_dim}"
             )
 
-        x1 = self.layer_norm1(inputs)
-        attention_output = self.attn(x1, x1)
-        attention_output = layers.Dropout(self.mlp_dropout)(attention_output)
-        x2 = layers.Add()([attention_output, inputs])
-        x3 = self.layer_norm2(x2)
+        x = self.layer_norm1(inputs)
+        x = self.attn(x, x)
+        x = layers.Dropout(self.mlp_dropout)(x)
+        x = layers.Add()([x, inputs])
 
-        x3 = self.dense1(x3)
-        x3 = layers.Dropout(self.mlp_dropout)(x3)
-        x3 = self.dense2(x3)
-        x3 = layers.Dropout(self.mlp_dropout)(x3)
+        y = self.layer_norm2(x)
 
-        output = layers.Add()([x3, x2])
+        y = self.dense1(y)
+        y = layers.Dropout(self.mlp_dropout)(y)
+        y = self.dense2(y)
+        y = layers.Dropout(self.mlp_dropout)(y)
+
+        output = layers.Add()([x, y])
 
         return output
 
