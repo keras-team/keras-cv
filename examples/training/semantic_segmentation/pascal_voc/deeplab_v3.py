@@ -47,7 +47,7 @@ FLAGS = flags.FLAGS
 FLAGS(sys.argv)
 
 if FLAGS.mixed_precision:
-    logging.info("Mixed Precision training enabled")
+    logging.info("mixed precision training enabled")
     tf.keras.mixed_precision.set_global_policy("mixed_float16")
 
 # Try to detect an available TPU. If none is present, default to MirroredStrategy
