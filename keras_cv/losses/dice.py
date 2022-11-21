@@ -259,12 +259,12 @@ class SparseDice(tf.keras.losses.Loss):
 
     In the snippet below, there are `num_classes` times channels per
     sample. The shape of `y_true` and `y_pred` are
-    `[batch_size, height_encoded_classes, width_encoded_classes]` and
-    `[batch_size, height_encoded_classes, width_encoded_classes, num_classes]`.
+    `[batch_size, height, width, class]` and
+    `[batch_size, height, width, num_classes]`.
 
     Standalone usage:
 
-    >>> y_true = tf.random.uniform([5, 10, 10], 0, maxval=4, dtype=tf.int32)
+    >>> y_true = tf.random.uniform([5, 10, 10, 1], 0, maxval=4, dtype=tf.int32)
     >>> y_pred = tf.random.uniform([5, 10, 10, 4], 0, maxval=4)
     >>> dice = SparseDice()
     >>> dice(y_true, y_pred).numpy()
@@ -367,7 +367,12 @@ class SparseDice(tf.keras.losses.Loss):
                 f"`axis` value should be [1, 2] or [1, 2, 3] for 2D and 3D channels_last input respectively, and [2, 3] or [2, 3, 4] for 2D and 3D channels_first input respectively. Got {self.axis}"
             )
 
-        y_true = tf.one_hot(y_true, depth=num_channels)
+        y_true = tf.one_hot(
+            tf.reshape(
+                y_true, shape=(y_true.shape[0], y_true.shape[1], y_true.shape[2])
+            ),
+            depth=num_channels,
+        )
 
         y_true = tf.cast(y_true, y_pred.dtype)
         label_smoothing = tf.convert_to_tensor(self.label_smoothing, dtype=y_pred.dtype)
