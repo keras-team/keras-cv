@@ -12,9 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import sys
+
 import tensorflow as tf
 from absl import logging
 
+from keras_cv import bounding_box
+from keras_cv import layers as cv_layers
 from keras_cv.bounding_box.converters import _decode_deltas_to_boxes
 from keras_cv.bounding_box.utils import _clip_boxes
 from keras_cv.layers.object_detection.anchor_generator import AnchorGenerator
@@ -22,6 +26,9 @@ from keras_cv.layers.object_detection.roi_align import _ROIAligner
 from keras_cv.layers.object_detection.roi_generator import ROIGenerator
 from keras_cv.layers.object_detection.roi_sampler import _ROISampler
 from keras_cv.layers.object_detection.rpn_label_encoder import _RpnLabelEncoder
+from keras_cv.models.object_detection.object_detection_base_model import (
+    ObjectDetectionBaseModel,
+)
 from keras_cv.ops.box_matcher import ArgmaxBoxMatcher
 
 
@@ -135,7 +142,7 @@ class RPNHead(tf.keras.layers.Layer):
         def call_single_level(f_map):
             batch_size = f_map.get_shape().as_list()[0]
             if batch_size is None:
-                raise ValueError("Cannot handle static shape")
+                raise ValueError("Cannot handle dynamic shape")
             # [BS, H, W, C]
             t = self.conv(f_map)
             # [BS, H, W, K]
@@ -226,7 +233,7 @@ class RCNNHead(tf.keras.layers.Layer):
 
 
 # TODO(tanzheny): add more configurations
-class FasterRCNN(tf.keras.Model):
+class FasterRCNN(ObjectDetectionBaseModel):
     """A Keras model implementing the FasterRCNN architecture.
 
     Implements the FasterRCNN architecture for object detection.  The constructor
@@ -259,7 +266,7 @@ class FasterRCNN(tf.keras.Model):
         include_rescaling: Required if provided backbone is a pre-configured model.
             If set to `True`, inputs will be passed through a `Rescaling(1/255.0)`
             layer. Default to False.
-        anchor_generator: (Optional) a `keras_cv.layers.AnchorGeneratot`. It is used
+        anchor_generator: (Optional) a `keras_cv.layers.AnchorGenerator`. It is used
             in the model to match ground truth boxes and labels with anchors, or with
             region proposals. By default it uses the sizes and ratios from the paper,
             that is optimized for image size between [640, 800]. The users should pass
@@ -275,6 +282,10 @@ class FasterRCNN(tf.keras.Model):
             (all foreground classes + one background class). By default it uses the rcnn head
             from paper, which is 2 FC layer with 1024 dimension, 1 box regressor and 1
             softmax classifier.
+        prediction_decoder: (Optional)  A `keras.layer` that is responsible for
+            transforming RetinaNet predictions into usable bounding box Tensors.  If
+            not provided, a default is provided.  The default `prediction_decoder`
+            layer uses a `NonMaxSuppression` operation for box pruning.
     """
 
     def __init__(
@@ -286,10 +297,13 @@ class FasterRCNN(tf.keras.Model):
         anchor_generator=None,
         rpn_head=None,
         rcnn_head=None,
+        prediction_decoder=None,
         **kwargs,
     ):
         self.bounding_box_format = bounding_box_format
-        super().__init__(**kwargs)
+        super().__init__(
+            bounding_box_format=bounding_box_format, label_encoder=None, **kwargs
+        )
         scales = [2**x for x in [0]]
         aspect_ratios = [0.5, 1.0, 2.0]
         self.anchor_generator = anchor_generator or AnchorGenerator(
@@ -330,6 +344,12 @@ class FasterRCNN(tf.keras.Model):
             positive_fraction=0.5,
         )
 
+        self._prediction_decoder = prediction_decoder or cv_layers.NmsPredictionDecoder(
+            bounding_box_format=bounding_box_format,
+            anchor_generator=self.anchor_generator,
+            classes=classes,
+        )
+
     def _call_rpn(self, images, anchors, training=None):
         image_shape = tf.shape(images[0])
         feature_map = self.backbone(images, training=training)
@@ -365,16 +385,12 @@ class FasterRCNN(tf.keras.Model):
         anchors = self.anchor_generator(image_shape=image_shape)
         rois, feature_map, _, _ = self._call_rpn(images, anchors, training=training)
         box_pred, cls_pred = self._call_rcnn(rois, feature_map)
-        if not training:
-            # box_pred is on "center_yxhw" format, convert to target format.
-            box_pred = _decode_deltas_to_boxes(
-                anchors=rois,
-                boxes_delta=box_pred,
-                anchor_format="yxyx",
-                box_format=self.bounding_box_format,
-                variance=[0.1, 0.1, 0.2, 0.2],
-            )
-        return box_pred, cls_pred
+
+        if training:
+            return box_pred, cls_pred
+
+        # Return anchor boxes of interest during evaluation
+        return box_pred, cls_pred, rois
 
     # TODO(tanzhenyu): Support compile with metrics.
     def compile(
@@ -504,6 +520,41 @@ class FasterRCNN(tf.keras.Model):
         gt_classes = y["gt_classes"]
         self.compute_loss(images, gt_boxes, gt_classes, training=False)
         return self.compute_metrics(images, {}, {}, sample_weight={})
+
+    def decode_predictions(self, predictions, images):
+        box_outputs, cls_outputs, rois = predictions
+        predictions = tf.concat([box_outputs, cls_outputs], axis=-1)
+        # no-op if default decoder is used.
+        pred_for_inference = bounding_box.convert_format(
+            predictions,
+            source=self.bounding_box_format,
+            target=self.prediction_decoder.bounding_box_format,
+            images=images,
+        )
+        pred_for_inference = self.prediction_decoder(
+            images, pred_for_inference, anchor_boxes=rois
+        )
+        return bounding_box.convert_format(
+            pred_for_inference,
+            source=self.prediction_decoder.bounding_box_format,
+            target=self.bounding_box_format,
+            images=images,
+        )
+
+    def encode_data(self, x, y):
+        # No-op encoding step because FasterRCNN does not include a label_encoder
+        return x, y
+
+    @property
+    def prediction_decoder(self):
+        return self._prediction_decoder
+
+    @prediction_decoder.setter
+    def prediction_decoder(self, prediction_decoder):
+        self._prediction_decoder = prediction_decoder
+        self.make_predict_function(force=True)
+        self.make_test_function(force=True)
+        self.make_train_function(force=True)
 
 
 def _validate_and_get_loss(loss, loss_name):

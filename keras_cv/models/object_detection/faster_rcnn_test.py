@@ -19,6 +19,7 @@ from keras_cv.models.object_detection.faster_rcnn import FasterRCNN
 
 class FasterRCNNTest(tf.test.TestCase):
     def test_faster_rcnn_infer(self):
+        tf.config.set_visible_devices([], "GPU")
         model = FasterRCNN(classes=80, bounding_box_format="xyxy")
         images = tf.random.normal([2, 512, 512, 3])
         outputs = model(images, training=False)
@@ -26,7 +27,16 @@ class FasterRCNNTest(tf.test.TestCase):
         self.assertAllEqual([2, 1000, 81], outputs[1].shape)
         self.assertAllEqual([2, 1000, 4], outputs[0].shape)
 
+    def test_faster_rcnn_predict(self):
+        tf.config.set_visible_devices([], "GPU")
+        model = FasterRCNN(classes=80, bounding_box_format="xyxy")
+        images = tf.random.normal([2, 512, 512, 3])
+        outputs = model.predict(images, batch_size=2)
+        # Ouputs a ragged tensor of predicted boxes
+        self.assertAllEqual([2, None, 6], outputs.shape)
+
     def test_faster_rcnn_train(self):
+        tf.config.set_visible_devices([], "GPU")
         model = FasterRCNN(classes=80, bounding_box_format="xyxy")
         images = tf.random.normal([2, 512, 512, 3])
         outputs = model(images, training=True)
@@ -34,6 +44,7 @@ class FasterRCNNTest(tf.test.TestCase):
         self.assertAllEqual([2, 1000, 4], outputs[0].shape)
 
     def test_invalid_compile(self):
+        tf.config.set_visible_devices([], "GPU")
         model = FasterRCNN(classes=80, bounding_box_format="yxyx")
         with self.assertRaisesRegex(ValueError, "only accepts"):
             model.compile(rpn_box_loss="binary_crossentropy")

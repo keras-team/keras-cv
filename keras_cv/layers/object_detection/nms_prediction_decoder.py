@@ -89,13 +89,16 @@ class NmsPredictionDecoder(tf.keras.layers.Layer):
         )
         return boxes
 
-    def call(self, images, predictions):
+    def call(self, images, predictions, anchor_boxes=None):
         """Accepts images and raw predictions, and returns bounding box predictions.
 
         Args:
             images: Tensor of shape [batch, height, width, channels].
             predictions: Dense Tensor of shape [batch, anchor_boxes, 6] in the
                 `bounding_box_format` specified in the constructor.
+            anchor_boxes: (optional) dense tensor of shape [batch, anchor_boxes, 4].
+                When specified, use these custom anchor boxes instead of using
+                the anchor generator.
         """
         if isinstance(images, tf.RaggedTensor):
             raise ValueError(
@@ -103,14 +106,16 @@ class NmsPredictionDecoder(tf.keras.layers.Layer):
                 f"Received images={images}."
             )
 
-        anchor_boxes = self.anchor_generator(images[0])
-        anchor_boxes = tf.concat(list(anchor_boxes.values()), axis=0)
-        anchor_boxes = bounding_box.convert_format(
-            anchor_boxes,
-            source=self.anchor_generator.bounding_box_format,
-            target="xywh",
-            images=images[0],
-        )
+        if anchor_boxes is None:
+            anchor_boxes = self.anchor_generator(images[0])
+            anchor_boxes = tf.concat(list(anchor_boxes.values()), axis=0)
+            anchor_boxes = bounding_box.convert_format(
+                anchor_boxes,
+                source=self.anchor_generator.bounding_box_format,
+                target="xywh",
+                images=images[0],
+            )
+            anchor_boxes = anchor_boxes[None, ...]
         predictions = bounding_box.convert_format(
             predictions, source=self.bounding_box_format, target="xywh", images=images
         )
@@ -123,7 +128,7 @@ class NmsPredictionDecoder(tf.keras.layers.Layer):
         classes = tf.expand_dims(classes, axis=-1)
         confidence = tf.expand_dims(confidence, axis=-1)
 
-        boxes = self._decode_box_predictions(anchor_boxes[None, ...], box_predictions)
+        boxes = self._decode_box_predictions(anchor_boxes, box_predictions)
         boxes = tf.concat([boxes, classes, confidence], axis=-1)
 
         boxes = bounding_box.convert_format(
