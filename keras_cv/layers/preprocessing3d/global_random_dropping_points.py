@@ -35,10 +35,10 @@ class GlobalRandomDroppingPoints(base_augmentation_layer_3d.BaseAugmentationLaye
         The first 7 features are [x, y, z, dx, dy, dz, phi].
 
     Output shape:
-      A tuple of two Tensors (point_clouds, bounding_boxes) with the same shape as input Tensors.
+      A dictionary of Tensors with the same shape as input Tensors.
 
     Arguments:
-      drop_rate: A float scaler or Tensor sets the probability threshold for dropping the points.
+      drop_rate: A float scalar or Tensor sets the probability threshold for dropping the points.
     """
 
     def __init__(self, drop_rate, **kwargs):

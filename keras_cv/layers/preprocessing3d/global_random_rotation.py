@@ -42,9 +42,9 @@ class GlobalRandomRotation(base_augmentation_layer_3d.BaseAugmentationLayer3D):
       A dictionary of Tensors with the same shape as input Tensors.
 
     Arguments:
-      max_rotation_angle_x: A float scaler or Tensor sets the maximum rotation angle along X axis.
-      max_rotation_angle_y: A float scaler or Tensor sets the maximum rotation angle along Y axis.
-      max_rotation_angle_z: A float scaler or Tensor sets the maximum rotation angle along Z axis.
+      max_rotation_angle_x: A float scalar or Tensor sets the maximum rotation angle along X axis.
+      max_rotation_angle_y: A float scalar or Tensor sets the maximum rotation angle along Y axis.
+      max_rotation_angle_z: A float scalar or Tensor sets the maximum rotation angle along Z axis.
 
     """
 

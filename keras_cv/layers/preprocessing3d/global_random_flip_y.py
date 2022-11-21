@@ -21,7 +21,7 @@ POINT_CLOUDS = base_augmentation_layer_3d.POINT_CLOUDS
 BOUNDING_BOXES = base_augmentation_layer_3d.BOUNDING_BOXES
 
 
-class GlobalRandomFlippingY(base_augmentation_layer_3d.BaseAugmentationLayer3D):
+class GlobalRandomFlipY(base_augmentation_layer_3d.BaseAugmentationLayer3D):
     """A preprocessing layer which flips point clouds and bounding boxes with respect to the Y axis during training.
 
     This layer will flip the whole scene with respect to the Y axis.
@@ -36,7 +36,7 @@ class GlobalRandomFlippingY(base_augmentation_layer_3d.BaseAugmentationLayer3D):
         The first 7 features are [x, y, z, dx, dy, dz, phi].
 
     Output shape:
-      A tuple of two Tensors (point_clouds, bounding_boxes) with the same shape as input Tensors.
+      A dictionary of Tensors with the same shape as input Tensors.
 
     """
 
