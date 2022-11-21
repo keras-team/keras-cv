@@ -259,8 +259,8 @@ class FasterRCNN(ObjectDetectionBaseModel):
         bounding_box_format: The format of bounding boxes of model output. Refer
             [to the keras.io docs](https://keras.io/api/keras_cv/bounding_box/formats/)
             for more details on supported bounding box formats.
-        backbone: Either `"resnet50"` or a custom backbone model. For now, only a backbone
-            with per level dict output is supported. Default to ResNet50 with FPN, which
+        backbone: (optional) a custom backbone model. For now, only a backbone
+            with per level dict output is supported. Defaults to ResNet50 with FPN, which
             uses the last conv block from stage 2 to stage 6 and add a max pooling at
             stage 7.
         include_rescaling: Required if provided backbone is a pre-configured model.
