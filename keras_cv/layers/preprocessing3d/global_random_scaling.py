@@ -44,29 +44,50 @@ class GlobalRandomScaling(base_augmentation_layer_3d.BaseAugmentationLayer3D):
       max_scaling_factor: A float scaler or Tensor sets the maximum scaling factor.
     """
 
-    def __init__(self, min_scaling_factor, max_scaling_factor, **kwargs):
+    def __init__(self, min_scaling_factor_x, max_scaling_factor_x, min_scaling_factor_y, max_scaling_factor_y, min_scaling_factor_z, max_scaling_factor_z, same_scaling_xyz=False, **kwargs):
         super().__init__(**kwargs)
-        if min_scaling_factor < 0 or max_scaling_factor < 0:
+        if min_scaling_factor_x < 0 or max_scaling_factor_x < 0 or min_scaling_factor_y<0 or max_scaling_factor_y<0 or  min_scaling_factor_z<0 or max_scaling_factor_z<0:
             raise ValueError("min_scaling_factor and max_scaling_factor must be >=0.")
-        if min_scaling_factor > max_scaling_factor:
+        if min_scaling_factor_x > max_scaling_factor_x or min_scaling_factor_y > max_scaling_factor_y or min_scaling_factor_z > max_scaling_factor_z:
             raise ValueError("min_scaling_factor must be less than max_scaling_factor.")
-        self._min_scaling_factor = min_scaling_factor
-        self._max_scaling_factor = max_scaling_factor
+        if same_scaling_xyz:
+            if min_scaling_factor_x != min_scaling_factor_y or min_scaling_factor_y != min_scaling_factor_z:
+                raise ValueError("min_scaling_factor must be the same when same_scaling_xyz is true.")
+            if max_scaling_factor_x != max_scaling_factor_y or max_scaling_factor_y != max_scaling_factor_z:
+                raise ValueError("max_scaling_factor must be the same when same_scaling_xyz is true.")
+
+        self._min_scaling_factor_x = min_scaling_factor_x
+        self._max_scaling_factor_x = max_scaling_factor_x
+        self._min_scaling_factor_y = min_scaling_factor_y
+        self._max_scaling_factor_y = max_scaling_factor_y
+        self._min_scaling_factor_z = min_scaling_factor_z
+        self._max_scaling_factor_z = max_scaling_factor_z
+        self._same_scaling_xyz = same_scaling_xyz
 
     def get_random_transformation(self, **kwargs):
-        random_scaling = self._random_generator.random_uniform(
-            (), minval=self._min_scaling_factor, maxval=self._max_scaling_factor
+        
+        random_scaling_x = self._random_generator.random_uniform(
+            (), minval=self._min_scaling_factor_x, maxval=self._max_scaling_factor_x
         )
-        return {"scale": random_scaling}
+        random_scaling_y = self._random_generator.random_uniform(
+            (), minval=self._min_scaling_factor_y, maxval=self._max_scaling_factor_y
+        )
+        random_scaling_z = self._random_generator.random_uniform(
+            (), minval=self._min_scaling_factor_z, maxval=self._max_scaling_factor_z
+        )
+        if not self._same_scaling_xyz:
+            return {"scale": tf.stack([random_scaling_x, random_scaling_y, random_scaling_z])}
+        else:
+            return {"scale": tf.stack([random_scaling_x, random_scaling_x, random_scaling_x])}
 
     def augment_point_clouds_bounding_boxes(
         self, point_clouds, bounding_boxes, transformation, **kwargs
     ):
-        scale = transformation["scale"]
+        scale = transformation["scale"][tf.newaxis, tf.newaxis, :]
         point_clouds_xyz = point_clouds[..., :3] * scale
         point_clouds = tf.concat([point_clouds_xyz, point_clouds[..., 3:]], axis=-1)
 
-        bounding_boxes_xyzdxdydz = bounding_boxes[..., :6] * scale
+        bounding_boxes_xyzdxdydz = bounding_boxes[..., :6] * tf.concat([scale]*2, axis=-1)
         bounding_boxes = tf.concat(
             [bounding_boxes_xyzdxdydz, bounding_boxes[..., 6:]], axis=-1
         )
