@@ -105,9 +105,9 @@ Looks like everything is structured as expected.  Now we can move on to construc
 data augmentation pipeline.
 """
 
-train_ds = train_ds.prefetch(2)
+train_ds = train_ds.prefetch(tf.data.AUTOTUNE)
 train_ds = train_ds.shuffle(BATCH_SIZE)
-eval_ds = eval_ds.prefetch(2)
+eval_ds = eval_ds.prefetch(tf.data.AUTOTUNE)
 
 
 def unpackage_dict(inputs):
