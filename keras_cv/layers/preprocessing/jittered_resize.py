@@ -21,10 +21,7 @@ from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
 
 
 class JitteredResize(BaseImageAugmentationLayer):
-    """JitteredResize implements MaskRCNN style image augmentation.
-
-    
-    """
+    """JitteredResize implements MaskRCNN style image augmentation."""
 
     def __init__(
         self,
