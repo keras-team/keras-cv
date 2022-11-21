@@ -3,9 +3,9 @@ import resource
 
 import tensorflow as tf
 import tensorflow_datasets as tfds
+from luketils import visualization
 from tensorflow import keras
 
-from luketils import visualization
 import keras_cv
 from keras_cv import layers
 
