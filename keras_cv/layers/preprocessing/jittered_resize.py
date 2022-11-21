@@ -130,6 +130,7 @@ class JitteredResize(BaseImageAugmentationLayer):
             image_shape=self.padded_size + (3,),
             bounding_box_format="yxyx",
         )
+        bounding_boxes = keras_cv.bounding_box.filter_sentinels(bounding_boxes)
         return keras_cv.bounding_box.convert_format(
             bounding_boxes,
             image_shape=self.padded_size + (3,),
