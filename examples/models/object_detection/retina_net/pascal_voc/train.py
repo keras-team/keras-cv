@@ -1,8 +1,9 @@
+import os
 import resource
 
-import luketils
 import tensorflow as tf
 import tensorflow_datasets as tfds
+from luketils import visualization
 from tensorflow import keras
 
 import keras_cv
@@ -10,6 +11,7 @@ from keras_cv import layers
 
 low, high = resource.getrlimit(resource.RLIMIT_NOFILE)
 resource.setrlimit(resource.RLIMIT_NOFILE, (high, high))
+os.makedirs("artifacts/", exist_ok=True)
 
 BATCH_SIZE = 8
 EPOCHS = 100
@@ -75,6 +77,7 @@ eval_resizing = layers.Resizing(
 augmenter = layers.Augmenter(
     [
         layers.RandomFlip(mode="horizontal", bounding_box_format="xywh"),
+        layers.RandAugment(magnitude=0.2, augmentations_per_image=2, geometric=False),
         layers.RandomAspectRatio(factor=(0.9, 1.1), bounding_box_format="xywh"),
         layers.JitteredResize(
             desired_size=(640, 640),
@@ -105,6 +108,26 @@ data augmentation pipeline.
 train_ds = train_ds.prefetch(2)
 train_ds = train_ds.shuffle(BATCH_SIZE)
 eval_ds = eval_ds.prefetch(2)
+
+# visualize each dataset
+visualization.plot_bounding_box_gallery(
+    train_ds,
+    value_range=(0, 255),
+    rows=4,
+    cols=4,
+    scale=2,
+    bounding_box_format="xywh",
+    path="artifacts/train.png",
+)
+visualization.plot_bounding_box_gallery(
+    eval_ds,
+    value_range=(0, 255),
+    rows=4,
+    cols=4,
+    scale=2,
+    bounding_box_format="xywh",
+    path="artifacts/eval.png",
+)
 
 
 def unpackage_dict(inputs):
@@ -186,5 +209,6 @@ history = model.fit(
     callbacks=callbacks,
 )
 
+# take() to prevent numerical issues that arise when evaluating on many inputs
 keras_cv_metrics = model.evaluate(eval_ds.take(20), return_dict=True)
 print("Metrics:", keras_cv_metrics)
