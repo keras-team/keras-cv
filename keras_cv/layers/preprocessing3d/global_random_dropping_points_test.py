@@ -25,7 +25,7 @@ BOUNDING_BOXES = base_augmentation_layer_3d.BOUNDING_BOXES
 
 class GlobalDropPointsnTest(tf.test.TestCase):
     def test_augment_point_clouds_and_bounding_boxes(self):
-        add_layer = GlobalRandomDroppingPoints(keep_probability=0.5)
+        add_layer = GlobalRandomDroppingPoints(drop_rate=0.5)
 
         point_clouds = np.random.random(size=(2, 50, 10)).astype("float32")
         bounding_boxes = np.random.random(size=(2, 10, 7)).astype("float32")
@@ -34,7 +34,7 @@ class GlobalDropPointsnTest(tf.test.TestCase):
         self.assertNotAllClose(inputs, outputs)
 
     def test_not_augment_point_clouds_and_bounding_boxes(self):
-        add_layer = GlobalRandomDroppingPoints(keep_probability=1.0)
+        add_layer = GlobalRandomDroppingPoints(drop_rate=0.0)
 
         point_clouds = np.random.random(size=(2, 50, 10)).astype("float32")
         bounding_boxes = np.random.random(size=(2, 10, 7)).astype("float32")
@@ -43,7 +43,7 @@ class GlobalDropPointsnTest(tf.test.TestCase):
         self.assertAllClose(inputs, outputs)
 
     def test_drop_all_point_clouds(self):
-        add_layer = GlobalRandomDroppingPoints(keep_probability=0.0)
+        add_layer = GlobalRandomDroppingPoints(drop_rate=1.0)
 
         point_clouds = np.random.random(size=(2, 50, 10)).astype("float32")
         bounding_boxes = np.random.random(size=(2, 10, 7)).astype("float32")
@@ -52,28 +52,10 @@ class GlobalDropPointsnTest(tf.test.TestCase):
         self.assertAllClose(inputs[POINT_CLOUDS] * 0.0, outputs[POINT_CLOUDS])
 
     def test_augment_batch_point_clouds_and_bounding_boxes(self):
-        add_layer = GlobalRandomDroppingPoints(keep_probability=0.5)
+        add_layer = GlobalRandomDroppingPoints(drop_rate=0.5)
 
         point_clouds = np.random.random(size=(3, 2, 50, 10)).astype("float32")
         bounding_boxes = np.random.random(size=(3, 2, 10, 7)).astype("float32")
         inputs = {POINT_CLOUDS: point_clouds, BOUNDING_BOXES: bounding_boxes}
         outputs = add_layer(inputs)
         self.assertNotAllClose(inputs, outputs)
-
-    def test_not_augment_batch_point_clouds_and_bounding_boxes(self):
-        add_layer = GlobalRandomDroppingPoints(keep_probability=1.0)
-
-        point_clouds = np.random.random(size=(3, 2, 50, 10)).astype("float32")
-        bounding_boxes = np.random.random(size=(3, 2, 10, 7)).astype("float32")
-        inputs = {POINT_CLOUDS: point_clouds, BOUNDING_BOXES: bounding_boxes}
-        outputs = add_layer(inputs)
-        self.assertAllClose(inputs, outputs)
-
-    def test_drop_all_batch_point_clouds(self):
-        add_layer = GlobalRandomDroppingPoints(keep_probability=0.0)
-
-        point_clouds = np.random.random(size=(3, 2, 50, 10)).astype("float32")
-        bounding_boxes = np.random.random(size=(3, 2, 10, 7)).astype("float32")
-        inputs = {POINT_CLOUDS: point_clouds, BOUNDING_BOXES: bounding_boxes}
-        outputs = add_layer(inputs)
-        self.assertAllClose(inputs[POINT_CLOUDS] * 0.0, outputs[POINT_CLOUDS])

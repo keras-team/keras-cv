@@ -31,15 +31,15 @@ class GlobalRandomRotation(base_augmentation_layer_3d.BaseAugmentationLayer3D):
     During inference time, the output will be identical to input. Call the layer with `training=True` to rotate the input.
 
     Input shape:
-      point_clouds: 2D (single frame) or 3D (multi frames) float32 Tensor with shape
-        [..., num of points, num of point features].
+      point_clouds: 3D (multi frames) float32 Tensor with shape
+        [num of frames, num of points, num of point features].
         The first 5 features are [x, y, z, class, range].
-      bounding_boxes: 2D (single frame) or 3D (multi frames) float32 Tensor with shape
-        [..., num of boxes, num of box features].
+      bounding_boxes: 3D (multi frames) float32 Tensor with shape
+        [num of frames, num of boxes, num of box features].
         The first 7 features are [x, y, z, dx, dy, dz, phi].
 
     Output shape:
-      A tuple of two Tensors (point_clouds, bounding_boxes) with the same shape as input Tensors.
+      A dictionary of Tensors with the same shape as input Tensors.
 
     Arguments:
       max_rotation_angle_x: A float scaler or Tensor sets the maximum rotation angle along X axis.

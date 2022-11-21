@@ -38,11 +38,12 @@ class GlobalRandomDroppingPoints(base_augmentation_layer_3d.BaseAugmentationLaye
       A tuple of two Tensors (point_clouds, bounding_boxes) with the same shape as input Tensors.
 
     Arguments:
-      keep_probability: A float scaler or Tensor sets the probability threshold for keeping the points.
+      drop_rate: A float scaler or Tensor sets the probability threshold for dropping the points.
     """
 
-    def __init__(self, keep_probability, **kwargs):
+    def __init__(self, drop_rate, **kwargs):
         super().__init__(**kwargs)
+        keep_probability = 1 - drop_rate
         if keep_probability < 0:
             raise ValueError("keep_probability must be >=0.")
         self._keep_probability = keep_probability

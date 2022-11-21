@@ -26,7 +26,7 @@ class GlobalRandomTranslation(base_augmentation_layer_3d.BaseAugmentationLayer3D
     X, Y, and Z axes during training.
 
     This layer will randomly translate the whole scene along the  X, Y, and Z axes based on three randomly sampled
-    translation factors following three normal distributions centered at 0 with standard deviation  [x_translation_stddev, y_translation_stddev, z_translation_stddev].
+    translation factors following three normal distributions centered at 0 with standard deviation  [x_stddev, y_stddev, z_stddev].
     During inference time, the output will be identical to input. Call the layer with `training=True` to translate the input.
 
     Input shape:
@@ -38,39 +38,35 @@ class GlobalRandomTranslation(base_augmentation_layer_3d.BaseAugmentationLayer3D
         The first 7 features are [x, y, z, dx, dy, dz, phi].
 
     Output shape:
-      A tuple of two Tensors (point_clouds, bounding_boxes) with the same shape as input Tensors.
+      A dictionary of Tensors with the same shape as input Tensors.
 
     Arguments:
-      x_translation_stddev: A float scaler or Tensor sets the translation noise standard deviation along the X axis.
-      y_translation_stddev: A float scaler or Tensor sets the translation noise standard deviation along the Y axis.
-      z_translation_stddev: A float scaler or Tensor sets the translation noise standard deviation along the Z axis.
+      x_stddev: A float scalar or Tensor sets the translation noise standard deviation along the X axis.
+      y_stddev: A float scalar or Tensor sets the translation noise standard deviation along the Y axis.
+      z_stddev: A float scalar or Tensor sets the translation noise standard deviation along the Z axis.
     """
 
-    def __init__(
-        self, x_translation_stddev, y_translation_stddev, z_translation_stddev, **kwargs
-    ):
+    def __init__(self, x_stddev, y_stddev, z_stddev, **kwargs):
         super().__init__(**kwargs)
-        if (
-            x_translation_stddev < 0
-            or y_translation_stddev < 0
-            or z_translation_stddev < 0
-        ):
-            raise ValueError(
-                "x_translation_stddev, y_translation_stddev, and z_translation_stddev must be >=0."
-            )
-        self._x_translation_stddev = x_translation_stddev
-        self._y_translation_stddev = y_translation_stddev
-        self._z_translation_stddev = z_translation_stddev
+        x_stddev = x_stddev if x_stddev else 0.0
+        y_stddev = y_stddev if y_stddev else 0.0
+        z_stddev = z_stddev if z_stddev else 0.0
+        if x_stddev < 0 or y_stddev < 0 or z_stddev < 0:
+            raise ValueError("x_stddev, y_stddev, and z_stddev must be >=0.")
+
+        self._x_stddev = x_stddev
+        self._y_stddev = y_stddev
+        self._z_stddev = z_stddev
 
     def get_random_transformation(self, **kwargs):
         random_x_translation = self._random_generator.random_normal(
-            (), mean=0.0, stddev=self._x_translation_stddev
+            (), mean=0.0, stddev=self._x_stddev
         )
         random_y_translation = self._random_generator.random_normal(
-            (), mean=0.0, stddev=self._y_translation_stddev
+            (), mean=0.0, stddev=self._y_stddev
         )
         random_z_translation = self._random_generator.random_normal(
-            (), mean=0.0, stddev=self._z_translation_stddev
+            (), mean=0.0, stddev=self._z_stddev
         )
         return {
             "pose": tf.stack(
