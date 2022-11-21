@@ -21,7 +21,10 @@ from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
 
 
 class JitteredResize(BaseImageAugmentationLayer):
-    """JitteredResize is an augmentation layer that randomly crops raggedly."""
+    """JitteredResize is a layer that implements MaskRCNN style image augmentation.
+
+    
+    """
 
     def __init__(
         self,
