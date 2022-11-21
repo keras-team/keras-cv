@@ -78,6 +78,7 @@ eval_resizing = layers.Resizing(
 augmenter = layers.Augmenter(
     [
         layers.RandomFlip(mode="horizontal", bounding_box_format="xywh"),
+        layers.RandAugment(magnitude=0.2, augmentations_per_image=2, geometric=False),
         layers.RandomAspectRatio(factor=(0.9, 1.1), bounding_box_format="xywh"),
         layers.JitteredResize(
             desired_size=(640, 640),
