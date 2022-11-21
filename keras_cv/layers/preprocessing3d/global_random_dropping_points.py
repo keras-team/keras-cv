@@ -45,7 +45,7 @@ class GlobalRandomDroppingPoints(base_augmentation_layer_3d.BaseAugmentationLaye
         super().__init__(**kwargs)
         drop_rate = drop_rate if drop_rate else 0.0
 
-        if drop_rate <= 1:
+        if drop_rate > 1:
             raise ValueError("drop_rate must be <=1.")
         keep_probability = 1 - drop_rate
         self._keep_probability = keep_probability
