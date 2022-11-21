@@ -40,6 +40,7 @@ class_ids = [
 ]
 class_mapping = dict(zip(range(len(class_ids)), class_ids))
 
+image_size = [640, 640, 3]
 train_ds = tfds.load("voc/2007", split="train", with_info=False, shuffle_files=False)
 
 
