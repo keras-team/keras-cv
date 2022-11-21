@@ -109,22 +109,13 @@ class BaseImageAugmentationLayer(tf.keras.__internal__.layers.BaseRandomLayer):
         super().__init__(seed=seed, **kwargs)
 
     @property
-    def force_output_ragged_images(self):
-        """Control whether to force outputting of ragged images."""
-        return getattr(self, "_force_output_ragged_images", False)
-
-    @force_output_ragged_images.setter
-    def force_output_ragged_images(self, force_output_ragged_images):
-        self._force_output_ragged_images = force_output_ragged_images
-
-    @property
-    def force_output_dense_images(self):
+    def output_dense_images(self):
         """Control whether to force outputting of dense images."""
-        return getattr(self, "_force_output_dense_images", False)
+        return getattr(self, "_output_dense_images", False)
 
-    @force_output_dense_images.setter
-    def force_output_dense_images(self, force_output_dense_images):
-        self._force_output_dense_images = force_output_dense_images
+    @output_dense_images.setter
+    def output_dense_images(self, output_dense_images):
+        self._output_dense_images = output_dense_images
 
     @property
     def auto_vectorize(self):
@@ -397,10 +388,6 @@ class BaseImageAugmentationLayer(tf.keras.__internal__.layers.BaseRandomLayer):
             segmentation_mask=segmentation_mask,
         )
 
-        image_ragged = isinstance(image, tf.RaggedTensor)
-        if image_ragged:
-            image = image.to_tensor()
-
         image = self.augment_image(
             image,
             transformation=transformation,
@@ -408,7 +395,7 @@ class BaseImageAugmentationLayer(tf.keras.__internal__.layers.BaseRandomLayer):
             label=label,
         )
 
-        if image_ragged:
+        if image_ragged and not self.output_dense_images:
             image = tf.RaggedTensor.from_tensor(image)
 
         result = {IMAGES: image}
