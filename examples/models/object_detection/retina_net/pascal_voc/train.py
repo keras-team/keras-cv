@@ -3,9 +3,9 @@ import resource
 
 import tensorflow as tf
 import tensorflow_datasets as tfds
-from luketils import visualization
 from tensorflow import keras
 
+from luketils import visualization
 import keras_cv
 from keras_cv import layers
 
@@ -84,6 +84,7 @@ augmenter = layers.Augmenter(
             scale_factor=(0.8, 1.25),
             bounding_box_format="xywh",
         ),
+        layers.MixUp(),
     ]
 )
 
@@ -103,29 +104,10 @@ eval_ds = eval_ds.map(
 Looks like everything is structured as expected.  Now we can move on to constructing our
 data augmentation pipeline.
 """
+
 train_ds = train_ds.prefetch(2)
 train_ds = train_ds.shuffle(BATCH_SIZE)
 eval_ds = eval_ds.prefetch(2)
-
-# visualize each dataset
-visualization.plot_bounding_box_gallery(
-    train_ds,
-    value_range=(0, 255),
-    rows=4,
-    cols=4,
-    scale=2,
-    bounding_box_format="xywh",
-    path="artifacts/train.png",
-)
-visualization.plot_bounding_box_gallery(
-    eval_ds,
-    value_range=(0, 255),
-    rows=4,
-    cols=4,
-    scale=2,
-    bounding_box_format="xywh",
-    path="artifacts/eval.png",
-)
 
 
 def unpackage_dict(inputs):
