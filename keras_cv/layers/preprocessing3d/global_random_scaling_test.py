@@ -77,8 +77,8 @@ class GlobalScalingTest(tf.test.TestCase):
         scaled_bounding_boxes = np.array([[[0, 2, 4, 6, 8, 10, 6]] * 2] * 2).astype(
             "float32"
         )
-        self.assertAllClose(outputs["POINT_CLOUDS"], scaled_point_clouds)
-        self.assertAllClose(outputs["BOUNDING_BOXES"], scaled_bounding_boxes)
+        self.assertAllClose(outputs[POINT_CLOUDS], scaled_point_clouds)
+        self.assertAllClose(outputs[BOUNDING_BOXES], scaled_bounding_boxes)
 
     def test_augment_batch_point_clouds_and_bounding_boxes(self):
         add_layer = GlobalRandomScaling(
