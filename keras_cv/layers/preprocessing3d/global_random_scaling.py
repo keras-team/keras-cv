@@ -40,26 +40,39 @@ class GlobalRandomScaling(base_augmentation_layer_3d.BaseAugmentationLayer3D):
       A tuple of two Tensors (point_clouds, bounding_boxes) with the same shape as input Tensors.
 
     Arguments:
-      min_scaling_factor_x: A float scaler or Tensor sets the minimum scaling factor for the X axis.
-      max_scaling_factor_x: A float scaler or Tensor sets the maximum scaling factor for the X axis.
-      min_scaling_factor_y: A float scaler or Tensor sets the minimum scaling factor for the Y axis.
-      max_scaling_factor_y: A float scaler or Tensor sets the maximum scaling factor for the Y axis.
-      min_scaling_factor_z: A float scaler or Tensor sets the minimum scaling factor for the Z axis.
-      max_scaling_factor_z: A float scaler or Tensor sets the maximum scaling factor for the Z axis.
+      scaling_factor_x: A tuple of float scaler sets the minimum and maximum scaling factors for the X axis.
+      scaling_factor_y: A tuple of float scaler sets the minimum and maximum scaling factors for the Y axis.
+      scaling_factor_z: A tuple of float scaler sets the minimum and maximum scaling factors for the Z axis.
     """
 
     def __init__(
         self,
-        min_scaling_factor_x,
-        max_scaling_factor_x,
-        min_scaling_factor_y,
-        max_scaling_factor_y,
-        min_scaling_factor_z,
-        max_scaling_factor_z,
+        scaling_factor_x,
+        scaling_factor_y,
+        scaling_factor_z,
         same_scaling_xyz=False,
         **kwargs
     ):
         super().__init__(**kwargs)
+        if type(scaling_factor_x) is float:
+            min_scaling_factor_x = scaling_factor_x
+            max_scaling_factor_x = scaling_factor_x
+        else:
+            min_scaling_factor_x = scaling_factor_x[0]
+            max_scaling_factor_x = scaling_factor_x[1]
+        if type(scaling_factor_y) is float:
+            min_scaling_factor_y = scaling_factor_y
+            max_scaling_factor_y = scaling_factor_y
+        else:
+            min_scaling_factor_y = scaling_factor_y[0]
+            max_scaling_factor_y = scaling_factor_y[1]
+        if type(scaling_factor_z) is float:
+            min_scaling_factor_z = scaling_factor_z
+            max_scaling_factor_z = scaling_factor_z
+        else:
+            min_scaling_factor_z = scaling_factor_z[0]
+            max_scaling_factor_z = scaling_factor_z[1]
+
         if (
             min_scaling_factor_x < 0
             or max_scaling_factor_x < 0
