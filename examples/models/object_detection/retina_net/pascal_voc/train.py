@@ -75,14 +75,13 @@ eval_resizing = layers.Resizing(
 augmenter = layers.Augmenter(
     [
         layers.RandomFlip(mode="horizontal", bounding_box_format="xywh"),
-        layers.RandomRaggedCrop(
-            height_factor=(0.9, 1.0),
-            width_factor=(0.9, 1.0),
+        layers.RandomAspectRatio(factor=(0.9, 1.1), bounding_box_format="xywh"),
+        layers.JitteredResize(
+            desired_size=(640, 640),
+            padded_size=(640, 640),
+            scale_factor=(0.8, 1.25),
             bounding_box_format="xywh",
         ),
-        layers.RandomScale(factor=(1.2, 2.0), bounding_box_format="xywh"),
-        layers.RandomAspectRatio(factor=(0.9, 1.1), bounding_box_format="xywh"),
-        layers.Resizing(640, 640, bounding_box_format="xywh", pad_only=True),
     ]
 )
 
