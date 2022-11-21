@@ -99,6 +99,12 @@ def CSPDarkNet(
     """
     weights = parse_weights(weights, include_top, "cspdarknet")
 
+    if weights and not tf.io.gfile.exists(weights):
+        raise ValueError(
+            "The `weights` argument should be either `None` or the path to the "
+            f"weights file to be loaded. Weights file not found at location: {weights}"
+        )
+
     if include_top and not classes:
         raise ValueError(
             "If `include_top` is True, you should specify `classes`. Received: "
