@@ -96,8 +96,7 @@ class CategoricalDice(tf.keras.losses.Loss):
 
     Standalone usage:
 
-    >>> y_true = tf.random.uniform([5, 10, 10], 0, maxval=4, dtype=tf.int32)
-    >>> y_true = tf.one_hot(y_true, depth=4)
+    >>> y_true = tf.random.uniform([5, 10, 10, 4], 0, maxval=4, dtype=tf.int32)
     >>> y_pred = tf.random.uniform([5, 10, 10, 4], 0, maxval=4)
     >>> dice = CategoricalDice()
     >>> dice(y_true, y_pred).numpy()
@@ -375,6 +374,7 @@ class SparseDice(tf.keras.losses.Loss):
         )
 
         y_true = tf.cast(y_true, y_pred.dtype)
+
         label_smoothing = tf.convert_to_tensor(self.label_smoothing, dtype=y_pred.dtype)
 
         if self.from_logits:
