@@ -42,6 +42,7 @@ from keras_cv.layers.preprocessing.equalization import Equalization
 from keras_cv.layers.preprocessing.fourier_mix import FourierMix
 from keras_cv.layers.preprocessing.grayscale import Grayscale
 from keras_cv.layers.preprocessing.grid_mask import GridMask
+from keras_cv.layers.preprocessing.jittered_resize import JitteredResize
 from keras_cv.layers.preprocessing.maybe_apply import MaybeApply
 from keras_cv.layers.preprocessing.mix_up import MixUp
 from keras_cv.layers.preprocessing.mosaic import Mosaic
