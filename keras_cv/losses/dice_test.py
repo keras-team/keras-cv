@@ -49,7 +49,7 @@ class DiceTest(tf.test.TestCase):
         y_true is a sparse vector, y_pred is a one-hot vector
         """
         y_true = tf.random.uniform(
-            shape=(3, 10, 10, 1), minval=0, maxval=5, dtype=tf.int32
+            shape=(3, 10, 10), minval=0, maxval=5, dtype=tf.int32
         )
 
         y_pred = tf.random.uniform(
@@ -93,50 +93,50 @@ class DiceTest(tf.test.TestCase):
         self.assertAllClose(categorical_dice_loss(y_true, y_pred), 0.6666666)
 
     def test_sparse_output_value(self):
-        y_true = [[[[0.0], [0.0], [0.0]], [[0.0], [0.0], [0.0]], [[0.0], [0.0], [0.0]]]]
+        y_true = [[[[0], [0], [0]], [[0], [0], [0]], [[0], [0], [0]]]]
 
         y_pred = [
             [
                 [[0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0]],
                 [[0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0]],
                 [[0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0]],
-            ]
-        ]
-
-        sparse_dice_loss = SparseDice(from_logits=False)
-        self.assertAllClose(sparse_dice_loss(y_true, y_pred), 0.0)
-        sparse_dice_loss = SparseDice(from_logits=True)
-        self.assertAllClose(sparse_dice_loss(y_true, y_pred), 0.99999994)
-
-        y_true = [[[0, 0, 0], [0, 0, 0], [0, 0, 0]]]
-
-        y_pred = [
-            [
-                [[0.0, 1.0, 0.0], [0.0, 1.0, 0.0], [0.0, 1.0, 0.0]],
-                [[0.0, 1.0, 0.0], [0.0, 1.0, 0.0], [0.0, 1.0, 0.0]],
-                [[0.0, 1.0, 0.0], [0.0, 1.0, 0.0], [0.0, 1.0, 0.0]],
             ]
         ]
 
         sparse_dice_loss = SparseDice(from_logits=False)
         self.assertAllClose(sparse_dice_loss(y_true, y_pred), 0.3333333296296296)
         sparse_dice_loss = SparseDice(from_logits=True)
-        self.assertAllClose(sparse_dice_loss(y_true, y_pred), 0.9999999586210296)
+        self.assertAllClose(sparse_dice_loss(y_true, y_pred), 0.833333309722223)
 
         y_true = [[[0, 0, 0], [0, 0, 0], [0, 0, 0]]]
 
         y_pred = [
             [
-                [[0.0, 1.0, 1.0], [0.0, 1.0, 1.0], [0.0, 1.0, 1.0]],
-                [[0.0, 1.0, 1.0], [0.0, 1.0, 1.0], [0.0, 1.0, 1.0]],
-                [[0.0, 1.0, 1.0], [0.0, 1.0, 1.0], [0.0, 1.0, 1.0]],
+                [[0.0, 1.0, 0.0], [0.0, 1.0, 0.0], [0.0, 1.0, 0.0]],
+                [[0.0, 1.0, 0.0], [0.0, 1.0, 0.0], [0.0, 1.0, 0.0]],
+                [[0.0, 1.0, 0.0], [0.0, 1.0, 0.0], [0.0, 1.0, 0.0]],
             ]
         ]
 
         sparse_dice_loss = SparseDice(from_logits=False)
         self.assertAllClose(sparse_dice_loss(y_true, y_pred), 0.6666666592592594)
         sparse_dice_loss = SparseDice(from_logits=True)
-        self.assertAllClose(sparse_dice_loss(y_true, y_pred), 0.9999999586210297)
+        self.assertAllClose(sparse_dice_loss(y_true, y_pred), 0.8834148377575873)
+
+        y_true = [[[1, 1, 1], [1, 1, 1], [1, 1, 1]]]
+
+        y_pred = [
+            [
+                [[0.0, 1.0, 0.0], [0.0, 1.0, 0.0], [0.0, 1.0, 0.0]],
+                [[0.0, 1.0, 0.0], [0.0, 1.0, 0.0], [0.0, 1.0, 0.0]],
+                [[0.0, 1.0, 0.0], [0.0, 1.0, 0.0], [0.0, 1.0, 0.0]],
+            ]
+        ]
+
+        sparse_dice_loss = SparseDice(from_logits=False)
+        self.assertAllClose(sparse_dice_loss(y_true, y_pred), 0.0)
+        sparse_dice_loss = SparseDice(from_logits=True)
+        self.assertAllClose(sparse_dice_loss(y_true, y_pred), 0.7563137715411146)
 
     def test_binary_output_value(self):
         y_true = [[[0, 0, 0], [0, 0, 0], [0, 0, 0]]]

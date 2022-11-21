@@ -259,20 +259,20 @@ class SparseDice(tf.keras.losses.Loss):
 
     In the snippet below, there are `num_classes` times channels per
     sample. The shape of `y_true` and `y_pred` are
-    `[batch_size, height, width, class]` or
-    `[batch_size, height, width, num_classes]`.
+    `[batch_size, height_encoded_classes, width_encoded_classes]` and
+    `[batch_size, height_encoded_classes, width_encoded_classes, num_classes]`.
 
     Standalone usage:
 
-    >>> y_true = tf.random.uniform([5, 10, 10, 1], 0, maxval=4, dtype=tf.int32)
+    >>> y_true = tf.random.uniform([5, 10, 10], 0, maxval=4, dtype=tf.int32)
     >>> y_pred = tf.random.uniform([5, 10, 10, 4], 0, maxval=4)
     >>> dice = SparseDice()
     >>> dice(y_true, y_pred).numpy()
-    0.5549314
+    0.5692612
 
     >>> # Calling with 'sample_weight'.
     >>> dice(y_true, y_pred, sample_weight=tf.constant([[0.5, 0.5]])).numpy()
-    0.24619368
+    0.2846306
 
     Usage with the `compile()` API:
     ```python
@@ -367,7 +367,7 @@ class SparseDice(tf.keras.losses.Loss):
                 f"`axis` value should be [1, 2] or [1, 2, 3] for 2D and 3D channels_last input respectively, and [2, 3] or [2, 3, 4] for 2D and 3D channels_first input respectively. Got {self.axis}"
             )
 
-        #y_true = tf.one_hot(y_true, depth=num_channels)
+        y_true = tf.one_hot(y_true, depth=num_channels)
 
         y_true = tf.cast(y_true, y_pred.dtype)
         label_smoothing = tf.convert_to_tensor(self.label_smoothing, dtype=y_pred.dtype)
@@ -382,7 +382,6 @@ class SparseDice(tf.keras.losses.Loss):
             y_true, y_pred = losses_utils.gather_channels(
                 y_true, y_pred, indices=self.class_ids
             )
-
 
         # loss calculation: Fβ-score (in terms of Type I and type II error).
         numerator, denominator = _calculate_dice_numerator_denominator(
@@ -405,7 +404,7 @@ class SparseDice(tf.keras.losses.Loss):
         else:
             dice_score = tf.reduce_mean(dice_score)
 
-        #print(dice_score)
+        # print(dice_score)
 
         return 1 - dice_score
 
