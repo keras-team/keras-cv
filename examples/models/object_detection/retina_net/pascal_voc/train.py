@@ -13,7 +13,7 @@ low, high = resource.getrlimit(resource.RLIMIT_NOFILE)
 resource.setrlimit(resource.RLIMIT_NOFILE, (high, high))
 os.makedirs("artifacts/", exist_ok=True)
 
-BATCH_SIZE = 8
+BATCH_SIZE = 64
 EPOCHS = 100
 CHECKPOINT_PATH = "checkpoint/"
 
@@ -77,7 +77,6 @@ eval_resizing = layers.Resizing(
 augmenter = layers.Augmenter(
     [
         layers.RandomFlip(mode="horizontal", bounding_box_format="xywh"),
-        layers.RandAugment(magnitude=0.2, augmentations_per_image=2, geometric=False),
         layers.RandomAspectRatio(factor=(0.9, 1.1), bounding_box_format="xywh"),
         layers.JitteredResize(
             desired_size=(640, 640),
@@ -99,7 +98,6 @@ eval_ds = eval_ds.map(
     eval_resizing,
     num_parallel_calls=tf.data.AUTOTUNE,
 )
-
 
 """
 Looks like everything is structured as expected.  Now we can move on to constructing our
