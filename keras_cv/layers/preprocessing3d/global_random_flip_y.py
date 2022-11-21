@@ -43,27 +43,19 @@ class GlobalRandomFlipY(base_augmentation_layer_3d.BaseAugmentationLayer3D):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
-    def get_random_transformation(self, **kwargs):
-        return None
-
     def augment_point_clouds_bounding_boxes(
         self, point_clouds, bounding_boxes, transformation, **kwargs
     ):
-        del transformation
+        point_clouds_x = -point_clouds[..., 0:1]
 
-        point_clouds_y = -point_clouds[..., 1:2]
+        point_clouds = tf.concat([point_clouds_x, point_clouds[..., 1:]], axis=-1)
 
-        point_clouds = tf.concat(
-            [point_clouds[..., 0:1], point_clouds_y, point_clouds[..., 2:]], axis=-1
-        )
-
-        bounding_boxes_y = -bounding_boxes[..., 1:2]
+        bounding_boxes_x = -bounding_boxes[..., 0:1]
         bounding_boxes_heading = wrap_angle_radians(-bounding_boxes[..., 6:7])
         bounding_boxes = tf.concat(
             [
-                bounding_boxes[..., 0:1],
-                bounding_boxes_y,
-                bounding_boxes[..., 2:6],
+                bounding_boxes_x,
+                bounding_boxes[..., 1:6],
                 bounding_boxes_heading,
                 bounding_boxes[..., 7:],
             ],

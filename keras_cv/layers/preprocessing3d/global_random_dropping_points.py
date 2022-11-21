@@ -38,14 +38,16 @@ class GlobalRandomDroppingPoints(base_augmentation_layer_3d.BaseAugmentationLaye
       A dictionary of Tensors with the same shape as input Tensors.
 
     Arguments:
-      drop_rate: A float scalar or Tensor sets the probability threshold for dropping the points.
+      drop_rate: A float scalar sets the probability threshold for dropping the points.
     """
 
-    def __init__(self, drop_rate, **kwargs):
+    def __init__(self, drop_rate=None, **kwargs):
         super().__init__(**kwargs)
+        drop_rate = drop_rate if drop_rate else 0.0
+
+        if drop_rate <= 1:
+            raise ValueError("drop_rate must be <=1.")
         keep_probability = 1 - drop_rate
-        if keep_probability < 0:
-            raise ValueError("keep_probability must be >=0.")
         self._keep_probability = keep_probability
 
     def get_random_transformation(self, point_clouds, **kwargs):

@@ -41,12 +41,12 @@ class GlobalRandomTranslation(base_augmentation_layer_3d.BaseAugmentationLayer3D
       A dictionary of Tensors with the same shape as input Tensors.
 
     Arguments:
-      x_stddev: A float scalar or Tensor sets the translation noise standard deviation along the X axis.
-      y_stddev: A float scalar or Tensor sets the translation noise standard deviation along the Y axis.
-      z_stddev: A float scalar or Tensor sets the translation noise standard deviation along the Z axis.
+      x_stddev: A float scalar sets the translation noise standard deviation along the X axis.
+      y_stddev: A float scalar sets the translation noise standard deviation along the Y axis.
+      z_stddev: A float scalar sets the translation noise standard deviation along the Z axis.
     """
 
-    def __init__(self, x_stddev, y_stddev, z_stddev, **kwargs):
+    def __init__(self, x_stddev=None, y_stddev=None, z_stddev=None, **kwargs):
         super().__init__(**kwargs)
         x_stddev = x_stddev if x_stddev else 0.0
         y_stddev = y_stddev if y_stddev else 0.0

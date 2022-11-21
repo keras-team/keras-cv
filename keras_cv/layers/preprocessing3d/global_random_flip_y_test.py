@@ -22,13 +22,31 @@ BOUNDING_BOXES = base_augmentation_layer_3d.BOUNDING_BOXES
 
 
 class GlobalFlippingYTest(tf.test.TestCase):
-    def test_augment_point_clouds_and_bounding_boxes(self):
+    def test_augment_random_point_clouds_and_bounding_boxes(self):
         add_layer = GlobalRandomFlipY()
         point_clouds = np.random.random(size=(2, 50, 10)).astype("float32")
         bounding_boxes = np.random.random(size=(2, 10, 7)).astype("float32")
         inputs = {POINT_CLOUDS: point_clouds, BOUNDING_BOXES: bounding_boxes}
         outputs = add_layer(inputs)
         self.assertNotAllClose(inputs, outputs)
+
+    def test_augment_specific_random_point_clouds_and_bounding_boxes(self):
+        add_layer = GlobalRandomFlipY()
+        point_clouds = np.array([[[1, 1, 2, 3, 4, 5, 6, 7, 8, 9]] * 2] * 2).astype(
+            "float32"
+        )
+        bounding_boxes = np.array([[[1, 1, 2, 3, 4, 5, 1]] * 2] * 2).astype("float32")
+
+        inputs = {POINT_CLOUDS: point_clouds, BOUNDING_BOXES: bounding_boxes}
+        outputs = add_layer(inputs)
+        flipped_point_clouds = np.array(
+            [[[-1, 1, 2, 3, 4, 5, 6, 7, 8, 9]] * 2] * 2
+        ).astype("float32")
+        flipped_bounding_boxes = np.array([[[-1, 1, 2, 3, 4, 5, -1]] * 2] * 2).astype(
+            "float32"
+        )
+        self.assertAllClose(outputs[POINT_CLOUDS], flipped_point_clouds)
+        self.assertAllClose(outputs[BOUNDING_BOXES], flipped_bounding_boxes)
 
     def test_augment_batch_point_clouds_and_bounding_boxes(self):
         add_layer = GlobalRandomFlipY()

@@ -40,16 +40,16 @@ class GlobalRandomScaling(base_augmentation_layer_3d.BaseAugmentationLayer3D):
       A dictionary of Tensors with the same shape as input Tensors.
 
     Arguments:
-      scaling_factor_x: A tuple of float scalar sets the minimum and maximum scaling factors for the X axis.
-      scaling_factor_y: A tuple of float scalar sets the minimum and maximum scaling factors for the Y axis.
-      scaling_factor_z: A tuple of float scalar sets the minimum and maximum scaling factors for the Z axis.
+      scaling_factor_x: A tuple of float scalar or a float scaler sets the minimum and maximum scaling factors for the X axis.
+      scaling_factor_y: A tuple of float scalar or a float scaler sets the minimum and maximum scaling factors for the Y axis.
+      scaling_factor_z: A tuple of float scalar or a float scaler sets the minimum and maximum scaling factors for the Z axis.
     """
 
     def __init__(
         self,
-        scaling_factor_x,
-        scaling_factor_y,
-        scaling_factor_z,
+        scaling_factor_x=None,
+        scaling_factor_y=None,
+        scaling_factor_z=None,
         same_scaling_xyz=False,
         **kwargs
     ):
