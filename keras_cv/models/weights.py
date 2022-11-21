@@ -39,6 +39,10 @@ def parse_weights(weights, include_top, model_type):
 BASE_PATH = "https://storage.googleapis.com/keras-cv/models"
 
 ALIASES = {
+    "cspdarknet": {
+        "imagenet": "imagenet/classification-v0",
+        "imagenet/classification": "imagenet/classification-v0",
+    },
     "darknet53": {
         "imagenet": "imagenet/classification-v0",
         "imagenet/classification": "imagenet/classification-v0",
@@ -78,6 +82,10 @@ ALIASES = {
 }
 
 WEIGHTS_CONFIG = {
+    "cspdarknet": {
+        "imagenet/classification-v0": "8bdc3359222f0d26f77aa42c4e97d67a05a1431fe6c448ceeab9a9c5a34ff804",
+        "imagenet/classification-v0-notop": "9303aabfadffbff8447171fce1e941f96d230d8f3cef30d3f05a9c85097f8f1e",
+    },
     "darknet53": {
         "imagenet/classification-v0": "7bc5589f7f7f7ee3878e61ab9323a71682bfb617eb57f530ca8757c742f00c77",
         "imagenet/classification-v0-notop": "8dcce43163e4b4a63e74330ba1902e520211db72d895b0b090b6bfe103e7a8a5",
