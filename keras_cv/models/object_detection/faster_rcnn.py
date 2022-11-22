@@ -387,6 +387,9 @@ class FasterRCNN(ObjectDetectionBaseModel):
         if training:
             return box_pred, cls_pred
 
+        rois = bounding_box.convert_format(
+            rois, source="center_yxhw", target=self.bounding_box_format
+        )
         # Return anchor boxes of interest during evaluation
         return box_pred, cls_pred, rois
 
