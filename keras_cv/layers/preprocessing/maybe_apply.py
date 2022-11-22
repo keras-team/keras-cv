@@ -84,15 +84,7 @@ class MaybeApply(BaseImageAugmentationLayer):
     ```
     """
 
-    def __init__(
-        self,
-        layer,
-        rate=0.5,
-        batchwise=False,
-        auto_vectorize=False,
-        seed=None,
-        **kwargs,
-    ):
+    def __init__(self, layer, rate=0.5, batchwise=False, auto_vectorize=False, seed=None, **kwargs):
         super().__init__(seed=seed, **kwargs)
 
         if not (0 <= rate <= 1.0):
