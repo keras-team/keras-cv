@@ -37,8 +37,11 @@ class WaymoOpenDatasetLoadTest(tf.test.TestCase):
         # Extract records into a list
         dataset = [record for record in dataset]
 
-        self.assertEquals(len(dataset), 1)
-        self.assertEquals(dataset[0]["timestamp_micros"], 8675309)
+        self.assertEquals(len(dataset), 2)
+        self.assertCountEqual([
+            dataset[0]["timestamp_micros"].numpy(),
+            dataset[1]["timestamp_micros"].numpy()
+        ], [1550083467346370, 8675309])
 
     def test_load_from_files(self):
         dataset = load(
