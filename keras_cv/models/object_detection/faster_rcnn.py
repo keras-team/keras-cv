@@ -533,6 +533,8 @@ class FasterRCNN(ObjectDetectionBaseModel):
             target=self.prediction_decoder.bounding_box_format,
             images=images,
         )
+        # The prediction decoder expects anchor boxes in xywh
+        rois = bounding_box.convert_format(rois, "yxyx", "xywh", images=images)
         pred_for_inference = self.prediction_decoder(
             images, pred_for_inference, anchor_boxes=rois
         )

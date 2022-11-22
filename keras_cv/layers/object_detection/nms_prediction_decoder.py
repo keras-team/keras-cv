@@ -98,7 +98,7 @@ class NmsPredictionDecoder(tf.keras.layers.Layer):
                 `bounding_box_format` specified in the constructor.
             anchor_boxes: (optional) dense tensor of shape [batch, anchor_boxes, 4].
                 When specified, use these custom anchor boxes instead of using
-                the anchor generator.
+                the anchor generator. These should always be in the format "xywh".
         """
         if isinstance(images, tf.RaggedTensor):
             raise ValueError(
