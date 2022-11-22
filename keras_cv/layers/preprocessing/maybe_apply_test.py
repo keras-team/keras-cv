@@ -14,6 +14,7 @@
 import tensorflow as tf
 from absl.testing import parameterized
 
+from keras_cv import layers
 from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
     BaseImageAugmentationLayer,
 )
@@ -53,6 +54,15 @@ class MaybeApplyTest(tf.test.TestCase, parameterized.TestCase):
         self.assertEqual(num_zero_inputs, 0)
         self.assertLess(num_zero_outputs, batch_size)
         self.assertGreater(num_zero_outputs, 0)
+
+    def test_works_with_batchwise_layers(self):
+        batch_size = 32
+        dummy_inputs = self.rng.uniform(shape=(batch_size, 224, 224, 3))
+        dummy_outputs = self.rng.uniform(shape=(batch_size,))
+        inputs = {"images": dummy_inputs, "labels": dummy_outputs}
+        layer = layers.CutMix()
+        layer = layers.MaybeApply(layer, rate=0.5, batchwise=True)
+        _ = layer(inputs)
 
     @staticmethod
     def _num_zero_batches(images):
