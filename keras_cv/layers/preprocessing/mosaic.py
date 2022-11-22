@@ -264,6 +264,7 @@ class Mosaic(BaseImageAugmentationLayer):
             bounding_box_format="xyxy",
             images=images[index],
         )
+        boxes_for_mosaic = bounding_box.filter_sentinels(boxes_for_mosaic)
         boxes_for_mosaic = bounding_box.convert_format(
             boxes_for_mosaic,
             source="xyxy",
