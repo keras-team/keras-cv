@@ -27,7 +27,7 @@ OBJECT_BOUNDING_BOXES = base_augmentation_layer_3d.OBJECT_BOUNDING_BOXES
 class CropObjects(base_augmentation_layer_3d.BaseAugmentationLayer3D):
     """A preprocessing layer which crops objects from point clouds during training.
 
-    This layer will crops points based on object boxes and generates a OBJECT_POINT_CLOUDS tensor.
+    This layer will crop points based on object bounding boxes and generates OBJECT_POINT_CLOUDS and OBJECT_BOUNDING_BOXES tensors.
     During inference time, the output will be identical to input. Call the layer with `training=True` to crop the input points.
 
     Input shape:
@@ -39,10 +39,12 @@ class CropObjects(base_augmentation_layer_3d.BaseAugmentationLayer3D):
         The first 8 features are [x, y, z, dx, dy, dz, phi, box class].
 
     Output shape:
-      A dictionary of Tensors with the same shape as input Tensors and an additional item for object_point_clouds.
+      A dictionary of Tensors with the same shape as input Tensors and two additional items for object_point_clouds and OBJECT_BOUNDING_BOXES.
 
     Arguments:
-      label_index: A int scalar or Tensor sets the target object index.
+      label_index: A int scalar sets the target object index.
+      min_points_per_bounding_boxes: A int scalar sets the min number of points in a bounding box. If a bounding box contains less than min_points_per_bounding_boxes, the bounding box is filtered out.
+      max_points_per_bounding_boxes: A int scalar sets the max number of points in a bounding box. All the object point clouds will be padded or trimmed to the same shape, where the number of points dimension is max_points_per_bounding_boxes.
     """
 
     def __init__(

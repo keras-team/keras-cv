@@ -23,7 +23,7 @@ OBJECT_POINT_CLOUDS = base_augmentation_layer_3d.OBJECT_POINT_CLOUDS
 OBJECT_BOUNDING_BOXES = base_augmentation_layer_3d.OBJECT_BOUNDING_BOXES
 
 
-class GlobalDropPointsnTest(tf.test.TestCase):
+class CorpObjectsTest(tf.test.TestCase):
     def test_augment_point_clouds_and_bounding_boxes(self):
         add_layer = CropObjects(
             label_index=1,
