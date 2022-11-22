@@ -91,9 +91,6 @@ augmenter = layers.Augmenter(
             scale_factor=(0.8, 1.25),
             bounding_box_format="xywh",
         ),
-        layers.MaybeApply(
-            layers.Mosaic(bounding_box_format="xywh"), rate=0.5, batchwise=True
-        ),
         layers.MaybeApply(layers.MixUp(), rate=0.5, batchwise=True),
     ]
 )
@@ -177,7 +174,7 @@ metrics = [
         name="Recall",
     ),
 ]
-optimizer = tf.optimizers.SGD(global_clipnorm=10.0)
+optimizer = tf.optimizers.SGD(learning_rate=0.005, global_clipnorm=10.0)
 model.compile(
     classification_loss="focal",
     box_loss="smoothl1",
