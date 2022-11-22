@@ -290,14 +290,18 @@ class FasterRCNN(ObjectDetectionBaseModel):
         self,
         classes,
         bounding_box_format,
+        include_rescaling,
         backbone=None,
-        include_rescaling=False,
         anchor_generator=None,
         rpn_head=None,
         rcnn_head=None,
         prediction_decoder=None,
         **kwargs,
     ):
+        if bounding_box_format != "yxyx":
+            raise ValueError(
+                "FasterRCNN currently only supports `bounding_box_format='yxyx'`"
+            )
         self.bounding_box_format = bounding_box_format
         super().__init__(
             bounding_box_format=bounding_box_format, label_encoder=None, **kwargs

@@ -63,7 +63,9 @@ train_ds = train_ds.concatenate(
 eval_ds = tfds.load("voc/2007", split="test", with_info=False)
 
 with strategy.scope():
-    model = keras_cv.models.FasterRCNN(classes=20, bounding_box_format="yxyx")
+    model = keras_cv.models.FasterRCNN(
+        classes=20, bounding_box_format="yxyx", include_rescaling=True
+    )
 
 
 # TODO (tanzhenyu): migrate to KPL, as this is mostly a duplicate of
