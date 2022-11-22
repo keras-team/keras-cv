@@ -52,6 +52,9 @@ class RandomFlip(BaseImageAugmentationLayer):
         `"horizontal"`. `"horizontal"` is a left-right flip and `"vertical"` is
         a top-bottom flip.
       seed: Integer. Used to create a random seed.
+      bounding_box_format: The format of bounding boxes of input dataset. Refer to
+        https://github.com/keras-team/keras-cv/blob/master/keras_cv/bounding_box/converters.py
+        for more details on supported bounding box formats.
     """
 
     def __init__(self, mode=HORIZONTAL, seed=None, bounding_box_format=None, **kwargs):
