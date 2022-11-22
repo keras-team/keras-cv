@@ -235,6 +235,7 @@ class Mosaic(BaseImageAugmentationLayer):
             dtype=self.compute_dtype,
         )
         boxes_for_mosaic = tf.gather(bounding_boxes, permutation_order[index])
+        boxes_for_mosaic = boxes_for_mosaic.to_tensor(-1, shape=[None, 5])
         # boxes_for_mosaic = boxes_for_mosaic.to_tensor(-1)
         boxes_for_mosaic, rest = tf.split(
             boxes_for_mosaic, [4, boxes_for_mosaic.shape[-1] - 4], axis=-1
@@ -262,6 +263,7 @@ class Mosaic(BaseImageAugmentationLayer):
             bounding_box_format="xyxy",
             images=images[index],
         )
+        boxes_for_mosaic = bounding_box.filter_sentinels(boxes_for_mosaic)
         boxes_for_mosaic = bounding_box.convert_format(
             boxes_for_mosaic,
             source="xyxy",
@@ -269,6 +271,7 @@ class Mosaic(BaseImageAugmentationLayer):
             images=images[index],
             dtype=self.compute_dtype,
         )
+        boxes_for_mosaic = boxes_for_mosaic.to_tensor(-1, shape=[None, 5])
         return boxes_for_mosaic
 
     def _validate_inputs(self, inputs):
