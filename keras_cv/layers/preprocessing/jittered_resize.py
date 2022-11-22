@@ -15,6 +15,7 @@ import tensorflow as tf
 
 import keras_cv
 from keras_cv import bounding_box
+from keras_cv import layers
 from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
     BaseImageAugmentationLayer,
 )
@@ -98,7 +99,7 @@ class JitteredResize(BaseImageAugmentationLayer):
             target_size[1],
             pad_to_aspect_ratio=True,
             interpolation=interpolation,
-            bounding_box_format=bounding_box_formats,
+            bounding_box_format=bounding_box_format,
         )
         self.bounding_box_format = bounding_box_format
         self.force_output_dense_images = True
