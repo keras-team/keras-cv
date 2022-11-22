@@ -24,11 +24,11 @@ OBJECT_POINT_CLOUDS = base_augmentation_layer_3d.OBJECT_POINT_CLOUDS
 OBJECT_BOUNDING_BOXES = base_augmentation_layer_3d.OBJECT_BOUNDING_BOXES
 
 
-class CropObjects(base_augmentation_layer_3d.BaseAugmentationLayer3D):
-    """A preprocessing layer which crops objects from point clouds during training.
+class GroupPointsByBoundingBoxes(base_augmentation_layer_3d.BaseAugmentationLayer3D):
+    """A preprocessing layer which groups point clouds based on bounding boxes during training.
 
-    This layer will crop points based on object bounding boxes and generates OBJECT_POINT_CLOUDS and OBJECT_BOUNDING_BOXES tensors.
-    During inference time, the output will be identical to input. Call the layer with `training=True` to crop the input points.
+    This layer will group point clouds based on bounding boxes and generate OBJECT_POINT_CLOUDS and OBJECT_BOUNDING_BOXES tensors.
+    During inference time, the output will be identical to input. Call the layer with `training=True` to group point clouds based on bounding boxes.
 
     Input shape:
       point_clouds: 3D (multi frames) float32 Tensor with shape

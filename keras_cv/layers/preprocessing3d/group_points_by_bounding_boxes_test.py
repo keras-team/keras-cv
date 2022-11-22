@@ -15,7 +15,9 @@ import numpy as np
 import tensorflow as tf
 
 from keras_cv.layers.preprocessing3d import base_augmentation_layer_3d
-from keras_cv.layers.preprocessing3d.crop_objects import CropObjects
+from keras_cv.layers.preprocessing3d.group_points_by_bounding_boxes import (
+    GroupPointsByBoundingBoxes,
+)
 
 POINT_CLOUDS = base_augmentation_layer_3d.POINT_CLOUDS
 BOUNDING_BOXES = base_augmentation_layer_3d.BOUNDING_BOXES
@@ -23,9 +25,9 @@ OBJECT_POINT_CLOUDS = base_augmentation_layer_3d.OBJECT_POINT_CLOUDS
 OBJECT_BOUNDING_BOXES = base_augmentation_layer_3d.OBJECT_BOUNDING_BOXES
 
 
-class CorpObjectsTest(tf.test.TestCase):
+class GroupPointsByBoundingBoxesTest(tf.test.TestCase):
     def test_augment_point_clouds_and_bounding_boxes(self):
-        add_layer = CropObjects(
+        add_layer = GroupPointsByBoundingBoxes(
             label_index=1,
             min_points_per_bounding_boxes=1,
             max_points_per_bounding_boxes=2,
@@ -59,7 +61,7 @@ class CorpObjectsTest(tf.test.TestCase):
         self.assertAllClose(outputs[OBJECT_BOUNDING_BOXES], object_bounding_boxes)
 
     def test_augment_batch_point_clouds_and_bounding_boxes(self):
-        add_layer = CropObjects(
+        add_layer = GroupPointsByBoundingBoxes(
             label_index=1,
             min_points_per_bounding_boxes=1,
             max_points_per_bounding_boxes=2,
