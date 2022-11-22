@@ -69,7 +69,7 @@ class MixUp(BaseImageAugmentationLayer):
             bounding_boxes = self._update_bounding_boxes(
                 bounding_boxes, permutation_order
             )
-            inputs["bounding_boxes"] = bounding_boxes
+            nputs["bounding_boxes"] = bounding_boxes
         inputs["images"] = images
         return inputs
 
