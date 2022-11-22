@@ -109,13 +109,22 @@ class BaseImageAugmentationLayer(tf.keras.__internal__.layers.BaseRandomLayer):
         super().__init__(seed=seed, **kwargs)
 
     @property
-    def output_dense_images(self):
-        """Control whether to force outputting of dense images."""
-        return getattr(self, "_output_dense_images", False)
+    def force_output_ragged_images(self):
+        """Control whether to force outputting of ragged images."""
+        return getattr(self, "_force_output_ragged_images", False)
 
-    @output_dense_images.setter
-    def output_dense_images(self, output_dense_images):
-        self._output_dense_images = output_dense_images
+    @force_output_ragged_images.setter
+    def force_output_ragged_images(self, force_output_ragged_images):
+        self._force_output_ragged_images = force_output_ragged_images
+
+    @property
+    def force_output_dense_images(self):
+        """Control whether to force outputting of dense images."""
+        return getattr(self, "_force_output_dense_images", False)
+
+    @force_output_dense_images.setter
+    def force_output_dense_images(self, force_output_dense_images):
+        self._force_output_dense_images = force_output_dense_images
 
     @property
     def auto_vectorize(self):
@@ -146,7 +155,9 @@ class BaseImageAugmentationLayer(tf.keras.__internal__.layers.BaseRandomLayer):
         images.  By default returns either a `tf.RaggedTensorSpec` matching the input
         image spec, or a `tf.TensorSpec` matching the input image spec.
         """
-        if isinstance(images, tf.RaggedTensor):
+        if self.force_output_dense_images:
+            return tf.TensorSpec(images.shape[1:], self.compute_dtype)
+        if self.force_output_ragged_images or isinstance(images, tf.RaggedTensor):
             ragged_spec = tf.RaggedTensorSpec(
                 shape=images.shape[1:],
                 ragged_rank=1,
@@ -395,7 +406,9 @@ class BaseImageAugmentationLayer(tf.keras.__internal__.layers.BaseRandomLayer):
             label=label,
         )
 
-        if image_ragged and not self.output_dense_images:
+        if (
+            image_ragged and not self.force_output_dense_images
+        ) or self.force_output_ragged_images:
             image = tf.RaggedTensor.from_tensor(image)
 
         result = {IMAGES: image}
@@ -410,7 +423,7 @@ class BaseImageAugmentationLayer(tf.keras.__internal__.layers.BaseRandomLayer):
 
         if bounding_boxes is not None:
             if isinstance(bounding_boxes, tf.RaggedTensor):
-                bounding_boxes = bounding_boxes.to_tensor(-1)
+                bounding_boxes = bounding_boxes.to_tensor(default_value=-1)
             bounding_boxes = self.augment_bounding_boxes(
                 bounding_boxes,
                 transformation=transformation,
