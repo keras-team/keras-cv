@@ -91,8 +91,8 @@ class CategoricalDice(tf.keras.losses.Loss):
 
     In the snippet below, there are `num_classes` times channels per
     sample. The shape of `y_true` and `y_pred` are
-    `[batch_size, height, width, num_classes]` or
-    `[batch_size, height, width, depth, num_classes]`.
+    `[batch_size, height, width, num_classes]` and
+    `[batch_size, height, width, num_classes]`.
 
     Standalone usage:
 
@@ -409,8 +409,6 @@ class SparseDice(tf.keras.losses.Loss):
         else:
             dice_score = tf.reduce_mean(dice_score)
 
-        # print(dice_score)
-
         return 1 - dice_score
 
     def get_config(self):
@@ -445,11 +443,11 @@ class BinaryDice(tf.keras.losses.Loss):
 
     Standalone usage:
 
-    >>> y_true = tf.random.uniform([5, 10, 10, 1], 0, maxval=4, dtype=tf.int32)
-    >>> y_pred = tf.random.uniform([5, 10, 10, 4], 0, maxval=4)
+    >>> y_true = tf.random.uniform([5, 10, 10, 1], 0, maxval=2, dtype=tf.int32)
+    >>> y_pred = tf.random.uniform([5, 10, 10, 1], 0, maxval=1)
     >>> dice = BinaryDice()
     >>> dice(y_true, y_pred).numpy()
-    0.5549314
+    0.50254047
 
     >>> # Calling with 'sample_weight'.
     >>> dice(y_true, y_pred, sample_weight=tf.constant([[0.5, 0.5]])).numpy()

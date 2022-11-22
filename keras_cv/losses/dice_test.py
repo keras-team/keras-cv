@@ -27,14 +27,12 @@ class DiceTest(tf.test.TestCase):
         """
 
         y_true = tf.random.uniform(
-            shape=(3, 10, 10), minval=0, maxval=5, dtype=tf.int32
+            shape=(3, 10, 10, 5), minval=0, maxval=5, dtype=tf.int32
         )
 
         y_pred = tf.random.uniform(
             shape=(3, 10, 10, 5), minval=0, maxval=5, dtype=tf.float32
         )
-
-        y_true = tf.one_hot(y_true, depth=5)
 
         categorical_dice_loss = CategoricalDice()
         self.assertAllEqual(categorical_dice_loss(y_true, y_pred).shape, ())
@@ -49,7 +47,7 @@ class DiceTest(tf.test.TestCase):
         y_true is a sparse vector, y_pred is a one-hot vector
         """
         y_true = tf.random.uniform(
-            shape=(3, 10, 10), minval=0, maxval=5, dtype=tf.int32
+            shape=(3, 10, 10, 1), minval=0, maxval=5, dtype=tf.int32
         )
 
         y_pred = tf.random.uniform(
@@ -65,9 +63,11 @@ class DiceTest(tf.test.TestCase):
         )
 
     def test_binary_output_shape(self):
-        y_true = tf.random.uniform(shape=(3, 5, 5), minval=0, maxval=2, dtype=tf.int32)
+        y_true = tf.random.uniform(
+            shape=(3, 5, 5, 1), minval=0, maxval=1, dtype=tf.int32
+        )
         y_pred = tf.random.uniform(
-            shape=(3, 5, 5), minval=0, maxval=1, dtype=tf.float32
+            shape=(3, 5, 5, 1), minval=0, maxval=2, dtype=tf.float32
         )
 
         binary_dice_loss = BinaryDice()
@@ -147,19 +147,40 @@ class DiceTest(tf.test.TestCase):
         self.assertAllClose(sparse_dice_loss(y_true, y_pred), 0.7563137715411146)
 
     def test_binary_output_value(self):
-        y_true = np.array([[[0, 0, 0], [0, 0, 0], [0, 0, 0]]])
-
+        # All wrong
+        y_true = np.array(
+            [[[[0.0], [0.0], [0.0]], [[0.0], [0.0], [0.0]], [[0.0], [0.0], [0.0]]]]
+        )
         y_pred = np.array(
             [
                 [
-                    [[0.0, 1.0, 1.0], [0.0, 1.0, 1.0], [0.0, 1.0, 1.0]],
-                    [[0.0, 1.0, 1.0], [0.0, 1.0, 1.0], [0.0, 1.0, 1.0]],
-                    [[0.0, 1.0, 1.0], [0.0, 1.0, 1.0], [0.0, 1.0, 1.0]],
+                    [[1.0], [1.0], [1.0]],
+                    [[1.0], [1.0], [1.0]],
+                    [[1.0], [1.0], [1.0]],
                 ]
             ]
         )
 
         binary_dice_loss = BinaryDice(from_logits=False)
-        self.assertAllClose(binary_dice_loss(y_true, y_pred), 0.6666666)
+        self.assertAllClose(binary_dice_loss(y_true, y_pred), 0.999999988888889)
         binary_dice_loss = BinaryDice(from_logits=True)
-        self.assertAllClose(binary_dice_loss(y_true, y_pred), 1.0)
+        self.assertAllClose(binary_dice_loss(y_true, y_pred), 0.9999999848013398)
+
+        # All right
+        y_true = np.array(
+            [[[[0.0], [0.0], [0.0]], [[0.0], [0.0], [0.0]], [[0.0], [0.0], [0.0]]]]
+        )
+        y_pred = np.array(
+            [
+                [
+                    [[0.0], [0.0], [0.0]],
+                    [[0.0], [0.0], [0.0]],
+                    [[0.0], [0.0], [0.0]],
+                ]
+            ]
+        )
+
+        binary_dice_loss = BinaryDice(from_logits=False)
+        self.assertAllClose(binary_dice_loss(y_true, y_pred), 0.0)
+        binary_dice_loss = BinaryDice(from_logits=True)
+        self.assertAllClose(binary_dice_loss(y_true, y_pred), 0.9999999777777783)
