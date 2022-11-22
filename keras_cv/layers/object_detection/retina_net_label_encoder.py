@@ -117,6 +117,10 @@ class RetinaNetLabelEncoder(layers.Layer):
     def _encode_sample(self, gt_boxes, anchor_boxes):
         """Creates box and classification targets for a single sample"""
         cls_ids = gt_boxes[:, 4]
+
+        if isinstance(gt_boxes, tf.RaggedTensor):
+            gt_boxes = gt_boxes.to_tensor(-1)
+
         gt_boxes = gt_boxes[:, :4]
         cls_ids = tf.cast(cls_ids, dtype=self.dtype)
         matched_gt_idx, positive_mask, ignore_mask = self._match_anchor_boxes(
