@@ -91,7 +91,6 @@ class GlobalDropPointsnTest(tf.test.TestCase):
             ]
             * 3
         ).astype("float32")
-        tf.print(("asd", point_clouds.shape, bounding_boxes.shape))
         inputs = {POINT_CLOUDS: point_clouds, BOUNDING_BOXES: bounding_boxes}
         outputs = add_layer(inputs)
         object_point_clouds = np.array(
@@ -109,7 +108,6 @@ class GlobalDropPointsnTest(tf.test.TestCase):
         object_bounding_boxes = np.array(
             [[[[0, 0, 0, 4, 4, 4, 0, 1], [10, 1, 2, 2, 2, 2, 0, 1]]] * 2] * 3
         ).astype("float32")
-        tf.print(("asd00", object_point_clouds.shape, object_bounding_boxes.shape))
         self.assertAllClose(inputs[POINT_CLOUDS], outputs[POINT_CLOUDS])
         self.assertAllClose(inputs[BOUNDING_BOXES], outputs[BOUNDING_BOXES])
         self.assertAllClose(outputs[OBJECT_POINT_CLOUDS], object_point_clouds)
