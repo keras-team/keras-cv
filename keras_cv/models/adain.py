@@ -58,8 +58,7 @@ def get_adain_decoder():
                 kernel_size=3,
                 strides=1,
                 padding="same",
-                activation="sigmoid")(x)
-    outputs = tf.clip_by_value(x * 255., 0., 255.0)            
+                activation="sigmoid")(x)            
     return keras.Model(inputs, outputs, name="decoder")    
 
 
@@ -121,6 +120,8 @@ def create_adain_model(include_rescaling, image_size):
 
     adain_feature_map = adain_layer((style_encoded, content_encoded))
     content_decoded = decoder(adain_feature_map)
+    if include_rescaling:
+    	content_decoded = tf.clip_by_value(content_decoded * 255., 0., 255.0)
         
     model=keras.Model([style_input, content_input], content_decoded, name="adain_style_transfer")
     return encoder, decoder, adain_layer, model
@@ -130,6 +131,7 @@ def create_adain_model(include_rescaling, image_size):
 class AdaInTrainer(keras.Model):
     def __init__(self, include_rescaling, image_size=(None, None), style_weight=4.0, **kwargs):
         super().__init__(**kwargs)
+        self.include_rescaling = include_rescaling
         self.image_size = image_size
         self.encoder, self.decoder, self.adain_layer, self.model = create_adain_model(include_rescaling, image_size)
         self.loss_net = get_loss_net(include_rescaling, image_size)
@@ -147,9 +149,12 @@ class AdaInTrainer(keras.Model):
 
         # Compute the AdaIN target feature maps.
         t = self.adain_layer((style_encoded, content_encoded))
+        decoded = self.decoder(t)
+        if self.include_rescaling:
+        	decoded = tf.clip_by_value(decoded * 255., 0., 255.0)
 
         # Generate the neural style transferred image.
-        return self.decoder(t), t
+        return decoded, t
         
 
     def train_step(self, inputs):
@@ -193,6 +198,7 @@ class AdaInTrainer(keras.Model):
 	
 	# Compute the losses.
 	reconstructed_vgg_features = self.loss_net(reconstructed_image)
+	
 	style_vgg_features = self.loss_net(style)
 	loss_content = self.compiled_loss(t, reconstructed_vgg_features[-1])
 	for inp, out in zip(style_vgg_features, reconstructed_vgg_features):
