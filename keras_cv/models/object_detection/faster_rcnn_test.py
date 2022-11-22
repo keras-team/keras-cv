@@ -20,7 +20,7 @@ from keras_cv.models.object_detection.faster_rcnn import FasterRCNN
 class FasterRCNNTest(tf.test.TestCase):
     def test_faster_rcnn_infer(self):
         model = FasterRCNN(
-            classes=80, bounding_box_format="xyxy", include_rescaling=True
+            classes=80, bounding_box_format="yxyx", include_rescaling=True
         )
         images = tf.random.normal([2, 512, 512, 3])
         outputs = model(images, training=False)
@@ -30,7 +30,7 @@ class FasterRCNNTest(tf.test.TestCase):
 
     def test_faster_rcnn_predict(self):
         model = FasterRCNN(
-            classes=80, bounding_box_format="xyxy", include_rescaling=True
+            classes=80, bounding_box_format="yxyx", include_rescaling=True
         )
         images = tf.random.normal([2, 512, 512, 3])
         outputs = model.predict(images, batch_size=2)
@@ -39,7 +39,7 @@ class FasterRCNNTest(tf.test.TestCase):
 
     def test_faster_rcnn_train(self):
         model = FasterRCNN(
-            classes=80, bounding_box_format="xyxy", include_rescaling=True
+            classes=80, bounding_box_format="yxyx", include_rescaling=True
         )
         images = tf.random.normal([2, 512, 512, 3])
         outputs = model(images, training=True)
