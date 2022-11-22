@@ -13,7 +13,7 @@ low, high = resource.getrlimit(resource.RLIMIT_NOFILE)
 resource.setrlimit(resource.RLIMIT_NOFILE, (high, high))
 os.makedirs("artifacts/", exist_ok=True)
 
-BATCH_SIZE = 64
+BATCH_SIZE = 8
 EPOCHS = 100
 CHECKPOINT_PATH = "checkpoint/"
 
@@ -79,8 +79,7 @@ augmenter = layers.Augmenter(
         layers.RandomFlip(mode="horizontal", bounding_box_format="xywh"),
         layers.RandomAspectRatio(factor=(0.9, 1.1), bounding_box_format="xywh"),
         layers.JitteredResize(
-            desired_size=(640, 640),
-            padded_size=(640, 640),
+            target_size=(640, 640),
             scale_factor=(0.8, 1.25),
             bounding_box_format="xywh",
         ),
