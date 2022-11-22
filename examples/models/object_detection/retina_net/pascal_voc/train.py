@@ -91,7 +91,9 @@ augmenter = layers.Augmenter(
             scale_factor=(0.8, 1.25),
             bounding_box_format="xywh",
         ),
-        # layers.MaybeApply(layers.Mosaic(bounding_box_format='xywh'), rate=0.5, batchwise=True),
+        layers.MaybeApply(
+            layers.Mosaic(bounding_box_format="xywh"), rate=0.5, batchwise=True
+        ),
         layers.MaybeApply(layers.MixUp(), rate=0.5, batchwise=True),
     ]
 )
