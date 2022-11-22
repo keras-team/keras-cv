@@ -17,6 +17,5 @@ from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
     BaseImageAugmentationLayer,
 )
 
-
 class JitteredResizeTest(BaseImageAugmentationLayer):
     pass
