@@ -39,24 +39,25 @@ class GroupPointsByBoundingBoxes(base_augmentation_layer_3d.BaseAugmentationLaye
         The first 8 features are [x, y, z, dx, dy, dz, phi, box class].
 
     Output shape:
-      A dictionary of Tensors with the same shape as input Tensors and two additional items for OBJECT_POINT_CLOUDS and OBJECT_BOUNDING_BOXES.
+      A dictionary of Tensors with the same shape as input Tensors and two additional items for OBJECT_POINT_CLOUDS (shape [num of frames, num of valid boxes, max num of points, num of point features]) and OBJECT_BOUNDING_BOXES (shape [num of frames, num of valid boxes, num of box features]). 
 
     Arguments:
-      label_index: A int scalar sets the target object index. Bounding boxes and corresponding point clouds with box class == label_index will be saved as OBJECT_BOUNDING_BOXES and OBJECT_POINT_CLOUDS.
+      label_index: An optional int scalar sets the target object index. Bounding boxes and corresponding point clouds with box class == label_index will be saved as OBJECT_BOUNDING_BOXES and OBJECT_POINT_CLOUDS. If label index is None, all valid boundinhg boxes (box class !=0) are used. 
       min_points_per_bounding_boxes: A int scalar sets the min number of points in a bounding box. If a bounding box contains less than min_points_per_bounding_boxes, the bounding box is filtered out.
       max_points_per_bounding_boxes: A int scalar sets the max number of points in a bounding box. All the object point clouds will be padded or trimmed to the same shape, where the number of points dimension is max_points_per_bounding_boxes.
     """
 
     def __init__(
         self,
-        label_index=0,
+        label_index=None,
         min_points_per_bounding_boxes=0,
         max_points_per_bounding_boxes=2000,
         **kwargs
     ):
         super().__init__(**kwargs)
-        if label_index < 0:
-            raise ValueError("label_index must be >=0.")
+
+        if label_index and label_index < 0:
+            raise ValueError("label_index must be >=0 or None.")
         if min_points_per_bounding_boxes < 0:
             raise ValueError("min_points_per_bounding_boxes must be >=0.")
         if max_points_per_bounding_boxes < 0:
@@ -74,7 +75,7 @@ class GroupPointsByBoundingBoxes(base_augmentation_layer_3d.BaseAugmentationLaye
     def augment_point_clouds_bounding_boxes(
         self, point_clouds, bounding_boxes, **kwargs
     ):
-        if self._label_index > 0:
+        if self._label_index:
             bounding_boxes_mask = tf.math.equal(
                 bounding_boxes[0, :, 7], self._label_index
             )
