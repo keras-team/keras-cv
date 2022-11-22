@@ -47,6 +47,7 @@ class RandomRaggedCrop(BaseImageAugmentationLayer):
             width_factor, min_value=0.0, max_value=None, param_name="width_factor"
         )
         self.bounding_box_format = bounding_box_format
+        self.force_output_ragged_images = True
 
     def get_random_transformation(self, **kwargs):
         new_height = self.height_factor(dtype=self.compute_dtype)

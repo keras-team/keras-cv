@@ -101,7 +101,7 @@ class JitteredResize(BaseImageAugmentationLayer):
             bounding_box_format=bounding_box_formats,
         )
         self.bounding_box_format = bounding_box_format
-        self.output_dense_images = True
+        self.force_output_dense_images = True
 
     def call(self, inputs, training=True):
         if training:

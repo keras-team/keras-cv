@@ -381,20 +381,6 @@ def convert_format(
     images_ragged = isinstance(images, tf.RaggedTensor)
 
     try:
-        # if images_ragged:
-        #     def _ragged_map(inputs):
-        #         x, i = inputs['boxes'], inputs['images']
-        #         x = tf.expand_dims(x, axis=0)
-        #         i = tf.expand_dims(i, axis=0)
-        #
-        #         x = to_xyxy_fn(x, images=i, image_shape=image_shape)
-        #         r = from_xyxy_fn(x, images=i, image_shape=image_shape)
-        #
-        #         r = tf.squeeze(r, axis=0)
-        #         return tf.RaggedTensor.from_tensor(r)
-        #     inputs = {"boxes": boxes, "images": images}
-        #     result = tf.map_fn(_ragged_map, elems=inputs, fn_output_signature=tf.RaggedTensorSpec(shape=(None, boxes.shape[-1])))
-        # else:
         in_xyxy = to_xyxy_fn(boxes, images=images, image_shape=image_shape)
         result = from_xyxy_fn(in_xyxy, images=images, image_shape=image_shape)
     except RequiresImagesException:
