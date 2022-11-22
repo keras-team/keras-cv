@@ -13,7 +13,7 @@ low, high = resource.getrlimit(resource.RLIMIT_NOFILE)
 resource.setrlimit(resource.RLIMIT_NOFILE, (high, high))
 os.makedirs("artifacts/", exist_ok=True)
 
-BATCH_SIZE = 64
+BATCH_SIZE = 8
 EPOCHS = 100
 CHECKPOINT_PATH = "checkpoint/"
 
@@ -84,7 +84,7 @@ augmenter = layers.Augmenter(
             scale_factor=(0.8, 1.25),
             bounding_box_format="xywh",
         ),
-        layers.MixUp(),
+        layers.MixUp()
     ]
 )
 
