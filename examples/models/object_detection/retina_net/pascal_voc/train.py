@@ -86,15 +86,13 @@ def lam(inputs):
 augmenter = layers.Augmenter(
     [
         layers.RandomFlip(mode="horizontal", bounding_box_format="xywh"),
-        layers.RandomAspectRatio(factor=(0.9, 1.1), bounding_box_format="xywh"),
         layers.JitteredResize(
             target_size=(640, 640),
             scale_factor=(0.8, 1.25),
             bounding_box_format="xywh",
         ),
-        keras.layers.Lambda(lam),
-        layers.MaybeApply(layers.MixUp(), batchwise=True),
-        layers.MaybeApply(layers.Mosaic(bounding_box_format="xywh"), batchwise=True),
+        # layers.MaybeApply(layers.Mosaic(bounding_box_format='xywh'), rate=0.5, batchwise=True),
+        layers.MaybeApply(layers.MixUp(), rate=0.5, batchwise=True),
     ]
 )
 
