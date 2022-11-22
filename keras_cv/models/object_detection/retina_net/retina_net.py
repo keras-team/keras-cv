@@ -453,6 +453,12 @@ class RetinaNet(ObjectDetectionBaseModel):
         y_pred = self(x, training=False)
         _ = self._backward(y_training_target, y_pred)
 
+        # Early exit for no train time metrics
+        if not self.evaluate_train_time_metrics:
+            # To minimize GPU transfers, we update metrics AFTER we take grads and apply
+            # them.
+            return {m.name: m.result() for m in self.train_metrics}
+
         predictions = self.decode_predictions(y_pred, x)
         self._update_metrics(y_for_metrics, predictions)
         return {m.name: m.result() for m in self.metrics}
