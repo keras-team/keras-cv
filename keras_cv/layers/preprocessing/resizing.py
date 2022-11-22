@@ -59,7 +59,8 @@ class Resizing(BaseImageAugmentationLayer):
             largest possible resize of the image (of size `(height, width)`) that
             matches the target aspect ratio. By default
             (`pad_to_aspect_ratio=False`), aspect ratio may not be preserved.
-        pad_only:
+        pad_only: If True, resize the images without aspect ratio distortion only using
+            padding.  The original image will occupy the top left of the result image.
         bounding_box_format: The format of bounding boxes of input dataset. Refer to
             https://github.com/keras-team/keras-cv/blob/master/keras_cv/bounding_box/converters.py
             for more details on supported bounding box formats.
@@ -95,15 +96,6 @@ class Resizing(BaseImageAugmentationLayer):
                 "`pad_only` or "
                 "`pad_to_aspect_ratio` to be True."
             )
-
-        # if not pad_to_aspect_ratio and bounding_box_format:
-        #     raise ValueError(
-        #         "Resizing() only supports bounding boxes when in "
-        #         "`pad_to_aspect_ratio=True` mode.  "
-        #         "Please pass `pad_to_aspect_ratio=True`"
-        #         "when processing bounding boxes with `Resizing()`"
-        #     )
-
         super().__init__(**kwargs)
 
     def compute_image_signature(self, images):
