@@ -85,6 +85,7 @@ class Resizing(BaseImageAugmentationLayer):
         self.pad_only = pad_only
         self._interpolation_method = keras_cv.utils.get_interpolation(interpolation)
         self.bounding_box_format = bounding_box_format
+        self.force_output_dense_images = True
 
         if (
             sum([int(x) for x in [pad_to_aspect_ratio, crop_to_aspect_ratio, pad_only]])
