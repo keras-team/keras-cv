@@ -23,6 +23,7 @@ import sys
 
 import tensorflow as tf
 from absl import flags
+from absl import logging
 
 from keras_cv.datasets.pascal_voc.segmentation import load
 from keras_cv.models.segmentation.deeplab import DeepLabV3
@@ -32,6 +33,11 @@ flags.DEFINE_string(
     "weights_{epoch:02d}.h5",
     "Directory which will be used to store weight checkpoints.",
 )
+flags.DEFINE_boolean(
+    "mixed_precision",
+    True,
+    "Whether or not to use FP16 mixed precision for training.",
+)
 flags.DEFINE_string(
     "tensorboard_path",
     "logs",
@@ -39,6 +45,10 @@ flags.DEFINE_string(
 )
 FLAGS = flags.FLAGS
 FLAGS(sys.argv)
+
+if FLAGS.mixed_precision:
+    logging.info("mixed precision training enabled")
+    tf.keras.mixed_precision.set_global_policy("mixed_float16")
 
 # Try to detect an available TPU. If none is present, default to MirroredStrategy
 try:
