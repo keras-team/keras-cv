@@ -19,7 +19,7 @@ On the modeling components, it provides the most widely used models for each tas
 KerasCV provides the following values for users:
 - modular mid-level APIs and composable meta architectures
 - mixed-precision and xla enabled components
-- highly optimized, QAT enabled models, compatible between GPUs and TPUs.
+- highly optimized, quantization aware training (QAT) enabled models, compatible between GPUs and TPUs.
 - reproducible training results and leaderboard
 - useful tools for evaluation, visualization and explanation.
 - source for inference conversion (TFLite, edge devices, TensorRT, etc) and optimization at model level.
