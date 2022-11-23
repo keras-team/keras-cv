@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import functools
+
 import tensorflow as tf
 
 from keras_cv.utils import preprocessing
@@ -224,8 +226,7 @@ class BaseImageAugmentationLayer(tf.keras.__internal__.layers.BaseRandomLayer):
             return True
         if BOUNDING_BOXES in inputs:
             return True
-        if KEYPOINTS in inputs:
-            return True
+        # TODO(lukewood): exhaustively check cases
         return False
 
     def _map_fn(self, func, inputs):
@@ -386,9 +387,6 @@ class BaseImageAugmentationLayer(tf.keras.__internal__.layers.BaseRandomLayer):
         segmentation_mask = inputs.get(SEGMENTATION_MASKS, None)
 
         image_ragged = isinstance(image, tf.RaggedTensor)
-        # At this point, the tensor is not actually ragged as we have mapped over the
-        # batch axis.  This call is required to make `tf.shape()` behave as users
-        # subclassing the layer expect.
         if image_ragged:
             image = image.to_tensor()
 
@@ -466,6 +464,20 @@ class BaseImageAugmentationLayer(tf.keras.__internal__.layers.BaseRandomLayer):
             metadata[IS_DICT] = False
             inputs = {IMAGES: inputs}
             return inputs, metadata
+
+        valid_keys = [
+            IMAGES,
+            LABELS,
+            TARGETS,
+            BOUNDING_BOXES,
+            KEYPOINTS,
+            SEGMENTATION_MASKS,
+        ]
+        if not all([x in valid_keys for x in inputs.keys()]):
+            raise ValueError(
+                "Expected all keys in `inputs` to be in the list of "
+                f"valid keys, {valid_keys}"
+            )
 
         if not isinstance(inputs, dict):
             raise ValueError(

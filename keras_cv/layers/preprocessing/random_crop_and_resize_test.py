@@ -211,6 +211,7 @@ class RandomCropAndResizeTest(tf.test.TestCase, parameterized.TestCase):
             ]
         )
         input = {"images": [image, image], "bounding_boxes": boxes}
+        mock_random = [0.0, 0.0, 0.1, 0.1]
         layer = preprocessing.RandomCropAndResize(
             target_size=(18, 18),
             crop_area_factor=(0.5**2, 0.5**2),

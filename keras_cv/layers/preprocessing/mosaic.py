@@ -241,6 +241,7 @@ class Mosaic(BaseImageAugmentationLayer):
         boxes_for_mosaic = tf.gather(bounding_boxes, permutation_order[index])
         if isinstance(boxes_for_mosaic, tf.RaggedTensor):
             boxes_for_mosaic = boxes_for_mosaic.to_tensor(-1, shape=[None, 5])
+        # boxes_for_mosaic = boxes_for_mosaic.to_tensor(-1)
         boxes_for_mosaic, rest = tf.split(
             boxes_for_mosaic, [4, boxes_for_mosaic.shape[-1] - 4], axis=-1
         )
