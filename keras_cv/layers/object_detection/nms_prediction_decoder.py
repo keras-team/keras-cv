@@ -115,7 +115,7 @@ class NmsPredictionDecoder(tf.keras.layers.Layer):
                 target="xywh",
                 images=images[0],
             )
-            anchor_boxes = anchor_boxes[None, ...]
+            anchor_boxes = anchor_boxes[tf.newaxis, ...]
         predictions = bounding_box.convert_format(
             predictions, source=self.bounding_box_format, target="xywh", images=images
         )

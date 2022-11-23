@@ -23,6 +23,10 @@ from keras_cv.models.object_detection.__internal__ import convert_inputs_to_tf_d
 from keras_cv.models.object_detection.__internal__ import train_validation_split
 
 
+# TODO(ianstenbit): consider removing this class hierarchy and making OD
+# models subclass keras.Model directly. Main criteria for this move are:
+# - TPU box decoding works without our custom make_predict_function
+# - OD API is stable
 class ObjectDetectionBaseModel(keras.Model):
     """ObjectDetectionBaseModel performs asynchonous label encoding.
 
