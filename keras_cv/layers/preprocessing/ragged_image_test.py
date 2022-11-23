@@ -24,14 +24,15 @@ RAGGED_OUTPUT_TEST_CONFIGURATIONS = []
 
 
 class RaggedImageTest(tf.test.TestCase, parameterized.TestCase):
-    @parameterized.named_parameters()
-    def test_preserves_ragged_status(self, layer_cls, init_args):
-        layer = layer_cls(**init_args)
-
-    @parameterized.named_parameters()
-    def test_converts_ragged_to_dense(self, layer_cls, init_args):
-        layer = layer_cls(**init_args)
-
-    @parameterized.named_parameters()
-    def test_converts_dense_to_ragged(self, layer_cls, init_args):
-        layer = layer_cls(**init_args)
+    pass
+    # @parameterized.named_parameters()
+    # def test_preserves_ragged_status(self, layer_cls, init_args):
+    #     layer = layer_cls(**init_args)
+    #
+    # @parameterized.named_parameters()
+    # def test_converts_ragged_to_dense(self, layer_cls, init_args):
+    #     layer = layer_cls(**init_args)
+    #
+    # @parameterized.named_parameters()
+    # def test_converts_dense_to_ragged(self, layer_cls, init_args):
+    #     layer = layer_cls(**init_args)
