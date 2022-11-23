@@ -231,13 +231,18 @@ class RetinaNet(ObjectDetectionBaseModel):
 
     @property
     def train_metrics(self):
-        return [
+        result = [
             self.loss_metric,
             self.classification_loss_metric,
-            self.regularization_loss_metric,
             self.box_loss_metric,
             self.label_encoder.matched_boxes_metric,
         ]
+
+        # only track regularization loss when at least one exists
+        if self._track_regularization:
+            result += [self.regularization_loss_metric]
+
+        return result
 
     def call(self, x, training=False):
         backbone_outputs = self.backbone(x, training=training)
@@ -280,6 +285,24 @@ class RetinaNet(ObjectDetectionBaseModel):
     def compile(
         self, box_loss=None, classification_loss=None, loss=None, metrics=None, **kwargs
     ):
+        """compiles the RetinaNet.
+
+        compile() mirrors the standard Keras compile() method, but has a few key
+        distinctions.  Primarily, all metrics must support bounding boxes, and
+        two losses must be provided: `box_loss` and `classification_loss`.
+
+        Args:
+            box_loss: a Keras loss to use for box offset regression.  Preconfigured
+                losses are provided when the string "huber" or "smoothl1" are passed.
+            classification_loss: a Keras loss to use for box classification.
+                A preconfigured `FocalLoss` is provided when the string "focal" is
+                passed.
+            metrics: a list of Keras Metrics that accept bounding boxes as inputs, i.e.
+                `keras_cv.metrics.COCORecall` or
+                `keras_cv.metrics.COCOMeanAveragePrecision`.
+            kwargs: most other `keras.Model.compile()` arguments are supported and
+                propagated to the `keras.Model` class.
+        """
         super().compile(metrics=metrics, **kwargs)
         if loss is not None:
             raise ValueError(
@@ -421,9 +444,15 @@ class RetinaNet(ObjectDetectionBaseModel):
 
         self.classification_loss_metric.update_state(classification_loss)
         self.box_loss_metric.update_state(box_loss)
-        self.regularization_loss_metric.update_state(regularization_loss)
+
+        if self._track_regularization:
+            self.regularization_loss_metric.update_state(regularization_loss)
         self.loss_metric.update_state(loss)
         return loss
+
+    @property
+    def _track_regularization(self):
+        return len(self.losses) != 0
 
     def train_step(self, data):
         x, y = data
