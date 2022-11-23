@@ -16,23 +16,120 @@ from absl.testing import parameterized
 
 from keras_cv import layers
 
-CONSISTENT_OUTPUT_TEST_CONFIGURATIONS = []
+CONSISTENT_OUTPUT_TEST_CONFIGURATIONS = [
+    ("AutoContrast", layers.AutoContrast, {"value_range": (0, 255)}),
+    ("ChannelShuffle", layers.ChannelShuffle, {}),
+    ("Equalization", layers.Equalization, {"value_range": (0, 255)}),
+    ("Grayscale", layers.Grayscale, {}),
+    ("GridMask", layers.GridMask, {}),
+    (
+        "Posterization",
+        layers.Posterization,
+        {"bits": 3, "value_range": (0, 255)},
+    ),
+    (
+        "RandomColorDegeneration",
+        layers.RandomColorDegeneration,
+        {"factor": 0.5},
+    ),
+    (
+        "RandomCutout",
+        layers.RandomCutout,
+        {"height_factor": 0.2, "width_factor": 0.2},
+    ),
+    (
+        "RandomHue",
+        layers.RandomHue,
+        {"factor": 0.5, "value_range": (0, 255)},
+    ),
+    (
+        "RandomChannelShift",
+        layers.RandomChannelShift,
+        {"value_range": (0, 255), "factor": 0.5},
+    ),
+    (
+        "RandomColorJitter",
+        layers.RandomColorJitter,
+        {
+            "value_range": (0, 255),
+            "brightness_factor": (-0.2, 0.5),
+            "contrast_factor": (0.5, 0.9),
+            "saturation_factor": (0.5, 0.9),
+            "hue_factor": (0.5, 0.9),
+            "seed": 1,
+        },
+    ),
+    (
+        "RandomGaussianBlur",
+        layers.RandomGaussianBlur,
+        {"kernel_size": 3, "factor": (0.0, 3.0)},
+    ),
+    ("RandomFlip", layers.RandomFlip, {"mode": "horizontal"}),
+    ("RandomJpegQuality", layers.RandomJpegQuality, {"factor": (75, 100)}),
+    ("RandomSaturation", layers.RandomSaturation, {"factor": 0.5}),
+    (
+        "RandomSharpness",
+        layers.RandomSharpness,
+        {"factor": 0.5, "value_range": (0, 255)},
+    ),
+    ("RandomShear", layers.RandomShear, {"x_factor": 0.3, "x_factor": 0.3}),
+    ("Solarization", layers.Solarization, {"value_range": (0, 255)}),
+]
 
-DENSE_OUTPUT_TEST_CONFIGURATIONS = []
+DENSE_OUTPUT_TEST_CONFIGURATIONS = [
+    (
+        "RandomCropAndResize",
+        layers.RandomCropAndResize,
+        {
+            "target_size": (224, 224),
+            "crop_area_factor": (0.8, 1.0),
+            "aspect_ratio_factor": (3 / 4, 4 / 3),
+        },
+    ),
+    (
+        "Resizing",
+        layers.Resizing,
+        {
+            "height": 224,
+            "width": 224,
+        },
+    ),
+    (
+        "RandomlyZoomedCrop",
+        layers.RandomlyZoomedCrop,
+        {
+            "height": 224,
+            "width": 224,
+            "zoom_factor": (0.8, 1.0),
+            "aspect_ratio_factor": (3 / 4, 4 / 3),
+        },
+    ),
+]
 
 RAGGED_OUTPUT_TEST_CONFIGURATIONS = []
 
 
 class RaggedImageTest(tf.test.TestCase, parameterized.TestCase):
-    pass
-    # @parameterized.named_parameters()
-    # def test_preserves_ragged_status(self, layer_cls, init_args):
-    #     layer = layer_cls(**init_args)
-    #
-    # @parameterized.named_parameters()
-    # def test_converts_ragged_to_dense(self, layer_cls, init_args):
-    #     layer = layer_cls(**init_args)
-    #
-    # @parameterized.named_parameters()
-    # def test_converts_dense_to_ragged(self, layer_cls, init_args):
-    #     layer = layer_cls(**init_args)
+    @parameterized.named_parameters(*CONSISTENT_OUTPUT_TEST_CONFIGURATIONS)
+    def test_preserves_ragged_status(self, layer_cls, init_args):
+        layer = layer_cls(**init_args)
+        inputs = tf.ragged.stack(
+            [
+                tf.ones((512, 512, 3)),
+                tf.ones((600, 300, 3)),
+            ]
+        )
+        outputs = layer(inputs)
+        self.assertTrue(isinstance(outputs, tf.RaggedTensor))
+
+    @parameterized.named_parameters(*DENSE_OUTPUT_TEST_CONFIGURATIONS)
+    def test_converts_ragged_to_dense(self, layer_cls, init_args):
+        layer = layer_cls(**init_args)
+        inputs = tf.ragged.stack(
+            [
+                tf.ones((512, 512, 3)),
+                tf.ones((600, 300, 3)),
+            ]
+        )
+        outputs = layer(inputs)
+        self.assertTrue(isinstance(outputs, tf.Tensor))
