@@ -388,6 +388,9 @@ class BaseImageAugmentationLayer(tf.keras.__internal__.layers.BaseRandomLayer):
         segmentation_mask = inputs.get(SEGMENTATION_MASKS, None)
 
         image_ragged = isinstance(image, tf.RaggedTensor)
+        # At this point, the tensor is not actually ragged as we have mapped over the
+        # batch axis.  This call is required to make `tf.shape()` behave as users
+        # subclassing the layer expect.
         if image_ragged:
             image = image.to_tensor()
 
