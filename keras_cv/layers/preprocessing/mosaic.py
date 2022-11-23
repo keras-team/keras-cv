@@ -150,10 +150,14 @@ class Mosaic(BaseImageAugmentationLayer):
                 ],
                 axis=-1,
             )
+
+            if isinstance(bounding_boxes, tf.RaggedTensor):
+                bounding_boxes = bounding_boxes.to_tensor(-1)
+
             bounding_boxes = tf.vectorized_map(
                 lambda index: self._update_bounding_box(
                     images,
-                    bounding_boxes.to_tensor(-1),
+                    bounding_boxes,
                     permutation_order,
                     translate_x,
                     translate_y,
