@@ -12,11 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import functools
-
 import tensorflow as tf
 
-from keras_cv import bounding_box
 from keras_cv.utils import preprocessing
 
 # In order to support both unbatched and batched inputs, the horizontal

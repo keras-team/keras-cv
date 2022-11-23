@@ -11,8 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import unittest
-
 import numpy as np
 import tensorflow as tf
 from absl.testing import parameterized
@@ -213,7 +211,6 @@ class RandomCropAndResizeTest(tf.test.TestCase, parameterized.TestCase):
             ]
         )
         input = {"images": [image, image], "bounding_boxes": boxes}
-        mock_random = [0.0, 0.0, 0.1, 0.1]
         layer = preprocessing.RandomCropAndResize(
             target_size=(18, 18),
             crop_area_factor=(0.5**2, 0.5**2),
