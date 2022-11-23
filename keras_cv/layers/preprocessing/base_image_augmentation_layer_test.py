@@ -122,6 +122,9 @@ class BaseImageAugmentationLayerTest(tf.test.TestCase):
         inputs = {"images": images, "filenames": filenames}
         _ = add_layer(inputs)
 
+        with self.assertRaises(ValueError):
+            outputs = add_layer(inputs)
+
     def test_augment_ragged_images(self):
         images = tf.ragged.stack(
             [

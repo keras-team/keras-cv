@@ -155,6 +155,9 @@ class RandomFlip(BaseImageAugmentationLayer):
                 "`RandomFlip(bounding_box_format='xyxy')`"
             )
 
+        if isinstance(bounding_boxes, tf.RaggedTensor):
+            bounding_boxes = bounding_boxes.to_tensor(-1)
+
         bounding_boxes = bounding_box.convert_format(
             bounding_boxes,
             source=self.bounding_box_format,
