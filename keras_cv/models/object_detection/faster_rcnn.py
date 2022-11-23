@@ -281,9 +281,11 @@ class FasterRCNN(ObjectDetectionBaseModel):
             from paper, which is 2 FC layer with 1024 dimension, 1 box regressor and 1
             softmax classifier.
         prediction_decoder: (Optional)  A `keras.layer` that is responsible for
-            transforming RetinaNet predictions into usable bounding box Tensors.  If
+            transforming box predictions into usable bounding box Tensors.  If
             not provided, a default is provided.  The default `prediction_decoder`
-            layer uses a `NonMaxSuppression` operation for box pruning.
+            layer uses a `NonMaxSuppression` operation for box pruning. The model
+            outputs box predictions relative to anchor boxes which are decoded and
+            pruned by the decoder.
     """
 
     def __init__(
