@@ -15,8 +15,6 @@
 import numpy as np
 import tensorflow as tf
 
-from keras_cv.losses.dice import BinaryDice
-from keras_cv.losses.dice import CategoricalDice
 from keras_cv.losses.dice import SparseDice
 
 
