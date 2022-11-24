@@ -196,4 +196,9 @@ class BaseAugmentationLayer3D(tf.keras.__internal__.layers.BaseRandomLayer):
         return result
 
     def _batch_augment(self, inputs):
-        return self._map_fn(self._augment, inputs)
+        # ret = self._map_fn(self._augment, inputs)
+        ret = tf.map_fn(
+          fn=self._augment, elems=inputs,
+          fn_output_signature={POINT_CLOUDS: tf.float32, BOUNDING_BOXES: tf.float32, OBJECT_POINT_CLOUDS: tf.float32, OBJECT_BOUNDING_BOXES: tf.float32})
+        tf.print("here ret shape", tf.shape(ret[OBJECT_POINT_CLOUDS]))
+        return ret
