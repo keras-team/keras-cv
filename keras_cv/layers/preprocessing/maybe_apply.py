@@ -30,7 +30,10 @@ class MaybeApply(BaseImageAugmentationLayer):
             a batch will be modified. 0.0 means no elements will be modified.
             Defaults to 0.5.
         batchwise: (Optional) bool, whether or not to pass entire batches to the
-            underlying layer.  Useful when using `MixUp()`, `CutMix()`, `Mosaic()`, etc.
+            underlying layer.  When set to true, only a single random sample is
+            drawn to determine if the batch should be passed to the underlying
+            layer.  This is useful when using `MixUp()`, `CutMix()`, `Mosaic()`,
+            etc.
         auto_vectorize: bool, whether to use tf.vectorized_map or tf.map_fn for
             batched input. Setting this to True might give better performance but
             currently doesn't work with XLA. Defaults to False.
@@ -104,13 +107,21 @@ class MaybeApply(BaseImageAugmentationLayer):
         self.batchwise = batchwise
         self.seed = seed
 
+    def _should_augment(self):
+        return self._random_generator.random_uniform(shape=()) > 1.0 - self._rate
+
     def _batch_augment(self, inputs):
         if self.batchwise:
-            return self._layer(inputs)
+            # batchwise augmentations
+            if self._should_augment():
+                return self._layer(inputs)
+            else:
+                return inputs
+        # non-batchwise augmentations
         return super()._batch_augment(inputs)
 
     def _augment(self, inputs):
-        if self._random_generator.random_uniform(shape=()) > 1.0 - self._rate:
+        if self._should_augment():
             return self._layer(inputs)
         else:
             return inputs
