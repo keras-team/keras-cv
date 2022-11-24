@@ -140,6 +140,7 @@ class GroupPointsByBoundingBoxes(base_augmentation_layer_3d.BaseAugmentationLaye
         )
 
     def _augment(self, inputs):
+        result = inputs
         point_clouds = inputs[POINT_CLOUDS]
         bounding_boxes = inputs[BOUNDING_BOXES]
 
@@ -156,14 +157,12 @@ class GroupPointsByBoundingBoxes(base_augmentation_layer_3d.BaseAugmentationLaye
             transformation=transformation,
         )
 
-        result = {
-            OBJECT_POINT_CLOUDS: object_point_clouds,
-            OBJECT_BOUNDING_BOXES: object_bounding_boxes,
-        }
-
-        # preserve any additional inputs unmodified by this layer.
-        for key in inputs.keys() - result.keys():
-            result[key] = inputs[key]
+        result.update(
+            {
+                OBJECT_POINT_CLOUDS: object_point_clouds,
+                OBJECT_BOUNDING_BOXES: object_bounding_boxes,
+            }
+        )
         return result
 
     def call(self, inputs, training=True):
