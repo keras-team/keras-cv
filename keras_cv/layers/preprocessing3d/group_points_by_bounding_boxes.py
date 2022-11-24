@@ -46,7 +46,7 @@ class GroupPointsByBoundingBoxes(base_augmentation_layer_3d.BaseAugmentationLaye
     Arguments:
       label_index: An optional int scalar sets the target object index.
         Bounding boxes and corresponding point clouds with box class == label_index will be saved as OBJECT_BOUNDING_BOXES and OBJECT_POINT_CLOUDS.
-        If label index is None, all valid boundinhg boxes (box class !=0) are used.
+        If label index is None, all valid bounding boxes (box class !=0) are used.
       min_points_per_bounding_boxes: A int scalar sets the min number of points in a bounding box.
         If a bounding box contains less than min_points_per_bounding_boxes, the bounding box is filtered out.
       max_points_per_bounding_boxes: A int scalar sets the max number of points in a bounding box.
