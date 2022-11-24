@@ -122,7 +122,7 @@ class PatchingAndEmbedding(layers.Layer):
         class_token_broadcast = tf.cast(
             tf.tile(
                 self.class_token,
-                [flattened_shapes[0], 1, flattened_shapes[-1]],
+                [flattened_shapes[0], 1, 1],
             ),
             dtype=patches_flattened.dtype,
         )
