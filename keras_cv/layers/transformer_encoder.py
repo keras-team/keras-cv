@@ -74,7 +74,6 @@ class TransformerEncoder(layers.Layer):
             num_heads=self.num_heads,
             key_dim=self.project_dim // self.num_heads,
             dropout=self.attention_dropout,
-            use_bias=False,
         )
         self.dense1 = layers.Dense(self.mlp_units[0], activation=activation)
         self.dense2 = layers.Dense(self.mlp_units[1])
