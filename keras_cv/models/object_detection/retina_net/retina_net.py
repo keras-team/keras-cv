@@ -429,7 +429,15 @@ class RetinaNet(ObjectDetectionBaseModel):
         gradients = tape.gradient(loss, trainable_vars)
         self.optimizer.apply_gradients(zip(gradients, trainable_vars))
 
-        return {m.name: m.result() for m in self.train_metrics}
+        # Early exit for no train time metrics
+        if len(super().metrics) == 0:
+            # To minimize GPU transfers, we update metrics AFTER we take grads and apply
+            # them.
+            return {m.name: m.result() for m in self.train_metrics}
+
+        predictions = self.decode_predictions(y_pred, x)
+        self._update_metrics(y_for_metrics, predictions)
+        return {m.name: m.result() for m in self.metrics}
 
     def test_step(self, data):
         x, y = data
@@ -437,7 +445,15 @@ class RetinaNet(ObjectDetectionBaseModel):
         y_pred = self(x, training=False)
         _ = self._backward(y_training_target, y_pred)
 
-        return {m.name: m.result() for m in self.train_metrics}
+        # Early exit for no train time metrics
+        if len(super().metrics) == 0:
+            # To minimize GPU transfers, we update metrics AFTER we take grads and apply
+            # them.
+            return {m.name: m.result() for m in self.train_metrics}
+
+        predictions = self.decode_predictions(y_pred, x)
+        self._update_metrics(y_for_metrics, predictions)
+        return {m.name: m.result() for m in self.metrics}
 
     def _update_metrics(self, y_true, y_pred):
         y_true = bounding_box.convert_format(
