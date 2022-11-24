@@ -96,7 +96,7 @@ class GroupPointsByBoundingBoxes(base_augmentation_layer_3d.BaseAugmentationLaye
             )
 
         points_in_bounding_boxes = is_within_box3d(
-            point_clouds, object_bounding_boxes[:, :, :7]
+            point_clouds[:, :, :3], object_bounding_boxes[:, :, :7]
         )
         # Filter bounding boxes using the current frame.
         min_points_filter = (
