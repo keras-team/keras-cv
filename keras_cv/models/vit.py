@@ -285,7 +285,7 @@ def ViT(
 
     if include_top:
         output = layers.Lambda(lambda rep: rep[:, 0])(output)
-        output = layers.Dense(classes)(output)
+        output = layers.Dense(classes, activation=classifier_activation)(output)
 
     elif pooling == "token_pooling":
         output = layers.Lambda(lambda rep: rep[:, 0])(output)
