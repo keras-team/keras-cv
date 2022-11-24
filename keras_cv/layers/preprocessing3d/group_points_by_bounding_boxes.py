@@ -39,10 +39,10 @@ class GroupPointsByBoundingBoxes(base_augmentation_layer_3d.BaseAugmentationLaye
         The first 8 features are [x, y, z, dx, dy, dz, phi, box class].
 
     Output shape:
-      A dictionary of Tensors with the same shape as input Tensors and two additional items for OBJECT_POINT_CLOUDS (shape [num of frames, num of valid boxes, max num of points, num of point features]) and OBJECT_BOUNDING_BOXES (shape [num of frames, num of valid boxes, num of box features]). 
+      A dictionary of Tensors with the same shape as input Tensors and two additional items for OBJECT_POINT_CLOUDS (shape [num of frames, num of valid boxes, max num of points, num of point features]) and OBJECT_BOUNDING_BOXES (shape [num of frames, num of valid boxes, num of box features]).
 
     Arguments:
-      label_index: An optional int scalar sets the target object index. Bounding boxes and corresponding point clouds with box class == label_index will be saved as OBJECT_BOUNDING_BOXES and OBJECT_POINT_CLOUDS. If label index is None, all valid boundinhg boxes (box class !=0) are used. 
+      label_index: An optional int scalar sets the target object index. Bounding boxes and corresponding point clouds with box class == label_index will be saved as OBJECT_BOUNDING_BOXES and OBJECT_POINT_CLOUDS. If label index is None, all valid boundinhg boxes (box class !=0) are used.
       min_points_per_bounding_boxes: A int scalar sets the min number of points in a bounding box. If a bounding box contains less than min_points_per_bounding_boxes, the bounding box is filtered out.
       max_points_per_bounding_boxes: A int scalar sets the max number of points in a bounding box. All the object point clouds will be padded or trimmed to the same shape, where the number of points dimension is max_points_per_bounding_boxes.
     """
@@ -71,6 +71,7 @@ class GroupPointsByBoundingBoxes(base_augmentation_layer_3d.BaseAugmentationLaye
         self._min_points_per_bounding_boxes = min_points_per_bounding_boxes
         self._max_points_per_bounding_boxes = max_points_per_bounding_boxes
         self._iou_3d = iou_3d.IoU3D
+        self._auto_vectorize = False
 
     def augment_point_clouds_bounding_boxes(
         self, point_clouds, bounding_boxes, **kwargs
@@ -148,7 +149,7 @@ class GroupPointsByBoundingBoxes(base_augmentation_layer_3d.BaseAugmentationLaye
             bounding_boxes=bounding_boxes,
             transformation=transformation,
         )
-        
+
         result = {
             OBJECT_POINT_CLOUDS: object_point_clouds,
             OBJECT_BOUNDING_BOXES: object_bounding_boxes,

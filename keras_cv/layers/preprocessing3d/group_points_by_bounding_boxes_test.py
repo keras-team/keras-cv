@@ -46,7 +46,11 @@ class GroupPointsByBoundingBoxesTest(tf.test.TestCase):
             ]
             * 2
         ).astype("float32")
-        inputs = {POINT_CLOUDS: point_clouds, BOUNDING_BOXES: bounding_boxes, 'dummy_item': np.random.uniform(size=(2,2,2))}
+        inputs = {
+            POINT_CLOUDS: point_clouds,
+            BOUNDING_BOXES: bounding_boxes,
+            "dummy_item": np.random.uniform(size=(2, 2, 2)),
+        }
         outputs = add_layer(inputs)
         object_point_clouds = np.array(
             [[[[0, 1, 2, 3, 4], [0, -1, 2, 3, 4]], [[10, 1, 2, 3, 4], [0, 0, 0, 0, 0]]]]
@@ -57,7 +61,7 @@ class GroupPointsByBoundingBoxesTest(tf.test.TestCase):
         ).astype("float32")
         self.assertAllClose(inputs[POINT_CLOUDS], outputs[POINT_CLOUDS])
         self.assertAllClose(inputs[BOUNDING_BOXES], outputs[BOUNDING_BOXES])
-        self.assertAllClose(inputs['dummy_item'], outputs['dummy_item'])
+        self.assertAllClose(inputs["dummy_item"], outputs["dummy_item"])
         # Sort the point clouds due to the orders of points are different when using Tensorflow and Metal+Tensorflow (MAC).
         outputs[OBJECT_POINT_CLOUDS] = tf.sort(outputs[OBJECT_POINT_CLOUDS], axis=-2)
         object_point_clouds = tf.sort(object_point_clouds, axis=-2)
