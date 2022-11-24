@@ -107,22 +107,22 @@ class PatchingAndEmbedding(layers.Layer):
         """
         # Turn images into patches and project them onto `project_dim`
         patches = self.projection(images)
-        patch_shapes = tf.shape(patches)
+        n, h, w, c = tf.shape(patches)
         patches_flattened = tf.reshape(
             patches,
             shape=(
-                patch_shapes[0],
-                patch_shapes[-2] * patch_shapes[-2],
-                patch_shapes[-1],
+                n,
+                h*w,
+                c,
             ),
         )
 
         # Add learnable class token before linear projection and positional embedding
         flattened_shapes = tf.shape(patches_flattened)
         class_token_broadcast = tf.cast(
-            tf.broadcast_to(
+            tf.tile(
                 self.class_token,
-                [flattened_shapes[0], 1, flattened_shapes[-1]],
+                [n, 1, 1],
             ),
             dtype=patches_flattened.dtype,
         )
