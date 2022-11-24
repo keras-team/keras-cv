@@ -296,8 +296,6 @@ class Resizing(BaseImageAugmentationLayer):
             return self._resize_with_crop(inputs)
         if self.pad_to_aspect_ratio:
             return self._resize_with_pad(inputs)
-        if self.pad_only:
-            return self._resize_with_pad_only(inputs)
         return self._resize_with_distortion(inputs)
 
     def get_config(self):
@@ -308,7 +306,6 @@ class Resizing(BaseImageAugmentationLayer):
             "crop_to_aspect_ratio": self.crop_to_aspect_ratio,
             "pad_to_aspect_ratio": self.pad_to_aspect_ratio,
             "bounding_box_format": self.bounding_box_format,
-            "pad_only": self.pad_only,
         }
         base_config = super().get_config()
         return dict(list(base_config.items()) + list(config.items()))
