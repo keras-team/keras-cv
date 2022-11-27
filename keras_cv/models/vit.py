@@ -307,7 +307,7 @@ def ViT_Tiny_16(
     input_tensor=None,
     pooling=None,
     classes=None,
-    activation=tf.keras.activations.gelu()(approximate=True),
+    activation="gelu",
     classifier_activation="softmax",
     **kwargs,
 ):
@@ -344,7 +344,7 @@ def ViT_S_16(
     input_tensor=None,
     pooling=None,
     classes=None,
-    activation=tf.keras.activations.gelu()(approximate=True),
+    activation="gelu",
     classifier_activation="softmax",
     **kwargs,
 ):
@@ -381,7 +381,7 @@ def ViT_B_16(
     input_tensor=None,
     pooling=None,
     classes=None,
-    activation=tf.keras.activations.gelu()(approximate=True),
+    activation="gelu",
     classifier_activation="softmax",
     **kwargs,
 ):
@@ -418,7 +418,7 @@ def ViT_L_16(
     input_tensor=None,
     pooling=None,
     classes=None,
-    activation=tf.keras.activations.gelu()(approximate=True),
+    activation="gelu",
     classifier_activation="softmax",
     **kwargs,
 ):
@@ -455,7 +455,7 @@ def ViT_H_16(
     input_tensor=None,
     pooling=None,
     classes=None,
-    activation=tf.keras.activations.gelu()(approximate=True),
+    activation="gelu",
     classifier_activation="softmax",
     **kwargs,
 ):
@@ -492,7 +492,7 @@ def ViT_Tiny_32(
     input_tensor=None,
     pooling=None,
     classes=None,
-    activation=tf.keras.activations.gelu()(approximate=True),
+    activation="gelu",
     classifier_activation="softmax",
     **kwargs,
 ):
@@ -529,7 +529,7 @@ def ViT_S_32(
     input_tensor=None,
     pooling=None,
     classes=None,
-    activation=tf.keras.activations.gelu()(approximate=True),
+    activation="gelu",
     classifier_activation="softmax",
     **kwargs,
 ):
@@ -566,7 +566,7 @@ def ViT_B_32(
     input_tensor=None,
     pooling=None,
     classes=None,
-    activation=tf.keras.activations.gelu()(approximate=True),
+    activation="gelu",
     classifier_activation="softmax",
     **kwargs,
 ):
@@ -603,7 +603,7 @@ def ViT_L_32(
     input_tensor=None,
     pooling=None,
     classes=None,
-    activation=tf.keras.activations.gelu()(approximate=True),
+    activation="gelu",
     classifier_activation="softmax",
     **kwargs,
 ):
@@ -640,7 +640,7 @@ def ViT_H_32(
     input_tensor=None,
     pooling=None,
     classes=None,
-    activation=tf.keras.activations.gelu()(approximate=True),
+    activation="gelu",
     classifier_activation="softmax",
     **kwargs,
 ):
