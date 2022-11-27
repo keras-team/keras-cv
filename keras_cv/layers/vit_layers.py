@@ -33,9 +33,6 @@ class PatchingAndEmbedding(layers.Layer):
         An Image is Worth 16x16 Words: Transformers for Image Recognition at Scale
         by Alexey Dosovitskiy et al. (https://arxiv.org/abs/2010.11929)
 
-    Based on Khalid Salama's implementation for:
-        https://github.com/keras-team/keras-io/blob/master/examples/vision/image_classification_with_vision_transformer.py
-
     Args:
         project_dim: the dimensionality of the project_dim
         patch_size: the patch size
