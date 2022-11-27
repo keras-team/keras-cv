@@ -54,7 +54,7 @@ class TransformerEncoder(layers.Layer):
         mlp_dim,
         mlp_dropout=0.1,
         attention_dropout=0.1,
-        activation="gelu",
+        activation=tf.keras.activations.gelu(approximate=True),
         layer_norm_epsilon=1e-06,
         **kwargs,
     ):
