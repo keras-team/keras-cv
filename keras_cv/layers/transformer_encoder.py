@@ -37,8 +37,7 @@ class TransformerEncoder(layers.Layer):
     mlp_dim = 3072
     num_heads = 4
 
-    patches = keras_cv.layers.Patching(patch_size)(cat_img)
-    encoded_patches = keras_cv.layers.PatchEmbedding(project_dim=project_dim)(patches)
+    encoded_patches = keras_cv.layers.PatchingAndEmbedding(project_dim=project_dim, patch_size=16)(img_batch)
     trans_encoded = keras_cv.layers.TransformerEncoder(project_dim=project_dim,
                                                        mlp_dim = mlp_dim,
                                                        num_heads=num_heads)(encoded_patches)

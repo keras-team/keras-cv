@@ -305,6 +305,7 @@ def ViT_Tiny_16(
     input_tensor=None,
     pooling=None,
     classes=None,
+    activation='gelu',
     classifier_activation="softmax",
     **kwargs,
 ):
@@ -326,6 +327,7 @@ def ViT_Tiny_16(
         num_heads=MODEL_CONFIGS["ViT_Tiny_16"]["num_heads"],
         mlp_dropout=MODEL_CONFIGS["ViT_Tiny_16"]["mlp_dropout"],
         attention_dropout=MODEL_CONFIGS["ViT_Tiny_16"]["attention_dropout"],
+        activation=activation,
         classifier_activation=classifier_activation,
         **kwargs,
     )
@@ -340,6 +342,7 @@ def ViT_S_16(
     input_tensor=None,
     pooling=None,
     classes=None,
+    activation='gelu',
     classifier_activation="softmax",
     **kwargs,
 ):
@@ -361,6 +364,7 @@ def ViT_S_16(
         num_heads=MODEL_CONFIGS["ViT_S_16"]["num_heads"],
         mlp_dropout=MODEL_CONFIGS["ViT_S_16"]["mlp_dropout"],
         attention_dropout=MODEL_CONFIGS["ViT_S_16"]["attention_dropout"],
+        activation=activation,
         classifier_activation=classifier_activation,
         **kwargs,
     )
@@ -375,6 +379,7 @@ def ViT_B_16(
     input_tensor=None,
     pooling=None,
     classes=None,
+    activation='gelu',
     classifier_activation="softmax",
     **kwargs,
 ):
@@ -396,6 +401,7 @@ def ViT_B_16(
         num_heads=MODEL_CONFIGS["ViT_B_16"]["num_heads"],
         mlp_dropout=MODEL_CONFIGS["ViT_B_16"]["mlp_dropout"],
         attention_dropout=MODEL_CONFIGS["ViT_B_16"]["attention_dropout"],
+        activation=activation,
         classifier_activation=classifier_activation,
         **kwargs,
     )
@@ -410,6 +416,7 @@ def ViT_L_16(
     input_tensor=None,
     pooling=None,
     classes=None,
+    activation='gelu',
     classifier_activation="softmax",
     **kwargs,
 ):
@@ -431,6 +438,7 @@ def ViT_L_16(
         num_heads=MODEL_CONFIGS["ViT_L_16"]["num_heads"],
         mlp_dropout=MODEL_CONFIGS["ViT_L_16"]["mlp_dropout"],
         attention_dropout=MODEL_CONFIGS["ViT_L_16"]["attention_dropout"],
+        activation=activation,
         classifier_activation=classifier_activation,
         **kwargs,
     )
@@ -445,6 +453,7 @@ def ViT_H_16(
     input_tensor=None,
     pooling=None,
     classes=None,
+    activation='gelu',
     classifier_activation="softmax",
     **kwargs,
 ):
@@ -466,6 +475,7 @@ def ViT_H_16(
         num_heads=MODEL_CONFIGS["ViT_H_16"]["num_heads"],
         mlp_dropout=MODEL_CONFIGS["ViT_H_16"]["mlp_dropout"],
         attention_dropout=MODEL_CONFIGS["ViT_H_16"]["attention_dropout"],
+        activation=activation,
         classifier_activation=classifier_activation,
         **kwargs,
     )
@@ -480,6 +490,7 @@ def ViT_Tiny_32(
     input_tensor=None,
     pooling=None,
     classes=None,
+    activation='gelu',
     classifier_activation="softmax",
     **kwargs,
 ):
@@ -501,6 +512,7 @@ def ViT_Tiny_32(
         num_heads=MODEL_CONFIGS["ViT_Tiny_32"]["num_heads"],
         mlp_dropout=MODEL_CONFIGS["ViT_Tiny_32"]["mlp_dropout"],
         attention_dropout=MODEL_CONFIGS["ViT_Tiny_32"]["attention_dropout"],
+        activation=activation,
         classifier_activation=classifier_activation,
         **kwargs,
     )
@@ -515,6 +527,7 @@ def ViT_S_32(
     input_tensor=None,
     pooling=None,
     classes=None,
+    activation='gelu',
     classifier_activation="softmax",
     **kwargs,
 ):
@@ -536,6 +549,7 @@ def ViT_S_32(
         num_heads=MODEL_CONFIGS["ViT_S_32"]["num_heads"],
         mlp_dropout=MODEL_CONFIGS["ViT_S_32"]["mlp_dropout"],
         attention_dropout=MODEL_CONFIGS["ViT_S_32"]["attention_dropout"],
+        activation=activation,
         classifier_activation=classifier_activation,
         **kwargs,
     )
@@ -550,6 +564,7 @@ def ViT_B_32(
     input_tensor=None,
     pooling=None,
     classes=None,
+    activation='gelu',
     classifier_activation="softmax",
     **kwargs,
 ):
@@ -571,6 +586,7 @@ def ViT_B_32(
         num_heads=MODEL_CONFIGS["ViT_B_32"]["num_heads"],
         mlp_dropout=MODEL_CONFIGS["ViT_B_32"]["mlp_dropout"],
         attention_dropout=MODEL_CONFIGS["ViT_B_32"]["attention_dropout"],
+        activation=activation,
         classifier_activation=classifier_activation,
         **kwargs,
     )
@@ -585,6 +601,7 @@ def ViT_L_32(
     input_tensor=None,
     pooling=None,
     classes=None,
+    activation='gelu',
     classifier_activation="softmax",
     **kwargs,
 ):
@@ -606,6 +623,7 @@ def ViT_L_32(
         num_heads=MODEL_CONFIGS["ViT_L_32"]["num_heads"],
         mlp_dropout=MODEL_CONFIGS["ViT_L_32"]["mlp_dropout"],
         attention_dropout=MODEL_CONFIGS["ViT_L_32"]["attention_dropout"],
+        activation=activation,
         classifier_activation=classifier_activation,
         **kwargs,
     )
@@ -620,6 +638,7 @@ def ViT_H_32(
     input_tensor=None,
     pooling=None,
     classes=None,
+    activation='gelu',
     classifier_activation="softmax",
     **kwargs,
 ):
@@ -641,6 +660,7 @@ def ViT_H_32(
         num_heads=MODEL_CONFIGS["ViT_H_32"]["num_heads"],
         mlp_dropout=MODEL_CONFIGS["ViT_H_32"]["mlp_dropout"],
         attention_dropout=MODEL_CONFIGS["ViT_H_32"]["attention_dropout"],
+        activation=activation,
         classifier_activation=classifier_activation,
         **kwargs,
     )
