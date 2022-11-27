@@ -36,9 +36,10 @@ class PatchingAndEmbedding(layers.Layer):
     Args:
         project_dim: the dimensionality of the project_dim
         patch_size: the patch size
+        padding: default 'VALID', the padding to apply for patchifying images
 
     Returns:
-        Patchifying and linear projection of the input images, including a prepended learnable class token
+        Patchified and linearly projected input images, including a prepended learnable class token
         with shape (batch, num_patches+1, project_dim)
 
     Basic usage:
