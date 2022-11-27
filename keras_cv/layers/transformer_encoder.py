@@ -99,7 +99,9 @@ class TransformerEncoder(layers.Layer):
         y = self.layer_norm2(x)
 
         y = self.dense1(y)
-        if self.activation == 'gelu' or isinstance(self.activation, tf.keras.activations.gelu):
+        if self.activation == "gelu" or isinstance(
+            self.activation, tf.keras.activations.gelu
+        ):
             y = self.activation(y, approximate=True)
         else:
             y = self.activation(y)

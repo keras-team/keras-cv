@@ -23,7 +23,6 @@ from tensorflow.keras import layers
 
 from keras_cv.layers import TransformerEncoder
 from keras_cv.layers.vit_layers import PatchingAndEmbedding
-
 from keras_cv.models import utils
 
 MODEL_CONFIGS = {
@@ -306,7 +305,7 @@ def ViT_Tiny_16(
     input_tensor=None,
     pooling=None,
     classes=None,
-    activation="gelu",
+    activation=tf.keras.activations.gelu,
     classifier_activation="softmax",
     **kwargs,
 ):
@@ -343,7 +342,7 @@ def ViT_S_16(
     input_tensor=None,
     pooling=None,
     classes=None,
-    activation="gelu",
+    activation=tf.keras.activations.gelu,
     classifier_activation="softmax",
     **kwargs,
 ):
@@ -380,7 +379,7 @@ def ViT_B_16(
     input_tensor=None,
     pooling=None,
     classes=None,
-    activation="gelu",
+    activation=tf.keras.activations.gelu,
     classifier_activation="softmax",
     **kwargs,
 ):
@@ -417,7 +416,7 @@ def ViT_L_16(
     input_tensor=None,
     pooling=None,
     classes=None,
-    activation="gelu",
+    activation=tf.keras.activations.gelu,
     classifier_activation="softmax",
     **kwargs,
 ):
@@ -454,7 +453,7 @@ def ViT_H_16(
     input_tensor=None,
     pooling=None,
     classes=None,
-    activation="gelu",
+    activation=tf.keras.activations.gelu,
     classifier_activation="softmax",
     **kwargs,
 ):
@@ -491,7 +490,7 @@ def ViT_Tiny_32(
     input_tensor=None,
     pooling=None,
     classes=None,
-    activation="gelu",
+    activation=tf.keras.activations.gelu,
     classifier_activation="softmax",
     **kwargs,
 ):
@@ -528,7 +527,7 @@ def ViT_S_32(
     input_tensor=None,
     pooling=None,
     classes=None,
-    activation="gelu",
+    activation=tf.keras.activations.gelu,
     classifier_activation="softmax",
     **kwargs,
 ):
@@ -565,7 +564,7 @@ def ViT_B_32(
     input_tensor=None,
     pooling=None,
     classes=None,
-    activation="gelu",
+    activation=tf.keras.activations.gelu,
     classifier_activation="softmax",
     **kwargs,
 ):
@@ -602,7 +601,7 @@ def ViT_L_32(
     input_tensor=None,
     pooling=None,
     classes=None,
-    activation="gelu",
+    activation=tf.keras.activations.gelu,
     classifier_activation="softmax",
     **kwargs,
 ):
@@ -639,7 +638,7 @@ def ViT_H_32(
     input_tensor=None,
     pooling=None,
     classes=None,
-    activation="gelu",
+    activation=tf.keras.activations.gelu,
     classifier_activation="softmax",
     **kwargs,
 ):
