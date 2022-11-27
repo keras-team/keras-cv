@@ -267,7 +267,6 @@ def ViT(
     if include_rescaling:
         x = layers.Rescaling(1 / 255.0)(x)
 
-    # patches = Patching(patch_size)(x)
     encoded_patches = PatchingAndEmbedding(project_dim, patch_size)(x)
     encoded_patches = layers.Dropout(mlp_dropout)(encoded_patches)
 
