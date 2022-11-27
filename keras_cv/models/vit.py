@@ -194,6 +194,8 @@ def ViT(
     """Instantiates the ViT architecture.
 
     Args:
+        mlp_dim: the dimensionality of the hidden Dense layer in the transformer
+            MLP head
         include_rescaling: whether or not to Rescale the inputs. If set to True,
             inputs will be passed through a `Rescaling(1/255.0)` layer.
             name: string, model name.
@@ -305,7 +307,7 @@ def ViT_Tiny_16(
     input_tensor=None,
     pooling=None,
     classes=None,
-    activation='gelu',
+    activation=tf.keras.activations.gelu(approximate=True),
     classifier_activation="softmax",
     **kwargs,
 ):
@@ -342,7 +344,7 @@ def ViT_S_16(
     input_tensor=None,
     pooling=None,
     classes=None,
-    activation='gelu',
+    activation=tf.keras.activations.gelu(approximate=True),
     classifier_activation="softmax",
     **kwargs,
 ):
@@ -379,7 +381,7 @@ def ViT_B_16(
     input_tensor=None,
     pooling=None,
     classes=None,
-    activation='gelu',
+    activation=tf.keras.activations.gelu(approximate=True),
     classifier_activation="softmax",
     **kwargs,
 ):
@@ -416,7 +418,7 @@ def ViT_L_16(
     input_tensor=None,
     pooling=None,
     classes=None,
-    activation='gelu',
+    activation=tf.keras.activations.gelu(approximate=True),
     classifier_activation="softmax",
     **kwargs,
 ):
@@ -453,7 +455,7 @@ def ViT_H_16(
     input_tensor=None,
     pooling=None,
     classes=None,
-    activation='gelu',
+    activation=tf.keras.activations.gelu(approximate=True),
     classifier_activation="softmax",
     **kwargs,
 ):
@@ -490,7 +492,7 @@ def ViT_Tiny_32(
     input_tensor=None,
     pooling=None,
     classes=None,
-    activation='gelu',
+    activation=tf.keras.activations.gelu(approximate=True),
     classifier_activation="softmax",
     **kwargs,
 ):
@@ -527,7 +529,7 @@ def ViT_S_32(
     input_tensor=None,
     pooling=None,
     classes=None,
-    activation='gelu',
+    activation=tf.keras.activations.gelu(approximate=True),
     classifier_activation="softmax",
     **kwargs,
 ):
@@ -564,7 +566,7 @@ def ViT_B_32(
     input_tensor=None,
     pooling=None,
     classes=None,
-    activation='gelu',
+    activation=tf.keras.activations.gelu(approximate=True),
     classifier_activation="softmax",
     **kwargs,
 ):
@@ -601,7 +603,7 @@ def ViT_L_32(
     input_tensor=None,
     pooling=None,
     classes=None,
-    activation='gelu',
+    activation=tf.keras.activations.gelu(approximate=True),
     classifier_activation="softmax",
     **kwargs,
 ):
@@ -638,7 +640,7 @@ def ViT_H_32(
     input_tensor=None,
     pooling=None,
     classes=None,
-    activation='gelu',
+    activation=tf.keras.activations.gelu(approximate=True),
     classifier_activation="softmax",
     **kwargs,
 ):
