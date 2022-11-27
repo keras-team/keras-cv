@@ -74,7 +74,7 @@ class TransformerEncoder(layers.Layer):
             key_dim=self.project_dim // self.num_heads,
             dropout=self.attention_dropout,
         )
-        self.dense1 = layers.Dense(self.mlp_units[0], activation=self.activation)
+        self.dense1 = layers.Dense(self.mlp_units[0])
         self.dense2 = layers.Dense(self.mlp_units[1])
 
     def call(self, inputs):
@@ -99,6 +99,10 @@ class TransformerEncoder(layers.Layer):
         y = self.layer_norm2(x)
 
         y = self.dense1(y)
+        if self.activation == 'gelu' or isinstance(self.activation, tf.keras.activations.gelu):
+            y = self.activation(y, approximate=True)
+        else:
+            y = self.activation(y)
         y = layers.Dropout(self.mlp_dropout)(y)
         y = self.dense2(y)
         y = layers.Dropout(self.mlp_dropout)(y)

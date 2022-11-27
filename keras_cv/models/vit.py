@@ -24,7 +24,6 @@ from tensorflow.keras import layers
 from keras_cv.layers import TransformerEncoder
 from keras_cv.layers.vit_layers import PatchingAndEmbedding
 
-# from keras_cv.layers.vit_layers import Patching
 from keras_cv.models import utils
 
 MODEL_CONFIGS = {
