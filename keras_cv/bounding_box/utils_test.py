@@ -180,7 +180,7 @@ class BoundingBoxUtilTestCase(tf.test.TestCase):
         target_format = "xyxy"
         bounding_box_format = "rel_yxyx"
 
-        target = bounding_box.utils.preserve_rel(target_format=target_format, bounding_box_format=bounding_box_format)
+        target = bounding_box.preserve_rel(target_format=target_format, bounding_box_format=bounding_box_format)
         self.assertEqual(target, "rel_xyxy")
 
     def test_preserve_rel_util_errors(self):
@@ -193,11 +193,11 @@ class BoundingBoxUtilTestCase(tf.test.TestCase):
             'Expected "target_bounding_box_format" to be non-relative. '
             f"Got `target_bounding_box_format`={target_format}.",
         ):
-            bounding_box.utils.preserve_rel(target_format=target_format, bounding_box_format=bounding_box_format)
+            bounding_box.preserve_rel(target_format=target_format, bounding_box_format=bounding_box_format)
 
         # bounding box format should be in list of supported formats
         target_format = "xyxy"
         bounding_box_format = "rel_zxzx"
 
         with self.assertRaises(ValueError):
-            bounding_box.utils.preserve_rel(target_format=target_format, bounding_box_format=bounding_box_format)
+            bounding_box.preserve_rel(target_format=target_format, bounding_box_format=bounding_box_format)
