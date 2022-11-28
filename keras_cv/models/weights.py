@@ -133,5 +133,3 @@ WEIGHTS_CONFIG = {
         "imagenet/classification-v2-notop": "e711c83d6db7034871f6d345a476c8184eab99dbf3ffcec0c1d8445684890ad9",
     },
 }
-
-BACKBONE_WEIGHTS = {}
