@@ -106,8 +106,6 @@ DENSE_OUTPUT_TEST_CONFIGURATIONS = [
     ),
 ]
 
-RAGGED_OUTPUT_TEST_CONFIGURATIONS = []
-
 
 class RaggedImageTest(tf.test.TestCase, parameterized.TestCase):
     @parameterized.named_parameters(*CONSISTENT_OUTPUT_TEST_CONFIGURATIONS)
