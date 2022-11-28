@@ -47,6 +47,9 @@ ALIASES = {
         "imagenet": "imagenet/classification-v0",
         "imagenet/classification": "imagenet/classification-v0",
     },
+    "deeplabv3": {
+        "voc": "voc/segmentation-v0",
+    },
     "densenet121": {
         "imagenet": "imagenet/classification-v0",
         "imagenet/classification": "imagenet/classification-v0",
@@ -90,6 +93,9 @@ WEIGHTS_CONFIG = {
         "imagenet/classification-v0": "7bc5589f7f7f7ee3878e61ab9323a71682bfb617eb57f530ca8757c742f00c77",
         "imagenet/classification-v0-notop": "8dcce43163e4b4a63e74330ba1902e520211db72d895b0b090b6bfe103e7a8a5",
     },
+    "deeplabv3": {
+        "voc/segmentation-v0": "732042e8b6c9ddba3d51c861f26dc41865187e9f85a0e5d43dfef75a405cca18",
+    },
     "densenet121": {
         "imagenet/classification-v0": "13de3d077ad9d9816b9a0acc78215201d9b6e216c7ed8e71d69cc914f8f0775b",
         "imagenet/classification-v0-notop": "709afe0321d9f2b2562e562ff9d0dc44cca10ed09e0e2cfba08d783ff4dab6bf",
@@ -127,3 +133,5 @@ WEIGHTS_CONFIG = {
         "imagenet/classification-v2-notop": "e711c83d6db7034871f6d345a476c8184eab99dbf3ffcec0c1d8445684890ad9",
     },
 }
+
+BACKBONE_WEIGHTS = {}

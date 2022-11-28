@@ -42,6 +42,14 @@ class DeepLabV3(tf.keras.models.Model):
             instance. The supported pre-defined backbone models are:
             1. "resnet50_v2", a ResNet50 V2 model
             Default to 'resnet50_v2'.
+        backbone_weights: weights for the backbone model. one of `None` (random
+            initialization), a pretrained weight file path, or a reference to
+            pre-trained weights (e.g. 'imagenet/classification') (see available
+            pre-trained weights in weights.py)
+        weights: weights for the complete DeepLabV3 model. one of `None` (random
+            initialization), a pretrained weight file path, or a reference to
+            pre-trained weights (e.g. 'imagenet/classification') (see available
+            pre-trained weights in weights.py)
         decoder: an optional decoder network for segmentation model, e.g. FPN. The
             supported premade decoder is: "fpn". The decoder is called on
             the output of the backbone network to up-sample the feature output.
@@ -56,12 +64,18 @@ class DeepLabV3(tf.keras.models.Model):
         classes,
         include_rescaling,
         backbone,
-        weights,
+        backbone_weights=None,
+        weights=None,
         spatial_pyramid_pooling=None,
         segmentation_head=None,
         **kwargs,
     ):
         super().__init__(**kwargs)
+
+        if weights and backbone_weights:
+            raise ValueError(
+                "No more than 1 of `weights` and `backbone_weights` should be specified. Specifying `backbone_weights` overwrites weights for the entire model, including the backbone."
+            )
 
         self.classes = classes
         # ================== Backbone and weights. ==================
@@ -90,7 +104,7 @@ class DeepLabV3(tf.keras.models.Model):
                     include_rescaling=include_rescaling,
                     include_top=False,
                     name="resnet50v2",
-                    weights=parse_weights(weights, False, "resnet50v2"),
+                    weights=parse_weights(backbone_weights, False, "resnet50v2"),
                     pooling=None,
                     **kwargs,
                 )
@@ -135,6 +149,15 @@ class DeepLabV3(tf.keras.models.Model):
                 ]
             )
         self.segmentation_head = segmentation_head
+
+        weights = parse_weights(weights, False, "deeplabv3")
+        if weights and not tf.io.gfile.exists(weights):
+            raise ValueError(
+                "The `weights` argument should be either `None`, the path to the "
+                "weights file to be loaded, or a reference to pre-trained weights. "
+                f"Weights file not found at location: {weights}"
+            )
+        self.load_weights(weights)
 
     def build(self, input_shape):
         height = input_shape[1]
