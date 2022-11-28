@@ -13,18 +13,19 @@
 # limitations under the License.
 from dataclasses import dataclass
 
+v1 = {
+    "text-encoder": "",
+    "diffusion-model": "",
+    "image-encoder": "",
+    "image-decoder": "",
+}
 
-@dataclass
-class StableDiffusionWeights:
-    text_encoder: str
-    diffusion_model: str
-    image_encoder: str
-    image_decoder: str
-
-
-v1 = StableDiffusionWeights()
-
-v1point5 = StableDiffusionWeights()
+v1point5 = {
+    "text-encoder": "",
+    "diffusion-model": "",
+    "image-encoder": "",
+    "image-decoder": "",
+}
 
 all_weights = {"v1": v1, "v1.5": v1point5}
 

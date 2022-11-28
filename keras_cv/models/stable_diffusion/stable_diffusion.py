@@ -111,7 +111,7 @@ class StableDiffusion:
         self,
         prompt,
         batch_size=1,
-        steps=25,
+        steps=50,
         unconditional_guidance_scale=7.5,
         seed=None,
         num_steps=None,
@@ -187,7 +187,7 @@ class StableDiffusion:
             text will be used to produce every generated image.
             batch_size: number of images to generate. Default: 1.
             steps: number of diffusion steps (controls image quality).
-                Default: 25.
+                Default: 50.
             unconditional_guidance_scale: float controling how closely the image
                 should adhere to the prompt. Larger values result in more
                 closely adhering to the prompt, but will make the image noisier.
@@ -432,7 +432,7 @@ class StableDiffusion:
         """
         if self._image_encoder is None:
             self._image_encoder = ImageEncoder(
-                self.img_height, self.img_width, weights=self.weights.image_encoder
+                self.img_height, self.img_width, weights=self.weights["image-encoder"]
             )
             if self.jit_compile:
                 self._image_encoder.compile(jit_compile=True)
@@ -446,7 +446,7 @@ class StableDiffusion:
         """
         if self._text_encoder is None:
             self._text_encoder = TextEncoder(
-                MAX_PROMPT_LENGTH, weights=self.weights.text_encoder
+                MAX_PROMPT_LENGTH, weights=self.weights["text-encoder"]
             )
             if self.jit_compile:
                 self._text_encoder.compile(jit_compile=True)
@@ -462,7 +462,7 @@ class StableDiffusion:
                 self.img_height,
                 self.img_width,
                 MAX_PROMPT_LENGTH,
-                weights=self.weights.diffusion_model,
+                weights=self.weights["diffusion-model"],
             )
             if self.jit_compile:
                 self._diffusion_model.compile(jit_compile=True)
@@ -475,7 +475,7 @@ class StableDiffusion:
         """
         if self._decoder is None:
             self._decoder = Decoder(
-                self.img_height, self.img_width, weights=self.weights.image_decoder
+                self.img_height, self.img_width, weights=self.weights["image-decoder"]
             )
             if self.jit_compile:
                 self._decoder.compile(jit_compile=True)
