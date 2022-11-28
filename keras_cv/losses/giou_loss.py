@@ -75,7 +75,8 @@ class GIoULoss(tf.keras.losses.Loss):
             )
 
         target = bounding_box.preserve_rel(
-            target_bounding_box_format="yxyx", bounding_box_format=self.bounding_box_format
+            target_bounding_box_format="yxyx",
+            bounding_box_format=self.bounding_box_format,
         )
 
         boxes1 = bounding_box.convert_format(
