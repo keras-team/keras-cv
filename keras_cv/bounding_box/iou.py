@@ -115,10 +115,9 @@ def compute_iou(
             "or len(boxes2.shape)=3."
         )
 
-    if bounding_box_format.startswith("rel"):
-        target = "rel_yxyx"
-    else:
-        target = "yxyx"
+    target = bounding_box.preserve_rel(
+        target_bounding_box_format="yxyx", bounding_box_format=bounding_box_format
+    )
 
     boxes1 = bounding_box.convert_format(
         boxes1, source=bounding_box_format, target=target
