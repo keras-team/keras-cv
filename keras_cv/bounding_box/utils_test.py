@@ -181,7 +181,7 @@ class BoundingBoxUtilTestCase(tf.test.TestCase):
         bounding_box_format = "rel_yxyx"
 
         target = bounding_box.preserve_rel(
-            target_format=target_format, bounding_box_format=bounding_box_format
+            target_bounding_box_format=target_format, bounding_box_format=bounding_box_format
         )
         self.assertEqual(target, "rel_xyxy")
 
@@ -196,7 +196,7 @@ class BoundingBoxUtilTestCase(tf.test.TestCase):
             f"Got `target_bounding_box_format`={target_format}.",
         ):
             bounding_box.preserve_rel(
-                target_format=target_format, bounding_box_format=bounding_box_format
+                target_bounding_box_format=target_format, bounding_box_format=bounding_box_format
             )
 
         # bounding box format should be in list of supported formats
@@ -205,5 +205,5 @@ class BoundingBoxUtilTestCase(tf.test.TestCase):
 
         with self.assertRaises(ValueError):
             bounding_box.preserve_rel(
-                target_format=target_format, bounding_box_format=bounding_box_format
+                target_bounding_box_format=target_format, bounding_box_format=bounding_box_format
             )
