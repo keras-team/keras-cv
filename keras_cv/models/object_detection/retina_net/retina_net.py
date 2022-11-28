@@ -177,6 +177,8 @@ class RetinaNet(ObjectDetectionBaseModel):
         self.regularization_loss_metric = tf.keras.metrics.Mean(
             name="regularization_loss"
         )
+
+        self._includes_custom_metrics = False
         # Construct should run in eager mode
         if any(
             self.prediction_decoder.box_variance.numpy()
@@ -282,6 +284,9 @@ class RetinaNet(ObjectDetectionBaseModel):
         box_loss = _parse_box_loss(box_loss)
         classification_loss = _parse_classification_loss(classification_loss)
         metrics = metrics or []
+
+        if len(metrics) > 0:
+            self._includes_custom_metrics = True
 
         if hasattr(classification_loss, "from_logits"):
             if not classification_loss.from_logits:
@@ -429,8 +434,8 @@ class RetinaNet(ObjectDetectionBaseModel):
         gradients = tape.gradient(loss, trainable_vars)
         self.optimizer.apply_gradients(zip(gradients, trainable_vars))
 
-        # Early exit for no train time metrics
-        if len(super().metrics) == 0:
+        # Early exit for no custom metrics
+        if not self._includes_custom_metrics:
             # To minimize GPU transfers, we update metrics AFTER we take grads and apply
             # them.
             return {m.name: m.result() for m in self.train_metrics}
@@ -445,8 +450,8 @@ class RetinaNet(ObjectDetectionBaseModel):
         y_pred = self(x, training=False)
         _ = self._backward(y_training_target, y_pred)
 
-        # Early exit for no train time metrics
-        if len(super().metrics) == 0:
+        # Early exit for no custom metrics
+        if not self._includes_custom_metrics:
             # To minimize GPU transfers, we update metrics AFTER we take grads and apply
             # them.
             return {m.name: m.result() for m in self.train_metrics}
