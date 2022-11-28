@@ -27,6 +27,7 @@ import numpy as np
 import tensorflow as tf
 from tensorflow import keras
 
+import keras_cv.models.stable_diffusion.weights as weights_lib
 from keras_cv.models.stable_diffusion.clip_tokenizer import SimpleTokenizer
 from keras_cv.models.stable_diffusion.constants import _ALPHAS_CUMPROD
 from keras_cv.models.stable_diffusion.constants import _UNCONDITIONAL_TOKENS
@@ -70,7 +71,7 @@ class StableDiffusion:
     img = model.text_to_image(
         prompt="A beautiful horse running through a field",
         batch_size=1,  # How many images to generate at once
-        num_steps=25,  # Number of iterations (controls image quality)
+        steps=25,  # Number of iterations (controls image quality)
         seed=123,  # Set this to always get the same image from the same prompt
     )
     Image.fromarray(img[0]).save("horse.png")
@@ -83,12 +84,7 @@ class StableDiffusion:
     - [Original implementation](https://github.com/CompVis/stable-diffusion)
     """
 
-    def __init__(
-        self,
-        img_height=512,
-        img_width=512,
-        jit_compile=False,
-    ):
+    def __init__(self, img_height=512, img_width=512, jit_compile=False, weights="v1"):
         # UNet requires multiples of 2**7 = 128
         img_height = round(img_height / 128) * 128
         img_width = round(img_width / 128) * 128
@@ -104,6 +100,7 @@ class StableDiffusion:
 
         self.jit_compile = jit_compile
 
+        self.weights = weights_lib.parse_weights(weights)
         print(
             "By using this model checkpoint, you acknowledge that its usage is "
             "subject to the terms of the CreativeML Open RAIL-M license at "
@@ -114,16 +111,23 @@ class StableDiffusion:
         self,
         prompt,
         batch_size=1,
-        num_steps=25,
+        steps=25,
         unconditional_guidance_scale=7.5,
         seed=None,
+        num_steps=None,
     ):
         encoded_text = self.encode_text(prompt)
-
+        if steps and num_steps:
+            raise ValueError(
+                "Expects either `steps` or `num_steps`.  They have "
+                "identical meaning, `num_steps` is only maintained for backwards "
+                "compatibility."
+            )
+        steps = num_steps or steps
         return self.generate_image(
             encoded_text,
             batch_size=batch_size,
-            num_steps=num_steps,
+            steps=steps,
             unconditional_guidance_scale=unconditional_guidance_scale,
             seed=seed,
         )
@@ -167,7 +171,7 @@ class StableDiffusion:
         self,
         encoded_text,
         batch_size=1,
-        num_steps=25,
+        steps=25,
         unconditional_guidance_scale=7.5,
         diffusion_noise=None,
         seed=None,
@@ -182,7 +186,7 @@ class StableDiffusion:
             of shape (77, 768). When the batch axis is omitted, the same encoded
             text will be used to produce every generated image.
             batch_size: number of images to generate. Default: 1.
-            num_steps: number of diffusion steps (controls image quality).
+            steps: number of diffusion steps (controls image quality).
                 Default: 25.
             unconditional_guidance_scale: float controling how closely the image
                 should adhere to the prompt. Larger values result in more
@@ -240,7 +244,7 @@ class StableDiffusion:
             latent = self._get_initial_diffusion_noise(batch_size, seed)
 
         # Iterative reverse diffusion stage
-        timesteps = tf.range(1, 1000, 1000 // num_steps)
+        timesteps = tf.range(1, 1000, 1000 // steps)
         alphas, alphas_prev = self._get_initial_alphas(timesteps)
         progbar = keras.utils.Progbar(len(timesteps))
         iteration = 0
@@ -272,7 +276,7 @@ class StableDiffusion:
         mask,
         num_resamples=1,
         batch_size=1,
-        num_steps=25,
+        steps=25,
         unconditional_guidance_scale=7.5,
         diffusion_noise=None,
         seed=None,
@@ -292,7 +296,7 @@ class StableDiffusion:
                 Increasing the number of resamples improves the semantic fit of the
                 generated mask region w.r.t the rest of the image. Default: 1.
             batch_size: number of images to generate. Default: 1.
-            num_steps: number of diffusion steps (controls image quality).
+            steps: number of diffusion steps (controls image quality).
                 Default: 25.
             unconditional_guidance_scale: float controlling how closely the image
                 should adhere to the prompt. Larger values result in more
@@ -354,7 +358,7 @@ class StableDiffusion:
             latent = self._get_initial_diffusion_noise(batch_size, seed)
 
         # Iterative reverse diffusion stage
-        timesteps = tf.range(1, 1000, 1000 // num_steps)
+        timesteps = tf.range(1, 1000, 1000 // steps)
         alphas, alphas_prev = self._get_initial_alphas(timesteps)
         if verbose:
             progbar = keras.utils.Progbar(len(timesteps))
@@ -427,7 +431,9 @@ class StableDiffusion:
         ```
         """
         if self._image_encoder is None:
-            self._image_encoder = ImageEncoder(self.img_height, self.img_width)
+            self._image_encoder = ImageEncoder(
+                self.img_height, self.img_width, weights=self.weights.image_encoder
+            )
             if self.jit_compile:
                 self._image_encoder.compile(jit_compile=True)
         return self._image_encoder
@@ -439,7 +445,9 @@ class StableDiffusion:
         needs to be modified.
         """
         if self._text_encoder is None:
-            self._text_encoder = TextEncoder(MAX_PROMPT_LENGTH)
+            self._text_encoder = TextEncoder(
+                MAX_PROMPT_LENGTH, weights=self.weights.text_encoder
+            )
             if self.jit_compile:
                 self._text_encoder.compile(jit_compile=True)
         return self._text_encoder
@@ -451,7 +459,10 @@ class StableDiffusion:
         """
         if self._diffusion_model is None:
             self._diffusion_model = DiffusionModel(
-                self.img_height, self.img_width, MAX_PROMPT_LENGTH
+                self.img_height,
+                self.img_width,
+                MAX_PROMPT_LENGTH,
+                weights=self.weights.diffusion_model,
             )
             if self.jit_compile:
                 self._diffusion_model.compile(jit_compile=True)
@@ -463,7 +474,9 @@ class StableDiffusion:
         Can be overriden for tasks where the decoder needs to be modified.
         """
         if self._decoder is None:
-            self._decoder = Decoder(self.img_height, self.img_width)
+            self._decoder = Decoder(
+                self.img_height, self.img_width, weights=self.weights.image_decoder
+            )
             if self.jit_compile:
                 self._decoder.compile(jit_compile=True)
         return self._decoder
