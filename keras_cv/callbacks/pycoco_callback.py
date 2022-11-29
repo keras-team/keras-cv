@@ -30,6 +30,9 @@ class PyCOCOCallback(Callback):
                 "gt_classes": classes})```.
             bounding_box_format: the KerasCV bounding box format used in the
                 validation dataset (e.g. "xywh")
+            apply_nms: whether the model has already applied non-max-suppression. If False,
+                the callback will use `model.nms_decoder` to decode the model prediction,
+                otherwise the callback will use model prediction as-is. Default to True.
             cache: whether the callback should cache the dataset between iterations.
                 Note that if the validation dataset has shuffling of any kind
                 (e.g from `shuffle_files=True` in a call to TFDS.load or a call
