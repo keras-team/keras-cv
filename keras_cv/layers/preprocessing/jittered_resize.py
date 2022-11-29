@@ -14,7 +14,6 @@
 import tensorflow as tf
 
 import keras_cv
-from keras_cv import bounding_box
 from keras_cv import layers
 from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
     BaseImageAugmentationLayer,
@@ -22,17 +21,19 @@ from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
 
 
 class JitteredResize(BaseImageAugmentationLayer):
-    """JitteredResize implements MaskRCNN style image augmentation.
+    """JitteredResize implements resize with scale distortion.
 
-    JitteredResize takes a three step approach to spatial image augmentation.  This
-    technique is highly optimized for object detection pipelines and was first
-    proposed in the MaskRCNN publication.  The layer takes an input of images and
-    bounding boxes, both of which may be ragged.  It outputs a dense image tensor that
-    is ready to fed to a model for training.
+    JitteredResize takes a three step approach to size-distortion based image
+    augmentation.  This technique is highly tuned for object detection pipelines.
+    The layer takes an input of images and bounding boxes, both of which may be ragged.
+    It outputs a dense image tensor, ready to fed to a model for training.  As such this
+    layer will commonly be the final step in an augmentation pipeline.
 
     The augmentation process is as follows:
 
-    The image is first scaled according to a randomly sampled scale factor.  A subset of
+    The image is first scaled according to a randomly sampled scale factor.  The width
+    and height of the image are then resized according to the sampled scale.  This is
+    done to introduce noise into the local scale of features in the image. A subset of
     the image is then cropped randomly according to `crop_size`.  This crop is then
     padded to be `target_size`.  Bounding boxes are translated and scaled according to
     the random scaling and random cropping.
@@ -47,6 +48,17 @@ class JitteredResize(BaseImageAugmentationLayer):
     )
     train_ds = train_ds.map(maskrcnn_resize, num_parallel_calls=tf.data.AUTOTUNE)
     # images now are (640, 640, 3)
+
+    # an example using crop size
+    train_ds = load_object_detection_dataset()
+    maskrcnn_resize = layers.JitteredResize(
+        target_size=(640, 640),
+        crop_size=(250, 250),
+        scale_factor=(0.8, 1.25),
+        bounding_box_format="xywh",
+    )
+    train_ds = train_ds.map(maskrcnn_resize, num_parallel_calls=tf.data.AUTOTUNE)
+    # images now are (640, 640, 3), but they were resized from a 250x250 crop.
     ```
 
     Args:

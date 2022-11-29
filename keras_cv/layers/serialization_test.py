@@ -140,7 +140,7 @@ class SerializationTest(tf.test.TestCase, parameterized.TestCase):
         ),
         (
             "JitteredResize",
-            layers.JitteredResize,
+            cv_layers.JitteredResize,
             {
                 "target_size": (640, 640),
                 "scale_factor": (0.8, 1.25),
