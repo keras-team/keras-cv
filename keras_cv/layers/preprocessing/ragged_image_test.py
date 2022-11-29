@@ -102,7 +102,8 @@ DENSE_OUTPUT_TEST_CONFIGURATIONS = [
             "scale_factor": (0.8, 1.25),
             "bounding_box_format": "xywh",
         },
-    )(
+    ),
+    (
         "RandomlyZoomedCrop",
         layers.RandomlyZoomedCrop,
         {
