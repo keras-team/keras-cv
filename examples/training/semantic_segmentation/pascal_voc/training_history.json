@@ -1,0 +1,22 @@
+{
+    "deeplabv3": {
+        "v0": {
+            "accelerators": 4,
+            "args": {},
+            "contributor": "tanzhenyu",
+            "epochs_trained": 99,
+            "script": {
+                "name": "deeplab_v3.py",
+                "version": "6a518c900b6533939e80e027d38e741a9d01ff48"
+            },
+            "tensorboard_logs": "https://tensorboard.dev/experiment/Wh9RZvNNRMeLjFyqObrsag/",
+            "validation_accuracy": "0.9141",
+            "validation_mean_iou": "0.6863"
+        }
+    },
+    "script_authors": {
+        "deeplab_v3.py": [
+            "tanzhenyu"
+        ]
+    }
+}
