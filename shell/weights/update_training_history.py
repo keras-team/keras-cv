@@ -77,6 +77,9 @@ tensorboard_results = tensorboard_experiment.get_scalars()
 training_epochs = max(tensorboard_results[tensorboard_results.run == "train"].step)
 
 results_tags = tensorboard_results.tag.unique()
+
+# Validation accuracy won't exist in all logs (e.g for OD tasks).
+# We capture the max validation accuracy if it exists, but otherwise omit it.
 max_validation_accuracy = None
 if (
     "epoch_categorical_accuracy" in results_tags
@@ -93,6 +96,8 @@ if (
     )
     max_validation_accuracy = f"{max_validation_accuracy:.4f}"
 
+# Mean IOU won't exist in all logs (e.g for classification tasks).
+# We capture the max IOU if it exists, but otherwise omit it.
 max_mean_iou = None
 if "epoch_mean_io_u" in results_tags:
     max_mean_iou = max(
