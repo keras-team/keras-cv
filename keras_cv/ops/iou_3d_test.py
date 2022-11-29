@@ -20,6 +20,7 @@ import pytest
 import tensorflow as tf
 
 from keras_cv.ops import IoU3D
+from keras_cv.ops import iou_3d
 
 
 class IoU3DTest(tf.test.TestCase):
@@ -27,7 +28,7 @@ class IoU3DTest(tf.test.TestCase):
         "TEST_CUSTOM_OPS" not in os.environ or os.environ["TEST_CUSTOM_OPS"] != "true",
         reason="Requires binaries compiled from source",
     )
-    def testOpCall(self):
+    def testObjectCall(self):
         # Predicted boxes:
         # 0: a 2x2x2 box centered at 0,0,0, rotated 0 degrees
         # 1: a 2x2x2 box centered at 1,1,1, rotated 135 degrees
@@ -45,7 +46,19 @@ class IoU3DTest(tf.test.TestCase):
         # the same offset of 135 degrees, which reduces to the square root of 0.5.
         expected_ious = [[1 / 15, 1 / 15], [1, 0.5**0.5]]
 
-        iou_3d = IoU3D()
+        iou_object = IoU3D()
+
+        self.assertAllClose(iou_object(box_preds, box_gt), expected_ious)
+
+    @pytest.mark.skipif(
+        "TEST_CUSTOM_OPS" not in os.environ or os.environ["TEST_CUSTOM_OPS"] != "true",
+        reason="Requires binaries compiled from source",
+    )
+    def testOpCall(self):
+        # Same test case as testObjectCall
+        box_preds = [[0, 0, 0, 2, 2, 2, 0], [1, 1, 1, 2, 2, 2, 3 * math.pi / 4]]
+        box_gt = [[1, 1, 1, 2, 2, 2, math.pi / 4], [1, 1, 1, 2, 2, 2, 0]]
+        expected_ious = [[1 / 15, 1 / 15], [1, 0.5**0.5]]
 
         self.assertAllClose(iou_3d(box_preds, box_gt), expected_ious)
 

@@ -17,6 +17,15 @@
 from tensorflow.python.framework import load_library
 from tensorflow.python.platform import resource_loader
 
+iou_3d = None
+try:
+    pairwise_iou_op = load_library.load_op_library(
+        resource_loader.get_path_to_datafile("../custom_ops/_keras_cv_custom_ops.so")
+    )
+    iou_3d = pairwise_iou_op.pairwise_iou3d
+except:
+    print("Loading KerasCV without custom ops.")
+
 
 class IoU3D:
     """Implements IoU computation for 3D upright rotated bounding boxes.
@@ -42,7 +51,7 @@ class IoU3D:
                 "../custom_ops/_keras_cv_custom_ops.so"
             )
         )
-        self.iou_3d = pairwise_iou_op.pairwise_iou3d
+        self.iou_3d = iou_3d
 
     def __call__(self, y_true, y_pred):
         return self.iou_3d(y_true, y_pred)
