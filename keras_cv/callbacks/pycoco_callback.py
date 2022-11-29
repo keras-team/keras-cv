@@ -67,15 +67,7 @@ class PyCOCOCallback(Callback):
                     scores_pred,
                     cls_pred,
                     valid_det,
-                ) = tf.image.combined_non_max_suppression(
-                    boxes=box_pred,
-                    scores=cls_pred[..., :-1],
-                    max_output_size_per_class=10,
-                    max_total_size=10,
-                    score_threshold=0.5,
-                    iou_threshold=0.5,
-                    clip_boxes=False,
-                )
+                ) = self.model.nms_decoder(box_pred, cls_pred)
 
         gt = [boxes for boxes in self.val_data.map(boxes_only)]
         if self.apply_nms:
