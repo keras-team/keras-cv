@@ -467,20 +467,6 @@ class BaseImageAugmentationLayer(tf.keras.__internal__.layers.BaseRandomLayer):
             inputs = {IMAGES: inputs}
             return inputs, metadata
 
-        valid_keys = [
-            IMAGES,
-            LABELS,
-            TARGETS,
-            BOUNDING_BOXES,
-            KEYPOINTS,
-            SEGMENTATION_MASKS,
-        ]
-        if not all([x in valid_keys for x in inputs.keys()]):
-            raise ValueError(
-                "Expected all keys in `inputs` to be in the list of "
-                f"valid keys, {valid_keys}"
-            )
-
         if not isinstance(inputs, dict):
             raise ValueError(
                 f"Expect the inputs to be image tensor or dict. Got inputs={inputs}"
