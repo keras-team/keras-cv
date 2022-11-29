@@ -28,7 +28,7 @@ class WaymoOpenDatasetLoadTest(tf.test.TestCase):
         self.test_data_path = os.path.abspath(
             os.path.join(os.path.abspath(__file__), os.path.pardir, "test_data")
         )
-        self.test_data_file = "mini.tfrecord"
+        self.test_data_file = "wod_one_frame.tfrecord"
         self.output_signature = {"timestamp_micros": tf.TensorSpec((), tf.int64)}
 
     def test_load_from_directory(self):
@@ -37,13 +37,12 @@ class WaymoOpenDatasetLoadTest(tf.test.TestCase):
         # Extract records into a list
         dataset = [record for record in dataset]
 
-        self.assertEquals(len(dataset), 2)
+        self.assertEquals(len(dataset), 1)
         self.assertCountEqual(
             [
                 dataset[0]["timestamp_micros"].numpy(),
-                dataset[1]["timestamp_micros"].numpy(),
             ],
-            [1550083467346370, 8675309],
+            [1550083467346370],
         )
 
     def test_load_from_files(self):
@@ -57,4 +56,4 @@ class WaymoOpenDatasetLoadTest(tf.test.TestCase):
         dataset = [record for record in dataset]
 
         self.assertEquals(len(dataset), 1)
-        self.assertEquals(dataset[0]["timestamp_micros"], 8675309)
+        self.assertEquals(dataset[0]["timestamp_micros"], 1550083467346370)
