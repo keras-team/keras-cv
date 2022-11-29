@@ -225,6 +225,7 @@ class RCNNHead(tf.keras.layers.Layer):
         return dict(list(base_config.items()) + list(config.items()))
 
 
+#TODO(tanzhenyu): provide a TPU compatible NMS decoder.
 class NMSDecoder(tf.keras.layers.Layer):
     """A customized NMS layer wrapper."""
 
