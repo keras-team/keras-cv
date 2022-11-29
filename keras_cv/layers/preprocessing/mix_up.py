@@ -103,7 +103,6 @@ class MixUp(BaseImageAugmentationLayer):
     def _update_bounding_boxes(self, bounding_boxes, permutation_order):
         boxes_for_mixup = tf.gather(bounding_boxes, permutation_order)
         bounding_boxes = tf.concat([bounding_boxes, boxes_for_mixup], axis=1)
-
         return bounding_boxes
 
     def _validate_inputs(self, inputs):

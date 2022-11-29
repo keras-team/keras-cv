@@ -79,7 +79,7 @@ class RandomlyZoomedCrop(BaseImageAugmentationLayer):
         )
 
         self._check_class_arguments(height, width, zoom_factor, aspect_ratio_factor)
-
+        self.force_output_dense_images = True
         self.interpolation = interpolation
         self.seed = seed
 

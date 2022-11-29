@@ -25,7 +25,7 @@ from keras_cv.models import segmentation
 class DeeplabTest(tf.test.TestCase):
     def test_deeplab_model_construction_with_preconfigured_setting(self):
         model = segmentation.DeepLabV3(
-            classes=11, include_rescaling=True, backbone="resnet50_v2", weights=None
+            classes=11, include_rescaling=True, backbone="resnet50_v2"
         )
         input_image = tf.random.uniform(shape=[2, 256, 256, 3])
         output = model(input_image, training=True)
@@ -35,7 +35,7 @@ class DeeplabTest(tf.test.TestCase):
     def test_deeplab_model_with_components(self):
         backbone = models.ResNet50V2(include_rescaling=True, include_top=False)
         model = segmentation.DeepLabV3(
-            classes=11, include_rescaling=True, backbone=backbone, weights=None
+            classes=11, include_rescaling=True, backbone=backbone
         )
 
         input_image = tf.random.uniform(shape=[2, 256, 256, 3])
@@ -46,7 +46,7 @@ class DeeplabTest(tf.test.TestCase):
     def test_mixed_precision(self):
         tf.keras.mixed_precision.set_global_policy("mixed_float16")
         model = segmentation.DeepLabV3(
-            classes=11, include_rescaling=True, backbone="resnet50_v2", weights=None
+            classes=11, include_rescaling=True, backbone="resnet50_v2"
         )
         input_image = tf.random.uniform(shape=[2, 256, 256, 3])
         output = model(input_image, training=True)
@@ -61,7 +61,6 @@ class DeeplabTest(tf.test.TestCase):
                 classes=11,
                 include_rescaling=True,
                 backbone="resnet_v3",
-                weights=None,
             )
         with self.assertRaisesRegex(
             ValueError, "Backbone need to be a `tf.keras.layers.Layer`"
@@ -70,7 +69,6 @@ class DeeplabTest(tf.test.TestCase):
                 classes=11,
                 include_rescaling=True,
                 backbone=tf.Module(),
-                weights=None,
             )
 
     @pytest.mark.skipif(
@@ -81,7 +79,7 @@ class DeeplabTest(tf.test.TestCase):
     )
     def test_model_train(self):
         model = segmentation.DeepLabV3(
-            classes=1, include_rescaling=True, backbone="resnet50_v2", weights=None
+            classes=1, include_rescaling=True, backbone="resnet50_v2"
         )
 
         gcs_data_pattern = "gs://caltech_birds2011_mask/0.1.1/*.tfrecord*"

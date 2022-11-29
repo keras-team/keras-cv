@@ -55,7 +55,7 @@ global_batch = local_batch * strategy.num_replicas_in_sync
 base_lr = 0.01 * global_batch / 16
 image_size = [640, 640, 3]
 train_ds = tfds.load(
-    "voc/2007", split="train+test", with_info=False, shuffle_files=True
+    "voc/2007", split="train+validation", with_info=False, shuffle_files=True
 )
 train_ds = train_ds.concatenate(
     tfds.load("voc/2012", split="train+validation", with_info=False, shuffle_files=True)
