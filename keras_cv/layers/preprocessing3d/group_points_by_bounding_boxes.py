@@ -15,7 +15,6 @@
 import tensorflow as tf
 
 from keras_cv.layers.preprocessing3d import base_augmentation_layer_3d
-from keras_cv.ops import iou_3d
 from keras_cv.ops.point_cloud import is_within_box3d
 
 POINT_CLOUDS = base_augmentation_layer_3d.POINT_CLOUDS
@@ -76,7 +75,6 @@ class GroupPointsByBoundingBoxes(base_augmentation_layer_3d.BaseAugmentationLaye
         self._label_index = label_index
         self._min_points_per_bounding_boxes = min_points_per_bounding_boxes
         self._max_points_per_bounding_boxes = max_points_per_bounding_boxes
-        self._iou_3d = iou_3d.IoU3D
         self._auto_vectorize = False
 
     def augment_point_clouds_bounding_boxes(
