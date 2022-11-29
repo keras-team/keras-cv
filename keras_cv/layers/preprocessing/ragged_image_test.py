@@ -98,12 +98,11 @@ DENSE_OUTPUT_TEST_CONFIGURATIONS = [
         "JitteredResize",
         layers.JitteredResize,
         {
-            "target_size": (640, 640),
+            "target_size": (224, 224),
             "scale_factor": (0.8, 1.25),
             "bounding_box_format": "xywh",
         },
-    ),
-    (
+    )(
         "RandomlyZoomedCrop",
         layers.RandomlyZoomedCrop,
         {
