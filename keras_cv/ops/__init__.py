@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from keras_cv.ops.iou_3d import IoU3D
 from keras_cv.ops.iou_3d import iou_3d
 from keras_cv.ops.point_cloud import _box_area
 from keras_cv.ops.point_cloud import _center_xyzWHD_to_corner_xyz
