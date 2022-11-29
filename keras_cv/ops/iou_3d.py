@@ -14,31 +14,26 @@
 # ============================================================================
 """IoU3D using a custom TF op."""
 
-from tensorflow.python.framework import load_library
-from tensorflow.python.platform import resource_loader
+from keras_cv.utils.resource_loader import LazySO
 
-iou_3d = None
-try:
-    keras_cv_custom_ops = load_library.load_op_library(
-        resource_loader.get_path_to_datafile("../custom_ops/_keras_cv_custom_ops.so")
-    )
-    iou_3d = keras_cv_custom_ops.pairwise_iou3d
-except:
-    print("Loading KerasCV without custom ops.")
+keras_cv_custom_ops = LazySO("custom_ops/_keras_cv_custom_ops.so")
 
-DOCSTRING = """Implements IoU computation for 3D upright rotated bounding boxes.
 
-Note that this is implemented using a custom TensorFlow op. If you don't have
-KerasCV installed with custom ops, calling this will fail.
+def iou_3d(y_true, y_pred):
+    """Implements IoU computation for 3D upright rotated bounding boxes.
 
-Boxes should have the format [center_x, center_y, center_z, dimension_x,
-dimension_y, dimension_z, heading (in radians)].
+    Note that this is implemented using a custom TensorFlow op. If you don't have
+    KerasCV installed with custom ops, calling this will fail.
 
-Sample Usage:
-```python
-y_true = [[0, 0, 0, 2, 2, 2, 0], [1, 1, 1, 2, 2, 2, 3 * math.pi / 4]]
-y_pred = [[1, 1, 1, 2, 2, 2, math.pi / 4], [1, 1, 1, 2, 2, 2, 0]]
-iou_3d(y_true, y_pred)
-```
-"""
-setattr(iou_3d, "__doc__", DOCSTRING)
+    Boxes should have the format [center_x, center_y, center_z, dimension_x,
+    dimension_y, dimension_z, heading (in radians)].
+
+    Sample Usage:
+    ```python
+    y_true = [[0, 0, 0, 2, 2, 2, 0], [1, 1, 1, 2, 2, 2, 3 * math.pi / 4]]
+    y_pred = [[1, 1, 1, 2, 2, 2, math.pi / 4], [1, 1, 1, 2, 2, 2, 0]]
+    iou_3d(y_true, y_pred)
+    ```
+    """
+
+    return keras_cv_custom_ops.ops.pairwise_iou3d(y_true, y_pred)
