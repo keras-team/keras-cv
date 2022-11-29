@@ -94,12 +94,6 @@ class RetinaNet(ObjectDetectionBaseModel):
         box_head: (Optional) A `keras.Layer` that performs regression of
             the bounding boxes.  If not provided, a simple ConvNet with 1 layer will be
             used.
-        evaluate_train_time_metrics: (Optional) whether or not to evaluate metrics
-            passed in `compile()` inside of the `train_step()`.  This is NOT
-            recommended, as it dramatically reduces performance due to the synchronous
-            label decoding and COCO metric evaluation.  For example, on a single GPU on
-            the PascalVOC dataset epoch time goes from 3 minutes to 30 minutes with this
-            set to `True`. Defaults to `False`.
     """
 
     def __init__(
@@ -115,7 +109,6 @@ class RetinaNet(ObjectDetectionBaseModel):
         feature_pyramid=None,
         classification_head=None,
         box_head=None,
-        evaluate_train_time_metrics=False,
         name="RetinaNet",
         **kwargs,
     ):
@@ -143,7 +136,6 @@ class RetinaNet(ObjectDetectionBaseModel):
             name=name,
             **kwargs,
         )
-        self.evaluate_train_time_metrics = evaluate_train_time_metrics
         self.label_encoder = label_encoder
         self.anchor_generator = anchor_generator
         if bounding_box_format.lower() != "xywh":
@@ -185,6 +177,8 @@ class RetinaNet(ObjectDetectionBaseModel):
         self.regularization_loss_metric = tf.keras.metrics.Mean(
             name="regularization_loss"
         )
+
+        self._includes_custom_metrics = False
         # Construct should run in eager mode
         if any(
             self.prediction_decoder.box_variance.numpy()
@@ -313,6 +307,9 @@ class RetinaNet(ObjectDetectionBaseModel):
         box_loss = _parse_box_loss(box_loss)
         classification_loss = _parse_classification_loss(classification_loss)
         metrics = metrics or []
+
+        if len(metrics) > 0:
+            self._includes_custom_metrics = True
 
         if hasattr(classification_loss, "from_logits"):
             if not classification_loss.from_logits:
@@ -466,8 +463,8 @@ class RetinaNet(ObjectDetectionBaseModel):
         gradients = tape.gradient(loss, trainable_vars)
         self.optimizer.apply_gradients(zip(gradients, trainable_vars))
 
-        # Early exit for no train time metrics
-        if not self.evaluate_train_time_metrics:
+        # Early exit for no custom metrics
+        if not self._includes_custom_metrics:
             # To minimize GPU transfers, we update metrics AFTER we take grads and apply
             # them.
             return {m.name: m.result() for m in self.train_metrics}
@@ -481,6 +478,12 @@ class RetinaNet(ObjectDetectionBaseModel):
         y_for_metrics, y_training_target = y
         y_pred = self(x, training=False)
         _ = self._backward(y_training_target, y_pred)
+
+        # Early exit for no custom metrics
+        if not self._includes_custom_metrics:
+            # To minimize GPU transfers, we update metrics AFTER we take grads and apply
+            # them.
+            return {m.name: m.result() for m in self.train_metrics}
 
         predictions = self.decode_predictions(y_pred, x)
         self._update_metrics(y_for_metrics, predictions)
