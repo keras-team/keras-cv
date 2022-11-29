@@ -65,17 +65,11 @@ class DeepLabV3(tf.keras.models.Model):
         include_rescaling,
         backbone,
         backbone_weights=None,
-        weights=None,
         spatial_pyramid_pooling=None,
         segmentation_head=None,
         **kwargs,
     ):
         super().__init__(**kwargs)
-
-        if weights and backbone_weights:
-            raise ValueError(
-                "No more than 1 of `weights` and `backbone_weights` should be specified. Specifying `backbone_weights` overwrites weights for the entire model, including the backbone."
-            )
 
         self.classes = classes
         # ================== Backbone and weights. ==================
@@ -149,15 +143,6 @@ class DeepLabV3(tf.keras.models.Model):
                 ]
             )
         self.segmentation_head = segmentation_head
-
-        weights = parse_weights(weights, False, "deeplabv3")
-        if weights and not tf.io.gfile.exists(weights):
-            raise ValueError(
-                "The `weights` argument should be either `None`, the path to the "
-                "weights file to be loaded, or a reference to pre-trained weights. "
-                f"Weights file not found at location: {weights}"
-            )
-        self.load_weights(weights)
 
     def build(self, input_shape):
         height = input_shape[1]
