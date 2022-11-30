@@ -80,7 +80,7 @@ class MosaicTest(tf.test.TestCase):
 
         self.assertEqual(xs.shape, [2, 512, 512, 3])
         self.assertEqual(ys_labels.shape, [2, 10])
-        self.assertEqual(ys_bounding_boxes.shape, [2, 12, 5])
+        self.assertEqual(ys_bounding_boxes.shape, [2, None, 5])
 
     def test_in_tf_function(self):
         xs = tf.cast(
