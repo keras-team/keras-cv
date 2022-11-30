@@ -14,7 +14,7 @@
 
 import tensorflow as tf
 
-from keras_cv.bounding_box import CENTER_XYZ_WHD_H
+from keras_cv.bounding_box_3d import CENTER_XYZ_DXDYDZ_PHI
 from keras_cv.layers.preprocessing3d import base_augmentation_layer_3d
 from keras_cv.ops.point_cloud import coordinate_transform
 from keras_cv.ops.point_cloud import wrap_angle_radians
@@ -37,7 +37,7 @@ class GlobalRandomRotation(base_augmentation_layer_3d.BaseAugmentationLayer3D):
         The first 5 features are [x, y, z, class, range].
       bounding_boxes: 3D (multi frames) float32 Tensor with shape
         [num of frames, num of boxes, num of box features]. Boxes are expected
-        to follow the CENTER_XYZ_WHD_H format. Refer to
+        to follow the CENTER_XYZ_DXDYDZ_PHI format. Refer to
         https://github.com/keras-team/keras-cv/blob/master/keras_cv/bounding_box/formats.py
         for more details on supported bounding box formats.
 
@@ -98,20 +98,20 @@ class GlobalRandomRotation(base_augmentation_layer_3d.BaseAugmentationLayer3D):
         point_clouds = tf.concat([point_clouds_xyz, point_clouds[..., 3:]], axis=-1)
 
         bounding_boxes_xyz = coordinate_transform(
-            bounding_boxes[..., : CENTER_XYZ_WHD_H.Z + 1], pose
+            bounding_boxes[..., : CENTER_XYZ_DXDYDZ_PHI.Z + 1], pose
         )
         bounding_boxes_heading = wrap_angle_radians(
-            tf.expand_dims(bounding_boxes[..., CENTER_XYZ_WHD_H.HEADING], axis=-1)
+            tf.expand_dims(bounding_boxes[..., CENTER_XYZ_DXDYDZ_PHI.PHI], axis=-1)
             - pose[3]
         )
         bounding_boxes = tf.concat(
             [
                 bounding_boxes_xyz,
                 bounding_boxes[
-                    ..., CENTER_XYZ_WHD_H.WIDTH : CENTER_XYZ_WHD_H.DEPTH + 1
+                    ..., CENTER_XYZ_DXDYDZ_PHI.DX : CENTER_XYZ_DXDYDZ_PHI.DZ + 1
                 ],
                 bounding_boxes_heading,
-                bounding_boxes[..., CENTER_XYZ_WHD_H.CLASS :],
+                bounding_boxes[..., CENTER_XYZ_DXDYDZ_PHI.CLASS :],
             ],
             axis=-1,
         )
