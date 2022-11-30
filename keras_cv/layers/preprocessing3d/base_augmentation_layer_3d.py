@@ -18,6 +18,7 @@ POINT_CLOUDS = "point_clouds"
 BOUNDING_BOXES = "bounding_boxes"
 OBJECT_POINT_CLOUDS = "object_point_clouds"
 OBJECT_BOUNDING_BOXES = "object_bounding_boxes"
+BOX_LABEL_INDEX = 7
 
 
 @tf.keras.utils.register_keras_serializable(package="keras_cv")

@@ -77,7 +77,6 @@ class RandomCopyPaste(base_augmentation_layer_3d.BaseAugmentationLayer3D):
         self._label_index = label_index
         self._min_paste_bounding_boxes = min_paste_bounding_boxes
         self._max_paste_bounding_boxes = max_paste_bounding_boxes
-        self._iou_3d = iou_3d.IoU3D()
 
     def get_random_transformation(
         self,
@@ -122,7 +121,7 @@ class RandomCopyPaste(base_augmentation_layer_3d.BaseAugmentationLayer3D):
         all_bounding_boxes = tf.concat([bounding_boxes, object_bounding_boxes], axis=1)[
             0, :, :7
         ]
-        iou = self._iou_3d(all_bounding_boxes, all_bounding_boxes)
+        iou = iou_3d(all_bounding_boxes, all_bounding_boxes)
         iou = tf.linalg.band_part(iou, -1, 0)
         iou_sum = tf.reduce_sum(iou[num_existing_bounding_boxes:], axis=1)
         # A non overlapping bounding box has a 1.0 IoU with itself.
