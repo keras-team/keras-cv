@@ -23,7 +23,7 @@ OBJECT_POINT_CLOUDS = base_augmentation_layer_3d.OBJECT_POINT_CLOUDS
 OBJECT_BOUNDING_BOXES = base_augmentation_layer_3d.OBJECT_BOUNDING_BOXES
 
 
-class RandomPastingObjectsTest(tf.test.TestCase):
+class RandomCopyPasteTest(tf.test.TestCase):
     def test_augment_point_clouds_and_bounding_boxes(self):
         add_layer = RandomCopyPaste(
             label_index=1,
@@ -184,6 +184,10 @@ class RandomPastingObjectsTest(tf.test.TestCase):
             OBJECT_BOUNDING_BOXES: object_bounding_boxes,
         }
         outputs = add_layer(inputs)
+        # The first object bounding box [0, 0, 1, 4, 4, 4, 0, 1] overlaps with existing bounding
+        # box [0, 0, 0, 4, 4, 4, 0, 1], thus not used.
+        # The second object bounding box [100, 100, 2, 5, 5, 5, 0, 1] and object point clouds
+        # [100, 101, 2, 3, 4] are pasted.
         augmented_point_clouds = np.array(
             [
                 [
