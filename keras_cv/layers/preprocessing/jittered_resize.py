@@ -179,7 +179,7 @@ class JitteredResize(BaseImageAugmentationLayer):
         scaled_image = tf.image.pad_to_bounding_box(
             scaled_image, 0, 0, target_size[0], target_size[1]
         )
-        return scaled_image
+        return tf.cast(scaled_image, self.compute_dtype)
 
     def augment_bounding_boxes(self, bounding_boxes, transformation, **kwargs):
         if self.bounding_box_format is None:
@@ -218,6 +218,9 @@ class JitteredResize(BaseImageAugmentationLayer):
             source="yxyx",
             target=self.bounding_box_format,
         )
+
+    def augment_label(self, label, transformation, **kwargs):
+        return label
 
     def get_config(self):
         config = super().get_config()
