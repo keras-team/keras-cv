@@ -20,7 +20,7 @@ class CENTER_XYZ_DXDYDZ_PHI:
     """CENTER_XYZ_DXDYDZ_PHI contains axis indices for the CENTER_XYZ_DXDYDZ_PHI format.
 
     CENTER_XYZ_DXDYDZ_PHI is a 3D box format that supports vertical boxes with a
-    heading rotated around the Y axis.
+    heading rotated around the Z axis.
 
     The CENTER_XYZ_DXDYDZ_PHI format consists of the following required indices:
 
