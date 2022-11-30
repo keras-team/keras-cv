@@ -13,9 +13,11 @@
 # limitations under the License.
 
 import tensorflow as tf
+
 from keras_cv.utils.resource_loader import LazySO
 
 custom_ops = LazySO("custom_ops/_keras_cv_custom_ops.so")
+
 
 def within_box3d_index(points, boxes):
     points = tf.convert_to_tensor(points)
@@ -26,7 +28,9 @@ def within_box3d_index(points, boxes):
         num_samples = points.get_shape().as_list()[0]
         results = []
         for i in range(num_samples):
-            results.append(custom_ops.ops.within_box(points[i], boxes[i])[tf.newaxis, ...])
+            results.append(
+                custom_ops.ops.within_box(points[i], boxes[i])[tf.newaxis, ...]
+            )
         return tf.concat(results, axis=0)
     else:
         raise ValueError(
@@ -35,6 +39,7 @@ def within_box3d_index(points, boxes):
                 points.shape, boxes.shape
             )
         )
+
 
 # TODO(lengzhaoqi/tanzhenyu): compare the performance with v1
 def is_within_box3d_v2(points, boxes):
