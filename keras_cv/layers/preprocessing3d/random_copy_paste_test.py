@@ -15,7 +15,7 @@ import numpy as np
 import tensorflow as tf
 
 from keras_cv.layers.preprocessing3d import base_augmentation_layer_3d
-from keras_cv.layers.preprocessing3d.random_pasting_objects import RandomPastingObjects
+from keras_cv.layers.preprocessing3d.random_copy_paste import RandomCopyPaste
 
 POINT_CLOUDS = base_augmentation_layer_3d.POINT_CLOUDS
 BOUNDING_BOXES = base_augmentation_layer_3d.BOUNDING_BOXES
@@ -25,11 +25,14 @@ OBJECT_BOUNDING_BOXES = base_augmentation_layer_3d.OBJECT_BOUNDING_BOXES
 
 class RandomPastingObjectsTest(tf.test.TestCase):
     def test_augment_point_clouds_and_bounding_boxes(self):
-        add_layer = RandomPastingObjects(
+        add_layer = RandomCopyPaste(
             label_index=1,
             min_paste_bounding_boxes=1,
             max_paste_bounding_boxes=1,
         )
+        # point_clouds: 3D (multi frames) float32 Tensor with shape
+        # [num of frames, num of points, num of point features].
+        # The first 5 features are [x, y, z, class, range].
         point_clouds = np.array(
             [
                 [
@@ -42,6 +45,9 @@ class RandomPastingObjectsTest(tf.test.TestCase):
             ]
             * 2
         ).astype("float32")
+        # bounding_boxes: 3D (multi frames) float32 Tensor with shape
+        # [num of frames, num of boxes, num of box features].
+        # The first 8 features are [x, y, z, dx, dy, dz, phi, box class].
         bounding_boxes = np.array(
             [
                 [
@@ -78,6 +84,10 @@ class RandomPastingObjectsTest(tf.test.TestCase):
             OBJECT_BOUNDING_BOXES: object_bounding_boxes,
         }
         outputs = add_layer(inputs)
+        # The first object bounding box [0, 0, 1, 4, 4, 4, 0, 1] overlaps with existing bounding
+        # box [0, 0, 0, 4, 4, 4, 0, 1], thus not used.
+        # The second object bounding box [100, 100, 2, 5, 5, 5, 0, 1] and object point clouds
+        # [100, 101, 2, 3, 4] are pasted.
         augmented_point_clouds = np.array(
             [
                 [
@@ -109,7 +119,7 @@ class RandomPastingObjectsTest(tf.test.TestCase):
         self.assertAllClose(outputs[BOUNDING_BOXES], augmented_bounding_boxes)
 
     def test_augment_batch_point_clouds_and_bounding_boxes(self):
-        add_layer = RandomPastingObjects(
+        add_layer = RandomCopyPaste(
             label_index=1,
             min_paste_bounding_boxes=1,
             max_paste_bounding_boxes=1,
