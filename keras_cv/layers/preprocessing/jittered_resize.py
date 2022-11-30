@@ -24,7 +24,7 @@ class JitteredResize(BaseImageAugmentationLayer):
     """JitteredResize implements resize with scale distortion.
 
     JitteredResize takes a three step approach to size-distortion based image
-    augmentation.  This technique is highly tuned for object detection pipelines.
+    augmentation.  This technique is specifically tuned for object detection pipelines.
     The layer takes an input of images and bounding boxes, both of which may be ragged.
     It outputs a dense image tensor, ready to feed to a model for training.
     As such this layer will commonly be the final step in an augmentation
