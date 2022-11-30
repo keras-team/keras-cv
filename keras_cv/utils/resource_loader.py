@@ -29,7 +29,9 @@ def get_project_root():
 
 def get_path_to_datafile(path):
     """Get the path to the specified file in the data dependencies.
+
     The path is relative to keras_cv/
+
     Args:
       path: a string resource path relative to keras_cv/
     Returns:

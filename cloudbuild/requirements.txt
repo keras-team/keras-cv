@@ -8,3 +8,4 @@ regex
 isort
 black
 pytest
+pycocotools

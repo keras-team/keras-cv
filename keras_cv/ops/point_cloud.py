@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import numpy as np
 import tensorflow as tf
 
 from keras_cv.utils.resource_loader import LazySO
@@ -48,6 +49,12 @@ def is_within_box3d_v2(points, boxes):
 
 def get_rank(tensor):
     return tensor.shape.ndims or tf.rank(tensor)
+
+
+def wrap_angle_radians(angle_radians, min_val=-np.pi, max_val=np.pi):
+    """Wrap the value of `angles_radians` to the range [min_val, max_val]."""
+    max_min_diff = max_val - min_val
+    return min_val + tf.math.floormod(angle_radians + max_val, max_min_diff)
 
 
 def _get_3d_rotation_matrix(yaw, roll, pitch):
@@ -143,22 +150,35 @@ def _center_xyzWHD_to_corner_xyz(boxes):
     centers = boxes[..., :3]
     dimensions = boxes[..., 3:6]
     phi_world = boxes[..., 6]
-    leading_shapes = boxes.shape.as_list()[:-1]
+    leading_shapes = _get_shape(boxes)
     cos = tf.cos(phi_world)
     sin = tf.sin(phi_world)
     zero = tf.zeros_like(cos)
     one = tf.ones_like(cos)
     rotations = tf.reshape(
         tf.stack([cos, -sin, zero, sin, cos, zero, zero, zero, one], axis=-1),
-        leading_shapes + [3, 3],
+        leading_shapes[:-1] + [3, 3],
     )
     # apply the delta to convert from centers to relative corners format
     rel_corners = tf.einsum("...ni,ji->...nji", dimensions, rel_corners)
     # apply rotation matrix on relative corners
     rel_corners = tf.einsum("...nij,...nkj->...nki", rotations, rel_corners)
     # translate back to absolute corners format
-    corners = rel_corners + tf.reshape(centers, leading_shapes + [1, 3])
+    corners = rel_corners + tf.reshape(centers, leading_shapes[:-1] + [1, 3])
     return corners
+
+
+def _get_shape(tensor):
+    tensor = tf.convert_to_tensor(tensor)
+    dynamic_shape = tf.shape(tensor)
+    if tensor.shape.ndims is None:
+        return dynamic_shape
+    static_shape = tensor.shape.as_list()
+    shapes = [
+        static_shape[x] if static_shape[x] is not None else dynamic_shape[x]
+        for x in range(tensor.shape.ndims)
+    ]
+    return shapes
 
 
 def _is_on_lefthand_side(points, v1, v2):
