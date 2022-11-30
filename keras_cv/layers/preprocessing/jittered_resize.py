@@ -26,8 +26,9 @@ class JitteredResize(BaseImageAugmentationLayer):
     JitteredResize takes a three step approach to size-distortion based image
     augmentation.  This technique is highly tuned for object detection pipelines.
     The layer takes an input of images and bounding boxes, both of which may be ragged.
-    It outputs a dense image tensor, ready to fed to a model for training.  As such this
-    layer will commonly be the final step in an augmentation pipeline.
+    It outputs a dense image tensor, ready to feed to a model for training.
+    As such this layer will commonly be the final step in an augmentation
+    pipeline.
 
     The augmentation process is as follows:
 
@@ -41,23 +42,23 @@ class JitteredResize(BaseImageAugmentationLayer):
     Usage:
     ```python
     train_ds = load_object_detection_dataset()
-    maskrcnn_resize = layers.JitteredResize(
+    jittered_resize = layers.JitteredResize(
         target_size=(640, 640),
         scale_factor=(0.8, 1.25),
         bounding_box_format="xywh",
     )
-    train_ds = train_ds.map(maskrcnn_resize, num_parallel_calls=tf.data.AUTOTUNE)
+    train_ds = train_ds.map(jittered_resize, num_parallel_calls=tf.data.AUTOTUNE)
     # images now are (640, 640, 3)
 
     # an example using crop size
     train_ds = load_object_detection_dataset()
-    maskrcnn_resize = layers.JitteredResize(
+    jittered_resize = layers.JitteredResize(
         target_size=(640, 640),
         crop_size=(250, 250),
         scale_factor=(0.8, 1.25),
         bounding_box_format="xywh",
     )
-    train_ds = train_ds.map(maskrcnn_resize, num_parallel_calls=tf.data.AUTOTUNE)
+    train_ds = train_ds.map(jittered_resize, num_parallel_calls=tf.data.AUTOTUNE)
     # images now are (640, 640, 3), but they were resized from a 250x250 crop.
     ```
 
@@ -69,8 +70,8 @@ class JitteredResize(BaseImageAugmentationLayer):
             To replicate the results of the MaskRCNN paper pass `(0.8, 1.25)`.
         crop_size: (Optional) the size of the image to crop from the scaled image.
             Defaults to `target_size` when not provided.
-        bounding_box_format: The format of bounding boxes of input dataset. Refer to
-            https://github.com/keras-team/keras-cv/blob/master/keras_cv/bounding_box/converters.py
+        bounding_box_format: The format of bounding boxes of input boxes. Refer
+            to https://github.com/keras-team/keras-cv/blob/master/keras_cv/bounding_box/converters.py
             for more details on supported bounding box formats.
         interpolation: String, the interpolation method. Defaults to `"bilinear"`.
             Supports `"bilinear"`, `"nearest"`, `"bicubic"`, `"area"`, `"lanczos3"`,
