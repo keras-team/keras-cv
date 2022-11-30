@@ -57,7 +57,7 @@ class PyCOCOCallbackTest(tf.test.TestCase):
             [f"val_{metric}" for metric in METRIC_NAMES], history.history.keys()
         )
 
-    def test_apply_nms_false(self):
+    def test_input_nms_false(self):
         model = keras_cv.models.FasterRCNN(
             classes=10,
             bounding_box_format="xywh",
@@ -78,7 +78,7 @@ class PyCOCOCallbackTest(tf.test.TestCase):
         callback = PyCOCOCallback(
             validation_data=eval_ds,
             bounding_box_format="yxyx",
-            apply_nms=False,
+            input_nms=False,
         )
         history = model.fit(train_ds, callbacks=[callback])
         self.assertAllInSet(

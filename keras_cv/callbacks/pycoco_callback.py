@@ -20,7 +20,7 @@ from keras_cv.metrics.coco import compute_pycoco_metrics
 
 class PyCOCOCallback(Callback):
     def __init__(
-        self, validation_data, bounding_box_format, apply_nms=True, cache=True, **kwargs
+        self, validation_data, bounding_box_format, input_nms=True, cache=True, **kwargs
     ):
         """Creates a callback to evaluate PyCOCO metrics on a validation dataset.
 
@@ -30,7 +30,7 @@ class PyCOCOCallback(Callback):
                 "gt_classes": classes})```.
             bounding_box_format: the KerasCV bounding box format used in the
                 validation dataset (e.g. "xywh")
-            apply_nms: whether the model has already applied non-max-suppression. If False,
+            input_nms: whether the model has already applied non-max-suppression. If False,
                 the callback will use `model.nms_decoder` to decode the model prediction,
                 otherwise the callback will use model prediction as-is. Default to True.
             cache: whether the callback should cache the dataset between iterations.
@@ -47,7 +47,7 @@ class PyCOCOCallback(Callback):
             # We cache the dataset to preserve a consistent iteration order.
             self.val_data = self.val_data.cache()
         self.bounding_box_format = bounding_box_format
-        self.apply_nms = apply_nms
+        self.input_nms = input_nms
         super().__init__(**kwargs)
 
     def on_epoch_end(self, epoch, logs=None):
@@ -61,7 +61,7 @@ class PyCOCOCallback(Callback):
 
         images_only_ds = self.val_data.map(images_only)
         y_pred = self.model.predict(images_only_ds)
-        if not self.apply_nms:
+        if not self.input_nms:
             box_pred, cls_pred = y_pred
             box_pred = tf.expand_dims(box_pred, axis=-2)
             with tf.device("cpu:0"):
@@ -73,7 +73,7 @@ class PyCOCOCallback(Callback):
                 ) = self.model.nms_decoder(box_pred, cls_pred)
 
         gt = [boxes for boxes in self.val_data.map(boxes_only)]
-        if self.apply_nms:
+        if self.input_nms:
             gt_boxes = tf.concat(
                 [tf.RaggedTensor.from_tensor(boxes["gt_boxes"]) for boxes in gt], axis=0
             )
@@ -104,7 +104,7 @@ class PyCOCOCallback(Callback):
         ground_truth["height"] = [tf.tile(tf.constant([height]), [total_images])]
         ground_truth["width"] = [tf.tile(tf.constant([width]), [total_images])]
 
-        if self.apply_nms:
+        if self.input_nms:
             ground_truth["num_detections"] = [gt_boxes.row_lengths(axis=1)]
             ground_truth["boxes"] = [gt_boxes.to_tensor(-1)]
             ground_truth["classes"] = [gt_classes.to_tensor(-1)]
@@ -121,14 +121,14 @@ class PyCOCOCallback(Callback):
             )
 
         predictions = {}
-        if self.apply_nms:
+        if self.input_nms:
             predictions["num_detections"] = [y_pred.row_lengths()]
             y_pred = y_pred.to_tensor(-1)
         else:
             predictions["num_detections"] = [valid_det]
 
         predictions["source_id"] = [source_ids]
-        if self.apply_nms:
+        if self.input_nms:
             predictions["detection_boxes"] = [y_pred[:, :, :4]]
             predictions["detection_classes"] = [y_pred[:, :, 4]]
             predictions["detection_scores"] = [y_pred[:, :, 5]]

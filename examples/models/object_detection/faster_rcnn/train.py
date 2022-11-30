@@ -282,7 +282,7 @@ callbacks = [
     tf.keras.callbacks.TensorBoard(
         log_dir=FLAGS.tensorboard_path, write_steps_per_second=True
     ),
-    PyCOCOCallback(eval_ds, bounding_box_format="yxyx", apply_nms=False),
+    PyCOCOCallback(eval_ds, bounding_box_format="yxyx", input_nms=False),
 ]
 model.compile(
     optimizer=optimizer,
