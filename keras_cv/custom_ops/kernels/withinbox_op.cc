@@ -45,8 +45,12 @@ class WithinBoxOp : public OpKernel {
     std::vector<box::Upright3DBox> boxes_vec = box::ParseBoxesFromTensor(boxes);
     std::vector<box::Vertex> points_vec = box::ParseVerticesFromTensor(points);
     std::vector<int> p_indices_x(num_points);
+    // index x range [0, num_points)
     std::iota(p_indices_x.begin(), p_indices_x.end(), 0);
+    // index y range [0, num_points)
     std::vector<int> p_indices_y(p_indices_x);
+
+    // sort, return sorted value and indices
     std::sort(p_indices_x.begin(), p_indices_x.end(),
       [&points_vec](const int& a, const int& b) -> bool {
         return points_vec[a].x < points_vec[b].x; 
@@ -63,6 +67,9 @@ class WithinBoxOp : public OpKernel {
       sorted_points_x.emplace_back(points_vec[p_indices_x[i]].x);
       sorted_points_y.emplace_back(points_vec[p_indices_y[i]].y);
     }
+
+    // for each box, find all point indices whose x values are within box boundaries
+    // when the box is rotated, the box boundary is the minimum and maximum x for all vertices
     std::vector<int> points_x_min = box::GetMinXIndexFromBoxes(boxes_vec, sorted_points_x);
     std::vector<int> points_x_max = box::GetMaxXIndexFromBoxes(boxes_vec, sorted_points_x);
     std::vector<std::unordered_set<int>> points_x_indices(num_boxes);
@@ -81,16 +88,8 @@ class WithinBoxOp : public OpKernel {
     const Eigen::TensorOpCost cost(num_points, num_boxes, 3);
     device.parallelFor(num_boxes, cost, set_fn_x);
 
-    // for (auto i = 0; i < num_boxes; ++i) {
-    //   std::unordered_set<int> p_set;
-    //   int p_start = points_x_min[i];
-    //   int p_end = points_x_max[i];
-    //   for (auto p_idx = p_start; p_idx <= p_end; ++p_idx) {
-    //     p_set.insert(p_indices_x[p_idx]);
-    //   }
-    //   points_x_indices.emplace_back(p_set);
-    // }
-
+    // for each box, find all point indices whose y values are within box boundaries
+    // when the box is rotated, the box boundary is the minimum and maximum x for all vertices
     std::vector<int> points_y_min = box::GetMinYIndexFromBoxes(boxes_vec, sorted_points_y);
     std::vector<int> points_y_max = box::GetMaxYIndexFromBoxes(boxes_vec, sorted_points_y);
     std::vector<std::unordered_set<int>> points_y_indices(num_boxes);
@@ -107,16 +106,8 @@ class WithinBoxOp : public OpKernel {
     };
     device.parallelFor(num_boxes, cost, set_fn_y);
 
-    // for (auto i = 0; i < num_boxes; ++i) {
-    //   std::unordered_set<int> p_set;
-    //   int p_start = points_y_min[i];
-    //   int p_end = points_y_max[i];
-    //   for (auto p_idx = p_start; p_idx <= p_end; ++p_idx) {
-    //     p_set.insert(p_indices_y[p_idx]);
-    //   }
-    //   points_y_indices.emplace_back(p_set);
-    // }
-
+    // for the intersection of x indices set and y indices set, check if
+    // those points are within the box
     auto within_fn = [&points_x_indices, &points_y_indices, &boxes_vec, &points_vec, &boxes_indices_t](int64_t begin, int64_t end) {
       for (int64_t idx = begin; idx < end; ++idx) {
         std::unordered_set<int>& set_a = points_x_indices[idx];
@@ -138,23 +129,6 @@ class WithinBoxOp : public OpKernel {
     };
     device.parallelFor(num_boxes, cost, within_fn);
 
-    // for (auto i = 0; i < num_boxes; ++i) {
-    //   std::unordered_set<int>& set_a = points_x_indices[i];
-    //   std::unordered_set<int>& set_b = points_y_indices[i];
-    //   std::unordered_set<int> p_set;
-    //   for (auto val : set_a) {
-    //     if (set_b.find(val) != set_b.end()) {
-    //       p_set.insert(val);
-    //     }
-    //   }
-    //   box::Upright3DBox& box = boxes_vec[i];
-    //   for (auto idx : p_set) {
-    //     box::Vertex& point = points_vec[idx];
-    //     if (box.WithinBox3D(point)) {
-    //       boxes_indices_t(idx) = i;
-    //     }
-    //   }
-    // }
   }
 };
 

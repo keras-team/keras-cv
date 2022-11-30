@@ -330,45 +330,17 @@ std::vector<Vertex> ParseVerticesFromTensor(const Tensor& points_tensor) {
   return points3d;
 }
 
-// find the first element in points >= val
-// returned index within [0, points_size]
-// return points_size means all elements are < val
-int binary_search_first(double val, std::vector<double>& points) {
-  size_t points_size = points.size();
-  int lower = 0, upper = points_size;
-  while (lower < upper) {
-    int mid = (lower + upper) / 2;
-    if (mid == points_size) return mid;
-    double mid_val = points[mid];
-    if (mid_val >= val) upper = mid;
-    else lower = mid + 1;
-  }
-  return lower;
-}
-
-// find the last element in points <= val
-// returned index within [-1, points_size - 1]
-// return -1 means all elements > val
-int binary_search_last(double val, std::vector<double>& points) {
-  size_t points_size = points.size();
-  int lower = -1, upper = points_size - 1;
-  while (lower < upper) {
-    int mid = (lower + upper) / 2;
-    if (mid < 0) return mid;
-    double mid_val = points[mid];
-    if (mid_val > val) upper = mid - 1;
-    else if (points[mid + 1] > val) return mid;
-    else lower = mid + 1;
-  }
-  return lower;
-}
-
 std::vector<int> GetMinXIndexFromBoxes(std::vector<Upright3DBox>& boxes, std::vector<double>& points) {
   std::vector<int> res;
   res.reserve(boxes.size());
+  auto p_begin = points.begin();
+  auto p_end = points.end();
   for (auto box : boxes) {
+    // find the first element in points >= val
+    // returned index within [0, points_size]
+    // return points_size means all elements are < val
     double x_min = box.rbox.MinX();
-    int idx = binary_search_first(x_min, points);
+    int idx = std::lower_bound(p_begin, p_end, x_min) - p_begin;
     res.emplace_back(idx);
   }
   return res;
@@ -377,9 +349,14 @@ std::vector<int> GetMinXIndexFromBoxes(std::vector<Upright3DBox>& boxes, std::ve
 std::vector<int> GetMaxXIndexFromBoxes(std::vector<Upright3DBox>& boxes, std::vector<double>& points) {
   std::vector<int> res;
   res.reserve(boxes.size());
+  auto p_begin = points.begin();
+  auto p_end = points.end();
   for (auto box : boxes) {
     double x_max = box.rbox.MaxX();
-    int idx = binary_search_last(x_max, points);
+    // find the last element in points <= val
+    // returned index within [-1, points_size - 1]
+    // return -1 means all elements > val
+    int idx = std::upper_bound(p_begin, p_end, x_max) - p_begin - 1;
     res.emplace_back(idx);
   }
   return res;
@@ -388,9 +365,14 @@ std::vector<int> GetMaxXIndexFromBoxes(std::vector<Upright3DBox>& boxes, std::ve
 std::vector<int> GetMinYIndexFromBoxes(std::vector<Upright3DBox>& boxes, std::vector<double>& points) {
   std::vector<int> res;
   res.reserve(boxes.size());
+  auto p_begin = points.begin();
+  auto p_end = points.end();
   for (auto box : boxes) {
+    // find the first element in points >= val
+    // returned index within [0, points_size]
+    // return points_size means all elements are < val
     double y_min = box.rbox.MinY();
-    int idx = binary_search_first(y_min, points);
+    int idx = std::lower_bound(p_begin, p_end, y_min) - p_begin;
     res.emplace_back(idx);
   }
   return res;
@@ -399,9 +381,14 @@ std::vector<int> GetMinYIndexFromBoxes(std::vector<Upright3DBox>& boxes, std::ve
 std::vector<int> GetMaxYIndexFromBoxes(std::vector<Upright3DBox>& boxes, std::vector<double>& points) {
   std::vector<int> res;
   res.reserve(boxes.size());
+  auto p_begin = points.begin();
+  auto p_end = points.end();
   for (auto box : boxes) {
     double y_max = box.rbox.MaxY();
-    int idx = binary_search_last(y_max, points);
+    // find the last element in points <= val
+    // returned index within [-1, points_size - 1]
+    // return -1 means all elements > val
+    int idx = std::upper_bound(p_begin, p_end, y_max) - p_begin - 1;
     res.emplace_back(idx);
   }
   return res;

@@ -1,20 +1,15 @@
 import os
 from datetime import datetime
 
+import numpy as np
+import pytest
 import tensorflow as tf
 
 import keras_cv
 
-# os.environ['CUDA_VISIBLE_DEVICES'] = "-1"
-
 num_points = 200000
 num_boxes = 1000
 box_dimension = 20.0
-
-
-@tf.function
-def is_within_box2d(points, boxes):
-    return keras_cv.ops.is_within_box3d_v2(points, boxes)
 
 
 def get_points_boxes():
@@ -46,17 +41,133 @@ def get_points_boxes():
     return points, boxes
 
 
-with tf.device("cpu:0"):
+class WithinBox3DTest(tf.test.TestCase):
+    @pytest.mark.skipif(
+        "TEST_CUSTOM_OPS" not in os.environ or os.environ["TEST_CUSTOM_OPS"] != "true",
+        reason="Requires binaries compiled from source",
+    )
+    def test_unbatched_unrotated(self):
+        boxes = np.array(
+            [
+                [0, 0, 0, 4, 4, 4, 0],
+                [5, 5, 5, 1, 1, 1, 0],
+            ]
+        ).astype("float32")
+        points = np.array(
+            [
+                [0, 0, 0],
+                [0, 0, 2],
+                # this point has z value larger than box top z
+                [0, 0, 2.1],
+                [2, 0, 0],
+                [2.01, 0, 0],
+                # this point belongs to 2nd box
+                [5.5, 5.5, 5.5],
+                # this point doesn't belong to 2nd box
+                [5.6, 5.5, 5.5],
+            ]
+        ).astype("float32")
+        res = keras_cv.ops.within_box3d_index(points, boxes)
+        self.assertAllEqual([0, 0, -1, 0, -1, 1, -1], res)
 
-    points, boxes = get_points_boxes()
+    @pytest.mark.skipif(
+        "TEST_CUSTOM_OPS" not in os.environ or os.environ["TEST_CUSTOM_OPS"] != "true",
+        reason="Requires binaries compiled from source",
+    )
+    def test_unbatched_rotated(self):
+        # a box rotated with 45 degree, the intersection with x and y axis
+        # is [2*sqrt(2), 0] and [0, 2*sqrt(2)]
+        boxes = np.array(
+            [
+                [0, 0, 0, 4, 4, 4, np.pi / 4],
+            ]
+        ).astype("float32")
+        points = np.array(
+            [
+                [0, 0, 0],
+                [0, 0, 2],
+                # this point has z value larger than box top z
+                [0, 0, 2.1],
+                [2.82, 0, 0],
+                # this point has x value larger than rotated box
+                [2.83, 0, 0],
+            ]
+        ).astype("float32")
+        res = keras_cv.ops.within_box3d_index(points, boxes)
+        self.assertAllClose([0, 0, -1, 0, -1], res)
 
-    for i in range(2):
-        print(datetime.now())
-        res = is_within_box2d(points, boxes)
-        print(tf.unique(res)[0])
-        # if i == 0:
-        #     tf.profiler.experimental.start('./logs/withinbox_v1')
-#        res = tf.cast(res, tf.float32)
-#        print(tf.reduce_max(res))
-#        print(tf.reduce_min(res))
-# tf.profiler.experimental.stop()
+    @pytest.mark.skipif(
+        "TEST_CUSTOM_OPS" not in os.environ or os.environ["TEST_CUSTOM_OPS"] != "true",
+        reason="Requires binaries compiled from source",
+    )
+    def test_batched_unrotated(self):
+        boxes = np.array(
+            [
+                [[0, 0, 0, 4, 4, 4, 0]],
+                [[5, 5, 5, 1, 1, 1, 0]],
+            ]
+        ).astype("float32")
+        points = np.array(
+            [
+                [
+                    [0, 0, 0],
+                    [0, 0, 2],
+                    # this point has z value larger than box top z
+                    [0, 0, 2.1],
+                    [2, 0, 0],
+                    [2.01, 0, 0],
+                    # this point belongs to 2nd box
+                    [5.5, 5.5, 5.5],
+                    # this point doesn't belong to 2nd box
+                    [5.6, 5.5, 5.5],
+                ]
+            ]
+            * 2
+        ).astype("float32")
+        print(points.shape)
+        res = keras_cv.ops.within_box3d_index(points, boxes)
+        self.assertAllEqual(
+            [[0, 0, -1, 0, -1, -1, -1], [-1, -1, -1, -1, -1, 0, -1]], res
+        )
+
+    @pytest.mark.skipif(
+        "TEST_CUSTOM_OPS" not in os.environ or os.environ["TEST_CUSTOM_OPS"] != "true",
+        reason="Requires binaries compiled from source",
+    )
+    def test_batched_rotated(self):
+        # a box rotated with 45 degree, the intersection with x and y axis
+        # is [2*sqrt(2), 0] and [0, 2*sqrt(2)]
+        boxes = np.array(
+            [
+                [[0, 0, 0, 4, 4, 4, np.pi / 4]],
+                [[5, 5, 5, 1, 1, 1, 0]],
+            ]
+        ).astype("float32")
+        points = np.array(
+            [
+                [
+                    [0, 0, 0],
+                    [0, 0, 2],
+                    # this point has z value larger than box top z
+                    [0, 0, 2.1],
+                    [2.82, 0, 0],
+                    # this point has x value larger than rotated box
+                    [2.83, 0, 0],
+                ]
+            ]
+            * 2
+        ).astype("float32")
+        res = keras_cv.ops.within_box3d_index(points, boxes)
+        self.assertAllEqual([[0, 0, -1, 0, -1], [-1, -1, -1, -1, -1]], res)
+
+    @pytest.mark.skipif(
+        "TEST_CUSTOM_OPS" not in os.environ or os.environ["TEST_CUSTOM_OPS"] != "true",
+        reason="Requires binaries compiled from source",
+    )
+    def test_many_points(self):
+        points, boxes = get_points_boxes()
+
+        for _ in range(5):
+            print(datetime.now())
+            res = keras_cv.ops.within_box3d_index(points, boxes)
+            self.assertAllClose(res.shape, points.shape[:1])
