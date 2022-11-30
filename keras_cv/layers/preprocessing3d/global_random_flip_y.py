@@ -14,6 +14,7 @@
 
 import tensorflow as tf
 
+from keras_cv.bounding_box import CENTER_XYZ_WHD_H
 from keras_cv.layers.preprocessing3d import base_augmentation_layer_3d
 from keras_cv.ops.point_cloud import wrap_angle_radians
 
@@ -32,8 +33,10 @@ class GlobalRandomFlipY(base_augmentation_layer_3d.BaseAugmentationLayer3D):
         [num of frames, num of points, num of point features].
         The first 5 features are [x, y, z, class, range].
       bounding_boxes: 3D (multi frames) float32 Tensor with shape
-        [num of frames, num of boxes, num of box features].
-        The first 7 features are [x, y, z, dx, dy, dz, phi].
+        [num of frames, num of boxes, num of box features]. Boxes are expected
+        to follow the CENTER_XYZ_WHD_H format. Refer to
+        https://github.com/keras-team/keras-cv/blob/master/keras_cv/bounding_box/formats.py
+        for more details on supported bounding box formats.
 
     Output shape:
       A dictionary of Tensors with the same shape as input Tensors.
@@ -50,14 +53,18 @@ class GlobalRandomFlipY(base_augmentation_layer_3d.BaseAugmentationLayer3D):
 
         point_clouds = tf.concat([point_clouds_x, point_clouds[..., 1:]], axis=-1)
 
-        bounding_boxes_x = -bounding_boxes[..., 0:1]
-        bounding_boxes_heading = wrap_angle_radians(-bounding_boxes[..., 6:7])
+        bounding_boxes_x = -tf.expand_dims(
+            bounding_boxes[..., CENTER_XYZ_WHD_H.X], axis=-1
+        )
+        bounding_boxes_heading = wrap_angle_radians(
+            -tf.expand_dims(bounding_boxes[..., CENTER_XYZ_WHD_H.HEADING])
+        )
         bounding_boxes = tf.concat(
             [
                 bounding_boxes_x,
-                bounding_boxes[..., 1:6],
+                bounding_boxes[..., CENTER_XYZ_WHD_H.Y : CENTER_XYZ_WHD_H.DEPTH + 1],
                 bounding_boxes_heading,
-                bounding_boxes[..., 7:],
+                bounding_boxes[..., CENTER_XYZ_WHD_H.CLASS :],
             ],
             axis=-1,
         )

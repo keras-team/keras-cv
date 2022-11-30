@@ -14,6 +14,7 @@
 
 import tensorflow as tf
 
+from keras_cv.bounding_box import CENTER_XYZ_WHD_H
 from keras_cv.layers.preprocessing3d import base_augmentation_layer_3d
 from keras_cv.ops.point_cloud import is_within_box3d
 
@@ -34,8 +35,10 @@ class GroupPointsByBoundingBoxes(base_augmentation_layer_3d.BaseAugmentationLaye
         [num of frames, num of points, num of point features].
         The first 5 features are [x, y, z, class, range].
       bounding_boxes: 3D (multi frames) float32 Tensor with shape
-        [num of frames, num of boxes, num of box features].
-        The first 8 features are [x, y, z, dx, dy, dz, phi, box class].
+        [num of frames, num of boxes, num of box features]. Boxes are expected
+        to follow the CENTER_XYZ_WHD_H format. Refer to
+        https://github.com/keras-team/keras-cv/blob/master/keras_cv/bounding_box/formats.py
+        for more details on supported bounding box formats.
 
     Output shape:
       A dictionary of Tensors with the same shape as input Tensors and two additional items for
@@ -82,19 +85,22 @@ class GroupPointsByBoundingBoxes(base_augmentation_layer_3d.BaseAugmentationLaye
     ):
         if self._label_index:
             bounding_boxes_mask = tf.math.equal(
-                bounding_boxes[0, :, 7], self._label_index
+                bounding_boxes[0, :, CENTER_XYZ_WHD_H.CLASS], self._label_index
             )
             object_bounding_boxes = tf.boolean_mask(
                 bounding_boxes, bounding_boxes_mask, axis=1
             )
         else:
-            bounding_boxes_mask = ~tf.math.equal(bounding_boxes[0, :, 7], 0.0)
+            bounding_boxes_mask = ~tf.math.equal(
+                bounding_boxes[0, :, CENTER_XYZ_WHD_H.CLASS], 0.0
+            )
             object_bounding_boxes = tf.boolean_mask(
                 bounding_boxes, bounding_boxes_mask, axis=1
             )
 
         points_in_bounding_boxes = is_within_box3d(
-            point_clouds[:, :, :3], object_bounding_boxes[:, :, :7]
+            point_clouds[:, :, :3],
+            object_bounding_boxes[:, :, : CENTER_XYZ_WHD_H.CLASS],
         )
         # Filter bounding boxes using the current frame.
         min_points_filter = (

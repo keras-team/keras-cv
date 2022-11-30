@@ -200,3 +200,36 @@ class REL_YXYX:
     RIGHT = 3
     CLASS = 4
     CONFIDENCE = 5
+
+
+class CENTER_XYZ_WHD_H:
+    """CENTER_XYZ_WHD_H contains axis indices for the CENTER_XYZ_WHD_H format.
+
+    CENTER_XYZ_WHD_H is a 3D box format that supports vertical boxes with a
+    heading rotated around the Y axis.
+
+    The CENTER_XYZ_WHD_H format consists of the following required indices:
+
+    - X: X coordinate of the center of the bounding box
+    - Y: Y coordinate of the center of the bounding box
+    - Z: Z coordinate of the center of the bounding box
+    - WIDTH: width of the bounding box (x-axis)
+    - HEIGHT: height of the bounding box (y-axis)
+    - DEPTH: height of the bounding box (z-axis)
+    - HEADING: the rotation of the box with respect to the y axis, in radians
+
+    and the following optional indices, used in some KerasCV components:
+
+    - CLASS: class of the object contained in the bounding box
+    - CONFIDENCE: confidence that the box is valid, used in predictions
+    """
+
+    X = 0
+    Y = 1
+    Z = 2
+    WIDTH = 3
+    HEIGHT = 4
+    DEPTH = 5
+    HEADING = 6
+    CLASS = 7
+    CONFIDENCE = 8
