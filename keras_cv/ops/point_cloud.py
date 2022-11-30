@@ -13,23 +13,20 @@
 # limitations under the License.
 
 import tensorflow as tf
-from tensorflow.python.framework import load_library
-from tensorflow.python.platform import resource_loader
+from keras_cv.utils.resource_loader import LazySO
 
-custom_ops = load_library.load_op_library(
-    resource_loader.get_path_to_datafile("../custom_ops/_keras_cv_custom_ops.so")
-)
+custom_ops = LazySO("custom_ops/_keras_cv_custom_ops.so")
 
 def within_box3d_index(points, boxes):
     points = tf.convert_to_tensor(points)
     boxes = tf.convert_to_tensor(boxes)
     if points.shape.rank == 2 and boxes.shape.rank == 2:
-        return custom_ops.within_box(points, boxes)
+        return custom_ops.ops.within_box(points, boxes)
     elif points.shape.rank == 3 and boxes.shape.rank == 3:
         num_samples = points.get_shape().as_list()[0]
         results = []
         for i in range(num_samples):
-            results.append(custom_ops.within_box(points[i], boxes[i])[tf.newaxis, ...])
+            results.append(custom_ops.ops.within_box(points[i], boxes[i])[tf.newaxis, ...])
         return tf.concat(results, axis=0)
     else:
         raise ValueError(
