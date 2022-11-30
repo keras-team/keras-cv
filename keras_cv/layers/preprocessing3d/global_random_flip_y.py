@@ -57,7 +57,7 @@ class GlobalRandomFlipY(base_augmentation_layer_3d.BaseAugmentationLayer3D):
             bounding_boxes[..., CENTER_XYZ_WHD_H.X], axis=-1
         )
         bounding_boxes_heading = wrap_angle_radians(
-            -tf.expand_dims(bounding_boxes[..., CENTER_XYZ_WHD_H.HEADING])
+            -tf.expand_dims(bounding_boxes[..., CENTER_XYZ_WHD_H.HEADING], axis=-1)
         )
         bounding_boxes = tf.concat(
             [

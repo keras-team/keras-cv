@@ -98,7 +98,7 @@ class GlobalRandomRotation(base_augmentation_layer_3d.BaseAugmentationLayer3D):
         point_clouds = tf.concat([point_clouds_xyz, point_clouds[..., 3:]], axis=-1)
 
         bounding_boxes_xyz = coordinate_transform(
-            bounding_boxes[..., : CENTER_XYZ_WHD_H.Y + 1], pose
+            bounding_boxes[..., : CENTER_XYZ_WHD_H.Z + 1], pose
         )
         bounding_boxes_heading = wrap_angle_radians(
             tf.expand_dims(bounding_boxes[..., CENTER_XYZ_WHD_H.HEADING], axis=-1)
