@@ -56,3 +56,31 @@ class PyCOCOCallbackTest(tf.test.TestCase):
         self.assertAllInSet(
             [f"val_{metric}" for metric in METRIC_NAMES], history.history.keys()
         )
+
+    def test_input_nms_false(self):
+        model = keras_cv.models.FasterRCNN(
+            classes=10,
+            bounding_box_format="xywh",
+        )
+        model.compile(
+            optimizer="adam",
+            box_loss="Huber",
+            classification_loss="SparseCategoricalCrossentropy",
+            rpn_box_loss="Huber",
+            rpn_classification_loss="BinaryCrossentropy",
+        )
+        train_ds = _create_bounding_box_dataset(
+            bounding_box_format="yxyx", use_dictionary_box_format=True
+        )
+        eval_ds = _create_bounding_box_dataset(
+            bounding_box_format="yxyx", use_dictionary_box_format=True
+        )
+        callback = PyCOCOCallback(
+            validation_data=eval_ds,
+            bounding_box_format="yxyx",
+            input_nms=False,
+        )
+        history = model.fit(train_ds, callbacks=[callback])
+        self.assertAllInSet(
+            [f"val_{metric}" for metric in METRIC_NAMES], history.history.keys()
+        )

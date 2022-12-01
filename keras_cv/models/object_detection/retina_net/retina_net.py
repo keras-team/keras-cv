@@ -277,7 +277,12 @@ class RetinaNet(ObjectDetectionBaseModel):
         )
 
     def compile(
-        self, box_loss=None, classification_loss=None, loss=None, metrics=None, **kwargs
+        self,
+        box_loss=None,
+        classification_loss=None,
+        loss=None,
+        metrics=None,
+        **kwargs,
     ):
         """compiles the RetinaNet.
 
@@ -307,7 +312,6 @@ class RetinaNet(ObjectDetectionBaseModel):
         box_loss = _parse_box_loss(box_loss)
         classification_loss = _parse_classification_loss(classification_loss)
         metrics = metrics or []
-
         if len(metrics) > 0:
             self._includes_custom_metrics = True
 
@@ -463,15 +467,7 @@ class RetinaNet(ObjectDetectionBaseModel):
         gradients = tape.gradient(loss, trainable_vars)
         self.optimizer.apply_gradients(zip(gradients, trainable_vars))
 
-        # Early exit for no custom metrics
-        if not self._includes_custom_metrics:
-            # To minimize GPU transfers, we update metrics AFTER we take grads and apply
-            # them.
-            return {m.name: m.result() for m in self.train_metrics}
-
-        predictions = self.decode_predictions(y_pred, x)
-        self._update_metrics(y_for_metrics, predictions)
-        return {m.name: m.result() for m in self.metrics}
+        return {m.name: m.result() for m in self.train_metrics}
 
     def test_step(self, data):
         x, y = data

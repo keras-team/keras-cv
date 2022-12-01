@@ -22,18 +22,23 @@ from .models_test import ModelsTest
 
 MODEL_LIST = [
     (regnet.RegNetX002, 368, {}),
-    (regnet.RegNetX004, 384, {}),
-    (regnet.RegNetX006, 528, {}),
-    (regnet.RegNetX008, 672, {}),
-    (regnet.RegNetX016, 912, {}),
-    (regnet.RegNetX032, 1008, {}),
-    (regnet.RegNetX040, 1360, {}),
-    (regnet.RegNetX064, 1624, {}),
-    (regnet.RegNetX080, 1920, {}),
-    (regnet.RegNetX120, 2240, {}),
-    (regnet.RegNetX160, 2048, {}),
-    (regnet.RegNetX320, 2520, {}),
 ]
+
+"""
+Below are other configurations that we omit from our CI but that can/should
+be tested manually when making changes to this model.
+(regnet.RegNetX004, 384, {}),
+(regnet.RegNetX006, 528, {}),
+(regnet.RegNetX008, 672, {}),
+(regnet.RegNetX016, 912, {}),
+(regnet.RegNetX032, 1008, {}),
+(regnet.RegNetX040, 1360, {}),
+(regnet.RegNetX064, 1624, {}),
+(regnet.RegNetX080, 1920, {}),
+(regnet.RegNetX120, 2240, {}),
+(regnet.RegNetX160, 2048, {}),
+(regnet.RegNetX320, 2520, {}),
+"""
 
 
 class RegNetXTest(ModelsTest, tf.test.TestCase, parameterized.TestCase):
