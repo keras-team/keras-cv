@@ -11,6 +11,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+#
+# Some code in this file was inspired & adapted from `tensorflow_models`.
+
 import tensorflow as tf
 
 import keras_cv
