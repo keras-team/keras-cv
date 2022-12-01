@@ -12,3 +12,5 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from keras_cv.datasets.waymo.load import load
+from keras_cv.datasets.waymo.transformer import build_tensors_for_augmentation
+from keras_cv.datasets.waymo.transformer import build_tensors_from_wod_frame

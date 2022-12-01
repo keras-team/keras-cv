@@ -16,24 +16,29 @@ import os
 
 import tensorflow as tf
 import tensorflow_datasets as tfds
-from tensorflow_datasets.proto.waymo_dataset_generated_pb2 import Frame
+from waymo_open_dataset import dataset_pb2
+
+from keras_cv.datasets.waymo import transformer
 
 
 def _generate_frames(segments, transformer):
     def _generator():
         for record in tfds.as_numpy(segments):
-            frame = Frame()
+            frame = dataset_pb2.Frame()
             frame.ParseFromString(record)
             yield transformer(frame)
 
     return _generator
 
 
-def load(tfrecord_path, transformer, output_signature):
+def load(
+    tfrecord_path,
+    transformer=transformer.build_tensors_from_wod_frame,
+    output_signature=transformer.WOD_FRAME_OUTPUT_SIGNATURE,
+):
     """
     Loads the Waymo Open Dataset and transforms frames into features as
     tensors.
-
     Args:
         tfrecord_path: a string pointing to the directory containing the raw
             tfrecords in the Waymo Open Dataset, or a list of strings pointing
