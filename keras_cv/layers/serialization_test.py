@@ -138,6 +138,15 @@ class SerializationTest(tf.test.TestCase, parameterized.TestCase):
             cv_layers.RandomShear,
             {"x_factor": 0.3, "x_factor": 0.3, "seed": 1},
         ),
+        (
+            "JitteredResize",
+            cv_layers.JitteredResize,
+            {
+                "target_size": (640, 640),
+                "scale_factor": (0.8, 1.25),
+                "bounding_box_format": "xywh",
+            },
+        ),
         ("Solarization", cv_layers.Solarization, {"value_range": (0, 255)}),
         (
             "RandAugment",
