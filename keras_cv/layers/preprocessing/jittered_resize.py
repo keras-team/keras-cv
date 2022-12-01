@@ -13,6 +13,8 @@
 # limitations under the License.
 #
 # Some code in this file was inspired & adapted from `tensorflow_models`.
+# Reference:
+# https://github.com/tensorflow/models/blob/master/official/vision/ops/preprocess_ops.py
 
 import tensorflow as tf
 
