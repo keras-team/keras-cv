@@ -36,7 +36,6 @@ class MosaicTest(tf.test.TestCase):
             backbone="resnet50",
             backbone_weights="imagenet",
             include_rescaling=True,
-            evaluate_train_time_metrics=False,
         )
         model.backbone.trainable = False
         optimizer = tf.optimizers.SGD(global_clipnorm=10.0)
