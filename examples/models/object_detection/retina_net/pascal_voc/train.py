@@ -265,11 +265,6 @@ model = keras_cv.models.RetinaNet(
     # pixel range (0, 255) or if you have already rescaled your inputs to the range
     # (0, 1).  In our case, we feed our model images with inputs in the range (0, 255).
     include_rescaling=True,
-    # Typically, you'll want to set this to False when training a real model.
-    # evaluate_train_time_metrics=True makes `train_step()` incompatible with TPU,
-    # and also causes a massive performance hit.  It can, however be useful to produce
-    # train time metrics when debugging your model training pipeline.
-    evaluate_train_time_metrics=False,
 )
 # Fine-tuning a RetinaNet is as simple as setting backbone.trainable = False
 model.backbone.trainable = False

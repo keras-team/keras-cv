@@ -193,7 +193,6 @@ class RetinaNetTest(tf.test.TestCase):
             backbone="resnet50",
             backbone_weights=None,
             include_rescaling=False,
-            evaluate_train_time_metrics=False,
         )
         retina_net.backbone.trainable = False
         retina_net.compile(
@@ -222,7 +221,6 @@ class RetinaNetTest(tf.test.TestCase):
             backbone="resnet50",
             backbone_weights=None,
             include_rescaling=False,
-            evaluate_train_time_metrics=False,
         )
 
         retina_net.compile(
@@ -280,7 +278,6 @@ class RetinaNetTest(tf.test.TestCase):
             backbone="resnet50",
             backbone_weights=None,
             include_rescaling=False,
-            evaluate_train_time_metrics=True,
         )
 
         retina_net.compile(
