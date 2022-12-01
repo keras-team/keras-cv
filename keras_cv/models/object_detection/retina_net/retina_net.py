@@ -282,7 +282,6 @@ class RetinaNet(ObjectDetectionBaseModel):
         classification_loss=None,
         loss=None,
         metrics=None,
-        evaluate_train_step_metrics=False,
         **kwargs,
     ):
         """compiles the RetinaNet.
@@ -300,9 +299,6 @@ class RetinaNet(ObjectDetectionBaseModel):
             metrics: a list of Keras Metrics that accept bounding boxes as inputs, i.e.
                 `keras_cv.metrics.COCORecall` or
                 `keras_cv.metrics.COCOMeanAveragePrecision`.
-            evaluate_train_step_metrics: whether or not to evaluate metrics on the
-                training dataset.  Defaults to `False`, as the two most common object
-                detection metrics are too expensive to compute on the training set.
             kwargs: most other `keras.Model.compile()` arguments are supported and
                 propagated to the `keras.Model` class.
         """
@@ -316,7 +312,6 @@ class RetinaNet(ObjectDetectionBaseModel):
         box_loss = _parse_box_loss(box_loss)
         classification_loss = _parse_classification_loss(classification_loss)
         metrics = metrics or []
-        self.evaluate_train_step_metrics = evaluate_train_step_metrics
         if len(metrics) > 0:
             self._includes_custom_metrics = True
 
@@ -472,15 +467,7 @@ class RetinaNet(ObjectDetectionBaseModel):
         gradients = tape.gradient(loss, trainable_vars)
         self.optimizer.apply_gradients(zip(gradients, trainable_vars))
 
-        # Early exit for no custom metrics
-        if not self._includes_custom_metrics or not self.evaluate_train_step_metrics:
-            # To minimize GPU transfers, we update metrics AFTER we take grads and apply
-            # them.
-            return {m.name: m.result() for m in self.train_metrics}
-
-        predictions = self.decode_predictions(y_pred, x)
-        self._update_metrics(y_for_metrics, predictions)
-        return {m.name: m.result() for m in self.metrics}
+        return {m.name: m.result() for m in self.train_metrics}
 
     def test_step(self, data):
         x, y = data
