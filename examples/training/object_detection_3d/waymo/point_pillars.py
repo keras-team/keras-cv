@@ -43,7 +43,7 @@ def augment(inputs):
     return inputs
 
 
-train_ds = train_ds.map(augment)
+train_ds = train_ds.map(augment).batch(1)
 
 # Very basic benchmarking
 start = time.time()

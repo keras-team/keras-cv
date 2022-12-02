@@ -583,15 +583,15 @@ def build_tensors_from_wod_frame(frame: dataset_pb2.Frame) -> Dict[str, tf.Tenso
 def build_tensors_for_augmentation(
     frame: Dict[str, tf.Tensor]
 ) -> Tuple[tf.Tensor, tf.Tensor]:
-    """Builds tensors for multi-frame data augmentation from input frames.
+    """Builds tensors for data augmentation from an input frame.
 
     Args:
-      input_frames: a dictionary of feature tensors from a Waymo Open Dataset frames.
+      frame: a dictionary of feature tensors from a Waymo Open Dataset frame
 
     Returns:
-      A tuple of two tensors (pointcloud, boxes), with shape
-      ([batch size, num frames, num point, num features],
-       [batch size, num frames, num boxes, num features]).
+      A dictionary of two tensors with keys "point_clouds" and "bounding_boxes"
+      and values which are tensors of shapes [num points, num features] and
+      [num boxes, num features]).
     """
     point_cloud = tf.concat(
         [
@@ -613,4 +613,7 @@ def build_tensors_for_augmentation(
         ],
         axis=-1,
     )
-    return {"point_clouds": point_cloud, "bounding_boxes": boxes}
+    return {
+        "point_clouds": tf.squeeze(point_cloud),
+        "bounding_boxes": tf.squeeze(boxes),
+    }
