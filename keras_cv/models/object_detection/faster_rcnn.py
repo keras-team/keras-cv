@@ -22,17 +22,16 @@ from keras_cv.layers.object_detection.roi_align import _ROIAligner
 from keras_cv.layers.object_detection.roi_generator import ROIGenerator
 from keras_cv.layers.object_detection.roi_sampler import _ROISampler
 from keras_cv.layers.object_detection.rpn_label_encoder import _RpnLabelEncoder
+from keras_cv.models import ResNet50V2
 from keras_cv.ops.box_matcher import ArgmaxBoxMatcher
 
 
 def _resnet50_backbone(include_rescaling=False):
     inputs = tf.keras.layers.Input(shape=(None, None, 3))
-    x = inputs
 
-    if include_rescaling:
-        x = tf.keras.applications.resnet.preprocess_input(x)
-
-    backbone = tf.keras.applications.ResNet50(include_top=False, input_tensor=x)
+    backbone = ResNet50V2(
+        include_top=False, include_rescaling=include_rescaling, input_tensor=inputs
+    )
 
     c2_output, c3_output, c4_output, c5_output = [
         backbone.get_layer(layer_name).output
@@ -283,7 +282,7 @@ class FasterRCNN(tf.keras.Model):
 
     Usage:
     ```python
-    retina_net = keras_cv.models.FasterRCNN(
+    faster_rcnn = keras_cv.models.FasterRCNN(
         classes=20,
         bounding_box_format="xywh",
         backbone="resnet50",
