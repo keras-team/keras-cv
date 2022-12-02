@@ -27,7 +27,7 @@ class TransformerEncoder(layers.Layer):
         num_heads: the number of heads for the `MultiHeadAttention` layer
         mlp_dropout: default 0.1, the dropout rate to apply between the layers of the MLP head of the encoder
         attention_dropout: default 0.1, the dropout rate to apply in the MultiHeadAttention layer
-        activation: default 'gelu', the activation function to apply in the MLP head
+        activation: default 'tf.activations.gelu', the activation function to apply in the MLP head - should be a function
         layer_norm_epsilon: default 1e-06, the epsilon for `LayerNormalization` layers
 
     Basic usage:
@@ -99,7 +99,7 @@ class TransformerEncoder(layers.Layer):
         y = self.layer_norm2(x)
 
         y = self.dense1(y)
-        if self.activation == "gelu" or self.activation == tf.keras.activations.gelu:
+        if self.activation == tf.keras.activations.gelu:
             y = self.activation(y, approximate=True)
         else:
             y = self.activation(y)
