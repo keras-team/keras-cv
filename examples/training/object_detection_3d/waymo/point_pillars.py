@@ -3,22 +3,17 @@ import tensorflow as tf
 
 from keras_cv import layers
 from keras_cv.datasets.waymo import load
+from keras_cv.datasets.waymo import build_tensors_from_wod_frame
+from keras_cv.datasets.waymo import build_tensors_for_augmentation
 
-TRAINING_RECORD_PATH = "/Users/ianjjohnson/Desktop/waymo"  # TODO "gs://waymo_open_dataset_v_1_0_0_individual_files/training"
-EVALUATION_RECORD_PATH = "/Users/ianjjohnson/Desktop/waymo"  # TODO "gs://waymo_open_dataset_v_1_0_0_individual_files/validation"
+TRAINING_RECORD_PATH = "./wod-records"#"gs://waymo_open_dataset_v_1_0_0_individual_files/training"
+EVALUATION_RECORD_PATH = "./wod-records"#"gs://waymo_open_dataset_v_1_0_0_individual_files/validation"
 TENSORBOARD_LOGS_PATH = "./logs"
 
-### Setting up a transformer for the dataloader
-def simple_transformer(frame):
-    return {"timestamp_micros": frame.timestamp_micros}
-
-
-output_signature = {"timestamp_micros": tf.TensorSpec((), tf.int64)}
-
-
 ### Load the training dataset
-train_ds = load(TRAINING_RECORD_PATH, simple_transformer, output_signature)
+train_ds = load(TRAINING_RECORD_PATH)
 
+train_ds = train_ds.map(build_tensors_for_augmentation)
 
 ### Augment the training data
 AUGMENTATION_LAYERS = [
