@@ -31,3 +31,21 @@ class SmoothL1LossTest(tf.test.TestCase, parameterized.TestCase):
             y_pred=tf.random.uniform((20, 300)),
         )
         self.assertEqual(result.shape, target_size)
+
+    def test_beta_values(self):
+        loss = keras_cv.losses.SmoothL1Loss(beta=1.0)
+        y_pred = tf.zeros(shape=(1, 10))
+        y_true = tf.ones(shape=(1, 10))
+
+        result = loss(y_true, y_pred)
+        self.assertEqual(result, 0.5)
+
+        loss = keras_cv.losses.SmoothL1Loss(beta=0.5)
+
+        result = loss(y_true, y_pred)
+        self.assertEqual(result, 0.25)
+
+        loss = keras_cv.losses.SmoothL1Loss(beta=0.0)
+
+        result = loss(y_true, y_pred)
+        self.assertEqual(result, 0.0)
