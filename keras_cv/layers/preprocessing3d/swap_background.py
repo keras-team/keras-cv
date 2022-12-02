@@ -145,10 +145,11 @@ class SwapBackground(base_augmentation_layer_3d.BaseAugmentationLayer3D):
 
     def _augment(self, inputs):
         result = inputs
-        point_clouds = inputs.get(POINT_CLOUDS, None)
-        bounding_boxes = inputs.get(BOUNDING_BOXES, None)
-        additional_point_clouds = inputs.get(ADDITIONAL_POINT_CLOUDS, None)
-        additional_bounding_boxes = inputs.get(ADDITIONAL_BOUNDING_BOXES, None)
+        point_clouds = inputs[POINT_CLOUDS]
+        bounding_boxes = inputs[BOUNDING_BOXES]
+        additional_point_clouds = inputs[ADDITIONAL_POINT_CLOUDS]
+        additional_bounding_boxes = inputs[ADDITIONAL_BOUNDING_BOXES]
+
         transformation = self.get_random_transformation(
             point_clouds=point_clouds,
             bounding_boxes=bounding_boxes,
