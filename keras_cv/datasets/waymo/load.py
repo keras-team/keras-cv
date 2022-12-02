@@ -44,10 +44,12 @@ def load(
             tfrecords in the Waymo Open Dataset, or a list of strings pointing
             to the tfrecords themselves
         transformer: a Python function which transforms a Waymo Open Dataset
-           Frame object into tensors.
+          Frame object into tensors. Default to convert range image to point
+          cloud.
         output_signature: the type specification of the tensors created by the
-            transformer. This is often a dictionary from feature column names
-            to tf.TypeSpecs.
+          transformer. This is often a dictionary from feature column names to
+          tf.TypeSpecs. Default to point cloud representations of Waymo Open
+          Dataset data.
 
     Returns:
         tf.data.Dataset containing the features extracted from Frames using the
