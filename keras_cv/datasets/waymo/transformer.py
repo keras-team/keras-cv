@@ -481,7 +481,7 @@ def _get_point_label(
     )
 
 
-def point_vehicle_to_global(
+def _point_vehicle_to_global(
     point_vehicle_xyz: tf.Tensor, sdc_pose: tf.Tensor
 ) -> tf.Tensor:
     """Transforms points from vehicle to global frame.
@@ -501,7 +501,7 @@ def point_vehicle_to_global(
     )
 
 
-def box_3d_vehicle_to_global(box_3d: tf.Tensor, sdc_pose: tf.Tensor) -> tf.Tensor:
+def _box_3d_vehicle_to_global(box_3d: tf.Tensor, sdc_pose: tf.Tensor) -> tf.Tensor:
     """Transforms 3D boxes from vehicle to global frame.
 
     Args:
@@ -515,7 +515,7 @@ def box_3d_vehicle_to_global(box_3d: tf.Tensor, sdc_pose: tf.Tensor) -> tf.Tenso
     dim = box_3d[..., 3:6]
     heading = box_3d[..., 6]
 
-    new_center = point_vehicle_to_global(center, sdc_pose)
+    new_center = _point_vehicle_to_global(center, sdc_pose)
     new_heading = (
         heading + tf.atan2(sdc_pose[..., 1, 0], sdc_pose[..., 0, 0])[..., tf.newaxis]
     )
@@ -525,6 +525,9 @@ def box_3d_vehicle_to_global(box_3d: tf.Tensor, sdc_pose: tf.Tensor) -> tf.Tenso
 
 def build_tensors_from_wod_frame(frame: dataset_pb2.Frame) -> Dict[str, tf.Tensor]:
     """Builds tensors from a Waymo Open Dataset frame.
+
+    This function is to convert range image to point cloud. User can also work with
+    range image directly with frame_utils functions from waymo_open_dataset.
 
     Args:
       frame: a Waymo Open Dataset frame.
@@ -549,8 +552,8 @@ def build_tensors_from_wod_frame(frame: dataset_pb2.Frame) -> Dict[str, tf.Tenso
     point_label_tensors = _get_point_label(frame, point_tensors.point_xyz)
 
     # Transforms lidar frames to global coordinates.
-    point_tensors.point_xyz = point_vehicle_to_global(point_tensors.point_xyz, pose)
-    point_label_tensors.label_box = box_3d_vehicle_to_global(
+    point_tensors.point_xyz = _point_vehicle_to_global(point_tensors.point_xyz, pose)
+    point_label_tensors.label_box = _box_3d_vehicle_to_global(
         point_label_tensors.label_box, pose
     )
 
