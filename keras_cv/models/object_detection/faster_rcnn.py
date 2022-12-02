@@ -15,6 +15,7 @@
 import tensorflow as tf
 from absl import logging
 
+import keras_cv
 from keras_cv.bounding_box.converters import _decode_deltas_to_boxes
 from keras_cv.bounding_box.utils import _clip_boxes
 from keras_cv.layers.object_detection.anchor_generator import AnchorGenerator
@@ -22,14 +23,13 @@ from keras_cv.layers.object_detection.roi_align import _ROIAligner
 from keras_cv.layers.object_detection.roi_generator import ROIGenerator
 from keras_cv.layers.object_detection.roi_sampler import _ROISampler
 from keras_cv.layers.object_detection.rpn_label_encoder import _RpnLabelEncoder
-from keras_cv.models import ResNet50V2
 from keras_cv.ops.box_matcher import ArgmaxBoxMatcher
 
 
 def _resnet50_backbone(include_rescaling=False):
     inputs = tf.keras.layers.Input(shape=(None, None, 3))
 
-    backbone = ResNet50V2(
+    backbone = keras_cv.models.ResNet50V2(
         include_top=False, include_rescaling=include_rescaling, input_tensor=inputs
     )
 
