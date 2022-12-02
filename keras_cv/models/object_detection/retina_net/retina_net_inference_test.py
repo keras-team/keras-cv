@@ -31,7 +31,11 @@ class RetinaNetTest(tf.test.TestCase):
     @pytest.fixture(autouse=True)
     def cleanup_global_session(self):
         # Code before yield runs before the test
+        tf.config.set_soft_device_placement(False)
         yield
+        # Reset soft device placement to not interfere with other unit test files
+        tf.config.set_soft_device_placement(True)
+        # Clear global session to prevent OOM between test runs
         tf.keras.backend.clear_session()
 
     def test_weight_setting(self):

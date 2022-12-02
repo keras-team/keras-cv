@@ -53,6 +53,19 @@ class Grayscale(BaseImageAugmentationLayer):
         # This layer may raise an error when running on GPU using auto_vectorize
         self.auto_vectorize = False
 
+    def compute_image_signature(self, images):
+        # required because of the `output_channels` argument
+        if isinstance(images, tf.RaggedTensor):
+            ragged_spec = tf.RaggedTensorSpec(
+                shape=images.shape[1:3] + [self.output_channels],
+                ragged_rank=1,
+                dtype=self.compute_dtype,
+            )
+            return ragged_spec
+        return tf.TensorSpec(
+            images.shape[1:3] + [self.output_channels], self.compute_dtype
+        )
+
     def _check_input_params(self, output_channels):
         if output_channels not in [1, 3]:
             raise ValueError(

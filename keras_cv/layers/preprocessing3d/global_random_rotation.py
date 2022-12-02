@@ -31,27 +31,35 @@ class GlobalRandomRotation(base_augmentation_layer_3d.BaseAugmentationLayer3D):
     During inference time, the output will be identical to input. Call the layer with `training=True` to rotate the input.
 
     Input shape:
-      point_clouds: 2D (single frame) or 3D (multi frames) float32 Tensor with shape
-        [..., num of points, num of point features].
+      point_clouds: 3D (multi frames) float32 Tensor with shape
+        [num of frames, num of points, num of point features].
         The first 5 features are [x, y, z, class, range].
-      bounding_boxes: 2D (single frame) or 3D (multi frames) float32 Tensor with shape
-        [..., num of boxes, num of box features].
+      bounding_boxes: 3D (multi frames) float32 Tensor with shape
+        [num of frames, num of boxes, num of box features].
         The first 7 features are [x, y, z, dx, dy, dz, phi].
 
     Output shape:
-      A tuple of two Tensors (point_clouds, bounding_boxes) with the same shape as input Tensors.
+      A dictionary of Tensors with the same shape as input Tensors.
 
     Arguments:
-      max_rotation_angle_x: A float scaler or Tensor sets the maximum rotation angle along X axis.
-      max_rotation_angle_y: A float scaler or Tensor sets the maximum rotation angle along Y axis.
-      max_rotation_angle_z: A float scaler or Tensor sets the maximum rotation angle along Z axis.
+      max_rotation_angle_x: A float scalar sets the maximum rotation angle along X axis.
+      max_rotation_angle_y: A float scalar sets the maximum rotation angle along Y axis.
+      max_rotation_angle_z: A float scalar sets the maximum rotation angle along Z axis.
 
     """
 
     def __init__(
-        self, max_rotation_angle_x, max_rotation_angle_y, max_rotation_angle_z, **kwargs
+        self,
+        max_rotation_angle_x=None,
+        max_rotation_angle_y=None,
+        max_rotation_angle_z=None,
+        **kwargs
     ):
         super().__init__(**kwargs)
+        max_rotation_angle_x = max_rotation_angle_x if max_rotation_angle_x else 0.0
+        max_rotation_angle_y = max_rotation_angle_y if max_rotation_angle_y else 0.0
+        max_rotation_angle_z = max_rotation_angle_z if max_rotation_angle_z else 0.0
+
         if max_rotation_angle_x < 0:
             raise ValueError("max_rotation_angle_x must be >=0.")
         if max_rotation_angle_y < 0:

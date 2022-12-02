@@ -102,6 +102,15 @@ TEST_CONFIGURATIONS = [
             "width": 224,
         },
     ),
+    (
+        "JitteredResize",
+        layers.JitteredResize,
+        {
+            "target_size": (224, 224),
+            "scale_factor": (0.8, 1.25),
+            "bounding_box_format": "xywh",
+        },
+    ),
 ]
 
 NO_CPU_FP16_KERNEL_LAYERS = [
