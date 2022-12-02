@@ -1,10 +1,21 @@
+# Copyright 2022 The KerasCV Authors
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 import time
 
 import tensorflow as tf
 
-from keras_cv import layers
 from keras_cv.datasets.waymo import build_tensors_for_augmentation
-from keras_cv.datasets.waymo import build_tensors_from_wod_frame
 from keras_cv.datasets.waymo import load
 from keras_cv.layers import preprocessing3d
 
@@ -12,11 +23,11 @@ TRAINING_RECORD_PATH = (
     "./wod-records"  # "gs://waymo_open_dataset_v_1_0_0_individual_files/training"
 )
 
-### Load the training dataset
+# Load the training dataset
 train_ds = load(TRAINING_RECORD_PATH)
 train_ds = train_ds.map(build_tensors_for_augmentation)
 
-### Augment the training data
+# Augment the training data
 AUGMENTATION_LAYERS = [
     preprocessing3d.GlobalRandomFlipY(),
     preprocessing3d.GlobalRandomDroppingPoints(drop_rate=0.02),
@@ -34,13 +45,13 @@ def augment(inputs):
 
 train_ds = train_ds.map(augment)
 
-### Very basic benchmarking
+# Very basic benchmarking
 start = time.time()
 _ = [None for x in train_ds.take(100)]
 print(f"Time elapsed: {time.time()-start} seconds")
 
-### Everything after this is not ready -- pending getting a model available
-### in KerasCV
+# Everything after this is not ready -- pending getting a model available
+# in KerasCV
 
 # ### Load the evaluation dataset
 # EVALUATION_RECORD_PATH = "./wod-records"#"gs://waymo_open_dataset_v_1_0_0_individual_files/validation"
