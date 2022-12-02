@@ -29,7 +29,7 @@ from keras_cv.ops.box_matcher import ArgmaxBoxMatcher
 def _resnet50_backbone(include_rescaling=False):
     inputs = tf.keras.layers.Input(shape=(None, None, 3))
 
-    backbone = keras_cv.models.ResNet50V2(
+    backbone = keras_cv.models.resnet_v2.ResNet50V2(
         include_top=False, include_rescaling=include_rescaling, input_tensor=inputs
     )
 
