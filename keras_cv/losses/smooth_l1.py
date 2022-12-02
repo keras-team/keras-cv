@@ -19,33 +19,33 @@ import tensorflow as tf
 class SmoothL1Loss(tf.keras.losses.Loss):
     """Implements Smooth L1 loss.
 
-    SmoothL1Loss implements the SmoothL1 function, where values less than `l1_cutoff`
+    SmoothL1Loss implements the SmoothL1 function, where values less than `beta`
     contribute to the overall loss based on their squared difference, and values greater
-    than l1_cutoff contribute based on their raw difference.
+    than `beta` contribute based on their raw difference.
 
     Args:
-        l1_cutoff: differences between y_true and y_pred that are larger than `l1_cutoff` are
+        beta: differences between y_true and y_pred that are larger than `beta` are
             treated as `L1` values
     """
 
-    def __init__(self, l1_cutoff=1.0, **kwargs):
+    def __init__(self, beta=1.0, **kwargs):
         super().__init__(**kwargs)
-        self.l1_cutoff = l1_cutoff
+        self.beta = beta
 
     def call(self, y_true, y_pred):
         difference = y_true - y_pred
         absolute_difference = tf.abs(difference)
         squared_difference = difference**2
         loss = tf.where(
-            absolute_difference < self.l1_cutoff,
-            0.5 * squared_difference,
-            absolute_difference - 0.5,
+            absolute_difference < self.beta,
+            (0.5 * squared_difference) / self.beta,
+            (absolute_difference - 0.5) * self.beta,
         )
         return tf.keras.backend.mean(loss, axis=-1)
 
     def get_config(self):
         config = {
-            "l1_cutoff": self.l1_cutoff,
+            "beta": self.beta,
         }
         base_config = super().get_config()
         return dict(list(base_config.items()) + list(config.items()))
