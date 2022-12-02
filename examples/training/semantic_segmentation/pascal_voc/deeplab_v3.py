@@ -130,7 +130,10 @@ with strategy.scope():
         values=[base_lr, 0.1 * base_lr],
     )
     model = DeepLabV3(
-        classes=21, backbone="resnet50_v2", include_rescaling=True, weights="imagenet"
+        classes=21,
+        backbone="resnet50_v2",
+        include_rescaling=True,
+        backbone_weights="imagenet",
     )
     optimizer = tf.keras.optimizers.SGD(
         learning_rate=lr_decay, momentum=0.9, clipnorm=10.0
