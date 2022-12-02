@@ -194,7 +194,7 @@ def _create_retina_nets(x, y, epochs=1, custom_decoder=False):
             from_logits=True,
             reduction="none",
         ),
-        box_loss=keras_cv.losses.SmoothL1Loss(l1_cutoff=1.0, reduction="none"),
+        box_loss=keras_cv.losses.SmoothL1Loss(beta=1.0, reduction="none"),
         optimizer="adam",
         metrics=[
             keras_cv.metrics.COCOMeanAveragePrecision(
@@ -244,7 +244,7 @@ def _create_retina_nets(x, y, epochs=1, custom_decoder=False):
             from_logits=True,
             reduction="none",
         ),
-        box_loss=keras_cv.losses.SmoothL1Loss(l1_cutoff=1.0, reduction="none"),
+        box_loss=keras_cv.losses.SmoothL1Loss(beta=1.0, reduction="none"),
         optimizer="adam",
         metrics=[
             keras_cv.metrics.COCOMeanAveragePrecision(

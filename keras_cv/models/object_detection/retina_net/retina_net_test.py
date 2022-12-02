@@ -165,7 +165,7 @@ class RetinaNetTest(tf.test.TestCase):
                 classification_loss=keras_cv.losses.FocalLoss(
                     from_logits=False, reduction="none"
                 ),
-                box_loss=keras_cv.losses.SmoothL1Loss(l1_cutoff=1.0, reduction="none"),
+                box_loss=keras_cv.losses.SmoothL1Loss(beta=1.0, reduction="none"),
             )
 
     def test_no_metrics(self):
@@ -182,7 +182,7 @@ class RetinaNetTest(tf.test.TestCase):
             classification_loss=keras_cv.losses.FocalLoss(
                 from_logits=True, reduction="none"
             ),
-            box_loss=keras_cv.losses.SmoothL1Loss(l1_cutoff=1.0, reduction="none"),
+            box_loss=keras_cv.losses.SmoothL1Loss(beta=1.0, reduction="none"),
         )
 
     def test_weights_contained_in_trainable_variables(self):
@@ -200,7 +200,7 @@ class RetinaNetTest(tf.test.TestCase):
             classification_loss=keras_cv.losses.FocalLoss(
                 from_logits=True, reduction="none"
             ),
-            box_loss=keras_cv.losses.SmoothL1Loss(l1_cutoff=1.0, reduction="none"),
+            box_loss=keras_cv.losses.SmoothL1Loss(beta=1.0, reduction="none"),
             metrics=[],
         )
         xs, ys = _create_bounding_box_dataset(bounding_box_format)
@@ -228,7 +228,7 @@ class RetinaNetTest(tf.test.TestCase):
             classification_loss=keras_cv.losses.FocalLoss(
                 from_logits=True, reduction="none"
             ),
-            box_loss=keras_cv.losses.SmoothL1Loss(l1_cutoff=1.0, reduction="none"),
+            box_loss=keras_cv.losses.SmoothL1Loss(beta=1.0, reduction="none"),
             metrics=[],
         )
         xs, ys = _create_bounding_box_dataset(bounding_box_format)
@@ -285,7 +285,7 @@ class RetinaNetTest(tf.test.TestCase):
             classification_loss=keras_cv.losses.FocalLoss(
                 from_logits=True, reduction="none"
             ),
-            box_loss=keras_cv.losses.SmoothL1Loss(l1_cutoff=1.0, reduction="none"),
+            box_loss=keras_cv.losses.SmoothL1Loss(beta=1.0, reduction="none"),
             metrics=[
                 keras_cv.metrics.COCOMeanAveragePrecision(
                     class_ids=range(1),
