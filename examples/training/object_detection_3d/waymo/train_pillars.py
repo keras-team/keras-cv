@@ -25,7 +25,7 @@ TRAINING_RECORD_PATH = (
 
 # Load the training dataset
 train_ds = load(TRAINING_RECORD_PATH)
-train_ds = train_ds.map(build_tensors_for_augmentation)
+train_ds = train_ds.map(build_tensors_for_augmentation).batch(1) # batch to add frame dimension
 
 # Augment the training data
 AUGMENTATION_LAYERS = [
@@ -43,7 +43,7 @@ def augment(inputs):
     return inputs
 
 
-train_ds = train_ds.map(augment).batch(1)
+train_ds = train_ds.map(augment)
 
 # Very basic benchmarking
 start = time.time()
