@@ -25,7 +25,8 @@ TRAINING_RECORD_PATH = (
 
 # Load the training dataset
 train_ds = load(TRAINING_RECORD_PATH)
-train_ds = train_ds.map(build_tensors_for_augmentation).batch(1) # batch to add frame dimension
+# Batch by 1 to add a dimension for `num_frames`
+train_ds = train_ds.map(build_tensors_for_augmentation).batch(1)
 
 # Augment the training data
 AUGMENTATION_LAYERS = [

@@ -63,6 +63,8 @@ class WaymoOpenDatasetTransformerTest(tf.test.TestCase):
         self.assertAllGreater(tf.math.reduce_max(lidar_tensors["label_point_class"]), 0)
 
         # Multi-frame tensors for augmentation.
-        augmented_example = next(iter(tf_dataset.map(build_tensors_for_augmentation)))
+        augmented_example = next(
+            iter(tf_dataset.map(transformer.build_tensors_for_augmentation))
+        )
         self.assertEqual(pointcloud.shape, [183142, 8])
         self.assertEqual(boxes.shape, [16, 11])

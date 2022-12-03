@@ -614,6 +614,6 @@ def build_tensors_for_augmentation(
         axis=-1,
     )
     return {
-        "point_clouds": tf.squeeze(point_cloud),
-        "bounding_boxes": tf.squeeze(boxes),
+        "point_clouds": tf.squeeze(point_cloud, axis=0),
+        "bounding_boxes": tf.squeeze(boxes, axis=0),
     }
