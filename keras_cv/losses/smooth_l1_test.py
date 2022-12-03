@@ -48,4 +48,4 @@ class SmoothL1LossTest(tf.test.TestCase, parameterized.TestCase):
         loss = keras_cv.losses.SmoothL1Loss(beta=0.0)
 
         result = loss(y_true, y_pred)
-        self.assertEqual(result, 0.0)
+        self.assertEqual(result, 1.0)
