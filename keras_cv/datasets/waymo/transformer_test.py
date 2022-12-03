@@ -28,7 +28,6 @@ class WaymoOpenDatasetTransformerTest(tf.test.TestCase):
 
     def test_load_and_transform(self):
         tf_dataset = load(self.test_data_path)
-        batched_dataset = tf_dataset.batch(1)
 
         # Extract records into a list.
         dataset = list(tf_dataset)
@@ -66,5 +65,5 @@ class WaymoOpenDatasetTransformerTest(tf.test.TestCase):
         augmented_example = next(
             iter(tf_dataset.map(transformer.build_tensors_for_augmentation))
         )
-        self.assertEqual(pointcloud.shape, [183142, 8])
-        self.assertEqual(boxes.shape, [16, 11])
+        self.assertEqual(augmented_example["point_clouds"].shape, [183142, 8])
+        self.assertEqual(augmented_example["bounding_boxes"].shape, [16, 11])
