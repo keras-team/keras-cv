@@ -581,55 +581,39 @@ def build_tensors_from_wod_frame(frame: dataset_pb2.Frame) -> Dict[str, tf.Tenso
 
 
 def build_tensors_for_augmentation(
-    input_frames: List[Dict[str, tf.Tensor]]
+    frame: Dict[str, tf.Tensor]
 ) -> Tuple[tf.Tensor, tf.Tensor]:
-    """Builds tensors for multi-frame data augmentation from input frames.
+    """Builds tensors for data augmentation from an input frame.
 
     Args:
-      input_frames: a list of Waymo Open Dataset frames.
+      frame: a dictionary of feature tensors from a Waymo Open Dataset frame
 
     Returns:
-      A tuple of two tensors (pointcloud, boxes), with shape
-      ([batch size, num frames, num point, num features],
-       [batch size, num frames, num boxes, num features]).
+      A dictionary of two tensors with keys "point_clouds" and "bounding_boxes"
+      and values which are tensors of shapes [num points, num features] and
+      [num boxes, num features]).
     """
-    pointcloud = []
-    boxes = []
-    for i, f in enumerate(input_frames):
-        pointcloud += [
-            tf.concat(
-                [
-                    f["point_xyz"][:, tf.newaxis, ...],
-                    f["point_feature"][:, tf.newaxis, ...],
-                    tf.cast(f["point_mask"], tf.float32)[:, tf.newaxis, :, tf.newaxis],
-                ],
-                axis=-1,
-            )
-        ]
-        boxes += [
-            tf.concat(
-                [
-                    f["label_box"][:, tf.newaxis, :],
-                    tf.cast(f["label_box_class"], tf.float32)[
-                        :, tf.newaxis, :, tf.newaxis
-                    ],
-                    tf.cast(f["label_box_mask"], tf.float32)[
-                        :, tf.newaxis, :, tf.newaxis
-                    ],
-                    tf.cast(f["label_box_density"], tf.float32)[
-                        :, tf.newaxis, :, tf.newaxis
-                    ],
-                    tf.cast(f["label_box_detection_difficulty"], tf.float32)[
-                        :, tf.newaxis, :, tf.newaxis
-                    ],
-                ],
-                axis=-1,
-            )
-        ]
-
-    # [Batch, num_frames, points, features]
-    pointcloud = tf.concat(pointcloud, axis=1)
-    # [Batch, num_frames, num box, 11]
-    boxes = tf.concat(boxes, axis=1)
-
-    return pointcloud, boxes
+    point_cloud = tf.concat(
+        [
+            frame["point_xyz"][tf.newaxis, ...],
+            frame["point_feature"][tf.newaxis, ...],
+            tf.cast(frame["point_mask"], tf.float32)[tf.newaxis, :, tf.newaxis],
+        ],
+        axis=-1,
+    )
+    boxes = tf.concat(
+        [
+            frame["label_box"][tf.newaxis, :],
+            tf.cast(frame["label_box_class"], tf.float32)[tf.newaxis, :, tf.newaxis],
+            tf.cast(frame["label_box_mask"], tf.float32)[tf.newaxis, :, tf.newaxis],
+            tf.cast(frame["label_box_density"], tf.float32)[tf.newaxis, :, tf.newaxis],
+            tf.cast(frame["label_box_detection_difficulty"], tf.float32)[
+                tf.newaxis, :, tf.newaxis
+            ],
+        ],
+        axis=-1,
+    )
+    return {
+        "point_clouds": tf.squeeze(point_cloud, axis=0),
+        "bounding_boxes": tf.squeeze(boxes, axis=0),
+    }
