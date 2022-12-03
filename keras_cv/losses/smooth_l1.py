@@ -23,12 +23,15 @@ class SmoothL1Loss(tf.keras.losses.Loss):
     contribute to the overall loss based on their squared difference, and values greater
     than `beta` contribute based on their raw difference.
 
-    As `beta` approaches 1 - the loss approaches L2 loss.
-    As `beta` approaches 0 - the loss approaches L1 loss.
+    The function is quadratic for small values, and linear for large values,
+    balancing the positives of L1 and L2 losses.
+
+    L2 loss is used on targets between [0...beta] (near zero).
+    L1 loss is used on targets between [beta...+inf] (large values).
 
     Args:
-        beta: differences between y_true and y_pred that are larger than `beta` are
-            treated as `L1` values.
+        beta: default 1.0, the threshold at which the loss behaves as L1 or L2, in
+        the range of [0..1].
     """
 
     def __init__(self, beta=1.0, **kwargs):
