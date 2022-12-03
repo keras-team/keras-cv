@@ -96,6 +96,7 @@ class BaseAugmentationLayer3D(tf.keras.__internal__.layers.BaseRandomLayer):
 
     def __init__(self, seed=None, **kwargs):
         super().__init__(seed=seed, **kwargs)
+        self.auto_vectorize = False
 
     @property
     def auto_vectorize(self):

@@ -47,11 +47,12 @@ class RandomDropBox(base_augmentation_layer_3d.BaseAugmentationLayer3D):
       label_index: An optional int scalar sets the target object index.
         If label index is set, randomly drop bounding boxes, where box class == label_index.
         If label index is None, randomly drop bounding boxes, where box class > 0.
-      max_drop_bounding_boxes: A int scalar sets the maximum number of dropped bounding boxes.
+      max_drop_bounding_boxes: A int non negative scalar sets the maximum number of dropped bounding boxes.
+        Do not drop any bounding boxe when max_drop_bounding_boxes = 0.
 
     """
 
-    def __init__(self, label_index=None, max_drop_bounding_boxes=10, **kwargs):
+    def __init__(self, label_index=None, max_drop_bounding_boxes, **kwargs):
         super().__init__(**kwargs)
         self.auto_vectorize = False
         if label_index and label_index < 0:
