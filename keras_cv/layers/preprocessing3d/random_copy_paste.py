@@ -97,8 +97,8 @@ class RandomCopyPaste(base_augmentation_layer_3d.BaseAugmentationLayer3D):
         num_paste_bounding_boxes = tf.cast(num_paste_bounding_boxes, dtype=tf.int32)
         num_existing_bounding_boxes = tf.shape(bounding_boxes)[1]
         if self._label_index:
-            object_mask = tf.math.equal(
-                object_bounding_boxes[0, :, BOX_LABEL_INDEX], self._label_index
+            object_mask = (
+                object_bounding_boxes[0, :, BOX_LABEL_INDEX] == self._label_index
             )
             object_point_clouds = tf.boolean_mask(
                 object_point_clouds, object_mask, axis=1
