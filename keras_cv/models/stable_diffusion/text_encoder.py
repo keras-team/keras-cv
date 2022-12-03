@@ -38,10 +38,10 @@ class TextEncoder(keras.Model):
 
 
 class CLIPEmbedding(keras.layers.Layer):
-    def __init__(self, input_dim=49408, output_dim=768, max_length=77, **kwargs):
+    def __init__(self, input_dim=49408, embed_dim=768, max_length=77, **kwargs):
         super().__init__(**kwargs)
-        self.token_embedding = keras.layers.Embedding(input_dim, output_dim)
-        self.position_embedding = keras.layers.Embedding(max_length, output_dim)
+        self.token_embedding = keras.layers.Embedding(input_dim, embed_dim)
+        self.position_embedding = keras.layers.Embedding(max_length, embed_dim)
 
     def call(self, inputs):
         tokens, positions = inputs
@@ -51,13 +51,13 @@ class CLIPEmbedding(keras.layers.Layer):
 
 
 class CLIPEncoderLayer(keras.layers.Layer):
-    def __init__(self, **kwargs):
+    def __init__(self, embed_dim, **kwargs):
         super().__init__(**kwargs)
         self.layer_norm1 = keras.layers.LayerNormalization(epsilon=1e-5)
-        self.clip_attn = CLIPAttention(causal=True)
+        self.clip_attn = CLIPAttention(embed_dim=embed_dim, causal=True)
         self.layer_norm2 = keras.layers.LayerNormalization(epsilon=1e-5)
-        self.fc1 = keras.layers.Dense(3072)
-        self.fc2 = keras.layers.Dense(768)
+        self.fc1 = keras.layers.Dense(embed_dim*4)
+        self.fc2 = keras.layers.Dense(embed_dim)
 
     def call(self, inputs):
         residual = inputs
