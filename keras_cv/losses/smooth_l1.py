@@ -23,9 +23,12 @@ class SmoothL1Loss(tf.keras.losses.Loss):
     contribute to the overall loss based on their squared difference, and values greater
     than `beta` contribute based on their raw difference.
 
+    As `beta` approaches 1 - the loss approaches L2 loss.
+    As `beta` approaches 0 - the loss approaches L1 loss.
+
     Args:
         beta: differences between y_true and y_pred that are larger than `beta` are
-            treated as `L1` values
+            treated as `L1` values.
     """
 
     def __init__(self, beta=1.0, **kwargs):
@@ -39,7 +42,7 @@ class SmoothL1Loss(tf.keras.losses.Loss):
         loss = tf.where(
             absolute_difference < self.beta,
             (0.5 * squared_difference) / self.beta,
-            (absolute_difference - 0.5) * self.beta,
+            absolute_difference - 0.5 * self.beta,
         )
         return tf.keras.backend.mean(loss, axis=-1)
 
