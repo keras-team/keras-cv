@@ -39,8 +39,9 @@ MAX_PROMPT_LENGTH = 77
 config = {
     'v1':{
         'text':{
+            'vocab_size': 49408,
             'embed_dim': 768,
-            'num_block': 12,
+            'num_blocks': 12,
             'num_heads': 12,
             'version': 'v1'
         }
@@ -48,8 +49,9 @@ config = {
     
     'v2':{
         'text':{
+            'vocab_size': 49408,
             'embed_dim': 1024,
-            'num_block: 23,
+            'num_blocks: 23,
             'num_heads: 16
             'version': 'v2'
         }
