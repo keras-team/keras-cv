@@ -176,12 +176,12 @@ class StableDiffusion:
         """
         # Tokenize prompt (i.e. starting context)
         inputs = self.tokenizer.encode(prompt)
-        #max_prompt_length = self.config['text']['max_length']
-        #if len(inputs) > max_prompt_length:
-            #aise ValueError(
-                #f"Prompt is too long (should be <= {max_prompt_length} tokens)"
-            #)
-        phrase = inputs #+ [49407] * (max_prompt_length - len(inputs))
+        max_prompt_length = self.config['text']['max_length']
+        if len(inputs) > max_prompt_length:
+            raise ValueError(
+                f"Prompt is too long (should be <= {max_prompt_length} tokens)"
+            )
+        phrase = inputs + [49407] * (max_prompt_length - len(inputs))
         phrase = tf.convert_to_tensor([phrase], dtype=tf.int32)
 
         context = self.text_encoder.predict_on_batch([phrase, self._get_pos_ids(phrase.shape)])
