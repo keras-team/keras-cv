@@ -184,7 +184,7 @@ class StableDiffusion:
         phrase = inputs + [49407] * (max_prompt_length - len(inputs))
         phrase = tf.convert_to_tensor([phrase], dtype=tf.int32)
 
-        context = self.text_encoder.predict_on_batch([phrase, self._get_pos_ids(phrase.shape)])
+        context = self.text_encoder.predict_on_batch([phrase, self._get_pos_ids(max_prompt_length)])
 
         return context
 
