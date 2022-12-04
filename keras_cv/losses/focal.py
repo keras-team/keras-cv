@@ -75,16 +75,17 @@ class FocalLoss(tf.keras.losses.Loss):
         y_pred = tf.convert_to_tensor(y_pred)
         y_true = tf.cast(y_true, y_pred.dtype)
 
-        if self.label_smoothing:
-            y_true = self._smooth_labels(y_true)
-
         if self.from_logits:
             y_pred = tf.nn.sigmoid(y_pred)
 
-        cross_entropy = K.binary_crossentropy(y_true, y_pred)
-
         alpha = tf.where(tf.equal(y_true, 1.0), self._alpha, (1.0 - self._alpha))
         pt = y_true * y_pred + (1.0 - y_true) * (1.0 - y_pred)
+
+        if self.label_smoothing:
+            y_true = self._smooth_labels(y_true)
+
+        cross_entropy = K.binary_crossentropy(y_true, y_pred)
+
         loss = alpha * tf.pow(1.0 - pt, self._gamma) * cross_entropy
         # In most losses you mean over the final axis to achieve a scalar
         # Focal loss however is a special case in that it is meant to focus on
