@@ -86,6 +86,7 @@ class CLIPAttention(keras.layers.Layer):
         self.out_proj = keras.layers.Dense(self.embed_dim)
 
     def reshape_states(self, x, sequence_length, batch_size):
+        print(x)
         x = tf.reshape(x, (batch_size, sequence_length, self.num_heads, self.head_dim))
         return tf.transpose(x, (0, 2, 1, 3))  # bs, heads, sequence_length, head_dim
 
