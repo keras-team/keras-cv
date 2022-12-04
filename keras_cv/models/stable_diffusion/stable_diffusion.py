@@ -531,4 +531,4 @@ class StableDiffusion:
 
     @staticmethod    
     def _get_pos_ids(max_length):
-        return tf.convert_to_tensor([list(range(mex_length))], dtype=tf.int32)
+        return tf.convert_to_tensor([list(range(max_length))], dtype=tf.int32)
