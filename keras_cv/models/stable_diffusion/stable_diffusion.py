@@ -51,8 +51,8 @@ config = {
         'text':{
             'vocab_size': 49408,
             'embed_dim': 1024,
-            'num_blocks: 23,
-            'num_heads: 16
+            'num_blocks': 23,
+            'num_heads': 16
             'version': 'v2'
         }
     }
