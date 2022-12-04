@@ -51,10 +51,10 @@ class CLIPEmbedding(keras.layers.Layer):
 
 
 class CLIPEncoderLayer(keras.layers.Layer):
-    def __init__(self, embed_dim, **kwargs):
+    def __init__(self, embed_dim, num_heads, **kwargs):
         super().__init__(**kwargs)
         self.layer_norm1 = keras.layers.LayerNormalization(epsilon=1e-5)
-        self.clip_attn = CLIPAttention(embed_dim=embed_dim, causal=True)
+        self.clip_attn = CLIPAttention(embed_dim=embed_dim, num_heads=num_heads, causal=True)
         self.layer_norm2 = keras.layers.LayerNormalization(epsilon=1e-5)
         self.fc1 = keras.layers.Dense(embed_dim*4)
         self.fc2 = keras.layers.Dense(embed_dim)
@@ -86,7 +86,6 @@ class CLIPAttention(keras.layers.Layer):
         self.out_proj = keras.layers.Dense(self.embed_dim)
 
     def reshape_states(self, x, sequence_length, batch_size):
-        print(x)
         x = tf.reshape(x, (batch_size, sequence_length, self.num_heads, self.head_dim))
         return tf.transpose(x, (0, 2, 1, 3))  # bs, heads, sequence_length, head_dim
 
