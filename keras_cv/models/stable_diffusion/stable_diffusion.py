@@ -35,7 +35,7 @@ from keras_cv.models.stable_diffusion.diffusion_model import DiffusionModel
 from keras_cv.models.stable_diffusion.image_encoder import ImageEncoder
 from keras_cv.models.stable_diffusion.text_encoder import TextEncoder
 
-MAX_PROMPT_LENGTH = 77
+
 config = {
     'v1':{
         'text':{
@@ -43,7 +43,8 @@ config = {
             'embed_dim': 768,
             'num_blocks': 12,
             'num_heads': 12,
-            'version': 'v1'
+            'version': 'v1',
+            'max_length': 77
         }
     },
     
@@ -53,7 +54,8 @@ config = {
             'embed_dim': 1024,
             'num_blocks': 23,
             'num_heads': 16,
-            'version': 'v2'
+            'version': 'v2',
+            'max_length': 77
         }
     }
 }
@@ -116,7 +118,7 @@ class StableDiffusion:
         img_width = round(img_width / 128) * 128
         self.img_height = img_height
         self.img_width = img_width
-        self.version = version
+        self.config = config[version]
         # lazy initialize the component models and the tokenizer
         self._image_encoder = None
         self._text_encoder = None
@@ -174,11 +176,11 @@ class StableDiffusion:
         """
         # Tokenize prompt (i.e. starting context)
         inputs = self.tokenizer.encode(prompt)
-        if len(inputs) > MAX_PROMPT_LENGTH:
+        if len(inputs) > self.config['text']['max_length']:
             raise ValueError(
-                f"Prompt is too long (should be <= {MAX_PROMPT_LENGTH} tokens)"
+                f"Prompt is too long (should be <= {self.config['text']['max_length']} tokens)"
             )
-        phrase = inputs + [49407] * (MAX_PROMPT_LENGTH - len(inputs))
+        phrase = inputs + [49407] * (self.config['text']['max_length'] - len(inputs))
         phrase = tf.convert_to_tensor([phrase], dtype=tf.int32)
 
         context = self.text_encoder.predict_on_batch([phrase, self._get_pos_ids()])
@@ -461,7 +463,7 @@ class StableDiffusion:
         needs to be modified.
         """
         if self._text_encoder is None:
-            self._text_encoder = TextEncoder(MAX_PROMPT_LENGTH, config=config[self.version]['text'])
+            self._text_encoder = TextEncoder(self.config['text'])
             if self.jit_compile:
                 self._text_encoder.compile(jit_compile=True)
         return self._text_encoder
@@ -473,7 +475,7 @@ class StableDiffusion:
         """
         if self._diffusion_model is None:
             self._diffusion_model = DiffusionModel(
-                self.img_height, self.img_width, MAX_PROMPT_LENGTH
+                self.img_height, self.img_width, self.config['text']['max_lenght']
             )
             if self.jit_compile:
                 self._diffusion_model.compile(jit_compile=True)
@@ -528,4 +530,4 @@ class StableDiffusion:
 
     @staticmethod
     def _get_pos_ids():
-        return tf.convert_to_tensor([list(range(MAX_PROMPT_LENGTH))], dtype=tf.int32)
+        return tf.convert_to_tensor([list(range(self.config['text']['max_length']))], dtype=tf.int32)
