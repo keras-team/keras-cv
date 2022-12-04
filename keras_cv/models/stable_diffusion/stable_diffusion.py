@@ -176,14 +176,15 @@ class StableDiffusion:
         """
         # Tokenize prompt (i.e. starting context)
         inputs = self.tokenizer.encode(prompt)
-        if len(inputs) > self.config['text']['max_length']:
+        max_prompt_length = self.config['text']['max_length']
+        if len(inputs) > max_prompt_length:
             raise ValueError(
-                f"Prompt is too long (should be <= {self.config['text']['max_length']} tokens)"
+                f"Prompt is too long (should be <= {max_prompt_length} tokens)"
             )
-        phrase = inputs + [49407] * (self.config['text']['max_length'] - len(inputs))
+        phrase = inputs + [49407] * (max_prompt_length - len(inputs))
         phrase = tf.convert_to_tensor([phrase], dtype=tf.int32)
 
-        context = self.text_encoder.predict_on_batch([phrase, self._get_pos_ids()])
+        context = self.text_encoder.predict_on_batch([phrase, self._get_pos_ids(max_prompt_length)])
 
         return context
 
@@ -475,7 +476,7 @@ class StableDiffusion:
         """
         if self._diffusion_model is None:
             self._diffusion_model = DiffusionModel(
-                self.img_height, self.img_width, self.config['text']['max_lenght']
+                self.img_height, self.img_width, self.config['text']['max_length']
             )
             if self.jit_compile:
                 self._diffusion_model.compile(jit_compile=True)
@@ -528,6 +529,6 @@ class StableDiffusion:
                 (batch_size, self.img_height // 8, self.img_width // 8, 4)
             )
 
-    
-    def _get_pos_ids():
-        return tf.convert_to_tensor([list(range(self.config['text']['max_length']))], dtype=tf.int32)
+    @staticmethod    
+    def _get_pos_ids(max_length):
+        return tf.convert_to_tensor([list(range(mex_length))], dtype=tf.int32)
