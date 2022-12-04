@@ -36,7 +36,23 @@ from keras_cv.models.stable_diffusion.image_encoder import ImageEncoder
 from keras_cv.models.stable_diffusion.text_encoder import TextEncoder
 
 MAX_PROMPT_LENGTH = 77
-
+config = {
+    'v1':{
+        'text':{
+            'embed_dim': 768,
+            'num_block': 12,
+            'num_heads': 12
+        }
+    },
+    
+    'v2':{
+        'text':{
+            'embed_dim': 1024,
+            'num_block: 23,
+            'num_heads: 16
+        }
+    }
+             
 
 class StableDiffusion:
     """Keras implementation of Stable Diffusion.
@@ -87,6 +103,7 @@ class StableDiffusion:
         self,
         img_height=512,
         img_width=512,
+        version='v1',
         jit_compile=False,
     ):
         # UNet requires multiples of 2**7 = 128
@@ -94,7 +111,7 @@ class StableDiffusion:
         img_width = round(img_width / 128) * 128
         self.img_height = img_height
         self.img_width = img_width
-
+        self.version = version
         # lazy initialize the component models and the tokenizer
         self._image_encoder = None
         self._text_encoder = None
@@ -439,7 +456,7 @@ class StableDiffusion:
         needs to be modified.
         """
         if self._text_encoder is None:
-            self._text_encoder = TextEncoder(MAX_PROMPT_LENGTH)
+            self._text_encoder = TextEncoder(MAX_PROMPT_LENGTH, config=config[self.version]['text'])
             if self.jit_compile:
                 self._text_encoder.compile(jit_compile=True)
         return self._text_encoder
