@@ -41,7 +41,8 @@ config = {
         'text':{
             'embed_dim': 768,
             'num_block': 12,
-            'num_heads': 12
+            'num_heads': 12,
+            'version': 'v1'
         }
     },
     
@@ -50,6 +51,7 @@ config = {
             'embed_dim': 1024,
             'num_block: 23,
             'num_heads: 16
+            'version': 'v2'
         }
     }
              
