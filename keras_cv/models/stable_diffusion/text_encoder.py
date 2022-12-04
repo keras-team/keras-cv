@@ -19,9 +19,9 @@ from tensorflow.experimental import numpy as tfnp
 
 class TextEncoder(keras.Model):
     def __init__(self, config, name=None, download_weights=True):
-        tokens = keras.layers.Input(shape=(config['max_length'],), dtype="int32", name="tokens")
+        tokens = keras.layers.Input(shape=[None,], dtype="int32", name="tokens")
         positions = keras.layers.Input(
-            shape=(config['max_length'],), dtype="int32", name="positions"
+            shape=[None,], dtype="int32", name="positions"
         )
         x = CLIPEmbedding(config['vocab_size'], config['embed_dim'], config['max_length'])([tokens, positions])
         for _ in range(config['num_blocks']):
