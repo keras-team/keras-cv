@@ -435,7 +435,7 @@ class StableDiffusion:
             [_UNCONDITIONAL_TOKENS], dtype=tf.int32
         )
         unconditional_context = self.text_encoder.predict_on_batch(
-            [unconditional_tokens, self._get_pos_ids(self.context['text']['max_length'])]
+            [unconditional_tokens, self._get_pos_ids(self.config['text']['max_length'])]
         )
 
         return unconditional_context
