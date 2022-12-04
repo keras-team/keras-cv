@@ -528,6 +528,6 @@ class StableDiffusion:
                 (batch_size, self.img_height // 8, self.img_width // 8, 4)
             )
 
-    @staticmethod
+    
     def _get_pos_ids():
         return tf.convert_to_tensor([list(range(self.config['text']['max_length']))], dtype=tf.int32)
