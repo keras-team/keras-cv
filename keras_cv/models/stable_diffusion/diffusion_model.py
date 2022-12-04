@@ -27,7 +27,7 @@ class DiffusionModel(keras.Model):
     def __init__(
         self, img_height, img_width, max_text_length, name=None, download_weights=True
     ):
-        context = keras.layers.Input((max_text_length, 768))
+        context = keras.layers.Input((max_text_length, 1024))
         t_embed_input = keras.layers.Input((320,))
         latent = keras.layers.Input((img_height // 8, img_width // 8, 4))
 
