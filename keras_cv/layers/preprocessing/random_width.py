@@ -5,13 +5,6 @@ from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
 )
 from keras_cv.utils import preprocessing
 
-BILINEAR = "bilinear"
-NEAREST = "nearest"
-BICUBIC = "bicubic"
-AREA = "area"
-LANCZOS3 = "lanczos3"
-GAUSSIAN = "gaussian"
-MITCHELLCUBIC = "mitchellcubic"
 HEIGHT_AXIS = -3
 WIDTH_AXIS = -2
 IMAGES = "images"
@@ -55,7 +48,7 @@ class RandomWidth(BaseImageAugmentationLayer):
       `(..., height, random_width, channels)`.
     """
 
-    def __init__(self, factor, interpolation=BILINEAR, seed=None, **kwargs):
+    def __init__(self, factor, interpolation=tf.image.ResizeMethod.BILINEAR, seed=None, **kwargs):
         super().__init__(seed=seed, force_generator=True, **kwargs)
         self.factor = factor
         if isinstance(factor, (tuple, list)):

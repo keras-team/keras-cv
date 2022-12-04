@@ -63,9 +63,7 @@ class RandomWidthTest(tf.test.TestCase, parameterized.TestCase):
             input_image = np.reshape(np.arange(0, 8), (2, 4, 1)).astype(dtype)
             layer = RandomWidth(factor=(-0.5, -0.5), interpolation="nearest")
             output_image = layer(np.expand_dims(input_image, axis=0))
-            # pyformat: disable
             expected_output = np.asarray([[1, 3], [5, 7]]).astype(dtype)
-            # pyformat: enable
             expected_output = np.reshape(expected_output, (1, 2, 2, 1))
             self.assertAllEqual(expected_output, output_image)
 
