@@ -18,7 +18,7 @@ from tensorflow.experimental import numpy as tfnp
 
 
 class TextEncoder(keras.Model):
-    def __init__(self, max_length, config, name=None, download_weights=True):
+    def __init__(self, config, name=None, download_weights=True):
         tokens = keras.layers.Input(shape=(max_length,), dtype="int32", name="tokens")
         positions = keras.layers.Input(
             shape=(max_length,), dtype="int32", name="positions"
