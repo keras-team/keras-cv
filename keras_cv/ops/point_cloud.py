@@ -21,6 +21,19 @@ custom_ops = LazySO("custom_ops/_keras_cv_custom_ops.so")
 
 
 def within_box3d_index(points, boxes):
+    """Assign point to the box index that it belongs to.
+    If no box contains the point, it will be assigned -1.
+    This v2 function assumes that bounding boxes DO NOT overlap with each other.
+
+    Args:
+      points: [..., num_points, 3] float32 Tensor for 3d points in xyz format.
+      boxes: [..., num_boxes, 7] float32 Tensor for 3d boxes in [x, y, z, dx,
+        dy, dz, phi].
+
+    Returns:
+      integer Tensor of shape [..., num_points] indicating which box index each
+        point belongs to.
+    """
     points = tf.convert_to_tensor(points)
     boxes = tf.convert_to_tensor(boxes)
     if points.shape.rank == 2 and boxes.shape.rank == 2:
@@ -43,22 +56,25 @@ def within_box3d_index(points, boxes):
 
 
 # TODO(lengzhaoqi/tanzhenyu): compare the performance with v1
-def is_within_box3d_v2(points, boxes):
+def is_within_any_box3d_v2(points, boxes, keepdims=False):
     """Checks if 3d points are within 3d bounding boxes.
     Currently only xyz format is supported.
-    This v2 function assumes that bounding boxes DO NOT overlap with each other.
 
     Args:
       points: [..., num_points, 3] float32 Tensor for 3d points in xyz format.
       boxes: [..., num_boxes, 7] float32 Tensor for 3d boxes in [x, y, z, dx,
         dy, dz, phi].
+      keepdims: boolean. If true, retains reduced dimensions with length 1.
 
     Returns:
-      boolean Tensor of shape [..., num_points, num_boxes] indicating whether
+      boolean Tensor of shape [..., num_points] indicating whether
       the point belongs to the box.
 
     """
-    return tf.greater_equal(within_box3d_index(points, boxes), 0)
+    res = tf.greater_equal(within_box3d_index(points, boxes), 0)
+    if keepdims:
+        res = res[..., tf.newaxis]
+    return res
 
 
 def get_rank(tensor):
@@ -276,6 +292,25 @@ def is_within_box2d(points, boxes):
     # swap the last two dimensions
     is_inside = tf.einsum("...ij->...ji", tf.cast(is_inside, tf.int32))
     return tf.cast(is_inside, tf.bool)
+
+
+def is_within_any_box3d(points, boxes, keepdims=False):
+    """Checks if 3d points are within any 3d bounding boxes.
+    Currently only xyz format is supported.
+
+    Args:
+      points: [..., num_points, 3] float32 Tensor for 3d points in xyz format.
+      boxes: [..., num_boxes, 7] float32 Tensor for 3d boxes in [x, y, z, dx,
+        dy, dz, phi].
+      keepdims: boolean. If true, retains reduced dimensions with length 1.
+
+    Returns:
+      boolean Tensor of shape [..., num_points] indicating whether
+      the point belongs to the box.
+
+    """
+    res = is_within_box3d(points, boxes)
+    return tf.reduce_any(res, axis=-1, keepdims=keepdims)
 
 
 def is_within_box3d(points, boxes):

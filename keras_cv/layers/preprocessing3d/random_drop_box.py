@@ -15,7 +15,7 @@
 import tensorflow as tf
 
 from keras_cv.layers.preprocessing3d import base_augmentation_layer_3d
-from keras_cv.ops.point_cloud import is_within_box3d
+from keras_cv.ops.point_cloud import is_within_any_box3d
 
 POINT_CLOUDS = base_augmentation_layer_3d.POINT_CLOUDS
 BOUNDING_BOXES = base_augmentation_layer_3d.BOUNDING_BOXES
@@ -107,10 +107,8 @@ class RandomDropBox(base_augmentation_layer_3d.BaseAugmentationLayer3D):
             bounding_boxes, drop_bounding_boxes_mask, axis=1
         )
 
-        drop_points_mask = tf.reduce_any(
-            is_within_box3d(point_clouds[:, :, :3], drop_bounding_boxes[:, :, :7]),
-            axis=-1,
-            keepdims=True,
+        drop_points_mask = is_within_any_box3d(
+            point_clouds[..., :3], drop_bounding_boxes[..., :7], keepdims=True
         )
         return (
             tf.where(~drop_points_mask, point_clouds, 0.0),
