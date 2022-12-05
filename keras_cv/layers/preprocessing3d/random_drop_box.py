@@ -44,15 +44,15 @@ class RandomDropBox(base_augmentation_layer_3d.BaseAugmentationLayer3D):
       A tuple of two Tensors (point_clouds, bounding_boxes) with the same shape as input Tensors.
 
     Arguments:
+      max_drop_bounding_boxes: A int non negative scalar sets the maximum number of dropped bounding boxes.
+        Do not drop any bounding boxe when max_drop_bounding_boxes = 0.
       label_index: An optional int scalar sets the target object index.
         If label index is set, randomly drop bounding boxes, where box class == label_index.
         If label index is None, randomly drop bounding boxes, where box class > 0.
-      max_drop_bounding_boxes: A int non negative scalar sets the maximum number of dropped bounding boxes.
-        Do not drop any bounding boxe when max_drop_bounding_boxes = 0.
 
     """
 
-    def __init__(self, label_index=None, max_drop_bounding_boxes, **kwargs):
+    def __init__(self, max_drop_bounding_boxes, label_index=None, **kwargs):
         super().__init__(**kwargs)
         self.auto_vectorize = False
         if label_index and label_index < 0:
