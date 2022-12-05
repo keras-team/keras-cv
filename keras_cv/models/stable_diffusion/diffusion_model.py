@@ -25,9 +25,9 @@ from keras_cv.models.stable_diffusion.__internal__.layers.padded_conv2d import (
 
 class DiffusionModel(keras.Model):
     def __init__(
-        self, img_height, img_width, max_text_length, name=None, download_weights=True
+        self, img_height, img_width, config, name=None, download_weights=True
     ):
-        context = keras.layers.Input((max_text_length, 1024))
+        context = keras.layers.Input((config['max_length'], config['context_length']))
         t_embed_input = keras.layers.Input((320,))
         latent = keras.layers.Input((img_height // 8, img_width // 8, 4))
 
@@ -42,22 +42,40 @@ class DiffusionModel(keras.Model):
         outputs.append(x)
 
         for _ in range(2):
+            if config['num_heads']==-1:
+                head_dim = config['head_dim']
+                num_heads = int(320/head_dim)
+            else:
+                num_heads = config['num_head']
+                head_dim = int(320/num_heads)
             x = ResBlock(320)([x, t_emb])
-            x = SpatialTransformer(8, 40)([x, context])
+            x = SpatialTransformer(num_heads, head_dim)([x, context])
             outputs.append(x)
         x = PaddedConv2D(320, 3, strides=2, padding=1)(x)  # Downsample 2x
         outputs.append(x)
 
         for _ in range(2):
+            if config['num_heads']==-1:
+                head_dim = config['head_dim']
+                num_heads = int(640/head_dim)
+            else:
+                num_heads = config['num_head']
+                head_dim = int(640/num_heads)
             x = ResBlock(640)([x, t_emb])
-            x = SpatialTransformer(8, 80)([x, context])
+            x = SpatialTransformer(num_heads, head_dim)([x, context])
             outputs.append(x)
         x = PaddedConv2D(640, 3, strides=2, padding=1)(x)  # Downsample 2x
         outputs.append(x)
 
         for _ in range(2):
+            if config['num_heads']==-1:
+                head_dim = config['head_dim']
+                num_heads = int(1280/head_dim)
+            else:
+                num_heads = config['num_head']
+                head_dim = int(1280/num_heads)
             x = ResBlock(1280)([x, t_emb])
-            x = SpatialTransformer(8, 160)([x, context])
+            x = SpatialTransformer(num_heads, head_dim)([x, context])
             outputs.append(x)
         x = PaddedConv2D(1280, 3, strides=2, padding=1)(x)  # Downsample 2x
         outputs.append(x)
@@ -67,10 +85,16 @@ class DiffusionModel(keras.Model):
             outputs.append(x)
 
         # Middle flow
-
+        if config['num_heads']==-1:
+            head_dim = config['head_dim']
+            num_heads = int(1280/head_dim)
+        else:
+            num_heads = config['num_head']
+            head_dim = int(1280/num_heads)
         x = ResBlock(1280)([x, t_emb])
-        x = SpatialTransformer(8, 160)([x, context])
+        x = SpatialTransformer(num_heads, head_dim)([x, context])
         x = ResBlock(1280)([x, t_emb])
+        
 
         # Upsampling flow
 
@@ -82,19 +106,37 @@ class DiffusionModel(keras.Model):
         for _ in range(3):
             x = keras.layers.Concatenate()([x, outputs.pop()])
             x = ResBlock(1280)([x, t_emb])
-            x = SpatialTransformer(8, 160)([x, context])
+            if config['num_heads']==-1:
+                head_dim = config['head_dim']
+                num_heads = int(1280/head_dim)
+            else:
+                num_heads = config['num_head']
+                head_dim = int(1280/num_heads)
+            x = SpatialTransformer(num_heads, head_dim)([x, context])
         x = Upsample(1280)(x)
 
         for _ in range(3):
             x = keras.layers.Concatenate()([x, outputs.pop()])
             x = ResBlock(640)([x, t_emb])
-            x = SpatialTransformer(8, 80)([x, context])
+            if config['num_heads']==-1:
+                head_dim = config['head_dim']
+                num_heads = int(640/head_dim)
+            else:
+                num_heads = config['num_head']
+                head_dim = int(640/num_heads)
+            x = SpatialTransformer(num_heads, head_dim)([x, context])
         x = Upsample(640)(x)
 
         for _ in range(3):
             x = keras.layers.Concatenate()([x, outputs.pop()])
             x = ResBlock(320)([x, t_emb])
-            x = SpatialTransformer(8, 40)([x, context])
+            if config['num_heads']==-1:
+                head_dim = config['head_dim']
+                num_heads = int(320/head_dim)
+            else:
+                num_heads = config['num_head']
+                head_dim = int(320/num_heads)
+            x = SpatialTransformer(num_heads, head_dim)([x, context])
 
         # Exit flow
 

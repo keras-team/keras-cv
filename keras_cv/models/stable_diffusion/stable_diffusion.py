@@ -37,28 +37,42 @@ from keras_cv.models.stable_diffusion.text_encoder import TextEncoder
 
 
 config = {
-    'v1':{
-        'text':{
+    'v1': {
+        'text_encoder': {
             'vocab_size': 49408,
             'embed_dim': 768,
             'num_blocks': 12,
             'num_heads': 12,
             'version': 'v1',
             'max_length': 77
-        }
-    },
+            },
+        'diffusion_model': {
+            'model_channels': 320,
+            'num_heads': 8,
+            'head_dim': -1,
+            'context_length':768,
+            'max_length': 77
+            }
+            },
     
     'v2':{
-        'text':{
+        'text': {
             'vocab_size': 49408,
             'embed_dim': 1024,
             'num_blocks': 23,
             'num_heads': 16,
             'version': 'v2',
             'max_length': 77
-        }
-    }
-}
+            },
+        'diffusion_model': {
+            'model_channels': 320,
+            'num_heads': -1,
+            'head_dim': 64,
+            'context_length': 1024,
+            'max_length': 77
+            }
+            }
+            }
              
 
 class StableDiffusion:
@@ -176,7 +190,7 @@ class StableDiffusion:
         """
         # Tokenize prompt (i.e. starting context)
         inputs = self.tokenizer.encode(prompt)
-        max_prompt_length = self.config['text']['max_length']
+        max_prompt_length = self.config['text_encoder']['max_length']
         if len(inputs) > max_prompt_length:
             raise ValueError(
                 f"Prompt is too long (should be <= {max_prompt_length} tokens)"
@@ -435,7 +449,7 @@ class StableDiffusion:
             [_UNCONDITIONAL_TOKENS], dtype=tf.int32
         )
         unconditional_context = self.text_encoder.predict_on_batch(
-            [unconditional_tokens, self._get_pos_ids(self.config['text']['max_length'])]
+            [unconditional_tokens, self._get_pos_ids(self.config['text_encoder']['max_length'])]
         )
 
         return unconditional_context
@@ -464,7 +478,7 @@ class StableDiffusion:
         needs to be modified.
         """
         if self._text_encoder is None:
-            self._text_encoder = TextEncoder(self.config['text'])
+            self._text_encoder = TextEncoder(self.config['text_encoder'])
             if self.jit_compile:
                 self._text_encoder.compile(jit_compile=True)
         return self._text_encoder
@@ -476,7 +490,7 @@ class StableDiffusion:
         """
         if self._diffusion_model is None:
             self._diffusion_model = DiffusionModel(
-                self.img_height, self.img_width, self.config['text']['max_length']
+                self.img_height, self.img_width, self.config['diffusion_model']
             )
             if self.jit_compile:
                 self._diffusion_model.compile(jit_compile=True)
