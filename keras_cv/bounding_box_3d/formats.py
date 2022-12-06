@@ -35,7 +35,6 @@ class CENTER_XYZ_DXDYDZ_PHI:
     and the following optional indices, used in some KerasCV components:
 
     - CLASS: class of the object contained in the bounding box
-    - CONFIDENCE: confidence that the box is valid, used in predictions
     """
 
     X = 0
@@ -46,4 +45,3 @@ class CENTER_XYZ_DXDYDZ_PHI:
     DZ = 5
     PHI = 6
     CLASS = 7
-    CONFIDENCE = 8
