@@ -15,8 +15,8 @@
 import tensorflow as tf
 
 from keras_cv.layers.preprocessing3d import base_augmentation_layer_3d
-from keras_cv.ops.point_cloud import is_within_box3d
 from keras_cv.ops.point_cloud import group_points_by_boxes
+from keras_cv.ops.point_cloud import is_within_box3d
 
 POINT_CLOUDS = base_augmentation_layer_3d.POINT_CLOUDS
 BOUNDING_BOXES = base_augmentation_layer_3d.BOUNDING_BOXES
@@ -139,7 +139,7 @@ class GroupPointsByBoundingBoxes(base_augmentation_layer_3d.BaseAugmentationLaye
             object_point_clouds,
             object_bounding_boxes,
         )
-    
+
     def augment_point_clouds_bounding_boxes_v2(
         self, point_clouds, bounding_boxes, **kwargs
     ):
@@ -163,12 +163,13 @@ class GroupPointsByBoundingBoxes(base_augmentation_layer_3d.BaseAugmentationLaye
         # Filter bounding boxes using the current frame.
         # [num_boxes]
         min_points_filter = (
-            points_in_bounding_boxes.row_lengths() >= self._min_points_per_bounding_boxes
+            points_in_bounding_boxes.row_lengths(-1)
+            >= self._min_points_per_bounding_boxes
         )
 
         # [frames, num_valid_boxes, box_feature]
-        object_bounding_boxes = tf.boolean_mask(
-            object_bounding_boxes, min_points_filter, axis=1
+        object_bounding_boxes = tf.ragged.boolean_mask(
+            object_bounding_boxes, min_points_filter
         )
         # [frames, num_valid_boxes, ragged_points]
         points_in_bounding_boxes = tf.ragged.boolean_mask(
@@ -176,12 +177,11 @@ class GroupPointsByBoundingBoxes(base_augmentation_layer_3d.BaseAugmentationLaye
         )
         # point_clouds: [frames, num_points, point_feature]
         # object_point_clouds: [frames, num_valid_boxes, ragged_points, point_feature]
-        object_point_clouds = tf.gather(point_clouds, points_in_bounding_boxes, axis=1, batch_dims=1)
-
-        return (
-            object_point_clouds,
-            object_bounding_boxes
+        object_point_clouds = tf.gather(
+            point_clouds, points_in_bounding_boxes, axis=1, batch_dims=1
         )
+
+        return (object_point_clouds, object_bounding_boxes)
 
     def _augment(self, inputs):
         result = inputs
