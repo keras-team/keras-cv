@@ -51,7 +51,8 @@ config = {
             'num_heads': 8,
             'head_dim': -1,
             'context_length':768,
-            'max_length': 77
+            'max_length': 77,
+            'f_c': False
             }
             },
     
@@ -69,7 +70,8 @@ config = {
             'num_heads': -1,
             'head_dim': 64,
             'context_length': 1024,
-            'max_length': 77
+            'max_length': 77,
+            'f_c': True
             }
             }
             }

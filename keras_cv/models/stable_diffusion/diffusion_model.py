@@ -49,7 +49,7 @@ class DiffusionModel(keras.Model):
                 num_heads = config['num_head']
                 head_dim = int(320/num_heads)
             x = ResBlock(320)([x, t_emb])
-            x = SpatialTransformer(num_heads, head_dim)([x, context])
+            x = SpatialTransformer(num_heads, head_dim, config['f_c'])([x, context])
             outputs.append(x)
         x = PaddedConv2D(320, 3, strides=2, padding=1)(x)  # Downsample 2x
         outputs.append(x)
@@ -62,7 +62,7 @@ class DiffusionModel(keras.Model):
                 num_heads = config['num_head']
                 head_dim = int(640/num_heads)
             x = ResBlock(640)([x, t_emb])
-            x = SpatialTransformer(num_heads, head_dim)([x, context])
+            x = SpatialTransformer(num_heads, head_dim, config['f_c'])([x, context])
             outputs.append(x)
         x = PaddedConv2D(640, 3, strides=2, padding=1)(x)  # Downsample 2x
         outputs.append(x)
@@ -75,7 +75,7 @@ class DiffusionModel(keras.Model):
                 num_heads = config['num_head']
                 head_dim = int(1280/num_heads)
             x = ResBlock(1280)([x, t_emb])
-            x = SpatialTransformer(num_heads, head_dim)([x, context])
+            x = SpatialTransformer(num_heads, head_dim, config['f_c'])([x, context])
             outputs.append(x)
         x = PaddedConv2D(1280, 3, strides=2, padding=1)(x)  # Downsample 2x
         outputs.append(x)
@@ -92,7 +92,7 @@ class DiffusionModel(keras.Model):
             num_heads = config['num_head']
             head_dim = int(1280/num_heads)
         x = ResBlock(1280)([x, t_emb])
-        x = SpatialTransformer(num_heads, head_dim)([x, context])
+        x = SpatialTransformer(num_heads, head_dim, config['f_c'])([x, context])
         x = ResBlock(1280)([x, t_emb])
         
 
@@ -112,7 +112,7 @@ class DiffusionModel(keras.Model):
             else:
                 num_heads = config['num_head']
                 head_dim = int(1280/num_heads)
-            x = SpatialTransformer(num_heads, head_dim)([x, context])
+            x = SpatialTransformer(num_heads, head_dim, config['f_c'])([x, context])
         x = Upsample(1280)(x)
 
         for _ in range(3):
@@ -124,7 +124,7 @@ class DiffusionModel(keras.Model):
             else:
                 num_heads = config['num_head']
                 head_dim = int(640/num_heads)
-            x = SpatialTransformer(num_heads, head_dim)([x, context])
+            x = SpatialTransformer(num_heads, head_dim, config['f_c'])([x, context])
         x = Upsample(640)(x)
 
         for _ in range(3):
@@ -136,7 +136,7 @@ class DiffusionModel(keras.Model):
             else:
                 num_heads = config['num_head']
                 head_dim = int(320/num_heads)
-            x = SpatialTransformer(num_heads, head_dim)([x, context])
+            x = SpatialTransformer(num_heads, head_dim, config['f_c'])([x, context])
 
         # Exit flow
 
@@ -193,11 +193,11 @@ class ResBlock(keras.layers.Layer):
 
 
 class SpatialTransformer(keras.layers.Layer):
-    def __init__(self, num_heads, head_size, fully_connected=False, **kwargs):
+    def __init__(self, num_heads, head_size, f_c=False, **kwargs):
         super().__init__(**kwargs)
         self.norm = GroupNormalization(epsilon=1e-5)
         channels = num_heads * head_size
-        if fully_connected:
+        if f_c:
             self.projection = keras.layers.Dense(num_heads * head_size) # sdv2 uses dense layer rather than conv
         else:
             self.projection = PaddedConv2D(num_heads * head_size, 1)
