@@ -67,7 +67,7 @@ def group_points_by_boxes(points, boxes):
         dy, dz, phi].
 
     Returns:
-      boolean Tensor of shape [..., num_boxes, ragged_points] for each box, all
+      boolean Ragged Tensor of shape [..., num_boxes, ragged_points] for each box, all
       the point indices that belong to the box.
 
     """
