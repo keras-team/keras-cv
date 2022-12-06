@@ -46,7 +46,7 @@ class DiffusionModel(keras.Model):
                 head_dim = config['head_dim']
                 num_heads = int(320/head_dim)
             else:
-                num_heads = config['num_head']
+                num_heads = config['num_heads']
                 head_dim = int(320/num_heads)
             x = ResBlock(320)([x, t_emb])
             x = SpatialTransformer(num_heads, head_dim, config['f_c'])([x, context])
@@ -59,7 +59,7 @@ class DiffusionModel(keras.Model):
                 head_dim = config['head_dim']
                 num_heads = int(640/head_dim)
             else:
-                num_heads = config['num_head']
+                num_heads = config['num_heads']
                 head_dim = int(640/num_heads)
             x = ResBlock(640)([x, t_emb])
             x = SpatialTransformer(num_heads, head_dim, config['f_c'])([x, context])
@@ -72,7 +72,7 @@ class DiffusionModel(keras.Model):
                 head_dim = config['head_dim']
                 num_heads = int(1280/head_dim)
             else:
-                num_heads = config['num_head']
+                num_heads = config['num_heads']
                 head_dim = int(1280/num_heads)
             x = ResBlock(1280)([x, t_emb])
             x = SpatialTransformer(num_heads, head_dim, config['f_c'])([x, context])
@@ -89,7 +89,7 @@ class DiffusionModel(keras.Model):
             head_dim = config['head_dim']
             num_heads = int(1280/head_dim)
         else:
-            num_heads = config['num_head']
+            num_heads = config['num_heads']
             head_dim = int(1280/num_heads)
         x = ResBlock(1280)([x, t_emb])
         x = SpatialTransformer(num_heads, head_dim, config['f_c'])([x, context])
@@ -110,7 +110,7 @@ class DiffusionModel(keras.Model):
                 head_dim = config['head_dim']
                 num_heads = int(1280/head_dim)
             else:
-                num_heads = config['num_head']
+                num_heads = config['num_heads']
                 head_dim = int(1280/num_heads)
             x = SpatialTransformer(num_heads, head_dim, config['f_c'])([x, context])
         x = Upsample(1280)(x)
@@ -122,7 +122,7 @@ class DiffusionModel(keras.Model):
                 head_dim = config['head_dim']
                 num_heads = int(640/head_dim)
             else:
-                num_heads = config['num_head']
+                num_heads = config['num_heads']
                 head_dim = int(640/num_heads)
             x = SpatialTransformer(num_heads, head_dim, config['f_c'])([x, context])
         x = Upsample(640)(x)
@@ -134,7 +134,7 @@ class DiffusionModel(keras.Model):
                 head_dim = config['head_dim']
                 num_heads = int(320/head_dim)
             else:
-                num_heads = config['num_head']
+                num_heads = config['num_heads']
                 head_dim = int(320/num_heads)
             x = SpatialTransformer(num_heads, head_dim, config['f_c'])([x, context])
 
