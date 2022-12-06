@@ -14,6 +14,7 @@
 
 import tensorflow as tf
 
+from keras_cv.bounding_box_3d import CENTER_XYZ_DXDYDZ_PHI
 from keras_cv.layers.preprocessing3d import base_augmentation_layer_3d
 from keras_cv.ops.point_cloud import is_within_box3d
 
@@ -21,7 +22,6 @@ POINT_CLOUDS = base_augmentation_layer_3d.POINT_CLOUDS
 BOUNDING_BOXES = base_augmentation_layer_3d.BOUNDING_BOXES
 ADDITIONAL_POINT_CLOUDS = base_augmentation_layer_3d.ADDITIONAL_POINT_CLOUDS
 ADDITIONAL_BOUNDING_BOXES = base_augmentation_layer_3d.ADDITIONAL_BOUNDING_BOXES
-BOX_LABEL_INDEX = base_augmentation_layer_3d.BOX_LABEL_INDEX
 POINTCLOUD_LABEL_INDEX = base_augmentation_layer_3d.POINTCLOUD_LABEL_INDEX
 
 
@@ -42,8 +42,10 @@ class SwapBackground(base_augmentation_layer_3d.BaseAugmentationLayer3D):
         [num of frames, num of points, num of point features].
         The first 5 features are [x, y, z, class, range].
       bounding_boxes: 3D (multi frames) float32 Tensor with shape
-        [num of frames, num of boxes, num of box features].
-        The first 8 features are [x, y, z, dx, dy, dz, phi, box class].
+        [num of frames, num of boxes, num of box features]. Boxes are expected
+        to follow the CENTER_XYZ_DXDYDZ_PHI format. Refer to
+        https://github.com/keras-team/keras-cv/blob/master/keras_cv/bounding_box_3d/formats.py
+        for more details on supported bounding box formats.
 
     Output shape:
       A tuple of two Tensors (point_clouds, bounding_boxes) with the same shape as input Tensors.
@@ -64,17 +66,20 @@ class SwapBackground(base_augmentation_layer_3d.BaseAugmentationLayer3D):
     ):
         # Use the current frame bounding boxes to determine valid bounding boxes.
         bounding_boxes = tf.boolean_mask(
-            bounding_boxes, bounding_boxes[0, :, BOX_LABEL_INDEX], axis=1
+            bounding_boxes, bounding_boxes[0, :, CENTER_XYZ_DXDYDZ_PHI.CLASS], axis=1
         )
         additional_bounding_boxes = tf.boolean_mask(
             additional_bounding_boxes,
-            additional_bounding_boxes[0, :, BOX_LABEL_INDEX],
+            additional_bounding_boxes[0, :, CENTER_XYZ_DXDYDZ_PHI.CLASS],
             axis=1,
         )
 
         # Remove objects in point_clouds.
         objects_points_in_point_clouds = tf.reduce_any(
-            is_within_box3d(point_clouds[:, :, :3], bounding_boxes[:, :, :7]),
+            is_within_box3d(
+                point_clouds[:, :, :3],
+                bounding_boxes[:, :, : CENTER_XYZ_DXDYDZ_PHI.CLASS],
+            ),
             axis=-1,
             keepdims=True,
         )
@@ -83,7 +88,8 @@ class SwapBackground(base_augmentation_layer_3d.BaseAugmentationLayer3D):
         # Extract objects from additional_point_clouds.
         objects_points_in_additional_point_clouds = tf.reduce_any(
             is_within_box3d(
-                additional_point_clouds[:, :, :3], additional_bounding_boxes[:, :, :7]
+                additional_point_clouds[:, :, :3],
+                additional_bounding_boxes[:, :, : CENTER_XYZ_DXDYDZ_PHI.CLASS],
             ),
             axis=-1,
             keepdims=True,
@@ -95,7 +101,8 @@ class SwapBackground(base_augmentation_layer_3d.BaseAugmentationLayer3D):
         # Remove backgorund points in point_clouds overlaps with additional_bounding_boxes.
         points_overlaps_additional_bounding_boxes = tf.reduce_any(
             is_within_box3d(
-                point_clouds[:, :, :3], additional_bounding_boxes[:, :, :7]
+                point_clouds[:, :, :3],
+                additional_bounding_boxes[:, :, : CENTER_XYZ_DXDYDZ_PHI.CLASS],
             ),
             axis=-1,
             keepdims=True,
