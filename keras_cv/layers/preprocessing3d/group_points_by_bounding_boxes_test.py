@@ -152,3 +152,43 @@ class GroupPointsByBoundingBoxesTest(tf.test.TestCase):
         object_point_clouds = tf.sort(object_point_clouds, axis=-2)
         self.assertAllClose(outputs[OBJECT_POINT_CLOUDS], object_point_clouds)
         self.assertAllClose(outputs[OBJECT_BOUNDING_BOXES], object_bounding_boxes)
+
+    def test_augment_point_clouds_and_bounding_boxes_v2(self):
+        add_layer = GroupPointsByBoundingBoxes(
+            label_index=1,
+            min_points_per_bounding_boxes=1,
+            max_points_per_bounding_boxes=2,
+        )
+        point_clouds = np.array(
+            [[[0, 1, 2, 3, 4], [10, 1, 2, 3, 4], [0, -1, 2, 3, 4], [100, 100, 2, 3, 4]]]
+            * 2
+        ).astype("float32")
+        bounding_boxes = np.array(
+            [
+                [
+                    [0, 0, 0, 4, 4, 4, 0, 1],
+                    [10, 1, 2, 2, 2, 2, 0, 1],
+                    [20, 20, 20, 1, 1, 1, 0, 1],
+                ]
+            ]
+            * 2
+        ).astype("float32")
+        point_clouds = tf.convert_to_tensor(point_clouds)
+        bounding_boxes = tf.convert_to_tensor(bounding_boxes)
+        outputs = add_layer.augment_point_clouds_bounding_boxes_v2(
+            point_clouds=point_clouds, bounding_boxes=bounding_boxes
+        )
+        object_point_clouds, object_bounding_boxes = outputs[0], outputs[1]
+        expected_object_point_clouds = np.array(
+            [[[[0, 1, 2, 3, 4], [0, -1, 2, 3, 4]], [[10, 1, 2, 3, 4], [0, 0, 0, 0, 0]]]]
+            * 2
+        ).astype("float32")
+        expected_object_bounding_boxes = np.array(
+            [[[0, 0, 0, 4, 4, 4, 0, 1], [10, 1, 2, 2, 2, 2, 0, 1]]] * 2
+        ).astype("float32")
+        self.assertAllClose(
+            expected_object_point_clouds, object_point_clouds.to_tensor()
+        )
+        self.assertAllClose(
+            expected_object_bounding_boxes, object_bounding_boxes.to_tensor()
+        )
