@@ -198,21 +198,24 @@ class SpatialTransformer(keras.layers.Layer):
         self.norm = GroupNormalization(epsilon=1e-5)
         channels = num_heads * head_size
         if f_c:
-            self.projection = keras.layers.Dense(num_heads * head_size) # sdv2 uses dense layer rather than conv
+            self.proj1 = keras.layers.Dense(num_heads * head_size) # sdv2 uses dense layer rather than conv
         else:
-            self.projection = PaddedConv2D(num_heads * head_size, 1)
+            self.proj1 = PaddedConv2D(num_heads * head_size, 1)
         self.transformer_block = BasicTransformerBlock(channels, num_heads, head_size)
-        self.conv2 = PaddedConv2D(channels, 1)
+        if f_c:
+            self.proj2 = keras.layers.Dense(channels)
+        else:
+            self.proj2 = PaddedConv2D(channels, 1)
 
     def call(self, inputs):
         inputs, context = inputs
         _, h, w, c = inputs.shape
         x = self.norm(inputs)
-        x = self.projection(x)
+        x = self.proj1(x)
         x = tf.reshape(x, (-1, h * w, c))
         x = self.transformer_block([x, context])
         x = tf.reshape(x, (-1, h, w, c))
-        return self.conv2(x) + inputs
+        return self.proj2(x) + inputs
 
 
 class BasicTransformerBlock(keras.layers.Layer):
