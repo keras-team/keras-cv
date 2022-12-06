@@ -54,6 +54,7 @@ class Grayscale(BaseImageAugmentationLayer):
         self.auto_vectorize = False
 
     def compute_image_signature(self, images):
+        # required because of the `output_channels` argument
         if isinstance(images, tf.RaggedTensor):
             ragged_spec = tf.RaggedTensorSpec(
                 shape=images.shape[1:3] + [self.output_channels],

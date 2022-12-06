@@ -224,7 +224,8 @@ class BaseImageAugmentationLayer(tf.keras.__internal__.layers.BaseRandomLayer):
             return True
         if BOUNDING_BOXES in inputs:
             return True
-        # TODO(lukewood): exhaustively check cases
+        if KEYPOINTS in inputs:
+            return True
         return False
 
     def _map_fn(self, func, inputs):
