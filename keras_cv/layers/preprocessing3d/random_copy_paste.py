@@ -17,7 +17,7 @@ import tensorflow as tf
 from keras_cv.bounding_box_3d import CENTER_XYZ_DXDYDZ_PHI
 from keras_cv.layers.preprocessing3d import base_augmentation_layer_3d
 from keras_cv.ops import iou_3d
-from keras_cv.ops.point_cloud import is_within_box3d
+from keras_cv.ops.point_cloud import is_within_any_box3d
 
 POINT_CLOUDS = base_augmentation_layer_3d.POINT_CLOUDS
 BOUNDING_BOXES = base_augmentation_layer_3d.BOUNDING_BOXES
@@ -150,11 +150,8 @@ class RandomCopyPaste(base_augmentation_layer_3d.BaseAugmentationLayer3D):
         additional_object_bounding_boxes = transformation[OBJECT_BOUNDING_BOXES]
         original_point_clouds_shape = point_clouds.get_shape().as_list()
         original_object_bounding_boxes = bounding_boxes.get_shape().as_list()
-        points_in_paste_bounding_boxes = tf.reduce_any(
-            is_within_box3d(
-                point_clouds[:, :, :3], additional_object_bounding_boxes[:, :, :7]
-            ),
-            axis=-1,
+        points_in_paste_bounding_boxes = is_within_any_box3d(
+            point_clouds[..., :3], additional_object_bounding_boxes[..., :7]
         )
         num_frames = point_clouds.get_shape().as_list()[0]
         point_clouds_list = []
