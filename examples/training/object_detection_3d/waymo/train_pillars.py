@@ -60,12 +60,11 @@ def pad_tensors(x):
 # Load the training dataset
 filenames = tf.data.Dataset.list_files(os.path.join(TRAINING_RECORD_PATH, "*.tfrecord"))
 train_ds = tf.data.TFRecordDataset(filenames)
-# Batch by 1 to add a dimension for `num_frames`
-# train_ds = train_ds.map(build_tensors_for_augmentation, num_parallel_calls=tf.data.AUTOTUNE)
 train_ds = train_ds.map(build_tensors, num_parallel_calls=tf.data.AUTOTUNE)
 train_ds = train_ds.apply(
     tf.data.experimental.dense_to_ragged_batch(global_batch, drop_remainder=True)
 )
+# Batch by 1 to add a dimension for `num_frames`
 train_ds = train_ds.map(pad_tensors, num_parallel_calls=tf.data.AUTOTUNE)
 print(f"train ds element spec {train_ds.element_spec}")
 
