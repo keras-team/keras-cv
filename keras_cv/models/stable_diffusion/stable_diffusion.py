@@ -52,7 +52,8 @@ config = {
             'head_dim': -1,
             'context_length':768,
             'max_length': 77,
-            'f_c': False
+            'f_c': False,
+            'version': 'v1'
             }
             },
     
@@ -71,7 +72,8 @@ config = {
             'head_dim': 64,
             'context_length': 1024,
             'max_length': 77,
-            'f_c': True
+            'f_c': True,
+            'version': 'v2'
             }
             }
             }

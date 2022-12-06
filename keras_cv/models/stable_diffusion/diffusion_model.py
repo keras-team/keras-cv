@@ -147,10 +147,16 @@ class DiffusionModel(keras.Model):
         super().__init__([latent, t_embed_input, context], output, name=name)
 
         if download_weights:
-            diffusion_model_weights_fpath = keras.utils.get_file(
-                origin="https://huggingface.co/fchollet/stable-diffusion/resolve/main/kcv_diffusion_model.h5",
-                file_hash="8799ff9763de13d7f30a683d653018e114ed24a6a819667da4f5ee10f9e805fe",
-            )
+            if config['version']=='v1':
+                diffusion_model_weights_fpath = keras.utils.get_file(
+                    origin="https://huggingface.co/fchollet/stable-diffusion/resolve/main/kcv_diffusion_model.h5",
+                    file_hash="8799ff9763de13d7f30a683d653018e114ed24a6a819667da4f5ee10f9e805fe",
+                )
+            else:
+                diffusion_model_weights_fpath = keras.utils.get_file(
+                    origin="https://huggingface.co/datasets/Jobayer/StableDiffusion/resolve/main/diffusion_model.h5",
+                    file_hash="f1b01eb748bf23e3fd70351649c30cfc9b1db1e6981fac0000edf254dfa36af1",
+                )
             self.load_weights(diffusion_model_weights_fpath)
 
 
