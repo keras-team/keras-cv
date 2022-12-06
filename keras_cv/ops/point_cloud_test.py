@@ -267,3 +267,25 @@ class Boxes3DTestCase(tf.test.TestCase, parameterized.TestCase):
         self.assertAllClose(x, np_xyz[..., 0])
         self.assertAllClose(y, np_xyz[..., 1])
         self.assertAllClose(z, np_xyz[..., 2])
+
+    def testWithinAFrustum(self):
+        center = tf.constant([1.0, 1.0, 1.0])
+        points = tf.constant([[0.0, 0.0, 0.0], [1.0, 2.0, 1.0], [1.0, 0.0, 1.0]])
+
+        point_mask = ops.within_a_frustum(
+            points, center, r_distance=1.0, theta_width=1.0, phi_width=1.0
+        )
+        target_point_mask = tf.constant([False, True, False])
+        self.assertAllClose(point_mask, target_point_mask)
+
+        point_mask = ops.within_a_frustum(
+            points, center, r_distance=1.0, theta_width=3.14, phi_width=3.14
+        )
+        target_point_mask = tf.constant([False, True, True])
+        self.assertAllClose(point_mask, target_point_mask)
+
+        point_mask = ops.within_a_frustum(
+            points, center, r_distance=3.0, theta_width=1.0, phi_width=1.0
+        )
+        target_point_mask = tf.constant([False, False, False])
+        self.assertAllClose(point_mask, target_point_mask)
