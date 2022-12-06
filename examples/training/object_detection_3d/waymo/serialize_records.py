@@ -15,12 +15,9 @@ import os
 import time
 
 import tensorflow as tf
-import tensorflow_datasets as tfds
-from waymo_open_dataset import dataset_pb2
 
 from keras_cv.datasets.waymo import build_tensors_for_augmentation
 from keras_cv.datasets.waymo import load
-from keras_cv.datasets.waymo import transformer
 
 TRAINING_RECORD_PATH = "/home/overflow/code/wod_records"  # "gs://waymo_open_dataset_v_1_0_0_individual_files/training"
 TRANSFORMED_RECORD_PATH = "/home/overflow/code/wod_transformed"  # "gs://waymo_open_dataset_v_1_0_0_individual_files/training"
@@ -43,7 +40,6 @@ def serialize_example(feature0, feature1):
     }
 
     # Create a Features message using tf.train.Example.
-
     example_proto = tf.train.Example(features=tf.train.Features(feature=feature))
     return example_proto.SerializeToString()
 
@@ -53,29 +49,8 @@ filenames = tf.data.TFRecordDataset.list_files(
     os.path.join(TRAINING_RECORD_PATH, "*.tfrecord")
 )
 
-
-def convert_frame_generator(inputs):
-    frame = dataset_pb2.Frame()
-    frame.ParseFromString(inputs)
-    return transformer.build_tensors_from_wod_frame(frame)
-
-
-def _generate_frames(segments, transformer):
-    def _generator():
-        for record in tfds.as_numpy(segments):
-            frame = dataset_pb2.Frame()
-            frame.ParseFromString(record)
-            yield transformer(frame)
-
-    return _generator
-
-
 for filename in filenames:
-    train_ds = tf.data.TFRecordDataset(filename)
-    train_ds = tf.data.Dataset.from_generator(
-        _generate_frames(train_ds, transformer.build_tensors_from_wod_frame),
-        output_signature=transformer.WOD_FRAME_OUTPUT_SIGNATURE,
-    )
+    train_ds = load(filename)
     train_ds = train_ds.map(
         build_tensors_for_augmentation, num_parallel_calls=tf.data.AUTOTUNE
     )
