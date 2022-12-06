@@ -20,6 +20,7 @@ from keras_cv.utils.resource_loader import LazySO
 custom_ops = LazySO("custom_ops/_keras_cv_custom_ops.so")
 
 
+# TODO(tanzhenyu): remove assumption of non overlapping boxes
 def within_box3d_index(points, boxes):
     """Assign point to the box index that it belongs to.
     If no box contains the point, it will be assigned -1.
@@ -53,6 +54,36 @@ def within_box3d_index(points, boxes):
                 points.shape, boxes.shape
             )
         )
+
+
+def group_points_by_boxes(points, boxes):
+    """Checks if 3d points are within 3d bounding boxes.
+    Currently only xyz format is supported.
+    This function assumes that bounding boxes DO NOT overlap with each other.
+
+    Args:
+      points: [..., num_points, 3] float32 Tensor for 3d points in xyz format.
+      boxes: [..., num_boxes, 7] float32 Tensor for 3d boxes in [x, y, z, dx,
+        dy, dz, phi].
+
+    Returns:
+      boolean Tensor of shape [..., num_boxes, ragged_points] for each box, all
+      the point indices that belong to the box.
+
+    """
+    num_boxes = boxes.get_shape().as_list()[-2]
+    if not num_boxes:
+        raise ValueError(
+            f"boxes cannot have unknown shape, got {boxes.get_shape().as_list()}"
+        )
+    box_indices = within_box3d_index(points, boxes)
+    num_points = points.get_shape().as_list()[-2] or tf.shape(points)[-2]
+    point_indices = tf.range(num_points, dtype=tf.int32)
+    point_mask = tf.math.greater_equal(box_indices, 0)
+    point_indices = tf.boolean_mask(point_indices, point_mask)
+    box_indices = tf.boolean_mask(box_indices, point_mask)
+    res = tf.dynamic_partition(point_indices, box_indices, num_partitions=num_boxes)
+    return tf.ragged.stack(res, axis=0)
 
 
 # TODO(lengzhaoqi/tanzhenyu): compare the performance with v1
