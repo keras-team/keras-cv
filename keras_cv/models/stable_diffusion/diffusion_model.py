@@ -193,11 +193,14 @@ class ResBlock(keras.layers.Layer):
 
 
 class SpatialTransformer(keras.layers.Layer):
-    def __init__(self, num_heads, head_size, **kwargs):
+    def __init__(self, num_heads, head_size, fully_connected=False, **kwargs):
         super().__init__(**kwargs)
         self.norm = GroupNormalization(epsilon=1e-5)
         channels = num_heads * head_size
-        self.conv1 = PaddedConv2D(num_heads * head_size, 1)
+        if fully_connected:
+            self.projection = keras.layers.Dense(num_heads * head_size) # sdv2 uses dense layer rather than conv
+        else:
+            self.projection = PaddedConv2D(num_heads * head_size, 1)
         self.transformer_block = BasicTransformerBlock(channels, num_heads, head_size)
         self.conv2 = PaddedConv2D(channels, 1)
 
@@ -205,7 +208,7 @@ class SpatialTransformer(keras.layers.Layer):
         inputs, context = inputs
         _, h, w, c = inputs.shape
         x = self.norm(inputs)
-        x = self.conv1(x)
+        x = self.projection(x)
         x = tf.reshape(x, (-1, h * w, c))
         x = self.transformer_block([x, context])
         x = tf.reshape(x, (-1, h, w, c))
