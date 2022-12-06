@@ -26,7 +26,7 @@ class GlobalRandomTranslation(base_augmentation_layer_3d.BaseAugmentationLayer3D
     """A preprocessing layer which randomly translates point clouds and bounding boxes along
     X, Y, and Z axes during training.
 
-    This layer will randomly translate the whole scene along the  X, Y, and Z axes based on three randomly sampled
+    This layer will randomly translate the whole scene along the X, Y,and Z axes based on three randomly sampled
     translation factors following three normal distributions centered at 0 with standard deviation  [x_stddev, y_stddev, z_stddev].
     During inference time, the output will be identical to input. Call the layer with `training=True` to translate the input.
 
