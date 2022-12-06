@@ -15,7 +15,7 @@
 import tensorflow as tf
 
 from keras_cv.layers.preprocessing3d import base_augmentation_layer_3d
-from keras_cv.ops.point_cloud import is_within_box3d
+from keras_cv.ops.point_cloud import is_within_any_box3d
 
 POINT_CLOUDS = base_augmentation_layer_3d.POINT_CLOUDS
 BOUNDING_BOXES = base_augmentation_layer_3d.BOUNDING_BOXES
@@ -73,19 +73,15 @@ class SwapBackground(base_augmentation_layer_3d.BaseAugmentationLayer3D):
         )
 
         # Remove objects in point_clouds.
-        objects_points_in_point_clouds = tf.reduce_any(
-            is_within_box3d(point_clouds[:, :, :3], bounding_boxes[:, :, :7]),
-            axis=-1,
-            keepdims=True,
+        objects_points_in_point_clouds = is_within_any_box3d(
+            point_clouds[..., :3], bounding_boxes[..., :7], keepdims=True
         )
         point_clouds = tf.where(~objects_points_in_point_clouds, point_clouds, 0.0)
 
         # Extract objects from additional_point_clouds.
-        objects_points_in_additional_point_clouds = tf.reduce_any(
-            is_within_box3d(
-                additional_point_clouds[:, :, :3], additional_bounding_boxes[:, :, :7]
-            ),
-            axis=-1,
+        objects_points_in_additional_point_clouds = is_within_any_box3d(
+            additional_point_clouds[..., :3],
+            additional_bounding_boxes[..., :7],
             keepdims=True,
         )
         additional_point_clouds = tf.where(
@@ -93,12 +89,8 @@ class SwapBackground(base_augmentation_layer_3d.BaseAugmentationLayer3D):
         )
 
         # Remove backgorund points in point_clouds overlaps with additional_bounding_boxes.
-        points_overlaps_additional_bounding_boxes = tf.reduce_any(
-            is_within_box3d(
-                point_clouds[:, :, :3], additional_bounding_boxes[:, :, :7]
-            ),
-            axis=-1,
-            keepdims=True,
+        points_overlaps_additional_bounding_boxes = is_within_any_box3d(
+            point_clouds[..., :3], additional_bounding_boxes[..., :7], keepdims=True
         )
         point_clouds = tf.where(
             ~points_overlaps_additional_bounding_boxes, point_clouds, 0.0

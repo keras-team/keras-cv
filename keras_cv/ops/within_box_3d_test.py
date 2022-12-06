@@ -186,3 +186,18 @@ class WithinBox3DTest(tf.test.TestCase):
             print(datetime.now())
             res = keras_cv.ops.within_box3d_index(points, boxes)
             self.assertAllClose(res.shape, points.shape[:1])
+
+    @pytest.mark.skipif(
+        "TEST_CUSTOM_OPS" not in os.environ or os.environ["TEST_CUSTOM_OPS"] != "true",
+        reason="Requires binaries compiled from source",
+    )
+    def test_equal(self):
+        for _ in range(10000):
+            with tf.device("cpu:0"):
+                box_center = tf.random.uniform(shape=[1, 3], minval=-10.0, maxval=10.0)
+                box_dim = tf.random.uniform(shape=[1, 3], minval=0.1, maxval=10.0)
+                boxes = tf.concat([box_center, box_dim, [[0.0]]], axis=-1)
+                points = tf.random.normal([32, 3])
+                res = keras_cv.ops.is_within_any_box3d(points, boxes)
+                res_v2 = keras_cv.ops.is_within_any_box3d_v2(points, boxes)
+                self.assertAllEqual(res, res_v2)
