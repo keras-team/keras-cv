@@ -14,6 +14,7 @@
 
 import tensorflow as tf
 
+from keras_cv.bounding_box_3d import CENTER_XYZ_DXDYDZ_PHI
 from keras_cv.layers.preprocessing3d import base_augmentation_layer_3d
 from keras_cv.ops.point_cloud import is_within_box3d
 
