@@ -58,7 +58,7 @@ config = {
             },
     
     'v2':{
-        'text': {
+        'text_encoder': {
             'vocab_size': 49408,
             'embed_dim': 1024,
             'num_blocks': 23,
