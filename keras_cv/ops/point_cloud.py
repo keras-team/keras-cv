@@ -71,19 +71,34 @@ def group_points_by_boxes(points, boxes):
       the point indices that belong to the box.
 
     """
-    num_boxes = boxes.get_shape().as_list()[-2]
-    if not num_boxes:
-        raise ValueError(
-            f"boxes cannot have unknown shape, got {boxes.get_shape().as_list()}"
-        )
+    num_boxes = boxes.get_shape().as_list()[-2] or tf.shape(boxes)[-2]
+    # [..., num_points]
     box_indices = within_box3d_index(points, boxes)
     num_points = points.get_shape().as_list()[-2] or tf.shape(points)[-2]
     point_indices = tf.range(num_points, dtype=tf.int32)
-    point_mask = tf.math.greater_equal(box_indices, 0)
-    point_indices = tf.boolean_mask(point_indices, point_mask)
-    box_indices = tf.boolean_mask(box_indices, point_mask)
-    res = tf.dynamic_partition(point_indices, box_indices, num_partitions=num_boxes)
-    return tf.ragged.stack(res, axis=0)
+
+    def group_per_sample(box_index):
+        point_mask = tf.math.greater_equal(box_index, 0)
+        valid_point_indices = tf.boolean_mask(point_indices, point_mask)
+        valid_box_index = tf.boolean_mask(box_index, point_mask)
+        res = tf.ragged.stack_dynamic_partitions(
+            valid_point_indices, valid_box_index, num_partitions=num_boxes
+        )
+        return res
+
+    boxes_rank = boxes.shape.rank
+    if boxes_rank == 2:
+        return group_per_sample(box_indices)
+    elif boxes_rank == 3:
+        num_samples = boxes.get_shape().as_list()[0]
+        res_list = []
+        for i in range(num_samples):
+            res_list.append(group_per_sample(box_indices[i]))
+        return tf.ragged.stack(res_list)
+    else:
+        raise ValueError(
+            f"Does not support box rank > 3, got boxes shape {boxes.shape}"
+        )
 
 
 # TODO(lengzhaoqi/tanzhenyu): compare the performance with v1
