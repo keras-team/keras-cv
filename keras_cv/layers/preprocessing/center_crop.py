@@ -120,7 +120,7 @@ class CenterCrop(BaseImageAugmentationLayer):
             ],
             axis=-1,
         )
-
+        bounding_boxes = bounding_box.filter_sentinels(bounding_boxes)
         return bounding_boxes
 
     def augment_bounding_boxes(
