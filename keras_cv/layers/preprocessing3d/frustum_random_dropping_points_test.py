@@ -23,7 +23,7 @@ POINT_CLOUDS = base_augmentation_layer_3d.POINT_CLOUDS
 BOUNDING_BOXES = base_augmentation_layer_3d.BOUNDING_BOXES
 
 
-class GlobalDropPointsnTest(tf.test.TestCase):
+class FrustumRandomDroppingPointTest(tf.test.TestCase):
     def test_augment_point_clouds_and_bounding_boxes(self):
         add_layer = FrustumRandomDroppingPoints(
             r_distance=0, theta_width=1, phi_width=1, drop_rate=0.5
