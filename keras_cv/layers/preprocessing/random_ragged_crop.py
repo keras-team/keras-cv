@@ -141,4 +141,5 @@ class RandomRaggedCrop(BaseImageAugmentationLayer):
         return self._crop(image, transformation)
 
     def augment_label(self, label, transformation, **kwargs):
+        asdfa
         return tf.cast(label, self.compute_dtype)
