@@ -111,6 +111,7 @@ class RandomDropBox(base_augmentation_layer_3d.BaseAugmentationLayer3D):
             point_clouds[..., :3], drop_bounding_boxes[..., :7], keepdims=True
 
         )
+
         return (
             tf.where(~drop_points_mask, point_clouds, 0.0),
             tf.where(

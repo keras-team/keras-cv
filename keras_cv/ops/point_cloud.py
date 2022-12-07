@@ -460,6 +460,8 @@ def spherical_coordinate_transform(points):
 def within_a_frustum(points, center, r_distance, theta_width, phi_width):
     """Check if 3d points are within a 3d frustum.
     https://en.wikipedia.org/wiki/Spherical_coordinate_system for definitions of r, theta, and phi.
+    https://en.wikipedia.org/wiki/Viewing_frustum for defination of a viewing frustum. Here, we
+    use a conical shaped frustum (https://mathworld.wolfram.com/ConicalFrustum.html).
     Currently only xyz format is supported.
 
     Args:

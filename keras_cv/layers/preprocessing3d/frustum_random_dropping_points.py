@@ -25,7 +25,8 @@ class FrustumRandomDroppingPoints(base_augmentation_layer_3d.BaseAugmentationLay
     """A preprocessing layer which randomly drops point within a randomly generated frustum during training.
 
     This layer will randomly select a point from the point cloud as the center of a frustum then generate a frustum based
-    on r_distance, theta_width, and phi_width. Points inside the selected frustum are randomly dropped based on keep_probability.
+    on r_distance, theta_width, and phi_width. Points inside the selected frustum are randomly dropped (setting all features to zero) 
+    based on drop_rate.
     During inference time, the output will be identical to input. Call the layer with `training=True` to drop the input points.
 
     Input shape:
