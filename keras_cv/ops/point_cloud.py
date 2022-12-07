@@ -455,3 +455,44 @@ def spherical_coordinate_transform(points):
     # Note: tf.atan2 takes in (y, x).
     phi = tf.atan2(points[..., 1], points[..., 0])
     return tf.stack([dist, theta, phi], axis=-1)
+
+
+def within_a_frustum(points, center, r_distance, theta_width, phi_width):
+    """Check if 3d points are within a 3d frustum.
+    https://en.wikipedia.org/wiki/Spherical_coordinate_system for definitions of r, theta, and phi.
+    https://en.wikipedia.org/wiki/Viewing_frustum for defination of a viewing frustum. Here, we
+    use a conical shaped frustum (https://mathworld.wolfram.com/ConicalFrustum.html).
+    Currently only xyz format is supported.
+
+    Args:
+      points: [num_points, 3] float32 Tensor for 3d points in xyz format.
+      center: [3, ] float32 Tensor for the frustum center in xyz format.
+      r_distance: A float scalar sets the starting distance of a frustum.
+      theta_width: A float scalar sets the theta width of a frustum.
+      phi_width: A float scalar sets the phi width of a frustum.
+
+    Returns:
+      boolean Tensor of shape [num_points] indicating whether
+      points are within the frustum.
+
+    """
+    r, theta, phi = tf.unstack(spherical_coordinate_transform(points[:, :3]), axis=-1)
+
+    _, center_theta, center_phi = tf.unstack(
+        spherical_coordinate_transform(center[tf.newaxis, :]), axis=-1
+    )
+
+    theta_half_width = theta_width / 2.0
+    phi_half_width = phi_width / 2.0
+
+    # Points within theta and phi width and further than r distance are selected.
+    in_theta_width = (theta < (center_theta + theta_half_width)) & (
+        theta > (center_theta - theta_half_width)
+    )
+
+    in_phi_width = (phi < (center_phi + phi_half_width)) & (
+        phi > (center_phi - phi_half_width)
+    )
+
+    in_r_distance = r > r_distance
+    return in_theta_width & in_phi_width & in_r_distance
