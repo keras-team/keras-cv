@@ -19,13 +19,14 @@ from keras_cv.ops import point_cloud
 
 POINT_CLOUDS = base_augmentation_layer_3d.POINT_CLOUDS
 BOUNDING_BOXES = base_augmentation_layer_3d.BOUNDING_BOXES
+POINTCLOUD_LABEL_INDEX = base_augmentation_layer_3d.POINTCLOUD_LABEL_INDEX
 
 
 class FrustumRandomDroppingPoints(base_augmentation_layer_3d.BaseAugmentationLayer3D):
     """A preprocessing layer which randomly drops point within a randomly generated frustum during training.
 
     This layer will randomly select a point from the point cloud as the center of a frustum then generate a frustum based
-    on r_distance, theta_width, and phi_width. Points inside the selected frustum are randomly dropped (setting all features to zero) 
+    on r_distance, theta_width, and phi_width. Points inside the selected frustum are randomly dropped (setting all features to zero)
     based on drop_rate.
     During inference time, the output will be identical to input. Call the layer with `training=True` to drop the input points.
 
@@ -68,12 +69,14 @@ class FrustumRandomDroppingPoints(base_augmentation_layer_3d.BaseAugmentationLay
 
     def get_random_transformation(self, point_clouds, **kwargs):
         # Randomly select a point from the first frame as the center of the frustum.
-        num_valid_points = tf.cast(tf.math.reduce_sum(point_clouds[0, :, 3]), tf.int32)
+        num_valid_points = tf.cast(
+            tf.math.reduce_sum(point_clouds[0, :, POINTCLOUD_LABEL_INDEX]), tf.int32
+        )
         randomly_select_point_index = tf.random.uniform(
             (), minval=0, maxval=num_valid_points, dtype=tf.int32
         )
         randomly_select_frustum_center = point_clouds[
-            0, randomly_select_point_index, :3
+            0, randomly_select_point_index, :POINTCLOUD_LABEL_INDEX
         ]
         num_frames, num_points, _ = point_clouds.get_shape().as_list()
         frustum_mask = []
