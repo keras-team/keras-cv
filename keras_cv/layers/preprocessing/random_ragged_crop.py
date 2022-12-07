@@ -132,8 +132,6 @@ class RandomRaggedCrop(BaseImageAugmentationLayer):
         x = tf.cast(image_shape[1] * transformation["x"], tf.int32)
         height = tf.cast(image_shape[0] * transformation["height"], tf.int32)
         width = tf.cast(image_shape[1] * transformation["width"], tf.int32)
-        # tf.print('height', y+height, image_shape[0], y+height > tf.cast(image_shape[0], tf.int32))
-        # tf.print('width', x+width, image_shape[1],  x+width > tf.cast(image_shape[1], tf.int32))
         return tf.image.crop_to_bounding_box(image, y, x, height, width)
 
     def augment_image(self, image, transformation, **kwargs):

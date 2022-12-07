@@ -21,22 +21,31 @@ from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
 
 
 class RandomAspectRatio(BaseImageAugmentationLayer):
-    """RandomAspectRatio
+    """RandomAspectRatio randomly distorts the aspect ratio of the provided image.
+
+    This is done on an element-wise basis, and as a consequence this layer always
+    returns a tf.RaggedTensor.
 
     Args:
-        factor:
+        factor: a range of values in the range `(0, infinity)` that determines the
+            percentage to distort the aspect ratio of each image by.
         interpolation: interpolation method used in the `Resize` op.
              Supported values are `"nearest"` and `"bilinear"`.
              Defaults to `"bilinear"`.
     """
 
     def __init__(
-        self, factor, interpolation="bilinear", bounding_box_format=None, **kwargs
+        self,
+        factor,
+        interpolation="bilinear",
+        bounding_box_format=None,
+        seed=None,
+        **kwargs
     ):
         super().__init__(**kwargs)
         self.interpolation = keras_cv.utils.get_interpolation(interpolation)
         self.factor = keras_cv.utils.parse_factor(
-            factor, min_value=0.0, max_value=None, param_name="factor"
+            factor, min_value=0.0, max_value=None, seed=seed, param_name="factor"
         )
         self.bounding_box_format = bounding_box_format
 
@@ -79,3 +88,13 @@ class RandomAspectRatio(BaseImageAugmentationLayer):
 
         target_size = tf.cast(tf.stack([height, width]), tf.int32)
         return tf.image.resize(image, size=target_size, method=self.interpolation)
+
+    def get_config(self):
+        config = {
+            "factor": self.factor,
+            "interpolation": self.interpolation,
+            "bounding_box_format": self.bounding_box_format,
+            "seed": self.seed,
+        }
+        base_config = super().get_config()
+        return dict(list(base_config.items()) + list(config.items()))
