@@ -103,7 +103,11 @@ class RandomAspectRatio(BaseImageAugmentationLayer):
         width = width * transformation
 
         target_size = tf.cast(tf.stack([height, width]), tf.int32)
-        return tf.image.resize(image, size=target_size, method=self.interpolation)
+        result = tf.image.resize(image, size=target_size, method=self.interpolation)
+        return tf.cast(result, self.compute_dtype)
+
+    def augment_label(self, label, transformation, **kwargs):
+        return label
 
     def get_config(self):
         config = {
