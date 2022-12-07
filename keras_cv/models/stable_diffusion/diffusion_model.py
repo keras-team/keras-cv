@@ -155,7 +155,7 @@ class DiffusionModel(keras.Model):
             else:
                 diffusion_model_weights_fpath = keras.utils.get_file(
                     origin="https://huggingface.co/datasets/Jobayer/StableDiffusion/resolve/main/diffusion_model.h5",
-                    file_hash="f1b01eb748bf23e3fd70351649c30cfc9b1db1e6981fac0000edf254dfa36af1",
+                    file_hash="1ee59e8283bc2dbbbf2cd367840de743cca6cbeed5d016c3c87e2ebc6a85db9f",
                 )
             self.load_weights(diffusion_model_weights_fpath)
 
