@@ -23,5 +23,5 @@ from keras_cv.ops.point_cloud import is_within_any_box3d_v2
 from keras_cv.ops.point_cloud import is_within_box2d
 from keras_cv.ops.point_cloud import is_within_box3d
 from keras_cv.ops.point_cloud import spherical_coordinate_transform
-from keras_cv.ops.point_cloud import within_box3d_index
 from keras_cv.ops.point_cloud import within_a_frustum
+from keras_cv.ops.point_cloud import within_box3d_index
