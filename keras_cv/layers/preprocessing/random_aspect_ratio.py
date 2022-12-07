@@ -48,6 +48,7 @@ class RandomAspectRatio(BaseImageAugmentationLayer):
             factor, min_value=0.0, max_value=None, seed=seed, param_name="factor"
         )
         self.bounding_box_format = bounding_box_format
+        self.seed = seed
         self.auto_vectorize = False
         self.force_output_ragged_images = True
 
