@@ -48,6 +48,8 @@ class RandomAspectRatio(BaseImageAugmentationLayer):
             factor, min_value=0.0, max_value=None, seed=seed, param_name="factor"
         )
         self.bounding_box_format = bounding_box_format
+        self.auto_vectorize = False
+        self.force_output_ragged_images = True
 
     def get_random_transformation(self, **kwargs):
         return self.factor(dtype=self.compute_dtype)
@@ -65,17 +67,31 @@ class RandomAspectRatio(BaseImageAugmentationLayer):
                 "Please provide a `bounding_box_format` when augmenting "
                 "bounding boxes with `RandomAspectRatio()`."
             )
+        img_shape = tf.shape(image)
+        img_shape = tf.cast(img_shape, self.compute_dtype)
+        height, width = img_shape[0], img_shape[1]
+        height = height / transformation
+        width = width * transformation
+
         bounding_boxes = bounding_box.convert_format(
-            bounding_boxes, source=self.bounding_box_format, target="xyxy", images=image
+            bounding_boxes,
+            source=self.bounding_box_format,
+            target="xyxy",
+            image_shape=img_shape,
         )
-        x, y, x2, y2, rest = bounding_box.split(bounding_boxes)
+        x, y, x2, y2, rest = tf.split(
+            bounding_boxes, [1, 1, 1, 1, bounding_boxes.shape[-1] - 4], axis=-1
+        )
         x = x * transformation
         x2 = x2 * transformation
         y = y / transformation
         y2 = y2 / transformation
         bounding_boxes = tf.concat([x, y, x2, y2, rest], axis=-1)
         bounding_boxes = bounding_box.convert_format(
-            bounding_boxes, source="xyxy", target=self.bounding_box_format, images=image
+            bounding_boxes,
+            source="xyxy",
+            target=self.bounding_box_format,
+            image_shape=tf.concat([height, width, 3], axis=0),
         )
         return bounding_boxes
 
