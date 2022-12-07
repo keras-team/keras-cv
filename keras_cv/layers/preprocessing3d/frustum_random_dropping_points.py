@@ -42,10 +42,10 @@ class FrustumRandomDroppingPoints(base_augmentation_layer_3d.BaseAugmentationLay
       A dictionary of Tensors with the same shape as input Tensors.
 
     Arguments:
-      drop_rate: A float scalar sets the probability threshold for dropping the points.
       r_distance: A float scalar sets the starting distance of a frustum.
       theta_width: A float scalar sets the theta width of a frustum.
       phi_width: A float scalar sets the phi width of a frustum.
+      drop_rate: A float scalar sets the probability threshold for dropping the points.
     """
 
     def __init__(self, r_distance, theta_width, phi_width, drop_rate=None, **kwargs):
