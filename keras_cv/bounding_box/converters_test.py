@@ -178,5 +178,7 @@ class ConvertersTestCase(tf.test.TestCase, parameterized.TestCase):
         )
 
 
-def _raggify(tensor, row_lengths=[[2, 0], [0, 0]]):
-    return tf.RaggedTensor.from_row_lengths(tensor[0], [2])
+def _raggify(tensor):
+    tensor = tf.squeeze(tensor, axis=0)
+    tensor = tf.RaggedTensor.from_row_lengths(tensor, [1, 1])
+    return tensor

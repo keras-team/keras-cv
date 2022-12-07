@@ -14,6 +14,7 @@
 
 import tensorflow as tf
 
+from keras_cv.bounding_box_3d import CENTER_XYZ_DXDYDZ_PHI
 from keras_cv.layers.preprocessing3d import base_augmentation_layer_3d
 from keras_cv.ops.point_cloud import group_points_by_boxes
 from keras_cv.ops.point_cloud import is_within_box3d
@@ -22,7 +23,6 @@ POINT_CLOUDS = base_augmentation_layer_3d.POINT_CLOUDS
 BOUNDING_BOXES = base_augmentation_layer_3d.BOUNDING_BOXES
 OBJECT_POINT_CLOUDS = base_augmentation_layer_3d.OBJECT_POINT_CLOUDS
 OBJECT_BOUNDING_BOXES = base_augmentation_layer_3d.OBJECT_BOUNDING_BOXES
-BOX_LABEL_INDEX = base_augmentation_layer_3d.BOX_LABEL_INDEX
 
 
 class GroupPointsByBoundingBoxes(base_augmentation_layer_3d.BaseAugmentationLayer3D):
@@ -36,8 +36,9 @@ class GroupPointsByBoundingBoxes(base_augmentation_layer_3d.BaseAugmentationLaye
         [num of frames, num of points, num of point features].
         The first 5 features are [x, y, z, class, range].
       bounding_boxes: 3D (multi frames) float32 Tensor with shape
-        [num of frames, num of boxes, num of box features].
-        The first 8 features are [x, y, z, dx, dy, dz, phi, box class].
+        [num of frames, num of boxes, num of box features]. Boxes are expected
+        to follow the CENTER_XYZ_DXDYDZ_PHI format. Refer to
+        https://github.com/keras-team/keras-cv/blob/master/keras_cv/bounding_box_3d/formats.py
 
     Output shape:
       A dictionary of Tensors with the same shape as input Tensors and two additional items for
@@ -84,13 +85,15 @@ class GroupPointsByBoundingBoxes(base_augmentation_layer_3d.BaseAugmentationLaye
     ):
         if self._label_index:
             bounding_boxes_mask = (
-                bounding_boxes[0, :, BOX_LABEL_INDEX] == self._label_index
+                bounding_boxes[0, :, CENTER_XYZ_DXDYDZ_PHI.CLASS] == self._label_index
             )
             object_bounding_boxes = tf.boolean_mask(
                 bounding_boxes, bounding_boxes_mask, axis=1
             )
         else:
-            bounding_boxes_mask = bounding_boxes[0, :, BOX_LABEL_INDEX] > 0.0
+            bounding_boxes_mask = (
+                bounding_boxes[0, :, CENTER_XYZ_DXDYDZ_PHI.CLASS] > 0.0
+            )
             object_bounding_boxes = tf.boolean_mask(
                 bounding_boxes, bounding_boxes_mask, axis=1
             )
@@ -145,13 +148,15 @@ class GroupPointsByBoundingBoxes(base_augmentation_layer_3d.BaseAugmentationLaye
     ):
         if self._label_index:
             bounding_boxes_mask = (
-                bounding_boxes[0, :, BOX_LABEL_INDEX] == self._label_index
+                bounding_boxes[0, :, CENTER_XYZ_DXDYDZ_PHI.CLASS] == self._label_index
             )
             object_bounding_boxes = tf.boolean_mask(
                 bounding_boxes, bounding_boxes_mask, axis=1
             )
         else:
-            bounding_boxes_mask = bounding_boxes[0, :, BOX_LABEL_INDEX] > 0.0
+            bounding_boxes_mask = (
+                bounding_boxes[0, :, CENTER_XYZ_DXDYDZ_PHI.CLASS] > 0.0
+            )
             object_bounding_boxes = tf.boolean_mask(
                 bounding_boxes, bounding_boxes_mask, axis=1
             )
