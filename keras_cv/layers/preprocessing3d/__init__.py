@@ -15,3 +15,16 @@
 from keras_cv.layers.preprocessing3d.base_augmentation_layer_3d import (
     BaseAugmentationLayer3D,
 )
+from keras_cv.layers.preprocessing3d.global_random_dropping_points import (
+    GlobalRandomDroppingPoints,
+)
+from keras_cv.layers.preprocessing3d.global_random_flip_y import GlobalRandomFlipY
+from keras_cv.layers.preprocessing3d.global_random_rotation import GlobalRandomRotation
+from keras_cv.layers.preprocessing3d.global_random_scaling import GlobalRandomScaling
+from keras_cv.layers.preprocessing3d.global_random_translation import (
+    GlobalRandomTranslation,
+)
+from keras_cv.layers.preprocessing3d.group_points_by_bounding_boxes import (
+    GroupPointsByBoundingBoxes,
+)
+from keras_cv.layers.preprocessing3d.random_copy_paste import RandomCopyPaste

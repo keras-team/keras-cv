@@ -27,11 +27,10 @@ class WaymoOpenDatasetTransformerTest(tf.test.TestCase):
         )
 
     def test_load_and_transform(self):
-        dataset = load(self.test_data_path)
-        batched_dataset = dataset.batch(1)
+        tf_dataset = load(self.test_data_path)
 
         # Extract records into a list.
-        dataset = list(dataset)
+        dataset = list(tf_dataset)
         self.assertEqual(len(dataset), 1)
         lidar_tensors = next(iter(dataset))
         num_boxes = lidar_tensors["label_box"].shape[0]
@@ -63,6 +62,8 @@ class WaymoOpenDatasetTransformerTest(tf.test.TestCase):
         self.assertAllGreater(tf.math.reduce_max(lidar_tensors["label_point_class"]), 0)
 
         # Multi-frame tensors for augmentation.
-        pointcloud, boxes = transformer.build_tensors_for_augmentation(batched_dataset)
-        self.assertEqual(pointcloud.shape, [1, 1, 183142, 8])
-        self.assertEqual(boxes.shape, [1, 1, 16, 11])
+        augmented_example = next(
+            iter(tf_dataset.map(transformer.build_tensors_for_augmentation))
+        )
+        self.assertEqual(augmented_example["point_clouds"].shape, [183142, 8])
+        self.assertEqual(augmented_example["bounding_boxes"].shape, [16, 11])
