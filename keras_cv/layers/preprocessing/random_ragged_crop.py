@@ -23,7 +23,9 @@ from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
 class RandomRaggedCrop(BaseImageAugmentationLayer):
     """RandomRaggedCrop is an augmentation layer that randomly crops raggedly.
 
-    TODO
+    For each image a perecentage is selected from both `height_factor` and
+    `width_factor`, and
+    a random portion
 
     Args:
         height_factor:
@@ -137,3 +139,6 @@ class RandomRaggedCrop(BaseImageAugmentationLayer):
 
     def augment_image(self, image, transformation, **kwargs):
         return self._crop(image, transformation)
+
+    def augment_label(self, label, transformation, **kwargs):
+        return tf.cast(label, self.compute_dtype)
