@@ -48,6 +48,7 @@ class RandomRaggedCrop(BaseImageAugmentationLayer):
         )
         self.bounding_box_format = bounding_box_format
         self.force_output_ragged_images = True
+        self.auto_vectorize = False
 
     def get_random_transformation(self, **kwargs):
         new_height = self.height_factor(dtype=self.compute_dtype)
