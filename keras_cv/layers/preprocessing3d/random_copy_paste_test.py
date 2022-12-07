@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import numpy as np
+import os
+import pytest
 import tensorflow as tf
 
 from keras_cv.layers.preprocessing3d import base_augmentation_layer_3d
@@ -24,6 +26,10 @@ OBJECT_BOUNDING_BOXES = base_augmentation_layer_3d.OBJECT_BOUNDING_BOXES
 
 
 class RandomCopyPasteTest(tf.test.TestCase):
+    @pytest.mark.skipif(
+        "TEST_CUSTOM_OPS" not in os.environ or os.environ["TEST_CUSTOM_OPS"] != "true",
+        reason="Requires binaries compiled from source",
+    )
     def test_augment_point_clouds_and_bounding_boxes(self):
         add_layer = RandomCopyPaste(
             label_index=1,
@@ -118,6 +124,10 @@ class RandomCopyPasteTest(tf.test.TestCase):
         self.assertAllClose(outputs[POINT_CLOUDS], augmented_point_clouds)
         self.assertAllClose(outputs[BOUNDING_BOXES], augmented_bounding_boxes)
 
+    @pytest.mark.skipif(
+        "TEST_CUSTOM_OPS" not in os.environ or os.environ["TEST_CUSTOM_OPS"] != "true",
+        reason="Requires binaries compiled from source",
+    )
     def test_augment_batch_point_clouds_and_bounding_boxes(self):
         add_layer = RandomCopyPaste(
             label_index=1,
