@@ -14,6 +14,7 @@
 
 import tensorflow as tf
 
+from keras_cv.bounding_box_3d import CENTER_XYZ_DXDYDZ_PHI
 from keras_cv.layers.preprocessing3d import base_augmentation_layer_3d
 
 POINT_CLOUDS = base_augmentation_layer_3d.POINT_CLOUDS
@@ -33,8 +34,10 @@ class GlobalRandomScaling(base_augmentation_layer_3d.BaseAugmentationLayer3D):
         [num of frames, num of points, num of point features].
         The first 5 features are [x, y, z, class, range].
       bounding_boxes:  3D (multi frames) float32 Tensor with shape
-        [num of frames, num of boxes, num of box features].
-        The first 7 features are [x, y, z, dx, dy, dz, phi].
+        [num of frames, num of boxes, num of box features]. Boxes are expected
+        to follow the CENTER_XYZ_DXDYDZ_PHI format. Refer to
+        https://github.com/keras-team/keras-cv/blob/master/keras_cv/bounding_box_3d/formats.py
+        for more details on supported bounding box formats.
 
     Output shape:
       A dictionary of Tensors with the same shape as input Tensors.
@@ -152,11 +155,15 @@ class GlobalRandomScaling(base_augmentation_layer_3d.BaseAugmentationLayer3D):
         point_clouds_xyz = point_clouds[..., :3] * scale
         point_clouds = tf.concat([point_clouds_xyz, point_clouds[..., 3:]], axis=-1)
 
-        bounding_boxes_xyzdxdydz = bounding_boxes[..., :6] * tf.concat(
-            [scale] * 2, axis=-1
-        )
+        bounding_boxes_xyzdxdydz = bounding_boxes[
+            ..., : CENTER_XYZ_DXDYDZ_PHI.DZ + 1
+        ] * tf.concat([scale] * 2, axis=-1)
         bounding_boxes = tf.concat(
-            [bounding_boxes_xyzdxdydz, bounding_boxes[..., 6:]], axis=-1
+            [
+                bounding_boxes_xyzdxdydz,
+                bounding_boxes[..., CENTER_XYZ_DXDYDZ_PHI.PHI :],
+            ],
+            axis=-1,
         )
 
         return (point_clouds, bounding_boxes)
