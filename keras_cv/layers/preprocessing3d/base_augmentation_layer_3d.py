@@ -22,6 +22,7 @@ ADDITIONAL_POINT_CLOUDS = "additional_point_clouds"
 ADDITIONAL_BOUNDING_BOXES = "additional_bounding_boxes"
 BOX_LABEL_INDEX = 7
 POINTCLOUD_LABEL_INDEX = 3
+POINTCLOUD_FEATURE_INDEX = 4
 
 
 @tf.keras.utils.register_keras_serializable(package="keras_cv")
