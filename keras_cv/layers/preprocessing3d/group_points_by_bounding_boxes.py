@@ -148,13 +148,15 @@ class GroupPointsByBoundingBoxes(base_augmentation_layer_3d.BaseAugmentationLaye
     ):
         if self._label_index:
             bounding_boxes_mask = (
-                bounding_boxes[0, :, BOX_LABEL_INDEX] == self._label_index
+                bounding_boxes[0, :, CENTER_XYZ_DXDYDZ_PHI.CLASS] == self._label_index
             )
             object_bounding_boxes = tf.boolean_mask(
                 bounding_boxes, bounding_boxes_mask, axis=1
             )
         else:
-            bounding_boxes_mask = bounding_boxes[0, :, BOX_LABEL_INDEX] > 0.0
+            bounding_boxes_mask = (
+                bounding_boxes[0, :, CENTER_XYZ_DXDYDZ_PHI.CLASS] > 0.0
+            )
             object_bounding_boxes = tf.boolean_mask(
                 bounding_boxes, bounding_boxes_mask, axis=1
             )
