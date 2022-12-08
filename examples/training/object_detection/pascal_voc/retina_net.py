@@ -332,8 +332,6 @@ eval_ds = eval_ds.map(pad_fn, num_parallel_calls=tf.data.AUTOTUNE)
 eval_ds = eval_ds.prefetch(2)
 
 
-# eval_ds = eval_ds.map(unpackage_dict, num_parallel_calls=tf.data.AUTOTUNE)
-
 """
 Our data pipeline is now complete.  We can now move on to model creation and training.
 """
