@@ -105,7 +105,7 @@ class StableDiffusion:
                 "Expected `weights` to be one of: 'v1', 'v1.5'. "
                 f"Got weights={weights}."
             )
-        self.weights = self.weights
+        self.weights = weights
         print(
             "By using this model checkpoint, you acknowledge that its usage is "
             "subject to the terms of the CreativeML Open RAIL-M license at "

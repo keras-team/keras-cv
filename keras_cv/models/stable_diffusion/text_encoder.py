@@ -16,7 +16,7 @@ import tensorflow as tf
 from tensorflow import keras
 from tensorflow.experimental import numpy as tfnp
 
-from keras_cv.models.stable_diffusion import weights as weights_lib
+import keras_cv.models.stable_diffusion.weights as weights_lib
 
 preconfigured_weights = {
     "v1": "https://huggingface.co/fchollet/stable-diffusion/resolve/main/kcv_encoder.h5",
@@ -30,7 +30,7 @@ hashes = {
 
 
 class TextEncoder(keras.Model):
-    def __init__(self, max_length, name=None, download_weights=True):
+    def __init__(self, max_length, name=None, weights="v1"):
         tokens = keras.layers.Input(shape=(max_length,), dtype="int32", name="tokens")
         positions = keras.layers.Input(
             shape=(max_length,), dtype="int32", name="positions"

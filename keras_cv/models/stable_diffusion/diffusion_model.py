@@ -15,7 +15,7 @@
 import tensorflow as tf
 from tensorflow import keras
 
-from keras_cv.models.stable_diffusion import weights as weights_lib
+import keras_cv.models.stable_diffusion.weights as weights_lib
 from keras_cv.models.stable_diffusion.__internal__.layers.group_normalization import (
     GroupNormalization,
 )
@@ -35,9 +35,7 @@ hashes = {
 
 
 class DiffusionModel(keras.Model):
-    def __init__(
-        self, img_height, img_width, max_text_length, name=None, download_weights=True
-    ):
+    def __init__(self, img_height, img_width, max_text_length, name=None, weights="v1"):
         context = keras.layers.Input((max_text_length, 768))
         t_embed_input = keras.layers.Input((320,))
         latent = keras.layers.Input((img_height // 8, img_width // 8, 4))

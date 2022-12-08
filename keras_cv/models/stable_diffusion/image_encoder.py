@@ -14,7 +14,7 @@
 
 from tensorflow import keras
 
-from keras_cv.models.stable_diffusion import weights as weights_lib
+import keras_cv.models.stable_diffusion.weights as weights_lib
 from keras_cv.models.stable_diffusion.__internal__.layers.attention_block import (
     AttentionBlock,
 )
@@ -42,7 +42,7 @@ hashes = {
 class ImageEncoder(keras.Sequential):
     """ImageEncoder is the VAE Encoder for StableDiffusion."""
 
-    def __init__(self, img_height=512, img_width=512, download_weights=True):
+    def __init__(self, img_height=512, img_width=512, weights="v1"):
         super().__init__(
             [
                 keras.layers.Input((img_height, img_width, 3)),

@@ -14,8 +14,7 @@
 
 from tensorflow import keras
 
-from keras_cv.models.stable_diffusion import lib
-from keras_cv.models.stable_diffusion import weights as weights
+import keras_cv.models.stable_diffusion.weights as weights_lib
 from keras_cv.models.stable_diffusion.__internal__.layers.attention_block import (
     AttentionBlock,
 )
