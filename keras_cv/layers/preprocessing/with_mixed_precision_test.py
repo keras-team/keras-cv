@@ -94,6 +94,7 @@ TEST_CONFIGURATIONS = [
     ("Solarization", layers.Solarization, {"value_range": (0, 255)}),
     ("Mosaic", layers.Mosaic, {}),
     ("CutMix", layers.CutMix, {}),
+    ("MixUp", layers.MixUp, {}),
     (
         "Resizing",
         layers.Resizing,
