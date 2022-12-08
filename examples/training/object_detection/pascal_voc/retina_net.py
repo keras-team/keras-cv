@@ -11,7 +11,13 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
+"""
+Title: Train an Object Detection Model on Pascal VOC 2007 using KerasCV
+Author: [lukewood](https://github.com/LukeWood), [tanzhenyu](https://github.com/tanzhenyu)
+Date created: 2022/09/27
+Last modified: 2022/12/08
+Description: Use KerasCV to train a RetinaNet on Pascal VOC 2007.
+"""
 import resource
 import sys
 
