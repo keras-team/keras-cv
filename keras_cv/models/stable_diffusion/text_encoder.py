@@ -25,7 +25,7 @@ preconfigured_weights = {
 
 hashes = {
     "https://huggingface.co/fchollet/stable-diffusion/resolve/main/kcv_encoder.h5": "4789e63e07c0e54d6a34a29b45ce81ece27060c499a709d556c7755b42bb0dc4",
-    "https://huggingface.co/Lukewood/sd-1.5-keras-cv-weights/resolve/main/text_encoder.h5": "2cc9857ee2da843b8b0ca3f98e2456462a804167378643d6d714ee084d420799",
+    "https://huggingface.co/Lukewood/sd-1.5-keras-cv-weights/resolve/main/text_encoder.h5": "04c24d446cffcf2d1fea9124c094b084a6bf11e5e9b8f03559e0c41d6cdd9a69",
 }
 
 
