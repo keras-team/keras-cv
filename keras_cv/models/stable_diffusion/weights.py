@@ -13,21 +13,37 @@
 # limitations under the License.
 from dataclasses import dataclass
 
-v1 = {
-    "text-encoder": "",
-    "diffusion-model": "",
-    "image-encoder": "",
-    "image-decoder": "",
-}
 
-v1point5 = {
-    "text-encoder": "",
-    "diffusion-model": "",
-    "image-encoder": "",
-    "image-decoder": "",
-}
+def load_weights(model, weights, preconfigured_weights, hashes):
+    """internal utility to load weights to a StableDiffusion model.
 
-all_weights = {"v1": v1, "v1.5": v1point5}
+    Args:
+        model: the Keras model to load weights into
+        preconfigured_weights: a dictionary of names -> http urls containing
+            the weights
+        hashes: hashes for the http urls containing the weights
+    """
+    if weights is None:
+        return
+    hash = None
+    if weights in preconfigured_weights:
+        weights = preconfigured_weights[weights]
+        if weights not in hashes:
+            raise ValueError(
+                f"Expected a hash for weights `weights={weights}`. "
+                "Users should never see this error, open a GitHub issue if you receive "
+                "this error message."
+            )
+        hash = hashes[weights]
+
+    # support for remote file loading
+    if weights.startswith("http"):
+        weights = keras.utils.get_file(
+            origin=weights,
+            file_hash=hash,
+        )
+
+    model.load_weights(weights)
 
 
 def parse_weights(weights):

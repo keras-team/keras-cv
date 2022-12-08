@@ -14,6 +14,8 @@
 
 from tensorflow import keras
 
+from keras_cv.models.stable_diffusion import lib
+from keras_cv.models.stable_diffusion import weights as weights
 from keras_cv.models.stable_diffusion.__internal__.layers.attention_block import (
     AttentionBlock,
 )
@@ -27,9 +29,19 @@ from keras_cv.models.stable_diffusion.__internal__.layers.resnet_block import (
     ResnetBlock,
 )
 
+preconfigured_weights = {
+    "v1": "https://huggingface.co/fchollet/stable-diffusion/resolve/main/kcv_decoder.h5",
+    "v1.5": "https://huggingface.co/lukewood/sd-1.5-keras-cv-weights/resolve/main/decoder.h5",
+}
+
+hashes = {
+    "https://huggingface.co/fchollet/stable-diffusion/resolve/main/kcv_decoder.h5": "ad350a65cc8bc4a80c8103367e039a3329b4231c2469a1093869a345f55b1962",
+    "https://huggingface.co/lukewood/sd-1.5-keras-cv-weights/resolve/main/decoder.h5": "",
+}
+
 
 class Decoder(keras.Sequential):
-    def __init__(self, img_height, img_width, name=None, download_weights=True):
+    def __init__(self, img_height, img_width, name=None, weights="v1"):
         super().__init__(
             [
                 keras.layers.Input((img_height // 8, img_width // 8, 4)),
@@ -47,7 +59,7 @@ class Decoder(keras.Sequential):
                 ResnetBlock(512),
                 ResnetBlock(512),
                 ResnetBlock(512),
-                keras.layers.UpSampling2D(2),
+                ke1ras.layers.UpSampling2D(2),
                 PaddedConv2D(512, 3, padding=1),
                 ResnetBlock(256),
                 ResnetBlock(256),
@@ -63,10 +75,4 @@ class Decoder(keras.Sequential):
             ],
             name=name,
         )
-
-        if download_weights:
-            decoder_weights_fpath = keras.utils.get_file(
-                origin="https://huggingface.co/fchollet/stable-diffusion/resolve/main/kcv_decoder.h5",
-                file_hash="ad350a65cc8bc4a80c8103367e039a3329b4231c2469a1093869a345f55b1962",
-            )
-            self.load_weights(decoder_weights_fpath)
+        weights_lib.load_weights(self, weights, preconfigured_weights, hashes)

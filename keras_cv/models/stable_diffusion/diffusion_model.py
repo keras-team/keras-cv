@@ -15,12 +15,23 @@
 import tensorflow as tf
 from tensorflow import keras
 
+from keras_cv.models.stable_diffusion import weights as weights
 from keras_cv.models.stable_diffusion.__internal__.layers.group_normalization import (
     GroupNormalization,
 )
 from keras_cv.models.stable_diffusion.__internal__.layers.padded_conv2d import (
     PaddedConv2D,
 )
+
+preconfigured_weights = {
+    "v1": "https://huggingface.co/fchollet/stable-diffusion/resolve/main/kcv_diffusion_model.h5",
+    "v1.5": "https://huggingface.co/lukewood/sd-1.5-keras-cv-weights/resolve/main/diffusion_model.h5",
+}
+
+hashes = {
+    "https://huggingface.co/fchollet/stable-diffusion/resolve/main/kcv_diffusion_model.h5": "8799ff9763de13d7f30a683d653018e114ed24a6a819667da4f5ee10f9e805fe",
+    "https://huggingface.co/lukewood/sd-1.5-keras-cv-weights/resolve/main/diffusion_model.h5": "",
+}
 
 
 class DiffusionModel(keras.Model):
@@ -103,13 +114,7 @@ class DiffusionModel(keras.Model):
         output = PaddedConv2D(4, kernel_size=3, padding=1)(x)
 
         super().__init__([latent, t_embed_input, context], output, name=name)
-
-        if download_weights:
-            diffusion_model_weights_fpath = keras.utils.get_file(
-                origin="https://huggingface.co/fchollet/stable-diffusion/resolve/main/kcv_diffusion_model.h5",
-                file_hash="8799ff9763de13d7f30a683d653018e114ed24a6a819667da4f5ee10f9e805fe",
-            )
-            self.load_weights(diffusion_model_weights_fpath)
+        weights_lib.load_weights(self, weights, preconfigured_weights, hashes)
 
 
 class ResBlock(keras.layers.Layer):

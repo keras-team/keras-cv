@@ -100,7 +100,7 @@ class StableDiffusion:
 
         self.jit_compile = jit_compile
 
-        self.weights = weights_lib.parse_weights(weights)
+        self.weights = self.weights
         print(
             "By using this model checkpoint, you acknowledge that its usage is "
             "subject to the terms of the CreativeML Open RAIL-M license at "
@@ -432,7 +432,7 @@ class StableDiffusion:
         """
         if self._image_encoder is None:
             self._image_encoder = ImageEncoder(
-                self.img_height, self.img_width, weights=self.weights["image-encoder"]
+                self.img_height, self.img_width, weights=self.weights
             )
             if self.jit_compile:
                 self._image_encoder.compile(jit_compile=True)
@@ -445,9 +445,7 @@ class StableDiffusion:
         needs to be modified.
         """
         if self._text_encoder is None:
-            self._text_encoder = TextEncoder(
-                MAX_PROMPT_LENGTH, weights=self.weights["text-encoder"]
-            )
+            self._text_encoder = TextEncoder(MAX_PROMPT_LENGTH, weights=self.weights)
             if self.jit_compile:
                 self._text_encoder.compile(jit_compile=True)
         return self._text_encoder
@@ -462,7 +460,7 @@ class StableDiffusion:
                 self.img_height,
                 self.img_width,
                 MAX_PROMPT_LENGTH,
-                weights=self.weights["diffusion-model"],
+                weights=self.weights,
             )
             if self.jit_compile:
                 self._diffusion_model.compile(jit_compile=True)
@@ -475,7 +473,7 @@ class StableDiffusion:
         """
         if self._decoder is None:
             self._decoder = Decoder(
-                self.img_height, self.img_width, weights=self.weights["image-decoder"]
+                self.img_height, self.img_width, weights=self.weights
             )
             if self.jit_compile:
                 self._decoder.compile(jit_compile=True)
