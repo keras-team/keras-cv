@@ -15,7 +15,7 @@
 import tensorflow as tf
 from tensorflow import keras
 
-from keras_cv.models.stable_diffusion import weights as weights
+from keras_cv.models.stable_diffusion import weights as weights_lib
 from keras_cv.models.stable_diffusion.__internal__.layers.group_normalization import (
     GroupNormalization,
 )

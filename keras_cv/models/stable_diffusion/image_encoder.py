@@ -14,6 +14,7 @@
 
 from tensorflow import keras
 
+from keras_cv.models.stable_diffusion import weights as weights_lib
 from keras_cv.models.stable_diffusion.__internal__.layers.attention_block import (
     AttentionBlock,
 )
@@ -26,6 +27,16 @@ from keras_cv.models.stable_diffusion.__internal__.layers.padded_conv2d import (
 from keras_cv.models.stable_diffusion.__internal__.layers.resnet_block import (
     ResnetBlock,
 )
+
+preconfigured_weights = {
+    "v1": "https://huggingface.co/fchollet/stable-diffusion/resolve/main/vae_encoder.h5",
+    "v1.5": "https://huggingface.co/lukewood/sd-1.5-keras-cv-weights/resolve/main/encoder.h5",
+}
+
+hashes = {
+    "https://huggingface.co/fchollet/stable-diffusion/resolve/main/kcv_decoder.h5": "c60fb220a40d090e0f86a6ab4c312d113e115c87c40ff75d11ffcf380aab7ebb",
+    "https://huggingface.co/lukewood/sd-1.5-keras-cv-weights/resolve/main/encoder.h5": "",
+}
 
 
 class ImageEncoder(keras.Sequential):
@@ -60,10 +71,4 @@ class ImageEncoder(keras.Sequential):
                 keras.layers.Lambda(lambda x: x[..., :4] * 0.18215),
             ]
         )
-
-        if download_weights:
-            image_encoder_weights_fpath = keras.utils.get_file(
-                origin="https://huggingface.co/fchollet/stable-diffusion/resolve/main/vae_encoder.h5",
-                file_hash="c60fb220a40d090e0f86a6ab4c312d113e115c87c40ff75d11ffcf380aab7ebb",
-            )
-            self.load_weights(image_encoder_weights_fpath)
+        weights_lib.load_weights(self, weights, preconfigured_weights, hashes)

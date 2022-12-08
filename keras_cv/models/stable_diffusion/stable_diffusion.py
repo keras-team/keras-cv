@@ -100,6 +100,11 @@ class StableDiffusion:
 
         self.jit_compile = jit_compile
 
+        if weights not in ["v1", "v1.5"]:
+            raise ValueError(
+                "Expected `weights` to be one of: 'v1', 'v1.5'. "
+                f"Got weights={weights}."
+            )
         self.weights = self.weights
         print(
             "By using this model checkpoint, you acknowledge that its usage is "
