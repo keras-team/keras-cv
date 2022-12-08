@@ -20,12 +20,12 @@ import keras_cv.models.stable_diffusion.weights as weights_lib
 
 preconfigured_weights = {
     "v1": "https://huggingface.co/fchollet/stable-diffusion/resolve/main/kcv_encoder.h5",
-    "v1.5": "https://huggingface.co/lukewood/sd-1.5-keras-cv-weights/resolve/main/encoder.h5",
+    "v1.5": "https://huggingface.co/Lukewood/sd-1.5-keras-cv-weights/resolve/main/text_encoder.h5",
 }
 
 hashes = {
     "https://huggingface.co/fchollet/stable-diffusion/resolve/main/kcv_encoder.h5": "4789e63e07c0e54d6a34a29b45ce81ece27060c499a709d556c7755b42bb0dc4",
-    "https://huggingface.co/lukewood/sd-1.5-keras-cv-weights/resolve/main/encoder.h5": "",
+    "https://huggingface.co/Lukewood/sd-1.5-keras-cv-weights/resolve/main/text_encoder.h5": "2cc9857ee2da843b8b0ca3f98e2456462a804167378643d6d714ee084d420799",
 }
 
 

@@ -30,12 +30,12 @@ from keras_cv.models.stable_diffusion.__internal__.layers.resnet_block import (
 
 preconfigured_weights = {
     "v1": "https://huggingface.co/fchollet/stable-diffusion/resolve/main/kcv_decoder.h5",
-    "v1.5": "https://huggingface.co/lukewood/sd-1.5-keras-cv-weights/resolve/main/decoder.h5",
+    "v1.5": "https://huggingface.co/Lukewood/sd-1.5-keras-cv-weights/resolve/main/decoder.h5",
 }
 
 hashes = {
     "https://huggingface.co/fchollet/stable-diffusion/resolve/main/kcv_decoder.h5": "ad350a65cc8bc4a80c8103367e039a3329b4231c2469a1093869a345f55b1962",
-    "https://huggingface.co/lukewood/sd-1.5-keras-cv-weights/resolve/main/decoder.h5": "",
+    "https://huggingface.co/Lukewood/sd-1.5-keras-cv-weights/resolve/main/decoder.h5": "22ef0208c1ea3495febc440876f5b533bdb08f288108b743b64977c5bba50882",
 }
 
 
@@ -58,7 +58,7 @@ class Decoder(keras.Sequential):
                 ResnetBlock(512),
                 ResnetBlock(512),
                 ResnetBlock(512),
-                ke1ras.layers.UpSampling2D(2),
+                keras.layers.UpSampling2D(2),
                 PaddedConv2D(512, 3, padding=1),
                 ResnetBlock(256),
                 ResnetBlock(256),

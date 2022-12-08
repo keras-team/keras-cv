@@ -30,12 +30,12 @@ from keras_cv.models.stable_diffusion.__internal__.layers.resnet_block import (
 
 preconfigured_weights = {
     "v1": "https://huggingface.co/fchollet/stable-diffusion/resolve/main/vae_encoder.h5",
-    "v1.5": "https://huggingface.co/lukewood/sd-1.5-keras-cv-weights/resolve/main/encoder.h5",
+    "v1.5": "https://huggingface.co/Lukewood/sd-1.5-keras-cv-weights/resolve/main/encoder.h5",
 }
 
 hashes = {
     "https://huggingface.co/fchollet/stable-diffusion/resolve/main/kcv_decoder.h5": "c60fb220a40d090e0f86a6ab4c312d113e115c87c40ff75d11ffcf380aab7ebb",
-    "https://huggingface.co/lukewood/sd-1.5-keras-cv-weights/resolve/main/encoder.h5": "",
+    "https://huggingface.co/Lukewood/sd-1.5-keras-cv-weights/resolve/main/encoder.h5": "5e25729f4a7c94773525d275d4ae2e82d3c45e7b6f2f9a35ff846690505539da",
 }
 
 

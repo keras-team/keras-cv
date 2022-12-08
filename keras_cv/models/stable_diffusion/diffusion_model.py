@@ -25,12 +25,12 @@ from keras_cv.models.stable_diffusion.__internal__.layers.padded_conv2d import (
 
 preconfigured_weights = {
     "v1": "https://huggingface.co/fchollet/stable-diffusion/resolve/main/kcv_diffusion_model.h5",
-    "v1.5": "https://huggingface.co/lukewood/sd-1.5-keras-cv-weights/resolve/main/diffusion_model.h5",
+    "v1.5": "https://huggingface.co/Lukewood/sd-1.5-keras-cv-weights/resolve/main/diffusion_model.h5",
 }
 
 hashes = {
     "https://huggingface.co/fchollet/stable-diffusion/resolve/main/kcv_diffusion_model.h5": "8799ff9763de13d7f30a683d653018e114ed24a6a819667da4f5ee10f9e805fe",
-    "https://huggingface.co/lukewood/sd-1.5-keras-cv-weights/resolve/main/diffusion_model.h5": "",
+    "https://huggingface.co/Lukewood/sd-1.5-keras-cv-weights/resolve/main/diffusion_model.h5": "c3576fd30f8929d2ee865df9edd12e7725549e8a1e7758eab2d268a5f5a59ebc",
 }
 
 

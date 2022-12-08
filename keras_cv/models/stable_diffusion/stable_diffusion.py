@@ -116,7 +116,7 @@ class StableDiffusion:
         self,
         prompt,
         batch_size=1,
-        steps=50,
+        steps=None,
         unconditional_guidance_scale=7.5,
         seed=None,
         num_steps=None,
@@ -128,7 +128,7 @@ class StableDiffusion:
                 "identical meaning, `num_steps` is only maintained for backwards "
                 "compatibility."
             )
-        steps = num_steps or steps
+        steps = num_steps or steps or 50
         return self.generate_image(
             encoded_text,
             batch_size=batch_size,
