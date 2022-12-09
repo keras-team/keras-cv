@@ -61,7 +61,7 @@ class_ids = [
 class_mapping = dict(zip(range(len(class_ids)), class_ids))
 
 flags.DEFINE_string(
-    "weights_path",
+    "weights_name",
     "weights_{epoch:02d}.h5",
     "Directory which will be used to store weight checkpoints.",
 )
@@ -89,7 +89,8 @@ BASE_LR = 0.01 * GLOBAL_BATCH_SIZE / 16
 print("Number of accelerators: ", strategy.num_replicas_in_sync)
 print("Global Batch Size: ", GLOBAL_BATCH_SIZE)
 
-image_size = [640, 640, 3]
+IMG_SIZE = 640
+image_size = [IMG_SIZE, IMG_SIZE, 3]
 train_ds = tfds.load(
     "voc/2007", split="train+validation", with_info=False, shuffle_files=True
 )
@@ -269,13 +270,13 @@ def proc_eval_fn(bounding_box_format, target_size):
 
         target_height = tf.cond(
             height > width,
-            lambda: 640.0,
-            lambda: tf.cast(height / width * 640.0, tf.float32),
+            lambda: float(IMG_SIZE),
+            lambda: tf.cast(height / width * IMG_SIZE, tf.float32),
         )
         target_width = tf.cond(
             width > height,
-            lambda: 640.0,
-            lambda: tf.cast(width / height * 640.0, tf.float32),
+            lambda: float(IMG_SIZE),
+            lambda: tf.cast(width / height * IMG_SIZE, tf.float32),
         )
         image = tf.image.resize(
             raw_image, (target_height, target_width), antialias=False
@@ -314,11 +315,11 @@ train_ds = train_ds.map(
     proc_train_fn("xywh", image_size), num_parallel_calls=tf.data.AUTOTUNE
 )
 train_ds = train_ds.apply(
-    tf.data.experimental.dense_to_ragged_batch(BATCH_SIZE, drop_remainder=True)
+    tf.data.experimental.dense_to_ragged_batch(GLOBAL_BATCH_SIZE, drop_remainder=True)
 )
 
 train_ds = train_ds.map(pad_fn, num_parallel_calls=tf.data.AUTOTUNE)
-train_ds = train_ds.shuffle(8)
+train_ds = train_ds.shuffle(8 * strategy.num_replicas_in_sync)
 train_ds = train_ds.prefetch(2)
 
 eval_ds = eval_ds.map(
@@ -365,25 +366,11 @@ with strategy.scope():
     # Fine-tuning a RetinaNet is as simple as setting backbone.trainable = False
     model.backbone.trainable = False
 
-    metrics = [
-        keras_cv.metrics.COCOMeanAveragePrecision(
-            class_ids=range(21),
-            bounding_box_format="xywh",
-            name="Mean Average Precision",
-        ),
-        keras_cv.metrics.COCORecall(
-            class_ids=range(21),
-            bounding_box_format="xywh",
-            max_detections=100,
-            name="Recall",
-        ),
-    ]
     optimizer = tf.optimizers.SGD(learning_rate=BASE_LR, global_clipnorm=10.0)
 model.compile(
     classification_loss="focal",
     box_loss="smoothl1",
     optimizer=optimizer,
-    metrics=metrics,
 )
 
 
