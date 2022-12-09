@@ -304,7 +304,7 @@ class StableDiffusion:
             progbar.update(iteration)
 
         # Decoding stage
-        decoded = latent#self.decoder.predict_on_batch(latent)
+        decoded = self.decoder.predict_on_batch(latent)
         decoded = ((decoded + 1) / 2) * 255
         return np.clip(decoded, 0, 255).astype("uint8")
 
