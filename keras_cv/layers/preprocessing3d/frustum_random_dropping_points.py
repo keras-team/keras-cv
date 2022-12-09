@@ -28,7 +28,7 @@ class FrustumRandomDroppingPoints(base_augmentation_layer_3d.BaseAugmentationLay
     This layer will randomly select a point from the point cloud as the center of a frustum then generate a frustum based
     on r_distance, theta_width, and phi_width. Points inside the selected frustum are randomly dropped (setting all features to zero)
     based on drop_rate.
-    The point_clouds tensor shape must be specific and cannot be dynamic. 
+    The point_clouds tensor shape must be specific and cannot be dynamic.
     During inference time, the output will be identical to input. Call the layer with `training=True` to drop the input points.
 
     Input shape:
