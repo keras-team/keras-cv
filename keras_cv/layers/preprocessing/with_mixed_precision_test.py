@@ -94,12 +94,22 @@ TEST_CONFIGURATIONS = [
     ("Solarization", layers.Solarization, {"value_range": (0, 255)}),
     ("Mosaic", layers.Mosaic, {}),
     ("CutMix", layers.CutMix, {}),
+    ("MixUp", layers.MixUp, {}),
     (
         "Resizing",
         layers.Resizing,
         {
             "height": 224,
             "width": 224,
+        },
+    ),
+    (
+        "JitteredResize",
+        layers.JitteredResize,
+        {
+            "target_size": (224, 224),
+            "scale_factor": (0.8, 1.25),
+            "bounding_box_format": "xywh",
         },
     ),
 ]
