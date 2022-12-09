@@ -37,10 +37,12 @@ class FrustumRandomPointFeatureNoise(
     Input shape:
       point_clouds: 3D (multi frames) float32 Tensor with shape
         [num of frames, num of points, num of point features].
-        The first 5 features are [x, y, z, class, range].
+        The first 4 features are [x, y, z, class, additional features].
       bounding_boxes: 3D (multi frames) float32 Tensor with shape
-        [num of frames, num of boxes, num of box features].
-        The first 7 features are [x, y, z, dx, dy, dz, phi].
+        [num of frames, num of boxes, num of box features]. Boxes are expected
+        to follow the CENTER_XYZ_DXDYDZ_PHI format. Refer to
+        https://github.com/keras-team/keras-cv/blob/master/keras_cv/bounding_box_3d/formats.py
+        for more details on supported bounding box formats.
 
     Output shape:
       A dictionary of Tensors with the same shape as input Tensors.
@@ -49,7 +51,7 @@ class FrustumRandomPointFeatureNoise(
       r_distance: A float scalar sets the starting distance of a frustum.
       theta_width: A float scalar sets the theta width of a frustum.
       phi_width: A float scalar sets the phi width of a frustum.
-      max_noise_level: A float scalar sets the probability threshold for dropping the points.
+      max_noise_level: A float scalar sets the sampled feature noise range [1-max_noise_level, 1+max_noise_level].
 
     """
 
@@ -75,15 +77,16 @@ class FrustumRandomPointFeatureNoise(
 
     def get_random_transformation(self, point_clouds, **kwargs):
         # Randomly select a point from the first frame as the center of the frustum.
-        num_valid_points = tf.cast(
-            tf.math.reduce_sum(point_clouds[0, :, POINTCLOUD_LABEL_INDEX]), tf.int32
-        )
+        valid_points = point_clouds[0, :, POINTCLOUD_LABEL_INDEX] > 0
+        num_valid_points = tf.math.reduce_sum(tf.cast(valid_points, tf.int32))
         randomly_select_point_index = tf.random.uniform(
             (), minval=0, maxval=num_valid_points, dtype=tf.int32
         )
         randomly_select_frustum_center = point_clouds[
             0, randomly_select_point_index, :POINTCLOUD_LABEL_INDEX
         ]
+        tf.print(("khk", randomly_select_frustum_center))
+
         num_frames, num_points, num_features = point_clouds.get_shape().as_list()
         frustum_mask = []
         for f in range(num_frames):
@@ -97,10 +100,10 @@ class FrustumRandomPointFeatureNoise(
                 )[tf.newaxis, :, tf.newaxis]
             )
         frustum_mask = tf.concat(frustum_mask, axis=0)
-        feature_noise = 1 + tf.random.uniform(
+        feature_noise = tf.random.uniform(
             [num_frames, num_points, num_features - POINTCLOUD_FEATURE_INDEX],
-            minval=-self._max_noise_level,
-            maxval=self._max_noise_level,
+            minval=1 - self._max_noise_level,
+            maxval=1 + self._max_noise_level,
         )
         noise = tf.concat(
             [

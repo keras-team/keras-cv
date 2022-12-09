@@ -41,6 +41,48 @@ class FrustumRandomPointFeatureNoiseTest(tf.test.TestCase):
             outputs[POINT_CLOUDS][:, :, :POINTCLOUD_LABEL_INDEX],
         )
 
+    def test_augment_specific_point_clouds_and_bounding_boxes(self):
+        tf.keras.utils.set_random_seed(2)
+        add_layer = FrustumRandomPointFeatureNoise(
+            r_distance=10, theta_width=np.pi, phi_width=1.5 * np.pi, max_noise_level=0.5
+        )
+        point_clouds = np.array(
+            [
+                [
+                    [0, 1, 2, 3, 4, 5],
+                    [10, 1, 2, 3, 4, 2],
+                    [100, 100, 2, 3, 4, 1],
+                    [-20, -20, 21, 1, 0, 2],
+                ]
+            ]
+            * 2
+        ).astype("float32")
+        bounding_boxes = np.random.random(size=(2, 10, 7)).astype("float32")
+        inputs = {POINT_CLOUDS: point_clouds, BOUNDING_BOXES: bounding_boxes}
+        outputs = add_layer(inputs)
+        # bounding boxes and point clouds (x, y, z, class) are not modified.
+        augmented_point_clouds = np.array(
+            [
+                [
+                    [0, 1, 2, 3, 4, 5],
+                    [10, 1, 2, 3, 4, 2],
+                    [100, 100, 2, 3, 4, 1],
+                    [-20, -20, 21, 1, 0, 1.3747642],
+                ],
+                [
+                    [0, 1, 2, 3, 4, 5],
+                    [10, 1, 2, 3, 4, 2],
+                    [100, 100, 2, 3, 4, 1],
+                    [-20, -20, 21, 1, 0, 1.6563809],
+                ],
+            ]
+        ).astype("float32")
+        self.assertAllClose(inputs[BOUNDING_BOXES], outputs[BOUNDING_BOXES])
+        # [-20, -20, 21, 1, 0, 2] is randomly selected as the frustum center.
+        # [0, 1, 2, 3, 4, 5] and [10, 1, 2, 3, 4, 2] are not changed due to less than r_distance.
+        # [100, 100, 2, 3, 4, 1] is not changed due to outside phi_width.
+        self.assertAllClose(outputs[POINT_CLOUDS], augmented_point_clouds)
+
     def test_not_augment_max_noise_level0_point_clouds_and_bounding_boxes(self):
         add_layer = FrustumRandomPointFeatureNoise(
             r_distance=0, theta_width=1, phi_width=1, max_noise_level=0.0
