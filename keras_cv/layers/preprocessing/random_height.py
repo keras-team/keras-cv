@@ -46,7 +46,9 @@ class RandomHeight(BaseImageAugmentationLayer):
       `(..., random_height, width, channels)`.
     """
 
-    def __init__(self, factor, interpolation=tf.image.ResizeMethod.BILINEAR, seed=None, **kwargs):
+    def __init__(
+        self, factor, interpolation=tf.image.ResizeMethod.BILINEAR, seed=None, **kwargs
+    ):
         super().__init__(seed=seed, force_generator=True, **kwargs)
         self.factor = factor
         if isinstance(factor, (tuple, list)):
