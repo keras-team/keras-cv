@@ -327,7 +327,7 @@ eval_ds = eval_ds.map(
     num_parallel_calls=tf.data.AUTOTUNE,
 )
 eval_ds = eval_ds.apply(
-    tf.data.experimental.dense_to_ragged_batch(BATCH_SIZE, drop_remainder=True)
+    tf.data.experimental.dense_to_ragged_batch(GLOBAL_BATCH_SIZE, drop_remainder=True)
 )
 eval_ds = eval_ds.map(pad_fn, num_parallel_calls=tf.data.AUTOTUNE)
 eval_ds = eval_ds.prefetch(2)
