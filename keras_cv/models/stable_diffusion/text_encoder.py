@@ -38,7 +38,7 @@ class TextEncoder(keras.Model):
             else:
                 text_encoder_weights_fpath = keras.utils.get_file(
                     origin="https://huggingface.co/datasets/Jobayer/StableDiffusion/resolve/main/text_encoder.h5",
-                    file_hash="3c76c26631540fd912b853f5de9552a54da29727b619548c44a2e480ea4ade44",
+                    file_hash="9ad00b5d2f10d297d122ddf4c0cacc643a6e36a1576b43060239f35ecb5e965a",
                 )
             self.load_weights(text_encoder_weights_fpath)
 
