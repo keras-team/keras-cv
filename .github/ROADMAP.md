@@ -12,11 +12,10 @@ The team will release one minor version upgrade each quarter, or whenever a new 
 
 
 2022 Q4:
-- 2D Semantic Segmentation task, the team focuses on DeepLabV3 and opens up contribution
-  for UNet/FCN.
-- 3D Object Detection task, the team focuses on providing point cloud data pipeline.
+- 2D Semantic Segmentation task, the team focuses on DeepLabV3, DeepLabV3+ and opens up contribution for UNet/FCN.
+- 3D Object Detection task, the team focuses on providing point cloud data augmentation pipeline, losses and metrics.
 - 2D Instance Segmentation task, the team focuses on MaskRCNN meta arch built on top of FasterRCNN.
-- Text-to-image task, more specifically built on top of StableDiffusion for image impainting and text-to-video.
+- Text-to-image or text guides image-to-image task, more specifically built on top of StableDiffusion for image inpainting, textual inversion and text-to-video.
 - Refactoring data augmentation layers:
     - refactoring bounding box input format
     - `RaggedTensor` support for data augmentation layers, contribution welcome.

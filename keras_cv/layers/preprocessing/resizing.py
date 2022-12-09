@@ -81,6 +81,7 @@ class Resizing(BaseImageAugmentationLayer):
         self.pad_to_aspect_ratio = pad_to_aspect_ratio
         self._interpolation_method = keras_cv.utils.get_interpolation(interpolation)
         self.bounding_box_format = bounding_box_format
+        self.force_output_dense_images = True
 
         if pad_to_aspect_ratio and crop_to_aspect_ratio:
             raise ValueError(
@@ -96,6 +97,12 @@ class Resizing(BaseImageAugmentationLayer):
                 "when processing bounding boxes with `Resizing()`"
             )
         super().__init__(**kwargs)
+
+    def compute_image_signature(self, images):
+        return tf.TensorSpec(
+            shape=(self.height, self.width, images.shape[-1]),
+            dtype=self.compute_dtype,
+        )
 
     def _augment(self, inputs):
         images = inputs.get("images", None)
@@ -142,8 +149,10 @@ class Resizing(BaseImageAugmentationLayer):
             img_size = tf.shape(image)
             img_height = tf.cast(img_size[H_AXIS], self.compute_dtype)
             img_width = tf.cast(img_size[W_AXIS], self.compute_dtype)
-
             if boxes is not None:
+                if isinstance(boxes, tf.RaggedTensor):
+                    boxes = boxes.to_tensor(-1)
+
                 boxes = keras_cv.bounding_box.convert_format(
                     boxes,
                     image_shape=img_size,
@@ -173,6 +182,9 @@ class Resizing(BaseImageAugmentationLayer):
                 )
             image = tf.image.pad_to_bounding_box(image, 0, 0, self.height, self.width)
             if boxes is not None:
+                boxes = keras_cv.bounding_box.clip_to_image(
+                    boxes, images=image, bounding_box_format="xyxy"
+                )
                 boxes = keras_cv.bounding_box.convert_format(
                     boxes,
                     images=image,
@@ -182,6 +194,7 @@ class Resizing(BaseImageAugmentationLayer):
             inputs["images"] = image
 
             if boxes is not None:
+                boxes = keras_cv.bounding_box.filter_sentinels(boxes)
                 inputs["bounding_boxes"] = tf.RaggedTensor.from_tensor(boxes)
             return inputs
 
@@ -284,12 +297,6 @@ class Resizing(BaseImageAugmentationLayer):
         if self.pad_to_aspect_ratio:
             return self._resize_with_pad(inputs)
         return self._resize_with_distortion(inputs)
-
-    def compute_output_shape(self, input_shape):
-        input_shape = tf.TensorShape(input_shape).as_list()
-        input_shape[H_AXIS] = self.height
-        input_shape[W_AXIS] = self.width
-        return tf.TensorShape(input_shape)
 
     def get_config(self):
         config = {

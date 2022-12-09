@@ -35,6 +35,8 @@ local unittest = base.BaseTest {
   command: [
     'pytest',
     'keras_cv',
+    '--ignore',
+    'keras_cv/datasets/waymo',
   ],
 };
 
