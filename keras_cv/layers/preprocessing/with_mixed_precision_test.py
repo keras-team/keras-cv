@@ -90,6 +90,7 @@ TEST_CONFIGURATIONS = [
         layers.RandomSharpness,
         {"factor": 0.5, "value_range": (0, 255)},
     ),
+    ("RandomAspectRatio", layers.RandomAspectRatio, {"factor": (0.9, 1.1)}),
     ("RandomShear", layers.RandomShear, {"x_factor": 0.3, "x_factor": 0.3}),
     ("Solarization", layers.Solarization, {"value_range": (0, 255)}),
     ("Mosaic", layers.Mosaic, {}),
