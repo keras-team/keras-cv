@@ -19,8 +19,12 @@ import tensorflow as tf
 from keras_cv.datasets.waymo import build_tensors_for_augmentation
 from keras_cv.datasets.waymo import load
 
-TRAINING_RECORD_PATH = "/home/overflow/code/wod_records"  # "gs://waymo_open_dataset_v_1_0_0_individual_files/training"
-TRANSFORMED_RECORD_PATH = "/home/overflow/code/wod_transformed"  # "gs://waymo_open_dataset_v_1_0_0_individual_files/training"
+TRAINING_RECORD_PATH = (
+    "./wod_records"  # "gs://waymo_open_dataset_v_1_0_0_individual_files/training"
+)
+TRANSFORMED_RECORD_PATH = (
+    "./wod_transformed"  # "gs://waymo_open_dataset_v_1_0_0_individual_files/training"
+)
 
 
 def _float_feature(value):
@@ -45,20 +49,16 @@ def serialize_example(feature0, feature1):
 
 
 # Load the training dataset
-filenames = tf.data.TFRecordDataset.list_files(
-    os.path.join(TRAINING_RECORD_PATH, "*.tfrecord")
-)
+filenames = os.listdir(TRAINING_RECORD_PATH)
 
 for filename in filenames:
-    train_ds = load(filename)
+    train_ds = load([os.path.join(TRAINING_RECORD_PATH, filename)])
     train_ds = train_ds.map(
         build_tensors_for_augmentation, num_parallel_calls=tf.data.AUTOTUNE
     )
     start = time.time()
     step = 0
-    transformed_filename = os.path.join(
-        TRANSFORMED_RECORD_PATH, os.path.basename(filename.numpy().decode("utf-8"))
-    )
+    transformed_filename = os.path.join(TRANSFORMED_RECORD_PATH, filename)
     with tf.io.TFRecordWriter(transformed_filename) as writer:
         for examples in train_ds:
             serialized_example = serialize_example(
