@@ -115,6 +115,7 @@ def DeepLabV3(classes,
         )
 
     feature_map = backbone(x)
+    print(feature_map.shape)
     output = SpatialPyramidPooling(dilation_rates=[6, 12, 18])(feature_map)
 
     height = inputs.shape[1]
