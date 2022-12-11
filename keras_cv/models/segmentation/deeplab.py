@@ -38,23 +38,14 @@ def DeepLabV3(classes,
         spatial_pyramid_pooling=None,
         segmentation_head=None,
         name=None,
-        weights=None,
-        include_top=None,
         input_shape=(None, None, 3),
         input_tensor=None,
         **kwargs,):
 
-    # create model
-    if weights and not tf.io.gfile.exists(weights):
+    if backbone_weights and not tf.io.gfile.exists(backbone_weights):
         raise ValueError(
             "The `weights` argument should be either `None` or the path to the "
             "weights file to be loaded. Weights file not found at location: {weights}"
-        )
-
-    if include_top and not classes:
-        raise ValueError(
-            "If `include_top` is True, you should specify `classes`. "
-            f"Received: classes={classes}"
         )
 
     inputs = utils.parse_model_inputs(input_shape, input_tensor)
@@ -66,7 +57,7 @@ def DeepLabV3(classes,
     if include_rescaling:
         x = layers.Rescaling(1 / 255.0)(x)
 
-    # Init
+    # Backbone
     if isinstance(backbone, str):
         supported_premade_backbone = [
             "resnet50_v2",
@@ -78,11 +69,7 @@ def DeepLabV3(classes,
             )
 
         if backbone == "resnet50_v2":
-            backbone = models.ResNet50V2(include_rescaling=include_rescaling,
-                include_top=False,
-                name="resnet50v2",
-                weights=parse_weights(backbone_weights, False, "resnet50v2"),
-                pooling=None,)
+            backbone = get_resnet_backbone(backbone_weights, include_rescaling, **kwargs)
 
     else:
         # TODO(scottzhu): Might need to do more assertion about the model
@@ -92,47 +79,70 @@ def DeepLabV3(classes,
                 f"received {backbone}"
             )
 
-    if segmentation_head is None:
-        segmentation_head = tf.keras.Sequential(
-            [
-                tf.keras.layers.Conv2D(
-                    filters=256,
-                    kernel_size=(1, 1),
-                    padding="same",
-                    use_bias=False,
-                ),
-                tf.keras.layers.BatchNormalization(),
-                tf.keras.layers.Activation("relu"),
-                tf.keras.layers.Dropout(0.2),
-                tf.keras.layers.Conv2D(
-                    filters=classes,
-                    kernel_size=(1, 1),
-                    padding="same",
-                    use_bias=False,
-                    activation="softmax",
-                    # Force the dtype of the classification head to float32 to avoid the NAN loss
-                    # issue when used with mixed precision API.
-                    dtype=tf.float32,
-                ),
-            ]
-        )
-
     feature_map = backbone(x)
     output = SpatialPyramidPooling(dilation_rates=[6, 12, 18])(feature_map)
-
     output = tf.keras.layers.UpSampling2D(
             size=(height // feature_map.shape[1], width // feature_map.shape[2]),
             interpolation="bilinear",
         )(output)
 
-    output = segmentation_head(output)
+    # Segmentation head
+    if segmentation_head is None:
+        segmentation_head = get_segmentation_head()
 
+    output = segmentation_head(output)
     model = tf.keras.Model(inputs, output, name=name, **kwargs)
 
-    if weights is not None:
-        model.load_weights(weights)
+    if backbone_weights is not None:
+        backbone.load_weights(backbone_weights)
 
     return model
+
+def get_segmentation_head():
+    return tf.keras.Sequential(
+        [
+            tf.keras.layers.Conv2D(
+                filters=256,
+                kernel_size=(1, 1),
+                padding="same",
+                use_bias=False,
+            ),
+            tf.keras.layers.BatchNormalization(),
+            tf.keras.layers.Activation("relu"),
+            tf.keras.layers.Dropout(0.2),
+            tf.keras.layers.Conv2D(
+                filters=classes,
+                kernel_size=(1, 1),
+                padding="same",
+                use_bias=False,
+                activation="softmax",
+                # Force the dtype of the classification head to float32 to avoid the NAN loss
+                # issue when used with mixed precision API.
+                dtype=tf.float32,
+            ),
+        ]
+    )
+
+def get_resnet_backbone(backbone_weights, include_rescaling, **kwargs):
+    return ResNetV2(
+                stackwise_filters=BACKBONE_CONFIG["ResNet50V2"][
+                    "stackwise_filters"
+                ],
+                stackwise_blocks=BACKBONE_CONFIG["ResNet50V2"]["stackwise_blocks"],
+                stackwise_strides=BACKBONE_CONFIG["ResNet50V2"][
+                    "stackwise_strides"
+                ],
+                stackwise_dilations=BACKBONE_CONFIG["ResNet50V2"][
+                    "stackwise_dilations"
+                ],
+                include_rescaling=include_rescaling,
+                include_top=False,
+                name="resnet50v2",
+                weights=parse_weights(backbone_weights, False, "resnet50v2"),
+                pooling=None,
+                **kwargs,
+            )
+
 """
 class DeepLabV3(tf.keras.models.Model):
     A segmentation model based on the DeepLab v3.
