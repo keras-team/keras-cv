@@ -58,6 +58,9 @@ def DeepLabV3(classes,
         )
 
     inputs = utils.parse_model_inputs(input_shape, input_tensor)
+    height = input_shape[0]
+    width = input_shape[1]
+
     x = inputs
 
     if include_rescaling:
@@ -115,13 +118,10 @@ def DeepLabV3(classes,
         )
 
     feature_map = backbone(x)
-    print(feature_map.shape)
     output = SpatialPyramidPooling(dilation_rates=[6, 12, 18])(feature_map)
 
-    height = inputs.shape[1]
-    width = inputs.shape[2]
     output = tf.keras.layers.UpSampling2D(
-            size=(height // output.shape[1], width // output.shape[2]),
+            size=(height // feature_map.shape[1], width // feature_map.shape[2]),
             interpolation="bilinear",
         )(output)
 

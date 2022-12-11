@@ -147,6 +147,7 @@ class SpatialPyramidPooling(tf.keras.layers.Layer):
           A `tf.Tensor` of shape [batch, height, width, num_channels]
         """
         result = []
+
         for channel in self.aspp_parallel_channels:
             temp = tf.cast(channel(inputs, training=training), inputs.dtype)
             result.append(temp)
