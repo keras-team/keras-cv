@@ -14,14 +14,15 @@
 
 import tensorflow as tf
 
+from keras_cv.bounding_box_3d import CENTER_XYZ_DXDYDZ_PHI
 from keras_cv.layers.preprocessing3d import base_augmentation_layer_3d
+from keras_cv.ops.point_cloud import group_points_by_boxes
 from keras_cv.ops.point_cloud import is_within_box3d
 
 POINT_CLOUDS = base_augmentation_layer_3d.POINT_CLOUDS
 BOUNDING_BOXES = base_augmentation_layer_3d.BOUNDING_BOXES
 OBJECT_POINT_CLOUDS = base_augmentation_layer_3d.OBJECT_POINT_CLOUDS
 OBJECT_BOUNDING_BOXES = base_augmentation_layer_3d.OBJECT_BOUNDING_BOXES
-BOX_LABEL_INDEX = base_augmentation_layer_3d.BOX_LABEL_INDEX
 
 
 class GroupPointsByBoundingBoxes(base_augmentation_layer_3d.BaseAugmentationLayer3D):
@@ -35,8 +36,9 @@ class GroupPointsByBoundingBoxes(base_augmentation_layer_3d.BaseAugmentationLaye
         [num of frames, num of points, num of point features].
         The first 5 features are [x, y, z, class, range].
       bounding_boxes: 3D (multi frames) float32 Tensor with shape
-        [num of frames, num of boxes, num of box features].
-        The first 8 features are [x, y, z, dx, dy, dz, phi, box class].
+        [num of frames, num of boxes, num of box features]. Boxes are expected
+        to follow the CENTER_XYZ_DXDYDZ_PHI format. Refer to
+        https://github.com/keras-team/keras-cv/blob/master/keras_cv/bounding_box_3d/formats.py
 
     Output shape:
       A dictionary of Tensors with the same shape as input Tensors and two additional items for
@@ -83,13 +85,15 @@ class GroupPointsByBoundingBoxes(base_augmentation_layer_3d.BaseAugmentationLaye
     ):
         if self._label_index:
             bounding_boxes_mask = (
-                bounding_boxes[0, :, BOX_LABEL_INDEX] == self._label_index
+                bounding_boxes[0, :, CENTER_XYZ_DXDYDZ_PHI.CLASS] == self._label_index
             )
             object_bounding_boxes = tf.boolean_mask(
                 bounding_boxes, bounding_boxes_mask, axis=1
             )
         else:
-            bounding_boxes_mask = bounding_boxes[0, :, BOX_LABEL_INDEX] > 0.0
+            bounding_boxes_mask = (
+                bounding_boxes[0, :, CENTER_XYZ_DXDYDZ_PHI.CLASS] > 0.0
+            )
             object_bounding_boxes = tf.boolean_mask(
                 bounding_boxes, bounding_boxes_mask, axis=1
             )
@@ -98,6 +102,7 @@ class GroupPointsByBoundingBoxes(base_augmentation_layer_3d.BaseAugmentationLaye
             point_clouds[:, :, :3], object_bounding_boxes[:, :, :7]
         )
         # Filter bounding boxes using the current frame.
+        # [num_boxes]
         min_points_filter = (
             tf.reduce_sum(tf.cast(points_in_bounding_boxes[0], dtype=tf.int32), axis=0)
             >= self._min_points_per_bounding_boxes
@@ -137,6 +142,51 @@ class GroupPointsByBoundingBoxes(base_augmentation_layer_3d.BaseAugmentationLaye
             object_point_clouds,
             object_bounding_boxes,
         )
+
+    def augment_point_clouds_bounding_boxes_v2(
+        self, point_clouds, bounding_boxes, **kwargs
+    ):
+        if self._label_index:
+            bounding_boxes_mask = (
+                bounding_boxes[0, :, CENTER_XYZ_DXDYDZ_PHI.CLASS] == self._label_index
+            )
+            object_bounding_boxes = tf.boolean_mask(
+                bounding_boxes, bounding_boxes_mask, axis=1
+            )
+        else:
+            bounding_boxes_mask = (
+                bounding_boxes[0, :, CENTER_XYZ_DXDYDZ_PHI.CLASS] > 0.0
+            )
+            object_bounding_boxes = tf.boolean_mask(
+                bounding_boxes, bounding_boxes_mask, axis=1
+            )
+
+        # [frames, num_boxes, ragged_points]
+        points_in_bounding_boxes = group_points_by_boxes(
+            point_clouds[:, :, :3], object_bounding_boxes[:, :, :7]
+        )
+        # Filter bounding boxes using the current frame.
+        # [num_boxes]
+        min_points_filter = (
+            points_in_bounding_boxes.row_lengths(-1)
+            >= self._min_points_per_bounding_boxes
+        )
+
+        # [frames, num_valid_boxes, box_feature]
+        object_bounding_boxes = tf.ragged.boolean_mask(
+            object_bounding_boxes, min_points_filter
+        )
+        # [frames, num_valid_boxes, ragged_points]
+        points_in_bounding_boxes = tf.ragged.boolean_mask(
+            points_in_bounding_boxes, min_points_filter
+        )
+        # point_clouds: [frames, num_points, point_feature]
+        # object_point_clouds: [frames, num_valid_boxes, ragged_points, point_feature]
+        object_point_clouds = tf.gather(
+            point_clouds, points_in_bounding_boxes, axis=1, batch_dims=1
+        )
+
+        return (object_point_clouds, object_bounding_boxes)
 
     def _augment(self, inputs):
         result = inputs

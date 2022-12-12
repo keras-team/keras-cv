@@ -326,6 +326,7 @@ class StableDiffusion:
         verbose=True,
     ):
         """Inpaints a masked section of the provided image based on the provided prompt.
+        Note that this currently does not support mixed precision.
 
         Args:
             prompt: A string representing the prompt for generation.

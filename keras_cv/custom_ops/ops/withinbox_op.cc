@@ -18,18 +18,12 @@ limitations under the License.
 
 using namespace tensorflow;
 
-REGISTER_OP("KcvPairwiseIou3D")
-    .Input("boxes_a: float")
-    .Input("boxes_b: float")
-    .Output("iou: float")
+REGISTER_OP("KcvWithinBox")
+    .Input("points: float")
+    .Input("boxes: float")
+    .Output("box_indices: int32")
     .SetShapeFn([](tensorflow::shape_inference::InferenceContext* c) {
       c->set_output(
-          0, c->MakeShape({c->Dim(c->input(0), 0), c->Dim(c->input(1), 0)}));
+          0, c->MakeShape({c->Dim(c->input(0), 0)}));
       return tensorflow::Status();
-    })
-    .Doc(R"doc(
-Calculate pairwise IoUs between two set of 3D bboxes. Every bbox is represented
-as [center_x, center_y, center_z, dim_x, dim_y, dim_z, heading].
-boxes_a: A tensor of shape [num_boxes_a, 7]
-boxes_b: A tensor of shape [num_boxes_b, 7]
-)doc");
+    });

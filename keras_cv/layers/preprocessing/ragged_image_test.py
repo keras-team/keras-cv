@@ -115,6 +115,10 @@ DENSE_OUTPUT_TEST_CONFIGURATIONS = [
     ),
 ]
 
+RAGGED_OUTPUT_TEST_CONFIGURATIONS = [
+    ("RandomAspectRatio", layers.RandomAspectRatio, {"factor": (0.9, 1.1)}),
+]
+
 
 class RaggedImageTest(tf.test.TestCase, parameterized.TestCase):
     @parameterized.named_parameters(*CONSISTENT_OUTPUT_TEST_CONFIGURATIONS)
@@ -140,3 +144,10 @@ class RaggedImageTest(tf.test.TestCase, parameterized.TestCase):
         )
         outputs = layer(inputs)
         self.assertTrue(isinstance(outputs, tf.Tensor))
+
+    @parameterized.named_parameters(*RAGGED_OUTPUT_TEST_CONFIGURATIONS)
+    def test_dense_to_ragged(self, layer_cls, init_args):
+        layer = layer_cls(**init_args)
+        inputs = tf.ones((8, 512, 512, 3))
+        outputs = layer(inputs)
+        self.assertTrue(isinstance(outputs, tf.RaggedTensor))

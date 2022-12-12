@@ -15,6 +15,9 @@
 from keras_cv.layers.preprocessing3d.base_augmentation_layer_3d import (
     BaseAugmentationLayer3D,
 )
+from keras_cv.layers.preprocessing3d.frustum_random_dropping_points import (
+    FrustumRandomDroppingPoints,
+)
 from keras_cv.layers.preprocessing3d.global_random_dropping_points import (
     GlobalRandomDroppingPoints,
 )
@@ -28,3 +31,5 @@ from keras_cv.layers.preprocessing3d.group_points_by_bounding_boxes import (
     GroupPointsByBoundingBoxes,
 )
 from keras_cv.layers.preprocessing3d.random_copy_paste import RandomCopyPaste
+from keras_cv.layers.preprocessing3d.random_drop_box import RandomDropBox
+from keras_cv.layers.preprocessing3d.swap_background import SwapBackground

@@ -25,7 +25,9 @@ cc_binary(
     name = '_keras_cv_custom_ops.so',
     srcs = [
         "kernels/pairwise_iou_kernel.cc",
-        "ops/pairwise_iou_op.cc"
+        "ops/pairwise_iou_op.cc",
+        "kernels/withinbox_op.cc",
+        "ops/withinbox_op.cc",
     ],
     linkshared = 1,
     deps = [

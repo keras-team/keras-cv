@@ -25,8 +25,9 @@ def iou_3d(y_true, y_pred):
     Note that this is implemented using a custom TensorFlow op. If you don't have
     KerasCV installed with custom ops, calling this will fail.
 
-    Boxes should have the format [center_x, center_y, center_z, dimension_x,
-    dimension_y, dimension_z, heading (in radians)].
+    Boxes should have the format CENTER_XYZ_DXDYDZ_PHI. Refer to
+    https://github.com/keras-team/keras-cv/blob/master/keras_cv/bounding_box/formats.py
+    for more details on supported bounding box formats.
 
     Sample Usage:
     ```python
@@ -36,4 +37,4 @@ def iou_3d(y_true, y_pred):
     ```
     """
 
-    return keras_cv_custom_ops.ops.pairwise_iou3d(y_true, y_pred)
+    return keras_cv_custom_ops.ops.kcv_pairwise_iou3d(y_true, y_pred)

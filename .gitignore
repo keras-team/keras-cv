@@ -10,6 +10,7 @@ build/
 .pytest_cache
 *.egg-info
 __pycache__/
+*.so
 
 #VS Code files and container
 .vscode/
