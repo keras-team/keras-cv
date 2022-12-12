@@ -176,7 +176,9 @@ class RetinaNetLabelEncoder(layers.Layer):
         )
 
         if isinstance(target_boxes, tf.RaggedTensor):
-            target_boxes = target_boxes.to_tensor(default_value=-1)
+            target_boxes = target_boxes.to_tensor(
+                default_value=-1, shape=(None, None, 5)
+            )
 
         result = tf.map_fn(
             elems=(target_boxes),

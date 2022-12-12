@@ -71,7 +71,6 @@ class RandomCropAndResize(BaseImageAugmentationLayer):
         super().__init__(seed=seed, **kwargs)
 
         self._check_class_arguments(target_size, crop_area_factor, aspect_ratio_factor)
-
         self.target_size = target_size
         self.aspect_ratio_factor = preprocessing.parse_factor(
             aspect_ratio_factor,
@@ -90,6 +89,7 @@ class RandomCropAndResize(BaseImageAugmentationLayer):
         self.interpolation = interpolation
         self.seed = seed
         self.bounding_box_format = bounding_box_format
+        self.force_output_dense_images = True
 
     def get_random_transformation(
         self, image=None, label=None, bounding_box=None, **kwargs
@@ -141,6 +141,12 @@ class RandomCropAndResize(BaseImageAugmentationLayer):
                 )
 
             return self._format_output(output, meta_data)
+
+    def compute_image_signature(self, images):
+        return tf.TensorSpec(
+            shape=(self.target_size[0], self.target_size[1], images.shape[-1]),
+            dtype=self.compute_dtype,
+        )
 
     def augment_image(self, image, transformation, **kwargs):
         return self._crop_and_resize(image, transformation)

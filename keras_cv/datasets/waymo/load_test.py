@@ -18,37 +18,28 @@ import tensorflow as tf
 from keras_cv.datasets.waymo import load
 
 
-def simple_transformer(frame):
-    return {"timestamp_micros": frame.timestamp_micros}
-
-
 class WaymoOpenDatasetLoadTest(tf.test.TestCase):
     def setUp(self):
         super().setUp()
         self.test_data_path = os.path.abspath(
             os.path.join(os.path.abspath(__file__), os.path.pardir, "test_data")
         )
-        self.test_data_file = "mini.tfrecord"
-        self.output_signature = {"timestamp_micros": tf.TensorSpec((), tf.int64)}
+        self.test_data_file = "wod_one_frame.tfrecord"
 
     def test_load_from_directory(self):
-        dataset = load(self.test_data_path, simple_transformer, self.output_signature)
+        dataset = load(self.test_data_path)
 
         # Extract records into a list
         dataset = [record for record in dataset]
 
         self.assertEquals(len(dataset), 1)
-        self.assertEquals(dataset[0]["timestamp_micros"], 8675309)
+        self.assertNotEqual(dataset[0]["timestamp_micros"], 0)
 
     def test_load_from_files(self):
-        dataset = load(
-            [os.path.join(self.test_data_path, self.test_data_file)],
-            simple_transformer,
-            self.output_signature,
-        )
+        dataset = load([os.path.join(self.test_data_path, self.test_data_file)])
 
         # Extract records into a list
         dataset = [record for record in dataset]
 
         self.assertEquals(len(dataset), 1)
-        self.assertEquals(dataset[0]["timestamp_micros"], 8675309)
+        self.assertNotEqual(dataset[0]["timestamp_micros"], 0)

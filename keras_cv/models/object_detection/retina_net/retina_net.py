@@ -94,12 +94,6 @@ class RetinaNet(ObjectDetectionBaseModel):
         box_head: (Optional) A `keras.Layer` that performs regression of
             the bounding boxes.  If not provided, a simple ConvNet with 1 layer will be
             used.
-        evaluate_train_time_metrics: (Optional) whether or not to evaluate metrics
-            passed in `compile()` inside of the `train_step()`.  This is NOT
-            recommended, as it dramatically reduces performance due to the synchronous
-            label decoding and COCO metric evaluation.  For example, on a single GPU on
-            the PascalVOC dataset epoch time goes from 3 minutes to 30 minutes with this
-            set to `True`. Defaults to `False`.
     """
 
     def __init__(
@@ -115,7 +109,6 @@ class RetinaNet(ObjectDetectionBaseModel):
         feature_pyramid=None,
         classification_head=None,
         box_head=None,
-        evaluate_train_time_metrics=False,
         name="RetinaNet",
         **kwargs,
     ):
@@ -143,7 +136,6 @@ class RetinaNet(ObjectDetectionBaseModel):
             name=name,
             **kwargs,
         )
-        self.evaluate_train_time_metrics = evaluate_train_time_metrics
         self.label_encoder = label_encoder
         self.anchor_generator = anchor_generator
         if bounding_box_format.lower() != "xywh":
@@ -185,6 +177,8 @@ class RetinaNet(ObjectDetectionBaseModel):
         self.regularization_loss_metric = tf.keras.metrics.Mean(
             name="regularization_loss"
         )
+
+        self._includes_custom_metrics = False
         # Construct should run in eager mode
         if any(
             self.prediction_decoder.box_variance.numpy()
@@ -231,13 +225,18 @@ class RetinaNet(ObjectDetectionBaseModel):
 
     @property
     def train_metrics(self):
-        return [
+        result = [
             self.loss_metric,
             self.classification_loss_metric,
-            self.regularization_loss_metric,
             self.box_loss_metric,
             self.label_encoder.matched_boxes_metric,
         ]
+
+        # only track regularization loss when at least one exists
+        if self._track_regularization:
+            result += [self.regularization_loss_metric]
+
+        return result
 
     def call(self, x, training=False):
         backbone_outputs = self.backbone(x, training=training)
@@ -261,25 +260,48 @@ class RetinaNet(ObjectDetectionBaseModel):
         box_outputs = tf.concat(box_outputs, axis=1)
         return tf.concat([box_outputs, cls_outputs], axis=-1)
 
-    def decode_training_predictions(self, x, train_predictions):
+    def decode_predictions(self, predictions, images):
         # no-op if default decoder is used.
         pred_for_inference = bounding_box.convert_format(
-            train_predictions,
+            predictions,
             source=self.bounding_box_format,
             target=self.prediction_decoder.bounding_box_format,
-            images=x,
+            images=images,
         )
-        pred_for_inference = self.prediction_decoder(x, pred_for_inference)
+        pred_for_inference = self.prediction_decoder(images, pred_for_inference)
         return bounding_box.convert_format(
             pred_for_inference,
             source=self.prediction_decoder.bounding_box_format,
             target=self.bounding_box_format,
-            images=x,
+            images=images,
         )
 
     def compile(
-        self, box_loss=None, classification_loss=None, loss=None, metrics=None, **kwargs
+        self,
+        box_loss=None,
+        classification_loss=None,
+        loss=None,
+        metrics=None,
+        **kwargs,
     ):
+        """compiles the RetinaNet.
+
+        compile() mirrors the standard Keras compile() method, but has a few key
+        distinctions.  Primarily, all metrics must support bounding boxes, and
+        two losses must be provided: `box_loss` and `classification_loss`.
+
+        Args:
+            box_loss: a Keras loss to use for box offset regression.  Preconfigured
+                losses are provided when the string "huber" or "smoothl1" are passed.
+            classification_loss: a Keras loss to use for box classification.
+                A preconfigured `FocalLoss` is provided when the string "focal" is
+                passed.
+            metrics: a list of Keras Metrics that accept bounding boxes as inputs, i.e.
+                `keras_cv.metrics.COCORecall` or
+                `keras_cv.metrics.COCOMeanAveragePrecision`.
+            kwargs: most other `keras.Model.compile()` arguments are supported and
+                propagated to the `keras.Model` class.
+        """
         super().compile(metrics=metrics, **kwargs)
         if loss is not None:
             raise ValueError(
@@ -290,6 +312,8 @@ class RetinaNet(ObjectDetectionBaseModel):
         box_loss = _parse_box_loss(box_loss)
         classification_loss = _parse_classification_loss(classification_loss)
         metrics = metrics or []
+        if len(metrics) > 0:
+            self._includes_custom_metrics = True
 
         if hasattr(classification_loss, "from_logits"):
             if not classification_loss.from_logits:
@@ -421,9 +445,15 @@ class RetinaNet(ObjectDetectionBaseModel):
 
         self.classification_loss_metric.update_state(classification_loss)
         self.box_loss_metric.update_state(box_loss)
-        self.regularization_loss_metric.update_state(regularization_loss)
+
+        if self._track_regularization:
+            self.regularization_loss_metric.update_state(regularization_loss)
         self.loss_metric.update_state(loss)
         return loss
+
+    @property
+    def _track_regularization(self):
+        return len(self.losses) != 0
 
     def train_step(self, data):
         x, y = data
@@ -437,15 +467,7 @@ class RetinaNet(ObjectDetectionBaseModel):
         gradients = tape.gradient(loss, trainable_vars)
         self.optimizer.apply_gradients(zip(gradients, trainable_vars))
 
-        # Early exit for no train time metrics
-        if not self.evaluate_train_time_metrics:
-            # To minimize GPU transfers, we update metrics AFTER we take grads and apply
-            # them.
-            return {m.name: m.result() for m in self.train_metrics}
-
-        predictions = self.decode_training_predictions(x, y_pred)
-        self._update_metrics(y_for_metrics, predictions)
-        return {m.name: m.result() for m in self.metrics}
+        return {m.name: m.result() for m in self.train_metrics}
 
     def test_step(self, data):
         x, y = data
@@ -453,13 +475,15 @@ class RetinaNet(ObjectDetectionBaseModel):
         y_pred = self(x, training=False)
         _ = self._backward(y_training_target, y_pred)
 
-        predictions = self.decode_training_predictions(x, y_pred)
+        # Early exit for no custom metrics
+        if not self._includes_custom_metrics:
+            # To minimize GPU transfers, we update metrics AFTER we take grads and apply
+            # them.
+            return {m.name: m.result() for m in self.train_metrics}
+
+        predictions = self.decode_predictions(y_pred, x)
         self._update_metrics(y_for_metrics, predictions)
         return {m.name: m.result() for m in self.metrics}
-
-    def predict_step(self, x):
-        predictions = super().predict_step(x)
-        return self.decode_training_predictions(x, predictions)
 
     def _update_metrics(self, y_true, y_pred):
         y_true = bounding_box.convert_format(

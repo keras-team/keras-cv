@@ -167,7 +167,7 @@ class StableDiffusion:
         self,
         encoded_text,
         batch_size=1,
-        num_steps=25,
+        num_steps=50,
         unconditional_guidance_scale=7.5,
         diffusion_noise=None,
         seed=None,
@@ -183,7 +183,7 @@ class StableDiffusion:
             text will be used to produce every generated image.
             batch_size: number of images to generate. Default: 1.
             num_steps: number of diffusion steps (controls image quality).
-                Default: 25.
+                Default: 50.
             unconditional_guidance_scale: float controling how closely the image
                 should adhere to the prompt. Larger values result in more
                 closely adhering to the prompt, but will make the image noisier.
@@ -279,6 +279,7 @@ class StableDiffusion:
         verbose=True,
     ):
         """Inpaints a masked section of the provided image based on the provided prompt.
+        Note that this currently does not support mixed precision.
 
         Args:
             prompt: A string representing the prompt for generation.

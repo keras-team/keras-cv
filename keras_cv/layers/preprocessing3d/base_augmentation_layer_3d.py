@@ -16,6 +16,13 @@ import tensorflow as tf
 
 POINT_CLOUDS = "point_clouds"
 BOUNDING_BOXES = "bounding_boxes"
+OBJECT_POINT_CLOUDS = "object_point_clouds"
+OBJECT_BOUNDING_BOXES = "object_bounding_boxes"
+ADDITIONAL_POINT_CLOUDS = "additional_point_clouds"
+ADDITIONAL_BOUNDING_BOXES = "additional_bounding_boxes"
+BOX_LABEL_INDEX = 7
+POINTCLOUD_LABEL_INDEX = 3
+POINTCLOUD_FEATURE_INDEX = 4
 
 
 @tf.keras.utils.register_keras_serializable(package="keras_cv")
@@ -90,6 +97,7 @@ class BaseAugmentationLayer3D(tf.keras.__internal__.layers.BaseRandomLayer):
 
     def __init__(self, seed=None, **kwargs):
         super().__init__(seed=seed, **kwargs)
+        self.auto_vectorize = False
 
     @property
     def auto_vectorize(self):
@@ -158,16 +166,17 @@ class BaseAugmentationLayer3D(tf.keras.__internal__.layers.BaseRandomLayer):
     def call(self, inputs, training=True):
         if training:
             point_clouds = inputs[POINT_CLOUDS]
-
-            if point_clouds.shape.rank == 3:
+            bounding_boxes = inputs[BOUNDING_BOXES]
+            if point_clouds.shape.rank == 3 and bounding_boxes.shape.rank == 3:
                 return self._augment(inputs)
-            elif point_clouds.shape.rank == 4:
+            elif point_clouds.shape.rank == 4 and bounding_boxes.shape.rank == 4:
                 return self._batch_augment(inputs)
             else:
                 raise ValueError(
-                    "Point clouds augmentation layers are expecting inputs to "
-                    "be rank 3D (Batch, Point, Feature) or 4D (Batch, Frame, Point, Feature) tensors. Got shape: "
-                    f"{point_clouds.shape}"
+                    "Point clouds augmentation layers are expecting inputs point clouds and bounding boxes to "
+                    "be rank 3D (Frame, Point, Feature) or 4D (Batch, Frame, Point, Feature) tensors. Got shape: {} and {}".format(
+                        point_clouds.shape, bounding_boxes.shape
+                    )
                 )
         else:
             return inputs
@@ -176,7 +185,8 @@ class BaseAugmentationLayer3D(tf.keras.__internal__.layers.BaseRandomLayer):
         point_clouds = inputs.get(POINT_CLOUDS, None)
         bounding_boxes = inputs.get(BOUNDING_BOXES, None)
         transformation = self.get_random_transformation(
-            point_clouds=point_clouds, bounding_boxes=bounding_boxes
+            point_clouds=point_clouds,
+            bounding_boxes=bounding_boxes,
         )
         point_clouds, bounding_boxes = self.augment_point_clouds_bounding_boxes(
             point_clouds,

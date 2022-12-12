@@ -13,7 +13,6 @@
 # limitations under the License.
 
 import os
-import statistics
 
 import pytest
 import tensorflow as tf
@@ -27,7 +26,10 @@ class RetinaNetTest(tf.test.TestCase):
     @pytest.fixture(autouse=True)
     def cleanup_global_session(self):
         # Code before yield runs before the test
+        tf.config.set_soft_device_placement(False)
         yield
+        # Reset soft device placement to not interfere with other unit test files
+        tf.config.set_soft_device_placement(True)
         tf.keras.backend.clear_session()
 
     def test_retina_net_construction(self):
@@ -191,7 +193,6 @@ class RetinaNetTest(tf.test.TestCase):
             backbone="resnet50",
             backbone_weights=None,
             include_rescaling=False,
-            evaluate_train_time_metrics=False,
         )
         retina_net.backbone.trainable = False
         retina_net.compile(
@@ -220,7 +221,6 @@ class RetinaNetTest(tf.test.TestCase):
             backbone="resnet50",
             backbone_weights=None,
             include_rescaling=False,
-            evaluate_train_time_metrics=False,
         )
 
         retina_net.compile(
@@ -278,7 +278,6 @@ class RetinaNetTest(tf.test.TestCase):
             backbone="resnet50",
             backbone_weights=None,
             include_rescaling=False,
-            evaluate_train_time_metrics=True,
         )
 
         retina_net.compile(
@@ -302,17 +301,5 @@ class RetinaNetTest(tf.test.TestCase):
         )
 
         xs, ys = _create_bounding_box_dataset(bounding_box_format)
-
-        for _ in range(50):
-            history = retina_net.fit(x=xs, y=ys, epochs=10)
-            metrics = history.history
-            metrics = [metrics["Recall"], metrics["MaP"]]
-            metrics = [statistics.mean(metric) for metric in metrics]
-            minimum = 0.3
-            nonzero = [x > minimum for x in metrics]
-            if all(nonzero):
-                return
-
-        raise ValueError(
-            f"Did not achieve better than {minimum} for all metrics in 50 epochs"
-        )
+        retina_net.fit(x=xs, y=ys, epochs=10)
+        _ = retina_net.predict(xs)

@@ -225,6 +225,52 @@ class RCNNHead(tf.keras.layers.Layer):
         return dict(list(base_config.items()) + list(config.items()))
 
 
+# TODO(tanzhenyu): provide a TPU compatible NMS decoder.
+class NMSDecoder(tf.keras.layers.Layer):
+    """A customized NMS layer wrapper."""
+
+    def __init__(
+        self,
+        iou_threshold=0.5,
+        score_threshold=0.5,
+        max_output_size_per_class=10,
+        max_total_size=10,
+        **kwargs,
+    ):
+        super().__init__(**kwargs)
+        self.iou_threshold = iou_threshold
+        self.score_threshold = score_threshold
+        self.max_output_size_per_class = max_output_size_per_class
+        self.max_total_size = max_total_size
+
+    def call(self, box_pred, scores_pred):
+        (
+            box_pred,
+            scores_pred,
+            cls_pred,
+            valid_det,
+        ) = tf.image.combined_non_max_suppression(
+            boxes=box_pred,
+            scores=scores_pred[..., :-1],
+            max_output_size_per_class=self.max_output_size_per_class,
+            max_total_size=self.max_total_size,
+            score_threshold=self.score_threshold,
+            iou_threshold=self.iou_threshold,
+            clip_boxes=False,
+        )
+        return box_pred, scores_pred, cls_pred, valid_det
+
+    def get_config(self):
+        config = {
+            "iou_threshold": self.iou_threshold,
+            "score_threshold": self.score_threshold,
+            "max_output_size_per_class": self.max_output_size_per_class,
+            "max_total_size": self.max_total_size,
+        }
+        base_config = super().get_config()
+        return dict(list(base_config.items()) + list(config.items()))
+
+
 # TODO(tanzheny): add more configurations
 class FasterRCNN(tf.keras.Model):
     """A Keras model implementing the FasterRCNN architecture.
@@ -275,6 +321,9 @@ class FasterRCNN(tf.keras.Model):
             (all foreground classes + one background class). By default it uses the rcnn head
             from paper, which is 2 FC layer with 1024 dimension, 1 box regressor and 1
             softmax classifier.
+        nms_decoder: (Optional) a `keras.layers.Layer` that takes input box prediction and
+            softmaxed score prediction, and returns NMSed box prediction, NMSed softmaxed
+            score prediction, NMSed class prediction, and NMSed valid detection.
     """
 
     def __init__(
@@ -286,6 +335,7 @@ class FasterRCNN(tf.keras.Model):
         anchor_generator=None,
         rpn_head=None,
         rcnn_head=None,
+        nms_decoder=None,
         **kwargs,
     ):
         self.bounding_box_format = bounding_box_format
@@ -329,6 +379,7 @@ class FasterRCNN(tf.keras.Model):
             samples_per_image=256,
             positive_fraction=0.5,
         )
+        self.nms_decoder = nms_decoder or NMSDecoder()
 
     def _call_rpn(self, images, anchors, training=None):
         image_shape = tf.shape(images[0])
