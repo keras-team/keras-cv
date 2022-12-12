@@ -325,14 +325,14 @@ Note that learning rate will decrease over time due to the ReduceLROnPlateau cal
 """
 
 if FLAGS.learning_rate_schedule == COSINE_DECAY_WITH_WARMUP:
-    optimizer = optimizers.SGDW(
+    optimizer = optimizers.SGD(
         weight_decay=FLAGS.weight_decay,
         learning_rate=schedule,
         momentum=0.9,
         use_ema=FLAGS.use_ema,
     )
 else:
-    optimizer = optimizers.SGDW(
+    optimizer = optimizers.SGD(
         weight_decay=FLAGS.weight_decay,
         learning_rate=INITIAL_LEARNING_RATE,
         momentum=0.9,
