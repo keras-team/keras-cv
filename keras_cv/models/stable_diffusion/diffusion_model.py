@@ -80,7 +80,7 @@ class DiffusionModel(keras.Model):
         # Middle flow
         
         x = ResBlock(channels[3])([x, t_emb])
-        x = SpatialTransformer(num_heads, head_dim, config['f_c'])([x, context])
+        x = SpatialTransformer(num_heads[3], head_dim[3], config['f_c'])([x, context])
         x = ResBlock(channels[3])([x, t_emb])
         
 
