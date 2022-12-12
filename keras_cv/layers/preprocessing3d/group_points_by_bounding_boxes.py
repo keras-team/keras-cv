@@ -233,7 +233,6 @@ class GroupPointsByBoundingBoxes(base_augmentation_layer_3d.BaseAugmentationLaye
                     )
                     object_point_clouds_list += [object_point_clouds]
                     object_bounding_boxes_list += [object_bounding_boxes]
-                    tf.print(("gwgsdgs", object_point_clouds.shape))
                 inputs[OBJECT_POINT_CLOUDS] = tf.concat(
                     object_point_clouds_list, axis=1
                 )
