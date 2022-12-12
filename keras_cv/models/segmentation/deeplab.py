@@ -88,7 +88,7 @@ def DeepLabV3(classes,
 
     # Segmentation head
     if segmentation_head is None:
-        segmentation_head = get_segmentation_head()
+        segmentation_head = get_segmentation_head(classes)
 
     output = segmentation_head(output)
     model = tf.keras.Model(inputs, output, name=name, **kwargs)
@@ -98,7 +98,7 @@ def DeepLabV3(classes,
 
     return model
 
-def get_segmentation_head():
+def get_segmentation_head(classes):
     return tf.keras.Sequential(
         [
             tf.keras.layers.Conv2D(
