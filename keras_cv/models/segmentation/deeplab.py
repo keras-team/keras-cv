@@ -122,12 +122,14 @@ def DeepLabV3(
     )(output)
 
     if segmentation_head is None:
-        segmentation_head = SegmentationHead(classes=classes)
+        segmentation_head = SegmentationHead(classes=classes, name="segmentation_head")
 
     # Segmentation head expects a multiple-level output dictionary
     output = segmentation_head({1: output})
     if segmentation_head_activation is not None:
-        output = layers.Activation(segmentation_head_activation)(output)
+        output = layers.Activation(segmentation_head_activation, name="top_activation")(
+            output
+        )
 
     model = tf.keras.Model(inputs, output, name=name, **kwargs)
 
