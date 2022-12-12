@@ -14,6 +14,6 @@
 from keras_cv.callbacks.pycoco_callback import PyCOCOCallback
 
 try:
-    from keras_cv.callbacks.pycoco_callback import WaymoEvaluationCallback
+    from keras_cv.callbacks.waymo_evaluation_callback import WaymoEvaluationCallback
 except ImportError:
     pass
