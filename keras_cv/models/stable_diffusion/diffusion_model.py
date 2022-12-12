@@ -35,108 +35,78 @@ class DiffusionModel(keras.Model):
         t_emb = keras.layers.Activation("swish")(t_emb)
         t_emb = keras.layers.Dense(1280)(t_emb)
 
+        channels = [config['model_channels'] * ch_mult for ch_mult in config['channel_mult']]
+        if config['num_heads']==-1:
+            head_dim = config['head_dim'] 
+            num_heads = [int(channel / head_dim) for channel in channels]
+            head_dim = [head_dim] * len(num_heads)
+        else:
+            num_heads = config['num_heads']
+            head_dim = [int(channel / n_heads) for n_heads in num_heads]
+            num_heads = [num_heads] * len(head_dim)
+        
+        
         # Downsampling flow
 
         outputs = []
-        x = PaddedConv2D(320, kernel_size=3, padding=1)(latent)
+        x = PaddedConv2D(channels[0], kernel_size=3, padding=1)(latent)
         outputs.append(x)
-
+        
         for _ in range(2):
-            if config['num_heads']==-1:
-                head_dim = config['head_dim']
-                num_heads = int(320/head_dim)
-            else:
-                num_heads = config['num_heads']
-                head_dim = int(320/num_heads)
-            x = ResBlock(320)([x, t_emb])
-            x = SpatialTransformer(num_heads, head_dim, config['f_c'])([x, context])
+            x = ResBlock(channels[0])([x, t_emb])
+            x = SpatialTransformer(num_heads[0], head_dim[0], config['f_c'])([x, context])
             outputs.append(x)
-        x = PaddedConv2D(320, 3, strides=2, padding=1)(x)  # Downsample 2x
+        x = PaddedConv2D(channels[1], 3, strides=2, padding=1)(x)  # Downsample 2x
         outputs.append(x)
 
         for _ in range(2):
-            if config['num_heads']==-1:
-                head_dim = config['head_dim']
-                num_heads = int(640/head_dim)
-            else:
-                num_heads = config['num_heads']
-                head_dim = int(640/num_heads)
-            x = ResBlock(640)([x, t_emb])
-            x = SpatialTransformer(num_heads, head_dim, config['f_c'])([x, context])
+            x = ResBlock(channels[1])([x, t_emb])
+            x = SpatialTransformer(num_heads[1], head_dim[1], config['f_c'])([x, context])
             outputs.append(x)
-        x = PaddedConv2D(640, 3, strides=2, padding=1)(x)  # Downsample 2x
+        x = PaddedConv2D(channels[2], 3, strides=2, padding=1)(x)  # Downsample 2x
         outputs.append(x)
 
         for _ in range(2):
-            if config['num_heads']==-1:
-                head_dim = config['head_dim']
-                num_heads = int(1280/head_dim)
-            else:
-                num_heads = config['num_heads']
-                head_dim = int(1280/num_heads)
-            x = ResBlock(1280)([x, t_emb])
-            x = SpatialTransformer(num_heads, head_dim, config['f_c'])([x, context])
+            x = ResBlock(channels[2])([x, t_emb])
+            x = SpatialTransformer(num_heads[2], head_dim[2], config['f_c'])([x, context])
             outputs.append(x)
-        x = PaddedConv2D(1280, 3, strides=2, padding=1)(x)  # Downsample 2x
+        x = PaddedConv2D(channels[3], 3, strides=2, padding=1)(x)  # Downsample 2x
         outputs.append(x)
 
         for _ in range(2):
-            x = ResBlock(1280)([x, t_emb])
+            x = ResBlock(channels[3])([x, t_emb])
             outputs.append(x)
 
         # Middle flow
-        if config['num_heads']==-1:
-            head_dim = config['head_dim']
-            num_heads = int(1280/head_dim)
-        else:
-            num_heads = config['num_heads']
-            head_dim = int(1280/num_heads)
-        x = ResBlock(1280)([x, t_emb])
+        
+        x = ResBlock(channels[3])([x, t_emb])
         x = SpatialTransformer(num_heads, head_dim, config['f_c'])([x, context])
-        x = ResBlock(1280)([x, t_emb])
+        x = ResBlock(channels[3])([x, t_emb])
         
 
         # Upsampling flow
 
         for _ in range(3):
             x = keras.layers.Concatenate()([x, outputs.pop()])
-            x = ResBlock(1280)([x, t_emb])
-        x = Upsample(1280)(x)
+            x = ResBlock(channels[3])([x, t_emb])
+        x = Upsample(channels[3])(x)
 
         for _ in range(3):
             x = keras.layers.Concatenate()([x, outputs.pop()])
-            x = ResBlock(1280)([x, t_emb])
-            if config['num_heads']==-1:
-                head_dim = config['head_dim']
-                num_heads = int(1280/head_dim)
-            else:
-                num_heads = config['num_heads']
-                head_dim = int(1280/num_heads)
-            x = SpatialTransformer(num_heads, head_dim, config['f_c'])([x, context])
-        x = Upsample(1280)(x)
+            x = ResBlock(channels[2])([x, t_emb])
+            x = SpatialTransformer(num_heads[2], head_dim[2], config['f_c'])([x, context])
+        x = Upsample(channels[2])(x)
 
         for _ in range(3):
             x = keras.layers.Concatenate()([x, outputs.pop()])
-            x = ResBlock(640)([x, t_emb])
-            if config['num_heads']==-1:
-                head_dim = config['head_dim']
-                num_heads = int(640/head_dim)
-            else:
-                num_heads = config['num_heads']
-                head_dim = int(640/num_heads)
-            x = SpatialTransformer(num_heads, head_dim, config['f_c'])([x, context])
-        x = Upsample(640)(x)
+            x = ResBlock(channels[1])([x, t_emb])
+            x = SpatialTransformer(num_heads[1], head_dim[1], config['f_c'])([x, context])
+        x = Upsample(channels[1])(x)
 
         for _ in range(3):
             x = keras.layers.Concatenate()([x, outputs.pop()])
-            x = ResBlock(320)([x, t_emb])
-            if config['num_heads']==-1:
-                head_dim = config['head_dim']
-                num_heads = int(320/head_dim)
-            else:
-                num_heads = config['num_heads']
-                head_dim = int(320/num_heads)
-            x = SpatialTransformer(num_heads, head_dim, config['f_c'])([x, context])
+            x = ResBlock(channels[0])([x, t_emb])
+            x = SpatialTransformer(num_heads[0], head_dim[0], config['f_c'])([x, context])
 
         # Exit flow
 

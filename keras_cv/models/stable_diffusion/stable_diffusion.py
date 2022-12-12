@@ -49,6 +49,7 @@ config = {
             },
         'diffusion_model': {
             'model_channels': 320,
+            'channel_mult': [ 1, 2, 4, 4 ],
             'num_heads': 8,
             'head_dim': -1,
             'context_length':768,
@@ -70,6 +71,7 @@ config = {
             },
         'diffusion_model': {
             'model_channels': 320,
+            'channel_mult': [ 1, 2, 4, 4 ],
             'num_heads': -1,
             'head_dim': 64,
             'context_length': 1024,
