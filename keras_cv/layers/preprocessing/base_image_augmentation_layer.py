@@ -234,7 +234,7 @@ class BaseImageAugmentationLayer(tf.keras.__internal__.layers.BaseRandomLayer):
         Args:
             inputs: dictionary of inputs provided to map_fn.
         """
-        if self._any_ragged(inputs):
+        if self._any_ragged(inputs) or self.force_output_ragged_images:
             return tf.map_fn(
                 func, inputs, fn_output_signature=self._compute_output_signature(inputs)
             )

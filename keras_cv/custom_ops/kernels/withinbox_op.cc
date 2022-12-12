@@ -41,7 +41,7 @@ class WithinBoxOp : public OpKernel {
         ctx, ctx->allocate_output("box_indices", TensorShape({num_points}), &box_indices));
     auto boxes_indices_t = box_indices->flat<int>();
     for (auto i = 0; i < num_points; ++i) boxes_indices_t(i) = -1;
-    
+
     std::vector<box::Upright3DBox> boxes_vec = box::ParseBoxesFromTensor(boxes);
     std::vector<box::Vertex> points_vec = box::ParseVerticesFromTensor(points);
     std::vector<int> p_indices_x(num_points);
@@ -53,7 +53,7 @@ class WithinBoxOp : public OpKernel {
     // sort, return sorted value and indices
     std::sort(p_indices_x.begin(), p_indices_x.end(),
       [&points_vec](const int& a, const int& b) -> bool {
-        return points_vec[a].x < points_vec[b].x; 
+        return points_vec[a].x < points_vec[b].x;
       });
     std::sort(p_indices_y.begin(), p_indices_y.end(),
       [&points_vec](const int& a, const int& b) -> bool {
@@ -80,7 +80,7 @@ class WithinBoxOp : public OpKernel {
         int p_end = points_x_max[idx];
         for (auto p_idx = p_start; p_idx <= p_end; ++p_idx) {
           p_set.insert(p_indices_x[p_idx]);
-        }  
+        }
         points_x_indices[idx] = p_set;
       }
     };
@@ -100,7 +100,7 @@ class WithinBoxOp : public OpKernel {
         int p_end = points_y_max[idx];
         for (auto p_idx = p_start; p_idx <= p_end; ++p_idx) {
           p_set.insert(p_indices_y[p_idx]);
-        }  
+        }
         points_y_indices[idx] = p_set;
       }
     };
@@ -132,7 +132,7 @@ class WithinBoxOp : public OpKernel {
   }
 };
 
-REGISTER_KERNEL_BUILDER(Name("WithinBox").Device(DEVICE_CPU),
+REGISTER_KERNEL_BUILDER(Name("KcvWithinBox").Device(DEVICE_CPU),
                         WithinBoxOp);
 
 }  // namespace kerascv

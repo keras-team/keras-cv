@@ -37,4 +37,4 @@ def iou_3d(y_true, y_pred):
     ```
     """
 
-    return keras_cv_custom_ops.ops.pairwise_iou3d(y_true, y_pred)
+    return keras_cv_custom_ops.ops.kcv_pairwise_iou3d(y_true, y_pred)

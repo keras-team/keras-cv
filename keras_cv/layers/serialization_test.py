@@ -291,6 +291,14 @@ class SerializationTest(tf.test.TestCase, parameterized.TestCase):
             },
         ),
         (
+            "RandomAspectRatio",
+            cv_layers.RandomAspectRatio,
+            {
+                "factor": (0.9, 1.1),
+                "seed": 1233,
+            },
+        ),
+        (
             "SpatialPyramidPooling",
             cv_layers.SpatialPyramidPooling,
             {
