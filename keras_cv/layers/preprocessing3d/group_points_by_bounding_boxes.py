@@ -25,6 +25,7 @@ OBJECT_POINT_CLOUDS = base_augmentation_layer_3d.OBJECT_POINT_CLOUDS
 OBJECT_BOUNDING_BOXES = base_augmentation_layer_3d.OBJECT_BOUNDING_BOXES
 
 
+@tf.keras.utils.register_keras_serializable(package="keras_cv")
 class GroupPointsByBoundingBoxes(base_augmentation_layer_3d.BaseAugmentationLayer3D):
     """A preprocessing layer which groups point clouds based on bounding boxes during training.
 
@@ -240,9 +241,11 @@ class GroupPointsByBoundingBoxes(base_augmentation_layer_3d.BaseAugmentationLaye
                     )
                     object_point_clouds_list += [object_point_clouds]
                     object_bounding_boxes_list += [object_bounding_boxes]
+                # object_point_clouds shape [num of frames, num of valid boxes, max num of points, num of point features].
                 inputs[OBJECT_POINT_CLOUDS] = tf.concat(
                     object_point_clouds_list, axis=-3
                 )
+                # object_bounding_boxes shape [num of frames, num of valid boxes, num of box features].
                 inputs[OBJECT_BOUNDING_BOXES] = tf.concat(
                     object_bounding_boxes_list, axis=-2
                 )

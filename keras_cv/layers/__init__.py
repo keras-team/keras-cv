@@ -30,6 +30,9 @@ from keras_cv.layers.object_detection.non_max_suppression import NonMaxSuppressi
 from keras_cv.layers.object_detection.retina_net_label_encoder import (
     RetinaNetLabelEncoder,
 )
+from keras_cv.layers.preprocessing3d.group_points_by_bounding_boxes import (
+    GroupPointsByBoundingBoxes,
+)
 from keras_cv.layers.preprocessing.aug_mix import AugMix
 from keras_cv.layers.preprocessing.augmenter import Augmenter
 from keras_cv.layers.preprocessing.auto_contrast import AutoContrast

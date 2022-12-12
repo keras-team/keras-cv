@@ -330,6 +330,15 @@ class SerializationTest(tf.test.TestCase, parameterized.TestCase):
                 "layer_norm_epsilon": 1e-06,
             },
         ),
+        (
+            "GroupPointsByBoundingBoxes",
+            cv_layers.GroupPointsByBoundingBoxes,
+            {
+                "label_index": 1,
+                "min_points_per_bounding_boxes": 1,
+                "max_points_per_bounding_boxes": 4,
+            },
+        ),
     )
     def test_layer_serialization(self, layer_cls, init_args):
         layer = layer_cls(**init_args)
