@@ -52,6 +52,8 @@ def _relative_area(bounding_boxes, bounding_box_format, images):
     return tf.where(tf.math.logical_and(widths > 0, heights > 0), widths * heights, 0.0)
 
 
+# bounding_boxes is a dictionary with shape:
+# {"boxes": [None, None, 4], "mask": [None, None]}
 def clip_to_image(bounding_boxes, bounding_box_format, images=None, image_shape=None):
     """clips bounding boxes to image boundaries.
 
@@ -67,22 +69,17 @@ def clip_to_image(bounding_boxes, bounding_box_format, images=None, image_shape=
         images: list of images to clip the bounding boxes to.
         image_shape: the shape of the images to clip the bounding boxes to.
     """
-    if bounding_boxes.shape[-1] < 5:
-        raise ValueError(
-            "`bounding_boxes` must include a class_id index on the final "
-            "axis.  This is used to set `bounding_boxes` that are fully outside of the "
-            "provided image to the background class, -1."
-        )
+    boxes, mask = bounding_boxes['boxes'], bounding_boxes['mask']
     bounding_boxes = bounding_box.convert_format(
-        bounding_boxes,
+        boxes,
         source=bounding_box_format,
         target="rel_xyxy",
         images=images,
         image_shape=image_shape,
     )
     bounding_boxes, images, squeeze = _format_inputs(bounding_boxes, images)
-    x1, y1, x2, y2, rest = tf.split(
-        bounding_boxes, [1, 1, 1, 1, bounding_boxes.shape[-1] - 4], axis=-1
+    x1, y1, x2, y2 = tf.split(
+        boxes, [1, 1, 1, 1], axis=-1
     )
     clipped_bounding_boxes = tf.concat(
         [
@@ -90,7 +87,6 @@ def clip_to_image(bounding_boxes, bounding_box_format, images=None, image_shape=
             tf.clip_by_value(y1, clip_value_min=0, clip_value_max=1),
             tf.clip_by_value(x2, clip_value_min=0, clip_value_max=1),
             tf.clip_by_value(y2, clip_value_min=0, clip_value_max=1),
-            rest,
         ],
         axis=-1,
     )
@@ -107,10 +103,12 @@ def clip_to_image(bounding_boxes, bounding_box_format, images=None, image_shape=
     clipped_bounding_boxes = tf.where(
         tf.expand_dims(areas > 0.0, axis=-1), clipped_bounding_boxes, -1.0
     )
+    mask = tf.expand_dims(areas > 0.0), mask, -1.0
     nan_indices = tf.math.reduce_any(tf.math.is_nan(clipped_bounding_boxes), axis=-1)
-    clipped_bounding_boxes = tf.where(
-        tf.expand_dims(nan_indices, axis=-1), -1.0, clipped_bounding_boxes
+    mask = tf.where(
+        tf.expand_dims(nan_indices, axis=-1), -1.0, mask
     )
+    # TODO update dict and return
     clipped_bounding_boxes = _format_outputs(clipped_bounding_boxes, squeeze)
     return clipped_bounding_boxes
 
