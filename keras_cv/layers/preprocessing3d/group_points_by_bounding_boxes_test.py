@@ -26,15 +26,19 @@ OBJECT_BOUNDING_BOXES = base_augmentation_layer_3d.OBJECT_BOUNDING_BOXES
 
 
 class GroupPointsByBoundingBoxesTest(tf.test.TestCase):
-    def test_get_params(self):
+    def test_get_config(self):
         add_layer = GroupPointsByBoundingBoxes(
             label_index=1,
             min_points_per_bounding_boxes=1,
             max_points_per_bounding_boxes=4,
         )
         self.assertEqual(
-            add_layer.get_params(),
-            "label_index:1,min_points_per_bounding_boxes:1,max_points_per_bounding_boxes:4",
+            add_layer.get_config(),
+            {
+                "label_index": 1,
+                "min_points_per_bounding_boxes": 1,
+                "max_points_per_bounding_boxes": 4,
+            },
         )
 
     def test_augment_point_clouds_and_bounding_boxes(self):

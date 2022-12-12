@@ -80,12 +80,12 @@ class GroupPointsByBoundingBoxes(base_augmentation_layer_3d.BaseAugmentationLaye
         self._max_points_per_bounding_boxes = max_points_per_bounding_boxes
         self._auto_vectorize = False
 
-    def get_params(self):
-        return "label_index:{},min_points_per_bounding_boxes:{},max_points_per_bounding_boxes:{}".format(
-            str(self._label_index),
-            str(self._min_points_per_bounding_boxes),
-            str(self._max_points_per_bounding_boxes),
-        )
+    def get_config(self):
+        return {
+            "label_index": self._label_index,
+            "min_points_per_bounding_boxes": self._min_points_per_bounding_boxes,
+            "max_points_per_bounding_boxes": self._max_points_per_bounding_boxes,
+        }
 
     def augment_point_clouds_bounding_boxes(
         self, point_clouds, bounding_boxes, **kwargs
