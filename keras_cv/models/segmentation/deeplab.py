@@ -131,11 +131,10 @@ def DeepLabV3(
     # Segmentation head expects a multiple-level output dictionary
     output = segmentation_head({1: output})
     if segmentation_head_activation is not None:
-        output = layers.Activation(segmentation_head_activation, name="top_activation")(
-            output
-        )
-    # Force float32 output to avoid NaN issues with mixed-precision training
-    output = tf.cast(output, tf.float32)
+        # Force float32 output to avoid NaN issues with mixed-precision training
+        output = layers.Activation(
+            segmentation_head_activation, dtype=tf.float32, name="top_activation"
+        )(output)
 
     model = tf.keras.Model(inputs, output, name=name, **kwargs)
 
