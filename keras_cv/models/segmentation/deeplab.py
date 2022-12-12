@@ -18,6 +18,7 @@ from tensorflow.keras import layers
 from keras_cv.layers.spatial_pyramid import SpatialPyramidPooling
 from keras_cv.models import utils
 from keras_cv.models.resnet_v2 import ResNetV2
+from keras_cv.models.segmentation.__internal__ import SegmentationHead
 from keras_cv.models.weights import parse_weights
 
 BACKBONE_CONFIG = {
@@ -37,6 +38,7 @@ def DeepLabV3(
     backbone_weights=None,
     spatial_pyramid_pooling=None,
     segmentation_head=None,
+    segmentation_head_activation="softmax",
     name=None,
     input_shape=(None, None, 3),
     input_tensor=None,
@@ -120,41 +122,19 @@ def DeepLabV3(
     )(output)
 
     if segmentation_head is None:
-        segmentation_head = get_segmentation_head(classes)
+        segmentation_head = SegmentationHead(classes=classes)
 
-    output = segmentation_head(output)
+    # Segmentation head expects a multiple-level output dictionary
+    output = segmentation_head({1: output})
+    if segmentation_head_activation is not None:
+        output = tf.keras.Activation(segmentation_head_activation)(output)
+
     model = tf.keras.Model(inputs, output, name=name, **kwargs)
 
     if backbone_weights is not None:
         backbone.load_weights(backbone_weights)
 
     return model
-
-
-def get_segmentation_head(classes):
-    return tf.keras.Sequential(
-        [
-            tf.keras.layers.Conv2D(
-                filters=256,
-                kernel_size=(1, 1),
-                padding="same",
-                use_bias=False,
-            ),
-            tf.keras.layers.BatchNormalization(),
-            tf.keras.layers.Activation("relu"),
-            tf.keras.layers.Dropout(0.2),
-            tf.keras.layers.Conv2D(
-                filters=classes,
-                kernel_size=(1, 1),
-                padding="same",
-                use_bias=False,
-                activation="softmax",
-                # Force the dtype of the classification head to float32 to avoid the NAN loss
-                # issue when used with mixed precision API.
-                dtype=tf.float32,
-            ),
-        ]
-    )
 
 
 def get_resnet_backbone(backbone_weights, include_rescaling, **kwargs):
