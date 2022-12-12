@@ -133,17 +133,15 @@ class GroupPointsByBoundingBoxesTest(tf.test.TestCase):
         object_point_clouds = np.array(
             [
                 [
-                    [
-                        [[0, 1, 2, 3, 4], [0, -1, 2, 3, 4]],
-                        [[10, 1, 2, 3, 4], [0, 0, 0, 0, 0]],
-                    ]
+                    [[0, 1, 2, 3, 4], [0, -1, 2, 3, 4]],
+                    [[10, 1, 2, 3, 4], [0, 0, 0, 0, 0]],
                 ]
-                * 2
+                * 3
             ]
-            * 3
+            * 2
         ).astype("float32")
         object_bounding_boxes = np.array(
-            [[[[0, 0, 0, 4, 4, 4, 0, 1], [10, 1, 2, 2, 2, 2, 0, 1]]] * 2] * 3
+            [[[0, 0, 0, 4, 4, 4, 0, 1], [10, 1, 2, 2, 2, 2, 0, 1]] * 3] * 2
         ).astype("float32")
         self.assertAllClose(inputs[POINT_CLOUDS], outputs[POINT_CLOUDS])
         self.assertAllClose(inputs[BOUNDING_BOXES], outputs[BOUNDING_BOXES])
