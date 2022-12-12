@@ -329,21 +329,23 @@ Next, we pick an optimizer. Here we use SGD.
 Note that learning rate will decrease over time due to the ReduceLROnPlateau callback or with the LRWarmup scheduler.
 """
 
-if FLAGS.learning_rate_schedule == COSINE_DECAY_WITH_WARMUP:
-    optimizer = optimizers.SGD(
-        weight_decay=FLAGS.weight_decay,
-        learning_rate=schedule,
-        momentum=0.9,
-        use_ema=FLAGS.use_ema,
-    )
-else:
-    optimizer = optimizers.SGD(
-        weight_decay=FLAGS.weight_decay,
-        learning_rate=INITIAL_LEARNING_RATE,
-        momentum=0.9,
-        global_clipnorm=10,
-        use_ema=FLAGS.use_ema,
-    )
+with strategy.scope():
+    if FLAGS.learning_rate_schedule == COSINE_DECAY_WITH_WARMUP:
+        optimizer = optimizers.SGD(
+            weight_decay=FLAGS.weight_decay,
+            learning_rate=schedule,
+            momentum=0.9,
+            use_ema=FLAGS.use_ema,
+        )
+    else:
+        optimizer = optimizers.SGD(
+            weight_decay=FLAGS.weight_decay,
+            learning_rate=INITIAL_LEARNING_RATE,
+            momentum=0.9,
+            global_clipnorm=10,
+            use_ema=FLAGS.use_ema,
+        )
+
 """
 Next, we pick a loss function. We use CategoricalCrossentropy with label smoothing.
 """
