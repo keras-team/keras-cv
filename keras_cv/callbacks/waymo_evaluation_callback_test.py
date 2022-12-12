@@ -11,12 +11,11 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import keras
 import tensorflow as tf
 
 import keras_cv
 from keras_cv.callbacks import WaymoEvaluationCallback
-from keras_cv.metrics.coco.pycoco_wrapper import METRIC_NAMES
-from keras_cv.models.object_detection.__test_utils__ import _create_bounding_box_dataset
 
 NUM_RECORDS = 10
 POINT_FEATURES = 3

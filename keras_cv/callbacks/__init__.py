@@ -12,3 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from keras_cv.callbacks.pycoco_callback import PyCOCOCallback
+
+try:
+    from keras_cv.callbacks.pycoco_callback import WaymoEvaluationCallback
+except ImportError:
+    pass
