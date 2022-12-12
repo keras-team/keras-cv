@@ -25,7 +25,11 @@ class TextEncoder(keras.Model):
         )
         x = CLIPEmbedding(config['vocab_size'], config['embed_dim'], config['max_length'])([tokens, positions])
         for _ in range(config['num_blocks']):
-            x = CLIPEncoderLayer(config['embed_dim'], config['num_heads'])(x)
+            x = CLIPEncoderLayer(
+                embed_dim=config['embed_dim'], 
+                num_heads=config['num_heads'], 
+                use_q_gelu=config['use_q_gelu']
+                )(x)
         embedded = keras.layers.LayerNormalization(epsilon=1e-5)(x)
         super().__init__([tokens, positions], embedded, name=name)
 
@@ -55,16 +59,18 @@ class CLIPEmbedding(keras.layers.Layer):
         positions = self.position_embedding(positions)
         return tokens + positions
 
+def quick_gelu(x):
+    return x * tf.sigmoid(x * 1.702)
 
 class CLIPEncoderLayer(keras.layers.Layer):
-    def __init__(self, embed_dim, num_heads, **kwargs):
+    def __init__(self, embed_dim, num_heads, use_q_gelu=True, **kwargs):
         super().__init__(**kwargs)
         self.layer_norm1 = keras.layers.LayerNormalization(epsilon=1e-5)
         self.clip_attn = CLIPAttention(embed_dim=embed_dim, num_heads=num_heads, causal=True)
         self.layer_norm2 = keras.layers.LayerNormalization(epsilon=1e-5)
         self.fc1 = keras.layers.Dense(embed_dim*4)
         self.fc2 = keras.layers.Dense(embed_dim)
-
+        self.gelu = quick_gelu if use_q_gelu else tf.nn.gelu
     def call(self, inputs):
         residual = inputs
         x = self.layer_norm1(inputs)
@@ -73,7 +79,7 @@ class CLIPEncoderLayer(keras.layers.Layer):
         residual = x
         x = self.layer_norm2(x)
         x = self.fc1(x)
-        x = x * tf.sigmoid(x * 1.702)  # Quick gelu
+        x = self.gelu(x)
         x = self.fc2(x)
         return x + residual
 
