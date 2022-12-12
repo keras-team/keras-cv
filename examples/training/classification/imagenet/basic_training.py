@@ -205,7 +205,7 @@ def augment(img, label):
     inputs = {"images": img, "labels": label}
     for layer in AUGMENT_LAYERS:
         inputs = layer(inputs)
-    if tf.random.uniform() > 0.5:
+    if tf.random.uniform(()) > 0.5:
         inputs = keras_cv.layers.CutMix()(inputs)
     else:
         inputs = keras_cv.layers.MixUp()(inputs)
