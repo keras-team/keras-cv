@@ -18,26 +18,24 @@ import pytest
 import tensorflow as tf
 import tensorflow_datasets as tfds
 
-from keras_cv import layers
 from keras_cv import models
 from keras_cv.models import segmentation
 
 
 class DeeplabTest(tf.test.TestCase):
     def test_deeplab_model_construction_with_preconfigured_setting(self):
-        model = segmentation.DeepLabV3(classes=11, include_rescaling=True)
+        model = segmentation.DeepLabV3(
+            classes=11, include_rescaling=True, backbone="resnet50_v2"
+        )
         input_image = tf.random.uniform(shape=[2, 256, 256, 3])
         output = model(input_image, training=True)
 
         self.assertEquals(output.shape, [2, 256, 256, 11])
 
     def test_deeplab_model_with_components(self):
-        backbone = models.ResNet50V2(
-            include_rescaling=True, include_top=False
-        ).as_backbone(min_level=3, max_level=4)
-        fpn = layers.FeaturePyramid(min_level=3, max_level=4)
+        backbone = models.ResNet50V2(include_rescaling=True, include_top=False)
         model = segmentation.DeepLabV3(
-            classes=11, include_rescaling=True, backbone=backbone, decoder=fpn
+            classes=11, include_rescaling=True, backbone=backbone
         )
 
         input_image = tf.random.uniform(shape=[2, 256, 256, 3])
@@ -47,7 +45,9 @@ class DeeplabTest(tf.test.TestCase):
 
     def test_mixed_precision(self):
         tf.keras.mixed_precision.set_global_policy("mixed_float16")
-        model = segmentation.DeepLabV3(classes=11, include_rescaling=True)
+        model = segmentation.DeepLabV3(
+            classes=11, include_rescaling=True, backbone="resnet50_v2"
+        )
         input_image = tf.random.uniform(shape=[2, 256, 256, 3])
         output = model(input_image, training=True)
 
@@ -58,18 +58,18 @@ class DeeplabTest(tf.test.TestCase):
             ValueError, "Supported premade backbones are: .*resnet50_v2"
         ):
             segmentation.DeepLabV3(
-                classes=11, include_rescaling=True, backbone="resnet_v3"
+                classes=11,
+                include_rescaling=True,
+                backbone="resnet_v3",
             )
         with self.assertRaisesRegex(
             ValueError, "Backbone need to be a `tf.keras.layers.Layer`"
         ):
             segmentation.DeepLabV3(
-                classes=11, include_rescaling=True, backbone=tf.Module()
+                classes=11,
+                include_rescaling=True,
+                backbone=tf.Module(),
             )
-
-    def test_invalid_decoder(self):
-        with self.assertRaisesRegex(ValueError, "Supported premade decoder are: .*fpn"):
-            segmentation.DeepLabV3(classes=11, include_rescaling=True, decoder="aspp")
 
     @pytest.mark.skipif(
         "INTEGRATION" not in os.environ or os.environ["INTEGRATION"] != "true",
@@ -78,7 +78,9 @@ class DeeplabTest(tf.test.TestCase):
         "`INTEGRATION=true pytest keras_cv/",
     )
     def test_model_train(self):
-        model = segmentation.DeepLabV3(classes=1, include_rescaling=True)
+        model = segmentation.DeepLabV3(
+            classes=1, include_rescaling=True, backbone="resnet50_v2"
+        )
 
         gcs_data_pattern = "gs://caltech_birds2011_mask/0.1.1/*.tfrecord*"
         features = tfds.features.FeaturesDict(

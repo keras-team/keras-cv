@@ -15,6 +15,7 @@ import numpy as np
 import tensorflow as tf
 from absl.testing import parameterized
 
+from keras_cv import bounding_box
 from keras_cv.layers import preprocessing
 
 
@@ -183,3 +184,67 @@ class RandomCropAndResizeTest(tf.test.TestCase, parameterized.TestCase):
         )
         output = layer(inputs, training=True)
         self.assertAllClose(output["segmentation_masks"], input_mask_resized)
+
+    def test_augment_bounding_box_single(self):
+        image = tf.zeros([20, 20, 3])
+        boxes = tf.convert_to_tensor([[0, 0, 1, 1, 0]])
+        input = {"images": image, "bounding_boxes": boxes}
+
+        layer = preprocessing.RandomCropAndResize(
+            target_size=(10, 10),
+            crop_area_factor=(0.5**2, 0.5**2),
+            aspect_ratio_factor=(1.0, 1.0),
+            bounding_box_format="rel_xyxy",
+        )
+        output = layer(input, training=True)
+
+        expected_output = np.asarray([[0, 0, 1, 1, 0]])
+        self.assertAllClose(expected_output, output["bounding_boxes"].to_tensor())
+
+    def test_augment_boxes_batched_input(self):
+        image = tf.zeros([20, 20, 3])
+
+        boxes = tf.convert_to_tensor(
+            [
+                [[0, 0, 1, 1, 0], [0, 0, 1, 1, 0]],
+                [[0, 0, 1, 1, 0], [0, 0, 1, 1, 0]],
+            ]
+        )
+        input = {"images": [image, image], "bounding_boxes": boxes}
+        layer = preprocessing.RandomCropAndResize(
+            target_size=(18, 18),
+            crop_area_factor=(0.5**2, 0.5**2),
+            aspect_ratio_factor=(1.0, 1.0),
+            bounding_box_format="rel_xyxy",
+        )
+        output = layer(input, training=True)
+        expected_output = np.asarray(
+            [
+                [[0, 0, 1, 1, 0], [0, 0, 1, 1, 0]],
+                [[0, 0, 1, 1, 0], [0, 0, 1, 1, 0]],
+            ]
+        )
+        self.assertAllClose(expected_output, output["bounding_boxes"].to_tensor())
+
+    def test_augment_boxes_ragged(self):
+        image = tf.zeros([2, 20, 20, 3])
+        boxes = tf.ragged.constant(
+            [[[0, 0, 1, 1], [0, 0, 1, 1]], [[0, 0, 1, 1]]], dtype=tf.float32
+        )
+        boxes = bounding_box.add_class_id(boxes)
+        input = {"images": image, "bounding_boxes": boxes}
+        layer = preprocessing.RandomCropAndResize(
+            target_size=(18, 18),
+            crop_area_factor=(0.5**2, 0.5**2),
+            aspect_ratio_factor=(1.0, 1.0),
+            bounding_box_format="rel_xyxy",
+        )
+        output = layer(input, training=True)
+
+        # the result boxes will still have the entire image in them
+        expected_output = tf.ragged.constant(
+            [[[0, 0, 1, 1, 0], [0, 0, 1, 1, 0]], [[0, 0, 1, 1, 0]]], dtype=tf.float32
+        )
+        self.assertAllClose(
+            expected_output.to_tensor(-1), output["bounding_boxes"].to_tensor(-1)
+        )

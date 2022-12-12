@@ -105,7 +105,7 @@ flags.DEFINE_float(
 
 flags.DEFINE_float(
     "warmup_hold_steps_percentage",
-    0.1,
+    0.45,
     "For how many steps expressed in percentage (0..1 float) of total steps should the schedule hold the initial learning rate after warmup is finished, and before applying cosine decay.",
 )
 
@@ -165,7 +165,8 @@ information about preparing this dataset at keras_cv/datasets/imagenet/README.md
 train_ds = imagenet.load(
     split="train",
     tfrecord_path=FLAGS.imagenet_path,
-    shuffle_buffer=BATCH_SIZE * 2,
+    shuffle_buffer=BATCH_SIZE * 8,
+    reshuffle_each_iteration=True,
 )
 test_ds = imagenet.load(
     split="validation",
@@ -196,7 +197,6 @@ def crop_and_resize(img, label):
 AUGMENT_LAYERS = [
     keras_cv.layers.RandomFlip(mode="horizontal"),
     keras_cv.layers.RandAugment(value_range=(0, 255), magnitude=0.3),
-    keras_cv.layers.CutMix(),
 ]
 
 
@@ -205,6 +205,11 @@ def augment(img, label):
     inputs = {"images": img, "labels": label}
     for layer in AUGMENT_LAYERS:
         inputs = layer(inputs)
+    if tf.random.uniform() > 0.5:
+        inputs = keras_cv.layers.CutMix()(inputs)
+    else:
+        inputs = keras_cv.layers.MixUp()(inputs)
+
     return inputs["images"], inputs["labels"]
 
 

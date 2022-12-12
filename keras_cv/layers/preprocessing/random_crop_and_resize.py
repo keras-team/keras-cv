@@ -14,6 +14,7 @@
 
 import tensorflow as tf
 
+from keras_cv import bounding_box
 from keras_cv import core
 from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
     BaseImageAugmentationLayer,
@@ -63,13 +64,13 @@ class RandomCropAndResize(BaseImageAugmentationLayer):
         crop_area_factor,
         aspect_ratio_factor,
         interpolation="bilinear",
+        bounding_box_format=None,
         seed=None,
         **kwargs,
     ):
         super().__init__(seed=seed, **kwargs)
 
         self._check_class_arguments(target_size, crop_area_factor, aspect_ratio_factor)
-
         self.target_size = target_size
         self.aspect_ratio_factor = preprocessing.parse_factor(
             aspect_ratio_factor,
@@ -87,6 +88,8 @@ class RandomCropAndResize(BaseImageAugmentationLayer):
 
         self.interpolation = interpolation
         self.seed = seed
+        self.bounding_box_format = bounding_box_format
+        self.force_output_dense_images = True
 
     def get_random_transformation(
         self, image=None, label=None, bounding_box=None, **kwargs
@@ -139,11 +142,72 @@ class RandomCropAndResize(BaseImageAugmentationLayer):
 
             return self._format_output(output, meta_data)
 
+    def compute_image_signature(self, images):
+        return tf.TensorSpec(
+            shape=(self.target_size[0], self.target_size[1], images.shape[-1]),
+            dtype=self.compute_dtype,
+        )
+
     def augment_image(self, image, transformation, **kwargs):
         return self._crop_and_resize(image, transformation)
 
     def augment_target(self, target, **kwargs):
         return target
+
+    def _transform_bounding_boxes(bounding_boxes, transformation):
+        t_y1, t_x1, t_y2, t_x2 = transformation[0]
+        t_dx = t_x2 - t_x1
+        t_dy = t_y2 - t_y1
+        x1, y1, x2, y2, rest = tf.split(
+            bounding_boxes, [1, 1, 1, 1, bounding_boxes.shape[-1] - 4], axis=-1
+        )
+        output = tf.concat(
+            [
+                (x1 - t_x1) / t_dx,
+                (y1 - t_y1) / t_dy,
+                (x2 - t_x1) / t_dx,
+                (y2 - t_y1) / t_dy,
+                rest,
+            ],
+            axis=-1,
+        )
+        return output
+
+    def augment_bounding_boxes(
+        self, bounding_boxes, transformation=None, image=None, **kwargs
+    ):
+        if self.bounding_box_format is None:
+            raise ValueError(
+                "`RandomCropAndResize()` was called with bounding boxes,"
+                "but no `bounding_box_format` was specified in the constructor."
+                "Please specify a bounding box format in the constructor. i.e."
+                "`RandomCropAndResize(bounding_box_format='xyxy')`"
+            )
+
+        bounding_boxes = bounding_box.convert_format(
+            bounding_boxes,
+            source=self.bounding_box_format,
+            target="rel_xyxy",
+            images=image,
+        )
+
+        bounding_boxes = RandomCropAndResize._transform_bounding_boxes(
+            bounding_boxes, transformation
+        )
+
+        bounding_boxes = bounding_box.clip_to_image(
+            bounding_boxes,
+            bounding_box_format="rel_xyxy",
+            images=image,
+        )
+        bounding_boxes = bounding_box.convert_format(
+            bounding_boxes,
+            source="rel_xyxy",
+            target=self.bounding_box_format,
+            dtype=self.compute_dtype,
+            images=image,
+        )
+        return bounding_boxes
 
     def _resize(self, image, **kwargs):
         outputs = tf.keras.preprocessing.image.smart_resize(
@@ -202,6 +266,7 @@ class RandomCropAndResize(BaseImageAugmentationLayer):
                 "crop_area_factor": self.crop_area_factor,
                 "aspect_ratio_factor": self.aspect_ratio_factor,
                 "interpolation": self.interpolation,
+                "bounding_box_format": self.bounding_box_format,
                 "seed": self.seed,
             }
         )
