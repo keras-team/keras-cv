@@ -56,21 +56,21 @@ class DiffusionModel(keras.Model):
             x = ResBlock(channels[0])([x, t_emb])
             x = SpatialTransformer(num_heads[0], head_dim[0], config['f_c'])([x, context])
             outputs.append(x)
-        x = PaddedConv2D(channels[1], 3, strides=2, padding=1)(x)  # Downsample 2x
+        x = PaddedConv2D(channels[0], 3, strides=2, padding=1)(x)  # Downsample 2x
         outputs.append(x)
 
         for _ in range(2):
             x = ResBlock(channels[1])([x, t_emb])
             x = SpatialTransformer(num_heads[1], head_dim[1], config['f_c'])([x, context])
             outputs.append(x)
-        x = PaddedConv2D(channels[2], 3, strides=2, padding=1)(x)  # Downsample 2x
+        x = PaddedConv2D(channels[1], 3, strides=2, padding=1)(x)  # Downsample 2x
         outputs.append(x)
 
         for _ in range(2):
             x = ResBlock(channels[2])([x, t_emb])
             x = SpatialTransformer(num_heads[2], head_dim[2], config['f_c'])([x, context])
             outputs.append(x)
-        x = PaddedConv2D(channels[3], 3, strides=2, padding=1)(x)  # Downsample 2x
+        x = PaddedConv2D(channels[2], 3, strides=2, padding=1)(x)  # Downsample 2x
         outputs.append(x)
 
         for _ in range(2):
