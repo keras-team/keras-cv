@@ -43,6 +43,7 @@ config = {
             'embed_dim': 768,
             'num_blocks': 12,
             'num_heads': 12,
+            'use_q_gelu': True,
             'version': 'v1',
             'max_length': 77
             },
@@ -63,6 +64,7 @@ config = {
             'embed_dim': 1024,
             'num_blocks': 23,
             'num_heads': 16,
+            'use_q_gelu': False,
             'version': 'v2',
             'max_length': 77
             },
