@@ -22,6 +22,7 @@ BOUNDING_BOXES = base_augmentation_layer_3d.BOUNDING_BOXES
 BOX_LABEL_INDEX = base_augmentation_layer_3d.BOX_LABEL_INDEX
 
 
+@tf.keras.utils.register_keras_serializable(package="keras_cv")
 class RandomDropBox(base_augmentation_layer_3d.BaseAugmentationLayer3D):
     """A preprocessing layer which randomly drops object bounding boxes and points during training.
 
@@ -61,6 +62,12 @@ class RandomDropBox(base_augmentation_layer_3d.BaseAugmentationLayer3D):
             raise ValueError("max_drop_bounding_boxes must be >=0.")
         self._label_index = label_index
         self._max_drop_bounding_boxes = max_drop_bounding_boxes
+
+    def get_config(self):
+        return {
+            "label_index": self._label_index,
+            "max_drop_bounding_boxes": self._max_drop_bounding_boxes,
+        }
 
     def get_random_transformation(self, point_clouds, bounding_boxes, **kwargs):
         if not self._max_drop_bounding_boxes:

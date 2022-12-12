@@ -22,6 +22,7 @@ BOUNDING_BOXES = base_augmentation_layer_3d.BOUNDING_BOXES
 POINTCLOUD_LABEL_INDEX = base_augmentation_layer_3d.POINTCLOUD_LABEL_INDEX
 
 
+@tf.keras.utils.register_keras_serializable(package="keras_cv")
 class FrustumRandomDroppingPoints(base_augmentation_layer_3d.BaseAugmentationLayer3D):
     """A preprocessing layer which randomly drops point within a randomly generated frustum during training.
 
@@ -67,6 +68,14 @@ class FrustumRandomDroppingPoints(base_augmentation_layer_3d.BaseAugmentationLay
         self._phi_width = phi_width
         keep_probability = 1 - drop_rate
         self._keep_probability = keep_probability
+
+    def get_config(self):
+        return {
+            "r_distance": self._r_distance,
+            "theta_width": self._theta_width,
+            "phi_width": self._phi_width,
+            "drop_rate": 1 - self._keep_probability,
+        }
 
     def get_random_transformation(self, point_clouds, **kwargs):
         # Randomly select a point from the first frame as the center of the frustum.
