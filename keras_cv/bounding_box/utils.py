@@ -70,6 +70,7 @@ def clip_to_image(bounding_boxes, bounding_box_format, images=None, image_shape=
         image_shape: the shape of the images to clip the bounding boxes to.
     """
     boxes, mask = bounding_boxes['boxes'], bounding_boxes['mask']
+    
     bounding_boxes = bounding_box.convert_format(
         boxes,
         source=bounding_box_format,
