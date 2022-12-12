@@ -67,12 +67,13 @@ def DeepLabV3(
             initialization), a pretrained weight file path, or a reference to
             pre-trained weights (e.g. 'imagenet/classification') (see available
             pre-trained weights in weights.py)
-        decoder: an optional decoder network for segmentation model, e.g. FPN. The
-            supported premade decoder is: "fpn". The decoder is called on
-            the output of the backbone network to up-sample the feature output.
-            Default to 'fpn'.
+        spatial_pyramid_pooling: also known as Atrous Spatial Pyramid Pooling (ASPP).
+            Performs spatial pooling on different spatial levels in the pyramid, with
+            dilation.
         segmentation_head: an optional `tf.keras.Layer` that predict the segmentation
             mask based on feature from backbone and feature from decoder.
+        segmentation_head_activation: default 'softmax', the activation layer to apply after
+            the segmentation head. Should be synchronized with the backbone's final activation.
     """
 
     if backbone_weights and not tf.io.gfile.exists(backbone_weights):
@@ -115,7 +116,10 @@ def DeepLabV3(
             )
 
     feature_map = backbone(x)
-    output = SpatialPyramidPooling(dilation_rates=[6, 12, 18])(feature_map)
+    if spatial_pyramid_pooling is None:
+        spatial_pyramid_pooling = SpatialPyramidPooling(dilation_rates=[6, 12, 18])
+
+    output = spatial_pyramid_pooling(feature_map)
     output = tf.keras.layers.UpSampling2D(
         size=(height // feature_map.shape[1], width // feature_map.shape[2]),
         interpolation="bilinear",
@@ -130,6 +134,8 @@ def DeepLabV3(
         output = layers.Activation(segmentation_head_activation, name="top_activation")(
             output
         )
+    # Force float32 output to avoid NaN issues with mixed-precision training
+    output = tf.cast(output, tf.float32)
 
     model = tf.keras.Model(inputs, output, name=name, **kwargs)
 
