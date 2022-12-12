@@ -16,11 +16,9 @@ import tensorflow as tf
 from tensorflow.keras import layers
 
 from keras_cv.layers.spatial_pyramid import SpatialPyramidPooling
+from keras_cv.models import utils
 from keras_cv.models.resnet_v2 import ResNetV2
 from keras_cv.models.weights import parse_weights
-
-from keras_cv.models import utils
-from keras_cv import models
 
 BACKBONE_CONFIG = {
     "ResNet50V2": {
@@ -31,120 +29,21 @@ BACKBONE_CONFIG = {
     }
 }
 
-def DeepLabV3(classes,
-        include_rescaling,
-        backbone,
-        backbone_weights=None,
-        spatial_pyramid_pooling=None,
-        segmentation_head=None,
-        name=None,
-        input_shape=(None, None, 3),
-        input_tensor=None,
-        **kwargs,):
 
-    if backbone_weights and not tf.io.gfile.exists(backbone_weights):
-        raise ValueError(
-            "The `weights` argument should be either `None` or the path to the "
-            "weights file to be loaded. Weights file not found at location: {weights}"
-        )
+def DeepLabV3(
+    classes,
+    include_rescaling,
+    backbone,
+    backbone_weights=None,
+    spatial_pyramid_pooling=None,
+    segmentation_head=None,
+    name=None,
+    input_shape=(None, None, 3),
+    input_tensor=None,
+    **kwargs,
+):
 
-    inputs = utils.parse_model_inputs(input_shape, input_tensor)
-    height = input_shape[0]
-    width = input_shape[1]
-
-    x = inputs
-
-    if include_rescaling:
-        x = layers.Rescaling(1 / 255.0)(x)
-
-    # Backbone
-    if isinstance(backbone, str):
-        supported_premade_backbone = [
-            "resnet50_v2",
-        ]
-        if backbone not in supported_premade_backbone:
-            raise ValueError(
-                "Supported premade backbones are: "
-                f'{supported_premade_backbone}, received "{backbone}"'
-            )
-
-        if backbone == "resnet50_v2":
-            backbone = get_resnet_backbone(backbone_weights, include_rescaling, **kwargs)
-
-    else:
-        # TODO(scottzhu): Might need to do more assertion about the model
-        if not isinstance(backbone, tf.keras.layers.Layer):
-            raise ValueError(
-                "Backbone need to be a `tf.keras.layers.Layer`, "
-                f"received {backbone}"
-            )
-
-    feature_map = backbone(x)
-    output = SpatialPyramidPooling(dilation_rates=[6, 12, 18])(feature_map)
-    output = tf.keras.layers.UpSampling2D(
-            size=(height // feature_map.shape[1], width // feature_map.shape[2]),
-            interpolation="bilinear",
-        )(output)
-
-    # Segmentation head
-    if segmentation_head is None:
-        segmentation_head = get_segmentation_head(classes)
-
-    output = segmentation_head(output)
-    model = tf.keras.Model(inputs, output, name=name, **kwargs)
-
-    if backbone_weights is not None:
-        backbone.load_weights(backbone_weights)
-
-    return model
-
-def get_segmentation_head(classes):
-    return tf.keras.Sequential(
-        [
-            tf.keras.layers.Conv2D(
-                filters=256,
-                kernel_size=(1, 1),
-                padding="same",
-                use_bias=False,
-            ),
-            tf.keras.layers.BatchNormalization(),
-            tf.keras.layers.Activation("relu"),
-            tf.keras.layers.Dropout(0.2),
-            tf.keras.layers.Conv2D(
-                filters=classes,
-                kernel_size=(1, 1),
-                padding="same",
-                use_bias=False,
-                activation="softmax",
-                # Force the dtype of the classification head to float32 to avoid the NAN loss
-                # issue when used with mixed precision API.
-                dtype=tf.float32,
-            ),
-        ]
-    )
-
-def get_resnet_backbone(backbone_weights, include_rescaling, **kwargs):
-    return ResNetV2(
-                stackwise_filters=BACKBONE_CONFIG["ResNet50V2"][
-                    "stackwise_filters"
-                ],
-                stackwise_blocks=BACKBONE_CONFIG["ResNet50V2"]["stackwise_blocks"],
-                stackwise_strides=BACKBONE_CONFIG["ResNet50V2"][
-                    "stackwise_strides"
-                ],
-                stackwise_dilations=BACKBONE_CONFIG["ResNet50V2"][
-                    "stackwise_dilations"
-                ],
-                include_rescaling=include_rescaling,
-                include_top=False,
-                name="resnet50v2",
-                weights=parse_weights(backbone_weights, False, "resnet50v2"),
-                pooling=None,
-                **kwargs,
-            )
-
-"""
-class DeepLabV3(tf.keras.models.Model):
+    """
     A segmentation model based on the DeepLab v3.
 
     Args:
@@ -172,137 +71,102 @@ class DeepLabV3(tf.keras.models.Model):
             Default to 'fpn'.
         segmentation_head: an optional `tf.keras.Layer` that predict the segmentation
             mask based on feature from backbone and feature from decoder.
+    """
 
-    
-
-    def __init__(
-        self,
-        classes,
-        include_rescaling,
-        backbone,
-        backbone_weights=None,
-        spatial_pyramid_pooling=None,
-        segmentation_head=None,
-        **kwargs,
-    ):
-        super().__init__(**kwargs)
-
-        self.classes = classes
-        # ================== Backbone and weights. ==================
-        if isinstance(backbone, str):
-            supported_premade_backbone = [
-                "resnet50_v2",
-            ]
-            if backbone not in supported_premade_backbone:
-                raise ValueError(
-                    "Supported premade backbones are: "
-                    f'{supported_premade_backbone}, received "{backbone}"'
-                )
-            self._backbone_passed = backbone
-            if backbone == "resnet50_v2":
-                backbone = ResNetV2(
-                    stackwise_filters=BACKBONE_CONFIG["ResNet50V2"][
-                        "stackwise_filters"
-                    ],
-                    stackwise_blocks=BACKBONE_CONFIG["ResNet50V2"]["stackwise_blocks"],
-                    stackwise_strides=BACKBONE_CONFIG["ResNet50V2"][
-                        "stackwise_strides"
-                    ],
-                    stackwise_dilations=BACKBONE_CONFIG["ResNet50V2"][
-                        "stackwise_dilations"
-                    ],
-                    include_rescaling=include_rescaling,
-                    include_top=False,
-                    name="resnet50v2",
-                    weights=parse_weights(backbone_weights, False, "resnet50v2"),
-                    pooling=None,
-                    **kwargs,
-                )
-
-        else:
-            # TODO(scottzhu): Might need to do more assertion about the model
-            if not isinstance(backbone, tf.keras.layers.Layer):
-                raise ValueError(
-                    "Backbone need to be a `tf.keras.layers.Layer`, "
-                    f"received {backbone}"
-                )
-        self.backbone = backbone
-
-        if spatial_pyramid_pooling is None:
-            self.aspp = SpatialPyramidPooling(dilation_rates=[6, 12, 18])
-        else:
-            self.aspp = spatial_pyramid_pooling
-
-        self._segmentation_head_passed = segmentation_head
-        if segmentation_head is None:
-            segmentation_head = tf.keras.Sequential(
-                [
-                    tf.keras.layers.Conv2D(
-                        filters=256,
-                        kernel_size=(1, 1),
-                        padding="same",
-                        use_bias=False,
-                    ),
-                    tf.keras.layers.BatchNormalization(),
-                    tf.keras.layers.Activation("relu"),
-                    tf.keras.layers.Dropout(0.2),
-                    tf.keras.layers.Conv2D(
-                        filters=classes,
-                        kernel_size=(1, 1),
-                        padding="same",
-                        use_bias=False,
-                        activation="softmax",
-                        # Force the dtype of the classification head to float32 to avoid the NAN loss
-                        # issue when used with mixed precision API.
-                        dtype=tf.float32,
-                    ),
-                ]
-            )
-        self.segmentation_head = segmentation_head
-
-    def build(self, input_shape):
-        height = input_shape[1]
-        width = input_shape[2]
-        feature_map_shape = self.backbone.compute_output_shape(input_shape)
-        self.up_layer = tf.keras.layers.UpSampling2D(
-            size=(height // feature_map_shape[1], width // feature_map_shape[2]),
-            interpolation="bilinear",
+    if backbone_weights and not tf.io.gfile.exists(backbone_weights):
+        raise ValueError(
+            "The `weights` argument should be either `None` or the path to the "
+            "weights file to be loaded. Weights file not found at location: {weights}"
         )
 
-    def call(self, inputs, training=None):
-        feature_map = self.backbone(inputs, training=training)
-        output = self.aspp(feature_map, training=training)
-        output = self.up_layer(output, training=training)
-        output = self.segmentation_head(output, training=training)
-        return output
+    inputs = utils.parse_model_inputs(input_shape, input_tensor)
+    height = input_shape[0]
+    width = input_shape[1]
 
-    # TODO(tanzhenyu): consolidate how regularization should be applied to KerasCV.
-    def compile(self, weight_decay=0.0001, **kwargs):
-        self.weight_decay = weight_decay
-        super().compile(**kwargs)
+    x = inputs
 
-    def train_step(self, data):
-        images, y_true, sample_weight = tf.keras.utils.unpack_x_y_sample_weight(data)
-        with tf.GradientTape() as tape:
-            y_pred = self(images, training=True)
-            total_loss = self.compute_loss(images, y_true, y_pred, sample_weight)
-            reg_losses = []
-            if self.weight_decay:
-                for var in self.trainable_variables:
-                    if "bn" not in var.name:
-                        reg_losses.append(self.weight_decay * tf.nn.l2_loss(var))
-                l2_loss = tf.math.add_n(reg_losses)
-                total_loss += l2_loss
-        self.optimizer.minimize(total_loss, self.trainable_variables, tape=tape)
-        return self.compute_metrics(images, y_true, y_pred, sample_weight=sample_weight)
+    if include_rescaling:
+        x = layers.Rescaling(1 / 255.0)(x)
 
-    def get_config(self):
-        config = {
-            "classes": self.classes,
-            "backbone": self._backbone_passed,
-            "decoder": self._decoder_passed,
-            "segmentation_head": self._segmentation_head_passed,
-        }
-        base_config = super().get_config()
-        return dict(list(base_config.items()) + list(config.items()))
-"""
+    if isinstance(backbone, str):
+        supported_premade_backbone = [
+            "resnet50_v2",
+        ]
+        if backbone not in supported_premade_backbone:
+            raise ValueError(
+                "Supported premade backbones are: "
+                f'{supported_premade_backbone}, received "{backbone}"'
+            )
+
+        if backbone == "resnet50_v2":
+            backbone = get_resnet_backbone(
+                backbone_weights, include_rescaling, **kwargs
+            )
+
+    else:
+        # TODO(scottzhu): Might need to do more assertion about the model
+        # What else do we want to test for? Shapes? This feels like too little, but
+        # more assertions feel like they'd be limiting.
+        if not isinstance(backbone, tf.keras.layers.Layer):
+            raise ValueError(
+                "Backbone need to be a `tf.keras.layers.Layer`, " f"received {backbone}"
+            )
+
+    feature_map = backbone(x)
+    output = SpatialPyramidPooling(dilation_rates=[6, 12, 18])(feature_map)
+    output = tf.keras.layers.UpSampling2D(
+        size=(height // feature_map.shape[1], width // feature_map.shape[2]),
+        interpolation="bilinear",
+    )(output)
+
+    if segmentation_head is None:
+        segmentation_head = get_segmentation_head(classes)
+
+    output = segmentation_head(output)
+    model = tf.keras.Model(inputs, output, name=name, **kwargs)
+
+    if backbone_weights is not None:
+        backbone.load_weights(backbone_weights)
+
+    return model
+
+
+def get_segmentation_head(classes):
+    return tf.keras.Sequential(
+        [
+            tf.keras.layers.Conv2D(
+                filters=256,
+                kernel_size=(1, 1),
+                padding="same",
+                use_bias=False,
+            ),
+            tf.keras.layers.BatchNormalization(),
+            tf.keras.layers.Activation("relu"),
+            tf.keras.layers.Dropout(0.2),
+            tf.keras.layers.Conv2D(
+                filters=classes,
+                kernel_size=(1, 1),
+                padding="same",
+                use_bias=False,
+                activation="softmax",
+                # Force the dtype of the classification head to float32 to avoid the NAN loss
+                # issue when used with mixed precision API.
+                dtype=tf.float32,
+            ),
+        ]
+    )
+
+
+def get_resnet_backbone(backbone_weights, include_rescaling, **kwargs):
+    return ResNetV2(
+        stackwise_filters=BACKBONE_CONFIG["ResNet50V2"]["stackwise_filters"],
+        stackwise_blocks=BACKBONE_CONFIG["ResNet50V2"]["stackwise_blocks"],
+        stackwise_strides=BACKBONE_CONFIG["ResNet50V2"]["stackwise_strides"],
+        stackwise_dilations=BACKBONE_CONFIG["ResNet50V2"]["stackwise_dilations"],
+        include_rescaling=include_rescaling,
+        include_top=False,
+        name="resnet50v2",
+        weights=parse_weights(backbone_weights, False, "resnet50v2"),
+        pooling=None,
+        **kwargs,
+    )
