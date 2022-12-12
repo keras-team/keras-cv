@@ -42,6 +42,7 @@ This tutorial requires you to have KerasCV installed:
 ```shell
 pip install keras-cv
 ```
+Note that this depends on TF>=2.11
 """
 
 """
@@ -74,6 +75,11 @@ flags.DEFINE_boolean(
     False,
     "Whether or not to use FP16 mixed precision for training.",
 )
+flags.DEFINE_boolean(
+    "use_ema",
+    True,
+    "Whether or not to use exponential moving average weight updating",
+)
 flags.DEFINE_float(
     "initial_learning_rate",
     0.05,
@@ -105,7 +111,7 @@ flags.DEFINE_float(
 
 flags.DEFINE_float(
     "weight_decay",
-    0.02,
+    5e-4,
     "Weight decay parameter for the optimizer",
 )
 
@@ -320,7 +326,10 @@ Note that learning rate will decrease over time due to the ReduceLROnPlateau cal
 
 if FLAGS.learning_rate_schedule == COSINE_DECAY_WITH_WARMUP:
     optimizer = optimizers.SGDW(
-        weight_decay=FLAGS.weight_decay, learning_rate=schedule, momentum=0.9
+        weight_decay=FLAGS.weight_decay,
+        learning_rate=schedule,
+        momentum=0.9,
+        use_ema=FLAGS.use_ema,
     )
 else:
     optimizer = optimizers.SGDW(
@@ -328,6 +337,7 @@ else:
         learning_rate=INITIAL_LEARNING_RATE,
         momentum=0.9,
         global_clipnorm=10,
+        use_ema=FLAGS.use_ema,
     )
 """
 Next, we pick a loss function. We use CategoricalCrossentropy with label smoothing.
