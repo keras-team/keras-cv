@@ -50,11 +50,9 @@ class RandomWidthTest(tf.test.TestCase, parameterized.TestCase):
             output_image = tf.cast(
                 layer(np.expand_dims(input_image, axis=0)), dtype=dtype
             )
-            # pyformat: disable
             expected_output = np.asarray(
                 [[0, 0.25, 0.75, 1], [2, 2.25, 2.75, 3], [4, 4.25, 4.75, 5]]
             ).astype(dtype)
-            # pyformat: enable
             expected_output = np.reshape(expected_output, (1, 3, 4, 1))
             self.assertAllEqual(expected_output, output_image)
 
@@ -111,22 +109,6 @@ class RandomWidthTest(tf.test.TestCase, parameterized.TestCase):
         ):
             img_out = layer(img, training=True)
             self.assertEqual(img_out.shape[2], 3)
-
-    def test_augment_image(self):
-        # need (maxval - minval) * rnd + minval = 0.6
-        mock_factor = 0.6
-        img = np.random.random((8, 5, 3))
-        layer = RandomWidth(0.4)
-        with unittest.mock.patch.object(
-            layer._random_generator,
-            "random_uniform",
-            return_value=mock_factor,
-        ):
-            img_out = layer.augment_image(
-                img,
-                transformation=layer.get_random_transformation(image=img),
-            )
-            self.assertEqual(img_out.shape[1], 3)
 
     def test_output_dtypes(self):
         inputs = np.array([[[1], [2]], [[3], [4]]], dtype="float64")
