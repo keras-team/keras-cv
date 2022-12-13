@@ -9,11 +9,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-<<<<<<< HEAD
 """random_zoom_demo.py.py shows how to use the RandomZoom
-=======
-"""random_zoom_demo.py.py shows how to use the RandomCrop
->>>>>>> initial port
 preprocessing layer. Operates on an image of elephant. In this script the image
 is loaded, then are passed through the preprocessing layers.
 Finally, they are shown using matplotlib.
