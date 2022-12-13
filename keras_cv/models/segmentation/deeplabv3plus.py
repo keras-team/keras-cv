@@ -82,12 +82,6 @@ class DeepLabV3Plus(keras.Model):
         **kwargs,
     ):
 
-        if backbone_weights and not tf.io.gfile.exists(backbone_weights):
-            raise ValueError(
-                "The `weights` argument should be either `None` or the path to the "
-                "weights file to be loaded. Weights file not found at location: {weights}"
-            )
-
         inputs = utils.parse_model_inputs(input_shape, input_tensor)
         x = inputs
 
@@ -156,9 +150,6 @@ class DeepLabV3Plus(keras.Model):
             output = layers.Activation(
                 segmentation_head_activation, dtype=tf.float32, name="top_activation"
             )(output)
-
-        if backbone_weights is not None:
-            backbone.load_weights(backbone_weights)
 
         super().__init__(
             inputs={
