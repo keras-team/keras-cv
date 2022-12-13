@@ -61,6 +61,7 @@ class SegmentationHead(layers.Layer):
         filters=256,
         activations="relu",
         output_scale_factor=None,
+        dropout=0.0,
         **kwargs,
     ):
         """"""
@@ -70,6 +71,7 @@ class SegmentationHead(layers.Layer):
         self.filters = filters
         self.activations = activations
         self.output_scale_factor = output_scale_factor
+        self.dropout = dropout
 
         self._conv_layers = []
         self._bn_layers = []
@@ -97,6 +99,8 @@ class SegmentationHead(layers.Layer):
             dtype=tf.float32,
         )
 
+        self.dropout_layer = tf.keras.layers.Dropout(self.dropout)
+
     def call(self, inputs):
         """Forward path for the segmentation head.
 
@@ -113,6 +117,8 @@ class SegmentationHead(layers.Layer):
             x = conv_layer(x)
             x = bn_layer(x)
             x = tf.keras.activations.get(self.activations)(x)
+            if self.dropout:
+                x = self.dropout_layer(x)
 
         if self.output_scale_factor is not None:
             x = tf.keras.layers.UpSampling2D(self.output_scale_factor)(x)

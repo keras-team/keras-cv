@@ -131,7 +131,10 @@ class DeepLabV3(keras.Model):
 
         if segmentation_head is None:
             segmentation_head = SegmentationHead(
-                classes=classes, name="segmentation_head"
+                classes=classes,
+                name="segmentation_head",
+                convs=1,
+                dropout=0.2,
             )
 
         # Segmentation head expects a multiple-level output dictionary
