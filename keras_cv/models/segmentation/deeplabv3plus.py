@@ -63,6 +63,8 @@ class DeepLabV3Plus(keras.Model):
             mask based on feature from backbone and feature from decoder.
         segmentation_head_activation: default 'softmax', the activation layer to apply after
             the segmentation head. Should be synchronized with the backbone's final activation.
+        feature_layers: the layer names for the low-level features and high-level features
+            to use for encoding/decoding spatial information for the supplied backbone.
     """
 
     def __init__(
@@ -76,6 +78,7 @@ class DeepLabV3Plus(keras.Model):
         segmentation_head_activation="softmax",
         input_shape=(None, None, 3),
         input_tensor=None,
+        feature_layers=(None, None),
         **kwargs,
     ):
 
@@ -105,6 +108,17 @@ class DeepLabV3Plus(keras.Model):
                 backbone = get_resnet_backbone(
                     backbone_weights, include_rescaling, input_tensor=x, **kwargs
                 )
+                if feature_layers is not (None, None):
+                    raise ValueError(
+                        "When using a predefined backbone, you cannot set custom feature layers."
+                        f"received {feature_layers}"
+                    )
+                low_level_features = backbone.get_layer(
+                    "v2_stack_1_block4_1_relu"
+                ).output
+                high_level_features = backbone.get_layer(
+                    "v2_stack_3_block2_2_relu"
+                ).output
 
         else:
             # TODO(scottzhu): Might need to do more assertion about the model
@@ -115,9 +129,8 @@ class DeepLabV3Plus(keras.Model):
                     "Backbone need to be a `tf.keras.layers.Layer`, "
                     f"received {backbone}"
                 )
-
-        high_level_features = backbone.get_layer("v2_stack_3_block2_2_relu").output
-        low_level_features = backbone.get_layer("v2_stack_1_block4_1_relu").output
+        low_level_features = backbone.get_layer(feature_layers[0]).output
+        high_level_features = backbone.get_layer(feature_layers[1]).output
 
         if spatial_pyramid_pooling is None:
             spatial_pyramid_pooling = SpatialPyramidPooling(dilation_rates=[6, 12, 18])
