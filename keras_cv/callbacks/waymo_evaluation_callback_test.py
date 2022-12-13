@@ -14,7 +14,6 @@
 import keras
 import tensorflow as tf
 
-import keras_cv
 from keras_cv.callbacks import WaymoEvaluationCallback
 
 NUM_RECORDS = 10

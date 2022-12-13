@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import six
 import tensorflow as tf
 from keras.callbacks import Callback
 from waymo_open_dataset.metrics.python.wod_detection_evaluator import (
@@ -55,31 +54,39 @@ class WaymoEvaluationCallback(Callback):
         point_clouds, target = batch
         boxes = target["bounding_boxes"]
         batch_size = boxes.shape[0]
+        num_gt_boxes = boxes.shape[1]
+        total_gt_boxes = num_gt_boxes * batch_size
+        boxes = tf.reshape(boxes, (total_gt_boxes, 9))
 
-        frame_ids = tf.linspace(frame_id, frame_id + batch_size - 1, batch_size)
+        frame_ids = tf.cast(
+            tf.linspace(frame_id, frame_id + batch_size - 1, batch_size), tf.int64
+        )
 
         ground_truth = {}
-        ground_truth["ground_truth_frame_id"] = tf.cast(frame_ids, tf.int64)
-        ground_truth["ground_truth_bbox"] = boxes[:, :, : CENTER_XYZ_DXDYDZ_PHI.PHI + 1]
+        ground_truth["ground_truth_frame_id"] = tf.repeat(frame_ids, num_gt_boxes)
+        ground_truth["ground_truth_bbox"] = boxes[:, : CENTER_XYZ_DXDYDZ_PHI.PHI + 1]
         ground_truth["ground_truth_type"] = tf.cast(
-            boxes[:, :, CENTER_XYZ_DXDYDZ_PHI.CLASS], tf.uint8
+            boxes[:, CENTER_XYZ_DXDYDZ_PHI.CLASS], tf.uint8
         )
         ground_truth["ground_truth_difficulty"] = tf.cast(
-            boxes[:, :, CENTER_XYZ_DXDYDZ_PHI.CLASS + 1], tf.uint8
+            boxes[:, CENTER_XYZ_DXDYDZ_PHI.CLASS + 1], tf.uint8
         )
 
         y_pred = self.model.predict_on_batch(point_clouds)
+        num_predicted_boxes = y_pred.shape[1]
+        total_predicted_boxes = num_predicted_boxes * batch_size
+        y_pred = tf.reshape(y_pred, (total_predicted_boxes, 9))
 
         predictions = {}
 
-        predictions["prediction_frame_id"] = tf.cast(frame_ids, tf.int64)
-        predictions["prediction_bbox"] = y_pred[:, :, : CENTER_XYZ_DXDYDZ_PHI.PHI + 1]
+        predictions["prediction_frame_id"] = tf.repeat(frame_ids, num_predicted_boxes)
+        predictions["prediction_bbox"] = y_pred[:, : CENTER_XYZ_DXDYDZ_PHI.PHI + 1]
         predictions["prediction_type"] = tf.cast(
-            y_pred[:, :, CENTER_XYZ_DXDYDZ_PHI.CLASS], tf.uint8
+            y_pred[:, CENTER_XYZ_DXDYDZ_PHI.CLASS], tf.uint8
         )
-        predictions["prediction_score"] = y_pred[:, :, CENTER_XYZ_DXDYDZ_PHI.CLASS + 1]
+        predictions["prediction_score"] = y_pred[:, CENTER_XYZ_DXDYDZ_PHI.CLASS + 1]
         predictions["prediction_overlap_nlz"] = tf.cast(
-            tf.zeros(y_pred.shape[:-1]), tf.bool
+            tf.zeros((total_predicted_boxes)), tf.bool
         )
 
         return ground_truth, predictions, batch_size
