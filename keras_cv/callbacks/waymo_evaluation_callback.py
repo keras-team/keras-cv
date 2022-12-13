@@ -28,6 +28,7 @@ class WaymoEvaluationCallback(Callback):
         Args:
             validation_data: a tf.data.Dataset containing validation data. Entries
                 should have the form `(point_clouds, {"bounding_boxes": bounding_boxes}`.
+                Padded bounding box should have a class of -1 to be correctly filtered out.
             config: an optional `metrics_pb2.Config` object from WOD to specify
                 what metrics should be evaluated.
         """
@@ -65,7 +66,7 @@ class WaymoEvaluationCallback(Callback):
         total_gt_boxes = num_gt_boxes * batch_size
         boxes = tf.reshape(boxes, (total_gt_boxes, 9))
         # Remove boxes with class of -1 (these are non-boxes that come from padding)
-        gt_real_boxes = tf.equal(boxes[:, CENTER_XYZ_DXDYDZ_PHI.CLASS], -1)
+        gt_real_boxes = tf.not_equal(boxes[:, CENTER_XYZ_DXDYDZ_PHI.CLASS], -1)
         boxes = tf.boolean_mask(boxes, gt_real_boxes)
 
         frame_ids = tf.cast(
@@ -89,7 +90,7 @@ class WaymoEvaluationCallback(Callback):
         total_predicted_boxes = num_predicted_boxes * batch_size
         y_pred = tf.reshape(y_pred, (total_predicted_boxes, 9))
         # Remove boxes with class of -1 (these are non-boxes that come from padding)
-        pred_real_boxes = tf.equal(y_pred[:, CENTER_XYZ_DXDYDZ_PHI.CLASS], -1)
+        pred_real_boxes = tf.not_equal(y_pred[:, CENTER_XYZ_DXDYDZ_PHI.CLASS], -1)
         y_pred = tf.boolean_mask(y_pred, pred_real_boxes)
 
         predictions = {}
@@ -103,7 +104,7 @@ class WaymoEvaluationCallback(Callback):
         )
         predictions["prediction_score"] = y_pred[:, CENTER_XYZ_DXDYDZ_PHI.CLASS + 1]
         predictions["prediction_overlap_nlz"] = tf.cast(
-            tf.zeros((total_predicted_boxes)), tf.bool
+            tf.zeros(y_pred.shape[0]), tf.bool
         )
 
         return ground_truth, predictions, batch_size
