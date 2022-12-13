@@ -129,8 +129,8 @@ class DeepLabV3Plus(keras.Model):
                     "Backbone need to be a `tf.keras.layers.Layer`, "
                     f"received {backbone}"
                 )
-        low_level_features = backbone.get_layer(feature_layers[0]).output
-        high_level_features = backbone.get_layer(feature_layers[1]).output
+            low_level_features = backbone.get_layer(feature_layers[0]).output
+            high_level_features = backbone.get_layer(feature_layers[1]).output
 
         if spatial_pyramid_pooling is None:
             spatial_pyramid_pooling = SpatialPyramidPooling(dilation_rates=[6, 12, 18])
