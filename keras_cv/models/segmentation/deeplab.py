@@ -74,7 +74,6 @@ class DeepLabV3(keras.Model):
         spatial_pyramid_pooling=None,
         segmentation_head=None,
         segmentation_head_activation="softmax",
-        name=None,
         input_shape=(None, None, 3),
         input_tensor=None,
         **kwargs,
