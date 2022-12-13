@@ -146,7 +146,6 @@ class SegmentationHead(layers.Layer):
             "activations": self.activations,
             "output_scale_factor": self.output_scale_factor,
             "dropout": self.dropout,
-            "dropout_layer": self.dropout_layer,
             "kernel_size": self.kernel_size,
         }
         base_config = super().get_config()
