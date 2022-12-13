@@ -61,15 +61,30 @@ class SegmentationHead(layers.Layer):
         filters=256,
         activations="relu",
         output_scale_factor=None,
+        dropout=0.0,
+        kernel_size=3,
+        use_bias=False,
         **kwargs,
     ):
-        """"""
+        """
+        Args:
+            classes: the number of possible classes for the segmentation map
+            convs: default 2; the number of conv blocks to use in the head (conv2d-batch_norm-activation blocks)
+            filters: default 256; the number of filters in each Conv2D layer
+            activations: default 'relu'; the activation to apply in conv blocks
+            output_scale_factor: default None; the scale to apply in the UpSampling call before the output
+            dropout: default 0.0; the dropout to apply between each conv block
+            **kwargs:
+        """
         super().__init__(**kwargs)
         self.classes = classes
         self.convs = convs
         self.filters = filters
         self.activations = activations
         self.output_scale_factor = output_scale_factor
+        self.dropout = dropout
+        self.kernel_size = kernel_size
+        self.use_bias = use_bias
 
         self._conv_layers = []
         self._bn_layers = []
@@ -79,9 +94,9 @@ class SegmentationHead(layers.Layer):
                 tf.keras.layers.Conv2D(
                     name=conv_name,
                     filters=self.filters,
-                    kernel_size=3,
+                    kernel_size=self.kernel_size,
                     padding="same",
-                    use_bias=False,
+                    use_bias=self.use_bias,
                 )
             )
             norm_name = "segmentation_head_norm_{}".format(i)
@@ -96,6 +111,8 @@ class SegmentationHead(layers.Layer):
             # issue when used with mixed precision API.
             dtype=tf.float32,
         )
+
+        self.dropout_layer = tf.keras.layers.Dropout(self.dropout)
 
     def call(self, inputs):
         """Forward path for the segmentation head.
@@ -113,6 +130,8 @@ class SegmentationHead(layers.Layer):
             x = conv_layer(x)
             x = bn_layer(x)
             x = tf.keras.activations.get(self.activations)(x)
+            if self.dropout:
+                x = self.dropout_layer(x)
 
         if self.output_scale_factor is not None:
             x = tf.keras.layers.UpSampling2D(self.output_scale_factor)(x)
@@ -126,6 +145,8 @@ class SegmentationHead(layers.Layer):
             "filters": self.filters,
             "activations": self.activations,
             "output_scale_factor": self.output_scale_factor,
+            "dropout": self.dropout,
+            "kernel_size": self.kernel_size,
         }
         base_config = super().get_config()
         return dict(list(base_config.items()) + list(config.items()))
