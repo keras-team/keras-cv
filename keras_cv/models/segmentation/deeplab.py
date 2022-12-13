@@ -79,12 +79,6 @@ class DeepLabV3(keras.Model):
         **kwargs,
     ):
 
-        if backbone_weights and not tf.io.gfile.exists(backbone_weights):
-            raise ValueError(
-                "The `weights` argument should be either `None` or the path to the "
-                "weights file to be loaded. Weights file not found at location: {weights}"
-            )
-
         inputs = utils.parse_model_inputs(input_shape, input_tensor)
         height = input_shape[0]
         width = input_shape[1]
