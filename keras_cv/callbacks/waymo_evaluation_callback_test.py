@@ -51,8 +51,12 @@ class WaymoEvaluationCallbackTest(tf.test.TestCase):
         points = tf.random.normal((NUM_RECORDS, POINT_FEATURES, NUM_POINTS))
         # Some random boxes, and some -1 boxes (to mimic padding ragged boxes)
         boxes = tf.concat(
-            tf.random.uniform((NUM_RECORDS // 2, NUM_BOXES, BOX_FEATURES)),
-            tf.repeat(-1, (NUM_RECORDS // 2, NUM_BOXES, BOX_FEATURES)),
+            [
+                tf.random.uniform((NUM_RECORDS // 2, NUM_BOXES, BOX_FEATURES)),
+                tf.cast(
+                    tf.fill((NUM_RECORDS // 2, NUM_BOXES, BOX_FEATURES), -1), tf.float32
+                ),
+            ],
             axis=0,
         )
         dataset = tf.data.Dataset.from_tensor_slices(
