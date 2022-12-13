@@ -64,7 +64,16 @@ class SegmentationHead(layers.Layer):
         dropout=0.0,
         **kwargs,
     ):
-        """"""
+        """
+        Args:
+            classes: the number of possible classes for the segmentation map
+            convs: default 2; the number of conv blocks to use in the head (conv2d-batch_norm-activation blocks)
+            filters: default 256; the number of filters in each Conv2D layer
+            activations: default 'relu'; the activation to apply in conv blocks
+            output_scale_factor: default None; the scale to apply in the UpSampling call before the output
+            dropout: default 0.0; the dropout to apply between each conv block
+            **kwargs:
+        """
         super().__init__(**kwargs)
         self.classes = classes
         self.convs = convs
