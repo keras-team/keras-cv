@@ -424,6 +424,11 @@ class SerializationTest(tf.test.TestCase, parameterized.TestCase):
                 "width": 200,
             },
         ),
+        (
+            "RandomZoom",
+            cv_layers.RandomZoom,
+            {"height_factor": 0.2, "width_factor": 0.5},
+        ),
     )
     def test_layer_serialization(self, layer_cls, init_args):
         layer = layer_cls(**init_args)

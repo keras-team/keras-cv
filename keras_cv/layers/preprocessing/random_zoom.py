@@ -25,11 +25,6 @@ from keras_cv.utils import preprocessing
 # and verticle axis is reverse indexed
 H_AXIS = -3
 W_AXIS = -2
-<<<<<<< HEAD
-=======
-IMAGES = "images"
-BOUNDING_BOXES = "bounding_boxes"
->>>>>>> initial port
 
 
 @tf.keras.utils.register_keras_serializable(package="keras_cv")
@@ -40,18 +35,9 @@ class RandomZoom(BaseImageAugmentationLayer):
     independently, filling empty space according to `fill_mode`.
 
     Input pixel values can be of any range (e.g. `[0., 1.)` or `[0, 255]`) and
-<<<<<<< HEAD
     of integer or floating point dtype. By default, the layer will output
     floats.
 
-=======
-    of interger or floating point dtype. By default, the layer will output
-    floats.
-
-    For an overview and full list of preprocessing layers, see the preprocessing
-    [guide](https://www.tensorflow.org/guide/keras/preprocessing_layers).
-
->>>>>>> initial port
     Args:
       height_factor: a float represented as fraction of value, or a tuple of
         size 2 representing lower and upper bound for zooming vertically. When
@@ -60,24 +46,16 @@ class RandomZoom(BaseImageAugmentationLayer):
         means zooming in. For instance, `height_factor=(0.2, 0.3)` result in an
         output zoomed out by a random amount in the range `[+20%, +30%]`.
         `height_factor=(-0.3, -0.2)` result in an output zoomed in by a random
-<<<<<<< HEAD
         amount in the range `[-30%, -20%]`.
-=======
-        amount in the range `[+20%, +30%]`.
->>>>>>> initial port
       width_factor: a float represented as fraction of value, or a tuple of size
         2 representing lower and upper bound for zooming horizontally. When
         represented as a single float, this value is used for both the upper and
         lower bound. For instance, `width_factor=(0.2, 0.3)` result in an output
         zooming out between 20% to 30%. `width_factor=(-0.3, -0.2)` result in an
         output zooming in between 20% to 30%. Defaults to `None`, i.e., zooming
-<<<<<<< HEAD
         vertical and horizontal directions by preserving the aspect ratio. If
         height_factor=0 and width_factor=None, it would result in images with
         no zoom at all.
-=======
-        vertical and horizontal directions by preserving the aspect ratio.
->>>>>>> initial port
       fill_mode: Points outside the boundaries of the input are filled according
         to the given mode (one of `{"constant", "reflect", "wrap", "nearest"}`).
         - *reflect*: `(d c b a | a b c d | d c b a)` The input is extended by
@@ -97,11 +75,7 @@ class RandomZoom(BaseImageAugmentationLayer):
     Example:
 
     >>> input_img = np.random.random((32, 224, 224, 3))
-<<<<<<< HEAD
     >>> layer = keras_cv.layers.RandomZoom(.5, .2)
-=======
-    >>> layer = tf.keras.layers.RandomZoom(.5, .2)
->>>>>>> initial port
     >>> out_img = layer(input_img)
     >>> out_img.shape
     TensorShape([32, 224, 224, 3])
@@ -162,11 +136,7 @@ class RandomZoom(BaseImageAugmentationLayer):
         self.interpolation = interpolation
         self.seed = seed
 
-<<<<<<< HEAD
     def get_random_transformation(self, image=None, **kwargs):
-=======
-    def get_random_transformation(self, image=None, label=None, bounding_box=None):
->>>>>>> initial port
         height_zoom = self._random_generator.random_uniform(
             shape=[1, 1],
             minval=1.0 + self.height_lower,
@@ -183,11 +153,7 @@ class RandomZoom(BaseImageAugmentationLayer):
 
         return {"height_zoom": height_zoom, "width_zoom": width_zoom}
 
-<<<<<<< HEAD
     def augment_image(self, image, transformation, **kwargs):
-=======
-    def augment_image(self, image, transformation):
->>>>>>> initial port
         image = preprocessing.ensure_tensor(image, self.compute_dtype)
         original_shape = image.shape
         image = tf.expand_dims(image, 0)
@@ -208,11 +174,7 @@ class RandomZoom(BaseImageAugmentationLayer):
         output.set_shape(original_shape)
         return output
 
-<<<<<<< HEAD
     def augment_label(self, label, transformation, **kwargs):
-=======
-    def augment_label(self, label, transformation):
->>>>>>> initial port
         return label
 
     def compute_output_shape(self, input_shape):

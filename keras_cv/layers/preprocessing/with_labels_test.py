@@ -117,6 +117,11 @@ TEST_CONFIGURATIONS = [
             "width": 200,
         },
     ),
+    (
+        "RandomZoom",
+        layers.RandomZoom,
+        {"height_factor": 0.2, "width_factor": 0.5},
+    ),
 ]
 
 
