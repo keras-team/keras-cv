@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import keras
+import pytest
 import tensorflow as tf
 
 from keras_cv.callbacks import WaymoEvaluationCallback
@@ -32,6 +33,7 @@ METRIC_KEYS = [
 
 
 class WaymoEvaluationCallbackTest(tf.test.TestCase):
+    @pytest.mark.skipif(True, reason="Requires Waymo Open Dataset")
     def test_model_fit(self):
         # Silly hypothetical model
         model = keras.Sequential(
