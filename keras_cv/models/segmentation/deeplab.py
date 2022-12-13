@@ -140,9 +140,6 @@ class DeepLabV3(keras.Model):
                 segmentation_head_activation, dtype=tf.float32, name="top_activation"
             )(output)
 
-        if backbone_weights is not None:
-            backbone.load_weights(backbone_weights)
-
         super().__init__(
             inputs={
                 "inputs": inputs,
