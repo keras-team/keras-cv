@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import tensorflow as tf
+from tensorflow import keras
 from tensorflow.keras import layers
 
 from keras_cv.layers.spatial_pyramid import SpatialPyramidPooling
@@ -31,20 +32,8 @@ BACKBONE_CONFIG = {
 }
 
 
-def DeepLabV3(
-    classes,
-    include_rescaling,
-    backbone,
-    backbone_weights=None,
-    spatial_pyramid_pooling=None,
-    segmentation_head=None,
-    segmentation_head_activation="softmax",
-    name=None,
-    input_shape=(None, None, 3),
-    input_tensor=None,
-    **kwargs,
-):
-
+@keras.utils.register_keras_serializable(package="keras_cv")
+class DeepLabV3(keras.Model):
     """
     A segmentation model based on the DeepLab v3.
 
@@ -76,72 +65,116 @@ def DeepLabV3(
             the segmentation head. Should be synchronized with the backbone's final activation.
     """
 
-    if backbone_weights and not tf.io.gfile.exists(backbone_weights):
-        raise ValueError(
-            "The `weights` argument should be either `None` or the path to the "
-            "weights file to be loaded. Weights file not found at location: {weights}"
-        )
+    def __init__(
+        self,
+        classes,
+        include_rescaling,
+        backbone,
+        backbone_weights=None,
+        spatial_pyramid_pooling=None,
+        segmentation_head=None,
+        segmentation_head_activation="softmax",
+        name=None,
+        input_shape=(None, None, 3),
+        input_tensor=None,
+        **kwargs,
+    ):
 
-    inputs = utils.parse_model_inputs(input_shape, input_tensor)
-    height = input_shape[0]
-    width = input_shape[1]
-
-    x = inputs
-
-    if include_rescaling:
-        x = layers.Rescaling(1 / 255.0)(x)
-
-    if isinstance(backbone, str):
-        supported_premade_backbone = [
-            "resnet50_v2",
-        ]
-        if backbone not in supported_premade_backbone:
+        if backbone_weights and not tf.io.gfile.exists(backbone_weights):
             raise ValueError(
-                "Supported premade backbones are: "
-                f'{supported_premade_backbone}, received "{backbone}"'
+                "The `weights` argument should be either `None` or the path to the "
+                "weights file to be loaded. Weights file not found at location: {weights}"
             )
 
-        if backbone == "resnet50_v2":
-            backbone = get_resnet_backbone(
-                backbone_weights, include_rescaling, **kwargs
-            )
+        inputs = utils.parse_model_inputs(input_shape, input_tensor)
+        height = input_shape[0]
+        width = input_shape[1]
 
-    else:
-        # TODO(scottzhu): Might need to do more assertion about the model
-        # What else do we want to test for? Shapes? This feels like too little, but
-        # more assertions feel like they'd be limiting.
-        if not isinstance(backbone, tf.keras.layers.Layer):
-            raise ValueError(
-                "Backbone need to be a `tf.keras.layers.Layer`, " f"received {backbone}"
-            )
+        x = inputs
 
-    feature_map = backbone(x)
-    if spatial_pyramid_pooling is None:
-        spatial_pyramid_pooling = SpatialPyramidPooling(dilation_rates=[6, 12, 18])
+        if include_rescaling:
+            x = layers.Rescaling(1 / 255.0)(x)
 
-    output = spatial_pyramid_pooling(feature_map)
-    output = tf.keras.layers.UpSampling2D(
-        size=(height // feature_map.shape[1], width // feature_map.shape[2]),
-        interpolation="bilinear",
-    )(output)
+        if isinstance(backbone, str):
+            supported_premade_backbone = [
+                "resnet50_v2",
+            ]
+            if backbone not in supported_premade_backbone:
+                raise ValueError(
+                    "Supported premade backbones are: "
+                    f'{supported_premade_backbone}, received "{backbone}"'
+                )
 
-    if segmentation_head is None:
-        segmentation_head = SegmentationHead(classes=classes, name="segmentation_head")
+            if backbone == "resnet50_v2":
+                backbone = get_resnet_backbone(
+                    backbone_weights, include_rescaling, **kwargs
+                )
 
-    # Segmentation head expects a multiple-level output dictionary
-    output = segmentation_head({1: output})
-    if segmentation_head_activation is not None:
-        # Force float32 output to avoid NaN issues with mixed-precision training
-        output = layers.Activation(
-            segmentation_head_activation, dtype=tf.float32, name="top_activation"
+        else:
+            # TODO(scottzhu): Might need to do more assertion about the model
+            # What else do we want to test for? Shapes? This feels like too little, but
+            # more assertions feel like they'd be limiting.
+            if not isinstance(backbone, tf.keras.layers.Layer):
+                raise ValueError(
+                    "Backbone need to be a `tf.keras.layers.Layer`, "
+                    f"received {backbone}"
+                )
+
+        feature_map = backbone(x)
+        if spatial_pyramid_pooling is None:
+            spatial_pyramid_pooling = SpatialPyramidPooling(dilation_rates=[6, 12, 18])
+
+        output = spatial_pyramid_pooling(feature_map)
+        output = tf.keras.layers.UpSampling2D(
+            size=(height // feature_map.shape[1], width // feature_map.shape[2]),
+            interpolation="bilinear",
         )(output)
 
-    model = tf.keras.Model(inputs, output, name=name, **kwargs)
+        if segmentation_head is None:
+            segmentation_head = SegmentationHead(
+                classes=classes, name="segmentation_head"
+            )
 
-    if backbone_weights is not None:
-        backbone.load_weights(backbone_weights)
+        # Segmentation head expects a multiple-level output dictionary
+        output = segmentation_head({1: output})
+        if segmentation_head_activation is not None:
+            # Force float32 output to avoid NaN issues with mixed-precision training
+            output = layers.Activation(
+                segmentation_head_activation, dtype=tf.float32, name="top_activation"
+            )(output)
 
-    return model
+        if backbone_weights is not None:
+            backbone.load_weights(backbone_weights)
+
+        super().__init__(
+            inputs={
+                "inputs": inputs,
+            },
+            outputs={
+                "output": output,
+            },
+            **kwargs,
+        )
+
+        # All references to `self` below this line
+        self.classes = classes
+        self.include_rescaling = include_rescaling
+        self.backbone = backbone
+        self.backbone_weights = backbone_weights
+        self.spatial_pyramid_pooling = spatial_pyramid_pooling
+        self.segmentation_head = segmentation_head
+        self.segmentation_head_activation = segmentation_head_activation
+
+    def get_config(self):
+        return {
+            "vocabulary_size": self.classes,
+            "hidden_dim": self.include_rescaling,
+            "intermediate_dim": self.backbone,
+            "num_layers": self.backbone_weights,
+            "num_heads": self.spatial_pyramid_pooling,
+            "max_sequence_length": self.segmentation_head,
+            "num_segments": self.segmentation_head_activation,
+        }
 
 
 def get_resnet_backbone(backbone_weights, include_rescaling, **kwargs):
