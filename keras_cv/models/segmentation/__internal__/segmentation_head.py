@@ -62,6 +62,7 @@ class SegmentationHead(layers.Layer):
         activations="relu",
         output_scale_factor=None,
         dropout=0.0,
+        kernel_size=3,
         **kwargs,
     ):
         """
@@ -81,6 +82,7 @@ class SegmentationHead(layers.Layer):
         self.activations = activations
         self.output_scale_factor = output_scale_factor
         self.dropout = dropout
+        self.kernel_size = kernel_size
 
         self._conv_layers = []
         self._bn_layers = []
@@ -90,7 +92,7 @@ class SegmentationHead(layers.Layer):
                 tf.keras.layers.Conv2D(
                     name=conv_name,
                     filters=self.filters,
-                    kernel_size=3,
+                    kernel_size=self.kernel_size,
                     padding="same",
                     use_bias=False,
                 )
@@ -141,6 +143,9 @@ class SegmentationHead(layers.Layer):
             "filters": self.filters,
             "activations": self.activations,
             "output_scale_factor": self.output_scale_factor,
+            "dropout": self.dropout,
+            "dropout_layer": self.dropout_layer,
+            "kernel_size": self.kernel_size,
         }
         base_config = super().get_config()
         return dict(list(base_config.items()) + list(config.items()))
