@@ -65,16 +65,17 @@ class WaymoEvaluationCallback(Callback):
         total_gt_boxes = num_gt_boxes * batch_size
         boxes = tf.reshape(boxes, (total_gt_boxes, 9))
         # Remove boxes with class of -1 (these are non-boxes that come from padding)
-        boxes = tf.boolean_mask(
-            boxes, tf.equal(boxes[:, CENTER_XYZ_DXDYDZ_PHI.CLASS], -1)
-        )
+        gt_real_boxes = tf.equal(boxes[:, CENTER_XYZ_DXDYDZ_PHI.CLASS], -1)
+        boxes = tf.boolean_mask(boxes, gt_real_boxes)
 
         frame_ids = tf.cast(
             tf.linspace(frame_id, frame_id + batch_size - 1, batch_size), tf.int64
         )
 
         ground_truth = {}
-        ground_truth["ground_truth_frame_id"] = tf.repeat(frame_ids, num_gt_boxes)
+        ground_truth["ground_truth_frame_id"] = tf.boolean_mask(
+            tf.repeat(frame_ids, num_gt_boxes), gt_real_boxes
+        )
         ground_truth["ground_truth_bbox"] = boxes[:, : CENTER_XYZ_DXDYDZ_PHI.PHI + 1]
         ground_truth["ground_truth_type"] = tf.cast(
             boxes[:, CENTER_XYZ_DXDYDZ_PHI.CLASS], tf.uint8
@@ -88,13 +89,14 @@ class WaymoEvaluationCallback(Callback):
         total_predicted_boxes = num_predicted_boxes * batch_size
         y_pred = tf.reshape(y_pred, (total_predicted_boxes, 9))
         # Remove boxes with class of -1 (these are non-boxes that come from padding)
-        y_pred = tf.boolean_mask(
-            y_pred, tf.equal(y_pred[:, CENTER_XYZ_DXDYDZ_PHI.CLASS], -1)
-        )
+        pred_real_boxes = tf.equal(y_pred[:, CENTER_XYZ_DXDYDZ_PHI.CLASS], -1)
+        y_pred = tf.boolean_mask(y_pred, pred_real_boxes)
 
         predictions = {}
 
-        predictions["prediction_frame_id"] = tf.repeat(frame_ids, num_predicted_boxes)
+        predictions["prediction_frame_id"] = tf.boolean_mask(
+            tf.repeat(frame_ids, num_predicted_boxes), pred_real_boxes
+        )
         predictions["prediction_bbox"] = y_pred[:, : CENTER_XYZ_DXDYDZ_PHI.PHI + 1]
         predictions["prediction_type"] = tf.cast(
             y_pred[:, CENTER_XYZ_DXDYDZ_PHI.CLASS], tf.uint8
