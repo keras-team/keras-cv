@@ -27,8 +27,7 @@ class WaymoEvaluationCallback(Callback):
 
         Args:
             validation_data: a tf.data.Dataset containing validation data. Entries
-                should have the form ```{"point_clouds": point_clouds,
-                "bounding_boxes": bounding_boxes}```.
+                should have the form `(point_clouds, {"bounding_boxes": bounding_boxes}`.
             config: an optional `metrics_pb2.Config` object from WOD to specify
                 what metrics should be evaluated.
         """
