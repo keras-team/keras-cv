@@ -120,7 +120,7 @@ class FrustumRandomPointFeatureNoiseTest(tf.test.TestCase):
             ]
         ).astype("float32")
         self.assertAllClose(inputs[BOUNDING_BOXES], outputs[BOUNDING_BOXES])
-        # [100, 100, 2, 3, 4, 1] is selected as the frustum center because it is the only valid point
+        # [100, 100, 2, 3, 4, 1] is selected as the frustum center because it is the only valid point.
         self.assertAllClose(outputs[POINT_CLOUDS], augmented_point_clouds)
 
     def test_not_augment_max_noise_level0_point_clouds_and_bounding_boxes(self):
