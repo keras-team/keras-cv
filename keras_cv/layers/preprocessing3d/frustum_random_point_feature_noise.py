@@ -23,6 +23,7 @@ POINTCLOUD_LABEL_INDEX = base_augmentation_layer_3d.POINTCLOUD_LABEL_INDEX
 POINTCLOUD_FEATURE_INDEX = base_augmentation_layer_3d.POINTCLOUD_FEATURE_INDEX
 
 
+@tf.keras.utils.register_keras_serializable(package="keras_cv")
 class FrustumRandomPointFeatureNoise(
     base_augmentation_layer_3d.BaseAugmentationLayer3D
 ):
@@ -74,6 +75,14 @@ class FrustumRandomPointFeatureNoise(
         self._theta_width = theta_width
         self._phi_width = phi_width
         self._max_noise_level = max_noise_level
+
+    def get_config(self):
+        return {
+            "r_distance": self._r_distance,
+            "theta_width": self._theta_width,
+            "phi_width": self._phi_width,
+            "max_noise_level": self._max_noise_level,
+        }
 
     def get_random_transformation(self, point_clouds, **kwargs):
         # Randomly select a point from the first frame as the center of the frustum.

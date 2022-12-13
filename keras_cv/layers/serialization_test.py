@@ -331,6 +331,60 @@ class SerializationTest(tf.test.TestCase, parameterized.TestCase):
             },
         ),
         (
+            "FrustumRandomDroppingPoints",
+            cv_layers.FrustumRandomDroppingPoints,
+            {
+                "r_distance": 10.0,
+                "theta_width": 1.0,
+                "phi_width": 2.0,
+                "drop_rate": 0.1,
+            },
+        ),
+        (
+            "FrustumRandomPointFeatureNoise",
+            cv_layers.FrustumRandomPointFeatureNoise,
+            {
+                "r_distance": 10.0,
+                "theta_width": 1.0,
+                "phi_width": 2.0,
+                "max_noise_level": 0.1,
+            },
+        ),
+        (
+            "GlobalRandomDroppingPoints",
+            cv_layers.GlobalRandomDroppingPoints,
+            {"drop_rate": 0.1},
+        ),
+        (
+            "GlobalRandomFlipY",
+            cv_layers.GlobalRandomFlipY,
+            {},
+        ),
+        (
+            "GlobalRandomRotation",
+            cv_layers.GlobalRandomRotation,
+            {
+                "max_rotation_angle_x": 0.5,
+                "max_rotation_angle_y": 0.6,
+                "max_rotation_angle_z": 0.7,
+            },
+        ),
+        (
+            "GlobalRandomScaling",
+            cv_layers.GlobalRandomScaling,
+            {
+                "scaling_factor_x": (0.2, 1.0),
+                "scaling_factor_y": (0.3, 1.1),
+                "scaling_factor_z": (0.4, 1.3),
+                "same_scaling_xyz": False,
+            },
+        ),
+        (
+            "GlobalRandomTranslation",
+            cv_layers.GlobalRandomTranslation,
+            {"x_stddev": 0.2, "y_stddev": 1.0, "z_stddev": 0.0},
+        ),
+        (
             "GroupPointsByBoundingBoxes",
             cv_layers.GroupPointsByBoundingBoxes,
             {
@@ -338,6 +392,25 @@ class SerializationTest(tf.test.TestCase, parameterized.TestCase):
                 "min_points_per_bounding_boxes": 1,
                 "max_points_per_bounding_boxes": 4,
             },
+        ),
+        (
+            "RandomCopyPaste",
+            cv_layers.RandomCopyPaste,
+            {
+                "label_index": 1,
+                "min_paste_bounding_boxes": 1,
+                "max_paste_bounding_boxes": 10,
+            },
+        ),
+        (
+            "RandomDropBox",
+            cv_layers.RandomDropBox,
+            {"label_index": 1, "max_drop_bounding_boxes": 3},
+        ),
+        (
+            "SwapBackground",
+            cv_layers.SwapBackground,
+            {},
         ),
     )
     def test_layer_serialization(self, layer_cls, init_args):

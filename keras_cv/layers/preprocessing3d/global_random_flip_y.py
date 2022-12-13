@@ -22,6 +22,7 @@ POINT_CLOUDS = base_augmentation_layer_3d.POINT_CLOUDS
 BOUNDING_BOXES = base_augmentation_layer_3d.BOUNDING_BOXES
 
 
+@tf.keras.utils.register_keras_serializable(package="keras_cv")
 class GlobalRandomFlipY(base_augmentation_layer_3d.BaseAugmentationLayer3D):
     """A preprocessing layer which flips point clouds and bounding boxes with respect to the Y axis during training.
 
@@ -45,6 +46,9 @@ class GlobalRandomFlipY(base_augmentation_layer_3d.BaseAugmentationLayer3D):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+
+    def get_config(self):
+        return {}
 
     def augment_point_clouds_bounding_boxes(
         self, point_clouds, bounding_boxes, transformation, **kwargs
