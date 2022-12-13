@@ -44,13 +44,17 @@ class WaymoEvaluationCallbackTest(tf.test.TestCase):
                 keras.layers.Flatten(),
                 keras.layers.Dense(BOX_FEATURES * NUM_BOXES),
                 keras.layers.Reshape((NUM_BOXES, BOX_FEATURES)),
-                keras.layers.Lambda(lambda x: tf.abs(x)),
             ]
         )
         model.compile(optimizer="adam", loss="mse")
 
         points = tf.random.normal((NUM_RECORDS, POINT_FEATURES, NUM_POINTS))
-        boxes = tf.random.normal((NUM_RECORDS, NUM_BOXES, BOX_FEATURES))
+        # Some random boxes, and some -1 boxes (to mimic padding ragged boxes)
+        boxes = tf.concat(
+            tf.random.uniform((NUM_RECORDS // 2, NUM_BOXES, BOX_FEATURES)),
+            tf.repeat(-1, (NUM_RECORDS // 2, NUM_BOXES, BOX_FEATURES)),
+            axis=0,
+        )
         dataset = tf.data.Dataset.from_tensor_slices(
             (
                 points,

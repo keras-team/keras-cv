@@ -64,6 +64,10 @@ class WaymoEvaluationCallback(Callback):
         num_gt_boxes = boxes.shape[1]
         total_gt_boxes = num_gt_boxes * batch_size
         boxes = tf.reshape(boxes, (total_gt_boxes, 9))
+        # Remove boxes with class of -1 (these are non-boxes that come from padding)
+        boxes = tf.boolean_mask(
+            boxes, tf.equals(boxes[:, CENTER_XYZ_DXDYDZ_PHI.CLASS], -1)
+        )
 
         frame_ids = tf.cast(
             tf.linspace(frame_id, frame_id + batch_size - 1, batch_size), tf.int64
@@ -83,6 +87,10 @@ class WaymoEvaluationCallback(Callback):
         num_predicted_boxes = y_pred.shape[1]
         total_predicted_boxes = num_predicted_boxes * batch_size
         y_pred = tf.reshape(y_pred, (total_predicted_boxes, 9))
+        # Remove boxes with class of -1 (these are non-boxes that come from padding)
+        y_pred = tf.boolean_mask(
+            y_pred, tf.equals(y_pred[:, CENTER_XYZ_DXDYDZ_PHI.CLASS], -1)
+        )
 
         predictions = {}
 
