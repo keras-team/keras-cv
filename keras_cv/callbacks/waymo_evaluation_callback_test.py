@@ -19,8 +19,9 @@ from keras_cv.callbacks import WaymoEvaluationCallback
 
 NUM_RECORDS = 10
 POINT_FEATURES = 3
+NUM_POINTS = 20
 NUM_BOXES = 2
-BOX_FEATURES = 8
+BOX_FEATURES = 9
 
 METRIC_KEYS = [
     "average_precision",
@@ -34,21 +35,28 @@ METRIC_KEYS = [
 class WaymoEvaluationCallbackTest(tf.test.TestCase):
     def test_model_fit(self):
         # Silly hypothetical model
-        model = keras.Sequential(layers=[layers.Dense(BOX_FEATURES)])
+        model = keras.Sequential(
+            layers=[
+                keras.layers.Flatten(),
+                keras.layers.Dense(BOX_FEATURES * NUM_BOXES),
+                keras.layers.Reshape((NUM_BOXES, BOX_FEATURES)),
+                keras.layers.Lambda(lambda x: tf.abs(x)),
+            ]
+        )
         model.compile(optimizer="adam", loss="mse")
 
-        fake_dataset = tf.data.Dataset.from_tensor_slices(
+        points = tf.random.normal((NUM_RECORDS, POINT_FEATURES, NUM_POINTS))
+        boxes = tf.random.normal((NUM_RECORDS, NUM_BOXES, BOX_FEATURES))
+        dataset = tf.data.Dataset.from_tensor_slices(
             (
+                points,
                 {
-                    "point_clouds": tf.random.normal((NUM_RECORDS, POINT_FEATURES)),
-                    "bounding_boxes": tf.random.normal(
-                        NUM_RECORDS, NUM_BOXES, BOX_FEATURES
-                    ),
-                }
+                    "bounding_boxes": boxes,
+                },
             )
-        )
+        ).batch(5)
 
-        callback = WaymoEvaluationCallback(validation_data=fake_dataset)
-        history = model.fit(fake_dataset, callbacks=[callback])
+        callback = WaymoEvaluationCallback(validation_data=dataset)
+        history = model.fit(points, boxes, callbacks=[callback])
 
         self.assertAllInSet(METRIC_KEYS, history.history.keys())
