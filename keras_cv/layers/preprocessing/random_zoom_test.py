@@ -26,11 +26,10 @@ class RandomZoomTest(tf.test.TestCase, parameterized.TestCase):
         orig_height = 5
         orig_width = 8
         channels = 3
-        kwargs = {"height_factor": height_factor, "width_factor": width_factor}
         input = tf.random.uniform(
             shape=[num_samples, orig_height, orig_width, channels],
         )
-        layer = RandomZoom(orig_height, orig_width, kwargs)
+        layer = RandomZoom(height_factor, width_factor)
         actual_output = layer(input)
         expected_output = tf.random.uniform(
             shape=(
@@ -133,24 +132,6 @@ class RandomZoomTest(tf.test.TestCase, parameterized.TestCase):
         input_image = np.reshape(np.arange(0, 25), (5, 5, 1)).astype(np.int64)
         layer = RandomZoom((-0.5, -0.5), (-0.5, -0.5), interpolation="nearest")
         output_image = layer(input_image)
-        expected_output = np.asarray(
-            [
-                [6, 7, 7, 8, 8],
-                [11, 12, 12, 13, 13],
-                [11, 12, 12, 13, 13],
-                [16, 17, 17, 18, 18],
-                [16, 17, 17, 18, 18],
-            ]
-        ).astype(np.int64)
-        expected_output = np.reshape(expected_output, (5, 5, 1))
-        self.assertAllEqual(expected_output, output_image)
-
-    def test_augment_image(self):
-        input_image = np.reshape(np.arange(0, 25), (5, 5, 1)).astype(np.int64)
-        layer = RandomZoom((-0.5, -0.5), (-0.5, -0.5), interpolation="nearest")
-        output_image = layer.augment_image(
-            input_image, transformation=layer.get_random_transformation()
-        )
         expected_output = np.asarray(
             [
                 [6, 7, 7, 8, 8],

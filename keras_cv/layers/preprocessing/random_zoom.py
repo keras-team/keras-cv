@@ -40,9 +40,6 @@ class RandomZoom(BaseImageAugmentationLayer):
     of interger or floating point dtype. By default, the layer will output
     floats.
 
-    For an overview and full list of preprocessing layers, see the preprocessing
-    [guide](https://www.tensorflow.org/guide/keras/preprocessing_layers).
-
     Args:
       height_factor: a float represented as fraction of value, or a tuple of
         size 2 representing lower and upper bound for zooming vertically. When
@@ -78,7 +75,7 @@ class RandomZoom(BaseImageAugmentationLayer):
     Example:
 
     >>> input_img = np.random.random((32, 224, 224, 3))
-    >>> layer = tf.keras.layers.RandomZoom(.5, .2)
+    >>> layer = keras_cv.layers.RandomZoom(.5, .2)
     >>> out_img = layer(input_img)
     >>> out_img.shape
     TensorShape([32, 224, 224, 3])
@@ -139,7 +136,7 @@ class RandomZoom(BaseImageAugmentationLayer):
         self.interpolation = interpolation
         self.seed = seed
 
-    def get_random_transformation(self, image=None, label=None, bounding_box=None):
+    def get_random_transformation(self, image=None, **kwargs):
         height_zoom = self._random_generator.random_uniform(
             shape=[1, 1],
             minval=1.0 + self.height_lower,
@@ -156,7 +153,7 @@ class RandomZoom(BaseImageAugmentationLayer):
 
         return {"height_zoom": height_zoom, "width_zoom": width_zoom}
 
-    def augment_image(self, image, transformation):
+    def augment_image(self, image, transformation, **kwargs):
         image = preprocessing.ensure_tensor(image, self.compute_dtype)
         original_shape = image.shape
         image = tf.expand_dims(image, 0)
@@ -177,7 +174,7 @@ class RandomZoom(BaseImageAugmentationLayer):
         output.set_shape(original_shape)
         return output
 
-    def augment_label(self, label, transformation):
+    def augment_label(self, label, transformation, **kwargs):
         return label
 
     def compute_output_shape(self, input_shape):

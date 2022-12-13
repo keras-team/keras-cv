@@ -113,6 +113,11 @@ TEST_CONFIGURATIONS = [
             "bounding_box_format": "xywh",
         },
     ),
+    (
+        "RandomZoom",
+        layers.RandomZoom,
+        {"height_factor": 0.2, "width_factor": 0.5},
+    ),
 ]
 
 NO_CPU_FP16_KERNEL_LAYERS = [
