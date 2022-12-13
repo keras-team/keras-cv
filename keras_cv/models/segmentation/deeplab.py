@@ -135,7 +135,7 @@ class DeepLabV3(keras.Model):
                 name="segmentation_head",
                 convs=1,
                 dropout=0.2,
-                kernel_size=1
+                kernel_size=1,
             )
 
         # Segmentation head expects a multiple-level output dictionary

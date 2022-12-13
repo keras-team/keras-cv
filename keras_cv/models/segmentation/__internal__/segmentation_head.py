@@ -63,6 +63,7 @@ class SegmentationHead(layers.Layer):
         output_scale_factor=None,
         dropout=0.0,
         kernel_size=3,
+        use_bias=False,
         **kwargs,
     ):
         """
@@ -83,6 +84,7 @@ class SegmentationHead(layers.Layer):
         self.output_scale_factor = output_scale_factor
         self.dropout = dropout
         self.kernel_size = kernel_size
+        self.use_bias = use_bias
 
         self._conv_layers = []
         self._bn_layers = []
@@ -94,7 +96,7 @@ class SegmentationHead(layers.Layer):
                     filters=self.filters,
                     kernel_size=self.kernel_size,
                     padding="same",
-                    use_bias=False,
+                    use_bias=self.use_bias,
                 )
             )
             norm_name = "segmentation_head_norm_{}".format(i)
