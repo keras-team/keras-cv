@@ -166,13 +166,13 @@ class DeepLabV3(keras.Model):
 
     def get_config(self):
         return {
-            "vocabulary_size": self.classes,
-            "hidden_dim": self.include_rescaling,
-            "intermediate_dim": self.backbone,
-            "num_layers": self.backbone_weights,
-            "num_heads": self.spatial_pyramid_pooling,
-            "max_sequence_length": self.segmentation_head,
-            "num_segments": self.segmentation_head_activation,
+            "classes": self.classes,
+            "include_rescaling": self.include_rescaling,
+            "backbone": self.backbone,
+            "backbone_weights": self.backbone_weights,
+            "spatial_pyramid_pooling": self.spatial_pyramid_pooling,
+            "segmentation_head": self.segmentation_head,
+            "segmentation_head_activation": self.segmentation_head_activation,
         }
 
 
