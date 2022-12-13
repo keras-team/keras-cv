@@ -35,7 +35,7 @@ BACKBONE_CONFIG = {
 @keras.utils.register_keras_serializable(package="keras_cv")
 class DeepLabV3Plus(keras.Model):
     """
-    A segmentation model based on the DeepLab v3.
+    A segmentation model based on the DeepLabV3Plus model.
 
     Args:
         classes: int, the number of classes for the detection model. Note that
@@ -46,13 +46,13 @@ class DeepLabV3Plus(keras.Model):
             inputs will be passed through a `Rescaling(1/255.0)` layer.
         backbone: an optional backbone network for the model. Can be a `tf.keras.layers.Layer`
             instance. The supported pre-defined backbone models are:
-            1. "resnet50_v2", a ResNet50 V2 model
-            Default to 'resnet50_v2'.
+            1. "resnet101_v2", a ResNet101 V2 model
+            Default to 'resnet101_v2'.
         backbone_weights: weights for the backbone model. one of `None` (random
             initialization), a pretrained weight file path, or a reference to
             pre-trained weights (e.g. 'imagenet/classification') (see available
             pre-trained weights in weights.py)
-        weights: weights for the complete DeepLabV3 model. one of `None` (random
+        weights: weights for the complete DeepLabV3Plus model. one of `None` (random
             initialization), a pretrained weight file path, or a reference to
             pre-trained weights (e.g. 'imagenet/classification') (see available
             pre-trained weights in weights.py)
@@ -108,7 +108,7 @@ class DeepLabV3Plus(keras.Model):
                 backbone = get_resnet_backbone(
                     backbone_weights, include_rescaling, input_tensor=x, **kwargs
                 )
-                if feature_layers is not (None, None):
+                if feature_layers != (None, None):
                     raise ValueError(
                         "When using a predefined backbone, you cannot set custom feature layers."
                         f"received {feature_layers}"
