@@ -99,6 +99,10 @@ class DeepLabV3(keras.Model):
                 )
 
             if backbone == "resnet50_v2":
+                if backbone_weights and input_shape[-1] == 1:
+                    raise ValueError(
+                        "The input shape is set up for greyscale images with one channel, but backbone weights are trained on colored images and cannot be loaded."
+                    )
                 backbone = get_resnet_backbone(
                     backbone_weights, include_rescaling, input_shape, **kwargs
                 )
@@ -112,10 +116,6 @@ class DeepLabV3(keras.Model):
                     "Backbone need to be a `tf.keras.layers.Layer`, "
                     f"received {backbone}"
                 )
-        if backbone_weights and input_shape[-1] == 1:
-            raise ValueError(
-                "The input shape is set up for greyscale images with one channel, but backbone weights are trained on colored images and cannot be loaded."
-            )
 
         feature_map = backbone(x)
         if spatial_pyramid_pooling is None:
