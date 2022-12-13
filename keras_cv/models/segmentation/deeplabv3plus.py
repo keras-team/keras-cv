@@ -190,7 +190,6 @@ class DeepLabV3Plus(keras.Model):
                 "segmentation_head": self.segmentation_head,
                 "segmentation_head_activation": self.segmentation_head_activation,
                 "feature_layers": self.feature_layers,
-
             }
 
 

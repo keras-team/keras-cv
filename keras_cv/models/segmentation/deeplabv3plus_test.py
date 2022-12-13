@@ -12,11 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import os
-
-import pytest
 import tensorflow as tf
-import tensorflow_datasets as tfds
 
 from keras_cv import models
 from keras_cv.models import segmentation
@@ -41,7 +37,7 @@ class DeeplabV3PlusTest(tf.test.TestCase):
             classes=11,
             include_rescaling=True,
             backbone=backbone,
-            feature_layers=('v2_stack_1_block4_1_relu', 'v2_stack_3_block2_2_relu'),
+            feature_layers=("v2_stack_1_block4_1_relu", "v2_stack_3_block2_2_relu"),
             input_shape=(256, 256, 3),
         )
 
@@ -71,7 +67,7 @@ class DeeplabV3PlusTest(tf.test.TestCase):
                 classes=11,
                 include_rescaling=True,
                 backbone="resnet_v3",
-                feature_layers=('lay1', 'lay2'),
+                feature_layers=("lay1", "lay2"),
             )
         with self.assertRaisesRegex(
             ValueError, "Backbone need to be a `tf.keras.layers.Layer`"
@@ -80,7 +76,7 @@ class DeeplabV3PlusTest(tf.test.TestCase):
                 classes=11,
                 include_rescaling=True,
                 backbone=tf.Module(),
-                feature_layers=('lay1', 'lay2'),
+                feature_layers=("lay1", "lay2"),
             )
 
 
