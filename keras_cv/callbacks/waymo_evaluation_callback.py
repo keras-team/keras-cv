@@ -48,7 +48,15 @@ class WaymoEvaluationCallback(Callback):
 
         metrics = self.evaluator.evaluate()
 
-        logs.update(metrics)
+        metrics_dict = {
+            "average_precision": metrics.average_precision,
+            "average_precision_ha_weighted": metrics.average_precision_ha_weighted,
+            "precision_recall": metrics.precision_recall,
+            "precision_recall_ha_weighted": metrics.precision_recall_ha_weighted,
+            "breakdown": metrics.breakdown,
+        }
+
+        logs.update(metrics_dict)
 
     def _eval_batch(self, batch, frame_id):
         point_clouds, target = batch
