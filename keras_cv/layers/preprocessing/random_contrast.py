@@ -62,8 +62,6 @@ class RandomContrast(BaseImageAugmentationLayer):
             min = 1 - factor
             max = 1 + factor
         self.factor = preprocessing.parse_factor((min, max), min_value=-1, max_value=2)
-        print(self.factor)
-        print("AAAAA")
         self.seed = seed
 
     def get_random_transformation(self, **kwargs):
