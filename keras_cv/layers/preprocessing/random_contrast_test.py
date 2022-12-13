@@ -52,7 +52,4 @@ class RandomContrastTest(tf.test.TestCase):
     def test_config(self):
         layer = preprocessing.RandomContrast(factor=(0.3, 0.8))
         config = layer.get_config()
-        print(type(config["factor"]))
-        self.assertTrue(isinstance(config["factor"], core.UniformFactorSampler))
-        self.assertEqual(config["factor"].get_config()["lower"], 0.7)
-        self.assertEqual(config["factor"].get_config()["upper"], 1.8)
+        self.assertEqual(config["factor"], (0.3, 0.8))

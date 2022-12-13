@@ -61,7 +61,7 @@ class RandomContrast(BaseImageAugmentationLayer):
         else:
             min = 1 - factor
             max = 1 + factor
-        self.factor_float = factor
+        self.factor_input = factor
         self.factor = preprocessing.parse_factor((min, max), min_value=-1, max_value=2)
         self.seed = seed
 
@@ -86,7 +86,7 @@ class RandomContrast(BaseImageAugmentationLayer):
 
     def get_config(self):
         config = {
-            "factor": self.factor_float,
+            "factor": self.factor_input,
             "seed": self.seed,
         }
         base_config = super().get_config()
