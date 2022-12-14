@@ -28,7 +28,7 @@ class TextEncoder(keras.Model):
             x = CLIPEncoderLayer(
                 embed_dim=config['embed_dim'], 
                 num_heads=config['num_heads'], 
-                use_q_gelu=config['use_quick_gelu']
+                use_quick_gelu=config['use_quick_gelu']
                 )(x)
         embedded = keras.layers.LayerNormalization(epsilon=1e-5)(x)
         super().__init__([tokens, positions], embedded, name=name)
