@@ -13,7 +13,22 @@
 # limitations under the License.
 
 import tensorflow as tf
-from tensorflow.keras import backend
-from tensorflow.keras import layers
 
-from keras_cv.models import utils
+
+def GroupConv2D(inputs, filters, kernel_size, strides, cardinality):
+    groups = []
+    grp_ch = int(filters / cardinality)
+    for i in range(cardinality):
+        x = tf.keras.layers.Lambda(lambda z: z[:, :, :, i * grp_ch:(i + 1) * grp_ch])(inputs)
+        x = tf.keras.layers.Conv2D(filters, kernel_size, strides=strides, padding="same", kernel_initializer="he_normal")(x)
+        x = tf.keras.layers.BatchNormalization()(x)
+        x = tf.keras.layers.Activation('relu')(x)
+
+        x = tf.keras.layers.Conv2D(grp_ch, kernel_size, strides=strides, padding="same", kernel_initializer="he_normal")(x)
+        x = tf.keras.layers.BatchNormalization()(x)
+        x = tf.keras.layers.Activation('relu')(x)
+        groups.append(x)
+
+    concatenate = tf.keras.layers.concatenate(groups, axis=-1)
+    return concatenate
+
