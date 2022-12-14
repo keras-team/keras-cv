@@ -187,6 +187,7 @@ class SerializationTest(tf.test.TestCase, parameterized.TestCase):
                 "seed": 1,
             },
         ),
+        ("RandomContrast", cv_layers.RandomContrast, {"factor": 0.5}),
         (
             "RandomCropAndResize",
             cv_layers.RandomCropAndResize,
