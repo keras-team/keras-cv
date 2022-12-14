@@ -91,10 +91,9 @@ class FrustumRandomPointFeatureNoise(
         randomly_select_point_index = tf.random.uniform(
             (), minval=0, maxval=num_valid_points, dtype=tf.int32
         )
-        randomly_select_frustum_center = point_clouds[
-            0, randomly_select_point_index, :POINTCLOUD_LABEL_INDEX
-        ]
-        tf.print(("khk", randomly_select_frustum_center))
+        randomly_select_frustum_center = tf.boolean_mask(
+            point_clouds[0], valid_points, axis=0
+        )[randomly_select_point_index, :POINTCLOUD_LABEL_INDEX]
 
         num_frames, num_points, num_features = point_clouds.get_shape().as_list()
         frustum_mask = []
