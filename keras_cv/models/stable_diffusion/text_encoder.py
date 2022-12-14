@@ -28,7 +28,7 @@ class TextEncoder(keras.Model):
             x = CLIPEncoderLayer(
                 embed_dim=config['embed_dim'], 
                 num_heads=config['num_heads'], 
-                use_q_gelu=config['use_q_gelu']
+                use_q_gelu=config['use_quick_gelu']
                 )(x)
         embedded = keras.layers.LayerNormalization(epsilon=1e-5)(x)
         super().__init__([tokens, positions], embedded, name=name)
@@ -57,14 +57,14 @@ def quick_gelu(x):
     return x * tf.sigmoid(x * 1.702)
 
 class CLIPEncoderLayer(keras.layers.Layer):
-    def __init__(self, embed_dim, num_heads, use_q_gelu=True, **kwargs):
+    def __init__(self, embed_dim, num_heads, use_quick_gelu=True, **kwargs):
         super().__init__(**kwargs)
         self.layer_norm1 = keras.layers.LayerNormalization(epsilon=1e-5)
         self.clip_attn = CLIPAttention(embed_dim=embed_dim, num_heads=num_heads, causal=True)
         self.layer_norm2 = keras.layers.LayerNormalization(epsilon=1e-5)
         self.fc1 = keras.layers.Dense(embed_dim*4)
         self.fc2 = keras.layers.Dense(embed_dim)
-        self.gelu = quick_gelu if use_q_gelu else tf.nn.gelu
+        self.gelu = quick_gelu if use_quick_gelu else tf.nn.gelu
     def call(self, inputs):
         residual = inputs
         x = self.layer_norm1(inputs)
