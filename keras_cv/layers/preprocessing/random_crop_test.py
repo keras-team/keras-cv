@@ -21,7 +21,13 @@ from keras_cv.layers.preprocessing.random_crop import RandomCrop
 
 
 class RandomCropTest(tf.test.TestCase, parameterized.TestCase):
-    def _run_test(self, expected_height, expected_width):
+    @parameterized.named_parameters(
+        ("random_crop_4_by_6", 4, 6),
+        ("random_crop_3_by_2", 3, 2),
+        ("random_crop_full_height", 5, 2),
+        ("random_crop_full_width", 3, 8),
+    )
+    def test_output_shape(self, expected_height, expected_width):
         np.random.seed(1337)
         num_samples = 2
         orig_height = 5
@@ -75,15 +81,6 @@ class RandomCropTest(tf.test.TestCase, parameterized.TestCase):
                 :,
             ]
             self.assertAllClose(expected_output, actual_output)
-
-    @parameterized.named_parameters(
-        ("random_crop_4_by_6", 4, 6),
-        ("random_crop_3_by_2", 3, 2),
-        ("random_crop_full_height", 5, 2),
-        ("random_crop_full_width", 3, 8),
-    )
-    def test__output_shape(self, expected_height, expected_width):
-        self._run_test(expected_height, expected_width)
 
     def test_random_crop_full(self):
         np.random.seed(1337)

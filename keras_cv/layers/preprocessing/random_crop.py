@@ -23,8 +23,6 @@ from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
 # and verticle axis is reverse indexed
 H_AXIS = -3
 W_AXIS = -2
-IMAGES = "images"
-BOUNDING_BOXES = "bounding_boxes"
 
 
 @tf.keras.utils.register_keras_serializable(package="keras_cv")
