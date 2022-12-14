@@ -22,21 +22,30 @@ Description: Use KerasCV architectures and benchmark them against ImageNetV2 fro
 import sys
 
 import tensorflow as tf
+import tensorflow_datasets as tfds
 from absl import flags
 from tensorflow import keras
 
-import keras_cv
 from keras_cv import models
-import tensorflow_datasets as tfds
 
 flags.DEFINE_string(
     "model_name", None, "The name of the model in KerasCV.models to use."
 )
-flags.DEFINE_boolean("include_rescaling", True, "Whether to include rescaling or not at the start of the model")
+flags.DEFINE_boolean(
+    "include_rescaling",
+    True,
+    "Whether to include rescaling or not at the start of the model",
+)
 flags.DEFINE_string(
     "model_kwargs",
     "{}",
     "Keyword argument dictionary to pass to the constructor of the model being trained",
+)
+
+flags.DEFINE_integer(
+    "batch_size",
+    32,
+    "The batch size for the evaluation set",
 )
 
 FLAGS = flags.FLAGS
@@ -44,10 +53,35 @@ FLAGS(sys.argv)
 
 model = models.__dict__[FLAGS.model_name]
 model = model(
-        include_rescaling=FLAGS.include_rescaling,
-        include_top=True,
-        classes=1000,
-        input_shape=(224, 224, 3),
-        **eval(FLAGS.model_kwargs),
+    include_rescaling=FLAGS.include_rescaling,
+    include_top=True,
+    classes=1000,
+    input_shape=(224, 224, 3),
+    **eval(FLAGS.model_kwargs),
 )
 
+model.compile(
+    "adam",
+    "sparse_categorical_crossentropy",
+    metrics=["accuracy", tf.keras.metrics.SparseTopKCategoricalAccuracy(5)],
+)
+
+
+def preprocess_image(img, label):
+    img = tf.image.resize(img, (224, 224))
+    img = tf.cast(img, tf.float32)
+    return img, label
+
+
+(test_set), info = tfds.load(
+    "imagenet_v2", split=["test"], as_supervised=True, with_info=True
+)
+test_set = (
+    test_set[0]
+    .shuffle(len(test_set))
+    .map(preprocess_image)
+    .batch(FLAGS.batch_size)
+    .prefetch(tf.data.AUTOTUNE)
+)
+
+model.evaluate(test_set)
