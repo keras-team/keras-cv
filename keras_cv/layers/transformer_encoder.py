@@ -125,3 +125,9 @@ class TransformerEncoder(layers.Layer):
             }
         )
         return config
+
+    @classmethod
+    def from_config(cls, config, custom_objects=None):
+        activation = config.pop("activation")
+        activation = tf.keras.activations.deserialize(activation)
+        return cls(activation=activation, **config)
