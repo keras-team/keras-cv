@@ -10,6 +10,7 @@ def validate(bounding_boxes):
     - each entry must have matching first two dimensions; representing the batch axis
         and the number of boxes per image axis.
     - either both `"boxes"` and `"classes"` are batched, or both are unbatched
+
     Additionally, one of the following must be satisfied:
     - "boxes" and "classes" are both Ragged
     - `"boxes"` and `"classes"` are dense and `"mask"` is a Tensor, matching the
@@ -38,24 +39,23 @@ def validate(bounding_boxes):
 
     is_batched = len(boxes.shape) == 3
 
-    if is_batched:
-        if boxes.shape[:2] != classes.shape[:2]:
-            raise ValueError(
-                "Expected `boxes` and `classes` to have matching dimensions "
-                "on the first two axes when operating in batched mode. "
-                f"Got `boxes.shape={boxes.shape}`, `classes.shape={classes.shape}`."
-            )
-    else:
+    if not is_batched:
         if boxes.shape[:1] != classes.shape[:1]:
             raise ValueError(
                 "Expected `boxes` and `classes` to have matching dimensions "
                 "on the first axis when operating in batched mode. "
                 f"Got `boxes.shape={boxes.shape}`, `classes.shape={classes.shape}`."
             )
-
-    if not is_batched:
         # No Ragged checks needed in unbatched mode.
         return
+
+    # Batched mode checks
+    if boxes.shape[:2] != classes.shape[:2]:
+        raise ValueError(
+            "Expected `boxes` and `classes` to have matching dimensions "
+            "on the first two axes when operating in batched mode. "
+            f"Got `boxes.shape={boxes.shape}`, `classes.shape={classes.shape}`."
+        )
 
     if isinstance(boxes, tf.RaggedTensor) != isinstance(classes, tf.RaggedTensor):
         raise ValueError(
