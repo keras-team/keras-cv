@@ -56,6 +56,7 @@ model = model(
     include_top=True,
     classes=1000,
     input_shape=(224, 224, 3),
+    weights='imagenet',
     **eval(FLAGS.model_kwargs),
 )
 
