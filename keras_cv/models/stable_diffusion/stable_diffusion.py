@@ -37,47 +37,59 @@ from keras_cv.models.stable_diffusion.text_encoder import TextEncoder
 
 
 config = {
-    'v1': {
-        'text_encoder': {
-            'vocab_size': 49408,
-            'embed_dim': 768,
-            'num_blocks': 12,
-            'num_heads': 12,
-            'use_q_gelu': True,
-            'version': 'v1',
-            'max_length': 77
+    "v1": {
+        "text_encoder": {
+            "vocab_size": 49408,
+            "embed_dim": 768,
+            "num_blocks": 12,
+            "num_heads": 12,
+            "use_quick_gelu": True,
+            "weights":{
+                "origin": "https://huggingface.co/fchollet/stable-diffusion/resolve/main/kcv_encoder.h5",
+                "file_hash": "4789e63e07c0e54d6a34a29b45ce81ece27060c499a709d556c7755b42bb0dc4"
+                },
+            "max_length": 77
             },
-        'diffusion_model': {
-            'model_channels': 320,
-            'channel_mult': [ 1, 2, 4, 4 ],
-            'num_heads': 8,
-            'head_dim': -1,
-            'context_length':768,
-            'max_length': 77,
-            'f_c': False,
-            'version': 'v1'
+        "diffusion_model": {
+            "model_channels": 320,
+            "channel_mult": [ 1, 2, 4, 4 ],
+            "num_heads": 8,
+            "head_dim": -1,
+            "context_length":768,
+            "max_length": 77,
+            "fully_connected": False,
+            "weights":{
+                "origin": "https://huggingface.co/fchollet/stable-diffusion/resolve/main/kcv_diffusion_model.h5",
+                "file_hash": "8799ff9763de13d7f30a683d653018e114ed24a6a819667da4f5ee10f9e805fe"
+                },
             }
             },
     
-    'v2':{
-        'text_encoder': {
-            'vocab_size': 49408,
-            'embed_dim': 1024,
-            'num_blocks': 23,
-            'num_heads': 16,
-            'use_q_gelu': False,
-            'version': 'v2',
-            'max_length': 77
+    "v2":{
+        "text_encoder": {
+            "vocab_size": 49408,
+            "embed_dim": 1024,
+            "num_blocks": 23,
+            "num_heads": 16,
+            "use_quick_gelu": False,
+            "weights":{
+                "origin": "https://huggingface.co/Jobayer/stable_diffusion_v2/resolve/main/text_encoder_v2_1.h5",
+                "file_hash": "985002e68704e1c5c3549de332218e99c5b9b745db7171d5f31fcd9a6089f25b"
+                },
+            "max_length": 77
             },
-        'diffusion_model': {
-            'model_channels': 320,
-            'channel_mult': [ 1, 2, 4, 4 ],
-            'num_heads': -1,
-            'head_dim': 64,
-            'context_length': 1024,
-            'max_length': 77,
-            'f_c': True,
-            'version': 'v2'
+        "diffusion_model": {
+            "model_channels": 320,
+            "channel_mult": [ 1, 2, 4, 4 ],
+            "num_heads": -1,
+            "head_dim": 64,
+            "context_length": 1024,
+            "max_length": 77,
+            "fully_connected": True,
+            "weights":{
+                "origin": "https://huggingface.co/Jobayer/stable_diffusion_v2/resolve/main/diffusion_model_v2_1.h5",
+                "file_hash": "c31730e91111f98fe0e2dbde4475d381b5287ebb9672b1821796146a25c5132d"
+                },
             }
             }
             }
