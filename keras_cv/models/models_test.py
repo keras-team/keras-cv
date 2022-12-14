@@ -72,13 +72,31 @@ class ModelsTest:
 
         output_shape = model.output_shape
 
-        if "Mixer" not in app.__name__:
+        if "Mixer" not in app.__name__ and "ViT" not in app.__name__:
             self.assertShapeEqual(output_shape, (None, None, None, last_dim))
         elif "MixerB16" in app.__name__ or "MixerL16" in app.__name__:
             num_patches = 196
             self.assertShapeEqual(output_shape, (None, num_patches, last_dim))
         elif "MixerB32" in app.__name__:
             num_patches = 49
+            self.assertShapeEqual(output_shape, (None, num_patches, last_dim))
+        elif (
+            "ViT_Tiny_16" in app.__name__
+            or "ViT_S_16" in app.__name__
+            or "ViT_B_16" in app.__name__
+            or "ViT_L_16" in app.__name__
+            or "ViT_H_16" in app.__name__
+        ):
+            num_patches = 197
+            self.assertShapeEqual(output_shape, (None, num_patches, last_dim))
+        elif (
+            "ViT_Tiny_32" in app.__name__
+            or "ViT_S_32" in app.__name__
+            or "ViT_B_32" in app.__name__
+            or "ViT_L_32" in app.__name__
+            or "ViT_H_32" in app.__name__
+        ):
+            num_patches = 50
             self.assertShapeEqual(output_shape, (None, num_patches, last_dim))
 
         backend.clear_session()
@@ -93,13 +111,31 @@ class ModelsTest:
 
         output_shape = model.output_shape
 
-        if "Mixer" not in app.__name__:
+        if "Mixer" not in app.__name__ and "ViT" not in app.__name__:
             self.assertShapeEqual(output_shape, (None, None, None, last_dim))
         elif "MixerB16" in app.__name__ or "MixerL16" in app.__name__:
             num_patches = 196
             self.assertShapeEqual(output_shape, (None, num_patches, last_dim))
         elif "MixerB32" in app.__name__:
             num_patches = 49
+            self.assertShapeEqual(output_shape, (None, num_patches, last_dim))
+        elif (
+            "ViT_Tiny_16" in app.__name__
+            or "ViT_S_16" in app.__name__
+            or "ViT_B_16" in app.__name__
+            or "ViT_L_16" in app.__name__
+            or "ViT_H_16" in app.__name__
+        ):
+            num_patches = 197
+            self.assertShapeEqual(output_shape, (None, num_patches, last_dim))
+        elif (
+            "ViT_Tiny_32" in app.__name__
+            or "ViT_S_32" in app.__name__
+            or "ViT_B_32" in app.__name__
+            or "ViT_L_32" in app.__name__
+            or "ViT_H_32" in app.__name__
+        ):
+            num_patches = 50
             self.assertShapeEqual(output_shape, (None, num_patches, last_dim))
 
     def _test_model_can_be_used_as_backbone(self, app, last_dim, args):
