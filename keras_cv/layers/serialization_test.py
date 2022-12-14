@@ -408,6 +408,14 @@ class SerializationTest(tf.test.TestCase, parameterized.TestCase):
             cv_layers.SwapBackground,
             {},
         ),
+        (
+            "RandomCrop",
+            cv_layers.RandomCrop,
+            {
+                "height": 100,
+                "width": 200,
+            },
+        ),
     )
     def test_layer_serialization(self, layer_cls, init_args):
         layer = layer_cls(**init_args)
