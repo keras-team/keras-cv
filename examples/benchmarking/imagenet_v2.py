@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """
-Title: Benchmarking a KerasCV model against Imagenet Validation V2
+Title: Benchmarking a KerasCV model against ImageNetV2
 Author: [DavidLandup0](https://github.com/DavidLandup0)
 Date created: 2022/12/14
 Last modified: 2022/12/14
