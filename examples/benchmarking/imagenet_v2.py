@@ -47,6 +47,12 @@ flags.DEFINE_integer(
     "The batch size for the evaluation set.",
 )
 
+flags.DEFINE_string(
+    "weights",
+    "imagenet",
+    "The path to the weights to load for the model.",
+)
+
 FLAGS = flags.FLAGS
 FLAGS(sys.argv)
 
@@ -56,7 +62,7 @@ model = model(
     include_top=True,
     classes=1000,
     input_shape=(224, 224, 3),
-    weights='imagenet',
+    weights=FLAGS.weights,
     **eval(FLAGS.model_kwargs),
 )
 
