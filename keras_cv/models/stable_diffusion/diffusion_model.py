@@ -54,21 +54,21 @@ class DiffusionModel(keras.Model):
         
         for _ in range(2):
             x = ResBlock(channels[0])([x, t_emb])
-            x = SpatialTransformer(num_heads[0], head_dim[0], config['f_c'])([x, context])
+            x = SpatialTransformer(num_heads[0], head_dim[0], config['fully_connected'])([x, context])
             outputs.append(x)
         x = PaddedConv2D(channels[0], 3, strides=2, padding=1)(x)  # Downsample 2x
         outputs.append(x)
 
         for _ in range(2):
             x = ResBlock(channels[1])([x, t_emb])
-            x = SpatialTransformer(num_heads[1], head_dim[1], config['f_c'])([x, context])
+            x = SpatialTransformer(num_heads[1], head_dim[1], config['fully_connected'])([x, context])
             outputs.append(x)
         x = PaddedConv2D(channels[1], 3, strides=2, padding=1)(x)  # Downsample 2x
         outputs.append(x)
 
         for _ in range(2):
             x = ResBlock(channels[2])([x, t_emb])
-            x = SpatialTransformer(num_heads[2], head_dim[2], config['f_c'])([x, context])
+            x = SpatialTransformer(num_heads[2], head_dim[2], config['fully_connected'])([x, context])
             outputs.append(x)
         x = PaddedConv2D(channels[2], 3, strides=2, padding=1)(x)  # Downsample 2x
         outputs.append(x)
@@ -80,7 +80,7 @@ class DiffusionModel(keras.Model):
         # Middle flow
         
         x = ResBlock(channels[3])([x, t_emb])
-        x = SpatialTransformer(num_heads[3], head_dim[3], config['f_c'])([x, context])
+        x = SpatialTransformer(num_heads[3], head_dim[3], config['fully_connected'])([x, context])
         x = ResBlock(channels[3])([x, t_emb])
         
 
@@ -94,19 +94,19 @@ class DiffusionModel(keras.Model):
         for _ in range(3):
             x = keras.layers.Concatenate()([x, outputs.pop()])
             x = ResBlock(channels[2])([x, t_emb])
-            x = SpatialTransformer(num_heads[2], head_dim[2], config['f_c'])([x, context])
+            x = SpatialTransformer(num_heads[2], head_dim[2], config['fully_connected'])([x, context])
         x = Upsample(channels[2])(x)
 
         for _ in range(3):
             x = keras.layers.Concatenate()([x, outputs.pop()])
             x = ResBlock(channels[1])([x, t_emb])
-            x = SpatialTransformer(num_heads[1], head_dim[1], config['f_c'])([x, context])
+            x = SpatialTransformer(num_heads[1], head_dim[1], config['fully_connected'])([x, context])
         x = Upsample(channels[1])(x)
 
         for _ in range(3):
             x = keras.layers.Concatenate()([x, outputs.pop()])
             x = ResBlock(channels[0])([x, t_emb])
-            x = SpatialTransformer(num_heads[0], head_dim[0], config['f_c'])([x, context])
+            x = SpatialTransformer(num_heads[0], head_dim[0], config['fully_connected'])([x, context])
 
         # Exit flow
 
@@ -117,16 +117,10 @@ class DiffusionModel(keras.Model):
         super().__init__([latent, t_embed_input, context], output, name=name)
 
         if download_weights:
-            if config['version']=='v1':
-                diffusion_model_weights_fpath = keras.utils.get_file(
-                    origin="https://huggingface.co/fchollet/stable-diffusion/resolve/main/kcv_diffusion_model.h5",
-                    file_hash="8799ff9763de13d7f30a683d653018e114ed24a6a819667da4f5ee10f9e805fe",
-                )
-            else:
-                diffusion_model_weights_fpath = keras.utils.get_file(
-                    origin="https://huggingface.co/Jobayer/stable_diffusion_v2/resolve/main/diffusion_model_v2_1.h5",
-                    file_hash="c31730e91111f98fe0e2dbde4475d381b5287ebb9672b1821796146a25c5132d",
-                )
+            diffusion_model_weights_fpath = keras.utils.get_file(
+                origin=config['weights']['origin'],
+                file_hash=config['weights']['file_hash']
+            )
             self.load_weights(diffusion_model_weights_fpath)
 
 
@@ -169,16 +163,16 @@ class ResBlock(keras.layers.Layer):
 
 
 class SpatialTransformer(keras.layers.Layer):
-    def __init__(self, num_heads, head_size, f_c=False, **kwargs):
+    def __init__(self, num_heads, head_size, fully_connected=False, **kwargs):
         super().__init__(**kwargs)
         self.norm = GroupNormalization(epsilon=1e-5)
         channels = num_heads * head_size
-        if f_c:
+        if fully_connected:
             self.proj1 = keras.layers.Dense(num_heads * head_size) # sdv2 uses dense layer rather than conv
         else:
             self.proj1 = PaddedConv2D(num_heads * head_size, 1)
         self.transformer_block = BasicTransformerBlock(channels, num_heads, head_size)
-        if f_c:
+        if fully_connected:
             self.proj2 = keras.layers.Dense(channels)
         else:
             self.proj2 = PaddedConv2D(channels, 1)
