@@ -79,15 +79,14 @@ class FrustumRandomDroppingPoints(base_augmentation_layer_3d.BaseAugmentationLay
 
     def get_random_transformation(self, point_clouds, **kwargs):
         # Randomly select a point from the first frame as the center of the frustum.
-        num_valid_points = tf.cast(
-            tf.math.reduce_sum(point_clouds[0, :, POINTCLOUD_LABEL_INDEX]), tf.int32
-        )
+        valid_points = point_clouds[0, :, POINTCLOUD_LABEL_INDEX] > 0
+        num_valid_points = tf.math.reduce_sum(tf.cast(valid_points, tf.int32))
         randomly_select_point_index = tf.random.uniform(
             (), minval=0, maxval=num_valid_points, dtype=tf.int32
         )
-        randomly_select_frustum_center = point_clouds[
-            0, randomly_select_point_index, :POINTCLOUD_LABEL_INDEX
-        ]
+        randomly_select_frustum_center = tf.boolean_mask(
+            point_clouds[0], valid_points, axis=0
+        )[randomly_select_point_index, :POINTCLOUD_LABEL_INDEX]
         num_frames, num_points, _ = point_clouds.get_shape().as_list()
         frustum_mask = []
         for f in range(num_frames):
