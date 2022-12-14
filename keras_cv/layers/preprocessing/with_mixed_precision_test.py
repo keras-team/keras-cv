@@ -124,6 +124,7 @@ NO_CPU_FP16_KERNEL_LAYERS = [
     layers.RandomSaturation,
     layers.RandomColorJitter,
     layers.RandomHue,
+    layers.RandomContrast,
 ]
 
 

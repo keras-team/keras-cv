@@ -14,7 +14,6 @@
 
 from tensorflow.keras.layers import CenterCrop
 from tensorflow.keras.layers import RandomBrightness
-from tensorflow.keras.layers import RandomContrast
 from tensorflow.keras.layers import RandomCrop
 from tensorflow.keras.layers import RandomHeight
 from tensorflow.keras.layers import RandomTranslation
@@ -77,6 +76,7 @@ from keras_cv.layers.preprocessing.random_color_degeneration import (
     RandomColorDegeneration,
 )
 from keras_cv.layers.preprocessing.random_color_jitter import RandomColorJitter
+from keras_cv.layers.preprocessing.random_contrast import RandomContrast
 from keras_cv.layers.preprocessing.random_crop_and_resize import RandomCropAndResize
 from keras_cv.layers.preprocessing.random_cutout import RandomCutout
 from keras_cv.layers.preprocessing.random_flip import RandomFlip
@@ -97,3 +97,4 @@ from keras_cv.layers.regularization.squeeze_excite import SqueezeAndExcite2D
 from keras_cv.layers.regularization.stochastic_depth import StochasticDepth
 from keras_cv.layers.spatial_pyramid import SpatialPyramidPooling
 from keras_cv.layers.transformer_encoder import TransformerEncoder
+from keras_cv.layers.vit_layers import PatchingAndEmbedding
