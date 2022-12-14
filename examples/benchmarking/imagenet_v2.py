@@ -84,4 +84,8 @@ test_set = (
     .prefetch(tf.data.AUTOTUNE)
 )
 
-model.evaluate(test_set)
+acc, top_5 = model.evaluate(test_set, verbose=0)
+print(
+    f"{FLAGS.model_name} achieves {acc} Top-1 Accuracy and {top_5} Top-5 Accuracy on ImageNetV2 with setup:"
+)
+print(FLAGS)
