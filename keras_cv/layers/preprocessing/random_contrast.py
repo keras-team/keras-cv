@@ -20,6 +20,7 @@ from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
 from keras_cv.utils import preprocessing
 
 
+@tf.keras.utils.register_keras_serializable(package="keras_cv")
 class RandomContrast(BaseImageAugmentationLayer):
     """RandomContrast randomly adjusts contrast during training.
 
