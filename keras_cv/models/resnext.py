@@ -13,7 +13,10 @@
 # limitations under the License.
 
 import tensorflow as tf
+from tensorflow.keras import backend
+from tensorflow.keras import layers
 
+from keras_cv.models import utils
 
 class GroupConv2D(tf.keras.layers.Layer):
     def __init__(self, input_channels, output_channels, groups, kernel_size, strides=(1, 1), padding='valid', **kwargs):
@@ -54,3 +57,36 @@ def ResNeXt_BottleNeck(inputs, filters, strides, groups):
     shortcut = ConvBlock(inputs, filters = 2 * filters, kernel_size=(1,1), strides=strides, padding="same")
     outputs = tf.keras.layers.add([x, shortcut])
     return outputs
+
+def ResNeXt_Block(inputs, filters, strides, groups, num_blocks):
+    x = ResNeXt_BottleNeck(inputs=inputs, filters=filters, strides=strides, groups=groups)
+    for _ in range(1, num_blocks):
+        x = ResNeXt_BottleNeck(x, filters=filters, strides=1, groups=groups)
+
+    return x
+
+def ResNeXt(num_blocks, cardinality, input_shape=(None, None, None), input_tensor=None, classes=1):
+    inputs = utils.parse_model_inputs(input_shape, input_tensor)
+    x = inputs
+    x = tf.keras.layers.Conv2D(filters=64, kernel_size=(7, 7), strides=2, padding="same")(x)
+    x = tf.keras.layers.BatchNormalization()(x)
+    x = tf.nn.relu(x)
+    x = tf.keras.layers.MaxPool2D(pool_size=(3, 3), strides=2, padding="same")(x)
+
+    x = ResNeXt_Block(x, filters=128, strides=1, groups=cardinality, repeat_num=num_blocks[0])
+    x = ResNeXt_Block(x, filters=256, strides=2, groups=cardinality, repeat_num=num_blocks[1])
+    x = ResNeXt_Block(x, filters=512, strides=2, groups=cardinality, repeat_num=num_blocks[2])
+    x = ResNeXt_Block(x, filters=1024, strides=2, groups=cardinality, repeat_num=num_blocks[3])
+
+    x = tf.keras.layers.GlobalAveragePooling2D()(x)
+    x = tf.keras.layers.Dense(units=classes, activation='softmax')(x)
+
+
+def ResNeXt50():
+    return ResNeXt(repeat_num_list=[3, 4, 6, 3],
+                   cardinality=32)
+
+
+def ResNeXt101():
+    return ResNeXt(repeat_num_list=[3, 4, 23, 3],
+                   cardinality=32)
