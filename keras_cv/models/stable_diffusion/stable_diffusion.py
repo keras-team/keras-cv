@@ -144,7 +144,7 @@ class StableDiffusion:
         self,
         img_height=512,
         img_width=512,
-        version='v1',
+        version='v2',
         jit_compile=False,
     ):
         # UNet requires multiples of 2**7 = 128
