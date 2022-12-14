@@ -24,8 +24,9 @@ class GroupConv2D(tf.keras.layers.Layer):
         self.kernel_size = kernel_size
         self.strides = strides
         self.padding = padding
-        self.group_in_num = input_channels // groups
-        self.group_out_num = output_channels // groups
+        self.groups = groups
+        self.group_in_num = input_channels // self.groups
+        self.group_out_num = output_channels // self.groups
         self.conv_list = []
         for i in range(self.groups):
             self.conv_list.append(tf.keras.layers.Conv2D(filters=self.group_out_num, kernel_size=kernel_size, strides=strides,
@@ -65,7 +66,7 @@ def ResNeXt_Block(inputs, filters, strides, groups, num_blocks):
 
     return x
 
-def ResNeXt(num_blocks, cardinality, input_shape=(None, None, None), input_tensor=None, classes=1):
+def ResNeXt(num_blocks, cardinality, input_shape=(224, 224, 3), input_tensor=None, classes=1):
     inputs = utils.parse_model_inputs(input_shape, input_tensor)
     x = inputs
     x = tf.keras.layers.Conv2D(filters=64, kernel_size=(7, 7), strides=2, padding="same")(x)
@@ -73,20 +74,25 @@ def ResNeXt(num_blocks, cardinality, input_shape=(None, None, None), input_tenso
     x = tf.nn.relu(x)
     x = tf.keras.layers.MaxPool2D(pool_size=(3, 3), strides=2, padding="same")(x)
 
-    x = ResNeXt_Block(x, filters=128, strides=1, groups=cardinality, repeat_num=num_blocks[0])
-    x = ResNeXt_Block(x, filters=256, strides=2, groups=cardinality, repeat_num=num_blocks[1])
-    x = ResNeXt_Block(x, filters=512, strides=2, groups=cardinality, repeat_num=num_blocks[2])
-    x = ResNeXt_Block(x, filters=1024, strides=2, groups=cardinality, repeat_num=num_blocks[3])
+    x = ResNeXt_Block(x, filters=128, strides=1, groups=cardinality, num_blocks=num_blocks[0])
+    x = ResNeXt_Block(x, filters=256, strides=2, groups=cardinality, num_blocks=num_blocks[1])
+    x = ResNeXt_Block(x, filters=512, strides=2, groups=cardinality, num_blocks=num_blocks[2])
+    x = ResNeXt_Block(x, filters=1024, strides=2, groups=cardinality, num_blocks=num_blocks[3])
 
     x = tf.keras.layers.GlobalAveragePooling2D()(x)
     x = tf.keras.layers.Dense(units=classes, activation='softmax')(x)
-
+    model = tf.keras.Model(inputs = inputs,outputs=x)
+    return model
 
 def ResNeXt50():
-    return ResNeXt(repeat_num_list=[3, 4, 6, 3],
+    return ResNeXt(num_blocks=[3, 4, 6, 3],
                    cardinality=32)
 
 
 def ResNeXt101():
-    return ResNeXt(repeat_num_list=[3, 4, 23, 3],
+    return ResNeXt(num_blocks=[3, 4, 23, 3],
                    cardinality=32)
+
+
+model = ResNeXt101()
+print(model.summary())
