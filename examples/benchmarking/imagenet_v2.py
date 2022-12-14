@@ -24,7 +24,6 @@ import sys
 import tensorflow as tf
 import tensorflow_datasets as tfds
 from absl import flags
-from tensorflow import keras
 
 from keras_cv import models
 
@@ -34,18 +33,18 @@ flags.DEFINE_string(
 flags.DEFINE_boolean(
     "include_rescaling",
     True,
-    "Whether to include rescaling or not at the start of the model",
+    "Whether to include rescaling or not at the start of the model.",
 )
 flags.DEFINE_string(
     "model_kwargs",
     "{}",
-    "Keyword argument dictionary to pass to the constructor of the model being trained",
+    "Keyword argument dictionary to pass to the constructor of the model being evaluated.",
 )
 
 flags.DEFINE_integer(
     "batch_size",
     32,
-    "The batch size for the evaluation set",
+    "The batch size for the evaluation set.",
 )
 
 FLAGS = flags.FLAGS
