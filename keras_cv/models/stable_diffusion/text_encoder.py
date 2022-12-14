@@ -34,11 +34,11 @@ class TextEncoder(keras.Model):
         super().__init__([tokens, positions], embedded, name=name)
 
         if download_weights:
-            diffusion_model_weights_fpath = keras.utils.get_file(
+            text_encoder_weights_fpath = keras.utils.get_file(
                 origin=config['weights']['origin'],
                 file_hash=config['weights']['file_hash']
             )
-            self.load_weights(diffusion_model_weights_fpath)
+            self.load_weights(text_encoder_weights_fpath)
 
 
 class CLIPEmbedding(keras.layers.Layer):
