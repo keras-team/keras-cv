@@ -38,7 +38,7 @@ class TextEncoder(keras.Model):
                 origin=config['weights']['origin'],
                 file_hash=config['weights']['file_hash']
             )
-            self.load_weights(text_encoder_weights_fpath)
+            self.load_weights(diffusion_model_weights_fpath)
 
 
 class CLIPEmbedding(keras.layers.Layer):
