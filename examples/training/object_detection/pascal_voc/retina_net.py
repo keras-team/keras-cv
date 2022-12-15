@@ -152,6 +152,7 @@ def unpackage_inputs(data):
 train_ds = train_ds.map(unpackage_inputs, num_parallel_calls=tf.data.AUTOTUNE)
 eval_ds = eval_ds.map(unpackage_inputs, num_parallel_calls=tf.data.AUTOTUNE)
 
+<<<<<<< HEAD
 
 # TODO(lukewood): the boxes loses shape from KPL, so need to pad to a known shape.
 def pad_fn(image, boxes):
@@ -161,6 +162,8 @@ def pad_fn(image, boxes):
 train_ds = train_ds.map(pad_fn, num_parallel_calls=tf.data.AUTOTUNE)
 eval_ds = eval_ds.map(pad_fn, num_parallel_calls=tf.data.AUTOTUNE)
 
+=======
+>>>>>>> f594c8c (Add RetinaNet update)
 with strategy.scope():
     model = keras_cv.models.RetinaNet(
         # number of classes to be used in box classification
@@ -204,16 +207,6 @@ callbacks = [
 
 history = model.fit(
     train_ds,
-<<<<<<< HEAD
-    validation_data=eval_ds,
-    epochs=35,
-=======
-    validation_data=eval_ds.take(20),
-<<<<<<< HEAD
-    epochs=100,
->>>>>>> b26e1dc (Return to COCO metrics)
-=======
-    epochs=35,
->>>>>>> 4d547ba (Revert to mirror strategy)
+    epochs=50,
     callbacks=callbacks,
 )
