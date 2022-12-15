@@ -27,6 +27,7 @@ from absl import flags
 from tensorflow import keras
 
 import keras_cv
+from keras_cv import layers
 from keras_cv.callbacks import PyCOCOCallback
 
 low, high = resource.getrlimit(resource.RLIMIT_NOFILE)
@@ -109,7 +110,6 @@ eval_ds = eval_ds.map(
 eval_ds = eval_ds.apply(
     tf.data.experimental.dense_to_ragged_batch(GLOBAL_BATCH_SIZE, drop_remainder=True)
 )
-eval_ds = eval_ds.map(pad_fn, num_parallel_calls=tf.data.AUTOTUNE)
 eval_ds = eval_ds.prefetch(tf.data.AUTOTUNE)
 
 
@@ -147,13 +147,15 @@ the model are expected to be in the range `[0, 255]`.
 """
 
 def unpackage_inputs(data):
-    return data['image'], data['bounding_boxes']
+    return data['images'], data['bounding_boxes']
+
 train_ds = train_ds.map(unpackage_inputs, num_parallel_calls=tf.data.AUTOTUNE)
+eval_ds = eval_ds.map(unpackage_inputs, num_parallel_calls=tf.data.AUTOTUNE)
 
 with strategy.scope():
     model = keras_cv.models.RetinaNet(
         # number of classes to be used in box classification
-        classes=len(class_ids),
+        classes=20,
         # For more info on supported bounding box formats, visit
         # https://keras.io/api/keras_cv/bounding_box/
         bounding_box_format="xywh",
