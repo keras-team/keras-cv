@@ -73,9 +73,7 @@ class MBConvBlock(layers.Layer):
             momentum=self.bn_momentum,
             name=self.name + "expand_bn",
         )
-        self.act = layers.Activation(
-            self.activation, name=self.name + "activation"
-        )
+        self.act = layers.Activation(self.activation, name=self.name + "activation")
         self.depthwise = layers.DepthwiseConv2D(
             kernel_size=self.kernel_size,
             strides=self.strides,
