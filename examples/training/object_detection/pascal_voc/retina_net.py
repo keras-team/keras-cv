@@ -49,6 +49,7 @@ flags.DEFINE_string(
 FLAGS = flags.FLAGS
 FLAGS(sys.argv)
 
+<<<<<<< HEAD
 
 # Try to detect an available TPU. If none is present, default to MirroredStrategy
 try:
@@ -58,10 +59,12 @@ except ValueError:
     # MirroredStrategy is best for a single machine with one or multiple GPUs
     strategy = tf.distribute.MirroredStrategy()
 
+=======
+>>>>>>> b26e1dc (Return to COCO metrics)
 BATCH_SIZE = 4
-GLOBAL_BATCH_SIZE = BATCH_SIZE * strategy.num_replicas_in_sync
+GLOBAL_BATCH_SIZE = BATCH_SIZE * 1
 BASE_LR = 0.01 * GLOBAL_BATCH_SIZE / 16
-print("Number of accelerators: ", strategy.num_replicas_in_sync)
+print("Number of accelerators: ", 1)
 print("Global Batch Size: ", GLOBAL_BATCH_SIZE)
 
 IMG_SIZE = 640
@@ -99,7 +102,7 @@ train_ds = train_ds.apply(
     tf.data.experimental.dense_to_ragged_batch(GLOBAL_BATCH_SIZE, drop_remainder=True)
 )
 
-train_ds = train_ds.shuffle(8 * strategy.num_replicas_in_sync)
+train_ds = train_ds.shuffle(8 * 1)
 train_ds = train_ds.prefetch(tf.data.AUTOTUNE)
 
 eval_ds = eval_ds.map(
@@ -187,11 +190,15 @@ model.compile(
     classification_loss="focal",
     box_loss="smoothl1",
     optimizer=optimizer,
+    metrics=[
+        keras_cv.metrics.COCORecall(
+            bounding_box_format="xywh", class_ids=range(20)
+        ),
+        keras_cv.metrics.COCOMeanAveragePrecision(
+            bounding_box_format="xywh", class_ids=range(20)
+        )
+    ],
 )
-
-
-def convert_to_dict(images, boxes):
-    return images, {"gt_boxes": boxes[:, :, :4], "gt_classes": boxes[:, :, 4]}
 
 
 callbacks = [
@@ -199,12 +206,16 @@ callbacks = [
     keras.callbacks.ReduceLROnPlateau(patience=5),
     keras.callbacks.EarlyStopping(patience=10),
     keras.callbacks.ModelCheckpoint(CHECKPOINT_PATH, save_weights_only=True),
-    PyCOCOCallback(eval_ds.map(convert_to_dict), "xywh"),
 ]
 
 history = model.fit(
     train_ds,
+<<<<<<< HEAD
     validation_data=eval_ds,
     epochs=35,
+=======
+    validation_data=eval_ds.take(20),
+    epochs=100,
+>>>>>>> b26e1dc (Return to COCO metrics)
     callbacks=callbacks,
 )
