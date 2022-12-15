@@ -49,10 +49,19 @@ flags.DEFINE_string(
 FLAGS = flags.FLAGS
 FLAGS(sys.argv)
 
+
+# Try to detect an available TPU. If none is present, default to MirroredStrategy
+try:
+    tpu = tf.distribute.cluster_resolver.TPUClusterResolver.connect()
+    strategy = tf.distribute.TPUStrategy(tpu)
+except ValueError:
+    # MirroredStrategy is best for a single machine with one or multiple GPUs
+    strategy = tf.distribute.MirroredStrategy()
+
 BATCH_SIZE = 4
-GLOBAL_BATCH_SIZE = BATCH_SIZE * 1
+GLOBAL_BATCH_SIZE = BATCH_SIZE * strategy.num_replicas_in_sync
 BASE_LR = 0.01 * GLOBAL_BATCH_SIZE / 16
-print("Number of accelerators: ", 1)
+print("Number of accelerators: ", strategy.num_replicats_in_sync)
 print("Global Batch Size: ", GLOBAL_BATCH_SIZE)
 
 IMG_SIZE = 640
@@ -90,7 +99,7 @@ train_ds = train_ds.apply(
     tf.data.experimental.dense_to_ragged_batch(GLOBAL_BATCH_SIZE, drop_remainder=True)
 )
 
-train_ds = train_ds.shuffle(8 * 1)
+train_ds = train_ds.shuffle(8 * strategy.num_replicas_in_sync)
 train_ds = train_ds.prefetch(tf.data.AUTOTUNE)
 
 eval_ds = eval_ds.map(
@@ -187,6 +196,6 @@ callbacks = [
 history = model.fit(
     train_ds,
     validation_data=eval_ds.take(20),
-    epochs=100,
+    epochs=35,
     callbacks=callbacks,
 )
