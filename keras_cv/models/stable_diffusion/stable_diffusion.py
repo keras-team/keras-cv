@@ -12,9 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Keras implementation of StableDiffusion.
+
 Credits:
 - Original implementation: https://github.com/CompVis/stable-diffusion
 - Initial TF/Keras port: https://github.com/divamgupta/stable-diffusion-tensorflow
+
 The current implementation is a rewrite of the initial TF/Keras port by Divam Gupta.
 """
 
