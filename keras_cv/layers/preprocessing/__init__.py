@@ -20,7 +20,6 @@ from tensorflow.keras.layers import RandomBrightness
 from tensorflow.keras.layers import RandomHeight
 from tensorflow.keras.layers import RandomTranslation
 from tensorflow.keras.layers import RandomWidth
-from tensorflow.keras.layers import RandomZoom
 from tensorflow.keras.layers import Rescaling
 
 from keras_cv.layers.preprocessing.aug_mix import AugMix
@@ -61,6 +60,7 @@ from keras_cv.layers.preprocessing.random_rotation import RandomRotation
 from keras_cv.layers.preprocessing.random_saturation import RandomSaturation
 from keras_cv.layers.preprocessing.random_sharpness import RandomSharpness
 from keras_cv.layers.preprocessing.random_shear import RandomShear
+from keras_cv.layers.preprocessing.random_zoom import RandomZoom
 from keras_cv.layers.preprocessing.randomly_zoomed_crop import RandomlyZoomedCrop
 from keras_cv.layers.preprocessing.resizing import Resizing
 from keras_cv.layers.preprocessing.solarization import Solarization

@@ -409,6 +409,11 @@ class SerializationTest(tf.test.TestCase, parameterized.TestCase):
             {},
         ),
         (
+            "RandomZoom",
+            cv_layers.RandomZoom,
+            {"height_factor": 0.2, "width_factor": 0.5},
+        ),
+        (
             "RandomCrop",
             cv_layers.RandomCrop,
             {
