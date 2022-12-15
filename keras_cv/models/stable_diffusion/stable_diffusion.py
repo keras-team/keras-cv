@@ -71,27 +71,8 @@ class StableDiffusionV2(StableDiffusion):
     - [About Stable Diffusion](https://stability.ai/blog/stable-diffusion-announcement)
     - [Original implementation](https://github.com/Stability-AI/stablediffusion)
     """
-    def __init__(
-        self,
-        img_height=512,
-        img_width=512,
-        jit_compile=False,
-    ):
-        # UNet requires multiples of 2**7 = 128
-        img_height = round(img_height / 128) * 128
-        img_width = round(img_width / 128) * 128
-        self.img_height = img_height
-        self.img_width = img_width
-
-        # lazy initialize the component models and the tokenizer
-        self._image_encoder = None
-        self._text_encoder = None
-        self._diffusion_model = None
-        self._decoder = None
-        self._tokenizer = None
-
-        self.jit_compile = jit_compile
-
+    def __init__(**kwargs):
+        super().__init__(**kwargs)
         print(
             "By using this model checkpoint, you acknowledge that its usage is "
             "subject to the terms of the CreativeML Open RAIL++-M license at "
