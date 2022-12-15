@@ -63,7 +63,7 @@ class FusedMBConvBlock(layers.Layer):
 
     def call(self, inputs):
         # Expansion phase
-        filters = input_filters * expand_ratio
+        filters = self.input_filters * self.expand_ratio
         if self.expand_ratio != 1:
             x = layers.Conv2D(
                 filters,

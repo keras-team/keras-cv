@@ -728,8 +728,7 @@ def EfficientNetV2(
             depth_divisor=depth_divisor,
         )
 
-        # Determine which conv type to use:
-        block = {0: MBConvBlock, 1: FusedMBConvBlock}[args.pop("conv_type")]
+
         repeats = round_repeats(
             repeats=args.pop("num_repeat"), depth_coefficient=depth_coefficient
         )
@@ -740,13 +739,27 @@ def EfficientNetV2(
                 args["strides"] = 1
                 args["input_filters"] = args["output_filters"]
 
-            x = block(
-                activation=activation,
-                bn_momentum=bn_momentum,
-                survival_probability=drop_connect_rate * b / blocks,
-                name="block{}{}_".format(i + 1, chr(j + 97)),
-                **args,
-            )(x)
+            # Determine which conv type to use:
+            block = {
+                0: MBConvBlock(
+                    input_filters=args["input_filters"],
+                    output_filters=args["output_filters"],
+                    activation=activation,
+                    bn_momentum=bn_momentum,
+                    survival_probability=drop_connect_rate * b / blocks,
+                    name="block{}{}_".format(i + 1, chr(j + 97)),
+                ),
+                1: FusedMBConvBlock(
+                    input_filters=args["input_filters"],
+                    output_filters=args["output_filters"],
+                    activation=activation,
+                    bn_momentum=bn_momentum,
+                    survival_probability=drop_connect_rate * b / blocks,
+                    name="block{}{}_".format(i + 1, chr(j + 97)),
+                ),
+            }[args["conv_type"]]
+
+            x = block(x)
             b += 1
 
     # Build top
