@@ -743,6 +743,10 @@ def EfficientNetV2(
                 0: MBConvBlock(
                     input_filters=args["input_filters"],
                     output_filters=args["output_filters"],
+                    expand_ratio=args["expand_ratio"],
+                    kernel_size=args["kernel_size"],
+                    strides=args["strides"],
+                    se_ratio=args["se_ratio"],
                     activation=activation,
                     bn_momentum=bn_momentum,
                     survival_probability=drop_connect_rate * b / blocks,
@@ -751,6 +755,10 @@ def EfficientNetV2(
                 1: FusedMBConvBlock(
                     input_filters=args["input_filters"],
                     output_filters=args["output_filters"],
+                    expand_ratio=args["expand_ratio"],
+                    kernel_size=args["kernel_size"],
+                    strides=args["strides"],
+                    se_ratio=args["se_ratio"],
                     activation=activation,
                     bn_momentum=bn_momentum,
                     survival_probability=drop_connect_rate * b / blocks,

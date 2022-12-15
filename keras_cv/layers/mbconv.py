@@ -74,7 +74,7 @@ class MBConvBlock(layers.Layer):
             name=self.name + "expand_bn",
         )
         self.act = layers.Activation(
-            self.activation, name=self.name + "expand_activation"
+            self.activation, name=self.name + "activation"
         )
         self.depthwise = layers.DepthwiseConv2D(
             kernel_size=self.kernel_size,
