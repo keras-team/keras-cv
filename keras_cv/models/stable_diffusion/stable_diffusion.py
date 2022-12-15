@@ -126,16 +126,21 @@ class StableDiffusion:
 
     def encode_text(self, prompt):
         """Encodes a prompt into a latent text encoding.
+        
         The encoding produced by this method should be used as the
         `encoded_text` parameter of `StableDiffusion.generate_image`. Encoding
         text separately from generating an image can be used to arbitrarily
         modify the text encoding priot to image generation, e.g. for walking
         between two prompts.
+        
         Args:
             prompt: a string to encode, must be 77 tokens or shorter.
+            
         Example:
+        
         ```python
         from keras_cv.models import StableDiffusion
+        
         model = StableDiffusion(img_height=512, img_width=512, jit_compile=True)
         encoded_text  = model.encode_text("Tacos at dawn")
         img = model.generate_image(encoded_text)
@@ -164,8 +169,10 @@ class StableDiffusion:
         seed=None,
     ):
         """Generates an image based on encoded text.
+        
         The encoding passed to this method should be derived from
         `StableDiffusion.encode_text`.
+        
         Args:
             encoded_text: Tensor of shape (`batch_size`, 77, 768), or a Tensor
             of shape (77, 768). When the batch axis is omitted, the same encoded
@@ -185,13 +192,17 @@ class StableDiffusion:
             seed: integer which is used to seed the random generation of
                 diffusion noise, only to be specified if `diffusion_noise` is
                 None.
+                
         Example:
+        
         ```python
         from keras_cv.models import StableDiffusion
+        
         batch_size = 8
         model = StableDiffusion(img_height=512, img_width=512, jit_compile=True)
         e_tacos = model.encode_text("Tacos at dawn")
         e_watermelons = model.encode_text("Watermelons at dusk")
+        
         e_interpolated = tf.linspace(e_tacos, e_watermelons, batch_size)
         images = model.generate_image(e_interpolated, batch_size=batch_size)
         ```
@@ -265,6 +276,7 @@ class StableDiffusion:
     ):
         """Inpaints a masked section of the provided image based on the provided prompt.
         Note that this currently does not support mixed precision.
+        
         Args:
             prompt: A string representing the prompt for generation.
             image: Tensor of shape (`batch_size`, `image_height`, `image_width`,
@@ -403,6 +415,7 @@ class StableDiffusion:
     @property
     def image_encoder(self):
         """image_encoder returns the VAE Encoder with pretrained weights.
+        
         Usage:
         ```python
         sd = keras_cv.models.StableDiffusion()
