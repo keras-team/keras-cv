@@ -61,7 +61,7 @@ except ValueError:
 BATCH_SIZE = 4
 GLOBAL_BATCH_SIZE = BATCH_SIZE * strategy.num_replicas_in_sync
 BASE_LR = 0.01 * GLOBAL_BATCH_SIZE / 16
-print("Number of accelerators: ", strategy.num_replicats_in_sync)
+print("Number of accelerators: ", strategy.num_replicas_in_sync)
 print("Global Batch Size: ", GLOBAL_BATCH_SIZE)
 
 IMG_SIZE = 640
