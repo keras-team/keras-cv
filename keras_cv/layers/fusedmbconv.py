@@ -62,7 +62,7 @@ class FusedMBConvBlock(layers.Layer):
         self.conv1 = layers.Conv2D(
             filters=self.filters,
             kernel_size=kernel_size,
-            strides=1,
+            strides=strides,
             kernel_initializer=CONV_KERNEL_INITIALIZER,
             padding="same",
             data_format="channels_last",
