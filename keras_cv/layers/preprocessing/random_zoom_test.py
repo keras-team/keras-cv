@@ -21,12 +21,12 @@ from keras_cv.layers.preprocessing.random_zoom import RandomZoom
 
 class RandomZoomTest(tf.test.TestCase, parameterized.TestCase):
     @parameterized.named_parameters(
-        ("random_zoom_4_by_6", -0.4, -0.6),
-        ("random_zoom_2_by_3", -0.2, -0.3),
-        ("random_zoom_tuple_factor", (-0.4, -0.5), (-0.2, -0.3)),
-        ("random_zoom_4_by_6", 0.4, 0.6),
-        ("random_zoom_2_by_3", 0.2, 0.3),
-        ("random_zoom_tuple_factor", (0.4, 0.5), (0.2, 0.3)),
+        ("random_zoom_in_4_by_6", -0.4, -0.6),
+        ("random_zoom_in_2_by_3", -0.2, -0.3),
+        ("random_zoom_in_tuple_factor", (-0.4, -0.5), (-0.2, -0.3)),
+        ("random_zoom_out_4_by_6", 0.4, 0.6),
+        ("random_zoom_out_2_by_3", 0.2, 0.3),
+        ("random_zoom_out_tuple_factor", (0.4, 0.5), (0.2, 0.3)),
     )
     def test_output_shapes(self, height_factor, width_factor):
         np.random.seed(1337)
