@@ -30,7 +30,7 @@ CONV_KERNEL_INITIALIZER = {
 
 
 @tf.keras.utils.register_keras_serializable(package="keras_cv")
-class MBConvBlock(layers.Layer):
+class FusedMBConvBlock(layers.Layer):
     def __init__(
         self,
         input_filters: int,
@@ -44,7 +44,8 @@ class MBConvBlock(layers.Layer):
         survival_probability: float = 0.8,
         **kwargs
     ):
-        """MBConv block: Mobile Inverted Residual Bottleneck."""
+        """Fused MBConv Block: Fusing the proj conv1x1 and depthwise_conv into a
+        conv2d."""
         super().__init__(**kwargs)
         self.input_filters = input_filters
         self.output_filters = output_filters
@@ -62,43 +63,26 @@ class MBConvBlock(layers.Layer):
 
     def call(self, inputs):
         # Expansion phase
-        filters = self.input_filters * self.expand_ratio
+        filters = input_filters * expand_ratio
         if self.expand_ratio != 1:
             x = layers.Conv2D(
-                filters=filters,
-                kernel_size=1,
-                strides=1,
+                filters,
+                kernel_size=self.kernel_size,
+                strides=self.strides,
                 kernel_initializer=CONV_KERNEL_INITIALIZER,
-                padding="same",
                 data_format="channels_last",
+                padding="same",
                 use_bias=False,
                 name=self.name + "expand_conv",
             )(inputs)
             x = layers.BatchNormalization(
-                axis=BN_AXIS,
-                momentum=self.bn_momentum,
-                name=self.name + "expand_bn",
+                axis=BN_AXIS, momentum=self.bn_momentum, name=self.name + "expand_bn"
             )(x)
             x = layers.Activation(
-                self.activation, name=self.name + "expand_activation"
+                activation=self.activation, name=self.name + "expand_activation"
             )(x)
         else:
             x = inputs
-
-        # Depthwise conv
-        x = layers.DepthwiseConv2D(
-            kernel_size=self.kernel_size,
-            strides=self.strides,
-            depthwise_initializer=CONV_KERNEL_INITIALIZER,
-            padding="same",
-            data_format="channels_last",
-            use_bias=False,
-            name=self.name + "dwconv2",
-        )(x)
-        x = layers.BatchNormalization(
-            axis=BN_AXIS, momentum=self.bn_momentum, name=self.name + "bn"
-        )(x)
-        x = layers.Activation(self.activation, name=self.name + "activation")(x)
 
         # Squeeze and excite
         if 0 < self.se_ratio <= 1:
@@ -108,6 +92,7 @@ class MBConvBlock(layers.Layer):
                 se_shape = (filters, 1, 1)
             else:
                 se_shape = (1, 1, filters)
+
             se = layers.Reshape(se_shape, name=self.name + "se_reshape")(se)
 
             se = layers.Conv2D(
@@ -129,29 +114,33 @@ class MBConvBlock(layers.Layer):
 
             x = layers.multiply([x, se], name=self.name + "se_excite")
 
-            # Output phase
-            x = layers.Conv2D(
-                filters=self.output_filters,
-                kernel_size=1,
-                strides=1,
-                kernel_initializer=CONV_KERNEL_INITIALIZER,
-                padding="same",
-                data_format="channels_last",
-                use_bias=False,
-                name=self.name + "project_conv",
-            )(x)
-            x = layers.BatchNormalization(
-                axis=BN_AXIS, momentum=self.bn_momentum, name=self.name + "project_bn"
+        # Output phase:
+        x = layers.Conv2D(
+            self.output_filters,
+            kernel_size=1 if self.expand_ratio != 1 else self.kernel_size,
+            strides=1 if self.expand_ratio != 1 else self.strides,
+            kernel_initializer=CONV_KERNEL_INITIALIZER,
+            padding="same",
+            use_bias=False,
+            name=self.name + "project_conv",
+        )(x)
+        x = layers.BatchNormalization(
+            axis=BN_AXIS, momentum=self.bn_momentum, name=self.name + "project_bn"
+        )(x)
+        if self.expand_ratio == 1:
+            x = layers.Activation(
+                activation=self.activation, name=self.name + "project_activation"
             )(x)
 
-            if self.strides == 1 and self.input_filters == self.output_filters:
-                if self.survival_probability:
-                    x = layers.Dropout(
-                        self.survival_probability,
-                        noise_shape=(None, 1, 1, 1),
-                        name=self.name + "drop",
-                    )(x)
-                x = layers.add([x, inputs], name=self.name + "add")
+        # Residual:
+        if self.strides == 1 and self.input_filters == self.output_filters:
+            if self.survival_probability:
+                x = layers.Dropout(
+                    self.survival_probability,
+                    noise_shape=(None, 1, 1, 1),
+                    name=self.name + "drop",
+                )(x)
+            x = layers.add([x, inputs], name=self.name + "add")
         return x
 
     def get_config(self):
@@ -166,5 +155,6 @@ class MBConvBlock(layers.Layer):
             "activation": self.activation,
             "survival_probability": self.survival_probability,
         }
+
         base_config = super().get_config()
         return dict(list(base_config.items()) + list(config.items()))
