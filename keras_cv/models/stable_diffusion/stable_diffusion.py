@@ -14,6 +14,7 @@
 """Keras implementation of StableDiffusion.
 
 Credits:
+
 - Original implementation: https://github.com/CompVis/stable-diffusion
 - Initial TF/Keras port: https://github.com/divamgupta/stable-diffusion-tensorflow
 
