@@ -12,12 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Keras implementation of StableDiffusion.
-
 Credits:
-
 - Original implementation: https://github.com/CompVis/stable-diffusion
 - Initial TF/Keras port: https://github.com/divamgupta/stable-diffusion-tensorflow
-
 The current implementation is a rewrite of the initial TF/Keras port by Divam Gupta.
 """
 
@@ -31,82 +28,22 @@ from keras_cv.models.stable_diffusion.clip_tokenizer import SimpleTokenizer
 from keras_cv.models.stable_diffusion.constants import _ALPHAS_CUMPROD
 from keras_cv.models.stable_diffusion.constants import _UNCONDITIONAL_TOKENS
 from keras_cv.models.stable_diffusion.decoder import Decoder
-from keras_cv.models.stable_diffusion.diffusion_model import DiffusionModel
+from keras_cv.models.stable_diffusion.diffusion_model import DiffusionModel, DiffusionModelV2
 from keras_cv.models.stable_diffusion.image_encoder import ImageEncoder
-from keras_cv.models.stable_diffusion.text_encoder import TextEncoder
+from keras_cv.models.stable_diffusion.text_encoder import TextEncoder, TextEncoderV2
+
+MAX_PROMPT_LENGTH = 77
 
 
-config = {
-    "v1": {
-        "text_encoder": {
-            "vocab_size": 49408,
-            "embed_dim": 768,
-            "num_blocks": 12,
-            "num_heads": 12,
-            "use_quick_gelu": True,
-            "weights":{
-                "origin": "https://huggingface.co/fchollet/stable-diffusion/resolve/main/kcv_encoder.h5",
-                "file_hash": "4789e63e07c0e54d6a34a29b45ce81ece27060c499a709d556c7755b42bb0dc4"
-                },
-            "max_length": 77
-            },
-        "diffusion_model": {
-            "model_channels": 320,
-            "channel_mult": [ 1, 2, 4, 4 ],
-            "num_heads": 8,
-            "head_dim": -1,
-            "context_length":768,
-            "max_length": 77,
-            "fully_connected": False,
-            "weights":{
-                "origin": "https://huggingface.co/fchollet/stable-diffusion/resolve/main/kcv_diffusion_model.h5",
-                "file_hash": "8799ff9763de13d7f30a683d653018e114ed24a6a819667da4f5ee10f9e805fe"
-                },
-            }
-            },
-    
-    "v2":{
-        "text_encoder": {
-            "vocab_size": 49408,
-            "embed_dim": 1024,
-            "num_blocks": 23,
-            "num_heads": 16,
-            "use_quick_gelu": False,
-            "weights":{
-                "origin": "https://huggingface.co/Jobayer/stable_diffusion_v2/resolve/main/text_encoder_v2_1.h5",
-                "file_hash": "985002e68704e1c5c3549de332218e99c5b9b745db7171d5f31fcd9a6089f25b"
-                },
-            "max_length": 77
-            },
-        "diffusion_model": {
-            "model_channels": 320,
-            "channel_mult": [ 1, 2, 4, 4 ],
-            "num_heads": -1,
-            "head_dim": 64,
-            "context_length": 1024,
-            "max_length": 77,
-            "fully_connected": True,
-            "weights":{
-                "origin": "https://huggingface.co/Jobayer/stable_diffusion_v2/resolve/main/diffusion_model_v2_1.h5",
-                "file_hash": "c31730e91111f98fe0e2dbde4475d381b5287ebb9672b1821796146a25c5132d"
-                },
-            }
-            }
-            }
-             
-
-class StableDiffusion:
-    """Keras implementation of Stable Diffusion.
-
+class StableDiffusionV2(StableDiffusion):
+    """Keras implementation of Stable Diffusion v2.
     Note that the StableDiffusion API, as well as the APIs of the sub-components
-    of StableDiffusion (e.g. ImageEncoder, DiffusionModel) should be considered
+    of StableDiffusionV2 (e.g. ImageEncoder, DiffusionModelV2) should be considered
     unstable at this point. We do not guarantee backwards compatability for
     future changes to these APIs.
-
     Stable Diffusion is a powerful image generation model that can be used,
     among other things, to generate pictures according to a short text description
     (called a "prompt").
-
     Arguments:
         img_height: Height of the images to generate, in pixel. Note that only
             multiples of 128 are supported; the value provided will be rounded
@@ -116,13 +53,10 @@ class StableDiffusion:
             to the nearest valid value. Default: 512.
         jit_compile: Whether to compile the underlying models to XLA.
             This can lead to a significant speedup on some systems. Default: False.
-
     Example:
-
     ```python
     from keras_cv.models import StableDiffusion
     from PIL import Image
-
     model = StableDiffusion(img_height=512, img_width=512, jit_compile=True)
     img = model.text_to_image(
         prompt="A beautiful horse running through a field",
@@ -133,9 +67,98 @@ class StableDiffusion:
     Image.fromarray(img[0]).save("horse.png")
     print("saved at horse.png")
     ```
-
     References:
+    - [About Stable Diffusion](https://stability.ai/blog/stable-diffusion-announcement)
+    - [Original implementation](https://github.com/Stability-AI/stablediffusion)
+    """
+    def __init__(
+        self,
+        img_height=512,
+        img_width=512,
+        jit_compile=False,
+    ):
+        # UNet requires multiples of 2**7 = 128
+        img_height = round(img_height / 128) * 128
+        img_width = round(img_width / 128) * 128
+        self.img_height = img_height
+        self.img_width = img_width
 
+        # lazy initialize the component models and the tokenizer
+        self._image_encoder = None
+        self._text_encoder = None
+        self._diffusion_model = None
+        self._decoder = None
+        self._tokenizer = None
+
+        self.jit_compile = jit_compile
+
+        print(
+            "By using this model checkpoint, you acknowledge that its usage is "
+            "subject to the terms of the CreativeML Open RAIL++-M license at "
+            "https://github.com/Stability-AI/stablediffusion/main/LICENSE-MODEL"
+        )
+    
+
+    @property
+    def text_encoder(self):
+        """text_encoder returns the text encoder with pretrained weights.
+        Can be overriden for tasks like textual inversion where the text encoder
+        needs to be modified.
+        """
+        if self._text_encoder is None:
+            self._text_encoder = TextEncoderV2(MAX_PROMPT_LENGTH)
+            if self.jit_compile:
+                self._text_encoder.compile(jit_compile=True)
+        return self._text_encoder
+
+    @property
+    def diffusion_model(self):
+        """diffusion_model returns the diffusion model with pretrained weights.
+        Can be overriden for tasks where the diffusion model needs to be modified.
+        """
+        if self._diffusion_model is None:
+            self._diffusion_model = DiffusionModelV2(
+                self.img_height, self.img_width, MAX_PROMPT_LENGTH
+            )
+            if self.jit_compile:
+                self._diffusion_model.compile(jit_compile=True)
+        return self._diffusion_model
+
+
+
+class StableDiffusion:
+    """Keras implementation of Stable Diffusion.
+    Note that the StableDiffusion API, as well as the APIs of the sub-components
+    of StableDiffusion (e.g. ImageEncoder, DiffusionModel) should be considered
+    unstable at this point. We do not guarantee backwards compatability for
+    future changes to these APIs.
+    Stable Diffusion is a powerful image generation model that can be used,
+    among other things, to generate pictures according to a short text description
+    (called a "prompt").
+    Arguments:
+        img_height: Height of the images to generate, in pixel. Note that only
+            multiples of 128 are supported; the value provided will be rounded
+            to the nearest valid value. Default: 512.
+        img_width: Width of the images to generate, in pixel. Note that only
+            multiples of 128 are supported; the value provided will be rounded
+            to the nearest valid value. Default: 512.
+        jit_compile: Whether to compile the underlying models to XLA.
+            This can lead to a significant speedup on some systems. Default: False.
+    Example:
+    ```python
+    from keras_cv.models import StableDiffusion
+    from PIL import Image
+    model = StableDiffusion(img_height=512, img_width=512, jit_compile=True)
+    img = model.text_to_image(
+        prompt="A beautiful horse running through a field",
+        batch_size=1,  # How many images to generate at once
+        num_steps=25,  # Number of iterations (controls image quality)
+        seed=123,  # Set this to always get the same image from the same prompt
+    )
+    Image.fromarray(img[0]).save("horse.png")
+    print("saved at horse.png")
+    ```
+    References:
     - [About Stable Diffusion](https://stability.ai/blog/stable-diffusion-announcement)
     - [Original implementation](https://github.com/CompVis/stable-diffusion)
     """
@@ -144,7 +167,6 @@ class StableDiffusion:
         self,
         img_height=512,
         img_width=512,
-        version='v2',
         jit_compile=False,
     ):
         # UNet requires multiples of 2**7 = 128
@@ -152,7 +174,7 @@ class StableDiffusion:
         img_width = round(img_width / 128) * 128
         self.img_height = img_height
         self.img_width = img_width
-        self.config = config[version]
+
         # lazy initialize the component models and the tokenizer
         self._image_encoder = None
         self._text_encoder = None
@@ -188,21 +210,16 @@ class StableDiffusion:
 
     def encode_text(self, prompt):
         """Encodes a prompt into a latent text encoding.
-
         The encoding produced by this method should be used as the
         `encoded_text` parameter of `StableDiffusion.generate_image`. Encoding
         text separately from generating an image can be used to arbitrarily
         modify the text encoding priot to image generation, e.g. for walking
         between two prompts.
-
         Args:
             prompt: a string to encode, must be 77 tokens or shorter.
-
         Example:
-
         ```python
         from keras_cv.models import StableDiffusion
-
         model = StableDiffusion(img_height=512, img_width=512, jit_compile=True)
         encoded_text  = model.encode_text("Tacos at dawn")
         img = model.generate_image(encoded_text)
@@ -210,15 +227,14 @@ class StableDiffusion:
         """
         # Tokenize prompt (i.e. starting context)
         inputs = self.tokenizer.encode(prompt)
-        max_prompt_length = self.config['text_encoder']['max_length']
-        if len(inputs) > max_prompt_length:
+        if len(inputs) > MAX_PROMPT_LENGTH:
             raise ValueError(
-                f"Prompt is too long (should be <= {max_prompt_length} tokens)"
+                f"Prompt is too long (should be <= {MAX_PROMPT_LENGTH} tokens)"
             )
-        phrase = inputs + [49407] * (max_prompt_length - len(inputs))
+        phrase = inputs + [49407] * (MAX_PROMPT_LENGTH - len(inputs))
         phrase = tf.convert_to_tensor([phrase], dtype=tf.int32)
 
-        context = self.text_encoder.predict_on_batch([phrase, self._get_pos_ids(max_prompt_length)])
+        context = self.text_encoder.predict_on_batch([phrase, self._get_pos_ids()])
 
         return context
 
@@ -232,10 +248,8 @@ class StableDiffusion:
         seed=None,
     ):
         """Generates an image based on encoded text.
-
         The encoding passed to this method should be derived from
         `StableDiffusion.encode_text`.
-
         Args:
             encoded_text: Tensor of shape (`batch_size`, 77, 768), or a Tensor
             of shape (77, 768). When the batch axis is omitted, the same encoded
@@ -255,17 +269,13 @@ class StableDiffusion:
             seed: integer which is used to seed the random generation of
                 diffusion noise, only to be specified if `diffusion_noise` is
                 None.
-
         Example:
-
         ```python
         from keras_cv.models import StableDiffusion
-
         batch_size = 8
         model = StableDiffusion(img_height=512, img_width=512, jit_compile=True)
         e_tacos = model.encode_text("Tacos at dawn")
         e_watermelons = model.encode_text("Watermelons at dusk")
-
         e_interpolated = tf.linspace(e_tacos, e_watermelons, batch_size)
         images = model.generate_image(e_interpolated, batch_size=batch_size)
         ```
@@ -339,7 +349,6 @@ class StableDiffusion:
     ):
         """Inpaints a masked section of the provided image based on the provided prompt.
         Note that this currently does not support mixed precision.
-
         Args:
             prompt: A string representing the prompt for generation.
             image: Tensor of shape (`batch_size`, `image_height`, `image_width`,
@@ -470,7 +479,7 @@ class StableDiffusion:
             [_UNCONDITIONAL_TOKENS], dtype=tf.int32
         )
         unconditional_context = self.text_encoder.predict_on_batch(
-            [unconditional_tokens, self._get_pos_ids(self.config['text_encoder']['max_length'])]
+            [unconditional_tokens, self._get_pos_ids()]
         )
 
         return unconditional_context
@@ -478,7 +487,6 @@ class StableDiffusion:
     @property
     def image_encoder(self):
         """image_encoder returns the VAE Encoder with pretrained weights.
-
         Usage:
         ```python
         sd = keras_cv.models.StableDiffusion()
@@ -499,7 +507,7 @@ class StableDiffusion:
         needs to be modified.
         """
         if self._text_encoder is None:
-            self._text_encoder = TextEncoder(self.config['text_encoder'])
+            self._text_encoder = TextEncoder(MAX_PROMPT_LENGTH)
             if self.jit_compile:
                 self._text_encoder.compile(jit_compile=True)
         return self._text_encoder
@@ -511,7 +519,7 @@ class StableDiffusion:
         """
         if self._diffusion_model is None:
             self._diffusion_model = DiffusionModel(
-                self.img_height, self.img_width, self.config['diffusion_model']
+                self.img_height, self.img_width, MAX_PROMPT_LENGTH
             )
             if self.jit_compile:
                 self._diffusion_model.compile(jit_compile=True)
@@ -564,6 +572,10 @@ class StableDiffusion:
                 (batch_size, self.img_height // 8, self.img_width // 8, 4)
             )
 
-    @staticmethod    
-    def _get_pos_ids(max_length):
-        return tf.convert_to_tensor([list(range(max_length))], dtype=tf.int32)
+    @staticmethod
+    def _get_pos_ids():
+        return tf.convert_to_tensor([list(range(MAX_PROMPT_LENGTH))], dtype=tf.int32)
+
+
+
+
