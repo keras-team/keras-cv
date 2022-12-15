@@ -101,6 +101,14 @@ TEST_CONFIGURATIONS = [
     ),
     ("RandomShear", layers.RandomShear, {"x_factor": 0.3, "x_factor": 0.3}),
     ("Solarization", layers.Solarization, {"value_range": (0, 255)}),
+    (
+        "RandomCrop",
+        layers.RandomCrop,
+        {
+            "height": 100,
+            "width": 200,
+        },
+    ),
 ]
 
 
