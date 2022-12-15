@@ -153,22 +153,23 @@ def unpackage_inputs(data):
 train_ds = train_ds.map(unpackage_inputs, num_parallel_calls=tf.data.AUTOTUNE)
 eval_ds = eval_ds.map(unpackage_inputs, num_parallel_calls=tf.data.AUTOTUNE)
 
-model = keras_cv.models.RetinaNet(
-    # number of classes to be used in box classification
-    classes=20,
-    # For more info on supported bounding box formats, visit
-    # https://keras.io/api/keras_cv/bounding_box/
-    bounding_box_format="xywh",
-    # KerasCV offers a set of pre-configured backbones
-    backbone="resnet50",
-    # Each backbone comes with multiple pre-trained weights
-    # These weights match the weights available in the `keras_cv.model` class.
-    backbone_weights="imagenet",
-    # include_rescaling tells the model whether your input images are in the default
-    # pixel range (0, 255) or if you have already rescaled your inputs to the range
-    # (0, 1).  In our case, we feed our model images with inputs in the range (0, 255).
-    include_rescaling=True,
-)
+with strategy.scope():
+    model = keras_cv.models.RetinaNet(
+        # number of classes to be used in box classification
+        classes=20,
+        # For more info on supported bounding box formats, visit
+        # https://keras.io/api/keras_cv/bounding_box/
+        bounding_box_format="xywh",
+        # KerasCV offers a set of pre-configured backbones
+        backbone="resnet50",
+        # Each backbone comes with multiple pre-trained weights
+        # These weights match the weights available in the `keras_cv.model` class.
+        backbone_weights="imagenet",
+        # include_rescaling tells the model whether your input images are in the default
+        # pixel range (0, 255) or if you have already rescaled your inputs to the range
+        # (0, 1).  In our case, we feed our model images with inputs in the range (0, 255).
+        include_rescaling=True,
+    )
 # Fine-tuning a RetinaNet is as simple as setting backbone.trainable = False
 model.backbone.trainable = False
 optimizer = tf.optimizers.SGD(learning_rate=BASE_LR, global_clipnorm=10.0)
