@@ -102,11 +102,14 @@ TEST_CONFIGURATIONS = [
     ("RandomShear", layers.RandomShear, {"x_factor": 0.3, "x_factor": 0.3}),
     ("Solarization", layers.Solarization, {"value_range": (0, 255)}),
     (
+<<<<<<< HEAD
         "RandomZoom",
         layers.RandomZoom,
         {"height_factor": 0.2, "width_factor": 0.5},
     ),
     (
+=======
+>>>>>>> Migrate RandomCrop to Keras CV (#1141)
         "RandomCrop",
         layers.RandomCrop,
         {
