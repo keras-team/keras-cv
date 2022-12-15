@@ -25,7 +25,6 @@ import copy
 import math
 
 import tensorflow as tf
-from keras import backend
 from keras import layers
 
 from keras_cv.layers import FusedMBConvBlock
