@@ -49,7 +49,6 @@ setup(
         "tests": [
             "flake8",
             "isort",
-            "black",
             "black[jupyter]",
             "pytest",
             "tensorflow-datasets",
