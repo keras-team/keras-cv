@@ -191,12 +191,10 @@ model.compile(
     box_loss="smoothl1",
     optimizer=optimizer,
     metrics=[
-        keras_cv.metrics.COCORecall(
-            bounding_box_format="xywh", class_ids=range(20)
-        ),
+        keras_cv.metrics.COCORecall(bounding_box_format="xywh", class_ids=range(20)),
         keras_cv.metrics.COCOMeanAveragePrecision(
             bounding_box_format="xywh", class_ids=range(20)
-        )
+        ),
     ],
 )
 
