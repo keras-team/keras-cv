@@ -31,7 +31,8 @@ def validate(bounding_boxes):
     if not all([x in bounding_boxes for x in ["boxes", "classes"]]):
         raise ValueError(
             "Expected `bounding_boxes` to be a dictionary containing keys "
-            f"`'classes'` and `'boxes'`.  Got `bounding_boxes={bounding_boxes}`."
+            "`'classes'` and `'boxes'`.  Got "
+            f"`bounding_boxes.keys()={bounding_boxes.keys()}`."
         )
 
     boxes = bounding_boxes.get("boxes")
@@ -43,7 +44,7 @@ def validate(bounding_boxes):
         if boxes.shape[:1] != classes.shape[:1]:
             raise ValueError(
                 "Expected `boxes` and `classes` to have matching dimensions "
-                "on the first axis when operating in batched mode. "
+                "on the first axis when operating in unbatched mode. "
                 f"Got `boxes.shape={boxes.shape}`, `classes.shape={classes.shape}`."
             )
         # No Ragged checks needed in unbatched mode.
