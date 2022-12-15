@@ -106,6 +106,14 @@ TEST_CONFIGURATIONS = [
         layers.RandomZoom,
         {"height_factor": 0.2, "width_factor": 0.5},
     ),
+    (
+        "RandomCrop",
+        layers.RandomCrop,
+        {
+            "height": 100,
+            "width": 200,
+        },
+    ),
 ]
 
 

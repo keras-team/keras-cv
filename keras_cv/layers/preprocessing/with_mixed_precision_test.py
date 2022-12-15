@@ -118,6 +118,11 @@ TEST_CONFIGURATIONS = [
         layers.RandomZoom,
         {"height_factor": 0.2, "width_factor": 0.5},
     ),
+    (
+        "RandomCrop",
+        layers.RandomCrop,
+        {"height": 224, "width": 224},
+    ),
 ]
 
 NO_CPU_FP16_KERNEL_LAYERS = [
