@@ -36,14 +36,17 @@ MAX_PROMPT_LENGTH = 77
 
 
 class StableDiffusion:
-    """Keras implementation of Stable Diffusion.
+     """Keras implementation of Stable Diffusion.
+     
     Note that the StableDiffusion API, as well as the APIs of the sub-components
     of StableDiffusion (e.g. ImageEncoder, DiffusionModel) should be considered
     unstable at this point. We do not guarantee backwards compatability for
     future changes to these APIs.
+    
     Stable Diffusion is a powerful image generation model that can be used,
     among other things, to generate pictures according to a short text description
     (called a "prompt").
+    
     Arguments:
         img_height: Height of the images to generate, in pixel. Note that only
             multiples of 128 are supported; the value provided will be rounded
@@ -53,10 +56,13 @@ class StableDiffusion:
             to the nearest valid value. Default: 512.
         jit_compile: Whether to compile the underlying models to XLA.
             This can lead to a significant speedup on some systems. Default: False.
+            
     Example:
+    
     ```python
     from keras_cv.models import StableDiffusion
     from PIL import Image
+    
     model = StableDiffusion(img_height=512, img_width=512, jit_compile=True)
     img = model.text_to_image(
         prompt="A beautiful horse running through a field",
@@ -67,6 +73,7 @@ class StableDiffusion:
     Image.fromarray(img[0]).save("horse.png")
     print("saved at horse.png")
     ```
+    
     References:
     - [About Stable Diffusion](https://stability.ai/blog/stable-diffusion-announcement)
     - [Original implementation](https://github.com/CompVis/stable-diffusion)
@@ -489,13 +496,16 @@ class StableDiffusion:
 
 class StableDiffusionV2(StableDiffusion):
     """Keras implementation of Stable Diffusion v2.
+    
     Note that the StableDiffusion API, as well as the APIs of the sub-components
     of StableDiffusionV2 (e.g. ImageEncoder, DiffusionModelV2) should be considered
     unstable at this point. We do not guarantee backwards compatability for
     future changes to these APIs.
+    
     Stable Diffusion is a powerful image generation model that can be used,
     among other things, to generate pictures according to a short text description
     (called a "prompt").
+    
     Arguments:
         img_height: Height of the images to generate, in pixel. Note that only
             multiples of 128 are supported; the value provided will be rounded
@@ -506,10 +516,12 @@ class StableDiffusionV2(StableDiffusion):
         jit_compile: Whether to compile the underlying models to XLA.
             This can lead to a significant speedup on some systems. Default: False.
     Example:
+    
     ```python
-    from keras_cv.models import StableDiffusion
+    from keras_cv.models import StableDiffusionV2
     from PIL import Image
-    model = StableDiffusion(img_height=512, img_width=512, jit_compile=True)
+    
+    model = StableDiffusionV2(img_height=512, img_width=512, jit_compile=True)
     img = model.text_to_image(
         prompt="A beautiful horse running through a field",
         batch_size=1,  # How many images to generate at once
@@ -519,10 +531,13 @@ class StableDiffusionV2(StableDiffusion):
     Image.fromarray(img[0]).save("horse.png")
     print("saved at horse.png")
     ```
+    
     References:
+    
     - [About Stable Diffusion](https://stability.ai/blog/stable-diffusion-announcement)
     - [Original implementation](https://github.com/Stability-AI/stablediffusion)
     """
+    
     def __init__(
         self,
         img_height=512,
