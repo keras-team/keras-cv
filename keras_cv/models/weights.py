@@ -134,7 +134,6 @@ WEIGHTS_CONFIG = {
         "imagenet/classification-v2": "5ee5a8ac650aaa59342bc48ffe770e6797a5550bcc35961e1d06685292c15921",
         "imagenet/classification-v2-notop": "e711c83d6db7034871f6d345a476c8184eab99dbf3ffcec0c1d8445684890ad9",
     },
-
     "vittiny16": {
         "imagenet/classification-v0": "",
         "imagenet/classification-v0-notop": "",
