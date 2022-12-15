@@ -523,7 +523,7 @@ class StableDiffusionV2(StableDiffusion):
     - [About Stable Diffusion](https://stability.ai/blog/stable-diffusion-announcement)
     - [Original implementation](https://github.com/Stability-AI/stablediffusion)
     """
-    def __init__(**kwargs):
+    def __init__(self, **kwargs):
         super().__init__(**kwargs)
         print(
             "By using this model checkpoint, you acknowledge that its usage is "
