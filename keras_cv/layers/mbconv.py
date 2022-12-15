@@ -56,7 +56,7 @@ class MBConvBlock(layers.Layer):
         self.activation = activation
         self.survival_probability = survival_probability
         self.filters = self.input_filters * self.expand_ratio
-        self.filters_se = max(1, self.filters)
+        self.filters_se = max(1, int(input_filters * se_ratio))
 
         self.conv1 = layers.Conv2D(
             filters=self.filters,
@@ -108,7 +108,7 @@ class MBConvBlock(layers.Layer):
 
         self.output_conv = layers.Conv2D(
             filters=self.output_filters,
-            kernel_size=1,
+            kernel_size=1 if expand_ratio != 1 else kernel_size,
             strides=1,
             kernel_initializer=CONV_KERNEL_INITIALIZER,
             padding="same",
