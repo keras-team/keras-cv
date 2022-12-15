@@ -728,7 +728,6 @@ def EfficientNetV2(
             depth_divisor=depth_divisor,
         )
 
-
         repeats = round_repeats(
             repeats=args.pop("num_repeat"), depth_coefficient=depth_coefficient
         )

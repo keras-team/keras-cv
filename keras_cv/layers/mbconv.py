@@ -55,38 +55,28 @@ class MBConvBlock(layers.Layer):
         self.bn_momentum = bn_momentum
         self.activation = activation
         self.survival_probability = survival_probability
+        self.filters = self.input_filters * self.expand_ratio
+        self.filters_se = max(1, self.filters)
 
-    def build(self, input_shape):
-        if self.name is None:
-            self.name = backend.get_uid("block0")
-
-    def call(self, inputs):
-        # Expansion phase
-        filters = self.input_filters * self.expand_ratio
-        if self.expand_ratio != 1:
-            x = layers.Conv2D(
-                filters=filters,
-                kernel_size=1,
-                strides=1,
-                kernel_initializer=CONV_KERNEL_INITIALIZER,
-                padding="same",
-                data_format="channels_last",
-                use_bias=False,
-                name=self.name + "expand_conv",
-            )(inputs)
-            x = layers.BatchNormalization(
-                axis=BN_AXIS,
-                momentum=self.bn_momentum,
-                name=self.name + "expand_bn",
-            )(x)
-            x = layers.Activation(
-                self.activation, name=self.name + "expand_activation"
-            )(x)
-        else:
-            x = inputs
-
-        # Depthwise conv
-        x = layers.DepthwiseConv2D(
+        self.conv1 = layers.Conv2D(
+            filters=self.filters,
+            kernel_size=1,
+            strides=1,
+            kernel_initializer=CONV_KERNEL_INITIALIZER,
+            padding="same",
+            data_format="channels_last",
+            use_bias=False,
+            name=self.name + "expand_conv",
+        )
+        self.bn1 = layers.BatchNormalization(
+            axis=BN_AXIS,
+            momentum=self.bn_momentum,
+            name=self.name + "expand_bn",
+        )
+        self.act = layers.Activation(
+            self.activation, name=self.name + "expand_activation"
+        )
+        self.depthwise = layers.DepthwiseConv2D(
             kernel_size=self.kernel_size,
             strides=self.strides,
             depthwise_initializer=CONV_KERNEL_INITIALIZER,
@@ -94,55 +84,81 @@ class MBConvBlock(layers.Layer):
             data_format="channels_last",
             use_bias=False,
             name=self.name + "dwconv2",
-        )(x)
-        x = layers.BatchNormalization(
+        )
+
+        self.bn2 = layers.BatchNormalization(
             axis=BN_AXIS, momentum=self.bn_momentum, name=self.name + "bn"
-        )(x)
-        x = layers.Activation(self.activation, name=self.name + "activation")(x)
+        )
+
+        self.se_conv1 = layers.Conv2D(
+            self.filters_se,
+            1,
+            padding="same",
+            activation=self.activation,
+            kernel_initializer=CONV_KERNEL_INITIALIZER,
+            name=self.name + "se_reduce",
+        )
+
+        self.se_conv2 = layers.Conv2D(
+            self.filters,
+            1,
+            padding="same",
+            activation="sigmoid",
+            kernel_initializer=CONV_KERNEL_INITIALIZER,
+            name=self.name + "se_expand",
+        )
+
+        self.output_conv = layers.Conv2D(
+            filters=self.output_filters,
+            kernel_size=1,
+            strides=1,
+            kernel_initializer=CONV_KERNEL_INITIALIZER,
+            padding="same",
+            data_format="channels_last",
+            use_bias=False,
+            name=self.name + "project_conv",
+        )
+
+        self.bn3 = layers.BatchNormalization(
+            axis=BN_AXIS, momentum=self.bn_momentum, name=self.name + "project_bn"
+        )
+
+    def build(self, input_shape):
+        if self.name is None:
+            self.name = backend.get_uid("block0")
+
+    def call(self, inputs):
+        # Expansion phase
+        if self.expand_ratio != 1:
+            x = self.conv1(inputs)
+            x = self.bn1(x)
+            x = self.act(x)
+        else:
+            x = inputs
+
+        # Depthwise conv
+        x = self.depthwise(x)
+        x = self.bn2(x)
+        x = self.act(x)
 
         # Squeeze and excite
         if 0 < self.se_ratio <= 1:
-            filters_se = max(1, int(self.input_filters * self.se_ratio))
+
             se = layers.GlobalAveragePooling2D(name=self.name + "se_squeeze")(x)
             if BN_AXIS == 1:
-                se_shape = (filters, 1, 1)
+                se_shape = (self.filters, 1, 1)
             else:
-                se_shape = (1, 1, filters)
+                se_shape = (1, 1, self.filters)
             se = layers.Reshape(se_shape, name=self.name + "se_reshape")(se)
 
-            se = layers.Conv2D(
-                filters_se,
-                1,
-                padding="same",
-                activation=self.activation,
-                kernel_initializer=CONV_KERNEL_INITIALIZER,
-                name=self.name + "se_reduce",
-            )(se)
-            se = layers.Conv2D(
-                filters,
-                1,
-                padding="same",
-                activation="sigmoid",
-                kernel_initializer=CONV_KERNEL_INITIALIZER,
-                name=self.name + "se_expand",
-            )(se)
+            se = self.se_conv1(se)
+            se = self.se_conv2(se)
 
             x = layers.multiply([x, se], name=self.name + "se_excite")
 
             # Output phase
-            x = layers.Conv2D(
-                filters=self.output_filters,
-                kernel_size=1,
-                strides=1,
-                kernel_initializer=CONV_KERNEL_INITIALIZER,
-                padding="same",
-                data_format="channels_last",
-                use_bias=False,
-                name=self.name + "project_conv",
-            )(x)
-            x = layers.BatchNormalization(
-                axis=BN_AXIS, momentum=self.bn_momentum, name=self.name + "project_bn"
-            )(x)
+            x = self.output_conv(x)
+            x = self.bn3(x)
 
             if self.strides == 1 and self.input_filters == self.output_filters:
                 if self.survival_probability:
