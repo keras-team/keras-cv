@@ -113,12 +113,18 @@ TEST_CONFIGURATIONS = [
             "bounding_box_format": "xywh",
         },
     ),
+    (
+        "RandomCrop",
+        layers.RandomCrop,
+        {"height": 224, "width": 224},
+    ),
 ]
 
 NO_CPU_FP16_KERNEL_LAYERS = [
     layers.RandomSaturation,
     layers.RandomColorJitter,
     layers.RandomHue,
+    layers.RandomContrast,
 ]
 
 

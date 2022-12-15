@@ -54,6 +54,7 @@ TEST_CONFIGURATIONS = [
             "seed": 1,
         },
     ),
+    ("RandomContrast", preprocessing.RandomContrast, {"factor": 0.5}),
     (
         "RandomGaussianBlur",
         preprocessing.RandomGaussianBlur,
