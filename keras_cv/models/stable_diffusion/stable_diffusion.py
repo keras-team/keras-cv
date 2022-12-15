@@ -523,8 +523,13 @@ class StableDiffusionV2(StableDiffusion):
     - [About Stable Diffusion](https://stability.ai/blog/stable-diffusion-announcement)
     - [Original implementation](https://github.com/Stability-AI/stablediffusion)
     """
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
+    def __init__(
+        self,
+        img_height=512,
+        img_width=512,
+        jit_compile=False,
+    ):
+        super().__init__(img_height, img_width, jit_compile)
         print(
             "By using this model checkpoint, you acknowledge that its usage is "
             "subject to the terms of the CreativeML Open RAIL++-M license at "
