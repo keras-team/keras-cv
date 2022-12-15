@@ -25,6 +25,8 @@ from keras_cv.layers import TransformerEncoder
 from keras_cv.layers.vit_layers import PatchingAndEmbedding
 from keras_cv.models import utils
 
+from keras_cv.models.weights import parse_weights
+
 MODEL_CONFIGS = {
     "ViTTiny16": {
         "patch_size": 16,
@@ -292,6 +294,10 @@ def ViT(
         output = layers.GlobalAveragePooling1D()(output)
 
     model = keras.Model(inputs=inputs, outputs=output)
+
+    if weights is not None:
+        model.load_weights(weights)
+
     return model
 
 
@@ -314,7 +320,7 @@ def ViTTiny16(
         include_rescaling,
         include_top,
         name=name,
-        weights=weights,
+        weights=parse_weights(weights, include_top, "vittiny16"),
         input_shape=input_shape,
         input_tensor=input_tensor,
         pooling=pooling,
@@ -351,7 +357,7 @@ def ViTS16(
         include_rescaling,
         include_top,
         name=name,
-        weights=weights,
+        weights=parse_weights(weights, include_top, "vits16"),
         input_shape=input_shape,
         input_tensor=input_tensor,
         pooling=pooling,
@@ -388,7 +394,7 @@ def ViTB16(
         include_rescaling,
         include_top,
         name=name,
-        weights=weights,
+        weights=parse_weights(weights, include_top, "vitb16"),
         input_shape=input_shape,
         input_tensor=input_tensor,
         pooling=pooling,
@@ -425,7 +431,7 @@ def ViTL16(
         include_rescaling,
         include_top,
         name=name,
-        weights=weights,
+        weights=parse_weights(weights, include_top, "vitl16"),
         input_shape=input_shape,
         input_tensor=input_tensor,
         pooling=pooling,
@@ -536,7 +542,7 @@ def ViTS32(
         include_rescaling,
         include_top,
         name=name,
-        weights=weights,
+        weights=parse_weights(weights, include_top, "vits32"),
         input_shape=input_shape,
         input_tensor=input_tensor,
         pooling=pooling,
@@ -573,7 +579,7 @@ def ViTB32(
         include_rescaling,
         include_top,
         name=name,
-        weights=weights,
+        weights=parse_weights(weights, include_top, "vitb32"),
         input_shape=input_shape,
         input_tensor=input_tensor,
         pooling=pooling,

@@ -39,17 +39,6 @@ def parse_weights(weights, include_top, model_type):
 BASE_PATH = "https://storage.googleapis.com/keras-cv/models"
 
 ALIASES = {
-    "cspdarknet": {
-        "imagenet": "imagenet/classification-v0",
-        "imagenet/classification": "imagenet/classification-v0",
-    },
-    "darknet53": {
-        "imagenet": "imagenet/classification-v0",
-        "imagenet/classification": "imagenet/classification-v0",
-    },
-    "deeplabv3": {
-        "voc": "voc/segmentation-v0",
-    },
     "densenet121": {
         "imagenet": "imagenet/classification-v0",
         "imagenet/classification": "imagenet/classification-v0",
@@ -82,20 +71,33 @@ ALIASES = {
         "imagenet": "imagenet/classification-v2",
         "imagenet/classification": "imagenet/classification-v2",
     },
+    "vittiny16": {
+        "imagenet": "imagenet/classification-v2",
+        "imagenet/classification": "imagenet/classification-v2",
+    },
+    "vits16": {
+        "imagenet": "imagenet/classification-v2",
+        "imagenet/classification": "imagenet/classification-v2",
+    },
+    "vitb16": {
+        "imagenet": "imagenet/classification-v2",
+        "imagenet/classification": "imagenet/classification-v2",
+    },
+    "vitl16": {
+        "imagenet": "imagenet/classification-v2",
+        "imagenet/classification": "imagenet/classification-v2",
+    },
+    "vits32": {
+        "imagenet": "imagenet/classification-v2",
+        "imagenet/classification": "imagenet/classification-v2",
+    },
+    "vitb32": {
+        "imagenet": "imagenet/classification-v2",
+        "imagenet/classification": "imagenet/classification-v2",
+    },
 }
 
 WEIGHTS_CONFIG = {
-    "cspdarknet": {
-        "imagenet/classification-v0": "8bdc3359222f0d26f77aa42c4e97d67a05a1431fe6c448ceeab9a9c5a34ff804",
-        "imagenet/classification-v0-notop": "9303aabfadffbff8447171fce1e941f96d230d8f3cef30d3f05a9c85097f8f1e",
-    },
-    "darknet53": {
-        "imagenet/classification-v0": "7bc5589f7f7f7ee3878e61ab9323a71682bfb617eb57f530ca8757c742f00c77",
-        "imagenet/classification-v0-notop": "8dcce43163e4b4a63e74330ba1902e520211db72d895b0b090b6bfe103e7a8a5",
-    },
-    "deeplabv3": {
-        "voc/segmentation-v0": "732042e8b6c9ddba3d51c861f26dc41865187e9f85a0e5d43dfef75a405cca18",
-    },
     "densenet121": {
         "imagenet/classification-v0": "13de3d077ad9d9816b9a0acc78215201d9b6e216c7ed8e71d69cc914f8f0775b",
         "imagenet/classification-v0-notop": "709afe0321d9f2b2562e562ff9d0dc44cca10ed09e0e2cfba08d783ff4dab6bf",
@@ -131,5 +133,30 @@ WEIGHTS_CONFIG = {
         "imagenet/classification-v1-notop": "ac46b82c11070ab2f69673c41fbe5039c9eb686cca4f34cd1d79412fd136f1ae",
         "imagenet/classification-v2": "5ee5a8ac650aaa59342bc48ffe770e6797a5550bcc35961e1d06685292c15921",
         "imagenet/classification-v2-notop": "e711c83d6db7034871f6d345a476c8184eab99dbf3ffcec0c1d8445684890ad9",
+    },
+
+    "vittiny16": {
+        "imagenet/classification-v0": "",
+        "imagenet/classification-v0-notop": "",
+    },
+    "vits16": {
+        "imagenet/classification-v0": "",
+        "imagenet/classification-v0-notop": "",
+    },
+    "vitb16": {
+        "imagenet/classification-v0": "",
+        "imagenet/classification-v0-notop": "",
+    },
+    "vitl16": {
+        "imagenet/classification-v0": "",
+        "imagenet/classification-v0-notop": "",
+    },
+    "vits32": {
+        "imagenet/classification-v0": "",
+        "imagenet/classification-v0-notop": "",
+    },
+    "vitb32": {
+        "imagenet/classification-v0": "",
+        "imagenet/classification-v0-notop": "",
     },
 }
