@@ -20,7 +20,15 @@ from keras_cv.layers.preprocessing.random_zoom import RandomZoom
 
 
 class RandomZoomTest(tf.test.TestCase, parameterized.TestCase):
-    def _run_test(self, height_factor, width_factor):
+    @parameterized.named_parameters(
+        ("random_zoom_4_by_6", -0.4, -0.6),
+        ("random_zoom_2_by_3", -0.2, -0.3),
+        ("random_zoom_tuple_factor", (-0.4, -0.5), (-0.2, -0.3)),
+        ("random_zoom_4_by_6", 0.4, 0.6),
+        ("random_zoom_2_by_3", 0.2, 0.3),
+        ("random_zoom_tuple_factor", (0.4, 0.5), (0.2, 0.3)),
+    )
+    def test_output_shapes(self, height_factor, width_factor):
         np.random.seed(1337)
         num_samples = 2
         orig_height = 5
@@ -40,22 +48,6 @@ class RandomZoomTest(tf.test.TestCase, parameterized.TestCase):
             ),
         )
         self.assertAllEqual(expected_output.shape, actual_output.shape)
-
-    @parameterized.named_parameters(
-        ("random_zoom_4_by_6", -0.4, -0.6),
-        ("random_zoom_2_by_3", -0.2, -0.3),
-        ("random_zoom_tuple_factor", (-0.4, -0.5), (-0.2, -0.3)),
-    )
-    def test_random_zoom_in(self, height_factor, width_factor):
-        self._run_test(height_factor, width_factor)
-
-    @parameterized.named_parameters(
-        ("random_zoom_4_by_6", 0.4, 0.6),
-        ("random_zoom_2_by_3", 0.2, 0.3),
-        ("random_zoom_tuple_factor", (0.4, 0.5), (0.2, 0.3)),
-    )
-    def test_random_zoom_out(self, height_factor, width_factor):
-        self._run_test(height_factor, width_factor)
 
     def test_random_zoom_in_numeric(self):
         for dtype in (np.int64, np.float32):

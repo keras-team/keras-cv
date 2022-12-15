@@ -53,7 +53,9 @@ class RandomZoom(BaseImageAugmentationLayer):
         lower bound. For instance, `width_factor=(0.2, 0.3)` result in an output
         zooming out between 20% to 30%. `width_factor=(-0.3, -0.2)` result in an
         output zooming in between 20% to 30%. Defaults to `None`, i.e., zooming
-        vertical and horizontal directions by preserving the aspect ratio.
+        vertical and horizontal directions by preserving the aspect ratio. If
+        height_factor=0 and width_factor=None, it would result in images with
+        no zoom at all.
       fill_mode: Points outside the boundaries of the input are filled according
         to the given mode (one of `{"constant", "reflect", "wrap", "nearest"}`).
         - *reflect*: `(d c b a | a b c d | d c b a)` The input is extended by
