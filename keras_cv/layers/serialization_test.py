@@ -409,14 +409,11 @@ class SerializationTest(tf.test.TestCase, parameterized.TestCase):
             {},
         ),
         (
-<<<<<<< HEAD
             "RandomZoom",
             cv_layers.RandomZoom,
             {"height_factor": 0.2, "width_factor": 0.5},
         ),
         (
-=======
->>>>>>> Migrate RandomCrop to Keras CV (#1141)
             "RandomCrop",
             cv_layers.RandomCrop,
             {
