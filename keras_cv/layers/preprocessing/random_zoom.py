@@ -25,8 +25,6 @@ from keras_cv.utils import preprocessing
 # and verticle axis is reverse indexed
 H_AXIS = -3
 W_AXIS = -2
-IMAGES = "images"
-BOUNDING_BOXES = "bounding_boxes"
 
 
 @tf.keras.utils.register_keras_serializable(package="keras_cv")
@@ -37,7 +35,7 @@ class RandomZoom(BaseImageAugmentationLayer):
     independently, filling empty space according to `fill_mode`.
 
     Input pixel values can be of any range (e.g. `[0., 1.)` or `[0, 255]`) and
-    of interger or floating point dtype. By default, the layer will output
+    of integer or floating point dtype. By default, the layer will output
     floats.
 
     Args:
@@ -48,7 +46,7 @@ class RandomZoom(BaseImageAugmentationLayer):
         means zooming in. For instance, `height_factor=(0.2, 0.3)` result in an
         output zoomed out by a random amount in the range `[+20%, +30%]`.
         `height_factor=(-0.3, -0.2)` result in an output zoomed in by a random
-        amount in the range `[+20%, +30%]`.
+        amount in the range `[-30%, -20%]`.
       width_factor: a float represented as fraction of value, or a tuple of size
         2 representing lower and upper bound for zooming horizontally. When
         represented as a single float, this value is used for both the upper and
