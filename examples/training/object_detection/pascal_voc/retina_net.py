@@ -49,8 +49,6 @@ flags.DEFINE_string(
 FLAGS = flags.FLAGS
 FLAGS(sys.argv)
 
-<<<<<<< HEAD
-
 # Try to detect an available TPU. If none is present, default to MirroredStrategy
 try:
     tpu = tf.distribute.cluster_resolver.TPUClusterResolver.connect()
@@ -59,12 +57,10 @@ except ValueError:
     # MirroredStrategy is best for a single machine with one or multiple GPUs
     strategy = tf.distribute.MirroredStrategy()
 
-=======
->>>>>>> b26e1dc (Return to COCO metrics)
 BATCH_SIZE = 4
-GLOBAL_BATCH_SIZE = BATCH_SIZE * 1
+GLOBAL_BATCH_SIZE = BATCH_SIZE * strategy.num_replicas_in_sync
 BASE_LR = 0.01 * GLOBAL_BATCH_SIZE / 16
-print("Number of accelerators: ", 1)
+print("Number of accelerators: ", strategy.num_replicats_in_sync)
 print("Global Batch Size: ", GLOBAL_BATCH_SIZE)
 
 IMG_SIZE = 640
@@ -102,7 +98,7 @@ train_ds = train_ds.apply(
     tf.data.experimental.dense_to_ragged_batch(GLOBAL_BATCH_SIZE, drop_remainder=True)
 )
 
-train_ds = train_ds.shuffle(8 * 1)
+train_ds = train_ds.shuffle(8 * strategy.num_replicas_in_sync)
 train_ds = train_ds.prefetch(tf.data.AUTOTUNE)
 
 eval_ds = eval_ds.map(
@@ -213,7 +209,11 @@ history = model.fit(
     epochs=35,
 =======
     validation_data=eval_ds.take(20),
+<<<<<<< HEAD
     epochs=100,
 >>>>>>> b26e1dc (Return to COCO metrics)
+=======
+    epochs=35,
+>>>>>>> 4d547ba (Revert to mirror strategy)
     callbacks=callbacks,
 )
