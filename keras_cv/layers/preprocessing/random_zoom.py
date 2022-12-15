@@ -177,9 +177,6 @@ class RandomZoom(BaseImageAugmentationLayer):
     def augment_label(self, label, transformation, **kwargs):
         return label
 
-    def compute_output_shape(self, input_shape):
-        return input_shape
-
     def get_config(self):
         config = {
             "height_factor": self.height_factor,
