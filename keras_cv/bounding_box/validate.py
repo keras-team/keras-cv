@@ -39,15 +39,8 @@ def validate(bounding_boxes):
     info = {}
 
     is_batched = len(boxes.shape) == 3
-    info['is_batched'] = is_batched
-    info['ragged'] = isinstance(boxes, tf.RaggedTensor)
-
-    if isinstance(boxes, tf.RaggedTensor) != isinstance(classes, tf.RaggedTensor):
-        raise ValueError(
-            "Either both `boxes` and `classes` "
-            "should be Ragged, or neither should be ragged."
-            f" Got `type(boxes)={type(boxes)}`, type(classes)={type(classes)}."
-        )
+    info["is_batched"] = is_batched
+    info["ragged"] = isinstance(boxes, tf.RaggedTensor)
 
     if not is_batched:
         if boxes.shape[:1] != classes.shape[:1]:
@@ -58,6 +51,13 @@ def validate(bounding_boxes):
             )
         # No Ragged checks needed in unbatched mode.
         return info
+
+    if isinstance(boxes, tf.RaggedTensor) != isinstance(classes, tf.RaggedTensor):
+        raise ValueError(
+            "Either both `boxes` and `classes` "
+            "should be Ragged, or neither should be ragged."
+            f" Got `type(boxes)={type(boxes)}`, type(classes)={type(classes)}."
+        )
 
     # Batched mode checks
     if boxes.shape[:2] != classes.shape[:2]:

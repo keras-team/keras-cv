@@ -23,8 +23,7 @@ from keras_cv.bounding_box.formats import XYXY
 from keras_cv.bounding_box.formats import YXYX
 from keras_cv.bounding_box.iou import compute_iou
 from keras_cv.bounding_box.pad_batch_to_shape import pad_batch_to_shape
-from keras_cv.bounding_box.utils import clip_to_image
-from keras_cv.bounding_box.utils import filter_sentinels
-from keras_cv.bounding_box.utils import preserve_rel
 from keras_cv.bounding_box.to_dense import to_dense
 from keras_cv.bounding_box.to_ragged import to_ragged
+from keras_cv.bounding_box.utils import clip_to_image
+from keras_cv.bounding_box.utils import preserve_rel

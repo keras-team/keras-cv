@@ -14,6 +14,7 @@
 
 import tensorflow as tf
 
+from keras_cv import bounding_box
 from keras_cv.utils import preprocessing
 
 # In order to support both unbatched and batched inputs, the horizontal
@@ -165,12 +166,14 @@ class BaseImageAugmentationLayer(tf.keras.__internal__.layers.BaseRandomLayer):
 
     # TODO(lukewood): promote to user facing API if needed
     def _compute_bounding_box_signature(self, bounding_boxes):
-        ragged_spec = tf.RaggedTensorSpec(
-            shape=[None, bounding_boxes.shape[2]],
-            ragged_rank=1,
-            dtype=self.compute_dtype,
-        )
-        return ragged_spec
+        return {
+            "boxes": tf.RaggedTensorSpec(
+                shape=[None, 4],
+                ragged_rank=1,
+                dtype=self.compute_dtype,
+            ),
+            "classes": tf.RaggedTensorSpec(shape=[None], dtype=self.compute_dtype),
+        }
 
     # TODO(lukewood): promote to user facing API if needed
     def _compute_keypoints_signature(self, keypoints):
@@ -423,16 +426,16 @@ class BaseImageAugmentationLayer(tf.keras.__internal__.layers.BaseRandomLayer):
             result[LABELS] = label
 
         if bounding_boxes is not None:
-            if isinstance(bounding_boxes, tf.RaggedTensor):
-                bounding_boxes = bounding_boxes.to_tensor(default_value=-1)
+            bounding_boxes = bounding_box.to_dense(bounding_boxes)
+
             bounding_boxes = self.augment_bounding_boxes(
                 bounding_boxes,
                 transformation=transformation,
                 label=label,
                 image=raw_image,
             )
-            if not isinstance(bounding_boxes, tf.RaggedTensor):
-                bounding_boxes = tf.RaggedTensor.from_tensor(bounding_boxes)
+
+            bounding_boxes = bounding_box.to_ragged(bounding_boxes)
             result[BOUNDING_BOXES] = bounding_boxes
 
         if keypoints is not None:
@@ -487,7 +490,7 @@ class BaseImageAugmentationLayer(tf.keras.__internal__.layers.BaseRandomLayer):
     def _format_bounding_boxes(self, bounding_boxes):
         # We can't catch the case where this is None, sometimes RaggedTensor drops this
         # dimension
-        if 'classes' not in bounding_boxes:
+        if "classes" not in bounding_boxes:
             raise ValueError(
                 "Bounding boxes are missing class_id. If you would like to pad the "
                 "bounding boxes with class_id, use: "

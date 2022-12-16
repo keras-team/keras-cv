@@ -79,20 +79,15 @@ def unpackage_inputs(bounding_box_format):
         image = tf.cast(image, tf.float32)
         gt_boxes = tf.cast(inputs["objects"]["bbox"], tf.float32)
         gt_classes = tf.cast(inputs["objects"]["label"], tf.float32)
-        gt_classes = tf.expand_dims(gt_classes, axis=1)
         gt_boxes = keras_cv.bounding_box.convert_format(
             gt_boxes,
             images=image,
             source="rel_yxyx",
             target=bounding_box_format,
         )
-        bounding_boxes = tf.concat([gt_boxes, gt_classes], axis=-1)
         return {
             "images": image,
-            "bounding_boxes": {
-                'boxes': gt_boxes,
-                'classes': gt_classes
-            }
+            "bounding_boxes": {"boxes": gt_boxes, "classes": gt_classes},
         }
 
     return apply

@@ -111,38 +111,35 @@ class RandomFlip(BaseImageAugmentationLayer):
         return flipped_output
 
     def _flip_bounding_boxes_horizontal(bounding_boxes):
-        x1, x2, x3, x4, rest = tf.split(
-            bounding_boxes, [1, 1, 1, 1, bounding_boxes.shape[-1] - 4], axis=-1
-        )
+        x1, x2, x3, x4 = tf.split(bounding_boxes["boxes"], [1, 1, 1, 1], axis=-1)
         output = tf.stack(
             [
                 1 - x3,
                 x2,
                 1 - x1,
                 x4,
-                rest,
             ],
             axis=-1,
         )
-        output = tf.squeeze(output, axis=1)
-        return output
+        bounding_boxes = bounding_boxes.copy()
+        bounding_boxes["boxes"] = tf.squeeze(output, axis=1)
+        return bounding_boxes
 
     def _flip_bounding_boxes_vertical(bounding_boxes):
-        x1, x2, x3, x4, rest = tf.split(
-            bounding_boxes, [1, 1, 1, 1, bounding_boxes.shape[-1] - 4], axis=-1
-        )
+        x1, x2, x3, x4 = tf.split(bounding_boxes["boxes"], [1, 1, 1, 1], axis=-1)
         output = tf.stack(
             [
                 x1,
                 1 - x4,
                 x3,
                 1 - x2,
-                rest,
             ],
             axis=-1,
         )
         output = tf.squeeze(output, axis=1)
-        return output
+        bounding_boxes = bounding_boxes.copy()
+        bounding_boxes["boxes"] = output
+        return bounding_boxes
 
     def augment_bounding_boxes(
         self, bounding_boxes, transformation=None, image=None, **kwargs
@@ -171,7 +168,6 @@ class RandomFlip(BaseImageAugmentationLayer):
             lambda: RandomFlip._flip_bounding_boxes_vertical(bounding_boxes),
             lambda: bounding_boxes,
         )
-
         bounding_boxes = bounding_box.clip_to_image(
             bounding_boxes,
             bounding_box_format="rel_xyxy",
@@ -184,6 +180,7 @@ class RandomFlip(BaseImageAugmentationLayer):
             dtype=self.compute_dtype,
             images=image,
         )
+        print(bounding_boxes)
         return bounding_boxes
 
     def augment_segmentation_mask(

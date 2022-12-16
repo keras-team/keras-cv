@@ -39,15 +39,14 @@ def preserve_rel(target_bounding_box_format, bounding_box_format):
     return target_bounding_box_format
 
 
-def _relative_area(bounding_boxes, bounding_box_format, images):
-    bounding_boxes = bounding_box.convert_format(
-        bounding_boxes,
+def _relative_area(boxes, bounding_box_format):
+    boxes = bounding_box.convert_format(
+        boxes,
         source=bounding_box_format,
         target="rel_xywh",
-        images=images,
     )
-    widths = bounding_boxes[..., XYWH.WIDTH]
-    heights = bounding_boxes[..., XYWH.HEIGHT]
+    widths = boxes[..., XYWH.WIDTH]
+    heights = boxes[..., XYWH.HEIGHT]
     # handle corner case where shear performs a full inversion.
     return tf.where(tf.math.logical_and(widths > 0, heights > 0), widths * heights, 0.0)
 
@@ -69,16 +68,16 @@ def clip_to_image(bounding_boxes, bounding_box_format, images=None, image_shape=
         images: list of images to clip the bounding boxes to.
         image_shape: the shape of the images to clip the bounding boxes to.
     """
-    boxes, mask = bounding_boxes["boxes"], bounding_boxes["mask"]
+    boxes, classes = bounding_boxes["boxes"], bounding_boxes["classes"]
 
-    bounding_boxes = bounding_box.convert_format(
+    boxes = bounding_box.convert_format(
         boxes,
         source=bounding_box_format,
         target="rel_xyxy",
         images=images,
         image_shape=image_shape,
     )
-    bounding_boxes, images, squeeze = _format_inputs(bounding_boxes, images)
+    boxes, classes, images, squeeze = _format_inputs(boxes, classes, images)
     x1, y1, x2, y2 = tf.split(boxes, [1, 1, 1, 1], axis=-1)
     clipped_bounding_boxes = tf.concat(
         [
@@ -89,9 +88,7 @@ def clip_to_image(bounding_boxes, bounding_box_format, images=None, image_shape=
         ],
         axis=-1,
     )
-    areas = _relative_area(
-        clipped_bounding_boxes, bounding_box_format="rel_xyxy", images=images
-    )
+    areas = _relative_area(clipped_bounding_boxes, bounding_box_format="rel_xyxy")
     clipped_bounding_boxes = bounding_box.convert_format(
         clipped_bounding_boxes,
         source="rel_xyxy",
@@ -102,12 +99,20 @@ def clip_to_image(bounding_boxes, bounding_box_format, images=None, image_shape=
     clipped_bounding_boxes = tf.where(
         tf.expand_dims(areas > 0.0, axis=-1), clipped_bounding_boxes, -1.0
     )
-    mask = tf.expand_dims(areas > 0.0), mask, -1.0
+
+    classes = tf.where(areas > 0.0, classes, -1.0)
     nan_indices = tf.math.reduce_any(tf.math.is_nan(clipped_bounding_boxes), axis=-1)
-    mask = tf.where(tf.expand_dims(nan_indices, axis=-1), -1.0, mask)
+    classes = tf.where(nan_indices, -1.0, classes)
+
     # TODO update dict and return
-    clipped_bounding_boxes = _format_outputs(clipped_bounding_boxes, squeeze)
-    return clipped_bounding_boxes
+    clipped_bounding_boxes, classes = _format_outputs(
+        clipped_bounding_boxes, classes, squeeze
+    )
+
+    result = bounding_boxes.copy()
+    result["boxes"] = clipped_bounding_boxes
+    result["classes"] = classes
+    return result
 
 
 # TODO (tanzhenyu): merge with clip_to_image
@@ -130,7 +135,7 @@ def _clip_boxes(boxes, box_format, image_shape):
     return clipped_boxes
 
 
-def _format_inputs(boxes, images):
+def _format_inputs(boxes, classes, images):
     boxes_rank = len(boxes.shape)
     if boxes_rank > 3:
         raise ValueError(
@@ -158,84 +163,16 @@ def _format_inputs(boxes, images):
             images = tf.expand_dims(images, axis=0)
 
     if not boxes_includes_batch:
-        return tf.expand_dims(boxes, axis=0), images, True
-    return boxes, images, False
+        return (
+            tf.expand_dims(boxes, axis=0),
+            tf.expand_dims(classes, axis=0),
+            images,
+            True,
+        )
+    return boxes, images, classes, False
 
 
-def _format_outputs(boxes, squeeze):
+def _format_outputs(boxes, classes, squeeze):
     if squeeze:
-        return tf.squeeze(boxes, axis=0)
-    return boxes
-
-
-def pad(bounding_boxes):
-    """converts a potentially ragged bounding box dictionary to a Dense dictionary.
-
-    This entails padding "boxes" and "classes" with -1s, and also includes adding a
-    "mask" to the dictionary containing a tf.Tensor indicating which boxes are padding
-    values.
-
-    Args:
-        bounding_boxes: dictionary of bounding boxes according to the KerasCV format of
-            `{"boxes": boxes, "classes": classes}`.
-    Returns:
-        padded bounding box dictionary with a mask indicating the boxes to be masked
-        out.
-    """
-    boxes = bounding_boxes.get("boxes")
-    classes = bounding_boxes.get("classes")
-    either_ragged = any([isinstance(x, tf.RaggedTensor) for x in [boxes, classes]])
-    if "mask" in bounding_boxes and either_ragged:
-        raise ValueError("Found a 'mask' in inputs, as well as a RaggedTensor.")
-        return bounding_boxes
-
-
-def filter_sentinels(bounding_boxes):
-    """converts a Dense padded bounding box `tf.Tensor` to a `tf.RaggedTensor`.
-
-    Bounding boxes are ragged tensors in most use cases. Converting them to a dense
-    tensor makes it easier to work with Tensorflow ecosystem.
-    This function can be used to filter out the masked out bounding boxes by
-    checking for padded sentinel value of the class_id axis of the bounding_boxes.
-
-    Usage:
-    ```python
-    bounding_boxes = {
-        "boxes": tf.constant([[2, 3, 4, 5], [0, 1, 2, 3]]),
-        "classes": tf.constant([[0, 1]]),
-        "mask": tf.constant([0, 1])
-    }
-    bounding_boxes = bounding_box.filter_by_mask(bounding_boxes)
-    print(bounding_boxes)
-    # {
-    #     "boxes": [[0, 1, 2, 3]],
-    #     "classes": [[0, 1]]
-    # }
-    ```
-
-    Args:
-        bounding_boxes: a Tensor of bounding boxes.  May be batched, or unbatched.
-
-    Returns:
-        dictionary of `tf.RaggedTensor` or 'tf.Tensor' containing the filtered bounding
-        boxes.
-    """
-    if mask not in bounding_boxes:
-        return bounding_boxes
-
-    boxes = bounding_boxes.get("boxes")
-    mask = bounding_boxes.get("mask")
-    classes = bounding_boxes.get("classes")
-
-    if isinstance(boxes, tf.RaggedTensor):
-        boxes = boxes.to_tensor(default_value=-1)
-    if isinstance(classes, tf.RaggedTensor):
-        classes = classes.to_tensor(default_value=-1)
-
-    boxes = tf.ragged.boolean_mask(boxes, mask)
-    classes = tf.ragged.boolean_mask(classes, mask)
-    result = bounding_boxes.copy()
-    del result["mask"]
-    result["boxes"] = boxes
-    result["classes"] = classes
-    return result
+        return tf.squeeze(boxes, axis=0), tf.squeeze(classes, axis=0)
+    return boxes, classes

@@ -357,6 +357,17 @@ def convert_format(
         dtype: the data type to use when transforming the boxes.  Defaults to
             `tf.float32`.
     """
+    if isinstance(boxes, dict):
+        boxes["boxes"] = convert_format(
+            boxes["boxes"],
+            source=source,
+            target=target,
+            images=images,
+            image_shape=image_shape,
+            dtype=dtype,
+        )
+        return boxes
+
     if boxes.shape[-1] != 4:
         raise ValueError(
             "Expected `boxes` to be a Tensor with a "
