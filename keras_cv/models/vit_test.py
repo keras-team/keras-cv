@@ -20,16 +20,16 @@ from keras_cv.models import vit
 from .models_test import ModelsTest
 
 MODEL_LIST = [
-    (vit.ViT_Tiny_16, 192, {"input_shape": (224, 224, 3)}),
-    (vit.ViT_S_16, 384, {"input_shape": (224, 224, 3)}),
-    (vit.ViT_B_16, 768, {"input_shape": (224, 224, 3)}),
-    (vit.ViT_L_16, 1024, {"input_shape": (224, 224, 3)}),
-    (vit.ViT_H_16, 1280, {"input_shape": (224, 224, 3)}),
-    (vit.ViT_Tiny_32, 192, {"input_shape": (224, 224, 3)}),
-    (vit.ViT_S_32, 384, {"input_shape": (224, 224, 3)}),
-    (vit.ViT_B_32, 768, {"input_shape": (224, 224, 3)}),
-    (vit.ViT_L_32, 1024, {"input_shape": (224, 224, 3)}),
-    (vit.ViT_H_32, 1280, {"input_shape": (224, 224, 3)}),
+    (vit.ViTTiny16, 192, {"input_shape": (224, 224, 3)}),
+    (vit.ViTS16, 384, {"input_shape": (224, 224, 3)}),
+    (vit.ViTB16, 768, {"input_shape": (224, 224, 3)}),
+    (vit.ViTL16, 1024, {"input_shape": (224, 224, 3)}),
+    (vit.ViTH16, 1280, {"input_shape": (224, 224, 3)}),
+    (vit.ViTTiny32, 192, {"input_shape": (224, 224, 3)}),
+    (vit.ViTS32, 384, {"input_shape": (224, 224, 3)}),
+    (vit.ViTB32, 768, {"input_shape": (224, 224, 3)}),
+    (vit.ViTL32, 1024, {"input_shape": (224, 224, 3)}),
+    (vit.ViTH32, 1280, {"input_shape": (224, 224, 3)}),
 ]
 
 

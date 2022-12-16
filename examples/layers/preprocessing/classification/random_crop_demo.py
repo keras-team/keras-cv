@@ -12,14 +12,23 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from keras_cv.metrics.coco.mean_average_precision import COCOMeanAveragePrecision
+"""random_crop_demo.py.py shows how to use the RandomCrop
+preprocessing layer. Operates on an image of elephant. In this script the image
+is loaded, then are passed through the preprocessing layers.
+Finally, they are shown using matplotlib.
+"""
 
-try:
-    from keras_cv.metrics.coco.pycoco_wrapper import PyCOCOWrapper
-    from keras_cv.metrics.coco.pycoco_wrapper import compute_pycoco_metrics
-except ImportError:
-    print(
-        "You do not have pycocotools installed, so KerasCV pycoco metrics are not available. "
-        "Please run `pip install pycocotools`."
-    )
-    pass
+import demo_utils
+
+from keras_cv.layers.preprocessing import RandomCrop
+
+
+def main():
+    many_elephants = demo_utils.load_elephant_tensor(output_size=(300, 300))
+    layer = RandomCrop(100, 200)
+    augmented = layer(many_elephants)
+    demo_utils.gallery_show(augmented.numpy())
+
+
+if __name__ == "__main__":
+    main()

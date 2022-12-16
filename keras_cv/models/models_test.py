@@ -81,20 +81,20 @@ class ModelsTest:
             num_patches = 49
             self.assertShapeEqual(output_shape, (None, num_patches, last_dim))
         elif (
-            "ViT_Tiny_16" in app.__name__
-            or "ViT_S_16" in app.__name__
-            or "ViT_B_16" in app.__name__
-            or "ViT_L_16" in app.__name__
-            or "ViT_H_16" in app.__name__
+            "ViTTiny16" in app.__name__
+            or "ViTS16" in app.__name__
+            or "ViTB16" in app.__name__
+            or "ViTL16" in app.__name__
+            or "ViTH16" in app.__name__
         ):
             num_patches = 197
             self.assertShapeEqual(output_shape, (None, num_patches, last_dim))
         elif (
-            "ViT_Tiny_32" in app.__name__
-            or "ViT_S_32" in app.__name__
-            or "ViT_B_32" in app.__name__
-            or "ViT_L_32" in app.__name__
-            or "ViT_H_32" in app.__name__
+            "ViTTiny32" in app.__name__
+            or "ViTS32" in app.__name__
+            or "ViTB32" in app.__name__
+            or "ViTL32" in app.__name__
+            or "ViTH32" in app.__name__
         ):
             num_patches = 50
             self.assertShapeEqual(output_shape, (None, num_patches, last_dim))
@@ -120,20 +120,20 @@ class ModelsTest:
             num_patches = 49
             self.assertShapeEqual(output_shape, (None, num_patches, last_dim))
         elif (
-            "ViT_Tiny_16" in app.__name__
-            or "ViT_S_16" in app.__name__
-            or "ViT_B_16" in app.__name__
-            or "ViT_L_16" in app.__name__
-            or "ViT_H_16" in app.__name__
+            "ViTTiny16" in app.__name__
+            or "ViTS16" in app.__name__
+            or "ViTB16" in app.__name__
+            or "ViTL16" in app.__name__
+            or "ViTH16" in app.__name__
         ):
             num_patches = 197
             self.assertShapeEqual(output_shape, (None, num_patches, last_dim))
         elif (
-            "ViT_Tiny_32" in app.__name__
-            or "ViT_S_32" in app.__name__
-            or "ViT_B_32" in app.__name__
-            or "ViT_L_32" in app.__name__
-            or "ViT_H_32" in app.__name__
+            "ViTTiny32" in app.__name__
+            or "ViTS32" in app.__name__
+            or "ViTB32" in app.__name__
+            or "ViTL32" in app.__name__
+            or "ViTH32" in app.__name__
         ):
             num_patches = 50
             self.assertShapeEqual(output_shape, (None, num_patches, last_dim))
