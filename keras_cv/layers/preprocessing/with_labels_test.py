@@ -54,6 +54,7 @@ TEST_CONFIGURATIONS = [
         layers.Posterization,
         {"bits": 3, "value_range": (0, 255)},
     ),
+    ("RandomBrightness", layers.RandomBrightness, {"factor": 0.5}),
     (
         "RandomColorDegeneration",
         layers.RandomColorDegeneration,
