@@ -20,10 +20,18 @@ from tensorflow.keras import layers
 
 from keras_cv.models import utils
 
+MODEL_CONFIGS = {
+    # The naming pattern should be different
+    "ResNeXt50_32x4d": {
+        "num_blocks": [3, 4, 6, 3],
+        "cardinality": 32,
+        "bottleneck_width": 4,
+    },
+}
+
 
 # Layers should be in the layers directory, with serialization tests
 # Layers should override get_config() to be serializable
-#
 class GroupConv2D(tf.keras.layers.Layer):
     def __init__(
         self,
@@ -85,7 +93,9 @@ def ConvBlock(inputs, filters, kernel_size, strides, padding):
 # BottleNeck -> Bottleneck
 def ResNeXt_Bottleneck(inputs, filters, strides, groups, bottleneck_width):
     # Use argument names for readability
-    x = ConvBlock(inputs, filters, (1, 1), 1, "same")
+    x = ConvBlock(
+        inputs=inputs, filters=filters, kernel_size=1, strides=1, padding="same"
+    )
     x = GroupConv2D(
         input_channels=filters,
         output_channels=filters,
@@ -205,23 +215,49 @@ def ResNeXt(
         bottleneck_width=bottleneck_width,
     )
 
-    x = tf.keras.layers.GlobalAveragePooling2D()(x)
-    x = tf.keras.layers.Dense(units=classes, activation="softmax")(x)
+    # Unhardcoded the classifier activation
+    # allowed for flexibility with top and a lack thereof
+    if include_top:
+        x = layers.GlobalAveragePooling2D(name="avg_pool")(x)
+        x = layers.Dense(classes, activation=classifier_activation, name="predictions")(
+            x
+        )
+    else:
+        if pooling == "avg":
+            x = layers.GlobalAveragePooling2D(name="avg_pool")(x)
+        elif pooling == "max":
+            x = layers.GlobalMaxPooling2D(name="max_pool")(x)
+
     model = tf.keras.Model(inputs=inputs, outputs=x)
     return model
 
 
-def resnext50_32x4d():
-    return ResNeXt(num_blocks=[3, 4, 6, 3], cardinality=32, bottleneck_width=4)
+def ResNext50_32(
+    include_rescaling,
+    include_top,
+    classes=None,
+    weights=None,
+    input_shape=(None, None, 3),
+    input_tensor=None,
+    pooling=None,
+    classifier_activation="softmax",
+    name="resnext50_32",
+    **kwargs,
+):
 
-
-def resnext101_32x4d():
-    return ResNeXt(num_blocks=[3, 4, 23, 3], cardinality=32, bottleneck_width=4)
-
-
-def resnext101_64x4d():
-    return ResNeXt(num_blocks=[3, 4, 23, 3], cardinality=64, bottleneck_width=4)
-
-
-model = resnext101_64x4d()
-print(model.summary())
+    """Instantiates the ResNext50_32 architecture."""
+    return ResNeXt(
+        num_blocks=MODEL_CONFIGS["ResNeXt50_32x4d"]["num_blocks"],
+        cardinality=MODEL_CONFIGS["ResNeXt50_32x4d"]["cardinality"],
+        bottleneck_width=MODEL_CONFIGS["ResNeXt50_32x4d"]["bottleneck_width"],
+        name=name,
+        include_rescaling=include_rescaling,
+        include_top=include_top,
+        weights=weights,
+        input_shape=input_shape,
+        input_tensor=input_tensor,
+        pooling=pooling,
+        classes=classes,
+        classifier_activation=classifier_activation,
+        **kwargs,
+    )
