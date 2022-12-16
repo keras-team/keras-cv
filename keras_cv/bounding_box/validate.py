@@ -12,11 +12,10 @@ def validate(bounding_boxes):
     - either both `"boxes"` and `"classes"` are batched, or both are unbatched
 
     Additionally, one of the following must be satisfied:
-    - "boxes" and "classes" are both Ragged
-    - `"boxes"` and `"classes"` are dense and `"mask"` is a Tensor, matching the
-        dimensionality of `"classes"`
-    - `"boxes"` and `"classes"` are dense and `"mask"` is set to `False`
+    - `"boxes"` and `"classes"` are both Ragged
+    - `"boxes"` and `"classes"` are both Dense
     - `"boxes"` and `"classes"` are unbatched
+
     Args:
         bounding_boxes: dictionary of bounding boxes according to KerasCV format.
 
@@ -37,8 +36,18 @@ def validate(bounding_boxes):
 
     boxes = bounding_boxes.get("boxes")
     classes = bounding_boxes.get("classes")
+    info = {}
 
     is_batched = len(boxes.shape) == 3
+    info['is_batched'] = is_batched
+    info['ragged'] = isinstance(boxes, tf.RaggedTensor)
+
+    if isinstance(boxes, tf.RaggedTensor) != isinstance(classes, tf.RaggedTensor):
+        raise ValueError(
+            "Either both `boxes` and `classes` "
+            "should be Ragged, or neither should be ragged."
+            f" Got `type(boxes)={type(boxes)}`, type(classes)={type(classes)}."
+        )
 
     if not is_batched:
         if boxes.shape[:1] != classes.shape[:1]:
@@ -48,7 +57,7 @@ def validate(bounding_boxes):
                 f"Got `boxes.shape={boxes.shape}`, `classes.shape={classes.shape}`."
             )
         # No Ragged checks needed in unbatched mode.
-        return
+        return info
 
     # Batched mode checks
     if boxes.shape[:2] != classes.shape[:2]:
@@ -58,17 +67,4 @@ def validate(bounding_boxes):
             f"Got `boxes.shape={boxes.shape}`, `classes.shape={classes.shape}`."
         )
 
-    if isinstance(boxes, tf.RaggedTensor) != isinstance(classes, tf.RaggedTensor):
-        raise ValueError(
-            "When operating in batched mode, either both `boxes` and `classes` "
-            "should be Ragged, or neither should be ragged."
-            " Got `boxes={boxes}`, classes={classes}."
-        )
-
-    if not isinstance(boxes, tf.RaggedTensor) and not "mask" in bounding_boxes:
-        raise ValueError(
-            "When operating in batched mode with dense values for "
-            "`'boxes'` and `'classes'` a value must be provided for `'mask'`. "
-            "If you do not intend to mask out any bounding boxes, simply place "
-            "`'mask': False` in your box definition."
-        )
+    return info
