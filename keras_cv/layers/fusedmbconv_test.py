@@ -13,7 +13,7 @@
 # limitations under the License.
 import tensorflow as tf
 
-from keras_cv.layers.mbconv import FusedMBConvBlock
+from keras_cv.layers.fusedmbconv import FusedMBConvBlock
 
 
 class FusedMBConvBlockTest(tf.test.TestCase):
