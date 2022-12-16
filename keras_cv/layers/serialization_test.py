@@ -416,6 +416,22 @@ class SerializationTest(tf.test.TestCase, parameterized.TestCase):
                 "width": 200,
             },
         ),
+        (
+            "MBConvBlock",
+            cv_layers.MBConvBlock,
+            {
+                "input_filters": 16,
+                "output_filters": 16,
+            },
+        ),
+        (
+            "FusedMBConvBlock",
+            cv_layers.FusedMBConvBlock,
+            {
+                "input_filters": 16,
+                "output_filters": 16,
+            },
+        ),
     )
     def test_layer_serialization(self, layer_cls, init_args):
         layer = layer_cls(**init_args)
