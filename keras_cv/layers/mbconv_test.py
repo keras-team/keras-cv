@@ -35,7 +35,7 @@ class MBConvTest(tf.test.TestCase):
         self.assertLen(output, 1)
         self.assertTrue(isinstance(output, tf.Tensor))
 
-    def test_se(self):
+    def test_squeeze_excitation_ratio(self):
         inputs = tf.random.normal(shape=(1, 64, 64, 32), dtype=tf.float32)
         layer = MBConvBlock(input_filters=32, output_filters=48, se_ratio=0.25)
 
