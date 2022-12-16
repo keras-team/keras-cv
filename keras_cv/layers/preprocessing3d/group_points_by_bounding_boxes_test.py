@@ -152,6 +152,10 @@ class GroupPointsByBoundingBoxesTest(tf.test.TestCase):
         self.assertAllClose(outputs[OBJECT_BOUNDING_BOXES], object_bounding_boxes)
 
     def test_augment_point_clouds_and_bounding_boxes_v2(self):
+        @pytest.mark.skipif(
+            "TEST_CUSTOM_OPS" not in os.environ or os.environ["TEST_CUSTOM_OPS"] != "true",
+            reason="Requires binaries compiled from source",
+        )
         add_layer = GroupPointsByBoundingBoxes(
             label_index=1,
             min_points_per_bounding_boxes=1,
