@@ -87,7 +87,13 @@ def unpackage_inputs(bounding_box_format):
             target=bounding_box_format,
         )
         bounding_boxes = tf.concat([gt_boxes, gt_classes], axis=-1)
-        return {"images": image, "bounding_boxes": bounding_boxes}
+        return {
+            "images": image,
+            "bounding_boxes": {
+                'boxes': gt_boxes,
+                'classes': gt_classes
+            }
+        }
 
     return apply
 
