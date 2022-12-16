@@ -28,7 +28,6 @@ from tensorflow import keras
 
 import keras_cv
 from keras_cv import layers
-from keras_cv.callbacks import PyCOCOCallback
 
 low, high = resource.getrlimit(resource.RLIMIT_NOFILE)
 resource.setrlimit(resource.RLIMIT_NOFILE, (high, high))
