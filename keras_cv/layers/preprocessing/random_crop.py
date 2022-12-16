@@ -14,6 +14,7 @@
 
 
 import tensorflow as tf
+from keras_cv import bounding_box
 
 from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
     BaseImageAugmentationLayer,
@@ -80,13 +81,49 @@ class RandomCrop(BaseImageAugmentationLayer):
         )
 
     def compute_image_signature(self, images):
-        output_image_shape = list(tf.shape(images))
-        output_image_shape[H_AXIS] = self.height
-        output_image_shape[W_AXIS] = self.width
         return tf.TensorSpec(
-            shape=output_image_shape,
+            shape=(self.height, self.width, images.shape[-1]),
             dtype=self.compute_dtype,
         )
+    
+    def augment_bounding_boxes(self, bounding_boxes, transformation, image=None, **kwargs):
+        if self.bounding_box_format is None:
+            raise ValueError(
+                "`RandomCrop()` was called with bounding boxes,"
+                "but no `bounding_box_format` was specified in the constructor."
+                "Please specify a bounding box format in the constructor. i.e."
+                "`RandomCrop(bounding_box_format='xyxy')`"
+            )
+        bounding_boxes = bounding_box.convert_format(
+            bounding_boxes,
+            source=self.bounding_box_format,
+            target="xywh",
+            images=image,
+        )
+
+        image_shape = tf.shape(image)
+        h_diff = image_shape[H_AXIS] - self.height
+        w_diff = image_shape[W_AXIS] - self.width
+        bounding_boxes = tf.cond(
+            tf.reduce_all((h_diff >= 0, w_diff >= 0)),
+            lambda: self._crop_bounding_boxes(
+                bounding_boxes, transformation),
+            lambda: bounding_boxes,
+        )
+
+        bounding_boxes = bounding_box.clip_to_image(
+            bounding_boxes,
+            bounding_box_format="xywh",
+            images=image,
+        )
+        bounding_boxes = bounding_box.convert_format(
+            bounding_boxes,
+            source="xywh",
+            target=self.bounding_box_format,
+            dtype=self.compute_dtype,
+            images=image,
+        )
+        return bounding_boxes
 
     def _crop(self, image, transformation):
         top = transformation["top"]
@@ -102,12 +139,6 @@ class RandomCrop(BaseImageAugmentationLayer):
     def augment_label(self, label, transformation, **kwargs):
         return label
 
-    def compute_output_shape(self, input_shape):
-        input_shape = tf.TensorShape(input_shape).as_list()
-        input_shape[H_AXIS] = self.height
-        input_shape[W_AXIS] = self.width
-        return tf.TensorShape(input_shape)
-
     def get_config(self):
         config = {
             "height": self.height,
@@ -116,3 +147,22 @@ class RandomCrop(BaseImageAugmentationLayer):
         }
         base_config = super().get_config()
         return dict(list(base_config.items()) + list(config.items()))
+
+    def _crop_bounding_boxes(self, bounding_boxes, transformation):
+        top = tf.cast(transformation['top'], dtype=self.compute_dtype)
+        left = tf.cast(transformation['left'], dtype=self.compute_dtype)
+        x, y, w, h, rest = tf.split(
+            bounding_boxes, [1, 1, 1, 1, bounding_boxes.shape[-1] - 4], axis=-1
+        )
+        output = tf.concat(
+            [
+                (x- left),
+                (y - top),
+                w,
+                h,
+                rest,
+            ],
+            axis=-1,
+        )
+        return output
+
