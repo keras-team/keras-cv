@@ -60,14 +60,14 @@ class MBConvBlock(layers.Layer):
 
         Args:
             input_filters: int, the number of input filters
-            output_filters: int, the number of output filters
+            output_filters: int, the optional number of output filters after Squeeze-Excitation
             expand_ratio: default 1, the ratio by which input_filters are multiplied to expand
                 the structure in the middle expansion phase
             kernel_size: default 3, the kernel_size to apply to the expansion phase convolutions
             strides: default 1, the strides to apply to the expansion phase convolutions
-            se_ratio: default 0.0, Squeeze-Excitation happens after depthwise convolution
-                and before output convolution. The filters used in this phase are chosen as
-                the maximum between 1 and input_filters*se_ratio
+            se_ratio: default 0.0, Squeeze-Excitation happens before depthwise convolution
+                and before output convolution only if the se_ratio is above 0.
+                The filters used in this phase are chosen as the maximum between 1 and input_filters*se_ratio
             bn_momentum: default 0.9, the BatchNormalization momentum
             activation: default "swish", the activation function used between convolution operations
             survival_probability: float, default 0.8, the optional dropout rate to apply before the output
@@ -80,7 +80,7 @@ class MBConvBlock(layers.Layer):
         Example usage:
 
         ```
-        inputs = tf.random.normal(shape=(1, 224, 224, 3), dtype=tf.float32)
+        inputs = tf.random.normal(shape=(1, 64, 64, 32), dtype=tf.float32)
         layer = keras_cv.layers.MBConvBlock(input_filters=32, output_filters=32)
 
         output = layer(inputs)
@@ -196,18 +196,18 @@ class MBConvBlock(layers.Layer):
 
             x = layers.multiply([x, se], name=self.name + "se_excite")
 
-            # Output phase
-            x = self.output_conv(x)
-            x = self.bn3(x)
+        # Output phase
+        x = self.output_conv(x)
+        x = self.bn3(x)
 
-            if self.strides == 1 and self.input_filters == self.output_filters:
-                if self.survival_probability:
-                    x = layers.Dropout(
-                        self.survival_probability,
-                        noise_shape=(None, 1, 1, 1),
-                        name=self.name + "drop",
-                    )(x)
-                x = layers.add([x, inputs], name=self.name + "add")
+        if self.strides == 1 and self.input_filters == self.output_filters:
+            if self.survival_probability:
+                x = layers.Dropout(
+                    self.survival_probability,
+                    noise_shape=(None, 1, 1, 1),
+                    name=self.name + "drop",
+                )(x)
+            x = layers.add([x, inputs], name=self.name + "add")
         return x
 
     def get_config(self):
