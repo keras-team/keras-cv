@@ -84,7 +84,7 @@ class MBConvBlock(layers.Layer):
         layer = keras_cv.layers.MBConvBlock(input_filters=32, output_filters=32)
 
         output = layer(inputs)
-        output.shape # TensorShape([1, 224, 224, 3])
+        output.shape # TensorShape([1, 64, 64, 32])
         ```
         """
         super().__init__(**kwargs)
