@@ -12,10 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import math
-
 import tensorflow as tf
-from tensorflow.keras import backend
 from tensorflow.keras import layers
 
 from keras_cv.models import utils
