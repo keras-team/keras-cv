@@ -119,6 +119,7 @@ def ResNeXt_Bottleneck(inputs, filters, strides, groups, bottleneck_width, name=
 def ResNeXt_Block(
     inputs, filters, strides, groups, num_blocks, bottleneck_width, name=None
 ):
+    x = inputs
     for _ in range(0, num_blocks):
         x = ResNeXt_Bottleneck(
             x,
