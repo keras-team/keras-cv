@@ -18,13 +18,14 @@ import tensorflow as tf
 from tensorflow.keras import backend
 from tensorflow.keras import layers
 
-from keras_cv.layers.group_conv2d import GroupConv2D
 from keras_cv.models import utils
 
 MODEL_CONFIGS = {
     # The naming pattern should be different
     "ResNeXt50_32x4d": {
         "num_blocks": [3, 4, 6, 3],
+        "stackwise_filters": [128, 256, 512, 1024],
+        "stackwise_strides": [1, 2, 2, 2],
         "cardinality": 32,
         "bottleneck_width": 4,
     },
@@ -145,6 +146,8 @@ def ResNeXt(
     block_fn=None,
     num_blocks=None,
     cardinality=None,
+    stackwise_filters=None,
+    stackwise_strides=None,
     bottleneck_width=None,
 ):
     if weights and not tf.io.gfile.exists(weights):
@@ -180,42 +183,17 @@ def ResNeXt(
         pool_size=(3, 3), strides=2, padding="same", name="max_pool"
     )(x)
 
-    x = ResNeXt_Block(
-        x,
-        filters=128,
-        strides=1,
-        groups=cardinality,
-        num_blocks=num_blocks[0],
-        bottleneck_width=bottleneck_width,
-        name="resnext_block_1",
-    )
-    x = ResNeXt_Block(
-        x,
-        filters=256,
-        strides=2,
-        groups=cardinality,
-        num_blocks=num_blocks[1],
-        bottleneck_width=bottleneck_width,
-        name="resnext_block_2",
-    )
-    x = ResNeXt_Block(
-        x,
-        filters=512,
-        strides=2,
-        groups=cardinality,
-        num_blocks=num_blocks[2],
-        bottleneck_width=bottleneck_width,
-        name="resnext_block_3",
-    )
-    x = ResNeXt_Block(
-        x,
-        filters=1024,
-        strides=2,
-        groups=cardinality,
-        num_blocks=num_blocks[3],
-        bottleneck_width=bottleneck_width,
-        name="resnext_block_4",
-    )
+    num_stacks = len(stackwise_filters)
+    for stack_index in range(num_stacks):
+        x = ResNeXt_Block(
+            inputs=x,
+            groups=cardinality,
+            filters=stackwise_filters[stack_index],
+            num_blocks=num_blocks[stack_index],
+            strides=stackwise_strides[stack_index],
+            bottleneck_width=bottleneck_width,
+            name=f"resnext_block_{stack_index}",
+        )
 
     if include_top:
         x = layers.GlobalAveragePooling2D(name="avg_pool")(x)
@@ -250,6 +228,8 @@ def ResNeXt50_32x4d(
         num_blocks=MODEL_CONFIGS["ResNeXt50_32x4d"]["num_blocks"],
         cardinality=MODEL_CONFIGS["ResNeXt50_32x4d"]["cardinality"],
         bottleneck_width=MODEL_CONFIGS["ResNeXt50_32x4d"]["bottleneck_width"],
+        stackwise_filters=MODEL_CONFIGS["ResNeXt50_32x4d"]["stackwise_filters"],
+        stackwise_strides=MODEL_CONFIGS["ResNeXt50_32x4d"]["stackwise_strides"],
         name=name,
         include_rescaling=include_rescaling,
         include_top=include_top,
