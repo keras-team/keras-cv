@@ -119,19 +119,11 @@ def ResNeXt_Bottleneck(inputs, filters, strides, groups, bottleneck_width, name=
 def ResNeXt_Block(
     inputs, filters, strides, groups, num_blocks, bottleneck_width, name=None
 ):
-    x = ResNeXt_Bottleneck(
-        inputs=inputs,
-        filters=filters,
-        strides=strides,
-        groups=groups,
-        bottleneck_width=bottleneck_width,
-        name=name + "bottleneck_block_0",
-    )
-    for _ in range(1, num_blocks):
+    for _ in range(0, num_blocks):
         x = ResNeXt_Bottleneck(
             x,
             filters=filters,
-            strides=1,
+            strides=strides if _ == 0 else 1,
             groups=groups,
             bottleneck_width=bottleneck_width,
             name=name + f"bottleneck_block_{_}",
