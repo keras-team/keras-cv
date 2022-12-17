@@ -193,7 +193,7 @@ def ResNeXt(
         groups=cardinality,
         num_blocks=num_blocks[0],
         bottleneck_width=bottleneck_width,
-        name=name,
+        name='resnext_block_1',
     )
     x = ResNeXt_Block(
         x,
@@ -202,7 +202,7 @@ def ResNeXt(
         groups=cardinality,
         num_blocks=num_blocks[1],
         bottleneck_width=bottleneck_width,
-        name=name,
+        name='resnext_block_2',
     )
     x = ResNeXt_Block(
         x,
@@ -211,7 +211,7 @@ def ResNeXt(
         groups=cardinality,
         num_blocks=num_blocks[2],
         bottleneck_width=bottleneck_width,
-        name=name,
+        name='resnext_block_3',
     )
     x = ResNeXt_Block(
         x,
@@ -220,7 +220,7 @@ def ResNeXt(
         groups=cardinality,
         num_blocks=num_blocks[3],
         bottleneck_width=bottleneck_width,
-        name=name,
+        name='resnext_block_4',
     )
 
     # Unhardcoded the classifier activation
