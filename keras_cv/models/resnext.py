@@ -124,7 +124,7 @@ def ResNeXt_Block(
         strides=strides,
         groups=groups,
         bottleneck_width=bottleneck_width,
-        name=name + "block_1",
+        name=name + "bottleneck_block_0",
     )
     for _ in range(1, num_blocks):
         x = ResNeXt_Bottleneck(
@@ -133,7 +133,7 @@ def ResNeXt_Block(
             strides=1,
             groups=groups,
             bottleneck_width=bottleneck_width,
-            name=name + f"block_{_}",
+            name=name + f"bottleneck_block_{_}",
         )
     return x
 
@@ -193,7 +193,7 @@ def ResNeXt(
         groups=cardinality,
         num_blocks=num_blocks[0],
         bottleneck_width=bottleneck_width,
-        name='resnext_block_1',
+        name="resnext_block_1",
     )
     x = ResNeXt_Block(
         x,
@@ -202,7 +202,7 @@ def ResNeXt(
         groups=cardinality,
         num_blocks=num_blocks[1],
         bottleneck_width=bottleneck_width,
-        name='resnext_block_2',
+        name="resnext_block_2",
     )
     x = ResNeXt_Block(
         x,
@@ -211,7 +211,7 @@ def ResNeXt(
         groups=cardinality,
         num_blocks=num_blocks[2],
         bottleneck_width=bottleneck_width,
-        name='resnext_block_3',
+        name="resnext_block_3",
     )
     x = ResNeXt_Block(
         x,
@@ -220,11 +220,9 @@ def ResNeXt(
         groups=cardinality,
         num_blocks=num_blocks[3],
         bottleneck_width=bottleneck_width,
-        name='resnext_block_4',
+        name="resnext_block_4",
     )
 
-    # Unhardcoded the classifier activation
-    # allowed for flexibility with top and a lack thereof
     if include_top:
         x = layers.GlobalAveragePooling2D(name="avg_pool")(x)
         x = layers.Dense(classes, activation=classifier_activation, name="predictions")(
