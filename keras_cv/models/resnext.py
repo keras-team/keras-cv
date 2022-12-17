@@ -23,7 +23,7 @@ from keras_cv.models import utils
 MODEL_CONFIGS = {
     "ResNeXt50_32x4d": {
         "num_blocks": [3, 4, 6, 3],
-        "stackwise_filters": [128, 256, 512, 1024],
+        "stackwise_filters": [64, 128, 256, 512],
         "stackwise_strides": [1, 2, 2, 2],
         "cardinality": 32,
         "bottleneck_width": 4,
@@ -87,27 +87,28 @@ def Basic(filters, kernel_size, strides, padding, name=None):
     return apply
 
 
-# BottleNeck -> Bottleneck ?
 def Bottleneck(inputs, filters, strides, groups, bottleneck_width, name=None):
+    D = (filters / 4) * (bottleneck_width / 64)
+    width = D * groups
+
     shortcut = layers.Conv2D(
-        filters=2 * filters,
+        filters=2 * width,
         kernel_size=(1, 1),
         strides=strides,
         padding="same",
         name=name + "conv_block_3",
     )(inputs)
     x = Basic(
-        filters=filters,
+        filters=width,
         kernel_size=1,
         strides=1,
         padding="same",
         name=name + "conv_block_1",
     )(inputs)
 
-    D = math.floor((filters / 4) * (bottleneck_width / 64))
     x = layers.Conv2D(
-        filters=groups * D,
-        kernel_size=(3, 3),
+        filters=width,
+        kernel_size=3,
         strides=strides,
         use_bias=False,
         padding="same",
@@ -116,7 +117,7 @@ def Bottleneck(inputs, filters, strides, groups, bottleneck_width, name=None):
     x = layers.BatchNormalization(name=name + "bn_2")(x)
     x = layers.Activation("relu", name=name + "act_2")(x)
     x = Basic(
-        filters=2 * filters,
+        filters=2 * width,
         kernel_size=1,
         strides=1,
         padding="same",
@@ -132,7 +133,7 @@ def Stack(inputs, filters, strides, groups, num_blocks, bottleneck_width, name=N
     for _ in range(0, num_blocks):
         x = Bottleneck(
             x,
-            filters=filters,
+            filters=filters if _ == 0 else filters * 4,
             strides=strides if _ == 0 else 1,
             groups=groups,
             bottleneck_width=bottleneck_width,
