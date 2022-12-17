@@ -18,6 +18,7 @@ import tensorflow as tf
 from tensorflow.keras import backend
 from tensorflow.keras import layers
 
+from keras_cv.layers.group_conv2d import GroupConv2D
 from keras_cv.models import utils
 
 MODEL_CONFIGS = {
@@ -27,7 +28,54 @@ MODEL_CONFIGS = {
         "cardinality": 32,
         "bottleneck_width": 4,
     },
+    "ResNeXt50_64x4d": {
+        "num_blocks": [3, 4, 6, 3],
+        "cardinality": 64,
+        "bottleneck_width": 4,
+    },
+    "ResNeXt101_32x4d": {
+        "num_blocks": [3, 4, 23, 3],
+        "cardinality": 32,
+        "bottleneck_width": 4,
+    },
+    "ResNeXt101_32x8d": {
+        "num_blocks": [3, 4, 23, 3],
+        "cardinality": 32,
+        "bottleneck_width": 8,
+    },
+    "ResNeXt101_64x4d": {
+        "num_blocks": [3, 4, 23, 3],
+        "cardinality": 64,
+        "bottleneck_width": 4,
+    },
 }
+
+
+def ConvBlock(filters, kernel_size, strides, padding, name=None):
+    """A basic block.
+    Args:
+        filters: integer, filters of the basic layer.
+        kernel_size: kernel size of the bottleneck layer.
+        stride: stride of the first layer.
+        padding:
+        name: string, block label.
+    Returns:
+      Output tensor for the conv block.
+    """
+
+    def apply(x):
+        x = tf.keras.layers.Conv2D(
+            filters=filters,
+            kernel_size=kernel_size,
+            strides=strides,
+            padding=padding,
+            name=name + "_0_conv",
+        )(x)
+        x = tf.keras.layers.BatchNormalization(name=name + "bn_0")(x)
+        x = tf.keras.activations.relu(name=name + "act_1")(x)
+        return x
+
+    return apply
 
 
 # Layers should be in the layers directory, with serialization tests
@@ -79,22 +127,16 @@ class GroupConv2D(tf.keras.layers.Layer):
         return out
 
 
-# Should have an apply() method that's called and returns a function, not a tensor
-# Take a look at ResNetV2 or ResNet blocks for reference
-def ConvBlock(inputs, filters, kernel_size, strides, padding):
-    x = tf.keras.layers.Conv2D(
-        filters=filters, kernel_size=kernel_size, strides=strides, padding=padding
-    )(inputs)
-    x = tf.keras.layers.BatchNormalization()(x)
-    x = tf.keras.layers.Activation("relu")(x)
-    return x
-
-
-# BottleNeck -> Bottleneck
-def ResNeXt_Bottleneck(inputs, filters, strides, groups, bottleneck_width):
+# BottleNeck -> Bottleneck ?
+def ResNeXt_Bottleneck(inputs, filters, strides, groups, bottleneck_width, name=None):
     # Use argument names for readability
     x = ConvBlock(
-        inputs=inputs, filters=filters, kernel_size=1, strides=1, padding="same"
+        inputs=inputs,
+        filters=filters,
+        kernel_size=1,
+        strides=1,
+        padding="same",
+        name=name + "conv_block_1",
     )
     x = GroupConv2D(
         input_channels=filters,
@@ -105,24 +147,31 @@ def ResNeXt_Bottleneck(inputs, filters, strides, groups, bottleneck_width):
         groups=groups,
         bottleneck_width=bottleneck_width,
     )(x)
-    x = tf.keras.layers.BatchNormalization()(x)
-    # Use tf.keras.Activation('relu') instead
-    x = tf.keras.layers.Activation("relu")(x)
-    x = ConvBlock(x, 2 * filters, (1, 1), 1, "same")
+    x = tf.keras.layers.BatchNormalization(name=name + "bn_2")(x)
+    x = tf.keras.activations.relu(name=name + "act_2")(x)
+    x = ConvBlock(x, 2 * filters, (1, 1), 1, "same", name=name + "conv_block_2")
     shortcut = ConvBlock(
-        inputs, filters=2 * filters, kernel_size=(1, 1), strides=strides, padding="same"
+        inputs,
+        filters=2 * filters,
+        kernel_size=(1, 1),
+        strides=strides,
+        padding="same",
+        name=name + "conv_block_3",
     )
     outputs = tf.keras.layers.add([x, shortcut])
     return outputs
 
 
-def ResNeXt_Block(inputs, filters, strides, groups, num_blocks, bottleneck_width):
+def ResNeXt_Block(
+    inputs, filters, strides, groups, num_blocks, bottleneck_width, name=None
+):
     x = ResNeXt_Bottleneck(
         inputs=inputs,
         filters=filters,
         strides=strides,
         groups=groups,
         bottleneck_width=bottleneck_width,
+        name=None,
     )
     for _ in range(1, num_blocks):
         x = ResNeXt_Bottleneck(
@@ -131,8 +180,8 @@ def ResNeXt_Block(inputs, filters, strides, groups, num_blocks, bottleneck_width
             strides=1,
             groups=groups,
             bottleneck_width=bottleneck_width,
+            name=None,
         )
-
     return x
 
 
@@ -176,11 +225,13 @@ def ResNeXt(
         x = layers.Rescaling(1 / 255.0)(x)
 
     x = tf.keras.layers.Conv2D(
-        filters=64, kernel_size=(7, 7), strides=2, padding="same"
+        filters=64, kernel_size=(7, 7), strides=2, padding="same", name="post_conv2d"
     )(x)
-    x = tf.keras.layers.BatchNormalization()(x)
-    x = tf.keras.layers.Activation("relu")(x)
-    x = tf.keras.layers.MaxPool2D(pool_size=(3, 3), strides=2, padding="same")(x)
+    x = tf.keras.layers.BatchNormalization(name="post_bn")(x)
+    x = tf.keras.activations.relu(name="post_relu")(x)
+    x = tf.keras.layers.MaxPool2D(
+        pool_size=(3, 3), strides=2, padding="same", name="max_pool"
+    )(x)
 
     x = ResNeXt_Block(
         x,
@@ -189,6 +240,7 @@ def ResNeXt(
         groups=cardinality,
         num_blocks=num_blocks[0],
         bottleneck_width=bottleneck_width,
+        name=name,
     )
     x = ResNeXt_Block(
         x,
@@ -197,6 +249,7 @@ def ResNeXt(
         groups=cardinality,
         num_blocks=num_blocks[1],
         bottleneck_width=bottleneck_width,
+        name=name,
     )
     x = ResNeXt_Block(
         x,
@@ -205,6 +258,7 @@ def ResNeXt(
         groups=cardinality,
         num_blocks=num_blocks[2],
         bottleneck_width=bottleneck_width,
+        name=name,
     )
     x = ResNeXt_Block(
         x,
@@ -213,6 +267,7 @@ def ResNeXt(
         groups=cardinality,
         num_blocks=num_blocks[3],
         bottleneck_width=bottleneck_width,
+        name=name,
     )
 
     # Unhardcoded the classifier activation
@@ -232,7 +287,7 @@ def ResNeXt(
     return model
 
 
-def ResNext50_32(
+def ResNeXt50_32x4d(
     include_rescaling,
     include_top,
     classes=None,
@@ -241,7 +296,7 @@ def ResNext50_32(
     input_tensor=None,
     pooling=None,
     classifier_activation="softmax",
-    name="resnext50_32",
+    name="ResNeXt50_32x4d",
     **kwargs,
 ):
 
@@ -250,6 +305,130 @@ def ResNext50_32(
         num_blocks=MODEL_CONFIGS["ResNeXt50_32x4d"]["num_blocks"],
         cardinality=MODEL_CONFIGS["ResNeXt50_32x4d"]["cardinality"],
         bottleneck_width=MODEL_CONFIGS["ResNeXt50_32x4d"]["bottleneck_width"],
+        name=name,
+        include_rescaling=include_rescaling,
+        include_top=include_top,
+        weights=weights,
+        input_shape=input_shape,
+        input_tensor=input_tensor,
+        pooling=pooling,
+        classes=classes,
+        classifier_activation=classifier_activation,
+        **kwargs,
+    )
+
+
+def ResNeXt50_64x4d(
+    include_rescaling,
+    include_top,
+    classes=None,
+    weights=None,
+    input_shape=(None, None, 3),
+    input_tensor=None,
+    pooling=None,
+    classifier_activation="softmax",
+    name="ResNeXt50_64x4d",
+    **kwargs,
+):
+
+    """Instantiates the ResNeXt50_64x4d architecture."""
+    return ResNeXt(
+        num_blocks=MODEL_CONFIGS["ResNeXt50_64x4d"]["num_blocks"],
+        cardinality=MODEL_CONFIGS["ResNeXt50_64x4d"]["cardinality"],
+        bottleneck_width=MODEL_CONFIGS["ResNeXt50_64x4d"]["bottleneck_width"],
+        name=name,
+        include_rescaling=include_rescaling,
+        include_top=include_top,
+        weights=weights,
+        input_shape=input_shape,
+        input_tensor=input_tensor,
+        pooling=pooling,
+        classes=classes,
+        classifier_activation=classifier_activation,
+        **kwargs,
+    )
+
+
+def ResNeXt101_32x4d(
+    include_rescaling,
+    include_top,
+    classes=None,
+    weights=None,
+    input_shape=(None, None, 3),
+    input_tensor=None,
+    pooling=None,
+    classifier_activation="softmax",
+    name="ResNeXt101_32x4d",
+    **kwargs,
+):
+
+    """Instantiates the ResNeXt101_32x4d architecture."""
+    return ResNeXt(
+        num_blocks=MODEL_CONFIGS["ResNeXt101_32x4d"]["num_blocks"],
+        cardinality=MODEL_CONFIGS["ResNeXt101_32x4d"]["cardinality"],
+        bottleneck_width=MODEL_CONFIGS["ResNeXt101_32x4d"]["bottleneck_width"],
+        name=name,
+        include_rescaling=include_rescaling,
+        include_top=include_top,
+        weights=weights,
+        input_shape=input_shape,
+        input_tensor=input_tensor,
+        pooling=pooling,
+        classes=classes,
+        classifier_activation=classifier_activation,
+        **kwargs,
+    )
+
+
+def ResNeXt101_32x8d(
+    include_rescaling,
+    include_top,
+    classes=None,
+    weights=None,
+    input_shape=(None, None, 3),
+    input_tensor=None,
+    pooling=None,
+    classifier_activation="softmax",
+    name="ResNeXt101_32x8d",
+    **kwargs,
+):
+
+    """Instantiates the ResNeXt101_32x8d architecture."""
+    return ResNeXt(
+        num_blocks=MODEL_CONFIGS["ResNeXt101_32x8d"]["num_blocks"],
+        cardinality=MODEL_CONFIGS["ResNeXt101_32x8d"]["cardinality"],
+        bottleneck_width=MODEL_CONFIGS["ResNeXt101_32x8d"]["bottleneck_width"],
+        name=name,
+        include_rescaling=include_rescaling,
+        include_top=include_top,
+        weights=weights,
+        input_shape=input_shape,
+        input_tensor=input_tensor,
+        pooling=pooling,
+        classes=classes,
+        classifier_activation=classifier_activation,
+        **kwargs,
+    )
+
+
+def ResNeXt101_64x4d(
+    include_rescaling,
+    include_top,
+    classes=None,
+    weights=None,
+    input_shape=(None, None, 3),
+    input_tensor=None,
+    pooling=None,
+    classifier_activation="softmax",
+    name="ResNeXt101_64x4d",
+    **kwargs,
+):
+
+    """Instantiates the ResNeXt101_64x4d architecture."""
+    return ResNeXt(
+        num_blocks=MODEL_CONFIGS["ResNeXt101_64x4d"]["num_blocks"],
+        cardinality=MODEL_CONFIGS["ResNeXt101_64x4d"]["cardinality"],
+        bottleneck_width=MODEL_CONFIGS["ResNeXt101_64x4d"]["bottleneck_width"],
         name=name,
         include_rescaling=include_rescaling,
         include_top=include_top,
