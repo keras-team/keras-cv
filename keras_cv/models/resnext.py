@@ -78,6 +78,7 @@ def ConvBlock(filters, kernel_size, strides, padding, name=None):
             kernel_size=kernel_size,
             strides=strides,
             padding=padding,
+            use_bias=False,
             name=name + "_0_conv",
         )(x)
         x = tf.keras.layers.BatchNormalization(name=name + "bn_0")(x)
@@ -102,6 +103,7 @@ def ResNeXt_Bottleneck(inputs, filters, strides, groups, bottleneck_width, name=
         filters=groups * D,
         kernel_size=(3, 3),
         strides=strides,
+        use_bias=False,
         padding="same",
         groups=groups,
     )(x)
@@ -182,14 +184,12 @@ def ResNeXt(
     if include_rescaling:
         x = layers.Rescaling(1 / 255.0)(x)
 
-    x = tf.keras.layers.Conv2D(
+    x = layers.Conv2D(
         filters=64, kernel_size=(7, 7), strides=2, padding="same", name="post_conv2d"
     )(x)
-    x = tf.keras.layers.BatchNormalization(name="post_bn")(x)
-    x = tf.keras.layers.Activation("relu", name=name + "post_relu")(x)
-    x = tf.keras.layers.MaxPool2D(
-        pool_size=(3, 3), strides=2, padding="same", name="max_pool"
-    )(x)
+    x = layers.MaxPool2D(pool_size=(3, 3), strides=2, padding="same", name="max_pool")(
+        x
+    )
 
     num_stacks = len(stackwise_filters)
     for stack_index in range(num_stacks):
@@ -202,6 +202,9 @@ def ResNeXt(
             bottleneck_width=bottleneck_width,
             name=f"resnext_block_{stack_index}",
         )
+
+    x = layers.BatchNormalization(epsilon=1.001e-5, name="post_bn")(x)
+    x = layers.Activation("relu", name="post_relu")(x)
 
     if include_top:
         x = layers.GlobalAveragePooling2D(name="avg_pool")(x)
