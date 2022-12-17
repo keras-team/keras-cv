@@ -54,13 +54,15 @@ def to_ragged(bounding_boxes):
     classes = bounding_boxes.get("classes")
     mask = classes == -1
 
-    if isinstance(boxes, tf.RaggedTensor):
-        boxes = boxes.to_tensor(default_value=-1)
-    if isinstance(classes, tf.RaggedTensor):
-        classes = classes.to_tensor(default_value=-1)
-
-    boxes = tf.ragged.boolean_mask(boxes, mask[None])
+    boxes = tf.ragged.boolean_mask(boxes, mask)
     classes = tf.ragged.boolean_mask(classes, mask)
+
+    if isinstance(boxes, tf.Tensor):
+        boxes = tf.RaggedTensor.from_tensor(boxes)
+
+    if isinstance(classes, tf.Tensor):
+        classes = tf.RaggedTensor.from_tensor(classes)
+
     result = bounding_boxes.copy()
     result["boxes"] = boxes
     result["classes"] = classes

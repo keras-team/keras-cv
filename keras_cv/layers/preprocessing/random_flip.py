@@ -180,8 +180,7 @@ class RandomFlip(BaseImageAugmentationLayer):
             dtype=self.compute_dtype,
             images=image,
         )
-        print(bounding_boxes)
-        return bounding_boxes
+        return bounding_box.to_ragged(bounding_boxes)
 
     def augment_segmentation_mask(
         self, segmentation_mask, transformation=None, **kwargs
