@@ -15,6 +15,7 @@
 
 from typing import List
 from typing import Optional
+from typing import Union
 
 import tensorflow as tf
 
@@ -30,11 +31,16 @@ def _encode_box_to_deltas(
     boxes: tf.Tensor,
     anchor_format: str,
     box_format: str,
-    variance: Optional[List[float]] = None,
+    variance: Optional[Union[List[float], tf.Tensor]] = None,
 ):
     """Converts bounding_boxes from `center_yxhw` to delta format."""
-    if variance and len(variance) != 4:
-        raise ValueError(f"`variance` must be length 4, got {variance}")
+    if variance is not None:
+        if tf.is_tensor(variance):
+            var_len = variance.get_shape().as_list()[-1]
+        else:
+            var_len = len(variance)
+        if var_len != 4:
+            raise ValueError(f"`variance` must be length 4, got {variance}")
     encoded_anchors = convert_format(
         anchors,
         source=anchor_format,
@@ -55,7 +61,7 @@ def _encode_box_to_deltas(
         ],
         axis=-1,
     )
-    if variance:
+    if variance is not None:
         boxes_delta /= variance
     return boxes_delta
 
@@ -65,11 +71,16 @@ def _decode_deltas_to_boxes(
     boxes_delta: tf.Tensor,
     anchor_format: str,
     box_format: str,
-    variance: Optional[List[float]] = None,
+    variance: Optional[Union[List[float], tf.Tensor]] = None,
 ):
     """Converts bounding_boxes from delta format to `center_yxhw`."""
-    if variance and len(variance) != 4:
-        raise ValueError(f"`variance` must be length 4, got {variance}")
+    if variance is not None:
+        if tf.is_tensor(variance):
+            var_len = variance.get_shape().as_list()[-1]
+        else:
+            var_len = len(variance)
+        if var_len != 4:
+            raise ValueError(f"`variance` must be length 4, got {variance}")
     tf.nest.assert_same_structure(anchors, boxes_delta)
 
     def decode_single_level(anchor, box_delta):
@@ -78,7 +89,7 @@ def _decode_deltas_to_boxes(
             source=anchor_format,
             target="center_yxhw",
         )
-        if variance:
+        if variance is not None:
             box_delta = box_delta * variance
         # anchors be unbatched, boxes can either be batched or unbatched.
         box = tf.concat(
