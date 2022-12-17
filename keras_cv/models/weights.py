@@ -39,6 +39,17 @@ def parse_weights(weights, include_top, model_type):
 BASE_PATH = "https://storage.googleapis.com/keras-cv/models"
 
 ALIASES = {
+    "cspdarknet": {
+        "imagenet": "imagenet/classification-v0",
+        "imagenet/classification": "imagenet/classification-v0",
+    },
+    "darknet53": {
+        "imagenet": "imagenet/classification-v0",
+        "imagenet/classification": "imagenet/classification-v0",
+    },
+    "deeplabv3": {
+        "voc": "voc/segmentation-v0",
+    },
     "densenet121": {
         "imagenet": "imagenet/classification-v0",
         "imagenet/classification": "imagenet/classification-v0",
@@ -72,28 +83,28 @@ ALIASES = {
         "imagenet/classification": "imagenet/classification-v2",
     },
     "vittiny16": {
-        "imagenet": "imagenet/classification-v2",
-        "imagenet/classification": "imagenet/classification-v2",
+        "imagenet": "imagenet/classification-v0",
+        "imagenet/classification": "imagenet/classification-v0",
     },
     "vits16": {
-        "imagenet": "imagenet/classification-v2",
-        "imagenet/classification": "imagenet/classification-v2",
+        "imagenet": "imagenet/classification-v0",
+        "imagenet/classification": "imagenet/classification-v0",
     },
     "vitb16": {
-        "imagenet": "imagenet/classification-v2",
-        "imagenet/classification": "imagenet/classification-v2",
+        "imagenet": "imagenet/classification-v0",
+        "imagenet/classification": "imagenet/classification-v0",
     },
     "vitl16": {
-        "imagenet": "imagenet/classification-v2",
-        "imagenet/classification": "imagenet/classification-v2",
+        "imagenet": "imagenet/classification-v0",
+        "imagenet/classification": "imagenet/classification-v0",
     },
     "vits32": {
-        "imagenet": "imagenet/classification-v2",
-        "imagenet/classification": "imagenet/classification-v2",
+        "imagenet": "imagenet/classification-v0",
+        "imagenet/classification": "imagenet/classification-v0",
     },
     "vitb32": {
-        "imagenet": "imagenet/classification-v2",
-        "imagenet/classification": "imagenet/classification-v2",
+        "imagenet": "imagenet/classification-v0",
+        "imagenet/classification": "imagenet/classification-v0",
     },
 }
 
@@ -146,27 +157,27 @@ WEIGHTS_CONFIG = {
         "imagenet/classification-v2-notop": "e711c83d6db7034871f6d345a476c8184eab99dbf3ffcec0c1d8445684890ad9",
     },
     "vittiny16": {
-        "imagenet/classification-v0": "",
-        "imagenet/classification-v0-notop": "",
+        "imagenet/classification-v0": "c8227fde16ec8c2e7ab886169b11b4f0ca9af2696df6d16767db20acc9f6e0dd",
+        "imagenet/classification-v0-notop": "aa4d727e3c6bd30b20f49d3fa294fb4bbef97365c7dcb5cee9c527e4e83c8f5b",
     },
     "vits16": {
-        "imagenet/classification-v0": "",
-        "imagenet/classification-v0-notop": "",
+        "imagenet/classification-v0": "4a66a1a70a879ff33a3ca6ca30633b9eadafea84b421c92174557eee83e088b5",
+        "imagenet/classification-v0-notop": "8d0111eda6692096676a5453abfec5d04c79e2de184b04627b295f10b1949745",
     },
     "vitb16": {
         "imagenet/classification-v0": "",
         "imagenet/classification-v0-notop": "",
     },
     "vitl16": {
-        "imagenet/classification-v0": "",
-        "imagenet/classification-v0-notop": "",
+        "imagenet/classification-v0": "5a98000f848f2e813ea896b2528983d8d956f8c4b76ceed0b656219d5b34f7fb",
+        "imagenet/classification-v0-notop": "40d237c44f14d20337266fce6192c00c2f9b890a463fd7f4cb17e8e35b3f5448",
     },
     "vits32": {
-        "imagenet/classification-v0": "",
-        "imagenet/classification-v0-notop": "",
+        "imagenet/classification-v0": "f5836e3aff2bab202eaee01d98337a08258159d3b718e0421834e98b3665e10a",
+        "imagenet/classification-v0-notop": "f3907845eff780a4d29c1c56e0ae053411f02fff6fdce1147c4c3bb2124698cd",
     },
     "vitb32": {
-        "imagenet/classification-v0": "",
-        "imagenet/classification-v0-notop": "",
+        "imagenet/classification-v0": "73025caa78459dc8f9b1de7b58f1d64e24a823f170d17e25fcc8eb6179bea179",
+        "imagenet/classification-v0-notop": "f07b80c03336d731a2a3a02af5cac1e9fc9aa62659cd29e2e7e5c7474150cc71",
     },
 }
