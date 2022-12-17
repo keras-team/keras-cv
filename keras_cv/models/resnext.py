@@ -51,7 +51,7 @@ MODEL_CONFIGS = {
 }
 
 
-def ConvBlock(inputs, filters, kernel_size, strides, padding, name=None):
+def ConvBlock(filters, kernel_size, strides, padding, name=None):
     """A basic block.
     Args:
         filters: integer, filters of the basic layer.
@@ -63,51 +63,54 @@ def ConvBlock(inputs, filters, kernel_size, strides, padding, name=None):
       Output tensor for the conv block.
     """
 
-    def apply(inputs):
+    def apply(x):
         x = tf.keras.layers.Conv2D(
             filters=filters,
             kernel_size=kernel_size,
             strides=strides,
             padding=padding,
             name=name + "_0_conv",
-        )(inputs)
+        )(x)
         x = tf.keras.layers.BatchNormalization(name=name + "bn_0")(x)
-        x = tf.keras.layers.Activation('relu', name=name + "act_1")(x)
+        x = tf.keras.layers.Activation("relu", name=name + "act_1")(x)
         return x
 
     return apply
+
 
 # BottleNeck -> Bottleneck ?
 def ResNeXt_Bottleneck(inputs, filters, strides, groups, bottleneck_width, name=None):
     # Use argument names for readability
     x = ConvBlock(
-        inputs=inputs,
         filters=filters,
         kernel_size=1,
         strides=1,
         padding="same",
         name=name + "conv_block_1",
-    )
-    x = GroupConv2D(
-        input_channels=filters,
-        output_channels=filters,
+    )(inputs)
+    x = layers.Conv2D(
+        filters=filters,
         kernel_size=(3, 3),
         strides=strides,
         padding="same",
         groups=groups,
-        bottleneck_width=bottleneck_width,
     )(x)
     x = tf.keras.layers.BatchNormalization(name=name + "bn_2")(x)
-    x = tf.keras.layers.Activation('relu', name=name + "act_2")(x)
-    x = ConvBlock(x, 2 * filters, (1, 1), 1, "same", name=name + "conv_block_2")
+    x = tf.keras.layers.Activation("relu", name=name + "act_2")(x)
+    x = ConvBlock(
+        filters=2 * filters,
+        kernel_size=1,
+        strides=1,
+        padding="same",
+        name=name + "conv_block_2",
+    )(x)
     shortcut = ConvBlock(
-        inputs,
         filters=2 * filters,
         kernel_size=(1, 1),
         strides=strides,
         padding="same",
         name=name + "conv_block_3",
-    )
+    )(inputs)
     outputs = tf.keras.layers.add([x, shortcut])
     return outputs
 
@@ -121,7 +124,7 @@ def ResNeXt_Block(
         strides=strides,
         groups=groups,
         bottleneck_width=bottleneck_width,
-        name='block_1',
+        name=name + "block_1",
     )
     for _ in range(1, num_blocks):
         x = ResNeXt_Bottleneck(
@@ -130,7 +133,7 @@ def ResNeXt_Block(
             strides=1,
             groups=groups,
             bottleneck_width=bottleneck_width,
-            name=f'block_{_}',
+            name=name + f"block_{_}",
         )
     return x
 
@@ -178,7 +181,7 @@ def ResNeXt(
         filters=64, kernel_size=(7, 7), strides=2, padding="same", name="post_conv2d"
     )(x)
     x = tf.keras.layers.BatchNormalization(name="post_bn")(x)
-    x = tf.keras.layers.Activation('relu', name=name + "post_relu")(x)
+    x = tf.keras.layers.Activation("relu", name=name + "post_relu")(x)
     x = tf.keras.layers.MaxPool2D(
         pool_size=(3, 3), strides=2, padding="same", name="max_pool"
     )(x)

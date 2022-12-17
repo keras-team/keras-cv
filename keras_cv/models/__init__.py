@@ -82,6 +82,7 @@ from keras_cv.models.resnet_v1 import ResNet152
 from keras_cv.models.resnet_v2 import ResNet50V2
 from keras_cv.models.resnet_v2 import ResNet101V2
 from keras_cv.models.resnet_v2 import ResNet152V2
+from keras_cv.models.resnext import ResNeXt50_32x4d
 from keras_cv.models.stable_diffusion import StableDiffusion
 from keras_cv.models.vgg19 import VGG19
 from keras_cv.models.vit import ViTB16
@@ -94,4 +95,3 @@ from keras_cv.models.vit import ViTS16
 from keras_cv.models.vit import ViTS32
 from keras_cv.models.vit import ViTTiny16
 from keras_cv.models.vit import ViTTiny32
-from keras_cv.models.resnext import ResNeXt50_32x4d
