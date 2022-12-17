@@ -77,56 +77,6 @@ def ConvBlock(filters, kernel_size, strides, padding, name=None):
 
     return apply
 
-
-# Layers should be in the layers directory, with serialization tests
-# Layers should override get_config() to be serializable
-class GroupConv2D(tf.keras.layers.Layer):
-    def __init__(
-        self,
-        input_channels,
-        output_channels,
-        groups,
-        kernel_size,
-        bottleneck_width,
-        strides=1,
-        padding="valid",
-        **kwargs,
-    ):
-        super(GroupConv2D, self).__init__()
-        self.kernel_size = kernel_size
-        self.strides = strides
-        self.padding = padding
-        self.groups = groups
-        self.bottleneck_width = bottleneck_width
-
-        self.mid_channels = output_channels // 4
-        D = int(math.floor(self.mid_channels * (self.bottleneck_width / 64.0)))
-        self.group_width = self.groups * D
-        self.group_in_num = input_channels // self.groups
-        self.group_out_num = output_channels // self.groups
-        self.conv_list = []
-        for i in range(self.groups):
-            self.conv_list.append(
-                tf.keras.layers.Conv2D(
-                    filters=self.group_width,
-                    kernel_size=kernel_size,
-                    strides=strides,
-                    padding=padding,
-                    **kwargs,
-                )
-            )
-
-    def call(self, inputs, **kwargs):
-        feature_map_list = []
-        for i in range(self.groups):
-            x_i = self.conv_list[i](
-                inputs[:, :, :, i * self.group_in_num : (i + 1) * self.group_in_num]
-            )
-            feature_map_list.append(x_i)
-        out = tf.concat(feature_map_list, axis=-1)
-        return out
-
-
 # BottleNeck -> Bottleneck ?
 def ResNeXt_Bottleneck(inputs, filters, strides, groups, bottleneck_width, name=None):
     # Use argument names for readability
