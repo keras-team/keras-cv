@@ -51,7 +51,7 @@ MODEL_CONFIGS = {
 }
 
 
-def ConvBlock(filters, kernel_size, strides, padding, name=None):
+def ConvBlock(inputs, filters, kernel_size, strides, padding, name=None):
     """A basic block.
     Args:
         filters: integer, filters of the basic layer.
@@ -63,14 +63,14 @@ def ConvBlock(filters, kernel_size, strides, padding, name=None):
       Output tensor for the conv block.
     """
 
-    def apply(x):
+    def apply(inputs):
         x = tf.keras.layers.Conv2D(
             filters=filters,
             kernel_size=kernel_size,
             strides=strides,
             padding=padding,
             name=name + "_0_conv",
-        )(x)
+        )(inputs)
         x = tf.keras.layers.BatchNormalization(name=name + "bn_0")(x)
         x = tf.keras.layers.Activation('relu', name=name + "act_1")(x)
         return x
