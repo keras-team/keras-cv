@@ -121,7 +121,7 @@ def ResNeXt_Block(
         strides=strides,
         groups=groups,
         bottleneck_width=bottleneck_width,
-        name=None,
+        name='block_1',
     )
     for _ in range(1, num_blocks):
         x = ResNeXt_Bottleneck(
@@ -130,7 +130,7 @@ def ResNeXt_Block(
             strides=1,
             groups=groups,
             bottleneck_width=bottleneck_width,
-            name=None,
+            name=f'block_{_}',
         )
     return x
 
