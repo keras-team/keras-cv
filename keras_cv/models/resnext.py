@@ -88,8 +88,9 @@ def ResNeXt_Bottleneck(inputs, filters, strides, groups, bottleneck_width, name=
         padding="same",
         name=name + "conv_block_1",
     )(inputs)
+    D = math.floor((filters / 4) * (bottleneck_width / 64))
     x = layers.Conv2D(
-        filters=filters,
+        filters=groups * D,
         kernel_size=(3, 3),
         strides=strides,
         padding="same",
