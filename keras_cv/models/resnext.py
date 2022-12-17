@@ -21,7 +21,6 @@ from tensorflow.keras import layers
 from keras_cv.models import utils
 
 MODEL_CONFIGS = {
-    # The naming pattern should be different
     "ResNeXt50_32x4d": {
         "num_blocks": [3, 4, 6, 3],
         "stackwise_filters": [128, 256, 512, 1024],
@@ -60,7 +59,7 @@ MODEL_CONFIGS = {
 }
 
 
-def ConvBlock(filters, kernel_size, strides, padding, name=None):
+def Basic(filters, kernel_size, strides, padding, name=None):
     """A basic block.
     Args:
         filters: integer, filters of the basic layer.
@@ -89,15 +88,15 @@ def ConvBlock(filters, kernel_size, strides, padding, name=None):
 
 
 # BottleNeck -> Bottleneck ?
-def ResNeXt_Bottleneck(inputs, filters, strides, groups, bottleneck_width, name=None):
-    shortcut = ConvBlock(
+def Bottleneck(inputs, filters, strides, groups, bottleneck_width, name=None):
+    shortcut = layers.Conv2D(
         filters=2 * filters,
         kernel_size=(1, 1),
         strides=strides,
         padding="same",
         name=name + "conv_block_3",
     )(inputs)
-    x = ConvBlock(
+    x = Basic(
         filters=filters,
         kernel_size=1,
         strides=1,
@@ -116,7 +115,7 @@ def ResNeXt_Bottleneck(inputs, filters, strides, groups, bottleneck_width, name=
     )(x)
     x = layers.BatchNormalization(name=name + "bn_2")(x)
     x = layers.Activation("relu", name=name + "act_2")(x)
-    x = ConvBlock(
+    x = Basic(
         filters=2 * filters,
         kernel_size=1,
         strides=1,
@@ -128,12 +127,10 @@ def ResNeXt_Bottleneck(inputs, filters, strides, groups, bottleneck_width, name=
     return outputs
 
 
-def ResNeXt_Block(
-    inputs, filters, strides, groups, num_blocks, bottleneck_width, name=None
-):
+def Stack(inputs, filters, strides, groups, num_blocks, bottleneck_width, name=None):
     x = inputs
     for _ in range(0, num_blocks):
-        x = ResNeXt_Bottleneck(
+        x = Bottleneck(
             x,
             filters=filters,
             strides=strides if _ == 0 else 1,
@@ -194,7 +191,7 @@ def ResNeXt(
 
     num_stacks = len(stackwise_filters)
     for stack_index in range(num_stacks):
-        x = ResNeXt_Block(
+        x = Stack(
             inputs=x,
             groups=cardinality,
             filters=stackwise_filters[stack_index],
