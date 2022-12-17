@@ -67,9 +67,9 @@ image_size = [IMG_SIZE, IMG_SIZE, 3]
 train_ds = tfds.load(
     "voc/2007", split="train+validation", with_info=False, shuffle_files=True
 )
-train_ds = train_ds.concatenate(
-    tfds.load("voc/2012", split="train+validation", with_info=False, shuffle_files=True)
-)
+# train_ds = train_ds.concatenate(
+#     tfds.load("voc/2012", split="train+validation", with_info=False, shuffle_files=True)
+# )
 eval_ds = tfds.load("voc/2007", split="test", with_info=False)
 
 
@@ -126,7 +126,7 @@ augmenter = layers.Augmenter(
             scale_factor=(0.8, 1.25),
             bounding_box_format="xywh",
         ),
-        layers.MaybeApply(layers.MixUp(), rate=0.5, batchwise=True),
+        # layers.MaybeApply(layers.MixUp(), rate=0.5, batchwise=True),
     ]
 )
 

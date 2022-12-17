@@ -60,7 +60,7 @@ def to_ragged(bounding_boxes):
     if isinstance(boxes, tf.Tensor):
         boxes = tf.RaggedTensor.from_tensor(boxes)
 
-    if isinstance(classes, tf.Tensor):
+    if isinstance(classes, tf.Tensor) and len(classes.shape) > 1:
         classes = tf.RaggedTensor.from_tensor(classes)
 
     result = bounding_boxes.copy()

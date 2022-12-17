@@ -140,7 +140,7 @@ class Resizing(BaseImageAugmentationLayer):
     def _resize_with_pad(self, inputs):
         def resize_single_with_pad_to_aspect(x):
             image = x.get("images", None)
-            boxes = x.get("bounding_boxes", None)
+            bounding_boxes = x.get("bounding_boxes", None)
 
             # images must be dense-able at this point.
             if isinstance(image, tf.RaggedTensor):
@@ -149,12 +149,12 @@ class Resizing(BaseImageAugmentationLayer):
             img_size = tf.shape(image)
             img_height = tf.cast(img_size[H_AXIS], self.compute_dtype)
             img_width = tf.cast(img_size[W_AXIS], self.compute_dtype)
-            if boxes is not None:
-                if isinstance(boxes, tf.RaggedTensor):
-                    boxes = boxes.to_tensor(-1)
+            if bounding_boxes is not None:
+                if isinstance(bounding_boxes, tf.RaggedTensor):
+                    bounding_boxes = bounding_boxes.to_tensor(-1)
 
-                boxes = keras_cv.bounding_box.convert_format(
-                    boxes,
+                bounding_boxes = keras_cv.bounding_box.convert_format(
+                    bounding_boxes,
                     image_shape=img_size,
                     source=self.bounding_box_format,
                     target="rel_xyxy",
@@ -173,29 +173,28 @@ class Resizing(BaseImageAugmentationLayer):
                 size=(target_height, target_width),
                 method=self._interpolation_method,
             )
-            if boxes is not None:
-                boxes = keras_cv.bounding_box.convert_format(
-                    boxes,
+            if bounding_boxes is not None:
+                bounding_boxes = keras_cv.bounding_box.convert_format(
+                    bounding_boxes,
                     images=image,
                     source="rel_xyxy",
                     target="xyxy",
                 )
             image = tf.image.pad_to_bounding_box(image, 0, 0, self.height, self.width)
-            if boxes is not None:
-                boxes = keras_cv.bounding_box.clip_to_image(
-                    boxes, images=image, bounding_box_format="xyxy"
+            if bounding_boxes is not None:
+                bounding_boxes = keras_cv.bounding_box.clip_to_image(
+                    bounding_boxes, images=image, bounding_box_format="xyxy"
                 )
-                boxes = keras_cv.bounding_box.convert_format(
-                    boxes,
+                bounding_boxes = keras_cv.bounding_box.convert_format(
+                    bounding_boxes,
                     images=image,
                     source="xyxy",
                     target=self.bounding_box_format,
                 )
             inputs["images"] = image
 
-            if boxes is not None:
-                boxes = keras_cv.bounding_box.filter_sentinels(boxes)
-                inputs["bounding_boxes"] = tf.RaggedTensor.from_tensor(boxes)
+            if bounding_boxes is not None:
+                inputs["bounding_boxes"] = keras_cv.bounding_box.to_ragged(bounding_boxes)
             return inputs
 
         size_as_shape = tf.TensorShape((self.height, self.width))
@@ -205,10 +204,7 @@ class Resizing(BaseImageAugmentationLayer):
 
         bounding_boxes = inputs.get("bounding_boxes", None)
         if bounding_boxes is not None:
-            boxes_spec = tf.RaggedTensorSpec(
-                shape=[None, bounding_boxes.shape[2]],
-                dtype=bounding_boxes.dtype,
-            )
+            boxes_spec = self._compute_bounding_box_signature(bounding_boxes)
             fn_output_signature["bounding_boxes"] = boxes_spec
 
         return tf.map_fn(
