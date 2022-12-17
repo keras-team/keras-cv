@@ -73,7 +73,7 @@ def ConvBlock(filters, kernel_size, strides, padding, name=None):
     """
 
     def apply(x):
-        x = tf.keras.layers.Conv2D(
+        x = layers.Conv2D(
             filters=filters,
             kernel_size=kernel_size,
             strides=strides,
@@ -81,8 +81,8 @@ def ConvBlock(filters, kernel_size, strides, padding, name=None):
             use_bias=False,
             name=name + "_0_conv",
         )(x)
-        x = tf.keras.layers.BatchNormalization(name=name + "bn_0")(x)
-        x = tf.keras.layers.Activation("relu", name=name + "act_1")(x)
+        x = layers.BatchNormalization(name=name + "bn_0")(x)
+        x = layers.Activation("relu", name=name + "act_1")(x)
         return x
 
     return apply
@@ -90,7 +90,13 @@ def ConvBlock(filters, kernel_size, strides, padding, name=None):
 
 # BottleNeck -> Bottleneck ?
 def ResNeXt_Bottleneck(inputs, filters, strides, groups, bottleneck_width, name=None):
-    # Use argument names for readability
+    shortcut = ConvBlock(
+        filters=2 * filters,
+        kernel_size=(1, 1),
+        strides=strides,
+        padding="same",
+        name=name + "conv_block_3",
+    )(inputs)
     x = ConvBlock(
         filters=filters,
         kernel_size=1,
@@ -98,6 +104,7 @@ def ResNeXt_Bottleneck(inputs, filters, strides, groups, bottleneck_width, name=
         padding="same",
         name=name + "conv_block_1",
     )(inputs)
+
     D = math.floor((filters / 4) * (bottleneck_width / 64))
     x = layers.Conv2D(
         filters=groups * D,
@@ -107,8 +114,8 @@ def ResNeXt_Bottleneck(inputs, filters, strides, groups, bottleneck_width, name=
         padding="same",
         groups=groups,
     )(x)
-    x = tf.keras.layers.BatchNormalization(name=name + "bn_2")(x)
-    x = tf.keras.layers.Activation("relu", name=name + "act_2")(x)
+    x = layers.BatchNormalization(name=name + "bn_2")(x)
+    x = layers.Activation("relu", name=name + "act_2")(x)
     x = ConvBlock(
         filters=2 * filters,
         kernel_size=1,
@@ -116,14 +123,8 @@ def ResNeXt_Bottleneck(inputs, filters, strides, groups, bottleneck_width, name=
         padding="same",
         name=name + "conv_block_2",
     )(x)
-    shortcut = ConvBlock(
-        filters=2 * filters,
-        kernel_size=(1, 1),
-        strides=strides,
-        padding="same",
-        name=name + "conv_block_3",
-    )(inputs)
-    outputs = tf.keras.layers.add([x, shortcut])
+
+    outputs = layers.add([x, shortcut])
     return outputs
 
 
