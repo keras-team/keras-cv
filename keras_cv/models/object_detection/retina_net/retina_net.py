@@ -168,7 +168,6 @@ class RetinaNet(ObjectDetectionBaseModel):
             output_filters=9 * 4, bias_initializer="zeros"
         )
 
-        self._metrics_bounding_box_format = None
         self.loss_metric = tf.keras.metrics.Mean(name="loss")
         self.classification_loss_metric = tf.keras.metrics.Mean(
             name="classification_loss"
@@ -178,7 +177,6 @@ class RetinaNet(ObjectDetectionBaseModel):
             name="regularization_loss"
         )
 
-        self._includes_custom_metrics = False
         # Construct should run in eager mode
         if any(
             self.prediction_decoder.box_variance.numpy()
@@ -281,7 +279,6 @@ class RetinaNet(ObjectDetectionBaseModel):
         box_loss=None,
         classification_loss=None,
         loss=None,
-        metrics=None,
         **kwargs,
     ):
         """compiles the RetinaNet.
@@ -302,7 +299,9 @@ class RetinaNet(ObjectDetectionBaseModel):
             kwargs: most other `keras.Model.compile()` arguments are supported and
                 propagated to the `keras.Model` class.
         """
-        super().compile(metrics=metrics, **kwargs)
+        if "metrics" in kwargs.keys():
+            raise ValueError("currently metrics support is not supported intentionally")
+        super().compile(**kwargs)
         if loss is not None:
             raise ValueError(
                 "`RetinaNet` does not accept a `loss` to `compile()`. "
@@ -311,9 +310,6 @@ class RetinaNet(ObjectDetectionBaseModel):
             )
         box_loss = _parse_box_loss(box_loss)
         classification_loss = _parse_classification_loss(classification_loss)
-        metrics = metrics or []
-        if len(metrics) > 0:
-            self._includes_custom_metrics = True
 
         if hasattr(classification_loss, "from_logits"):
             if not classification_loss.from_logits:
@@ -334,25 +330,6 @@ class RetinaNet(ObjectDetectionBaseModel):
 
         self.box_loss = box_loss
         self.classification_loss = classification_loss
-
-        if len(metrics) != 0:
-            self._metrics_bounding_box_format = metrics[0].bounding_box_format
-        else:
-            self._metrics_bounding_box_format = self.bounding_box_format
-
-        any_wrong_format = any(
-            [
-                m.bounding_box_format != self._metrics_bounding_box_format
-                for m in metrics
-            ]
-        )
-        if metrics and any_wrong_format:
-            raise ValueError(
-                "All metrics passed to RetinaNet.compile() must have "
-                "the same `bounding_box_format` attribute.  For example, if one metric "
-                "uses 'xyxy', all other metrics must use 'xyxy'.  Received "
-                f"metrics={metrics}."
-            )
 
     def compute_losses(self, gt_boxes, gt_classes, y_pred):
         if gt_boxes.shape[-1] != 4:
@@ -477,26 +454,7 @@ class RetinaNet(ObjectDetectionBaseModel):
         y_pred = self(x, training=False)
         _ = self._backward(gt_boxes, gt_classes, y_pred)
 
-        # Early exit for no custom metrics
-        if not self._includes_custom_metrics:
-            # To minimize GPU transfers, we update metrics AFTER we take grads and apply
-            # them.
-            return {m.name: m.result() for m in self.train_metrics}
-
-        return {m.name: m.result() for m in self.metrics}
-
-    def _update_metrics(self, y_true, y_pred):
-        y_true = bounding_box.convert_format(
-            y_true,
-            source=self.bounding_box_format,
-            target=self._metrics_bounding_box_format,
-        )
-        y_pred = bounding_box.convert_format(
-            y_pred,
-            source=self.bounding_box_format,
-            target=self._metrics_bounding_box_format,
-        )
-        self.compiled_metrics.update_state(y_true, y_pred)
+        return {m.name: m.result() for m in self.train_metrics}
 
 
 def _parse_backbone(backbone, include_rescaling, backbone_weights):
