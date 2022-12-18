@@ -77,18 +77,6 @@ class NmsPredictionDecoder(tf.keras.layers.Layer):
         self.box_variance = tf.convert_to_tensor(box_variance, dtype=tf.float32)
         self.built = True
 
-    # TODO(lukewood): provide this as general utility on top of bounding_box_format.
-    def _decode_box_predictions(self, anchor_boxes, box_predictions):
-        boxes = box_predictions * self.box_variance
-        boxes = tf.concat(
-            [
-                boxes[:, :, :2] * anchor_boxes[:, :, 2:] + anchor_boxes[:, :, :2],
-                tf.math.exp(boxes[:, :, 2:]) * anchor_boxes[:, :, 2:],
-            ],
-            axis=-1,
-        )
-        return boxes
-
     def call(self, images, predictions):
         """Accepts images and raw predictions, and returns bounding box predictions.
 
@@ -123,7 +111,13 @@ class NmsPredictionDecoder(tf.keras.layers.Layer):
         classes = tf.expand_dims(classes, axis=-1)
         confidence = tf.expand_dims(confidence, axis=-1)
 
-        boxes = self._decode_box_predictions(anchor_boxes[None, ...], box_predictions)
+        boxes = bounding_box._decode_deltas_to_boxes(
+            anchors=anchor_boxes[None, ...],
+            boxes_delta=box_predictions,
+            anchor_format="xywh",
+            box_format="xywh",
+            variance=self.box_variance,
+        )
         boxes = tf.concat([boxes, classes, confidence], axis=-1)
 
         boxes = bounding_box.convert_format(

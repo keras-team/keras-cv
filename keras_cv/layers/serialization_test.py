@@ -18,8 +18,7 @@ from absl.testing import parameterized
 
 from keras_cv import core
 from keras_cv import layers as cv_layers
-from keras_cv.layers.vit_layers import PatchEmbedding
-from keras_cv.layers.vit_layers import Patching
+from keras_cv.layers.vit_layers import PatchingAndEmbedding
 from keras_cv.models.segmentation.__internal__ import SegmentationHead
 
 
@@ -171,6 +170,7 @@ class SerializationTest(tf.test.TestCase, parameterized.TestCase):
                 "rate": 1.0,
             },
         ),
+        ("RandomBrightness", cv_layers.RandomBrightness, {"factor": 0.5}),
         (
             "RandomChoice",
             cv_layers.RandomChoice,
@@ -188,6 +188,7 @@ class SerializationTest(tf.test.TestCase, parameterized.TestCase):
                 "seed": 1,
             },
         ),
+        ("RandomContrast", cv_layers.RandomContrast, {"factor": 0.5}),
         (
             "RandomCropAndResize",
             cv_layers.RandomCropAndResize,
@@ -309,14 +310,10 @@ class SerializationTest(tf.test.TestCase, parameterized.TestCase):
             },
         ),
         (
-            "Patching",
-            Patching,
-            {
-                "padding": "VALID",
-                "patch_size": 16,
-            },
+            "PatchingAndEmbedding",
+            PatchingAndEmbedding,
+            {"project_dim": 128, "patch_size": 16},
         ),
-        ("PatchEmbedding", PatchEmbedding, {"project_dim": 128}),
         (
             "TransformerEncoder",
             cv_layers.TransformerEncoder,
@@ -411,6 +408,19 @@ class SerializationTest(tf.test.TestCase, parameterized.TestCase):
             "SwapBackground",
             cv_layers.SwapBackground,
             {},
+        ),
+        (
+            "RandomZoom",
+            cv_layers.RandomZoom,
+            {"height_factor": 0.2, "width_factor": 0.5},
+        ),
+        (
+            "RandomCrop",
+            cv_layers.RandomCrop,
+            {
+                "height": 100,
+                "width": 200,
+            },
         ),
     )
     def test_layer_serialization(self, layer_cls, init_args):

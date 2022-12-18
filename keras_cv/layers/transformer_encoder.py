@@ -27,7 +27,7 @@ class TransformerEncoder(layers.Layer):
         num_heads: the number of heads for the `MultiHeadAttention` layer
         mlp_dropout: default 0.1, the dropout rate to apply between the layers of the MLP head of the encoder
         attention_dropout: default 0.1, the dropout rate to apply in the MultiHeadAttention layer
-        activation: default 'gelu', the activation function to apply in the MLP head
+        activation: default 'tf.activations.gelu', the activation function to apply in the MLP head - should be a function
         layer_norm_epsilon: default 1e-06, the epsilon for `LayerNormalization` layers
 
     Basic usage:
@@ -37,8 +37,7 @@ class TransformerEncoder(layers.Layer):
     mlp_dim = 3072
     num_heads = 4
 
-    patches = keras_cv.layers.Patching(patch_size)(cat_img)
-    encoded_patches = keras_cv.layers.PatchEmbedding(project_dim=project_dim)(patches)
+    encoded_patches = keras_cv.layers.PatchingAndEmbedding(project_dim=project_dim, patch_size=16)(img_batch)
     trans_encoded = keras_cv.layers.TransformerEncoder(project_dim=project_dim,
                                                        mlp_dim = mlp_dim,
                                                        num_heads=num_heads)(encoded_patches)
@@ -54,7 +53,7 @@ class TransformerEncoder(layers.Layer):
         mlp_dim,
         mlp_dropout=0.1,
         attention_dropout=0.1,
-        activation="gelu",
+        activation=tf.keras.activations.gelu,
         layer_norm_epsilon=1e-06,
         **kwargs,
     ):
@@ -75,7 +74,7 @@ class TransformerEncoder(layers.Layer):
             key_dim=self.project_dim // self.num_heads,
             dropout=self.attention_dropout,
         )
-        self.dense1 = layers.Dense(self.mlp_units[0], activation=activation)
+        self.dense1 = layers.Dense(self.mlp_units[0])
         self.dense2 = layers.Dense(self.mlp_units[1])
 
     def call(self, inputs):
@@ -92,16 +91,23 @@ class TransformerEncoder(layers.Layer):
                 f"The input and output dimensionality must be the same, but the TransformerEncoder was provided with {inputs.shape[-1]} and {self.project_dim}"
             )
 
-        x1 = self.layer_norm1(inputs)
-        attention_output = self.attn(x1, x1)
-        x2 = layers.Add()([attention_output, inputs])
-        x3 = self.layer_norm2(x2)
-        x3 = self.dense1(x3)
-        x3 = layers.Dropout(self.mlp_dropout)(x3)
-        x3 = self.dense2(x3)
-        x3 = layers.Dropout(self.mlp_dropout)(x3)
+        x = self.layer_norm1(inputs)
+        x = self.attn(x, x)
+        x = layers.Dropout(self.mlp_dropout)(x)
+        x = layers.Add()([x, inputs])
 
-        output = layers.Add()([x3, x2])
+        y = self.layer_norm2(x)
+
+        y = self.dense1(y)
+        if self.activation == tf.keras.activations.gelu:
+            y = self.activation(y, approximate=True)
+        else:
+            y = self.activation(y)
+        y = layers.Dropout(self.mlp_dropout)(y)
+        y = self.dense2(y)
+        y = layers.Dropout(self.mlp_dropout)(y)
+
+        output = layers.Add()([x, y])
 
         return output
 
@@ -119,3 +125,9 @@ class TransformerEncoder(layers.Layer):
             }
         )
         return config
+
+    @classmethod
+    def from_config(cls, config, custom_objects=None):
+        activation = config.pop("activation")
+        activation = tf.keras.activations.deserialize(activation)
+        return cls(activation=activation, **config)

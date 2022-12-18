@@ -29,7 +29,7 @@ steps:
     'install',
     'github.com/google/go-jsonnet/cmd/jsonnet@latest',
   ]
-- name: 'google/cloud-sdk'
+- name: 'gcr.io/cloud-builders/gcloud'
   id: clone-templates
   waitFor: ['-']
   entrypoint: 'git'
@@ -52,7 +52,7 @@ steps:
     '--ext-str', 'gcs_bucket=$_GCS_BUCKET',
     '-o', 'output.yaml',
   ]
-- name: 'google/cloud-sdk'
+- name: 'gcr.io/cloud-builders/gcloud'
   id: create-job
   waitFor:
   - push-image

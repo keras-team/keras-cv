@@ -42,6 +42,7 @@ This tutorial requires you to have KerasCV installed:
 ```shell
 pip install keras-cv
 ```
+Note that this depends on TF>=2.11
 """
 
 """
@@ -74,6 +75,11 @@ flags.DEFINE_boolean(
     False,
     "Whether or not to use FP16 mixed precision for training.",
 )
+flags.DEFINE_boolean(
+    "use_ema",
+    True,
+    "Whether or not to use exponential moving average weight updating",
+)
 flags.DEFINE_float(
     "initial_learning_rate",
     0.05,
@@ -101,6 +107,12 @@ flags.DEFINE_float(
     "warmup_hold_steps_percentage",
     0.45,
     "For how many steps expressed in percentage (0..1 float) of total steps should the schedule hold the initial learning rate after warmup is finished, and before applying cosine decay.",
+)
+
+flags.DEFINE_float(
+    "weight_decay",
+    5e-4,
+    "Weight decay parameter for the optimizer",
 )
 
 # An upper bound for number of epochs (this script uses EarlyStopping).
@@ -193,7 +205,7 @@ def augment(img, label):
     inputs = {"images": img, "labels": label}
     for layer in AUGMENT_LAYERS:
         inputs = layer(inputs)
-    if tf.random.uniform() > 0.5:
+    if tf.random.uniform(()) > 0.5:
         inputs = keras_cv.layers.CutMix()(inputs)
     else:
         inputs = keras_cv.layers.MixUp()(inputs)
@@ -317,12 +329,23 @@ Next, we pick an optimizer. Here we use SGD.
 Note that learning rate will decrease over time due to the ReduceLROnPlateau callback or with the LRWarmup scheduler.
 """
 
-if FLAGS.learning_rate_schedule == COSINE_DECAY_WITH_WARMUP:
-    optimizer = optimizers.SGD(learning_rate=schedule, momentum=0.9)
-else:
-    optimizer = optimizers.SGD(
-        learning_rate=INITIAL_LEARNING_RATE, momentum=0.9, global_clipnorm=10
-    )
+with strategy.scope():
+    if FLAGS.learning_rate_schedule == COSINE_DECAY_WITH_WARMUP:
+        optimizer = optimizers.SGD(
+            weight_decay=FLAGS.weight_decay,
+            learning_rate=schedule,
+            momentum=0.9,
+            use_ema=FLAGS.use_ema,
+        )
+    else:
+        optimizer = optimizers.SGD(
+            weight_decay=FLAGS.weight_decay,
+            learning_rate=INITIAL_LEARNING_RATE,
+            momentum=0.9,
+            global_clipnorm=10,
+            use_ema=FLAGS.use_ema,
+        )
+
 """
 Next, we pick a loss function. We use CategoricalCrossentropy with label smoothing.
 """

@@ -40,7 +40,7 @@ class RetinaNetLabelEncoderTest(tf.test.TestCase):
         )
         encoder = cv_layers.RetinaNetLabelEncoder(
             anchor_generator=anchor_generator,
-            bounding_box_format="rel_xyxy",
+            bounding_box_format="xyxy",
         )
 
         result = encoder(images, boxes)
@@ -67,7 +67,7 @@ class RetinaNetLabelEncoderTest(tf.test.TestCase):
         )
         encoder = cv_layers.RetinaNetLabelEncoder(
             anchor_generator=anchor_generator,
-            bounding_box_format="rel_xyxy",
+            bounding_box_format="xyxy",
         )
 
         result = encoder(images, boxes)
