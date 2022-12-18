@@ -64,7 +64,7 @@ class PairwiseIoUOp : public OpKernel {
   }
 };
 
-REGISTER_KERNEL_BUILDER(Name("PairwiseIou3D").Device(DEVICE_CPU),
+REGISTER_KERNEL_BUILDER(Name("KcvPairwiseIou3D").Device(DEVICE_CPU),
                         PairwiseIoUOp);
 
 }  // namespace

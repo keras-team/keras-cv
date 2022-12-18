@@ -18,7 +18,7 @@ limitations under the License.
 
 using namespace tensorflow;
 
-REGISTER_OP("WithinBox")
+REGISTER_OP("KcvWithinBox")
     .Input("points: float")
     .Input("boxes: float")
     .Output("box_indices: int32")

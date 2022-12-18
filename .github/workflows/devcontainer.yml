@@ -21,4 +21,4 @@ jobs:
       - name: Build and run dev container task
         uses: devcontainers/ci@v0.2
         with:
-          runCmd: pytest keras_cv/ --ignore keras_cv/models
+          runCmd: pytest keras_cv/ --ignore keras_cv/models --ignore keras_cv/datasets/waymo

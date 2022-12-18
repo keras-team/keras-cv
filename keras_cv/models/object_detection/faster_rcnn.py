@@ -44,7 +44,7 @@ def _resnet50_backbone(include_rescaling=False):
         ]
     ]
     return tf.keras.Model(
-        inputs=inputs, outputs=[c2_output, c3_output, c4_output, c5_output]
+        inputs=inputs, outputs={2: c2_output, 3: c3_output, 4: c4_output, 5: c5_output}
     )
 
 
@@ -67,7 +67,10 @@ class FeaturePyramid(tf.keras.layers.Layer):
         self.upsample_2x = tf.keras.layers.UpSampling2D(2)
 
     def call(self, inputs, training=None):
-        c2_output, c3_output, c4_output, c5_output = inputs
+        c2_output = inputs[2]
+        c3_output = inputs[3]
+        c4_output = inputs[4]
+        c5_output = inputs[5]
 
         c6_output = self.conv_c6_pool(c5_output)
         p6_output = c6_output
