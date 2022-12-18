@@ -170,6 +170,7 @@ class SerializationTest(tf.test.TestCase, parameterized.TestCase):
                 "rate": 1.0,
             },
         ),
+        ("RandomBrightness", cv_layers.RandomBrightness, {"factor": 0.5}),
         (
             "RandomChoice",
             cv_layers.RandomChoice,
@@ -407,6 +408,11 @@ class SerializationTest(tf.test.TestCase, parameterized.TestCase):
             "SwapBackground",
             cv_layers.SwapBackground,
             {},
+        ),
+        (
+            "RandomZoom",
+            cv_layers.RandomZoom,
+            {"height_factor": 0.2, "width_factor": 0.5},
         ),
         (
             "RandomCrop",
