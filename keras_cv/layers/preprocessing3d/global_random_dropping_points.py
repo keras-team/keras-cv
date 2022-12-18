@@ -57,9 +57,10 @@ class GlobalRandomDroppingPoints(base_augmentation_layer_3d.BaseAugmentationLaye
         return {"drop_rate": 1 - self._keep_probability}
 
     def get_random_transformation(self, point_clouds, **kwargs):
+        point_clouds_shape = point_clouds.get_shape().as_list()
         random_point_mask = (
             self._random_generator.random_uniform(
-                tf.shape(point_clouds), minval=0.0, maxval=1
+                point_clouds_shape[:-1] + [1], minval=0.0, maxval=1
             )
             < self._keep_probability
         )
