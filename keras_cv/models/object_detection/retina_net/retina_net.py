@@ -457,8 +457,8 @@ class RetinaNet(ObjectDetectionBaseModel):
 
     def train_step(self, data):
         x, y = data
-        gt_boxes = y["gt_boxes"]
-        gt_classes = y["gt_classes"]
+        gt_boxes = y["boxes"]
+        gt_classes = y["classes"]
 
         with tf.GradientTape() as tape:
             y_pred = self(x, training=True)
@@ -472,8 +472,8 @@ class RetinaNet(ObjectDetectionBaseModel):
 
     def test_step(self, data):
         x, y = data
-        gt_boxes = y["gt_boxes"]
-        gt_classes = y["gt_classes"]
+        gt_boxes = y["boxes"]
+        gt_classes = y["classes"]
         y_pred = self(x, training=False)
         _ = self._backward(gt_boxes, gt_classes, y_pred)
 

@@ -111,7 +111,7 @@ class ObjectDetectionBaseModel(keras.Model):
             target=self.bounding_box_format,
             images=x,
         )
-        return x, {"gt_boxes": box_targets, "gt_classes": class_targets}
+        return x, {"boxes": box_targets, "classes": class_targets}
 
     def make_predict_function(self, force=False):
         if self.predict_function is not None and not force:
