@@ -18,8 +18,7 @@ from absl.testing import parameterized
 
 from keras_cv import core
 from keras_cv import layers as cv_layers
-from keras_cv.layers.vit_layers import PatchEmbedding
-from keras_cv.layers.vit_layers import Patching
+from keras_cv.layers.vit_layers import PatchingAndEmbedding
 from keras_cv.models.segmentation.__internal__ import SegmentationHead
 
 
@@ -171,6 +170,7 @@ class SerializationTest(tf.test.TestCase, parameterized.TestCase):
                 "rate": 1.0,
             },
         ),
+        ("RandomBrightness", cv_layers.RandomBrightness, {"factor": 0.5}),
         (
             "RandomChoice",
             cv_layers.RandomChoice,
@@ -188,6 +188,7 @@ class SerializationTest(tf.test.TestCase, parameterized.TestCase):
                 "seed": 1,
             },
         ),
+        ("RandomContrast", cv_layers.RandomContrast, {"factor": 0.5}),
         (
             "RandomCropAndResize",
             cv_layers.RandomCropAndResize,
@@ -291,6 +292,14 @@ class SerializationTest(tf.test.TestCase, parameterized.TestCase):
             },
         ),
         (
+            "RandomAspectRatio",
+            cv_layers.RandomAspectRatio,
+            {
+                "factor": (0.9, 1.1),
+                "seed": 1233,
+            },
+        ),
+        (
             "SpatialPyramidPooling",
             cv_layers.SpatialPyramidPooling,
             {
@@ -301,14 +310,10 @@ class SerializationTest(tf.test.TestCase, parameterized.TestCase):
             },
         ),
         (
-            "Patching",
-            Patching,
-            {
-                "padding": "VALID",
-                "patch_size": 16,
-            },
+            "PatchingAndEmbedding",
+            PatchingAndEmbedding,
+            {"project_dim": 128, "patch_size": 16},
         ),
-        ("PatchEmbedding", PatchEmbedding, {"project_dim": 128}),
         (
             "TransformerEncoder",
             cv_layers.TransformerEncoder,
@@ -320,6 +325,101 @@ class SerializationTest(tf.test.TestCase, parameterized.TestCase):
                 "attention_dropout": 0.1,
                 "activation": "gelu",
                 "layer_norm_epsilon": 1e-06,
+            },
+        ),
+        (
+            "FrustumRandomDroppingPoints",
+            cv_layers.FrustumRandomDroppingPoints,
+            {
+                "r_distance": 10.0,
+                "theta_width": 1.0,
+                "phi_width": 2.0,
+                "drop_rate": 0.1,
+            },
+        ),
+        (
+            "FrustumRandomPointFeatureNoise",
+            cv_layers.FrustumRandomPointFeatureNoise,
+            {
+                "r_distance": 10.0,
+                "theta_width": 1.0,
+                "phi_width": 2.0,
+                "max_noise_level": 0.1,
+            },
+        ),
+        (
+            "GlobalRandomDroppingPoints",
+            cv_layers.GlobalRandomDroppingPoints,
+            {"drop_rate": 0.1},
+        ),
+        (
+            "GlobalRandomFlipY",
+            cv_layers.GlobalRandomFlipY,
+            {},
+        ),
+        (
+            "GlobalRandomRotation",
+            cv_layers.GlobalRandomRotation,
+            {
+                "max_rotation_angle_x": 0.5,
+                "max_rotation_angle_y": 0.6,
+                "max_rotation_angle_z": 0.7,
+            },
+        ),
+        (
+            "GlobalRandomScaling",
+            cv_layers.GlobalRandomScaling,
+            {
+                "scaling_factor_x": (0.2, 1.0),
+                "scaling_factor_y": (0.3, 1.1),
+                "scaling_factor_z": (0.4, 1.3),
+                "same_scaling_xyz": False,
+            },
+        ),
+        (
+            "GlobalRandomTranslation",
+            cv_layers.GlobalRandomTranslation,
+            {"x_stddev": 0.2, "y_stddev": 1.0, "z_stddev": 0.0},
+        ),
+        (
+            "GroupPointsByBoundingBoxes",
+            cv_layers.GroupPointsByBoundingBoxes,
+            {
+                "label_index": 1,
+                "min_points_per_bounding_boxes": 1,
+                "max_points_per_bounding_boxes": 4,
+            },
+        ),
+        (
+            "RandomCopyPaste",
+            cv_layers.RandomCopyPaste,
+            {
+                "label_index": 1,
+                "min_paste_bounding_boxes": 1,
+                "max_paste_bounding_boxes": 10,
+            },
+        ),
+        (
+            "RandomDropBox",
+            cv_layers.RandomDropBox,
+            {"label_index": 1, "max_drop_bounding_boxes": 3},
+        ),
+        (
+            "SwapBackground",
+            cv_layers.SwapBackground,
+            {},
+        ),
+        (
+            "RandomZoom",
+            cv_layers.RandomZoom,
+            {"height_factor": 0.2, "width_factor": 0.5},
+        ),
+        (
+            "RandomCrop",
+            cv_layers.RandomCrop,
+            {
+                "height": 100,
+                "width": 200,
             },
         ),
     )

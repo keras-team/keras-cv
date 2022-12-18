@@ -38,13 +38,13 @@ def within_box3d_index(points, boxes):
     points = tf.convert_to_tensor(points)
     boxes = tf.convert_to_tensor(boxes)
     if points.shape.rank == 2 and boxes.shape.rank == 2:
-        return custom_ops.ops.within_box(points, boxes)
+        return custom_ops.ops.kcv_within_box(points, boxes)
     elif points.shape.rank == 3 and boxes.shape.rank == 3:
         num_samples = points.get_shape().as_list()[0]
         results = []
         for i in range(num_samples):
             results.append(
-                custom_ops.ops.within_box(points[i], boxes[i])[tf.newaxis, ...]
+                custom_ops.ops.kcv_within_box(points[i], boxes[i])[tf.newaxis, ...]
             )
         return tf.concat(results, axis=0)
     else:

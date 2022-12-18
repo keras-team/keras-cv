@@ -16,12 +16,8 @@
 # KPLs from one place.
 
 from tensorflow.keras.layers import CenterCrop
-from tensorflow.keras.layers import RandomBrightness
-from tensorflow.keras.layers import RandomContrast
-from tensorflow.keras.layers import RandomCrop
 from tensorflow.keras.layers import RandomHeight
 from tensorflow.keras.layers import RandomTranslation
-from tensorflow.keras.layers import RandomZoom
 from tensorflow.keras.layers import Rescaling
 
 from keras_cv.layers.preprocessing.aug_mix import AugMix
@@ -44,12 +40,15 @@ from keras_cv.layers.preprocessing.rand_augment import RandAugment
 from keras_cv.layers.preprocessing.random_augmentation_pipeline import (
     RandomAugmentationPipeline,
 )
+from keras_cv.layers.preprocessing.random_brightness import RandomBrightness
 from keras_cv.layers.preprocessing.random_channel_shift import RandomChannelShift
 from keras_cv.layers.preprocessing.random_choice import RandomChoice
 from keras_cv.layers.preprocessing.random_color_degeneration import (
     RandomColorDegeneration,
 )
 from keras_cv.layers.preprocessing.random_color_jitter import RandomColorJitter
+from keras_cv.layers.preprocessing.random_contrast import RandomContrast
+from keras_cv.layers.preprocessing.random_crop import RandomCrop
 from keras_cv.layers.preprocessing.random_crop_and_resize import RandomCropAndResize
 from keras_cv.layers.preprocessing.random_cutout import RandomCutout
 from keras_cv.layers.preprocessing.random_flip import RandomFlip
@@ -61,6 +60,7 @@ from keras_cv.layers.preprocessing.random_saturation import RandomSaturation
 from keras_cv.layers.preprocessing.random_sharpness import RandomSharpness
 from keras_cv.layers.preprocessing.random_shear import RandomShear
 from keras_cv.layers.preprocessing.random_width import RandomWidth
+from keras_cv.layers.preprocessing.random_zoom import RandomZoom
 from keras_cv.layers.preprocessing.randomly_zoomed_crop import RandomlyZoomedCrop
 from keras_cv.layers.preprocessing.resizing import Resizing
 from keras_cv.layers.preprocessing.solarization import Solarization

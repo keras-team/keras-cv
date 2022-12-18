@@ -102,18 +102,6 @@ class RetinaNetLabelEncoder(layers.Layer):
             tf.cast(ignore_mask, dtype=self.dtype),
         )
 
-    def _compute_box_target(self, anchor_boxes, matched_gt_boxes):
-        """Transforms the ground truth boxes into targets for training"""
-        box_target = tf.concat(
-            [
-                (matched_gt_boxes[:, :2] - anchor_boxes[:, :2]) / anchor_boxes[:, 2:],
-                tf.math.log(matched_gt_boxes[:, 2:] / anchor_boxes[:, 2:]),
-            ],
-            axis=-1,
-        )
-        box_target = box_target / self.box_variance
-        return box_target
-
     def _encode_sample(self, gt_boxes, anchor_boxes):
         """Creates box and classification targets for a single sample"""
         cls_ids = gt_boxes[:, 4]
@@ -123,7 +111,13 @@ class RetinaNetLabelEncoder(layers.Layer):
             anchor_boxes, gt_boxes
         )
         matched_gt_boxes = tf.gather(gt_boxes, matched_gt_idx)
-        box_target = self._compute_box_target(anchor_boxes, matched_gt_boxes)
+        box_target = bounding_box._encode_box_to_deltas(
+            anchors=anchor_boxes,
+            boxes=matched_gt_boxes,
+            anchor_format=self.bounding_box_format,
+            box_format="xywh",
+            variance=self.box_variance,
+        )
         matched_gt_cls_ids = tf.gather(cls_ids, matched_gt_idx)
         cls_target = tf.where(
             tf.not_equal(positive_mask, 1.0), self.background_class, matched_gt_cls_ids
