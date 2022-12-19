@@ -135,8 +135,9 @@ class RetinaNetLabelEncoder(layers.Layer):
             label,
         )
 
-        batch_size = gt_boxes.get_shape().as_list()[0]
-        n_boxes = tf.shape(gt_boxes)[1]
+        box_shape = tf.shape(gt_boxes)
+        batch_size = box_shape[0]
+        n_boxes = box_shape[1]
         box_ids = tf.range(n_boxes, dtype=matched_gt_idx.dtype)
         matched_ids = tf.expand_dims(matched_gt_idx, axis=-1)
         matches = box_ids == matched_ids
