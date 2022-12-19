@@ -48,3 +48,43 @@ class GridPartitioning(layers.Layer):
         config = {"grid_size": self.grid_size}
         base_config = super().get_config()
         return dict(list(base_config.items()) + list(config.items()))
+
+
+@tf.keras.utils.register_keras_serializable(package="keras_cv")
+class WindowPartitioning(layers.Layer):
+    """
+    Based on: https://github.com/google-research/maxvit/blob/2e06a7f1f70c76e64cd3dabe5cd1b8c1a23c9fb7/maxvit/models/maxvit.py#L805
+    Partition the input feature maps into non-overlapping windows.
+        Args:
+          features: [B, H, W, C] feature maps.
+        Returns:
+          Partitioned features: [B, nH, nW, wSize, wSize, c].
+        Raises:
+          ValueError: If the feature map sizes are not divisible by window sizes.
+    """
+
+    def __init__(self, window_size, **kwargs):
+        super().__init__(**kwargs)
+        self.window_size = window_size
+
+    def call(self, input):
+        _, h, w, c = input.shape
+        window_size = self.window_size
+
+        if h % window_size != 0 or w % window_size != 0:
+            raise ValueError(
+                f"Feature map sizes {(h, w)} "
+                f"not divisible by window size ({window_size})."
+            )
+
+        features = tf.reshape(
+            input, (-1, h // window_size, window_size, w // window_size, window_size, c)
+        )
+        features = tf.transpose(features, (0, 1, 3, 2, 4, 5))
+        features = tf.reshape(features, (-1, window_size, window_size, c))
+        return features
+
+    def get_config(self):
+        config = {"window_size": self.window_size}
+        base_config = super().get_config()
+        return dict(list(base_config.items()) + list(config.items()))
