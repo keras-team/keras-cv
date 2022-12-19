@@ -151,7 +151,7 @@ class RandomFlip(BaseImageAugmentationLayer):
                 "Please specify a bounding box format in the constructor. i.e."
                 "`RandomFlip(bounding_box_format='xyxy')`"
             )
-
+        bounding_boxes = bounding_boxes.copy()
         bounding_boxes = bounding_box.convert_format(
             bounding_boxes,
             source=self.bounding_box_format,

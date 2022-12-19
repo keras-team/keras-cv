@@ -100,9 +100,9 @@ def clip_to_image(bounding_boxes, bounding_box_format, images=None, image_shape=
         tf.expand_dims(areas > 0.0, axis=-1), clipped_bounding_boxes, -1.0
     )
 
-    classes = tf.where(areas > 0.0, classes, -1)
+    classes = tf.where(areas > 0.0, classes, tf.constant(-1, classes.dtype))
     nan_indices = tf.math.reduce_any(tf.math.is_nan(clipped_bounding_boxes), axis=-1)
-    classes = tf.where(nan_indices, -1, classes)
+    classes = tf.where(nan_indices, tf.constant(-1, classes.dtype), classes)
 
     # TODO update dict and return
     clipped_bounding_boxes, classes = _format_outputs(
