@@ -119,7 +119,11 @@ class UnWindowPartitioning(layers.Layer):
         )
 
     def get_config(self):
-        config = {"window_size": self.window_size}
+        config = {
+            "window_size": self.window_size,
+            "height": self.height,
+            "width": self.width,
+        }
         base_config = super().get_config()
         return dict(list(base_config.items()) + list(config.items()))
 
