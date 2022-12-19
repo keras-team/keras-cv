@@ -98,13 +98,15 @@ class ObjectDetectionBaseModel(keras.Model):
         return super().evaluate(x=dataset, _use_cached_eval_dataset=False, **kwargs)
 
     def encode_data(self, x, y):
-        y = bounding_box.convert_format(
-            y,
+        gt_boxes = y[..., :4]
+        gt_classes = y[..., 4]
+        gt_boxes = bounding_box.convert_format(
+            gt_boxes,
             source=self.bounding_box_format,
             target=self.label_encoder.bounding_box_format,
             images=x,
         )
-        box_targets, class_targets = self.label_encoder(x, y)
+        box_targets, class_targets = self.label_encoder(x, gt_boxes, gt_classes)
         box_targets = bounding_box.convert_format(
             box_targets,
             source=self.label_encoder.bounding_box_format,

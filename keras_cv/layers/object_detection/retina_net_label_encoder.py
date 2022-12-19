@@ -16,6 +16,8 @@ import tensorflow as tf
 from tensorflow.keras import layers
 
 from keras_cv import bounding_box
+from keras_cv.ops import box_matcher
+from keras_cv.ops import target_gather
 
 
 class RetinaNetLabelEncoder(layers.Layer):
@@ -31,6 +33,10 @@ class RetinaNetLabelEncoder(layers.Layer):
             for more details on supported bounding box formats.
         anchor_generator: `keras_cv.layers.AnchorGenerator` instance to produce anchor
             boxes.  Boxes are then used to encode labels on a per-image basis.
+        positive_threshold: the float threshold to set an anchor to positive match to gt box.
+            values above it are positive matches.
+        negative_threshold: the float threshold to set an anchor to negative match to gt box.
+            values below it are negative matches.
         box_variance: The scaling factors used to scale the bounding box targets.
             Defaults to (0.1, 0.1, 0.2, 0.2).
         background_class: (Optional) The class ID used for the background class.
@@ -42,6 +48,8 @@ class RetinaNetLabelEncoder(layers.Layer):
         self,
         bounding_box_format,
         anchor_generator,
+        positive_threshold=0.5,
+        negative_threshold=0.4,
         box_variance=(0.1, 0.1, 0.2, 0.2),
         background_class=-1.0,
         ignore_class=-2.0,
@@ -56,12 +64,19 @@ class RetinaNetLabelEncoder(layers.Layer):
         self.matched_boxes_metric = tf.keras.metrics.BinaryAccuracy(
             name="percent_boxes_matched_with_anchor"
         )
+        self.positive_threshold = positive_threshold
+        self.negative_threshold = negative_threshold
+        self.box_matcher = box_matcher.ArgmaxBoxMatcher(
+            thresholds=[negative_threshold, positive_threshold],
+            match_values=[-1, -2, 1],
+            force_match_for_each_col=False,
+        )
         self.built = True
 
-    def _match_anchor_boxes(
-        self, anchor_boxes, gt_boxes, match_iou=0.5, ignore_iou=0.4
-    ):
-        """Matches ground truth boxes to anchor boxes based on IOU.
+    def _encode_sample(self, gt_boxes, gt_classes, anchor_boxes):
+        """Creates box and classification targets for a single sample
+
+        Matches ground truth boxes to anchor boxes based on IOU.
         1. Calculates the pairwise IOU for the M `anchor_boxes` and N `gt_boxes`
           to get a `(M, N)` shaped matrix.
         2. The ground truth box with the maximum IOU in each row is assigned to
@@ -70,17 +85,16 @@ class RetinaNetLabelEncoder(layers.Layer):
           box is assigned with the background class.
         4. The remaining anchor boxes that do not have any class assigned are
           ignored during training.
-        Arguments:
-          anchor_boxes: A float tensor with the shape `(total_anchors, 4)`
-            representing all the anchor boxes for a given input image shape,
-            where each anchor box is of the format `[x, y, width, height]`.
+
+        Arg:
           gt_boxes: A float tensor with shape `(num_objects, 4)` representing
             the ground truth boxes, where each box is of the format
             `[x, y, width, height]`.
-          match_iou: A float value representing the minimum IOU threshold for
-            determining if a ground truth box can be assigned to an anchor box.
-          ignore_iou: A float value representing the IOU threshold under which
-            an anchor box is assigned to the background class.
+          gt_classes: A float Tensor with shape `(num_objects, 1)` representing
+            the ground truth classes.
+          anchor_boxes: A float tensor with the shape `(total_anchors, 4)`
+            representing all the anchor boxes for a given input image shape,
+            where each anchor box is of the format `[x, y, width, height]`.
         Returns:
           matched_gt_idx: Index of the matched object
           positive_mask: A mask for anchor boxes that have been assigned ground
@@ -91,26 +105,11 @@ class RetinaNetLabelEncoder(layers.Layer):
         iou_matrix = bounding_box.compute_iou(
             anchor_boxes, gt_boxes, bounding_box_format="xywh"
         )
-        max_iou = tf.reduce_max(iou_matrix, axis=1)
-        matched_gt_idx = tf.argmax(iou_matrix, axis=1)
-        positive_mask = tf.greater_equal(max_iou, match_iou)
-        negative_mask = tf.less(max_iou, ignore_iou)
-        ignore_mask = tf.logical_not(tf.logical_or(positive_mask, negative_mask))
-        return (
-            matched_gt_idx,
-            tf.cast(positive_mask, dtype=self.dtype),
-            tf.cast(ignore_mask, dtype=self.dtype),
-        )
-
-    def _encode_sample(self, gt_boxes, anchor_boxes):
-        """Creates box and classification targets for a single sample"""
-        cls_ids = gt_boxes[:, 4]
-        gt_boxes = gt_boxes[:, :4]
-        cls_ids = tf.cast(cls_ids, dtype=self.dtype)
-        matched_gt_idx, positive_mask, ignore_mask = self._match_anchor_boxes(
-            anchor_boxes, gt_boxes
-        )
-        matched_gt_boxes = tf.gather(gt_boxes, matched_gt_idx)
+        matched_gt_idx, matched_vals = self.box_matcher(iou_matrix)
+        matched_vals = matched_vals[..., tf.newaxis]
+        positive_mask = tf.cast(tf.math.equal(matched_vals, 1), self.dtype)
+        ignore_mask = tf.cast(tf.math.equal(matched_vals, -2), self.dtype)
+        matched_gt_boxes = target_gather._target_gather(gt_boxes, matched_gt_idx)
         box_target = bounding_box._encode_box_to_deltas(
             anchors=anchor_boxes,
             boxes=matched_gt_boxes,
@@ -118,12 +117,11 @@ class RetinaNetLabelEncoder(layers.Layer):
             box_format="xywh",
             variance=self.box_variance,
         )
-        matched_gt_cls_ids = tf.gather(cls_ids, matched_gt_idx)
+        matched_gt_cls_ids = target_gather._target_gather(gt_classes, matched_gt_idx)
         cls_target = tf.where(
             tf.not_equal(positive_mask, 1.0), self.background_class, matched_gt_cls_ids
         )
         cls_target = tf.where(tf.equal(ignore_mask, 1.0), self.ignore_class, cls_target)
-        cls_target = tf.expand_dims(cls_target, axis=-1)
         label = tf.concat([box_target, cls_target], axis=-1)
 
         # In the case that a box in the corner of an image matches with an all -1 box
@@ -137,19 +135,32 @@ class RetinaNetLabelEncoder(layers.Layer):
             label,
         )
 
-        n_boxes = tf.shape(gt_boxes)[0]
+        batch_size = gt_boxes.get_shape().as_list()[0]
+        n_boxes = tf.shape(gt_boxes)[1]
         box_ids = tf.range(n_boxes, dtype=matched_gt_idx.dtype)
-        matched_ids = tf.expand_dims(matched_gt_idx, axis=1)
+        matched_ids = tf.expand_dims(matched_gt_idx, axis=-1)
         matches = box_ids == matched_ids
-        matches = tf.math.reduce_any(matches, axis=0)
+        matches = tf.math.reduce_any(matches, axis=1)
         self.matched_boxes_metric.update_state(
-            tf.zeros((n_boxes,), dtype=tf.int32),
+            tf.zeros(
+                (
+                    batch_size,
+                    n_boxes,
+                ),
+                dtype=tf.int32,
+            ),
             tf.cast(matches, tf.int32),
         )
         return label
 
-    def call(self, images, target_boxes):
-        """Creates box and classification targets for a batch"""
+    def call(self, images, gt_boxes, gt_classes):
+        """Creates box and classification targets for a batch
+
+        Args:
+          images: a batched [batch_size, H, W, C] image float `tf.Tensor`.
+          gt_boxes: a batched [batch_size, num_objects, 4] or ragged batch float ground truth boxes in `bounding_box_format`.
+          gt_classes: a batched [batch_size, num_objects] or ragged batch float ground truth classes.
+        """
         if isinstance(images, tf.RaggedTensor):
             raise ValueError(
                 "`RetinaNetLabelEncoder`'s `call()` method does not "
@@ -157,8 +168,8 @@ class RetinaNetLabelEncoder(layers.Layer):
                 f"`type(images)={type(images)}`."
             )
 
-        target_boxes = bounding_box.convert_format(
-            target_boxes, source=self.bounding_box_format, target="xywh", images=images
+        gt_boxes = bounding_box.convert_format(
+            gt_boxes, source=self.bounding_box_format, target="xywh", images=images
         )
         anchor_boxes = self.anchor_generator(image_shape=tf.shape(images[0]))
         anchor_boxes = tf.concat(list(anchor_boxes.values()), axis=0)
@@ -169,15 +180,14 @@ class RetinaNetLabelEncoder(layers.Layer):
             images=images[0],
         )
 
-        if isinstance(target_boxes, tf.RaggedTensor):
-            target_boxes = target_boxes.to_tensor(
-                default_value=-1, shape=(None, None, 5)
-            )
+        if isinstance(gt_boxes, tf.RaggedTensor):
+            gt_boxes = gt_boxes.to_tensor(default_value=-1, shape=(None, None, 4))
+        if isinstance(gt_classes, tf.RaggedTensor):
+            gt_classes = gt_classes.to_tensor(default_value=-1, shape=(None, None, 1))
+        elif gt_classes.get_shape().rank == 2:
+            gt_classes = gt_classes[..., tf.newaxis]
 
-        result = tf.map_fn(
-            elems=(target_boxes),
-            fn=lambda box_set: self._encode_sample(box_set, anchor_boxes),
-        )
+        result = self._encode_sample(gt_boxes, gt_classes, anchor_boxes)
         result = bounding_box.convert_format(
             result, source="xywh", target=self.bounding_box_format, images=images
         )
