@@ -168,6 +168,8 @@ class RetinaNetLabelEncoder(layers.Layer):
                 "support RaggedTensor inputs for the `images` argument.  Received "
                 f"`type(images)={type(images)}`."
             )
+        gt_boxes = tf.cast(gt_boxes, self.dtype)
+        gt_classes = tf.cast(gt_classes, self.dtype)
 
         gt_boxes = bounding_box.convert_format(
             gt_boxes, source=self.bounding_box_format, target="xywh", images=images
