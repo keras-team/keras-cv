@@ -43,9 +43,10 @@ class RetinaNetLabelEncoderTest(tf.test.TestCase):
             bounding_box_format="xyxy",
         )
 
-        result = encoder(images, boxes)
+        box_targets, class_targets = encoder(images, boxes)
 
-        self.assertEqual(result.shape, [8, 49104, 5])
+        self.assertEqual(box_targets.shape, [8, 49104, 4])
+        self.assertEqual(class_targets.shape, [8, 49104])
 
     def test_all_negative_1(self):
         images_shape = (8, 512, 512, 3)
@@ -70,9 +71,10 @@ class RetinaNetLabelEncoderTest(tf.test.TestCase):
             bounding_box_format="xyxy",
         )
 
-        result = encoder(images, boxes)
+        box_targets, class_targets = encoder(images, boxes)
 
-        self.assertFalse(tf.math.reduce_any(tf.math.is_nan(result)))
+        self.assertFalse(tf.math.reduce_any(tf.math.is_nan(box_targets)))
+        self.assertFalse(tf.math.reduce_any(tf.math.is_nan(class_targets)))
 
     def test_ragged_encoding(self):
         images_shape = (2, 512, 512, 3)
@@ -101,7 +103,8 @@ class RetinaNetLabelEncoderTest(tf.test.TestCase):
             bounding_box_format="xywh",
         )
 
-        result = encoder(images, y_true)
+        box_targets, class_targets = encoder(images, y_true)
 
         # 49104 is the anchor generator shape
-        self.assertEqual(result.shape, [2, 49104, 5])
+        self.assertEqual(box_targets.shape, [2, 49104, 4])
+        self.assertEqual(class_targets.shape, [2, 49104])
