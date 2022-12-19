@@ -149,7 +149,6 @@ def _rel_xywh_to_xyxy(boxes, images=None, image_shape=None):
             image_height * y,
             image_width * (x + width),
             image_height * (y + height),
-            rest,
         ],
         axis=-1,
     )

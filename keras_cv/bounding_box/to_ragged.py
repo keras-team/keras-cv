@@ -16,7 +16,7 @@ import tensorflow as tf
 from keras_cv.bounding_box import validate
 
 
-def to_ragged(bounding_boxes):
+def to_ragged(bounding_boxes, dtype=tf.float32):
     """converts a Dense padded bounding box `tf.Tensor` to a `tf.RaggedTensor`.
 
     Bounding boxes are ragged tensors in most use cases. Converting them to a dense
@@ -40,7 +40,7 @@ def to_ragged(bounding_boxes):
 
     Args:
         bounding_boxes: a Tensor of bounding boxes.  May be batched, or unbatched.
-
+        dtype: the data type to use for the underlying Tensors.
     Returns:
         dictionary of `tf.RaggedTensor` or 'tf.Tensor' containing the filtered bounding
         boxes.
@@ -52,7 +52,7 @@ def to_ragged(bounding_boxes):
 
     boxes = bounding_boxes.get("boxes")
     classes = bounding_boxes.get("classes")
-    mask = classes == -1
+    mask = classes != -1
 
     boxes = tf.ragged.boolean_mask(boxes, mask)
     classes = tf.ragged.boolean_mask(classes, mask)
@@ -64,6 +64,6 @@ def to_ragged(bounding_boxes):
         classes = tf.RaggedTensor.from_tensor(classes)
 
     result = bounding_boxes.copy()
-    result["boxes"] = boxes
-    result["classes"] = classes
+    result["boxes"] = tf.cast(boxes, dtype)
+    result["classes"] = tf.cast(classes, dtype)
     return result
