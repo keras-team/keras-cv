@@ -7,7 +7,7 @@
 """
 
 import tensorflow as tf
-from tf.keras import layers
+from tensorflow.keras import layers
 
 # PR isn't merged yet
 # from keras_cv.layers.mbconv import MBConvBlc=ock
