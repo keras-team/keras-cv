@@ -189,19 +189,14 @@ model.compile(
     classification_loss="focal",
     box_loss="smoothl1",
     optimizer=optimizer,
-    metrics=[
-        keras_cv.metrics.COCORecall(bounding_box_format="xywh", class_ids=range(20)),
-        keras_cv.metrics.COCOMeanAveragePrecision(
-            bounding_box_format="xywh", class_ids=range(20)
-        ),
-    ],
+    metrics=[],
 )
 
 
 callbacks = [
     keras.callbacks.TensorBoard(log_dir="logs"),
     keras.callbacks.ReduceLROnPlateau(monitor='loss', patience=5),
-    keras.callbacks.EarlyStopping(patience=10),
+    keras.callbacks.EarlyStopping(monitor='loss', patience=10),
     keras.callbacks.ModelCheckpoint(CHECKPOINT_PATH, save_weights_only=True),
 ]
 
