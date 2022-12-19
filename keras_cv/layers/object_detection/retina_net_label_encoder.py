@@ -74,7 +74,7 @@ class RetinaNetLabelEncoder(layers.Layer):
         self.built = True
 
     def _encode_sample(self, gt_boxes, gt_classes, anchor_boxes):
-        """Creates box and classification targets for a single sample
+        """Creates box and classification targets for a batched sample
 
         Matches ground truth boxes to anchor boxes based on IOU.
         1. Calculates the pairwise IOU for the M `anchor_boxes` and N `gt_boxes`
@@ -86,7 +86,7 @@ class RetinaNetLabelEncoder(layers.Layer):
         4. The remaining anchor boxes that do not have any class assigned are
           ignored during training.
 
-        Arg:
+        Args:
           gt_boxes: A float tensor with shape `(num_objects, 4)` representing
             the ground truth boxes, where each box is of the format
             `[x, y, width, height]`.
