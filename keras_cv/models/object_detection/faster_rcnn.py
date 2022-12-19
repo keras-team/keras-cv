@@ -439,12 +439,17 @@ class FasterRCNN(tf.keras.Model):
         rpn_classification_loss=None,
         weight_decay=0.0001,
         loss=None,
+        metrics=None,
         **kwargs,
     ):
         # TODO(tanzhenyu): Add metrics support once COCOMap issue is addressed.
         # https://github.com/keras-team/keras-cv/issues/915
-        if "metrics" in kwargs.keys():
-            raise ValueError("currently metrics support is not supported intentionally")
+        if metrics is not None and len(metrics) != 0:
+            raise ValueError(
+                "`RetinaNet` does not currently support the use of "
+                "`metrics` due to performance and distribution concerns. Please us the "
+                "`PyCOCOCallback` to evaluate COCO metrics."
+            )
         if loss is not None:
             raise ValueError(
                 "`FasterRCNN` does not accept a `loss` to `compile()`. "
@@ -536,8 +541,8 @@ class FasterRCNN(tf.keras.Model):
         images, y, sample_weight = tf.keras.utils.unpack_x_y_sample_weight(data)
         if sample_weight is not None:
             raise ValueError("`sample_weight` is currently not supported.")
-        gt_boxes = y["gt_boxes"]
-        gt_classes = y["gt_classes"]
+        gt_boxes = y["boxes"]
+        gt_classes = y["classes"]
         with tf.GradientTape() as tape:
             total_loss = self.compute_loss(images, gt_boxes, gt_classes, training=True)
             reg_losses = []
@@ -554,8 +559,8 @@ class FasterRCNN(tf.keras.Model):
         images, y, sample_weight = tf.keras.utils.unpack_x_y_sample_weight(data)
         if sample_weight is not None:
             raise ValueError("`sample_weight` is currently not supported.")
-        gt_boxes = y["gt_boxes"]
-        gt_classes = y["gt_classes"]
+        gt_boxes = y["boxes"]
+        gt_classes = y["classes"]
         self.compute_loss(images, gt_boxes, gt_classes, training=False)
         return self.compute_metrics(images, {}, {}, sample_weight={})
 
