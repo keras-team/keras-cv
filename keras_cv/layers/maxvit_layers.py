@@ -14,50 +14,13 @@ from tensorflow.keras import layers
 
 
 @tf.keras.utils.register_keras_serializable(package="keras_cv")
-class GridPartitioning(layers.Layer):
-    """
-    Based on: https://github.com/google-research/maxvit/blob/2e06a7f1f70c76e64cd3dabe5cd1b8c1a23c9fb7/maxvit/models/maxvit.py#L842
-    Partition the input feature maps into non-overlapping windows.
-        Args:
-          features: [B, H, W, C] feature maps.
-        Returns:
-          Partitioned features: [B, nH, nW, wSize, wSize, c].
-        Raises:
-          ValueError: If the feature map sizes are not divisible by window sizes.
-    """
-
-    def __init__(self, grid_size, **kwargs):
-        super().__init__(**kwargs)
-        self.grid_size = grid_size
-
-    def call(self, input):
-        _, h, w, c = input.shape
-        grid_size = self.grid_size
-        if h % grid_size != 0 or w % grid_size != 0:
-            raise ValueError(
-                f"Feature map sizes {(h, w)} "
-                f"not divisible by window size ({grid_size})."
-            )
-        features = tf.reshape(
-            input, (-1, grid_size, h // grid_size, grid_size, w // grid_size, c)
-        )
-        features = tf.transpose(features, (0, 2, 4, 1, 3, 5))
-        features = tf.reshape(features, (-1, grid_size, grid_size, c))
-        return features
-
-    def get_config(self):
-        config = {"grid_size": self.grid_size}
-        base_config = super().get_config()
-        return dict(list(base_config.items()) + list(config.items()))
-
-
-@tf.keras.utils.register_keras_serializable(package="keras_cv")
 class WindowPartitioning(layers.Layer):
     """
     Based on: https://github.com/google-research/maxvit/blob/2e06a7f1f70c76e64cd3dabe5cd1b8c1a23c9fb7/maxvit/models/maxvit.py#L805
     Partition the input feature maps into non-overlapping windows.
+
         Args:
-          features: [B, H, W, C] feature maps.
+          inputs: [B, H, W, C] feature maps.
         Returns:
           A `tf.Tensor`: Partitioned features: [B, nH, nW, wSize, wSize, c].
         Raises:
@@ -114,10 +77,6 @@ class UnWindowPartitioning(layers.Layer):
           width: the desired width to stitch the feature map to
         Returns:
           A `tf.Tensor`: Stiched feature map: [B, H, W, C].
-        Raises:
-          ValueError: If the feature map sizes are not divisible by window sizes.
-
-
 
     Basic usage:
 
@@ -170,10 +129,81 @@ class UnWindowPartitioning(layers.Layer):
 
 
 @tf.keras.utils.register_keras_serializable(package="keras_cv")
+class GridPartitioning(layers.Layer):
+    """
+    Based on: https://github.com/google-research/maxvit/blob/2e06a7f1f70c76e64cd3dabe5cd1b8c1a23c9fb7/maxvit/models/maxvit.py#L842
+    Partition the input feature maps into non-overlapping windows.
+        Args:
+          features: [B, H, W, C] feature maps.
+        Returns:
+          Partitioned features: [B, nH, nW, wSize, wSize, c].
+        Raises:
+          ValueError: If the feature map sizes are not divisible by window sizes.
+
+    Basic usage:
+
+    ```
+    inputs = tf.random.normal([1, 256, 256, 3])
+
+    layer = keras_cv.layers.GridPartitioning(grid_size=64)
+    outputs = layer(inputs)
+    outputs.shape # TensorShape([16, 64, 64, 3])
+    ```
+    """
+
+    def __init__(self, grid_size, **kwargs):
+        super().__init__(**kwargs)
+        self.grid_size = grid_size
+
+    def call(self, input):
+        _, h, w, c = input.shape
+        grid_size = self.grid_size
+        if h % grid_size != 0 or w % grid_size != 0:
+            raise ValueError(
+                f"Feature map sizes {(h, w)} "
+                f"not divisible by window size ({grid_size})."
+            )
+        features = tf.reshape(
+            input, (-1, grid_size, h // grid_size, grid_size, w // grid_size, c)
+        )
+        features = tf.transpose(features, (0, 2, 4, 1, 3, 5))
+        features = tf.reshape(features, (-1, grid_size, grid_size, c))
+        return features
+
+    def get_config(self):
+        config = {"grid_size": self.grid_size}
+        base_config = super().get_config()
+        return dict(list(base_config.items()) + list(config.items()))
+
+
+@tf.keras.utils.register_keras_serializable(package="keras_cv")
 class UnGridPartitioning(layers.Layer):
     """
     Based on: https://github.com/google-research/maxvit/blob/2e06a7f1f70c76e64cd3dabe5cd1b8c1a23c9fb7/maxvit/models/maxvit.py#L867
     Reverses the operation of the GridPartitioning layer.
+
+        Args:
+          grid_size: the grid size used while performing GridPartitioning
+          height: the desired height to stitch the feature map to
+          width: the desired width to stitch the feature map to
+        Returns:
+          A `tf.Tensor`: Stiched feature map: [B, H, W, C].
+
+    Basic usage:
+
+    ```
+    inputs = tf.random.normal([1, 256, 256, 3])
+
+    grid_layer = keras_cv.layers.GridPartitioning(grid_size=64)
+    outputs = grid_layer(inputs)
+
+    ungrid_layer = keras_cv.layers.UnGridPartitioning(grid_size=64, height=256, width=256)
+    ungrid_outputs = ungrid_layer(outputs)
+    ungrid_outputs.shape # TensorShape([1, 256, 256, 3])
+
+    import numpy as np
+    np.testing.assert_array_equal(ungrid_outputs, inputs)
+    ```
     """
 
     def __init__(self, grid_size, height, width, **kwargs):
@@ -188,10 +218,10 @@ class UnGridPartitioning(layers.Layer):
             [
                 -1,
                 self.height // self.grid_size,
-                self.weight // self.grid_size,
+                self.width // self.grid_size,
                 self.grid_size,
                 self.grid_size,
-                self.input.shape[-1],
+                input.shape[-1],
             ],
         )
         return tf.reshape(
