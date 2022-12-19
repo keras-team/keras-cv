@@ -200,7 +200,7 @@ model.compile(
 
 callbacks = [
     keras.callbacks.TensorBoard(log_dir="logs"),
-    keras.callbacks.ReduceLROnPlateau(patience=5),
+    keras.callbacks.ReduceLROnPlateau(monitor='loss', patience=5),
     keras.callbacks.EarlyStopping(patience=10),
     keras.callbacks.ModelCheckpoint(CHECKPOINT_PATH, save_weights_only=True),
 ]
