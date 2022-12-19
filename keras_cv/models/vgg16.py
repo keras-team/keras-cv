@@ -92,7 +92,7 @@ def VGG16(
     # Block 1
     x = layers.Conv2D(
         64, (3, 3), activation="relu", padding="same", name="block1_conv1"
-    )(img_input)
+    )(x)
     x = layers.Conv2D(
         64, (3, 3), activation="relu", padding="same", name="block1_conv2"
     )(x)
