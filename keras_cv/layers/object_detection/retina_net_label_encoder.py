@@ -178,6 +178,9 @@ class RetinaNetLabelEncoder(layers.Layer):
             elems=(target_boxes),
             fn=lambda box_set: self._encode_sample(box_set, anchor_boxes),
         )
-        return bounding_box.convert_format(
+        result = bounding_box.convert_format(
             result, source="xywh", target=self.bounding_box_format, images=images
         )
+        encoded_box_targets = result[..., :4]
+        class_targets = result[..., 4]
+        return encoded_box_targets, class_targets
