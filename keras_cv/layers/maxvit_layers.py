@@ -129,6 +129,46 @@ class UnWindowPartitioning(layers.Layer):
 
 
 @tf.keras.utils.register_keras_serializable(package="keras_cv")
+class UnGridPartitioning(layers.Layer):
+    """
+    Based on: https://github.com/google-research/maxvit/blob/2e06a7f1f70c76e64cd3dabe5cd1b8c1a23c9fb7/maxvit/models/maxvit.py#L867
+    Reverses the operation of the GridPartitioning layer.
+    """
+
+    def __init__(self, grid_size, height, width, **kwargs):
+        super().__init__(**kwargs)
+        self.grid_size = grid_size
+        self.height = height
+        self.width = width
+
+    def call(self, input):
+        features = tf.reshape(
+            input,
+            [
+                -1,
+                self.height // self.grid_size,
+                self.weight // self.grid_size,
+                self.grid_size,
+                self.grid_size,
+                self.input.shape[-1],
+            ],
+        )
+        return tf.reshape(
+            tf.transpose(features, (0, 3, 1, 4, 2, 5)),
+            [-1, self.height, self.width, features.shape[-1]],
+        )
+
+    def get_config(self):
+        config = {
+            "grid_size": self.grid_size,
+            "height": self.height,
+            "width": self.width,
+        }
+        base_config = super().get_config()
+        return dict(list(base_config.items()) + list(config.items()))
+
+
+@tf.keras.utils.register_keras_serializable(package="keras_cv")
 class MaxViTTransformerEncoder(layers.Layer):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
