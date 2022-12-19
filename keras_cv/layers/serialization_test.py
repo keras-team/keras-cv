@@ -422,6 +422,38 @@ class SerializationTest(tf.test.TestCase, parameterized.TestCase):
                 "width": 200,
             },
         ),
+        (
+            "WindowPartitioning",
+            cv_layers.WindowPartitioning,
+            {
+                "window_size": 16,
+            },
+        ),
+        (
+            "GridPartitioning",
+            cv_layers.GridPartitioning,
+            {
+                "grid_size": 16,
+            },
+        ),
+        (
+            "UnWindowPartitioning",
+            cv_layers.UnWindowPartitioning,
+            {
+                "window_size": 16,
+                "height": 256,
+                "width": 256,
+            },
+        ),
+        (
+            "UnGridPartitioning",
+            cv_layers.UnGridPartitioning,
+            {
+                "grid_size": 16,
+                "height": 256,
+                "width": 256,
+            },
+        ),
     )
     def test_layer_serialization(self, layer_cls, init_args):
         layer = layer_cls(**init_args)
