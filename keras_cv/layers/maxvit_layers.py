@@ -59,9 +59,20 @@ class WindowPartitioning(layers.Layer):
         Args:
           features: [B, H, W, C] feature maps.
         Returns:
-          Partitioned features: [B, nH, nW, wSize, wSize, c].
+          A `tf.Tensor`: Partitioned features: [B, nH, nW, wSize, wSize, c].
         Raises:
           ValueError: If the feature map sizes are not divisible by window sizes.
+
+
+    Basic usage:
+
+    ```
+    inputs = tf.random.normal([1, 256, 256, 3])
+
+    layer = keras_cv.layers.WindowPartitioning(window_size=64)
+    outputs = layer(inputs)
+    outputs.shape # TensorShape([16, 64, 64, 3])
+    ```
     """
 
     def __init__(self, window_size, **kwargs):
@@ -96,6 +107,33 @@ class UnWindowPartitioning(layers.Layer):
     """
     Based on: https://github.com/google-research/maxvit/blob/2e06a7f1f70c76e64cd3dabe5cd1b8c1a23c9fb7/maxvit/models/maxvit.py#L832
     Reverses the operation of the WindowPartitioning layer.
+
+        Args:
+          window_size: the window size used while performing WindowPartitioning
+          height: the desired height to stitch the feature map to
+          width: the desired width to stitch the feature map to
+        Returns:
+          A `tf.Tensor`: Stiched feature map: [B, H, W, C].
+        Raises:
+          ValueError: If the feature map sizes are not divisible by window sizes.
+
+
+
+    Basic usage:
+
+    ```
+    inputs = tf.random.normal([1, 256, 256, 3])
+
+    window_layer = keras_cv.layers.WindowPartitioning(window_size=64)
+    outputs = window_layer(inputs)
+
+    unwindow_layer = keras_cv.layers.UnWindowPartitioning(window_size=64, height=256, width=256)
+    unwindow_outputs = unwindow_layer(outputs)
+    unwindow_outputs.shape # TensorShape([1, 256, 256, 3])
+
+    import numpy as np
+    np.testing.assert_array_equal(unwindow_outputs, inputs)
+    ```
     """
 
     def __init__(self, window_size, height, width, **kwargs):
