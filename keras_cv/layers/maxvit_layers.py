@@ -9,6 +9,9 @@
 import tensorflow as tf
 from tf.keras import layers
 
+# PR isn't merged yet
+# from keras_cv.layers.mbconv import MBConvBlc=ock
+
 
 @tf.keras.utils.register_keras_serializable(package="keras_cv")
 class GridPartitioning(layers.Layer):
