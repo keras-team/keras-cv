@@ -194,7 +194,9 @@ class Resizing(BaseImageAugmentationLayer):
             inputs["images"] = image
 
             if bounding_boxes is not None:
-                inputs["bounding_boxes"] = keras_cv.bounding_box.to_ragged(bounding_boxes)
+                inputs["bounding_boxes"] = keras_cv.bounding_box.to_ragged(
+                    bounding_boxes
+                )
             return inputs
 
         size_as_shape = tf.TensorShape((self.height, self.width))

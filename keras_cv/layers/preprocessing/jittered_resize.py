@@ -206,11 +206,11 @@ class JitteredResize(BaseImageAugmentationLayer):
         )
 
         # Adjusts box coordinates based on image_scale and offset.
-        yxyx = bounding_boxes['boxes']
+        yxyx = bounding_boxes["boxes"]
         yxyx *= tf.tile(tf.expand_dims(image_scale, axis=0), [1, 2])
         yxyx -= tf.tile(tf.expand_dims(offset, axis=0), [1, 2])
 
-        result['boxes'] = yxyx
+        result["boxes"] = yxyx
         result = keras_cv.bounding_box.clip_to_image(
             result,
             image_shape=self.target_size + (3,),
@@ -223,7 +223,6 @@ class JitteredResize(BaseImageAugmentationLayer):
             target=self.bounding_box_format,
         )
         return keras_cv.bounding_box.to_ragged(result)
-
 
     def augment_label(self, label, transformation, **kwargs):
         return label

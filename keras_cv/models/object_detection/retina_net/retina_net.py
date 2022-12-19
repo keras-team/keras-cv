@@ -279,6 +279,7 @@ class RetinaNet(ObjectDetectionBaseModel):
         box_loss=None,
         classification_loss=None,
         loss=None,
+        metrics=None,
         **kwargs,
     ):
         """compiles the RetinaNet.
@@ -299,8 +300,12 @@ class RetinaNet(ObjectDetectionBaseModel):
             kwargs: most other `keras.Model.compile()` arguments are supported and
                 propagated to the `keras.Model` class.
         """
-        if "metrics" in kwargs.keys():
-            raise ValueError("currently metrics support is not supported intentionally")
+        if metrics is not None and len(metrics) != 0:
+            raise ValueError(
+                "`RetinaNet` does not currently support the use of "
+                "`metrics` due to performance and distribution concerns.  Please us the "
+                "`PyCOCOCallback` to evaluate COCO metrics."
+            )
         super().compile(**kwargs)
         if loss is not None:
             raise ValueError(

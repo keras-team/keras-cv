@@ -104,8 +104,8 @@ class RetinaNetLabelEncoder(layers.Layer):
 
     def _encode_sample(self, gt_boxes, anchor_boxes):
         """Creates box and classification targets for a single sample"""
-        cls_ids = gt_boxes[:, 4]
-        gt_boxes = gt_boxes[:, :4]
+        cls_ids = gt_boxes["classes"]
+        gt_boxes = gt_boxes["boxes"]
         cls_ids = tf.cast(cls_ids, dtype=self.dtype)
         matched_gt_idx, positive_mask, ignore_mask = self._match_anchor_boxes(
             anchor_boxes, gt_boxes
@@ -123,30 +123,35 @@ class RetinaNetLabelEncoder(layers.Layer):
             tf.not_equal(positive_mask, 1.0), self.background_class, matched_gt_cls_ids
         )
         cls_target = tf.where(tf.equal(ignore_mask, 1.0), self.ignore_class, cls_target)
-        cls_target = tf.expand_dims(cls_target, axis=-1)
-        label = tf.concat([box_target, cls_target], axis=-1)
+
+        box_target = tf.where(
+            tf.math.is_nan(box_target),
+            self.ignore_class,
+            box_target,
+        )
+        cls_target = tf.where(
+            tf.math.is_nan(cls_target),
+            self.ignore_class,
+            cls_target,
+        )
+        return {"boxes": box_target, "classes": cls_target}
 
         # In the case that a box in the corner of an image matches with an all -1 box
         # that is outside of the image, we should assign the box to the ignore class
         # There are rare cases where a -1 box can be matched, resulting in a NaN during
         # training.  The unit test passing all -1s to the label encoder ensures that we
         # properly handle this edge-case.
-        label = tf.where(
-            tf.expand_dims(tf.math.reduce_any(tf.math.is_nan(label), axis=-1), axis=-1),
-            self.ignore_class,
-            label,
-        )
 
-        n_boxes = tf.shape(gt_boxes)[0]
-        box_ids = tf.range(n_boxes, dtype=matched_gt_idx.dtype)
-        matched_ids = tf.expand_dims(matched_gt_idx, axis=1)
-        matches = box_ids == matched_ids
-        matches = tf.math.reduce_any(matches, axis=0)
-        self.matched_boxes_metric.update_state(
-            tf.zeros((n_boxes,), dtype=tf.int32),
-            tf.cast(matches, tf.int32),
-        )
-        return label
+        #
+        # n_boxes = tf.shape(gt_boxes)[0]
+        # box_ids = tf.range(n_boxes, dtype=matched_gt_idx.dtype)
+        # matched_ids = tf.expand_dims(matched_gt_idx, axis=1)
+        # matches = box_ids == matched_ids
+        # matches = tf.math.reduce_any(matches, axis=0)
+        # self.matched_boxes_metric.update_state(
+        #     tf.zeros((n_boxes,), dtype=tf.int32),
+        #     tf.cast(matches, tf.int32),
+        # )
 
     def call(self, images, target_boxes):
         """Creates box and classification targets for a batch"""
@@ -181,6 +186,6 @@ class RetinaNetLabelEncoder(layers.Layer):
         result = bounding_box.convert_format(
             result, source="xywh", target=self.bounding_box_format, images=images
         )
-        encoded_box_targets = result[..., :4]
-        class_targets = result[..., 4]
+        encoded_box_targets = result["boxes"]
+        class_targets = result["classes"]
         return encoded_box_targets, class_targets

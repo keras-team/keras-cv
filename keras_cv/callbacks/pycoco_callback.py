@@ -26,8 +26,8 @@ class PyCOCOCallback(Callback):
 
         Args:
             validation_data: a tf.data.Dataset containing validation data. Entries
-                should have the form ```(images, {"gt_boxes": boxes,
-                "gt_classes": classes})```.
+                should have the form ```(images, {"boxes": boxes,
+                "classes": classes})```.
             bounding_box_format: the KerasCV bounding box format used in the
                 validation dataset (e.g. "xywh")
             input_nms: whether the model has already applied non-max-suppression. If False,
@@ -74,25 +74,27 @@ class PyCOCOCallback(Callback):
 
         gt = [boxes for boxes in self.val_data.map(boxes_only)]
         if self.input_nms:
-            gt_boxes = tf.concat(
-                [tf.RaggedTensor.from_tensor(boxes["gt_boxes"]) for boxes in gt], axis=0
+            boxes = tf.concat(
+                [tf.RaggedTensor.from_tensor(boxes["boxes"]) for boxes in gt], axis=0
             )
-            gt_classes = tf.concat(
-                [tf.RaggedTensor.from_tensor(boxes["gt_classes"]) for boxes in gt],
+            classes = tf.concat(
+                [tf.RaggedTensor.from_tensor(boxes["classes"]) for boxes in gt],
                 axis=0,
             )
         else:
-            gt_boxes = tf.concat([boxes["gt_boxes"] for boxes in gt], axis=0)
-            gt_classes = tf.concat([boxes["gt_classes"] for boxes in gt], axis=0)
-            gt_num_dets = tf.concat([boxes["gt_num_dets"] for boxes in gt], axis=0)
+            boxes = tf.concat([boxes["boxes"] for boxes in gt], axis=0)
+            classes = tf.concat([boxes["classes"] for boxes in gt], axis=0)
+            num_detections = tf.concat(
+                [boxes["num_detections"] for boxes in gt], axis=0
+            )
 
         first_image_batch = next(iter(images_only_ds))
         height = first_image_batch.shape[1]
         width = first_image_batch.shape[2]
-        total_images = gt_boxes.shape[0]
+        total_images = boxes.shape[0]
 
-        gt_boxes = bounding_box.convert_format(
-            gt_boxes, source=self.bounding_box_format, target="yxyx"
+        boxes = bounding_box.convert_format(
+            boxes, source=self.bounding_box_format, target="yxyx"
         )
 
         source_ids = tf.strings.as_string(
@@ -105,16 +107,16 @@ class PyCOCOCallback(Callback):
         ground_truth["width"] = [tf.tile(tf.constant([width]), [total_images])]
 
         if self.input_nms:
-            ground_truth["num_detections"] = [gt_boxes.row_lengths(axis=1)]
-            ground_truth["boxes"] = [gt_boxes.to_tensor(-1)]
-            ground_truth["classes"] = [gt_classes.to_tensor(-1)]
+            ground_truth["num_detections"] = [boxes.row_lengths(axis=1)]
+            ground_truth["boxes"] = [boxes.to_tensor(-1)]
+            ground_truth["classes"] = [classes.to_tensor(-1)]
             y_pred = bounding_box.convert_format(
                 y_pred, source=self.bounding_box_format, target="yxyx"
             )
         else:
-            ground_truth["num_detections"] = [gt_num_dets]
-            ground_truth["boxes"] = [gt_boxes]
-            ground_truth["classes"] = [gt_classes]
+            ground_truth["num_detections"] = [num_detections]
+            ground_truth["boxes"] = [boxes]
+            ground_truth["classes"] = [classes]
 
             box_pred = bounding_box.convert_format(
                 box_pred, source=self.bounding_box_format, target="yxyx"

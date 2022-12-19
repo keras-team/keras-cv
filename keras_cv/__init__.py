@@ -18,6 +18,7 @@ from keras_cv import version_check
 version_check.check_tf_version()
 # isort:on
 
+from keras_cv import callbacks
 from keras_cv import datasets
 from keras_cv import layers
 from keras_cv import losses
