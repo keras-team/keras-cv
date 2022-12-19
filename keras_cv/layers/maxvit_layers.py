@@ -1,8 +1,6 @@
 """
-- GridPartitioning layer (me)
-- WindowPartitioning layer (me)
-- MaxViTTransformerEncoder layer (me?)
-- RelativeMultiHeadAttention layer (you)
+- MaxViTTransformerEncoder layer
+- RelativeMultiHeadAttention layer
 - SqueezeExcite layer (potentially don't need it because it's already part of MBConv)
 - MBConv layer (already have it)
 - MaxViT layer (MBConv + Block-Attention + FFN + Grid-Attention + FFN)
@@ -88,3 +86,53 @@ class WindowPartitioning(layers.Layer):
         config = {"window_size": self.window_size}
         base_config = super().get_config()
         return dict(list(base_config.items()) + list(config.items()))
+
+
+@tf.keras.utils.register_keras_serializable(package="keras_cv")
+class MaxViTTransformerEncoder(layers.Layer):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+    def call(self, input):
+        # ...
+        return input
+
+    def get_config(self):
+        # config = {"...": self....}
+        # base_config = super().get_config()
+        # return dict(list(base_config.items()) + list(config.items()))
+        return super().get_config()
+
+
+@tf.keras.utils.register_keras_serializable(package="keras_cv")
+class RelativeMultiHeadAttention(layers.Layer):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+    def call(self, input):
+        # ...
+        return input
+
+    def get_config(self):
+        # config = {"...": self....}
+        # base_config = super().get_config()
+        # return dict(list(base_config.items()) + list(config.items()))
+        return super().get_config()
+
+
+@tf.keras.utils.register_keras_serializable(package="keras_cv")
+class MaxViTBlock(layers.Layer):
+    # (MBConv + Block-Attention + FFN + Grid-Attention + FFN)
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+    def call(self, input):
+        # ...
+        return input
+
+    def get_config(self):
+        # config = {"...": self....}
+        # base_config = super().get_config()
+        # return dict(list(base_config.items()) + list(config.items()))
+        return super().get_config()
