@@ -98,22 +98,20 @@ class ObjectDetectionBaseModel(keras.Model):
         return super().evaluate(x=dataset, _use_cached_eval_dataset=False, **kwargs)
 
     def encode_data(self, x, y):
-        y_for_metrics = y
-
         y = bounding_box.convert_format(
             y,
             source=self.bounding_box_format,
             target=self.label_encoder.bounding_box_format,
             images=x,
         )
-        y_training_target = self.label_encoder(x, y)
-        y_training_target = bounding_box.convert_format(
-            y_training_target,
+        box_targets, class_targets = self.label_encoder(x, y)
+        box_targets = bounding_box.convert_format(
+            box_targets,
             source=self.label_encoder.bounding_box_format,
             target=self.bounding_box_format,
             images=x,
         )
-        return x, (y_for_metrics, y_training_target)
+        return x, {"boxes": box_targets, "classes": class_targets}
 
     def make_predict_function(self, force=False):
         if self.predict_function is not None and not force:

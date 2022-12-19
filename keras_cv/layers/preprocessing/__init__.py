@@ -16,11 +16,9 @@
 # KPLs from one place.
 
 from tensorflow.keras.layers import CenterCrop
-from tensorflow.keras.layers import RandomBrightness
 from tensorflow.keras.layers import RandomHeight
 from tensorflow.keras.layers import RandomTranslation
 from tensorflow.keras.layers import RandomWidth
-from tensorflow.keras.layers import RandomZoom
 from tensorflow.keras.layers import Rescaling
 
 from keras_cv.layers.preprocessing.aug_mix import AugMix
@@ -43,6 +41,7 @@ from keras_cv.layers.preprocessing.rand_augment import RandAugment
 from keras_cv.layers.preprocessing.random_augmentation_pipeline import (
     RandomAugmentationPipeline,
 )
+from keras_cv.layers.preprocessing.random_brightness import RandomBrightness
 from keras_cv.layers.preprocessing.random_channel_shift import RandomChannelShift
 from keras_cv.layers.preprocessing.random_choice import RandomChoice
 from keras_cv.layers.preprocessing.random_color_degeneration import (
@@ -61,6 +60,7 @@ from keras_cv.layers.preprocessing.random_rotation import RandomRotation
 from keras_cv.layers.preprocessing.random_saturation import RandomSaturation
 from keras_cv.layers.preprocessing.random_sharpness import RandomSharpness
 from keras_cv.layers.preprocessing.random_shear import RandomShear
+from keras_cv.layers.preprocessing.random_zoom import RandomZoom
 from keras_cv.layers.preprocessing.randomly_zoomed_crop import RandomlyZoomedCrop
 from keras_cv.layers.preprocessing.resizing import Resizing
 from keras_cv.layers.preprocessing.solarization import Solarization
