@@ -110,26 +110,37 @@ class MixUp(BaseImageAugmentationLayer):
         return labels
 
     def _update_bounding_boxes(self, bounding_boxes, permutation_order):
-        boxes_for_mixup = tf.gather(bounding_boxes, permutation_order)
-        bounding_boxes = tf.concat([bounding_boxes, boxes_for_mixup], axis=1)
-        return bounding_boxes
+        boxes, classes = bounding_boxes["boxes"], bounding_boxes["classes"]
+        boxes = tf.gather(boxes, permutation_order)
+        classes = tf.gather(classes, permutation_order)
+        return {"boxes": boxes, "classes": classes}
 
     def _validate_inputs(self, inputs):
         images = inputs.get("images", None)
         labels = inputs.get("labels", None)
         bounding_boxes = inputs.get("bounding_boxes", None)
+
         if images is None or (labels is None and bounding_boxes is None):
             raise ValueError(
                 "MixUp expects inputs in a dictionary with format "
                 '{"images": images, "labels": labels}. or'
                 '{"images": images, "bounding_boxes": bounding_boxes}'
-                f"Got: inputs = {inputs}"
+                f"Got: inputs = {inputs}."
             )
+
         if labels is not None and not labels.dtype.is_floating:
             raise ValueError(
                 f"MixUp received labels with type {labels.dtype}. "
                 "Labels must be of type float."
             )
+
+        if bounding_boxes is not None:
+            if sorted(list(bounding_boxes.keys())) != ["boxes", "classes"]:
+                raise ValueError(
+                    "MixUp requires `bounding_boxes` to be a dictionary with "
+                    "keys `boxes` and `classes`.  Instead, got "
+                    f"`bounding_boxes.keys()={list(bounding_boxes.keys())}`."
+                )
 
     def get_config(self):
         config = {

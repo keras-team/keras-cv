@@ -27,7 +27,10 @@ class MixUpTest(tf.test.TestCase):
         ys_labels = tf.one_hot(ys_labels, classes)
 
         # randomly sample bounding boxes
-        ys_bounding_boxes = tf.random.uniform((2, 3, 5), 0, 1)
+        ys_bounding_boxes = {
+            "boxes": tf.random.uniform((2, 3, 4), 0, 1),
+            "classes": tf.random.uniform((2, 3), 0, 1),
+        }
 
         layer = MixUp()
         # mixup on labels
@@ -42,7 +45,8 @@ class MixUpTest(tf.test.TestCase):
 
         self.assertEqual(xs.shape, [2, 512, 512, 3])
         self.assertEqual(ys_labels.shape, [2, 10])
-        self.assertEqual(ys_bounding_boxes.shape, [2, 6, 5])
+        self.assertEqual(ys_bounding_boxes['boxes'].shape, [2, 6, 4])
+        self.assertEqual(ys_bounding_boxes['classes'].shape, [2, 6])
 
     def test_mix_up_call_results(self):
         xs = tf.cast(
