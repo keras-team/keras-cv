@@ -154,13 +154,13 @@ class RetinaNetLabelEncoder(layers.Layer):
         )
         return label
 
-    def call(self, images, gt_boxes, gt_classes):
+    def call(self, images, boxes, classes):
         """Creates box and classification targets for a batch
 
         Args:
           images: a batched [batch_size, H, W, C] image float `tf.Tensor`.
-          gt_boxes: a batched [batch_size, num_objects, 4] or ragged batch float ground truth boxes in `bounding_box_format`.
-          gt_classes: a batched [batch_size, num_objects] or ragged batch float ground truth classes.
+          boxes: a batched [batch_size, num_objects, 4] or ragged batch float ground truth boxes in `bounding_box_format`.
+          classes: a batched [batch_size, num_objects] or ragged batch float ground truth classes.
         """
         if isinstance(images, tf.RaggedTensor):
             raise ValueError(
@@ -168,8 +168,8 @@ class RetinaNetLabelEncoder(layers.Layer):
                 "support RaggedTensor inputs for the `images` argument.  Received "
                 f"`type(images)={type(images)}`."
             )
-        gt_boxes = tf.cast(gt_boxes, self.dtype)
-        gt_classes = tf.cast(gt_classes, self.dtype)
+        gt_boxes = tf.cast(boxes, self.dtype)
+        gt_classes = tf.cast(classes, self.dtype)
 
         gt_boxes = bounding_box.convert_format(
             gt_boxes, source=self.bounding_box_format, target="xywh", images=images
