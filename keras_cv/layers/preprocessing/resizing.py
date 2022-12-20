@@ -15,6 +15,7 @@
 import tensorflow as tf
 
 import keras_cv.utils
+from keras_cv import bounding_box
 from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
     BaseImageAugmentationLayer,
 )
@@ -113,7 +114,11 @@ class Resizing(BaseImageAugmentationLayer):
             inputs["images"] = images
 
         if bounding_boxes is not None:
-            bounding_boxes = tf.expand_dims(bounding_boxes, axis=0)
+            bounding_boxes = bounding_boxes.copy()
+            bounding_boxes["classes"] = tf.expand_dims(
+                bounding_boxes["classes"], axis=0
+            )
+            bounding_boxes["boxes"] = tf.expand_dims(bounding_boxes["boxes"], axis=0)
             inputs["bounding_boxes"] = bounding_boxes
 
         outputs = self._batch_augment(inputs)
@@ -123,8 +128,14 @@ class Resizing(BaseImageAugmentationLayer):
             inputs["images"] = images
 
         if bounding_boxes is not None:
-            bounding_boxes = tf.squeeze(outputs["bounding_boxes"], axis=0)
-            inputs["bounding_boxes"] = bounding_boxes
+            outputs["bounding_boxes"]["classes"] = tf.squeeze(
+                outputs["bounding_boxes"]["classes"], axis=0
+            )
+            outputs["bounding_boxes"]["boxes"] = tf.squeeze(
+                outputs["bounding_boxes"]["boxes"], axis=0
+            )
+            inputs["bounding_boxes"] = outputs["bounding_boxes"]
+
         return inputs
 
     def _resize_with_distortion(self, inputs):
@@ -150,9 +161,7 @@ class Resizing(BaseImageAugmentationLayer):
             img_height = tf.cast(img_size[H_AXIS], self.compute_dtype)
             img_width = tf.cast(img_size[W_AXIS], self.compute_dtype)
             if bounding_boxes is not None:
-                if isinstance(bounding_boxes, tf.RaggedTensor):
-                    bounding_boxes = bounding_boxes.to_tensor(-1)
-
+                bounding_boxes = bounding_box.to_dense(bounding_boxes)
                 bounding_boxes = keras_cv.bounding_box.convert_format(
                     bounding_boxes,
                     image_shape=img_size,
