@@ -170,25 +170,23 @@ class RandomShear(BaseImageAugmentationLayer):
             dtype=self.compute_dtype,
         )
         x, y = transformation
-        extended_bboxes, rest_axes = self._convert_to_extended_corners_format(
-            bounding_boxes
+        extended_boxes = self._convert_to_extended_corners_format(
+            bounding_boxes["boxes"]
         )
         if x is not None:
-            extended_bboxes = self._apply_horizontal_transformation_to_bounding_box(
-                extended_bboxes, x
+            extended_boxes = self._apply_horizontal_transformation_to_bounding_box(
+                extended_boxes, x
             )
         # apply vertical shear
         if y is not None:
-            extended_bboxes = self._apply_vertical_transformation_to_bounding_box(
-                extended_bboxes, y
+            extended_boxes = self._apply_vertical_transformation_to_bounding_box(
+                extended_boxes, y
             )
 
-        bounding_boxes = self._convert_to_four_coordinate(extended_bboxes, x, y)
+        boxes = self._convert_to_four_coordinate(boxes, x, y)
         # join rest of the axes with bbox axes
-        bounding_boxes = tf.concat(
-            [bounding_boxes, rest_axes],
-            axis=-1,
-        )
+        bounding_boxes = bounding_boxes.copy()
+        bounding_boxes["boxes"] = boxes
         bounding_boxes = bounding_box.clip_to_image(
             bounding_boxes, images=image, bounding_box_format="rel_xyxy"
         )
@@ -307,14 +305,12 @@ class RandomShear(BaseImageAugmentationLayer):
         return transformed_bboxes
 
     @staticmethod
-    def _convert_to_extended_corners_format(bounding_boxes):
-        """splits corner bboxes top left,bottom right to 4 corners top left,
+    def _convert_to_extended_corners_format(boxes):
+        """splits corner boxes top left,bottom right to 4 corners top left,
         bottom right,top right and bottom left"""
-        x1, y1, x2, y2, rest = tf.split(
-            bounding_boxes, [1, 1, 1, 1, bounding_boxes.shape[-1] - 4], axis=-1
-        )
-        new_bboxes = tf.concat(
+        x1, y1, x2, y2 = tf.split(boxes, [1, 1, 1, 1], axis=-1)
+        new_boxes = tf.concat(
             [x1, y1, x2, y2, x2, y1, x1, y2],
             axis=-1,
         )
-        return new_bboxes, rest
+        return new_boxes
