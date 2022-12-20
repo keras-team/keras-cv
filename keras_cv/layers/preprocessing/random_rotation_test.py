@@ -80,24 +80,34 @@ class RandomRotationTest(tf.test.TestCase):
 
     def test_ragged_bounding_boxes(self):
         input_image = np.random.random((2, 512, 512, 3)).astype(np.float32)
-        bboxes = tf.ragged.constant(
-            [
-                [[200, 200, 400, 400], [100, 100, 300, 300]],
-                [[200, 200, 400, 400]],
-            ],
-            dtype=tf.float32,
-        )
-        bboxes = bounding_box.add_class_id(bboxes)
-        input = {"images": input_image, "bounding_boxes": bboxes}
+        bounding_boxes = {
+            'boxes': tf.ragged.constant(
+                [
+                    [[200, 200, 400, 400], [100, 100, 300, 300]],
+                    [[200, 200, 400, 400]],
+                ],
+                dtype=tf.float32,
+            ),
+            'classes': tf.ragged.constant([[0, 0,], [0]], dtype=tf.float32)
+        }
+        input = {"images": input_image, "bounding_boxes": bounding_boxes}
         layer = RandomRotation(factor=(0.5, 0.5), bounding_box_format="xyxy")
         output = layer(input)
-        expected_output = tf.ragged.constant(
-            [
-                [[112.0, 112.0, 312.0, 312.0, 0], [212.0, 212.0, 412.0, 412.0, 0]],
-                [[112.0, 112.0, 312.0, 312.0, 0]],
-            ],
-        )
-        self.assertAllClose(expected_output, output["bounding_boxes"])
+        expected_output = {
+            'boxes': tf.ragged.constant(
+                [
+                    [[112.0, 112.0, 312.0, 312.0], [212.0, 212.0, 412.0, 412.0]],
+                    [[112.0, 112.0, 312.0, 312.0]],
+                ],
+                dtype=tf.float32,
+            ),
+            'classes': tf.ragged.constant([[0, 0,], [0]], dtype=tf.float32)
+        }
+        expected_output = bounding_box.to_dense(expected_output)
+        output['bounding_boxes'] = bounding_box.to_dense(output["bounding_boxes"])
+
+        self.assertAllClose(expected_output['boxes'], output["bounding_boxes"]['boxes'])
+        self.assertAllClose(expected_output['classes'], output["bounding_boxes"]['classes'])
 
     def test_augment_sparse_segmentation_mask(self):
         classes = 8
