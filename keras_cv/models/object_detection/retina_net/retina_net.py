@@ -168,7 +168,6 @@ class RetinaNet(ObjectDetectionBaseModel):
             output_filters=9 * 4, bias_initializer="zeros"
         )
 
-        self._metrics_bounding_box_format = None
         self.loss_metric = tf.keras.metrics.Mean(name="loss")
         self.classification_loss_metric = tf.keras.metrics.Mean(
             name="classification_loss"
@@ -178,7 +177,6 @@ class RetinaNet(ObjectDetectionBaseModel):
             name="regularization_loss"
         )
 
-        self._includes_custom_metrics = False
         # Construct should run in eager mode
         if any(
             self.prediction_decoder.box_variance.numpy()
@@ -281,7 +279,6 @@ class RetinaNet(ObjectDetectionBaseModel):
         box_loss=None,
         classification_loss=None,
         loss=None,
-        metrics=None,
         **kwargs,
     ):
         """compiles the RetinaNet.
@@ -302,7 +299,9 @@ class RetinaNet(ObjectDetectionBaseModel):
             kwargs: most other `keras.Model.compile()` arguments are supported and
                 propagated to the `keras.Model` class.
         """
-        super().compile(metrics=metrics, **kwargs)
+        if "metrics" in kwargs.keys():
+            raise ValueError("currently metrics support is not supported intentionally")
+        super().compile(**kwargs)
         if loss is not None:
             raise ValueError(
                 "`RetinaNet` does not accept a `loss` to `compile()`. "
@@ -311,9 +310,6 @@ class RetinaNet(ObjectDetectionBaseModel):
             )
         box_loss = _parse_box_loss(box_loss)
         classification_loss = _parse_classification_loss(classification_loss)
-        metrics = metrics or []
-        if len(metrics) > 0:
-            self._includes_custom_metrics = True
 
         if hasattr(classification_loss, "from_logits"):
             if not classification_loss.from_logits:
@@ -335,30 +331,11 @@ class RetinaNet(ObjectDetectionBaseModel):
         self.box_loss = box_loss
         self.classification_loss = classification_loss
 
-        if len(metrics) != 0:
-            self._metrics_bounding_box_format = metrics[0].bounding_box_format
-        else:
-            self._metrics_bounding_box_format = self.bounding_box_format
-
-        any_wrong_format = any(
-            [
-                m.bounding_box_format != self._metrics_bounding_box_format
-                for m in metrics
-            ]
-        )
-        if metrics and any_wrong_format:
+    def compute_losses(self, gt_boxes, gt_classes, y_pred):
+        if gt_boxes.shape[-1] != 4:
             raise ValueError(
-                "All metrics passed to RetinaNet.compile() must have "
-                "the same `bounding_box_format` attribute.  For example, if one metric "
-                "uses 'xyxy', all other metrics must use 'xyxy'.  Received "
-                f"metrics={metrics}."
-            )
-
-    def compute_losses(self, y_true, y_pred):
-        if y_true.shape[-1] != 5:
-            raise ValueError(
-                "y_true should have shape (None, None, 5).  Got "
-                f"y_true.shape={tuple(y_true.shape)}"
+                "gt_boxes should have shape (None, None, 4).  Got "
+                f"gt_boxes.shape={tuple(gt_boxes.shape)}"
             )
 
         if y_pred.shape[-1] != self.classes + 4:
@@ -368,21 +345,20 @@ class RetinaNet(ObjectDetectionBaseModel):
                 "parameter match your losses `classes` parameter?"
             )
 
-        box_labels = y_true[:, :, :4]
         box_predictions = y_pred[:, :, :4]
 
         cls_labels = tf.one_hot(
-            tf.cast(y_true[:, :, 4], dtype=tf.int32),
+            tf.cast(gt_classes, dtype=tf.int32),
             depth=self.classes,
             dtype=tf.float32,
         )
         cls_predictions = y_pred[:, :, 4:]
 
-        positive_mask = tf.cast(tf.greater(y_true[:, :, 4], -1.0), dtype=tf.float32)
-        ignore_mask = tf.cast(tf.equal(y_true[:, :, 4], -2.0), dtype=tf.float32)
+        positive_mask = tf.cast(tf.greater(gt_classes, -1.0), dtype=tf.float32)
+        ignore_mask = tf.cast(tf.equal(gt_classes, -2.0), dtype=tf.float32)
 
         classification_loss = self.classification_loss(cls_labels, cls_predictions)
-        box_loss = self.box_loss(box_labels, box_predictions)
+        box_loss = self.box_loss(gt_boxes, box_predictions)
         if len(classification_loss.shape) != 2:
             raise ValueError(
                 "RetinaNet expects the output shape of `classification_loss` to be "
@@ -433,9 +409,10 @@ class RetinaNet(ObjectDetectionBaseModel):
 
         return classification_loss, box_loss
 
-    def _backward(self, y_true, y_pred):
+    def _backward(self, gt_boxes, gt_classes, y_pred):
         classification_loss, box_loss = self.compute_losses(
-            y_true,
+            gt_boxes,
+            gt_classes,
             y_pred,
         )
         regularization_loss = 0.0
@@ -457,11 +434,12 @@ class RetinaNet(ObjectDetectionBaseModel):
 
     def train_step(self, data):
         x, y = data
-        y_for_metrics, y_training_target = y
+        gt_boxes = y["boxes"]
+        gt_classes = y["classes"]
 
         with tf.GradientTape() as tape:
             y_pred = self(x, training=True)
-            loss = self._backward(y_training_target, y_pred)
+            loss = self._backward(gt_boxes, gt_classes, y_pred)
         # Training specific code
         trainable_vars = self.trainable_variables
         gradients = tape.gradient(loss, trainable_vars)
@@ -471,32 +449,12 @@ class RetinaNet(ObjectDetectionBaseModel):
 
     def test_step(self, data):
         x, y = data
-        y_for_metrics, y_training_target = y
+        gt_boxes = y["boxes"]
+        gt_classes = y["classes"]
         y_pred = self(x, training=False)
-        _ = self._backward(y_training_target, y_pred)
+        _ = self._backward(gt_boxes, gt_classes, y_pred)
 
-        # Early exit for no custom metrics
-        if not self._includes_custom_metrics:
-            # To minimize GPU transfers, we update metrics AFTER we take grads and apply
-            # them.
-            return {m.name: m.result() for m in self.train_metrics}
-
-        predictions = self.decode_predictions(y_pred, x)
-        self._update_metrics(y_for_metrics, predictions)
-        return {m.name: m.result() for m in self.metrics}
-
-    def _update_metrics(self, y_true, y_pred):
-        y_true = bounding_box.convert_format(
-            y_true,
-            source=self.bounding_box_format,
-            target=self._metrics_bounding_box_format,
-        )
-        y_pred = bounding_box.convert_format(
-            y_pred,
-            source=self.bounding_box_format,
-            target=self._metrics_bounding_box_format,
-        )
-        self.compiled_metrics.update_state(y_true, y_pred)
+        return {m.name: m.result() for m in self.train_metrics}
 
 
 def _parse_backbone(backbone, include_rescaling, backbone_weights):

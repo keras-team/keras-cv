@@ -26,7 +26,7 @@ def iou_3d(y_true, y_pred):
     KerasCV installed with custom ops, calling this will fail.
 
     Boxes should have the format CENTER_XYZ_DXDYDZ_PHI. Refer to
-    https://github.com/keras-team/keras-cv/blob/master/keras_cv/bounding_box/formats.py
+    https://github.com/keras-team/keras-cv/blob/master/keras_cv/bounding_box_3d/formats.py
     for more details on supported bounding box formats.
 
     Sample Usage:
