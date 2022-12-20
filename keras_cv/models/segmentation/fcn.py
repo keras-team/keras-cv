@@ -70,4 +70,14 @@ def fcn16(n_classes):
     model = tf.keras.Model(inputs = vgg.inputs, outputs = x1)
     return model
 
+def fcn32(num_classes):
+    vgg_layer_pool_5, vgg = get_vgg_layers("block5_pool", (224,224,3))
+    x = tf.keras.layers.Conv2D(4096, (7,7), activation='relu', padding='same')(vgg_layer_pool_5)
+    x = tf.keras.layers.Dropout(0.5)(x)
+    x = tf.keras.layers.Conv2D(4096, (1,1), activation='relu', padding='same')(x)
+    x = tf.keras.layers.Dropout(0.5)(x)
+    x = tf.keras.layers.Conv2D(num_classes, (1,1), activation='relu', padding='same')(x)
+    x = tf.keras.layers.Conv2DTranspose(num_classes, kernel_size=(64, 64),  strides=(32, 32), use_bias=False)(x)
+    model = tf.keras.Model(inputs = vgg.inputs, outputs = x)
+    return model
     
