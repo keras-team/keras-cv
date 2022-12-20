@@ -14,5 +14,21 @@
 
 import tensorflow as tf
 
-from keras_cv.models.cgg16 import VGG16
+from keras_cv.models.vgg16 import VGG16
 from keras_cv.models.weights import parse_weights
+
+
+def get_vgg_layers(upsampling_factor):
+    vgg16 = VGG16(include_rescaling=False, include_top='False', input_shape=(224,224,3))
+    if upsampling_factor==32:
+        return vgg16.get_layer('block5_pool').output
+    elif upsampling_factor==16:
+        return vgg16.get_layer('block4_pool').output
+    elif upsampling_factor==8:
+        return vgg16.get_layer('block3_pool').output
+    else:
+        raise ValueError(
+            "The `upsampling_factor` should be either 32, 16 or 8"
+        )
+
+    
