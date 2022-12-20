@@ -21,7 +21,7 @@ class FusedMBConvBlockTest(tf.test.TestCase):
         inputs = tf.random.normal(shape=(1, 64, 64, 32), dtype=tf.float32)
         layer = FusedMBConvBlock(input_filters=32, output_filters=32)
 
-        output = layer(inputs)
+        output = layer(inputs, training=True)
         self.assertEquals(output.shape, [1, 64, 64, 32])
         self.assertLen(output, 1)
         self.assertTrue(isinstance(output, tf.Tensor))
@@ -30,7 +30,7 @@ class FusedMBConvBlockTest(tf.test.TestCase):
         inputs = tf.random.normal(shape=(1, 64, 64, 32), dtype=tf.float32)
         layer = FusedMBConvBlock(input_filters=32, output_filters=48)
 
-        output = layer(inputs)
+        output = layer(inputs, training=True)
         self.assertEquals(output.shape, [1, 64, 64, 48])
         self.assertLen(output, 1)
         self.assertTrue(isinstance(output, tf.Tensor))
@@ -39,7 +39,7 @@ class FusedMBConvBlockTest(tf.test.TestCase):
         inputs = tf.random.normal(shape=(1, 64, 64, 32), dtype=tf.float32)
         layer = FusedMBConvBlock(input_filters=32, output_filters=48, se_ratio=0.25)
 
-        output = layer(inputs)
+        output = layer(inputs, training=True)
         self.assertEquals(output.shape, [1, 64, 64, 48])
         self.assertLen(output, 1)
         self.assertTrue(isinstance(output, tf.Tensor))
