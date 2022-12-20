@@ -18,17 +18,41 @@ from keras_cv.models.vgg16 import VGG16
 from keras_cv.models.weights import parse_weights
 
 
-def get_vgg_layers(upsampling_factor):
+def get_vgg_layers(block_name, input_shape):
     vgg16 = VGG16(include_rescaling=False, include_top='False', input_shape=(224,224,3))
-    if upsampling_factor==32:
-        return vgg16.get_layer('block5_pool').output
-    elif upsampling_factor==16:
-        return vgg16.get_layer('block4_pool').output
-    elif upsampling_factor==8:
-        return vgg16.get_layer('block3_pool').output
-    else:
-        raise ValueError(
-            "The `upsampling_factor` should be either 32, 16 or 8"
-        )
+    return vgg16.get_layer(f"{block_name}").output, vgg16
 
+def fcn8(n_classes):
+    vgg_layer_pool_3, vgg = get_vgg_layers("block3_pool", (224,224,3))
+    vgg_layer_pool_4, vgg = get_vgg_layers("block4_pool", (224,224,3))
+    vgg_layer_pool_5, vgg = get_vgg_layers("block5_pool", (224,224,3))
+
+    x1 = vgg_layer_pool_5
+    x1 = tf.keras.layers.Conv2D(4096, (7,7), activation='relu', padding='same')(x1)
+    x1 = tf.keras.layers.Dropout(0.5)(x1)
+    x1 = tf.keras.layers.Conv2D(4096, (1, 1), activation='relu',padding='same')(x1)
+    x1 = tf.keras.layers.Dropout(0.5)(x1)
+    x1 = tf.keras.layers.Conv2D(n_classes,  (1, 1), kernel_initializer='he_normal')(x1)
+    x1 = tf.keras.layers.Conv2DTranspose(n_classes, kernel_size=(4, 4),  strides=(2, 2), use_bias=False)(x1)
+
+    x2 = vgg_layer_pool_4
+    x2 = tf.keras.layers.Conv2D(n_classes,  (1, 1), kernel_initializer='he_normal')(x2)
+
+    x1 = tf.keras.layers.Add()([x1, x2])
+    x1 = tf.keras.layers.Conv2DTranspose(n_classes, kernel_size=(4, 4),  strides=(2, 2), use_bias=False)(x1)
+
+    x2 = vgg_layer_pool_3
+    x2 = tf.keras.layers.Conv2D(n_classes,  (1, 1), kernel_initializer='he_normal')(x2)
+
+    x1 = tf.keras.layers.Add()([x2, x1])
+    x1 = tf.keras.layers.Conv2DTranspose(n_classes, kernel_size=(16, 16),  strides=(8, 8), use_bias=False)(x1)
+
+    model = tf.keras.Model(inputs = vgg.inputs, outputs = x)
+    return model
+
+def fcn16():
+    pass
+
+def fcn32():
+    pass
     
