@@ -46,6 +46,7 @@ TEST_CONFIGURATIONS = [
         layers.Posterization,
         {"bits": 3, "value_range": (0, 255)},
     ),
+    ("RandomBrightness", layers.RandomBrightness, {"factor": 0.5}),
     (
         "RandomColorDegeneration",
         layers.RandomColorDegeneration,
@@ -112,6 +113,11 @@ TEST_CONFIGURATIONS = [
             "scale_factor": (0.8, 1.25),
             "bounding_box_format": "xywh",
         },
+    ),
+    (
+        "RandomZoom",
+        layers.RandomZoom,
+        {"height_factor": 0.2, "width_factor": 0.5},
     ),
     (
         "RandomCrop",
