@@ -16,6 +16,18 @@ import tensorflow as tf
 from keras_cv.bounding_box import validate
 
 
+def _box_shape(batched, max_boxes):
+    if batched:
+        return [None, max_boxes, 4]
+    return [max_boxes, 4]
+
+
+def _classes_shape(batched, max_boxes):
+    if batched:
+        return [None, max_boxes]
+    return [max_boxes]
+
+
 def to_dense(bounding_boxes, max_boxes=None):
     """to_dense converts bounding boxes to Dense tensors
 
@@ -33,12 +45,12 @@ def to_dense(bounding_boxes, max_boxes=None):
 
     if isinstance(bounding_boxes["classes"], tf.RaggedTensor):
         bounding_boxes["classes"] = bounding_boxes["classes"].to_tensor(
-            -1, shape=[None, max_boxes]
+            -1, shape=_classes_shape(info["is_batched"], max_boxes)
         )
 
     if isinstance(bounding_boxes["boxes"], tf.RaggedTensor):
         bounding_boxes["boxes"] = bounding_boxes["boxes"].to_tensor(
-            -1, shape=[None, max_boxes, 4]
+            -1, shape=_box_shape(info["is_batched"], max_boxes)
         )
 
     return bounding_boxes
