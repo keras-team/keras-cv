@@ -27,6 +27,7 @@ from absl import flags
 from tensorflow import keras
 
 import keras_cv
+from keras_cv import bounding_box
 from keras_cv import layers
 
 low, high = resource.getrlimit(resource.RLIMIT_NOFILE)
@@ -152,18 +153,16 @@ def unpackage_inputs(data):
 train_ds = train_ds.map(unpackage_inputs, num_parallel_calls=tf.data.AUTOTUNE)
 eval_ds = eval_ds.map(unpackage_inputs, num_parallel_calls=tf.data.AUTOTUNE)
 
-<<<<<<< HEAD
 
 # TODO(lukewood): the boxes loses shape from KPL, so need to pad to a known shape.
 def pad_fn(image, boxes):
-    return image, boxes.to_tensor(default_value=-1.0, shape=[GLOBAL_BATCH_SIZE, 32, 5])
+    return image, bounding_box.to_dense(boxes, max_boxes=32)
 
 
 train_ds = train_ds.map(pad_fn, num_parallel_calls=tf.data.AUTOTUNE)
 eval_ds = eval_ds.map(pad_fn, num_parallel_calls=tf.data.AUTOTUNE)
 
-=======
->>>>>>> f594c8c (Add RetinaNet update)
+
 with strategy.scope():
     model = keras_cv.models.RetinaNet(
         # number of classes to be used in box classification
@@ -195,8 +194,8 @@ model.compile(
 
 callbacks = [
     keras.callbacks.TensorBoard(log_dir="logs"),
-    keras.callbacks.ReduceLROnPlateau(monitor='loss', patience=5),
-    keras.callbacks.EarlyStopping(monitor='loss', patience=10),
+    keras.callbacks.ReduceLROnPlateau(monitor="loss", patience=5),
+    keras.callbacks.EarlyStopping(monitor="loss", patience=10),
     keras.callbacks.ModelCheckpoint(CHECKPOINT_PATH, save_weights_only=True),
 ]
 
