@@ -62,11 +62,6 @@ class StableDiffusionBase:
 
         self.jit_compile = jit_compile
 
-        print(
-            "By using this model checkpoint, you acknowledge that its usage is "
-            "subject to the terms of the CreativeML Open RAIL-M license at "
-            "https://raw.githubusercontent.com/CompVis/stable-diffusion/main/LICENSE"
-        )
 
     def text_to_image(
         self,
