@@ -183,14 +183,12 @@ class RandomShear(BaseImageAugmentationLayer):
                 extended_boxes, y
             )
 
-        boxes = self._convert_to_four_coordinate(boxes, x, y)
-        # join rest of the axes with bbox axes
+        boxes = self._convert_to_four_coordinate(extended_boxes, x, y)
         bounding_boxes = bounding_boxes.copy()
         bounding_boxes["boxes"] = boxes
         bounding_boxes = bounding_box.clip_to_image(
             bounding_boxes, images=image, bounding_box_format="rel_xyxy"
         )
-        # convert to universal output format
         bounding_boxes = keras_cv.bounding_box.convert_format(
             bounding_boxes,
             source="rel_xyxy",
