@@ -38,50 +38,8 @@ from keras_cv.models.stable_diffusion.text_encoder import TextEncoder, TextEncod
 MAX_PROMPT_LENGTH = 77
 
 
-class StableDiffusion:
-    """Keras implementation of Stable Diffusion.
-     
-    Note that the StableDiffusion API, as well as the APIs of the sub-components
-    of StableDiffusion (e.g. ImageEncoder, DiffusionModel) should be considered
-    unstable at this point. We do not guarantee backwards compatability for
-    future changes to these APIs.
-    
-    Stable Diffusion is a powerful image generation model that can be used,
-    among other things, to generate pictures according to a short text description
-    (called a "prompt").
-    
-    Arguments:
-        img_height: Height of the images to generate, in pixel. Note that only
-            multiples of 128 are supported; the value provided will be rounded
-            to the nearest valid value. Default: 512.
-        img_width: Width of the images to generate, in pixel. Note that only
-            multiples of 128 are supported; the value provided will be rounded
-            to the nearest valid value. Default: 512.
-        jit_compile: Whether to compile the underlying models to XLA.
-            This can lead to a significant speedup on some systems. Default: False.
-            
-    Example:
-    
-    ```python
-    from keras_cv.models import StableDiffusion
-    from PIL import Image
-    
-    model = StableDiffusion(img_height=512, img_width=512, jit_compile=True)
-    img = model.text_to_image(
-        prompt="A beautiful horse running through a field",
-        batch_size=1,  # How many images to generate at once
-        num_steps=25,  # Number of iterations (controls image quality)
-        seed=123,  # Set this to always get the same image from the same prompt
-    )
-    Image.fromarray(img[0]).save("horse.png")
-    print("saved at horse.png")
-    ```
-    
-    References:
-    - [About Stable Diffusion](https://stability.ai/blog/stable-diffusion-announcement)
-    - [Original implementation](https://github.com/CompVis/stable-diffusion)
-    """
-
+class StableDiffusionBase:
+    """Base class for stable diffusion and stable diffusion v2 model."""
     def __init__(
         self,
         img_height=512,
@@ -435,28 +393,11 @@ class StableDiffusion:
 
     @property
     def text_encoder(self):
-        """text_encoder returns the text encoder with pretrained weights.
-        Can be overriden for tasks like textual inversion where the text encoder
-        needs to be modified.
-        """
-        if self._text_encoder is None:
-            self._text_encoder = TextEncoder(MAX_PROMPT_LENGTH)
-            if self.jit_compile:
-                self._text_encoder.compile(jit_compile=True)
-        return self._text_encoder
+        pass
 
     @property
     def diffusion_model(self):
-        """diffusion_model returns the diffusion model with pretrained weights.
-        Can be overriden for tasks where the diffusion model needs to be modified.
-        """
-        if self._diffusion_model is None:
-            self._diffusion_model = DiffusionModel(
-                self.img_height, self.img_width, MAX_PROMPT_LENGTH
-            )
-            if self.jit_compile:
-                self._diffusion_model.compile(jit_compile=True)
-        return self._diffusion_model
+        pass
 
     @property
     def decoder(self):
@@ -510,8 +451,95 @@ class StableDiffusion:
         return tf.convert_to_tensor([list(range(MAX_PROMPT_LENGTH))], dtype=tf.int32)
 
 
+    
+    
+class StableDiffusion(StableDiffusionBase):
+    """Keras implementation of Stable Diffusion.
+     
+    Note that the StableDiffusion API, as well as the APIs of the sub-components
+    of StableDiffusion (e.g. ImageEncoder, DiffusionModel) should be considered
+    unstable at this point. We do not guarantee backwards compatability for
+    future changes to these APIs.
+    
+    Stable Diffusion is a powerful image generation model that can be used,
+    among other things, to generate pictures according to a short text description
+    (called a "prompt").
+    
+    Arguments:
+        img_height: Height of the images to generate, in pixel. Note that only
+            multiples of 128 are supported; the value provided will be rounded
+            to the nearest valid value. Default: 512.
+        img_width: Width of the images to generate, in pixel. Note that only
+            multiples of 128 are supported; the value provided will be rounded
+            to the nearest valid value. Default: 512.
+        jit_compile: Whether to compile the underlying models to XLA.
+            This can lead to a significant speedup on some systems. Default: False.
+            
+    Example:
+    
+    ```python
+    from keras_cv.models import StableDiffusion
+    from PIL import Image
+    
+    model = StableDiffusion(img_height=512, img_width=512, jit_compile=True)
+    img = model.text_to_image(
+        prompt="A beautiful horse running through a field",
+        batch_size=1,  # How many images to generate at once
+        num_steps=25,  # Number of iterations (controls image quality)
+        seed=123,  # Set this to always get the same image from the same prompt
+    )
+    Image.fromarray(img[0]).save("horse.png")
+    print("saved at horse.png")
+    ```
+    
+    References:
+    - [About Stable Diffusion](https://stability.ai/blog/stable-diffusion-announcement)
+    - [Original implementation](https://github.com/CompVis/stable-diffusion)
+    """
 
-class StableDiffusionV2(StableDiffusion):
+    def __init__(
+        self,
+        img_height=512,
+        img_width=512,
+        jit_compile=False,
+    ):
+        super().__init__(img_height, img_width, jit_compile)
+        print(
+            "By using this model checkpoint, you acknowledge that its usage is "
+            "subject to the terms of the CreativeML Open RAIL-M license at "
+            "https://raw.githubusercontent.com/CompVis/stable-diffusion/main/LICENSE"
+        )
+        
+        
+    @property
+    def text_encoder(self):
+        """text_encoder returns the text encoder with pretrained weights.
+        Can be overriden for tasks like textual inversion where the text encoder
+        needs to be modified.
+        """
+        if self._text_encoder is None:
+            self._text_encoder = TextEncoder(MAX_PROMPT_LENGTH)
+            if self.jit_compile:
+                self._text_encoder.compile(jit_compile=True)
+        return self._text_encoder
+
+    @property
+    def diffusion_model(self):
+        """diffusion_model returns the diffusion model with pretrained weights.
+        Can be overriden for tasks where the diffusion model needs to be modified.
+        """
+        if self._diffusion_model is None:
+            self._diffusion_model = DiffusionModel(
+                self.img_height, self.img_width, MAX_PROMPT_LENGTH
+            )
+            if self.jit_compile:
+                self._diffusion_model.compile(jit_compile=True)
+        return self._diffusion_model
+    
+    
+    
+        
+class StableDiffusionV2(StableDiffusionBase):
     """Keras implementation of Stable Diffusion v2.
     
     Note that the StableDiffusion API, as well as the APIs of the sub-components
