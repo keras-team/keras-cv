@@ -165,8 +165,8 @@ WEIGHTS_CONFIG = {
         "imagenet/classification-v0-notop": "8d0111eda6692096676a5453abfec5d04c79e2de184b04627b295f10b1949745",
     },
     "vitb16": {
-        "imagenet/classification-v0": "",
-        "imagenet/classification-v0-notop": "",
+        "imagenet/classification-v0": "6ab4e08c773e08de42023d963a97e905ccba710e2c05ef60c0971978d4a8c41b",
+        "imagenet/classification-v0-notop": "4a1bdd32889298471cb4f30882632e5744fd519bf1a1525b1fa312fe4ea775ed",
     },
     "vitl16": {
         "imagenet/classification-v0": "5a98000f848f2e813ea896b2528983d8d956f8c4b76ceed0b656219d5b34f7fb",
