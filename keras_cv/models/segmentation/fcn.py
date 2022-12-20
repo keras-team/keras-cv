@@ -47,12 +47,27 @@ def fcn8(n_classes):
     x1 = tf.keras.layers.Add()([x2, x1])
     x1 = tf.keras.layers.Conv2DTranspose(n_classes, kernel_size=(16, 16),  strides=(8, 8), use_bias=False)(x1)
 
-    model = tf.keras.Model(inputs = vgg.inputs, outputs = x)
+    model = tf.keras.Model(inputs = vgg.inputs, outputs = x1)
     return model
 
-def fcn16():
-    pass
+def fcn16(n_classes):
+    vgg_layer_pool_4, vgg = get_vgg_layers("block4_pool", (224,224,3))
+    vgg_layer_pool_5, vgg = get_vgg_layers("block5_pool", (224,224,3))
 
-def fcn32():
-    pass
+    x1 = vgg_layer_pool_5
+    x1 = tf.keras.layers.Conv2D(4096, (7,7), activation='relu', padding='same')(x1)
+    x1 = tf.keras.layers.Dropout(0.5)(x1)
+    x1 = tf.keras.layers.Conv2D(4096, (1, 1), activation='relu',padding='same')(x1)
+    x1 = tf.keras.layers.Dropout(0.5)(x1)
+    x1 = tf.keras.layers.Conv2D(n_classes,  (1, 1), kernel_initializer='he_normal')(x1)
+    x1 = tf.keras.layers.Conv2DTranspose(n_classes, kernel_size=(4, 4),  strides=(2, 2), use_bias=False)(x1)
+
+    x2 = vgg_layer_pool_4
+    x2 = tf.keras.layers.Conv2D(n_classes,  (1, 1), kernel_initializer='he_normal')(x2)
+
+    x1 = tf.keras.layers.Add()([x1, x2])
+    x1 = tf.keras.layers.Conv2DTranspose(n_classes, kernel_size=(32, 32),  strides=(16, 16), use_bias=False)(x1)
+    model = tf.keras.Model(inputs = vgg.inputs, outputs = x1)
+    return model
+
     
