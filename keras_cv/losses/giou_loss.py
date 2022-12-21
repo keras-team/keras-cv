@@ -130,7 +130,12 @@ class GIoULoss(tf.keras.losses.Loss):
         else:
             return tf.vectorized_map(compute_giou_for_batch, elems=(boxes1, boxes2))
 
-    def call(self, y_true, y_pred):
+    def call(self, y_true, y_pred, sample_weight=None):
+        if sample_weight is not None:
+            raise ValueError(
+                "GIoULoss does not support sample_weight. Please ensure that sample_weight=None."
+                f"got sample_weight={sample_weight}"
+            )
         y_pred = tf.convert_to_tensor(y_pred)
         y_true = tf.cast(y_true, y_pred.dtype)
 
