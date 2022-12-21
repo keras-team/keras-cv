@@ -16,8 +16,13 @@ import os
 import pytest
 import tensorflow as tf
 
-from keras_cv.datasets.waymo import load
-from keras_cv.datasets.waymo import transformer
+try:
+    from keras_cv.datasets.waymo import load
+    from keras_cv.datasets.waymo import transformer
+except ImportError:
+    # Waymo Open Dataset dependency may be missing, in which case we expect
+    # these tests will be skipped based on the TEST_WAYMO_DEPS environment var.
+    pass
 
 
 class WaymoOpenDatasetTransformerTest(tf.test.TestCase):
