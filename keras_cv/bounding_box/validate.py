@@ -49,8 +49,12 @@ def validate(bounding_boxes):
                 "on the first axis when operating in unbatched mode. "
                 f"Got `boxes.shape={boxes.shape}`, `classes.shape={classes.shape}`."
             )
+
+        info["classes_one_hot"] = len(classes.shape) == 2
         # No Ragged checks needed in unbatched mode.
         return info
+
+    info["classes_one_hot"] = len(classes.shape) == 3
 
     if isinstance(boxes, tf.RaggedTensor) != isinstance(classes, tf.RaggedTensor):
         raise ValueError(

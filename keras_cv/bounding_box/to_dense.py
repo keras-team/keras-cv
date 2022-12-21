@@ -17,15 +17,19 @@ from keras_cv.bounding_box import validate
 
 
 def _box_shape(batched, max_boxes):
+    if max_boxes is None:
+        return None
     if batched:
         return [None, max_boxes, 4]
     return [max_boxes, 4]
 
 
-def _classes_shape(batched, max_boxes):
+def _classes_shape(batched, classes_shape, max_boxes):
+    if max_boxes is None:
+        return None
     if batched:
-        return [None, max_boxes]
-    return [max_boxes]
+        return [None, max_boxes] + classes_shape[:2]
+    return [max_boxes] + classes_shape[:2]
 
 
 def to_dense(bounding_boxes, max_boxes=None):
@@ -44,8 +48,12 @@ def to_dense(bounding_boxes, max_boxes=None):
         return bounding_boxes
 
     if isinstance(bounding_boxes["classes"], tf.RaggedTensor):
+        print("classes", tf.shape(bounding_boxes["classes"]))
         bounding_boxes["classes"] = bounding_boxes["classes"].to_tensor(
-            -1, shape=_classes_shape(info["is_batched"], max_boxes)
+            -1,
+            shape=_classes_shape(
+                info["is_batched"], bounding_boxes["classes"].shape, max_boxes
+            ),
         )
 
     if isinstance(bounding_boxes["boxes"], tf.RaggedTensor):

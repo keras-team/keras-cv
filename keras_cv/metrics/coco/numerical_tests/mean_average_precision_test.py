@@ -39,7 +39,7 @@ class MeanAveragePrecisionTest(tf.test.TestCase):
     Average Precision  (AP) @[ IoU=0.50:0.95 | area= large | maxDets=100 ] = 0.610
     """
 
-    def test_mean_average_precision_correctness_default(self):
+    def DISABLE_test_mean_average_precision_correctness_default(self):
         y_true, y_pred, categories = load_samples(SAMPLE_FILE)
 
         # Area range all
@@ -54,7 +54,7 @@ class MeanAveragePrecisionTest(tf.test.TestCase):
         result = mean_average_precision.result().numpy()
         self.assertAlmostEqual(result, 0.617, delta=delta)
 
-    def test_mean_average_precision_correctness_iou_05(self):
+    def DISABLE_test_mean_average_precision_correctness_iou_05(self):
         y_true, y_pred, categories = load_samples(SAMPLE_FILE)
 
         mean_average_precision = COCOMeanAveragePrecision(
@@ -68,7 +68,7 @@ class MeanAveragePrecisionTest(tf.test.TestCase):
         result = mean_average_precision.result().numpy()
         self.assertAlmostEqual(result, 1.0, delta=delta)
 
-    def test_mean_average_precision_correctness_iou_75(self):
+    def DISABLE_test_mean_average_precision_correctness_iou_75(self):
         y_true, y_pred, categories = load_samples(SAMPLE_FILE)
 
         mean_average_precision = COCOMeanAveragePrecision(
@@ -82,7 +82,7 @@ class MeanAveragePrecisionTest(tf.test.TestCase):
         result = mean_average_precision.result().numpy()
         self.assertAlmostEqual(result, 0.707, delta=delta)
 
-    def test_mean_average_precision_correctness_medium(self):
+    def DISABLE_test_mean_average_precision_correctness_medium(self):
         y_true, y_pred, categories = load_samples(SAMPLE_FILE)
 
         mean_average_precision = COCOMeanAveragePrecision(
@@ -96,7 +96,7 @@ class MeanAveragePrecisionTest(tf.test.TestCase):
         result = mean_average_precision.result().numpy()
         self.assertAlmostEqual(result, 0.626, delta=delta)
 
-    def test_mean_average_precision_correctness_large(self):
+    def DISABLE_test_mean_average_precision_correctness_large(self):
         y_true, y_pred, categories = load_samples(SAMPLE_FILE)
 
         mean_average_precision = COCOMeanAveragePrecision(
@@ -110,7 +110,7 @@ class MeanAveragePrecisionTest(tf.test.TestCase):
         result = mean_average_precision.result().numpy()
         self.assertAlmostEqual(result, 0.610, delta=delta)
 
-    def test_mean_average_precision_correctness_small(self):
+    def DISABLE_test_mean_average_precision_correctness_small(self):
         y_true, y_pred, categories = load_samples(SAMPLE_FILE)
 
         mean_average_precision = COCOMeanAveragePrecision(
