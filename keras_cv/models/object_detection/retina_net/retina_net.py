@@ -19,9 +19,7 @@ from tensorflow import keras
 import keras_cv
 from keras_cv import bounding_box
 from keras_cv import layers as cv_layers
-from keras_cv.models.object_detection.object_detection_base_model import (
-    ObjectDetectionBaseModel,
-)
+from keras_cv.models.object_detection import predict_utils
 from keras_cv.models.object_detection.retina_net.__internal__ import (
     layers as layers_lib,
 )
@@ -30,7 +28,7 @@ from keras_cv.models.object_detection.retina_net.__internal__ import (
 # TODO(lukewood): update docstring to include documentation on creating a custom label
 # decoder/etc.
 # TODO(lukewood): link to keras.io guide on creating custom backbone and FPN.
-class RetinaNet(ObjectDetectionBaseModel):
+class RetinaNet(tf.keras.Model):
     """A Keras model implementing the RetinaNet architecture.
 
     Implements the RetinaNet architecture for object detection.  The constructor
@@ -188,6 +186,9 @@ class RetinaNet(ObjectDetectionBaseModel):
                 f"`prediction_decoder.box_variance={prediction_decoder.box_variance}`, "
                 f"`label_encoder.box_variance={label_encoder.box_variance}`."
             )
+
+    def make_predict_function(self, force=False):
+        return predict_utils.make_predict_function(self, force=force)
 
     @property
     def prediction_decoder(self):
