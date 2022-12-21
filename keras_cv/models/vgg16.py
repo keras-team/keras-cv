@@ -24,6 +24,7 @@ from tensorflow.keras import layers
 
 from keras_cv.models import utils
 
+
 def VGG16(
     include_rescaling,
     include_top,
@@ -143,14 +144,13 @@ def VGG16(
     )(x)
     x = layers.MaxPooling2D((2, 2), strides=(2, 2), name="block5_pool")(x)
 
-
     if include_top:
         x = layers.Flatten(name="flatten")(x)
         x = layers.Dense(4096, activation="relu", name="fc1")(x)
         x = layers.Dense(4096, activation="relu", name="fc2")(x)
-        x = layers.Dense(
-            classes, activation=classifier_activation, name="predictions"
-        )(x)
+        x = layers.Dense(classes, activation=classifier_activation, name="predictions")(
+            x
+        )
     else:
         if pooling == "avg":
             x = layers.GlobalAveragePooling2D()(x)
