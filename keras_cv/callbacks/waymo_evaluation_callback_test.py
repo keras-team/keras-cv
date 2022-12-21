@@ -78,4 +78,6 @@ class WaymoEvaluationCallbackTest(tf.test.TestCase):
                 return tf.reduce_mean(y_pred, axis=-1)
 
         model = tf.keras.Model(inputs=inputs, outputs=x)
-        model.compile(loss=BoxMSE())
+        model.compile(loss=MeanLoss())
+
+        return model
