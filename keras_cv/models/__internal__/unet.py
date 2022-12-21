@@ -14,7 +14,6 @@
 
 from tensorflow.keras import initializers
 from tensorflow.keras import layers
-from tensorflow.keras import regularizers
 
 
 def Block(filters, downsample):
@@ -22,7 +21,6 @@ def Block(filters, downsample):
 
     This is the base block definition for a CenterPillar model.
     """
-
     def apply(x):
         input_depth = x.shape.as_list()[-1]
         stride = 2 if downsample else 1
