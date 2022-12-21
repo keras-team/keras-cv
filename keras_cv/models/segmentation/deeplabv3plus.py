@@ -111,7 +111,7 @@ class DeepLabV3Plus(keras.Model):
                     "v2_stack_1_block4_1_relu"
                 ).output
                 high_level_features = backbone.get_layer(
-                    "v2_stack_3_block3_use_preactivion_relu"
+                    "v2_stack_3_block2_2_relu"
                 ).output
 
         else:
