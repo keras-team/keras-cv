@@ -26,8 +26,8 @@ class PyCOCOCallback(Callback):
 
         Args:
             validation_data: a tf.data.Dataset containing validation data. Entries
-                should have the form ```(images, {"gt_boxes": boxes,
-                "gt_classes": classes})```.
+                should have the form ```(images, {"boxes": boxes,
+                "classes": classes})```.
             bounding_box_format: the KerasCV bounding box format used in the
                 validation dataset (e.g. "xywh")
             input_nms: whether the model has already applied non-max-suppression. If False,
@@ -75,10 +75,10 @@ class PyCOCOCallback(Callback):
         gt = [boxes for boxes in self.val_data.map(boxes_only)]
         if self.input_nms:
             gt_boxes = tf.concat(
-                [tf.RaggedTensor.from_tensor(boxes["gt_boxes"]) for boxes in gt], axis=0
+                [tf.RaggedTensor.from_tensor(boxes["boxes"]) for boxes in gt], axis=0
             )
             gt_classes = tf.concat(
-                [tf.RaggedTensor.from_tensor(boxes["gt_classes"]) for boxes in gt],
+                [tf.RaggedTensor.from_tensor(boxes["classes"]) for boxes in gt],
                 axis=0,
             )
         else:

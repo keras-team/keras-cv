@@ -37,5 +37,4 @@ def _create_bounding_box_dataset(bounding_box_format, use_dictionary_box_format=
             (xs, {"gt_boxes": ys, "gt_classes": y_classes, "gt_num_dets": num_dets})
         ).batch(5, drop_remainder=True)
     else:
-        ys = tf.concat([ys, y_classes], axis=-1)
-        return xs, ys
+        return xs, {"boxes": ys, "classes": y_classes}

@@ -131,8 +131,6 @@ class RetinaNet(ObjectDetectionBaseModel):
             anchor_generator=anchor_generator,
         )
         super().__init__(
-            bounding_box_format=bounding_box_format,
-            label_encoder=label_encoder,
             name=name,
             **kwargs,
         )
@@ -236,30 +234,33 @@ class RetinaNet(ObjectDetectionBaseModel):
 
         return result
 
-    def call(self, x, training=False):
-        backbone_outputs = self.backbone(x, training=training)
+    def call(self, images, training=False):
+        backbone_outputs = self.backbone(images, training=training)
         features = self.feature_pyramid(backbone_outputs, training=training)
 
-        N = tf.shape(x)[0]
-        cls_outputs = []
-        box_outputs = []
+        N = tf.shape(images)[0]
+        cls_pred = []
+        box_pred = []
         for feature in features:
-            box_outputs.append(
+            box_pred.append(
                 tf.reshape(self.box_head(feature, training=training), [N, -1, 4])
             )
-            cls_outputs.append(
+            cls_pred.append(
                 tf.reshape(
                     self.classification_head(feature, training=training),
                     [N, -1, self.classes],
                 )
             )
 
-        cls_outputs = tf.concat(cls_outputs, axis=1)
-        box_outputs = tf.concat(box_outputs, axis=1)
-        return tf.concat([box_outputs, cls_outputs], axis=-1)
+        cls_pred = tf.concat(cls_pred, axis=1)
+        box_pred = tf.concat(box_pred, axis=1)
+
+        return box_pred, cls_pred
 
     def decode_predictions(self, predictions, images):
         # no-op if default decoder is used.
+        box_pred, cls_pred = predictions
+        predictions = tf.concat([box_pred, cls_pred], axis=-1)
         pred_for_inference = bounding_box.convert_format(
             predictions,
             source=self.bounding_box_format,
@@ -331,39 +332,42 @@ class RetinaNet(ObjectDetectionBaseModel):
         self.box_loss = box_loss
         self.classification_loss = classification_loss
 
-    def compute_losses(self, gt_boxes, gt_classes, y_pred):
+    def compute_losses(self, gt_boxes, gt_classes, box_pred, cls_pred):
         if gt_boxes.shape[-1] != 4:
             raise ValueError(
                 "gt_boxes should have shape (None, None, 4).  Got "
                 f"gt_boxes.shape={tuple(gt_boxes.shape)}"
             )
 
-        if y_pred.shape[-1] != self.classes + 4:
+        if box_pred.shape[-1] != 4:
             raise ValueError(
-                "y_pred should have shape (None, None, classes + 4). "
-                f"Got y_pred.shape={tuple(y_pred.shape)}.  Does your model's `classes` "
+                "box_pred should have shape (None, None, 4). "
+                f"Got box_pred.shape={tuple(box_pred.shape)}.  Does your model's `classes` "
                 "parameter match your losses `classes` parameter?"
             )
-
-        box_predictions = y_pred[:, :, :4]
+        if cls_pred.shape[-1] != self.classes:
+            raise ValueError(
+                "cls_pred should have shape (None, None, 4). "
+                f"Got cls_pred.shape={tuple(cls_pred.shape)}.  Does your model's `classes` "
+                "parameter match your losses `classes` parameter?"
+            )
 
         cls_labels = tf.one_hot(
             tf.cast(gt_classes, dtype=tf.int32),
             depth=self.classes,
             dtype=tf.float32,
         )
-        cls_predictions = y_pred[:, :, 4:]
 
         positive_mask = tf.cast(tf.greater(gt_classes, -1.0), dtype=tf.float32)
         ignore_mask = tf.cast(tf.equal(gt_classes, -2.0), dtype=tf.float32)
 
-        classification_loss = self.classification_loss(cls_labels, cls_predictions)
-        box_loss = self.box_loss(gt_boxes, box_predictions)
+        classification_loss = self.classification_loss(cls_labels, cls_pred)
+        box_loss = self.box_loss(gt_boxes, box_pred)
         if len(classification_loss.shape) != 2:
             raise ValueError(
                 "RetinaNet expects the output shape of `classification_loss` to be "
                 "`(batch_size, num_anchor_boxes)`.  Expected "
-                f"classification_loss(predictions)={box_predictions.shape[:2]}, got "
+                f"classification_loss(predictions)={box_pred.shape[:2]}, got "
                 f"classification_loss(predictions)={classification_loss.shape}. "
                 "Try passing `reduction='none'` to your classification_loss's "
                 "constructor."
@@ -372,7 +376,7 @@ class RetinaNet(ObjectDetectionBaseModel):
             raise ValueError(
                 "RetinaNet expects the output shape of `box_loss` to be "
                 "`(batch_size, num_anchor_boxes)`.  Expected "
-                f"box_loss(predictions)={box_predictions.shape[:2]}, got "
+                f"box_loss(predictions)={box_pred.shape[:2]}, got "
                 f"box_loss(predictions)={box_loss.shape}. "
                 "Try passing `reduction='none'` to your box_loss's "
                 "constructor."
@@ -409,11 +413,9 @@ class RetinaNet(ObjectDetectionBaseModel):
 
         return classification_loss, box_loss
 
-    def _backward(self, gt_boxes, gt_classes, y_pred):
+    def _backward(self, gt_boxes, gt_classes, box_pred, cls_pred):
         classification_loss, box_loss = self.compute_losses(
-            gt_boxes,
-            gt_classes,
-            y_pred,
+            gt_boxes, gt_classes, box_pred, cls_pred
         )
         regularization_loss = 0.0
         for loss in self.losses:
@@ -436,10 +438,23 @@ class RetinaNet(ObjectDetectionBaseModel):
         x, y = data
         gt_boxes = y["boxes"]
         gt_classes = y["classes"]
+        gt_boxes = bounding_box.convert_format(
+            gt_boxes,
+            source=self.bounding_box_format,
+            target=self.label_encoder.bounding_box_format,
+            images=x,
+        )
+        gt_boxes, gt_classes = self.label_encoder(x, gt_boxes, gt_classes)
+        gt_boxes = bounding_box.convert_format(
+            gt_boxes,
+            source=self.label_encoder.bounding_box_format,
+            target=self.bounding_box_format,
+            images=x,
+        )
 
         with tf.GradientTape() as tape:
-            y_pred = self(x, training=True)
-            loss = self._backward(gt_boxes, gt_classes, y_pred)
+            box_pred, cls_pred = self(x, training=True)
+            loss = self._backward(gt_boxes, gt_classes, box_pred, cls_pred)
         # Training specific code
         trainable_vars = self.trainable_variables
         gradients = tape.gradient(loss, trainable_vars)
@@ -451,8 +466,21 @@ class RetinaNet(ObjectDetectionBaseModel):
         x, y = data
         gt_boxes = y["boxes"]
         gt_classes = y["classes"]
-        y_pred = self(x, training=False)
-        _ = self._backward(gt_boxes, gt_classes, y_pred)
+        gt_boxes = bounding_box.convert_format(
+            gt_boxes,
+            source=self.bounding_box_format,
+            target=self.label_encoder.bounding_box_format,
+            images=x,
+        )
+        gt_boxes, gt_classes = self.label_encoder(x, gt_boxes, gt_classes)
+        gt_boxes = bounding_box.convert_format(
+            gt_boxes,
+            source=self.label_encoder.bounding_box_format,
+            target=self.bounding_box_format,
+            images=x,
+        )
+        box_pred, cls_pred = self(x, training=False)
+        _ = self._backward(gt_boxes, gt_classes, box_pred, cls_pred)
 
         return {m.name: m.result() for m in self.train_metrics}
 
