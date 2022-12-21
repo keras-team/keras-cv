@@ -157,7 +157,7 @@ eval_ds = eval_ds.map(unpackage_inputs, num_parallel_calls=tf.data.AUTOTUNE)
 # TODO(lukewood): the boxes loses shape from KPL, so need to pad to a known shape.
 # TODO(tanzhenyu): consider remove padding while reduce function tracing.
 def pad_fn(image, boxes):
-    return image, bounding_box.to_dense(boxes, max_boxes=32)
+    return image, bounding_box.to_dense(boxes)
 
 
 train_ds = train_ds.map(pad_fn, num_parallel_calls=tf.data.AUTOTUNE)
