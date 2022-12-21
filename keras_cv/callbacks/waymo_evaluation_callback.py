@@ -89,10 +89,9 @@ class WaymoEvaluationCallback(Callback):
         num_predicted_boxes = predicted_boxes.shape[1]
         total_predicted_boxes = num_predicted_boxes * batch_size
         predicted_boxes = tf.reshape(predicted_boxes, (total_predicted_boxes, 7))
+        classes = tf.reshape(classes, (total_predicted_boxes, 2))
         # Remove boxes with class of -1 (these are non-boxes that come from padding)
-        pred_real_boxes = tf.not_equal(
-            predicted_boxes[:, CENTER_XYZ_DXDYDZ_PHI.CLASS], -1
-        )
+        pred_real_boxes = tf.reduce_all(classes != -1, axis=[-1])
         predicted_boxes = tf.boolean_mask(predicted_boxes, pred_real_boxes)
         predicted_classes = tf.boolean_mask(classes, pred_real_boxes)
 
@@ -101,13 +100,13 @@ class WaymoEvaluationCallback(Callback):
         predictions["prediction_frame_id"] = tf.boolean_mask(
             tf.repeat(frame_ids, num_predicted_boxes), pred_real_boxes
         )
-        predictions["prediction_bbox"] = y_pred[:, : CENTER_XYZ_DXDYDZ_PHI.PHI + 1]
+        predictions["prediction_bbox"] = predicted_boxes
         predictions["prediction_type"] = tf.cast(
             tf.argmax(predicted_classes, axis=-1), tf.uint8
         )
         predictions["prediction_score"] = tf.reduce_max(predicted_classes, axis=-1)
         predictions["prediction_overlap_nlz"] = tf.cast(
-            tf.zeros(y_pred.shape[0]), tf.bool
+            tf.zeros(predicted_boxes.shape[0]), tf.bool
         )
 
         return ground_truth, predictions, batch_size

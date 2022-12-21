@@ -39,15 +39,7 @@ class WaymoEvaluationCallbackTest(tf.test.TestCase):
     @pytest.mark.skipif(True, reason="Requires Waymo Open Dataset")
     def test_model_fit(self):
         # Silly hypothetical model
-        model = keras.Sequential(
-            layers=[
-                keras.layers.Flatten(),
-                keras.layers.Dense(BOX_FEATURES * NUM_BOXES),
-                keras.layers.Reshape((NUM_BOXES, BOX_FEATURES)),
-                keras.layers.Lambda(lambda x: (x[:8], x[8:])),
-            ]
-        )
-        model.compile(optimizer="adam", loss="mse")
+        model = self.build_model()
 
         points = tf.random.normal((NUM_RECORDS, POINT_FEATURES, NUM_POINTS))
         # Some random boxes, and some -1 boxes (to mimic padding ragged boxes)
@@ -73,3 +65,17 @@ class WaymoEvaluationCallbackTest(tf.test.TestCase):
         history = model.fit(points, boxes, callbacks=[callback])
 
         self.assertAllInSet(METRIC_KEYS, history.history.keys())
+
+    def build_model(self):
+        inputs = tf.keras.Input(shape=(POINT_FEATURES, NUM_POINTS))
+        x = keras.layers.Flatten()(inputs)
+        x = keras.layers.Dense(BOX_FEATURES * NUM_BOXES)(x)
+        x = keras.layers.Reshape((NUM_BOXES, BOX_FEATURES))(x)
+        x = keras.layers.Lambda(lambda x: (x[:, :, :7], x[:, :, 7:]))(x)
+
+        class MeanLoss(keras.losses.Loss):
+            def call(self, y_true, y_pred):
+                return tf.reduce_mean(y_pred, axis=-1)
+
+        model = tf.keras.Model(inputs=inputs, outputs=x)
+        model.compile(loss=BoxMSE())
