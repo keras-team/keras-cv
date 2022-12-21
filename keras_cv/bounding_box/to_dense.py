@@ -16,9 +16,11 @@ import tensorflow as tf
 from keras_cv.bounding_box import validate
 
 
-def _box_shape(batched, max_boxes):
+def _box_shape(batched, boxes_shape, max_boxes):
     if max_boxes is None:
-        return None
+        shape = list(boxes_shape)
+        shape[-1] = 4
+        return shape
     if batched:
         return [None, max_boxes, 4]
     return [max_boxes, 4]
@@ -58,7 +60,10 @@ def to_dense(bounding_boxes, max_boxes=None):
 
     if isinstance(bounding_boxes["boxes"], tf.RaggedTensor):
         bounding_boxes["boxes"] = bounding_boxes["boxes"].to_tensor(
-            -1, shape=_box_shape(info["is_batched"], max_boxes)
+            -1,
+            shape=_box_shape(
+                info["is_batched"], bounding_boxes["boxes"].shape, max_boxes
+            ),
         )
 
     return bounding_boxes
