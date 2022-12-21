@@ -13,6 +13,7 @@
 # limitations under the License.
 import os
 
+import pytest
 import tensorflow as tf
 
 from keras_cv.datasets.waymo import load
