@@ -102,14 +102,12 @@ class NmsPredictionDecoder(tf.keras.layers.Layer):
         predictions = bounding_box.convert_format(
             predictions, source=self.bounding_box_format, target="xywh", images=images
         )
-        box_predictions = predictions[:, :, :4]
-        cls_predictions = tf.nn.sigmoid(predictions[:, :, 4:])
+        box_predictions = predictions['boxes']
+        cls_predictions = tf.nn.sigmoid(predictions['classes'])
 
         classes = tf.math.argmax(cls_predictions, axis=-1)
         classes = tf.cast(classes, box_predictions.dtype)
         confidence = tf.math.reduce_max(cls_predictions, axis=-1)
-        classes = tf.expand_dims(classes, axis=-1)
-        confidence = tf.expand_dims(confidence, axis=-1)
 
         boxes = bounding_box._decode_deltas_to_boxes(
             anchors=anchor_boxes[None, ...],
@@ -118,12 +116,12 @@ class NmsPredictionDecoder(tf.keras.layers.Layer):
             box_format="xywh",
             variance=self.box_variance,
         )
-        boxes = tf.concat([boxes, classes, confidence], axis=-1)
-
+        boxes = {"boxes": boxes, "classes": classes, "confidence": confidence}
         boxes = bounding_box.convert_format(
             boxes,
             source="xywh",
             target=self.suppression_layer.bounding_box_format,
             images=images,
         )
+        # Note: suppression_layer must have same bounding_box_format
         return self.suppression_layer(boxes, images=images)

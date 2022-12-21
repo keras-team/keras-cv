@@ -21,12 +21,21 @@ class NmsPredictionDecoderTest(tf.test.TestCase):
     def test_decode_predictions_output_shapes(self):
         classes = 10
         images_shape = (8, 512, 1024, 3)
-        predictions_shape = (8, 98208, 4 + classes)
+        predictions_boxes_shape = (8, 98208, 4)
+        predictions_classes_shape = (8, 98208, 10)
 
         images = tf.random.uniform(shape=images_shape)
-        predictions = tf.random.uniform(
-            shape=predictions_shape, minval=0.0, maxval=1.0, dtype=tf.float32
-        )
+        predictions = {
+            "boxes": tf.random.uniform(
+                shape=predictions_boxes_shape, minval=0.0, maxval=1.0, dtype=tf.float32
+            ),
+            "classes": tf.random.uniform(
+                shape=predictions_classes_shape,
+                minval=0.0,
+                maxval=1.0,
+                dtype=tf.float32,
+            ),
+        }
         strides = [2**i for i in range(3, 8)]
         scales = [2**x for x in [0, 1 / 3, 2 / 3]]
         sizes = [x**2 for x in [32.0, 64.0, 128.0, 256.0, 512.0]]
@@ -47,4 +56,6 @@ class NmsPredictionDecoderTest(tf.test.TestCase):
 
         result = layer(images=images, predictions=predictions)
 
-        self.assertEqual(result.shape, [8, None, 6])
+        self.assertEqual(result["boxes"].shape, [8, None, 4])
+        self.assertEqual(result["classes"].shape, [8, None])
+        self.assertEqual(result["confidence"].shape, [8, None])
