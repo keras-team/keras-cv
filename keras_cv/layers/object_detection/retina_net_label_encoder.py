@@ -73,49 +73,6 @@ class RetinaNetLabelEncoder(layers.Layer):
         )
         self.built = True
 
-    def _encode_sample(self, gt_boxes, gt_classes, anchor_boxes):
-        """Creates box and classification targets for a batched sample
-
-        Matches ground truth boxes to anchor boxes based on IOU.
-        1. Calculates the pairwise IOU for the M `anchor_boxes` and N `gt_boxes`
-          to get a `(M, N)` shaped matrix.
-        2. The ground truth box with the maximum IOU in each row is assigned to
-          the anchor box provided the IOU is greater than `match_iou`.
-        3. If the maximum IOU in a row is less than `ignore_iou`, the anchor
-          box is assigned with the background class.
-        4. The remaining anchor boxes that do not have any class assigned are
-          ignored during training.
-
-        Args:
-          gt_boxes: A float tensor with shape `(num_objects, 4)` representing
-            the ground truth boxes, where each box is of the format
-            `[x, y, width, height]`.
-          gt_classes: A float Tensor with shape `(num_objects, 1)` representing
-            the ground truth classes.
-          anchor_boxes: A float tensor with the shape `(total_anchors, 4)`
-            representing all the anchor boxes for a given input image shape,
-            where each anchor box is of the format `[x, y, width, height]`.
-        Returns:
-          matched_gt_idx: Index of the matched object
-          positive_mask: A mask for anchor boxes that have been assigned ground
-            truth boxes.
-          ignore_mask: A mask for anchor boxes that need to by ignored during
-            training
-        """
-        iou_matrix = bounding_box.compute_iou(
-            anchor_boxes, gt_boxes, bounding_box_format="xywh"
-        )
-        max_iou = tf.reduce_max(iou_matrix, axis=1)
-        matched_gt_idx = tf.argmax(iou_matrix, axis=1)
-        positive_mask = tf.greater_equal(max_iou, match_iou)
-        negative_mask = tf.less(max_iou, ignore_iou)
-        ignore_mask = tf.logical_not(tf.logical_or(positive_mask, negative_mask))
-        return (
-            matched_gt_idx,
-            tf.cast(positive_mask, dtype=self.dtype),
-            tf.cast(ignore_mask, dtype=self.dtype),
-        )
-
     def _encode_sample(self, gt_boxes, anchor_boxes):
         """Creates box and classification targets for a single sample"""
         cls_ids = gt_boxes["classes"]
@@ -167,7 +124,7 @@ class RetinaNetLabelEncoder(layers.Layer):
         #     tf.cast(matches, tf.int32),
         # )
 
-    def call(self, images, boxes, classes):
+    def call(self, images, bounding_boxes):
         """Creates box and classification targets for a batch
 
         Args:
@@ -181,8 +138,9 @@ class RetinaNetLabelEncoder(layers.Layer):
                 "support RaggedTensor inputs for the `images` argument.  Received "
                 f"`type(images)={type(images)}`."
             )
-        gt_boxes = tf.cast(boxes, self.dtype)
-        gt_classes = tf.cast(classes, self.dtype)
+        bounding_boxes = bounding_box.to_dense(bounding_boxes)
+        gt_boxes = tf.cast(bounding_boxes["boxes"], self.dtype)
+        gt_classes = tf.cast(bounding_boxes["classes"], self.dtype)
 
         gt_boxes = bounding_box.convert_format(
             gt_boxes, source=self.bounding_box_format, target="xywh", images=images
@@ -196,14 +154,7 @@ class RetinaNetLabelEncoder(layers.Layer):
             images=images[0],
         )
 
-        if isinstance(gt_boxes, tf.RaggedTensor):
-            gt_boxes = gt_boxes.to_tensor(default_value=-1, shape=(None, None, 4))
-        if isinstance(gt_classes, tf.RaggedTensor):
-            gt_classes = gt_classes.to_tensor(default_value=-1, shape=(None, None, 1))
-        elif gt_classes.get_shape().rank == 2:
-            gt_classes = gt_classes[..., tf.newaxis]
-
-        result = self._encode_sample(gt_boxes, gt_classes, anchor_boxes)
+        result = self._encode_sample(gt_boxes, anchor_boxes)
         result = bounding_box.convert_format(
             result, source="xywh", target=self.bounding_box_format, images=images
         )

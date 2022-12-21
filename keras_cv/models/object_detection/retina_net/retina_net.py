@@ -440,27 +440,29 @@ class RetinaNet(tf.keras.Model):
     def _track_regularization(self):
         return len(self.losses) != 0
 
-    def train_step(self, data):
-        x, y = data
-        gt_boxes = y["boxes"]
-        gt_classes = y["classes"]
-        gt_boxes = bounding_box.convert_format(
-            gt_boxes,
+    def _encode(self, x, y):
+        y = bounding_box.convert_format(
+            y,
             source=self.bounding_box_format,
             target=self.label_encoder.bounding_box_format,
             images=x,
         )
-        gt_boxes, gt_classes = self.label_encoder(x, gt_boxes, gt_classes)
-        gt_boxes = bounding_box.convert_format(
-            gt_boxes,
+        box_target, class_target = self.label_encoder(x, y)
+        box_target = bounding_box.convert_format(
+            box_target,
             source=self.label_encoder.bounding_box_format,
             target=self.bounding_box_format,
             images=x,
         )
+        return box_target, class_target
+
+    def train_step(self, data):
+        x, y = data
+        box_target, class_target = self._encode(x, y)
 
         with tf.GradientTape() as tape:
             box_pred, cls_pred = self(x, training=True)
-            loss = self._backward(gt_boxes, gt_classes, box_pred, cls_pred)
+            loss = self._backward(box_target, class_target, box_pred, cls_pred)
         # Training specific code
         trainable_vars = self.trainable_variables
         gradients = tape.gradient(loss, trainable_vars)
@@ -470,23 +472,10 @@ class RetinaNet(tf.keras.Model):
 
     def test_step(self, data):
         x, y = data
-        gt_boxes = y["boxes"]
-        gt_classes = y["classes"]
-        gt_boxes = bounding_box.convert_format(
-            gt_boxes,
-            source=self.bounding_box_format,
-            target=self.label_encoder.bounding_box_format,
-            images=x,
-        )
-        gt_boxes, gt_classes = self.label_encoder(x, gt_boxes, gt_classes)
-        gt_boxes = bounding_box.convert_format(
-            gt_boxes,
-            source=self.label_encoder.bounding_box_format,
-            target=self.bounding_box_format,
-            images=x,
-        )
+        box_target, class_target = self._encode(x, y)
+
         box_pred, cls_pred = self(x, training=False)
-        _ = self._backward(gt_boxes, gt_classes, box_pred, cls_pred)
+        _ = self._backward(box_target, class_target, box_pred, cls_pred)
 
         return {m.name: m.result() for m in self.train_metrics}
 
