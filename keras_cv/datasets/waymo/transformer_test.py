@@ -26,6 +26,10 @@ class WaymoOpenDatasetTransformerTest(tf.test.TestCase):
             os.path.join(os.path.abspath(__file__), os.path.pardir, "test_data")
         )
 
+    @pytest.mark.skipif(
+        "TEST_WAYMO_DEPS" not in os.environ or os.environ["TEST_WAYMO_DEPS"] != "true",
+        reason="Requires Waymo Open Dataset package",
+    )
     def test_load_and_transform(self):
         tf_dataset = load(self.test_data_path)
 

@@ -1,4 +1,4 @@
-name: 'devcontainer' 
+name: 'devcontainer'
 on: # rebuild any PRs and main branch changes
   pull_request:
     paths:
@@ -21,4 +21,4 @@ jobs:
       - name: Build and run dev container task
         uses: devcontainers/ci@v0.2
         with:
-          runCmd: pytest keras_cv/ --ignore keras_cv/models --ignore keras_cv/datasets/waymo
+          runCmd: pytest keras_cv/ --ignore keras_cv/models

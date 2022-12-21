@@ -26,6 +26,10 @@ class WaymoOpenDatasetLoadTest(tf.test.TestCase):
         )
         self.test_data_file = "wod_one_frame.tfrecord"
 
+    @pytest.mark.skipif(
+        "TEST_WAYMO_DEPS" not in os.environ or os.environ["TEST_WAYMO_DEPS"] != "true",
+        reason="Requires Waymo Open Dataset package",
+    )
     def test_load_from_directory(self):
         dataset = load(self.test_data_path)
 
@@ -35,6 +39,10 @@ class WaymoOpenDatasetLoadTest(tf.test.TestCase):
         self.assertEquals(len(dataset), 1)
         self.assertNotEqual(dataset[0]["timestamp_micros"], 0)
 
+    @pytest.mark.skipif(
+        "TEST_WAYMO_DEPS" not in os.environ or os.environ["TEST_WAYMO_DEPS"] != "true",
+        reason="Requires Waymo Open Dataset package",
+    )
     def test_load_from_files(self):
         dataset = load([os.path.join(self.test_data_path, self.test_data_file)])
 
