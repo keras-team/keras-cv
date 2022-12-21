@@ -162,3 +162,14 @@ def VGG16(
     if weights is not None:
         model.load_weights(weights)
     return model
+
+
+model = VGG16(include_rescaling=False,
+    include_top=True,
+    classes=1000,
+    weights=None,
+    input_shape=(224, 224, 3),
+    input_tensor=None,
+    pooling=None,)
+
+print(model.summary())

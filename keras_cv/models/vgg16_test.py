@@ -24,7 +24,7 @@ MODEL_LIST = [
 ]
 
 
-class VGG19Test(ModelsTest, tf.test.TestCase, parameterized.TestCase):
+class VGG16Test(ModelsTest, tf.test.TestCase, parameterized.TestCase):
     @parameterized.parameters(*MODEL_LIST)
     def test_application_base(self, app, _, args):
         super()._test_application_base(app, _, args)
