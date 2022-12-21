@@ -96,12 +96,7 @@ class NonMaxSuppression(tf.keras.layers.Layer):
         self.built = True
 
     def call(self, predictions, images=None):
-        if predictions.shape[-1] != 6:
-            raise ValueError(
-                "keras_cv.layers.NonMaxSuppression() expects `call()` "
-                "argument `predictions` to be of shape (None, None, 6).  Received "
-                f"predictions.shape={tuple(predictions.shape)}."
-            )
+        _ = bounding_box.validate.validate(predictions)
 
         # convert to yxyx for the TF NMS operation
         predictions = bounding_box.convert_format(
@@ -112,10 +107,9 @@ class NonMaxSuppression(tf.keras.layers.Layer):
         )
 
         # preparing the predictions for TF NMS op
-        boxes = tf.expand_dims(predictions[..., :4], axis=2)
-        class_predictions = tf.cast(predictions[..., 4], tf.int32)
-        scores = predictions[..., 5]
-
+        boxes = tf.expand_dims(predictions["boxes"], axis=2)
+        class_predictions = tf.cast(predictions["classes"], tf.int32)
+        scores = predictions["confidence"]
         class_predictions = tf.one_hot(class_predictions, self.classes)
         scores = tf.expand_dims(scores, axis=-1) * class_predictions
 
@@ -143,38 +137,49 @@ class NonMaxSuppression(tf.keras.layers.Layer):
 
     def _decode_nms_boxes_to_tensor(self, nmsed_boxes):
         boxes = tf.TensorArray(
-            tf.float32, size=0, infer_shape=False, element_shape=(6,), dynamic_size=True
+            tf.float32, size=0, infer_shape=False, element_shape=(4,), dynamic_size=True
+        )
+        classes = tf.TensorArray(
+            tf.float32, size=0, infer_shape=False, element_shape=(), dynamic_size=True
+        )
+        confidence = tf.TensorArray(
+            tf.float32, size=0, infer_shape=False, element_shape=(), dynamic_size=True
         )
 
         for i in tf.range(tf.shape(nmsed_boxes.nmsed_boxes)[0]):
             num_detections = nmsed_boxes.valid_detections[i]
-
-            # recombining with classes and scores
-            boxes_recombined = tf.concat(
-                [
-                    nmsed_boxes.nmsed_boxes[i][:num_detections],
-                    tf.expand_dims(
-                        nmsed_boxes.nmsed_classes[i][:num_detections], axis=-1
-                    ),
-                    tf.expand_dims(
-                        nmsed_boxes.nmsed_scores[i][:num_detections], axis=-1
-                    ),
-                ],
-                axis=-1,
-            )
-
             # iterate through the boxes and append it to TensorArray
-            for j in range(nmsed_boxes.valid_detections[i]):
-                boxes = boxes.write(boxes.size(), boxes_recombined[j])
+            for j in range(num_detections):
+                boxes = boxes.write(
+                    boxes.size(),
+                    nmsed_boxes.nmsed_boxes[i][j],
+                )
+                classes = classes.write(classes.size(), nmsed_boxes.nmsed_classes[i][j])
+                confidence = confidence.write(
+                    confidence.size(), nmsed_boxes.nmsed_scores[i][j]
+                )
 
         # stacking to create a tensor
-        return boxes.stack()
+        return {
+            "boxes": boxes.stack(),
+            "classes": classes.stack(),
+            "confidence": confidence.stack(),
+        }
 
-    def _encode_to_ragged(self, boxes, valid_detections):
+    def _encode_to_ragged(self, bounding_boxes, valid_detections):
         # using cumulative sum to calculate row_limits for ragged tensor
         row_limits = tf.cumsum(valid_detections)
         # creating the output RaggedTensor by splitting boxes at row_limits
-        result = tf.RaggedTensor.from_row_limits(values=boxes, row_limits=row_limits)
+        result = bounding_boxes.copy()
+        result["boxes"] = tf.RaggedTensor.from_row_limits(
+            values=bounding_boxes["boxes"], row_limits=row_limits
+        )
+        result["classes"] = tf.RaggedTensor.from_row_limits(
+            values=bounding_boxes["classes"], row_limits=row_limits
+        )
+        result["confidence"] = tf.RaggedTensor.from_row_limits(
+            values=bounding_boxes["confidence"], row_limits=row_limits
+        )
         return result
 
     def get_config(self):
