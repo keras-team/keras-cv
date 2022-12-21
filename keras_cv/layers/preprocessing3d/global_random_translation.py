@@ -22,6 +22,7 @@ POINT_CLOUDS = base_augmentation_layer_3d.POINT_CLOUDS
 BOUNDING_BOXES = base_augmentation_layer_3d.BOUNDING_BOXES
 
 
+@tf.keras.utils.register_keras_serializable(package="keras_cv")
 class GlobalRandomTranslation(base_augmentation_layer_3d.BaseAugmentationLayer3D):
     """A preprocessing layer which randomly translates point clouds and bounding boxes along
     X, Y, and Z axes during training.
@@ -60,6 +61,13 @@ class GlobalRandomTranslation(base_augmentation_layer_3d.BaseAugmentationLayer3D
         self._x_stddev = x_stddev
         self._y_stddev = y_stddev
         self._z_stddev = z_stddev
+
+    def get_config(self):
+        return {
+            "x_stddev": self._x_stddev,
+            "y_stddev": self._x_stddev,
+            "z_stddev": self._z_stddev,
+        }
 
     def get_random_transformation(self, **kwargs):
         random_x_translation = self._random_generator.random_normal(

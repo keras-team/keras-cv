@@ -14,12 +14,15 @@
 
 import tensorflow as tf
 
+from keras_cv.models import ResNet50V2
 from keras_cv.models.object_detection.faster_rcnn import FasterRCNN
 
 
 class FasterRCNNTest(tf.test.TestCase):
     def test_faster_rcnn_infer(self):
-        model = FasterRCNN(classes=80, bounding_box_format="xyxy")
+        model = FasterRCNN(
+            classes=80, bounding_box_format="xyxy", backbone=self._build_backbone()
+        )
         images = tf.random.normal([2, 512, 512, 3])
         outputs = model(images, training=False)
         # 1000 proposals in inference
@@ -27,14 +30,18 @@ class FasterRCNNTest(tf.test.TestCase):
         self.assertAllEqual([2, 1000, 4], outputs[0].shape)
 
     def test_faster_rcnn_train(self):
-        model = FasterRCNN(classes=80, bounding_box_format="xyxy")
+        model = FasterRCNN(
+            classes=80, bounding_box_format="xyxy", backbone=self._build_backbone()
+        )
         images = tf.random.normal([2, 512, 512, 3])
         outputs = model(images, training=True)
         self.assertAllEqual([2, 1000, 81], outputs[1].shape)
         self.assertAllEqual([2, 1000, 4], outputs[0].shape)
 
     def test_invalid_compile(self):
-        model = FasterRCNN(classes=80, bounding_box_format="yxyx")
+        model = FasterRCNN(
+            classes=80, bounding_box_format="yxyx", backbone=self._build_backbone()
+        )
         with self.assertRaisesRegex(ValueError, "only accepts"):
             model.compile(rpn_box_loss="binary_crossentropy")
         with self.assertRaisesRegex(ValueError, "only accepts"):
@@ -43,3 +50,6 @@ class FasterRCNNTest(tf.test.TestCase):
                     from_logits=False
                 )
             )
+
+    def _build_backbone(self):
+        return ResNet50V2(include_top=False, include_rescaling=True).as_backbone()

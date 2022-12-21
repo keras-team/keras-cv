@@ -46,6 +46,7 @@ TEST_CONFIGURATIONS = [
         layers.Posterization,
         {"bits": 3, "value_range": (0, 255)},
     ),
+    ("RandomBrightness", layers.RandomBrightness, {"factor": 0.5}),
     (
         "RandomColorDegeneration",
         layers.RandomColorDegeneration,
@@ -113,12 +114,23 @@ TEST_CONFIGURATIONS = [
             "bounding_box_format": "xywh",
         },
     ),
+    (
+        "RandomZoom",
+        layers.RandomZoom,
+        {"height_factor": 0.2, "width_factor": 0.5},
+    ),
+    (
+        "RandomCrop",
+        layers.RandomCrop,
+        {"height": 224, "width": 224},
+    ),
 ]
 
 NO_CPU_FP16_KERNEL_LAYERS = [
     layers.RandomSaturation,
     layers.RandomColorJitter,
     layers.RandomHue,
+    layers.RandomContrast,
 ]
 
 

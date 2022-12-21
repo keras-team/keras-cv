@@ -61,6 +61,9 @@ class PyCOCOCallbackTest(tf.test.TestCase):
         model = keras_cv.models.FasterRCNN(
             classes=10,
             bounding_box_format="xywh",
+            backbone=keras_cv.models.ResNet50V2(
+                include_top=False, include_rescaling=True, weights=None
+            ).as_backbone(),
         )
         model.compile(
             optimizer="adam",

@@ -83,6 +83,46 @@ class FrustumRandomPointFeatureNoiseTest(tf.test.TestCase):
         # [100, 100, 2, 3, 4, 1] is not changed due to outside phi_width.
         self.assertAllClose(outputs[POINT_CLOUDS], augmented_point_clouds)
 
+    def test_augment_only_one_valid_point_point_clouds_and_bounding_boxes(self):
+        tf.keras.utils.set_random_seed(2)
+        add_layer = FrustumRandomPointFeatureNoise(
+            r_distance=10, theta_width=np.pi, phi_width=1.5 * np.pi, max_noise_level=0.5
+        )
+        point_clouds = np.array(
+            [
+                [
+                    [0, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0, 0],
+                    [100, 100, 2, 3, 4, 1],
+                    [0, 0, 0, 0, 0, 0],
+                ]
+            ]
+            * 2
+        ).astype("float32")
+        bounding_boxes = np.random.random(size=(2, 10, 7)).astype("float32")
+        inputs = {POINT_CLOUDS: point_clouds, BOUNDING_BOXES: bounding_boxes}
+        outputs = add_layer(inputs)
+        # bounding boxes and point clouds (x, y, z, class) are not modified.
+        augmented_point_clouds = np.array(
+            [
+                [
+                    [0, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0, 0],
+                    [100, 100, 2, 3, 4.119616, 0.619783],
+                    [0, 0, 0, 0, 0, 0],
+                ],
+                [
+                    [0, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0, 0],
+                    [100, 100, 2, 3, 3.192014, 0.618371],
+                    [0, 0, 0, 0, 0, 0],
+                ],
+            ]
+        ).astype("float32")
+        self.assertAllClose(inputs[BOUNDING_BOXES], outputs[BOUNDING_BOXES])
+        # [100, 100, 2, 3, 4, 1] is selected as the frustum center because it is the only valid point.
+        self.assertAllClose(outputs[POINT_CLOUDS], augmented_point_clouds)
+
     def test_not_augment_max_noise_level0_point_clouds_and_bounding_boxes(self):
         add_layer = FrustumRandomPointFeatureNoise(
             r_distance=0, theta_width=1, phi_width=1, max_noise_level=0.0

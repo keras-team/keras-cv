@@ -20,6 +20,7 @@ POINT_CLOUDS = base_augmentation_layer_3d.POINT_CLOUDS
 BOUNDING_BOXES = base_augmentation_layer_3d.BOUNDING_BOXES
 
 
+@tf.keras.utils.register_keras_serializable(package="keras_cv")
 class GlobalRandomDroppingPoints(base_augmentation_layer_3d.BaseAugmentationLayer3D):
     """A preprocessing layer which randomly drops point during training.
 
@@ -51,6 +52,9 @@ class GlobalRandomDroppingPoints(base_augmentation_layer_3d.BaseAugmentationLaye
             raise ValueError("drop_rate must be <=1.")
         keep_probability = 1 - drop_rate
         self._keep_probability = keep_probability
+
+    def get_config(self):
+        return {"drop_rate": 1 - self._keep_probability}
 
     def get_random_transformation(self, point_clouds, **kwargs):
         random_point_mask = (
