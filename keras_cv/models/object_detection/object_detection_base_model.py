@@ -28,10 +28,8 @@ class ObjectDetectionBaseModel(keras.Model):
 
     """
 
-    def __init__(self, bounding_box_format, label_encoder, **kwargs):
+    def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.bounding_box_format = bounding_box_format
-        self.label_encoder = label_encoder
 
     def make_predict_function(self, force=False):
         if self.predict_function is not None and not force:

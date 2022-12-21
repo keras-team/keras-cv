@@ -131,8 +131,6 @@ class RetinaNet(ObjectDetectionBaseModel):
             anchor_generator=anchor_generator,
         )
         super().__init__(
-            bounding_box_format=bounding_box_format,
-            label_encoder=label_encoder,
             name=name,
             **kwargs,
         )
