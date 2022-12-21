@@ -102,8 +102,8 @@ class NmsPredictionDecoder(tf.keras.layers.Layer):
         predictions = bounding_box.convert_format(
             predictions, source=self.bounding_box_format, target="xywh", images=images
         )
-        box_predictions = predictions['boxes']
-        cls_predictions = tf.nn.sigmoid(predictions['classes'])
+        box_predictions = predictions["boxes"]
+        cls_predictions = tf.nn.sigmoid(predictions["classes"])
 
         classes = tf.math.argmax(cls_predictions, axis=-1)
         classes = tf.cast(classes, box_predictions.dtype)

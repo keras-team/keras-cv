@@ -155,6 +155,7 @@ eval_ds = eval_ds.map(unpackage_inputs, num_parallel_calls=tf.data.AUTOTUNE)
 
 
 # TODO(lukewood): the boxes loses shape from KPL, so need to pad to a known shape.
+# TODO(tanzhenyu): consider remove padding while reduce function tracing.
 def pad_fn(image, boxes):
     return image, bounding_box.to_dense(boxes, max_boxes=32)
 
@@ -197,6 +198,7 @@ callbacks = [
     keras.callbacks.ReduceLROnPlateau(monitor="loss", patience=5),
     keras.callbacks.EarlyStopping(monitor="loss", patience=10),
     keras.callbacks.ModelCheckpoint(CHECKPOINT_PATH, save_weights_only=True),
+    PyCOCOCallback(eval_ds, "xywh"),
 ]
 
 history = model.fit(
