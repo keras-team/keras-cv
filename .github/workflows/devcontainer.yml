@@ -4,10 +4,12 @@ on: # rebuild any PRs and main branch changes
     paths:
       - 'setup.*'
       - '.devcontainer/**'
+      - 'workflows/**'
   push:
     paths:
       - 'setup.*'
       - '.devcontainer/**'
+      - 'workflows/**'
 
 
 jobs:
