@@ -44,6 +44,7 @@ class WaymoEvaluationCallbackTest(tf.test.TestCase):
                 keras.layers.Flatten(),
                 keras.layers.Dense(BOX_FEATURES * NUM_BOXES),
                 keras.layers.Reshape((NUM_BOXES, BOX_FEATURES)),
+                keras.layers.Lambda(lambda x: (x[:8], x[8:])),
             ]
         )
         model.compile(optimizer="adam", loss="mse")
@@ -63,7 +64,7 @@ class WaymoEvaluationCallbackTest(tf.test.TestCase):
             (
                 points,
                 {
-                    "bounding_boxes": boxes,
+                    "boxes": boxes,
                 },
             )
         ).batch(5)

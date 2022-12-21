@@ -60,7 +60,7 @@ class WaymoEvaluationCallback(Callback):
 
     def _eval_batch(self, batch, frame_id):
         point_clouds, target = batch
-        boxes = target["bounding_boxes"]
+        boxes = target["boxes"]
         batch_size = boxes.shape[0]
         num_gt_boxes = boxes.shape[1]
         total_gt_boxes = num_gt_boxes * batch_size
@@ -85,13 +85,16 @@ class WaymoEvaluationCallback(Callback):
             boxes[:, CENTER_XYZ_DXDYDZ_PHI.CLASS + 1], tf.uint8
         )
 
-        y_pred = self.model.predict_on_batch(point_clouds)
-        num_predicted_boxes = y_pred.shape[1]
+        predicted_boxes, classes = self.model.predict_on_batch(point_clouds)
+        num_predicted_boxes = predicted_boxes.shape[1]
         total_predicted_boxes = num_predicted_boxes * batch_size
-        y_pred = tf.reshape(y_pred, (total_predicted_boxes, 9))
+        predicted_boxes = tf.reshape(predicted_boxes, (total_predicted_boxes, 7))
         # Remove boxes with class of -1 (these are non-boxes that come from padding)
-        pred_real_boxes = tf.not_equal(y_pred[:, CENTER_XYZ_DXDYDZ_PHI.CLASS], -1)
-        y_pred = tf.boolean_mask(y_pred, pred_real_boxes)
+        pred_real_boxes = tf.not_equal(
+            predicted_boxes[:, CENTER_XYZ_DXDYDZ_PHI.CLASS], -1
+        )
+        predicted_boxes = tf.boolean_mask(predicted_boxes, pred_real_boxes)
+        predicted_classes = tf.boolean_mask(classes, pred_real_boxes)
 
         predictions = {}
 
@@ -100,9 +103,9 @@ class WaymoEvaluationCallback(Callback):
         )
         predictions["prediction_bbox"] = y_pred[:, : CENTER_XYZ_DXDYDZ_PHI.PHI + 1]
         predictions["prediction_type"] = tf.cast(
-            y_pred[:, CENTER_XYZ_DXDYDZ_PHI.CLASS], tf.uint8
+            tf.argmax(predicted_classes, axis=-1), tf.uint8
         )
-        predictions["prediction_score"] = y_pred[:, CENTER_XYZ_DXDYDZ_PHI.CLASS + 1]
+        predictions["prediction_score"] = tf.reduce_max(predicted_classes, axis=-1)
         predictions["prediction_overlap_nlz"] = tf.cast(
             tf.zeros(y_pred.shape[0]), tf.bool
         )
