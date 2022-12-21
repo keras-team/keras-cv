@@ -18,6 +18,11 @@ from tensorflow.keras import regularizers
 
 
 def Block(filters, downsample):
+    """A default block which serves as an example of the block interface.
+
+    This is the base block definition for a CenterPillar model.
+    """
+
     def apply(x):
         input_depth = x.shape.as_list()[-1]
         stride = 2 if downsample else 1
@@ -30,12 +35,9 @@ def Block(filters, downsample):
             stride,
             padding="same",
             kernel_initializer=initializers.VarianceScaling(),
-            kernel_regularizer=regularizers.L2(l2=1e-4),
         )(x)
         x = layers.BatchNormalization(
             synchronized=True,
-            beta_regularizer=regularizers.L2(l2=1e-8),
-            gamma_regularizer=regularizers.L2(l2=1e-8),
         )(x)
         x = layers.ReLU()(x)
 
@@ -45,12 +47,9 @@ def Block(filters, downsample):
             1,
             padding="same",
             kernel_initializer=initializers.VarianceScaling(),
-            kernel_regularizer=regularizers.L2(l2=1e-4),
         )(x)
         x = layers.BatchNormalization(
             synchronized=True,
-            beta_regularizer=regularizers.L2(l2=1e-8),
-            gamma_regularizer=regularizers.L2(l2=1e-8),
         )(x)
 
         if downsample:
@@ -65,7 +64,6 @@ def Block(filters, downsample):
                 1,
                 padding="same",
                 kernel_initializer=initializers.VarianceScaling(),
-                kernel_regularizer=regularizers.L2(l2=1e-4),
             )(residual)
 
         x = x + residual
@@ -83,12 +81,9 @@ def SkipBlock(filters):
             1,
             1,
             kernel_initializer=initializers.VarianceScaling(),
-            kernel_regularizer=regularizers.L2(l2=1e-4),
         )(x)
         x = layers.BatchNormalization(
             synchronized=True,
-            beta_regularizer=regularizers.L2(l2=1e-8),
-            gamma_regularizer=regularizers.L2(l2=1e-8),
         )(x)
         x = layers.ReLU()(x)
 
@@ -117,12 +112,9 @@ def UpSampleBlock(filters):
             2,
             padding="same",
             kernel_initializer=initializers.VarianceScaling(),
-            kernel_regularizer=regularizers.L2(l2=1e-4),
         )(x)
         x = layers.BatchNormalization(
             synchronized=True,
-            beta_regularizer=regularizers.L2(l2=1e-8),
-            gamma_regularizer=regularizers.L2(l2=1e-8),
         )(x)
         x = layers.ReLU()(x)
 
@@ -137,8 +129,8 @@ def UpSampleBlock(filters):
 
 
 def UNet(
-    down_blocks,
-    up_blocks,
+    down_block_configs,
+    up_block_configs,
     down_block=DownSampleBlock,
     up_block=UpSampleBlock,
 ):
@@ -151,20 +143,23 @@ def UNet(
     function that acts on tensors as inputs.
 
     Args:
-        down_blocks: a list of (filter_count, num_blocks) tuples indicating the
+        down_block_configs: a list of (filter_count, num_blocks) tuples indicating the
             number of filters and sub-blocks in each down block
-        up_blocks: a list of filter counts, one for each up block
+        up_block_configs: a list of filter counts, one for each up block
         down_block: a downsampling block
         up_block: an upsampling block
     """
 
     def apply(x):
         skip_connections = []
-        for filters, num_blocks in down_blocks:
+        # Filters refers to the number of convolutional filters in each block,
+        # while num_blocks refers to the number of sub-blocks within a block
+        # (Note that only the first sub-block will perform downsampling)
+        for filters, num_blocks in down_block_configs:
             skip_connections.append(x)
             x = down_block(filters, num_blocks)(x)
 
-        for filters in up_blocks:
+        for filters in up_block_configs:
             x = up_block(filters)(x, skip_connections.pop())
 
         return x
