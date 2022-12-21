@@ -22,11 +22,33 @@ BACKBONE_CONFIG = {
 
 
 class FCN(tf.keras.models.Model):
+    """A segmentation model based on the Fully Convolutional Network introduced by Long et. al.
+
+    Args:
+        classes: int, the number of classes for the segmentation model. Note that
+            the classes doesn't contain the background class, and the classes
+            from the data should be represented by integers with range
+            [0, classes).
+        backbone: a backbone network for the model. Can be a `tf.keras.models.Model`
+            instance. The supported pre-defined backbone models are:
+            1. "vgg16", a VGG16 model
+            2. "vgg19", a VGG19 model
+            Defaults to 'vgg16'.
+            Note: If a custom `tf.keras.models.Model` is passed, then only the
+            `Conv2D`, `MaxPooling2D` and `Dense` layers are extracted from it
+            to make the custom backbone.
+        model_architecture: str, defines the model architecture based on the
+            implementation details present in the paper. The supported
+            architectures are:
+            1. 'fcn8s', a FCN-8S definition
+            2. 'fcn16s', a FCN-16S definition
+            3. 'fcn32s', a FCN-32S definition
+            Defaults to 'fcn8s'.
+
+    """
+
     def _init_(self, classes, backbone="vgg16", model_architecture=None, **kwargs):
         super(FCN, self)._init_(**kwargs)
-        # TODO: Perform error handling for all params
-        # backbone done
-        # if backbone is custom, no model arch allowed
 
         if isinstance(backbone, str):
 
@@ -46,7 +68,7 @@ class FCN(tf.keras.models.Model):
                 layer_list = []
                 # Design choice : Either fully reject, or pick up only Conv2D and MaxPooling2D layers and convert Dense to Conv in `build()`
                 # Possible edge case : ResNets
-                # Current design allows a simple CNN with Conv2D, MaxPooling2D and Dense layers only to be parsed and made into a FCN directly.
+                # Current design allows a simple CNN with Conv2D, MaxPooling2D and Dense layers only, to be parsed and made into a FCN directly.
                 for i in backbone.layers:
                     if isinstance(i, keras.layers.Conv2D) or isinstance(
                         keras.layers.MaxPooling2D
@@ -81,8 +103,10 @@ class FCN(tf.keras.models.Model):
                 "Using `model_architecture` is not allowed when supplying a custom backbone. Valid options are ['fcn8s', 'fcn16s', 'fcn32s']"
             )
         else:
+            if model_architecture is None:
+                model_architecture = "fcn8s"
             self.model_architecture = model_architecture
-            if model_architecture == "fcn8s":
+            if self.model_architecture == "fcn8s":
                 self.pool3 = self.backbone_base_model.layers[
                     : BACKBONE_CONFIG[self.backbone_name]["BLOCK3"]
                 ]
@@ -92,14 +116,14 @@ class FCN(tf.keras.models.Model):
                 self.pool5 = self.backbone_base_model.layers[
                     : BACKBONE_CONFIG[self.backbone_name]["BLOCK5"]
                 ]
-            elif model_architecture == "fcn16s":
+            elif self.model_architecture == "fcn16s":
                 self.pool4 = self.backbone_base_model.layers[
                     : BACKBONE_CONFIG[self.backbone_name]["BLOCK4"]
                 ]
                 self.pool5 = self.backbone_base_model.layers[
                     : BACKBONE_CONFIG[self.backbone_name]["BLOCK5"]
                 ]
-            elif model_architecture == "fcn32s":
+            elif self.model_architecture == "fcn32s":
                 self.pool5 = self.backbone_base_model.layers[
                     : BACKBONE_CONFIG[self.backbone_name]["BLOCK5"]
                 ]
@@ -130,12 +154,19 @@ class FCN(tf.keras.models.Model):
                 if isinstance(i, keras.layers.Dense)
             ]
             if len(units) != 0:
-                self.dense_convs = [
-                    keras.layers.Conv2D(
-                        filters=i, strides=(1, 1), activation="relu", padding="same"
+                self.dense_convs = []
+                for idx in len(units):
+                    curr_unit = units[idx]
+                    self.dense_convs.append(
+                        keras.layers.Conv2D(
+                            filters=curr_unit,
+                            strides=(1, 1),
+                            activation="relu",
+                            padding="same",
+                        )
                     )
-                    for i in units
-                ]
+                    if idx != len(units) - 1:
+                        self.dense_convs.append(keras.layers.Dropout(0.5))
             output_shape = self.dense_convs[-1].compute_output_shape()
             target_height_factor = self.height // output_shape[1]
             target_width_factor = self.width // output_shape[2]
