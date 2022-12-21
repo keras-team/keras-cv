@@ -262,7 +262,6 @@ class RetinaNet(tf.keras.Model):
         # no-op if default decoder is used.
         box_pred, cls_pred = predictions
         predictions = {"boxes": box_pred, "classes": cls_pred}
-        predictions = tf.concat([box_pred, cls_pred], axis=-1)
         pred_for_inference = bounding_box.convert_format(
             predictions,
             source=self.bounding_box_format,
