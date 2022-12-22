@@ -81,14 +81,8 @@ jobs:
         # https://github.com/bazelbuild/bazel/issues/14232#issuecomment-1011247429
         os: ['macos-12', 'windows-2019', 'ubuntu-18.04']
         py-version: ['3.7', '3.8', '3.9', '3.10']
-        tf-version: ['2.9.3', '2.10.1', '2.11.0']
+        tf-version: ['2.11.0']
         use-macos-arm: [false]
-        exclude:
-          # tensorflow-intel doesn't support Py3.9 at version 2.10.1
-          # (see https://pypi.org/project/tensorflow-intel/2.10.1/#files)
-          - os: windows-2019
-            py-version: '3.9'
-            tf-version: '2.10.1'
         include:
           - os: 'macos-12'
             tf-version: '2.11.0'
