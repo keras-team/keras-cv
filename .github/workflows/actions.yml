@@ -82,20 +82,6 @@ jobs:
         os: ['macos-12', 'windows-2019', 'ubuntu-18.04']
         py-version: ['3.7', '3.8', '3.9', '3.10']
         tf-version: ['2.9.3', '2.10.1', '2.11.0']
-        cpu: ['x86']
-        include:
-          - os: 'macos-12'
-            cpu: 'arm64'
-            tf-version: '2.11.0'
-            py-version: '3.8'
-          - os: 'macos-12'
-            cpu: 'arm64'
-            tf-version: '2.11.0'
-            py-version: '3.9'
-          - os: 'macos-12'
-            cpu: 'arm64'
-            tf-version: '2.11.0'
-            py-version: '3.10'
       fail-fast: false
     steps:
     - uses: actions/checkout@v2
