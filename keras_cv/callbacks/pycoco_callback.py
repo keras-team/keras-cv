@@ -73,9 +73,6 @@ class PyCOCOCallback(Callback):
         classes = tf.concat(
             [bounding_boxes["classes"] for bounding_boxes in gt], axis=0
         )
-        num_detections = tf.stack(
-            [self._num_detections(bounding_boxes) for bounding_boxes in gt], axis=0
-        )
 
         first_image_batch = next(iter(images_only_ds))
         height = first_image_batch.shape[1]

@@ -26,7 +26,7 @@ class RequiresImagesException(Exception):
     pass
 
 
-ALL_AXES = ALL_AXES
+ALL_AXES = [1, 1, 1, 1]
 
 
 def _encode_box_to_deltas(
