@@ -131,7 +131,7 @@ jobs:
     - name: Reinstall TensorFlow (MacOS ARM)
       if: ${{ matrix.os == 'macos-12' && matrix.use-macos-arm}}
       run: |
-        python -m pip uninstall tensorflow-cpu
+        python -m pip uninstall -y tensorflow-cpu
         python -m pip install --platform=macosx_12_0_arm64 --no-deps --target=$(python -c 'import site; print(site.getsitepackages()[0])') --upgrade tensorflow-macos==${{ matrix.tf-version }}
     - name: Bazel Build
       if: ${{ ! matrix.use-macos-arm}}
