@@ -32,6 +32,21 @@ from keras_cv.models.__internal__.darknet_utils import Focus
 from keras_cv.models.__internal__.darknet_utils import SpatialPyramidPoolingBottleneck
 from keras_cv.models.weights import parse_weights
 
+DEPTH_MULTIPLIERS = {
+    "tiny": 0.33,
+    "s": 0.33,
+    "m": 0.67,
+    "l": 1.00,
+    "x": 1.33,
+}
+
+WIDTH_MULTIPLIERS = {
+    "tiny": 0.375,
+    "s": 0.50,
+    "m": 0.75,
+    "l": 1.00,
+    "x": 1.25,
+}
 
 def CSPDarkNet(
     include_rescaling,
