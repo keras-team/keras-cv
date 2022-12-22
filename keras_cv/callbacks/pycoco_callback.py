@@ -93,10 +93,9 @@ class PyCOCOCallback(Callback):
         y_pred = bounding_box.to_ragged(y_pred)
 
         predictions = {}
-        if self.input_nms:
-            predictions["num_detections"] = [y_pred["boxes"].row_lengths()]
-            y_pred = bounding_box.to_dense(y_pred)
-            predictions["num_detections"] = [valid_det]
+        predictions["num_detections"] = [y_pred["boxes"].row_lengths()]
+        y_pred = bounding_box.to_dense(y_pred)
+        predictions["num_detections"] = [valid_det]
 
         predictions["source_id"] = [source_ids]
 
