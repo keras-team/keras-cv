@@ -173,4 +173,4 @@ model.compile(
     rpn_box_loss="Huber",
     rpn_classification_loss="BinaryCrossentropy",
 )
-model.fit(train_ds, epochs=18, callbacks=callbacks)
+model.fit(train_ds, validation_data=eval_ds, epochs=18, callbacks=callbacks)
