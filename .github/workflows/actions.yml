@@ -134,6 +134,7 @@ jobs:
       run: |
         python -m pip install --platform=macosx_12_0_arm64 --no-deps --target=$(python -c 'import site; print(site.getsitepackages()[0])') --upgrade tensorflow-macos==${{ matrix.tf-version }}
     - name: Install dependencies
+      run: |
         python -m pip install -e ".[tests]" --progress-bar off --upgrade
     - name: Configure Build Environment
       run: |
