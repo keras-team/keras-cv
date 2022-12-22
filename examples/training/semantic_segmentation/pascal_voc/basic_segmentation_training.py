@@ -99,7 +99,7 @@ train_ds = load(split="sbd_train", data_dir=None)
 eval_ds = load(split="sbd_eval", data_dir=None)
 
 
-def preprocess_image(img, cls_seg):
+def preprocess_image(img, cls_seg, flip=False):
     img = tf.keras.layers.Resizing(512, 512, interpolation="nearest")(img)
     inputs = {"images": img, "segmentation_masks": cls_seg}
     inputs = keras_cv.layers.preprocessing.RandomFlip("horizontal")(inputs)
@@ -110,7 +110,7 @@ def proc_train_fn(examples):
     image = examples.pop("image")
     cls_seg = examples.pop("class_segmentation")
 
-    image, cls_seg = preprocess_image(image, cls_seg)
+    image, cls_seg = preprocess_image(image, cls_seg, flip=True)
 
     sample_weight = tf.equal(cls_seg, 255)
     zeros = tf.zeros_like(cls_seg)
@@ -120,12 +120,10 @@ def proc_train_fn(examples):
 
 def proc_eval_fn(examples):
     image = examples.pop("image")
-    image = tf.cast(image, tf.float32)
-    image = tf.keras.layers.Resizing(512, 512, interpolation="nearest")(image)
     cls_seg = examples.pop("class_segmentation")
-    cls_seg = tf.cast(cls_seg, tf.float32)
-    cls_seg = tf.keras.layers.Resizing(512, 512, interpolation="nearest")(cls_seg)
-    cls_seg = tf.cast(cls_seg, tf.uint8)
+
+    image, cls_seg = preprocess_image(image, cls_seg, flip=False)
+
     sample_weight = tf.equal(cls_seg, 255)
     zeros = tf.zeros_like(cls_seg)
     cls_seg = tf.where(sample_weight, zeros, cls_seg)
