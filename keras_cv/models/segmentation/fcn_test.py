@@ -33,7 +33,7 @@ class FCNTest(tf.test.TestCase):
         self.assertEquals(output.shape, [2, 256, 256, 11])
 
     def test_fcn_model_with_components(self):
-        backbone = models.VGG16()
+        backbone = models.VGG16(include_rescaling=False, include_top=False)
         model = segmentation.FCN(
             classes=11, backbone=backbone, model_architecture='fcn8s'
         )
