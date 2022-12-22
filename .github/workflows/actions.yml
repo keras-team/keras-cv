@@ -126,11 +126,11 @@ jobs:
       run: |
         python -m pip install tensorflow-cpu==${{ matrix.tf-version }}
     - name: Install TensorFlow (MacOS x86)
-      if: ${{ matrix.os == 'macos-12'}} && ${{ runner.use-macos-arm == false}}
+      if: ${{ matrix.os == 'macos-12' && runner.use-macos-arm == false}}
       run: |
         python -m pip install tensorflow-macos==${{ matrix.tf-version }}
     - name: Install TensorFlow (MacOS ARM)
-      if: ${{ matrix.os == 'macos-12'}} && ${{ runner.use-macos-arm == true}}
+      if: ${{ matrix.os == 'macos-12' && runner.use-macos-arm == true}}
       run: |
         python -m pip install --platform=macosx_12_0_arm64 --no-deps --target=$(python -c 'import site; print(site.getsitepackages()[0])') --upgrade tensorflow-macos==${{ matrix.tf-version }}
     - name: Install dependencies
