@@ -66,4 +66,14 @@ def to_dense(bounding_boxes, max_boxes=None):
             ),
         )
 
+    if "confidence" in bounding_boxes:
+        if isinstance(bounding_boxes["confidence"], tf.RaggedTensor):
+            # TODO(lukewood): include shape info
+            bounding_boxes["confidence"] = bounding_boxes["confidence"].to_tensor(
+                -1,
+                shape=_classes_shape(
+                    info["is_batched"], bounding_boxes["confidence"].shape, max_boxes
+                ),
+            )
+
     return bounding_boxes

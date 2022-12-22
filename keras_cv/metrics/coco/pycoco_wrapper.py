@@ -113,6 +113,7 @@ def _yxyx_to_xywh(boxes):
 def _convert_predictions_to_coco_annotations(predictions):
     coco_predictions = []
     num_batches = len(predictions["source_id"])
+    print("predictions['detection_scores']", predictions['detection_scores'])
     for i in range(num_batches):
         predictions["detection_boxes"][i] = _yxyx_to_xywh(
             predictions["detection_boxes"][i]

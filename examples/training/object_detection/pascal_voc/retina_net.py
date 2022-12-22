@@ -198,11 +198,11 @@ callbacks = [
     keras.callbacks.ReduceLROnPlateau(monitor="loss", patience=5),
     keras.callbacks.EarlyStopping(monitor="loss", patience=10),
     keras.callbacks.ModelCheckpoint(CHECKPOINT_PATH, save_weights_only=True),
-    keras_cv.callbacks.PyCOCOCallback(eval_ds, "xywh"),
+    keras_cv.callbacks.PyCOCOCallback(eval_ds.take(2), "xywh"),
 ]
 
 history = model.fit(
-    train_ds,
+    train_ds.take(2),
     epochs=50,
     callbacks=callbacks,
 )
