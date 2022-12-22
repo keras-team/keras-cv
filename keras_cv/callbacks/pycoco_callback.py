@@ -44,6 +44,12 @@ class PyCOCOCallback(Callback):
         self.bounding_box_format = bounding_box_format
         super().__init__(**kwargs)
 
+    def _num_detections(self, bounding_boxes):
+        boxes = bounding_boxes['boxes']
+        if isinstance(boxes, tf.RaggedTensor):
+            return boxes.row_lengths(axis=1)
+        raise ValueError("Unimplemented")
+
     def on_epoch_end(self, epoch, logs=None):
         logs = logs or {}
 
@@ -60,9 +66,13 @@ class PyCOCOCallback(Callback):
 
         gt = [bounding_box.to_ragged(boxes) for boxes in self.val_data.map(boxes_only)]
 
-        boxes = tf.concat([boxes["boxes"] for boxes in gt], axis=0)
-        classes = tf.concat([boxes["classes"] for boxes in gt], axis=0)
-        num_detections = tf.concat([boxes["boxes"].shape[0] for boxes in gt], axis=0)
+        boxes = tf.concat([bounding_boxes["boxes"] for bounding_boxes in gt], axis=0)
+        classes = tf.concat(
+            [bounding_boxes["classes"] for bounding_boxes in gt], axis=0
+        )
+        num_detections = tf.stack(
+            [self._num_detections(bounding_boxes) for bounding_boxes in gt], axis=0
+        )
 
         first_image_batch = next(iter(images_only_ds))
         height = first_image_batch.shape[1]

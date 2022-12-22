@@ -54,7 +54,6 @@ def validate(bounding_boxes):
     is_batched = len(boxes.shape) == 3
     info["is_batched"] = is_batched
     info["ragged"] = isinstance(boxes, tf.RaggedTensor)
-    print(boxes.shape, classes)
 
     if not is_batched:
         if boxes.shape[:1] != classes.shape[:1]:
