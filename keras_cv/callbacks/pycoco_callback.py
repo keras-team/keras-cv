@@ -45,6 +45,9 @@ class PyCOCOCallback(Callback):
         super().__init__(**kwargs)
 
     def _num_detections(self, bounding_boxes):
+        if "num_detections" in bounding_boxes:
+            return bounding_boxes["num_detections"]
+
         boxes = bounding_boxes["boxes"]
         if isinstance(boxes, tf.RaggedTensor):
             return boxes.row_lengths(axis=1)

@@ -72,68 +72,69 @@ class NonMaxSuppressionTest(tf.test.TestCase):
         layer = NonMaxSuppression(8, "xywh", iou_threshold=0.1)
         images = tf.ones((2, 480, 480, 3))
 
+        boxes = [
+            [
+                [
+                    0,
+                    0,
+                    1,
+                    1,
+                ],
+                [
+                    0,
+                    0,
+                    2,
+                    3,
+                ],
+                [
+                    4,
+                    5,
+                    3,
+                    6,
+                ],
+                [
+                    2,
+                    2,
+                    3,
+                    3,
+                ],
+            ],
+            [
+                [
+                    0,
+                    0,
+                    5,
+                    6,
+                ],
+                [
+                    0,
+                    0,
+                    7,
+                    3,
+                ],
+                [
+                    4,
+                    5,
+                    5,
+                    6,
+                ],
+                [
+                    2,
+                    1,
+                    3,
+                    3,
+                ],
+            ],
+        ]
+        classes = [[4, 4, 3, 6], [4, 1, 4, 7]]
+        confidence = [[0.9, 0.76, 0.89, 0.04], [0.9, 0.76, 0.04, 0.48]]
         predictions = {
             "boxes": tf.convert_to_tensor(
-                [
-                    [
-                        [
-                            0,
-                            0,
-                            1,
-                            1,
-                        ],
-                        [
-                            0,
-                            0,
-                            2,
-                            3,
-                        ],
-                        [
-                            4,
-                            5,
-                            3,
-                            6,
-                        ],
-                        [
-                            2,
-                            2,
-                            3,
-                            3,
-                        ],
-                    ],
-                    [
-                        [
-                            0,
-                            0,
-                            5,
-                            6,
-                        ],
-                        [
-                            0,
-                            0,
-                            7,
-                            3,
-                        ],
-                        [
-                            4,
-                            5,
-                            5,
-                            6,
-                        ],
-                        [
-                            2,
-                            1,
-                            3,
-                            3,
-                        ],
-                    ],
-                ],
+                boxes,
                 dtype=tf.float32,
             ),
-            "classes": tf.convert_to_tensor([[4, 4, 3, 6], [4, 1, 4, 7]], tf.float32),
-            "confidence": tf.convert_to_tensor(
-                [[0.9, 0.76, 0.89, 0.04], [0.9, 0.76, 0.04, 0.48]], tf.float32
-            ),
+            "classes": tf.convert_to_tensor(classes, tf.float32),
+            "confidence": tf.convert_to_tensor(confidence, tf.float32),
         }
 
         outputs = layer(predictions, images)
