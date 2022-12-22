@@ -59,6 +59,7 @@ def to_dense(bounding_boxes, max_boxes=None):
         )
 
     if isinstance(bounding_boxes["boxes"], tf.RaggedTensor):
+        bounding_boxes["num_detections"] = boxes.row_lengths()
         bounding_boxes["boxes"] = bounding_boxes["boxes"].to_tensor(
             -1,
             shape=_box_shape(
