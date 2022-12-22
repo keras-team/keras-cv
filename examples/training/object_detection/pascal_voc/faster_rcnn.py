@@ -232,13 +232,11 @@ def proc_train_fn(bounding_box_format, img_size):
 def pad_fn(examples):
     gt_boxes = examples.pop("gt_boxes")
     gt_classes = examples.pop("gt_classes")
-    num_det = gt_boxes.row_lengths()
     gt_boxes = gt_boxes.to_tensor(default_value=-1.0, shape=[global_batch, 32, 4])
     gt_classes = gt_classes.to_tensor(default_value=-1.0, shape=[global_batch, 32, 1])
     return examples["images"], {
-        "gt_boxes": gt_boxes,
-        "gt_classes": gt_classes,
-        "gt_num_dets": num_det,
+        "boxes": gt_boxes,
+        "classes": gt_classes,
     }
 
 
@@ -282,7 +280,7 @@ callbacks = [
     tf.keras.callbacks.TensorBoard(
         log_dir=FLAGS.tensorboard_path, write_steps_per_second=True
     ),
-    PyCOCOCallback(eval_ds, bounding_box_format="yxyx", input_nms=False),
+    PyCOCOCallback(eval_ds, bounding_box_format="yxyx"),
 ]
 model.compile(
     optimizer=optimizer,

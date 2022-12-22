@@ -198,8 +198,6 @@ class RetinaNet(tf.keras.Model):
     def prediction_decoder(self, prediction_decoder):
         self._prediction_decoder = prediction_decoder
         self.make_predict_function(force=True)
-        self.make_test_function(force=True)
-        self.make_train_function(force=True)
 
     @staticmethod
     def default_anchor_generator(bounding_box_format):

@@ -13,10 +13,16 @@
 # limitations under the License.
 import os
 
+import pytest
 import tensorflow as tf
 
-from keras_cv.datasets.waymo import load
-from keras_cv.datasets.waymo import transformer
+try:
+    from keras_cv.datasets.waymo import load
+    from keras_cv.datasets.waymo import transformer
+except ImportError:
+    # Waymo Open Dataset dependency may be missing, in which case we expect
+    # these tests will be skipped based on the TEST_WAYMO_DEPS environment var.
+    pass
 
 
 class WaymoOpenDatasetTransformerTest(tf.test.TestCase):
@@ -26,6 +32,10 @@ class WaymoOpenDatasetTransformerTest(tf.test.TestCase):
             os.path.join(os.path.abspath(__file__), os.path.pardir, "test_data")
         )
 
+    @pytest.mark.skipif(
+        "TEST_WAYMO_DEPS" not in os.environ or os.environ["TEST_WAYMO_DEPS"] != "true",
+        reason="Requires Waymo Open Dataset package",
+    )
     def test_load_and_transform(self):
         tf_dataset = load(self.test_data_path)
 
