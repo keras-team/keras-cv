@@ -101,9 +101,9 @@ print(
     f"Benchmark results:\n{'='*25}\n{FLAGS.model_name} achieves: \n - Top-1 Accuracy: {acc*100} \n - Top-5 Accuracy: {top_5*100} \non ImageNetV2 with setup:"
 )
 print(
-    f"model_name: {FLAGS.model_name}\n"
-    f"include_rescaling: {FLAGS.include_rescaling}\n"
-    f"batch_size: {FLAGS.batch_size}\n"
-    f"weights: {FLAGS.weights}\n"
-    f"model_kwargs: {FLAGS.model_kwargs}\n"
+    f"- model_name: {FLAGS.model_name}\n"
+    f"- include_rescaling: {FLAGS.include_rescaling}\n"
+    f"- batch_size: {FLAGS.batch_size}\n"
+    f"- weights: {FLAGS.weights}\n"
+    f"- model_kwargs: {FLAGS.model_kwargs}\n"
 )
