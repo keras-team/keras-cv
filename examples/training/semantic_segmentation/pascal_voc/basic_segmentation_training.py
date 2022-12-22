@@ -120,7 +120,7 @@ def proc_train_fn(examples):
 def proc_eval_fn(examples):
     image = examples.pop("image")
     image = tf.cast(image, tf.float32)
-    image = tf.keras.layers.Resizing(512, 512, interpolation="nearest")(img)
+    image = tf.keras.layers.Resizing(512, 512, interpolation="nearest")(image)
     cls_seg = examples.pop("class_segmentation")
     cls_seg = tf.cast(cls_seg, tf.float32)
     cls_seg = tf.keras.layers.Resizing(512, 512, interpolation="nearest")(cls_seg)
