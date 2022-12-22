@@ -60,7 +60,7 @@ class PyCOCOCallback(Callback):
             box_pred = tf.convert_to_tensor(y_pred["boxes"])
             cls_pred = tf.convert_to_tensor(y_pred["classes"])
             scores_pred = tf.convert_to_tensor(y_pred["scores"])
-            valid_det = tf.convert_to_tensor(y_pred["num_det"])
+            valid_det = tf.convert_to_tensor(y_pred["num_detections"])
         else:
             valid_det = y_pred.row_lengths()
             y_pred = y_pred.to_tensor(-1)

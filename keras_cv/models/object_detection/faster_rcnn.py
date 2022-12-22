@@ -271,7 +271,7 @@ class NMSDecoder(tf.keras.layers.Layer):
             "boxes": box_pred,
             "scores": scores_pred,
             "classes": cls_pred,
-            "num_det": valid_det,
+            "num_detections": valid_det,
         }
 
     def get_config(self):
