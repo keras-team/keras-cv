@@ -101,8 +101,9 @@ eval_ds = load(split="sbd_eval", data_dir=None)
 
 def preprocess_image(img, cls_seg):
     img = tf.keras.layers.Resizing(512, 512, interpolation="nearest")(img)
-    img, cls_seg = keras_cv.layers.preprocessing.RandomFlip("horizontal")(img, cls_seg)
-    return img, cls_seg
+    inputs = {"images": img, "segmentation_masks": cls_seg}
+    inputs = keras_cv.layers.preprocessing.RandomFlip("horizontal")(inputs)
+    return inputs["images"], inputs["segmentation_masks"]
 
 
 def proc_train_fn(examples):
