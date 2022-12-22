@@ -37,10 +37,10 @@ class PyCOCOCallback(Callback):
                 consider avoiding shuffle operations and passing `cache=False`.
         """
         self.model = None
-        self.validation_data = validation_data
+        self.val_data = validation_data
         if cache:
             # We cache the dataset to preserve a consistent iteration order.
-            self.validation_data = self.validation_data.cache()
+            self.val_data = self.val_data.cache()
         self.bounding_box_format = bounding_box_format
         super().__init__(**kwargs)
 
@@ -53,17 +53,12 @@ class PyCOCOCallback(Callback):
         def boxes_only(images, boxes):
             return boxes
 
-        images_only_ds = self.validation_data.map(
+        images_only_ds = self.val_data.map(
             images_only, num_parallel_calls=tf.data.AUTOTUNE
         )
         y_pred = self.model.predict(images_only_ds)
 
-        gt = [
-            boxes
-            for boxes in self.validation_data.map(
-                boxes_only, num_parallel_calls=tf.data.AUTOTUNE
-            )
-        ]
+        gt = [bounding_box.to_ragged(boxes) for boxes in self.val_data.map(boxes_only)]
 
         boxes = tf.concat([boxes["boxes"] for boxes in gt], axis=0)
         classes = tf.concat([boxes["classes"] for boxes in gt], axis=0)

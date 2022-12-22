@@ -202,7 +202,7 @@ callbacks = [
 ]
 
 history = model.fit(
-    train_ds,
+    train_ds.take(2),
     epochs=50,
     callbacks=callbacks,
 )
