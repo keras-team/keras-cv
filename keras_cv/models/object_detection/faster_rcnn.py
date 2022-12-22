@@ -269,7 +269,7 @@ class NMSDecoder(tf.keras.layers.Layer):
         )
         return {
             "boxes": box_pred,
-            "scores": scores_pred,
+            "confidence": scores_pred,
             "classes": cls_pred,
             "num_detections": valid_det,
         }
