@@ -87,12 +87,10 @@ def unpackage_inputs(bounding_box_format):
     return apply
 
 
-def dict_to_tuple(inputs):
-    return inputs["images"], inputs["bounding_boxes"]
-
-
-def pad_fn(image, boxes):
-    return image, bounding_box.to_dense(boxes, max_boxes=32)
+def pad_fn(inputs):
+    return inputs["images"], bounding_box.to_dense(
+        inputs["bounding_boxes"], max_boxes=32
+    )
 
 
 train_ds = train_ds.map(unpackage_inputs("xywh"), num_parallel_calls=tf.data.AUTOTUNE)
@@ -136,10 +134,8 @@ eval_ds = eval_ds.map(
     num_parallel_calls=tf.data.AUTOTUNE,
 )
 
-eval_ds = eval_ds.map(dict_to_tuple, num_parallel_calls=tf.data.AUTOTUNE)
 eval_ds = eval_ds.map(pad_fn, num_parallel_calls=tf.data.AUTOTUNE)
 eval_ds = eval_ds.prefetch(tf.data.AUTOTUNE)
-train_ds = train_ds.map(dict_to_tuple, num_parallel_calls=tf.data.AUTOTUNE)
 train_ds = train_ds.map(pad_fn, num_parallel_calls=tf.data.AUTOTUNE)
 train_ds = train_ds.prefetch(tf.data.AUTOTUNE)
 

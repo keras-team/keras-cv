@@ -147,22 +147,11 @@ the model are expected to be in the range `[0, 255]`.
 
 
 def unpackage_inputs(data):
-    return data["images"], data["bounding_boxes"]
+    return data["images"], bounding_box.to_dense(data["bounding_boxes"])
 
 
 train_ds = train_ds.map(unpackage_inputs, num_parallel_calls=tf.data.AUTOTUNE)
 eval_ds = eval_ds.map(unpackage_inputs, num_parallel_calls=tf.data.AUTOTUNE)
-
-
-# TODO(lukewood): the boxes loses shape from KPL, so need to pad to a known shape.
-# TODO(tanzhenyu): consider remove padding while reduce function tracing.
-def pad_fn(image, boxes):
-    return image, bounding_box.to_dense(boxes)
-
-
-train_ds = train_ds.map(pad_fn, num_parallel_calls=tf.data.AUTOTUNE)
-eval_ds = eval_ds.map(pad_fn, num_parallel_calls=tf.data.AUTOTUNE)
-
 
 with strategy.scope():
     model = keras_cv.models.RetinaNet(
