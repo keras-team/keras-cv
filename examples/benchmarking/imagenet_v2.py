@@ -98,7 +98,7 @@ test_set = (
 # model size, etc.
 loss, acc, top_5 = model.evaluate(test_set, verbose=0)
 print(
-    f"{FLAGS.model_name} achieves: \n Top-1 Accuracy: {acc*100} \n Top-5 Accuracy: {top_5*100} \n on ImageNetV2 with setup:"
+    f"Benchmark results:\n{'='*25}\n{FLAGS.model_name} achieves: \n - Top-1 Accuracy: {acc*100} \n - Top-5 Accuracy: {top_5*100} \non ImageNetV2 with setup:"
 )
 print(
     f"model_name: {FLAGS.model_name}\n"
