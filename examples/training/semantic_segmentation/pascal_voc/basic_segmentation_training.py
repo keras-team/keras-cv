@@ -71,8 +71,7 @@ flags.DEFINE_float(
     "Weight decay parameter for the optimizer",
 )
 
-# An upper bound for number of epochs (this script uses EarlyStopping).
-flags.DEFINE_integer("epochs", 1000, "Epochs to train for")
+flags.DEFINE_integer("epochs", 100, "Epochs to train for")
 
 FLAGS = flags.FLAGS
 FLAGS(sys.argv)
@@ -100,6 +99,7 @@ train_ds = load(split="sbd_train", data_dir=None)
 eval_ds = load(split="sbd_eval", data_dir=None)
 
 
+@tf.function
 def augment_image(img, cls_seg, augment=False):
     img = tf.keras.layers.Resizing(512, 512, interpolation="nearest")(img)
     cls_seg = tf.keras.layers.Resizing(512, 512, interpolation="nearest")(cls_seg)
@@ -117,6 +117,7 @@ def augment_image(img, cls_seg, augment=False):
     return inputs["images"], inputs["segmentation_masks"]
 
 
+@tf.function
 def process(examples, augment=False):
     image = examples.pop("image")
     cls_seg = examples.pop("class_segmentation")
@@ -183,4 +184,4 @@ callbacks = [
 ]
 model.compile(optimizer=optimizer, loss=loss_fn, metrics=metrics)
 
-model.fit(train_ds, epochs=100, validation_data=eval_ds, callbacks=callbacks)
+model.fit(train_ds, epochs=FLAGS.epochs, validation_data=eval_ds, callbacks=callbacks)
