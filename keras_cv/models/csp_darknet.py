@@ -36,8 +36,20 @@ from keras_cv.models.weights import parse_weights
 def CSPDarkNet(
     include_rescaling,
     include_top,
-    depth_multiplier=1.0,
-    width_multiplier=1.0,
+    depth_multiplier = {
+    "tiny": 0.33,
+    "s": 0.33,
+    "m": 0.67,
+    "l": 1.00,
+    "x": 1.33,
+},
+    width_multiplier = {
+    "tiny": 0.375,
+    "s": 0.50,
+    "m": 0.75,
+    "l": 1.00,
+    "x": 1.25,
+},
     use_depthwise=False,
     classes=None,
     weights=None,
