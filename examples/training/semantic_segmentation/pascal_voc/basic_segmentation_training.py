@@ -100,7 +100,7 @@ train_ds = load(split="sbd_train", data_dir=None)
 eval_ds = load(split="sbd_eval", data_dir=None)
 
 
-def preprocess_image(img, cls_seg, augment=False):
+def augment_image(img, cls_seg, augment=False):
     img = tf.keras.layers.Resizing(512, 512, interpolation="nearest")(img)
     cls_seg = tf.keras.layers.Resizing(512, 512, interpolation="nearest")(cls_seg)
     cls_seg = tf.cast(cls_seg, tf.uint8)
@@ -117,11 +117,11 @@ def preprocess_image(img, cls_seg, augment=False):
     return inputs["images"], inputs["segmentation_masks"]
 
 
-def proc_train_fn(examples):
+def process(examples, augment=False):
     image = examples.pop("image")
     cls_seg = examples.pop("class_segmentation")
 
-    image, cls_seg = preprocess_image(image, cls_seg, augment=True)
+    image, cls_seg = augment_image(image, cls_seg, augment=augment)
 
     sample_weight = tf.equal(cls_seg, 255)
     zeros = tf.zeros_like(cls_seg)
@@ -129,22 +129,12 @@ def proc_train_fn(examples):
     return image, cls_seg
 
 
-def proc_eval_fn(examples):
-    image = examples.pop("image")
-    cls_seg = examples.pop("class_segmentation")
-
-    image, cls_seg = preprocess_image(image, cls_seg, augment=False)
-
-    sample_weight = tf.equal(cls_seg, 255)
-    zeros = tf.zeros_like(cls_seg)
-    cls_seg = tf.where(sample_weight, zeros, cls_seg)
-    return image, cls_seg
-
-
-train_ds = train_ds.map(proc_train_fn, num_parallel_calls=tf.data.AUTOTUNE)
+train_ds = train_ds.map(
+    lambda x: process(x, augment=True), num_parallel_calls=tf.data.AUTOTUNE
+)
 train_ds = train_ds.batch(global_batch, drop_remainder=True)
 
-eval_ds = eval_ds.map(proc_eval_fn, num_parallel_calls=tf.data.AUTOTUNE)
+eval_ds = eval_ds.map(lambda x: process(x), num_parallel_calls=tf.data.AUTOTUNE)
 eval_ds = eval_ds.batch(global_batch, drop_remainder=True)
 
 train_ds = train_ds.shuffle(8)
