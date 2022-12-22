@@ -133,20 +133,20 @@ WEIGHTS_CONFIG = {
         "imagenet/classification-v0-notop": "c1189a934f12c1a676a9cf52238e5994401af925e2adfc0365bad8133c052060",
     },
     "efficientnetv2b0": {
-        "imagenet/classification-v0": "da7975b6d4200dfdc3f859b0d028774e5e5dd4031d3e998a27dadc492dec4f3e",
-        "imagenet/classification-v0-notop": "defe635bfa3cc3f2b9e89bfd53bbc3de28a1dc67026b4437a14f44476e7d0549",
+        "imagenet/classification-v0": "dbde38e7c56af5bdafe61fd798cf5d490f3c5e3b699da7e25522bc828d208984",
+        "imagenet/classification-v0-notop": "ac95f13a8ad1cee41184fc16fd0eb769f7c5b3131151c6abf7fcee5cc3d09bc8",
     },
     "efficientnetv2b1": {
-        "imagenet/classification-v0": "3f92fc9d7b141ec9e85ffe60d301fb49103ba17b148bdd638971a77f1b8db010",
-        "imagenet/classification-v0-notop": "359aaa5c1e863c8438d94052791e72ef29345d07703d06284e1069829f85932f",
+        "imagenet/classification-v0": "9dd8f3c8de3bbcc269a1b9aed742bb89d56be445b6aa271aa6037644f4210e9a",
+        "imagenet/classification-v0-notop": "82da111f8411f47e3f5eef090da76340f38e222f90a08bead53662f2ebafb01c",
     },
     "efficientnetv2b2": {
-        "imagenet/classification-v0": "1667d21b50e6c5b851a69c98503fa5ae707b82dbae8c900fe59ab1a93d60d694",
-        "imagenet/classification-v0-notop": "e118aadfab7e93ff939fb81c88c189cbd7fb2b7ddd7314fbf2badb7c551aa119",
+        "imagenet/classification-v0": "05eb5674e0ecbf34d5471f611bcfa5da0bb178332dc4460c7a911d68f9a2fe87",
+        "imagenet/classification-v0-notop": "02d12c9d1589b540b4e84ffdb54ff30c96099bd59e311a85ddc7180efc65e955",
     },
     "efficientnetv2s": {
-        "imagenet/classification-v0": "77c8fb0ea9cbf6277c6c3cdfece00e610aa1d19edf3d76d15b4e6bcbbeada904",
-        "imagenet/classification-v0-notop": "9652f71d398c2de6c595c68b881f257d715bcf0cdc5adb80e95ce83e828ae2c6",
+        "imagenet/classification-v0": "2259db3483a577b5473dd406d1278439bd1a704ee477ff01a118299b134bd4db",
+        "imagenet/classification-v0-notop": "80555436ea49100893552614b4dce98de461fa3b6c14f8132673817d28c83654",
     },
     "resnet50v2": {
         "imagenet/classification-v0": "11bde945b54d1dca65101be2648048abca8a96a51a42820d87403486389790db",

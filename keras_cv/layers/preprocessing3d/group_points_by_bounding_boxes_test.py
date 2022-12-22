@@ -11,7 +11,10 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import os
+
 import numpy as np
+import pytest
 import tensorflow as tf
 
 from keras_cv.layers.preprocessing3d import base_augmentation_layer_3d
@@ -151,6 +154,10 @@ class GroupPointsByBoundingBoxesTest(tf.test.TestCase):
         self.assertAllClose(outputs[OBJECT_POINT_CLOUDS], object_point_clouds)
         self.assertAllClose(outputs[OBJECT_BOUNDING_BOXES], object_bounding_boxes)
 
+    @pytest.mark.skipif(
+        "TEST_CUSTOM_OPS" not in os.environ or os.environ["TEST_CUSTOM_OPS"] != "true",
+        reason="Requires binaries compiled from source",
+    )
     def test_augment_point_clouds_and_bounding_boxes_v2(self):
         add_layer = GroupPointsByBoundingBoxes(
             label_index=1,
