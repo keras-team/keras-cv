@@ -158,7 +158,8 @@ with strategy.scope():
         learning_rate=lr_decay,
         momentum=0.9,
         clipnorm=10.0,
-        use_ema=FLAGS.use_ema,
+        # For later release
+        # use_ema=FLAGS.use_ema,
         weight_decay=FLAGS.weight_decay,
     )
     # ignore 255 as the class for semantic boundary.
