@@ -14,6 +14,7 @@
 
 import tensorflow as tf
 from tensorflow import keras
+from keras_cv.models import VGG16, VGG19
 
 BACKBONE_CONFIG = {
     "vgg16": {"BLOCK3": 11, "BLOCK4": 15, "BLOCK5": 19, "DENSE_START": -3},
@@ -53,10 +54,14 @@ class FCN(tf.keras.models.Model):
         if isinstance(backbone, str):
 
             if backbone == "vgg16":
-                self.backbone_base_model = keras.applications.VGG16()
+                self.backbone_base_model = VGG16(
+                    include_rescaling=False, include_top=False
+                )
                 self.backbone_name = backbone
             elif backbone == "vgg19":
-                self.backbone_base_model = keras.applications.VGG19()
+                self.backbone_base_model = VGG19(
+                    include_rescaling=False, include_top=False
+                )
                 self.backbone_name = backbone
             else:
                 raise ValueError(

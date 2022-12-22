@@ -129,11 +129,7 @@ with strategy.scope():
         boundaries=[30000 * 16 / global_batch],
         values=[base_lr, 0.1 * base_lr],
     )
-    model = FCN(
-        classes=21,
-        backbone="vgg16",
-        model_architecture="fcn8s"
-    )
+    model = FCN(classes=21, backbone="vgg16", model_architecture="fcn8s")
     optimizer = tf.keras.optimizers.SGD(
         learning_rate=lr_decay, momentum=0.9, clipnorm=10.0
     )
