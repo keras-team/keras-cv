@@ -44,15 +44,6 @@ class PyCOCOCallback(Callback):
         self.bounding_box_format = bounding_box_format
         super().__init__(**kwargs)
 
-    def _num_detections(self, bounding_boxes):
-        if "num_detections" in bounding_boxes:
-            return bounding_boxes["num_detections"]
-
-        boxes = bounding_boxes["boxes"]
-        if isinstance(boxes, tf.RaggedTensor):
-            return boxes.row_lengths(axis=1)
-        raise ValueError("Unimplemented")
-
     def on_epoch_end(self, epoch, logs=None):
         logs = logs or {}
 
@@ -62,25 +53,29 @@ class PyCOCOCallback(Callback):
         def boxes_only(images, boxes):
             return boxes
 
-        images_only_ds = self.val_data.map(
-            images_only, num_parallel_calls=tf.data.AUTOTUNE
-        )
+        images_only_ds = self.val_data.map(images_only)
         y_pred = self.model.predict(images_only_ds)
+        box_pred = tf.convert_to_tensor(y_pred["boxes"])
+        cls_pred = tf.convert_to_tensor(y_pred["classes"])
+        confidence_pred = tf.convert_to_tensor(y_pred["confidence"])
+        valid_det = tf.convert_to_tensor(y_pred["num_detections"])
 
-        gt = [bounding_box.to_ragged(boxes) for boxes in self.val_data.map(boxes_only)]
-
-        boxes = tf.concat([bounding_boxes["boxes"] for bounding_boxes in gt], axis=0)
-        classes = tf.concat(
-            [bounding_boxes["classes"] for bounding_boxes in gt], axis=0
+        gt = [boxes for boxes in self.val_data.map(boxes_only)]
+        gt_boxes = tf.concat(
+            [tf.RaggedTensor.from_tensor(boxes["boxes"]) for boxes in gt], axis=0
+        )
+        gt_classes = tf.concat(
+            [tf.RaggedTensor.from_tensor(boxes["classes"]) for boxes in gt],
+            axis=0,
         )
 
         first_image_batch = next(iter(images_only_ds))
         height = first_image_batch.shape[1]
         width = first_image_batch.shape[2]
-        total_images = boxes.shape[0]
+        total_images = gt_boxes.shape[0]
 
-        boxes = bounding_box.convert_format(
-            boxes, source=self.bounding_box_format, target="yxyx"
+        gt_boxes = bounding_box.convert_format(
+            gt_boxes, source=self.bounding_box_format, target="yxyx"
         )
 
         source_ids = tf.strings.as_string(
@@ -92,24 +87,20 @@ class PyCOCOCallback(Callback):
         ground_truth["height"] = [tf.tile(tf.constant([height]), [total_images])]
         ground_truth["width"] = [tf.tile(tf.constant([width]), [total_images])]
 
-        ground_truth["num_detections"] = [boxes.row_lengths(axis=1)]
-        ground_truth["boxes"] = [boxes.to_tensor(-1)]
-        ground_truth["classes"] = [classes.to_tensor(-1)]
-
-        y_pred = bounding_box.convert_format(
-            y_pred, source=self.bounding_box_format, target="yxyx"
+        ground_truth["num_detections"] = [gt_boxes.row_lengths(axis=1)]
+        ground_truth["boxes"] = [gt_boxes.to_tensor(-1)]
+        ground_truth["classes"] = [gt_classes.to_tensor(-1)]
+        box_pred = bounding_box.convert_format(
+            box_pred, source=self.bounding_box_format, target="yxyx"
         )
 
-        y_pred = bounding_box.to_ragged(y_pred)
-
         predictions = {}
-        predictions["num_detections"] = [y_pred["boxes"].row_lengths(axis=1)]
-        y_pred = bounding_box.to_dense(y_pred)
-        predictions["source_id"] = [source_ids]
 
-        predictions["detection_boxes"] = [y_pred["boxes"]]
-        predictions["detection_classes"] = [y_pred["classes"]]
-        predictions["detection_scores"] = [y_pred["confidence"]]
+        predictions["source_id"] = [source_ids]
+        predictions["detection_boxes"] = [box_pred]
+        predictions["detection_classes"] = [cls_pred]
+        predictions["detection_scores"] = [confidence_pred]
+        predictions["num_detections"] = [valid_det]
 
         metrics = compute_pycoco_metrics(ground_truth, predictions)
         # Mark these as validation metrics by prepending a val_ prefix
