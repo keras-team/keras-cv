@@ -91,13 +91,11 @@ def dict_to_tuple(inputs):
 
 
 train_ds = train_ds.map(unpackage_inputs("xywh"), num_parallel_calls=tf.data.AUTOTUNE)
+train_ds = train_ds.shuffle(8 * strategy.num_replicas_in_sync)
 train_ds = train_ds.apply(
     tf.data.experimental.dense_to_ragged_batch(global_batch, drop_remainder=True)
 )
 
-train_ds = train_ds.shuffle(8 * strategy.num_replicas_in_sync)
-train_ds = train_ds.map(dict_to_tuple, num_parallel_calls=tf.data.AUTOTUNE)
-train_ds = train_ds.prefetch(tf.data.AUTOTUNE)
 
 eval_ds = eval_ds.map(
     unpackage_inputs("xywh"),
@@ -106,8 +104,6 @@ eval_ds = eval_ds.map(
 eval_ds = eval_ds.apply(
     tf.data.experimental.dense_to_ragged_batch(global_batch, drop_remainder=True)
 )
-eval_ds = eval_ds.map(dict_to_tuple, num_parallel_calls=tf.data.AUTOTUNE)
-eval_ds = eval_ds.prefetch(tf.data.AUTOTUNE)
 
 
 """
@@ -134,6 +130,12 @@ eval_ds = eval_ds.map(
     eval_resizing,
     num_parallel_calls=tf.data.AUTOTUNE,
 )
+
+eval_ds = eval_ds.map(dict_to_tuple, num_parallel_calls=tf.data.AUTOTUNE)
+eval_ds = eval_ds.prefetch(tf.data.AUTOTUNE)
+train_ds = train_ds.map(dict_to_tuple, num_parallel_calls=tf.data.AUTOTUNE)
+train_ds = train_ds.prefetch(tf.data.AUTOTUNE)
+
 
 with strategy.scope():
     model = keras_cv.models.FasterRCNN(classes=20, bounding_box_format="yxyx")
