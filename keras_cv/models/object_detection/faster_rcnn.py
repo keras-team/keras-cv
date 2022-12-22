@@ -388,7 +388,9 @@ class FasterRCNN(tf.keras.Model):
             samples_per_image=256,
             positive_fraction=0.5,
         )
-        self._prediction_decoder = NMSDecoder(bounding_box_format=bounding_box_format)
+        self._prediction_decoder = prediction_decoder or NMSDecoder(
+            bounding_box_format=bounding_box_format
+        )
 
     def _call_rpn(self, images, anchors, training=None):
         image_shape = tf.shape(images[0])
@@ -576,8 +578,6 @@ class FasterRCNN(tf.keras.Model):
     def prediction_decoder(self, prediction_decoder):
         self._prediction_decoder = prediction_decoder
         self.make_predict_function(force=True)
-        self.make_test_function(force=True)
-        self.make_train_function(force=True)
 
     def decode_predictions(self, predictions, images):
         # no-op if default decoder is used.
