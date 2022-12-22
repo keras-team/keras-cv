@@ -101,7 +101,6 @@ class PyCOCOCallback(Callback):
         )
 
         y_pred = bounding_box.to_ragged(y_pred)
-        print("y_pred", y_pred['boxes'].shape)
 
         predictions = {}
         predictions["num_detections"] = [y_pred["boxes"].row_lengths(axis=1)]
