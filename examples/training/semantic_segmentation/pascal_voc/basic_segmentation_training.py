@@ -99,7 +99,6 @@ train_ds = load(split="sbd_train", data_dir=None)
 eval_ds = load(split="sbd_eval", data_dir=None)
 
 
-@tf.function
 def augment_image(img, cls_seg, augment=False):
     img = tf.keras.layers.Resizing(512, 512, interpolation="nearest")(img)
     cls_seg = tf.keras.layers.Resizing(512, 512, interpolation="nearest")(cls_seg)
@@ -117,7 +116,6 @@ def augment_image(img, cls_seg, augment=False):
     return inputs["images"], inputs["segmentation_masks"]
 
 
-@tf.function
 def process(examples, augment=False):
     image = examples.pop("image")
     cls_seg = examples.pop("class_segmentation")
