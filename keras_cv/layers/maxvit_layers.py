@@ -1,6 +1,4 @@
 """
-- Window/Unwindow
-- Grid/UnGrid
 - MaxViTTransformerEncoder layer
 - RelativeMultiHeadAttention layer
 - SqueezeExcite layer (potentially don't need it because it's already part of MBConv)
@@ -241,7 +239,60 @@ class UnGridPartitioning(layers.Layer):
 
 
 @tf.keras.utils.register_keras_serializable(package="keras_cv")
+class MaxViTStem(layers.Layer):
+    # Conv blocks
+    def __init__(
+        self,
+        filters: list = [64,64],
+        kernel_size: tuple = (3,3),
+        kernel_initializer = tf.random_normal_initializer(stddev=0.02),
+        bias_initializer = tf.zeros_initializer,
+        **kwargs
+    ):
+        super(MaxViTStem).__init__(**kwargs)
+        assert len(filters) == 2
+
+        self.conv1 = layers.Conv2D(
+            filters=filters[0],
+            kernel_size=kernel_size,
+            strides=2,
+            padding='same',
+            kernel_initializer=kernel_initializer,
+            bias_initializer=bias_initializer,
+            name='stem_conv_0'
+        )
+
+        self.batch_norm = layers.BatchNormalization()
+        self.gelu = layers.Activation('gelu')
+
+        self.conv2 = layers.Conv2D(
+            filters=filters[1],
+            kernel_size=kernel_size,
+            strides=1,
+            padding='same',
+            kernel_initializer=kernel_initializer,
+            bias_initializer=bias_initializer,
+            name='stem_conv_1'
+        )
+
+    def call(self, input):
+        # Creates a stem for the MaxViT model.
+        x = self.conv1(input)
+        x = self.batch_norm(x)
+        x = self.gelu(x)
+        x = self.conv2(x)
+        return x
+
+    def get_config(self):
+        # config = {"...": self....}
+        # base_config = super().get_config()
+        # return dict(list(base_config.items()) + list(config.items()))
+        return super().get_config()
+
+
+@tf.keras.utils.register_keras_serializable(package="keras_cv")
 class MaxViTTransformerEncoder(layers.Layer):
+    # Attention + FFN (LN + Attention + Residual + LN + MLP)
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
@@ -274,7 +325,7 @@ class RelativeMultiHeadAttention(layers.Layer):
 
 @tf.keras.utils.register_keras_serializable(package="keras_cv")
 class MaxViTBlock(layers.Layer):
-    # (MBConv + Block-Attention + FFN + Grid-Attention + FFN)
+    # (MBConv + Block-Attention (Block-SA+FFN) + Grid-Attention (Grid-SA+FFN))
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
