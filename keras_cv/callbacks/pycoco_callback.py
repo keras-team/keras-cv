@@ -55,18 +55,10 @@ class PyCOCOCallback(Callback):
 
         images_only_ds = self.val_data.map(images_only)
         y_pred = self.model.predict(images_only_ds)
-        # TODO(lukewood): remove the else branch
-        if isinstance(y_pred, dict):
-            box_pred = tf.convert_to_tensor(y_pred["boxes"])
-            cls_pred = tf.convert_to_tensor(y_pred["classes"])
-            scores_pred = tf.convert_to_tensor(y_pred["scores"])
-            valid_det = tf.convert_to_tensor(y_pred["num_detections"])
-        else:
-            valid_det = y_pred.row_lengths()
-            y_pred = y_pred.to_tensor(-1)
-            box_pred = y_pred[:, :, :4]
-            cls_pred = y_pred[:, :, 4]
-            scores_pred = y_pred[:, :, 5]
+        box_pred = tf.convert_to_tensor(y_pred["boxes"])
+        cls_pred = tf.convert_to_tensor(y_pred["classes"])
+        scores_pred = tf.convert_to_tensor(y_pred["scores"])
+        valid_det = tf.convert_to_tensor(y_pred["num_detections"])
 
         gt = [boxes for boxes in self.val_data.map(boxes_only)]
         gt_boxes = tf.concat(
