@@ -95,8 +95,6 @@ class PyCOCOCallback(Callback):
         predictions = {}
         predictions["num_detections"] = [y_pred["boxes"].row_lengths()]
         y_pred = bounding_box.to_dense(y_pred)
-        predictions["num_detections"] = [valid_det]
-
         predictions["source_id"] = [source_ids]
 
         predictions["detection_boxes"] = [y_pred["boxes"]]
