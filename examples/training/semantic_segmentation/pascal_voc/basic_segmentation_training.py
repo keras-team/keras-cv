@@ -4,7 +4,7 @@ import tensorflow as tf
 from absl import flags
 from absl import logging
 
-import keras_cv.layers.preprocessing
+import keras_cv.layers.preprocessing as preprocessing
 from keras_cv.datasets.pascal_voc.segmentation import load
 
 flags.DEFINE_string(
@@ -99,10 +99,20 @@ train_ds = load(split="sbd_train", data_dir=None)
 eval_ds = load(split="sbd_eval", data_dir=None)
 
 
-def preprocess_image(img, cls_seg, flip=False):
+def preprocess_image(img, cls_seg, augment=False):
     img = tf.keras.layers.Resizing(512, 512, interpolation="nearest")(img)
+    cls_seg = tf.keras.layers.Resizing(512, 512, interpolation="nearest")(cls_seg)
+    cls_seg = tf.cast(cls_seg, tf.uint8)
+
     inputs = {"images": img, "segmentation_masks": cls_seg}
-    inputs = keras_cv.layers.preprocessing.RandomFlip("horizontal")(inputs)
+    if augment:
+        inputs = preprocessing.RandomFlip("horizontal")(inputs)
+        inputs = preprocessing.RandomColorDegeneration(factor=0.3)(inputs)
+        inputs = preprocessing.RandomGaussianBlur(kernel_size=3, factor=0.3)(inputs)
+        inputs = preprocessing.RandomRotation(factor=0.1, segmentation_classes=21)(
+            inputs
+        )
+
     return inputs["images"], inputs["segmentation_masks"]
 
 
