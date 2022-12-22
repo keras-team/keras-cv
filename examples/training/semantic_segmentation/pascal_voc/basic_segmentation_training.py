@@ -146,7 +146,7 @@ with strategy.scope():
         boundaries=[30000 * 16 / global_batch],
         values=[base_lr, 0.1 * base_lr],
     )
-    model = keras_cv.models.__dict__[FLAGS.model_name]
+    model = keras_cv.models.segmentation.__dict__[FLAGS.model_name]
     model = model(
         classes=21,
         backbone=FLAGS.backbone,
