@@ -72,23 +72,59 @@ jobs:
     - name: Lint
       run: bash shell/lint.sh
   deploy:
-    needs: [test, format]
+    name: Build and deploy release wheels
     if: github.event_name == 'release' && github.event.action == 'created'
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        # To switch on windows-2022/latest, please verify the bazel version:
+        # https://github.com/bazelbuild/bazel/issues/14232#issuecomment-1011247429
+        os: ['macos-12', 'windows-2019', 'ubuntu-18.04']
+        py-version: ['3.7', '3.8', '3.9', '3.10']
+        tf-version: ['2.9.3', '2.10.1', '2.11.0']
+        cpu: ['x86']
+        include:
+          - os: 'macos-12'
+            cpu: 'arm64'
+            tf-version: '2.11.0'
+            py-version: '3.8'
+          - os: 'macos-12'
+            cpu: 'arm64'
+            tf-version: '2.11.0'
+            py-version: '3.9'
+          - os: 'macos-12'
+            cpu: 'arm64'
+            tf-version: '2.11.0'
+            py-version: '3.10'
+      fail-fast: false
     steps:
     - uses: actions/checkout@v2
     - name: Set up Python
       uses: actions/setup-python@v1
       with:
-        python-version: 3.7
+        python-version: ${{ matrix.py-version }}
+    - name: Get pip cache dir
+      id: pip-cache
+      run: |
+        python -m pip install --upgrade pip setuptools
+        echo "::set-output name=dir::$(pip cache dir)"
+    - name: pip cache
+      uses: actions/cache@v2
+      with:
+        path: ${{ steps.pip-cache.outputs.dir }}
+        key: ${{ runner.os }}-pip-${{ hashFiles('setup.py') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
     - name: Install dependencies
       run: |
-        pip install tensorflow==2.10.0
-        python -m pip install --upgrade pip setuptools wheel twine
-    - name: Build and publish
+        pip install tensorflow-cpu==${{ matrix.tf-version }}
+        pip install -e ".[tests]" --progress-bar off --upgrade
+    - name: Build and upload wheels
       env:
         TWINE_USERNAME: ${{ secrets.PYPI_USERNAME }}
         TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
       run: |
-        python setup.py sdist bdist_wheel
+        python3 build_deps/configure.py
+        bazel build build_pip_pkg
+        bazel-bin/build_pip_pkg wheels
         twine upload dist/*
