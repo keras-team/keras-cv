@@ -20,7 +20,7 @@ def _create_bounding_box_dataset(bounding_box_format, use_dictionary_box_format=
 
     # Just about the easiest dataset you can have, all classes are 0, all boxes are
     # exactly the same.  [1, 1, 2, 2] are the coordinates in xyxy
-    xs = tf.ones((5, 224, 224, 3), dtype=tf.float32)
+    xs = tf.ones((5, 256, 256, 3), dtype=tf.float32)
     y_classes = tf.zeros((5, 10, 1), dtype=tf.float32)
 
     ys = tf.constant([0.25, 0.25, 0.1, 0.1], dtype=tf.float32)
