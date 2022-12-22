@@ -14,15 +14,13 @@
 import numpy as np
 import tensorflow as tf
 
-from keras_cv.layers.preprocessing3d.base_augmentation_layer_3d import (
-    BaseAugmentationLayer3D,
-)
+from keras_cv.layers.preprocessing3d import base_augmentation_layer_3d
 
-POINT_CLOUDS = "point_clouds"
-BOUNDING_BOXES = "bounding_boxes"
+POINT_CLOUDS = base_augmentation_layer_3d.POINT_CLOUDS
+BOUNDING_BOXES = base_augmentation_layer_3d.BOUNDING_BOXES
 
 
-class RandomAddLayer(BaseAugmentationLayer3D):
+class RandomAddLayer(base_augmentation_layer_3d.BaseAugmentationLayer3D):
     def __init__(self, translate_noise=(0.0, 0.0, 0.0), **kwargs):
         super().__init__(**kwargs)
         self._translate_noise = translate_noise
@@ -53,7 +51,7 @@ class RandomAddLayer(BaseAugmentationLayer3D):
         )
 
 
-class VectorizeDisabledLayer(BaseAugmentationLayer3D):
+class VectorizeDisabledLayer(base_augmentation_layer_3d.BaseAugmentationLayer3D):
     def __init__(self, **kwargs):
         self.auto_vectorize = False
         super().__init__(**kwargs)

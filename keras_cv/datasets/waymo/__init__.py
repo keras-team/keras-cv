@@ -11,4 +11,12 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from keras_cv.datasets.waymo.load import load
+
+# Following symbols are only available when Waymo Open Dataset dependencies are
+# installed.
+try:
+    from keras_cv.datasets.waymo.load import load
+    from keras_cv.datasets.waymo.transformer import build_tensors_for_augmentation
+    from keras_cv.datasets.waymo.transformer import build_tensors_from_wod_frame
+except ImportError:
+    pass

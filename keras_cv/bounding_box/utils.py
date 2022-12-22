@@ -19,6 +19,26 @@ from keras_cv import bounding_box
 from keras_cv.bounding_box.formats import XYWH
 
 
+def preserve_rel(target_bounding_box_format, bounding_box_format):
+    """A util to add "rel_" to target_bounding_box_format for relative bounding_box_format"""
+    if bounding_box_format.lower() not in bounding_box.converters.TO_XYXY_CONVERTERS:
+        raise ValueError(
+            "`preserve_rel()` received an unsupported format for the argument "
+            f"`bounding_box_format`.  `bounding_box_format` should be one of "
+            f"{bounding_box.converters.TO_XYXY_CONVERTERS.keys()}. "
+            f"Got bounding_box_format={bounding_box_format}"
+        )
+
+    if target_bounding_box_format.startswith("rel"):
+        raise ValueError(
+            'Expected "target_bounding_box_format" to be non-relative. '
+            f"Got `target_bounding_box_format`={target_bounding_box_format}."
+        )
+    if bounding_box_format.startswith("rel"):
+        return "rel_" + target_bounding_box_format
+    return target_bounding_box_format
+
+
 def _relative_area(bounding_boxes, bounding_box_format, images):
     bounding_boxes = bounding_box.convert_format(
         bounding_boxes,
@@ -32,7 +52,7 @@ def _relative_area(bounding_boxes, bounding_box_format, images):
     return tf.where(tf.math.logical_and(widths > 0, heights > 0), widths * heights, 0.0)
 
 
-def clip_to_image(bounding_boxes, images, bounding_box_format):
+def clip_to_image(bounding_boxes, bounding_box_format, images=None, image_shape=None):
     """clips bounding boxes to image boundaries.
 
     `clip_to_image()` clips bounding boxes that have coordinates out of bounds of an
@@ -43,8 +63,9 @@ def clip_to_image(bounding_boxes, images, bounding_box_format):
 
     Args:
         bounding_boxes: bounding box tensor to clip.
-        images: list of images to clip the bounding boxes to.
         bounding_box_format: the KerasCV bounding box format the bounding boxes are in.
+        images: list of images to clip the bounding boxes to.
+        image_shape: the shape of the images to clip the bounding boxes to.
     """
     if bounding_boxes.shape[-1] < 5:
         raise ValueError(
@@ -57,6 +78,7 @@ def clip_to_image(bounding_boxes, images, bounding_box_format):
         source=bounding_box_format,
         target="rel_xyxy",
         images=images,
+        image_shape=image_shape,
     )
     bounding_boxes, images, squeeze = _format_inputs(bounding_boxes, images)
     x1, y1, x2, y2, rest = tf.split(
@@ -80,6 +102,7 @@ def clip_to_image(bounding_boxes, images, bounding_box_format):
         source="rel_xyxy",
         target=bounding_box_format,
         images=images,
+        image_shape=image_shape,
     )
     clipped_bounding_boxes = tf.where(
         tf.expand_dims(areas > 0.0, axis=-1), clipped_bounding_boxes, -1.0

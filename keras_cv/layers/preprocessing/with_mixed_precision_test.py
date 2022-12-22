@@ -46,6 +46,7 @@ TEST_CONFIGURATIONS = [
         layers.Posterization,
         {"bits": 3, "value_range": (0, 255)},
     ),
+    ("RandomBrightness", layers.RandomBrightness, {"factor": 0.5}),
     (
         "RandomColorDegeneration",
         layers.RandomColorDegeneration,
@@ -90,10 +91,12 @@ TEST_CONFIGURATIONS = [
         layers.RandomSharpness,
         {"factor": 0.5, "value_range": (0, 255)},
     ),
+    ("RandomAspectRatio", layers.RandomAspectRatio, {"factor": (0.9, 1.1)}),
     ("RandomShear", layers.RandomShear, {"x_factor": 0.3, "x_factor": 0.3}),
     ("Solarization", layers.Solarization, {"value_range": (0, 255)}),
     ("Mosaic", layers.Mosaic, {}),
     ("CutMix", layers.CutMix, {}),
+    ("MixUp", layers.MixUp, {}),
     (
         "Resizing",
         layers.Resizing,
@@ -102,12 +105,32 @@ TEST_CONFIGURATIONS = [
             "width": 224,
         },
     ),
+    (
+        "JitteredResize",
+        layers.JitteredResize,
+        {
+            "target_size": (224, 224),
+            "scale_factor": (0.8, 1.25),
+            "bounding_box_format": "xywh",
+        },
+    ),
+    (
+        "RandomZoom",
+        layers.RandomZoom,
+        {"height_factor": 0.2, "width_factor": 0.5},
+    ),
+    (
+        "RandomCrop",
+        layers.RandomCrop,
+        {"height": 224, "width": 224},
+    ),
 ]
 
 NO_CPU_FP16_KERNEL_LAYERS = [
     layers.RandomSaturation,
     layers.RandomColorJitter,
     layers.RandomHue,
+    layers.RandomContrast,
 ]
 
 

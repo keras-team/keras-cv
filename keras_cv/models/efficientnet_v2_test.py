@@ -21,13 +21,18 @@ from .models_test import ModelsTest
 
 MODEL_LIST = [
     (efficientnet_v2.EfficientNetV2B0, 1280, {}),
-    (efficientnet_v2.EfficientNetV2B1, 1280, {}),
-    (efficientnet_v2.EfficientNetV2B2, 1408, {}),
-    (efficientnet_v2.EfficientNetV2B3, 1536, {}),
-    (efficientnet_v2.EfficientNetV2S, 1280, {}),
-    (efficientnet_v2.EfficientNetV2M, 1280, {}),
-    (efficientnet_v2.EfficientNetV2L, 1280, {}),
 ]
+
+"""
+Below are other configurations that we omit from our CI but that can/should
+be tested manually when making changes to this model.
+(efficientnet_v2.EfficientNetV2B1, 1280, {}),
+(efficientnet_v2.EfficientNetV2B2, 1408, {}),
+(efficientnet_v2.EfficientNetV2B3, 1536, {}),
+(efficientnet_v2.EfficientNetV2S, 1280, {}),
+(efficientnet_v2.EfficientNetV2M, 1280, {}),
+(efficientnet_v2.EfficientNetV2L, 1280, {}),
+"""
 
 
 class EfficientNetV2Test(ModelsTest, tf.test.TestCase, parameterized.TestCase):

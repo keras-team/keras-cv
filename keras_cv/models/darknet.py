@@ -26,6 +26,7 @@ from keras_cv.models import utils
 from keras_cv.models.__internal__.darknet_utils import DarknetConvBlock
 from keras_cv.models.__internal__.darknet_utils import ResidualBlocks
 from keras_cv.models.__internal__.darknet_utils import SpatialPyramidPoolingBottleneck
+from keras_cv.models.weights import parse_weights
 
 BASE_DOCSTRING = """Instantiates the {name} architecture.
 
@@ -223,7 +224,7 @@ def DarkNet21(
         include_rescaling=include_rescaling,
         include_top=include_top,
         classes=classes,
-        weights=weights,
+        weights=parse_weights(weights, include_top, "darknet"),
         input_shape=input_shape,
         input_tensor=input_tensor,
         pooling=pooling,
@@ -248,7 +249,7 @@ def DarkNet53(
         include_rescaling=include_rescaling,
         include_top=include_top,
         classes=classes,
-        weights=weights,
+        weights=parse_weights(weights, include_top, "darknet53"),
         input_shape=input_shape,
         input_tensor=input_tensor,
         pooling=pooling,

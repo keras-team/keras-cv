@@ -30,6 +30,7 @@ from keras_cv.models.__internal__.darknet_utils import DarknetConvBlock
 from keras_cv.models.__internal__.darknet_utils import DarknetConvBlockDepthwise
 from keras_cv.models.__internal__.darknet_utils import Focus
 from keras_cv.models.__internal__.darknet_utils import SpatialPyramidPoolingBottleneck
+from keras_cv.models.weights import parse_weights
 
 
 def CSPDarkNet(
@@ -74,8 +75,9 @@ def CSPDarkNet(
             should be used over a regular darknet block. Defaults to False
         classes: optional number of classes to classify images into, only to be
             specified if `include_top` is True.
-        weights: one of `None` (random initialization), or a pretrained weight
-            file path.
+        weights: one of `None` (random initialization), a pretrained weight file
+            path, or a reference to pre-trained weights (e.g. 'imagenet/classification')
+            (see available pre-trained weights in weights.py)
         input_tensor: optional Keras tensor (i.e. output of `layers.Input()`)
             to use as image input for the model.
         input_shape: optional shape tuple, defaults to (None, None, 3).
@@ -95,6 +97,8 @@ def CSPDarkNet(
     Returns:
         A `keras.Model` instance.
     """
+    weights = parse_weights(weights, include_top, "cspdarknet")
+
     if weights and not tf.io.gfile.exists(weights):
         raise ValueError(
             "The `weights` argument should be either `None` or the path to the "

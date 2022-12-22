@@ -21,9 +21,13 @@ from .models_test import ModelsTest
 
 MODEL_LIST = [
     (densenet.DenseNet121, 1024, {}),
-    (densenet.DenseNet169, 1664, {}),
-    (densenet.DenseNet201, 1920, {}),
 ]
+"""
+Below are other configurations that we omit from our CI but that can/should
+be tested manually when making changes to this model.
+(densenet.DenseNet169, 1664, {}),
+(densenet.DenseNet201, 1920, {}),
+"""
 
 
 class DenseNetTest(ModelsTest, tf.test.TestCase, parameterized.TestCase):

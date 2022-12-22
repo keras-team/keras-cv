@@ -25,9 +25,10 @@ import copy
 import math
 
 import tensorflow as tf
-from keras import backend
 from keras import layers
 
+from keras_cv.layers import FusedMBConvBlock
+from keras_cv.layers import MBConvBlock
 from keras_cv.models import utils
 from keras_cv.models.weights import parse_weights
 
@@ -578,220 +579,6 @@ def round_repeats(repeats, depth_coefficient):
     return int(math.ceil(depth_coefficient * repeats))
 
 
-def MBConvBlock(
-    input_filters: int,
-    output_filters: int,
-    expand_ratio=1,
-    kernel_size=3,
-    strides=1,
-    se_ratio=0.0,
-    bn_momentum=0.9,
-    activation="swish",
-    survival_probability: float = 0.8,
-    name=None,
-):
-    """MBConv block: Mobile Inverted Residual Bottleneck."""
-
-    if name is None:
-        name = backend.get_uid("block0")
-
-    def apply(inputs):
-        # Expansion phase
-        filters = input_filters * expand_ratio
-        if expand_ratio != 1:
-            x = layers.Conv2D(
-                filters=filters,
-                kernel_size=1,
-                strides=1,
-                kernel_initializer=CONV_KERNEL_INITIALIZER,
-                padding="same",
-                data_format="channels_last",
-                use_bias=False,
-                name=name + "expand_conv",
-            )(inputs)
-            x = layers.BatchNormalization(
-                axis=BN_AXIS,
-                momentum=bn_momentum,
-                name=name + "expand_bn",
-            )(x)
-            x = layers.Activation(activation, name=name + "expand_activation")(x)
-        else:
-            x = inputs
-
-        # Depthwise conv
-        x = layers.DepthwiseConv2D(
-            kernel_size=kernel_size,
-            strides=strides,
-            depthwise_initializer=CONV_KERNEL_INITIALIZER,
-            padding="same",
-            data_format="channels_last",
-            use_bias=False,
-            name=name + "dwconv2",
-        )(x)
-        x = layers.BatchNormalization(
-            axis=BN_AXIS, momentum=bn_momentum, name=name + "bn"
-        )(x)
-        x = layers.Activation(activation, name=name + "activation")(x)
-
-        # Squeeze and excite
-        if 0 < se_ratio <= 1:
-            filters_se = max(1, int(input_filters * se_ratio))
-            se = layers.GlobalAveragePooling2D(name=name + "se_squeeze")(x)
-            if BN_AXIS == 1:
-                se_shape = (filters, 1, 1)
-            else:
-                se_shape = (1, 1, filters)
-            se = layers.Reshape(se_shape, name=name + "se_reshape")(se)
-
-            se = layers.Conv2D(
-                filters_se,
-                1,
-                padding="same",
-                activation=activation,
-                kernel_initializer=CONV_KERNEL_INITIALIZER,
-                name=name + "se_reduce",
-            )(se)
-            se = layers.Conv2D(
-                filters,
-                1,
-                padding="same",
-                activation="sigmoid",
-                kernel_initializer=CONV_KERNEL_INITIALIZER,
-                name=name + "se_expand",
-            )(se)
-
-            x = layers.multiply([x, se], name=name + "se_excite")
-
-            # Output phase
-            x = layers.Conv2D(
-                filters=output_filters,
-                kernel_size=1,
-                strides=1,
-                kernel_initializer=CONV_KERNEL_INITIALIZER,
-                padding="same",
-                data_format="channels_last",
-                use_bias=False,
-                name=name + "project_conv",
-            )(x)
-            x = layers.BatchNormalization(
-                axis=BN_AXIS, momentum=bn_momentum, name=name + "project_bn"
-            )(x)
-
-            if strides == 1 and input_filters == output_filters:
-                if survival_probability:
-                    x = layers.Dropout(
-                        survival_probability,
-                        noise_shape=(None, 1, 1, 1),
-                        name=name + "drop",
-                    )(x)
-                x = layers.add([x, inputs], name=name + "add")
-        return x
-
-    return apply
-
-
-def FusedMBConvBlock(
-    input_filters: int,
-    output_filters: int,
-    expand_ratio=1,
-    kernel_size=3,
-    strides=1,
-    se_ratio=0.0,
-    bn_momentum=0.9,
-    activation="swish",
-    survival_probability: float = 0.8,
-    name=None,
-):
-    """Fused MBConv Block: Fusing the proj conv1x1 and depthwise_conv into a
-    conv2d."""
-
-    if name is None:
-        name = backend.get_uid("block0")
-
-    def apply(inputs):
-        filters = input_filters * expand_ratio
-        if expand_ratio != 1:
-            x = layers.Conv2D(
-                filters,
-                kernel_size=kernel_size,
-                strides=strides,
-                kernel_initializer=CONV_KERNEL_INITIALIZER,
-                data_format="channels_last",
-                padding="same",
-                use_bias=False,
-                name=name + "expand_conv",
-            )(inputs)
-            x = layers.BatchNormalization(
-                axis=BN_AXIS, momentum=bn_momentum, name=name + "expand_bn"
-            )(x)
-            x = layers.Activation(
-                activation=activation, name=name + "expand_activation"
-            )(x)
-        else:
-            x = inputs
-
-        # Squeeze and excite
-        if 0 < se_ratio <= 1:
-            filters_se = max(1, int(input_filters * se_ratio))
-            se = layers.GlobalAveragePooling2D(name=name + "se_squeeze")(x)
-            if BN_AXIS == 1:
-                se_shape = (filters, 1, 1)
-            else:
-                se_shape = (1, 1, filters)
-
-            se = layers.Reshape(se_shape, name=name + "se_reshape")(se)
-
-            se = layers.Conv2D(
-                filters_se,
-                1,
-                padding="same",
-                activation=activation,
-                kernel_initializer=CONV_KERNEL_INITIALIZER,
-                name=name + "se_reduce",
-            )(se)
-            se = layers.Conv2D(
-                filters,
-                1,
-                padding="same",
-                activation="sigmoid",
-                kernel_initializer=CONV_KERNEL_INITIALIZER,
-                name=name + "se_expand",
-            )(se)
-
-            x = layers.multiply([x, se], name=name + "se_excite")
-
-        # Output phase:
-        x = layers.Conv2D(
-            output_filters,
-            kernel_size=1 if expand_ratio != 1 else kernel_size,
-            strides=1 if expand_ratio != 1 else strides,
-            kernel_initializer=CONV_KERNEL_INITIALIZER,
-            padding="same",
-            use_bias=False,
-            name=name + "project_conv",
-        )(x)
-        x = layers.BatchNormalization(
-            axis=BN_AXIS, momentum=bn_momentum, name=name + "project_bn"
-        )(x)
-        if expand_ratio == 1:
-            x = layers.Activation(
-                activation=activation, name=name + "project_activation"
-            )(x)
-
-        # Residual:
-        if strides == 1 and input_filters == output_filters:
-            if survival_probability:
-                x = layers.Dropout(
-                    survival_probability,
-                    noise_shape=(None, 1, 1, 1),
-                    name=name + "drop",
-                )(x)
-            x = layers.add([x, inputs], name=name + "add")
-        return x
-
-    return apply
-
-
 def EfficientNetV2(
     include_rescaling,
     include_top,
@@ -940,8 +727,6 @@ def EfficientNetV2(
             depth_divisor=depth_divisor,
         )
 
-        # Determine which conv type to use:
-        block = {0: MBConvBlock, 1: FusedMBConvBlock}[args.pop("conv_type")]
         repeats = round_repeats(
             repeats=args.pop("num_repeat"), depth_coefficient=depth_coefficient
         )
@@ -952,13 +737,35 @@ def EfficientNetV2(
                 args["strides"] = 1
                 args["input_filters"] = args["output_filters"]
 
-            x = block(
-                activation=activation,
-                bn_momentum=bn_momentum,
-                survival_probability=drop_connect_rate * b / blocks,
-                name="block{}{}_".format(i + 1, chr(j + 97)),
-                **args,
-            )(x)
+            # Determine which conv type to use:
+            block = {
+                0: MBConvBlock(
+                    input_filters=args["input_filters"],
+                    output_filters=args["output_filters"],
+                    expand_ratio=args["expand_ratio"],
+                    kernel_size=args["kernel_size"],
+                    strides=args["strides"],
+                    se_ratio=args["se_ratio"],
+                    activation=activation,
+                    bn_momentum=bn_momentum,
+                    survival_probability=drop_connect_rate * b / blocks,
+                    name="block{}{}_".format(i + 1, chr(j + 97)),
+                ),
+                1: FusedMBConvBlock(
+                    input_filters=args["input_filters"],
+                    output_filters=args["output_filters"],
+                    expand_ratio=args["expand_ratio"],
+                    kernel_size=args["kernel_size"],
+                    strides=args["strides"],
+                    se_ratio=args["se_ratio"],
+                    activation=activation,
+                    bn_momentum=bn_momentum,
+                    survival_probability=drop_connect_rate * b / blocks,
+                    name="block{}{}_".format(i + 1, chr(j + 97)),
+                ),
+            }[args["conv_type"]]
+
+            x = block(x)
             b += 1
 
     # Build top

@@ -61,6 +61,7 @@ class CutMix(BaseImageAugmentationLayer):
         self._validate_inputs(inputs)
         images = inputs.get("images", None)
         labels = inputs.get("labels", None)
+
         if images is None or labels is None:
             raise ValueError(
                 "CutMix expects inputs in a dictionary with format "

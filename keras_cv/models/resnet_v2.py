@@ -63,7 +63,7 @@ BASE_DOCSTRING = """Instantiates the {name} architecture.
 
     The difference in Resnet and ResNetV2 rests in the structure of their
     individual building blocks. In ResNetV2, the batch normalization and
-    ReLU activation preceed the convolution layers, as opposed to ResNetV1 where
+    ReLU activation precede the convolution layers, as opposed to ResNetV1 where
     the batch normalization and ReLU activation are applied after the
     convolution layers.
 

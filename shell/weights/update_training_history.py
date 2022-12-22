@@ -75,13 +75,38 @@ tensorboard_experiment = tb.data.experimental.ExperimentFromDev(
 tensorboard_results = tensorboard_experiment.get_scalars()
 
 training_epochs = max(tensorboard_results[tensorboard_results.run == "train"].step)
-max_validation_accuracy = max(
-    tensorboard_results[
-        (tensorboard_results.run == "validation")
-        & (tensorboard_results.tag == "epoch_categorical_accuracy")
-    ].value
-)
-max_validation_accuracy = f"{max_validation_accuracy:.4f}"
+
+results_tags = tensorboard_results.tag.unique()
+
+# Validation accuracy won't exist in all logs (e.g for OD tasks).
+# We capture the max validation accuracy if it exists, but otherwise omit it.
+max_validation_accuracy = None
+if (
+    "epoch_categorical_accuracy" in results_tags
+    or "epoch_sparse_categorical_accuracy" in results_tags
+):
+    max_validation_accuracy = max(
+        tensorboard_results[
+            (tensorboard_results.run == "validation")
+            & (
+                (tensorboard_results.tag == "epoch_categorical_accuracy")
+                | (tensorboard_results.tag == "epoch_sparse_categorical_accuracy")
+            )
+        ].value
+    )
+    max_validation_accuracy = f"{max_validation_accuracy:.4f}"
+
+# Mean IOU won't exist in all logs (e.g for classification tasks).
+# We capture the max IOU if it exists, but otherwise omit it.
+max_mean_iou = None
+if "epoch_mean_io_u" in results_tags:
+    max_mean_iou = max(
+        tensorboard_results[
+            (tensorboard_results.run == "validation")
+            & (tensorboard_results.tag == "epoch_mean_io_u")
+        ].value
+    )
+    max_mean_iou = f"{max_mean_iou:.4f}"
 
 contributor = FLAGS.contributor or input(
     "Input your GitHub username (or the username of the contributor, if it's not you)\n"
@@ -106,13 +131,18 @@ for arg in args.split(","):
 
 new_results = {
     "script": {"name": "/".join(training_script_dirs[2:]), "version": script_version},
-    "validation_accuracy": max_validation_accuracy,
     "epochs_trained": training_epochs,
     "tensorboard_logs": f"https://tensorboard.dev/experiment/{tensorboard_experiment_id}/",
     "contributor": contributor,
     "args": args_dict,
     "accelerators": int(accelerators),
 }
+
+if max_validation_accuracy is not None:
+    new_results["validation_accuracy"] = max_validation_accuracy
+
+if max_mean_iou is not None:
+    new_results["validation_mean_iou"] = max_mean_iou
 
 # Check if the JSON file already exists
 results_file = open(training_script_json_path, "r")

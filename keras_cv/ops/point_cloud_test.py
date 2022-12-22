@@ -12,11 +12,22 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import os
+
 import numpy as np
+import pytest
 import tensorflow as tf
 from absl.testing import parameterized
 
 from keras_cv import ops
+
+
+class AngleTest(tf.test.TestCase):
+    def test_wrap_angle_radians(self):
+        self.assertAllClose(
+            -np.pi + 0.1, ops.point_cloud.wrap_angle_radians(np.pi + 0.1)
+        )
+        self.assertAllClose(0.0, ops.point_cloud.wrap_angle_radians(2 * np.pi))
 
 
 class Boxes3DTestCase(tf.test.TestCase, parameterized.TestCase):
@@ -259,3 +270,72 @@ class Boxes3DTestCase(tf.test.TestCase, parameterized.TestCase):
         self.assertAllClose(x, np_xyz[..., 0])
         self.assertAllClose(y, np_xyz[..., 1])
         self.assertAllClose(z, np_xyz[..., 2])
+
+    @pytest.mark.skipif(
+        "TEST_CUSTOM_OPS" not in os.environ or os.environ["TEST_CUSTOM_OPS"] != "true",
+        reason="Requires binaries compiled from source",
+    )
+    def test_group_points(self):
+        # rotate the first box by pi / 2 so dim_x and dim_y are swapped.
+        # The last box is a cube rotated by 45 degrees.
+        with tf.device("cpu:0"):
+            bboxes = tf.constant(
+                [
+                    [1.0, 2.0, 3.0, 6.0, 0.4, 6.0, np.pi / 2],
+                    [4.0, 5.0, 6.0, 7.0, 0.8, 7.0, 0.0],
+                    [0.4, 0.3, 0.2, 0.1, 0.1, 0.2, 0.0],
+                    [-10.0, -10.0, -10.0, 3.0, 3.0, 3.0, np.pi / 4],
+                ],
+                dtype=tf.float32,
+            )
+            points = tf.constant(
+                [
+                    [1.0, 2.0, 3.0],  # box 0 (centroid)
+                    [0.8, 2.0, 3.0],  # box 0 (below x)
+                    [1.1, 2.0, 3.0],  # box 0 (above x)
+                    [1.3, 2.0, 3.0],  # box 0 (too far x)
+                    [0.7, 2.0, 3.0],  # box 0 (too far x)
+                    [4.0, 5.0, 6.0],  # box 1 (centroid)
+                    [4.0, 4.61, 6.0],  # box 1 (below y)
+                    [4.0, 5.39, 6.0],  # box 1 (above y)
+                    [4.0, 4.5, 6.0],  # box 1 (too far y)
+                    [4.0, 5.5, 6.0],  # box 1 (too far y)
+                    [0.4, 0.3, 0.2],  # box 2 (centroid)
+                    [0.4, 0.3, 0.1],  # box 2 (below z)
+                    [0.4, 0.3, 0.29],  # box 2 (above z)
+                    [0.4, 0.3, 0.0],  # box 2 (too far z)
+                    [0.4, 0.3, 0.4],  # box 2 (too far z)
+                    [5.0, 7.0, 8.0],  # none
+                    [1.0, 5.0, 3.6],  # box0, box1
+                    [-11.6, -10.0, -10.0],  # box3 (rotated corner point).
+                    [-11.4, -11.4, -10.0],  # not in box3, would be if not rotated.
+                ],
+                dtype=tf.float32,
+            )
+            res = ops.group_points_by_boxes(points, bboxes)
+            expected_result = tf.ragged.constant(
+                [[0, 1, 2], [5, 6, 7, 16], [10, 11, 12], [17]]
+            )
+            self.assertAllClose(expected_result.flat_values, res.flat_values)
+
+    def testWithinAFrustum(self):
+        center = tf.constant([1.0, 1.0, 1.0])
+        points = tf.constant([[0.0, 0.0, 0.0], [1.0, 2.0, 1.0], [1.0, 0.0, 1.0]])
+
+        point_mask = ops.within_a_frustum(
+            points, center, r_distance=1.0, theta_width=1.0, phi_width=1.0
+        )
+        target_point_mask = tf.constant([False, True, False])
+        self.assertAllClose(point_mask, target_point_mask)
+
+        point_mask = ops.within_a_frustum(
+            points, center, r_distance=1.0, theta_width=3.14, phi_width=3.14
+        )
+        target_point_mask = tf.constant([False, True, True])
+        self.assertAllClose(point_mask, target_point_mask)
+
+        point_mask = ops.within_a_frustum(
+            points, center, r_distance=3.0, theta_width=1.0, phi_width=1.0
+        )
+        target_point_mask = tf.constant([False, False, False])
+        self.assertAllClose(point_mask, target_point_mask)

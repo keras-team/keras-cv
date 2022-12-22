@@ -36,6 +36,9 @@ class MixUp(BaseImageAugmentationLayer):
     Sample usage:
     ```python
     (images, labels), _ = tf.keras.datasets.cifar10.load_data()
+    images, labels = images[:10], labels[:10]
+    # Labels must be floating-point and one-hot encoded
+    labels = tf.cast(tf.one_hot(labels, 10), tf.float32)
     mixup = keras_cv.layers.preprocessing.MixUp(10)
     augmented_images, updated_labels = mixup({'images': images, 'labels': labels})
     # output == {'images': updated_images, 'labels': updated_labels}
@@ -85,9 +88,14 @@ class MixUp(BaseImageAugmentationLayer):
         permutation_order = tf.random.shuffle(tf.range(0, batch_size), seed=self.seed)
 
         lambda_sample = self._sample_from_beta(self.alpha, self.alpha, (batch_size,))
-        lambda_sample = tf.reshape(lambda_sample, [-1, 1, 1, 1])
+        lambda_sample = tf.cast(
+            tf.reshape(lambda_sample, [-1, 1, 1, 1]), dtype=self.compute_dtype
+        )
 
-        mixup_images = tf.gather(images, permutation_order)
+        mixup_images = tf.cast(
+            tf.gather(images, permutation_order), dtype=self.compute_dtype
+        )
+
         images = lambda_sample * images + (1.0 - lambda_sample) * mixup_images
 
         return images, tf.squeeze(lambda_sample), permutation_order
@@ -96,6 +104,7 @@ class MixUp(BaseImageAugmentationLayer):
         labels_for_mixup = tf.gather(labels, permutation_order)
 
         lambda_sample = tf.reshape(lambda_sample, [-1, 1])
+
         labels = lambda_sample * labels + (1.0 - lambda_sample) * labels_for_mixup
 
         return labels
@@ -103,7 +112,6 @@ class MixUp(BaseImageAugmentationLayer):
     def _update_bounding_boxes(self, bounding_boxes, permutation_order):
         boxes_for_mixup = tf.gather(bounding_boxes, permutation_order)
         bounding_boxes = tf.concat([bounding_boxes, boxes_for_mixup], axis=1)
-
         return bounding_boxes
 
     def _validate_inputs(self, inputs):

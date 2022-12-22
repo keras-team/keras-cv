@@ -29,6 +29,11 @@ class MaybeApply(BaseImageAugmentationLayer):
         rate: controls the frequency of applying the layer. 1.0 means all elements in
             a batch will be modified. 0.0 means no elements will be modified.
             Defaults to 0.5.
+        batchwise: (Optional) bool, whether or not to pass entire batches to the
+            underlying layer.  When set to true, only a single random sample is
+            drawn to determine if the batch should be passed to the underlying
+            layer.  This is useful when using `MixUp()`, `CutMix()`, `Mosaic()`,
+            etc.
         auto_vectorize: bool, whether to use tf.vectorized_map or tf.map_fn for
             batched input. Setting this to True might give better performance but
             currently doesn't work with XLA. Defaults to False.
@@ -82,7 +87,15 @@ class MaybeApply(BaseImageAugmentationLayer):
     ```
     """
 
-    def __init__(self, layer, rate=0.5, auto_vectorize=False, seed=None, **kwargs):
+    def __init__(
+        self,
+        layer,
+        rate=0.5,
+        batchwise=False,
+        auto_vectorize=False,
+        seed=None,
+        **kwargs,
+    ):
         super().__init__(seed=seed, **kwargs)
 
         if not (0 <= rate <= 1.0):
@@ -91,10 +104,24 @@ class MaybeApply(BaseImageAugmentationLayer):
         self._layer = layer
         self._rate = rate
         self.auto_vectorize = auto_vectorize
+        self.batchwise = batchwise
         self.seed = seed
 
+    def _should_augment(self):
+        return self._random_generator.random_uniform(shape=()) > 1.0 - self._rate
+
+    def _batch_augment(self, inputs):
+        if self.batchwise:
+            # batchwise augmentations
+            if self._should_augment():
+                return self._layer(inputs)
+            else:
+                return inputs
+        # non-batchwise augmentations
+        return super()._batch_augment(inputs)
+
     def _augment(self, inputs):
-        if self._random_generator.random_uniform(shape=()) > 1.0 - self._rate:
+        if self._should_augment():
             return self._layer(inputs)
         else:
             return inputs
@@ -106,6 +133,7 @@ class MaybeApply(BaseImageAugmentationLayer):
                 "rate": self._rate,
                 "layer": self._layer,
                 "seed": self.seed,
+                "batchwise": self.batchwise,
                 "auto_vectorize": self.auto_vectorize,
             }
         )

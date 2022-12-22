@@ -260,9 +260,6 @@ class RandomRotation(BaseImageAugmentationLayer):
             # pixels with ambugious value due to floating point math for rotation.
             return tf.round(rotated_mask)
 
-    def compute_output_shape(self, input_shape):
-        return input_shape
-
     def get_config(self):
         config = {
             "factor": self.factor,

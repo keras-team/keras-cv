@@ -4,26 +4,30 @@
 ![Tensorflow](https://img.shields.io/badge/tensorflow-v2.9.0+-success.svg)
 [![Contributions Welcome](https://img.shields.io/badge/contributions-welcome-brightgreen.svg?style=flat)](https://github.com/keras-team/keras-cv/issues)
 
+# Vision
+A computer vision library dedicated for auto-driving, robotics and on device applications.
+
 # Mission
 
-KerasCV is a repository of modular building blocks (layers, metrics, losses, data-augmentation) that
-applied computer vision engineers can leverage to quickly assemble production-grade, state-of-the-art
-training and inference pipelines for common use cases such as image classification, object detection,
-image segmentation, image data augmentation, etc. It also provides standardaized APIs for some core
-computer vision concepts such as bounding boxes, keypoints, point clouds, etc.
+KerasCV is a layered repository consisting of core components and modeling components.
+
+On the core components, it is made of modular building blocks (ops, functions, layers, metrics, losses, callbacks) that standardizes APIs for computer vision concepts such as data-augmentation pipeline, bounding boxes, keypoints, point clouds, feature pyramid network, etc, so applied computer vision engineers can leverage to quickly assemble production-grade, state-of-the-art
+training and inference pipelines for common tasks such as image classification, object detection and segmentation, image data augmentation, etc.
+
+On the modeling components, it provides the most widely used models for each task such as ResNet family, MobileNet family, transformer-based models, anchor-based and anchor-free meta architectures, unet models, that are built on top of core components, highly composable and compatible with the Keras trainer (`model.fit`). It aims to provide pre-built models that are mixed-precision compatible, QAT compatible, and xla compilable during training, and generic model optimization tools for deployment on devices such as onboard GPUs, mobile, edge chips.
 
 KerasCV provides the following values for users:
 - modular mid-level APIs and composable meta architectures
 - mixed-precision and xla enabled components
-- highly optimized models, compatible between GPUs and TPUs
+- highly optimized, quantization aware training (QAT) enabled models, compatible between GPUs and TPUs.
 - reproducible training results and leaderboard
 - useful tools for evaluation, visualization and explanation.
-- source for inference conversion (TFLite, edge devices, TensorRT, etc)
+- source for inference conversion (TFLite, edge devices, TensorRT, etc) and optimization at model level.
 
 KerasCV can be understood as a horizontal extension of the Keras API: the components are new first-party
 Keras objects (layers, metrics, etc) that are too specialized to be added to core Keras, but that receive
 the same level of polish and backwards compatibility guarantees as the rest of the Keras API and that
-are maintained by the Keras team itself (unlike TFAddons).
+are maintained by the Keras team itself.
 
 KerasCV's primary goal is to provide a coherent, elegant, and pleasant API to train state of the art computer vision models.
 Users should be able to train state of the art models using only `Keras`, `KerasCV`, and TensorFlow core (i.e. `tf.data`) components.
@@ -91,7 +95,7 @@ operate on images that have been rescaled using a simple `1/255` rescaling layer
 
 ## Disclaimer
 
-KeraCV provides access to pre-trained models via the `keras_cv.models` API.
+KerasCV provides access to pre-trained models via the `keras_cv.models` API.
 These pre-trained models are provided on an "as is" basis, without warranties
 or conditions of any kind.
 The following underlying models are provided by third parties, and subject to separate licenses:

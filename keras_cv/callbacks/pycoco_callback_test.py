@@ -43,16 +43,56 @@ class PyCOCOCallbackTest(tf.test.TestCase):
             classification_loss="focal",
         )
 
-        images, boxes = _create_bounding_box_dataset(bounding_box_format="xyxy")
-        validation_dataset = _create_bounding_box_dataset(
+        train_ds = _create_bounding_box_dataset(
+            bounding_box_format="xyxy", use_dictionary_box_format=True
+        )
+        val_ds = _create_bounding_box_dataset(
             bounding_box_format="xyxy", use_dictionary_box_format=True
         )
 
-        callback = PyCOCOCallback(
-            validation_data=validation_dataset, bounding_box_format="xyxy"
-        )
-        history = model.fit(images, boxes, callbacks=[callback])
+        def convert_dict_fn(x, y):
+            converted_y = {}
+            converted_y["boxes"] = y.pop("gt_boxes")
+            converted_y["classes"] = y.pop("gt_classes")
+            return x, converted_y
 
+        train_ds = train_ds.map(convert_dict_fn)
+        val_ds = val_ds.map(convert_dict_fn)
+
+        callback = PyCOCOCallback(validation_data=val_ds, bounding_box_format="xyxy")
+        history = model.fit(train_ds, callbacks=[callback])
+
+        self.assertAllInSet(
+            [f"val_{metric}" for metric in METRIC_NAMES], history.history.keys()
+        )
+
+    def test_input_nms_false(self):
+        model = keras_cv.models.FasterRCNN(
+            classes=10,
+            bounding_box_format="xywh",
+            backbone=keras_cv.models.ResNet50V2(
+                include_top=False, include_rescaling=True, weights=None
+            ).as_backbone(),
+        )
+        model.compile(
+            optimizer="adam",
+            box_loss="Huber",
+            classification_loss="SparseCategoricalCrossentropy",
+            rpn_box_loss="Huber",
+            rpn_classification_loss="BinaryCrossentropy",
+        )
+        train_ds = _create_bounding_box_dataset(
+            bounding_box_format="yxyx", use_dictionary_box_format=True
+        )
+        eval_ds = _create_bounding_box_dataset(
+            bounding_box_format="yxyx", use_dictionary_box_format=True
+        )
+        callback = PyCOCOCallback(
+            validation_data=eval_ds,
+            bounding_box_format="yxyx",
+            input_nms=False,
+        )
+        history = model.fit(train_ds, callbacks=[callback])
         self.assertAllInSet(
             [f"val_{metric}" for metric in METRIC_NAMES], history.history.keys()
         )

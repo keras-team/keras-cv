@@ -56,7 +56,7 @@ class RandomRotationTest(tf.test.TestCase):
         expected_output = np.reshape(expected_output, (5, 5, 1))
         self.assertAllClose(expected_output, output_image)
 
-    def test_augment_bbox_dict_input(self):
+    def test_augment_bounding_boxes(self):
         input_image = np.random.random((512, 512, 3)).astype(np.float32)
         bboxes = tf.convert_to_tensor(
             [[200, 200, 400, 400, 1], [100, 100, 300, 300, 2]]
@@ -64,12 +64,12 @@ class RandomRotationTest(tf.test.TestCase):
         input = {"images": input_image, "bounding_boxes": bboxes}
         # 180 rotation.
         layer = RandomRotation(factor=(0.5, 0.5), bounding_box_format="xyxy")
-        output_bbox = layer(input)
+        output = layer(input)
         expected_output = np.asarray(
             [[112.0, 112.0, 312.0, 312.0, 1], [212.0, 212.0, 412.0, 412.0, 2]],
         )
         expected_output = np.reshape(expected_output, (2, 5))
-        self.assertAllClose(expected_output, output_bbox["bounding_boxes"])
+        self.assertAllClose(expected_output, output["bounding_boxes"].to_tensor(-1))
 
     def test_output_dtypes(self):
         inputs = np.array([[[1], [2]], [[3], [4]]], dtype="float64")
@@ -96,7 +96,6 @@ class RandomRotationTest(tf.test.TestCase):
                 [[112.0, 112.0, 312.0, 312.0, 0], [212.0, 212.0, 412.0, 412.0, 0]],
                 [[112.0, 112.0, 312.0, 312.0, 0]],
             ],
-            ragged_rank=1,
         )
         self.assertAllClose(expected_output, output["bounding_boxes"])
 

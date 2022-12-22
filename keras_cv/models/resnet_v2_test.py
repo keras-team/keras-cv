@@ -21,11 +21,16 @@ from .models_test import ModelsTest
 
 MODEL_LIST = [
     (resnet_v2.ResNet18V2, 512, {}),
-    (resnet_v2.ResNet34V2, 512, {}),
-    (resnet_v2.ResNet50V2, 2048, {}),
-    (resnet_v2.ResNet101V2, 2048, {}),
-    (resnet_v2.ResNet152V2, 2048, {}),
 ]
+
+"""
+Below are other configurations that we omit from our CI but that can/should
+be tested manually when making changes to this model.
+(resnet_v2.ResNet34V2, 512, {}),
+(resnet_v2.ResNet50V2, 2048, {}),
+(resnet_v2.ResNet101V2, 2048, {}),
+(resnet_v2.ResNet152V2, 2048, {}),
+"""
 
 
 class ResNetV2Test(ModelsTest, tf.test.TestCase, parameterized.TestCase):

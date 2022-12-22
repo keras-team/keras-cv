@@ -25,30 +25,35 @@ MODEL_LIST = [
         768,
         {"drop_path_rate": 0.1, "layer_scale_init_value": 1e-6},
     ),
-    (
-        convnext.ConvNeXtSmall,
-        768,
-        {
-            "drop_path_rate": 0.1,
-            "layer_scale_init_value": 1e-6,
-        },
-    ),
-    (
-        convnext.ConvNeXtBase,
-        1024,
-        {"drop_path_rate": 0.1, "layer_scale_init_value": 1e-6},
-    ),
-    (
-        convnext.ConvNeXtLarge,
-        1536,
-        {"drop_path_rate": 0.1, "layer_scale_init_value": 1e-6},
-    ),
-    (
-        convnext.ConvNeXtXLarge,
-        2048,
-        {"drop_path_rate": 0.1, "layer_scale_init_value": 1e-6},
-    ),
 ]
+
+"""
+Below are other configurations that we omit from our CI but that can/should
+be tested manually when making changes to this model.
+(
+    convnext.ConvNeXtSmall,
+    768,
+    {
+        "drop_path_rate": 0.1,
+        "layer_scale_init_value": 1e-6,
+    },
+),
+(
+    convnext.ConvNeXtBase,
+    1024,
+    {"drop_path_rate": 0.1, "layer_scale_init_value": 1e-6},
+),
+(
+    convnext.ConvNeXtLarge,
+    1536,
+    {"drop_path_rate": 0.1, "layer_scale_init_value": 1e-6},
+),
+(
+    convnext.ConvNeXtXLarge,
+    2048,
+    {"drop_path_rate": 0.1, "layer_scale_init_value": 1e-6},
+),
+"""
 
 
 class ConvNeXtTest(ModelsTest, tf.test.TestCase, parameterized.TestCase):
