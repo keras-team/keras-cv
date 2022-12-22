@@ -1,4 +1,6 @@
 """
+- Window/Unwindow
+- Grid/UnGrid
 - MaxViTTransformerEncoder layer
 - RelativeMultiHeadAttention layer
 - SqueezeExcite layer (potentially don't need it because it's already part of MBConv)
@@ -9,8 +11,7 @@
 import tensorflow as tf
 from tensorflow.keras import layers
 
-# PR isn't merged yet
-# from keras_cv.layers.mbconv import MBConvBlc=ock
+from keras_cv.layers.mbconv import MBConvBlock
 
 
 @tf.keras.utils.register_keras_serializable(package="keras_cv")
