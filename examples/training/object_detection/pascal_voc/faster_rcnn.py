@@ -134,10 +134,8 @@ eval_ds = eval_ds.map(
     num_parallel_calls=tf.data.AUTOTUNE,
 )
 
-eval_ds = eval_ds.map(dict_to_tuple, num_parallel_calls=tf.data.AUTOTUNE)
 eval_ds = eval_ds.map(pad_fn, num_parallel_calls=tf.data.AUTOTUNE)
 eval_ds = eval_ds.prefetch(tf.data.AUTOTUNE)
-train_ds = train_ds.map(dict_to_tuple, num_parallel_calls=tf.data.AUTOTUNE)
 train_ds = train_ds.map(pad_fn, num_parallel_calls=tf.data.AUTOTUNE)
 train_ds = train_ds.prefetch(tf.data.AUTOTUNE)
 
