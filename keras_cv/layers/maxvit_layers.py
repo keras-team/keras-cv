@@ -11,7 +11,7 @@
 import tensorflow as tf
 from tensorflow.keras import layers
 
-from keras_cv.layers import MBConvBlock
+from keras_cv.layers.mbconv import MBConvBlock
 
 
 @tf.keras.utils.register_keras_serializable(package="keras_cv")
