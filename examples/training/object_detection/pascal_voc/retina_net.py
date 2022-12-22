@@ -155,8 +155,15 @@ eval_ds = eval_ds.map(unpackage_inputs, num_parallel_calls=tf.data.AUTOTUNE)
 
 
 # TODO(lukewood): the boxes loses shape from KPL, so need to pad to a known shape.
+# TODO(tanzhenyu): consider remove padding while reduce function tracing.
 def pad_fn(image, boxes):
-    return image, boxes.to_tensor(default_value=-1.0, shape=[GLOBAL_BATCH_SIZE, 32, 5])
+    boxes = boxes.to_tensor(default_value=-1.0, shape=[GLOBAL_BATCH_SIZE, 32, 5])
+    gt_boxes = boxes[..., :4]
+    gt_classes = boxes[..., 4]
+    return image, {
+        "boxes": gt_boxes,
+        "classes": gt_classes,
+    }
 
 
 train_ds = train_ds.map(pad_fn, num_parallel_calls=tf.data.AUTOTUNE)
@@ -189,17 +196,12 @@ model.compile(
     optimizer=optimizer,
 )
 
-
-def convert_to_dict(images, boxes):
-    return images, {"gt_boxes": boxes[:, :, :4], "gt_classes": boxes[:, :, 4]}
-
-
 callbacks = [
     keras.callbacks.TensorBoard(log_dir="logs"),
     keras.callbacks.ReduceLROnPlateau(patience=5),
     keras.callbacks.EarlyStopping(patience=10),
     keras.callbacks.ModelCheckpoint(CHECKPOINT_PATH, save_weights_only=True),
-    PyCOCOCallback(eval_ds.map(convert_to_dict), "xywh"),
+    PyCOCOCallback(eval_ds, "xywh"),
 ]
 
 history = model.fit(
