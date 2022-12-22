@@ -120,7 +120,7 @@ def proc_train_fn(examples):
     image = examples.pop("image")
     cls_seg = examples.pop("class_segmentation")
 
-    image, cls_seg = preprocess_image(image, cls_seg, flip=True)
+    image, cls_seg = preprocess_image(image, cls_seg, augment=True)
 
     sample_weight = tf.equal(cls_seg, 255)
     zeros = tf.zeros_like(cls_seg)
@@ -132,7 +132,7 @@ def proc_eval_fn(examples):
     image = examples.pop("image")
     cls_seg = examples.pop("class_segmentation")
 
-    image, cls_seg = preprocess_image(image, cls_seg, flip=False)
+    image, cls_seg = preprocess_image(image, cls_seg, augment=False)
 
     sample_weight = tf.equal(cls_seg, 255)
     zeros = tf.zeros_like(cls_seg)
