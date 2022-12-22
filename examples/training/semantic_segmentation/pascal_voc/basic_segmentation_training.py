@@ -160,7 +160,7 @@ with strategy.scope():
         clipnorm=10.0,
         # For later release
         # use_ema=FLAGS.use_ema,
-        weight_decay=FLAGS.weight_decay,
+        # weight_decay=FLAGS.weight_decay,
     )
     # ignore 255 as the class for semantic boundary.
     loss_fn = tf.keras.losses.SparseCategoricalCrossentropy(ignore_class=255)
