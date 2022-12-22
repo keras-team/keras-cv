@@ -78,7 +78,7 @@ class _RpnLabelEncoder(tf.keras.layers.Layer):
             force_match_for_each_col=False,
         )
         self.built = True
-        self._positives = tf.keras.metrics.Mean()
+        self._positives = tf.keras.metrics.Mean(name='percent_boxes_matched')
 
     def call(
         self,
