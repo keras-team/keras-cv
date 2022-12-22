@@ -19,9 +19,7 @@ from keras_cv.metrics.coco import compute_pycoco_metrics
 
 
 class PyCOCOCallback(Callback):
-    def __init__(
-        self, validation_data, bounding_box_format, input_nms=True, cache=True, **kwargs
-    ):
+    def __init__(self, validation_data, bounding_box_format, cache=True, **kwargs):
         """Creates a callback to evaluate PyCOCO metrics on a validation dataset.
 
         Args:
@@ -30,9 +28,6 @@ class PyCOCOCallback(Callback):
                 "classes": classes})```.
             bounding_box_format: the KerasCV bounding box format used in the
                 validation dataset (e.g. "xywh")
-            input_nms: whether the model has already applied non-max-suppression. If False,
-                the callback will use `model.nms_decoder` to decode the model prediction,
-                otherwise the callback will use model prediction as-is. Default to True.
             cache: whether the callback should cache the dataset between iterations.
                 Note that if the validation dataset has shuffling of any kind
                 (e.g from `shuffle_files=True` in a call to TFDS.load or a call
@@ -47,7 +42,6 @@ class PyCOCOCallback(Callback):
             # We cache the dataset to preserve a consistent iteration order.
             self.val_data = self.val_data.cache()
         self.bounding_box_format = bounding_box_format
-        self.input_nms = input_nms
         super().__init__(**kwargs)
 
     def on_epoch_end(self, epoch, logs=None):
@@ -61,30 +55,27 @@ class PyCOCOCallback(Callback):
 
         images_only_ds = self.val_data.map(images_only)
         y_pred = self.model.predict(images_only_ds)
-        if not self.input_nms:
-            box_pred, cls_pred = y_pred
-            box_pred = tf.expand_dims(box_pred, axis=-2)
-            with tf.device("cpu:0"):
-                (
-                    box_pred,
-                    scores_pred,
-                    cls_pred,
-                    valid_det,
-                ) = self.model.nms_decoder(box_pred, cls_pred)
+        # TODO(lukewood): remove the else branch
+        if isinstance(y_pred, dict):
+            box_pred = tf.convert_to_tensor(y_pred["boxes"])
+            cls_pred = tf.convert_to_tensor(y_pred["classes"])
+            scores_pred = tf.convert_to_tensor(y_pred["scores"])
+            valid_det = tf.convert_to_tensor(y_pred["num_detections"])
+        else:
+            valid_det = y_pred.row_lengths()
+            y_pred = y_pred.to_tensor(-1)
+            box_pred = y_pred[:, :, :4]
+            cls_pred = y_pred[:, :, 4]
+            scores_pred = y_pred[:, :, 5]
 
         gt = [boxes for boxes in self.val_data.map(boxes_only)]
-        if self.input_nms:
-            gt_boxes = tf.concat(
-                [tf.RaggedTensor.from_tensor(boxes["boxes"]) for boxes in gt], axis=0
-            )
-            gt_classes = tf.concat(
-                [tf.RaggedTensor.from_tensor(boxes["classes"]) for boxes in gt],
-                axis=0,
-            )
-        else:
-            gt_boxes = tf.concat([boxes["gt_boxes"] for boxes in gt], axis=0)
-            gt_classes = tf.concat([boxes["gt_classes"] for boxes in gt], axis=0)
-            gt_num_dets = tf.concat([boxes["gt_num_dets"] for boxes in gt], axis=0)
+        gt_boxes = tf.concat(
+            [tf.RaggedTensor.from_tensor(boxes["boxes"]) for boxes in gt], axis=0
+        )
+        gt_classes = tf.concat(
+            [tf.RaggedTensor.from_tensor(boxes["classes"]) for boxes in gt],
+            axis=0,
+        )
 
         first_image_batch = next(iter(images_only_ds))
         height = first_image_batch.shape[1]
@@ -104,38 +95,20 @@ class PyCOCOCallback(Callback):
         ground_truth["height"] = [tf.tile(tf.constant([height]), [total_images])]
         ground_truth["width"] = [tf.tile(tf.constant([width]), [total_images])]
 
-        if self.input_nms:
-            ground_truth["num_detections"] = [gt_boxes.row_lengths(axis=1)]
-            ground_truth["boxes"] = [gt_boxes.to_tensor(-1)]
-            ground_truth["classes"] = [gt_classes.to_tensor(-1)]
-            y_pred = bounding_box.convert_format(
-                y_pred, source=self.bounding_box_format, target="yxyx"
-            )
-        else:
-            ground_truth["num_detections"] = [gt_num_dets]
-            ground_truth["boxes"] = [gt_boxes]
-            ground_truth["classes"] = [gt_classes]
-
-            box_pred = bounding_box.convert_format(
-                box_pred, source=self.bounding_box_format, target="yxyx"
-            )
+        ground_truth["num_detections"] = [gt_boxes.row_lengths(axis=1)]
+        ground_truth["boxes"] = [gt_boxes.to_tensor(-1)]
+        ground_truth["classes"] = [gt_classes.to_tensor(-1)]
+        box_pred = bounding_box.convert_format(
+            box_pred, source=self.bounding_box_format, target="yxyx"
+        )
 
         predictions = {}
-        if self.input_nms:
-            predictions["num_detections"] = [y_pred.row_lengths()]
-            y_pred = y_pred.to_tensor(-1)
-        else:
-            predictions["num_detections"] = [valid_det]
 
         predictions["source_id"] = [source_ids]
-        if self.input_nms:
-            predictions["detection_boxes"] = [y_pred[:, :, :4]]
-            predictions["detection_classes"] = [y_pred[:, :, 4]]
-            predictions["detection_scores"] = [y_pred[:, :, 5]]
-        else:
-            predictions["detection_boxes"] = [box_pred]
-            predictions["detection_classes"] = [cls_pred]
-            predictions["detection_scores"] = [scores_pred]
+        predictions["detection_boxes"] = [box_pred]
+        predictions["detection_classes"] = [cls_pred]
+        predictions["detection_scores"] = [scores_pred]
+        predictions["num_detections"] = [valid_det]
 
         metrics = compute_pycoco_metrics(ground_truth, predictions)
         # Mark these as validation metrics by prepending a val_ prefix

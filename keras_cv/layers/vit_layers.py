@@ -199,6 +199,10 @@ class PatchingAndEmbedding(layers.Layer):
         return reshaped_embeddings, class_token
 
     def get_config(self):
-        config = {"project_dim": self.project_dim, "patch_size": self.patch_size}
+        config = {
+            "project_dim": self.project_dim,
+            "patch_size": self.patch_size,
+            "padding": self.padding,
+        }
         base_config = super().get_config()
         return dict(list(base_config.items()) + list(config.items()))
