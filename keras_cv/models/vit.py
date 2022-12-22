@@ -268,7 +268,11 @@ def ViT(
     x = inputs
 
     if include_rescaling:
-        x = layers.Rescaling(scale=1.0 / 127.5, offset=-1)(x)
+        x = layers.Rescaling(1.0 / 255.0)(x)
+
+    # The previous layer rescales [0..255] to [0..1] if applicable
+    # This one rescales [0..1] to [-1..1] since ViTs expect [-1..1]
+    x = layers.Rescaling(scale=1.0 / 0.5, offset=-1.0)(x)
 
     encoded_patches = PatchingAndEmbedding(project_dim, patch_size)(x)
     encoded_patches = layers.Dropout(mlp_dropout)(encoded_patches)
