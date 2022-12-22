@@ -140,7 +140,7 @@ BASE_DOCSTRING = """Instantiates the {name} architecture.
         learning & fine-tuning](https://keras.io/guides/transfer_learning/).
     Args:
         include_rescaling: whether or not to Rescale the inputs.If set to True,
-            inputs will be passed through a `Rescaling(1/255.0)` layer.
+            inputs will be passed through a `Rescaling(scale=1./127.5, offset=-1)` layer.
         include_top: whether to include the fully-connected layer at the top of the
             network.  If provided, classes must be provided.
         classes: optional number of classes to classify images into, only to be
@@ -268,7 +268,7 @@ def ViT(
     x = inputs
 
     if include_rescaling:
-        x = layers.Rescaling(1 / 255.0)(x)
+        x = layers.Rescaling(scale=1.0 / 127.5, offset=-1)(x)
 
     encoded_patches = PatchingAndEmbedding(project_dim, patch_size)(x)
     encoded_patches = layers.Dropout(mlp_dropout)(encoded_patches)
