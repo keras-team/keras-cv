@@ -30,7 +30,7 @@ def _create_bounding_box_dataset(bounding_box_format, use_dictionary_box_format=
     ys = keras_cv.bounding_box.convert_format(
         ys, source="rel_xywh", target=bounding_box_format, images=xs, dtype=tf.float32
     )
-    num_dets = tf.ones([10])
+    num_dets = tf.ones([5])
 
     if use_dictionary_box_format:
         return tf.data.Dataset.from_tensor_slices(
