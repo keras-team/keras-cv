@@ -31,8 +31,8 @@ def _classes_shape(batched, classes_shape, max_boxes):
     if max_boxes is None:
         return None
     if batched:
-        return [None, max_boxes] + classes_shape[:2]
-    return [max_boxes] + classes_shape[:2]
+        return [None, max_boxes] + classes_shape[2:]
+    return [max_boxes] + classes_shape[2:]
 
 
 def to_dense(bounding_boxes, max_boxes=None):

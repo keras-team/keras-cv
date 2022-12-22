@@ -25,6 +25,7 @@ import tensorflow_datasets as tfds
 from absl import flags
 
 import keras_cv
+from keras_cv import bounding_box
 from keras_cv.callbacks import PyCOCOCallback
 
 flags.DEFINE_string(
@@ -90,6 +91,10 @@ def dict_to_tuple(inputs):
     return inputs["images"], inputs["bounding_boxes"]
 
 
+def pad_fn(image, boxes):
+    return image, bounding_box.to_dense(boxes, max_boxes=32)
+
+
 train_ds = train_ds.map(unpackage_inputs("xywh"), num_parallel_calls=tf.data.AUTOTUNE)
 train_ds = train_ds.shuffle(8 * strategy.num_replicas_in_sync)
 train_ds = train_ds.apply(
@@ -132,8 +137,10 @@ eval_ds = eval_ds.map(
 )
 
 eval_ds = eval_ds.map(dict_to_tuple, num_parallel_calls=tf.data.AUTOTUNE)
+eval_ds = eval_ds.map(pad_fn, num_parallel_calls=tf.data.AUTOTUNE)
 eval_ds = eval_ds.prefetch(tf.data.AUTOTUNE)
 train_ds = train_ds.map(dict_to_tuple, num_parallel_calls=tf.data.AUTOTUNE)
+train_ds = train_ds.map(pad_fn, num_parallel_calls=tf.data.AUTOTUNE)
 train_ds = train_ds.prefetch(tf.data.AUTOTUNE)
 
 

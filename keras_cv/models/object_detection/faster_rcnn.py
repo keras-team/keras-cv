@@ -267,7 +267,12 @@ class NMSDecoder(tf.keras.layers.Layer):
             iou_threshold=self.iou_threshold,
             clip_boxes=False,
         )
-        return box_pred, scores_pred, cls_pred, valid_det
+        return {
+            "boxes": box_pred,
+            "scores": scores_pred,
+            "classes": cls_pred,
+            "num_detections": valid_det,
+        }
 
     def get_config(self):
         config = {
@@ -502,6 +507,7 @@ class FasterRCNN(tf.keras.Model):
         else:
             num_sync = 1
         global_batch = local_batch * num_sync
+        print("gt_boxes", gt_boxes.shape)
         anchors = self.anchor_generator(image_shape=image_shape)
         (
             rpn_box_targets,
@@ -593,16 +599,15 @@ class FasterRCNN(tf.keras.Model):
             target=self.prediction_decoder.bounding_box_format,
             images=images,
         )
-        box_pred, scores_pred, cls_pred, valid_det = self.prediction_decoder(
-            box_pred, scores_pred
-        )
+        y_pred = self.prediction_decoder(box_pred, scores_pred)
         box_pred = bounding_box.convert_format(
-            box_pred,
+            y_pred["boxes"],
             source=self.prediction_decoder.bounding_box_format,
             target=self.bounding_box_format,
             images=images,
         )
-        return box_pred, scores_pred, cls_pred, valid_det
+        y_pred["boxes"] = box_pred
+        return y_pred
 
 
 def _validate_and_get_loss(loss, loss_name):
