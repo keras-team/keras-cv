@@ -4,6 +4,7 @@ import tensorflow as tf
 from absl import flags
 from absl import logging
 
+import keras_cv
 import keras_cv.layers.preprocessing as preprocessing
 from keras_cv.datasets.pascal_voc.segmentation import load
 
