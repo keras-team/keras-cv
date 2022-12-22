@@ -55,14 +55,12 @@ class PyCOCOCallback(Callback):
 
         images_only_ds = self.val_data.map(images_only)
         y_pred = self.model.predict(images_only_ds)
-        # a temporary if / else until unify decoder output
-        if isinstance(y_pred, (tuple, list)):
-            assert len(y_pred) == 4, f"y_pred size {len(y_pred)} is not 4"
-            box_pred, scores_pred, cls_pred, valid_det = y_pred
-            box_pred = tf.convert_to_tensor(box_pred)
-            cls_pred = tf.convert_to_tensor(cls_pred)
-            scores_pred = tf.convert_to_tensor(scores_pred)
-            valid_det = tf.convert_to_tensor(valid_det)
+        # TODO(lukewood): remove the else branch
+        if isinstance(y_pred, dict):
+            box_pred = tf.convert_to_tensor(y_pred["boxes"])
+            cls_pred = tf.convert_to_tensor(y_pred["classes"])
+            scores_pred = tf.convert_to_tensor(y_pred["scores"])
+            valid_det = tf.convert_to_tensor(y_pred["num_detections"])
         else:
             valid_det = y_pred.row_lengths()
             y_pred = y_pred.to_tensor(-1)
