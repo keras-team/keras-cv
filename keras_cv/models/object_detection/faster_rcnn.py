@@ -507,7 +507,6 @@ class FasterRCNN(tf.keras.Model):
         else:
             num_sync = 1
         global_batch = local_batch * num_sync
-        print("gt_boxes", gt_boxes.shape)
         anchors = self.anchor_generator(image_shape=image_shape)
         (
             rpn_box_targets,
@@ -556,7 +555,7 @@ class FasterRCNN(tf.keras.Model):
         if sample_weight is not None:
             raise ValueError("`sample_weight` is currently not supported.")
         gt_boxes = y["boxes"]
-        gt_classes = y["classes"]
+        gt_classes = tf.expand_dims(y["classes"], axis=-1)
         with tf.GradientTape() as tape:
             total_loss = self.compute_loss(images, gt_boxes, gt_classes, training=True)
             reg_losses = []
@@ -574,7 +573,7 @@ class FasterRCNN(tf.keras.Model):
         if sample_weight is not None:
             raise ValueError("`sample_weight` is currently not supported.")
         gt_boxes = y["boxes"]
-        gt_classes = y["classes"]
+        gt_classes = tf.expand_dims(y["classes"], axis=-1)
         self.compute_loss(images, gt_boxes, gt_classes, training=False)
         return self.compute_metrics(images, {}, {}, sample_weight={})
 
