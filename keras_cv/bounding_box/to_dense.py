@@ -17,6 +17,7 @@ from keras_cv.bounding_box import validate
 
 
 def _box_shape(batched, boxes_shape, max_boxes):
+    # ensure we dont drop the final axis in RaggedTensor mode
     if max_boxes is None:
         shape = list(boxes_shape)
         shape[-1] = 4
@@ -50,7 +51,6 @@ def to_dense(bounding_boxes, max_boxes=None):
         return bounding_boxes
 
     if isinstance(bounding_boxes["classes"], tf.RaggedTensor):
-        print("classes", tf.shape(bounding_boxes["classes"]))
         bounding_boxes["classes"] = bounding_boxes["classes"].to_tensor(
             -1,
             shape=_classes_shape(

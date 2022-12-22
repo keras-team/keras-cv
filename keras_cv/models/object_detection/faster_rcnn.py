@@ -455,8 +455,8 @@ class FasterRCNN(tf.keras.Model):
         if metrics is not None and len(metrics) != 0:
             raise ValueError(
                 "`RetinaNet` does not currently support the use of "
-                "`metrics` due to performance and distribution concerns. Please us the "
-                "`PyCOCOCallback` to evaluate COCO metrics."
+                "`metrics` due to performance and distribution concerns. "
+                "Please use the `PyCOCOCallback` to evaluate COCO metrics."
             )
         if loss is not None:
             raise ValueError(

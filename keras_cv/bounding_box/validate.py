@@ -15,7 +15,7 @@ import tensorflow as tf
 
 
 def validate(bounding_boxes):
-    """validates that a given set of bounding boxes complies to KerasCV format.
+    """validates that a given set of bounding boxes complies with KerasCV format.
 
     For a set of bounding boxes to be valid it must satisfy the following conditions:
     - `bounding_boxes` must be a dictionary
