@@ -310,3 +310,4 @@ class FCN(tf.keras.models.Model):
         }
         base_config = super().get_config()
         return dict(list(base_config.items()) + list(config.items()))
+

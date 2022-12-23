@@ -23,7 +23,7 @@ from keras_cv.models import segmentation
 
 
 class FCNTest(tf.test.TestCase):
-    def test_fcn_model_construction_with_preconfigured_setting(self):
+    def test_fcn_model_with_vgg16_backbone_construction_with_preconfigured_setting(self):
         model = segmentation.FCN(
             classes=11, backbone="vgg16", model_architecture="fcn8s"
         )
@@ -32,8 +32,28 @@ class FCNTest(tf.test.TestCase):
 
         self.assertEquals(output.shape, [2, 256, 256, 11])
 
-    def test_fcn_model_with_components(self):
+    def test_fcn_model_with_vgg19_backbone_construction_with_preconfigured_setting(self):
+        model = segmentation.FCN(
+            classes=11, backbone="vgg19", model_architecture="fcn8s"
+        )
+        input_image = tf.random.uniform(shape=[2, 256, 256, 3])
+        output = model(input_image)
+
+        self.assertEquals(output.shape, [2, 256, 256, 11])
+
+    def test_fcn_model_with_vgg16_components(self):
         backbone = models.VGG16(include_rescaling=False, include_top=False)
+        model = segmentation.FCN(
+            classes=11, backbone=backbone, model_architecture="fcn8s"
+        )
+
+        input_image = tf.random.uniform(shape=[2, 256, 256, 3])
+        output = model(input_image)
+
+        self.assertEquals(output.shape, [2, 256, 256, 11])
+
+    def test_fcn_model_with_vgg19_components(self):
+        backbone = models.VGG19(include_rescaling=False, include_top=False)
         model = segmentation.FCN(
             classes=11, backbone=backbone, model_architecture="fcn8s"
         )
