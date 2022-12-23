@@ -28,8 +28,10 @@ class NonMaxSuppressionTest(tf.test.TestCase):
 
         predictions = tf.concat([boxes, classes, scores], axis=-1)
 
-        boxes = layer(predictions, images)
-        self.assertEqual(boxes.shape, [3, None, 6])
+        predictions = layer(predictions, images)
+        self.assertEqual(predictions["boxes"].shape, [3, 100, 4])
+        self.assertEqual(predictions["classes"].shape, [3, 100])
+        self.assertEqual(predictions["confidence"].shape, [3, 100])
 
     def test_non_square_images(self):
         layer = NonMaxSuppression(classes=4, bounding_box_format="xyxy")
@@ -42,13 +44,17 @@ class NonMaxSuppressionTest(tf.test.TestCase):
 
         # RGB
         images = tf.ones((2, 256, 512, 3))
-        boxes = layer(predictions, images)
-        self.assertEqual(boxes.shape, [2, None, 6])
+        predicts = layer(predictions, images)
+        self.assertEqual(predicts["boxes"].shape, [2, 100, 4])
+        self.assertEqual(predicts["classes"].shape, [2, 100])
+        self.assertEqual(predicts["confidence"].shape, [2, 100])
 
         # greyscale
         images = tf.ones((2, 256, 512, 1))
-        boxes = layer(predictions, images)
-        self.assertEqual(boxes.shape, [2, None, 6])
+        predicts = layer(predictions, images)
+        self.assertEqual(predicts["boxes"].shape, [2, 100, 4])
+        self.assertEqual(predicts["classes"].shape, [2, 100])
+        self.assertEqual(predicts["confidence"].shape, [2, 100])
 
     def test_different_channels(self):
         layer = NonMaxSuppression(classes=4, bounding_box_format="xyWH")
@@ -60,8 +66,10 @@ class NonMaxSuppressionTest(tf.test.TestCase):
 
         predictions = tf.concat([boxes, classes, scores], axis=-1)
 
-        boxes = layer(predictions, images)
-        self.assertEqual(boxes.shape, [3, None, 6])
+        predictions = layer(predictions, images)
+        self.assertEqual(predictions["boxes"].shape, [3, 100, 4])
+        self.assertEqual(predictions["classes"].shape, [3, 100])
+        self.assertEqual(predictions["confidence"].shape, [3, 100])
 
     def test_in_a_model(self):
         input1 = tf.keras.layers.Input([5, 6])
@@ -79,8 +87,10 @@ class NonMaxSuppressionTest(tf.test.TestCase):
 
         predictions = tf.concat([boxes, classes, scores], axis=-1)
 
-        boxes = model([predictions, images])
-        self.assertEqual(boxes.shape, [3, None, 6])
+        predictions = model([predictions, images])
+        self.assertEqual(predictions["boxes"].shape, [3, 100, 4])
+        self.assertEqual(predictions["classes"].shape, [3, 100])
+        self.assertEqual(predictions["confidence"].shape, [3, 100])
 
     def test_without_images(self):
         layer = NonMaxSuppression(classes=4, bounding_box_format="xyWH")
@@ -91,8 +101,10 @@ class NonMaxSuppressionTest(tf.test.TestCase):
 
         predictions = tf.concat([boxes, classes, scores], axis=-1)
 
-        boxes = layer(predictions)
-        self.assertEqual(boxes.shape, [3, None, 6])
+        predictions = layer(predictions)
+        self.assertEqual(predictions["boxes"].shape, [3, 100, 4])
+        self.assertEqual(predictions["classes"].shape, [3, 100])
+        self.assertEqual(predictions["confidence"].shape, [3, 100])
 
     def test_ragged_output_with_differing_shapes(self):
         layer = NonMaxSuppression(8, "xywh", iou_threshold=0.1)
@@ -117,8 +129,7 @@ class NonMaxSuppressionTest(tf.test.TestCase):
         )
 
         boxes = layer(predictions, images)
-        self.assertEqual(boxes[0].shape, [2, 6])
-        self.assertEqual(boxes[1].shape, [3, 6])
+        self.assertEqual(boxes["boxes"].shape, [2, 100, 4])
 
     def test_ragged_output_with_zero_boxes(self):
         layer = NonMaxSuppression(8, "xywh", confidence_threshold=0.1)
@@ -131,8 +142,7 @@ class NonMaxSuppressionTest(tf.test.TestCase):
         predictions = tf.concat([boxes, classes, scores], axis=-1)
 
         boxes = layer(predictions, images)
-        self.assertEqual(boxes[0].shape, [0, 6])
-        self.assertEqual(boxes[1].shape, [0, 6])
+        self.assertEqual(boxes["boxes"].shape, [3, 100, 4])
 
     def test_input_box_shape(self):
         layer = NonMaxSuppression(8, "xywh", confidence_threshold=0.1)
