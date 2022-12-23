@@ -25,7 +25,7 @@ from keras_cv.models import segmentation
 class FCNTest(tf.test.TestCase):
     def test_fcn_model_construction_with_preconfigured_setting(self):
         model = segmentation.FCN(
-            classes=11, backbone='vgg16', model_architecture='fcn8s'
+            classes=11, backbone="vgg16", model_architecture="fcn8s"
         )
         input_image = tf.random.uniform(shape=[2, 256, 256, 3])
         output = model(input_image)
@@ -35,7 +35,7 @@ class FCNTest(tf.test.TestCase):
     def test_fcn_model_with_components(self):
         backbone = models.VGG16(include_rescaling=False, include_top=False)
         model = segmentation.FCN(
-            classes=11, backbone=backbone, model_architecture='fcn8s'
+            classes=11, backbone=backbone, model_architecture="fcn8s"
         )
 
         input_image = tf.random.uniform(shape=[2, 256, 256, 3])
@@ -46,7 +46,7 @@ class FCNTest(tf.test.TestCase):
     def test_mixed_precision(self):
         tf.keras.mixed_precision.set_global_policy("mixed_float16")
         model = segmentation.FCN(
-            classes=11, backbone='vgg16', model_architecture='fcn8s'
+            classes=11, backbone="vgg16", model_architecture="fcn8s"
         )
         input_image = tf.random.uniform(shape=[2, 256, 256, 3])
         output = model(input_image, training=True)
@@ -55,7 +55,8 @@ class FCNTest(tf.test.TestCase):
 
     def test_invalid_backbone_model(self):
         with self.assertRaisesRegex(
-            ValueError, "Entered `backbone` argument is not a standard available backbone. Valid options are ['vgg16', 'vgg19']"
+            ValueError,
+            "Entered `backbone` argument is not a standard available backbone. Valid options are ['vgg16', 'vgg19']",
         ):
             segmentation.FCN(
                 classes=11,
@@ -69,7 +70,8 @@ class FCNTest(tf.test.TestCase):
                 backbone=tf.Module(),
             )
         with self.assertRaisesRegex(
-            ValueError,  "Entered `backbone` argument has custom layers. Include a `tf.keras.models.Model` with `keras.layers.Conv2D` or `keras.layers.MaxPooling2D` layers only."
+            ValueError,
+            "Entered `backbone` argument has custom layers. Include a `tf.keras.models.Model` with `keras.layers.Conv2D` or `keras.layers.MaxPooling2D` layers only.",
         ):
             segmentation.FCN(
                 classes=11,
@@ -84,7 +86,7 @@ class FCNTest(tf.test.TestCase):
     )
     def test_model_train(self):
         model = segmentation.FCN(
-            classes=11, backbone='vgg16', model_architecture='fcn8s'
+            classes=11, backbone="vgg16", model_architecture="fcn8s"
         )
 
         gcs_data_pattern = "gs://caltech_birds2011_mask/0.1.1/*.tfrecord*"

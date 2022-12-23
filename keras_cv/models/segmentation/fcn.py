@@ -13,7 +13,6 @@
 # limitations under the License.
 
 import tensorflow as tf
-from tensorflow import keras
 from keras_cv.models import VGG16, VGG19
 
 BACKBONE_CONFIG = {
@@ -48,19 +47,19 @@ class FCN(tf.keras.models.Model):
 
     """
 
-    def _init_(self, classes, backbone="vgg16", model_architecture=None, **kwargs):
-        super(FCN, self)._init_(**kwargs)
+    def __init__(self, classes, backbone="vgg16", model_architecture=None, **kwargs):
+        super(FCN, self).__init__(**kwargs)
 
         if isinstance(backbone, str):
 
             if backbone == "vgg16":
                 self.backbone_base_model = VGG16(
-                    include_rescaling=False, include_top=False
+                    include_rescaling=False, include_top=True, classes=classes
                 )
                 self.backbone_name = backbone
             elif backbone == "vgg19":
                 self.backbone_base_model = VGG19(
-                    include_rescaling=False, include_top=False
+                    include_rescaling=False, include_top=True, classes=classes
                 )
                 self.backbone_name = backbone
             else:
@@ -75,8 +74,8 @@ class FCN(tf.keras.models.Model):
                 # Possible edge case : ResNets
                 # Current design allows a simple CNN with Conv2D, MaxPooling2D and Dense layers only, to be parsed and made into a FCN directly.
                 for i in backbone.layers:
-                    if isinstance(i, keras.layers.Conv2D) or isinstance(
-                        keras.layers.MaxPooling2D
+                    if isinstance(i, tf.keras.layers.Conv2D) or isinstance(
+                        tf.keras.layers.MaxPooling2D
                     ):
                         layer_list.append(i)
                 if len(layer_list) == 0:
@@ -84,19 +83,19 @@ class FCN(tf.keras.models.Model):
                         "Entered `backbone` argument does not have any Conv2D or MaxPooling layers. Include a `tf.keras.models.Model` with `keras.layers.Conv2D` or `keras.layers.MaxPooling2D` layers"
                     )
                 if not all(
-                    isinstance(layer, keras.layers.Conv2D)
-                    or isinstance(layer, keras.layers.MaxPooling2D)
-                    or isinstance(layer, keras.layers.Dense)
+                    isinstance(layer, tf.keras.layers.Conv2D)
+                    or isinstance(layer, tf.keras.layers.MaxPooling2D)
+                    or isinstance(layer, tf.keras.layers.Dense)
                     for layer in layer_list
                 ):
                     raise ValueError(
-                        "Entered `backbone` argument has custom layers. Include a `tf.keras.models.Model` with `keras.layers.Conv2D` or `keras.layers.MaxPooling2D` layers only."
+                        "Entered `backbone` argument has custom layers. Include a `tf.keras.models.Model` with `tf.keras.layers.Conv2D` or `tf.keras.layers.MaxPooling2D` layers only."
                     )
-                self.backbone = keras.Sequential(layer_list)
+                self.backbone = tf.keras.Sequential(layer_list)
                 self.backbone_base_model = backbone
             else:
                 raise ValueError(
-                    "Unsupported type. Valid types are `tf.keras.model.Model`"
+                    "Unsupported type. Valid types are `tf.keras.models.Model`"
                 )
 
         if model_architecture not in ["fcn8s", "fcn16s", "fcn32s"]:
@@ -112,26 +111,38 @@ class FCN(tf.keras.models.Model):
                 model_architecture = "fcn8s"
             self.model_architecture = model_architecture
             if self.model_architecture == "fcn8s":
-                self.pool3 = self.backbone_base_model.layers[
-                    : BACKBONE_CONFIG[self.backbone_name]["BLOCK3"]
-                ]
-                self.pool4 = self.backbone_base_model.layers[
-                    : BACKBONE_CONFIG[self.backbone_name]["BLOCK4"]
-                ]
-                self.pool5 = self.backbone_base_model.layers[
-                    : BACKBONE_CONFIG[self.backbone_name]["BLOCK5"]
-                ]
+                self.pool3 = tf.keras.Sequential(
+                    self.backbone_base_model.layers[
+                        : BACKBONE_CONFIG[self.backbone_name]["BLOCK3"]
+                    ]
+                )
+                self.pool4 = tf.keras.Sequential(
+                    self.backbone_base_model.layers[
+                        : BACKBONE_CONFIG[self.backbone_name]["BLOCK4"]
+                    ]
+                )
+                self.pool5 = tf.keras.Sequential(
+                    self.backbone_base_model.layers[
+                        : BACKBONE_CONFIG[self.backbone_name]["BLOCK5"]
+                    ]
+                )
             elif self.model_architecture == "fcn16s":
-                self.pool4 = self.backbone_base_model.layers[
-                    : BACKBONE_CONFIG[self.backbone_name]["BLOCK4"]
-                ]
-                self.pool5 = self.backbone_base_model.layers[
-                    : BACKBONE_CONFIG[self.backbone_name]["BLOCK5"]
-                ]
+                self.pool4 = tf.keras.Sequential(
+                    self.backbone_base_model.layers[
+                        : BACKBONE_CONFIG[self.backbone_name]["BLOCK4"]
+                    ]
+                )
+                self.pool5 = tf.keras.Sequential(
+                    self.backbone_base_model.layers[
+                        : BACKBONE_CONFIG[self.backbone_name]["BLOCK5"]
+                    ]
+                )
             elif self.model_architecture == "fcn32s":
-                self.pool5 = self.backbone_base_model.layers[
-                    : BACKBONE_CONFIG[self.backbone_name]["BLOCK5"]
-                ]
+                self.pool5 = tf.keras.Sequential(
+                    self.backbone_base_model.layers[
+                        : BACKBONE_CONFIG[self.backbone_name]["BLOCK5"]
+                    ]
+                )
 
         self.num_classes = classes
 
@@ -142,13 +153,19 @@ class FCN(tf.keras.models.Model):
         if self.model_architecture is not None:
             units = [
                 i.units
-                for i in self.backbone_base_model.layers[
-                    BACKBONE_CONFIG[self.backbone_name]["DENSE_START"]
+                for i in [
+                    self.backbone_base_model.layers[
+                        BACKBONE_CONFIG[self.backbone_name]["DENSE_START"]
+                    ]
                 ]
             ]
             self.dense_convs = [
-                keras.layers.Conv2D(
-                    filters=i, strides=(1, 1), activation="relu", padding="same"
+                tf.keras.layers.Conv2D(
+                    filters=i,
+                    kernel_size=(1, 1),
+                    strides=(1, 1),
+                    activation="relu",
+                    padding="same",
                 )
                 for i in units
             ]
@@ -156,14 +173,14 @@ class FCN(tf.keras.models.Model):
             units = [
                 i.units
                 for i in self.backbone_base_model.layers
-                if isinstance(i, keras.layers.Dense)
+                if isinstance(i, tf.keras.layers.Dense)
             ]
             if len(units) != 0:
                 self.dense_convs = []
                 for idx in len(units):
                     curr_unit = units[idx]
                     self.dense_convs.append(
-                        keras.layers.Conv2D(
+                        tf.keras.layers.Conv2D(
                             filters=curr_unit,
                             strides=(1, 1),
                             activation="relu",
@@ -171,20 +188,20 @@ class FCN(tf.keras.models.Model):
                         )
                     )
                     if idx != len(units) - 1:
-                        self.dense_convs.append(keras.layers.Dropout(0.5))
+                        self.dense_convs.append(tf.keras.layers.Dropout(0.5))
             output_shape = self.dense_convs[-1].compute_output_shape()
             target_height_factor = self.height // output_shape[1]
             target_width_factor = self.width // output_shape[2]
             if output_shape[3] != self.num_classes:
                 self.dense_convs.append(
-                    keras.layers.Conv2D(
+                    tf.keras.layers.Conv2D(
                         filters=self.num_classes,
                         strides=(1, 1),
                         activation="relu",
                         padding="same",
                     )
                 )
-            self.output_layer = keras.layers.UpSampling2D(
+            self.output_layer = tf.keras.layers.UpSampling2D(
                 size=(target_height_factor, target_width_factor),
                 data_format="channels_last",
                 interpolation="bilinear",
@@ -198,20 +215,35 @@ class FCN(tf.keras.models.Model):
 
             for layer in self.dense_convs:
                 pool5_output = layer(pool5_output)
-            pool5_output = keras.layers.UpSampling2D(
+            pool5_output = tf.keras.layers.UpSampling2D(
                 size=(2, 2), data_format="channels_last", interpolation="bilinear"
             )(pool5_output)
 
-            intermediate_pool_output = keras.layers.Add()[pool4_output, pool5_output]
-            intermediate_pool_output = keras.layers.UpSampling2D(
+            pool3_output = tf.keras.layers.Conv2D(
+                filters=pool5_output.shape[-1],
+                kernel_size=(1, 1),
+                padding="same",
+                strides=(1, 1),
+            )(pool3_output)
+            pool4_output = tf.keras.layers.Conv2D(
+                filters=pool5_output.shape[-1],
+                kernel_size=(1, 1),
+                padding="same",
+                strides=(1, 1),
+            )(pool4_output)
+
+            intermediate_pool_output = tf.keras.layers.Add()(
+                [pool4_output, pool5_output]
+            )
+            intermediate_pool_output = tf.keras.layers.UpSampling2D(
                 size=(2, 2), data_format="channels_last", interpolation="bilinear"
             )(intermediate_pool_output)
 
-            final_pool_output = keras.layers.Add()[
-                pool3_output, intermediate_pool_output
-            ]
+            final_pool_output = tf.keras.layers.Add()(
+                [pool3_output, intermediate_pool_output]
+            )
 
-            output_layer = keras.layers.UpSampling2D(
+            output_layer = tf.keras.layers.UpSampling2D(
                 size=(8, 8), data_format="channels_last", interpolation="bilinear"
             )
             return output_layer(final_pool_output)
@@ -222,15 +254,22 @@ class FCN(tf.keras.models.Model):
 
             for layer in self.dense_convs:
                 pool5_output = layer(pool5_output)
-            pool5_output = keras.layers.UpSampling2D(
+            pool5_output = tf.keras.layers.UpSampling2D(
                 size=(2, 2), data_format="channels_last", interpolation="bilinear"
             )(pool5_output)
 
-            final_pool_output = keras.layers.Add()[
-                pool4_output, intermediate_pool_output
-            ]
+            pool4_output = tf.keras.layers.Conv2D(
+                filters=pool5_output.shape[-1],
+                kernel_size=(1, 1),
+                padding="same",
+                strides=(1, 1),
+            )(pool4_output)
 
-            output_layer = keras.layers.UpSampling2D(
+            final_pool_output = tf.keras.layers.Add()(
+                [pool4_output, intermediate_pool_output]
+            )
+
+            output_layer = tf.keras.layers.UpSampling2D(
                 size=(16, 16), data_format="channels_last", interpolation="bilinear"
             )
             return output_layer(final_pool_output)
@@ -240,7 +279,7 @@ class FCN(tf.keras.models.Model):
 
             for layer in self.dense_convs:
                 pool5_output = layer(pool5_output)
-            output_layer = keras.layers.UpSampling2D(
+            output_layer = tf.keras.layers.UpSampling2D(
                 size=(32, 32), data_format="channels_last", interpolation="bilinear"
             )
             return output_layer(pool5_output)
