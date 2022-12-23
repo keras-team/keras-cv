@@ -54,6 +54,11 @@ flags.DEFINE_string(
     None,
     "String denoting a supported backbone for the segmentation model",
 )
+flags.DEFINE_boolean(
+    "use_xla",
+    False,
+    "Whether to use XLA acceleration or not",
+)
 flags.DEFINE_float(
     "initial_learning_rate",
     0.007,
@@ -182,6 +187,8 @@ callbacks = [
         log_dir=FLAGS.tensorboard_path, write_steps_per_second=True
     ),
 ]
-model.compile(optimizer=optimizer, loss=loss_fn, metrics=metrics)
+model.compile(
+    optimizer=optimizer, loss=loss_fn, metrics=metrics, jit_compile=FLAGS.use_xla
+)
 
 model.fit(train_ds, epochs=FLAGS.epochs, validation_data=eval_ds, callbacks=callbacks)
