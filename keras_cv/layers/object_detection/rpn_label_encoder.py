@@ -63,6 +63,7 @@ class _RpnLabelEncoder(tf.keras.layers.Layer):
         negative_threshold,
         samples_per_image,
         positive_fraction,
+        box_variance=[0.1, 0.1, 0.2, 0.2],
         **kwargs,
     ):
         super().__init__(**kwargs)
@@ -77,6 +78,7 @@ class _RpnLabelEncoder(tf.keras.layers.Layer):
             match_values=[-1, -2, 1],
             force_match_for_each_col=False,
         )
+        self.box_variance = box_variance
         self.built = True
         self._positives = tf.keras.metrics.Mean()
 
@@ -129,7 +131,7 @@ class _RpnLabelEncoder(tf.keras.layers.Layer):
             matched_gt_boxes,
             anchor_format="yxyx",
             box_format="yxyx",
-            variance=[0.1, 0.1, 0.2, 0.2],
+            variance=self.box_variance,
         )
         # [num_anchors, 1] or [batch_size, num_anchors, 1]
         box_sample_weights = tf.cast(positive_matches[..., tf.newaxis], gt_boxes.dtype)
@@ -194,5 +196,6 @@ class _RpnLabelEncoder(tf.keras.layers.Layer):
             "negative_threshold": self.negative_threshold,
             "samples_per_image": self.samples_per_image,
             "positive_fraction": self.positive_fraction,
+            "box_variance": self.box_variance,
         }
         return config
