@@ -15,69 +15,48 @@
 import tensorflow as tf
 
 from keras_cv import bounding_box
-from keras_cv import layers as cv_layers
 
 
-class NmsPredictionDecoder(tf.keras.layers.Layer):
+# TODO(tanzhenyu): provide a TPU compatible NMS decoder.
+class NmsDecoder(tf.keras.layers.Layer):
     """A Keras layer that decodes predictions of an object detection model.
 
-    By default, NmsPredictionDecoder uses a
-    `keras_cv.layers.NonMaxSuppression` layer to perform box pruning.  The layer may
-    optionally take a `suppression_layer`, which can perform an alternative suppression
-    operation, such as SoftNonMaxSuppression.
-
     Arguments:
-      classes: Number of classes in the dataset.
       bounding_box_format: The format of bounding boxes of input dataset. Refer
         [to the keras.io docs](https://keras.io/api/keras_cv/bounding_box/formats/)
         for more details on supported bounding box formats.
-      anchor_generator: a `keras_cv.layers.AnchorGenerator`.
-      suppression_layer: (Optional) a `keras.layers.Layer` that follows the same API
-        signature of the `keras_cv.layers.NonMaxSuppression` layer.  This layer should
-        perform a suppression operation such as NonMaxSuppression, or
-        SoftNonMaxSuppression.
-      box_variance: (Optional) The scaling factors used to scale the bounding box
-        targets.  Defaults to `(0.1, 0.1, 0.2, 0.2)`.  **Important Note:**
-        `box_variance` is applied to the boxes in `xywh` format.
+      from_logits: boolean, True means input score is logits, False means confidence.
+      iou_threshold: a float value in the range [0, 1] representing the minimum
+        IoU threshold for two boxes to be considered same for suppression. Defaults
+        to 0.5.
+      confidence_threshold: a float value in the range [0, 1]. All boxes with
+        confidence below this value will be discarded. Defaults to 0.05.
+      max_detections: the maximum detections to consider after nms is applied. A large
+        number may trigger significant memory overhead. Defaults to 100.
+      max_detections_per_class: the maximum detections to consider per class after
+        nms is applied. Defaults to 100.
     """
 
     def __init__(
         self,
         bounding_box_format,
-        anchor_generator,
-        classes=None,
-        suppression_layer=None,
-        box_variance=(0.1, 0.1, 0.2, 0.2),
+        from_logits,
+        iou_threshold=0.5,
+        confidence_threshold=0.5,
+        max_detections=10,
+        max_detections_per_class=10,
         **kwargs,
     ):
         super().__init__(**kwargs)
-        if not suppression_layer and not classes:
-            raise ValueError(
-                "NmsPredictionDecoder() requires either `suppression_layer` "
-                f"or `classes`.  Received `suppression_layer={suppression_layer} and "
-                f"classes={classes}`"
-            )
         self.bounding_box_format = bounding_box_format
-        self.suppression_layer = suppression_layer or cv_layers.NonMaxSuppression(
-            classes=classes,
-            bounding_box_format=bounding_box_format,
-            confidence_threshold=0.5,
-            iou_threshold=0.5,
-            max_detections=100,
-            max_detections_per_class=100,
-        )
-        if self.suppression_layer.bounding_box_format != self.bounding_box_format:
-            raise ValueError(
-                "`suppression_layer` must have the same `bounding_box_format` "
-                "as the `NmsPredictionDecoder()` layer. "
-                "Received `NmsPredictionDecoder.bounding_box_format="
-                f"{self.bounding_box_format}`, `suppression_layer={suppression_layer}`."
-            )
-        self.anchor_generator = anchor_generator
-        self.box_variance = tf.convert_to_tensor(box_variance, dtype=tf.float32)
+        self.from_logits = from_logits
+        self.iou_threshold = iou_threshold
+        self.confidence_threshold = confidence_threshold
+        self.max_detections = max_detections
+        self.max_detections_per_class = max_detections_per_class
         self.built = True
 
-    def call(self, images, predictions):
+    def call(self, box_pred, confidence_pred):
         """Accepts images and raw predictions, and returns bounding box predictions.
 
         Args:
@@ -85,45 +64,49 @@ class NmsPredictionDecoder(tf.keras.layers.Layer):
             predictions: Dense Tensor of shape [batch, anchor_boxes, 6] in the
                 `bounding_box_format` specified in the constructor.
         """
-        if isinstance(images, tf.RaggedTensor):
-            raise ValueError(
-                "DecodePredictions() does not support tf.RaggedTensor inputs. "
-                f"Received images={images}."
-            )
-
-        anchor_boxes = self.anchor_generator(images[0])
-        anchor_boxes = tf.concat(list(anchor_boxes.values()), axis=0)
-        anchor_boxes = bounding_box.convert_format(
-            anchor_boxes,
-            source=self.anchor_generator.bounding_box_format,
-            target="xywh",
-            images=images[0],
+        box_pred = bounding_box.convert_format(
+            box_pred,
+            source=self.bounding_box_format,
+            target="yxyx",
         )
-        predictions = bounding_box.convert_format(
-            predictions, source=self.bounding_box_format, target="xywh", images=images
-        )
-        box_predictions = predictions[:, :, :4]
-        cls_predictions = tf.nn.sigmoid(predictions[:, :, 4:])
+        if self.from_logits:
+            confidence_pred = tf.nn.softmax(confidence_pred)
 
-        classes = tf.math.argmax(cls_predictions, axis=-1)
-        classes = tf.cast(classes, box_predictions.dtype)
-        confidence = tf.math.reduce_max(cls_predictions, axis=-1)
-        classes = tf.expand_dims(classes, axis=-1)
-        confidence = tf.expand_dims(confidence, axis=-1)
-
-        boxes = bounding_box._decode_deltas_to_boxes(
-            anchors=anchor_boxes[None, ...],
-            boxes_delta=box_predictions,
-            anchor_format="xywh",
-            box_format="xywh",
-            variance=self.box_variance,
+        box_pred = tf.expand_dims(box_pred, axis=-2)
+        (
+            box_pred,
+            confidence_pred,
+            class_pred,
+            valid_det,
+        ) = tf.image.combined_non_max_suppression(
+            boxes=box_pred,
+            scores=confidence_pred,
+            max_output_size_per_class=self.max_detections_per_class,
+            max_total_size=self.max_detections,
+            score_threshold=self.confidence_threshold,
+            iou_threshold=self.iou_threshold,
+            clip_boxes=False,
         )
-        boxes = tf.concat([boxes, classes, confidence], axis=-1)
-
-        boxes = bounding_box.convert_format(
-            boxes,
-            source="xywh",
-            target=self.suppression_layer.bounding_box_format,
-            images=images,
+        box_pred = bounding_box.convert_format(
+            box_pred,
+            source="yxyx",
+            target=self.bounding_box_format,
         )
-        return self.suppression_layer(boxes, images=images)
+        return {
+            "boxes": box_pred,
+            "confidence": confidence_pred,
+            "classes": class_pred,
+            "num_detections": valid_det,
+        }
+
+    def get_config(self):
+        config = {
+            "bounding_box_format": self.bounding_box_format,
+            "from_logits": self.from_logits,
+            "iou_threshold": self.iou_threshold,
+            "confidence_threshold": self.confidence_threshold,
+            "max_detections_per_class": self.max_detections_per_class,
+            "max_detections": self.max_detections,
+        }
+        base_config = super().get_config()
+        return dict(list(base_config.items()) + list(config.items()))
