@@ -245,7 +245,7 @@ class SpatialTransformer(keras.layers.Layer):
         self.norm = GroupNormalization(epsilon=1e-5)
         channels = num_heads * head_size
         if fully_connected:
-            self.proj1 = keras.layers.Dense(num_heads * head_size) # sdv2 uses dense layer rather than conv
+            self.proj1 = keras.layers.Dense(num_heads * head_size)
         else:
             self.proj1 = PaddedConv2D(num_heads * head_size, 1)
         self.transformer_block = BasicTransformerBlock(channels, num_heads, head_size)
