@@ -21,6 +21,7 @@ import numpy as np
 import tensorflow as tf
 
 EPSILON = 1e-4
+VOXEL_FEATURE_MIN = -1000
 
 
 def compute_voxel_spatial_size(
@@ -91,7 +92,6 @@ class PointToVoxel(tf.keras.layers.Layer):
         self,
         voxel_size: Sequence[float],
         spatial_size: Sequence[float],
-        name: str = "voxelization",
         **kwargs,
     ):
         """Voxelization layer constructor.
@@ -103,7 +103,7 @@ class PointToVoxel(tf.keras.layers.Layer):
           **kwargs: additional key value args (e.g. dtype) passed to the parent
             class.
         """
-        super().__init__(name=name, **kwargs)
+        super().__init__(**kwargs)
         dim = len(voxel_size)
         assert len(spatial_size) == 2 * dim, f"{spatial_size}"
 
@@ -170,6 +170,8 @@ class PointToVoxel(tf.keras.layers.Layer):
             point_voxel_xyz
             < tf.constant(self._voxel_spatial_size, dtype=point_voxel_xyz.dtype),
         )
+        point_voxel_mask = tf.math.reduce_all(point_voxel_mask, axis=-1)
+        point_voxel_mask = tf.logical_and(point_voxel_mask, point_mask)
 
         # [B, N]
         point_voxel_mask_int = tf.cast(point_voxel_mask, dtype=tf.int32)
@@ -183,18 +185,31 @@ class PointToVoxel(tf.keras.layers.Layer):
         return point_voxel_feature, point_voxel_id, point_voxel_mask
 
 
-class Voxelization(tf.keras.layers.Layer):
-    """Dynamic voxelization and pool layer."""
+class DynamicVoxelization(tf.keras.layers.Layer):
+    """Dynamic voxelization and pool layer.
+
+    This layer assigns and pools points into voxels,
+    then it concatenates with point features and feed into a neural network,
+    and max pools all point features inside each voxel.
+
+    Args:
+      point_net: a keras Layer that project point feature into another dimension.
+      voxel_size: the x, y, z dimension of each voxel.
+      spatial_size: the x, y, z boundary of voxels
+
+    Returns:
+      voxelized feature, a float Tensor.
+
+    """
 
     def __init__(
         self,
         point_net: tf.keras.layers.Layer,
         voxel_size: Sequence[float],
         spatial_size: Sequence[float],
-        name: str = "voxelization",
         **kwargs,
     ):
-        super().__init__(name=name, **kwargs)
+        super().__init__(**kwargs)
         self._point_net = point_net
         self._voxelization_layer = PointToVoxel(
             voxel_size=voxel_size, spatial_size=spatial_size
@@ -220,8 +235,8 @@ class Voxelization(tf.keras.layers.Layer):
         dim: the input dimension.
 
         Args:
-          point_xyz: [B, N, dim] point xyz in global coordinate.
-          point_feature: [B, N, ?] point feature inputs transformed after MLP (PointNet).
+          point_xyz: [B, N, 3] point xyz in global coordinate.
+          point_feature: [B, N, dim] point feature inputs.
           point_mask: [B, N] valid point mask.
           training: whether it is in training mode.
 
@@ -256,7 +271,7 @@ class Voxelization(tf.keras.layers.Layer):
             point_feature, point_voxel_id, batch_size * self._voxel_spatial_size_volume
         )
         # unsorted_segment_max sets empty values to -inf(float).
-        voxel_feature_valid_mask = voxel_feature > -1000
+        voxel_feature_valid_mask = voxel_feature > VOXEL_FEATURE_MIN
         voxel_feature = voxel_feature * tf.cast(
             voxel_feature_valid_mask, dtype=voxel_feature.dtype
         )
