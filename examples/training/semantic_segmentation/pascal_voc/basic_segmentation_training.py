@@ -100,7 +100,7 @@ train_ds = load(split="sbd_train", data_dir=None)
 eval_ds = load(split="sbd_eval", data_dir=None)
 
 
-def augment_image(img, cls_seg, augment=False):
+def resize_image(img, cls_seg, augment=False):
     img = tf.keras.layers.Resizing(512, 512, interpolation="nearest")(img)
     cls_seg = tf.keras.layers.Resizing(512, 512, interpolation="nearest")(cls_seg)
     cls_seg = tf.cast(cls_seg, tf.uint8)
@@ -109,7 +109,7 @@ def augment_image(img, cls_seg, augment=False):
     if augment:
         inputs = preprocessing.RandomFlip("horizontal")(inputs)
         inputs = preprocessing.RandomColorDegeneration(factor=0.3)(inputs)
-        inputs = preprocessing.RandomGaussianBlur(kernel_size=24, factor=3)(inputs)
+        inputs = preprocessing.RandomGaussianBlur(kernel_size=24, factor=0.3)(inputs)
         inputs = preprocessing.GridMask(ratio_factor=(0, 0.5))(inputs)
         inputs = preprocessing.RandomRotation(factor=0.1, segmentation_classes=21)(
             inputs
@@ -122,7 +122,7 @@ def process(examples, augment=False):
     image = examples.pop("image")
     cls_seg = examples.pop("class_segmentation")
 
-    image, cls_seg = augment_image(image, cls_seg, augment=augment)
+    image, cls_seg = resize_image(image, cls_seg, augment=augment)
 
     sample_weight = tf.equal(cls_seg, 255)
     zeros = tf.zeros_like(cls_seg)
