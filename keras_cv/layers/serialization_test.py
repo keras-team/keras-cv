@@ -170,6 +170,7 @@ class SerializationTest(tf.test.TestCase, parameterized.TestCase):
                 "rate": 1.0,
             },
         ),
+        ("RandomBrightness", cv_layers.RandomBrightness, {"factor": 0.5}),
         (
             "RandomChoice",
             cv_layers.RandomChoice,
@@ -409,11 +410,32 @@ class SerializationTest(tf.test.TestCase, parameterized.TestCase):
             {},
         ),
         (
+            "RandomZoom",
+            cv_layers.RandomZoom,
+            {"height_factor": 0.2, "width_factor": 0.5},
+        ),
+        (
             "RandomCrop",
             cv_layers.RandomCrop,
             {
                 "height": 100,
                 "width": 200,
+            },
+        ),
+        (
+            "MBConvBlock",
+            cv_layers.MBConvBlock,
+            {
+                "input_filters": 16,
+                "output_filters": 16,
+            },
+        ),
+        (
+            "FusedMBConvBlock",
+            cv_layers.FusedMBConvBlock,
+            {
+                "input_filters": 16,
+                "output_filters": 16,
             },
         ),
     )

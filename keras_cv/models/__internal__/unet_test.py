@@ -12,14 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from keras_cv.metrics.coco.mean_average_precision import COCOMeanAveragePrecision
+import tensorflow as tf
 
-try:
-    from keras_cv.metrics.coco.pycoco_wrapper import PyCOCOWrapper
-    from keras_cv.metrics.coco.pycoco_wrapper import compute_pycoco_metrics
-except ImportError:
-    print(
-        "You do not have pycocotools installed, so KerasCV pycoco metrics are not available. "
-        "Please run `pip install pycocotools`."
-    )
-    pass
+from keras_cv.models.__internal__.unet import UNet
+
+
+class UNetTest(tf.test.TestCase):
+    # This test is disabled because it requires tf-nightly to run
+    # (tf-nightly includes the synchronized param for BatchNorm layer)
+    def disabled_test_example_unet_output_shape(self):
+        x = tf.random.normal((1, 16, 16, 5))
+        output = UNet([(128, 6), (256, 2), (512, 1)], [512, 256, 256])(x)
+        self.assertEqual(output.shape, x.shape[:-1] + (256))
