@@ -249,7 +249,7 @@ class MaxViTStem(layers.Layer):
         bias_initializer = tf.zeros_initializer,
         **kwargs
     ):
-        super(MaxViTStem).__init__(**kwargs)
+        super().__init__(**kwargs)
         assert len(filters) == 2
 
         self.conv1 = layers.Conv2D(
