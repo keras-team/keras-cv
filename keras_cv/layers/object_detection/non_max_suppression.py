@@ -128,20 +128,18 @@ class NonMaxSuppression(tf.keras.layers.Layer):
             self.confidence_threshold,
             clip_boxes=False,
         )
-
-        boxes = {
+        box_pred = bounding_box.convert_format(
+            box_pred,
+            source="yxyx",
+            target=self.bounding_box_format,
+            images=images,
+        )
+        return {
             "boxes": box_pred,
             "confidence": scores_pred,
             "classes": cls_pred,
             "num_detections": valid_det,
         }
-
-        return bounding_box.convert_format(
-            boxes,
-            source="yxyx",
-            target=self.bounding_box_format,
-            images=images,
-        )
 
     def get_config(self):
         config = {
