@@ -54,11 +54,7 @@ flags.DEFINE_string(
     None,
     "String denoting a supported backbone for the segmentation model",
 )
-flags.DEFINE_boolean(
-    "use_xla",
-    False,
-    "Whether to use XLA acceleration or not",
-)
+
 flags.DEFINE_float(
     "initial_learning_rate",
     0.007,
