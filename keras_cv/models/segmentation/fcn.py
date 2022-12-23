@@ -65,13 +65,12 @@ class FCN(tf.keras.models.Model):
         self.backbone = backbone
         self.model_architecture = model_architecture
 
-        if self.resize == True:
+        if self.resize:
             self.resizing_layer = tf.keras.layers.Resizing(
                 height=224, width=224, interpolation="bilinear"
             )
 
     def build(self, input_shape):
-        print("build input shape = ", input_shape)
         self.height = input_shape[1]
         self.width = input_shape[2]
 
@@ -79,7 +78,18 @@ class FCN(tf.keras.models.Model):
 
             if self.backbone == "vgg16":
                 # Assumes `channels_last` format
-                self.vgg_input_shape = (input_shape[1], input_shape[2], input_shape[3])
+                if len(input_shape) == 3:
+                    self.vgg_input_shape = (
+                        input_shape[0],
+                        input_shape[1],
+                        input_shape[2],
+                    )
+                elif len(input_shape) == 4:
+                    self.vgg_input_shape = (
+                        input_shape[1],
+                        input_shape[2],
+                        input_shape[3],
+                    )
                 self.backbone_base_model = VGG16(
                     include_rescaling=False,
                     include_top=True,
@@ -237,7 +247,7 @@ class FCN(tf.keras.models.Model):
             )
 
     def call(self, x):
-        if self.resize == True:
+        if self.resize:
             x = self.resizing_layer(x)
 
         if self.model_architecture == "fcn8s":
