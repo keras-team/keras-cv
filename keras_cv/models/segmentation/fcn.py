@@ -16,6 +16,7 @@ import tensorflow as tf
 
 from keras_cv.models import VGG16
 from keras_cv.models import VGG19
+from keras_cv.layers.preprocessing import Resizing
 
 BACKBONE_CONFIG = {
     "vgg16": {"BLOCK3": 11, "BLOCK4": 15, "BLOCK5": 19, "DENSE_START": -3},
@@ -66,7 +67,7 @@ class FCN(tf.keras.models.Model):
         self.model_architecture = model_architecture
 
         if self.resize == True:
-            self.resizing_layer = tf.keras.layers.Resizing(
+            self.resizing_layer = Resizing(
                 height=224, width=224, interpolation="bilinear"
             )
 
