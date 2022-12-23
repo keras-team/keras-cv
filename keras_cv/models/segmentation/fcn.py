@@ -67,7 +67,7 @@ class FCN(tf.keras.models.Model):
         self.model_architecture = model_architecture
 
         if self.resize:
-            self.resizing_layer = tf.keras.layers.Resizing(
+            self.resizing_layer = Resizing(
                 height=224, width=224, interpolation="bilinear"
             )
 
