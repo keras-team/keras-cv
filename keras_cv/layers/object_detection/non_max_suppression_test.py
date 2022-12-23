@@ -29,9 +29,9 @@ class NonMaxSuppressionTest(tf.test.TestCase):
         predictions = {"boxes": boxes, "classes": classes, "confidence": scores}
 
         outputs = layer(predictions, images)
-        self.assertEqual(outputs["boxes"].shape, [3, None, 4])
-        self.assertEqual(outputs["classes"].shape, [3, None])
-        self.assertEqual(outputs["confidence"].shape, [3, None])
+        self.assertEqual(outputs["boxes"].shape, [3, 100, 4])
+        self.assertEqual(outputs["classes"].shape, [3, 100])
+        self.assertEqual(outputs["confidence"].shape, [3, 100])
 
     def test_non_square_images(self):
         layer = NonMaxSuppression(classes=4, bounding_box_format="xyxy")
@@ -44,16 +44,16 @@ class NonMaxSuppressionTest(tf.test.TestCase):
         # RGB image
         images = tf.ones((2, 256, 512, 3))
         outputs = layer(predictions, images)
-        self.assertEqual(outputs["boxes"].shape, [3, None, 4])
-        self.assertEqual(outputs["classes"].shape, [3, None])
-        self.assertEqual(outputs["confidence"].shape, [3, None])
+        self.assertEqual(outputs["boxes"].shape, [3, 100, 4])
+        self.assertEqual(outputs["classes"].shape, [3, 100])
+        self.assertEqual(outputs["confidence"].shape, [3, 100])
 
         # grayscale image
         images = tf.ones((2, 256, 512, 1))
         outputs = layer(predictions, images)
-        self.assertEqual(outputs["boxes"].shape, [3, None, 4])
-        self.assertEqual(outputs["classes"].shape, [3, None])
-        self.assertEqual(outputs["confidence"].shape, [3, None])
+        self.assertEqual(outputs["boxes"].shape, [3, 100, 4])
+        self.assertEqual(outputs["classes"].shape, [3, 100])
+        self.assertEqual(outputs["confidence"].shape, [3, 100])
 
     def test_without_images(self):
         layer = NonMaxSuppression(classes=4, bounding_box_format="xyWH")
@@ -64,9 +64,9 @@ class NonMaxSuppressionTest(tf.test.TestCase):
         predictions = {"boxes": boxes, "classes": classes, "confidence": scores}
 
         outputs = layer(predictions)
-        self.assertEqual(outputs["boxes"].shape, [3, None, 4])
-        self.assertEqual(outputs["classes"].shape, [3, None])
-        self.assertEqual(outputs["confidence"].shape, [3, None])
+        self.assertEqual(outputs["boxes"].shape, [3, 100, 4])
+        self.assertEqual(outputs["classes"].shape, [3, 100])
+        self.assertEqual(outputs["confidence"].shape, [3, 100])
 
     def test_ragged_output_with_differing_shapes(self):
         layer = NonMaxSuppression(8, "xywh", iou_threshold=0.1)
