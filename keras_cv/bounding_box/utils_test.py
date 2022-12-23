@@ -17,30 +17,43 @@ from keras_cv import bounding_box
 
 
 class BoundingBoxUtilTest(tf.test.TestCase):
-    def test_clip_to_image(self):
+    def test_clip_to_image_standard(self):
         # Test xyxy format unbatched
         height = 256
         width = 256
-        bboxes = tf.convert_to_tensor(
-            [[200, 200, 400, 400, 0], [100, 100, 300, 300, 0]]
-        )
+        bounding_boxes = {
+            "boxes": tf.convert_to_tensor(
+                [[200, 200, 400, 400], [100, 100, 300, 300]], dtype=tf.float32
+            ),
+            "classes": tf.convert_to_tensor([0, 0], dtype=tf.float32),
+        }
         image = tf.ones(shape=(height, width, 3))
-        bboxes_out = bounding_box.clip_to_image(
-            bboxes, bounding_box_format="xyxy", images=image
+        bounding_boxes = bounding_box.clip_to_image(
+            bounding_boxes, bounding_box_format="xyxy", images=image
         )
-        self.assertAllGreaterEqual(bboxes_out, 0)
-        x1, y1, x2, y2, rest = tf.split(bboxes_out, [1, 1, 1, 1, -1], axis=1)
+        boxes = bounding_boxes["boxes"]
+        self.assertAllGreaterEqual(boxes, 0)
+        (
+            x1,
+            y1,
+            x2,
+            y2,
+        ) = tf.split(boxes, [1, 1, 1, 1], axis=1)
         self.assertAllLessEqual([x1, x2], width)
         self.assertAllLessEqual([y1, y2], height)
         # Test relative format batched
         image = tf.ones(shape=(1, height, width, 3))
-        bboxes = tf.convert_to_tensor(
-            [[[0.2, -1, 1.2, 0.3, 0], [0.4, 1.5, 0.2, 0.3, 0]]]
+        bounding_boxes = {
+            "boxes": tf.convert_to_tensor(
+                [[[0.2, -1, 1.2, 0.3], [0.4, 1.5, 0.2, 0.3]]], dtype=tf.float32
+            ),
+            "classes": tf.convert_to_tensor([[0, 0]], dtype=tf.float32),
+        }
+
+        bounding_boxes = bounding_box.clip_to_image(
+            bounding_boxes, bounding_box_format="rel_xyxy", images=image
         )
-        bboxes_out = bounding_box.clip_to_image(
-            bboxes, bounding_box_format="rel_xyxy", images=image
-        )
-        self.assertAllLessEqual(bboxes_out, 1)
+        self.assertAllLessEqual(bounding_boxes["boxes"], 1)
 
     def test_clip_to_image_filters_fully_out_bounding_boxes(self):
         # Test xyxy format unbatched

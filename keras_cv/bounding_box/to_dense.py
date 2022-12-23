@@ -35,7 +35,7 @@ def _classes_shape(batched, classes_shape, max_boxes):
     return [max_boxes] + classes_shape[2:]
 
 
-def to_dense(bounding_boxes, max_boxes=None):
+def to_dense(bounding_boxes, max_boxes=None, default_value=-1):
     """to_dense converts bounding boxes to Dense tensors
 
     Args:
@@ -43,6 +43,8 @@ def to_dense(bounding_boxes, max_boxes=None):
         max_boxes: the maximum number of boxes, used to pad tensors to a given
             shape.  This can be used to make object detection pipelines TPU
             compatible.
+        default_value: the default value to pad bounding boxes with.  defaults
+            to -1.
     """
     info = validate.validate(bounding_boxes)
 
@@ -52,7 +54,7 @@ def to_dense(bounding_boxes, max_boxes=None):
 
     if isinstance(bounding_boxes["classes"], tf.RaggedTensor):
         bounding_boxes["classes"] = bounding_boxes["classes"].to_tensor(
-            -1,
+            default_value=default_value,
             shape=_classes_shape(
                 info["is_batched"], bounding_boxes["classes"].shape, max_boxes
             ),
@@ -60,7 +62,7 @@ def to_dense(bounding_boxes, max_boxes=None):
 
     if isinstance(bounding_boxes["boxes"], tf.RaggedTensor):
         bounding_boxes["boxes"] = bounding_boxes["boxes"].to_tensor(
-            -1,
+            default_value=default_value,
             shape=_box_shape(
                 info["is_batched"], bounding_boxes["boxes"].shape, max_boxes
             ),
@@ -68,9 +70,8 @@ def to_dense(bounding_boxes, max_boxes=None):
 
     if "confidence" in bounding_boxes:
         if isinstance(bounding_boxes["confidence"], tf.RaggedTensor):
-            # TODO(lukewood): include shape info
             bounding_boxes["confidence"] = bounding_boxes["confidence"].to_tensor(
-                -1,
+                default_value=default_value,
                 shape=_classes_shape(
                     info["is_batched"], bounding_boxes["confidence"].shape, max_boxes
                 ),
