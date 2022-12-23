@@ -110,7 +110,6 @@ def augment_image(img, cls_seg, augment=False):
         inputs = preprocessing.RandomFlip("horizontal")(inputs)
         inputs = preprocessing.RandomColorDegeneration(factor=0.3)(inputs)
         inputs = preprocessing.RandomGaussianBlur(kernel_size=24, factor=3)(inputs)
-        inputs = preprocessing.RandomHue(factor=0.1, value_range=(0, 255))(inputs)
         inputs = preprocessing.GridMask(ratio_factor=(0, 0.5))(inputs)
         inputs = preprocessing.RandomRotation(factor=0.1, segmentation_classes=21)(
             inputs
