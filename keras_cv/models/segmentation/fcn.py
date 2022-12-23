@@ -13,7 +13,9 @@
 # limitations under the License.
 
 import tensorflow as tf
-from keras_cv.models import VGG16, VGG19
+
+from keras_cv.models import VGG16
+from keras_cv.models import VGG19
 
 BACKBONE_CONFIG = {
     "vgg16": {"BLOCK3": 11, "BLOCK4": 15, "BLOCK5": 19, "DENSE_START": -3},
@@ -44,36 +46,68 @@ class FCN(tf.keras.models.Model):
             2. 'fcn16s', a FCN-16S definition
             3. 'fcn32s', a FCN-32S definition
             Defaults to 'fcn8s'.
+        include_resizing: bool, defines whether to include a `tf.keras.layers.Resizing` layer which defaults to a height and width of value 224. Defaults to `False`
 
     """
 
-    def __init__(self, classes, backbone="vgg16", model_architecture=None, **kwargs):
+    def __init__(
+        self,
+        classes,
+        backbone="vgg16",
+        model_architecture=None,
+        include_resizing=False,
+        **kwargs
+    ):
         super(FCN, self).__init__(**kwargs)
 
-        if isinstance(backbone, str):
+        self.resize = include_resizing
+        self.num_classes = classes
+        self.backbone = backbone
+        self.model_architecture = model_architecture
 
-            if backbone == "vgg16":
+        if self.resize == True:
+            self.resizing_layer = tf.keras.layers.Resizing(
+                height=224, width=224, interpolation="bilinear"
+            )
+
+    def build(self, input_shape):
+        print("build input shape = ", input_shape)
+        self.height = input_shape[1]
+        self.width = input_shape[2]
+
+        if isinstance(self.backbone, str):
+
+            if self.backbone == "vgg16":
+                # Assumes `channels_last` format
+                self.vgg_input_shape = (input_shape[1], input_shape[2], input_shape[3])
                 self.backbone_base_model = VGG16(
-                    include_rescaling=False, include_top=True, classes=classes
+                    include_rescaling=False,
+                    include_top=True,
+                    classes=self.num_classes,
+                    input_shape=self.vgg_input_shape,
                 )
-                self.backbone_name = backbone
-            elif backbone == "vgg19":
+                self.backbone_name = self.backbone
+            elif self.backbone == "vgg19":
+                self.vgg_input_shape = (input_shape[1], input_shape[2], input_shape[3])
                 self.backbone_base_model = VGG19(
-                    include_rescaling=False, include_top=True, classes=classes
+                    include_rescaling=False,
+                    include_top=True,
+                    classes=self.num_classes,
+                    input_shape=self.vgg_input_shape,
                 )
-                self.backbone_name = backbone
+                self.backbone_name = self.backbone
             else:
                 raise ValueError(
                     "Entered `backbone` argument is not a standard available backbone. Valid options are ['vgg16', 'vgg19']"
                 )
 
         else:
-            if isinstance(backbone, tf.keras.models.Model):
+            if isinstance(self.backbone, tf.keras.models.Model):
                 layer_list = []
                 # Design choice : Either fully reject, or pick up only Conv2D and MaxPooling2D layers and convert Dense to Conv in `build()`
                 # Possible edge case : ResNets
                 # Current design allows a simple CNN with Conv2D, MaxPooling2D and Dense layers only, to be parsed and made into a FCN directly.
-                for i in backbone.layers:
+                for i in self.backbone.layers:
                     if isinstance(i, tf.keras.layers.Conv2D) or isinstance(
                         tf.keras.layers.MaxPooling2D
                     ):
@@ -92,24 +126,25 @@ class FCN(tf.keras.models.Model):
                         "Entered `backbone` argument has custom layers. Include a `tf.keras.models.Model` with `tf.keras.layers.Conv2D` or `tf.keras.layers.MaxPooling2D` layers only."
                     )
                 self.backbone = tf.keras.Sequential(layer_list)
-                self.backbone_base_model = backbone
+                self.backbone_base_model = self.backbone
             else:
                 raise ValueError(
                     "Unsupported type. Valid types are `tf.keras.models.Model`"
                 )
 
-        if model_architecture not in ["fcn8s", "fcn16s", "fcn32s"]:
+        if self.model_architecture not in ["fcn8s", "fcn16s", "fcn32s"]:
             raise ValueError(
                 "Entered `model_architecture` argument is not a standard available model_architecture. Valid options are ['fcn8s', 'fcn16s', 'fcn32s']"
             )
-        elif not isinstance(backbone, str) and isinstance(model_architecture, None):
+        elif not isinstance(self.backbone, str) and isinstance(
+            self.model_architecture, None
+        ):
             raise ValueError(
                 "Using `model_architecture` is not allowed when supplying a custom backbone. Valid options are ['fcn8s', 'fcn16s', 'fcn32s']"
             )
         else:
-            if model_architecture is None:
-                model_architecture = "fcn8s"
-            self.model_architecture = model_architecture
+            if self.model_architecture is None:
+                self.model_architecture = "fcn8s"
             if self.model_architecture == "fcn8s":
                 self.pool3 = tf.keras.Sequential(
                     self.backbone_base_model.layers[
@@ -143,12 +178,6 @@ class FCN(tf.keras.models.Model):
                         : BACKBONE_CONFIG[self.backbone_name]["BLOCK5"]
                     ]
                 )
-
-        self.num_classes = classes
-
-    def build(self, input_shape):
-        self.height = input_shape[1]
-        self.width = input_shape[2]
 
         if self.model_architecture is not None:
             units = [
@@ -208,6 +237,9 @@ class FCN(tf.keras.models.Model):
             )
 
     def call(self, x):
+        if self.resize == True:
+            x = self.resizing_layer(x)
+
         if self.model_architecture == "fcn8s":
             pool3_output = self.pool3(x)
             pool4_output = self.pool4(x)
@@ -310,4 +342,3 @@ class FCN(tf.keras.models.Model):
         }
         base_config = super().get_config()
         return dict(list(base_config.items()) + list(config.items()))
-
