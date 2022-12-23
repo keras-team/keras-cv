@@ -120,7 +120,12 @@ class NonMaxSuppression(tf.keras.layers.Layer):
         scores = tf.expand_dims(scores, axis=-1) * class_predictions
 
         # applying the NMS operation
-        nmsed_boxes = tf.image.combined_non_max_suppression(
+        (
+            box_pred,
+            scores_pred,
+            cls_pred,
+            valid_det,
+        ) = tf.image.combined_non_max_suppression(
             boxes,
             scores,
             self.max_detections_per_class,
@@ -129,53 +134,18 @@ class NonMaxSuppression(tf.keras.layers.Layer):
             self.confidence_threshold,
             clip_boxes=False,
         )
-
-        # output will be a ragged tensor because num_boxes will change across the batch
-        boxes = self._decode_nms_boxes_to_tensor(nmsed_boxes)
-        # converting all boxes to the original format
-        boxes = self._encode_to_ragged(boxes, nmsed_boxes.valid_detections)
-        return bounding_box.convert_format(
-            boxes,
+        box_pred = bounding_box.convert_format(
+            box_pred,
             source="yxyx",
             target=self.bounding_box_format,
             images=images,
         )
-
-    def _decode_nms_boxes_to_tensor(self, nmsed_boxes):
-        boxes = tf.TensorArray(
-            tf.float32, size=0, infer_shape=False, element_shape=(6,), dynamic_size=True
-        )
-
-        for i in tf.range(tf.shape(nmsed_boxes.nmsed_boxes)[0]):
-            num_detections = nmsed_boxes.valid_detections[i]
-
-            # recombining with classes and scores
-            boxes_recombined = tf.concat(
-                [
-                    nmsed_boxes.nmsed_boxes[i][:num_detections],
-                    tf.expand_dims(
-                        nmsed_boxes.nmsed_classes[i][:num_detections], axis=-1
-                    ),
-                    tf.expand_dims(
-                        nmsed_boxes.nmsed_scores[i][:num_detections], axis=-1
-                    ),
-                ],
-                axis=-1,
-            )
-
-            # iterate through the boxes and append it to TensorArray
-            for j in range(nmsed_boxes.valid_detections[i]):
-                boxes = boxes.write(boxes.size(), boxes_recombined[j])
-
-        # stacking to create a tensor
-        return boxes.stack()
-
-    def _encode_to_ragged(self, boxes, valid_detections):
-        # using cumulative sum to calculate row_limits for ragged tensor
-        row_limits = tf.cumsum(valid_detections)
-        # creating the output RaggedTensor by splitting boxes at row_limits
-        result = tf.RaggedTensor.from_row_limits(values=boxes, row_limits=row_limits)
-        return result
+        return {
+            "boxes": box_pred,
+            "confidence": scores_pred,
+            "classes": cls_pred,
+            "num_detections": valid_det,
+        }
 
     def get_config(self):
         config = {

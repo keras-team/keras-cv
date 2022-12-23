@@ -198,8 +198,6 @@ class RetinaNet(tf.keras.Model):
     def prediction_decoder(self, prediction_decoder):
         self._prediction_decoder = prediction_decoder
         self.make_predict_function(force=True)
-        self.make_test_function(force=True)
-        self.make_train_function(force=True)
 
     @staticmethod
     def default_anchor_generator(bounding_box_format):
@@ -269,12 +267,13 @@ class RetinaNet(tf.keras.Model):
             images=images,
         )
         pred_for_inference = self.prediction_decoder(images, pred_for_inference)
-        return bounding_box.convert_format(
-            pred_for_inference,
+        pred_for_inference["boxes"] = bounding_box.convert_format(
+            pred_for_inference["boxes"],
             source=self.prediction_decoder.bounding_box_format,
             target=self.bounding_box_format,
             images=images,
         )
+        return pred_for_inference
 
     def compile(
         self,
