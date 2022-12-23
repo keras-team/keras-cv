@@ -17,7 +17,6 @@ from typing import List
 from typing import Sequence
 from typing import Tuple
 
-import numpy as np
 import tensorflow as tf
 
 EPSILON = 1e-4
@@ -67,9 +66,7 @@ def compute_point_voxel_id(
         batch_size = tf.shape(point_voxel_xyz)[0]
     assert dim == len(voxel_spatial_size), f"{point_voxel_xyz.shape}"
 
-    voxel_spatial_size_prod = [
-        np.prod(voxel_spatial_size[i:]).item() for i in range(dim)
-    ]
+    voxel_spatial_size_prod = [math.prod(voxel_spatial_size[i:]) for i in range(dim)]
     voxel_spatial_size_prod_shift = voxel_spatial_size_prod[1:] + [1]
     point_voxel_xyz_multiplied = point_voxel_xyz * tf.constant(
         voxel_spatial_size_prod_shift, dtype=point_voxel_xyz.dtype
@@ -219,7 +216,7 @@ class DynamicVoxelization(tf.keras.layers.Layer):
         self._voxel_spatial_size = compute_voxel_spatial_size(
             spatial_size, self._voxel_size
         )
-        self._voxel_spatial_size_volume = np.prod(self._voxel_spatial_size).item()
+        self._voxel_spatial_size_volume = math.prod(self._voxel_spatial_size)
 
     def call(
         self,
