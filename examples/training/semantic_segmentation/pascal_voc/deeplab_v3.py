@@ -26,6 +26,7 @@ from absl import flags
 from absl import logging
 
 from keras_cv.datasets.pascal_voc.segmentation import load
+from keras_cv.models.resnet_v2 import ResNet50V2
 from keras_cv.models.segmentation.deeplab import DeepLabV3
 
 flags.DEFINE_string(
@@ -129,11 +130,15 @@ with strategy.scope():
         boundaries=[30000 * 16 / global_batch],
         values=[base_lr, 0.1 * base_lr],
     )
+    backbone = ResNet50V2(
+        include_rescaling=True,
+        input_shape=(512, 512, 3),
+        include_top=False,
+        weights="imagenet",
+    )
     model = DeepLabV3(
         classes=21,
-        backbone="resnet50_v2",
-        include_rescaling=True,
-        backbone_weights="imagenet",
+        backbone=backbone,
     )
     optimizer = tf.keras.optimizers.SGD(
         learning_rate=lr_decay, momentum=0.9, clipnorm=10.0

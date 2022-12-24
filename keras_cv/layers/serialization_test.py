@@ -18,8 +18,8 @@ from absl.testing import parameterized
 
 from keras_cv import core
 from keras_cv import layers as cv_layers
-from keras_cv.models.segmentation.deeplab import SegmentationHead
 from keras_cv.layers.vit_layers import PatchingAndEmbedding
+from keras_cv.models.segmentation.deeplab import SegmentationHead
 
 
 def exhaustive_compare(obj1, obj2):
