@@ -130,16 +130,18 @@ def process(examples, augment=False):
     return image, cls_seg
 
 
-train_ds = train_ds.map(
-    lambda x: process(x, augment=True), num_parallel_calls=tf.data.AUTOTUNE
+train_ds = (
+    train_ds.map(
+        lambda x: process(x, augment=True), num_parallel_calls=tf.data.AUTOTUNE
+    )
+    .batch(global_batch, drop_remainder=True)
+    .shuffle(8)
+    .prefetch(tf.data.AUTOTUNE)
 )
 train_ds = train_ds.batch(global_batch, drop_remainder=True)
 
 eval_ds = eval_ds.map(lambda x: process(x), num_parallel_calls=tf.data.AUTOTUNE)
 eval_ds = eval_ds.batch(global_batch, drop_remainder=True)
-
-train_ds = train_ds.shuffle(8)
-train_ds = train_ds.prefetch(2)
 
 
 with strategy.scope():
