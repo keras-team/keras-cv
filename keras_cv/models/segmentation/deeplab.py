@@ -19,6 +19,7 @@ from tensorflow.keras import layers
 from keras_cv.layers.spatial_pyramid import SpatialPyramidPooling
 from keras_cv.models import utils
 
+
 @keras.utils.register_keras_serializable(package="keras_cv")
 class DeepLabV3(keras.Model):
     """
@@ -47,7 +48,7 @@ class DeepLabV3(keras.Model):
         backbone,
         spatial_pyramid_pooling=None,
         segmentation_head=None,
-        segmentation_head_activation='softmax',
+        segmentation_head_activation="softmax",
         input_shape=(None, None, 3),
         input_tensor=None,
         **kwargs,
