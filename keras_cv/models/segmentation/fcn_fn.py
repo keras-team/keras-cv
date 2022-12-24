@@ -75,7 +75,6 @@ def getDenseToConvolutionLayers(model, dense_start_id, dense_end_id):
         )
         for filters in units
     ]
-
     return tf.keras.Sequential(dense_convs)
 
 
@@ -105,13 +104,13 @@ def VGGBackboneBuilder(
         include_top=True,
     )
 
-    x = tf.keras.layers.Input(input_shape=input_shape)
+    x = tf.keras.Input(shape=input_shape)
 
     if model_architecture == "fcn8s":
         # Made it like this, because then parameter sharing occurs to get the model parameter size to go down drastically
         pool5 = getPoolLayers(vgg_model, BACKBONE_CONFIG[model_version]["BLOCK5"])
 
-        pool3_output, pool4_output = x
+        pool3_output, pool4_output = x, x
 
         for layer in pool5.layers:
             pool3_output = layer(pool3_output)
@@ -123,12 +122,12 @@ def VGGBackboneBuilder(
                 break
 
         dense_convs = getDenseToConvolutionLayers(
-            model=model,
+            model=vgg_model,
             dense_start_id=BACKBONE_CONFIG[model_version]["DENSE_START"],
             dense_end_id=BACKBONE_CONFIG[model_version]["DENSE_END"],
         )
         pool5_output = pool5(x)
-        pool5_output = dense_convs(x)
+        pool5_output = dense_convs(pool5_output)
 
         model = tf.keras.models.Model(
             inputs=x,
@@ -152,12 +151,12 @@ def VGGBackboneBuilder(
                 break
 
         dense_convs = getDenseToConvolutionLayers(
-            model=model,
+            model=vgg_model,
             dense_start_id=BACKBONE_CONFIG[model_version]["DENSE_START"],
             dense_end_id=BACKBONE_CONFIG[model_version]["DENSE_END"],
         )
         pool5_output = pool5(x)
-        pool5_output = dense_convs(x)
+        pool5_output = dense_convs(pool5_output)
 
         model = tf.keras.models.Model(
             inputs=x, outputs={"pool4": pool4_output, "pool5": pool5_output}
@@ -169,12 +168,12 @@ def VGGBackboneBuilder(
         pool5 = getPoolLayers(vgg_model, BACKBONE_CONFIG[model_version]["BLOCK5"])
 
         dense_convs = getDenseToConvolutionLayers(
-            model=model,
+            model=vgg_model,
             dense_start_id=BACKBONE_CONFIG[model_version]["DENSE_START"],
             dense_end_id=BACKBONE_CONFIG[model_version]["DENSE_END"],
         )
         pool5_output = pool5(x)
-        pool5_output = dense_convs(x)
+        pool5_output = dense_convs(pool5_output)
 
         model = tf.keras.models.Model(inputs=x, outputs={"pool5": pool5_output})
 
@@ -206,13 +205,19 @@ def VGGArchitectureBuilder(
             "Chosen `backbone` argument is not a valid allowed backbone. Possible options are ['vgg16', 'vgg19']"
         )
     if model_architecture == "fcn8s":
-        pool3, pool4, pool5 = VGGBackboneBuilder(
-            model_version,
-            include_rescaling,
-            classes,
+        backbone = VGGBackboneBuilder(
+            model_version=model_version,
+            include_rescaling=include_rescaling,
+            classes=classes,
             input_shape=input_shape,
             model_architecture="fcn8s",
-        )(input_tensor)
+        )
+        backbone_output = backbone(input_tensor)
+        pool3, pool4, pool5 = (
+            backbone_output["pool3"],
+            backbone_output["pool4"],
+            backbone_output["pool5"],
+        )
 
         pool5_upsampling = tf.keras.layers.UpSampling2D(
             size=(2, 2), data_format="channels_last", interpolation="bilinear"
@@ -223,7 +228,7 @@ def VGGArchitectureBuilder(
             filters=pool5.shape[-1], kernel_size=(1, 1), padding="same", strides=(1, 1)
         )(pool3)
         pool4 = tf.keras.layers.Conv2D(
-            filters=pool4.shape[-1], kernel_size=(1, 1), padding="same", strides=(1, 1)
+            filters=pool5.shape[-1], kernel_size=(1, 1), padding="same", strides=(1, 1)
         )(pool4)
 
         intermediate_pool_output = tf.keras.layers.Add()([pool4, pool5])
@@ -240,13 +245,15 @@ def VGGArchitectureBuilder(
         return output_layer(final_pool_output)
 
     elif model_architecture == "fcn16s":
-        pool4, pool5 = VGGBackboneBuilder(
-            model_version,
-            include_rescaling,
-            classes,
+        backbone = VGGBackboneBuilder(
+            model_version=model_version,
+            include_rescaling=include_rescaling,
+            classes=classes,
             input_shape=input_shape,
-            model_architecture="fcn16s",
-        )(input_tensor)
+            model_architecture="fcn8s",
+        )
+        backbone_output = backbone(input_tensor)
+        pool4, pool5 = backbone_output["pool4"], backbone_output["pool5"]
 
         pool5_upsampling = tf.keras.layers.UpSampling2D(
             size=(2, 2), data_format="channels_last", interpolation="bilinear"
@@ -254,10 +261,10 @@ def VGGArchitectureBuilder(
         pool5 = pool5_upsampling(pool5)
 
         pool4 = tf.keras.layers.Conv2D(
-            filters=pool4.shape[-1], kernel_size=(1, 1), padding="same", strides=(1, 1)
+            filters=pool5.shape[-1], kernel_size=(1, 1), padding="same", strides=(1, 1)
         )(pool4)
 
-        final_pool_output = tf.keras.layers.Add()([pool4, intermediate_pool_output])
+        final_pool_output = tf.keras.layers.Add()([pool4, pool5])
 
         output_layer = tf.keras.layers.UpSampling2D(
             size=(16, 16), data_format="channels_last", interpolation="bilinear"
@@ -265,13 +272,15 @@ def VGGArchitectureBuilder(
         return output_layer(final_pool_output)
 
     elif model_architecture == "fcn32s":
-        pool5 = VGGBackboneBuilder(
-            model_version,
-            include_rescaling,
-            classes,
+        backbone = VGGBackboneBuilder(
+            model_version=model_version,
+            include_rescaling=include_rescaling,
+            classes=classes,
             input_shape=input_shape,
-            model_architecture="fcn32s",
-        )(input_tensor)
+            model_architecture="fcn8s",
+        )
+        backbone_output = backbone(input_tensor)
+        pool5 = backbone_output["pool5"]
 
         pool5_upsampling = tf.keras.layers.UpSampling2D(
             size=(32, 32), data_format="channels_last", interpolation="bilinear"
@@ -395,7 +404,7 @@ class FCN(tf.keras.models.Model):
                     "Invalid argument for parameter `model_architecture`. Accepted values are ['fcn8s', 'fcn16s', 'fcn32s']"
                 )
             else:
-                input_tensor = tf.keras.Input(input_shape=input_shape)
+                input_tensor = tf.keras.Input(shape=input_shape)
                 output_tensor = VGGArchitectureBuilder(
                     classes=classes,
                     model_version=backbone,
