@@ -19,16 +19,6 @@ from tensorflow.keras import layers
 from keras_cv.layers.spatial_pyramid import SpatialPyramidPooling
 from keras_cv.models import utils
 
-BACKBONE_CONFIG = {
-    "ResNet50V2": {
-        "stackwise_filters": [64, 128, 256, 512],
-        "stackwise_blocks": [3, 4, 6, 3],
-        "stackwise_strides": [1, 2, 2, 2],
-        "stackwise_dilations": [1, 1, 1, 2],
-    }
-}
-
-
 @keras.utils.register_keras_serializable(package="keras_cv")
 class DeepLabV3(keras.Model):
     """
