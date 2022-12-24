@@ -61,8 +61,6 @@ class DeepLabV3(keras.Model):
             dilation.
         segmentation_head: an optional `tf.keras.Layer` that predict the segmentation
             mask based on feature from backbone and feature from decoder.
-        segmentation_head_activation: default 'softmax', the activation layer to apply after
-            the segmentation head. Should be synchronized with the backbone's final activation.
     """
 
     def __init__(
@@ -73,7 +71,7 @@ class DeepLabV3(keras.Model):
         backbone_weights=None,
         spatial_pyramid_pooling=None,
         segmentation_head=None,
-        segmentation_head_activation="softmax",
+        segmentation_head_activation=None,
         input_shape=(None, None, 3),
         input_tensor=None,
         **kwargs,
@@ -108,9 +106,6 @@ class DeepLabV3(keras.Model):
                 )
 
         else:
-            # TODO(scottzhu): Might need to do more assertion about the model
-            # What else do we want to test for? Shapes? This feels like too little, but
-            # more assertions feel like they'd be limiting.
             if not isinstance(backbone, tf.keras.layers.Layer):
                 raise ValueError(
                     "Backbone need to be a `tf.keras.layers.Layer`, "
@@ -134,15 +129,11 @@ class DeepLabV3(keras.Model):
                 convs=1,
                 dropout=0.2,
                 kernel_size=1,
+                output_activation=segmentation_head_activation,
             )
 
         # Segmentation head expects a multiple-level output dictionary
         output = segmentation_head({1: output})
-        if segmentation_head_activation is not None:
-            # Force float32 output to avoid NaN issues with mixed-precision training
-            output = layers.Activation(
-                segmentation_head_activation, dtype=tf.float32, name="top_activation"
-            )(output)
 
         super().__init__(
             inputs={

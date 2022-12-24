@@ -38,6 +38,12 @@ class SegmentationHead(layers.Layer):
             ratio on both width and height. When a pair of ints are provided, they will
             be parsed as (height_factor, width_factor). Default to None, which means
             no resize will happen to the output mask tensor.
+        kernel_size: default 3; the kernel_size to be used in each of the `convs` blocks
+        use_bias: default False; whether to use bias or not in each of the `convs` blocks
+                Defaults to none since the blocks use `BatchNormalization` after each conv, rendering
+                bias obsolete
+        output_activation: default 'softmax', the activation to apply in the classification
+            layer (output of the head)
 
     Sample code
     ```python
@@ -63,6 +69,7 @@ class SegmentationHead(layers.Layer):
         output_scale_factor=None,
         dropout=0.0,
         kernel_size=3,
+        output_activation="softmax",
         use_bias=False,
         **kwargs,
     ):
@@ -74,6 +81,12 @@ class SegmentationHead(layers.Layer):
             activations: default 'relu'; the activation to apply in conv blocks
             output_scale_factor: default None; the scale to apply in the UpSampling call before the output
             dropout: default 0.0; the dropout to apply between each conv block
+            kernel_size: default 3; the kernel_size to be used in each of the `convs` blocks
+            use_bias: default False; whether to use bias or not in each of the `convs` blocks
+                Defaults to none since the blocks use `BatchNormalization` after each conv, rendering
+                bias obsolete
+            output_activation: default 'softmax', the activation to apply in the classification
+                layer (output of the head)
             **kwargs:
         """
         super().__init__(**kwargs)
@@ -85,6 +98,7 @@ class SegmentationHead(layers.Layer):
         self.dropout = dropout
         self.kernel_size = kernel_size
         self.use_bias = use_bias
+        self.output_activation = output_activation
 
         self._conv_layers = []
         self._bn_layers = []
@@ -107,6 +121,7 @@ class SegmentationHead(layers.Layer):
             filters=self.classes,
             kernel_size=1,
             padding="same",
+            activation=self.output_activation,
             # Force the dtype of the classification head to float32 to avoid the NAN loss
             # issue when used with mixed precision API.
             dtype=tf.float32,
@@ -147,6 +162,7 @@ class SegmentationHead(layers.Layer):
             "output_scale_factor": self.output_scale_factor,
             "dropout": self.dropout,
             "kernel_size": self.kernel_size,
+            "use_bias": self.use_bias,
         }
         base_config = super().get_config()
         return dict(list(base_config.items()) + list(config.items()))
