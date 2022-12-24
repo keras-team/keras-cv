@@ -196,7 +196,7 @@ class DiffusionModelV2(keras.Model):
         if download_weights:
             diffusion_model_weights_fpath = keras.utils.get_file(
                 origin="https://huggingface.co/ianstenbit/keras-sd2.1/resolve/main/diffusion_model_v2_1.h5",
-                file_hash="c31730e91111f98fe0e2dbde4475d381b5287ebb9672b1821796146a25c5132d"
+                file_hash="c31730e91111f98fe0e2dbde4475d381b5287ebb9672b1821796146a25c5132d",
             )
             self.load_weights(diffusion_model_weights_fpath)
 

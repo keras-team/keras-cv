@@ -52,13 +52,14 @@ class TextEncoderV2(keras.Model):
         if download_weights:
             text_encoder_weights_fpath = keras.utils.get_file(
                 origin="https://huggingface.co/ianstenbit/keras-sd2.1/resolve/main/text_encoder_v2_1.h5",
-                file_hash="985002e68704e1c5c3549de332218e99c5b9b745db7171d5f31fcd9a6089f25b"
+                file_hash="985002e68704e1c5c3549de332218e99c5b9b745db7171d5f31fcd9a6089f25b",
             )
             self.load_weights(text_encoder_weights_fpath)
 
 
 def quick_gelu(x):
     return x * tf.sigmoid(x * 1.702)
+
 
 class CLIPEmbedding(keras.layers.Layer):
     def __init__(self, input_dim=49408, output_dim=768, max_length=77, **kwargs):
@@ -71,7 +72,7 @@ class CLIPEmbedding(keras.layers.Layer):
         tokens = self.token_embedding(tokens)
         positions = self.position_embedding(positions)
         return tokens + positions
-        
+
 
 class CLIPEncoderLayer(keras.layers.Layer):
     def __init__(self, embed_dim, num_heads, activation=None, **kwargs):
@@ -79,9 +80,10 @@ class CLIPEncoderLayer(keras.layers.Layer):
         self.layer_norm1 = keras.layers.LayerNormalization(epsilon=1e-5)
         self.clip_attn = CLIPAttention(embed_dim, num_heads, causal=True)
         self.layer_norm2 = keras.layers.LayerNormalization(epsilon=1e-5)
-        self.fc1 = keras.layers.Dense(embed_dim*4)
+        self.fc1 = keras.layers.Dense(embed_dim * 4)
         self.fc2 = keras.layers.Dense(embed_dim)
         self.activation = activation
+
     def call(self, inputs):
         residual = inputs
         x = self.layer_norm1(inputs)
