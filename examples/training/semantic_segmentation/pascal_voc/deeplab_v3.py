@@ -145,6 +145,7 @@ with strategy.scope():
     model = DeepLabV3(
         classes=21,
         backbone=backbone,
+        input_shape=(512, 512, 3)
     )
     optimizer = tf.keras.optimizers.SGD(
         learning_rate=lr_decay, momentum=0.9, clipnorm=10.0
