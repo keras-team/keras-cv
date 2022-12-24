@@ -44,6 +44,12 @@ flags.DEFINE_string(
     "logs",
     "Directory which will be used to store tensorboard logs.",
 )
+flags.DEFINE_integer(
+    "epochs",
+    100,
+    "Number of epochs to run for.",
+)
+
 FLAGS = flags.FLAGS
 FLAGS(sys.argv)
 
@@ -164,4 +170,4 @@ callbacks = [
 ]
 model.compile(optimizer=optimizer, loss=loss_fn, metrics=metrics)
 
-model.fit(train_ds, epochs=100, validation_data=eval_ds, callbacks=callbacks)
+model.fit(train_ds, epochs=FLAGS.epochs, validation_data=eval_ds, callbacks=callbacks)
