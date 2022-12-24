@@ -196,18 +196,6 @@ def _create_retina_nets(x, y, epochs=1, custom_decoder=False):
         ),
         box_loss=keras_cv.losses.SmoothL1Loss(l1_cutoff=1.0, reduction="none"),
         optimizer="adam",
-        metrics=[
-            keras_cv.metrics.COCOMeanAveragePrecision(
-                class_ids=range(20),
-                bounding_box_format="xyxy",
-                name="MaP",
-            ),
-            keras_cv.metrics.COCORecall(
-                class_ids=range(20),
-                bounding_box_format="xyxy",
-                name="Recall",
-            ),
-        ],
     )
     pretrained_retina_net.build((None, None, None, 3))
     # we need to fit the pretrained retina net to ensure the classification_head and
@@ -246,18 +234,6 @@ def _create_retina_nets(x, y, epochs=1, custom_decoder=False):
         ),
         box_loss=keras_cv.losses.SmoothL1Loss(l1_cutoff=1.0, reduction="none"),
         optimizer="adam",
-        metrics=[
-            keras_cv.metrics.COCOMeanAveragePrecision(
-                class_ids=range(20),
-                bounding_box_format="xyxy",
-                name="MaP",
-            ),
-            keras_cv.metrics.COCORecall(
-                class_ids=range(20),
-                bounding_box_format="xyxy",
-                name="Recall",
-            ),
-        ],
     )
     new_retina_net.build((None, None, None, 3))
     return pretrained_retina_net, new_retina_net
@@ -274,9 +250,8 @@ def _create_bounding_box_dataset(bounding_box_format):
     ys = tf.expand_dims(ys, axis=0)
     ys = tf.expand_dims(ys, axis=0)
     ys = tf.tile(ys, [10, 10, 1])
-    ys = tf.concat([ys, y_classes], axis=-1)
 
     ys = keras_cv.bounding_box.convert_format(
         ys, source="rel_xywh", target=bounding_box_format, images=xs, dtype=tf.float32
     )
-    return xs, ys
+    return xs, {"boxes": ys, "classes": y_classes}

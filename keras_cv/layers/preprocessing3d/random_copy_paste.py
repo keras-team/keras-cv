@@ -25,6 +25,7 @@ OBJECT_POINT_CLOUDS = base_augmentation_layer_3d.OBJECT_POINT_CLOUDS
 OBJECT_BOUNDING_BOXES = base_augmentation_layer_3d.OBJECT_BOUNDING_BOXES
 
 
+@tf.keras.utils.register_keras_serializable(package="keras_cv")
 class RandomCopyPaste(base_augmentation_layer_3d.BaseAugmentationLayer3D):
     """A preprocessing layer which randomly pastes object point clouds and bounding boxes during training.
 
@@ -80,6 +81,13 @@ class RandomCopyPaste(base_augmentation_layer_3d.BaseAugmentationLayer3D):
         self._label_index = label_index
         self._min_paste_bounding_boxes = min_paste_bounding_boxes
         self._max_paste_bounding_boxes = max_paste_bounding_boxes
+
+    def get_config(self):
+        return {
+            "label_index": self._label_index,
+            "min_paste_bounding_boxes": self._min_paste_bounding_boxes,
+            "max_paste_bounding_boxes": self._max_paste_bounding_boxes,
+        }
 
     def get_random_transformation(
         self,

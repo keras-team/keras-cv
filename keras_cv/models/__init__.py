@@ -85,3 +85,13 @@ from keras_cv.models.resnet_v2 import ResNet152V2
 from keras_cv.models.segmentation.deeplab import DeepLabV3
 from keras_cv.models.stable_diffusion import StableDiffusion
 from keras_cv.models.vgg19 import VGG19
+from keras_cv.models.vit import ViTB16
+from keras_cv.models.vit import ViTB32
+from keras_cv.models.vit import ViTH16
+from keras_cv.models.vit import ViTH32
+from keras_cv.models.vit import ViTL16
+from keras_cv.models.vit import ViTL32
+from keras_cv.models.vit import ViTS16
+from keras_cv.models.vit import ViTS32
+from keras_cv.models.vit import ViTTiny16
+from keras_cv.models.vit import ViTTiny32

@@ -15,6 +15,7 @@
 import tensorflow as tf
 from absl import logging
 
+from keras_cv import bounding_box
 from keras_cv.bounding_box.converters import _decode_deltas_to_boxes
 from keras_cv.bounding_box.utils import _clip_boxes
 from keras_cv.layers.object_detection.anchor_generator import AnchorGenerator
@@ -22,6 +23,7 @@ from keras_cv.layers.object_detection.roi_align import _ROIAligner
 from keras_cv.layers.object_detection.roi_generator import ROIGenerator
 from keras_cv.layers.object_detection.roi_sampler import _ROISampler
 from keras_cv.layers.object_detection.rpn_label_encoder import _RpnLabelEncoder
+from keras_cv.models.object_detection import predict_utils
 from keras_cv.ops.box_matcher import ArgmaxBoxMatcher
 
 
@@ -44,7 +46,7 @@ def _resnet50_backbone(include_rescaling=False):
         ]
     ]
     return tf.keras.Model(
-        inputs=inputs, outputs=[c2_output, c3_output, c4_output, c5_output]
+        inputs=inputs, outputs={2: c2_output, 3: c3_output, 4: c4_output, 5: c5_output}
     )
 
 
@@ -67,7 +69,10 @@ class FeaturePyramid(tf.keras.layers.Layer):
         self.upsample_2x = tf.keras.layers.UpSampling2D(2)
 
     def call(self, inputs, training=None):
-        c2_output, c3_output, c4_output, c5_output = inputs
+        c2_output = inputs[2]
+        c3_output = inputs[3]
+        c4_output = inputs[4]
+        c5_output = inputs[5]
 
         c6_output = self.conv_c6_pool(c5_output)
         p6_output = c6_output
@@ -226,11 +231,13 @@ class RCNNHead(tf.keras.layers.Layer):
 
 
 # TODO(tanzhenyu): provide a TPU compatible NMS decoder.
+# TODO(tanzhenyu): Unify the NMS decoder used for detection models.
 class NMSDecoder(tf.keras.layers.Layer):
     """A customized NMS layer wrapper."""
 
     def __init__(
         self,
+        bounding_box_format,
         iou_threshold=0.5,
         score_threshold=0.5,
         max_output_size_per_class=10,
@@ -238,12 +245,14 @@ class NMSDecoder(tf.keras.layers.Layer):
         **kwargs,
     ):
         super().__init__(**kwargs)
+        self.bounding_box_format = bounding_box_format
         self.iou_threshold = iou_threshold
         self.score_threshold = score_threshold
         self.max_output_size_per_class = max_output_size_per_class
         self.max_total_size = max_total_size
 
     def call(self, box_pred, scores_pred):
+        box_pred = tf.expand_dims(box_pred, axis=-2)
         (
             box_pred,
             scores_pred,
@@ -258,7 +267,12 @@ class NMSDecoder(tf.keras.layers.Layer):
             iou_threshold=self.iou_threshold,
             clip_boxes=False,
         )
-        return box_pred, scores_pred, cls_pred, valid_det
+        return {
+            "boxes": box_pred,
+            "confidence": scores_pred,
+            "classes": cls_pred,
+            "num_detections": valid_det,
+        }
 
     def get_config(self):
         config = {
@@ -321,7 +335,7 @@ class FasterRCNN(tf.keras.Model):
             (all foreground classes + one background class). By default it uses the rcnn head
             from paper, which is 2 FC layer with 1024 dimension, 1 box regressor and 1
             softmax classifier.
-        nms_decoder: (Optional) a `keras.layers.Layer` that takes input box prediction and
+        prediction_decoder: (Optional) a `keras.layers.Layer` that takes input box prediction and
             softmaxed score prediction, and returns NMSed box prediction, NMSed softmaxed
             score prediction, NMSed class prediction, and NMSed valid detection.
     """
@@ -335,7 +349,7 @@ class FasterRCNN(tf.keras.Model):
         anchor_generator=None,
         rpn_head=None,
         rcnn_head=None,
-        nms_decoder=None,
+        prediction_decoder=None,
         **kwargs,
     ):
         self.bounding_box_format = bounding_box_format
@@ -379,7 +393,9 @@ class FasterRCNN(tf.keras.Model):
             samples_per_image=256,
             positive_fraction=0.5,
         )
-        self.nms_decoder = nms_decoder or NMSDecoder()
+        self._prediction_decoder = prediction_decoder or NMSDecoder(
+            bounding_box_format=bounding_box_format
+        )
 
     def _call_rpn(self, images, anchors, training=None):
         image_shape = tf.shape(images[0])
@@ -533,8 +549,8 @@ class FasterRCNN(tf.keras.Model):
         images, y, sample_weight = tf.keras.utils.unpack_x_y_sample_weight(data)
         if sample_weight is not None:
             raise ValueError("`sample_weight` is currently not supported.")
-        gt_boxes = y["gt_boxes"]
-        gt_classes = y["gt_classes"]
+        gt_boxes = y["boxes"]
+        gt_classes = y["classes"]
         with tf.GradientTape() as tape:
             total_loss = self.compute_loss(images, gt_boxes, gt_classes, training=True)
             reg_losses = []
@@ -551,10 +567,41 @@ class FasterRCNN(tf.keras.Model):
         images, y, sample_weight = tf.keras.utils.unpack_x_y_sample_weight(data)
         if sample_weight is not None:
             raise ValueError("`sample_weight` is currently not supported.")
-        gt_boxes = y["gt_boxes"]
-        gt_classes = y["gt_classes"]
+        gt_boxes = y["boxes"]
+        gt_classes = y["classes"]
         self.compute_loss(images, gt_boxes, gt_classes, training=False)
         return self.compute_metrics(images, {}, {}, sample_weight={})
+
+    def make_predict_function(self, force=False):
+        return predict_utils.make_predict_function(self, force=force)
+
+    @property
+    def prediction_decoder(self):
+        return self._prediction_decoder
+
+    @prediction_decoder.setter
+    def prediction_decoder(self, prediction_decoder):
+        self._prediction_decoder = prediction_decoder
+        self.make_predict_function(force=True)
+
+    def decode_predictions(self, predictions, images):
+        # no-op if default decoder is used.
+        box_pred, scores_pred = predictions
+        box_pred = bounding_box.convert_format(
+            box_pred,
+            source=self.bounding_box_format,
+            target=self.prediction_decoder.bounding_box_format,
+            images=images,
+        )
+        y_pred = self.prediction_decoder(box_pred, scores_pred)
+        box_pred = bounding_box.convert_format(
+            y_pred["boxes"],
+            source=self.prediction_decoder.bounding_box_format,
+            target=self.bounding_box_format,
+            images=images,
+        )
+        y_pred["boxes"] = box_pred
+        return y_pred
 
 
 def _validate_and_get_loss(loss, loss_name):
