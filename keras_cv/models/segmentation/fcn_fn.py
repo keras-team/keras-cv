@@ -352,6 +352,7 @@ class FCN(tf.keras.models.Model):
         model_architecture: One of 'fcn8s', 'fcn16s' or 'fcn32s'. Used to define the up-sampling scale and architecture to be used for the FCN. This option is only available for pre-supported backbones ('VGG16' and 'VGG19').
         input_shape: `list` or `tuple`. Defines the shape of the tensor to be expected as input.
         include_rescaling: bool, one of True or False. Defines whether to use a Rescaling layer or not.
+        return_mask: bool, one of True or False. Returns a 1-channel result instead of a num_classes-channel result.
     """
 
     def __init__(
@@ -361,6 +362,7 @@ class FCN(tf.keras.models.Model):
         model_architecture=None,
         input_shape=(224, 224, 3),
         include_rescaling=False,
+        return_mask=False,
     ):
 
         if isinstance(backbone, tf.keras.models.Model):
@@ -391,6 +393,10 @@ class FCN(tf.keras.models.Model):
                 x = self.backbone(x)
                 x = self.classes_conv(x)
                 output_tensor = self.upscale(x)
+                if return_mask:
+                    # Assumes channels_last
+                    output_tensor = tf.math.argmax(output_tensor, axis=3)
+                    output_tensor = tf.expand_dims(output_tensor, axis=3)
 
                 super().__init__(
                     inputs={"input_tensor": x}, outputs={"output_tensor": output_tensor}
@@ -414,6 +420,10 @@ class FCN(tf.keras.models.Model):
                     input_tensor=input_tensor,
                     input_shape=input_shape,
                 )
+                if return_mask:
+                    # Assumes channels_last
+                    output_tensor = tf.math.argmax(output_tensor, axis=3)
+                    output_tensor = tf.expand_dims(output_tensor, axis=3)
 
                 super().__init__(
                     inputs={"input_tensor": input_tensor},
