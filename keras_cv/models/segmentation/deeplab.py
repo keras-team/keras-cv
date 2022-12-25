@@ -42,6 +42,15 @@ class DeepLabV3(keras.Model):
             mask based on feature from backbone and feature from decoder.
     """
 
+    def build(self, input_shape):
+        height = input_shape[1]
+        width = input_shape[2]
+        feature_map_shape = self.backbone.compute_output_shape(input_shape)
+        self.up_layer = tf.keras.layers.UpSampling2D(
+            size=(height // feature_map_shape[1], width // feature_map_shape[2]),
+            interpolation="bilinear",
+        )
+
     def __init__(
         self,
         classes,
@@ -55,6 +64,14 @@ class DeepLabV3(keras.Model):
     ):
 
         inputs = utils.parse_model_inputs(input_shape, input_tensor)
+
+        if input_shape[0] is None and input_shape[1] is None:
+            input_shape = backbone.input_shape[1:]
+
+        if input_shape[0] is None and input_shape[1] is None:
+            raise ValueError(
+                f"Input shapes for both the backbone and DeepLabV3 are `None`."
+            )
 
         height = input_shape[0]
         width = input_shape[1]

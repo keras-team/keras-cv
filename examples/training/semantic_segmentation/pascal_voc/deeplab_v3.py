@@ -138,7 +138,6 @@ with strategy.scope():
     )
     backbone = ResNet50V2(
         include_rescaling=True,
-        input_shape=(512, 512, 3),
         include_top=False,
         weights="imagenet",
     )
