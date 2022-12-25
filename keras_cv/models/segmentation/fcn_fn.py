@@ -405,7 +405,7 @@ class FCN(tf.keras.models.Model):
                     output_tensor = tf.cast(output_tensor, return_dtype)
 
                 super().__init__(
-                    inputs={"input_tensor": x}, outputs={"output_tensor": output_tensor}
+                    inputs={"input_tensor": x}, outputs=[output_tensor]
                 )
                 self.classes = classes
                 self.model_architecture = "custom"
@@ -438,7 +438,7 @@ class FCN(tf.keras.models.Model):
 
                 super().__init__(
                     inputs={"input_tensor": input_tensor},
-                    outputs={"output_tensor": output_tensor},
+                    outputs=[output_tensor],
                 )
         else:
             raise ValueError(
