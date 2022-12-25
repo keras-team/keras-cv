@@ -85,6 +85,7 @@ def VGGBackboneBuilder(
     include_rescaling,
     classes,
     input_shape=(224, 224, 3),
+    include_imagenet_weights=False,
 ):
     """Utility function to build the backbone of the FCN with variants of the VGG model.
 
@@ -98,11 +99,17 @@ def VGGBackboneBuilder(
     Returns:
         model: tf.keras.models.Model. Represents the graph of all backbone operations and outputs for the chosen architecture.
     """
+    if include_imagenet_weights:
+        weights = "imagenet"
+    else:
+        weights = None
+
     vgg_model = BACKBONE[model_version](
         include_rescaling=include_rescaling,
         classes=classes,
         input_shape=input_shape,
         include_top=True,
+        weights=weights,
     )
 
     x = tf.keras.Input(shape=input_shape)
@@ -188,6 +195,7 @@ def VGGArchitectureBuilder(
     classes,
     input_tensor,
     input_shape=(224, 224, 3),
+    include_imagenet_weights=False,
 ):
     """Main function for development and execution of full FCN model specifically for VGG-based backbones.
 
@@ -212,6 +220,7 @@ def VGGArchitectureBuilder(
             classes=classes,
             input_shape=input_shape,
             model_architecture="fcn8s",
+            include_imagenet_weights=include_imagenet_weights,
         )
         backbone_output = backbone(input_tensor)
         pool3, pool4, pool5 = (
@@ -226,10 +235,18 @@ def VGGArchitectureBuilder(
         pool5 = pool5_upsampling(pool5)
 
         pool3 = tf.keras.layers.Conv2D(
-            filters=pool5.shape[-1], kernel_size=(1, 1), padding="same", strides=(1, 1)
+            filters=pool5.shape[-1],
+            kernel_size=(1, 1),
+            padding="same",
+            strides=(1, 1),
+            activation="relu",
         )(pool3)
         pool4 = tf.keras.layers.Conv2D(
-            filters=pool5.shape[-1], kernel_size=(1, 1), padding="same", strides=(1, 1)
+            filters=pool5.shape[-1],
+            kernel_size=(1, 1),
+            padding="same",
+            strides=(1, 1),
+            activation="relu",
         )(pool4)
 
         intermediate_pool_output = tf.keras.layers.Add()([pool4, pool5])
@@ -252,6 +269,7 @@ def VGGArchitectureBuilder(
             classes=classes,
             input_shape=input_shape,
             model_architecture="fcn16s",
+            include_imagenet_weights=include_imagenet_weights,
         )
         backbone_output = backbone(input_tensor)
         pool4, pool5 = backbone_output["pool4"], backbone_output["pool5"]
@@ -262,7 +280,11 @@ def VGGArchitectureBuilder(
         pool5 = pool5_upsampling(pool5)
 
         pool4 = tf.keras.layers.Conv2D(
-            filters=pool5.shape[-1], kernel_size=(1, 1), padding="same", strides=(1, 1)
+            filters=pool5.shape[-1],
+            kernel_size=(1, 1),
+            padding="same",
+            strides=(1, 1),
+            activation="relu",
         )(pool4)
 
         final_pool_output = tf.keras.layers.Add()([pool4, pool5])
@@ -279,6 +301,7 @@ def VGGArchitectureBuilder(
             classes=classes,
             input_shape=input_shape,
             model_architecture="fcn32s",
+            include_imagenet_weights=include_imagenet_weights,
         )
         backbone_output = backbone(input_tensor)
         pool5 = backbone_output["pool5"]
@@ -353,6 +376,8 @@ class FCN(tf.keras.models.Model):
         input_shape: `list` or `tuple`. Defines the shape of the tensor to be expected as input.
         include_rescaling: bool, one of True or False. Defines whether to use a Rescaling layer or not.
         return_mask: bool, one of True or False. Returns a 1-channel result instead of a num_classes-channel result.
+        return_dtype: `tf.dtypes`. Return results in the chosen dtype. Defaults to tf.float32
+        include_imagenet_weights: bool, one of True or False. Defines whether to use original ImageNet weights for VGG backbones.
     """
 
     def __init__(
@@ -364,6 +389,7 @@ class FCN(tf.keras.models.Model):
         include_rescaling=False,
         return_mask=False,
         return_dtype=tf.float32,
+        include_imagenet_weights=False,
     ):
 
         if isinstance(backbone, tf.keras.models.Model):
@@ -371,10 +397,18 @@ class FCN(tf.keras.models.Model):
                 raise ValueError(
                     "`model_architecture` cannot be set if `backbone` is not in ['vgg16', 'vgg19']. Either set `backbone` to one of the accepted values or remove the `model_architecture` argument."
                 )
+            if include_imagenet_weights:
+                raise ValueError(
+                    "`include_imagenet_weights` cannot be set if `backbone` is not in ['vgg16', 'vgg19']. Either set `backbone` to one of the accepted values or remove the `include_imagenet_weights` argument."
+                )
             else:
                 self.backbone = CustomArchitectureBuilder(backbone)
                 self.classes_conv = tf.keras.layers.Conv2D(
-                    filters=classes, kernel_size=(1, 1), strides=(1, 1), padding="same"
+                    filters=classes,
+                    kernel_size=(1, 1),
+                    strides=(1, 1),
+                    padding="same",
+                    activation="softmax",
                 )
 
                 output_shape = self.backbone.layers[-1].compute_output_shape()
@@ -421,6 +455,7 @@ class FCN(tf.keras.models.Model):
                     include_rescaling=include_rescaling,
                     input_tensor=input_tensor,
                     input_shape=input_shape,
+                    include_imagenet_weights=include_imagenet_weights,
                 )
                 if return_mask:
                     # Assumes channels_last
