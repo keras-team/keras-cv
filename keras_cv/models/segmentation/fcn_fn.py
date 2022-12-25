@@ -363,6 +363,7 @@ class FCN(tf.keras.models.Model):
         input_shape=(224, 224, 3),
         include_rescaling=False,
         return_mask=False,
+        return_dtype=tf.int64,
     ):
 
         if isinstance(backbone, tf.keras.models.Model):
@@ -400,6 +401,9 @@ class FCN(tf.keras.models.Model):
                     )
                     output_tensor = tf.expand_dims(output_tensor, axis=3)
 
+                if return_dtype != output_tensor.dtype:
+                    output_tensor = tf.cast(output_tensor, return_dtype)
+
                 super().__init__(
                     inputs={"input_tensor": x}, outputs={"output_tensor": output_tensor}
                 )
@@ -428,6 +432,9 @@ class FCN(tf.keras.models.Model):
                         output_tensor, axis=3, dtype=output_tensor.dtype
                     )
                     output_tensor = tf.expand_dims(output_tensor, axis=3)
+
+                if return_dtype != output_tensor.dtype:
+                    output_tensor = tf.cast(output_tensor, return_dtype)
 
                 super().__init__(
                     inputs={"input_tensor": input_tensor},
