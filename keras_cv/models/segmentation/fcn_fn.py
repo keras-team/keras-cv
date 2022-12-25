@@ -397,7 +397,7 @@ class FCN(tf.keras.models.Model):
                 if return_mask:
                     # Assumes channels_last
                     output_tensor = tf.math.argmax(
-                        output_tensor, axis=3, dtype=output_tensor.dtype
+                        output_tensor, axis=3, output_type=output_tensor.dtype
                     )
                     output_tensor = tf.expand_dims(output_tensor, axis=3)
 
@@ -429,7 +429,7 @@ class FCN(tf.keras.models.Model):
                 if return_mask:
                     # Assumes channels_last
                     output_tensor = tf.math.argmax(
-                        output_tensor, axis=3, dtype=output_tensor.dtype
+                        output_tensor, axis=3, output_type=output_tensor.dtype
                     )
                     output_tensor = tf.expand_dims(output_tensor, axis=3)
 
