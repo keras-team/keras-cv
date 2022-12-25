@@ -67,6 +67,7 @@ class DeepLabV3(keras.Model):
 
         if input_shape[0] is None and input_shape[1] is None:
             input_shape = backbone.input_shape[1:]
+            inputs = layers.Input(tensor=input_tensor, shape=input_shape)
 
         if input_shape[0] is None and input_shape[1] is None:
             raise ValueError(
@@ -75,7 +76,6 @@ class DeepLabV3(keras.Model):
 
         height = input_shape[0]
         width = input_shape[1]
-        gchannels = input_shape[2]
 
         x = inputs
 
