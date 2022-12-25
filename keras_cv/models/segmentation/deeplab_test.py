@@ -25,7 +25,7 @@ from keras_cv.models import segmentation
 class DeeplabTest(tf.test.TestCase):
     def test_deeplab_model_construction_with_preconfigured_setting(self):
         backbone = models.ResNet50V2(
-            include_rescaling=True, include_top=False, input_shape=[64, 64, 1]
+            include_rescaling=True, include_top=False, input_shape=[64, 64, 3]
         )
         model = segmentation.DeepLabV3(classes=11, backbone=backbone)
         input_image = tf.random.uniform(shape=[1, 64, 64, 3])
@@ -38,7 +38,7 @@ class DeeplabTest(tf.test.TestCase):
             include_rescaling=True, include_top=False, input_shape=[64, 64, 1]
         )
         model = segmentation.DeepLabV3(classes=11, backbone=backbone)
-        input_image = tf.random.uniform(shape=[1, 64, 64, 3])
+        input_image = tf.random.uniform(shape=[1, 64, 64, 1])
         output = model(input_image, training=True)
 
         self.assertEquals(output["output"].shape, [1, 64, 64, 11])
@@ -95,11 +95,9 @@ class DeeplabTest(tf.test.TestCase):
     )
     def test_model_train(self):
         backbone = models.ResNet50V2(
-            include_rescaling=True, include_top=False, input_shape=[256, 256, 3]
+            include_rescaling=True, include_top=False, input_shape=[384, 384, 3]
         )
-        model = segmentation.DeepLabV3(
-            classes=1, include_rescaling=True, backbone=backbone
-        )
+        model = segmentation.DeepLabV3(classes=1, backbone=backbone)
 
         gcs_data_pattern = "gs://caltech_birds2011_mask/0.1.1/*.tfrecord*"
         features = tfds.features.FeaturesDict(

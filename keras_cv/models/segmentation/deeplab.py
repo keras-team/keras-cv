@@ -63,6 +63,11 @@ class DeepLabV3(keras.Model):
         **kwargs,
     ):
 
+        if not isinstance(backbone, tf.keras.layers.Layer):
+            raise ValueError(
+                "Backbone need to be a `tf.keras.layers.Layer`, " f"received {backbone}"
+            )
+
         inputs = utils.parse_model_inputs(input_shape, input_tensor)
 
         if input_shape[0] is None and input_shape[1] is None:
@@ -78,11 +83,6 @@ class DeepLabV3(keras.Model):
         width = input_shape[1]
 
         x = inputs
-
-        if not isinstance(backbone, tf.keras.layers.Layer):
-            raise ValueError(
-                "Backbone need to be a `tf.keras.layers.Layer`, " f"received {backbone}"
-            )
 
         feature_map = backbone(x)
         if spatial_pyramid_pooling is None:
