@@ -295,7 +295,7 @@ class SegmentationHead(layers.Layer):
             "dropout": self.dropout,
             "kernel_size": self.kernel_size,
             "use_bias": self.use_bias,
-            "activation": self.activation
+            "activation": self.activation,
         }
         base_config = super().get_config()
         return dict(list(base_config.items()) + list(config.items()))
