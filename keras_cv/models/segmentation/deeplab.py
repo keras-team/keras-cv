@@ -204,7 +204,6 @@ class SegmentationHead(layers.Layer):
         convs=2,
         filters=256,
         activations="relu",
-        output_scale_factor=None,
         dropout=0.0,
         kernel_size=3,
         activation="softmax",
@@ -217,7 +216,6 @@ class SegmentationHead(layers.Layer):
             convs: default 2; the number of conv blocks to use in the head (conv2d-batch_norm-activation blocks)
             filters: default 256; the number of filters in each Conv2D layer
             activations: default 'relu'; the activation to apply in conv blocks
-            output_scale_factor: default None; the scale to apply in the UpSampling call before the output
             dropout: default 0.0; the dropout to apply between each conv block
             kernel_size: default 3; the kernel_size to be used in each of the `convs` blocks
             use_bias: default False; whether to use bias or not in each of the `convs` blocks
@@ -232,7 +230,6 @@ class SegmentationHead(layers.Layer):
         self.convs = convs
         self.filters = filters
         self.activations = activations
-        self.output_scale_factor = output_scale_factor
         self.dropout = dropout
         self.kernel_size = kernel_size
         self.use_bias = use_bias
@@ -286,8 +283,6 @@ class SegmentationHead(layers.Layer):
             if self.dropout:
                 x = self.dropout_layer(x)
 
-        if self.output_scale_factor is not None:
-            x = tf.keras.layers.UpSampling2D(self.output_scale_factor)(x)
         x = self._classification_layer(x)
         return x
 
@@ -297,10 +292,10 @@ class SegmentationHead(layers.Layer):
             "convs": self.convs,
             "filters": self.filters,
             "activations": self.activations,
-            "output_scale_factor": self.output_scale_factor,
             "dropout": self.dropout,
             "kernel_size": self.kernel_size,
             "use_bias": self.use_bias,
+            "activation": self.activation
         }
         base_config = super().get_config()
         return dict(list(base_config.items()) + list(config.items()))
