@@ -101,7 +101,7 @@ class DeepLabV3(keras.Model):
                 convs=1,
                 dropout=0.2,
                 kernel_size=1,
-                output_activation=segmentation_head_activation,
+                activation=segmentation_head_activation,
             )
 
         # Segmentation head expects a multiple-level output dictionary
@@ -180,7 +180,7 @@ class SegmentationHead(layers.Layer):
         use_bias: default False; whether to use bias or not in each of the `convs` blocks
                 Defaults to none since the blocks use `BatchNormalization` after each conv, rendering
                 bias obsolete
-        output_activation: default 'softmax', the activation to apply in the classification
+        activation: default 'softmax', the activation to apply in the classification
             layer (output of the head)
 
     Sample code
@@ -207,7 +207,7 @@ class SegmentationHead(layers.Layer):
         output_scale_factor=None,
         dropout=0.0,
         kernel_size=3,
-        output_activation="softmax",
+        activation="softmax",
         use_bias=False,
         **kwargs,
     ):
@@ -223,7 +223,7 @@ class SegmentationHead(layers.Layer):
             use_bias: default False; whether to use bias or not in each of the `convs` blocks
                 Defaults to none since the blocks use `BatchNormalization` after each conv, rendering
                 bias obsolete
-            output_activation: default 'softmax', the activation to apply in the classification
+            activation: default 'softmax', the activation to apply in the classification
                 layer (output of the head)
             **kwargs:
         """
@@ -236,7 +236,7 @@ class SegmentationHead(layers.Layer):
         self.dropout = dropout
         self.kernel_size = kernel_size
         self.use_bias = use_bias
-        self.output_activation = output_activation
+        self.activation = activation
 
         self._conv_layers = []
         self._bn_layers = []
@@ -259,7 +259,7 @@ class SegmentationHead(layers.Layer):
             filters=self.classes,
             kernel_size=1,
             padding="same",
-            activation=self.output_activation,
+            activation=self.activation,
             # Force the dtype of the classification head to float32 to avoid the NAN loss
             # issue when used with mixed precision API.
             dtype=tf.float32,
