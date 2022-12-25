@@ -396,17 +396,13 @@ class FCN(tf.keras.models.Model):
                 output_tensor = self.upscale(x)
                 if return_mask:
                     # Assumes channels_last
-                    output_tensor = tf.math.argmax(
-                        output_tensor, axis=3, output_type=return_dtype
-                    )
+                    output_tensor = tf.math.argmax(output_tensor, axis=3)
                     output_tensor = tf.expand_dims(output_tensor, axis=3)
 
                 if return_dtype != output_tensor.dtype:
                     output_tensor = tf.cast(output_tensor, return_dtype)
 
-                super().__init__(
-                    inputs={"input_tensor": x}, outputs=[output_tensor]
-                )
+                super().__init__(inputs={"input_tensor": x}, outputs=[output_tensor])
                 self.classes = classes
                 self.model_architecture = "custom"
                 self.input_shape = input_shape
@@ -428,9 +424,7 @@ class FCN(tf.keras.models.Model):
                 )
                 if return_mask:
                     # Assumes channels_last
-                    output_tensor = tf.math.argmax(
-                        output_tensor, axis=3, output_type=return_dtype
-                    )
+                    output_tensor = tf.math.argmax(output_tensor, axis=3)
                     output_tensor = tf.expand_dims(output_tensor, axis=3)
 
                 if return_dtype != output_tensor.dtype:
