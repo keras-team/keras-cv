@@ -363,7 +363,7 @@ class FCN(tf.keras.models.Model):
         input_shape=(224, 224, 3),
         include_rescaling=False,
         return_mask=False,
-        return_dtype=tf.int64,
+        return_dtype=tf.float32,
     ):
 
         if isinstance(backbone, tf.keras.models.Model):
