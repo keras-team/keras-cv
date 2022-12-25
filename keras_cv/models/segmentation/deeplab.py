@@ -70,12 +70,12 @@ class DeepLabV3(keras.Model):
 
         if input_shape[0] is None and input_shape[1] is None:
             raise ValueError(
-                f"Input shapes for both the backbone and DeepLabV3 are `None`."
+                "Input shapes for both the backbone and DeepLabV3 are `None`."
             )
 
         height = input_shape[0]
         width = input_shape[1]
-        channels = input_shape[2]
+        gchannels = input_shape[2]
 
         x = inputs
 
