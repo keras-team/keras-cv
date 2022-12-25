@@ -362,7 +362,7 @@ class FCN(tf.keras.models.Model):
         model_architecture=None,
         input_shape=(224, 224, 3),
         include_rescaling=False,
-        return_mask=False
+        return_mask=False,
     ):
 
         if isinstance(backbone, tf.keras.models.Model):
@@ -395,7 +395,9 @@ class FCN(tf.keras.models.Model):
                 output_tensor = self.upscale(x)
                 if return_mask:
                     # Assumes channels_last
-                    output_tensor = tf.math.argmax(output_tensor, axis=3)
+                    output_tensor = tf.math.argmax(
+                        output_tensor, axis=3, dtype=output_tensor.dtype
+                    )
                     output_tensor = tf.expand_dims(output_tensor, axis=3)
 
                 super().__init__(
@@ -422,7 +424,9 @@ class FCN(tf.keras.models.Model):
                 )
                 if return_mask:
                     # Assumes channels_last
-                    output_tensor = tf.math.argmax(output_tensor, axis=3)
+                    output_tensor = tf.math.argmax(
+                        output_tensor, axis=3, dtype=output_tensor.dtype
+                    )
                     output_tensor = tf.expand_dims(output_tensor, axis=3)
 
                 super().__init__(
