@@ -1,7 +1,8 @@
 import tensorflow as tf
 
-from keras_cv.models import VGG16, VGG19
 from keras_cv.layers.preprocessing import Rescaling
+from keras_cv.models import VGG16
+from keras_cv.models import VGG19
 
 BACKBONE_CONFIG = {
     "vgg16": {
@@ -9,14 +10,14 @@ BACKBONE_CONFIG = {
         "BLOCK4": "block4_pool",
         "BLOCK5": "block5_pool",
         "DENSE_START": "fc1",
-        "DENSE_END": "fc2",
+        "DENSE_END": "predictions",
     },
     "vgg19": {
         "BLOCK3": "block3_pool",
         "BLOCK4": "block4_pool",
         "BLOCK5": "block5_pool",
         "DENSE_START": "fc1",
-        "DENSE_END": "fc2",
+        "DENSE_END": "predictions",
     },
 }
 BACKBONE = {"vgg16": VGG16, "vgg19": VGG19}
@@ -250,7 +251,7 @@ def VGGArchitectureBuilder(
             include_rescaling=include_rescaling,
             classes=classes,
             input_shape=input_shape,
-            model_architecture="fcn8s",
+            model_architecture="fcn16s",
         )
         backbone_output = backbone(input_tensor)
         pool4, pool5 = backbone_output["pool4"], backbone_output["pool5"]
@@ -277,7 +278,7 @@ def VGGArchitectureBuilder(
             include_rescaling=include_rescaling,
             classes=classes,
             input_shape=input_shape,
-            model_architecture="fcn8s",
+            model_architecture="fcn32s",
         )
         backbone_output = backbone(input_tensor)
         pool5 = backbone_output["pool5"]

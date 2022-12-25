@@ -14,9 +14,9 @@
 
 import tensorflow as tf
 
+from keras_cv.layers.preprocessing import Resizing
 from keras_cv.models import VGG16
 from keras_cv.models import VGG19
-from keras_cv.layers.preprocessing import Resizing
 
 BACKBONE_CONFIG = {
     "vgg16": {"BLOCK3": 11, "BLOCK4": 15, "BLOCK5": 19, "DENSE_START": -3},
