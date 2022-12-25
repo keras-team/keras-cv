@@ -362,7 +362,7 @@ class FCN(tf.keras.models.Model):
         model_architecture=None,
         input_shape=(224, 224, 3),
         include_rescaling=False,
-        return_mask=False,
+        return_mask=False
     ):
 
         if isinstance(backbone, tf.keras.models.Model):
@@ -435,7 +435,7 @@ class FCN(tf.keras.models.Model):
             )
 
 
-def FCN8S(classes, input_shape, include_rescaling, backbone):
+def FCN8S(classes, input_shape, include_rescaling, backbone, return_mask=False):
     if not isinstance(backbone, str) and backbone not in ["vgg16", "vgg19"]:
         raise ValueError(
             "Invalid argument for parameter `backbone`. Accepted values are ['vgg16', 'vgg19']"
@@ -446,10 +446,11 @@ def FCN8S(classes, input_shape, include_rescaling, backbone):
         include_rescaling=include_rescaling,
         backbone=backbone,
         model_architecture="fcn8s",
+        return_mask=return_mask,
     )
 
 
-def FCN16S(classes, input_shape, include_rescaling, backbone):
+def FCN16S(classes, input_shape, include_rescaling, backbone, return_mask=False):
     if not isinstance(backbone, str) and backbone not in ["vgg16", "vgg19"]:
         raise ValueError(
             "Invalid argument for parameter `backbone`. Accepted values are ['vgg16', 'vgg19']"
@@ -460,10 +461,11 @@ def FCN16S(classes, input_shape, include_rescaling, backbone):
         include_rescaling=include_rescaling,
         backbone=backbone,
         model_architecture="fcn16s",
+        return_mask=return_mask,
     )
 
 
-def FCN32S(classes, input_shape, include_rescaling, backbone):
+def FCN32S(classes, input_shape, include_rescaling, backbone, return_mask=False):
     if not isinstance(backbone, str) and backbone not in ["vgg16", "vgg19"]:
         raise ValueError(
             "Invalid argument for parameter `backbone`. Accepted values are ['vgg16', 'vgg19']"
@@ -474,4 +476,5 @@ def FCN32S(classes, input_shape, include_rescaling, backbone):
         include_rescaling=include_rescaling,
         backbone=backbone,
         model_architecture="fcn32s",
+        return_mask=return_mask,
     )
