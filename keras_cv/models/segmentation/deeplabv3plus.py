@@ -122,19 +122,19 @@ class DeepLabV3Plus(keras.Model):
                 inputs=x, outputs=backbone.get_layer(feature_layers[1]).output
             )
 
-        high_level_features = high_level(x)
-        low_level_features = low_level(x)
+        #high_level_features = high_level(x)
+        #low_level_features = low_level(x)
 
         if spatial_pyramid_pooling is None:
             spatial_pyramid_pooling = SpatialPyramidPooling(dilation_rates=[6, 12, 18])
 
-        output = spatial_pyramid_pooling(high_level_features)
+        output = spatial_pyramid_pooling(high_level.output)
         output = tf.keras.layers.UpSampling2D(
             size=(4, 4),
             interpolation="bilinear",
         )(output)
 
-        output = layers.Concatenate()([output, low_level_features])
+        output = layers.Concatenate()([output, low_level.output])
 
         if segmentation_head is None:
             segmentation_head = SegmentationHead(
