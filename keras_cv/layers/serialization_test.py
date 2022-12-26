@@ -262,18 +262,6 @@ class SerializationTest(tf.test.TestCase, parameterized.TestCase):
             },
         ),
         (
-            "NonMaxSuppression",
-            cv_layers.NonMaxSuppression,
-            {
-                "classes": 5,
-                "bounding_box_format": "xyxy",
-                "confidence_threshold": 0.5,
-                "iou_threshold": 0.5,
-                "max_detections": 100,
-                "max_detections_per_class": 100,
-            },
-        ),
-        (
             "RandomRotation",
             cv_layers.RandomRotation,
             {
