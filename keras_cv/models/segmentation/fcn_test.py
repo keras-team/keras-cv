@@ -30,12 +30,12 @@ class FCNTest(tf.test.TestCase):
             classes=11,
             backbone="vgg16",
             model_architecture="fcn8s",
-            input_shape=(256, 256, 3),
+            input_shape=(64, 64, 3),
         )
-        input_image = tf.random.uniform(shape=[2, 256, 256, 3])
+        input_image = tf.random.uniform(shape=[2, 64, 64, 3])
         output = model(input_image)
 
-        self.assertEquals(output.shape, [2, 256, 256, 11])
+        self.assertEquals(output.shape, [2, 64, 64, 11])
 
     def test_fcn_model_with_vgg19_backbone_construction_with_preconfigured_setting(
         self,
@@ -44,32 +44,32 @@ class FCNTest(tf.test.TestCase):
             classes=11,
             backbone="vgg19",
             model_architecture="fcn8s",
-            input_shape=(256, 256, 3),
+            input_shape=(64, 64, 3),
         )
-        input_image = tf.random.uniform(shape=[2, 256, 256, 3])
+        input_image = tf.random.uniform(shape=[2, 64, 64, 3])
         output = model(input_image)
 
-        self.assertEquals(output.shape, [2, 256, 256, 11])
+        self.assertEquals(output.shape, [2, 64, 64, 11])
 
     def test_fcn_model_with_vgg16_components(self):
         backbone = models.VGG16(include_rescaling=False, include_top=False)
         print(type(backbone))
-        model = FCN(classes=11, backbone=backbone, input_shape=(256, 256, 3))
+        model = FCN(classes=11, backbone=backbone, input_shape=(64, 64, 3))
 
-        input_image = tf.random.uniform(shape=[2, 256, 256, 3])
+        input_image = tf.random.uniform(shape=[2, 64, 64, 3])
         output = model(input_image)
 
-        self.assertEquals(output.shape, [2, 256, 256, 11])
+        self.assertEquals(output.shape, [2, 64, 64, 11])
 
     def test_fcn_model_with_vgg19_components(self):
         backbone = models.VGG19(include_rescaling=False, include_top=False)
         print(type(backbone))
-        model = FCN(classes=11, backbone=backbone, input_shape=(256, 256, 3))
+        model = FCN(classes=11, backbone=backbone, input_shape=(64, 64, 3))
 
-        input_image = tf.random.uniform(shape=[2, 256, 256, 3])
+        input_image = tf.random.uniform(shape=[2, 64, 64, 3])
         output = model(input_image)
 
-        self.assertEquals(output.shape, [2, 256, 256, 11])
+        self.assertEquals(output.shape, [2, 64, 64, 11])
 
     def test_mixed_precision(self):
         tf.keras.mixed_precision.set_global_policy("mixed_float16")
@@ -79,7 +79,7 @@ class FCNTest(tf.test.TestCase):
             model_architecture="fcn8s",
             input_shape=(256, 256, 3),
         )
-        input_image = tf.random.uniform(shape=[2, 256, 256, 3])
+        input_image = tf.random.uniform(shape=[2, 64, 64, 3])
         output = model(input_image, training=True)
 
         self.assertEquals(output.dtype, tf.float32)
