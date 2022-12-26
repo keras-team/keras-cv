@@ -591,7 +591,7 @@ class FCN(tf.keras.models.Model):
 
     def get_config(self):
         config = {
-            "classes": self.num_classes,
+            "classes": self.classes,
             "backbone": self.backbone,
             "model_architecture": self.model_architecture,
             "return_dtype": self.return_dtype,
