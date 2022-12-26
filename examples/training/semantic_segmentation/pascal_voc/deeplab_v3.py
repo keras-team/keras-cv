@@ -138,10 +138,12 @@ with strategy.scope():
     )
     backbone = ResNet50V2(
         include_rescaling=True,
+        stackwise_dilations=[1, 1, 1, 2],
+        input_shape=(512, 512, 3),
         include_top=False,
         weights="imagenet",
     )
-    model = DeepLabV3(classes=21, backbone=backbone, input_shape=(512, 512, 3))
+    model = DeepLabV3(classes=21, backbone=backbone)
     optimizer = tf.keras.optimizers.SGD(
         learning_rate=lr_decay, momentum=0.9, clipnorm=10.0
     )
