@@ -23,24 +23,19 @@ MODEL_LIST = [
     (
         mlp_mixer.MLPMixerB16,
         768,
-        {"patch_size": (16, 16), "input_shape": (224, 224, 3)},
+        {"input_shape": (224, 224, 3)},
+    ),
+    (
+        mlp_mixer.MLPMixerB32,
+        768,
+        {"input_shape": (224, 224, 3)},
+    ),
+    (
+        mlp_mixer.MLPMixerL16,
+        1024,
+        {"input_shape": (224, 224, 3)},
     ),
 ]
-
-"""
-Below are other configurations that we omit from our CI but that can/should
-be tested manually when making changes to this model.
-(
-    mlp_mixer.MLPMixerB32,
-    768,
-    {"patch_size": (32, 32), "input_shape": (224, 224, 3)},
-),
-(
-    mlp_mixer.MLPMixerL16,
-    1024,
-    {"patch_size": (16, 16), "input_shape": (224, 224, 3)},
-),
-"""
 
 
 class MLPMixerTest(ModelsTest, tf.test.TestCase, parameterized.TestCase):

@@ -19,6 +19,7 @@ try:
     from keras_cv.metrics.coco.pycoco_wrapper import compute_pycoco_metrics
 except ImportError:
     print(
-        "You do not have pycocotools installed, so KerasCV pycoco metrics are not available."
+        "You do not have pycocotools installed, so KerasCV pycoco metrics are not available. "
+        "Please run `pip install pycocotools`."
     )
     pass

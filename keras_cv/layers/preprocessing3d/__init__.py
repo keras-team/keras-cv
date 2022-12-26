@@ -18,6 +18,9 @@ from keras_cv.layers.preprocessing3d.base_augmentation_layer_3d import (
 from keras_cv.layers.preprocessing3d.frustum_random_dropping_points import (
     FrustumRandomDroppingPoints,
 )
+from keras_cv.layers.preprocessing3d.frustum_random_point_feature_noise import (
+    FrustumRandomPointFeatureNoise,
+)
 from keras_cv.layers.preprocessing3d.global_random_dropping_points import (
     GlobalRandomDroppingPoints,
 )

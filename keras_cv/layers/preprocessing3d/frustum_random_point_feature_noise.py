@@ -23,6 +23,7 @@ POINTCLOUD_LABEL_INDEX = base_augmentation_layer_3d.POINTCLOUD_LABEL_INDEX
 POINTCLOUD_FEATURE_INDEX = base_augmentation_layer_3d.POINTCLOUD_FEATURE_INDEX
 
 
+@tf.keras.utils.register_keras_serializable(package="keras_cv")
 class FrustumRandomPointFeatureNoise(
     base_augmentation_layer_3d.BaseAugmentationLayer3D
 ):
@@ -75,6 +76,14 @@ class FrustumRandomPointFeatureNoise(
         self._phi_width = phi_width
         self._max_noise_level = max_noise_level
 
+    def get_config(self):
+        return {
+            "r_distance": self._r_distance,
+            "theta_width": self._theta_width,
+            "phi_width": self._phi_width,
+            "max_noise_level": self._max_noise_level,
+        }
+
     def get_random_transformation(self, point_clouds, **kwargs):
         # Randomly select a point from the first frame as the center of the frustum.
         valid_points = point_clouds[0, :, POINTCLOUD_LABEL_INDEX] > 0
@@ -82,10 +91,9 @@ class FrustumRandomPointFeatureNoise(
         randomly_select_point_index = tf.random.uniform(
             (), minval=0, maxval=num_valid_points, dtype=tf.int32
         )
-        randomly_select_frustum_center = point_clouds[
-            0, randomly_select_point_index, :POINTCLOUD_LABEL_INDEX
-        ]
-        tf.print(("khk", randomly_select_frustum_center))
+        randomly_select_frustum_center = tf.boolean_mask(
+            point_clouds[0], valid_points, axis=0
+        )[randomly_select_point_index, :POINTCLOUD_LABEL_INDEX]
 
         num_frames, num_points, num_features = point_clouds.get_shape().as_list()
         frustum_mask = []
