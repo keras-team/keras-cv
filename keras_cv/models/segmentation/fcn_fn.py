@@ -257,10 +257,22 @@ def VGGArchitectureBuilder(
 
         final_pool_output = tf.keras.layers.Add()([pool3, intermediate_pool_output])
 
-        output_layer = tf.keras.layers.UpSampling2D(
+        output_conv_layer = tf.keras.layers.Conv2D(
+            filters=classes,
+            kernel_size=(1, 1),
+            activation="softmax",
+            padding="same",
+            strides=(1, 1),
+        )
+
+        output_upsample_layer = tf.keras.layers.UpSampling2D(
             size=(8, 8), data_format="channels_last", interpolation="bilinear"
         )
-        return output_layer(final_pool_output)
+
+        final_output = output_conv_layer(final_pool_output)
+        final_output = output_upsample_layer(final_output)
+
+        return final_output
 
     elif model_architecture == "fcn16s":
         backbone = VGGBackboneBuilder(
@@ -289,10 +301,22 @@ def VGGArchitectureBuilder(
 
         final_pool_output = tf.keras.layers.Add()([pool4, pool5])
 
-        output_layer = tf.keras.layers.UpSampling2D(
+        output_conv_layer = tf.keras.layers.Conv2D(
+            filters=classes,
+            kernel_size=(1, 1),
+            activation="softmax",
+            padding="same",
+            strides=(1, 1),
+        )
+
+        output_upsample_layer = tf.keras.layers.UpSampling2D(
             size=(16, 16), data_format="channels_last", interpolation="bilinear"
         )
-        return output_layer(final_pool_output)
+
+        final_output = output_conv_layer(final_pool_output)
+        final_output = output_upsample_layer(final_output)
+
+        return final_output
 
     elif model_architecture == "fcn32s":
         backbone = VGGBackboneBuilder(
@@ -306,11 +330,22 @@ def VGGArchitectureBuilder(
         backbone_output = backbone(input_tensor)
         pool5 = backbone_output["pool5"]
 
+        output_conv_layer = tf.keras.layers.Conv2D(
+            filters=classes,
+            kernel_size=(1, 1),
+            activation="softmax",
+            padding="same",
+            strides=(1, 1),
+        )
+
         pool5_upsampling = tf.keras.layers.UpSampling2D(
             size=(32, 32), data_format="channels_last", interpolation="bilinear"
         )
 
-        return pool5_upsampling(pool5)
+        final_output = output_conv_layer(pool5)
+        final_output = pool5_upsampling(final_output)
+
+        return final_output
 
 
 def CustomArchitectureBuilder(model):
