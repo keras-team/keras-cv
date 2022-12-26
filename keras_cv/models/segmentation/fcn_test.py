@@ -19,7 +19,7 @@ import tensorflow as tf
 import tensorflow_datasets as tfds
 
 from keras_cv import models
-from keras_cv.models.segmentation.fcn_fn import FCN
+from keras_cv.models.segmentation import FCN
 
 
 class FCNTest(tf.test.TestCase):
