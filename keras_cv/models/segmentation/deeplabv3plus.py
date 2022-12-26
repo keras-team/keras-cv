@@ -97,8 +97,8 @@ class DeepLabV3Plus(keras.Model):
         x = inputs
 
         if feature_layers == (None, None):
-            low_level_layer = backbone.get_layer("v2_stack_1_block4_1_relu").output
-            high_level_layer = backbone.get_layer("v2_stack_3_block2_2_relu").output
+            low_level_layer = backbone.get_layer("v2_stack_1_block4_1_relu")
+            high_level_layer = backbone.get_layer("v2_stack_3_block2_2_relu")
 
         else:
             # TODO(scottzhu): Might need to do more assertion about the model
@@ -109,8 +109,8 @@ class DeepLabV3Plus(keras.Model):
                     "Backbone need to be a `tf.keras.layers.Layer`, "
                     f"received {backbone}"
                 )
-            low_level_layer = backbone.get_layer(feature_layers[0]).output
-            high_level_layer = backbone.get_layer(feature_layers[1]).output
+            low_level_layer = backbone.get_layer(feature_layers[0])
+            high_level_layer = backbone.get_layer(feature_layers[1])
 
         high_level_features = high_level_layer(x)
         low_level_features = low_level_layer(x)
