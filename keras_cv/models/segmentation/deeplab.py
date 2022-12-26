@@ -255,6 +255,7 @@ class SegmentationHead(layers.Layer):
             name="segmentation_output",
             filters=self.classes,
             kernel_size=1,
+            use_bias=False,
             padding="same",
             activation=self.activation,
             # Force the dtype of the classification head to float32 to avoid the NAN loss
