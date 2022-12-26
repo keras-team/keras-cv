@@ -43,8 +43,8 @@ class NmsDecoder(tf.keras.layers.Layer):
         from_logits,
         iou_threshold=0.5,
         confidence_threshold=0.5,
-        max_detections=10,
-        max_detections_per_class=10,
+        max_detections=100,
+        max_detections_per_class=100,
         **kwargs,
     ):
         super().__init__(**kwargs)
@@ -61,8 +61,9 @@ class NmsDecoder(tf.keras.layers.Layer):
 
         Args:
             images: Tensor of shape [batch, height, width, channels].
-            predictions: Dense Tensor of shape [batch, anchor_boxes, 6] in the
+            box_pred: Dense Tensor of shape [batch, boxes, 4] in the
                 `bounding_box_format` specified in the constructor.
+            confidence_pred: Dense Tensor of shape [batch, boxes, num_classes].
         """
         box_pred = bounding_box.convert_format(
             box_pred,
