@@ -28,11 +28,7 @@ flags.DEFINE_string(
     "weights_{epoch:02d}.h5",
     "Directory which will be used to store weight checkpoints.",
 )
-flags.DEFINE_boolean(
-    "mixed_precision",
-    True,
-    "Whether or not to use FP16 mixed precision for training.",
-)
+
 flags.DEFINE_string(
     "tensorboard_path",
     "logs",
