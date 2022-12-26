@@ -56,6 +56,7 @@ def getDenseToConvolutionLayers(model, dense_start_id, dense_end_id):
     dense_flag = False
 
     units = []
+    dense_convs = []
 
     for layer_id in layer_names:
         if layer_id == dense_start_id or dense_flag == True:
@@ -66,16 +67,28 @@ def getDenseToConvolutionLayers(model, dense_start_id, dense_end_id):
                 dense_flag = False
                 break
 
-    dense_convs = [
-        tf.keras.layers.Conv2D(
-            filters=filters,
-            kernel_size=(1, 1),
-            strides=(1, 1),
-            activation="relu",
-            padding="same",
-        )
-        for filters in units
-    ]
+    for filter_idx in range(len(units)):
+        filter = units[filter_idx]
+        if filter_idx == 0:
+            dense_layer = tf.keras.layers.Conv2D(
+                filters=filter,
+                kernel_size=(7, 7),
+                strides=(1, 1),
+                activation="relu",
+                padding="same",
+            )
+            dense_convs.append(dense_layer)
+        else:
+            dense_layer = tf.keras.layers.Conv2D(
+                filters=filter,
+                kernel_size=(1, 1),
+                strides=(1, 1),
+                activation="relu",
+                padding="same",
+            )
+            dense_convs.append(dense_layer)
+        dropout_layer = tf.keras.layers.Dropout(0.5)
+        dense_convs.append(dropout_layer)
     return tf.keras.Sequential(dense_convs)
 
 
@@ -229,25 +242,34 @@ def VGGArchitectureBuilder(
             backbone_output["pool5"],
         )
 
-        pool5_upsampling = tf.keras.layers.UpSampling2D(
-            size=(2, 2), data_format="channels_last", interpolation="bilinear"
-        )
-        pool5 = pool5_upsampling(pool5)
-
         pool3 = tf.keras.layers.Conv2D(
-            filters=pool5.shape[-1],
+            filters=classes,
             kernel_size=(1, 1),
             padding="same",
             strides=(1, 1),
             activation="relu",
         )(pool3)
+
         pool4 = tf.keras.layers.Conv2D(
-            filters=pool5.shape[-1],
+            filters=classes,
             kernel_size=(1, 1),
             padding="same",
             strides=(1, 1),
             activation="relu",
         )(pool4)
+
+        pool5 = tf.keras.layers.Conv2D(
+            filters=classes,
+            kernel_size=(1, 1),
+            padding="same",
+            strides=(1, 1),
+            activation="relu",
+        )(pool5)
+
+        pool5_upsampling = tf.keras.layers.UpSampling2D(
+            size=(2, 2), data_format="channels_last", interpolation="bilinear"
+        )
+        pool5 = pool5_upsampling(pool5)
 
         intermediate_pool_output = tf.keras.layers.Add()([pool4, pool5])
 
@@ -286,18 +308,26 @@ def VGGArchitectureBuilder(
         backbone_output = backbone(input_tensor)
         pool4, pool5 = backbone_output["pool4"], backbone_output["pool5"]
 
-        pool5_upsampling = tf.keras.layers.UpSampling2D(
-            size=(2, 2), data_format="channels_last", interpolation="bilinear"
-        )
-        pool5 = pool5_upsampling(pool5)
-
         pool4 = tf.keras.layers.Conv2D(
-            filters=pool5.shape[-1],
+            filters=classes,
             kernel_size=(1, 1),
             padding="same",
             strides=(1, 1),
             activation="relu",
         )(pool4)
+
+        pool5 = tf.keras.layers.Conv2D(
+            filters=classes,
+            kernel_size=(1, 1),
+            padding="same",
+            strides=(1, 1),
+            activation="relu",
+        )(pool5)
+
+        pool5_upsampling = tf.keras.layers.UpSampling2D(
+            size=(2, 2), data_format="channels_last", interpolation="bilinear"
+        )
+        pool5 = pool5_upsampling(pool5)
 
         final_pool_output = tf.keras.layers.Add()([pool4, pool5])
 
@@ -330,16 +360,24 @@ def VGGArchitectureBuilder(
         backbone_output = backbone(input_tensor)
         pool5 = backbone_output["pool5"]
 
+        pool5 = tf.keras.layers.Conv2D(
+            filters=classes,
+            kernel_size=(1, 1),
+            padding="same",
+            strides=(1, 1),
+            activation="relu",
+        )(pool5)
+
+        pool5_upsampling = tf.keras.layers.UpSampling2D(
+            size=(32, 32), data_format="channels_last", interpolation="bilinear"
+        )
+
         output_conv_layer = tf.keras.layers.Conv2D(
             filters=classes,
             kernel_size=(1, 1),
             activation="softmax",
             padding="same",
             strides=(1, 1),
-        )
-
-        pool5_upsampling = tf.keras.layers.UpSampling2D(
-            size=(32, 32), data_format="channels_last", interpolation="bilinear"
         )
 
         final_output = output_conv_layer(pool5)
@@ -511,9 +549,9 @@ class FCN(tf.keras.models.Model):
 
 
 def FCN8S(classes, input_shape, include_rescaling, backbone, return_mask=False):
-    if not isinstance(backbone, str) and backbone not in ["vgg16", "vgg19"]:
+    if not isinstance(backbone, str) or backbone not in ["vgg16", "vgg19"]:
         raise ValueError(
-            "Invalid argument for parameter `backbone`. Accepted values are ['vgg16', 'vgg19']"
+            "Invalid argument for parameter `backbone`. Accepted values are ['vgg16', 'vgg19']."
         )
     return FCN(
         classes=classes,
@@ -526,9 +564,9 @@ def FCN8S(classes, input_shape, include_rescaling, backbone, return_mask=False):
 
 
 def FCN16S(classes, input_shape, include_rescaling, backbone, return_mask=False):
-    if not isinstance(backbone, str) and backbone not in ["vgg16", "vgg19"]:
+    if not isinstance(backbone, str) or backbone not in ["vgg16", "vgg19"]:
         raise ValueError(
-            "Invalid argument for parameter `backbone`. Accepted values are ['vgg16', 'vgg19']"
+            "Invalid argument for parameter `backbone`. Accepted values are ['vgg16', 'vgg19']."
         )
     return FCN(
         classes=classes,
@@ -541,9 +579,9 @@ def FCN16S(classes, input_shape, include_rescaling, backbone, return_mask=False)
 
 
 def FCN32S(classes, input_shape, include_rescaling, backbone, return_mask=False):
-    if not isinstance(backbone, str) and backbone not in ["vgg16", "vgg19"]:
+    if not isinstance(backbone, str) or backbone not in ["vgg16", "vgg19"]:
         raise ValueError(
-            "Invalid argument for parameter `backbone`. Accepted values are ['vgg16', 'vgg19']"
+            "Invalid argument for parameter `backbone`. Accepted values are ['vgg16', 'vgg19']."
         )
     return FCN(
         classes=classes,
