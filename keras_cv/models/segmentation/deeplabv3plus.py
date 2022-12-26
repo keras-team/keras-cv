@@ -96,8 +96,6 @@ class DeepLabV3Plus(keras.Model):
 
         x = inputs
 
-        layer_names = [layer.name for layer in backbone.layers]
-
         if feature_layers == (None, None):
             low_level = tf.keras.Model(
                 inputs=x, outputs=backbone.get_layer("v2_stack_1_block4_1_relu").output
@@ -107,9 +105,6 @@ class DeepLabV3Plus(keras.Model):
             )
 
         else:
-            # TODO(scottzhu): Might need to do more assertion about the model
-            # What else do we want to test for? Shapes? This feels like too little, but
-            # more assertions feel like they'd be limiting.
             if not isinstance(backbone, tf.keras.layers.Layer):
                 raise ValueError(
                     "Backbone need to be a `tf.keras.layers.Layer`, "
@@ -121,9 +116,6 @@ class DeepLabV3Plus(keras.Model):
             high_level = tf.keras.Model(
                 inputs=x, outputs=backbone.get_layer(feature_layers[1]).output
             )
-
-        #high_level_features = high_level(x)
-        #low_level_features = low_level(x)
 
         if spatial_pyramid_pooling is None:
             spatial_pyramid_pooling = SpatialPyramidPooling(dilation_rates=[6, 12, 18])
