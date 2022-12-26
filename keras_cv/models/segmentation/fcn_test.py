@@ -77,7 +77,7 @@ class FCNTest(tf.test.TestCase):
             classes=11,
             backbone="vgg16",
             model_architecture="fcn8s",
-            input_shape=(256, 256, 3),
+            input_shape=(64, 64, 3),
         )
         input_image = tf.random.uniform(shape=[2, 64, 64, 3])
         output = model(input_image, training=True)
