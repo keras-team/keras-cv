@@ -87,11 +87,13 @@ class FCNTest(tf.test.TestCase):
     def test_invalid_backbone_model(self):
         with self.assertRaisesRegex(
             ValueError,
-            r"Invalid argument for parameter `model_architecture`. Accepted values are ['fcn8s', 'fcn16s', 'fcn32s']",
+            r"Chosen `backbone` argument is not a valid allowed backbone. Possible options are ['vgg16', 'vgg19']"
         ):
             FCN(
                 classes=11,
-                backbone="resnet_v3",
+                backbone="resnet",
+                model_architecture="fcn8s",
+                input_shape=(256, 256, 3),
             )
         with self.assertRaisesRegex(
             ValueError,
@@ -100,6 +102,7 @@ class FCNTest(tf.test.TestCase):
             FCN(
                 classes=11,
                 backbone=tf.Module(),
+                model_architecture='fcn8s'
             )
         with self.assertRaisesRegex(
             ValueError,
@@ -111,6 +114,18 @@ class FCNTest(tf.test.TestCase):
             FCN(
                 classes=11,
                 backbone=backbone_model,
+            )
+
+    def test_invalid_model_architecture(self):
+        with self.assertRaisesRegex(
+            ValueError,
+            r"Invalid argument for parameter `model_architecture`. Accepted values are ['fcn8s', 'fcn16s', 'fcn32s']"
+        ):
+            FCN(
+                classes=11,
+                backbone="vgg16",
+                model_architecture="fcn10s",
+                input_shape=(256, 256, 3),
             )
 
     @pytest.mark.skipif(
