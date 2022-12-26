@@ -18,6 +18,7 @@ from tensorflow.keras import layers
 
 from keras_cv.layers.spatial_pyramid import SpatialPyramidPooling
 from keras_cv.models import utils
+from keras_cv.models.weights import parse_weights
 
 
 @keras.utils.register_keras_serializable(package="keras_cv")
@@ -33,7 +34,7 @@ class DeepLabV3(keras.Model):
         backbone: an optional backbone network for the model. Should be a KerasCV model.
         weights: weights for the complete DeepLabV3 model. one of `None` (random
             initialization), a pretrained weight file path, or a reference to
-            pre-trained weights (e.g. 'imagenet/classification') (see available
+            pre-trained weights (e.g. 'imagenet/classification' or 'voc/segmentation') (see available
             pre-trained weights in weights.py)
         spatial_pyramid_pooling: also known as Atrous Spatial Pyramid Pooling (ASPP).
             Performs spatial pooling on different spatial levels in the pyramid, with
@@ -60,12 +61,21 @@ class DeepLabV3(keras.Model):
         segmentation_head_activation="softmax",
         input_shape=(None, None, 3),
         input_tensor=None,
+        weights=None,
         **kwargs,
     ):
 
         if not isinstance(backbone, tf.keras.layers.Layer):
             raise ValueError(
                 "Backbone need to be a `tf.keras.layers.Layer`, " f"received {backbone}"
+            )
+
+        if weights and not tf.io.gfile.exists(
+            parse_weights(weights, True, "deeplabv3")
+        ):
+            raise ValueError(
+                "The `weights` argument should be either `None` or the path to the "
+                "weights file to be loaded. Weights file not found at location: {weights}"
             )
 
         inputs = utils.parse_model_inputs(input_shape, input_tensor)
@@ -116,6 +126,9 @@ class DeepLabV3(keras.Model):
             },
             **kwargs,
         )
+
+        if weights is not None:
+            self.load_weights(parse_weights(weights, True, "deeplabv3"))
 
         # All references to `self` below this line
         self.classes = classes
