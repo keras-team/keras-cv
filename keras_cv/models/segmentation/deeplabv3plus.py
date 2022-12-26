@@ -95,14 +95,11 @@ class DeepLabV3Plus(keras.Model):
             )
 
         x = inputs
+        _ = backbone(x)
 
         if feature_layers == (None, None):
-            low_level = tf.keras.Model(
-                inputs=x, outputs=backbone.get_layer("v2_stack_1_block4_1_relu").output
-            )
-            high_level = tf.keras.Model(
-                inputs=x, outputs=backbone.get_layer("v2_stack_3_block2_2_relu").output
-            )
+            low_level = backbone.get_layer("v2_stack_1_block4_1_relu").output
+            high_level = backbone.get_layer("v2_stack_3_block3_2_relu").output
 
         else:
             if not isinstance(backbone, tf.keras.layers.Layer):
@@ -110,23 +107,19 @@ class DeepLabV3Plus(keras.Model):
                     "Backbone need to be a `tf.keras.layers.Layer`, "
                     f"received {backbone}"
                 )
-            low_level = tf.keras.Model(
-                inputs=x, outputs=backbone.get_layer(feature_layers[0]).output
-            )
-            high_level = tf.keras.Model(
-                inputs=x, outputs=backbone.get_layer(feature_layers[1]).output
-            )
+            low_level = backbone.get_layer(feature_layers[0]).output
+            high_level = backbone.get_layer(feature_layers[1]).output
 
         if spatial_pyramid_pooling is None:
             spatial_pyramid_pooling = SpatialPyramidPooling(dilation_rates=[6, 12, 18])
 
-        output = spatial_pyramid_pooling(high_level.output)
+        output = spatial_pyramid_pooling(high_level)
         output = tf.keras.layers.UpSampling2D(
             size=(4, 4),
             interpolation="bilinear",
         )(output)
 
-        output = layers.Concatenate()([output, low_level.output])
+        output = layers.Concatenate()([output, low_level])
 
         if segmentation_head is None:
             segmentation_head = SegmentationHead(
