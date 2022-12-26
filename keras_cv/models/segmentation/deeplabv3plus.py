@@ -96,9 +96,15 @@ class DeepLabV3Plus(keras.Model):
 
         x = inputs
 
+        layer_names = [layer.name for layer in backbone.layers]
+
         if feature_layers == (None, None):
-            low_level_layer = backbone.get_layer("v2_stack_1_block4_1_relu")
-            high_level_layer = backbone.get_layer("v2_stack_3_block2_2_relu")
+            low_level = tf.keras.Model(
+                inputs=x, outputs=backbone.get_layer("v2_stack_1_block4_1_relu").output
+            )
+            high_level = tf.keras.Model(
+                inputs=x, outputs=backbone.get_layer("v2_stack_3_block2_2_relu").output
+            )
 
         else:
             # TODO(scottzhu): Might need to do more assertion about the model
@@ -109,11 +115,15 @@ class DeepLabV3Plus(keras.Model):
                     "Backbone need to be a `tf.keras.layers.Layer`, "
                     f"received {backbone}"
                 )
-            low_level_layer = backbone.get_layer(feature_layers[0])
-            high_level_layer = backbone.get_layer(feature_layers[1])
+            low_level = tf.keras.Model(
+                inputs=x, outputs=backbone.get_layer(feature_layers[0]).output
+            )
+            high_level = tf.keras.Model(
+                inputs=x, outputs=backbone.get_layer(feature_layers[1]).output
+            )
 
-        high_level_features = high_level_layer(x)
-        low_level_features = low_level_layer(x)
+        high_level_features = high_level(x)
+        low_level_features = low_level(x)
 
         if spatial_pyramid_pooling is None:
             spatial_pyramid_pooling = SpatialPyramidPooling(dilation_rates=[6, 12, 18])
