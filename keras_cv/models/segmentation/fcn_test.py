@@ -19,15 +19,18 @@ import tensorflow as tf
 import tensorflow_datasets as tfds
 
 from keras_cv import models
-from keras_cv.models import segmentation
+from keras_cv.models.segmentation.fcn_fn import FCN
 
 
 class FCNTest(tf.test.TestCase):
     def test_fcn_model_with_vgg16_backbone_construction_with_preconfigured_setting(
         self,
     ):
-        model = segmentation.FCN(
-            classes=11, backbone="vgg16", model_architecture="fcn8s"
+        model = FCN(
+            classes=11,
+            backbone="vgg16",
+            model_architecture="fcn8s",
+            input_shape=(256, 256, 3),
         )
         input_image = tf.random.uniform(shape=[2, 256, 256, 3])
         output = model(input_image)
@@ -37,8 +40,11 @@ class FCNTest(tf.test.TestCase):
     def test_fcn_model_with_vgg19_backbone_construction_with_preconfigured_setting(
         self,
     ):
-        model = segmentation.FCN(
-            classes=11, backbone="vgg19", model_architecture="fcn8s"
+        model = FCN(
+            classes=11,
+            backbone="vgg19",
+            model_architecture="fcn8s",
+            input_shape=(256, 256, 3),
         )
         input_image = tf.random.uniform(shape=[2, 256, 256, 3])
         output = model(input_image)
@@ -47,9 +53,8 @@ class FCNTest(tf.test.TestCase):
 
     def test_fcn_model_with_vgg16_components(self):
         backbone = models.VGG16(include_rescaling=False, include_top=False)
-        model = segmentation.FCN(
-            classes=11, backbone=backbone, model_architecture="fcn8s"
-        )
+        print(type(backbone))
+        model = FCN(classes=11, backbone=backbone, input_shape=(256, 256, 3))
 
         input_image = tf.random.uniform(shape=[2, 256, 256, 3])
         output = model(input_image)
@@ -58,9 +63,8 @@ class FCNTest(tf.test.TestCase):
 
     def test_fcn_model_with_vgg19_components(self):
         backbone = models.VGG19(include_rescaling=False, include_top=False)
-        model = segmentation.FCN(
-            classes=11, backbone=backbone, model_architecture="fcn8s"
-        )
+        print(type(backbone))
+        model = FCN(classes=11, backbone=backbone, input_shape=(256, 256, 3))
 
         input_image = tf.random.uniform(shape=[2, 256, 256, 3])
         output = model(input_image)
@@ -69,8 +73,11 @@ class FCNTest(tf.test.TestCase):
 
     def test_mixed_precision(self):
         tf.keras.mixed_precision.set_global_policy("mixed_float16")
-        model = segmentation.FCN(
-            classes=11, backbone="vgg16", model_architecture="fcn8s"
+        model = FCN(
+            classes=11,
+            backbone="vgg16",
+            model_architecture="fcn8s",
+            input_shape=(256, 256, 3),
         )
         input_image = tf.random.uniform(shape=[2, 256, 256, 3])
         output = model(input_image, training=True)
@@ -80,26 +87,30 @@ class FCNTest(tf.test.TestCase):
     def test_invalid_backbone_model(self):
         with self.assertRaisesRegex(
             ValueError,
-            "Entered `backbone` argument is not a standard available backbone. Valid options are ['vgg16', 'vgg19']",
+            r"Invalid argument for parameter `model_architecture`. Accepted values are ['fcn8s', 'fcn16s', 'fcn32s']",
         ):
-            segmentation.FCN(
+            FCN(
                 classes=11,
                 backbone="resnet_v3",
             )
         with self.assertRaisesRegex(
-            ValueError, "Unsupported type. Valid types are `tf.keras.model.Model`"
+            ValueError,
+            r"Invalid argument for parameter `backbone`. Accepted values are ['vgg16', 'vgg19'] or a `tf.keras.models.Model` instance with only `tf.keras.layers.Conv2D`, 'tf.keras.layers.MaxPooling2D' or `tf.keras.layers.Dense` layers",
         ):
-            segmentation.FCN(
+            FCN(
                 classes=11,
                 backbone=tf.Module(),
             )
         with self.assertRaisesRegex(
             ValueError,
-            "Entered `backbone` argument has custom layers. Include a `tf.keras.models.Model` with `keras.layers.Conv2D` or `keras.layers.MaxPooling2D` layers only.",
+            r"Entered `backbone` argument has custom layers. Include a `tf.keras.models.Model` with `keras.layers.Conv2D` or `keras.layers.MaxPooling2D` layers only.",
         ):
-            segmentation.FCN(
+            input_tensor = tf.keras.Input(shape=(256, 256, 3))
+            output_tensor = tf.keras.layers.AveragePooling2D(input_tensor)
+            backbone_model = tf.keras.Model(inputs=input_tensor, outputs=output_tensor)
+            FCN(
                 classes=11,
-                backbone=tf.keras.layers.AveragePooling2D(),
+                backbone=backbone_model,
             )
 
     @pytest.mark.skipif(
@@ -109,9 +120,7 @@ class FCNTest(tf.test.TestCase):
         "`INTEGRATION=true pytest keras_cv/",
     )
     def test_model_train(self):
-        model = segmentation.FCN(
-            classes=11, backbone="vgg16", model_architecture="fcn8s"
-        )
+        model = FCN(classes=11, backbone="vgg16", model_architecture="fcn8s")
 
         gcs_data_pattern = "gs://caltech_birds2011_mask/0.1.1/*.tfrecord*"
         features = tfds.features.FeaturesDict(

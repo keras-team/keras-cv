@@ -72,7 +72,10 @@ def getDenseToConvolutionLayers(model, dense_start_id, dense_end_id):
         if filter_idx == 0:
             dense_layer = tf.keras.layers.Conv2D(
                 filters=filter,
-                kernel_size=(7, 7),
+                kernel_size=(
+                    7,
+                    7,
+                ),  # adapted from https://github.com/shelhamer/fcn.berkeleyvision.org/blob/1305c7378a9f0ab44b2c936f4d60e4687e3d8743/voc-fcn8s/net.py#L52
                 strides=(1, 1),
                 activation="relu",
                 padding="same",
@@ -475,8 +478,8 @@ class FCN(tf.keras.models.Model):
                     "`include_imagenet_weights` cannot be set if `backbone` is not in ['vgg16', 'vgg19']. Either set `backbone` to one of the accepted values or remove the `include_imagenet_weights` argument."
                 )
             else:
-                self.backbone = CustomArchitectureBuilder(backbone)
-                self.classes_conv = tf.keras.layers.Conv2D(
+                backbone = CustomArchitectureBuilder(backbone)
+                classes_conv = tf.keras.layers.Conv2D(
                     filters=classes,
                     kernel_size=(1, 1),
                     strides=(1, 1),
@@ -484,23 +487,26 @@ class FCN(tf.keras.models.Model):
                     activation="softmax",
                 )
 
-                output_shape = self.backbone.layers[-1].compute_output_shape()
+                input_tensor = tf.keras.Input(input_shape)
+                if include_rescaling:
+                    x = Rescaling(scale=1.0 / 255)(input_tensor)
+                    x = backbone(x)
+                else:
+                    x = backbone(input_tensor)
 
-                target_height_factor = self.height // output_shape[1]
-                target_width_factor = self.width // output_shape[2]
+                output_shape = x.shape
 
-                self.upscale = tf.keras.layers.UpSampling2D(
+                target_height_factor = input_shape[0] // output_shape[1]
+                target_width_factor = input_shape[1] // output_shape[2]
+
+                upscale = tf.keras.layers.UpSampling2D(
                     size=(target_height_factor, target_width_factor),
                     data_format="channels_last",
                     interpolation="bilinear",
                 )
 
-                x = tf.keras.Input(input_shape)
-                if include_rescaling:
-                    x = Rescaling(scale=1.0 / 255)(x)
-                x = self.backbone(x)
-                x = self.classes_conv(x)
-                output_tensor = self.upscale(x)
+                x = classes_conv(x)
+                output_tensor = upscale(x)
                 if return_mask:
                     # Assumes channels_last
                     output_tensor = tf.math.argmax(output_tensor, axis=3)
@@ -509,11 +515,18 @@ class FCN(tf.keras.models.Model):
                 if return_dtype != output_tensor.dtype:
                     output_tensor = tf.cast(output_tensor, return_dtype)
 
-                super().__init__(inputs={"input_tensor": x}, outputs=[output_tensor])
+                super().__init__(
+                    inputs={"input_tensor": input_tensor}, outputs=[output_tensor]
+                )
+
                 self.classes = classes
                 self.model_architecture = "custom"
-                self.input_shape = input_shape
                 self.include_rescaling = include_rescaling
+                self.upscale = upscale
+                self.backbone = backbone
+                self.classes_conv = classes_conv
+                self.target_height_factor = target_height_factor
+                self.target_width_factor = target_width_factor
         elif isinstance(backbone, str):
             if model_architecture not in ["fcn8s", "fcn16s", "fcn32s"]:
                 raise ValueError(
