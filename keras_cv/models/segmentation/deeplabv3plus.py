@@ -18,18 +18,7 @@ from tensorflow.keras import layers
 
 from keras_cv.layers.spatial_pyramid import SpatialPyramidPooling
 from keras_cv.models import utils
-from keras_cv.models.resnet_v2 import ResNetV2
-from keras_cv.models.segmentation.__internal__ import SegmentationHead
 from keras_cv.models.weights import parse_weights
-
-BACKBONE_CONFIG = {
-    "ResNet101V2": {
-        "stackwise_filters": [64, 128, 256, 512],
-        "stackwise_blocks": [3, 4, 23, 3],
-        "stackwise_strides": [1, 2, 2, 2],
-        "stackwise_dilations": [1, 1, 1, 2],
-    }
-}
 
 
 @keras.utils.register_keras_serializable(package="keras_cv")
@@ -45,7 +34,7 @@ class DeepLabV3Plus(keras.Model):
         include_rescaling: boolean, whether to Rescale the inputs. If set to True,
             inputs will be passed through a `Rescaling(1/255.0)` layer.
         backbone: an optional backbone network for the model. Can be a `tf.keras.layers.Layer`
-            instance. The supported pre-defined backbone models are:
+            instance. The supported pre-dxefined backbone models are:
             1. "resnet101_v2", a ResNet101 V2 model
             Default to 'resnet101_v2'.
         backbone_weights: weights for the backbone model. one of `None` (random
@@ -70,49 +59,49 @@ class DeepLabV3Plus(keras.Model):
     def __init__(
         self,
         classes,
-        include_rescaling,
         backbone,
-        backbone_weights=None,
         spatial_pyramid_pooling=None,
         segmentation_head=None,
         segmentation_head_activation="softmax",
         input_shape=(None, None, 3),
         input_tensor=None,
         feature_layers=(None, None),
+        weights=None,
         **kwargs,
     ):
 
+        if not isinstance(backbone, tf.keras.layers.Layer):
+            raise ValueError(
+                "Backbone need to be a `tf.keras.layers.Layer`, " f"received {backbone}"
+            )
+
+        if weights and not tf.io.gfile.exists(
+            parse_weights(weights, True, "deeplabv3plus")
+        ):
+            raise ValueError(
+                "The `weights` argument should be either `None` or the path to the "
+                "weights file to be loaded. Weights file not found at location: {weights}"
+            )
+
         inputs = utils.parse_model_inputs(input_shape, input_tensor)
+
+        if input_shape[0] is None and input_shape[1] is None:
+            input_shape = backbone.input_shape[1:]
+            inputs = layers.Input(tensor=backbone.input, shape=input_shape)
+
+        if input_shape[0] is None and input_shape[1] is None:
+            raise ValueError(
+                "Input shapes for both the backbone and DeepLabV3 are `None`."
+            )
+
         x = inputs
+        # Pass input through backbone
+        # to get layer states
+        _ = backbone(x)
 
-        if include_rescaling:
-            x = layers.Rescaling(1 / 255.0)(x)
-
-        if isinstance(backbone, str):
-            supported_premade_backbone = [
-                "resnet101_v2",
-            ]
-            if backbone not in supported_premade_backbone:
-                raise ValueError(
-                    "Supported premade backbones are: "
-                    f'{supported_premade_backbone}, received "{backbone}"'
-                )
-
-            if backbone == "resnet101_v2":
-                backbone = get_resnet_backbone(
-                    backbone_weights, include_rescaling, input_tensor=x, **kwargs
-                )
-                if feature_layers != (None, None):
-                    raise ValueError(
-                        "When using a predefined backbone, you cannot set custom feature layers."
-                        f"received {feature_layers}"
-                    )
-                low_level_features = backbone.get_layer(
-                    "v2_stack_1_block4_1_relu"
-                ).output
-                high_level_features = backbone.get_layer(
-                    "v2_stack_3_block2_2_relu"
-                ).output
+        if feature_layers == (None, None):
+            low_level_features = backbone.get_layer("v2_stack_1_block4_1_relu").output
+            high_level_features = backbone.get_layer("v2_stack_3_block2_2_relu").output
 
         else:
             # TODO(scottzhu): Might need to do more assertion about the model
@@ -168,37 +157,154 @@ class DeepLabV3Plus(keras.Model):
 
         # All references to `self` below this line
         self.classes = classes
-        self.include_rescaling = include_rescaling
         self.backbone = backbone
-        self.backbone_weights = backbone_weights
         self.spatial_pyramid_pooling = spatial_pyramid_pooling
         self.segmentation_head = segmentation_head
         self.segmentation_head_activation = segmentation_head_activation
         self.feature_layers = feature_layers
 
-        def get_config(self):
-            return {
-                "classes": self.classes,
-                "include_rescaling": self.include_rescaling,
-                "backbone": self.backbone,
-                "backbone_weights": self.backbone_weights,
-                "spatial_pyramid_pooling": self.spatial_pyramid_pooling,
-                "segmentation_head": self.segmentation_head,
-                "segmentation_head_activation": self.segmentation_head_activation,
-                "feature_layers": self.feature_layers,
-            }
+    def get_config(self):
+        return {
+            "classes": self.classes,
+            "backbone": self.backbone,
+            "spatial_pyramid_pooling": self.spatial_pyramid_pooling,
+            "segmentation_head": self.segmentation_head,
+            "segmentation_head_activation": self.segmentation_head_activation,
+            "feature_layers": self.feature_layers,
+        }
 
 
-def get_resnet_backbone(backbone_weights, include_rescaling, **kwargs):
-    return ResNetV2(
-        stackwise_filters=BACKBONE_CONFIG["ResNet101V2"]["stackwise_filters"],
-        stackwise_blocks=BACKBONE_CONFIG["ResNet101V2"]["stackwise_blocks"],
-        stackwise_strides=BACKBONE_CONFIG["ResNet101V2"]["stackwise_strides"],
-        stackwise_dilations=BACKBONE_CONFIG["ResNet101V2"]["stackwise_dilations"],
-        include_rescaling=include_rescaling,
-        include_top=False,
-        name="resnet101v2",
-        weights=parse_weights(backbone_weights, False, "resnet101v2"),
-        pooling=None,
+@tf.keras.utils.register_keras_serializable(package="keras_cv")
+class SegmentationHead(layers.Layer):
+    """Prediction head for the segmentation model
+
+    The head will take the output from decoder (eg FPN or ASPP), and produce a
+    segmentation mask (pixel level classifications) as the output for the model.
+
+    Args:
+        classes: int, the number of output classes for the prediction. This should
+            include all the classes (eg background) for the model to predict.
+        convs: int, the number of conv2D layers that are stacked before the final
+            classification layer. Default to 2.
+        filters: int, the number of filter/channels for the the conv2D layers. Default
+            to 256.
+        activations: str or 'tf.keras.activations', activation functions between the
+            conv2D layers and the final classification layer. Default to 'relu'
+        output_scale_factor: int, or a pair of ints, for upsample the output mask.
+            This is useful to scale the output mask back to same size as the input
+            image. When single int is provided, the mask will be scaled with same
+            ratio on both width and height. When a pair of ints are provided, they will
+            be parsed as (height_factor, width_factor). Default to None, which means
+            no resize will happen to the output mask tensor.
+
+    Sample code
+    ```python
+    # Mimic a FPN output dict
+    p3 = tf.ones([2, 32, 32, 3])
+    p4 = tf.ones([2, 16, 16, 3])
+    p5 = tf.ones([2, 8, 8, 3])
+    inputs = {3: p3, 4: p4, 5: p5}
+
+    head = SegmentationHead(classes=11)
+
+    output = head(inputs)
+    # output tensor has shape [2, 32, 32, 11]. It has the same resolution as the p3.
+    ```
+    """
+
+    def __init__(
+        self,
+        classes,
+        convs=2,
+        filters=256,
+        activations="relu",
+        output_scale_factor=None,
+        dropout=0.0,
+        kernel_size=3,
+        use_bias=False,
         **kwargs,
-    )
+    ):
+        """
+        Args:
+            classes: the number of possible classes for the segmentation map
+            convs: default 2; the number of conv blocks to use in the head (conv2d-batch_norm-activation blocks)
+            filters: default 256; the number of filters in each Conv2D layer
+            activations: default 'relu'; the activation to apply in conv blocks
+            output_scale_factor: default None; the scale to apply in the UpSampling call before the output
+            dropout: default 0.0; the dropout to apply between each conv block
+            **kwargs:
+        """
+        super().__init__(**kwargs)
+        self.classes = classes
+        self.convs = convs
+        self.filters = filters
+        self.activations = activations
+        self.output_scale_factor = output_scale_factor
+        self.dropout = dropout
+        self.kernel_size = kernel_size
+        self.use_bias = use_bias
+
+        self._conv_layers = []
+        self._bn_layers = []
+        for i in range(self.convs):
+            conv_name = "segmentation_head_conv_{}".format(i)
+            self._conv_layers.append(
+                tf.keras.layers.Conv2D(
+                    name=conv_name,
+                    filters=self.filters,
+                    kernel_size=self.kernel_size,
+                    padding="same",
+                    use_bias=self.use_bias,
+                )
+            )
+            norm_name = "segmentation_head_norm_{}".format(i)
+            self._bn_layers.append(tf.keras.layers.BatchNormalization(name=norm_name))
+
+        self._classification_layer = tf.keras.layers.Conv2D(
+            name="segmentation_output",
+            filters=self.classes,
+            kernel_size=1,
+            padding="same",
+            # Force the dtype of the classification head to float32 to avoid the NAN loss
+            # issue when used with mixed precision API.
+            dtype=tf.float32,
+        )
+
+        self.dropout_layer = tf.keras.layers.Dropout(self.dropout)
+
+    def call(self, inputs):
+        """Forward path for the segmentation head.
+
+        For now, it accepts the output from the decoder only, which is a dict with int
+        key and tensor as value (level-> processed feature output). The head will use the
+        lowest level of feature output as the input for the head.
+        """
+        if not isinstance(inputs, dict):
+            raise ValueError(f"Expect the inputs to be a dict, but received {inputs}")
+
+        lowest_level = next(iter(sorted(inputs)))
+        x = inputs[lowest_level]
+        for conv_layer, bn_layer in zip(self._conv_layers, self._bn_layers):
+            x = conv_layer(x)
+            x = bn_layer(x)
+            x = tf.keras.activations.get(self.activations)(x)
+            if self.dropout:
+                x = self.dropout_layer(x)
+
+        if self.output_scale_factor is not None:
+            x = tf.keras.layers.UpSampling2D(self.output_scale_factor)(x)
+        x = self._classification_layer(x)
+        return x
+
+    def get_config(self):
+        config = {
+            "classes": self.classes,
+            "convs": self.convs,
+            "filters": self.filters,
+            "activations": self.activations,
+            "output_scale_factor": self.output_scale_factor,
+            "dropout": self.dropout,
+            "kernel_size": self.kernel_size,
+        }
+        base_config = super().get_config()
+        return dict(list(base_config.items()) + list(config.items()))
