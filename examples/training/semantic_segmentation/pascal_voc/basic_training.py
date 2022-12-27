@@ -79,17 +79,10 @@ except ValueError:
         tf.keras.mixed_precision.set_global_policy("mixed_float16")
 print("Number of accelerators: ", strategy.num_replicas_in_sync)
 
-# parameters from FasterRCNN [paper](https://arxiv.org/pdf/1506.01497.pdf)
-
 local_batch = 4
 global_batch = local_batch * strategy.num_replicas_in_sync
 base_lr = 0.007 * global_batch / 16
 
-# TODO(tanzhenyu): add a diff dataset.
-# all_ds = load(split="sbd_train", data_dir=None)
-# all_ds = all_ds.concatenate(load(split="sbd_eval", data_dir=None))
-# train_ds = all_ds.take(10000)
-# eval_ds = all_ds.skip(10000).concatenate(load(split="diff", data_dir=None))
 train_ds = load(split="sbd_train", data_dir=None)
 eval_ds = load(split="sbd_eval", data_dir=None)
 
