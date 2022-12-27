@@ -63,6 +63,7 @@ flags.DEFINE_string(
 
 FLAGS = flags.FLAGS
 FLAGS(sys.argv)
+
 # Try to detect an available TPU. If none is present, default to MirroredStrategy
 try:
     tpu = tf.distribute.cluster_resolver.TPUClusterResolver.connect()
