@@ -30,9 +30,9 @@ def get_dense_to_convolution_layers(model):
         layers: `tf.keras.Sequential` representing the converted layers.
     """
 
-    if model.name == "VGG16":
+    if model.name.lower() == "VGG16":
         backbone_name = "vgg16"
-    elif model.name == "VGG19":
+    elif model.name.lower() == "VGG19":
         backbone_name = "vgg19"
 
     units = BACKBONE_CONFIG[backbone_name]["DENSE_UNITS"]
@@ -82,7 +82,7 @@ def vgg_backbone_builder(
         model: tf.keras.models.Model. Represents the graph of all backbone operations and outputs for the chosen architecture.
     """
     vgg_model = backbone
-    if vgg_model.name == "VGG16":
+    if vgg_model.name.lower() == "vgg16":
         backbone_name = "vgg16"
     else:
         backbone_name = "vgg19"
@@ -430,7 +430,7 @@ class FullyConvolutionalNetwork(tf.keras.models.Model):
         input_tensor=None,
         return_mask=False,
     ):
-        if backbone.name == "VGG16" or backbone.name == "VGG19":
+        if backbone.name.lower() == "vgg16" or backbone.name.lower() == "vgg19":
             # Cannot run `isinstance` check as VGG16 and VGG19 are only functions and not classes.
             if model_architecture not in ["fcn8s", "fcn16s", "fcn32s"]:
                 raise ValueError(
