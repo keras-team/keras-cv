@@ -90,9 +90,14 @@ class DeepLabV3Plus(keras.Model):
         x = inputs
         high_level = backbone(x)
 
-        if low_level_feature_layer == None:
-            low_level = backbone.get_layer("v2_stack_1_block4_1_relu").output
-
+        if low_level_feature_layer is None:
+            if backbone.name.includes("resnet"):
+                low_level = backbone.get_layer("v2_stack_1_block4_1_relu").output
+            else:
+                raise ValueError(
+                    "You have to specify the name of the low-level layer in the "
+                    "model used to extract low-level features."
+                )
         else:
             if not isinstance(backbone, tf.keras.layers.Layer):
                 raise ValueError(
