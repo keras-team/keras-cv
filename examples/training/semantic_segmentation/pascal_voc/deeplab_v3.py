@@ -26,6 +26,7 @@ from absl import flags
 from absl import logging
 
 from keras_cv.datasets.pascal_voc.segmentation import load
+from keras_cv.models.resnet_v2 import ResNet50V2
 from keras_cv.models.segmentation.deeplab import DeepLabV3
 
 flags.DEFINE_string(
@@ -43,6 +44,12 @@ flags.DEFINE_string(
     "logs",
     "Directory which will be used to store tensorboard logs.",
 )
+flags.DEFINE_integer(
+    "epochs",
+    100,
+    "Number of epochs to run for.",
+)
+
 FLAGS = flags.FLAGS
 FLAGS(sys.argv)
 
@@ -129,12 +136,15 @@ with strategy.scope():
         boundaries=[30000 * 16 / global_batch],
         values=[base_lr, 0.1 * base_lr],
     )
-    model = DeepLabV3(
-        classes=21,
-        backbone="resnet50_v2",
+    backbone = ResNet50V2(
         include_rescaling=True,
-        backbone_weights="imagenet",
+        # This argument gives a 2% mIoU increase
+        stackwise_dilations=[1, 1, 1, 2],
+        input_shape=(512, 512, 3),
+        include_top=False,
+        weights="imagenet",
     )
+    model = DeepLabV3(classes=21, backbone=backbone)
     optimizer = tf.keras.optimizers.SGD(
         learning_rate=lr_decay, momentum=0.9, clipnorm=10.0
     )
@@ -159,4 +169,4 @@ callbacks = [
 ]
 model.compile(optimizer=optimizer, loss=loss_fn, metrics=metrics)
 
-model.fit(train_ds, epochs=100, validation_data=eval_ds, callbacks=callbacks)
+model.fit(train_ds, epochs=FLAGS.epochs, validation_data=eval_ds, callbacks=callbacks)
