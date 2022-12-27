@@ -21,77 +21,64 @@ import tensorflow_datasets as tfds
 from keras_cv import models
 from keras_cv.models.segmentation.fcn import FCN8S, FCN16S, FCN32S
 
+
 class FCNTest(tf.test.TestCase):
     def test_fcn_model_with_vgg16_backbone_construction_with_preconfigured_setting(
         self,
     ):
-        vgg16 = models.VGG16(include_rescaling=False, include_top=False, input_shape=(64, 64, 3))
-        model_fcn8s = FCN8S(
-            classes=11,
-            backbone=vgg16,
+        vgg16 = models.VGG16(
+            include_rescaling=False, include_top=False, input_shape=(64, 64, 3)
         )
-        model_fcn16s = FCN16S(
-            classes=11,
-            backbone=vgg16,
-        )
-        model_fcn32s = FCN32S(
-            classes=11,
-            backbone=vgg16,
-        )
+        model_fcn8s = FCN8S(classes=11, backbone=vgg16,)
+        model_fcn16s = FCN16S(classes=11, backbone=vgg16,)
+        model_fcn32s = FCN32S(classes=11, backbone=vgg16,)
         input_image = tf.random.uniform(shape=[2, 64, 64, 3])
         output_fcn8s = model_fcn8s(input_image)
         output_fcn16s = model_fcn16s(input_image)
         output_fcn32s = model_fcn32s(input_image)
 
-        self.assertEquals(output_fcn8s['output_tensor'].shape, (2, 64, 64, 11))
-        self.assertEquals(output_fcn16s['output_tensor'].shape, (2, 64, 64, 11))
-        self.assertEquals(output_fcn32s['output_tensor'].shape, (2, 64, 64, 11))
+        self.assertEquals(output_fcn8s["output_tensor"].shape, (2, 64, 64, 11))
+        self.assertEquals(output_fcn16s["output_tensor"].shape, (2, 64, 64, 11))
+        self.assertEquals(output_fcn32s["output_tensor"].shape, (2, 64, 64, 11))
 
     def test_fcn_model_with_vgg19_backbone_construction_with_preconfigured_setting(
         self,
-    ):  
-        vgg19 = models.VGG19(include_rescaling=False, include_top=False, input_shape=(64, 64, 3))
-        model_fcn8s = FCN8S(
-            classes=11,
-            backbone=vgg19,
+    ):
+        vgg19 = models.VGG19(
+            include_rescaling=False, include_top=False, input_shape=(64, 64, 3)
         )
-        model_fcn16s = FCN16S(
-            classes=11,
-            backbone=vgg19,
-        )
-        model_fcn32s = FCN32S(
-            classes=11,
-            backbone=vgg19,
-        )
+        model_fcn8s = FCN8S(classes=11, backbone=vgg19,)
+        model_fcn16s = FCN16S(classes=11, backbone=vgg19,)
+        model_fcn32s = FCN32S(classes=11, backbone=vgg19,)
         input_image = tf.random.uniform(shape=[2, 64, 64, 3])
         output_fcn8s = model_fcn8s(input_image)
         output_fcn16s = model_fcn16s(input_image)
         output_fcn32s = model_fcn32s(input_image)
 
-        self.assertEquals(output_fcn8s['output_tensor'].shape, (2, 64, 64, 11))
-        self.assertEquals(output_fcn16s['output_tensor'].shape, (2, 64, 64, 11))
-        self.assertEquals(output_fcn32s['output_tensor'].shape, (2, 64, 64, 11))
+        self.assertEquals(output_fcn8s["output_tensor"].shape, (2, 64, 64, 11))
+        self.assertEquals(output_fcn16s["output_tensor"].shape, (2, 64, 64, 11))
+        self.assertEquals(output_fcn32s["output_tensor"].shape, (2, 64, 64, 11))
 
     def test_mixed_precision(self):
         tf.keras.mixed_precision.set_global_policy("mixed_float16")
-        vgg16 = models.VGG16(include_rescaling=False, include_top=False, input_shape=(64, 64, 3))
-        model = FCN8S(
-            classes=11,
-            backbone=vgg16,
+        vgg16 = models.VGG16(
+            include_rescaling=False, include_top=False, input_shape=(64, 64, 3)
         )
+        model = FCN8S(classes=11, backbone=vgg16,)
         input_image = tf.random.uniform(shape=[2, 64, 64, 3])
         output = model(input_image)
 
-        self.assertEquals(output['output_tensor'].dtype, tf.float32)
+        self.assertEquals(output["output_tensor"].dtype, tf.float32)
 
     def test_invalid_backbone_model(self):
         with self.assertRaisesRegex(
             ValueError,
             r"`model_architecture` cannot be set if `backbone` is not a `keras_cv.models.VGG16` or `keras_cv.models.VGG19`. Either set `backbone` to one of the accepted values or remove the `model_architecture` argument.",
         ):
-            resnet = models.ResNet50(include_rescaling=False, include_top=False, input_shape=(64, 64, 3))
-            FCN8S(classes=11,backbone=resnet)
-
+            resnet = models.ResNet50(
+                include_rescaling=False, include_top=False, input_shape=(64, 64, 3)
+            )
+            FCN8S(classes=11, backbone=resnet)
 
     @pytest.mark.skipif(
         "INTEGRATION" not in os.environ or os.environ["INTEGRATION"] != "true",
@@ -100,11 +87,10 @@ class FCNTest(tf.test.TestCase):
         "`INTEGRATION=true pytest keras_cv/",
     )
     def test_model_train(self):
-        vgg16 = models.VGG16(include_rescaling=False, include_top=False, input_shape=(64, 64, 3))
-        model = FCN8S(
-            classes=11,
-            backbone=vgg16,
+        vgg16 = models.VGG16(
+            include_rescaling=False, include_top=False, input_shape=(64, 64, 3)
         )
+        model = FCN8S(classes=11, backbone=vgg16,)
 
         gcs_data_pattern = "gs://caltech_birds2011_mask/0.1.1/*.tfrecord*"
         features = tfds.features.FeaturesDict(

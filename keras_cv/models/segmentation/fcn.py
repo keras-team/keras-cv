@@ -56,10 +56,7 @@ def get_dense_to_convolution_layers(model):
         if filter_idx == 0:
             dense_layer = tf.keras.layers.Conv2D(
                 filters=filter,
-                kernel_size=(
-                    7,
-                    7,
-                ),
+                kernel_size=(7, 7,),
                 strides=(1, 1),
                 activation="relu",
                 padding="same",
@@ -180,11 +177,7 @@ def vgg_backbone_builder(
 
 
 def vgg_architecture_builder(
-    backbone,
-    model_architecture,
-    classes,
-    input_tensor,
-    input_shape=None,
+    backbone, model_architecture, classes, input_tensor, input_shape=None,
 ):
     """Main function for development and execution of full FCN model specifically for VGG-based backbones.
 
@@ -606,7 +599,7 @@ def FCN32S(
 ):
     if input_shape == (None, None, 3):
         input_shape = backbone.layers[0].input.shape
-        
+
     return FullyConvolutionalNetwork(
         classes=classes,
         input_shape=input_shape,
