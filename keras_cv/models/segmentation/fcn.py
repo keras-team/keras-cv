@@ -469,11 +469,7 @@ class FullyConvolutionalNetwork(tf.keras.models.Model):
 
                 self.classes = classes
                 self.model_architecture = model_architecture
-                self.upscale = upscale
                 self.backbone = backbone
-                self.classes_conv = classes_conv
-                self.target_height_factor = target_height_factor
-                self.target_width_factor = target_width_factor
                 self.return_mask = return_mask
 
         elif isinstance(backbone, tf.keras.models.Model) or isinstance(
@@ -543,12 +539,8 @@ class FullyConvolutionalNetwork(tf.keras.models.Model):
                 )
 
                 self.classes = classes
-                self.model_architecture = "custom"
-                self.upscale = upscale
+                self.model_architecture = model_architecture
                 self.backbone = backbone
-                self.classes_conv = classes_conv
-                self.target_height_factor = target_height_factor
-                self.target_width_factor = target_width_factor
                 self.return_mask = return_mask
         else:
             raise ValueError(
@@ -560,9 +552,7 @@ class FullyConvolutionalNetwork(tf.keras.models.Model):
             "classes": self.classes,
             "backbone": self.backbone,
             "model_architecture": self.model_architecture,
-            "return_dtype": self.return_dtype,
             "return_mask": self.return_mask,
-            "include_rescaling": self.include_rescaling,
         }
         base_config = super().get_config()
         return dict(list(base_config.items()) + list(config.items()))
