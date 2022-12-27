@@ -129,14 +129,7 @@ class DeepLabV3Plus(keras.Model):
                 kernel_size=1,
             )
 
-        # Segmentation head expects a multiple-level output dictionary
-        output = segmentation_head({1: output})
-
-        if segmentation_head_activation is not None:
-            # Force float32 output to avoid NaN issues with mixed-precision training
-            output = layers.Activation(
-                segmentation_head_activation, dtype=tf.float32, name="top_activation"
-            )(output)
+        output = segmentation_head(output)
 
         super().__init__(
             inputs={
@@ -207,6 +200,12 @@ class SegmentationHead(layers.Layer):
             ratio on both width and height. When a pair of ints are provided, they will
             be parsed as (height_factor, width_factor). Default to None, which means
             no resize will happen to the output mask tensor.
+        kernel_size: default 3; the kernel_size to be used in each of the `convs` blocks
+        use_bias: default False; whether to use bias or not in each of the `convs` blocks
+                Defaults to none since the blocks use `BatchNormalization` after each conv, rendering
+                bias obsolete
+        activation: default 'softmax', the activation to apply in the classification
+            layer (output of the head)
 
     Sample code
     ```python
@@ -229,9 +228,10 @@ class SegmentationHead(layers.Layer):
         convs=2,
         filters=256,
         activations="relu",
-        output_scale_factor=None,
         dropout=0.0,
         kernel_size=3,
+        output_scale_factor=None,
+        activation="softmax",
         use_bias=False,
         **kwargs,
     ):
@@ -241,8 +241,13 @@ class SegmentationHead(layers.Layer):
             convs: default 2; the number of conv blocks to use in the head (conv2d-batch_norm-activation blocks)
             filters: default 256; the number of filters in each Conv2D layer
             activations: default 'relu'; the activation to apply in conv blocks
-            output_scale_factor: default None; the scale to apply in the UpSampling call before the output
             dropout: default 0.0; the dropout to apply between each conv block
+            kernel_size: default 3; the kernel_size to be used in each of the `convs` blocks
+            use_bias: default False; whether to use bias or not in each of the `convs` blocks
+                Defaults to none since the blocks use `BatchNormalization` after each conv, rendering
+                bias obsolete
+            activation: default 'softmax', the activation to apply in the classification
+                layer (output of the head)
             **kwargs:
         """
         super().__init__(**kwargs)
@@ -250,10 +255,11 @@ class SegmentationHead(layers.Layer):
         self.convs = convs
         self.filters = filters
         self.activations = activations
-        self.output_scale_factor = output_scale_factor
+        self.output_scale_factor = (output_scale_factor)
         self.dropout = dropout
         self.kernel_size = kernel_size
         self.use_bias = use_bias
+        self.activation = activation
 
         self._conv_layers = []
         self._bn_layers = []
@@ -275,7 +281,9 @@ class SegmentationHead(layers.Layer):
             name="segmentation_output",
             filters=self.classes,
             kernel_size=1,
+            use_bias=False,
             padding="same",
+            activation=self.activation,
             # Force the dtype of the classification head to float32 to avoid the NAN loss
             # issue when used with mixed precision API.
             dtype=tf.float32,
@@ -284,17 +292,7 @@ class SegmentationHead(layers.Layer):
         self.dropout_layer = tf.keras.layers.Dropout(self.dropout)
 
     def call(self, inputs):
-        """Forward path for the segmentation head.
-
-        For now, it accepts the output from the decoder only, which is a dict with int
-        key and tensor as value (level-> processed feature output). The head will use the
-        lowest level of feature output as the input for the head.
-        """
-        if not isinstance(inputs, dict):
-            raise ValueError(f"Expect the inputs to be a dict, but received {inputs}")
-
-        lowest_level = next(iter(sorted(inputs)))
-        x = inputs[lowest_level]
+        x = inputs
         for conv_layer, bn_layer in zip(self._conv_layers, self._bn_layers):
             x = conv_layer(x)
             x = bn_layer(x)
@@ -304,6 +302,7 @@ class SegmentationHead(layers.Layer):
 
         if self.output_scale_factor is not None:
             x = tf.keras.layers.UpSampling2D(self.output_scale_factor)(x)
+
         x = self._classification_layer(x)
         return x
 
@@ -313,9 +312,10 @@ class SegmentationHead(layers.Layer):
             "convs": self.convs,
             "filters": self.filters,
             "activations": self.activations,
-            "output_scale_factor": self.output_scale_factor,
             "dropout": self.dropout,
             "kernel_size": self.kernel_size,
+            "use_bias": self.use_bias,
+            "activation": self.activation,
         }
         base_config = super().get_config()
         return dict(list(base_config.items()) + list(config.items()))
