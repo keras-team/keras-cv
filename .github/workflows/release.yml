@@ -6,7 +6,6 @@ on:
 jobs:
   deploy-with-custom-ops:
     name: Build and deploy release wheels with custom ops
-    if: github.event_name == 'release' && github.event.action == 'created'
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -87,7 +86,6 @@ jobs:
         twine upload wheels/*
   deploy-without-custom-ops:
     name: Build and deploy release wheels without custom ops
-    if: github.event_name == 'release' && github.event.action == 'created'
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
