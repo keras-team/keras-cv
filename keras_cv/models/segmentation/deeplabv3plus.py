@@ -255,7 +255,7 @@ class SegmentationHead(layers.Layer):
         self.convs = convs
         self.filters = filters
         self.activations = activations
-        self.output_scale_factor = (output_scale_factor)
+        self.output_scale_factor = output_scale_factor
         self.dropout = dropout
         self.kernel_size = kernel_size
         self.use_bias = use_bias
