@@ -59,7 +59,7 @@ class DeeplabV3PlusTest(tf.test.TestCase):
                 include_top=False,
                 stackwise_dilations=[1, 1, 1, 2],
             )
-            model = segmentation.DeepLabV3Plus(classes=11, backbone=backbone)
+            segmentation.DeepLabV3Plus(classes=11, backbone=backbone)
 
     def test_missing_layer_name(self):
         with self.assertRaisesRegex(
@@ -68,7 +68,7 @@ class DeeplabV3PlusTest(tf.test.TestCase):
             "model used to extract low-level features.",
         ):
             backbone = models.DenseNet121(include_rescaling=True, include_top=False)
-            model = segmentation.DeepLabV3Plus(
+            segmentation.DeepLabV3Plus(
                 classes=11,
                 backbone=backbone,
                 input_shape=(64, 64, 3),
@@ -91,7 +91,7 @@ class DeeplabV3PlusTest(tf.test.TestCase):
     def test_invalid_backbone_model(self):
         with self.assertRaisesRegex(
             ValueError,
-            "Backbone need to be a `tf.keras.layers.Layer`, " f"received resnet_v3",
+            "Backbone need to be a `tf.keras.layers.Layer`, received resnet_v3",
         ):
             segmentation.DeepLabV3Plus(
                 classes=11,
