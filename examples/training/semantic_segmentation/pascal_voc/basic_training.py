@@ -27,7 +27,6 @@ from absl import logging
 
 from keras_cv import models
 from keras_cv.datasets.pascal_voc.segmentation import load
-from keras_cv.models import segmentation
 
 flags.DEFINE_string(
     "weights_path",
@@ -156,7 +155,7 @@ with strategy.scope():
         include_top=False,
         weights="imagenet",
     )
-    model = segmentation.__dict__[FLAGS.model_name]
+    model = models.__dict__[FLAGS.model_name]
     model = model(classes=21, backbone=backbone, **eval(FLAGS.model_kwargs))
     optimizer = tf.keras.optimizers.SGD(
         learning_rate=lr_decay, momentum=0.9, clipnorm=10.0
