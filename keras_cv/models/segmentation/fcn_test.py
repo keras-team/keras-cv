@@ -52,7 +52,7 @@ class FCNTest(tf.test.TestCase):
         self.assertEquals(output.shape, [2, 64, 64, 11])
 
     def test_fcn_model_with_vgg16_components(self):
-        backbone = models.VGG16(include_rescaling=False, include_top=False)
+        backbone = models.VGG16(include_rescaling=True, include_top=False)
         print(type(backbone))
         model = FCN(classes=11, backbone=backbone, input_shape=(64, 64, 3))
 
@@ -80,14 +80,14 @@ class FCNTest(tf.test.TestCase):
             input_shape=(64, 64, 3),
         )
         input_image = tf.random.uniform(shape=[2, 64, 64, 3])
-        output = model(input_image, training=True)
+        output = model(input_image)
 
         self.assertEquals(output.dtype, tf.float32)
 
     def test_invalid_backbone_model(self):
         with self.assertRaisesRegex(
             ValueError,
-            r"Chosen `backbone` argument is not a valid allowed backbone. Possible options are ['vgg16', 'vgg19']"
+            r"Chosen `backbone` argument is not a valid allowed backbone. Possible options are ['vgg16', 'vgg19']",
         ):
             FCN(
                 classes=11,
@@ -99,11 +99,7 @@ class FCNTest(tf.test.TestCase):
             ValueError,
             r"Invalid argument for parameter `backbone`. Accepted values are ['vgg16', 'vgg19'] or a `tf.keras.models.Model` instance with only `tf.keras.layers.Conv2D`, 'tf.keras.layers.MaxPooling2D' or `tf.keras.layers.Dense` layers",
         ):
-            FCN(
-                classes=11,
-                backbone=tf.Module(),
-                model_architecture='fcn8s'
-            )
+            FCN(classes=11, backbone=tf.Module(), model_architecture="fcn8s")
         with self.assertRaisesRegex(
             ValueError,
             r"Entered `backbone` argument has custom layers. Include a `tf.keras.models.Model` with `keras.layers.Conv2D` or `keras.layers.MaxPooling2D` layers only.",
@@ -119,7 +115,7 @@ class FCNTest(tf.test.TestCase):
     def test_invalid_model_architecture(self):
         with self.assertRaisesRegex(
             ValueError,
-            r"Invalid argument for parameter `model_architecture`. Accepted values are ['fcn8s', 'fcn16s', 'fcn32s']"
+            r"Invalid argument for parameter `model_architecture`. Accepted values are ['fcn8s', 'fcn16s', 'fcn32s']",
         ):
             FCN(
                 classes=11,

@@ -1,71 +1,42 @@
 import tensorflow as tf
 
-from keras_cv.layers.preprocessing import Rescaling
 from keras_cv.models import VGG16
 from keras_cv.models import VGG19
+from keras_cv.models import utils
 
 BACKBONE_CONFIG = {
     "vgg16": {
         "BLOCK3": "block3_pool",
         "BLOCK4": "block4_pool",
         "BLOCK5": "block5_pool",
-        "DENSE_START": "fc1",
-        "DENSE_END": "predictions",
+        "DENSE_UNITS": [4096, 4096],
     },
     "vgg19": {
         "BLOCK3": "block3_pool",
         "BLOCK4": "block4_pool",
         "BLOCK5": "block5_pool",
-        "DENSE_START": "fc1",
-        "DENSE_END": "predictions",
+        "DENSE_UNITS": [4096, 4096],
     },
 }
 BACKBONE = {"vgg16": VGG16, "vgg19": VGG19}
 
 
-def getPoolLayers(model, pool_id):
-    """Function to get the all layers upto a certain named layer. Used only for extracting MaxPooling2D-based layers.
-
-    Args:
-        model: `tf.keras.layers.Model` or `tf.keras.Sequential`, The original model from which the layers are extracted
-        pool_id: str, The name of the layer that acts as the end layer limit for the extraction
-    Returns:
-        layers: `tf.keras.Sequential` representing the extracted layers
-    """
-    layer_names = [layer.name for layer in model.layers]
-
-    pool_layers = []
-    for layer_id in layer_names:
-        layer = model.get_layer(layer_id)
-        pool_layers.append(layer)
-        if layer_id == pool_id:
-            return tf.keras.Sequential(pool_layers)
-
-
-def getDenseToConvolutionLayers(model, dense_start_id, dense_end_id):
+def get_dense_to_convolution_layers(model):
     """Utility function to convert all `tf.keras.layers.Dense` functions to `tf.keras.layers.Conv2D` with `filters=units` from the Dense layers and `kernel_size=(1,1)`, `padding='same'`
 
     Args:
         model: `tf.keras.layers.Model` or `tf.keras.Sequential`, The original model from which the layers are extracted
-        dense_start_id: str, The name of the layer that acts as the start layer limit for the extraction
-        dense_end_id: str, The name of the layer that acts as the end layer limit for the extraction
     Returns:
         layers: `tf.keras.Sequential` representing the converted layers.
     """
-    layer_names = [layer.name for layer in model.layers]
-    dense_flag = False
 
-    units = []
+    if model.name == "VGG16":
+        backbone_name = "vgg16"
+    elif model.name == "VGG19":
+        backbone_name = "vgg19"
+
+    units = BACKBONE_CONFIG[backbone_name]["DENSE_UNITS"]
     dense_convs = []
-
-    for layer_id in layer_names:
-        if layer_id == dense_start_id or dense_flag is True:
-            dense_flag = True
-            layer = model.get_layer(layer_id)
-            units.append(layer.units)
-            if layer_id == dense_end_id:
-                dense_flag = False
-                break
 
     for filter_idx in range(len(units)):
         filter = units[filter_idx]
@@ -95,63 +66,50 @@ def getDenseToConvolutionLayers(model, dense_start_id, dense_end_id):
     return tf.keras.Sequential(dense_convs)
 
 
-def VGGBackboneBuilder(
-    model_version,
-    model_architecture,
-    include_rescaling,
-    classes,
-    input_shape=(224, 224, 3),
-    include_imagenet_weights=False,
+def vgg_backbone_builder(
+    backbone, model_architecture, input_shape=(None, None, 3), input_tensor=None
 ):
     """Utility function to build the backbone of the FCN with variants of the VGG model.
 
     Args:
-        model_version: str, one of 'vgg16' or 'vgg19'. Defines which model to use as the backbone base.
+        backbone_name: str, one of 'vgg16' or 'vgg19'. Defines which model to use as the backbone base.
         model_architecture: str, one of 'fcn8s', 'fcn16s' or 'fcn32s'.
             Defines which architecture and sampling method should be used as detailed in the
             paper [Fully Convolutional Networks for Semantic Segmentation](https://arxiv.org/pdf/1411.4038.pdf)
-        include_rescaling: bool, one of True or False. Defines whether to use a Rescaling layer or not.
-        classes: int. Defines the number of classes for the output.
         input_shape: `list` or `tuple`. Defines the shape of the tensor to be expected as input.
 
     Returns:
         model: tf.keras.models.Model. Represents the graph of all backbone operations and outputs for the chosen architecture.
     """
-    if include_imagenet_weights:
-        weights = "imagenet"
+    vgg_model = backbone
+    if vgg_model.name == "VGG16":
+        backbone_name = "vgg16"
     else:
-        weights = None
+        backbone_name = "vgg19"
 
-    vgg_model = BACKBONE[model_version](
-        include_rescaling=include_rescaling,
-        classes=classes,
-        input_shape=input_shape,
-        include_top=True,
-        weights=weights,
-    )
-
-    x = tf.keras.Input(shape=input_shape)
+    x = utils.parse_model_inputs(input_shape=input_shape, input_tensor=input_tensor)
 
     if model_architecture == "fcn8s":
         # Made it like this, because then parameter sharing occurs to get the model parameter size to go down drastically
-        pool5 = getPoolLayers(vgg_model, BACKBONE_CONFIG[model_version]["BLOCK5"])
+        pool5 = tf.keras.Model(
+            inputs=vgg_model.layers[0].input,
+            outputs=vgg_model.get_layer(
+                BACKBONE_CONFIG[backbone_name]["BLOCK5"]
+            ).output,
+        )
 
         pool3_output, pool4_output = x, x
 
         for layer in pool5.layers:
             pool3_output = layer(pool3_output)
-            if layer.name == BACKBONE_CONFIG[model_version]["BLOCK3"]:
+            if layer.name == BACKBONE_CONFIG[backbone_name]["BLOCK3"]:
                 break
         for layer in pool5.layers:
             pool4_output = layer(pool4_output)
-            if layer.name == BACKBONE_CONFIG[model_version]["BLOCK4"]:
+            if layer.name == BACKBONE_CONFIG[backbone_name]["BLOCK4"]:
                 break
 
-        dense_convs = getDenseToConvolutionLayers(
-            model=vgg_model,
-            dense_start_id=BACKBONE_CONFIG[model_version]["DENSE_START"],
-            dense_end_id=BACKBONE_CONFIG[model_version]["DENSE_END"],
-        )
+        dense_convs = get_dense_to_convolution_layers(model=vgg_model)
         pool5_output = pool5(x)
         pool5_output = dense_convs(pool5_output)
 
@@ -167,20 +125,21 @@ def VGGBackboneBuilder(
         return model
     elif model_architecture == "fcn16s":
 
-        pool5 = getPoolLayers(vgg_model, BACKBONE_CONFIG[model_version]["BLOCK5"])
+        pool5 = tf.keras.Model(
+            inputs=vgg_model.layers[0].input,
+            outputs=vgg_model.get_layer(
+                BACKBONE_CONFIG[backbone_name]["BLOCK5"]
+            ).output,
+        )
 
         pool4_output = x
 
         for layer in pool5.layers:
             pool4_output = layer(pool4_output)
-            if layer.name == BACKBONE_CONFIG[model_version]["BLOCK4"]:
+            if layer.name == BACKBONE_CONFIG[backbone_name]["BLOCK4"]:
                 break
 
-        dense_convs = getDenseToConvolutionLayers(
-            model=vgg_model,
-            dense_start_id=BACKBONE_CONFIG[model_version]["DENSE_START"],
-            dense_end_id=BACKBONE_CONFIG[model_version]["DENSE_END"],
-        )
+        dense_convs = get_dense_to_convolution_layers(model=vgg_model)
         pool5_output = pool5(x)
         pool5_output = dense_convs(pool5_output)
 
@@ -191,13 +150,14 @@ def VGGBackboneBuilder(
         return model
     elif model_architecture == "fcn32s":
 
-        pool5 = getPoolLayers(vgg_model, BACKBONE_CONFIG[model_version]["BLOCK5"])
-
-        dense_convs = getDenseToConvolutionLayers(
-            model=vgg_model,
-            dense_start_id=BACKBONE_CONFIG[model_version]["DENSE_START"],
-            dense_end_id=BACKBONE_CONFIG[model_version]["DENSE_END"],
+        pool5 = tf.keras.Model(
+            inputs=vgg_model.layers[0].input,
+            outputs=vgg_model.get_layer(
+                BACKBONE_CONFIG[backbone_name]["BLOCK5"]
+            ).output,
         )
+
+        dense_convs = get_dense_to_convolution_layers(model=vgg_model)
         pool5_output = pool5(x)
         pool5_output = dense_convs(pool5_output)
 
@@ -206,42 +166,34 @@ def VGGBackboneBuilder(
         return model
 
 
-def VGGArchitectureBuilder(
-    model_version,
+def vgg_architecture_builder(
+    backbone,
     model_architecture,
-    include_rescaling,
     classes,
     input_tensor,
-    input_shape=(224, 224, 3),
-    include_imagenet_weights=False,
+    input_shape=None,
 ):
     """Main function for development and execution of full FCN model specifically for VGG-based backbones.
 
     Args:
-        model_version: str, one of 'vgg16' or 'vgg19'. Defines which model to use as the backbone base.
+        backbone: str, one of 'vgg16' or 'vgg19'. Defines which model to use as the backbone base.
         model_architecture: str, one of 'fcn8s', 'fcn16s' or 'fcn32s'.
             Defines which architecture and sampling method should be used as detailed in the
             paper [Fully Convolutional Networks for Semantic Segmentation](https://arxiv.org/pdf/1411.4038.pdf)
-        include_rescaling: bool, one of True or False. Defines whether to use a Rescaling layer or not.
         classes: int. Defines the number of classes for the output.
+        input_tensor: KerasTensor object. Defines the input `KerasTensor`.
         input_shape: `list` or `tuple`. Defines the shape of the tensor to be expected as input.
     Returns:
         model: `tf.Tensor` representing the output of the FCN model. Shape should match the
         format (input_shape[1], input_shape[2], classes)
 
     """
-    if model_version not in ["vgg16", "vgg19"]:
-        raise ValueError(
-            "Chosen `backbone` argument is not a valid allowed backbone. Possible options are ['vgg16', 'vgg19']"
-        )
     if model_architecture == "fcn8s":
-        backbone = VGGBackboneBuilder(
-            model_version=model_version,
-            include_rescaling=include_rescaling,
-            classes=classes,
+        backbone = vgg_backbone_builder(
+            backbone=backbone,
             input_shape=input_shape,
             model_architecture="fcn8s",
-            include_imagenet_weights=include_imagenet_weights,
+            input_tensor=input_tensor,
         )
         backbone_output = backbone(input_tensor)
         pool3, pool4, pool5 = (
@@ -275,14 +227,18 @@ def VGGArchitectureBuilder(
         )(pool5)
 
         pool5_upsampling = tf.keras.layers.UpSampling2D(
-            size=(2, 2), data_format="channels_last", interpolation="bilinear"
+            size=(2, 2),
+            data_format=tf.keras.backend.image_data_format(),
+            interpolation="bilinear",
         )
         pool5 = pool5_upsampling(pool5)
 
         intermediate_pool_output = tf.keras.layers.Add()([pool4, pool5])
 
         intermediate_pool_output = tf.keras.layers.UpSampling2D(
-            size=(2, 2), data_format="channels_last", interpolation="bilinear"
+            size=(2, 2),
+            data_format=tf.keras.backend.image_data_format(),
+            interpolation="bilinear",
         )(intermediate_pool_output)
 
         final_pool_output = tf.keras.layers.Add()([pool3, intermediate_pool_output])
@@ -296,7 +252,9 @@ def VGGArchitectureBuilder(
         )
 
         output_upsample_layer = tf.keras.layers.UpSampling2D(
-            size=(8, 8), data_format="channels_last", interpolation="bilinear"
+            size=(8, 8),
+            data_format=tf.keras.backend.image_data_format(),
+            interpolation="bilinear",
         )
 
         final_output = output_conv_layer(final_pool_output)
@@ -305,13 +263,11 @@ def VGGArchitectureBuilder(
         return final_output
 
     elif model_architecture == "fcn16s":
-        backbone = VGGBackboneBuilder(
-            model_version=model_version,
-            include_rescaling=include_rescaling,
-            classes=classes,
+        backbone = vgg_backbone_builder(
+            backbone=backbone,
             input_shape=input_shape,
             model_architecture="fcn16s",
-            include_imagenet_weights=include_imagenet_weights,
+            input_tensor=input_tensor,
         )
         backbone_output = backbone(input_tensor)
         pool4, pool5 = backbone_output["pool4"], backbone_output["pool5"]
@@ -333,7 +289,9 @@ def VGGArchitectureBuilder(
         )(pool5)
 
         pool5_upsampling = tf.keras.layers.UpSampling2D(
-            size=(2, 2), data_format="channels_last", interpolation="bilinear"
+            size=(2, 2),
+            data_format=tf.keras.backend.image_data_format(),
+            interpolation="bilinear",
         )
         pool5 = pool5_upsampling(pool5)
 
@@ -348,7 +306,9 @@ def VGGArchitectureBuilder(
         )
 
         output_upsample_layer = tf.keras.layers.UpSampling2D(
-            size=(16, 16), data_format="channels_last", interpolation="bilinear"
+            size=(16, 16),
+            data_format=tf.keras.backend.image_data_format(),
+            interpolation="bilinear",
         )
 
         final_output = output_conv_layer(final_pool_output)
@@ -357,13 +317,11 @@ def VGGArchitectureBuilder(
         return final_output
 
     elif model_architecture == "fcn32s":
-        backbone = VGGBackboneBuilder(
-            model_version=model_version,
-            include_rescaling=include_rescaling,
-            classes=classes,
+        backbone = vgg_backbone_builder(
+            backbone=backbone,
             input_shape=input_shape,
             model_architecture="fcn32s",
-            include_imagenet_weights=include_imagenet_weights,
+            input_tensor=input_tensor,
         )
         backbone_output = backbone(input_tensor)
         pool5 = backbone_output["pool5"]
@@ -377,7 +335,9 @@ def VGGArchitectureBuilder(
         )(pool5)
 
         pool5_upsampling = tf.keras.layers.UpSampling2D(
-            size=(32, 32), data_format="channels_last", interpolation="bilinear"
+            size=(32, 32),
+            data_format=tf.keras.backend.image_data_format(),
+            interpolation="bilinear",
         )
 
         output_conv_layer = tf.keras.layers.Conv2D(
@@ -394,9 +354,9 @@ def VGGArchitectureBuilder(
         return final_output
 
 
-def CustomArchitectureBuilder(model):
+def custom_architecture_builder(model):
     """Utility function to parse a tf.keras.Model structure and get a FCN backbone from it.
-        It maps all Conv2D and MaxPooling layers directly as a 1-to-1 port, while it
+        It maps all layers directly as a 1-to-1 port, while it
         converts all Dense layers into 1x1 Conv2D layers.
 
     Args:
@@ -409,47 +369,32 @@ def CustomArchitectureBuilder(model):
         It has undefined behaviour for ResNet-style, skip-connection based models.
     """
     layer_list = []
-    dense_units_list = []
     # Design choice : Either fully reject, or pick up only Conv2D and MaxPooling2D layers
     # and convert Dense to Conv in `build()`
     # Possible edge case : ResNets
-    # Current design allows a simple CNN with Conv2D, MaxPooling2D and Dense layers only,
+    # Current design allows a simple sequential model only,
     # to be parsed and made into a FCN directly.
     for i in model.layers:
-        if isinstance(i, tf.keras.layers.Conv2D) or isinstance(
-            i, tf.keras.layers.MaxPooling2D
-        ):
+        if not isinstance(i, tf.keras.layers.Dense):
             layer_list.append(i)
         elif isinstance(i, tf.keras.layers.Dense):
-            dense_units_list.append(i.units)
-            dense_convs = [
-                tf.keras.layers.Conv2D(
-                    filters=filters,
-                    kernel_size=(1, 1),
-                    strides=(1, 1),
-                    activation="relu",
-                    padding="same",
-                )
-                for filters in dense_units_list
-            ]
-            layer_list.append(*dense_convs)
+            filters = i.units
+            layer = tf.keras.layers.Conv2D(
+                filters=filters,
+                kernel_size=(1, 1),
+                strides=(1, 1),
+                activation="relu",
+                padding="same",
+            )
+            layer_list.append(layer)
     if len(layer_list) == 0:
         raise ValueError(
-            "Entered `backbone` argument does not have any Conv2D or MaxPooling layers. Include a `tf.keras.models.Model` with `keras.layers.Conv2D` or `keras.layers.MaxPooling2D` layers"
-        )
-    if not all(
-        isinstance(layer, tf.keras.layers.Conv2D)
-        or isinstance(layer, tf.keras.layers.MaxPooling2D)
-        or isinstance(layer, tf.keras.layers.Dense)
-        for layer in layer_list
-    ):
-        raise ValueError(
-            "Entered `backbone` argument has custom layers. Include a `tf.keras.models.Model` with `tf.keras.layers.Conv2D`, `tf.keras.layers.Dense` or `tf.keras.layers.MaxPooling2D` layers only."
+            "Entered `backbone` argument does not have any layers. Include a `tf.keras.models.Model` with `keras.layers.*` layers"
         )
     return tf.keras.Sequential(layer_list)
 
 
-class FCN(tf.keras.models.Model):
+class FullyConvolutionalNetwork(tf.keras.models.Model):
     """A segmentation model based on the [Fully Convolutional Networks for Semantic Segmentation](https://arxiv.org/pdf/1411.4038.pdf) paper introduced by Long et. al.
 
     Args:
@@ -459,9 +404,8 @@ class FCN(tf.keras.models.Model):
             [0, classes).
         backbone: a backbone network for the model. Can be a `tf.keras.models.Model`
             instance. The supported pre-defined backbone models are:
-            1. "vgg16", a VGG16 model
-            2. "vgg19", a VGG19 model
-            Defaults to 'vgg16'.
+            1. A `keras_cv.models.VGG16` model
+            2. A `keras_cv.models.VGG19` model
             Note: If a custom `tf.keras.models.Model` is passed, then only the
             `Conv2D`, `MaxPooling2D` and `Dense` layers are extracted from it
             to make the custom backbone.
@@ -471,14 +415,10 @@ class FCN(tf.keras.models.Model):
             1. 'fcn8s', a FCN-8S definition
             2. 'fcn16s', a FCN-16S definition
             3. 'fcn32s', a FCN-32S definition
-            Defaults to 'fcn8s'.
         input_shape: `list` or `tuple`. Defines the shape of the tensor to be expected as input.
-        include_rescaling: bool, one of True or False. Defines whether to use a Rescaling layer or not.
+        input_tensor: KerasTensor object. Defines the input `KerasTensor`.
         return_mask: bool, one of True or False. Returns a 1-channel result instead of a
             num_classes-channel result.
-        return_dtype: `tf.dtypes`. Return results in the chosen dtype. Defaults to tf.float32
-        include_imagenet_weights: bool, one of True or False. Defines whether to use
-            original ImageNet weights for VGG backbones.
     """
 
     def __init__(
@@ -486,25 +426,61 @@ class FCN(tf.keras.models.Model):
         classes,
         backbone,
         model_architecture=None,
-        input_shape=(224, 224, 3),
-        include_rescaling=False,
+        input_shape=None,
+        input_tensor=None,
         return_mask=False,
-        return_dtype=tf.float32,
-        include_imagenet_weights=False,
     ):
-
-        if isinstance(backbone, tf.keras.models.Model):
-            if model_architecture is not None:
+        if backbone.name == "VGG16" or backbone.name == "VGG19":
+            # Cannot run `isinstance` check as VGG16 and VGG19 are only functions and not classes.
+            if model_architecture not in ["fcn8s", "fcn16s", "fcn32s"]:
                 raise ValueError(
-                    "`model_architecture` cannot be set if `backbone` is not in ['vgg16', 'vgg19']. Either set `backbone` to one of the accepted values or remove the `model_architecture` argument."
-                )
-            if include_imagenet_weights:
-                raise ValueError(
-                    """`include_imagenet_weights` cannot be set if `backbone` is not in ['vgg16', 'vgg19']. Either set `backbone` to one of the accepted values or remove the
-                    `include_imagenet_weights` argument."""
+                    "Invalid argument for parameter `model_architecture`. Accepted values are ['fcn8s', 'fcn16s', 'fcn32s']"
                 )
             else:
-                backbone = CustomArchitectureBuilder(backbone)
+                if len(input_shape) != 4:
+                    input_tensor = utils.parse_model_inputs(input_shape, input_tensor)
+                else:
+                    input_tensor = tf.keras.layers.Input(
+                        shape=(input_shape[1], input_shape[2], input_shape[3])
+                    )
+                output_tensor = vgg_architecture_builder(
+                    classes=classes,
+                    backbone=backbone,
+                    model_architecture=model_architecture,
+                    input_tensor=input_tensor,
+                    input_shape=input_shape,
+                )
+
+                data_format = tf.keras.backend.image_data_format()
+                if return_mask:
+                    if data_format == "channels_last":
+                        output_tensor = tf.math.argmax(output_tensor, axis=3)
+                        output_tensor = tf.expand_dims(output_tensor, axis=3)
+                    else:
+                        output_tensor = tf.math.argmax(output_tensor, axis=1)
+                        output_tensor = tf.expand_dims(output_tensor, axis=1)
+
+                output_tensor = tf.cast(output_tensor, tf.dtypes.float32)
+
+                super().__init__(
+                    inputs={"input_tensor": input_tensor},
+                    outputs={"output_tensor": output_tensor},
+                )
+        elif isinstance(backbone, tf.keras.models.Model) or isinstance(
+            backbone, tf.keras.Functional
+        ):
+            if model_architecture is not None:
+                raise ValueError(
+                    "`model_architecture` cannot be set if `backbone` is not a `keras_cv.models.VGG16` or `keras_cv.models.VGG19`. Either set `backbone` to one of the accepted values or remove the `model_architecture` argument."
+                )
+            else:
+                if len(input_shape) != 4:
+                    input_tensor = utils.parse_model_inputs(input_shape, input_tensor)
+                else:
+                    input_tensor = tf.keras.layers.Input(
+                        shape=(input_shape[1], input_shape[2], input_shape[3])
+                    )
+                backbone = custom_architecture_builder(backbone)
                 classes_conv = tf.keras.layers.Conv2D(
                     filters=classes,
                     kernel_size=(1, 1),
@@ -513,80 +489,61 @@ class FCN(tf.keras.models.Model):
                     activation="softmax",
                 )
 
-                input_tensor = tf.keras.Input(input_shape)
-                if include_rescaling:
-                    x = Rescaling(scale=1.0 / 255)(input_tensor)
-                    x = backbone(x)
-                else:
-                    x = backbone(input_tensor)
+                input_shape = input_tensor.shape
+
+                x = backbone(input_tensor)
 
                 output_shape = x.shape
 
-                target_height_factor = input_shape[0] // output_shape[1]
-                target_width_factor = input_shape[1] // output_shape[2]
+                if input_shape[0] is None and input_shape[1] is None:
+                    if None in backbone.input.shape:
+                        raise ValueError(
+                            f"No `input_shape` argument available to model. `input_shape` received by `FullyConvolutionalNetwork` is {input_shape} and `input_shape` passed to backbone is {backbone.input.shape}"
+                        )
+                    else:
+                        input_shape = backbone.input.shape
+
+                print(input_shape)
+                target_height_factor = input_shape[1] // output_shape[1]
+                target_width_factor = input_shape[2] // output_shape[2]
+
+                data_format = tf.keras.backend.image_data_format()
 
                 upscale = tf.keras.layers.UpSampling2D(
                     size=(target_height_factor, target_width_factor),
-                    data_format="channels_last",
+                    data_format=data_format,
                     interpolation="bilinear",
                 )
 
                 x = classes_conv(x)
                 output_tensor = upscale(x)
-                if return_mask:
-                    # Assumes channels_last
-                    output_tensor = tf.math.argmax(output_tensor, axis=3)
-                    output_tensor = tf.expand_dims(output_tensor, axis=3)
 
-                if return_dtype != output_tensor.dtype:
-                    output_tensor = tf.cast(output_tensor, return_dtype)
+                if return_mask:
+                    if data_format == "channels_last":
+                        output_tensor = tf.math.argmax(output_tensor, axis=3)
+                        output_tensor = tf.expand_dims(output_tensor, axis=3)
+                    else:
+                        output_tensor = tf.math.argmax(output_tensor, axis=1)
+                        output_tensor = tf.expand_dims(output_tensor, axis=1)
+
+                output_tensor = tf.cast(output_tensor, tf.float32)
 
                 super().__init__(
-                    inputs={"input_tensor": input_tensor}, outputs=[output_tensor]
+                    inputs={"input_tensor": input_tensor},
+                    outputs={"output_tensor": output_tensor},
                 )
 
                 self.classes = classes
                 self.model_architecture = "custom"
-                self.include_rescaling = include_rescaling
                 self.upscale = upscale
                 self.backbone = backbone
                 self.classes_conv = classes_conv
                 self.target_height_factor = target_height_factor
                 self.target_width_factor = target_width_factor
-                self.return_dtype = return_dtype
                 self.return_mask = return_mask
-        elif isinstance(backbone, str):
-            if model_architecture not in ["fcn8s", "fcn16s", "fcn32s"]:
-                raise ValueError(
-                    "Invalid argument for parameter `model_architecture`. Accepted values are ['fcn8s', 'fcn16s', 'fcn32s']"
-                )
-            else:
-                input_tensor = tf.keras.Input(shape=input_shape)
-                output_tensor = VGGArchitectureBuilder(
-                    classes=classes,
-                    model_version=backbone,
-                    model_architecture=model_architecture,
-                    include_rescaling=include_rescaling,
-                    input_tensor=input_tensor,
-                    input_shape=input_shape,
-                    include_imagenet_weights=include_imagenet_weights,
-                )
-                if return_mask:
-                    # Assumes channels_last
-                    output_tensor = tf.math.argmax(output_tensor, axis=3)
-                    output_tensor = tf.expand_dims(output_tensor, axis=3)
-
-                if return_dtype != output_tensor.dtype:
-                    output_tensor = tf.cast(output_tensor, return_dtype)
-
-                super().__init__(
-                    inputs={"input_tensor": input_tensor},
-                    outputs=[output_tensor],
-                )
         else:
             raise ValueError(
-                """Invalid argument for parameter `backbone`. Accepted values are ['vgg16', 'vgg19'] or a `tf.keras.models.Model`
-                instance with only `tf.keras.layers.Conv2D`, 'tf.keras.layers.MaxPooling2D' or `tf.keras.layers.Dense` layers"""
+                "Invalid argument for parameter `backbone`. Accepted values are a `keras_cv.models.*`, `tf.keras.models.Model` or pre-supported `keras_cv.models.VGG16`/`keras_cv.models.VGG19`"
             )
 
     def get_config(self):
@@ -603,75 +560,59 @@ class FCN(tf.keras.models.Model):
 
 
 def FCN8S(
-    classes,
-    include_rescaling,
-    backbone,
-    return_mask=False,
-    input_shape=(224, 224, 3),
-    return_dtype=tf.float32,
-    include_imagenet_weights=False,
+    classes, backbone, return_mask=False, input_shape=(None, None, 3), input_tensor=None
 ):
-    if not isinstance(backbone, str) or backbone not in ["vgg16", "vgg19"]:
-        raise ValueError(
-            "Invalid argument for parameter `backbone`. Accepted values are ['vgg16', 'vgg19']."
-        )
-    return FCN(
+    if input_shape == (None, None, 3):
+        input_shape = backbone.layers[0].input.shape
+    return FullyConvolutionalNetwork(
         classes=classes,
         input_shape=input_shape,
-        include_rescaling=include_rescaling,
         backbone=backbone,
         model_architecture="fcn8s",
         return_mask=return_mask,
-        return_dtype=return_dtype,
-        include_imagenet_weights=include_imagenet_weights,
+        input_tensor=input_tensor,
     )
 
 
 def FCN16S(
-    classes,
-    include_rescaling,
-    backbone,
-    return_mask=False,
-    input_shape=(224, 224, 3),
-    return_dtype=tf.float32,
-    include_imagenet_weights=False,
+    classes, backbone, return_mask=False, input_shape=(None, None, 3), input_tensor=None
 ):
-    if not isinstance(backbone, str) or backbone not in ["vgg16", "vgg19"]:
-        raise ValueError(
-            "Invalid argument for parameter `backbone`. Accepted values are ['vgg16', 'vgg19']."
-        )
-    return FCN(
+    if input_shape == (None, None, 3):
+        input_shape = backbone.layers[0].input.shape
+    return FullyConvolutionalNetwork(
         classes=classes,
         input_shape=input_shape,
-        include_rescaling=include_rescaling,
         backbone=backbone,
         model_architecture="fcn16s",
         return_mask=return_mask,
-        return_dtype=return_dtype,
-        include_imagenet_weights=include_imagenet_weights,
+        input_tensor=input_tensor,
     )
 
 
 def FCN32S(
-    classes,
-    include_rescaling,
-    backbone,
-    return_mask=False,
-    input_shape=(224, 224, 3),
-    return_dtype=tf.float32,
-    include_imagenet_weights=False,
+    classes, backbone, return_mask=False, input_shape=(None, None, 3), input_tensor=None
 ):
-    if not isinstance(backbone, str) or backbone not in ["vgg16", "vgg19"]:
-        raise ValueError(
-            "Invalid argument for parameter `backbone`. Accepted values are ['vgg16', 'vgg19']."
-        )
-    return FCN(
+    if input_shape == (None, None, 3):
+        input_shape = backbone.layers[0].input.shape
+    return FullyConvolutionalNetwork(
         classes=classes,
         input_shape=input_shape,
-        include_rescaling=include_rescaling,
         backbone=backbone,
         model_architecture="fcn32s",
         return_mask=return_mask,
-        return_dtype=return_dtype,
-        include_imagenet_weights=include_imagenet_weights,
+        input_tensor=input_tensor,
+    )
+
+
+def FCN(
+    classes, backbone, return_mask=False, input_shape=(None, None, 3), input_tensor=None
+):
+    if input_shape == (None, None, 3):
+        input_shape = backbone.layers[0].input.shape
+    return FullyConvolutionalNetwork(
+        classes=classes,
+        backbone=backbone,
+        input_shape=input_shape,
+        return_mask=return_mask,
+        input_tensor=input_tensor,
     )
