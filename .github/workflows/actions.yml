@@ -128,16 +128,24 @@ jobs:
         python -m pip uninstall -y tensorflow-cpu
         python -m pip install --platform=macosx_12_0_arm64 --no-deps --target=$(python -c 'import site; print(site.getsitepackages()[0])') --upgrade tensorflow-macos==${{ matrix.tf-version }}
     - name: Bazel Build
-      if: ${{ ! matrix.use-macos-arm}}
+      if: ${{ ! matrix.use-macos-arm && matrix.os != 'ubuntu-18.04'}}
       run: |
         bazel build build_pip_pkg
     - name: Bazel Build (MacOS ARM)
       if: ${{ matrix.use-macos-arm}}
       run: |
         bazel build --cpu=darwin_arm64 --copt -mmacosx-version-min=12.0 --linkopt -mmacosx-version-min=12.0 build_pip_pkg
+    - name: Bazel Build (ManyLinux)
+      if: ${{ matrix.os == 'ubuntu-18.04'}}
+      run: |
+        bazel build --crosstool_top=@ubuntu20.04-gcc9_manylinux2014-cuda11.2-cudnn8.1-tensorrt7.2_config_cuda//crosstool:toolchain build_pip_pkg
     - name: Build wheels
       run: |
         bazel-bin/build_pip_pkg wheels
+    - name: Repair wheels (manylinux)
+      if: ${{ matrix.os == 'ubuntu-18.04' }}
+      run: |
+        python -m auditwheel repair --plat manylinux2014_x86_64 artifacts/*.whl
     - name: Upload wheels
       env:
         TWINE_USERNAME: ${{ secrets.PYPI_USERNAME }}
