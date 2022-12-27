@@ -606,6 +606,7 @@ def FCN32S(
 ):
     if input_shape == (None, None, 3):
         input_shape = backbone.layers[0].input.shape
+        
     return FullyConvolutionalNetwork(
         classes=classes,
         input_shape=input_shape,

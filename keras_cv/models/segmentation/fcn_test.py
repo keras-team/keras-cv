@@ -43,9 +43,9 @@ class FCNTest(tf.test.TestCase):
         output_fcn16s = model_fcn16s(input_image)
         output_fcn32s = model_fcn32s(input_image)
 
-        self.assertEquals(output_fcn8s['output_tensor'], (2, 64, 64, 11))
-        self.assertEquals(output_fcn16s['output_tensor'], (2, 64, 64, 11))
-        self.assertEquals(output_fcn32s['output_tensor'], (2, 64, 64, 11))
+        self.assertEquals(output_fcn8s['output_tensor'].shape, (2, 64, 64, 11))
+        self.assertEquals(output_fcn16s['output_tensor'].shape, (2, 64, 64, 11))
+        self.assertEquals(output_fcn32s['output_tensor'].shape, (2, 64, 64, 11))
 
     def test_fcn_model_with_vgg19_backbone_construction_with_preconfigured_setting(
         self,
@@ -68,82 +68,30 @@ class FCNTest(tf.test.TestCase):
         output_fcn16s = model_fcn16s(input_image)
         output_fcn32s = model_fcn32s(input_image)
 
-        self.assertEquals(output_fcn8s.shape, [2, 64, 64, 11])
-        self.assertEquals(output_fcn16s.shape, [2, 64, 64, 11])
-        self.assertEquals(output_fcn32s.shape, [2, 64, 64, 11])
-
-    def test_fcn_model_with_vgg16_components(self):
-        backbone = models.VGG16(include_rescaling=True, include_top=False)
-        print(type(backbone))
-        model = FCN(classes=11, backbone=backbone, input_shape=(64, 64, 3))
-
-        input_image = tf.random.uniform(shape=[2, 64, 64, 3])
-        output = model(input_image)
-
-        self.assertEquals(output.shape, [2, 64, 64, 11])
-
-    def test_fcn_model_with_vgg19_components(self):
-        backbone = models.VGG19(include_rescaling=False, include_top=False)
-        print(type(backbone))
-        model = FCN(classes=11, backbone=backbone, input_shape=(64, 64, 3))
-
-        input_image = tf.random.uniform(shape=[2, 64, 64, 3])
-        output = model(input_image)
-
-        self.assertEquals(output.shape, [2, 64, 64, 11])
+        self.assertEquals(output_fcn8s['output_tensor'].shape, (2, 64, 64, 11))
+        self.assertEquals(output_fcn16s['output_tensor'].shape, (2, 64, 64, 11))
+        self.assertEquals(output_fcn32s['output_tensor'].shape, (2, 64, 64, 11))
 
     def test_mixed_precision(self):
         tf.keras.mixed_precision.set_global_policy("mixed_float16")
-        model = FCN(
+        vgg16 = models.VGG16(include_rescaling=False, include_top=False, input_shape=(64, 64, 3))
+        model = FCN8S(
             classes=11,
-            backbone="vgg16",
-            model_architecture="fcn8s",
-            input_shape=(64, 64, 3),
+            backbone=vgg16,
         )
         input_image = tf.random.uniform(shape=[2, 64, 64, 3])
         output = model(input_image)
 
-        self.assertEquals(output.dtype, tf.float32)
+        self.assertEquals(output['output_tensor'].dtype, tf.float32)
 
     def test_invalid_backbone_model(self):
         with self.assertRaisesRegex(
             ValueError,
-            r"Chosen `backbone` argument is not a valid allowed backbone. Possible options are ['vgg16', 'vgg19']",
+            r"`model_architecture` cannot be set if `backbone` is not a `keras_cv.models.VGG16` or `keras_cv.models.VGG19`. Either set `backbone` to one of the accepted values or remove the `model_architecture` argument.",
         ):
-            FCN(
-                classes=11,
-                backbone="resnet",
-                model_architecture="fcn8s",
-                input_shape=(256, 256, 3),
-            )
-        with self.assertRaisesRegex(
-            ValueError,
-            r"Invalid argument for parameter `backbone`. Accepted values are ['vgg16', 'vgg19'] or a `tf.keras.models.Model` instance with only `tf.keras.layers.Conv2D`, 'tf.keras.layers.MaxPooling2D' or `tf.keras.layers.Dense` layers",
-        ):
-            FCN(classes=11, backbone=tf.Module(), model_architecture="fcn8s")
-        with self.assertRaisesRegex(
-            ValueError,
-            r"Entered `backbone` argument has custom layers. Include a `tf.keras.models.Model` with `keras.layers.Conv2D` or `keras.layers.MaxPooling2D` layers only.",
-        ):
-            input_tensor = tf.keras.Input(shape=(256, 256, 3))
-            output_tensor = tf.keras.layers.AveragePooling2D(input_tensor)
-            backbone_model = tf.keras.Model(inputs=input_tensor, outputs=output_tensor)
-            FCN(
-                classes=11,
-                backbone=backbone_model,
-            )
+            resnet = models.ResNet50(include_rescaling=False, include_top=False, input_shape=(64, 64, 3))
+            FCN8S(classes=11,backbone=resnet)
 
-    def test_invalid_model_architecture(self):
-        with self.assertRaisesRegex(
-            ValueError,
-            r"Invalid argument for parameter `model_architecture`. Accepted values are ['fcn8s', 'fcn16s', 'fcn32s']",
-        ):
-            FCN(
-                classes=11,
-                backbone="vgg16",
-                model_architecture="fcn10s",
-                input_shape=(256, 256, 3),
-            )
 
     @pytest.mark.skipif(
         "INTEGRATION" not in os.environ or os.environ["INTEGRATION"] != "true",
@@ -152,7 +100,11 @@ class FCNTest(tf.test.TestCase):
         "`INTEGRATION=true pytest keras_cv/",
     )
     def test_model_train(self):
-        model = FCN(classes=11, backbone="vgg16", model_architecture="fcn8s")
+        vgg16 = models.VGG16(include_rescaling=False, include_top=False, input_shape=(64, 64, 3))
+        model = FCN8S(
+            classes=11,
+            backbone=vgg16,
+        )
 
         gcs_data_pattern = "gs://caltech_birds2011_mask/0.1.1/*.tfrecord*"
         features = tfds.features.FeaturesDict(
