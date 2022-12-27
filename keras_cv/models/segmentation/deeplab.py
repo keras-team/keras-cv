@@ -24,7 +24,9 @@ from keras_cv.models.weights import parse_weights
 @keras.utils.register_keras_serializable(package="keras_cv")
 class DeepLabV3(keras.Model):
     """
-    A segmentation model based on the DeepLab v3.
+    A segmentation model based on the DeepLabV3
+        References:
+        - [Rethinking Atrous Convolution for Semantic Image Segmentation](https://arxiv.org/abs/1706.05587)
 
     Args:
         classes: int, the number of classes for the detection model. Note that

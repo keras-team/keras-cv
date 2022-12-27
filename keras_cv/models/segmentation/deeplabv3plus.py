@@ -25,6 +25,8 @@ from keras_cv.models.weights import parse_weights
 class DeepLabV3Plus(keras.Model):
     """
     A segmentation model based on the DeepLabV3Plus model.
+    References:
+        - [Encoder-Decoder with Atrous Separable Convolution for Semantic Image Segmentation](https://arxiv.org/abs/1802.02611)
 
     Args:
         classes: int, the number of classes for the detection model. Note that
