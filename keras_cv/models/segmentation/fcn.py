@@ -466,6 +466,16 @@ class FullyConvolutionalNetwork(tf.keras.models.Model):
                     inputs={"input_tensor": input_tensor},
                     outputs={"output_tensor": output_tensor},
                 )
+
+                self.classes = classes
+                self.model_architecture = model_architecture
+                self.upscale = upscale
+                self.backbone = backbone
+                self.classes_conv = classes_conv
+                self.target_height_factor = target_height_factor
+                self.target_width_factor = target_width_factor
+                self.return_mask = return_mask
+
         elif isinstance(backbone, tf.keras.models.Model) or isinstance(
             backbone, tf.keras.Functional
         ):
