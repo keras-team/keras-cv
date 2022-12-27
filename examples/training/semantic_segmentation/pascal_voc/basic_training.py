@@ -63,18 +63,19 @@ flags.DEFINE_string(
 
 FLAGS = flags.FLAGS
 FLAGS(sys.argv)
-
-if FLAGS.mixed_precision:
-    logging.info("mixed precision training enabled")
-    tf.keras.mixed_precision.set_global_policy("mixed_float16")
-
 # Try to detect an available TPU. If none is present, default to MirroredStrategy
 try:
     tpu = tf.distribute.cluster_resolver.TPUClusterResolver.connect()
     strategy = tf.distribute.TPUStrategy(tpu)
+    if FLAGS.use_mixed_precision:
+        logging.info("Mixed precision training enabled")
+        tf.keras.mixed_precision.set_global_policy("mixed_bfloat16")
 except ValueError:
     # MirroredStrategy is best for a single machine with one or multiple GPUs
     strategy = tf.distribute.MirroredStrategy()
+    if FLAGS.use_mixed_precision:
+        logging.info("Mixed precision training enabled")
+        tf.keras.mixed_precision.set_global_policy("mixed_float16")
 print("Number of accelerators: ", strategy.num_replicas_in_sync)
 
 # parameters from FasterRCNN [paper](https://arxiv.org/pdf/1506.01497.pdf)
