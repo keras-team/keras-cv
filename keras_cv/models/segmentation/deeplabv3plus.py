@@ -113,7 +113,7 @@ class DeepLabV3Plus(keras.Model):
         if spatial_pyramid_pooling is None:
             spatial_pyramid_pooling = SpatialPyramidPooling(dilation_rates=[6, 12, 18])
 
-        output = spatial_pyramid_pooling(high_level)
+        output = spatial_pyramid_pooling(_)
         output = tf.keras.layers.UpSampling2D(
             size=(4, 4),
             interpolation="bilinear",
