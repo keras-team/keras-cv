@@ -21,7 +21,7 @@ from absl import logging
 import keras_cv
 import keras_cv.layers.preprocessing as preprocessing
 from keras_cv.datasets.pascal_voc.segmentation import load
-from keras_cv.models.segmentation.fcn import FCN8S
+from keras_cv.models.segmentation.fcn import FCN8S, FCN16S, FCN32S
 
 flags.DEFINE_string(
     "weights_path",
