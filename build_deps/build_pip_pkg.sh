@@ -68,6 +68,7 @@ function main() {
 
   echo "=== Copy KerasCV Custom op files"
 
+  cp ${PIP_FILE_PREFIX}setup.cfg "${TMPDIR}"
   cp ${PIP_FILE_PREFIX}setup.py "${TMPDIR}"
   cp ${PIP_FILE_PREFIX}MANIFEST.in "${TMPDIR}"
   cp ${PIP_FILE_PREFIX}README.md "${TMPDIR}"
