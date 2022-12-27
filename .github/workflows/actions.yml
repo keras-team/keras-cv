@@ -71,9 +71,9 @@ jobs:
         pip install -e ".[tests]" --progress-bar off --upgrade
     - name: Lint
       run: bash shell/lint.sh
-  deploy:
-    name: Build and deploy release wheels
-    if: github.event_name == 'release' && github.event.action == 'created'
+  deploy-with-custom-ops:
+    name: Build and deploy release wheels with custom ops
+    #if: github.event_name == 'release' && github.event.action == 'created'
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -143,4 +143,26 @@ jobs:
         TWINE_USERNAME: ${{ secrets.PYPI_USERNAME }}
         TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
       run: |
-        twine upload wheels/*
+        ls wheels/
+      # twine upload wheels/*
+  deploy-without-custom-ops:
+    name: Build and deploy release wheels without custom ops
+    #if: github.event_name == 'release' && github.event.action == 'created'
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Python
+      uses: actions/setup-python@v1
+      with:
+        python-version: 3.7
+    - name: Build wheels
+      run: |
+        export BUILD_WITH_CUSTOM_OPS=false
+        python setup.py sdist bdist_wheel
+    - name: Upload wheels
+      env:
+        TWINE_USERNAME: ${{ secrets.PYPI_USERNAME }}
+        TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
+      run: |
+        ls dist/
+      #twine upload dist/*
