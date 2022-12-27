@@ -56,6 +56,12 @@ flags.DEFINE_string(
     "The model name to be trained",
 )
 
+flags.DEFINE_string(
+    "model_kwargs",
+    "{}",
+    "Keyword argument dictionary to pass to the constructor of the model being trained",
+)
+
 FLAGS = flags.FLAGS
 FLAGS(sys.argv)
 
