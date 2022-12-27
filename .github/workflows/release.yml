@@ -1,0 +1,109 @@
+name: Release
+
+on:
+  release:
+    types: [published]
+jobs:
+  deploy-with-custom-ops:
+    name: Build and deploy release wheels with custom ops
+    if: github.event_name == 'release' && github.event.action == 'created'
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        # To switch on windows-2022/latest, please verify the bazel version:
+        # https://github.com/bazelbuild/bazel/issues/14232#issuecomment-1011247429
+        os: ['macos-12', 'windows-2019', 'ubuntu-18.04']
+        py-version: ['3.7', '3.8', '3.9', '3.10']
+        tf-version: ['2.11.0']
+        use-macos-arm: [false]
+        include:
+          - os: 'macos-12'
+            tf-version: '2.11.0'
+            py-version: '3.8'
+            use-macos-arm: true
+          - os: 'macos-12'
+            tf-version: '2.11.0'
+            py-version: '3.9'
+            use-macos-arm: true
+          - os: 'macos-12'
+            tf-version: '2.11.0'
+            py-version: '3.10'
+            use-macos-arm: true
+      fail-fast: false
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Python
+      uses: actions/setup-python@v1
+      with:
+        python-version: ${{ matrix.py-version }}
+    - name: Get pip cache dir
+      id: pip-cache
+      run: |
+        python -m pip install --upgrade pip setuptools wheel auditwheel twine
+        echo "::set-output name=dir::$(pip cache dir)"
+    - name: pip cache
+      uses: actions/cache@v2
+      with:
+        path: ${{ steps.pip-cache.outputs.dir }}
+        key: ${{ runner.os }}-pip-${{ hashFiles('setup.py') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
+    - name: Install dependencies
+      run: |
+        python -m pip install tensorflow-cpu==${{ matrix.tf-version }}
+        python -m pip install -e ".[tests]" --progress-bar off --upgrade
+    - name: Configure Build Environment
+      run: |
+        python build_deps/configure.py
+    - name: Reinstall TensorFlow (MacOS ARM)
+      if: ${{ matrix.os == 'macos-12' && matrix.use-macos-arm}}
+      run: |
+        python -m pip uninstall -y tensorflow-cpu
+        python -m pip install --platform=macosx_12_0_arm64 --no-deps --target=$(python -c 'import site; print(site.getsitepackages()[0])') --upgrade tensorflow-macos==${{ matrix.tf-version }}
+    - name: Bazel Build
+      if: ${{ ! matrix.use-macos-arm }}
+      run: |
+        bazel build build_pip_pkg
+    - name: Bazel Build (MacOS ARM)
+      if: ${{ matrix.use-macos-arm}}
+      run: |
+        bazel build --cpu=darwin_arm64 --copt -mmacosx-version-min=12.0 --linkopt -mmacosx-version-min=12.0 build_pip_pkg
+    - name: Build wheels
+      run: |
+        bazel-bin/build_pip_pkg wheels
+    - name: Repair wheels (manylinux)
+      if: ${{ matrix.os == 'ubuntu-18.04' }}
+      run: |
+        python -m pip install --upgrade patchelf==0.14
+        bash build_deps/tf_auditwheel_patch.sh
+        python -m auditwheel repair --plat manylinux2014_x86_64 wheels/*.whl
+        rm wheels/*.whl
+        mv wheelhouse/* wheels/
+    - name: Upload wheels
+      env:
+        TWINE_USERNAME: ${{ secrets.PYPI_USERNAME }}
+        TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
+      run: |
+        twine upload wheels/*
+  deploy-without-custom-ops:
+    name: Build and deploy release wheels without custom ops
+    if: github.event_name == 'release' && github.event.action == 'created'
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Python
+      uses: actions/setup-python@v1
+      with:
+        python-version: 3.7
+    - name: Build wheels
+      run: |
+        pip install tensorflow==2.11.0
+        python -m pip install --upgrade pip setuptools wheel twine
+        export BUILD_WITH_CUSTOM_OPS=false
+        python setup.py sdist bdist_wheel
+    - name: Upload wheels
+      env:
+        TWINE_USERNAME: ${{ secrets.PYPI_USERNAME }}
+        TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
+      run: |
+        twine upload dist/*.whl
