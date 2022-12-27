@@ -5,6 +5,7 @@ sh_binary(
         "LICENSE",
         "MANIFEST.in",
         "README.md",
+        "setup.cfg",
         "setup.py",
         "//keras_cv",
     ],
