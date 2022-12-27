@@ -18,4 +18,3 @@ from keras_cv.models.segmentation.fcn import FCN
 from keras_cv.models.segmentation.fcn import FCN8S
 from keras_cv.models.segmentation.fcn import FCN16S
 from keras_cv.models.segmentation.fcn import FCN32S
-

@@ -14,7 +14,8 @@
 
 import tensorflow as tf
 
-from keras_cv.models import VGG16, VGG19
+from keras_cv.models import VGG16
+from keras_cv.models import VGG19
 from keras_cv.models import utils
 
 BACKBONE_CONFIG = {
@@ -54,23 +55,26 @@ def get_dense_to_convolution_layers(model):
     for filter_idx in range(len(units)):
         filter = units[filter_idx]
         if filter_idx == 0:
-            dense_layer = tf.keras.layers.Conv2D(
+            dense_conv = tf.keras.layers.Conv2D(
                 filters=filter,
-                kernel_size=(7, 7,),
+                kernel_size=(
+                    7,
+                    7,
+                ),
                 strides=(1, 1),
                 activation="relu",
                 padding="same",
             )
-            dense_convs.append(dense_layer)
+            dense_convs.append(dense_conv)
         else:
-            dense_layer = tf.keras.layers.Conv2D(
+            dense_conv = tf.keras.layers.Conv2D(
                 filters=filter,
                 kernel_size=(1, 1),
                 strides=(1, 1),
                 activation="relu",
                 padding="same",
             )
-            dense_convs.append(dense_layer)
+            dense_convs.append(dense_conv)
         dropout_layer = tf.keras.layers.Dropout(0.5)
         dense_convs.append(dropout_layer)
     return tf.keras.Sequential(dense_convs)
@@ -106,6 +110,7 @@ def vgg_backbone_builder(
             outputs=vgg_model.get_layer(
                 BACKBONE_CONFIG[backbone_name]["BLOCK5"]
             ).output,
+            name="internal_pool5_layers_model",
         )
 
         pool3_output, pool4_output = x, x
@@ -130,6 +135,7 @@ def vgg_backbone_builder(
                 "pool4": pool4_output,
                 "pool5": pool5_output,
             },
+            name="backbone_results_model",
         )
 
         return model
@@ -140,6 +146,7 @@ def vgg_backbone_builder(
             outputs=vgg_model.get_layer(
                 BACKBONE_CONFIG[backbone_name]["BLOCK5"]
             ).output,
+            name="internal_pool5_layers_model",
         )
 
         pool4_output = x
@@ -154,7 +161,9 @@ def vgg_backbone_builder(
         pool5_output = dense_convs(pool5_output)
 
         model = tf.keras.models.Model(
-            inputs=x, outputs={"pool4": pool4_output, "pool5": pool5_output}
+            inputs=x,
+            outputs={"pool4": pool4_output, "pool5": pool5_output},
+            name="backbone_results_model",
         )
 
         return model
@@ -165,19 +174,26 @@ def vgg_backbone_builder(
             outputs=vgg_model.get_layer(
                 BACKBONE_CONFIG[backbone_name]["BLOCK5"]
             ).output,
+            name="internal_pool5_layers_model",
         )
 
         dense_convs = get_dense_to_convolution_layers(model=vgg_model)
         pool5_output = pool5(x)
         pool5_output = dense_convs(pool5_output)
 
-        model = tf.keras.models.Model(inputs=x, outputs={"pool5": pool5_output})
+        model = tf.keras.models.Model(
+            inputs=x, outputs={"pool5": pool5_output}, name="backbone_results_model"
+        )
 
         return model
 
 
 def vgg_architecture_builder(
-    backbone, model_architecture, classes, input_tensor, input_shape=None,
+    backbone,
+    model_architecture,
+    classes,
+    input_tensor,
+    input_shape=None,
 ):
     """Main function for development and execution of full FCN model specifically for VGG-based backbones.
 
@@ -449,6 +465,7 @@ class FullyConvolutionalNetwork(tf.keras.models.Model):
                     input_tensor = tf.keras.layers.Input(
                         shape=(input_shape[1], input_shape[2], input_shape[3])
                     )
+                backbone_name = backbone.name.lower()
                 output_tensor = vgg_architecture_builder(
                     classes=classes,
                     backbone=backbone,
@@ -456,6 +473,8 @@ class FullyConvolutionalNetwork(tf.keras.models.Model):
                     input_tensor=input_tensor,
                     input_shape=input_shape,
                 )
+
+                del backbone
 
                 data_format = tf.keras.backend.image_data_format()
                 if return_mask:
@@ -474,8 +493,8 @@ class FullyConvolutionalNetwork(tf.keras.models.Model):
                 )
 
                 self.classes = classes
+                self.backbone = backbone_name
                 self.model_architecture = model_architecture
-                self.backbone = backbone
                 self.return_mask = return_mask
 
         elif isinstance(backbone, tf.keras.models.Model) or isinstance(
@@ -483,7 +502,9 @@ class FullyConvolutionalNetwork(tf.keras.models.Model):
         ):
             if model_architecture is not None:
                 raise ValueError(
-                    "`model_architecture` cannot be set if `backbone` is not a `keras_cv.models.VGG16` or `keras_cv.models.VGG19`. Either set `backbone` to one of the accepted values or remove the `model_architecture` argument."
+                    """`model_architecture` cannot be set if `backbone` is not a `keras_cv.models.VGG16` or
+                    `keras_cv.models.VGG19`. Either set `backbone` to one of the accepted values or remove
+                    the `model_architecture` argument."""
                 )
             else:
                 if len(input_shape) != 4:
@@ -510,7 +531,9 @@ class FullyConvolutionalNetwork(tf.keras.models.Model):
                 if input_shape[0] is None and input_shape[1] is None:
                     if None in backbone.input.shape:
                         raise ValueError(
-                            f"No `input_shape` argument available to model. `input_shape` received by `FullyConvolutionalNetwork` is {input_shape} and `input_shape` passed to backbone is {backbone.input.shape}"
+                            f"""No `input_shape` argument available to model. `input_shape`
+                            received by `FullyConvolutionalNetwork` is {input_shape} and
+                            `input_shape` passed to backbone is {backbone.input.shape}"""
                         )
                     else:
                         input_shape = backbone.input.shape
@@ -599,7 +622,6 @@ def FCN32S(
 ):
     if input_shape == (None, None, 3):
         input_shape = backbone.layers[0].input.shape
-
     return FullyConvolutionalNetwork(
         classes=classes,
         input_shape=input_shape,
