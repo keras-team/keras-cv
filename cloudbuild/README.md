@@ -30,14 +30,14 @@ To add a dependency for GPU tests:
 - Have a Keras team member update the Docker image for GPU tests by running the remaining steps
 - Create a `Dockerfile` with the following contents:
 ```
-FROM tensorflow/tensorflow:2.10.0-gpu
+FROM tensorflow/tensorflow:2.11.0-gpu
 RUN \
     apt-get -y update && \
     apt-get -y install openjdk-8-jdk && \
     echo "deb [arch=amd64] http://storage.googleapis.com/bazel-apt stable jdk1.8" | tee /etc/apt/sources.list.d/bazel.list && \
     curl https://bazel.build/bazel-release.pub.gpg | apt-key add
 RUN apt-get -y update
-RUN apt-get -y install bazel
+RUN apt-get -y install bazel-5.4.0
 RUN apt-get -y install git
 RUN git clone https://github.com/{path_to_keras_cv_fork}.git
 RUN cd keras-cv && git checkout {branch_name}
