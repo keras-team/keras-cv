@@ -91,7 +91,7 @@ class DeepLabV3Plus(keras.Model):
         high_level = backbone(x)
 
         if low_level_feature_layer is None:
-            if backbone.name.includes("resnet"):
+            if "resnet" in backbone.name:
                 low_level = backbone.get_layer("v2_stack_1_block4_1_relu").output
             else:
                 raise ValueError(
@@ -152,7 +152,7 @@ class DeepLabV3Plus(keras.Model):
         self.spatial_pyramid_pooling = spatial_pyramid_pooling
         self.segmentation_head = segmentation_head
         self.segmentation_head_activation = segmentation_head_activation
-        self.feature_layers = feature_layers
+        self.low_level_feature_layer = low_level_feature_layer
 
     def get_config(self):
         return {
@@ -161,7 +161,7 @@ class DeepLabV3Plus(keras.Model):
             "spatial_pyramid_pooling": self.spatial_pyramid_pooling,
             "segmentation_head": self.segmentation_head,
             "segmentation_head_activation": self.segmentation_head_activation,
-            "feature_layers": self.feature_layers,
+            "low_level_feature_layer": self.low_level_feature_layer,
         }
 
 

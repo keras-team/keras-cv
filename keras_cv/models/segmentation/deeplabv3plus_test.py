@@ -19,41 +19,56 @@ from keras_cv.models import segmentation
 
 
 class DeeplabV3PlusTest(tf.test.TestCase):
-    def test_deeplab_model_construction_with_preconfigured_setting(self):
-        model = segmentation.DeepLabV3Plus(
-            classes=11,
-            include_rescaling=True,
-            backbone="resnet101_v2",
-            input_shape=(256, 256, 3),
-        )
-        input_image = tf.random.uniform(shape=[2, 256, 256, 3])
-        output = model(input_image, training=True)
-
-        self.assertEquals(output["output"].shape, [2, 256, 256, 11])
-
     def test_deeplab_model_with_components(self):
-        backbone = models.ResNet101V2(include_rescaling=True, include_top=False)
-        model = segmentation.DeepLabV3Plus(
-            classes=11,
+        backbone = models.ResNet50V2(
             include_rescaling=True,
-            backbone=backbone,
-            feature_layers=("v2_stack_1_block4_1_relu", "v2_stack_3_block2_2_relu"),
+            stackwise_dilations=[1, 1, 1, 2],
             input_shape=(256, 256, 3),
+            include_top=False,
+            weights=None,
         )
+
+        model = segmentation.DeepLabV3Plus(classes=11, backbone=backbone)
 
         input_image = tf.random.uniform(shape=[2, 256, 256, 3])
         output = model(input_image, training=True)
 
         self.assertEquals(output["output"].shape, [2, 256, 256, 11])
+
+    def test_missing_input_shape(self):
+        with self.assertRaisesRegex(
+            ValueError,
+            "Input shapes for both the backbone and DeepLabV3Plus are `None`.",
+        ):
+            backbone = models.ResNet50V2(
+                include_rescaling=True,
+                include_top=False,
+                stackwise_dilations=[1, 1, 1, 2],
+            )
+            model = segmentation.DeepLabV3Plus(classes=11, backbone=backbone)
+
+    def test_missing_layer_name(self):
+        with self.assertRaisesRegex(
+            ValueError,
+            "You have to specify the name of the low-level layer in the "
+            "model used to extract low-level features.",
+        ):
+            backbone = models.DenseNet121(include_rescaling=True, include_top=False)
+            model = segmentation.DeepLabV3Plus(
+                classes=11,
+                backbone=backbone,
+                input_shape=(64, 64, 3),
+            )
 
     def test_mixed_precision(self):
         tf.keras.mixed_precision.set_global_policy("mixed_float16")
-        model = segmentation.DeepLabV3Plus(
-            classes=11,
+        backbone = models.ResNet50V2(
             include_rescaling=True,
-            backbone="resnet101_v2",
+            stackwise_dilations=[1, 1, 1, 2],
+            include_top=False,
             input_shape=(256, 256, 3),
         )
+        model = segmentation.DeepLabV3Plus(classes=11, backbone=backbone)
         input_image = tf.random.uniform(shape=[2, 256, 256, 3])
         output = model(input_image, training=True)
 
@@ -61,22 +76,23 @@ class DeeplabV3PlusTest(tf.test.TestCase):
 
     def test_invalid_backbone_model(self):
         with self.assertRaisesRegex(
-            ValueError, "Supported premade backbones are: .*resnet101_v2"
+            ValueError,
+            "Backbone need to be a `tf.keras.layers.Layer`, " f"received resnet_v3",
         ):
-            segmentation.DeepLabV3(
+            segmentation.DeepLabV3Plus(
                 classes=11,
                 include_rescaling=True,
+                stackwise_dilations=[1, 1, 1, 2],
                 backbone="resnet_v3",
-                feature_layers=("lay1", "lay2"),
+                low_level_feature_layer="lay1",
             )
         with self.assertRaisesRegex(
             ValueError, "Backbone need to be a `tf.keras.layers.Layer`"
         ):
             segmentation.DeepLabV3Plus(
                 classes=11,
-                include_rescaling=True,
                 backbone=tf.Module(),
-                feature_layers=("lay1", "lay2"),
+                feature_layers="lay1",
             )
 
 
