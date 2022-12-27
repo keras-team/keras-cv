@@ -106,7 +106,7 @@ jobs:
     - name: Get pip cache dir
       id: pip-cache
       run: |
-        python -m pip install --upgrade pip setuptools wheel twine
+        python -m pip install --upgrade pip setuptools wheel auditwheel twine
         echo "::set-output name=dir::$(pip cache dir)"
     - name: pip cache
       uses: actions/cache@v2
