@@ -144,6 +144,8 @@ jobs:
         python -m pip install --upgrade patchelf==0.14
         bash build_deps/tf_auditwheel_patch.sh
         python -m auditwheel repair --plat manylinux2014_x86_64 wheels/*.whl
+        rm wheels/*.whl
+        mv wheelhouse/* wheels/
     - name: Upload wheels
       env:
         TWINE_USERNAME: ${{ secrets.PYPI_USERNAME }}
