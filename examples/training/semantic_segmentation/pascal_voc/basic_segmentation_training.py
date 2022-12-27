@@ -66,6 +66,12 @@ flags.DEFINE_string(
     "Keyword argument dictionary to pass to the constructor of the model being trained",
 )
 
+flags.DEFINE_string(
+    "backbone_kwargs",
+    "{include_rescaling=True, input_shape=(512, 512, 3), include_top=False, weights='imagenet'}",
+    "Keyword argument dictionary to pass to the constructor of the model being used as the backbone",
+)
+
 flags.DEFINE_float(
     "weight_decay",
     5e-4,
@@ -108,12 +114,6 @@ def resize_image(img, cls_seg, augment=False):
     inputs = {"images": img, "segmentation_masks": cls_seg}
     if augment:
         inputs = preprocessing.RandomFlip("horizontal")(inputs)
-        inputs = preprocessing.RandomColorDegeneration(factor=0.3)(inputs)
-        inputs = preprocessing.RandomGaussianBlur(kernel_size=24, factor=0.3)(inputs)
-        inputs = preprocessing.GridMask(ratio_factor=(0, 0.5))(inputs)
-        inputs = preprocessing.RandomRotation(factor=0.1, segmentation_classes=21)(
-            inputs
-        )
 
     return inputs["images"], inputs["segmentation_masks"]
 
@@ -149,14 +149,12 @@ with strategy.scope():
         boundaries=[30000 * 16 / global_batch],
         values=[base_lr, 0.1 * base_lr],
     )
+
+    backbone = keras_cv.models.__dict__[FLAGS.backbone]
+    backbone = backbone(**eval(FLAGS.backbone_kwargs))
+
     model = keras_cv.models.segmentation.__dict__[FLAGS.model_name]
-    model = model(
-        classes=21,
-        backbone=FLAGS.backbone,
-        include_rescaling=FLAGS.include_rescaling,
-        backbone_weights=FLAGS.backbone_weights,
-        **eval(FLAGS.model_kwargs)
-    )
+    model = model(classes=21, backbone=backbone, **eval(FLAGS.model_kwargs))
     optimizer = tf.keras.optimizers.SGD(
         learning_rate=lr_decay,
         momentum=0.9,
