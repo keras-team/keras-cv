@@ -21,7 +21,7 @@ from absl import logging
 import keras_cv
 import keras_cv.layers.preprocessing as preprocessing
 from keras_cv.datasets.pascal_voc.segmentation import load
-from keras_cv.models.segmentation.fcn import FCN
+from keras_cv.models.segmentation.fcn import FCN8S
 
 flags.DEFINE_string(
     "weights_path",
@@ -95,7 +95,8 @@ train_ds = train_ds.shuffle(8)
 train_ds = train_ds.prefetch(tf.data.AUTOTUNE)
 
 with strategy.scope():
-    model = FCN(classes=21, input_shape=(224, 224, 3), include_rescaling=True, backbone='vgg16', return_mask=False, model_architecture='fcn8s')
+    backbone = tf.keras.applications.VGG16(include_top=False, weights='imagenet', input_shape=(224, 224, 3))
+    model = FCN8S(classes=21, backbone=backbone)    
     optimizer = tf.keras.optimizers.Adam(learning_rate=1e-4)
     # ignore 255 as the class for semantic boundary.
     loss_fn = tf.keras.losses.SparseCategoricalCrossentropy(ignore_class=255)
