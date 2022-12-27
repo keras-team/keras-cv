@@ -30,9 +30,9 @@ def get_dense_to_convolution_layers(model):
         layers: `tf.keras.Sequential` representing the converted layers.
     """
 
-    if model.name.lower() == "VGG16":
+    if model.name.lower() == "vgg16":
         backbone_name = "vgg16"
-    elif model.name.lower() == "VGG19":
+    elif model.name.lower() == "vgg19":
         backbone_name = "vgg19"
 
     units = BACKBONE_CONFIG[backbone_name]["DENSE_UNITS"]
