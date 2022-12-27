@@ -184,7 +184,6 @@ class DeepLabV3Plus(keras.Model):
         return self.compute_metrics(images, y_true, y_pred, sample_weight=sample_weight)
 
 
-@tf.keras.utils.register_keras_serializable(package="keras_cv")
 class SegmentationHead(layers.Layer):
     """Prediction head for the segmentation model
 

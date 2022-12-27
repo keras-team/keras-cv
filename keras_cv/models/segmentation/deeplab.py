@@ -167,7 +167,6 @@ class DeepLabV3(keras.Model):
         }
 
 
-@tf.keras.utils.register_keras_serializable(package="keras_cv")
 class SegmentationHead(layers.Layer):
     """Prediction head for the segmentation model
 

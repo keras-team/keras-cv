@@ -35,6 +35,20 @@ class DeeplabV3PlusTest(tf.test.TestCase):
 
         self.assertEquals(output["output"].shape, [2, 256, 256, 11])
 
+    def test_greyscale_input(self):
+        backbone = models.ResNet50V2(
+            include_rescaling=True,
+            stackwise_dilations=[1, 1, 1, 2],
+            input_shape=(64, 64, 1),
+            include_top=False,
+            weights=None,
+        )
+        model = segmentation.DeepLabV3Plus(classes=11, backbone=backbone)
+        input_image = tf.random.uniform(shape=[1, 64, 64, 1])
+        output = model(input_image, training=True)
+
+        self.assertEquals(output["output"].shape, [1, 64, 64, 11])
+
     def test_missing_input_shape(self):
         with self.assertRaisesRegex(
             ValueError,
