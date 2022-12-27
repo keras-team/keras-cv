@@ -16,6 +16,7 @@ import tensorflow as tf
 from absl import logging
 
 from keras_cv import bounding_box
+from keras_cv import layers as cv_layers
 from keras_cv.bounding_box.converters import _decode_deltas_to_boxes
 from keras_cv.bounding_box.utils import _clip_boxes
 from keras_cv.layers.object_detection.anchor_generator import AnchorGenerator
@@ -25,6 +26,8 @@ from keras_cv.layers.object_detection.roi_sampler import _ROISampler
 from keras_cv.layers.object_detection.rpn_label_encoder import _RpnLabelEncoder
 from keras_cv.models.object_detection import predict_utils
 from keras_cv.ops.box_matcher import ArgmaxBoxMatcher
+
+BOX_VARIANCE = [0.1, 0.1, 0.2, 0.2]
 
 
 def _resnet50_backbone(include_rescaling=False):
@@ -230,56 +233,6 @@ class RCNNHead(tf.keras.layers.Layer):
         return dict(list(base_config.items()) + list(config.items()))
 
 
-# TODO(tanzhenyu): provide a TPU compatible NMS decoder.
-# TODO(tanzhenyu): Unify the NMS decoder used for detection models.
-class NMSDecoder(tf.keras.layers.Layer):
-    """A customized NMS layer wrapper."""
-
-    def __init__(
-        self,
-        bounding_box_format,
-        iou_threshold=0.5,
-        score_threshold=0.5,
-        max_output_size_per_class=10,
-        max_total_size=10,
-        **kwargs,
-    ):
-        super().__init__(**kwargs)
-        self.bounding_box_format = bounding_box_format
-        self.iou_threshold = iou_threshold
-        self.score_threshold = score_threshold
-        self.max_output_size_per_class = max_output_size_per_class
-        self.max_total_size = max_total_size
-
-    def call(self, box_pred, scores_pred):
-        box_pred = tf.expand_dims(box_pred, axis=-2)
-        (
-            box_pred,
-            scores_pred,
-            cls_pred,
-            valid_det,
-        ) = tf.image.combined_non_max_suppression(
-            boxes=box_pred,
-            scores=scores_pred[..., :-1],
-            max_output_size_per_class=self.max_output_size_per_class,
-            max_total_size=self.max_total_size,
-            score_threshold=self.score_threshold,
-            iou_threshold=self.iou_threshold,
-            clip_boxes=False,
-        )
-        return box_pred, scores_pred, cls_pred, valid_det
-
-    def get_config(self):
-        config = {
-            "iou_threshold": self.iou_threshold,
-            "score_threshold": self.score_threshold,
-            "max_output_size_per_class": self.max_output_size_per_class,
-            "max_total_size": self.max_total_size,
-        }
-        base_config = super().get_config()
-        return dict(list(base_config.items()) + list(config.items()))
-
-
 # TODO(tanzheny): add more configurations
 class FasterRCNN(tf.keras.Model):
     """A Keras model implementing the FasterRCNN architecture.
@@ -387,9 +340,13 @@ class FasterRCNN(tf.keras.Model):
             negative_threshold=0.3,
             samples_per_image=256,
             positive_fraction=0.5,
+            box_variance=BOX_VARIANCE,
         )
-        self._prediction_decoder = prediction_decoder or NMSDecoder(
-            bounding_box_format=bounding_box_format
+        self._prediction_decoder = prediction_decoder or cv_layers.NmsDecoder(
+            bounding_box_format=bounding_box_format,
+            from_logits=False,
+            max_detections_per_class=10,
+            max_detections=10,
         )
 
     def _call_rpn(self, images, anchors, training=None):
@@ -404,7 +361,7 @@ class FasterRCNN(tf.keras.Model):
             boxes_delta=rpn_boxes,
             anchor_format="yxyx",
             box_format="yxyx",
-            variance=[0.1, 0.1, 0.2, 0.2],
+            variance=BOX_VARIANCE,
         )
         rois, _ = self.roi_generator(decoded_rpn_boxes, rpn_scores, training=training)
         rois = _clip_boxes(rois, "yxyx", image_shape)
@@ -436,6 +393,7 @@ class FasterRCNN(tf.keras.Model):
                 box_format=self.bounding_box_format,
                 variance=[0.1, 0.1, 0.2, 0.2],
             )
+
         return box_pred, cls_pred
 
     # TODO(tanzhenyu): Support compile with metrics.
@@ -588,16 +546,15 @@ class FasterRCNN(tf.keras.Model):
             target=self.prediction_decoder.bounding_box_format,
             images=images,
         )
-        box_pred, scores_pred, cls_pred, valid_det = self.prediction_decoder(
-            box_pred, scores_pred
-        )
+        y_pred = self.prediction_decoder(box_pred, scores_pred[..., :-1])
         box_pred = bounding_box.convert_format(
-            box_pred,
+            y_pred["boxes"],
             source=self.prediction_decoder.bounding_box_format,
             target=self.bounding_box_format,
             images=images,
         )
-        return box_pred, scores_pred, cls_pred, valid_det
+        y_pred["boxes"] = box_pred
+        return y_pred
 
 
 def _validate_and_get_loss(loss, loss_name):

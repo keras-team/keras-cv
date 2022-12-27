@@ -19,10 +19,13 @@ from tensorflow import keras
 import keras_cv
 from keras_cv import bounding_box
 from keras_cv import layers as cv_layers
+from keras_cv.bounding_box.converters import _decode_deltas_to_boxes
 from keras_cv.models.object_detection import predict_utils
 from keras_cv.models.object_detection.retina_net.__internal__ import (
     layers as layers_lib,
 )
+
+BOX_VARIANCE = [0.1, 0.1, 0.2, 0.2]
 
 
 # TODO(lukewood): update docstring to include documentation on creating a custom label
@@ -127,6 +130,7 @@ class RetinaNet(tf.keras.Model):
         label_encoder = label_encoder or cv_layers.RetinaNetLabelEncoder(
             bounding_box_format=bounding_box_format,
             anchor_generator=anchor_generator,
+            box_variance=BOX_VARIANCE,
         )
         super().__init__(
             name=name,
@@ -146,10 +150,9 @@ class RetinaNet(tf.keras.Model):
         self.classes = classes
         self.backbone = _parse_backbone(backbone, include_rescaling, backbone_weights)
 
-        self._prediction_decoder = prediction_decoder or cv_layers.NmsPredictionDecoder(
+        self._prediction_decoder = prediction_decoder or cv_layers.NmsDecoder(
             bounding_box_format=bounding_box_format,
-            anchor_generator=anchor_generator,
-            classes=classes,
+            from_logits=True,
         )
 
         # initialize trainable networks
@@ -172,20 +175,6 @@ class RetinaNet(tf.keras.Model):
         self.regularization_loss_metric = tf.keras.metrics.Mean(
             name="regularization_loss"
         )
-
-        # Construct should run in eager mode
-        if any(
-            self.prediction_decoder.box_variance.numpy()
-            != self.label_encoder.box_variance.numpy()
-        ):
-            raise ValueError(
-                "`prediction_decoder` and `label_encoder` must "
-                "have matching `box_variance` arguments.  Did you customize the "
-                "`box_variance` in either `prediction_decoder` or `label_encoder`? "
-                "If so, please also customize the other.  Received: "
-                f"`prediction_decoder.box_variance={prediction_decoder.box_variance}`, "
-                f"`label_encoder.box_variance={label_encoder.box_variance}`."
-            )
 
     def make_predict_function(self, force=False):
         return predict_utils.make_predict_function(self, force=force)
@@ -259,20 +248,32 @@ class RetinaNet(tf.keras.Model):
     def decode_predictions(self, predictions, images):
         # no-op if default decoder is used.
         box_pred, cls_pred = predictions
-        predictions = tf.concat([box_pred, cls_pred], axis=-1)
-        pred_for_inference = bounding_box.convert_format(
-            predictions,
+        # TODO(tanzhenyu): This should be unified with RCNN model in `call`.
+        # box_pred is on "center_yxhw" format, convert to target format.
+        anchors = self.anchor_generator(images[0])
+        anchors = tf.concat(tf.nest.flatten(anchors), axis=0)
+        box_pred = _decode_deltas_to_boxes(
+            anchors=anchors,
+            boxes_delta=box_pred,
+            anchor_format=self.anchor_generator.bounding_box_format,
+            box_format=self.bounding_box_format,
+            variance=BOX_VARIANCE,
+        )
+        box_pred = bounding_box.convert_format(
+            box_pred,
             source=self.bounding_box_format,
             target=self.prediction_decoder.bounding_box_format,
             images=images,
         )
-        pred_for_inference = self.prediction_decoder(images, pred_for_inference)
-        return bounding_box.convert_format(
-            pred_for_inference,
+        y_pred = self.prediction_decoder(box_pred, cls_pred)
+        box_pred = bounding_box.convert_format(
+            y_pred["boxes"],
             source=self.prediction_decoder.bounding_box_format,
             target=self.bounding_box_format,
             images=images,
         )
+        y_pred["boxes"] = box_pred
+        return y_pred
 
     def compile(
         self,
