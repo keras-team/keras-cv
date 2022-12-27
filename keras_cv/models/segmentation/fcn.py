@@ -503,7 +503,6 @@ class FullyConvolutionalNetwork(tf.keras.models.Model):
                     else:
                         input_shape = backbone.input.shape
 
-                print(input_shape)
                 target_height_factor = input_shape[1] // output_shape[1]
                 target_width_factor = input_shape[2] // output_shape[2]
 
