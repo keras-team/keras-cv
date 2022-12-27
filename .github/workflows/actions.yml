@@ -141,7 +141,7 @@ jobs:
     - name: Repair wheels (manylinux)
       if: ${{ matrix.os == 'ubuntu-18.04' }}
       run: |
-        python -m auditwheel repair --plat manylinux2014_x86_64 artifacts/*.whl
+        python -m auditwheel repair --plat manylinux2014_x86_64 wheels/*.whl
     - name: Upload wheels
       env:
         TWINE_USERNAME: ${{ secrets.PYPI_USERNAME }}
