@@ -5,6 +5,8 @@ on:
     types: [published]
 jobs:
   deploy-with-custom-ops:
+    # This job is currently skipped until we cut a release with custom ops.
+    if: false
     name: Build and deploy release wheels with custom ops
     runs-on: ${{ matrix.os }}
     strategy:
