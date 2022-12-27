@@ -24,9 +24,9 @@ BOUNDING_BOXES = base_augmentation_layer_3d.BOUNDING_BOXES
 
 @tf.keras.utils.register_keras_serializable(package="keras_cv")
 class GlobalRandomFlipY(base_augmentation_layer_3d.BaseAugmentationLayer3D):
-    """A preprocessing layer which flips point clouds and bounding boxes with respect to the Y axis during training.
+    """A preprocessing layer which flips point clouds and bounding boxes with respect to the X axis during training.
 
-    This layer will flip the whole scene with respect to the Y axis.
+    This layer will flip the whole scene with respect to the X axis.
     During inference time, the output will be identical to input. Call the layer with `training=True` to flip the input.
 
     Input shape:
@@ -53,21 +53,38 @@ class GlobalRandomFlipY(base_augmentation_layer_3d.BaseAugmentationLayer3D):
     def augment_point_clouds_bounding_boxes(
         self, point_clouds, bounding_boxes, transformation, **kwargs
     ):
-        point_clouds_x = -point_clouds[..., 0:1]
-
-        point_clouds = tf.concat([point_clouds_x, point_clouds[..., 1:]], axis=-1)
-
-        bounding_boxes_x = -tf.expand_dims(
-            bounding_boxes[..., CENTER_XYZ_DXDYDZ_PHI.X], axis=-1
+        point_clouds_y = -point_clouds[..., 1:2]
+        point_clouds = tf.concat(
+            [point_clouds[..., 0:1], point_clouds_y, point_clouds[..., 2:]], axis=-1
         )
+        # Flip boxes.
+        bounding_boxes_y = -bounding_boxes[
+            ..., CENTER_XYZ_DXDYDZ_PHI.Y : CENTER_XYZ_DXDYDZ_PHI.Y + 1
+        ]
+        bounding_boxes_xyz = tf.concat(
+            [
+                bounding_boxes[
+                    ..., CENTER_XYZ_DXDYDZ_PHI.X : CENTER_XYZ_DXDYDZ_PHI.X + 1
+                ],
+                bounding_boxes_y,
+                bounding_boxes[
+                    ..., CENTER_XYZ_DXDYDZ_PHI.Z : CENTER_XYZ_DXDYDZ_PHI.Z + 1
+                ],
+            ],
+            axis=-1,
+        )
+
+        # Compensate rotation.
         bounding_boxes_heading = wrap_angle_radians(
-            -tf.expand_dims(bounding_boxes[..., CENTER_XYZ_DXDYDZ_PHI.PHI], axis=-1)
+            -bounding_boxes[
+                ..., CENTER_XYZ_DXDYDZ_PHI.PHI : CENTER_XYZ_DXDYDZ_PHI.PHI + 1
+            ]
         )
         bounding_boxes = tf.concat(
             [
-                bounding_boxes_x,
+                bounding_boxes_xyz,
                 bounding_boxes[
-                    ..., CENTER_XYZ_DXDYDZ_PHI.Y : CENTER_XYZ_DXDYDZ_PHI.DZ + 1
+                    ..., CENTER_XYZ_DXDYDZ_PHI.DX : CENTER_XYZ_DXDYDZ_PHI.DZ + 1
                 ],
                 bounding_boxes_heading,
                 bounding_boxes[..., CENTER_XYZ_DXDYDZ_PHI.CLASS :],

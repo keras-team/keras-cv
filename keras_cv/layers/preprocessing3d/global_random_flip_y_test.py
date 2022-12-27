@@ -40,9 +40,9 @@ class GlobalFlippingYTest(tf.test.TestCase):
         inputs = {POINT_CLOUDS: point_clouds, BOUNDING_BOXES: bounding_boxes}
         outputs = add_layer(inputs)
         flipped_point_clouds = np.array(
-            [[[-1, 1, 2, 3, 4, 5, 6, 7, 8, 9]] * 2] * 2
+            [[[1, -1, 2, 3, 4, 5, 6, 7, 8, 9]] * 2] * 2
         ).astype("float32")
-        flipped_bounding_boxes = np.array([[[-1, 1, 2, 3, 4, 5, -1]] * 2] * 2).astype(
+        flipped_bounding_boxes = np.array([[[1, -1, 2, 3, 4, 5, -1]] * 2] * 2).astype(
             "float32"
         )
         self.assertAllClose(outputs[POINT_CLOUDS], flipped_point_clouds)
