@@ -33,7 +33,9 @@ class DeepLabV3Plus(keras.Model):
             [0, classes).
         backbone: a backbone for the model, expected to be a KerasCV model.
             Typically ResNet50V2 or ResNet101V2. Default 'low_level_feature_layer' assumes
-            either.
+            either and uses 'v2_stack_1_block4_1_relu' for them by default.
+        low_level_feature_layer: the layer name for the low-level features to use for encoding/decoding
+            spatial information for the supplied backbone. The high-level activations come from the last layer in the model.
         weights: weights for the complete DeepLabV3Plus model. one of `None` (random
             initialization), a pretrained weight file path, or a reference to
             pre-trained weights (e.g. 'imagenet/classification') (see available
@@ -44,9 +46,7 @@ class DeepLabV3Plus(keras.Model):
         segmentation_head: an optional `tf.keras.Layer` that predict the segmentation
             mask based on feature from backbone and feature from decoder.
         segmentation_head_activation: default 'softmax', the activation layer to apply after
-            the segmentation head. Should be synchronized with the backbone's final activation.
-        low_level_feature_layer: the layer name for the low-level features to use for encoding/decoding
-        spatial information for the supplied backbone. The high-level activations come from the last layer in the model.
+            the segmentation head. Should be synchronized with the backbone's final activation
     """
 
     def __init__(
@@ -73,7 +73,7 @@ class DeepLabV3Plus(keras.Model):
         ):
             raise ValueError(
                 "The `weights` argument should be either `None` or the path to the "
-                "weights file to be loaded. Weights file not found at location: {weights}"
+                f"weights file to be loaded. Weights file not found at location: {weights}"
             )
 
         inputs = utils.parse_model_inputs(input_shape, input_tensor)
