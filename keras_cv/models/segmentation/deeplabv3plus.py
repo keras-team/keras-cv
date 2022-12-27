@@ -31,16 +31,9 @@ class DeepLabV3Plus(keras.Model):
             the classes doesn't contain the background class, and the classes
             from the data should be represented by integers with range
             [0, classes).
-        include_rescaling: boolean, whether to Rescale the inputs. If set to True,
-            inputs will be passed through a `Rescaling(1/255.0)` layer.
-        backbone: an optional backbone network for the model. Can be a `tf.keras.layers.Layer`
-            instance. The supported pre-dxefined backbone models are:
-            1. "resnet101_v2", a ResNet101 V2 model
-            Default to 'resnet101_v2'.
-        backbone_weights: weights for the backbone model. one of `None` (random
-            initialization), a pretrained weight file path, or a reference to
-            pre-trained weights (e.g. 'imagenet/classification') (see available
-            pre-trained weights in weights.py)
+        backbone: a backbone for the model, expected to be a KerasCV model.
+            Typically ResNet50V2 or ResNet101V2. Default 'low_level_feature_layer' assumes
+            either.
         weights: weights for the complete DeepLabV3Plus model. one of `None` (random
             initialization), a pretrained weight file path, or a reference to
             pre-trained weights (e.g. 'imagenet/classification') (see available
@@ -52,8 +45,8 @@ class DeepLabV3Plus(keras.Model):
             mask based on feature from backbone and feature from decoder.
         segmentation_head_activation: default 'softmax', the activation layer to apply after
             the segmentation head. Should be synchronized with the backbone's final activation.
-        feature_layers: the layer names for the low-level features and high-level features
-            to use for encoding/decoding spatial information for the supplied backbone.
+        low_level_feature_layer: the layer name for the low-level features to use for encoding/decoding
+        spatial information for the supplied backbone. The high-level activations come from the last layer in the model.
     """
 
     def __init__(
@@ -65,7 +58,7 @@ class DeepLabV3Plus(keras.Model):
         segmentation_head_activation="softmax",
         input_shape=(None, None, 3),
         input_tensor=None,
-        feature_layers=(None, None),
+        low_level_feature_layer=None,
         weights=None,
         **kwargs,
     ):
@@ -95,11 +88,10 @@ class DeepLabV3Plus(keras.Model):
             )
 
         x = inputs
-        _ = backbone(x)
+        high_level = backbone(x)
 
-        if feature_layers == (None, None):
+        if low_level_feature_layer == None:
             low_level = backbone.get_layer("v2_stack_1_block4_1_relu").output
-            high_level = backbone.get_layer("v2_stack_3_block3_2_relu").output
 
         else:
             if not isinstance(backbone, tf.keras.layers.Layer):
@@ -107,13 +99,12 @@ class DeepLabV3Plus(keras.Model):
                     "Backbone need to be a `tf.keras.layers.Layer`, "
                     f"received {backbone}"
                 )
-            low_level = backbone.get_layer(feature_layers[0]).output
-            high_level = backbone.get_layer(feature_layers[1]).output
+            low_level = backbone.get_layer(low_level_feature_layer).output
 
         if spatial_pyramid_pooling is None:
             spatial_pyramid_pooling = SpatialPyramidPooling(dilation_rates=[6, 12, 18])
 
-        output = spatial_pyramid_pooling(_)
+        output = spatial_pyramid_pooling(high_level)
         output = tf.keras.layers.UpSampling2D(
             size=(4, 4),
             interpolation="bilinear",
