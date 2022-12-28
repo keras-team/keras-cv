@@ -118,7 +118,7 @@ class DeepLabV3Plus(keras.Model):
         )(output)
 
         low_level = layers.Conv2D(
-            filters=48,
+            filters=2,
             kernel_size=1,
             name="project_conv_bn_act",
             use_bias=False,
