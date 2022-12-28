@@ -163,9 +163,6 @@ def shape_int_compatible(t: tf.Tensor) -> tf.TensorShape:
 def combined_static_and_dynamic_shape(tensor: tf.Tensor) -> List[Union[tf.Tensor, int]]:
     """Returns a list containing static and dynamic values for the dimensions.
 
-    This is copied from
-    third_party/tensorflow_models/object_detection/utils/shape_utils.py.
-
     Returns a list of static and dynamic values for shape dimensions. This is
     useful to preserve static shapes when available in reshape operation.
 

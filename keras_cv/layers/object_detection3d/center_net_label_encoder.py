@@ -79,7 +79,7 @@ def compute_heatmap(
     min_radius: Sequence[float],
     max_radius: Sequence[float],
 ) -> Tuple[tf.Tensor, tf.Tensor, tf.Tensor, tf.Tensor]:
-    """compute heatmap for boxes.
+    """Compute heatmap for boxes.
 
 
     Args:
