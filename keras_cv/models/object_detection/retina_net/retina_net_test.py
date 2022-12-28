@@ -25,6 +25,7 @@ from keras_cv.models.object_detection.__test_utils__ import _create_bounding_box
 class RetinaNetTest(tf.test.TestCase):
     @pytest.fixture(autouse=True)
     def cleanup_global_session(self):
+        tf.config.set_visible_devices([], "GPU")
         # Code before yield runs before the test
         tf.config.set_soft_device_placement(False)
         yield
@@ -48,15 +49,6 @@ class RetinaNetTest(tf.test.TestCase):
         # TODO(lukewood) uncomment when using keras_cv.models.ResNet50
         # self.assertIsNotNone(retina_net.backbone.get_layer(name="rescaling"))
         # TODO(lukewood): test compile with the FocalLoss class
-
-    def test_retina_net_include_rescaling_required_with_default_backbone(self):
-        with self.assertRaises(ValueError):
-            _ = keras_cv.models.RetinaNet(
-                classes=20,
-                bounding_box_format="xywh",
-                backbone="resnet50",
-                # Note no include_rescaling is provided
-            )
 
     @pytest.mark.skipif(
         "INTEGRATION" not in os.environ or os.environ["INTEGRATION"] != "true",
