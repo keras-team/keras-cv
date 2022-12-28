@@ -135,7 +135,7 @@ class DeepLabV3Plus(keras.Model):
                 output_scale_factor=4,
                 convs=1,
                 dropout=0.2,
-                kernel_size=1,
+                kernel_size=3,
             )
 
         output = segmentation_head(output)
