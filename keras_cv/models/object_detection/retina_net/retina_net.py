@@ -220,7 +220,6 @@ class RetinaNet(tf.keras.Model):
     def call(self, images, training=None):
         box_pred, cls_pred = self._forward(images, training=training)
         if not training:
-            # TODO(tanzhenyu): This should be unified with RCNN model in `call`.
             # box_pred is on "center_yxhw" format, convert to target format.
             anchors = self.anchor_generator(images[0])
             anchors = tf.concat(tf.nest.flatten(anchors), axis=0)
