@@ -353,7 +353,7 @@ def compute_feature_map_ref_xyz(
     ref = voxel_utils.voxel_coord_to_point(
         voxel_coord, voxel_size, dtype=global_xyz.dtype
     )
-    # [H, W, Z, 3] + [B, 1, 1, 1, 3] -> [B, H, W, Z, 3]
+    # [1, H, W, Z, 3] + [B, 1, 1, 1, 3] -> [B, H, W, Z, 3]
     ref = ref[tf.newaxis, ...] + global_xyz[:, tf.newaxis, tf.newaxis, tf.newaxis, :]
     return ref
 
