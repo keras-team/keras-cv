@@ -117,6 +117,15 @@ class DeepLabV3Plus(keras.Model):
             interpolation="bilinear",
         )(output)
 
+        low_level = layers.Conv2D(
+            filters=48,
+            kernel_size=1,
+            name="project_conv_bn_act",
+            use_bias=False,
+        )(low_level)
+        low_level = layers.BatchNormalization()(low_level)
+        low_level = layers.Activation('relu')(low_level)
+
         output = layers.Concatenate()([output, low_level])
 
         if segmentation_head is None:
