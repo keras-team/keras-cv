@@ -81,7 +81,6 @@ def compute_heatmap(
 ) -> Tuple[tf.Tensor, tf.Tensor, tf.Tensor, tf.Tensor]:
     """Compute heatmap for boxes.
 
-
     Args:
       box_3d: 3d boxes in xyz format, vehicle frame, [B, boxes, 7].
       box_mask: box masking, [B, boxes]
@@ -296,17 +295,24 @@ def decode_tensor(t: tf.Tensor, dims: Sequence[Union[tf.Tensor, int]]) -> tf.Ten
         return tf.stack(t_decoded_list, axis=-1)
 
 
-def compute_top_k_heatmap(heatmap: tf.Tensor, k: int) -> tf.Tensor:
+def compute_top_k_heatmap_idx(heatmap: tf.Tensor, k: int) -> tf.Tensor:
     """Computes the top_k heatmap indices.
-    heatmap: [B, H, W] or [B, H, W, Z]
+    Args:
+      heatmap: [B, H, W] for 2 dimension or [B, H, W, Z] for 3 dimensions
+      k: integer, represent top_k
+    Returns:
+      top_k_index: [B, k, 2] for 2 dimensions or [B, k, 3] for 3 dimensions
     """
     shape = voxel_utils.combined_static_and_dynamic_shape(heatmap)
 
     # [B, H*W*Z]
     heatmap_reshape = tf.reshape(heatmap, [shape[0], -1])
     # [B, k]
+    # each index in the range of [0, H*W*Z)
     _, indices = tf.math.top_k(heatmap_reshape, k=k, sorted=False)
     # [B, k, 2] or [B, k, 3]
+    # shape[1:] = [H, W, Z], convert the indices from 1 dimension to 3 dimensions
+    # in the range of [0, H), [0, W), [0, Z)
     res = decode_tensor(indices, shape[1:])
     return res
 
@@ -316,7 +322,7 @@ def compute_feature_map_ref_xyz(
     spatial_size: Sequence[float],
     global_xyz: tf.Tensor,
 ) -> tf.Tensor:
-    """Computes the reference xyz locations for each feature map pixel.
+    """Computes the offset xyz locations for each feature map pixel.
 
     Args:
       voxel_size: voxel size.
@@ -324,7 +330,7 @@ def compute_feature_map_ref_xyz(
       global_xyz: [B, 3] tensor
 
     Returns:
-      [B, H, W, Z, 3] reference locations for each feature map pixel in global
+      [B, H, W, Z, 3] offset locations for each feature map pixel in global
         coordinate.
     """
     voxel_spatial_size = voxel_utils.compute_voxel_spatial_size(
@@ -353,10 +359,20 @@ def compute_feature_map_ref_xyz(
 
 
 class CenterNetLabelEncoder(tf.keras.layers.Layer):
-    """Transforms the raw sparse labels into dense training labels.
+    """Transforms the raw sparse labels into class specific dense training labels.
 
-    This layer ???
+    This layer takes the box locations, box classes and box masks, voxelizes
+    and compute the Gaussian radius for each box, then computes class specific
+    heatmap for classification and class specific box offset w.r.t to feature map
+    for regression.
 
+    Args:
+      voxel_size: the x, y, z dimension (in meters) of each voxel.
+      min_radius: minimum Gasussian radius in each dimension in meters.
+      max_radius: maximum Gasussian radius in each dimension in meters.
+      spatial_size: the x, y, z boundary of voxels
+      classes: number of object classes.
+      top_k_heatmap: A sequence of integers, top k for each class. Can be None.
     """
 
     def __init__(
@@ -452,7 +468,7 @@ class CenterNetLabelEncoder(tf.keras.layers.Layer):
             top_k_heatmap_feature_idx_i = None
             if self._top_k_heatmap[i] > 0:
                 # [B, k, 2] or [B, k, 3]
-                top_k_heatmap_feature_idx_i = compute_top_k_heatmap(
+                top_k_heatmap_feature_idx_i = compute_top_k_heatmap_idx(
                     dense_heatmap_i, self._top_k_heatmap[i]
                 )
             top_k_heatmap_feature_idx_dict[class_key] = top_k_heatmap_feature_idx_i
