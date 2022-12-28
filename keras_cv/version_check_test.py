@@ -17,6 +17,7 @@ import tensorflow as tf
 
 from keras_cv import version_check
 
+
 @pytest.fixture(autouse=True)
 def cleanup_tf_version():
     actual_tf_version = tf.__version__
@@ -25,6 +26,7 @@ def cleanup_tf_version():
 
     # Cleanup
     tf.__version__ = actual_tf_version
+
 
 def test_check_tf_version_error():
     tf.__version__ = "2.8.0"
