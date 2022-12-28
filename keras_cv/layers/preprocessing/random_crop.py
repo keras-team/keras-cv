@@ -14,8 +14,8 @@
 
 
 import tensorflow as tf
-from keras_cv import bounding_box
 
+from keras_cv import bounding_box
 from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
     BaseImageAugmentationLayer,
 )
@@ -85,8 +85,10 @@ class RandomCrop(BaseImageAugmentationLayer):
             shape=(self.height, self.width, images.shape[-1]),
             dtype=self.compute_dtype,
         )
-    
-    def augment_bounding_boxes(self, bounding_boxes, transformation, image=None, **kwargs):
+
+    def augment_bounding_boxes(
+        self, bounding_boxes, transformation, image=None, **kwargs
+    ):
         if self.bounding_box_format is None:
             raise ValueError(
                 "`RandomCrop()` was called with bounding boxes,"
@@ -97,28 +99,23 @@ class RandomCrop(BaseImageAugmentationLayer):
         bounding_boxes = bounding_box.convert_format(
             bounding_boxes,
             source=self.bounding_box_format,
-            target="xywh",
+            target="xyxy",
             images=image,
         )
-
         image_shape = tf.shape(image)
         h_diff = image_shape[H_AXIS] - self.height
         w_diff = image_shape[W_AXIS] - self.width
         bounding_boxes = tf.cond(
             tf.reduce_all((h_diff >= 0, w_diff >= 0)),
-            lambda: self._crop_bounding_boxes(
-                bounding_boxes, transformation),
-            lambda: bounding_boxes,
-        )
-
-        bounding_boxes = bounding_box.clip_to_image(
-            bounding_boxes,
-            bounding_box_format="xywh",
-            images=image,
+            lambda: self._crop_bounding_boxes(image, bounding_boxes, transformation),
+            lambda: self._resize_bounding_boxes(
+                image,
+                bounding_boxes,
+            ),
         )
         bounding_boxes = bounding_box.convert_format(
             bounding_boxes,
-            source="xywh",
+            source="xyxy",
             target=self.bounding_box_format,
             dtype=self.compute_dtype,
             images=image,
@@ -149,21 +146,47 @@ class RandomCrop(BaseImageAugmentationLayer):
         base_config = super().get_config()
         return dict(list(base_config.items()) + list(config.items()))
 
-    def _crop_bounding_boxes(self, bounding_boxes, transformation):
-        top = tf.cast(transformation['top'], dtype=self.compute_dtype)
-        left = tf.cast(transformation['left'], dtype=self.compute_dtype)
-        x, y, w, h, rest = tf.split(
+    def _crop_bounding_boxes(self, image, bounding_boxes, transformation):
+        top = tf.cast(transformation["top"], dtype=self.compute_dtype)
+        left = tf.cast(transformation["left"], dtype=self.compute_dtype)
+        x1, y1, x2, y2, rest = tf.split(
             bounding_boxes, [1, 1, 1, 1, bounding_boxes.shape[-1] - 4], axis=-1
         )
         output = tf.concat(
             [
-                (x- left),
-                (y - top),
-                w,
-                h,
+                tf.clip_by_value(
+                    (x1 - left), clip_value_min=0, clip_value_max=self.width
+                ),
+                tf.clip_by_value(
+                    (y1 - top), clip_value_min=0, clip_value_max=self.height
+                ),
+                tf.clip_by_value(
+                    (x2 - left), clip_value_min=0, clip_value_max=self.width
+                ),
+                tf.clip_by_value(
+                    (y2 - top), clip_value_min=0, clip_value_max=self.height
+                ),
                 rest,
             ],
             axis=-1,
         )
         return output
 
+    def _resize_bounding_boxes(self, image, bounding_boxes):
+        image_shape = tf.shape(image)
+        x_scale = tf.cast(self.width / image_shape[W_AXIS], dtype=self.compute_dtype)
+        y_scale = tf.cast(self.height / image_shape[H_AXIS], dtype=self.compute_dtype)
+        x1, y1, x2, y2, rest = tf.split(
+            bounding_boxes, [1, 1, 1, 1, bounding_boxes.shape[-1] - 4], axis=-1
+        )
+        output = tf.concat(
+            [
+                x1 * x_scale,
+                y1 * y_scale,
+                x2 * x_scale,
+                y2 * y_scale,
+                rest,
+            ],
+            axis=-1,
+        )
+        return output
