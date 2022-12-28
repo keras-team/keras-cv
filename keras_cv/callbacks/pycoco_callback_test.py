@@ -33,7 +33,6 @@ class PyCOCOCallbackTest(tf.test.TestCase):
             classes=10,
             bounding_box_format="xywh",
             backbone="resnet50",
-            backbone_weights=None,
             include_rescaling=True,
         )
         # all metric formats must match
