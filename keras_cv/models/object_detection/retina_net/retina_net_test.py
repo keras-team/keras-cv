@@ -25,7 +25,6 @@ from keras_cv.models.object_detection.__test_utils__ import _create_bounding_box
 class RetinaNetTest(tf.test.TestCase):
     @pytest.fixture(autouse=True)
     def cleanup_global_session(self):
-        tf.config.set_visible_devices([], "GPU")
         # Code before yield runs before the test
         tf.config.set_soft_device_placement(False)
         yield
