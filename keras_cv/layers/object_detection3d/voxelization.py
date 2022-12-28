@@ -112,29 +112,25 @@ class PointToVoxel(tf.keras.layers.Layer):
         """
         # [B, N, dim]
         # convert from point coordinate to voxel index
-        point_voxelized = point_xyz / tf.constant(
-            self._voxel_size, dtype=point_xyz.dtype
+        point_voxel_xyz_float = voxel_utils.point_to_voxel_coord(
+            point_xyz, self._voxel_size, dtype=point_xyz.dtype
         )
-        point_voxelized_round = tf.math.round(point_voxelized)
-        point_voxel_xyz_float = tf.cast(point_voxelized_round, dtype=point_xyz.dtype)
         # [B, N, dim]
         # delta to the nearest voxel
-        point_voxel_feature = point_xyz - point_voxel_xyz_float * tf.constant(
-            self._voxel_size, dtype=point_xyz.dtype
+        point_voxel_feature = point_xyz - voxel_utils.voxel_coord_to_point(
+            point_voxel_xyz_float, self._voxel_size, dtype=point_xyz.dtype
         )
 
         # [B, N, dim]
         point_voxel_xyz_int = tf.cast(point_voxel_xyz_float, dtype=tf.int32)
         # [dim]
         # get xmin, ymin, zmin
-        voxel_origin = self._spatial_size[::2]
-        voxel_origin = tf.constant(
-            [o / v for o, v in zip(voxel_origin, self._voxel_size)], dtype=tf.float32
+        voxel_origin = voxel_utils.compute_voxel_origin(
+            self._spatial_size, self._voxel_size
         )
-        voxel_origin = tf.math.round(voxel_origin)
-        voxel_origin = tf.cast(voxel_origin, dtype=tf.int32)
 
         # [B, N, dim]
+        # convert point voxel to positive voxel index
         point_voxel_xyz = point_voxel_xyz_int - voxel_origin[tf.newaxis, tf.newaxis, :]
 
         # [B, N]
