@@ -289,8 +289,9 @@ class SegmentationHead(layers.Layer):
                 )
             else:
                 self._conv_layers.append(
-                    tf.keras.layers.DepthwiseConv2D(
+                    tf.keras.layers.SeparableConv2D(
                         name=conv_name,
+                        filters=self.filters,
                         kernel_size=self.kernel_size,
                         padding="same",
                         use_bias=self.use_bias,
