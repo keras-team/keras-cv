@@ -12,42 +12,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import math
-from typing import List
 from typing import Sequence
 from typing import Tuple
 
 import numpy as np
 import tensorflow as tf
 
+from keras_cv.layers.object_detection3d import voxel_utils
+
 EPSILON = 1e-4
 VOXEL_FEATURE_MIN = -1000
-
-
-def compute_voxel_spatial_size(
-    spatial_size: Sequence[float], voxel_size: Sequence[float]
-) -> List[int]:
-    """Computes how many voxels in each dimension are needed.
-
-    Args:
-      spatial_size: max/min range in each dim in global coordinate frame.
-      voxel_size: voxel size.
-
-    Returns:
-      voxel_spatial_size: voxel spatial size.
-    """
-    dim = len(voxel_size)
-    # Compute the range as x_range = xmax - xmin, ymax - ymin, zmax - zmin
-    voxel_spatial_size_float = [
-        spatial_size[2 * i + 1] - spatial_size[2 * i] for i in range(dim)
-    ]
-    # voxel_dim_x / x_range
-    voxel_spatial_size_float = [
-        i / j for i, j in zip(voxel_spatial_size_float, voxel_size)
-    ]
-    voxel_spatial_size_int = [math.ceil(v - EPSILON) for v in voxel_spatial_size_float]
-
-    return voxel_spatial_size_int
 
 
 def compute_point_voxel_id(
@@ -110,7 +84,7 @@ class PointToVoxel(tf.keras.layers.Layer):
         self._voxel_size = voxel_size
         self._spatial_size = spatial_size
 
-        self._voxel_spatial_size = compute_voxel_spatial_size(
+        self._voxel_spatial_size = voxel_utils.compute_voxel_spatial_size(
             spatial_size, self._voxel_size
         )
 
@@ -216,7 +190,7 @@ class DynamicVoxelization(tf.keras.layers.Layer):
         )
         self._voxel_size = voxel_size
         self._spatial_size = spatial_size
-        self._voxel_spatial_size = compute_voxel_spatial_size(
+        self._voxel_spatial_size = voxel_utils.compute_voxel_spatial_size(
             spatial_size, self._voxel_size
         )
         self._voxel_spatial_size_volume = np.prod(self._voxel_spatial_size).item()
