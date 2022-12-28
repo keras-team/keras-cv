@@ -37,7 +37,6 @@ class RetinaNetTest(tf.test.TestCase):
             classes=20,
             bounding_box_format="xywh",
             backbone="resnet50",
-            backbone_weights=None,
             include_rescaling=True,
         )
         retina_net.compile(
@@ -56,7 +55,6 @@ class RetinaNetTest(tf.test.TestCase):
                 classes=20,
                 bounding_box_format="xywh",
                 backbone="resnet50",
-                backbone_weights=None,
                 # Note no include_rescaling is provided
             )
 
@@ -71,7 +69,6 @@ class RetinaNetTest(tf.test.TestCase):
             classes=20,
             bounding_box_format="xywh",
             backbone="resnet50",
-            backbone_weights=None,
             include_rescaling=True,
         )
         images = tf.random.uniform((2, 512, 512, 3))
@@ -83,7 +80,6 @@ class RetinaNetTest(tf.test.TestCase):
             classes=20,
             bounding_box_format="xywh",
             backbone="resnet50",
-            backbone_weights=None,
             include_rescaling=True,
         )
         xs, ys = _create_bounding_box_dataset("xywh")
@@ -118,7 +114,6 @@ class RetinaNetTest(tf.test.TestCase):
             classes=2,
             bounding_box_format="xywh",
             backbone="resnet50",
-            backbone_weights=None,
             include_rescaling=False,
         )
 
@@ -139,7 +134,6 @@ class RetinaNetTest(tf.test.TestCase):
             classes=2,
             bounding_box_format="xywh",
             backbone="resnet50",
-            backbone_weights=None,
             include_rescaling=False,
         )
 
@@ -157,7 +151,6 @@ class RetinaNetTest(tf.test.TestCase):
             classes=1,
             bounding_box_format=bounding_box_format,
             backbone="resnet50",
-            backbone_weights=None,
             include_rescaling=False,
         )
         retina_net.backbone.trainable = False
@@ -184,7 +177,6 @@ class RetinaNetTest(tf.test.TestCase):
             classes=1,
             bounding_box_format=bounding_box_format,
             backbone="resnet50",
-            backbone_weights=None,
             include_rescaling=False,
         )
 
@@ -240,7 +232,6 @@ class RetinaNetTest(tf.test.TestCase):
             classes=1,
             bounding_box_format=bounding_box_format,
             backbone="resnet50",
-            backbone_weights=None,
             include_rescaling=False,
         )
 
