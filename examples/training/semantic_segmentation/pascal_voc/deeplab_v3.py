@@ -150,7 +150,7 @@ with strategy.scope():
         weights="imagenet",
     )
     model = segmentation.__dict__[FLAGS.model_name]
-    model = model(classes=21, backbone=backbone, **eval(FLAGS.model_kwargs))
+    model = model(classes=21, backbone=backbone)
     optimizer = tf.keras.optimizers.SGD(
         learning_rate=lr_decay, momentum=0.9, clipnorm=10.0
     )
