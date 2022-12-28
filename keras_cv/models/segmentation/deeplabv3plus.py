@@ -132,11 +132,11 @@ class DeepLabV3Plus(keras.Model):
             segmentation_head = SegmentationHead(
                 classes=classes,
                 name="segmentation_head",
-                conv_type="depthwise_separable_conv",
+                conv_type="conv2d",
                 output_scale_factor=4,
                 filters=256,
                 convs=2,
-                dropout=0.2,
+                #dropout=0.2,
                 kernel_size=3,
             )
 
