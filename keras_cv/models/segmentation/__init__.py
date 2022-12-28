@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from keras_cv.models.segmentation.__internal__ import SegmentationHead
 from keras_cv.models.segmentation.deeplab import DeepLabV3
 from keras_cv.models.segmentation.fcn import FCN
 from keras_cv.models.segmentation.fcn import FCN8S
