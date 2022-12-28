@@ -124,7 +124,7 @@ class DeepLabV3Plus(keras.Model):
             use_bias=False,
         )(low_level)
         low_level = layers.BatchNormalization()(low_level)
-        low_level = layers.Activation('relu')(low_level)
+        low_level = layers.Activation("relu")(low_level)
 
         output = layers.Concatenate()([output, low_level])
 
@@ -132,6 +132,7 @@ class DeepLabV3Plus(keras.Model):
             segmentation_head = SegmentationHead(
                 classes=classes,
                 name="segmentation_head",
+                conv_type="depthwise_separable_conv",
                 output_scale_factor=4,
                 convs=1,
                 dropout=0.2,
@@ -241,6 +242,7 @@ class SegmentationHead(layers.Layer):
         kernel_size=3,
         output_scale_factor=None,
         activation="softmax",
+        conv_type="depthwise_separable_conv",
         use_bias=False,
         **kwargs,
     ):
@@ -269,20 +271,32 @@ class SegmentationHead(layers.Layer):
         self.kernel_size = kernel_size
         self.use_bias = use_bias
         self.activation = activation
+        self.conv_type = conv_type
 
         self._conv_layers = []
         self._bn_layers = []
         for i in range(self.convs):
             conv_name = "segmentation_head_conv_{}".format(i)
-            self._conv_layers.append(
-                tf.keras.layers.Conv2D(
-                    name=conv_name,
-                    filters=self.filters,
-                    kernel_size=self.kernel_size,
-                    padding="same",
-                    use_bias=self.use_bias,
+            if self.conv_type == "conv2d":
+                self._conv_layers.append(
+                    tf.keras.layers.Conv2D(
+                        name=conv_name,
+                        filters=self.filters,
+                        kernel_size=self.kernel_size,
+                        padding="same",
+                        use_bias=self.use_bias,
+                    )
                 )
-            )
+            else:
+                self._conv_layers.append(
+                    tf.keras.layers.DepthwiseConv2D(
+                        name=conv_name,
+                        kernel_size=self.kernel_size,
+                        padding="same",
+                        use_bias=self.use_bias,
+                    )
+                )
+
             norm_name = "segmentation_head_norm_{}".format(i)
             self._bn_layers.append(tf.keras.layers.BatchNormalization(name=norm_name))
 
