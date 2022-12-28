@@ -28,6 +28,7 @@ from tensorflow import keras
 
 import keras_cv
 from keras_cv import layers
+from keras_cv.callbacks import PyCOCOCallback
 
 low, high = resource.getrlimit(resource.RLIMIT_NOFILE)
 resource.setrlimit(resource.RLIMIT_NOFILE, (high, high))
@@ -152,6 +153,22 @@ def unpackage_inputs(data):
 train_ds = train_ds.map(unpackage_inputs, num_parallel_calls=tf.data.AUTOTUNE)
 eval_ds = eval_ds.map(unpackage_inputs, num_parallel_calls=tf.data.AUTOTUNE)
 
+
+# TODO(lukewood): the boxes loses shape from KPL, so need to pad to a known shape.
+# TODO(tanzhenyu): consider remove padding while reduce function tracing.
+def pad_fn(image, boxes):
+    boxes = boxes.to_tensor(default_value=-1.0, shape=[GLOBAL_BATCH_SIZE, 32, 5])
+    gt_boxes = boxes[..., :4]
+    gt_classes = boxes[..., 4]
+    return image, {
+        "boxes": gt_boxes,
+        "classes": gt_classes,
+    }
+
+
+train_ds = train_ds.map(pad_fn, num_parallel_calls=tf.data.AUTOTUNE)
+eval_ds = eval_ds.map(pad_fn, num_parallel_calls=tf.data.AUTOTUNE)
+
 with strategy.scope():
     model = keras_cv.models.RetinaNet(
         # number of classes to be used in box classification
@@ -177,25 +194,19 @@ model.compile(
     classification_loss="focal",
     box_loss="smoothl1",
     optimizer=optimizer,
-    metrics=[
-        keras_cv.metrics.COCORecall(bounding_box_format="xywh", class_ids=range(20)),
-        keras_cv.metrics.COCOMeanAveragePrecision(
-            bounding_box_format="xywh", class_ids=range(20)
-        ),
-    ],
 )
-
 
 callbacks = [
     keras.callbacks.TensorBoard(log_dir="logs"),
     keras.callbacks.ReduceLROnPlateau(patience=5),
     keras.callbacks.EarlyStopping(patience=10),
     keras.callbacks.ModelCheckpoint(CHECKPOINT_PATH, save_weights_only=True),
+    PyCOCOCallback(eval_ds, "xywh"),
 ]
 
 history = model.fit(
     train_ds,
-    validation_data=eval_ds.take(20),
+    validation_data=eval_ds,
     epochs=35,
     callbacks=callbacks,
 )

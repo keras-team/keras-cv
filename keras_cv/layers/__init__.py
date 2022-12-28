@@ -19,9 +19,11 @@ from tensorflow.keras.layers import RandomWidth
 from tensorflow.keras.layers import Rescaling
 
 from keras_cv.layers.feature_pyramid import FeaturePyramid
+from keras_cv.layers.fusedmbconv import FusedMBConvBlock
+from keras_cv.layers.mbconv import MBConvBlock
+from keras_cv.layers.object_detection3d.voxelization import DynamicVoxelization
 from keras_cv.layers.object_detection.anchor_generator import AnchorGenerator
-from keras_cv.layers.object_detection.nms_prediction_decoder import NmsPredictionDecoder
-from keras_cv.layers.object_detection.non_max_suppression import NonMaxSuppression
+from keras_cv.layers.object_detection.nms_prediction_decoder import NmsDecoder
 from keras_cv.layers.object_detection.retina_net_label_encoder import (
     RetinaNetLabelEncoder,
 )

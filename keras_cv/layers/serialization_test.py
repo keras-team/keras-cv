@@ -19,7 +19,6 @@ from absl.testing import parameterized
 from keras_cv import core
 from keras_cv import layers as cv_layers
 from keras_cv.layers.vit_layers import PatchingAndEmbedding
-from keras_cv.models.segmentation.__internal__ import SegmentationHead
 
 
 def exhaustive_compare(obj1, obj2):
@@ -262,33 +261,10 @@ class SerializationTest(tf.test.TestCase, parameterized.TestCase):
             },
         ),
         (
-            "NonMaxSuppression",
-            cv_layers.NonMaxSuppression,
-            {
-                "classes": 5,
-                "bounding_box_format": "xyxy",
-                "confidence_threshold": 0.5,
-                "iou_threshold": 0.5,
-                "max_detections": 100,
-                "max_detections_per_class": 100,
-            },
-        ),
-        (
             "RandomRotation",
             cv_layers.RandomRotation,
             {
                 "factor": 0.5,
-            },
-        ),
-        (
-            "SegmentationHead",
-            SegmentationHead,
-            {
-                "classes": 11,
-                "convs": 3,
-                "filters": 256,
-                "activations": tf.keras.activations.relu,
-                "output_scale_factor": None,
             },
         ),
         (
@@ -420,6 +396,22 @@ class SerializationTest(tf.test.TestCase, parameterized.TestCase):
             {
                 "height": 100,
                 "width": 200,
+            },
+        ),
+        (
+            "MBConvBlock",
+            cv_layers.MBConvBlock,
+            {
+                "input_filters": 16,
+                "output_filters": 16,
+            },
+        ),
+        (
+            "FusedMBConvBlock",
+            cv_layers.FusedMBConvBlock,
+            {
+                "input_filters": 16,
+                "output_filters": 16,
             },
         ),
     )

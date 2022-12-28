@@ -32,7 +32,7 @@ jobs:
           ${{ runner.os }}-pip-
     - name: Install dependencies
       run: |
-        pip install tensorflow-cpu==2.10.0
+        pip install tensorflow-cpu==2.11.0
         pip install -e ".[tests]" --progress-bar off --upgrade
     - name: Build custom ops for tests
       run: |
@@ -43,7 +43,7 @@ jobs:
       env:
         TEST_CUSTOM_OPS: true
       run: |
-        pytest keras_cv/ --ignore keras_cv/models --ignore keras_cv/datasets/waymo
+        pytest keras_cv/ --ignore keras_cv/models
   format:
     name: Check the code format
     runs-on: ubuntu-latest
@@ -67,28 +67,7 @@ jobs:
           ${{ runner.os }}-pip-
     - name: Install dependencies
       run: |
-        pip install tensorflow==2.10.0
+        pip install tensorflow==2.11.0
         pip install -e ".[tests]" --progress-bar off --upgrade
     - name: Lint
       run: bash shell/lint.sh
-  deploy:
-    needs: [test, format]
-    if: github.event_name == 'release' && github.event.action == 'created'
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v2
-    - name: Set up Python
-      uses: actions/setup-python@v1
-      with:
-        python-version: 3.7
-    - name: Install dependencies
-      run: |
-        pip install tensorflow==2.10.0
-        python -m pip install --upgrade pip setuptools wheel twine
-    - name: Build and publish
-      env:
-        TWINE_USERNAME: ${{ secrets.PYPI_USERNAME }}
-        TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
-      run: |
-        python setup.py sdist bdist_wheel
-        twine upload dist/*
