@@ -134,7 +134,7 @@ class DeepLabV3Plus(keras.Model):
                 name="segmentation_head",
                 conv_type="depthwise_separable_conv",
                 output_scale_factor=4,
-                filters=2,
+                filters=256,
                 convs=2,
                 dropout=0.2,
                 kernel_size=3,
