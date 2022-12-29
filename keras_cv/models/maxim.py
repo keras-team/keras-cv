@@ -12,6 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""
+References 1 : https://github.com/sayakpaul/maxim-tf
+References 2 : https://github.com/google-research/maxim
+"""
+
 import einops
 import functools
 import tensorflow as tf
