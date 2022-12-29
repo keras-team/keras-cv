@@ -139,11 +139,9 @@ class RPNHead(tf.keras.layers.Layer):
             kernel_initializer="truncated_normal",
         )
 
-    def call(self, feature_map):
+    def call(self, feature_map, training=None):
         def call_single_level(f_map):
-            batch_size = f_map.get_shape().as_list()[0]
-            if batch_size is None:
-                raise ValueError("Cannot handle static shape")
+            batch_size = f_map.get_shape().as_list()[0] or tf.shape(f_map)[0]
             # [BS, H, W, C]
             t = self.conv(f_map)
             # [BS, H, W, K]
@@ -213,7 +211,7 @@ class RCNNHead(tf.keras.layers.Layer):
         self.box_pred = tf.keras.layers.Dense(units=4)
         self.cls_score = tf.keras.layers.Dense(units=classes + 1, activation="softmax")
 
-    def call(self, feature_map):
+    def call(self, feature_map, training=None):
         x = feature_map
         for conv in self.convs:
             x = conv(x)
@@ -273,6 +271,10 @@ class FasterRCNN(tf.keras.Model):
             that is optimized for image size between [640, 800]. The users should pass
             their own anchor generator if the input image size differs from paper.
             For now, only anchor generator with per level dict output is supported,
+        label_encoder: (Optional) a keras.Layer that accepts an anchors Tensor, a
+            bounding box Tensor and a bounding box class Tensor to its `call()` method,
+            and returns RetinaNet training targets. It returns box and class targets as
+            well as sample weights.
         rpn_head: (Optional) a `keras.layers.Layer` that takes input feature map and
             returns a box delta prediction (in reference to anchors) and binary prediction
             (foreground vs background) with per level dict output is supported. By default
@@ -295,6 +297,7 @@ class FasterRCNN(tf.keras.Model):
         backbone=None,
         include_rescaling=False,
         anchor_generator=None,
+        label_encoder=None,
         rpn_head=None,
         rcnn_head=None,
         prediction_decoder=None,
@@ -333,7 +336,7 @@ class FasterRCNN(tf.keras.Model):
         self.rcnn_head = rcnn_head or RCNNHead(classes)
         self.backbone = backbone or _resnet50_backbone(include_rescaling)
         self.feature_pyramid = FeaturePyramid()
-        self.rpn_labeler = _RpnLabelEncoder(
+        self.rpn_labeler = label_encoder or _RpnLabelEncoder(
             anchor_format="yxyx",
             ground_truth_box_format="yxyx",
             positive_threshold=0.7,
@@ -354,7 +357,7 @@ class FasterRCNN(tf.keras.Model):
         feature_map = self.backbone(images, training=training)
         feature_map = self.feature_pyramid(feature_map, training=training)
         # [BS, num_anchors, 4], [BS, num_anchors, 1]
-        rpn_boxes, rpn_scores = self.rpn_head(feature_map)
+        rpn_boxes, rpn_scores = self.rpn_head(feature_map, training=training)
         # the decoded format is center_xywh, convert to yxyx
         decoded_rpn_boxes = _decode_deltas_to_boxes(
             anchors=anchors,
@@ -369,21 +372,21 @@ class FasterRCNN(tf.keras.Model):
         rpn_scores = tf.concat(tf.nest.flatten(rpn_scores), axis=1)
         return rois, feature_map, rpn_boxes, rpn_scores
 
-    def _call_rcnn(self, rois, feature_map):
+    def _call_rcnn(self, rois, feature_map, training=None):
         feature_map = self.roi_pooler(feature_map, rois)
         # [BS, H*W*K, pool_shape*C]
         feature_map = tf.reshape(
             feature_map, tf.concat([tf.shape(rois)[:2], [-1]], axis=0)
         )
         # [BS, H*W*K, 4], [BS, H*W*K, num_classes + 1]
-        rcnn_box_pred, rcnn_cls_pred = self.rcnn_head(feature_map)
+        rcnn_box_pred, rcnn_cls_pred = self.rcnn_head(feature_map, training=training)
         return rcnn_box_pred, rcnn_cls_pred
 
     def call(self, images, training=None):
         image_shape = tf.shape(images[0])
         anchors = self.anchor_generator(image_shape=image_shape)
         rois, feature_map, _, _ = self._call_rpn(images, anchors, training=training)
-        box_pred, cls_pred = self._call_rcnn(rois, feature_map)
+        box_pred, cls_pred = self._call_rcnn(rois, feature_map, training=training)
         if not training:
             # box_pred is on "center_yxhw" format, convert to target format.
             box_pred = _decode_deltas_to_boxes(
@@ -475,7 +478,7 @@ class FasterRCNN(tf.keras.Model):
         )
         box_weights /= self.roi_sampler.num_sampled_rois * global_batch * 0.25
         cls_weights /= self.roi_sampler.num_sampled_rois * global_batch
-        box_pred, cls_pred = self._call_rcnn(rois, feature_map)
+        box_pred, cls_pred = self._call_rcnn(rois, feature_map, training=training)
         y_true = {
             "rpn_box": rpn_box_targets,
             "rpn_cls": rpn_cls_targets,
