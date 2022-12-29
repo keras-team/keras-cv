@@ -37,7 +37,6 @@ class RetinaNetTest(tf.test.TestCase):
             classes=20,
             bounding_box_format="xywh",
             backbone="resnet50",
-            backbone_weights=None,
             include_rescaling=True,
         )
         retina_net.compile(
@@ -50,16 +49,6 @@ class RetinaNetTest(tf.test.TestCase):
         # self.assertIsNotNone(retina_net.backbone.get_layer(name="rescaling"))
         # TODO(lukewood): test compile with the FocalLoss class
 
-    def test_retina_net_include_rescaling_required_with_default_backbone(self):
-        with self.assertRaises(ValueError):
-            _ = keras_cv.models.RetinaNet(
-                classes=20,
-                bounding_box_format="xywh",
-                backbone="resnet50",
-                backbone_weights=None,
-                # Note no include_rescaling is provided
-            )
-
     @pytest.mark.skipif(
         "INTEGRATION" not in os.environ or os.environ["INTEGRATION"] != "true",
         reason="Takes a long time to run, only runs when INTEGRATION "
@@ -71,7 +60,6 @@ class RetinaNetTest(tf.test.TestCase):
             classes=20,
             bounding_box_format="xywh",
             backbone="resnet50",
-            backbone_weights=None,
             include_rescaling=True,
         )
         images = tf.random.uniform((2, 512, 512, 3))
@@ -83,7 +71,6 @@ class RetinaNetTest(tf.test.TestCase):
             classes=2,
             bounding_box_format="xywh",
             backbone="resnet50",
-            backbone_weights=None,
             include_rescaling=False,
         )
 
@@ -104,7 +91,6 @@ class RetinaNetTest(tf.test.TestCase):
             classes=2,
             bounding_box_format="xywh",
             backbone="resnet50",
-            backbone_weights=None,
             include_rescaling=False,
         )
 
@@ -122,7 +108,6 @@ class RetinaNetTest(tf.test.TestCase):
             classes=1,
             bounding_box_format=bounding_box_format,
             backbone="resnet50",
-            backbone_weights=None,
             include_rescaling=False,
         )
         retina_net.backbone.trainable = False
@@ -149,7 +134,6 @@ class RetinaNetTest(tf.test.TestCase):
             classes=1,
             bounding_box_format=bounding_box_format,
             backbone="resnet50",
-            backbone_weights=None,
             include_rescaling=False,
         )
 
@@ -205,7 +189,6 @@ class RetinaNetTest(tf.test.TestCase):
             classes=1,
             bounding_box_format=bounding_box_format,
             backbone="resnet50",
-            backbone_weights=None,
             include_rescaling=False,
         )
 
