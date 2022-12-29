@@ -437,7 +437,7 @@ def ResNet50(
         include_rescaling=include_rescaling,
         include_top=include_top,
         name=name,
-        weights=parse_weights(weights, include_top, "resnet50v2"),
+        weights=parse_weights(weights, include_top, "resnet50"),
         input_shape=input_shape,
         input_tensor=input_tensor,
         pooling=pooling,
