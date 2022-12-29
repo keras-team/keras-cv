@@ -116,7 +116,7 @@ class RandomCrop(BaseImageAugmentationLayer):
         bounding_boxes = bounding_box.clip_to_image(
             bounding_boxes,
             bounding_box_format="xyxy",
-            image_shape=(self.height, self.width, image_shape[-1])
+            image_shape=(self.height, self.width, image_shape[-1]),
         )
         bounding_boxes = bounding_box.convert_format(
             bounding_boxes,
