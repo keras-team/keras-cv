@@ -92,9 +92,9 @@ class DeepLabV3Plus(keras.Model):
 
         if layer_names == (None, None):
             if "res" in backbone.name:
-                low_level_output = backbone.get_layer("v2_stack_1_block3_out").output
+                low_level_output = backbone.get_layer("v2_stack_1_block4_1_relu").output
                 high_level_output = backbone.get_layer(
-                    "v2_stack_2_block6_2_relu"
+                    "v2_stack_3_block3_2_relu"
                 ).output
             else:
                 raise ValueError(
