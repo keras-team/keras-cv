@@ -15,6 +15,7 @@
 import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras import layers
+from keras_cv.models import ResNet50V2
 
 from keras_cv.layers.spatial_pyramid import SpatialPyramidPooling
 from keras_cv.models import utils
@@ -78,19 +79,19 @@ class DeepLabV3Plus(keras.Model):
                 f"weights file to be loaded. Weights file not found at location: {weights}"
             )
 
-        inputs = utils.parse_model_inputs(input_shape, input_tensor)
+
+        #inputs = utils.parse_model_inputs(input_shape, input_tensor)
 
         if input_shape[0] is None and input_shape[1] is None:
             input_shape = backbone.input_shape[1:]
-            inputs = layers.Input(tensor=backbone.input, shape=input_shape)
 
         if input_shape[0] is None and input_shape[1] is None:
             raise ValueError(
                 "Input shapes for both the backbone and DeepLabV3Plus are `None`."
             )
 
+        inputs = layers.Input(tensor=backbone.input, shape=input_shape)
         x = inputs
-        #high_level = backbone(x)
 
         if low_level_feature_layer is None:
             if "resnet" in backbone.name:
@@ -111,6 +112,7 @@ class DeepLabV3Plus(keras.Model):
 
         if spatial_pyramid_pooling is None:
             spatial_pyramid_pooling = SpatialPyramidPooling(dilation_rates=[6, 12, 18])
+
 
         output = spatial_pyramid_pooling(high_level)
         output = tf.keras.layers.UpSampling2D(
