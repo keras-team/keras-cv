@@ -315,7 +315,7 @@ class RetinaNet(tf.keras.Model):
         super().compile(loss=losses, **kwargs)
 
     def compute_loss(self, images, gt_boxes, gt_classes, training):
-        box_pred, cls_pred = self.call(images, training=training)
+        box_pred, cls_pred = super().call(images, training=training)
         if gt_boxes.shape[-1] != 4:
             raise ValueError(
                 "gt_boxes should have shape (None, None, 4).  Got "
