@@ -140,18 +140,12 @@ class RandomCropTest(tf.test.TestCase, parameterized.TestCase):
         input_image = np.random.random((512, 512, 3)).astype(np.float32)
         bboxes = tf.convert_to_tensor([[200, 200, 400, 400, 1]])
         input = {"images": input_image, "bounding_boxes": bboxes}
-        layer = RandomCrop(height=100, width=200, bounding_box_format="xyxy")
-        mock_random = [[594806780, 594806783]]
-        # for top = 100 and left = 50
-        with unittest.mock.patch.object(
-            layer._random_generator,
-            "random_uniform",
-            side_effect=mock_random,
-        ):
-            output = layer(input)
-            expected_output = np.asarray(
-                [[150.0, 100.0, 200.0, 100.0, 1]],
-            )
+        layer = RandomCrop(height=100, width=200, bounding_box_format="xyxy", seed=10)
+        # for top = 300 and left = 305
+        output = layer(input)
+        expected_output = np.asarray(
+            [[0.0, 0.0, 95.0, 100.0, 1]],
+        )
         expected_output = np.reshape(expected_output, (1, 5))
         self.assertAllClose(expected_output, output["bounding_boxes"].to_tensor(-1))
 
