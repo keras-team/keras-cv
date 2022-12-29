@@ -13,8 +13,7 @@
 # limitations under the License.
 
 """
-References 1 : https://github.com/sayakpaul/maxim-tf
-References 2 : https://github.com/google-research/maxim
+Ported from Sayak Paul's implementation. More information can be found here at {https://github.com/sayakpaul/maxim-tf}
 """
 
 import einops
