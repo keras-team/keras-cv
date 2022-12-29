@@ -91,29 +91,14 @@ class DeepLabV3Plus(keras.Model):
                 "Input shapes for both the backbone and DeepLabV3Plus are `None`."
             )
 
-        backbone = backbone.as_backbone(min_level=2, max_level=4)
-        backbone_outputs = backbone(x)
-        high_level = backbone_outputs[4]
-        low_level = backbone_outputs[2]
+        low_level_output = backbone.get_layer("v2_stack_1_block4_1_relu").output
+        high_level_output = backbone.get_layer("v2_stack_2_block6_2_relu").output
+        backbone_outputs = {'low_level': low_level_output, 'high_level': high_level_output}
+        backbone = tf.keras.Model(backbone.input, backbone_outputs)
+        backbone_outputs = backbone(inputs)
 
-        """
-                if low_level_feature_layer is None:
-            if "resnet" in backbone.name:
-                low_level = backbone.get_layer("v2_stack_1_block4_1_relu").output
-                high_level = backbone.get_layer("v2_stack_2_block6_2_relu").output
-            else:
-                raise ValueError(
-                    "You have to specify the name of the low-level layer in the "
-                    "model used to extract low-level features."
-                )
-        else:
-            if not isinstance(backbone, tf.keras.layers.Layer):
-                raise ValueError(
-                    "Backbone need to be a `tf.keras.layers.Layer`, "
-                    f"received {backbone}"
-                )
-            low_level = backbone.get_layer(low_level_feature_layer).output
-        """
+        low_level = backbone_outputs['low_level']
+        high_level = backbone_outputs['high_level']
 
         if spatial_pyramid_pooling is None:
             spatial_pyramid_pooling = SpatialPyramidPooling(dilation_rates=[6, 12, 18])
