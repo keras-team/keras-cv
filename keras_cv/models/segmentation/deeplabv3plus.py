@@ -80,7 +80,8 @@ class DeepLabV3Plus(keras.Model):
             )
 
 
-        #inputs = utils.parse_model_inputs(input_shape, input_tensor)
+        inputs = utils.parse_model_inputs(input_shape, input_tensor)
+        x = inputs
 
         if input_shape[0] is None and input_shape[1] is None:
             input_shape = backbone.input_shape[1:]
@@ -90,10 +91,13 @@ class DeepLabV3Plus(keras.Model):
                 "Input shapes for both the backbone and DeepLabV3Plus are `None`."
             )
 
-        inputs = layers.Input(tensor=backbone.input, shape=input_shape)
-        x = inputs
+        backbone = backbone.as_backbone(min_level=2, max_level=4)
+        backbone_outputs = backbone(x)
+        high_level = backbone_outputs[4]
+        low_level = backbone_outputs[2]
 
-        if low_level_feature_layer is None:
+        """
+                if low_level_feature_layer is None:
             if "resnet" in backbone.name:
                 low_level = backbone.get_layer("v2_stack_1_block4_1_relu").output
                 high_level = backbone.get_layer("v2_stack_2_block6_2_relu").output
@@ -109,16 +113,18 @@ class DeepLabV3Plus(keras.Model):
                     f"received {backbone}"
                 )
             low_level = backbone.get_layer(low_level_feature_layer).output
+        """
 
         if spatial_pyramid_pooling is None:
             spatial_pyramid_pooling = SpatialPyramidPooling(dilation_rates=[6, 12, 18])
-
 
         output = spatial_pyramid_pooling(high_level)
         output = tf.keras.layers.UpSampling2D(
             size=(4, 4),
             interpolation="bilinear",
         )(output)
+
+        """
 
         low_level = layers.Conv2D(
             filters=256,
@@ -128,8 +134,10 @@ class DeepLabV3Plus(keras.Model):
         )(low_level)
         low_level = layers.BatchNormalization()(low_level)
         low_level = layers.Activation("relu")(low_level)
+        """
 
         output = layers.Concatenate()([output, low_level])
+
 
         if segmentation_head is None:
             segmentation_head = SegmentationHead(
