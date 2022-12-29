@@ -178,9 +178,6 @@ with strategy.scope():
         bounding_box_format="xywh",
         # KerasCV offers a set of pre-configured backbones
         backbone="resnet50",
-        # Each backbone comes with multiple pre-trained weights
-        # These weights match the weights available in the `keras_cv.model` class.
-        backbone_weights="imagenet",
         # include_rescaling tells the model whether your input images are in the default
         # pixel range (0, 255) or if you have already rescaled your inputs to the range
         # (0, 1).  In our case, we feed our model images with inputs in the range (0, 255).
