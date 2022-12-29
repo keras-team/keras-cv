@@ -22,6 +22,7 @@ from tensorflow.keras import backend
 from tensorflow.keras import layers
 
 from keras_cv.models import utils
+from keras_cv.models.weights import parse_weights
 
 MODEL_CONFIGS = {
     "ResNet18": {
@@ -436,7 +437,7 @@ def ResNet50(
         include_rescaling=include_rescaling,
         include_top=include_top,
         name=name,
-        weights=weights,
+        weights=parse_weights(weights, include_top, "resnet50"),
         input_shape=input_shape,
         input_tensor=input_tensor,
         pooling=pooling,
