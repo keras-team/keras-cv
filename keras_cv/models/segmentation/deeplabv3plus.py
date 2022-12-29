@@ -90,11 +90,12 @@ class DeepLabV3Plus(keras.Model):
             )
 
         x = inputs
-        high_level = backbone(x)
+        #high_level = backbone(x)
 
         if low_level_feature_layer is None:
             if "resnet" in backbone.name:
                 low_level = backbone.get_layer("v2_stack_1_block4_1_relu").output
+                high_level = backbone.get_layer("v2_stack_2_block6_2_relu").output
             else:
                 raise ValueError(
                     "You have to specify the name of the low-level layer in the "
