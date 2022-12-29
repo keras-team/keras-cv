@@ -15,9 +15,9 @@
 import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras import layers
-from keras_cv.models import ResNet50V2
 
 from keras_cv.layers.spatial_pyramid import SpatialPyramidPooling
+from keras_cv.models import ResNet50V2
 from keras_cv.models import utils
 from keras_cv.models.weights import parse_weights
 
@@ -37,8 +37,8 @@ class DeepLabV3Plus(keras.Model):
         backbone: a backbone for the model, expected to be a KerasCV model.
             Typically ResNet50V2 or ResNet101V2. Default 'low_level_feature_layer' assumes
             either and uses 'v2_stack_1_block4_1_relu' for them by default.
-        low_level_feature_layer: the layer name for the low-level features to use for encoding/decoding
-            spatial information for the supplied backbone. The high-level activations come from the last layer in the model.
+        layer_names: the layer names for the low-level and high-level features to use for encoding/decoding
+            spatial information for the supplied backbone, respectively.
         weights: weights for the complete DeepLabV3Plus model. one of `None` (random
             initialization), a pretrained weight file path, or a reference to
             pre-trained weights (e.g. 'imagenet/classification') (see available
@@ -61,7 +61,7 @@ class DeepLabV3Plus(keras.Model):
         segmentation_head_activation="softmax",
         input_shape=(None, None, 3),
         input_tensor=None,
-        low_level_feature_layer=None,
+        layer_names=(None, None),
         weights=None,
         **kwargs,
     ):
@@ -79,7 +79,6 @@ class DeepLabV3Plus(keras.Model):
                 f"weights file to be loaded. Weights file not found at location: {weights}"
             )
 
-
         inputs = utils.parse_model_inputs(input_shape, input_tensor)
         x = inputs
 
@@ -91,14 +90,30 @@ class DeepLabV3Plus(keras.Model):
                 "Input shapes for both the backbone and DeepLabV3Plus are `None`."
             )
 
-        low_level_output = backbone.get_layer("v2_stack_1_block4_1_relu").output
-        high_level_output = backbone.get_layer("v2_stack_2_block6_2_relu").output
-        backbone_outputs = {'low_level': low_level_output, 'high_level': high_level_output}
-        backbone = tf.keras.Model(backbone.input, backbone_outputs)
-        backbone_outputs = backbone(inputs)
+        if layer_names == (None, None):
+            if "res" in backbone.name:
+                low_level_output = backbone.get_layer("v2_stack_1_block3_out").output
+                high_level_output = backbone.get_layer(
+                    "v2_stack_2_block6_2_relu"
+                ).output
+            else:
+                raise ValueError(
+                    "Cannot default low-level and high-level layer names with a custom backbone."
+                    f"Passed layer_names: {layer_names}"
+                )
+        else:
+            low_level_output = backbone.get_layer(layer_names[0]).output
+            high_level_output = backbone.get_layer(layer_names[1]).output
 
-        low_level = backbone_outputs['low_level']
-        high_level = backbone_outputs['high_level']
+        backbone_outputs = {
+            "low_level": low_level_output,
+            "high_level": high_level_output,
+        }
+        backbone = tf.keras.Model(backbone.input, backbone_outputs)
+        backbone_outputs = backbone(x)
+
+        low_level = backbone_outputs["low_level"]
+        high_level = backbone_outputs["high_level"]
 
         if spatial_pyramid_pooling is None:
             spatial_pyramid_pooling = SpatialPyramidPooling(dilation_rates=[6, 12, 18])
@@ -120,7 +135,6 @@ class DeepLabV3Plus(keras.Model):
 
         output = layers.Concatenate()([output, low_level])
 
-
         if segmentation_head is None:
             segmentation_head = SegmentationHead(
                 classes=classes,
@@ -129,7 +143,7 @@ class DeepLabV3Plus(keras.Model):
                 output_scale_factor=4,
                 filters=256,
                 convs=2,
-                #dropout=0.2,
+                # dropout=0.2,
                 kernel_size=3,
             )
 
@@ -151,7 +165,7 @@ class DeepLabV3Plus(keras.Model):
         self.spatial_pyramid_pooling = spatial_pyramid_pooling
         self.segmentation_head = segmentation_head
         self.segmentation_head_activation = segmentation_head_activation
-        self.low_level_feature_layer = low_level_feature_layer
+        self.layer_names = layer_names
 
     def get_config(self):
         return {
@@ -160,7 +174,7 @@ class DeepLabV3Plus(keras.Model):
             "spatial_pyramid_pooling": self.spatial_pyramid_pooling,
             "segmentation_head": self.segmentation_head,
             "segmentation_head_activation": self.segmentation_head_activation,
-            "low_level_feature_layer": self.low_level_feature_layer,
+            "layer_names": self.layer_names,
         }
 
     def compile(self, weight_decay=0.0001, **kwargs):
