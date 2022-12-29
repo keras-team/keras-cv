@@ -356,7 +356,10 @@ loss_fn = losses.CategoricalCrossentropy(label_smoothing=0.1)
 Next, we specify the metrics that we want to track. For this example, we track accuracy.
 """
 with strategy.scope():
-    training_metrics = [metrics.CategoricalAccuracy()]
+    training_metrics = [
+        metrics.CategoricalAccuracy(),
+        metrics.TopKCategoricalAccuracy(k=5),
+    ]
 
 """
 As a last piece of configuration, we configure callbacks for the method.

@@ -183,9 +183,9 @@ with strategy.scope():
         # (0, 1).  In our case, we feed our model images with inputs in the range (0, 255).
         include_rescaling=True,
     )
-# Fine-tuning a RetinaNet is as simple as setting backbone.trainable = False
-model.backbone.trainable = False
-optimizer = tf.optimizers.SGD(learning_rate=BASE_LR, global_clipnorm=10.0)
+    # Fine-tuning a RetinaNet is as simple as setting backbone.trainable = False
+    model.backbone.trainable = False
+    optimizer = tf.optimizers.SGD(learning_rate=BASE_LR, global_clipnorm=10.0)
 
 model.compile(
     classification_loss="focal",
