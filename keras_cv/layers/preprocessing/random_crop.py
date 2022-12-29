@@ -113,6 +113,11 @@ class RandomCrop(BaseImageAugmentationLayer):
                 bounding_boxes,
             ),
         )
+        bounding_boxes = bounding_box.clip_to_image(
+            bounding_boxes,
+            bounding_box_format="xyxy",
+            image_shape=(self.height, self.width, image_shape[-1])
+        )
         bounding_boxes = bounding_box.convert_format(
             bounding_boxes,
             source="xyxy",
@@ -154,18 +159,10 @@ class RandomCrop(BaseImageAugmentationLayer):
         )
         output = tf.concat(
             [
-                tf.clip_by_value(
-                    (x1 - left), clip_value_min=0, clip_value_max=self.width
-                ),
-                tf.clip_by_value(
-                    (y1 - top), clip_value_min=0, clip_value_max=self.height
-                ),
-                tf.clip_by_value(
-                    (x2 - left), clip_value_min=0, clip_value_max=self.width
-                ),
-                tf.clip_by_value(
-                    (y2 - top), clip_value_min=0, clip_value_max=self.height
-                ),
+                x1 - left,
+                y1 - top,
+                x2 - left,
+                y2 - top,
                 rest,
             ],
             axis=-1,
