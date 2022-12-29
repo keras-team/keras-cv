@@ -12,7 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import msilib
 import einops
+import functools
 import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras import layers
@@ -21,104 +23,170 @@ from tensorflow.experimental import numpy as tnp
 
 from keras_cv.models import utils
 
+Conv3x3 = functools.partial(layers.Conv2D, kernel_size=(3, 3), padding="same")
+Conv1x1 = functools.partial(layers.Conv2D, kernel_size=(1, 1), padding="same")
 
-def SELayer(filters, name = "SELayer"):
-    """SE layer from  Squeeze-and-excitation networks."""
+
+def CALayer(
+    num_channels: int,
+    reduction: int = 4,
+    use_bias: bool = True,
+    name: str = "channel_attention",
+):
+    """Squeeze-and-excitation block for channel attention.
+    ref: https://arxiv.org/abs/1709.01507
+    """
 
     def apply(x):
-        y = layers.GlobalAveragePooling2D(keepdims=True)(x)
-        y = layers.Conv2D(filters=filters // 4, kernel_size=(1,1) ,use_bias=True, padding="same", name=f"{name}_Conv_0")(y)
+        # 2D global average pooling
+        y = layers.GlobalAvgPool2D(keepdims=True)(x)
+        # Squeeze (in Squeeze-Excitation)
+        y = Conv1x1(
+            filters=num_channels // reduction, use_bias=use_bias, name=f"{name}_Conv_0"
+        )(y)
         y = tf.nn.relu(y)
-        y = layers.Conv2D(filters=filters, kernel_size=(1,1), use_bias=True, padding="same", name=f"{name}_Conv_1")(y)
+        # Excitation (in Squeeze-Excitation)
+        y = Conv1x1(filters=num_channels, use_bias=use_bias, name=f"{name}_Conv_1")(y)
         y = tf.nn.sigmoid(y)
         return x * y
 
     return apply
 
 
-def RCAB(filters, name = "RCAB_block"):
-    """from the paper : (LayerNormConv-LeakyReLU-Conv-SE)"""
+def RCAB(
+    num_channels: int,
+    reduction: int = 4,
+    lrelu_slope: float = 0.2,
+    use_bias: bool = True,
+    name: str = "residual_ca",
+):
+    """Residual channel attention block. Contains LN,Conv,lRelu,Conv,SELayer."""
 
     def apply(x):
         shortcut = x
         x = layers.LayerNormalization(epsilon=1e-06, name=f"{name}_LayerNorm")(x)
-        x = layers.Conv2D(filters=filters, kernel_size=(3, 3), padding="same", use_bias=True, name=f"{name}_conv1")(x)
-        x = tf.nn.leaky_relu(x, alpha=0.2)
-        x = layers.Conv2D(filters=filters, kernel_size=(3, 3), padding="same", use_bias=True, name=f"{name}_conv2")(x)
-        x = SELayer(filters=filters,reduction=4,use_bias=True,name=f"{name}_channel_attention",)(x)
+        x = Conv3x3(filters=num_channels, use_bias=use_bias, name=f"{name}_conv1")(x)
+        x = tf.nn.leaky_relu(x, alpha=lrelu_slope)
+        x = Conv3x3(filters=num_channels, use_bias=use_bias, name=f"{name}_conv2")(x)
+        x = CALayer(
+            num_channels=num_channels,
+            reduction=reduction,
+            use_bias=use_bias,
+            name=f"{name}_channel_attention",
+        )(x)
         return x + shortcut
 
     return apply
 
 
-def RDCAB(filters, dropout_rate = 0.0, name = "RDCAB_layer"):
+def RDCAB(
+    num_channels: int,
+    reduction: int = 16,
+    use_bias: bool = True,
+    dropout_rate: float = 0.0,
+    name: str = "rdcab",
+):
+    """Residual dense channel attention block. Used in Bottlenecks."""
 
     def apply(x):
         y = layers.LayerNormalization(epsilon=1e-06, name=f"{name}_LayerNorm")(x)
-        dim = K.int_shape(y)[-1]
-        y = layers.Dense(filters, use_bias=True, name=f"{name}_Dense_0")(y)
-        y = tf.nn.gelu(x, approximate=True)
-        y = layers.Dropout(dropout_rate)(x)
-        y = layers.Dense(dim, use_bias=True, name=f"{name}_Dense_1")(x)
-        y = SELayer(filters=filters, reduction=16, use_bias=True, name=f"{name}_channel_attention")(y)
+        y = MlpBlock(
+            mlp_dim=num_channels,
+            dropout_rate=dropout_rate,
+            use_bias=use_bias,
+            name=f"{name}_channel_mixing",
+        )(y)
+        y = CALayer(
+            num_channels=num_channels,
+            reduction=reduction,
+            use_bias=use_bias,
+            name=f"{name}_channel_attention",
+        )(y)
         x = x + y
         return x
 
     return apply
 
 
-def SAM(filters, output_channels=3, name = "SAM_block"):
+def SAM(
+    num_channels: int,
+    output_channels: int = 3,
+    use_bias: bool = True,
+    name: str = "sam",
+):
+
+    """Supervised attention module for multi-stage training.
+    Introduced by MPRNet [CVPR2021]: https://github.com/swz30/MPRNet
+    """
+
     def apply(x, x_image):
-        x1 = layers.Conv2D(filters=filters, kernel_size=(3, 3), padding="same", use_bias=True, name=f"{name}_Conv_0")(x)
+        """Apply the SAM module to the input and num_channels.
+        Args:
+          x: the output num_channels from UNet decoder with shape (h, w, c)
+          x_image: the input image with shape (h, w, 3)
+        Returns:
+          A tuple of tensors (x1, image) where (x1) is the sam num_channels used for the
+            next stage, and (image) is the output restored image at current stage.
+        """
+        # Get num_channels
+        x1 = Conv3x3(filters=num_channels, use_bias=use_bias, name=f"{name}_Conv_0")(x)
+
+        # Output restored image X_s
         if output_channels == 3:
-            image = (layers.Conv2D(filters=filters, kernel_size=(3, 3), padding="same", use_bias=True, name=f"{name}_Conv_1")(x)
+            image = (
+                Conv3x3(
+                    filters=output_channels, use_bias=use_bias, name=f"{name}_Conv_1"
+                )(x)
                 + x_image
             )
         else:
-            image = layers.Conv2D(filters=filters, kernel_size=(3, 3), padding="same", use_bias=True, name=f"{name}_Conv_0")(x)
-        x2 = tf.nn.sigmoid(layers.Conv2D(filters=filters, kernel_size=(3, 3), padding="same", use_bias=True, name=f"{name}_Conv_0")(image))
+            image = Conv3x3(
+                filters=output_channels, use_bias=use_bias, name=f"{name}_Conv_1"
+            )(x)
+
+        # Get attention maps for num_channels
+        x2 = tf.nn.sigmoid(
+            Conv3x3(filters=num_channels, use_bias=use_bias, name=f"{name}_Conv_2")(image)
+        )
+
+        # Get attended feature maps
         x1 = x1 * x2
+
+        # Residual connection
         x1 = x1 + x
         return x1, image
 
     return apply
 
-def block_images_einops(x, patch_size):
-  """Image to patches."""
-  batch, height, width, channels = x.shape
-  grid_height = height // patch_size[0]
-  grid_width = width // patch_size[1]
-  x = einops.rearrange(
-      x, "n (gh fh) (gw fw) c -> n (gh gw) (fh fw) c",
-      gh=grid_height, gw=grid_width, fh=patch_size[0], fw=patch_size[1])
-  return x
 
-
-def unblock_images_einops(x, grid_size, patch_size):
-  """patches to images."""
-  x = einops.rearrange(
-      x, "n (gh gw) (fh fw) c -> n (gh fh) (gw fw) c",
-      gh=grid_size[0], gw=grid_size[1], fh=patch_size[0], fw=patch_size[1])
-  return x
-
-
-def BlockGatingUnit(name = "block_gating_unit"):
+def BlockGatingUnit(use_bias: bool = True, name: str = "block_gating_unit"):
+    """A SpatialGatingUnit as defined in the gMLP paper.
+    The 'spatial' dim is defined as the **second last**.
+    If applied on other dims, you should swapaxes first.
+    """
 
     def apply(x):
         u, v = tf.split(x, 2, axis=-1)
         v = layers.LayerNormalization(
             epsilon=1e-06, name=f"{name}_intermediate_layernorm"
         )(v)
-        n = K.int_shape(x)[-2]
-        v = tnp.swapaxes(v, -1, -2)
-        v = layers.Dense(n, use_bias=True, name=f"{name}_Dense_0")(v)
-        v = tnp.swapaxes(v, -1, -2)
+        n = K.int_shape(x)[-2]  # get spatial dim
+        v = SwapAxes()(v, -1, -2)
+        v = layers.Dense(n, use_bias=use_bias, name=f"{name}_Dense_0")(v)
+        v = SwapAxes()(v, -1, -2)
         return u * (v + 1.0)
 
     return apply
 
 
-def BlockGmlpLayer(block_size, dropout_rate = 0.0, name = "block_gmlp"):
+def BlockGmlpLayer(
+    block_size,
+    use_bias: bool = True,
+    factor: int = 2,
+    dropout_rate: float = 0.0,
+    name: str = "block_gmlp",
+):
+    """Block gMLP layer that performs local mixing of tokens."""
 
     def apply(x):
         n, h, w, num_channels = (
@@ -129,23 +197,78 @@ def BlockGmlpLayer(block_size, dropout_rate = 0.0, name = "block_gmlp"):
         )
         fh, fw = block_size
         gh, gw = h // fh, w // fw
-
-        x = block_images_einops(x, patch_size=(fh, fw))
+        x = BlockImages()(x, patch_size=(fh, fw))
+        # MLP2: Local (block) mixing part, provides within-block communication.
         y = layers.LayerNormalization(epsilon=1e-06, name=f"{name}_LayerNorm")(x)
-        y = layers.Dense(num_channels * 2, use_bias=True, name=f"{name}_in_project")(y)
+        y = layers.Dense(
+            num_channels * factor,
+            use_bias=use_bias,
+            name=f"{name}_in_project",
+        )(y)
         y = tf.nn.gelu(y, approximate=True)
-        y = BlockGatingUnit(use_bias=True, name=f"{name}_BlockGatingUnit")(y)
-        y = layers.Dense(num_channels, use_bias=True, name=f"{name}_out_project",)(y)
+        y = BlockGatingUnit(use_bias=use_bias, name=f"{name}_BlockGatingUnit")(y)
+        y = layers.Dense(
+            num_channels,
+            use_bias=use_bias,
+            name=f"{name}_out_project",
+        )(y)
         y = layers.Dropout(dropout_rate)(y)
         x = x + y
-
-        x = unblock_images_einops(x, grid_size=(gh, gw), patch_size=(fh, fw))
+        x = UnblockImages()(x, grid_size=(gh, gw), patch_size=(fh, fw))
         return x
 
     return apply
 
+def BottleneckBlock(
+    features: int,
+    block_size,
+    grid_size,
+    num_groups: int = 1,
+    block_gmlp_factor: int = 2,
+    grid_gmlp_factor: int = 2,
+    input_proj_factor: int = 2,
+    channels_reduction: int = 4,
+    dropout_rate: float = 0.0,
+    use_bias: bool = True,
+    name: str = "bottleneck_block",
+):
+    """The bottleneck block consisting of multi-axis gMLP block and RDCAB."""
 
-def GridGatingUnit(name: str = "grid_gating_unit"):
+    def apply(x):
+        # input projection
+        x = Conv1x1(filters=features, use_bias=use_bias, name=f"{name}_input_proj")(x)
+        shortcut_long = x
+
+        for i in range(num_groups):
+            x = ResidualSplitHeadMultiAxisGmlpLayer(
+                grid_size=grid_size,
+                block_size=block_size,
+                grid_gmlp_factor=grid_gmlp_factor,
+                block_gmlp_factor=block_gmlp_factor,
+                input_proj_factor=input_proj_factor,
+                use_bias=use_bias,
+                dropout_rate=dropout_rate,
+                name=f"{name}_SplitHeadMultiAxisGmlpLayer_{i}",
+            )(x)
+            # Channel-mixing part, which provides within-patch communication.
+            x = RDCAB(
+                num_channels=features,
+                reduction=channels_reduction,
+                use_bias=use_bias,
+                name=f"{name}_channel_attention_block_1_{i}",
+            )(x)
+
+        # long skip-connect
+        x = x + shortcut_long
+        return x
+
+    return apply
+
+def GridGatingUnit(use_bias: bool = True, name: str = "grid_gating_unit"):
+    """A SpatialGatingUnit as defined in the gMLP paper.
+    The 'spatial' dim is defined as the second last.
+    If applied on other dims, you should swapaxes first.
+    """
 
     def apply(x):
         u, v = tf.split(x, 2, axis=-1)
@@ -153,15 +276,23 @@ def GridGatingUnit(name: str = "grid_gating_unit"):
             epsilon=1e-06, name=f"{name}_intermediate_layernorm"
         )(v)
         n = K.int_shape(x)[-3]  # get spatial dim
-        v = tnp.swapaxes(v, -1, -3)
-        v = layers.Dense(n, use_bias=True, name=f"{name}_Dense_0")(v)
-        v = tnp.swapaxes(v, -1, -3)
+        v = SwapAxes()(v, -1, -3)
+        v = layers.Dense(n, use_bias=use_bias, name=f"{name}_Dense_0")(v)
+        v = SwapAxes()(v, -1, -3)
         return u * (v + 1.0)
 
     return apply
 
 
-def GridGmlpLayer(grid_size, dropout_rate: float = 0.0, name: str = "grid_gmlp"):
+def GridGmlpLayer(
+    grid_size,
+    use_bias: bool = True,
+    factor: int = 2,
+    dropout_rate: float = 0.0,
+    name: str = "grid_gmlp",
+):
+    """Grid gMLP layer that performs global mixing of tokens."""
+
     def apply(x):
         n, h, w, num_channels = (
             K.int_shape(x)[0],
@@ -172,26 +303,34 @@ def GridGmlpLayer(grid_size, dropout_rate: float = 0.0, name: str = "grid_gmlp")
         gh, gw = grid_size
         fh, fw = h // gh, w // gw
 
-        x = block_images_einops(x, patch_size=(fh, fw))
+        x = BlockImages()(x, patch_size=(fh, fw))
+        # gMLP1: Global (grid) mixing part, provides global grid communication.
         y = layers.LayerNormalization(epsilon=1e-06, name=f"{name}_LayerNorm")(x)
-        y = layers.Dense(num_channels * 2,
-            use_bias=True,
+        y = layers.Dense(
+            num_channels * factor,
+            use_bias=use_bias,
             name=f"{name}_in_project",
         )(y)
         y = tf.nn.gelu(y, approximate=True)
-        y = GridGatingUnit(use_bias=True, name=f"{name}_GridGatingUnit")(y)
+        y = GridGatingUnit(use_bias=use_bias, name=f"{name}_GridGatingUnit")(y)
         y = layers.Dense(
             num_channels,
-            use_bias=True,
+            use_bias=use_bias,
             name=f"{name}_out_project",
         )(y)
         y = layers.Dropout(dropout_rate)(y)
         x = x + y
-
-        x = unblock_images_einops(x, grid_size=(gh, gw), patch_size=(fh, fw))
+        x = UnblockImages()(x, grid_size=(gh, gw), patch_size=(fh, fw))
         return x
 
     return apply
+
+ConvT_up = functools.partial(
+    layers.Conv2DTranspose, kernel_size=(2, 2), strides=(2, 2), padding="same"
+)
+Conv_down = functools.partial(
+    layers.Conv2D, kernel_size=(4, 4), strides=(2, 2), padding="same"
+)
 
 
 def ResidualSplitHeadMultiAxisGmlpLayer(
@@ -290,23 +429,22 @@ def GetSpatialGatingWeights(
         # Get grid MLP weights
         gh, gw = grid_size
         fh, fw = h // gh, w // gw
-
-        u = block_images_einops(u, patch_size=(fh, fw))
+        u = BlockImages()(u, patch_size=(fh, fw))
         dim_u = K.int_shape(u)[-3]
-        u = tnp.swapaxes(u, -1, -3)
+        u = SwapAxes()(u, -1, -3)
         u = layers.Dense(dim_u, use_bias=use_bias, name=f"{name}_Dense_0")(u)
-        u = tnp.swapaxes(u, -1, -3)
-        u = unblock_images_einops(u, grid_size=(gh, gw), patch_size=(fh, fw))
+        u = SwapAxes()(u, -1, -3)
+        u = UnblockImages()(u, grid_size=(gh, gw), patch_size=(fh, fw))
 
         # Get Block MLP weights
         fh, fw = block_size
         gh, gw = h // fh, w // fw
-        v = block_images_einops(v, patch_size=(fh, fw))
+        v = BlockImages()(v, patch_size=(fh, fw))
         dim_v = K.int_shape(v)[-2]
-        u = tnp.swapaxes(u, -1, -2)
+        v = SwapAxes()(v, -1, -2)
         v = layers.Dense(dim_v, use_bias=use_bias, name=f"{name}_Dense_1")(v)
-        u = tnp.swapaxes(v, -1, -2)
-        v = unblock_images_einops(v, grid_size=(gh, gw), patch_size=(fh, fw))
+        v = SwapAxes()(v, -1, -2)
+        v = UnblockImages()(v, grid_size=(gh, gw), patch_size=(fh, fw))
 
         x = tf.concat([u, v], axis=-1)
         x = layers.Dense(num_channels, use_bias=use_bias, name=f"{name}_out_project")(x)
@@ -323,6 +461,7 @@ def CrossGatingBlock(
     dropout_rate: float = 0.0,
     input_proj_factor: int = 2,
     upsample_y: bool = True,
+    use_bias: bool = True,
     name: str = "cross_gating",
 ):
 
@@ -331,11 +470,11 @@ def CrossGatingBlock(
     def apply(x, y):
         # Upscale Y signal, y is the gating signal.
         if upsample_y:
-            y = layers.Conv2DTranspose(
-                filters=features, kernel_size=(2, 2), strides=(2, 2), padding="same", use_bias=True, name=f"{name}_ConvTranspose_0"
+            y = ConvT_up(
+                filters=features, use_bias=use_bias, name=f"{name}_ConvTranspose_0"
             )(y)
 
-        x = layers.Conv2D(filters=features, kernel_size=(1, 1), padding="same", use_bias=True, name=f"{name}_Conv_0")(x)
+        x = Conv1x1(filters=features, use_bias=use_bias, name=f"{name}_Conv_0")(x)
         n, h, w, num_channels = (
             K.int_shape(x)[0],
             K.int_shape(x)[1],
@@ -343,92 +482,93 @@ def CrossGatingBlock(
             K.int_shape(x)[3],
         )
 
-        y = layers.Conv2D(filters=num_channels, kernel_size=(1, 1), padding="same", use_bias=True, name=f"{name}_Conv_1")(y)
+        y = Conv1x1(filters=num_channels, use_bias=use_bias, name=f"{name}_Conv_1")(y)
 
         shortcut_x = x
         shortcut_y = y
 
         # Get gating weights from X
         x = layers.LayerNormalization(epsilon=1e-06, name=f"{name}_LayerNorm_x")(x)
-        x = layers.Dense(num_channels, use_bias=True, name=f"{name}_in_project_x")(x)
+        x = layers.Dense(num_channels, use_bias=use_bias, name=f"{name}_in_project_x")(x)
         x = tf.nn.gelu(x, approximate=True)
         gx = GetSpatialGatingWeights(
             features=num_channels,
             block_size=block_size,
             grid_size=grid_size,
             dropout_rate=dropout_rate,
-            use_bias=True,
+            use_bias=use_bias,
             name=f"{name}_SplitHeadMultiAxisGating_x",
         )(x)
 
         # Get gating weights from Y
         y = layers.LayerNormalization(epsilon=1e-06, name=f"{name}_LayerNorm_y")(y)
-        y = layers.Dense(num_channels, use_bias=True, name=f"{name}_in_project_y")(y)
+        y = layers.Dense(num_channels, use_bias=use_bias, name=f"{name}_in_project_y")(y)
         y = tf.nn.gelu(y, approximate=True)
         gy = GetSpatialGatingWeights(
             features=num_channels,
             block_size=block_size,
             grid_size=grid_size,
             dropout_rate=dropout_rate,
-            use_bias=True,
+            use_bias=use_bias,
             name=f"{name}_SplitHeadMultiAxisGating_y",
         )(y)
 
         # Apply cross gating: X = X * GY, Y = Y * GX
         y = y * gx
-        y = layers.Dense(num_channels, use_bias=True, name=f"{name}_out_project_y")(y)
+        y = layers.Dense(num_channels, use_bias=use_bias, name=f"{name}_out_project_y")(y)
         y = layers.Dropout(dropout_rate)(y)
         y = y + shortcut_y
 
         x = x * gy  # gating x using y
-        x = layers.Dense(num_channels, use_bias=True, name=f"{name}_out_project_x")(x)
+        x = layers.Dense(num_channels, use_bias=use_bias, name=f"{name}_out_project_x")(x)
         x = layers.Dropout(dropout_rate)(x)
         x = x + y + shortcut_x  # get all aggregated signals
         return x, y
 
     return apply
 
-
-def BottleneckBlock(
-    features: int,
-    block_size,
-    grid_size,
-    num_groups: int = 1,
-    block_gmlp_factor: int = 2,
-    grid_gmlp_factor: int = 2,
-    input_proj_factor: int = 2,
-    channels_reduction: int = 4,
+def MlpBlock(
+    mlp_dim: int,
     dropout_rate: float = 0.0,
-    name: str = "bottleneck_block",
+    use_bias: bool = True,
+    name: str = "mlp_block",
 ):
-    """The bottleneck block consisting of multi-axis gMLP block and RDCAB."""
+    """A 1-hidden-layer MLP block, applied over the last dimension."""
 
     def apply(x):
-        # input projection
-        x = layers.Conv2D(filters=features, kernel_size=(1, 1), padding="same", use_bias=True, name=f"{name}_input_proj")(x)
-        shortcut_long = x
+        d = K.int_shape(x)[-1]
+        x = layers.Dense(mlp_dim, use_bias=use_bias, name=f"{name}_Dense_0")(x)
+        x = tf.nn.gelu(x, approximate=True)
+        x = layers.Dropout(dropout_rate)(x)
+        x = layers.Dense(d, use_bias=use_bias, name=f"{name}_Dense_1")(x)
+        return x
 
-        for i in range(num_groups):
-            x = ResidualSplitHeadMultiAxisGmlpLayer(
-                grid_size=grid_size,
-                block_size=block_size,
-                grid_gmlp_factor=grid_gmlp_factor,
-                block_gmlp_factor=block_gmlp_factor,
-                input_proj_factor=input_proj_factor,
-                use_bias=True,
-                dropout_rate=dropout_rate,
-                name=f"{name}_SplitHeadMultiAxisGmlpLayer_{i}",
-            )(x)
-            # Channel-mixing part, which provides within-patch communication.
-            x = RDCAB(
-                num_channels=features,
-                reduction=channels_reduction,
-                use_bias=True,
-                name=f"{name}_channel_attention_block_1_{i}",
-            )(x)
+    return apply
 
-        # long skip-connect
-        x = x + shortcut_long
+
+def UpSampleRatio(
+    num_channels: int, ratio: float, use_bias: bool = True, name: str = "upsample"
+):
+    """Upsample features given a ratio > 0."""
+
+    def apply(x):
+        n, h, w, c = (
+            K.int_shape(x)[0],
+            K.int_shape(x)[1],
+            K.int_shape(x)[2],
+            K.int_shape(x)[3],
+        )
+
+        # Following `jax.image.resize()`
+        x = Resizing(
+            height=int(h * ratio),
+            width=int(w * ratio),
+            method="bilinear",
+            antialias=True,
+            name=f"{name}_resizing_{K.get_uid('Resizing')}",
+        )(x)
+
+        x = Conv1x1(filters=num_channels, use_bias=use_bias, name=f"{name}_Conv_0")(x)
         return x
 
     return apply
@@ -458,7 +598,7 @@ def UNetEncoderBlock(
             x = tf.concat([x, skip], axis=-1)
 
         # convolution-in
-        x = layers.Conv2D(filters=num_channels, use_bias=use_bias, kernel_size=(1, 1), padding="same", name=f"{name}_Conv_0")(x)
+        x = Conv1x1(filters=num_channels, use_bias=use_bias, name=f"{name}_Conv_0")(x)
         shortcut_long = x
 
         for i in range(num_groups):
@@ -497,8 +637,8 @@ def UNetEncoderBlock(
             )(x, enc + dec)
 
         if downsample:
-            x_down = layers.Conv2D(
-                filters=num_channels, use_bias=use_bias, kernel_size=(4, 4), strides=(2, 2), padding="same", name=f"{name}_Conv_1"
+            x_down = Conv_down(
+                filters=num_channels, use_bias=use_bias, name=f"{name}_Conv_1"
             )(x)
             return x_down, x
         else:
@@ -527,8 +667,8 @@ def UNetDecoderBlock(
     """Decoder block in MAXIM."""
 
     def apply(x, bridge=None):
-        x = layers.Conv2D(
-                filters=num_channels, use_bias=use_bias, kernel_size=(4, 4), strides=(2, 2), padding="same", name=f"{name}_ConvTranspose_0"
+        x = ConvT_up(
+            filters=num_channels, use_bias=use_bias, name=f"{name}_ConvTranspose_0"
         )(x)
         x = UNetEncoderBlock(
             num_channels=num_channels,
@@ -550,21 +690,102 @@ def UNetDecoderBlock(
 
     return apply
 
-def UpSampleRatio():
-  """Upsample features given a ratio > 0."""
-  features: int
-  ratio: float
-  use_bias: bool = True
 
-  @nn.compact
-  def __call__(self, x):
-    n, h, w, c = x.shape
-    x = jax.image.resize(
-        x,
-        shape=(n, int(h * self.ratio), int(w * self.ratio), c),
-        method="bilinear")
-    x = Conv1x1(features=self.features, use_bias=self.use_bias)(x)
-    return x
+
+@tf.keras.utils.register_keras_serializable("maxim")
+class BlockImages(layers.Layer):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+    def call(self, x, patch_size):
+        bs, h, w, num_channels = (
+            K.int_shape(x)[0],
+            K.int_shape(x)[1],
+            K.int_shape(x)[2],
+            K.int_shape(x)[3],
+        )
+
+        grid_height, grid_width = h // patch_size[0], w // patch_size[1]
+
+        x = einops.rearrange(
+            x,
+            "n (gh fh) (gw fw) c -> n (gh gw) (fh fw) c",
+            gh=grid_height,
+            gw=grid_width,
+            fh=patch_size[0],
+            fw=patch_size[1],
+        )
+
+        return x
+
+    def get_config(self):
+        config = super().get_config().copy()
+        return config
+
+
+@tf.keras.utils.register_keras_serializable("maxim")
+class UnblockImages(layers.Layer):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+    def call(self, x, grid_size, patch_size):
+        x = einops.rearrange(
+            x,
+            "n (gh gw) (fh fw) c -> n (gh fh) (gw fw) c",
+            gh=grid_size[0],
+            gw=grid_size[1],
+            fh=patch_size[0],
+            fw=patch_size[1],
+        )
+
+        return x
+
+    def get_config(self):
+        config = super().get_config().copy()
+        return config
+
+
+@tf.keras.utils.register_keras_serializable("maxim")
+class SwapAxes(layers.Layer):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+    def call(self, x, axis_one, axis_two):
+        return tnp.swapaxes(x, axis_one, axis_two)
+
+    def get_config(self):
+        config = super().get_config().copy()
+        return config
+
+
+@tf.keras.utils.register_keras_serializable("maxim")
+class Resizing(layers.Layer):
+    def __init__(self, height, width, antialias=True, method="bilinear", **kwargs):
+        super().__init__(**kwargs)
+        self.height = height
+        self.width = width
+        self.antialias = antialias
+        self.method = method
+
+    def call(self, x):
+        return tf.image.resize(
+            x,
+            size=(self.height, self.width),
+            antialias=self.antialias,
+            method=self.method,
+        )
+
+    def get_config(self):
+        config = super().get_config().copy()
+        config.update(
+            {
+                "height": self.height,
+                "width": self.width,
+                "antialias": self.antialias,
+                "method": self.method,
+            }
+        )
+        return config
 
 
 def MAXIM(
@@ -660,10 +881,9 @@ def MAXIM(
             # Input convolution, get multi-scale input features
             x_scales = []
             for i in range(num_supervision_scales):
-                x_scale = layers.Conv2D(
+                x_scale = Conv3x3(
                     filters=(2 ** i) * features,
                     use_bias=use_bias,
-                    kernel_size=(3, 3), padding="same",
                     name=f"stage_{idx_stage}_input_conv_{i}",
                 )(shortcuts[i])
 
@@ -686,10 +906,9 @@ def MAXIM(
                             name=f"stage_{idx_stage}_input_fuse_sam_{i}",
                         )(x_scale, sam_features.pop())
                     else:
-                        x_scale = layers.Conv2D(
+                        x_scale = Conv1x1(
                             filters=(2 ** i) * features,
                             use_bias=use_bias,
-                            kernel_size=(1, 1), padding="same",
                             name=f"stage_{idx_stage}_input_catconv_{i}",
                         )(tf.concat([x_scale, sam_features.pop()], axis=-1))
 
@@ -785,11 +1004,11 @@ def MAXIM(
                         name=f"stage_{idx_stage}_cross_gating_block_{i}",
                     )(signal, global_feature)
                 else:
-                    skips = layers.Conv2D(
-                        filters=(2 ** i) * features, kernel_size=(1, 1), padding="same", use_bias=use_bias, name="Conv_0"
+                    skips = Conv1x1(
+                        filters=(2 ** i) * features, use_bias=use_bias, name="Conv_0"
                     )(signal)
-                    skips = layers.Conv2D(
-                        filters=(2 ** i) * features, kernel_size=(3, 3), padding="same", use_bias=use_bias, name="Conv_1"
+                    skips = Conv3x3(
+                        filters=(2 ** i) * features, use_bias=use_bias, name="Conv_1"
                     )(skips)
 
                 skip_features.append(skips)
@@ -847,10 +1066,9 @@ def MAXIM(
                         outputs.append(output)
                         sam_features.append(sam)
                     else:  # Last stage, apply output convolutions
-                        output = layers.Conv2D(
+                        output = Conv3x3(
                             num_outputs,
                             use_bias=use_bias,
-                            kernel_size=(3, 3), padding="same",
                             name=f"stage_{idx_stage}_output_conv_{i}",
                         )(x)
                         output = output + shortcuts[i]
@@ -864,3 +1082,117 @@ def MAXIM(
         return outputs_all
 
     return apply
+
+MAXIM_CONFIGS = {
+    # params: 6.108515000000001 M, GFLOPS: 93.163716608
+    "S-1": {
+        "features": 32,
+        "depth": 3,
+        "num_stages": 1,
+        "num_groups": 2,
+        "num_bottleneck_blocks": 2,
+        "block_gmlp_factor": 2,
+        "grid_gmlp_factor": 2,
+        "input_proj_factor": 2,
+        "channels_reduction": 4,
+        "name": "s1",
+    },
+    # params: 13.35383 M, GFLOPS: 206.743273472
+    "S-2": {
+        "features": 32,
+        "depth": 3,
+        "num_stages": 2,
+        "num_groups": 2,
+        "num_bottleneck_blocks": 2,
+        "block_gmlp_factor": 2,
+        "grid_gmlp_factor": 2,
+        "input_proj_factor": 2,
+        "channels_reduction": 4,
+        "name": "s2",
+    },
+    # params: 20.599145 M, GFLOPS: 320.32194560000005
+    "S-3": {
+        "features": 32,
+        "depth": 3,
+        "num_stages": 3,
+        "num_groups": 2,
+        "num_bottleneck_blocks": 2,
+        "block_gmlp_factor": 2,
+        "grid_gmlp_factor": 2,
+        "input_proj_factor": 2,
+        "channels_reduction": 4,
+        "name": "s3",
+    },
+    # params: 19.361219000000002 M, 308.495712256 GFLOPs
+    "M-1": {
+        "features": 64,
+        "depth": 3,
+        "num_stages": 1,
+        "num_groups": 2,
+        "num_bottleneck_blocks": 2,
+        "block_gmlp_factor": 2,
+        "grid_gmlp_factor": 2,
+        "input_proj_factor": 2,
+        "channels_reduction": 4,
+        "name": "m1",
+    },
+    # params: 40.83911 M, 675.25541888 GFLOPs
+    "M-2": {
+        "features": 64,
+        "depth": 3,
+        "num_stages": 2,
+        "num_groups": 2,
+        "num_bottleneck_blocks": 2,
+        "block_gmlp_factor": 2,
+        "grid_gmlp_factor": 2,
+        "input_proj_factor": 2,
+        "channels_reduction": 4,
+        "name": "m2",
+    },
+    # params: 62.317001 M, 1042.014666752 GFLOPs
+    "M-3": {
+        "features": 64,
+        "depth": 3,
+        "num_stages": 3,
+        "num_groups": 2,
+        "num_bottleneck_blocks": 2,
+        "block_gmlp_factor": 2,
+        "grid_gmlp_factor": 2,
+        "input_proj_factor": 2,
+        "channels_reduction": 4,
+        "name": "m3",
+    },
+}
+
+def Model(variant=None, input_resolution=(256, 256), **kw) -> keras.Model:
+    """Factory function to easily create a Model variant like "S".
+    Args:
+      variant: UNet model variants. Options: 'S-1' | 'S-2' | 'S-3'
+          | 'M-1' | 'M-2' | 'M-3'
+      input_resolution: Size of the input images.
+      **kw: Other UNet config dicts.
+    Returns:
+      The MAXIM model.
+    """
+
+    if variant is not None:
+        config = MAXIM_CONFIGS[variant]
+        for k, v in config.items():
+            kw.setdefault(k, v)
+
+    if "variant" in kw:
+        _ = kw.pop("variant")
+    if "input_resolution" in kw:
+        _ = kw.pop("input_resolution")
+    model_name = kw.pop("name")
+
+    maxim_model = MAXIM(**kw)
+
+    inputs = keras.Input((*input_resolution, 3))
+    outputs = maxim_model(inputs)
+    final_model = keras.Model(inputs, outputs, name=f"{model_name}_model")
+
+    return final_model
+
+model = Model(variant="S-1")
+print(model.summary())
