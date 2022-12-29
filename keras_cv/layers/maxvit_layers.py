@@ -8,6 +8,8 @@
 import numpy as np
 import tensorflow as tf
 from tensorflow.keras import layers
+from tensorflow.keras import initializers
+
 
 from keras_cv.layers.mbconv import MBConvBlock
 
@@ -457,14 +459,10 @@ class RelativeMultiHeadAttention(layers.MultiHeadAttention):
         )
 
         self._num_heads = num_heads
-        self._kernel_initializer = kernel_initializer
+        self._kernel_initializer = initializers.get(kernel_initializer)
         self._scale_ratio = scale_ratio
 
     def build(self, query_shape, value_shape=None, key=None):
-        if value_shape is None:
-            value_shape = query_shape
-        self._build_from_signature(query_shape, value_shape, key=None)
-
         query_shape_list = query_shape.as_list()
         if query_shape.rank == 4:
             height, width = query_shape_list[1:3]
@@ -521,8 +519,7 @@ class RelativeMultiHeadAttention(layers.MultiHeadAttention):
     def _compute_attention(self, query, key, value, attention_mask=None, training=None):
         """Applies Dot-product attention with query, key, value tensors.
         This function defines the computation inside `call` with projected
-        multi-head Q, K, V inputs. Users can override this function for
-        customized attention implementation.
+        multi-head Q, K, V inputs.
         Args:
           query: Projected query `Tensor` of shape `(B, T, N, key_dim)`.
           key: Projected key `Tensor` of shape `(B, S, N, key_dim)`.
@@ -585,9 +582,13 @@ class RelativeMultiHeadAttention(layers.MultiHeadAttention):
 
     def get_config(self):
         config = super().get_config()
-        config.update({"scale_ratio": self._scale_ratio})
+        config.update({
+            "num_heads": self._num_heads,
+            "scale_ratio": self._scale_ratio,
+            "kernel_initializer": initializers.serialize(
+                self._kernel_initializer),
+            })
         return config
-
 
 @tf.keras.utils.register_keras_serializable(package="keras_cv")
 class MaxViTBlock(layers.Layer):
