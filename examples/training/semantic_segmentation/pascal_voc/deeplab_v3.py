@@ -56,6 +56,12 @@ flags.DEFINE_string(
     "The model name to be trained",
 )
 
+flags.DEFINE_string(
+    "model_kwargs",
+    "{}",
+    "The kwargs for the model to be trained.",
+)
+
 FLAGS = flags.FLAGS
 FLAGS(sys.argv)
 
@@ -150,7 +156,7 @@ with strategy.scope():
         weights="imagenet",
     )
     model = segmentation.__dict__[FLAGS.model_name]
-    model = model(classes=21, backbone=backbone)
+    model = model(classes=21, backbone=backbone, **eval(FLAGS.model_kwargs))
     optimizer = tf.keras.optimizers.SGD(
         learning_rate=lr_decay, momentum=0.9, clipnorm=10.0
     )
