@@ -171,7 +171,7 @@ eval_ds = eval_ds.map(pad_fn, num_parallel_calls=tf.data.AUTOTUNE)
 
 with strategy.scope():
     backbone = keras_cv.models.ResNet50(
-        include_top=False, weights="imagenet", include_rescaling=False
+        include_top=False, weights="imagenet", include_rescaling=True
     ).as_backbone()
     model = keras_cv.models.RetinaNet(
         # number of classes to be used in box classification
