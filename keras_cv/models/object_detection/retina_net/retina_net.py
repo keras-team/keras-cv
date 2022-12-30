@@ -20,7 +20,6 @@ import keras_cv
 from keras_cv import bounding_box
 from keras_cv import layers as cv_layers
 from keras_cv.bounding_box.converters import _decode_deltas_to_boxes
-from keras_cv.models import utils
 from keras_cv.models.object_detection import predict_utils
 from keras_cv.models.object_detection.retina_net.__internal__ import (
     layers as layers_lib,
@@ -106,8 +105,6 @@ class RetinaNet(tf.keras.Model):
         feature_pyramid=None,
         classification_head=None,
         box_head=None,
-        input_shape=(None, None, 3),
-        input_tensor=None,
         name="RetinaNet",
         **kwargs,
     ):
@@ -122,7 +119,20 @@ class RetinaNet(tf.keras.Model):
                 "`prediction_decoder` you should provide both to `RetinaNet`, and ensure "
                 "that the `anchor_generator` provided to both is identical"
             )
-
+        anchor_generator = anchor_generator or RetinaNet.default_anchor_generator(
+            bounding_box_format
+        )
+        label_encoder = label_encoder or cv_layers.RetinaNetLabelEncoder(
+            bounding_box_format=bounding_box_format,
+            anchor_generator=anchor_generator,
+            box_variance=BOX_VARIANCE,
+        )
+        super().__init__(
+            name=name,
+            **kwargs,
+        )
+        self.label_encoder = label_encoder
+        self.anchor_generator = anchor_generator
         if bounding_box_format.lower() != "xywh":
             raise ValueError(
                 "`keras_cv.models.RetinaNet` only supports the 'xywh' "
@@ -131,65 +141,26 @@ class RetinaNet(tf.keras.Model):
                 f"Received `bounding_box_format={bounding_box_format}`"
             )
 
-        backbone = _parse_backbone(backbone, include_rescaling)
+        self.bounding_box_format = bounding_box_format
+        self.classes = classes
+        self.backbone = _parse_backbone(backbone, include_rescaling)
 
-        # initialize trainable networks
-        feature_pyramid = feature_pyramid or layers_lib.FeaturePyramid()
-        prior_probability = tf.constant_initializer(-np.log((1 - 0.01) / 0.01))
-
-        classification_head = classification_head or layers_lib.PredictionHead(
-            output_filters=9 * classes, bias_initializer=prior_probability
-        )
-
-        box_head = box_head or layers_lib.PredictionHead(
-            output_filters=9 * 4, bias_initializer="zeros"
-        )
-
-        inputs = utils.parse_model_inputs(input_shape, input_tensor)
-
-        backbone_outputs = backbone(inputs)
-        features = feature_pyramid(backbone_outputs)
-
-        N = tf.shape(inputs)[0]
-        cls_pred = []
-        box_pred = []
-        for feature in features:
-            box_pred.append(tf.reshape(box_head(feature), [N, -1, 4]))
-            cls_pred.append(
-                tf.reshape(
-                    classification_head(feature),
-                    [N, -1, classes],
-                )
-            )
-
-        cls_pred = tf.concat(cls_pred, axis=1)
-        box_pred = tf.concat(box_pred, axis=1)
-
-        super().__init__(
-            inputs=inputs,
-            outputs=(box_pred, cls_pred),
-            **kwargs,
-        )
-
-        self.anchor_generator = anchor_generator or RetinaNet.default_anchor_generator(
-            bounding_box_format
-        )
-        self.label_encoder = label_encoder or cv_layers.RetinaNetLabelEncoder(
-            bounding_box_format=bounding_box_format,
-            anchor_generator=self.anchor_generator,
-            box_variance=BOX_VARIANCE,
-        )
         self._prediction_decoder = prediction_decoder or cv_layers.NmsDecoder(
             bounding_box_format=bounding_box_format,
             from_logits=True,
         )
-        self.backbone = backbone
-        self.feature_pyramid = feature_pyramid
-        self.box_head = box_head
-        self.classification_head = classification_head
 
-        self.bounding_box_format = bounding_box_format
-        self.classes = classes
+        # initialize trainable networks
+        self.feature_pyramid = feature_pyramid or layers_lib.FeaturePyramid()
+        prior_probability = tf.constant_initializer(-np.log((1 - 0.01) / 0.01))
+
+        self.classification_head = classification_head or layers_lib.PredictionHead(
+            output_filters=9 * classes, bias_initializer=prior_probability
+        )
+
+        self.box_head = box_head or layers_lib.PredictionHead(
+            output_filters=9 * 4, bias_initializer="zeros"
+        )
 
     def make_predict_function(self, force=False):
         return predict_utils.make_predict_function(self, force=force)
@@ -218,8 +189,31 @@ class RetinaNet(tf.keras.Model):
             clip_boxes=True,
         )
 
+    def _forward(self, images, training=None):
+        backbone_outputs = self.backbone(images, training=training)
+        features = self.feature_pyramid(backbone_outputs, training=training)
+
+        N = tf.shape(images)[0]
+        cls_pred = []
+        box_pred = []
+        for feature in features:
+            box_pred.append(
+                tf.reshape(self.box_head(feature, training=training), [N, -1, 4])
+            )
+            cls_pred.append(
+                tf.reshape(
+                    self.classification_head(feature, training=training),
+                    [N, -1, self.classes],
+                )
+            )
+
+        cls_pred = tf.concat(cls_pred, axis=1)
+        box_pred = tf.concat(box_pred, axis=1)
+
+        return box_pred, cls_pred
+
     def call(self, images, training=None):
-        box_pred, cls_pred = super().call(images, training=training)
+        box_pred, cls_pred = self._forward(images, training=training)
         if not training:
             # box_pred is on "center_yxhw" format, convert to target format.
             anchors = self.anchor_generator(images[0])
@@ -315,7 +309,7 @@ class RetinaNet(tf.keras.Model):
         super().compile(loss=losses, **kwargs)
 
     def compute_loss(self, images, gt_boxes, gt_classes, training):
-        box_pred, cls_pred = super().call(images, training=training)
+        box_pred, cls_pred = self._forward(images, training=training)
         if gt_boxes.shape[-1] != 4:
             raise ValueError(
                 "gt_boxes should have shape (None, None, 4).  Got "
