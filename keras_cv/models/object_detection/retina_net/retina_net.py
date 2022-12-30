@@ -411,7 +411,19 @@ class RetinaNet(tf.keras.Model):
         _ = self.compute_loss(x, gt_boxes, gt_classes, training=False)
 
         return self.compute_metrics(x, {}, {}, sample_weight={})
-
+    
+    def get_config(self):
+        return {
+            "classes": self.classes,
+            "bounding_box_format": self.bounding_box_format,
+            "backbone": self.backbone,
+            "anchor_generator": self.anchor_generator,
+            "label_encoder": self.label_encoder,
+            "prediction_decoder": self._prediction_decoder,
+            "feature_pyramid": self.feature_pyramid,
+            "classification_head": self.classification_head,
+            "box_head": self.box_head,
+        }
 
 def _parse_backbone(backbone, include_rescaling):
     if isinstance(backbone, str) and include_rescaling is None:
