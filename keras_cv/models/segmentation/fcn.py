@@ -35,6 +35,11 @@ BACKBONE_CONFIG = {
     },
 }
 BACKBONE = {"vgg16": VGG16, "vgg19": VGG19}
+MODEL_CONFIG = {
+    "fcn8s": ["BLOCK3", "BLOCK4", "BLOCK5"],
+    "fcn16s": ["BLOCK4", "BLOCK5"],
+    "fcn32s": ["BLOCK5"],
+}
 
 
 def get_dense_to_convolution_layers(model):
@@ -75,7 +80,7 @@ def vgg_backbone_builder(
     """Utility function to build the backbone of the FCN with variants of the VGG model.
 
     Args:
-        backbone_name: str, one of 'vgg16' or 'vgg19'. Defines which model to use as the backbone base.
+        backbone: str, one of 'vgg16' or 'vgg19'. Defines which model to use as the backbone base.
         model_architecture: str, one of 'fcn8s', 'fcn16s' or 'fcn32s'.
             Defines which architecture and sampling method should be used as detailed in the
             paper [Fully Convolutional Networks for Semantic Segmentation](https://arxiv.org/pdf/1411.4038.pdf)
@@ -94,55 +99,20 @@ def vgg_backbone_builder(
     elif input_shape is not None:
         x = tf.keras.layers.Input(shape=input)
 
-    if model_architecture == "fcn8s":
-        # Made it like this, because then parameter sharing occurs to get the model parameter size to go down drastically
-        backbone_slice = tf.keras.Model(
-            inputs=vgg_model.layers[1].input,
-            outputs=[
-                vgg_model.get_layer(BACKBONE_CONFIG[backbone_name]["BLOCK3"]).output,
-                vgg_model.get_layer(BACKBONE_CONFIG[backbone_name]["BLOCK4"]).output,
-                vgg_model.get_layer(BACKBONE_CONFIG[backbone_name]["BLOCK5"]).output,
-            ],
-            name="internal_backbone_model",
-        )
-        pool3_output, pool4_output, pool5_output = backbone_slice(x)
+    backbone_slice = tf.keras.models.Model(
+        inputs=vgg_model.layers[1].input,
+        outputs=[
+            vgg_model.get_layer(BACKBONE_CONFIG[backbone_name][block]).output
+            for block in MODEL_CONFIG[model_architecture]
+        ],
+    )
 
-        dense_convs = get_dense_to_convolution_layers(model=vgg_model)
-        pool5_output = dense_convs(pool5_output)
+    outputs = backbone_slice(x)
+    dense_convs = get_dense_to_convolution_layers(model=vgg_model)
 
-        return pool3_output, pool4_output, pool5_output
+    pool5_output = dense_convs(outputs[-1])
 
-    elif model_architecture == "fcn16s":
-        backbone_slice = tf.keras.Model(
-            inputs=vgg_model.layers[0].output,
-            outputs=[
-                vgg_model.get_layer(BACKBONE_CONFIG[backbone_name]["BLOCK4"]).output,
-                vgg_model.get_layer(BACKBONE_CONFIG[backbone_name]["BLOCK5"]).output,
-            ],
-            name="internal_backbone_model",
-        )
-
-        pool4_output, pool5_output = backbone_slice(x)
-
-        dense_convs = get_dense_to_convolution_layers(model=vgg_model)
-        pool5_output = dense_convs(pool5_output)
-
-        return pool4_output, pool5_output
-    elif model_architecture == "fcn32s":
-
-        pool5 = tf.keras.Model(
-            inputs=vgg_model.layers[0].output,
-            outputs=vgg_model.get_layer(
-                BACKBONE_CONFIG[backbone_name]["BLOCK5"]
-            ).output,
-            name="internal_backbone_model",
-        )
-
-        dense_convs = get_dense_to_convolution_layers(model=vgg_model)
-        pool5_output = pool5(x)
-        pool5_output = dense_convs(pool5_output)
-
-        return pool5_output
+    return *outputs[:-1], pool5_output
 
 
 def vgg_architecture_builder(
@@ -445,6 +415,7 @@ class FullyConvolutionalNetwork(tf.keras.models.Model):
                 self.model_architecture = model_architecture
                 self.return_mask = return_mask
 
+                # Try to load VGG Dense weights after reshaping into the Conv-layers
                 try:
                     weights1 = backbone.get_layer(
                         BACKBONE_CONFIG[backbone_name]["DENSE_NAMES"][0]
@@ -558,8 +529,6 @@ class FullyConvolutionalNetwork(tf.keras.models.Model):
 def FCN8S(
     classes, backbone, return_mask=False, input_shape=(None, None, 3), input_tensor=None
 ):
-    # if input_shape == (None, None, 3):
-    #     input_shape = backbone.layers[0].input.shape
     return FullyConvolutionalNetwork(
         classes=classes,
         input_shape=input_shape,

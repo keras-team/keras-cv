@@ -89,7 +89,14 @@ def process(examples, augment=False):
     cls_seg = tf.where(sample_weight, zeros, cls_seg)
     return image, cls_seg
 
-train_ds = train_ds.map(lambda x: process(x, augment=False), num_parallel_calls=tf.data.AUTOTUNE).cache().prefetch(tf.data.AUTOTUNE)
+
+train_ds = (
+    train_ds.map(
+        lambda x: process(x, augment=False), num_parallel_calls=tf.data.AUTOTUNE
+    )
+    .cache()
+    .prefetch(tf.data.AUTOTUNE)
+)
 train_ds = train_ds.batch(16, drop_remainder=True)
 
 eval_ds = eval_ds.map(lambda x: process(x), num_parallel_calls=tf.data.AUTOTUNE)
@@ -99,8 +106,10 @@ train_ds = train_ds.shuffle(8)
 train_ds = train_ds.prefetch(tf.data.AUTOTUNE)
 
 with strategy.scope():
-    backbone = tf.keras.applications.VGG16(include_top=False, weights='imagenet', input_shape=(224, 224, 3))
-    model = FCN8S(classes=21, backbone=backbone)    
+    backbone = tf.keras.applications.VGG16(
+        include_top=False, weights="imagenet", input_shape=(224, 224, 3)
+    )
+    model = FCN8S(classes=21, backbone=backbone)
     optimizer = tf.keras.optimizers.Adam(learning_rate=1e-4)
     # ignore 255 as the class for semantic boundary.
     loss_fn = tf.keras.losses.SparseCategoricalCrossentropy(ignore_class=255)
