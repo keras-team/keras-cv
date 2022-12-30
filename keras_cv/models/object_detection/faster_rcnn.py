@@ -15,6 +15,7 @@
 import tensorflow as tf
 from absl import logging
 
+import keras_cv
 from keras_cv import bounding_box
 from keras_cv import layers as cv_layers
 from keras_cv.bounding_box.converters import _decode_deltas_to_boxes
@@ -224,7 +225,7 @@ class FasterRCNN(tf.keras.Model):
     retina_net = keras_cv.models.FasterRCNN(
         classes=20,
         bounding_box_format="xywh",
-        backbone="resnet50",
+        backbone=None,
     )
     ```
 
@@ -238,7 +239,7 @@ class FasterRCNN(tf.keras.Model):
         backbone: a `tf.keras.Model` custom backbone model. For now, only a backbone
             with per level dict output is supported, for example, ResNet50 with FPN, which
             uses the last conv block from stage 2 to stage 6 and add a max pooling at
-            stage 7.
+            stage 7. Defaults to `keras_cv.models.ResNet50`.
         anchor_generator: (Optional) a `keras_cv.layers.AnchorGeneratot`. It is used
             in the model to match ground truth boxes and labels with anchors, or with
             region proposals. By default it uses the sizes and ratios from the paper,
@@ -308,7 +309,12 @@ class FasterRCNN(tf.keras.Model):
         )
         self.roi_pooler = _ROIAligner(bounding_box_format="yxyx")
         self.rcnn_head = rcnn_head or RCNNHead(classes)
-        self.backbone = backbone
+        self.backbone = (
+            backbone
+            or keras_cv.models.ResNet50(
+                include_top=False, include_rescaling=True
+            ).as_backbone()
+        )
         self.feature_pyramid = FeaturePyramid()
         self.rpn_labeler = label_encoder or _RpnLabelEncoder(
             anchor_format="yxyx",
