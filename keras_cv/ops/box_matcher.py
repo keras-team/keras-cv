@@ -101,7 +101,7 @@ class ArgmaxBoxMatcher(tf.keras.layers.Layer):
         self.force_match_for_each_col = force_match_for_each_col
         self.built = True
 
-    def __call__(self, similarity_matrix: tf.Tensor) -> Tuple[tf.Tensor, tf.Tensor]:
+    def call(self, similarity_matrix: tf.Tensor) -> Tuple[tf.Tensor, tf.Tensor]:
         """Matches each row to a column based on argmax
 
         TODO(tanzhenyu): consider swapping rows and cols.
