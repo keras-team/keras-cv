@@ -42,9 +42,6 @@ class RetinaNet(tf.keras.Model):
 
     Usage:
     ```python
-    backbone = keras_cv.models.ResNet50(
-        include_top=False, weights="imagenet", include_rescaling=False
-    ).as_backbone()
     retina_net = keras_cv.models.RetinaNet(
         classes=20,
         bounding_box_format="xywh",
@@ -59,7 +56,8 @@ class RetinaNet(tf.keras.Model):
         bounding_box_format: The format of bounding boxes of input dataset. Refer
             [to the keras.io docs](https://keras.io/api/keras_cv/bounding_box/formats/)
             for more details on supported bounding box formats.
-        backbone: backbone: a `tf.keras.Model` custom backbone model.
+        backbone: backbone: an optional `tf.keras.Model` custom backbone model. Defaults
+            to a keras_cv.models.ResNet50 with include_rescaling=True
         anchor_generator: (Optional) a `keras_cv.layers.AnchorGenerator`.  If provided,
             the anchor generator will be passed to both the `label_encoder` and the
             `prediction_decoder`.  Only to be used when both `label_encoder` and
@@ -141,7 +139,12 @@ class RetinaNet(tf.keras.Model):
 
         self.bounding_box_format = bounding_box_format
         self.classes = classes
-        self.backbone = backbone
+        self.backbone = (
+            backbone
+            or keras_cv.models.ResNet50(
+                include_top=False, include_rescaling=True
+            ).as_backbone()
+        )
 
         self._prediction_decoder = prediction_decoder or cv_layers.NmsDecoder(
             bounding_box_format=bounding_box_format,
