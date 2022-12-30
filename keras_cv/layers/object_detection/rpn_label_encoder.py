@@ -23,6 +23,7 @@ from keras_cv.ops import sampling
 from keras_cv.ops import target_gather
 
 
+@tf.keras.utils.register_keras_serializable(package="keras_cv")
 class _RpnLabelEncoder(tf.keras.layers.Layer):
     """Transforms the raw labels into training targets for region proposal network (RPN).
 

@@ -15,6 +15,7 @@
 import tensorflow as tf
 from absl import logging
 
+import keras_cv
 from keras_cv import bounding_box
 from keras_cv import layers as cv_layers
 from keras_cv.bounding_box.converters import _decode_deltas_to_boxes
@@ -28,29 +29,6 @@ from keras_cv.models.object_detection import predict_utils
 from keras_cv.ops.box_matcher import ArgmaxBoxMatcher
 
 BOX_VARIANCE = [0.1, 0.1, 0.2, 0.2]
-
-
-def _resnet50_backbone(include_rescaling=False):
-    inputs = tf.keras.layers.Input(shape=(None, None, 3))
-    x = inputs
-
-    if include_rescaling:
-        x = tf.keras.applications.resnet.preprocess_input(x)
-
-    backbone = tf.keras.applications.ResNet50(include_top=False, input_tensor=x)
-
-    c2_output, c3_output, c4_output, c5_output = [
-        backbone.get_layer(layer_name).output
-        for layer_name in [
-            "conv2_block3_out",
-            "conv3_block4_out",
-            "conv4_block6_out",
-            "conv5_block3_out",
-        ]
-    ]
-    return tf.keras.Model(
-        inputs=inputs, outputs={2: c2_output, 3: c3_output, 4: c4_output, 5: c5_output}
-    )
 
 
 class FeaturePyramid(tf.keras.layers.Layer):
@@ -232,6 +210,7 @@ class RCNNHead(tf.keras.layers.Layer):
 
 
 # TODO(tanzheny): add more configurations
+@tf.keras.utils.register_keras_serializable(package="keras_cv")
 class FasterRCNN(tf.keras.Model):
     """A Keras model implementing the FasterRCNN architecture.
 
@@ -246,8 +225,7 @@ class FasterRCNN(tf.keras.Model):
     retina_net = keras_cv.models.FasterRCNN(
         classes=20,
         bounding_box_format="xywh",
-        backbone="resnet50",
-        include_rescaling=False,
+        backbone=None,
     )
     ```
 
@@ -258,13 +236,10 @@ class FasterRCNN(tf.keras.Model):
         bounding_box_format: The format of bounding boxes of model output. Refer
             [to the keras.io docs](https://keras.io/api/keras_cv/bounding_box/formats/)
             for more details on supported bounding box formats.
-        backbone: Either `"resnet50"` or a custom backbone model. For now, only a backbone
-            with per level dict output is supported. Default to ResNet50 with FPN, which
+        backbone: a `tf.keras.Model` custom backbone model. For now, only a backbone
+            with per level dict output is supported, for example, ResNet50 with FPN, which
             uses the last conv block from stage 2 to stage 6 and add a max pooling at
-            stage 7.
-        include_rescaling: Required if provided backbone is a pre-configured model.
-            If set to `True`, inputs will be passed through a `Rescaling(1/255.0)`
-            layer. Default to False.
+            stage 7. Defaults to `keras_cv.models.ResNet50`.
         anchor_generator: (Optional) a `keras_cv.layers.AnchorGeneratot`. It is used
             in the model to match ground truth boxes and labels with anchors, or with
             region proposals. By default it uses the sizes and ratios from the paper,
@@ -295,9 +270,9 @@ class FasterRCNN(tf.keras.Model):
         classes,
         bounding_box_format,
         backbone=None,
-        include_rescaling=False,
         anchor_generator=None,
         label_encoder=None,
+        feature_pyramid=None,
         rpn_head=None,
         rcnn_head=None,
         prediction_decoder=None,
@@ -334,7 +309,12 @@ class FasterRCNN(tf.keras.Model):
         )
         self.roi_pooler = _ROIAligner(bounding_box_format="yxyx")
         self.rcnn_head = rcnn_head or RCNNHead(classes)
-        self.backbone = backbone or _resnet50_backbone(include_rescaling)
+        self.backbone = (
+            backbone
+            or keras_cv.models.ResNet50(
+                include_top=False, include_rescaling=True
+            ).as_backbone()
+        )
         self.feature_pyramid = FeaturePyramid()
         self.rpn_labeler = label_encoder or _RpnLabelEncoder(
             anchor_format="yxyx",
@@ -558,6 +538,19 @@ class FasterRCNN(tf.keras.Model):
         )
         y_pred["boxes"] = box_pred
         return y_pred
+
+    def get_config(self):
+        return {
+            "classes": self.classes,
+            "bounding_box_format": self.bounding_box_format,
+            "backbone": self.backbone,
+            "anchor_generator": self.anchor_generator,
+            "label_encoder": self.rpn_labeler,
+            "prediction_decoder": self._prediction_decoder,
+            "feature_pyramid": self.feature_pyramid,
+            "rpn_head": self.rpn_head,
+            "rcnn_head": self.rcnn_head,
+        }
 
 
 def _validate_and_get_loss(loss, loss_name):

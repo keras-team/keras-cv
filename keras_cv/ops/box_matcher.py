@@ -20,7 +20,8 @@ from typing import Tuple
 import tensorflow as tf
 
 
-class ArgmaxBoxMatcher:
+@tf.keras.utils.register_keras_serializable(package="keras_cv")
+class ArgmaxBoxMatcher(tf.keras.layers.Layer):
     """Box matching logic based on argmax of highest value (e.g., IOU).
 
     This class computes matches from a similarity matrix. Each row will be
@@ -83,7 +84,9 @@ class ArgmaxBoxMatcher:
         thresholds: List[float],
         match_values: List[int],
         force_match_for_each_col: bool = False,
+        **kwargs,
     ):
+        super().__init__(**kwargs)
         if sorted(thresholds) != thresholds:
             raise ValueError(f"`threshold` must be sorted, got {thresholds}")
         self.match_values = match_values
@@ -96,8 +99,9 @@ class ArgmaxBoxMatcher:
         thresholds.append(float("inf"))
         self.thresholds = thresholds
         self.force_match_for_each_col = force_match_for_each_col
+        self.built = True
 
-    def __call__(self, similarity_matrix: tf.Tensor) -> Tuple[tf.Tensor, tf.Tensor]:
+    def call(self, similarity_matrix: tf.Tensor) -> Tuple[tf.Tensor, tf.Tensor]:
         """Matches each row to a column based on argmax
 
         TODO(tanzhenyu): consider swapping rows and cols.

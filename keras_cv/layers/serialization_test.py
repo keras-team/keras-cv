@@ -422,6 +422,14 @@ class SerializationTest(tf.test.TestCase, parameterized.TestCase):
                 "offset": 0.5,
             },
         ),
+        (
+            "NmsDecoder",
+            cv_layers.NmsDecoder,
+            {
+                "bounding_box_format": "yxyx",
+                "from_logits": True,
+            },
+        ),
     )
     def test_layer_serialization(self, layer_cls, init_args):
         layer = layer_cls(**init_args)
