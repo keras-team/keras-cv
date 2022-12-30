@@ -96,7 +96,9 @@ class FCNTest(tf.test.TestCase):
     def test_invalid_backbone_model(self):
         with self.assertRaisesRegex(
             ValueError,
-            r"`model_architecture` cannot be set if `backbone` is not a `keras_cv.models.VGG16` or `keras_cv.models.VGG19`. Either set `backbone` to one of the accepted values or remove the `model_architecture` argument.",
+            """`model_architecture` cannot be set if `backbone` is not a `keras_cv.models.VGG16` or
+                    `keras_cv.models.VGG19`. Either set `backbone` to one of the accepted values or remove
+                    the `model_architecture` argument.""",
         ):
             resnet = models.ResNet50(
                 include_rescaling=False, include_top=False, input_shape=(64, 64, 3)

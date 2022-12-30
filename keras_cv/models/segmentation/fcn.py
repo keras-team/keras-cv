@@ -14,8 +14,8 @@
 
 import tensorflow as tf
 
-from keras_cv.models import VGG16
-from keras_cv.models import VGG19
+from keras_cv.models.vgg16 import VGG16
+from keras_cv.models.vgg19 import VGG19
 from keras_cv.models import utils
 
 BACKBONE_CONFIG = {

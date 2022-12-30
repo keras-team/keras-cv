@@ -67,25 +67,29 @@ eval_ds = load(split="sbd_eval", data_dir=None)
 
 def resize_image(img, cls_seg, augment=False):
     img = tf.keras.layers.Resizing(224, 224, interpolation="nearest")(img)
+    img = tf.keras.applications.vgg16.preprocess_input(img)
     cls_seg = tf.keras.layers.Resizing(224, 224, interpolation="nearest")(cls_seg)
     cls_seg = tf.cast(cls_seg, tf.int32)
 
     inputs = {"images": img, "segmentation_masks": cls_seg}
+    if augment:
+        inputs = preprocessing.RandomFlip("horizontal")(inputs)
+
     return inputs["images"], inputs["segmentation_masks"]
 
 
-def process(examples):
+def process(examples, augment=False):
     image = examples.pop("image")
     cls_seg = examples.pop("class_segmentation")
 
-    image, cls_seg = resize_image(image, cls_seg)
+    image, cls_seg = resize_image(image, cls_seg, augment=augment)
 
     sample_weight = tf.equal(cls_seg, 255)
     zeros = tf.zeros_like(cls_seg)
     cls_seg = tf.where(sample_weight, zeros, cls_seg)
     return image, cls_seg
 
-train_ds = train_ds.map(lambda x: process(x, augment=True), num_parallel_calls=tf.data.AUTOTUNE)
+train_ds = train_ds.map(lambda x: process(x, augment=False), num_parallel_calls=tf.data.AUTOTUNE).cache().prefetch(tf.data.AUTOTUNE)
 train_ds = train_ds.batch(16, drop_remainder=True)
 
 eval_ds = eval_ds.map(lambda x: process(x), num_parallel_calls=tf.data.AUTOTUNE)
