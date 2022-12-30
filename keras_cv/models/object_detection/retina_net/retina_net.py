@@ -94,7 +94,7 @@ class RetinaNet(tf.keras.Model):
         self,
         classes,
         bounding_box_format,
-        backbone,
+        backbone=None,
         anchor_generator=None,
         label_encoder=None,
         prediction_decoder=None,
