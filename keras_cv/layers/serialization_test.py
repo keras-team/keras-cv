@@ -422,6 +422,26 @@ class SerializationTest(tf.test.TestCase, parameterized.TestCase):
                 "offset": 0.5,
             },
         ),
+        (
+            "AnchorGenerator",
+            cv_layers.AnchorGenerator,
+            {
+                "bounding_box_format": "yxyx",
+                "sizes": {2: 32.0, 3: 64.0, 4: 128.0, 5: 256.0, 6: 512.0},
+                "scales": [2**x for x in [0]],
+                "aspect_ratios": [0.5, 1.0, 2.0],
+                "strides": {i: 2**i for i in range(2, 7)},
+                "clip_boxes": True,
+            },
+        ),
+        (
+            "NmsDecoder",
+            cv_layers.NmsDecoder,
+            {
+                "bounding_box_format": "yxyx",
+                "from_logits": True,
+            },
+        ),
     )
     def test_layer_serialization(self, layer_cls, init_args):
         layer = layer_cls(**init_args)

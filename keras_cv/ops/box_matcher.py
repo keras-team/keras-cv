@@ -20,7 +20,8 @@ from typing import Tuple
 import tensorflow as tf
 
 
-class ArgmaxBoxMatcher:
+@tf.keras.utils.register_keras_serializable(package="keras_cv")
+class ArgmaxBoxMatcher(tf.keras.layers.Layer):
     """Box matching logic based on argmax of highest value (e.g., IOU).
 
     This class computes matches from a similarity matrix. Each row will be

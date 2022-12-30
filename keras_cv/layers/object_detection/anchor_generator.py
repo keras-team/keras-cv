@@ -18,6 +18,7 @@ from tensorflow import keras
 from keras_cv import bounding_box
 
 
+@tf.keras.utils.register_keras_serializable(package="keras_cv")
 class AnchorGenerator(keras.layers.Layer):
     """AnchorGenerator generates anchors for multiple feature maps.
 
@@ -85,6 +86,11 @@ class AnchorGenerator(keras.layers.Layer):
     ):
         super().__init__(**kwargs)
         self.bounding_box_format = bounding_box_format
+        self.sizes = sizes
+        self.scales = scales
+        self.aspect_ratios = aspect_ratios
+        self.strides = strides
+        self.clip_boxes = clip_boxes
         # aspect_ratio is a single list that is the same across all levels.
         sizes, strides = self._format_sizes_and_strides(sizes, strides)
         aspect_ratios = self._match_param_structure_to_sizes(aspect_ratios, sizes)
@@ -175,6 +181,21 @@ class AnchorGenerator(keras.layers.Layer):
                 image_shape=image_shape,
             )
         return results
+
+    def get_config(self):
+        config = {
+            "classes": self.num_classes,
+            "conv_dims": self.conv_dims,
+            "fc_dims": self.fc_dims,
+            "bounding_box_format": self.bounding_box_format,
+            "sizes": self.sizes,
+            "scales": self.scales,
+            "aspect_ratios": self.aspect_ratios,
+            "strides": self.strides,
+            "clip_boxes": self.clip_boxes,
+        }
+        base_config = super().get_config()
+        return dict(list(base_config.items()) + list(config.items()))
 
 
 # TODO(tanzheny): consider having customized anchor offset.
