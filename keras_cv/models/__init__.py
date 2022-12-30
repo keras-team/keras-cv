@@ -96,3 +96,9 @@ from keras_cv.models.vit import ViTS16
 from keras_cv.models.vit import ViTS32
 from keras_cv.models.vit import ViTTiny16
 from keras_cv.models.vit import ViTTiny32
+from keras_cv.models.maxim import MAXIM_S1
+from keras_cv.models.maxim import MAXIM_S2
+from keras_cv.models.maxim import MAXIM_S3
+from keras_cv.models.maxim import MAXIM_M1
+from keras_cv.models.maxim import MAXIM_M2
+from keras_cv.models.maxim import MAXIM_M3
