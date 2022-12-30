@@ -110,9 +110,14 @@ def vgg_backbone_builder(
     outputs = backbone_slice(x)
     dense_convs = get_dense_to_convolution_layers(model=vgg_model)
 
-    pool5_output = dense_convs(outputs[-1])
+    pool5_output = outputs[-1] if isinstance(outputs, list) else outputs
 
-    return *outputs[:-1], pool5_output
+    pool5_output = dense_convs(pool5_output)
+
+    if isinstance(outputs, list):
+        return *outputs[:-1], pool5_output
+    else:
+        return pool5_output
 
 
 def vgg_architecture_builder(
