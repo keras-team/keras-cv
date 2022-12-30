@@ -15,7 +15,9 @@
 import tensorflow as tf
 from absl import logging
 
+import keras_cv
 from keras_cv import bounding_box
+from keras_cv import layers as cv_layers
 from keras_cv.bounding_box.converters import _decode_deltas_to_boxes
 from keras_cv.bounding_box.utils import _clip_boxes
 from keras_cv.layers.object_detection.anchor_generator import AnchorGenerator
@@ -26,28 +28,7 @@ from keras_cv.layers.object_detection.rpn_label_encoder import _RpnLabelEncoder
 from keras_cv.models.object_detection import predict_utils
 from keras_cv.ops.box_matcher import ArgmaxBoxMatcher
 
-
-def _resnet50_backbone(include_rescaling=False):
-    inputs = tf.keras.layers.Input(shape=(None, None, 3))
-    x = inputs
-
-    if include_rescaling:
-        x = tf.keras.applications.resnet.preprocess_input(x)
-
-    backbone = tf.keras.applications.ResNet50(include_top=False, input_tensor=x)
-
-    c2_output, c3_output, c4_output, c5_output = [
-        backbone.get_layer(layer_name).output
-        for layer_name in [
-            "conv2_block3_out",
-            "conv3_block4_out",
-            "conv4_block6_out",
-            "conv5_block3_out",
-        ]
-    ]
-    return tf.keras.Model(
-        inputs=inputs, outputs={2: c2_output, 3: c3_output, 4: c4_output, 5: c5_output}
-    )
+BOX_VARIANCE = [0.1, 0.1, 0.2, 0.2]
 
 
 class FeaturePyramid(tf.keras.layers.Layer):
@@ -136,11 +117,9 @@ class RPNHead(tf.keras.layers.Layer):
             kernel_initializer="truncated_normal",
         )
 
-    def call(self, feature_map):
+    def call(self, feature_map, training=None):
         def call_single_level(f_map):
-            batch_size = f_map.get_shape().as_list()[0]
-            if batch_size is None:
-                raise ValueError("Cannot handle static shape")
+            batch_size = f_map.get_shape().as_list()[0] or tf.shape(f_map)[0]
             # [BS, H, W, C]
             t = self.conv(f_map)
             # [BS, H, W, K]
@@ -210,7 +189,7 @@ class RCNNHead(tf.keras.layers.Layer):
         self.box_pred = tf.keras.layers.Dense(units=4)
         self.cls_score = tf.keras.layers.Dense(units=classes + 1, activation="softmax")
 
-    def call(self, feature_map):
+    def call(self, feature_map, training=None):
         x = feature_map
         for conv in self.convs:
             x = conv(x)
@@ -230,62 +209,8 @@ class RCNNHead(tf.keras.layers.Layer):
         return dict(list(base_config.items()) + list(config.items()))
 
 
-# TODO(tanzhenyu): provide a TPU compatible NMS decoder.
-# TODO(tanzhenyu): Unify the NMS decoder used for detection models.
-class NMSDecoder(tf.keras.layers.Layer):
-    """A customized NMS layer wrapper."""
-
-    def __init__(
-        self,
-        bounding_box_format,
-        iou_threshold=0.5,
-        score_threshold=0.5,
-        max_output_size_per_class=10,
-        max_total_size=10,
-        **kwargs,
-    ):
-        super().__init__(**kwargs)
-        self.bounding_box_format = bounding_box_format
-        self.iou_threshold = iou_threshold
-        self.score_threshold = score_threshold
-        self.max_output_size_per_class = max_output_size_per_class
-        self.max_total_size = max_total_size
-
-    def call(self, box_pred, scores_pred):
-        box_pred = tf.expand_dims(box_pred, axis=-2)
-        (
-            box_pred,
-            scores_pred,
-            cls_pred,
-            valid_det,
-        ) = tf.image.combined_non_max_suppression(
-            boxes=box_pred,
-            scores=scores_pred[..., :-1],
-            max_output_size_per_class=self.max_output_size_per_class,
-            max_total_size=self.max_total_size,
-            score_threshold=self.score_threshold,
-            iou_threshold=self.iou_threshold,
-            clip_boxes=False,
-        )
-        return {
-            "boxes": box_pred,
-            "confidence": scores_pred,
-            "classes": cls_pred,
-            "num_detections": valid_det,
-        }
-
-    def get_config(self):
-        config = {
-            "iou_threshold": self.iou_threshold,
-            "score_threshold": self.score_threshold,
-            "max_output_size_per_class": self.max_output_size_per_class,
-            "max_total_size": self.max_total_size,
-        }
-        base_config = super().get_config()
-        return dict(list(base_config.items()) + list(config.items()))
-
-
 # TODO(tanzheny): add more configurations
+@tf.keras.utils.register_keras_serializable(package="keras_cv")
 class FasterRCNN(tf.keras.Model):
     """A Keras model implementing the FasterRCNN architecture.
 
@@ -300,8 +225,7 @@ class FasterRCNN(tf.keras.Model):
     retina_net = keras_cv.models.FasterRCNN(
         classes=20,
         bounding_box_format="xywh",
-        backbone="resnet50",
-        include_rescaling=False,
+        backbone=None,
     )
     ```
 
@@ -312,19 +236,20 @@ class FasterRCNN(tf.keras.Model):
         bounding_box_format: The format of bounding boxes of model output. Refer
             [to the keras.io docs](https://keras.io/api/keras_cv/bounding_box/formats/)
             for more details on supported bounding box formats.
-        backbone: Either `"resnet50"` or a custom backbone model. For now, only a backbone
-            with per level dict output is supported. Default to ResNet50 with FPN, which
+        backbone: a `tf.keras.Model` custom backbone model. For now, only a backbone
+            with per level dict output is supported, for example, ResNet50 with FPN, which
             uses the last conv block from stage 2 to stage 6 and add a max pooling at
-            stage 7.
-        include_rescaling: Required if provided backbone is a pre-configured model.
-            If set to `True`, inputs will be passed through a `Rescaling(1/255.0)`
-            layer. Default to False.
+            stage 7. Defaults to `keras_cv.models.ResNet50`.
         anchor_generator: (Optional) a `keras_cv.layers.AnchorGeneratot`. It is used
             in the model to match ground truth boxes and labels with anchors, or with
             region proposals. By default it uses the sizes and ratios from the paper,
             that is optimized for image size between [640, 800]. The users should pass
             their own anchor generator if the input image size differs from paper.
             For now, only anchor generator with per level dict output is supported,
+        label_encoder: (Optional) a keras.Layer that accepts an anchors Tensor, a
+            bounding box Tensor and a bounding box class Tensor to its `call()` method,
+            and returns RetinaNet training targets. It returns box and class targets as
+            well as sample weights.
         rpn_head: (Optional) a `keras.layers.Layer` that takes input feature map and
             returns a box delta prediction (in reference to anchors) and binary prediction
             (foreground vs background) with per level dict output is supported. By default
@@ -345,8 +270,9 @@ class FasterRCNN(tf.keras.Model):
         classes,
         bounding_box_format,
         backbone=None,
-        include_rescaling=False,
         anchor_generator=None,
+        label_encoder=None,
+        feature_pyramid=None,
         rpn_head=None,
         rcnn_head=None,
         prediction_decoder=None,
@@ -383,18 +309,27 @@ class FasterRCNN(tf.keras.Model):
         )
         self.roi_pooler = _ROIAligner(bounding_box_format="yxyx")
         self.rcnn_head = rcnn_head or RCNNHead(classes)
-        self.backbone = backbone or _resnet50_backbone(include_rescaling)
+        self.backbone = (
+            backbone
+            or keras_cv.models.ResNet50(
+                include_top=False, include_rescaling=True
+            ).as_backbone()
+        )
         self.feature_pyramid = FeaturePyramid()
-        self.rpn_labeler = _RpnLabelEncoder(
+        self.rpn_labeler = label_encoder or _RpnLabelEncoder(
             anchor_format="yxyx",
             ground_truth_box_format="yxyx",
             positive_threshold=0.7,
             negative_threshold=0.3,
             samples_per_image=256,
             positive_fraction=0.5,
+            box_variance=BOX_VARIANCE,
         )
-        self._prediction_decoder = prediction_decoder or NMSDecoder(
-            bounding_box_format=bounding_box_format
+        self._prediction_decoder = prediction_decoder or cv_layers.NmsDecoder(
+            bounding_box_format=bounding_box_format,
+            from_logits=False,
+            max_detections_per_class=10,
+            max_detections=10,
         )
 
     def _call_rpn(self, images, anchors, training=None):
@@ -402,14 +337,14 @@ class FasterRCNN(tf.keras.Model):
         feature_map = self.backbone(images, training=training)
         feature_map = self.feature_pyramid(feature_map, training=training)
         # [BS, num_anchors, 4], [BS, num_anchors, 1]
-        rpn_boxes, rpn_scores = self.rpn_head(feature_map)
+        rpn_boxes, rpn_scores = self.rpn_head(feature_map, training=training)
         # the decoded format is center_xywh, convert to yxyx
         decoded_rpn_boxes = _decode_deltas_to_boxes(
             anchors=anchors,
             boxes_delta=rpn_boxes,
             anchor_format="yxyx",
             box_format="yxyx",
-            variance=[0.1, 0.1, 0.2, 0.2],
+            variance=BOX_VARIANCE,
         )
         rois, _ = self.roi_generator(decoded_rpn_boxes, rpn_scores, training=training)
         rois = _clip_boxes(rois, "yxyx", image_shape)
@@ -417,21 +352,21 @@ class FasterRCNN(tf.keras.Model):
         rpn_scores = tf.concat(tf.nest.flatten(rpn_scores), axis=1)
         return rois, feature_map, rpn_boxes, rpn_scores
 
-    def _call_rcnn(self, rois, feature_map):
+    def _call_rcnn(self, rois, feature_map, training=None):
         feature_map = self.roi_pooler(feature_map, rois)
         # [BS, H*W*K, pool_shape*C]
         feature_map = tf.reshape(
             feature_map, tf.concat([tf.shape(rois)[:2], [-1]], axis=0)
         )
         # [BS, H*W*K, 4], [BS, H*W*K, num_classes + 1]
-        rcnn_box_pred, rcnn_cls_pred = self.rcnn_head(feature_map)
+        rcnn_box_pred, rcnn_cls_pred = self.rcnn_head(feature_map, training=training)
         return rcnn_box_pred, rcnn_cls_pred
 
     def call(self, images, training=None):
         image_shape = tf.shape(images[0])
         anchors = self.anchor_generator(image_shape=image_shape)
         rois, feature_map, _, _ = self._call_rpn(images, anchors, training=training)
-        box_pred, cls_pred = self._call_rcnn(rois, feature_map)
+        box_pred, cls_pred = self._call_rcnn(rois, feature_map, training=training)
         if not training:
             # box_pred is on "center_yxhw" format, convert to target format.
             box_pred = _decode_deltas_to_boxes(
@@ -441,6 +376,7 @@ class FasterRCNN(tf.keras.Model):
                 box_format=self.bounding_box_format,
                 variance=[0.1, 0.1, 0.2, 0.2],
             )
+
         return box_pred, cls_pred
 
     # TODO(tanzhenyu): Support compile with metrics.
@@ -522,7 +458,7 @@ class FasterRCNN(tf.keras.Model):
         )
         box_weights /= self.roi_sampler.num_sampled_rois * global_batch * 0.25
         cls_weights /= self.roi_sampler.num_sampled_rois * global_batch
-        box_pred, cls_pred = self._call_rcnn(rois, feature_map)
+        box_pred, cls_pred = self._call_rcnn(rois, feature_map, training=training)
         y_true = {
             "rpn_box": rpn_box_targets,
             "rpn_cls": rpn_cls_targets,
@@ -593,7 +529,7 @@ class FasterRCNN(tf.keras.Model):
             target=self.prediction_decoder.bounding_box_format,
             images=images,
         )
-        y_pred = self.prediction_decoder(box_pred, scores_pred)
+        y_pred = self.prediction_decoder(box_pred, scores_pred[..., :-1])
         box_pred = bounding_box.convert_format(
             y_pred["boxes"],
             source=self.prediction_decoder.bounding_box_format,
@@ -602,6 +538,19 @@ class FasterRCNN(tf.keras.Model):
         )
         y_pred["boxes"] = box_pred
         return y_pred
+
+    def get_config(self):
+        return {
+            "classes": self.classes,
+            "bounding_box_format": self.bounding_box_format,
+            "backbone": self.backbone,
+            "anchor_generator": self.anchor_generator,
+            "label_encoder": self.rpn_labeler,
+            "prediction_decoder": self._prediction_decoder,
+            "feature_pyramid": self.feature_pyramid,
+            "rpn_head": self.rpn_head,
+            "rcnn_head": self.rcnn_head,
+        }
 
 
 def _validate_and_get_loss(loss, loss_name):

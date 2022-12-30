@@ -12,42 +12,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import math
-from typing import List
 from typing import Sequence
 from typing import Tuple
 
 import numpy as np
 import tensorflow as tf
 
+from keras_cv.layers.object_detection3d import voxel_utils
+
 EPSILON = 1e-4
 VOXEL_FEATURE_MIN = -1000
-
-
-def compute_voxel_spatial_size(
-    spatial_size: Sequence[float], voxel_size: Sequence[float]
-) -> List[int]:
-    """Computes how many voxels in each dimension are needed.
-
-    Args:
-      spatial_size: max/min range in each dim in global coordinate frame.
-      voxel_size: voxel size.
-
-    Returns:
-      voxel_spatial_size: voxel spatial size.
-    """
-    dim = len(voxel_size)
-    # Compute the range as x_range = xmax - xmin, ymax - ymin, zmax - zmin
-    voxel_spatial_size_float = [
-        spatial_size[2 * i + 1] - spatial_size[2 * i] for i in range(dim)
-    ]
-    # voxel_dim_x / x_range
-    voxel_spatial_size_float = [
-        i / j for i, j in zip(voxel_spatial_size_float, voxel_size)
-    ]
-    voxel_spatial_size_int = [math.ceil(v - EPSILON) for v in voxel_spatial_size_float]
-
-    return voxel_spatial_size_int
 
 
 def compute_point_voxel_id(
@@ -110,7 +84,7 @@ class PointToVoxel(tf.keras.layers.Layer):
         self._voxel_size = voxel_size
         self._spatial_size = spatial_size
 
-        self._voxel_spatial_size = compute_voxel_spatial_size(
+        self._voxel_spatial_size = voxel_utils.compute_voxel_spatial_size(
             spatial_size, self._voxel_size
         )
 
@@ -138,29 +112,25 @@ class PointToVoxel(tf.keras.layers.Layer):
         """
         # [B, N, dim]
         # convert from point coordinate to voxel index
-        point_voxelized = point_xyz / tf.constant(
-            self._voxel_size, dtype=point_xyz.dtype
+        point_voxel_xyz_float = voxel_utils.point_to_voxel_coord(
+            point_xyz, self._voxel_size, dtype=point_xyz.dtype
         )
-        point_voxelized_round = tf.math.round(point_voxelized)
-        point_voxel_xyz_float = tf.cast(point_voxelized_round, dtype=point_xyz.dtype)
         # [B, N, dim]
         # delta to the nearest voxel
-        point_voxel_feature = point_xyz - point_voxel_xyz_float * tf.constant(
-            self._voxel_size, dtype=point_xyz.dtype
+        point_voxel_feature = point_xyz - voxel_utils.voxel_coord_to_point(
+            point_voxel_xyz_float, self._voxel_size, dtype=point_xyz.dtype
         )
 
         # [B, N, dim]
         point_voxel_xyz_int = tf.cast(point_voxel_xyz_float, dtype=tf.int32)
         # [dim]
         # get xmin, ymin, zmin
-        voxel_origin = self._spatial_size[::2]
-        voxel_origin = tf.constant(
-            [o / v for o, v in zip(voxel_origin, self._voxel_size)], dtype=tf.float32
+        voxel_origin = voxel_utils.compute_voxel_origin(
+            self._spatial_size, self._voxel_size
         )
-        voxel_origin = tf.math.round(voxel_origin)
-        voxel_origin = tf.cast(voxel_origin, dtype=tf.int32)
 
         # [B, N, dim]
+        # convert point voxel to positive voxel index
         point_voxel_xyz = point_voxel_xyz_int - voxel_origin[tf.newaxis, tf.newaxis, :]
 
         # [B, N]
@@ -216,7 +186,7 @@ class DynamicVoxelization(tf.keras.layers.Layer):
         )
         self._voxel_size = voxel_size
         self._spatial_size = spatial_size
-        self._voxel_spatial_size = compute_voxel_spatial_size(
+        self._voxel_spatial_size = voxel_utils.compute_voxel_spatial_size(
             spatial_size, self._voxel_size
         )
         self._voxel_spatial_size_volume = np.prod(self._voxel_spatial_size).item()

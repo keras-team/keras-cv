@@ -115,6 +115,14 @@ TEST_CONFIGURATIONS = [
             "width": 200,
         },
     ),
+    (
+        "Rescaling",
+        layers.Rescaling,
+        {
+            "scale": 1,
+            "offset": 0.5,
+        },
+    ),
 ]
 
 
