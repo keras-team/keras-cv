@@ -18,6 +18,7 @@ from keras_cv import bounding_box
 
 
 # TODO(tanzhenyu): provide a TPU compatible NMS decoder.
+@tf.keras.utils.register_keras_serializable(package="keras_cv")
 class NmsDecoder(tf.keras.layers.Layer):
     """A Keras layer that decodes predictions of an object detection model.
 
