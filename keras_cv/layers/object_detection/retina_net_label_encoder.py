@@ -71,6 +71,7 @@ class RetinaNetLabelEncoder(layers.Layer):
             match_values=[-1, -2, 1],
             force_match_for_each_col=False,
         )
+        self.box_variance_tuple = box_variance
         self.built = True
 
     def _encode_sample(self, gt_boxes, gt_classes, anchor_boxes):
