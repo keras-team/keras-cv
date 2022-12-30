@@ -197,3 +197,16 @@ class RetinaNetLabelEncoder(layers.Layer):
         encoded_box_targets = result[..., :4]
         class_targets = result[..., 4]
         return encoded_box_targets, class_targets
+
+    def get_config(self):
+        config = {
+            "bounding_box_format": self.bounding_box_format,
+            "anchor_generator": self.anchor_generator,
+            "positive_threshold": self.positive_threshold,
+            "negative_threshold": self.negative_threshold,
+            "box_variance": self.box_variance_tuple,
+            "background_class": self.background_class,
+            "ignore_class": self.ignore_class,
+        }
+        base_config = super().get_config()
+        return dict(list(base_config.items()) + list(config.items()))
