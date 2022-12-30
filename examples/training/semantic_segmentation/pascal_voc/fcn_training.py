@@ -116,9 +116,9 @@ tf.keras.utils.plot_model(
     show_layer_activations=True,
 )
 
-loss_fn = tf.keras.losses.SparseCategoricalCrossentropy(ignore_class=255)
+loss_fn = tf.keras.losses.SparseCategoricalCrossentropy(ignore_class=21)
 metrics = [
-    tf.keras.metrics.SparseCategoricalCrossentropy(ignore_class=255),
+    tf.keras.metrics.SparseCategoricalCrossentropy(ignore_class=21),
     tf.keras.metrics.MeanIoU(num_classes=21, sparse_y_pred=False),
     tf.keras.metrics.SparseCategoricalAccuracy(),
 ]
