@@ -37,7 +37,6 @@ class RetinaNetTest(tf.test.TestCase):
             classes=20,
             bounding_box_format="xywh",
             backbone=self.build_backbone(),
-            include_rescaling=True,
         )
         retina_net.compile(
             classification_loss="focal",
@@ -60,7 +59,6 @@ class RetinaNetTest(tf.test.TestCase):
             classes=20,
             bounding_box_format="xywh",
             backbone=self.build_backbone(),
-            include_rescaling=True,
         )
         images = tf.random.uniform((2, 512, 512, 3))
         _ = retina_net(images)
@@ -71,7 +69,6 @@ class RetinaNetTest(tf.test.TestCase):
             classes=2,
             bounding_box_format="xywh",
             backbone=self.build_backbone(),
-            include_rescaling=False,
         )
 
         with self.assertRaisesRegex(
@@ -91,7 +88,6 @@ class RetinaNetTest(tf.test.TestCase):
             classes=2,
             bounding_box_format="xywh",
             backbone=self.build_backbone(),
-            include_rescaling=False,
         )
 
         retina_net.compile(
@@ -108,7 +104,6 @@ class RetinaNetTest(tf.test.TestCase):
             classes=1,
             bounding_box_format=bounding_box_format,
             backbone=self.build_backbone(),
-            include_rescaling=False,
         )
         retina_net.backbone.trainable = False
         retina_net.compile(
@@ -134,7 +129,6 @@ class RetinaNetTest(tf.test.TestCase):
             classes=1,
             bounding_box_format=bounding_box_format,
             backbone=self.build_backbone(),
-            include_rescaling=False,
         )
 
         retina_net.compile(
@@ -189,7 +183,6 @@ class RetinaNetTest(tf.test.TestCase):
             classes=1,
             bounding_box_format=bounding_box_format,
             backbone=self.build_backbone(),
-            include_rescaling=False,
         )
 
         retina_net.compile(
