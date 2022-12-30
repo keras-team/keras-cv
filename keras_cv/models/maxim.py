@@ -35,11 +35,90 @@ Conv_down = functools.partial(
     layers.Conv2D, kernel_size=(4, 4), strides=(2, 2), padding="same"
 )
 
+MAXIM_CONFIGS = {
+    # params: 6.108515000000001 M, GFLOPS: 93.163716608
+    "S1": {
+        "features": 32,
+        "depth": 3,
+        "num_stages": 1,
+        "num_groups": 2,
+        "num_bottleneck_blocks": 2,
+        "block_gmlp_factor": 2,
+        "grid_gmlp_factor": 2,
+        "input_proj_factor": 2,
+        "channels_reduction": 4,
+        "name": "s1",
+    },
+    # params: 13.35383 M, GFLOPS: 206.743273472
+    "S2": {
+        "features": 32,
+        "depth": 3,
+        "num_stages": 2,
+        "num_groups": 2,
+        "num_bottleneck_blocks": 2,
+        "block_gmlp_factor": 2,
+        "grid_gmlp_factor": 2,
+        "input_proj_factor": 2,
+        "channels_reduction": 4,
+        "name": "s2",
+    },
+    # params: 20.599145 M, GFLOPS: 320.32194560000005
+    "S3": {
+        "features": 32,
+        "depth": 3,
+        "num_stages": 3,
+        "num_groups": 2,
+        "num_bottleneck_blocks": 2,
+        "block_gmlp_factor": 2,
+        "grid_gmlp_factor": 2,
+        "input_proj_factor": 2,
+        "channels_reduction": 4,
+        "name": "s3",
+    },
+    # params: 19.361219000000002 M, 308.495712256 GFLOPs
+    "M1": {
+        "features": 64,
+        "depth": 3,
+        "num_stages": 1,
+        "num_groups": 2,
+        "num_bottleneck_blocks": 2,
+        "block_gmlp_factor": 2,
+        "grid_gmlp_factor": 2,
+        "input_proj_factor": 2,
+        "channels_reduction": 4,
+        "name": "m1",
+    },
+    # params: 40.83911 M, 675.25541888 GFLOPs
+    "M2": {
+        "features": 64,
+        "depth": 3,
+        "num_stages": 2,
+        "num_groups": 2,
+        "num_bottleneck_blocks": 2,
+        "block_gmlp_factor": 2,
+        "grid_gmlp_factor": 2,
+        "input_proj_factor": 2,
+        "channels_reduction": 4,
+        "name": "m2",
+    },
+    # params: 62.317001 M, 1042.014666752 GFLOPs
+    "M3": {
+        "features": 64,
+        "depth": 3,
+        "num_stages": 3,
+        "num_groups": 2,
+        "num_bottleneck_blocks": 2,
+        "block_gmlp_factor": 2,
+        "grid_gmlp_factor": 2,
+        "input_proj_factor": 2,
+        "channels_reduction": 4,
+        "name": "m3",
+    },
+}
+
 
 def CALayer(
-    num_channels: int,
-    reduction: int = 4,
-    name: str = "channel_attention",
+    num_channels: int, reduction: int = 4, name: str = "channel_attention",
 ):
     """Squeeze-and-excitation block for channel attention.
     ref: https://arxiv.org/abs/1709.01507
@@ -112,9 +191,7 @@ def RDCAB(
 
 
 def SAM(
-    num_channels: int,
-    output_channels: int = 3,
-    name: str = "sam",
+    num_channels: int, output_channels: int = 3, name: str = "sam",
 ):
 
     """Supervised attention module for multi-stage training.
@@ -136,9 +213,9 @@ def SAM(
         # Output restored image X_s
         if output_channels == 3:
             image = (
-                Conv3x3(
-                    filters=output_channels, use_bias=True, name=f"{name}_Conv_1"
-                )(x)
+                Conv3x3(filters=output_channels, use_bias=True, name=f"{name}_Conv_1")(
+                    x
+                )
                 + x_image
             )
         else:
@@ -182,10 +259,7 @@ def BlockGatingUnit(name: str = "block_gating_unit"):
 
 
 def BlockGmlpLayer(
-    block_size,
-    factor: int = 2,
-    dropout_rate: float = 0.0,
-    name: str = "block_gmlp",
+    block_size, factor: int = 2, dropout_rate: float = 0.0, name: str = "block_gmlp",
 ):
     """Block gMLP layer that performs local mixing of tokens."""
 
@@ -202,23 +276,18 @@ def BlockGmlpLayer(
         # MLP2: Local (block) mixing part, provides within-block communication.
         y = layers.LayerNormalization(epsilon=1e-06, name=f"{name}_LayerNorm")(x)
         y = layers.Dense(
-            num_channels * factor,
-            use_bias=True,
-            name=f"{name}_in_project",
+            num_channels * factor, use_bias=True, name=f"{name}_in_project",
         )(y)
         y = tf.nn.gelu(y, approximate=True)
         y = BlockGatingUnit(name=f"{name}_BlockGatingUnit")(y)
-        y = layers.Dense(
-            num_channels,
-            use_bias=True,
-            name=f"{name}_out_project",
-        )(y)
+        y = layers.Dense(num_channels, use_bias=True, name=f"{name}_out_project",)(y)
         y = layers.Dropout(dropout_rate)(y)
         x = x + y
         x = UnblockImages()(x, grid_size=(gh, gw), patch_size=(fh, fw))
         return x
 
     return apply
+
 
 def BottleneckBlock(
     features: int,
@@ -262,6 +331,7 @@ def BottleneckBlock(
 
     return apply
 
+
 def GridGatingUnit(name: str = "grid_gating_unit"):
     """A SpatialGatingUnit as defined in the gMLP paper.
     The 'spatial' dim is defined as the second last.
@@ -283,10 +353,7 @@ def GridGatingUnit(name: str = "grid_gating_unit"):
 
 
 def GridGmlpLayer(
-    grid_size,
-    factor: int = 2,
-    dropout_rate: float = 0.0,
-    name: str = "grid_gmlp",
+    grid_size, factor: int = 2, dropout_rate: float = 0.0, name: str = "grid_gmlp",
 ):
     """Grid gMLP layer that performs global mixing of tokens."""
 
@@ -304,23 +371,18 @@ def GridGmlpLayer(
         # gMLP1: Global (grid) mixing part, provides global grid communication.
         y = layers.LayerNormalization(epsilon=1e-06, name=f"{name}_LayerNorm")(x)
         y = layers.Dense(
-            num_channels * factor,
-            use_bias=True,
-            name=f"{name}_in_project",
+            num_channels * factor, use_bias=True, name=f"{name}_in_project",
         )(y)
         y = tf.nn.gelu(y, approximate=True)
         y = GridGatingUnit(name=f"{name}_GridGatingUnit")(y)
-        y = layers.Dense(
-            num_channels,
-            use_bias=True,
-            name=f"{name}_out_project",
-        )(y)
+        y = layers.Dense(num_channels, use_bias=True, name=f"{name}_out_project",)(y)
         y = layers.Dropout(dropout_rate)(y)
         x = x + y
         x = UnblockImages()(x, grid_size=(gh, gw), patch_size=(fh, fw))
         return x
 
     return apply
+
 
 def ResidualSplitHeadMultiAxisGmlpLayer(
     block_size,
@@ -370,11 +432,7 @@ def ResidualSplitHeadMultiAxisGmlpLayer(
 
         x = tf.concat([u, v], axis=-1)
 
-        x = layers.Dense(
-            num_channels,
-            use_bias=True,
-            name=f"{name}_out_project",
-        )(x)
+        x = layers.Dense(num_channels, use_bias=True, name=f"{name}_out_project",)(x)
         x = layers.Dropout(dropout_rate)(x)
         x = x + shortcut
         return x
@@ -404,9 +462,7 @@ def GetSpatialGatingWeights(
         # input projection
         x = layers.LayerNormalization(epsilon=1e-06, name=f"{name}_LayerNorm_in")(x)
         x = layers.Dense(
-            num_channels * input_proj_factor,
-            use_bias=True,
-            name=f"{name}_in_project",
+            num_channels * input_proj_factor, use_bias=True, name=f"{name}_in_project",
         )(x)
         x = tf.nn.gelu(x, approximate=True)
         u, v = tf.split(x, 2, axis=-1)
@@ -509,10 +565,9 @@ def CrossGatingBlock(
 
     return apply
 
+
 def MlpBlock(
-    mlp_dim: int,
-    dropout_rate: float = 0.0,
-    name: str = "mlp_block",
+    mlp_dim: int, dropout_rate: float = 0.0, name: str = "mlp_block",
 ):
     """A 1-hidden-layer MLP block, applied over the last dimension."""
 
@@ -527,9 +582,7 @@ def MlpBlock(
     return apply
 
 
-def UpSampleRatio(
-    num_channels: int, ratio: float, name: str = "upsample"
-):
+def UpSampleRatio(num_channels: int, ratio: float, name: str = "upsample"):
     """Upsample features given a ratio > 0."""
 
     def apply(x):
@@ -664,7 +717,6 @@ def UNetDecoderBlock(
         return x
 
     return apply
-
 
 
 @tf.keras.utils.register_keras_serializable("maxim")
@@ -868,7 +920,9 @@ def MAXIM(
                         block_size = (
                             block_size_hr if i < high_res_stages else block_size_lr
                         )
-                        grid_size = grid_size_hr if i < high_res_stages else block_size_lr
+                        grid_size = (
+                            grid_size_hr if i < high_res_stages else block_size_lr
+                        )
                         x_scale, _ = CrossGatingBlock(
                             features=(2 ** i) * features,
                             block_size=block_size,
@@ -1049,86 +1103,6 @@ def MAXIM(
 
     return apply
 
-MAXIM_CONFIGS = {
-    # params: 6.108515000000001 M, GFLOPS: 93.163716608
-    "S-1": {
-        "features": 32,
-        "depth": 3,
-        "num_stages": 1,
-        "num_groups": 2,
-        "num_bottleneck_blocks": 2,
-        "block_gmlp_factor": 2,
-        "grid_gmlp_factor": 2,
-        "input_proj_factor": 2,
-        "channels_reduction": 4,
-        "name": "s1",
-    },
-    # params: 13.35383 M, GFLOPS: 206.743273472
-    "S-2": {
-        "features": 32,
-        "depth": 3,
-        "num_stages": 2,
-        "num_groups": 2,
-        "num_bottleneck_blocks": 2,
-        "block_gmlp_factor": 2,
-        "grid_gmlp_factor": 2,
-        "input_proj_factor": 2,
-        "channels_reduction": 4,
-        "name": "s2",
-    },
-    # params: 20.599145 M, GFLOPS: 320.32194560000005
-    "S-3": {
-        "features": 32,
-        "depth": 3,
-        "num_stages": 3,
-        "num_groups": 2,
-        "num_bottleneck_blocks": 2,
-        "block_gmlp_factor": 2,
-        "grid_gmlp_factor": 2,
-        "input_proj_factor": 2,
-        "channels_reduction": 4,
-        "name": "s3",
-    },
-    # params: 19.361219000000002 M, 308.495712256 GFLOPs
-    "M-1": {
-        "features": 64,
-        "depth": 3,
-        "num_stages": 1,
-        "num_groups": 2,
-        "num_bottleneck_blocks": 2,
-        "block_gmlp_factor": 2,
-        "grid_gmlp_factor": 2,
-        "input_proj_factor": 2,
-        "channels_reduction": 4,
-        "name": "m1",
-    },
-    # params: 40.83911 M, 675.25541888 GFLOPs
-    "M-2": {
-        "features": 64,
-        "depth": 3,
-        "num_stages": 2,
-        "num_groups": 2,
-        "num_bottleneck_blocks": 2,
-        "block_gmlp_factor": 2,
-        "grid_gmlp_factor": 2,
-        "input_proj_factor": 2,
-        "channels_reduction": 4,
-        "name": "m2",
-    },
-    # params: 62.317001 M, 1042.014666752 GFLOPs
-    "M-3": {
-        "features": 64,
-        "depth": 3,
-        "num_stages": 3,
-        "num_groups": 2,
-        "num_bottleneck_blocks": 2,
-        "block_gmlp_factor": 2,
-        "grid_gmlp_factor": 2,
-        "input_proj_factor": 2,
-        "channels_reduction": 4,
-        "name": "m3",
-    },
-}
 
 def Model(variant=None, input_resolution=(256, 256), **kw) -> keras.Model:
     """Factory function to easily create a Model variant like "S".
@@ -1160,5 +1134,116 @@ def Model(variant=None, input_resolution=(256, 256), **kw) -> keras.Model:
 
     return final_model
 
-model = Model(variant="S-1")
-print(model.summary())
+
+def MAXIM_S1(input_shape=(256, 256, 3)):
+    maxim_model = MAXIM(
+        features=MAXIM_CONFIGS["S1"]["features"],
+        depth=MAXIM_CONFIGS["S1"]["depth"],
+        num_stages=MAXIM_CONFIGS["S1"]["num_stages"],
+        num_groups=MAXIM_CONFIGS["S1"]["num_groups"],
+        num_bottleneck_blocks=MAXIM_CONFIGS["S1"]["num_bottleneck_blocks"],
+        block_gmlp_factor=MAXIM_CONFIGS["S1"]["block_gmlp_factor"],
+        input_proj_factor=MAXIM_CONFIGS["S1"]["input_proj_factor"],
+        channels_reduction=MAXIM_CONFIGS["S1"]["channels_reduction"],
+    )
+    inputs = keras.Input((input_shape))
+    outputs = maxim_model(inputs)
+    final_model = keras.Model(
+        inputs, outputs, name=f"{MAXIM_CONFIGS['S1']['name']}_model"
+    )
+    return final_model
+
+
+def MAXIM_S2(input_shape=(256, 256, 3)):
+    maxim_model = MAXIM(
+        features=MAXIM_CONFIGS["S2"]["features"],
+        depth=MAXIM_CONFIGS["S2"]["depth"],
+        num_stages=MAXIM_CONFIGS["S2"]["num_stages"],
+        num_groups=MAXIM_CONFIGS["S2"]["num_groups"],
+        num_bottleneck_blocks=MAXIM_CONFIGS["S2"]["num_bottleneck_blocks"],
+        block_gmlp_factor=MAXIM_CONFIGS["S2"]["block_gmlp_factor"],
+        input_proj_factor=MAXIM_CONFIGS["S2"]["input_proj_factor"],
+        channels_reduction=MAXIM_CONFIGS["S2"]["channels_reduction"],
+    )
+    inputs = keras.Input((input_shape))
+    outputs = maxim_model(inputs)
+    final_model = keras.Model(
+        inputs, outputs, name=f"{MAXIM_CONFIGS['S2']['name']}_model"
+    )
+    return final_model
+
+
+def MAXIM_S3(input_shape=(256, 256, 3)):
+    maxim_model = MAXIM(
+        features=MAXIM_CONFIGS["S3"]["features"],
+        depth=MAXIM_CONFIGS["S3"]["depth"],
+        num_stages=MAXIM_CONFIGS["S3"]["num_stages"],
+        num_groups=MAXIM_CONFIGS["S3"]["num_groups"],
+        num_bottleneck_blocks=MAXIM_CONFIGS["S3"]["num_bottleneck_blocks"],
+        block_gmlp_factor=MAXIM_CONFIGS["S3"]["block_gmlp_factor"],
+        input_proj_factor=MAXIM_CONFIGS["S3"]["input_proj_factor"],
+        channels_reduction=MAXIM_CONFIGS["S3"]["channels_reduction"],
+    )
+    inputs = keras.Input((input_shape))
+    outputs = maxim_model(inputs)
+    final_model = keras.Model(
+        inputs, outputs, name=f"{MAXIM_CONFIGS['S3']['name']}_model"
+    )
+    return final_model
+
+
+def MAXIM_M1(input_shape=(256, 256, 3)):
+    maxim_model = MAXIM(
+        features=MAXIM_CONFIGS["M1"]["features"],
+        depth=MAXIM_CONFIGS["M1"]["depth"],
+        num_stages=MAXIM_CONFIGS["M1"]["num_stages"],
+        num_groups=MAXIM_CONFIGS["M1"]["num_groups"],
+        num_bottleneck_blocks=MAXIM_CONFIGS["M1"]["num_bottleneck_blocks"],
+        block_gmlp_factor=MAXIM_CONFIGS["M1"]["block_gmlp_factor"],
+        input_proj_factor=MAXIM_CONFIGS["M1"]["input_proj_factor"],
+        channels_reduction=MAXIM_CONFIGS["M1"]["channels_reduction"],
+    )
+    inputs = keras.Input((input_shape))
+    outputs = maxim_model(inputs)
+    final_model = keras.Model(
+        inputs, outputs, name=f"{MAXIM_CONFIGS['M1']['name']}_model"
+    )
+    return final_model
+
+
+def MAXIM_M2(input_shape=(256, 256, 3)):
+    maxim_model = MAXIM(
+        features=MAXIM_CONFIGS["M2"]["features"],
+        depth=MAXIM_CONFIGS["M2"]["depth"],
+        num_stages=MAXIM_CONFIGS["M2"]["num_stages"],
+        num_groups=MAXIM_CONFIGS["M2"]["num_groups"],
+        num_bottleneck_blocks=MAXIM_CONFIGS["M2"]["num_bottleneck_blocks"],
+        block_gmlp_factor=MAXIM_CONFIGS["M2"]["block_gmlp_factor"],
+        input_proj_factor=MAXIM_CONFIGS["M2"]["input_proj_factor"],
+        channels_reduction=MAXIM_CONFIGS["M2"]["channels_reduction"],
+    )
+    inputs = keras.Input((input_shape))
+    outputs = maxim_model(inputs)
+    final_model = keras.Model(
+        inputs, outputs, name=f"{MAXIM_CONFIGS['M2']['name']}_model"
+    )
+    return final_model
+
+
+def MAXIM_M3(input_shape=(256, 256, 3)):
+    maxim_model = MAXIM(
+        features=MAXIM_CONFIGS["M3"]["features"],
+        depth=MAXIM_CONFIGS["M3"]["depth"],
+        num_stages=MAXIM_CONFIGS["M3"]["num_stages"],
+        num_groups=MAXIM_CONFIGS["M3"]["num_groups"],
+        num_bottleneck_blocks=MAXIM_CONFIGS["M3"]["num_bottleneck_blocks"],
+        block_gmlp_factor=MAXIM_CONFIGS["M3"]["block_gmlp_factor"],
+        input_proj_factor=MAXIM_CONFIGS["M3"]["input_proj_factor"],
+        channels_reduction=MAXIM_CONFIGS["M3"]["channels_reduction"],
+    )
+    inputs = keras.Input((input_shape))
+    outputs = maxim_model(inputs)
+    final_model = keras.Model(
+        inputs, outputs, name=f"{MAXIM_CONFIGS['M3']['name']}_model"
+    )
+    return final_model
