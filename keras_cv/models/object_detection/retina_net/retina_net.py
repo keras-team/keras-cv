@@ -41,11 +41,13 @@ class RetinaNet(tf.keras.Model):
 
     Usage:
     ```python
+    backbone = keras_cv.models.ResNet50(
+        include_top=False, weights="imagenet", include_rescaling=False
+    ).as_backbone()
     retina_net = keras_cv.models.RetinaNet(
         classes=20,
         bounding_box_format="xywh",
-        backbone="resnet50",
-        include_rescaling=True,
+        backbone=backbone,
     )
     ```
 
@@ -56,10 +58,7 @@ class RetinaNet(tf.keras.Model):
         bounding_box_format: The format of bounding boxes of input dataset. Refer
             [to the keras.io docs](https://keras.io/api/keras_cv/bounding_box/formats/)
             for more details on supported bounding box formats.
-        backbone: An optional custom backbone model. Defaults to a ResNet50 trained on ImageNet.
-        include_rescaling: Required iff no custom backbone is specified.
-            If set to `True`, inputs will be passed through a `Rescaling(1/255.0)`
-            layer. Default to False.
+        backbone: backbone: a `tf.keras.Model` custom backbone model.
         anchor_generator: (Optional) a `keras_cv.layers.AnchorGenerator`.  If provided,
             the anchor generator will be passed to both the `label_encoder` and the
             `prediction_decoder`.  Only to be used when both `label_encoder` and
@@ -96,8 +95,7 @@ class RetinaNet(tf.keras.Model):
         self,
         classes,
         bounding_box_format,
-        backbone="resnet50",
-        include_rescaling=False,
+        backbone,
         anchor_generator=None,
         label_encoder=None,
         prediction_decoder=None,
@@ -142,7 +140,7 @@ class RetinaNet(tf.keras.Model):
 
         self.bounding_box_format = bounding_box_format
         self.classes = classes
-        self.backbone = _parse_backbone(backbone, include_rescaling)
+        self.backbone = backbone
 
         self._prediction_decoder = prediction_decoder or cv_layers.NmsDecoder(
             bounding_box_format=bounding_box_format,
@@ -412,39 +410,6 @@ class RetinaNet(tf.keras.Model):
         return self.compute_metrics(x, {}, {}, sample_weight={})
 
 
-def _parse_backbone(backbone, include_rescaling):
-    if isinstance(backbone, str) and include_rescaling is None:
-        raise ValueError(
-            "When using a preconfigured backbone, please do provide a "
-            "`include_rescaling` parameter.  `include_rescaling` is passed to the "
-            "Keras application constructor for the provided backbone.  When "
-            "`include_rescaling=True`, image inputs are passed through a "
-            "`layers.Rescaling(1/255.0)` layer. When `include_rescaling=False`, no "
-            "downscaling is performed. "
-            f"Received backbone={backbone}, include_rescaling={include_rescaling}."
-        )
-
-    if isinstance(backbone, str):
-        if backbone == "resnet50":
-            return _resnet50_backbone(include_rescaling)
-        else:
-            raise ValueError(
-                "backbone expected to be one of ['resnet50', keras.Model]. "
-                f"Received backbone={backbone}."
-            )
-    if include_rescaling:
-        raise ValueError(
-            "When a custom backbone is used, include_rescaling is not supported. "
-            f"Received backbone={backbone}, include_rescaling={include_rescaling}."
-        )
-    if not isinstance(backbone, keras.Model):
-        raise ValueError(
-            "Custom backbones should be subclasses of a keras.Model. "
-            f"Received backbone={backbone}."
-        )
-    return backbone
-
-
 def _parse_box_loss(loss):
     if not isinstance(loss, str):
         # support arbitrary callables
@@ -479,22 +444,3 @@ def _parse_classification_loss(loss):
         "Expected `classification_loss` to be either a Keras Loss, "
         f"callable, or the string 'Focal'.  Got loss={loss}."
     )
-
-
-def _resnet50_backbone(include_rescaling):
-    inputs = keras.layers.Input(shape=(None, None, 3))
-    x = inputs
-
-    if include_rescaling:
-        x = keras.applications.resnet.preprocess_input(x)
-
-    # TODO(lukewood): this should really be calling keras_cv.models.ResNet50
-    backbone = keras.applications.ResNet50(
-        include_top=False, input_tensor=x, weights="imagenet"
-    )
-
-    c3_output, c4_output, c5_output = [
-        backbone.get_layer(layer_name).output
-        for layer_name in ["conv3_block4_out", "conv4_block6_out", "conv5_block3_out"]
-    ]
-    return keras.Model(inputs=inputs, outputs=[c3_output, c4_output, c5_output])

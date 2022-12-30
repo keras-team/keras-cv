@@ -170,18 +170,16 @@ train_ds = train_ds.map(pad_fn, num_parallel_calls=tf.data.AUTOTUNE)
 eval_ds = eval_ds.map(pad_fn, num_parallel_calls=tf.data.AUTOTUNE)
 
 with strategy.scope():
+    backbone = keras_cv.models.ResNet50(
+        include_top=False, weights="imagenet", include_rescaling=False
+    ).as_backbone()
     model = keras_cv.models.RetinaNet(
         # number of classes to be used in box classification
         classes=20,
         # For more info on supported bounding box formats, visit
         # https://keras.io/api/keras_cv/bounding_box/
         bounding_box_format="xywh",
-        # KerasCV offers a set of pre-configured backbones
-        backbone="resnet50",
-        # include_rescaling tells the model whether your input images are in the default
-        # pixel range (0, 255) or if you have already rescaled your inputs to the range
-        # (0, 1).  In our case, we feed our model images with inputs in the range (0, 255).
-        include_rescaling=True,
+        backbone=backbone,
     )
     # Fine-tuning a RetinaNet is as simple as setting backbone.trainable = False
     model.backbone.trainable = False
