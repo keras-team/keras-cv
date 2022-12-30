@@ -65,7 +65,7 @@ eval_ds = tfds.load("voc/2007", split="test", with_info=False)
 
 with strategy.scope():
     backbone = keras_cv.models.ResNet50(
-        include_top=False, weights="imagenet", include_rescaling=False
+        include_top=False, weights="imagenet", include_rescaling=True
     ).as_backbone()
     model = keras_cv.models.FasterRCNN(
         classes=20, bounding_box_format="yxyx", backbone=backbone
@@ -211,7 +211,6 @@ def proc_train_fn(bounding_box_format, img_size):
     def apply(inputs):
         image = inputs["image"]
         image = tf.cast(image, tf.float32)
-        image = tf.keras.applications.resnet50.preprocess_input(image)
         gt_boxes = inputs["objects"]["bbox"]
         image, gt_boxes = flip_fn(image, gt_boxes)
         gt_boxes = keras_cv.bounding_box.convert_format(

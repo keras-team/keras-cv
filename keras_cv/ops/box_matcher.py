@@ -84,7 +84,9 @@ class ArgmaxBoxMatcher(tf.keras.layers.Layer):
         thresholds: List[float],
         match_values: List[int],
         force_match_for_each_col: bool = False,
+        **kwargs,
     ):
+        super().__init__(**kwargs)
         if sorted(thresholds) != thresholds:
             raise ValueError(f"`threshold` must be sorted, got {thresholds}")
         self.match_values = match_values
@@ -97,6 +99,7 @@ class ArgmaxBoxMatcher(tf.keras.layers.Layer):
         thresholds.append(float("inf"))
         self.thresholds = thresholds
         self.force_match_for_each_col = force_match_for_each_col
+        self.built = True
 
     def __call__(self, similarity_matrix: tf.Tensor) -> Tuple[tf.Tensor, tf.Tensor]:
         """Matches each row to a column based on argmax
