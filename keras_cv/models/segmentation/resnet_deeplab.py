@@ -48,7 +48,7 @@ def DeeplabV3(image_size, num_classes):
         input_tensor=model_input
     )
     x = resnet50.get_layer("v2_stack_3_block3_out").output
-    x = SpatialPyramidPooling(level=4, dilation_rates=[6, 12, 18], dropout=0.5)(x)
+    x = SpatialPyramidPooling(dilation_rates=[6, 12, 18], dropout=0.5)(x)
 
     input_a = layers.UpSampling2D(
         size=(image_size // x.shape[1], image_size // x.shape[2]),
@@ -73,7 +73,7 @@ def DeeplabV3Plus(image_size, num_classes):
         input_tensor=model_input
     )
     x = resnet50.get_layer("v2_stack_3_block3_out").output
-    x = SpatialPyramidPooling(level=4, dilation_rates=[6, 12, 18], dropout=0.5)(x)
+    x = SpatialPyramidPooling(dilation_rates=[6, 12, 18], dropout=0.5)(x)
 
     input_a = layers.UpSampling2D(
         size=(image_size // 4 // x.shape[1], image_size // 4 // x.shape[2]),
