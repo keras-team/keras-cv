@@ -31,6 +31,7 @@ BOX_VARIANCE = [0.1, 0.1, 0.2, 0.2]
 # TODO(lukewood): update docstring to include documentation on creating a custom label
 # decoder/etc.
 # TODO(lukewood): link to keras.io guide on creating custom backbone and FPN.
+@keras.utils.register_keras_serializable(package="keras_cv")
 class RetinaNet(tf.keras.Model):
     """A Keras model implementing the RetinaNet architecture.
 
@@ -408,6 +409,19 @@ class RetinaNet(tf.keras.Model):
         _ = self.compute_loss(x, gt_boxes, gt_classes, training=False)
 
         return self.compute_metrics(x, {}, {}, sample_weight={})
+
+    def get_config(self):
+        return {
+            "classes": self.classes,
+            "bounding_box_format": self.bounding_box_format,
+            "backbone": self.backbone,
+            "anchor_generator": self.anchor_generator,
+            "label_encoder": self.label_encoder,
+            "prediction_decoder": self._prediction_decoder,
+            "feature_pyramid": self.feature_pyramid,
+            "classification_head": self.classification_head,
+            "box_head": self.box_head,
+        }
 
 
 def _parse_box_loss(loss):

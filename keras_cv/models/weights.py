@@ -79,8 +79,8 @@ ALIASES = {
         "imagenet/classification": "imagenet/classification-v0",
     },
     "resnet50": {
-        "imagenet": "imagenet/classification-v2",
-        "imagenet/classification": "imagenet/classification-v2",
+        "imagenet": "imagenet/classification-v0",
+        "imagenet/classification": "imagenet/classification-v0",
     },
     "resnet50v2": {
         "imagenet": "imagenet/classification-v2",
