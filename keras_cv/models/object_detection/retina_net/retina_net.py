@@ -31,6 +31,7 @@ BOX_VARIANCE = [0.1, 0.1, 0.2, 0.2]
 # TODO(lukewood): update docstring to include documentation on creating a custom label
 # decoder/etc.
 # TODO(lukewood): link to keras.io guide on creating custom backbone and FPN.
+@keras.utils.register_keras_serializable(package="keras_cv")
 class RetinaNet(tf.keras.Model):
     """A Keras model implementing the RetinaNet architecture.
 
