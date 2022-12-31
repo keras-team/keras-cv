@@ -17,6 +17,7 @@ from typing import Sequence
 
 import tensorflow as tf
 
+from keras_cv.layers.object_detection3d.heatmap_decoder import HeatmapDecoder
 from keras_cv.models.__internal__.unet import UNet
 
 down_block_configs = [(128, 6), (256, 2), (512, 2)]
@@ -37,7 +38,6 @@ class MultiClassDetectionHead(tf.keras.layers.Layer):
 
         self._heads = []
         self._head_names = []
-        self._prediction_names = ["heatmap", "offset", "dimension", "heading"]
         self._per_class_prediction_size = []
         self._num_class = num_class
         self._num_head_bin = num_head_bin
@@ -79,7 +79,42 @@ class MultiClassDetectionHead(tf.keras.layers.Layer):
         return outputs
 
 
-class MultiHeadCenterPoint(tf.keras.Model):
+class MultiClassHeatmapDecoder(tf.keras.layers.Layer):
+    def __init__(
+        self,
+        num_class,
+        num_head_bin: Sequence[int],
+        anchor_size: Sequence[Sequence[float]],
+        max_pool_size: Sequence[int],
+        max_num_box: Sequence[int],
+        heatmap_threshold: Sequence[float],
+        voxel_size: Sequence[float],
+        spatial_size: Sequence[float],
+        **kwargs,
+    ):
+        self.num_class = num_class
+        self.class_ids = list(range(1, num_class + 1))
+        self.decoders = {}
+        for i, class_id in enumerate(self.class_ids):
+            self.decoders[f"class_{i}"] = HeatmapDecoder(
+                class_id=class_id,
+                num_head_bin=self.num_head_bin[i],
+                anchor_size=self.anchor_size[i],
+                max_pool_size=self.max_pool_size[i],
+                max_num_box=self.max_num_box[i],
+                heatmap_threshold=self.heatmap_threshold[i],
+                voxel_size=self.voxel_size,
+                spatial_size=self.spatial_size,
+            )
+
+    def call(self, predictions):
+        decoded_predictions = {}
+        for k, v in predictions.items():
+            decoded_predictions[k] = self.decoders[k](v)
+        return decoded_predictions
+
+
+class MultiHeadCenterPillar(tf.keras.Model):
     def __init__(
         self,
         backbone,
@@ -92,22 +127,28 @@ class MultiHeadCenterPoint(tf.keras.Model):
         super().__init__(**kwargs)
         self._voxelization_layer = voxel_net
         self._unet_layer = backbone or UNet(down_block_configs, up_block_configs)
-        self._multiclass_head = multiclass_head or MultiClassDetectionHead(2, [12, 4])
-        self._prediction_decoder = prediction_decoder
+        self._multiclass_head = multiclass_head or MultiClassDetectionHead(2, [2, 2])
+        self._prediction_decoder = prediction_decoder or MultiClassHeatmapDecoder(
+            2,
+            [2, 2],
+            anchor_size=[[1.0, 1.0, 1.0], [1.0, 1.0, 1.0]],
+            max_pool_size=[3, 3],
+            max_num_box=[3, 3],
+            heatmap_threshold=[0.2, 0.2],
+            voxel_size=[0.5, 0.5, 10],
+            spatial_size=[-10, 10, -10, 10, -10, 10],
+        )
         self._head_names = self._multiclass_head._head_names
 
     def call(self, point_xyz, point_feature, point_mask, training=None):
-        predictions = self._forward(
-            point_xyz, point_feature, point_mask, training=training
-        )
         voxel_feature = self._voxelization_layer(
             point_xyz, point_feature, point_mask, training=training
         )
         voxel_feature = self._unet_layer(voxel_feature, training=training)
         predictions = self._multiclass_head(voxel_feature)
-        # if not training:
-        #     predictions = self._prediction_decoder(predictions)
-        # returns {"class_1": concat_pred_1, "class_2": concat_pred_2}
+        if not training:
+            predictions = self._prediction_decoder(predictions)
+        # returns dict {"class_1": concat_pred_1, "class_2": concat_pred_2}
         return predictions
 
     def compute_loss(self, predictions, box_dict, heatmap_dict, top_k_index_dict):

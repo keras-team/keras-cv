@@ -13,6 +13,7 @@
 # limitations under the License.
 
 from typing import Sequence
+from typing import Tuple
 
 import numpy as np
 import tensorflow as tf
@@ -98,12 +99,15 @@ def decode_bin_box(pd, num_head_bin, anchor_size):
 class HeatmapDecoder(tf.keras.layers.Layer):
     """A Keras layer that decodes predictions of an 3d object detection model.
 
-    Arguments:
-      max_pool_size:
-      max_num_box:
-      heatmap_threshold:
-      voxel_size:
-      spatial_size
+    Arg:
+      class_id: the integer index for a parcitular class.
+      num_head_bin: number of bin classes divided by [-2pi, 2pi]
+      anchor_size: the size of anchor at each xyz dimension
+      max_pool_size: the 2d pooling size for heatmap
+      max_num_box: top number of boxes selectd from heatmap
+      heatmap_threshold: the threshold to set a heatmap as positive
+      voxel_size: the x, y, z dimension of each voxel.
+      spatial_size: the x, y, z boundary of voxels
     """
 
     def __init__(
@@ -129,7 +133,7 @@ class HeatmapDecoder(tf.keras.layers.Layer):
         self.spatial_size = spatial_size
         self.built = True
 
-    def call(self, prediction):
+    def call(self, prediction: tf.Tensor) -> Tuple[tf.Tensor, tf.Tensor, tf.Tensor]:
         """Accepts raw predictions, and returns decoded boxes.
 
         Args:
@@ -182,3 +186,17 @@ class HeatmapDecoder(tf.keras.layers.Layer):
         box_decoded_cxyz = ref_xyz + box_decoded[:, :, :3]
         box_decoded = tf.concat([box_decoded_cxyz, box_decoded[:, :, 3:]], axis=-1)
         return box_decoded, box_class, box_score
+
+    def get_config(self):
+        config = {
+            "class_id": self.class_id,
+            "num_head_bin": self.num_head_bin,
+            "anchor_size": self.anchor_size,
+            "max_pool_size": self.max_pool_size,
+            "max_num_box": self.max_num_box,
+            "heatmap_threshold": self.heatmap_threshold,
+            "voxel_size": self.voxel_size,
+            "spatial_size": self.spatial_size,
+        }
+        base_config = super().get_config()
+        return dict(list(base_config.items()) + list(config.items()))
