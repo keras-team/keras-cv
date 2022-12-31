@@ -92,7 +92,7 @@ class DeepLabV3Plus(keras.Model):
 
         if layer_names == (None, None):
             if "res" in backbone.name:
-                low_level_output = backbone.get_layer("v2_stack_0_block3_out").output
+                low_level_output = backbone.get_layer("v2_stack_1_block3_use_preactivation_relu").output
                 high_level_output = backbone.get_layer(
                     "v2_stack_3_block3_out"
                 ).output
@@ -330,11 +330,12 @@ class SegmentationHead(layers.Layer):
             x = conv_layer(x)
             x = bn_layer(x)
             x = tf.keras.activations.get(self.activations)(x)
-            if self.dropout:
-                x = self.dropout_layer(x)
 
         if self.output_scale_factor is not None:
             x = tf.keras.layers.UpSampling2D(self.output_scale_factor)(x)
+
+        if self.dropout:
+            x = self.dropout_layer(x)
 
         x = self._classification_layer(x)
         return x
