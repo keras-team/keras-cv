@@ -124,7 +124,6 @@ class DeepLabV3Plus(keras.Model):
             interpolation="bilinear",
         )(output)
 
-        low_level = layers.Dropout(0.2)(low_level)
         low_level = layers.Conv2D(
             filters=48,
             kernel_size=1,
@@ -145,7 +144,7 @@ class DeepLabV3Plus(keras.Model):
                 output_scale_factor=4,
                 filters=256,
                 convs=2,
-                # dropout=0.2,
+                dropout=0.2,
                 kernel_size=3,
             )
 
