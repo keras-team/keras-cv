@@ -68,8 +68,9 @@ class StableDiffusionBase:
     def text_to_image(
         self,
         prompt,
+        negative_prompt=None,
         batch_size=1,
-        num_steps=25,
+        num_steps=50,
         unconditional_guidance_scale=7.5,
         seed=None,
     ):
@@ -77,6 +78,7 @@ class StableDiffusionBase:
 
         return self.generate_image(
             encoded_text,
+            negative_prompt=negative_prompt,
             batch_size=batch_size,
             num_steps=num_steps,
             unconditional_guidance_scale=unconditional_guidance_scale,
@@ -121,6 +123,7 @@ class StableDiffusionBase:
     def generate_image(
         self,
         encoded_text,
+        negative_prompt=None,
         batch_size=1,
         num_steps=50,
         unconditional_guidance_scale=7.5,
@@ -137,6 +140,10 @@ class StableDiffusionBase:
             of shape (77, 768). When the batch axis is omitted, the same encoded
             text will be used to produce every generated image.
             batch_size: number of images to generate. Default: 1.
+            negative_prompt: a string containing information to negatively guide
+            the image generation (e.g. by removing or altering certain aspects
+            of the generated image).
+                Default: None.
             num_steps: number of diffusion steps (controls image quality).
                 Default: 50.
             unconditional_guidance_scale: float controling how closely the image
@@ -173,16 +180,17 @@ class StableDiffusionBase:
                 "noise when it's not already user-specified."
             )
 
-        encoded_text = tf.squeeze(encoded_text)
-        if encoded_text.shape.rank == 2:
-            encoded_text = tf.repeat(
-                tf.expand_dims(encoded_text, axis=0), batch_size, axis=0
-            )
+        context = self._expand_tensor(encoded_text, batch_size)
 
-        context = encoded_text
-        unconditional_context = tf.repeat(
-            self._get_unconditional_context(), batch_size, axis=0
-        )
+        if negative_prompt is None:
+            unconditional_context = tf.repeat(
+                self._get_unconditional_context(), batch_size, axis=0
+            )
+        else:
+            unconditional_context = self.encode_text(negative_prompt)
+            unconditional_context = self._expand_tensor(
+                unconditional_context, batch_size
+            )
 
         if diffusion_noise is not None:
             diffusion_noise = tf.squeeze(diffusion_noise)
@@ -225,6 +233,7 @@ class StableDiffusionBase:
         prompt,
         image,
         mask,
+        negative_prompt=None,
         num_resamples=1,
         batch_size=1,
         num_steps=25,
@@ -244,6 +253,10 @@ class StableDiffusionBase:
             mask: Tensor of shape (`batch_size`, `image_height`, `image_width`)
                 with binary values 0 or 1. When the batch is omitted, the same mask
                 will be used on all images.
+            negative_prompt: a string containing information to negatively guide
+            the image generation (e.g. by removing or altering certain aspects
+            of the generated image).
+                Default: None.
             num_resamples: number of times to resample the generated mask region.
                 Increasing the number of resamples improves the semantic fit of the
                 generated mask region w.r.t the rest of the image. Default: 1.
@@ -295,9 +308,15 @@ class StableDiffusionBase:
         mask = tf.expand_dims(mask, axis=-1)
 
         context = encoded_text
-        unconditional_context = tf.repeat(
-            self._get_unconditional_context(), batch_size, axis=0
-        )
+        if negative_prompt is None:
+            unconditional_context = tf.repeat(
+                self._get_unconditional_context(), batch_size, axis=0
+            )
+        else:
+            unconditional_context = self.encode_text(negative_prompt)
+            unconditional_context = self._expand_tensor(
+                unconditional_context, batch_size
+            )
 
         if diffusion_noise is not None:
             diffusion_noise = tf.squeeze(diffusion_noise)
@@ -370,6 +389,14 @@ class StableDiffusionBase:
         )
 
         return unconditional_context
+
+    def _expand_tensor(self, text_embedding, batch_size):
+        text_embedding = tf.squeeze(text_embedding)
+        if text_embedding.shape.rank == 2:
+            text_embedding = tf.repeat(
+                tf.expand_dims(text_embedding, axis=0), batch_size, axis=0
+            )
+        return text_embedding
 
     @property
     def image_encoder(self):
