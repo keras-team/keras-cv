@@ -520,6 +520,29 @@ class FullyConvolutionalNetwork(tf.keras.models.Model):
                 "Invalid argument for parameter `backbone`. Accepted values are a `keras_cv.models.*`, `tf.keras.models.Model` or pre-supported `keras_cv.models.VGG16`/`keras_cv.models.VGG19`"
             )
 
+    def compile(self, weight_decay, **kwargs):
+        self.weight_decay = weight_decay
+        super().compile(**kwargs)
+
+    def train_step(self, data):
+        images, y_true, sample_weight = tf.keras.utils.unpack_x_y_sample_weight(data)
+        with tf.GradientTape() as tape:
+            y_pred = self(images, training=True)
+            total_loss = self.compute_loss(
+                x=images, y=y_true, y_pred=y_pred, sample_weight=sample_weight
+            )
+            reg_losses = []
+            if self.weight_decay:
+                for var in self.trainable_variables:
+                    if "bn" not in var.name:
+                        reg_losses.append(self.weight_decay * tf.nn.l2_loss(var))
+                l2_loss = tf.math.add_n(reg_losses)
+                total_loss += l2_loss
+        self.optimizer.minimize(total_loss, self.trainable_variables, tape=tape)
+        return self.compute_metrics(
+            x=images, y=y_true, y_pred=y_pred, sample_weight=sample_weight
+        )
+
     def get_config(self):
         config = {
             "classes": self.classes,
