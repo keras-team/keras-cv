@@ -17,7 +17,6 @@ from tensorflow import keras
 from tensorflow.keras import layers
 
 from keras_cv.layers.spatial_pyramid import SpatialPyramidPooling
-from keras_cv.models import ResNet50V2
 from keras_cv.models import utils
 from keras_cv.models.weights import parse_weights
 
@@ -92,7 +91,7 @@ class DeepLabV3Plus(keras.Model):
 
         if layer_names == (None, None):
             if "res" in backbone.name:
-                low_level_output = backbone.get_layer("v2_stack_1_block3_use_preactivation_relu").output
+                low_level_output = backbone.get_layer("v2_stack_0_block3_out").output
                 high_level_output = backbone.get_layer(
                     "v2_stack_3_block3_out"
                 ).output
@@ -116,7 +115,7 @@ class DeepLabV3Plus(keras.Model):
         high_level = backbone_outputs["high_level"]
 
         if spatial_pyramid_pooling is None:
-            spatial_pyramid_pooling = SpatialPyramidPooling(dilation_rates=[6, 12, 18])
+            spatial_pyramid_pooling = SpatialPyramidPooling(dilation_rates=[6, 12, 18], dropout=0.5)
 
         output = spatial_pyramid_pooling(high_level)
         output = tf.keras.layers.UpSampling2D(
