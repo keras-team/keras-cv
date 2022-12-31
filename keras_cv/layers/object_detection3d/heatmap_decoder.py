@@ -67,7 +67,7 @@ def decode_bin_heading(predictions: tf.Tensor, num_bin: int) -> tf.Tensor:
 
         # bin_center is computed using the bin_idx and angle_per class,
         # (e.g., 0, 30, 60, 90, 120, ..., 270, 300, 330). Then residual is added.
-        heading = tf.floormod(
+        heading = tf.math.floormod(
             bin_idx_float * angle_per_class + residual_angle, 2 * np.pi
         )
         heading_mask = heading > np.pi
@@ -173,8 +173,9 @@ class HeatmapDecoder(tf.keras.layers.Layer):
         )
         # [B, max_num_box, 7]
         box_decoded = tf.reshape(box_decoded, [b, self.max_num_box, 7])
+        global_xyz = tf.zeros([b, 3], dtype=box_decoded.dtype)
         ref_xyz = voxel_utils.compute_feature_map_ref_xyz(
-            self.voxel_size, self.spatial_size
+            self.voxel_size, self.spatial_size, global_xyz
         )
         # [B, H, W, 3]
         ref_xyz = tf.squeeze(ref_xyz, axis=-2)

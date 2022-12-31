@@ -18,10 +18,6 @@ from typing import Sequence
 import tensorflow as tf
 
 from keras_cv.layers.object_detection3d.heatmap_decoder import HeatmapDecoder
-from keras_cv.models.__internal__.unet import UNet
-
-down_block_configs = [(128, 6), (256, 2), (512, 2)]
-up_block_configs = [512, 256, 256]
 
 
 class MultiClassDetectionHead(tf.keras.layers.Layer):
@@ -36,7 +32,7 @@ class MultiClassDetectionHead(tf.keras.layers.Layer):
     ):
         super().__init__(name=name)
 
-        self._heads = []
+        self._heads = {}
         self._head_names = []
         self._per_class_prediction_size = []
         self._num_class = num_class
@@ -92,11 +88,19 @@ class MultiClassHeatmapDecoder(tf.keras.layers.Layer):
         spatial_size: Sequence[float],
         **kwargs,
     ):
+        super().__init__(**kwargs)
         self.num_class = num_class
         self.class_ids = list(range(1, num_class + 1))
+        self.num_head_bin = num_head_bin
+        self.anchor_size = anchor_size
+        self.max_pool_size = max_pool_size
+        self.max_num_box = max_num_box
+        self.heatmap_threshold = heatmap_threshold
+        self.voxel_size = voxel_size
+        self.spatial_size = spatial_size
         self.decoders = {}
         for i, class_id in enumerate(self.class_ids):
-            self.decoders[f"class_{i}"] = HeatmapDecoder(
+            self.decoders[f"class_{class_id}"] = HeatmapDecoder(
                 class_id=class_id,
                 num_head_bin=self.num_head_bin[i],
                 anchor_size=self.anchor_size[i],
@@ -120,24 +124,15 @@ class MultiHeadCenterPillar(tf.keras.Model):
         backbone,
         voxel_net,
         multiclass_head,
-        label_encoder=None,
-        prediction_decoder=None,
+        label_encoder,
+        prediction_decoder,
         **kwargs,
     ):
         super().__init__(**kwargs)
         self._voxelization_layer = voxel_net
-        self._unet_layer = backbone or UNet(down_block_configs, up_block_configs)
-        self._multiclass_head = multiclass_head or MultiClassDetectionHead(2, [2, 2])
-        self._prediction_decoder = prediction_decoder or MultiClassHeatmapDecoder(
-            2,
-            [2, 2],
-            anchor_size=[[1.0, 1.0, 1.0], [1.0, 1.0, 1.0]],
-            max_pool_size=[3, 3],
-            max_num_box=[3, 3],
-            heatmap_threshold=[0.2, 0.2],
-            voxel_size=[0.5, 0.5, 10],
-            spatial_size=[-10, 10, -10, 10, -10, 10],
-        )
+        self._unet_layer = backbone
+        self._multiclass_head = multiclass_head
+        self._prediction_decoder = prediction_decoder
         self._head_names = self._multiclass_head._head_names
 
     def call(self, point_xyz, point_feature, point_mask, training=None):
