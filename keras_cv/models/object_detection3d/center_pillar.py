@@ -119,6 +119,28 @@ class MultiClassHeatmapDecoder(tf.keras.layers.Layer):
 
 
 class MultiHeadCenterPillar(tf.keras.Model):
+    """Multi headed model based on CenterNet heatmap and PointPillar.
+
+    This model builds box classification and regression for each class
+    separately. It voxelizes the point cloud feature, applies feature extraction
+    on top of voxelized feature, and applies multi-class classification and
+    regression heads on the feature map.
+
+    Args:
+      backbone: the backbone to apply to voxelized features.
+      voxel_net: the voxel_net that takes point cloud feature and convert
+        to voxelized features.
+      multiclass_head: a multi class head which returns a dict of heatmap prediction
+        and regression prediction per class.
+      label_encoder: a LabelEncoder that takes point cloud xyz and point cloud
+        features and returns a multi class labels which is a dict of heatmap,
+        box location and top_k heatmap index per class.
+      prediction_decoder: a multi class heatmap prediction decoder that returns a dict
+        of decoded boxes, box class, and box confidence score per class.
+
+
+    """
+
     def __init__(
         self,
         backbone,
@@ -132,6 +154,7 @@ class MultiHeadCenterPillar(tf.keras.Model):
         self._voxelization_layer = voxel_net
         self._unet_layer = backbone
         self._multiclass_head = multiclass_head
+        self._label_encoder = label_encoder
         self._prediction_decoder = prediction_decoder
         self._head_names = self._multiclass_head._head_names
 
