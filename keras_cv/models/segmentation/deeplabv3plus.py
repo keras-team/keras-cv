@@ -92,9 +92,9 @@ class DeepLabV3Plus(keras.Model):
 
         if layer_names == (None, None):
             if "res" in backbone.name:
-                low_level_output = backbone.get_layer("v2_stack_1_block4_1_relu").output
+                low_level_output = backbone.get_layer("v2_stack_0_block3_out").output
                 high_level_output = backbone.get_layer(
-                    "v2_stack_3_block3_2_relu"
+                    "v2_stack_3_block3_out"
                 ).output
             else:
                 raise ValueError(
@@ -124,6 +124,7 @@ class DeepLabV3Plus(keras.Model):
             interpolation="bilinear",
         )(output)
 
+        low_level = layers.Dropout(0.2)(low_level)
         low_level = layers.Conv2D(
             filters=48,
             kernel_size=1,
@@ -132,6 +133,7 @@ class DeepLabV3Plus(keras.Model):
         )(low_level)
         low_level = layers.BatchNormalization()(low_level)
         low_level = layers.Activation("relu")(low_level)
+
 
         output = layers.Concatenate()([output, low_level])
 
