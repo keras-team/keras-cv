@@ -186,5 +186,5 @@ model.fit(
     epochs=FLAGS.epochs,
     validation_data=eval_ds,
     callbacks=callbacks,
-    verbose=2,
+    #verbose=2,
 )
