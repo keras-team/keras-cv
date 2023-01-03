@@ -133,6 +133,8 @@ class TransformerEncoder(layers.Layer):
         return cls(activation=activation, **config)
 
 
+# Never actually used in MaxViTs but could conceivably be used
+# to generalize: LN -> grid/window -> Attn -> residual add -> LN -> FFN
 @tf.keras.utils.register_keras_serializable(package="keras_cv")
 class MaxViTTransformerEncoder(layers.Layer):
     # Attention + FFN (LN + Attention + Residual + LN + MLP)
