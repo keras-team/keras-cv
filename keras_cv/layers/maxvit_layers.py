@@ -403,16 +403,9 @@ class MaxViTStem(layers.Layer):
         return x
 
     def get_config(self):
-        # config = {"...": self....}
-        # base_config = super().get_config()
-        # return dict(list(base_config.items()) + list(config.items()))
-        return super().get_config()
+        config = super().get_config()
 
-    def get_config(self):
-        # config = {"...": self....}
-        # base_config = super().get_config()
-        # return dict(list(base_config.items()) + list(config.items()))
-        return super().get_config()
+        return config
 
 
 @tf.keras.utils.register_keras_serializable(package="keras_cv")
@@ -478,14 +471,12 @@ class RelativeMultiHeadAttention(layers.MultiHeadAttention):
         )
 
         if self._scale_ratio is not None:
-            src_shape = self.relative_bias.shape.as_list()
             relative_bias = tf.expand_dims(self.relative_bias, axis=-1)
             relative_bias = tf.cast(
                 tf.image.resize(relative_bias, [2 * height - 1, 2 * width - 1]),
                 self.compute_dtype,
             )
             relative_bias = tf.squeeze(relative_bias, axis=-1)
-            tgt_shape = relative_bias.shape.as_list()
         else:
             relative_bias = tf.cast(self.relative_bias, self.compute_dtype)
 
@@ -610,24 +601,20 @@ class MaxViTBlock(layers.Layer):
     inputs = input_img = tf.random.uniform((1, 224, 224, 3), minval=0, maxval=1)
 
     stem = keras_cv.layers.MaxViTStem()
-    stem_out = stem(input_img) # TensorShape([1, 112, 112, 64])
+    stem_out = stem(input_img)  # TensorShape([1, 112, 112, 64])
 
-    maxvit_block = keras_cv.layers.MaxViTBlock(hidden_size=64,
-                                                head_size=32,
-                                                window_size=7,
-                                                grid_size=7,
-                                                pool_stride=2)
+    maxvit_block = keras_cv.layers.MaxViTBlock(
+        hidden_size=64, head_size=32, window_size=7, grid_size=7, pool_stride=2
+    )
     block_out = maxvit_block(stem_out)
-    block_out.shape # TensorShape([1, 56, 56, 64])
+    block_out.shape  # TensorShape([1, 56, 56, 64])
 
     # Later blocks don't use stride
-
-    maxvit_block = keras_cv.layers.MaxViTBlock(hidden_size=64,
-                                                head_size=32,
-                                                window_size=7,
-                                                grid_size=7)
+    maxvit_block = keras_cv.layers.MaxViTBlock(
+        hidden_size=64, head_size=32, window_size=7, grid_size=7
+    )
     block_out = maxvit_block(block_out)
-    block_out.shape # TensorShape([1, 56, 56, 64])
+    block_out.shape  # TensorShape([1, 56, 56, 64])
     ```
     """
 
