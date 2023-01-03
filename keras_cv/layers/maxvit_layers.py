@@ -1,3 +1,5 @@
+import string
+
 import numpy as np
 import tensorflow as tf
 from tensorflow.keras import initializers
@@ -483,9 +485,6 @@ class RelativeMultiHeadAttention(layers.MultiHeadAttention):
             )
             relative_bias = tf.squeeze(relative_bias, axis=-1)
             tgt_shape = relative_bias.shape.as_list()
-            logging.info(
-                "Bilinear resize relative position bias %s -> %s.", src_shape, tgt_shape
-            )
         else:
             relative_bias = tf.cast(self.relative_bias, self.compute_dtype)
 
