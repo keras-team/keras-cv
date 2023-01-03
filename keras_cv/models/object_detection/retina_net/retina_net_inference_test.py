@@ -111,7 +111,7 @@ class RetinaNetTest(tf.test.TestCase):
         x, y = _create_bounding_box_dataset(bounding_box_format="xywh")
         pretrained_retina_net, _ = _create_retina_nets(x, y, epochs=0)
 
-        prediction_decoder = keras_cv.layers.NmsPredictionDecoder(
+        prediction_decoder = keras_cv.layers.NmsDecoder(
             bounding_box_format="xywh",
             anchor_generator=keras_cv.models.RetinaNet.default_anchor_generator(
                 bounding_box_format="xywh"
@@ -182,10 +182,13 @@ def _get_retina_net_layers(model):
 
 
 def _create_retina_nets(x, y, epochs=1, custom_decoder=False):
+    backbone = keras_cv.models.ResNet50(
+        include_top=False, weights="imagenet", include_rescaling=False
+    ).as_backbone()
     pretrained_retina_net = keras_cv.models.RetinaNet(
         classes=20,
         bounding_box_format="xywh",
-        backbone="resnet50",
+        backbone=backbone,
         backbone_weights="imagenet",
         include_rescaling=True,
     )
@@ -207,7 +210,7 @@ def _create_retina_nets(x, y, epochs=1, custom_decoder=False):
     # pretrained backbone weights
     prediction_decoder = None
     if custom_decoder:
-        prediction_decoder = keras_cv.layers.NmsPredictionDecoder(
+        prediction_decoder = keras_cv.layers.NmsDecoder(
             bounding_box_format="xywh",
             anchor_generator=keras_cv.models.RetinaNet.default_anchor_generator(
                 bounding_box_format="xywh"
@@ -222,7 +225,7 @@ def _create_retina_nets(x, y, epochs=1, custom_decoder=False):
     new_retina_net = keras_cv.models.RetinaNet(
         classes=20,
         bounding_box_format="xywh",
-        backbone="resnet50",
+        backbone=backbone,
         backbone_weights=None,
         include_rescaling=True,
         prediction_decoder=prediction_decoder,
