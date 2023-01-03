@@ -783,7 +783,6 @@ class _FFN:
     """
     Builds the einsum expression for EinsumDense layers.
     EinsumDense layers emulate TrailDense from the official repository.
-    
     Expression building logic is from:
     https://github.com/google-research/maxvit/blob/2e06a7f1f70c76e64cd3dabe5cd1b8c1a23c9fb7/maxvit/models/maxvit.py#L49
     """
