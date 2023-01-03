@@ -241,8 +241,6 @@ class UnWindowPartitioning(layers.Layer):
     def get_config(self):
         config = {
             "window_size": self.window_size,
-            "height": self.height,
-            "width": self.width,
         }
         base_config = super().get_config()
         return dict(list(base_config.items()) + list(config.items()))
@@ -348,11 +346,7 @@ class UnGridPartitioning(layers.Layer):
         )
 
     def get_config(self):
-        config = {
-            "grid_size": self.grid_size,
-            "height": self.height,
-            "width": self.width,
-        }
+        config = {"grid_size": self.grid_size}
         base_config = super().get_config()
         return dict(list(base_config.items()) + list(config.items()))
 
@@ -365,19 +359,24 @@ class MaxViTStem(layers.Layer):
         filters: list = [64, 64],
         kernel_size: tuple = (3, 3),
         kernel_initializer=tf.random_normal_initializer(stddev=0.02),
-        bias_initializer=tf.zeros_initializer,
+        bias_initializer=tf.zeros_initializer(),
         **kwargs,
     ):
         super().__init__(**kwargs)
         assert len(filters) == 2
 
+        self.filters = filters
+        self.kernel_size = kernel_size
+        self.kernel_initializer = kernel_initializer
+        self.bias_initializer = bias_initializer
+
         self.conv1 = layers.Conv2D(
-            filters=filters[0],
-            kernel_size=kernel_size,
+            filters=self.filters[0],
+            kernel_size=self.kernel_size,
             strides=2,
             padding="same",
-            kernel_initializer=kernel_initializer,
-            bias_initializer=bias_initializer,
+            kernel_initializer=self.kernel_initializer,
+            bias_initializer=self.bias_initializer,
             name="stem_conv_0",
         )
 
@@ -385,12 +384,12 @@ class MaxViTStem(layers.Layer):
         self.gelu = layers.Activation("gelu")
 
         self.conv2 = layers.Conv2D(
-            filters=filters[1],
-            kernel_size=kernel_size,
+            filters=self.filters[1],
+            kernel_size=self.kernel_size,
             strides=1,
             padding="same",
-            kernel_initializer=kernel_initializer,
-            bias_initializer=bias_initializer,
+            kernel_initializer=self.kernel_initializer,
+            bias_initializer=self.bias_initializer,
             name="stem_conv_1",
         )
 
@@ -403,16 +402,32 @@ class MaxViTStem(layers.Layer):
         return x
 
     def get_config(self):
-        # config = {"...": self....}
-        # base_config = super().get_config()
-        # return dict(list(base_config.items()) + list(config.items()))
-        return super().get_config()
+        config = super().get_config()
+        config.update(
+            {
+                "filters": self.filters,
+                "kernel_size": self.kernel_size,
+                "kernel_initializer": tf.keras.initializers.serialize(
+                    self.kernel_initializer
+                ),
+                "bias_initializer": tf.keras.initializers.serialize(
+                    self.bias_initializer
+                ),
+            }
+        )
+        return config
 
-    def get_config(self):
-        # config = {"...": self....}
-        # base_config = super().get_config()
-        # return dict(list(base_config.items()) + list(config.items()))
-        return super().get_config()
+    @classmethod
+    def from_config(cls, config, custom_objects=None):
+        kernel_initializer = config.pop("kernel_initializer")
+        bias_initializer = config.pop("bias_initializer")
+        kernel_initializer = tf.keras.initializers.deserialize(kernel_initializer)
+        bias_initializer = tf.keras.initializers.deserialize(bias_initializer)
+        return cls(
+            kernel_initializer=kernel_initializer,
+            bias_initializer=bias_initializer,
+            **config,
+        )
 
 
 @tf.keras.utils.register_keras_serializable(package="keras_cv")
@@ -650,7 +665,7 @@ class MaxViTBlock(layers.Layer):
         ln_epsilon=1e-5,
         ln_dtype=None,
         kernel_initializer=tf.random_normal_initializer(stddev=0.02),
-        bias_initializer=tf.zeros_initializer,
+        bias_initializer=tf.zeros_initializer(),
         **kwargs,
     ):
         super().__init__(**kwargs)
@@ -732,6 +747,21 @@ class MaxViTBlock(layers.Layer):
         base_config = super().get_config()
         return dict(list(base_config.items()) + list(config.items()))
 
+    @classmethod
+    def from_config(cls, config, custom_objects=None):
+        activation = config.pop("activation")
+        kernel_initializer = config.pop("kernel_initializer")
+        bias_initializer = config.pop("bias_initializer")
+        activation = tf.keras.activations.deserialize(activation)
+        kernel_initializer = tf.keras.initializers.deserialize(kernel_initializer)
+        bias_initializer = tf.keras.initializers.deserialize(bias_initializer)
+        return cls(
+            activation=activation,
+            kernel_initializer=kernel_initializer,
+            bias_initializer=bias_initializer,
+            **config,
+        )
+
 
 class _FFN:
     def __init__(
@@ -741,7 +771,7 @@ class _FFN:
         expansion_rate=4,
         activation="gelu",
         kernel_initializer=tf.random_normal_initializer(stddev=0.02),
-        bias_initializer=tf.zeros_initializer,
+        bias_initializer=tf.zeros_initializer(),
         name="ffn",
     ):
         self.hidden_size = hidden_size

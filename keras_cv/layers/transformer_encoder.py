@@ -190,7 +190,7 @@ class MaxViTTransformerEncoder(layers.Layer):
         ln_epsilon=1e-5,
         ln_dtype=None,
         kernel_initializer=tf.random_normal_initializer(stddev=0.02),
-        bias_initializer=tf.zeros_initializer,
+        bias_initializer=tf.zeros_initializer(),
         **kwargs,
     ):
         super().__init__(**kwargs)
@@ -313,6 +313,48 @@ class MaxViTTransformerEncoder(layers.Layer):
             x = layers.Dropout(self.dropout)(x)
         x = layers.Add()([shortcut, x])
         return x
+
+    def get_config(self):
+        config = super().get_config()
+        config.update(
+            {
+                "dropout": self.dropout,
+                "head_size": self.head_size,
+                "hidden_size": self.hidden_size,
+                "window_size": self.window_size,
+                "grid_size": self.grid_size,
+                "num_heads": self.num_heads,
+                "expansion_rate": self.expansion_rate,
+                "activation": self.activation,
+                "dropatt": self.dropatt,
+                "rel_attn_type": self.rel_attn_type,
+                "scale_ratio": self.scale_ratio,
+                "ln_epsilon": self.ln_epsilon,
+                "ln_dtype": self.ln_dtype,
+                "kernel_initializer": tf.keras.initializers.serialize(
+                    self.kernel_initializer
+                ),
+                "bias_initializer": tf.keras.initializers.serialize(
+                    self.bias_initializer
+                ),
+            }
+        )
+        return config
+
+    @classmethod
+    def from_config(cls, config, custom_objects=None):
+        activation = config.pop("activation")
+        kernel_initializer = config.pop("kernel_initializer")
+        bias_initializer = config.pop("bias_initializer")
+        activation = tf.keras.activations.deserialize(activation)
+        kernel_initializer = tf.keras.initializers.deserialize(kernel_initializer)
+        bias_initializer = tf.keras.initializers.deserialize(bias_initializer)
+        return cls(
+            activation=activation,
+            kernel_initializer=kernel_initializer,
+            bias_initializer=bias_initializer,
+            **config,
+        )
 
     """
     Taken from: https://github.com/google-research/maxvit/blob/2e06a7f1f70c76e64cd3dabe5cd1b8c1a23c9fb7/maxvit/models/common_ops.py#L129
