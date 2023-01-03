@@ -723,10 +723,30 @@ class MaxViTBlock(layers.Layer):
         return x
 
     def get_config(self):
-        # config = {"...": self....}
-        # base_config = super().get_config()
-        # return dict(list(base_config.items()) + list(config.items()))
-        return super().get_config()
+        config = {
+            "dropout": self.dropout,
+            "head_size": self.head_size,
+            "hidden_size": self.hidden_size,
+            "window_size": self.window_size,
+            "grid_size": self.grid_size,
+            "num_heads": self.num_heads,
+            "expansion_rate": self.expansion_rate,
+            "activation": self.activation,
+            "pool_type": self.pool_type,
+            "pool_stride": self.pool_stride,
+            "dropatt": self.dropatt,
+            "rel_attn_type": self.rel_attn_type,
+            "scale_ratio": self.scale_ratio,
+            "survival_prob": self.survival_prob,
+            "ln_epsilon": self.ln_epsilon,
+            "ln_dtype": self.ln_dtype,
+            "kernel_initializer": tf.keras.initializers.serialize(
+                self.kernel_initializer
+            ),
+            "bias_initializer": tf.keras.initializers.serialize(self.bias_initializer),
+        }
+        base_config = super().get_config()
+        return dict(list(base_config.items()) + list(config.items()))
 
     """
     Taken from: https://github.com/google-research/maxvit/blob/2e06a7f1f70c76e64cd3dabe5cd1b8c1a23c9fb7/maxvit/models/common_ops.py#L129
