@@ -1,10 +1,3 @@
-"""
-- MaxViTTransformerEncoder layer
-- RelativeMultiHeadAttention layer
-- SqueezeExcite layer (potentially don't need it because it's already part of MBConv)
-- MBConv layer (already have it)
-- MaxViT layer (MBConv + Block-Attention + FFN + Grid-Attention + FFN)
-"""
 import numpy as np
 import tensorflow as tf
 from tensorflow.keras import initializers
@@ -578,7 +571,55 @@ class RelativeMultiHeadAttention(layers.MultiHeadAttention):
 
 @tf.keras.utils.register_keras_serializable(package="keras_cv")
 class MaxViTBlock(layers.Layer):
-    # (MBConv + Block-Attention (Block-SA+FFN) + Grid-Attention (Grid-SA+FFN))
+
+    """
+    Performs MBConv -> Block-Attention (Block-SA+FFN) -> Grid-Attention (Grid-SA+FFN))
+
+    The repeated MaxViT block that passes the input through the MBConv block, Block-Attention with an FFN top
+    and Grid-Attention with an FFN top.
+    Within Block-Attention and Grid-Attention, the input is passed through a window/grid reshaping operation,
+    flattened to a 1 dimension, passed through the RelativeMultiHeadAttention layer, and then reshaped back.
+
+        Args:
+            hidden_size: the hidden size to be used in the MBConvBlock, FFN heads and RelativeMultiHeadAttention layers,
+            head_size: the head size for RelativeMultiHeadAttention layers,
+            window_size: the window_size to be used for WindowPartition and UnWindowPartition,
+            grid_size: the grid_size to be used for GridPartition and UnGridPartition,
+            dropout: default None, the dropout to apply after attention and before adding the residual,
+            num_heads: default None, the number of heads to use in RelativeMultiHeadAttention, computed as
+                self.hidden_size // self.head_size if None.
+            dropatt: default None, the dropout to apply in RelativeMultiHeadAttention
+            rel_attn_type: default "2d_multi_head", the type of RelativeMultiHeadAttention to use
+            expansion_rate: default 4, the expansion rate for EinsumDense layers in the FFN heads
+            activation: default "gelu", the activation function to apply in the FFN heads
+            pool_type: default "avg", the pooling to use in MBConvBlocks
+            pool_stride: default 1, the strides to use in MBConvBlocks
+            scale_ratio: default None,
+            survival_prob: default None, the survival_probability for the MBConvBlock
+            ln_epsilon: default 1e-5, the layer normalization epsilon
+            ln_dtype: default None, the layer normalization dtype
+            kernel_initializer: default tf.random_normal_initializer(stddev=0.02), the kernel_initializer for the FFN head
+            bias_initializer: default tf.zeros_initializer, the bias initializer for the FFN head
+        Returns:
+          A `tf.Tensor` resulting from the operations above.
+
+    Basic usage:
+
+    ```
+    # As per the paper, used after MaxViT Stem
+    inputs = input_img = tf.random.uniform((1, 224, 224, 3), minval=0, maxval=1)
+
+    stem = keras_cv.layers.MaxViTStem()
+    stem_out = stem(input_img) # TensorShape([1, 112, 112, 64])
+
+    maxvit_block = keras_cv.layers.MaxViTBlock(hidden_size=64,
+                                                head_size=32,
+                                                window_size=7,
+                                                grid_size=7)
+    block_out = maxvit_block(stem_out)
+    block_out.shape # TensorShape([1, 112, 112, 64])
+    ```
+    """
 
     def __init__(
         self,
@@ -628,6 +669,7 @@ class MaxViTBlock(layers.Layer):
             output_filters=self.hidden_size,
             strides=self.pool_stride,
             expand_ratio=self.expansion_rate,
+            survival_probability=self.survival_prob,
             se_ratio=0.25,
         )
         # BlockAttention Layer norm
@@ -680,7 +722,11 @@ class MaxViTBlock(layers.Layer):
             dtype=self.ln_dtype,
             name="block_ffn_layer_norm_1",
         )
-        self.block_ffn = _FFN(self.hidden_size)
+        self.block_ffn = _FFN(
+            self.hidden_size,
+            bias_initializer=self.bias_initializer,
+            kernel_initializer=self.kernel_initializer,
+        )
 
         self.grid_ffn_layer_norm = layers.LayerNormalization(
             axis=-1,
@@ -688,7 +734,11 @@ class MaxViTBlock(layers.Layer):
             dtype=self.ln_dtype,
             name="grid_ffn_layer_norm_1",
         )
-        self.grid_ffn = _FFN(self.hidden_size)
+        self.grid_ffn = _FFN(
+            self.hidden_size,
+            bias_initializer=self.bias_initializer,
+            kernel_initializer=self.kernel_initializer,
+        )
 
     def call(self, input):
         # MBConv
