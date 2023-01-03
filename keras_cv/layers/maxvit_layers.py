@@ -239,7 +239,7 @@ class UnWindowPartitioning(layers.Layer):
         )
         return tf.reshape(
             tf.transpose(features, (0, 1, 3, 2, 4, 5)),
-            [-1, self.height, self.width, features.shape[-1]],
+            [-1, height, width, features.shape[-1]],
         )
 
     def get_config(self):
@@ -348,7 +348,7 @@ class UnGridPartitioning(layers.Layer):
         )
         return tf.reshape(
             tf.transpose(features, (0, 3, 1, 4, 2, 5)),
-            [-1, self.height, self.width, features.shape[-1]],
+            [-1, height, width, features.shape[-1]],
         )
 
     def get_config(self):
@@ -628,7 +628,7 @@ class MaxViTBlock(layers.Layer):
             output_filters=self.hidden_size,
             strides=self.pool_stride,
             expand_ratio=self.expansion_rate,
-            se_ratio=self.scale_ratio,
+            se_ratio=0.25,
         )
         # BlockAttention Layer norm
         self.block_attn_layer_norm = tf.keras.layers.LayerNormalization(
