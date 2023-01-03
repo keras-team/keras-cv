@@ -131,3 +131,14 @@ class TransformerEncoder(layers.Layer):
         activation = config.pop("activation")
         activation = tf.keras.activations.deserialize(activation)
         return cls(activation=activation, **config)
+
+
+@tf.keras.utils.register_keras_serializable(package="keras_cv")
+class MaxViTTransformerEncoder(layers.Layer):
+    # Attention + FFN (LN + Attention + Residual + LN + MLP)
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+    def call(self, input):
+        # ...
+        return input

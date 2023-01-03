@@ -7,9 +7,8 @@
 """
 import numpy as np
 import tensorflow as tf
-from tensorflow.keras import layers
 from tensorflow.keras import initializers
-
+from tensorflow.keras import layers
 
 from keras_cv.layers.mbconv import MBConvBlock
 
@@ -222,19 +221,17 @@ class UnWindowPartitioning(layers.Layer):
     ```
     """
 
-    def __init__(self, window_size, height, width, **kwargs):
+    def __init__(self, window_size, **kwargs):
         super().__init__(**kwargs)
         self.window_size = window_size
-        self.height = height
-        self.width = width
 
-    def call(self, input):
+    def call(self, input, height, width):
         features = tf.reshape(
             input,
             [
                 -1,
-                self.height // self.window_size,
-                self.width // self.window_size,
+                height // self.window_size,
+                width // self.window_size,
                 self.window_size,
                 self.window_size,
                 input.shape[-1],
@@ -333,19 +330,17 @@ class UnGridPartitioning(layers.Layer):
     ```
     """
 
-    def __init__(self, grid_size, height, width, **kwargs):
+    def __init__(self, grid_size, **kwargs):
         super().__init__(**kwargs)
         self.grid_size = grid_size
-        self.height = height
-        self.width = width
 
-    def call(self, input):
+    def call(self, input, height, width):
         features = tf.reshape(
             input,
             [
                 -1,
-                self.height // self.grid_size,
-                self.width // self.grid_size,
+                height // self.grid_size,
+                width // self.grid_size,
                 self.grid_size,
                 self.grid_size,
                 input.shape[-1],
@@ -416,17 +411,6 @@ class MaxViTStem(layers.Layer):
         # base_config = super().get_config()
         # return dict(list(base_config.items()) + list(config.items()))
         return super().get_config()
-
-
-@tf.keras.utils.register_keras_serializable(package="keras_cv")
-class MaxViTTransformerEncoder(layers.Layer):
-    # Attention + FFN (LN + Attention + Residual + LN + MLP)
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-
-    def call(self, input):
-        # ...
-        return input
 
     def get_config(self):
         # config = {"...": self....}
@@ -582,27 +566,265 @@ class RelativeMultiHeadAttention(layers.MultiHeadAttention):
 
     def get_config(self):
         config = super().get_config()
-        config.update({
-            "num_heads": self._num_heads,
-            "scale_ratio": self._scale_ratio,
-            "kernel_initializer": initializers.serialize(
-                self._kernel_initializer),
-            })
+        config.update(
+            {
+                "num_heads": self._num_heads,
+                "scale_ratio": self._scale_ratio,
+                "kernel_initializer": initializers.serialize(self._kernel_initializer),
+            }
+        )
         return config
+
 
 @tf.keras.utils.register_keras_serializable(package="keras_cv")
 class MaxViTBlock(layers.Layer):
     # (MBConv + Block-Attention (Block-SA+FFN) + Grid-Attention (Grid-SA+FFN))
 
-    def __init__(self, **kwargs):
+    def __init__(
+        self,
+        hidden_size,
+        head_size,
+        window_size,
+        grid_size,
+        dropout=None,
+        num_heads=None,
+        expansion_rate=4,
+        activation="gelu",
+        pool_type="avg",
+        pool_stride=1,
+        dropatt=None,
+        rel_attn_type="2d_multi_head",
+        scale_ratio=None,
+        survival_prob=None,
+        ln_epsilon=1e-5,
+        ln_dtype=None,
+        kernel_initializer=tf.random_normal_initializer(stddev=0.02),
+        bias_initializer=tf.zeros_initializer,
+        **kwargs,
+    ):
         super().__init__(**kwargs)
 
+        self.dropout = dropout
+        self.head_size = head_size
+        self.hidden_size = hidden_size
+        self.window_size = window_size
+        self.grid_size = grid_size
+        self.num_heads = num_heads
+        self.expansion_rate = expansion_rate
+        self.activation = activation
+        self.pool_type = pool_type
+        self.pool_stride = pool_stride
+        self.dropatt = dropatt
+        self.rel_attn_type = rel_attn_type
+        self.scale_ratio = scale_ratio
+        self.survival_prob = survival_prob
+        self.ln_epsilon = ln_epsilon
+        self.ln_dtype = ln_dtype
+        self.kernel_initializer = kernel_initializer
+        self.bias_initializer = bias_initializer
+
+        self.mbconv = MBConvBlock(
+            input_filters=self.hidden_size,
+            output_filters=self.hidden_size,
+            strides=self.pool_stride,
+            expand_ratio=self.expansion_rate,
+            se_ratio=self.scale_ratio,
+        )
+        # BlockAttention Layer norm
+        self.block_attn_layer_norm = tf.keras.layers.LayerNormalization(
+            axis=-1,
+            epsilon=self.ln_epsilon,
+            dtype=self.ln_dtype,
+            name="attn_layer_norm",
+        )
+        self.window_partition = WindowPartitioning(window_size=self.window_size)
+        # Unblock
+        self.unwindow_partition = UnWindowPartitioning(window_size=self.window_size)
+
+        # Relative Attention
+        self.hidden_size = hidden_size
+        if self.num_heads is None:
+            self.num_heads = self.hidden_size // self.head_size
+
+        self.block_attention = RelativeMultiHeadAttention(
+            num_heads=self.num_heads,
+            key_dim=self.head_size,
+            value_dim=self.head_size,
+            dropout=self.dropatt,
+            use_bias=True,
+        )
+
+        self.grid_attn_layer_norm = layers.LayerNormalization(
+            axis=-1,
+            epsilon=self.ln_epsilon,
+            dtype=self.ln_dtype,
+            name="attn_layer_norm_1",
+        )
+
+        self.grid_partition = GridPartitioning(self.grid_size)
+        self.ungrid_partition = UnGridPartitioning(grid_size=self.grid_size)
+
+        # Relative Attention
+
+        self.grid_attention = RelativeMultiHeadAttention(
+            num_heads=self.num_heads,
+            key_dim=self.head_size,
+            value_dim=self.head_size,
+            dropout=self.dropatt,
+            use_bias=True,
+        )
+
+        self.block_ffn_layer_norm = layers.LayerNormalization(
+            axis=-1,
+            epsilon=self.ln_epsilon,
+            dtype=self.ln_dtype,
+            name="block_ffn_layer_norm_1",
+        )
+        self.block_ffn = _FFN(self.hidden_size)
+
+        self.grid_ffn_layer_norm = layers.LayerNormalization(
+            axis=-1,
+            epsilon=self.ln_epsilon,
+            dtype=self.ln_dtype,
+            name="grid_ffn_layer_norm_1",
+        )
+        self.grid_ffn = _FFN(self.hidden_size)
+
     def call(self, input):
-        # ...
-        return input
+        # MBConv
+        x = self.mbconv(input)
+        # Block-Attention
+        x = self.block_attn_layer_norm(x)
+        shortcut = x
+
+        # For unwindowing
+        _, height, width, _ = x.shape
+
+        x = self.window_partition(x)
+        x = self.__reshape_to_1d(x)
+        x = self.block_attention(x, x)
+        x = self.unwindow_partition(x, height, width)
+        if self.dropout:
+            x = layers.Dropout(self.dropout)(x)
+        x = layers.Add()([shortcut, x])
+
+        # Grid-Attention
+        x = self.grid_attn_layer_norm(x)
+        shortcut = x
+        # For ungridding
+        _, height, width, _ = x.shape
+        x = self.grid_partition(x)
+        x = self.__reshape_to_1d(x)
+        x = self.grid_attention(x, x)
+        x = self.ungrid_partition(x, height, width)
+        if self.dropout:
+            x = layers.Dropout(self.dropout)(x)
+        x = layers.Add()([shortcut, x])
+        return x
 
     def get_config(self):
         # config = {"...": self....}
         # base_config = super().get_config()
         # return dict(list(base_config.items()) + list(config.items()))
         return super().get_config()
+
+    """
+    Taken from: https://github.com/google-research/maxvit/blob/2e06a7f1f70c76e64cd3dabe5cd1b8c1a23c9fb7/maxvit/models/common_ops.py#L129
+    """
+
+    def __reshape_to_1d(self, x):
+        """Reshape tensor to 1d if not already 1d."""
+        if x.shape.rank == 4:
+            _, h, w, num_channel = x.shape.as_list()
+            return tf.reshape(x, [-1, h * w, num_channel])
+        elif x.shape.rank == 3:
+            return x
+        else:
+            raise ValueError("Unsupported shape {}".format(x.shape))
+
+
+class _FFN:
+    def __init__(
+        self,
+        hidden_size,
+        dropout=0.0,
+        expansion_rate=4,
+        activation="gelu",
+        kernel_initializer=tf.random_normal_initializer(stddev=0.02),
+        bias_initializer=tf.zeros_initializer,
+        name="ffn",
+    ):
+        self.hidden_size = hidden_size
+        self.expansion_rate = expansion_rate
+        self.kernel_initializer = kernel_initializer
+        self.bias_initializer = bias_initializer
+        self.expanded_size = self.hidden_size * self.expansion_rate
+        self.dropout = dropout
+        self.activation = layers.Activation(activation)
+
+    def build(self, input_shape):
+        input_rank = input_shape.rank
+        shared_size = -1 % input_rank
+        i_only_size = input_rank - shared_size
+        o_only_size = len(self.hidden_size)
+
+        assert input_rank + o_only_size < len(
+            string.ascii_uppercase
+        ), "Cannot use einsum as input rank + output rank > 26."
+        einsum_str = string.ascii_uppercase[: input_rank + o_only_size]
+
+        offset = 0
+        shared_str = einsum_str[offset : offset + shared_size]
+        offset += shared_size
+        i_only_str = einsum_str[offset : offset + i_only_size]
+        offset += i_only_size
+        o_only_str = einsum_str[offset : offset + o_only_size]
+
+        input_str = "{}{}".format(shared_str, i_only_str)
+        output_str = "{}{}".format(shared_str, o_only_str)
+        weight_str = "{}{}".format(i_only_str, o_only_str)
+
+        self.einsum_expr = "{},{}->{}".format(input_str, weight_str, output_str)
+
+        self._expand_dense = layers.EinsumDense(
+            equation=self.einsum_expr,
+            output_shape=self.expanded_size,
+            output_trailing_dims=self.expanded_size,
+            kernel_initializer=self.kernel_initializer,
+            bias_initializer=self.bias_initializer,
+            name="expand_dense",
+        )
+        self._shrink_dense = layers.EinsumDense(
+            equation=self.einsum_expr,
+            output_shape=self.hidden_size,
+            output_trailing_dims=self.hidden_size,
+            kernel_initializer=self.kernel_initializer,
+            bias_initializer=self.bias_initializer,
+            name="shrink_dense",
+        )
+
+    def call(self, input):
+        output = input
+        output = self._expand_dense(output)
+        output = self.activation(output)
+        if self.dropout:
+            output = tf.keras.layers.Dropout(self.dropout, name="nonlinearity_drop")(
+                output
+            )
+        output = self._shrink_dense(output)
+
+        return output
+
+    def get_config(self):
+        config = {
+            "hidden_size": self.hidden_size,
+            "dropout": self.dropout,
+            "expansion_rate": self.expansion_rate,
+            "activation": tf.keras.activations.serialize(self.activation),
+            "kernel_initializer": tf.keras.initializers.serialize(
+                self.kernel_initializer
+            ),
+            "bias_initializer": tf.keras.initializers.serialize(self.bias_initializer),
+        }
+        base_config = super().get_config()
+        return dict(list(base_config.items()) + list(config.items()))
