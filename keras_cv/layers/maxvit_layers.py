@@ -606,7 +606,7 @@ class MaxViTBlock(layers.Layer):
     Basic usage:
 
     ```
-    # As per the paper, used after MaxViT Stem
+    # Start of MaxViT
     inputs = input_img = tf.random.uniform((1, 224, 224, 3), minval=0, maxval=1)
 
     stem = keras_cv.layers.MaxViTStem()
@@ -615,9 +615,19 @@ class MaxViTBlock(layers.Layer):
     maxvit_block = keras_cv.layers.MaxViTBlock(hidden_size=64,
                                                 head_size=32,
                                                 window_size=7,
-                                                grid_size=7)
+                                                grid_size=7,
+                                                pool_stride=2)
     block_out = maxvit_block(stem_out)
-    block_out.shape # TensorShape([1, 112, 112, 64])
+    block_out.shape # TensorShape([1, 56, 56, 64])
+
+    # Later blocks don't use stride
+
+    maxvit_block = keras_cv.layers.MaxViTBlock(hidden_size=64,
+                                                head_size=32,
+                                                window_size=7,
+                                                grid_size=7)
+    block_out = maxvit_block(block_out)
+    block_out.shape # TensorShape([1, 56, 56, 64])
     ```
     """
 
