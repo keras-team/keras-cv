@@ -21,6 +21,7 @@ from keras_cv.ops import sampling
 from keras_cv.ops import target_gather
 
 
+@tf.keras.utils.register_keras_serializable(package="keras_cv")
 class _ROISampler(tf.keras.layers.Layer):
     """
     Sample ROIs for loss related calucation.

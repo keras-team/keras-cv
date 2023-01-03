@@ -36,8 +36,7 @@ class RetinaNetTest(tf.test.TestCase):
         retina_net = keras_cv.models.RetinaNet(
             classes=20,
             bounding_box_format="xywh",
-            backbone="resnet50",
-            include_rescaling=True,
+            backbone=self.build_backbone(),
         )
         retina_net.compile(
             classification_loss="focal",
@@ -59,8 +58,7 @@ class RetinaNetTest(tf.test.TestCase):
         retina_net = keras_cv.models.RetinaNet(
             classes=20,
             bounding_box_format="xywh",
-            backbone="resnet50",
-            include_rescaling=True,
+            backbone=self.build_backbone(),
         )
         images = tf.random.uniform((2, 512, 512, 3))
         _ = retina_net(images)
@@ -70,8 +68,7 @@ class RetinaNetTest(tf.test.TestCase):
         retina_net = keras_cv.models.RetinaNet(
             classes=2,
             bounding_box_format="xywh",
-            backbone="resnet50",
-            include_rescaling=False,
+            backbone=self.build_backbone(),
         )
 
         with self.assertRaisesRegex(
@@ -90,8 +87,7 @@ class RetinaNetTest(tf.test.TestCase):
         retina_net = keras_cv.models.RetinaNet(
             classes=2,
             bounding_box_format="xywh",
-            backbone="resnet50",
-            include_rescaling=False,
+            backbone=self.build_backbone(),
         )
 
         retina_net.compile(
@@ -107,8 +103,7 @@ class RetinaNetTest(tf.test.TestCase):
         retina_net = keras_cv.models.RetinaNet(
             classes=1,
             bounding_box_format=bounding_box_format,
-            backbone="resnet50",
-            include_rescaling=False,
+            backbone=self.build_backbone(),
         )
         retina_net.backbone.trainable = False
         retina_net.compile(
@@ -133,8 +128,7 @@ class RetinaNetTest(tf.test.TestCase):
         retina_net = keras_cv.models.RetinaNet(
             classes=1,
             bounding_box_format=bounding_box_format,
-            backbone="resnet50",
-            include_rescaling=False,
+            backbone=self.build_backbone(),
         )
 
         retina_net.compile(
@@ -188,8 +182,7 @@ class RetinaNetTest(tf.test.TestCase):
         retina_net = keras_cv.models.RetinaNet(
             classes=1,
             bounding_box_format=bounding_box_format,
-            backbone="resnet50",
-            include_rescaling=False,
+            backbone=self.build_backbone(),
         )
 
         retina_net.compile(
@@ -203,3 +196,8 @@ class RetinaNetTest(tf.test.TestCase):
         xs, ys = _create_bounding_box_dataset(bounding_box_format)
         retina_net.fit(x=xs, y=ys, epochs=10)
         _ = retina_net.predict(xs)
+
+    def build_backbone(self):
+        return keras_cv.models.ResNet50(
+            include_top=False, weights="imagenet", include_rescaling=False
+        ).as_backbone()

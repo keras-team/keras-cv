@@ -79,6 +79,7 @@ def unpackage_inputs(bounding_box_format):
     def apply(inputs):
         image = inputs["image"]
         image = tf.cast(image, tf.float32)
+        image = tf.keras.applications.resnet50.preprocess_input(image)
         gt_boxes = tf.cast(inputs["objects"]["bbox"], tf.float32)
         gt_classes = tf.cast(inputs["objects"]["label"], tf.float32)
         gt_classes = tf.expand_dims(gt_classes, axis=1)
@@ -170,18 +171,31 @@ train_ds = train_ds.map(pad_fn, num_parallel_calls=tf.data.AUTOTUNE)
 eval_ds = eval_ds.map(pad_fn, num_parallel_calls=tf.data.AUTOTUNE)
 
 with strategy.scope():
+    inputs = keras.layers.Input(shape=image_size)
+    x = inputs
+    x = keras.applications.resnet.preprocess_input(x)
+
+    backbone = keras.applications.ResNet50(
+        include_top=False, input_tensor=x, weights="imagenet"
+    )
+
+    c3_output, c4_output, c5_output = [
+        backbone.get_layer(layer_name).output
+        for layer_name in ["conv3_block4_out", "conv4_block6_out", "conv5_block3_out"]
+    ]
+    backbone = keras.Model(inputs=inputs, outputs=[c3_output, c4_output, c5_output])
+    # keras_cv backbone gives 2mAP lower result.
+    # TODO(ian): should eventually use keras_cv backbone.
+    # backbone = keras_cv.models.ResNet50(
+    #     include_top=False, weights="imagenet", include_rescaling=False
+    # ).as_backbone()
     model = keras_cv.models.RetinaNet(
         # number of classes to be used in box classification
         classes=20,
         # For more info on supported bounding box formats, visit
         # https://keras.io/api/keras_cv/bounding_box/
         bounding_box_format="xywh",
-        # KerasCV offers a set of pre-configured backbones
-        backbone="resnet50",
-        # include_rescaling tells the model whether your input images are in the default
-        # pixel range (0, 255) or if you have already rescaled your inputs to the range
-        # (0, 1).  In our case, we feed our model images with inputs in the range (0, 255).
-        include_rescaling=True,
+        backbone=backbone,
     )
     # Fine-tuning a RetinaNet is as simple as setting backbone.trainable = False
     model.backbone.trainable = False

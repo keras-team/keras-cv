@@ -182,10 +182,13 @@ def _get_retina_net_layers(model):
 
 
 def _create_retina_nets(x, y, epochs=1, custom_decoder=False):
+    backbone = keras_cv.models.ResNet50(
+        include_top=False, weights="imagenet", include_rescaling=False
+    ).as_backbone()
     pretrained_retina_net = keras_cv.models.RetinaNet(
         classes=20,
         bounding_box_format="xywh",
-        backbone="resnet50",
+        backbone=backbone,
         backbone_weights="imagenet",
         include_rescaling=True,
     )
@@ -222,7 +225,7 @@ def _create_retina_nets(x, y, epochs=1, custom_decoder=False):
     new_retina_net = keras_cv.models.RetinaNet(
         classes=20,
         bounding_box_format="xywh",
-        backbone="resnet50",
+        backbone=backbone,
         backbone_weights=None,
         include_rescaling=True,
         prediction_decoder=prediction_decoder,
