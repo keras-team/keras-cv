@@ -493,14 +493,12 @@ class RelativeMultiHeadAttention(layers.MultiHeadAttention):
         )
 
         if self._scale_ratio is not None:
-            src_shape = self.relative_bias.shape.as_list()
             relative_bias = tf.expand_dims(self.relative_bias, axis=-1)
             relative_bias = tf.cast(
                 tf.image.resize(relative_bias, [2 * height - 1, 2 * width - 1]),
                 self.compute_dtype,
             )
             relative_bias = tf.squeeze(relative_bias, axis=-1)
-            tgt_shape = relative_bias.shape.as_list()
         else:
             relative_bias = tf.cast(self.relative_bias, self.compute_dtype)
 
