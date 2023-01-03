@@ -44,7 +44,7 @@ def exhaustive_compare(obj1, obj2):
     # If the objects are dicts then we simply call the `config_equals` function
     # which supports dicts.
     elif isinstance(obj1, (dict)) and isinstance(obj2, (dict)):
-        return config_equals(v1, v2)
+        return config_equals(obj1, obj2)
 
     # If both objects are subclasses of Keras classes that support `get_config`
     # method, then we compare their individual attributes using `config_equals`.
@@ -302,6 +302,27 @@ class SerializationTest(tf.test.TestCase, parameterized.TestCase):
                 "activation": "gelu",
                 "layer_norm_epsilon": 1e-06,
             },
+        ),
+        (
+            "MaxViTTransformerEncoder",
+            cv_layers.MaxViTTransformerEncoder,
+            {"hidden_size": 64, "head_size": 32, "window_size": 7, "grid_size": 7},
+        ),
+        (
+            "MaxViTBlock",
+            cv_layers.MaxViTBlock,
+            {
+                "hidden_size": 64,
+                "head_size": 32,
+                "window_size": 7,
+                "grid_size": 7,
+                "pool_stride": 2,
+            },
+        ),
+        (
+            "MaxViTStem",
+            cv_layers.MaxViTStem,
+            {"filters": [64, 64], "kernel_size": 3},
         ),
         (
             "FrustumRandomDroppingPoints",
