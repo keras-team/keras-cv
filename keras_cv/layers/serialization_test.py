@@ -441,8 +441,6 @@ class SerializationTest(tf.test.TestCase, parameterized.TestCase):
             cv_layers.UnWindowPartitioning,
             {
                 "window_size": 16,
-                "height": 256,
-                "width": 256,
             },
         ),
         (
@@ -450,8 +448,6 @@ class SerializationTest(tf.test.TestCase, parameterized.TestCase):
             cv_layers.UnGridPartitioning,
             {
                 "grid_size": 16,
-                "height": 256,
-                "width": 256,
             },
         ),
         (
