@@ -59,7 +59,7 @@ def generate_lookup_tensor(
                 v = x - i + max_relative_position
                 if abs(x - i) > max_relative_position:
                     if clamp_out_of_range:
-                        v = tf.clip(v, 0, vocab_size - 1)
+                        v = tf.clip_by_value(v, 0, vocab_size - 1)
                     else:
                         continue
                 ret[i, x, v] = 1
