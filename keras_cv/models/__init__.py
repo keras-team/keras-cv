@@ -17,7 +17,11 @@ from keras_cv.models.convnext import ConvNeXtLarge
 from keras_cv.models.convnext import ConvNeXtSmall
 from keras_cv.models.convnext import ConvNeXtTiny
 from keras_cv.models.convnext import ConvNeXtXLarge
-from keras_cv.models.csp_darknet import CSPDarkNet
+from keras_cv.models.csp_darknet import CSPDarkNetL
+from keras_cv.models.csp_darknet import CSPDarkNetM
+from keras_cv.models.csp_darknet import CSPDarkNetS
+from keras_cv.models.csp_darknet import CSPDarkNetTiny
+from keras_cv.models.csp_darknet import CSPDarkNetX
 from keras_cv.models.darknet import DarkNet21
 from keras_cv.models.darknet import DarkNet53
 from keras_cv.models.densenet import DenseNet121
