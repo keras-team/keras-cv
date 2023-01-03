@@ -848,3 +848,15 @@ class _FFN:
         }
         base_config = super().get_config()
         return dict(list(base_config.items()) + list(config.items()))
+
+    @classmethod
+    def from_config(cls, config, custom_objects=None):
+        kernel_initializer = config.pop("kernel_initializer")
+        bias_initializer = config.pop("bias_initializer")
+        kernel_initializer = tf.keras.initializers.deserialize(kernel_initializer)
+        bias_initializer = tf.keras.initializers.deserialize(bias_initializer)
+        return cls(
+            kernel_initializer=kernel_initializer,
+            bias_initializer=bias_initializer,
+            **config,
+        )
