@@ -15,6 +15,8 @@
 import tensorflow as tf
 from tensorflow.keras import layers
 
+import keras_cv.layers.maxvit_layers as maxvit_layers
+
 
 @tf.keras.utils.register_keras_serializable(package="keras_cv")
 class TransformerEncoder(layers.Layer):
@@ -138,9 +140,156 @@ class TransformerEncoder(layers.Layer):
 @tf.keras.utils.register_keras_serializable(package="keras_cv")
 class MaxViTTransformerEncoder(layers.Layer):
     # Attention + FFN (LN + Attention + Residual + LN + MLP)
-    def __init__(self, **kwargs):
+    def __init__(
+        self,
+        hidden_size,
+        head_size,
+        window_size,
+        grid_size,
+        dropout=None,
+        num_heads=None,
+        expansion_rate=4,
+        activation="gelu",
+        dropatt=None,
+        rel_attn_type="2d_multi_head",
+        scale_ratio=None,
+        ln_epsilon=1e-5,
+        ln_dtype=None,
+        kernel_initializer=tf.random_normal_initializer(stddev=0.02),
+        bias_initializer=tf.zeros_initializer,
+        **kwargs,
+    ):
         super().__init__(**kwargs)
 
+        self.dropout = dropout
+        self.head_size = head_size
+        self.hidden_size = hidden_size
+        self.window_size = window_size
+        self.grid_size = grid_size
+        self.num_heads = num_heads
+        self.expansion_rate = expansion_rate
+        self.activation = activation
+        self.dropatt = dropatt
+        self.rel_attn_type = rel_attn_type
+        self.scale_ratio = scale_ratio
+        self.ln_epsilon = ln_epsilon
+        self.ln_dtype = ln_dtype
+        self.kernel_initializer = kernel_initializer
+        self.bias_initializer = bias_initializer
+
+        # BlockAttention Layer norm
+        self.block_attn_layer_norm = tf.keras.layers.LayerNormalization(
+            axis=-1,
+            epsilon=self.ln_epsilon,
+            dtype=self.ln_dtype,
+            name="attn_layer_norm",
+        )
+        self.window_partition = maxvit_layers.WindowPartitioning(
+            window_size=self.window_size
+        )
+        # Unblock
+        self.unwindow_partition = maxvit_layers.UnWindowPartitioning(
+            window_size=self.window_size
+        )
+
+        # Relative Attention
+        self.hidden_size = hidden_size
+        if self.num_heads is None:
+            self.num_heads = self.hidden_size // self.head_size
+
+        self.block_attention = maxvit_layers.RelativeMultiHeadAttention(
+            num_heads=self.num_heads,
+            key_dim=self.head_size,
+            value_dim=self.head_size,
+            dropout=self.dropatt,
+            use_bias=True,
+        )
+
+        self.grid_attn_layer_norm = layers.LayerNormalization(
+            axis=-1,
+            epsilon=self.ln_epsilon,
+            dtype=self.ln_dtype,
+            name="attn_layer_norm_1",
+        )
+
+        self.grid_partition = maxvit_layers.GridPartitioning(self.grid_size)
+        self.ungrid_partition = maxvit_layers.UnGridPartitioning(
+            grid_size=self.grid_size
+        )
+
+        # Relative Attention
+
+        self.grid_attention = maxvit_layers.RelativeMultiHeadAttention(
+            num_heads=self.num_heads,
+            key_dim=self.head_size,
+            value_dim=self.head_size,
+            dropout=self.dropatt,
+            use_bias=True,
+        )
+
+        self.block_ffn_layer_norm = layers.LayerNormalization(
+            axis=-1,
+            epsilon=self.ln_epsilon,
+            dtype=self.ln_dtype,
+            name="block_ffn_layer_norm_1",
+        )
+        self.block_ffn = maxvit_layers._FFN(
+            self.hidden_size,
+            bias_initializer=self.bias_initializer,
+            kernel_initializer=self.kernel_initializer,
+        )
+
+        self.grid_ffn_layer_norm = layers.LayerNormalization(
+            axis=-1,
+            epsilon=self.ln_epsilon,
+            dtype=self.ln_dtype,
+            name="grid_ffn_layer_norm_1",
+        )
+        self.grid_ffn = maxvit_layers._FFN(
+            self.hidden_size,
+            bias_initializer=self.bias_initializer,
+            kernel_initializer=self.kernel_initializer,
+        )
+
     def call(self, input):
-        # ...
-        return input
+        x = self.block_attn_layer_norm(input)
+        shortcut = x
+
+        # For unwindowing
+        _, height, width, _ = x.shape
+
+        x = self.window_partition(x)
+        x = self.__reshape_to_1d(x)
+        x = self.block_attention(x, x)
+        x = self.unwindow_partition(x, height, width)
+        if self.dropout:
+            x = layers.Dropout(self.dropout)(x)
+        x = layers.Add()([shortcut, x])
+
+        # Grid-Attention
+        x = self.grid_attn_layer_norm(x)
+        shortcut = x
+        # For ungridding
+        _, height, width, _ = x.shape
+        x = self.grid_partition(x)
+        x = self.__reshape_to_1d(x)
+        x = self.grid_attention(x, x)
+        x = self.ungrid_partition(x, height, width)
+        if self.dropout:
+            x = layers.Dropout(self.dropout)(x)
+        x = layers.Add()([shortcut, x])
+        return x
+
+    """
+    Taken from: https://github.com/google-research/maxvit/blob/2e06a7f1f70c76e64cd3dabe5cd1b8c1a23c9fb7/maxvit/models/common_ops.py#L129
+    """
+
+    def __reshape_to_1d(self, x):
+        """Reshape tensor to 1d if not already 1d."""
+        if x.shape.rank == 4:
+            _, h, w, num_channel = x.shape.as_list()
+            return tf.reshape(x, [-1, h * w, num_channel])
+        elif x.shape.rank == 3:
+            return x
+        else:
+            raise ValueError("Unsupported shape {}".format(x.shape))

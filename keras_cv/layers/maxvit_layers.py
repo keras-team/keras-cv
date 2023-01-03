@@ -6,6 +6,7 @@ from tensorflow.keras import initializers
 from tensorflow.keras import layers
 
 from keras_cv.layers.mbconv import MBConvBlock
+from keras_cv.layers.transformer_encoder import MaxViTTransformerEncoder
 
 _CACHE = {}
 
@@ -681,104 +682,28 @@ class MaxViTBlock(layers.Layer):
             survival_probability=self.survival_prob,
             se_ratio=0.25,
         )
-        # BlockAttention Layer norm
-        self.block_attn_layer_norm = tf.keras.layers.LayerNormalization(
-            axis=-1,
-            epsilon=self.ln_epsilon,
-            dtype=self.ln_dtype,
-            name="attn_layer_norm",
-        )
-        self.window_partition = WindowPartitioning(window_size=self.window_size)
-        # Unblock
-        self.unwindow_partition = UnWindowPartitioning(window_size=self.window_size)
-
-        # Relative Attention
-        self.hidden_size = hidden_size
-        if self.num_heads is None:
-            self.num_heads = self.hidden_size // self.head_size
-
-        self.block_attention = RelativeMultiHeadAttention(
+        self.transformer_encoder = MaxViTTransformerEncoder(
+            hidden_size,
+            head_size=self.head_size,
+            window_size=self.window_size,
+            grid_size=self.grid_size,
+            dropout=self.dropout,
             num_heads=self.num_heads,
-            key_dim=self.head_size,
-            value_dim=self.head_size,
-            dropout=self.dropatt,
-            use_bias=True,
-        )
-
-        self.grid_attn_layer_norm = layers.LayerNormalization(
-            axis=-1,
-            epsilon=self.ln_epsilon,
-            dtype=self.ln_dtype,
-            name="attn_layer_norm_1",
-        )
-
-        self.grid_partition = GridPartitioning(self.grid_size)
-        self.ungrid_partition = UnGridPartitioning(grid_size=self.grid_size)
-
-        # Relative Attention
-
-        self.grid_attention = RelativeMultiHeadAttention(
-            num_heads=self.num_heads,
-            key_dim=self.head_size,
-            value_dim=self.head_size,
-            dropout=self.dropatt,
-            use_bias=True,
-        )
-
-        self.block_ffn_layer_norm = layers.LayerNormalization(
-            axis=-1,
-            epsilon=self.ln_epsilon,
-            dtype=self.ln_dtype,
-            name="block_ffn_layer_norm_1",
-        )
-        self.block_ffn = _FFN(
-            self.hidden_size,
-            bias_initializer=self.bias_initializer,
+            expansion_rate=self.expansion_rate,
+            activation=self.activation,
+            dropatt=self.dropatt,
+            rel_attn_type=self.rel_attn_type,
+            scale_ratio=self.scale_ratio,
+            ln_epsilon=self.ln_epsilon,
+            ln_dtype=self.ln_dtype,
             kernel_initializer=self.kernel_initializer,
-        )
-
-        self.grid_ffn_layer_norm = layers.LayerNormalization(
-            axis=-1,
-            epsilon=self.ln_epsilon,
-            dtype=self.ln_dtype,
-            name="grid_ffn_layer_norm_1",
-        )
-        self.grid_ffn = _FFN(
-            self.hidden_size,
             bias_initializer=self.bias_initializer,
-            kernel_initializer=self.kernel_initializer,
         )
 
     def call(self, input):
         # MBConv
         x = self.mbconv(input)
-        # Block-Attention
-        x = self.block_attn_layer_norm(x)
-        shortcut = x
-
-        # For unwindowing
-        _, height, width, _ = x.shape
-
-        x = self.window_partition(x)
-        x = self.__reshape_to_1d(x)
-        x = self.block_attention(x, x)
-        x = self.unwindow_partition(x, height, width)
-        if self.dropout:
-            x = layers.Dropout(self.dropout)(x)
-        x = layers.Add()([shortcut, x])
-
-        # Grid-Attention
-        x = self.grid_attn_layer_norm(x)
-        shortcut = x
-        # For ungridding
-        _, height, width, _ = x.shape
-        x = self.grid_partition(x)
-        x = self.__reshape_to_1d(x)
-        x = self.grid_attention(x, x)
-        x = self.ungrid_partition(x, height, width)
-        if self.dropout:
-            x = layers.Dropout(self.dropout)(x)
-        x = layers.Add()([shortcut, x])
+        x = self.transformer_encoder(x)
         return x
 
     def get_config(self):
@@ -806,20 +731,6 @@ class MaxViTBlock(layers.Layer):
         }
         base_config = super().get_config()
         return dict(list(base_config.items()) + list(config.items()))
-
-    """
-    Taken from: https://github.com/google-research/maxvit/blob/2e06a7f1f70c76e64cd3dabe5cd1b8c1a23c9fb7/maxvit/models/common_ops.py#L129
-    """
-
-    def __reshape_to_1d(self, x):
-        """Reshape tensor to 1d if not already 1d."""
-        if x.shape.rank == 4:
-            _, h, w, num_channel = x.shape.as_list()
-            return tf.reshape(x, [-1, h * w, num_channel])
-        elif x.shape.rank == 3:
-            return x
-        else:
-            raise ValueError("Unsupported shape {}".format(x.shape))
 
 
 class _FFN:
