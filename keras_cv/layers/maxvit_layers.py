@@ -1,6 +1,5 @@
 import string
 
-import numpy as np
 import tensorflow as tf
 from tensorflow.keras import initializers
 from tensorflow.keras import layers
@@ -54,13 +53,13 @@ def generate_lookup_tensor(
     # Return the cached lookup tensor, otherwise compute it and cache it.
     if lookup_key not in _CACHE:
         vocab_size = 2 * max_relative_position + 1
-        ret = np.zeros((length, length, vocab_size))
+        ret = tf.zeros((length, length, vocab_size))
         for i in range(length):
             for x in range(length):
                 v = x - i + max_relative_position
                 if abs(x - i) > max_relative_position:
                     if clamp_out_of_range:
-                        v = np.clip(v, 0, vocab_size - 1)
+                        v = tf.clip(v, 0, vocab_size - 1)
                     else:
                         continue
                 ret[i, x, v] = 1
