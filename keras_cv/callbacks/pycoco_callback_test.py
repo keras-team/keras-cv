@@ -32,9 +32,9 @@ class PyCOCOCallbackTest(tf.test.TestCase):
         model = keras_cv.models.RetinaNet(
             classes=10,
             bounding_box_format="xywh",
-            backbone="resnet50",
-            backbone_weights=None,
-            include_rescaling=True,
+            backbone=keras_cv.models.ResNet50V2(
+                include_top=False, include_rescaling=True, weights=None
+            ).as_backbone(),
         )
         # all metric formats must match
         model.compile(
@@ -50,15 +50,6 @@ class PyCOCOCallbackTest(tf.test.TestCase):
             bounding_box_format="xyxy", use_dictionary_box_format=True
         )
 
-        def convert_dict_fn(x, y):
-            converted_y = {}
-            converted_y["boxes"] = y.pop("gt_boxes")
-            converted_y["classes"] = y.pop("gt_classes")
-            return x, converted_y
-
-        train_ds = train_ds.map(convert_dict_fn)
-        val_ds = val_ds.map(convert_dict_fn)
-
         callback = PyCOCOCallback(validation_data=val_ds, bounding_box_format="xyxy")
         history = model.fit(train_ds, callbacks=[callback])
 
@@ -66,7 +57,7 @@ class PyCOCOCallbackTest(tf.test.TestCase):
             [f"val_{metric}" for metric in METRIC_NAMES], history.history.keys()
         )
 
-    def test_input_nms_false(self):
+    def test_model_fit_rcnn(self):
         model = keras_cv.models.FasterRCNN(
             classes=10,
             bounding_box_format="xywh",
@@ -90,7 +81,6 @@ class PyCOCOCallbackTest(tf.test.TestCase):
         callback = PyCOCOCallback(
             validation_data=eval_ds,
             bounding_box_format="yxyx",
-            input_nms=False,
         )
         history = model.fit(train_ds, callbacks=[callback])
         self.assertAllInSet(
