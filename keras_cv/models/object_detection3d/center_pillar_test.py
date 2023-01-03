@@ -25,7 +25,7 @@ down_block_configs = [(128, 6), (256, 2), (512, 2)]
 up_block_configs = [512, 256, 256]
 
 
-class CenterPillarsTest(tf.test.TestCase):
+class CenterPillarTest(tf.test.TestCase):
     def get_point_net(self):
         return tf.keras.Sequential(
             [

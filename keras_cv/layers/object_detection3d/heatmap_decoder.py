@@ -101,13 +101,13 @@ class HeatmapDecoder(tf.keras.layers.Layer):
 
     Arg:
       class_id: the integer index for a parcitular class.
-      num_head_bin: number of bin classes divided by [-2pi, 2pi]
-      anchor_size: the size of anchor at each xyz dimension
-      max_pool_size: the 2d pooling size for heatmap
-      max_num_box: top number of boxes selectd from heatmap
-      heatmap_threshold: the threshold to set a heatmap as positive
+      num_head_bin: number of bin classes divided by [-2pi, 2pi].
+      anchor_size: the size of anchor at each xyz dimension.
+      max_pool_size: the 2d pooling size for heatmap.
+      max_num_box: top number of boxes selectd from heatmap.
+      heatmap_threshold: the threshold to set a heatmap as positive.
       voxel_size: the x, y, z dimension of each voxel.
-      spatial_size: the x, y, z boundary of voxels
+      spatial_size: the x, y, z boundary of voxels.
     """
 
     def __init__(
