@@ -17,6 +17,8 @@ Reference:
   - [Based on the original keras.applications ResNet](https://github.com/keras-team/keras/blob/master/keras/applications/resnet.py)
 """
 
+import types
+
 import tensorflow as tf
 from tensorflow.keras import backend
 from tensorflow.keras import layers
@@ -291,7 +293,7 @@ def ResNet(
     if weights and not tf.io.gfile.exists(weights):
         raise ValueError(
             "The `weights` argument should be either `None` or the path to the "
-            "weights file to be loaded. Weights file not found at location: {weights}"
+            f"weights file to be loaded. Weights file not found at location: {weights}"
         )
 
     if include_top and not classes:
@@ -323,6 +325,7 @@ def ResNet(
 
     num_stacks = len(stackwise_filters)
 
+    stack_level_outputs = {}
     for stack_index in range(num_stacks):
         x = Stack(
             filters=stackwise_filters[stack_index],
@@ -331,6 +334,7 @@ def ResNet(
             block_fn=block_fn,
             first_shortcut=block_fn == Block or stack_index > 0,
         )(x)
+        stack_level_outputs[stack_index + 2] = x
 
     if include_top:
         x = layers.GlobalAveragePooling2D(name="avg_pool")(x)
@@ -348,6 +352,72 @@ def ResNet(
 
     if weights is not None:
         model.load_weights(weights)
+
+    # Set this private attribute for recreate backbone model with outputs at each of the
+    # resolution level.
+    model._backbone_level_outputs = stack_level_outputs
+
+    # TODO(scottzhu): Extract this into a standalone util function.
+    def as_backbone(self, min_level=None, max_level=None):
+        """Convert the Resnet application model into a model backbone for other tasks.
+
+        The backbone model will usually take same inputs as the original application
+        model, but produce multiple outputs, one for each feature level. Those outputs
+        can be feed to network downstream, like FPN and RPN.
+
+        The output of the backbone model will be a dict with int as key and tensor as
+        value. The int key represent the level of the feature output.
+        A typical feature pyramid has five levels corresponding to scales P3, P4, P5,
+        P6, P7 in the backbone. Scale Pn represents a feature map 2n times smaller in
+        width and height than the input image.
+
+        Args:
+            min_level: optional int, the lowest level of feature to be included in the
+                output. Default to model's lowest feature level (based on the model structure).
+            max_level: optional int, the highest level of feature to be included in the
+                output. Default to model's highest feature level (based on the model structure).
+
+        Returns:
+            a `tf.keras.Model` which has dict as outputs.
+        Raises:
+            ValueError: When the model is lack of information for feature level, and can't
+            be converted to backbone model, or the min_level/max_level param is out of
+            range based on the model structure.
+        """
+        if hasattr(self, "_backbone_level_outputs"):
+            backbone_level_outputs = self._backbone_level_outputs
+            model_levels = list(sorted(backbone_level_outputs.keys()))
+            if min_level is not None:
+                if min_level < model_levels[0]:
+                    raise ValueError(
+                        f"The min_level provided: {min_level} should be in "
+                        f"the range of {model_levels}"
+                    )
+            else:
+                min_level = model_levels[0]
+
+            if max_level is not None:
+                if max_level > model_levels[-1]:
+                    raise ValueError(
+                        f"The max_level provided: {max_level} should be in "
+                        f"the range of {model_levels}"
+                    )
+            else:
+                max_level = model_levels[-1]
+
+            outputs = {}
+            for level in range(min_level, max_level + 1):
+                outputs[level] = backbone_level_outputs[level]
+
+            return tf.keras.Model(inputs=self.inputs, outputs=outputs)
+        else:
+            raise ValueError(
+                "The current model doesn't have any feature level "
+                "information and can't be convert to backbone model."
+            )
+
+    # Bind the `to_backbone_model` method to the application model.
+    model.as_backbone = types.MethodType(as_backbone, model)
 
     return model
 

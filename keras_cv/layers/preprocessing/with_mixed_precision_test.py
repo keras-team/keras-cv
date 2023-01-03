@@ -124,6 +124,14 @@ TEST_CONFIGURATIONS = [
         layers.RandomCrop,
         {"height": 224, "width": 224},
     ),
+    (
+        "Rescaling",
+        layers.Rescaling,
+        {
+            "scale": 1,
+            "offset": 0.5,
+        },
+    ),
 ]
 
 NO_CPU_FP16_KERNEL_LAYERS = [
