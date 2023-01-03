@@ -135,11 +135,45 @@ class TransformerEncoder(layers.Layer):
         return cls(activation=activation, **config)
 
 
-# Never actually used in MaxViTs but could conceivably be used
-# to generalize: LN -> grid/window -> Attn -> residual add -> LN -> FFN
 @tf.keras.utils.register_keras_serializable(package="keras_cv")
 class MaxViTTransformerEncoder(layers.Layer):
-    # Attention + FFN (LN + Attention + Residual + LN + MLP)
+    """
+    Transformer encoder block with Relative MultiHeadAttention implementation as a Keras Layer.
+    Used in MaxViTs.
+
+        Args:
+            hidden_size: the hidden size to be used in FFN heads and RelativeMultiHeadAttention layers,
+            head_size: the head size for RelativeMultiHeadAttention layers,
+            window_size: the window_size to be used for WindowPartition and UnWindowPartition,
+            grid_size: the grid_size to be used for GridPartition and UnGridPartition,
+            dropout: default None, the dropout to apply after attention and before adding the residual,
+            num_heads: default None, the number of heads to use in RelativeMultiHeadAttention, computed as
+                self.hidden_size // self.head_size if None.
+            dropatt: default None, the dropout to apply in RelativeMultiHeadAttention
+            rel_attn_type: default "2d_multi_head", the type of RelativeMultiHeadAttention to use
+            expansion_rate: default 4, the expansion rate for EinsumDense layers in the FFN heads
+            activation: default "gelu", the activation function to apply in the FFN heads
+            scale_ratio: default None,
+            ln_epsilon: default 1e-5, the layer normalization epsilon
+            ln_dtype: default None, the layer normalization dtype
+            kernel_initializer: default tf.random_normal_initializer(stddev=0.02), the kernel_initializer for the FFN head
+            bias_initializer: default tf.zeros_initializer, the bias initializer for the FFN head
+
+    Basic usage:
+
+    ```
+    # Meant to be used with keras_cv.layers.MBConvBlock's output
+    inputs = tf.random.normal([1, 56, 56, 64])
+    transformer_encoder = keras_cv.layers.MaxViTTransformerEncoder(hidden_size=64,
+                                                    head_size=32,
+                                                    window_size=7,
+                                                    grid_size=7)
+
+    output = transformer_encoder(inputs)
+    output.shape # TensorShape([1, 56, 56, 64])
+    ```
+    """
+
     def __init__(
         self,
         hidden_size,
