@@ -155,7 +155,7 @@ class RandomCutoutTest(tf.test.TestCase):
         input_image = np.random.random((512, 512, 3)).astype(np.float32)
         bboxes = tf.convert_to_tensor([[200, 200, 400, 400, 1]])
         input = {"images": input_image, "bounding_boxes": bboxes}
-        layer = RandomCutout(height=100, width=200, bounding_box_format="xyxy", seed=10)
+        layer = RandomCutout(height_factor=0.5, width_factor=0.75, bounding_box_format="xyxy", seed=10)
         # for top = 300 and left = 305
         output = layer(input)
         expected_output = np.asarray(
