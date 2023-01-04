@@ -320,12 +320,117 @@ def ConvNeXtV2(
 
     return model
 
-
-def ConvNeXtTiny(
+def ConvNeXtV2Atto(
     include_rescaling,
     include_top,
     drop_path_rate,
-    layer_scale_init_value,
+    weights=None,
+    input_shape=(None, None, 3),
+    input_tensor=None,
+    pooling=None,
+    classes=None,
+    classifier_activation="softmax",
+    name="convnext_atto",
+):
+    return ConvNeXtV2(
+        include_rescaling=include_rescaling,
+        include_top=include_top,
+        depths=MODEL_CONFIGS["atto"]["depths"],
+        projection_dims=MODEL_CONFIGS["atto"]["projection_dims"],
+        drop_path_rate=drop_path_rate,
+        weights=weights,
+        input_tensor=input_tensor,
+        input_shape=input_shape,
+        pooling=pooling,
+        classes=classes,
+        classifier_activation=classifier_activation,
+        name=name,
+    )
+
+def ConvNeXtV2Femto(
+    include_rescaling,
+    include_top,
+    drop_path_rate,
+    weights=None,
+    input_shape=(None, None, 3),
+    input_tensor=None,
+    pooling=None,
+    classes=None,
+    classifier_activation="softmax",
+    name="convnext_femto",
+):
+    return ConvNeXtV2(
+        include_rescaling=include_rescaling,
+        include_top=include_top,
+        depths=MODEL_CONFIGS["femto"]["depths"],
+        projection_dims=MODEL_CONFIGS["femto"]["projection_dims"],
+        drop_path_rate=drop_path_rate,
+        weights=weights,
+        input_tensor=input_tensor,
+        input_shape=input_shape,
+        pooling=pooling,
+        classes=classes,
+        classifier_activation=classifier_activation,
+        name=name,
+    )
+
+def ConvNeXtV2Pico(
+    include_rescaling,
+    include_top,
+    drop_path_rate,
+    weights=None,
+    input_shape=(None, None, 3),
+    input_tensor=None,
+    pooling=None,
+    classes=None,
+    classifier_activation="softmax",
+    name="convnext_pico",
+):
+    return ConvNeXtV2(
+        include_rescaling=include_rescaling,
+        include_top=include_top,
+        depths=MODEL_CONFIGS["pico"]["depths"],
+        projection_dims=MODEL_CONFIGS["pico"]["projection_dims"],
+        drop_path_rate=drop_path_rate,
+        weights=weights,
+        input_tensor=input_tensor,
+        input_shape=input_shape,
+        pooling=pooling,
+        classes=classes,
+        classifier_activation=classifier_activation,
+        name=name,
+    )
+
+def ConvNeXtV2Nano(
+    include_rescaling,
+    include_top,
+    drop_path_rate,
+    weights=None,
+    input_shape=(None, None, 3),
+    input_tensor=None,
+    pooling=None,
+    classes=None,
+    classifier_activation="softmax",
+    name="convnext_nano",
+):
+    return ConvNeXtV2(
+        include_rescaling=include_rescaling,
+        include_top=include_top,
+        depths=MODEL_CONFIGS["nano"]["depths"],
+        projection_dims=MODEL_CONFIGS["nano"]["projection_dims"],
+        drop_path_rate=drop_path_rate,
+        weights=weights,
+        input_tensor=input_tensor,
+        input_shape=input_shape,
+        pooling=pooling,
+        classes=classes,
+        classifier_activation=classifier_activation,
+        name=name,
+    )
+def ConvNeXtV2Tiny(
+    include_rescaling,
+    include_top,
+    drop_path_rate,
     weights=None,
     input_shape=(None, None, 3),
     input_tensor=None,
@@ -334,13 +439,12 @@ def ConvNeXtTiny(
     classifier_activation="softmax",
     name="convnext_tiny",
 ):
-    return ConvNeXt(
+    return ConvNeXtV2(
         include_rescaling=include_rescaling,
         include_top=include_top,
         depths=MODEL_CONFIGS["tiny"]["depths"],
         projection_dims=MODEL_CONFIGS["tiny"]["projection_dims"],
         drop_path_rate=drop_path_rate,
-        layer_scale_init_value=layer_scale_init_value,
         weights=weights,
         input_tensor=input_tensor,
         input_shape=input_shape,
@@ -351,11 +455,10 @@ def ConvNeXtTiny(
     )
 
 
-def ConvNeXtSmall(
+def ConvNeXtV2Small(
     include_rescaling,
     include_top,
     drop_path_rate,
-    layer_scale_init_value,
     weights=None,
     input_shape=(None, None, 3),
     input_tensor=None,
@@ -364,13 +467,12 @@ def ConvNeXtSmall(
     classifier_activation="softmax",
     name="convnext_small",
 ):
-    return ConvNeXt(
+    return ConvNeXtV2(
         include_rescaling=include_rescaling,
         include_top=include_top,
         depths=MODEL_CONFIGS["small"]["depths"],
         projection_dims=MODEL_CONFIGS["small"]["projection_dims"],
         drop_path_rate=drop_path_rate,
-        layer_scale_init_value=layer_scale_init_value,
         weights=weights,
         input_tensor=input_tensor,
         input_shape=input_shape,
@@ -381,11 +483,10 @@ def ConvNeXtSmall(
     )
 
 
-def ConvNeXtBase(
+def ConvNeXtV2Base(
     include_rescaling,
     include_top,
     drop_path_rate,
-    layer_scale_init_value,
     weights=None,
     input_shape=(None, None, 3),
     input_tensor=None,
@@ -394,13 +495,12 @@ def ConvNeXtBase(
     classifier_activation="softmax",
     name="convnext_base",
 ):
-    return ConvNeXt(
+    return ConvNeXtV2(
         include_rescaling=include_rescaling,
         include_top=include_top,
         depths=MODEL_CONFIGS["base"]["depths"],
         projection_dims=MODEL_CONFIGS["base"]["projection_dims"],
         drop_path_rate=drop_path_rate,
-        layer_scale_init_value=layer_scale_init_value,
         weights=weights,
         input_tensor=input_tensor,
         input_shape=input_shape,
@@ -411,11 +511,10 @@ def ConvNeXtBase(
     )
 
 
-def ConvNeXtLarge(
+def ConvNeXtV2Large(
     include_rescaling,
     include_top,
     drop_path_rate,
-    layer_scale_init_value,
     weights=None,
     input_shape=(None, None, 3),
     input_tensor=None,
@@ -424,13 +523,12 @@ def ConvNeXtLarge(
     classifier_activation="softmax",
     name="convnext_large",
 ):
-    return ConvNeXt(
+    return ConvNeXtV2(
         include_rescaling=include_rescaling,
         include_top=include_top,
         depths=MODEL_CONFIGS["large"]["depths"],
         projection_dims=MODEL_CONFIGS["large"]["projection_dims"],
         drop_path_rate=drop_path_rate,
-        layer_scale_init_value=layer_scale_init_value,
         weights=weights,
         input_tensor=input_tensor,
         input_shape=input_shape,
@@ -441,26 +539,24 @@ def ConvNeXtLarge(
     )
 
 
-def ConvNeXtXLarge(
+def ConvNeXtV2Huge(
     include_rescaling,
     include_top,
     drop_path_rate,
-    layer_scale_init_value,
     weights=None,
     input_shape=(None, None, 3),
     input_tensor=None,
     pooling=None,
     classes=None,
     classifier_activation="softmax",
-    name="convnext_xlarge",
+    name="convnext_huge",
 ):
-    return ConvNeXt(
+    return ConvNeXtV2(
         include_rescaling=include_rescaling,
         include_top=include_top,
-        depths=MODEL_CONFIGS["xlarge"]["depths"],
-        projection_dims=MODEL_CONFIGS["xlarge"]["projection_dims"],
+        depths=MODEL_CONFIGS["huge"]["depths"],
+        projection_dims=MODEL_CONFIGS["huge"]["projection_dims"],
         drop_path_rate=drop_path_rate,
-        layer_scale_init_value=layer_scale_init_value,
         weights=weights,
         input_tensor=input_tensor,
         input_shape=input_shape,
@@ -470,9 +566,12 @@ def ConvNeXtXLarge(
         name=name,
     )
 
-
-ConvNeXtTiny.__doc__ = BASE_DOCSTRING.format(name="ConvNeXtTiny")
-ConvNeXtSmall.__doc__ = BASE_DOCSTRING.format(name="ConvNeXtSmall")
-ConvNeXtBase.__doc__ = BASE_DOCSTRING.format(name="ConvNeXtBase")
-ConvNeXtLarge.__doc__ = BASE_DOCSTRING.format(name="ConvNeXtLarge")
-ConvNeXtXLarge.__doc__ = BASE_DOCSTRING.format(name="ConvNeXtXLarge")
+ConvNeXtV2Atto.__doc__ = BASE_DOCSTRING.format(name="ConvNeXtV2Atto")
+ConvNeXtV2Femto.__doc__ = BASE_DOCSTRING.format(name="ConvNeXtV2Femto")
+ConvNeXtV2Pico.__doc__ = BASE_DOCSTRING.format(name="ConvNeXtV2Pico")
+ConvNeXtV2Nano.__doc__ = BASE_DOCSTRING.format(name="ConvNeXtV2Nano")
+ConvNeXtV2Tiny.__doc__ = BASE_DOCSTRING.format(name="ConvNeXtV2Tiny")
+ConvNeXtV2Small.__doc__ = BASE_DOCSTRING.format(name="ConvNeXtV2Small")
+ConvNeXtV2Base.__doc__ = BASE_DOCSTRING.format(name="ConvNeXtV2Base")
+ConvNeXtV2Large.__doc__ = BASE_DOCSTRING.format(name="ConvNeXtV2Large")
+ConvNeXtV2Huge.__doc__ = BASE_DOCSTRING.format(name="ConvNeXtV2Huge")
