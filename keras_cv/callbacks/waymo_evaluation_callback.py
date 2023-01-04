@@ -135,7 +135,7 @@ class WaymoEvaluationCallback(Callback):
         gt_real_boxes = tf.not_equal(gt_boxes[:, CENTER_XYZ_DXDYDZ_PHI.CLASS], -1)
         gt_boxes = tf.boolean_mask(gt_boxes, gt_real_boxes)
 
-        frame_ids = tf.repeat(tf.cast(
+        frame_ids = tf.cast(
             tf.linspace(1, num_frames, num_frames), tf.int64
         )
 
