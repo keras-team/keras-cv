@@ -108,7 +108,7 @@ BASE_DOCSTRING = """Instantiates the {name} architecture.
 """
 
 
-class ConvNeXtV2Block(layers.Layer)
+class ConvNeXtV2Block(layers.Layer):
     """ConvNeXV2 block.
 
     References:
