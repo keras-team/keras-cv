@@ -40,12 +40,7 @@ class WaymoEvaluationCallback(Callback):
     def on_epoch_end(self, epoch, logs=None):
         logs = logs or {}
 
-        frame_id = 0
-        # for batch in self.val_data:
-        #     gt_i, preds_i, batch_size = self._eval_batch(batch, frame_id)
-        #     frame_id += batch_size
-        #     self.evaluator.update_state(gt_i, preds_i)
-        gt, preds = self._eval_dataset(dataset)
+        gt, preds = self._eval_dataset(self.val_data)
         self.evaluator.update_state(gt, preds)
 
         metrics = self.evaluator.evaluate()
@@ -60,86 +55,29 @@ class WaymoEvaluationCallback(Callback):
 
         logs.update(metrics_dict)
 
-    def _eval_batch(self, batch, frame_id):
-        point_clouds, target = batch
-        boxes = target["boxes"]
-        batch_size = boxes.shape[0]
-        num_gt_boxes = boxes.shape[1]
-        total_gt_boxes = num_gt_boxes * batch_size
-        boxes = tf.reshape(boxes, (total_gt_boxes, 9))
-        # Remove boxes with class of -1 (these are non-boxes that come from padding)
-        gt_real_boxes = tf.not_equal(boxes[:, CENTER_XYZ_DXDYDZ_PHI.CLASS], -1)
-        boxes = tf.boolean_mask(boxes, gt_real_boxes)
-
-        frame_ids = tf.cast(
-            tf.linspace(frame_id, frame_id + batch_size - 1, batch_size), tf.int64
-        )
-
-        ground_truth = {}
-        ground_truth["ground_truth_frame_id"] = tf.boolean_mask(
-            tf.repeat(frame_ids, num_gt_boxes), gt_real_boxes
-        )
-        ground_truth["ground_truth_bbox"] = boxes[:, : CENTER_XYZ_DXDYDZ_PHI.PHI + 1]
-        ground_truth["ground_truth_type"] = tf.cast(
-            boxes[:, CENTER_XYZ_DXDYDZ_PHI.CLASS], tf.uint8
-        )
-        ground_truth["ground_truth_difficulty"] = tf.cast(
-            boxes[:, CENTER_XYZ_DXDYDZ_PHI.CLASS + 1], tf.uint8
-        )
-
-        predicted_boxes, classes = self.model.predict_on_batch(point_clouds)
-        num_predicted_boxes = predicted_boxes.shape[1]
-        total_predicted_boxes = num_predicted_boxes * batch_size
-        predicted_boxes = tf.reshape(predicted_boxes, (total_predicted_boxes, 7))
-        classes = tf.reshape(classes, (total_predicted_boxes, 2))
-        # Remove boxes with class of -1 (these are non-boxes that come from padding)
-        pred_real_boxes = tf.reduce_all(classes != -1, axis=[-1])
-        predicted_boxes = tf.boolean_mask(predicted_boxes, pred_real_boxes)
-        predicted_classes = tf.boolean_mask(classes, pred_real_boxes)
-
-        predictions = {}
-
-        predictions["prediction_frame_id"] = tf.boolean_mask(
-            tf.repeat(frame_ids, num_predicted_boxes), pred_real_boxes
-        )
-        predictions["prediction_bbox"] = predicted_boxes
-        predictions["prediction_type"] = tf.cast(
-            tf.argmax(predicted_classes, axis=-1), tf.uint8
-        )
-        predictions["prediction_score"] = tf.reduce_max(predicted_classes, axis=-1)
-        predictions["prediction_overlap_nlz"] = tf.cast(
-            tf.zeros(predicted_boxes.shape[0]), tf.bool
-        )
-
-        return ground_truth, predictions, batch_size
-
     def _eval_dataset(self, dataset):
-        def point_clouds_only(batch):
-            point_clouds, target = batch
+        def point_clouds_only(point_clouds, target):
             return point_clouds
 
-        def boxes_only(batch):
-            point_clouds, target = batch
+        def boxes_only(point_clouds, target):
             return target["boxes"]
 
-        predicted_boxes, predicted_classes = self.model.predict(dataset.map(point_clouds_only))
+        predicted_boxes, predicted_classes = self.model.predict(
+            dataset.map(point_clouds_only)
+        )
         gt_boxes = tf.concat([x for x in iter(dataset.map(boxes_only))], axis=0)
 
         boxes_per_gt_frame = gt_boxes.shape[1]
-        num_frames = gt_boxes.shape[0] // boxes_per_frame
+        num_frames = gt_boxes.shape[0]
 
-        gt_boxes = tf.reshape(gt_boxes, (None, 9))
+        gt_boxes = tf.reshape(gt_boxes, (num_frames * boxes_per_gt_frame, 9))
         total_gt_boxes = gt_boxes.shape[0]
 
         # Remove boxes with class of -1 (these are non-boxes that come from padding)
         gt_real_boxes = tf.not_equal(gt_boxes[:, CENTER_XYZ_DXDYDZ_PHI.CLASS], -1)
         gt_boxes = tf.boolean_mask(gt_boxes, gt_real_boxes)
 
-        frame_ids = tf.cast(
-            tf.linspace(1, num_frames, num_frames), tf.int64
-        )
-
-        ##########
+        frame_ids = tf.cast(tf.linspace(1, num_frames, num_frames), tf.int64)
 
         ground_truth = {}
         ground_truth["ground_truth_frame_id"] = tf.boolean_mask(
