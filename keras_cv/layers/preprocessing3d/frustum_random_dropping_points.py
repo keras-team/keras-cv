@@ -102,7 +102,7 @@ class FrustumRandomDroppingPoints(base_augmentation_layer_3d.BaseAugmentationLay
         frustum_mask = tf.concat(frustum_mask, axis=0)
         random_point_mask = (
             self._random_generator.random_uniform(
-                [num_frames, num_points, 1], minval=0.0, maxval=1
+                [1, num_points, 1], minval=0.0, maxval=1
             )
             < self._keep_probability
         )
