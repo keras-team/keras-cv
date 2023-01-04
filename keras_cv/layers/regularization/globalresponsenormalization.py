@@ -57,10 +57,7 @@ class GlobalResponseNormalization(layers.Layer):
         x = tf.cast(inputs, tf.float32)
 
         Gx = tf.pow(
-            (
-                tf.reduce_sum(tf.pow(x, 2), axis=(1, 2), keepdims=True)
-                + self.epsilon
-            ),
+            (tf.reduce_sum(tf.pow(x, 2), axis=(1, 2), keepdims=True) + self.epsilon),
             0.5,
         )
         Nx = Gx / tf.reduce_mean(Gx, axis=-1, keepdims=True) + self.epsilon
