@@ -36,7 +36,6 @@ MODEL_CONFIGS = {
         "depths": [2, 2, 6, 2],
         "projection_dims": [48, 96, 192, 384],
     },
-
     "pico": {
         "depths": [2, 2, 6, 2],
         "projection_dims": [64, 128, 256, 512],
@@ -126,14 +125,10 @@ class ConvNeXtV2Block(layers.Layer):
       A function representing a ConvNeXtBlock block.
     """
 
-
     def __init__(self, projection_dim, drop_path_rate=0.0, **kwargs):
         # Depthwise with groups
         self.depthwise_conv = layers.Conv2D(
-            filters=projection_dim,
-            kernel_size=7,
-            padding="same",
-            groups=projection_dim
+            filters=projection_dim, kernel_size=7, padding="same", groups=projection_dim
         )
 
         self.layernorm = layers.LayerNormalization(epsilon=1e-6)
@@ -144,6 +139,7 @@ class ConvNeXtV2Block(layers.Layer):
         self.grn = GlobalResponseNormalization()
         self.dense2 = layers.Dense(projection_dim)
         self.drop_path_rate = drop_path_rate
+
     def call(self, inputs):
         x = inputs
 
@@ -301,9 +297,9 @@ def ConvNeXtV2(
     if include_top:
         x = layers.GlobalAveragePooling2D(name=name + "_head_gap")(x)
         x = layers.LayerNormalization(epsilon=1e-6, name=name + "_head_layernorm")(x)
-        x = layers.Dense(classes, activation=classifier_activation, name=name + "_head_dense")(
-            x
-        )
+        x = layers.Dense(
+            classes, activation=classifier_activation, name=name + "_head_dense"
+        )(x)
         return x
 
     else:
@@ -319,6 +315,7 @@ def ConvNeXtV2(
         model.load_weights(weights)
 
     return model
+
 
 def ConvNeXtV2Atto(
     include_rescaling,
@@ -347,6 +344,7 @@ def ConvNeXtV2Atto(
         name=name,
     )
 
+
 def ConvNeXtV2Femto(
     include_rescaling,
     include_top,
@@ -373,6 +371,7 @@ def ConvNeXtV2Femto(
         classifier_activation=classifier_activation,
         name=name,
     )
+
 
 def ConvNeXtV2Pico(
     include_rescaling,
@@ -401,6 +400,7 @@ def ConvNeXtV2Pico(
         name=name,
     )
 
+
 def ConvNeXtV2Nano(
     include_rescaling,
     include_top,
@@ -427,6 +427,8 @@ def ConvNeXtV2Nano(
         classifier_activation=classifier_activation,
         name=name,
     )
+
+
 def ConvNeXtV2Tiny(
     include_rescaling,
     include_top,
@@ -565,6 +567,7 @@ def ConvNeXtV2Huge(
         classifier_activation=classifier_activation,
         name=name,
     )
+
 
 ConvNeXtV2Atto.__doc__ = BASE_DOCSTRING.format(name="ConvNeXtV2Atto")
 ConvNeXtV2Femto.__doc__ = BASE_DOCSTRING.format(name="ConvNeXtV2Femto")
