@@ -168,7 +168,7 @@ class RandomCutoutTest(tf.test.TestCase):
         input_image = np.random.random((256, 256, 3)).astype(np.float32)
         bboxes = tf.convert_to_tensor([[100, 100, 200, 200, 1]])
         input = {"images": input_image, "bounding_boxes": bboxes}
-        layer = RandomCutout(height=512, width=512, bounding_box_format="xyxy")
+        layer = RandomCutout(height_factor=0.6, width_factor=0.6, bounding_box_format="xyxy")
         output = layer(input)
         expected_output = np.asarray(
             [[200.0, 200.0, 400.0, 400.0, 1]],
