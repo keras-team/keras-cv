@@ -48,6 +48,6 @@ class GlobalResponseNormalization(layers.Layer):
         return self.gamma * (inputs * Nx) + self.beta + inputs
 
     def get_config(self):
-        config = {"gamma": self.gamma, "beta": self.beta}
+        config = {"projection_dim": self.projection_dim}
         base_config = super().get_config()
         return dict(list(base_config.items()) + list(config.items()))
