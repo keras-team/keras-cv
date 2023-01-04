@@ -71,7 +71,6 @@ class WaymoEvaluationCallback(Callback):
         num_frames = gt_boxes.shape[0]
 
         gt_boxes = tf.reshape(gt_boxes, (num_frames * boxes_per_gt_frame, 9))
-        total_gt_boxes = gt_boxes.shape[0]
 
         # Remove boxes with class of -1 (these are non-boxes that come from padding)
         gt_real_boxes = tf.not_equal(gt_boxes[:, CENTER_XYZ_DXDYDZ_PHI.CLASS], -1)
