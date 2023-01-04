@@ -12,9 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import tensorflow as tf
+import unittest
 
+import numpy as np
 from keras_cv.layers import preprocessing
+from absl.testing import parameterized
 
+from keras_cv.layers.preprocessing.random_cutout import RandomCutout
 
 class RandomCutoutTest(tf.test.TestCase):
     def _run_test(self, height_factor, width_factor):
@@ -147,3 +151,27 @@ class RandomCutoutTest(tf.test.TestCase):
         self.assertTrue(tf.math.reduce_any(xs[1] == patch_value))
         self.assertTrue(tf.math.reduce_any(xs[1] == 1.0))
 
+    def test_augment_bounding_boxes_crop(self):
+        input_image = np.random.random((512, 512, 3)).astype(np.float32)
+        bboxes = tf.convert_to_tensor([[200, 200, 400, 400, 1]])
+        input = {"images": input_image, "bounding_boxes": bboxes}
+        layer = RandomCutout(height=100, width=200, bounding_box_format="xyxy", seed=10)
+        # for top = 300 and left = 305
+        output = layer(input)
+        expected_output = np.asarray(
+            [[0.0, 0.0, 95.0, 100.0, 1]],
+        )
+        expected_output = np.reshape(expected_output, (1, 5))
+        self.assertAllClose(expected_output, output["bounding_boxes"].to_tensor(-1))
+
+    def test_augment_bounding_boxes_resize(self):
+        input_image = np.random.random((256, 256, 3)).astype(np.float32)
+        bboxes = tf.convert_to_tensor([[100, 100, 200, 200, 1]])
+        input = {"images": input_image, "bounding_boxes": bboxes}
+        layer = RandomCutout(height=512, width=512, bounding_box_format="xyxy")
+        output = layer(input)
+        expected_output = np.asarray(
+            [[200.0, 200.0, 400.0, 400.0, 1]],
+        )
+        expected_output = np.reshape(expected_output, (1, 5))
+        self.assertAllClose(expected_output, output["bounding_boxes"].to_tensor(-1))
