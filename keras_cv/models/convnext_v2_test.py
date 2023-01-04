@@ -33,37 +33,27 @@ be tested manually when making changes to this model.
 (
     convnext_v2.ConvNeXtV2Femto,
     384,
-    {
-        "drop_path_rate": 0.1,
-    },
+    {"drop_path_rate": 0.1,},
 ),
 (
     convnext_v2.ConvNeXtV2Pico,
     512,
-    {
-        "drop_path_rate": 0.1
-    },
+    {"drop_path_rate": 0.1},
 ),
 (
     convnext_v2.ConvNeXtV2Nano,
     640,
-    {
-        "drop_path_rate": 0.1
-    },
+    {"drop_path_rate": 0.1},
 ),
 (
     convnext_v2.ConvNeXtV2Tiny,
     768,
-    {
-        "drop_path_rate": 0.1
-    },
+    {"drop_path_rate": 0.1},
 ),
 (
     convnext_v2.ConvNeXtV2Small,
     768,
-    {
-        "drop_path_rate": 0.1
-    },
+    {"drop_path_rate": 0.1},
 ),
 (
     convnext_v2.ConvNeXtV2Base,
