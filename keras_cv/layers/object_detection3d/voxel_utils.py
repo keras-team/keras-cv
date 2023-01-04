@@ -17,9 +17,47 @@ from typing import List
 from typing import Sequence
 from typing import Union
 
+import numpy as np
 import tensorflow as tf
 
 EPSILON = 1e-4
+
+
+def compute_feature_map_ref_xyz(
+    voxel_size: Sequence[float],
+    spatial_size: Sequence[float],
+    global_xyz: tf.Tensor,
+) -> tf.Tensor:
+    """Computes the offset xyz locations for each feature map pixel.
+
+    Args:
+      voxel_size: voxel size.
+      spatial_size: the x, y, z boundary of voxels.
+      global_xyz: [B, 3] tensor
+
+    Returns:
+      [B, H, W, Z, 3] offset locations for each feature map pixel in global
+        coordinate.
+    """
+    voxel_spatial_size = compute_voxel_spatial_size(spatial_size, voxel_size)
+    voxel_coord_meshgrid = np.mgrid[
+        0 : voxel_spatial_size[0], 0 : voxel_spatial_size[1], 0 : voxel_spatial_size[2]
+    ]
+    voxel_coord = np.concatenate(voxel_coord_meshgrid[..., np.newaxis], axis=-1)
+    # [H, W, Z, 3]
+    voxel_coord = tf.constant(voxel_coord, dtype=global_xyz.dtype)
+    # [3]
+    voxel_origin = tf.cast(
+        compute_voxel_origin(spatial_size, voxel_size),
+        dtype=global_xyz.dtype,
+    )
+    # [H, W, Z, 3]
+    voxel_coord = voxel_coord + voxel_origin
+    # [H, W, Z, 3]
+    ref = voxel_coord_to_point(voxel_coord, voxel_size, dtype=global_xyz.dtype)
+    # [1, H, W, Z, 3] + [B, 1, 1, 1, 3] -> [B, H, W, Z, 3]
+    ref = ref[tf.newaxis, ...] + global_xyz[:, tf.newaxis, tf.newaxis, tf.newaxis, :]
+    return ref
 
 
 def compute_voxel_spatial_size(
