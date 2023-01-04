@@ -300,7 +300,6 @@ def ConvNeXtV2(
         x = layers.Dense(
             classes, activation=classifier_activation, name=name + "_head_dense"
         )(x)
-        return x
 
     else:
         if pooling == "avg":
