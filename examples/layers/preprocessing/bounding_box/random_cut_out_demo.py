@@ -28,7 +28,7 @@ def main():
     dataset = demo_utils.load_voc_dataset(
         bounding_box_format="xyxy", image_size=IMG_SIZE
     )
-    random_crop = RandomCutout(height=100, width=200, bounding_box_format="xyxy")
+    random_cut_out = RandomCutout(height=100, width=200, bounding_box_format="xyxy")
     result = dataset.map(random_crop, num_parallel_calls=tf.data.AUTOTUNE)
     demo_utils.visualize_data(result, bounding_box_format="xyxy")
 
