@@ -146,3 +146,4 @@ class RandomCutoutTest(tf.test.TestCase):
         self.assertTrue(tf.math.reduce_any(xs[0] == 2.0))
         self.assertTrue(tf.math.reduce_any(xs[1] == patch_value))
         self.assertTrue(tf.math.reduce_any(xs[1] == 1.0))
+
