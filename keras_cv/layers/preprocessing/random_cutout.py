@@ -1,3 +1,5 @@
+
+
 # Copyright 2022 The KerasCV Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,12 +20,11 @@ from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
 )
 from keras_cv.utils import fill_utils
 from keras_cv.utils import preprocessing
-
+from keras_cv import bounding_box
 
 @tf.keras.utils.register_keras_serializable(package="keras_cv")
 class RandomCutout(BaseImageAugmentationLayer):
     """Randomly cut out rectangles from images and fill them.
-
     Args:
         height_factor: A tuple of two floats, a single float or a
             `keras_cv.FactorSampler`.  `height_factor` controls the size of the
@@ -52,7 +53,6 @@ class RandomCutout(BaseImageAugmentationLayer):
         fill_value: a float represents the value to be filled inside the patches
             when `fill_mode="constant"`.
         seed: Integer. Used to create a random seed.
-
     Sample usage:
     ```python
     (images, labels), _ = tf.keras.datasets.cifar10.load_data()
@@ -115,6 +115,47 @@ class RandomCutout(BaseImageAugmentationLayer):
         )
         return inputs[0]
 
+    def augment_bounding_boxes(
+        self, bounding_boxes, transformation, image=None, **kwargs
+    ):
+        if self.bounding_box_format is None:
+            raise ValueError(
+                "`RandomCutout()` was called with bounding boxes,"
+                "but no `bounding_box_format` was specified in the constructor."
+                "Please specify a bounding box format in the constructor. i.e."
+                "`RandomCrop(bounding_box_format='xyxy')`"
+            )
+        bounding_boxes = bounding_box.convert_format(
+            bounding_boxes,
+            source=self.bounding_box_format,
+            target="xyxy",
+            images=image,
+        )
+        image_shape = tf.shape(image)
+        h_diff = image_shape[0]
+        w_diff = image_shape[1]
+        bounding_boxes = tf.cond(
+            tf.reduce_all((h_diff >= 0, w_diff >= 0)),
+            lambda: self._crop_bounding_boxes(image, bounding_boxes, transformation),
+            lambda: self._resize_bounding_boxes(
+                image,
+                bounding_boxes,
+            ),
+        )
+        bounding_boxes = bounding_box.clip_to_image(
+            bounding_boxes,
+            bounding_box_format="xyxy",
+            image_shape=(self.height, self.width, image_shape[-1]),
+        )
+        bounding_boxes = bounding_box.convert_format(
+            bounding_boxes,
+            source="xyxy",
+            target=self.bounding_box_format,
+            dtype=self.compute_dtype,
+            images=image,
+        )
+        return bounding_boxes
+
     def augment_label(self, label, transformation=None, **kwargs):
         return label
 
@@ -174,3 +215,39 @@ class RandomCutout(BaseImageAugmentationLayer):
         base_config = super().get_config()
         return dict(list(base_config.items()) + list(config.items()))
 
+    def _cutout_bounding_boxes(self, image, bounding_boxes, transformation):
+        top = tf.cast(transformation["top"], dtype=self.compute_dtype)
+        left = tf.cast(transformation["left"], dtype=self.compute_dtype)
+        x1, y1, x2, y2, rest = tf.split(
+            bounding_boxes, [1, 1, 1, 1, bounding_boxes.shape[-1] - 4], axis=-1
+        )
+        output = tf.concat(
+            [
+                x1 - left,
+                y1 - top,
+                x2 - left,
+                y2 - top,
+                rest,
+            ],
+            axis=-1,
+        )
+        return output
+
+    def _resize_bounding_boxes(self, image, bounding_boxes):
+        image_shape = tf.shape(image)
+        x_scale = tf.cast(self.width / image_shape[0], dtype=self.compute_dtype)
+        y_scale = tf.cast(self.height / image_shape[0], dtype=self.compute_dtype)
+        x1, y1, x2, y2, rest = tf.split(
+            bounding_boxes, [1, 1, 1, 1, bounding_boxes.shape[-1] - 4], axis=-1
+        )
+        output = tf.concat(
+            [
+                x1 * x_scale,
+                y1 * y_scale,
+                x2 * x_scale,
+                y2 * y_scale,
+                rest,
+            ],
+            axis=-1,
+        )
+        return output
