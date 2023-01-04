@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """
-random_crop_demo.py shows how to use the RandomCrop preprocessing layer for
+random_cut_out_demo.py shows how to use the RandomCrop preprocessing layer for
 object detection.
 """
 import demo_utils
