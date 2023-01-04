@@ -136,7 +136,7 @@ class ConvNeXtV2Block(layers.Layer):
         # as per the official implementation
         self.dense = layers.Dense(4 * projection_dim)
         self.gelu = layers.Activation("gelu")
-        self.grn = GlobalResponseNormalization()
+        self.grn = GlobalResponseNormalization(4 * projection_dim)
         self.dense2 = layers.Dense(projection_dim)
         self.drop_path_rate = drop_path_rate
 
