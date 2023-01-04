@@ -66,7 +66,13 @@ class StochasticDepth(tf.keras.layers.Layer):
 
         shortcut, residual = x
 
-        b_l = tf.keras.backend.random_bernoulli([], p=self.survival_probability)
+        shortcut = tf.cast(shortcut, self.dtype)
+        residual = tf.cast(residual, self.dtype)
+        self.survival_probability = tf.cast(self.survival_probability, self.dtype)
+
+        b_l = tf.keras.backend.random_bernoulli(
+            [], p=self.survival_probability, dtype=self.dtype
+        )
 
         if training:
             return shortcut + b_l * residual
