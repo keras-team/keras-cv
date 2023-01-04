@@ -39,13 +39,33 @@ class GlobalResponseNormalization(layers.Layer):
             initializer=tf.zeros_initializer(),
         )
 
-    def call(self, inputs):
-        # Enforce float32 for tf.norm()
-        #inputs = tf.cast(inputs, tf.float32)
+        self.epsilon = 1e-6
 
-        Gx = tf.pow((tf.reduce_sum(tf.pow(inputs, 2), axis=(1, 2), keepdims=True) + 1e-6), 0.5)
-        Nx = Gx / tf.reduce_mean(Gx, axis=-1, keepdims=True) + 1e-6
-        return self.gamma * (inputs * Nx) + self.beta + inputs
+    def call(self, inputs):
+        """
+        Calls the GlobalResponseNormalization layer on the input.
+
+        Original implementation's equivalent in TensorFlow is
+        `Gx = tf.norm(inputs, ord=2, axis=(1, 2), keepdims=True)`
+        But tf.norm() seems to cause TPU-related errors and slows down GPU training
+        as pointed out by https://github.com/keras-team/keras-cv/pull/1234#issuecomment-1370554542
+        """
+        # Force float32 for numerical stability
+        gamma = tf.cast(self.gamma, tf.float32)
+        beta = tf.cast(self.beta, tf.float32)
+        x = tf.cast(inputs, tf.float32)
+
+        Gx = tf.pow(
+            (
+                tf.reduce_sum(tf.pow(inputs, 2), axis=(1, 2), keepdims=True)
+                + self.epsilon
+            ),
+            0.5,
+        )
+        Nx = Gx / tf.reduce_mean(Gx, axis=-1, keepdims=True) + self.epsilon
+
+        result = gamma * (x * Nx) + beta + inputs
+        return tf.cast(result, inputs.dtype)
 
     def get_config(self):
         config = {"projection_dim": self.projection_dim}
