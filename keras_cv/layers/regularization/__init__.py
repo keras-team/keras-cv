@@ -14,5 +14,8 @@
 
 from keras_cv.layers.regularization.drop_path import DropPath
 from keras_cv.layers.regularization.dropblock_2d import DropBlock2D
+from keras_cv.layers.regularization.globalresponsenormalization import (
+    GlobalResponseNormalization,
+)
 from keras_cv.layers.regularization.squeeze_excite import SqueezeAndExcite2D
 from keras_cv.layers.regularization.stochastic_depth import StochasticDepth
