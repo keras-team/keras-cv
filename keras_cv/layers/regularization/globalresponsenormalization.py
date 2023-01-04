@@ -41,6 +41,7 @@ class GlobalResponseNormalization(layers.Layer):
             shape=(1, 1, 1, input_shape[-1]),
             initializer=tf.zeros_initializer(),
         )
+
     def call(self, inputs):
         """
         Calls the GlobalResponseNormalization layer on the input.
