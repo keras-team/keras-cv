@@ -393,7 +393,7 @@ class SerializationTest(tf.test.TestCase, parameterized.TestCase):
         (
             "GlobalResponseNormalization",
             cv_layers.regularization.GlobalResponseNormalization,
-            {"projection_dim": 32},
+            {},
         ),
         (
             "RandomCrop",

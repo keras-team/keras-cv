@@ -24,23 +24,23 @@ class GlobalResponseNormalization(layers.Layer):
         [ConvNeXt V2: Co-designing and Scaling ConvNets with Masked Autoencoders](https://arxiv.org/abs/2301.00808)
     """
 
-    def __init__(self, projection_dim, **kwargs):
+    def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.projection_dim = projection_dim
+
+        self.epsilon = 1e-6
+
+    def build(self, input_shape):
 
         self.gamma = self.add_weight(
             name="gamma",
-            shape=(1, 1, 1, self.projection_dim),
+            shape=(1, 1, 1, input_shape[-1]),
             initializer=tf.zeros_initializer(),
         )
         self.beta = self.add_weight(
             name="beta",
-            shape=(1, 1, 1, self.projection_dim),
+            shape=(1, 1, 1, input_shape[-1]),
             initializer=tf.zeros_initializer(),
         )
-
-        self.epsilon = 1e-6
-
     def call(self, inputs):
         """
         Calls the GlobalResponseNormalization layer on the input.
@@ -66,8 +66,3 @@ class GlobalResponseNormalization(layers.Layer):
 
         result = gamma * (x * Nx) + beta + inputs
         return tf.cast(result, inputs.dtype)
-
-    def get_config(self):
-        config = {"projection_dim": self.projection_dim}
-        base_config = super().get_config()
-        return dict(list(base_config.items()) + list(config.items()))
