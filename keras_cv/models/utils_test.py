@@ -29,7 +29,7 @@ class ModelUtilTestCase(tf.test.TestCase):
         input_tensor = layers.Input(shape=input_shape)
         self.assertIs(utils.parse_model_inputs(input_shape, input_tensor), input_tensor)
 
-    def test_as_backbone_util_exception(self):
+    def test_as_backbone_missing_backbone_level_outputs(self):
         model = tf.keras.models.Sequential()
         model.add(layers.Conv2D(64, kernel_size=3, input_shape=(16, 16, 3)))
         model.add(
