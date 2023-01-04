@@ -48,6 +48,7 @@ from keras_cv.models.mlp_mixer import MLPMixerB32
 from keras_cv.models.mlp_mixer import MLPMixerL16
 from keras_cv.models.mobilenet_v3 import MobileNetV3Large
 from keras_cv.models.mobilenet_v3 import MobileNetV3Small
+from keras_cv.models.object_detection3d.center_pillar import MultiHeadCenterPillar
 from keras_cv.models.object_detection.faster_rcnn import FasterRCNN
 from keras_cv.models.object_detection.retina_net.retina_net import RetinaNet
 from keras_cv.models.regnet import RegNetX002
@@ -82,7 +83,9 @@ from keras_cv.models.resnet_v1 import ResNet152
 from keras_cv.models.resnet_v2 import ResNet50V2
 from keras_cv.models.resnet_v2 import ResNet101V2
 from keras_cv.models.resnet_v2 import ResNet152V2
+from keras_cv.models.segmentation.deeplab import DeepLabV3
 from keras_cv.models.stable_diffusion import StableDiffusion
+from keras_cv.models.stable_diffusion import StableDiffusionV2
 from keras_cv.models.vgg19 import VGG19
 from keras_cv.models.vit import ViTB16
 from keras_cv.models.vit import ViTB32
