@@ -14,7 +14,6 @@
 
 
 import tensorflow as tf
-from keras import backend
 from tensorflow.keras import layers
 
 
@@ -44,7 +43,6 @@ class GlobalResponseNormalization(layers.Layer):
         Gx = tf.norm(inputs, ord=2, axis=(1, 2), keepdims=True)
         Nx = Gx / tf.reduce_mean(Gx, axis=-1, keepdims=True) + 1e-6
         return self.gamma * (inputs * Nx) + self.beta + inputs
-        return x
 
     def get_config(self):
         config = {"gamma": self.gamma, "beta": self.beta}
