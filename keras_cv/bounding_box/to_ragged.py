@@ -13,7 +13,7 @@
 # limitations under the License.
 import tensorflow as tf
 
-from keras_cv.bounding_box import validate
+import keras_cv.bounding_box.validate_format as validate_format
 
 
 def to_ragged(bounding_boxes, sentinel=-1, dtype=tf.float32):
@@ -47,7 +47,7 @@ def to_ragged(bounding_boxes, sentinel=-1, dtype=tf.float32):
         dictionary of `tf.RaggedTensor` or 'tf.Tensor' containing the filtered bounding
         boxes.
     """
-    info = validate.validate(bounding_boxes)
+    info = validate_format.validate_format(bounding_boxes)
 
     if info["ragged"]:
         return bounding_boxes

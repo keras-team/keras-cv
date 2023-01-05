@@ -13,7 +13,7 @@
 # limitations under the License.
 import tensorflow as tf
 
-from keras_cv.bounding_box import validate
+import keras_cv.bounding_box.validate_format as validate_format
 
 
 def _box_shape(batched, boxes_shape, max_boxes):
@@ -46,7 +46,7 @@ def to_dense(bounding_boxes, max_boxes=None, default_value=-1):
         default_value: the default value to pad bounding boxes with.  defaults
             to -1.
     """
-    info = validate.validate(bounding_boxes)
+    info = validate_format.validate_format(bounding_boxes)
 
     # Already running in masked mode
     if not info["ragged"]:
