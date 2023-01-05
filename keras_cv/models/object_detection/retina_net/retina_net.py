@@ -372,18 +372,13 @@ class RetinaNet(tf.keras.Model):
             target=self.label_encoder.bounding_box_format,
             images=x,
         )
-        box_target, class_target = self.label_encoder(x, y)
-        box_target = bounding_box.convert_format(
-            box_target,
+        gt_boxes, gt_classes = self.label_encoder(x, gt_boxes, gt_classes)
+        gt_boxes = bounding_box.convert_format(
+            gt_boxes,
             source=self.label_encoder.bounding_box_format,
             target=self.bounding_box_format,
             images=x,
         )
-        return box_target, class_target
-
-    def train_step(self, data):
-        x, y = data
-        box_target, class_target = self._encode(x, y)
 
         with tf.GradientTape() as tape:
             total_loss = self.compute_loss(x, gt_boxes, gt_classes, training=True)
