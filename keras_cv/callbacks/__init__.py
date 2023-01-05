@@ -12,3 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from keras_cv.callbacks.pycoco_callback import PyCOCOCallback
+
+try:
+    from keras_cv.callbacks.waymo_evaluation_callback import WaymoEvaluationCallback
+except ImportError:
+    print(
+        "You do not have Waymo Open Dataset installed, so KerasCV Waymo metrics are not available."
+    )

@@ -66,13 +66,42 @@ train_ds = train_ds.concatenate(
 )
 eval_ds = tfds.load("voc/2007", split="test", with_info=False)
 
+with strategy.scope():
+    inputs = tf.keras.layers.Input(shape=image_size)
+    x = inputs
+    x = tf.keras.applications.resnet.preprocess_input(x)
+
+    backbone = tf.keras.applications.ResNet50(
+        include_top=False, input_tensor=x, weights="imagenet"
+    )
+
+    c2_output, c3_output, c4_output, c5_output = [
+        backbone.get_layer(layer_name).output
+        for layer_name in [
+            "conv2_block3_out",
+            "conv3_block4_out",
+            "conv4_block6_out",
+            "conv5_block3_out",
+        ]
+    ]
+    backbone = tf.keras.Model(
+        inputs=inputs, outputs={2: c2_output, 3: c3_output, 4: c4_output, 5: c5_output}
+    )
+    # keras_cv backbone gives 2mAP lower result.
+    # TODO(ian): should eventually use keras_cv backbone.
+    # backbone = keras_cv.models.ResNet50(
+    #     include_top=False, weights="imagenet", include_rescaling=False
+    # ).as_backbone()
+    model = keras_cv.models.FasterRCNN(
+        classes=20, bounding_box_format="yxyx", backbone=backbone
+    )
 
 def unpackage_inputs(bounding_box_format):
     def apply(inputs):
         image = inputs["image"]
         image = tf.cast(image, tf.float32)
-        gt_boxes = tf.cast(inputs["objects"]["bbox"], tf.float32)
-        gt_classes = tf.cast(inputs["objects"]["label"], tf.float32)
+        gt_boxes = inputs["objects"]["bbox"]
+        image, gt_boxes = flip_fn(image, gt_boxes)
         gt_boxes = keras_cv.bounding_box.convert_format(
             gt_boxes,
             images=image,

@@ -92,7 +92,7 @@ class RandomAspectRatio(BaseImageAugmentationLayer):
             boxes,
             source="xyxy",
             target=self.bounding_box_format,
-            image_shape=tf.concat([height, width, 3], axis=0),
+            image_shape=tf.stack([height, width, 3], axis=0),
         )
         bounding_boxes["boxes"] = boxes
         return bounding_boxes
