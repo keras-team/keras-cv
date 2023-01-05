@@ -677,12 +677,10 @@ def pad_or_trim_tensors(
     for key in point_tensor_keys:
         t = frame[key]
         if t is not None:
-            print(key)
             frame[key] = _pad_fn(t, max_num_point)
     for key in box_tensor_keys:
         t = frame[key]
         if t is not None:
-            print(key)
             frame[key] = _pad_fn(t, max_num_label_box)
     return frame
 

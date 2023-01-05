@@ -84,7 +84,13 @@ class WaymoOpenDatasetTransformerTest(tf.test.TestCase):
     )
     def test_pad_and_transform_to_vehicle(self):
         dataset = load(self.test_data_path)
-        dataset = dataset.map(lambda x: (transformer.pad_or_trim_tensors(x)))
+        dataset = dataset.map(
+            lambda x: (
+                transformer.pad_or_trim_tensors(
+                    transformer.transform_to_vehicle_frame(x)
+                )
+            )
+        )
         example = next(iter(dataset))
 
         # Laser points.
@@ -97,12 +103,13 @@ class WaymoOpenDatasetTransformerTest(tf.test.TestCase):
         self.assertAllGreater(point_feature_mean[0], 0)
         self.assertAllGreater(tf.abs(point_feature_mean[1]), 1e-6)
         self.assertAllGreater(point_feature_mean[2:4], 0)
-        self.assertTrue(tf.math.reduce_all(example["point_mask"]))
+        self.assertTrue(tf.math.reduce_any(example["point_mask"]))
 
         # Laser labels.
         self.assertEqual(example["label_box_id"].shape[0], 1000)
         self.assertEqual(example["label_box_meta"].shape[0], 1000)
         self.assertEqual(example["label_box_class"].shape[0], 1000)
         self.assertEqual(example["label_box_density"].shape[0], 1000)
-        self.assertTrue(tf.math.reduce_all(example["label_box_mask"]))
+        self.assertEqual(example["label_box_mask"].shape, [1000])
+        self.assertTrue(tf.math.reduce_any(example["label_box_mask"]))
         self.assertAllGreater(tf.math.reduce_max(example["label_point_class"]), 0)
