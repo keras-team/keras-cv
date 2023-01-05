@@ -120,11 +120,9 @@ class COCOIOU(tf.keras.metrics.Metric):
             initializer="zeros",
         )
 
-
     def reset_state(self):
         self.y_true_buckets.assign(tf.zeros_like(self.y_true_buckets))
         self.y_pred.assign(tf.zeros_like(self.y_pred))
-
 
     @tf.function()
     def update_state(self, y_true, y_pred, sample_weight=None):
@@ -158,17 +156,11 @@ class COCOIOU(tf.keras.metrics.Metric):
 
         num_images = tf.shape(y_true)[0]
 
-
-
     @tf.function()
     def result(self):
         """Compute the intersection-over-union via the confusion matrix."""
-        sum_over_row = tf.cast(
-            tf.reduce_sum(self.total_cm, axis=0), dtype=self._dtype
-        )
-        sum_over_col = tf.cast(
-            tf.reduce_sum(self.total_cm, axis=1), dtype=self._dtype
-        )
+        sum_over_row = tf.cast(tf.reduce_sum(self.total_cm, axis=0), dtype=self._dtype)
+        sum_over_col = tf.cast(tf.reduce_sum(self.total_cm, axis=1), dtype=self._dtype)
         true_positives = tf.cast(
             tf.linalg.tensor_diag_part(self.total_cm), dtype=self._dtype
         )

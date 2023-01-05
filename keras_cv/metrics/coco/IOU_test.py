@@ -1,4 +1,3 @@
-
 import numpy as np
 import tensorflow as tf
 from tensorflow import keras
@@ -15,9 +14,7 @@ from keras.testing_infra import test_combinations
 
 class IoUTest(tf.test.TestCase):
     def test_config(self):
-        obj = metrics.IoU(
-            num_classes=2, target_class_ids=[1, 0], name="iou_class_1_0"
-        )
+        obj = metrics.IoU(num_classes=2, target_class_ids=[1, 0], name="iou_class_1_0")
         self.assertEqual(obj.name, "iou_class_1_0")
         self.assertEqual(obj.num_classes, 2)
         self.assertEqual(obj.target_class_ids, [1, 0])
@@ -58,9 +55,7 @@ class IoUTest(tf.test.TestCase):
         # sum_row = [0.6, 0.4], sum_col = [0.5, 0.5], true_positives = [0.2,
         # 0.1]
         # iou = true_positives / (sum_row + sum_col - true_positives))
-        expected_result = (
-            0.1 / (0.4 + 0.5 - 0.1) + 0.2 / (0.6 + 0.5 - 0.2)
-        ) / 2
+        expected_result = (0.1 / (0.4 + 0.5 - 0.1) + 0.2 / (0.6 + 0.5 - 0.2)) / 2
         self.assertAllClose(self.evaluate(result), expected_result, atol=1e-3)
 
     def test_multi_dim_input(self):
@@ -78,9 +73,7 @@ class IoUTest(tf.test.TestCase):
         # sum_row = [0.6, 0.4], sum_col = [0.5, 0.5], true_positives = [0.2,
         # 0.1]
         # iou = true_positives / (sum_row + sum_col - true_positives))
-        expected_result = (
-            0.2 / (0.6 + 0.5 - 0.2) + 0.1 / (0.4 + 0.5 - 0.1)
-        ) / 2
+        expected_result = (0.2 / (0.6 + 0.5 - 0.2) + 0.1 / (0.4 + 0.5 - 0.1)) / 2
         self.assertAllClose(self.evaluate(result), expected_result, atol=1e-3)
 
     def test_zero_valid_entries(self):
