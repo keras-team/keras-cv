@@ -88,7 +88,7 @@ class _ROISampler(tf.keras.layers.Layer):
         Args:
           rois: [batch_size, num_rois, 4]
           gt_boxes: [batch_size, num_gt, 4]
-          gt_classes: [batch_size, num_gt]
+          gt_classes: [batch_size, num_gt, 1]
         Returns:
           sampled_rois: [batch_size, num_sampled_rois, 4]
           sampled_gt_boxes: [batch_size, num_sampled_rois, 4]
