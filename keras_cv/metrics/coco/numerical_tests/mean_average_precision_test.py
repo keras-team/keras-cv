@@ -17,7 +17,7 @@ import numpy as np
 import tensorflow as tf
 
 from keras_cv import bounding_box
-from keras_cv.metrics.coco import COCOMeanAveragePrecision
+from keras_cv.metrics.coco import _COCOMeanAveragePrecision
 
 SAMPLE_FILE = os.path.dirname(os.path.abspath(__file__)) + "/sample_boxes.npz"
 
@@ -25,7 +25,7 @@ delta = 0.04
 
 
 class MeanAveragePrecisionTest(tf.test.TestCase):
-    """Numerical testing for COCOMeanAveragePrecision.
+    """Numerical testing for _COCOMeanAveragePrecision.
 
     Unit tests that test Keras COCO metric results against the known values of
     cocoeval.py.  The bounding boxes in sample_boxes.npz were given to
@@ -43,7 +43,7 @@ class MeanAveragePrecisionTest(tf.test.TestCase):
         y_true, y_pred, categories = load_samples(SAMPLE_FILE)
 
         # Area range all
-        mean_average_precision = COCOMeanAveragePrecision(
+        mean_average_precision = _COCOMeanAveragePrecision(
             bounding_box_format="xyxy",
             class_ids=categories + [1000],
             max_detections=100,
@@ -57,7 +57,7 @@ class MeanAveragePrecisionTest(tf.test.TestCase):
     def DISABLE_test_mean_average_precision_correctness_iou_05(self):
         y_true, y_pred, categories = load_samples(SAMPLE_FILE)
 
-        mean_average_precision = COCOMeanAveragePrecision(
+        mean_average_precision = _COCOMeanAveragePrecision(
             bounding_box_format="xyxy",
             class_ids=categories + [1000],
             iou_thresholds=[0.5],
@@ -71,7 +71,7 @@ class MeanAveragePrecisionTest(tf.test.TestCase):
     def DISABLE_test_mean_average_precision_correctness_iou_75(self):
         y_true, y_pred, categories = load_samples(SAMPLE_FILE)
 
-        mean_average_precision = COCOMeanAveragePrecision(
+        mean_average_precision = _COCOMeanAveragePrecision(
             bounding_box_format="xyxy",
             class_ids=categories + [1000],
             iou_thresholds=[0.75],
@@ -85,7 +85,7 @@ class MeanAveragePrecisionTest(tf.test.TestCase):
     def DISABLE_test_mean_average_precision_correctness_medium(self):
         y_true, y_pred, categories = load_samples(SAMPLE_FILE)
 
-        mean_average_precision = COCOMeanAveragePrecision(
+        mean_average_precision = _COCOMeanAveragePrecision(
             bounding_box_format="xyxy",
             class_ids=categories + [1000],
             max_detections=100,
@@ -99,7 +99,7 @@ class MeanAveragePrecisionTest(tf.test.TestCase):
     def DISABLE_test_mean_average_precision_correctness_large(self):
         y_true, y_pred, categories = load_samples(SAMPLE_FILE)
 
-        mean_average_precision = COCOMeanAveragePrecision(
+        mean_average_precision = _COCOMeanAveragePrecision(
             bounding_box_format="xyxy",
             class_ids=categories + [1000],
             max_detections=100,
@@ -113,7 +113,7 @@ class MeanAveragePrecisionTest(tf.test.TestCase):
     def DISABLE_test_mean_average_precision_correctness_small(self):
         y_true, y_pred, categories = load_samples(SAMPLE_FILE)
 
-        mean_average_precision = COCOMeanAveragePrecision(
+        mean_average_precision = _COCOMeanAveragePrecision(
             bounding_box_format="xyxy",
             class_ids=categories + [1000],
             max_detections=100,

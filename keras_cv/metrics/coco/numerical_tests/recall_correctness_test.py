@@ -12,14 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Tests to ensure that COCOrecall computes the correct values.."""
+"""Tests to ensure that _COCORecall computes the correct values.."""
 import os
 
 import numpy as np
 import tensorflow as tf
 
 from keras_cv import bounding_box
-from keras_cv.metrics import COCORecall
+from keras_cv.metrics import _COCORecall
 
 SAMPLE_FILE = os.path.dirname(os.path.abspath(__file__)) + "/sample_boxes.npz"
 
@@ -42,7 +42,7 @@ class RecallCorrectnessTest(tf.test.TestCase):
         y_true, y_pred, categories = load_samples(SAMPLE_FILE)
 
         # Area range all
-        recall = COCORecall(
+        recall = _COCORecall(
             bounding_box_format="xyxy",
             class_ids=categories + [1000],
             max_detections=1,
@@ -56,7 +56,7 @@ class RecallCorrectnessTest(tf.test.TestCase):
         y_true, y_pred, categories = load_samples(SAMPLE_FILE)
 
         # Area range all
-        recall = COCORecall(
+        recall = _COCORecall(
             bounding_box_format="xyxy",
             class_ids=categories + [1000],
             max_detections=10,
@@ -70,7 +70,7 @@ class RecallCorrectnessTest(tf.test.TestCase):
         y_true, y_pred, categories = load_samples(SAMPLE_FILE)
 
         # Area range all
-        recall = COCORecall(
+        recall = _COCORecall(
             bounding_box_format="xyxy",
             class_ids=categories + [1000],
             max_detections=100,
@@ -82,7 +82,7 @@ class RecallCorrectnessTest(tf.test.TestCase):
 
     def DISABLE_test_recall_correctness_small_objects(self):
         y_true, y_pred, categories = load_samples(SAMPLE_FILE)
-        recall = COCORecall(
+        recall = _COCORecall(
             bounding_box_format="xyxy",
             class_ids=categories + [1000],
             max_detections=100,
@@ -95,7 +95,7 @@ class RecallCorrectnessTest(tf.test.TestCase):
 
     def DISABLE_test_recall_correctness_medium_objects(self):
         y_true, y_pred, categories = load_samples(SAMPLE_FILE)
-        recall = COCORecall(
+        recall = _COCORecall(
             bounding_box_format="xyxy",
             class_ids=categories + [1000],
             max_detections=100,
@@ -108,7 +108,7 @@ class RecallCorrectnessTest(tf.test.TestCase):
 
     def DISABLE_test_recall_correctness_large_objects(self):
         y_true, y_pred, categories = load_samples(SAMPLE_FILE)
-        recall = COCORecall(
+        recall = _COCORecall(
             bounding_box_format="xyxy",
             class_ids=categories + [1000],
             max_detections=100,

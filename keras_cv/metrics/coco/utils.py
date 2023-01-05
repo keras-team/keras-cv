@@ -79,7 +79,7 @@ def sort_bounding_boxes(boxes, axis=5):
     """sort_bounding_boxes is used to sort a list of bounding boxes by a given axis.
 
     The most common use case for this is to sort by bounding_box.XYXY.CONFIDENCE, as
-    this is a part of computing both COCORecall and COCOMeanAveragePrecision.
+    this is a part of computing both _COCORecall and _COCOMeanAveragePrecision.
     Args:
         boxes: Tensor of bounding boxes in format `[images, bounding_boxes, 6]`
         axis: Integer identifying the axis on which to sort, default 5

@@ -11,22 +11,22 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Tests for COCOMeanAveragePrecision."""
+"""Tests for _COCOMeanAveragePrecision."""
 
 import numpy as np
 import tensorflow as tf
 from tensorflow import keras
 
 from keras_cv import bounding_box
-from keras_cv.metrics import COCOMeanAveragePrecision
+from keras_cv.metrics import _COCOMeanAveragePrecision
 
 
-class COCOMeanAveragePrecisionTest(tf.test.TestCase):
+class _COCOMeanAveragePrecisionTest(tf.test.TestCase):
     def DISABLE_test_runs_inside_model(self):
         i = keras.layers.Input((None, None, 6))
         model = keras.Model(i, i)
 
-        mean_average_precision = COCOMeanAveragePrecision(
+        mean_average_precision = _COCOMeanAveragePrecision(
             bounding_box_format="xyxy",
             max_detections=100,
             num_buckets=4,
@@ -49,7 +49,7 @@ class COCOMeanAveragePrecisionTest(tf.test.TestCase):
         self.assertAllEqual(mean_average_precision.result(), 1.0)
 
     def DISABLE_test_first_buckets_have_no_boxes(self):
-        mean_average_precision = COCOMeanAveragePrecision(
+        mean_average_precision = _COCOMeanAveragePrecision(
             bounding_box_format="xyxy",
             iou_thresholds=[0.33],
             class_ids=[1],
@@ -107,7 +107,7 @@ class COCOMeanAveragePrecisionTest(tf.test.TestCase):
         self.assertEqual(mean_average_precision.result(), 0.625)
 
     def DISABLE_test_result_method_with_direct_assignment_one_threshold(self):
-        mean_average_precision = COCOMeanAveragePrecision(
+        mean_average_precision = _COCOMeanAveragePrecision(
             bounding_box_format="xyxy",
             iou_thresholds=[0.33],
             class_ids=[1],
@@ -164,7 +164,7 @@ class COCOMeanAveragePrecisionTest(tf.test.TestCase):
         self.assertEqual(mean_average_precision.result(), 0.625)
 
     def DISABLE_test_result_method_with_direct_assignment_missing_class(self):
-        mean_average_precision = COCOMeanAveragePrecision(
+        mean_average_precision = _COCOMeanAveragePrecision(
             bounding_box_format="xyxy",
             iou_thresholds=[0.33],
             class_ids=[1, 2],
@@ -211,7 +211,7 @@ class COCOMeanAveragePrecisionTest(tf.test.TestCase):
         )
 
         y_true = bounding_box.pad_batch_to_shape(y_true, (1, 20, 5))
-        metric = COCOMeanAveragePrecision(
+        metric = _COCOMeanAveragePrecision(
             bounding_box_format="xyxy",
             iou_thresholds=[0.15],
             class_ids=[1000, 1],
@@ -228,7 +228,7 @@ class COCOMeanAveragePrecisionTest(tf.test.TestCase):
 
         y_true = bounding_box.pad_batch_to_shape(y_true, (1, 20, 5))
 
-        metric = COCOMeanAveragePrecision(
+        metric = _COCOMeanAveragePrecision(
             bounding_box_format="xyxy",
             iou_thresholds=[0.15],
             class_ids=[1],
@@ -243,7 +243,7 @@ class COCOMeanAveragePrecisionTest(tf.test.TestCase):
         y_true = tf.constant([[[0, 0, 100, 100, 1]]], dtype=tf.float64)
         y_pred = tf.constant([[[0, 50, 100, 150, 1, 1.0]]], dtype=tf.float32)
 
-        metric = COCOMeanAveragePrecision(
+        metric = _COCOMeanAveragePrecision(
             bounding_box_format="xyxy",
             iou_thresholds=[0.15],
             class_ids=[1],
@@ -253,7 +253,7 @@ class COCOMeanAveragePrecisionTest(tf.test.TestCase):
         self.assertEqual(metric.result(), 1.0)
 
     def DISABLE_test_runs_with_confidence_over_1(self):
-        mean_average_precision = COCOMeanAveragePrecision(
+        mean_average_precision = _COCOMeanAveragePrecision(
             bounding_box_format="xyxy",
             iou_thresholds=[0.33],
             class_ids=[1, 2],

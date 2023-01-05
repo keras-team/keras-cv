@@ -22,8 +22,8 @@ from keras_cv.bounding_box import iou as iou_lib
 from keras_cv.metrics.coco import utils
 
 
-class COCORecall(keras.metrics.Metric):
-    """COCORecall computes the COCO recall metric.
+class _COCORecall(keras.metrics.Metric):
+    """_COCORecall computes the COCO recall metric.
 
     A usage guide is available on keras.io:
     [Using KerasCV COCO metrics](https://keras.io/guides/keras_cv/coco_metrics/).
@@ -51,7 +51,7 @@ class COCORecall(keras.metrics.Metric):
             Must be an integer, defaults to `100`.
     Usage:
 
-    COCORecall accepts two Tensors as input to it's `update_state` method.
+    _COCORecall accepts two Tensors as input to it's `update_state` method.
     These Tensors represent bounding boxes in `corners` format.  Utilities
     to convert Tensors from `xywh` to `corners` format can be found in
     `keras_cv.utils.bounding_box`.
@@ -64,7 +64,7 @@ class COCORecall(keras.metrics.Metric):
     `keras_cv.bounding_box.pad_batch_to_shape`.
 
     ```python
-    coco_recall = keras_cv.metrics.COCORecall(
+    coco_recall = keras_cv.metrics._COCORecall(
         bounding_box_format='xyxy',
         max_detections=100,
         class_ids=[1]
