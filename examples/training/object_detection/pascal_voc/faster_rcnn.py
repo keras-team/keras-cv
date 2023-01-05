@@ -96,6 +96,7 @@ with strategy.scope():
         classes=20, bounding_box_format="yxyx", backbone=backbone
     )
 
+
 def unpackage_inputs(bounding_box_format):
     def apply(inputs):
         image = inputs["image"]
