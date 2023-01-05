@@ -77,12 +77,12 @@ def DarkNet(
     input_tensor=None,
     pooling=None,
     classifier_activation="softmax",
-    name=None,
+    name="DarkNet",
     **kwargs,
 ):
     """Instantiates the DarkNet architecture.
 
-    Although the DarkNet architecture is commonly used for detection tasks, it is
+    The DarkNet architecture is commonly used for detection tasks. It is
     possible to extract the intermediate dark2 to dark5 layers from the model for
     creating a feature pyramid Network.
 
