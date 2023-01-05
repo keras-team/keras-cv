@@ -74,7 +74,7 @@ class RetinaNetLabelEncoder(layers.Layer):
         self.box_variance_tuple = box_variance
         self.built = True
 
-    def _encode_sample(self, bounding_boxes, anchor_boxes):
+    def _encode_sample(self, box_labels, anchor_boxes):
         """Creates box and classification targets for a batched sample
         Matches ground truth boxes to anchor boxes based on IOU.
         1. Calculates the pairwise IOU for the M `anchor_boxes` and N `gt_boxes`
@@ -101,8 +101,8 @@ class RetinaNetLabelEncoder(layers.Layer):
           ignore_mask: A mask for anchor boxes that need to by ignored during
             training
         """
-        gt_boxes = bounding_boxes["boxes"]
-        gt_classes = bounding_boxes["classes"]
+        gt_boxes = box_labels["boxes"]
+        gt_classes = box_labels["classes"]
         iou_matrix = bounding_box.compute_iou(
             anchor_boxes, gt_boxes, bounding_box_format="xywh"
         )
@@ -157,7 +157,7 @@ class RetinaNetLabelEncoder(layers.Layer):
         )
         return result
 
-    def call(self, images, bounding_boxes):
+    def call(self, images, box_labels):
         """Creates box and classification targets for a batch
 
         Args:
@@ -172,15 +172,15 @@ class RetinaNetLabelEncoder(layers.Layer):
                 f"`type(images)={type(images)}`."
             )
 
-        bounding_boxes = bounding_box.to_dense(bounding_boxes)
-        bounding_boxes = bounding_box.convert_format(
-            bounding_boxes,
+        box_labels = bounding_box.to_dense(box_labels)
+        box_labels = bounding_box.convert_format(
+            box_labels,
             source=self.bounding_box_format,
             target="xywh",
             images=images,
         )
-        if bounding_boxes["classes"].get_shape().rank == 2:
-            bounding_boxes["classes"] = bounding_boxes["classes"][..., tf.newaxis]
+        if box_labels["classes"].get_shape().rank == 2:
+            box_labels["classes"] = box_labels["classes"][..., tf.newaxis]
         anchor_boxes = self.anchor_generator(image_shape=tf.shape(images[0]))
         anchor_boxes = tf.concat(list(anchor_boxes.values()), axis=0)
         anchor_boxes = bounding_box.convert_format(
@@ -190,7 +190,7 @@ class RetinaNetLabelEncoder(layers.Layer):
             images=images[0],
         )
 
-        result = self._encode_sample(bounding_boxes, anchor_boxes)
+        result = self._encode_sample(box_labels, anchor_boxes)
         result = bounding_box.convert_format(
             result, source="xywh", target=self.bounding_box_format, images=images
         )
