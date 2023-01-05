@@ -11,12 +11,22 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import pytest
 import tensorflow as tf
 
 import keras_cv.layers.maxvit_layers as maxvit_layers
 
 
 class MaxViTLayersTest(tf.test.TestCase):
+    @pytest.fixture(autouse=True)
+    def cleanup_global_session(self):
+        # Code before yield runs before the test
+        tf.config.set_soft_device_placement(False)
+        yield
+        # Reset soft device placement to not interfere with other unit test files
+        tf.config.set_soft_device_placement(True)
+        tf.keras.backend.clear_session()
+
     def test_window_and_grid_wrong_sizes(self):
         with self.assertRaisesRegexp(
             ValueError,
@@ -47,7 +57,7 @@ class MaxViTLayersTest(tf.test.TestCase):
         inputs = tf.random.normal([1, 15, 15, 3])
         with self.assertRaisesRegexp(
             ValueError,
-            "Feature map sizes (15, 15) not divisible by window size (4).",
+            "Feature map sizes are not divisible by window size.",
         ):
             maxvit_layers.WindowPartitioning(window_size=4)(inputs)
 
@@ -55,7 +65,7 @@ class MaxViTLayersTest(tf.test.TestCase):
         inputs = tf.random.normal([1, 15, 15, 3])
         with self.assertRaisesRegexp(
             ValueError,
-            "Feature map sizes (15, 15) not divisible by grid size (4).",
+            "Feature map sizes are not divisible by grid size.",
         ):
             maxvit_layers.GridPartitioning(grid_size=4)(inputs)
 
