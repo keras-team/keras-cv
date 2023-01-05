@@ -173,7 +173,7 @@ class WindowPartitioning(layers.Layer):
         window_size = self.window_size
 
         if h % window_size != 0 or w % window_size != 0:
-            raise ValueError(f"Feature map sizes are not divisible by window size.")
+            raise ValueError("Feature map sizes are not divisible by window size.")
 
         features = tf.reshape(
             input, (-1, h // window_size, window_size, w // window_size, window_size, c)
@@ -286,7 +286,7 @@ class GridPartitioning(layers.Layer):
         _, h, w, c = input.shape
         grid_size = self.grid_size
         if h % grid_size != 0 or w % grid_size != 0:
-            raise ValueError(f"Feature map sizes are not divisible by grid size.")
+            raise ValueError("Feature map sizes are not divisible by grid size.")
         features = tf.reshape(
             input, (-1, grid_size, h // grid_size, grid_size, w // grid_size, c)
         )
