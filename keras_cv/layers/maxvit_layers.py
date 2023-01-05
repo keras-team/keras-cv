@@ -162,6 +162,8 @@ class WindowPartitioning(layers.Layer):
 
     def __init__(self, window_size, **kwargs):
         super().__init__(**kwargs)
+        if window_size < 0:
+            raise ValueError(f'window_size must not be a negative number. Received {window_size}')
         self.window_size = window_size
 
     def call(self, input):
@@ -271,6 +273,8 @@ class GridPartitioning(layers.Layer):
 
     def __init__(self, grid_size, **kwargs):
         super().__init__(**kwargs)
+        if grid_size < 0:
+            raise ValueError(f'grid_size must not be a negative number. Received {grid_size}')
         self.grid_size = grid_size
 
     def call(self, input):

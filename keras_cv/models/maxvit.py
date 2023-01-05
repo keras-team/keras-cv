@@ -120,10 +120,6 @@ def MaxViT(
         hidden_size = hidden_sizes[i]
         print(hidden_size)
         for j in range(num_block):
-            if j == 0:
-                pool_stride = 2
-            else:
-                pool_stride = 1
             encoder_output = MaxViTBlock(
                 hidden_size=hidden_size,
                 head_size=32,
@@ -134,7 +130,7 @@ def MaxViT(
                 expansion_rate=4,
                 activation="gelu",
                 pool_type="avg",
-                pool_stride=pool_stride,
+                pool_stride=2 if j == 0 else 1,
                 dropatt=None,
                 rel_attn_type="2d_multi_head",
                 scale_ratio=None,
