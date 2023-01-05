@@ -243,7 +243,6 @@ def proc_train_fn(bounding_box_format, img_size):
         )
         gt_classes = tf.cast(inputs["objects"]["label"], tf.float32)
         image, gt_boxes, gt_classes = resize_fn(image, gt_boxes, gt_classes)
-        gt_classes = tf.expand_dims(gt_classes, axis=-1)
 
         return {
             "images": image,
@@ -259,7 +258,7 @@ def pad_fn(examples):
     gt_boxes = examples.pop("gt_boxes")
     gt_classes = examples.pop("gt_classes")
     gt_boxes = gt_boxes.to_tensor(default_value=-1.0, shape=[global_batch, 32, 4])
-    gt_classes = gt_classes.to_tensor(default_value=-1.0, shape=[global_batch, 32, 1])
+    gt_classes = gt_classes.to_tensor(default_value=-1.0, shape=[global_batch, 32])
     return examples["images"], {
         "boxes": gt_boxes,
         "classes": gt_classes,
