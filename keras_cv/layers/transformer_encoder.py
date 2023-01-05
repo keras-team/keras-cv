@@ -136,7 +136,7 @@ class TransformerEncoder(layers.Layer):
 
 
 @tf.keras.utils.register_keras_serializable(package="keras_cv")
-class MaxViTTransformerEncoder(tf.keras.Model): #TODO: make this a layer
+class MaxViTTransformerEncoder(tf.keras.Model):  # TODO: make this a layer
     """
     Transformer encoder block with Relative MultiHeadAttention implementation as a Keras Layer.
     Used in MaxViTs.

@@ -19,11 +19,10 @@ import tensorflow as tf
 from tensorflow.keras import layers
 
 import keras_cv
-from keras_cv.models import utils
-from keras_cv.layers import MaxViTStem
 from keras_cv.layers import MaxViTBlock
+from keras_cv.layers import MaxViTStem
+from keras_cv.models import utils
 from keras_cv.models.weights import parse_weights
-
 
 MODEL_CONFIGS = {
     "MaxViTTiny": dict(
@@ -32,7 +31,7 @@ MODEL_CONFIGS = {
         num_blocks=[2, 2, 5, 2],
         hidden_sizes=[64, 128, 256, 512],
         window_size=7,
-        grid_size=7
+        grid_size=7,
     ),
     "MaxViTSmall": dict(
         stem_hsize=[64, 64],
@@ -40,7 +39,7 @@ MODEL_CONFIGS = {
         num_blocks=[2, 2, 5, 2],
         hidden_size=[96, 192, 384, 768],
         window_size=7,
-        grid_size=7
+        grid_size=7,
     ),
     "MaxViTBase": dict(
         stem_hsize=[64, 64],
@@ -48,7 +47,7 @@ MODEL_CONFIGS = {
         num_blocks=[2, 6, 14, 2],
         hidden_size=[96, 192, 384, 768],
         window_size=7,
-        grid_size=7
+        grid_size=7,
     ),
     "MaxViTLarge": dict(
         stem_hsize=[128, 128],
@@ -56,7 +55,7 @@ MODEL_CONFIGS = {
         num_blocks=[2, 6, 14, 2],
         hidden_size=[128, 256, 512, 1024],
         window_size=7,
-        grid_size=7
+        grid_size=7,
     ),
     "MaxViTXLarge": dict(
         stem_hsize=[192, 192],
@@ -64,8 +63,8 @@ MODEL_CONFIGS = {
         num_blocks=[2, 6, 14, 2],
         hidden_size=[192, 384, 768, 1536],
         window_size=7,
-        grid_size=7  
-    )
+        grid_size=7,
+    ),
 }
 
 
@@ -114,11 +113,10 @@ def MaxViT(
     if include_rescaling:
         x = layers.Rescaling(1.0 / 255.0, name="rescaling")(x)
 
-
     stem = MaxViTStem(stem_hsize)
     stem_output = stem(x)
     encoder_input = stem_output
-    
+
     for i, num_block in enumerate(num_blocks):
         hidden_size = hidden_sizes[i]
         print(hidden_size)
@@ -148,17 +146,15 @@ def MaxViT(
                 bias_initializer=tf.zeros_initializer(),
             )(encoder_input)
             encoder_input = encoder_output
-            
-            
+
     output = layers.GlobalAveragePooling2D()(encoder_output)
     output = layers.Dense(
-        hidden_sizes[-1],
-        activation=tf.keras.layers.Activation(tf.nn.tanh, name='tanh')
+        hidden_sizes[-1], activation=tf.keras.layers.Activation(tf.nn.tanh, name="tanh")
     )(output)
 
     if include_top:
         output = layers.Dense(classes, activation=classifier_activation)(output)
-        
+
     model = tf.keras.Model(inputs=inputs, outputs=output)
 
     if weights is not None:
