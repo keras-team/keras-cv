@@ -43,19 +43,21 @@ class MaxViTLayersTest(tf.test.TestCase):
         ):
             maxvit_layers.UnGridPartitioning(grid_size=-1)
 
-    def test_indivisible_window_and_grid_input(self):
-        input = tf.random.normal([1, 15, 15, 3])
+    def test_indivisible_window_input(self):
+        inputs = tf.random.normal([1, 15, 15, 3])
         with self.assertRaisesRegexp(
             ValueError,
-            f"Feature map sizes (15, 15) not divisible by window size (4).",
+            "Feature map sizes (15, 15) not divisible by window size (4).",
         ):
-            maxvit_layers.WindowPartitioning(window_size=4)(input)
+            maxvit_layers.WindowPartitioning(window_size=4)(inputs)
 
+    def test_indivisible_grid_input(self):
+        inputs = tf.random.normal([1, 15, 15, 3])
         with self.assertRaisesRegexp(
             ValueError,
             "Feature map sizes (15, 15) not divisible by grid size (4).",
         ):
-            maxvit_layers.GridPartitioning(grid_size=4)(input)
+            maxvit_layers.GridPartitioning(grid_size=4)(inputs)
 
     def test_maxvit_stem_output_shape_and_type(self):
         layer = maxvit_layers.MaxViTStem()
