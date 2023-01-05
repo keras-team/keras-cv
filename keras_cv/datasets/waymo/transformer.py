@@ -27,7 +27,7 @@ from waymo_open_dataset.utils import range_image_utils
 from waymo_open_dataset.utils import transform_utils
 
 from keras_cv.datasets.waymo import struct
-from keras_cv.layers.object_detection3d.utils import PadOrTrimTo
+from keras_cv.layers.object_detection3d import utils as object_detection3d_utils
 
 WOD_FRAME_OUTPUT_SIGNATURE = {
     "frame_id": tf.TensorSpec((), tf.int64),
@@ -655,7 +655,7 @@ def pad_or_trim_tensors(
 
     def _pad_fn(t: tf.Tensor, max_counts: int) -> tf.Tensor:
         shape = [max_counts] + t.shape.as_list()[1:]
-        return PadOrTrimTo(t, shape)
+        return object_detection3d_utils._pad_or_trim_to(t, shape)
 
     point_tensor_keys = {
         "point_xyz",

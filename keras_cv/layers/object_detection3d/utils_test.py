@@ -14,17 +14,19 @@
 
 import tensorflow as tf
 
-from keras_cv.layers.object_detection3d.utils import PadOrTrimTo
+from keras_cv.layers.object_detection3d import utils
 
 
 class PadOrTrimToTest(tf.test.TestCase):
-    """Tests for PadOrTrimTo, branched from https://github.com/tensorflow/lingvo/blob/master/lingvo/core/py_utils_test.py."""
+    """Tests for pad_or_trim_to, branched from https://github.com/tensorflow/lingvo/blob/master/lingvo/core/py_utils_test.py."""
 
-    def test2DConstantShapePad(self):
+    def test_2D_constant_shape_pad(self):
         x = tf.random.normal(shape=(3, 3), seed=123456)
         shape = [4, 6]
-        padded_x_right = PadOrTrimTo(x, shape, pad_val=0)
-        padded_x_left = PadOrTrimTo(x, shape, pad_val=0, pad_after_contents=False)
+        padded_x_right = utils._pad_or_trim_to(x, shape, pad_val=0)
+        padded_x_left = utils._pad_or_trim_to(
+            x, shape, pad_val=0, pad_after_contents=False
+        )
         self.assertEqual(padded_x_right.shape.as_list(), [4, 6])
         self.assertEqual(padded_x_left.shape.as_list(), [4, 6])
         real_x_right, real_x_left = self.evaluate([padded_x_right, padded_x_left])
@@ -43,11 +45,13 @@ class PadOrTrimToTest(tf.test.TestCase):
         ]
         self.assertAllClose(expected_x_left, real_x_left)
 
-    def test2DConstantShapeTrim(self):
+    def test_2D_constant_shape_trim(self):
         x = tf.random.normal(shape=(3, 3), seed=123456)
         shape = [1, 3]
-        trimmed_x_right = PadOrTrimTo(x, shape, pad_val=0)
-        trimmed_x_left = PadOrTrimTo(x, shape, pad_val=0, pad_after_contents=False)
+        trimmed_x_right = utils._pad_or_trim_to(x, shape, pad_val=0)
+        trimmed_x_left = utils._pad_or_trim_to(
+            x, shape, pad_val=0, pad_after_contents=False
+        )
         self.assertEqual(trimmed_x_right.shape.as_list(), [1, 3])
         self.assertEqual(trimmed_x_left.shape.as_list(), [1, 3])
         real_x_right, real_x_left = self.evaluate([trimmed_x_right, trimmed_x_left])

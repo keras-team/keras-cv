@@ -15,8 +15,11 @@
 import tensorflow as tf
 
 
-def HasRank(tensor, expected_rank):
-    """Syntactic sugar for asserting that tensor has the expected rank."""
+def _has_rank(tensor, expected_rank):
+    """Syntactic sugar for asserting that tensor has the expected rank.
+
+    Internal usages for keras_cv libraries only.
+    """
     if tensor.shape.ndims is not None and isinstance(expected_rank, int):
         assert tensor.shape.ndims == expected_rank, (
             "Ranks did not match, got %d, " "expected %d"
@@ -24,10 +27,12 @@ def HasRank(tensor, expected_rank):
     return tensor
 
 
-def PadOrTrimTo(x, shape, pad_val=0, pad_after_contents=True):
+def _pad_or_trim_to(x, shape, pad_val=0, pad_after_contents=True):
     """Pad and slice x to the given shape.
 
     This is branched from Lingvo https://github.com/tensorflow/lingvo/blob/master/lingvo/core/py_utils.py.
+
+    Internal usages for keras_cv libraries only.
 
     Args:
       x: A tensor.
@@ -48,9 +53,9 @@ def PadOrTrimTo(x, shape, pad_val=0, pad_after_contents=True):
             raise ValueError("shape %s padding %s must be fully defined." % (shape, x))
         expected_rank = shape.rank
     else:
-        shape = HasRank(shape, 1)
+        shape = _has_rank(shape, 1)
         expected_rank = tf.size(shape)
-    x = HasRank(x, expected_rank)
+    x = _has_rank(x, expected_rank)
 
     pad = shape - tf.minimum(tf.shape(x), shape)
     zeros = tf.zeros_like(pad)
