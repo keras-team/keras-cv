@@ -30,7 +30,7 @@ CONV_KERNEL_INITIALIZER = {
 
 
 @tf.keras.utils.register_keras_serializable(package="keras_cv")
-class MBConvBlock(layers.Layer):
+class MBConvBlock(tf.keras.Model): # TODO: change to layer
     def __init__(
         self,
         input_filters: int,
@@ -155,7 +155,7 @@ class MBConvBlock(layers.Layer):
             kernel_initializer=CONV_KERNEL_INITIALIZER,
             padding="same",
             data_format="channels_last",
-            use_bias=False,
+            use_bias=True,
             name=self.name + "project_conv",
         )
 

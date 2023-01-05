@@ -352,7 +352,7 @@ class UnGridPartitioning(layers.Layer):
 
 
 @tf.keras.utils.register_keras_serializable(package="keras_cv")
-class MaxViTStem(layers.Layer):
+class MaxViTStem(tf.keras.Model): # TODO: make layer
     # Conv blocks
     def __init__(
         self,
@@ -583,7 +583,7 @@ class RelativeMultiHeadAttention(layers.MultiHeadAttention):
 
 
 @tf.keras.utils.register_keras_serializable(package="keras_cv")
-class MaxViTBlock(layers.Layer):
+class MaxViTBlock(tf.keras.Model): #TODO: make this a keras layer
 
     """
     Performs MBConv -> Block-Attention (Block-SA+FFN) -> Grid-Attention (Grid-SA+FFN))
@@ -757,7 +757,7 @@ class MaxViTBlock(layers.Layer):
         )
 
 
-class _FFN:
+class _FFN(tf.keras.Model):
     def __init__(
         self,
         hidden_size,
@@ -765,16 +765,28 @@ class _FFN:
         expansion_rate=4,
         activation="gelu",
         kernel_initializer=tf.random_normal_initializer(stddev=0.02),
-        bias_initializer=tf.zeros_initializer(),
+        bias_initializer=tf.zeros_initializer,
         name="ffn",
+        **kwargs
     ):
-        self.hidden_size = hidden_size
+        super().__init__(**kwargs)
+
+        if isinstance(hidden_size, int):
+            self.hidden_size = [hidden_size]
+        else:
+            assert isinstance(hidden_size, (list, tuple)) and all(
+              isinstance(i, int) for i in hidden_size), (
+                  'Invalid output shape: {}.'.format(hidden_size))        
+            self.hidden_size = list(hidden_size)
+
         self.expansion_rate = expansion_rate
         self.kernel_initializer = kernel_initializer
         self.bias_initializer = bias_initializer
-        self.expanded_size = self.hidden_size * self.expansion_rate
+        self.expanded_size = tf.multiply(self.hidden_size, self.expansion_rate)
         self.dropout = dropout
         self.activation = layers.Activation(activation)
+        
+        print(self.hidden_size, self.expanded_size)
 
     """
     Builds the einsum expression for EinsumDense layers.
@@ -806,19 +818,21 @@ class _FFN:
         weight_str = "{}{}".format(i_only_str, o_only_str)
 
         self.einsum_expr = "{},{}->{}".format(input_str, weight_str, output_str)
+        # TODO: better logic for finding bias term
+        self.bias_axes = self.einsum_expr[-1]
 
         self._expand_dense = layers.EinsumDense(
             equation=self.einsum_expr,
-            output_shape=self.expanded_size,
-            output_trailing_dims=self.expanded_size,
+            output_shape=tf.TensorShape([None, None])+self.expanded_size,
+            bias_axes=self.bias_axes,
             kernel_initializer=self.kernel_initializer,
             bias_initializer=self.bias_initializer,
             name="expand_dense",
         )
         self._shrink_dense = layers.EinsumDense(
             equation=self.einsum_expr,
-            output_shape=self.hidden_size,
-            output_trailing_dims=self.hidden_size,
+            output_shape=tf.TensorShape([None, None])+self.hidden_size,
+            bias_axes=self.bias_axes,
             kernel_initializer=self.kernel_initializer,
             bias_initializer=self.bias_initializer,
             name="shrink_dense",
@@ -829,9 +843,9 @@ class _FFN:
         output = self._expand_dense(output)
         output = self.activation(output)
         if self.dropout:
-            output = tf.keras.layers.Dropout(self.dropout, name="nonlinearity_drop")(
-                output
-            )
+            output = tf.keras.layers.Dropout(
+                self.dropout, name="nonlinearity_drop"
+            )(output)
         output = self._shrink_dense(output)
 
         return output
