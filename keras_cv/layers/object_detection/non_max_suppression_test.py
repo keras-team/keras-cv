@@ -24,9 +24,9 @@ class NonMaxSuppressionTest(tf.test.TestCase):
 
         boxes = tf.cast(tf.random.uniform((3, 5, 4), 0, 480, tf.int32), tf.float32)
         classes = tf.cast(tf.random.uniform((3, 5), 0, 4, tf.int32), tf.float32)
-        scores = tf.random.uniform((3, 5), 0, 1, tf.float32)
+        confidence = tf.random.uniform((3, 5), 0, 1, tf.float32)
 
-        predictions = {"boxes": boxes, "classes": classes, "confidence": scores}
+        predictions = {"boxes": boxes, "classes": classes, "confidence": confidence}
 
         predictions = layer(predictions, images)
         self.assertEqual(predictions["boxes"].shape, [3, 100, 4])
@@ -38,8 +38,8 @@ class NonMaxSuppressionTest(tf.test.TestCase):
 
         boxes = tf.cast(tf.random.uniform((3, 5, 4), 0, 480, tf.int32), tf.float32)
         classes = tf.cast(tf.random.uniform((3, 5), 0, 4, tf.int32), tf.float32)
-        scores = tf.random.uniform((3, 5), 0, 1, tf.float32)
-        predictions = {"boxes": boxes, "classes": classes, "confidence": scores}
+        confidence = tf.random.uniform((3, 5), 0, 1, tf.float32)
+        predictions = {"boxes": boxes, "classes": classes, "confidence": confidence}
 
         # RGB image
         images = tf.ones((2, 256, 512, 3))
@@ -61,9 +61,9 @@ class NonMaxSuppressionTest(tf.test.TestCase):
 
         boxes = tf.cast(tf.random.uniform((3, 5, 4), 0, 480, tf.int32), tf.float32)
         classes = tf.cast(tf.random.uniform((3, 5, 1), 0, 4, tf.int32), tf.float32)
-        scores = tf.random.uniform((3, 5, 1), 0, 1, tf.float32)
+        confidence = tf.random.uniform((3, 5, 1), 0, 1, tf.float32)
 
-        predictions = tf.concat([boxes, classes, scores], axis=-1)
+        predictions = tf.concat([boxes, classes, confidence], axis=-1)
 
         predictions = layer(predictions, images)
         self.assertEqual(predictions["boxes"].shape, [3, 100, 4])
@@ -82,9 +82,9 @@ class NonMaxSuppressionTest(tf.test.TestCase):
 
         boxes = tf.cast(tf.random.uniform((3, 5, 4), 0, 480, tf.int32), tf.float32)
         classes = tf.cast(tf.random.uniform((3, 5, 1), 0, 4, tf.int32), tf.float32)
-        scores = tf.random.uniform((3, 5, 1), 0, 1, tf.float32)
+        confidence = tf.random.uniform((3, 5, 1), 0, 1, tf.float32)
 
-        predictions = tf.concat([boxes, classes, scores], axis=-1)
+        predictions = tf.concat([boxes, classes, confidence], axis=-1)
 
         predictions = model([predictions, images])
         self.assertEqual(predictions["boxes"].shape, [3, 100, 4])
@@ -96,8 +96,8 @@ class NonMaxSuppressionTest(tf.test.TestCase):
 
         boxes = tf.cast(tf.random.uniform((3, 5, 4), 0, 480, tf.int32), tf.float32)
         classes = tf.cast(tf.random.uniform((3, 5), 0, 4, tf.int32), tf.float32)
-        scores = tf.random.uniform((3, 5), 0, 1, tf.float32)
-        predictions = {"boxes": boxes, "classes": classes, "confidence": scores}
+        confidence = tf.random.uniform((3, 5), 0, 1, tf.float32)
+        predictions = {"boxes": boxes, "classes": classes, "confidence": confidence}
         predictions = layer(predictions)
         self.assertEqual(predictions["boxes"].shape, [3, 100, 4])
         self.assertEqual(predictions["classes"].shape, [3, 100])
@@ -181,10 +181,10 @@ class NonMaxSuppressionTest(tf.test.TestCase):
 
         boxes = tf.cast(tf.random.uniform((3, 5, 4), 0, 480, tf.int32), tf.float32)
         classes = tf.cast(tf.random.uniform((3, 5), 0, 4, tf.int32), tf.float32)
-        scores = tf.random.uniform((3, 5), 0, 0.01, tf.float32)
-        predictions = {"boxes": boxes, "classes": classes, "confidence": scores}
+        confidence = tf.random.uniform((3, 5), 0, 0.01, tf.float32)
+        predictions = {"boxes": boxes, "classes": classes, "confidence": confidence}
 
-        predictions = tf.concat([boxes, classes, scores], axis=-1)
+        predictions = tf.concat([boxes, classes, confidence], axis=-1)
 
         boxes = layer(predictions, images)
         self.assertEqual(boxes["boxes"].shape, [3, 100, 4])
@@ -195,9 +195,9 @@ class NonMaxSuppressionTest(tf.test.TestCase):
 
         boxes = tf.cast(tf.random.uniform((3, 5, 5), 0, 480, tf.int32), tf.float32)
         classes = tf.cast(tf.random.uniform((3, 5, 1), 0, 4, tf.int32), tf.float32)
-        scores = tf.random.uniform((3, 5, 1), 0, 0.1, tf.float32)
+        confidence = tf.random.uniform((3, 5, 1), 0, 0.1, tf.float32)
 
-        predictions = tf.concat([boxes, classes, scores], axis=-1)
+        predictions = tf.concat([boxes, classes, confidence], axis=-1)
 
         with self.assertRaises(ValueError):
             boxes = layer(predictions, images)
