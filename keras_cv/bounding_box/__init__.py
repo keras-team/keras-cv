@@ -27,4 +27,4 @@ from keras_cv.bounding_box.to_dense import to_dense
 from keras_cv.bounding_box.to_ragged import to_ragged
 from keras_cv.bounding_box.utils import clip_to_image
 from keras_cv.bounding_box.utils import preserve_rel
-from keras_cv.bounding_box.validate import validate
+from keras_cv.bounding_box.validate_format import validate

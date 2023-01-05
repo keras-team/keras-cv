@@ -96,7 +96,7 @@ class NonMaxSuppression(tf.keras.layers.Layer):
         self.built = True
 
     def call(self, predictions, images=None):
-        _ = bounding_box.validate(predictions)
+        _ = bounding_box.validate_format(predictions)
 
         # convert to yxyx for the TF NMS operation
         predictions = bounding_box.convert_format(
