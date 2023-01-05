@@ -585,7 +585,7 @@ def build_tensors_from_wod_frame(frame: dataset_pb2.Frame) -> Dict[str, tf.Tenso
     """Builds tensors from a Waymo Open Dataset frame.
 
     This function is to convert range image to point cloud. User can also work with
-    range image directly with frame_utils functions from google3.third_party.waymo_open_dataset.
+    range image directly with frame_utils functions from waymo_open_dataset.
 
     Args:
       frame: a Waymo Open Dataset frame.
