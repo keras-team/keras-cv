@@ -74,7 +74,7 @@ BASE_DOCSTRING = """..."""
 def MaxViT(
     include_rescaling,
     include_top,
-    name="MaxViT",
+    name="maxvit",
     weights=None,
     input_shape=(None, None, 3),
     input_tensor=None,
@@ -113,8 +113,7 @@ def MaxViT(
     if include_rescaling:
         x = layers.Rescaling(1.0 / 255.0, name="rescaling")(x)
 
-    stem = MaxViTStem(stem_hsize)
-    stem_output = stem(x)
+    stem_output = MaxViTStem(stem_hsize)(x)
     encoder_input = stem_output
 
     for i, num_block in enumerate(num_blocks):
@@ -172,22 +171,17 @@ def MaxViTTiny(
     input_tensor=None,
     pooling=None,
     classes=None,
-    stem_hsize=None,
-    num_blocks=None,
-    hidden_sizes=None,
-    window_size=None,
-    grid_size=None,
     attention_dropout=None,
     classifier_activation="softmax",
     **kwargs,
 ):
-    """Instantiates the ViTTiny16 architecture."""
+    """Instantiates the MaxViTTiny architecture."""
 
     return MaxViT(
         include_rescaling,
         include_top,
         name=name,
-        weights=parse_weights(weights, include_top, "vittiny16"),
+        weights=parse_weights(weights, include_top, "maxvittiny"),
         input_shape=input_shape,
         input_tensor=input_tensor,
         pooling=pooling,
@@ -197,6 +191,146 @@ def MaxViTTiny(
         hidden_sizes=MODEL_CONFIGS["MaxViTTiny"]["hidden_sizes"],
         window_size=MODEL_CONFIGS["MaxViTTiny"]["window_size"],
         grid_size=MODEL_CONFIGS["MaxViTTiny"]["grid_size"],
+        attention_dropout=attention_dropout,
+        classifier_activation=classifier_activation,
+        **kwargs,
+    )
+
+
+def MaxViTSmall(
+    include_rescaling,
+    include_top,
+    name="MaxViTSmall",
+    weights=None,
+    input_shape=(None, None, 3),
+    input_tensor=None,
+    pooling=None,
+    classes=None,
+    attention_dropout=None,
+    classifier_activation="softmax",
+    **kwargs,
+):
+    """Instantiates the MaxViTSmall architecture."""
+
+    return MaxViT(
+        include_rescaling,
+        include_top,
+        name=name,
+        weights=parse_weights(weights, include_top, "maxvitsmall"),
+        input_shape=input_shape,
+        input_tensor=input_tensor,
+        pooling=pooling,
+        classes=classes,
+        stem_hsize=MODEL_CONFIGS["MaxViTSmall"]["stem_hsize"],
+        num_blocks=MODEL_CONFIGS["MaxViTSmall"]["num_blocks"],
+        hidden_sizes=MODEL_CONFIGS["MaxViTSmall"]["hidden_sizes"],
+        window_size=MODEL_CONFIGS["MaxViTSmall"]["window_size"],
+        grid_size=MODEL_CONFIGS["MaxViTSmall"]["grid_size"],
+        attention_dropout=attention_dropout,
+        classifier_activation=classifier_activation,
+        **kwargs,
+    )
+
+
+def MaxViTTBase(
+    include_rescaling,
+    include_top,
+    name="MaxViTTBase",
+    weights=None,
+    input_shape=(None, None, 3),
+    input_tensor=None,
+    pooling=None,
+    classes=None,
+    attention_dropout=None,
+    classifier_activation="softmax",
+    **kwargs,
+):
+    """Instantiates the MaxViTTBase architecture."""
+
+    return MaxViT(
+        include_rescaling,
+        include_top,
+        name=name,
+        weights=parse_weights(weights, include_top, "maxvitbase"),
+        input_shape=input_shape,
+        input_tensor=input_tensor,
+        pooling=pooling,
+        classes=classes,
+        stem_hsize=MODEL_CONFIGS["MaxViTTBase"]["stem_hsize"],
+        num_blocks=MODEL_CONFIGS["MaxViTTBase"]["num_blocks"],
+        hidden_sizes=MODEL_CONFIGS["MaxViTTBase"]["hidden_sizes"],
+        window_size=MODEL_CONFIGS["MaxViTTBase"]["window_size"],
+        grid_size=MODEL_CONFIGS["MaxViTTBase"]["grid_size"],
+        attention_dropout=attention_dropout,
+        classifier_activation=classifier_activation,
+        **kwargs,
+    )
+
+
+def MaxViTLarge(
+    include_rescaling,
+    include_top,
+    name="MaxViTTiny",
+    weights=None,
+    input_shape=(None, None, 3),
+    input_tensor=None,
+    pooling=None,
+    classes=None,
+    attention_dropout=None,
+    classifier_activation="softmax",
+    **kwargs,
+):
+    """Instantiates the MaxViTLarge architecture."""
+
+    return MaxViT(
+        include_rescaling,
+        include_top,
+        name=name,
+        weights=parse_weights(weights, include_top, "maxvitlarge"),
+        input_shape=input_shape,
+        input_tensor=input_tensor,
+        pooling=pooling,
+        classes=classes,
+        stem_hsize=MODEL_CONFIGS["MaxViTLarge"]["stem_hsize"],
+        num_blocks=MODEL_CONFIGS["MaxViTLarge"]["num_blocks"],
+        hidden_sizes=MODEL_CONFIGS["MaxViTLarge"]["hidden_sizes"],
+        window_size=MODEL_CONFIGS["MaxViTLarge"]["window_size"],
+        grid_size=MODEL_CONFIGS["MaxViTLarge"]["grid_size"],
+        attention_dropout=attention_dropout,
+        classifier_activation=classifier_activation,
+        **kwargs,
+    )
+
+
+def MaxViTXLarge(
+    include_rescaling,
+    include_top,
+    name="MaxViTXLarge",
+    weights=None,
+    input_shape=(None, None, 3),
+    input_tensor=None,
+    pooling=None,
+    classes=None,
+    attention_dropout=None,
+    classifier_activation="softmax",
+    **kwargs,
+):
+    """Instantiates the MaxViTXLarge architecture."""
+
+    return MaxViT(
+        include_rescaling,
+        include_top,
+        name=name,
+        weights=parse_weights(weights, include_top, "maxvitxlarge"),
+        input_shape=input_shape,
+        input_tensor=input_tensor,
+        pooling=pooling,
+        classes=classes,
+        stem_hsize=MODEL_CONFIGS["MaxViTXLarge"]["stem_hsize"],
+        num_blocks=MODEL_CONFIGS["MaxViTXLarge"]["num_blocks"],
+        hidden_sizes=MODEL_CONFIGS["MaxViTXLarge"]["hidden_sizes"],
+        window_size=MODEL_CONFIGS["MaxViTXLarge"]["window_size"],
+        grid_size=MODEL_CONFIGS["MaxViTXLarge"]["grid_size"],
         attention_dropout=attention_dropout,
         classifier_activation=classifier_activation,
         **kwargs,
