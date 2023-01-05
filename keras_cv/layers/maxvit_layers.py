@@ -765,7 +765,7 @@ class _FFN(tf.keras.Model):
         expansion_rate=4,
         activation="gelu",
         kernel_initializer=tf.random_normal_initializer(stddev=0.02),
-        bias_initializer=tf.zeros_initializer,
+        bias_initializer=tf.zeros_initializer(),
         name="ffn",
         **kwargs,
     ):

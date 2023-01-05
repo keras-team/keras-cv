@@ -148,7 +148,7 @@ def MaxViT(
 
     output = layers.GlobalAveragePooling2D()(encoder_output)
     output = layers.Dense(
-        hidden_sizes[-1], activation=tf.keras.layers.Activation(tf.nn.tanh, name="tanh")
+        hidden_sizes[-1], activation=tf.keras.layers.Activation("tanh", name="tanh")
     )(output)
 
     if include_top:
