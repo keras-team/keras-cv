@@ -62,9 +62,7 @@ class NonMaxSuppressionTest(tf.test.TestCase):
         boxes = tf.cast(tf.random.uniform((3, 5, 4), 0, 480, tf.int32), tf.float32)
         classes = tf.cast(tf.random.uniform((3, 5), 0, 4, tf.int32), tf.float32)
         confidence = tf.random.uniform((3, 5), 0, 1, tf.float32)
-        predictions = {
-        'boxes': boxes, 'classes': classes, 'confidence': confidence
-        }
+        predictions = {"boxes": boxes, "classes": classes, "confidence": confidence}
         predictions = layer(predictions, images)
         self.assertEqual(predictions["boxes"].shape, [3, 100, 4])
         self.assertEqual(predictions["classes"].shape, [3, 100])
