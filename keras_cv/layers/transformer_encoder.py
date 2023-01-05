@@ -136,7 +136,7 @@ class TransformerEncoder(layers.Layer):
 
 
 @tf.keras.utils.register_keras_serializable(package="keras_cv")
-class MaxViTTransformerEncoder(layers.Layer):
+class MaxViTTransformerEncoder(tf.keras.Model):  # TODO: make this a layer
     """
     Transformer encoder block with Relative MultiHeadAttention implementation as a Keras Layer.
     Used in MaxViTs.
@@ -300,6 +300,13 @@ class MaxViTTransformerEncoder(layers.Layer):
             x = layers.Dropout(self.dropout)(x)
         x = layers.Add()([shortcut, x])
 
+        shortcut = x
+        x = self.block_ffn_layer_norm(x)
+        x = self.block_ffn(x)
+        if self.dropout:
+            x = layers.Dropout(self.dropout)(x)
+        x = layers.Add()([shortcut, x])
+
         # Grid-Attention
         x = self.grid_attn_layer_norm(x)
         shortcut = x
@@ -312,6 +319,14 @@ class MaxViTTransformerEncoder(layers.Layer):
         if self.dropout:
             x = layers.Dropout(self.dropout)(x)
         x = layers.Add()([shortcut, x])
+
+        shortcut = x
+        x = self.grid_ffn_layer_norm(x)
+        x = self.grid_ffn(x)
+        if self.dropout:
+            x = layers.Dropout(self.dropout)(x)
+        x = layers.Add()([shortcut, x])
+
         return x
 
     def get_config(self):
