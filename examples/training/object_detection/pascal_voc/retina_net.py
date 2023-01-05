@@ -357,18 +357,17 @@ model.compile(
     optimizer=optimizer,
 )
 
-
 callbacks = [
     keras.callbacks.TensorBoard(log_dir="logs"),
     keras.callbacks.ReduceLROnPlateau(patience=5),
     keras.callbacks.EarlyStopping(patience=10),
     keras.callbacks.ModelCheckpoint(CHECKPOINT_PATH, save_weights_only=True),
-    keras_cv.callbacks.PyCOCOCallback(eval_ds, "xywh"),
+    PyCOCOCallback(eval_ds, "xywh"),
 ]
 
 history = model.fit(
     train_ds,
     validation_data=eval_ds,
-    epochs=50,
+    epochs=35,
     callbacks=callbacks,
 )
