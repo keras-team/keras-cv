@@ -25,46 +25,46 @@ from keras_cv.models import utils
 from keras_cv.models.weights import parse_weights
 
 MODEL_CONFIGS = {
-    "MaxViTTiny": dict(
-        stem_hsize=[64, 64],
-        head_size=32,
-        num_blocks=[2, 2, 5, 2],
-        hidden_sizes=[64, 128, 256, 512],
-        window_size=7,
-        grid_size=7,
-    ),
-    "MaxViTSmall": dict(
-        stem_hsize=[64, 64],
-        head_size=32,
-        num_blocks=[2, 2, 5, 2],
-        hidden_size=[96, 192, 384, 768],
-        window_size=7,
-        grid_size=7,
-    ),
-    "MaxViTBase": dict(
-        stem_hsize=[64, 64],
-        head_size=32,
-        num_blocks=[2, 6, 14, 2],
-        hidden_size=[96, 192, 384, 768],
-        window_size=7,
-        grid_size=7,
-    ),
-    "MaxViTLarge": dict(
-        stem_hsize=[128, 128],
-        head_size=32,
-        num_blocks=[2, 6, 14, 2],
-        hidden_size=[128, 256, 512, 1024],
-        window_size=7,
-        grid_size=7,
-    ),
-    "MaxViTXLarge": dict(
-        stem_hsize=[192, 192],
-        head_size=32,
-        num_blocks=[2, 6, 14, 2],
-        hidden_size=[192, 384, 768, 1536],
-        window_size=7,
-        grid_size=7,
-    ),
+    "MaxViTTiny": {
+        "stem_hsize": [64, 64],
+        "head_size": 32,
+        "num_blocks": [2, 2, 5, 2],
+        "hidden_sizes": [64, 128, 256, 512],
+        "window_size": 7,
+        "grid_size": 7,
+    },
+    "MaxViTSmall": {
+        "stem_hsize": [64, 64],
+        "head_size": 32,
+        "num_blocks": [2, 2, 5, 2],
+        "hidden_size": [96, 192, 384, 768],
+        "window_size": 7,
+        "grid_size": 7,
+    },
+    "MaxViTBase": {
+        "stem_hsize": [64, 64],
+        "head_size": 32,
+        "num_blocks": [2, 6, 14, 2],
+        "hidden_size": [96, 192, 384, 768],
+        "window_size": 7,
+        "grid_size": 7,
+    },
+    "MaxViTLarge": {
+        "stem_hsize": [128, 128],
+        "head_size": 32,
+        "num_blocks": [2, 6, 14, 2],
+        "hidden_size": [128, 256, 512, 1024],
+        "window_size": 7,
+        "grid_size": 7,
+    },
+    "MaxViTXLarge": {
+        "stem_hsize": [192, 192],
+        "head_size": 32,
+        "num_blocks": [2, 6, 14, 2],
+        "hidden_size": [192, 384, 768, 1536],
+        "window_size": 7,
+        "grid_size": 7,
+    },
 }
 
 
