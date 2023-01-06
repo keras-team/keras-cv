@@ -162,8 +162,8 @@ class RetinaNetLabelEncoder(layers.Layer):
 
         Args:
           images: a batched [batch_size, H, W, C] image float `tf.Tensor`.
-          boxes: a batched [batch_size, num_objects, 4] or ragged batch float ground truth boxes in `bounding_box_format`.
-          classes: a batched [batch_size, num_objects] or ragged batch float ground truth classes.
+          box_labels: a batched KerasCV style bounding box dictionary containing
+            bounding boxes and class labels.  Should be in `bounding_box_format`.
         """
         if isinstance(images, tf.RaggedTensor):
             raise ValueError(
