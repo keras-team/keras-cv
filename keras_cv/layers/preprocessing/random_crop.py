@@ -154,36 +154,33 @@ class RandomCrop(BaseImageAugmentationLayer):
     def _crop_bounding_boxes(self, image, bounding_boxes, transformation):
         top = tf.cast(transformation["top"], dtype=self.compute_dtype)
         left = tf.cast(transformation["left"], dtype=self.compute_dtype)
-        x1, y1, x2, y2, rest = tf.split(
-            bounding_boxes, [1, 1, 1, 1, bounding_boxes.shape[-1] - 4], axis=-1
-        )
-        output = tf.concat(
+        output = bounding_boxes.copy()
+        x1, y1, x2, y2 = tf.split(bounding_boxes["boxes"], [1, 1, 1, 1], axis=-1)
+        output["boxes"] = tf.concat(
             [
                 x1 - left,
                 y1 - top,
                 x2 - left,
                 y2 - top,
-                rest,
             ],
             axis=-1,
         )
         return output
 
     def _resize_bounding_boxes(self, image, bounding_boxes):
+        output = bounding_boxes.copy()
         image_shape = tf.shape(image)
         x_scale = tf.cast(self.width / image_shape[W_AXIS], dtype=self.compute_dtype)
         y_scale = tf.cast(self.height / image_shape[H_AXIS], dtype=self.compute_dtype)
-        x1, y1, x2, y2, rest = tf.split(
-            bounding_boxes, [1, 1, 1, 1, bounding_boxes.shape[-1] - 4], axis=-1
-        )
-        output = tf.concat(
+        x1, y1, x2, y2 = tf.split(bounding_boxes["boxes"], [1, 1, 1, 1], axis=-1)
+        output["boxes"] = tf.concat(
             [
                 x1 * x_scale,
                 y1 * y_scale,
                 x2 * x_scale,
                 y2 * y_scale,
-                rest,
             ],
             axis=-1,
         )
+
         return output
