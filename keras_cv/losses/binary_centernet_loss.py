@@ -17,6 +17,7 @@ import tensorflow as tf
 
 # TODO(tanzhenyu): consider inherit from LossFunctionWrapper to
 # get the dimension squeeze.
+@tf.keras.utils.register_keras_serializable(package="keras_cv")
 class BinaryCenterNetCrossentropy(tf.keras.losses.Loss):
     """Implements CenterNet modified Focal loss.
 
