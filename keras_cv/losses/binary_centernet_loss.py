@@ -38,6 +38,10 @@ class BinaryCenterNetCrossentropy(tf.keras.losses.Loss):
       positive_weight: single scalar weight on positive examples. Defaults to 1.0.
       negative_weight: single scalar weight on negative examples. Defaults to 1.0.
 
+    Inputs:
+      y_true: [batch_size, ...] float tensor
+      y_pred: [batch_size, ...] float tensor with same shape as y_true.
+
     References:
         - [Objects as Points](https://arxiv.org/pdf/1904.07850.pdf) Eq 1.
         - [Cornernet: Detecting objects as paired keypoints](https://arxiv.org/abs/1808.01244) for `alpha` and `beta`.
