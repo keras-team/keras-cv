@@ -391,6 +391,7 @@ class StableDiffusionBase:
         return unconditional_context
 
     def _expand_tensor(self, text_embedding, batch_size):
+        """Extends a tensor by repeating it to fit the shape of the given batch size."""
         text_embedding = tf.squeeze(text_embedding)
         if text_embedding.shape.rank == 2:
             text_embedding = tf.repeat(
