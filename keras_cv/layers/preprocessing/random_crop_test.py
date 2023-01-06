@@ -138,25 +138,33 @@ class RandomCropTest(tf.test.TestCase, parameterized.TestCase):
 
     def test_augment_bounding_boxes_crop(self):
         input_image = np.random.random((512, 512, 3)).astype(np.float32)
-        bboxes = tf.convert_to_tensor([[200, 200, 400, 400, 1]])
+        bboxes = {
+            "boxes": tf.convert_to_tensor([[200, 200, 400, 400]]),
+            "classes": tf.convert_to_tensor([1]),
+        }
         input = {"images": input_image, "bounding_boxes": bboxes}
         layer = RandomCrop(height=100, width=200, bounding_box_format="xyxy", seed=10)
         # for top = 300 and left = 305
         output = layer(input)
         expected_output = np.asarray(
-            [[0.0, 0.0, 95.0, 100.0, 1]],
+            [[0.0, 0.0, 95.0, 100.0]],
         )
-        expected_output = np.reshape(expected_output, (1, 5))
-        self.assertAllClose(expected_output, output["bounding_boxes"].to_tensor(-1))
+        self.assertAllClose(
+            expected_output, output["bounding_boxes"]["boxes"].to_tensor(-1)
+        )
 
     def test_augment_bounding_boxes_resize(self):
         input_image = np.random.random((256, 256, 3)).astype(np.float32)
-        bboxes = tf.convert_to_tensor([[100, 100, 200, 200, 1]])
+        bboxes = {
+            "boxes": tf.convert_to_tensor([[100, 100, 200, 200]]),
+            "classes": tf.convert_to_tensor([1]),
+        }
         input = {"images": input_image, "bounding_boxes": bboxes}
         layer = RandomCrop(height=512, width=512, bounding_box_format="xyxy")
         output = layer(input)
         expected_output = np.asarray(
-            [[200.0, 200.0, 400.0, 400.0, 1]],
+            [[200.0, 200.0, 400.0, 400.0]],
         )
-        expected_output = np.reshape(expected_output, (1, 5))
-        self.assertAllClose(expected_output, output["bounding_boxes"].to_tensor(-1))
+        self.assertAllClose(
+            expected_output, output["bounding_boxes"]["boxes"].to_tensor(-1)
+        )

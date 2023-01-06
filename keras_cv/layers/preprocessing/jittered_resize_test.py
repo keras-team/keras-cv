@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import numpy as np
 import tensorflow as tf
 from absl.testing import parameterized
 
@@ -45,7 +44,10 @@ class JitteredResizeTest(tf.test.TestCase, parameterized.TestCase):
 
     def test_augment_bounding_box_single(self):
         image = tf.zeros([20, 20, 3])
-        boxes = tf.convert_to_tensor([[0, 0, 1, 1, 0]])
+        boxes = {
+            "boxes": tf.convert_to_tensor([[0, 0, 1, 1]], dtype=tf.float32),
+            "classes": tf.convert_to_tensor([0], dtype=tf.float32),
+        }
         input = {"images": image, "bounding_boxes": boxes}
 
         layer = layers.JitteredResize(
@@ -55,20 +57,32 @@ class JitteredResizeTest(tf.test.TestCase, parameterized.TestCase):
             seed=self.seed,
         )
         output = layer(input, training=True)
-
-        expected_output = np.asarray([[0, 0, 1, 1, 0]])
-        self.assertAllClose(expected_output, output["bounding_boxes"].to_tensor())
+        output["bounding_boxes"] = bounding_box.to_dense(output["bounding_boxes"])
+        expected_output = {
+            "boxes": tf.convert_to_tensor([[0, 0, 1, 1]], dtype=tf.float32),
+            "classes": tf.convert_to_tensor([0], dtype=tf.float32),
+        }
+        self.assertAllClose(
+            expected_output["boxes"],
+            output["bounding_boxes"]["boxes"],
+        )
+        self.assertAllClose(
+            expected_output["classes"], output["bounding_boxes"]["classes"]
+        )
 
     def test_augment_boxes_batched_input(self):
         image = tf.zeros([20, 20, 3])
 
-        boxes = tf.convert_to_tensor(
-            [
-                [[0, 0, 1, 1, 0], [0, 0, 1, 1, 0]],
-                [[0, 0, 1, 1, 0], [0, 0, 1, 1, 0]],
-            ]
-        )
-        input = {"images": [image, image], "bounding_boxes": boxes}
+        bounding_boxes = {
+            "classes": tf.convert_to_tensor([[0, 0], [0, 0]]),
+            "boxes": tf.convert_to_tensor(
+                [
+                    [[0, 0, 1, 1], [0, 0, 1, 1]],
+                    [[0, 0, 1, 1], [0, 0, 1, 1]],
+                ]
+            ),
+        }
+        input = {"images": [image, image], "bounding_boxes": bounding_boxes}
 
         layer = layers.JitteredResize(
             target_size=self.target_size,
@@ -77,20 +91,42 @@ class JitteredResizeTest(tf.test.TestCase, parameterized.TestCase):
             seed=self.seed,
         )
         output = layer(input, training=True)
-        expected_output = np.asarray(
-            [
-                [[0, 0, 1, 1, 0], [0, 0, 1, 1, 0]],
-                [[0, 0, 1, 1, 0], [0, 0, 1, 1, 0]],
-            ]
+        output["bounding_boxes"] = bounding_box.to_dense(output["bounding_boxes"])
+        expected_output = {
+            "classes": tf.convert_to_tensor([[0, 0], [0, 0]], dtype=tf.float32),
+            "boxes": tf.convert_to_tensor(
+                [
+                    [[0, 0, 1, 1], [0, 0, 1, 1]],
+                    [[0, 0, 1, 1], [0, 0, 1, 1]],
+                ],
+                dtype=tf.float32,
+            ),
+        }
+        self.assertAllClose(
+            expected_output["boxes"],
+            output["bounding_boxes"]["boxes"],
         )
-        self.assertAllClose(expected_output, output["bounding_boxes"].to_tensor())
+        self.assertAllClose(
+            expected_output["classes"], output["bounding_boxes"]["classes"]
+        )
 
     def test_augment_boxes_ragged(self):
         image = tf.zeros([2, 20, 20, 3])
-        boxes = tf.ragged.constant(
-            [[[0, 0, 1, 1], [0, 0, 1, 1]], [[0, 0, 1, 1]]], dtype=tf.float32
-        )
-        boxes = bounding_box.add_class_id(boxes)
+        boxes = {
+            "boxes": tf.ragged.constant(
+                [[[0, 0, 1, 1], [0, 0, 1, 1]], [[0, 0, 1, 1]]], dtype=tf.float32
+            ),
+            "classes": tf.ragged.constant(
+                [
+                    [
+                        0,
+                        0,
+                    ],
+                    [0],
+                ],
+                dtype=tf.float32,
+            ),
+        }
         input = {"images": image, "bounding_boxes": boxes}
 
         layer = layers.JitteredResize(
@@ -100,11 +136,26 @@ class JitteredResizeTest(tf.test.TestCase, parameterized.TestCase):
             seed=self.seed,
         )
         output = layer(input, training=True)
-
         # the result boxes will still have the entire image in them
-        expected_output = tf.ragged.constant(
-            [[[0, 0, 1, 1, 0], [0, 0, 1, 1, 0]], [[0, 0, 1, 1, 0]]], dtype=tf.float32
+        expected_output = {
+            "boxes": tf.ragged.constant(
+                [[[0, 0, 1, 1], [0, 0, 1, 1]], [[0, 0, 1, 1]]], dtype=tf.float32
+            ),
+            "classes": tf.ragged.constant(
+                [
+                    [
+                        0.0,
+                        0.0,
+                    ],
+                    [0.0],
+                ],
+                dtype=tf.float32,
+            ),
+        }
+        self.assertAllClose(
+            expected_output["boxes"].to_tensor(),
+            output["bounding_boxes"]["boxes"].to_tensor(),
         )
         self.assertAllClose(
-            expected_output.to_tensor(-1), output["bounding_boxes"].to_tensor(-1)
+            expected_output["classes"], output["bounding_boxes"]["classes"]
         )
