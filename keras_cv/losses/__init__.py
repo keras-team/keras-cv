@@ -12,8 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from keras_cv.losses.binary_centernet_loss import BinaryCenterNetCrossentropy
 from keras_cv.losses.focal import FocalLoss
 from keras_cv.losses.iou_loss import IoULoss
+from keras_cv.losses.penalty_reduced_focal_loss import BinaryPenaltyReducedFocalLoss
 from keras_cv.losses.simclr_loss import SimCLRLoss
 from keras_cv.losses.smooth_l1 import SmoothL1Loss
