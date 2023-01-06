@@ -495,6 +495,7 @@ class FasterRCNN(tf.keras.Model):
                 "Expected 'classes' to be a tf.Tensor of rank 2. "
                 f"Got y['classes'].shape={y['classes'].shape}."
             )
+        # TODO(tanzhenyu): remove this hack and perform broadcasting elsewhere
         gt_classes = tf.expand_dims(y["classes"], axis=-1)
         with tf.GradientTape() as tape:
             total_loss = self.compute_loss(images, gt_boxes, gt_classes, training=True)
