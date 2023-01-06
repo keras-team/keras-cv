@@ -490,7 +490,7 @@ class FasterRCNN(tf.keras.Model):
         if sample_weight is not None:
             raise ValueError("`sample_weight` is currently not supported.")
         gt_boxes = y["boxes"]
-        if len(y["classes"]) != 2:
+        if len(y["classes"].shape) != 2:
             raise ValueError(
                 "Expected 'classes' to be a tf.Tensor of rank 2. "
                 f"Got y['classes'].shape={y['classes'].shape}."
@@ -514,7 +514,7 @@ class FasterRCNN(tf.keras.Model):
         if sample_weight is not None:
             raise ValueError("`sample_weight` is currently not supported.")
         gt_boxes = y["boxes"]
-        if len(y["classes"]) != 2:
+        if len(y["classes"].shape) != 2:
             raise ValueError(
                 "Expected 'classes' to be a tf.Tensor of rank 2. "
                 f"Got y['classes'].shape={y['classes'].shape}."
