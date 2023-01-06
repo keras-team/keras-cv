@@ -82,9 +82,7 @@ class IoULoss(tf.keras.losses.Loss):
                 f"the bounding boxes. Received y_true.shape[-1]={y_true.shape[-1]}."
             )
 
-        ious = bounding_box.compute_iou(
-            y_true, y_pred, self.bounding_box_format
-        )
+        ious = bounding_box.compute_iou(y_true, y_pred, self.bounding_box_format)
         mean_iou = tf.reduce_mean(ious, axis=[-2, -1])
 
         if self.mode == "linear":
