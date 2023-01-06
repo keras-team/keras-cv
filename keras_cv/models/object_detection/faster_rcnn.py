@@ -514,6 +514,11 @@ class FasterRCNN(tf.keras.Model):
         if sample_weight is not None:
             raise ValueError("`sample_weight` is currently not supported.")
         gt_boxes = y["boxes"]
+        if len(y["classes"]) != 2:
+            raise ValueError(
+                "Expected 'classes' to be a tf.Tensor of rank 2. "
+                f"Got y['classes'].shape={y['classes'].shape}."
+            )
         gt_classes = tf.expand_dims(y["classes"], axis=-1)
         self.compute_loss(images, gt_boxes, gt_classes, training=False)
         return self.compute_metrics(images, {}, {}, sample_weight={})
