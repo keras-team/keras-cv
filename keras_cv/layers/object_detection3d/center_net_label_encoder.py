@@ -108,7 +108,9 @@ def compute_heatmap(
     point_xyz_rot = tf.linalg.matmul(point_xyz, rot)
     # convert from box frame to vehicle frame.
     # [B, N, max_num_voxels_per_box, 3]
-    point_xyz_transform = point_xyz_rot + voxel_utils.inv_loc(rot, box_center)[:, :, tf.newaxis, :]
+    point_xyz_transform = (
+        point_xyz_rot + voxel_utils.inv_loc(rot, box_center)[:, :, tf.newaxis, :]
+    )
     # Due to the transform above, z=0 can be transformed to a non-zero value. For
     # 2d headmap, we do not want to use z.
     if voxel_size[2] > INF_VOXEL_SIZE:

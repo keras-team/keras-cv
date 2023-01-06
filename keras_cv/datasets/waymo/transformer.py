@@ -27,7 +27,7 @@ from waymo_open_dataset.utils import range_image_utils
 from waymo_open_dataset.utils import transform_utils
 
 from keras_cv.datasets.waymo import struct
-from keras_cv.layers.object_detection3d import voxel_utils 
+from keras_cv.layers.object_detection3d import voxel_utils
 
 WOD_FRAME_OUTPUT_SIGNATURE = {
     "frame_id": tf.TensorSpec((), tf.int64),
@@ -514,7 +514,10 @@ def _point_global_to_vehicle(point_xyz: tf.Tensor, sdc_pose: tf.Tensor) -> tf.Te
     """
     rot = sdc_pose[..., 0:3, 0:3]
     loc = sdc_pose[..., 0:3, 3]
-    return tf.linalg.matmul(point_xyz, rot) + voxel_utils.inv_loc(rot, loc)[..., tf.newaxis, :]
+    return (
+        tf.linalg.matmul(point_xyz, rot)
+        + voxel_utils.inv_loc(rot, loc)[..., tf.newaxis, :]
+    )
 
 
 def _box_3d_vehicle_to_global(box_3d: tf.Tensor, sdc_pose: tf.Tensor) -> tf.Tensor:
