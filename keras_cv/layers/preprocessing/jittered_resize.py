@@ -222,7 +222,6 @@ class JitteredResize(BaseImageAugmentationLayer):
             source="yxyx",
             target=self.bounding_box_format,
         )
-        result = keras_cv.bounding_box.to_ragged(result, dtype=self.compute_dtype)
         return result
 
     def augment_label(self, label, transformation, **kwargs):

@@ -16,6 +16,7 @@ import tensorflow as tf
 from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
     BaseImageAugmentationLayer,
 )
+from keras_cv import bounding_box
 
 
 @tf.keras.utils.register_keras_serializable(package="keras_cv")
@@ -137,12 +138,7 @@ class MixUp(BaseImageAugmentationLayer):
             )
 
         if bounding_boxes is not None:
-            if sorted(list(bounding_boxes.keys())) != ["boxes", "classes"]:
-                raise ValueError(
-                    "MixUp requires `bounding_boxes` to be a dictionary with "
-                    "keys `boxes` and `classes`.  Instead, got "
-                    f"`bounding_boxes.keys()={list(bounding_boxes.keys())}`."
-                )
+            _ = bounding_box.validate_format(bounding_boxes)
 
     def get_config(self):
         config = {
