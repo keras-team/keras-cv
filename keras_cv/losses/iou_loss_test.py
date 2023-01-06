@@ -76,4 +76,4 @@ class IoUTest(tf.test.TestCase):
         iou_loss = IoULoss(bounding_box_format="xywh")
 
         # -log(compute_iou(y_true, y_pred)) = 2.0311017
-        kelf.assertAllClose(iou_loss(y_true, y_pred), 2.0311017)
+        self.assertAllClose(iou_loss(y_true, y_pred), 2.0311017)
