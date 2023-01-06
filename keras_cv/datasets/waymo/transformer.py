@@ -27,7 +27,7 @@ from waymo_open_dataset.utils import range_image_utils
 from waymo_open_dataset.utils import transform_utils
 
 from keras_cv.datasets.waymo import struct
-from keras_cv.layers.object_detection3d import utils as object_detection3d_utils
+from keras_cv.layers.object_detection3d import voxel_utils 
 
 WOD_FRAME_OUTPUT_SIGNATURE = {
     "frame_id": tf.TensorSpec((), tf.int64),
@@ -482,26 +482,6 @@ def _get_point_label(
     )
 
 
-def _inv_loc(rot: tf.Tensor, loc: tf.Tensor) -> tf.Tensor:
-    """Invert a location.
-
-    rot and loc can form a transform matrix between two frames.
-
-    R = rot, L = loc
-    R*R' = I
-    R * new_loc + L = 0 = > new_loc = -R'*L
-
-    Args:
-      rot: [..., 3, 3] rotation matrix.
-      loc: [..., 3] location matrix.
-
-    Returns:
-      [..., 3] new location matrix.
-    """
-    new_loc = -1.0 * tf.linalg.matmul(rot, loc[..., tf.newaxis], transpose_a=True)
-    return tf.squeeze(new_loc, axis=-1)
-
-
 def _point_vehicle_to_global(
     point_vehicle_xyz: tf.Tensor, sdc_pose: tf.Tensor
 ) -> tf.Tensor:
@@ -534,7 +514,7 @@ def _point_global_to_vehicle(point_xyz: tf.Tensor, sdc_pose: tf.Tensor) -> tf.Te
     """
     rot = sdc_pose[..., 0:3, 0:3]
     loc = sdc_pose[..., 0:3, 3]
-    return tf.linalg.matmul(point_xyz, rot) + _inv_loc(rot, loc)[..., tf.newaxis, :]
+    return tf.linalg.matmul(point_xyz, rot) + voxel_utils.inv_loc(rot, loc)[..., tf.newaxis, :]
 
 
 def _box_3d_vehicle_to_global(box_3d: tf.Tensor, sdc_pose: tf.Tensor) -> tf.Tensor:
@@ -655,7 +635,7 @@ def pad_or_trim_tensors(
 
     def _pad_fn(t: tf.Tensor, max_counts: int) -> tf.Tensor:
         shape = [max_counts] + t.shape.as_list()[1:]
-        return object_detection3d_utils._pad_or_trim_to(t, shape)
+        return voxel_utils._pad_or_trim_to(t, shape)
 
     point_tensor_keys = {
         "point_xyz",

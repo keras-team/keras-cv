@@ -52,26 +52,6 @@ def _meshgrid(
     return mesh * voxel_size
 
 
-def inv_loc(rot: tf.Tensor, loc: tf.Tensor) -> tf.Tensor:
-    """Invert a location.
-
-    rot and loc can form a transform matrix between two frames.
-
-    R = rot, L = loc
-    R*R' = I
-    R * new_loc + L = 0 = > new_loc = -R'*L
-
-    Args:
-      rot: [..., 3, 3] rotation matrix.
-      loc: [..., 3] location matrix.
-
-    Returns:
-      [..., 3] new location matrix.
-    """
-    new_loc = -1.0 * tf.linalg.matmul(rot, loc[..., tf.newaxis], transpose_a=True)
-    return tf.squeeze(new_loc, axis=-1)
-
-
 def compute_heatmap(
     box_3d: tf.Tensor,
     box_mask: tf.Tensor,
@@ -128,7 +108,7 @@ def compute_heatmap(
     point_xyz_rot = tf.linalg.matmul(point_xyz, rot)
     # convert from box frame to vehicle frame.
     # [B, N, max_num_voxels_per_box, 3]
-    point_xyz_transform = point_xyz_rot + inv_loc(rot, box_center)[:, :, tf.newaxis, :]
+    point_xyz_transform = point_xyz_rot + voxel_utils.inv_loc(rot, box_center)[:, :, tf.newaxis, :]
     # Due to the transform above, z=0 can be transformed to a non-zero value. For
     # 2d headmap, we do not want to use z.
     if voxel_size[2] > INF_VOXEL_SIZE:

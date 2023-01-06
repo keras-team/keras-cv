@@ -14,7 +14,7 @@
 
 import tensorflow as tf
 
-from keras_cv.layers.object_detection3d import utils
+from keras_cv.layers.object_detection3d import voxel_utils
 
 
 class PadOrTrimToTest(tf.test.TestCase):
@@ -23,8 +23,8 @@ class PadOrTrimToTest(tf.test.TestCase):
     def test_2D_constant_shape_pad(self):
         x = tf.random.normal(shape=(3, 3), seed=123456)
         shape = [4, 6]
-        padded_x_right = utils._pad_or_trim_to(x, shape, pad_val=0)
-        padded_x_left = utils._pad_or_trim_to(
+        padded_x_right = voxel_utils._pad_or_trim_to(x, shape, pad_val=0)
+        padded_x_left = voxel_utils._pad_or_trim_to(
             x, shape, pad_val=0, pad_after_contents=False
         )
         self.assertEqual(padded_x_right.shape.as_list(), [4, 6])
@@ -48,8 +48,8 @@ class PadOrTrimToTest(tf.test.TestCase):
     def test_2D_constant_shape_trim(self):
         x = tf.random.normal(shape=(3, 3), seed=123456)
         shape = [1, 3]
-        trimmed_x_right = utils._pad_or_trim_to(x, shape, pad_val=0)
-        trimmed_x_left = utils._pad_or_trim_to(
+        trimmed_x_right = voxel_utils._pad_or_trim_to(x, shape, pad_val=0)
+        trimmed_x_left = voxel_utils._pad_or_trim_to(
             x, shape, pad_val=0, pad_after_contents=False
         )
         self.assertEqual(trimmed_x_right.shape.as_list(), [1, 3])
