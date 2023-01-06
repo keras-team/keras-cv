@@ -253,7 +253,6 @@ class RetinaNet(tf.keras.Model):
         classification_loss=None,
         weight_decay=0.0001,
         loss=None,
-        metrics=None,
         **kwargs,
     ):
         """compiles the RetinaNet.
@@ -272,7 +271,7 @@ class RetinaNet(tf.keras.Model):
             kwargs: most other `keras.Model.compile()` arguments are supported and
                 propagated to the `keras.Model` class.
         """
-        if metrics is not None and len(metrics) != 0:
+        if "metrics" in kwargs.keys():
             raise ValueError(
                 "`RetinaNet` does not currently support the use of "
                 "`metrics` due to performance and distribution concerns. Please us the "
