@@ -186,6 +186,22 @@ def get_yaw_rotation(yaw, name=None):
         )
 
 
+def inv_loc(rot: tf.Tensor, loc: tf.Tensor) -> tf.Tensor:
+    """Invert a location.
+    rot and loc can form a transform matrix between two frames.
+    R = rot, L = loc
+    R*R' = I
+    R * new_loc + L = 0 = > new_loc = -R'*L
+    Args:
+      rot: [..., 3, 3] rotation matrix.
+      loc: [..., 3] location matrix.
+    Returns:
+      [..., 3] new location matrix.
+    """
+    new_loc = -1.0 * tf.linalg.matmul(rot, loc[..., tf.newaxis], transpose_a=True)
+    return tf.squeeze(new_loc, axis=-1)
+
+
 def shape_int_compatible(t: tf.Tensor) -> tf.TensorShape:
     """int32 and int64 compatible tf shape implementation."""
     # tf.shape int32/int64 requires input and output to be on host.
@@ -219,3 +235,65 @@ def combined_static_and_dynamic_shape(tensor: tf.Tensor) -> List[Union[tf.Tensor
         else:
             combined_shape.append(dynamic_tensor_shape[index])
     return combined_shape
+
+
+def _has_rank(tensor, expected_rank):
+    """Syntactic sugar for asserting that tensor has the expected rank.
+
+    Internal usages for keras_cv libraries only.
+    """
+    if tensor.shape.ndims is not None and isinstance(expected_rank, int):
+        assert tensor.shape.ndims == expected_rank, (
+            "Ranks did not match, got %d, " "expected %d"
+        ) % (tensor.shape.ndims, expected_rank)
+    return tensor
+
+
+def _pad_or_trim_to(x, shape, pad_val=0, pad_after_contents=True):
+    """Pad and slice x to the given shape.
+
+    This is branched from Lingvo https://github.com/tensorflow/lingvo/blob/master/lingvo/core/py_utils.py.
+
+    Internal usages for keras_cv libraries only.
+
+    Args:
+      x: A tensor.
+      shape: The shape of the returned tensor.
+      pad_val: An int or float used to pad x.
+      pad_after_contents: Whether to pad and trim after the original contents of
+        each dimension.
+    Returns:
+      'x' is padded with pad_val and sliced so that the result has the given
+      shape.
+    Raises:
+      ValueError: if shape is a tf.TensorShape and not fully defined.
+    """
+    if isinstance(shape, (list, tuple)):
+        expected_rank = len(shape)
+    elif isinstance(shape, tf.TensorShape):
+        if not shape.is_fully_defined():
+            raise ValueError("shape %s padding %s must be fully defined." % (shape, x))
+        expected_rank = shape.rank
+    else:
+        shape = _has_rank(shape, 1)
+        expected_rank = tf.size(shape)
+    x = _has_rank(x, expected_rank)
+
+    pad = shape - tf.minimum(tf.shape(x), shape)
+    zeros = tf.zeros_like(pad)
+    if pad_after_contents:
+        # If dim_i is less than shape[i], pads after contents.
+        paddings = tf.stack([zeros, pad], axis=1)
+        # If dim_i is larger than shape[i], we slice [0:shape[i]] for dim_i.
+        slice_begin = zeros
+    else:
+        # If dim_i is less than shape[i], pads before contents.
+        paddings = tf.stack([pad, zeros], axis=1)
+        # If dim-i is larger than shape[i], we slice [dim_i - shape[i]:dim_i]
+        # for dim_i.
+        slice_begin = tf.shape(x) + pad - shape
+
+    x = tf.pad(x, paddings, constant_values=pad_val)
+    x = tf.slice(x, slice_begin, shape)
+
+    return tf.reshape(x, shape)
