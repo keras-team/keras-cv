@@ -149,6 +149,7 @@ with strategy.scope():
     )
     backbone = models.ResNet50V2(
         include_rescaling=True,
+        # This argument gives a 2% mIoU increase
         stackwise_dilations=[1, 1, 1, 2],
         input_shape=(512, 512, 3),
         include_top=False,
@@ -180,10 +181,4 @@ callbacks = [
 ]
 model.compile(optimizer=optimizer, loss=loss_fn, metrics=metrics)
 
-model.fit(
-    train_ds,
-    epochs=FLAGS.epochs,
-    validation_data=eval_ds,
-    callbacks=callbacks,
-    # verbose=2,
-)
+model.fit(train_ds, epochs=FLAGS.epochs, validation_data=eval_ds, callbacks=callbacks)
