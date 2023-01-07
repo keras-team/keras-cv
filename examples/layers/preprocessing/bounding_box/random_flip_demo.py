@@ -20,14 +20,11 @@ import tensorflow as tf
 
 from keras_cv.layers import preprocessing
 
-IMG_SIZE = (256, 256)
-BATCH_SIZE = 9
-
 
 def main():
     dataset = demo_utils.load_voc_dataset(bounding_box_format="rel_xyxy")
-    random_rotation = preprocessing.RandomFlip(bounding_box_format="rel_xyxy")
-    result = dataset.map(random_rotation, num_parallel_calls=tf.data.AUTOTUNE)
+    random_flip = preprocessing.RandomFlip(bounding_box_format="rel_xyxy")
+    result = dataset.map(random_flip, num_parallel_calls=tf.data.AUTOTUNE)
     demo_utils.visualize_data(result, bounding_box_format="rel_xyxy")
 
 

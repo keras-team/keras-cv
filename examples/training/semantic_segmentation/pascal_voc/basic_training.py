@@ -25,9 +25,8 @@ import tensorflow as tf
 from absl import flags
 from absl import logging
 
+from keras_cv import models
 from keras_cv.datasets.pascal_voc.segmentation import load
-from keras_cv.models import segmentation
-from keras_cv.models.resnet_v2 import ResNet50V2
 
 flags.DEFINE_string(
     "weights_path",
@@ -59,7 +58,7 @@ flags.DEFINE_string(
 flags.DEFINE_string(
     "model_kwargs",
     "{}",
-    "The kwargs for the model to be trained.",
+    "Keyword argument dictionary to pass to the constructor of the model being trained",
 )
 
 FLAGS = flags.FLAGS
@@ -148,14 +147,14 @@ with strategy.scope():
         boundaries=[30000 * 16 / global_batch],
         values=[base_lr, 0.1 * base_lr],
     )
-    backbone = ResNet50V2(
+    backbone = models.ResNet50V2(
         include_rescaling=True,
         stackwise_dilations=[1, 1, 1, 2],
         input_shape=(512, 512, 3),
         include_top=False,
         weights="imagenet",
     )
-    model = segmentation.__dict__[FLAGS.model_name]
+    model = models.__dict__[FLAGS.model_name]
     model = model(classes=21, backbone=backbone, **eval(FLAGS.model_kwargs))
     optimizer = tf.keras.optimizers.SGD(
         learning_rate=lr_decay, momentum=0.9, clipnorm=10.0
@@ -186,5 +185,5 @@ model.fit(
     epochs=FLAGS.epochs,
     validation_data=eval_ds,
     callbacks=callbacks,
-    #verbose=2,
+    # verbose=2,
 )

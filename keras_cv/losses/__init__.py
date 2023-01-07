@@ -14,5 +14,6 @@
 
 from keras_cv.losses.focal import FocalLoss
 from keras_cv.losses.iou_loss import IoULoss
+from keras_cv.losses.penalty_reduced_focal_loss import BinaryPenaltyReducedFocalXent
 from keras_cv.losses.simclr_loss import SimCLRLoss
 from keras_cv.losses.smooth_l1 import SmoothL1Loss

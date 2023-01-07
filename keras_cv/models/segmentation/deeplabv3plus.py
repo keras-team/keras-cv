@@ -92,9 +92,7 @@ class DeepLabV3Plus(keras.Model):
         if layer_names == (None, None):
             if "res" in backbone.name:
                 low_level_output = backbone.get_layer("v2_stack_0_block3_out").output
-                high_level_output = backbone.get_layer(
-                    "v2_stack_3_block3_out"
-                ).output
+                high_level_output = backbone.get_layer("v2_stack_3_block3_out").output
             else:
                 raise ValueError(
                     "Cannot default low-level and high-level layer names with a custom backbone."
@@ -115,7 +113,9 @@ class DeepLabV3Plus(keras.Model):
         high_level = backbone_outputs["high_level"]
 
         if spatial_pyramid_pooling is None:
-            spatial_pyramid_pooling = SpatialPyramidPooling(dilation_rates=[6, 12, 18], dropout=0.5)
+            spatial_pyramid_pooling = SpatialPyramidPooling(
+                dilation_rates=[6, 12, 18], dropout=0.5
+            )
 
         output = spatial_pyramid_pooling(high_level)
         output = tf.keras.layers.UpSampling2D(
@@ -131,7 +131,6 @@ class DeepLabV3Plus(keras.Model):
         )(low_level)
         low_level = layers.BatchNormalization()(low_level)
         low_level = layers.Activation("relu")(low_level)
-
 
         output = layers.Concatenate()([output, low_level])
 

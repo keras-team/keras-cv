@@ -68,16 +68,25 @@ function main() {
 
   echo "=== Copy KerasCV Custom op files"
 
+  cp ${PIP_FILE_PREFIX}setup.cfg "${TMPDIR}"
   cp ${PIP_FILE_PREFIX}setup.py "${TMPDIR}"
   cp ${PIP_FILE_PREFIX}MANIFEST.in "${TMPDIR}"
   cp ${PIP_FILE_PREFIX}README.md "${TMPDIR}"
   cp ${PIP_FILE_PREFIX}LICENSE "${TMPDIR}"
-  rsync -avm -L --exclude='*_test.py' ${PIP_FILE_PREFIX}keras_cv "${TMPDIR}"
+
+  if is_windows; then
+   from=$(cygpath -w ${PIP_FILE_PREFIX}keras_cv)
+   to=$(cygpath -w "${TMPDIR}"/keras_cv)
+   start robocopy //S "${from}" "${to}" //xf *_test.py
+   sleep 5
+  else
+   rsync -avm -L --exclude='*_test.py' ${PIP_FILE_PREFIX}keras_cv "${TMPDIR}"
+  fi
 
   pushd ${TMPDIR}
   echo $(date) : "=== Building wheel"
 
-  python3 setup.py bdist_wheel > /dev/null
+  python setup.py bdist_wheel > /dev/null
 
   cp dist/*.whl "${DEST}"
   popd

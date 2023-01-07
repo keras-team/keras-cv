@@ -20,7 +20,9 @@ from keras_cv.models import csp_darknet
 from .models_test import ModelsTest
 
 MODEL_LIST = [
-    (csp_darknet.CSPDarkNet, 1024, {}),
+    (csp_darknet.CSPDarkNetTiny, 384, {}),
+    (csp_darknet.CSPDarkNetS, 512, {}),
+    (csp_darknet.CSPDarkNetM, 768, {}),
 ]
 
 

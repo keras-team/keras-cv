@@ -16,7 +16,6 @@ from tensorflow.keras.layers import CenterCrop
 from tensorflow.keras.layers import RandomHeight
 from tensorflow.keras.layers import RandomTranslation
 from tensorflow.keras.layers import RandomWidth
-from tensorflow.keras.layers import Rescaling
 
 from keras_cv.layers.feature_pyramid import FeaturePyramid
 from keras_cv.layers.fusedmbconv import FusedMBConvBlock
@@ -91,6 +90,7 @@ from keras_cv.layers.preprocessing.random_sharpness import RandomSharpness
 from keras_cv.layers.preprocessing.random_shear import RandomShear
 from keras_cv.layers.preprocessing.random_zoom import RandomZoom
 from keras_cv.layers.preprocessing.randomly_zoomed_crop import RandomlyZoomedCrop
+from keras_cv.layers.preprocessing.rescaling import Rescaling
 from keras_cv.layers.preprocessing.resizing import Resizing
 from keras_cv.layers.preprocessing.solarization import Solarization
 from keras_cv.layers.regularization.drop_path import DropPath

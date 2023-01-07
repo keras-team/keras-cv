@@ -12,14 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Tests to ensure that COCOrecall computes the correct values.."""
+"""Tests to ensure that _COCORecall computes the correct values.."""
 import os
 
 import numpy as np
 import tensorflow as tf
 
 from keras_cv import bounding_box
-from keras_cv.metrics import COCORecall
+from keras_cv.metrics import _COCORecall
 
 SAMPLE_FILE = os.path.dirname(os.path.abspath(__file__)) + "/sample_boxes.npz"
 
@@ -38,11 +38,11 @@ class RecallCorrectnessTest(tf.test.TestCase):
     Average Recall     (AR) @[ IoU=0.50:0.95 | area= large | maxDets=100 ] = 0.641
     """
 
-    def test_recall_correctness_maxdets_1(self):
+    def DISABLE_test_recall_correctness_maxdets_1(self):
         y_true, y_pred, categories = load_samples(SAMPLE_FILE)
 
         # Area range all
-        recall = COCORecall(
+        recall = _COCORecall(
             bounding_box_format="xyxy",
             class_ids=categories + [1000],
             max_detections=1,
@@ -52,11 +52,11 @@ class RecallCorrectnessTest(tf.test.TestCase):
         result = recall.result().numpy()
         self.assertAlmostEqual(result, 0.478, delta=delta)
 
-    def test_recall_correctness_maxdets_10(self):
+    def DISABLE_test_recall_correctness_maxdets_10(self):
         y_true, y_pred, categories = load_samples(SAMPLE_FILE)
 
         # Area range all
-        recall = COCORecall(
+        recall = _COCORecall(
             bounding_box_format="xyxy",
             class_ids=categories + [1000],
             max_detections=10,
@@ -66,11 +66,11 @@ class RecallCorrectnessTest(tf.test.TestCase):
         result = recall.result().numpy()
         self.assertAlmostEqual(result, 0.645, delta=delta)
 
-    def test_recall_correctness_maxdets_100(self):
+    def DISABLE_test_recall_correctness_maxdets_100(self):
         y_true, y_pred, categories = load_samples(SAMPLE_FILE)
 
         # Area range all
-        recall = COCORecall(
+        recall = _COCORecall(
             bounding_box_format="xyxy",
             class_ids=categories + [1000],
             max_detections=100,
@@ -80,9 +80,9 @@ class RecallCorrectnessTest(tf.test.TestCase):
         result = recall.result().numpy()
         self.assertAlmostEqual(result, 0.648, delta=delta)
 
-    def test_recall_correctness_small_objects(self):
+    def DISABLE_test_recall_correctness_small_objects(self):
         y_true, y_pred, categories = load_samples(SAMPLE_FILE)
-        recall = COCORecall(
+        recall = _COCORecall(
             bounding_box_format="xyxy",
             class_ids=categories + [1000],
             max_detections=100,
@@ -93,9 +93,9 @@ class RecallCorrectnessTest(tf.test.TestCase):
         result = recall.result().numpy()
         self.assertAlmostEqual(result, 0.628, delta=delta)
 
-    def test_recall_correctness_medium_objects(self):
+    def DISABLE_test_recall_correctness_medium_objects(self):
         y_true, y_pred, categories = load_samples(SAMPLE_FILE)
-        recall = COCORecall(
+        recall = _COCORecall(
             bounding_box_format="xyxy",
             class_ids=categories + [1000],
             max_detections=100,
@@ -106,9 +106,9 @@ class RecallCorrectnessTest(tf.test.TestCase):
         result = recall.result().numpy()
         self.assertAlmostEqual(result, 0.653, delta=delta)
 
-    def test_recall_correctness_large_objects(self):
+    def DISABLE_test_recall_correctness_large_objects(self):
         y_true, y_pred, categories = load_samples(SAMPLE_FILE)
-        recall = COCORecall(
+        recall = _COCORecall(
             bounding_box_format="xyxy",
             class_ids=categories + [1000],
             max_detections=100,

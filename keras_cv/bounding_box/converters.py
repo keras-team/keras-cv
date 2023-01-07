@@ -26,6 +26,9 @@ class RequiresImagesException(Exception):
     pass
 
 
+ALL_AXES = [1, 1, 1, 1]
+
+
 def _encode_box_to_deltas(
     anchors: tf.Tensor,
     boxes: tf.Tensor,
@@ -112,54 +115,43 @@ def _decode_deltas_to_boxes(
 
 
 def _center_yxhw_to_xyxy(boxes, images=None, image_shape=None):
-    y, x, height, width, rest = tf.split(
-        boxes, [1, 1, 1, 1, boxes.shape[-1] - 4], axis=-1
-    )
+    y, x, height, width = tf.split(boxes, ALL_AXES, axis=-1)
     return tf.concat(
-        [x - width / 2.0, y - height / 2.0, x + width / 2.0, y + height / 2.0, rest],
+        [x - width / 2.0, y - height / 2.0, x + width / 2.0, y + height / 2.0],
         axis=-1,
     )
 
 
 def _center_xywh_to_xyxy(boxes, images=None, image_shape=None):
-    x, y, width, height, rest = tf.split(
-        boxes, [1, 1, 1, 1, boxes.shape[-1] - 4], axis=-1
-    )
+    x, y, width, height = tf.split(boxes, ALL_AXES, axis=-1)
     return tf.concat(
-        [x - width / 2.0, y - height / 2.0, x + width / 2.0, y + height / 2.0, rest],
+        [x - width / 2.0, y - height / 2.0, x + width / 2.0, y + height / 2.0],
         axis=-1,
     )
 
 
 def _xywh_to_xyxy(boxes, images=None, image_shape=None):
-    x, y, width, height, rest = tf.split(
-        boxes, [1, 1, 1, 1, boxes.shape[-1] - 4], axis=-1
-    )
-    return tf.concat([x, y, x + width, y + height, rest], axis=-1)
+    x, y, width, height = tf.split(boxes, ALL_AXES, axis=-1)
+    return tf.concat([x, y, x + width, y + height], axis=-1)
 
 
 def _xyxy_to_center_yxhw(boxes, images=None, image_shape=None):
-    left, top, right, bottom, rest = tf.split(
-        boxes, [1, 1, 1, 1, boxes.shape[-1] - 4], axis=-1
-    )
+    left, top, right, bottom = tf.split(boxes, ALL_AXES, axis=-1)
     return tf.concat(
-        [(top + bottom) / 2.0, (left + right) / 2.0, bottom - top, right - left, rest],
+        [(top + bottom) / 2.0, (left + right) / 2.0, bottom - top, right - left],
         axis=-1,
     )
 
 
 def _rel_xywh_to_xyxy(boxes, images=None, image_shape=None):
     image_height, image_width = _image_shape(images, image_shape, boxes)
-    x, y, width, height, rest = tf.split(
-        boxes, [1, 1, 1, 1, boxes.shape[-1] - 4], axis=-1
-    )
+    x, y, width, height = tf.split(boxes, ALL_AXES, axis=-1)
     return tf.concat(
         [
             image_width * x,
             image_height * y,
             image_width * (x + width),
             image_height * (y + height),
-            rest,
         ],
         axis=-1,
     )
@@ -170,99 +162,97 @@ def _xyxy_no_op(boxes, images=None, image_shape=None):
 
 
 def _xyxy_to_xywh(boxes, images=None, image_shape=None):
-    left, top, right, bottom, rest = tf.split(
-        boxes, [1, 1, 1, 1, boxes.shape[-1] - 4], axis=-1
-    )
+    left, top, right, bottom = tf.split(boxes, ALL_AXES, axis=-1)
     return tf.concat(
-        [left, top, right - left, bottom - top, rest],
+        [left, top, right - left, bottom - top],
         axis=-1,
     )
 
 
 def _xyxy_to_rel_xywh(boxes, images=None, image_shape=None):
     image_height, image_width = _image_shape(images, image_shape, boxes)
-    left, top, right, bottom, rest = tf.split(
-        boxes, [1, 1, 1, 1, boxes.shape[-1] - 4], axis=-1
-    )
+    left, top, right, bottom = tf.split(boxes, ALL_AXES, axis=-1)
     left, right = (
         left / image_width,
         right / image_width,
     )
     top, bottom = top / image_height, bottom / image_height
     return tf.concat(
-        [left, top, right - left, bottom - top, rest],
+        [left, top, right - left, bottom - top],
         axis=-1,
     )
 
 
 def _xyxy_to_center_xywh(boxes, images=None, image_shape=None):
-    left, top, right, bottom, rest = tf.split(
-        boxes, [1, 1, 1, 1, boxes.shape[-1] - 4], axis=-1
-    )
+    left, top, right, bottom = tf.split(boxes, ALL_AXES, axis=-1)
     return tf.concat(
-        [(left + right) / 2.0, (top + bottom) / 2.0, right - left, bottom - top, rest],
+        [(left + right) / 2.0, (top + bottom) / 2.0, right - left, bottom - top],
         axis=-1,
     )
 
 
 def _rel_xyxy_to_xyxy(boxes, images=None, image_shape=None):
     image_height, image_width = _image_shape(images, image_shape, boxes)
-    left, top, right, bottom, rest = tf.split(
-        boxes, [1, 1, 1, 1, boxes.shape[-1] - 4], axis=-1
+    left, top, right, bottom = tf.split(
+        boxes,
+        ALL_AXES,
+        axis=-1,
     )
     left, right = left * image_width, right * image_width
     top, bottom = top * image_height, bottom * image_height
     return tf.concat(
-        [left, top, right, bottom, rest],
+        [left, top, right, bottom],
         axis=-1,
     )
 
 
 def _xyxy_to_rel_xyxy(boxes, images=None, image_shape=None):
     image_height, image_width = _image_shape(images, image_shape, boxes)
-    left, top, right, bottom, rest = tf.split(
-        boxes, [1, 1, 1, 1, boxes.shape[-1] - 4], axis=-1
+    left, top, right, bottom = tf.split(
+        boxes,
+        ALL_AXES,
+        axis=-1,
     )
     left, right = left / image_width, right / image_width
     top, bottom = top / image_height, bottom / image_height
     return tf.concat(
-        [left, top, right, bottom, rest],
+        [left, top, right, bottom],
         axis=-1,
     )
 
 
 def _yxyx_to_xyxy(boxes, images=None, image_shape=None):
-    y1, x1, y2, x2, rest = tf.split(boxes, [1, 1, 1, 1, boxes.shape[-1] - 4], axis=-1)
-    return tf.concat([x1, y1, x2, y2, rest], axis=-1)
+    y1, x1, y2, x2 = tf.split(boxes, ALL_AXES, axis=-1)
+    return tf.concat([x1, y1, x2, y2], axis=-1)
 
 
 def _rel_yxyx_to_xyxy(boxes, images=None, image_shape=None):
     image_height, image_width = _image_shape(images, image_shape, boxes)
-    top, left, bottom, right, rest = tf.split(
-        boxes, [1, 1, 1, 1, boxes.shape[-1] - 4], axis=-1
+    top, left, bottom, right = tf.split(
+        boxes,
+        ALL_AXES,
+        axis=-1,
     )
     left, right = left * image_width, right * image_width
     top, bottom = top * image_height, bottom * image_height
     return tf.concat(
-        [left, top, right, bottom, rest],
+        [left, top, right, bottom],
         axis=-1,
     )
 
 
 def _xyxy_to_yxyx(boxes, images=None, image_shape=None):
-    x1, y1, x2, y2, rest = tf.split(boxes, [1, 1, 1, 1, boxes.shape[-1] - 4], axis=-1)
-    return tf.concat([y1, x1, y2, x2, rest], axis=-1)
+    x1, y1, x2, y2 = tf.split(boxes, ALL_AXES, axis=-1)
+    return tf.concat([y1, x1, y2, x2], axis=-1)
 
 
 def _xyxy_to_rel_yxyx(boxes, images=None, image_shape=None):
     image_height, image_width = _image_shape(images, image_shape, boxes)
-    left, top, right, bottom, rest = tf.split(
-        boxes, [1, 1, 1, 1, boxes.shape[-1] - 4], axis=-1
-    )
+    left, top, right, bottom = tf.split(boxes, ALL_AXES, axis=-1)
     left, right = left / image_width, right / image_width
     top, bottom = top / image_height, bottom / image_height
     return tf.concat(
-        [top, left, bottom, right, rest],
+        [top, left, bottom, right],
         axis=-1,
     )
 
@@ -341,7 +331,9 @@ def convert_format(
         boxes: tf.Tensor representing bounding boxes in the format specified in the
             `source` parameter.  `boxes` can optionally have extra dimensions stacked on
              the final axis to store metadata.  boxes should be a 3D Tensor, with the
-             shape `[batch_size, num_boxes, *]`.
+             shape `[batch_size, num_boxes, 4]`.  Alternatively, boxes can be a
+             dictionary with key 'boxes' containing a Tensor matching the aforementioned
+             spec.
         source: One of {" ".join([f'"{f}"' for f in TO_XYXY_CONVERTERS.keys()])}.  Used
             to specify the original format of the `boxes` parameter.
         target: One of {" ".join([f'"{f}"' for f in TO_XYXY_CONVERTERS.keys()])}.  Used
@@ -354,6 +346,22 @@ def convert_format(
         dtype: the data type to use when transforming the boxes.  Defaults to
             `tf.float32`.
     """
+    if isinstance(boxes, dict):
+        boxes["boxes"] = convert_format(
+            boxes["boxes"],
+            source=source,
+            target=target,
+            images=images,
+            image_shape=image_shape,
+            dtype=dtype,
+        )
+        return boxes
+
+    if boxes.shape[-1] != 4:
+        raise ValueError(
+            "Expected `boxes` to be a Tensor with a "
+            f"final dimension of `4`. Instead, got `boxes.shape={boxes.shape}`."
+        )
     if images is not None and image_shape is not None:
         raise ValueError(
             "convert_format() expects either `images` or `image_shape`, "
