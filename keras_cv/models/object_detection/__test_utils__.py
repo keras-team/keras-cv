@@ -21,7 +21,7 @@ def _create_bounding_box_dataset(bounding_box_format, use_dictionary_box_format=
     # Just about the easiest dataset you can have, all classes are 0, all boxes are
     # exactly the same.  [1, 1, 2, 2] are the coordinates in xyxy
     xs = tf.ones((5, 256, 256, 3), dtype=tf.float32)
-    y_classes = tf.zeros((5, 10, 1), dtype=tf.float32)
+    y_classes = tf.zeros((5, 10), dtype=tf.float32)
 
     ys = tf.constant([0.25, 0.25, 0.1, 0.1], dtype=tf.float32)
     ys = tf.expand_dims(ys, axis=0)
@@ -34,7 +34,7 @@ def _create_bounding_box_dataset(bounding_box_format, use_dictionary_box_format=
 
     if use_dictionary_box_format:
         return tf.data.Dataset.from_tensor_slices(
-            (xs, {"boxes": ys, "classes": y_classes, "gt_num_dets": num_dets})
+            (xs, {"boxes": ys, "classes": y_classes, "num_dets": num_dets})
         ).batch(5, drop_remainder=True)
     else:
         return xs, {"boxes": ys, "classes": y_classes}

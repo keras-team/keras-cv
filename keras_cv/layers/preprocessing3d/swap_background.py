@@ -70,11 +70,13 @@ class SwapBackground(base_augmentation_layer_3d.BaseAugmentationLayer3D):
     ):
         # Use the current frame bounding boxes to determine valid bounding boxes.
         bounding_boxes = tf.boolean_mask(
-            bounding_boxes, bounding_boxes[0, :, CENTER_XYZ_DXDYDZ_PHI.CLASS], axis=1
+            bounding_boxes,
+            bounding_boxes[0, :, CENTER_XYZ_DXDYDZ_PHI.CLASS] > 0,
+            axis=1,
         )
         additional_bounding_boxes = tf.boolean_mask(
             additional_bounding_boxes,
-            additional_bounding_boxes[0, :, CENTER_XYZ_DXDYDZ_PHI.CLASS],
+            additional_bounding_boxes[0, :, CENTER_XYZ_DXDYDZ_PHI.CLASS] > 0,
             axis=1,
         )
 
@@ -123,12 +125,12 @@ class SwapBackground(base_augmentation_layer_3d.BaseAugmentationLayer3D):
         for frame_index in range(num_frames):
             background_point_clouds = tf.boolean_mask(
                 point_clouds[frame_index],
-                point_clouds[frame_index, :, POINTCLOUD_LABEL_INDEX],
+                point_clouds[frame_index, :, POINTCLOUD_LABEL_INDEX] > 0,
                 axis=0,
             )
             object_point_clouds = tf.boolean_mask(
                 additional_point_clouds[frame_index],
-                additional_point_clouds[frame_index, :, POINTCLOUD_LABEL_INDEX],
+                additional_point_clouds[frame_index, :, POINTCLOUD_LABEL_INDEX] > 0,
                 axis=0,
             )
 

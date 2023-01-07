@@ -20,7 +20,12 @@ from keras_cv.models.__internal__.unet import UNet
 class UNetTest(tf.test.TestCase):
     # This test is disabled because it requires tf-nightly to run
     # (tf-nightly includes the synchronized param for BatchNorm layer)
-    def disabled_test_example_unet_output_shape(self):
+    def test_example_unet_output_shape_bn(self):
         x = tf.random.normal((1, 16, 16, 5))
-        output = UNet([(128, 6), (256, 2), (512, 1)], [512, 256, 256])(x)
+        output = UNet([(128, 6), (256, 2), (512, 1)], [512, 256, 256], sync_bn=False)(x)
+        self.assertEqual(output.shape, x.shape[:-1] + (256))
+
+    def disable_test_example_unet_output_shape_sync_bn(self):
+        x = tf.random.normal((1, 16, 16, 5))
+        output = UNet([(128, 6), (256, 2), (512, 1)], [512, 256, 256], sync_bn=True)(x)
         self.assertEqual(output.shape, x.shape[:-1] + (256))

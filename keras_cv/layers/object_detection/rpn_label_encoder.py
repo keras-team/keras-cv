@@ -23,6 +23,7 @@ from keras_cv.ops import sampling
 from keras_cv.ops import target_gather
 
 
+@tf.keras.utils.register_keras_serializable(package="keras_cv")
 class _RpnLabelEncoder(tf.keras.layers.Layer):
     """Transforms the raw labels into training targets for region proposal network (RPN).
 
@@ -80,7 +81,7 @@ class _RpnLabelEncoder(tf.keras.layers.Layer):
         )
         self.box_variance = box_variance
         self.built = True
-        self._positives = tf.keras.metrics.Mean()
+        self._positives = tf.keras.metrics.Mean(name="percent_boxes_matched")
 
     def call(
         self,
