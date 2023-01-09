@@ -74,3 +74,10 @@ class FocalTest(tf.test.TestCase):
         self.assertAllClose(
             focal_loss_on_logits(y_true, y_logits), focal_loss(y_true, y_pred)
         )
+
+    def test_smoothed_output(self):
+        y_true = [0.0, 1.0, 1.0]
+        y_pred = [0.1, 0.7, 0.9]
+
+        focal_loss = FocalLoss(label_smoothing=0.1)
+        self.assertAllClose(focal_loss(y_true, y_pred), 0.00371020)
