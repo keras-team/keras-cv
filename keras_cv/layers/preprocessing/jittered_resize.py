@@ -131,7 +131,7 @@ class JitteredResize(BaseImageAugmentationLayer):
         else:
             inputs = self._ensure_inputs_are_compute_dtype(inputs)
             inputs, meta_data = self._format_inputs(inputs)
-            output = = self.inference_resizing(inputs)
+            output = self.inference_resizing(inputs)
             return self._format_output(output, meta_data)
 
     def get_random_transformation(self, image=None, **kwargs):
