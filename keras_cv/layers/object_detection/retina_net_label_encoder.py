@@ -74,9 +74,8 @@ class RetinaNetLabelEncoder(layers.Layer):
         self.box_variance_tuple = box_variance
         self.built = True
 
-    def _encode_sample(self, gt_boxes, gt_classes, anchor_boxes):
+    def _encode_sample(self, box_labels, anchor_boxes):
         """Creates box and classification targets for a batched sample
-
         Matches ground truth boxes to anchor boxes based on IOU.
         1. Calculates the pairwise IOU for the M `anchor_boxes` and N `gt_boxes`
           to get a `(M, N)` shaped matrix.
@@ -86,7 +85,6 @@ class RetinaNetLabelEncoder(layers.Layer):
           box is assigned with the background class.
         4. The remaining anchor boxes that do not have any class assigned are
           ignored during training.
-
         Args:
           gt_boxes: A float tensor with shape `(num_objects, 4)` representing
             the ground truth boxes, where each box is of the format
@@ -103,6 +101,8 @@ class RetinaNetLabelEncoder(layers.Layer):
           ignore_mask: A mask for anchor boxes that need to by ignored during
             training
         """
+        gt_boxes = box_labels["boxes"]
+        gt_classes = box_labels["classes"]
         iou_matrix = bounding_box.compute_iou(
             anchor_boxes, gt_boxes, bounding_box_format="xywh"
         )
@@ -136,6 +136,8 @@ class RetinaNetLabelEncoder(layers.Layer):
             label,
         )
 
+        result = {"boxes": label[:, :, :4], "classes": label[:, :, 4]}
+
         box_shape = tf.shape(gt_boxes)
         batch_size = box_shape[0]
         n_boxes = box_shape[1]
@@ -153,15 +155,15 @@ class RetinaNetLabelEncoder(layers.Layer):
             ),
             tf.cast(matches, tf.int32),
         )
-        return label
+        return result
 
-    def call(self, images, boxes, classes):
+    def call(self, images, box_labels):
         """Creates box and classification targets for a batch
 
         Args:
           images: a batched [batch_size, H, W, C] image float `tf.Tensor`.
-          boxes: a batched [batch_size, num_objects, 4] or ragged batch float ground truth boxes in `bounding_box_format`.
-          classes: a batched [batch_size, num_objects] or ragged batch float ground truth classes.
+          box_labels: a batched KerasCV style bounding box dictionary containing
+            bounding boxes and class labels.  Should be in `bounding_box_format`.
         """
         if isinstance(images, tf.RaggedTensor):
             raise ValueError(
@@ -169,12 +171,16 @@ class RetinaNetLabelEncoder(layers.Layer):
                 "support RaggedTensor inputs for the `images` argument.  Received "
                 f"`type(images)={type(images)}`."
             )
-        gt_boxes = tf.cast(boxes, self.dtype)
-        gt_classes = tf.cast(classes, self.dtype)
 
-        gt_boxes = bounding_box.convert_format(
-            gt_boxes, source=self.bounding_box_format, target="xywh", images=images
+        box_labels = bounding_box.to_dense(box_labels)
+        box_labels = bounding_box.convert_format(
+            box_labels,
+            source=self.bounding_box_format,
+            target="xywh",
+            images=images,
         )
+        if box_labels["classes"].get_shape().rank == 2:
+            box_labels["classes"] = box_labels["classes"][..., tf.newaxis]
         anchor_boxes = self.anchor_generator(image_shape=tf.shape(images[0]))
         anchor_boxes = tf.concat(list(anchor_boxes.values()), axis=0)
         anchor_boxes = bounding_box.convert_format(
@@ -184,19 +190,12 @@ class RetinaNetLabelEncoder(layers.Layer):
             images=images[0],
         )
 
-        if isinstance(gt_boxes, tf.RaggedTensor):
-            gt_boxes = gt_boxes.to_tensor(default_value=-1, shape=(None, None, 4))
-        if isinstance(gt_classes, tf.RaggedTensor):
-            gt_classes = gt_classes.to_tensor(default_value=-1, shape=(None, None, 1))
-        elif gt_classes.get_shape().rank == 2:
-            gt_classes = gt_classes[..., tf.newaxis]
-
-        result = self._encode_sample(gt_boxes, gt_classes, anchor_boxes)
+        result = self._encode_sample(box_labels, anchor_boxes)
         result = bounding_box.convert_format(
             result, source="xywh", target=self.bounding_box_format, images=images
         )
-        encoded_box_targets = result[..., :4]
-        class_targets = result[..., 4]
+        encoded_box_targets = result["boxes"]
+        class_targets = result["classes"]
         return encoded_box_targets, class_targets
 
     def get_config(self):

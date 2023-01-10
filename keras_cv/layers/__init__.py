@@ -19,6 +19,7 @@ from tensorflow.keras.layers import RandomWidth
 
 from keras_cv.layers.feature_pyramid import FeaturePyramid
 from keras_cv.layers.fusedmbconv import FusedMBConvBlock
+from keras_cv.layers.maxvit_layers import _FFN
 from keras_cv.layers.maxvit_layers import GridPartitioning
 from keras_cv.layers.maxvit_layers import MaxViTBlock
 from keras_cv.layers.maxvit_layers import MaxViTStem
@@ -26,7 +27,6 @@ from keras_cv.layers.maxvit_layers import RelativeMultiHeadAttention
 from keras_cv.layers.maxvit_layers import UnGridPartitioning
 from keras_cv.layers.maxvit_layers import UnWindowPartitioning
 from keras_cv.layers.maxvit_layers import WindowPartitioning
-from keras_cv.layers.maxvit_layers import _FFN
 from keras_cv.layers.mbconv import MBConvBlock
 from keras_cv.layers.object_detection3d.voxelization import DynamicVoxelization
 from keras_cv.layers.object_detection.anchor_generator import AnchorGenerator

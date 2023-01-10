@@ -21,7 +21,7 @@ class RetinaNetLabelEncoderTest(tf.test.TestCase):
     def test_label_encoder_output_shapes(self):
         images_shape = (8, 512, 512, 3)
         boxes_shape = (8, 10, 4)
-        classes_shape = (8, 10, 1)
+        classes_shape = (8, 10)
 
         images = tf.random.uniform(shape=images_shape)
         boxes = tf.random.uniform(
@@ -46,20 +46,21 @@ class RetinaNetLabelEncoderTest(tf.test.TestCase):
             anchor_generator=anchor_generator,
             bounding_box_format="xyxy",
         )
-
-        box_targets, class_targets = encoder(images, boxes, classes)
+        bounding_boxes = {"boxes": boxes, "classes": classes}
+        box_targets, class_targets = encoder(images, bounding_boxes)
 
         self.assertEqual(box_targets.shape, [8, 49104, 4])
         self.assertEqual(class_targets.shape, [8, 49104])
 
     def test_all_negative_1(self):
         images_shape = (8, 512, 512, 3)
-        boxes_shape = (8, 10, 5)
+        boxes_shape = (8, 10, 4)
+        classes_shape = (8, 10)
 
         images = tf.random.uniform(shape=images_shape)
         boxes = -tf.ones(shape=boxes_shape, dtype=tf.float32)
-        classes = boxes[..., 4]
-        boxes = boxes[..., :4]
+        classes = -tf.ones(shape=classes_shape, dtype=tf.float32)
+
         strides = [2**i for i in range(3, 8)]
         scales = [2**x for x in [0, 1 / 3, 2 / 3]]
         sizes = [x**2 for x in [32.0, 64.0, 128.0, 256.0, 512.0]]
@@ -77,7 +78,8 @@ class RetinaNetLabelEncoderTest(tf.test.TestCase):
             bounding_box_format="xyxy",
         )
 
-        box_targets, class_targets = encoder(images, boxes, classes)
+        bounding_boxes = {"boxes": boxes, "classes": classes}
+        box_targets, class_targets = encoder(images, bounding_boxes)
 
         self.assertFalse(tf.math.reduce_any(tf.math.is_nan(box_targets)))
         self.assertFalse(tf.math.reduce_any(tf.math.is_nan(class_targets)))
@@ -86,13 +88,13 @@ class RetinaNetLabelEncoderTest(tf.test.TestCase):
         images_shape = (2, 512, 512, 3)
 
         images = tf.random.uniform(shape=images_shape)
-        box_targets = tf.ragged.stack(
+        boxes = tf.ragged.stack(
             [
                 tf.constant([[0, 0, 10, 10], [5, 5, 10, 10]], tf.float32),
                 tf.constant([[0, 0, 10, 10]], tf.float32),
             ]
         )
-        class_targets = tf.ragged.stack(
+        classes = tf.ragged.stack(
             [tf.constant([[1], [1]], tf.float32), tf.constant([[1]], tf.float32)]
         )
         strides = [2**i for i in range(3, 8)]
@@ -112,7 +114,8 @@ class RetinaNetLabelEncoderTest(tf.test.TestCase):
             bounding_box_format="xywh",
         )
 
-        box_targets, class_targets = encoder(images, box_targets, class_targets)
+        bounding_boxes = {"boxes": boxes, "classes": classes}
+        box_targets, class_targets = encoder(images, bounding_boxes)
 
         # 49104 is the anchor generator shape
         self.assertEqual(box_targets.shape, [2, 49104, 4])

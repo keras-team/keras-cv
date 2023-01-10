@@ -81,7 +81,7 @@ class _RpnLabelEncoder(tf.keras.layers.Layer):
         )
         self.box_variance = box_variance
         self.built = True
-        self._positives = tf.keras.metrics.Mean()
+        self._positives = tf.keras.metrics.Mean(name="percent_boxes_matched")
 
     def call(
         self,

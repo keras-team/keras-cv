@@ -17,7 +17,7 @@ import tensorflow as tf
 from keras_cv import bounding_box
 
 
-class PadBatchToShapeTestCase(tf.test.TestCase):
+class PadBatchToShapeTest(tf.test.TestCase):
     def test_bounding_box_padding(self):
         bounding_boxes = [[1, 2, 3, 4], [5, 6, 7, 8]]
         target_shape = [3, 4]

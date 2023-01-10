@@ -70,15 +70,15 @@ class IoULoss(tf.keras.losses.Loss):
         y_pred = tf.convert_to_tensor(y_pred)
         y_true = tf.cast(y_true, y_pred.dtype)
 
-        if y_pred.shape[-1] < 4:
+        if y_pred.shape[-1] != 4:
             raise ValueError(
-                "IoULoss expects y_pred.shape[-1] to be at least 4 to represent "
+                "IoULoss expects y_pred.shape[-1] to be 4 to represent "
                 f"the bounding boxes. Received y_pred.shape[-1]={y_pred.shape[-1]}."
             )
 
-        if y_true.shape[-1] < 4:
+        if y_true.shape[-1] != 4:
             raise ValueError(
-                "IoULoss expects y_true.shape[-1] to be at least 4 to represent "
+                "IoULoss expects y_true.shape[-1] to be 4 to represent "
                 f"the bounding boxes. Received y_true.shape[-1]={y_true.shape[-1]}."
             )
 
