@@ -13,7 +13,6 @@
 # limitations under the License.
 import demo_utils
 import tensorflow as tf
-from luketils import visualization
 
 import keras_cv
 
