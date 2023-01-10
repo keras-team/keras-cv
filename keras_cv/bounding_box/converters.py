@@ -249,6 +249,8 @@ def _xyxy_to_yxyx(boxes, images=None, image_shape=None):
 def _xyxy_to_rel_yxyx(boxes, images=None, image_shape=None):
     image_height, image_width = _image_shape(images, image_shape, boxes)
     left, top, right, bottom = tf.split(boxes, ALL_AXES, axis=-1)
+    image_width = tf.expand_dims(image_width, axis=-1)
+    image_height = tf.expand_dims(image_height, axis=-1)
     left, right = left / image_width, right / image_width
     top, bottom = top / image_height, bottom / image_height
     return tf.concat(
@@ -287,12 +289,12 @@ def convert_format(
 
     Supported formats are:
     - `"xyxy"`, also known as `corners` format.  In this format the first four axes
-        represent [left, top, right, bottom] in that order.
+        represent `[left, top, right, bottom]` in that order.
     - `"rel_xyxy"`.  In this format, the axes are the same as `"xyxy"` but the x
         coordinates are normalized using the image width, and the y axes the image
-        height.  All values in `rel_xyxy` are in the range (0, 1).
+        height.  All values in `rel_xyxy` are in the range `(0, 1)`.
     - `"xywh"`.  In this format the first four axes represent
-        [left, top, width, height].
+        `[left, top, width, height]`.
     - `"rel_xywh".  In this format the first four axes represent
         [left, top, width, height], just like `"xywh"`.  Unlike `"xywh"`, the values
         are in the range (0, 1) instead of absolute pixel values.

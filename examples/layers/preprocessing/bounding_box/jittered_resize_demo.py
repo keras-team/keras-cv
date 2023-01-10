@@ -11,20 +11,18 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""
-random_flip_demo.py shows how to use the RandomFlip preprocessing layer for
-object detection.
-"""
 import demo_utils
 import tensorflow as tf
 
-from keras_cv.layers import preprocessing
+import keras_cv
 
 
 def main():
     dataset = demo_utils.load_voc_dataset(bounding_box_format="xywh")
-    random_flip = preprocessing.RandomFlip(bounding_box_format="xywh")
-    result = dataset.map(random_flip, num_parallel_calls=tf.data.AUTOTUNE)
+    jittered_resize = keras_cv.layers.JitteredResize(
+        target_size=(640, 640), scale_factor=(0.75, 1.3), bounding_box_format="xywh"
+    )
+    result = dataset.map(jittered_resize, num_parallel_calls=tf.data.AUTOTUNE)
     demo_utils.visualize_data(result, bounding_box_format="xywh")
 
 
