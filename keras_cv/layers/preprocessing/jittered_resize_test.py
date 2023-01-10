@@ -179,7 +179,7 @@ class JitteredResizeTest(tf.test.TestCase, parameterized.TestCase):
             seed=self.seed,
         )
         output = layer(input, training=False)
-        expected_output = layer.inference_resizing(output)
+        expected_output = layer._inference_resizing(output)
         self.assertAllClose(
             expected_output["bounding_boxes"]["boxes"],
             output["bounding_boxes"]["boxes"],
