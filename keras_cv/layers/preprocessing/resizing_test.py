@@ -235,14 +235,24 @@ class ResizingTest(tf.test.TestCase, parameterized.TestCase):
             ],
             dtype="float32",
         )
-        boxes = tf.ragged.stack(
-            [
-                tf.ones((3, 5), dtype=tf.float32),
-                tf.ones((5, 5), dtype=tf.float32),
-                tf.ones((3, 5), dtype=tf.float32),
-                tf.ones((2, 5), dtype=tf.float32),
-            ],
-        )
+        boxes = {
+            "boxes": tf.ragged.stack(
+                [
+                    tf.ones((3, 4), dtype=tf.float32),
+                    tf.ones((5, 4), dtype=tf.float32),
+                    tf.ones((3, 4), dtype=tf.float32),
+                    tf.ones((2, 4), dtype=tf.float32),
+                ],
+            ),
+            "classes": tf.ragged.stack(
+                [
+                    tf.ones((3,), dtype=tf.float32),
+                    tf.ones((5,), dtype=tf.float32),
+                    tf.ones((3,), dtype=tf.float32),
+                    tf.ones((2,), dtype=tf.float32),
+                ],
+            ),
+        }
         layer = cv_layers.Resizing(
             4, 4, pad_to_aspect_ratio=True, bounding_box_format="xyxy"
         )
@@ -263,14 +273,24 @@ class ResizingTest(tf.test.TestCase, parameterized.TestCase):
             ],
             dtype="float32",
         )
-        boxes = tf.ragged.stack(
-            [
-                tf.ones((3, 5), dtype=tf.float32),
-                tf.ones((5, 5), dtype=tf.float32),
-                tf.ones((3, 5), dtype=tf.float32),
-                tf.ones((2, 5), dtype=tf.float32),
-            ],
-        )
+        boxes = {
+            "boxes": tf.ragged.stack(
+                [
+                    tf.ones((3, 4), dtype=tf.float32),
+                    tf.ones((5, 4), dtype=tf.float32),
+                    tf.ones((3, 4), dtype=tf.float32),
+                    tf.ones((2, 4), dtype=tf.float32),
+                ],
+            ),
+            "classes": tf.ragged.stack(
+                [
+                    tf.ones((3,), dtype=tf.float32),
+                    tf.ones((5,), dtype=tf.float32),
+                    tf.ones((3,), dtype=tf.float32),
+                    tf.ones((2,), dtype=tf.float32),
+                ],
+            ),
+        }
         layer = cv_layers.Resizing(
             16, 16, pad_to_aspect_ratio=True, bounding_box_format="xyxy"
         )

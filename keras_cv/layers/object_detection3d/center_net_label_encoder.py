@@ -52,26 +52,6 @@ def _meshgrid(
     return mesh * voxel_size
 
 
-def inv_loc(rot: tf.Tensor, loc: tf.Tensor) -> tf.Tensor:
-    """Invert a location.
-
-    rot and loc can form a transform matrix between two frames.
-
-    R = rot, L = loc
-    R*R' = I
-    R * new_loc + L = 0 = > new_loc = -R'*L
-
-    Args:
-      rot: [..., 3, 3] rotation matrix.
-      loc: [..., 3] location matrix.
-
-    Returns:
-      [..., 3] new location matrix.
-    """
-    new_loc = -1.0 * tf.linalg.matmul(rot, loc[..., tf.newaxis], transpose_a=True)
-    return tf.squeeze(new_loc, axis=-1)
-
-
 def compute_heatmap(
     box_3d: tf.Tensor,
     box_mask: tf.Tensor,
@@ -128,7 +108,9 @@ def compute_heatmap(
     point_xyz_rot = tf.linalg.matmul(point_xyz, rot)
     # convert from box frame to vehicle frame.
     # [B, N, max_num_voxels_per_box, 3]
-    point_xyz_transform = point_xyz_rot + inv_loc(rot, box_center)[:, :, tf.newaxis, :]
+    point_xyz_transform = (
+        point_xyz_rot + voxel_utils.inv_loc(rot, box_center)[:, :, tf.newaxis, :]
+    )
     # Due to the transform above, z=0 can be transformed to a non-zero value. For
     # 2d headmap, we do not want to use z.
     if voxel_size[2] > INF_VOXEL_SIZE:
@@ -317,47 +299,6 @@ def compute_top_k_heatmap_idx(heatmap: tf.Tensor, k: int) -> tf.Tensor:
     return res
 
 
-def compute_feature_map_ref_xyz(
-    voxel_size: Sequence[float],
-    spatial_size: Sequence[float],
-    global_xyz: tf.Tensor,
-) -> tf.Tensor:
-    """Computes the offset xyz locations for each feature map pixel.
-
-    Args:
-      voxel_size: voxel size.
-      spatial_size: the x, y, z boundary of voxels.
-      global_xyz: [B, 3] tensor
-
-    Returns:
-      [B, H, W, Z, 3] offset locations for each feature map pixel in global
-        coordinate.
-    """
-    voxel_spatial_size = voxel_utils.compute_voxel_spatial_size(
-        spatial_size, voxel_size
-    )
-    voxel_coord_meshgrid = np.mgrid[
-        0 : voxel_spatial_size[0], 0 : voxel_spatial_size[1], 0 : voxel_spatial_size[2]
-    ]
-    voxel_coord = np.concatenate(voxel_coord_meshgrid[..., np.newaxis], axis=-1)
-    # [H, W, Z, 3]
-    voxel_coord = tf.constant(voxel_coord, dtype=global_xyz.dtype)
-    # [3]
-    voxel_origin = tf.cast(
-        voxel_utils.compute_voxel_origin(spatial_size, voxel_size),
-        dtype=global_xyz.dtype,
-    )
-    # [H, W, Z, 3]
-    voxel_coord = voxel_coord + voxel_origin
-    # [H, W, Z, 3]
-    ref = voxel_utils.voxel_coord_to_point(
-        voxel_coord, voxel_size, dtype=global_xyz.dtype
-    )
-    # [1, H, W, Z, 3] + [B, 1, 1, 1, 3] -> [B, H, W, Z, 3]
-    ref = ref[tf.newaxis, ...] + global_xyz[:, tf.newaxis, tf.newaxis, tf.newaxis, :]
-    return ref
-
-
 class CenterNetLabelEncoder(tf.keras.layers.Layer):
     """Transforms the raw sparse labels into class specific dense training labels.
 
@@ -435,7 +376,7 @@ class CenterNetLabelEncoder(tf.keras.layers.Layer):
         )
         global_xyz = tf.zeros([b, 3], dtype=point_xyz.dtype)
         # [B, H, W, Z, 3]
-        feature_map_ref_xyz = compute_feature_map_ref_xyz(
+        feature_map_ref_xyz = voxel_utils.compute_feature_map_ref_xyz(
             self._voxel_size, self._spatial_size, global_xyz
         )
         # convert from global box point xyz to offset w.r.t center of feature map.

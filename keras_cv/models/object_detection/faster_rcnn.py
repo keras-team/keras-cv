@@ -393,7 +393,11 @@ class FasterRCNN(tf.keras.Model):
         # TODO(tanzhenyu): Add metrics support once COCOMap issue is addressed.
         # https://github.com/keras-team/keras-cv/issues/915
         if "metrics" in kwargs.keys():
-            raise ValueError("currently metrics support is not supported intentionally")
+            raise ValueError(
+                "`RetinaNet` does not currently support the use of "
+                "`metrics` due to performance and distribution concerns. "
+                "Please use the `PyCOCOCallback` to evaluate COCO metrics."
+            )
         if loss is not None:
             raise ValueError(
                 "`FasterRCNN` does not accept a `loss` to `compile()`. "
@@ -486,7 +490,13 @@ class FasterRCNN(tf.keras.Model):
         if sample_weight is not None:
             raise ValueError("`sample_weight` is currently not supported.")
         gt_boxes = y["boxes"]
-        gt_classes = y["classes"]
+        if len(y["classes"].shape) != 2:
+            raise ValueError(
+                "Expected 'classes' to be a tf.Tensor of rank 2. "
+                f"Got y['classes'].shape={y['classes'].shape}."
+            )
+        # TODO(tanzhenyu): remove this hack and perform broadcasting elsewhere
+        gt_classes = tf.expand_dims(y["classes"], axis=-1)
         with tf.GradientTape() as tape:
             total_loss = self.compute_loss(images, gt_boxes, gt_classes, training=True)
             reg_losses = []
@@ -504,7 +514,12 @@ class FasterRCNN(tf.keras.Model):
         if sample_weight is not None:
             raise ValueError("`sample_weight` is currently not supported.")
         gt_boxes = y["boxes"]
-        gt_classes = y["classes"]
+        if len(y["classes"].shape) != 2:
+            raise ValueError(
+                "Expected 'classes' to be a tf.Tensor of rank 2. "
+                f"Got y['classes'].shape={y['classes'].shape}."
+            )
+        gt_classes = tf.expand_dims(y["classes"], axis=-1)
         self.compute_loss(images, gt_boxes, gt_classes, training=False)
         return self.compute_metrics(images, {}, {}, sample_weight={})
 
