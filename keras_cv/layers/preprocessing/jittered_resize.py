@@ -113,7 +113,7 @@ class JitteredResize(BaseImageAugmentationLayer):
         )
         self.crop_size = crop_size
         self.target_size = target_size
-        self.inference_resizing = layers.Resizing(
+        self._inference_resizing = layers.Resizing(
             target_size[0],
             target_size[1],
             pad_to_aspect_ratio=True,
@@ -131,7 +131,7 @@ class JitteredResize(BaseImageAugmentationLayer):
         else:
             inputs = self._ensure_inputs_are_compute_dtype(inputs)
             inputs, meta_data = self._format_inputs(inputs)
-            output = self.inference_resizing(inputs)
+            output = self._inference_resizing(inputs)
             return self._format_output(output, meta_data)
 
     def get_random_transformation(self, image=None, **kwargs):
