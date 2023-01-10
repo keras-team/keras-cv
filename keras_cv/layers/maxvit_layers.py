@@ -1,6 +1,21 @@
+# Copyright 2022 The KerasCV Authors
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 import string
 import numpy as np
 
+import numpy as np
 import tensorflow as tf
 from tensorflow.keras import initializers
 from tensorflow.keras import layers
@@ -162,6 +177,10 @@ class WindowPartitioning(layers.Layer):
 
     def __init__(self, window_size, **kwargs):
         super().__init__(**kwargs)
+        if window_size < 0:
+            raise ValueError(
+                f"window_size must not be a negative number. Received {window_size}"
+            )
         self.window_size = window_size
 
     def call(self, input):
@@ -169,10 +188,7 @@ class WindowPartitioning(layers.Layer):
         window_size = self.window_size
 
         if h % window_size != 0 or w % window_size != 0:
-            raise ValueError(
-                f"Feature map sizes {(h, w)} "
-                f"not divisible by window size ({window_size})."
-            )
+            raise ValueError("Feature map sizes are not divisible by window size.")
 
         features = tf.reshape(
             input, (-1, h // window_size, window_size, w // window_size, window_size, c)
@@ -219,6 +235,10 @@ class UnWindowPartitioning(layers.Layer):
 
     def __init__(self, window_size, **kwargs):
         super().__init__(**kwargs)
+        if window_size < 0:
+            raise ValueError(
+                f"window_size must not be a negative number. Received {window_size}"
+            )
         self.window_size = window_size
 
     def call(self, input, height, width):
@@ -256,7 +276,7 @@ class GridPartitioning(layers.Layer):
         Returns:
           Partitioned features: [B, nH, nW, wSize, wSize, c].
         Raises:
-          ValueError: If the feature map sizes are not divisible by window sizes.
+          ValueError: If the feature map sizes are not divisible by grid sizes.
 
     Basic usage:
 
@@ -271,16 +291,17 @@ class GridPartitioning(layers.Layer):
 
     def __init__(self, grid_size, **kwargs):
         super().__init__(**kwargs)
+        if grid_size < 0:
+            raise ValueError(
+                f"grid_size must not be a negative number. Received {grid_size}"
+            )
         self.grid_size = grid_size
 
     def call(self, input):
         _, h, w, c = input.shape
         grid_size = self.grid_size
         if h % grid_size != 0 or w % grid_size != 0:
-            raise ValueError(
-                f"Feature map sizes {(h, w)} "
-                f"not divisible by window size ({grid_size})."
-            )
+            raise ValueError("Feature map sizes are not divisible by grid size.")
         features = tf.reshape(
             input, (-1, grid_size, h // grid_size, grid_size, w // grid_size, c)
         )
@@ -326,6 +347,10 @@ class UnGridPartitioning(layers.Layer):
 
     def __init__(self, grid_size, **kwargs):
         super().__init__(**kwargs)
+        if grid_size < 0:
+            raise ValueError(
+                f"grid_size must not be a negative number. Received {grid_size}"
+            )
         self.grid_size = grid_size
 
     def call(self, input, height, width):
@@ -786,6 +811,8 @@ class _FFN(tf.keras.Model):
         self.dropout = dropout
         self.activation = layers.Activation(activation)
         
+        print(self.hidden_size, self.expanded_size)
+
         print(self.hidden_size, self.expanded_size)
 
     """
