@@ -26,12 +26,12 @@ def main():
     dataset = dataset.map(
         lambda x: augment(x, training=True), num_parallel_calls=tf.data.AUTOTUNE
     )
-    visualize_dataset(dataset, bounding_box_format="xywh")
+    demo_utils.visualize_data(dataset, bounding_box_format="xywh")
 
     dataset = dataset.map(
         lambda x: augment(x, training=False), num_parallel_calls=tf.data.AUTOTUNE
     )
-    visualize_dataset(dataset, bounding_box_format="xywh")
+    demo_utils.visualize_data(dataset, bounding_box_format="xywh")
 
 
 if __name__ == "__main__":
