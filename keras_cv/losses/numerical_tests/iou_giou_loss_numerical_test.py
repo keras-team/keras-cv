@@ -94,19 +94,19 @@ class IoULossAddonsComparisonTest(tf.test.TestCase):
     def test_iou_output_value(self):
         y_true = np.array(
             [
-                [0, 0, 1, 1, 4, 0.9],
-                [0, 0, 2, 3, 4, 0.76],
-                [4, 5, 6, 6, 3, 0.89],
-                [2, 2, 3, 3, 6, 0.04],
+                [0, 0, 1, 1],
+                [0, 0, 2, 3],
+                [4, 5, 6, 6],
+                [2, 2, 3, 3],
             ]
         )
 
         y_pred = np.array(
             [
-                [0, 0, 5, 6, 4, 0.9],
-                [0, 0, 7, 3, 1, 0.76],
-                [7, 8, 9, 10, 4, 0.04],
-                [2, 1, 3, 3, 7, 0.48],
+                [0, 0, 5, 6],
+                [0, 0, 7, 3],
+                [7, 8, 9, 10],
+                [2, 1, 3, 3],
             ]
         )
 
@@ -118,25 +118,25 @@ class IoULossAddonsComparisonTest(tf.test.TestCase):
         )
         self.assertAllClose(
             iou_loss(y_true, y_pred),
-            tf_addons_giou_loss(y_true[:, :4], y_pred[:, :4], mode="iou"),
+            tf_addons_giou_loss(y_true, y_pred, mode="iou"),
         )
 
     def test_giou_output_value(self):
         y_true = np.array(
             [
-                [0, 0, 1, 1, 4, 0.9],
-                [0, 0, 2, 3, 4, 0.76],
-                [4, 5, 6, 6, 3, 0.89],
-                [2, 2, 3, 3, 6, 0.04],
+                [0, 0, 1, 1],
+                [0, 0, 2, 3],
+                [4, 5, 6, 6],
+                [2, 2, 3, 3],
             ]
         )
 
         y_pred = np.array(
             [
-                [0, 0, 5, 6, 4, 0.9],
-                [0, 0, 7, 3, 1, 0.76],
-                [7, 8, 9, 10, 4, 0.04],
-                [2, 1, 3, 3, 7, 0.48],
+                [0, 0, 5, 6],
+                [0, 0, 7, 3],
+                [7, 8, 9, 10],
+                [2, 1, 3, 3],
             ]
         )
 
@@ -144,5 +144,5 @@ class IoULossAddonsComparisonTest(tf.test.TestCase):
             bounding_box_format="yxyx", reduction="none", axis="no_reduction"
         )
         self.assertAllClose(
-            giou_loss(y_true, y_pred), tf_addons_giou_loss(y_true[:, :4], y_pred[:, :4])
+            giou_loss(y_true, y_pred), tf_addons_giou_loss(y_true, y_pred)
         )
