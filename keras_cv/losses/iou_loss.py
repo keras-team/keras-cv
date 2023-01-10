@@ -23,18 +23,15 @@ class IoULoss(tf.keras.losses.Loss):
 
     IoU loss is commonly used for object detection. This loss aims to directly
     optimize the IoU score between true boxes and predicted boxes. The length of the
-    last dimension should be atleast 4 to represent the bounding boxes. This loss
+    last dimension should be 4 to represent the bounding boxes. This loss
     uses IoUs according to box pairs and therefore, the number of boxes in both y_true
     and y_pred are expected to be equal i.e. the i<sup>th</sup> y_true box in a batch
     will be compared the i<sup>th</sup> y_pred box.
 
     Args:
-        bounding_box_format: a case-insensitive string which is one of `"xyxy"`,
-            `"rel_xyxy"`, `"xyWH"`, `"center_xyWH"`, `"yxyx"`, `"rel_yxyx"`.
-            Each bounding box is defined by at least these 4 values. The inputs
-            may contain additional information such as classes and confidence after
-            these 4 values but these values will be ignored while calculating
-            this loss. For detailed information on the supported formats, see the
+        bounding_box_format: a case-insensitive string (for example, "xyxy").
+            Each bounding box is defined by these 4 values. For detailed
+            information on the supported formats, see the
             [KerasCV bounding box documentation](https://keras.io/api/keras_cv/bounding_box/formats/).
         mode: must be one of
             - `"linear"`. The loss will be calculated as 1 - iou

@@ -24,15 +24,12 @@ class GIoULoss(tf.keras.losses.Loss):
     to directly optimize the IoU score between true boxes and predicted boxes. GIoU loss
     adds a penalty term to the IoU loss that takes in account the area of the
     smallest box enclosing both the boxes being considered for the iou. The length of
-    the last dimension should be atleast 4 to represent the bounding boxes. While
-    this dimension can have more than 4 values, these values will be ignored for the
-    calculation of this loss.
+    the last dimension should be 4 to represent the bounding boxes. 
+
     Args:
         bounding_box_format: a case-insensitive string (for example, "xyxy").
-            Each bounding box is defined by at least these 4 values. The inputs
-            may contain additional information such as classes and confidence after
-            these 4 values but these values will be ignored while calculating
-            this loss. For detailed information on the supported formats, see the
+            Each bounding box is defined by these 4 values.For detailed information
+            on the supported formats, see the
             [KerasCV bounding box documentation](https://keras.io/api/keras_cv/bounding_box/formats/).
         axis: the axis along which to mean the ious. Passing the string "no_reduction" implies
             mean across no axes. Defaults to -1.
@@ -40,6 +37,7 @@ class GIoULoss(tf.keras.losses.Loss):
     References:
         - [GIoU paper](https://arxiv.org/pdf/1902.09630)
         - [TFAddons Implementation](https://www.tensorflow.org/addons/api_docs/python/tfa/losses/GIoULoss)
+
     Sample Usage:
     ```python
     y_true = tf.random.uniform((5, 10, 5), minval=0, maxval=10, dtype=tf.dtypes.int32)
@@ -91,10 +89,10 @@ class GIoULoss(tf.keras.losses.Loss):
             boxes1, boxes2 = boxes
             zero = tf.convert_to_tensor(0.0, boxes1.dtype)
             boxes1_ymin, boxes1_xmin, boxes1_ymax, boxes1_xmax = tf.unstack(
-                boxes1[..., :4], 4, axis=-1
+                boxes1, 4, axis=-1
             )
             boxes2_ymin, boxes2_xmin, boxes2_ymax, boxes2_xmax = tf.unstack(
-                boxes2[..., :4], 4, axis=-1
+                boxes2, 4, axis=-1
             )
             boxes1_width = tf.maximum(zero, boxes1_xmax - boxes1_xmin)
             boxes1_height = tf.maximum(zero, boxes1_ymax - boxes1_ymin)
