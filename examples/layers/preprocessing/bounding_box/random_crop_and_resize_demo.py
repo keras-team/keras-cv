@@ -21,7 +21,6 @@ import tensorflow as tf
 from keras_cv.layers import preprocessing
 
 IMG_SIZE = (256, 256)
-BATCH_SIZE = 9
 
 
 def main():

@@ -272,7 +272,11 @@ class RetinaNet(tf.keras.Model):
                 propagated to the `keras.Model` class.
         """
         if "metrics" in kwargs.keys():
-            raise ValueError("currently metrics support is not supported intentionally")
+            raise ValueError(
+                "`RetinaNet` does not currently support the use of "
+                "`metrics` due to performance and distribution concerns. Please us the "
+                "`PyCOCOCallback` to evaluate COCO metrics."
+            )
         super().compile(**kwargs)
         if loss is not None:
             raise ValueError(
@@ -359,15 +363,13 @@ class RetinaNet(tf.keras.Model):
 
     def train_step(self, data):
         x, y = data
-        gt_boxes = y["boxes"]
-        gt_classes = y["classes"]
-        gt_boxes = bounding_box.convert_format(
-            gt_boxes,
+        y = bounding_box.convert_format(
+            y,
             source=self.bounding_box_format,
             target=self.label_encoder.bounding_box_format,
             images=x,
         )
-        gt_boxes, gt_classes = self.label_encoder(x, gt_boxes, gt_classes)
+        gt_boxes, gt_classes = self.label_encoder(x, y)
         gt_boxes = bounding_box.convert_format(
             gt_boxes,
             source=self.label_encoder.bounding_box_format,
@@ -394,15 +396,13 @@ class RetinaNet(tf.keras.Model):
 
     def test_step(self, data):
         x, y = data
-        gt_boxes = y["boxes"]
-        gt_classes = y["classes"]
-        gt_boxes = bounding_box.convert_format(
-            gt_boxes,
+        y = bounding_box.convert_format(
+            y,
             source=self.bounding_box_format,
             target=self.label_encoder.bounding_box_format,
             images=x,
         )
-        gt_boxes, gt_classes = self.label_encoder(x, gt_boxes, gt_classes)
+        gt_boxes, gt_classes = self.label_encoder(x, y)
         gt_boxes = bounding_box.convert_format(
             gt_boxes,
             source=self.label_encoder.bounding_box_format,
