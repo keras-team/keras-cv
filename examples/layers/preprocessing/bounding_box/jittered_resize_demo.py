@@ -13,21 +13,24 @@
 # limitations under the License.
 import demo_utils
 import tensorflow as tf
+from luketils import visualization
 
 import keras_cv
-from luketils import visualization
+
 
 def main():
     augment = keras_cv.layers.JitteredResize(
-        target_size=(640, 640),
-        scale_factor=(0.75, 1.3),
-        bounding_box_format='xywh'
+        target_size=(640, 640), scale_factor=(0.75, 1.3), bounding_box_format="xywh"
     )
     dataset = demo_utils.load_voc_dataset(bounding_box_format="xywh")
-    dataset = dataset.map(lambda x: augment(x, training=True), num_parallel_calls=tf.data.AUTOTUNE)
+    dataset = dataset.map(
+        lambda x: augment(x, training=True), num_parallel_calls=tf.data.AUTOTUNE
+    )
     visualize_dataset(dataset, bounding_box_format="xywh")
 
-    dataset = dataset.map(lambda x: augment(x, training=False), num_parallel_calls=tf.data.AUTOTUNE)
+    dataset = dataset.map(
+        lambda x: augment(x, training=False), num_parallel_calls=tf.data.AUTOTUNE
+    )
     visualize_dataset(dataset, bounding_box_format="xywh")
 
 
