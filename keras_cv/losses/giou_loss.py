@@ -24,7 +24,7 @@ class GIoULoss(tf.keras.losses.Loss):
     to directly optimize the IoU score between true boxes and predicted boxes. GIoU loss
     adds a penalty term to the IoU loss that takes in account the area of the
     smallest box enclosing both the boxes being considered for the iou. The length of
-    the last dimension should be 4 to represent the bounding boxes. 
+    the last dimension should be 4 to represent the bounding boxes.
 
     Args:
         bounding_box_format: a case-insensitive string (for example, "xyxy").
