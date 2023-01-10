@@ -159,3 +159,32 @@ class JitteredResizeTest(tf.test.TestCase, parameterized.TestCase):
         self.assertAllClose(
             expected_output["classes"], output["bounding_boxes"]["classes"]
         )
+
+    def test_augment_inference_mode(self):
+        image = tf.zeros([20, 20, 3])
+        boxes = {
+            "boxes": tf.convert_to_tensor([[0, 0, 1, 1]], dtype=tf.float32),
+            "classes": tf.convert_to_tensor([0], dtype=tf.float32),
+        }
+        input = {"images": image, "bounding_boxes": boxes}
+
+        layer = layers.JitteredResize(
+            target_size=self.target_size,
+            scale_factor=(3 / 4, 4 / 3),
+            bounding_box_format="rel_xywh",
+            seed=self.seed,
+        )
+        output = layer(input, training=False)
+        expected_output = layer.inference_resizing(output)
+        self.assertAllClose(
+            expected_output["bounding_boxes"]["boxes"],
+            output["bounding_boxes"]["boxes"],
+        )
+        self.assertAllClose(
+            expected_output["bounding_boxes"]["classes"],
+            output["bounding_boxes"]["classes"],
+        )
+        self.assertAllClose(
+            expected_output["images"],
+            output["images"],
+        )
