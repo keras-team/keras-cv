@@ -55,7 +55,7 @@ class GIoULoss(tf.keras.losses.Loss):
         super().__init__(**kwargs)
         self.bounding_box_format = bounding_box_format
         self.axis = axis
-    
+
     def _compute_enclosure(self, boxes1, boxes2):
         y_min1, x_min1, y_max1, x_max1 = tf.split(
             boxes1[..., :4], num_or_size_splits=4, axis=-1
@@ -123,9 +123,7 @@ class GIoULoss(tf.keras.losses.Loss):
         # giou calculation
         enclose_area = self._compute_enclosure(boxes1, boxes2)
 
-        return iou - tf.math.divide_no_nan(
-            (enclose_area - union_area), enclose_area
-        )
+        return iou - tf.math.divide_no_nan((enclose_area - union_area), enclose_area)
 
     def call(self, y_true, y_pred, sample_weight=None):
         if sample_weight is not None:
@@ -133,7 +131,7 @@ class GIoULoss(tf.keras.losses.Loss):
                 "GIoULoss does not support sample_weight. Please ensure that sample_weight=None."
                 f"got sample_weight={sample_weight}"
             )
-    
+
         y_pred = tf.convert_to_tensor(y_pred)
         y_true = tf.cast(y_true, y_pred.dtype)
 
