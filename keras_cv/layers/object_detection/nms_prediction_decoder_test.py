@@ -28,7 +28,7 @@ class NmsPredictionDecoderTest(tf.test.TestCase):
         box_pred = predictions[..., :4]
         confidence_pred = predictions[..., 4:]
 
-        layer = cv_layers.NmsDecoder(
+        layer = cv_layers.NonMaxSuppression(
             bounding_box_format="xyxy",
             from_logits=True,
             max_detections=100,

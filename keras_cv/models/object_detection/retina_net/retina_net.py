@@ -146,7 +146,7 @@ class RetinaNet(tf.keras.Model):
             ).as_backbone()
         )
 
-        self._prediction_decoder = prediction_decoder or cv_layers.NmsDecoder(
+        self._prediction_decoder = prediction_decoder or cv_layers.NonMaxSuppression(
             bounding_box_format=bounding_box_format,
             from_logits=True,
         )

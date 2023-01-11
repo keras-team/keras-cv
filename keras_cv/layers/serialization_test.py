@@ -423,8 +423,8 @@ class SerializationTest(tf.test.TestCase, parameterized.TestCase):
             },
         ),
         (
-            "NmsDecoder",
-            cv_layers.NmsDecoder,
+            "NonMaxSuppression",
+            cv_layers.NonMaxSuppression,
             {
                 "bounding_box_format": "yxyx",
                 "from_logits": True,
