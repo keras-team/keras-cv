@@ -20,7 +20,7 @@ import tensorflow_datasets as tfds
 from keras_cv import bounding_box
 
 
-def preprocess_voc(inputs, format, image_size):
+def preprocess_voc(inputs, format):
     image = inputs["image"]
     image = tf.cast(image, tf.float32)
     boxes = inputs["objects"]["bbox"]
@@ -39,12 +39,11 @@ def load_voc_dataset(
     bounding_box_format,
     name="voc/2007",
     batch_size=9,
-    image_size=(224, 224),
 ):
 
     dataset = tfds.load(name, split=tfds.Split.TRAIN, shuffle_files=True)
     dataset = dataset.map(
-        lambda x: preprocess_voc(x, format=bounding_box_format, image_size=image_size),
+        lambda x: preprocess_voc(x, format=bounding_box_format),
         num_parallel_calls=tf.data.AUTOTUNE,
     )
     dataset = dataset.apply(tf.data.experimental.dense_to_ragged_batch(batch_size))
