@@ -249,8 +249,6 @@ def _xyxy_to_yxyx(boxes, images=None, image_shape=None):
 def _xyxy_to_rel_yxyx(boxes, images=None, image_shape=None):
     image_height, image_width = _image_shape(images, image_shape, boxes)
     left, top, right, bottom = tf.split(boxes, ALL_AXES, axis=-1)
-    image_width = tf.expand_dims(image_width, axis=-1)
-    image_height = tf.expand_dims(image_height, axis=-1)
     left, right = left / image_width, right / image_width
     top, bottom = top / image_height, bottom / image_height
     return tf.concat(
