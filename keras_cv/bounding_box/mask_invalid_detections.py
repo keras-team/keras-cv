@@ -61,7 +61,9 @@ def mask_invalid_detections(bounding_boxes, output_ragged=False):
 
     # Create a mask to select only the first N boxes from each batch
     mask = tf.repeat(
-        tf.expand_dims(tf.range(boxes.shape[1]), axis=0), repeats=boxes.shape[0], axis=0
+        tf.expand_dims(tf.range(tf.shape(boxes)[1]), axis=0),
+        repeats=tf.shape(boxes)[0],
+        axis=0,
     )
     mask = mask < num_detections[:, None]
 
