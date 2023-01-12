@@ -39,7 +39,7 @@ class MaskInvalidDetectionsTest(tf.test.TestCase):
                 [tf.random.uniform((5, 4)), tf.random.uniform((10, 4))]
             ),
             "num_detections": tf.constant([2, 3]),
-            "classes": tf.ragged.stack([tf.random.uniform((5)), tf.random.uniform((5))]),
+            "classes": tf.ragged.stack([tf.random.uniform((5,)), tf.random.uniform((5,))]),
         }
 
         result = bounding_box.mask_invalid_detections(bounding_boxes)
