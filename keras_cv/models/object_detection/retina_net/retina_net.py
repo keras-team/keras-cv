@@ -74,7 +74,7 @@ class RetinaNet(tf.keras.Model):
         prediction_decoder: (Optional)  A `keras.layer` that is responsible for
             transforming RetinaNet predictions into usable bounding box Tensors.  If
             not provided, a default is provided.  The default `prediction_decoder`
-            layer uses a `NonMaxSuppression` operation for box pruning.
+            layer uses a `MultiClassNonMaxSuppression` operation for box pruning.
         feature_pyramid: (Optional) A `keras.Model` representing a feature pyramid
             network (FPN).  The feature pyramid network is called on the outputs of the
             `backbone`.  The KerasCV default backbones return three outputs in a list,
@@ -146,7 +146,7 @@ class RetinaNet(tf.keras.Model):
             ).as_backbone()
         )
 
-        self._prediction_decoder = prediction_decoder or cv_layers.NonMaxSuppression(
+        self._prediction_decoder = prediction_decoder or cv_layers.MultiClassNonMaxSuppression(
             bounding_box_format=bounding_box_format,
             from_logits=True,
         )

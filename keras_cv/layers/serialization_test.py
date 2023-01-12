@@ -423,8 +423,8 @@ class SerializationTest(tf.test.TestCase, parameterized.TestCase):
             },
         ),
         (
-            "NonMaxSuppression",
-            cv_layers.NonMaxSuppression,
+            "MultiClassNonMaxSuppression",
+            cv_layers.MultiClassNonMaxSuppression,
             {
                 "bounding_box_format": "yxyx",
                 "from_logits": True,
