@@ -31,6 +31,13 @@ def mask_invalid_detections(bounding_boxes):
         bounding_boxes: a dictionary complying with KerasCV bounding box format.  In
             addition to the normal required keys, these boxes are also expected to have
             a `num_detections` key.
+
+    Returns:
+        bounding boxes with proper masking of the boxes according to `num_detections`.
+        This allows proper interop with `tf.image.combined_non_max_suppression`.
+        Returned boxes match the specification fed to the function, so if the bounding
+        box tensor uses `tf.RaggedTensor` to represent boxes the returned value will
+        also return `tf.RaggedTensor` representations.
     """
     # ensure we are complying with KerasCV bounding box format.
     info = validate_format(bounding_boxes)
