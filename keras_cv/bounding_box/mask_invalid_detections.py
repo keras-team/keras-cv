@@ -13,7 +13,6 @@
 # limitations under the License.
 import tensorflow as tf
 
-from keras_cv.bounding_box.to_dense import to_dense
 from keras_cv.bounding_box.to_ragged import to_ragged
 from keras_cv.bounding_box.validate_format import validate_format
 
