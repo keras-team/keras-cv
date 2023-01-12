@@ -31,10 +31,32 @@ class MaskInvalidDetectionsTest(tf.test.TestCase):
         self.assertAllClose(negative_one_boxes, -tf.ones_like(negative_one_boxes))
 
         preserved_boxes = result["boxes"][:, :2, :]
-        self.assertAllClose(preserved_boxes, bounding_boxes['boxes'][:, :2, :])
+        self.assertAllClose(preserved_boxes, bounding_boxes["boxes"][:, :2, :])
 
         boxes_from_image_3 = result["boxes"][2, :4, :]
-        self.assertAllClose(boxes_from_image_3, bounding_boxes['boxes'][2, :4, :])
+        self.assertAllClose(boxes_from_image_3, bounding_boxes["boxes"][2, :4, :])
+
+    def test_correctly_masks_based_on_max_dets_in_graph(self):
+        bounding_boxes = {
+            "boxes": tf.random.uniform((4, 100, 4)),
+            "num_detections": tf.constant([2, 3, 4, 2]),
+            "classes": tf.random.uniform((4, 100)),
+        }
+
+        @tf.function()
+        def apply_mask_detections(bounding_boxes):
+            return bounding_box.mask_invalid_detections(bounding_boxes)
+
+        result = apply_mask_detections(bounding_boxes)
+
+        negative_one_boxes = result["boxes"][:, 5:, :]
+        self.assertAllClose(negative_one_boxes, -tf.ones_like(negative_one_boxes))
+
+        preserved_boxes = result["boxes"][:, :2, :]
+        self.assertAllClose(preserved_boxes, bounding_boxes["boxes"][:, :2, :])
+
+        boxes_from_image_3 = result["boxes"][2, :4, :]
+        self.assertAllClose(boxes_from_image_3, bounding_boxes["boxes"][2, :4, :])
 
     def test_preserves_ragged(self):
         bounding_boxes = {
@@ -42,10 +64,12 @@ class MaskInvalidDetectionsTest(tf.test.TestCase):
                 [tf.random.uniform((5, 4)), tf.random.uniform((10, 4))]
             ),
             "num_detections": tf.constant([2, 3]),
-            "classes": tf.ragged.stack([tf.random.uniform((5,)), tf.random.uniform((10,))]),
+            "classes": tf.ragged.stack(
+                [tf.random.uniform((5,)), tf.random.uniform((10,))]
+            ),
         }
 
         result = bounding_box.mask_invalid_detections(bounding_boxes)
-        self.assertTrue(isinstance(result['boxes'], tf.RaggedTensor))
-        self.assertEqual(result['boxes'][0].shape[0], 2)
-        self.assertEqual(result['boxes'][1].shape[0], 3)
+        self.assertTrue(isinstance(result["boxes"], tf.RaggedTensor))
+        self.assertEqual(result["boxes"][0].shape[0], 2)
+        self.assertEqual(result["boxes"][1].shape[0], 3)
