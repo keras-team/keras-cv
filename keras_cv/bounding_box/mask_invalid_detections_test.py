@@ -21,7 +21,7 @@ class MaskInvalidDetectionsTest(tf.test.TestCase):
     def test_correctly_masks_based_on_max_dets(self):
         bounding_boxes = {
             "boxes": tf.random.uniform((4, 100, 4)),
-            "num_detections": tf.constant([2, 3, 4, 1]),
+            "num_detections": tf.constant([2, 3, 4, 2]),
             "classes": tf.random.uniform((4, 100)),
         }
 
@@ -30,13 +30,16 @@ class MaskInvalidDetectionsTest(tf.test.TestCase):
         negative_one_boxes = result["boxes"][:, 5:, :]
         self.assertAllClose(negative_one_boxes, -tf.ones_like(negative_one_boxes))
 
+        preserved_boxes = result["boxes"][:, :2, :]
+        self.assertAllClose(preserved_boxes, bounding_boxes['boxes'][:, :2, :])
+
     def test_preserves_ragged(self):
         bounding_boxes = {
             "boxes": tf.ragged.stack(
-                [tf.random.uniform(5, 4), tf.random.uniform(10, 4)]
+                [tf.random.uniform((5, 4)), tf.random.uniform((10, 4))]
             ),
             "num_detections": tf.constant([2, 3]),
-            "classes": tf.ragged.stack([tf.random.uniform(5), tf.random.uniform(5)]),
+            "classes": tf.ragged.stack([tf.random.uniform((5)), tf.random.uniform((5))]),
         }
 
         result = bounding_box.mask_invalid_detections(bounding_boxes)
