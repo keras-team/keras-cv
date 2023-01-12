@@ -325,11 +325,14 @@ class FasterRCNN(tf.keras.Model):
             positive_fraction=0.5,
             box_variance=BOX_VARIANCE,
         )
-        self._prediction_decoder = prediction_decoder or cv_layers.NmsDecoder(
-            bounding_box_format=bounding_box_format,
-            from_logits=False,
-            max_detections_per_class=10,
-            max_detections=10,
+        self._prediction_decoder = (
+            prediction_decoder
+            or cv_layers.MultiClassNonMaxSuppression(
+                bounding_box_format=bounding_box_format,
+                from_logits=False,
+                max_detections_per_class=10,
+                max_detections=10,
+            )
         )
 
     def _call_rpn(self, images, anchors, training=None):
