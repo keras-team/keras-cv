@@ -19,7 +19,7 @@ from keras_cv import bounding_box
 
 # TODO(tanzhenyu): provide a TPU compatible NMS decoder.
 @tf.keras.utils.register_keras_serializable(package="keras_cv")
-class NmsDecoder(tf.keras.layers.Layer):
+class MultiClassNonMaxSuppression(tf.keras.layers.Layer):
     """A Keras layer that decodes predictions of an object detection model.
 
     Arguments:
@@ -57,32 +57,35 @@ class NmsDecoder(tf.keras.layers.Layer):
         self.max_detections_per_class = max_detections_per_class
         self.built = True
 
-    def call(self, box_pred, confidence_pred):
+    def call(self, box_prediction, confidence_prediction):
         """Accepts images and raw predictions, and returns bounding box predictions.
 
         Args:
-            images: Tensor of shape [batch, height, width, channels].
-            box_pred: Dense Tensor of shape [batch, boxes, 4] in the
+            box_prediction: Dense Tensor of shape [batch, boxes, 4] in the
                 `bounding_box_format` specified in the constructor.
-            confidence_pred: Dense Tensor of shape [batch, boxes, num_classes].
+            confidence_prediction: Dense Tensor of shape [batch, boxes, num_classes].
         """
-        box_pred = bounding_box.convert_format(
-            box_pred,
+        target_format = bounding_box.preserve_rel(
+            target_bounding_box_format="yxyx",
+            bounding_box_format=self.bounding_box_format,
+        )
+        box_prediction = bounding_box.convert_format(
+            box_prediction,
             source=self.bounding_box_format,
-            target="yxyx",
+            target=target_format,
         )
         if self.from_logits:
-            confidence_pred = tf.nn.softmax(confidence_pred)
+            confidence_prediction = tf.nn.softmax(confidence_prediction)
 
-        box_pred = tf.expand_dims(box_pred, axis=-2)
+        box_prediction = tf.expand_dims(box_prediction, axis=-2)
         (
             box_pred,
             confidence_pred,
             class_pred,
             valid_det,
         ) = tf.image.combined_non_max_suppression(
-            boxes=box_pred,
-            scores=confidence_pred,
+            boxes=box_prediction,
+            scores=confidence_prediction,
             max_output_size_per_class=self.max_detections_per_class,
             max_total_size=self.max_detections,
             score_threshold=self.confidence_threshold,
@@ -91,7 +94,7 @@ class NmsDecoder(tf.keras.layers.Layer):
         )
         box_pred = bounding_box.convert_format(
             box_pred,
-            source="yxyx",
+            source=target_format,
             target=self.bounding_box_format,
         )
         return {
