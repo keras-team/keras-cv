@@ -16,10 +16,7 @@ resizing_demo.py shows how to use the resizing preprocessing layer for
 object detection.
 """
 import demo_utils
-import tensorflow as tf
-import tensorflow_datasets as tfds
 
-import keras_cv
 from keras_cv import layers
 
 
