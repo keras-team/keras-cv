@@ -11,6 +11,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import tensorflow as tf
+
 from keras_cv.bounding_box.to_dense import to_dense
 from keras_cv.bounding_box.to_ragged import to_ragged
 from keras_cv.bounding_box.validate_format import validate_format
@@ -43,6 +45,7 @@ def mask_invalid_detections(bounding_boxes):
 
     boxes = bounding_boxes.get("boxes")
     classes = bounding_boxes.get("classes")
+    num_detections = bounding_boxes.get("num_detections")
 
     # Create a mask to select only the first N boxes from each batch
     mask = tf.repeat(
@@ -56,6 +59,10 @@ def mask_invalid_detections(bounding_boxes):
     mask = tf.expand_dims(mask, axis=-1)
     mask = tf.repeat(mask, repeats=boxes.shape[-1], axis=-1)
     boxes = tf.where(mask, boxes, -tf.ones_like(boxes))
+
+    result = bounding_boxes.copy()
+    result["boxes"] = boxes
+    result["classes"] = classes
 
     if info["ragged"]:
         return to_ragged(result)

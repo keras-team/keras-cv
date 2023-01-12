@@ -18,4 +18,26 @@ from keras_cv import bounding_box
 
 
 class MaskInvalidDetectionsTest(tf.test.TestCase):
-    pass
+    def test_correctly_masks_based_on_max_dets(self):
+        bounding_boxes = {
+            "boxes": tf.random.uniform((4, 100, 4)),
+            "num_detections": tf.constant([2, 3, 4, 1]),
+            "classes": tf.random.uniform((4, 100)),
+        }
+
+        result = bounding_box.mask_invalid_detections(bounding_boxes)
+
+        negative_one_boxes = result["boxes"][:, 5:, :]
+        self.assertAllClose(negative_one_boxes, -tf.ones_like(negative_one_boxes))
+
+    def test_preserves_ragged(self):
+        bounding_boxes = {
+            "boxes": tf.ragged.stack(
+                [tf.random.uniform(5, 4), tf.random.uniform(10, 4)]
+            ),
+            "num_detections": tf.constant([2, 3]),
+            "classes": tf.ragged.stack([tf.random.uniform(5), tf.random.uniform(5)]),
+        }
+
+        result = bounding_box.mask_invalid_detections(bounding_boxes)
+        self.assertTrue(isinstance(result, tf.RaggedTensor))
