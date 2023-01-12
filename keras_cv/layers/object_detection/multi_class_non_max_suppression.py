@@ -75,7 +75,7 @@ class MultiClassNonMaxSuppression(tf.keras.layers.Layer):
             target=target_format,
         )
         if self.from_logits:
-            confidence_pred = tf.nn.softmax(confidence_pred)
+            confidence_prediction = tf.nn.softmax(confidence_prediction)
 
         box_prediction = tf.expand_dims(box_prediction, axis=-2)
         (
