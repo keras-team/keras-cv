@@ -33,6 +33,9 @@ class MaskInvalidDetectionsTest(tf.test.TestCase):
         preserved_boxes = result["boxes"][:, :2, :]
         self.assertAllClose(preserved_boxes, bounding_boxes['boxes'][:, :2, :])
 
+        boxes_from_image_3 = result["boxes"][2, :4, :]
+        self.assertAllClose(boxes_from_image_3, bounding_boxes['boxes'][2, :4, :])
+
     def test_preserves_ragged(self):
         bounding_boxes = {
             "boxes": tf.ragged.stack(
