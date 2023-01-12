@@ -65,10 +65,10 @@ class MultiClassNonMaxSuppression(tf.keras.layers.Layer):
                 `bounding_box_format` specified in the constructor.
             confidence_prediction: Dense Tensor of shape [batch, boxes, num_classes].
         """
-        target_format = bounding_box.preserve_rel(
-            target_bounding_box_format="yxyx",
-            bounding_box_format=self.bounding_box_format,
-        )
+        target_format = "yxyx"
+        if bounding_box.is_relative(self.bounding_box_format):
+            target_format = bounding_box.as_relative(target_format)
+
         box_prediction = bounding_box.convert_format(
             box_prediction,
             source=self.bounding_box_format,
