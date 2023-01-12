@@ -34,7 +34,7 @@ class NmsPredictionDecoderTest(tf.test.TestCase):
             max_detections=100,
         )
 
-        result = layer(box_pred=box_pred, confidence_pred=confidence_pred)
+        result = layer(box_prediction=box_pred, confidence_prediction=confidence_pred)
 
         self.assertEqual(result["boxes"].shape, [8, 100, 4])
         self.assertEqual(result["classes"].shape, [8, 100])
