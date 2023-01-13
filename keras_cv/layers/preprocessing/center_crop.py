@@ -14,6 +14,7 @@
 
 import tensorflow as tf
 from tensorflow import keras
+import warnings
 
 from keras_cv import bounding_box
 from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
@@ -57,7 +58,7 @@ class CenterCrop(BaseImageAugmentationLayer):
     """
 
     def __init__(
-        self, height: int, width: int, bounding_box_format=None, seed=None, **kwargs
+            self, height: int, width: int, bounding_box_format=None, seed=None, **kwargs
     ):
         super().__init__(seed=seed, **kwargs)
         self.height = height
@@ -65,17 +66,22 @@ class CenterCrop(BaseImageAugmentationLayer):
         self.bounding_box_format = bounding_box_format
         self.base_layer_ = keras.layers.CenterCrop(self.height, self.width)
 
+        if self.bounding_box_format is not None:
+            warnings.warn(
+                "Using CenterCrop with bounding boxes can cause many boxes to be dropped."
+            )
+
     def augment_image(self, image, transformation=None, **kwargs):
         image = self.base_layer_(image)
         return image
 
     def get_random_transformation(
-        self,
-        image=None,
-        label=None,
-        bounding_boxes=None,
-        keypoints=None,
-        segmentation_mask=None,
+            self,
+            image=None,
+            label=None,
+            bounding_boxes=None,
+            keypoints=None,
+            segmentation_mask=None,
     ):
         image_shape = tf.shape(image)
         return image_shape[-3], image_shape[-2]
@@ -124,7 +130,7 @@ class CenterCrop(BaseImageAugmentationLayer):
         return bounding_boxes
 
     def augment_bounding_boxes(
-        self, bounding_boxes, transformation=None, image=None, **kwargs
+            self, bounding_boxes, transformation=None, image=None, **kwargs
     ):
         if self.bounding_box_format is None:
             raise ValueError(
