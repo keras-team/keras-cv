@@ -19,7 +19,8 @@ from keras_cv import bounding_box
 
 
 class GIoULoss(tf.keras.losses.Loss):
-    """Implements the GIoU Loss
+    """Implements the Generalized IoU Loss
+
     GIoU loss is a modified IoU loss commonly used for object detection. This loss aims
     to directly optimize the IoU score between true boxes and predicted boxes. GIoU loss
     adds a penalty term to the IoU loss that takes in account the area of the
@@ -44,6 +45,7 @@ class GIoULoss(tf.keras.losses.Loss):
     loss = GIoULoss(bounding_box_format = "xyWH")
     loss(y_true, y_pred).numpy()
     ```
+
     Usage with the `compile()` API:
     ```python
     model.compile(optimizer='adam', loss=keras_cv.losses.GIoULoss())

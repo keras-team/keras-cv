@@ -35,7 +35,7 @@ class IoULoss(tf.keras.losses.Loss):
             [KerasCV bounding box documentation](https://keras.io/api/keras_cv/bounding_box/formats/).
         mode: must be one of
             - `"linear"`. The loss will be calculated as 1 - iou
-            - `"squared"`. The loss will be calculated as 1 - iou<sup>2</sup>
+            - `"quadratic"`. The loss will be calculated as 1 - iou<sup>2</sup>
             - `"log"`. The loss will be calculated as -ln(iou)
             Defaults to "log".
         axis: the axis along which to mean the ious. Defaults to -1.
@@ -50,6 +50,7 @@ class IoULoss(tf.keras.losses.Loss):
     loss = IoULoss(bounding_box_format = "xyWH")
     loss(y_true, y_pred).numpy()
     ```
+
     Usage with the `compile()` API:
     ```python
     model.compile(optimizer='adam', loss=keras_cv.losses.IoULoss())
@@ -62,9 +63,9 @@ class IoULoss(tf.keras.losses.Loss):
         self.mode = mode
         self.axis = axis
 
-        if self.mode not in ["linear", "squared", "log"]:
+        if self.mode not in ["linear", "quadratic", "log"]:
             raise ValueError(
-                "IoULoss expects mode to be one of 'linear', 'squared' or 'log' "
+                "IoULoss expects mode to be one of 'linear', 'quadratic' or 'log' "
                 f"Received mode={self.mode}, "
             )
 
@@ -98,7 +99,7 @@ class IoULoss(tf.keras.losses.Loss):
 
         if self.mode == "linear":
             loss = 1 - iou
-        elif self.mode == "squared":
+        elif self.mode == "quadratic":
             loss = 1 - iou**2
         elif self.mode == "log":
             loss = -tf.math.log(iou)
