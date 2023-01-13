@@ -12,10 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import tensorflow as tf
 import unittest
 
+import tensorflow as tf
+
 from keras_cv import layers as cv_layers
+
 
 class NmsPredictionDecoderTest(tf.test.TestCase):
     def test_decode_predictions_output_shapes(self):
@@ -40,8 +42,10 @@ class NmsPredictionDecoderTest(tf.test.TestCase):
         self.assertEqual(result["classes"].shape, [8, 100])
         self.assertEqual(result["confidence"].shape, [8, 100])
 
+
 class XlaMlirBridgeNmsPredictionDecoderTest(tf.test.TestCase):
     tf.config.experimental.enable_mlir_bridge()
+
     @tf.function(jit_compile=True)
     def test_decode_predictions_output_shapes(self):
         classes = 10
@@ -65,10 +69,11 @@ class XlaMlirBridgeNmsPredictionDecoderTest(tf.test.TestCase):
         self.assertEqual(result["classes"].shape, [8, 100])
         self.assertEqual(result["confidence"].shape, [8, 100])
 
+
 @unittest.expectedFailure
 class XlaNmsPredictionDecoderTest(tf.test.TestCase):
-    # TODO This is not failing as it seems if uncommented it will globally 
-    # disable the MLIR bridge. 
+    # TODO This is not failing as it seems if uncommented it will globally
+    # disable the MLIR bridge.
     # Are we compiling in the same context?
     # tf.config.experimental.disable_mlir_bridge()
     @tf.function(jit_compile=True)
