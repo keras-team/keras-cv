@@ -71,6 +71,9 @@ class CenterCrop(BaseImageAugmentationLayer):
                 "Using CenterCrop with bounding boxes can cause many boxes to be dropped."
             )
 
+    def compute_image_signature(self, images):
+        return tf.TensorSpec((self.height, self.width, images.shape[-1]), self.compute_dtype)
+
     def augment_image(self, image, transformation=None, **kwargs):
         image = self.base_layer_(image)
         return image
@@ -87,6 +90,7 @@ class CenterCrop(BaseImageAugmentationLayer):
         return image_shape[-3], image_shape[-2]
 
     def _transform_bounding_boxes(self, bounding_boxes, transformation):
+        bounding_boxes = bounding_boxes.copy()
         original_height, original_width = transformation
         h_diff = original_height - self.height
         w_diff = original_width - self.width
@@ -107,16 +111,17 @@ class CenterCrop(BaseImageAugmentationLayer):
             do_crop, lambda: (self.height, self.width), upsample_target_dims
         )
 
+        boxes = bounding_boxes["boxes"]
         h_perc = keras.backend.cast(
-            target_height / original_height, bounding_boxes.dtype
+            target_height / original_height, boxes.dtype
         )
-        w_perc = keras.backend.cast(target_width / original_width, bounding_boxes.dtype)
+        w_perc = keras.backend.cast(target_width / original_width, boxes.dtype)
         h0 = 0.5 - 0.5 * h_perc
         w0 = 0.5 - 0.5 * w_perc
         x1, y1, x2, y2, rest = tf.split(
-            bounding_boxes, [1, 1, 1, 1, bounding_boxes.shape[-1] - 4], axis=-1
+            boxes, [1, 1, 1, 1, boxes.shape[-1] - 4], axis=-1
         )
-        bounding_boxes = tf.concat(
+        boxes = tf.concat(
             [
                 (x1 - w0) / w_perc,
                 (y1 - h0) / h_perc,
@@ -126,7 +131,8 @@ class CenterCrop(BaseImageAugmentationLayer):
             ],
             axis=-1,
         )
-        bounding_boxes = bounding_box.filter_sentinels(bounding_boxes)
+        bounding_boxes["boxes"] = boxes
+        #bounding_boxes = bounding_box.filter_sentinels(bounding_boxes)
         return bounding_boxes
 
     def augment_bounding_boxes(
