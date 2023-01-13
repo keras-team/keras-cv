@@ -31,8 +31,7 @@ class GIoULoss(tf.keras.losses.Loss):
             Each bounding box is defined by these 4 values.For detailed information
             on the supported formats, see the
             [KerasCV bounding box documentation](https://keras.io/api/keras_cv/bounding_box/formats/).
-        axis: the axis along which to mean the ious. Passing the string "no_reduction" implies
-            mean across no axes. Defaults to -1.
+        axis: the axis along which to mean the ious. Defaults to -1.
 
     References:
         - [GIoU paper](https://arxiv.org/pdf/1902.09630)
@@ -97,17 +96,16 @@ class GIoULoss(tf.keras.losses.Loss):
                 "or len(boxes2.shape)=3."
             )
 
-        target = bounding_box.preserve_rel(
-            target_bounding_box_format="yxyx",
-            bounding_box_format=self.bounding_box_format,
-        )
+        target_format = "yxyx"
+        if bounding_box.is_relative(self.bounding_box_format):
+            target_format = bounding_box.as_relative(target_format)
 
         boxes1 = bounding_box.convert_format(
-            boxes1, source=self.bounding_box_format, target=target
+            boxes1, source=self.bounding_box_format, target=target_format
         )
 
         boxes2 = bounding_box.convert_format(
-            boxes2, source=self.bounding_box_format, target=target
+            boxes2, source=self.bounding_box_format, target=target_format
         )
 
         intersect_area = bounding_box.iou._compute_intersection(boxes1, boxes2)
@@ -156,8 +154,7 @@ class GIoULoss(tf.keras.losses.Loss):
 
         giou = self._compute_giou(y_true, y_pred)
         giou = tf.linalg.diag_part(giou)
-        if self.axis != "no_reduction":
-            giou = tf.reduce_mean(giou, axis=self.axis)
+        giou = tf.reduce_mean(giou, axis=self.axis)
 
         return 1 - giou
 

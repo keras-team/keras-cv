@@ -75,5 +75,5 @@ class GIoUTest(tf.test.TestCase):
 
         iou_loss = GIoULoss(bounding_box_format="xywh")
 
-        # expected value for these values is  0.6452381
+        # expected value for these values is 0.6452381
         self.assertAllClose(iou_loss(y_true, y_pred), 0.6452381)
