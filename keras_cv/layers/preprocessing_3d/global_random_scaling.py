@@ -123,7 +123,7 @@ class GlobalRandomScaling(base_augmentation_layer_3d.BaseAugmentationLayer3D):
         self._max_y_factor = max_y_factor
         self._min_z_factor = min_z_factor
         self._max_z_factor = max_z_factor
-        self.preserve_aspect_ratio = preserve_aspect_ratio
+        self._preserve_aspect_ratio = preserve_aspect_ratio
 
     def get_config(self):
         return {
@@ -139,7 +139,7 @@ class GlobalRandomScaling(base_augmentation_layer_3d.BaseAugmentationLayer3D):
                 self._min_z_factor,
                 self._max_z_factor,
             ),
-            "preserve_aspect_ratio": self.preserve_aspect_ratio,
+            "preserve_aspect_ratio": self._preserve_aspect_ratio,
         }
 
     def get_random_transformation(self, **kwargs):
@@ -153,7 +153,7 @@ class GlobalRandomScaling(base_augmentation_layer_3d.BaseAugmentationLayer3D):
         random_scaling_z = self._random_generator.random_uniform(
             (), minval=self._min_z_factor, maxval=self._max_z_factor
         )
-        if not self._same_scaling_xyz:
+        if not self._preserve_aspect_ratio:
             return {
                 "scale": tf.stack(
                     [random_scaling_x, random_scaling_y, random_scaling_z]
