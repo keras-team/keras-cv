@@ -13,13 +13,15 @@
 # limitations under the License.
 import os
 
+import pytest
 import tensorflow as tf
 
-from keras_cv.datasets.waymo import load
-
-
-def simple_transformer(frame):
-    return {"timestamp_micros": frame.timestamp_micros}
+try:
+    from keras_cv.datasets.waymo import load
+except ImportError:
+    # Waymo Open Dataset dependency may be missing, in which case we expect
+    # these tests will be skipped based on the TEST_WAYMO_DEPS environment var.
+    pass
 
 
 class WaymoOpenDatasetLoadTest(tf.test.TestCase):
@@ -28,27 +30,30 @@ class WaymoOpenDatasetLoadTest(tf.test.TestCase):
         self.test_data_path = os.path.abspath(
             os.path.join(os.path.abspath(__file__), os.path.pardir, "test_data")
         )
-        self.test_data_file = "mini.tfrecord"
-        self.output_signature = {"timestamp_micros": tf.TensorSpec((), tf.int64)}
+        self.test_data_file = "wod_one_frame.tfrecord"
 
+    @pytest.mark.skipif(
+        "TEST_WAYMO_DEPS" not in os.environ or os.environ["TEST_WAYMO_DEPS"] != "true",
+        reason="Requires Waymo Open Dataset package",
+    )
     def test_load_from_directory(self):
-        dataset = load(self.test_data_path, simple_transformer, self.output_signature)
+        dataset = load(self.test_data_path)
 
         # Extract records into a list
         dataset = [record for record in dataset]
 
         self.assertEquals(len(dataset), 1)
-        self.assertEquals(dataset[0]["timestamp_micros"], 8675309)
+        self.assertNotEqual(dataset[0]["timestamp_micros"], 0)
 
+    @pytest.mark.skipif(
+        "TEST_WAYMO_DEPS" not in os.environ or os.environ["TEST_WAYMO_DEPS"] != "true",
+        reason="Requires Waymo Open Dataset package",
+    )
     def test_load_from_files(self):
-        dataset = load(
-            [os.path.join(self.test_data_path, self.test_data_file)],
-            simple_transformer,
-            self.output_signature,
-        )
+        dataset = load([os.path.join(self.test_data_path, self.test_data_file)])
 
         # Extract records into a list
         dataset = [record for record in dataset]
 
         self.assertEquals(len(dataset), 1)
-        self.assertEquals(dataset[0]["timestamp_micros"], 8675309)
+        self.assertNotEqual(dataset[0]["timestamp_micros"], 0)

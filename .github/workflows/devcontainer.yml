@@ -1,13 +1,15 @@
-name: 'devcontainer' 
+name: 'devcontainer'
 on: # rebuild any PRs and main branch changes
   pull_request:
     paths:
       - 'setup.*'
       - '.devcontainer/**'
+      - 'workflows/**'
   push:
     paths:
       - 'setup.*'
       - '.devcontainer/**'
+      - 'workflows/**'
 
 
 jobs:

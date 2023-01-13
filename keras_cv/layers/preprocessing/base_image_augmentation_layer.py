@@ -27,7 +27,6 @@ LABELS = "labels"
 TARGETS = "targets"
 BOUNDING_BOXES = "bounding_boxes"
 KEYPOINTS = "keypoints"
-RAGGED_BOUNDING_BOXES = "ragged_bounding_boxes"
 SEGMENTATION_MASKS = "segmentation_masks"
 IS_DICT = "is_dict"
 USE_TARGETS = "use_targets"
@@ -108,6 +107,24 @@ class BaseImageAugmentationLayer(tf.keras.__internal__.layers.BaseRandomLayer):
         super().__init__(seed=seed, **kwargs)
 
     @property
+    def force_output_ragged_images(self):
+        """Control whether to force outputting of ragged images."""
+        return getattr(self, "_force_output_ragged_images", False)
+
+    @force_output_ragged_images.setter
+    def force_output_ragged_images(self, force_output_ragged_images):
+        self._force_output_ragged_images = force_output_ragged_images
+
+    @property
+    def force_output_dense_images(self):
+        """Control whether to force outputting of dense images."""
+        return getattr(self, "_force_output_dense_images", False)
+
+    @force_output_dense_images.setter
+    def force_output_dense_images(self, force_output_dense_images):
+        self._force_output_dense_images = force_output_dense_images
+
+    @property
     def auto_vectorize(self):
         """Control whether automatic vectorization occurs.
 
@@ -129,12 +146,104 @@ class BaseImageAugmentationLayer(tf.keras.__internal__.layers.BaseRandomLayer):
     def auto_vectorize(self, auto_vectorize):
         self._auto_vectorize = auto_vectorize
 
-    @property
-    def _map_fn(self):
+    def compute_image_signature(self, images):
+        """Computes the output image signature for the `augment_image()` function.
+
+        Must be overridden to return tensors with different shapes than the input
+        images.  By default returns either a `tf.RaggedTensorSpec` matching the input
+        image spec, or a `tf.TensorSpec` matching the input image spec.
+        """
+        if self.force_output_dense_images:
+            return tf.TensorSpec(images.shape[1:], self.compute_dtype)
+        if self.force_output_ragged_images or isinstance(images, tf.RaggedTensor):
+            ragged_spec = tf.RaggedTensorSpec(
+                shape=images.shape[1:],
+                ragged_rank=1,
+                dtype=self.compute_dtype,
+            )
+            return ragged_spec
+        return tf.TensorSpec(images.shape[1:], self.compute_dtype)
+
+    # TODO(lukewood): promote to user facing API if needed
+    def _compute_bounding_box_signature(self, bounding_boxes):
+        return {
+            "boxes": tf.RaggedTensorSpec(
+                shape=[None, 4],
+                ragged_rank=1,
+                dtype=self.compute_dtype,
+            ),
+            "classes": tf.RaggedTensorSpec(shape=[None], dtype=self.compute_dtype),
+        }
+
+    # TODO(lukewood): promote to user facing API if needed
+    def _compute_keypoints_signature(self, keypoints):
+        if isinstance(keypoints, tf.RaggedTensor):
+            ragged_spec = tf.RaggedTensorSpec(
+                shape=keypoints.shape[1:],
+                ragged_rank=1,
+                dtype=self.compute_dtype,
+            )
+            return ragged_spec
+
+        return tf.TensorSpec(
+            shape=keypoints.shape[1:],
+            dtype=self.compute_dtype,
+        )
+
+    # TODO(lukewood): promote to user facing API if needed
+    def _compute_target_signature(self, targets):
+        return tf.TensorSpec(targets.shape[1:], self.compute_dtype)
+
+    def _compute_output_signature(self, inputs):
+        fn_output_signature = {IMAGES: self.compute_image_signature(inputs[IMAGES])}
+        bounding_boxes = inputs.get(BOUNDING_BOXES, None)
+
+        if bounding_boxes is not None:
+            fn_output_signature[BOUNDING_BOXES] = self._compute_bounding_box_signature(
+                bounding_boxes
+            )
+
+        segmentation_masks = inputs.get(SEGMENTATION_MASKS, None)
+        if segmentation_masks is not None:
+            fn_output_signature[SEGMENTATION_MASKS] = self.compute_image_signature(
+                segmentation_masks
+            )
+
+        keypoints = inputs.get(KEYPOINTS, None)
+        if keypoints is not None:
+            fn_output_signature[KEYPOINTS] = self._compute_keypoints_signature(
+                keypoints
+            )
+
+        labels = inputs.get(LABELS, None)
+        if labels is not None:
+            fn_output_signature[LABELS] = self._compute_target_signature(labels)
+
+        return fn_output_signature
+
+    @staticmethod
+    def _any_ragged(inputs):
+        if isinstance(inputs[IMAGES], tf.RaggedTensor):
+            return True
+        if BOUNDING_BOXES in inputs:
+            return True
+        if KEYPOINTS in inputs:
+            return True
+        return False
+
+    def _map_fn(self, func, inputs):
+        """Returns either tf.map_fn or tf.vectorized_map based on the provided inputs.
+
+        Args:
+            inputs: dictionary of inputs provided to map_fn.
+        """
+        if self._any_ragged(inputs) or self.force_output_ragged_images:
+            return tf.map_fn(
+                func, inputs, fn_output_signature=self._compute_output_signature(inputs)
+            )
         if self.auto_vectorize:
-            return tf.vectorized_map
-        else:
-            return tf.map_fn
+            return tf.vectorized_map(func, inputs)
+        return tf.map_fn(func, inputs)
 
     def augment_image(self, image, transformation, **kwargs):
         """Augment a single image during training.
@@ -272,11 +381,20 @@ class BaseImageAugmentationLayer(tf.keras.__internal__.layers.BaseRandomLayer):
             return inputs
 
     def _augment(self, inputs):
-        image = inputs.get(IMAGES, None)
+        raw_image = inputs.get(IMAGES, None)
+        image = raw_image
         label = inputs.get(LABELS, None)
         bounding_boxes = inputs.get(BOUNDING_BOXES, None)
         keypoints = inputs.get(KEYPOINTS, None)
         segmentation_mask = inputs.get(SEGMENTATION_MASKS, None)
+
+        image_ragged = isinstance(image, tf.RaggedTensor)
+        # At this point, the tensor is not actually ragged as we have mapped over the
+        # batch axis.  This call is required to make `tf.shape()` behave as users
+        # subclassing the layer expect.
+        if image_ragged:
+            image = image.to_tensor()
+
         transformation = self.get_random_transformation(
             image=image,
             label=label,
@@ -284,12 +402,19 @@ class BaseImageAugmentationLayer(tf.keras.__internal__.layers.BaseRandomLayer):
             keypoints=keypoints,
             segmentation_mask=segmentation_mask,
         )
+
         image = self.augment_image(
             image,
             transformation=transformation,
             bounding_boxes=bounding_boxes,
             label=label,
         )
+
+        if (
+            image_ragged and not self.force_output_dense_images
+        ) or self.force_output_ragged_images:
+            image = tf.RaggedTensor.from_tensor(image)
+
         result = {IMAGES: image}
         if label is not None:
             label = self.augment_target(
@@ -299,14 +424,20 @@ class BaseImageAugmentationLayer(tf.keras.__internal__.layers.BaseRandomLayer):
                 image=image,
             )
             result[LABELS] = label
+
         if bounding_boxes is not None:
+            bounding_boxes = bounding_box.to_dense(bounding_boxes)
+
             bounding_boxes = self.augment_bounding_boxes(
                 bounding_boxes,
                 transformation=transformation,
                 label=label,
-                image=image,
+                image=raw_image,
             )
+
+            bounding_boxes = bounding_box.to_ragged(bounding_boxes)
             result[BOUNDING_BOXES] = bounding_boxes
+
         if keypoints is not None:
             keypoints = self.augment_keypoints(
                 keypoints,
@@ -345,10 +476,7 @@ class BaseImageAugmentationLayer(tf.keras.__internal__.layers.BaseRandomLayer):
             )
 
         if BOUNDING_BOXES in inputs:
-            inputs[BOUNDING_BOXES], updates = self._format_bounding_boxes(
-                inputs[BOUNDING_BOXES]
-            )
-            metadata.update(updates)
+            inputs[BOUNDING_BOXES] = self._format_bounding_boxes(inputs[BOUNDING_BOXES])
 
         if isinstance(inputs, dict) and TARGETS in inputs:
             # TODO(scottzhu): Check if it only contains the valid keys
@@ -360,22 +488,15 @@ class BaseImageAugmentationLayer(tf.keras.__internal__.layers.BaseRandomLayer):
         return inputs, metadata
 
     def _format_bounding_boxes(self, bounding_boxes):
-        metadata = {RAGGED_BOUNDING_BOXES: False}
-        shape = None
-        if isinstance(bounding_boxes, tf.RaggedTensor):
-            metadata.update({RAGGED_BOUNDING_BOXES: True})
-            bounding_boxes = bounding_box.pad_with_sentinels(bounding_boxes)
-            # hard code after pad_with_sentinels()
-            shape = [5]
-        else:
-            shape = bounding_boxes.shape
-
-        if shape[-1] < 5:
+        # We can't catch the case where this is None, sometimes RaggedTensor drops this
+        # dimension
+        if "classes" not in bounding_boxes:
             raise ValueError(
                 "Bounding boxes are missing class_id. If you would like to pad the "
-                "bounding boxes with class_id, use `keras_cv.bounding_box.add_class_id`"
+                "bounding boxes with class_id, use: "
+                "`bounding_boxes['classes'] = tf.ones_like(bounding_boxes['boxes'])`."
             )
-        return bounding_boxes, metadata
+        return bounding_boxes
 
     def _format_output(self, output, metadata):
         if not metadata[IS_DICT]:
@@ -383,23 +504,25 @@ class BaseImageAugmentationLayer(tf.keras.__internal__.layers.BaseRandomLayer):
         elif metadata[USE_TARGETS]:
             output[TARGETS] = output[LABELS]
             del output[LABELS]
-
-        if BOUNDING_BOXES in output:
-            if metadata[RAGGED_BOUNDING_BOXES]:
-                output[BOUNDING_BOXES] = bounding_box.filter_sentinels(
-                    output[BOUNDING_BOXES]
-                )
         return output
 
     def _ensure_inputs_are_compute_dtype(self, inputs):
-        if isinstance(inputs, dict):
-            inputs[IMAGES] = preprocessing.ensure_tensor(
-                inputs[IMAGES],
+        if not isinstance(inputs, dict):
+            return preprocessing.ensure_tensor(
+                inputs,
                 self.compute_dtype,
             )
-        else:
-            inputs = preprocessing.ensure_tensor(
-                inputs,
+        inputs[IMAGES] = preprocessing.ensure_tensor(
+            inputs[IMAGES],
+            self.compute_dtype,
+        )
+        if BOUNDING_BOXES in inputs:
+            inputs[BOUNDING_BOXES]["boxes"] = preprocessing.ensure_tensor(
+                inputs[BOUNDING_BOXES]["boxes"],
+                self.compute_dtype,
+            )
+            inputs[BOUNDING_BOXES]["classes"] = preprocessing.ensure_tensor(
+                inputs[BOUNDING_BOXES]["classes"],
                 self.compute_dtype,
             )
         return inputs

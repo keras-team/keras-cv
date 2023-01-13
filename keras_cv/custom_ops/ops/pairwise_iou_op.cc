@@ -18,7 +18,7 @@ limitations under the License.
 
 using namespace tensorflow;
 
-REGISTER_OP("PairwiseIou3D")
+REGISTER_OP("KcvPairwiseIou3D")
     .Input("boxes_a: float")
     .Input("boxes_b: float")
     .Output("iou: float")

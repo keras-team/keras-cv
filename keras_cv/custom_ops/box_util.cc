@@ -179,6 +179,42 @@ const std::vector<Vertex>& RotatedBox2D::box_vertices() const {
   return box_vertices_;
 }
 
+double RotatedBox2D::MinX() const {
+  const std::vector<Vertex>& vertices_ = this->box_vertices();
+  double res = vertices_[0].x;
+  for (auto v : vertices_) {
+    res = std::min(res, v.x);
+  }
+  return res;
+}
+
+double RotatedBox2D::MaxX() const {
+  const std::vector<Vertex>& vertices_ = this->box_vertices();
+  double res = vertices_[0].x;
+  for (auto v : vertices_) {
+    res = std::max(res, v.x);
+  }
+  return res;
+}
+
+double RotatedBox2D::MinY() const {
+  const std::vector<Vertex>& vertices_ = this->box_vertices();
+  double res = vertices_[0].y;
+  for (auto v : vertices_) {
+    res = std::min(res, v.y);
+  }
+  return res;
+}
+
+double RotatedBox2D::MaxY() const {
+  const std::vector<Vertex>& vertices_ = this->box_vertices();
+  double res = vertices_[0].y;
+  for (auto v : vertices_) {
+    res = std::max(res, v.y);
+  }
+  return res;
+}
+
 bool RotatedBox2D::NonZeroAndValid() const { return !extreme_box_dim_; }
 
 bool RotatedBox2D::MaybeIntersects(const RotatedBox2D& other) const {
@@ -233,6 +269,24 @@ double RotatedBox2D::IoU(const RotatedBox2D& other) const {
   return intersection_area / union_area;
 }
 
+bool RotatedBox2D::left_hand_side(const Vertex& point, const Vertex& v1, const Vertex& v2) const {
+  double d1 = (point.y - v1.y) * (v2.x - v1.x);
+  double d2 = (point.x - v1.x) * (v2.y - v1.y);
+  return d1 >= d2;
+}
+
+bool RotatedBox2D::WithinBox2D(const Vertex& point) const {
+  const std::vector<Vertex>& vertices = this->box_vertices();
+  if (Area() <= kEPS) {
+    return false;
+  }
+  if (!this->left_hand_side(point, vertices[0], vertices[1])) return false;
+  if (!this->left_hand_side(point, vertices[1], vertices[2])) return false;
+  if (!this->left_hand_side(point, vertices[2], vertices[3])) return false;
+  if (!this->left_hand_side(point, vertices[3], vertices[0])) return false;
+  return true;
+}
+
 std::vector<Upright3DBox> ParseBoxesFromTensor(const Tensor& boxes_tensor) {
   int num_boxes = boxes_tensor.dim_size(0);
 
@@ -260,6 +314,86 @@ std::vector<Upright3DBox> ParseBoxesFromTensor(const Tensor& boxes_tensor) {
   return bboxes3d;
 }
 
+std::vector<Vertex> ParseVerticesFromTensor(const Tensor& points_tensor) {
+  int num_points = points_tensor.dim_size(0);
+
+  const auto t_points_tensor = points_tensor.matrix<float>();
+  std::vector<Vertex> points3d;
+  points3d.reserve(num_points);
+  for (int i = 0; i < num_points; ++i) {
+    const double x = t_points_tensor(i, 0);
+    const double y = t_points_tensor(i, 1);
+    const double z = t_points_tensor(i, 2);
+    Vertex point(x, y, z);
+    points3d.emplace_back(point);
+  }
+  return points3d;
+}
+
+std::vector<int> GetMinXIndexFromBoxes(std::vector<Upright3DBox>& boxes, std::vector<double>& points) {
+  std::vector<int> res;
+  res.reserve(boxes.size());
+  auto p_begin = points.begin();
+  auto p_end = points.end();
+  for (auto box : boxes) {
+    // find the first element in points >= val
+    // returned index within [0, points_size]
+    // return points_size means all elements are < val
+    double x_min = box.rbox.MinX();
+    int idx = std::lower_bound(p_begin, p_end, x_min) - p_begin;
+    res.emplace_back(idx);
+  }
+  return res;
+}
+
+std::vector<int> GetMaxXIndexFromBoxes(std::vector<Upright3DBox>& boxes, std::vector<double>& points) {
+  std::vector<int> res;
+  res.reserve(boxes.size());
+  auto p_begin = points.begin();
+  auto p_end = points.end();
+  for (auto box : boxes) {
+    double x_max = box.rbox.MaxX();
+    // find the last element in points <= val
+    // returned index within [-1, points_size - 1]
+    // return -1 means all elements > val
+    int idx = std::upper_bound(p_begin, p_end, x_max) - p_begin - 1;
+    res.emplace_back(idx);
+  }
+  return res;
+}
+
+std::vector<int> GetMinYIndexFromBoxes(std::vector<Upright3DBox>& boxes, std::vector<double>& points) {
+  std::vector<int> res;
+  res.reserve(boxes.size());
+  auto p_begin = points.begin();
+  auto p_end = points.end();
+  for (auto box : boxes) {
+    // find the first element in points >= val
+    // returned index within [0, points_size]
+    // return points_size means all elements are < val
+    double y_min = box.rbox.MinY();
+    int idx = std::lower_bound(p_begin, p_end, y_min) - p_begin;
+    res.emplace_back(idx);
+  }
+  return res;
+}
+
+std::vector<int> GetMaxYIndexFromBoxes(std::vector<Upright3DBox>& boxes, std::vector<double>& points) {
+  std::vector<int> res;
+  res.reserve(boxes.size());
+  auto p_begin = points.begin();
+  auto p_end = points.end();
+  for (auto box : boxes) {
+    double y_max = box.rbox.MaxY();
+    // find the last element in points <= val
+    // returned index within [-1, points_size - 1]
+    // return -1 means all elements > val
+    int idx = std::upper_bound(p_begin, p_end, y_max) - p_begin - 1;
+    res.emplace_back(idx);
+  }
+  return res;
+}
+
 bool Upright3DBox::NonZeroAndValid() const {
   // If min is larger than max, the upright box is invalid.
   //
@@ -270,6 +404,11 @@ bool Upright3DBox::NonZeroAndValid() const {
   }
 
   return rbox.NonZeroAndValid();
+}
+
+bool Upright3DBox::WithinBox3D(const Vertex& point) const {
+  if (point.z > this->z_max || point.z < this->z_min) return false;
+  return this->rbox.WithinBox2D(point);
 }
 
 double Upright3DBox::IoU(const Upright3DBox& other) const {

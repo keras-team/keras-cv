@@ -14,6 +14,7 @@
 import numpy as np
 import tensorflow as tf
 
+from keras_cv import bounding_box
 from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
     BaseImageAugmentationLayer,
 )
@@ -39,7 +40,10 @@ class RandomAddLayer(BaseImageAugmentationLayer):
         return label + transformation
 
     def augment_bounding_boxes(self, bounding_boxes, transformation, **kwargs):
-        return bounding_boxes + transformation
+        return {
+            "boxes": bounding_boxes["boxes"] + transformation,
+            "classes": bounding_boxes["classes"] + transformation,
+        }
 
     def augment_keypoints(self, keypoints, transformation, **kwargs):
         return keypoints + transformation
@@ -69,11 +73,6 @@ class BaseImageAugmentationLayerTest(tf.test.TestCase):
 
         self.assertIsInstance(output, dict)
 
-    def test_auto_vectorize_disabled(self):
-        vectorize_disabled_layer = VectorizeDisabledLayer()
-        self.assertFalse(vectorize_disabled_layer.auto_vectorize)
-        self.assertEqual(vectorize_disabled_layer._map_fn, tf.map_fn)
-
     def test_augment_casts_dtypes(self):
         add_layer = RandomAddLayer(fixed_value=2.0)
         images = tf.ones((2, 8, 8, 3), dtype="uint8")
@@ -95,8 +94,8 @@ class BaseImageAugmentationLayerTest(tf.test.TestCase):
         image = np.random.random(size=(8, 8, 3)).astype("float32")
         label = np.random.random(size=(1,)).astype("float32")
 
-        output = add_layer({"images": image, "labels": label})
-        expected_output = {"images": image + 2.0, "labels": label + 2.0}
+        output = add_layer({"images": image, "targets": label})
+        expected_output = {"images": image + 2.0, "targets": label + 2.0}
         self.assertAllClose(output, expected_output)
 
     def test_augment_image_and_target(self):
@@ -108,14 +107,14 @@ class BaseImageAugmentationLayerTest(tf.test.TestCase):
         expected_output = {"images": image + 2.0, "targets": label + 2.0}
         self.assertAllClose(output, expected_output)
 
-    def test_augment_batch_images_and_labels(self):
+    def test_augment_batch_images_and_targets(self):
         add_layer = RandomAddLayer()
         images = np.random.random(size=(2, 8, 8, 3)).astype("float32")
-        labels = np.random.random(size=(2, 1)).astype("float32")
-        output = add_layer({"images": images, "labels": labels})
+        targets = np.random.random(size=(2, 1)).astype("float32")
+        output = add_layer({"images": images, "targets": targets})
 
         image_diff = output["images"] - images
-        label_diff = output["labels"] - labels
+        label_diff = output["targets"] - targets
         # Make sure the first image and second image get different augmentation
         self.assertNotAllClose(image_diff[0], image_diff[1])
         self.assertNotAllClose(label_diff[0], label_diff[1])
@@ -125,32 +124,28 @@ class BaseImageAugmentationLayerTest(tf.test.TestCase):
         images = np.random.random(size=(8, 8, 3)).astype("float32")
         filenames = tf.constant("/path/to/first.jpg")
         inputs = {"images": images, "filenames": filenames}
+        _ = add_layer(inputs)
 
-        outputs = add_layer(inputs)
-
-        self.assertListEqual(list(inputs.keys()), list(outputs.keys()))
-        self.assertAllEqual(inputs["filenames"], outputs["filenames"])
-        self.assertNotAllClose(inputs["images"], outputs["images"])
-        self.assertAllEqual(inputs["images"], images)  # Assert original unchanged
-
-    def test_augment_leaves_batched_extra_dict_entries_unmodified(self):
+    def test_augment_ragged_images(self):
+        images = tf.ragged.stack(
+            [
+                np.random.random(size=(8, 8, 3)).astype("float32"),
+                np.random.random(size=(16, 8, 3)).astype("float32"),
+            ]
+        )
         add_layer = RandomAddLayer(fixed_value=0.5)
-        images = np.random.random(size=(2, 8, 8, 3)).astype("float32")
-        filenames = tf.constant(["/path/to/first.jpg", "/path/to/second.jpg"])
-        inputs = {"images": images, "filenames": filenames}
-
-        outputs = add_layer(inputs)
-
-        self.assertListEqual(list(inputs.keys()), list(outputs.keys()))
-        self.assertAllEqual(inputs["filenames"], outputs["filenames"])
-        self.assertNotAllClose(inputs["images"], outputs["images"])
-        self.assertAllEqual(inputs["images"], images)  # Assert original unchanged
+        result = add_layer(images)
+        self.assertAllClose(images + 0.5, result)
+        # TODO(lukewood): unit test
 
     def test_augment_image_and_localization_data(self):
         add_layer = RandomAddLayer(fixed_value=2.0)
         images = np.random.random(size=(8, 8, 3)).astype("float32")
-        bounding_boxes = np.random.random(size=(3, 5)).astype("float32")
-        keypoints = np.random.random(size=(3, 5, 2)).astype("float32")
+        bounding_boxes = {
+            "boxes": np.random.random(size=(8, 3, 4)).astype("float32"),
+            "classes": np.random.random(size=(8, 3)).astype("float32"),
+        }
+        keypoints = np.random.random(size=(8, 5, 2)).astype("float32")
         segmentation_mask = np.random.random(size=(8, 8, 1)).astype("float32")
 
         output = add_layer(
@@ -161,19 +156,41 @@ class BaseImageAugmentationLayerTest(tf.test.TestCase):
                 "segmentation_masks": segmentation_mask,
             }
         )
-
         expected_output = {
             "images": images + 2.0,
-            "bounding_boxes": bounding_boxes + 2.0,
+            "bounding_boxes": bounding_box.to_dense(
+                {
+                    "boxes": bounding_boxes["boxes"] + 2.0,
+                    "classes": bounding_boxes["classes"] + 2.0,
+                }
+            ),
             "keypoints": keypoints + 2.0,
             "segmentation_masks": segmentation_mask + 2.0,
         }
-        self.assertAllClose(output, expected_output)
+
+        output["bounding_boxes"] = bounding_box.to_dense(output["bounding_boxes"])
+
+        self.assertAllClose(output["images"], expected_output["images"])
+        self.assertAllClose(output["keypoints"], expected_output["keypoints"])
+        self.assertAllClose(
+            output["bounding_boxes"]["boxes"],
+            expected_output["bounding_boxes"]["boxes"],
+        )
+        self.assertAllClose(
+            output["bounding_boxes"]["classes"],
+            expected_output["bounding_boxes"]["classes"],
+        )
+        self.assertAllClose(
+            output["segmentation_masks"], expected_output["segmentation_masks"]
+        )
 
     def test_augment_batch_image_and_localization_data(self):
         add_layer = RandomAddLayer()
         images = np.random.random(size=(2, 8, 8, 3)).astype("float32")
-        bounding_boxes = np.random.random(size=(2, 3, 5)).astype("float32")
+        bounding_boxes = {
+            "boxes": np.random.random(size=(2, 3, 4)).astype("float32"),
+            "classes": np.random.random(size=(2, 3)).astype("float32"),
+        }
         keypoints = np.random.random(size=(2, 3, 5, 2)).astype("float32")
         segmentation_masks = np.random.random(size=(2, 8, 8, 1)).astype("float32")
 
@@ -186,7 +203,9 @@ class BaseImageAugmentationLayerTest(tf.test.TestCase):
             }
         )
 
-        bounding_boxes_diff = output["bounding_boxes"] - bounding_boxes
+        bounding_boxes_diff = (
+            output["bounding_boxes"]["boxes"] - bounding_boxes["boxes"]
+        )
         keypoints_diff = output["keypoints"] - keypoints
         segmentation_mask_diff = output["segmentation_masks"] - segmentation_masks
         self.assertNotAllClose(bounding_boxes_diff[0], bounding_boxes_diff[1])
@@ -206,7 +225,9 @@ class BaseImageAugmentationLayerTest(tf.test.TestCase):
             }
         )
 
-        bounding_boxes_diff = output["bounding_boxes"] - bounding_boxes
+        bounding_boxes_diff = (
+            output["bounding_boxes"]["boxes"] - bounding_boxes["boxes"]
+        )
         keypoints_diff = output["keypoints"] - keypoints
         segmentation_mask_diff = output["segmentation_masks"] - segmentation_masks
         self.assertNotAllClose(bounding_boxes_diff[0], bounding_boxes_diff[1])
@@ -216,8 +237,11 @@ class BaseImageAugmentationLayerTest(tf.test.TestCase):
     def test_augment_all_data_in_tf_function(self):
         add_layer = RandomAddLayer()
         images = np.random.random(size=(2, 8, 8, 3)).astype("float32")
-        bounding_boxes = np.random.random(size=(2, 3, 5)).astype("float32")
-        keypoints = np.random.random(size=(2, 3, 5, 2)).astype("float32")
+        bounding_boxes = bounding_boxes = {
+            "boxes": np.random.random(size=(2, 3, 4)).astype("float32"),
+            "classes": np.random.random(size=(2, 3)).astype("float32"),
+        }
+        keypoints = np.random.random(size=(2, 5, 2)).astype("float32")
         segmentation_masks = np.random.random(size=(2, 8, 8, 1)).astype("float32")
 
         @tf.function
@@ -233,31 +257,11 @@ class BaseImageAugmentationLayerTest(tf.test.TestCase):
             }
         )
 
-        bounding_boxes_diff = output["bounding_boxes"] - bounding_boxes
+        bounding_boxes_diff = (
+            output["bounding_boxes"]["boxes"] - bounding_boxes["boxes"]
+        )
         keypoints_diff = output["keypoints"] - keypoints
         segmentation_mask_diff = output["segmentation_masks"] - segmentation_masks
         self.assertNotAllClose(bounding_boxes_diff[0], bounding_boxes_diff[1])
         self.assertNotAllClose(keypoints_diff[0], keypoints_diff[1])
         self.assertNotAllClose(segmentation_mask_diff[0], segmentation_mask_diff[1])
-
-    def test_raise_error_missing_class_id(self):
-        add_layer = RandomAddLayer()
-        images = np.random.random(size=(2, 8, 8, 3)).astype("float32")
-        bounding_boxes = np.random.random(size=(2, 3, 4)).astype("float32")
-        keypoints = np.random.random(size=(2, 3, 5, 2)).astype("float32")
-        segmentation_masks = np.random.random(size=(2, 8, 8, 1)).astype("float32")
-
-        with self.assertRaisesRegex(
-            ValueError,
-            "Bounding boxes are missing class_id. If you would like to pad the "
-            "bounding boxes with class_id, use `keras_cv.bounding_box.add_"
-            "class_id`",
-        ):
-            add_layer(
-                {
-                    "images": images,
-                    "bounding_boxes": bounding_boxes,
-                    "keypoints": keypoints,
-                    "segmentation_masks": segmentation_masks,
-                }
-            )

@@ -33,7 +33,12 @@ class FeaturePyramid(keras.layers.Layer):
         self.upsample_2x = keras.layers.UpSampling2D(2)
 
     def call(self, inputs, training=False):
-        c3_output, c4_output, c5_output = inputs
+        if isinstance(inputs, dict):
+            c3_output = inputs[3]
+            c4_output = inputs[4]
+            c5_output = inputs[5]
+        else:
+            c3_output, c4_output, c5_output = inputs
         p3_output = self.conv_c3_1x1(c3_output, training=training)
         p4_output = self.conv_c4_1x1(c4_output, training=training)
         p5_output = self.conv_c5_1x1(c5_output, training=training)

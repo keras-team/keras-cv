@@ -24,53 +24,67 @@ from keras_cv.models import segmentation
 
 class DeeplabTest(tf.test.TestCase):
     def test_deeplab_model_construction_with_preconfigured_setting(self):
-        model = segmentation.DeepLabV3(
-            classes=11, include_rescaling=True, backbone="resnet50_v2", weights=None
+        backbone = models.ResNet50V2(
+            include_rescaling=True, include_top=False, input_shape=[64, 64, 3]
         )
-        input_image = tf.random.uniform(shape=[2, 256, 256, 3])
+        model = segmentation.DeepLabV3(classes=11, backbone=backbone)
+        input_image = tf.random.uniform(shape=[1, 64, 64, 3])
         output = model(input_image, training=True)
 
-        self.assertEquals(output.shape, [2, 256, 256, 11])
+        self.assertEquals(output["output"].shape, [1, 64, 64, 11])
+
+    def test_greyscale_input(self):
+        backbone = models.ResNet50V2(
+            include_rescaling=True, include_top=False, input_shape=[64, 64, 1]
+        )
+        model = segmentation.DeepLabV3(classes=11, backbone=backbone)
+        input_image = tf.random.uniform(shape=[1, 64, 64, 1])
+        output = model(input_image, training=True)
+
+        self.assertEquals(output["output"].shape, [1, 64, 64, 11])
+
+    def test_missing_input_shapes(self):
+        with self.assertRaisesRegex(
+            ValueError, "Input shapes for both the backbone and DeepLabV3 are `None`."
+        ):
+            backbone = models.ResNet50V2(include_rescaling=True, include_top=False)
+            segmentation.DeepLabV3(classes=11, backbone=backbone)
 
     def test_deeplab_model_with_components(self):
-        backbone = models.ResNet50V2(include_rescaling=True, include_top=False)
+        backbone = models.ResNet50V2(
+            include_rescaling=True, include_top=False, input_shape=[64, 64, 3]
+        )
         model = segmentation.DeepLabV3(
-            classes=11, include_rescaling=True, backbone=backbone, weights=None
+            classes=11,
+            backbone=backbone,
         )
 
-        input_image = tf.random.uniform(shape=[2, 256, 256, 3])
+        input_image = tf.random.uniform(shape=[1, 64, 64, 3])
         output = model(input_image, training=True)
 
-        self.assertEquals(output.shape, [2, 256, 256, 11])
+        self.assertEquals(output["output"].shape, [1, 64, 64, 11])
 
     def test_mixed_precision(self):
         tf.keras.mixed_precision.set_global_policy("mixed_float16")
-        model = segmentation.DeepLabV3(
-            classes=11, include_rescaling=True, backbone="resnet50_v2", weights=None
+        backbone = models.ResNet50V2(
+            include_rescaling=True, include_top=False, input_shape=[64, 64, 3]
         )
-        input_image = tf.random.uniform(shape=[2, 256, 256, 3])
+        model = segmentation.DeepLabV3(
+            classes=11,
+            backbone=backbone,
+        )
+        input_image = tf.random.uniform(shape=[1, 64, 64, 3])
         output = model(input_image, training=True)
 
-        self.assertEquals(output.dtype, tf.float32)
+        self.assertEquals(output["output"].dtype, tf.float32)
 
     def test_invalid_backbone_model(self):
-        with self.assertRaisesRegex(
-            ValueError, "Supported premade backbones are: .*resnet50_v2"
-        ):
-            segmentation.DeepLabV3(
-                classes=11,
-                include_rescaling=True,
-                backbone="resnet_v3",
-                weights=None,
-            )
         with self.assertRaisesRegex(
             ValueError, "Backbone need to be a `tf.keras.layers.Layer`"
         ):
             segmentation.DeepLabV3(
                 classes=11,
-                include_rescaling=True,
                 backbone=tf.Module(),
-                weights=None,
             )
 
     @pytest.mark.skipif(
@@ -80,9 +94,10 @@ class DeeplabTest(tf.test.TestCase):
         "`INTEGRATION=true pytest keras_cv/",
     )
     def test_model_train(self):
-        model = segmentation.DeepLabV3(
-            classes=1, include_rescaling=True, backbone="resnet50_v2", weights=None
+        backbone = models.ResNet50V2(
+            include_rescaling=True, include_top=False, input_shape=[384, 384, 3]
         )
+        model = segmentation.DeepLabV3(classes=1, backbone=backbone)
 
         gcs_data_pattern = "gs://caltech_birds2011_mask/0.1.1/*.tfrecord*"
         features = tfds.features.FeaturesDict(

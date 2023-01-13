@@ -34,8 +34,11 @@ struct Vertex {
 
   Vertex(const double x, const double y) : x(x), y(y) {}
 
+  Vertex(const double x, const double y, const double z) : x(x), y(y), z(z) {}
+
   double x = 0;
   double y = 0;
+  double z = 0;
 };
 
 // A rotated 2D bounding box represented as (cx, cy, w, h, r). cx, cy are the
@@ -62,7 +65,16 @@ class RotatedBox2D {
   // large or small).
   bool NonZeroAndValid() const;
 
+  double MinX() const;
+  double MaxX() const;
+  double MinY() const;
+  double MaxY() const;
+
+  bool WithinBox2D(const Vertex& point) const;
+
  private:
+
+  bool left_hand_side(const Vertex& point, const Vertex& v1, const Vertex& v2) const;
   // Computes / caches box_vertices_ calculation.
   const std::vector<Vertex>& box_vertices() const;
 
@@ -129,10 +141,21 @@ struct Upright3DBox {
   // Returns true if the box is valid (width and height are not extremely
   // large or small, and zmin < zmax).
   bool NonZeroAndValid() const;
+
+  bool WithinBox3D(const Vertex& point) const;
 };
 
 // Converts a [N, 7] tensor to a vector of N Upright3DBox objects.
 std::vector<Upright3DBox> ParseBoxesFromTensor(const Tensor& boxes_tensor);
+
+// Converts a [N, 3] tensor to a vector of N Vertex objects.
+std::vector<Vertex> ParseVerticesFromTensor(const Tensor& points_tensor);
+
+std::vector<int> GetMinXIndexFromBoxes(std::vector<Upright3DBox>& box, std::vector<double>& points);
+std::vector<int> GetMaxXIndexFromBoxes(std::vector<Upright3DBox>& box, std::vector<double>& points);
+std::vector<int> GetMinYIndexFromBoxes(std::vector<Upright3DBox>& box, std::vector<double>& points);
+std::vector<int> GetMaxYIndexFromBoxes(std::vector<Upright3DBox>& box, std::vector<double>& points);
+
 
 }  // namespace box
 }  // namespace kerascv

@@ -13,50 +13,12 @@
 # limitations under the License.
 import tensorflow as tf
 
-import keras_cv
 from keras_cv.layers.preprocessing.mosaic import Mosaic
 
 classes = 10
 
 
 class MosaicTest(tf.test.TestCase):
-    def DISABLED_test_integration_retina_net(self):
-        train_ds, train_dataset_info = keras_cv.datasets.pascal_voc.load(
-            bounding_box_format="xywh", split="train", batch_size=9
-        )
-        mosaic = keras_cv.layers.Mosaic(bounding_box_format="xywh")
-        train_ds = train_ds.map(mosaic, num_parallel_calls=tf.data.AUTOTUNE)
-        train_ds = train_ds.map(
-            lambda inputs: (inputs["images"], inputs["bounding_boxes"]),
-            num_parallel_calls=tf.data.AUTOTUNE,
-        )
-        model = keras_cv.models.RetinaNet(
-            classes=20,
-            bounding_box_format="xywh",
-            backbone="resnet50",
-            backbone_weights="imagenet",
-            include_rescaling=True,
-            evaluate_train_time_metrics=False,
-        )
-        model.backbone.trainable = False
-        optimizer = tf.optimizers.SGD(global_clipnorm=10.0)
-        model.compile(
-            run_eagerly=True,
-            classification_loss=keras_cv.losses.FocalLoss(
-                from_logits=True, reduction="none"
-            ),
-            box_loss=keras_cv.losses.SmoothL1Loss(l1_cutoff=1.0, reduction="none"),
-            optimizer=optimizer,
-        )
-        callbacks = [
-            tf.keras.callbacks.ReduceLROnPlateau(patience=5),
-            tf.keras.callbacks.TerminateOnNaN(),
-        ]
-        history = model.fit(train_ds, epochs=20, callbacks=callbacks)
-
-        for loss in history.history["loss"]:
-            self.assertFalse(tf.math.is_nan(loss))
-
     def test_return_shapes(self):
         xs = tf.ones((2, 512, 512, 3))
         # randomly sample labels
@@ -65,8 +27,10 @@ class MosaicTest(tf.test.TestCase):
         ys_labels = tf.one_hot(ys_labels, classes)
 
         # randomly sample bounding boxes
-        ys_bounding_boxes = tf.random.uniform((2, 3, 5), 0, 1)
-
+        ys_bounding_boxes = {
+            "boxes": tf.random.uniform((2, 3, 4), 0, 1),
+            "classes": tf.random.uniform((2, 3), 0, 1),
+        }
         layer = Mosaic(bounding_box_format="xywh")
         # mosaic on labels
         outputs = layer(
@@ -80,7 +44,8 @@ class MosaicTest(tf.test.TestCase):
 
         self.assertEqual(xs.shape, [2, 512, 512, 3])
         self.assertEqual(ys_labels.shape, [2, 10])
-        self.assertEqual(ys_bounding_boxes.shape, [2, 12, 5])
+        self.assertEqual(ys_bounding_boxes["boxes"].shape, [2, None, 4])
+        self.assertEqual(ys_bounding_boxes["classes"].shape, [2, None])
 
     def test_in_tf_function(self):
         xs = tf.cast(

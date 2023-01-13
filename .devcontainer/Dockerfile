@@ -7,9 +7,10 @@ RUN apt-get update && apt-get install -y \
   && rm -rf /var/lib/apt/lists/*
 
 RUN pip install \
-  black \
+  black[jupyter] \
   flake8 \
   isort \
   pytest \
   regex \
-  tensorflow_datasets
+  tensorflow_datasets \
+  pycocotools

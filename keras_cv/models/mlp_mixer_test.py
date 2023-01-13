@@ -23,17 +23,17 @@ MODEL_LIST = [
     (
         mlp_mixer.MLPMixerB16,
         768,
-        {"patch_size": (16, 16), "input_shape": (224, 224, 3)},
+        {"input_shape": (224, 224, 3)},
     ),
     (
         mlp_mixer.MLPMixerB32,
         768,
-        {"patch_size": (32, 32), "input_shape": (224, 224, 3)},
+        {"input_shape": (224, 224, 3)},
     ),
     (
         mlp_mixer.MLPMixerL16,
         1024,
-        {"patch_size": (16, 16), "input_shape": (224, 224, 3)},
+        {"input_shape": (224, 224, 3)},
     ),
 ]
 

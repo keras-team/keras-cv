@@ -18,7 +18,7 @@ from absl.testing import parameterized
 
 from keras_cv import core
 from keras_cv import layers as cv_layers
-from keras_cv.models.segmentation.__internal__ import SegmentationHead
+from keras_cv.layers.vit_layers import PatchingAndEmbedding
 
 
 def exhaustive_compare(obj1, obj2):
@@ -137,6 +137,15 @@ class SerializationTest(tf.test.TestCase, parameterized.TestCase):
             cv_layers.RandomShear,
             {"x_factor": 0.3, "x_factor": 0.3, "seed": 1},
         ),
+        (
+            "JitteredResize",
+            cv_layers.JitteredResize,
+            {
+                "target_size": (640, 640),
+                "scale_factor": (0.8, 1.25),
+                "bounding_box_format": "xywh",
+            },
+        ),
         ("Solarization", cv_layers.Solarization, {"value_range": (0, 255)}),
         (
             "RandAugment",
@@ -161,6 +170,7 @@ class SerializationTest(tf.test.TestCase, parameterized.TestCase):
                 "rate": 1.0,
             },
         ),
+        ("RandomBrightness", cv_layers.RandomBrightness, {"factor": 0.5}),
         (
             "RandomChoice",
             cv_layers.RandomChoice,
@@ -178,6 +188,7 @@ class SerializationTest(tf.test.TestCase, parameterized.TestCase):
                 "seed": 1,
             },
         ),
+        ("RandomContrast", cv_layers.RandomContrast, {"factor": 0.5}),
         (
             "RandomCropAndResize",
             cv_layers.RandomCropAndResize,
@@ -251,18 +262,6 @@ class SerializationTest(tf.test.TestCase, parameterized.TestCase):
             },
         ),
         (
-            "NonMaxSuppression",
-            cv_layers.NonMaxSuppression,
-            {
-                "classes": 5,
-                "bounding_box_format": "xyxy",
-                "confidence_threshold": 0.5,
-                "iou_threshold": 0.5,
-                "max_detections": 100,
-                "max_detections_per_class": 100,
-            },
-        ),
-        (
             "RandomRotation",
             cv_layers.RandomRotation,
             {
@@ -270,14 +269,11 @@ class SerializationTest(tf.test.TestCase, parameterized.TestCase):
             },
         ),
         (
-            "SegmentationHead",
-            SegmentationHead,
+            "RandomAspectRatio",
+            cv_layers.RandomAspectRatio,
             {
-                "classes": 11,
-                "convs": 3,
-                "filters": 256,
-                "activations": tf.keras.activations.relu,
-                "output_scale_factor": None,
+                "factor": (0.9, 1.1),
+                "seed": 1233,
             },
         ),
         (
@@ -288,6 +284,151 @@ class SerializationTest(tf.test.TestCase, parameterized.TestCase):
                 "num_channels": 256,
                 "activation": "relu",
                 "dropout": 0.1,
+            },
+        ),
+        (
+            "PatchingAndEmbedding",
+            PatchingAndEmbedding,
+            {"project_dim": 128, "patch_size": 16},
+        ),
+        (
+            "TransformerEncoder",
+            cv_layers.TransformerEncoder,
+            {
+                "project_dim": 128,
+                "num_heads": 2,
+                "mlp_dim": 128,
+                "mlp_dropout": 0.1,
+                "attention_dropout": 0.1,
+                "activation": "gelu",
+                "layer_norm_epsilon": 1e-06,
+            },
+        ),
+        (
+            "FrustumRandomDroppingPoints",
+            cv_layers.FrustumRandomDroppingPoints,
+            {
+                "r_distance": 10.0,
+                "theta_width": 1.0,
+                "phi_width": 2.0,
+                "drop_rate": 0.1,
+            },
+        ),
+        (
+            "FrustumRandomPointFeatureNoise",
+            cv_layers.FrustumRandomPointFeatureNoise,
+            {
+                "r_distance": 10.0,
+                "theta_width": 1.0,
+                "phi_width": 2.0,
+                "max_noise_level": 0.1,
+            },
+        ),
+        (
+            "GlobalRandomDroppingPoints",
+            cv_layers.GlobalRandomDroppingPoints,
+            {"drop_rate": 0.1},
+        ),
+        (
+            "GlobalRandomFlipY",
+            cv_layers.GlobalRandomFlipY,
+            {},
+        ),
+        (
+            "GlobalRandomRotation",
+            cv_layers.GlobalRandomRotation,
+            {
+                "max_rotation_angle_x": 0.5,
+                "max_rotation_angle_y": 0.6,
+                "max_rotation_angle_z": 0.7,
+            },
+        ),
+        (
+            "GlobalRandomScaling",
+            cv_layers.GlobalRandomScaling,
+            {
+                "scaling_factor_x": (0.2, 1.0),
+                "scaling_factor_y": (0.3, 1.1),
+                "scaling_factor_z": (0.4, 1.3),
+                "same_scaling_xyz": False,
+            },
+        ),
+        (
+            "GlobalRandomTranslation",
+            cv_layers.GlobalRandomTranslation,
+            {"x_stddev": 0.2, "y_stddev": 1.0, "z_stddev": 0.0},
+        ),
+        (
+            "GroupPointsByBoundingBoxes",
+            cv_layers.GroupPointsByBoundingBoxes,
+            {
+                "label_index": 1,
+                "min_points_per_bounding_boxes": 1,
+                "max_points_per_bounding_boxes": 4,
+            },
+        ),
+        (
+            "RandomCopyPaste",
+            cv_layers.RandomCopyPaste,
+            {
+                "label_index": 1,
+                "min_paste_bounding_boxes": 1,
+                "max_paste_bounding_boxes": 10,
+            },
+        ),
+        (
+            "RandomDropBox",
+            cv_layers.RandomDropBox,
+            {"label_index": 1, "max_drop_bounding_boxes": 3},
+        ),
+        (
+            "SwapBackground",
+            cv_layers.SwapBackground,
+            {},
+        ),
+        (
+            "RandomZoom",
+            cv_layers.RandomZoom,
+            {"height_factor": 0.2, "width_factor": 0.5},
+        ),
+        (
+            "RandomCrop",
+            cv_layers.RandomCrop,
+            {
+                "height": 100,
+                "width": 200,
+            },
+        ),
+        (
+            "MBConvBlock",
+            cv_layers.MBConvBlock,
+            {
+                "input_filters": 16,
+                "output_filters": 16,
+            },
+        ),
+        (
+            "FusedMBConvBlock",
+            cv_layers.FusedMBConvBlock,
+            {
+                "input_filters": 16,
+                "output_filters": 16,
+            },
+        ),
+        (
+            "Rescaling",
+            cv_layers.Rescaling,
+            {
+                "scale": 1,
+                "offset": 0.5,
+            },
+        ),
+        (
+            "MultiClassNonMaxSuppression",
+            cv_layers.MultiClassNonMaxSuppression,
+            {
+                "bounding_box_format": "yxyx",
+                "from_logits": True,
             },
         ),
     )

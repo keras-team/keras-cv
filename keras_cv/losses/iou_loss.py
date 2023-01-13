@@ -23,7 +23,7 @@ class IoULoss(tf.keras.losses.Loss):
 
     IoU loss is commonly used for object detection. This loss aims to directly
     optimize the IoU score between true boxes and predicted boxes. The length of the
-    last dimension should be atleast 4 to represent the bounding boxes.
+    last dimension should be at least 4 to represent the bounding boxes.
 
     Args:
         bounding_box_format: a case-insensitive string which is one of `"xyxy"`,
@@ -70,15 +70,15 @@ class IoULoss(tf.keras.losses.Loss):
         y_pred = tf.convert_to_tensor(y_pred)
         y_true = tf.cast(y_true, y_pred.dtype)
 
-        if y_pred.shape[-1] < 4:
+        if y_pred.shape[-1] != 4:
             raise ValueError(
-                "IoULoss expects y_pred.shape[-1] to be at least 4 to represent "
+                "IoULoss expects y_pred.shape[-1] to be 4 to represent "
                 f"the bounding boxes. Received y_pred.shape[-1]={y_pred.shape[-1]}."
             )
 
-        if y_true.shape[-1] < 4:
+        if y_true.shape[-1] != 4:
             raise ValueError(
-                "IoULoss expects y_true.shape[-1] to be at least 4 to represent "
+                "IoULoss expects y_true.shape[-1] to be 4 to represent "
                 f"the bounding boxes. Received y_true.shape[-1]={y_true.shape[-1]}."
             )
 

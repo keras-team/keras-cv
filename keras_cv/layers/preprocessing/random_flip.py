@@ -52,6 +52,9 @@ class RandomFlip(BaseImageAugmentationLayer):
         `"horizontal"`. `"horizontal"` is a left-right flip and `"vertical"` is
         a top-bottom flip.
       seed: Integer. Used to create a random seed.
+      bounding_box_format: The format of bounding boxes of input dataset. Refer to
+        https://github.com/keras-team/keras-cv/blob/master/keras_cv/bounding_box/converters.py
+        for more details on supported bounding box formats.
     """
 
     def __init__(self, mode=HORIZONTAL, seed=None, bounding_box_format=None, **kwargs):
@@ -108,38 +111,35 @@ class RandomFlip(BaseImageAugmentationLayer):
         return flipped_output
 
     def _flip_bounding_boxes_horizontal(bounding_boxes):
-        x1, x2, x3, x4, rest = tf.split(
-            bounding_boxes, [1, 1, 1, 1, bounding_boxes.shape[-1] - 4], axis=-1
-        )
+        x1, x2, x3, x4 = tf.split(bounding_boxes["boxes"], [1, 1, 1, 1], axis=-1)
         output = tf.stack(
             [
                 1 - x3,
                 x2,
                 1 - x1,
                 x4,
-                rest,
             ],
             axis=-1,
         )
-        output = tf.squeeze(output, axis=1)
-        return output
+        bounding_boxes = bounding_boxes.copy()
+        bounding_boxes["boxes"] = tf.squeeze(output, axis=1)
+        return bounding_boxes
 
     def _flip_bounding_boxes_vertical(bounding_boxes):
-        x1, x2, x3, x4, rest = tf.split(
-            bounding_boxes, [1, 1, 1, 1, bounding_boxes.shape[-1] - 4], axis=-1
-        )
+        x1, x2, x3, x4 = tf.split(bounding_boxes["boxes"], [1, 1, 1, 1], axis=-1)
         output = tf.stack(
             [
                 x1,
                 1 - x4,
                 x3,
                 1 - x2,
-                rest,
             ],
             axis=-1,
         )
         output = tf.squeeze(output, axis=1)
-        return output
+        bounding_boxes = bounding_boxes.copy()
+        bounding_boxes["boxes"] = output
+        return bounding_boxes
 
     def augment_bounding_boxes(
         self, bounding_boxes, transformation=None, image=None, **kwargs
@@ -151,7 +151,7 @@ class RandomFlip(BaseImageAugmentationLayer):
                 "Please specify a bounding box format in the constructor. i.e."
                 "`RandomFlip(bounding_box_format='xyxy')`"
             )
-
+        bounding_boxes = bounding_boxes.copy()
         bounding_boxes = bounding_box.convert_format(
             bounding_boxes,
             source=self.bounding_box_format,
@@ -180,7 +180,7 @@ class RandomFlip(BaseImageAugmentationLayer):
             dtype=self.compute_dtype,
             images=image,
         )
-        return bounding_boxes
+        return bounding_box.to_ragged(bounding_boxes)
 
     def augment_segmentation_mask(
         self, segmentation_mask, transformation=None, **kwargs
