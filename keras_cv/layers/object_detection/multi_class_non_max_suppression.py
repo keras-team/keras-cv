@@ -97,12 +97,14 @@ class MultiClassNonMaxSuppression(tf.keras.layers.Layer):
             source=target_format,
             target=self.bounding_box_format,
         )
-        return {
+        bounding_boxes = {
             "boxes": box_pred,
             "confidence": confidence_pred,
             "classes": class_pred,
             "num_detections": valid_det,
         }
+        # this is required to comply with KerasCV bounding box format.
+        return bounding_box.mask_invalid_detections(bounding_boxes)
 
     def get_config(self):
         config = {
