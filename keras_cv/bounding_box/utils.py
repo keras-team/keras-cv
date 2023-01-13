@@ -85,17 +85,17 @@ def clip_to_image(bounding_boxes, bounding_box_format, images=None, image_shape=
         images=images,
         image_shape=image_shape,
     )
-    boxes, classes, images, squeeze = _format_inputs(boxes, classes, images=images, image_shape=image_shape)
-    x1, y1, x2, y2, rest = tf.split(
-        boxes, [1, 1, 1, 1, boxes.shape[-1] - 4], axis=-1
+    boxes, classes, images, squeeze = _format_inputs(
+        boxes, classes, images=images, image_shape=image_shape
     )
+    x1, y1, x2, y2, rest = tf.split(boxes, [1, 1, 1, 1, boxes.shape[-1] - 4], axis=-1)
     clipped_bounding_boxes = tf.concat(
         [
             tf.clip_by_value(x1, clip_value_min=0, clip_value_max=1),
             tf.clip_by_value(y1, clip_value_min=0, clip_value_max=1),
             tf.clip_by_value(x2, clip_value_min=0, clip_value_max=1),
             tf.clip_by_value(y2, clip_value_min=0, clip_value_max=1),
-            rest
+            rest,
         ],
         axis=-1,
     )

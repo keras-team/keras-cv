@@ -15,7 +15,6 @@
 import tensorflow as tf
 from absl.testing import parameterized
 
-from keras_cv import bounding_box
 from keras_cv.layers import preprocessing
 
 
@@ -40,16 +39,10 @@ class CenterCropTest(tf.test.TestCase, parameterized.TestCase):
                 [[0, 0, 15, 15], [0, 0, 10, 10], [0, 0, 5, 5], [18, 18, 20, 20]],
                 [[0, 0, 15, 15], [0, 0, 10, 10], [0, 0, 5, 5], [18, 18, 20, 20]],
             ],
-            dtype=tf.float32
+            dtype=tf.float32,
         )
-        classes = tf.convert_to_tensor([
-            [0, 0, 0, 0],
-            [0, 0, 0, 0]
-        ])
-        bboxes = {
-            "boxes": boxes,
-            "classes": classes
-        }
+        classes = tf.convert_to_tensor([[0, 0, 0, 0], [0, 0, 0, 0]])
+        bboxes = {"boxes": boxes, "classes": classes}
 
         layer = preprocessing.CenterCrop(10, 10)
         layer.bounding_box_format = "xyxy"
@@ -57,14 +50,9 @@ class CenterCropTest(tf.test.TestCase, parameterized.TestCase):
         outputs = layer({"images": images, "bounding_boxes": bboxes})
 
         expected_boxes = tf.ragged.constant(
-            [
-                [0, 0, 10, 10],
-                [0, 0, 5, 5]
-            ], dtype=tf.float32
+            [[0, 0, 10, 10], [0, 0, 5, 5]], dtype=tf.float32
         )
-        expected_classes = tf.convert_to_tensor(
-            [0, 0], dtype=tf.int32
-        )
+        expected_classes = tf.convert_to_tensor([0, 0], dtype=tf.int32)
 
         self.assertAllClose(outputs["images"], images[:, 5:15, 5:15, :])
         self.assertAllClose(outputs["bounding_boxes"]["boxes"][0], expected_boxes)
@@ -81,14 +69,8 @@ class CenterCropTest(tf.test.TestCase, parameterized.TestCase):
             ],
             dtype=tf.float32,
         )
-        classes = tf.convert_to_tensor([
-            [0, 0, 0, 0],
-            [0, 0, 0, 0]
-        ])
-        bboxes = {
-            "boxes": boxes,
-            "classes": classes
-        }
+        classes = tf.convert_to_tensor([[0, 0, 0, 0], [0, 0, 0, 0]])
+        bboxes = {"boxes": boxes, "classes": classes}
 
         layer = preprocessing.CenterCrop(10, 30)
         layer.bounding_box_format = "xyxy"
@@ -96,10 +78,7 @@ class CenterCropTest(tf.test.TestCase, parameterized.TestCase):
         outputs = layer({"images": images, "bounding_boxes": bboxes})
 
         expected_bboxes = tf.ragged.constant(
-            [
-                [0, 0, 22.5, 10],
-                [0, 0, 15, 5]
-            ], dtype=tf.float32
+            [[0, 0, 22.5, 10], [0, 0, 15, 5]], dtype=tf.float32
         )
 
         self.assertAllClose(outputs["bounding_boxes"]["boxes"][0], expected_bboxes)
@@ -114,14 +93,8 @@ class CenterCropTest(tf.test.TestCase, parameterized.TestCase):
             ],
             dtype=tf.float32,
         )
-        classes = tf.convert_to_tensor([
-            [0, 0, 0, 0],
-            [0, 0, 0, 0]
-        ])
-        bboxes = {
-            "boxes": boxes,
-            "classes": classes
-        }
+        classes = tf.convert_to_tensor([[0, 0, 0, 0], [0, 0, 0, 0]])
+        bboxes = {"boxes": boxes, "classes": classes}
 
         layer = preprocessing.CenterCrop(25, 50)
         layer.bounding_box_format = "xyxy"
@@ -129,10 +102,7 @@ class CenterCropTest(tf.test.TestCase, parameterized.TestCase):
         outputs = layer({"images": images, "bounding_boxes": bboxes})
 
         expected_bboxes = tf.ragged.constant(
-            [
-                [0, 0, 37.5, 25],
-                [0, 0, 25, 12.5]
-            ], dtype=tf.float32
+            [[0, 0, 37.5, 25], [0, 0, 25, 12.5]], dtype=tf.float32
         )
 
         self.assertAllClose(outputs["bounding_boxes"]["boxes"][0], expected_bboxes)
