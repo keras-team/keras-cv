@@ -45,7 +45,8 @@ class NmsPredictionDecoderTest(tf.test.TestCase):
 
     @unittest.expectedFailure
     def test_with_xla(self):
-        # tf.config.experimental.disable_mlir_bridge()
+        # TODO if the teardown is working correctly the next line is not required
+        tf.config.experimental.disable_mlir_bridge()
         xla_function = tf.function(
             self.test_decode_predictions_output_shapes, jit_compile=True
         )
