@@ -14,6 +14,7 @@
 
 import unittest
 
+import pytest
 import tensorflow as tf
 
 from keras_cv import layers as cv_layers
@@ -42,59 +43,26 @@ class NmsPredictionDecoderTest(tf.test.TestCase):
         self.assertEqual(result["classes"].shape, [8, 100])
         self.assertEqual(result["confidence"].shape, [8, 100])
 
-
-class XlaMlirBridgeNmsPredictionDecoderTest(tf.test.TestCase):
-    tf.config.experimental.enable_mlir_bridge()
-
-    @tf.function(jit_compile=True)
-    def test_decode_predictions_output_shapes(self):
-        classes = 10
-        predictions_shape = (8, 98208, 4 + classes)
-
-        predictions = tf.random.uniform(
-            shape=predictions_shape, minval=0.0, maxval=1.0, dtype=tf.float32
+    @unittest.expectedFailure
+    def test_with_xla(self):
+        # tf.config.experimental.disable_mlir_bridge()
+        xla_function = tf.function(
+            self.test_decode_predictions_output_shapes, jit_compile=True
         )
-        box_pred = predictions[..., :4]
-        confidence_pred = predictions[..., 4:]
+        xla_function()
 
-        layer = cv_layers.MultiClassNonMaxSuppression(
-            bounding_box_format="xyxy",
-            from_logits=True,
-            max_detections=100,
+    @pytest.fixture()
+    def prepare_xla_mlir_bridge_compiled_function(self):
+        tf.config.experimental.enable_mlir_bridge()
+        xla_function = tf.function(
+            self.test_decode_predictions_output_shapes, jit_compile=True
         )
+        yield xla_function
+        tf.config.experimental.disable_mlir_bridge()
 
-        result = layer(box_prediction=box_pred, confidence_prediction=confidence_pred)
+    @pytest.fixture(autouse=True)
+    def store_xla_mlir(self, prepare_xla_mlir_bridge_compiled_function):
+        self._xla_function = prepare_xla_mlir_bridge_compiled_function
 
-        self.assertEqual(result["boxes"].shape, [8, 100, 4])
-        self.assertEqual(result["classes"].shape, [8, 100])
-        self.assertEqual(result["confidence"].shape, [8, 100])
-
-
-@unittest.expectedFailure
-class XlaNmsPredictionDecoderTest(tf.test.TestCase):
-    # TODO This is not failing as it seems if uncommented it will globally
-    # disable the MLIR bridge.
-    # Are we compiling in the same context?
-    # tf.config.experimental.disable_mlir_bridge()
-    @tf.function(jit_compile=True)
-    def test_decode_predictions_output_shapes(self):
-        classes = 10
-        predictions_shape = (8, 98208, 4 + classes)
-
-        predictions = tf.random.uniform(
-            shape=predictions_shape, minval=0.0, maxval=1.0, dtype=tf.float32
-        )
-        box_pred = predictions[..., :4]
-        confidence_pred = predictions[..., 4:]
-
-        layer = cv_layers.MultiClassNonMaxSuppression(
-            bounding_box_format="xyxy",
-            from_logits=True,
-            max_detections=100,
-        )
-
-        result = layer(box_prediction=box_pred, confidence_prediction=confidence_pred)
-
-        self.assertEqual(result["boxes"].shape, [8, 100, 4])
-        self.assertEqual(result["classes"].shape, [8, 100])
-        self.assertEqual(result["confidence"].shape, [8, 100])
+    def test_with_xla_mlir_bridge(self):
+        self._xla_function()
