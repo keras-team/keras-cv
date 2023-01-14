@@ -23,8 +23,8 @@ def decode_predictions_output_shapes():
     classes = 10
     predictions_shape = (8, 98208, 4 + classes)
 
-    predictions = tf.random.uniform(
-        shape=predictions_shape, minval=0.0, maxval=1.0, dtype=tf.float32
+    predictions = tf.random.stateless_uniform(
+        shape=predictions_shape, seed=(2, 3), minval=0.0, maxval=1.0, dtype=tf.float32
     )
     box_pred = predictions[..., :4]
     confidence_pred = predictions[..., 4:]
@@ -46,7 +46,6 @@ class NmsPredictionDecoderTest(tf.test.TestCase):
         self.assertEqual(result["classes"].shape, [8, 100])
         self.assertEqual(result["confidence"].shape, [8, 100])
 
-
 @unittest.expectedFailure
 class NmsPredictionDecoderTestWithXLA(tf.test.TestCase):
     def test_decode_predictions_output_shapes(self):
@@ -55,8 +54,7 @@ class NmsPredictionDecoderTestWithXLA(tf.test.TestCase):
         self.assertEqual(result["boxes"].shape, [8, 100, 4])
         self.assertEqual(result["classes"].shape, [8, 100])
         self.assertEqual(result["confidence"].shape, [8, 100])
-
-
+        
 class NmsPredictionDecoderTestWithXLAMlirBridge(tf.test.TestCase):
     def setUp(self):
         tf.config.experimental.enable_mlir_bridge()
