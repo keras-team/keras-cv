@@ -241,13 +241,13 @@ def ConvNeXtV2(
 
     stem = keras.Sequential(
         [
-            layers.LayerNormalization(epsilon=1e-6, name=name + "_stem_layernorm"),
             layers.Conv2D(
                 projection_dims[0],
                 kernel_size=4,
                 strides=4,
                 name=name + "_stem_conv",
             ),
+            layers.LayerNormalization(epsilon=1e-6, name=name + "_stem_layernorm"),
         ],
         name=name + "_stem",
     )
