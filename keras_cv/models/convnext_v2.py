@@ -128,9 +128,7 @@ class ConvNeXtV2Block(layers.Layer):
         super().__init__(**kwargs)
         # Original implementation uses a Conv2d block with groups
         # calling it a Depthwise Conv2D.
-        self.depthwise_conv = layers.DepthwiseConv2D(
-            kernel_size=7, padding="same"
-        )
+        self.depthwise_conv = layers.DepthwiseConv2D(kernel_size=7, padding="same")
 
         self.layernorm = layers.LayerNormalization(epsilon=1e-6)
         # Pointwise/1x1 conv, implemented with Dense layers
@@ -164,7 +162,6 @@ def ConvNeXtV2(
     include_top,
     depths,
     projection_dims,
-    head_scale=1.0,
     drop_path_rate=0.0,
     weights=None,
     input_shape=(None, None, 3),
@@ -299,14 +296,9 @@ def ConvNeXtV2(
     if include_top:
         x = layers.GlobalAveragePooling2D(name=name + "_head_gap")(x)
         x = layers.LayerNormalization(epsilon=1e-6, name=name + "_head_layernorm")(x)
-        head = layers.Dense(
+        x = layers.Dense(
             classes, activation=classifier_activation, name=name + "_head_dense"
-        )
-
-        head.kernel.assign(tf.Variable(head.kernel * head_scale))
-        head.bias.assign(tf.Variable(head.bias * head_scale))
-
-        x = head(x)
+        )(x)
 
     else:
         if pooling == "avg":
