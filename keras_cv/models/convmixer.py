@@ -79,3 +79,19 @@ def CovnMixer_Layer(inputs, dim, kernel_size):
     x = tf.nn.gelu(x)
     x = tf.keras.layers.BatchNormalization()(x)
     return x
+
+
+def patch_embed(inputs, dim, patch_size):
+    """Extract Patch Embedding.
+    Args:
+        inputs: Input tensor.
+        patch_size: integer, Size of patches.
+    Returns:
+        Output tensor for the patch embed.
+    """
+    x = tf.keras.layers.Conv2D(filters=dim, kernel_size=patch_size, strides=patch_size)(
+        inputs
+    )
+    x = tf.nn.gelu(x)
+    x = tf.keras.layers.BatchNormalization()(x)
+    return x
