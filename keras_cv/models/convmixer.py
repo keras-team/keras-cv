@@ -54,7 +54,7 @@ MODEL_CONFIGS = {
 }
 
 
-def CovnMixer_Layer(inputs, dim, kernel_size):
+def CovnMixer_Layer(dim, kernel_size):
     """CovnMixer Layer module.
     Args:
         inputs: Input tensor.
@@ -63,19 +63,22 @@ def CovnMixer_Layer(inputs, dim, kernel_size):
     Returns:
         Output tensor for the CovnMixer Layer.
     """
-    residual = inputs
-    x = tf.keras.layers.DepthwiseConv2D(kernel_size=kernel_size, padding="same")(inputs)
-    x = tf.nn.gelu(x)
-    x = tf.keras.layers.BatchNormalization()(x)
-    x = tf.keras.layers.Add()([x, residual])
 
-    x = tf.keras.layers.Conv2D(dim, kernel_size=1)(x)
-    x = tf.nn.gelu(x)
-    x = tf.keras.layers.BatchNormalization()(x)
-    return x
+    def apply(x):
+        residual = x
+        x = tf.keras.layers.DepthwiseConv2D(kernel_size=kernel_size, padding="same")(x)
+        x = tf.nn.gelu(x)
+        x = tf.keras.layers.BatchNormalization()(x)
+        x = tf.keras.layers.Add()([x, residual])
+
+        x = tf.keras.layers.Conv2D(dim, kernel_size=1)(x)
+        x = tf.nn.gelu(x)
+        x = tf.keras.layers.BatchNormalization()(x)
+
+    return apply
 
 
-def patch_embed(inputs, dim, patch_size):
+def patch_embed(dim, patch_size):
     """Implementation for Extracting Patch Embeddings.
     Args:
         inputs: Input tensor.
@@ -83,12 +86,15 @@ def patch_embed(inputs, dim, patch_size):
     Returns:
         Output tensor for the patch embed.
     """
-    x = tf.keras.layers.Conv2D(filters=dim, kernel_size=patch_size, strides=patch_size)(
-        inputs
-    )
-    x = tf.nn.gelu(x)
-    x = tf.keras.layers.BatchNormalization()(x)
-    return x
+
+    def apply(x):
+        x = tf.keras.layers.Conv2D(
+            filters=dim, kernel_size=patch_size, strides=patch_size
+        )(x)
+        x = tf.nn.gelu(x)
+        x = tf.keras.layers.BatchNormalization()(x)
+
+    return apply
 
 
 def ConvMixer(
@@ -166,10 +172,10 @@ def ConvMixer(
 
     if include_rescaling:
         x = layers.Rescaling(1 / 255.0)(x)
-    x = patch_embed(x, dim, patch_size)
+    x = patch_embed(dim, patch_size)(x)
 
     for _ in range(depth):
-        x = CovnMixer_Layer(x, dim, kernel_size)
+        x = CovnMixer_Layer(dim, kernel_size)(x)
 
     if include_top:
         x = layers.GlobalAveragePooling2D(name="avg_pool")(x)
