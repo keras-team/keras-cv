@@ -164,6 +164,7 @@ def ConvNeXtV2(
     include_top,
     depths,
     projection_dims,
+    head_scale=1.0,
     drop_path_rate=0.0,
     weights=None,
     input_shape=(None, None, 3),
@@ -298,9 +299,14 @@ def ConvNeXtV2(
     if include_top:
         x = layers.GlobalAveragePooling2D(name=name + "_head_gap")(x)
         x = layers.LayerNormalization(epsilon=1e-6, name=name + "_head_layernorm")(x)
-        x = layers.Dense(
+        head = layers.Dense(
             classes, activation=classifier_activation, name=name + "_head_dense"
-        )(x)
+        )
+
+        head.kernel.assign(tf.Variable(head.kernel * head_scale))
+        head.bias.assign(tf.Variable(head.bias * head_scale))
+
+        outputs = head(x)
 
     else:
         if pooling == "avg":
