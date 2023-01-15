@@ -102,3 +102,8 @@ from keras_cv.models.vit import ViTS16
 from keras_cv.models.vit import ViTS32
 from keras_cv.models.vit import ViTTiny16
 from keras_cv.models.vit import ViTTiny32
+from keras_cv.models.convmixer import ConvMixer_1024_16
+from keras_cv.models.convmixer import ConvMixer_1536_20
+from keras_cv.models.convmixer import ConvMixer_1536_24
+from keras_cv.models.convmixer import ConvMixer_512_16
+from keras_cv.models.convmixer import ConvMixer_768_32
