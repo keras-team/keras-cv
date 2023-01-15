@@ -28,7 +28,7 @@ MODEL_LIST = [
 ]
 
 
-class ConvNeXtTest(ModelsTest, tf.test.TestCase, parameterized.TestCase):
+class ConvMixerTest(ModelsTest, tf.test.TestCase, parameterized.TestCase):
     @parameterized.parameters(*MODEL_LIST)
     def test_application_base(self, app, _, args):
         super()._test_application_base(app, _, args)
