@@ -55,7 +55,7 @@ MODEL_CONFIGS = {
 
 
 def CovnMixer_Layer(inputs, dim, kernel_size):
-    """CovnMixer Layer.
+    """CovnMixer Layer module.
     Args:
         inputs: Input tensor.
         dim: integer, filters of the layer in a block.
@@ -76,7 +76,7 @@ def CovnMixer_Layer(inputs, dim, kernel_size):
 
 
 def patch_embed(inputs, dim, patch_size):
-    """Extract Patch Embedding.
+    """Implementation for Extracting Patch Embeddings.
     Args:
         inputs: Input tensor.
         patch_size: integer, Size of patches.
@@ -138,8 +138,6 @@ def ConvMixer(
         classifier_activation: A `str` or callable. The activation function to use
             on the "top" layer. Ignored unless `include_top=True`. Set
             `classifier_activation=None` to return the logits of the "top" layer.
-        block_fn: callable, `Block` or `BasicBlock`, the block function to stack.
-            Use 'basic_block' for ResNet18 and ResNet34.
         **kwargs: Pass-through keyword arguments to `tf.keras.Model`.
     Returns:
       A `keras.Model` instance.
