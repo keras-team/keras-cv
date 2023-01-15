@@ -306,7 +306,7 @@ def ConvNeXtV2(
         head.kernel.assign(tf.Variable(head.kernel * head_scale))
         head.bias.assign(tf.Variable(head.bias * head_scale))
 
-        outputs = head(x)
+        x = head(x)
 
     else:
         if pooling == "avg":
