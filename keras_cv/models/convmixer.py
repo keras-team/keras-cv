@@ -89,9 +89,7 @@ def patch_embed(dim, patch_size):
     """
 
     def apply(x):
-        x = layers.Conv2D(
-            filters=dim, kernel_size=patch_size, strides=patch_size
-        )(x)
+        x = layers.Conv2D(filters=dim, kernel_size=patch_size, strides=patch_size)(x)
         x = tf.nn.gelu(x)
         x = layers.BatchNormalization()(x)
         return x
