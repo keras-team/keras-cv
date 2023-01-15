@@ -20,7 +20,7 @@ References:
 """
 
 import tensorflow as tf
-from tensorflow.keras import backend
+from tensorflow import keras
 from tensorflow.keras import layers
 
 from keras_cv.models import utils
@@ -66,14 +66,14 @@ def CovnMixer_Layer(dim, kernel_size):
 
     def apply(x):
         residual = x
-        x = tf.keras.layers.DepthwiseConv2D(kernel_size=kernel_size, padding="same")(x)
+        x = layers.DepthwiseConv2D(kernel_size=kernel_size, padding="same")(x)
         x = tf.nn.gelu(x)
-        x = tf.keras.layers.BatchNormalization()(x)
-        x = tf.keras.layers.Add()([x, residual])
+        x = layers.BatchNormalization()(x)
+        x = layers.Add()([x, residual])
 
-        x = tf.keras.layers.Conv2D(dim, kernel_size=1)(x)
+        x = layers.Conv2D(dim, kernel_size=1)(x)
         x = tf.nn.gelu(x)
-        x = tf.keras.layers.BatchNormalization()(x)
+        x = layers.BatchNormalization()(x)
         return x
 
     return apply
@@ -89,11 +89,11 @@ def patch_embed(dim, patch_size):
     """
 
     def apply(x):
-        x = tf.keras.layers.Conv2D(
+        x = layers.Conv2D(
             filters=dim, kernel_size=patch_size, strides=patch_size
         )(x)
         x = tf.nn.gelu(x)
-        x = tf.keras.layers.BatchNormalization()(x)
+        x = layers.BatchNormalization()(x)
         return x
 
     return apply
@@ -190,7 +190,7 @@ def ConvMixer(
         elif pooling == "max":
             x = layers.GlobalMaxPooling2D(name="max_pool")(x)
 
-    model = tf.keras.Model(inputs, x, name=name)
+    model = keras.Model(inputs, x, name=name)
     if weights is not None:
         model.load_weights(weights)
 
