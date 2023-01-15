@@ -57,3 +57,25 @@ MODEL_CONFIGS = {
         "kernel_size": 8,
     },
 }
+
+def CovnMixer_Layer(inputs, dim, kernel_size):
+    """CovnMixer Layer.
+    Args:
+        inputs: Input tensor.
+        dim: integer, filters of the layer in a block.
+        kernel_size: integer, kernel size of the Conv2d layers.
+    Returns:
+        Output tensor for the CovnMixer Layer.
+    """
+    residual = inputs
+    x = tf.keras.layers.DepthwiseConv2D(kernel_size = kernel_size, padding="same")(
+        inputs
+    )
+    x = tf.nn.gelu(x)
+    x = tf.keras.layers.BatchNormalization()(x)
+    x = tf.keras.layers.Add()([x, residual])
+
+    x = tf.keras.layers.Conv2D(dim, kernel_size=1)(x)
+    x = tf.nn.gelu(x)
+    x = tf.keras.layers.BatchNormalization()(x)
+    return x
