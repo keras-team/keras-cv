@@ -126,7 +126,8 @@ class ConvNeXtV2Block(layers.Layer):
 
     def __init__(self, projection_dim, drop_path_rate=0.0, **kwargs):
         super().__init__(**kwargs)
-        # Depthwise with groups
+        # Original implementation uses a Conv2d block with groups
+        # calling it a Depthwise Conv2D.
         self.depthwise_conv = layers.DepthwiseConv2D(
             kernel_size=7, padding="same"
         )
