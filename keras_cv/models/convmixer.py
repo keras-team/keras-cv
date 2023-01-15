@@ -26,12 +26,7 @@ from tensorflow.keras import layers
 from keras_cv.models import utils
 
 MODEL_CONFIGS = {
-    "ConvMixer_1536_20": {
-        "dim": 1536,
-        "depth": 20,
-        "patch_size": 7,
-        "kernel_size": 9
-    },
+    "ConvMixer_1536_20": {"dim": 1536, "depth": 20, "patch_size": 7, "kernel_size": 9},
     "ConvMixer_1536_24": {
         "dim": 1536,
         "depth": 24,
@@ -58,6 +53,7 @@ MODEL_CONFIGS = {
     },
 }
 
+
 def CovnMixer_Layer(inputs, dim, kernel_size):
     """CovnMixer Layer.
     Args:
@@ -68,9 +64,7 @@ def CovnMixer_Layer(inputs, dim, kernel_size):
         Output tensor for the CovnMixer Layer.
     """
     residual = inputs
-    x = tf.keras.layers.DepthwiseConv2D(kernel_size = kernel_size, padding="same")(
-        inputs
-    )
+    x = tf.keras.layers.DepthwiseConv2D(kernel_size=kernel_size, padding="same")(inputs)
     x = tf.nn.gelu(x)
     x = tf.keras.layers.BatchNormalization()(x)
     x = tf.keras.layers.Add()([x, residual])
@@ -117,7 +111,7 @@ def ConvMixer(
         dim: number of filters.
         depth: number of CovnMixer Layer.
         patch_size: Size of the patches.
-        kernel_size: kernel size for conv2d layers. 
+        kernel_size: kernel size for conv2d layers.
         include_rescaling: whether or not to Rescale the inputs. If set to True,
             inputs will be passed through a `Rescaling(1/255.0)` layer.
             name: string, model name.
@@ -227,6 +221,7 @@ def ConvMixer_1536_20(
         classifier_activation=classifier_activation,
         **kwargs,
     )
+
 
 def ConvMixer_1536_24(
     include_rescaling,
