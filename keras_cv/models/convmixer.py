@@ -95,3 +95,103 @@ def patch_embed(inputs, dim, patch_size):
     x = tf.nn.gelu(x)
     x = tf.keras.layers.BatchNormalization()(x)
     return x
+
+
+def ConvMixer(
+    dim,
+    depth,
+    patch_size,
+    kernel_size,
+    include_top,
+    include_rescaling,
+    name="ConvMixer",
+    weights=None,
+    input_shape=(None, None, 3),
+    input_tensor=None,
+    pooling=None,
+    classes=None,
+    classifier_activation="softmax",
+):
+    """Instantiates the ResNetV2 architecture.
+    Args:
+        dim: number of filters.
+        depth: number of CovnMixer Layer.
+        patch_size: Size of the patches.
+        kernel_size: kernel size for conv2d layers. 
+        include_rescaling: whether or not to Rescale the inputs. If set to True,
+            inputs will be passed through a `Rescaling(1/255.0)` layer.
+            name: string, model name.
+        include_top: whether to include the fully-connected
+            layer at the top of the network.
+        weights: one of `None` (random initialization),
+            or the path to the weights file to be loaded.
+        input_shape: optional shape tuple, defaults to (None, None, 3).
+        input_tensor: optional Keras tensor (i.e. output of `layers.Input()`)
+            to use as image input for the model.
+        pooling: optional pooling mode for feature extraction
+            when `include_top` is `False`.
+            - `None` means that the output of the model will be
+                the 4D tensor output of the
+                last convolutional layer.
+            - `avg` means that global average pooling
+                will be applied to the output of the
+                last convolutional layer, and thus
+                the output of the model will be a 2D tensor.
+            - `max` means that global max pooling will
+                be applied.
+        classes: optional number of classes to classify images
+            into, only to be specified if `include_top` is True.
+        classifier_activation: A `str` or callable. The activation function to use
+            on the "top" layer. Ignored unless `include_top=True`. Set
+            `classifier_activation=None` to return the logits of the "top" layer.
+        block_fn: callable, `Block` or `BasicBlock`, the block function to stack.
+            Use 'basic_block' for ResNet18 and ResNet34.
+        **kwargs: Pass-through keyword arguments to `tf.keras.Model`.
+    Returns:
+      A `keras.Model` instance.
+    """
+
+    if weights and not tf.io.gfile.exists(weights):
+        raise ValueError(
+            "The `weights` argument should be either `None` or the path to the "
+            f"weights file to be loaded. Weights file not found at location: {weights}"
+        )
+
+    if include_top and not classes:
+        raise ValueError(
+            "If `include_top` is True, you should specify `classes`. "
+            f"Received: classes={classes}"
+        )
+
+    if include_top and pooling:
+        raise ValueError(
+            f"`pooling` must be `None` when `include_top=True`."
+            f"Received pooling={pooling} and include_top={include_top}. "
+        )
+
+    inputs = utils.parse_model_inputs(input_shape, input_tensor)
+    x = inputs
+
+    if include_rescaling:
+        x = layers.Rescaling(1 / 255.0)(x)
+    x = patch_embed(x, dim, patch_size)
+
+    for _ in range(depth):
+        x = CovnMixer_Layer(x, dim, kernel_size)
+
+    if include_top:
+        x = layers.GlobalAveragePooling2D(name="avg_pool")(x)
+        x = layers.Dense(classes, activation=classifier_activation, name="predictions")(
+            x
+        )
+    else:
+        if pooling == "avg":
+            x = layers.GlobalAveragePooling2D(name="avg_pool")(x)
+        elif pooling == "max":
+            x = layers.GlobalMaxPooling2D(name="max_pool")(x)
+
+    model = tf.keras.Model(inputs, x, name=name)
+    if weights is not None:
+        model.load_weights(weights)
+
+    return model
