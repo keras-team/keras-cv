@@ -127,8 +127,8 @@ class ConvNeXtV2Block(layers.Layer):
     def __init__(self, projection_dim, drop_path_rate=0.0, **kwargs):
         super().__init__(**kwargs)
         # Depthwise with groups
-        self.depthwise_conv = layers.Conv2D(
-            filters=projection_dim, kernel_size=7, padding="same", groups=projection_dim
+        self.depthwise_conv = layers.DepthwiseConv2D(
+            kernel_size=7, padding="same"
         )
 
         self.layernorm = layers.LayerNormalization(epsilon=1e-6)
