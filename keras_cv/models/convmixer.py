@@ -24,3 +24,36 @@ from tensorflow.keras import backend
 from tensorflow.keras import layers
 
 from keras_cv.models import utils
+
+MODEL_CONFIGS = {
+    "ConvMixer_1536_20": {
+        "dim": 1536,
+        "depth": 20,
+        "patch_size": 7,
+        "kernel_size": 9
+    },
+    "ConvMixer_1536_24": {
+        "dim": 1536,
+        "depth": 24,
+        "patch_size": 14,
+        "kernel_size": 9,
+    },
+    "ConvMixer_768_32": {
+        "dim": 768,
+        "depth": 32,
+        "patch_size": 7,
+        "kernel_size": 7,
+    },
+    "ConvMixer_1024_16": {
+        "dim": 1024,
+        "depth": 16,
+        "patch_size": 7,
+        "kernel_size": 9,
+    },
+    "ConvMixer_512_16": {
+        "dim": 512,
+        "depth": 16,
+        "patch_size": 7,
+        "kernel_size": 8,
+    },
+}
