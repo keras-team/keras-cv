@@ -13,6 +13,12 @@
 # limitations under the License.
 
 
+"""ConvMixer models for Keras.
+
+References:
+- [Patches Are All You Need?](https://arxiv.org/abs/2201.09792)
+"""
+
 import tensorflow as tf
 from tensorflow.keras import backend
 from tensorflow.keras import layers
