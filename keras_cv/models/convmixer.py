@@ -74,7 +74,7 @@ def CovnMixer_Layer(dim, kernel_size):
         x = tf.keras.layers.Conv2D(dim, kernel_size=1)(x)
         x = tf.nn.gelu(x)
         x = tf.keras.layers.BatchNormalization()(x)
-        return xs
+        return x
 
     return apply
 
