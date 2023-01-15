@@ -195,3 +195,162 @@ def ConvMixer(
         model.load_weights(weights)
 
     return model
+
+
+def ConvMixer_1536_20(
+    include_rescaling,
+    include_top,
+    classes=None,
+    weights=None,
+    input_shape=(None, None, 3),
+    input_tensor=None,
+    pooling=None,
+    classifier_activation="softmax",
+    name="ConvMixer_1536_20",
+    **kwargs,
+):
+    """Instantiates the ResNet34 architecture."""
+
+    return ConvMixer(
+        dim=MODEL_CONFIGS["ConvMixer_1536_20"]["dim"],
+        depth=MODEL_CONFIGS["ConvMixer_1536_20"]["depth"],
+        patch_size=MODEL_CONFIGS["ConvMixer_1536_20"]["patch_size"],
+        kernel_size=MODEL_CONFIGS["ConvMixer_1536_20"]["kernel_size"],
+        include_rescaling=include_rescaling,
+        include_top=include_top,
+        name=name,
+        weights=weights,
+        input_shape=input_shape,
+        input_tensor=input_tensor,
+        pooling=pooling,
+        classes=classes,
+        classifier_activation=classifier_activation,
+        **kwargs,
+    )
+
+def ConvMixer_1536_24(
+    include_rescaling,
+    include_top,
+    classes=None,
+    weights=None,
+    input_shape=(None, None, 3),
+    input_tensor=None,
+    pooling=None,
+    classifier_activation="softmax",
+    name="ConvMixer_1536_24",
+    **kwargs,
+):
+    """Instantiates the ResNet34 architecture."""
+
+    return ConvMixer(
+        dim=MODEL_CONFIGS["ConvMixer_1536_24"]["dim"],
+        depth=MODEL_CONFIGS["ConvMixer_1536_24"]["depth"],
+        patch_size=MODEL_CONFIGS["ConvMixer_1536_24"]["patch_size"],
+        kernel_size=MODEL_CONFIGS["ConvMixer_1536_24"]["kernel_size"],
+        include_rescaling=include_rescaling,
+        include_top=include_top,
+        name=name,
+        weights=weights,
+        input_shape=input_shape,
+        input_tensor=input_tensor,
+        pooling=pooling,
+        classes=classes,
+        classifier_activation=classifier_activation,
+        **kwargs,
+    )
+
+
+def ConvMixer_768_32(
+    include_rescaling,
+    include_top,
+    classes=None,
+    weights=None,
+    input_shape=(None, None, 3),
+    input_tensor=None,
+    pooling=None,
+    classifier_activation="softmax",
+    name="ConvMixer_768_32",
+    **kwargs,
+):
+    """Instantiates the ResNet34 architecture."""
+
+    return ConvMixer(
+        dim=MODEL_CONFIGS["ConvMixer_768_32"]["dim"],
+        depth=MODEL_CONFIGS["ConvMixer_768_32"]["depth"],
+        patch_size=MODEL_CONFIGS["ConvMixer_768_32"]["patch_size"],
+        kernel_size=MODEL_CONFIGS["ConvMixer_768_32"]["kernel_size"],
+        include_rescaling=include_rescaling,
+        include_top=include_top,
+        name=name,
+        weights=weights,
+        input_shape=input_shape,
+        input_tensor=input_tensor,
+        pooling=pooling,
+        classes=classes,
+        classifier_activation=classifier_activation,
+        **kwargs,
+    )
+
+
+def ConvMixer_1024_16(
+    include_rescaling,
+    include_top,
+    classes=None,
+    weights=None,
+    input_shape=(None, None, 3),
+    input_tensor=None,
+    pooling=None,
+    classifier_activation="softmax",
+    name="ConvMixer_1024_16",
+    **kwargs,
+):
+    """Instantiates the ResNet34 architecture."""
+
+    return ConvMixer(
+        dim=MODEL_CONFIGS["ConvMixer_1024_16"]["dim"],
+        depth=MODEL_CONFIGS["ConvMixer_1024_16"]["depth"],
+        patch_size=MODEL_CONFIGS["ConvMixer_1024_16"]["patch_size"],
+        kernel_size=MODEL_CONFIGS["ConvMixer_1024_16"]["kernel_size"],
+        include_rescaling=include_rescaling,
+        include_top=include_top,
+        name=name,
+        weights=weights,
+        input_shape=input_shape,
+        input_tensor=input_tensor,
+        pooling=pooling,
+        classes=classes,
+        classifier_activation=classifier_activation,
+        **kwargs,
+    )
+
+
+def ConvMixer_512_16(
+    include_rescaling,
+    include_top,
+    classes=None,
+    weights=None,
+    input_shape=(None, None, 3),
+    input_tensor=None,
+    pooling=None,
+    classifier_activation="softmax",
+    name="ConvMixer_512_16",
+    **kwargs,
+):
+    """Instantiates the ResNet34 architecture."""
+
+    return ConvMixer(
+        dim=MODEL_CONFIGS["ConvMixer_512_16"]["dim"],
+        depth=MODEL_CONFIGS["ConvMixer_512_16"]["depth"],
+        patch_size=MODEL_CONFIGS["ConvMixer_512_16"]["patch_size"],
+        kernel_size=MODEL_CONFIGS["ConvMixer_512_16"]["kernel_size"],
+        include_rescaling=include_rescaling,
+        include_top=include_top,
+        name=name,
+        weights=weights,
+        input_shape=input_shape,
+        input_tensor=input_tensor,
+        pooling=pooling,
+        classes=classes,
+        classifier_activation=classifier_activation,
+        **kwargs,
+    )
