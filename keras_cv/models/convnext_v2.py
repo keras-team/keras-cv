@@ -326,7 +326,7 @@ def ConvNeXtV2Atto(
     pooling=None,
     classes=None,
     classifier_activation="softmax",
-    name="convnext_atto",
+    name="convnextv2_atto",
 ):
     return ConvNeXtV2(
         include_rescaling=include_rescaling,
@@ -354,7 +354,7 @@ def ConvNeXtV2Femto(
     pooling=None,
     classes=None,
     classifier_activation="softmax",
-    name="convnext_femto",
+    name="convnextv2_femto",
 ):
     return ConvNeXtV2(
         include_rescaling=include_rescaling,
@@ -382,7 +382,7 @@ def ConvNeXtV2Pico(
     pooling=None,
     classes=None,
     classifier_activation="softmax",
-    name="convnext_pico",
+    name="convnextv2_pico",
 ):
     return ConvNeXtV2(
         include_rescaling=include_rescaling,
@@ -410,7 +410,7 @@ def ConvNeXtV2Nano(
     pooling=None,
     classes=None,
     classifier_activation="softmax",
-    name="convnext_nano",
+    name="convnextv2_nano",
 ):
     return ConvNeXtV2(
         include_rescaling=include_rescaling,
@@ -438,7 +438,7 @@ def ConvNeXtV2Tiny(
     pooling=None,
     classes=None,
     classifier_activation="softmax",
-    name="convnext_tiny",
+    name="convnextv2_tiny",
 ):
     return ConvNeXtV2(
         include_rescaling=include_rescaling,
@@ -466,7 +466,7 @@ def ConvNeXtV2Small(
     pooling=None,
     classes=None,
     classifier_activation="softmax",
-    name="convnext_small",
+    name="convnextv2_small",
 ):
     return ConvNeXtV2(
         include_rescaling=include_rescaling,
@@ -494,7 +494,7 @@ def ConvNeXtV2Base(
     pooling=None,
     classes=None,
     classifier_activation="softmax",
-    name="convnext_base",
+    name="convnextv2_base",
 ):
     return ConvNeXtV2(
         include_rescaling=include_rescaling,
@@ -522,7 +522,7 @@ def ConvNeXtV2Large(
     pooling=None,
     classes=None,
     classifier_activation="softmax",
-    name="convnext_large",
+    name="convnextv2_large",
 ):
     return ConvNeXtV2(
         include_rescaling=include_rescaling,
@@ -550,7 +550,7 @@ def ConvNeXtV2Huge(
     pooling=None,
     classes=None,
     classifier_activation="softmax",
-    name="convnext_huge",
+    name="convnextv2_huge",
 ):
     return ConvNeXtV2(
         include_rescaling=include_rescaling,
