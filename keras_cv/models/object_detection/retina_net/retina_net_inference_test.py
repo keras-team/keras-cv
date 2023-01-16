@@ -111,12 +111,12 @@ class RetinaNetTest(tf.test.TestCase):
         x, y = _create_bounding_box_dataset(bounding_box_format="xywh")
         pretrained_retina_net, _ = _create_retina_nets(x, y, epochs=0)
 
-        prediction_decoder = keras_cv.layers.NmsDecoder(
+        prediction_decoder = keras_cv.layers.MultiClassNonMaxSuppression(
             bounding_box_format="xywh",
             anchor_generator=keras_cv.models.RetinaNet.default_anchor_generator(
                 bounding_box_format="xywh"
             ),
-            suppression_layer=keras_cv.layers.NonMaxSuppression(
+            suppression_layer=keras_cv.layers.MultiClassNonMaxSuppression(
                 iou_threshold=0.75,
                 bounding_box_format="xywh",
                 classes=20,
@@ -210,12 +210,12 @@ def _create_retina_nets(x, y, epochs=1, custom_decoder=False):
     # pretrained backbone weights
     prediction_decoder = None
     if custom_decoder:
-        prediction_decoder = keras_cv.layers.NmsDecoder(
+        prediction_decoder = keras_cv.layers.MultiClassNonMaxSuppression(
             bounding_box_format="xywh",
             anchor_generator=keras_cv.models.RetinaNet.default_anchor_generator(
                 bounding_box_format="xywh"
             ),
-            suppression_layer=keras_cv.layers.NonMaxSuppression(
+            suppression_layer=keras_cv.layers.MultiClassNonMaxSuppression(
                 iou_threshold=0.75,
                 bounding_box_format="xywh",
                 classes=20,

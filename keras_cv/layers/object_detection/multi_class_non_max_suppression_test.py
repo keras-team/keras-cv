@@ -28,13 +28,13 @@ class NmsPredictionDecoderTest(tf.test.TestCase):
         box_pred = predictions[..., :4]
         confidence_pred = predictions[..., 4:]
 
-        layer = cv_layers.NmsDecoder(
+        layer = cv_layers.MultiClassNonMaxSuppression(
             bounding_box_format="xyxy",
             from_logits=True,
             max_detections=100,
         )
 
-        result = layer(box_pred=box_pred, confidence_pred=confidence_pred)
+        result = layer(box_prediction=box_pred, confidence_prediction=confidence_pred)
 
         self.assertEqual(result["boxes"].shape, [8, 100, 4])
         self.assertEqual(result["classes"].shape, [8, 100])

@@ -151,37 +151,13 @@ class BoundingBoxUtilTest(tf.test.TestCase):
             tf.convert_to_tensor([-1, 0]),
         )
 
-    def test_preserve_rel_util(self):
-        target_format = "xyxy"
-        bounding_box_format = "rel_yxyx"
-
-        target = bounding_box.preserve_rel(
-            target_bounding_box_format=target_format,
-            bounding_box_format=bounding_box_format,
-        )
-        self.assertEqual(target, "rel_xyxy")
-
-    def test_preserve_rel_util_errors(self):
-        # relative targets should throw an error
-        target_format = "rel_xyxy"
-        bounding_box_format = "rel_yxyx"
-
-        with self.assertRaisesRegex(
-            ValueError,
-            'Expected "target_bounding_box_format" to be non-relative. '
-            f"Got `target_bounding_box_format`={target_format}.",
-        ):
-            bounding_box.preserve_rel(
-                target_bounding_box_format=target_format,
-                bounding_box_format=bounding_box_format,
-            )
-
-        # bounding box format should be in list of supported formats
-        target_format = "xyxy"
-        bounding_box_format = "rel_zxzx"
+    def test_is_relative_util(self):
+        self.assertTrue(bounding_box.is_relative("rel_xyxy"))
+        self.assertFalse(bounding_box.is_relative("xyxy"))
 
         with self.assertRaises(ValueError):
-            bounding_box.preserve_rel(
-                target_bounding_box_format=target_format,
-                bounding_box_format=bounding_box_format,
-            )
+            _ = bounding_box.is_relative("bad_format")
+
+    def test_as_relative_util(self):
+        self.assertEqual(bounding_box.as_relative("yxyx"), "rel_yxyx")
+        self.assertEqual(bounding_box.as_relative("rel_xywh"), "rel_xywh")
