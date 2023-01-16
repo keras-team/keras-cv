@@ -14,32 +14,32 @@
 
 import tensorflow as tf
 
-from keras_cv.losses.iou_loss import IoULoss
+from keras_cv.losses.giou_loss import GIoULoss
 
 
-class IoUTest(tf.test.TestCase):
+class GIoUTest(tf.test.TestCase):
     def test_output_shape(self):
         y_true = tf.random.uniform(shape=(2, 2, 4), minval=0, maxval=10, dtype=tf.int32)
         y_pred = tf.random.uniform(shape=(2, 2, 4), minval=0, maxval=20, dtype=tf.int32)
 
-        iou_loss = IoULoss(bounding_box_format="xywh")
+        giou_loss = GIoULoss(bounding_box_format="xywh")
 
-        self.assertAllEqual(iou_loss(y_true, y_pred).shape, ())
+        self.assertAllEqual(giou_loss(y_true, y_pred).shape, ())
 
     def test_output_shape_reduction_none(self):
         y_true = tf.random.uniform(shape=(2, 2, 4), minval=0, maxval=10, dtype=tf.int32)
         y_pred = tf.random.uniform(shape=(2, 2, 4), minval=0, maxval=20, dtype=tf.int32)
 
-        iou_loss = IoULoss(bounding_box_format="xywh", reduction="none")
+        giou_loss = GIoULoss(bounding_box_format="xywh", reduction="none")
 
         self.assertAllEqual(
-            iou_loss(y_true, y_pred).shape,
+            giou_loss(y_true, y_pred).shape,
             [
                 2,
             ],
         )
 
-    def test_output_shape_relative(self):
+    def test_output_shape_relative_formats(self):
         y_true = [
             [0.0, 0.0, 0.1, 0.1],
             [0.0, 0.0, 0.2, 0.3],
@@ -54,9 +54,9 @@ class IoUTest(tf.test.TestCase):
             [0.2, 0.1, 0.3, 0.3],
         ]
 
-        iou_loss = IoULoss(bounding_box_format="rel_xyxy")
+        giou_loss = GIoULoss(bounding_box_format="rel_xyxy")
 
-        self.assertAllEqual(iou_loss(y_true, y_pred).shape, ())
+        self.assertAllEqual(giou_loss(y_true, y_pred).shape, ())
 
     def test_output_value(self):
         y_true = [
@@ -73,7 +73,7 @@ class IoUTest(tf.test.TestCase):
             [2, 1, 3, 3],
         ]
 
-        iou_loss = IoULoss(bounding_box_format="xywh")
+        iou_loss = GIoULoss(bounding_box_format="xywh")
 
-        # -log(compute_iou(y_true, y_pred)) = 1.0363084
-        self.assertAllClose(iou_loss(y_true, y_pred), 1.0363084)
+        # expected value for these values is 0.6452381
+        self.assertAllClose(iou_loss(y_true, y_pred), 0.6452381)

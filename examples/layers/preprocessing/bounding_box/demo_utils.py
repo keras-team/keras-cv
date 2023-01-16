@@ -20,34 +20,33 @@ import tensorflow_datasets as tfds
 from keras_cv import bounding_box
 
 
-def preprocess_voc(inputs, format, image_size):
-    """mapping function to create batched image and bbox coordinates"""
-    inputs["image"] = tf.image.resize(inputs["image"], image_size)
-    inputs["objects"]["bbox"] = bounding_box.convert_format(
-        inputs["objects"]["bbox"],
-        images=inputs["image"],
+def preprocess_voc(inputs, format):
+    image = inputs["image"]
+    image = tf.cast(image, tf.float32)
+    boxes = inputs["objects"]["bbox"]
+    boxes = bounding_box.convert_format(
+        boxes,
+        images=image,
         source="rel_yxyx",
         target=format,
     )
-    inputs["objects"]["bbox"] = bounding_box.add_class_id(inputs["objects"]["bbox"])
-    return {"images": inputs["image"], "bounding_boxes": inputs["objects"]["bbox"]}
+    classes = tf.cast(inputs["objects"]["label"], tf.float32)
+    bounding_boxes = {"classes": classes, "boxes": boxes}
+    return {"images": image, "bounding_boxes": bounding_boxes}
 
 
 def load_voc_dataset(
     bounding_box_format,
     name="voc/2007",
     batch_size=9,
-    image_size=(224, 224),
 ):
 
     dataset = tfds.load(name, split=tfds.Split.TRAIN, shuffle_files=True)
     dataset = dataset.map(
-        lambda x: preprocess_voc(x, format=bounding_box_format, image_size=image_size),
+        lambda x: preprocess_voc(x, format=bounding_box_format),
         num_parallel_calls=tf.data.AUTOTUNE,
     )
-    dataset = dataset.padded_batch(
-        batch_size, padding_values={"images": None, "bounding_boxes": -1.0}
-    )
+    dataset = dataset.apply(tf.data.experimental.dense_to_ragged_batch(batch_size))
     return dataset
 
 
@@ -63,15 +62,16 @@ def visualize_data(data, bounding_box_format):
 
 def visualize_bounding_boxes(image, bounding_boxes, bounding_box_format):
     color = np.array([[255.0, 0.0, 0.0]])
-    bounding_boxes = bounding_boxes[..., :4]
+    bounding_boxes = bounding_box.to_dense(bounding_boxes)
+    if isinstance(image, tf.RaggedTensor):
+        image = image.to_tensor(0)
     bounding_boxes = bounding_box.convert_format(
         bounding_boxes,
         source=bounding_box_format,
         target="rel_yxyx",
         images=image,
     )
-    if isinstance(bounding_boxes, tf.RaggedTensor):
-        bounding_boxes = bounding_boxes[..., :4].to_tensor(-1)
+    bounding_boxes = bounding_boxes["boxes"]
     return tf.image.draw_bounding_boxes(image, bounding_boxes, color, name=None)
 
 

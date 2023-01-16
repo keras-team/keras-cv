@@ -115,16 +115,16 @@ def compute_iou(
             "or len(boxes2.shape)=3."
         )
 
-    target = bounding_box.preserve_rel(
-        target_bounding_box_format="yxyx", bounding_box_format=bounding_box_format
-    )
+    target_format = "yxyx"
+    if bounding_box.is_relative(bounding_box_format):
+        target_format = bounding_box.as_relative(target_format)
 
     boxes1 = bounding_box.convert_format(
-        boxes1, source=bounding_box_format, target=target
+        boxes1, source=bounding_box_format, target=target_format
     )
 
     boxes2 = bounding_box.convert_format(
-        boxes2, source=bounding_box_format, target=target
+        boxes2, source=bounding_box_format, target=target_format
     )
 
     intersect_area = _compute_intersection(boxes1, boxes2)

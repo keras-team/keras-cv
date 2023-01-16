@@ -33,7 +33,6 @@ low, high = resource.getrlimit(resource.RLIMIT_NOFILE)
 resource.setrlimit(resource.RLIMIT_NOFILE, (high, high))
 
 EPOCHS = 100
-CHECKPOINT_PATH = "checkpoint/"
 
 flags.DEFINE_string(
     "weights_name",
@@ -358,10 +357,10 @@ model.compile(
 )
 
 callbacks = [
-    keras.callbacks.TensorBoard(log_dir="logs"),
+    keras.callbacks.TensorBoard(log_dir=FLAGS.tensorboard_path),
     keras.callbacks.ReduceLROnPlateau(patience=5),
     keras.callbacks.EarlyStopping(patience=10),
-    keras.callbacks.ModelCheckpoint(CHECKPOINT_PATH, save_weights_only=True),
+    keras.callbacks.ModelCheckpoint(FLAGS.weights_path, save_weights_only=True),
     PyCOCOCallback(eval_ds, "xywh"),
 ]
 
