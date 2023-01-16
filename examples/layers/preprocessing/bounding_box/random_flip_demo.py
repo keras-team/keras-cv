@@ -22,10 +22,10 @@ from keras_cv.layers import preprocessing
 
 
 def main():
-    dataset = demo_utils.load_voc_dataset(bounding_box_format="rel_xyxy")
-    random_flip = preprocessing.RandomFlip(bounding_box_format="rel_xyxy")
+    dataset = demo_utils.load_voc_dataset(bounding_box_format="xywh")
+    random_flip = preprocessing.RandomFlip(bounding_box_format="xywh")
     result = dataset.map(random_flip, num_parallel_calls=tf.data.AUTOTUNE)
-    demo_utils.visualize_data(result, bounding_box_format="rel_xyxy")
+    demo_utils.visualize_data(result, bounding_box_format="xywh")
 
 
 if __name__ == "__main__":
