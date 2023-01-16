@@ -112,7 +112,7 @@ def ConvMixer(
     classes=None,
     classifier_activation="softmax",
 ):
-    """Instantiates the ResNetV2 architecture.
+    """Instantiates the ConvMixer architecture.
     Args:
         dim: number of filters.
         depth: number of CovnMixer Layer.
@@ -207,7 +207,7 @@ def ConvMixer_1536_20(
     name="ConvMixer_1536_20",
     **kwargs,
 ):
-    """Instantiates the ResNet34 architecture."""
+    """Instantiates the ConvMixer_1536_20 architecture."""
 
     return ConvMixer(
         dim=MODEL_CONFIGS["ConvMixer_1536_20"]["dim"],
@@ -239,7 +239,7 @@ def ConvMixer_1536_24(
     name="ConvMixer_1536_24",
     **kwargs,
 ):
-    """Instantiates the ResNet34 architecture."""
+    """Instantiates the ConvMixer_1536_24 architecture."""
 
     return ConvMixer(
         dim=MODEL_CONFIGS["ConvMixer_1536_24"]["dim"],
@@ -271,7 +271,7 @@ def ConvMixer_768_32(
     name="ConvMixer_768_32",
     **kwargs,
 ):
-    """Instantiates the ResNet34 architecture."""
+    """Instantiates the ConvMixer_768_32 architecture."""
 
     return ConvMixer(
         dim=MODEL_CONFIGS["ConvMixer_768_32"]["dim"],
@@ -303,7 +303,7 @@ def ConvMixer_1024_16(
     name="ConvMixer_1024_16",
     **kwargs,
 ):
-    """Instantiates the ResNet34 architecture."""
+    """Instantiates the ConvMixer_1024_16 architecture."""
 
     return ConvMixer(
         dim=MODEL_CONFIGS["ConvMixer_1024_16"]["dim"],
@@ -335,7 +335,7 @@ def ConvMixer_512_16(
     name="ConvMixer_512_16",
     **kwargs,
 ):
-    """Instantiates the ResNet34 architecture."""
+    """Instantiates the ConvMixer_512_16 architecture."""
 
     return ConvMixer(
         dim=MODEL_CONFIGS["ConvMixer_512_16"]["dim"],
