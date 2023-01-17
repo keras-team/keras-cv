@@ -16,7 +16,7 @@ from tensorflow.keras import initializers
 from tensorflow.keras import layers
 
 
-def Block(filters, downsample):
+def Block(filters, downsample, sync_bn):
     """A default block which serves as an example of the block interface.
 
     This is the base block definition for a CenterPillar model.
@@ -35,9 +35,12 @@ def Block(filters, downsample):
             padding="same",
             kernel_initializer=initializers.VarianceScaling(),
         )(x)
-        x = layers.BatchNormalization(
-            synchronized=True,
-        )(x)
+        if sync_bn:
+            x = layers.BatchNormalization(
+                synchronized=True,
+            )(x)
+        else:
+            x = layers.BatchNormalization()(x)
         x = layers.ReLU()(x)
 
         x = layers.Conv2D(
@@ -47,9 +50,12 @@ def Block(filters, downsample):
             padding="same",
             kernel_initializer=initializers.VarianceScaling(),
         )(x)
-        x = layers.BatchNormalization(
-            synchronized=True,
-        )(x)
+        if sync_bn:
+            x = layers.BatchNormalization(
+                synchronized=True,
+            )(x)
+        else:
+            x = layers.BatchNormalization()(x)
 
         if downsample:
             residual = layers.MaxPool2D(pool_size=2, strides=2, padding="SAME")(
@@ -73,7 +79,7 @@ def Block(filters, downsample):
     return apply
 
 
-def SkipBlock(filters):
+def SkipBlock(filters, sync_bn):
     def apply(x):
         x = layers.Conv2D(
             filters,
@@ -81,9 +87,12 @@ def SkipBlock(filters):
             1,
             kernel_initializer=initializers.VarianceScaling(),
         )(x)
-        x = layers.BatchNormalization(
-            synchronized=True,
-        )(x)
+        if sync_bn:
+            x = layers.BatchNormalization(
+                synchronized=True,
+            )(x)
+        else:
+            x = layers.BatchNormalization()(x)
         x = layers.ReLU()(x)
 
         return x
@@ -91,19 +100,19 @@ def SkipBlock(filters):
     return apply
 
 
-def DownSampleBlock(filters, num_blocks):
+def DownSampleBlock(filters, num_blocks, sync_bn):
     def apply(x):
-        x = Block(filters, downsample=True)(x)
+        x = Block(filters, downsample=True, sync_bn=sync_bn)(x)
 
         for _ in range(num_blocks - 1):
-            x = Block(filters, downsample=False)(x)
+            x = Block(filters, downsample=False, sync_bn=sync_bn)(x)
 
         return x
 
     return apply
 
 
-def UpSampleBlock(filters):
+def UpSampleBlock(filters, sync_bn):
     def apply(x, lateral_input):
         x = layers.Conv2DTranspose(
             filters,
@@ -112,15 +121,18 @@ def UpSampleBlock(filters):
             padding="same",
             kernel_initializer=initializers.VarianceScaling(),
         )(x)
-        x = layers.BatchNormalization(
-            synchronized=True,
-        )(x)
+        if sync_bn:
+            x = layers.BatchNormalization(
+                synchronized=True,
+            )(x)
+        else:
+            x = layers.BatchNormalization()(x)
         x = layers.ReLU()(x)
 
-        lateral_input = SkipBlock(filters)(lateral_input)
+        lateral_input = SkipBlock(filters, sync_bn)(lateral_input)
 
         x = x + lateral_input
-        x = Block(filters, downsample=False)(x)
+        x = Block(filters, downsample=False, sync_bn=sync_bn)(x)
 
         return x
 
@@ -132,6 +144,7 @@ def UNet(
     up_block_configs,
     down_block=DownSampleBlock,
     up_block=UpSampleBlock,
+    sync_bn=True,
 ):
     """Experimental UNet API. This API should not be considered stable.
 
@@ -147,6 +160,7 @@ def UNet(
         up_block_configs: a list of filter counts, one for each up block
         down_block: a downsampling block
         up_block: an upsampling block
+        sync_bn: True for synchronized batch norm.
     """
 
     def apply(x):
@@ -156,10 +170,10 @@ def UNet(
         # (Note that only the first sub-block will perform downsampling)
         for filters, num_blocks in down_block_configs:
             skip_connections.append(x)
-            x = down_block(filters, num_blocks)(x)
+            x = down_block(filters, num_blocks, sync_bn)(x)
 
         for filters in up_block_configs:
-            x = up_block(filters)(x, skip_connections.pop())
+            x = up_block(filters, sync_bn)(x, skip_connections.pop())
 
         return x
 

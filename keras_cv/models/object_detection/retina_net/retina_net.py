@@ -74,7 +74,7 @@ class RetinaNet(tf.keras.Model):
         prediction_decoder: (Optional)  A `keras.layer` that is responsible for
             transforming RetinaNet predictions into usable bounding box Tensors.  If
             not provided, a default is provided.  The default `prediction_decoder`
-            layer uses a `NonMaxSuppression` operation for box pruning.
+            layer uses a `MultiClassNonMaxSuppression` operation for box pruning.
         feature_pyramid: (Optional) A `keras.Model` representing a feature pyramid
             network (FPN).  The feature pyramid network is called on the outputs of the
             `backbone`.  The KerasCV default backbones return three outputs in a list,
@@ -146,9 +146,12 @@ class RetinaNet(tf.keras.Model):
             ).as_backbone()
         )
 
-        self._prediction_decoder = prediction_decoder or cv_layers.NmsDecoder(
-            bounding_box_format=bounding_box_format,
-            from_logits=True,
+        self._prediction_decoder = (
+            prediction_decoder
+            or cv_layers.MultiClassNonMaxSuppression(
+                bounding_box_format=bounding_box_format,
+                from_logits=True,
+            )
         )
 
         # initialize trainable networks
@@ -272,7 +275,11 @@ class RetinaNet(tf.keras.Model):
                 propagated to the `keras.Model` class.
         """
         if "metrics" in kwargs.keys():
-            raise ValueError("currently metrics support is not supported intentionally")
+            raise ValueError(
+                "`RetinaNet` does not currently support the use of "
+                "`metrics` due to performance and distribution concerns. Please us the "
+                "`PyCOCOCallback` to evaluate COCO metrics."
+            )
         super().compile(**kwargs)
         if loss is not None:
             raise ValueError(
@@ -359,15 +366,13 @@ class RetinaNet(tf.keras.Model):
 
     def train_step(self, data):
         x, y = data
-        gt_boxes = y["boxes"]
-        gt_classes = y["classes"]
-        gt_boxes = bounding_box.convert_format(
-            gt_boxes,
+        y = bounding_box.convert_format(
+            y,
             source=self.bounding_box_format,
             target=self.label_encoder.bounding_box_format,
             images=x,
         )
-        gt_boxes, gt_classes = self.label_encoder(x, gt_boxes, gt_classes)
+        gt_boxes, gt_classes = self.label_encoder(x, y)
         gt_boxes = bounding_box.convert_format(
             gt_boxes,
             source=self.label_encoder.bounding_box_format,
@@ -394,15 +399,13 @@ class RetinaNet(tf.keras.Model):
 
     def test_step(self, data):
         x, y = data
-        gt_boxes = y["boxes"]
-        gt_classes = y["classes"]
-        gt_boxes = bounding_box.convert_format(
-            gt_boxes,
+        y = bounding_box.convert_format(
+            y,
             source=self.bounding_box_format,
             target=self.label_encoder.bounding_box_format,
             images=x,
         )
-        gt_boxes, gt_classes = self.label_encoder(x, gt_boxes, gt_classes)
+        gt_boxes, gt_classes = self.label_encoder(x, y)
         gt_boxes = bounding_box.convert_format(
             gt_boxes,
             source=self.label_encoder.bounding_box_format,
