@@ -157,7 +157,7 @@ class DeeplabTest(tf.test.TestCase):
             metrics=["accuracy"],
         )
 
-        model_history = model.fit(
+        model.fit(
             training_dataset, epochs=epochs, steps_per_epoch=num_images // batch_size
         )
 
