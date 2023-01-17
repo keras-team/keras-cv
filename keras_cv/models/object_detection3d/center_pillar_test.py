@@ -88,8 +88,6 @@ class CenterPillarTest(tf.test.TestCase):
         outputs = model(point_xyz, point_feature, point_mask, training=True)
         self.assertEqual(outputs["class_1"].shape, [2, 400, 400, 12])
         self.assertEqual(outputs["class_2"].shape, [2, 400, 400, 12])
-        for k, v in outputs.items():
-            print(k, v.shape)
 
     def test_center_pillar_predict(self):
         voxel_net = DynamicVoxelization(

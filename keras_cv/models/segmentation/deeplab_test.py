@@ -160,7 +160,6 @@ class DeeplabTest(tf.test.TestCase):
         model_history = model.fit(
             training_dataset, epochs=epochs, steps_per_epoch=num_images // batch_size
         )
-        print(model_history)
 
 
 if __name__ == "__main__":
