@@ -50,7 +50,9 @@ class CenterPillarTest(tf.test.TestCase):
         )(x)
         x = tf.keras.layers.ReLU()(x)
         x = Block(128, downsample=False, sync_bn=False)(x)
-        output = UNet(down_block_configs, up_block_configs, sync_bn=False)(x)
+        output = UNet(x.shape[1:], down_block_configs, up_block_configs, sync_bn=False)(
+            x
+        )
         return tf.keras.Model(input, output)
 
     def test_center_pillar_call(self):
