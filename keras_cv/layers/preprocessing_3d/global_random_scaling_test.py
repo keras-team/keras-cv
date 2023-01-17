@@ -24,9 +24,9 @@ BOUNDING_BOXES = base_augmentation_layer_3d.BOUNDING_BOXES
 class GlobalScalingTest(tf.test.TestCase):
     def test_augment_point_clouds_and_bounding_boxes(self):
         add_layer = GlobalRandomScaling(
-            scaling_factor_x=(0.5, 1.5),
-            scaling_factor_y=(0.5, 1.5),
-            scaling_factor_z=(0.5, 1.5),
+            x_factor=(0.5, 1.5),
+            y_factor=(0.5, 1.5),
+            z_factor=(0.5, 1.5),
         )
         point_clouds = np.random.random(size=(2, 50, 10)).astype("float32")
         bounding_boxes = np.random.random(size=(2, 10, 7)).astype("float32")
@@ -36,10 +36,10 @@ class GlobalScalingTest(tf.test.TestCase):
 
     def test_augment_point_clouds_and_bounding_boxes_with_same_scaling(self):
         add_layer = GlobalRandomScaling(
-            scaling_factor_x=(0.5, 1.5),
-            scaling_factor_y=(0.5, 1.5),
-            scaling_factor_z=(0.5, 1.5),
-            same_scaling_xyz=True,
+            x_factor=(0.5, 1.5),
+            y_factor=(0.5, 1.5),
+            z_factor=(0.5, 1.5),
+            preserve_aspect_ratio=True,
         )
         point_clouds = np.random.random(size=(2, 50, 10)).astype("float32")
         bounding_boxes = np.random.random(size=(2, 10, 7)).astype("float32")
@@ -49,9 +49,9 @@ class GlobalScalingTest(tf.test.TestCase):
 
     def test_not_augment_point_clouds_and_bounding_boxes(self):
         add_layer = GlobalRandomScaling(
-            scaling_factor_x=(1.0, 1.0),
-            scaling_factor_y=(1.0, 1.0),
-            scaling_factor_z=(1.0, 1.0),
+            x_factor=(1.0, 1.0),
+            y_factor=(1.0, 1.0),
+            z_factor=(1.0, 1.0),
         )
         point_clouds = np.random.random(size=(2, 50, 10)).astype("float32")
         bounding_boxes = np.random.random(size=(2, 10, 7)).astype("float32")
@@ -61,9 +61,9 @@ class GlobalScalingTest(tf.test.TestCase):
 
     def test_2x_scaling_point_clouds_and_bounding_boxes(self):
         add_layer = GlobalRandomScaling(
-            scaling_factor_x=(2.0, 2.0),
-            scaling_factor_y=(2.0, 2.0),
-            scaling_factor_z=(2.0, 2.0),
+            x_factor=(2.0, 2.0),
+            y_factor=(2.0, 2.0),
+            z_factor=(2.0, 2.0),
         )
         point_clouds = np.array([[[0, 1, 2, 3, 4, 5, 6, 7, 8, 9]] * 2] * 2).astype(
             "float32"
@@ -82,9 +82,9 @@ class GlobalScalingTest(tf.test.TestCase):
 
     def test_augment_batch_point_clouds_and_bounding_boxes(self):
         add_layer = GlobalRandomScaling(
-            scaling_factor_x=(0.5, 1.5),
-            scaling_factor_y=(0.5, 1.5),
-            scaling_factor_z=(0.5, 1.5),
+            x_factor=(0.5, 1.5),
+            y_factor=(0.5, 1.5),
+            z_factor=(0.5, 1.5),
         )
         point_clouds = np.random.random(size=(3, 2, 50, 10)).astype("float32")
         bounding_boxes = np.random.random(size=(3, 2, 10, 7)).astype("float32")
@@ -94,9 +94,9 @@ class GlobalScalingTest(tf.test.TestCase):
 
     def test_not_augment_batch_point_clouds_and_bounding_boxes(self):
         add_layer = GlobalRandomScaling(
-            scaling_factor_x=(1.0, 1.0),
-            scaling_factor_y=(1.0, 1.0),
-            scaling_factor_z=(1.0, 1.0),
+            x_factor=(1.0, 1.0),
+            y_factor=(1.0, 1.0),
+            z_factor=(1.0, 1.0),
         )
         point_clouds = np.random.random(size=(3, 2, 50, 10)).astype("float32")
         bounding_boxes = np.random.random(size=(3, 2, 10, 7)).astype("float32")
