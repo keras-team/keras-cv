@@ -11,7 +11,12 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from keras_cv.callbacks.pycoco_callback import PyCOCOCallback
+try:
+    from keras_cv.callbacks.pycoco_callback import PyCOCOCallback
+except ImportError:
+    print(
+        "You do not have pyococotools installed, so the `PyCOCOCallback` API is not available."
+    )
 
 try:
     from keras_cv.callbacks.waymo_evaluation_callback import WaymoEvaluationCallback

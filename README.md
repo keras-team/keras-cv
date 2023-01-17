@@ -80,7 +80,7 @@ python3 build_deps/configure.py
 bazel build build_pip_pkg
 bazel-bin/build_pip_pkg wheels
 
-pip install wheels/keras-cv-*.whl
+pip install wheels/keras_cv-*.whl
 ```
 
 ## Pretrained Weights

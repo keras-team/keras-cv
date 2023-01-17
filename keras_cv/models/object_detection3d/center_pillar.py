@@ -49,7 +49,7 @@ class MultiClassDetectionHead(tf.keras.layers.Layer):
             # 8:end outputs is for bin-based classification and regression
             size += 2 * num_head_bin[i]
             self._per_class_prediction_size.append(size)
-        print("per class prediction size {}".format(self._per_class_prediction_size))
+
         if not share_head:
             for i in range(num_class):
                 # 1x1 conv for each voxel/pixel.

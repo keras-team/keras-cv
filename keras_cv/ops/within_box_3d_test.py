@@ -14,7 +14,6 @@
 # ==============================================================================
 
 import os
-from datetime import datetime
 
 import numpy as np
 import pytest
@@ -139,7 +138,6 @@ class WithinBox3DTest(tf.test.TestCase):
             ]
             * 2
         ).astype("float32")
-        print(points.shape)
         res = keras_cv.ops.within_box3d_index(points, boxes)
         self.assertAllEqual(
             [[0, 0, -1, 0, -1, -1, -1], [-1, -1, -1, -1, -1, 0, -1]], res
@@ -183,7 +181,6 @@ class WithinBox3DTest(tf.test.TestCase):
         points, boxes = get_points_boxes()
 
         for _ in range(5):
-            print(datetime.now())
             res = keras_cv.ops.within_box3d_index(points, boxes)
             self.assertAllClose(res.shape, points.shape[:1])
 
