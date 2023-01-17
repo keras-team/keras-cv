@@ -18,14 +18,28 @@ from keras_cv.models.__internal__.unet import UNet
 
 
 class UNetTest(tf.test.TestCase):
+    def test_example_unet_sync_bn_false(self):
+        x = tf.random.normal((1, 16, 16, 5))
+        model = UNet(
+            input_shape=(16, 16, 5),
+            down_block_configs=[(128, 6), (256, 2), (512, 1)],
+            up_block_configs=[512, 256, 256],
+            sync_bn=False,
+        )
+        output = model(x)
+        self.assertEqual(output.shape, x.shape[:-1] + (256))
+        self.assertLen(model.layers, 118)
+
     # This test is disabled because it requires tf-nightly to run
     # (tf-nightly includes the synchronized param for BatchNorm layer)
-    def test_example_unet_output_shape_bn(self):
+    def disable_test_example_unet_sync_bn_true(self):
         x = tf.random.normal((1, 16, 16, 5))
-        output = UNet([(128, 6), (256, 2), (512, 1)], [512, 256, 256], sync_bn=False)(x)
+        model = UNet(
+            input_shape=(16, 16, 5),
+            down_block_configs=[(128, 6), (256, 2), (512, 1)],
+            up_block_configs=[512, 256, 256],
+            sync_bn=True,
+        )
+        output = model(x)
         self.assertEqual(output.shape, x.shape[:-1] + (256))
-
-    def disable_test_example_unet_output_shape_sync_bn(self):
-        x = tf.random.normal((1, 16, 16, 5))
-        output = UNet([(128, 6), (256, 2), (512, 1)], [512, 256, 256], sync_bn=True)(x)
-        self.assertEqual(output.shape, x.shape[:-1] + (256))
+        self.assertLen(model.layers, 118)
