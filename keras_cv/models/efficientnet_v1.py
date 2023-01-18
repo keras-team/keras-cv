@@ -506,6 +506,7 @@ def EfficientNet(
 
 
 def EfficientNetB0(
+    *,
     include_rescaling,
     include_top,
     classes=None,
@@ -535,6 +536,7 @@ def EfficientNetB0(
 
 
 def EfficientNetB1(
+    *,
     include_rescaling,
     include_top,
     classes=None,
@@ -564,6 +566,7 @@ def EfficientNetB1(
 
 
 def EfficientNetB2(
+    *,
     include_rescaling,
     include_top,
     classes=None,
@@ -593,6 +596,7 @@ def EfficientNetB2(
 
 
 def EfficientNetB3(
+    *,
     include_rescaling,
     include_top,
     classes=None,
@@ -622,6 +626,7 @@ def EfficientNetB3(
 
 
 def EfficientNetB4(
+    *,
     include_rescaling,
     include_top,
     classes=None,
@@ -651,6 +656,7 @@ def EfficientNetB4(
 
 
 def EfficientNetB5(
+    *,
     include_rescaling,
     include_top,
     classes=None,
@@ -680,6 +686,7 @@ def EfficientNetB5(
 
 
 def EfficientNetB6(
+    *,
     include_rescaling,
     include_top,
     classes=None,
@@ -709,6 +716,7 @@ def EfficientNetB6(
 
 
 def EfficientNetB7(
+    *,
     include_rescaling,
     include_top,
     classes=None,
