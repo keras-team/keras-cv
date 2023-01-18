@@ -19,23 +19,13 @@ from keras_cv import bounding_box
 from keras_cv import layers as cv_layers
 
 
-def curry_map_function(bounding_box_format, img_size):
+def curry_map_function(bounding_box_format):
     """Mapping function to create batched image and bbox coordinates"""
-
-    if img_size is not None:
-        resizing = cv_layers.Resizing(
-            height=img_size[0],
-            width=img_size[1],
-            bounding_box_format=bounding_box_format,
-            pad_to_aspect_ratio=True,
-        )
 
     def apply(inputs):
         images = inputs["image"]
         bounding_boxes = inputs["objects"]["bbox"]
-        labels = tf.cast(inputs["objects"]["label"], tf.float32)
-        labels = tf.expand_dims(labels, axis=-1)
-        bounding_boxes = tf.concat([bounding_boxes, labels], axis=-1)
+        labels = inputs["objects"]["label"]
         bounding_boxes = bounding_box.convert_format(
             bounding_boxes,
             images=images,
@@ -43,9 +33,9 @@ def curry_map_function(bounding_box_format, img_size):
             target=bounding_box_format,
         )
 
+        bounding_boxes = {"boxes": bounding_boxes, "classes": labels}
+
         outputs = {"images": images, "bounding_boxes": bounding_boxes}
-        if img_size is not None:
-            outputs = resizing(outputs)
         return outputs
 
     return apply
@@ -57,7 +47,7 @@ def load(
     batch_size=None,
     shuffle_files=True,
     shuffle_buffer=None,
-    img_size=None,
+    dataset="voc/2007",
 ):
     """Loads the PascalVOC 2007 dataset.
 
@@ -79,8 +69,6 @@ def load(
         shuffle: whether or not to shuffle the dataset.  Defaults to True.
         shuffle_buffer: the size of the buffer to use in shuffling.
         shuffle_files: (Optional) whether or not to shuffle files, defaults to True.
-        img_size: (Optional) size to resize the images to, if not provided image batches
-            will be of type `tf.RaggedTensor`.
 
     Returns:
         tf.data.Dataset containing PascalVOC.  Each entry is a dictionary containing
@@ -88,11 +76,17 @@ def load(
         Tensor of shape [batch, H, W, 3] and bounding_boxes is a `tf.RaggedTensor` of
         shape [batch, None, 5].
     """
+    if dataset not in ["voc/2007", "voc/2012"]:
+        raise ValueError(
+            "keras_cv.datasets.pascal_voc.load() expects the `dataset` "
+            "argument to be either 'voc/2007' or 'voc/2012', but got "
+            f"`dataset={dataset}`."
+        )
     dataset, dataset_info = tfds.load(
-        "voc/2007", split=split, shuffle_files=shuffle_files, with_info=True
+        dataset, split=split, shuffle_files=shuffle_files, with_info=True
     )
     dataset = dataset.map(
-        curry_map_function(bounding_box_format=bounding_box_format, img_size=img_size),
+        curry_map_function(bounding_box_format=bounding_box_format),
         num_parallel_calls=tf.data.AUTOTUNE,
     )
 
