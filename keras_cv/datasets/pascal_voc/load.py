@@ -69,7 +69,8 @@ def load(
         shuffle: whether or not to shuffle the dataset.  Defaults to True.
         shuffle_buffer: the size of the buffer to use in shuffling.
         shuffle_files: (Optional) whether or not to shuffle files, defaults to True.
-
+        dataset: (Optional) the PascalVOC dataset to load from.  Should be either
+            `voc/2007` or `voc/2012`.
     Returns:
         tf.data.Dataset containing PascalVOC.  Each entry is a dictionary containing
         keys {"images": images, "bounding_boxes": bounding_boxes} where images is a
