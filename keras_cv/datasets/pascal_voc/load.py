@@ -16,7 +16,6 @@ import tensorflow as tf
 import tensorflow_datasets as tfds
 
 from keras_cv import bounding_box
-from keras_cv import layers as cv_layers
 
 
 def curry_map_function(bounding_box_format):
