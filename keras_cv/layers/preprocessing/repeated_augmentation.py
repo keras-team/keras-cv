@@ -93,7 +93,7 @@ class RepeatedAugmentation(BaseImageAugmentationLayer):
 
         if not self.shuffle:
             return result
-        return self.shuffle_outputs(self, result)
+        return self.shuffle_outputs(result)
 
     def shuffle_outputs(self, result):
         indices = tf.range(start=0, limit=tf.shape(result["images"])[0], dtype=tf.int32)
