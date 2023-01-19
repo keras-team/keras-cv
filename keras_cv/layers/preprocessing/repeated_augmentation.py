@@ -18,6 +18,7 @@ from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
 )
 
 
+@tf.keras.utils.register_keras_serializable(package="keras_cv")
 class RepeatedAugmentation(BaseImageAugmentationLayer):
     """RepeatedAugmentation augments each image in a batch multiple times.
 
@@ -35,7 +36,8 @@ class RepeatedAugmentation(BaseImageAugmentationLayer):
 
     """
 
-    def __init__(self, augmenters):
+    def __init__(self, augmenters, **kwargs):
+        super().__init__(**kwargs)
         self.augmenters = augmenters
 
     def _batch_augment(self, inputs):
@@ -43,7 +45,7 @@ class RepeatedAugmentation(BaseImageAugmentationLayer):
         images = inputs.get("images", None)
         labels = inputs.get("labels", None)
 
-        if sorted(inputs.keys()) != ['images', 'labels']:
+        if sorted(inputs.keys()) != ["images", "labels"]:
             raise ValueError(
                 "RepeatedAugmentation() does not yet support tasks other than "
                 "classification."
@@ -61,16 +63,13 @@ class RepeatedAugmentation(BaseImageAugmentationLayer):
 
         for augmenter in self.augmenters:
             target = augmenter(inputs)
-            image_results.append(target['images'])
-            labels_results.append(target['labels'])
+            image_results.append(target["images"])
+            labels_results.append(target["labels"])
 
         image_results = tf.concat(image_results, axis=0)
         labels_results = tf.concat(labels_results, axis=0)
 
-        return {
-            'images': image_results,
-            'labels': labels_results
-        }
+        return {"images": image_results, "labels": labels_results}
 
     def _augment(self, inputs):
         raise ValueError(
@@ -78,3 +77,8 @@ class RepeatedAugmentation(BaseImageAugmentationLayer):
             "you would like to create batches from a single image, use "
             "`x = tf.expand_dims(x, axis=0)` on your input images and labels."
         )
+
+    def get_config(self):
+        config = super().get_config()
+        config.update({"augmenters": self.augmenters})
+        return config
