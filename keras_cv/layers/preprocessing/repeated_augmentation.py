@@ -35,6 +35,21 @@ class RepeatedAugmentation(BaseImageAugmentationLayer):
             shuffle: whether or not to shuffle the result.  Essential when using an
                 asynchronous distribution strategy such as ParameterServerStrategy.
 
+        Usage:
+        ```python
+        repeated_augment = cv_layers.RepeatedAugmentation(
+            augmenters=[
+                cv_layers.RandAugment(value_range=(0, 255)),
+                cv_layers.RandomFlip(),
+            ]
+        )
+        inputs = {
+            "images": tf.ones((8, 512, 512, 3)),
+            "labels": tf.ones((8,)),
+        }
+        outputs = repeated_augment(inputs)
+        ```
+
         References:
         - [DEIT implementaton](https://github.com/facebookresearch/deit/blob/ee8893c8063f6937fec7096e47ba324c206e22b9/samplers.py#L8
     )
