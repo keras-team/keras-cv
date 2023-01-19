@@ -30,6 +30,11 @@ class RepeatedAugmentation(BaseImageAugmentationLayer):
         using smaller gradients.  RepeatedAugmentation handles this by re-using the same
         image multiple times within a batch creating correlated samples.
 
+        Args:
+            augmenters: the augmenters to use to augment the image
+            shuffle: whether or not to shuffle the result.  Essential when using an
+                asynchronous distribution strategy such as ParameterServerStrategy.
+
         References:
         - [DEIT implementaton](https://github.com/facebookresearch/deit/blob/ee8893c8063f6937fec7096e47ba324c206e22b9/samplers.py#L8
     )
@@ -37,9 +42,10 @@ class RepeatedAugmentation(BaseImageAugmentationLayer):
 
     """
 
-    def __init__(self, augmenters, **kwargs):
+    def __init__(self, augmenters, shuffle=True, **kwargs):
         super().__init__(**kwargs)
         self.augmenters = augmenters
+        self.shuffle = shuffle
 
     def _batch_augment(self, inputs):
         images = inputs.get("images", None)
@@ -69,7 +75,18 @@ class RepeatedAugmentation(BaseImageAugmentationLayer):
         image_results = tf.concat(image_results, axis=0)
         labels_results = tf.concat(labels_results, axis=0)
 
-        return {"images": image_results, "labels": labels_results}
+        result = {"images": image_results, "labels": labels_results}
+
+        if not self.shuffle:
+            return result
+        return self.shuffle_outputs(self, result)
+
+    def shuffle_outputs(self, result):
+        indices = tf.range(start=0, limit=tf.shape(result["images"])[0], dtype=tf.int32)
+        indices = tf.random.shuffle(indices)
+        result["images"] = tf.gather(result["images"], indices)
+        result["labels"] = tf.gather(result["labels"], indices)
+        return result
 
     def _augment(self, inputs):
         raise ValueError(
@@ -80,5 +97,5 @@ class RepeatedAugmentation(BaseImageAugmentationLayer):
 
     def get_config(self):
         config = super().get_config()
-        config.update({"augmenters": self.augmenters})
+        config.update({"augmenters": self.augmenters, "shuffle": self.shuffle})
         return config
