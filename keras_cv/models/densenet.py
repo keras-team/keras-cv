@@ -252,6 +252,7 @@ def DenseNet(
 
 
 def DenseNet121(
+    *,
     include_rescaling,
     include_top,
     classes=None,
@@ -277,6 +278,7 @@ def DenseNet121(
 
 
 def DenseNet169(
+    *,
     include_rescaling,
     include_top,
     classes=None,
@@ -302,6 +304,7 @@ def DenseNet169(
 
 
 def DenseNet201(
+    *,
     include_rescaling,
     include_top,
     classes=None,

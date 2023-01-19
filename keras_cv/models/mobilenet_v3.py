@@ -419,6 +419,7 @@ def MobileNetV3(
 
 
 def MobileNetV3Small(
+    *,
     include_rescaling,
     include_top,
     classes=None,
@@ -488,6 +489,7 @@ def MobileNetV3Small(
 
 
 def MobileNetV3Large(
+    *,
     include_rescaling,
     include_top,
     classes=None,

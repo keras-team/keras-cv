@@ -310,6 +310,7 @@ def ViT(
 
 
 def ViTTiny16(
+    *,
     include_rescaling,
     include_top,
     name="ViTTiny16",
@@ -347,6 +348,7 @@ def ViTTiny16(
 
 
 def ViTS16(
+    *,
     include_rescaling,
     include_top,
     name="ViTS16",
@@ -384,6 +386,7 @@ def ViTS16(
 
 
 def ViTB16(
+    *,
     include_rescaling,
     include_top,
     name="ViTB16",
@@ -421,6 +424,7 @@ def ViTB16(
 
 
 def ViTL16(
+    *,
     include_rescaling,
     include_top,
     name="ViTL16",
@@ -458,6 +462,7 @@ def ViTL16(
 
 
 def ViTH16(
+    *,
     include_rescaling,
     include_top,
     name="ViTH16",
@@ -495,6 +500,7 @@ def ViTH16(
 
 
 def ViTTiny32(
+    *,
     include_rescaling,
     include_top,
     name="ViTTiny32",
@@ -532,6 +538,7 @@ def ViTTiny32(
 
 
 def ViTS32(
+    *,
     include_rescaling,
     include_top,
     name="ViTS32",
@@ -569,6 +576,7 @@ def ViTS32(
 
 
 def ViTB32(
+    *,
     include_rescaling,
     include_top,
     name="ViTB32",
@@ -606,6 +614,7 @@ def ViTB32(
 
 
 def ViTL32(
+    *,
     include_rescaling,
     include_top,
     name="ViTL32",
@@ -643,6 +652,7 @@ def ViTL32(
 
 
 def ViTH32(
+    *,
     include_rescaling,
     include_top,
     name="ViTH32",

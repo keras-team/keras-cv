@@ -26,6 +26,7 @@ from keras_cv.models import utils
 
 
 def VGG16(
+    *,
     include_rescaling,
     include_top,
     classes=None,
