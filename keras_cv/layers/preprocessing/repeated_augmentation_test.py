@@ -32,3 +32,20 @@ class RepeatedAugmentationTest(tf.test.TestCase):
 
         self.assertEqual(outputs["images"].shape, (16, 512, 512, 3))
         self.assertEqual(outputs["labels"].shape, (16,))
+
+
+    def test_with_mix_up(self):
+        repeated_augment = cv_layers.RepeatedAugmentation(
+            augmenters=[
+                cv_layers.RandAugment(value_range=(0, 255)),
+                cv_layers.MixUp(),
+            ]
+        )
+        inputs = {
+            "images": tf.ones((8, 512, 512, 3)),
+            "labels": tf.ones((8, 10)),
+        }
+        outputs = repeated_augment(inputs)
+
+        self.assertEqual(outputs["images"].shape, (16, 512, 512, 3))
+        self.assertEqual(outputs["labels"].shape, (16, 10))
