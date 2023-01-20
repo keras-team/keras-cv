@@ -225,10 +225,10 @@ def proc_train_fn(bounding_box_format, img_size):
         gt_classes = tf.cast(inputs["objects"]["label"], tf.float32)
         image, gt_boxes, gt_classes = resize_fn(image, gt_boxes, gt_classes)
         gt_classes = tf.expand_dims(gt_classes, axis=-1)
-        bounding_boxes = tf.concat([gt_boxes, gt_classes], axis=-1)
         bounding_boxes = keras_cv.bounding_box.convert_format(
-            bounding_boxes, images=image, source="yxyx", target=bounding_box_format
+            gt_boxes, images=image, source="yxyx", target=bounding_box_format
         )
+        bounding_boxes = tf.concat([gt_boxes, gt_classes], axis=-1)
         return image, bounding_boxes
 
     return apply
