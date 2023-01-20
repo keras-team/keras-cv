@@ -33,7 +33,6 @@ class RepeatedAugmentationTest(tf.test.TestCase):
         self.assertEqual(outputs["images"].shape, (16, 512, 512, 3))
         self.assertEqual(outputs["labels"].shape, (16,))
 
-
     def test_with_mix_up(self):
         repeated_augment = cv_layers.RepeatedAugmentation(
             augmenters=[
