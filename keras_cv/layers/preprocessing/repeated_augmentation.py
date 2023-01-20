@@ -78,7 +78,7 @@ class RepeatedAugmentation(BaseImageAugmentationLayer):
         self.shuffle = shuffle
 
     def _batch_augment(self, inputs):
-        if 'bounding_boxes' in inputs:
+        if "bounding_boxes" in inputs:
             raise ValueError(
                 "RepeatedAugmentation() does not yet support bounding box labels."
             )
