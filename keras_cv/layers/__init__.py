@@ -16,38 +16,18 @@ from tensorflow.keras.layers import CenterCrop
 from tensorflow.keras.layers import RandomHeight
 from tensorflow.keras.layers import RandomTranslation
 from tensorflow.keras.layers import RandomWidth
-from tensorflow.keras.layers import Rescaling
 
 from keras_cv.layers.feature_pyramid import FeaturePyramid
 from keras_cv.layers.fusedmbconv import FusedMBConvBlock
 from keras_cv.layers.mbconv import MBConvBlock
-from keras_cv.layers.object_detection3d.voxelization import DynamicVoxelization
 from keras_cv.layers.object_detection.anchor_generator import AnchorGenerator
-from keras_cv.layers.object_detection.nms_prediction_decoder import NmsDecoder
+from keras_cv.layers.object_detection.multi_class_non_max_suppression import (
+    MultiClassNonMaxSuppression,
+)
 from keras_cv.layers.object_detection.retina_net_label_encoder import (
     RetinaNetLabelEncoder,
 )
-from keras_cv.layers.preprocessing3d.frustum_random_dropping_points import (
-    FrustumRandomDroppingPoints,
-)
-from keras_cv.layers.preprocessing3d.frustum_random_point_feature_noise import (
-    FrustumRandomPointFeatureNoise,
-)
-from keras_cv.layers.preprocessing3d.global_random_dropping_points import (
-    GlobalRandomDroppingPoints,
-)
-from keras_cv.layers.preprocessing3d.global_random_flip_y import GlobalRandomFlipY
-from keras_cv.layers.preprocessing3d.global_random_rotation import GlobalRandomRotation
-from keras_cv.layers.preprocessing3d.global_random_scaling import GlobalRandomScaling
-from keras_cv.layers.preprocessing3d.global_random_translation import (
-    GlobalRandomTranslation,
-)
-from keras_cv.layers.preprocessing3d.group_points_by_bounding_boxes import (
-    GroupPointsByBoundingBoxes,
-)
-from keras_cv.layers.preprocessing3d.random_copy_paste import RandomCopyPaste
-from keras_cv.layers.preprocessing3d.random_drop_box import RandomDropBox
-from keras_cv.layers.preprocessing3d.swap_background import SwapBackground
+from keras_cv.layers.object_detection_3d.voxelization import DynamicVoxelization
 from keras_cv.layers.preprocessing.aug_mix import AugMix
 from keras_cv.layers.preprocessing.augmenter import Augmenter
 from keras_cv.layers.preprocessing.auto_contrast import AutoContrast
@@ -91,8 +71,30 @@ from keras_cv.layers.preprocessing.random_sharpness import RandomSharpness
 from keras_cv.layers.preprocessing.random_shear import RandomShear
 from keras_cv.layers.preprocessing.random_zoom import RandomZoom
 from keras_cv.layers.preprocessing.randomly_zoomed_crop import RandomlyZoomedCrop
+from keras_cv.layers.preprocessing.rescaling import Rescaling
 from keras_cv.layers.preprocessing.resizing import Resizing
 from keras_cv.layers.preprocessing.solarization import Solarization
+from keras_cv.layers.preprocessing_3d.frustum_random_dropping_points import (
+    FrustumRandomDroppingPoints,
+)
+from keras_cv.layers.preprocessing_3d.frustum_random_point_feature_noise import (
+    FrustumRandomPointFeatureNoise,
+)
+from keras_cv.layers.preprocessing_3d.global_random_dropping_points import (
+    GlobalRandomDroppingPoints,
+)
+from keras_cv.layers.preprocessing_3d.global_random_flip_y import GlobalRandomFlipY
+from keras_cv.layers.preprocessing_3d.global_random_rotation import GlobalRandomRotation
+from keras_cv.layers.preprocessing_3d.global_random_scaling import GlobalRandomScaling
+from keras_cv.layers.preprocessing_3d.global_random_translation import (
+    GlobalRandomTranslation,
+)
+from keras_cv.layers.preprocessing_3d.group_points_by_bounding_boxes import (
+    GroupPointsByBoundingBoxes,
+)
+from keras_cv.layers.preprocessing_3d.random_copy_paste import RandomCopyPaste
+from keras_cv.layers.preprocessing_3d.random_drop_box import RandomDropBox
+from keras_cv.layers.preprocessing_3d.swap_background import SwapBackground
 from keras_cv.layers.regularization.drop_path import DropPath
 from keras_cv.layers.regularization.dropblock_2d import DropBlock2D
 from keras_cv.layers.regularization.squeeze_excite import SqueezeAndExcite2D

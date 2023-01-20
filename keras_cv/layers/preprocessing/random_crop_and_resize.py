@@ -155,23 +155,22 @@ class RandomCropAndResize(BaseImageAugmentationLayer):
         return target
 
     def _transform_bounding_boxes(bounding_boxes, transformation):
+        bounding_boxes = bounding_boxes.copy()
         t_y1, t_x1, t_y2, t_x2 = transformation[0]
         t_dx = t_x2 - t_x1
         t_dy = t_y2 - t_y1
-        x1, y1, x2, y2, rest = tf.split(
-            bounding_boxes, [1, 1, 1, 1, bounding_boxes.shape[-1] - 4], axis=-1
-        )
+        x1, y1, x2, y2 = tf.split(bounding_boxes["boxes"], [1, 1, 1, 1], axis=-1)
         output = tf.concat(
             [
                 (x1 - t_x1) / t_dx,
                 (y1 - t_y1) / t_dy,
                 (x2 - t_x1) / t_dx,
                 (y2 - t_y1) / t_dy,
-                rest,
             ],
             axis=-1,
         )
-        return output
+        bounding_boxes["boxes"] = output
+        return bounding_boxes
 
     def augment_bounding_boxes(
         self, bounding_boxes, transformation=None, image=None, **kwargs

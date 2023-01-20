@@ -53,7 +53,7 @@ result_runtimes = []
 end_to_end_runtimes = []
 
 for buckets in bucket_values:
-    metric = coco.COCOMeanAveragePrecision(class_ids, num_buckets=buckets)
+    metric = coco._COCOMeanAveragePrecision(class_ids, num_buckets=buckets)
     # warm up
     metric.update_state(y_true, y_pred)
     metric.result()

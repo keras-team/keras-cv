@@ -39,7 +39,11 @@ def parse_weights(weights, include_top, model_type):
 BASE_PATH = "https://storage.googleapis.com/keras-cv/models"
 
 ALIASES = {
-    "cspdarknet": {
+    "cspdarknetl": {
+        "imagenet": "imagenet/classification-v0",
+        "imagenet/classification": "imagenet/classification-v0",
+    },
+    "cspdarknettiny": {
         "imagenet": "imagenet/classification-v0",
         "imagenet/classification": "imagenet/classification-v0",
     },
@@ -78,6 +82,10 @@ ALIASES = {
         "imagenet": "imagenet/classification-v0",
         "imagenet/classification": "imagenet/classification-v0",
     },
+    "resnet50": {
+        "imagenet": "imagenet/classification-v0",
+        "imagenet/classification": "imagenet/classification-v0",
+    },
     "resnet50v2": {
         "imagenet": "imagenet/classification-v2",
         "imagenet/classification": "imagenet/classification-v2",
@@ -109,9 +117,13 @@ ALIASES = {
 }
 
 WEIGHTS_CONFIG = {
-    "cspdarknet": {
+    "cspdarknetl": {
         "imagenet/classification-v0": "8bdc3359222f0d26f77aa42c4e97d67a05a1431fe6c448ceeab9a9c5a34ff804",
         "imagenet/classification-v0-notop": "9303aabfadffbff8447171fce1e941f96d230d8f3cef30d3f05a9c85097f8f1e",
+    },
+    "cspdarknettiny": {
+        "imagenet/classification-v0": "c17fe6d7b597f2eb25e42fbd97ec58fb1dad753ba18920cc27820953b7947704",
+        "imagenet/classification-v0-notop": "0007ae82c95be4d4aef06368a7c38e006381324d77e5df029b04890e18a8ad19",
     },
     "darknet53": {
         "imagenet/classification-v0": "7bc5589f7f7f7ee3878e61ab9323a71682bfb617eb57f530ca8757c742f00c77",
@@ -147,6 +159,10 @@ WEIGHTS_CONFIG = {
     "efficientnetv2s": {
         "imagenet/classification-v0": "2259db3483a577b5473dd406d1278439bd1a704ee477ff01a118299b134bd4db",
         "imagenet/classification-v0-notop": "80555436ea49100893552614b4dce98de461fa3b6c14f8132673817d28c83654",
+    },
+    "resnet50": {
+        "imagenet/classification-v0": "1525dc1ce580239839ba6848c0f1b674dc89cb9ed73c4ed49eba355b35eac3ce",
+        "imagenet/classification-v0-notop": "dc5f6d8f929c78d0fc192afecc67b11ac2166e9d8b9ef945742368ae254c07af",
     },
     "resnet50v2": {
         "imagenet/classification-v0": "11bde945b54d1dca65101be2648048abca8a96a51a42820d87403486389790db",

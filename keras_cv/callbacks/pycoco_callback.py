@@ -57,7 +57,7 @@ class PyCOCOCallback(Callback):
         y_pred = self.model.predict(images_only_ds)
         box_pred = tf.convert_to_tensor(y_pred["boxes"])
         cls_pred = tf.convert_to_tensor(y_pred["classes"])
-        scores_pred = tf.convert_to_tensor(y_pred["confidence"])
+        confidence_pred = tf.convert_to_tensor(y_pred["confidence"])
         valid_det = tf.convert_to_tensor(y_pred["num_detections"])
 
         gt = [boxes for boxes in self.val_data.map(boxes_only)]
@@ -99,7 +99,7 @@ class PyCOCOCallback(Callback):
         predictions["source_id"] = [source_ids]
         predictions["detection_boxes"] = [box_pred]
         predictions["detection_classes"] = [cls_pred]
-        predictions["detection_scores"] = [scores_pred]
+        predictions["detection_scores"] = [confidence_pred]
         predictions["num_detections"] = [valid_det]
 
         metrics = compute_pycoco_metrics(ground_truth, predictions)

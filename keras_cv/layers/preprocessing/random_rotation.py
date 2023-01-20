@@ -155,19 +155,17 @@ class RandomRotation(BaseImageAugmentationLayer):
                 "Please specify a bounding box format in the constructor. i.e."
                 "`RandomRotation(bounding_box_format='xyxy')`"
             )
-        else:
-            bounding_boxes = bounding_box.convert_format(
-                bounding_boxes,
-                source=self.bounding_box_format,
-                target="xyxy",
-                images=image,
-            )
+
+        bounding_boxes = bounding_box.convert_format(
+            bounding_boxes,
+            source=self.bounding_box_format,
+            target="xyxy",
+            images=image,
+        )
         image_shape = tf.shape(image)
         h = image_shape[H_AXIS]
         w = image_shape[W_AXIS]
-        _, _, _, _, rest = tf.split(
-            bounding_boxes, [1, 1, 1, 1, bounding_boxes.shape[-1] - 4], axis=-1
-        )
+
         # origin coordinates, all the points on the image are rotated around
         # this point
         origin_x, origin_y = tf.cast(w / 2, dtype=self.compute_dtype), tf.cast(
@@ -176,12 +174,14 @@ class RandomRotation(BaseImageAugmentationLayer):
         angle = transformation["angle"]
         angle = -angle
         # calculate coordinates of all four corners of the bounding box
+
+        boxes = bounding_boxes["boxes"]
         point = tf.stack(
             [
-                tf.stack([bounding_boxes[:, 0], bounding_boxes[:, 1]], axis=1),
-                tf.stack([bounding_boxes[:, 2], bounding_boxes[:, 1]], axis=1),
-                tf.stack([bounding_boxes[:, 2], bounding_boxes[:, 3]], axis=1),
-                tf.stack([bounding_boxes[:, 0], bounding_boxes[:, 3]], axis=1),
+                tf.stack([boxes[:, 0], boxes[:, 1]], axis=1),
+                tf.stack([boxes[:, 2], boxes[:, 1]], axis=1),
+                tf.stack([boxes[:, 2], boxes[:, 3]], axis=1),
+                tf.stack([boxes[:, 0], boxes[:, 3]], axis=1),
             ],
             axis=1,
         )
@@ -216,21 +216,24 @@ class RandomRotation(BaseImageAugmentationLayer):
         # format
         min_cordinates = tf.math.reduce_min(out, axis=1)
         max_cordinates = tf.math.reduce_max(out, axis=1)
-        bounding_boxes_out = tf.concat([min_cordinates, max_cordinates, rest], axis=1)
-        bounding_boxes_out = bounding_box.clip_to_image(
-            bounding_boxes_out,
+        boxes = tf.concat([min_cordinates, max_cordinates], axis=1)
+
+        bounding_boxes = bounding_boxes.copy()
+        bounding_boxes["boxes"] = boxes
+        bounding_boxes = bounding_box.clip_to_image(
+            bounding_boxes,
             bounding_box_format="xyxy",
             images=image,
         )
         # cordinates cannot be float values, it is casted to int32
-        bounding_boxes_out = bounding_box.convert_format(
-            bounding_boxes_out,
+        bounding_boxes = bounding_box.convert_format(
+            bounding_boxes,
             source="xyxy",
             target=self.bounding_box_format,
             dtype=self.compute_dtype,
             images=image,
         )
-        return bounding_boxes_out
+        return bounding_boxes
 
     def augment_label(self, label, transformation, **kwargs):
         return label

@@ -414,6 +414,22 @@ class SerializationTest(tf.test.TestCase, parameterized.TestCase):
                 "output_filters": 16,
             },
         ),
+        (
+            "Rescaling",
+            cv_layers.Rescaling,
+            {
+                "scale": 1,
+                "offset": 0.5,
+            },
+        ),
+        (
+            "MultiClassNonMaxSuppression",
+            cv_layers.MultiClassNonMaxSuppression,
+            {
+                "bounding_box_format": "yxyx",
+                "from_logits": True,
+            },
+        ),
     )
     def test_layer_serialization(self, layer_cls, init_args):
         layer = layer_cls(**init_args)
