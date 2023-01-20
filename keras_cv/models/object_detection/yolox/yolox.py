@@ -62,11 +62,11 @@ class YoloX(tf.keras.Model):
             the YoloX model. This is used to map the model to the relevant depth and
             width multiplier.
         backbone: an optional `tf.keras.Model` custom backbone model. Defaults
-            to a keras_cv.models.csp_darknet.CSPDarkNet with depth and width multipiers 
+            to a keras_cv.models.csp_darknet.CSPDarkNet with depth and width multipiers
             corresponding to the passed phi value with include_rescaling=True.
         label_encoder: (Optional) a keras.Layer that accepts an image Tensor, a
             bounding box Tensor and a bounding box class Tensor to its `call()` method,
-            and returns YoloX training targets.  By default, a YoloX standard 
+            and returns YoloX training targets.  By default, a YoloX standard
             LabelEncoder is created and used.
         prediction_decoder: (Optional)  A `keras.layer` that is responsible for
             transforming YoloX predictions into usable bounding box Tensors.  If
@@ -109,34 +109,37 @@ class YoloX(tf.keras.Model):
 
         self.bounding_box_format = bounding_box_format
         self.classes = classes
-        self.backbone = (
-            backbone
-            or keras_cv.models.csp_darknet.CSPDarkNet(
-                include_top=False, include_rescaling=True,
-                depth_multiplier=self.depth_multiplier,
-                width_multiplier=self.width_multiplier,
-            ).as_backbone(min_level=3)
-        )
+        self.backbone = backbone or keras_cv.models.csp_darknet.CSPDarkNet(
+            include_top=False,
+            include_rescaling=True,
+            depth_multiplier=self.depth_multiplier,
+            width_multiplier=self.width_multiplier,
+        ).as_backbone(min_level=3)
 
-        suppression_layer = prediction_decoder or keras_cv.layers.MultiClassNonMaxSuppression(
-            bounding_box_format=bounding_box_format,
-            from_logits=False,
-            confidence_threshold=0.01,
-            iou_threshold=0.65,
-            max_detections=100,
-            max_detections_per_class=100,
+        suppression_layer = (
+            prediction_decoder
+            or keras_cv.layers.MultiClassNonMaxSuppression(
+                bounding_box_format=bounding_box_format,
+                from_logits=False,
+                confidence_threshold=0.01,
+                iou_threshold=0.65,
+                max_detections=100,
+                max_detections_per_class=100,
+            )
         )
         self._prediction_decoder = DecodePredictions(
             bounding_box_format=bounding_box_format,
             classes=classes,
-            suppression_layer=suppression_layer
+            suppression_layer=suppression_layer,
         )
 
         self.feature_pyramid = feature_pyramid or YoloXPAFPN(
             depth_multiplier=self.depth_multiplier,
             width_multiplier=self.width_multiplier,
         )
-        self.yolox_head = yolox_head or YoloXHead(classes, width_multiplier=self.width_multiplier)
+        self.yolox_head = yolox_head or YoloXHead(
+            classes, width_multiplier=self.width_multiplier
+        )
         self.loss_metric = tf.keras.metrics.Mean(name="loss")
 
         self.classification_loss_metric = tf.keras.metrics.Mean(
@@ -144,7 +147,7 @@ class YoloX(tf.keras.Model):
         )
         self.objectness_loss_metric = tf.keras.metrics.Mean(name="objectness_loss")
         self.box_loss_metric = tf.keras.metrics.Mean(name="box_loss")
-    
+
     def make_predict_function(self, force=False):
         return predict_utils.make_predict_function(self, force=force)
 
@@ -185,11 +188,11 @@ class YoloX(tf.keras.Model):
             box_loss: a Keras loss to use for box offset regression.  Preconfigured
                 losses are provided when the string "iou" or "giou" are passed.
             objectness_loss: a keras loss to use for objectness score (whether
-                a given anchor point is a object or not). A preconfigured 
-                `BinaryCrossEntropyLoss` is provided when the string 
+                a given anchor point is a object or not). A preconfigured
+                `BinaryCrossEntropyLoss` is provided when the string
                 "binary_crossentropy" is passed.
-            classification_loss: a Keras loss to use for box classification. A 
-                preconfigured `BinaryCrossEntropyLoss` is provided when the string 
+            classification_loss: a Keras loss to use for box classification. A
+                preconfigured `BinaryCrossEntropyLoss` is provided when the string
                 "binary_crossentropy" is passed.
             kwargs: most other `keras.Model.compile()` arguments are supported and
                 propagated to the `keras.Model` class.
@@ -753,7 +756,6 @@ def _parse_objectness_loss(loss):
         "Expected `objectness_loss` to be either a Keras Loss, "
         f"callable, or the string 'binary_crossentropy'.  Got loss={loss}."
     )
-
 
 
 BASE_DOCSTRING = """Instantiates the {name} architecture using the given phi value.
