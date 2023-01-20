@@ -27,19 +27,12 @@ class XYXY:
     - TOP: top of the bounding box
     - RIGHT: right of the bounding box
     - BOTTOM: bottom of the bounding box
-
-    and the following optional indices, used in some KerasCV components:
-
-    - CLASS: class of the object contained in the bounding box
-    - CONFIDENCE: confidence that the box is valid, used in predictions
     """
 
     LEFT = 0
     TOP = 1
     RIGHT = 2
     BOTTOM = 3
-    CLASS = 4
-    CONFIDENCE = 5
 
 
 class REL_XYXY:
@@ -55,19 +48,12 @@ class REL_XYXY:
     - TOP: top of the bounding box
     - RIGHT: right of the bounding box
     - BOTTOM: bottom of the bounding box
-
-    and the following optional indices, used in some KerasCV components:
-
-    - CLASS: class of the object contained in the bounding box
-    - CONFIDENCE: confidence that the box is valid, used in predictions
     """
 
     LEFT = 0
     TOP = 1
     RIGHT = 2
     BOTTOM = 3
-    CLASS = 4
-    CONFIDENCE = 5
 
 
 class CENTER_XYWH:
@@ -81,19 +67,12 @@ class CENTER_XYWH:
     - Y: Y coordinate of the center of the bounding box
     - WIDTH: width of the bounding box
     - HEIGHT: height of the bounding box
-
-    and the following optional indices, used in some KerasCV components:
-
-    - 4: class of the object contained in the bounding box
-    - 5: confidence that the box is valid, used in predictions
     """
 
     X = 0
     Y = 1
     WIDTH = 2
     HEIGHT = 3
-    CLASS = 4
-    CONFIDENCE = 5
 
 
 class XYWH:
@@ -107,19 +86,12 @@ class XYWH:
     - Y: Y coordinate of the top of the bounding box
     - WIDTH: width of the bounding box
     - HEIGHT: height of the bounding box
-
-    and the following optional indices, used in some KerasCV components:
-
-    - 4: class of the object contained in the bounding box
-    - 5: confidence that the box is valid, used in predictions
     """
 
     X = 0
     Y = 1
     WIDTH = 2
     HEIGHT = 3
-    CLASS = 4
-    CONFIDENCE = 5
 
 
 class REL_XYWH:
@@ -133,19 +105,12 @@ class REL_XYWH:
     - Y: Y coordinate of the top of the bounding box
     - WIDTH: width of the bounding box
     - HEIGHT: height of the bounding box
-
-    and the following optional indices, used in some KerasCV components:
-
-    - 4: class of the object contained in the bounding box
-    - 5: confidence that the box is valid, used in predictions
     """
 
     X = 0
     Y = 1
     WIDTH = 2
     HEIGHT = 3
-    CLASS = 4
-    CONFIDENCE = 5
 
 
 class YXYX:
@@ -159,19 +124,12 @@ class YXYX:
     - LEFT: left hand side of the bounding box
     - BOTTOM: bottom of the bounding box
     - RIGHT: right of the bounding box
-
-    and the following optional indices, used in some KerasCV components:
-
-    - CLASS: class of the object contained in the bounding box
-    - CONFIDENCE: confidence that the box is valid, used in predictions
     """
 
     TOP = 0
     LEFT = 1
     BOTTOM = 2
     RIGHT = 3
-    CLASS = 4
-    CONFIDENCE = 5
 
 
 class REL_YXYX:
@@ -187,16 +145,9 @@ class REL_YXYX:
     - LEFT: left hand side of the bounding box
     - BOTTOM: bottom of the bounding box
     - RIGHT: right of the bounding box
-
-    and the following optional indices, used in some KerasCV components:
-
-    - CLASS: class of the object contained in the bounding box
-    - CONFIDENCE: confidence that the box is valid, used in predictions
     """
 
     TOP = 0
     LEFT = 1
     BOTTOM = 2
     RIGHT = 3
-    CLASS = 4
-    CONFIDENCE = 5

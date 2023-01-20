@@ -20,8 +20,8 @@ from keras_cv.bounding_box import iou as iou_lib
 from keras_cv.metrics.coco import utils
 
 
-class COCOMeanAveragePrecision(tf.keras.metrics.Metric):
-    """COCOMeanAveragePrecision computes an approximation of MaP.
+class _COCOMeanAveragePrecision(tf.keras.metrics.Metric):
+    """_COCOMeanAveragePrecision computes an approximation of MaP.
 
     A usage guide is available on keras.io:
     [Using KerasCV COCO metrics](https://keras.io/guides/keras_cv/coco_metrics/).
@@ -60,7 +60,7 @@ class COCOMeanAveragePrecision(tf.keras.metrics.Metric):
 
     Usage:
 
-    COCOMeanAveragePrecision accepts two Tensors as input to it's
+    _COCOMeanAveragePrecision accepts two Tensors as input to it's
     `update_state()` method.  These Tensors represent bounding boxes in
     `corners` format.  Utilities to convert Tensors from `xywh` to `corners`
     format can be found in `keras_cv.utils.bounding_box`.
@@ -73,7 +73,7 @@ class COCOMeanAveragePrecision(tf.keras.metrics.Metric):
     `keras_cv.bounding_box.pad_batch_to_shape()`.
 
     ```python
-    coco_map = keras_cv.metrics.COCOMeanAveragePrecision(
+    coco_map = keras_cv.metrics._COCOMeanAveragePrecision(
         bounding_box_format='xyxy',
         max_detections=100,
         class_ids=[1]

@@ -25,6 +25,66 @@ from tensorflow.keras import layers
 
 from keras_cv.models import utils
 
+MODEL_CONFIGS = {
+    "MLPMixerB16": {
+        "patch_size": 16,
+        "num_blocks": 12,
+        "hidden_dim": 768,
+        "tokens_mlp_dim": 384,
+        "channels_mlp_dim": 3072,
+    },
+    "MLPMixerB32": {
+        "patch_size": 32,
+        "num_blocks": 12,
+        "hidden_dim": 768,
+        "tokens_mlp_dim": 384,
+        "channels_mlp_dim": 3072,
+    },
+    "MLPMixerL16": {
+        "patch_size": 16,
+        "num_blocks": 24,
+        "hidden_dim": 1024,
+        "tokens_mlp_dim": 512,
+        "channels_mlp_dim": 4096,
+    },
+}
+
+BASE_DOCSTRING = """Instantiates the {name} architecture.
+    Reference:
+        - [MLP-Mixer: An all-MLP Architecture for Vision](https://arxiv.org/abs/2105.01601)
+    This function returns a Keras {name} model.
+
+    For transfer learning use cases, make sure to read the [guide to transfer
+        learning & fine-tuning](https://keras.io/guides/transfer_learning/).
+    Args:
+        include_rescaling: whether or not to Rescale the inputs.If set to True,
+            inputs will be passed through a `Rescaling(1/255.0)` layer.
+        include_top: whether to include the fully-connected layer at the top of the
+            network.  If provided, classes must be provided.
+        classes: optional number of classes to classify images into, only to be
+            specified if `include_top` is True.
+        weights: one of `None` (random initialization), a pretrained weight file
+            path, or a reference to pre-trained weights (e.g. 'imagenet/classification')
+            (see available pre-trained weights in weights.py)
+        input_shape: optional shape tuple, defaults to (None, None, 3).
+        input_tensor: optional Keras tensor (i.e. output of `layers.Input()`)
+            to use as image input for the model.
+        pooling: optional pooling mode for feature extraction
+            when `include_top` is `False`.
+            - `None` means that the output of the model will be the 4D tensor output
+                of the last convolutional block.
+            - `avg` means that global average pooling will be applied to the output
+                of the last convolutional block, and thus the output of the model will
+                be a 2D tensor.
+            - `max` means that global max pooling will be applied.
+        name: (Optional) name to pass to the model.  Defaults to "{name}".
+        classifier_activation: A `str` or callable. The activation function to use
+            on the "top" layer. Ignored unless `include_top=True`. Set
+            `classifier_activation=None` to return the logits of the "top" layer.
+    Returns:
+      A `keras.Model` instance.
+"""
+
 
 def MLPBlock(mlp_dim, name=None):
     """An MLP block consisting of two linear layers with GELU activation in
@@ -98,20 +158,10 @@ def MLPMixer(
 ):
     """Instantiates the MLP Mixer architecture.
 
-    Reference:
-    - [MLP-Mixer: An all-MLP Architecture for Vision (NeurIPS 2021)](https://arxiv.org/abs/2105.01601)
-
-    This function returns a Keras MLP Mixer model.
-
-    For transfer learning use cases, make sure to read the
-    [guide to transfer learning & fine-tuning](https://keras.io/guides/transfer_learning/).
-
-    Note that the `input_shape` should be fully divisible by the `patch_size`.
-
     Args:
       input_shape: tuple denoting the input shape, (224, 224, 3) for example.
-      patch_size: tuple denoting the size of the patches to be extracted
-        from the inputs ((16, 16) for example).
+      patch_size: integer denoting the size of the patches to be extracted
+        from the inputs (16 for extracting 16x16 patches for example).
       num_blocks: number of mixer blocks.
       hidden_dim: dimension to which the patches will be linearly projected.
       tokens_mlp_dim: dimension of the MLP block responsible for tokens.
@@ -162,8 +212,8 @@ def MLPMixer(
             f"Received: classes={classes}"
         )
 
-    if (not isinstance(input_shape, tuple)) and (not isinstance(patch_size, tuple)):
-        raise ValueError("`input_shape` and `patch_size` both need to be tuple.")
+    if not isinstance(input_shape, tuple):
+        raise ValueError("`input_shape` needs to be tuple.")
 
     if len(input_shape) != 3:
         raise ValueError(
@@ -171,19 +221,10 @@ def MLPMixer(
             " axes: height, width, and channel ((224, 224, 3) for example)."
         )
 
-    if len(patch_size) != 2:
-        raise ValueError(
-            "`patch_size` needs to contain dimensions for two"
-            " spatial axes: height, and width ((16, 16) for example)."
-        )
-
     if input_shape[0] != input_shape[1]:
         raise ValueError("Non-uniform resolutions are not supported.")
 
-    if patch_size[0] != patch_size[1]:
-        raise ValueError("Non-uniform patch sizes are not supported.")
-
-    if input_shape[0] % patch_size[0] != 0:
+    if input_shape[0] % patch_size != 0:
         raise ValueError("Input resolution should be divisible by the patch size.")
 
     inputs = utils.parse_model_inputs(input_shape, input_tensor)
@@ -194,8 +235,8 @@ def MLPMixer(
 
     x = layers.Conv2D(
         filters=hidden_dim,
-        kernel_size=patch_size,
-        strides=patch_size,
+        kernel_size=(patch_size, patch_size),
+        strides=(patch_size, patch_size),
         padding="valid",
         name="patchify_and_projection",
     )(x)
@@ -226,7 +267,7 @@ def MLPMixer(
 
 def MLPMixerB16(
     input_shape,
-    patch_size,
+    *,
     include_rescaling,
     include_top,
     classes=None,
@@ -236,13 +277,15 @@ def MLPMixerB16(
     name="mlp_mixer_b16",
     **kwargs,
 ):
+    """Instantiates the MLPMixerB16 architecture."""
+
     return MLPMixer(
         input_shape=input_shape,
-        patch_size=patch_size,
-        num_blocks=12,
-        hidden_dim=768,
-        tokens_mlp_dim=384,
-        channels_mlp_dim=3072,
+        patch_size=MODEL_CONFIGS["MLPMixerB16"]["patch_size"],
+        num_blocks=MODEL_CONFIGS["MLPMixerB16"]["num_blocks"],
+        hidden_dim=MODEL_CONFIGS["MLPMixerB16"]["hidden_dim"],
+        tokens_mlp_dim=MODEL_CONFIGS["MLPMixerB16"]["tokens_mlp_dim"],
+        channels_mlp_dim=MODEL_CONFIGS["MLPMixerB16"]["channels_mlp_dim"],
         include_rescaling=include_rescaling,
         include_top=include_top,
         classes=classes,
@@ -256,7 +299,7 @@ def MLPMixerB16(
 
 def MLPMixerB32(
     input_shape,
-    patch_size,
+    *,
     include_rescaling,
     include_top,
     classes=None,
@@ -266,13 +309,14 @@ def MLPMixerB32(
     name="mlp_mixer_b32",
     **kwargs,
 ):
+    """Instantiates the MLPMixerB32 architecture."""
     return MLPMixer(
         input_shape=input_shape,
-        patch_size=patch_size,
-        num_blocks=12,
-        hidden_dim=768,
-        tokens_mlp_dim=384,
-        channels_mlp_dim=3072,
+        patch_size=MODEL_CONFIGS["MLPMixerB32"]["patch_size"],
+        num_blocks=MODEL_CONFIGS["MLPMixerB32"]["num_blocks"],
+        hidden_dim=MODEL_CONFIGS["MLPMixerB32"]["hidden_dim"],
+        tokens_mlp_dim=MODEL_CONFIGS["MLPMixerB32"]["tokens_mlp_dim"],
+        channels_mlp_dim=MODEL_CONFIGS["MLPMixerB32"]["channels_mlp_dim"],
         include_rescaling=include_rescaling,
         include_top=include_top,
         classes=classes,
@@ -286,7 +330,7 @@ def MLPMixerB32(
 
 def MLPMixerL16(
     input_shape,
-    patch_size,
+    *,
     include_rescaling,
     include_top,
     classes=None,
@@ -296,13 +340,14 @@ def MLPMixerL16(
     name="mlp_mixer_l16",
     **kwargs,
 ):
+    """Instantiates the MLPMixerL16 architecture."""
     return MLPMixer(
         input_shape=input_shape,
-        patch_size=patch_size,
-        num_blocks=24,
-        hidden_dim=1024,
-        tokens_mlp_dim=512,
-        channels_mlp_dim=4096,
+        patch_size=MODEL_CONFIGS["MLPMixerL16"]["patch_size"],
+        num_blocks=MODEL_CONFIGS["MLPMixerL16"]["num_blocks"],
+        hidden_dim=MODEL_CONFIGS["MLPMixerL16"]["hidden_dim"],
+        tokens_mlp_dim=MODEL_CONFIGS["MLPMixerL16"]["tokens_mlp_dim"],
+        channels_mlp_dim=MODEL_CONFIGS["MLPMixerL16"]["channels_mlp_dim"],
         include_rescaling=include_rescaling,
         include_top=include_top,
         classes=classes,
@@ -312,3 +357,8 @@ def MLPMixerL16(
         name=name,
         **kwargs,
     )
+
+
+setattr(MLPMixerB16, "__doc__", BASE_DOCSTRING.format(name="MLPMixerB16"))
+setattr(MLPMixerB32, "__doc__", BASE_DOCSTRING.format(name="MLPMixerB32"))
+setattr(MLPMixerL16, "__doc__", BASE_DOCSTRING.format(name="MLPMixerL16"))

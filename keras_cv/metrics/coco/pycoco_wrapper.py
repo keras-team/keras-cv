@@ -196,7 +196,12 @@ def _convert_to_numpy(groundtruths, predictions):
             val = np.concatenate(val)
         numpy_groundtruths[key] = val
 
-    outputs = tf.nest.map_structure(lambda x: x.numpy(), predictions)
+    def _to_numpy(x):
+        if isinstance(x, np.ndarray):
+            return x
+        return x.numpy()
+
+    outputs = tf.nest.map_structure(lambda x: _to_numpy(x), predictions)
     numpy_predictions = {}
     for key, val in outputs.items():
         if isinstance(val, tuple):

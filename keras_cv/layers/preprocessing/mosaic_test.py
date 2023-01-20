@@ -27,8 +27,10 @@ class MosaicTest(tf.test.TestCase):
         ys_labels = tf.one_hot(ys_labels, classes)
 
         # randomly sample bounding boxes
-        ys_bounding_boxes = tf.random.uniform((2, 3, 5), 0, 1)
-
+        ys_bounding_boxes = {
+            "boxes": tf.random.uniform((2, 3, 4), 0, 1),
+            "classes": tf.random.uniform((2, 3), 0, 1),
+        }
         layer = Mosaic(bounding_box_format="xywh")
         # mosaic on labels
         outputs = layer(
@@ -42,7 +44,8 @@ class MosaicTest(tf.test.TestCase):
 
         self.assertEqual(xs.shape, [2, 512, 512, 3])
         self.assertEqual(ys_labels.shape, [2, 10])
-        self.assertEqual(ys_bounding_boxes.shape, [2, None, 5])
+        self.assertEqual(ys_bounding_boxes["boxes"].shape, [2, None, 4])
+        self.assertEqual(ys_bounding_boxes["classes"].shape, [2, None])
 
     def test_in_tf_function(self):
         xs = tf.cast(

@@ -14,11 +14,17 @@
 
 """Setup script."""
 
+import os
 import pathlib
 
 from setuptools import find_packages
 from setuptools import setup
 from setuptools.dist import Distribution
+
+BUILD_WITH_CUSTOM_OPS = not (
+    "BUILD_WITH_CUSTOM_OPS" in os.environ
+    and os.environ["BUILD_WITH_CUSTOM_OPS"] == "false"
+)
 
 HERE = pathlib.Path(__file__).parent
 README = (HERE / "README.md").read_text()
@@ -28,10 +34,10 @@ class BinaryDistribution(Distribution):
     """This class is needed in order to create OS specific wheels."""
 
     def has_ext_modules(self):
-        return True
+        return BUILD_WITH_CUSTOM_OPS
 
     def is_pure(self):
-        return False
+        return not BUILD_WITH_CUSTOM_OPS
 
 
 setup(
@@ -43,15 +49,14 @@ setup(
     author="Keras team",
     author_email="keras-cv@google.com",
     license="Apache License 2.0",
-    install_requires=["packaging", "absl-py", "regex"],
+    install_requires=["packaging", "absl-py", "regex", "tensorflow-datasets"],
     python_requires=">=3.7",
     extras_require={
         "tests": [
             "flake8",
             "isort",
-            "black",
+            "black[jupyter]",
             "pytest",
-            "tensorflow-datasets",
             "pycocotools",
         ],
         "examples": ["tensorflow_datasets", "matplotlib"],

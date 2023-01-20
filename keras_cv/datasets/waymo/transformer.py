@@ -27,6 +27,7 @@ from waymo_open_dataset.utils import range_image_utils
 from waymo_open_dataset.utils import transform_utils
 
 from keras_cv.datasets.waymo import struct
+from keras_cv.layers.object_detection_3d import voxel_utils
 
 WOD_FRAME_OUTPUT_SIGNATURE = {
     "frame_id": tf.TensorSpec((), tf.int64),
@@ -501,6 +502,24 @@ def _point_vehicle_to_global(
     )
 
 
+def _point_global_to_vehicle(point_xyz: tf.Tensor, sdc_pose: tf.Tensor) -> tf.Tensor:
+    """Transforms points from global to vehicle frame.
+
+    Args:
+      point_xyz: [..., N, 3] global xyz.
+      sdc_pose: [..., 4, 4] the SDC pose.
+
+    Returns:
+      The points in vehicle frame.
+    """
+    rot = sdc_pose[..., 0:3, 0:3]
+    loc = sdc_pose[..., 0:3, 3]
+    return (
+        tf.linalg.matmul(point_xyz, rot)
+        + voxel_utils.inv_loc(rot, loc)[..., tf.newaxis, :]
+    )
+
+
 def _box_3d_vehicle_to_global(box_3d: tf.Tensor, sdc_pose: tf.Tensor) -> tf.Tensor:
     """Transforms 3D boxes from vehicle to global frame.
 
@@ -518,6 +537,28 @@ def _box_3d_vehicle_to_global(box_3d: tf.Tensor, sdc_pose: tf.Tensor) -> tf.Tens
     new_center = _point_vehicle_to_global(center, sdc_pose)
     new_heading = (
         heading + tf.atan2(sdc_pose[..., 1, 0], sdc_pose[..., 0, 0])[..., tf.newaxis]
+    )
+
+    return tf.concat([new_center, dim, new_heading[..., tf.newaxis]], axis=-1)
+
+
+def _box_3d_global_to_vehicle(box_3d: tf.Tensor, sdc_pose: tf.Tensor) -> tf.Tensor:
+    """Transforms 3D boxes from global to vehicle frame.
+
+    Args:
+      box_3d: [..., N, 7] 3d boxes in global frame.
+      sdc_pose: [..., 4, 4] the SDC pose.
+
+    Returns:
+      The boxes in vehicle frame.
+    """
+    center = box_3d[..., 0:3]
+    dim = box_3d[..., 3:6]
+    heading = box_3d[..., 6]
+
+    new_center = _point_global_to_vehicle(center, sdc_pose)
+    new_heading = (
+        heading + tf.atan2(sdc_pose[..., 0, 1], sdc_pose[..., 0, 0])[..., tf.newaxis]
     )
 
     return tf.concat([new_center, dim, new_heading[..., tf.newaxis]], axis=-1)
@@ -578,6 +619,98 @@ def build_tensors_from_wod_frame(frame: dataset_pb2.Frame) -> Dict[str, tf.Tenso
         "label_point_class": point_label_tensors.label_point_class,
         "label_point_nlz": point_tensors.label_point_nlz,
     }
+
+
+def pad_or_trim_tensors(
+    frame: Dict[str, tf.Tensor], max_num_point=199600, max_num_label_box=1000
+) -> Dict[str, tf.Tensor]:
+    """Pad or trim tensors from a frame to have uniform shapes.
+
+    Args:
+      frame: a dictionary of feature tensors from a Waymo Open Dataset frame.
+      max_num_point: maximum number of lidar points to process.
+      max_num_label_box: maximum number of label boxes to process.
+
+
+    Returns:
+      A dictionary of feature tensors with uniform shapes.
+    """
+
+    def _pad_fn(t: tf.Tensor, max_counts: int) -> tf.Tensor:
+        shape = [max_counts] + t.shape.as_list()[1:]
+        return voxel_utils._pad_or_trim_to(t, shape)
+
+    point_tensor_keys = {
+        "point_xyz",
+        "point_feature",
+        "point_range_image_row_col_sensor_id",
+        "point_mask",
+        "label_point_class",
+        "label_point_nlz",
+    }
+    box_tensor_keys = {
+        "label_box",
+        "label_box_id",
+        "label_box_meta",
+        "label_box_class",
+        "label_box_density",
+        "label_box_detection_difficulty",
+        "label_box_mask",
+    }
+    for key in point_tensor_keys:
+        t = frame[key]
+        if t is not None:
+            frame[key] = _pad_fn(t, max_num_point)
+    for key in box_tensor_keys:
+        t = frame[key]
+        if t is not None:
+            frame[key] = _pad_fn(t, max_num_label_box)
+    return frame
+
+
+def transform_to_vehicle_frame(frame: Dict[str, tf.Tensor]) -> Dict[str, tf.Tensor]:
+    """Transform tensors in a frame from global coordinates to vehicle coordinates.
+
+    Args:
+      frame: a dictionary of feature tensors from a Waymo Open Dataset frame in global frame.
+
+
+    Returns:
+      A dictionary of feature tensors in vehicle frame.
+    """
+
+    def _transform_to_vehicle_frame(
+        point_global_xyz: tf.Tensor,
+        point_mask: tf.Tensor,
+        box_global: tf.Tensor,
+        box_mask: tf.Tensor,
+        sdc_pose: tf.Tensor,
+    ) -> Tuple[tf.Tensor, tf.Tensor]:
+        point_vehicle_xyz = _point_global_to_vehicle(point_global_xyz, sdc_pose)
+        point_vehicle_xyz = tf.where(
+            point_mask[..., tf.newaxis], point_vehicle_xyz, 0.0
+        )
+        box_vehicle = _box_3d_global_to_vehicle(box_global, sdc_pose)
+        box_vehicle = tf.where(box_mask[..., tf.newaxis], box_vehicle, 0.0)
+        return point_vehicle_xyz, box_vehicle
+
+    point_vehicle_xyz, box_vehicle = _transform_to_vehicle_frame(
+        frame["point_xyz"],
+        frame["point_mask"],
+        frame["label_box"],
+        frame["label_box_mask"],
+        frame["pose"],
+    )
+    frame["point_xyz"] = point_vehicle_xyz
+    frame["label_box"] = box_vehicle
+    # Override pose as the points and boxes are in the vehicle frame.
+    frame["pose"] = tf.eye(4)
+    if frame["label_point_nlz"] is not None:
+        frame["point_mask"] = tf.logical_and(
+            frame["point_mask"],
+            tf.logical_not(tf.cast(frame["label_point_nlz"], tf.bool)),
+        )
+    return frame
 
 
 def build_tensors_for_augmentation(

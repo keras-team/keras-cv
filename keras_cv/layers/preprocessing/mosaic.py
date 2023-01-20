@@ -151,10 +151,8 @@ class Mosaic(BaseImageAugmentationLayer):
                 axis=-1,
             )
 
-            if isinstance(bounding_boxes, tf.RaggedTensor):
-                bounding_boxes = bounding_boxes.to_tensor(-1)
-
-            bounding_boxes = tf.vectorized_map(
+            bounding_boxes = bounding_box.to_dense(bounding_boxes)
+            bounding_boxes = tf.map_fn(
                 lambda index: self._update_bounding_box(
                     images,
                     bounding_boxes,
@@ -164,8 +162,18 @@ class Mosaic(BaseImageAugmentationLayer):
                     index,
                 ),
                 tf.range(batch_size),
+                fn_output_signature={
+                    "boxes": tf.RaggedTensorSpec(
+                        shape=[None, 4],
+                        ragged_rank=1,
+                        dtype=self.compute_dtype,
+                    ),
+                    "classes": tf.RaggedTensorSpec(
+                        shape=[None], dtype=self.compute_dtype
+                    ),
+                },
             )
-            bounding_boxes = bounding_box.filter_sentinels(bounding_boxes)
+            bounding_boxes = bounding_box.to_ragged(bounding_boxes)
             inputs["bounding_boxes"] = bounding_boxes
         inputs["images"] = images
         return inputs
@@ -230,7 +238,7 @@ class Mosaic(BaseImageAugmentationLayer):
     def _update_bounding_box(
         self, images, bounding_boxes, permutation_order, translate_x, translate_y, index
     ):
-        # updates bboxes for one output mosaic
+        # updates bounding_boxes for one output mosaic
         bounding_boxes = bounding_box.convert_format(
             bounding_boxes,
             source=self.bounding_box_format,
@@ -238,12 +246,10 @@ class Mosaic(BaseImageAugmentationLayer):
             images=images,
             dtype=self.compute_dtype,
         )
-        boxes_for_mosaic = tf.gather(bounding_boxes, permutation_order[index])
-        if isinstance(boxes_for_mosaic, tf.RaggedTensor):
-            boxes_for_mosaic = boxes_for_mosaic.to_tensor(-1, shape=[None, 5])
-        boxes_for_mosaic, rest = tf.split(
-            boxes_for_mosaic, [4, boxes_for_mosaic.shape[-1] - 4], axis=-1
-        )
+        boxes, classes = bounding_boxes["boxes"], bounding_boxes["classes"]
+
+        classes_for_mosaic = tf.gather(classes, permutation_order[index])
+        boxes_for_mosaic = tf.gather(boxes, permutation_order[index])
 
         # stacking translate values such that the shape is (4, 1, 4) or (num_images, broadcast dim, coordinates)
         translate_values = tf.stack(
@@ -256,18 +262,24 @@ class Mosaic(BaseImageAugmentationLayer):
             axis=-1,
         )
         translate_values = tf.expand_dims(translate_values, axis=1)
-
         # translating boxes
         boxes_for_mosaic = boxes_for_mosaic + translate_values
-        boxes_for_mosaic = tf.concat([boxes_for_mosaic, rest], axis=-1)
-        boxes_for_mosaic = tf.reshape(boxes_for_mosaic, [-1, bounding_boxes.shape[-1]])
 
+        boxes_for_mosaic = tf.reshape(boxes_for_mosaic, [-1, 4])
+        classes_for_mosaic = tf.reshape(
+            classes_for_mosaic,
+            [
+                -1,
+            ],
+        )
+
+        boxes_for_mosaic = {"boxes": boxes_for_mosaic, "classes": classes_for_mosaic}
         boxes_for_mosaic = bounding_box.clip_to_image(
             boxes_for_mosaic,
             bounding_box_format="xyxy",
             images=images[index],
         )
-        boxes_for_mosaic = bounding_box.filter_sentinels(boxes_for_mosaic)
+        boxes_for_mosaic = bounding_box.to_ragged(boxes_for_mosaic)
         boxes_for_mosaic = bounding_box.convert_format(
             boxes_for_mosaic,
             source="xyxy",
@@ -275,8 +287,6 @@ class Mosaic(BaseImageAugmentationLayer):
             images=images[index],
             dtype=self.compute_dtype,
         )
-        if isinstance(boxes_for_mosaic, tf.RaggedTensor):
-            boxes_for_mosaic = boxes_for_mosaic.to_tensor(-1, shape=[None, 5])
         return boxes_for_mosaic
 
     def _validate_inputs(self, inputs):

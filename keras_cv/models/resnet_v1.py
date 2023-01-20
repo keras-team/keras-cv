@@ -17,11 +17,14 @@ Reference:
   - [Based on the original keras.applications ResNet](https://github.com/keras-team/keras/blob/master/keras/applications/resnet.py)
 """
 
+import types
+
 import tensorflow as tf
 from tensorflow.keras import backend
 from tensorflow.keras import layers
 
 from keras_cv.models import utils
+from keras_cv.models.weights import parse_weights
 
 MODEL_CONFIGS = {
     "ResNet18": {
@@ -290,7 +293,7 @@ def ResNet(
     if weights and not tf.io.gfile.exists(weights):
         raise ValueError(
             "The `weights` argument should be either `None` or the path to the "
-            "weights file to be loaded. Weights file not found at location: {weights}"
+            f"weights file to be loaded. Weights file not found at location: {weights}"
         )
 
     if include_top and not classes:
@@ -322,6 +325,7 @@ def ResNet(
 
     num_stacks = len(stackwise_filters)
 
+    stack_level_outputs = {}
     for stack_index in range(num_stacks):
         x = Stack(
             filters=stackwise_filters[stack_index],
@@ -330,6 +334,7 @@ def ResNet(
             block_fn=block_fn,
             first_shortcut=block_fn == Block or stack_index > 0,
         )(x)
+        stack_level_outputs[stack_index + 2] = x
 
     if include_top:
         x = layers.GlobalAveragePooling2D(name="avg_pool")(x)
@@ -348,10 +353,18 @@ def ResNet(
     if weights is not None:
         model.load_weights(weights)
 
+    # Set this private attribute for recreate backbone model with outputs at each of the
+    # resolution level.
+    model._backbone_level_outputs = stack_level_outputs
+
+    # Bind the `to_backbone_model` method to the application model.
+    model.as_backbone = types.MethodType(utils.as_backbone, model)
+
     return model
 
 
 def ResNet18(
+    *,
     include_rescaling,
     include_top,
     classes=None,
@@ -384,6 +397,7 @@ def ResNet18(
 
 
 def ResNet34(
+    *,
     include_rescaling,
     include_top,
     classes=None,
@@ -416,6 +430,7 @@ def ResNet34(
 
 
 def ResNet50(
+    *,
     include_rescaling,
     include_top,
     classes=None,
@@ -436,7 +451,7 @@ def ResNet50(
         include_rescaling=include_rescaling,
         include_top=include_top,
         name=name,
-        weights=weights,
+        weights=parse_weights(weights, include_top, "resnet50"),
         input_shape=input_shape,
         input_tensor=input_tensor,
         pooling=pooling,
@@ -447,6 +462,7 @@ def ResNet50(
 
 
 def ResNet101(
+    *,
     include_rescaling,
     include_top,
     classes=None,
@@ -477,6 +493,7 @@ def ResNet101(
 
 
 def ResNet152(
+    *,
     include_rescaling,
     include_top,
     classes=None,
