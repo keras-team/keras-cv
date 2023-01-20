@@ -31,34 +31,28 @@ class DecodePredictions(keras.layers.Layer):
             [to the keras.io docs](https://keras.io/api/keras_cv/bounding_box/formats/)
             for more details on supported bounding box formats.
         classes: The number of classes to be considered for the classification head.
-            One of suppression_layer or classes should be provided. Defaults to None.
+            Defaults to None.
         suppression_layer: A `keras.layers.Layer` that follows the same API
-            signature of the `keras_cv.layers.NonMaxSuppression` layer.  This layer should
-            perform a suppression operation such as NonMaxSuppression, or
-            SoftNonMaxSuppression.
+            signature of the `keras_cv.layers.MultiClassNonMaxSuppression` layer.  
+            This layer should perform a suppression operation such as Non Max Suppression,
+            or Soft Non-Max Suppression.
     """
 
     def __init__(
-        self, bounding_box_format, classes=None, suppression_layer=None, **kwargs
+        self, bounding_box_format, classes, suppression_layer=None, **kwargs
     ):
         super().__init__(**kwargs)
-        if not suppression_layer and not classes:
-            raise ValueError(
-                "DecodePredictions() requires either `suppression_layer` "
-                f"or `classes`.  Received `suppression_layer={suppression_layer} and "
-                f"classes={classes}`"
-            )
         self.bounding_box_format = bounding_box_format
+        self.classes = classes
 
-        self.suppression_layer = suppression_layer or cv_layers.NonMaxSuppression(
-            classes=classes,
+        self.suppression_layer = suppression_layer or cv_layers.MultiClassNonMaxSuppression(
             bounding_box_format=bounding_box_format,
+            from_logits=False,
             confidence_threshold=0.01,
             iou_threshold=0.65,
             max_detections=100,
             max_detections_per_class=100,
         )
-        self.classes = self.suppression_layer.classes
         if self.suppression_layer.bounding_box_format != self.bounding_box_format:
             raise ValueError(
                 "`suppression_layer` must have the same `bounding_box_format` "
@@ -126,6 +120,12 @@ class DecodePredictions(keras.layers.Layer):
         outputs = tf.concat([box_xy, box_wh, box_classes, box_scores], axis=-1)
         outputs = tf.reshape(outputs, [batch_size, -1, 6])
 
+        outputs = {
+            "boxes": outputs[..., :4],
+            "classes": outputs[..., 4],
+            "confidence": outputs[..., 5],
+        }
+
         # this conversion is rel_center_xywh to rel_xywh
         # small workaround because rel_center_xywh isn't supported yet
         outputs = bounding_box.convert_format(
@@ -141,4 +141,11 @@ class DecodePredictions(keras.layers.Layer):
             target=self.suppression_layer.bounding_box_format,
             images=images,
         )
-        return self.suppression_layer(outputs, images=images)
+
+        # preparing the predictions for TF NMS op
+        class_predictions = tf.cast(outputs["classes"], tf.int32)
+        class_predictions = tf.one_hot(class_predictions, self.classes)
+        
+        scores = tf.expand_dims(outputs["confidence"], axis=-1) * class_predictions
+
+        return self.suppression_layer(outputs["boxes"], scores)

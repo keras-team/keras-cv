@@ -16,6 +16,8 @@
 import tensorflow as tf
 from tensorflow.keras import layers
 
+from keras_cv import bounding_box
+
 
 class YoloXLabelEncoder(layers.Layer):
     """Transforms the raw labels into targets for training.
@@ -31,7 +33,7 @@ class YoloXLabelEncoder(layers.Layer):
         super().__init__(**kwargs)
         self.bounding_box_format = bounding_box_format
 
-    def call(self, images, target_boxes):
+    def call(self, images, box_labels):
         """Creates box and classification targets for a batch"""
         if isinstance(images, tf.RaggedTensor):
             raise ValueError(
@@ -40,8 +42,10 @@ class YoloXLabelEncoder(layers.Layer):
                 f"`type(images)={type(images)}`."
             )
 
-        if isinstance(target_boxes, tf.RaggedTensor):
-            target_boxes = target_boxes.to_tensor(default_value=-1)
-        target_boxes = tf.cast(target_boxes, tf.float32)
+        box_labels = bounding_box.to_dense(box_labels)
+        if box_labels["classes"].get_shape().rank == 2:
+            box_labels["classes"] = box_labels["classes"][..., tf.newaxis]
 
-        return target_boxes
+        encoded_box_targets = box_labels["boxes"]
+        class_targets = box_labels["classes"]
+        return encoded_box_targets, class_targets

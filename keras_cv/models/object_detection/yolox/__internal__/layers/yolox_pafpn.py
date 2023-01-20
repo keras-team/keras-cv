@@ -111,7 +111,7 @@ class YoloXPAFPN(keras.layers.Layer):
         self.upsample_2x = keras.layers.UpSampling2D(2)
 
     def call(self, inputs, training=False):
-        c3_output, c4_output, c5_output = inputs
+        c3_output, c4_output, c5_output = inputs[3], inputs[4], inputs[5]
 
         fpn_out0 = self.lateral_conv0(c5_output)
         f_out0 = self.upsample_2x(fpn_out0)
