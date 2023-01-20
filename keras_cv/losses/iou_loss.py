@@ -121,7 +121,6 @@ class IoULoss(keras.losses.Loss):
         iou = bounding_box.compute_iou(y_true, y_pred, self.bounding_box_format)
         # pick out the diagonal for corresponding ious
         iou = tf.linalg.diag_part(iou)
-<<<<<<< HEAD
         if self.axis == "no_reduction":
             warnings.warn(
                 "`axis='no_reduction'` is a temporary API, and the API "
@@ -133,9 +132,6 @@ class IoULoss(keras.losses.Loss):
 
         if self.axis is not None:
             iou = tf.reduce_mean(iou, axis=self.axis)
-=======
-        iou = tf.reduce_mean(iou, axis=self.axis)
->>>>>>> 60ab512 (reverted rebasing issues with iou loss)
 
         if self.mode == "linear":
             loss = 1 - iou
