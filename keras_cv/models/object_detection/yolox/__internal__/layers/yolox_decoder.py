@@ -33,25 +33,26 @@ class DecodePredictions(keras.layers.Layer):
         classes: The number of classes to be considered for the classification head.
             Defaults to None.
         suppression_layer: A `keras.layers.Layer` that follows the same API
-            signature of the `keras_cv.layers.MultiClassNonMaxSuppression` layer.  
+            signature of the `keras_cv.layers.MultiClassNonMaxSuppression` layer.
             This layer should perform a suppression operation such as Non Max Suppression,
             or Soft Non-Max Suppression.
     """
 
-    def __init__(
-        self, bounding_box_format, classes, suppression_layer=None, **kwargs
-    ):
+    def __init__(self, bounding_box_format, classes, suppression_layer=None, **kwargs):
         super().__init__(**kwargs)
         self.bounding_box_format = bounding_box_format
         self.classes = classes
 
-        self.suppression_layer = suppression_layer or cv_layers.MultiClassNonMaxSuppression(
-            bounding_box_format=bounding_box_format,
-            from_logits=False,
-            confidence_threshold=0.01,
-            iou_threshold=0.65,
-            max_detections=100,
-            max_detections_per_class=100,
+        self.suppression_layer = (
+            suppression_layer
+            or cv_layers.MultiClassNonMaxSuppression(
+                bounding_box_format=bounding_box_format,
+                from_logits=False,
+                confidence_threshold=0.01,
+                iou_threshold=0.65,
+                max_detections=100,
+                max_detections_per_class=100,
+            )
         )
         if self.suppression_layer.bounding_box_format != self.bounding_box_format:
             raise ValueError(
@@ -145,7 +146,7 @@ class DecodePredictions(keras.layers.Layer):
         # preparing the predictions for TF NMS op
         class_predictions = tf.cast(outputs["classes"], tf.int32)
         class_predictions = tf.one_hot(class_predictions, self.classes)
-        
+
         scores = tf.expand_dims(outputs["confidence"], axis=-1) * class_predictions
 
         return self.suppression_layer(outputs["boxes"], scores)
