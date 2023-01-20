@@ -15,7 +15,6 @@
 
 import tensorflow as tf
 import tensorflow.keras.backend as K
-from tensorflow import keras
 
 import keras_cv
 from keras_cv import bounding_box
@@ -47,6 +46,7 @@ WIDTH_MULTIPLIERS = {
     "l": 1.00,
     "x": 1.25,
 }
+
 
 # TODO(quantumalaviya): Register
 # @keras.utils.register_keras_serializable(package="keras_cv")
@@ -776,7 +776,7 @@ BASE_DOCSTRING = """Instantiates the {name} architecture using the given phi val
             to a CSPDarkNet model corresponding to {name} model with include_rescaling=True.
         label_encoder: (Optional) a keras.Layer that accepts an image Tensor, a
             bounding box Tensor and a bounding box class Tensor to its `call()` method,
-            and returns YoloX training targets.  By default, a YoloX standard 
+            and returns YoloX training targets.  By default, a YoloX standard
             LabelEncoder is created and used.
         prediction_decoder: (Optional)  A `keras.layer` that is responsible for
             transforming {name} predictions into usable bounding box Tensors.  If
