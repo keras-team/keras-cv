@@ -95,20 +95,6 @@ class IoULoss(keras.losses.Loss):
                 f"and number of boxes in y_pred={y_pred.shape[-2]}."
             )
 
-        if y_true.shape[-2] != y_pred.shape[-2]:
-            raise ValueError(
-                "IoULoss expects number of boxes in y_pred to be equal to the number "
-                f"of boxes in y_true. Received number of boxes in y_true={y_true.shape[-2]} "
-                f"and number of boxes in y_pred={y_pred.shape[-2]}."
-            )
-
-        if y_true.shape[-2] != y_pred.shape[-2]:
-            raise ValueError(
-                "IoULoss expects number of boxes in y_pred to be equal to the number "
-                f"of boxes in y_true. Received number of boxes in y_true={y_true.shape[-2]} "
-                f"and number of boxes in y_pred={y_pred.shape[-2]}."
-            )
-
         iou = bounding_box.compute_iou(y_true, y_pred, self.bounding_box_format)
         # pick out the diagonal for corresponding ious
         iou = tf.linalg.diag_part(iou)
