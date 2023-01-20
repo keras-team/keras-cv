@@ -19,12 +19,7 @@ from tensorflow import keras
 
 import keras_cv
 from keras_cv import bounding_box
-from keras_cv.models.object_detection.object_detection_base_model import (
-    ObjectDetectionBaseModel,
-)
-from keras_cv.models.object_detection.yolox.__internal__.binary_crossentropy import (
-    BinaryCrossentropy,
-)
+from keras_cv.models.object_detection import predict_utils
 from keras_cv.models.object_detection.yolox.__internal__.layers.yolox_decoder import (
     DecodePredictions,
 )
@@ -53,8 +48,9 @@ WIDTH_MULTIPLIERS = {
     "x": 1.25,
 }
 
-
-class YoloX(ObjectDetectionBaseModel):
+# TODO(quantumalaviya): Register
+# @keras.utils.register_keras_serializable(package="keras_cv")
+class YoloX(tf.keras.Model):
     """Instantiates the YoloX architecture using the given phi value.
 
     Arguments:
@@ -65,36 +61,27 @@ class YoloX(ObjectDetectionBaseModel):
         phi: One of `"tiny"`, `"s"`, `"m"`, `"l"` or `"x"`. Used to specify the size of
             the YoloX model. This is used to map the model to the relevant depth and
             width multiplier.
-        backbone: Either `"cspdarknet"` or a custom backbone model.
-        include_rescaling: Required if provided backbone is a pre-configured model.
-            If set to `True`, inputs will be passed through a `Rescaling(1/255.0)`
-            layer.
-        backbone_weights: (Optional) if using a KerasCV provided backbone, the
-            underlying backbone model will be loaded using the weights provided in this
-            argument.  Can be a model checkpoint path, or a string from the supported
-            weight sets in the underlying model.
-        label_encoder: (Optional) a keras.Layer that accepts an image Tensor and a
-            bounding box Tensor to its `call()` method, and returns YoloX training
-            targets.  By default,  YoloXLabelEncoder is created and used.
-            Results of this `call()` method are passed to the `loss` object passed into
-            `compile()` as the `y_true` argument.
+        backbone: an optional `tf.keras.Model` custom backbone model. Defaults
+            to a keras_cv.models.csp_darknet.CSPDarkNet with depth and width multipiers 
+            corresponding to the passed phi value with include_rescaling=True.
+        label_encoder: (Optional) a keras.Layer that accepts an image Tensor, a
+            bounding box Tensor and a bounding box class Tensor to its `call()` method,
+            and returns YoloX training targets.  By default, a YoloX standard 
+            LabelEncoder is created and used.
         prediction_decoder: (Optional)  A `keras.layer` that is responsible for
             transforming YoloX predictions into usable bounding box Tensors.  If
             not provided, a default DecodePredictions is provided. The default layer
             uses a `NonMaxSuppression` operation for box pruning.
-        feature_pyramid: (Optional) A `keras.Model` representing a feature pyramid
+        feature_pyramid: (Optional) A `keras.layer` representing a feature pyramid
             network (FPN).  The feature pyramid network is called on the outputs of the
             `backbone`.  The KerasCV default backbones return three outputs in a list,
             but custom backbones may be written and used with custom feature pyramid
             networks.  If not provided, a default feature pyramid network is produced
             by the library.  The default feature pyramid network is compatible with all
             standard keras_cv backbones.
-        evaluate_train_time_metrics: (Optional) whether or not to evaluate metrics
-            passed in `compile()` inside of the `train_step()`.  This is NOT
-            recommended, as it dramatically reduces performance due to the synchronous
-            label decoding and COCO metric evaluation.  For example, on a single GPU on
-            the PascalVOC dataset epoch time goes from 3 minutes to 30 minutes with this
-            set to `True`. Defaults to `False`.
+        yolox_head: (Optional) A keras.layer representing the yolox_head. The design of
+            this layer should mimic that of the internal default YoloX head. If None,
+            a default YoloX head will be used.
         name: (Optional) the name to be passed to the model. Defaults to `"YoloX"`.
     """
 
@@ -103,13 +90,11 @@ class YoloX(ObjectDetectionBaseModel):
         classes,
         bounding_box_format,
         phi,
-        backbone,
-        include_rescaling=None,
-        backbone_weights=None,
+        backbone=None,
         label_encoder=None,
         prediction_decoder=None,
         feature_pyramid=None,
-        evaluate_train_time_metrics=False,
+        yolox_head=None,
         name="YoloX",
         **kwargs,
     ):
@@ -117,39 +102,41 @@ class YoloX(ObjectDetectionBaseModel):
             bounding_box_format=bounding_box_format
         )
 
-        super().__init__(
-            bounding_box_format=bounding_box_format,
-            label_encoder=label_encoder,
-            name=name,
-            **kwargs,
-        )
-        self.evaluate_train_time_metrics = evaluate_train_time_metrics
-
+        super().__init__(name=name, **kwargs)
+        self.label_encoder = label_encoder
         self.depth_multiplier = DEPTH_MULTIPLIERS[phi]
         self.width_multiplier = WIDTH_MULTIPLIERS[phi]
 
         self.bounding_box_format = bounding_box_format
         self.classes = classes
-        self.backbone = _parse_backbone(
-            backbone,
-            include_rescaling,
-            backbone_weights,
-            self.depth_multiplier,
-            self.width_multiplier,
+        self.backbone = (
+            backbone
+            or keras_cv.models.csp_darknet.CSPDarkNet(
+                include_top=False, include_rescaling=True,
+                depth_multiplier=self.depth_multiplier,
+                width_multiplier=self.width_multiplier,
+            ).as_backbone(min_level=3)
         )
 
-        self.prediction_decoder = prediction_decoder or DecodePredictions(
+        suppression_layer = prediction_decoder or keras_cv.layers.MultiClassNonMaxSuppression(
+            bounding_box_format=bounding_box_format,
+            from_logits=False,
+            confidence_threshold=0.01,
+            iou_threshold=0.65,
+            max_detections=100,
+            max_detections_per_class=100,
+        )
+        self._prediction_decoder = DecodePredictions(
             bounding_box_format=bounding_box_format,
             classes=classes,
+            suppression_layer=suppression_layer
         )
 
         self.feature_pyramid = feature_pyramid or YoloXPAFPN(
             depth_multiplier=self.depth_multiplier,
             width_multiplier=self.width_multiplier,
         )
-        self.yolox_head = YoloXHead(classes, width_multiplier=self.width_multiplier)
-
-        self._metrics_bounding_box_format = None
+        self.yolox_head = yolox_head or YoloXHead(classes, width_multiplier=self.width_multiplier)
         self.loss_metric = tf.keras.metrics.Mean(name="loss")
 
         self.classification_loss_metric = tf.keras.metrics.Mean(
@@ -157,15 +144,27 @@ class YoloX(ObjectDetectionBaseModel):
         )
         self.objectness_loss_metric = tf.keras.metrics.Mean(name="objectness_loss")
         self.box_loss_metric = tf.keras.metrics.Mean(name="box_loss")
+    
+    def make_predict_function(self, force=False):
+        return predict_utils.make_predict_function(self, force=force)
 
-    def decode_predictions(self, x, predictions):
+    @property
+    def prediction_decoder(self):
+        return self._prediction_decoder
+
+    @prediction_decoder.setter
+    def prediction_decoder(self, prediction_decoder):
+        self._prediction_decoder = prediction_decoder
+        self.make_predict_function(force=True)
+
+    def decode_predictions(self, predictions, images):
         # no-op if default decoder is used.
-        pred_for_inference = self.prediction_decoder(x, predictions)
+        y_pred = self.prediction_decoder(images, predictions)
         return bounding_box.convert_format(
-            pred_for_inference,
+            y_pred,
             source=self.prediction_decoder.bounding_box_format,
             target=self.bounding_box_format,
-            images=x,
+            images=images,
         )
 
     def compile(
@@ -174,37 +173,64 @@ class YoloX(ObjectDetectionBaseModel):
         objectness_loss=None,
         classification_loss=None,
         loss=None,
-        metrics=None,
         **kwargs,
     ):
-        super().compile(metrics=metrics, **kwargs)
+        """compiles the RetinaNet.
+
+        compile() mirrors the standard Keras compile() method, but has a few key
+        distinctions.  Primarily, all metrics must support bounding boxes, and
+        three losses must be provided: `box_loss`, `objectness_loss` and `classification_loss`.
+
+        Args:
+            box_loss: a Keras loss to use for box offset regression.  Preconfigured
+                losses are provided when the string "iou" or "giou" are passed.
+            objectness_loss: a keras loss to use for objectness score (whether
+                a given anchor point is a object or not). A preconfigured 
+                `BinaryCrossEntropyLoss` is provided when the string 
+                "binary_crossentropy" is passed.
+            classification_loss: a Keras loss to use for box classification. A 
+                preconfigured `BinaryCrossEntropyLoss` is provided when the string 
+                "binary_crossentropy" is passed.
+            kwargs: most other `keras.Model.compile()` arguments are supported and
+                propagated to the `keras.Model` class.
+        """
+        if "metrics" in kwargs.keys():
+            raise ValueError(
+                "`RetinaNet` does not currently support the use of "
+                "`metrics` due to performance and distribution concerns. Please us the "
+                "`PyCOCOCallback` to evaluate COCO metrics."
+            )
+        super().compile(**kwargs)
         if loss is not None:
             raise ValueError(
                 "`YoloX` does not accept a `loss` to `compile()`. "
                 "Instead, please pass `box_loss`, `objectness_loss` and `classification_loss`. "
                 "`loss` will be ignored during training."
             )
-        self.box_loss = _parse_box_loss(box_loss)
-        self.objectness_loss = _parse_objectness_loss(objectness_loss)
-        self.classification_loss = _parse_classification_loss(classification_loss)
-        metrics = metrics or []
+        box_loss = _parse_box_loss(box_loss)
+        objectness_loss = _parse_objectness_loss(objectness_loss)
+        classification_loss = _parse_classification_loss(classification_loss)
 
-        if hasattr(self.classification_loss, "from_logits"):
-            if not self.classification_loss.from_logits:
+        if hasattr(classification_loss, "from_logits"):
+            if not classification_loss.from_logits:
                 raise ValueError(
                     "YoloX.compile() expects `from_logits` to be True for "
                     "`classification_loss`. Got "
                     "`classification_loss.from_logits="
-                    f"{self.classification_loss.from_logits}`"
+                    f"{classification_loss.from_logits}`"
                 )
-        if hasattr(self.objectness_loss, "from_logits"):
-            if not self.objectness_loss.from_logits:
+        if hasattr(objectness_loss, "from_logits"):
+            if not objectness_loss.from_logits:
                 raise ValueError(
                     "YoloX.compile() expects `from_logits` to be True for "
                     "`objectness_loss`. Got "
                     "`objectness_loss.from_logits="
-                    f"{self.objectness_loss.from_logits}`"
+                    f"{objectness_loss.from_logits}`"
                 )
+
+        self.box_loss = box_loss
+        self.objectness_loss = objectness_loss
+        self.classification_loss = classification_loss
         # TODO: update compute_loss to support all formats
         if hasattr(self.box_loss, "bounding_box_format"):
             if self.box_loss.bounding_box_format != "center_xywh":
@@ -212,25 +238,6 @@ class YoloX(ObjectDetectionBaseModel):
                     "YoloX currently supports only `center_xywh`. "
                     f"Got `box_loss.bounding_box_format={self.box_loss.bounding_box_format}`, "
                 )
-
-        if len(metrics) != 0:
-            self._metrics_bounding_box_format = metrics[0].bounding_box_format
-        else:
-            self._metrics_bounding_box_format = self.bounding_box_format
-
-        any_wrong_format = any(
-            [
-                m.bounding_box_format != self._metrics_bounding_box_format
-                for m in metrics
-            ]
-        )
-        if metrics and any_wrong_format:
-            raise ValueError(
-                "All metrics passed to YoloX.compile() must have "
-                "the same `bounding_box_format` attribute.  For example, if one metric "
-                "uses 'xyxy', all other metrics must use 'xyxy'.  Received "
-                f"metrics={metrics}."
-            )
 
     @property
     def metrics(self):
@@ -245,55 +252,41 @@ class YoloX(ObjectDetectionBaseModel):
             self.box_loss_metric,
         ]
 
-    def call(self, x, training=False):
-        backbone_outputs = self.backbone(x, training=training)
+    def call(self, images, training=None):
+        backbone_outputs = self.backbone(images, training=training)
         features = self.feature_pyramid(backbone_outputs)
         return self.yolox_head(features)
 
     def train_step(self, data):
         x, y = data
-        y_for_metrics, y_training_target = y
+        gt_boxes, gt_classes = self.label_encoder(x, y)
 
         # yolox internally works on center_xywh
-        y_training_target = bounding_box.convert_format(
-            y_training_target,
+        gt_boxes = bounding_box.convert_format(
+            gt_boxes,
             source=self.bounding_box_format,
             target="center_xywh",
             images=x,
         )
+        y_true = tf.concat([gt_boxes, gt_classes], -1)
 
         with tf.GradientTape() as tape:
             y_pred = self(x, training=True)
-            loss = self._backward(y_training_target, y_pred, input_shape=x.shape[1:3])
+            loss = self.compute_loss(y_true, y_pred, input_shape=x.shape[1:3])
 
         trainable_vars = self.trainable_variables
         gradients = tape.gradient(loss, trainable_vars)
         self.optimizer.apply_gradients(zip(gradients, trainable_vars))
 
-        # Early exit for no train time metrics
-        if not self.evaluate_train_time_metrics:
-            # To minimize GPU transfers, we update metrics AFTER we take grads and apply
-            # them.
-            return {m.name: m.result() for m in self.train_metrics}
+        return self.compute_metrics(x, {}, {}, sample_weight={})
 
-        predictions = self.decode_predictions(x, y_pred)
-        predictions = predictions.to_tensor(default_value=-1)
-        self._update_metrics(y_for_metrics, predictions)
-
-        return {m.name: m.result() for m in self.metrics}
-
-    def _backward(self, y_true, y_pred, input_shape):
-        loss = self.compute_losses(y_true, y_pred, input_shape=input_shape)
-        self.loss_metric.update_state(loss)
-        return loss
-
-    def compute_losses(self, y_true, y_pred, input_shape=(640, 640)):
+    def compute_loss(self, y_true, y_pred, input_shape=(640, 640)):
         num_levels = len(y_pred)
 
         if y_true.shape[-1] != 5:
             raise ValueError(
-                "y_true should have shape (None, None, 5).  Got "
-                f"y_true.shape={tuple(y_true.shape)}"
+                "gt_boxes should have shape (None, None, 5).  Got "
+                f"gt_boxes.shape={tuple(y_true.shape)}"
             )
 
         for i in range(num_levels):
@@ -447,7 +440,11 @@ class YoloX(ObjectDetectionBaseModel):
         reg_weight = 5.0
         loss = reg_weight * loss_iou + loss_obj + loss_cls
 
-        return loss / num_fg
+        loss /= num_fg
+
+        # TODO: loss_metric removed
+        self.loss_metric.update_state(loss)
+        return loss
 
     def get_assignments(
         self,
@@ -673,13 +670,20 @@ class YoloX(ObjectDetectionBaseModel):
 
     def test_step(self, data):
         x, y = data
-        y_for_metrics, y_training_target = y
-        y_pred = self(x, training=False)
-        _ = self._backward(y_training_target, y_pred, input_shape=x.shape[1:3])
+        gt_boxes, gt_classes = self.label_encoder(x, y)
 
-        predictions = self.decode_predictions(x, y_pred)
-        self._update_metrics(y_for_metrics, predictions)
-        return {m.name: m.result() for m in self.metrics}
+        # yolox internally works on center_xywh
+        gt_boxes = bounding_box.convert_format(
+            gt_boxes,
+            source=self.bounding_box_format,
+            target="center_xywh",
+            images=x,
+        )
+        y_true = tf.concat([gt_boxes, gt_classes], -1)
+        y_pred = self(x, training=False)
+        _ = self.compute_loss(y_true, y_pred, input_shape=x.shape[1:3])
+
+        return self.compute_metrics(x, {}, {}, sample_weight={})
 
     def _update_metrics(self, y_true, y_pred):
         y_true = bounding_box.convert_format(
@@ -700,54 +704,6 @@ class YoloX(ObjectDetectionBaseModel):
         return predictions
 
 
-def _parse_backbone(
-    backbone,
-    include_rescaling,
-    backbone_weights,
-    depth_multiplier=1.0,
-    width_multiplier=1.0,
-    use_depthwise=False,
-):
-    if isinstance(backbone, str) and include_rescaling is None:
-        raise ValueError(
-            "When using a preconfigured backbone, please do provide a "
-            "`include_rescaling` parameter.  `include_rescaling` is passed to the "
-            "Keras application constructor for the provided backbone.  When "
-            "`include_rescaling=True`, image inputs are passed through a "
-            "`layers.Rescaling(1/255.0)` layer. When `include_rescaling=False`, no "
-            "downscaling is performed. "
-            f"Received backbone={backbone}, include_rescaling={include_rescaling}."
-        )
-
-    if isinstance(backbone, str):
-        if backbone == "cspdarknet":
-            return _cspdarknet_backbone(
-                include_rescaling,
-                backbone_weights,
-                depth_multiplier,
-                width_multiplier,
-                use_depthwise,
-            )
-        else:
-            raise ValueError(
-                "backbone expected to be one of ['cspdarknet', keras.Model]. "
-                f"Received backbone={backbone}."
-            )
-    if include_rescaling or backbone_weights:
-        raise ValueError(
-            "When a custom backbone is used, include_rescaling and "
-            f"backbone_weights are not supported.  Received backbone={backbone}, "
-            f"include_rescaling={include_rescaling}, and "
-            f"backbone_weights={backbone_weights}."
-        )
-    if not isinstance(backbone, keras.Model):
-        raise ValueError(
-            "Custom backbones should be subclasses of a keras.Model. "
-            f"Received backbone={backbone}."
-        )
-    return backbone
-
-
 def _parse_box_loss(loss):
     if not isinstance(loss, str):
         # support arbitrary callables
@@ -756,7 +712,7 @@ def _parse_box_loss(loss):
     # case insensitive comparison
     if loss.lower() == "iou":
         return keras_cv.losses.IoULoss(
-            bounding_box_format="center_xywh", mode="squared", reduction="none"
+            bounding_box_format="center_xywh", mode="quadratic", reduction="none"
         )
     if loss.lower() == "giou":
         return keras_cv.losses.GIoULoss(
@@ -776,7 +732,7 @@ def _parse_classification_loss(loss):
 
     # case insensitive comparison
     if loss.lower() == "binary_crossentropy":
-        return BinaryCrossentropy(from_logits=True, reduction="none")
+        return tf.keras.losses.BinaryCrossentropy(from_logits=True, reduction="none")
 
     raise ValueError(
         "Expected `classification_loss` to be either a Keras Loss, "
@@ -791,39 +747,13 @@ def _parse_objectness_loss(loss):
 
     # case insensitive comparison
     if loss.lower() == "binary_crossentropy":
-        return BinaryCrossentropy(from_logits=True, reduction="none")
+        return tf.keras.losses.BinaryCrossentropy(from_logits=True, reduction="none")
 
     raise ValueError(
         "Expected `objectness_loss` to be either a Keras Loss, "
         f"callable, or the string 'binary_crossentropy'.  Got loss={loss}."
     )
 
-
-def _cspdarknet_backbone(
-    include_rescaling,
-    backbone_weights,
-    depth_multiplier,
-    width_multiplier,
-    use_depthwise,
-):
-    inputs = keras.layers.Input(shape=(None, None, 3))
-    x = inputs
-
-    backbone = keras_cv.models.CSPDarkNet(
-        include_rescaling=include_rescaling,
-        include_top=False,
-        weights=backbone_weights,
-        depth_multiplier=depth_multiplier,
-        width_multiplier=width_multiplier,
-        use_depthwise=use_depthwise,
-        input_tensor=x,
-    )
-
-    c3_output, c4_output, c5_output = [
-        backbone.get_layer(layer_name).output
-        for layer_name in ["dark3_csp", "dark4_csp", "dark5_csp"]
-    ]
-    return keras.Model(inputs=inputs, outputs=[c3_output, c4_output, c5_output])
 
 
 BASE_DOCSTRING = """Instantiates the {name} architecture using the given phi value.
@@ -840,19 +770,12 @@ BASE_DOCSTRING = """Instantiates the {name} architecture using the given phi val
         bounding_box_format:  The format of bounding boxes of input dataset. Refer
             [to the keras.io docs](https://keras.io/api/keras_cv/bounding_box/formats/)
             for more details on supported bounding box formats.
-        backbone: Either `"cspdarknet"` or a custom backbone model.
-        include_rescaling: Required if provided backbone is a pre-configured model.
-            If set to `True`, inputs will be passed through a `Rescaling(1/255.0)`
-            layer.
-        backbone_weights: (Optional) if using a KerasCV provided backbone, the
-            underlying backbone model will be loaded using the weights provided in this
-            argument.  Can be a model checkpoint path, or a string from the supported
-            weight sets in the underlying model.
-        label_encoder: (Optional) a keras.Layer that accepts an image Tensor and a
-            bounding box Tensor to its `call()` method, and returns {name} training
-            targets.  By default,  YoloXLabelEncoder is created and used.
-            Results of this `call()` method are passed to the `loss` object passed into
-            `compile()` as the `y_true` argument.
+        backbone: an optional `tf.keras.Model` custom backbone model. Defaults
+            to a CSPDarkNet model corresponding to {name} model with include_rescaling=True.
+        label_encoder: (Optional) a keras.Layer that accepts an image Tensor, a
+            bounding box Tensor and a bounding box class Tensor to its `call()` method,
+            and returns YoloX training targets.  By default, a YoloX standard 
+            LabelEncoder is created and used.
         prediction_decoder: (Optional)  A `keras.layer` that is responsible for
             transforming {name} predictions into usable bounding box Tensors.  If
             not provided, a default DecodePredictions is provided. The default layer
@@ -864,12 +787,6 @@ BASE_DOCSTRING = """Instantiates the {name} architecture using the given phi val
             networks.  If not provided, a default feature pyramid network is produced
             by the library.  The default feature pyramid network is compatible with all
             standard keras_cv backbones.
-        evaluate_train_time_metrics: (Optional) whether or not to evaluate metrics
-            passed in `compile()` inside of the `train_step()`.  This is NOT
-            recommended, as it dramatically reduces performance due to the synchronous
-            label decoding and COCO metric evaluation.  For example, on a single GPU on
-            the PascalVOC dataset epoch time goes from 3 minutes to 30 minutes with this
-            set to `True`. Defaults to `False`.
         name: (Optional) the name to be passed to the model. Defaults to `"{name}"`.
 """
 
@@ -879,13 +796,10 @@ class YoloX_tiny(YoloX):
         self,
         classes,
         bounding_box_format,
-        backbone,
-        include_rescaling=None,
-        backbone_weights=None,
+        backbone=None,
         label_encoder=None,
         prediction_decoder=None,
         feature_pyramid=None,
-        evaluate_train_time_metrics=False,
         name="YoloX-Tiny",
         **kwargs,
     ):
@@ -894,12 +808,9 @@ class YoloX_tiny(YoloX):
             bounding_box_format=bounding_box_format,
             phi="tiny",
             backbone=backbone,
-            include_rescaling=include_rescaling,
-            backbone_weights=backbone_weights,
             label_encoder=label_encoder,
             prediction_decoder=prediction_decoder,
             feature_pyramid=feature_pyramid,
-            evaluate_train_time_metrics=evaluate_train_time_metrics,
             name=name,
             **kwargs,
         )
@@ -910,13 +821,10 @@ class YoloX_s(YoloX):
         self,
         classes,
         bounding_box_format,
-        backbone,
-        include_rescaling=None,
-        backbone_weights=None,
+        backbone=None,
         label_encoder=None,
         prediction_decoder=None,
         feature_pyramid=None,
-        evaluate_train_time_metrics=False,
         name="YoloX-s",
         **kwargs,
     ):
@@ -925,12 +833,9 @@ class YoloX_s(YoloX):
             bounding_box_format=bounding_box_format,
             phi="s",
             backbone=backbone,
-            include_rescaling=include_rescaling,
-            backbone_weights=backbone_weights,
             label_encoder=label_encoder,
             prediction_decoder=prediction_decoder,
             feature_pyramid=feature_pyramid,
-            evaluate_train_time_metrics=evaluate_train_time_metrics,
             name=name,
             **kwargs,
         )
@@ -941,13 +846,10 @@ class YoloX_m(YoloX):
         self,
         classes,
         bounding_box_format,
-        backbone,
-        include_rescaling=None,
-        backbone_weights=None,
+        backbone=None,
         label_encoder=None,
         prediction_decoder=None,
         feature_pyramid=None,
-        evaluate_train_time_metrics=False,
         name="YoloX-m",
         **kwargs,
     ):
@@ -956,12 +858,9 @@ class YoloX_m(YoloX):
             bounding_box_format=bounding_box_format,
             phi="m",
             backbone=backbone,
-            include_rescaling=include_rescaling,
-            backbone_weights=backbone_weights,
             label_encoder=label_encoder,
             prediction_decoder=prediction_decoder,
             feature_pyramid=feature_pyramid,
-            evaluate_train_time_metrics=evaluate_train_time_metrics,
             name=name,
             **kwargs,
         )
@@ -972,13 +871,10 @@ class YoloX_l(YoloX):
         self,
         classes,
         bounding_box_format,
-        backbone,
-        include_rescaling=None,
-        backbone_weights=None,
+        backbone=None,
         label_encoder=None,
         prediction_decoder=None,
         feature_pyramid=None,
-        evaluate_train_time_metrics=False,
         name="YoloX-l",
         **kwargs,
     ):
@@ -987,12 +883,9 @@ class YoloX_l(YoloX):
             bounding_box_format=bounding_box_format,
             phi="l",
             backbone=backbone,
-            include_rescaling=include_rescaling,
-            backbone_weights=backbone_weights,
             label_encoder=label_encoder,
             prediction_decoder=prediction_decoder,
             feature_pyramid=feature_pyramid,
-            evaluate_train_time_metrics=evaluate_train_time_metrics,
             name=name,
             **kwargs,
         )
@@ -1003,13 +896,10 @@ class YoloX_x(YoloX):
         self,
         classes,
         bounding_box_format,
-        backbone,
-        include_rescaling=None,
-        backbone_weights=None,
+        backbone=None,
         label_encoder=None,
         prediction_decoder=None,
         feature_pyramid=None,
-        evaluate_train_time_metrics=False,
         name="YoloX-x",
         **kwargs,
     ):
@@ -1018,12 +908,9 @@ class YoloX_x(YoloX):
             bounding_box_format=bounding_box_format,
             phi="x",
             backbone=backbone,
-            include_rescaling=include_rescaling,
-            backbone_weights=backbone_weights,
             label_encoder=label_encoder,
             prediction_decoder=prediction_decoder,
             feature_pyramid=feature_pyramid,
-            evaluate_train_time_metrics=evaluate_train_time_metrics,
             name=name,
             **kwargs,
         )
