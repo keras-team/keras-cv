@@ -29,6 +29,8 @@ class RepeatedAugmentation(BaseImageAugmentationLayer):
     using smaller gradients.  RepeatedAugmentation handles this by re-using the same
     image multiple times within a batch creating correlated samples.
 
+    This layer increases your batch size by a factor of `len(augmenters)`.
+
     Args:
         augmenters: the augmenters to use to augment the image
         shuffle: whether or not to shuffle the result.  Essential when using an
@@ -38,7 +40,6 @@ class RepeatedAugmentation(BaseImageAugmentationLayer):
 
     List of identical augmenters:
     ```python
-    ```python
     repeated_augment = cv_layers.RepeatedAugmentation(
         augmenters=[cv_layers.RandAugment(value_range=(0, 255))] * 8
     )
@@ -47,6 +48,7 @@ class RepeatedAugmentation(BaseImageAugmentationLayer):
         "labels": tf.ones((8,)),
     }
     outputs = repeated_augment(inputs)
+    # outputs now has a batch size of 64 because there are 8 augmenters
     ```
 
     List of distinct augmenters:
