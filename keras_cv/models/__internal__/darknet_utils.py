@@ -54,8 +54,9 @@ def DarknetConvBlock(
             strides,
             padding="same",
             use_bias=use_bias,
+            name=name + "_conv",
         ),
-        layers.BatchNormalization(),
+        layers.BatchNormalization(name=name + "_bn"),
     ]
 
     if activation == "silu":
