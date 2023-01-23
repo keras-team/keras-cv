@@ -279,8 +279,12 @@ def proc_eval_fn(bounding_box_format, target_size):
 
 
 def pad_fn(images, bounding_boxes):
-    boxes = bounding_boxes["boxes"].to_tensor(default_value=-1.0, shape=[GLOBAL_BATCH_SIZE, 32, 4])
-    classes = bounding_boxes["classes"].to_tensor(default_value=-1.0, shape=[GLOBAL_BATCH_SIZE, 32])
+    boxes = bounding_boxes["boxes"].to_tensor(
+        default_value=-1.0, shape=[GLOBAL_BATCH_SIZE, 32, 4]
+    )
+    classes = bounding_boxes["classes"].to_tensor(
+        default_value=-1.0, shape=[GLOBAL_BATCH_SIZE, 32]
+    )
     return images, {"boxes": boxes, "classes": classes}
 
 
