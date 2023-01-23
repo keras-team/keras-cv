@@ -16,8 +16,9 @@ import tensorflow as tf
 from tensorflow.keras import layers
 
 from keras_cv import bounding_box
-from keras_cv.ops import box_matcher
-from keras_cv.ops import target_gather
+from keras_cv.layers.object_detection import box_matcher
+from keras_cv.layers.object_detection import sampling
+from keras_cv.layers.object_detection import target_gather
 
 
 class RetinaNetLabelEncoder(layers.Layer):

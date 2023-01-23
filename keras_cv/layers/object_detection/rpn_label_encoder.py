@@ -18,9 +18,9 @@ import tensorflow as tf
 
 from keras_cv import bounding_box
 from keras_cv.bounding_box import iou
-from keras_cv.ops import box_matcher
-from keras_cv.ops import sampling
-from keras_cv.ops import target_gather
+from keras_cv.layers.object_detection import box_matcher
+from keras_cv.layers.object_detection import sampling
+from keras_cv.layers.object_detection import target_gather
 
 
 @tf.keras.utils.register_keras_serializable(package="keras_cv")
@@ -125,7 +125,7 @@ class _RpnLabelEncoder(tf.keras.layers.Layer):
 
         negative_matches = tf.math.equal(matched_vals, -1)
         # [num_anchors, 4] or [batch_size, num_anchors, 4]
-        matched_gt_boxes = target_gather._target_gather(gt_boxes, matched_gt_indices)
+        matched_gt_boxes = _target_gather(gt_boxes, matched_gt_indices)
         # [num_anchors, 4] or [batch_size, num_anchors, 4], used as `y_true` for regression loss
         encoded_box_targets = bounding_box._encode_box_to_deltas(
             anchors,
