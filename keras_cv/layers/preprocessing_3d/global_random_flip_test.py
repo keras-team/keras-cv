@@ -21,7 +21,7 @@ POINT_CLOUDS = base_augmentation_layer_3d.POINT_CLOUDS
 BOUNDING_BOXES = base_augmentation_layer_3d.BOUNDING_BOXES
 
 
-class GlobalFlippingTest(tf.test.TestCase):
+class GlobalRandomFlipTest(tf.test.TestCase):
     def test_augment_random_point_clouds_and_bounding_boxes(self):
         add_layer = GlobalRandomFlip()
         point_clouds = np.random.random(size=(2, 50, 10)).astype("float32")
