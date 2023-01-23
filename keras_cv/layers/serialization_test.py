@@ -329,8 +329,8 @@ class SerializationTest(tf.test.TestCase, parameterized.TestCase):
             {"drop_rate": 0.1},
         ),
         (
-            "GlobalRandomFlipY",
-            cv_layers.GlobalRandomFlipY,
+            "GlobalRandomFlip",
+            cv_layers.GlobalRandomFlip,
             {},
         ),
         (

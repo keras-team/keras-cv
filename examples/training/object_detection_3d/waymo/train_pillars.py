@@ -71,7 +71,7 @@ print(f"train ds element spec {train_ds.element_spec}")
 
 # Augment the training data
 AUGMENTATION_LAYERS = [
-    preprocessing3d.GlobalRandomFlipY(),
+    preprocessing3d.GlobalRandomFlip(),
     preprocessing3d.GlobalRandomDroppingPoints(drop_rate=0.02),
     preprocessing3d.GlobalRandomRotation(max_rotation_angle_x=3.14),
     preprocessing3d.GlobalRandomScaling(scaling_factor_z=(0.5, 1.5)),

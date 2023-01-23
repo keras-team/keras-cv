@@ -15,15 +15,15 @@ import numpy as np
 import tensorflow as tf
 
 from keras_cv.layers.preprocessing_3d import base_augmentation_layer_3d
-from keras_cv.layers.preprocessing_3d.global_random_flip_y import GlobalRandomFlipY
+from keras_cv.layers.preprocessing_3d.global_random_flip import GlobalRandomFlip
 
 POINT_CLOUDS = base_augmentation_layer_3d.POINT_CLOUDS
 BOUNDING_BOXES = base_augmentation_layer_3d.BOUNDING_BOXES
 
 
-class GlobalFlippingYTest(tf.test.TestCase):
+class GlobalFlippingTest(tf.test.TestCase):
     def test_augment_random_point_clouds_and_bounding_boxes(self):
-        add_layer = GlobalRandomFlipY()
+        add_layer = GlobalRandomFlip()
         point_clouds = np.random.random(size=(2, 50, 10)).astype("float32")
         bounding_boxes = np.random.random(size=(2, 10, 7)).astype("float32")
         inputs = {POINT_CLOUDS: point_clouds, BOUNDING_BOXES: bounding_boxes}
@@ -31,7 +31,7 @@ class GlobalFlippingYTest(tf.test.TestCase):
         self.assertNotAllClose(inputs, outputs)
 
     def test_augment_specific_random_point_clouds_and_bounding_boxes(self):
-        add_layer = GlobalRandomFlipY()
+        add_layer = GlobalRandomFlip()
         point_clouds = np.array([[[1, 1, 2, 3, 4, 5, 6, 7, 8, 9]] * 2] * 2).astype(
             "float32"
         )
@@ -49,7 +49,7 @@ class GlobalFlippingYTest(tf.test.TestCase):
         self.assertAllClose(outputs[BOUNDING_BOXES], flipped_bounding_boxes)
 
     def test_augment_batch_point_clouds_and_bounding_boxes(self):
-        add_layer = GlobalRandomFlipY()
+        add_layer = GlobalRandomFlip()
         point_clouds = np.random.random(size=(3, 2, 50, 10)).astype("float32")
         bounding_boxes = np.random.random(size=(3, 2, 10, 7)).astype("float32")
         inputs = {POINT_CLOUDS: point_clouds, BOUNDING_BOXES: bounding_boxes}
