@@ -11,10 +11,23 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from keras_cv.losses.dice import CategoricalDice
-from keras_cv.losses.focal import FocalLoss
-from keras_cv.losses.giou_loss import GIoULoss
-from keras_cv.losses.iou_loss import IoULoss
-from keras_cv.losses.penalty_reduced_focal_loss import BinaryPenaltyReducedFocalXent
-from keras_cv.losses.simclr_loss import SimCLRLoss
-from keras_cv.losses.smooth_l1 import SmoothL1Loss
+
+import tensorflow as tf
+from tensorflow import keras
+
+
+def gather_channels(*matrices, indices=None):
+    # Gather channel axis according to the indices.
+    if indices is None:
+        return matrices
+
+    gathered_channels = []
+
+    for matrix in matrices:
+        if keras.backend.image_data_format() == "channels_last":
+            matrix = tf.gather(matrix, indices, axis=-1)
+        else:
+            matrix = tf.gather(matrix, indices, axis=1)
+        gathered_channels.append(matrix)
+
+    return gathered_channels
