@@ -799,6 +799,7 @@ def RegNet(
 
 
 def RegNetX002(
+    *,
     include_rescaling,
     include_top,
     classes=None,
@@ -829,6 +830,7 @@ def RegNetX002(
 
 
 def RegNetX004(
+    *,
     include_rescaling,
     include_top,
     classes=None,
@@ -859,6 +861,7 @@ def RegNetX004(
 
 
 def RegNetX006(
+    *,
     include_rescaling,
     include_top,
     classes=None,
@@ -889,6 +892,7 @@ def RegNetX006(
 
 
 def RegNetX008(
+    *,
     include_rescaling,
     include_top,
     classes=None,
@@ -919,6 +923,7 @@ def RegNetX008(
 
 
 def RegNetX016(
+    *,
     include_rescaling,
     include_top,
     classes=None,
@@ -949,6 +954,7 @@ def RegNetX016(
 
 
 def RegNetX032(
+    *,
     include_rescaling,
     include_top,
     classes=None,
@@ -979,6 +985,7 @@ def RegNetX032(
 
 
 def RegNetX040(
+    *,
     include_rescaling,
     include_top,
     classes=None,
@@ -1009,6 +1016,7 @@ def RegNetX040(
 
 
 def RegNetX064(
+    *,
     include_rescaling,
     include_top,
     classes=None,
@@ -1039,6 +1047,7 @@ def RegNetX064(
 
 
 def RegNetX080(
+    *,
     include_rescaling,
     include_top,
     classes=None,
@@ -1069,6 +1078,7 @@ def RegNetX080(
 
 
 def RegNetX120(
+    *,
     include_rescaling,
     include_top,
     classes=None,
@@ -1099,6 +1109,7 @@ def RegNetX120(
 
 
 def RegNetX160(
+    *,
     include_rescaling,
     include_top,
     classes=None,
@@ -1129,6 +1140,7 @@ def RegNetX160(
 
 
 def RegNetX320(
+    *,
     include_rescaling,
     include_top,
     classes=None,
@@ -1159,6 +1171,7 @@ def RegNetX320(
 
 
 def RegNetY002(
+    *,
     include_rescaling,
     include_top,
     classes=None,
@@ -1189,6 +1202,7 @@ def RegNetY002(
 
 
 def RegNetY004(
+    *,
     include_rescaling,
     include_top,
     classes=None,
@@ -1219,6 +1233,7 @@ def RegNetY004(
 
 
 def RegNetY006(
+    *,
     include_rescaling,
     include_top,
     classes=None,
@@ -1249,6 +1264,7 @@ def RegNetY006(
 
 
 def RegNetY008(
+    *,
     include_rescaling,
     include_top,
     classes=None,
@@ -1279,6 +1295,7 @@ def RegNetY008(
 
 
 def RegNetY016(
+    *,
     include_rescaling,
     include_top,
     classes=None,
@@ -1309,6 +1326,7 @@ def RegNetY016(
 
 
 def RegNetY032(
+    *,
     include_rescaling,
     include_top,
     classes=None,
@@ -1339,6 +1357,7 @@ def RegNetY032(
 
 
 def RegNetY040(
+    *,
     include_rescaling,
     include_top,
     classes=None,
@@ -1369,6 +1388,7 @@ def RegNetY040(
 
 
 def RegNetY064(
+    *,
     include_rescaling,
     include_top,
     classes=None,
@@ -1399,6 +1419,7 @@ def RegNetY064(
 
 
 def RegNetY080(
+    *,
     include_rescaling,
     include_top,
     classes=None,
@@ -1429,6 +1450,7 @@ def RegNetY080(
 
 
 def RegNetY120(
+    *,
     include_rescaling,
     include_top,
     classes=None,
@@ -1459,6 +1481,7 @@ def RegNetY120(
 
 
 def RegNetY160(
+    *,
     include_rescaling,
     include_top,
     classes=None,
@@ -1489,6 +1512,7 @@ def RegNetY160(
 
 
 def RegNetY320(
+    *,
     include_rescaling,
     include_top,
     classes=None,

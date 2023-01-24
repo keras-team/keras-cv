@@ -386,6 +386,7 @@ def ConvNeXt(
 
 
 def ConvNeXtTiny(
+    *,
     include_rescaling,
     include_top,
     drop_path_rate,
@@ -416,6 +417,7 @@ def ConvNeXtTiny(
 
 
 def ConvNeXtSmall(
+    *,
     include_rescaling,
     include_top,
     drop_path_rate,
@@ -446,6 +448,7 @@ def ConvNeXtSmall(
 
 
 def ConvNeXtBase(
+    *,
     include_rescaling,
     include_top,
     drop_path_rate,
@@ -476,6 +479,7 @@ def ConvNeXtBase(
 
 
 def ConvNeXtLarge(
+    *,
     include_rescaling,
     include_top,
     drop_path_rate,
@@ -506,6 +510,7 @@ def ConvNeXtLarge(
 
 
 def ConvNeXtXLarge(
+    *,
     include_rescaling,
     include_top,
     drop_path_rate,
