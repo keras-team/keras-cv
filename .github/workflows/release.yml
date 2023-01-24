@@ -64,6 +64,7 @@ jobs:
     - name: Bazel Build
       if: ${{ ! matrix.use-macos-arm }}
       run: |
+        export BUILD_WITH_CUSTOM_OPS=true
         bazel build build_pip_pkg
     - name: Bazel Build (MacOS ARM)
       if: ${{ matrix.use-macos-arm}}
@@ -71,6 +72,7 @@ jobs:
         bazel build --cpu=darwin_arm64 --copt -mmacosx-version-min=12.0 --linkopt -mmacosx-version-min=12.0 build_pip_pkg
     - name: Build wheels
       run: |
+        export BUILD_WITH_CUSTOM_OPS=true
         bazel-bin/build_pip_pkg wheels
     - name: Repair wheels (manylinux)
       if: ${{ matrix.os == 'ubuntu-18.04' }}

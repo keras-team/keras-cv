@@ -21,9 +21,9 @@ from setuptools import find_packages
 from setuptools import setup
 from setuptools.dist import Distribution
 
-BUILD_WITH_CUSTOM_OPS = not (
+BUILD_WITH_CUSTOM_OPS = (
     "BUILD_WITH_CUSTOM_OPS" in os.environ
-    and os.environ["BUILD_WITH_CUSTOM_OPS"] == "false"
+    and os.environ["BUILD_WITH_CUSTOM_OPS"] == "true"
 )
 
 HERE = pathlib.Path(__file__).parent
