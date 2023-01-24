@@ -227,7 +227,7 @@ def proc_train_fn(bounding_box_format, img_size):
         bounding_boxes = keras_cv.bounding_box.convert_format(
             boxes, images=image, source="yxyx", target=bounding_box_format
         )
-        bounding_boxes = {"boxes": boxes, "classes": classes}
+        bounding_boxes = {"boxes": bounding_boxes, "classes": classes}
         return image, bounding_boxes
 
     return apply
@@ -278,10 +278,13 @@ def proc_eval_fn(bounding_box_format, target_size):
     return apply
 
 
-def pad_fn(images, boxes):
-    boxes = boxes.to_tensor(default_value=-1.0, shape=[GLOBAL_BATCH_SIZE, 32, 5])
-    boxes = boxes[:, :, :4]
-    classes = boxes[:, :, 4]
+def pad_fn(images, bounding_boxes):
+    boxes = bounding_boxes["boxes"].to_tensor(
+        default_value=-1.0, shape=[GLOBAL_BATCH_SIZE, 32, 4]
+    )
+    classes = bounding_boxes["classes"].to_tensor(
+        default_value=-1.0, shape=[GLOBAL_BATCH_SIZE, 32]
+    )
     return images, {"boxes": boxes, "classes": classes}
 
 
