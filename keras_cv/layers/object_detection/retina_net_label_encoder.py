@@ -67,7 +67,7 @@ class RetinaNetLabelEncoder(layers.Layer):
         )
         self.positive_threshold = positive_threshold
         self.negative_threshold = negative_threshold
-        self.box_matcher = box_matcher.ArgmaxBoxMatcher(
+        self.box_matcher = box_matcher.BoxMatcher(
             thresholds=[negative_threshold, positive_threshold],
             match_values=[-1, -2, 1],
             force_match_for_each_col=False,
