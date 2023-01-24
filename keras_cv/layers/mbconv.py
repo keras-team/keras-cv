@@ -42,6 +42,7 @@ class MBConvBlock(tf.keras.Model):  # TODO: change to layer
         bn_momentum=0.9,
         activation="swish",
         survival_probability: float = 0.8,
+        use_bias: bool = False,
         **kwargs
     ):
         """
@@ -99,6 +100,7 @@ class MBConvBlock(tf.keras.Model):  # TODO: change to layer
         self.survival_probability = survival_probability
         self.filters = self.input_filters * self.expand_ratio
         self.filters_se = max(1, int(input_filters * se_ratio))
+        self.use_bias = use_bias
 
         self.conv1 = layers.Conv2D(
             filters=self.filters,
@@ -155,7 +157,7 @@ class MBConvBlock(tf.keras.Model):  # TODO: change to layer
             kernel_initializer=CONV_KERNEL_INITIALIZER,
             padding="same",
             data_format="channels_last",
-            use_bias=False,
+            use_bias=self.use_bias,
             name=self.name + "project_conv",
         )
 

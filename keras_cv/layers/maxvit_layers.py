@@ -714,6 +714,7 @@ class MaxViTBlock(tf.keras.Model):  # TODO: make this a keras layer
             expand_ratio=self.expansion_rate,
             survival_probability=self.survival_prob,
             se_ratio=0.25,
+            use_bias=True,
         )
         self.transformer_encoder = MaxViTTransformerEncoder(
             hidden_size,
