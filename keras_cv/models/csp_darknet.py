@@ -253,6 +253,7 @@ BASE_DOCSTRING = """Instantiates the {name} architecture.
 
 
 def CSPDarkNetTiny(
+    *,
     include_rescaling,
     include_top,
     use_depthwise=False,
@@ -283,6 +284,7 @@ def CSPDarkNetTiny(
 
 
 def CSPDarkNetS(
+    *,
     include_rescaling,
     include_top,
     use_depthwise=False,
@@ -313,6 +315,7 @@ def CSPDarkNetS(
 
 
 def CSPDarkNetM(
+    *,
     include_rescaling,
     include_top,
     use_depthwise=False,
@@ -343,6 +346,7 @@ def CSPDarkNetM(
 
 
 def CSPDarkNetL(
+    *,
     include_rescaling,
     include_top,
     use_depthwise=False,
@@ -373,6 +377,7 @@ def CSPDarkNetL(
 
 
 def CSPDarkNetX(
+    *,
     include_rescaling,
     include_top,
     use_depthwise=False,

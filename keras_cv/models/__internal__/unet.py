@@ -12,14 +12,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from tensorflow import keras
 from tensorflow.keras import initializers
 from tensorflow.keras import layers
+from tensorflow.keras import regularizers
 
 
 def Block(filters, downsample, sync_bn):
     """A default block which serves as an example of the block interface.
 
     This is the base block definition for a CenterPillar model.
+
+    Note that the sync_bn parameter is a temporary workaround and should _not_
+    be part of the Block API.
     """
 
     def apply(x):
@@ -33,7 +38,9 @@ def Block(filters, downsample, sync_bn):
             3,
             stride,
             padding="same",
+            use_bias=False,
             kernel_initializer=initializers.VarianceScaling(),
+            kernel_regularizer=regularizers.L2(l2=1e-4),
         )(x)
         if sync_bn:
             x = layers.BatchNormalization(
@@ -48,7 +55,9 @@ def Block(filters, downsample, sync_bn):
             3,
             1,
             padding="same",
+            use_bias=False,
             kernel_initializer=initializers.VarianceScaling(),
+            kernel_regularizer=regularizers.L2(l2=1e-4),
         )(x)
         if sync_bn:
             x = layers.BatchNormalization(
@@ -56,6 +65,7 @@ def Block(filters, downsample, sync_bn):
             )(x)
         else:
             x = layers.BatchNormalization()(x)
+        x = layers.ReLU()(x)
 
         if downsample:
             residual = layers.MaxPool2D(pool_size=2, strides=2, padding="SAME")(
@@ -68,11 +78,19 @@ def Block(filters, downsample, sync_bn):
                 1,
                 1,
                 padding="same",
+                use_bias=False,
                 kernel_initializer=initializers.VarianceScaling(),
+                kernel_regularizer=regularizers.L2(l2=1e-4),
             )(residual)
+            if sync_bn:
+                residual = layers.BatchNormalization(
+                    synchronized=True,
+                )(residual)
+            else:
+                residual = layers.BatchNormalization()(residual)
+            residual = layers.ReLU()(residual)
 
         x = x + residual
-        x = layers.ReLU()(x)
 
         return x
 
@@ -85,7 +103,9 @@ def SkipBlock(filters, sync_bn):
             filters,
             1,
             1,
+            use_bias=False,
             kernel_initializer=initializers.VarianceScaling(),
+            kernel_regularizer=regularizers.L2(l2=1e-4),
         )(x)
         if sync_bn:
             x = layers.BatchNormalization(
@@ -119,7 +139,9 @@ def UpSampleBlock(filters, sync_bn):
             3,
             2,
             padding="same",
+            use_bias=False,
             kernel_initializer=initializers.VarianceScaling(),
+            kernel_regularizer=regularizers.L2(l2=1e-4),
         )(x)
         if sync_bn:
             x = layers.BatchNormalization(
@@ -129,7 +151,7 @@ def UpSampleBlock(filters, sync_bn):
             x = layers.BatchNormalization()(x)
         x = layers.ReLU()(x)
 
-        lateral_input = SkipBlock(filters, sync_bn)(lateral_input)
+        lateral_input = SkipBlock(filters, sync_bn=sync_bn)(lateral_input)
 
         x = x + lateral_input
         x = Block(filters, downsample=False, sync_bn=sync_bn)(x)
@@ -140,6 +162,7 @@ def UpSampleBlock(filters, sync_bn):
 
 
 def UNet(
+    input_shape,
     down_block_configs,
     up_block_configs,
     down_block=DownSampleBlock,
@@ -155,26 +178,28 @@ def UNet(
     function that acts on tensors as inputs.
 
     Args:
+        input_shape: the rank 3 shape of the input to the UNet
         down_block_configs: a list of (filter_count, num_blocks) tuples indicating the
             number of filters and sub-blocks in each down block
         up_block_configs: a list of filter counts, one for each up block
         down_block: a downsampling block
         up_block: an upsampling block
-        sync_bn: True for synchronized batch norm.
     """
 
-    def apply(x):
-        skip_connections = []
-        # Filters refers to the number of convolutional filters in each block,
-        # while num_blocks refers to the number of sub-blocks within a block
-        # (Note that only the first sub-block will perform downsampling)
-        for filters, num_blocks in down_block_configs:
-            skip_connections.append(x)
-            x = down_block(filters, num_blocks, sync_bn)(x)
+    input = layers.Input(shape=input_shape)
+    x = input
 
-        for filters in up_block_configs:
-            x = up_block(filters, sync_bn)(x, skip_connections.pop())
+    skip_connections = []
+    # Filters refers to the number of convolutional filters in each block,
+    # while num_blocks refers to the number of sub-blocks within a block
+    # (Note that only the first sub-block will perform downsampling)
+    for filters, num_blocks in down_block_configs:
+        skip_connections.append(x)
+        x = down_block(filters, num_blocks, sync_bn=sync_bn)(x)
 
-        return x
+    for filters in up_block_configs:
+        x = up_block(filters, sync_bn=sync_bn)(x, skip_connections.pop())
 
-    return apply
+    output = x
+
+    return keras.Model(input, output)

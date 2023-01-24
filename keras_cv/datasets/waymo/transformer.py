@@ -27,7 +27,7 @@ from waymo_open_dataset.utils import range_image_utils
 from waymo_open_dataset.utils import transform_utils
 
 from keras_cv.datasets.waymo import struct
-from keras_cv.layers.object_detection3d import voxel_utils
+from keras_cv.layers.object_detection_3d import voxel_utils
 
 WOD_FRAME_OUTPUT_SIGNATURE = {
     "frame_id": tf.TensorSpec((), tf.int64),
