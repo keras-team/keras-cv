@@ -87,7 +87,7 @@ class RepeatedAugmentation(BaseImageAugmentationLayer):
 
         outputs = {}
         for k in inputs.keys():
-            outputs[k] = tf.concat([batch[k] for batch in augmenter_outputs], axis=0)
+            outputs[k] = tf.concat([output[k] for output in augmenter_outputs], axis=0)
 
         if not self.shuffle:
             return outputs
@@ -96,8 +96,8 @@ class RepeatedAugmentation(BaseImageAugmentationLayer):
     def shuffle_outputs(self, result):
         indices = tf.range(start=0, limit=tf.shape(result["images"])[0], dtype=tf.int32)
         indices = tf.random.shuffle(indices)
-        result["images"] = tf.gather(result["images"], indices)
-        result["labels"] = tf.gather(result["labels"], indices)
+        for key in result:
+            result[key] = tf.gather(result[key], indices)
         return result
 
     def _augment(self, inputs):
