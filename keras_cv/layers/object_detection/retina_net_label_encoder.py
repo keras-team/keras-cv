@@ -17,7 +17,6 @@ from tensorflow.keras import layers
 
 from keras_cv import bounding_box
 from keras_cv.layers.object_detection import box_matcher
-from keras_cv.layers.object_detection import sampling
 from keras_cv.layers.object_detection import target_gather
 
 

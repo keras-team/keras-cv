@@ -125,7 +125,7 @@ class _RpnLabelEncoder(tf.keras.layers.Layer):
 
         negative_matches = tf.math.equal(matched_vals, -1)
         # [num_anchors, 4] or [batch_size, num_anchors, 4]
-        matched_gt_boxes = _target_gather(gt_boxes, matched_gt_indices)
+        matched_gt_boxes = target_gather._target_gather(gt_boxes, matched_gt_indices)
         # [num_anchors, 4] or [batch_size, num_anchors, 4], used as `y_true` for regression loss
         encoded_box_targets = bounding_box._encode_box_to_deltas(
             anchors,

@@ -14,7 +14,7 @@
 
 import tensorflow as tf
 
-from keras_cv.ops.box_matcher import BoxMatcher
+from keras_cv.layers.object_detection.box_matcher import BoxMatcher
 
 
 class BoxMatcherTest(tf.test.TestCase):

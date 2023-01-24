@@ -66,7 +66,7 @@ class BoxMatcher(tf.keras.layers.Layer):
     Usage:
 
     ```python
-    box_matcher = keras_cv.ops.BoxMatcher([0.3, 0.7], [-1, 0, 1])
+    box_matcher = keras_cv.layers.BoxMatcher([0.3, 0.7], [-1, 0, 1])
     iou_metric = keras_cv.bounding_box.compute_iou(anchors, boxes)
     matched_columns, matched_match_values = box_matcher(iou_metric)
     cls_mask = tf.less_equal(matched_match_values, 0)
