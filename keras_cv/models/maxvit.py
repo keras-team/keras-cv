@@ -142,10 +142,15 @@ def MaxViT(
             )(encoder_input)
             encoder_input = encoder_output
 
-    output = layers.GlobalAveragePooling2D()(encoder_output)
+    # output = layers.GlobalAveragePooling2D()(encoder_output)
+    final_layer_norm = tf.keras.layers.LayerNormalization(
+        axis=-1,
+        epsilon=1e-05,
+        name='final_layer_norm')(encoder_output)
+
     output = layers.Dense(
         hidden_sizes[-1], activation=tf.keras.layers.Activation("tanh", name="tanh")
-    )(output)
+    )(final_layer_norm)
 
     if include_top:
         output = layers.Dense(classes, activation=classifier_activation)(output)
