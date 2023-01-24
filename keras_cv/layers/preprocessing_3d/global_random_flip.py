@@ -23,10 +23,11 @@ BOUNDING_BOXES = base_augmentation_layer_3d.BOUNDING_BOXES
 
 
 @tf.keras.utils.register_keras_serializable(package="keras_cv")
-class GlobalRandomFlipY(base_augmentation_layer_3d.BaseAugmentationLayer3D):
-    """A preprocessing layer which flips point clouds and bounding boxes with respect to the X axis during training.
+class GlobalRandomFlip(base_augmentation_layer_3d.BaseAugmentationLayer3D):
+    """A preprocessing layer which flips point clouds and bounding boxes with respect to the specified axis during training.
 
-    This layer will flip the whole scene with respect to the X axis.
+    This layer will flip the whole scene with respect to the specified axes.
+    Note that this layer currently only supports flipping over the Y axis.
     During inference time, the output will be identical to input. Call the layer with `training=True` to flip the input.
 
     Input shape:
@@ -42,13 +43,26 @@ class GlobalRandomFlipY(base_augmentation_layer_3d.BaseAugmentationLayer3D):
     Output shape:
       A dictionary of Tensors with the same shape as input Tensors.
 
+    Args:
+      flip_x: Whether or not to flip over the X axis. Defaults to False.
+      flip_y: Whether or not to flip over the Y axis. Defaults to True.
+      flip_z: Whether or not to flip over the Z axis. Defaults to False.
     """
 
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
+    def __init__(self, flip_x=False, flip_y=True, flip_z=False, **kwargs):
+        if flip_x or flip_z:
+            raise ValueError(
+                "GlobalRandomFlip currently only supports flipping over the Y "
+                f"axis. Received flip_x={flip_x}, flip_y={flip_y}, flip_z={flip_z}."
+            )
 
-    def get_config(self):
-        return {}
+        if not (flip_x or flip_y or flip_z):
+            raise ValueError("GlobalRandomFlip must flip over at least 1 axis.")
+        self.flip_x = flip_x
+        self.flip_y = flip_y
+        self.flip_z = flip_z
+
+        super().__init__(**kwargs)
 
     def augment_point_clouds_bounding_boxes(
         self, point_clouds, bounding_boxes, transformation, **kwargs
@@ -93,3 +107,10 @@ class GlobalRandomFlipY(base_augmentation_layer_3d.BaseAugmentationLayer3D):
         )
 
         return (point_clouds, bounding_boxes)
+
+    def get_config(self):
+        return {
+            "flip_x": self.flip_x,
+            "flip_y": self.flip_y,
+            "flip_z": self.flip_z,
+        }

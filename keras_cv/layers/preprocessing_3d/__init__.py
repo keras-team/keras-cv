@@ -24,7 +24,7 @@ from keras_cv.layers.preprocessing_3d.frustum_random_point_feature_noise import 
 from keras_cv.layers.preprocessing_3d.global_random_dropping_points import (
     GlobalRandomDroppingPoints,
 )
-from keras_cv.layers.preprocessing_3d.global_random_flip_y import GlobalRandomFlipY
+from keras_cv.layers.preprocessing_3d.global_random_flip import GlobalRandomFlip
 from keras_cv.layers.preprocessing_3d.global_random_rotation import GlobalRandomRotation
 from keras_cv.layers.preprocessing_3d.global_random_scaling import GlobalRandomScaling
 from keras_cv.layers.preprocessing_3d.global_random_translation import (
