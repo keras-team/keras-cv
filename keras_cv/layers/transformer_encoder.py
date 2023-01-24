@@ -15,6 +15,8 @@
 import tensorflow as tf
 from tensorflow.keras import layers
 
+import keras_cv.layers.maxvit_layers as maxvit_layers
+
 
 @tf.keras.utils.register_keras_serializable(package="keras_cv")
 class TransformerEncoder(layers.Layer):
@@ -131,3 +133,254 @@ class TransformerEncoder(layers.Layer):
         activation = config.pop("activation")
         activation = tf.keras.activations.deserialize(activation)
         return cls(activation=activation, **config)
+
+
+@tf.keras.utils.register_keras_serializable(package="keras_cv")
+class MaxViTTransformerEncoder(tf.keras.Model):  # TODO: make this a layer
+    """
+    Transformer encoder block with Relative MultiHeadAttention implementation as a Keras Layer.
+    Used in MaxViTs.
+
+        Args:
+            hidden_size: the hidden size to be used in FFN heads and RelativeMultiHeadAttention layers,
+            head_size: the head size for RelativeMultiHeadAttention layers,
+            window_size: the window_size to be used for WindowPartition and UnWindowPartition,
+            grid_size: the grid_size to be used for GridPartition and UnGridPartition,
+            dropout: default None, the dropout to apply after attention and before adding the residual,
+            num_heads: default None, the number of heads to use in RelativeMultiHeadAttention, computed as
+                self.hidden_size // self.head_size if None.
+            dropatt: default None, the dropout to apply in RelativeMultiHeadAttention
+            rel_attn_type: default "2d_multi_head", the type of RelativeMultiHeadAttention to use
+            expansion_rate: default 4, the expansion rate for EinsumDense layers in the FFN heads
+            activation: default "gelu", the activation function to apply in the FFN heads
+            scale_ratio: default None,
+            ln_epsilon: default 1e-5, the layer normalization epsilon
+            ln_dtype: default None, the layer normalization dtype
+            kernel_initializer: default tf.random_normal_initializer(stddev=0.02), the kernel_initializer for the FFN head
+            bias_initializer: default tf.zeros_initializer, the bias initializer for the FFN head
+
+    Basic usage:
+
+    ```
+    # Meant to be used with keras_cv.layers.MBConvBlock's output
+    inputs = tf.random.normal([1, 56, 56, 64])
+    transformer_encoder = keras_cv.layers.MaxViTTransformerEncoder(hidden_size=64,
+                                                    head_size=32,
+                                                    window_size=7,
+                                                    grid_size=7)
+
+    output = transformer_encoder(inputs)
+    output.shape # TensorShape([1, 56, 56, 64])
+    ```
+    """
+
+    def __init__(
+        self,
+        hidden_size,
+        head_size,
+        window_size,
+        grid_size,
+        dropout=None,
+        num_heads=None,
+        expansion_rate=4,
+        activation="gelu",
+        dropatt=None,
+        rel_attn_type="2d_multi_head",
+        scale_ratio=None,
+        ln_epsilon=1e-5,
+        ln_dtype=None,
+        kernel_initializer=tf.random_normal_initializer(stddev=0.02),
+        bias_initializer=tf.zeros_initializer(),
+        **kwargs,
+    ):
+        super().__init__(**kwargs)
+
+        self.dropout = dropout
+        self.head_size = head_size
+        self.hidden_size = hidden_size
+        self.window_size = window_size
+        self.grid_size = grid_size
+        self.num_heads = num_heads
+        self.expansion_rate = expansion_rate
+        self.activation = activation
+        self.dropatt = dropatt
+        self.rel_attn_type = rel_attn_type
+        self.scale_ratio = scale_ratio
+        self.ln_epsilon = ln_epsilon
+        self.ln_dtype = ln_dtype
+        self.kernel_initializer = kernel_initializer
+        self.bias_initializer = bias_initializer
+
+        # BlockAttention Layer norm
+        self.block_attn_layer_norm = tf.keras.layers.LayerNormalization(
+            axis=-1,
+            epsilon=self.ln_epsilon,
+            dtype=self.ln_dtype,
+            name="attn_layer_norm",
+        )
+        self.window_partition = maxvit_layers.WindowPartitioning(
+            window_size=self.window_size
+        )
+        # Unblock
+        self.unwindow_partition = maxvit_layers.UnWindowPartitioning(
+            window_size=self.window_size
+        )
+
+        # Relative Attention
+        self.hidden_size = hidden_size
+        if self.num_heads is None:
+            self.num_heads = self.hidden_size // self.head_size
+
+        self.block_attention = maxvit_layers.RelativeMultiHeadAttention(
+            num_heads=self.num_heads,
+            key_dim=self.head_size,
+            value_dim=self.head_size,
+            dropout=self.dropatt,
+            use_bias=True,
+        )
+
+        self.grid_attn_layer_norm = layers.LayerNormalization(
+            axis=-1,
+            epsilon=self.ln_epsilon,
+            dtype=self.ln_dtype,
+            name="attn_layer_norm_1",
+        )
+
+        self.grid_partition = maxvit_layers.GridPartitioning(self.grid_size)
+        self.ungrid_partition = maxvit_layers.UnGridPartitioning(
+            grid_size=self.grid_size
+        )
+
+        # Relative Attention
+
+        self.grid_attention = maxvit_layers.RelativeMultiHeadAttention(
+            num_heads=self.num_heads,
+            key_dim=self.head_size,
+            value_dim=self.head_size,
+            dropout=self.dropatt,
+            use_bias=True,
+        )
+
+        self.block_ffn_layer_norm = layers.LayerNormalization(
+            axis=-1,
+            epsilon=self.ln_epsilon,
+            dtype=self.ln_dtype,
+            name="block_ffn_layer_norm_1",
+        )
+        self.block_ffn = maxvit_layers._FFN(
+            self.hidden_size,
+            bias_initializer=self.bias_initializer,
+            kernel_initializer=self.kernel_initializer,
+        )
+
+        self.grid_ffn_layer_norm = layers.LayerNormalization(
+            axis=-1,
+            epsilon=self.ln_epsilon,
+            dtype=self.ln_dtype,
+            name="grid_ffn_layer_norm_1",
+        )
+        self.grid_ffn = maxvit_layers._FFN(
+            self.hidden_size,
+            bias_initializer=self.bias_initializer,
+            kernel_initializer=self.kernel_initializer,
+        )
+
+    def call(self, input):
+        x = self.block_attn_layer_norm(input)
+        shortcut = x
+
+        # For unwindowing
+        _, height, width, _ = x.shape
+
+        x = self.window_partition(x)
+        x = self.__reshape_to_1d(x)
+        x = self.block_attention(x, x)
+        x = self.unwindow_partition(x, height, width)
+        if self.dropout:
+            x = layers.Dropout(self.dropout)(x)
+        x = layers.Add()([shortcut, x])
+
+        shortcut = x
+        x = self.block_ffn_layer_norm(x)
+        x = self.block_ffn(x)
+        if self.dropout:
+            x = layers.Dropout(self.dropout)(x)
+        x = layers.Add()([shortcut, x])
+
+        # Grid-Attention
+        x = self.grid_attn_layer_norm(x)
+        shortcut = x
+        # For ungridding
+        _, height, width, _ = x.shape
+        x = self.grid_partition(x)
+        x = self.__reshape_to_1d(x)
+        x = self.grid_attention(x, x)
+        x = self.ungrid_partition(x, height, width)
+        if self.dropout:
+            x = layers.Dropout(self.dropout)(x)
+        x = layers.Add()([shortcut, x])
+
+        shortcut = x
+        x = self.grid_ffn_layer_norm(x)
+        x = self.grid_ffn(x)
+        if self.dropout:
+            x = layers.Dropout(self.dropout)(x)
+        x = layers.Add()([shortcut, x])
+
+        return x
+
+    def get_config(self):
+        config = super().get_config()
+        config.update(
+            {
+                "dropout": self.dropout,
+                "head_size": self.head_size,
+                "hidden_size": self.hidden_size,
+                "window_size": self.window_size,
+                "grid_size": self.grid_size,
+                "num_heads": self.num_heads,
+                "expansion_rate": self.expansion_rate,
+                "activation": self.activation,
+                "dropatt": self.dropatt,
+                "rel_attn_type": self.rel_attn_type,
+                "scale_ratio": self.scale_ratio,
+                "ln_epsilon": self.ln_epsilon,
+                "ln_dtype": self.ln_dtype,
+                "kernel_initializer": tf.keras.initializers.serialize(
+                    self.kernel_initializer
+                ),
+                "bias_initializer": tf.keras.initializers.serialize(
+                    self.bias_initializer
+                ),
+            }
+        )
+        return config
+
+    @classmethod
+    def from_config(cls, config, custom_objects=None):
+        activation = config.pop("activation")
+        kernel_initializer = config.pop("kernel_initializer")
+        bias_initializer = config.pop("bias_initializer")
+        activation = tf.keras.activations.deserialize(activation)
+        kernel_initializer = tf.keras.initializers.deserialize(kernel_initializer)
+        bias_initializer = tf.keras.initializers.deserialize(bias_initializer)
+        return cls(
+            activation=activation,
+            kernel_initializer=kernel_initializer,
+            bias_initializer=bias_initializer,
+            **config,
+        )
+
+    """
+    Taken from: https://github.com/google-research/maxvit/blob/2e06a7f1f70c76e64cd3dabe5cd1b8c1a23c9fb7/maxvit/models/common_ops.py#L129
+    """
+
+    def __reshape_to_1d(self, x):
+        """Reshape tensor to 1d if not already 1d."""
+        if x.shape.rank == 4:
+            _, h, w, num_channel = x.shape.as_list()
+            return tf.reshape(x, [-1, h * w, num_channel])
+        elif x.shape.rank == 3:
+            return x
+        else:
+            raise ValueError("Unsupported shape {}".format(x.shape))

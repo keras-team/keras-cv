@@ -44,7 +44,7 @@ def exhaustive_compare(obj1, obj2):
     # If the objects are dicts then we simply call the `config_equals` function
     # which supports dicts.
     elif isinstance(obj1, (dict)) and isinstance(obj2, (dict)):
-        return config_equals(v1, v2)
+        return config_equals(obj1, obj2)
 
     # If both objects are subclasses of Keras classes that support `get_config`
     # method, then we compare their individual attributes using `config_equals`.
@@ -304,6 +304,27 @@ class SerializationTest(tf.test.TestCase, parameterized.TestCase):
             },
         ),
         (
+            "MaxViTTransformerEncoder",
+            cv_layers.MaxViTTransformerEncoder,
+            {"hidden_size": 64, "head_size": 32, "window_size": 7, "grid_size": 7},
+        ),
+        (
+            "MaxViTBlock",
+            cv_layers.MaxViTBlock,
+            {
+                "hidden_size": 64,
+                "head_size": 32,
+                "window_size": 7,
+                "grid_size": 7,
+                "pool_stride": 2,
+            },
+        ),
+        (
+            "MaxViTStem",
+            cv_layers.MaxViTStem,
+            {"filters": [64, 64], "kernel_size": 3},
+        ),
+        (
             "FrustumRandomDroppingPoints",
             cv_layers.FrustumRandomDroppingPoints,
             {
@@ -396,6 +417,34 @@ class SerializationTest(tf.test.TestCase, parameterized.TestCase):
             {
                 "height": 100,
                 "width": 200,
+            },
+        ),
+        (
+            "WindowPartitioning",
+            cv_layers.WindowPartitioning,
+            {
+                "window_size": 16,
+            },
+        ),
+        (
+            "GridPartitioning",
+            cv_layers.GridPartitioning,
+            {
+                "grid_size": 16,
+            },
+        ),
+        (
+            "UnWindowPartitioning",
+            cv_layers.UnWindowPartitioning,
+            {
+                "window_size": 16,
+            },
+        ),
+        (
+            "UnGridPartitioning",
+            cv_layers.UnGridPartitioning,
+            {
+                "grid_size": 16,
             },
         ),
         (
