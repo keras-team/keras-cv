@@ -431,9 +431,9 @@ class FasterRCNN(tf.keras.Model):
         self.weight_decay = weight_decay
         losses = {
             "box": self.box_loss,
-            "cls": self.cls_loss,
+            "classification": self.cls_loss,
             "rpn_box": self.rpn_box_loss,
-            "rpn_cls": self.rpn_cls_loss,
+            "rpn_classification": self.rpn_cls_loss,
         }
         super().compile(loss=losses, **kwargs)
 
@@ -468,21 +468,21 @@ class FasterRCNN(tf.keras.Model):
         box_pred, cls_pred = self._call_rcnn(rois, feature_map, training=training)
         y_true = {
             "rpn_box": rpn_box_targets,
-            "rpn_cls": rpn_cls_targets,
+            "rpn_classification": rpn_cls_targets,
             "box": box_targets,
-            "cls": cls_targets,
+            "classification": cls_targets,
         }
         y_pred = {
             "rpn_box": rpn_box_pred,
-            "rpn_cls": rpn_cls_pred,
+            "rpn_classification": rpn_cls_pred,
             "box": box_pred,
-            "cls": cls_pred,
+            "classification": cls_pred,
         }
         weights = {
             "rpn_box": rpn_box_weights,
-            "rpn_cls": rpn_cls_weights,
+            "rpn_classification": rpn_cls_weights,
             "box": box_weights,
-            "cls": cls_weights,
+            "classification": cls_weights,
         }
         return super().compute_loss(
             x=images, y=y_true, y_pred=y_pred, sample_weight=weights

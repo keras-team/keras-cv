@@ -312,7 +312,7 @@ class RetinaNet(tf.keras.Model):
         self.weight_decay = weight_decay
         losses = {
             "box": self.box_loss,
-            "cls": self.classification_loss,
+            "classification": self.classification_loss,
         }
         super().compile(loss=losses, **kwargs)
 
@@ -350,15 +350,15 @@ class RetinaNet(tf.keras.Model):
         box_weights = positive_mask / normalizer
         y_true = {
             "box": boxes,
-            "cls": cls_labels,
+            "classification": cls_labels,
         }
         y_pred = {
             "box": box_pred,
-            "cls": cls_pred,
+            "classification": cls_pred,
         }
         sample_weights = {
             "box": box_weights,
-            "cls": cls_weights,
+            "classification": cls_weights,
         }
         return super().compute_loss(
             x=images, y=y_true, y_pred=y_pred, sample_weight=sample_weights
