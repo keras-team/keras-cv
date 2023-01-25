@@ -63,6 +63,11 @@ TEST_CONFIGURATIONS = [
         {"factor": 0.5, "value_range": (0, 255)},
     ),
     (
+        "RandomTranslation",
+        layers.RandomTranslation,
+        {"width_factor": 0.5, "height_factor": 0.5},
+    ),
+    (
         "RandomChannelShift",
         layers.RandomChannelShift,
         {"value_range": (0, 255), "factor": 0.5},
