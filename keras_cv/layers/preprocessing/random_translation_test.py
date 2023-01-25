@@ -16,7 +16,6 @@ import numpy as np
 import tensorflow as tf
 from absl.testing import parameterized
 
-from keras_cv import bounding_box
 from keras_cv.layers import preprocessing
 
 
