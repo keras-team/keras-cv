@@ -79,52 +79,51 @@ class RandomTranslation(BaseImageAugmentationLayer):
     filling empty space according to `fill_mode`.
 
     Input pixel values can be of any range (e.g. `[0., 1.)` or `[0, 255]`) and
-    of interger or floating point dtype. By default, the layer will output
+    of integer or floating point dtype. By default, the layer will output
     floats.
-
-    For an overview and full list of preprocessing layers, see the preprocessing
-    [guide](https://www.tensorflow.org/guide/keras/preprocessing_layers).
 
     Args:
       height_factor: a float represented as fraction of value, or a tuple of
-        size 2 representing lower and upper bound for shifting vertically. A
-        negative value means shifting image up, while a positive value means
-        shifting image down. When represented as a single positive float, this
-        value is used for both the upper and lower bound. For instance,
-        `height_factor=(-0.2, 0.3)` results in an output shifted by a random
-        amount in the range `[-20%, +30%]`.  `height_factor=0.2` results in an
-        output height shifted by a random amount in the range `[-20%, +20%]`.
+          size 2 representing lower and upper bound for shifting vertically. A
+          negative value means shifting image up, while a positive value means
+          shifting image down. When represented as a single positive float, this
+          value is used for both the upper and lower bound. For instance,
+          `height_factor=(-0.2, 0.3)` results in an output shifted by a random
+          amount in the range `[-20%, +30%]`.  `height_factor=0.2` results in an
+          output height shifted by a random amount in the range `[-20%, +20%]`.
       width_factor: a float represented as fraction of value, or a tuple of size
-        2 representing lower and upper bound for shifting horizontally. A
-        negative value means shifting image left, while a positive value means
-        shifting image right. When represented as a single positive float, this
-        value is used for both the upper and lower bound. For instance,
-        `width_factor=(-0.2, 0.3)` results in an output shifted left by 20%, and
-        shifted right by 30%. `width_factor=0.2` results in an output height
-        shifted left or right by 20%.
+          2 representing lower and upper bound for shifting horizontally. A
+          negative value means shifting image left, while a positive value means
+          shifting image right. When represented as a single positive float,
+          this value is used for both the upper and lower bound. For instance,
+          `width_factor=(-0.2, 0.3)` results in an output shifted left by 20%,
+          and shifted right by 30%. `width_factor=0.2` results
+          in an output height shifted left or right by 20%.
       fill_mode: Points outside the boundaries of the input are filled according
-        to the given mode (one of `{"constant", "reflect", "wrap", "nearest"}`).
-        - *reflect*: `(d c b a | a b c d | d c b a)` The input is extended by
-          reflecting about the edge of the last pixel.
-        - *constant*: `(k k k k | a b c d | k k k k)` The input is extended by
-          filling all values beyond the edge with the same constant value k = 0.
-        - *wrap*: `(a b c d | a b c d | a b c d)` The input is extended by
-          wrapping around to the opposite edge.
-        - *nearest*: `(a a a a | a b c d | d d d d)` The input is extended by
-          the nearest pixel.
+          to the given mode
+          (one of `{"constant", "reflect", "wrap", "nearest"}`).
+          - *reflect*: `(d c b a | a b c d | d c b a)` The input is extended by
+              reflecting about the edge of the last pixel.
+          - *constant*: `(k k k k | a b c d | k k k k)` The input is extended by
+              filling all values beyond the edge with the same constant value
+              k = 0.
+          - *wrap*: `(a b c d | a b c d | a b c d)` The input is extended by
+              wrapping around to the opposite edge.
+          - *nearest*: `(a a a a | a b c d | d d d d)` The input is extended by
+              the nearest pixel.
       interpolation: Interpolation mode. Supported values: `"nearest"`,
-        `"bilinear"`.
+          `"bilinear"`.
       seed: Integer. Used to create a random seed.
       fill_value: a float represents the value to be filled outside the
-        boundaries when `fill_mode="constant"`.
+          boundaries when `fill_mode="constant"`.
 
     Input shape:
-      3D (unbatched) or 4D (batched) tensor with shape:
-      `(..., height, width, channels)`,  in `"channels_last"` format.
+        3D (unbatched) or 4D (batched) tensor with shape:
+        `(..., height, width, channels)`,  in `"channels_last"` format.
 
     Output shape:
-      3D (unbatched) or 4D (batched) tensor with shape:
-      `(..., height, width, channels)`,  in `"channels_last"` format.
+        3D (unbatched) or 4D (batched) tensor with shape:
+        `(..., height, width, channels)`,  in `"channels_last"` format.
     """
 
     def __init__(
@@ -181,7 +180,6 @@ class RandomTranslation(BaseImageAugmentationLayer):
         self.interpolation = interpolation
         self.seed = seed
 
-    @tf.function
     def augment_image(self, image, transformation, **kwargs):
         """Translated inputs with random ops."""
         # The transform op only accepts rank 4 inputs, so if we have an
