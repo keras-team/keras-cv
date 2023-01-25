@@ -54,6 +54,39 @@ MODEL_CONFIGS = {
 }
 
 
+BASE_DOCSTRING = """Instantiates the {name} architecture.
+    Reference:
+        - [Patches Are All You Need?](https://arxiv.org/abs/2201.09792)
+    This function returns a Keras {name} model.
+    For transfer learning use cases, make sure to read the [guide to transfer
+        learning & fine-tuning](https://keras.io/guides/transfer_learning/).
+    Args:
+        include_rescaling: whether or not to Rescale the inputs.If set to True,
+            inputs will be passed through a `Rescaling(1/255.0)` layer.
+        include_top: whether to include the fully-connected layer at the top of the
+            network.  If provided, classes must be provided.
+        classes: optional number of classes to classify images into, only to be
+            specified if `include_top` is True.
+        weights: one of `None` (random initialization), a pretrained weight file
+            path, or a reference to pre-trained weights (e.g. 'imagenet/classification')
+            (see available pre-trained weights in weights.py)
+        input_shape: optional shape tuple, defaults to (None, None, 3).
+        input_tensor: optional Keras tensor (i.e. output of `layers.Input()`)
+            to use as image input for the model.
+        pooling: optional pooling mode for feature extraction
+            when `include_top` is `False`.
+            - `None` means that the output of the model will be the 4D tensor output
+                of the last convolutional block.
+            - `avg` means that global average pooling will be applied to the output
+                of the last convolutional block, and thus the output of the model will
+                be a 2D tensor.
+            - `max` means that global max pooling will be applied.
+        name: (Optional) name to pass to the model.  Defaults to "{name}".
+    Returns:
+      A `keras.Model` instance.
+"""
+
+
 def CovnMixer_Layer(dim, kernel_size):
     """CovnMixer Layer module.
     Args:
@@ -207,7 +240,6 @@ def ConvMixer_1536_20(
     name="ConvMixer_1536_20",
     **kwargs,
 ):
-    """Instantiates the ConvMixer_1536_20 architecture."""
 
     return ConvMixer(
         dim=MODEL_CONFIGS["ConvMixer_1536_20"]["dim"],
@@ -239,7 +271,6 @@ def ConvMixer_1536_24(
     name="ConvMixer_1536_24",
     **kwargs,
 ):
-    """Instantiates the ConvMixer_1536_24 architecture."""
 
     return ConvMixer(
         dim=MODEL_CONFIGS["ConvMixer_1536_24"]["dim"],
@@ -271,7 +302,6 @@ def ConvMixer_768_32(
     name="ConvMixer_768_32",
     **kwargs,
 ):
-    """Instantiates the ConvMixer_768_32 architecture."""
 
     return ConvMixer(
         dim=MODEL_CONFIGS["ConvMixer_768_32"]["dim"],
@@ -303,7 +333,6 @@ def ConvMixer_1024_16(
     name="ConvMixer_1024_16",
     **kwargs,
 ):
-    """Instantiates the ConvMixer_1024_16 architecture."""
 
     return ConvMixer(
         dim=MODEL_CONFIGS["ConvMixer_1024_16"]["dim"],
@@ -335,7 +364,6 @@ def ConvMixer_512_16(
     name="ConvMixer_512_16",
     **kwargs,
 ):
-    """Instantiates the ConvMixer_512_16 architecture."""
 
     return ConvMixer(
         dim=MODEL_CONFIGS["ConvMixer_512_16"]["dim"],
@@ -353,3 +381,10 @@ def ConvMixer_512_16(
         classifier_activation=classifier_activation,
         **kwargs,
     )
+
+
+setattr(ConvMixer_1536_20, "__doc__", BASE_DOCSTRING.format(name="ConvMixer_1536_20"))
+setattr(ConvMixer_1536_24, "__doc__", BASE_DOCSTRING.format(name="ConvMixer_1536_24"))
+setattr(ConvMixer_768_32, "__doc__", BASE_DOCSTRING.format(name="ConvMixer_768_32"))
+setattr(ConvMixer_1024_16, "__doc__", BASE_DOCSTRING.format(name="ConvMixer_1024_16"))
+setattr(ConvMixer_512_16, "__doc__", BASE_DOCSTRING.format(name="ConvMixer_512_16"))
