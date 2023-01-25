@@ -21,12 +21,12 @@ from keras_cv import layers as cv_layers
 from keras_cv.bounding_box.converters import _decode_deltas_to_boxes
 from keras_cv.bounding_box.utils import _clip_boxes
 from keras_cv.layers.object_detection.anchor_generator import AnchorGenerator
+from keras_cv.layers.object_detection.box_matcher import BoxMatcher
 from keras_cv.layers.object_detection.roi_align import _ROIAligner
 from keras_cv.layers.object_detection.roi_generator import ROIGenerator
 from keras_cv.layers.object_detection.roi_sampler import _ROISampler
 from keras_cv.layers.object_detection.rpn_label_encoder import _RpnLabelEncoder
 from keras_cv.models.object_detection import predict_utils
-from keras_cv.ops.box_matcher import ArgmaxBoxMatcher
 
 BOX_VARIANCE = [0.1, 0.1, 0.2, 0.2]
 
@@ -298,9 +298,7 @@ class FasterRCNN(tf.keras.Model):
             nms_score_threshold_train=float("-inf"),
             nms_score_threshold_test=float("-inf"),
         )
-        self.box_matcher = ArgmaxBoxMatcher(
-            thresholds=[0.0, 0.5], match_values=[-2, -1, 1]
-        )
+        self.box_matcher = BoxMatcher(thresholds=[0.0, 0.5], match_values=[-2, -1, 1])
         self.roi_sampler = _ROISampler(
             bounding_box_format="yxyx",
             roi_matcher=self.box_matcher,

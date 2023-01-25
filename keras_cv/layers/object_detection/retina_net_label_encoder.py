@@ -16,8 +16,8 @@ import tensorflow as tf
 from tensorflow.keras import layers
 
 from keras_cv import bounding_box
-from keras_cv.ops import box_matcher
-from keras_cv.ops import target_gather
+from keras_cv.layers.object_detection import box_matcher
+from keras_cv.utils import target_gather
 
 
 class RetinaNetLabelEncoder(layers.Layer):
@@ -66,7 +66,7 @@ class RetinaNetLabelEncoder(layers.Layer):
         )
         self.positive_threshold = positive_threshold
         self.negative_threshold = negative_threshold
-        self.box_matcher = box_matcher.ArgmaxBoxMatcher(
+        self.box_matcher = box_matcher.BoxMatcher(
             thresholds=[negative_threshold, positive_threshold],
             match_values=[-1, -2, 1],
             force_match_for_each_col=False,

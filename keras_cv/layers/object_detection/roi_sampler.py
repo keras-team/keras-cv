@@ -16,9 +16,9 @@ import tensorflow as tf
 
 from keras_cv import bounding_box
 from keras_cv.bounding_box import iou
-from keras_cv.ops import box_matcher
-from keras_cv.ops import sampling
-from keras_cv.ops import target_gather
+from keras_cv.layers.object_detection import box_matcher
+from keras_cv.layers.object_detection import sampling
+from keras_cv.layers.object_detection import target_gather
 
 
 @tf.keras.utils.register_keras_serializable(package="keras_cv")
@@ -44,7 +44,7 @@ class _ROISampler(tf.keras.layers.Layer):
       bounding_box_format: The format of bounding boxes to generate. Refer
         [to the keras.io docs](https://keras.io/api/keras_cv/bounding_box/formats/)
         for more details on supported bounding box formats.
-      roi_matcher: a `ArgmaxBoxMatcher` object that matches proposals
+      roi_matcher: a `BoxMatcher` object that matches proposals
         with ground truth boxes. the positive match must be 1 and negative match must be -1.
         Such assumption is not being validated here.
       positive_fraction: the positive ratio w.r.t `num_sampled_rois`. Defaults to 0.25.
@@ -59,7 +59,7 @@ class _ROISampler(tf.keras.layers.Layer):
     def __init__(
         self,
         bounding_box_format: str,
-        roi_matcher: box_matcher.ArgmaxBoxMatcher,
+        roi_matcher: box_matcher.BoxMatcher,
         positive_fraction: float = 0.25,
         background_class: int = 0,
         num_sampled_rois: int = 256,
@@ -205,5 +205,5 @@ class _ROISampler(tf.keras.layers.Layer):
     @classmethod
     def from_config(cls, config, custom_objects=None):
         roi_matcher_config = config.pop("roi_matcher")
-        roi_matcher = box_matcher.ArgmaxBoxMatcher(**roi_matcher_config)
+        roi_matcher = box_matcher.BoxMatcher(**roi_matcher_config)
         return cls(roi_matcher=roi_matcher, **config)

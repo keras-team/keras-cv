@@ -14,7 +14,7 @@
 
 import tensorflow as tf
 
-from keras_cv.ops.target_gather import _target_gather
+from keras_cv.layers.object_detection.target_gather import _target_gather
 
 
 class TargetGatherTest(tf.test.TestCase):
