@@ -97,6 +97,16 @@ class SerializationTest(tf.test.TestCase, parameterized.TestCase):
         ("MixUp", cv_layers.MixUp, {"seed": 1}),
         ("Mosaic", cv_layers.Mosaic, {"seed": 1}),
         (
+            "RepeatedAugmentation",
+            cv_layers.RepeatedAugmentation,
+            {
+                "augmenters": [
+                    cv_layers.RandAugment(value_range=(0, 1)),
+                    cv_layers.RandomFlip(),
+                ]
+            },
+        ),
+        (
             "RandomChannelShift",
             cv_layers.RandomChannelShift,
             {"value_range": (0, 255), "factor": 0.5},
@@ -329,8 +339,8 @@ class SerializationTest(tf.test.TestCase, parameterized.TestCase):
             {"drop_rate": 0.1},
         ),
         (
-            "GlobalRandomFlipY",
-            cv_layers.GlobalRandomFlipY,
+            "GlobalRandomFlip",
+            cv_layers.GlobalRandomFlip,
             {},
         ),
         (

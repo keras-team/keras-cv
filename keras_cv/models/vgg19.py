@@ -27,6 +27,7 @@ from keras_cv.models import utils
 
 
 def VGG19(
+    *,
     include_rescaling,
     include_top,
     classes=None,

@@ -209,6 +209,7 @@ def DarkNet(
 
 
 def DarkNet21(
+    *,
     include_rescaling,
     include_top,
     classes=None,
@@ -234,6 +235,7 @@ def DarkNet21(
 
 
 def DarkNet53(
+    *,
     include_rescaling,
     include_top,
     classes=None,

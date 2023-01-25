@@ -412,6 +412,7 @@ def ResNetV2(
 
 
 def ResNet18V2(
+    *,
     include_rescaling,
     include_top,
     classes=None,
@@ -444,6 +445,7 @@ def ResNet18V2(
 
 
 def ResNet34V2(
+    *,
     include_rescaling,
     include_top,
     classes=None,
@@ -476,6 +478,7 @@ def ResNet34V2(
 
 
 def ResNet50V2(
+    *,
     include_rescaling,
     include_top,
     classes=None,
@@ -507,6 +510,7 @@ def ResNet50V2(
 
 
 def ResNet101V2(
+    *,
     include_rescaling,
     include_top,
     classes=None,
@@ -537,6 +541,7 @@ def ResNet101V2(
 
 
 def ResNet152V2(
+    *,
     include_rescaling,
     include_top,
     classes=None,
