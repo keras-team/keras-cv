@@ -117,7 +117,7 @@ These pre-trained models are provided on an "as is" basis, without warranties
 or conditions of any kind.
 The following underlying models are provided by third parties, and are subject to separate
 licenses:
-StableDiffusion
+StableDiffusion, Vision Transfomer
 
 ## Citing KerasCV
 
