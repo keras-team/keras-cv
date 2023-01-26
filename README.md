@@ -131,10 +131,10 @@ Thank you to all of our wonderful contributors!
 
 ## Pretrained Weights
 Many models in KerasCV come with pre-trained weights.
-With the exception of StableDiffusion and the standard Vision Transformer, all of these weights are trained using Keras and
+With the exception of StableDiffusion, all of these weights are trained using Keras and
 KerasCV components and training scripts in this repository.
-While some models are not trained with the same parameters or preprocessing pipeline
-as defined in their original publications, the KerasCV team ensures strong numerical performance.
+While some models are not be trained with the same parameters or preprocessing pipeline
+as defined in their original publications, KerasCV still ensuresstrong performance.
 Performance metrics for the provided pre-trained weights can be found
 in the training history for each documented task.
 An example of this can be found in the ImageNet classification training
@@ -161,9 +161,8 @@ If you'd like to use these custom ops, you can install from source using the
 instructions below.
 
 ### Installing KerasCV with Custom Ops from Source
-
 Installing custom ops from source requires the [Bazel](https://bazel.build/) build
-system (version >= 5.4.0).  Steps to install Bazel can be [found here](https://github.com/keras-team/keras/blob/v2.11.0/.devcontainer/Dockerfile#L21-L23).
+system (version >= 5.4.0).
 
 ```
 git clone https://github.com/keras-team/keras-cv.git
@@ -188,9 +187,9 @@ and Windows.
 KerasCV provides access to pre-trained models via the `keras_cv.models` API.
 These pre-trained models are provided on an "as is" basis, without warranties
 or conditions of any kind.
-The following underlying models are provided by third parties, and are subject to separate
+The following underlying models are provided by third parties, and subject to separate
 licenses:
-StableDiffusion, Vision Transfomer
+StableDiffusion
 
 ## Citing KerasCV
 
