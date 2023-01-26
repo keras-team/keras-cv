@@ -31,7 +31,7 @@ class MultiClassNonMaxSuppression(tf.keras.layers.Layer):
         IoU threshold for two boxes to be considered same for suppression. Defaults
         to 0.5.
       confidence_threshold: a float value in the range [0, 1]. All boxes with
-        confidence below this value will be discarded. Defaults to 0.05.
+        confidence below this value will be discarded. Defaults to 0.9.
       max_detections: the maximum detections to consider after nms is applied. A large
         number may trigger significant memory overhead. Defaults to 100.
       max_detections_per_class: the maximum detections to consider per class after
