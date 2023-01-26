@@ -19,7 +19,7 @@ Keras objects (layers, metrics, etc) that are too specialized to be added to cor
 the same level of polish and backwards compatibility guarantees as the rest of the Keras API and that
 are maintained by the Keras team itself.
 
-In addition to API consistency, KerasCV components are built to be mixed-precision compatible, QAT compatible,  xla compilable, and TPU compatible.
+In addition to API consistency, KerasCV components aim to be mixed-precision compatible, QAT compatible,  xla compilable, and TPU compatible.
 In the near term, we aim to provide pre-trained models for common tasks such as on-device object detection and NSFW classification.
 We also aim to provide generic model optimization tools for deployment on devices such as onboard GPUs, mobile, edge chips.
 
