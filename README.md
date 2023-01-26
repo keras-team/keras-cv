@@ -44,7 +44,7 @@ but also for active development for feature delivery. To achieve this, here is t
 process for how to contribute to this repository:
 
 1) Contributors are always welcome to help us fix an issue, add tests, better documentation.  
-2) If contributors would like to create a backbone, we usually require a pre-trained weight
+2) If contributors would like to create a backbone, we usually require a pre-trained weight set
 with the model for one dataset as the first PR, and a training script as a follow-up. The training script will preferrably help us reproduce the results claimed from paper. The backbone should be generic but the training script can contain paper specific parameters such as learning rate schedules and weight decays. The training script will be used to produce leaderboard results.  
 Exceptions apply to large transformer-based models which are difficult to train. If this is the case,
 contributors should let us know so the team can help in training the model or providing GCP resources.
@@ -59,14 +59,27 @@ Thank you to all of our wonderful contributors!
 </a>
 
 ## Pretrained Weights
-Many models in KerasCV come with pre-trained weights. With the exception of StableDiffusion,
-all of these weights are trained using Keras and KerasCV components and training scripts in this
-repository. Models may not be trained with the same parameters or preprocessing pipeline
-described in their original papers. Performance metrics for pre-trained weights can be found
-in the training history for each task. For example, see ImageNet classification training
-history for backbone models [here](examples/training/classification/imagenet/training_history.json).
-All results are reproducible using the training scripts in this repository. Pre-trained weights
-operate on images that have been rescaled using a simple `1/255` rescaling layer.
+Many models in KerasCV come with pre-trained weights.
+With the exception of StableDiffusion, all of these weights are trained using Keras and
+KerasCV components and training scripts in this repository.
+While some models are not be trained with the same parameters or preprocessing pipeline
+as defined in their original publications, KerasCV still ensuresstrong performance.
+Performance metrics for the provided pre-trained weights can be found
+in the training history for each documented task.
+An example of this can be found in the ImageNet classification training
+[history for backbone models](examples/training/classification/imagenet/training_history.json).
+All results are reproducible using the training scripts in this repository.
+
+Historically, many models have been trained on image datasets rescaled via manually
+crafted normalization schemes.  
+The most common variant of manually crafted normalization scheme is subtraction of the
+imagenet mean pixel followed by standard deviation normalization based on the imagenet
+pixel standard deviation.
+This scheme is an artifact of the days of manual feature engineering, but is no longer
+required to score state of the art scores using modern deep learning architectures.
+Due to this, KerasCV is standardized to operate on images that have been rescaled using
+a simple `1/255` rescaling layer.
+This can be seen in all KerasCV training pipelines and code examples.
 
 ## Custom Ops
 Note that in some the 3D Object Detection layers, custom TF ops are used. The
@@ -77,8 +90,8 @@ If you'd like to use these custom ops, you can install from source using the
 instructions below.
 
 ### Installing KerasCV with Custom Ops from Source
-Installing from source requires the [Bazel](https://bazel.build/) build system
-(version >= 5.4.0).
+Installing custom ops from source requires the [Bazel](https://bazel.build/) build
+system (version >= 5.4.0).
 
 ```
 git clone https://github.com/keras-team/keras-cv.git
@@ -103,7 +116,8 @@ and Windows.
 KerasCV provides access to pre-trained models via the `keras_cv.models` API.
 These pre-trained models are provided on an "as is" basis, without warranties
 or conditions of any kind.
-The following underlying models are provided by third parties, and subject to separate licenses:
+The following underlying models are provided by third parties, and subject to separate
+licenses:
 StableDiffusion
 
 ## Citing KerasCV
