@@ -21,7 +21,6 @@ Our APIs assist in common computer vision tasks such as data-augmentation, class
 Applied computer vision engineers can leverage KerasCV to quickly assemble production-grade, state-of-the-art training and inference pipelines for all of these common tasks.
 
 In addition to API consistency, KerasCV components aim to be mixed-precision compatible, QAT compatible, XLA compilable, and TPU compatible.
-In the near term, we aim to provide pre-trained models for common tasks such as on-device object detection and NSFW classification.
 We also aim to provide generic model optimization tools for deployment on devices such as onboard GPUs, mobile, and edge chips.
 
 
