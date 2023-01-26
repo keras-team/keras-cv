@@ -6,22 +6,27 @@
 ![Tensorflow](https://img.shields.io/badge/tensorflow-v2.9.0+-success.svg)
 [![Contributions Welcome](https://img.shields.io/badge/contributions-welcome-brightgreen.svg?style=flat)](https://github.com/keras-team/keras-cv/issues)
 
-KerasCV is a library of modular computer vision oriented Keras components.
-These components include models, layers, metrics, losses, callbacks, and utility
-functions.
+
+# Mission
+
+KerasCV is a computer vision library of modular computer vision oriented Keras components.
+These components consist of models, layers, metrics, losses, callbacks, and utility functions.
+
+The goal of the library is to provide standardized Keras native APIs for common computer vision tasks such as data-augmentation, classification, object detection, image generation, and more.
+Applied computer vision engineers can leverage KerasCV to quickly assemble production-grade, state-of-the-art training and inference pipelines for all of these common tasks.
+
+
+KerasCV can be understood as a horizontal extension of the Keras API: the components are new first-party
+Keras objects (layers, metrics, etc) that are too specialized to be added to core Keras, but that receive
+the same level of polish and backwards compatibility guarantees as the rest of the Keras API and that
+are maintained by the Keras team itself.
+
+In addition to API consistency, KerasCV components are built to be mixed-precision compatible, QAT compatible,  xla compilable, and TPU compatible.
+In the near term, we aim to provide pre-trained models for common tasks such as on-device object detection and NSFW classification.
+We also aim to provide generic model optimization tools for deployment on devices such as onboard GPUs, mobile, edge chips.
 
 KerasCV's primary goal is to provide a coherent, elegant, and pleasant API to train state of the art computer vision models.
 Users should be able to train state of the art models using only `Keras`, `KerasCV`, and TensorFlow core (i.e. `tf.data`) components.
-
-KerasCV can be understood as a horizontal extension of the Keras API: the components are new first-party
-Keras objects (layers, metrics, etc.) that are too specialized to be added to core Keras. They receive the same level of polish and backwards compatibility guarantees as the core Keras API, and they are maintained by the Keras team.
-
-Our APIs assist in common computer vision tasks such as data-augmentation, classification, object detection, image generation, and more.
-Applied computer vision engineers can leverage KerasCV to quickly assemble production-grade, state-of-the-art training and inference pipelines for all of these common tasks.
-
-In addition to API consistency, KerasCV components aim to be mixed-precision compatible, QAT compatible, XLA compilable, and TPU compatible.
-We also aim to provide generic model optimization tools for deployment on devices such as onboard GPUs, mobile, and edge chips.
-
 
 To learn more about the future project direction, please check the [roadmap](.github/ROADMAP.md).
 
