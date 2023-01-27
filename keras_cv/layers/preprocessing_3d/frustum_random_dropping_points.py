@@ -54,7 +54,7 @@ class FrustumRandomDroppingPoints(base_augmentation_layer_3d.BaseAugmentationLay
         super().__init__(**kwargs)
 
         if r_distance < 0:
-            raise ValueError(f"r_distance must be >=0, but got r_distace={r_distance}")
+            raise ValueError(f"r_distance must be >=0, but got r_distance={r_distance}")
         if theta_width < 0:
             raise ValueError(f"theta_width must be >=0, but got theta_width={theta_width}")
         if phi_width < 0:
