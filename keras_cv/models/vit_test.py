@@ -22,7 +22,7 @@ from .models_test import ModelsTest
 MODEL_LIST = [
     (vit.ViTS16, 384, {"input_shape": (224, 224, 3)}),
 ]
-    
+ 
 """
 Below are other configurations that we omit from our CI but that can/should
 be tested manually when making changes to this model.
