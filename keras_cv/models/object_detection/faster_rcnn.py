@@ -395,7 +395,7 @@ class FasterRCNN(tf.keras.Model):
         # https://github.com/keras-team/keras-cv/issues/915
         if "metrics" in kwargs.keys():
             raise ValueError(
-                "`RetinaNet` does not currently support the use of "
+                "`FasterRCNN` does not currently support the use of "
                 "`metrics` due to performance and distribution concerns. "
                 "Please use the `PyCOCOCallback` to evaluate COCO metrics."
             )
