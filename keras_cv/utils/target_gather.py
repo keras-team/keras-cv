@@ -12,16 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Optional
-
 import tensorflow as tf
 
 
 def _target_gather(
     targets: tf.Tensor,
     indices: tf.Tensor,
-    mask: Optional[tf.Tensor] = None,
-    mask_val: Optional[float] = 0.0,
+    mask=None,
+    mask_val=0.0,
 ):
     """A utility function wrapping tf.gather, which deals with:
      1) both batched and unbatched `targets`

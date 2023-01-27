@@ -11,9 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
-"Argmax-based box matching"
-
 from typing import List
 from typing import Tuple
 
@@ -21,7 +18,7 @@ import tensorflow as tf
 
 
 @tf.keras.utils.register_keras_serializable(package="keras_cv")
-class ArgmaxBoxMatcher(tf.keras.layers.Layer):
+class BoxMatcher(tf.keras.layers.Layer):
     """Box matching logic based on argmax of highest value (e.g., IOU).
 
     This class computes matches from a similarity matrix. Each row will be
@@ -69,8 +66,8 @@ class ArgmaxBoxMatcher(tf.keras.layers.Layer):
     Usage:
 
     ```python
-    box_matcher = keras_cv.ops.ArgmaxBoxMatcher([0.3, 0.7], [-1, 0, 1])
-    iou_metric = keras_cv.bounding_box.compute_iou(anchors, gt_boxes)
+    box_matcher = keras_cv.layers.BoxMatcher([0.3, 0.7], [-1, 0, 1])
+    iou_metric = keras_cv.bounding_box.compute_iou(anchors, boxes)
     matched_columns, matched_match_values = box_matcher(iou_metric)
     cls_mask = tf.less_equal(matched_match_values, 0)
     ```
@@ -135,7 +132,7 @@ class ArgmaxBoxMatcher(tf.keras.layers.Layer):
                   storing the match type indicator (e.g. positive or negative
                   or ignored match).
             """
-            with tf.name_scope("empty_gt_boxes"):
+            with tf.name_scope("empty_boxes"):
                 matched_columns = tf.zeros([batch_size, num_rows], dtype=tf.int32)
                 matched_values = -tf.ones([batch_size, num_rows], dtype=tf.int32)
                 return matched_columns, matched_values
@@ -149,7 +146,7 @@ class ArgmaxBoxMatcher(tf.keras.layers.Layer):
                   storing the match type indicator (e.g. positive or negative
                   or ignored match).
             """
-            with tf.name_scope("non_empty_gt_boxes"):
+            with tf.name_scope("non_empty_boxes"):
                 matched_columns = tf.argmax(
                     similarity_matrix, axis=-1, output_type=tf.int32
                 )
@@ -207,11 +204,11 @@ class ArgmaxBoxMatcher(tf.keras.layers.Layer):
 
                 return matched_columns, matched_values
 
-        num_gt_boxes = (
+        num_boxes = (
             similarity_matrix.shape.as_list()[-1] or tf.shape(similarity_matrix)[-1]
         )
         matched_columns, matched_values = tf.cond(
-            pred=tf.greater(num_gt_boxes, 0),
+            pred=tf.greater(num_boxes, 0),
             true_fn=_match_when_cols_are_non_empty,
             false_fn=_match_when_cols_are_empty,
         )

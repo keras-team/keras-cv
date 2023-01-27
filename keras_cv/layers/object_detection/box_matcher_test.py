@@ -14,17 +14,17 @@
 
 import tensorflow as tf
 
-from keras_cv.ops.box_matcher import ArgmaxBoxMatcher
+from keras_cv.layers.object_detection.box_matcher import BoxMatcher
 
 
-class ArgmaxBoxMatcherTest(tf.test.TestCase):
+class BoxMatcherTest(tf.test.TestCase):
     def test_box_matcher_invalid_length(self):
         fg_threshold = 0.5
         bg_thresh_hi = 0.2
         bg_thresh_lo = 0.0
 
         with self.assertRaisesRegex(ValueError, "must be len"):
-            _ = ArgmaxBoxMatcher(
+            _ = BoxMatcher(
                 thresholds=[bg_thresh_lo, bg_thresh_hi, fg_threshold],
                 match_values=[-3, -2, -1],
             )
@@ -35,7 +35,7 @@ class ArgmaxBoxMatcherTest(tf.test.TestCase):
         bg_thresh_lo = 0.0
 
         with self.assertRaisesRegex(ValueError, "must be sorted"):
-            _ = ArgmaxBoxMatcher(
+            _ = BoxMatcher(
                 thresholds=[bg_thresh_hi, bg_thresh_lo, fg_threshold],
                 match_values=[-3, -2, -1, 1],
             )
@@ -47,7 +47,7 @@ class ArgmaxBoxMatcherTest(tf.test.TestCase):
         bg_thresh_hi = 0.2
         bg_thresh_lo = 0.0
 
-        matcher = ArgmaxBoxMatcher(
+        matcher = BoxMatcher(
             thresholds=[bg_thresh_lo, bg_thresh_hi, fg_threshold],
             match_values=[-3, -2, -1, 1],
         )
@@ -67,7 +67,7 @@ class ArgmaxBoxMatcherTest(tf.test.TestCase):
         bg_thresh_hi = 0.2
         bg_thresh_lo = 0.0
 
-        matcher = ArgmaxBoxMatcher(
+        matcher = BoxMatcher(
             thresholds=[bg_thresh_lo, bg_thresh_hi, fg_threshold],
             match_values=[-3, -2, -1, 1],
         )
@@ -90,7 +90,7 @@ class ArgmaxBoxMatcherTest(tf.test.TestCase):
         bg_thresh_hi = 0.2
         bg_thresh_lo = 0.0
 
-        matcher = ArgmaxBoxMatcher(
+        matcher = BoxMatcher(
             thresholds=[bg_thresh_lo, bg_thresh_hi, fg_threshold],
             match_values=[-3, -2, -1, 1],
             force_match_for_each_col=True,
@@ -113,7 +113,7 @@ class ArgmaxBoxMatcherTest(tf.test.TestCase):
         bg_thresh_hi = 0.2
         bg_thresh_lo = 0.0
 
-        matcher = ArgmaxBoxMatcher(
+        matcher = BoxMatcher(
             thresholds=[bg_thresh_lo, bg_thresh_hi, fg_threshold],
             match_values=[-3, -2, -1, 1],
         )
