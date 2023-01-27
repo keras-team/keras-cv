@@ -36,7 +36,6 @@ be tested manually when making changes to this model.
 (vit.ViTL32, 1024, {"input_shape": (224, 224, 3)}),
 (vit.ViTH32, 1280, {"input_shape": (224, 224, 3)}),
 """
-    
 
 
 class ViTTest(ModelsTest, tf.test.TestCase, parameterized.TestCase):
