@@ -26,6 +26,7 @@ MODEL_LIST = [
 """
 Below are other configurations that we omit from our CI but that can/should
 be tested manually when making changes to this model.
+(vit.ViTTiny16, 192, {"input_shape": (224, 224, 3)}),
 (vit.ViTB16, 768, {"input_shape": (224, 224, 3)}),
 (vit.ViTL16, 1024, {"input_shape": (224, 224, 3)}),
 (vit.ViTH16, 1280, {"input_shape": (224, 224, 3)}),
