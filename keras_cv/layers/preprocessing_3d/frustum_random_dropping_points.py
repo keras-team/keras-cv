@@ -56,7 +56,9 @@ class FrustumRandomDroppingPoints(base_augmentation_layer_3d.BaseAugmentationLay
         if r_distance < 0:
             raise ValueError(f"r_distance must be >=0, but got r_distance={r_distance}")
         if theta_width < 0:
-            raise ValueError(f"theta_width must be >=0, but got theta_width={theta_width}")
+            raise ValueError(
+                f"theta_width must be >=0, but got theta_width={theta_width}"
+            )
         if phi_width < 0:
             raise ValueError(f"phi_width must be >=0, but got phi_width={phi_width}")
         drop_rate = drop_rate if drop_rate else 0.0

@@ -102,17 +102,11 @@ class GlobalRandomScaling(base_augmentation_layer_3d.BaseAugmentationLayer3D):
         ):
             raise ValueError("min_factor must be less than max_factor.")
         if preserve_aspect_ratio:
-            if (
-                max_x_factor != min_y_factor
-                or min_y_factor != min_z_factor
-            ):
+            if max_x_factor != min_y_factor or min_y_factor != min_z_factor:
                 raise ValueError(
                     "min_factor must be the same when preserve_aspect_ratio is true."
                 )
-            if (
-                max_x_factor != max_y_factor
-                or max_y_factor != max_z_factor
-            ):
+            if max_x_factor != max_y_factor or max_y_factor != max_z_factor:
                 raise ValueError(
                     "max_factor must be the same when preserve_aspect_ratio is true."
                 )
