@@ -22,7 +22,6 @@ The current implementation is a rewrite of the initial TF/Keras port by Divam Gu
 """
 
 import math
-from typing import List
 from typing import Optional
 from typing import Tuple
 from typing import Union
