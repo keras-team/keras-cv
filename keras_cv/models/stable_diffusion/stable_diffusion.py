@@ -28,10 +28,10 @@ from typing import Tuple
 from typing import Union
 
 import numpy as np
-import ptp_utils
 import tensorflow as tf
 from tensorflow import keras
 
+import keras_cv.models.stable_diffusion.ptp_utils as ptp_utils
 from keras_cv.models.stable_diffusion.clip_tokenizer import SimpleTokenizer
 from keras_cv.models.stable_diffusion.constants import _ALPHAS_CUMPROD
 from keras_cv.models.stable_diffusion.constants import _UNCONDITIONAL_TOKENS

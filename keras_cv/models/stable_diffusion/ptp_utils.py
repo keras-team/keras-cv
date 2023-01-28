@@ -27,10 +27,10 @@ Credits:
 from typing import Tuple
 
 import numpy as np
-import seq_aligner
 import tensorflow as tf
 from tensorflow import keras
 
+import keras_cv.models.stable_diffusion.seq_aligner as seq_aligner
 from keras_cv.models.stable_diffusion.diffusion_model import td_dot
 
 
