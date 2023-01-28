@@ -14,7 +14,7 @@
 
 import tensorflow as tf
 
-from keras_cv.ops.sampling import balanced_sample
+from keras_cv.layers.object_detection.sampling import balanced_sample
 
 
 class BalancedSamplingTest(tf.test.TestCase):

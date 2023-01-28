@@ -66,23 +66,6 @@ Thank you to all of our wonderful contributors!
   <img src="https://contrib.rocks/image?repo=keras-team/keras-cv" />
 </a>
 
-
-## Installing Custom Ops from Source
-Installing from source requires the [Bazel](https://bazel.build/) build system
-(version >= 1.0.0).
-
-```
-git clone https://github.com/keras-team/keras-cv.git
-cd keras-cv
-
-python3 build_deps/configure.py
-
-bazel build build_pip_pkg
-bazel-bin/build_pip_pkg wheels
-
-pip install wheels/keras_cv-*.whl
-```
-
 ## Pretrained Weights
 Many models in KerasCV come with pre-trained weights. With the exception of StableDiffusion,
 all of these weights are trained using Keras and KerasCV components and training scripts in this
@@ -92,6 +75,36 @@ in the training history for each task. For example, see ImageNet classification 
 history for backbone models [here](examples/training/classification/imagenet/training_history.json).
 All results are reproducible using the training scripts in this repository. Pre-trained weights
 operate on images that have been rescaled using a simple `1/255` rescaling layer.
+
+## Custom Ops
+Note that in some the 3D Object Detection layers, custom TF ops are used. The
+binaries for these ops are not shipped in our PyPi package in order to keep our
+wheels pure-Python.
+
+If you'd like to use these custom ops, you can install from source using the
+instructions below.
+
+### Installing KerasCV with Custom Ops from Source
+Installing from source requires the [Bazel](https://bazel.build/) build system
+(version >= 5.4.0).
+
+```
+git clone https://github.com/keras-team/keras-cv.git
+cd keras-cv
+
+python3 build_deps/configure.py
+
+bazel build build_pip_pkg
+export BUILD_WITH_CUSTOM_OPS=true
+bazel-bin/build_pip_pkg wheels
+
+pip install wheels/keras_cv-*.whl
+```
+
+Note that GitHub actions exist to release KerasCV with custom ops, but are
+currently disabled. You can use these [actions](https://github.com/keras-team/keras-cv/blob/master/.github/workflows/release.yml)
+in your own fork to create wheels for Linux (manylinux2014), MacOS (both x86 and ARM),
+and Windows.
 
 ## Disclaimer
 
@@ -109,7 +122,7 @@ Here is the BibTeX entry:
 ```bibtex
 @misc{wood2022kerascv,
   title={KerasCV},
-  author={Wood, Luke and Tan, Zhenyu and Ian, Stenbit and Zhu, Scott and Chollet, Fran\c{c}ois and others},
+  author={Wood, Luke and Tan, Zhenyu and Stenbit, Ian and Zhu, Scott and Chollet, Fran\c{c}ois and others},
   year={2022},
   howpublished={\url{https://github.com/keras-team/keras-cv}},
 }

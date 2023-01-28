@@ -14,13 +14,13 @@
 
 import tensorflow as tf
 
+from keras_cv.layers.object_detection.box_matcher import BoxMatcher
 from keras_cv.layers.object_detection.roi_sampler import _ROISampler
-from keras_cv.ops.box_matcher import ArgmaxBoxMatcher
 
 
 class ROISamplerTest(tf.test.TestCase):
     def test_roi_sampler(self):
-        box_matcher = ArgmaxBoxMatcher(thresholds=[0.3], match_values=[-1, 1])
+        box_matcher = BoxMatcher(thresholds=[0.3], match_values=[-1, 1])
         roi_sampler = _ROISampler(
             bounding_box_format="xyxy",
             roi_matcher=box_matcher,
@@ -57,7 +57,7 @@ class ROISamplerTest(tf.test.TestCase):
         )
 
     def test_roi_sampler_small_threshold(self):
-        box_matcher = ArgmaxBoxMatcher(thresholds=[0.1], match_values=[-1, 1])
+        box_matcher = BoxMatcher(thresholds=[0.1], match_values=[-1, 1])
         roi_sampler = _ROISampler(
             bounding_box_format="xyxy",
             roi_matcher=box_matcher,
@@ -106,7 +106,7 @@ class ROISamplerTest(tf.test.TestCase):
 
     def test_roi_sampler_large_threshold(self):
         # the 2nd roi and 2nd gt box has IOU of 0.923, setting positive_threshold to 0.95 to ignore it
-        box_matcher = ArgmaxBoxMatcher(thresholds=[0.95], match_values=[-1, 1])
+        box_matcher = BoxMatcher(thresholds=[0.95], match_values=[-1, 1])
         roi_sampler = _ROISampler(
             bounding_box_format="xyxy",
             roi_matcher=box_matcher,
@@ -139,7 +139,7 @@ class ROISamplerTest(tf.test.TestCase):
 
     def test_roi_sampler_large_threshold_custom_bg_class(self):
         # the 2nd roi and 2nd gt box has IOU of 0.923, setting positive_threshold to 0.95 to ignore it
-        box_matcher = ArgmaxBoxMatcher(thresholds=[0.95], match_values=[-1, 1])
+        box_matcher = BoxMatcher(thresholds=[0.95], match_values=[-1, 1])
         roi_sampler = _ROISampler(
             bounding_box_format="xyxy",
             roi_matcher=box_matcher,
@@ -173,7 +173,7 @@ class ROISamplerTest(tf.test.TestCase):
 
     def test_roi_sampler_large_threshold_append_gt_boxes(self):
         # the 2nd roi and 2nd gt box has IOU of 0.923, setting positive_threshold to 0.95 to ignore it
-        box_matcher = ArgmaxBoxMatcher(thresholds=[0.95], match_values=[-1, 1])
+        box_matcher = BoxMatcher(thresholds=[0.95], match_values=[-1, 1])
         roi_sampler = _ROISampler(
             bounding_box_format="xyxy",
             roi_matcher=box_matcher,
@@ -204,7 +204,7 @@ class ROISamplerTest(tf.test.TestCase):
         self.assertAllGreaterEqual(tf.reduce_min(sampled_gt_classes), 0)
 
     def test_roi_sampler_large_num_sampled_rois(self):
-        box_matcher = ArgmaxBoxMatcher(thresholds=[0.95], match_values=[-1, 1])
+        box_matcher = BoxMatcher(thresholds=[0.95], match_values=[-1, 1])
         roi_sampler = _ROISampler(
             bounding_box_format="xyxy",
             roi_matcher=box_matcher,
@@ -227,7 +227,7 @@ class ROISamplerTest(tf.test.TestCase):
             _, _, _ = roi_sampler(rois, gt_boxes, gt_classes)
 
     def test_serialization(self):
-        box_matcher = ArgmaxBoxMatcher(thresholds=[0.95], match_values=[-1, 1])
+        box_matcher = BoxMatcher(thresholds=[0.95], match_values=[-1, 1])
         roi_sampler = _ROISampler(
             bounding_box_format="xyxy",
             roi_matcher=box_matcher,

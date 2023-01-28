@@ -18,9 +18,9 @@ import tensorflow as tf
 
 from keras_cv import bounding_box
 from keras_cv.bounding_box import iou
-from keras_cv.ops import box_matcher
-from keras_cv.ops import sampling
-from keras_cv.ops import target_gather
+from keras_cv.layers.object_detection import box_matcher
+from keras_cv.layers.object_detection import sampling
+from keras_cv.utils import target_gather
 
 
 @tf.keras.utils.register_keras_serializable(package="keras_cv")
@@ -74,7 +74,7 @@ class _RpnLabelEncoder(tf.keras.layers.Layer):
         self.negative_threshold = negative_threshold
         self.samples_per_image = samples_per_image
         self.positive_fraction = positive_fraction
-        self.box_matcher = box_matcher.ArgmaxBoxMatcher(
+        self.box_matcher = box_matcher.BoxMatcher(
             thresholds=[negative_threshold, positive_threshold],
             match_values=[-1, -2, 1],
             force_match_for_each_col=False,
