@@ -17,7 +17,7 @@ KerasCV's primary goal is to provide a coherent, elegant, and pleasant API to tr
 Users should be able to train state of the art models using only `Keras`, `KerasCV`, and TensorFlow core (i.e. `tf.data`) components.
 
 KerasCV can be understood as a horizontal extension of the Keras API: the components are new first-party
-Keras objects (layers, metrics, etc) that are too specialized to be added to core Keras. They receive the same level of polish and backwards compatibility guarantees as the core Keras API, and they are maintained by the Keras team.
+Keras objects (layers, metrics, etc.) that are too specialized to be added to core Keras. They receive the same level of polish and backwards compatibility guarantees as the core Keras API, and they are maintained by the Keras team.
 
 Our APIs assist in common computer vision tasks such as data-augmentation, classification, object detection, image generation, and more.
 Applied computer vision engineers can leverage KerasCV to quickly assemble production-grade, state-of-the-art training and inference pipelines for all of these common tasks.
@@ -159,8 +159,9 @@ If you'd like to use these custom ops, you can install from source using the
 instructions below.
 
 ### Installing KerasCV with Custom Ops from Source
+
 Installing custom ops from source requires the [Bazel](https://bazel.build/) build
-system (version >= 5.4.0).
+system (version >= 5.4.0).  Steps to install Bazel can be [found here](https://github.com/keras-team/keras/blob/v2.11.0/.devcontainer/Dockerfile#L21-L23).
 
 ```
 git clone https://github.com/keras-team/keras-cv.git
