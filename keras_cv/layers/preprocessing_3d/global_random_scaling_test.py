@@ -11,95 +11,171 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import numpy as np
+
 import tensorflow as tf
 
+from keras_cv.bounding_box_3d import CENTER_XYZ_DXDYDZ_PHI
 from keras_cv.layers.preprocessing_3d import base_augmentation_layer_3d
-from keras_cv.layers.preprocessing_3d.global_random_scaling import GlobalRandomScaling
 
 POINT_CLOUDS = base_augmentation_layer_3d.POINT_CLOUDS
 BOUNDING_BOXES = base_augmentation_layer_3d.BOUNDING_BOXES
 
 
-class GlobalScalingTest(tf.test.TestCase):
-    def test_augment_point_clouds_and_bounding_boxes(self):
-        add_layer = GlobalRandomScaling(
-            x_factor=(0.5, 1.5),
-            y_factor=(0.5, 1.5),
-            z_factor=(0.5, 1.5),
-        )
-        point_clouds = np.random.random(size=(2, 50, 10)).astype("float32")
-        bounding_boxes = np.random.random(size=(2, 10, 7)).astype("float32")
-        inputs = {POINT_CLOUDS: point_clouds, BOUNDING_BOXES: bounding_boxes}
-        outputs = add_layer(inputs)
-        self.assertNotAllClose(inputs, outputs)
+@tf.keras.utils.register_keras_serializable(package="keras_cv")
+class GlobalRandomScaling(base_augmentation_layer_3d.BaseAugmentationLayer3D):
+    """A preprocessing layer which randomly scales point clouds and bounding boxes along
+    X, Y, and Z axes during training.
 
-    def test_augment_point_clouds_and_bounding_boxes_with_same_scaling(self):
-        add_layer = GlobalRandomScaling(
-            x_factor=(0.5, 1.5),
-            y_factor=(0.5, 1.5),
-            z_factor=(0.5, 1.5),
-            preserve_aspect_ratio=True,
-        )
-        point_clouds = np.random.random(size=(2, 50, 10)).astype("float32")
-        bounding_boxes = np.random.random(size=(2, 10, 7)).astype("float32")
-        inputs = {POINT_CLOUDS: point_clouds, BOUNDING_BOXES: bounding_boxes}
-        outputs = add_layer(inputs)
-        self.assertNotAllClose(inputs, outputs)
+    This layer will randomly scale the whole scene along the  X, Y, and Z axes based on a randomly sampled
+    scaling factor between [min_scaling_factor, max_scaling_factor] following a uniform distribution.
+    During inference time, the output will be identical to input. Call the layer with `training=True` to scale the input.
 
-    def test_not_augment_point_clouds_and_bounding_boxes(self):
-        add_layer = GlobalRandomScaling(
-            x_factor=(1.0, 1.0),
-            y_factor=(1.0, 1.0),
-            z_factor=(1.0, 1.0),
-        )
-        point_clouds = np.random.random(size=(2, 50, 10)).astype("float32")
-        bounding_boxes = np.random.random(size=(2, 10, 7)).astype("float32")
-        inputs = {POINT_CLOUDS: point_clouds, BOUNDING_BOXES: bounding_boxes}
-        outputs = add_layer(inputs)
-        self.assertAllClose(inputs, outputs)
+    Input shape:
+      point_clouds: 3D (multi frames) float32 Tensor with shape
+        [num of frames, num of points, num of point features].
+        The first 5 features are [x, y, z, class, range].
+      bounding_boxes:  3D (multi frames) float32 Tensor with shape
+        [num of frames, num of boxes, num of box features]. Boxes are expected
+        to follow the CENTER_XYZ_DXDYDZ_PHI format. Refer to
+        https://github.com/keras-team/keras-cv/blob/master/keras_cv/bounding_box_3d/formats.py
+        for more details on supported bounding box formats.
 
-    def test_2x_scaling_point_clouds_and_bounding_boxes(self):
-        add_layer = GlobalRandomScaling(
-            x_factor=(2.0, 2.0),
-            y_factor=(2.0, 2.0),
-            z_factor=(2.0, 2.0),
-        )
-        point_clouds = np.array([[[0, 1, 2, 3, 4, 5, 6, 7, 8, 9]] * 2] * 2).astype(
-            "float32"
-        )
-        bounding_boxes = np.array([[[0, 1, 2, 3, 4, 5, 6]] * 2] * 2).astype("float32")
-        inputs = {POINT_CLOUDS: point_clouds, BOUNDING_BOXES: bounding_boxes}
-        outputs = add_layer(inputs)
-        scaled_point_clouds = np.array(
-            [[[0, 2, 4, 3, 4, 5, 6, 7, 8, 9]] * 2] * 2
-        ).astype("float32")
-        scaled_bounding_boxes = np.array([[[0, 2, 4, 6, 8, 10, 6]] * 2] * 2).astype(
-            "float32"
-        )
-        self.assertAllClose(outputs[POINT_CLOUDS], scaled_point_clouds)
-        self.assertAllClose(outputs[BOUNDING_BOXES], scaled_bounding_boxes)
+    Output shape:
+      A dictionary of Tensors with the same shape as input Tensors.
 
-    def test_augment_batch_point_clouds_and_bounding_boxes(self):
-        add_layer = GlobalRandomScaling(
-            x_factor=(0.5, 1.5),
-            y_factor=(0.5, 1.5),
-            z_factor=(0.5, 1.5),
-        )
-        point_clouds = np.random.random(size=(3, 2, 50, 10)).astype("float32")
-        bounding_boxes = np.random.random(size=(3, 2, 10, 7)).astype("float32")
-        inputs = {POINT_CLOUDS: point_clouds, BOUNDING_BOXES: bounding_boxes}
-        outputs = add_layer(inputs)
-        self.assertNotAllClose(inputs, outputs)
+    Arguments:
+      x_factor: A tuple of float scalars or a float scalar sets the minimum and maximum scaling factors for the X axis.
+      y_factor: A tuple of float scalars or a float scalar sets the minimum and maximum scaling factors for the Y axis.
+      z_factor: A tuple of float scalars or a float scalar sets the minimum and maximum scaling factors for the Z axis.
+    """
 
-    def test_not_augment_batch_point_clouds_and_bounding_boxes(self):
-        add_layer = GlobalRandomScaling(
-            x_factor=(1.0, 1.0),
-            y_factor=(1.0, 1.0),
-            z_factor=(1.0, 1.0),
+    def __init__(
+        self,
+        x_factor=None,
+        y_factor=None,
+        z_factor=None,
+        preserve_aspect_ratio=False,
+        **kwargs
+    ):
+        super().__init__(**kwargs)
+        if not x_factor:
+            min_x_factor = 1.0
+            max_x_factor = 1.0
+        elif type(x_factor) is float:
+            min_x_factor = x_factor
+            max_x_factor = x_factor
+        else:
+            min_x_factor = x_factor[0]
+            max_x_factor = x_factor[1]
+        if not y_factor:
+            min_y_factor = 1.0
+            max_y_factor = 1.0
+        elif type(y_factor) is float:
+            min_y_factor = y_factor
+            max_y_factor = y_factor
+        else:
+            min_y_factor = y_factor[0]
+            max_y_factor = y_factor[1]
+        if not z_factor:
+            min_z_factor = 1.0
+            max_z_factor = 1.0
+        elif type(z_factor) is float:
+            min_z_factor = z_factor
+            max_z_factor = z_factor
+        else:
+            min_z_factor = z_factor[0]
+            max_z_factor = z_factor[1]
+
+        if (
+            min_x_factor < 0
+            or max_x_factor < 0
+            or min_y_factor < 0
+            or max_y_factor < 0
+            or min_z_factor < 0
+            or max_z_factor < 0
+        ):
+            raise ValueError("min_factor and max_factor must be >=0.")
+        if (
+            min_x_factor > max_x_factor
+            or min_y_factor > max_y_factor
+            or min_z_factor > max_z_factor
+        ):
+            raise ValueError("min_factor must be less than max_factor.")
+        if preserve_aspect_ratio:
+            if min_x_factor != min_y_factor or min_y_factor != min_z_factor:
+                raise ValueError(
+                    "min_factor must be the same when preserve_aspect_ratio is true."
+                )
+            if max_x_factor != max_y_factor or max_y_factor != max_z_factor:
+                raise ValueError(
+                    "max_factor must be the same when preserve_aspect_ratio is true."
+                )
+
+        self._min_x_factor = min_x_factor
+        self._max_x_factor = max_x_factor
+        self._min_y_factor = min_y_factor
+        self._max_y_factor = max_y_factor
+        self._min_z_factor = min_z_factor
+        self._max_z_factor = max_z_factor
+        self._preserve_aspect_ratio = preserve_aspect_ratio
+
+    def get_config(self):
+        return {
+            "x_factor": (
+                self._min_x_factor,
+                self._max_x_factor,
+            ),
+            "y_factor": (
+                self._min_y_factor,
+                self._max_y_factor,
+            ),
+            "z_factor": (
+                self._min_z_factor,
+                self._max_z_factor,
+            ),
+            "preserve_aspect_ratio": self._preserve_aspect_ratio,
+        }
+
+    def get_random_transformation(self, **kwargs):
+
+        random_scaling_x = self._random_generator.random_uniform(
+            (), minval=self._min_x_factor, maxval=self._max_x_factor
         )
-        point_clouds = np.random.random(size=(3, 2, 50, 10)).astype("float32")
-        bounding_boxes = np.random.random(size=(3, 2, 10, 7)).astype("float32")
-        inputs = {POINT_CLOUDS: point_clouds, BOUNDING_BOXES: bounding_boxes}
-        outputs = add_layer(inputs)
-        self.assertAllClose(inputs, outputs)
+        random_scaling_y = self._random_generator.random_uniform(
+            (), minval=self._min_y_factor, maxval=self._max_y_factor
+        )
+        random_scaling_z = self._random_generator.random_uniform(
+            (), minval=self._min_z_factor, maxval=self._max_z_factor
+        )
+        if not self._preserve_aspect_ratio:
+            return {
+                "scale": tf.stack(
+                    [random_scaling_x, random_scaling_y, random_scaling_z]
+                )
+            }
+        else:
+            return {
+                "scale": tf.stack(
+                    [random_scaling_x, random_scaling_x, random_scaling_x]
+                )
+            }
+
+    def augment_point_clouds_bounding_boxes(
+        self, point_clouds, bounding_boxes, transformation, **kwargs
+    ):
+        scale = transformation["scale"][tf.newaxis, tf.newaxis, :]
+        point_clouds_xyz = point_clouds[..., :3] * scale
+        point_clouds = tf.concat([point_clouds_xyz, point_clouds[..., 3:]], axis=-1)
+
+        bounding_boxes_xyzdxdydz = bounding_boxes[
+            ..., : CENTER_XYZ_DXDYDZ_PHI.DZ + 1
+        ] * tf.concat([scale] * 2, axis=-1)
+        bounding_boxes = tf.concat(
+            [
+                bounding_boxes_xyzdxdydz,
+                bounding_boxes[..., CENTER_XYZ_DXDYDZ_PHI.PHI :],
+            ],
+            axis=-1,
+        )
+
+        return (point_clouds, bounding_boxes)
