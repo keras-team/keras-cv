@@ -24,6 +24,7 @@ from tensorflow import keras
 from tensorflow.keras import layers
 
 from keras_cv.models import utils
+from keras_cv.models.weights import parse_weights
 
 MODEL_CONFIGS = {
     "ConvMixer_1536_20": {"dim": 1536, "depth": 20, "patch_size": 7, "kernel_size": 9},
@@ -373,7 +374,7 @@ def ConvMixer_512_16(
         include_rescaling=include_rescaling,
         include_top=include_top,
         name=name,
-        weights=weights,
+        weights=parse_weights(weights, include_top, "convmixer_512_16"),
         input_shape=input_shape,
         input_tensor=input_tensor,
         pooling=pooling,
