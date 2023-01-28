@@ -11,13 +11,13 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Utility methods for getting the original and edited prompt mask and indices
+"""Utility methods for getting the original and edited prompt mask and indices.
 
 Credits / Source:
 
 - Official implementation of the paper: https://github.com/google/prompt-to-prompt
 
-The current implementation is a rewrite of the source code of the "Prompt-to-Prompt" authors.
+The current implementation is a rewrite of the source code authors.
 """
 
 import numpy as np

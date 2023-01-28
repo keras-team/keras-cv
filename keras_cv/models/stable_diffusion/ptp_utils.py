@@ -13,7 +13,7 @@
 # limitations under the License.
 """Utility methods used to implement Prompt-to-Prompt paper in TensorFlow.
 
-References: 
+Reference:
 
 - "Prompt-to-Prompt Image Editing with Cross-Attention Control."
   Amir Hertz, Ron Mokady, Jay Tenenbaum, Kfir Aberman, Yael Pritch, Daniel Cohen-Or.
@@ -27,11 +27,11 @@ Credits:
 from typing import Tuple
 
 import numpy as np
+import seq_aligner
 import tensorflow as tf
-from keras_cv.models.stable_diffusion.diffusion_model import td_dot
 from tensorflow import keras
 
-import seq_aligner
+from keras_cv.models.stable_diffusion.diffusion_model import td_dot
 
 
 def rename_cross_attention_layers(diff_model: tf.keras.Model):
@@ -79,8 +79,7 @@ def update_cross_attn_mode(
 
 
 def update_attn_weights_usage(diff_model: tf.keras.Model, use: bool):
-    """Update the mode control
-        mask (np.ndarray): Mask variable.
+    """Update the mode control variable.
 
     Args:
         diff_model (tf.keras.Model): The diffusion model.
@@ -187,7 +186,7 @@ def set_initial_tf_variables(diff_model: tf.keras.Model):
 def reset_initial_tf_variables(diff_model: tf.keras.Model):
     """Reset the control variables to their default values.
 
-    Args: 
+    Args:
         diff_model (tf.keras.Model): The diffusion model.
     """
     for submodule in diff_model.submodules:
