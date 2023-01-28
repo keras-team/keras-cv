@@ -22,8 +22,13 @@ The current implementation is a rewrite of the initial TF/Keras port by Divam Gu
 """
 
 import math
+from typing import List
+from typing import Optional
+from typing import Tuple
+from typing import Union
 
 import numpy as np
+import ptp_utils
 import tensorflow as tf
 from tensorflow import keras
 
@@ -60,6 +65,7 @@ class StableDiffusionBase:
         self._image_encoder = None
         self._text_encoder = None
         self._diffusion_model = None
+        self._diffusion_model_ptp = None
         self._decoder = None
         self._tokenizer = None
 
@@ -227,6 +233,211 @@ class StableDiffusionBase:
         decoded = self.decoder.predict_on_batch(latent)
         decoded = ((decoded + 1) / 2) * 255
         return np.clip(decoded, 0, 255).astype("uint8")
+
+    def text_to_image_ptp(
+        self,
+        prompt: str,
+        prompt_edit: str,
+        method: str,
+        self_attn_steps: Union[float, Tuple[float, float]],
+        cross_attn_steps: Union[float, Tuple[float, float]],
+        attn_edit_weights: np.ndarray = np.array([]),
+        negative_prompt: Optional[str] = None,
+        num_steps: int = 50,
+        unconditional_guidance_scale: float = 7.5,
+        batch_size: int = 1,
+        seed: Optional[int] = None,
+    ) -> np.ndarray:
+        """Generate an image based on the Prompt-to-Prompt editing method.
+        Edit a generated image controlled only through text.
+
+        Reference:
+
+        - "Prompt-to-Prompt Image Editing with Cross-Attention Control."
+        Amir Hertz, Ron Mokady, Jay Tenenbaum, Kfir Aberman, Yael Pritch, Daniel Cohen-Or.
+        https://arxiv.org/abs/2208.01626
+
+        Args:
+            prompt (str): Text containing the information for the model to generate.
+            prompt_edit (str): Second prompt used to control the edit of the generated image.
+            method (str): Prompt-to-Prompt method to chose. Can be ['refine', 'replace', 'reweigh'].
+            self_attn_steps (Union[float, Tuple[float, float]]): Specifies at which step
+                of the start of the diffusion process it replaces the self attention maps with
+                the ones produced by the edited prompt.
+            cross_attn_steps (Union[float, Tuple[float, float]]): Specifies at which step
+                of the start of the diffusion process it replaces the cross attention maps
+                with the ones produced by the edited prompt.
+            attn_edit_weights: Set of weights for each edit prompt token.
+                This is used for manipulating the importance of the edit prompt tokens,
+                increasing or decreasing the importance assigned to each word.
+                Default: np.array([])
+            negative_prompt: A string containing information to negatively guide the image
+                generation (e.g. by removing or altering certain aspects of the generated image).
+                Default: None
+            num_steps: number of diffusion steps (controls image quality).
+                Default: 50.
+            unconditional_guidance_scale: float controling how closely the image
+                should adhere to the prompt. Larger values result in more
+                closely adhering to the prompt, but will make the image noisier.
+                Default: 7.5.
+            batch_size: number of images to generate. Default: 1.
+            seed: integer which is used to seed the random generation of
+                diffusion noise, only to be specified if `diffusion_noise` is
+                None.
+        """
+
+        # Prompt-to-Prompt: check inputs
+        if isinstance(self_attn_steps, float):
+            self_attn_steps = (0.0, self_attn_steps)
+        if isinstance(cross_attn_steps, float):
+            cross_attn_steps = (0.0, cross_attn_steps)
+
+        # Tokenize and encode prompt
+        encoded_text = self.encode_text(prompt)
+        conditional_context = self._expand_tensor(encoded_text, batch_size)
+
+        # Tokenize and encode edit prompt
+        encoded_text_edit = self.encode_text(prompt_edit)
+        conditional_context_edit = self._expand_tensor(encoded_text_edit, batch_size)
+
+        if negative_prompt is None:
+            unconditional_context = tf.repeat(
+                self._get_unconditional_context(), batch_size, axis=0
+            )
+        else:
+            unconditional_context = self.encode_text(negative_prompt)
+            unconditional_context = self._expand_tensor(
+                unconditional_context, batch_size
+            )
+
+        if method == "refine":
+            # Get the mask and indices of the difference between the original prompt token's and the edited one
+            mask, indices = ptp_utils.get_matching_sentence_tokens(
+                prompt, prompt_edit, self.tokenizer
+            )
+            # Add the mask and indices to the diffusion model
+            ptp_utils.put_mask_dif_model(self.diffusion_model_ptp, mask, indices)
+
+        # Update prompt weights variable
+        if attn_edit_weights.size:
+            ptp_utils.add_attn_weights(
+                diff_model=self.diffusion_model_ptp, prompt_weights=attn_edit_weights
+            )
+
+        # Get initial random noise
+        latent = self._get_initial_diffusion_noise(batch_size, seed)
+
+        # Scheduler
+        timesteps = tf.range(1, 1000, 1000 // num_steps)
+
+        # Get initial parameters
+        alphas, alphas_prev = self._get_initial_alphas(timesteps)
+
+        progbar = keras.utils.Progbar(len(timesteps))
+        iteration = 0
+        # Diffusion stage
+        for index, timestep in list(enumerate(timesteps))[::-1]:
+
+            t_emb = self._get_timestep_embedding(timestep, batch_size)
+
+            t_scale = 1 - (timestep / 1000)
+
+            # Update Cross-Attention mode to 'unconditional'
+            ptp_utils.update_cross_attn_mode(
+                diff_model=self.diffusion_model_ptp, mode="unconditional"
+            )
+
+            # Predict the unconditional noise residual
+            unconditional_latent = self.diffusion_model_ptp.predict_on_batch(
+                [latent, t_emb, unconditional_context]
+            )
+
+            # Save last cross attention activations
+            ptp_utils.update_cross_attn_mode(
+                diff_model=self.diffusion_model_ptp, mode="save"
+            )
+            # Predict the conditional noise residual
+            _ = self.diffusion_model_ptp.predict_on_batch(
+                [latent, t_emb, conditional_context]
+            )
+
+            # Edit the Cross-Attention layer activations
+            if cross_attn_steps[0] <= t_scale <= cross_attn_steps[1]:
+                if method == "replace":
+                    # Use cross attention from the original prompt (M_t)
+                    ptp_utils.update_cross_attn_mode(
+                        diff_model=self.diffusion_model_ptp,
+                        mode="use_last",
+                        attn_suffix="attn2",
+                    )
+                elif method == "refine":
+                    # Use cross attention with function A(J)
+                    ptp_utils.update_cross_attn_mode(
+                        diff_model=self.diffusion_model_ptp,
+                        mode="edit",
+                        attn_suffix="attn2",
+                    )
+                if method == "reweight" or attn_edit_weights.size:
+                    # Use the parsed weights on the edited prompt
+                    ptp_utils.update_attn_weights_usage(
+                        diff_model=self.diffusion_model_ptp, use=True
+                    )
+
+            else:
+                # Use cross attention from the edited prompt (M^*_t)
+                ptp_utils.update_cross_attn_mode(
+                    diff_model=self.diffusion_model_ptp,
+                    mode="injection",
+                    attn_suffix="attn2",
+                )
+
+            # Edit the self-Attention layer activations
+            if self_attn_steps[0] <= t_scale <= self_attn_steps[1]:
+                # Use self attention from the original prompt (M_t)
+                ptp_utils.update_cross_attn_mode(
+                    diff_model=self.diffusion_model_ptp,
+                    mode="use_last",
+                    attn_suffix="attn1",
+                )
+            else:
+                # Use self attention from the edited prompt (M^*_t)
+                ptp_utils.update_cross_attn_mode(
+                    diff_model=self.diffusion_model_ptp,
+                    mode="injection",
+                    attn_suffix="attn1",
+                )
+
+            # Predict the edited conditional noise residual
+            conditional_latent_edit = self.diffusion_model_ptp.predict_on_batch(
+                [latent, t_emb, conditional_context_edit],
+            )
+
+            # Assign usage to False so it doesn't get used in other contexts
+            if attn_edit_weights.size:
+                ptp_utils.update_attn_weights_usage(
+                    diff_model=self.diffusion_model_ptp, use=False
+                )
+
+            # Perform guidance
+            e_t = unconditional_latent + unconditional_guidance_scale * (
+                conditional_latent_edit - unconditional_latent
+            )
+
+            a_t, a_prev = alphas[index], alphas_prev[index]
+            latent = self._get_x_prev(latent, e_t, a_t, a_prev)
+
+            iteration += 1
+            progbar.update(iteration)
+
+        # Decode image
+        decoded = self.decoder.predict_on_batch(latent)
+        decoded = ((decoded + 1) / 2) * 255
+        img = np.clip(decoded, 0, 255).astype("uint8")
+
+        # Reset control variables
+        ptp_utils.reset_initial_tf_variables(self.diffusion_model_ptp)
+
+        return img
 
     def inpaint(
         self,
@@ -460,6 +671,14 @@ class StableDiffusionBase:
 
         return alphas, alphas_prev
 
+    def _get_x_prev(self, x, e_t, a_t, a_prev):
+        sqrt_one_minus_at = math.sqrt(1 - a_t)
+        pred_x0 = (x - sqrt_one_minus_at * e_t) / math.sqrt(a_t)
+        # Direction pointing to x_t
+        dir_xt = math.sqrt(1.0 - a_prev) * e_t
+        x_prev = math.sqrt(a_prev) * pred_x0 + dir_xt
+        return x_prev
+
     def _get_initial_diffusion_noise(self, batch_size, seed):
         if seed is not None:
             return tf.random.stateless_normal(
@@ -558,6 +777,31 @@ class StableDiffusion(StableDiffusionBase):
                 self._diffusion_model.compile(jit_compile=True)
         return self._diffusion_model
 
+    @property
+    def diffusion_model_ptp(self):
+        """diffusion_model_ptp returns the diffusion model with modifications for the Prompt-to-Prompt method.
+
+        Reference:
+
+        - "Prompt-to-Prompt Image Editing with Cross-Attention Control."
+        Amir Hertz, Ron Mokady, Jay Tenenbaum, Kfir Aberman, Yael Pritch, Daniel Cohen-Or.
+        https://arxiv.org/abs/2208.01626
+        """
+        if self._diffusion_model_ptp is None:
+            if self._diffusion_model is None:
+                self._diffusion_model_ptp = self.diffusion_model
+            else:
+                # Reset the graph and add/overwrite variables and forward calls
+                self._diffusion_model.compile(jit_compile=self.jit_compile)
+                self._diffusion_model_ptp = self._diffusion_model
+
+            # Add extra variables and callbacks
+            ptp_utils.rename_cross_attention_layers(self._diffusion_model_ptp)
+            ptp_utils.overwrite_forward_call(self._diffusion_model_ptp)
+            ptp_utils.set_initial_tf_variables(self._diffusion_model_ptp)
+
+        return self._diffusion_model_ptp
+
 
 class StableDiffusionV2(StableDiffusionBase):
     """Keras implementation of Stable Diffusion v2.
@@ -640,3 +884,28 @@ class StableDiffusionV2(StableDiffusionBase):
             if self.jit_compile:
                 self._diffusion_model.compile(jit_compile=True)
         return self._diffusion_model
+
+    @property
+    def diffusion_model_ptp(self):
+        """diffusion_model_ptp returns the diffusion model with modifications for the Prompt-to-Prompt method.
+
+        Reference:
+
+        - "Prompt-to-Prompt Image Editing with Cross-Attention Control."
+        Amir Hertz, Ron Mokady, Jay Tenenbaum, Kfir Aberman, Yael Pritch, Daniel Cohen-Or.
+        https://arxiv.org/abs/2208.01626
+        """
+        if self._diffusion_model_ptp is None:
+            if self._diffusion_model is None:
+                self._diffusion_model_ptp = self.diffusion_model
+            else:
+                # Reset the graph and add/overwrite variables and forward calls
+                self._diffusion_model.compile(jit_compile=self.jit_compile)
+                self._diffusion_model_ptp = self._diffusion_model
+
+            # Add extra variables and callbacks
+            ptp_utils.rename_cross_attention_layers(self._diffusion_model_ptp)
+            ptp_utils.overwrite_forward_call(self._diffusion_model_ptp)
+            ptp_utils.set_initial_tf_variables(self._diffusion_model_ptp)
+
+        return self._diffusion_model_ptp
