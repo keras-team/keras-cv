@@ -89,6 +89,7 @@ augmenter = keras_cv.layers.Augmenter(
     ]
 )
 
+
 def apply_augmenter(images, bounding_boxes):
     inputs = {
         "images": images,
@@ -99,13 +100,12 @@ def apply_augmenter(images, bounding_boxes):
 
     return outputs["images"], outputs["bounding_boxes"]
 
+
 def proc_train_fn(bounding_box_format, img_size):
     def apply(inputs):
         image = inputs["image"]
         image = tf.cast(image, tf.float32)
-        image = tf.image.resize(
-            image, (IMG_SIZE, IMG_SIZE)
-        )
+        image = tf.image.resize(image, (IMG_SIZE, IMG_SIZE))
         image = tf.reshape(image, [IMG_SIZE, IMG_SIZE, 3])
         boxes = inputs["objects"]["bbox"]
         classes = tf.cast(inputs["objects"]["label"], tf.float32)
