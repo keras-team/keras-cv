@@ -19,6 +19,9 @@ import tensorflow.keras.backend as K
 import keras_cv
 from keras_cv import bounding_box
 from keras_cv.models.object_detection import predict_utils
+from keras_cv.models.object_detection.yolox.__internal__.binary_crossentropy import (
+    BinaryCrossentropy,
+)
 from keras_cv.models.object_detection.yolox.__internal__.layers.yolox_decoder import (
     DecodePredictions,
 )
@@ -435,11 +438,11 @@ class YoloX(tf.keras.Model):
             [0, num_fg, loss_iou, loss_obj, loss_cls],
         )
 
+        num_fg = tf.cast(tf.maximum(num_fg, 1), tf.float32)
         self.classification_loss_metric.update_state(loss_cls / num_fg)
         self.box_loss_metric.update_state(loss_iou / num_fg)
         self.objectness_loss_metric.update_state(loss_obj / num_fg)
 
-        num_fg = tf.cast(tf.maximum(num_fg, 1), tf.float32)
         reg_weight = 5.0
         loss = reg_weight * loss_iou + loss_obj + loss_cls
 
@@ -701,11 +704,6 @@ class YoloX(tf.keras.Model):
         )
         self.compiled_metrics.update_state(y_true, y_pred)
 
-    def predict(self, x, **kwargs):
-        predictions = super().predict(x, **kwargs)
-        predictions = self.decode_predictions(x, predictions)
-        return predictions
-
 
 def _parse_box_loss(loss):
     if not isinstance(loss, str):
@@ -715,11 +713,14 @@ def _parse_box_loss(loss):
     # case insensitive comparison
     if loss.lower() == "iou":
         return keras_cv.losses.IoULoss(
-            bounding_box_format="center_xywh", mode="quadratic", reduction="none"
+            bounding_box_format="center_xywh",
+            mode="quadratic",
+            reduction="none",
+            axis="no_reduction",
         )
     if loss.lower() == "giou":
         return keras_cv.losses.GIoULoss(
-            bounding_box_format="center_xywh", reduction="none"
+            bounding_box_format="center_xywh", reduction="none", axis="no_reduction"
         )
 
     raise ValueError(
@@ -735,7 +736,7 @@ def _parse_classification_loss(loss):
 
     # case insensitive comparison
     if loss.lower() == "binary_crossentropy":
-        return tf.keras.losses.BinaryCrossentropy(from_logits=True, reduction="none")
+        return BinaryCrossentropy(from_logits=True, reduction="none")
 
     raise ValueError(
         "Expected `classification_loss` to be either a Keras Loss, "
@@ -750,7 +751,7 @@ def _parse_objectness_loss(loss):
 
     # case insensitive comparison
     if loss.lower() == "binary_crossentropy":
-        return tf.keras.losses.BinaryCrossentropy(from_logits=True, reduction="none")
+        return BinaryCrossentropy(from_logits=True, reduction="none")
 
     raise ValueError(
         "Expected `objectness_loss` to be either a Keras Loss, "

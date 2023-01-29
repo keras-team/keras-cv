@@ -163,9 +163,14 @@ class GIoULoss(keras.losses.Loss):
         giou = tf.linalg.diag_part(giou)
         if self.axis == "no_reduction":
             warnings.warn(
+<<<<<<< HEAD
                 "`axis='no_reduction'` is a temporary API, and the API contract "
                 "will be replaced in the future with a more generic solution "
                 "covering all losses."
+=======
+                "no_reduction is for internal use only at this time and the API "
+                "contract will be broken."
+>>>>>>> 04be276 (TPU testing changes)
             )
         else:
             giou = tf.reduce_mean(giou, axis=self.axis)
