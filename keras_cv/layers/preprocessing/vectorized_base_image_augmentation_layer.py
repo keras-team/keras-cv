@@ -33,8 +33,6 @@ IS_DICT = "is_dict"
 BATCHED = "batched"
 USE_TARGETS = "use_targets"
 
-_ALL_KEYS = [IMAGES, LABELS, TARGETS, BOUNDING_BOXES, KEYPOINTS, SEGMENTATION_MASKS]
-
 
 class VectorizedBaseImageAugmentationLayer(
     tf.keras.__internal__.layers.BaseRandomLayer
