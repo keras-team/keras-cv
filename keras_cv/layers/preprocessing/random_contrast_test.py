@@ -31,18 +31,20 @@ class RandomContrastTest(tf.test.TestCase):
         image_shape = (4, 8, 8, 3)
         image = tf.random.uniform(shape=image_shape) * 255.0
 
-        layer = preprocessing.RandomContrast(factor=0)
+        # Random contrast does not allow for a 0 factor
+        layer = preprocessing.RandomContrast(factor=0.00001)
         output = layer(image)
 
-        self.assertAllClose(image, output, atol=1e-5, rtol=1e-5)
+        self.assertAllClose(image, output, atol=1e-1, rtol=1e-1)
 
     def test_with_unit8(self):
         image_shape = (4, 8, 8, 3)
         image = tf.cast(tf.random.uniform(shape=image_shape) * 255.0, dtype=tf.uint8)
 
-        layer = preprocessing.RandomContrast(factor=0)
+        # Random contrast does not allow for a 0 factor
+        layer = preprocessing.RandomContrast(factor=0.00001)
         output = layer(image)
-        self.assertAllClose(image, output, atol=1e-5, rtol=1e-5)
+        self.assertAllClose(image, output, atol=1e-1, rtol=1e-1)
 
         layer = preprocessing.RandomContrast(factor=(0.3, 0.8))
         output = layer(image)

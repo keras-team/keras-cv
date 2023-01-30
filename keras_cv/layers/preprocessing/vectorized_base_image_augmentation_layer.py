@@ -42,7 +42,7 @@ class VectorizedBaseImageAugmentationLayer(
     def __init__(self, seed=None, **kwargs):
         super().__init__(seed=seed, **kwargs)
 
-    def augment_image(self, image, transformation, **kwargs):
+    def augment_images(self, images, transformations, **kwargs):
         """Augment a single image during training.
 
         Args:
@@ -57,7 +57,7 @@ class VectorizedBaseImageAugmentationLayer(
         """
         raise NotImplementedError()
 
-    def augment_label(self, label, transformation, **kwargs):
+    def augment_labels(self, labels, transformation, **kwargs):
         """Augment a single label during training.
 
         Args:
@@ -71,7 +71,7 @@ class VectorizedBaseImageAugmentationLayer(
         """
         raise NotImplementedError()
 
-    def augment_target(self, target, transformation, **kwargs):
+    def augment_targets(self, targets, transformations, **kwargs):
         """Augment a single target during training.
 
         Args:
@@ -83,9 +83,9 @@ class VectorizedBaseImageAugmentationLayer(
         Returns:
           output 1D tensor, which will be forward to `layer.call()`.
         """
-        return self.augment_label(target, transformation)
+        return self.augment_labels(targets, transformations)
 
-    def augment_bounding_boxes(self, bounding_boxes, transformation, **kwargs):
+    def augment_bounding_boxes(self, bounding_boxes, transformations, **kwargs):
         """Augment bounding boxes for one image during training.
 
         Args:
@@ -102,7 +102,7 @@ class VectorizedBaseImageAugmentationLayer(
         """
         raise NotImplementedError()
 
-    def augment_keypoints(self, keypoints, transformation, **kwargs):
+    def augment_keypoints(self, keypoints, transformations, **kwargs):
         """Augment keypoints for one image during training.
 
         Args:
@@ -117,7 +117,7 @@ class VectorizedBaseImageAugmentationLayer(
         """
         raise NotImplementedError()
 
-    def augment_segmentation_mask(self, segmentation_mask, transformation, **kwargs):
+    def augment_segmentation_masks(self, segmentation_masks, transformations, **kwargs):
         """Augment a single image's segmentation mask during training.
 
         Args:
@@ -162,21 +162,21 @@ class VectorizedBaseImageAugmentationLayer(
         return None
 
     def _batch_augment(self, inputs):
-        raw_image = inputs.get(IMAGES, None)
+        images = inputs.get(IMAGES, None)
         labels = inputs.get(LABELS, None)
         bounding_boxes = inputs.get(BOUNDING_BOXES, None)
         keypoints = inputs.get(KEYPOINTS, None)
         segmentation_masks = inputs.get(SEGMENTATION_MASKS, None)
 
-        batch_size = tf.shape(image)[0]
+        batch_size = tf.shape(images)[0]
 
         transformations = self.get_random_transformation_batch(
             batch_size,
-            image=image,
-            label=label,
+            images=images,
+            labels=labels,
             bounding_boxes=bounding_boxes,
             keypoints=keypoints,
-            segmentation_mask=segmentation_mask,
+            segmentation_masks=segmentation_masks,
         )
 
         images = self.augment_images(
@@ -244,15 +244,14 @@ class VectorizedBaseImageAugmentationLayer(
             return inputs
 
     def _format_inputs(self, inputs):
-        metadata = {IS_DICT: True, USE_TARGETS: False, BATCHED: True}
+        metadata = {IS_DICT: True, USE_TARGETS: False}
         if tf.is_tensor(inputs):
             # single image input tensor
             metadata[IS_DICT] = False
             inputs = {IMAGES: inputs}
 
+        metadata[BATCHED] = inputs["images"].shape.rank == 4
         if inputs["images"].shape.rank == 3:
-            metadata[BATCHED] = False
-
             for key in list(inputs.keys()):
                 inputs[key] = tf.expand_dims(inputs[key], axis=0)
 
@@ -274,7 +273,7 @@ class VectorizedBaseImageAugmentationLayer(
         return inputs, metadata
 
     def _format_output(self, output, metadata):
-        if metadata["unbatched"]:
+        if not metadata[BATCHED]:
             for key in list(output.keys()):
                 output[key] = tf.squeeze(output[key], axis=0)
 
@@ -284,3 +283,24 @@ class VectorizedBaseImageAugmentationLayer(
             output[TARGETS] = output[LABELS]
             del output[LABELS]
         return output
+
+    def _ensure_inputs_are_compute_dtype(self, inputs):
+        if not isinstance(inputs, dict):
+            return preprocessing.ensure_tensor(
+                inputs,
+                self.compute_dtype,
+            )
+        inputs[IMAGES] = preprocessing.ensure_tensor(
+            inputs[IMAGES],
+            self.compute_dtype,
+        )
+        if BOUNDING_BOXES in inputs:
+            inputs[BOUNDING_BOXES]["boxes"] = preprocessing.ensure_tensor(
+                inputs[BOUNDING_BOXES]["boxes"],
+                self.compute_dtype,
+            )
+            inputs[BOUNDING_BOXES]["classes"] = preprocessing.ensure_tensor(
+                inputs[BOUNDING_BOXES]["classes"],
+                self.compute_dtype,
+            )
+        return inputs
