@@ -43,7 +43,7 @@ class VectorizedBaseImageAugmentationLayer(
         super().__init__(seed=seed, **kwargs)
 
     def augment_images(self, images, transformations, **kwargs):
-        """Augment a single image during training.
+        """Augment a batch of images during training.
 
         Args:
           image: 3D image input tensor to the layer. Forwarded from
@@ -58,7 +58,7 @@ class VectorizedBaseImageAugmentationLayer(
         raise NotImplementedError()
 
     def augment_labels(self, labels, transformation, **kwargs):
-        """Augment a single label during training.
+        """Augment a batch of  labels during training.
 
         Args:
           label: 1D label to the layer. Forwarded from `layer.call()`.
@@ -72,7 +72,7 @@ class VectorizedBaseImageAugmentationLayer(
         raise NotImplementedError()
 
     def augment_targets(self, targets, transformations, **kwargs):
-        """Augment a single target during training.
+        """Augment a batch of targets during training.
 
         Args:
           target: 1D label to the layer. Forwarded from `layer.call()`.
@@ -103,7 +103,7 @@ class VectorizedBaseImageAugmentationLayer(
         raise NotImplementedError()
 
     def augment_keypoints(self, keypoints, transformations, **kwargs):
-        """Augment keypoints for one image during training.
+        """Augment a batch of keypoints for one image during training.
 
         Args:
           keypoints: 2D keypoints input tensor to the layer. Forwarded from
@@ -118,7 +118,7 @@ class VectorizedBaseImageAugmentationLayer(
         raise NotImplementedError()
 
     def augment_segmentation_masks(self, segmentation_masks, transformations, **kwargs):
-        """Augment a single image's segmentation mask during training.
+        """Augment a batch of images' segmentation masks during training.
 
         Args:
           segmentation_mask: 3D segmentation mask input tensor to the layer.
@@ -155,8 +155,8 @@ class VectorizedBaseImageAugmentationLayer(
           segmentation_mask: optional 3D segmentation mask tensor from inputs.
 
         Returns:
-          Any type of object, which will be forwarded to `augment_image`,
-          `augment_label` and `augment_bounding_box` as the `transformation`
+          Any type of object, which will be forwarded to `augment_images`,
+          `augment_labels` and `augment_bounding_boxes` as the `transformations`
           parameter.
         """
         return None
