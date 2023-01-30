@@ -13,7 +13,6 @@
 # limitations under the License.
 import tensorflow as tf
 import tensorflow_datasets as tfds
-from tensorflow import keras
 
 import keras_cv
 
