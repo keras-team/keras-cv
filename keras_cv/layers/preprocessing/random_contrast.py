@@ -17,7 +17,6 @@ import tensorflow as tf
 from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer import (
     VectorizedBaseImageAugmentationLayer,
 )
-from keras_cv.utils import preprocessing
 
 
 @tf.keras.utils.register_keras_serializable(package="keras_cv")
@@ -75,7 +74,6 @@ class RandomContrast(VectorizedBaseImageAugmentationLayer):
         return
 
     def augment_images(self, images, transformations, **kwargs):
-        contrast_factor = transformations
         # Note: we skip get_random_transformation_batch() in RandomContrast because the
         # tf.image.adjust_contrast op does not expose a batch argument.
         output = tf.image.random_contrast(
@@ -89,10 +87,10 @@ class RandomContrast(VectorizedBaseImageAugmentationLayer):
         return output
 
     def augment_labels(self, labels, transformations, **kwargs):
-        return label
+        return labels
 
     def augment_segmentation_masks(self, segmentation_masks, transformations, **kwargs):
-        return segmentation_mask
+        return segmentation_masks
 
     def augment_bounding_boxes(self, bounding_boxes, transformations=None, **kwargs):
         return bounding_boxes

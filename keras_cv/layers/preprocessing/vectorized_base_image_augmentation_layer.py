@@ -201,7 +201,7 @@ class VectorizedBaseImageAugmentationLayer(
                 bounding_boxes,
                 transformations=transformations,
                 labels=labels,
-                images=raw_images,
+                images=images,
             )
             bounding_boxes = bounding_box.to_ragged(bounding_boxes)
             result[BOUNDING_BOXES] = bounding_boxes
