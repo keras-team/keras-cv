@@ -29,6 +29,12 @@ Thank you!
 """
 
 
+@pytest.mark.skipif(
+    "INTEGRATION" not in os.environ or os.environ["INTEGRATION"] != "true",
+    reason="Takes a long time to run, only runs when INTEGRATION "
+    "environment variable is set.  To run the test please run: \n"
+    "`INTEGRATION=true pytest keras_cv/",
+)
 def test_quickstart_runs():
     augmenter = keras_cv.layers.Augmenter(
         layers=[
