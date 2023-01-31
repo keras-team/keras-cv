@@ -361,10 +361,10 @@ class SerializationTest(tf.test.TestCase, parameterized.TestCase):
             "GlobalRandomScaling",
             cv_layers.GlobalRandomScaling,
             {
-                "scaling_factor_x": (0.2, 1.0),
-                "scaling_factor_y": (0.3, 1.1),
-                "scaling_factor_z": (0.4, 1.3),
-                "same_scaling_xyz": False,
+                "x_factor": (0.2, 1.0),
+                "y_factor": (0.3, 1.1),
+                "z_factor": (0.4, 1.3),
+                "preserve_aspect_ratio": False,
             },
         ),
         (

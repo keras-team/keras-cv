@@ -44,116 +44,110 @@ class GlobalRandomScaling(base_augmentation_layer_3d.BaseAugmentationLayer3D):
       A dictionary of Tensors with the same shape as input Tensors.
 
     Arguments:
-      scaling_factor_x: A tuple of float scalars or a float scalar sets the minimum and maximum scaling factors for the X axis.
-      scaling_factor_y: A tuple of float scalars or a float scalar sets the minimum and maximum scaling factors for the Y axis.
-      scaling_factor_z: A tuple of float scalars or a float scalar sets the minimum and maximum scaling factors for the Z axis.
+      x_factor: A tuple of float scalars or a float scalar sets the minimum and maximum scaling factors for the X axis.
+      y_factor: A tuple of float scalars or a float scalar sets the minimum and maximum scaling factors for the Y axis.
+      z_factor: A tuple of float scalars or a float scalar sets the minimum and maximum scaling factors for the Z axis.
     """
 
     def __init__(
         self,
-        scaling_factor_x=None,
-        scaling_factor_y=None,
-        scaling_factor_z=None,
-        same_scaling_xyz=False,
+        x_factor=None,
+        y_factor=None,
+        z_factor=None,
+        preserve_aspect_ratio=False,
         **kwargs
     ):
         super().__init__(**kwargs)
-        if not scaling_factor_x:
-            min_scaling_factor_x = 1.0
-            max_scaling_factor_x = 1.0
-        elif type(scaling_factor_x) is float:
-            min_scaling_factor_x = scaling_factor_x
-            max_scaling_factor_x = scaling_factor_x
+        if not x_factor:
+            min_x_factor = 1.0
+            max_x_factor = 1.0
+        elif type(x_factor) is float:
+            min_x_factor = x_factor
+            max_x_factor = x_factor
         else:
-            min_scaling_factor_x = scaling_factor_x[0]
-            max_scaling_factor_x = scaling_factor_x[1]
-        if not scaling_factor_y:
-            min_scaling_factor_y = 1.0
-            max_scaling_factor_y = 1.0
-        elif type(scaling_factor_y) is float:
-            min_scaling_factor_y = scaling_factor_y
-            max_scaling_factor_y = scaling_factor_y
+            min_x_factor = x_factor[0]
+            max_x_factor = x_factor[1]
+        if not y_factor:
+            min_y_factor = 1.0
+            max_y_factor = 1.0
+        elif type(y_factor) is float:
+            min_y_factor = y_factor
+            max_y_factor = y_factor
         else:
-            min_scaling_factor_y = scaling_factor_y[0]
-            max_scaling_factor_y = scaling_factor_y[1]
-        if not scaling_factor_z:
-            min_scaling_factor_z = 1.0
-            max_scaling_factor_z = 1.0
-        elif type(scaling_factor_z) is float:
-            min_scaling_factor_z = scaling_factor_z
-            max_scaling_factor_z = scaling_factor_z
+            min_y_factor = y_factor[0]
+            max_y_factor = y_factor[1]
+        if not z_factor:
+            min_z_factor = 1.0
+            max_z_factor = 1.0
+        elif type(z_factor) is float:
+            min_z_factor = z_factor
+            max_z_factor = z_factor
         else:
-            min_scaling_factor_z = scaling_factor_z[0]
-            max_scaling_factor_z = scaling_factor_z[1]
+            min_z_factor = z_factor[0]
+            max_z_factor = z_factor[1]
 
         if (
-            min_scaling_factor_x < 0
-            or max_scaling_factor_x < 0
-            or min_scaling_factor_y < 0
-            or max_scaling_factor_y < 0
-            or min_scaling_factor_z < 0
-            or max_scaling_factor_z < 0
+            min_x_factor < 0
+            or max_x_factor < 0
+            or min_y_factor < 0
+            or max_y_factor < 0
+            or min_z_factor < 0
+            or max_z_factor < 0
         ):
-            raise ValueError("min_scaling_factor and max_scaling_factor must be >=0.")
+            raise ValueError("min_factor and max_factor must be >=0.")
         if (
-            min_scaling_factor_x > max_scaling_factor_x
-            or min_scaling_factor_y > max_scaling_factor_y
-            or min_scaling_factor_z > max_scaling_factor_z
+            min_x_factor > max_x_factor
+            or min_y_factor > max_y_factor
+            or min_z_factor > max_z_factor
         ):
-            raise ValueError("min_scaling_factor must be less than max_scaling_factor.")
-        if same_scaling_xyz:
-            if (
-                min_scaling_factor_x != min_scaling_factor_y
-                or min_scaling_factor_y != min_scaling_factor_z
-            ):
+            raise ValueError("min_factor must be less than max_factor.")
+        if preserve_aspect_ratio:
+            if min_x_factor != min_y_factor or min_y_factor != min_z_factor:
                 raise ValueError(
-                    "min_scaling_factor must be the same when same_scaling_xyz is true."
+                    "min_factor must be the same when preserve_aspect_ratio is true."
                 )
-            if (
-                max_scaling_factor_x != max_scaling_factor_y
-                or max_scaling_factor_y != max_scaling_factor_z
-            ):
+            if max_x_factor != max_y_factor or max_y_factor != max_z_factor:
                 raise ValueError(
-                    "max_scaling_factor must be the same when same_scaling_xyz is true."
+                    "max_factor must be the same when preserve_aspect_ratio is true."
                 )
 
-        self._min_scaling_factor_x = min_scaling_factor_x
-        self._max_scaling_factor_x = max_scaling_factor_x
-        self._min_scaling_factor_y = min_scaling_factor_y
-        self._max_scaling_factor_y = max_scaling_factor_y
-        self._min_scaling_factor_z = min_scaling_factor_z
-        self._max_scaling_factor_z = max_scaling_factor_z
-        self._same_scaling_xyz = same_scaling_xyz
+        self._min_x_factor = min_x_factor
+        self._max_x_factor = max_x_factor
+        self._min_y_factor = min_y_factor
+        self._max_y_factor = max_y_factor
+        self._min_z_factor = min_z_factor
+        self._max_z_factor = max_z_factor
+        self._preserve_aspect_ratio = preserve_aspect_ratio
 
     def get_config(self):
         return {
-            "scaling_factor_x": (
-                self._min_scaling_factor_x,
-                self._max_scaling_factor_x,
+            "x_factor": (
+                self._min_x_factor,
+                self._max_x_factor,
             ),
-            "scaling_factor_y": (
-                self._min_scaling_factor_y,
-                self._max_scaling_factor_y,
+            "y_factor": (
+                self._min_y_factor,
+                self._max_y_factor,
             ),
-            "scaling_factor_z": (
-                self._min_scaling_factor_z,
-                self._max_scaling_factor_z,
+            "z_factor": (
+                self._min_z_factor,
+                self._max_z_factor,
             ),
-            "same_scaling_xyz": self._same_scaling_xyz,
+            "preserve_aspect_ratio": self._preserve_aspect_ratio,
         }
 
     def get_random_transformation(self, **kwargs):
 
         random_scaling_x = self._random_generator.random_uniform(
-            (), minval=self._min_scaling_factor_x, maxval=self._max_scaling_factor_x
+            (), minval=self._min_x_factor, maxval=self._max_x_factor
         )
         random_scaling_y = self._random_generator.random_uniform(
-            (), minval=self._min_scaling_factor_y, maxval=self._max_scaling_factor_y
+            (), minval=self._min_y_factor, maxval=self._max_y_factor
         )
         random_scaling_z = self._random_generator.random_uniform(
-            (), minval=self._min_scaling_factor_z, maxval=self._max_scaling_factor_z
+            (), minval=self._min_z_factor, maxval=self._max_z_factor
         )
-        if not self._same_scaling_xyz:
+        if not self._preserve_aspect_ratio:
             return {
                 "scale": tf.stack(
                     [random_scaling_x, random_scaling_y, random_scaling_z]
