@@ -15,9 +15,6 @@
 import tensorflow as tf
 from tensorflow import keras
 
-from keras_cv.models.stable_diffusion.__internal__.layers.group_normalization import (
-    GroupNormalization,
-)
 from keras_cv.models.stable_diffusion.__internal__.layers.padded_conv2d import (
     PaddedConv2D,
 )
@@ -98,7 +95,7 @@ class DiffusionModel(keras.Model):
 
         # Exit flow
 
-        x = GroupNormalization(epsilon=1e-5)(x)
+        x = keras.layers.GroupNormalization(epsilon=1e-5)(x)
         x = keras.layers.Activation("swish")(x)
         output = PaddedConv2D(4, kernel_size=3, padding=1)(x)
 
@@ -187,7 +184,7 @@ class DiffusionModelV2(keras.Model):
 
         # Exit flow
 
-        x = GroupNormalization(epsilon=1e-5)(x)
+        x = keras.layers.GroupNormalization(epsilon=1e-5)(x)
         x = keras.layers.Activation("swish")(x)
         output = PaddedConv2D(4, kernel_size=3, padding=1)(x)
 
@@ -206,7 +203,7 @@ class ResBlock(keras.layers.Layer):
         super().__init__(**kwargs)
         self.output_dim = output_dim
         self.entry_flow = [
-            GroupNormalization(epsilon=1e-5),
+            keras.layers.GroupNormalization(epsilon=1e-5),
             keras.layers.Activation("swish"),
             PaddedConv2D(output_dim, 3, padding=1),
         ]
@@ -215,7 +212,7 @@ class ResBlock(keras.layers.Layer):
             keras.layers.Dense(output_dim),
         ]
         self.exit_flow = [
-            GroupNormalization(epsilon=1e-5),
+            keras.layers.GroupNormalization(epsilon=1e-5),
             keras.layers.Activation("swish"),
             PaddedConv2D(output_dim, 3, padding=1),
         ]
@@ -242,7 +239,7 @@ class ResBlock(keras.layers.Layer):
 class SpatialTransformer(keras.layers.Layer):
     def __init__(self, num_heads, head_size, fully_connected=False, **kwargs):
         super().__init__(**kwargs)
-        self.norm = GroupNormalization(epsilon=1e-5)
+        self.norm = keras.layers.GroupNormalization(epsilon=1e-5)
         channels = num_heads * head_size
         if fully_connected:
             self.proj1 = keras.layers.Dense(num_heads * head_size)
