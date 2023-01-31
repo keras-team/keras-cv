@@ -249,15 +249,16 @@ class _SingleAnchorGenerator:
         half_anchor_widths = tf.reshape(0.5 * anchor_widths, [1, 1, -1])
 
         stride = tf.cast(self.stride, tf.float32)
+        # make sure range of `cx` is within limit of `image_width` with `stride`,
+        # also for sizes where `image_width % stride != 0`.
         # [W]
-        cx = tf.range(image_width // stride)
+        cx = tf.range(0.5 * stride, (image_width // stride) * stride, stride)
+        # make sure range of `cy` is within limit of `image_height` with `stride`,
+        # also for sizes where `image_height % stride != 0`.
         # [H]
-        cy = tf.range(image_height // stride)
+        cy = tf.range(0.5 * stride, (image_height // stride) * stride, stride)
         # [H, W]
-        cx_grid, cy_grid = tf.meshgrid(
-            cx * stride + 0.5 * stride,
-            cy * stride + 0.5 * stride,
-        )
+        cx_grid, cy_grid = tf.meshgrid(cx, cy)
         # [H, W, 1]
         cx_grid = tf.expand_dims(cx_grid, axis=-1)
         cy_grid = tf.expand_dims(cy_grid, axis=-1)
