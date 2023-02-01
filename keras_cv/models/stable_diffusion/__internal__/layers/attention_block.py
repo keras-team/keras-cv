@@ -15,9 +15,6 @@
 import tensorflow as tf
 from tensorflow import keras
 
-from keras_cv.models.stable_diffusion.__internal__.layers.group_normalization import (
-    GroupNormalization,
-)
 from keras_cv.models.stable_diffusion.__internal__.layers.padded_conv2d import (
     PaddedConv2D,
 )
@@ -27,7 +24,7 @@ class AttentionBlock(keras.layers.Layer):
     def __init__(self, output_dim, **kwargs):
         super().__init__(**kwargs)
         self.output_dim = output_dim
-        self.norm = GroupNormalization(epsilon=1e-5)
+        self.norm = keras.layers.GroupNormalization(epsilon=1e-5)
         self.q = PaddedConv2D(output_dim, 1)
         self.k = PaddedConv2D(output_dim, 1)
         self.v = PaddedConv2D(output_dim, 1)

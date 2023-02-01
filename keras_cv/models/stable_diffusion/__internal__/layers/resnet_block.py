@@ -14,9 +14,6 @@
 
 from tensorflow import keras
 
-from keras_cv.models.stable_diffusion.__internal__.layers.group_normalization import (
-    GroupNormalization,
-)
 from keras_cv.models.stable_diffusion.__internal__.layers.padded_conv2d import (
     PaddedConv2D,
 )
@@ -26,9 +23,9 @@ class ResnetBlock(keras.layers.Layer):
     def __init__(self, output_dim, **kwargs):
         super().__init__(**kwargs)
         self.output_dim = output_dim
-        self.norm1 = GroupNormalization(epsilon=1e-5)
+        self.norm1 = keras.layers.GroupNormalization(epsilon=1e-5)
         self.conv1 = PaddedConv2D(output_dim, 3, padding=1)
-        self.norm2 = GroupNormalization(epsilon=1e-5)
+        self.norm2 = keras.layers.GroupNormalization(epsilon=1e-5)
         self.conv2 = PaddedConv2D(output_dim, 3, padding=1)
 
     def build(self, input_shape):
