@@ -259,7 +259,7 @@ class StableDiffusionBase:
         Args:
             prompt (str): Text containing the information for the model to generate.
             prompt_edit (str): Second prompt used to control the edit of the generated image.
-            method (str): Prompt-to-Prompt method to chose. Can be ['refine', 'replace', 'reweigh'].
+            method (str): Prompt-to-Prompt method to chose. Can be ['refine', 'replace', 'reweight'].
             self_attn_steps (Union[float, Tuple[float, float]]): Specifies at which step
                 of the start of the diffusion process it replaces the self attention maps with
                 the ones produced by the edited prompt.
