@@ -240,7 +240,6 @@ def ConvMixer_1536_20(
     name="ConvMixer_1536_20",
     **kwargs,
 ):
-
     return ConvMixer(
         dim=MODEL_CONFIGS["ConvMixer_1536_20"]["dim"],
         depth=MODEL_CONFIGS["ConvMixer_1536_20"]["depth"],
@@ -271,7 +270,6 @@ def ConvMixer_1536_24(
     name="ConvMixer_1536_24",
     **kwargs,
 ):
-
     return ConvMixer(
         dim=MODEL_CONFIGS["ConvMixer_1536_24"]["dim"],
         depth=MODEL_CONFIGS["ConvMixer_1536_24"]["depth"],
@@ -302,7 +300,6 @@ def ConvMixer_768_32(
     name="ConvMixer_768_32",
     **kwargs,
 ):
-
     return ConvMixer(
         dim=MODEL_CONFIGS["ConvMixer_768_32"]["dim"],
         depth=MODEL_CONFIGS["ConvMixer_768_32"]["depth"],
@@ -333,7 +330,6 @@ def ConvMixer_1024_16(
     name="ConvMixer_1024_16",
     **kwargs,
 ):
-
     return ConvMixer(
         dim=MODEL_CONFIGS["ConvMixer_1024_16"]["dim"],
         depth=MODEL_CONFIGS["ConvMixer_1024_16"]["depth"],
@@ -364,7 +360,6 @@ def ConvMixer_512_16(
     name="ConvMixer_512_16",
     **kwargs,
 ):
-
     return ConvMixer(
         dim=MODEL_CONFIGS["ConvMixer_512_16"]["dim"],
         depth=MODEL_CONFIGS["ConvMixer_512_16"]["depth"],

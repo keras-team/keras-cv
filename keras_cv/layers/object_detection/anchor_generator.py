@@ -218,7 +218,6 @@ class _SingleAnchorGenerator:
         clip_boxes=False,
         dtype="float32",
     ):
-
         self.sizes = sizes
         self.scales = scales
         self.aspect_ratios = aspect_ratios

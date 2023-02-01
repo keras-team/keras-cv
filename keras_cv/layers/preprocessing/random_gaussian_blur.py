@@ -67,7 +67,6 @@ class RandomGaussianBlur(BaseImageAugmentationLayer):
         return (blur_v, blur_h)
 
     def augment_image(self, image, transformation=None, **kwargs):
-
         image = tf.expand_dims(image, axis=0)
 
         num_channels = tf.shape(image)[-1]

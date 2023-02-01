@@ -40,7 +40,6 @@ def load_voc_dataset(
     name="voc/2007",
     batch_size=9,
 ):
-
     dataset = tfds.load(name, split=tfds.Split.TRAIN, shuffle_files=True)
     dataset = dataset.map(
         lambda x: preprocess_voc(x, format=bounding_box_format),

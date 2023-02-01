@@ -183,7 +183,6 @@ class MBConvBlock(layers.Layer):
 
         # Squeeze and excite
         if 0 < self.se_ratio <= 1:
-
             se = layers.GlobalAveragePooling2D(name=self.name + "se_squeeze")(x)
             if BN_AXIS == 1:
                 se_shape = (self.filters, 1, 1)

@@ -38,7 +38,6 @@ def load_voc_dataset(
     batch_size=9,
     image_size=(224, 224),
 ):
-
     dataset = tfds.load(name, split=tfds.Split.TRAIN, shuffle_files=True)
     dataset = dataset.map(
         lambda x: preprocess_voc(x, format=bounding_box_format, image_size=image_size),

@@ -156,7 +156,7 @@ class BoxMatcher(tf.keras.layers.Layer):
                 matched_values = tf.zeros([batch_size, num_rows], tf.int32)
 
                 match_dtype = matched_vals.dtype
-                for (ind, low, high) in zip(
+                for ind, low, high in zip(
                     self.match_values, self.thresholds[:-1], self.thresholds[1:]
                 ):
                     low_threshold = tf.cast(low, match_dtype)
