@@ -25,6 +25,7 @@ import math
 from typing import Optional
 from typing import Tuple
 from typing import Union
+from typing import List
 
 import numpy as np
 import tensorflow as tf
@@ -589,6 +590,60 @@ class StableDiffusionBase:
         decoded = self.decoder.predict_on_batch(latent)
         decoded = ((decoded + 1) / 2) * 255
         return np.clip(decoded, 0, 255).astype("uint8")
+
+
+    def tokenize_prompt(self, prompt: str) -> tf.Tensor:
+        """Tokenize a phrase prompt.
+        
+        Args: 
+            prompt (str): The prompt string to tokenize, must be 77 tokens or shorter.
+   
+        Returns:
+            phrase (tf.Tensor): The tokenize prompt.
+        """
+        inputs = self.tokenizer.encode(prompt)
+        if len(inputs) > MAX_PROMPT_LENGTH:
+            raise ValueError(
+                f"Prompt is too long (should be <= {MAX_PROMPT_LENGTH} tokens)"
+            )
+        phrase = inputs + [49407] * (MAX_PROMPT_LENGTH - len(inputs))
+        phrase = tf.convert_to_tensor([phrase], dtype=tf.int32)
+        return phrase
+
+    def create_prompt_weights(
+        self, prompt: str, prompt_weights: List[Tuple[str, float]]
+    ) -> np.ndarray:
+        """Create an array of weights for each prompt token.
+        This is used for manipulating the importance of the prompt tokens,
+        increasing or decreasing the importance assigned to each word.
+
+        Args:
+            prompt (str): The prompt string to tokenize, must be 77 tokens or shorter.
+            prompt_weights (List[Tuple[str, float]]): A list of tuples containing the 
+                pair of word and weight to be manipulated.
+        
+        Returns:
+            weights (np.ndarray): Array of weights to control the importance of each prompt token.
+        """
+
+        # Initialize the weights to 1.
+        weights = np.ones(MAX_PROMPT_LENGTH)
+
+        # Get the prompt tokens
+        tokens = self.tokenize_prompt(prompt)
+
+        # Extract the new weights and tokens
+        edit_weights = [weight for word, weight in prompt_weights]
+        edit_tokens = [
+            self.tokenizer.encode(word)[1:-1] for word, weight in prompt_weights
+        ]
+
+        # Get the indexes of the tokens
+        index_edit_tokens = np.in1d(tokens, edit_tokens).nonzero()[0]
+
+        # Replace the original weight values
+        weights[index_edit_tokens] = edit_weights
+        return weights
 
     def _get_unconditional_context(self):
         unconditional_tokens = tf.convert_to_tensor(
