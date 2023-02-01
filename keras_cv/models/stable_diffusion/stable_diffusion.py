@@ -22,10 +22,10 @@ The current implementation is a rewrite of the initial TF/Keras port by Divam Gu
 """
 
 import math
+from typing import List
 from typing import Optional
 from typing import Tuple
 from typing import Union
-from typing import List
 
 import numpy as np
 import tensorflow as tf
@@ -591,13 +591,12 @@ class StableDiffusionBase:
         decoded = ((decoded + 1) / 2) * 255
         return np.clip(decoded, 0, 255).astype("uint8")
 
-
     def tokenize_prompt(self, prompt: str) -> tf.Tensor:
         """Tokenize a phrase prompt.
-        
-        Args: 
+
+        Args:
             prompt (str): The prompt string to tokenize, must be 77 tokens or shorter.
-   
+
         Returns:
             phrase (tf.Tensor): The tokenize prompt.
         """
@@ -619,9 +618,9 @@ class StableDiffusionBase:
 
         Args:
             prompt (str): The prompt string to tokenize, must be 77 tokens or shorter.
-            prompt_weights (List[Tuple[str, float]]): A list of tuples containing the 
+            prompt_weights (List[Tuple[str, float]]): A list of tuples containing the
                 pair of word and weight to be manipulated.
-        
+
         Returns:
             weights (np.ndarray): Array of weights to control the importance of each prompt token.
         """
