@@ -49,13 +49,17 @@ class AnchorGeneratorTest(tf.test.TestCase, parameterized.TestCase):
         with self.assertRaisesRegex(ValueError, "rank"):
             _ = anchor_generator(image=image)
 
-    def test_output_shapes_image(self):
+    @parameterized.parameters(
+        ((640, 480, 3),),
+        ((512, 512, 3),),
+        ((224, 224, 3),),
+    )
+    def test_output_shapes_image(self, image_shape):
         strides = [2**i for i in range(3, 8)]
         scales = [2**x for x in [0, 1 / 3, 2 / 3]]
         sizes = [x**2 for x in [32.0, 64.0, 128.0, 256.0, 512.0]]
         aspect_ratios = [0.5, 1.0, 2.0]
 
-        image_shape = (512, 512, 3)
         image = tf.random.uniform(image_shape)
         anchor_generator = cv_layers.AnchorGenerator(
             bounding_box_format="yxyx",
@@ -67,18 +71,27 @@ class AnchorGeneratorTest(tf.test.TestCase, parameterized.TestCase):
         boxes = anchor_generator(image=image)
         boxes = tf.concat(list(boxes.values()), axis=0)
 
-        # 49104 is a number found by using the previous internal anchor generator from
-        # PR https://github.com/keras-team/keras-cv/pull/609
-        # This unit test was written to ensure compatibility with the existing model.
-        self.assertEqual(boxes.shape, [49104, 4])
+        expected_box_shapes = (
+            (image_shape[0] // tf.constant(strides))
+            * (image_shape[1] // tf.constant(strides))
+            * len(scales)
+            * len(aspect_ratios)
+        )
 
-    def test_output_shapes_image_shape(self):
+        sum_expected_shape = (expected_box_shapes.numpy().sum(), 4)
+        self.assertEqual(boxes.shape, sum_expected_shape)
+
+    @parameterized.parameters(
+        ((640, 480, 3),),
+        ((512, 512, 3),),
+        ((224, 224, 3),),
+    )
+    def test_output_shapes_image_shape(self, image_shape):
         strides = [2**i for i in range(3, 8)]
         scales = [2**x for x in [0, 1 / 3, 2 / 3]]
         sizes = [x**2 for x in [32.0, 64.0, 128.0, 256.0, 512.0]]
         aspect_ratios = [0.5, 1.0, 2.0]
 
-        image_shape = (512, 512, 3)
         anchor_generator = cv_layers.AnchorGenerator(
             bounding_box_format="yxyx",
             sizes=sizes,
@@ -89,10 +102,15 @@ class AnchorGeneratorTest(tf.test.TestCase, parameterized.TestCase):
         boxes = anchor_generator(image_shape=image_shape)
         boxes = tf.concat(list(boxes.values()), axis=0)
 
-        # 49104 is a number found by using the previous internal anchor generator from
-        # PR https://github.com/keras-team/keras-cv/pull/609
-        # This unit test was written to ensure compatibility with the existing model.
-        self.assertEqual(boxes.shape, [49104, 4])
+        expected_box_shapes = (
+            (image_shape[0] // tf.constant(strides))
+            * (image_shape[1] // tf.constant(strides))
+            * len(scales)
+            * len(aspect_ratios)
+        )
+
+        sum_expected_shape = (expected_box_shapes.numpy().sum(), 4)
+        self.assertEqual(boxes.shape, sum_expected_shape)
 
     def test_hand_crafted_aspect_ratios(self):
         strides = [4]

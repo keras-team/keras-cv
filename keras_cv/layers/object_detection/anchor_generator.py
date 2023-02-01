@@ -188,7 +188,8 @@ class _SingleAnchorGenerator:
     ```
 
     Input shape: the size of the image, `[H, W, C]`
-    Output shape: the size of anchors, `[(H / stride) * (W / stride), 4]`
+    Output shape: the size of anchors,
+        `(H/stride * W/stride * len(scales) * len(aspect_ratios), 4)`.
 
     Args:
       sizes: A single int represents the base anchor size. The anchor
@@ -248,10 +249,14 @@ class _SingleAnchorGenerator:
         half_anchor_widths = tf.reshape(0.5 * anchor_widths, [1, 1, -1])
 
         stride = tf.cast(self.stride, tf.float32)
+        # make sure range of `cx` is within limit of `image_width` with `stride`,
+        # also for sizes where `image_width % stride != 0`.
         # [W]
-        cx = tf.range(0.5 * stride, image_width + 1, stride)
+        cx = tf.range(0.5 * stride, (image_width // stride) * stride, stride)
+        # make sure range of `cy` is within limit of `image_height` with `stride`,
+        # also for sizes where `image_height % stride != 0`.
         # [H]
-        cy = tf.range(0.5 * stride, image_height + 1, stride)
+        cy = tf.range(0.5 * stride, (image_height // stride) * stride, stride)
         # [H, W]
         cx_grid, cy_grid = tf.meshgrid(cx, cy)
         # [H, W, 1]
