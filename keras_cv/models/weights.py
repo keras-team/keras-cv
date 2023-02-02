@@ -17,6 +17,12 @@ from keras.utils import data_utils
 def parse_weights(weights, include_top, model_type):
     if not weights or tf.io.gfile.exists(weights):
         return weights
+    if weights.startswith("gs://"):
+        weights = weights.replace("gs://", "https://storage.googleapis.com/")
+        return data_utils.get_file(
+            origin=weights,
+            cache_subdir="models",
+        )
     if weights in ALIASES[model_type]:
         weights = ALIASES[model_type][weights]
     if weights in WEIGHTS_CONFIG[model_type]:
