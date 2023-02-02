@@ -110,11 +110,11 @@ class SerializationTest(tf.test.TestCase, parameterized.TestCase):
             config_equals(loss.get_config(), reconstructed_loss.get_config())
         )
 
-    def assertAllInitParametersAreInConfig(self, layer_cls, config):
+    def assertAllInitParametersAreInConfig(self, loss_cls, config):
         excluded_name = ["args", "kwargs", "*"]
         parameter_names = {
             v
-            for v in inspect.signature(layer_cls).parameters.keys()
+            for v in inspect.signature(loss_cls).parameters.keys()
             if v not in excluded_name
         }
 
