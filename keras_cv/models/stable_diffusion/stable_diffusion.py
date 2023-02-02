@@ -54,7 +54,6 @@ class StableDiffusionBase:
         img_width=512,
         jit_compile=False,
     ):
-
         # UNet requires multiples of 2**7 = 128
         img_height = round(img_height / 128) * 128
         img_width = round(img_width / 128) * 128
@@ -337,7 +336,6 @@ class StableDiffusionBase:
         iteration = 0
         # Diffusion stage
         for index, timestep in list(enumerate(timesteps))[::-1]:
-
             t_emb = self._get_timestep_embedding(timestep, batch_size)
 
             t_scale = 1 - (timestep / 1000)
