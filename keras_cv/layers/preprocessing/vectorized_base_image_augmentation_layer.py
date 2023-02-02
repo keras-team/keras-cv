@@ -207,7 +207,7 @@ class VectorizedBaseImageAugmentationLayer(
         if keypoints is not None:
             keypoints = self.augment_keypoints(
                 keypoints,
-                transformation=transformations,
+                transformations=transformations,
                 label=labels,
                 bounding_boxes=bounding_boxes,
                 images=images,
@@ -302,3 +302,14 @@ class VectorizedBaseImageAugmentationLayer(
                 self.compute_dtype,
             )
         return inputs
+
+    def _format_bounding_boxes(self, bounding_boxes):
+        # We can't catch the case where this is None, sometimes RaggedTensor drops this
+        # dimension
+        if "classes" not in bounding_boxes:
+            raise ValueError(
+                "Bounding boxes are missing class_id. If you would like to pad the "
+                "bounding boxes with class_id, use: "
+                "`bounding_boxes['classes'] = tf.ones_like(bounding_boxes['boxes'])`."
+            )
+        return bounding_boxes
