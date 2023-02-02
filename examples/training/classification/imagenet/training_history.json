@@ -1,4 +1,23 @@
 {
+    "convmixer_512_16": {
+        "v0": {
+            "accelerators": 8,
+            "args": {
+                "batch_size": "64",
+                "initial_learning_rate": "0.0125",
+                "use_ema": "True",
+                "weight_decay": "0.0001"
+            },
+            "contributor": "ianstenbit",
+            "epochs_trained": 136,
+            "script": {
+                "name": "basic_training.py",
+                "version": "c58b266f1bc21047a82a7ac983515d8818b9e438"
+            },
+            "tensorboard_logs": "https://tensorboard.dev/experiment/uM1t7gZJRMekAeKRPtJfrQ/",
+            "validation_accuracy": "0.7438"
+        }
+    },
     "cspdarknet": {
         "v0": {
             "accelerators": 8,
