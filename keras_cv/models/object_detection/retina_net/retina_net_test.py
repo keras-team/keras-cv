@@ -226,5 +226,5 @@ class RetinaNetTest(tf.test.TestCase):
 
     def build_backbone(self):
         return keras_cv.models.ResNet50(
-            include_top=False, weights="imagenet", include_rescaling=False
+            include_top=False, include_rescaling=False
         ).as_backbone()
