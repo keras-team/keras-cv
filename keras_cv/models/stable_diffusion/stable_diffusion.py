@@ -286,6 +286,12 @@ class StableDiffusionBase:
         """
 
         # Prompt-to-Prompt: check inputs
+        if method != "refine" or method != "replace" or method != "reweight":
+            raise ValueError(
+                "Please pass a valid Prompt-to-Prompt method.\n"
+                "Avaliable methods: ['refine', 'replace', 'reweight'], parsed method: {method}"
+            )
+
         if isinstance(self_attn_steps, float):
             self_attn_steps = (0.0, self_attn_steps)
         if isinstance(cross_attn_steps, float):
