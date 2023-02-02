@@ -15,7 +15,7 @@
 import numpy as np
 import tensorflow as tf
 
-from keras_cv.losses import BinaryPenaltyReducedFocalXent
+from keras_cv.losses import BinaryPenaltyReducedFocalCrossEntropy
 
 
 class BinaryPenaltyReducedFocalLossTest(tf.test.TestCase):
@@ -26,7 +26,7 @@ class BinaryPenaltyReducedFocalLossTest(tf.test.TestCase):
         )
         y_pred = tf.random.uniform(shape=[2, 5], minval=0, maxval=1, dtype=tf.float32)
 
-        focal_loss = BinaryPenaltyReducedFocalXent(reduction="sum")
+        focal_loss = BinaryPenaltyReducedFocalCrossEntropy(reduction="sum")
 
         self.assertAllEqual(focal_loss(y_true, y_pred).shape, [])
 
@@ -37,7 +37,7 @@ class BinaryPenaltyReducedFocalLossTest(tf.test.TestCase):
         )
         y_pred = tf.random.uniform(shape=[2, 5], minval=0, maxval=1, dtype=tf.float32)
 
-        focal_loss = BinaryPenaltyReducedFocalXent(reduction="none")
+        focal_loss = BinaryPenaltyReducedFocalCrossEntropy(reduction="none")
 
         self.assertAllEqual(
             [2, 5],
@@ -47,33 +47,33 @@ class BinaryPenaltyReducedFocalLossTest(tf.test.TestCase):
     def test_output_with_pos_label_pred(self):
         y_true = tf.constant([1.0])
         y_pred = tf.constant([1.0])
-        focal_loss = BinaryPenaltyReducedFocalXent(reduction="sum")
+        focal_loss = BinaryPenaltyReducedFocalCrossEntropy(reduction="sum")
         self.assertAllClose(0.0, focal_loss(y_true, y_pred))
 
     def test_output_with_pos_label_neg_pred(self):
         y_true = tf.constant([1.0])
         y_pred = tf.constant([np.exp(-1.0)])
-        focal_loss = BinaryPenaltyReducedFocalXent(reduction="sum")
+        focal_loss = BinaryPenaltyReducedFocalCrossEntropy(reduction="sum")
         # (1-1/e)^2 * log(1/e)
         self.assertAllClose(np.square(1 - np.exp(-1.0)), focal_loss(y_true, y_pred))
 
     def test_output_with_neg_label_pred(self):
         y_true = tf.constant([0.0])
         y_pred = tf.constant([0.0])
-        focal_loss = BinaryPenaltyReducedFocalXent(reduction="sum")
+        focal_loss = BinaryPenaltyReducedFocalCrossEntropy(reduction="sum")
         self.assertAllClose(0.0, focal_loss(y_true, y_pred))
 
     def test_output_with_neg_label_pos_pred(self):
         y_true = tf.constant([0.0])
         y_pred = tf.constant([1.0 - np.exp(-1.0)])
-        focal_loss = BinaryPenaltyReducedFocalXent(reduction="sum")
+        focal_loss = BinaryPenaltyReducedFocalCrossEntropy(reduction="sum")
         # (1-0)^4 * (1-1/e)^2 * log(1/e)
         self.assertAllClose(np.square(1 - np.exp(-1.0)), focal_loss(y_true, y_pred))
 
     def test_output_with_weak_label_pos_pred(self):
         y_true = tf.constant([0.5])
         y_pred = tf.constant([1.0 - np.exp(-1.0)])
-        focal_loss = BinaryPenaltyReducedFocalXent(beta=2.0, reduction="sum")
+        focal_loss = BinaryPenaltyReducedFocalCrossEntropy(beta=2.0, reduction="sum")
         # (1-0.5)^2 * (1-1/e)^2 * log(1/e)
         self.assertAllClose(
             0.25 * np.square(1 - np.exp(-1.0)), focal_loss(y_true, y_pred)
@@ -83,7 +83,7 @@ class BinaryPenaltyReducedFocalLossTest(tf.test.TestCase):
         y_true = tf.constant([0.0])
         y_pred = tf.constant([1.0 - np.exp(-1.0)])
         sample_weight = tf.constant([0.5])
-        focal_loss = BinaryPenaltyReducedFocalXent(reduction="sum")
+        focal_loss = BinaryPenaltyReducedFocalCrossEntropy(reduction="sum")
         # (1-0)^4 * (1-1/e)^2 * log(1/e)
         self.assertAllClose(
             0.5 * np.square(1 - np.exp(-1.0)),

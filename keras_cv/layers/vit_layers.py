@@ -91,7 +91,6 @@ class PatchingAndEmbedding(layers.Layer):
         interpolate_height=None,
         patch_size=None,
     ):
-
         """Calls the PatchingAndEmbedding layer on a batch of images.
         Args:
             images: A `tf.Tensor` of shape [batch, width, height, depth]

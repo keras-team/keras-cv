@@ -13,27 +13,38 @@
 # limitations under the License.
 
 import tensorflow as tf
+from absl.testing import parameterized
 
 from keras_cv.models import ResNet50V2
 from keras_cv.models.object_detection.faster_rcnn import FasterRCNN
 
 
-class FasterRCNNTest(tf.test.TestCase):
-    def test_faster_rcnn_infer(self):
+class FasterRCNNTest(tf.test.TestCase, parameterized.TestCase):
+    @parameterized.parameters(
+        ((2, 640, 480, 3),),
+        ((2, 512, 512, 3),),
+        ((2, 224, 224, 3),),
+    )
+    def test_faster_rcnn_infer(self, batch_shape):
         model = FasterRCNN(
             classes=80, bounding_box_format="xyxy", backbone=self._build_backbone()
         )
-        images = tf.random.normal([2, 512, 512, 3])
+        images = tf.random.normal(batch_shape)
         outputs = model(images, training=False)
         # 1000 proposals in inference
         self.assertAllEqual([2, 1000, 81], outputs[1].shape)
         self.assertAllEqual([2, 1000, 4], outputs[0].shape)
 
-    def test_faster_rcnn_train(self):
+    @parameterized.parameters(
+        ((2, 640, 480, 3),),
+        ((2, 512, 512, 3),),
+        ((2, 224, 224, 3),),
+    )
+    def test_faster_rcnn_train(self, batch_shape):
         model = FasterRCNN(
             classes=80, bounding_box_format="xyxy", backbone=self._build_backbone()
         )
-        images = tf.random.normal([2, 512, 512, 3])
+        images = tf.random.normal(batch_shape)
         outputs = model(images, training=True)
         self.assertAllEqual([2, 1000, 81], outputs[1].shape)
         self.assertAllEqual([2, 1000, 4], outputs[0].shape)

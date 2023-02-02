@@ -64,7 +64,6 @@ class SpatialPyramidPooling(tf.keras.layers.Layer):
         self.dropout = dropout
 
     def build(self, input_shape):
-
         height = input_shape[1]
         width = input_shape[2]
         channels = input_shape[3]

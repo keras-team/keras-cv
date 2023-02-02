@@ -419,6 +419,7 @@ def MobileNetV3(
 
 
 def MobileNetV3Small(
+    *,
     include_rescaling,
     include_top,
     classes=None,
@@ -434,7 +435,6 @@ def MobileNetV3Small(
     **kwargs,
 ):
     def stack_fn(x, kernel, activation, se_ratio):
-
         x = InvertedResBlock(1, depth(16 * alpha), 3, 2, se_ratio, layers.ReLU(), 0)(x)
         x = InvertedResBlock(
             72.0 / 16, depth(24 * alpha), 3, 2, None, layers.ReLU(), 1
@@ -488,6 +488,7 @@ def MobileNetV3Small(
 
 
 def MobileNetV3Large(
+    *,
     include_rescaling,
     include_top,
     classes=None,
@@ -503,7 +504,6 @@ def MobileNetV3Large(
     **kwargs,
 ):
     def stack_fn(x, kernel, activation, se_ratio):
-
         x = InvertedResBlock(1, depth(16 * alpha), 3, 1, None, layers.ReLU(), 0)(x)
         x = InvertedResBlock(4, depth(24 * alpha), 3, 2, None, layers.ReLU(), 1)(x)
         x = InvertedResBlock(3, depth(24 * alpha), 3, 1, None, layers.ReLU(), 2)(x)

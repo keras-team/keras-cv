@@ -312,16 +312,16 @@ class RetinaNet(tf.keras.Model):
         self.weight_decay = weight_decay
         losses = {
             "box": self.box_loss,
-            "cls": self.classification_loss,
+            "classification": self.classification_loss,
         }
         super().compile(loss=losses, **kwargs)
 
-    def compute_loss(self, images, gt_boxes, gt_classes, training):
+    def compute_loss(self, images, boxes, classes, training):
         box_pred, cls_pred = self._forward(images, training=training)
-        if gt_boxes.shape[-1] != 4:
+        if boxes.shape[-1] != 4:
             raise ValueError(
-                "gt_boxes should have shape (None, None, 4).  Got "
-                f"gt_boxes.shape={tuple(gt_boxes.shape)}"
+                "boxes should have shape (None, None, 4).  Got "
+                f"boxes.shape={tuple(boxes.shape)}"
             )
 
         if box_pred.shape[-1] != 4:
@@ -338,27 +338,27 @@ class RetinaNet(tf.keras.Model):
             )
 
         cls_labels = tf.one_hot(
-            tf.cast(gt_classes, dtype=tf.int32),
+            tf.cast(classes, dtype=tf.int32),
             depth=self.classes,
             dtype=tf.float32,
         )
 
-        positive_mask = tf.cast(tf.greater(gt_classes, -1.0), dtype=tf.float32)
+        positive_mask = tf.cast(tf.greater(classes, -1.0), dtype=tf.float32)
         normalizer = tf.reduce_sum(positive_mask)
-        cls_weights = tf.cast(tf.math.not_equal(gt_classes, -2.0), dtype=tf.float32)
+        cls_weights = tf.cast(tf.math.not_equal(classes, -2.0), dtype=tf.float32)
         cls_weights /= normalizer
         box_weights = positive_mask / normalizer
         y_true = {
-            "box": gt_boxes,
-            "cls": cls_labels,
+            "box": boxes,
+            "classification": cls_labels,
         }
         y_pred = {
             "box": box_pred,
-            "cls": cls_pred,
+            "classification": cls_pred,
         }
         sample_weights = {
             "box": box_weights,
-            "cls": cls_weights,
+            "classification": cls_weights,
         }
         return super().compute_loss(
             x=images, y=y_true, y_pred=y_pred, sample_weight=sample_weights
@@ -372,16 +372,16 @@ class RetinaNet(tf.keras.Model):
             target=self.label_encoder.bounding_box_format,
             images=x,
         )
-        gt_boxes, gt_classes = self.label_encoder(x, y)
-        gt_boxes = bounding_box.convert_format(
-            gt_boxes,
+        boxes, classes = self.label_encoder(x, y)
+        boxes = bounding_box.convert_format(
+            boxes,
             source=self.label_encoder.bounding_box_format,
             target=self.bounding_box_format,
             images=x,
         )
 
         with tf.GradientTape() as tape:
-            total_loss = self.compute_loss(x, gt_boxes, gt_classes, training=True)
+            total_loss = self.compute_loss(x, boxes, classes, training=True)
 
             reg_losses = []
             if self.weight_decay:
@@ -405,14 +405,14 @@ class RetinaNet(tf.keras.Model):
             target=self.label_encoder.bounding_box_format,
             images=x,
         )
-        gt_boxes, gt_classes = self.label_encoder(x, y)
-        gt_boxes = bounding_box.convert_format(
-            gt_boxes,
+        boxes, classes = self.label_encoder(x, y)
+        boxes = bounding_box.convert_format(
+            boxes,
             source=self.label_encoder.bounding_box_format,
             target=self.bounding_box_format,
             images=x,
         )
-        _ = self.compute_loss(x, gt_boxes, gt_classes, training=False)
+        _ = self.compute_loss(x, boxes, classes, training=False)
 
         return self.compute_metrics(x, {}, {}, sample_weight={})
 

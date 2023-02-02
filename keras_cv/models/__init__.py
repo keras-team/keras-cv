@@ -12,6 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from keras_cv.models.convmixer import ConvMixer_512_16
+from keras_cv.models.convmixer import ConvMixer_768_32
+from keras_cv.models.convmixer import ConvMixer_1024_16
+from keras_cv.models.convmixer import ConvMixer_1536_20
+from keras_cv.models.convmixer import ConvMixer_1536_24
 from keras_cv.models.convnext import ConvNeXtBase
 from keras_cv.models.convnext import ConvNeXtLarge
 from keras_cv.models.convnext import ConvNeXtSmall
@@ -52,9 +57,9 @@ from keras_cv.models.mlp_mixer import MLPMixerB32
 from keras_cv.models.mlp_mixer import MLPMixerL16
 from keras_cv.models.mobilenet_v3 import MobileNetV3Large
 from keras_cv.models.mobilenet_v3 import MobileNetV3Small
-from keras_cv.models.object_detection3d.center_pillar import MultiHeadCenterPillar
 from keras_cv.models.object_detection.faster_rcnn import FasterRCNN
 from keras_cv.models.object_detection.retina_net.retina_net import RetinaNet
+from keras_cv.models.object_detection_3d.center_pillar import MultiHeadCenterPillar
 from keras_cv.models.regnet import RegNetX002
 from keras_cv.models.regnet import RegNetX004
 from keras_cv.models.regnet import RegNetX006

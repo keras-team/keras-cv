@@ -33,7 +33,6 @@ low, high = resource.getrlimit(resource.RLIMIT_NOFILE)
 resource.setrlimit(resource.RLIMIT_NOFILE, (high, high))
 
 EPOCHS = 100
-CHECKPOINT_PATH = "checkpoint/"
 
 flags.DEFINE_string(
     "weights_name",
@@ -190,17 +189,17 @@ def get_non_empty_box_indices(boxes):
     return indices[:, 0]
 
 
-def resize_fn(image, gt_boxes, gt_classes):
+def resize_fn(image, boxes, classes):
     image, image_info = resize_and_crop_image(
         image, image_size[:2], image_size[:2], 0.8, 1.25
     )
-    gt_boxes = resize_and_crop_boxes(
-        gt_boxes, image_info[2, :], image_info[1, :], image_info[3, :]
+    boxes = resize_and_crop_boxes(
+        boxes, image_info[2, :], image_info[1, :], image_info[3, :]
     )
-    indices = get_non_empty_box_indices(gt_boxes)
-    gt_boxes = tf.gather(gt_boxes, indices)
-    gt_classes = tf.gather(gt_classes, indices)
-    return image, gt_boxes, gt_classes
+    indices = get_non_empty_box_indices(boxes)
+    boxes = tf.gather(boxes, indices)
+    classes = tf.gather(classes, indices)
+    return image, boxes, classes
 
 
 def flip_fn(image, boxes):
@@ -215,21 +214,20 @@ def proc_train_fn(bounding_box_format, img_size):
     def apply(inputs):
         image = inputs["image"]
         image = tf.cast(image, tf.float32)
-        gt_boxes = inputs["objects"]["bbox"]
-        image, gt_boxes = flip_fn(image, gt_boxes)
-        gt_boxes = keras_cv.bounding_box.convert_format(
-            gt_boxes,
+        boxes = inputs["objects"]["bbox"]
+        image, boxes = flip_fn(image, boxes)
+        boxes = keras_cv.bounding_box.convert_format(
+            boxes,
             images=image,
             source="rel_yxyx",
             target="yxyx",
         )
-        gt_classes = tf.cast(inputs["objects"]["label"], tf.float32)
-        image, gt_boxes, gt_classes = resize_fn(image, gt_boxes, gt_classes)
-        gt_classes = tf.expand_dims(gt_classes, axis=-1)
-        bounding_boxes = tf.concat([gt_boxes, gt_classes], axis=-1)
+        classes = tf.cast(inputs["objects"]["label"], tf.float32)
+        image, boxes, classes = resize_fn(image, boxes, classes)
         bounding_boxes = keras_cv.bounding_box.convert_format(
-            bounding_boxes, images=image, source="yxyx", target=bounding_box_format
+            boxes, images=image, source="yxyx", target=bounding_box_format
         )
+        bounding_boxes = {"boxes": bounding_boxes, "classes": classes}
         return image, bounding_boxes
 
     return apply
@@ -258,7 +256,7 @@ def proc_eval_fn(bounding_box_format, target_size):
             raw_image, (target_height, target_width), antialias=False
         )
 
-        gt_boxes = keras_cv.bounding_box.convert_format(
+        boxes = keras_cv.bounding_box.convert_format(
             inputs["objects"]["bbox"],
             images=image,
             source="rel_yxyx",
@@ -267,27 +265,27 @@ def proc_eval_fn(bounding_box_format, target_size):
         image = tf.image.pad_to_bounding_box(
             image, 0, 0, target_size[0], target_size[1]
         )
-        gt_boxes = keras_cv.bounding_box.convert_format(
-            gt_boxes,
+        boxes = keras_cv.bounding_box.convert_format(
+            boxes,
             images=image,
             source="xyxy",
             target=bounding_box_format,
         )
-        gt_classes = tf.cast(inputs["objects"]["label"], tf.float32)
-        gt_classes = tf.expand_dims(gt_classes, axis=-1)
-
-        bounding_boxes = tf.concat([gt_boxes, gt_classes], axis=-1)
-
+        classes = tf.cast(inputs["objects"]["label"], tf.float32)
+        bounding_boxes = {"boxes": boxes, "classes": classes}
         return image, bounding_boxes
 
     return apply
 
 
-def pad_fn(images, boxes):
-    boxes = boxes.to_tensor(default_value=-1.0, shape=[GLOBAL_BATCH_SIZE, 32, 5])
-    gt_boxes = boxes[:, :, :4]
-    gt_classes = boxes[:, :, 4]
-    return images, {"boxes": gt_boxes, "classes": gt_classes}
+def pad_fn(images, bounding_boxes):
+    boxes = bounding_boxes["boxes"].to_tensor(
+        default_value=-1.0, shape=[GLOBAL_BATCH_SIZE, 32, 4]
+    )
+    classes = bounding_boxes["classes"].to_tensor(
+        default_value=-1.0, shape=[GLOBAL_BATCH_SIZE, 32]
+    )
+    return images, {"boxes": boxes, "classes": classes}
 
 
 train_ds = train_ds.map(
@@ -358,10 +356,10 @@ model.compile(
 )
 
 callbacks = [
-    keras.callbacks.TensorBoard(log_dir="logs"),
+    keras.callbacks.TensorBoard(log_dir=FLAGS.tensorboard_path),
     keras.callbacks.ReduceLROnPlateau(patience=5),
     keras.callbacks.EarlyStopping(patience=10),
-    keras.callbacks.ModelCheckpoint(CHECKPOINT_PATH, save_weights_only=True),
+    keras.callbacks.ModelCheckpoint(FLAGS.weights_path, save_weights_only=True),
     PyCOCOCallback(eval_ds, "xywh"),
 ]
 

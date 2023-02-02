@@ -710,7 +710,7 @@ def EfficientNetV2(
     b = 0
     blocks = float(sum(args["num_repeat"] for args in blocks_args))
 
-    for (i, args) in enumerate(blocks_args):
+    for i, args in enumerate(blocks_args):
         assert args["num_repeat"] > 0
 
         # Update block input and output filters based on depth multiplier.
@@ -823,6 +823,7 @@ def EfficientNetV2(
 
 
 def EfficientNetV2B0(
+    *,
     include_rescaling,
     include_top,
     weights=None,
@@ -851,6 +852,7 @@ def EfficientNetV2B0(
 
 
 def EfficientNetV2B1(
+    *,
     include_rescaling,
     include_top,
     weights=None,
@@ -879,6 +881,7 @@ def EfficientNetV2B1(
 
 
 def EfficientNetV2B2(
+    *,
     include_rescaling,
     include_top,
     weights=None,
@@ -907,6 +910,7 @@ def EfficientNetV2B2(
 
 
 def EfficientNetV2B3(
+    *,
     include_rescaling,
     include_top,
     weights=None,
@@ -935,6 +939,7 @@ def EfficientNetV2B3(
 
 
 def EfficientNetV2S(
+    *,
     include_rescaling,
     include_top,
     weights=None,
@@ -963,6 +968,7 @@ def EfficientNetV2S(
 
 
 def EfficientNetV2M(
+    *,
     include_rescaling,
     include_top,
     weights=None,
@@ -991,6 +997,7 @@ def EfficientNetV2M(
 
 
 def EfficientNetV2L(
+    *,
     include_rescaling,
     include_top,
     weights=None,
