@@ -12,12 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import warnings
-
 import tensorflow as tf
 from tensorflow import keras
 
-from keras_cv import bounding_box
 from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
     BaseImageAugmentationLayer,
 )
@@ -68,8 +65,10 @@ class CenterCrop(BaseImageAugmentationLayer):
         self.base_layer_ = keras.layers.CenterCrop(self.height, self.width)
 
         if self.bounding_box_format is not None:
-            warnings.warn(
-                "Using CenterCrop with bounding boxes can cause many boxes to be dropped."
+            raise ValueError(
+                "CenterCrop() will drop boxes outside of the specified crop region.  "
+                "Due to this, KerasCV does not currently support the passing of bounding box inputs to CenterCrop.  "
+                "It is recommended that you use `layers.Resizing(pad_to_aspect_ratio=True)` instead."
             )
 
     def compute_image_signature(self, images):
@@ -92,87 +91,14 @@ class CenterCrop(BaseImageAugmentationLayer):
         image_shape = tf.shape(image)
         return image_shape[-3], image_shape[-2]
 
-    def _transform_bounding_boxes(self, bounding_boxes, transformation):
-        bounding_boxes = bounding_boxes.copy()
-        original_height, original_width = transformation
-        h_diff = original_height - self.height
-        w_diff = original_width - self.width
-        do_crop = tf.logical_and(h_diff >= 0, w_diff >= 0)
-
-        def upsample_target_dims():
-            target_height_ = tf.cast(
-                tf.cast(original_width * self.height, "float32") / self.width, "int32"
-            )
-            target_width_ = tf.cast(
-                tf.cast(original_height * self.width, "float32") / self.height, "int32"
-            )
-            target_height_ = tf.minimum(original_height, target_height_)
-            target_width_ = tf.minimum(original_width, target_width_)
-            return target_height_, target_width_
-
-        target_height, target_width = tf.cond(
-            do_crop, lambda: (self.height, self.width), upsample_target_dims
-        )
-
-        boxes = bounding_boxes["boxes"]
-        h_perc = keras.backend.cast(target_height / original_height, boxes.dtype)
-        w_perc = keras.backend.cast(target_width / original_width, boxes.dtype)
-        h0 = 0.5 - 0.5 * h_perc
-        w0 = 0.5 - 0.5 * w_perc
-        x1, y1, x2, y2, rest = tf.split(
-            boxes, [1, 1, 1, 1, boxes.shape[-1] - 4], axis=-1
-        )
-        boxes = tf.concat(
-            [
-                (x1 - w0) / w_perc,
-                (y1 - h0) / h_perc,
-                (x2 - w0) / w_perc,
-                (y2 - h0) / h_perc,
-                rest,
-            ],
-            axis=-1,
-        )
-        bounding_boxes["boxes"] = boxes
-        # bounding_boxes = bounding_box.filter_sentinels(bounding_boxes)
-        return bounding_boxes
-
     def augment_bounding_boxes(
         self, bounding_boxes, transformation=None, image=None, **kwargs
     ):
-        if self.bounding_box_format is None:
-            raise ValueError(
-                "`CenterCrop()` was called with bounding boxes,"
-                "but no `bounding_box_format` was specified in the constructor."
-                "Please specify a bounding box format in the constructor. i.e."
-                "`CenterCrop(bounding_box_format='xyxy')`"
-            )
-
-        input_shape = (transformation[0], transformation[1], 3)
-        output_shape = (self.height, self.width, 3)
-
-        bounding_boxes = bounding_box.convert_format(
-            bounding_boxes,
-            source=self.bounding_box_format,
-            target="rel_xyxy",
-            image_shape=input_shape,
+        raise ValueError(
+            "CenterCrop() will drop boxes outside of the specified crop region.  "
+            "Due to this, KerasCV does not currently support the passing of bounding box inputs to CenterCrop.  "
+            "It is recommended that you use `layers.Resizing(pad_to_aspect_ratio=True)` instead."
         )
-
-        bounding_boxes = self._transform_bounding_boxes(bounding_boxes, transformation)
-
-        bounding_boxes = bounding_box.clip_to_image(
-            bounding_boxes,
-            bounding_box_format="rel_xyxy",
-            images=None,
-            image_shape=output_shape,
-        )
-        bounding_boxes = bounding_box.convert_format(
-            bounding_boxes,
-            source="rel_xyxy",
-            target=self.bounding_box_format,
-            dtype=self.compute_dtype,
-            image_shape=output_shape,
-        )
-        return bounding_boxes
 
     def augment_label(self, label, transformation=None, **kwargs):
         return label
