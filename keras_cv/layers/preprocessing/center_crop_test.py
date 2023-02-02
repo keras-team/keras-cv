@@ -32,7 +32,10 @@ class CenterCropTest(tf.test.TestCase, parameterized.TestCase):
         self.assertShapeEqual(original_output_image, output["images"])
         self.assertAllClose(original_output_image, output["images"])
 
-    def test_bounding_boxes_case_crop(self):
+    def test_bounding_boxes_raises(self):
+        with self.assertRaises(ValueError):
+            preprocessing.CenterCrop(10, 10, bounding_box_format="xyxy")
+
         images = tf.random.normal([2, 20, 20, 3])
         boxes = tf.constant(
             [
@@ -45,65 +48,7 @@ class CenterCropTest(tf.test.TestCase, parameterized.TestCase):
         bboxes = {"boxes": boxes, "classes": classes}
 
         layer = preprocessing.CenterCrop(10, 10)
-        layer.bounding_box_format = "xyxy"
+        with self.assertRaises(ValueError):
+            layer({"images": images, "bounding_boxes": bboxes})
 
-        outputs = layer({"images": images, "bounding_boxes": bboxes})
 
-        expected_boxes = tf.ragged.constant(
-            [[0, 0, 10, 10], [0, 0, 5, 5]], dtype=tf.float32
-        )
-        expected_classes = tf.convert_to_tensor([0, 0], dtype=tf.int32)
-
-        self.assertAllClose(outputs["images"], images[:, 5:15, 5:15, :])
-        self.assertAllClose(outputs["bounding_boxes"]["boxes"][0], expected_boxes)
-        self.assertAllClose(outputs["bounding_boxes"]["boxes"][1], expected_boxes)
-        self.assertAllClose(outputs["bounding_boxes"]["classes"][0], expected_classes)
-        self.assertAllClose(outputs["bounding_boxes"]["classes"][1], expected_classes)
-
-    def test_bounding_boxes_upsample1(self):
-        images = tf.random.normal([2, 20, 20, 3])
-        boxes = tf.constant(
-            [
-                [[0, 0, 15, 15], [0, 0, 10, 10], [0, 0, 5, 5], [18, 18, 20, 20]],
-                [[0, 0, 15, 15], [0, 0, 10, 10], [0, 0, 5, 5], [18, 18, 20, 20]],
-            ],
-            dtype=tf.float32,
-        )
-        classes = tf.convert_to_tensor([[0, 0, 0, 0], [0, 0, 0, 0]])
-        bboxes = {"boxes": boxes, "classes": classes}
-
-        layer = preprocessing.CenterCrop(10, 30)
-        layer.bounding_box_format = "xyxy"
-
-        outputs = layer({"images": images, "bounding_boxes": bboxes})
-
-        expected_bboxes = tf.ragged.constant(
-            [[0, 0, 22.5, 10], [0, 0, 15, 5]], dtype=tf.float32
-        )
-
-        self.assertAllClose(outputs["bounding_boxes"]["boxes"][0], expected_bboxes)
-        self.assertAllClose(outputs["bounding_boxes"]["boxes"][1], expected_bboxes)
-
-    def test_bounding_boxes_upsample2(self):
-        images = tf.random.normal([2, 20, 20, 3])
-        boxes = tf.constant(
-            [
-                [[0, 0, 15, 15], [0, 0, 10, 10], [0, 0, 5, 5], [18, 18, 20, 20]],
-                [[0, 0, 15, 15], [0, 0, 10, 10], [0, 0, 5, 5], [18, 18, 20, 20]],
-            ],
-            dtype=tf.float32,
-        )
-        classes = tf.convert_to_tensor([[0, 0, 0, 0], [0, 0, 0, 0]])
-        bboxes = {"boxes": boxes, "classes": classes}
-
-        layer = preprocessing.CenterCrop(25, 50)
-        layer.bounding_box_format = "xyxy"
-
-        outputs = layer({"images": images, "bounding_boxes": bboxes})
-
-        expected_bboxes = tf.ragged.constant(
-            [[0, 0, 37.5, 25], [0, 0, 25, 12.5]], dtype=tf.float32
-        )
-
-        self.assertAllClose(outputs["bounding_boxes"]["boxes"][0], expected_bboxes)
-        self.assertAllClose(outputs["bounding_boxes"]["boxes"][1], expected_bboxes)
