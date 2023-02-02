@@ -27,6 +27,7 @@ from keras_cv.layers.object_detection.roi_generator import ROIGenerator
 from keras_cv.layers.object_detection.roi_sampler import _ROISampler
 from keras_cv.layers.object_detection.rpn_label_encoder import _RpnLabelEncoder
 from keras_cv.models.object_detection import predict_utils
+from keras_cv.models.object_detection.__internal__ import unpack_input
 
 BOX_VARIANCE = [0.1, 0.1, 0.2, 0.2]
 
@@ -487,9 +488,8 @@ class FasterRCNN(tf.keras.Model):
         )
 
     def train_step(self, data):
-        images, y, sample_weight = tf.keras.utils.unpack_x_y_sample_weight(data)
-        if sample_weight is not None:
-            raise ValueError("`sample_weight` is currently not supported.")
+        images, y = unpack_input(data)
+
         boxes = y["boxes"]
         if len(y["classes"].shape) != 2:
             raise ValueError(
@@ -511,9 +511,8 @@ class FasterRCNN(tf.keras.Model):
         return self.compute_metrics(images, {}, {}, sample_weight={})
 
     def test_step(self, data):
-        images, y, sample_weight = tf.keras.utils.unpack_x_y_sample_weight(data)
-        if sample_weight is not None:
-            raise ValueError("`sample_weight` is currently not supported.")
+        images, y = unpack_input(data)
+
         boxes = y["boxes"]
         if len(y["classes"].shape) != 2:
             raise ValueError(
