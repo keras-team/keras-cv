@@ -89,7 +89,6 @@ class FusedMBConvBlock(layers.Layer):
         survival_probability: float = 0.8,
         **kwargs
     ):
-
         super().__init__(**kwargs)
         self.input_filters = input_filters
         self.output_filters = output_filters

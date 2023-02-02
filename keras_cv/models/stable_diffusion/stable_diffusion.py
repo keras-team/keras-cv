@@ -49,7 +49,6 @@ class StableDiffusionBase:
         img_width=512,
         jit_compile=False,
     ):
-
         # UNet requires multiples of 2**7 = 128
         img_height = round(img_height / 128) * 128
         img_width = round(img_width / 128) * 128

@@ -137,7 +137,6 @@ class GlobalRandomScaling(base_augmentation_layer_3d.BaseAugmentationLayer3D):
         }
 
     def get_random_transformation(self, **kwargs):
-
         random_scaling_x = self._random_generator.random_uniform(
             (), minval=self._min_x_factor, maxval=self._max_x_factor
         )
