@@ -124,7 +124,6 @@ class RandomCropAndResize(BaseImageAugmentationLayer):
         return [[y1, x1, y2, x2]]
 
     def call(self, inputs, training=True):
-
         if training:
             return super().call(inputs, training)
         else:

@@ -52,7 +52,6 @@ class FocalLossModelGardenComparisonTest(tf.test.TestCase, parameterized.TestCas
         ("sum", "sum"),
     )
     def test_model_garden_implementation_has_same_outputs(self, reduction):
-
         focal_loss = FocalLoss(
             alpha=0.25, gamma=2.0, from_logits=True, reduction=reduction
         )

@@ -31,7 +31,6 @@ class IoUTest(tf.test.TestCase):
         )
 
     def test_compute_iou(self):
-
         bb1 = [100, 101, 200, 201]
         bb1_off_by_1_pred = [101, 102, 201, 202]
         iou_bb1_bb1_off = 0.96097656633
@@ -57,7 +56,6 @@ class IoUTest(tf.test.TestCase):
         self.assertAllClose(expected_result, result.numpy())
 
     def test_batched_compute_iou(self):
-
         bb1 = [100, 101, 200, 201]
         bb1_off_by_1_pred = [101, 102, 201, 202]
         iou_bb1_bb1_off = 0.96097656633

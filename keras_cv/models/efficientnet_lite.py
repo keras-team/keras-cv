@@ -415,7 +415,7 @@ def EfficientNetLite(
     b = 0
     blocks = float(sum(args["repeats"] for args in blocks_args))
 
-    for (i, args) in enumerate(blocks_args):
+    for i, args in enumerate(blocks_args):
         assert args["repeats"] > 0
         # Update block input and output filters based on depth multiplier.
         args["filters_in"] = round_filters(

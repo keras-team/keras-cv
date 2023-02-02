@@ -64,7 +64,6 @@ class DeepLabV3(keras.Model):
         weights=None,
         **kwargs,
     ):
-
         if not isinstance(backbone, tf.keras.layers.Layer):
             raise ValueError(
                 "Backbone need to be a `tf.keras.layers.Layer`, " f"received {backbone}"
