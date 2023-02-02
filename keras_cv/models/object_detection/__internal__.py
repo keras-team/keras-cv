@@ -24,6 +24,13 @@ except ImportError:
     pd = None
 
 
+def unpack_input(data):
+    if type(data) is dict:
+        return data["images"], data["bounding_boxes"]
+    else:
+        return data
+
+
 def _get_tensor_types():
     if pd is None:
         return (tf.Tensor, np.ndarray)
