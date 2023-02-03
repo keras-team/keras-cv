@@ -210,7 +210,6 @@ class _COCOMeanAveragePrecisionTest(tf.test.TestCase):
             [[[0, 50, 100, 150, 1, 1.0], [0, 50, 100, 150, 33, 1.0]]], dtype=tf.float32
         )
 
-        y_true = bounding_box.pad_batch_to_shape(y_true, (1, 20, 5))
         metric = _COCOMeanAveragePrecision(
             bounding_box_format="xyxy",
             iou_thresholds=[0.15],
@@ -225,8 +224,6 @@ class _COCOMeanAveragePrecisionTest(tf.test.TestCase):
     def DISABLE_test_bounding_box_counting(self):
         y_true = tf.constant([[[0, 0, 100, 100, 1]]], dtype=tf.float64)
         y_pred = tf.constant([[[0, 50, 100, 150, 1, 1.0]]], dtype=tf.float32)
-
-        y_true = bounding_box.pad_batch_to_shape(y_true, (1, 20, 5))
 
         metric = _COCOMeanAveragePrecision(
             bounding_box_format="xyxy",
