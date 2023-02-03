@@ -34,7 +34,7 @@ def exhaustive_compare(obj1, obj2):
     classes_supporting_get_config = (
         core.FactorSampler,
         tf.keras.layers.Layer,
-        tf.keras.losses.Loss
+        tf.keras.losses.Loss,
     )
 
     # If both objects are either one of list or tuple then their individual
