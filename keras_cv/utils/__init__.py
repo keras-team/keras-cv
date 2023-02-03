@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from keras_cv.utils import test_utils
 from keras_cv.utils.fill_utils import fill_rectangle
 from keras_cv.utils.preprocessing import blend
 from keras_cv.utils.preprocessing import ensure_tensor
