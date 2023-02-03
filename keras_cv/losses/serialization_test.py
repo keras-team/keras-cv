@@ -36,7 +36,7 @@ class SerializationTest(tf.test.TestCase, parameterized.TestCase):
         ("SimCLRLoss", cv_losses.SimCLRLoss, {"temperature": 0.5}),
         ("SmoothL1Loss", cv_losses.SmoothL1Loss, {}),
     )
-    def test_layer_serialization(self, loss_cls, init_args):
+    def test_loss_serialization(self, loss_cls, init_args):
         loss = loss_cls(**init_args)
         config = loss.get_config()
         self.assertAllInitParametersAreInConfig(loss_cls, config)
