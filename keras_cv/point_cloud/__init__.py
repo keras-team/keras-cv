@@ -12,9 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from keras_cv.point_cloud import _box_area
-from keras_cv.point_cloud import _center_xyzWHD_to_corner_xyz
-from keras_cv.point_cloud import _is_on_lefthand_side
+from keras_cv.point_cloud.point_cloud import _box_area
+from keras_cv.point_cloud.point_cloud import _center_xyzWHD_to_corner_xyz
+from keras_cv.point_cloud.point_cloud import _is_on_lefthand_side
 from keras_cv.point_cloud import coordinate_transform
 from keras_cv.point_cloud import group_points_by_boxes
 from keras_cv.point_cloud import is_within_any_box3d
