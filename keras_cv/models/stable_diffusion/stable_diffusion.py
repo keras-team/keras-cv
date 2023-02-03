@@ -286,7 +286,7 @@ class StableDiffusionBase:
         """
 
         # Prompt-to-Prompt: check inputs
-        if method != "refine" or method != "replace" or method != "reweight":
+        if method not in ["refine", "replace", "reweight"]:
             raise ValueError(
                 "Please pass a valid Prompt-to-Prompt method.\n"
                 "Avaliable methods: ['refine', 'replace', 'reweight'], parsed method: {method}"
