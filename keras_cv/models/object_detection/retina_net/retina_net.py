@@ -281,7 +281,6 @@ class RetinaNet(tf.keras.Model):
                 "`metrics` due to performance and distribution concerns. Please us the "
                 "`PyCOCOCallback` to evaluate COCO metrics."
             )
-        super().compile(**kwargs)
         if loss is not None:
             raise ValueError(
                 "`RetinaNet` does not accept a `loss` to `compile()`. "
