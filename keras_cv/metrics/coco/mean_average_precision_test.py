@@ -17,7 +17,6 @@ import numpy as np
 import tensorflow as tf
 from tensorflow import keras
 
-from keras_cv import bounding_box
 from keras_cv.metrics import _COCOMeanAveragePrecision
 
 
