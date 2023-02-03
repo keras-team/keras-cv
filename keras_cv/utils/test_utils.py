@@ -17,14 +17,24 @@ import inspect
 import tensorflow as tf
 
 from keras_cv import core
-from keras_cv import layers as cv_layers
 
 
 def exhaustive_compare(obj1, obj2):
+    """Exhaustively compared config of any two python or Keras objects recursively.
+
+    If objects are python objects, a standard equality check is run.  If the objects are
+    Keras objects a `get_config()` call is made.  The subsequent configs are then
+    compared to determine if equality holds.
+
+    Args:
+        obj1: any object, can be a Keras object or python object.
+        obj2: any object, can be a Keras object or python object.
+    """
+
     classes_supporting_get_config = (
         core.FactorSampler,
         tf.keras.layers.Layer,
-        cv_layers.BaseImageAugmentationLayer,
+        tf.keras.losses.Loss
     )
 
     # If both objects are either one of list or tuple then their individual
