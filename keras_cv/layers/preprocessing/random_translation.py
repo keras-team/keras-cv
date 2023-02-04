@@ -180,7 +180,7 @@ class RandomTranslation(VectorizedBaseImageAugmentationLayer):
             inputs,
             fn_output_signature={
                 "images": tf.RaggedTensorSpec(
-                    shape=[None, None, 3],
+                    shape=[None, None, None],
                     ragged_rank=1,
                     dtype=self.compute_dtype,
                 ),
