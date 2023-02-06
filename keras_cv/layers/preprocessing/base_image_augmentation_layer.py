@@ -60,15 +60,16 @@ class BaseImageAugmentationLayer(tf.keras.__internal__.layers.BaseRandomLayer):
     The `call()` method supports two formats of inputs:
     1. A single image tensor with shape (height, width, channels) or
        (batch_size, height, width, channels)
-    1. A dict of tensors with stable keys. The supported keys are:
-      * `"images"` - Image Tensor with shape (height, width, channels) or
+    1. A dict of tensors with any of the following keys (note that `"images"`
+       must be present):
+       * `"images"` - Image Tensor with shape (height, width, channels) or
         (batch_size, height, width, channels)
-      * `"labels"` - One-hot encoded classification labels Tensor with shape
+       * `"labels"` - One-hot encoded classification labels Tensor with shape
         (num_classes) or (batch_size, num_classes)
-      * `"bounding_boxes"` - A dictionary with keys:
-        * `"boxes"` - Tensor with shape (num_boxes, 4) or (batch_size,
+       * `"bounding_boxes"` - A dictionary with keys:
+         * `"boxes"` - Tensor with shape (num_boxes, 4) or (batch_size,
           num_boxes, 4)
-        * `"classes"` - Tensor of class labels for boxes with shape (num_boxes,
+         * `"classes"` - Tensor of class labels for boxes with shape (num_boxes,
           num_classes) or (batch_size, num_boxes, num_classes).
        Any other keys included in this dictionary will be ignored and unmodified
        by an augmentation layer.
