@@ -12,10 +12,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import os
+
+import pytest
 import tensorflow as tf
 from absl.testing import parameterized
+from tensorflow.keras import optimizers
 
+import keras_cv
 from keras_cv.models import ResNet50V2
+from keras_cv.models.object_detection.__test_utils__ import _create_bounding_box_dataset
 from keras_cv.models.object_detection.faster_rcnn import FasterRCNN
 
 
@@ -61,6 +67,35 @@ class FasterRCNNTest(tf.test.TestCase, parameterized.TestCase):
                     from_logits=False
                 )
             )
+
+    @pytest.mark.skipif(
+        "INTEGRATION" not in os.environ or os.environ["INTEGRATION"] != "true",
+        reason="Takes a long time to run, only runs when INTEGRATION "
+        "environment variable is set.  To run the test please run: \n"
+        "`INTEGRATION=true pytest keras_cv/",
+    )
+    def test_faster_rcnn_with_dictionary_input_format(self):
+        faster_rcnn = keras_cv.models.FasterRCNN(
+            classes=20,
+            bounding_box_format="xywh",
+            backbone=self._build_backbone(),
+        )
+
+        images, boxes = _create_bounding_box_dataset("xywh")
+        dataset = tf.data.Dataset.from_tensor_slices(
+            {"images": images, "bounding_boxes": boxes}
+        ).batch(5, drop_remainder=True)
+
+        faster_rcnn.compile(
+            optimizer=optimizers.Adam(),
+            box_loss="Huber",
+            classification_loss="SparseCategoricalCrossentropy",
+            rpn_box_loss="Huber",
+            rpn_classification_loss="BinaryCrossentropy",
+        )
+
+        faster_rcnn.fit(dataset, epochs=1)
+        faster_rcnn.evaluate(dataset)
 
     def _build_backbone(self):
         return ResNet50V2(include_top=False, include_rescaling=True).as_backbone()
