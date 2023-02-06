@@ -203,7 +203,7 @@ class Boxes3DTestCase(tf.test.TestCase, parameterized.TestCase):
         assert bboxes.shape[0] == num_boxes
         assert expected_is_inside.shape[0] == num_points
         assert expected_is_inside.shape[1] == num_boxes
-        is_inside = point_cloud.is_within_box2d(points, bboxes)
+        is_inside = point_cloud.is_within_box3d(points, bboxes)
         self.assertAllEqual([num_points, num_boxes], is_inside.shape)
         self.assertAllEqual(expected_is_inside, is_inside)
         # Add a batch dimension to the data and see that it still works
@@ -211,7 +211,7 @@ class Boxes3DTestCase(tf.test.TestCase, parameterized.TestCase):
         batch_size = 3
         points = tf.tile(points[tf.newaxis, ...], [batch_size, 1, 1])
         bboxes = tf.tile(bboxes[tf.newaxis, ...], [batch_size, 1, 1])
-        is_inside = point_cloud.is_within_box2d(points, bboxes)
+        is_inside = point_cloud.is_within_box3d(points, bboxes)
         self.assertAllEqual([batch_size, num_points, num_boxes], is_inside.shape)
         for batch_idx in range(batch_size):
             self.assertAllEqual(expected_is_inside, is_inside[batch_idx])
