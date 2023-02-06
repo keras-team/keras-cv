@@ -89,7 +89,7 @@ BASE_DOCSTRING = """Instantiates the {name} architecture.
 
 
 def ConvMixerLayer(dim, kernel_size):
-    """ConvMixerLayer Layer module.
+    """ConvMixerLayer module.
     Args:
         inputs: Input tensor.
         dim: integer, filters of the layer in a block.
