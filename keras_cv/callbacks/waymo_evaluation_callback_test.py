@@ -15,10 +15,7 @@ import keras
 import pytest
 import tensorflow as tf
 
-try:
-    from keras_cv.callbacks import WaymoEvaluationCallback
-except ImportError:
-    pass
+from keras_cv.callbacks import WaymoEvaluationCallback
 
 NUM_RECORDS = 10
 POINT_FEATURES = 3

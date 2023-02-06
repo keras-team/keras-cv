@@ -20,11 +20,17 @@ from typing import Tuple
 
 import numpy as np
 import tensorflow as tf
-from waymo_open_dataset import dataset_pb2
-from waymo_open_dataset.utils import box_utils
-from waymo_open_dataset.utils import frame_utils
-from waymo_open_dataset.utils import range_image_utils
-from waymo_open_dataset.utils import transform_utils
+
+from keras_cv.utils import assert_waymo_opendata_installed
+
+try:
+    from waymo_open_dataset import dataset_pb2
+    from waymo_open_dataset.utils import box_utils
+    from waymo_open_dataset.utils import frame_utils
+    from waymo_open_dataset.utils import range_image_utils
+    from waymo_open_dataset.utils import transform_utils
+except ImportError:
+    waymo_open_dataset = None
 
 from keras_cv.datasets.waymo import struct
 from keras_cv.layers.object_detection_3d import voxel_utils
@@ -576,6 +582,9 @@ def build_tensors_from_wod_frame(frame: dataset_pb2.Frame) -> Dict[str, tf.Tenso
     Returns:
       Flat dictionary of tensors.
     """
+    assert_waymo_opendata_installed(
+        "keras_cv.datasets.waymo.build_tensors_from_wod_frame"
+    )
 
     frame_id_bytes = "{}_{}".format(frame.context.name, frame.timestamp_micros).encode(
         encoding="ascii"
@@ -678,6 +687,9 @@ def transform_to_vehicle_frame(frame: Dict[str, tf.Tensor]) -> Dict[str, tf.Tens
     Returns:
       A dictionary of feature tensors in vehicle frame.
     """
+    assert_waymo_opendata_installed(
+        "keras_cv.datasets.waymo.transform_to_vehicle_frame"
+    )
 
     def _transform_to_vehicle_frame(
         point_global_xyz: tf.Tensor,
@@ -726,6 +738,9 @@ def build_tensors_for_augmentation(
       and values which are tensors of shapes [num points, num features] and
       [num boxes, num features]).
     """
+    assert_waymo_opendata_installed(
+        "keras_cv.datasets.waymo.build_tensors_for_augmentation"
+    )
     point_cloud = tf.concat(
         [
             frame["point_xyz"][tf.newaxis, ...],
