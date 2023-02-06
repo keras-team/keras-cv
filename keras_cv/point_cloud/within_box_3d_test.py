@@ -81,7 +81,7 @@ class WithinBox3DTest(tf.test.TestCase):
                 [5.6, 5.5, 5.5],
             ]
         ).astype("float32")
-        res = keras_cv.ops.within_box3d_index(points, boxes)
+        res = keras_cv.point_cloud.within_box3d_index(points, boxes)
         self.assertAllEqual([0, 0, -1, 0, -1, 1, -1], res)
 
     @pytest.mark.skipif(
@@ -107,7 +107,7 @@ class WithinBox3DTest(tf.test.TestCase):
                 [2.83, 0, 0],
             ]
         ).astype("float32")
-        res = keras_cv.ops.within_box3d_index(points, boxes)
+        res = keras_cv.point_cloud.within_box3d_index(points, boxes)
         self.assertAllClose([0, 0, -1, 0, -1], res)
 
     @pytest.mark.skipif(
@@ -138,7 +138,7 @@ class WithinBox3DTest(tf.test.TestCase):
             ]
             * 2
         ).astype("float32")
-        res = keras_cv.ops.within_box3d_index(points, boxes)
+        res = keras_cv.point_cloud.within_box3d_index(points, boxes)
         self.assertAllEqual(
             [[0, 0, -1, 0, -1, -1, -1], [-1, -1, -1, -1, -1, 0, -1]], res
         )
@@ -170,7 +170,7 @@ class WithinBox3DTest(tf.test.TestCase):
             ]
             * 2
         ).astype("float32")
-        res = keras_cv.ops.within_box3d_index(points, boxes)
+        res = keras_cv.point_cloud.within_box3d_index(points, boxes)
         self.assertAllEqual([[0, 0, -1, 0, -1], [-1, -1, -1, -1, -1]], res)
 
     @pytest.mark.skipif(
@@ -181,7 +181,7 @@ class WithinBox3DTest(tf.test.TestCase):
         points, boxes = get_points_boxes()
 
         for _ in range(5):
-            res = keras_cv.ops.within_box3d_index(points, boxes)
+            res = keras_cv.point_cloud.within_box3d_index(points, boxes)
             self.assertAllClose(res.shape, points.shape[:1])
 
     @pytest.mark.skipif(
@@ -195,6 +195,6 @@ class WithinBox3DTest(tf.test.TestCase):
                 box_dim = tf.random.uniform(shape=[1, 3], minval=0.1, maxval=10.0)
                 boxes = tf.concat([box_center, box_dim, [[0.0]]], axis=-1)
                 points = tf.random.normal([32, 3])
-                res = keras_cv.ops.is_within_any_box3d(points, boxes)
-                res_v2 = keras_cv.ops.is_within_any_box3d_v2(points, boxes)
+                res = keras_cv.point_cloud.is_within_any_box3d(points, boxes)
+                res_v2 = keras_cv.point_cloud.is_within_any_box3d_v2(points, boxes)
                 self.assertAllEqual(res, res_v2)
