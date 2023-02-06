@@ -21,6 +21,7 @@ from keras_cv import bounding_box
 from keras_cv import layers as cv_layers
 from keras_cv.bounding_box.converters import _decode_deltas_to_boxes
 from keras_cv.models.object_detection import predict_utils
+from keras_cv.models.object_detection.__internal__ import unpack_input
 from keras_cv.models.object_detection.retina_net.__internal__ import (
     layers as layers_lib,
 )
@@ -280,7 +281,6 @@ class RetinaNet(tf.keras.Model):
                 "`metrics` due to performance and distribution concerns. Please us the "
                 "`PyCOCOCallback` to evaluate COCO metrics."
             )
-        super().compile(**kwargs)
         if loss is not None:
             raise ValueError(
                 "`RetinaNet` does not accept a `loss` to `compile()`. "
@@ -365,7 +365,8 @@ class RetinaNet(tf.keras.Model):
         )
 
     def train_step(self, data):
-        x, y = data
+        x, y = unpack_input(data)
+
         y = bounding_box.convert_format(
             y,
             source=self.bounding_box_format,
@@ -398,7 +399,8 @@ class RetinaNet(tf.keras.Model):
         return self.compute_metrics(x, {}, {}, sample_weight={})
 
     def test_step(self, data):
-        x, y = data
+        x, y = unpack_input(data)
+
         y = bounding_box.convert_format(
             y,
             source=self.bounding_box_format,

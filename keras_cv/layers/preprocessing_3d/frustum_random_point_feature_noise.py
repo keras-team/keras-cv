@@ -14,8 +14,8 @@
 
 import tensorflow as tf
 
+from keras_cv import point_cloud
 from keras_cv.layers.preprocessing_3d import base_augmentation_layer_3d
-from keras_cv.ops import point_cloud
 
 POINT_CLOUDS = base_augmentation_layer_3d.POINT_CLOUDS
 BOUNDING_BOXES = base_augmentation_layer_3d.BOUNDING_BOXES

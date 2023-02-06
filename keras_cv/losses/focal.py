@@ -63,8 +63,8 @@ class FocalLoss(tf.keras.losses.Loss):
         **kwargs,
     ):
         super().__init__(**kwargs)
-        self._alpha = float(alpha)
-        self._gamma = float(gamma)
+        self.alpha = float(alpha)
+        self.gamma = float(gamma)
         self.from_logits = from_logits
         self.label_smoothing = label_smoothing
 
@@ -83,9 +83,9 @@ class FocalLoss(tf.keras.losses.Loss):
 
         cross_entropy = K.binary_crossentropy(y_true, y_pred)
 
-        alpha = tf.where(tf.equal(y_true, 1.0), self._alpha, (1.0 - self._alpha))
+        alpha = tf.where(tf.equal(y_true, 1.0), self.alpha, (1.0 - self.alpha))
         pt = y_true * y_pred + (1.0 - y_true) * (1.0 - y_pred)
-        loss = alpha * tf.pow(1.0 - pt, self._gamma) * cross_entropy
+        loss = alpha * tf.pow(1.0 - pt, self.gamma) * cross_entropy
         # In most losses you mean over the final axis to achieve a scalar
         # Focal loss however is a special case in that it is meant to focus on
         # a small number of hard examples in a batch.  Most of the time this
