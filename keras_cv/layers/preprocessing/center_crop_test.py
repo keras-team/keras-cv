@@ -50,5 +50,3 @@ class CenterCropTest(tf.test.TestCase, parameterized.TestCase):
         layer = preprocessing.CenterCrop(10, 10)
         with self.assertRaises(ValueError):
             layer({"images": images, "bounding_boxes": bboxes})
-
-
