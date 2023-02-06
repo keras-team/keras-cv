@@ -58,6 +58,7 @@ setup(
             "black[jupyter]",
             "pytest",
             "pycocotools",
+            "tensorflow",
         ],
         "examples": ["tensorflow_datasets", "matplotlib"],
     },
