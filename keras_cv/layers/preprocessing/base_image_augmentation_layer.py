@@ -57,14 +57,23 @@ class BaseImageAugmentationLayer(tf.keras.__internal__.layers.BaseRandomLayer):
     coodinate the randomness behavior, eg, in the RandomFlip layer, the image
     and bounding_boxes should be changed in the same way.
 
-    The `call()` method support two formats of inputs:
-    1. Single image tensor with 3D (HWC) or 4D (NHWC) format.
-    2. A dict of tensors with stable keys. The supported keys are:
-      `"images"`, `"labels"` and `"bounding_boxes"` at the moment. We might add
-      more keys in future when we support more types of augmentation.
+    The `call()` method supports two formats of inputs:
+    1. Single image tensor with shape (height, width, channels) or
+       (batch_size, height, width, channels)
+    1. A dict of tensors with stable keys. The supported keys are:
+      * `"images"` - Image tensor with shape (height, width, channels) or
+        (batch_size, height, width, channels)
+      * `"labels"` - One-hot encoded classification labels Tensor with shape
+        (num_classes) or (batch_size, num_classes)
+      * `"bounding_boxes"` - A dictionary with keys:
+        * `"boxes"` - Tensor with shape (num_boxes, 4) or (batch_size,
+          num_boxes, 4)
+        * `"classes"` - Tensor of class labels for boxes with shape (num_boxes,
+          num_classes) or (batch_size, num_boxes, num_classes).
+       Any other keys included in this dictionary will be ignored and unmodified
+       by an augmentation layer.
 
-    The output of the `call()` will be in two formats, which will be the same
-    structure as the inputs.
+    The output of the `call()` will be the same structure as the inputs.
 
     The `call()` will handle the logic detecting the training/inference mode,
     unpack the inputs, forward to the correct function, and pack the output back
