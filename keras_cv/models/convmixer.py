@@ -114,6 +114,14 @@ def ConvMixerLayer(dim, kernel_size):
 
 
 class PatchEmbed(layers.Layer):
+    """Implementation for Extracting Patch Embeddings.
+    Args:
+        inputs: Input tensor.
+        patch_size: integer, Size of patches.
+    Returns:
+        Output tensor for the patch embed.
+    """
+
     def __init__(self, dim, patch_size, **kwargs):
         super().__init__(**kwargs)
         self.conv = layers.Conv2D(
