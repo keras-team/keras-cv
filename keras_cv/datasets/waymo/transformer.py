@@ -21,6 +21,8 @@ from typing import Tuple
 import numpy as np
 import tensorflow as tf
 
+from keras_cv.utils import assert_waymo_opendata_installed
+
 try:
     from waymo_open_dataset import dataset_pb2
     from waymo_open_dataset.utils import box_utils
