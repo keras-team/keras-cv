@@ -89,7 +89,7 @@ BASE_DOCSTRING = """Instantiates the {name} architecture.
 
 
 def ConvMixerLayer(dim, kernel_size):
-    """CovnMixer Layer module.
+    """ConvMixerLayer Layer module.
     Args:
         inputs: Input tensor.
         dim: integer, filters of the layer in a block.
@@ -113,22 +113,20 @@ def ConvMixerLayer(dim, kernel_size):
     return apply
 
 
-def PatchEmbed(dim, patch_size):
-    """Implementation for Extracting Patch Embeddings.
-    Args:
-        inputs: Input tensor.
-        patch_size: integer, Size of patches.
-    Returns:
-        Output tensor for the patch embed.
-    """
+class PatchEmbed(layers.Layer):
+    def __init__(self, dim, patch_size, **kwargs):
+        super().__init__(**kwargs)
+        self.conv = layers.Conv2D(
+            filters=dim, kernel_size=patch_size, strides=patch_size
+        )
+        self.act = tf.nn.gelu
+        self.norm = layers.BatchNormalization()
 
-    def apply(x):
-        x = layers.Conv2D(filters=dim, kernel_size=patch_size, strides=patch_size)(x)
-        x = tf.nn.gelu(x)
-        x = layers.BatchNormalization()(x)
+    def call(self, x):
+        x = self.conv(x)
+        x = self.act(x)
+        x = self.norm(x)
         return x
-
-    return apply
 
 
 def ConvMixer(
