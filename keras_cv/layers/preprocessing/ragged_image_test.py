@@ -20,7 +20,7 @@ CONSISTENT_OUTPUT_TEST_CONFIGURATIONS = [
     ("AutoContrast", layers.AutoContrast, {"value_range": (0, 255)}),
     ("ChannelShuffle", layers.ChannelShuffle, {}),
     ("Equalization", layers.Equalization, {"value_range": (0, 255)}),
-    # TODO(lukewood): figure out how to support ragged inputs in vectorized layers
+    # TODO(lukewood): come up with a nice abstraction to support raggeds in base layer.
     # ("Grayscale", layers.Grayscale, {}),
     ("GridMask", layers.GridMask, {}),
     (
@@ -127,8 +127,8 @@ class RaggedImageTest(tf.test.TestCase, parameterized.TestCase):
         layer = layer_cls(**init_args)
         inputs = tf.ragged.stack(
             [
-                tf.ones((512, 512, 3)),
-                tf.ones((600, 300, 3)),
+                tf.ones((5, 5, 3)),
+                tf.ones((8, 8, 3)),
             ]
         )
         outputs = layer(inputs)
@@ -139,8 +139,8 @@ class RaggedImageTest(tf.test.TestCase, parameterized.TestCase):
         layer = layer_cls(**init_args)
         inputs = tf.ragged.stack(
             [
-                tf.ones((512, 512, 3)),
-                tf.ones((600, 300, 3)),
+                tf.ones((5, 5, 3)),
+                tf.ones((8, 8, 3)),
             ]
         )
         outputs = layer(inputs)
