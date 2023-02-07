@@ -216,7 +216,10 @@ def overwrite_forward_call(diff_model: tf.keras.Model):
 
 
 def call_attn_edit(self, inputs):
-    """Implmentation of the custom attention forward pass used in the paper's method."""
+    """Implementation of the custom attention forward pass used in the paper's method.
+    This is later used replace the call method of the self/cross attention layers available in
+    the U-Net spatial transformer block of the diffusion model.
+    """
     inputs, context = inputs
     context = inputs if context is None else context
     q, k, v = self.to_q(inputs), self.to_k(context), self.to_v(context)
