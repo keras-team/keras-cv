@@ -158,7 +158,6 @@ class RandomTranslation(VectorizedBaseImageAugmentationLayer):
             "width_translations": width_translations,
         }
 
-<<<<<<< HEAD
     def augment_ragged_image(self, image, transformation, **kwargs):
         image = tf.expand_dims(image, axis=0)
         height_translations = transformation["height_translations"]
@@ -171,32 +170,6 @@ class RandomTranslation(VectorizedBaseImageAugmentationLayer):
             images=image, transformations=transformation, **kwargs
         )
         return tf.squeeze(image, axis=0)
-=======
-    def _batch_augment(self, inputs):
-        # Change to vectorized_map for better performance, as well as work
-        # around issue for different tensorspec between inputs and outputs.
-        return tf.map_fn(
-            self._augment,
-            inputs,
-            fn_output_signature={
-                "images": tf.RaggedTensorSpec(
-                    shape=[None, None, None],
-                    ragged_rank=1,
-                    dtype=self.compute_dtype,
-                ),
-                "bounding_boxes": {
-                    "boxes": tf.RaggedTensorSpec(
-                        shape=[None, 4],
-                        ragged_rank=1,
-                        dtype=self.compute_dtype,
-                    ),
-                    "classes": tf.RaggedTensorSpec(
-                        shape=[None], dtype=self.compute_dtype
-                    ),
-                },
-            },
-        )
->>>>>>> a30e6a1 (added support for bbox in random translation)
 
     def augment_images(self, images, transformations, **kwargs):
         """Translated inputs with random ops."""
