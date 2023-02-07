@@ -54,6 +54,10 @@ class ResNetV2Test(ModelsTest, tf.test.TestCase, parameterized.TestCase):
     def test_model_can_be_used_as_backbone(self, app, last_dim, args):
         super()._test_model_can_be_used_as_backbone(app, last_dim, args)
 
+    @parameterized.parameters(*MODEL_LIST)
+    def test_model_serialization(self, app, last_dim, args):
+        super()._test_model_serialization(app, last_dim, args)
+
     def test_model_backbone_layer_names_stability(self):
         model = resnet_v2.ResNet50V2(
             include_rescaling=False,
