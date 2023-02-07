@@ -13,8 +13,9 @@
 # limitations under the License.
 """Integration tests for KerasCV models."""
 
-import pytest
 import os
+
+import pytest
 import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras import backend
@@ -156,7 +157,7 @@ class ModelsTest:
 
         model = keras.Model(inputs=inputs, outputs=[backbone_output])
         model.compile()
-    
+
     def _test_model_serialization(self, app, _, args):
         model = app(include_rescaling=True, include_top=False, **args)
         input_batch = tf.ones(shape=(16, 224, 224, 3))
