@@ -98,7 +98,7 @@ class CutMix(BaseImageAugmentationLayer):
             ratio * tf.cast(image_height, dtype=tf.float32), dtype=tf.int32
         )
         cut_width = tf.cast(
-            ratio * tf.cast(image_height, dtype=tf.float32), dtype=tf.int32
+            ratio * tf.cast(image_width, dtype=tf.float32), dtype=tf.int32
         )
 
         random_center_height = tf.random.uniform(
