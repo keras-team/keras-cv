@@ -14,13 +14,14 @@
 
 import tensorflow as tf
 
-from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer import (
-    VectorizedBaseImageAugmentationLayer,
+from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
+    BaseImageAugmentationLayer,
 )
+from keras_cv.utils import preprocessing
 
 
 @tf.keras.utils.register_keras_serializable(package="keras_cv")
-class RandomContrast(VectorizedBaseImageAugmentationLayer):
+class RandomContrast(BaseImageAugmentationLayer):
     """RandomContrast randomly adjusts contrast during training.
 
     This layer will randomly adjust the contrast of an image or images by a
@@ -55,44 +56,33 @@ class RandomContrast(VectorizedBaseImageAugmentationLayer):
 
     def __init__(self, factor, seed=None, **kwargs):
         super().__init__(seed=seed, force_generator=True, **kwargs)
-        self.factor = factor
         if isinstance(factor, (tuple, list)):
-            self.lower = factor[0]
-            self.upper = factor[1]
+            min = 1 - factor[0]
+            max = 1 + factor[1]
         else:
-            self.lower = self.upper = factor
-        if self.lower < 0.0 or self.upper < 0.0 or self.lower > 1.0:
-            raise ValueError(
-                "`factor` argument cannot have negative values or values "
-                "greater than 1."
-                f"Received: factor={factor}"
-            )
+            min = 1 - factor
+            max = 1 + factor
         self.factor_input = factor
+        self.factor = preprocessing.parse_factor((min, max), min_value=-1, max_value=2)
         self.seed = seed
 
-    def get_random_transformation_batch(self, batch_size, **kwargs):
-        return
+    def get_random_transformation(self, **kwargs):
+        return self.factor()
 
-    def augment_images(self, images, transformations, **kwargs):
-        # Note: we skip get_random_transformation_batch() in RandomContrast because the
-        # tf.image.adjust_contrast op does not expose a batch argument.
-        output = tf.image.random_contrast(
-            images,
-            1.0 - self.lower,
-            1.0 + self.upper,
-            seed=self._random_generator.make_legacy_seed(),
-        )
+    def augment_image(self, image, transformation, **kwargs):
+        contrast_factor = transformation
+        output = tf.image.adjust_contrast(image, contrast_factor=contrast_factor)
         output = tf.clip_by_value(output, 0, 255)
-        output.set_shape(images.shape)
+        output.set_shape(image.shape)
         return output
 
-    def augment_labels(self, labels, transformations, **kwargs):
-        return labels
+    def augment_label(self, label, transformation, **kwargs):
+        return label
 
-    def augment_segmentation_masks(self, segmentation_masks, transformations, **kwargs):
-        return segmentation_masks
+    def augment_segmentation_mask(self, segmentation_mask, transformation, **kwargs):
+        return segmentation_mask
 
-    def augment_bounding_boxes(self, bounding_boxes, transformations=None, **kwargs):
+    def augment_bounding_boxes(self, bounding_boxes, transformation=None, **kwargs):
         return bounding_boxes
 
     def get_config(self):
