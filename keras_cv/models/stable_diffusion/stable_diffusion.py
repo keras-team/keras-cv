@@ -613,16 +613,16 @@ class StableDiffusionBase:
         phrase = tf.convert_to_tensor([phrase], dtype=tf.int32)
         return phrase
 
-    def create_prompt_weights(
-        self, prompt: str, prompt_weights: List[Tuple[str, float]]
+    def create_attn_weights(
+        self, prompt: str, attn_weights: List[Tuple[str, float]]
     ) -> np.ndarray:
-        """Create an array of weights for each prompt token.
+        """Create an array of weights to scale the attention maps associated with each prompt token.
         This is used for manipulating the importance of the prompt tokens,
         increasing or decreasing the importance assigned to each word.
 
         Args:
             prompt (str): The prompt string to tokenize, must be 77 tokens or shorter.
-            prompt_weights (List[Tuple[str, float]]): A list of tuples containing the
+            attn_weights (List[Tuple[str, float]]): A list of tuples containing the
                 pair of word and weight to be manipulated.
 
         Returns:
@@ -636,9 +636,9 @@ class StableDiffusionBase:
         tokens = self.tokenize_prompt(prompt)
 
         # Extract the new weights and tokens
-        edit_weights = [weight for word, weight in prompt_weights]
+        edit_weights = [weight for word, weight in attn_weights]
         edit_tokens = [
-            self.tokenizer.encode(word)[1:-1] for word, weight in prompt_weights
+            self.tokenizer.encode(word)[1:-1] for word, weight in attn_weights
         ]
 
         # Get the indexes of the tokens
