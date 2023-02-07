@@ -18,6 +18,7 @@ Date created: 2022/09/27
 Last modified: 2022/12/08
 Description: Use KerasCV to train a YoloX_tiny on Pascal VOC 2007.
 """
+import math
 import sys
 
 import tensorflow as tf
@@ -26,9 +27,9 @@ from absl import flags
 from tensorflow import keras
 
 import keras_cv
-from keras_cv.callbacks import PyCOCOCallback
+from keras_cv.callbacks import pycoco_callback
 
-EPOCHS = 10
+EPOCHS = 300
 
 flags.DEFINE_string(
     "weights_name",
@@ -54,9 +55,9 @@ except ValueError:
     # MirroredStrategy is best for a single machine with one or multiple GPUs
     strategy = tf.distribute.MirroredStrategy()
 
-BATCH_SIZE = 4
+BATCH_SIZE = 128
 GLOBAL_BATCH_SIZE = BATCH_SIZE * strategy.num_replicas_in_sync
-BASE_LR = 0.01 * GLOBAL_BATCH_SIZE / 16
+BASE_LR = 0.01 * GLOBAL_BATCH_SIZE / 64
 print("Number of accelerators: ", strategy.num_replicas_in_sync)
 print("Global Batch Size: ", GLOBAL_BATCH_SIZE)
 
@@ -72,17 +73,35 @@ eval_ds = tfds.load("voc/2007", split="test", with_info=False)
 
 augmenter = keras_cv.layers.Augmenter(
     layers=[
+        keras_cv.layers.RandomTranslation(
+            height_factor=(-0.2, 0.2),
+            width_factor=(-0.2, 0.2),
+            bounding_box_format="xywh",
+            fill_mode="constant",
+            fill_value=114,
+        ),
         keras_cv.layers.RandomRotation(
             factor=0.03,
             bounding_box_format="xywh",
+            fill_mode="constant",
+            fill_value=114,
         ),
         keras_cv.layers.RandomShear(
             x_factor=0.2,
             y_factor=0.2,
             bounding_box_format="xywh",
+            fill_mode="constant",
+            fill_value=114,
         ),
         keras_cv.layers.RandomFlip(
             bounding_box_format="xywh",
+        ),
+        keras_cv.layers.RandomColorJitter(
+            value_range=(0, 255),
+            brightness_factor=(0.4,0.4),
+            contrast_factor=0.0,
+            saturation_factor=(0.7,0.7),
+            hue_factor=(0.1,0.1),
         ),
         keras_cv.layers.MixUp(alpha=0.5),
         keras_cv.layers.Mosaic(bounding_box_format="xywh"),
@@ -219,7 +238,11 @@ with strategy.scope():
     )
     # Fine-tuning a YoloX_tiny is as simple as setting backbone.trainable = False
     # model.backbone.trainable = False
-    optimizer = tf.optimizers.SGD(learning_rate=BASE_LR, global_clipnorm=10.0)
+    optimizer = tf.optimizers.SGD(
+        learning_rate=BASE_LR,
+        decay=0.0005,
+        momentum=0.01,
+    )
 
 model.compile(
     classification_loss="binary_crossentropy",
@@ -228,9 +251,39 @@ model.compile(
     optimizer=optimizer,
 )
 
+
+def get_lr_callback(batch_size=8):
+    lr_start = 1e-6
+    lr_max = 0.01 * (batch_size / 64)
+    lr_min = lr_max * 0.05
+    warmup_epochs = 5
+    no_aug_iter = 15
+
+    def lrfn(epoch):
+        if epoch <= warmup_epochs:
+            lr = (lr_max - lr_start) * pow((epoch / warmup_epochs), 2) + lr_start
+
+        elif epoch >= EPOCHS - no_aug_iter:
+            lr = lr_min
+
+        else:
+            lr = lr_min + 0.5 * (lr_max - lr_min) * (
+                1.0
+                + math.cos(
+                    math.pi
+                    * (epoch - warmup_epochs)
+                    / (EPOCHS - warmup_epochs - no_aug_iter)
+                )
+            )
+        return lr
+
+    lr_callback = tf.keras.callbacks.LearningRateScheduler(lrfn, verbose=True)
+    return lr_callback
+
+
 callbacks = [
     # keras.callbacks.TensorBoard(log_dir=FLAGS.tensorboard_path),
-    keras.callbacks.ReduceLROnPlateau(patience=5),
+    get_lr_callback(GLOBAL_BATCH_SIZE),
     keras.callbacks.EarlyStopping(patience=10),
     # keras.callbacks.ModelCheckpoint(FLAGS.weights_path, save_weights_only=True),
     # PyCOCOCallback(eval_ds, "xywh"),
@@ -284,7 +337,7 @@ visualization.plot_bounding_box_gallery(
     value_range=(0, 255),
     bounding_box_format="xywh",
     y_true=y_true,
-    y_pred=None,
+    y_pred=y_pred,
     scale=4,
     rows=2,
     cols=2,
