@@ -134,11 +134,11 @@ class VectorizedBaseImageAugmentationLayer(
     def get_random_transformation_batch(
         self,
         batch_size,
-        image=None,
-        label=None,
+        images=None,
+        labels=None,
         bounding_boxes=None,
         keypoints=None,
-        segmentation_mask=None,
+        segmentation_masks=None,
     ):
         """Produce random transformation config for a batch of inputs.
 
