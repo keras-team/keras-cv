@@ -853,7 +853,7 @@ class StableDiffusion(StableDiffusionBase):
                 self._diffusion_model_ptp = self._diffusion_model
 
             # Add extra variables and callbacks
-            ptp_utils.rename_cross_attention_layers(self._diffusion_model_ptp)
+            ptp_utils.rename_cross_attn_layers(self._diffusion_model_ptp)
             ptp_utils.overwrite_forward_call(self._diffusion_model_ptp)
             ptp_utils.set_initial_tf_variables(self._diffusion_model_ptp)
 
@@ -961,7 +961,7 @@ class StableDiffusionV2(StableDiffusionBase):
                 self._diffusion_model_ptp = self._diffusion_model
 
             # Add extra variables and callbacks
-            ptp_utils.rename_cross_attention_layers(self._diffusion_model_ptp)
+            ptp_utils.rename_cross_attn_layers(self._diffusion_model_ptp)
             ptp_utils.overwrite_forward_call(self._diffusion_model_ptp)
             ptp_utils.set_initial_tf_variables(self._diffusion_model_ptp)
 
