@@ -20,6 +20,7 @@ CONSISTENT_OUTPUT_TEST_CONFIGURATIONS = [
     ("AutoContrast", layers.AutoContrast, {"value_range": (0, 255)}),
     ("ChannelShuffle", layers.ChannelShuffle, {}),
     ("Equalization", layers.Equalization, {"value_range": (0, 255)}),
+    # TODO(lukewood): figure out how to support ragged inputs in vectorized layers
     # ("Grayscale", layers.Grayscale, {}),
     ("GridMask", layers.GridMask, {}),
     (
