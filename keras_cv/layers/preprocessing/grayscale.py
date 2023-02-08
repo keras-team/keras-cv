@@ -60,6 +60,9 @@ class Grayscale(BatchedBaseImageAugmentationLayer):
             )
         self.output_channels = output_channels
 
+    def augment_ragged_image(self, image, transformation, **kwargs):
+        return self.augment_images(image, transformations=transformation, **kwargs)
+
     def augment_images(self, images, transformations=None, **kwargs):
         grayscale = tf.image.rgb_to_grayscale(images)
         if self.output_channels == 1:
