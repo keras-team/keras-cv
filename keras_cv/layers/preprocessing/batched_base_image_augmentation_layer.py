@@ -56,10 +56,10 @@ class BatchedBaseImageAugmentationLayer(tf.keras.__internal__.layers.BaseRandomL
         """
         raise NotImplementedError(
             "A ragged image batch was passed to layer of type "
-            f"`{type(a).__name__}`. This layer does not implement "
+            f"`{type(self).__name__}`. This layer does not implement "
             "`augment_ragged_image()`. If this is a `keras_cv`, open a GitHub issue "
             "requesting Ragged functionality on the layer titled: "
-            f"'`{type(a).__name__}`: ragged image support'. "
+            f"'`{type(self).__name__}`: ragged image support'. "
             "If this is a custom layer, implement the `augment_ragged_image()` method."
         )
 
