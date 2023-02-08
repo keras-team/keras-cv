@@ -14,7 +14,7 @@
 
 import tensorflow as tf
 
-from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer import (
+from keras_cv.layers.preprocessing.batched_base_image_augmentation_layer import (
     BatchedBaseImageAugmentationLayer,
 )
 
@@ -59,6 +59,14 @@ class Grayscale(BatchedBaseImageAugmentationLayer):
                 f"output_channels must be in 1 or 3. Got {output_channels}"
             )
         self.output_channels = output_channels
+
+    def compute_ragged_image_signature(self, images):
+        ragged_spec = tf.RaggedTensorSpec(
+            shape=images.shape[1:3] + (self.output_channels,),
+            ragged_rank=1,
+            dtype=self.compute_dtype,
+        )
+        return ragged_spec
 
     def augment_ragged_image(self, image, transformation, **kwargs):
         return self.augment_images(image, transformations=transformation, **kwargs)

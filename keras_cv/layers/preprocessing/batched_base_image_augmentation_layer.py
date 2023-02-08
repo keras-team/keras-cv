@@ -63,7 +63,7 @@ class BatchedBaseImageAugmentationLayer(tf.keras.__internal__.layers.BaseRandomL
             "If this is a custom layer, implement the `augment_ragged_image()` method."
         )
 
-    def compute_image_signature(self, images):
+    def compute_ragged_image_signature(self, images):
         """Computes the output image signature for the `augment_image()` function.
 
         Must be overridden to return tensors with different shapes than the input
@@ -194,18 +194,20 @@ class BatchedBaseImageAugmentationLayer(tf.keras.__internal__.layers.BaseRandomL
           `augment_labels` and `augment_bounding_boxes` as the `transformations`
           parameter.
         """
-        return None
+        # Required to work with map_fn in the ragged cast.
+        return tf.zeros((batch_size))
 
-    def _unwrap_ragged_image_call(self, inputs, transformation):
+    def _unwrap_ragged_image_call(self, inputs):
         images = inputs.get(IMAGES, None)
         labels = inputs.get(LABELS, None)
         bounding_boxes = inputs.get(BOUNDING_BOXES, None)
         keypoints = inputs.get(KEYPOINTS, None)
         segmentation_masks = inputs.get(SEGMENTATION_MASKS, None)
+        transformation = inputs.get("transformations")
         images = images.to_tensor()
         images = self.augment_ragged_image(
             image=images,
-            label=label,
+            label=labels,
             bounding_boxes=bounding_boxes,
             keypoints=keypoints,
             segmentation_mask=segmentation_masks,
@@ -231,10 +233,13 @@ class BatchedBaseImageAugmentationLayer(tf.keras.__internal__.layers.BaseRandomL
             segmentation_masks=segmentation_masks,
         )
 
-        if instance(images, tf.RaggedTensor):
+        if isinstance(images, tf.RaggedTensor):
+            inputs_for_raggeds = {"transformations": transformations, **inputs}
+            print("inputs_for_raggeds", inputs_for_raggeds)
+            print("self._unwrap_ragged_image_call", self._unwrap_ragged_image_call)
             images = tf.map_fn(
                 self._unwrap_ragged_image_call,
-                [inputs, transformations],
+                inputs_for_raggeds,
                 fn_output_signature=self.compute_ragged_image_signature(images),
             )
         else:
