@@ -38,14 +38,21 @@ class BatchedBaseImageAugmentationLayer(tf.keras.__internal__.layers.BaseRandomL
     def __init__(self, seed=None, **kwargs):
         super().__init__(seed=seed, **kwargs)
 
+    def augment_ragged_image(self, image, transformations, **kwargs):
+        """Augment a single image when ragged images are passed during training.
+
+        Args:
+            image:
+        """
+
     def augment_images(self, images, transformations, **kwargs):
         """Augment a batch of images during training.
 
         Args:
-          image: 3D image input tensor to the layer. Forwarded from
+          image: 4D image input tensor to the layer. Forwarded from
             `layer.call()`.
-          transformation: The transformation object produced by
-            `get_random_transformation`. Used to coordinate the randomness
+          transformations: The transformations object produced by
+            `get_random_transformations`. Used to coordinate the randomness
             between image, label, bounding box, keypoints, and segmentation mask.
 
         Returns:
@@ -53,17 +60,17 @@ class BatchedBaseImageAugmentationLayer(tf.keras.__internal__.layers.BaseRandomL
         """
         raise NotImplementedError()
 
-    def augment_labels(self, labels, transformation, **kwargs):
+    def augment_labels(self, labels, transformations, **kwargs):
         """Augment a batch of  labels during training.
 
         Args:
-          label: 1D label to the layer. Forwarded from `layer.call()`.
-          transformation: The transformation object produced by
-            `get_random_transformation`. Used to coordinate the randomness
+          label: 2D label to the layer. Forwarded from `layer.call()`.
+          transformations: The transformations object produced by
+            `get_random_transformations`. Used to coordinate the randomness
             between image, label, bounding box, keypoints, and segmentation mask.
 
         Returns:
-          output 1D tensor, which will be forward to `layer.call()`.
+          output 2D tensor, which will be forward to `layer.call()`.
         """
         raise NotImplementedError()
 
@@ -71,13 +78,13 @@ class BatchedBaseImageAugmentationLayer(tf.keras.__internal__.layers.BaseRandomL
         """Augment a batch of targets during training.
 
         Args:
-          target: 1D label to the layer. Forwarded from `layer.call()`.
-          transformation: The transformation object produced by
-            `get_random_transformation`. Used to coordinate the randomness
+          target: 2D label to the layer. Forwarded from `layer.call()`.
+          transformations: The transformations object produced by
+            `get_random_transformations`. Used to coordinate the randomness
             between image, label, bounding box, keypoints, and segmentation mask.
 
         Returns:
-          output 1D tensor, which will be forward to `layer.call()`.
+          output 2D tensor, which will be forward to `layer.call()`.
         """
         return self.augment_labels(targets, transformations)
 
@@ -89,12 +96,12 @@ class BatchedBaseImageAugmentationLayer(tf.keras.__internal__.layers.BaseRandomL
             `layer.call()`.
           bounding_boxes: 2D bounding boxes to the layer. Forwarded from
             `call()`.
-          transformation: The transformation object produced by
-            `get_random_transformation`. Used to coordinate the randomness
+          transformations: The transformations object produced by
+            `get_random_transformations`. Used to coordinate the randomness
             between image, label, bounding box, keypoints, and segmentation mask.
 
         Returns:
-          output 2D tensor, which will be forward to `layer.call()`.
+          output 3D tensor, which will be forward to `layer.call()`.
         """
         raise NotImplementedError()
 
@@ -102,14 +109,14 @@ class BatchedBaseImageAugmentationLayer(tf.keras.__internal__.layers.BaseRandomL
         """Augment a batch of keypoints for one image during training.
 
         Args:
-          keypoints: 2D keypoints input tensor to the layer. Forwarded from
+          keypoints: 3D keypoints input tensor to the layer. Forwarded from
             `layer.call()`.
-          transformation: The transformation object produced by
-            `get_random_transformation`. Used to coordinate the randomness
+          transformations: The transformations object produced by
+            `get_random_transformations`. Used to coordinate the randomness
             between image, label, bounding box, keypoints, and segmentation mask.
 
         Returns:
-          output 2D tensor, which will be forward to `layer.call()`.
+          output 3D tensor, which will be forward to `layer.call()`.
         """
         raise NotImplementedError()
 
@@ -120,8 +127,8 @@ class BatchedBaseImageAugmentationLayer(tf.keras.__internal__.layers.BaseRandomL
           segmentation_mask: 3D segmentation mask input tensor to the layer.
             This should generally have the shape [H, W, 1], or in some cases [H, W, C] for multilabeled data.
             Forwarded from `layer.call()`.
-          transformation: The transformation object produced by
-            `get_random_transformation`. Used to coordinate the randomness
+          transformations: The transformations object produced by
+            `get_random_transformations`. Used to coordinate the randomness
             between image, label, bounding box, keypoints, and segmentation mask.
 
         Returns:
@@ -138,13 +145,13 @@ class BatchedBaseImageAugmentationLayer(tf.keras.__internal__.layers.BaseRandomL
         keypoints=None,
         segmentation_masks=None,
     ):
-        """Produce random transformation config for a batch of inputs.
+        """Produce random transformations config for a batch of inputs.
 
         This is used to produce same randomness between
         image/label/bounding_box.
 
         Args:
-          batch_size: the batch size of transformation configuration to sample.
+          batch_size: the batch size of transformations configuration to sample.
           image: 3D image tensor from inputs.
           label: optional 1D label tensor from inputs.
           bounding_box: optional 2D bounding boxes tensor from inputs.
