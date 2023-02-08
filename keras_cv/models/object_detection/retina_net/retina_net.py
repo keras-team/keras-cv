@@ -218,6 +218,11 @@ class RetinaNet(tf.keras.Model):
         return box_pred, cls_pred
 
     def call(self, images, training=None):
+        if isinstance(images, tf.RaggedTensor):
+            raise ValueError(
+                "`RetinaNet` does not yet support `Ragged Tensor Input`"
+                "So, please resize image using either `keras_cv.layers.JitteredResize()` or `keras.layers.Resizing(pad_to_aspect_ratio=True)`"
+            )
         box_pred, cls_pred = self._forward(images, training=training)
         if not training:
             # box_pred is on "center_yxhw" format, convert to target format.
