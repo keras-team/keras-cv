@@ -88,11 +88,10 @@ BASE_DOCSTRING = """Instantiates the {name} architecture.
 """
 
 
-def CovnMixer_Layer(dim, kernel_size):
-    """CovnMixer Layer module.
+def ConvMixerLayer(dim, kernel_size):
+    """ConvMixerLayer module.
     Args:
-        inputs: Input tensor.
-        dim: integer, filters of the layer in a block.
+        dim: integer, Number of filters for convolution layers.
         kernel_size: integer, kernel size of the Conv2d layers.
     Returns:
         Output tensor for the CovnMixer Layer.
@@ -113,10 +112,10 @@ def CovnMixer_Layer(dim, kernel_size):
     return apply
 
 
-def patch_embed(dim, patch_size):
+def PatchEmbed(dim, patch_size):
     """Implementation for Extracting Patch Embeddings.
     Args:
-        inputs: Input tensor.
+        dim: integer, Number of filters for convolution layers.
         patch_size: integer, Size of patches.
     Returns:
         Output tensor for the patch embed.
@@ -148,7 +147,7 @@ def ConvMixer(
 ):
     """Instantiates the ConvMixer architecture.
     Args:
-        dim: number of filters.
+        dim: Number of filters for convolution layers.
         depth: number of CovnMixer Layer.
         patch_size: Size of the patches.
         kernel_size: kernel size for conv2d layers.
@@ -206,10 +205,10 @@ def ConvMixer(
 
     if include_rescaling:
         x = layers.Rescaling(1 / 255.0)(x)
-    x = patch_embed(dim, patch_size)(x)
+    x = PatchEmbed(dim, patch_size)(x)
 
     for _ in range(depth):
-        x = CovnMixer_Layer(dim, kernel_size)(x)
+        x = ConvMixerLayer(dim, kernel_size)(x)
 
     if include_top:
         x = layers.GlobalAveragePooling2D(name="avg_pool")(x)
