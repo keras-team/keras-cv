@@ -115,7 +115,7 @@ def ConvMixerLayer(dim, kernel_size):
 def PatchEmbed(dim, patch_size):
     """Implementation for Extracting Patch Embeddings.
     Args:
-        inputs: Input tensor.
+        dim: integer, Number of filters for convolution layers.
         patch_size: integer, Size of patches.
     Returns:
         Output tensor for the patch embed.
