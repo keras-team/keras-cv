@@ -34,9 +34,7 @@ BATCHED = "batched"
 USE_TARGETS = "use_targets"
 
 
-class VectorizedBaseImageAugmentationLayer(
-    tf.keras.__internal__.layers.BaseRandomLayer
-):
+class BatchedBaseImageAugmentationLayer(tf.keras.__internal__.layers.BaseRandomLayer):
     def __init__(self, seed=None, **kwargs):
         super().__init__(seed=seed, **kwargs)
 

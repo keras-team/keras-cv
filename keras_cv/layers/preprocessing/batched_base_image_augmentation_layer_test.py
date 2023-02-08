@@ -16,11 +16,11 @@ import tensorflow as tf
 
 from keras_cv import bounding_box
 from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer import (
-    VectorizedBaseImageAugmentationLayer,
+    BatchedBaseImageAugmentationLayer,
 )
 
 
-class VectorizedRandomAddLayer(VectorizedBaseImageAugmentationLayer):
+class VectorizedRandomAddLayer(BatchedBaseImageAugmentationLayer):
     def __init__(self, value_range=(0.0, 1.0), fixed_value=None, **kwargs):
         super().__init__(**kwargs)
         self.value_range = value_range
@@ -52,7 +52,7 @@ class VectorizedRandomAddLayer(VectorizedBaseImageAugmentationLayer):
         return segmentation_masks + transformations[:, None, None, None]
 
 
-class VectorizedBaseImageAugmentationLayerTest(tf.test.TestCase):
+class BatchedBaseImageAugmentationLayerTest(tf.test.TestCase):
     def test_augment_single_image(self):
         add_layer = VectorizedRandomAddLayer(fixed_value=2.0)
         image = np.random.random(size=(8, 8, 3)).astype("float32")
