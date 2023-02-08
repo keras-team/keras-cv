@@ -17,8 +17,6 @@ import tensorflow as tf
 from keras_cv import bounding_box
 from keras_cv.utils import preprocessing
 
-# In order to support both unbatched and batched inputs, the horizontal
-# and verticle axis is reverse indexed
 H_AXIS = -3
 W_AXIS = -2
 
@@ -34,7 +32,52 @@ BATCHED = "batched"
 USE_TARGETS = "use_targets"
 
 
-class BatchedBaseImageAugmentationLayer(tf.keras.__internal__.layers.BaseRandomLayer):
+class VectorizedBaseImageAugmentationLayer(
+    tf.keras.__internal__.layers.BaseRandomLayer
+):
+    """Abstract base layer for vectorized image augmentaion.
+
+    This layer contains base functionalities for preprocessing layers which
+    augment image related data, eg. image and in future, label and bounding
+    boxes.  The subclasses could avoid making certain mistakes and reduce code
+    duplications.
+
+    This layer requires you to implement one method: `augment_images()`, which
+    augments one single image during the training. There are a few additional
+    methods that you can implement for added functionality on the layer:
+
+    `augment_labels()`, which handles label augmentation if the layer supports
+    that.
+
+    `augment_bounding_boxes()`, which handles the bounding box augmentation, if
+    the layer supports that.
+
+    `get_random_transformations()`, which should produce a batch of random
+    transformation settings. The tranformation object, which must be a batched Tensor or
+    a dictionary where each input is a batched Tensor, will be
+    passed to `augment_images`, `augment_labels` and `augment_bounding_boxes`, to
+    coodinate the randomness behavior, eg, in the RandomFlip layer, the image
+    and bounding_boxes should be changed in the same way.
+
+    The `call()` method support two formats of inputs:
+    1. Single image tensor with 3D (HWC) or 4D (NHWC) format.
+    2. A dict of tensors with stable keys. The supported keys are:
+      `"images"`, `"labels"` and `"bounding_boxes"` at the moment. We might add
+      more keys in future when we support more types of augmentation.
+
+    The output of the `call()` will be in two formats, which will be the same
+    structure as the inputs.
+
+    The `call()` will handle the logic detecting the training/inference mode,
+    unpack the inputs, forward to the correct function, and pack the output back
+    to the same structure as the inputs.
+
+    Note that since the randomness is also a common functionnality, this layer
+    also includes a tf.keras.backend.RandomGenerator, which can be used to
+    produce the random numbers.  The random number generator is stored in the
+    `self._random_generator` attribute.
+    """
+
     def __init__(self, seed=None, **kwargs):
         super().__init__(seed=seed, **kwargs)
 
@@ -82,13 +125,14 @@ class BatchedBaseImageAugmentationLayer(tf.keras.__internal__.layers.BaseRandomL
 
         Args:
           image: 4D image input tensor to the layer. Forwarded from
-            `layer.call()`.
+            `layer.call()`.  This should generally have the shape [B, H, W, C].
+            Forwarded from `layer.call()`.
           transformations: The transformations object produced by
             `get_random_transformations`. Used to coordinate the randomness
             between image, label, bounding box, keypoints, and segmentation mask.
 
         Returns:
-          output 3D tensor, which will be forward to `layer.call()`.
+          output 4D tensor, which will be forward to `layer.call()`.
         """
         raise NotImplementedError()
 
@@ -156,7 +200,7 @@ class BatchedBaseImageAugmentationLayer(tf.keras.__internal__.layers.BaseRandomL
         """Augment a batch of images' segmentation masks during training.
 
         Args:
-          segmentation_mask: 3D segmentation mask input tensor to the layer.
+          segmentation_mask: 4D segmentation mask input tensor to the layer.
             This should generally have the shape [B, H, W, 1], or in some cases
             [B, H, W, C] for multilabeled data. Forwarded from `layer.call()`.
           transformations: The transformations object produced by
@@ -164,7 +208,7 @@ class BatchedBaseImageAugmentationLayer(tf.keras.__internal__.layers.BaseRandomL
             between image, label, bounding box, keypoints, and segmentation mask.
 
         Returns:
-          output 3D tensor containing the augmented segmentation mask, which will be forward to `layer.call()`.
+          output 4D tensor containing the augmented segmentation mask, which will be forward to `layer.call()`.
         """
         raise NotImplementedError()
 
@@ -292,6 +336,7 @@ class BatchedBaseImageAugmentationLayer(tf.keras.__internal__.layers.BaseRandomL
         return result
 
     def call(self, inputs, training=True):
+        # TODO(lukewood): remove training=False behavior.
         inputs = self._ensure_inputs_are_compute_dtype(inputs)
         if training:
             inputs, metadata = self._format_inputs(inputs)

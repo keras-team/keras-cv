@@ -15,22 +15,22 @@ import numpy as np
 import tensorflow as tf
 
 from keras_cv import bounding_box
-from keras_cv.layers.preprocessing.batched_base_image_augmentation_layer import (
-    BatchedBaseImageAugmentationLayer,
+from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer import (
+    VectorizedBaseImageAugmentationLayer,
 )
 
 
-class VectorizedRandomAddLayer(BatchedBaseImageAugmentationLayer):
-    def __init__(self, value_range=(0.0, 1.0), fixed_value=None, **kwargs):
+class VectorizedRandomAddLayer(VectorizedBaseImageAugmentationLayer):
+    def __init__(self, add_range=(0.0, 1.0), fixed_value=None, **kwargs):
         super().__init__(**kwargs)
-        self.value_range = value_range
+        self.add_range = add_range
         self.fixed_value = fixed_value
 
     def get_random_transformation_batch(self, batch_size, **kwargs):
         if self.fixed_value:
             return tf.ones((batch_size,)) * self.fixed_value
         return self._random_generator.random_uniform(
-            (batch_size,), minval=self.value_range[0], maxval=self.value_range[1]
+            (batch_size,), minval=self.add_range[0], maxval=self.add_range[1]
         )
 
     def augment_images(self, images, transformations, **kwargs):
@@ -130,7 +130,6 @@ class BatchedBaseImageAugmentationLayerTest(tf.test.TestCase):
         add_layer = VectorizedRandomAddLayer(fixed_value=0.5)
         result = add_layer(images)
         self.assertAllClose(images + 0.5, result)
-        # TODO(lukewood): unit test
 
     def test_augment_image_and_localization_data(self):
         add_layer = VectorizedRandomAddLayer(fixed_value=2.0)

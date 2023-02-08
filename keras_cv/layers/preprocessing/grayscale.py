@@ -14,13 +14,13 @@
 
 import tensorflow as tf
 
-from keras_cv.layers.preprocessing.batched_base_image_augmentation_layer import (
-    BatchedBaseImageAugmentationLayer,
+from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer import (
+    VectorizedBaseImageAugmentationLayer,
 )
 
 
 @tf.keras.utils.register_keras_serializable(package="keras_cv")
-class Grayscale(BatchedBaseImageAugmentationLayer):
+class Grayscale(VectorizedBaseImageAugmentationLayer):
     """Grayscale is a preprocessing layer that transforms RGB images to Grayscale images.
     Input images should have values in the range of [0, 255].
 
