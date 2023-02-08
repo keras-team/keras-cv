@@ -38,6 +38,45 @@ class BatchedBaseImageAugmentationLayer(tf.keras.__internal__.layers.BaseRandomL
     def __init__(self, seed=None, **kwargs):
         super().__init__(seed=seed, **kwargs)
 
+    def augment_ragged_image(self, image, transformation, **kwargs):
+        """Augment an image from a ragged image batch during training.
+
+        This method accepts a single Dense image Tensor, and returns a Dense image.
+        The resulting images are then stacked back into a ragged image batch.  The
+        behavior of this method should be identical to that of `augment_images()` but
+        is to operate on a batch-wise basis.
+
+        Args:
+            image: a single image from the batch
+            transformation: a single transformation sampled from
+                `get_random_transformations()`.
+            kwargs: all of the other call arguments (i.e. bounding_boxes, labels, etc.).
+        Returns:
+            Augmented image.
+        """
+        raise NotImplementedError(
+            "A ragged image batch was passed to layer of type "
+            f"`{type(a).__name__}`. This layer does not implement "
+            "`augment_ragged_image()`. If this is a `keras_cv`, open a GitHub issue "
+            "requesting Ragged functionality on the layer titled: "
+            f"'`{type(a).__name__}`: ragged image support'. "
+            "If this is a custom layer, implement the `augment_ragged_image()` method."
+        )
+
+    def compute_image_signature(self, images):
+        """Computes the output image signature for the `augment_image()` function.
+
+        Must be overridden to return tensors with different shapes than the input
+        images.  By default returns either a `tf.RaggedTensorSpec` matching the input
+        image spec, or a `tf.TensorSpec` matching the input image spec.
+        """
+        ragged_spec = tf.RaggedTensorSpec(
+            shape=images.shape[1:],
+            ragged_rank=1,
+            dtype=self.compute_dtype,
+        )
+        return ragged_spec
+
     def augment_images(self, images, transformations, **kwargs):
         """Augment a batch of images during training.
 
@@ -157,6 +196,23 @@ class BatchedBaseImageAugmentationLayer(tf.keras.__internal__.layers.BaseRandomL
         """
         return None
 
+    def _unwrap_ragged_image_call(self, inputs, transformation):
+        images = inputs.get(IMAGES, None)
+        labels = inputs.get(LABELS, None)
+        bounding_boxes = inputs.get(BOUNDING_BOXES, None)
+        keypoints = inputs.get(KEYPOINTS, None)
+        segmentation_masks = inputs.get(SEGMENTATION_MASKS, None)
+        images = images.to_tensor()
+        images = self.augment_ragged_image(
+            image=images,
+            label=label,
+            bounding_boxes=bounding_boxes,
+            keypoints=keypoints,
+            segmentation_mask=segmentation_masks,
+            transformation=transformation,
+        )
+        return tf.RaggedTensor.from_tensor(images)
+
     def _batch_augment(self, inputs):
         images = inputs.get(IMAGES, None)
         labels = inputs.get(LABELS, None)
@@ -175,12 +231,19 @@ class BatchedBaseImageAugmentationLayer(tf.keras.__internal__.layers.BaseRandomL
             segmentation_masks=segmentation_masks,
         )
 
-        images = self.augment_images(
-            images,
-            transformations=transformations,
-            bounding_boxes=bounding_boxes,
-            label=labels,
-        )
+        if instance(images, tf.RaggedTensor):
+            images = tf.map_fn(
+                self._unwrap_ragged_image_call,
+                [inputs, transformations],
+                fn_output_signature=self.compute_ragged_image_signature(images),
+            )
+        else:
+            images = self.augment_images(
+                images,
+                transformations=transformations,
+                bounding_boxes=bounding_boxes,
+                label=labels,
+            )
 
         result = {IMAGES: images}
         if labels is not None:
