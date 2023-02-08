@@ -112,28 +112,22 @@ def ConvMixerLayer(dim, kernel_size):
     return apply
 
 
-class PatchEmbed(layers.Layer):
+def PatchEmbed(dim, patch_size):
     """Implementation for Extracting Patch Embeddings.
     Args:
-        dim: integer, Number of filters for convolution layers.
+        inputs: Input tensor.
         patch_size: integer, Size of patches.
     Returns:
         Output tensor for the patch embed.
     """
 
-    def __init__(self, dim, patch_size, **kwargs):
-        super().__init__(**kwargs)
-        self.conv = layers.Conv2D(
-            filters=dim, kernel_size=patch_size, strides=patch_size
-        )
-        self.act = tf.nn.gelu
-        self.norm = layers.BatchNormalization()
-
-    def call(self, x):
-        x = self.conv(x)
-        x = self.act(x)
-        x = self.norm(x)
+    def apply(x):
+        x = layers.Conv2D(filters=dim, kernel_size=patch_size, strides=patch_size)(x)
+        x = tf.nn.gelu(x)
+        x = layers.BatchNormalization()(x)
         return x
+
+    return apply
 
 
 def ConvMixer(
