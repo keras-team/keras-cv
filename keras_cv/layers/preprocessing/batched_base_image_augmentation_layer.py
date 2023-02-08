@@ -38,13 +38,6 @@ class BatchedBaseImageAugmentationLayer(tf.keras.__internal__.layers.BaseRandomL
     def __init__(self, seed=None, **kwargs):
         super().__init__(seed=seed, **kwargs)
 
-    def augment_ragged_image(self, image, transformations, **kwargs):
-        """Augment a single image when ragged images are passed during training.
-
-        Args:
-            image:
-        """
-
     def augment_images(self, images, transformations, **kwargs):
         """Augment a batch of images during training.
 
