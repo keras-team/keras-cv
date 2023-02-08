@@ -125,8 +125,8 @@ class BatchedBaseImageAugmentationLayer(tf.keras.__internal__.layers.BaseRandomL
 
         Args:
           segmentation_mask: 3D segmentation mask input tensor to the layer.
-            This should generally have the shape [H, W, 1], or in some cases [H, W, C] for multilabeled data.
-            Forwarded from `layer.call()`.
+            This should generally have the shape [B, H, W, 1], or in some cases
+            [B, H, W, C] for multilabeled data. Forwarded from `layer.call()`.
           transformations: The transformations object produced by
             `get_random_transformations`. Used to coordinate the randomness
             between image, label, bounding box, keypoints, and segmentation mask.
