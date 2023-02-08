@@ -77,6 +77,7 @@ class DeeplabTest(tf.test.TestCase):
         output = model(input_image, training=True)
 
         self.assertEquals(output["output"].dtype, tf.float32)
+        tf.keras.mixed_precision.set_global_policy("float32")
 
     def test_invalid_backbone_model(self):
         with self.assertRaisesRegex(
