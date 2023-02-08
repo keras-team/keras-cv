@@ -75,7 +75,7 @@ class Grayscale(VectorizedBaseImageAugmentationLayer):
     def augment_labels(self, labels, transformations=None, **kwargs):
         return labels
 
-    def augment_segmentation_mask(self, segmentation_masks, transformations, **kwargs):
+    def augment_egmentation_masks(self, segmentation_masks, transformations, **kwargs):
         return segmentation_masks
 
     def get_config(self):
