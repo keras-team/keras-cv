@@ -228,12 +228,14 @@ class RandomlyZoomedCrop(BaseImageAugmentationLayer):
 
     @classmethod
     def from_config(cls, config):
-        config["zoom_factor"] = tf.keras.utils.deserialize_keras_object(
-            config["zoom_factor"]
-        )
-        config["aspect_ratio_factor"] = tf.keras.utils.deserialize_keras_object(
-            config["aspect_ratio_factor"]
-        )
+        if isinstance(config["zoom_factor"], dict):
+            config["zoom_factor"] = tf.keras.utils.deserialize_keras_object(
+                config["zoom_factor"]
+            )
+        if isinstance(config["aspect_ratio_factor"], dict):
+            config["aspect_ratio_factor"] = tf.keras.utils.deserialize_keras_object(
+                config["aspect_ratio_factor"]
+            )
         return cls(**config)
 
     def _crop_and_resize(self, image, transformation, method=None):
