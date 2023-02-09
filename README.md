@@ -49,12 +49,12 @@ pip install git+https://github.com/keras-team/keras-cv.git tensorflow --upgrade
 ## Quickstart
 
 ```python
-# Create a preprocessing pipeline
 import keras_cv
 import tensorflow as tf
 from tensorflow import keras
 import tensorflow_datasets as tfds
 
+# Create a preprocessing pipeline
 augmenter = keras_cv.layers.Augmenter(
     layers=[
         keras_cv.layers.RandomFlip(),
