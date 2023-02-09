@@ -56,39 +56,48 @@ from tensorflow import keras
 import tensorflow_datasets as tfds
 
 augmenter = keras_cv.layers.Augmenter(
-  layers=[
-      keras_cv.layers.RandomFlip(),
-      keras_cv.layers.RandAugment(value_range=(0, 255)),
-      keras_cv.layers.CutMix(),
-      keras_cv.layers.MixUp()
+    layers=[
+        keras_cv.layers.RandomFlip(),
+        keras_cv.layers.RandAugment(value_range=(0, 255)),
+        keras_cv.layers.CutMix(),
+        keras_cv.layers.MixUp()
     ]
 )
 
-def augment_data(images, labels):
-  labels = tf.one_hot(labels, 3)
-  inputs = {"images": images, "labels": labels}
-  outputs = augmenter(inputs)
-  return outputs['images'], outputs['labels']
+def preprocess_data(images, labels, augment=False):
+    labels = tf.one_hot(labels, 3)
+    inputs = {"images": images, "labels": labels}
+    outputs = augmenter(inputs) if augment else inputs
+    return outputs['images'], outputs['labels']
 
 # Augment a `tf.data.Dataset`
-dataset = tfds.load('rock_paper_scissors', as_supervised=True, split='train')
-dataset = dataset.batch(64)
-dataset = dataset.map(augment_data, num_parallel_calls=tf.data.AUTOTUNE)
+train_dataset, test_dataset = tfds.load(
+    'rock_paper_scissors',
+    as_supervised=True,
+    split=['train', 'test'],
+)
+train_dataset = train_dataset.batch(16).map(
+    lambda x, y: preprocess_data(x, y, augment=True),
+        num_parallel_calls=tf.data.AUTOTUNE).prefetch(
+            tf.data.AUTOTUNE)
+test_dataset = test_dataset.batch(16).map(
+    preprocess_data, num_parallel_calls=tf.data.AUTOTUNE).prefetch(
+        tf.data.AUTOTUNE)
 
 # Create a model
 densenet = keras_cv.models.DenseNet121(
-  include_rescaling=True,
-  include_top=True,
-  classes=3
+    include_rescaling=True,
+    include_top=True,
+    classes=3
 )
 densenet.compile(
-  loss='categorical_crossentropy',
-  optimizer='adam',
-  metrics=['accuracy']
+    loss='categorical_crossentropy',
+    optimizer='adam',
+    metrics=['accuracy']
 )
 
 # Train your model
-densenet.fit(dataset)
+densenet.fit(train_dataset, validation_data=test_dataset)
 ```
 
 ## Contributors
