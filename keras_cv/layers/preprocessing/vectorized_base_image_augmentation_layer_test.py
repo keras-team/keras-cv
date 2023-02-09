@@ -1,4 +1,4 @@
-# Copyright 2022 The KerasCV Authors
+# Copyright 2023 The KerasCV Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -52,7 +52,7 @@ class VectorizedRandomAddLayer(VectorizedBaseImageAugmentationLayer):
         return segmentation_masks + transformations[:, None, None, None]
 
 
-class BatchedBaseImageAugmentationLayerTest(tf.test.TestCase):
+class VectorizedBaseImageAugmentationLayerTest(tf.test.TestCase):
     def test_augment_single_image(self):
         add_layer = VectorizedRandomAddLayer(fixed_value=2.0)
         image = np.random.random(size=(8, 8, 3)).astype("float32")

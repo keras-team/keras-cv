@@ -168,9 +168,7 @@ class VectorizedBaseImageAugmentationLayer(
         """Augment bounding boxes for one image during training.
 
         Args:
-          image: 3D image input tensor to the layer. Forwarded from
-            `layer.call()`.
-          bounding_boxes: 2D bounding boxes to the layer. Forwarded from
+          bounding_boxes: 3D bounding boxes to the layer. Forwarded from
             `call()`.
           transformations: The transformations object produced by
             `get_random_transformations`. Used to coordinate the randomness
@@ -186,7 +184,8 @@ class VectorizedBaseImageAugmentationLayer(
 
         Args:
           keypoints: 3D keypoints input tensor to the layer. Forwarded from
-            `layer.call()`.
+            `layer.call()`.  Shape should be [batch, num_keypoints, 2] in the specified
+            keypoint format.
           transformations: The transformations object produced by
             `get_random_transformations`. Used to coordinate the randomness
             between image, label, bounding box, keypoints, and segmentation mask.
