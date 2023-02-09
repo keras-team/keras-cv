@@ -14,13 +14,13 @@
 
 import tensorflow as tf
 
-from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
-    BaseImageAugmentationLayer,
+from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer import (
+    VectorizedBaseImageAugmentationLayer,
 )
 
 
 @tf.keras.utils.register_keras_serializable(package="keras_cv")
-class Grayscale(BaseImageAugmentationLayer):
+class Grayscale(VectorizedBaseImageAugmentationLayer):
     """Grayscale is a preprocessing layer that transforms RGB images to Grayscale images.
     Input images should have values in the range of [0, 255].
 
@@ -50,21 +50,7 @@ class Grayscale(BaseImageAugmentationLayer):
     def __init__(self, output_channels=1, **kwargs):
         super().__init__(**kwargs)
         self.output_channels = output_channels
-        # This layer may raise an error when running on GPU using auto_vectorize
-        self.auto_vectorize = False
-
-    def compute_image_signature(self, images):
-        # required because of the `output_channels` argument
-        if isinstance(images, tf.RaggedTensor):
-            ragged_spec = tf.RaggedTensorSpec(
-                shape=images.shape[1:3] + [self.output_channels],
-                ragged_rank=1,
-                dtype=self.compute_dtype,
-            )
-            return ragged_spec
-        return tf.TensorSpec(
-            images.shape[1:3] + [self.output_channels], self.compute_dtype
-        )
+        self._check_input_params(output_channels)
 
     def _check_input_params(self, output_channels):
         if output_channels not in [1, 3]:
@@ -74,8 +60,19 @@ class Grayscale(BaseImageAugmentationLayer):
             )
         self.output_channels = output_channels
 
-    def augment_image(self, image, transformation=None, **kwargs):
-        grayscale = tf.image.rgb_to_grayscale(image)
+    def compute_ragged_image_signature(self, images):
+        ragged_spec = tf.RaggedTensorSpec(
+            shape=images.shape[1:3] + (self.output_channels,),
+            ragged_rank=1,
+            dtype=self.compute_dtype,
+        )
+        return ragged_spec
+
+    def augment_ragged_image(self, image, transformation, **kwargs):
+        return self.augment_images(image, transformations=transformation, **kwargs)
+
+    def augment_images(self, images, transformations=None, **kwargs):
+        grayscale = tf.image.rgb_to_grayscale(images)
         if self.output_channels == 1:
             return grayscale
         elif self.output_channels == 3:
@@ -86,11 +83,11 @@ class Grayscale(BaseImageAugmentationLayer):
     def augment_bounding_boxes(self, bounding_boxes, **kwargs):
         return bounding_boxes
 
-    def augment_label(self, label, transformation=None, **kwargs):
-        return label
+    def augment_labels(self, labels, transformations=None, **kwargs):
+        return labels
 
-    def augment_segmentation_mask(self, segmentation_mask, transformation, **kwargs):
-        return segmentation_mask
+    def augment_segmentation_masks(self, segmentation_masks, transformations, **kwargs):
+        return segmentation_masks
 
     def get_config(self):
         config = {

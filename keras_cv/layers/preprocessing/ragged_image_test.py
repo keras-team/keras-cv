@@ -126,8 +126,8 @@ class RaggedImageTest(tf.test.TestCase, parameterized.TestCase):
         layer = layer_cls(**init_args)
         inputs = tf.ragged.stack(
             [
-                tf.ones((512, 512, 3)),
-                tf.ones((600, 300, 3)),
+                tf.ones((5, 5, 3)),
+                tf.ones((8, 8, 3)),
             ]
         )
         outputs = layer(inputs)
@@ -138,8 +138,8 @@ class RaggedImageTest(tf.test.TestCase, parameterized.TestCase):
         layer = layer_cls(**init_args)
         inputs = tf.ragged.stack(
             [
-                tf.ones((512, 512, 3)),
-                tf.ones((600, 300, 3)),
+                tf.ones((5, 5, 3)),
+                tf.ones((8, 8, 3)),
             ]
         )
         outputs = layer(inputs)
