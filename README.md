@@ -31,11 +31,25 @@ To learn more about the future project direction, please check the [roadmap](.gi
 - [Roadmap](.github/ROADMAP.md)
 - [API Design Guidelines](.github/API_DESIGN.md)
 
+## Installation
+
+To install the latest official release:
+
+```
+pip install keras-cv tensorflow --upgrade
+```
+
+To install the latest unreleased changes to the library, we recommend using
+pip to install directly from the master branch on github:
+
+```
+pip install git+https://github.com/keras-team/keras-cv.git tensorflow --upgrade
+```
+
 ## Quickstart
 
-Create a preprocessing pipeline:
-
 ```python
+# Create a preprocessing pipeline
 import keras_cv
 import tensorflow as tf
 from tensorflow import keras
@@ -55,19 +69,13 @@ def augment_data(images, labels):
   inputs = {"images": images, "labels": labels}
   outputs = augmenter(inputs)
   return outputs['images'], outputs['labels']
-```
 
-Augment a `tf.data.Dataset`:
-
-```python
+# Augment a `tf.data.Dataset`
 dataset = tfds.load('rock_paper_scissors', as_supervised=True, split='train')
 dataset = dataset.batch(64)
 dataset = dataset.map(augment_data, num_parallel_calls=tf.data.AUTOTUNE)
-```
 
-Create a model:
-
-```python
+# Create a model
 densenet = keras_cv.models.DenseNet121(
   include_rescaling=True,
   include_top=True,
@@ -78,11 +86,8 @@ densenet.compile(
   optimizer='adam',
   metrics=['accuracy']
 )
-```
 
-Train your model:
-
-```python
+# Train your model
 densenet.fit(dataset)
 ```
 
