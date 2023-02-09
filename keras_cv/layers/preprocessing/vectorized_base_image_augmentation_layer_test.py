@@ -26,6 +26,9 @@ class VectorizedRandomAddLayer(VectorizedBaseImageAugmentationLayer):
         self.add_range = add_range
         self.fixed_value = fixed_value
 
+    def augment_ragged_image(self, image, transformation, **kwargs):
+        return image + transformation[None, None]
+
     def get_random_transformation_batch(self, batch_size, **kwargs):
         if self.fixed_value:
             return tf.ones((batch_size,)) * self.fixed_value
