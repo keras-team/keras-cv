@@ -75,3 +75,8 @@ class RandomColorDegeneration(BaseImageAugmentationLayer):
         config = super().get_config()
         config.update({"factor": self.factor, "seed": self.seed})
         return config
+
+    @classmethod
+    def from_config(cls, config):
+        config["factor"] = tf.keras.utils.deserialize_keras_object(config["factor"])
+        return cls(**config)

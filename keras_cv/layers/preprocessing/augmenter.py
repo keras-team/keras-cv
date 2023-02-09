@@ -35,3 +35,8 @@ class Augmenter(tf.keras.layers.Layer):
         config = super().get_config()
         config.update({"layers": self.layers})
         return config
+
+    @classmethod
+    def from_config(cls, config):
+        config["layers"] = tf.keras.utils.deserialize_keras_object(config["layers"])
+        return cls(**config)

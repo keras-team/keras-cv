@@ -105,3 +105,13 @@ class SqueezeAndExcite2D(layers.Layer):
         }
         base_config = super().get_config()
         return dict(list(base_config.items()) + list(config.items()))
+
+    @classmethod
+    def from_config(cls, config):
+        config["squeeze_activation"] = tf.keras.utils.deserialize_keras_object(
+            config["squeeze_activation"]
+        )
+        config["excite_activation"] = tf.keras.utils.deserialize_keras_object(
+            config["excite_activation"]
+        )
+        return cls(**config)
