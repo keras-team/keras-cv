@@ -66,7 +66,7 @@ class GrayscaleTest(tf.test.TestCase):
 
     def test_non_square_image(self):
         xs = tf.cast(
-                tf.stack([2 * tf.ones((52, 24, 3)), tf.ones((52, 24, 3))], axis=0),
+            tf.stack([2 * tf.ones((52, 24, 3)), tf.ones((52, 24, 3))], axis=0),
             tf.float32,
         )
 
