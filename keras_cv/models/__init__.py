@@ -55,6 +55,8 @@ from keras_cv.models.efficientnet_v2 import EfficientNetV2S
 from keras_cv.models.mlp_mixer import MLPMixerB16
 from keras_cv.models.mlp_mixer import MLPMixerB32
 from keras_cv.models.mlp_mixer import MLPMixerL16
+from keras_cv.models.mobilenet_v1 import MobileNetV1
+from keras_cv.models.mobilenet_v2 import MobileNetV2
 from keras_cv.models.mobilenet_v3 import MobileNetV3Large
 from keras_cv.models.mobilenet_v3 import MobileNetV3Small
 from keras_cv.models.object_detection.faster_rcnn import FasterRCNN
