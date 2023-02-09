@@ -72,7 +72,7 @@ class VectorizedBaseImageAugmentationLayer(
     unpack the inputs, forward to the correct function, and pack the output back
     to the same structure as the inputs.
 
-    Note that since the randomness is also a common functionnality, this layer
+    Note that since the randomness is also a common functionality, this layer
     also includes a tf.keras.backend.RandomGenerator, which can be used to
     produce the random numbers.  The random number generator is stored in the
     `self._random_generator` attribute.
