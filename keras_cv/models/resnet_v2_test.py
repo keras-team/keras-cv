@@ -56,9 +56,11 @@ class ResNetV2Test(ModelsTest, tf.test.TestCase, parameterized.TestCase):
 
     @parameterized.parameters(*MODEL_LIST)
     def test_model_serialization(self, app, last_dim, args):
-        super()._test_model_serialization(app, last_dim, args, "tf", "model")
         super()._test_model_serialization(
-            app, last_dim, args, "keras_v3", "model.keras"
+            app, last_dim, args, save_format="tf", filename="model"
+        )
+        super()._test_model_serialization(
+            app, last_dim, args, save_format="keras_v3", filename="model.keras"
         )
 
     def test_model_backbone_layer_names_stability(self):
