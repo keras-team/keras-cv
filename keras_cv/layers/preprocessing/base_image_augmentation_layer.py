@@ -107,7 +107,7 @@ class BaseImageAugmentationLayer(tf.keras.__internal__.layers.BaseRandomLayer):
         return (inputs - mean) * random_factor + mean
     ```
 
-    Note that since the randomness is also a common functionnality, this layer
+    Note that since the randomness is also a common functionality, this layer
     also includes a tf.keras.backend.RandomGenerator, which can be used to
     produce the random numbers.  The random number generator is stored in the
     `self._random_generator` attribute.
