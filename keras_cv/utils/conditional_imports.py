@@ -21,6 +21,9 @@ except ImportError:
 def assert_waymo_open_dataset_installed(symbol_name):
     if waymo_open_dataset is None:
         raise ImportError(
-            f"{symbol_name} requires the `waymo-open-dataset-tf-2-6-0` package. "
-            "Please install with `pip install waymo-open-dataset-tf-2-6-0`."
+            f"{symbol_name} requires the `waymo-open-dataset-tf` package. "
+            "Please install the package from source. "
+            "Installation instructions can be found at "
+            "https://github.com/waymo-research/waymo-open-dataset"
+            "/blob/master/docs/quick_start.md"
         )
