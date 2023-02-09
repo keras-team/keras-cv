@@ -18,7 +18,7 @@ except ImportError:
     waymo_open_dataset = None
 
 
-def assert_waymo_opendata_installed(symbol_name):
+def assert_waymo_open_dataset_installed(symbol_name):
     if waymo_open_dataset is None:
         raise ImportError(
             f"{symbol_name} requires the `waymo-open-dataset-tf-2-6-0` package. "

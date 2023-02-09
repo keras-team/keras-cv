@@ -14,7 +14,7 @@
 import tensorflow as tf
 from keras.callbacks import Callback
 
-from keras_cv.utils import assert_waymo_opendata_installed
+from keras_cv.utils import assert_waymo_open_dataset_installed
 
 try:
     from waymo_open_dataset.metrics.python.wod_detection_evaluator import (
@@ -38,7 +38,9 @@ class WaymoEvaluationCallback(Callback):
             config: an optional `metrics_pb2.Config` object from WOD to specify
                 what metrics should be evaluated.
         """
-        assert_waymo_opendata_installed("keras_cv.callbacks.WaymoEvaluationCallback()")
+        assert_waymo_open_dataset_installed(
+            "keras_cv.callbacks.WaymoEvaluationCallback()"
+        )
         self.model = None
         self.val_data = validation_data
         self.evaluator = WODDetectionEvaluator(config=config)

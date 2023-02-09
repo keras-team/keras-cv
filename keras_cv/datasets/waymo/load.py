@@ -18,7 +18,7 @@ import tensorflow as tf
 import tensorflow_datasets as tfds
 
 from keras_cv.datasets.waymo import transformer
-from keras_cv.utils import assert_waymo_opendata_installed
+from keras_cv.utils import assert_waymo_open_dataset_installed
 
 try:
     import waymo_open_dataset
@@ -72,7 +72,7 @@ def load(
     load("/path/to/tfrecords", simple_transformer, output_signature)
     ```
     """
-    assert_waymo_opendata_installed("keras_cv.datasets.waymo.load()")
+    assert_waymo_open_dataset_installed("keras_cv.datasets.waymo.load()")
     if type(tfrecord_path) == list:
         filenames = tfrecord_path
     else:
