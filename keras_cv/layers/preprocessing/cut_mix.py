@@ -50,10 +50,10 @@ class CutMix(BaseImageAugmentationLayer):
 
     def _sample_from_beta(self, alpha, beta, shape):
         sample_alpha = tf.random.gamma(
-            shape, 1.0, beta=alpha, seed=self._random_generator.make_legacy_seed()
+            shape, alpha=alpha, seed=self._random_generator.make_legacy_seed()
         )
         sample_beta = tf.random.gamma(
-            shape, 1.0, beta=beta, seed=self._random_generator.make_legacy_seed()
+            shape, alpha=beta, seed=self._random_generator.make_legacy_seed()
         )
         return sample_alpha / (sample_alpha + sample_beta)
 
@@ -98,7 +98,7 @@ class CutMix(BaseImageAugmentationLayer):
             ratio * tf.cast(image_height, dtype=tf.float32), dtype=tf.int32
         )
         cut_width = tf.cast(
-            ratio * tf.cast(image_height, dtype=tf.float32), dtype=tf.int32
+            ratio * tf.cast(image_width, dtype=tf.float32), dtype=tf.int32
         )
 
         random_center_height = tf.random.uniform(

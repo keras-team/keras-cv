@@ -106,10 +106,10 @@ class AugMix(BaseImageAugmentationLayer):
 
     def _sample_from_beta(self, alpha, beta):
         sample_alpha = tf.random.gamma(
-            (), 1.0, beta=alpha, seed=self._random_generator.make_legacy_seed()
+            (), alpha=alpha, seed=self._random_generator.make_legacy_seed()
         )
         sample_beta = tf.random.gamma(
-            (), 1.0, beta=beta, seed=self._random_generator.make_legacy_seed()
+            (), alpha=beta, seed=self._random_generator.make_legacy_seed()
         )
         return sample_alpha / (sample_alpha + sample_beta)
 
