@@ -129,6 +129,7 @@ def parse_factor(param, min_value=0.0, max_value=1.0, param_name="factor", seed=
     if isinstance(param, dict):
         # For all classes missing a `from_config` implementation.
         # (RandomHue, RandomShear, etc.)
+        # To be removed with addition of `keras.__internal__` namespace support
         param = tf.keras.utils.deserialize_keras_object(param)
 
     if isinstance(param, core.FactorSampler):
