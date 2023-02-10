@@ -138,13 +138,22 @@ class GlobalRandomScaling(base_augmentation_layer_3d.BaseAugmentationLayer3D):
 
     def get_random_transformation(self, **kwargs):
         random_scaling_x = self._random_generator.random_uniform(
-            (), minval=self._min_x_factor, maxval=self._max_x_factor
+            (),
+            minval=self._min_x_factor,
+            maxval=self._max_x_factor,
+            dtype=self.compute_dtype,
         )
         random_scaling_y = self._random_generator.random_uniform(
-            (), minval=self._min_y_factor, maxval=self._max_y_factor
+            (),
+            minval=self._min_y_factor,
+            maxval=self._max_y_factor,
+            dtype=self.compute_dtype,
         )
         random_scaling_z = self._random_generator.random_uniform(
-            (), minval=self._min_z_factor, maxval=self._max_z_factor
+            (),
+            minval=self._min_z_factor,
+            maxval=self._max_z_factor,
+            dtype=self.compute_dtype,
         )
         if not self._preserve_aspect_ratio:
             return {
