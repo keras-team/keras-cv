@@ -83,13 +83,22 @@ class GlobalRandomRotation(base_augmentation_layer_3d.BaseAugmentationLayer3D):
 
     def get_random_transformation(self, **kwargs):
         random_rotation_x = self._random_generator.random_uniform(
-            (), minval=-self._max_rotation_angle_x, maxval=self._max_rotation_angle_x
+            (),
+            minval=-self._max_rotation_angle_x,
+            maxval=self._max_rotation_angle_x,
+            dtype=self.compute_dtype,
         )
         random_rotation_y = self._random_generator.random_uniform(
-            (), minval=-self._max_rotation_angle_y, maxval=self._max_rotation_angle_y
+            (),
+            minval=-self._max_rotation_angle_y,
+            maxval=self._max_rotation_angle_y,
+            dtype=self.compute_dtype,
         )
         random_rotation_z = self._random_generator.random_uniform(
-            (), minval=-self._max_rotation_angle_z, maxval=self._max_rotation_angle_z
+            (),
+            minval=-self._max_rotation_angle_z,
+            maxval=self._max_rotation_angle_z,
+            dtype=self.compute_dtype,
         )
         return {
             "pose": tf.stack(

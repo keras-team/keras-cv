@@ -71,13 +71,16 @@ class GlobalRandomTranslation(base_augmentation_layer_3d.BaseAugmentationLayer3D
 
     def get_random_transformation(self, **kwargs):
         random_x_translation = self._random_generator.random_normal(
-            (), mean=0.0, stddev=self._x_stddev
+            (), mean=0.0, stddev=self._x_stddev, dtype=self.compute_dtype
         )
         random_y_translation = self._random_generator.random_normal(
-            (), mean=0.0, stddev=self._y_stddev
+            (), mean=0.0, stddev=self._y_stddev, dtype=self.compute_dtype
         )
         random_z_translation = self._random_generator.random_normal(
-            (), mean=0.0, stddev=self._z_stddev
+            (),
+            mean=0.0,
+            stddev=self._z_stddev,
+            dtype=self.compute_dtype,
         )
         return {
             "pose": tf.stack(
@@ -85,9 +88,9 @@ class GlobalRandomTranslation(base_augmentation_layer_3d.BaseAugmentationLayer3D
                     random_x_translation,
                     random_y_translation,
                     random_z_translation,
-                    0,
-                    0,
-                    0,
+                    0.0,
+                    0.0,
+                    0.0,
                 ],
                 axis=0,
             )
