@@ -52,3 +52,7 @@ class UniformFactorSampler(FactorSampler):
             "upper": self.upper,
             "seed": self.seed,
         }
+
+    @classmethod
+    def from_config(cls, config):
+        return cls(**config)

@@ -130,3 +130,15 @@ class Solarization(BaseImageAugmentationLayer):
         }
         base_config = super().get_config()
         return dict(list(base_config.items()) + list(config.items()))
+
+    @classmethod
+    def from_config(cls, config):
+        if isinstance(config["threshold_factor"], dict):
+            config["threshold_factor"] = tf.keras.utils.deserialize_keras_object(
+                config["threshold_factor"]
+            )
+        if isinstance(config["addition_factor"], dict):
+            config["addition_factor"] = tf.keras.utils.deserialize_keras_object(
+                config["addition_factor"]
+            )
+        return cls(**config)

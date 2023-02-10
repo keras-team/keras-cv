@@ -71,3 +71,7 @@ class NormalFactorSampler(FactorSampler):
             "max_value": self.max_value,
             "seed": self.seed,
         }
+
+    @classmethod
+    def from_config(cls, config):
+        return cls(**config)

@@ -111,3 +111,11 @@ class RepeatedAugmentation(BaseImageAugmentationLayer):
         config = super().get_config()
         config.update({"augmenters": self.augmenters, "shuffle": self.shuffle})
         return config
+
+    @classmethod
+    def from_config(cls, config):
+        if config["augmenters"] and isinstance(config["augmenters"][0], dict):
+            config["augmenters"] = tf.keras.utils.deserialize_keras_object(
+                config["augmenters"]
+            )
+        return cls(**config)
