@@ -13,6 +13,7 @@
 # limitations under the License.
 
 from keras_cv.utils import test_utils
+from keras_cv.utils.conditional_imports import assert_waymo_open_dataset_installed
 from keras_cv.utils.fill_utils import fill_rectangle
 from keras_cv.utils.preprocessing import blend
 from keras_cv.utils.preprocessing import ensure_tensor

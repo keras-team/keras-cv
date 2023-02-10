@@ -20,11 +20,17 @@ from typing import Tuple
 
 import numpy as np
 import tensorflow as tf
-from waymo_open_dataset import dataset_pb2
-from waymo_open_dataset.utils import box_utils
-from waymo_open_dataset.utils import frame_utils
-from waymo_open_dataset.utils import range_image_utils
-from waymo_open_dataset.utils import transform_utils
+
+from keras_cv.utils import assert_waymo_open_dataset_installed
+
+try:
+    from waymo_open_dataset import dataset_pb2
+    from waymo_open_dataset.utils import box_utils
+    from waymo_open_dataset.utils import frame_utils
+    from waymo_open_dataset.utils import range_image_utils
+    from waymo_open_dataset.utils import transform_utils
+except ImportError:
+    waymo_open_dataset = None
 
 from keras_cv.datasets.waymo import struct
 from keras_cv.layers.object_detection_3d import voxel_utils
@@ -55,7 +61,7 @@ WOD_FRAME_OUTPUT_SIGNATURE = {
 _MAX_NUM_NON_TOP_LIDAR_POINTS = 30000
 
 
-def _decode_range_images(frame: dataset_pb2.Frame) -> Dict[int, List[tf.Tensor]]:
+def _decode_range_images(frame) -> Dict[int, List[tf.Tensor]]:
     """Decodes range images from a Waymo Open Dataset frame.
 
     Please refer to https://arxiv.org/pdf/1912.04838.pdf for more details.
@@ -92,7 +98,7 @@ def _decode_range_images(frame: dataset_pb2.Frame) -> Dict[int, List[tf.Tensor]]
     return range_images
 
 
-def _get_range_image_top_pose(frame: dataset_pb2.Frame) -> tf.Tensor:
+def _get_range_image_top_pose(frame) -> tf.Tensor:
     """Extracts range image pose tensor.
 
     Args:
@@ -118,7 +124,7 @@ def _get_range_image_top_pose(frame: dataset_pb2.Frame) -> tf.Tensor:
 
 
 def _get_point_top_lidar(
-    range_image: Sequence[tf.Tensor], frame: dataset_pb2.Frame
+    range_image: Sequence[tf.Tensor], frame
 ) -> struct.PointTensors:
     """Gets point related tensors for the top lidar.
 
@@ -214,9 +220,7 @@ def _get_point_top_lidar(
     )
 
 
-def _get_lidar_calibration(
-    frame: dataset_pb2.Frame, name: int
-) -> dataset_pb2.LaserCalibration:
+def _get_lidar_calibration(frame, name: int):
     """Gets lidar calibration for a given lidar."""
     calibration = None
     for c in frame.context.laser_calibrations:
@@ -244,7 +248,7 @@ def _downsample(point: struct.PointTensors, n: int) -> struct.PointTensors:
 
 def _get_point_lidar(
     ris: Dict[int, List[tf.Tensor]],
-    frame: dataset_pb2.Frame,
+    frame,
     max_num_points: int,
 ) -> struct.PointTensors:
     """Gets point related tensors for non top lidar.
@@ -319,9 +323,7 @@ def _get_point_lidar(
     return point_tensors
 
 
-def _get_point(
-    frame: dataset_pb2.Frame, max_num_lidar_points: int
-) -> struct.PointTensors:
+def _get_point(frame, max_num_lidar_points: int) -> struct.PointTensors:
     """Gets point related tensors from a Waymo Open Dataset frame.
 
     Args:
@@ -348,7 +350,7 @@ def _get_point(
 
 
 def _get_point_label_box(
-    frame: dataset_pb2.Frame,
+    frame,
 ) -> Tuple[tf.Tensor, tf.Tensor, tf.Tensor, tf.Tensor, tf.Tensor, tf.Tensor]:
     """Extracts 3D box labels from a Waymo Open Dataset frame.
 
@@ -448,9 +450,7 @@ def _get_box_class_per_point(
     return point_box_class
 
 
-def _get_point_label(
-    frame: dataset_pb2.Frame, point_xyz: tf.Tensor
-) -> struct.LabelTensors:
+def _get_point_label(frame, point_xyz: tf.Tensor) -> struct.LabelTensors:
     """Extracts labels.
 
     Args:
@@ -564,7 +564,7 @@ def _box_3d_global_to_vehicle(box_3d: tf.Tensor, sdc_pose: tf.Tensor) -> tf.Tens
     return tf.concat([new_center, dim, new_heading[..., tf.newaxis]], axis=-1)
 
 
-def build_tensors_from_wod_frame(frame: dataset_pb2.Frame) -> Dict[str, tf.Tensor]:
+def build_tensors_from_wod_frame(frame) -> Dict[str, tf.Tensor]:
     """Builds tensors from a Waymo Open Dataset frame.
 
     This function is to convert range image to point cloud. User can also work with
@@ -576,6 +576,9 @@ def build_tensors_from_wod_frame(frame: dataset_pb2.Frame) -> Dict[str, tf.Tenso
     Returns:
       Flat dictionary of tensors.
     """
+    assert_waymo_open_dataset_installed(
+        "keras_cv.datasets.waymo.build_tensors_from_wod_frame()"
+    )
 
     frame_id_bytes = "{}_{}".format(frame.context.name, frame.timestamp_micros).encode(
         encoding="ascii"
@@ -678,6 +681,9 @@ def transform_to_vehicle_frame(frame: Dict[str, tf.Tensor]) -> Dict[str, tf.Tens
     Returns:
       A dictionary of feature tensors in vehicle frame.
     """
+    assert_waymo_open_dataset_installed(
+        "keras_cv.datasets.waymo.transform_to_vehicle_frame()"
+    )
 
     def _transform_to_vehicle_frame(
         point_global_xyz: tf.Tensor,
@@ -726,6 +732,9 @@ def build_tensors_for_augmentation(
       and values which are tensors of shapes [num points, num features] and
       [num boxes, num features]).
     """
+    assert_waymo_open_dataset_installed(
+        "keras_cv.datasets.waymo.build_tensors_for_augmentation()"
+    )
     point_cloud = tf.concat(
         [
             frame["point_xyz"][tf.newaxis, ...],

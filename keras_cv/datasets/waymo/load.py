@@ -16,15 +16,20 @@ import os
 
 import tensorflow as tf
 import tensorflow_datasets as tfds
-from waymo_open_dataset import dataset_pb2
 
 from keras_cv.datasets.waymo import transformer
+from keras_cv.utils import assert_waymo_open_dataset_installed
+
+try:
+    import waymo_open_dataset
+except ImportError:
+    waymo_open_dataset = None
 
 
 def _generate_frames(segments, transformer):
     def _generator():
         for record in tfds.as_numpy(segments):
-            frame = dataset_pb2.Frame()
+            frame = waymo_open_dataset.dataset_pb2.Frame()
             frame.ParseFromString(record)
             yield transformer(frame)
 
@@ -67,6 +72,7 @@ def load(
     load("/path/to/tfrecords", simple_transformer, output_signature)
     ```
     """
+    assert_waymo_open_dataset_installed("keras_cv.datasets.waymo.load()")
     if type(tfrecord_path) == list:
         filenames = tfrecord_path
     else:
