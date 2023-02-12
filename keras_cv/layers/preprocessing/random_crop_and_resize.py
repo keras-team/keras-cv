@@ -56,6 +56,25 @@ class RandomCropAndResize(BaseImageAugmentationLayer):
         interpolation: (Optional) A string specifying the sampling method for
             resizing. Defaults to "bilinear".
         seed: (Optional) Used to create a random seed. Defaults to None.
+
+        The `call()` method supports two formats of inputs:
+        1. A single image tensor with shape (height, width, channels) or
+        (batch_size, height, width, channels)
+        1. A dict of tensors with any of the following keys (note that `"images"`
+        must be present):
+        * `"images"` - Image Tensor with shape (height, width, channels) or
+            (batch_size, height, width, channels)
+        * `"labels"` - One-hot encoded classification labels Tensor with shape
+            (num_classes) or (batch_size, num_classes)
+        * `"bounding_boxes"` - A dictionary with keys:
+            * `"boxes"` - Tensor with shape (num_boxes, 4) or (batch_size,
+            num_boxes, 4)
+            * `"classes"` - Tensor of class labels for boxes with shape (num_boxes,
+            num_classes) or (batch_size, num_boxes, num_classes).
+        Any other keys included in this dictionary will be ignored and unmodified
+        by an augmentation layer.
+        self._resize() returns valid results for both batched and unbatched
+        The output of the `call()` will be the same structure as the inputs.
     """
 
     def __init__(
