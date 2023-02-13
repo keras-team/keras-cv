@@ -11,17 +11,22 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import time
 
+import matplotlib.pyplot as plt
+import numpy as np
 import tensorflow as tf
+from tensorflow import keras
 
-from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer import (
-    VectorizedBaseImageAugmentationLayer,
+from keras_cv.layers import RandomSaturation
+from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
+    BaseImageAugmentationLayer,
 )
 from keras_cv.utils import preprocessing as preprocessing_utils
 
 
 @tf.keras.utils.register_keras_serializable(package="keras_cv")
-class RandomSaturation(VectorizedBaseImageAugmentationLayer):
+class OldRandomSaturation(BaseImageAugmentationLayer):
     """Randomly adjusts the saturation on given images.
 
     This layer will randomly increase/reduce the saturation for the input RGB
@@ -40,13 +45,6 @@ class RandomSaturation(VectorizedBaseImageAugmentationLayer):
             In order to ensure the value is always the same, please pass a tuple with
             two identical floats: `(0.5, 0.5)`.
         seed: Integer. Used to create a random seed.
-
-    Usage:
-    ```python
-    (images, labels), _ = tf.keras.datasets.cifar10.load_data()
-    random_saturation = keras_cv.layers.preprocessing.RandomSaturation()
-    augmented_images = random_saturation(images)
-    ```
     """
 
     def __init__(self, factor, seed=None, **kwargs):
@@ -58,10 +56,10 @@ class RandomSaturation(VectorizedBaseImageAugmentationLayer):
         )
         self.seed = seed
 
-    def get_random_transformation_batch(self, batch_size, **kwargs):
-        return self.factor(shape=(batch_size,))
+    def get_random_transformation(self, **kwargs):
+        return self.factor()
 
-    def augment_images(self, images, transformations, **kwargs):
+    def augment_image(self, image, transformation=None, **kwargs):
         # Convert the factor range from [0, 1] to [0, +inf]. Note that the
         # tf.image.adjust_saturation is trying to apply the following math formula
         # `output_saturation = input_saturation * factor`. We use the following
@@ -75,19 +73,9 @@ class RandomSaturation(VectorizedBaseImageAugmentationLayer):
         # Convert the transformation to tensor in case it is a float. When
         # transformation is 1.0, then it will result in to divide by zero error, but
         # it will be handled correctly when it is a one tensor.
-        transformations = tf.convert_to_tensor(transformations)
-        adjust_factors = transformations / (1 - transformations)
-
-        images = tf.image.rgb_to_hsv(images)
-        s_channel_batch = tf.multiply(
-            images[..., 1], adjust_factors[:, tf.newaxis, tf.newaxis]
-        )
-        s_channel_batch = tf.clip_by_value(
-            s_channel_batch, clip_value_min=0.0, clip_value_max=1.0
-        )
-        images = tf.stack([images[..., 0], s_channel_batch, images[..., 2]], axis=-1)
-        images = tf.image.hsv_to_rgb(images)
-        return images
+        transformation = tf.convert_to_tensor(transformation)
+        adjust_factor = transformation / (1 - transformation)
+        return tf.image.adjust_saturation(image, saturation_factor=adjust_factor)
 
     def augment_bounding_boxes(self, bounding_boxes, transformation=None, **kwargs):
         return bounding_boxes
@@ -111,3 +99,77 @@ class RandomSaturation(VectorizedBaseImageAugmentationLayer):
         if isinstance(config["factor"], dict):
             config["factor"] = tf.keras.utils.deserialize_keras_object(config["factor"])
         return cls(**config)
+
+
+(x_train, _), _ = keras.datasets.cifar10.load_data()
+x_train = x_train.astype(np.float32)
+x_train.shape
+
+num_images = [1000, 2000, 5000, 10000]
+results = {}
+aug_candidates = [RandomSaturation, OldRandomSaturation]
+aug_args = {"factor": (0.5)}
+
+for aug in aug_candidates:
+    c = aug.__name__
+
+    layer = aug(**aug_args)
+
+    runtimes = []
+    print(f"Timing {c}")
+
+    for n_images in num_images:
+        # warmup
+        layer(x_train[:n_images])
+
+        t0 = time.time()
+        r1 = layer(x_train[:n_images])
+        t1 = time.time()
+        runtimes.append(t1 - t0)
+        print(f"Runtime for {c}, n_images={n_images}: {t1-t0}")
+
+    results[c] = runtimes
+
+    c = aug.__name__ + " Graph Mode"
+
+    layer = aug(**aug_args)
+
+    @tf.function()
+    def apply_aug(inputs):
+        return layer(inputs)
+
+    runtimes = []
+    print(f"Timing {c}")
+
+    for n_images in num_images:
+        # warmup
+        apply_aug(x_train[:n_images])
+
+        t0 = time.time()
+        r1 = apply_aug(x_train[:n_images])
+        t1 = time.time()
+        runtimes.append(t1 - t0)
+        print(f"Runtime for {c}, n_images={n_images}: {t1-t0}")
+
+    results[c] = runtimes
+
+plt.figure()
+for key in results:
+    plt.plot(num_images, results[key], label=key)
+    plt.xlabel("Number images")
+
+plt.ylabel("Runtime (seconds)")
+plt.legend()
+plt.savefig("comparison.png")
+
+# So we can actually see more relevant margins
+del results[aug_candidates[1].__name__]
+
+plt.figure()
+for key in results:
+    plt.plot(num_images, results[key], label=key)
+    plt.xlabel("Number images")
+
+plt.ylabel("Runtime (seconds)")
+plt.legend()
+plt.savefig("comparison_no_old_eager.png")
