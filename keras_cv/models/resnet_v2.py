@@ -107,9 +107,10 @@ class BasicBlock(keras.layers.Layer):
 
     Args:
         filters: integer, filters of the basic layer.
-        kernel_size: default 3, kernel size of the bottleneck layer.
-        stride: default 1, stride of the first layer.
-        conv_shortcut: default False, use convolution shortcut if True,
+        kernel_size: integer, kernel size of the bottleneck layer. Defaults to 3.
+        stride: integer, stride of the first layer. Defaults to 1.
+        dilation: integer, the dilation rate to use for dilated convolution. Defaults to 1.
+        conv_shortcut: bool, uses convolution shortcut if `True`. Defaults to `False`.
           otherwise identity shortcut.
 
     Returns:
@@ -205,12 +206,12 @@ class Block(keras.layers.Layer):
     """A residual block (v2).
 
     Args:
-        filters: integer, filters of the bottleneck layer.
-        kernel_size: default 3, kernel size of the bottleneck layer.
-        stride: default 1, stride of the first layer.
-        conv_shortcut: default False, use convolution shortcut if True,
+        filters: integer, filters of the basic layer.
+        kernel_size: integer, kernel size of the bottleneck layer. Defaults to 3.
+        stride: integer, stride of the first layer. Defaults to 1.
+        dilation: integer, the dilation rate to use for dilated convolution. Defaults to 1.
+        conv_shortcut: bool, uses convolution shortcut if `True`. Defaults to `False`.
           otherwise identity shortcut.
-        name: string, block label.
 
     Returns:
       Output tensor for the residual block.
@@ -319,7 +320,8 @@ class Stack(keras.layers.Layer):
     Args:
         filters: integer, filters of the layer in a block.
         blocks: integer, blocks in the stacked blocks.
-        stride: default 2, stride of the first layer in the first block.
+        stride: integer, stride of the first layer in the first block. Defaults to 2.
+        dilation: integer, the dilation rate to use for dilated convolution. Defaults to 1.
         block_fn: callable, `Block` or `BasicBlock`, the block function to stack.
         first_shortcut: default True, use convolution shortcut if True,
           otherwise identity shortcut.
@@ -333,7 +335,7 @@ class Stack(keras.layers.Layer):
         filters,
         blocks,
         stride=2,
-        dilations=1,
+        dilation=1,
         block_fn=Block,
         first_shortcut=True,
         stack_index=1,
@@ -344,7 +346,7 @@ class Stack(keras.layers.Layer):
         self.filters = filters
         self.blocks = blocks
         self.stride = stride
-        self.dilations = dilations
+        self.dilation = dilation
         self.block_fn = block_fn
         self.first_shortcut = first_shortcut
         self.stack_index = stack_index
@@ -354,13 +356,13 @@ class Stack(keras.layers.Layer):
             filters, conv_shortcut=first_shortcut, name=self.name + "_block1"
         )
         self.middle_blocks = [
-            block_fn(filters, dilation=dilations, name=self.name + "_block" + str(i))
+            block_fn(filters, dilation=dilation, name=self.name + "_block" + str(i))
             for i in range(2, blocks)
         ]
         self.last_block = block_fn(
             filters,
             stride=stride,
-            dilation=dilations,
+            dilation=dilation,
             name=self.name + "_block" + str(blocks),
         )
 
@@ -377,7 +379,7 @@ class Stack(keras.layers.Layer):
                 "filters": self.filters,
                 "blocks": self.blocks,
                 "stride": self.stride,
-                "dilations": self.dilations,
+                "dilation": self.dilation,
                 "block_fn": keras.utils.get_registered_name(self.block_fn),
                 "first_shortcut": self.first_shortcut,
                 "stack_index": self.stack_index,
@@ -493,7 +495,7 @@ def ResNetV2(
             filters=stackwise_filters[stack_index],
             blocks=stackwise_blocks[stack_index],
             stride=stackwise_strides[stack_index],
-            dilations=stackwise_dilations[stack_index],
+            dilation=stackwise_dilations[stack_index],
             block_fn=block_fn,
             first_shortcut=block_fn == Block or stack_index > 0,
             stack_index=stack_index,
