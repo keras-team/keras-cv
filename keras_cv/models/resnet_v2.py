@@ -56,6 +56,7 @@ MODEL_CONFIGS = {
 }
 
 BN_AXIS = 3
+BN_EPSILON = 1.001e-5
 
 BASE_DOCSTRING = """Instantiates the {name} architecture.
     Reference:
@@ -110,7 +111,7 @@ class BasicBlock(keras.layers.Layer):
         stride: default 1, stride of the first layer.
         conv_shortcut: default False, use convolution shortcut if True,
           otherwise identity shortcut.
-    
+
     Returns:
       Output tensor for the residual block.
     """
@@ -134,10 +135,10 @@ class BasicBlock(keras.layers.Layer):
         self.conv_shortcut = conv_shortcut
         super().__init__(**kwargs)
 
-        self.bn1 = layers.BatchNormalization(
-            axis=BN_AXIS, epsilon=1.001e-5, name=self.name + "_use_preactivation_bn"
+        self.bn_preactivation = layers.BatchNormalization(
+            axis=BN_AXIS, epsilon=BN_EPSILON, name=self.name + "_use_preactivation_bn"
         )
-        self.activation1 = layers.Activation(
+        self.relu_preactivation = layers.Activation(
             "relu", name=self.name + "_use_preactivation_relu"
         )
         if conv_shortcut:
@@ -160,11 +161,11 @@ class BasicBlock(keras.layers.Layer):
             use_bias=False,
             name=self.name + "_1_conv",
         )
-        self.bn2 = layers.BatchNormalization(
-            axis=BN_AXIS, epsilon=1.001e-5, name=self.name + "_1_bn"
+        self.bn1 = layers.BatchNormalization(
+            axis=BN_AXIS, epsilon=BN_EPSILON, name=self.name + "_1_bn"
         )
-        self.activation2 = layers.Activation("relu", name=self.name + "_1_relu")
-        self.output_conv = layers.Conv2D(
+        self.activation1 = layers.Activation("relu", name=self.name + "_1_relu")
+        self.conv2 = layers.Conv2D(
             self.filters,
             self.kernel_size,
             strides=self.stride2,
@@ -176,13 +177,13 @@ class BasicBlock(keras.layers.Layer):
         self.add = layers.Add(name=self.name + "_out")
 
     def call(self, inputs):
-        x = self.bn1(inputs)
-        x = self.activation1(x)
+        x = self.bn_preactivation(inputs)
+        x = self.relu_preactivation(x)
         shortcut = self.shortcut(x) if self.shortcut else x
         x = self.conv1(x)
-        x = self.bn2(x)
-        x = self.activation2(x)
-        x = self.output_conv(x)
+        x = self.bn1(x)
+        x = self.activation1(x)
+        x = self.conv2(x)
         return self.add([x, shortcut])
 
     def get_config(self):
@@ -199,8 +200,10 @@ class BasicBlock(keras.layers.Layer):
         return config
 
 
-def Block(filters, kernel_size=3, stride=1, dilation=1, conv_shortcut=False, name=None):
+@keras.utils.register_keras_serializable(package="keras_cv.models.resnet_v2")
+class Block(keras.layers.Layer):
     """A residual block (v2).
+
     Args:
         filters: integer, filters of the bottleneck layer.
         kernel_size: default 3, kernel size of the bottleneck layer.
@@ -208,103 +211,179 @@ def Block(filters, kernel_size=3, stride=1, dilation=1, conv_shortcut=False, nam
         conv_shortcut: default False, use convolution shortcut if True,
           otherwise identity shortcut.
         name: string, block label.
+
     Returns:
       Output tensor for the residual block.
     """
-    if name is None:
-        name = f"v2_block_{backend.get_uid('v2_block')}"
 
-    def apply(x):
-        use_preactivation = layers.BatchNormalization(
-            axis=BN_AXIS, epsilon=1.001e-5, name=name + "_use_preactivation_bn"
-        )(x)
+    def __init__(
+        self,
+        filters,
+        kernel_size=3,
+        stride=1,
+        dilation=1,
+        conv_shortcut=False,
+        **kwargs,
+    ):
+        if "name" not in kwargs:
+            kwargs["name"] = f"v2_block_{backend.get_uid('v2_block')}"
+        self.filters = filters
+        self.kernel_size = kernel_size
+        self.stride = stride
+        self.dilation = dilation
+        self.stride2 = stride if dilation == 1 else 1
+        self.conv_shortcut = conv_shortcut
+        super().__init__(**kwargs)
 
-        use_preactivation = layers.Activation(
-            "relu", name=name + "_use_preactivation_relu"
-        )(use_preactivation)
-
-        s = stride if dilation == 1 else 1
+        self.bn_preactivation = layers.BatchNormalization(
+            axis=BN_AXIS, epsilon=BN_EPSILON, name=self.name + "_use_preactivation_bn"
+        )
+        self.relu_preactivation = layers.Activation(
+            "relu", name=self.name + "_use_preactivation_relu"
+        )
         if conv_shortcut:
-            shortcut = layers.Conv2D(
+            self.shortcut = layers.Conv2D(
                 4 * filters,
                 1,
-                strides=s,
-                name=name + "_0_conv",
-            )(use_preactivation)
-        else:
-            shortcut = (
-                layers.MaxPooling2D(1, strides=stride, name=name + "_0_max_pooling")(x)
-                if s > 1
-                else x
+                strides=self.stride2,
+                name=self.name + "_0_conv",
             )
-
-        x = layers.Conv2D(filters, 1, strides=1, use_bias=False, name=name + "_1_conv")(
-            use_preactivation
-        )
-        x = layers.BatchNormalization(
-            axis=BN_AXIS, epsilon=1.001e-5, name=name + "_1_bn"
-        )(x)
-        x = layers.Activation("relu", name=name + "_1_relu")(x)
-
-        x = layers.Conv2D(
-            filters,
-            kernel_size,
-            strides=s,
+        else:
+            self.shortcut = (
+                layers.MaxPooling2D(
+                    1, strides=stride, name=self.name + "_0_max_pooling"
+                )
+                if self.stride2 > 1
+                else None
+            )
+        self.conv1 = layers.Conv2D(
+            self.filters,
+            kernel_size=1,
+            strides=1,
             use_bias=False,
+            name=self.name + "_1_conv",
+        )
+        self.bn1 = layers.BatchNormalization(
+            axis=BN_AXIS, epsilon=BN_EPSILON, name=self.name + "_1_bn"
+        )
+        self.activation1 = layers.Activation("relu", name=self.name + "_1_relu")
+        self.conv2 = layers.Conv2D(
+            self.filters,
+            self.kernel_size,
+            strides=self.stride2,
             padding="same",
-            dilation_rate=dilation,
-            name=name + "_2_conv",
-        )(x)
-        x = layers.BatchNormalization(
-            axis=BN_AXIS, epsilon=1.001e-5, name=name + "_2_bn"
-        )(x)
-        x = layers.Activation("relu", name=name + "_2_relu")(x)
+            dilation_rate=self.dilation,
+            use_bias=False,
+            name=self.name + "_2_conv",
+        )
+        self.bn2 = layers.BatchNormalization(
+            axis=BN_AXIS, epsilon=BN_EPSILON, name=self.name + "_2_bn"
+        )
+        self.activation2 = layers.Activation("relu", name=self.name + "_2_relu")
+        self.conv3 = layers.Conv2D(
+            4 * filters, kernel_size=1, name=self.name + "_3_conv"
+        )
+        self.add = layers.Add(name=self.name + "_out")
 
-        x = layers.Conv2D(4 * filters, 1, name=name + "_3_conv")(x)
-        x = layers.Add(name=name + "_out")([shortcut, x])
-        return x
+    def call(self, inputs):
+        x = self.bn_preactivation(inputs)
+        x = self.relu_preactivation(x)
+        shortcut = self.shortcut(x) if self.shortcut else x
+        x = self.conv1(x)
+        x = self.bn1(x)
+        x = self.activation1(x)
+        x = self.conv2(x)
+        x = self.bn2(x)
+        x = self.activation2(x)
+        x = self.conv3(x)
+        return self.add([x, shortcut])
 
-    return apply
+    def get_config(self):
+        config = super().get_config()
+        config.update(
+            {
+                "filters": self.filters,
+                "kernel_size": self.kernel_size,
+                "stride": self.stride,
+                "dilation": self.dilation,
+                "conv_shortcut": self.conv_shortcut,
+            }
+        )
+        return config
 
 
-def Stack(
-    filters,
-    blocks,
-    stride=2,
-    dilations=1,
-    name=None,
-    block_fn=Block,
-    first_shortcut=True,
-    stack_index=1,
-):
+@keras.utils.register_keras_serializable(package="keras_cv.models.resnet_v2")
+class Stack(keras.layers.Layer):
     """A set of stacked blocks.
+
     Args:
         filters: integer, filters of the layer in a block.
         blocks: integer, blocks in the stacked blocks.
         stride: default 2, stride of the first layer in the first block.
-        name: string, stack label.
         block_fn: callable, `Block` or `BasicBlock`, the block function to stack.
         first_shortcut: default True, use convolution shortcut if True,
           otherwise identity shortcut.
+
     Returns:
         Output tensor for the stacked blocks.
     """
-    if name is None:
-        name = f"v2_stack_{stack_index}"
 
-    def apply(x):
-        x = block_fn(filters, conv_shortcut=first_shortcut, name=name + "_block1")(x)
-        for i in range(2, blocks):
-            x = block_fn(filters, dilation=dilations, name=name + "_block" + str(i))(x)
-        x = block_fn(
+    def __init__(
+        self,
+        filters,
+        blocks,
+        stride=2,
+        dilations=1,
+        block_fn=Block,
+        first_shortcut=True,
+        stack_index=1,
+        **kwargs,
+    ):
+        if "name" not in kwargs:
+            kwargs["name"] = f"v2_stack_{stack_index}"
+        self.filters = filters
+        self.blocks = blocks
+        self.stride = stride
+        self.dilations = dilations
+        self.block_fn = block_fn
+        self.first_shortcut = first_shortcut
+        self.stack_index = stack_index
+        super().__init__(**kwargs)
+
+        self.first_block = block_fn(
+            filters, conv_shortcut=first_shortcut, name=self.name + "_block1"
+        )
+        self.middle_blocks = [
+            block_fn(filters, dilation=dilations, name=self.name + "_block" + str(i))
+            for i in range(2, blocks)
+        ]
+        self.last_block = block_fn(
             filters,
             stride=stride,
             dilation=dilations,
-            name=name + "_block" + str(blocks),
-        )(x)
-        return x
+            name=self.name + "_block" + str(blocks),
+        )
 
-    return apply
+    def call(self, inputs):
+        x = self.first_block(inputs)
+        for block in self.middle_blocks:
+            x = block(x)
+        return self.last_block(x)
+
+    def get_config(self):
+        config = super().get_config()
+        config.update(
+            {
+                "filters": self.filters,
+                "blocks": self.blocks,
+                "stride": self.stride,
+                "dilations": self.dilations,
+                "block_fn": self.block_fn,
+                "first_shortcut": self.first_shortcut,
+                "stack_index": self.stack_index,
+            }
+        )
+        return config
 
 
 def ResNetV2(
