@@ -378,12 +378,18 @@ class Stack(keras.layers.Layer):
                 "blocks": self.blocks,
                 "stride": self.stride,
                 "dilations": self.dilations,
-                "block_fn": self.block_fn,
+                "block_fn": keras.utils.get_registered_name(self.block_fn),
                 "first_shortcut": self.first_shortcut,
                 "stack_index": self.stack_index,
             }
         )
         return config
+
+    @classmethod
+    def from_config(cls, config):
+        block_class_name = config["block_fn"]
+        config["block_fn"] = keras.utils.get_registered_object(block_class_name)
+        return super().from_config(config)
 
 
 def ResNetV2(
