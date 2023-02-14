@@ -130,8 +130,8 @@ class COCORecall(keras.metrics.Metric):
             warnings.warn(
                 "sample_weight is not yet supported in keras_cv COCO metrics."
             )
-        y_true = bounding_box.to_dense(y_true)
-        y_pred = bounding_box.to_dense(y_pred)
+        y_true = bounding_box.to_dense(y_true.copy())
+        y_pred = bounding_box.to_dense(y_pred.copy())
 
         y_true = bounding_box.convert_format(
             y_true,
@@ -174,19 +174,22 @@ class COCORecall(keras.metrics.Metric):
             for k_i in tf.range(num_categories):
                 category = class_ids[k_i]
 
-                category_filtered_y_pred = utils.filter_boxes(
-                    y_pred_for_image, value=category, axis=bounding_box.XYXY.CLASS
+                category_filtered_y_pred = utils.select_boxes_of_class(
+                    y_pred_for_image, class_id=category
                 )
 
                 detections = category_filtered_y_pred
-                if self.max_detections < tf.shape(category_filtered_y_pred)[0]:
-                    detections = category_filtered_y_pred[: self.max_detections]
+                if (
+                    self.max_detections
+                    < tf.shape(category_filtered_y_pred["classes"])[0]
+                ):
+                    detections = utils.slice(
+                        category_filtered_y_pred, self.max_detections
+                    )
 
-                ground_truths = utils.filter_boxes(
-                    y_true_for_image, value=category, axis=bounding_box.XYXY.CLASS
-                )
+                ground_truths = utils.select_boxes_of_class(y_true_for_image, class_id=category)
 
-                ious = iou_lib.compute_iou(ground_truths, detections, "yxyx")
+                ious = iou_lib.compute_iou(ground_truths['boxes'], detections['boxes'], "yxyx")
 
                 for t_i in tf.range(num_thresholds):
                     threshold = iou_thresholds[t_i]
@@ -203,7 +206,7 @@ class COCORecall(keras.metrics.Metric):
                 ground_truth_boxes_update = tf.tensor_scatter_nd_add(
                     ground_truth_boxes_update,
                     [[k_i]],
-                    [tf.cast(tf.shape(ground_truths)[0], tf.int32)],
+                    [tf.cast(tf.shape(ground_truths['classes'])[0], tf.int32)],
                 )
 
         self.true_positives.assign_add(true_positives_update)

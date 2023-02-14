@@ -17,16 +17,29 @@ import tensorflow as tf
 from keras_cv import bounding_box
 
 
-def filter_boxes_by_area_range(boxes, min_area, max_area):
+def filter_boxes_by_area_range(bounding_boxes, min_area, max_area):
+    boxes, classes = bounding_boxes["boxes"], bounding_boxes["classes"]
+    confidence = bounding_boxes.get("confidence", None)
+
     areas = bounding_box_area(boxes)
     inds = tf.where(tf.math.logical_and(areas >= min_area, areas < max_area))
-    return tf.gather_nd(boxes, inds)
+
+    boxes = tf.gather_nd(boxes, inds)
+    classes = tf.gather_nd(classes, inds)
+    result = {"boxes": boxes, "classes": classes}
+
+    if confidence is not None:
+        confidence = tf.gather_nd(bounding_boxes["confidence"], inds)
+        result["confidence"] = confidence
+
+    return result
 
 
 def bounding_box_area(boxes):
     """box_areas returns the area of the provided bounding boxes.
+
     Args:
-        boxes: Tensor of bounding boxes of shape `[..., 4+]` in corners format.
+        boxes: Tensor of bounding boxes of shape `[..., 4]` in corners format.
     Returns:
         areas: Tensor of areas of shape `[...]`.
     """
@@ -35,18 +48,44 @@ def bounding_box_area(boxes):
     return tf.math.multiply(w, h)
 
 
-def filter_boxes(boxes, value, axis=4):
+def slice(bounding_boxes, idx):
+    boxes, classes = bounding_boxes["boxes"], bounding_boxes["classes"]
+    confidence = bounding_boxes.get("confidence", None)
+
+    result = {
+        "boxes": boxes[:idx],
+        "classes": classes[:idx],
+    }
+    if confidence is not None:
+        result["confidence"] = confidence[:idx]
+    return result
+
+
+def select_boxes_of_class(bounding_boxes, class_id):
     """filter_boxes is used to select only boxes matching a given class.
     The most common use case for this is to filter to accept only a specific
-    bounding_box.CLASS.
+    'class_id'.
+
     Args:
-        boxes: Tensor of bounding boxes in format `[images, bounding_boxes, 6]`
-        value: Value the specified axis must match
-        axis: Integer identifying the axis on which to sort, default 4
+        boxes: Tensor of bounding boxes in KerasCV format.
+        class_id: class_id the specified axis must match
     Returns:
-        boxes: A new Tensor of bounding boxes, where boxes[axis]==value
+        boxes: A new Tensor of bounding boxes, where boxes[axis]==class_id
     """
-    return tf.gather_nd(boxes, tf.where(boxes[:, axis] == value))
+
+    boxes, classes = bounding_boxes["boxes"], bounding_boxes["classes"]
+    confidence = bounding_boxes.get("confidence", None)
+    indices = tf.where(classes == tf.cast(class_id, classes.dtype))
+
+    result = {
+        "boxes": tf.gather_nd(boxes, indices),
+        "classes": tf.gather_nd(classes, indices),
+    }
+
+    if confidence is not None:
+        result["confidence"] = tf.gather_nd(confidence, indices)
+
+    return result
 
 
 def to_sentinel_padded_bounding_box_tensor(box_sets):
