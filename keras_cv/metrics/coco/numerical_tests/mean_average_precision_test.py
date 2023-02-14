@@ -17,7 +17,7 @@ import numpy as np
 import tensorflow as tf
 
 from keras_cv import bounding_box
-from keras_cv.metrics.coco import _COCOMeanAveragePrecision
+from keras_cv.metrics import _COCOMeanAveragePrecision
 
 SAMPLE_FILE = os.path.dirname(os.path.abspath(__file__)) + "/sample_boxes.npz"
 

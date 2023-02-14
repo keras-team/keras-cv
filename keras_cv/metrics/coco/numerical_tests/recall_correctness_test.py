@@ -12,18 +12,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Tests to ensure that _COCORecall computes the correct values.."""
+"""Tests to ensure that COCORecall computes the correct values.."""
 import os
 
 import numpy as np
 import tensorflow as tf
 
 from keras_cv import bounding_box
-from keras_cv.metrics import _COCORecall
+from keras_cv.metrics import COCORecall
 
 SAMPLE_FILE = os.path.dirname(os.path.abspath(__file__)) + "/sample_boxes.npz"
 
-delta = 0.04
+delta = 0.02
 
 
 class RecallCorrectnessTest(tf.test.TestCase):
@@ -38,11 +38,11 @@ class RecallCorrectnessTest(tf.test.TestCase):
     Average Recall     (AR) @[ IoU=0.50:0.95 | area= large | maxDets=100 ] = 0.641
     """
 
-    def DISABLE_test_recall_correctness_maxdets_1(self):
+    def test_recall_correctness_maxdets_1(self):
         y_true, y_pred, categories = load_samples(SAMPLE_FILE)
 
         # Area range all
-        recall = _COCORecall(
+        recall = COCORecall(
             bounding_box_format="xyxy",
             class_ids=categories + [1000],
             max_detections=1,
@@ -52,11 +52,11 @@ class RecallCorrectnessTest(tf.test.TestCase):
         result = recall.result().numpy()
         self.assertAlmostEqual(result, 0.478, delta=delta)
 
-    def DISABLE_test_recall_correctness_maxdets_10(self):
+    def test_recall_correctness_maxdets_10(self):
         y_true, y_pred, categories = load_samples(SAMPLE_FILE)
 
         # Area range all
-        recall = _COCORecall(
+        recall = COCORecall(
             bounding_box_format="xyxy",
             class_ids=categories + [1000],
             max_detections=10,
@@ -66,11 +66,11 @@ class RecallCorrectnessTest(tf.test.TestCase):
         result = recall.result().numpy()
         self.assertAlmostEqual(result, 0.645, delta=delta)
 
-    def DISABLE_test_recall_correctness_maxdets_100(self):
+    def test_recall_correctness_maxdets_100(self):
         y_true, y_pred, categories = load_samples(SAMPLE_FILE)
 
         # Area range all
-        recall = _COCORecall(
+        recall = COCORecall(
             bounding_box_format="xyxy",
             class_ids=categories + [1000],
             max_detections=100,
@@ -80,9 +80,9 @@ class RecallCorrectnessTest(tf.test.TestCase):
         result = recall.result().numpy()
         self.assertAlmostEqual(result, 0.648, delta=delta)
 
-    def DISABLE_test_recall_correctness_small_objects(self):
+    def test_recall_correctness_small_objects(self):
         y_true, y_pred, categories = load_samples(SAMPLE_FILE)
-        recall = _COCORecall(
+        recall = COCORecall(
             bounding_box_format="xyxy",
             class_ids=categories + [1000],
             max_detections=100,
@@ -93,9 +93,9 @@ class RecallCorrectnessTest(tf.test.TestCase):
         result = recall.result().numpy()
         self.assertAlmostEqual(result, 0.628, delta=delta)
 
-    def DISABLE_test_recall_correctness_medium_objects(self):
+    def test_recall_correctness_medium_objects(self):
         y_true, y_pred, categories = load_samples(SAMPLE_FILE)
-        recall = _COCORecall(
+        recall = COCORecall(
             bounding_box_format="xyxy",
             class_ids=categories + [1000],
             max_detections=100,
@@ -106,9 +106,9 @@ class RecallCorrectnessTest(tf.test.TestCase):
         result = recall.result().numpy()
         self.assertAlmostEqual(result, 0.653, delta=delta)
 
-    def DISABLE_test_recall_correctness_large_objects(self):
+    def test_recall_correctness_large_objects(self):
         y_true, y_pred, categories = load_samples(SAMPLE_FILE)
-        recall = _COCORecall(
+        recall = COCORecall(
             bounding_box_format="xyxy",
             class_ids=categories + [1000],
             max_detections=100,
@@ -125,10 +125,20 @@ def load_samples(fname):
     y_true = npzfile["arr_0"].astype(np.float32)
     y_pred = npzfile["arr_1"].astype(np.float32)
 
+    y_true = {
+        'boxes': y_true[:, :, :4],
+        'classes': y_true[:, :, 4],
+    }
+    y_pred = {
+        'boxes': y_pred[:, :, :4],
+        'classes': y_pred[:, :, 4],
+        'confidence': y_pred[:, :, 5]
+    }
+
     y_true = bounding_box.convert_format(y_true, source="xywh", target="xyxy")
     y_pred = bounding_box.convert_format(y_pred, source="xywh", target="xyxy")
 
-    categories = set(int(x) for x in y_true[:, :, 4].numpy().flatten())
+    categories = set(int(x) for x in y_true['classes'].flatten())
     categories = [x for x in categories if x != -1]
 
     return y_true, y_pred, categories
