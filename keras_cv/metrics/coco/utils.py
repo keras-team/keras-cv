@@ -66,12 +66,16 @@ def to_sentinel_padded_bounding_box_tensor(box_sets):
 def get_boxes_for_image(bounding_boxes, index):
     boxes = bounding_boxes["boxes"]
     classes = bounding_boxes["classes"]
-    confidence = bounding_boxes["confidence"]
-    return {
+    result = {
         "boxes": boxes[index, ...],
         "classes": classes[index, ...],
-        "confidence": confidence[index, ...],
     }
+
+    if "confidence" in bounding_boxes:
+        confidence = bounding_boxes["confidence"]
+        result["confidence"] = confidence[index, ...]
+
+    return result
 
 
 def filter_out_sentinels(bounding_boxes):
