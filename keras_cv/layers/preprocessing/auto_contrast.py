@@ -73,10 +73,10 @@ class AutoContrast(VectorizedBaseImageAugmentationLayer):
     def augment_bounding_boxes(self, bounding_boxes, **kwargs):
         return bounding_boxes
 
-    def augment_labels(self, labels, transformation=None, **kwargs):
+    def augment_labels(self, labels, transformations=None, **kwargs):
         return labels
 
-    def augment_segmentation_masks(self, segmentation_masks, transformation, **kwargs):
+    def augment_segmentation_masks(self, segmentation_masks, transformations, **kwargs):
         return segmentation_masks
 
     def augment_keypoints(self, keypoints, transformations, **kwargs):
