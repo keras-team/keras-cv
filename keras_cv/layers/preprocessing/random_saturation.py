@@ -61,6 +61,11 @@ class RandomSaturation(VectorizedBaseImageAugmentationLayer):
     def get_random_transformation_batch(self, batch_size, **kwargs):
         return self.factor(shape=(batch_size,))
 
+    def augment_ragged_image(self, image, transformation, **kwargs):
+        return self.augment_images(
+            images=image, transformations=transformation, **kwargs
+        )
+
     def augment_images(self, images, transformations, **kwargs):
         # Convert the factor range from [0, 1] to [0, +inf]. Note that the
         # tf.image.adjust_saturation is trying to apply the following math formula
@@ -79,24 +84,22 @@ class RandomSaturation(VectorizedBaseImageAugmentationLayer):
         adjust_factors = transformations / (1 - transformations)
 
         images = tf.image.rgb_to_hsv(images)
-        s_channel_batch = tf.multiply(
-            images[..., 1], adjust_factors[:, tf.newaxis, tf.newaxis]
+        s_channel = tf.multiply(
+            images[..., 1], adjust_factors[..., tf.newaxis, tf.newaxis]
         )
-        s_channel_batch = tf.clip_by_value(
-            s_channel_batch, clip_value_min=0.0, clip_value_max=1.0
-        )
-        images = tf.stack([images[..., 0], s_channel_batch, images[..., 2]], axis=-1)
+        s_channel = tf.clip_by_value(s_channel, clip_value_min=0.0, clip_value_max=1.0)
+        images = tf.stack([images[..., 0], s_channel, images[..., 2]], axis=-1)
         images = tf.image.hsv_to_rgb(images)
         return images
 
     def augment_bounding_boxes(self, bounding_boxes, transformation=None, **kwargs):
         return bounding_boxes
 
-    def augment_label(self, label, transformation=None, **kwargs):
-        return label
+    def augment_labels(self, labels, transformations=None, **kwargs):
+        return labels
 
-    def augment_segmentation_mask(self, segmentation_mask, transformation, **kwargs):
-        return segmentation_mask
+    def augment_segmentation_masks(self, segmentation_masks, transformations, **kwargs):
+        return segmentation_masks
 
     def get_config(self):
         config = {
