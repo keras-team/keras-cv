@@ -146,9 +146,7 @@ class COCORecall(keras.metrics.Metric):
             dtype=self.compute_dtype,
         )
 
-        y_pred = utils.sort_bounding_boxes(y_pred, axis=bounding_box.XYXY.CONFIDENCE)
-
-        num_images = tf.shape(y_true)[0]
+        num_images = tf.shape(y_true["boxes"])[0]
 
         iou_thresholds = tf.constant(self.iou_thresholds, dtype=tf.float32)
         class_ids = tf.constant(self.class_ids, dtype=tf.float32)
@@ -162,6 +160,7 @@ class COCORecall(keras.metrics.Metric):
         for img in tf.range(num_images):
             y_true_for_image = utils.filter_out_sentinels(y_true[img])
             y_pred_for_image = utils.filter_out_sentinels(y_pred[img])
+            y_pred_for_image = utils.order_by_confidence(y_pred_for_images)
 
             if self.area_range is not None:
                 y_true_for_image = utils.filter_boxes_by_area_range(
