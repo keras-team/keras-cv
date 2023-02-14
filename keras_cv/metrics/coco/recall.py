@@ -158,8 +158,9 @@ class COCORecall(keras.metrics.Metric):
         ground_truth_boxes_update = tf.zeros_like(self.ground_truth_boxes)
 
         for img in tf.range(num_images):
-            y_true_for_image = utils.filter_out_sentinels(y_true[img])
-            y_pred_for_image = utils.filter_out_sentinels(y_pred[img])
+            y_true_for_image = utils.get_boxes_for_image(y_true, img)
+            y_pred_for_image = utils.get_boxes_for_image(y_pred, img)
+
             y_pred_for_image = utils.order_by_confidence(y_pred_for_images)
 
             if self.area_range is not None:
