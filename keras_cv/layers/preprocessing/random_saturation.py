@@ -82,6 +82,7 @@ class RandomSaturation(VectorizedBaseImageAugmentationLayer):
         # it will be handled correctly when it is a one tensor.
         transformations = tf.convert_to_tensor(transformations)
         adjust_factors = transformations / (1 - transformations)
+        adjust_factors = tf.cast(adjust_factors, dtype=images.dtype)
 
         images = tf.image.rgb_to_hsv(images)
         s_channel = tf.multiply(
