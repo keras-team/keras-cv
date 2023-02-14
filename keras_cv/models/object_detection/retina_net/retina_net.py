@@ -257,6 +257,7 @@ class RetinaNet(tf.keras.Model):
         classification_loss=None,
         weight_decay=0.0001,
         loss=None,
+        metrics=None,
         **kwargs,
     ):
         """compiles the RetinaNet.
@@ -272,15 +273,10 @@ class RetinaNet(tf.keras.Model):
                 A preconfigured `FocalLoss` is provided when the string "focal" is
                 passed.
             weight_decay: a float for variable weight decay.
+
             kwargs: most other `keras.Model.compile()` arguments are supported and
                 propagated to the `keras.Model` class.
         """
-        if "metrics" in kwargs.keys():
-            raise ValueError(
-                "`RetinaNet` does not currently support the use of "
-                "`metrics` due to performance and distribution concerns. Please us the "
-                "`PyCOCOCallback` to evaluate COCO metrics."
-            )
         if loss is not None:
             raise ValueError(
                 "`RetinaNet` does not accept a `loss` to `compile()`. "
@@ -314,6 +310,10 @@ class RetinaNet(tf.keras.Model):
             "box": self.box_loss,
             "classification": self.classification_loss,
         }
+        # we have to special case user metrics as they accept a dictionary as
+        # their input.  The `keras.Model` class interprets these as different
+        # outputs of the model causing error.
+        self._user_metrics = metrics
         super().compile(loss=losses, **kwargs)
 
     def compute_loss(self, images, boxes, classes, training):
