@@ -551,6 +551,7 @@ class ResNetV2(keras.Model):
             "stackwise_strides": self.stackwise_strides,
             "include_rescaling": self.include_rescaling,
             "include_top": self.include_top,
+            "input_shape": self.input_shape,
             "stackwise_dilations": self.stackwise_dilations,
             "input_tensor": self.input_tensor,
             "pooling": self.pooling,
@@ -565,7 +566,7 @@ class ResNetV2(keras.Model):
     def from_config(cls, config):
         block_class_name = config["block_fn"]
         config["block_fn"] = keras.utils.get_registered_object(block_class_name)
-        return super().from_config(config)
+        return cls(**config)
 
 
 def ResNet18V2(
