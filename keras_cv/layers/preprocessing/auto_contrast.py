@@ -14,18 +14,18 @@
 
 import tensorflow as tf
 
-from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
-    BaseImageAugmentationLayer,
+from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer import (
+    VectorizedBaseImageAugmentationLayer,
 )
 from keras_cv.utils import preprocessing
 
 
 @tf.keras.utils.register_keras_serializable(package="keras_cv")
-class AutoContrast(BaseImageAugmentationLayer):
+class AutoContrast(VectorizedBaseImageAugmentationLayer):
     """Performs the AutoContrast operation on an image.
 
     Auto contrast stretches the values of an image across the entire available
-    `value_range`.  This makes differences between pixels more obvious.  An example of
+    `value_range`. This makes differences between pixels more obvious. An example of
     this is if an image only has values `[0, 1]` out of the range `[0, 255]`, auto
     contrast will change the `1` values to be `255`.
 
@@ -33,7 +33,7 @@ class AutoContrast(BaseImageAugmentationLayer):
         value_range: the range of values the incoming images will have.
             Represented as a two number tuple written [low, high].
             This is typically either `[0, 1]` or `[0, 255]` depending
-            on how your preprocessing pipeline is setup.
+            on how your preprocessing pipeline is set up.
     """
 
     def __init__(
@@ -44,22 +44,22 @@ class AutoContrast(BaseImageAugmentationLayer):
         super().__init__(**kwargs)
         self.value_range = value_range
 
-    def augment_image(self, image, transformation=None, **kwargs):
-        original_image = image
-        image = preprocessing.transform_value_range(
-            image,
+    def augment_images(self, images, transformations=None, **kwargs):
+        original_images = images
+        images = preprocessing.transform_value_range(
+            images,
             original_range=self.value_range,
             target_range=(0, 255),
             dtype=self.compute_dtype,
         )
 
-        low = tf.reduce_min(tf.reduce_min(image, axis=0), axis=0)
-        high = tf.reduce_max(tf.reduce_max(image, axis=0), axis=0)
+        low = tf.reduce_min(images, axis=(1, 2), keepdims=True)
+        high = tf.reduce_max(images, axis=(1, 2), keepdims=True)
         scale = 255.0 / (high - low)
         offset = -low * scale
 
-        image = image * scale[None, None] + offset[None, None]
-        result = tf.clip_by_value(image, 0.0, 255.0)
+        images = images * scale + offset
+        result = tf.clip_by_value(images, 0.0, 255.0)
         result = preprocessing.transform_value_range(
             result,
             original_range=(0, 255),
@@ -67,17 +67,26 @@ class AutoContrast(BaseImageAugmentationLayer):
             dtype=self.compute_dtype,
         )
         # don't process NaN channels
-        result = tf.where(tf.math.is_nan(result), original_image, result)
+        result = tf.where(tf.math.is_nan(result), original_images, result)
         return result
 
     def augment_bounding_boxes(self, bounding_boxes, **kwargs):
         return bounding_boxes
 
-    def augment_label(self, label, transformation=None, **kwargs):
-        return label
+    def augment_labels(self, labels, transformation=None, **kwargs):
+        return labels
 
-    def augment_segmentation_mask(self, segmentation_mask, transformation, **kwargs):
-        return segmentation_mask
+    def augment_segmentation_masks(self, segmentation_masks, transformation, **kwargs):
+        return segmentation_masks
+
+    def augment_keypoints(self, keypoints, transformations, **kwargs):
+        return keypoints
+
+    def augment_targets(self, targets, transformations, **kwargs):
+        return targets
+
+    def augment_ragged_image(self, image, transformation, **kwargs):
+        return self.augment_images(image, transformations=transformation, **kwargs)
 
     def get_config(self):
         config = super().get_config()
