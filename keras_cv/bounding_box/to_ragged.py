@@ -48,7 +48,6 @@ def to_ragged(bounding_boxes, sentinel=-1, dtype=tf.float32):
         boxes.
     """
     info = validate_format.validate_format(bounding_boxes)
-
     if info["ragged"]:
         return bounding_boxes
 

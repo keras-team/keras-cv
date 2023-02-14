@@ -171,7 +171,7 @@ class RetinaNetLabelEncoder(layers.Layer):
                 "support RaggedTensor inputs for the `images` argument.  Received "
                 f"`type(images)={type(images)}`."
             )
-
+        box_labels = box_labels.copy()
         box_labels = bounding_box.to_dense(box_labels)
         box_labels = bounding_box.convert_format(
             box_labels,

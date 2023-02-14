@@ -407,11 +407,6 @@ class RetinaNet(tf.keras.Model):
         metrics.update(super().compute_metrics(x, {}, {}, sample_weight={}))
 
         for metric in self._user_metrics:
-<<<<<<< HEAD
-            print("YS BABY", y)
-            print("y_pred", y_pred)
-=======
->>>>>>> 0e08585 (Make RetinaNet metrics work)
             metric.update_state(y, y_pred, sample_weight=sample_weight)
 
         for metric in self._user_metrics:
