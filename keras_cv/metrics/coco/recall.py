@@ -187,9 +187,13 @@ class COCORecall(keras.metrics.Metric):
                         category_filtered_y_pred, self.max_detections
                     )
 
-                ground_truths = utils.select_boxes_of_class(y_true_for_image, class_id=category)
+                ground_truths = utils.select_boxes_of_class(
+                    y_true_for_image, class_id=category
+                )
 
-                ious = iou_lib.compute_iou(ground_truths['boxes'], detections['boxes'], "yxyx")
+                ious = iou_lib.compute_iou(
+                    ground_truths["boxes"], detections["boxes"], "yxyx"
+                )
 
                 for t_i in tf.range(num_thresholds):
                     threshold = iou_thresholds[t_i]
@@ -206,7 +210,7 @@ class COCORecall(keras.metrics.Metric):
                 ground_truth_boxes_update = tf.tensor_scatter_nd_add(
                     ground_truth_boxes_update,
                     [[k_i]],
-                    [tf.cast(tf.shape(ground_truths['classes'])[0], tf.int32)],
+                    [tf.cast(tf.shape(ground_truths["classes"])[0], tf.int32)],
                 )
 
         self.true_positives.assign_add(true_positives_update)
