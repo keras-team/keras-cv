@@ -438,7 +438,7 @@ class RetinaNet(tf.keras.Model):
             target=self.bounding_box_format,
             images=x,
         )
-        box_pred, cls_pred = self._forward(images, training=False)
+        box_pred, cls_pred = self._forward(x, training=False)
         _ = self.compute_loss(x, box_pred, cls_pred, boxes, classes, training=False)
 
         if not self._has_user_metrics:
