@@ -97,7 +97,7 @@ class MultiClassNonMaxSuppression(tf.keras.layers.Layer):
             source=target_format,
             target=self.bounding_box_format,
         )
-        print('class_pred', class_pred.shape)
+        print("class_pred", class_pred.shape)
         bounding_boxes = {
             "boxes": box_pred,
             "confidence": confidence_pred,

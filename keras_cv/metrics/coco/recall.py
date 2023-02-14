@@ -118,6 +118,28 @@ class _BoxRecall(keras.metrics.Metric):
 
     @tf.function
     def update_state(self, y_true, y_pred, sample_weight=None):
+<<<<<<< HEAD
+=======
+        """
+        Args:
+            y_true: a bounding box Tensor in corners format.
+            y_pred: a bounding box Tensor in corners format.
+            sample_weight: Currently unsupported.
+        """
+        if len(y_true["classes"].shape) != 2:
+            raise ValueError(
+                "Expected `y_true['classes']` to be a 2D tensor of class ids. "
+                "If you are using one hot encoded class labels, please perform "
+                "an `argmax()` operation on them before using COCO metrics."
+            )
+        if len(y_pred["classes"].shape) != 2:
+            raise ValueError(
+                "Expected `y_true['classes']` to be a 2D tensor of class ids. "
+                "If you are using one hot encoded class labels, please perform "
+                "an `argmax()` operation on them before using COCO metrics."
+            )
+
+>>>>>>> 0e08585 (Make RetinaNet metrics work)
         if sample_weight is not None:
             warnings.warn(
                 "sample_weight is not yet supported in keras_cv COCO metrics."
@@ -190,28 +212,10 @@ class _BoxRecall(keras.metrics.Metric):
                 category_filtered_y_pred = utils.select_boxes_of_class(
                     y_pred_for_image, class_id=category
                 )
-                print(
-                    "category_filtered_y_pred", category_filtered_y_pred["boxes"].shape
-                )
-                print("y_true_for_image", y_true_for_image["boxes"].shape)
-
-                print('category_filtered_y_pred.classes', category_filtered_y_pred['classes'].shape)
-                print('y_true_for_image.classes', y_true_for_image['classes'].shape)
 
                 detections = category_filtered_y_pred
                 if self.max_detections < tf.shape(detections["classes"])[0]:
                     detections = utils.slice(detections, self.max_detections)
-
-<<<<<<< HEAD
-                print("detections", detections["boxes"].shape)
-                print("ground_truths", detections["ground_truths"].shape)
-                print("detections.classes", detections["classes"].shape)
-                print("ground_truths.classes", detections["classes"].shape)
-=======
-
-                print('detections.classes', detections['classes'].shape)
-                print('y_true_for_image.classes', y_true_for_image['classes'].shape)
->>>>>>> ee11d88 (Fix unexpected behavior of convert_format())
 
                 ground_truths = utils.select_boxes_of_class(
                     y_true_for_image, class_id=category
