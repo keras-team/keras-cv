@@ -190,20 +190,23 @@ class _BoxRecall(keras.metrics.Metric):
                 category_filtered_y_pred = utils.select_boxes_of_class(
                     y_pred_for_image, class_id=category
                 )
+                print(
+                    "category_filtered_y_pred", category_filtered_y_pred["boxes"].shape
+                )
+                print("y_true_for_image", y_true_for_image["boxes"].shape)
 
                 detections = category_filtered_y_pred
-                if (
-                    self.max_detections
-                    < tf.shape(category_filtered_y_pred["classes"])[0]
-                ):
-                    detections = utils.slice(
-                        category_filtered_y_pred, self.max_detections
-                    )
+                if self.max_detections < tf.shape(detections["classes"])[0]:
+                    detections = utils.slice(detections, self.max_detections)
+
+                print("detections", detections["boxes"].shape)
+                print("ground_truths", detections["ground_truths"].shape)
+                print("detections.classes", detections["classes"].shape)
+                print("ground_truths.classes", detections["classes"].shape)
 
                 ground_truths = utils.select_boxes_of_class(
                     y_true_for_image, class_id=category
                 )
-
                 ious = iou_lib.compute_iou(
                     ground_truths["boxes"], detections["boxes"], "yxyx"
                 )

@@ -219,22 +219,21 @@ class RetinaNet(tf.keras.Model):
 
     def call(self, images, training=None):
         box_pred, cls_pred = self._forward(images, training=training)
-        if not training:
-            # box_pred is on "center_yxhw" format, convert to target format.
-            anchors = self.anchor_generator(images[0])
-            anchors = tf.concat(tf.nest.flatten(anchors), axis=0)
-            box_pred = _decode_deltas_to_boxes(
-                anchors=anchors,
-                boxes_delta=box_pred,
-                anchor_format=self.anchor_generator.bounding_box_format,
-                box_format=self.bounding_box_format,
-                variance=BOX_VARIANCE,
-            )
         return box_pred, cls_pred
 
     def decode_predictions(self, predictions, images):
         # no-op if default decoder is used.
         box_pred, cls_pred = predictions
+        # box_pred is on "center_yxhw" format, convert to target format.
+        anchors = self.anchor_generator(images[0])
+        anchors = tf.concat(tf.nest.flatten(anchors), axis=0)
+        box_pred = _decode_deltas_to_boxes(
+            anchors=anchors,
+            boxes_delta=box_pred,
+            anchor_format=self.anchor_generator.bounding_box_format,
+            box_format=self.bounding_box_format,
+            variance=BOX_VARIANCE,
+        )
         box_pred = bounding_box.convert_format(
             box_pred,
             source=self.bounding_box_format,
@@ -316,8 +315,7 @@ class RetinaNet(tf.keras.Model):
         }
         super().compile(loss=losses, **kwargs)
 
-    def compute_loss(self, images, boxes, classes, training):
-        box_pred, cls_pred = self._forward(images, training=training)
+    def compute_loss(self, x, box_pred, cls_pred, boxes, classes, training):
         if boxes.shape[-1] != 4:
             raise ValueError(
                 "boxes should have shape (None, None, 4).  Got "
@@ -361,19 +359,18 @@ class RetinaNet(tf.keras.Model):
             "classification": cls_weights,
         }
         return super().compute_loss(
-            x=images, y=y_true, y_pred=y_pred, sample_weight=sample_weights
+            x=x, y=y_true, y_pred=y_pred, sample_weight=sample_weights
         )
 
     def train_step(self, data):
         x, y = unpack_input(data)
-
-        y = bounding_box.convert_format(
+        y_for_label_encoder = bounding_box.convert_format(
             y,
             source=self.bounding_box_format,
             target=self.label_encoder.bounding_box_format,
             images=x,
         )
-        boxes, classes = self.label_encoder(x, y)
+        boxes, classes = self.label_encoder(x, y_for_label_encoder)
         boxes = bounding_box.convert_format(
             boxes,
             source=self.label_encoder.bounding_box_format,
@@ -382,7 +379,10 @@ class RetinaNet(tf.keras.Model):
         )
 
         with tf.GradientTape() as tape:
-            total_loss = self.compute_loss(x, boxes, classes, training=True)
+            box_pred, cls_pred = self._forward(x, training=True)
+            total_loss = self.compute_loss(
+                x, box_pred, cls_pred, boxes, classes, training=True
+            )
 
             reg_losses = []
             if self.weight_decay:
@@ -396,27 +396,53 @@ class RetinaNet(tf.keras.Model):
         gradients = tape.gradient(total_loss, trainable_vars)
         self.optimizer.apply_gradients(zip(gradients, trainable_vars))
 
-        return self.compute_metrics(x, {}, {}, sample_weight={})
+        if not self._has_user_metrics:
+            return super().compute_metrics(x, {}, {}, sample_weight={})
+
+        y_pred = self.decode_predictions((box_pred, cls_pred), x)
+        return self.compute_metrics(x, y, y_pred, sample_weight=None)
+
+    def compute_metrics(self, x, y, y_pred, sample_weight):
+        metrics = {}
+        metrics.update(super().compute_metrics(x, {}, {}, sample_weight={}))
+
+        for metric in self._user_metrics:
+            print("YS BABY", y)
+            print("y_pred", y_pred)
+            metric.update_state(y, y_pred, sample_weight=sample_weight)
+
+        for metric in self._user_metrics.metrics:
+            result = metric.result()
+            if isinstance(result, dict):
+                metrics.update(result)
+            else:
+                metrics[metric.name] = result
+        return metrics
 
     def test_step(self, data):
         x, y = unpack_input(data)
 
-        y = bounding_box.convert_format(
+        y_for_label_encoder = bounding_box.convert_format(
             y,
             source=self.bounding_box_format,
             target=self.label_encoder.bounding_box_format,
             images=x,
         )
-        boxes, classes = self.label_encoder(x, y)
+        boxes, classes = self.label_encoder(x, y_for_label_encoder)
         boxes = bounding_box.convert_format(
             boxes,
             source=self.label_encoder.bounding_box_format,
             target=self.bounding_box_format,
             images=x,
         )
-        _ = self.compute_loss(x, boxes, classes, training=False)
+        box_pred, cls_pred = self._forward(images, training=False)
+        _ = self.compute_loss(x, box_pred, cls_pred, boxes, classes, training=False)
 
-        return self.compute_metrics(x, {}, {}, sample_weight={})
+        if not self._has_user_metrics:
+            return super().compute_metrics(x, {}, {}, sample_weight={})
+        # only decode predictions in train_step() if user metrics are provided.
+        y_pred = self.decode_predictions((box_pred, cls_pred), x)
+        return self.compute_metrics(x, y, y_pred, sample_weight=None)
 
     def get_config(self):
         return {
