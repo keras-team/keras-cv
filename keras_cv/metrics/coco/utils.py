@@ -63,6 +63,17 @@ def to_sentinel_padded_bounding_box_tensor(box_sets):
     return tf.ragged.stack(box_sets).to_tensor(default_value=-1)
 
 
+def get_boxes_for_image(bounding_boxes, index):
+    boxes = bounding_boxes["boxes"]
+    classes = bounding_boxes["classes"]
+    confidence = bounding_boxes["confidence"]
+    return {
+        "boxes": boxes[index, ...],
+        "classes": classes[index, ...],
+        "confidence": confidence[index, ...],
+    }
+
+
 def filter_out_sentinels(bounding_boxes):
     """filter_out_sentinels to filter out boxes that were padded on to the prediction
     or ground truth bounding_box tensor to ensure dimensions match.
