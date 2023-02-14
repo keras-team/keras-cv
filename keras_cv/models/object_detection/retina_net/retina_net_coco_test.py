@@ -48,7 +48,7 @@ class RetinaNetTest(tf.test.TestCase):
             bounding_box_format=bounding_box_format,
             backbone=keras_cv.models.ResNet50(
                 include_top=False, include_rescaling=False
-            ).as_backbone()
+            ).as_backbone(),
         )
 
         retina_net.compile(
@@ -62,13 +62,13 @@ class RetinaNetTest(tf.test.TestCase):
                     bounding_box_format="xyxy",
                     class_ids=[0],
                     max_detections=100,
-                    iou_threshold=0.1,
-                    name='test_recall'
+                    iou_thresholds=[0.1],
+                    name="test_recall",
                 )
-            ]
+            ],
         )
 
         xs, ys = _create_bounding_box_dataset(bounding_box_format)
         retina_net.fit(x=xs, y=ys, epochs=1)
         metrics = retina_net.evaluate(xs, return_dict=True)
-        self.assertGreaterThan(metrics['test_recall'], 0.0)
+        self.assertGreaterThan(metrics["test_recall"], 0.0)
