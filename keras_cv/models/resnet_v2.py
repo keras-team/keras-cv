@@ -394,35 +394,19 @@ class Stack(keras.layers.Layer):
         return super().from_config(config)
 
 
-def ResNetV2(
-    stackwise_filters,
-    stackwise_blocks,
-    stackwise_strides,
-    include_rescaling,
-    include_top,
-    stackwise_dilations=None,
-    name="ResNetV2",
-    weights=None,
-    input_shape=(None, None, 3),
-    input_tensor=None,
-    pooling=None,
-    classes=None,
-    classifier_activation="softmax",
-    block_fn=Block,
-    **kwargs,
-):
+@keras.utils.register_keras_serializable(package="keras_cv.models")
+class ResNetV2(keras.Model):
     """Instantiates the ResNetV2 architecture.
 
     Args:
-        stackwise_filters: number of filters for each stack in the model.
-        stackwise_blocks: number of blocks for each stack in the model.
-        stackwise_strides: stride for each stack in the model.
-        include_rescaling: whether or not to Rescale the inputs. If set to True,
+        stackwise_filters: int, number of filters for each stack in the model.
+        stackwise_blocks: int, number of blocks for each stack in the model.
+        stackwise_strides: int, stride for each stack in the model.
+        include_rescaling: bool, whether or not to Rescale the inputs. If set to True,
             inputs will be passed through a `Rescaling(1/255.0)` layer.
-            name: string, model name.
-        include_top: whether to include the fully-connected
+        include_top: bool, whether to include the fully-connected
             layer at the top of the network.
-        weights: one of `None` (random initialization),
+        weights: optional string, one of `None` (random initialization),
             or the path to the weights file to be loaded.
         input_shape: optional shape tuple, defaults to (None, None, 3).
         input_tensor: optional Keras tensor (i.e. output of `layers.Input()`)
@@ -450,85 +434,138 @@ def ResNetV2(
     Returns:
       A `keras.Model` instance.
     """
-    if weights and not tf.io.gfile.exists(weights):
-        raise ValueError(
-            "The `weights` argument should be either `None` or the path to the "
-            "weights file to be loaded. Weights file not found at location: {weights}"
-        )
 
-    if include_top and not classes:
-        raise ValueError(
-            "If `include_top` is True, you should specify `classes`. "
-            f"Received: classes={classes}"
-        )
+    def __init__(
+        self,
+        stackwise_filters,
+        stackwise_blocks,
+        stackwise_strides,
+        include_rescaling,
+        include_top,
+        stackwise_dilations=None,
+        weights=None,
+        input_shape=(None, None, 3),
+        input_tensor=None,
+        pooling=None,
+        classes=None,
+        classifier_activation="softmax",
+        block_fn=Block,
+        **kwargs,
+    ):
+        if weights and not tf.io.gfile.exists(weights):
+            raise ValueError(
+                "The `weights` argument should be either `None` or the path to the "
+                "weights file to be loaded. Weights file not found at location: {weights}"
+            )
 
-    if include_top and pooling:
-        raise ValueError(
-            f"`pooling` must be `None` when `include_top=True`."
-            f"Received pooling={pooling} and include_top={include_top}. "
-        )
+        if include_top and not classes:
+            raise ValueError(
+                "If `include_top` is True, you should specify `classes`. "
+                f"Received: classes={classes}"
+            )
 
-    inputs = utils.parse_model_inputs(input_shape, input_tensor)
-    x = inputs
+        if include_top and pooling:
+            raise ValueError(
+                f"`pooling` must be `None` when `include_top=True`."
+                f"Received pooling={pooling} and include_top={include_top}. "
+            )
 
-    if include_rescaling:
-        x = layers.Rescaling(1 / 255.0)(x)
+        inputs = utils.parse_model_inputs(input_shape, input_tensor)
+        x = inputs
 
-    x = layers.Conv2D(
-        64,
-        7,
-        strides=2,
-        use_bias=True,
-        padding="same",
-        name="conv1_conv",
-    )(x)
+        if include_rescaling:
+            x = layers.Rescaling(1 / 255.0)(x)
 
-    x = layers.MaxPooling2D(3, strides=2, padding="same", name="pool1_pool")(x)
-
-    num_stacks = len(stackwise_filters)
-    if stackwise_dilations is None:
-        stackwise_dilations = [1] * num_stacks
-
-    stack_level_outputs = {}
-    for stack_index in range(num_stacks):
-        x = Stack(
-            filters=stackwise_filters[stack_index],
-            blocks=stackwise_blocks[stack_index],
-            stride=stackwise_strides[stack_index],
-            dilation=stackwise_dilations[stack_index],
-            block_fn=block_fn,
-            first_shortcut=block_fn == Block or stack_index > 0,
-            stack_index=stack_index,
+        x = layers.Conv2D(
+            64,
+            7,
+            strides=2,
+            use_bias=True,
+            padding="same",
+            name="conv1_conv",
         )(x)
-        stack_level_outputs[stack_index + 2] = x
 
-    x = layers.BatchNormalization(axis=BN_AXIS, epsilon=1.001e-5, name="post_bn")(x)
-    x = layers.Activation("relu", name="post_relu")(x)
+        x = layers.MaxPooling2D(3, strides=2, padding="same", name="pool1_pool")(x)
 
-    if include_top:
-        x = layers.GlobalAveragePooling2D(name="avg_pool")(x)
-        x = layers.Dense(classes, activation=classifier_activation, name="predictions")(
-            x
-        )
-    else:
-        if pooling == "avg":
+        num_stacks = len(stackwise_filters)
+        if stackwise_dilations is None:
+            stackwise_dilations = [1] * num_stacks
+
+        stack_level_outputs = {}
+        for stack_index in range(num_stacks):
+            x = Stack(
+                filters=stackwise_filters[stack_index],
+                blocks=stackwise_blocks[stack_index],
+                stride=stackwise_strides[stack_index],
+                dilation=stackwise_dilations[stack_index],
+                block_fn=block_fn,
+                first_shortcut=block_fn == Block or stack_index > 0,
+                stack_index=stack_index,
+            )(x)
+            stack_level_outputs[stack_index + 2] = x
+
+        x = layers.BatchNormalization(axis=BN_AXIS, epsilon=BN_EPSILON, name="post_bn")(x)
+        x = layers.Activation("relu", name="post_relu")(x)
+
+        if include_top:
             x = layers.GlobalAveragePooling2D(name="avg_pool")(x)
-        elif pooling == "max":
-            x = layers.GlobalMaxPooling2D(name="max_pool")(x)
+            x = layers.Dense(
+                classes, activation=classifier_activation, name="predictions"
+            )(x)
+        else:
+            if pooling == "avg":
+                x = layers.GlobalAveragePooling2D(name="avg_pool")(x)
+            elif pooling == "max":
+                x = layers.GlobalMaxPooling2D(name="max_pool")(x)
 
-    # Create model.
-    model = tf.keras.Model(inputs, x, name=name, **kwargs)
+        super().__init__(inputs, x, **kwargs)
 
-    if weights is not None:
-        model.load_weights(weights)
-    # Set this private attribute for recreate backbone model with outputs at each of the
-    # resolution level.
-    model._backbone_level_outputs = stack_level_outputs
+        # All references to `self` below this line.
+        if weights is not None:
+            self.load_weights(weights)
+        # Set this private attribute for recreate backbone model with outputs at each of the
+        # resolution level.
+        self._backbone_level_outputs = stack_level_outputs
 
-    # Bind the `to_backbone_model` method to the application model.
-    model.as_backbone = types.MethodType(utils.as_backbone, model)
+        # Bind the `to_backbone_model` method to the application model.
+        self.as_backbone = types.MethodType(utils.as_backbone, self)
 
-    return model
+        self.stackwise_filters = stackwise_filters
+        self.stackwise_blocks = stackwise_blocks
+        self.stackwise_strides = stackwise_strides
+        self.include_rescaling = include_rescaling
+        self.include_top = include_top
+        self.stackwise_dilations = stackwise_dilations
+        self.input_tensor = input_tensor
+        self.pooling = pooling
+        self.classes = classes
+        self.classifier_activation = classifier_activation
+        self.block_fn = Block
+
+    def get_config(self):
+        config = super().get_config()
+        config.update(
+            {
+                "stackwise_filters": self.stackwise_filters,
+                "stackwise_blocks": self.stackwise_blocks,
+                "stackwise_strides": self.stackwise_strides,
+                "include_rescaling": self.include_rescaling,
+                "include_top": self.include_top,
+                "stackwise_dilations": self.stackwise_dilations,
+                "input_tensor": self.input_tensor,
+                "pooling": self.pooling,
+                "classes": self.classes,
+                "classifier_activation": self.classifier_activation,
+                "block_fn": keras.utils.get_registered_name(self.block_fn),
+            }
+        )
+        return config
+
+    @classmethod
+    def from_config(cls, config):
+        block_class_name = config["block_fn"]
+        config["block_fn"] = keras.utils.get_registered_object(block_class_name)
+        return super().from_config(config)
 
 
 def ResNet18V2(
