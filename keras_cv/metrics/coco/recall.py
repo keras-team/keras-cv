@@ -166,6 +166,7 @@ class COCORecall(keras.metrics.Metric):
         for img in tf.range(num_images):
             y_true_for_image = utils.filter_out_sentinels(y_true[img])
             y_pred_for_image = utils.filter_out_sentinels(y_pred[img])
+            y_pred_for_image = utils.order_by_confidence(y_pred_for_images)
 
             if self.area_range is not None:
                 y_true_for_image = utils.filter_boxes_by_area_range(

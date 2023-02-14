@@ -77,14 +77,11 @@ def filter_out_sentinels(boxes):
     )
 
 
-def sort_bounding_boxes(boxes, axis=5):
-    """sort_bounding_boxes is used to sort a list of bounding boxes by a given axis.
+def order_by_confidence(bounding_boxes):
+    """sort_bounding_boxes is used to sort a batch of bounding boxes.
 
-    The most common use case for this is to sort by bounding_box.XYXY.CONFIDENCE, as
-    this is a part of computing both _COCORecall and _COCOMeanAveragePrecision.
     Args:
-        boxes: Tensor of bounding boxes in format `[images, bounding_boxes, 6]`
-        axis: Integer identifying the axis on which to sort, default 5
+        bounding_boxes: dictionarity containing the bounding boxes.
     Returns:
         boxes: A new Tensor of Bounding boxes, sorted on an image-wise basis.
     """
@@ -100,7 +97,26 @@ def sort_bounding_boxes(boxes, axis=5):
             img, tf.gather(preds_for_img, idx, axis=0)
         )
 
-    return boxes_sorted_list.stack()
+    boxes = bounding_boxes["boxes"]
+    classes = bounding_boxes["classes"]
+    confidence = bounding_boxes["confidence"]
+
+    if boxes.shape.rank != 2:
+        raise ValueError(
+            "`sort_bounding_boxes()` should only accept a single "
+            f"batch of bounding boxes.  Received `boxes.shape={boxes.shape}`."
+        )
+    _, idx = tf.math.top_k(confidence, tf.shape(preds_for_img)[0])
+
+    boxes = bounding_boxes["boxes"]
+    classes = bounding_boxes["classes"]
+    confidence = bounding_boxes["confidence"]
+
+    boxes = tf.gather(boxes, idx, axis=0)
+    classes = tf.gather(classes, idx, axis=0)
+    confidence = tf.gather(confidence, idx, axis=0)
+
+    return {"boxes": boxes, "classes": classes, "confidence": confidence}
 
 
 def match_boxes(ious, threshold):

@@ -11,21 +11,21 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Tests for _COCORecall."""
+"""Tests for COCORecall."""
 
 import numpy as np
 import tensorflow as tf
 from tensorflow import keras
 
-from keras_cv.metrics import _COCORecall
+from keras_cv.metrics import COCORecall
 
 
-class _COCORecallTest(tf.test.TestCase):
+class COCORecallTest(tf.test.TestCase):
     def DISABLE_test_runs_inside_model(self):
         i = keras.layers.Input((None, None, 6))
         model = keras.Model(i, i)
 
-        recall = _COCORecall(
+        recall = COCORecall(
             max_detections=100,
             bounding_box_format="xyxy",
             class_ids=[1],
@@ -45,8 +45,8 @@ class _COCORecallTest(tf.test.TestCase):
 
         self.assertAllEqual(recall.result(), 1.0)
 
-    def DISABLE_test_ragged_tensor_support(self):
-        recall = _COCORecall(
+    def test_ragged_tensor_support(self):
+        recall = COCORecall(
             max_detections=100,
             bounding_box_format="xyxy",
             class_ids=[1],
@@ -54,20 +54,28 @@ class _COCORecallTest(tf.test.TestCase):
         )
 
         # These would match if they were in the area range
-        y_true = tf.ragged.stack(
-            [
-                tf.constant([[0, 0, 10, 10, 1], [5, 5, 10, 10, 1]], tf.float32),
-                tf.constant([[0, 0, 10, 10, 1]], tf.float32),
-            ]
-        )
-        y_pred = tf.ragged.stack(
-            [
-                tf.constant([[5, 5, 10, 10, 1, 0.9]], tf.float32),
-                tf.constant(
-                    [[0, 0, 10, 10, 1, 1.0], [5, 5, 10, 10, 1, 0.9]], tf.float32
-                ),
-            ]
-        )
+        y_true = {
+            "boxes": tf.ragged.stack(
+                [
+                    tf.constant([[0, 0, 10, 10], [5, 5, 10, 10]], tf.float32),
+                    tf.constant([[0, 0, 10, 10]], tf.float32),
+                ]
+            ),
+            "classes": tf.ragged.stack([tf.constant([1, 1]), tf.constant([1])]),
+        }
+
+        y_pred = {
+            "boxes": tf.ragged.stack(
+                [
+                    tf.constant([[5, 5, 10, 10]], tf.float32),
+                    tf.constant([[0, 0, 10, 10], [5, 5, 10, 10]], tf.float32),
+                ]
+            ),
+            "classes": tf.ragged.stack([tf.constant([1]), tf.constant([1, 1])]),
+            "confidence": tf.ragged.stack(
+                [tf.constant([1.0]), tf.constant([1.0, 0.9])]
+            ),
+        }
 
         recall.update_state(y_true, y_pred)
         self.assertAlmostEqual(recall.result(), 2 / 3)
@@ -79,14 +87,14 @@ class _COCORecallTest(tf.test.TestCase):
             [[[0, 0, 100, 100, 1, 1.0]]], dtype=tf.float32
         )
 
-        m1 = _COCORecall(
+        m1 = COCORecall(
             bounding_box_format="xyxy",
             iou_thresholds=[0.95],
             class_ids=[1],
             area_range=(0, 100000**2),
             max_detections=1,
         )
-        m2 = _COCORecall(
+        m2 = COCORecall(
             bounding_box_format="xyxy",
             iou_thresholds=[0.95],
             class_ids=[1],
@@ -99,7 +107,7 @@ class _COCORecallTest(tf.test.TestCase):
 
         m2.update_state(y_true, y_pred)
 
-        metric_result = _COCORecall(
+        metric_result = COCORecall(
             bounding_box_format="xyxy",
             iou_thresholds=[0.95],
             class_ids=[1],
@@ -113,7 +121,7 @@ class _COCORecallTest(tf.test.TestCase):
         self.assertEqual(1 / 3, metric_result.result())
 
     def DISABLE_test_recall_area_range_filtering(self):
-        recall = _COCORecall(
+        recall = COCORecall(
             bounding_box_format="xyxy",
             max_detections=100,
             class_ids=[1],
@@ -132,7 +140,7 @@ class _COCORecallTest(tf.test.TestCase):
         self.assertAllEqual(recall.result(), 0.0)
 
     def DISABLE_test_missing_categories(self):
-        recall = _COCORecall(
+        recall = COCORecall(
             bounding_box_format="xyxy",
             max_detections=100,
             class_ids=[1, 2, 3],
@@ -155,7 +163,7 @@ class _COCORecallTest(tf.test.TestCase):
         self.assertEqual(recall.result(), 0.5)
 
     def DISABLE_test_recall_direct_assignment(self):
-        recall = _COCORecall(
+        recall = COCORecall(
             bounding_box_format="xyxy",
             max_detections=100,
             class_ids=[1],
@@ -172,7 +180,7 @@ class _COCORecallTest(tf.test.TestCase):
         self.assertEqual(recall.result(), 0.5)
 
     def DISABLE_test_max_detections_one_third(self):
-        recall = _COCORecall(
+        recall = COCORecall(
             bounding_box_format="xyxy",
             max_detections=1,
             class_ids=[1],
@@ -196,7 +204,7 @@ class _COCORecallTest(tf.test.TestCase):
         self.assertAlmostEqual(recall.result().numpy(), 1 / 3)
 
     def DISABLE_test_max_detections(self):
-        recall = _COCORecall(
+        recall = COCORecall(
             bounding_box_format="xyxy",
             max_detections=3,
             class_ids=[1],
@@ -221,7 +229,7 @@ class _COCORecallTest(tf.test.TestCase):
         self.assertAlmostEqual(recall.result().numpy(), 1.0)
 
     def DISABLE_test_recall_direct_assignment_one_third(self):
-        recall = _COCORecall(
+        recall = COCORecall(
             bounding_box_format="xyxy",
             max_detections=100,
             class_ids=[1],
@@ -244,7 +252,7 @@ class _COCORecallTest(tf.test.TestCase):
         )
         y_pred = tf.constant([[[0, 50, 100, 150, 1, 1.0]]], dtype=tf.float32)
         # note the low iou threshold
-        metric = _COCORecall(
+        metric = COCORecall(
             bounding_box_format="xyxy",
             iou_thresholds=[0.15],
             class_ids=[1],
@@ -261,7 +269,7 @@ class _COCORecallTest(tf.test.TestCase):
         )
         y_pred = tf.constant([[[0, 50, 100, 150, 1, 1.0]]], dtype=tf.float32)
         # note the low iou threshold
-        metric = _COCORecall(
+        metric = COCORecall(
             bounding_box_format="xyxy",
             iou_thresholds=[0.15],
             class_ids=[1],
@@ -283,7 +291,7 @@ class _COCORecallTest(tf.test.TestCase):
             dtype=tf.float32,
         )
         # note the low iou threshold
-        metric = _COCORecall(
+        metric = COCORecall(
             bounding_box_format="xyxy",
             iou_thresholds=[0.15],
             class_ids=[1],
@@ -303,7 +311,7 @@ class _COCORecallTest(tf.test.TestCase):
         y_true = tf.constant([[[0, 0, 100, 100, 1]]], dtype=tf.float64)
         y_pred = tf.constant([[[0, 50, 100, 150, 1, 1.0]]], dtype=tf.float32)
 
-        metric = _COCORecall(
+        metric = COCORecall(
             bounding_box_format="xyxy",
             iou_thresholds=[0.15],
             class_ids=[1],
@@ -318,7 +326,7 @@ class _COCORecallTest(tf.test.TestCase):
         y_pred = tf.constant([[[0, 50, 100, 150, 1, 1.0]]], dtype=tf.float32)
 
         # note the low iou threshold
-        metric = _COCORecall(
+        metric = COCORecall(
             bounding_box_format="xyxy",
             iou_thresholds=[0.15],
             class_ids=[1],
@@ -333,7 +341,7 @@ class _COCORecallTest(tf.test.TestCase):
         y_true = tf.constant([[[0, 0, 100, 100, 1]]], dtype=tf.float32)
         y_pred = tf.constant([[[0, 50, 100, 150, 1, 1.0]]], dtype=tf.float32)
 
-        metric = _COCORecall(
+        metric = COCORecall(
             bounding_box_format="xyxy",
             iou_thresholds=[0.95],
             class_ids=[1],
