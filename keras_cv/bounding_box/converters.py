@@ -347,6 +347,7 @@ def convert_format(
             `tf.float32`.
     """
     if isinstance(boxes, dict):
+        boxes = boxes.copy()
         boxes["boxes"] = convert_format(
             boxes["boxes"],
             source=source,

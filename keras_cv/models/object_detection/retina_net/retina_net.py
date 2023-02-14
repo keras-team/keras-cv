@@ -241,6 +241,7 @@ class RetinaNet(tf.keras.Model):
             images=images,
         )
         y_pred = self.prediction_decoder(box_pred, cls_pred)
+        print('y_pred', y_pred)
         box_pred = bounding_box.convert_format(
             y_pred["boxes"],
             source=self.prediction_decoder.bounding_box_format,
@@ -364,6 +365,7 @@ class RetinaNet(tf.keras.Model):
 
     def train_step(self, data):
         x, y = unpack_input(data)
+        print('y in train step', y)
         y_for_label_encoder = bounding_box.convert_format(
             y,
             source=self.bounding_box_format,
@@ -400,6 +402,7 @@ class RetinaNet(tf.keras.Model):
             return super().compute_metrics(x, {}, {}, sample_weight={})
 
         y_pred = self.decode_predictions((box_pred, cls_pred), x)
+        print('compute_metrics in train_step', y)
         return self.compute_metrics(x, y, y_pred, sample_weight=None)
 
     def compute_metrics(self, x, y, y_pred, sample_weight):
@@ -411,7 +414,7 @@ class RetinaNet(tf.keras.Model):
             print("y_pred", y_pred)
             metric.update_state(y, y_pred, sample_weight=sample_weight)
 
-        for metric in self._user_metrics.metrics:
+        for metric in self._user_metrics:
             result = metric.result()
             if isinstance(result, dict):
                 metrics.update(result)
@@ -442,6 +445,7 @@ class RetinaNet(tf.keras.Model):
             return super().compute_metrics(x, {}, {}, sample_weight={})
         # only decode predictions in train_step() if user metrics are provided.
         y_pred = self.decode_predictions((box_pred, cls_pred), x)
+        print('y in test step', y)
         return self.compute_metrics(x, y, y_pred, sample_weight=None)
 
     def get_config(self):
