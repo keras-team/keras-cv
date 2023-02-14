@@ -542,7 +542,7 @@ class ResNetV2(keras.Model):
         self.pooling = pooling
         self.classes = classes
         self.classifier_activation = classifier_activation
-        self.block_fn = Block
+        self.block_fn = block_fn
 
     def get_config(self):
         return {
@@ -551,7 +551,7 @@ class ResNetV2(keras.Model):
             "stackwise_strides": self.stackwise_strides,
             "include_rescaling": self.include_rescaling,
             "include_top": self.include_top,
-            "input_shape": self.input_shape,
+            "input_shape": self.input_shape[1:],
             "stackwise_dilations": self.stackwise_dilations,
             "input_tensor": self.input_tensor,
             "pooling": self.pooling,
