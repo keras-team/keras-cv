@@ -25,7 +25,6 @@ from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
 from keras_cv.utils import preprocessing as preprocessing_utils
 
 
-@tf.keras.utils.register_keras_serializable(package="keras_cv")
 class OldRandomSaturation(BaseImageAugmentationLayer):
     """Randomly adjusts the saturation on given images.
 
