@@ -55,17 +55,19 @@ class RetinaNetTest(tf.test.TestCase):
             classification_loss="focal",
             box_loss="smoothl1",
             metrics=[
+                keras_cv.metrics.BoxCounts(name="average_boxes"),
                 keras_cv.metrics.COCORecall(
                     bounding_box_format="xywh",
-                    class_ids=[0],
+                    class_ids=[0, 1],
                     max_detections=100,
                     iou_thresholds=[0.1],
                     name="test_recall",
-                )
+                ),
             ],
         )
 
         xs, ys = _create_bounding_box_dataset("xywh")
-        retina_net.fit(x=xs, y=ys, epochs=5)
+        retina_net.fit(x=xs, y=ys, epochs=25)
         metrics = retina_net.evaluate(x=xs, y=ys, return_dict=True)
+        self.assertAllGreater(metrics["average_boxes"], 0.0)
         self.assertAllGreater(metrics["test_recall"], 0.0)
