@@ -42,10 +42,9 @@ class RetinaNetTest(tf.test.TestCase):
         "test_fit_coco_metrics -s`",
     )
     def test_fit_coco_metrics(self):
-        bounding_box_format = "xywh"
         retina_net = keras_cv.models.RetinaNet(
             classes=1,
-            bounding_box_format=bounding_box_format,
+            bounding_box_format='xywh',
             backbone=keras_cv.models.ResNet50(
                 include_top=False, include_rescaling=False
             ).as_backbone(),
@@ -53,13 +52,11 @@ class RetinaNetTest(tf.test.TestCase):
 
         retina_net.compile(
             optimizer=optimizers.Adam(),
-            classification_loss=keras_cv.losses.FocalLoss(
-                from_logits=True, reduction="none"
-            ),
-            box_loss=keras_cv.losses.SmoothL1Loss(l1_cutoff=1.0, reduction="none"),
+            classification_loss='focal',
+            box_loss='smoothl1',
             metrics=[
                 keras_cv.metrics.COCORecall(
-                    bounding_box_format="xyxy",
+                    bounding_box_format="xywh",
                     class_ids=[0],
                     max_detections=100,
                     iou_thresholds=[0.1],
@@ -68,7 +65,7 @@ class RetinaNetTest(tf.test.TestCase):
             ],
         )
 
-        xs, ys = _create_bounding_box_dataset(bounding_box_format)
-        retina_net.fit(x=xs, y=ys, epochs=1)
+        xs, ys = _create_bounding_box_dataset('xywh')
+        retina_net.fit(x=xs, y=ys, epochs=3)
         metrics = retina_net.evaluate(x=xs, y=ys, return_dict=True)
         self.assertGreaterThan(metrics["test_recall"], 0.0)
