@@ -330,6 +330,7 @@ class RetinaNet(tf.keras.Model):
         # their input.  The `keras.Model` class interprets these as different
         # outputs of the model causing error.
         self._user_metrics = metrics
+        self._has_user_metrics = metrics is not None and len(metrics) != 0
         super().compile(loss=losses, **kwargs)
 
     def compute_loss(self, images, boxes, classes, training):
@@ -415,14 +416,12 @@ class RetinaNet(tf.keras.Model):
         trainable_vars = self.trainable_variables
         gradients = tape.gradient(total_loss, trainable_vars)
         self.optimizer.apply_gradients(zip(gradients, trainable_vars))
-
-        metrics.update(self.compute_user_metrics(x, y_true, y_pred, sample_weight))
-        return metrics
+        return self.compute_metrics(x, {}, {}, sample_weight={})
 
     def compute_metrics(self, x, y, y_pred, sample_weight):
         metrics = {}
         metrics.update(super().compute_metrics(x, {}, {}, sample_weight={}))
-        if self._user_metrics is None or len(self._user_metrics) == 0:
+        if not self._has_user_metrics:
             return metrics
 
         for metric in self._user_metrics:
