@@ -120,7 +120,7 @@ def order_by_confidence(bounding_boxes):
             "`sort_bounding_boxes()` should only accept a single "
             f"batch of bounding boxes.  Received `boxes.shape={boxes.shape}`."
         )
-    _, idx = tf.math.top_k(confidence, tf.shape(preds_for_img)[0])
+    _, idx = tf.math.top_k(confidence, tf.shape(confidence)[0])
 
     boxes = bounding_boxes["boxes"]
     classes = bounding_boxes["classes"]
