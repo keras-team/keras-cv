@@ -429,7 +429,7 @@ class ResNetV2(keras.Model):
             `classifier_activation=None` to return the logits of the "top" layer.
         block_fn: callable, `Block` or `BasicBlock`, the block function to stack.
             Use 'basic_block' for ResNet18 and ResNet34.
-        **kwargs: Pass-through keyword arguments to `tf.keras.Model`.
+        **kwargs: Pass-through keyword arguments to `keras.Model`.
 
     Returns:
       A `keras.Model` instance.
@@ -504,7 +504,9 @@ class ResNetV2(keras.Model):
             )(x)
             stack_level_outputs[stack_index + 2] = x
 
-        x = layers.BatchNormalization(axis=BN_AXIS, epsilon=BN_EPSILON, name="post_bn")(x)
+        x = layers.BatchNormalization(axis=BN_AXIS, epsilon=BN_EPSILON, name="post_bn")(
+            x
+        )
         x = layers.Activation("relu", name="post_relu")(x)
 
         if include_top:
@@ -518,7 +520,7 @@ class ResNetV2(keras.Model):
             elif pooling == "max":
                 x = layers.GlobalMaxPooling2D(name="max_pool")(x)
 
-        super().__init__(inputs, x, **kwargs)
+        super().__init__(inputs=inputs, outputs=x, **kwargs)
 
         # All references to `self` below this line.
         if weights is not None:
@@ -543,23 +545,21 @@ class ResNetV2(keras.Model):
         self.block_fn = Block
 
     def get_config(self):
-        config = super().get_config()
-        config.update(
-            {
-                "stackwise_filters": self.stackwise_filters,
-                "stackwise_blocks": self.stackwise_blocks,
-                "stackwise_strides": self.stackwise_strides,
-                "include_rescaling": self.include_rescaling,
-                "include_top": self.include_top,
-                "stackwise_dilations": self.stackwise_dilations,
-                "input_tensor": self.input_tensor,
-                "pooling": self.pooling,
-                "classes": self.classes,
-                "classifier_activation": self.classifier_activation,
-                "block_fn": keras.utils.get_registered_name(self.block_fn),
-            }
-        )
-        return config
+        return {
+            "stackwise_filters": self.stackwise_filters,
+            "stackwise_blocks": self.stackwise_blocks,
+            "stackwise_strides": self.stackwise_strides,
+            "include_rescaling": self.include_rescaling,
+            "include_top": self.include_top,
+            "stackwise_dilations": self.stackwise_dilations,
+            "input_tensor": self.input_tensor,
+            "pooling": self.pooling,
+            "classes": self.classes,
+            "classifier_activation": self.classifier_activation,
+            "block_fn": keras.utils.get_registered_name(self.block_fn),
+            "name": self.name,
+            "trainable": self.trainable,
+        }
 
     @classmethod
     def from_config(cls, config):
