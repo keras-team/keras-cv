@@ -22,8 +22,8 @@ from keras_cv.bounding_box import iou as iou_lib
 from keras_cv.metrics.coco import utils
 
 
-class _COCORecall(keras.metrics.Metric):
-    """_COCORecall computes the COCO recall metric.
+class COCORecall(keras.metrics.Metric):
+    """COCORecall computes the COCO recall metric.
 
     A usage guide is available on keras.io:
     [Using KerasCV COCO metrics](https://keras.io/guides/keras_cv/coco_metrics/).
@@ -51,20 +51,13 @@ class _COCORecall(keras.metrics.Metric):
             Must be an integer, defaults to `100`.
     Usage:
 
-    _COCORecall accepts two Tensors as input to it's `update_state` method.
-    These Tensors represent bounding boxes in `corners` format.  Utilities
-    to convert Tensors from `xywh` to `corners` format can be found in
-    `keras_cv.utils.bounding_box`.
-
-    Each image in a dataset may have a different number of bounding boxes,
-    both in the ground truth dataset and the prediction set.  In order to
-    account for this, you may either pass a `tf.RaggedTensor`, or pad Tensors
-    with `-1`s to indicate unused boxes.  A utility function to perform this
-    padding is available at
-    `keras_cv.bounding_box.to_dense`.
+    COCORecall accepts two dictionaries that comply with KerasCV's bounding box
+    specification as inputs to it's `update_state` method.
+    These dictionaries represent bounding boxes in the specified
+    `bounding_box_format`.
 
     ```python
-    coco_recall = keras_cv.metrics._COCORecall(
+    coco_recall = keras_cv.metrics.COCORecall(
         bounding_box_format='xyxy',
         max_detections=100,
         class_ids=[1]
@@ -139,16 +132,8 @@ class _COCORecall(keras.metrics.Metric):
             warnings.warn(
                 "sample_weight is not yet supported in keras_cv COCO metrics."
             )
-        y_true = tf.cast(y_true, self.compute_dtype)
-        y_pred = tf.cast(y_pred, self.compute_dtype)
-
-        # TODO(lukewood): Add first party RaggedTensor support.  Currently
-        # this could cause an OOM error if users are not expecting to convert
-        # these tensors to dense tensors.
-        if isinstance(y_true, tf.RaggedTensor):
-            y_true = y_true.to_tensor(default_value=-1)
-        if isinstance(y_pred, tf.RaggedTensor):
-            y_pred = y_pred.to_tensor(default_value=-1)
+        y_true = bounding_box.to_dense(y_true)
+        y_pred = bounding_box.to_dense(y_pred)
 
         y_true = bounding_box.convert_format(
             y_true,
