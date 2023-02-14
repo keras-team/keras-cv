@@ -133,8 +133,9 @@ class RetinaNet(tf.keras.Model):
         if bounding_box_format.lower() != "xywh":
             raise ValueError(
                 "`keras_cv.models.RetinaNet` only supports the 'xywh' "
-                "`bounding_box_format`.  In future releases, more formats will be "
-                "supported.  For now, please pass `bounding_box_format='xywh'`. "
+                "`bounding_box_format`.  In future releases, more formats will"
+                " be supported.  For now, please pass "
+                "`bounding_box_format='xywh'`. "
                 f"Received `bounding_box_format={bounding_box_format}`"
             )
 
@@ -396,7 +397,25 @@ class RetinaNet(tf.keras.Model):
         gradients = tape.gradient(total_loss, trainable_vars)
         self.optimizer.apply_gradients(zip(gradients, trainable_vars))
 
-        return self.compute_metrics(x, {}, {}, sample_weight={})
+        metrics.update(self.compute_user_metrics(x, y_true, y_pred, sample_weight))
+        return metrics
+
+    def compute_metrics(self, x, y, y_pred, sample_weight):
+        metrics = {}
+        metrics.update(super().compute_metrics(x, {}, {}, sample_weight={}))
+        if self._user_metrics is None or len(self._user_metrics) == 0:
+            return metrics
+
+        for metric in self._user_metrics:
+            metric.update_state(y, y_pred, sample_weight=sample_weight)
+
+        for metric in self._user_metrics.metrics:
+            result = metric.result()
+            if isinstance(result, dict):
+                metrics.update(result)
+            else:
+                metrics[metric.name] = result
+        return metrics
 
     def test_step(self, data):
         x, y = unpack_input(data)
