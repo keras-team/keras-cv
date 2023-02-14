@@ -161,7 +161,7 @@ class COCORecall(keras.metrics.Metric):
             y_true_for_image = utils.get_boxes_for_image(y_true, img)
             y_pred_for_image = utils.get_boxes_for_image(y_pred, img)
 
-            y_pred_for_image = utils.order_by_confidence(y_pred_for_images)
+            y_pred_for_image = utils.order_by_confidence(y_pred_for_image)
 
             if self.area_range is not None:
                 y_true_for_image = utils.filter_boxes_by_area_range(
