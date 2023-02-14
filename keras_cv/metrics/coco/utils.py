@@ -63,14 +63,13 @@ def to_sentinel_padded_bounding_box_tensor(box_sets):
     return tf.ragged.stack(box_sets).to_tensor(default_value=-1)
 
 
-def filter_out_sentinels(boxes):
+def filter_out_sentinels(bounding_boxes):
     """filter_out_sentinels to filter out boxes that were padded on to the prediction
     or ground truth bounding_box tensor to ensure dimensions match.
     Args:
-        boxes: Tensor of bounding boxes in format `[bounding_boxes, 6]`, usually from a
-            single image.
+        bounding_boxes: dictionarys of bounding boxes in KerasCV format
     Returns:
-        boxes: A new Tensor of bounding boxes, where boxes[axis]!=-1.
+        A new dictionary of bounding boxes, where boxes['classes']!=-1.
     """
     return tf.gather_nd(
         boxes, tf.where(boxes[:, bounding_box.XYXY.CLASS] != -1)
