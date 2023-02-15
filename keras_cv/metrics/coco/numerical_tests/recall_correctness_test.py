@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Tests to ensure that COCORecall computes the correct values.."""
+"""Tests to ensure that COCORecall computes the correct values."""
 import os
 
 import numpy as np

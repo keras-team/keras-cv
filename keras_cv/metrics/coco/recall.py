@@ -22,13 +22,16 @@ from keras_cv.bounding_box import iou as iou_lib
 from keras_cv.metrics.coco import utils
 
 
-class COCORecall(keras.metrics.Metric):
-    """COCORecall computes the COCO recall metric.
+class ObjectDetectionRecall(keras.metrics.Metric):
+    """COCORecall computes recall based on varying true positive IoU thresholds.
 
-    A usage guide is available on keras.io:
-    [Using KerasCV COCO metrics](https://keras.io/guides/keras_cv/coco_metrics/).
-    Full implementation details are available in the
-    [KerasCV COCO metrics whitepaper](https://arxiv.org/abs/2207.12120).
+    COCORecall is analagous to traditional Recall.  The primary distinction is
+    that when operating in the problem domain of object detection there exists
+    ambiguity in what is considered a true positive.  The COCORecall metric
+    works by using the Intersection over Union (IoU) metric to determine whether
+    or not a detection is a true positive or a false positive.  An average
+    across many IoU thresholds may also be taken by passing a list to the
+    `iou_thresholds` argument.
 
     Args:
         class_ids: The class IDs to evaluate the metric for.  To evaluate for

@@ -48,11 +48,15 @@ def to_dense(bounding_boxes, max_boxes=None, default_value=-1):
     """
     info = validate_format.validate_format(bounding_boxes)
 
+    # guards against errors in metrics regarding modification of inputs.
+    # also guards against unexpected behavior when modifying downstream
+    bounding_boxes = bounding_boxes.copy()
+
     # Already running in masked mode
     if not info["ragged"]:
+        # even if already ragged, still copy the dictionary for API consistency
         return bounding_boxes
 
-    bounding_boxes = bounding_boxes.copy()
     if isinstance(bounding_boxes["classes"], tf.RaggedTensor):
         bounding_boxes["classes"] = bounding_boxes["classes"].to_tensor(
             default_value=default_value,
