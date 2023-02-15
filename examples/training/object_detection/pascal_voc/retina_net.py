@@ -27,7 +27,6 @@ from absl import flags
 from tensorflow import keras
 
 import keras_cv
-from keras_cv.callbacks import PyCOCOCallback
 
 low, high = resource.getrlimit(resource.RLIMIT_NOFILE)
 resource.setrlimit(resource.RLIMIT_NOFILE, (high, high))
@@ -353,6 +352,14 @@ model.compile(
     classification_loss="focal",
     box_loss="smoothl1",
     optimizer=optimizer,
+    metrics=[
+        keras_cv.metrics.BoxCounts(),
+        keras_cv.metrics.COCORecall(
+            bounding_box_format="xywh",
+            class_ids=range(20),
+            max_detections=100,
+        ),
+    ],
 )
 
 callbacks = [
@@ -360,7 +367,6 @@ callbacks = [
     keras.callbacks.ReduceLROnPlateau(patience=5),
     keras.callbacks.EarlyStopping(patience=10),
     keras.callbacks.ModelCheckpoint(FLAGS.weights_path, save_weights_only=True),
-    PyCOCOCallback(eval_ds, "xywh"),
 ]
 
 history = model.fit(
