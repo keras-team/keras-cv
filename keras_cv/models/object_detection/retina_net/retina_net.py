@@ -252,6 +252,7 @@ class RetinaNet(tf.keras.Model):
         classification_loss=None,
         weight_decay=0.0001,
         loss=None,
+        metrics=None,
         **kwargs,
     ):
         """compiles the RetinaNet.
@@ -267,15 +268,10 @@ class RetinaNet(tf.keras.Model):
                 A preconfigured `FocalLoss` is provided when the string "focal" is
                 passed.
             weight_decay: a float for variable weight decay.
+            metrics: object detection metrics.
             kwargs: most other `keras.Model.compile()` arguments are supported and
                 propagated to the `keras.Model` class.
         """
-        if "metrics" in kwargs.keys():
-            raise ValueError(
-                "`RetinaNet` does not currently support the use of "
-                "`metrics` due to performance and distribution concerns. Please us the "
-                "`PyCOCOCallback` to evaluate COCO metrics."
-            )
         if loss is not None:
             raise ValueError(
                 "`RetinaNet` does not accept a `loss` to `compile()`. "
