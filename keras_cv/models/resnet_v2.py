@@ -100,10 +100,11 @@ BASE_DOCSTRING = """Instantiates the {name} architecture.
 
 
 def BasicBlock(
-    filters, kernel_size=3, stride=1, dilation=1, conv_shortcut=False, name=None
+    x, filters, kernel_size=3, stride=1, dilation=1, conv_shortcut=False, name=None
 ):
     """A basic residual block (v2).
     Args:
+        x: input tensor.
         filters: integer, filters of the basic layer.
         kernel_size: default 3, kernel size of the bottleneck layer.
         stride: default 1, stride of the first layer.
@@ -116,59 +117,59 @@ def BasicBlock(
     if name is None:
         name = f"v2_basic_block_{backend.get_uid('v2_basic_block')}"
 
-    def apply(x):
-        use_preactivation = layers.BatchNormalization(
-            axis=BN_AXIS, epsilon=1.001e-5, name=name + "_use_preactivation_bn"
-        )(x)
+    use_preactivation = layers.BatchNormalization(
+        axis=BN_AXIS, epsilon=1.001e-5, name=name + "_use_preactivation_bn"
+    )(x)
 
-        use_preactivation = layers.Activation(
-            "relu", name=name + "_use_preactivation_relu"
-        )(use_preactivation)
+    use_preactivation = layers.Activation(
+        "relu", name=name + "_use_preactivation_relu"
+    )(use_preactivation)
 
-        s = stride if dilation == 1 else 1
-        if conv_shortcut:
-            shortcut = layers.Conv2D(filters, 1, strides=s, name=name + "_0_conv")(
-                use_preactivation
-            )
-        else:
-            shortcut = (
-                layers.MaxPooling2D(1, strides=stride, name=name + "_0_max_pooling")(x)
-                if s > 1
-                else x
-            )
+    s = stride if dilation == 1 else 1
+    if conv_shortcut:
+        shortcut = layers.Conv2D(filters, 1, strides=s, name=name + "_0_conv")(
+            use_preactivation
+        )
+    else:
+        shortcut = (
+            layers.MaxPooling2D(1, strides=stride, name=name + "_0_max_pooling")(x)
+            if s > 1
+            else x
+        )
 
-        x = layers.Conv2D(
-            filters,
-            kernel_size,
-            padding="SAME",
-            strides=1,
-            use_bias=False,
-            name=name + "_1_conv",
-        )(use_preactivation)
-        x = layers.BatchNormalization(
-            axis=BN_AXIS, epsilon=1.001e-5, name=name + "_1_bn"
-        )(x)
-        x = layers.Activation("relu", name=name + "_1_relu")(x)
+    x = layers.Conv2D(
+        filters,
+        kernel_size,
+        padding="SAME",
+        strides=1,
+        use_bias=False,
+        name=name + "_1_conv",
+    )(use_preactivation)
+    x = layers.BatchNormalization(axis=BN_AXIS, epsilon=1.001e-5, name=name + "_1_bn")(
+        x
+    )
+    x = layers.Activation("relu", name=name + "_1_relu")(x)
 
-        x = layers.Conv2D(
-            filters,
-            kernel_size,
-            strides=s,
-            padding="same",
-            dilation_rate=dilation,
-            use_bias=False,
-            name=name + "_2_conv",
-        )(x)
+    x = layers.Conv2D(
+        filters,
+        kernel_size,
+        strides=s,
+        padding="same",
+        dilation_rate=dilation,
+        use_bias=False,
+        name=name + "_2_conv",
+    )(x)
 
-        x = layers.Add(name=name + "_out")([shortcut, x])
-        return x
-
-    return apply
+    x = layers.Add(name=name + "_out")([shortcut, x])
+    return x
 
 
-def Block(filters, kernel_size=3, stride=1, dilation=1, conv_shortcut=False, name=None):
+def Block(
+    x, filters, kernel_size=3, stride=1, dilation=1, conv_shortcut=False, name=None
+):
     """A residual block (v2).
     Args:
+        x: input tensor.
         filters: integer, filters of the bottleneck layer.
         kernel_size: default 3, kernel size of the bottleneck layer.
         stride: default 1, stride of the first layer.
@@ -181,60 +182,58 @@ def Block(filters, kernel_size=3, stride=1, dilation=1, conv_shortcut=False, nam
     if name is None:
         name = f"v2_block_{backend.get_uid('v2_block')}"
 
-    def apply(x):
-        use_preactivation = layers.BatchNormalization(
-            axis=BN_AXIS, epsilon=1.001e-5, name=name + "_use_preactivation_bn"
-        )(x)
+    use_preactivation = layers.BatchNormalization(
+        axis=BN_AXIS, epsilon=1.001e-5, name=name + "_use_preactivation_bn"
+    )(x)
 
-        use_preactivation = layers.Activation(
-            "relu", name=name + "_use_preactivation_relu"
-        )(use_preactivation)
+    use_preactivation = layers.Activation(
+        "relu", name=name + "_use_preactivation_relu"
+    )(use_preactivation)
 
-        s = stride if dilation == 1 else 1
-        if conv_shortcut:
-            shortcut = layers.Conv2D(
-                4 * filters,
-                1,
-                strides=s,
-                name=name + "_0_conv",
-            )(use_preactivation)
-        else:
-            shortcut = (
-                layers.MaxPooling2D(1, strides=stride, name=name + "_0_max_pooling")(x)
-                if s > 1
-                else x
-            )
-
-        x = layers.Conv2D(filters, 1, strides=1, use_bias=False, name=name + "_1_conv")(
-            use_preactivation
-        )
-        x = layers.BatchNormalization(
-            axis=BN_AXIS, epsilon=1.001e-5, name=name + "_1_bn"
-        )(x)
-        x = layers.Activation("relu", name=name + "_1_relu")(x)
-
-        x = layers.Conv2D(
-            filters,
-            kernel_size,
+    s = stride if dilation == 1 else 1
+    if conv_shortcut:
+        shortcut = layers.Conv2D(
+            4 * filters,
+            1,
             strides=s,
-            use_bias=False,
-            padding="same",
-            dilation_rate=dilation,
-            name=name + "_2_conv",
-        )(x)
-        x = layers.BatchNormalization(
-            axis=BN_AXIS, epsilon=1.001e-5, name=name + "_2_bn"
-        )(x)
-        x = layers.Activation("relu", name=name + "_2_relu")(x)
+            name=name + "_0_conv",
+        )(use_preactivation)
+    else:
+        shortcut = (
+            layers.MaxPooling2D(1, strides=stride, name=name + "_0_max_pooling")(x)
+            if s > 1
+            else x
+        )
 
-        x = layers.Conv2D(4 * filters, 1, name=name + "_3_conv")(x)
-        x = layers.Add(name=name + "_out")([shortcut, x])
-        return x
+    x = layers.Conv2D(filters, 1, strides=1, use_bias=False, name=name + "_1_conv")(
+        use_preactivation
+    )
+    x = layers.BatchNormalization(axis=BN_AXIS, epsilon=1.001e-5, name=name + "_1_bn")(
+        x
+    )
+    x = layers.Activation("relu", name=name + "_1_relu")(x)
 
-    return apply
+    x = layers.Conv2D(
+        filters,
+        kernel_size,
+        strides=s,
+        use_bias=False,
+        padding="same",
+        dilation_rate=dilation,
+        name=name + "_2_conv",
+    )(x)
+    x = layers.BatchNormalization(axis=BN_AXIS, epsilon=1.001e-5, name=name + "_2_bn")(
+        x
+    )
+    x = layers.Activation("relu", name=name + "_2_relu")(x)
+
+    x = layers.Conv2D(4 * filters, 1, name=name + "_3_conv")(x)
+    x = layers.Add(name=name + "_out")([shortcut, x])
+    return x
 
 
 def Stack(
+    x,
     filters,
     blocks,
     stride=2,
@@ -246,6 +245,7 @@ def Stack(
 ):
     """A set of stacked blocks.
     Args:
+        x: input tensor.
         filters: integer, filters of the layer in a block.
         blocks: integer, blocks in the stacked blocks.
         stride: default 2, stride of the first layer in the first block.
@@ -259,19 +259,17 @@ def Stack(
     if name is None:
         name = f"v2_stack_{stack_index}"
 
-    def apply(x):
-        x = block_fn(filters, conv_shortcut=first_shortcut, name=name + "_block1")(x)
-        for i in range(2, blocks):
-            x = block_fn(filters, dilation=dilations, name=name + "_block" + str(i))(x)
-        x = block_fn(
-            filters,
-            stride=stride,
-            dilation=dilations,
-            name=name + "_block" + str(blocks),
-        )(x)
-        return x
-
-    return apply
+    x = block_fn(x, filters, conv_shortcut=first_shortcut, name=name + "_block1")
+    for i in range(2, blocks):
+        x = block_fn(x, filters, dilation=dilations, name=name + "_block" + str(i))
+    x = block_fn(
+        x,
+        filters,
+        stride=stride,
+        dilation=dilations,
+        name=name + "_block" + str(blocks),
+    )
+    return x
 
 
 def ResNetV2(
@@ -372,6 +370,7 @@ def ResNetV2(
     stack_level_outputs = {}
     for stack_index in range(num_stacks):
         x = Stack(
+            x,
             filters=stackwise_filters[stack_index],
             blocks=stackwise_blocks[stack_index],
             stride=stackwise_strides[stack_index],
@@ -379,7 +378,7 @@ def ResNetV2(
             block_fn=block_fn,
             first_shortcut=block_fn == Block or stack_index > 0,
             stack_index=stack_index,
-        )(x)
+        )
         stack_level_outputs[stack_index + 2] = x
 
     x = layers.BatchNormalization(axis=BN_AXIS, epsilon=1.001e-5, name="post_bn")(x)
@@ -397,7 +396,7 @@ def ResNetV2(
             x = layers.GlobalMaxPooling2D(name="max_pool")(x)
 
     # Create model.
-    model = tf.keras.Model(inputs, x, name=name, **kwargs)
+    model = tf.keras.Model(inputs=inputs, outputs=x, name=name, **kwargs)
 
     if weights is not None:
         model.load_weights(weights)
