@@ -131,7 +131,7 @@ def filter_out_sentinels(bounding_boxes):
 
 
 def order_by_confidence(bounding_boxes):
-    """sort_bounding_boxes is used to sort a batch of bounding boxes.
+    """order_by_confidence is used to sort a batch of bounding boxes.
 
     Args:
         bounding_boxes: dictionarity containing the bounding boxes.
@@ -156,7 +156,7 @@ def order_by_confidence(bounding_boxes):
 
     if boxes.shape.rank != 2:
         raise ValueError(
-            "`sort_bounding_boxes()` should only accept a single "
+            "`order_by_confidence()` should only accept a single "
             f"batch of bounding boxes.  Received `boxes.shape={boxes.shape}`."
         )
     _, idx = tf.math.top_k(confidence, tf.shape(confidence)[0])

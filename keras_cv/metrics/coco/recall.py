@@ -126,6 +126,24 @@ class COCORecall(keras.metrics.Metric):
             )
         y_true = bounding_box.ensure_tensor(y_true, dtype=self.compute_dtype)
         y_pred = bounding_box.ensure_tensor(y_pred, dtype=self.compute_dtype)
+        bounding_box.validate_format(
+            y_true,
+            variable_name="y_true",
+        )
+        bounding_box.validate_format(
+            y_pred,
+            variable_name="y_pred",
+        )
+
+        if y_true["boxes"].shape.rank != 3 or y_pred["boxes"].shape.rank != 3:
+            raise ValueError(
+                "Expected `y_true` and `y_pred` to be batched. "
+                "Received "
+                f"`y_true['boxes'].shape.rank={y_true['boxes'].shape.ranks}` "
+                "and "
+                f"`y_pred['boxes'].shape.rank={y_true['boxes'].shape.ranks}`. "
+                "Expected both to be 3."
+            )
 
         y_true = bounding_box.to_dense(y_true)
         y_pred = bounding_box.to_dense(y_pred)
@@ -160,8 +178,8 @@ class COCORecall(keras.metrics.Metric):
 
         for img in tf.range(num_images):
             y_true_for_image = utils.get_boxes_for_image(y_true, img)
-            y_pred_for_image = utils.get_boxes_for_image(y_pred, img)
 
+            y_pred_for_image = utils.get_boxes_for_image(y_pred, img)
             y_pred_for_image = utils.order_by_confidence(y_pred_for_image)
 
             if self.area_range is not None:

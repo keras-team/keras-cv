@@ -17,6 +17,7 @@ import numpy as np
 import tensorflow as tf
 from tensorflow import keras
 
+from keras_cv import bounding_box
 from keras_cv.metrics import COCORecall
 
 
@@ -247,10 +248,15 @@ class COCORecallTest(tf.test.TestCase):
         self.assertAlmostEqual(recall.result().numpy(), 1 / 3)
 
     def test_area_range_bounding_box_counting(self):
-        y_true = tf.constant(
-            [[[0, 0, 100, 100, 1], [0, 0, 100, 100, 1]]], dtype=tf.float32
-        )
-        y_pred = tf.constant([[[0, 50, 100, 150, 1, 1.0]]], dtype=tf.float32)
+        y_true = {
+            "boxes": [[[0.0, 0.0, 100.0, 100.0], [0.0, 0.0, 100.0, 100.0]]],
+            "classes": [[1.0, 1.0]],
+        }
+        y_pred = {
+            "boxes": [[[0.0, 50.0, 100.0, 150.0]]],
+            "classes": [[1.0]],
+            "confidence": [[1.0]],
+        }
         # note the low iou threshold
         metric = COCORecall(
             bounding_box_format="xyxy",
@@ -264,10 +270,15 @@ class COCORecallTest(tf.test.TestCase):
         self.assertEqual([[1]], metric.true_positives)
 
     def test_true_positive_counting_one_good_one_bad(self):
-        y_true = tf.constant(
-            [[[0, 0, 100, 100, 1], [0, 0, 100, 100, 1]]], dtype=tf.float32
-        )
-        y_pred = tf.constant([[[0, 50, 100, 150, 1, 1.0]]], dtype=tf.float32)
+        y_true = {
+            "boxes": [[[0.0, 0.0, 100.0, 100.0], [0.0, 0.0, 100.0, 100.0]]],
+            "classes": [[1.0, 1.0]],
+        }
+        y_pred = {
+            "boxes": [[[0.0, 50.0, 100.0, 150.0]]],
+            "classes": [[1.0]],
+            "confidence": [[1.0]],
+        }
         # note the low iou threshold
         metric = COCORecall(
             bounding_box_format="xyxy",
@@ -282,14 +293,12 @@ class COCORecallTest(tf.test.TestCase):
         self.assertEqual([[1]], metric.true_positives)
 
     def test_true_positive_counting_one_true_two_pred(self):
-        y_true = tf.constant(
-            [[[0, 0, 100, 100, 1]]],
-            dtype=tf.float32,
-        )
-        y_pred = tf.constant(
-            [[[0, 50, 100, 150, 1, 0.90], [0, 0, 100, 100, 1, 1.0]]],
-            dtype=tf.float32,
-        )
+        y_true = {"boxes": [[[0.0, 0.0, 100.0, 100.0]]], "classes": [[1.0]]}
+        y_pred = {
+            "boxes": [[[0.0, 50.0, 100.0, 150.0], [0.0, 0.0, 100.0, 100.0]]],
+            "classes": [[1.0, 1.0]],
+            "confidence": [[0.8999999761581421, 1.0]],
+        }
         # note the low iou threshold
         metric = COCORecall(
             bounding_box_format="xyxy",
@@ -301,15 +310,24 @@ class COCORecallTest(tf.test.TestCase):
         metric.update_state(y_true, y_pred)
         self.assertEqual([[1]], metric.true_positives)
 
-        y_true = tf.constant([[[0, 0, 100, 100, 1]]], dtype=tf.float32)
-        y_pred = tf.constant([[[0, 50, 100, 150, 1, 1.0]]], dtype=tf.float32)
+        y_true = {"boxes": [[[0.0, 0.0, 100.0, 100.0]]], "classes": [[1.0]]}
+        y_pred = {
+            "boxes": [[[0.0, 50.0, 100.0, 150.0]]],
+            "classes": [[1.0]],
+            "confidence": [[1.0]],
+        }
 
         metric.update_state(y_true, y_pred)
         self.assertEqual([[2]], metric.true_positives)
 
     def test_mixed_dtypes(self):
-        y_true = tf.constant([[[0, 0, 100, 100, 1]]], dtype=tf.float64)
-        y_pred = tf.constant([[[0, 50, 100, 150, 1, 1.0]]], dtype=tf.float32)
+        y_true = {"boxes": [[[0.0, 0.0, 100.0, 100.0]]], "classes": [[1.0]]}
+        y_true = bounding_box.ensure_tensor(y_true, dtype=tf.float64)
+        y_pred = {
+            "boxes": [[[0.0, 50.0, 100.0, 150.0]]],
+            "classes": [[1.0]],
+            "confidence": [[1.0]],
+        }
 
         metric = COCORecall(
             bounding_box_format="xyxy",
@@ -322,8 +340,12 @@ class COCORecallTest(tf.test.TestCase):
         self.assertEqual(metric.result(), 1.0)
 
     def test_matches_single_box(self):
-        y_true = tf.constant([[[0, 0, 100, 100, 1]]], dtype=tf.float32)
-        y_pred = tf.constant([[[0, 50, 100, 150, 1, 1.0]]], dtype=tf.float32)
+        y_true = {"boxes": [[[0.0, 0.0, 100.0, 100.0]]], "classes": [[1.0]]}
+        y_pred = {
+            "boxes": [[[0.0, 50.0, 100.0, 150.0]]],
+            "classes": [[1.0]],
+            "confidence": [[1.0]],
+        }
 
         # note the low iou threshold
         metric = COCORecall(
@@ -338,8 +360,12 @@ class COCORecallTest(tf.test.TestCase):
         self.assertEqual([[1]], metric.true_positives)
 
     def test_matches_single_false_positive(self):
-        y_true = tf.constant([[[0, 0, 100, 100, 1]]], dtype=tf.float32)
-        y_pred = tf.constant([[[0, 50, 100, 150, 1, 1.0]]], dtype=tf.float32)
+        y_true = {"boxes": [[[0.0, 0.0, 100.0, 100.0]]], "classes": [[1.0]]}
+        y_pred = {
+            "boxes": [[[0.0, 50.0, 100.0, 150.0]]],
+            "classes": [[1.0]],
+            "confidence": [[1.0]],
+        }
 
         metric = COCORecall(
             bounding_box_format="xyxy",
