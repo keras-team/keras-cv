@@ -305,6 +305,8 @@ class RetinaNet(tf.keras.Model):
             "box": self.box_loss,
             "classification": self.classification_loss,
         }
+        self._has_user_metrics = metrics is not None and len(metrics) != 0
+        self._user_metrics = metrics
         super().compile(loss=losses, **kwargs)
 
     def compute_loss(self, x, box_pred, cls_pred, boxes, classes, training):
