@@ -61,7 +61,7 @@ class BoxCounts(keras.metrics.Metric):
         y_pred = bounding_box.to_ragged(y_pred)
         y_true = bounding_box.to_ragged(y_true)
 
-        tf.print(tf.math.reduce_min(y_pred['confidence']))
+        tf.print(tf.math.reduce_min(y_pred["confidence"]))
         for image in tf.range(tf.shape(y_pred["classes"])[0]):
             self.predictions.assign_add(
                 tf.cast(tf.shape(y_pred["classes"][image])[0], tf.float32)

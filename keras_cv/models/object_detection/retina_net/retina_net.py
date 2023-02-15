@@ -194,7 +194,7 @@ class RetinaNet(tf.keras.Model):
             clip_boxes=True,
         )
 
-    def _forward(self, images, training=None):
+    def call(self, images, training=None):
         backbone_outputs = self.backbone(images, training=training)
         features = self.feature_pyramid(backbone_outputs, training=training)
 
@@ -215,10 +215,6 @@ class RetinaNet(tf.keras.Model):
         cls_pred = tf.concat(cls_pred, axis=1)
         box_pred = tf.concat(box_pred, axis=1)
 
-        return box_pred, cls_pred
-
-    def call(self, images, training=None):
-        box_pred, cls_pred = self._forward(images, training=training)
         return box_pred, cls_pred
 
     def decode_predictions(self, predictions, images):
@@ -379,7 +375,7 @@ class RetinaNet(tf.keras.Model):
         )
 
         with tf.GradientTape() as tape:
-            box_pred, cls_pred = self._forward(x, training=True)
+            box_pred, cls_pred = self(x, training=True)
             total_loss = self.compute_loss(
                 x, box_pred, cls_pred, boxes, classes, training=True
             )
@@ -433,7 +429,7 @@ class RetinaNet(tf.keras.Model):
             target=self.bounding_box_format,
             images=x,
         )
-        box_pred, cls_pred = self._forward(x, training=False)
+        box_pred, cls_pred = self(x, training=False)
         _ = self.compute_loss(x, box_pred, cls_pred, boxes, classes, training=False)
 
         if not self._has_user_metrics:
