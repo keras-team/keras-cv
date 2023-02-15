@@ -118,28 +118,6 @@ class _BoxRecall(keras.metrics.Metric):
 
     @tf.function
     def update_state(self, y_true, y_pred, sample_weight=None):
-<<<<<<< HEAD
-=======
-        """
-        Args:
-            y_true: a bounding box Tensor in corners format.
-            y_pred: a bounding box Tensor in corners format.
-            sample_weight: Currently unsupported.
-        """
-        if len(y_true["classes"].shape) != 2:
-            raise ValueError(
-                "Expected `y_true['classes']` to be a 2D tensor of class ids. "
-                "If you are using one hot encoded class labels, please perform "
-                "an `argmax()` operation on them before using COCO metrics."
-            )
-        if len(y_pred["classes"].shape) != 2:
-            raise ValueError(
-                "Expected `y_true['classes']` to be a 2D tensor of class ids. "
-                "If you are using one hot encoded class labels, please perform "
-                "an `argmax()` operation on them before using COCO metrics."
-            )
-
->>>>>>> 0e08585 (Make RetinaNet metrics work)
         if sample_weight is not None:
             warnings.warn(
                 "sample_weight is not yet supported in keras_cv COCO metrics."
@@ -163,6 +141,18 @@ class _BoxRecall(keras.metrics.Metric):
                 "and "
                 f"`y_pred['boxes'].shape.rank={y_true['boxes'].shape.ranks}`. "
                 "Expected both to be 3."
+            )
+        if len(y_true["classes"].shape) != 2:
+            raise ValueError(
+                "Expected `y_true['classes']` to be a 2D tensor of class ids. "
+                "If you are using one hot encoded class labels, please perform "
+                "an `argmax()` operation on them before using COCO metrics."
+            )
+        if len(y_pred["classes"].shape) != 2:
+            raise ValueError(
+                "Expected `y_true['classes']` to be a 2D tensor of class ids. "
+                "If you are using one hot encoded class labels, please perform "
+                "an `argmax()` operation on them before using COCO metrics."
             )
 
         y_true = bounding_box.to_dense(y_true)
