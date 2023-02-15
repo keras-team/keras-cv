@@ -52,6 +52,7 @@ def to_dense(bounding_boxes, max_boxes=None, default_value=-1):
     if not info["ragged"]:
         return bounding_boxes
 
+    bounding_boxes = bounding_boxes.copy()
     if isinstance(bounding_boxes["classes"], tf.RaggedTensor):
         bounding_boxes["classes"] = bounding_boxes["classes"].to_tensor(
             default_value=default_value,
