@@ -130,8 +130,8 @@ class COCORecall(keras.metrics.Metric):
             warnings.warn(
                 "sample_weight is not yet supported in keras_cv COCO metrics."
             )
-        y_true = bounding_box.to_dense(y_true.copy())
-        y_pred = bounding_box.to_dense(y_pred.copy())
+        y_true = bounding_box.to_dense(y_true)
+        y_pred = bounding_box.to_dense(y_pred)
 
         y_true = bounding_box.convert_format(
             y_true,
