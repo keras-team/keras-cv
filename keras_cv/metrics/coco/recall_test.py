@@ -21,7 +21,7 @@ from keras_cv.metrics import COCORecall
 
 
 class COCORecallTest(tf.test.TestCase):
-    def DISABLE_test_runs_inside_model(self):
+    def test_runs_inside_model(self):
         i = keras.layers.Input((None, None, 6))
         model = keras.Model(i, i)
 
@@ -120,7 +120,7 @@ class COCORecallTest(tf.test.TestCase):
         self.assertEqual([3], metric_result.ground_truth_boxes)
         self.assertEqual(1 / 3, metric_result.result())
 
-    def DISABLE_test_recall_area_range_filtering(self):
+    def test_recall_area_range_filtering(self):
         recall = COCORecall(
             bounding_box_format="xyxy",
             max_detections=100,
@@ -139,7 +139,7 @@ class COCORecallTest(tf.test.TestCase):
 
         self.assertAllEqual(recall.result(), 0.0)
 
-    def DISABLE_test_missing_categories(self):
+    def test_missing_categories(self):
         recall = COCORecall(
             bounding_box_format="xyxy",
             max_detections=100,
@@ -162,7 +162,7 @@ class COCORecallTest(tf.test.TestCase):
 
         self.assertEqual(recall.result(), 0.5)
 
-    def DISABLE_test_recall_direct_assignment(self):
+    def test_recall_direct_assignment(self):
         recall = COCORecall(
             bounding_box_format="xyxy",
             max_detections=100,
@@ -179,7 +179,7 @@ class COCORecallTest(tf.test.TestCase):
 
         self.assertEqual(recall.result(), 0.5)
 
-    def DISABLE_test_max_detections_one_third(self):
+    def test_max_detections_one_third(self):
         recall = COCORecall(
             bounding_box_format="xyxy",
             max_detections=1,
@@ -203,7 +203,7 @@ class COCORecallTest(tf.test.TestCase):
 
         self.assertAlmostEqual(recall.result().numpy(), 1 / 3)
 
-    def DISABLE_test_max_detections(self):
+    def test_max_detections(self):
         recall = COCORecall(
             bounding_box_format="xyxy",
             max_detections=3,
@@ -228,7 +228,7 @@ class COCORecallTest(tf.test.TestCase):
 
         self.assertAlmostEqual(recall.result().numpy(), 1.0)
 
-    def DISABLE_test_recall_direct_assignment_one_third(self):
+    def test_recall_direct_assignment_one_third(self):
         recall = COCORecall(
             bounding_box_format="xyxy",
             max_detections=100,
@@ -246,7 +246,7 @@ class COCORecallTest(tf.test.TestCase):
 
         self.assertAlmostEqual(recall.result().numpy(), 1 / 3)
 
-    def DISABLE_test_area_range_bounding_box_counting(self):
+    def test_area_range_bounding_box_counting(self):
         y_true = tf.constant(
             [[[0, 0, 100, 100, 1], [0, 0, 100, 100, 1]]], dtype=tf.float32
         )
@@ -263,7 +263,7 @@ class COCORecallTest(tf.test.TestCase):
         self.assertEqual([[2]], metric.ground_truth_boxes)
         self.assertEqual([[1]], metric.true_positives)
 
-    def DISABLE_test_true_positive_counting_one_good_one_bad(self):
+    def test_true_positive_counting_one_good_one_bad(self):
         y_true = tf.constant(
             [[[0, 0, 100, 100, 1], [0, 0, 100, 100, 1]]], dtype=tf.float32
         )
@@ -281,7 +281,7 @@ class COCORecallTest(tf.test.TestCase):
         self.assertEqual([2], metric.ground_truth_boxes)
         self.assertEqual([[1]], metric.true_positives)
 
-    def DISABLE_test_true_positive_counting_one_true_two_pred(self):
+    def test_true_positive_counting_one_true_two_pred(self):
         y_true = tf.constant(
             [[[0, 0, 100, 100, 1]]],
             dtype=tf.float32,
@@ -307,7 +307,7 @@ class COCORecallTest(tf.test.TestCase):
         metric.update_state(y_true, y_pred)
         self.assertEqual([[2]], metric.true_positives)
 
-    def DISABLE_test_mixed_dtypes(self):
+    def test_mixed_dtypes(self):
         y_true = tf.constant([[[0, 0, 100, 100, 1]]], dtype=tf.float64)
         y_pred = tf.constant([[[0, 50, 100, 150, 1, 1.0]]], dtype=tf.float32)
 
@@ -321,7 +321,7 @@ class COCORecallTest(tf.test.TestCase):
         metric.update_state(y_true, y_pred)
         self.assertEqual(metric.result(), 1.0)
 
-    def DISABLE_test_matches_single_box(self):
+    def test_matches_single_box(self):
         y_true = tf.constant([[[0, 0, 100, 100, 1]]], dtype=tf.float32)
         y_pred = tf.constant([[[0, 50, 100, 150, 1, 1.0]]], dtype=tf.float32)
 
@@ -337,7 +337,7 @@ class COCORecallTest(tf.test.TestCase):
 
         self.assertEqual([[1]], metric.true_positives)
 
-    def DISABLE_test_matches_single_false_positive(self):
+    def test_matches_single_false_positive(self):
         y_true = tf.constant([[[0, 0, 100, 100, 1]]], dtype=tf.float32)
         y_pred = tf.constant([[[0, 50, 100, 150, 1, 1.0]]], dtype=tf.float32)
 

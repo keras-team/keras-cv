@@ -22,7 +22,7 @@ from keras_cv.bounding_box import iou as iou_lib
 from keras_cv.metrics.coco import utils
 
 
-class ObjectDetectionRecall(keras.metrics.Metric):
+class COCORecall(keras.metrics.Metric):
     """COCORecall computes recall based on varying true positive IoU thresholds.
 
     COCORecall is analagous to traditional Recall.  The primary distinction is
@@ -52,6 +52,7 @@ class ObjectDetectionRecall(keras.metrics.Metric):
             than `32**2`, and smaller than `1000000**2`.
         max_detections: number of maximum detections a model is allowed to make.
             Must be an integer, defaults to `100`.
+
     Usage:
 
     COCORecall accepts two dictionaries that comply with KerasCV's bounding box
@@ -65,14 +66,8 @@ class ObjectDetectionRecall(keras.metrics.Metric):
         max_detections=100,
         class_ids=[1]
     )
-
-    y_true = np.array([[[0, 0, 10, 10, 1], [20, 20, 10, 10, 1]]]).astype(np.float32)
-    y_pred = np.array([[[0, 0, 10, 10, 1, 1.0], [5, 5, 10, 10, 1, 0.9]]]).astype(
-        np.float32
-    )
-    coco_recall.update_state(y_true, y_pred)
-    coco_recall.result()
-    # 0.5
+    od_model.compile(metrics=[coco_recall])
+    od_model.fit(my_dataset)
     ```
     """
 
@@ -125,16 +120,13 @@ class ObjectDetectionRecall(keras.metrics.Metric):
 
     @tf.function
     def update_state(self, y_true, y_pred, sample_weight=None):
-        """
-        Args:
-            y_true: a bounding box Tensor in corners format.
-            y_pred: a bounding box Tensor in corners format.
-            sample_weight: Currently unsupported.
-        """
         if sample_weight is not None:
             warnings.warn(
                 "sample_weight is not yet supported in keras_cv COCO metrics."
             )
+        y_true = bounding_box.ensure_tensor(y_true, dtype=self.compute_dtype)
+        y_pred = bounding_box.ensure_tensor(y_pred, dtype=self.compute_dtype)
+
         y_true = bounding_box.to_dense(y_true)
         y_pred = bounding_box.to_dense(y_pred)
 
