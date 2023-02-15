@@ -133,9 +133,8 @@ class RetinaNet(tf.keras.Model):
         if bounding_box_format.lower() != "xywh":
             raise ValueError(
                 "`keras_cv.models.RetinaNet` only supports the 'xywh' "
-                "`bounding_box_format`.  In future releases, more formats will"
-                " be supported.  For now, please pass "
-                "`bounding_box_format='xywh'`. "
+                "`bounding_box_format`.  In future releases, more formats will be "
+                "supported.  For now, please pass `bounding_box_format='xywh'`. "
                 f"Received `bounding_box_format={bounding_box_format}`"
             )
 
@@ -258,7 +257,6 @@ class RetinaNet(tf.keras.Model):
         classification_loss=None,
         weight_decay=0.0001,
         loss=None,
-        metrics=None,
         **kwargs,
     ):
         """compiles the RetinaNet.
@@ -274,10 +272,15 @@ class RetinaNet(tf.keras.Model):
                 A preconfigured `FocalLoss` is provided when the string "focal" is
                 passed.
             weight_decay: a float for variable weight decay.
-
             kwargs: most other `keras.Model.compile()` arguments are supported and
                 propagated to the `keras.Model` class.
         """
+        if "metrics" in kwargs.keys():
+            raise ValueError(
+                "`RetinaNet` does not currently support the use of "
+                "`metrics` due to performance and distribution concerns. Please us the "
+                "`PyCOCOCallback` to evaluate COCO metrics."
+            )
         if loss is not None:
             raise ValueError(
                 "`RetinaNet` does not accept a `loss` to `compile()`. "
@@ -311,11 +314,6 @@ class RetinaNet(tf.keras.Model):
             "box": self.box_loss,
             "classification": self.classification_loss,
         }
-        # we have to special case user metrics as they accept a dictionary as
-        # their input.  The `keras.Model` class interprets these as different
-        # outputs of the model causing error.
-        self._user_metrics = metrics
-        self._has_user_metrics = metrics is not None and len(metrics) != 0
         super().compile(loss=losses, **kwargs)
 
     def compute_loss(self, images, boxes, classes, training):
@@ -397,24 +395,8 @@ class RetinaNet(tf.keras.Model):
         trainable_vars = self.trainable_variables
         gradients = tape.gradient(total_loss, trainable_vars)
         self.optimizer.apply_gradients(zip(gradients, trainable_vars))
+
         return self.compute_metrics(x, {}, {}, sample_weight={})
-
-    def compute_metrics(self, x, y, y_pred, sample_weight):
-        metrics = {}
-        metrics.update(super().compute_metrics(x, {}, {}, sample_weight={}))
-        if not self._has_user_metrics:
-            return metrics
-
-        for metric in self._user_metrics:
-            metric.update_state(y, y_pred, sample_weight=sample_weight)
-
-        for metric in self._user_metrics.metrics:
-            result = metric.result()
-            if isinstance(result, dict):
-                metrics.update(result)
-            else:
-                metrics[metric.name] = result
-        return metrics
 
     def test_step(self, data):
         x, y = unpack_input(data)
