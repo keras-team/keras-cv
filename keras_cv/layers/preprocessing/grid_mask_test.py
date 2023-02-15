@@ -78,7 +78,9 @@ class GridMaskTest(tf.test.TestCase):
 
     def test_in_tf_function(self):
         xs = tf.cast(
-            tf.stack([2 * tf.ones((100, 100, 1)), tf.ones((100, 100, 1))], axis=0),
+            tf.stack(
+                [2 * tf.ones((100, 100, 1)), tf.ones((100, 100, 1))], axis=0
+            ),
             dtype=tf.float32,
         )
 
@@ -108,7 +110,9 @@ class GridMaskTest(tf.test.TestCase):
             dtype=tf.float32,
         )
 
-        layer = GridMask(ratio_factor=(0.5, 0.5), fill_mode="constant", fill_value=0.0)
+        layer = GridMask(
+            ratio_factor=(0.5, 0.5), fill_mode="constant", fill_value=0.0
+        )
         xs = layer(xs, training=True)
         self.assertTrue(tf.math.reduce_any(xs == 0.0))
         self.assertTrue(tf.math.reduce_any(xs == 1.0))

@@ -68,10 +68,14 @@ class SqueezeAndExcite2D(layers.Layer):
         self.filters = filters
 
         if ratio <= 0.0 or ratio >= 1.0:
-            raise ValueError(f"`ratio` should be a float between 0 and 1. Got {ratio}")
+            raise ValueError(
+                f"`ratio` should be a float between 0 and 1. Got {ratio}"
+            )
 
         if filters <= 0 or not isinstance(filters, int):
-            raise ValueError(f"`filters` should be a positive integer. Got {filters}")
+            raise ValueError(
+                f"`filters` should be a positive integer. Got {filters}"
+            )
 
         self.ratio = ratio
         self.bottleneck_filters = int(self.filters * self.ratio)
@@ -109,11 +113,15 @@ class SqueezeAndExcite2D(layers.Layer):
     @classmethod
     def from_config(cls, config):
         if isinstance(config["squeeze_activation"], dict):
-            config["squeeze_activation"] = tf.keras.utils.deserialize_keras_object(
+            config[
+                "squeeze_activation"
+            ] = tf.keras.utils.deserialize_keras_object(
                 config["squeeze_activation"]
             )
         if isinstance(config["excite_activation"], dict):
-            config["excite_activation"] = tf.keras.utils.deserialize_keras_object(
+            config[
+                "excite_activation"
+            ] = tf.keras.utils.deserialize_keras_object(
                 config["excite_activation"]
             )
         return cls(**config)

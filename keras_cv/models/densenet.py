@@ -135,15 +135,19 @@ def ConvBlock(growth_rate, name=None):
             axis=BN_AXIS, epsilon=1.001e-5, name=f"{name}_0_bn"
         )(x)
         x1 = layers.Activation("relu", name=f"{name}_0_relu")(x1)
-        x1 = layers.Conv2D(4 * growth_rate, 1, use_bias=False, name=f"{name}_1_conv")(
-            x1
-        )
+        x1 = layers.Conv2D(
+            4 * growth_rate, 1, use_bias=False, name=f"{name}_1_conv"
+        )(x1)
         x1 = layers.BatchNormalization(
             axis=BN_AXIS, epsilon=1.001e-5, name=f"{name}_1_bn"
         )(x1)
         x1 = layers.Activation("relu", name=f"{name}_1_relu")(x1)
         x1 = layers.Conv2D(
-            growth_rate, 3, padding="same", use_bias=False, name=f"{name}_2_conv"
+            growth_rate,
+            3,
+            padding="same",
+            use_bias=False,
+            name=f"{name}_2_conv",
         )(x1)
         x = layers.Concatenate(axis=BN_AXIS, name=f"{name}_concat")([x, x1])
         return x
@@ -219,7 +223,9 @@ def DenseNet(
     x = layers.Conv2D(
         64, 7, strides=2, use_bias=False, padding="same", name="conv1/conv"
     )(x)
-    x = layers.BatchNormalization(axis=BN_AXIS, epsilon=1.001e-5, name="conv1/bn")(x)
+    x = layers.BatchNormalization(
+        axis=BN_AXIS, epsilon=1.001e-5, name="conv1/bn"
+    )(x)
     x = layers.Activation("relu", name="conv1/relu")(x)
     x = layers.MaxPooling2D(3, strides=2, padding="same", name="pool1")(x)
 
@@ -236,9 +242,9 @@ def DenseNet(
 
     if include_top:
         x = layers.GlobalAveragePooling2D(name="avg_pool")(x)
-        x = layers.Dense(classes, activation=classifier_activation, name="predictions")(
-            x
-        )
+        x = layers.Dense(
+            classes, activation=classifier_activation, name="predictions"
+        )(x)
     elif pooling == "avg":
         x = layers.GlobalAveragePooling2D(name="avg_pool")(x)
     elif pooling == "max":

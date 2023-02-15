@@ -67,8 +67,12 @@ class TransformerEncoder(layers.Layer):
         self.layer_norm_epsilon = layer_norm_epsilon
         self.mlp_units = [mlp_dim, project_dim]
 
-        self.layer_norm1 = layers.LayerNormalization(epsilon=self.layer_norm_epsilon)
-        self.layer_norm2 = layers.LayerNormalization(epsilon=self.layer_norm_epsilon)
+        self.layer_norm1 = layers.LayerNormalization(
+            epsilon=self.layer_norm_epsilon
+        )
+        self.layer_norm2 = layers.LayerNormalization(
+            epsilon=self.layer_norm_epsilon
+        )
         self.attn = layers.MultiHeadAttention(
             num_heads=self.num_heads,
             key_dim=self.project_dim // self.num_heads,

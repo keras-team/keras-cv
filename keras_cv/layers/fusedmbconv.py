@@ -155,7 +155,9 @@ class FusedMBConvBlock(layers.Layer):
         )
 
         self.bn3 = layers.BatchNormalization(
-            axis=BN_AXIS, momentum=self.bn_momentum, name=self.name + "project_bn"
+            axis=BN_AXIS,
+            momentum=self.bn_momentum,
+            name=self.name + "project_bn",
         )
 
     def build(self, input_shape):

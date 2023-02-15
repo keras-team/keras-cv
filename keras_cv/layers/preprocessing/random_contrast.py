@@ -63,7 +63,9 @@ class RandomContrast(BaseImageAugmentationLayer):
             min = 1 - factor
             max = 1 + factor
         self.factor_input = factor
-        self.factor = preprocessing.parse_factor((min, max), min_value=-1, max_value=2)
+        self.factor = preprocessing.parse_factor(
+            (min, max), min_value=-1, max_value=2
+        )
         self.seed = seed
 
     def get_random_transformation(self, **kwargs):
@@ -71,7 +73,9 @@ class RandomContrast(BaseImageAugmentationLayer):
 
     def augment_image(self, image, transformation, **kwargs):
         contrast_factor = transformation
-        output = tf.image.adjust_contrast(image, contrast_factor=contrast_factor)
+        output = tf.image.adjust_contrast(
+            image, contrast_factor=contrast_factor
+        )
         output = tf.clip_by_value(output, 0, 255)
         output.set_shape(image.shape)
         return output
@@ -79,10 +83,14 @@ class RandomContrast(BaseImageAugmentationLayer):
     def augment_label(self, label, transformation, **kwargs):
         return label
 
-    def augment_segmentation_mask(self, segmentation_mask, transformation, **kwargs):
+    def augment_segmentation_mask(
+        self, segmentation_mask, transformation, **kwargs
+    ):
         return segmentation_mask
 
-    def augment_bounding_boxes(self, bounding_boxes, transformation=None, **kwargs):
+    def augment_bounding_boxes(
+        self, bounding_boxes, transformation=None, **kwargs
+    ):
         return bounding_boxes
 
     def get_config(self):

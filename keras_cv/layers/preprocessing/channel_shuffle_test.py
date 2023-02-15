@@ -69,7 +69,9 @@ class ChannelShuffleTest(tf.test.TestCase):
 
     def test_in_tf_function(self):
         xs = tf.cast(
-            tf.stack([2 * tf.ones((100, 100, 1)), tf.ones((100, 100, 1))], axis=0),
+            tf.stack(
+                [2 * tf.ones((100, 100, 1)), tf.ones((100, 100, 1))], axis=0
+            ),
             dtype=tf.float32,
         )
 

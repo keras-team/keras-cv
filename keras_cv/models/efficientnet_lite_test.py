@@ -33,7 +33,9 @@ be tested manually when making changes to this model.
 """
 
 
-class EfficientNetLiteTest(ModelsTest, tf.test.TestCase, parameterized.TestCase):
+class EfficientNetLiteTest(
+    ModelsTest, tf.test.TestCase, parameterized.TestCase
+):
     @parameterized.parameters(*MODEL_LIST)
     def test_application_base(self, app, _, args):
         super()._test_application_base(app, _, args)

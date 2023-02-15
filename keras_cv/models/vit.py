@@ -335,7 +335,9 @@ def ViTTiny16(
         pooling=pooling,
         classes=classes,
         patch_size=MODEL_CONFIGS["ViTTiny16"]["patch_size"],
-        transformer_layer_num=MODEL_CONFIGS["ViTTiny16"]["transformer_layer_num"],
+        transformer_layer_num=MODEL_CONFIGS["ViTTiny16"][
+            "transformer_layer_num"
+        ],
         project_dim=MODEL_CONFIGS["ViTTiny16"]["project_dim"],
         mlp_dim=MODEL_CONFIGS["ViTTiny16"]["mlp_dim"],
         num_heads=MODEL_CONFIGS["ViTTiny16"]["num_heads"],
@@ -525,7 +527,9 @@ def ViTTiny32(
         pooling=pooling,
         classes=classes,
         patch_size=MODEL_CONFIGS["ViTTiny32"]["patch_size"],
-        transformer_layer_num=MODEL_CONFIGS["ViTTiny32"]["transformer_layer_num"],
+        transformer_layer_num=MODEL_CONFIGS["ViTTiny32"][
+            "transformer_layer_num"
+        ],
         project_dim=MODEL_CONFIGS["ViTTiny32"]["project_dim"],
         mlp_dim=MODEL_CONFIGS["ViTTiny32"]["mlp_dim"],
         num_heads=MODEL_CONFIGS["ViTTiny32"]["num_heads"],

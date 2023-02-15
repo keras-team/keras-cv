@@ -92,7 +92,9 @@ class _COCORecall(keras.metrics.Metric):
         super().__init__(**kwargs)
         # Initialize parameter values
         self.bounding_box_format = bounding_box_format
-        iou_thresholds = iou_thresholds or [x / 100.0 for x in range(50, 100, 5)]
+        iou_thresholds = iou_thresholds or [
+            x / 100.0 for x in range(50, 100, 5)
+        ]
 
         self.iou_thresholds = iou_thresholds
         self.class_ids = list(class_ids)
@@ -161,7 +163,9 @@ class _COCORecall(keras.metrics.Metric):
             dtype=self.compute_dtype,
         )
 
-        y_pred = utils.sort_bounding_boxes(y_pred, axis=bounding_box.XYXY.CONFIDENCE)
+        y_pred = utils.sort_bounding_boxes(
+            y_pred, axis=bounding_box.XYXY.CONFIDENCE
+        )
 
         num_images = tf.shape(y_true)[0]
 
@@ -190,7 +194,9 @@ class _COCORecall(keras.metrics.Metric):
                 category = class_ids[k_i]
 
                 category_filtered_y_pred = utils.filter_boxes(
-                    y_pred_for_image, value=category, axis=bounding_box.XYXY.CLASS
+                    y_pred_for_image,
+                    value=category,
+                    axis=bounding_box.XYXY.CLASS,
                 )
 
                 detections = category_filtered_y_pred
@@ -198,7 +204,9 @@ class _COCORecall(keras.metrics.Metric):
                     detections = category_filtered_y_pred[: self.max_detections]
 
                 ground_truths = utils.filter_boxes(
-                    y_true_for_image, value=category, axis=bounding_box.XYXY.CLASS
+                    y_true_for_image,
+                    value=category,
+                    axis=bounding_box.XYXY.CLASS,
                 )
 
                 ious = iou_lib.compute_iou(ground_truths, detections, "yxyx")
@@ -209,7 +217,9 @@ class _COCORecall(keras.metrics.Metric):
 
                     indices = [t_i, k_i]
                     true_positives = tf.cast(pred_matches != -1, tf.int32)
-                    true_positives_sum = tf.math.reduce_sum(true_positives, axis=-1)
+                    true_positives_sum = tf.math.reduce_sum(
+                        true_positives, axis=-1
+                    )
 
                     true_positives_update = tf.tensor_scatter_nd_add(
                         true_positives_update, [indices], [true_positives_sum]
@@ -238,7 +248,9 @@ class _COCORecall(keras.metrics.Metric):
         true_positives = tf.cast(self.true_positives, self.dtype)
         ground_truth_boxes = tf.cast(self.ground_truth_boxes, self.dtype)
 
-        recalls = tf.math.divide_no_nan(true_positives, ground_truth_boxes[None, :])
+        recalls = tf.math.divide_no_nan(
+            true_positives, ground_truth_boxes[None, :]
+        )
         recalls_per_threshold = (
             tf.math.reduce_sum(recalls, axis=-1) / n_present_categories
         )

@@ -127,12 +127,14 @@ def BasicBlock(
 
         s = stride if dilation == 1 else 1
         if conv_shortcut:
-            shortcut = layers.Conv2D(filters, 1, strides=s, name=name + "_0_conv")(
-                use_preactivation
-            )
+            shortcut = layers.Conv2D(
+                filters, 1, strides=s, name=name + "_0_conv"
+            )(use_preactivation)
         else:
             shortcut = (
-                layers.MaxPooling2D(1, strides=stride, name=name + "_0_max_pooling")(x)
+                layers.MaxPooling2D(
+                    1, strides=stride, name=name + "_0_max_pooling"
+                )(x)
                 if s > 1
                 else x
             )
@@ -166,7 +168,9 @@ def BasicBlock(
     return apply
 
 
-def Block(filters, kernel_size=3, stride=1, dilation=1, conv_shortcut=False, name=None):
+def Block(
+    filters, kernel_size=3, stride=1, dilation=1, conv_shortcut=False, name=None
+):
     """A residual block (v2).
     Args:
         filters: integer, filters of the bottleneck layer.
@@ -200,14 +204,16 @@ def Block(filters, kernel_size=3, stride=1, dilation=1, conv_shortcut=False, nam
             )(use_preactivation)
         else:
             shortcut = (
-                layers.MaxPooling2D(1, strides=stride, name=name + "_0_max_pooling")(x)
+                layers.MaxPooling2D(
+                    1, strides=stride, name=name + "_0_max_pooling"
+                )(x)
                 if s > 1
                 else x
             )
 
-        x = layers.Conv2D(filters, 1, strides=1, use_bias=False, name=name + "_1_conv")(
-            use_preactivation
-        )
+        x = layers.Conv2D(
+            filters, 1, strides=1, use_bias=False, name=name + "_1_conv"
+        )(use_preactivation)
         x = layers.BatchNormalization(
             axis=BN_AXIS, epsilon=1.001e-5, name=name + "_1_bn"
         )(x)
@@ -260,9 +266,13 @@ def Stack(
         name = f"v2_stack_{stack_index}"
 
     def apply(x):
-        x = block_fn(filters, conv_shortcut=first_shortcut, name=name + "_block1")(x)
+        x = block_fn(
+            filters, conv_shortcut=first_shortcut, name=name + "_block1"
+        )(x)
         for i in range(2, blocks):
-            x = block_fn(filters, dilation=dilations, name=name + "_block" + str(i))(x)
+            x = block_fn(
+                filters, dilation=dilations, name=name + "_block" + str(i)
+            )(x)
         x = block_fn(
             filters,
             stride=stride,
@@ -382,14 +392,16 @@ def ResNetV2(
         )(x)
         stack_level_outputs[stack_index + 2] = x
 
-    x = layers.BatchNormalization(axis=BN_AXIS, epsilon=1.001e-5, name="post_bn")(x)
+    x = layers.BatchNormalization(
+        axis=BN_AXIS, epsilon=1.001e-5, name="post_bn"
+    )(x)
     x = layers.Activation("relu", name="post_relu")(x)
 
     if include_top:
         x = layers.GlobalAveragePooling2D(name="avg_pool")(x)
-        x = layers.Dense(classes, activation=classifier_activation, name="predictions")(
-            x
-        )
+        x = layers.Dense(
+            classes, activation=classifier_activation, name="predictions"
+        )(x)
     else:
         if pooling == "avg":
             x = layers.GlobalAveragePooling2D(name="avg_pool")(x)

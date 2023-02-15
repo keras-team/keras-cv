@@ -38,13 +38,17 @@ class UtilsTestCase(tf.test.TestCase, parameterized.TestCase):
                 [[10.0, 20.0], [30.0, 40.0], [50.0, 50.0]], [2, 1]
             ),
             tf.zeros([50, 50, 3]),
-            tf.RaggedTensor.from_row_lengths([[10.0, 20.0], [30.0, 40.0]], [2, 0]),
+            tf.RaggedTensor.from_row_lengths(
+                [[10.0, 20.0], [30.0, 40.0]], [2, 0]
+            ),
         ),
         (
             "height - width confusion",
             tf.constant([[[10.0, 20.0]], [[40.0, 30.0]], [[30.0, 40.0]]]),
             tf.zeros((50, 40, 3)),
-            tf.ragged.constant([[[10.0, 20.0]], [], [[30.0, 40.0]]], ragged_rank=1),
+            tf.ragged.constant(
+                [[[10.0, 20.0]], [], [[30.0, 40.0]]], ragged_rank=1
+            ),
         ),
     )
     def test_result(self, keypoints, image, expected):

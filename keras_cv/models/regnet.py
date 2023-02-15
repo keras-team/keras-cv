@@ -462,7 +462,9 @@ def YBlock(
         x = layers.ReLU(name=name + "_conv_3x3_relu")(x)
 
         # Squeeze-Excitation block
-        x = SqueezeAndExcite2D(filters_out, ratio=squeeze_excite_ratio, name=name)(x)
+        x = SqueezeAndExcite2D(
+            filters_out, ratio=squeeze_excite_ratio, name=name
+        )(x)
 
         # conv_1x1_2
         x = layers.Conv2D(
@@ -667,7 +669,9 @@ def Head(classes=None, name=None, activation=None):
 
     def apply(x):
         x = layers.GlobalAveragePooling2D(name=name + "_head_gap")(x)
-        x = layers.Dense(classes, name=name + "head_dense", activation=activation)(x)
+        x = layers.Dense(
+            classes, name=name + "head_dense", activation=activation
+        )(x)
         return x
 
     return apply
@@ -786,7 +790,9 @@ def RegNet(
         elif pooling == "max":
             x = layers.GlobalMaxPooling2D()(x)
 
-    model = tf.keras.Model(inputs=img_input, outputs=x, name=model_name, **kwargs)
+    model = tf.keras.Model(
+        inputs=img_input, outputs=x, name=model_name, **kwargs
+    )
 
     # Load weights.
     if weights is not None:

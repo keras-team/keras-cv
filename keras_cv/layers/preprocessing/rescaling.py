@@ -68,10 +68,14 @@ class Rescaling(BaseImageAugmentationLayer):
     def augment_label(self, label, transformation, **kwargs):
         return label
 
-    def augment_segmentation_mask(self, segmentation_mask, transformation, **kwargs):
+    def augment_segmentation_mask(
+        self, segmentation_mask, transformation, **kwargs
+    ):
         return segmentation_mask
 
-    def augment_bounding_boxes(self, bounding_boxes, transformation=None, **kwargs):
+    def augment_bounding_boxes(
+        self, bounding_boxes, transformation=None, **kwargs
+    ):
         return bounding_boxes
 
     def get_config(self):

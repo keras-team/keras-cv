@@ -82,7 +82,9 @@ class ContrastiveTrainerTest(tf.test.TestCase):
         trainer_with_probing.compile(
             encoder_optimizer=optimizers.Adam(),
             encoder_loss=SimCLRLoss(temperature=0.5),
-            probe_metrics=[metrics.TopKCategoricalAccuracy(3, "top3_probe_accuracy")],
+            probe_metrics=[
+                metrics.TopKCategoricalAccuracy(3, "top3_probe_accuracy")
+            ],
             probe_optimizer=optimizers.Adam(),
             probe_loss=keras.losses.CategoricalCrossentropy(from_logits=True),
         )
@@ -162,7 +164,9 @@ class ContrastiveTrainerTest(tf.test.TestCase):
         return preprocessing.RandomFlip("horizontal")
 
     def build_encoder(self):
-        return DenseNet121(include_rescaling=False, include_top=False, pooling="avg")
+        return DenseNet121(
+            include_rescaling=False, include_top=False, pooling="avg"
+        )
 
     def build_projector(self):
         return layers.Dense(128)

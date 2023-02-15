@@ -51,7 +51,9 @@ class VectorizedRandomAddLayer(VectorizedBaseImageAugmentationLayer):
     def augment_keypoints(self, keypoints, transformations, **kwargs):
         return keypoints + transformations[:, None, None]
 
-    def augment_segmentation_masks(self, segmentation_masks, transformations, **kwargs):
+    def augment_segmentation_masks(
+        self, segmentation_masks, transformations, **kwargs
+    ):
         return segmentation_masks + transformations[:, None, None, None]
 
 
@@ -75,7 +77,9 @@ class VectorizedBaseImageAugmentationLayerTest(tf.test.TestCase):
         images = tf.ones((2, 8, 8, 3), dtype="uint8")
         output = add_layer(images)
 
-        self.assertAllClose(tf.ones((2, 8, 8, 3), dtype="float32") * 3.0, output)
+        self.assertAllClose(
+            tf.ones((2, 8, 8, 3), dtype="float32") * 3.0, output
+        )
 
     def test_augment_batch_images(self):
         add_layer = VectorizedRandomAddLayer()
@@ -142,7 +146,9 @@ class VectorizedBaseImageAugmentationLayerTest(tf.test.TestCase):
             "classes": np.random.random(size=(8, 3)).astype("float32"),
         }
         keypoints = np.random.random(size=(8, 5, 2)).astype("float32")
-        segmentation_mask = np.random.random(size=(8, 8, 8, 1)).astype("float32")
+        segmentation_mask = np.random.random(size=(8, 8, 8, 1)).astype(
+            "float32"
+        )
 
         output = add_layer(
             {
@@ -164,7 +170,9 @@ class VectorizedBaseImageAugmentationLayerTest(tf.test.TestCase):
             "segmentation_masks": segmentation_mask + 2.0,
         }
 
-        output["bounding_boxes"] = bounding_box.to_dense(output["bounding_boxes"])
+        output["bounding_boxes"] = bounding_box.to_dense(
+            output["bounding_boxes"]
+        )
 
         self.assertAllClose(output["images"], expected_output["images"])
         self.assertAllClose(output["keypoints"], expected_output["keypoints"])
@@ -188,7 +196,9 @@ class VectorizedBaseImageAugmentationLayerTest(tf.test.TestCase):
             "classes": np.random.random(size=(2, 3)).astype("float32"),
         }
         keypoints = np.random.random(size=(2, 5, 2)).astype("float32")
-        segmentation_masks = np.random.random(size=(2, 8, 8, 1)).astype("float32")
+        segmentation_masks = np.random.random(size=(2, 8, 8, 1)).astype(
+            "float32"
+        )
 
         output = add_layer(
             {
@@ -203,10 +213,14 @@ class VectorizedBaseImageAugmentationLayerTest(tf.test.TestCase):
             output["bounding_boxes"]["boxes"] - bounding_boxes["boxes"]
         )
         keypoints_diff = output["keypoints"] - keypoints
-        segmentation_mask_diff = output["segmentation_masks"] - segmentation_masks
+        segmentation_mask_diff = (
+            output["segmentation_masks"] - segmentation_masks
+        )
         self.assertNotAllClose(bounding_boxes_diff[0], bounding_boxes_diff[1])
         self.assertNotAllClose(keypoints_diff[0], keypoints_diff[1])
-        self.assertNotAllClose(segmentation_mask_diff[0], segmentation_mask_diff[1])
+        self.assertNotAllClose(
+            segmentation_mask_diff[0], segmentation_mask_diff[1]
+        )
 
         @tf.function
         def in_tf_function(inputs):
@@ -225,10 +239,14 @@ class VectorizedBaseImageAugmentationLayerTest(tf.test.TestCase):
             output["bounding_boxes"]["boxes"] - bounding_boxes["boxes"]
         )
         keypoints_diff = output["keypoints"] - keypoints
-        segmentation_mask_diff = output["segmentation_masks"] - segmentation_masks
+        segmentation_mask_diff = (
+            output["segmentation_masks"] - segmentation_masks
+        )
         self.assertNotAllClose(bounding_boxes_diff[0], bounding_boxes_diff[1])
         self.assertNotAllClose(keypoints_diff[0], keypoints_diff[1])
-        self.assertNotAllClose(segmentation_mask_diff[0], segmentation_mask_diff[1])
+        self.assertNotAllClose(
+            segmentation_mask_diff[0], segmentation_mask_diff[1]
+        )
 
     def test_augment_all_data_in_tf_function(self):
         add_layer = VectorizedRandomAddLayer()
@@ -238,7 +256,9 @@ class VectorizedBaseImageAugmentationLayerTest(tf.test.TestCase):
             "classes": np.random.random(size=(2, 3)).astype("float32"),
         }
         keypoints = np.random.random(size=(2, 5, 2)).astype("float32")
-        segmentation_masks = np.random.random(size=(2, 8, 8, 1)).astype("float32")
+        segmentation_masks = np.random.random(size=(2, 8, 8, 1)).astype(
+            "float32"
+        )
 
         @tf.function
         def in_tf_function(inputs):
@@ -257,7 +277,11 @@ class VectorizedBaseImageAugmentationLayerTest(tf.test.TestCase):
             output["bounding_boxes"]["boxes"] - bounding_boxes["boxes"]
         )
         keypoints_diff = output["keypoints"] - keypoints
-        segmentation_mask_diff = output["segmentation_masks"] - segmentation_masks
+        segmentation_mask_diff = (
+            output["segmentation_masks"] - segmentation_masks
+        )
         self.assertNotAllClose(bounding_boxes_diff[0], bounding_boxes_diff[1])
         self.assertNotAllClose(keypoints_diff[0], keypoints_diff[1])
-        self.assertNotAllClose(segmentation_mask_diff[0], segmentation_mask_diff[1])
+        self.assertNotAllClose(
+            segmentation_mask_diff[0], segmentation_mask_diff[1]
+        )

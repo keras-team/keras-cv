@@ -118,7 +118,11 @@ def BasicBlock(filters, kernel_size=3, stride=1, conv_shortcut=True, name=None):
     def apply(x):
         if conv_shortcut:
             shortcut = layers.Conv2D(
-                filters, 1, strides=stride, use_bias=False, name=name + "_0_conv"
+                filters,
+                1,
+                strides=stride,
+                use_bias=False,
+                name=name + "_0_conv",
             )(x)
             shortcut = layers.BatchNormalization(
                 axis=BN_AXIS, epsilon=1.001e-5, name=name + "_0_bn"
@@ -140,7 +144,11 @@ def BasicBlock(filters, kernel_size=3, stride=1, conv_shortcut=True, name=None):
         x = layers.Activation("relu", name=name + "_1_relu")(x)
 
         x = layers.Conv2D(
-            filters, kernel_size, padding="SAME", use_bias=False, name=name + "_2_conv"
+            filters,
+            kernel_size,
+            padding="SAME",
+            use_bias=False,
+            name=name + "_2_conv",
         )(x)
         x = layers.BatchNormalization(
             axis=BN_AXIS, epsilon=1.001e-5, name=name + "_2_bn"
@@ -172,7 +180,11 @@ def Block(filters, kernel_size=3, stride=1, conv_shortcut=True, name=None):
     def apply(x):
         if conv_shortcut:
             shortcut = layers.Conv2D(
-                4 * filters, 1, strides=stride, use_bias=False, name=name + "_0_conv"
+                4 * filters,
+                1,
+                strides=stride,
+                use_bias=False,
+                name=name + "_0_conv",
             )(x)
             shortcut = layers.BatchNormalization(
                 axis=BN_AXIS, epsilon=1.001e-5, name=name + "_0_bn"
@@ -189,14 +201,20 @@ def Block(filters, kernel_size=3, stride=1, conv_shortcut=True, name=None):
         x = layers.Activation("relu", name=name + "_1_relu")(x)
 
         x = layers.Conv2D(
-            filters, kernel_size, padding="SAME", use_bias=False, name=name + "_2_conv"
+            filters,
+            kernel_size,
+            padding="SAME",
+            use_bias=False,
+            name=name + "_2_conv",
         )(x)
         x = layers.BatchNormalization(
             axis=BN_AXIS, epsilon=1.001e-5, name=name + "_2_bn"
         )(x)
         x = layers.Activation("relu", name=name + "_2_relu")(x)
 
-        x = layers.Conv2D(4 * filters, 1, use_bias=False, name=name + "_3_conv")(x)
+        x = layers.Conv2D(
+            4 * filters, 1, use_bias=False, name=name + "_3_conv"
+        )(x)
         x = layers.BatchNormalization(
             axis=BN_AXIS, epsilon=1.001e-5, name=name + "_3_bn"
         )(x)
@@ -208,7 +226,9 @@ def Block(filters, kernel_size=3, stride=1, conv_shortcut=True, name=None):
     return apply
 
 
-def Stack(filters, blocks, stride=2, name=None, block_fn=Block, first_shortcut=True):
+def Stack(
+    filters, blocks, stride=2, name=None, block_fn=Block, first_shortcut=True
+):
     """A set of stacked residual blocks.
     Args:
       filters: integer, filters of the layers in a block.
@@ -226,10 +246,15 @@ def Stack(filters, blocks, stride=2, name=None, block_fn=Block, first_shortcut=T
 
     def apply(x):
         x = block_fn(
-            filters, stride=stride, name=name + "_block1", conv_shortcut=first_shortcut
+            filters,
+            stride=stride,
+            name=name + "_block1",
+            conv_shortcut=first_shortcut,
         )(x)
         for i in range(2, blocks + 1):
-            x = block_fn(filters, conv_shortcut=False, name=name + "_block" + str(i))(x)
+            x = block_fn(
+                filters, conv_shortcut=False, name=name + "_block" + str(i)
+            )(x)
         return x
 
     return apply
@@ -318,7 +343,9 @@ def ResNet(
         64, 7, strides=2, use_bias=False, padding="same", name="conv1_conv"
     )(x)
 
-    x = layers.BatchNormalization(axis=BN_AXIS, epsilon=1.001e-5, name="conv1_bn")(x)
+    x = layers.BatchNormalization(
+        axis=BN_AXIS, epsilon=1.001e-5, name="conv1_bn"
+    )(x)
     x = layers.Activation("relu", name="conv1_relu")(x)
 
     x = layers.MaxPooling2D(3, strides=2, padding="same", name="pool1_pool")(x)
@@ -338,9 +365,9 @@ def ResNet(
 
     if include_top:
         x = layers.GlobalAveragePooling2D(name="avg_pool")(x)
-        x = layers.Dense(classes, activation=classifier_activation, name="predictions")(
-            x
-        )
+        x = layers.Dense(
+            classes, activation=classifier_activation, name="predictions"
+        )(x)
     else:
         if pooling == "avg":
             x = layers.GlobalAveragePooling2D(name="avg_pool")(x)

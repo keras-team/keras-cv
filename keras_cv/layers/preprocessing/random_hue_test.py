@@ -59,7 +59,9 @@ class RandomHueTest(tf.test.TestCase, parameterized.TestCase):
         # Value range (0, 100)
         image = tf.random.uniform(shape=image_shape) * 100.0
 
-        layer = preprocessing.RandomHue(factor=(factor, factor), value_range=(0, 255))
+        layer = preprocessing.RandomHue(
+            factor=(factor, factor), value_range=(0, 255)
+        )
         output = layer(image)
         self.assertNotAllClose(image, output, atol=1e-5, rtol=1e-5)
 
@@ -78,7 +80,9 @@ class RandomHueTest(tf.test.TestCase, parameterized.TestCase):
 
     def test_with_uint8(self):
         image_shape = (4, 8, 8, 3)
-        image = tf.cast(tf.random.uniform(shape=image_shape) * 255.0, dtype=tf.uint8)
+        image = tf.cast(
+            tf.random.uniform(shape=image_shape) * 255.0, dtype=tf.uint8
+        )
 
         layer = preprocessing.RandomHue(factor=(0.0, 0.0), value_range=(0, 255))
         output = layer(image)

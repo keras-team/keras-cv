@@ -22,7 +22,9 @@ from keras_cv.layers import preprocessing
 class RandomChannelShiftTest(tf.test.TestCase, parameterized.TestCase):
     def test_return_shapes(self):
         xs = tf.ones((2, 512, 512, 3))
-        layer = preprocessing.RandomChannelShift(factor=1.0, value_range=(0, 255))
+        layer = preprocessing.RandomChannelShift(
+            factor=1.0, value_range=(0, 255)
+        )
 
         xs = layer(xs, training=True)
         self.assertEqual(xs.shape, [2, 512, 512, 3])
@@ -45,10 +47,14 @@ class RandomChannelShiftTest(tf.test.TestCase, parameterized.TestCase):
 
     def test_in_tf_function(self):
         xs = tf.cast(
-            tf.stack([2 * tf.ones((100, 100, 3)), tf.ones((100, 100, 3))], axis=0),
+            tf.stack(
+                [2 * tf.ones((100, 100, 3)), tf.ones((100, 100, 3))], axis=0
+            ),
             dtype=tf.float32,
         )
-        layer = preprocessing.RandomChannelShift(factor=0.3, value_range=(0, 255))
+        layer = preprocessing.RandomChannelShift(
+            factor=0.3, value_range=(0, 255)
+        )
 
         @tf.function
         def augment(x):
@@ -85,7 +91,9 @@ class RandomChannelShiftTest(tf.test.TestCase, parameterized.TestCase):
             tf.ones((512, 512, 3)),
             dtype=tf.float32,
         )
-        layer = preprocessing.RandomChannelShift(factor=0.4, value_range=(0, 255))
+        layer = preprocessing.RandomChannelShift(
+            factor=0.4, value_range=(0, 255)
+        )
         xs = layer(xs, training=True)
         self.assertFalse(tf.math.reduce_any(xs == 1.0))
 
@@ -100,14 +108,18 @@ class RandomChannelShiftTest(tf.test.TestCase, parameterized.TestCase):
         self.assertEqual(config["channels"], 3)
         self.assertEqual(config["seed"], 101)
 
-        reconstructed_layer = preprocessing.RandomChannelShift.from_config(config)
+        reconstructed_layer = preprocessing.RandomChannelShift.from_config(
+            config
+        )
         self.assertEqual(reconstructed_layer.factor, layer.factor)
         self.assertEqual(reconstructed_layer.value_range, layer.value_range)
         self.assertEqual(reconstructed_layer.seed, layer.seed)
         self.assertEqual(reconstructed_layer.channels, layer.channels)
 
     def test_inference(self):
-        layer = preprocessing.RandomChannelShift(factor=0.8, value_range=(0, 255))
+        layer = preprocessing.RandomChannelShift(
+            factor=0.8, value_range=(0, 255)
+        )
         inputs = np.random.randint(0, 255, size=(224, 224, 3))
         output = layer(inputs, training=False)
         self.assertAllClose(inputs, output)

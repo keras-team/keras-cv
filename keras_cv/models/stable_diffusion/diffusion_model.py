@@ -22,7 +22,12 @@ from keras_cv.models.stable_diffusion.__internal__.layers.padded_conv2d import (
 
 class DiffusionModel(keras.Model):
     def __init__(
-        self, img_height, img_width, max_text_length, name=None, download_weights=True
+        self,
+        img_height,
+        img_width,
+        max_text_length,
+        name=None,
+        download_weights=True,
     ):
         context = keras.layers.Input((max_text_length, 768))
         t_embed_input = keras.layers.Input((320,))
@@ -111,7 +116,12 @@ class DiffusionModel(keras.Model):
 
 class DiffusionModelV2(keras.Model):
     def __init__(
-        self, img_height, img_width, max_text_length, name=None, download_weights=True
+        self,
+        img_height,
+        img_width,
+        max_text_length,
+        name=None,
+        download_weights=True,
     ):
         context = keras.layers.Input((max_text_length, 1024))
         t_embed_input = keras.layers.Input((320,))
@@ -245,7 +255,9 @@ class SpatialTransformer(keras.layers.Layer):
             self.proj1 = keras.layers.Dense(num_heads * head_size)
         else:
             self.proj1 = PaddedConv2D(num_heads * head_size, 1)
-        self.transformer_block = BasicTransformerBlock(channels, num_heads, head_size)
+        self.transformer_block = BasicTransformerBlock(
+            channels, num_heads, head_size
+        )
         if fully_connected:
             self.proj2 = keras.layers.Dense(channels)
         else:
@@ -296,18 +308,28 @@ class CrossAttention(keras.layers.Layer):
         context = inputs if context is None else context
         q, k, v = self.to_q(inputs), self.to_k(context), self.to_v(context)
         q = tf.reshape(q, (-1, inputs.shape[1], self.num_heads, self.head_size))
-        k = tf.reshape(k, (-1, context.shape[1], self.num_heads, self.head_size))
-        v = tf.reshape(v, (-1, context.shape[1], self.num_heads, self.head_size))
+        k = tf.reshape(
+            k, (-1, context.shape[1], self.num_heads, self.head_size)
+        )
+        v = tf.reshape(
+            v, (-1, context.shape[1], self.num_heads, self.head_size)
+        )
 
         q = tf.transpose(q, (0, 2, 1, 3))  # (bs, num_heads, time, head_size)
         k = tf.transpose(k, (0, 2, 3, 1))  # (bs, num_heads, head_size, time)
         v = tf.transpose(v, (0, 2, 1, 3))  # (bs, num_heads, time, head_size)
 
         score = td_dot(q, k) * self.scale
-        weights = keras.activations.softmax(score)  # (bs, num_heads, time, time)
+        weights = keras.activations.softmax(
+            score
+        )  # (bs, num_heads, time, time)
         attn = td_dot(weights, v)
-        attn = tf.transpose(attn, (0, 2, 1, 3))  # (bs, time, num_heads, head_size)
-        out = tf.reshape(attn, (-1, inputs.shape[1], self.num_heads * self.head_size))
+        attn = tf.transpose(
+            attn, (0, 2, 1, 3)
+        )  # (bs, time, num_heads, head_size)
+        out = tf.reshape(
+            attn, (-1, inputs.shape[1], self.num_heads * self.head_size)
+        )
         return self.out_proj(out)
 
 

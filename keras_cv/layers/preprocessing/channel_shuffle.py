@@ -69,7 +69,9 @@ class ChannelShuffle(BaseImageAugmentationLayer):
             )
 
         channels_per_group = num_channels // self.groups
-        image = tf.reshape(image, [height, width, self.groups, channels_per_group])
+        image = tf.reshape(
+            image, [height, width, self.groups, channels_per_group]
+        )
         image = tf.transpose(image, perm=[2, 0, 1, 3])
         image = tf.random.shuffle(image, seed=self.seed)
         image = tf.transpose(image, perm=[1, 2, 3, 0])
@@ -83,7 +85,9 @@ class ChannelShuffle(BaseImageAugmentationLayer):
     def augment_label(self, label, transformation=None, **kwargs):
         return label
 
-    def augment_segmentation_mask(self, segmentation_mask, transformation, **kwargs):
+    def augment_segmentation_mask(
+        self, segmentation_mask, transformation, **kwargs
+    ):
         return segmentation_mask
 
     def get_config(self):

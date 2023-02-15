@@ -158,7 +158,11 @@ def create_build_configuration():
         write("build:windows --host_cxxopt=/std:" + get_cpp_version())
 
     if is_macos() or is_linux():
-        if not is_linux_ppc64le() and not is_linux_arm() and not is_linux_aarch64():
+        if (
+            not is_linux_ppc64le()
+            and not is_linux_arm()
+            and not is_linux_aarch64()
+        ):
             write("build --copt=-mavx")
         write("build --cxxopt=-std=" + get_cpp_version())
         write("build --host_cxxopt=-std=" + get_cpp_version())

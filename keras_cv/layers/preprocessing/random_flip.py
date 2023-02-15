@@ -57,7 +57,9 @@ class RandomFlip(BaseImageAugmentationLayer):
         for more details on supported bounding box formats.
     """
 
-    def __init__(self, mode=HORIZONTAL, seed=None, bounding_box_format=None, **kwargs):
+    def __init__(
+        self, mode=HORIZONTAL, seed=None, bounding_box_format=None, **kwargs
+    ):
         super().__init__(seed=seed, force_generator=True, **kwargs)
         self.mode = mode
         self.seed = seed
@@ -88,9 +90,13 @@ class RandomFlip(BaseImageAugmentationLayer):
         flip_horizontal = False
         flip_vertical = False
         if self.horizontal:
-            flip_horizontal = self._random_generator.random_uniform(shape=[]) > 0.5
+            flip_horizontal = (
+                self._random_generator.random_uniform(shape=[]) > 0.5
+            )
         if self.vertical:
-            flip_vertical = self._random_generator.random_uniform(shape=[]) > 0.5
+            flip_vertical = (
+                self._random_generator.random_uniform(shape=[]) > 0.5
+            )
         return {
             "flip_horizontal": tf.cast(flip_horizontal, dtype=tf.bool),
             "flip_vertical": tf.cast(flip_vertical, dtype=tf.bool),
@@ -111,7 +117,9 @@ class RandomFlip(BaseImageAugmentationLayer):
         return flipped_output
 
     def _flip_bounding_boxes_horizontal(bounding_boxes):
-        x1, x2, x3, x4 = tf.split(bounding_boxes["boxes"], [1, 1, 1, 1], axis=-1)
+        x1, x2, x3, x4 = tf.split(
+            bounding_boxes["boxes"], [1, 1, 1, 1], axis=-1
+        )
         output = tf.stack(
             [
                 1 - x3,
@@ -126,7 +134,9 @@ class RandomFlip(BaseImageAugmentationLayer):
         return bounding_boxes
 
     def _flip_bounding_boxes_vertical(bounding_boxes):
-        x1, x2, x3, x4 = tf.split(bounding_boxes["boxes"], [1, 1, 1, 1], axis=-1)
+        x1, x2, x3, x4 = tf.split(
+            bounding_boxes["boxes"], [1, 1, 1, 1], axis=-1
+        )
         output = tf.stack(
             [
                 x1,

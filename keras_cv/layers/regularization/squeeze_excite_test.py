@@ -44,7 +44,8 @@ class SqueezeAndExcite2DTest(tf.test.TestCase):
 
     def test_raises_invalid_ratio_error(self):
         with self.assertRaisesRegex(
-            ValueError, "`ratio` should be a float" " between 0 and 1. Got (.*?)"
+            ValueError,
+            "`ratio` should be a float" " between 0 and 1. Got (.*?)",
         ):
             _ = SqueezeAndExcite2D(8, ratio=1.1)
 

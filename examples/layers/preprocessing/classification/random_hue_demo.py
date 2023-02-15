@@ -24,7 +24,9 @@ from keras_cv.layers import preprocessing
 
 def main():
     ds = demo_utils.load_oxford_dataset()
-    random_hue = preprocessing.RandomHue(factor=(0.0, 1.0), value_range=(0, 255))
+    random_hue = preprocessing.RandomHue(
+        factor=(0.0, 1.0), value_range=(0, 255)
+    )
     ds = ds.map(random_hue, num_parallel_calls=tf.data.AUTOTUNE)
     demo_utils.visualize_dataset(ds)
 

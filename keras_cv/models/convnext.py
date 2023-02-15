@@ -121,7 +121,9 @@ class LayerScale(layers.Layer):
         self.projection_dim = projection_dim
 
     def build(self, input_shape):
-        self.gamma = tf.Variable(self.init_values * tf.ones((self.projection_dim,)))
+        self.gamma = tf.Variable(
+            self.init_values * tf.ones((self.projection_dim,))
+        )
 
     def call(self, x):
         return x * self.gamma
@@ -188,7 +190,9 @@ def ConvNeXtBlock(
                 name=name + "_layer_scale",
             )(x)
         if drop_path_rate:
-            layer = StochasticDepth(drop_path_rate, name=name + "_stochastic_depth")
+            layer = StochasticDepth(
+                drop_path_rate, name=name + "_stochastic_depth"
+            )
             return layer([inputs, x])
         else:
             layer = layers.Activation("linear", name=name + "_identity")
@@ -213,10 +217,12 @@ def Head(num_classes, activation="softmax", name=None):
 
     def apply(x):
         x = layers.GlobalAveragePooling2D(name=name + "_head_gap")(x)
-        x = layers.LayerNormalization(epsilon=1e-6, name=name + "_head_layernorm")(x)
-        x = layers.Dense(num_classes, activation=activation, name=name + "_head_dense")(
-            x
-        )
+        x = layers.LayerNormalization(
+            epsilon=1e-6, name=name + "_head_layernorm"
+        )(x)
+        x = layers.Dense(
+            num_classes, activation=activation, name=name + "_head_dense"
+        )(x)
         return x
 
     return apply
@@ -315,7 +321,9 @@ def ConvNeXt(
                 strides=4,
                 name=name + "_stem_conv",
             ),
-            layers.LayerNormalization(epsilon=1e-6, name=name + "_stem_layernorm"),
+            layers.LayerNormalization(
+                epsilon=1e-6, name=name + "_stem_layernorm"
+            ),
         ],
         name=name + "_stem",
     )
@@ -346,7 +354,9 @@ def ConvNeXt(
     # Stochastic depth schedule.
     # This is referred from the original ConvNeXt codebase:
     # https://github.com/facebookresearch/ConvNeXt/blob/main/models/convnext.py#L86
-    depth_drop_rates = [float(x) for x in tf.linspace(0.0, drop_path_rate, sum(depths))]
+    depth_drop_rates = [
+        float(x) for x in tf.linspace(0.0, drop_path_rate, sum(depths))
+    ]
 
     # First apply downsampling blocks and then apply ConvNeXt stages.
     cur = 0

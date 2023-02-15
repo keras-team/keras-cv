@@ -143,7 +143,9 @@ class RandomCropTest(tf.test.TestCase, parameterized.TestCase):
             "classes": tf.convert_to_tensor([1]),
         }
         input = {"images": input_image, "bounding_boxes": bboxes}
-        layer = RandomCrop(height=100, width=200, bounding_box_format="xyxy", seed=10)
+        layer = RandomCrop(
+            height=100, width=200, bounding_box_format="xyxy", seed=10
+        )
         # for top = 300 and left = 305
         output = layer(input)
         expected_output = np.asarray(

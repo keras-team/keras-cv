@@ -408,6 +408,8 @@ class SerializationTest(tf.test.TestCase, parameterized.TestCase):
             if v not in excluded_name
         }
 
-        intersection_with_config = {v for v in config.keys() if v in parameter_names}
+        intersection_with_config = {
+            v for v in config.keys() if v in parameter_names
+        }
 
         self.assertSetEqual(parameter_names, intersection_with_config)

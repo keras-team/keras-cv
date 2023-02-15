@@ -81,5 +81,6 @@ def load(
         )
     segments = tf.data.TFRecordDataset(filenames)
     return tf.data.Dataset.from_generator(
-        _generate_frames(segments, transformer), output_signature=output_signature
+        _generate_frames(segments, transformer),
+        output_signature=output_signature,
     )

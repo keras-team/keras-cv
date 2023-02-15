@@ -6,7 +6,9 @@ from absl import flags
 import keras_cv
 
 flags.DEFINE_string("weights_path", None, "Path of weights to load")
-flags.DEFINE_string("output_weights_path", None, "Path of notop weights to store")
+flags.DEFINE_string(
+    "output_weights_path", None, "Path of notop weights to store"
+)
 flags.DEFINE_string("model_name", None, "Name of the KerasCV.model")
 
 FLAGS = flags.FLAGS

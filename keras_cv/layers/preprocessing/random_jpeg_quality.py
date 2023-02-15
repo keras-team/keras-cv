@@ -51,7 +51,11 @@ class RandomJpegQuality(BaseImageAugmentationLayer):
             )
         self.seed = seed
         self.factor = preprocessing.parse_factor(
-            factor, min_value=0, max_value=100, param_name="factor", seed=self.seed
+            factor,
+            min_value=0,
+            max_value=100,
+            param_name="factor",
+            seed=self.seed,
         )
 
     def get_random_transformation(self, **kwargs):
@@ -67,7 +71,9 @@ class RandomJpegQuality(BaseImageAugmentationLayer):
     def augment_label(self, label, transformation=None, **kwargs):
         return label
 
-    def augment_segmentation_mask(self, segmentation_mask, transformation, **kwargs):
+    def augment_segmentation_mask(
+        self, segmentation_mask, transformation, **kwargs
+    ):
         return segmentation_mask
 
     def get_config(self):

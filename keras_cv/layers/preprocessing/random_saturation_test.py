@@ -49,7 +49,9 @@ class RandomSaturationTest(tf.test.TestCase):
         # Make sure all the pixel has the same value among the channel dim, which is
         # a fully gray RGB.
         for channel_value in channel_values:
-            self.assertAllClose(channel_mean, channel_value, atol=1e-5, rtol=1e-5)
+            self.assertAllClose(
+                channel_mean, channel_value, atol=1e-5, rtol=1e-5
+            )
 
     def test_adjust_to_full_saturation(self):
         image_shape = (4, 8, 8, 3)
@@ -77,7 +79,9 @@ class RandomSaturationTest(tf.test.TestCase):
 
     def test_with_unit8(self):
         image_shape = (4, 8, 8, 3)
-        image = tf.cast(tf.random.uniform(shape=image_shape) * 255.0, dtype=tf.uint8)
+        image = tf.cast(
+            tf.random.uniform(shape=image_shape) * 255.0, dtype=tf.uint8
+        )
 
         layer = preprocessing.RandomSaturation(factor=(0.5, 0.5))
         output = layer(image)

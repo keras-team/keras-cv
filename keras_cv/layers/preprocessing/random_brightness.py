@@ -59,7 +59,9 @@ class RandomBrightness(BaseImageAugmentationLayer):
         super().__init__(seed=seed, force_generator=True, **kwargs)
         if isinstance(factor, float) or isinstance(factor, int):
             factor = (-factor, factor)
-        self.factor = preprocessing.parse_factor(factor, min_value=-1, max_value=1)
+        self.factor = preprocessing.parse_factor(
+            factor, min_value=-1, max_value=1
+        )
         self.value_range = value_range
         self.seed = seed
 
@@ -69,10 +71,14 @@ class RandomBrightness(BaseImageAugmentationLayer):
     def augment_label(self, label, transformation, **kwargs):
         return label
 
-    def augment_segmentation_mask(self, segmentation_mask, transformation, **kwargs):
+    def augment_segmentation_mask(
+        self, segmentation_mask, transformation, **kwargs
+    ):
         return segmentation_mask
 
-    def augment_bounding_boxes(self, bounding_boxes, transformation=None, **kwargs):
+    def augment_bounding_boxes(
+        self, bounding_boxes, transformation=None, **kwargs
+    ):
         return bounding_boxes
 
     def get_random_transformation(self, **kwargs):

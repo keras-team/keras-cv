@@ -173,7 +173,9 @@ class GlobalRandomScaling(base_augmentation_layer_3d.BaseAugmentationLayer3D):
     ):
         scale = transformation["scale"][tf.newaxis, tf.newaxis, :]
         point_clouds_xyz = point_clouds[..., :3] * scale
-        point_clouds = tf.concat([point_clouds_xyz, point_clouds[..., 3:]], axis=-1)
+        point_clouds = tf.concat(
+            [point_clouds_xyz, point_clouds[..., 3:]], axis=-1
+        )
 
         bounding_boxes_xyzdxdydz = bounding_boxes[
             ..., : CENTER_XYZ_DXDYDZ_PHI.DZ + 1

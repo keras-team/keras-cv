@@ -45,9 +45,12 @@ class DeeplabTest(tf.test.TestCase):
 
     def test_missing_input_shapes(self):
         with self.assertRaisesRegex(
-            ValueError, "Input shapes for both the backbone and DeepLabV3 are `None`."
+            ValueError,
+            "Input shapes for both the backbone and DeepLabV3 are `None`.",
         ):
-            backbone = models.ResNet50V2(include_rescaling=True, include_top=False)
+            backbone = models.ResNet50V2(
+                include_rescaling=True, include_top=False
+            )
             segmentation.DeepLabV3(classes=11, backbone=backbone)
 
     def test_deeplab_model_with_components(self):
@@ -104,7 +107,9 @@ class DeeplabTest(tf.test.TestCase):
         features = tfds.features.FeaturesDict(
             {
                 "bbox": tfds.features.BBoxFeature(),
-                "image": tfds.features.Image(shape=(None, None, 3), dtype=tf.uint8),
+                "image": tfds.features.Image(
+                    shape=(None, None, 3), dtype=tf.uint8
+                ),
                 "image/filename": tfds.features.Text(),
                 "label": tfds.features.ClassLabel(num_classes=200),
                 "label_name": tfds.features.Text(),
@@ -126,11 +131,15 @@ class DeeplabTest(tf.test.TestCase):
         output_res = [96, 96]
         num_images = 11788
 
-        image_resizing = tf.keras.layers.Resizing(target_size[1], target_size[0])
+        image_resizing = tf.keras.layers.Resizing(
+            target_size[1], target_size[0]
+        )
         labels_resizing = tf.keras.layers.Resizing(output_res[1], output_res[0])
 
         def resize_images_and_masks(data):
-            image = tf.image.convert_image_dtype(data["image"], dtype=tf.float32)
+            image = tf.image.convert_image_dtype(
+                data["image"], dtype=tf.float32
+            )
             data["image"] = image_resizing(image)
             # WARNING: assumes processing unbatched
             mask = data["segmentation_mask"]
@@ -159,7 +168,9 @@ class DeeplabTest(tf.test.TestCase):
         )
 
         model.fit(
-            training_dataset, epochs=epochs, steps_per_epoch=num_images // batch_size
+            training_dataset,
+            epochs=epochs,
+            steps_per_epoch=num_images // batch_size,
         )
 
 

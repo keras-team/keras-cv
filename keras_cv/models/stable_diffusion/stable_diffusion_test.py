@@ -24,7 +24,9 @@ class StableDiffusionTest(tf.test.TestCase):
         stablediff = StableDiffusion(128, 128)
 
         img = stablediff.text_to_image(prompt, seed=1337)
-        self.assertAllClose(img[0][13:14, 13:14, :][0][0], [15, 248, 229], atol=1e-4)
+        self.assertAllClose(
+            img[0][13:14, 13:14, :][0][0], [15, 248, 229], atol=1e-4
+        )
 
         # Verify that the step-by-step creation flow creates an identical output
         text_encoding = stablediff.encode_text(prompt)
@@ -41,7 +43,8 @@ class StableDiffusionTest(tf.test.TestCase):
         stablediff = StableDiffusion(128, 128)
 
         with self.assertRaisesRegex(
-            ValueError, r"`diffusion_noise` and `seed` should not both be passed"
+            ValueError,
+            r"`diffusion_noise` and `seed` should not both be passed",
         ):
             _ = stablediff.generate_image(
                 stablediff.encode_text("thou shall not render"),

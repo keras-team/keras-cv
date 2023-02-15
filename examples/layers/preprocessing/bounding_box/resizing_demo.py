@@ -23,7 +23,10 @@ from keras_cv import layers
 def main():
     dataset = demo_utils.load_voc_dataset(bounding_box_format="xywh")
     resizing = layers.Resizing(
-        height=300, width=400, pad_to_aspect_ratio=True, bounding_box_format="xywh"
+        height=300,
+        width=400,
+        pad_to_aspect_ratio=True,
+        bounding_box_format="xywh",
     )
     dataset = dataset.map(resizing)
     demo_utils.visualize_data(dataset, bounding_box_format="xywh")

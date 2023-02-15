@@ -38,7 +38,9 @@ def _get_tensor_types():
         return (tf.Tensor, np.ndarray, pd.Series, pd.DataFrame)
 
 
-def convert_inputs_to_tf_dataset(x=None, y=None, sample_weight=None, batch_size=None):
+def convert_inputs_to_tf_dataset(
+    x=None, y=None, sample_weight=None, batch_size=None
+):
     if sample_weight is not None:
         raise ValueError("RetinaNet does not yet support `sample_weight`.")
 
