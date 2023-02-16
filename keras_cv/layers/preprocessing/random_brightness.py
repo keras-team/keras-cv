@@ -1,4 +1,4 @@
-# Copyright 2022 The KerasCV Authors
+# Copyright 2023 The KerasCV Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,14 +14,14 @@
 
 import tensorflow as tf
 
-from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
-    BaseImageAugmentationLayer,
+from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer import (
+    VectorizedBaseImageAugmentationLayer,
 )
-from keras_cv.utils import preprocessing
+from keras_cv.utils import preprocessing as preprocessing_utils
 
 
 @tf.keras.utils.register_keras_serializable(package="keras_cv")
-class RandomBrightness(BaseImageAugmentationLayer):
+class RandomBrightness(VectorizedBaseImageAugmentationLayer):
     """A preprocessing layer which randomly adjusts brightness during training.
     This layer will randomly increase/reduce the brightness for the input RGB
     images.
@@ -52,6 +52,12 @@ class RandomBrightness(BaseImageAugmentationLayer):
       `factor`. By default, the layer will output floats. The output value will
       be clipped to the range `[0, 255]`, the valid range of RGB colors, and
       rescaled based on the `value_range` if needed.
+
+    Usage:
+    ```python
+    (images, labels), _ = tf.keras.datasets.cifar10.load_data()
+    random_brightness = keras_cv.layers.preprocessing.RandomBrightness()
+    augmented_images = random_brightness(images)
     ```
     """
 
@@ -59,40 +65,44 @@ class RandomBrightness(BaseImageAugmentationLayer):
         super().__init__(seed=seed, force_generator=True, **kwargs)
         if isinstance(factor, float) or isinstance(factor, int):
             factor = (-factor, factor)
-        self.factor = preprocessing.parse_factor(factor, min_value=-1, max_value=1)
+        self.factor = preprocessing_utils.parse_factor(
+            factor, min_value=-1, max_value=1
+        )
         self.value_range = value_range
         self.seed = seed
 
-    def augment_image(self, image, transformation, **kwargs):
-        return self._brightness_adjust(image, transformation)
-
-    def augment_label(self, label, transformation, **kwargs):
-        return label
-
-    def augment_segmentation_mask(self, segmentation_mask, transformation, **kwargs):
-        return segmentation_mask
-
-    def augment_bounding_boxes(self, bounding_boxes, transformation=None, **kwargs):
-        return bounding_boxes
-
-    def get_random_transformation(self, **kwargs):
-        rgb_delta_shape = (1, 1, 1)
-        random_rgb_delta = self.factor(shape=rgb_delta_shape)
-        random_rgb_delta = random_rgb_delta * (
+    def get_random_transformation_batch(self, batch_size, **kwargs):
+        rgb_delta_shape = (batch_size, 1, 1, 1)
+        random_rgb_deltas = self.factor(shape=rgb_delta_shape)
+        random_rgb_deltas = random_rgb_deltas * (
             self.value_range[1] - self.value_range[0]
         )
-        return random_rgb_delta
+        return random_rgb_deltas
 
-    def _brightness_adjust(self, image, rgb_delta):
-        rank = image.shape.rank
-        if rank != 3:
+    def augment_ragged_image(self, image, transformation, **kwargs):
+        return self.augment_images(
+            images=image, transformations=transformation, **kwargs
+        )
+
+    def augment_images(self, images, transformations, **kwargs):
+        rank = images.shape.rank
+        if rank != 4:
             raise ValueError(
-                "Expected the input image to be rank 3. Got "
-                f"inputs.shape = {image.shape}"
+                "Expected the input image to be rank 4. Got "
+                f"inputs.shape = {images.shape}"
             )
-        rgb_delta = tf.cast(rgb_delta, image.dtype)
-        image += rgb_delta
-        return tf.clip_by_value(image, self.value_range[0], self.value_range[1])
+        rgb_deltas = tf.cast(transformations, images.dtype)
+        images += rgb_deltas
+        return tf.clip_by_value(images, self.value_range[0], self.value_range[1])
+
+    def augment_labels(self, labels, transformations, **kwargs):
+        return labels
+
+    def augment_segmentation_masks(self, segmentation_masks, transformations, **kwargs):
+        return segmentation_masks
+
+    def augment_bounding_boxes(self, bounding_boxes, transformations, **kwargs):
+        return bounding_boxes
 
     def get_config(self):
         config = {
@@ -102,3 +112,9 @@ class RandomBrightness(BaseImageAugmentationLayer):
         }
         base_config = super().get_config()
         return dict(list(base_config.items()) + list(config.items()))
+
+    @classmethod
+    def from_config(cls, config):
+        if isinstance(config["factor"], dict):
+            config["factor"] = tf.keras.utils.deserialize_keras_object(config["factor"])
+        return cls(**config)
