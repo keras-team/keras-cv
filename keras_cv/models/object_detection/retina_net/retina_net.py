@@ -317,7 +317,7 @@ class RetinaNet(tf.keras.Model):
         self._user_metrics = metrics
         super().compile(loss=losses, **kwargs)
 
-    def compute_loss(self, x, box_pred, cls_pred, boxes, classes, training):
+    def compute_loss(self, x, box_pred, cls_pred, boxes, classes):
         if boxes.shape[-1] != 4:
             raise ValueError(
                 "boxes should have shape (None, None, 4).  Got "
@@ -383,7 +383,7 @@ class RetinaNet(tf.keras.Model):
         with tf.GradientTape() as tape:
             box_pred, cls_pred = self(x, training=True)
             total_loss = self.compute_loss(
-                x, box_pred, cls_pred, boxes, classes, training=True
+                x, box_pred, cls_pred, boxes, classes
             )
 
             reg_losses = []
@@ -404,24 +404,8 @@ class RetinaNet(tf.keras.Model):
         y_pred = self.decode_predictions((box_pred, cls_pred), x)
         return self.compute_metrics(x, y, y_pred, sample_weight=None)
 
-    def compute_metrics(self, x, y, y_pred, sample_weight):
-        metrics = {}
-        metrics.update(super().compute_metrics(x, {}, {}, sample_weight={}))
-
-        for metric in self._user_metrics:
-            metric.update_state(y, y_pred, sample_weight=sample_weight)
-
-        for metric in self._user_metrics:
-            result = metric.result()
-            if isinstance(result, dict):
-                metrics.update(result)
-            else:
-                metrics[metric.name] = result
-        return metrics
-
     def test_step(self, data):
         x, y = unpack_input(data)
-
         y_for_label_encoder = bounding_box.convert_format(
             y,
             source=self.bounding_box_format,
@@ -436,13 +420,28 @@ class RetinaNet(tf.keras.Model):
             images=x,
         )
         box_pred, cls_pred = self(x, training=False)
-        _ = self.compute_loss(x, box_pred, cls_pred, boxes, classes, training=False)
+        _ = self.compute_loss(x, box_pred, cls_pred, boxes, classes)
 
         if not self._has_user_metrics:
             return super().compute_metrics(x, {}, {}, sample_weight={})
         # only decode predictions in train_step() if user metrics are provided.
         y_pred = self.decode_predictions((box_pred, cls_pred), x)
         return self.compute_metrics(x, y, y_pred, sample_weight=None)
+
+    def compute_metrics(self, x, y, y_pred, sample_weight):
+        metrics = {}
+        metrics.update(super().compute_metrics(x, {}, {}, sample_weight={}))
+
+        for metric in self._user_metrics:
+            metric.update_state(y, y_pred, sample_weight=sample_weight)
+
+        for metric in self._user_metrics:
+            result = metric.result()
+            if isinstance(result, dict):
+                metrics.update(result)
+            else:
+                metrics[metric.name] = result
+        return metrics
 
     def get_config(self):
         return {
