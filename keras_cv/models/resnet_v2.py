@@ -265,7 +265,7 @@ def apply_stack(
         dilation: int, the dilation rate to use for dilated convolution.
             Defaults to 1.
         block_type: string, one of "basic_block" or "block". The block type to
-            stack Use "basic_block" for ResNet18 and ResNet34.
+            stack. Use "basic_block" for ResNet18 and ResNet34.
         first_shortcut: bool. Use convolution shortcut if `True` (default),
             otherwise uses identity or pooling shortcut, based on stride.
 
@@ -340,7 +340,7 @@ class ResNetV2(keras.Model):
             `classifier_activation=None` to return the logits of the "top"
             layer.
         block_type: string, one of "basic_block" or "block". The block type to
-            stack Use "basic_block" for ResNet18 and ResNet34.
+            stack. Use "basic_block" for ResNet18 and ResNet34.
     """
 
     def __init__(
