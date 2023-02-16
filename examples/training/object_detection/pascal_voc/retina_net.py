@@ -353,7 +353,7 @@ model.compile(
     box_loss="smoothl1",
     optimizer=optimizer,
     metrics=[
-        keras_cv.metrics.BoxCounts(),
+        keras_cv.metrics.MeanBoxCountDelta(),
         keras_cv.metrics.COCORecall(
             bounding_box_format="xywh",
             class_ids=range(20),
