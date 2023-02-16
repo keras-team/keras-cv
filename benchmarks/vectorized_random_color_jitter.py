@@ -11,18 +11,20 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import time
 
+import matplotlib.pyplot as plt
+import numpy as np
 import tensorflow as tf
 
 from keras_cv.layers import preprocessing
-from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer import (
-    VectorizedBaseImageAugmentationLayer,
+from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
+    BaseImageAugmentationLayer,
 )
 from keras_cv.utils import preprocessing as preprocessing_utils
 
 
-@tf.keras.utils.register_keras_serializable(package="keras_cv")
-class RandomColorJitter(VectorizedBaseImageAugmentationLayer):
+class OldRandomColorJitter(BaseImageAugmentationLayer):
     """RandomColorJitter class randomly apply brightness, contrast, saturation
     and hue image processing operation sequentially and randomly on the
     input. It expects input as RGB image. The expected image should be
@@ -113,38 +115,33 @@ class RandomColorJitter(VectorizedBaseImageAugmentationLayer):
             factor=self.hue_factor, value_range=(0, 255), seed=self.seed
         )
 
-    def augment_ragged_image(self, image, transformation, **kwargs):
-        return self.augment_images(
-            images=image, transformations=transformation, **kwargs
-        )
-
-    def augment_images(self, images, transformations=None, **kwargs):
-        images = preprocessing_utils.transform_value_range(
-            images,
+    def augment_image(self, image, transformation=None, **kwargs):
+        image = preprocessing_utils.transform_value_range(
+            image,
             original_range=self.value_range,
             target_range=(0, 255),
             dtype=self.compute_dtype,
         )
-        images = self.random_brightness(images)
-        images = self.random_contrast(images)
-        images = self.random_saturation(images)
-        images = self.random_hue(images)
-        images = preprocessing_utils.transform_value_range(
-            images,
+        image = self.random_brightness(image)
+        image = self.random_contrast(image)
+        image = self.random_saturation(image)
+        image = self.random_hue(image)
+        image = preprocessing_utils.transform_value_range(
+            image,
             original_range=(0, 255),
             target_range=self.value_range,
             dtype=self.compute_dtype,
         )
-        return images
+        return image
 
-    def augment_labels(self, labels, transformations, **kwargs):
-        return labels
-
-    def augment_segmentation_masks(self, segmentation_masks, transformations, **kwargs):
-        return segmentation_masks
-
-    def augment_bounding_boxes(self, bounding_boxes, transformations, **kwargs):
+    def augment_bounding_boxes(self, bounding_boxes, **kwargs):
         return bounding_boxes
+
+    def augment_label(self, label, transformation=None, **kwargs):
+        return label
+
+    def augment_segmentation_mask(self, segmentation_mask, transformation, **kwargs):
+        return segmentation_mask
 
     def get_config(self):
         config = super().get_config()
@@ -160,6 +157,101 @@ class RandomColorJitter(VectorizedBaseImageAugmentationLayer):
         )
         return config
 
-    @classmethod
-    def from_config(cls, config):
-        return cls(**config)
+
+if __name__ == "__main__":
+    # Run benchmark
+    (x_train, _), _ = tf.keras.datasets.cifar10.load_data()
+    x_train = x_train.astype(np.float32)
+
+    num_images = [1000, 2000, 5000, 10000]
+    results = {}
+    aug_candidates = [preprocessing.RandomColorJitter, OldRandomColorJitter]
+    aug_args = {
+        "value_range": (0, 255),
+        "brightness_factor": (-0.2, 0.5),
+        "contrast_factor": (0.5, 0.9),
+        "saturation_factor": (0.5, 0.9),
+        "hue_factor": (0.5, 0.9),
+    }
+
+    for aug in aug_candidates:
+        # Eager Mode
+        c = aug.__name__
+        layer = aug(**aug_args)
+        runtimes = []
+        print(f"Timing {c}")
+
+        for n_images in num_images:
+            # warmup
+            layer(x_train[:n_images])
+
+            t0 = time.time()
+            r1 = layer(x_train[:n_images])
+            t1 = time.time()
+            runtimes.append(t1 - t0)
+            print(f"Runtime for {c}, n_images={n_images}: {t1-t0}")
+        results[c] = runtimes
+
+        # Graph Mode
+        c = aug.__name__ + " Graph Mode"
+        layer = aug(**aug_args)
+
+        @tf.function()
+        def apply_aug(inputs):
+            return layer(inputs)
+
+        runtimes = []
+        print(f"Timing {c}")
+
+        for n_images in num_images:
+            # warmup
+            apply_aug(x_train[:n_images])
+
+            t0 = time.time()
+            r1 = apply_aug(x_train[:n_images])
+            t1 = time.time()
+            runtimes.append(t1 - t0)
+            print(f"Runtime for {c}, n_images={n_images}: {t1-t0}")
+        results[c] = runtimes
+
+        # XLA Mode
+        c = aug.__name__ + " XLA Mode"
+        layer = aug(**aug_args)
+
+        @tf.function(jit_compile=True)
+        def apply_aug(inputs):
+            return layer(inputs)
+
+        runtimes = []
+        print(f"Timing {c}")
+
+        for n_images in num_images:
+            # warmup
+            apply_aug(x_train[:n_images])
+
+            t0 = time.time()
+            r1 = apply_aug(x_train[:n_images])
+            t1 = time.time()
+            runtimes.append(t1 - t0)
+            print(f"Runtime for {c}, n_images={n_images}: {t1-t0}")
+        results[c] = runtimes
+
+    plt.figure()
+    for key in results:
+        plt.plot(num_images, results[key], label=key)
+        plt.xlabel("Number images")
+
+    plt.ylabel("Runtime (seconds)")
+    plt.legend()
+    plt.savefig("comparison.png")
+
+    # So we can actually see more relevant margins
+    del results[aug_candidates[1].__name__]
+    plt.figure()
+    for key in results:
+        plt.plot(num_images, results[key], label=key)
+        plt.xlabel("Number images")
+
+    plt.ylabel("Runtime (seconds)")
+    plt.legend()
+    plt.savefig("comparison_no_old_eager.png")
