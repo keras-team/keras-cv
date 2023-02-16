@@ -105,7 +105,7 @@ BASE_DOCSTRING = """Instantiates the {name} architecture.
 
 
 @keras.utils.register_keras_serializable(package="keras_cv.models.resnet_v2")
-def BasicBlock(
+def apply_basic_block(
     x, filters, kernel_size=3, stride=1, dilation=1, conv_shortcut=False, name=None
 ):
     """A basic residual block (v2).
@@ -175,7 +175,7 @@ def BasicBlock(
 
 
 @keras.utils.register_keras_serializable(package="keras_cv.models.resnet_v2")
-def Block(
+def apply_block(
     x, filters, kernel_size=3, stride=1, dilation=1, conv_shortcut=False, name=None
 ):
     """A residual block (v2).
@@ -254,7 +254,7 @@ def Stack(
     stride=2,
     dilations=1,
     name=None,
-    block_fn=Block,
+    block_fn=apply_block,
     first_shortcut=True,
     stack_index=1,
 ):
@@ -265,8 +265,10 @@ def Stack(
         filters: int, filters of the layer in a block.
         blocks: int, blocks in the stacked blocks.
         stride: int, stride of the first layer in the first block. Defaults to 2.
-        dilation: int, the dilation rate to use for dilated convolution. Defaults to 1.
-        block_fn: callable, `Block` or `BasicBlock`, the block function to stack.
+        dilation: int, the dilation rate to use for dilated convolution. 
+            Defaults to 1.
+        block_fn: callable, `apply_block` or `apply_basic_block`, the block 
+            function to stack.
         first_shortcut: bool. Use convolution shortcut if `True` (default),
             otherwise uses identity or pooling shortcut, based on stride.
 
@@ -329,7 +331,7 @@ class ResNetV2(keras.Model):
         classifier_activation: A `str` or callable. The activation function to use
             on the "top" layer. Ignored unless `include_top=True`. Set
             `classifier_activation=None` to return the logits of the "top" layer.
-        block_fn: callable, `Block` or `BasicBlock`, the block function to stack.
+        block_fn: callable, `apply_block` or `apply_basic_block`, the block function to stack.
             Use 'basic_block' for ResNet18 and ResNet34.
     """
 
@@ -348,7 +350,7 @@ class ResNetV2(keras.Model):
         pooling=None,
         classes=None,
         classifier_activation="softmax",
-        block_fn=Block,
+        block_fn=apply_block,
         **kwargs,
     ):
         if weights and not tf.io.gfile.exists(weights):
@@ -399,7 +401,7 @@ class ResNetV2(keras.Model):
                 stride=stackwise_strides[stack_index],
                 dilations=stackwise_dilations[stack_index],
                 block_fn=block_fn,
-                first_shortcut=block_fn == Block or stack_index > 0,
+                first_shortcut=block_fn == apply_block or stack_index > 0,
                 stack_index=stack_index,
             )
             stack_level_outputs[stack_index + 2] = x
@@ -497,7 +499,7 @@ def ResNet18V2(
         pooling=pooling,
         classes=classes,
         classifier_activation=classifier_activation,
-        block_fn=BasicBlock,
+        block_fn=apply_basic_block,
         **kwargs,
     )
 
@@ -530,7 +532,7 @@ def ResNet34V2(
         pooling=pooling,
         classes=classes,
         classifier_activation=classifier_activation,
-        block_fn=BasicBlock,
+        block_fn=apply_basic_block,
         **kwargs,
     )
 
