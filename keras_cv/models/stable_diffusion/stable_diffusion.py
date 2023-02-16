@@ -312,7 +312,7 @@ class StableDiffusionBase:
         )
 
         # Generate Prompt-to-Prompt: Prompt Refinement method
-        ## Edit the sunglasses to aviator like
+        ## Edit the sunglasses to have an aviator style
         img_edit = generator.text_to_image_prompt_to_prompt(
             prompt="a photo of a chiwawa with sunglasses",
             prompt_edit="a photo of a chiwawa with aviator sunglasses",
