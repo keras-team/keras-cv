@@ -259,7 +259,18 @@ class StableDiffusionBase:
         Args:
             prompt (str): Text containing the information for the model to generate.
             prompt_edit (str): Second prompt used to control the edit of the generated image.
-            method (str): Prompt-to-Prompt method to chose. Can be ['refine', 'replace', 'reweight'].
+            method (str): Prompt-to-Prompt method to chose. Can be ['replace', 'refine', 'reweight'].
+                - `replace`: the user swaps a single token of the original prompt, for example,
+                "a bowl full of apple" to "a bowl full of pears", editing locally the generated image
+                over the replaced attribute (apple → pears).
+                - `refine`: the user adds or replaces new tokens of the original prompt, for example,
+                "a photo of a chiwawa with sunglasses" to "a photo of a chiwawa with aviator sunglasses".
+                This extends over the previous method and can also be used for stylizing, specifying and
+                globally editing the original generated image.
+                - `reweight`: the user assigns weights to specific tokens, scaling their attention maps
+                with the intent of strengthening or weakening their effect on the resulting image.
+                For example, we may want to reduce the number of persons on a generated image with the
+                prompt "a photo of crowded avenue" by attributing a negative weight to the word "crowded".
             self_attn_steps (Union[float, Tuple[float, float]]): Specifies at which step
                 of the start of the diffusion process it replaces the self attention maps with
                 the ones produced by the edited prompt.
@@ -275,7 +286,7 @@ class StableDiffusionBase:
                 Default: None
             num_steps: number of diffusion steps (controls image quality).
                 Default: 50.
-            unconditional_guidance_scale: float controling how closely the image
+            unconditional_guidance_scale: float controlling how closely the image
                 should adhere to the prompt. Larger values result in more
                 closely adhering to the prompt, but will make the image noisier.
                 Default: 7.5.
@@ -283,6 +294,37 @@ class StableDiffusionBase:
             seed: integer which is used to seed the random generation of
                 diffusion noise, only to be specified if `diffusion_noise` is
                 None.
+
+        Example:
+
+        ```python
+        from keras_cv.models import StableDiffusion
+
+        generator = StableDiffusion()
+
+        # Generate some chiwawas!
+        img_org = generator.text_to_image(
+            prompt="a photo of a chiwawa with sunglasses",
+            num_steps=50,
+            unconditional_guidance_scale=8,
+            seed=1235,
+            batch_size=1,
+        )
+
+        # Generate Prompt-to-Prompt: Prompt Refinement method
+        ## Edit the sunglasses to aviator like
+        img_edit = generator.text_to_image_prompt_to_prompt(
+            prompt="a photo of a chiwawa with sunglasses",
+            prompt_edit="a photo of a chiwawa with aviator sunglasses",
+            method="refine",
+            self_attn_steps=0.2,
+            cross_attn_steps=0.6,
+            num_steps=50,
+            unconditional_guidance_scale=8,
+            seed=1235,
+            batch_size=1,
+        )
+        ```
         """
 
         # Prompt-to-Prompt: check inputs
