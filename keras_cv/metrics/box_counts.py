@@ -56,15 +56,12 @@ class MeanBoxCountDelta(keras.metrics.Metric):
         y_pred = bounding_box.to_dense(y_pred)
         y_true = bounding_box.to_dense(y_true)
 
-        tf.print(y_true["classes"])
         ground_truth_boxes = tf.cast(y_true["classes"] != -1, tf.int32)
         predicted_boxes = tf.cast(y_pred["classes"] != -1, tf.int32)
 
         ground_truth_boxes = tf.math.reduce_sum(ground_truth_boxes, axis=-1)
         predicted_boxes = tf.math.reduce_sum(predicted_boxes, axis=-1)
 
-        tf.print('ground_truth_boxes', ground_truth_boxes)
-        tf.print('predicted_boxes', predicted_boxes)
         delta_sum = tf.math.abs(ground_truth_boxes - predicted_boxes)
         self.delta_sum.assign_add(
             tf.cast(tf.math.reduce_sum(delta_sum), self.compute_dtype)

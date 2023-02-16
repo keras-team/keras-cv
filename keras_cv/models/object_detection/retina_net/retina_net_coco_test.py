@@ -43,23 +43,26 @@ class RetinaNetTest(tf.test.TestCase):
     )
     def test_fit_coco_metrics(self):
         retina_net = keras_cv.models.RetinaNet(
-            classes=1,
+            classes=2,
             bounding_box_format="xywh",
             backbone=keras_cv.models.ResNet50(
                 include_top=False, include_rescaling=False
             ).as_backbone(),
         )
-
+        # retina_net.backbone.trainable = False
         retina_net.compile(
-            optimizer=optimizers.Adam(),
+            optimizer=optimizers.SGD(learning_rate=0.0075, momentum=0.9, global_clipnorm=10.0),
             classification_loss="focal",
             box_loss="smoothl1",
             metrics=[
                 keras_cv.metrics.MeanBoxCountDelta(),
+                keras_cv.metrics._BoxRecall(bounding_box_format="xywh", class_ids=[0]),
             ],
         )
 
         xs, ys = _create_bounding_box_dataset("xywh")
-        retina_net.fit(x=xs, y=ys, epochs=25)
+        ds = tf.data.Dataset.from_tensor_slices((xs, ys))
+        ds = ds.batch(xs.shape[0])
+        retina_net.fit(ds.repeat(10), epochs=100)
         metrics = retina_net.evaluate(x=xs, y=ys, return_dict=True)
         self.assertAllGreater(metrics["mean_box_count_delta"], 0.0)

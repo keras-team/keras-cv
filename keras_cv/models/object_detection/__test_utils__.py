@@ -19,13 +19,17 @@ import keras_cv
 def _create_bounding_box_dataset(bounding_box_format, use_dictionary_box_format=False):
     # Just about the easiest dataset you can have, all classes are 0, all boxes are
     # exactly the same.  [1, 1, 2, 2] are the coordinates in xyxy
-    xs = tf.ones((5, 256, 256, 3), dtype=tf.float32)
-    y_classes = tf.zeros((5, 10), dtype=tf.float32)
+    xs = tf.random.normal(shape=(1, 256, 256, 3), dtype=tf.float32)
+    xs = tf.tile(xs, [5, 1, 1, 1])
 
-    ys = tf.constant([0.25, 0.25, 0.1, 0.1], dtype=tf.float32)
+    y_classes = tf.zeros((5, 3), dtype=tf.float32)
+
+    ys = tf.constant(
+        [[0.1, 0.1, 0.1, 0.1], [0.67, 0.75, 0.1, 0.1], [0.25, 0.25, 0.1, 0.1]],
+        dtype=tf.float32,
+    )
     ys = tf.expand_dims(ys, axis=0)
-    ys = tf.expand_dims(ys, axis=0)
-    ys = tf.tile(ys, [5, 10, 1])
+    ys = tf.tile(ys, [5, 1, 1])
     ys = keras_cv.bounding_box.convert_format(
         ys, source="rel_xywh", target=bounding_box_format, images=xs, dtype=tf.float32
     )
