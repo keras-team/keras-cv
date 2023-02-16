@@ -104,7 +104,6 @@ BASE_DOCSTRING = """Instantiates the {name} architecture.
 """
 
 
-@keras.utils.register_keras_serializable(package="keras_cv.models.resnet_v2")
 def apply_basic_block(
     x, filters, kernel_size=3, stride=1, dilation=1, conv_shortcut=False, name=None
 ):
@@ -174,7 +173,6 @@ def apply_basic_block(
     return x
 
 
-@keras.utils.register_keras_serializable(package="keras_cv.models.resnet_v2")
 def apply_block(
     x, filters, kernel_size=3, stride=1, dilation=1, conv_shortcut=False, name=None
 ):
@@ -246,15 +244,14 @@ def apply_block(
     return x
 
 
-@keras.utils.register_keras_serializable(package="keras_cv.models.resnet_v2")
-def Stack(
+def apply_stack(
     x,
     filters,
     blocks,
     stride=2,
     dilations=1,
     name=None,
-    block_fn=apply_block,
+    block_type="block",
     first_shortcut=True,
     stack_index=1,
 ):
@@ -265,10 +262,10 @@ def Stack(
         filters: int, filters of the layer in a block.
         blocks: int, blocks in the stacked blocks.
         stride: int, stride of the first layer in the first block. Defaults to 2.
-        dilation: int, the dilation rate to use for dilated convolution. 
+        dilation: int, the dilation rate to use for dilated convolution.
             Defaults to 1.
-        block_fn: callable, `apply_block` or `apply_basic_block`, the block 
-            function to stack.
+        block_type: string, one of "basic_block" or "block". The block type to
+            stack Use "basic_block" for ResNet18 and ResNet34.
         first_shortcut: bool. Use convolution shortcut if `True` (default),
             otherwise uses identity or pooling shortcut, based on stride.
 
@@ -278,6 +275,16 @@ def Stack(
 
     if name is None:
         name = f"v2_stack_{stack_index}"
+
+    if block_type == "basic_block":
+        block_fn = apply_basic_block
+    elif block_type == "block":
+        block_fn = apply_block
+    else:
+        raise ValueError(
+            """`block_type` must be either "basic_block" or "block". """
+            f"Received block_type={block_type}."
+        )
 
     x = block_fn(x, filters, conv_shortcut=first_shortcut, name=name + "_block1")
     for i in range(2, blocks):
@@ -328,11 +335,12 @@ class ResNetV2(keras.Model):
                 be applied.
         classes: optional number of classes to classify images
             into, only to be specified if `include_top` is True.
-        classifier_activation: A `str` or callable. The activation function to use
-            on the "top" layer. Ignored unless `include_top=True`. Set
-            `classifier_activation=None` to return the logits of the "top" layer.
-        block_fn: callable, `apply_block` or `apply_basic_block`, the block function to stack.
-            Use 'basic_block' for ResNet18 and ResNet34.
+        classifier_activation: A `str` or callable. The activation function to 
+            use on the "top" layer. Ignored unless `include_top=True`. Set
+            `classifier_activation=None` to return the logits of the "top"
+            layer.
+        block_type: string, one of "basic_block" or "block". The block type to
+            stack Use "basic_block" for ResNet18 and ResNet34.
     """
 
     def __init__(
@@ -343,14 +351,13 @@ class ResNetV2(keras.Model):
         include_rescaling,
         include_top,
         stackwise_dilations=None,
-        name="ResNetV2",
         weights=None,
         input_shape=(None, None, 3),
         input_tensor=None,
         pooling=None,
         classes=None,
         classifier_activation="softmax",
-        block_fn=apply_block,
+        block_type=apply_block,
         **kwargs,
     ):
         if weights and not tf.io.gfile.exists(weights):
@@ -394,14 +401,14 @@ class ResNetV2(keras.Model):
 
         stack_level_outputs = {}
         for stack_index in range(num_stacks):
-            x = Stack(
+            x = apply_stack(
                 x,
                 filters=stackwise_filters[stack_index],
                 blocks=stackwise_blocks[stack_index],
                 stride=stackwise_strides[stack_index],
                 dilations=stackwise_dilations[stack_index],
-                block_fn=block_fn,
-                first_shortcut=block_fn == apply_block or stack_index > 0,
+                block_type=block_type,
+                first_shortcut=(block_type == "block" or stack_index > 0),
                 stack_index=stack_index,
             )
             stack_level_outputs[stack_index + 2] = x
@@ -423,13 +430,13 @@ class ResNetV2(keras.Model):
                 x = layers.GlobalMaxPooling2D(name="max_pool")(x)
 
         # Create model.
-        super().__init__(inputs=inputs, outputs=x, name=name, **kwargs)
+        super().__init__(inputs=inputs, outputs=x, **kwargs)
 
         # All references to `self` below this line
         if weights is not None:
             self.load_weights(weights)
-        # Set this private attribute for recreate backbone model with outputs at each of the
-        # resolution level.
+        # Set this private attribute for recreate backbone model with outputs at
+        # each resolution level.
         self._backbone_level_outputs = stack_level_outputs
 
         # Bind the `to_backbone_model` method to the application model.
@@ -445,7 +452,7 @@ class ResNetV2(keras.Model):
         self.pooling = pooling
         self.classes = classes
         self.classifier_activation = classifier_activation
-        self.block_fn = block_fn
+        self.block_type = block_type
 
     def get_config(self):
         return {
@@ -461,7 +468,7 @@ class ResNetV2(keras.Model):
             "pooling": self.pooling,
             "classes": self.classes,
             "classifier_activation": self.classifier_activation,
-            "block_fn": self.block_fn,
+            "block_type": self.block_type,
             "name": self.name,
             "trainable": self.trainable,
         }
@@ -499,7 +506,7 @@ def ResNet18V2(
         pooling=pooling,
         classes=classes,
         classifier_activation=classifier_activation,
-        block_fn=apply_basic_block,
+        block_type="basic_block",
         **kwargs,
     )
 
@@ -532,7 +539,7 @@ def ResNet34V2(
         pooling=pooling,
         classes=classes,
         classifier_activation=classifier_activation,
-        block_fn=apply_basic_block,
+        block_type="basic_block",
         **kwargs,
     )
 
@@ -565,6 +572,7 @@ def ResNet50V2(
         pooling=pooling,
         classes=classes,
         classifier_activation=classifier_activation,
+        block_type="block",
         **kwargs,
     )
 
@@ -596,6 +604,7 @@ def ResNet101V2(
         pooling=pooling,
         classes=classes,
         classifier_activation=classifier_activation,
+        block_type="block",
         **kwargs,
     )
 
@@ -627,6 +636,7 @@ def ResNet152V2(
         pooling=pooling,
         classes=classes,
         classifier_activation=classifier_activation,
+        block_type="block",
         **kwargs,
     )
 
