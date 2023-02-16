@@ -251,11 +251,15 @@ class _SingleAnchorGenerator:
         # make sure range of `cx` is within limit of `image_width` with `stride`,
         # also for sizes where `image_width % stride != 0`.
         # [W]
-        cx = tf.range(0.5 * stride, (image_width // stride) * stride, stride, dtype=self.dtype)
+        cx = tf.range(
+            0.5 * stride, (image_width // stride) * stride, stride, dtype=self.dtype
+        )
         # make sure range of `cy` is within limit of `image_height` with `stride`,
         # also for sizes where `image_height % stride != 0`.
         # [H]
-        cy = tf.range(0.5 * stride, (image_height // stride) * stride, stride, dtype=self.dtype)
+        cy = tf.range(
+            0.5 * stride, (image_height // stride) * stride, stride, dtype=self.dtype
+        )
         # [H, W]
         cx_grid, cy_grid = tf.meshgrid(cx, cy)
         # [H, W, 1]

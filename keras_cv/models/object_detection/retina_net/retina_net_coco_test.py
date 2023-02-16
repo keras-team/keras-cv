@@ -51,18 +51,30 @@ class RetinaNetTest(tf.test.TestCase):
         )
         # retina_net.backbone.trainable = False
         retina_net.compile(
-            optimizer=optimizers.SGD(learning_rate=0.0075, momentum=0.9, global_clipnorm=10.0),
+            optimizer=optimizers.SGD(
+                learning_rate=0.0075, momentum=0.9, global_clipnorm=10.0
+            ),
             classification_loss="focal",
             box_loss="smoothl1",
             metrics=[
                 keras_cv.metrics.MeanBoxCountDelta(),
-                keras_cv.metrics._BoxRecall(bounding_box_format="xywh", class_ids=[0]),
+                keras_cv.metrics._BoxRecall(
+                    bounding_box_format="xywh", iou_thresholds=[0.5], class_ids=[0]
+                ),
             ],
         )
 
         xs, ys = _create_bounding_box_dataset("xywh")
         ds = tf.data.Dataset.from_tensor_slices((xs, ys))
         ds = ds.batch(xs.shape[0])
-        retina_net.fit(ds.repeat(10), epochs=100)
+        retina_net.fit(
+            ds.repeat(10),
+            validation_data=ds,
+            epochs=100,
+            callbacks=[
+                keras_cv.callbacks.PyCOCOCallback(ds, bounding_box_format="xywh"),
+            ],
+        )
         metrics = retina_net.evaluate(x=xs, y=ys, return_dict=True)
         self.assertAllGreater(metrics["mean_box_count_delta"], 0.0)
+        self.assertAllGreater(metrics["private__box_recall"], 0.0)

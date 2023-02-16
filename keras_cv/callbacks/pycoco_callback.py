@@ -55,6 +55,7 @@ class PyCOCOCallback(Callback):
 
         images_only_ds = self.val_data.map(images_only)
         y_pred = self.model.predict(images_only_ds)
+        tf.print('y_pred', y_pred)
         box_pred = tf.convert_to_tensor(y_pred["boxes"])
         cls_pred = tf.convert_to_tensor(y_pred["classes"])
         confidence_pred = tf.convert_to_tensor(y_pred["confidence"])
