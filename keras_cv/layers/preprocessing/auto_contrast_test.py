@@ -14,9 +14,7 @@
 
 import tensorflow as tf
 
-from keras_cv.layers import BaseImageAugmentationLayer
 from keras_cv.layers import preprocessing
-from keras_cv.utils import preprocessing as utils_preprocessing
 
 
 class AutoContrastTest(tf.test.TestCase):
