@@ -22,12 +22,12 @@ from keras_cv.bounding_box import iou as iou_lib
 from keras_cv.metrics.coco import utils
 
 
-class COCORecall(keras.metrics.Metric):
-    """COCORecall computes recall based on varying true positive IoU thresholds.
+class _BoxRecall(keras.metrics.Metric):
+    """_BoxRecall computes recall based on varying true positive IoU thresholds.
 
-    COCORecall is analagous to traditional Recall.  The primary distinction is
+    _BoxRecall is analagous to traditional Recall.  The primary distinction is
     that when operating in the problem domain of object detection there exists
-    ambiguity in what is considered a true positive.  The COCORecall metric
+    ambiguity in what is considered a true positive.  The _BoxRecall metric
     works by using the Intersection over Union (IoU) metric to determine whether
     or not a detection is a true positive or a false positive.  An average
     across many IoU thresholds may also be taken by passing a list to the
@@ -55,13 +55,13 @@ class COCORecall(keras.metrics.Metric):
 
     Usage:
 
-    COCORecall accepts two dictionaries that comply with KerasCV's bounding box
+    _BoxRecall accepts two dictionaries that comply with KerasCV's bounding box
     specification as inputs to it's `update_state` method.
     These dictionaries represent bounding boxes in the specified
     `bounding_box_format`.
 
     ```python
-    coco_recall = keras_cv.metrics.COCORecall(
+    coco_recall = keras_cv.metrics._BoxRecall(
         bounding_box_format='xyxy',
         max_detections=100,
         class_ids=[1]
