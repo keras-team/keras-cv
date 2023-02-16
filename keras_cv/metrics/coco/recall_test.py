@@ -11,18 +11,18 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Tests for COCORecall."""
+"""Tests for _BoxRecall."""
 
 import numpy as np
 import tensorflow as tf
 
 from keras_cv import bounding_box
-from keras_cv.metrics import COCORecall
+from keras_cv.metrics import _BoxRecall
 
 
-class COCORecallTest(tf.test.TestCase):
+class _BoxRecallTest(tf.test.TestCase):
     def test_ragged_tensor_support(self):
-        recall = COCORecall(
+        recall = _BoxRecall(
             max_detections=100,
             bounding_box_format="xyxy",
             class_ids=[1],
@@ -69,14 +69,14 @@ class COCORecallTest(tf.test.TestCase):
             "confidence": [[1.0]],
         }
 
-        m1 = COCORecall(
+        m1 = _BoxRecall(
             bounding_box_format="xyxy",
             iou_thresholds=[0.95],
             class_ids=[1],
             area_range=(0, 100000**2),
             max_detections=1,
         )
-        m2 = COCORecall(
+        m2 = _BoxRecall(
             bounding_box_format="xyxy",
             iou_thresholds=[0.95],
             class_ids=[1],
@@ -89,7 +89,7 @@ class COCORecallTest(tf.test.TestCase):
 
         m2.update_state(y_true, y_pred)
 
-        metric_result = COCORecall(
+        metric_result = _BoxRecall(
             bounding_box_format="xyxy",
             iou_thresholds=[0.95],
             class_ids=[1],
@@ -103,7 +103,7 @@ class COCORecallTest(tf.test.TestCase):
         self.assertEqual(1 / 3, metric_result.result())
 
     def test_recall_area_range_filtering(self):
-        recall = COCORecall(
+        recall = _BoxRecall(
             bounding_box_format="xyxy",
             max_detections=100,
             class_ids=[1],
@@ -125,7 +125,7 @@ class COCORecallTest(tf.test.TestCase):
         self.assertAllEqual(recall.result(), 0.0)
 
     def test_missing_categories(self):
-        recall = COCORecall(
+        recall = _BoxRecall(
             bounding_box_format="xyxy",
             max_detections=100,
             class_ids=[1, 2, 3],
@@ -148,7 +148,7 @@ class COCORecallTest(tf.test.TestCase):
         self.assertEqual(recall.result(), 0.5)
 
     def test_recall_direct_assignment(self):
-        recall = COCORecall(
+        recall = _BoxRecall(
             bounding_box_format="xyxy",
             max_detections=100,
             class_ids=[1],
@@ -165,7 +165,7 @@ class COCORecallTest(tf.test.TestCase):
         self.assertEqual(recall.result(), 0.5)
 
     def test_max_detections_one_third(self):
-        recall = COCORecall(
+        recall = _BoxRecall(
             bounding_box_format="xyxy",
             max_detections=1,
             class_ids=[1],
@@ -198,7 +198,7 @@ class COCORecallTest(tf.test.TestCase):
         self.assertAlmostEqual(recall.result().numpy(), 1 / 3)
 
     def test_max_detections(self):
-        recall = COCORecall(
+        recall = _BoxRecall(
             bounding_box_format="xyxy",
             max_detections=3,
             class_ids=[1],
@@ -233,7 +233,7 @@ class COCORecallTest(tf.test.TestCase):
         self.assertAlmostEqual(recall.result().numpy(), 1.0)
 
     def test_recall_direct_assignment_one_third(self):
-        recall = COCORecall(
+        recall = _BoxRecall(
             bounding_box_format="xyxy",
             max_detections=100,
             class_ids=[1],
@@ -261,7 +261,7 @@ class COCORecallTest(tf.test.TestCase):
             "confidence": [[1.0]],
         }
         # note the low iou threshold
-        metric = COCORecall(
+        metric = _BoxRecall(
             bounding_box_format="xyxy",
             iou_thresholds=[0.15],
             class_ids=[1],
@@ -283,7 +283,7 @@ class COCORecallTest(tf.test.TestCase):
             "confidence": [[1.0]],
         }
         # note the low iou threshold
-        metric = COCORecall(
+        metric = _BoxRecall(
             bounding_box_format="xyxy",
             iou_thresholds=[0.15],
             class_ids=[1],
@@ -303,7 +303,7 @@ class COCORecallTest(tf.test.TestCase):
             "confidence": [[0.8999999761581421, 1.0]],
         }
         # note the low iou threshold
-        metric = COCORecall(
+        metric = _BoxRecall(
             bounding_box_format="xyxy",
             iou_thresholds=[0.15],
             class_ids=[1],
@@ -332,7 +332,7 @@ class COCORecallTest(tf.test.TestCase):
             "confidence": [[1.0]],
         }
 
-        metric = COCORecall(
+        metric = _BoxRecall(
             bounding_box_format="xyxy",
             iou_thresholds=[0.15],
             class_ids=[1],
@@ -351,7 +351,7 @@ class COCORecallTest(tf.test.TestCase):
         }
 
         # note the low iou threshold
-        metric = COCORecall(
+        metric = _BoxRecall(
             bounding_box_format="xyxy",
             iou_thresholds=[0.15],
             class_ids=[1],
@@ -370,7 +370,7 @@ class COCORecallTest(tf.test.TestCase):
             "confidence": [[1.0]],
         }
 
-        metric = COCORecall(
+        metric = _BoxRecall(
             bounding_box_format="xyxy",
             iou_thresholds=[0.95],
             class_ids=[1],
