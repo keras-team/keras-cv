@@ -88,6 +88,16 @@ class OldAutoContrast(BaseImageAugmentationLayer):
         return config
 
 
+class AutoContrastConsistencyTest(tf.test.TestCase):
+    def test_consistency_with_old_implementation(self):
+        images = tf.random.uniform(shape=(16, 32, 32, 3))
+
+        output = AutoContrast(value_range=(0, 1))(images)
+        old_output = OldAutoContrast(value_range=(0, 1))(images)
+
+        self.assertAllClose(old_output, output)
+
+
 if __name__ == "__main__":
     (x_train, _), _ = keras.datasets.cifar10.load_data()
     x_train = x_train.astype(float)
@@ -159,3 +169,6 @@ if __name__ == "__main__":
     plt.ylabel("Runtime (seconds)")
     plt.legend()
     plt.show()
+
+    # Compare two implementations
+    tf.test.main()
