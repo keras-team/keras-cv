@@ -70,9 +70,6 @@ class AutoContrast(VectorizedBaseImageAugmentationLayer):
         result = tf.where(tf.math.is_nan(result), original_images, result)
         return result
 
-    def get_random_transformation_batch(self, batch_size, **kwargs):
-        return None  # Unused by this layer.
-
     def augment_bounding_boxes(self, bounding_boxes, **kwargs):
         return bounding_boxes
 
