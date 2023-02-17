@@ -121,7 +121,11 @@ class SerializationTest(tf.test.TestCase, parameterized.TestCase):
                 "rate": 1.0,
             },
         ),
-        ("RandomBrightness", cv_layers.RandomBrightness, {"factor": 0.5}),
+        (
+            "RandomBrightness",
+            cv_layers.RandomBrightness,
+            {"factor": 0.5, "value_range": (0, 255)},
+        ),
         (
             "RandomChoice",
             cv_layers.RandomChoice,

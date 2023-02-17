@@ -33,7 +33,11 @@ TEST_CONFIGURATIONS = [
         {"factor": 0.5},
     ),
     ("RandomHue", preprocessing.RandomHue, {"factor": 0.5}),
-    ("RandomBrightness", preprocessing.RandomBrightness, {"factor": 0.5}),
+    (
+        "RandomBrightness",
+        preprocessing.RandomBrightness,
+        {"factor": 0.5, "value_range": (0, 255)},
+    ),
     (
         "RandomChannelShift",
         preprocessing.RandomChannelShift,
