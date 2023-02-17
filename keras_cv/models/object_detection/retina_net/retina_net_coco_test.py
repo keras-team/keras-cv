@@ -57,7 +57,6 @@ class RetinaNetTest(tf.test.TestCase):
             classification_loss="focal",
             box_loss="smoothl1",
             metrics=[
-                keras_cv.metrics.MeanBoxCountDelta(),
                 keras_cv.metrics._BoxRecall(
                     bounding_box_format="xywh", iou_thresholds=[0.5], class_ids=[0]
                 ),
