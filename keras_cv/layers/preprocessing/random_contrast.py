@@ -51,17 +51,21 @@ class RandomContrast(VectorizedBaseImageAugmentationLayer):
         between `[1.0 - lower, 1.0 + upper]`. For any pixel x in the channel,
         the output will be `(x - mean) * factor + mean` where `mean` is the mean
         value of the channel.
+      value_range: Optional list/tuple of 2 floats for the lower and upper limit
+        of the values of the input data. Defaults to [0.0, 255.0]. Can be
+        changed to e.g. [0.0, 1.0] if the image input has been scaled before
+        this layer. The output values will be clipped to this range.
       seed: Integer. Used to create a random seed.
 
     Usage:
     ```python
     (images, labels), _ = tf.keras.datasets.cifar10.load_data()
-    random_contrast = keras_cv.layers.preprocessing.RandomContrast()
+    random_contrast = keras_cv.layers.preprocessing.RandomContrast(factor=0.5)
     augmented_images = random_contrast(images)
     ```
     """
 
-    def __init__(self, factor, seed=None, **kwargs):
+    def __init__(self, factor, value_range=(0, 255), seed=None, **kwargs):
         super().__init__(seed=seed, force_generator=True, **kwargs)
         if isinstance(factor, (tuple, list)):
             min = 1 - factor[0]
@@ -73,6 +77,8 @@ class RandomContrast(VectorizedBaseImageAugmentationLayer):
         self.factor = preprocessing_utils.parse_factor(
             (min, max), min_value=-1, max_value=2
         )
+
+        self.value_range = value_range
         self.seed = seed
 
     def get_random_transformation_batch(self, batch_size, **kwargs):
@@ -90,8 +96,7 @@ class RandomContrast(VectorizedBaseImageAugmentationLayer):
         means = tf.reduce_mean(images, axis=(1, 2), keepdims=True)
 
         images = (images - means) * contrast_factors + means
-        images = tf.clip_by_value(images, 0, 255)
-        return images
+        return tf.clip_by_value(images, self.value_range[0], self.value_range[1])
 
     def augment_labels(self, labels, transformations, **kwargs):
         return labels
@@ -105,6 +110,7 @@ class RandomContrast(VectorizedBaseImageAugmentationLayer):
     def get_config(self):
         config = {
             "factor": self.factor_input,
+            "value_range": self.value_range,
             "seed": self.seed,
         }
         base_config = super().get_config()
