@@ -357,7 +357,7 @@ class ResNetV2(keras.Model):
         pooling=None,
         classes=None,
         classifier_activation="softmax",
-        block_type=apply_block,
+        block_type="block",
         **kwargs,
     ):
         if weights and not tf.io.gfile.exists(weights):
