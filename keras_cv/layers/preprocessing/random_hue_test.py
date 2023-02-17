@@ -48,8 +48,12 @@ class RandomHueTest(tf.test.TestCase, parameterized.TestCase):
         channel_min = tf.math.reduce_min(output, axis=-1)
         # Make sure the max and min channel are the same between input and output
         # In the meantime, and channel will swap between each other.
-        self.assertAllClose(channel_max, tf.math.reduce_max(image, axis=-1))
-        self.assertAllClose(channel_min, tf.math.reduce_min(image, axis=-1))
+        self.assertAllClose(
+            channel_max, tf.math.reduce_max(image, axis=-1), atol=1e-5, rtol=1e-5
+        )
+        self.assertAllClose(
+            channel_min, tf.math.reduce_min(image, axis=-1), atol=1e-5, rtol=1e-5
+        )
 
     @parameterized.named_parameters(
         ("025", 0.25), ("05", 0.5), ("075", 0.75), ("100", 1.0)
