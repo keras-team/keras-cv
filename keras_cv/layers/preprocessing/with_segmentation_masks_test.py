@@ -1,4 +1,4 @@
-# Copyright 2022 The KerasCV Authors
+# Copyright 2023 The KerasCV Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -32,11 +32,7 @@ TEST_CONFIGURATIONS = [
         preprocessing.RandomColorDegeneration,
         {"factor": 0.5},
     ),
-    (
-        "RandomHue",
-        preprocessing.RandomHue,
-        {"factor": 0.5, "value_range": (0, 255)},
-    ),
+    ("RandomHue", preprocessing.RandomHue, {"factor": 0.5}),
     ("RandomBrightness", preprocessing.RandomBrightness, {"factor": 0.5}),
     (
         "RandomChannelShift",
@@ -55,7 +51,11 @@ TEST_CONFIGURATIONS = [
             "seed": 1,
         },
     ),
-    ("RandomContrast", preprocessing.RandomContrast, {"factor": 0.5}),
+    (
+        "RandomContrast",
+        preprocessing.RandomContrast,
+        {"factor": 0.5, "value_range": (0, 255)},
+    ),
     (
         "RandomGaussianBlur",
         preprocessing.RandomGaussianBlur,
