@@ -62,8 +62,12 @@ class RandomHue(VectorizedBaseImageAugmentationLayer):
         self.seed = seed
 
     def get_random_transformation_batch(self, batch_size, **kwargs):
-        invert = self._random_generator.random_uniform((batch_size,), 0, 1, tf.float32)
-        invert = tf.where(invert > 0.5, -tf.ones_like(invert), tf.ones_like(invert))
+        invert = self._random_generator.random_uniform(
+            (batch_size,), 0, 1, tf.float32
+        )
+        invert = tf.where(
+            invert > 0.5, -tf.ones_like(invert), tf.ones_like(invert)
+        )
         # We must scale self.factor() to the range [-0.5, 0.5].  This is because the
         # tf.image operation performs rotation on the hue saturation value orientation.
         # This can be thought of as an angle in the range [-180, 180]
@@ -99,7 +103,9 @@ class RandomHue(VectorizedBaseImageAugmentationLayer):
     def augment_labels(self, labels, transformations, **kwargs):
         return labels
 
-    def augment_segmentation_masks(self, segmentation_masks, transformations, **kwargs):
+    def augment_segmentation_masks(
+        self, segmentation_masks, transformations, **kwargs
+    ):
         return segmentation_masks
 
     def augment_bounding_boxes(self, bounding_boxes, transformations, **kwargs):
@@ -117,5 +123,7 @@ class RandomHue(VectorizedBaseImageAugmentationLayer):
     @classmethod
     def from_config(cls, config):
         if isinstance(config["factor"], dict):
-            config["factor"] = tf.keras.utils.deserialize_keras_object(config["factor"])
+            config["factor"] = tf.keras.utils.deserialize_keras_object(
+                config["factor"]
+            )
         return cls(**config)

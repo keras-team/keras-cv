@@ -86,7 +86,9 @@ class OldRandomHue(BaseImageAugmentationLayer):
     def augment_label(self, label, transformation=None, **kwargs):
         return label
 
-    def augment_segmentation_mask(self, segmentation_mask, transformation, **kwargs):
+    def augment_segmentation_mask(
+        self, segmentation_mask, transformation, **kwargs
+    ):
         return segmentation_mask
 
     def get_config(self):

@@ -88,7 +88,9 @@ class RandomSaturation(VectorizedBaseImageAugmentationLayer):
         s_channel = tf.multiply(
             images[..., 1], adjust_factors[..., tf.newaxis, tf.newaxis]
         )
-        s_channel = tf.clip_by_value(s_channel, clip_value_min=0.0, clip_value_max=1.0)
+        s_channel = tf.clip_by_value(
+            s_channel, clip_value_min=0.0, clip_value_max=1.0
+        )
         images = tf.stack([images[..., 0], s_channel, images[..., 2]], axis=-1)
         images = tf.image.hsv_to_rgb(images)
         return images
@@ -101,7 +103,9 @@ class RandomSaturation(VectorizedBaseImageAugmentationLayer):
     def augment_labels(self, labels, transformations=None, **kwargs):
         return labels
 
-    def augment_segmentation_masks(self, segmentation_masks, transformations, **kwargs):
+    def augment_segmentation_masks(
+        self, segmentation_masks, transformations, **kwargs
+    ):
         return segmentation_masks
 
     def get_config(self):

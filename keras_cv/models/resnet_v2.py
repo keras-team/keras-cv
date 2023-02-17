@@ -105,7 +105,13 @@ BASE_DOCSTRING = """Instantiates the {name} architecture.
 
 
 def apply_basic_block(
-    x, filters, kernel_size=3, stride=1, dilation=1, conv_shortcut=False, name=None
+    x,
+    filters,
+    kernel_size=3,
+    stride=1,
+    dilation=1,
+    conv_shortcut=False,
+    name=None,
 ):
     """A basic residual block (v2).
 
@@ -141,7 +147,9 @@ def apply_basic_block(
         )
     else:
         shortcut = (
-            layers.MaxPooling2D(1, strides=stride, name=name + "_0_max_pooling")(x)
+            layers.MaxPooling2D(
+                1, strides=stride, name=name + "_0_max_pooling"
+            )(x)
             if s > 1
             else x
         )
@@ -174,7 +182,13 @@ def apply_basic_block(
 
 
 def apply_block(
-    x, filters, kernel_size=3, stride=1, dilation=1, conv_shortcut=False, name=None
+    x,
+    filters,
+    kernel_size=3,
+    stride=1,
+    dilation=1,
+    conv_shortcut=False,
+    name=None,
 ):
     """A residual block (v2).
 
@@ -212,14 +226,16 @@ def apply_block(
         )(use_preactivation)
     else:
         shortcut = (
-            layers.MaxPooling2D(1, strides=stride, name=name + "_0_max_pooling")(x)
+            layers.MaxPooling2D(
+                1, strides=stride, name=name + "_0_max_pooling"
+            )(x)
             if s > 1
             else x
         )
 
-    x = layers.Conv2D(filters, 1, strides=1, use_bias=False, name=name + "_1_conv")(
-        use_preactivation
-    )
+    x = layers.Conv2D(
+        filters, 1, strides=1, use_bias=False, name=name + "_1_conv"
+    )(use_preactivation)
     x = layers.BatchNormalization(
         axis=BN_AXIS, epsilon=BN_EPSILON, name=name + "_1_bn"
     )(x)
@@ -286,9 +302,13 @@ def apply_stack(
             f"Received block_type={block_type}."
         )
 
-    x = block_fn(x, filters, conv_shortcut=first_shortcut, name=name + "_block1")
+    x = block_fn(
+        x, filters, conv_shortcut=first_shortcut, name=name + "_block1"
+    )
     for i in range(2, blocks):
-        x = block_fn(x, filters, dilation=dilations, name=name + "_block" + str(i))
+        x = block_fn(
+            x, filters, dilation=dilations, name=name + "_block" + str(i)
+        )
     x = block_fn(
         x,
         filters,
@@ -393,7 +413,9 @@ class ResNetV2(keras.Model):
             name="conv1_conv",
         )(x)
 
-        x = layers.MaxPooling2D(3, strides=2, padding="same", name="pool1_pool")(x)
+        x = layers.MaxPooling2D(
+            3, strides=2, padding="same", name="pool1_pool"
+        )(x)
 
         num_stacks = len(stackwise_filters)
         if stackwise_dilations is None:
@@ -413,9 +435,9 @@ class ResNetV2(keras.Model):
             )
             stack_level_outputs[stack_index + 2] = x
 
-        x = layers.BatchNormalization(axis=BN_AXIS, epsilon=BN_EPSILON, name="post_bn")(
-            x
-        )
+        x = layers.BatchNormalization(
+            axis=BN_AXIS, epsilon=BN_EPSILON, name="post_bn"
+        )(x)
         x = layers.Activation("relu", name="post_relu")(x)
 
         if include_top:
