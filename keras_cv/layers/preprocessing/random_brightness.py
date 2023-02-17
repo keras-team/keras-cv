@@ -85,12 +85,6 @@ class RandomBrightness(VectorizedBaseImageAugmentationLayer):
         )
 
     def augment_images(self, images, transformations, **kwargs):
-        rank = images.shape.rank
-        if rank != 4:
-            raise ValueError(
-                "Expected the input image to be rank 4. Got "
-                f"inputs.shape = {images.shape}"
-            )
         rgb_deltas = tf.cast(transformations, images.dtype)
         images += rgb_deltas
         return tf.clip_by_value(images, self.value_range[0], self.value_range[1])
