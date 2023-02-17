@@ -1,4 +1,4 @@
-# Copyright 2022 The KerasCV Authors
+# Copyright 2023 The KerasCV Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -48,6 +48,11 @@ TEST_CONFIGURATIONS = [
     ),
     ("RandomBrightness", layers.RandomBrightness, {"factor": 0.5}),
     (
+        "RandomContrast",
+        layers.RandomContrast,
+        {"factor": 0.5, "value_range": (0, 255)},
+    ),
+    (
         "RandomColorDegeneration",
         layers.RandomColorDegeneration,
         {"factor": 0.5},
@@ -57,11 +62,7 @@ TEST_CONFIGURATIONS = [
         layers.RandomCutout,
         {"height_factor": 0.2, "width_factor": 0.2},
     ),
-    (
-        "RandomHue",
-        layers.RandomHue,
-        {"factor": 0.5, "value_range": (0, 255)},
-    ),
+    ("RandomHue", layers.RandomHue, {"factor": 0.5}),
     (
         "RandomTranslation",
         layers.RandomTranslation,
@@ -139,12 +140,7 @@ TEST_CONFIGURATIONS = [
     ),
 ]
 
-NO_CPU_FP16_KERNEL_LAYERS = [
-    layers.RandomSaturation,
-    layers.RandomColorJitter,
-    layers.RandomHue,
-    layers.RandomContrast,
-]
+NO_CPU_FP16_KERNEL_LAYERS = []
 
 
 class WithMixedPrecisionTest(tf.test.TestCase, parameterized.TestCase):
