@@ -39,10 +39,6 @@ class RandomHue(VectorizedBaseImageAugmentationLayer):
             augmented.  If a single float is used, a value between `0.0` and the passed
             float is sampled.  In order to ensure the value is always the same, please
             pass a tuple with two identical floats: `(0.5, 0.5)`.
-        value_range:  the range of values the incoming images will have.
-            Represented as a two number tuple written [low, high].
-            This is typically either `[0, 1]` or `[0, 255]` depending
-            on how your preprocessing pipeline is setup.
         seed: Integer. Used to create a random seed.
 
     Usage:
@@ -53,12 +49,11 @@ class RandomHue(VectorizedBaseImageAugmentationLayer):
     ```
     """
 
-    def __init__(self, factor, value_range, seed=None, **kwargs):
+    def __init__(self, factor, seed=None, **kwargs):
         super().__init__(seed=seed, **kwargs)
         self.factor = preprocessing_utils.parse_factor(
             factor,
         )
-        self.value_range = value_range
         self.seed = seed
 
     def get_random_transformation_batch(self, batch_size, **kwargs):
@@ -75,25 +70,16 @@ class RandomHue(VectorizedBaseImageAugmentationLayer):
         )
 
     def augment_images(self, images, transformations, **kwargs):
-        images = preprocessing_utils.transform_value_range(
-            images, self.value_range, (0, 1), dtype=self.compute_dtype
-        )
         adjust_factors = tf.cast(transformations, images.dtype)
         # broadcast
         adjust_factors = adjust_factors[..., tf.newaxis, tf.newaxis]
 
-        # tf.image.adjust_hue expects floats to be in range [0, 1]
         images = tf.image.rgb_to_hsv(images)
         h_channel = images[..., 0] + adjust_factors
         h_channel = tf.where(h_channel > 1.0, h_channel - 1.0, h_channel)
         h_channel = tf.where(h_channel < 0.0, h_channel + 1.0, h_channel)
         images = tf.stack([h_channel, images[..., 1], images[..., 2]], axis=-1)
         images = tf.image.hsv_to_rgb(images)
-        # RandomHue is one of the rare KPLs that needs to clip
-        images = tf.clip_by_value(images, 0, 1)
-        images = preprocessing_utils.transform_value_range(
-            images, (0, 1), self.value_range, dtype=self.compute_dtype
-        )
         return images
 
     def augment_labels(self, labels, transformations, **kwargs):
@@ -108,7 +94,6 @@ class RandomHue(VectorizedBaseImageAugmentationLayer):
     def get_config(self):
         config = {
             "factor": self.factor,
-            "value_range": self.value_range,
             "seed": self.seed,
         }
         base_config = super().get_config()

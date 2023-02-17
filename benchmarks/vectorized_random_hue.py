@@ -51,7 +51,7 @@ class OldRandomHue(BaseImageAugmentationLayer):
 
     """
 
-    def __init__(self, factor, value_range, seed=None, **kwargs):
+    def __init__(self, factor, value_range=(0, 255), seed=None, **kwargs):
         super().__init__(seed=seed, **kwargs)
         self.factor = preprocessing_utils.parse_factor(
             factor,
@@ -106,7 +106,7 @@ class RandomHueTest(tf.test.TestCase):
         fixed_seed = 2023
         image = tf.random.uniform(shape=image_shape)
 
-        layer = RandomHue(fixed_factor, (0, 1), fixed_seed)
+        layer = RandomHue(fixed_factor, fixed_seed)
         old_layer = OldRandomHue(fixed_factor, (0, 1), fixed_seed)
 
         output = layer(image)
@@ -120,7 +120,7 @@ class RandomHueTest(tf.test.TestCase):
         fixed_seed = 2023
         image = tf.random.uniform(shape=image_shape) * 255.0
 
-        layer = RandomHue(fixed_factor, (0, 255), fixed_seed)
+        layer = RandomHue(fixed_factor, fixed_seed)
         old_layer = OldRandomHue(fixed_factor, (0, 255), fixed_seed)
 
         output = layer(image)
@@ -137,7 +137,7 @@ if __name__ == "__main__":
     num_images = [1000, 2000, 5000, 10000]
     results = {}
     aug_candidates = [RandomHue, OldRandomHue]
-    aug_args = {"factor": (0.5), "value_range": (0, 255)}
+    aug_args = {"factor": (0.5)}
 
     for aug in aug_candidates:
         # Eager Mode
@@ -180,7 +180,29 @@ if __name__ == "__main__":
         results[c] = runtimes
 
         # XLA Mode
-        # OldRandomHue fails to run jit_compile=True
+        # OldRandomHue fails to run jit_compile=True, so skip it
+        if c is OldRandomHue:
+            continue
+        c = aug.__name__ + " XLA Mode"
+        layer = aug(**aug_args)
+
+        @tf.function(jit_compile=True)
+        def apply_aug(inputs):
+            return layer(inputs)
+
+        runtimes = []
+        print(f"Timing {c}")
+
+        for n_images in num_images:
+            # warmup
+            apply_aug(x_train[:n_images])
+
+            t0 = time.time()
+            r1 = apply_aug(x_train[:n_images])
+            t1 = time.time()
+            runtimes.append(t1 - t0)
+            print(f"Runtime for {c}, n_images={n_images}: {t1-t0}")
+        results[c] = runtimes
 
     plt.figure()
     for key in results:
