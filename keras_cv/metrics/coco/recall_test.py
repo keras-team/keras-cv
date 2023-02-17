@@ -33,10 +33,12 @@ class _COCORecallTest(tf.test.TestCase):
         )
 
         # These would match if they were in the area range
-        y_true = np.array([[[0, 0, 10, 10, 1], [5, 5, 10, 10, 1]]]).astype(np.float32)
-        y_pred = np.array([[[0, 0, 10, 10, 1, 1.0], [5, 5, 10, 10, 1, 0.9]]]).astype(
+        y_true = np.array([[[0, 0, 10, 10, 1], [5, 5, 10, 10, 1]]]).astype(
             np.float32
         )
+        y_pred = np.array(
+            [[[0, 0, 10, 10, 1, 1.0], [5, 5, 10, 10, 1, 0.9]]]
+        ).astype(np.float32)
 
         model.compile(metrics=[recall])
         model.evaluate(y_pred, y_true)
@@ -73,7 +75,9 @@ class _COCORecallTest(tf.test.TestCase):
     def DISABLE_test_merge_state(self):
         y_true = tf.constant([[[0, 0, 100, 100, 1]]], dtype=tf.float32)
         y_pred = tf.constant([[[0, 50, 100, 150, 1, 1.0]]], dtype=tf.float32)
-        y_pred_match = tf.constant([[[0, 0, 100, 100, 1, 1.0]]], dtype=tf.float32)
+        y_pred_match = tf.constant(
+            [[[0, 0, 100, 100, 1, 1.0]]], dtype=tf.float32
+        )
 
         m1 = _COCORecall(
             bounding_box_format="xyxy",
@@ -117,10 +121,12 @@ class _COCORecallTest(tf.test.TestCase):
         )
 
         # These would match if they were in the area range
-        y_true = np.array([[[0, 0, 10, 10, 1], [5, 5, 10, 10, 1]]]).astype(np.float32)
-        y_pred = np.array([[[0, 0, 10, 10, 1, 1.0], [5, 5, 10, 10, 1, 0.9]]]).astype(
+        y_true = np.array([[[0, 0, 10, 10, 1], [5, 5, 10, 10, 1]]]).astype(
             np.float32
         )
+        y_pred = np.array(
+            [[[0, 0, 10, 10, 1, 1.0], [5, 5, 10, 10, 1, 0.9]]]
+        ).astype(np.float32)
         recall.update_state(y_true, y_pred)
 
         self.assertAllEqual(recall.result(), 0.0)
@@ -173,7 +179,13 @@ class _COCORecallTest(tf.test.TestCase):
             area_range=(0, 1e9**2),
         )
         y_true = np.array(
-            [[[0, 0, 100, 100, 1], [100, 100, 200, 200, 1], [300, 300, 400, 400, 1]]]
+            [
+                [
+                    [0, 0, 100, 100, 1],
+                    [100, 100, 200, 200, 1],
+                    [300, 300, 400, 400, 1],
+                ]
+            ]
         ).astype(np.float32)
         y_pred = np.concatenate([y_true, np.ones((1, 3, 1))], axis=-1).astype(
             np.float32
@@ -191,7 +203,13 @@ class _COCORecallTest(tf.test.TestCase):
             area_range=(0, 1e9**2),
         )
         y_true = np.array(
-            [[[0, 0, 100, 100, 1], [100, 100, 200, 200, 1], [300, 300, 400, 400, 1]]]
+            [
+                [
+                    [0, 0, 100, 100, 1],
+                    [100, 100, 200, 200, 1],
+                    [300, 300, 400, 400, 1],
+                ]
+            ]
         ).astype(np.float32)
         y_pred = np.concatenate([y_true, np.ones((1, 3, 1))], axis=-1).astype(
             np.float32

@@ -69,7 +69,9 @@ class FocalLoss(tf.keras.losses.Loss):
         self.label_smoothing = label_smoothing
 
     def _smooth_labels(self, y_true):
-        return y_true * (1.0 - self.label_smoothing) + 0.5 * self.label_smoothing
+        return (
+            y_true * (1.0 - self.label_smoothing) + 0.5 * self.label_smoothing
+        )
 
     def call(self, y_true, y_pred):
         y_pred = tf.convert_to_tensor(y_pred)

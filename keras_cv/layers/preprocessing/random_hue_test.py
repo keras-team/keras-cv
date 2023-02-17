@@ -49,10 +49,16 @@ class RandomHueTest(tf.test.TestCase, parameterized.TestCase):
         # Make sure the max and min channel are the same between input and output
         # In the meantime, and channel will swap between each other.
         self.assertAllClose(
-            channel_max, tf.math.reduce_max(image, axis=-1), atol=1e-5, rtol=1e-5
+            channel_max,
+            tf.math.reduce_max(image, axis=-1),
+            atol=1e-5,
+            rtol=1e-5,
         )
         self.assertAllClose(
-            channel_min, tf.math.reduce_min(image, axis=-1), atol=1e-5, rtol=1e-5
+            channel_min,
+            tf.math.reduce_min(image, axis=-1),
+            atol=1e-5,
+            rtol=1e-5,
         )
 
     @parameterized.named_parameters(
@@ -63,7 +69,9 @@ class RandomHueTest(tf.test.TestCase, parameterized.TestCase):
         # Value range (0, 100)
         image = tf.random.uniform(shape=image_shape) * 100.0
 
-        layer = preprocessing.RandomHue(factor=(factor, factor), value_range=(0, 255))
+        layer = preprocessing.RandomHue(
+            factor=(factor, factor), value_range=(0, 255)
+        )
         output = layer(image)
         self.assertNotAllClose(image, output, atol=1e-5, rtol=1e-5)
 
@@ -82,7 +90,9 @@ class RandomHueTest(tf.test.TestCase, parameterized.TestCase):
 
     def test_with_uint8(self):
         image_shape = (4, 8, 8, 3)
-        image = tf.cast(tf.random.uniform(shape=image_shape) * 255.0, dtype=tf.uint8)
+        image = tf.cast(
+            tf.random.uniform(shape=image_shape) * 255.0, dtype=tf.uint8
+        )
 
         layer = preprocessing.RandomHue(factor=(0.0, 0.0), value_range=(0, 255))
         output = layer(image)

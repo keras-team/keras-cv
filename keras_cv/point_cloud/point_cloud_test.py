@@ -24,7 +24,9 @@ from keras_cv import point_cloud
 
 class AngleTest(tf.test.TestCase):
     def test_wrap_angle_radians(self):
-        self.assertAllClose(-np.pi + 0.1, point_cloud.wrap_angle_radians(np.pi + 0.1))
+        self.assertAllClose(
+            -np.pi + 0.1, point_cloud.wrap_angle_radians(np.pi + 0.1)
+        )
         self.assertAllClose(0.0, point_cloud.wrap_angle_radians(2 * np.pi))
 
 
@@ -33,7 +35,10 @@ class Boxes3DTestCase(tf.test.TestCase, parameterized.TestCase):
         boxes = tf.constant(
             [
                 [[1, 2, 3, 4, 3, 6, 0], [1, 2, 3, 4, 3, 6, 0]],
-                [[1, 2, 3, 4, 3, 6, np.pi / 2.0], [1, 2, 3, 4, 3, 6, np.pi / 2.0]],
+                [
+                    [1, 2, 3, 4, 3, 6, np.pi / 2.0],
+                    [1, 2, 3, 4, 3, 6, np.pi / 2.0],
+                ],
             ]
         )
         corners = point_cloud._center_xyzWHD_to_corner_xyz(boxes)
@@ -212,7 +217,9 @@ class Boxes3DTestCase(tf.test.TestCase, parameterized.TestCase):
         points = tf.tile(points[tf.newaxis, ...], [batch_size, 1, 1])
         bboxes = tf.tile(bboxes[tf.newaxis, ...], [batch_size, 1, 1])
         is_inside = point_cloud.is_within_box3d(points, bboxes)
-        self.assertAllEqual([batch_size, num_points, num_boxes], is_inside.shape)
+        self.assertAllEqual(
+            [batch_size, num_points, num_boxes], is_inside.shape
+        )
         for batch_idx in range(batch_size):
             self.assertAllEqual(expected_is_inside, is_inside[batch_idx])
 
@@ -254,7 +261,9 @@ class Boxes3DTestCase(tf.test.TestCase, parameterized.TestCase):
     def testSphericalCoordinatesTransform(self):
         np_xyz = np.random.randn(5, 6, 3)
         points = tf.constant(np_xyz, dtype=tf.float32)
-        spherical_coordinates = point_cloud.spherical_coordinate_transform(points)
+        spherical_coordinates = point_cloud.spherical_coordinate_transform(
+            points
+        )
 
         # Convert coordinates back to xyz to verify.
         dist = spherical_coordinates[..., 0]
@@ -270,7 +279,8 @@ class Boxes3DTestCase(tf.test.TestCase, parameterized.TestCase):
         self.assertAllClose(z, np_xyz[..., 2])
 
     @pytest.mark.skipif(
-        "TEST_CUSTOM_OPS" not in os.environ or os.environ["TEST_CUSTOM_OPS"] != "true",
+        "TEST_CUSTOM_OPS" not in os.environ
+        or os.environ["TEST_CUSTOM_OPS"] != "true",
         reason="Requires binaries compiled from source",
     )
     def test_group_points(self):
@@ -306,7 +316,11 @@ class Boxes3DTestCase(tf.test.TestCase, parameterized.TestCase):
                     [5.0, 7.0, 8.0],  # none
                     [1.0, 5.0, 3.6],  # box0, box1
                     [-11.6, -10.0, -10.0],  # box3 (rotated corner point).
-                    [-11.4, -11.4, -10.0],  # not in box3, would be if not rotated.
+                    [
+                        -11.4,
+                        -11.4,
+                        -10.0,
+                    ],  # not in box3, would be if not rotated.
                 ],
                 dtype=tf.float32,
             )
@@ -318,7 +332,9 @@ class Boxes3DTestCase(tf.test.TestCase, parameterized.TestCase):
 
     def testWithinAFrustum(self):
         center = tf.constant([1.0, 1.0, 1.0])
-        points = tf.constant([[0.0, 0.0, 0.0], [1.0, 2.0, 1.0], [1.0, 0.0, 1.0]])
+        points = tf.constant(
+            [[0.0, 0.0, 0.0], [1.0, 2.0, 1.0], [1.0, 0.0, 1.0]]
+        )
 
         point_mask = point_cloud.within_a_frustum(
             points, center, r_distance=1.0, theta_width=1.0, phi_width=1.0

@@ -68,7 +68,9 @@ def balanced_sample(
     num_neg_samples = num_samples - num_pos_samples
     _, negative_indices = tf.math.top_k(values, k=num_neg_samples)
     selected_indices = tf.concat([positive_indices, negative_indices], axis=-1)
-    selected_indicators = tf.reduce_sum(tf.one_hot(selected_indices, depth=N), axis=-2)
+    selected_indicators = tf.reduce_sum(
+        tf.one_hot(selected_indices, depth=N), axis=-2
+    )
     selected_indicators = tf.minimum(
         selected_indicators, tf.ones_like(selected_indicators)
     )

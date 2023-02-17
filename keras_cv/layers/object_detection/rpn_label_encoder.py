@@ -113,7 +113,9 @@ class _RpnLabelEncoder(tf.keras.layers.Layer):
             gt_boxes, source=self.ground_truth_box_format, target="yxyx"
         )
         # [num_anchors, num_gt] or [batch_size, num_anchors, num_gt]
-        similarity_mat = iou.compute_iou(anchors, gt_boxes, bounding_box_format="yxyx")
+        similarity_mat = iou.compute_iou(
+            anchors, gt_boxes, bounding_box_format="yxyx"
+        )
         # [num_anchors] or [batch_size, num_anchors]
         matched_gt_indices, matched_vals = self.box_matcher(similarity_mat)
         # [num_anchors] or [batch_size, num_anchors]
@@ -125,7 +127,9 @@ class _RpnLabelEncoder(tf.keras.layers.Layer):
 
         negative_matches = tf.math.equal(matched_vals, -1)
         # [num_anchors, 4] or [batch_size, num_anchors, 4]
-        matched_gt_boxes = target_gather._target_gather(gt_boxes, matched_gt_indices)
+        matched_gt_boxes = target_gather._target_gather(
+            gt_boxes, matched_gt_indices
+        )
         # [num_anchors, 4] or [batch_size, num_anchors, 4], used as `y_true` for regression loss
         encoded_box_targets = bounding_box._encode_box_to_deltas(
             anchors,
@@ -135,7 +139,9 @@ class _RpnLabelEncoder(tf.keras.layers.Layer):
             variance=self.box_variance,
         )
         # [num_anchors, 1] or [batch_size, num_anchors, 1]
-        box_sample_weights = tf.cast(positive_matches[..., tf.newaxis], gt_boxes.dtype)
+        box_sample_weights = tf.cast(
+            positive_matches[..., tf.newaxis], gt_boxes.dtype
+        )
 
         # [num_anchors, 1] or [batch_size, num_anchors, 1]
         positive_mask = tf.expand_dims(positive_matches, axis=-1)
@@ -144,7 +150,9 @@ class _RpnLabelEncoder(tf.keras.layers.Layer):
         positive_classes = tf.ones_like(positive_mask, dtype=gt_classes.dtype)
         negative_classes = tf.zeros_like(positive_mask, dtype=gt_classes.dtype)
         # [num_anchors, 1] or [batch_size, num_anchors, 1]
-        class_targets = tf.where(positive_mask, positive_classes, negative_classes)
+        class_targets = tf.where(
+            positive_mask, positive_classes, negative_classes
+        )
         # [num_anchors] or [batch_size, num_anchors]
         sampled_indicators = sampling.balanced_sample(
             positive_matches,
@@ -157,8 +165,12 @@ class _RpnLabelEncoder(tf.keras.layers.Layer):
             sampled_indicators[..., tf.newaxis], gt_classes.dtype
         )
         if pack:
-            encoded_box_targets = self.unpack_targets(encoded_box_targets, anchors_dict)
-            box_sample_weights = self.unpack_targets(box_sample_weights, anchors_dict)
+            encoded_box_targets = self.unpack_targets(
+                encoded_box_targets, anchors_dict
+            )
+            box_sample_weights = self.unpack_targets(
+                box_sample_weights, anchors_dict
+            )
             class_targets = self.unpack_targets(class_targets, anchors_dict)
             class_sample_weights = self.unpack_targets(
                 class_sample_weights, anchors_dict
@@ -181,7 +193,9 @@ class _RpnLabelEncoder(tf.keras.layers.Layer):
         for level, anchors in anchors_dict.items():
             num_anchors_lvl = anchors.get_shape().as_list()[0]
             if target_shape == 2:
-                unpacked_targets[level] = targets[count : count + num_anchors_lvl, ...]
+                unpacked_targets[level] = targets[
+                    count : count + num_anchors_lvl, ...
+                ]
             else:
                 unpacked_targets[level] = targets[
                     :, count : count + num_anchors_lvl, ...

@@ -61,7 +61,11 @@ class ResNetV2Test(ModelsTest, tf.test.TestCase, parameterized.TestCase):
     def test_model_serialization_keras_format(self, app, last_dim, args):
         if version.parse(tf.__version__) >= version.parse("2.12.0-dev0"):
             super()._test_model_serialization(
-                app, last_dim, args, save_format="keras_v3", filename="model.keras"
+                app,
+                last_dim,
+                args,
+                save_format="keras_v3",
+                filename="model.keras",
             )
 
     def test_model_backbone_layer_names_stability(self):

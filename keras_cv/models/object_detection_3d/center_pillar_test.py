@@ -17,9 +17,15 @@ import tensorflow as tf
 from keras_cv.layers.object_detection_3d.voxelization import DynamicVoxelization
 from keras_cv.models.__internal__.unet import Block
 from keras_cv.models.__internal__.unet import UNet
-from keras_cv.models.object_detection_3d.center_pillar import MultiClassDetectionHead
-from keras_cv.models.object_detection_3d.center_pillar import MultiClassHeatmapDecoder
-from keras_cv.models.object_detection_3d.center_pillar import MultiHeadCenterPillar
+from keras_cv.models.object_detection_3d.center_pillar import (
+    MultiClassDetectionHead,
+)
+from keras_cv.models.object_detection_3d.center_pillar import (
+    MultiClassHeatmapDecoder,
+)
+from keras_cv.models.object_detection_3d.center_pillar import (
+    MultiHeadCenterPillar,
+)
 
 down_block_configs = [(128, 6), (256, 2), (512, 2)]
 up_block_configs = [512, 256, 256]
@@ -50,9 +56,9 @@ class CenterPillarTest(tf.test.TestCase):
         )(x)
         x = tf.keras.layers.ReLU()(x)
         x = Block(128, downsample=False, sync_bn=False)(x)
-        output = UNet(x.shape[1:], down_block_configs, up_block_configs, sync_bn=False)(
-            x
-        )
+        output = UNet(
+            x.shape[1:], down_block_configs, up_block_configs, sync_bn=False
+        )(x)
         return tf.keras.Model(input, output)
 
     def test_center_pillar_call(self):

@@ -27,7 +27,12 @@ from keras_cv.models import utils
 from keras_cv.models.weights import parse_weights
 
 MODEL_CONFIGS = {
-    "ConvMixer_1536_20": {"dim": 1536, "depth": 20, "patch_size": 7, "kernel_size": 9},
+    "ConvMixer_1536_20": {
+        "dim": 1536,
+        "depth": 20,
+        "patch_size": 7,
+        "kernel_size": 9,
+    },
     "ConvMixer_1536_24": {
         "dim": 1536,
         "depth": 24,
@@ -122,7 +127,9 @@ def PatchEmbed(dim, patch_size):
     """
 
     def apply(x):
-        x = layers.Conv2D(filters=dim, kernel_size=patch_size, strides=patch_size)(x)
+        x = layers.Conv2D(
+            filters=dim, kernel_size=patch_size, strides=patch_size
+        )(x)
         x = tf.nn.gelu(x)
         x = layers.BatchNormalization()(x)
         return x
@@ -212,9 +219,9 @@ def ConvMixer(
 
     if include_top:
         x = layers.GlobalAveragePooling2D(name="avg_pool")(x)
-        x = layers.Dense(classes, activation=classifier_activation, name="predictions")(
-            x
-        )
+        x = layers.Dense(
+            classes, activation=classifier_activation, name="predictions"
+        )(x)
     else:
         if pooling == "avg":
             x = layers.GlobalAveragePooling2D(name="avg_pool")(x)
@@ -378,8 +385,24 @@ def ConvMixer_512_16(
     )
 
 
-setattr(ConvMixer_1536_20, "__doc__", BASE_DOCSTRING.format(name="ConvMixer_1536_20"))
-setattr(ConvMixer_1536_24, "__doc__", BASE_DOCSTRING.format(name="ConvMixer_1536_24"))
-setattr(ConvMixer_768_32, "__doc__", BASE_DOCSTRING.format(name="ConvMixer_768_32"))
-setattr(ConvMixer_1024_16, "__doc__", BASE_DOCSTRING.format(name="ConvMixer_1024_16"))
-setattr(ConvMixer_512_16, "__doc__", BASE_DOCSTRING.format(name="ConvMixer_512_16"))
+setattr(
+    ConvMixer_1536_20,
+    "__doc__",
+    BASE_DOCSTRING.format(name="ConvMixer_1536_20"),
+)
+setattr(
+    ConvMixer_1536_24,
+    "__doc__",
+    BASE_DOCSTRING.format(name="ConvMixer_1536_24"),
+)
+setattr(
+    ConvMixer_768_32, "__doc__", BASE_DOCSTRING.format(name="ConvMixer_768_32")
+)
+setattr(
+    ConvMixer_1024_16,
+    "__doc__",
+    BASE_DOCSTRING.format(name="ConvMixer_1024_16"),
+)
+setattr(
+    ConvMixer_512_16, "__doc__", BASE_DOCSTRING.format(name="ConvMixer_512_16")
+)

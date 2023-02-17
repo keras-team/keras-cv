@@ -70,15 +70,21 @@ class OldRandomSaturation(BaseImageAugmentationLayer):
         # it will be handled correctly when it is a one tensor.
         transformation = tf.convert_to_tensor(transformation)
         adjust_factor = transformation / (1 - transformation)
-        return tf.image.adjust_saturation(image, saturation_factor=adjust_factor)
+        return tf.image.adjust_saturation(
+            image, saturation_factor=adjust_factor
+        )
 
-    def augment_bounding_boxes(self, bounding_boxes, transformation=None, **kwargs):
+    def augment_bounding_boxes(
+        self, bounding_boxes, transformation=None, **kwargs
+    ):
         return bounding_boxes
 
     def augment_label(self, label, transformation=None, **kwargs):
         return label
 
-    def augment_segmentation_mask(self, segmentation_mask, transformation, **kwargs):
+    def augment_segmentation_mask(
+        self, segmentation_mask, transformation, **kwargs
+    ):
         return segmentation_mask
 
     def get_config(self):
@@ -92,7 +98,9 @@ class OldRandomSaturation(BaseImageAugmentationLayer):
     @classmethod
     def from_config(cls, config):
         if isinstance(config["factor"], dict):
-            config["factor"] = tf.keras.utils.deserialize_keras_object(config["factor"])
+            config["factor"] = tf.keras.utils.deserialize_keras_object(
+                config["factor"]
+            )
         return cls(**config)
 
 
@@ -128,7 +136,9 @@ class RandomSaturationTest(tf.test.TestCase):
         # Make sure all the pixel has the same value among the channel dim, which is
         # a fully gray RGB.
         for channel_value in channel_values:
-            self.assertAllClose(channel_mean, channel_value, atol=1e-5, rtol=1e-5)
+            self.assertAllClose(
+                channel_mean, channel_value, atol=1e-5, rtol=1e-5
+            )
 
     def test_adjust_to_full_saturation(self):
         image_shape = (4, 8, 8, 3)
@@ -156,7 +166,9 @@ class RandomSaturationTest(tf.test.TestCase):
 
     def test_with_unit8(self):
         image_shape = (4, 8, 8, 3)
-        image = tf.cast(tf.random.uniform(shape=image_shape) * 255.0, dtype=tf.uint8)
+        image = tf.cast(
+            tf.random.uniform(shape=image_shape) * 255.0, dtype=tf.uint8
+        )
 
         layer = preprocessing.RandomSaturation(factor=(0.5, 0.5))
         output = layer(image)

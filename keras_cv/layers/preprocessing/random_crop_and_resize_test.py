@@ -166,7 +166,9 @@ class RandomCropAndResizeTest(tf.test.TestCase, parameterized.TestCase):
         mask_shape = (1, self.height, self.width, 1)
         image = tf.random.uniform(shape=input_image_shape, seed=self.seed)
         mask = tf.one_hot(
-            tf.squeeze(np.random.randint(2, size=mask_shape) * (classes - 1), axis=-1),
+            tf.squeeze(
+                np.random.randint(2, size=mask_shape) * (classes - 1), axis=-1
+            ),
             classes,
         )
 
@@ -205,8 +207,12 @@ class RandomCropAndResizeTest(tf.test.TestCase, parameterized.TestCase):
             "boxes": tf.convert_to_tensor([[0, 0, 1, 1]], dtype=tf.float32),
             "classes": tf.convert_to_tensor([0], dtype=tf.float32),
         }
-        output["bounding_boxes"] = bounding_box.to_dense(output["bounding_boxes"])
-        self.assertAllClose(expected_output["boxes"], output["bounding_boxes"]["boxes"])
+        output["bounding_boxes"] = bounding_box.to_dense(
+            output["bounding_boxes"]
+        )
+        self.assertAllClose(
+            expected_output["boxes"], output["bounding_boxes"]["boxes"]
+        )
         self.assertAllClose(
             expected_output["classes"], output["bounding_boxes"]["classes"]
         )
@@ -240,8 +246,12 @@ class RandomCropAndResizeTest(tf.test.TestCase, parameterized.TestCase):
             ),
             "classes": tf.convert_to_tensor([[0, 0], [0, 0]]),
         }
-        output["bounding_boxes"] = bounding_box.to_dense(output["bounding_boxes"])
-        self.assertAllClose(expected_output["boxes"], output["bounding_boxes"]["boxes"])
+        output["bounding_boxes"] = bounding_box.to_dense(
+            output["bounding_boxes"]
+        )
+        self.assertAllClose(
+            expected_output["boxes"], output["bounding_boxes"]["boxes"]
+        )
         self.assertAllClose(
             expected_output["classes"], output["bounding_boxes"]["classes"]
         )
@@ -271,8 +281,12 @@ class RandomCropAndResizeTest(tf.test.TestCase, parameterized.TestCase):
             "classes": tf.ragged.constant([[0, 0], [0]]),
         }
         expected_output = bounding_box.to_dense(expected_output)
-        output["bounding_boxes"] = bounding_box.to_dense(output["bounding_boxes"])
-        self.assertAllClose(expected_output["boxes"], output["bounding_boxes"]["boxes"])
+        output["bounding_boxes"] = bounding_box.to_dense(
+            output["bounding_boxes"]
+        )
+        self.assertAllClose(
+            expected_output["boxes"], output["bounding_boxes"]["boxes"]
+        )
         self.assertAllClose(
             expected_output["classes"], output["bounding_boxes"]["classes"]
         )

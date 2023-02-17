@@ -72,7 +72,9 @@ def single_rectangle_mask(corners, mask_shape):
     return masks
 
 
-def fill_single_rectangle(image, centers_x, centers_y, widths, heights, fill_values):
+def fill_single_rectangle(
+    image, centers_x, centers_y, widths, heights, fill_values
+):
     """Fill rectangles with fill value into images.
 
     Args:

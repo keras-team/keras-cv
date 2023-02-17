@@ -44,7 +44,9 @@ def within_box3d_index(points, boxes):
         results = []
         for i in range(num_samples):
             results.append(
-                custom_ops.ops.kcv_within_box(points[i], boxes[i])[tf.newaxis, ...]
+                custom_ops.ops.kcv_within_box(points[i], boxes[i])[
+                    tf.newaxis, ...
+                ]
             )
         return tf.concat(results, axis=0)
     else:
@@ -297,7 +299,8 @@ def _box_area(boxes):
     boxes_roll = tf.roll(boxes, shift=1, axis=-2)
     det = (
         tf.reduce_sum(
-            boxes[..., 0] * boxes_roll[..., 1] - boxes[..., 1] * boxes_roll[..., 0],
+            boxes[..., 0] * boxes_roll[..., 1]
+            - boxes[..., 1] * boxes_roll[..., 0],
             axis=-1,
             keepdims=True,
         )
@@ -327,10 +330,12 @@ def is_within_box2d(points, boxes):
     )
     is_inside = tf.math.logical_and(
         tf.math.logical_and(
-            _is_on_lefthand_side(points, v1, v2), _is_on_lefthand_side(points, v2, v3)
+            _is_on_lefthand_side(points, v1, v2),
+            _is_on_lefthand_side(points, v2, v3),
         ),
         tf.math.logical_and(
-            _is_on_lefthand_side(points, v3, v4), _is_on_lefthand_side(points, v4, v1)
+            _is_on_lefthand_side(points, v3, v4),
+            _is_on_lefthand_side(points, v4, v1),
         ),
     )
     valid_area = tf.greater(_box_area(boxes), 0)
@@ -433,7 +438,9 @@ def coordinate_transform(points, pose):
     rotation_matrix = _get_3d_rotation_matrix(yaw, roll, pitch)
     # Finally, rotate the points about the pose's origin according to the
     # rotation matrix.
-    rotated_points = tf.einsum("...i,...ij->...j", translated_points, rotation_matrix)
+    rotated_points = tf.einsum(
+        "...i,...ij->...j", translated_points, rotation_matrix
+    )
     return rotated_points
 
 
@@ -476,7 +483,9 @@ def within_a_frustum(points, center, r_distance, theta_width, phi_width):
       points are within the frustum.
 
     """
-    r, theta, phi = tf.unstack(spherical_coordinate_transform(points[:, :3]), axis=-1)
+    r, theta, phi = tf.unstack(
+        spherical_coordinate_transform(points[:, :3]), axis=-1
+    )
 
     _, center_theta, center_phi = tf.unstack(
         spherical_coordinate_transform(center[tf.newaxis, :]), axis=-1

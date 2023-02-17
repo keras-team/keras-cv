@@ -124,7 +124,8 @@ class SwapBackgroundTest(tf.test.TestCase):
             inputs[ADDITIONAL_POINT_CLOUDS], outputs[ADDITIONAL_POINT_CLOUDS]
         )
         self.assertAllClose(
-            inputs[ADDITIONAL_BOUNDING_BOXES], outputs[ADDITIONAL_BOUNDING_BOXES]
+            inputs[ADDITIONAL_BOUNDING_BOXES],
+            outputs[ADDITIONAL_BOUNDING_BOXES],
         )
         self.assertAllClose(outputs[POINT_CLOUDS], augmented_point_clouds)
         self.assertAllClose(outputs[BOUNDING_BOXES], augmented_bounding_boxes)
@@ -247,7 +248,8 @@ class SwapBackgroundTest(tf.test.TestCase):
             inputs[ADDITIONAL_POINT_CLOUDS], outputs[ADDITIONAL_POINT_CLOUDS]
         )
         self.assertAllClose(
-            inputs[ADDITIONAL_BOUNDING_BOXES], outputs[ADDITIONAL_BOUNDING_BOXES]
+            inputs[ADDITIONAL_BOUNDING_BOXES],
+            outputs[ADDITIONAL_BOUNDING_BOXES],
         )
         self.assertAllClose(outputs[POINT_CLOUDS], augmented_point_clouds)
         self.assertAllClose(outputs[BOUNDING_BOXES], augmented_bounding_boxes)

@@ -59,6 +59,8 @@ class RandomAspectRatioTest(tf.test.TestCase):
             factor=(0.9, 1.1), bounding_box_format="rel_xywh"
         )
         output = layer(input, training=True)
-        output["bounding_boxes"] = bounding_box.to_dense(output["bounding_boxes"])
+        output["bounding_boxes"] = bounding_box.to_dense(
+            output["bounding_boxes"]
+        )
         bounding_boxes = bounding_box.to_dense(bounding_boxes)
         self.assertAllClose(bounding_boxes, output["bounding_boxes"])

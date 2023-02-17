@@ -76,7 +76,9 @@ class AutoContrast(VectorizedBaseImageAugmentationLayer):
     def augment_labels(self, labels, transformations=None, **kwargs):
         return labels
 
-    def augment_segmentation_masks(self, segmentation_masks, transformations, **kwargs):
+    def augment_segmentation_masks(
+        self, segmentation_masks, transformations, **kwargs
+    ):
         return segmentation_masks
 
     def augment_keypoints(self, keypoints, transformations, **kwargs):
@@ -86,7 +88,9 @@ class AutoContrast(VectorizedBaseImageAugmentationLayer):
         return targets
 
     def augment_ragged_image(self, image, transformation, **kwargs):
-        return self.augment_images(image, transformations=transformation, **kwargs)
+        return self.augment_images(
+            image, transformations=transformation, **kwargs
+        )
 
     def get_config(self):
         config = super().get_config()

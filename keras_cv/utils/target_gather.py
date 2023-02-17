@@ -106,7 +106,9 @@ def _target_gather(
             batch_indices = tf.expand_dims(
                 tf.range(indices_shape[0], dtype=indices_dtype), axis=-1
             ) * tf.ones([1, indices_shape[-1]], dtype=indices_dtype)
-            gather_nd_indices = tf.stack([batch_indices, match_indices], axis=-1)
+            gather_nd_indices = tf.stack(
+                [batch_indices, match_indices], axis=-1
+            )
             targets = tf.gather_nd(labels, gather_nd_indices)
             if mask is None:
                 return targets

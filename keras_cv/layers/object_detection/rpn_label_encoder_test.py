@@ -28,7 +28,12 @@ class RpnLabelEncoderTest(tf.test.TestCase):
             samples_per_image=2,
         )
         rois = tf.constant(
-            [[0, 0, 5, 5], [2.5, 2.5, 7.5, 7.5], [5, 5, 10, 10], [7.5, 7.5, 12.5, 12.5]]
+            [
+                [0, 0, 5, 5],
+                [2.5, 2.5, 7.5, 7.5],
+                [5, 5, 10, 10],
+                [7.5, 7.5, 12.5, 12.5],
+            ]
         )
         # the 3rd box will generate 0 IOUs and not sampled.
         gt_boxes = tf.constant([[10, 10, 15, 15], [2.5, 2.5, 7.5, 7.5]])
@@ -95,7 +100,12 @@ class RpnLabelEncoderTest(tf.test.TestCase):
             samples_per_image=2,
         )
         rois = tf.constant(
-            [[0, 0, 5, 5], [2.5, 2.5, 7.5, 7.5], [5, 5, 10, 10], [7.5, 7.5, 12.5, 12.5]]
+            [
+                [0, 0, 5, 5],
+                [2.5, 2.5, 7.5, 7.5],
+                [5, 5, 10, 10],
+                [7.5, 7.5, 12.5, 12.5],
+            ]
         )
         # the 3rd box will generate 0 IOUs and not sampled.
         gt_boxes = tf.constant([[10, 10, 15, 15], [2.5, 2.5, 7.5, 7.5]])

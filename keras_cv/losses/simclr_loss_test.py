@@ -40,7 +40,9 @@ class SimCLRLossTest(tf.test.TestCase):
 
         simclr_loss = SimCLRLoss(temperature=1, reduction="none")
 
-        self.assertAllEqual(simclr_loss(projections_1, projections_2).shape, (10,))
+        self.assertAllEqual(
+            simclr_loss(projections_1, projections_2).shape, (10,)
+        )
 
     def test_output_value(self):
         projections_1 = [

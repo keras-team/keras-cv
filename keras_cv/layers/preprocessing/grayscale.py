@@ -69,7 +69,9 @@ class Grayscale(VectorizedBaseImageAugmentationLayer):
         return ragged_spec
 
     def augment_ragged_image(self, image, transformation, **kwargs):
-        return self.augment_images(image, transformations=transformation, **kwargs)
+        return self.augment_images(
+            image, transformations=transformation, **kwargs
+        )
 
     def augment_images(self, images, transformations=None, **kwargs):
         grayscale = tf.image.rgb_to_grayscale(images)
@@ -86,7 +88,9 @@ class Grayscale(VectorizedBaseImageAugmentationLayer):
     def augment_labels(self, labels, transformations=None, **kwargs):
         return labels
 
-    def augment_segmentation_masks(self, segmentation_masks, transformations, **kwargs):
+    def augment_segmentation_masks(
+        self, segmentation_masks, transformations, **kwargs
+    ):
         return segmentation_masks
 
     def get_config(self):

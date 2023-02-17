@@ -43,7 +43,9 @@ import numpy as np
 import tensorflow as tf
 import tensorflow_datasets as tfds
 
-VOC_URL = "http://host.robots.ox.ac.uk/pascal/VOC/voc2012/VOCtrainval_11-May-2012.tar"
+VOC_URL = (
+    "http://host.robots.ox.ac.uk/pascal/VOC/voc2012/VOCtrainval_11-May-2012.tar"
+)
 
 """
 @InProceedings{{BharathICCV2011,
@@ -212,7 +214,9 @@ def _get_image_ids(data_dir, split):
         # "diff": "diff.txt",
     }
     with tf.io.gfile.GFile(
-        os.path.join(data_dir, "ImageSets", "Segmentation", data_file_mapping[split]),
+        os.path.join(
+            data_dir, "ImageSets", "Segmentation", data_file_mapping[split]
+        ),
         "r",
     ) as f:
         image_ids = f.read().splitlines()
@@ -241,7 +245,9 @@ def _parse_single_image(image_file_path):
     object_segmentation_file_path = os.path.join(
         data_dir, "SegmentationObject", image_id + ".png"
     )
-    annotation_file_path = os.path.join(data_dir, "Annotations", image_id + ".xml")
+    annotation_file_path = os.path.join(
+        data_dir, "Annotations", image_id + ".xml"
+    )
     image_annotations = _parse_annotation_data(annotation_file_path)
 
     result = {
@@ -261,8 +267,12 @@ def _parse_single_sbd_image(image_file_path):
     data_dir, image_file_name = os.path.split(image_file_path)
     data_dir = os.path.normpath(os.path.join(data_dir, os.path.pardir))
     image_id, _ = os.path.splitext(image_file_name)
-    class_segmentation_file_path = os.path.join(data_dir, "cls", image_id + ".mat")
-    object_segmentation_file_path = os.path.join(data_dir, "inst", image_id + ".mat")
+    class_segmentation_file_path = os.path.join(
+        data_dir, "cls", image_id + ".mat"
+    )
+    object_segmentation_file_path = os.path.join(
+        data_dir, "inst", image_id + ".mat"
+    )
     result = {
         "image/filename": image_id + ".jpg",
         "image/file_path": image_file_path,
@@ -308,7 +318,9 @@ def _build_metadata(data_dir, image_ids):
 
 def _build_sbd_metadata(data_dir, image_ids):
     # Parallel process all the images.
-    image_file_paths = [os.path.join(data_dir, "img", i + ".jpg") for i in image_ids]
+    image_file_paths = [
+        os.path.join(data_dir, "img", i + ".jpg") for i in image_ids
+    ]
     pool_size = 10 if len(image_ids) > 10 else len(image_ids)
     with multiprocessing.Pool(pool_size) as p:
         metadata = p.map(_parse_single_sbd_image, image_file_paths)
@@ -369,14 +381,20 @@ def _load_sbd_images(image_file_path, seg_cls_file_path, seg_obj_file_path):
     image = tf.io.read_file(image_file_path)
     image = tf.image.decode_jpeg(image)
 
-    segmentation_class_mask = tfds.core.lazy_imports.scipy.io.loadmat(seg_cls_file_path)
-    segmentation_class_mask = segmentation_class_mask["GTcls"]["Segmentation"][0][0]
+    segmentation_class_mask = tfds.core.lazy_imports.scipy.io.loadmat(
+        seg_cls_file_path
+    )
+    segmentation_class_mask = segmentation_class_mask["GTcls"]["Segmentation"][
+        0
+    ][0]
     segmentation_class_mask = segmentation_class_mask[..., np.newaxis]
 
     segmentation_object_mask = tfds.core.lazy_imports.scipy.io.loadmat(
         seg_obj_file_path
     )
-    segmentation_object_mask = segmentation_object_mask["GTinst"]["Segmentation"][0][0]
+    segmentation_object_mask = segmentation_object_mask["GTinst"][
+        "Segmentation"
+    ][0][0]
     segmentation_object_mask = segmentation_object_mask[..., np.newaxis]
 
     return {
@@ -459,7 +477,13 @@ def load(
             download the data file, and unzip. It will be used as a cach directory.
             Default to None, and `~/.keras/pascal_voc_2012` will be used.
     """
-    supported_split_value = ["train", "eval", "trainval", "sbd_train", "sbd_eval"]
+    supported_split_value = [
+        "train",
+        "eval",
+        "trainval",
+        "sbd_train",
+        "sbd_eval",
+    ]
     if split not in supported_split_value:
         raise ValueError(
             f"The support value for `split` are {supported_split_value}. "

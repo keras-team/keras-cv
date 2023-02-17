@@ -47,7 +47,9 @@ class FusedMBConvBlockTest(tf.test.TestCase):
 
     def test_squeeze_excitation_ratio(self):
         inputs = tf.random.normal(shape=(1, 64, 64, 32), dtype=tf.float32)
-        layer = FusedMBConvBlock(input_filters=32, output_filters=48, se_ratio=0.25)
+        layer = FusedMBConvBlock(
+            input_filters=32, output_filters=48, se_ratio=0.25
+        )
 
         output = layer(inputs)
         self.assertEquals(output.shape, [1, 64, 64, 48])

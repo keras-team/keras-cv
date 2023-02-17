@@ -19,11 +19,15 @@ from keras_cv import core
 
 class NormalFactorTest(tf.test.TestCase):
     def test_sample(self):
-        factor = core.NormalFactor(mean=0.5, stddev=0.2, min_value=0, max_value=1)
+        factor = core.NormalFactor(
+            mean=0.5, stddev=0.2, min_value=0, max_value=1
+        )
         self.assertTrue(0 <= factor() <= 1)
 
     def test_config(self):
-        factor = core.NormalFactor(mean=0.5, stddev=0.2, min_value=0, max_value=1)
+        factor = core.NormalFactor(
+            mean=0.5, stddev=0.2, min_value=0, max_value=1
+        )
         config = factor.get_config()
         self.assertEqual(config["mean"], 0.5)
         self.assertEqual(config["stddev"], 0.2)

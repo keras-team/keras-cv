@@ -33,7 +33,9 @@ def make_predict_function(model, force=False):
             return outputs
 
         if model._jit_compile:
-            run_step = tf.function(run_step, jit_compile=True, reduce_retracing=True)
+            run_step = tf.function(
+                run_step, jit_compile=True, reduce_retracing=True
+            )
 
         data = next(iterator)
         outputs = model.distribute_strategy.run(run_step, args=(data,))

@@ -23,7 +23,9 @@ BOUNDING_BOXES = base_augmentation_layer_3d.BOUNDING_BOXES
 
 
 @tf.keras.utils.register_keras_serializable(package="keras_cv")
-class GlobalRandomTranslation(base_augmentation_layer_3d.BaseAugmentationLayer3D):
+class GlobalRandomTranslation(
+    base_augmentation_layer_3d.BaseAugmentationLayer3D
+):
     """A preprocessing layer which randomly translates point clouds and bounding boxes along
     X, Y, and Z axes during training.
 
@@ -101,13 +103,18 @@ class GlobalRandomTranslation(base_augmentation_layer_3d.BaseAugmentationLayer3D
     ):
         pose = transformation["pose"]
         point_clouds_xyz = coordinate_transform(point_clouds[..., :3], pose)
-        point_clouds = tf.concat([point_clouds_xyz, point_clouds[..., 3:]], axis=-1)
+        point_clouds = tf.concat(
+            [point_clouds_xyz, point_clouds[..., 3:]], axis=-1
+        )
 
         bounding_boxes_xyz = coordinate_transform(
             bounding_boxes[..., : CENTER_XYZ_DXDYDZ_PHI.Z + 1], pose
         )
         bounding_boxes = tf.concat(
-            [bounding_boxes_xyz, bounding_boxes[..., CENTER_XYZ_DXDYDZ_PHI.DX :]],
+            [
+                bounding_boxes_xyz,
+                bounding_boxes[..., CENTER_XYZ_DXDYDZ_PHI.DX :],
+            ],
             axis=-1,
         )
 

@@ -26,7 +26,9 @@ OBJECT_BOUNDING_BOXES = base_augmentation_layer_3d.OBJECT_BOUNDING_BOXES
 
 
 @tf.keras.utils.register_keras_serializable(package="keras_cv")
-class GroupPointsByBoundingBoxes(base_augmentation_layer_3d.BaseAugmentationLayer3D):
+class GroupPointsByBoundingBoxes(
+    base_augmentation_layer_3d.BaseAugmentationLayer3D
+):
     """A preprocessing layer which groups point clouds based on bounding boxes during training.
 
     This layer will group point clouds based on bounding boxes and generate OBJECT_POINT_CLOUDS and OBJECT_BOUNDING_BOXES tensors.
@@ -93,7 +95,8 @@ class GroupPointsByBoundingBoxes(base_augmentation_layer_3d.BaseAugmentationLaye
     ):
         if self._label_index:
             bounding_boxes_mask = (
-                bounding_boxes[0, :, CENTER_XYZ_DXDYDZ_PHI.CLASS] == self._label_index
+                bounding_boxes[0, :, CENTER_XYZ_DXDYDZ_PHI.CLASS]
+                == self._label_index
             )
             object_bounding_boxes = tf.boolean_mask(
                 bounding_boxes, bounding_boxes_mask, axis=1
@@ -112,7 +115,9 @@ class GroupPointsByBoundingBoxes(base_augmentation_layer_3d.BaseAugmentationLaye
         # Filter bounding boxes using the current frame.
         # [num_boxes]
         min_points_filter = (
-            tf.reduce_sum(tf.cast(points_in_bounding_boxes[0], dtype=tf.int32), axis=0)
+            tf.reduce_sum(
+                tf.cast(points_in_bounding_boxes[0], dtype=tf.int32), axis=0
+            )
             >= self._min_points_per_bounding_boxes
         )
 
@@ -124,7 +129,9 @@ class GroupPointsByBoundingBoxes(base_augmentation_layer_3d.BaseAugmentationLaye
             points_in_bounding_boxes, min_points_filter, axis=2
         )
         # [num of frames, num of boxes, num of points].
-        points_in_bounding_boxes = tf.transpose(points_in_bounding_boxes, [0, 2, 1])
+        points_in_bounding_boxes = tf.transpose(
+            points_in_bounding_boxes, [0, 2, 1]
+        )
         points_in_bounding_boxes = tf.cast(points_in_bounding_boxes, tf.int32)
         sort_valid_index = tf.argsort(
             points_in_bounding_boxes, axis=-1, direction="DESCENDING"
@@ -156,7 +163,8 @@ class GroupPointsByBoundingBoxes(base_augmentation_layer_3d.BaseAugmentationLaye
     ):
         if self._label_index:
             bounding_boxes_mask = (
-                bounding_boxes[0, :, CENTER_XYZ_DXDYDZ_PHI.CLASS] == self._label_index
+                bounding_boxes[0, :, CENTER_XYZ_DXDYDZ_PHI.CLASS]
+                == self._label_index
             )
             object_bounding_boxes = tf.boolean_mask(
                 bounding_boxes, bounding_boxes_mask, axis=1
@@ -228,7 +236,9 @@ class GroupPointsByBoundingBoxes(base_augmentation_layer_3d.BaseAugmentationLaye
             bounding_boxes = inputs[BOUNDING_BOXES]
             if point_clouds.shape.rank == 3 and bounding_boxes.shape.rank == 3:
                 return self._augment(inputs)
-            elif point_clouds.shape.rank == 4 and bounding_boxes.shape.rank == 4:
+            elif (
+                point_clouds.shape.rank == 4 and bounding_boxes.shape.rank == 4
+            ):
                 batch = point_clouds.get_shape().as_list()[0]
                 object_point_clouds_list = []
                 object_bounding_boxes_list = []

@@ -28,13 +28,17 @@ class MaskInvalidDetectionsTest(tf.test.TestCase):
         result = bounding_box.mask_invalid_detections(bounding_boxes)
 
         negative_one_boxes = result["boxes"][:, 5:, :]
-        self.assertAllClose(negative_one_boxes, -tf.ones_like(negative_one_boxes))
+        self.assertAllClose(
+            negative_one_boxes, -tf.ones_like(negative_one_boxes)
+        )
 
         preserved_boxes = result["boxes"][:, :2, :]
         self.assertAllClose(preserved_boxes, bounding_boxes["boxes"][:, :2, :])
 
         boxes_from_image_3 = result["boxes"][2, :4, :]
-        self.assertAllClose(boxes_from_image_3, bounding_boxes["boxes"][2, :4, :])
+        self.assertAllClose(
+            boxes_from_image_3, bounding_boxes["boxes"][2, :4, :]
+        )
 
     def test_correctly_masks_based_on_max_dets_in_graph(self):
         bounding_boxes = {
@@ -50,19 +54,27 @@ class MaskInvalidDetectionsTest(tf.test.TestCase):
         result = apply_mask_detections(bounding_boxes)
 
         negative_one_boxes = result["boxes"][:, 5:, :]
-        self.assertAllClose(negative_one_boxes, -tf.ones_like(negative_one_boxes))
+        self.assertAllClose(
+            negative_one_boxes, -tf.ones_like(negative_one_boxes)
+        )
 
         preserved_boxes = result["boxes"][:, :2, :]
         self.assertAllClose(preserved_boxes, bounding_boxes["boxes"][:, :2, :])
 
         boxes_from_image_3 = result["boxes"][2, :4, :]
-        self.assertAllClose(boxes_from_image_3, bounding_boxes["boxes"][2, :4, :])
+        self.assertAllClose(
+            boxes_from_image_3, bounding_boxes["boxes"][2, :4, :]
+        )
 
     def test_ragged_outputs(self):
         bounding_boxes = {
-            "boxes": tf.stack([tf.random.uniform((10, 4)), tf.random.uniform((10, 4))]),
+            "boxes": tf.stack(
+                [tf.random.uniform((10, 4)), tf.random.uniform((10, 4))]
+            ),
             "num_detections": tf.constant([2, 3]),
-            "classes": tf.stack([tf.random.uniform((10,)), tf.random.uniform((10,))]),
+            "classes": tf.stack(
+                [tf.random.uniform((10,)), tf.random.uniform((10,))]
+            ),
         }
 
         result = bounding_box.mask_invalid_detections(

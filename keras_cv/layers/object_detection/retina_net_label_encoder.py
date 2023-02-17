@@ -110,7 +110,9 @@ class RetinaNetLabelEncoder(layers.Layer):
         matched_vals = matched_vals[..., tf.newaxis]
         positive_mask = tf.cast(tf.math.equal(matched_vals, 1), self.dtype)
         ignore_mask = tf.cast(tf.math.equal(matched_vals, -2), self.dtype)
-        matched_gt_boxes = target_gather._target_gather(gt_boxes, matched_gt_idx)
+        matched_gt_boxes = target_gather._target_gather(
+            gt_boxes, matched_gt_idx
+        )
         box_target = bounding_box._encode_box_to_deltas(
             anchors=anchor_boxes,
             boxes=matched_gt_boxes,
@@ -118,11 +120,17 @@ class RetinaNetLabelEncoder(layers.Layer):
             box_format="xywh",
             variance=self.box_variance,
         )
-        matched_gt_cls_ids = target_gather._target_gather(gt_classes, matched_gt_idx)
-        cls_target = tf.where(
-            tf.not_equal(positive_mask, 1.0), self.background_class, matched_gt_cls_ids
+        matched_gt_cls_ids = target_gather._target_gather(
+            gt_classes, matched_gt_idx
         )
-        cls_target = tf.where(tf.equal(ignore_mask, 1.0), self.ignore_class, cls_target)
+        cls_target = tf.where(
+            tf.not_equal(positive_mask, 1.0),
+            self.background_class,
+            matched_gt_cls_ids,
+        )
+        cls_target = tf.where(
+            tf.equal(ignore_mask, 1.0), self.ignore_class, cls_target
+        )
         label = tf.concat([box_target, cls_target], axis=-1)
 
         # In the case that a box in the corner of an image matches with an all -1 box
@@ -131,7 +139,9 @@ class RetinaNetLabelEncoder(layers.Layer):
         # training.  The unit test passing all -1s to the label encoder ensures that we
         # properly handle this edge-case.
         label = tf.where(
-            tf.expand_dims(tf.math.reduce_any(tf.math.is_nan(label), axis=-1), axis=-1),
+            tf.expand_dims(
+                tf.math.reduce_any(tf.math.is_nan(label), axis=-1), axis=-1
+            ),
             self.ignore_class,
             label,
         )
@@ -192,7 +202,10 @@ class RetinaNetLabelEncoder(layers.Layer):
 
         result = self._encode_sample(box_labels, anchor_boxes)
         result = bounding_box.convert_format(
-            result, source="xywh", target=self.bounding_box_format, images=images
+            result,
+            source="xywh",
+            target=self.bounding_box_format,
+            images=images,
         )
         encoded_box_targets = result["boxes"]
         class_targets = result["classes"]

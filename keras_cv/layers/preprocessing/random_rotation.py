@@ -107,7 +107,9 @@ class RandomRotation(BaseImageAugmentationLayer):
             raise ValueError(
                 "Factor cannot have negative values, " "got {}".format(factor)
             )
-        preprocessing.check_fill_mode_and_interpolation(fill_mode, interpolation)
+        preprocessing.check_fill_mode_and_interpolation(
+            fill_mode, interpolation
+        )
         self.fill_mode = fill_mode
         self.fill_value = fill_value
         self.interpolation = interpolation
@@ -238,16 +240,21 @@ class RandomRotation(BaseImageAugmentationLayer):
     def augment_label(self, label, transformation, **kwargs):
         return label
 
-    def augment_segmentation_mask(self, segmentation_mask, transformation, **kwargs):
+    def augment_segmentation_mask(
+        self, segmentation_mask, transformation, **kwargs
+    ):
         # If segmentation_classes is specified, we have a dense segmentation mask.
         # We therefore one-hot encode before rotation to avoid bad interpolation
         # during the rotation transformation. We then make the mask sparse
         # again using tf.argmax.
         if self.segmentation_classes:
             one_hot_mask = tf.one_hot(
-                tf.squeeze(segmentation_mask, axis=-1), self.segmentation_classes
+                tf.squeeze(segmentation_mask, axis=-1),
+                self.segmentation_classes,
             )
-            rotated_one_hot_mask = self._rotate_image(one_hot_mask, transformation)
+            rotated_one_hot_mask = self._rotate_image(
+                one_hot_mask, transformation
+            )
             rotated_mask = tf.argmax(rotated_one_hot_mask, axis=-1)
             return tf.expand_dims(rotated_mask, axis=-1)
         else:

@@ -181,4 +181,6 @@ callbacks = [
 ]
 model.compile(optimizer=optimizer, loss=loss_fn, metrics=metrics)
 
-model.fit(train_ds, epochs=FLAGS.epochs, validation_data=eval_ds, callbacks=callbacks)
+model.fit(
+    train_ds, epochs=FLAGS.epochs, validation_data=eval_ds, callbacks=callbacks
+)

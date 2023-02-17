@@ -78,7 +78,9 @@ class RandomlyZoomedCrop(BaseImageAugmentationLayer):
             seed=seed,
         )
 
-        self._check_class_arguments(height, width, zoom_factor, aspect_ratio_factor)
+        self._check_class_arguments(
+            height, width, zoom_factor, aspect_ratio_factor
+        )
         self.force_output_dense_images = True
         self.interpolation = interpolation
         self.seed = seed
@@ -180,12 +182,18 @@ class RandomlyZoomedCrop(BaseImageAugmentationLayer):
         # smart_resize will always output float32, so we need to re-cast.
         return tf.cast(outputs, self.compute_dtype)
 
-    def _check_class_arguments(self, height, width, zoom_factor, aspect_ratio_factor):
+    def _check_class_arguments(
+        self, height, width, zoom_factor, aspect_ratio_factor
+    ):
         if not isinstance(height, int):
-            raise ValueError("`height` must be an integer. Received height={height}")
+            raise ValueError(
+                "`height` must be an integer. Received height={height}"
+            )
 
         if not isinstance(width, int):
-            raise ValueError("`width` must be an integer. Received width={width}")
+            raise ValueError(
+                "`width` must be an integer. Received width={width}"
+            )
 
         if (
             not isinstance(zoom_factor, (tuple, list, core.FactorSampler))
@@ -199,7 +207,9 @@ class RandomlyZoomedCrop(BaseImageAugmentationLayer):
             )
 
         if (
-            not isinstance(aspect_ratio_factor, (tuple, list, core.FactorSampler))
+            not isinstance(
+                aspect_ratio_factor, (tuple, list, core.FactorSampler)
+            )
             or isinstance(aspect_ratio_factor, float)
             or isinstance(aspect_ratio_factor, int)
         ):
@@ -233,7 +243,9 @@ class RandomlyZoomedCrop(BaseImageAugmentationLayer):
                 config["zoom_factor"]
             )
         if isinstance(config["aspect_ratio_factor"], dict):
-            config["aspect_ratio_factor"] = tf.keras.utils.deserialize_keras_object(
+            config[
+                "aspect_ratio_factor"
+            ] = tf.keras.utils.deserialize_keras_object(
                 config["aspect_ratio_factor"]
             )
         return cls(**config)

@@ -19,16 +19,24 @@ from keras_cv.losses.giou_loss import GIoULoss
 
 class GIoUTest(tf.test.TestCase):
     def test_output_shape(self):
-        y_true = tf.random.uniform(shape=(2, 2, 4), minval=0, maxval=10, dtype=tf.int32)
-        y_pred = tf.random.uniform(shape=(2, 2, 4), minval=0, maxval=20, dtype=tf.int32)
+        y_true = tf.random.uniform(
+            shape=(2, 2, 4), minval=0, maxval=10, dtype=tf.int32
+        )
+        y_pred = tf.random.uniform(
+            shape=(2, 2, 4), minval=0, maxval=20, dtype=tf.int32
+        )
 
         giou_loss = GIoULoss(bounding_box_format="xywh")
 
         self.assertAllEqual(giou_loss(y_true, y_pred).shape, ())
 
     def test_output_shape_reduction_none(self):
-        y_true = tf.random.uniform(shape=(2, 2, 4), minval=0, maxval=10, dtype=tf.int32)
-        y_pred = tf.random.uniform(shape=(2, 2, 4), minval=0, maxval=20, dtype=tf.int32)
+        y_true = tf.random.uniform(
+            shape=(2, 2, 4), minval=0, maxval=10, dtype=tf.int32
+        )
+        y_pred = tf.random.uniform(
+            shape=(2, 2, 4), minval=0, maxval=20, dtype=tf.int32
+        )
 
         giou_loss = GIoULoss(bounding_box_format="xywh", reduction="none")
 

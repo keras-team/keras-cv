@@ -169,7 +169,9 @@ class MultiHeadCenterPillar(tf.keras.Model):
         # returns dict {"class_1": concat_pred_1, "class_2": concat_pred_2}
         return predictions
 
-    def compute_loss(self, predictions, box_dict, heatmap_dict, top_k_index_dict):
+    def compute_loss(
+        self, predictions, box_dict, heatmap_dict, top_k_index_dict
+    ):
         y_pred = {}
         y_true = {}
         sample_weight = {}
@@ -204,7 +206,10 @@ class MultiHeadCenterPillar(tf.keras.Model):
         losses = []
         with tf.GradientTape() as tape:
             predictions = self(
-                x["point_xyz"], x["point_feature"], x["point_mask"], training=True
+                x["point_xyz"],
+                x["point_feature"],
+                x["point_mask"],
+                training=True,
             )
             losses.append(
                 self.compute_loss(

@@ -244,8 +244,12 @@ def EfficientNetBlock(
                 kernel_initializer=CONV_KERNEL_INITIALIZER,
                 name=name + "expand_conv",
             )(inputs)
-            x = layers.BatchNormalization(axis=BN_AXIS, name=name + "expand_bn")(x)
-            x = layers.Activation(activation, name=name + "expand_activation")(x)
+            x = layers.BatchNormalization(
+                axis=BN_AXIS, name=name + "expand_bn"
+            )(x)
+            x = layers.Activation(activation, name=name + "expand_activation")(
+                x
+            )
         else:
             x = inputs
 
@@ -411,7 +415,9 @@ def EfficientNet(
     def round_filters(filters, divisor=depth_divisor):
         """Round number of filters based on depth multiplier."""
         filters *= width_coefficient
-        new_filters = max(divisor, int(filters + divisor / 2) // divisor * divisor)
+        new_filters = max(
+            divisor, int(filters + divisor / 2) // divisor * divisor
+        )
         # Make sure that round down does not go down by more than 10%.
         if new_filters < 0.9 * filters:
             new_filters += divisor

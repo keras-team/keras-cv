@@ -117,7 +117,9 @@ class SpatialPyramidPooling(tf.keras.layers.Layer):
                 ),
                 tf.keras.layers.BatchNormalization(),
                 tf.keras.layers.Activation(self.activation),
-                tf.keras.layers.Resizing(height, width, interpolation="bilinear"),
+                tf.keras.layers.Resizing(
+                    height, width, interpolation="bilinear"
+                ),
             ]
         )
         self.aspp_parallel_channels.append(pool_sequential)

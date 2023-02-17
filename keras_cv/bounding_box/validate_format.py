@@ -69,7 +69,9 @@ def validate_format(bounding_boxes):
 
     info["classes_one_hot"] = len(classes.shape) == 3
 
-    if isinstance(boxes, tf.RaggedTensor) != isinstance(classes, tf.RaggedTensor):
+    if isinstance(boxes, tf.RaggedTensor) != isinstance(
+        classes, tf.RaggedTensor
+    ):
         raise ValueError(
             "Either both `boxes` and `classes` "
             "should be Ragged, or neither should be ragged."

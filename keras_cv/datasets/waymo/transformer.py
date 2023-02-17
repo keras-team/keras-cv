@@ -92,7 +92,8 @@ def _decode_range_images(frame) -> Dict[int, List[tf.Tensor]]:
             ri = dataset_pb2.MatrixFloat()
             ri.ParseFromString(bytearray(range_image_str_tensor.numpy()))
             ri_tensor = tf.reshape(
-                tf.convert_to_tensor(value=ri.data, dtype=tf.float32), ri.shape.dims
+                tf.convert_to_tensor(value=ri.data, dtype=tf.float32),
+                ri.shape.dims,
             )
             range_images[lidar.name].append(ri_tensor)
     return range_images
@@ -107,7 +108,9 @@ def _get_range_image_top_pose(frame) -> tf.Tensor:
     Returns:
       Pose tensors for the range image.
     """
-    _, _, _, ri_pose = frame_utils.parse_range_image_and_camera_projection(frame)
+    _, _, _, ri_pose = frame_utils.parse_range_image_and_camera_projection(
+        frame
+    )
     assert ri_pose
     ri_pose_tensor = tf.reshape(
         tf.convert_to_tensor(value=ri_pose.data), ri_pose.shape.dims
@@ -184,11 +187,19 @@ def _get_point_top_lidar(
 
         if i == 0:
             has_second_return = range_image[1][:, :, 0] > 0
-            has_second_return_list.append(tf.gather_nd(has_second_return, mask_idx))
-            is_second_return_list.append(tf.zeros([mask_idx.shape[0]], dtype=tf.bool))
+            has_second_return_list.append(
+                tf.gather_nd(has_second_return, mask_idx)
+            )
+            is_second_return_list.append(
+                tf.zeros([mask_idx.shape[0]], dtype=tf.bool)
+            )
         else:
-            has_second_return_list.append(tf.zeros([mask_idx.shape[0]], dtype=tf.bool))
-            is_second_return_list.append(tf.ones([mask_idx.shape[0]], dtype=tf.bool))
+            has_second_return_list.append(
+                tf.zeros([mask_idx.shape[0]], dtype=tf.bool)
+            )
+            is_second_return_list.append(
+                tf.ones([mask_idx.shape[0]], dtype=tf.bool)
+            )
 
     xyz = tf.concat(xyz_list, axis=0)
     feature = tf.concat(feature_list, axis=0)
@@ -209,7 +220,9 @@ def _get_point_top_lidar(
         ],
         axis=-1,
     )
-    sensor_id = tf.ones([xyz.shape[0], 1], dtype=tf.int32) * dataset_pb2.LaserName.TOP
+    sensor_id = (
+        tf.ones([xyz.shape[0], 1], dtype=tf.int32) * dataset_pb2.LaserName.TOP
+    )
     ri_row_col_sensor_id = tf.concat([row_col, sensor_id], axis=-1)
 
     return struct.PointTensors(
@@ -275,10 +288,15 @@ def _get_point_lidar(
         assert len(ri_tensor) == 1, f"{sensor_id}"
         ri_tensor = ri_tensor[0]
         calibration = _get_lidar_calibration(frame, sensor_id)
-        extrinsic = tf.reshape(np.array(calibration.extrinsic.transform), [4, 4])
+        extrinsic = tf.reshape(
+            np.array(calibration.extrinsic.transform), [4, 4]
+        )
         beam_inclinations = range_image_utils.compute_inclination(
             tf.constant(
-                [calibration.beam_inclination_min, calibration.beam_inclination_max]
+                [
+                    calibration.beam_inclination_min,
+                    calibration.beam_inclination_max,
+                ]
             ),
             height=ri_tensor.shape[0],
         )
@@ -294,7 +312,8 @@ def _get_point_lidar(
         xyz = tf.gather_nd(tf.squeeze(xyz, axis=0), mask_idx)
         feature = tf.gather_nd(ri_tensor[:, :, 1:3], mask_idx)
         feature = tf.concat(
-            [feature, tf.zeros([feature.shape[0], 2], dtype=tf.float32)], axis=-1
+            [feature, tf.zeros([feature.shape[0], 2], dtype=tf.float32)],
+            axis=-1,
         )
         nlz = tf.gather_nd(ri_tensor[:, :, -1] > 0, mask_idx)
 
@@ -303,7 +322,10 @@ def _get_point_lidar(
         nlz_list.append(nlz)
         ri_row_col_sensor_id_list.append(
             tf.concat(
-                [mask_idx, sensor_id * tf.ones([nlz.shape[0], 1], dtype=tf.int32)],
+                [
+                    mask_idx,
+                    sensor_id * tf.ones([nlz.shape[0], 1], dtype=tf.int32),
+                ],
                 axis=-1,
             )
         )
@@ -339,12 +361,15 @@ def _get_point(frame, max_num_lidar_points: int) -> struct.PointTensors:
     )
 
     range_images.pop(dataset_pb2.LaserName.TOP)
-    point_tensors_lidar = _get_point_lidar(range_images, frame, max_num_lidar_points)
+    point_tensors_lidar = _get_point_lidar(
+        range_images, frame, max_num_lidar_points
+    )
 
     merged = {}
     for key in vars(point_tensors_lidar).keys():
         merged[key] = tf.concat(
-            [getattr(point_tensors_lidar, key), getattr(point_top_lidar, key)], axis=0
+            [getattr(point_tensors_lidar, key), getattr(point_top_lidar, key)],
+            axis=0,
         )
     return struct.PointTensors(**merged)
 
@@ -402,7 +427,9 @@ def _get_point_label_box(
         )
         box_class_list.append(model_object_type)
         box_id = tf.bitcast(
-            tf.fingerprint(tf.expand_dims(label.id.encode(encoding="ascii"), 0))[0],
+            tf.fingerprint(
+                tf.expand_dims(label.id.encode(encoding="ascii"), 0)
+            )[0],
             tf.int64,
         )
         box_id_list.append(box_id)
@@ -417,7 +444,14 @@ def _get_point_label_box(
     box_detection_difficulty = tf.constant(
         box_detection_difficulty_list, dtype=tf.int32
     )
-    return (box_3d, box_meta, box_class, box_id, box_density, box_detection_difficulty)
+    return (
+        box_3d,
+        box_meta,
+        box_class,
+        box_id,
+        box_density,
+        box_detection_difficulty,
+    )
 
 
 def _get_box_class_per_point(
@@ -445,7 +479,9 @@ def _get_box_class_per_point(
     # [N]
     point_box_idx = tf.math.argmax(point_in_box, axis=-1, output_type=tf.int32)
     # [N]
-    point_box_class = tf.where(point_in_any_box, tf.gather(box_class, point_box_idx), 0)
+    point_box_class = tf.where(
+        point_in_any_box, tf.gather(box_class, point_box_idx), 0
+    )
 
     return point_box_class
 
@@ -502,7 +538,9 @@ def _point_vehicle_to_global(
     )
 
 
-def _point_global_to_vehicle(point_xyz: tf.Tensor, sdc_pose: tf.Tensor) -> tf.Tensor:
+def _point_global_to_vehicle(
+    point_xyz: tf.Tensor, sdc_pose: tf.Tensor
+) -> tf.Tensor:
     """Transforms points from global to vehicle frame.
 
     Args:
@@ -520,7 +558,9 @@ def _point_global_to_vehicle(point_xyz: tf.Tensor, sdc_pose: tf.Tensor) -> tf.Te
     )
 
 
-def _box_3d_vehicle_to_global(box_3d: tf.Tensor, sdc_pose: tf.Tensor) -> tf.Tensor:
+def _box_3d_vehicle_to_global(
+    box_3d: tf.Tensor, sdc_pose: tf.Tensor
+) -> tf.Tensor:
     """Transforms 3D boxes from vehicle to global frame.
 
     Args:
@@ -536,13 +576,16 @@ def _box_3d_vehicle_to_global(box_3d: tf.Tensor, sdc_pose: tf.Tensor) -> tf.Tens
 
     new_center = _point_vehicle_to_global(center, sdc_pose)
     new_heading = (
-        heading + tf.atan2(sdc_pose[..., 1, 0], sdc_pose[..., 0, 0])[..., tf.newaxis]
+        heading
+        + tf.atan2(sdc_pose[..., 1, 0], sdc_pose[..., 0, 0])[..., tf.newaxis]
     )
 
     return tf.concat([new_center, dim, new_heading[..., tf.newaxis]], axis=-1)
 
 
-def _box_3d_global_to_vehicle(box_3d: tf.Tensor, sdc_pose: tf.Tensor) -> tf.Tensor:
+def _box_3d_global_to_vehicle(
+    box_3d: tf.Tensor, sdc_pose: tf.Tensor
+) -> tf.Tensor:
     """Transforms 3D boxes from global to vehicle frame.
 
     Args:
@@ -558,7 +601,8 @@ def _box_3d_global_to_vehicle(box_3d: tf.Tensor, sdc_pose: tf.Tensor) -> tf.Tens
 
     new_center = _point_global_to_vehicle(center, sdc_pose)
     new_heading = (
-        heading + tf.atan2(sdc_pose[..., 0, 1], sdc_pose[..., 0, 0])[..., tf.newaxis]
+        heading
+        + tf.atan2(sdc_pose[..., 0, 1], sdc_pose[..., 0, 0])[..., tf.newaxis]
     )
 
     return tf.concat([new_center, dim, new_heading[..., tf.newaxis]], axis=-1)
@@ -580,23 +624,26 @@ def build_tensors_from_wod_frame(frame) -> Dict[str, tf.Tensor]:
         "keras_cv.datasets.waymo.build_tensors_from_wod_frame()"
     )
 
-    frame_id_bytes = "{}_{}".format(frame.context.name, frame.timestamp_micros).encode(
-        encoding="ascii"
-    )
+    frame_id_bytes = "{}_{}".format(
+        frame.context.name, frame.timestamp_micros
+    ).encode(encoding="ascii")
     frame_id = tf.bitcast(
         tf.fingerprint(tf.expand_dims(frame_id_bytes, 0))[0], tf.int64
     )
 
     timestamp_micros = tf.constant(frame.timestamp_micros, dtype=tf.int64)
     pose = tf.convert_to_tensor(
-        value=np.reshape(np.array(frame.pose.transform), [4, 4]), dtype_hint=tf.float32
+        value=np.reshape(np.array(frame.pose.transform), [4, 4]),
+        dtype_hint=tf.float32,
     )
 
     point_tensors = _get_point(frame, _MAX_NUM_NON_TOP_LIDAR_POINTS)
     point_label_tensors = _get_point_label(frame, point_tensors.point_xyz)
 
     # Transforms lidar frames to global coordinates.
-    point_tensors.point_xyz = _point_vehicle_to_global(point_tensors.point_xyz, pose)
+    point_tensors.point_xyz = _point_vehicle_to_global(
+        point_tensors.point_xyz, pose
+    )
     point_label_tensors.label_box = _box_3d_vehicle_to_global(
         point_label_tensors.label_box, pose
     )
@@ -671,7 +718,9 @@ def pad_or_trim_tensors(
     return frame
 
 
-def transform_to_vehicle_frame(frame: Dict[str, tf.Tensor]) -> Dict[str, tf.Tensor]:
+def transform_to_vehicle_frame(
+    frame: Dict[str, tf.Tensor]
+) -> Dict[str, tf.Tensor]:
     """Transform tensors in a frame from global coordinates to vehicle coordinates.
 
     Args:
@@ -746,9 +795,15 @@ def build_tensors_for_augmentation(
     boxes = tf.concat(
         [
             frame["label_box"][tf.newaxis, :],
-            tf.cast(frame["label_box_class"], tf.float32)[tf.newaxis, :, tf.newaxis],
-            tf.cast(frame["label_box_mask"], tf.float32)[tf.newaxis, :, tf.newaxis],
-            tf.cast(frame["label_box_density"], tf.float32)[tf.newaxis, :, tf.newaxis],
+            tf.cast(frame["label_box_class"], tf.float32)[
+                tf.newaxis, :, tf.newaxis
+            ],
+            tf.cast(frame["label_box_mask"], tf.float32)[
+                tf.newaxis, :, tf.newaxis
+            ],
+            tf.cast(frame["label_box_density"], tf.float32)[
+                tf.newaxis, :, tf.newaxis
+            ],
             tf.cast(frame["label_box_detection_difficulty"], tf.float32)[
                 tf.newaxis, :, tf.newaxis
             ],

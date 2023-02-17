@@ -48,5 +48,7 @@ def pair_with_anchor_boxes(inputs):
 
 if __name__ == "__main__":
     dataset = demo_utils.load_voc_dataset(bounding_box_format="xywh")
-    result = dataset.map(pair_with_anchor_boxes, num_parallel_calls=tf.data.AUTOTUNE)
+    result = dataset.map(
+        pair_with_anchor_boxes, num_parallel_calls=tf.data.AUTOTUNE
+    )
     demo_utils.visualize_data(result, bounding_box_format="xywh")

@@ -46,7 +46,9 @@ class UtilTest(tf.test.TestCase):
         box_set1 = tf.stack([_dummy_bounding_box(), _dummy_bounding_box()])
         box_set2 = tf.stack([_dummy_bounding_box()])
         boxes = [box_set1, box_set2]
-        bounding_box_tensor = utils.to_sentinel_padded_bounding_box_tensor(boxes)
+        bounding_box_tensor = utils.to_sentinel_padded_bounding_box_tensor(
+            boxes
+        )
         self.assertAllClose(
             bounding_box_tensor[1, 1],
             -tf.ones(
@@ -67,7 +69,9 @@ class UtilTest(tf.test.TestCase):
         box_set1 = tf.stack([_dummy_bounding_box(), _dummy_bounding_box()])
         box_set2 = tf.stack([_dummy_bounding_box()])
         boxes = [box_set1, box_set2]
-        bounding_box_tensor = utils.to_sentinel_padded_bounding_box_tensor(boxes)
+        bounding_box_tensor = utils.to_sentinel_padded_bounding_box_tensor(
+            boxes
+        )
 
         self.assertAllClose(
             utils.filter_out_sentinels(bounding_box_tensor[0]), box_set1
@@ -119,7 +123,9 @@ class UtilTest(tf.test.TestCase):
             ),
             axis=0,
         )
-        y_sorted = utils.sort_bounding_boxes(y_pred, bounding_box.XYXY.CONFIDENCE)
+        y_sorted = utils.sort_bounding_boxes(
+            y_pred, bounding_box.XYXY.CONFIDENCE
+        )
         self.assertAllClose(y_sorted, want)
 
     def DISABLE_test_sort_bounding_boxes_empty_list(self):

@@ -129,7 +129,9 @@ class RandomZoom(BaseImageAugmentationLayer):
                     f"got {width_factor}"
                 )
 
-        preprocessing.check_fill_mode_and_interpolation(fill_mode, interpolation)
+        preprocessing.check_fill_mode_and_interpolation(
+            fill_mode, interpolation
+        )
 
         self.fill_mode = fill_mode
         self.fill_value = fill_value
@@ -162,7 +164,9 @@ class RandomZoom(BaseImageAugmentationLayer):
         img_wd = tf.cast(image_shape[W_AXIS], tf.float32)
         width_zoom = transformation["width_zoom"]
         height_zoom = transformation["height_zoom"]
-        zooms = tf.cast(tf.concat([width_zoom, height_zoom], axis=1), dtype=tf.float32)
+        zooms = tf.cast(
+            tf.concat([width_zoom, height_zoom], axis=1), dtype=tf.float32
+        )
         output = preprocessing.transform(
             image,
             self.get_zoom_matrix(zooms, img_hd, img_wd),

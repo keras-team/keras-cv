@@ -39,5 +39,7 @@ class Augmenter(tf.keras.layers.Layer):
     @classmethod
     def from_config(cls, config):
         if config["layers"] and isinstance(config["layers"][0], dict):
-            config["layers"] = tf.keras.utils.deserialize_keras_object(config["layers"])
+            config["layers"] = tf.keras.utils.deserialize_keras_object(
+                config["layers"]
+            )
         return cls(**config)

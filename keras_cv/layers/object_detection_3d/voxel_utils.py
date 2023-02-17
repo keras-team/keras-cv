@@ -41,7 +41,9 @@ def compute_feature_map_ref_xyz(
     """
     voxel_spatial_size = compute_voxel_spatial_size(spatial_size, voxel_size)
     voxel_coord_meshgrid = np.mgrid[
-        0 : voxel_spatial_size[0], 0 : voxel_spatial_size[1], 0 : voxel_spatial_size[2]
+        0 : voxel_spatial_size[0],
+        0 : voxel_spatial_size[1],
+        0 : voxel_spatial_size[2],
     ]
     voxel_coord = np.concatenate(voxel_coord_meshgrid[..., np.newaxis], axis=-1)
     # [H, W, Z, 3]
@@ -56,7 +58,10 @@ def compute_feature_map_ref_xyz(
     # [H, W, Z, 3]
     ref = voxel_coord_to_point(voxel_coord, voxel_size, dtype=global_xyz.dtype)
     # [1, H, W, Z, 3] + [B, 1, 1, 1, 3] -> [B, H, W, Z, 3]
-    ref = ref[tf.newaxis, ...] + global_xyz[:, tf.newaxis, tf.newaxis, tf.newaxis, :]
+    ref = (
+        ref[tf.newaxis, ...]
+        + global_xyz[:, tf.newaxis, tf.newaxis, tf.newaxis, :]
+    )
     return ref
 
 
@@ -81,7 +86,9 @@ def compute_voxel_spatial_size(
     voxel_spatial_size_float = [
         i / j for i, j in zip(voxel_spatial_size_float, voxel_size)
     ]
-    voxel_spatial_size_int = [math.ceil(v - EPSILON) for v in voxel_spatial_size_float]
+    voxel_spatial_size_int = [
+        math.ceil(v - EPSILON) for v in voxel_spatial_size_float
+    ]
 
     return voxel_spatial_size_int
 
@@ -125,7 +132,9 @@ def point_to_voxel_coord(
       voxelized coordinates.
     """
     with tf.name_scope("point_to_voxel_coord"):
-        point_voxelized = point_xyz / tf.constant(voxel_size, dtype=point_xyz.dtype)
+        point_voxelized = point_xyz / tf.constant(
+            voxel_size, dtype=point_xyz.dtype
+        )
         assert dtype.is_integer or dtype.is_floating, f"{dtype}"
         # Note: tf.round casts float to the nearest integer. If the float is 0.5, it
         # casts it to the nearest even integer.
@@ -198,7 +207,9 @@ def inv_loc(rot: tf.Tensor, loc: tf.Tensor) -> tf.Tensor:
     Returns:
       [..., 3] new location matrix.
     """
-    new_loc = -1.0 * tf.linalg.matmul(rot, loc[..., tf.newaxis], transpose_a=True)
+    new_loc = -1.0 * tf.linalg.matmul(
+        rot, loc[..., tf.newaxis], transpose_a=True
+    )
     return tf.squeeze(new_loc, axis=-1)
 
 
@@ -214,7 +225,9 @@ def shape_int_compatible(t: tf.Tensor) -> tf.TensorShape:
     return tf.shape(t)
 
 
-def combined_static_and_dynamic_shape(tensor: tf.Tensor) -> List[Union[tf.Tensor, int]]:
+def combined_static_and_dynamic_shape(
+    tensor: tf.Tensor,
+) -> List[Union[tf.Tensor, int]]:
     """Returns a list containing static and dynamic values for the dimensions.
 
     Returns a list of static and dynamic values for shape dimensions. This is
@@ -272,7 +285,9 @@ def _pad_or_trim_to(x, shape, pad_val=0, pad_after_contents=True):
         expected_rank = len(shape)
     elif isinstance(shape, tf.TensorShape):
         if not shape.is_fully_defined():
-            raise ValueError("shape %s padding %s must be fully defined." % (shape, x))
+            raise ValueError(
+                "shape %s padding %s must be fully defined." % (shape, x)
+            )
         expected_rank = shape.rank
     else:
         shape = _has_rank(shape, 1)

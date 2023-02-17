@@ -12,7 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from keras_cv.metrics.coco.mean_average_precision import _COCOMeanAveragePrecision
+from keras_cv.metrics.coco.mean_average_precision import (
+    _COCOMeanAveragePrecision,
+)
 
 try:
     from keras_cv.metrics.coco.pycoco_wrapper import PyCOCOWrapper

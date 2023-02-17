@@ -31,7 +31,10 @@ class PascalVocSegmentationDataTest(tf.test.TestCase):
         # FLAGS.test_srcdir
         self.test_data_tar_path = os.path.abspath(
             os.path.join(
-                os.path.abspath(__file__), os.path.pardir, "test_data", "VOC_mini.tar"
+                os.path.abspath(__file__),
+                os.path.pardir,
+                "test_data",
+                "VOC_mini.tar",
             )
         )
 
@@ -63,7 +66,9 @@ class PascalVocSegmentationDataTest(tf.test.TestCase):
             "SegmentationObject",
         ]
         for sub_dir in expected_subdirs:
-            self.assertTrue(os.path.exists(os.path.join(test_data_dir, sub_dir)))
+            self.assertTrue(
+                os.path.exists(os.path.join(test_data_dir, sub_dir))
+            )
 
     def test_skip_download_and_override(self):
         local_data_dir = os.path.join(self.tempdir, "pascal_voc_2012/")
@@ -83,7 +88,9 @@ class PascalVocSegmentationDataTest(tf.test.TestCase):
             override_extract=False,
         )
         self.assertTrue(
-            os.path.exists(os.path.join(test_data_dir, "Annotations", "dummy_dir"))
+            os.path.exists(
+                os.path.join(test_data_dir, "Annotations", "dummy_dir")
+            )
         )
 
     def test_get_image_ids(self):
@@ -96,8 +103,12 @@ class PascalVocSegmentationDataTest(tf.test.TestCase):
         train_ids = ["2007_000032", "2007_000039", "2007_000063"]
         eval_ids = ["2007_000033"]
         train_eval_ids = train_ids + eval_ids
-        self.assertEquals(segmentation._get_image_ids(data_dir, "train"), train_ids)
-        self.assertEquals(segmentation._get_image_ids(data_dir, "eval"), eval_ids)
+        self.assertEquals(
+            segmentation._get_image_ids(data_dir, "train"), train_ids
+        )
+        self.assertEquals(
+            segmentation._get_image_ids(data_dir, "eval"), eval_ids
+        )
         self.assertEquals(
             segmentation._get_image_ids(data_dir, "trainval"), train_eval_ids
         )
@@ -110,7 +121,9 @@ class PascalVocSegmentationDataTest(tf.test.TestCase):
             local_dir_path=local_data_dir,
         )
         # One of the train file.
-        annotation_file = os.path.join(data_dir, "Annotations", "2007_000032.xml")
+        annotation_file = os.path.join(
+            data_dir, "Annotations", "2007_000032.xml"
+        )
         metadata = segmentation._parse_annotation_data(annotation_file)
         expected_result = {
             "height": 281,
@@ -155,18 +168,28 @@ class PascalVocSegmentationDataTest(tf.test.TestCase):
             extracted_dir=extracted_dir,
             local_dir_path=local_data_dir,
         )
-        mask_file = os.path.join(data_dir, "SegmentationClass", "2007_000032.png")
+        mask_file = os.path.join(
+            data_dir, "SegmentationClass", "2007_000032.png"
+        )
         mask = tf.io.decode_png(tf.io.read_file(mask_file))
         segmentation._maybe_populate_voc_color_mapping()
         mask = segmentation._decode_png_mask(mask)
 
         self.assertEquals(mask.shape, (281, 500, 1))
-        self.assertEquals(tf.reduce_max(mask), 255)  # The 255 value is for the boundary
-        self.assertEquals(tf.reduce_min(mask), 0)  # The 0 value is for the background
+        self.assertEquals(
+            tf.reduce_max(mask), 255
+        )  # The 255 value is for the boundary
+        self.assertEquals(
+            tf.reduce_min(mask), 0
+        )  # The 0 value is for the background
         # The mask contains two classes, 1 and 15, see the label section in the previous
         # test case.
-        self.assertEquals(tf.reduce_sum(tf.cast(tf.equal(mask, 1), tf.int32)), 4734)
-        self.assertEquals(tf.reduce_sum(tf.cast(tf.equal(mask, 15), tf.int32)), 866)
+        self.assertEquals(
+            tf.reduce_sum(tf.cast(tf.equal(mask, 1), tf.int32)), 4734
+        )
+        self.assertEquals(
+            tf.reduce_sum(tf.cast(tf.equal(mask, 15), tf.int32)), 866
+        )
 
     def test_parse_single_image(self):
         local_data_dir = os.path.join(self.tempdir, "pascal_voc_2012/")
@@ -292,9 +315,17 @@ class PascalVocSegmentationDataTest(tf.test.TestCase):
         # Check the mask png content
         png = entry["class_segmentation"]
         self.assertEquals(png.shape, (281, 500, 1))
-        self.assertEquals(tf.reduce_max(png), 255)  # The 255 value is for the boundary
-        self.assertEquals(tf.reduce_min(png), 0)  # The 0 value is for the background
+        self.assertEquals(
+            tf.reduce_max(png), 255
+        )  # The 255 value is for the boundary
+        self.assertEquals(
+            tf.reduce_min(png), 0
+        )  # The 0 value is for the background
         # The mask contains two classes, 1 and 15, see the label section in the previous
         # test case.
-        self.assertEquals(tf.reduce_sum(tf.cast(tf.equal(png, 1), tf.int32)), 4734)
-        self.assertEquals(tf.reduce_sum(tf.cast(tf.equal(png, 15), tf.int32)), 866)
+        self.assertEquals(
+            tf.reduce_sum(tf.cast(tf.equal(png, 1), tf.int32)), 4734
+        )
+        self.assertEquals(
+            tf.reduce_sum(tf.cast(tf.equal(png, 15), tf.int32)), 866
+        )

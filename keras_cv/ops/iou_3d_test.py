@@ -24,7 +24,8 @@ from keras_cv.ops import iou_3d
 
 class IoU3DTest(tf.test.TestCase):
     @pytest.mark.skipif(
-        "TEST_CUSTOM_OPS" not in os.environ or os.environ["TEST_CUSTOM_OPS"] != "true",
+        "TEST_CUSTOM_OPS" not in os.environ
+        or os.environ["TEST_CUSTOM_OPS"] != "true",
         reason="Requires binaries compiled from source",
     )
     def testOpCall(self):

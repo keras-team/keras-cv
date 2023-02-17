@@ -44,16 +44,22 @@ class RandomBrightnessTest(tf.test.TestCase):
         layer = preprocessing.RandomBrightness(factor=(1, 1))
         output = layer(image)
 
-        self.assertAllClose(output, tf.fill((4, 8, 8, 3), 255), atol=1e-5, rtol=1e-5)
+        self.assertAllClose(
+            output, tf.fill((4, 8, 8, 3), 255), atol=1e-5, rtol=1e-5
+        )
 
     def test_max_brightness_rescaled_value_range(self):
         image_shape = (4, 8, 8, 3)
         image = tf.random.uniform(shape=image_shape)
 
-        layer = preprocessing.RandomBrightness(value_range=(0, 1), factor=(1, 1))
+        layer = preprocessing.RandomBrightness(
+            value_range=(0, 1), factor=(1, 1)
+        )
         output = layer(image)
 
-        self.assertAllClose(output, tf.fill((4, 8, 8, 3), 1), atol=1e-5, rtol=1e-5)
+        self.assertAllClose(
+            output, tf.fill((4, 8, 8, 3), 1), atol=1e-5, rtol=1e-5
+        )
 
     def test_zero_brightness(self):
         image_shape = (4, 8, 8, 3)
@@ -62,11 +68,15 @@ class RandomBrightnessTest(tf.test.TestCase):
         layer = preprocessing.RandomBrightness(factor=(-1, -1))
         output = layer(image)
 
-        self.assertAllClose(output, tf.fill((4, 8, 8, 3), 0), atol=1e-5, rtol=1e-5)
+        self.assertAllClose(
+            output, tf.fill((4, 8, 8, 3), 0), atol=1e-5, rtol=1e-5
+        )
 
     def test_with_unit8(self):
         image_shape = (4, 8, 8, 3)
-        image = tf.cast(tf.random.uniform(shape=image_shape) * 255.0, dtype=tf.uint8)
+        image = tf.cast(
+            tf.random.uniform(shape=image_shape) * 255.0, dtype=tf.uint8
+        )
 
         layer = preprocessing.RandomBrightness(factor=0)
         output = layer(image)
@@ -77,7 +87,9 @@ class RandomBrightnessTest(tf.test.TestCase):
         self.assertNotAllClose(image, output)
 
     def test_config(self):
-        layer = preprocessing.RandomBrightness(value_range=(0, 1), factor=(0.3, 0.8))
+        layer = preprocessing.RandomBrightness(
+            value_range=(0, 1), factor=(0.3, 0.8)
+        )
         config = layer.get_config()
         self.assertTrue(isinstance(config["factor"], core.UniformFactorSampler))
         self.assertEqual(config["factor"].get_config()["lower"], 0.3)

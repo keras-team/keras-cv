@@ -8,7 +8,9 @@ from absl import flags
 flags.DEFINE_string(
     "model_name", None, "The name of the KerasCV.model that was trained"
 )
-flags.DEFINE_string("tensorboard_logs_path", None, "Path to tensorboard logs to load")
+flags.DEFINE_string(
+    "tensorboard_logs_path", None, "Path to tensorboard logs to load"
+)
 flags.DEFINE_string("training_script_path", None, "Path to the training script")
 flags.DEFINE_string(
     "script_version",
@@ -21,7 +23,9 @@ flags.DEFINE_string(
     "The version of the training script used to produce the latest weights. For example, v0",
 )
 flags.DEFINE_string(
-    "contributor", None, "The GitHub username of the contributor of these results"
+    "contributor",
+    None,
+    "The GitHub username of the contributor of these results",
 )
 flags.DEFINE_string(
     "accelerators", None, "The number of accelerators used for training."
@@ -74,7 +78,9 @@ tensorboard_experiment = tb.data.experimental.ExperimentFromDev(
 
 tensorboard_results = tensorboard_experiment.get_scalars()
 
-training_epochs = max(tensorboard_results[tensorboard_results.run == "train"].step)
+training_epochs = max(
+    tensorboard_results[tensorboard_results.run == "train"].step
+)
 
 results_tags = tensorboard_results.tag.unique()
 
@@ -90,7 +96,10 @@ if (
             (tensorboard_results.run == "validation")
             & (
                 (tensorboard_results.tag == "epoch_categorical_accuracy")
-                | (tensorboard_results.tag == "epoch_sparse_categorical_accuracy")
+                | (
+                    tensorboard_results.tag
+                    == "epoch_sparse_categorical_accuracy"
+                )
             )
         ].value
     )
@@ -130,7 +139,10 @@ for arg in args.split(","):
     args_dict[key_value_pair[0]] = key_value_pair[1]
 
 new_results = {
-    "script": {"name": "/".join(training_script_dirs[2:]), "version": script_version},
+    "script": {
+        "name": "/".join(training_script_dirs[2:]),
+        "version": script_version,
+    },
     "epochs_trained": training_epochs,
     "tensorboard_logs": f"https://tensorboard.dev/experiment/{tensorboard_experiment_id}/",
     "contributor": contributor,

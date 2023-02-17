@@ -52,7 +52,9 @@ class RandomZoomTest(tf.test.TestCase, parameterized.TestCase):
     def test_random_zoom_in_numeric(self):
         for dtype in (np.int64, np.float32):
             input_image = np.reshape(np.arange(0, 25), (5, 5, 1)).astype(dtype)
-            layer = RandomZoom((-0.5, -0.5), (-0.5, -0.5), interpolation="nearest")
+            layer = RandomZoom(
+                (-0.5, -0.5), (-0.5, -0.5), interpolation="nearest"
+            )
             output_image = layer(np.expand_dims(input_image, axis=0))
             expected_output = np.asarray(
                 [

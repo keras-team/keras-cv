@@ -189,7 +189,9 @@ class FeaturePyramid(tf.keras.layers.Layer):
 
         # Post apply the output layers so that we don't leak them to the down stream level
         for level in reversed_levels:
-            output_features[level] = self.output_layers[level](output_features[level])
+            output_features[level] = self.output_layers[level](
+                output_features[level]
+            )
 
         return output_features
 

@@ -23,7 +23,9 @@ POINTCLOUD_LABEL_INDEX = base_augmentation_layer_3d.POINTCLOUD_LABEL_INDEX
 
 
 @tf.keras.utils.register_keras_serializable(package="keras_cv")
-class FrustumRandomDroppingPoints(base_augmentation_layer_3d.BaseAugmentationLayer3D):
+class FrustumRandomDroppingPoints(
+    base_augmentation_layer_3d.BaseAugmentationLayer3D
+):
     """A preprocessing layer which randomly drops point within a randomly generated frustum during training.
 
     This layer will randomly select a point from the point cloud as the center of a frustum then generate a frustum based
@@ -50,20 +52,28 @@ class FrustumRandomDroppingPoints(base_augmentation_layer_3d.BaseAugmentationLay
       drop_rate: A float scalar sets the probability threshold for dropping the points.
     """
 
-    def __init__(self, r_distance, theta_width, phi_width, drop_rate=None, **kwargs):
+    def __init__(
+        self, r_distance, theta_width, phi_width, drop_rate=None, **kwargs
+    ):
         super().__init__(**kwargs)
 
         if r_distance < 0:
-            raise ValueError(f"r_distance must be >=0, but got r_distance={r_distance}")
+            raise ValueError(
+                f"r_distance must be >=0, but got r_distance={r_distance}"
+            )
         if theta_width < 0:
             raise ValueError(
                 f"theta_width must be >=0, but got theta_width={theta_width}"
             )
         if phi_width < 0:
-            raise ValueError(f"phi_width must be >=0, but got phi_width={phi_width}")
+            raise ValueError(
+                f"phi_width must be >=0, but got phi_width={phi_width}"
+            )
         drop_rate = drop_rate if drop_rate else 0.0
         if drop_rate > 1:
-            raise ValueError(f"drop_rate must be <=1, but got drop_rate={drop_rate}")
+            raise ValueError(
+                f"drop_rate must be <=1, but got drop_rate={drop_rate}"
+            )
 
         self._r_distance = r_distance
         self._theta_width = theta_width
