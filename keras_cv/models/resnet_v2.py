@@ -381,6 +381,7 @@ class ResNetV2Backbone(Backbone):
             "input_shape": self.input_shape[1:],
             "stackwise_dilations": self.stackwise_dilations,
             "input_tensor": self.input_tensor,
+            "pooling": self.pooling,
             "block_type": self.block_type,
             "name": self.name,
             "trainable": self.trainable,
