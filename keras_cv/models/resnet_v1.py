@@ -259,7 +259,7 @@ def apply_stack(
 
 
 @keras.utils.register_keras_serializable(package="keras_cv.models")
-class ResNet(keras.Model):
+class ResNet(tf.keras.Model):
     """Instantiates the ResNet architecture.
 
     Args:
