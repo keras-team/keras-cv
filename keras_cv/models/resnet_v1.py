@@ -258,7 +258,7 @@ def apply_stack(
     return x
 
 
-#@keras.utils.register_keras_serializable(package="keras_cv.models")
+# @keras.utils.register_keras_serializable(package="keras_cv.models")
 class ResNet(keras.Model):
     """Instantiates the ResNet architecture.
 
@@ -592,6 +592,3 @@ setattr(ResNet34, "__doc__", BASE_DOCSTRING.format(name="ResNet34"))
 setattr(ResNet50, "__doc__", BASE_DOCSTRING.format(name="ResNet50"))
 setattr(ResNet101, "__doc__", BASE_DOCSTRING.format(name="ResNet101"))
 setattr(ResNet152, "__doc__", BASE_DOCSTRING.format(name="ResNet152"))
-
-
-model = ResNet50(include_top=True, include_rescaling=True, classes=1000, weights="imagenet")
