@@ -162,7 +162,9 @@ def apply_basic_block(
     return x
 
 
-def apply_block(x, filters, kernel_size=3, stride=1, conv_shortcut=True, name=None):
+def apply_block(
+    x, filters, kernel_size=3, stride=1, conv_shortcut=True, name=None
+):
     """A residual block.
     Args:
       x: input tensor.
@@ -223,7 +225,13 @@ def apply_block(x, filters, kernel_size=3, stride=1, conv_shortcut=True, name=No
 
 
 def apply_stack(
-    x, filters, blocks, stride=2, name=None, block_type="block", first_shortcut=True
+    x,
+    filters,
+    blocks,
+    stride=2,
+    name=None,
+    block_type="block",
+    first_shortcut=True,
 ):
     """A set of stacked residual blocks.
     Args:
@@ -251,14 +259,20 @@ def apply_stack(
         )
 
     x = block_fn(
-        x, filters, stride=stride, name=name + "_block1", conv_shortcut=first_shortcut
+        x,
+        filters,
+        stride=stride,
+        name=name + "_block1",
+        conv_shortcut=first_shortcut,
     )
     for i in range(2, blocks + 1):
-        x = block_fn(x, filters, conv_shortcut=False, name=name + "_block" + str(i))
+        x = block_fn(
+            x, filters, conv_shortcut=False, name=name + "_block" + str(i)
+        )
     return x
 
 
-# @keras.utils.register_keras_serializable(package="keras_cv.models")
+@keras.utils.register_keras_serializable(package="keras_cv.models")
 class ResNet(keras.Model):
     """Instantiates the ResNet architecture.
 
@@ -350,7 +364,9 @@ class ResNet(keras.Model):
         )(x)
         x = layers.Activation("relu", name="conv1_relu")(x)
 
-        x = layers.MaxPooling2D(3, strides=2, padding="same", name="pool1_pool")(x)
+        x = layers.MaxPooling2D(
+            3, strides=2, padding="same", name="pool1_pool"
+        )(x)
 
         num_stacks = len(stackwise_filters)
 

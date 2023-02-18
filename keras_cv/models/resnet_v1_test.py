@@ -14,6 +14,7 @@
 
 import tensorflow as tf
 from absl.testing import parameterized
+from packaging import version
 
 from keras_cv.models import resnet_v1
 
@@ -51,8 +52,54 @@ class ResNetV1Test(ModelsTest, tf.test.TestCase, parameterized.TestCase):
         super()._test_application_variable_input_channels(app, last_dim, args)
 
     @parameterized.parameters(*MODEL_LIST)
-    def test_model_can_be_used_as_backbone(self, app, last_dim, args):
-        super()._test_model_can_be_used_as_backbone(app, last_dim, args)
+    def test_model_serialization_tf(self, app, last_dim, args):
+        super()._test_model_serialization(
+            app, last_dim, args, save_format="tf", filename="model"
+        )
+
+    @parameterized.parameters(*MODEL_LIST)
+    def test_model_serialization_keras_format(self, app, last_dim, args):
+        if version.parse(tf.__version__) >= version.parse("2.12.0-dev0"):
+            super()._test_model_serialization(
+                app,
+                last_dim,
+                args,
+                save_format="keras_v3",
+                filename="model.keras",
+            )
+
+    def test_create_backbone_model_from_application_model(self):
+        model = resnet_v1.ResNet50(
+            include_rescaling=False,
+            include_top=False,
+            classes=2048,
+            input_shape=[256, 256, 3],
+        )
+        backbone_model = model.as_backbone()
+        inputs = tf.keras.Input(shape=[256, 256, 3])
+        outputs = backbone_model(inputs)
+        # Resnet50 backbone has 4 level of features (2 ~ 5)
+        self.assertLen(outputs, 4)
+        self.assertEquals(list(outputs.keys()), [2, 3, 4, 5])
+        self.assertEquals(outputs[2].shape, [None, 64, 64, 256])
+        self.assertEquals(outputs[3].shape, [None, 32, 32, 512])
+        self.assertEquals(outputs[4].shape, [None, 16, 16, 1024])
+        self.assertEquals(outputs[5].shape, [None, 8, 8, 2048])
+
+    def test_create_backbone_model_with_level_config(self):
+        model = resnet_v1.ResNet50(
+            include_rescaling=False,
+            include_top=False,
+            classes=2048,
+            input_shape=[256, 256, 3],
+        )
+        backbone_model = model.as_backbone(min_level=3, max_level=4)
+        inputs = tf.keras.Input(shape=[256, 256, 3])
+        outputs = backbone_model(inputs)
+        self.assertLen(outputs, 2)
+        self.assertEquals(list(outputs.keys()), [3, 4])
+        self.assertEquals(outputs[3].shape, [None, 32, 32, 512])
+        self.assertEquals(outputs[4].shape, [None, 16, 16, 1024])
 
 
 if __name__ == "__main__":
