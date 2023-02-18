@@ -18,6 +18,7 @@ Reference:
 """
 
 import types
+import copy
 
 import tensorflow as tf
 from tensorflow import keras
@@ -25,8 +26,9 @@ from tensorflow.keras import backend
 from tensorflow.keras import layers
 
 from keras_cv.models import utils
+from keras_cv.utils.python_utils import classproperty
 from keras_cv.models.backbone import Backbone
-from keras_cv.models.weights import parse_weights
+from keras_cv.models.resnet_v2_presets import backbone_presets
 
 BN_AXIS = 3
 BN_EPSILON = 1.001e-5
@@ -383,3 +385,7 @@ class ResNetV2Backbone(Backbone):
             "name": self.name,
             "trainable": self.trainable,
         }
+
+    @classproperty
+    def presets(cls):
+        return copy.deepcopy(backbone_presets)
