@@ -101,7 +101,9 @@ BASE_DOCSTRING = """Instantiates the {name} architecture.
 """
 
 
-def apply_basic_block(x, filters, kernel_size=3, stride=1, conv_shortcut=True, name=None):
+def apply_basic_block(
+    x, filters, kernel_size=3, stride=1, conv_shortcut=True, name=None
+):
     """A basic residual block.
     Args:
       x: input tensor.
@@ -119,40 +121,40 @@ def apply_basic_block(x, filters, kernel_size=3, stride=1, conv_shortcut=True, n
 
     if conv_shortcut:
         shortcut = layers.Conv2D(
-                filters,
-                1,
-                strides=stride,
-                use_bias=False,
-                name=name + "_0_conv",
+            filters,
+            1,
+            strides=stride,
+            use_bias=False,
+            name=name + "_0_conv",
         )(x)
         shortcut = layers.BatchNormalization(
-                axis=BN_AXIS, epsilon=BN_EPSILON, name=name + "_0_bn"
+            axis=BN_AXIS, epsilon=BN_EPSILON, name=name + "_0_bn"
         )(shortcut)
     else:
         shortcut = x
 
     x = layers.Conv2D(
-            filters,
-            kernel_size,
-            padding="SAME",
-            strides=stride,
-            use_bias=False,
-            name=name + "_1_conv",
+        filters,
+        kernel_size,
+        padding="SAME",
+        strides=stride,
+        use_bias=False,
+        name=name + "_1_conv",
     )(x)
     x = layers.BatchNormalization(
-            axis=BN_AXIS, epsilon=BN_EPSILON, name=name + "_1_bn"
+        axis=BN_AXIS, epsilon=BN_EPSILON, name=name + "_1_bn"
     )(x)
     x = layers.Activation("relu", name=name + "_1_relu")(x)
 
     x = layers.Conv2D(
-            filters,
-            kernel_size,
-            padding="SAME",
-            use_bias=False,
-            name=name + "_2_conv",
+        filters,
+        kernel_size,
+        padding="SAME",
+        use_bias=False,
+        name=name + "_2_conv",
     )(x)
     x = layers.BatchNormalization(
-            axis=BN_AXIS, epsilon=BN_EPSILON, name=name + "_2_bn"
+        axis=BN_AXIS, epsilon=BN_EPSILON, name=name + "_2_bn"
     )(x)
 
     x = layers.Add(name=name + "_add")([shortcut, x])
@@ -178,43 +180,41 @@ def apply_block(filters, kernel_size=3, stride=1, conv_shortcut=True, name=None)
 
     if conv_shortcut:
         shortcut = layers.Conv2D(
-                4 * filters,
-                1,
-                strides=stride,
-                use_bias=False,
-                name=name + "_0_conv",
+            4 * filters,
+            1,
+            strides=stride,
+            use_bias=False,
+            name=name + "_0_conv",
         )(x)
         shortcut = layers.BatchNormalization(
-                axis=BN_AXIS, epsilon=BN_EPSILON, name=name + "_0_bn"
+            axis=BN_AXIS, epsilon=BN_EPSILON, name=name + "_0_bn"
         )(shortcut)
     else:
         shortcut = x
 
     x = layers.Conv2D(
-            filters, 1, strides=stride, use_bias=False, name=name + "_1_conv"
+        filters, 1, strides=stride, use_bias=False, name=name + "_1_conv"
     )(x)
     x = layers.BatchNormalization(
-            axis=BN_AXIS, epsilon=BN_EPSILON, name=name + "_1_bn"
+        axis=BN_AXIS, epsilon=BN_EPSILON, name=name + "_1_bn"
     )(x)
     x = layers.Activation("relu", name=name + "_1_relu")(x)
 
     x = layers.Conv2D(
-            filters,
-            kernel_size,
-            padding="SAME",
-            use_bias=False,
-            name=name + "_2_conv",
+        filters,
+        kernel_size,
+        padding="SAME",
+        use_bias=False,
+        name=name + "_2_conv",
     )(x)
     x = layers.BatchNormalization(
-            axis=BN_AXIS, epsilon=BN_EPSILON, name=name + "_2_bn"
+        axis=BN_AXIS, epsilon=BN_EPSILON, name=name + "_2_bn"
     )(x)
     x = layers.Activation("relu", name=name + "_2_relu")(x)
 
-    x = layers.Conv2D(
-            4 * filters, 1, use_bias=False, name=name + "_3_conv"
-    )(x)
+    x = layers.Conv2D(4 * filters, 1, use_bias=False, name=name + "_3_conv")(x)
     x = layers.BatchNormalization(
-            axis=BN_AXIS, epsilon=BN_EPSILON, name=name + "_3_bn"
+        axis=BN_AXIS, epsilon=BN_EPSILON, name=name + "_3_bn"
     )(x)
 
     x = layers.Add(name=name + "_add")([shortcut, x])
@@ -250,16 +250,16 @@ def apply_stack(
             f"Received block_type={block_type}."
         )
 
-    x = block_fn(x, filters,stride=stride,name=name + "_block1",conv_shortcut=first_shortcut)
+    x = block_fn(
+        x, filters, stride=stride, name=name + "_block1", conv_shortcut=first_shortcut
+    )
     for i in range(2, blocks + 1):
-        x = block_fn(
-            x, filters, conv_shortcut=False, name=name + "_block" + str(i)
-        )
+        x = block_fn(x, filters, conv_shortcut=False, name=name + "_block" + str(i))
     return x
 
 
 @keras.utils.register_keras_serializable(package="keras_cv.models")
-class ResNet(tf.keras.Model):
+class ResNet(keras.Model):
     """Instantiates the ResNet architecture.
 
     Args:
@@ -300,7 +300,8 @@ class ResNet(tf.keras.Model):
       A `keras.Model` instance.
     """
 
-    def __init__(self,
+    def __init__(
+        self,
         stackwise_filters,
         stackwise_blocks,
         stackwise_strides,
@@ -316,7 +317,6 @@ class ResNet(tf.keras.Model):
         block_type="block",
         **kwargs,
     ):
-    
         if weights and not tf.io.gfile.exists(weights):
             raise ValueError(
                 "The `weights` argument should be either `None` or the path to the "
