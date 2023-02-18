@@ -250,11 +250,11 @@ def apply_stack(
             f"Received block_type={block_type}."
         )
 
-    x = block_fn(filters,stride=stride,name=name + "_block1",conv_shortcut=first_shortcut,)(x)
+    x = block_fn(x, filters,stride=stride,name=name + "_block1",conv_shortcut=first_shortcut)
     for i in range(2, blocks + 1):
         x = block_fn(
-            filters, conv_shortcut=False, name=name + "_block" + str(i)
-        )(x)
+            x, filters, conv_shortcut=False, name=name + "_block" + str(i)
+        )
     return x
 
 
@@ -357,12 +357,13 @@ class ResNet(keras.Model):
         stack_level_outputs = {}
         for stack_index in range(num_stacks):
             x = apply_stack(
+                x,
                 filters=stackwise_filters[stack_index],
                 blocks=stackwise_blocks[stack_index],
                 stride=stackwise_strides[stack_index],
                 block_type=block_type,
                 first_shortcut=(block_type == "block" or stack_index > 0),
-            )(x)
+            )
             stack_level_outputs[stack_index + 2] = x
 
         if include_top:
