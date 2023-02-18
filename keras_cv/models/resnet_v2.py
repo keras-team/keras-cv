@@ -25,84 +25,11 @@ from tensorflow.keras import backend
 from tensorflow.keras import layers
 
 from keras_cv.models import utils
+from keras_cv.models.backbone import Backbone
 from keras_cv.models.weights import parse_weights
-
-MODEL_CONFIGS = {
-    "ResNet18V2": {
-        "stackwise_filters": [64, 128, 256, 512],
-        "stackwise_blocks": [2, 2, 2, 2],
-        "stackwise_strides": [1, 2, 2, 2],
-    },
-    "ResNet34V2": {
-        "stackwise_filters": [64, 128, 256, 512],
-        "stackwise_blocks": [3, 4, 6, 3],
-        "stackwise_strides": [1, 2, 2, 2],
-    },
-    "ResNet50V2": {
-        "stackwise_filters": [64, 128, 256, 512],
-        "stackwise_blocks": [3, 4, 6, 3],
-        "stackwise_strides": [1, 2, 2, 2],
-    },
-    "ResNet101V2": {
-        "stackwise_filters": [64, 128, 256, 512],
-        "stackwise_blocks": [3, 4, 23, 3],
-        "stackwise_strides": [1, 2, 2, 2],
-    },
-    "ResNet152V2": {
-        "stackwise_filters": [64, 128, 256, 512],
-        "stackwise_blocks": [3, 8, 36, 3],
-        "stackwise_strides": [1, 2, 2, 2],
-    },
-}
 
 BN_AXIS = 3
 BN_EPSILON = 1.001e-5
-
-BASE_DOCSTRING = """Instantiates the {name} architecture.
-    Reference:
-        - [Identity Mappings in Deep Residual Networks](https://arxiv.org/abs/1603.05027) (ECCV 2016)
-    This function returns a Keras {name} model.
-
-    The difference in Resnet and ResNetV2 rests in the structure of their
-    individual building blocks. In ResNetV2, the batch normalization and
-    ReLU activation precede the convolution layers, as opposed to ResNetV1 where
-    the batch normalization and ReLU activation are applied after the
-    convolution layers.
-
-    For transfer learning use cases, make sure to read the [guide to transfer
-        learning & fine-tuning](https://keras.io/guides/transfer_learning/).
-
-    Args:
-        include_rescaling: bool, whether or not to Rescale the inputs. If set
-            to `True`, inputs will be passed through a `Rescaling(1/255.0)`
-            layer.
-        include_top: bool, whether to include the fully-connected layer at
-            the top of the network.  If provided, `classes` must be provided.
-        classes: optional int, number of classes to classify images into (only
-            to be specified if `include_top` is `True`).
-        weights: one of `None` (random initialization), a pretrained weight file
-            path, or a reference to pre-trained weights (e.g. 'imagenet/classification')
-            (see available pre-trained weights in weights.py)
-        input_shape: optional shape tuple, defaults to (None, None, 3).
-        input_tensor: optional Keras tensor (i.e. output of `layers.Input()`)
-            to use as image input for the model.
-        pooling: optional pooling mode for feature extraction
-            when `include_top` is `False`.
-            - `None` means that the output of the model will be the 4D tensor output
-                of the last convolutional block.
-            - `avg` means that global average pooling will be applied to the output
-                of the last convolutional block, and thus the output of the model will
-                be a 2D tensor.
-            - `max` means that global max pooling will be applied.
-        name: (Optional) name to pass to the model.  Defaults to "{name}".
-        classifier_activation: A `str` or callable. The activation function to use
-            on the "top" layer. Ignored unless `include_top=True`. Set
-            `classifier_activation=None` to return the logits of the "top" layer.
-
-    Returns:
-      A `keras.Model` instance.
-"""
-
 
 def apply_basic_block(
     x,
@@ -320,8 +247,21 @@ def apply_stack(
 
 
 @keras.utils.register_keras_serializable(package="keras_cv.models")
-class ResNetV2(keras.Model):
+class ResNetV2Backbone(Backbone):
     """Instantiates the ResNetV2 architecture.
+
+    Reference:
+        - [Identity Mappings in Deep Residual Networks](https://arxiv.org/abs/1603.05027) (ECCV 2016)
+    This function returns a Keras {name} model.
+
+    The difference in Resnet and ResNetV2 rests in the structure of their
+    individual building blocks. In ResNetV2, the batch normalization and
+    ReLU activation precede the convolution layers, as opposed to ResNetV1 where
+    the batch normalization and ReLU activation are applied after the
+    convolution layers.
+
+    For transfer learning use cases, make sure to read the [guide to transfer
+        learning & fine-tuning](https://keras.io/guides/transfer_learning/).
 
     Args:
         stackwise_filters: list of ints, number of filters for each stack in
@@ -332,13 +272,8 @@ class ResNetV2(keras.Model):
         include_rescaling: bool, whether or not to Rescale the inputs. If set
             to `True`, inputs will be passed through a `Rescaling(1/255.0)`
             layer.
-        include_top: bool, whether to include the fully-connected
-            layer at the top of the network.
         stackwise_dialations: list of ints, dialation for each stack in the
             model. If `None` (default), dialation will not be used.
-        name: string, model name.
-        weights: one of `None` (random initialization),
-            or the path to the weights file to be loaded.
         input_shape: optional shape tuple, defaults to (None, None, 3).
         input_tensor: optional Keras tensor (i.e. output of `layers.Input()`)
             to use as image input for the model.
@@ -353,14 +288,9 @@ class ResNetV2(keras.Model):
                 the output of the model will be a 2D tensor.
             - `max` means that global max pooling will
                 be applied.
-        classes: optional number of classes to classify images
-            into, only to be specified if `include_top` is True.
-        classifier_activation: A `str` or callable. The activation function to
-            use on the "top" layer. Ignored unless `include_top=True`. Set
-            `classifier_activation=None` to return the logits of the "top"
-            layer.
         block_type: string, one of "basic_block" or "block". The block type to
-            stack. Use "basic_block" for ResNet18 and ResNet34.
+            stack. Use "basic_block" for smaller models like ResNet18 and
+            ResNet34.
     """
 
     def __init__(
@@ -369,34 +299,13 @@ class ResNetV2(keras.Model):
         stackwise_blocks,
         stackwise_strides,
         include_rescaling,
-        include_top,
         stackwise_dilations=None,
-        weights=None,
         input_shape=(None, None, 3),
         input_tensor=None,
         pooling=None,
-        classes=None,
-        classifier_activation="softmax",
         block_type="block",
         **kwargs,
     ):
-        if weights and not tf.io.gfile.exists(weights):
-            raise ValueError(
-                "The `weights` argument should be either `None` or the path to the "
-                "weights file to be loaded. Weights file not found at location: {weights}"
-            )
-
-        if include_top and not classes:
-            raise ValueError(
-                "If `include_top` is True, you should specify `classes`. "
-                f"Received: classes={classes}"
-            )
-
-        if include_top and pooling:
-            raise ValueError(
-                f"`pooling` must be `None` when `include_top=True`."
-                f"Received pooling={pooling} and include_top={include_top}. "
-            )
 
         inputs = utils.parse_model_inputs(input_shape, input_tensor)
         x = inputs
@@ -440,40 +349,24 @@ class ResNetV2(keras.Model):
         )(x)
         x = layers.Activation("relu", name="post_relu")(x)
 
-        if include_top:
+        if pooling == "avg":
             x = layers.GlobalAveragePooling2D(name="avg_pool")(x)
-            x = layers.Dense(
-                classes, activation=classifier_activation, name="predictions"
-            )(x)
-        else:
-            if pooling == "avg":
-                x = layers.GlobalAveragePooling2D(name="avg_pool")(x)
-            elif pooling == "max":
-                x = layers.GlobalMaxPooling2D(name="max_pool")(x)
+        elif pooling == "max":
+            x = layers.GlobalMaxPooling2D(name="max_pool")(x)
 
         # Create model.
         super().__init__(inputs=inputs, outputs=x, **kwargs)
 
         # All references to `self` below this line
-        if weights is not None:
-            self.load_weights(weights)
-        # Set this private attribute for recreate backbone model with outputs at
-        # each resolution level.
+        # Backbone outputs at each resolution level for transfer learning.
         self._backbone_level_outputs = stack_level_outputs
-
-        # Bind the `to_backbone_model` method to the application model.
-        self.as_backbone = types.MethodType(utils.as_backbone, self)
 
         self.stackwise_filters = stackwise_filters
         self.stackwise_blocks = stackwise_blocks
         self.stackwise_strides = stackwise_strides
         self.include_rescaling = include_rescaling
-        self.include_top = include_top
         self.stackwise_dilations = stackwise_dilations
         self.input_tensor = input_tensor
-        self.pooling = pooling
-        self.classes = classes
-        self.classifier_activation = classifier_activation
         self.block_type = block_type
 
     def get_config(self):
@@ -482,189 +375,11 @@ class ResNetV2(keras.Model):
             "stackwise_blocks": self.stackwise_blocks,
             "stackwise_strides": self.stackwise_strides,
             "include_rescaling": self.include_rescaling,
-            "include_top": self.include_top,
             # Remove batch dimension from `input_shape`
             "input_shape": self.input_shape[1:],
             "stackwise_dilations": self.stackwise_dilations,
             "input_tensor": self.input_tensor,
-            "pooling": self.pooling,
-            "classes": self.classes,
-            "classifier_activation": self.classifier_activation,
             "block_type": self.block_type,
             "name": self.name,
             "trainable": self.trainable,
         }
-
-    @classmethod
-    def from_config(cls, config):
-        return cls(**config)
-
-
-def ResNet18V2(
-    *,
-    include_rescaling,
-    include_top,
-    classes=None,
-    weights=None,
-    input_shape=(None, None, 3),
-    input_tensor=None,
-    pooling=None,
-    classifier_activation="softmax",
-    name="resnet18",
-    **kwargs,
-):
-    """Instantiates the ResNet18 architecture."""
-
-    return ResNetV2(
-        stackwise_filters=MODEL_CONFIGS["ResNet18V2"]["stackwise_filters"],
-        stackwise_blocks=MODEL_CONFIGS["ResNet18V2"]["stackwise_blocks"],
-        stackwise_strides=MODEL_CONFIGS["ResNet18V2"]["stackwise_strides"],
-        include_rescaling=include_rescaling,
-        include_top=include_top,
-        name=name,
-        weights=weights,
-        input_shape=input_shape,
-        input_tensor=input_tensor,
-        pooling=pooling,
-        classes=classes,
-        classifier_activation=classifier_activation,
-        block_type="basic_block",
-        **kwargs,
-    )
-
-
-def ResNet34V2(
-    *,
-    include_rescaling,
-    include_top,
-    classes=None,
-    weights=None,
-    input_shape=(None, None, 3),
-    input_tensor=None,
-    pooling=None,
-    classifier_activation="softmax",
-    name="resnet34",
-    **kwargs,
-):
-    """Instantiates the ResNet34 architecture."""
-
-    return ResNetV2(
-        stackwise_filters=MODEL_CONFIGS["ResNet34V2"]["stackwise_filters"],
-        stackwise_blocks=MODEL_CONFIGS["ResNet34V2"]["stackwise_blocks"],
-        stackwise_strides=MODEL_CONFIGS["ResNet34V2"]["stackwise_strides"],
-        include_rescaling=include_rescaling,
-        include_top=include_top,
-        name=name,
-        weights=weights,
-        input_shape=input_shape,
-        input_tensor=input_tensor,
-        pooling=pooling,
-        classes=classes,
-        classifier_activation=classifier_activation,
-        block_type="basic_block",
-        **kwargs,
-    )
-
-
-def ResNet50V2(
-    *,
-    include_rescaling,
-    include_top,
-    classes=None,
-    weights=None,
-    input_shape=(None, None, 3),
-    input_tensor=None,
-    pooling=None,
-    classifier_activation="softmax",
-    name="resnet50v2",
-    **kwargs,
-):
-    """Instantiates the ResNet50V2 architecture."""
-
-    return ResNetV2(
-        stackwise_filters=MODEL_CONFIGS["ResNet50V2"]["stackwise_filters"],
-        stackwise_blocks=MODEL_CONFIGS["ResNet50V2"]["stackwise_blocks"],
-        stackwise_strides=MODEL_CONFIGS["ResNet50V2"]["stackwise_strides"],
-        include_rescaling=include_rescaling,
-        include_top=include_top,
-        name=name,
-        weights=parse_weights(weights, include_top, "resnet50v2"),
-        input_shape=input_shape,
-        input_tensor=input_tensor,
-        pooling=pooling,
-        classes=classes,
-        classifier_activation=classifier_activation,
-        block_type="block",
-        **kwargs,
-    )
-
-
-def ResNet101V2(
-    *,
-    include_rescaling,
-    include_top,
-    classes=None,
-    weights=None,
-    input_shape=(None, None, 3),
-    input_tensor=None,
-    pooling=None,
-    classifier_activation="softmax",
-    name="resnet101v2",
-    **kwargs,
-):
-    """Instantiates the ResNet101V2 architecture."""
-    return ResNetV2(
-        stackwise_filters=MODEL_CONFIGS["ResNet101V2"]["stackwise_filters"],
-        stackwise_blocks=MODEL_CONFIGS["ResNet101V2"]["stackwise_blocks"],
-        stackwise_strides=MODEL_CONFIGS["ResNet101V2"]["stackwise_strides"],
-        name=name,
-        include_rescaling=include_rescaling,
-        include_top=include_top,
-        weights=weights,
-        input_shape=input_shape,
-        input_tensor=input_tensor,
-        pooling=pooling,
-        classes=classes,
-        classifier_activation=classifier_activation,
-        block_type="block",
-        **kwargs,
-    )
-
-
-def ResNet152V2(
-    *,
-    include_rescaling,
-    include_top,
-    classes=None,
-    weights=None,
-    input_shape=(None, None, 3),
-    input_tensor=None,
-    pooling=None,
-    classifier_activation="softmax",
-    name="resnet152v2",
-    **kwargs,
-):
-    """Instantiates the ResNet152V2 architecture."""
-    return ResNetV2(
-        stackwise_filters=MODEL_CONFIGS["ResNet152V2"]["stackwise_filters"],
-        stackwise_blocks=MODEL_CONFIGS["ResNet152V2"]["stackwise_blocks"],
-        stackwise_strides=MODEL_CONFIGS["ResNet152V2"]["stackwise_strides"],
-        include_rescaling=include_rescaling,
-        include_top=include_top,
-        name=name,
-        weights=weights,
-        input_shape=input_shape,
-        input_tensor=input_tensor,
-        pooling=pooling,
-        classes=classes,
-        classifier_activation=classifier_activation,
-        block_type="block",
-        **kwargs,
-    )
-
-
-setattr(ResNet18V2, "__doc__", BASE_DOCSTRING.format(name="ResNet18V2"))
-setattr(ResNet34V2, "__doc__", BASE_DOCSTRING.format(name="ResNet34V2"))
-setattr(ResNet50V2, "__doc__", BASE_DOCSTRING.format(name="ResNet50V2"))
-setattr(ResNet101V2, "__doc__", BASE_DOCSTRING.format(name="ResNet101V2"))
-setattr(ResNet152V2, "__doc__", BASE_DOCSTRING.format(name="ResNet152V2"))
