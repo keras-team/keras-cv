@@ -18,11 +18,12 @@ import tensorflow as tf
 @tf.keras.utils.register_keras_serializable(package="keras_cv")
 class Augmenter(tf.keras.layers.Layer):
     """Augmenter performs a series of preprocessing operations on input data.
+
     Args:
         layers: A list of Keras layers to be applied in sequence to input data.
 
     The `call()` method supports any formats of inputs.
-    The output of the `call()` will be the same structure as the inputs..
+    The output of the `call()` will be the same structure as the inputs
     """
 
     def __init__(self, layers, **kwargs):
