@@ -245,6 +245,7 @@ class StableDiffusionBase:
         num_steps: int = 50,
         unconditional_guidance_scale: float = 7.5,
         batch_size: int = 1,
+        diffusion_noise=None,
         seed: Optional[int] = None,
     ) -> np.ndarray:
         """Generate an image based on the Prompt-to-Prompt editing method.
@@ -291,6 +292,11 @@ class StableDiffusionBase:
                 closely adhering to the prompt, but will make the image noisier.
                 Default: 7.5.
             batch_size: number of images to generate. Default: 1.
+            diffusion_noise: Tensor of shape (`batch_size`, img_height // 8,
+                img_width // 8, 4), or a Tensor of shape (img_height // 8,
+                img_width // 8, 4). Optional custom noise to seed the diffusion
+                process. When the batch axis is omitted, the same noise will be
+                used to seed diffusion for every generated image.
             seed: integer which is used to seed the random generation of
                 diffusion noise, only to be specified if `diffusion_noise` is
                 None.
@@ -326,6 +332,12 @@ class StableDiffusionBase:
         )
         ```
         """
+        if diffusion_noise is not None and seed is not None:
+            raise ValueError(
+                "`diffusion_noise` and `seed` should not both be passed to "
+                "`generate_image`. `seed` is only used to generate diffusion "
+                "noise when it's not already user-specified."
+            )
 
         # Prompt-to-Prompt: check inputs
         if method not in ["refine", "replace", "reweight"]:
@@ -347,6 +359,7 @@ class StableDiffusionBase:
         encoded_text_edit = self.encode_text(prompt_edit)
         conditional_context_edit = self._expand_tensor(encoded_text_edit, batch_size)
 
+        # Add negative prompts
         if negative_prompt is None:
             unconditional_context = tf.repeat(
                 self._get_unconditional_context(), batch_size, axis=0
@@ -372,7 +385,15 @@ class StableDiffusionBase:
             )
 
         # Get initial random noise
-        latent = self._get_initial_diffusion_noise(batch_size, seed)
+        if diffusion_noise is not None:
+            diffusion_noise = tf.squeeze(diffusion_noise)
+            if diffusion_noise.shape.rank == 3:
+                diffusion_noise = tf.repeat(
+                    tf.expand_dims(diffusion_noise, axis=0), batch_size, axis=0
+                )
+            latent = diffusion_noise
+        else:
+            latent = self._get_initial_diffusion_noise(batch_size, seed)
 
         # Scheduler
         timesteps = tf.range(1, 1000, 1000 // num_steps)
@@ -402,6 +423,7 @@ class StableDiffusionBase:
             ptp_utils.update_cross_attn_mode(
                 diff_model=self.diffusion_model_ptp, mode="save"
             )
+
             # Predict the conditional noise residual
             _ = self.diffusion_model_ptp.predict_on_batch(
                 [latent, t_emb, conditional_context]
