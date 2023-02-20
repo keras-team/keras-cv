@@ -121,9 +121,7 @@ class LayerScale(layers.Layer):
         self.projection_dim = projection_dim
 
     def build(self, input_shape):
-        self.gamma = tf.Variable(
-            self.init_values * tf.ones((self.projection_dim,))
-        )
+        self.gamma = tf.Variable(self.init_values * tf.ones((self.projection_dim,)))
 
     def call(self, x):
         return x * self.gamma
@@ -139,8 +137,8 @@ class LayerScale(layers.Layer):
         return config
 
 
-def ConvNeXtBlock(
-    projection_dim, drop_path_rate=0.0, layer_scale_init_value=1e-6, name=None
+def apply_block(
+    x, projection_dim, drop_path_rate=0.0, layer_scale_init_value=1e-6, name=None
 ):
     """ConvNeXt block.
 
@@ -168,40 +166,35 @@ def ConvNeXtBlock(
     if name is None:
         name = "prestem" + str(backend.get_uid("prestem"))
 
-    def apply(inputs):
-        x = inputs
+    x1 = x
 
-        x = layers.Conv2D(
-            filters=projection_dim,
-            kernel_size=7,
-            padding="same",
-            groups=projection_dim,
-            name=name + "_depthwise_conv",
+    x = layers.Conv2D(
+        filters=projection_dim,
+        kernel_size=7,
+        padding="same",
+        groups=projection_dim,
+        name=name + "_depthwise_conv",
+    )(x)
+    x = layers.LayerNormalization(epsilon=1e-6, name=name + "_layernorm")(x)
+    x = layers.Dense(4 * projection_dim, name=name + "_pointwise_conv_1")(x)
+    x = layers.Activation("gelu", name=name + "_gelu")(x)
+    x = layers.Dense(projection_dim, name=name + "_pointwise_conv_2")(x)
+
+    if layer_scale_init_value is not None:
+        x = LayerScale(
+            layer_scale_init_value,
+            projection_dim,
+            name=name + "_layer_scale",
         )(x)
-        x = layers.LayerNormalization(epsilon=1e-6, name=name + "_layernorm")(x)
-        x = layers.Dense(4 * projection_dim, name=name + "_pointwise_conv_1")(x)
-        x = layers.Activation("gelu", name=name + "_gelu")(x)
-        x = layers.Dense(projection_dim, name=name + "_pointwise_conv_2")(x)
-
-        if layer_scale_init_value is not None:
-            x = LayerScale(
-                layer_scale_init_value,
-                projection_dim,
-                name=name + "_layer_scale",
-            )(x)
-        if drop_path_rate:
-            layer = StochasticDepth(
-                drop_path_rate, name=name + "_stochastic_depth"
-            )
-            return layer([inputs, x])
-        else:
-            layer = layers.Activation("linear", name=name + "_identity")
-            return inputs + layer(x)
-
-    return apply
+    if drop_path_rate:
+        layer = StochasticDepth(drop_path_rate, name=name + "_stochastic_depth")
+        return layer([x1, x])
+    else:
+        layer = layers.Activation("linear", name=name + "_identity")
+        return x1 + layer(x)
 
 
-def Head(num_classes, activation="softmax", name=None):
+def Head(x, num_classes, activation="softmax", name=None):
     """Implementation of classification head of ConvNeXt.
 
     Args:
@@ -215,34 +208,14 @@ def Head(num_classes, activation="softmax", name=None):
     if name is None:
         name = str(backend.get_uid("head"))
 
-    def apply(x):
-        x = layers.GlobalAveragePooling2D(name=name + "_head_gap")(x)
-        x = layers.LayerNormalization(
-            epsilon=1e-6, name=name + "_head_layernorm"
-        )(x)
-        x = layers.Dense(
-            num_classes, activation=activation, name=name + "_head_dense"
-        )(x)
-        return x
-
-    return apply
+    x = layers.GlobalAveragePooling2D(name=name + "_head_gap")(x)
+    x = layers.LayerNormalization(epsilon=1e-6, name=name + "_head_layernorm")(x)
+    x = layers.Dense(num_classes, activation=activation, name=name + "_head_dense")(x)
+    return x
 
 
-def ConvNeXt(
-    include_rescaling,
-    include_top,
-    depths,
-    projection_dims,
-    drop_path_rate=0.0,
-    layer_scale_init_value=1e-6,
-    weights=None,
-    input_shape=(None, None, 3),
-    input_tensor=None,
-    pooling=None,
-    classes=None,
-    classifier_activation="softmax",
-    name="convnext",
-):
+@keras.utils.register_keras_serializable(package="keras_cv.models")
+class ConvNeXt(keras.Model):
     """Instantiates ConvNeXt architecture given specific configuration.
 
     Args:
@@ -286,113 +259,162 @@ def ConvNeXt(
           when using a pretrained top layer.
         ValueError: if `include_top` is True but `classes` is not specified.
     """
-    if weights and not tf.io.gfile.exists(weights):
-        raise ValueError(
-            "The `weights` argument should be either "
-            "`None` or the path to the weights file to be loaded. "
-            f"Weights file not found at location: {weights}"
-        )
 
-    if include_top and not classes:
-        raise ValueError(
-            "If `include_top` is True, "
-            "you should specify `classes`. "
-            f"Received: classes={classes}"
-        )
+    def __init__(
+        self,
+        include_rescaling,
+        include_top,
+        depths,
+        projection_dims,
+        drop_path_rate=0.0,
+        layer_scale_init_value=1e-6,
+        weights=None,
+        input_shape=(None, None, 3),
+        input_tensor=None,
+        pooling=None,
+        classes=None,
+        classifier_activation="softmax",
+        name="convnext",
+        **kwargs,
+    ):
+        if weights and not tf.io.gfile.exists(weights):
+            raise ValueError(
+                "The `weights` argument should be either "
+                "`None` or the path to the weights file to be loaded. "
+                f"Weights file not found at location: {weights}"
+            )
 
-    if include_top and pooling:
-        raise ValueError(
-            f"`pooling` must be `None` when `include_top=True`."
-            f"Received pooling={pooling} and include_top={include_top}. "
-        )
+        if include_top and not classes:
+            raise ValueError(
+                "If `include_top` is True, "
+                "you should specify `classes`. "
+                f"Received: classes={classes}"
+            )
 
-    inputs = utils.parse_model_inputs(input_shape, input_tensor)
+        if include_top and pooling:
+            raise ValueError(
+                f"`pooling` must be `None` when `include_top=True`."
+                f"Received pooling={pooling} and include_top={include_top}. "
+            )
 
-    x = inputs
-    if include_rescaling:
-        x = layers.Rescaling(1 / 255.0)(x)
+        inputs = utils.parse_model_inputs(input_shape, input_tensor)
 
-    # Stem block.
-    stem = keras.Sequential(
-        [
-            layers.Conv2D(
-                projection_dims[0],
-                kernel_size=4,
-                strides=4,
-                name=name + "_stem_conv",
-            ),
-            layers.LayerNormalization(
-                epsilon=1e-6, name=name + "_stem_layernorm"
-            ),
-        ],
-        name=name + "_stem",
-    )
+        x = inputs
+        if include_rescaling:
+            x = layers.Rescaling(1 / 255.0)(x)
 
-    # Downsampling blocks.
-    downsample_layers = []
-    downsample_layers.append(stem)
-
-    num_downsample_layers = 3
-    for i in range(num_downsample_layers):
-        downsample_layer = keras.Sequential(
+        # Stem block.
+        stem = keras.Sequential(
             [
-                layers.LayerNormalization(
-                    epsilon=1e-6,
-                    name=name + "_downsampling_layernorm_" + str(i),
-                ),
                 layers.Conv2D(
-                    projection_dims[i + 1],
-                    kernel_size=2,
-                    strides=2,
-                    name=name + "_downsampling_conv_" + str(i),
+                    projection_dims[0],
+                    kernel_size=4,
+                    strides=4,
+                    name=name + "_stem_conv",
                 ),
+                layers.LayerNormalization(epsilon=1e-6, name=name + "_stem_layernorm"),
             ],
-            name=name + "_downsampling_block_" + str(i),
+            name=name + "_stem",
         )
-        downsample_layers.append(downsample_layer)
 
-    # Stochastic depth schedule.
-    # This is referred from the original ConvNeXt codebase:
-    # https://github.com/facebookresearch/ConvNeXt/blob/main/models/convnext.py#L86
-    depth_drop_rates = [
-        float(x) for x in tf.linspace(0.0, drop_path_rate, sum(depths))
-    ]
+        # Downsampling blocks.
+        downsample_layers = []
+        downsample_layers.append(stem)
 
-    # First apply downsampling blocks and then apply ConvNeXt stages.
-    cur = 0
+        num_downsample_layers = 3
+        for i in range(num_downsample_layers):
+            downsample_layer = keras.Sequential(
+                [
+                    layers.LayerNormalization(
+                        epsilon=1e-6,
+                        name=name + "_downsampling_layernorm_" + str(i),
+                    ),
+                    layers.Conv2D(
+                        projection_dims[i + 1],
+                        kernel_size=2,
+                        strides=2,
+                        name=name + "_downsampling_conv_" + str(i),
+                    ),
+                ],
+                name=name + "_downsampling_block_" + str(i),
+            )
+            downsample_layers.append(downsample_layer)
 
-    num_convnext_blocks = 4
-    for i in range(num_convnext_blocks):
-        x = downsample_layers[i](x)
-        for j in range(depths[i]):
-            x = ConvNeXtBlock(
-                projection_dim=projection_dims[i],
-                drop_path_rate=depth_drop_rates[cur + j],
-                layer_scale_init_value=layer_scale_init_value,
-                name=name + f"_stage_{i}_block_{j}",
+        # Stochastic depth schedule.
+        # This is referred from the original ConvNeXt codebase:
+        # https://github.com/facebookresearch/ConvNeXt/blob/main/models/convnext.py#L86
+        depth_drop_rates = [
+            float(x) for x in tf.linspace(0.0, drop_path_rate, sum(depths))
+        ]
+
+        # First apply downsampling blocks and then apply ConvNeXt stages.
+        cur = 0
+
+        num_convnext_blocks = 4
+        for i in range(num_convnext_blocks):
+            x = downsample_layers[i](x)
+            for j in range(depths[i]):
+                x = apply_block(
+                    x,
+                    projection_dim=projection_dims[i],
+                    drop_path_rate=depth_drop_rates[cur + j],
+                    layer_scale_init_value=layer_scale_init_value,
+                    name=name + f"_stage_{i}_block_{j}",
+                )
+            cur += depths[i]
+
+        if include_top:
+            x = Head(
+                num_classes=classes,
+                activation=classifier_activation,
+                name=name,
             )(x)
-        cur += depths[i]
 
-    if include_top:
-        x = Head(
-            num_classes=classes,
-            activation=classifier_activation,
-            name=name,
-        )(x)
+        else:
+            if pooling == "avg":
+                x = layers.GlobalAveragePooling2D()(x)
+            elif pooling == "max":
+                x = layers.GlobalMaxPooling2D()(x)
+            x = layers.LayerNormalization(epsilon=1e-6)(x)
 
-    else:
-        if pooling == "avg":
-            x = layers.GlobalAveragePooling2D()(x)
-        elif pooling == "max":
-            x = layers.GlobalMaxPooling2D()(x)
-        x = layers.LayerNormalization(epsilon=1e-6)(x)
+        # Create model.
+        super().__init__(inputs=inputs, outputs=x, **kwargs)
 
-    model = keras.Model(inputs=inputs, outputs=x, name=name)
+        if weights is not None:
+            self.load_weights(weights)
 
-    if weights is not None:
-        model.load_weights(weights)
+        self.include_rescaling = include_rescaling
+        self.include_top = include_top
+        self.depths = depths
+        self.projection_dims = projection_dims
+        self.drop_path_rate = drop_path_rate
+        self.layer_scale_init_value = layer_scale_init_value
+        self.input_tensor = input_tensor
+        self.pooling = pooling
+        self.classes = classes
+        self.classifier_activation = classifier_activation
 
-    return model
+    def get_config(self):
+        return {
+            "include_rescaling": self.include_rescaling,
+            "include_top": self.include_top,
+            "depths": self.depths,
+            "projection_dims": self.projection_dims,
+            "drop_path_rate": self.drop_path_rate,
+            "layer_scale_init_value": self.layer_scale_init_value,
+            # Remove batch dimension from `input_shape`
+            "input_shape": self.input_shape[1:],
+            "input_tensor": self.input_tensor,
+            "pooling": self.pooling,
+            "classes": self.classes,
+            "classifier_activation": self.classifier_activation,
+            "name": self.name,
+            "trainable": self.trainable,
+        }
+
+    @classmethod
+    def from_config(cls, config):
+        return cls(**config)
 
 
 def ConvNeXtTiny(
