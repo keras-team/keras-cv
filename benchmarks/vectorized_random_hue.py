@@ -183,7 +183,7 @@ if __name__ == "__main__":
 
         # XLA Mode
         # OldRandomHue fails to run jit_compile=True, so skip it
-        if c is OldRandomHue:
+        if aug is OldRandomHue:
             continue
         c = aug.__name__ + " XLA Mode"
         layer = aug(**aug_args)
