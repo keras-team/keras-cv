@@ -365,10 +365,11 @@ class ConvNeXt(keras.Model):
 
         if include_top:
             x = Head(
+                x,
                 num_classes=classes,
                 activation=classifier_activation,
                 name=name,
-            )(x)
+            )
 
         else:
             if pooling == "avg":
