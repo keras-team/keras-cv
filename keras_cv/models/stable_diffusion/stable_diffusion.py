@@ -378,6 +378,13 @@ class StableDiffusionBase:
             # Add the mask and indices to the diffusion model
             ptp_utils.put_mask_dif_model(self.diffusion_model_ptp, mask, indices)
 
+        if method == "reweight" and not attn_edit_weights.size:
+            raise ValueError(
+                "The Prompt-to-Prompt attention re-weight method requires the "
+                "parameter `attn_edit_weights` to be passed with values "
+                "instead of `None` or an empty array."
+            )
+
         # Update prompt weights variable
         if attn_edit_weights.size:
             ptp_utils.add_attn_weights(
