@@ -98,7 +98,9 @@ class RandomContrast(VectorizedBaseImageAugmentationLayer):
         means = tf.reduce_mean(images, axis=(1, 2), keepdims=True)
 
         images = (images - means) * contrast_factors + means
-        return tf.clip_by_value(images, self.value_range[0], self.value_range[1])
+        return tf.clip_by_value(
+            images, self.value_range[0], self.value_range[1]
+        )
 
     def augment_labels(self, labels, transformations, **kwargs):
         return labels

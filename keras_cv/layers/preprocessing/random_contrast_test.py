@@ -21,7 +21,9 @@ class RandomContrastTest(tf.test.TestCase):
         image_shape = (4, 8, 8, 3)
         image = tf.random.uniform(shape=image_shape) * 255.0
 
-        layer = preprocessing.RandomContrast(factor=(0.3, 0.8), value_range=(0, 255))
+        layer = preprocessing.RandomContrast(
+            factor=(0.3, 0.8), value_range=(0, 255)
+        )
         output = layer(image)
 
         self.assertEqual(image.shape, output.shape)
@@ -60,7 +62,9 @@ class RandomContrastTest(tf.test.TestCase):
         self.assertNotAllClose(image, output)
 
     def test_config(self):
-        layer = preprocessing.RandomContrast(factor=(0.3, 0.8), value_range=(0, 255))
+        layer = preprocessing.RandomContrast(
+            factor=(0.3, 0.8), value_range=(0, 255)
+        )
         config = layer.get_config()
         self.assertEqual(config["factor"], (0.3, 0.8))
         self.assertEqual(config["value_range"], (0, 255))
