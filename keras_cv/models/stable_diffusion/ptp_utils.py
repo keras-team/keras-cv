@@ -46,7 +46,10 @@ def rename_cross_attn_layers(diff_model: tf.keras.Model):
     cross_attention_count = 0
     for submodule in diff_model.submodules:
         submodule_name = submodule.name
-        if not cross_attention_count % 2 and "cross_attention" in submodule_name:
+        if (
+            not cross_attention_count % 2
+            and "cross_attention" in submodule_name
+        ):
             submodule._name = f"{submodule_name}_attn1"
             cross_attention_count += 1
         elif cross_attention_count % 2 and "cross_attention" in submodule_name:
@@ -148,7 +151,9 @@ def get_matching_sentence_tokens(
     """
     tokens_conditional = tokenizer.encode(prompt)
     tokens_conditional_edit = tokenizer.encode(prompt_edit)
-    mask, indices = seq_aligner.get_mapper(tokens_conditional, tokens_conditional_edit)
+    mask, indices = seq_aligner.get_mapper(
+        tokens_conditional, tokens_conditional_edit
+    )
     return mask, indices
 
 
@@ -170,16 +175,25 @@ def set_initial_tf_variables(diff_model: tf.keras.Model):
             )
             # Set array variables
             submodule.attn_map = tf.Variable(
-                [], shape=tf.TensorShape(None), dtype=tf.float32, trainable=False
+                [],
+                shape=tf.TensorShape(None),
+                dtype=tf.float32,
+                trainable=False,
             )
             submodule.prompt_edit_mask = tf.Variable(
-                [], shape=tf.TensorShape(None), dtype=tf.float32, trainable=False
+                [],
+                shape=tf.TensorShape(None),
+                dtype=tf.float32,
+                trainable=False,
             )
             submodule.prompt_edit_indices = tf.Variable(
                 [], shape=tf.TensorShape(None), dtype=tf.int32, trainable=False
             )
             submodule.prompt_weights = tf.Variable(
-                [], shape=tf.TensorShape(None), dtype=tf.float32, trainable=False
+                [],
+                shape=tf.TensorShape(None),
+                dtype=tf.float32,
+                trainable=False,
             )
 
 
@@ -238,7 +252,9 @@ def call_attn_edit(self, inputs):
     if tf.equal(self.cross_attn_mode, "edit") and tf.not_equal(
         tf.size(self.prompt_edit_mask), 0
     ):  # not empty
-        weights_masked = tf.gather(self.attn_map, self.prompt_edit_indices, axis=-1)
+        weights_masked = tf.gather(
+            self.attn_map, self.prompt_edit_indices, axis=-1
+        )
         edit_weights = weights_masked * self.prompt_edit_mask + weights * (
             1 - self.prompt_edit_mask
         )
@@ -261,5 +277,7 @@ def call_attn_edit(self, inputs):
 
     attn = td_dot(weights, v)
     attn = tf.transpose(attn, (0, 2, 1, 3))  # (bs, time, num_heads, head_size)
-    out = tf.reshape(attn, (-1, inputs.shape[1], self.num_heads * self.head_size))
+    out = tf.reshape(
+        attn, (-1, inputs.shape[1], self.num_heads * self.head_size)
+    )
     return self.out_proj(out)
