@@ -691,6 +691,18 @@ class StableDiffusionBase:
 
         Returns:
             weights (np.ndarray): Array of weights to control the importance of each prompt token.
+
+        Example:
+
+        ```python
+        from keras_cv.models import StableDiffusion
+
+        model = StableDiffusion(img_height=512, img_width=512, jit_compile=True)
+
+        prompt = "a fluffy teddy bear"
+        prompt_weights = [("fluffy", -4)]
+        attn_weights = generator.create_attn_weights(prompt, prompt_weights)
+        ```
         """
 
         # Initialize the weights to 1.
@@ -699,14 +711,14 @@ class StableDiffusionBase:
         # Get the prompt tokens
         tokens = self.tokenize_prompt(prompt)
 
-        # Extract the new weights and tokens
-        edit_weights = [weight for word, weight in attn_weights]
-        edit_tokens = [
-            self.tokenizer.encode(word)[1:-1] for word, weight in attn_weights
-        ]
+        # Extract the weights and words
+        edit_words, edit_weights = zip(*attn_weights)
+
+        # Tokenize the words to edit
+        edit_tokens = [self.tokenizer.encode(word)[1:-1] for word in edit_words]
 
         # Get the indexes of the tokens
-        index_edit_tokens = np.in1d(tokens, edit_tokens).nonzero()[0]
+        index_edit_tokens = tf.where(tf.equal(tokens, edit_tokens))[:, -1]
 
         # Replace the original weight values
         weights[index_edit_tokens] = edit_weights
