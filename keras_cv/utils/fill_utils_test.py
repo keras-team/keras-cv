@@ -311,7 +311,9 @@ class FillRectangleTest(tf.test.TestCase):
         centers_y = tf.fill([batch_size], cent_y)
         width = tf.fill([batch_size], rec_w)
         height = tf.fill([batch_size], rec_h)
-        fill = tf.stack([tf.fill(images[0].shape, 2), tf.fill(images[1].shape, 3)])
+        fill = tf.stack(
+            [tf.fill(images[0].shape, 2), tf.fill(images[1].shape, 3)]
+        )
 
         filled_images = fill_utils.fill_rectangle(
             images, centers_x, centers_y, width, height, fill

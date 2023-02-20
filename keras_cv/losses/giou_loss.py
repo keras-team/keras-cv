@@ -123,7 +123,9 @@ class GIoULoss(tf.keras.losses.Loss):
         # giou calculation
         enclose_area = self._compute_enclosure(boxes1, boxes2)
 
-        return iou - tf.math.divide_no_nan((enclose_area - union_area), enclose_area)
+        return iou - tf.math.divide_no_nan(
+            (enclose_area - union_area), enclose_area
+        )
 
     def call(self, y_true, y_pred, sample_weight=None):
         if sample_weight is not None:

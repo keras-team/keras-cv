@@ -32,7 +32,8 @@ def test_check_tf_version_error():
     tf.__version__ = "2.8.0"
 
     with pytest.raises(
-        RuntimeError, match="Tensorflow package version needs to be at least 2.11.0"
+        RuntimeError,
+        match="Tensorflow package version needs to be at least 2.11.0",
     ):
         version_check.check_tf_version()
 

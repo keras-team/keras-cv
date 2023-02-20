@@ -76,7 +76,9 @@ class OldRandomContrast(BaseImageAugmentationLayer):
 
     def augment_image(self, image, transformation, **kwargs):
         contrast_factor = transformation
-        output = tf.image.adjust_contrast(image, contrast_factor=contrast_factor)
+        output = tf.image.adjust_contrast(
+            image, contrast_factor=contrast_factor
+        )
         output = tf.clip_by_value(output, 0, 255)
         output.set_shape(image.shape)
         return output
@@ -84,10 +86,14 @@ class OldRandomContrast(BaseImageAugmentationLayer):
     def augment_label(self, label, transformation, **kwargs):
         return label
 
-    def augment_segmentation_mask(self, segmentation_mask, transformation, **kwargs):
+    def augment_segmentation_mask(
+        self, segmentation_mask, transformation, **kwargs
+    ):
         return segmentation_mask
 
-    def augment_bounding_boxes(self, bounding_boxes, transformation=None, **kwargs):
+    def augment_bounding_boxes(
+        self, bounding_boxes, transformation=None, **kwargs
+    ):
         return bounding_boxes
 
     def get_config(self):

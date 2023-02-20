@@ -100,9 +100,13 @@ class AugMix(BaseImageAugmentationLayer):
 
     def _sample_from_dirichlet(self, alpha):
         gamma_sample = tf.random.gamma(
-            shape=(), alpha=alpha, seed=self._random_generator.make_legacy_seed()
+            shape=(),
+            alpha=alpha,
+            seed=self._random_generator.make_legacy_seed(),
         )
-        return gamma_sample / tf.reduce_sum(gamma_sample, axis=-1, keepdims=True)
+        return gamma_sample / tf.reduce_sum(
+            gamma_sample, axis=-1, keepdims=True
+        )
 
     def _sample_from_beta(self, alpha, beta):
         sample_alpha = tf.random.gamma(
@@ -159,7 +163,9 @@ class AugMix(BaseImageAugmentationLayer):
         bits = tf.cast(self.severity_factor() * 3, tf.int32)
         shift = tf.cast(4 - bits + 1, tf.uint8)
         image = tf.cast(image, tf.uint8)
-        image = tf.bitwise.left_shift(tf.bitwise.right_shift(image, shift), shift)
+        image = tf.bitwise.left_shift(
+            tf.bitwise.right_shift(image, shift), shift
+        )
         image = tf.cast(image, self.compute_dtype)
         return preprocessing.transform_value_range(
             images=image,
@@ -168,7 +174,9 @@ class AugMix(BaseImageAugmentationLayer):
         )
 
     def _rotate(self, image):
-        angle = tf.expand_dims(tf.cast(self.severity_factor() * 30, tf.float32), axis=0)
+        angle = tf.expand_dims(
+            tf.cast(self.severity_factor() * 30, tf.float32), axis=0
+        )
         shape = tf.cast(tf.shape(image), tf.float32)
 
         return preprocessing.transform(
@@ -177,7 +185,9 @@ class AugMix(BaseImageAugmentationLayer):
         )[0]
 
     def _solarize(self, image):
-        threshold = tf.cast(tf.cast(self.severity_factor() * 255, tf.int32), tf.float32)
+        threshold = tf.cast(
+            tf.cast(self.severity_factor() * 255, tf.int32), tf.float32
+        )
 
         image = preprocessing.transform_value_range(
             image, original_range=self.value_range, target_range=(0, 255)
@@ -219,7 +229,8 @@ class AugMix(BaseImageAugmentationLayer):
             tf.concat([x, tf.zeros_like(x)], axis=1), dtype=tf.float32
         )
         return preprocessing.transform(
-            tf.expand_dims(image, 0), preprocessing.get_translation_matrix(translations)
+            tf.expand_dims(image, 0),
+            preprocessing.get_translation_matrix(translations),
         )[0]
 
     def _translate_y(self, image):
@@ -233,7 +244,8 @@ class AugMix(BaseImageAugmentationLayer):
             tf.concat([tf.zeros_like(y), y], axis=1), dtype=tf.float32
         )
         return preprocessing.transform(
-            tf.expand_dims(image, 0), preprocessing.get_translation_matrix(translations)
+            tf.expand_dims(image, 0),
+            preprocessing.get_translation_matrix(translations),
         )[0]
 
     def _apply_op(self, image, op_index):

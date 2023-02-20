@@ -37,7 +37,9 @@ class RandomFlipTest(tf.test.TestCase, parameterized.TestCase):
             self.assertAllClose(expected_output, actual_output)
 
     def test_flip_ragged(self):
-        images = tf.ragged.stack([tf.ones((512, 512, 3)), tf.ones((1002, 512, 3))])
+        images = tf.ragged.stack(
+            [tf.ones((512, 512, 3)), tf.ones((1002, 512, 3))]
+        )
         bounding_boxes = {
             "boxes": tf.ragged.stack([tf.ones((5, 4)), tf.ones((3, 4))]),
             "classes": tf.ragged.stack([tf.ones((5,)), tf.ones((3,))]),
@@ -125,7 +127,10 @@ class RandomFlipTest(tf.test.TestCase, parameterized.TestCase):
         image = tf.zeros([20, 20, 3])
         bounding_boxes = {
             "boxes": tf.convert_to_tensor(
-                [[[0, 0, 10, 10], [4, 4, 12, 12]], [[4, 4, 12, 12], [0, 0, 10, 10]]],
+                [
+                    [[0, 0, 10, 10], [4, 4, 12, 12]],
+                    [[4, 4, 12, 12], [0, 0, 10, 10]],
+                ],
                 dtype=tf.float32,
             ),
             "classes": tf.convert_to_tensor(
@@ -141,7 +146,9 @@ class RandomFlipTest(tf.test.TestCase, parameterized.TestCase):
 
         input = {"images": [image, image], "bounding_boxes": bounding_boxes}
         mock_random = [0.6, 0.6, 0.6, 0.6]
-        layer = RandomFlip("horizontal_and_vertical", bounding_box_format="xyxy")
+        layer = RandomFlip(
+            "horizontal_and_vertical", bounding_box_format="xyxy"
+        )
         with unittest.mock.patch.object(
             layer._random_generator,
             "random_uniform",
@@ -166,8 +173,12 @@ class RandomFlipTest(tf.test.TestCase, parameterized.TestCase):
                 ]
             ),
         }
-        output["bounding_boxes"] = bounding_box.to_dense(output["bounding_boxes"])
-        self.assertAllClose(expected_output["boxes"], output["bounding_boxes"]["boxes"])
+        output["bounding_boxes"] = bounding_box.to_dense(
+            output["bounding_boxes"]
+        )
+        self.assertAllClose(
+            expected_output["boxes"], output["bounding_boxes"]["boxes"]
+        )
         self.assertAllClose(
             expected_output["classes"], output["bounding_boxes"]["classes"]
         )
@@ -176,14 +187,17 @@ class RandomFlipTest(tf.test.TestCase, parameterized.TestCase):
         image = tf.zeros([2, 20, 20, 3])
         bounding_boxes = {
             "boxes": tf.ragged.constant(
-                [[[0, 0, 10, 10], [4, 4, 12, 12]], [[0, 0, 10, 10]]], dtype=tf.float32
+                [[[0, 0, 10, 10], [4, 4, 12, 12]], [[0, 0, 10, 10]]],
+                dtype=tf.float32,
             ),
             "classes": tf.ragged.constant([[0, 0], [0]], dtype=tf.float32),
         }
 
         input = {"images": image, "bounding_boxes": bounding_boxes}
         mock_random = [0.6, 0.6, 0.6, 0.6]
-        layer = RandomFlip("horizontal_and_vertical", bounding_box_format="xyxy")
+        layer = RandomFlip(
+            "horizontal_and_vertical", bounding_box_format="xyxy"
+        )
         with unittest.mock.patch.object(
             layer._random_generator,
             "random_uniform",
@@ -199,9 +213,13 @@ class RandomFlipTest(tf.test.TestCase, parameterized.TestCase):
             "classes": tf.ragged.constant([[0, 0], [0]], dtype=tf.float32),
         }
 
-        output["bounding_boxes"] = bounding_box.to_dense(output["bounding_boxes"])
+        output["bounding_boxes"] = bounding_box.to_dense(
+            output["bounding_boxes"]
+        )
         expected_output = bounding_box.to_dense(expected_output)
-        self.assertAllClose(expected_output["boxes"], output["bounding_boxes"]["boxes"])
+        self.assertAllClose(
+            expected_output["boxes"], output["bounding_boxes"]["boxes"]
+        )
         self.assertAllClose(
             expected_output["classes"], output["bounding_boxes"]["classes"]
         )

@@ -26,7 +26,9 @@ def _compute_area(box):
     Returns:
       a float Tensor of [N] or [batch_size, N]
     """
-    y_min, x_min, y_max, x_max = tf.split(box[..., :4], num_or_size_splits=4, axis=-1)
+    y_min, x_min, y_max, x_max = tf.split(
+        box[..., :4], num_or_size_splits=4, axis=-1
+    )
     return tf.squeeze((y_max - y_min) * (x_max - x_min), axis=-1)
 
 
@@ -148,6 +150,8 @@ def compute_iou(
     mask_val_t = tf.cast(mask_val, res.dtype) * tf.ones_like(res)
     boxes1_mask = tf.less(tf.reduce_max(boxes1, axis=-1, keepdims=True), 0.0)
     boxes2_mask = tf.less(tf.reduce_max(boxes2, axis=-1, keepdims=True), 0.0)
-    background_mask = tf.logical_or(boxes1_mask, tf.transpose(boxes2_mask, perm))
+    background_mask = tf.logical_or(
+        boxes1_mask, tf.transpose(boxes2_mask, perm)
+    )
     iou_lookup_table = tf.where(background_mask, mask_val_t, res)
     return iou_lookup_table

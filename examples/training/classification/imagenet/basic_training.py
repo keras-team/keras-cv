@@ -52,15 +52,21 @@ Note that this depends on TF>=2.11
 flags.DEFINE_string(
     "model_name", None, "The name of the model in KerasCV.models to use."
 )
-flags.DEFINE_string("imagenet_path", None, "Directory from which to load Imagenet.")
+flags.DEFINE_string(
+    "imagenet_path", None, "Directory from which to load Imagenet."
+)
 flags.DEFINE_string(
     "backup_path", None, "Directory which will be used for training backups."
 )
 flags.DEFINE_string(
-    "weights_path", None, "Directory which will be used to store weight checkpoints."
+    "weights_path",
+    None,
+    "Directory which will be used to store weight checkpoints.",
 )
 flags.DEFINE_string(
-    "tensorboard_path", None, "Directory which will be used to store tensorboard logs."
+    "tensorboard_path",
+    None,
+    "Directory which will be used to store tensorboard logs.",
 )
 flags.DEFINE_integer(
     "batch_size",
@@ -150,7 +156,9 @@ except ValueError:
 print("Number of accelerators: ", strategy.num_replicas_in_sync)
 
 BATCH_SIZE = FLAGS.batch_size * strategy.num_replicas_in_sync
-INITIAL_LEARNING_RATE = FLAGS.initial_learning_rate * strategy.num_replicas_in_sync
+INITIAL_LEARNING_RATE = (
+    FLAGS.initial_learning_rate * strategy.num_replicas_in_sync
+)
 """TFRecord-based tf.data.Dataset loads lazily so we can't get the length of the dataset. Temporary."""
 NUM_IMAGES = 1281167
 
@@ -245,7 +253,12 @@ Convinience method for calculating LR at given timestep, for the WarmUpCosineDec
 
 
 def lr_warmup_cosine_decay(
-    global_step, warmup_steps, hold=0, total_steps=0, start_lr=0.0, target_lr=1e-2
+    global_step,
+    warmup_steps,
+    hold=0,
+    total_steps=0,
+    start_lr=0.0,
+    target_lr=1e-2,
 ):
     # Cosine decay
     learning_rate = (
@@ -269,7 +282,9 @@ def lr_warmup_cosine_decay(
             global_step > warmup_steps + hold, learning_rate, target_lr
         )
 
-    learning_rate = tf.where(global_step < warmup_steps, warmup_lr, learning_rate)
+    learning_rate = tf.where(
+        global_step < warmup_steps, warmup_lr, learning_rate
+    )
     return learning_rate
 
 
@@ -292,7 +307,9 @@ args:
 
 
 class WarmUpCosineDecay(keras.optimizers.schedules.LearningRateSchedule):
-    def __init__(self, warmup_steps, total_steps, hold, start_lr=0.0, target_lr=1e-2):
+    def __init__(
+        self, warmup_steps, total_steps, hold, start_lr=0.0, target_lr=1e-2
+    ):
         super().__init__()
         self.start_lr = start_lr
         self.target_lr = target_lr
@@ -371,13 +388,19 @@ model_callbacks = [
     callbacks.ModelCheckpoint(
         FLAGS.weights_path, save_weights_only=True, save_best_only=True
     ),
-    callbacks.TensorBoard(log_dir=FLAGS.tensorboard_path, write_steps_per_second=True),
+    callbacks.TensorBoard(
+        log_dir=FLAGS.tensorboard_path, write_steps_per_second=True
+    ),
 ]
 
 if FLAGS.learning_rate_schedule == REDUCE_ON_PLATEAU:
     model_callbacks.append(
         callbacks.ReduceLROnPlateau(
-            monitor="val_loss", factor=0.1, patience=10, min_delta=0.001, min_lr=0.0001
+            monitor="val_loss",
+            factor=0.1,
+            patience=10,
+            min_delta=0.001,
+            min_lr=0.0001,
         )
     )
 

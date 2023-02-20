@@ -73,9 +73,9 @@ class Equalization(BaseImageAugmentationLayer):
             histogram,
         )
 
-        step = (tf.reduce_sum(histogram) - tf.reduce_min(histogram_without_zeroes)) // (
-            self.bins - 1
-        )
+        step = (
+            tf.reduce_sum(histogram) - tf.reduce_min(histogram_without_zeroes)
+        ) // (self.bins - 1)
 
         def build_mapping(histogram, step):
             # Compute the cumulative sum, shifting by step // 2
@@ -120,7 +120,9 @@ class Equalization(BaseImageAugmentationLayer):
     def augment_label(self, label, transformation=None, **kwargs):
         return label
 
-    def augment_segmentation_mask(self, segmentation_mask, transformation, **kwargs):
+    def augment_segmentation_mask(
+        self, segmentation_mask, transformation, **kwargs
+    ):
         return segmentation_mask
 
     def get_config(self):

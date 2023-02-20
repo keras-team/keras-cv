@@ -87,11 +87,15 @@ class FourierMixTest(tf.test.TestCase):
 
     def test_image_input_only(self):
         xs = tf.cast(
-            tf.stack([2 * tf.ones((100, 100, 1)), tf.ones((100, 100, 1))], axis=0),
+            tf.stack(
+                [2 * tf.ones((100, 100, 1)), tf.ones((100, 100, 1))], axis=0
+            ),
             tf.float32,
         )
         layer = FourierMix()
-        with self.assertRaisesRegexp(ValueError, "expects inputs in a dictionary"):
+        with self.assertRaisesRegexp(
+            ValueError, "expects inputs in a dictionary"
+        ):
             _ = layer(xs)
 
     def test_single_image_input(self):

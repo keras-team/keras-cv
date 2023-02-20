@@ -99,7 +99,9 @@ class MaybeApply(BaseImageAugmentationLayer):
         super().__init__(seed=seed, **kwargs)
 
         if not (0 <= rate <= 1.0):
-            raise ValueError(f"rate must be in range [0, 1]. Received rate: {rate}")
+            raise ValueError(
+                f"rate must be in range [0, 1]. Received rate: {rate}"
+            )
 
         self._layer = layer
         self._rate = rate
@@ -108,7 +110,9 @@ class MaybeApply(BaseImageAugmentationLayer):
         self.seed = seed
 
     def _should_augment(self):
-        return self._random_generator.random_uniform(shape=()) > 1.0 - self._rate
+        return (
+            self._random_generator.random_uniform(shape=()) > 1.0 - self._rate
+        )
 
     def _batch_augment(self, inputs):
         if self.batchwise:

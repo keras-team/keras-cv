@@ -95,7 +95,11 @@ class FrustumRandomPointFeatureNoise(
             point_clouds[0], valid_points, axis=0
         )[randomly_select_point_index, :POINTCLOUD_LABEL_INDEX]
 
-        num_frames, num_points, num_features = point_clouds.get_shape().as_list()
+        (
+            num_frames,
+            num_points,
+            num_features,
+        ) = point_clouds.get_shape().as_list()
         frustum_mask = []
         for f in range(num_frames):
             frustum_mask.append(
@@ -122,7 +126,9 @@ class FrustumRandomPointFeatureNoise(
         )
         # Do add feature noise outside the frustum mask.
         random_point_noise = tf.where(~frustum_mask, 1.0, noise)
-        random_point_noise = tf.cast(random_point_noise, dtype=self.compute_dtype)
+        random_point_noise = tf.cast(
+            random_point_noise, dtype=self.compute_dtype
+        )
         return {"point_noise": random_point_noise}
 
     def augment_point_clouds_bounding_boxes(

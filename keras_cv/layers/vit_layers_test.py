@@ -19,7 +19,8 @@ from keras_cv.layers.vit_layers import PatchingAndEmbedding
 class ViTLayersTest(tf.test.TestCase):
     def test_patching_wrong_patch_size(self):
         with self.assertRaisesRegexp(
-            ValueError, "The patch_size cannot be a negative number. Received -16"
+            ValueError,
+            "The patch_size cannot be a negative number. Received -16",
         ):
             PatchingAndEmbedding(project_dim=16, patch_size=-16)
 
@@ -28,7 +29,9 @@ class ViTLayersTest(tf.test.TestCase):
             ValueError,
             "Padding must be either 'SAME' or 'VALID', but REFLECT was passed.",
         ):
-            PatchingAndEmbedding(project_dim=16, patch_size=16, padding="REFLECT")
+            PatchingAndEmbedding(
+                project_dim=16, patch_size=16, padding="REFLECT"
+            )
 
     def test_patch_embedding_return_type_and_shape(self):
         layer = PatchingAndEmbedding(project_dim=128, patch_size=16)
@@ -68,4 +71,6 @@ class ViTLayersTest(tf.test.TestCase):
             positional_embeddings, height=8, width=8, patch_size=2
         )
 
-        self.assertTrue(tf.reduce_all(tf.equal(output, tf.ones([1, 16, 4]))).numpy())
+        self.assertTrue(
+            tf.reduce_all(tf.equal(output, tf.ones([1, 16, 4]))).numpy()
+        )

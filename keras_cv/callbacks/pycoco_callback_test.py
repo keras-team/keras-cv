@@ -18,7 +18,9 @@ import tensorflow as tf
 import keras_cv
 from keras_cv.callbacks import PyCOCOCallback
 from keras_cv.metrics.coco.pycoco_wrapper import METRIC_NAMES
-from keras_cv.models.object_detection.__test_utils__ import _create_bounding_box_dataset
+from keras_cv.models.object_detection.__test_utils__ import (
+    _create_bounding_box_dataset,
+)
 
 
 class PyCOCOCallbackTest(tf.test.TestCase):
@@ -50,7 +52,9 @@ class PyCOCOCallbackTest(tf.test.TestCase):
             bounding_box_format="xyxy", use_dictionary_box_format=True
         )
 
-        callback = PyCOCOCallback(validation_data=val_ds, bounding_box_format="xyxy")
+        callback = PyCOCOCallback(
+            validation_data=val_ds, bounding_box_format="xyxy"
+        )
         history = model.fit(train_ds, callbacks=[callback])
 
         self.assertAllInSet(

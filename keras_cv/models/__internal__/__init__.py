@@ -17,4 +17,6 @@ from keras_cv.models.__internal__.darknet_utils import DarknetConvBlock
 from keras_cv.models.__internal__.darknet_utils import DarknetConvBlockDepthwise
 from keras_cv.models.__internal__.darknet_utils import Focus
 from keras_cv.models.__internal__.darknet_utils import ResidualBlocks
-from keras_cv.models.__internal__.darknet_utils import SpatialPyramidPoolingBottleneck
+from keras_cv.models.__internal__.darknet_utils import (
+    SpatialPyramidPoolingBottleneck,
+)

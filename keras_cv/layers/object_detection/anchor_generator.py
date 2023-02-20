@@ -87,7 +87,9 @@ class AnchorGenerator(keras.layers.Layer):
         self.bounding_box_format = bounding_box_format
         # aspect_ratio is a single list that is the same across all levels.
         sizes, strides = self._format_sizes_and_strides(sizes, strides)
-        aspect_ratios = self._match_param_structure_to_sizes(aspect_ratios, sizes)
+        aspect_ratios = self._match_param_structure_to_sizes(
+            aspect_ratios, sizes
+        )
         scales = self._match_param_structure_to_sizes(scales, sizes)
 
         self.anchor_generators = {}
@@ -105,7 +107,9 @@ class AnchorGenerator(keras.layers.Layer):
 
     @staticmethod
     def _format_sizes_and_strides(sizes, strides):
-        result_sizes = AnchorGenerator._ensure_param_is_levels_dict(sizes, "sizes")
+        result_sizes = AnchorGenerator._ensure_param_is_levels_dict(
+            sizes, "sizes"
+        )
         result_strides = AnchorGenerator._ensure_param_is_levels_dict(
             strides, "strides"
         )
@@ -147,14 +151,17 @@ class AnchorGenerator(keras.layers.Layer):
         #     return [params] * len(sizes)
         if not isinstance(sizes, dict):
             raise ValueError(
-                "the structure of `sizes` must be a dict, " f"received sizes={sizes}"
+                "the structure of `sizes` must be a dict, "
+                f"received sizes={sizes}"
             )
 
         return tf.nest.map_structure(lambda _: params, sizes)
 
     def __call__(self, image=None, image_shape=None):
         if image is None and image_shape is None:
-            raise ValueError("AnchorGenerator() requires `images` or `image_shape`.")
+            raise ValueError(
+                "AnchorGenerator() requires `images` or `image_shape`."
+            )
 
         if image is not None:
             if image.shape.rank != 3:
@@ -280,4 +287,6 @@ class _SingleAnchorGenerator:
             x_max = tf.maximum(tf.minimum(x_max, image_width), 0.0)
 
         # [H * W * K, 4]
-        return tf.cast(tf.concat([y_min, x_min, y_max, x_max], axis=-1), self.dtype)
+        return tf.cast(
+            tf.concat([y_min, x_min, y_max, x_max], axis=-1), self.dtype
+        )

@@ -68,7 +68,9 @@ class RandomRotationTest(tf.test.TestCase):
         # 180 rotation.
         layer = RandomRotation(factor=(0.5, 0.5), bounding_box_format="xyxy")
         output = layer(input)
-        output["bounding_boxes"] = bounding_box.to_dense(output["bounding_boxes"])
+        output["bounding_boxes"] = bounding_box.to_dense(
+            output["bounding_boxes"]
+        )
         expected_bounding_boxes = {
             "boxes": tf.convert_to_tensor(
                 [[112.0, 112.0, 312.0, 312.0], [212.0, 212.0, 412.0, 412.0]],
@@ -112,7 +114,10 @@ class RandomRotationTest(tf.test.TestCase):
         expected_output = {
             "boxes": tf.ragged.constant(
                 [
-                    [[112.0, 112.0, 312.0, 312.0], [212.0, 212.0, 412.0, 412.0]],
+                    [
+                        [112.0, 112.0, 312.0, 312.0],
+                        [212.0, 212.0, 412.0, 412.0],
+                    ],
                     [[112.0, 112.0, 312.0, 312.0]],
                 ],
                 dtype=tf.float32,
@@ -129,9 +134,13 @@ class RandomRotationTest(tf.test.TestCase):
             ),
         }
         expected_output = bounding_box.to_dense(expected_output)
-        output["bounding_boxes"] = bounding_box.to_dense(output["bounding_boxes"])
+        output["bounding_boxes"] = bounding_box.to_dense(
+            output["bounding_boxes"]
+        )
 
-        self.assertAllClose(expected_output["boxes"], output["bounding_boxes"]["boxes"])
+        self.assertAllClose(
+            expected_output["boxes"], output["bounding_boxes"]["boxes"]
+        )
         self.assertAllClose(
             expected_output["classes"], output["bounding_boxes"]["classes"]
         )
@@ -151,13 +160,17 @@ class RandomRotationTest(tf.test.TestCase):
             outputs = bad_layer(inputs)
 
         # 90 degree rotation.
-        layer = RandomRotation(factor=(0.25, 0.25), segmentation_classes=classes)
+        layer = RandomRotation(
+            factor=(0.25, 0.25), segmentation_classes=classes
+        )
         outputs = layer(inputs)
         expected_masks = np.rot90(masks, axes=(1, 2))
         self.assertAllClose(expected_masks, outputs["segmentation_masks"])
 
         # 45 degree rotation. Only verifies that no interpolation takes place.
-        layer = RandomRotation(factor=(0.125, 0.125), segmentation_classes=classes)
+        layer = RandomRotation(
+            factor=(0.125, 0.125), segmentation_classes=classes
+        )
         outputs = layer(inputs)
         self.assertAllInSet(outputs["segmentation_masks"], [0, 7])
 
@@ -165,7 +178,9 @@ class RandomRotationTest(tf.test.TestCase):
         classes = 8
 
         input_images = np.random.random((2, 20, 20, 3)).astype(np.float32)
-        masks = tf.one_hot(np.random.randint(classes, size=(2, 20, 20)), classes)
+        masks = tf.one_hot(
+            np.random.randint(classes, size=(2, 20, 20)), classes
+        )
         inputs = {"images": input_images, "segmentation_masks": masks}
 
         # 90 rotation.

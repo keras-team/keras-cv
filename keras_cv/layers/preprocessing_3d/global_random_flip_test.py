@@ -32,19 +32,21 @@ class GlobalRandomFlipTest(tf.test.TestCase):
 
     def test_augment_specific_random_point_clouds_and_bounding_boxes(self):
         add_layer = GlobalRandomFlip()
-        point_clouds = np.array([[[1, 1, 2, 3, 4, 5, 6, 7, 8, 9]] * 2] * 2).astype(
+        point_clouds = np.array(
+            [[[1, 1, 2, 3, 4, 5, 6, 7, 8, 9]] * 2] * 2
+        ).astype("float32")
+        bounding_boxes = np.array([[[1, 1, 2, 3, 4, 5, 1]] * 2] * 2).astype(
             "float32"
         )
-        bounding_boxes = np.array([[[1, 1, 2, 3, 4, 5, 1]] * 2] * 2).astype("float32")
 
         inputs = {POINT_CLOUDS: point_clouds, BOUNDING_BOXES: bounding_boxes}
         outputs = add_layer(inputs)
         flipped_point_clouds = np.array(
             [[[1, -1, 2, 3, 4, 5, 6, 7, 8, 9]] * 2] * 2
         ).astype("float32")
-        flipped_bounding_boxes = np.array([[[1, -1, 2, 3, 4, 5, -1]] * 2] * 2).astype(
-            "float32"
-        )
+        flipped_bounding_boxes = np.array(
+            [[[1, -1, 2, 3, 4, 5, -1]] * 2] * 2
+        ).astype("float32")
         self.assertAllClose(outputs[POINT_CLOUDS], flipped_point_clouds)
         self.assertAllClose(outputs[BOUNDING_BOXES], flipped_bounding_boxes)
 
@@ -57,12 +59,18 @@ class GlobalRandomFlipTest(tf.test.TestCase):
         self.assertNotAllClose(inputs, outputs)
 
     def test_noop_raises_error(self):
-        with self.assertRaisesRegexp(ValueError, "must flip over at least 1 axis"):
+        with self.assertRaisesRegexp(
+            ValueError, "must flip over at least 1 axis"
+        ):
             _ = GlobalRandomFlip(flip_x=False, flip_y=False, flip_z=False)
 
     def test_flip_x_or_z_raises_error(self):
-        with self.assertRaisesRegexp(ValueError, "only supports flipping over the Y"):
+        with self.assertRaisesRegexp(
+            ValueError, "only supports flipping over the Y"
+        ):
             _ = GlobalRandomFlip(flip_x=True, flip_y=False, flip_z=False)
 
-        with self.assertRaisesRegexp(ValueError, "only supports flipping over the Y"):
+        with self.assertRaisesRegexp(
+            ValueError, "only supports flipping over the Y"
+        ):
             _ = GlobalRandomFlip(flip_x=False, flip_y=False, flip_z=True)

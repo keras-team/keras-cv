@@ -21,7 +21,9 @@ BOUNDING_BOXES = base_augmentation_layer_3d.BOUNDING_BOXES
 
 
 @tf.keras.utils.register_keras_serializable(package="keras_cv")
-class GlobalRandomDroppingPoints(base_augmentation_layer_3d.BaseAugmentationLayer3D):
+class GlobalRandomDroppingPoints(
+    base_augmentation_layer_3d.BaseAugmentationLayer3D
+):
     """A preprocessing layer which randomly drops point during training.
 
     This layer will randomly drop points based on keep_probability.

@@ -87,12 +87,16 @@ class RandomBrightness(VectorizedBaseImageAugmentationLayer):
     def augment_images(self, images, transformations, **kwargs):
         rgb_deltas = tf.cast(transformations, images.dtype)
         images += rgb_deltas
-        return tf.clip_by_value(images, self.value_range[0], self.value_range[1])
+        return tf.clip_by_value(
+            images, self.value_range[0], self.value_range[1]
+        )
 
     def augment_labels(self, labels, transformations, **kwargs):
         return labels
 
-    def augment_segmentation_masks(self, segmentation_masks, transformations, **kwargs):
+    def augment_segmentation_masks(
+        self, segmentation_masks, transformations, **kwargs
+    ):
         return segmentation_masks
 
     def augment_bounding_boxes(self, bounding_boxes, transformations, **kwargs):
@@ -110,5 +114,7 @@ class RandomBrightness(VectorizedBaseImageAugmentationLayer):
     @classmethod
     def from_config(cls, config):
         if isinstance(config["factor"], dict):
-            config["factor"] = tf.keras.utils.deserialize_keras_object(config["factor"])
+            config["factor"] = tf.keras.utils.deserialize_keras_object(
+                config["factor"]
+            )
         return cls(**config)

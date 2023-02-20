@@ -34,10 +34,12 @@ class _COCOMeanAveragePrecisionTest(tf.test.TestCase):
         )
 
         # These would match if they were in the area range
-        y_true = np.array([[[0, 0, 10, 10, 1], [5, 5, 10, 10, 1]]]).astype(np.float32)
-        y_pred = np.array([[[0, 0, 10, 10, 1, 1.0], [5, 5, 10, 10, 1, 0.5]]]).astype(
+        y_true = np.array([[[0, 0, 10, 10, 1], [5, 5, 10, 10, 1]]]).astype(
             np.float32
         )
+        y_pred = np.array(
+            [[[0, 0, 10, 10, 1, 1.0], [5, 5, 10, 10, 1, 0.5]]]
+        ).astype(np.float32)
 
         model.compile(metrics=[mean_average_precision])
 
@@ -206,7 +208,8 @@ class _COCOMeanAveragePrecisionTest(tf.test.TestCase):
             dtype=tf.float64,
         )
         y_pred = tf.constant(
-            [[[0, 50, 100, 150, 1, 1.0], [0, 50, 100, 150, 33, 1.0]]], dtype=tf.float32
+            [[[0, 50, 100, 150, 1, 1.0], [0, 50, 100, 150, 33, 1.0]]],
+            dtype=tf.float32,
         )
 
         metric = _COCOMeanAveragePrecision(

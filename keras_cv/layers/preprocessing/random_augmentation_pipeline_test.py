@@ -29,10 +29,14 @@ class AddOneToInputs(tf.keras.layers.Layer):
 
 class RandomAugmentationPipelineTest(tf.test.TestCase, parameterized.TestCase):
     @parameterized.named_parameters(("1", 1), ("3", 3), ("5", 5))
-    def test_calls_layers_augmentations_per_image_times(self, augmentations_per_image):
+    def test_calls_layers_augmentations_per_image_times(
+        self, augmentations_per_image
+    ):
         layer = AddOneToInputs()
         pipeline = layers.RandomAugmentationPipeline(
-            layers=[layer], augmentations_per_image=augmentations_per_image, rate=1.0
+            layers=[layer],
+            augmentations_per_image=augmentations_per_image,
+            rate=1.0,
         )
         xs = tf.random.uniform((2, 5, 5, 3), 0, 100, dtype=tf.float32)
         os = pipeline(xs)
@@ -69,7 +73,9 @@ class RandomAugmentationPipelineTest(tf.test.TestCase, parameterized.TestCase):
     ):
         layer = AddOneToInputs()
         pipeline = layers.RandomAugmentationPipeline(
-            layers=[layer], augmentations_per_image=augmentations_per_image, rate=1.0
+            layers=[layer],
+            augmentations_per_image=augmentations_per_image,
+            rate=1.0,
         )
         xs = tf.random.uniform((5, 5, 3), 0, 100, dtype=tf.float32)
         os = pipeline(xs)
@@ -80,7 +86,9 @@ class RandomAugmentationPipelineTest(tf.test.TestCase, parameterized.TestCase):
     def test_respects_rate(self, augmentations_per_image):
         layer = AddOneToInputs()
         pipeline = layers.RandomAugmentationPipeline(
-            layers=[layer], augmentations_per_image=augmentations_per_image, rate=0.0
+            layers=[layer],
+            augmentations_per_image=augmentations_per_image,
+            rate=0.0,
         )
         xs = tf.random.uniform((2, 5, 5, 3), 0, 100, dtype=tf.float32)
         os = pipeline(xs)

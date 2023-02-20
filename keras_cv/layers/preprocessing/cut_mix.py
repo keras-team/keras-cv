@@ -89,8 +89,12 @@ class CutMix(BaseImageAugmentationLayer):
             input_shape[2],
         )
 
-        permutation_order = tf.random.shuffle(tf.range(0, batch_size), seed=self.seed)
-        lambda_sample = self._sample_from_beta(self.alpha, self.alpha, (batch_size,))
+        permutation_order = tf.random.shuffle(
+            tf.range(0, batch_size), seed=self.seed
+        )
+        lambda_sample = self._sample_from_beta(
+            self.alpha, self.alpha, (batch_size,)
+        )
 
         ratio = tf.math.sqrt(1 - lambda_sample)
 

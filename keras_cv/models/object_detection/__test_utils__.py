@@ -16,7 +16,9 @@ import tensorflow as tf
 import keras_cv
 
 
-def _create_bounding_box_dataset(bounding_box_format, use_dictionary_box_format=False):
+def _create_bounding_box_dataset(
+    bounding_box_format, use_dictionary_box_format=False
+):
     # Just about the easiest dataset you can have, all classes are 0, all boxes are
     # exactly the same.  [1, 1, 2, 2] are the coordinates in xyxy
     xs = tf.ones((5, 256, 256, 3), dtype=tf.float32)
@@ -27,7 +29,11 @@ def _create_bounding_box_dataset(bounding_box_format, use_dictionary_box_format=
     ys = tf.expand_dims(ys, axis=0)
     ys = tf.tile(ys, [5, 10, 1])
     ys = keras_cv.bounding_box.convert_format(
-        ys, source="rel_xywh", target=bounding_box_format, images=xs, dtype=tf.float32
+        ys,
+        source="rel_xywh",
+        target=bounding_box_format,
+        images=xs,
+        dtype=tf.float32,
     )
     num_dets = tf.ones([5])
 

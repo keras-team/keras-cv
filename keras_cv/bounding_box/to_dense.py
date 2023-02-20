@@ -70,10 +70,14 @@ def to_dense(bounding_boxes, max_boxes=None, default_value=-1):
 
     if "confidence" in bounding_boxes:
         if isinstance(bounding_boxes["confidence"], tf.RaggedTensor):
-            bounding_boxes["confidence"] = bounding_boxes["confidence"].to_tensor(
+            bounding_boxes["confidence"] = bounding_boxes[
+                "confidence"
+            ].to_tensor(
                 default_value=default_value,
                 shape=_classes_shape(
-                    info["is_batched"], bounding_boxes["confidence"].shape, max_boxes
+                    info["is_batched"],
+                    bounding_boxes["confidence"].shape,
+                    max_boxes,
                 ),
             )
 

@@ -27,7 +27,9 @@ class ModelUtilTestCase(tf.test.TestCase):
         self.assertEqual(inputs.shape.as_list(), list((None,) + input_shape))
 
         input_tensor = layers.Input(shape=input_shape)
-        self.assertIs(utils.parse_model_inputs(input_shape, input_tensor), input_tensor)
+        self.assertIs(
+            utils.parse_model_inputs(input_shape, input_tensor), input_tensor
+        )
 
     def test_as_backbone_missing_backbone_level_outputs(self):
         model = tf.keras.models.Sequential()

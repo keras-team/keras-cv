@@ -80,7 +80,9 @@ class Resizing(BaseImageAugmentationLayer):
         self.interpolation = interpolation
         self.crop_to_aspect_ratio = crop_to_aspect_ratio
         self.pad_to_aspect_ratio = pad_to_aspect_ratio
-        self._interpolation_method = keras_cv.utils.get_interpolation(interpolation)
+        self._interpolation_method = keras_cv.utils.get_interpolation(
+            interpolation
+        )
         self.bounding_box_format = bounding_box_format
         self.force_output_dense_images = True
 
@@ -118,7 +120,9 @@ class Resizing(BaseImageAugmentationLayer):
             bounding_boxes["classes"] = tf.expand_dims(
                 bounding_boxes["classes"], axis=0
             )
-            bounding_boxes["boxes"] = tf.expand_dims(bounding_boxes["boxes"], axis=0)
+            bounding_boxes["boxes"] = tf.expand_dims(
+                bounding_boxes["boxes"], axis=0
+            )
             inputs["bounding_boxes"] = bounding_boxes
 
         outputs = self._batch_augment(inputs)
@@ -142,7 +146,9 @@ class Resizing(BaseImageAugmentationLayer):
         images = inputs.get("images", None)
 
         size = [self.height, self.width]
-        images = tf.image.resize(images, size=size, method=self._interpolation_method)
+        images = tf.image.resize(
+            images, size=size, method=self._interpolation_method
+        )
         images = tf.cast(images, self.compute_dtype)
 
         inputs["images"] = images
@@ -189,7 +195,9 @@ class Resizing(BaseImageAugmentationLayer):
                     source="rel_xyxy",
                     target="xyxy",
                 )
-            image = tf.image.pad_to_bounding_box(image, 0, 0, self.height, self.width)
+            image = tf.image.pad_to_bounding_box(
+                image, 0, 0, self.height, self.width
+            )
             if bounding_boxes is not None:
                 bounding_boxes = keras_cv.bounding_box.clip_to_image(
                     bounding_boxes, images=image, bounding_box_format="xyxy"

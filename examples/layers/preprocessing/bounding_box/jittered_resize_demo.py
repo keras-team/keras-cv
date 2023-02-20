@@ -19,7 +19,9 @@ import keras_cv
 
 def main():
     augment = keras_cv.layers.JitteredResize(
-        target_size=(640, 640), scale_factor=(0.75, 1.3), bounding_box_format="xywh"
+        target_size=(640, 640),
+        scale_factor=(0.75, 1.3),
+        bounding_box_format="xywh",
     )
     dataset = demo_utils.load_voc_dataset(bounding_box_format="xywh")
     dataset = dataset.map(
@@ -28,7 +30,8 @@ def main():
     demo_utils.visualize_data(dataset, bounding_box_format="xywh")
 
     dataset = dataset.map(
-        lambda x: augment(x, training=False), num_parallel_calls=tf.data.AUTOTUNE
+        lambda x: augment(x, training=False),
+        num_parallel_calls=tf.data.AUTOTUNE,
     )
     demo_utils.visualize_data(dataset, bounding_box_format="xywh")
 

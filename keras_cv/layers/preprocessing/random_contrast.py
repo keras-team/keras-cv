@@ -92,7 +92,9 @@ class RandomContrast(VectorizedBaseImageAugmentationLayer):
     def augment_images(self, images, transformations, **kwargs):
         contrast_factors = tf.cast(transformations, dtype=images.dtype)
         # broadcast
-        contrast_factors = contrast_factors[..., tf.newaxis, tf.newaxis, tf.newaxis]
+        contrast_factors = contrast_factors[
+            ..., tf.newaxis, tf.newaxis, tf.newaxis
+        ]
         means = tf.reduce_mean(images, axis=(1, 2), keepdims=True)
 
         images = (images - means) * contrast_factors + means
@@ -101,7 +103,9 @@ class RandomContrast(VectorizedBaseImageAugmentationLayer):
     def augment_labels(self, labels, transformations, **kwargs):
         return labels
 
-    def augment_segmentation_masks(self, segmentation_masks, transformations, **kwargs):
+    def augment_segmentation_masks(
+        self, segmentation_masks, transformations, **kwargs
+    ):
         return segmentation_masks
 
     def augment_bounding_boxes(self, bounding_boxes, transformations, **kwargs):

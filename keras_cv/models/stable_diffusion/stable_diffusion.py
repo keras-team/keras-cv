@@ -115,7 +115,9 @@ class StableDiffusionBase:
         phrase = inputs + [49407] * (MAX_PROMPT_LENGTH - len(inputs))
         phrase = tf.convert_to_tensor([phrase], dtype=tf.int32)
 
-        context = self.text_encoder.predict_on_batch([phrase, self._get_pos_ids()])
+        context = self.text_encoder.predict_on_batch(
+            [phrase, self._get_pos_ids()]
+        )
 
         return context
 
@@ -212,13 +214,19 @@ class StableDiffusionBase:
             unconditional_latent = self.diffusion_model.predict_on_batch(
                 [latent, t_emb, unconditional_context]
             )
-            latent = self.diffusion_model.predict_on_batch([latent, t_emb, context])
+            latent = self.diffusion_model.predict_on_batch(
+                [latent, t_emb, context]
+            )
             latent = unconditional_latent + unconditional_guidance_scale * (
                 latent - unconditional_latent
             )
             a_t, a_prev = alphas[index], alphas_prev[index]
-            pred_x0 = (latent_prev - math.sqrt(1 - a_t) * latent) / math.sqrt(a_t)
-            latent = latent * math.sqrt(1.0 - a_prev) + math.sqrt(a_prev) * pred_x0
+            pred_x0 = (latent_prev - math.sqrt(1 - a_t) * latent) / math.sqrt(
+                a_t
+            )
+            latent = (
+                latent * math.sqrt(1.0 - a_prev) + math.sqrt(a_prev) * pred_x0
+            )
             iteration += 1
             progbar.update(iteration)
 
@@ -343,12 +351,19 @@ class StableDiffusionBase:
                 unconditional_latent = self.diffusion_model.predict_on_batch(
                     [latent, t_emb, unconditional_context]
                 )
-                latent = self.diffusion_model.predict_on_batch([latent, t_emb, context])
+                latent = self.diffusion_model.predict_on_batch(
+                    [latent, t_emb, context]
+                )
                 latent = unconditional_latent + unconditional_guidance_scale * (
                     latent - unconditional_latent
                 )
-                pred_x0 = (latent_prev - math.sqrt(1 - a_t) * latent) / math.sqrt(a_t)
-                latent = latent * math.sqrt(1.0 - a_prev) + math.sqrt(a_prev) * pred_x0
+                pred_x0 = (
+                    latent_prev - math.sqrt(1 - a_t) * latent
+                ) / math.sqrt(a_t)
+                latent = (
+                    latent * math.sqrt(1.0 - a_prev)
+                    + math.sqrt(a_prev) * pred_x0
+                )
 
                 # Use known image (x0) to compute latent
                 if timestep > 1:
@@ -443,7 +458,9 @@ class StableDiffusionBase:
             self._tokenizer = SimpleTokenizer()
         return self._tokenizer
 
-    def _get_timestep_embedding(self, timestep, batch_size, dim=320, max_period=10000):
+    def _get_timestep_embedding(
+        self, timestep, batch_size, dim=320, max_period=10000
+    ):
         half = dim // 2
         freqs = tf.math.exp(
             -math.log(max_period) * tf.range(0, half, dtype=tf.float32) / half
@@ -472,7 +489,9 @@ class StableDiffusionBase:
 
     @staticmethod
     def _get_pos_ids():
-        return tf.convert_to_tensor([list(range(MAX_PROMPT_LENGTH))], dtype=tf.int32)
+        return tf.convert_to_tensor(
+            [list(range(MAX_PROMPT_LENGTH))], dtype=tf.int32
+        )
 
 
 class StableDiffusion(StableDiffusionBase):

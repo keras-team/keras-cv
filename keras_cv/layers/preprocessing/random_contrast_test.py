@@ -47,7 +47,9 @@ class RandomContrastTest(tf.test.TestCase):
 
     def test_with_unit8(self):
         image_shape = (4, 8, 8, 3)
-        image = tf.cast(tf.random.uniform(shape=image_shape) * 255.0, dtype=tf.uint8)
+        image = tf.cast(
+            tf.random.uniform(shape=image_shape) * 255.0, dtype=tf.uint8
+        )
 
         layer = preprocessing.RandomContrast(factor=0, value_range=(0, 255))
         output = layer(image)

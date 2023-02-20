@@ -225,7 +225,9 @@ def MLPMixer(
         raise ValueError("Non-uniform resolutions are not supported.")
 
     if input_shape[0] % patch_size != 0:
-        raise ValueError("Input resolution should be divisible by the patch size.")
+        raise ValueError(
+            "Input resolution should be divisible by the patch size."
+        )
 
     inputs = utils.parse_model_inputs(input_shape, input_tensor)
 
@@ -243,15 +245,17 @@ def MLPMixer(
     x = layers.Reshape((x.shape[1] * x.shape[2], x.shape[3]))(x)
 
     for i in range(num_blocks):
-        x = MixerBlock(tokens_mlp_dim, channels_mlp_dim, name=f"mixer_block_{i}")(x)
+        x = MixerBlock(
+            tokens_mlp_dim, channels_mlp_dim, name=f"mixer_block_{i}"
+        )(x)
 
     x = layers.LayerNormalization()(x)
 
     if include_top:
         x = layers.GlobalAveragePooling1D(name="avg_pool")(x)
-        x = layers.Dense(classes, activation=classifier_activation, name="predictions")(
-            x
-        )
+        x = layers.Dense(
+            classes, activation=classifier_activation, name="predictions"
+        )(x)
 
     elif pooling == "avg":
         x = layers.GlobalAveragePooling1D(name="avg_pool")(x)

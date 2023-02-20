@@ -1,3 +1,3 @@
 #!/bin/bash
-isort --sl --profile=black .
-black .
+isort --sl .
+black --line-length 80 .

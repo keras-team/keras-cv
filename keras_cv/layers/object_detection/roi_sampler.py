@@ -101,7 +101,9 @@ class _ROISampler(tf.keras.layers.Layer):
             rois = tf.concat([rois, gt_boxes], axis=1)
         num_rois = rois.get_shape().as_list()[1]
         if num_rois is None:
-            raise ValueError(f"`rois` must have static shape, got {rois.get_shape()}")
+            raise ValueError(
+                f"`rois` must have static shape, got {rois.get_shape()}"
+            )
         if num_rois < self.num_sampled_rois:
             raise ValueError(
                 f"num_rois must be less than `num_sampled_rois` ({self.num_sampled_rois}), got {num_rois}"
@@ -128,9 +130,13 @@ class _ROISampler(tf.keras.layers.Layer):
             tf.reduce_sum(tf.cast(negative_matches, tf.float32), axis=-1)
         )
         # [batch_size, num_rois, 1]
-        background_mask = tf.expand_dims(tf.logical_not(positive_matches), axis=-1)
+        background_mask = tf.expand_dims(
+            tf.logical_not(positive_matches), axis=-1
+        )
         # [batch_size, num_rois, 1]
-        matched_gt_classes = target_gather._target_gather(gt_classes, matched_gt_cols)
+        matched_gt_classes = target_gather._target_gather(
+            gt_classes, matched_gt_cols
+        )
         # also set all background matches to `background_class`
         matched_gt_classes = tf.where(
             background_mask,
@@ -141,7 +147,9 @@ class _ROISampler(tf.keras.layers.Layer):
             matched_gt_classes,
         )
         # [batch_size, num_rois, 4]
-        matched_gt_boxes = target_gather._target_gather(gt_boxes, matched_gt_cols)
+        matched_gt_boxes = target_gather._target_gather(
+            gt_boxes, matched_gt_cols
+        )
         encoded_matched_gt_boxes = bounding_box._encode_box_to_deltas(
             anchors=rois,
             boxes=matched_gt_boxes,
@@ -151,7 +159,9 @@ class _ROISampler(tf.keras.layers.Layer):
         )
         # also set all background matches to 0 coordinates
         encoded_matched_gt_boxes = tf.where(
-            background_mask, tf.zeros_like(matched_gt_boxes), encoded_matched_gt_boxes
+            background_mask,
+            tf.zeros_like(matched_gt_boxes),
+            encoded_matched_gt_boxes,
         )
         # [batch_size, num_rois]
         sampled_indicators = sampling.balanced_sample(
@@ -177,7 +187,8 @@ class _ROISampler(tf.keras.layers.Layer):
         # [batch_size, num_sampled_rois, 1]
         # all negative samples will be ignored in regression
         sampled_box_weights = target_gather._target_gather(
-            tf.cast(positive_matches[..., tf.newaxis], gt_boxes.dtype), sampled_indices
+            tf.cast(positive_matches[..., tf.newaxis], gt_boxes.dtype),
+            sampled_indices,
         )
         # [batch_size, num_sampled_rois, 1]
         sampled_indicators = sampled_indicators[..., tf.newaxis]

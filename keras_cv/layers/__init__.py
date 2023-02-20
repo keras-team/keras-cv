@@ -51,7 +51,9 @@ from keras_cv.layers.preprocessing.random_augmentation_pipeline import (
     RandomAugmentationPipeline,
 )
 from keras_cv.layers.preprocessing.random_brightness import RandomBrightness
-from keras_cv.layers.preprocessing.random_channel_shift import RandomChannelShift
+from keras_cv.layers.preprocessing.random_channel_shift import (
+    RandomChannelShift,
+)
 from keras_cv.layers.preprocessing.random_choice import RandomChoice
 from keras_cv.layers.preprocessing.random_color_degeneration import (
     RandomColorDegeneration,
@@ -59,10 +61,14 @@ from keras_cv.layers.preprocessing.random_color_degeneration import (
 from keras_cv.layers.preprocessing.random_color_jitter import RandomColorJitter
 from keras_cv.layers.preprocessing.random_contrast import RandomContrast
 from keras_cv.layers.preprocessing.random_crop import RandomCrop
-from keras_cv.layers.preprocessing.random_crop_and_resize import RandomCropAndResize
+from keras_cv.layers.preprocessing.random_crop_and_resize import (
+    RandomCropAndResize,
+)
 from keras_cv.layers.preprocessing.random_cutout import RandomCutout
 from keras_cv.layers.preprocessing.random_flip import RandomFlip
-from keras_cv.layers.preprocessing.random_gaussian_blur import RandomGaussianBlur
+from keras_cv.layers.preprocessing.random_gaussian_blur import (
+    RandomGaussianBlur,
+)
 from keras_cv.layers.preprocessing.random_hue import RandomHue
 from keras_cv.layers.preprocessing.random_jpeg_quality import RandomJpegQuality
 from keras_cv.layers.preprocessing.random_rotation import RandomRotation
@@ -71,8 +77,12 @@ from keras_cv.layers.preprocessing.random_sharpness import RandomSharpness
 from keras_cv.layers.preprocessing.random_shear import RandomShear
 from keras_cv.layers.preprocessing.random_translation import RandomTranslation
 from keras_cv.layers.preprocessing.random_zoom import RandomZoom
-from keras_cv.layers.preprocessing.randomly_zoomed_crop import RandomlyZoomedCrop
-from keras_cv.layers.preprocessing.repeated_augmentation import RepeatedAugmentation
+from keras_cv.layers.preprocessing.randomly_zoomed_crop import (
+    RandomlyZoomedCrop,
+)
+from keras_cv.layers.preprocessing.repeated_augmentation import (
+    RepeatedAugmentation,
+)
 from keras_cv.layers.preprocessing.rescaling import Rescaling
 from keras_cv.layers.preprocessing.resizing import Resizing
 from keras_cv.layers.preprocessing.solarization import Solarization
@@ -86,8 +96,12 @@ from keras_cv.layers.preprocessing_3d.global_random_dropping_points import (
     GlobalRandomDroppingPoints,
 )
 from keras_cv.layers.preprocessing_3d.global_random_flip import GlobalRandomFlip
-from keras_cv.layers.preprocessing_3d.global_random_rotation import GlobalRandomRotation
-from keras_cv.layers.preprocessing_3d.global_random_scaling import GlobalRandomScaling
+from keras_cv.layers.preprocessing_3d.global_random_rotation import (
+    GlobalRandomRotation,
+)
+from keras_cv.layers.preprocessing_3d.global_random_scaling import (
+    GlobalRandomScaling,
+)
 from keras_cv.layers.preprocessing_3d.global_random_translation import (
     GlobalRandomTranslation,
 )

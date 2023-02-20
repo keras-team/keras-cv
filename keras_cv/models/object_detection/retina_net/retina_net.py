@@ -105,7 +105,9 @@ class RetinaNet(tf.keras.Model):
         name="RetinaNet",
         **kwargs,
     ):
-        if anchor_generator is not None and (prediction_decoder or label_encoder):
+        if anchor_generator is not None and (
+            prediction_decoder or label_encoder
+        ):
             raise ValueError(
                 "`anchor_generator` is only to be provided when "
                 "both `label_encoder` and `prediction_decoder` are both `None`. "
@@ -116,8 +118,9 @@ class RetinaNet(tf.keras.Model):
                 "`prediction_decoder` you should provide both to `RetinaNet`, and ensure "
                 "that the `anchor_generator` provided to both is identical"
             )
-        anchor_generator = anchor_generator or RetinaNet.default_anchor_generator(
-            bounding_box_format
+        anchor_generator = (
+            anchor_generator
+            or RetinaNet.default_anchor_generator(bounding_box_format)
         )
         label_encoder = label_encoder or cv_layers.RetinaNetLabelEncoder(
             bounding_box_format=bounding_box_format,
@@ -159,8 +162,11 @@ class RetinaNet(tf.keras.Model):
         self.feature_pyramid = feature_pyramid or layers_lib.FeaturePyramid()
         prior_probability = tf.constant_initializer(-np.log((1 - 0.01) / 0.01))
 
-        self.classification_head = classification_head or layers_lib.PredictionHead(
-            output_filters=9 * classes, bias_initializer=prior_probability
+        self.classification_head = (
+            classification_head
+            or layers_lib.PredictionHead(
+                output_filters=9 * classes, bias_initializer=prior_probability
+            )
         )
 
         self.box_head = box_head or layers_lib.PredictionHead(
@@ -203,7 +209,9 @@ class RetinaNet(tf.keras.Model):
         box_pred = []
         for feature in features:
             box_pred.append(
-                tf.reshape(self.box_head(feature, training=training), [N, -1, 4])
+                tf.reshape(
+                    self.box_head(feature, training=training), [N, -1, 4]
+                )
             )
             cls_pred.append(
                 tf.reshape(
@@ -345,7 +353,9 @@ class RetinaNet(tf.keras.Model):
 
         positive_mask = tf.cast(tf.greater(classes, -1.0), dtype=tf.float32)
         normalizer = tf.reduce_sum(positive_mask)
-        cls_weights = tf.cast(tf.math.not_equal(classes, -2.0), dtype=tf.float32)
+        cls_weights = tf.cast(
+            tf.math.not_equal(classes, -2.0), dtype=tf.float32
+        )
         cls_weights /= normalizer
         box_weights = positive_mask / normalizer
         y_true = {
@@ -388,7 +398,9 @@ class RetinaNet(tf.keras.Model):
             if self.weight_decay:
                 for var in self.trainable_variables:
                     if "bn" not in var.name:
-                        reg_losses.append(self.weight_decay * tf.nn.l2_loss(var))
+                        reg_losses.append(
+                            self.weight_decay * tf.nn.l2_loss(var)
+                        )
                 l2_loss = tf.math.add_n(reg_losses)
             total_loss += l2_loss
         # Training specific code

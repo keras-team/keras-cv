@@ -30,7 +30,9 @@ from keras_cv.models.__internal__.darknet_utils import CrossStagePartial
 from keras_cv.models.__internal__.darknet_utils import DarknetConvBlock
 from keras_cv.models.__internal__.darknet_utils import DarknetConvBlockDepthwise
 from keras_cv.models.__internal__.darknet_utils import Focus
-from keras_cv.models.__internal__.darknet_utils import SpatialPyramidPoolingBottleneck
+from keras_cv.models.__internal__.darknet_utils import (
+    SpatialPyramidPoolingBottleneck,
+)
 from keras_cv.models.weights import parse_weights
 
 
@@ -122,11 +124,15 @@ def CSPDarkNet(
 
     # stem
     x = Focus(name="stem_focus")(x)
-    x = DarknetConvBlock(base_channels, kernel_size=3, strides=1, name="stem_conv")(x)
+    x = DarknetConvBlock(
+        base_channels, kernel_size=3, strides=1, name="stem_conv"
+    )(x)
 
     _backbone_level_outputs = {}
     # dark2
-    x = ConvBlock(base_channels * 2, kernel_size=3, strides=2, name="dark2_conv")(x)
+    x = ConvBlock(
+        base_channels * 2, kernel_size=3, strides=2, name="dark2_conv"
+    )(x)
     x = CrossStagePartial(
         base_channels * 2,
         num_bottlenecks=base_depth,
@@ -136,7 +142,9 @@ def CSPDarkNet(
     _backbone_level_outputs[2] = x
 
     # dark3
-    x = ConvBlock(base_channels * 4, kernel_size=3, strides=2, name="dark3_conv")(x)
+    x = ConvBlock(
+        base_channels * 4, kernel_size=3, strides=2, name="dark3_conv"
+    )(x)
     x = CrossStagePartial(
         base_channels * 4,
         num_bottlenecks=base_depth * 3,
@@ -146,7 +154,9 @@ def CSPDarkNet(
     _backbone_level_outputs[3] = x
 
     # dark4
-    x = ConvBlock(base_channels * 8, kernel_size=3, strides=2, name="dark4_conv")(x)
+    x = ConvBlock(
+        base_channels * 8, kernel_size=3, strides=2, name="dark4_conv"
+    )(x)
     x = CrossStagePartial(
         base_channels * 8,
         num_bottlenecks=base_depth * 3,
@@ -156,7 +166,9 @@ def CSPDarkNet(
     _backbone_level_outputs[4] = x
 
     # dark5
-    x = ConvBlock(base_channels * 16, kernel_size=3, strides=2, name="dark5_conv")(x)
+    x = ConvBlock(
+        base_channels * 16, kernel_size=3, strides=2, name="dark5_conv"
+    )(x)
     x = SpatialPyramidPoolingBottleneck(
         base_channels * 16, hidden_filters=base_channels * 8, name="dark5_spp"
     )(x)
@@ -171,9 +183,9 @@ def CSPDarkNet(
 
     if include_top:
         x = layers.GlobalAveragePooling2D(name="avg_pool")(x)
-        x = layers.Dense(classes, activation=classifier_activation, name="predictions")(
-            x
-        )
+        x = layers.Dense(
+            classes, activation=classifier_activation, name="predictions"
+        )(x)
     elif pooling == "avg":
         x = layers.GlobalAveragePooling2D(name="avg_pool")(x)
     elif pooling == "max":

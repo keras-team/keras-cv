@@ -75,7 +75,8 @@ class SimCLRAugmenter(preprocessing.Augmenter):
                     aspect_ratio_factor=aspect_ratio_factor,
                 ),
                 preprocessing.MaybeApply(
-                    preprocessing.Grayscale(output_channels=3), rate=grayscale_rate
+                    preprocessing.Grayscale(output_channels=3),
+                    rate=grayscale_rate,
                 ),
                 preprocessing.MaybeApply(
                     preprocessing.RandomColorJitter(

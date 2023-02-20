@@ -25,7 +25,9 @@ from tensorflow.keras import layers
 from keras_cv.models import utils
 from keras_cv.models.__internal__.darknet_utils import DarknetConvBlock
 from keras_cv.models.__internal__.darknet_utils import ResidualBlocks
-from keras_cv.models.__internal__.darknet_utils import SpatialPyramidPoolingBottleneck
+from keras_cv.models.__internal__.darknet_utils import (
+    SpatialPyramidPoolingBottleneck,
+)
 from keras_cv.models.weights import parse_weights
 
 BASE_DOCSTRING = """Instantiates the {name} architecture.
@@ -142,7 +144,11 @@ def DarkNet(
 
     # stem
     x = DarknetConvBlock(
-        filters=32, kernel_size=3, strides=1, activation="leaky_relu", name="stem_conv"
+        filters=32,
+        kernel_size=3,
+        strides=1,
+        activation="leaky_relu",
+        name="stem_conv",
     )(x)
     x = ResidualBlocks(filters=64, num_blocks=1, name="stem_residual_block")(x)
 
@@ -154,7 +160,9 @@ def DarkNet(
 
     for filter, block in zip(filters, blocks):
         x = ResidualBlocks(
-            filters=filter, num_blocks=block, name=f"dark{layer_num}_residual_block"
+            filters=filter,
+            num_blocks=block,
+            name=f"dark{layer_num}_residual_block",
         )(x)
         layer_num += 1
 
@@ -173,9 +181,9 @@ def DarkNet(
         activation="leaky_relu",
         name="dark5_conv2",
     )(x)
-    x = SpatialPyramidPoolingBottleneck(512, activation="leaky_relu", name="dark5_spp")(
-        x
-    )
+    x = SpatialPyramidPoolingBottleneck(
+        512, activation="leaky_relu", name="dark5_spp"
+    )(x)
     x = DarknetConvBlock(
         filters=1024,
         kernel_size=3,
@@ -193,9 +201,9 @@ def DarkNet(
 
     if include_top:
         x = layers.GlobalAveragePooling2D(name="avg_pool")(x)
-        x = layers.Dense(classes, activation=classifier_activation, name="predictions")(
-            x
-        )
+        x = layers.Dense(
+            classes, activation=classifier_activation, name="predictions"
+        )(x)
     elif pooling == "avg":
         x = layers.GlobalAveragePooling2D(name="avg_pool")(x)
     elif pooling == "max":

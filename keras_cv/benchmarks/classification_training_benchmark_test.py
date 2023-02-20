@@ -70,7 +70,9 @@ class ClassificationTrainingBenchmark(
                 include_rescaling=True,
             )
             model.compile(
-                optimizer=tf.keras.optimizers.SGD(learning_rate=0.1, momentum=0.9),
+                optimizer=tf.keras.optimizers.SGD(
+                    learning_rate=0.1, momentum=0.9
+                ),
                 loss="categorical_crossentropy",
                 metrics=["accuracy"],
             )
@@ -89,10 +91,15 @@ class ClassificationTrainingBenchmark(
 
         metrics = []
         metrics.append({"name": "compile_time", "value": compile_time})
-        metrics.append({"name": "avg_epoch_time", "value": training_time / self.epochs})
+        metrics.append(
+            {"name": "avg_epoch_time", "value": training_time / self.epochs}
+        )
         metrics.append({"name": "epochs", "value": self.epochs})
         metrics.append(
-            {"name": "accuracy", "value": training_results.history["accuracy"][0]}
+            {
+                "name": "accuracy",
+                "value": training_results.history["accuracy"][0],
+            }
         )
 
         self.report_benchmark(wall_time=total_time, metrics=metrics)

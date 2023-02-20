@@ -61,11 +61,15 @@ class RandomAugmentationPipelineTest(tf.test.TestCase, parameterized.TestCase):
 
     def test_calls_choose_one_layer_augmentation(self):
         batch_size = 10
-        pipeline = layers.RandomChoice(layers=[AddOneToInputs(), AddOneToInputs()])
+        pipeline = layers.RandomChoice(
+            layers=[AddOneToInputs(), AddOneToInputs()]
+        )
         xs = tf.random.uniform((batch_size, 5, 5, 3), 0, 100, dtype=tf.float32)
         os = pipeline(xs)
 
         self.assertAllClose(xs + 1, os)
 
-        total_calls = pipeline.layers[0].call_counter + pipeline.layers[1].call_counter
+        total_calls = (
+            pipeline.layers[0].call_counter + pipeline.layers[1].call_counter
+        )
         self.assertEqual(total_calls, batch_size)

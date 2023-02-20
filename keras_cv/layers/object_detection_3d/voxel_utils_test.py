@@ -29,7 +29,9 @@ class PadOrTrimToTest(tf.test.TestCase):
         )
         self.assertEqual(padded_x_right.shape.as_list(), [4, 6])
         self.assertEqual(padded_x_left.shape.as_list(), [4, 6])
-        real_x_right, real_x_left = self.evaluate([padded_x_right, padded_x_left])
+        real_x_right, real_x_left = self.evaluate(
+            [padded_x_right, padded_x_left]
+        )
         expected_x_right = [
             [0.38615, 2.975221, -0.852826, 0.0, 0.0, 0.0],
             [-0.571142, -0.432439, 0.413158, 0.0, 0.0, 0.0],
@@ -54,7 +56,9 @@ class PadOrTrimToTest(tf.test.TestCase):
         )
         self.assertEqual(trimmed_x_right.shape.as_list(), [1, 3])
         self.assertEqual(trimmed_x_left.shape.as_list(), [1, 3])
-        real_x_right, real_x_left = self.evaluate([trimmed_x_right, trimmed_x_left])
+        real_x_right, real_x_left = self.evaluate(
+            [trimmed_x_right, trimmed_x_left]
+        )
         expected_x_right = [[0.38615, 2.975221, -0.852826]]
         self.assertAllClose(expected_x_right, real_x_right)
         expected_x_left = [[0.255314, -0.985647, 1.461641]]

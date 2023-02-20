@@ -48,7 +48,10 @@ class DeepLabV3(keras.Model):
         width = input_shape[2]
         feature_map_shape = self.backbone.compute_output_shape(input_shape)
         self.up_layer = tf.keras.layers.UpSampling2D(
-            size=(height // feature_map_shape[1], width // feature_map_shape[2]),
+            size=(
+                height // feature_map_shape[1],
+                width // feature_map_shape[2],
+            ),
             interpolation="bilinear",
         )
 
@@ -66,7 +69,8 @@ class DeepLabV3(keras.Model):
     ):
         if not isinstance(backbone, tf.keras.layers.Layer):
             raise ValueError(
-                "Backbone need to be a `tf.keras.layers.Layer`, " f"received {backbone}"
+                "Backbone need to be a `tf.keras.layers.Layer`, "
+                f"received {backbone}"
             )
 
         if weights and not tf.io.gfile.exists(
@@ -95,11 +99,16 @@ class DeepLabV3(keras.Model):
 
         feature_map = backbone(x)
         if spatial_pyramid_pooling is None:
-            spatial_pyramid_pooling = SpatialPyramidPooling(dilation_rates=[6, 12, 18])
+            spatial_pyramid_pooling = SpatialPyramidPooling(
+                dilation_rates=[6, 12, 18]
+            )
 
         output = spatial_pyramid_pooling(feature_map)
         output = tf.keras.layers.UpSampling2D(
-            size=(height // feature_map.shape[1], width // feature_map.shape[2]),
+            size=(
+                height // feature_map.shape[1],
+                width // feature_map.shape[2],
+            ),
             interpolation="bilinear",
         )(output)
 
@@ -142,19 +151,27 @@ class DeepLabV3(keras.Model):
         super().compile(**kwargs)
 
     def train_step(self, data):
-        images, y_true, sample_weight = tf.keras.utils.unpack_x_y_sample_weight(data)
+        images, y_true, sample_weight = tf.keras.utils.unpack_x_y_sample_weight(
+            data
+        )
         with tf.GradientTape() as tape:
             y_pred = self(images, training=True)
-            total_loss = self.compute_loss(images, y_true, y_pred, sample_weight)
+            total_loss = self.compute_loss(
+                images, y_true, y_pred, sample_weight
+            )
             reg_losses = []
             if self.weight_decay:
                 for var in self.trainable_variables:
                     if "bn" not in var.name:
-                        reg_losses.append(self.weight_decay * tf.nn.l2_loss(var))
+                        reg_losses.append(
+                            self.weight_decay * tf.nn.l2_loss(var)
+                        )
                 l2_loss = tf.math.add_n(reg_losses)
                 total_loss += l2_loss
         self.optimizer.minimize(total_loss, self.trainable_variables, tape=tape)
-        return self.compute_metrics(images, y_true, y_pred, sample_weight=sample_weight)
+        return self.compute_metrics(
+            images, y_true, y_pred, sample_weight=sample_weight
+        )
 
     def get_config(self):
         return {
@@ -261,7 +278,9 @@ class SegmentationHead(layers.Layer):
                 )
             )
             norm_name = "segmentation_head_norm_{}".format(i)
-            self._bn_layers.append(tf.keras.layers.BatchNormalization(name=norm_name))
+            self._bn_layers.append(
+                tf.keras.layers.BatchNormalization(name=norm_name)
+            )
 
         self._classification_layer = tf.keras.layers.Conv2D(
             name="segmentation_output",
@@ -285,7 +304,9 @@ class SegmentationHead(layers.Layer):
         lowest level of feature output as the input for the head.
         """
         if not isinstance(inputs, dict):
-            raise ValueError(f"Expect the inputs to be a dict, but received {inputs}")
+            raise ValueError(
+                f"Expect the inputs to be a dict, but received {inputs}"
+            )
 
         lowest_level = next(iter(sorted(inputs)))
         x = inputs[lowest_level]

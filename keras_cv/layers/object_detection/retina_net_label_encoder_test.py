@@ -95,7 +95,10 @@ class RetinaNetLabelEncoderTest(tf.test.TestCase):
             ]
         )
         classes = tf.ragged.stack(
-            [tf.constant([[1], [1]], tf.float32), tf.constant([[1]], tf.float32)]
+            [
+                tf.constant([[1], [1]], tf.float32),
+                tf.constant([[1]], tf.float32),
+            ]
         )
         strides = [2**i for i in range(3, 8)]
         scales = [2**x for x in [0, 1 / 3, 2 / 3]]

@@ -33,7 +33,9 @@ class ModelsTest:
 
     def _test_application_base(self, app, _, args):
         # Can be instantiated with default arguments
-        model = app(include_top=True, classes=1000, include_rescaling=False, **args)
+        model = app(
+            include_top=True, classes=1000, include_rescaling=False, **args
+        )
 
         # Can be serialized and deserialized
         config = model.get_config()
@@ -49,7 +51,9 @@ class ModelsTest:
         self.assertIsNotNone(model.get_layer(name="rescaling"))
 
     def _test_application_pooling(self, app, last_dim, args):
-        model = app(include_rescaling=False, include_top=False, pooling="avg", **args)
+        model = app(
+            include_rescaling=False, include_top=False, pooling="avg", **args
+        )
 
         self.assertShapeEqual(model.output_shape, (None, last_dim))
 

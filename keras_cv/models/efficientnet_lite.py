@@ -250,8 +250,12 @@ def EfficientNetLiteBlock(
                 kernel_initializer=CONV_KERNEL_INITIALIZER,
                 name=name + "expand_conv",
             )(inputs)
-            x = layers.BatchNormalization(axis=BN_AXIS, name=name + "expand_bn")(x)
-            x = layers.Activation(activation, name=name + "expand_activation")(x)
+            x = layers.BatchNormalization(
+                axis=BN_AXIS, name=name + "expand_bn"
+            )(x)
+            x = layers.Activation(activation, name=name + "expand_activation")(
+                x
+            )
         else:
             x = inputs
 

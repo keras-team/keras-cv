@@ -23,7 +23,9 @@ class FocalTest(tf.test.TestCase):
             tf.random.uniform(shape=[2, 5], minval=0, maxval=2, dtype=tf.int32),
             tf.float32,
         )
-        y_pred = tf.random.uniform(shape=[2, 5], minval=0, maxval=1, dtype=tf.float32)
+        y_pred = tf.random.uniform(
+            shape=[2, 5], minval=0, maxval=1, dtype=tf.float32
+        )
 
         focal_loss = FocalLoss(reduction="sum")
 
@@ -34,7 +36,9 @@ class FocalTest(tf.test.TestCase):
             tf.random.uniform(shape=[2, 5], minval=0, maxval=2, dtype=tf.int32),
             tf.float32,
         )
-        y_pred = tf.random.uniform(shape=[2, 5], minval=0, maxval=1, dtype=tf.float32)
+        y_pred = tf.random.uniform(
+            shape=[2, 5], minval=0, maxval=1, dtype=tf.float32
+        )
 
         focal_loss = FocalLoss(reduction="none")
 
