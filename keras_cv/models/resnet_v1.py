@@ -72,15 +72,18 @@ BASE_DOCSTRING = """Instantiates the {name} architecture.
 
     For transfer learning use cases, make sure to read the [guide to transfer
         learning & fine-tuning](https://keras.io/guides/transfer_learning/).
+
     Args:
-        include_rescaling: whether or not to Rescale the inputs.If set to True,
-            inputs will be passed through a `Rescaling(1/255.0)` layer.
-        include_top: whether to include the fully-connected layer at the top of the
-            network.  If provided, classes must be provided.
-        classes: optional number of classes to classify images into, only to be
-            specified if `include_top` is True.
-        weights: one of `None` (random initialization), or a pretrained weight file
-            path.
+        include_rescaling: bool, whether or not to Rescale the inputs. If set
+            to `True`, inputs will be passed through a `Rescaling(1/255.0)`
+            layer.
+        include_top: bool, whether to include the fully-connected layer at
+            the top of the network.  If provided, `classes` must be provided.
+        classes: optional int, number of classes to classify images into (only
+            to be specified if `include_top` is `True`).
+        weights: one of `None` (random initialization), a pretrained weight file
+            path, or a reference to pre-trained weights (e.g. 'imagenet/classification')
+            (see available pre-trained weights in weights.py)
         input_shape: optional shape tuple, defaults to (None, None, 3).
         input_tensor: optional Keras tensor (i.e. output of `layers.Input()`)
             to use as image input for the model.
@@ -96,6 +99,7 @@ BASE_DOCSTRING = """Instantiates the {name} architecture.
         classifier_activation: A `str` or callable. The activation function to use
             on the "top" layer. Ignored unless `include_top=True`. Set
             `classifier_activation=None` to return the logits of the "top" layer.
+
     Returns:
       A `keras.Model` instance.
 """
@@ -104,18 +108,20 @@ BASE_DOCSTRING = """Instantiates the {name} architecture.
 def apply_basic_block(
     x, filters, kernel_size=3, stride=1, conv_shortcut=True, name=None
 ):
-    """A basic residual block.
+    """A basic residual block (v1).
+
     Args:
-      x: input tensor.
-      filters: integer, filters of the basic layer.
-      kernel_size: default 3, kernel size of the basic layer.
-      stride: default 1, stride of the first layer.
-      conv_shortcut: default True, use convolution shortcut if True,
-          otherwise identity shortcut.
-      name: string, block label.
+        x: input tensor.
+        filters: int, filters of the basic layer.
+        kernel_size: int, kernel size of the bottleneck layer. Defaults to 3.
+        stride: int, stride of the first layer. Defaults to 1.
+        conv_shortcut: bool, uses convolution shortcut if `True`. If `False`
+            (default), uses identity or pooling shortcut, based on stride.
+
     Returns:
       Output tensor for the residual block.
     """
+
     if name is None:
         name = f"v1_basic_block_{backend.get_uid('v1_basic_block_')}"
 
@@ -165,18 +171,20 @@ def apply_basic_block(
 def apply_block(
     x, filters, kernel_size=3, stride=1, conv_shortcut=True, name=None
 ):
-    """A residual block.
+    """A residual block (v1).
+
     Args:
-      x: input tensor.
-      filters: integer, filters of the bottleneck layer.
-      kernel_size: default 3, kernel size of the bottleneck layer.
-      stride: default 1, stride of the first layer.
-      conv_shortcut: default True, use convolution shortcut if True,
-          otherwise identity shortcut.
-      name: string, block label.
+        x: input tensor.
+        filters: int, filters of the basic layer.
+        kernel_size: int, kernel size of the bottleneck layer. Defaults to 3.
+        stride: int, stride of the first layer. Defaults to 1.
+        conv_shortcut: bool, uses convolution shortcut if `True`. If `False`
+            (default), uses identity or pooling shortcut, based on stride.
+
     Returns:
       Output tensor for the residual block.
     """
+
     if name is None:
         name = f"v1_block_{backend.get_uid('v1_block')}"
 
@@ -234,17 +242,21 @@ def apply_stack(
     first_shortcut=True,
 ):
     """A set of stacked residual blocks.
+
     Args:
-      filters: integer, filters of the layers in a block.
-      blocks: integer, blocks in the stacked blocks.
-      stride1: default 2, stride of the first layer in the first block.
+      filters: int, filters of the layer in a block.
+      blocks: int, blocks in the stacked blocks.
+      stride: int, stride of the first layer in the first block. Defaults to 2.
       name: string, stack label.
-      block_fn: callable, `Block` or `BasicBlock`, the block function to stack.
-      first_shortcut: default True, use convolution shortcut if True,
-          otherwise identity shortcut.
+      block_type: string, one of "basic_block" or "block". The block type to
+            stack. Use "basic_block" for ResNet18 and ResNet34.
+      first_shortcut: bool. Use convolution shortcut if `True` (default),
+            otherwise uses identity or pooling shortcut, based on stride.
+
     Returns:
       Output tensor for the stacked blocks.
     """
+
     if name is None:
         name = f"v1_stack_{backend.get_uid('v1_stack')}"
 
