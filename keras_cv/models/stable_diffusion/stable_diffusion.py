@@ -354,6 +354,13 @@ class StableDiffusionBase:
                 "Avaliable methods: ['refine', 'replace', 'reweight'], parsed method: {method}"
             )
 
+        if method == "reweight" and not attn_edit_weights.size:
+            raise ValueError(
+                "The Prompt-to-Prompt attention re-weight method requires the "
+                "parameter `attn_edit_weights` to be passed with values "
+                "instead of `None` or an empty array."
+            )
+
         if isinstance(self_attn_steps, float):
             self_attn_steps = (0.0, self_attn_steps)
         if isinstance(cross_attn_steps, float):
@@ -380,30 +387,6 @@ class StableDiffusionBase:
                 unconditional_context, batch_size
             )
 
-        if method == "refine":
-            # Get the mask and indices of the difference between the original prompt token's and the edited one
-            mask, indices = ptp_utils.get_matching_sentence_tokens(
-                prompt, prompt_edit, self.tokenizer
-            )
-            # Add the mask and indices to the diffusion model
-            ptp_utils.put_mask_dif_model(
-                self.diffusion_model_ptp, mask, indices
-            )
-
-        if method == "reweight" and not attn_edit_weights.size:
-            raise ValueError(
-                "The Prompt-to-Prompt attention re-weight method requires the "
-                "parameter `attn_edit_weights` to be passed with values "
-                "instead of `None` or an empty array."
-            )
-
-        # Update prompt weights variable
-        if attn_edit_weights.size:
-            ptp_utils.add_attn_weights(
-                diff_model=self.diffusion_model_ptp,
-                prompt_weights=attn_edit_weights,
-            )
-
         # Get initial random noise
         if diffusion_noise is not None:
             diffusion_noise = tf.squeeze(diffusion_noise)
@@ -414,6 +397,25 @@ class StableDiffusionBase:
             latent = diffusion_noise
         else:
             latent = self._get_initial_diffusion_noise(batch_size, seed)
+
+        # Add mask and indices for the Prompt-to-Prompt refine method
+        if method == "refine":
+            # Get the mask and indices of the difference between the
+            # original prompt token's and the edited one
+            mask, indices = ptp_utils.get_matching_sentence_tokens(
+                prompt, prompt_edit, self.tokenizer
+            )
+            # Add the mask and indices to the diffusion model
+            ptp_utils.put_mask_dif_model(
+                self.diffusion_model_ptp, mask, indices
+            )
+
+        # Update prompt weights variable
+        if attn_edit_weights.size:
+            ptp_utils.add_attn_weights(
+                diff_model=self.diffusion_model_ptp,
+                prompt_weights=attn_edit_weights,
+            )
 
         # Scheduler
         timesteps = tf.range(1, 1000, 1000 // num_steps)
