@@ -35,6 +35,10 @@ class RandomColorJitter(VectorizedBaseImageAugmentationLayer):
         `(..., height, width, channels)`, in `channels_last` format
 
     Args:
+        value_range: the range of values the incoming images will have.
+            Represented as a two number tuple written (low, high).
+            This is typically either `(0, 1)` or `(0, 255)` depending
+            on how your preprocessing pipeline is setup.
         brightness_factor: Float or a list/tuple of 2 floats between -1.0
             and 1.0. The factor is used to determine the lower bound and
             upper bound of the brightness adjustment. A float value will be
@@ -61,21 +65,17 @@ class RandomColorJitter(VectorizedBaseImageAugmentationLayer):
             is used, a value between `0.0` and the passed float is sampled.
             In order to ensure the value is always the same, please pass a tuple
             with two identical floats: `(0.5, 0.5)`.
-        value_range: Optional list/tuple of 2 floats for the lower and upper limit
-            of the values of the input data. Defaults to [0.0, 255.0]. Can be
-            changed to e.g. [0.0, 1.0] if the image input has been scaled before
-            this layer.
         seed: Integer. Used to create a random seed.
 
     Usage:
     ```python
     (images, labels), _ = tf.keras.datasets.cifar10.load_data()
     color_jitter = keras_cv.layers.RandomColorJitter(
+            value_range=(0, 255),
             brightness_factor=(-0.2, 0.5),
             contrast_factor=(0.5, 0.9),
             saturation_factor=(0.5, 0.9),
             hue_factor=(0.5, 0.9),
-            value_range=(0, 255),
     )
     augmented_images = color_jitter(images)
     ```
@@ -83,20 +83,20 @@ class RandomColorJitter(VectorizedBaseImageAugmentationLayer):
 
     def __init__(
         self,
+        value_range,
         brightness_factor,
         contrast_factor,
         saturation_factor,
         hue_factor,
-        value_range=(0, 255),
         seed=None,
         **kwargs,
     ):
         super().__init__(**kwargs)
+        self.value_range = value_range
         self.brightness_factor = brightness_factor
         self.contrast_factor = contrast_factor
         self.saturation_factor = saturation_factor
         self.hue_factor = hue_factor
-        self.value_range = value_range
         self.seed = seed
 
         self.random_brightness = preprocessing.RandomBrightness(

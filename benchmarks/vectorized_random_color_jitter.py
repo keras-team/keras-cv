@@ -103,16 +103,16 @@ class OldRandomColorJitter(BaseImageAugmentationLayer):
         self.seed = seed
 
         self.random_brightness = preprocessing.RandomBrightness(
-            factor=self.brightness_factor, value_range=(0, 255), seed=self.seed
+            value_range=(0, 255), factor=self.brightness_factor, seed=self.seed
         )
         self.random_contrast = preprocessing.RandomContrast(
-            factor=self.contrast_factor, seed=self.seed
+            value_range=(0, 255), factor=self.contrast_factor, seed=self.seed
         )
         self.random_saturation = preprocessing.RandomSaturation(
             factor=self.saturation_factor, seed=self.seed
         )
         self.random_hue = preprocessing.RandomHue(
-            factor=self.hue_factor, value_range=(0, 255), seed=self.seed
+            factor=self.hue_factor, seed=self.seed
         )
 
     def augment_image(self, image, transformation=None, **kwargs):
