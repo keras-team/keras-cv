@@ -226,13 +226,13 @@ class DenseNet(keras.Model):
         x = layers.Activation("relu", name="conv1/relu")(x)
         x = layers.MaxPooling2D(3, strides=2, padding="same", name="pool1")(x)
 
-        x = DenseBlock(blocks[0], name="conv2")(x)
-        x = TransitionBlock(0.5, name="pool2")(x)
-        x = DenseBlock(blocks[1], name="conv3")(x)
-        x = TransitionBlock(0.5, name="pool3")(x)
-        x = DenseBlock(blocks[2], name="conv4")(x)
-        x = TransitionBlock(0.5, name="pool4")(x)
-        x = DenseBlock(blocks[3], name="conv5")(x)
+        x = DenseBlock(x, blocks[0], name="conv2")
+        x = TransitionBlock(x, 0.5, name="pool2")
+        x = DenseBlock(x, blocks[1], name="conv3")
+        x = TransitionBlock(x, 0.5, name="pool3")
+        x = DenseBlock(x, blocks[2], name="conv4")
+        x = TransitionBlock(x, 0.5, name="pool4")
+        x = DenseBlock(x, blocks[3], name="conv5")
 
         x = layers.BatchNormalization(
             axis=BN_AXIS, epsilon=BN_EPSILON, name="bn"
