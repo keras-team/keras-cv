@@ -1,4 +1,4 @@
-# Copyright 2022 The KerasCV Authors
+# Copyright 2023 The KerasCV Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -22,7 +22,7 @@ class RandomContrastTest(tf.test.TestCase):
         image = tf.random.uniform(shape=image_shape) * 255.0
 
         layer = preprocessing.RandomContrast(
-            factor=(0.3, 0.8), value_range=(0, 255)
+            value_range=(0, 255), factor=(0.3, 0.8)
         )
         output = layer(image)
 
@@ -33,7 +33,7 @@ class RandomContrastTest(tf.test.TestCase):
         image_shape = (4, 8, 8, 3)
         image = tf.random.uniform(shape=image_shape) * 255.0
 
-        layer = preprocessing.RandomContrast(factor=0, value_range=(0, 255))
+        layer = preprocessing.RandomContrast(value_range=(0, 255), factor=0)
         output = layer(image)
 
         self.assertAllClose(image, output, atol=1e-5, rtol=1e-5)
@@ -42,7 +42,7 @@ class RandomContrastTest(tf.test.TestCase):
         image_shape = (4, 8, 8, 3)
         image = tf.random.uniform(shape=image_shape)
 
-        layer = preprocessing.RandomContrast(factor=0, value_range=(0, 1))
+        layer = preprocessing.RandomContrast(value_range=(0, 1), factor=0)
         output = layer(image)
 
         self.assertAllClose(image, output)
@@ -53,18 +53,20 @@ class RandomContrastTest(tf.test.TestCase):
             tf.random.uniform(shape=image_shape) * 255.0, dtype=tf.uint8
         )
 
-        layer = preprocessing.RandomContrast(factor=0, value_range=(0, 255))
+        layer = preprocessing.RandomContrast(value_range=(0, 255), factor=0)
         output = layer(image)
         self.assertAllClose(image, output, atol=1e-5, rtol=1e-5)
 
-        layer = preprocessing.RandomContrast(factor=(0.3, 0.8))
+        layer = preprocessing.RandomContrast(
+            value_range=(0, 255), factor=(0.3, 0.8)
+        )
         output = layer(image)
         self.assertNotAllClose(image, output)
 
     def test_config(self):
         layer = preprocessing.RandomContrast(
-            factor=(0.3, 0.8), value_range=(0, 255)
+            value_range=(0, 255), factor=(0.3, 0.8)
         )
         config = layer.get_config()
-        self.assertEqual(config["factor"], (0.3, 0.8))
         self.assertEqual(config["value_range"], (0, 255))
+        self.assertEqual(config["factor"], (0.3, 0.8))
