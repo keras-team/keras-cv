@@ -1,4 +1,3 @@
-
 # Copyright 2023 The KerasCV Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,14 +14,17 @@
 """Base class for Backbone models."""
 
 import os
+
 import tensorflow as tf
 from tensorflow import keras
 
 from keras_cv.utils.python_utils import classproperty
 from keras_cv.utils.python_utils import format_docstring
 
+
 class Backbone(keras.Model):
     """Base class for Backbone models."""
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
@@ -110,17 +112,21 @@ class Backbone(keras.Model):
                 example_preset_name=next(iter(cls.presets), ""),
                 preset_names='", "'.join(cls.presets),
             )(cls.from_preset.__func__)
-    
+
     @property
-    def _backbone_level_outputs(self): 
+    def backbone_level_outputs(self):
         """Backbone outputs at each resolution level for transfer learning."""
         return None
+
+    @backbone_level_outputs.setter
+    def backbone_level_outputs(self, value):
+        self._backbone_level_outputs = value
 
     def extract_features(self, min_level=None, max_level=None):
         """Convert the application model into a model backbone for other tasks.
 
         The backbone model will usually take same inputs as the original
-        application model, but produce multiple outputs, one for each feature 
+        application model, but produce multiple outputs, one for each feature
         level. Those outputs can be feed to network downstream, like FPN and RPN.
 
         The output of the backbone model will be a dict with int as key and
@@ -134,7 +140,7 @@ class Backbone(keras.Model):
                 in the output. Default to model's lowest feature level (based on
                 the model structure).
             max_level: optional int, the highest level of feature to be included
-                in the output. Default to model's highest feature level (based 
+                in the output. Default to model's highest feature level (based
                 on the model structure).
 
         Returns:
@@ -176,4 +182,3 @@ class Backbone(keras.Model):
                 "The current model doesn't have any feature level "
                 "information so extraction not possible."
             )
-        

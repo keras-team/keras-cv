@@ -17,8 +17,8 @@ Reference:
   - [Based on the original keras.applications ResNet](https://github.com/keras-team/keras/blob/master/keras/applications/resnet_v2.py)
 """
 
-import types
 import copy
+import types
 
 import tensorflow as tf
 from tensorflow import keras
@@ -26,12 +26,13 @@ from tensorflow.keras import backend
 from tensorflow.keras import layers
 
 from keras_cv.models import utils
-from keras_cv.utils.python_utils import classproperty
 from keras_cv.models.backbone import Backbone
 from keras_cv.models.resnet_v2_presets import backbone_presets
+from keras_cv.utils.python_utils import classproperty
 
 BN_AXIS = 3
 BN_EPSILON = 1.001e-5
+
 
 def apply_basic_block(
     x,
@@ -308,7 +309,6 @@ class ResNetV2Backbone(Backbone):
         block_type="block",
         **kwargs,
     ):
-
         inputs = utils.parse_model_inputs(input_shape, input_tensor)
         x = inputs
 
@@ -361,7 +361,7 @@ class ResNetV2Backbone(Backbone):
 
         # All references to `self` below this line
         # Backbone outputs at each resolution level for transfer learning.
-        self._backbone_level_outputs = stack_level_outputs
+        self.backbone_level_outputs = stack_level_outputs
 
         self.stackwise_filters = stackwise_filters
         self.stackwise_blocks = stackwise_blocks
@@ -369,6 +369,7 @@ class ResNetV2Backbone(Backbone):
         self.include_rescaling = include_rescaling
         self.stackwise_dilations = stackwise_dilations
         self.input_tensor = input_tensor
+        self.pooling = pooling
         self.block_type = block_type
 
     def get_config(self):

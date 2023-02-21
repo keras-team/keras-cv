@@ -91,9 +91,7 @@ from keras_cv.models.resnet_v1 import ResNet34
 from keras_cv.models.resnet_v1 import ResNet50
 from keras_cv.models.resnet_v1 import ResNet101
 from keras_cv.models.resnet_v1 import ResNet152
-from keras_cv.models.resnet_v2 import ResNet50V2
-from keras_cv.models.resnet_v2 import ResNet101V2
-from keras_cv.models.resnet_v2 import ResNet152V2
+from keras_cv.models.resnet_v2_backbone import ResNetV2Backbone
 from keras_cv.models.segmentation.deeplab import DeepLabV3
 from keras_cv.models.stable_diffusion import StableDiffusion
 from keras_cv.models.stable_diffusion import StableDiffusionV2
