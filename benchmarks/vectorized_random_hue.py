@@ -51,7 +51,7 @@ class OldRandomHue(BaseImageAugmentationLayer):
 
     """
 
-    def __init__(self, factor, value_range=(0, 255), seed=None, **kwargs):
+    def __init__(self, factor, value_range, seed=None, **kwargs):
         super().__init__(seed=seed, **kwargs)
         self.factor = preprocessing_utils.parse_factor(
             factor,
@@ -144,7 +144,10 @@ if __name__ == "__main__":
     for aug in aug_candidates:
         # Eager Mode
         c = aug.__name__
-        layer = aug(**aug_args)
+        if aug is OldRandomHue:
+            layer = aug(value_range=(0, 255), **aug_args)
+        else:
+            layer = aug(**aug_args)
         runtimes = []
         print(f"Timing {c}")
 
@@ -161,7 +164,10 @@ if __name__ == "__main__":
 
         # Graph Mode
         c = aug.__name__ + " Graph Mode"
-        layer = aug(**aug_args)
+        if aug is OldRandomHue:
+            layer = aug(value_range=(0, 255), **aug_args)
+        else:
+            layer = aug(**aug_args)
 
         @tf.function()
         def apply_aug(inputs):
