@@ -13,7 +13,6 @@
 # limitations under the License.
 
 """ConvNeXt models for Keras.
-
 References:
 - [A ConvNet for the 2020s](https://arxiv.org/abs/2201.03545)
   (CVPR 2022)
@@ -58,14 +57,13 @@ MODEL_CONFIGS = {
 BASE_DOCSTRING = """Instantiates the {name} architecture.
     - [A ConvNet for the 2020s](https://arxiv.org/abs/2201.03545)
     (CVPR 2022)
-
     This function returns a Keras {name} model.
-
     Args:
-        include_rescaling: whether or not to Rescale the inputs.If set to True,
-            inputs will be passed through a `Rescaling(1/255.0)` layer.
-        include_top: whether to include the fully-connected layer at the top of the
-            network.  If provided, classes must be provided.
+        include_rescaling: bool, whether or not to Rescale the inputs. If set
+            to `True`, inputs will be passed through a `Rescaling(1/255.0)`
+            layer.
+        include_top: bool, whether to include the fully-connected layer at
+            the top of the network.  If provided, `classes` must be provided.
         depths: an iterable containing depths for each individual stages.
         projection_dims: An iterable containing output number of channels of
             each individual stages.
@@ -73,9 +71,10 @@ BASE_DOCSTRING = """Instantiates the {name} architecture.
             depth won't be used.
         layer_scale_init_value: layer scale coefficient, if 0.0, layer scaling
             won't be used.
-        weights: one of `None` (random initialization), or a pretrained weight
-            file path.
-        input_shape: optional shape tuple, defaults to `(None, None, 3)`.
+        weights: one of `None` (random initialization), a pretrained weight file
+            path, or a reference to pre-trained weights (e.g. 'imagenet/classification')
+            (see available pre-trained weights in weights.py)
+        input_shape: optional shape tuple, defaults to (None, None, 3).
         input_tensor: optional Keras tensor (i.e. output of `layers.Input()`)
             to use as image input for the model.
         pooling: optional pooling mode for feature extraction
@@ -86,12 +85,11 @@ BASE_DOCSTRING = """Instantiates the {name} architecture.
                 of the last convolutional block, and thus the output of the model will
                 be a 2D tensor.
             - `max` means that global max pooling will be applied.
-        classes: optional number of classes to classify images into, only to be
-            specified if `include_top` is True.
+        classes: optional int, number of classes to classify images into (only
+            to be specified if `include_top` is `True`).
         classifier_activation: A `str` or callable. The activation function to use
             on the "top" layer. Ignored unless `include_top=True`. Set
             `classifier_activation=None` to return the logits of the "top" layer.
-            Defaults to `"softmax"`.
         name: (Optional) name to pass to the model.  Defaults to "{name}".
 
     Returns:
@@ -102,15 +100,12 @@ BASE_DOCSTRING = """Instantiates the {name} architecture.
 @tf.keras.utils.register_keras_serializable(package="keras_cv")
 class LayerScale(layers.Layer):
     """Layer scale module.
-
     References:
       - https://arxiv.org/abs/2103.17239
-
     Args:
       init_values (float): Initial value for layer scale. Should be within
         [0, 1].
       projection_dim (int): Projection dimensionality.
-
     Returns:
       Tensor multiplied to the scale.
     """
@@ -121,7 +116,9 @@ class LayerScale(layers.Layer):
         self.projection_dim = projection_dim
 
     def build(self, input_shape):
-        self.gamma = tf.Variable(self.init_values * tf.ones((self.projection_dim,)))
+        self.gamma = tf.Variable(
+            self.init_values * tf.ones((self.projection_dim,))
+        )
 
     def call(self, x):
         return x * self.gamma
@@ -138,19 +135,20 @@ class LayerScale(layers.Layer):
 
 
 def apply_block(
-    x, projection_dim, drop_path_rate=0.0, layer_scale_init_value=1e-6, name=None
+    x,
+    projection_dim,
+    drop_path_rate=0.0,
+    layer_scale_init_value=1e-6,
+    name=None,
 ):
     """ConvNeXt block.
-
     References:
       - https://arxiv.org/abs/2201.03545
       - https://github.com/facebookresearch/ConvNeXt/blob/main/models/convnext.py
-
     Notes:
       In the original ConvNeXt implementation (linked above), the authors use
       `Dense` layers for pointwise convolutions for increased efficiency.
       Following that, this implementation also uses the same.
-
     Args:
       projection_dim (int): Number of filters for convolution layers. In the
         ConvNeXt paper, this is referred to as projection dimension.
@@ -159,7 +157,6 @@ def apply_block(
       layer_scale_init_value (float): Layer scale value. Should be a small float
         number.
       name: name to path to the keras layer.
-
     Returns:
       A function representing a ConvNeXtBlock block.
     """
@@ -196,12 +193,10 @@ def apply_block(
 
 def Head(x, num_classes, activation="softmax", name=None):
     """Implementation of classification head of ConvNeXt.
-
     Args:
       num_classes: number of classes for Dense layer
       activation: activation function for Dense layer
       name: name prefix
-
     Returns:
       Classification head function.
     """
@@ -209,20 +204,24 @@ def Head(x, num_classes, activation="softmax", name=None):
         name = str(backend.get_uid("head"))
 
     x = layers.GlobalAveragePooling2D(name=name + "_head_gap")(x)
-    x = layers.LayerNormalization(epsilon=1e-6, name=name + "_head_layernorm")(x)
-    x = layers.Dense(num_classes, activation=activation, name=name + "_head_dense")(x)
+    x = layers.LayerNormalization(epsilon=1e-6, name=name + "_head_layernorm")(
+        x
+    )
+    x = layers.Dense(
+        num_classes, activation=activation, name=name + "_head_dense"
+    )(x)
     return x
 
 
 @keras.utils.register_keras_serializable(package="keras_cv.models")
 class ConvNeXt(keras.Model):
     """Instantiates ConvNeXt architecture given specific configuration.
-
     Args:
-      include_rescaling: whether or not to Rescale the inputs. If set to True,
-        inputs will be passed through a `Rescaling(1/255.0)` layer.
-      include_top: Boolean denoting whether to include classification head to
-        the model.
+      include_rescaling: bool, whether or not to Rescale the inputs. If set
+            to `True`, inputs will be passed through a `Rescaling(1/255.0)`
+            layer.
+        include_top: bool, whether to include the fully-connected layer at
+            the top of the network.  If provided, `classes` must be provided.
       depths: An iterable containing depths for each individual stages.
       projection_dims: An iterable containing output number of channels of
       each individual stages.
@@ -230,28 +229,28 @@ class ConvNeXt(keras.Model):
         depth won't be used.
       layer_scale_init_value: Layer scale coefficient. If 0.0, layer scaling
         won't be used.
-      weights: One of `None` (random initialization), or a pretrained weight
-        file path.
-      input_shape: optional shape tuple, defaults to `(None, None, 3)`.
-      input_tensor: optional Keras tensor (i.e. output of `layers.Input()`).
-      pooling: optional pooling mode for feature extraction when `include_top`
-        is `False`.
-        - `None` means that the output of the model will be the 4D tensor output
-          of the last convolutional layer.
-        - `avg` means that global average pooling will be applied to the output
-          of the last convolutional layer, and thus the output of the model will
-          be a 2D tensor.
-        - `max` means that global max pooling will be applied.
-      classes: optional number of classes to classify images into, only to be
-        specified if `include_top` is True.
+      weights: one of `None` (random initialization), a pretrained weight file
+            path, or a reference to pre-trained weights (e.g. 'imagenet/classification')
+            (see available pre-trained weights in weights.py)
+      input_shape: optional shape tuple, defaults to (None, None, 3).
+        input_tensor: optional Keras tensor (i.e. output of `layers.Input()`)
+            to use as image input for the model.
+      pooling: optional pooling mode for feature extraction
+            when `include_top` is `False`.
+            - `None` means that the output of the model will be the 4D tensor output
+                of the last convolutional block.
+            - `avg` means that global average pooling will be applied to the output
+                of the last convolutional block, and thus the output of the model will
+                be a 2D tensor.
+            - `max` means that global max pooling will be applied.
+      classes: optional int, number of classes to classify images into (only
+            to be specified if `include_top` is `True`).
       classifier_activation: A `str` or callable. The activation function to use
-        on the "top" layer. Ignored unless `include_top=True`. Set
-        `classifier_activation=None` to return the logits of the "top" layer.
-      name: An optional name for the model.
-
+            on the "top" layer. Ignored unless `include_top=True`. Set
+            `classifier_activation=None` to return the logits of the "top" layer.
+      name: (Optional) name to pass to the model.  Defaults to "{name}".
     Returns:
       A `keras.Model` instance.
-
     Raises:
         ValueError: in case of invalid argument for `weights`,
           or invalid input shape.
@@ -312,7 +311,9 @@ class ConvNeXt(keras.Model):
                     strides=4,
                     name=name + "_stem_conv",
                 ),
-                layers.LayerNormalization(epsilon=1e-6, name=name + "_stem_layernorm"),
+                layers.LayerNormalization(
+                    epsilon=1e-6, name=name + "_stem_layernorm"
+                ),
             ],
             name=name + "_stem",
         )
@@ -422,6 +423,8 @@ def ConvNeXtTiny(
     *,
     include_rescaling,
     include_top,
+    drop_path_rate,
+    layer_scale_init_value,
     weights=None,
     input_shape=(None, None, 3),
     input_tensor=None,
@@ -435,6 +438,8 @@ def ConvNeXtTiny(
         include_top=include_top,
         depths=MODEL_CONFIGS["tiny"]["depths"],
         projection_dims=MODEL_CONFIGS["tiny"]["projection_dims"],
+        drop_path_rate=drop_path_rate,
+        layer_scale_init_value=layer_scale_init_value,
         weights=weights,
         input_tensor=input_tensor,
         input_shape=input_shape,
@@ -449,6 +454,8 @@ def ConvNeXtSmall(
     *,
     include_rescaling,
     include_top,
+    drop_path_rate,
+    layer_scale_init_value,
     weights=None,
     input_shape=(None, None, 3),
     input_tensor=None,
@@ -462,6 +469,8 @@ def ConvNeXtSmall(
         include_top=include_top,
         depths=MODEL_CONFIGS["small"]["depths"],
         projection_dims=MODEL_CONFIGS["small"]["projection_dims"],
+        drop_path_rate=drop_path_rate,
+        layer_scale_init_value=layer_scale_init_value,
         weights=weights,
         input_tensor=input_tensor,
         input_shape=input_shape,
@@ -476,6 +485,8 @@ def ConvNeXtBase(
     *,
     include_rescaling,
     include_top,
+    drop_path_rate,
+    layer_scale_init_value,
     weights=None,
     input_shape=(None, None, 3),
     input_tensor=None,
@@ -489,6 +500,8 @@ def ConvNeXtBase(
         include_top=include_top,
         depths=MODEL_CONFIGS["base"]["depths"],
         projection_dims=MODEL_CONFIGS["base"]["projection_dims"],
+        drop_path_rate=drop_path_rate,
+        layer_scale_init_value=layer_scale_init_value,
         weights=weights,
         input_tensor=input_tensor,
         input_shape=input_shape,
@@ -503,6 +516,8 @@ def ConvNeXtLarge(
     *,
     include_rescaling,
     include_top,
+    drop_path_rate,
+    layer_scale_init_value,
     weights=None,
     input_shape=(None, None, 3),
     input_tensor=None,
@@ -516,6 +531,8 @@ def ConvNeXtLarge(
         include_top=include_top,
         depths=MODEL_CONFIGS["large"]["depths"],
         projection_dims=MODEL_CONFIGS["large"]["projection_dims"],
+        drop_path_rate=drop_path_rate,
+        layer_scale_init_value=layer_scale_init_value,
         weights=weights,
         input_tensor=input_tensor,
         input_shape=input_shape,
@@ -530,6 +547,8 @@ def ConvNeXtXLarge(
     *,
     include_rescaling,
     include_top,
+    drop_path_rate,
+    layer_scale_init_value,
     weights=None,
     input_shape=(None, None, 3),
     input_tensor=None,
@@ -543,6 +562,8 @@ def ConvNeXtXLarge(
         include_top=include_top,
         depths=MODEL_CONFIGS["xlarge"]["depths"],
         projection_dims=MODEL_CONFIGS["xlarge"]["projection_dims"],
+        drop_path_rate=drop_path_rate,
+        layer_scale_init_value=layer_scale_init_value,
         weights=weights,
         input_tensor=input_tensor,
         input_shape=input_shape,
