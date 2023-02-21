@@ -81,7 +81,7 @@ def DenseBlock(x, blocks, name=None):
         name = f"dense_block_{backend.get_uid('dense_block')}"
 
     for i in range(blocks):
-        x = ConvBlock(32, name=f"{name}_block_{i}")(x)
+        x = ConvBlock(x, 32, name=f"{name}_block_{i}")
     return x
 
 
