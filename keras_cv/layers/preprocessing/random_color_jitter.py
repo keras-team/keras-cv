@@ -143,11 +143,11 @@ class RandomColorJitter(VectorizedBaseImageAugmentationLayer):
         config = super().get_config()
         config.update(
             {
+                "value_range": self.value_range,
                 "brightness_factor": self.brightness_factor,
                 "contrast_factor": self.contrast_factor,
                 "saturation_factor": self.saturation_factor,
                 "hue_factor": self.hue_factor,
-                "value_range": self.value_range,
                 "seed": self.seed,
             }
         )
