@@ -32,36 +32,40 @@ class RandomBrightness(VectorizedBaseImageAugmentationLayer):
     Note that different brightness adjustment factors
     will be apply to each the images in the batch.
 
+    Input shape:
+        3D (unbatched) or 4D (batched) tensor with shape:
+        `(..., height, width, channels)`, in `channels_last` format
+    Output shape:
+        3D (unbatched) or 4D (batched) tensor with shape:
+        `(..., height, width, channels)`, in `channels_last` format
+
     Args:
-      factor: Float or a list/tuple of 2 floats between -1.0 and 1.0. The
-        factor is used to determine the lower bound and upper bound of the
-        brightness adjustment. A float value will be chosen randomly between
-        the limits. When -1.0 is chosen, the output image will be black, and
-        when 1.0 is chosen, the image will be fully white. When only one float
-        is provided, eg, 0.2, then -0.2 will be used for lower bound and 0.2
-        will be used for upper bound.
-      value_range: Optional list/tuple of 2 floats for the lower and upper limit
-        of the values of the input data. Defaults to [0.0, 255.0]. Can be
-        changed to e.g. [0.0, 1.0] if the image input has been scaled before
-        this layer.  The brightness adjustment will be scaled to this range, and
-        the output values will be clipped to this range.
-      seed: optional integer, for fixed RNG behavior.
-    Inputs: 3D (HWC) or 4D (NHWC) tensor, with float or int dtype. Input pixel
-      values can be of any range (e.g. `[0., 1.)` or `[0, 255]`)
-    Output: 3D (HWC) or 4D (NHWC) tensor with brightness adjusted based on the
-      `factor`. By default, the layer will output floats. The output value will
-      be clipped to the range `[0, 255]`, the valid range of RGB colors, and
-      rescaled based on the `value_range` if needed.
+        value_range: the range of values the incoming images will have.
+            Represented as a two number tuple written (low, high).
+            This is typically either `(0, 1)` or `(0, 255)` depending
+            on how your preprocessing pipeline is setup. The brightness
+            adjustment will be scaled to this range, and the output values will
+            be clipped to this range.
+        factor: Float or a list/tuple of 2 floats between -1.0 and 1.0. The
+            factor is used to determine the lower bound and upper bound of the
+            brightness adjustment. A float value will be chosen randomly between
+            the limits. When -1.0 is chosen, the output image will be black, and
+            when 1.0 is chosen, the image will be fully white. When only one float
+            is provided, eg, 0.2, then -0.2 will be used for lower bound and 0.2
+            will be used for upper bound.
+       seed: optional integer, for fixed RNG behavior.
 
     Usage:
     ```python
     (images, labels), _ = tf.keras.datasets.cifar10.load_data()
-    random_brightness = keras_cv.layers.preprocessing.RandomBrightness()
+    random_brightness = keras_cv.layers.preprocessing.RandomBrightness(
+        value_range=(0, 255), factor=0.5
+    )
     augmented_images = random_brightness(images)
     ```
     """
 
-    def __init__(self, factor, value_range=(0, 255), seed=None, **kwargs):
+    def __init__(self, value_range, factor, seed=None, **kwargs):
         super().__init__(seed=seed, force_generator=True, **kwargs)
         if isinstance(factor, float) or isinstance(factor, int):
             factor = (-factor, factor)

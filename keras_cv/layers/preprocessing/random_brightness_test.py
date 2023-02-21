@@ -22,7 +22,9 @@ class RandomBrightnessTest(tf.test.TestCase):
         image_shape = (4, 8, 8, 3)
         image = tf.random.uniform(shape=image_shape) * 255.0
 
-        layer = preprocessing.RandomBrightness(factor=(0.3, 0.8))
+        layer = preprocessing.RandomBrightness(
+            value_range=(0, 255), factor=(0.3, 0.8)
+        )
         output = layer(image)
 
         self.assertEqual(image.shape, output.shape)
@@ -32,7 +34,7 @@ class RandomBrightnessTest(tf.test.TestCase):
         image_shape = (4, 8, 8, 3)
         image = tf.random.uniform(shape=image_shape) * 255.0
 
-        layer = preprocessing.RandomBrightness(factor=0)
+        layer = preprocessing.RandomBrightness(value_range=(0, 255), factor=0)
         output = layer(image)
 
         self.assertAllClose(image, output, atol=1e-5, rtol=1e-5)
@@ -41,7 +43,9 @@ class RandomBrightnessTest(tf.test.TestCase):
         image_shape = (4, 8, 8, 3)
         image = tf.random.uniform(shape=image_shape) * 255.0
 
-        layer = preprocessing.RandomBrightness(factor=(1, 1))
+        layer = preprocessing.RandomBrightness(
+            value_range=(0, 255), factor=(1, 1)
+        )
         output = layer(image)
 
         self.assertAllClose(
@@ -65,7 +69,9 @@ class RandomBrightnessTest(tf.test.TestCase):
         image_shape = (4, 8, 8, 3)
         image = tf.random.uniform(shape=image_shape) * 255.0
 
-        layer = preprocessing.RandomBrightness(factor=(-1, -1))
+        layer = preprocessing.RandomBrightness(
+            value_range=(0, 255), factor=(-1, -1)
+        )
         output = layer(image)
 
         self.assertAllClose(
@@ -78,11 +84,13 @@ class RandomBrightnessTest(tf.test.TestCase):
             tf.random.uniform(shape=image_shape) * 255.0, dtype=tf.uint8
         )
 
-        layer = preprocessing.RandomBrightness(factor=0)
+        layer = preprocessing.RandomBrightness(value_range=(0, 255), factor=0)
         output = layer(image)
         self.assertAllClose(image, output, atol=1e-5, rtol=1e-5)
 
-        layer = preprocessing.RandomBrightness(factor=(0.3, 0.8))
+        layer = preprocessing.RandomBrightness(
+            value_range=(0, 255), factor=(0.3, 0.8)
+        )
         output = layer(image)
         self.assertNotAllClose(image, output)
 

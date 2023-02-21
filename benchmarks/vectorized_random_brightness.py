@@ -119,8 +119,8 @@ class RandomBrightnessTest(tf.test.TestCase):
         fixed_factor = (0.8, 0.8)
         image = tf.random.uniform(shape=image_shape)
 
-        layer = RandomBrightness(factor=fixed_factor)
-        old_layer = OldRandomBrightness(factor=fixed_factor)
+        layer = RandomBrightness(value_range=(0, 1), factor=fixed_factor)
+        old_layer = OldRandomBrightness(value_range=(0, 1), factor=fixed_factor)
 
         output = layer(image)
         old_output = old_layer(image)
@@ -132,8 +132,10 @@ class RandomBrightnessTest(tf.test.TestCase):
         fixed_factor = (0.8, 0.8)
         image = tf.random.uniform(shape=image_shape) * 255.0
 
-        layer = RandomBrightness(factor=fixed_factor)
-        old_layer = OldRandomBrightness(factor=fixed_factor)
+        layer = RandomBrightness(value_range=(0, 255), factor=fixed_factor)
+        old_layer = OldRandomBrightness(
+            value_range=(0, 255), factor=fixed_factor
+        )
 
         output = layer(image)
         old_output = old_layer(image)
@@ -149,7 +151,7 @@ if __name__ == "__main__":
     num_images = [1000, 2000, 5000, 10000]
     results = {}
     aug_candidates = [RandomBrightness, OldRandomBrightness]
-    aug_args = {"factor": (0.5)}
+    aug_args = {"value_range": (0, 255), "factor": (0.5)}
 
     for aug in aug_candidates:
         # Eager Mode
