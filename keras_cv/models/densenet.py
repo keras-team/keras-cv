@@ -129,7 +129,7 @@ def ConvBlock(x, growth_rate, name=None):
     x = layers.BatchNormalization(
         axis=BN_AXIS, epsilon=BN_EPSILON, name=f"{name}_0_bn"
     )(x)
-    x = layers.Activation("relu", name=f"{name}_0_relu")(x1x)
+    x = layers.Activation("relu", name=f"{name}_0_relu")(x)
     x = layers.Conv2D(
         4 * growth_rate, 1, use_bias=False, name=f"{name}_1_conv"
     )(x)
