@@ -244,10 +244,10 @@ def apply_stack(
     """A set of stacked residual blocks.
 
     Args:
+      x: input tensor.
       filters: int, filters of the layer in a block.
       blocks: int, blocks in the stacked blocks.
       stride: int, stride of the first layer in the first block. Defaults to 2.
-      name: string, stack label.
       block_type: string, one of "basic_block" or "block". The block type to
             stack. Use "basic_block" for ResNet18 and ResNet34.
       first_shortcut: bool. Use convolution shortcut if `True` (default),
@@ -289,14 +289,17 @@ class ResNet(keras.Model):
     """Instantiates the ResNet architecture.
 
     Args:
-        stackwise_filters: number of filters for each stack in the model.
-        stackwise_blocks: number of blocks for each stack in the model.
-        stackwise_strides: stride for each stack in the model.
-        include_rescaling: whether or not to Rescale the inputs. If set to True,
-            inputs will be passed through a `Rescaling(1/255.0)` layer.
-            name: string, model name.
-        include_top: whether to include the fully-connected
+        stackwise_filters: list of ints, number of filters for each stack in
+            the model.
+        stackwise_blocks: list of ints, number of blocks for each stack in the
+            model.
+        stackwise_strides: list of ints, stride for each stack in the model.
+        include_rescaling: bool, whether or not to Rescale the inputs. If set
+            to `True`, inputs will be passed through a `Rescaling(1/255.0)`
+            layer.
+        include_top: bool, whether to include the fully-connected
             layer at the top of the network.
+        name: string, model name.
         weights: one of `None` (random initialization),
             or the path to the weights file to be loaded.
         input_shape: optional shape tuple, defaults to (None, None, 3).
@@ -315,12 +318,12 @@ class ResNet(keras.Model):
                 be applied.
         classes: optional number of classes to classify images
             into, only to be specified if `include_top` is True.
-        classifier_activation: A `str` or callable. The activation function to use
-            on the "top" layer. Ignored unless `include_top=True`. Set
-            `classifier_activation=None` to return the logits of the "top" layer.
-        block_fn: callable, `Block` or `BasicBlock`, the block function to stack.
-            Use 'basic_block' for ResNet18 and ResNet34.
-        **kwargs: Pass-through keyword arguments to `tf.keras.Model`.
+        classifier_activation: A `str` or callable. The activation function to
+            use on the "top" layer. Ignored unless `include_top=True`. Set
+            `classifier_activation=None` to return the logits of the "top"
+            layer.
+        block_type: string, one of "basic_block" or "block". The block type to
+            stack. Use "basic_block" for ResNet18 and ResNet34.
 
     Returns:
       A `keras.Model` instance.
