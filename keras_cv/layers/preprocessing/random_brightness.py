@@ -108,8 +108,8 @@ class RandomBrightness(VectorizedBaseImageAugmentationLayer):
 
     def get_config(self):
         config = {
-            "factor": self.factor,
             "value_range": self.value_range,
+            "factor": self.factor,
             "seed": self.seed,
         }
         base_config = super().get_config()

@@ -117,8 +117,8 @@ class RandomContrast(VectorizedBaseImageAugmentationLayer):
 
     def get_config(self):
         config = {
-            "factor": self.factor_input,
             "value_range": self.value_range,
+            "factor": self.factor_input,
             "seed": self.seed,
         }
         base_config = super().get_config()
