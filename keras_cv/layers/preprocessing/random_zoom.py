@@ -184,14 +184,6 @@ class RandomZoom(VectorizedBaseImageAugmentationLayer):
     def augment_labels(self, labels, transformations, **kwargs):
         return labels
 
-    def augment_segmentation_masks(
-        self, segmentation_masks, transformations, **kwargs
-    ):
-        return segmentation_masks
-
-    def augment_bounding_boxes(self, bounding_boxes, transformations, **kwargs):
-        return bounding_boxes
-
     def get_zoom_matrix(self, zooms, image_height, image_width, name=None):
         """Returns projective transform(s) for the given zoom(s).
 
