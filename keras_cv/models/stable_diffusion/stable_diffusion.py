@@ -22,10 +22,6 @@ The current implementation is a rewrite of the initial TF/Keras port by Divam Gu
 """
 
 import math
-from typing import List
-from typing import Optional
-from typing import Tuple
-from typing import Union
 
 import numpy as np
 import tensorflow as tf
@@ -243,18 +239,18 @@ class StableDiffusionBase:
 
     def text_to_image_prompt_to_prompt(
         self,
-        prompt: str,
-        prompt_edit: str,
-        method: str,
-        self_attn_steps: Union[float, Tuple[float, float]],
-        cross_attn_steps: Union[float, Tuple[float, float]],
-        attn_edit_weights: np.ndarray = np.array([]),
-        negative_prompt: Optional[str] = None,
-        num_steps: int = 50,
-        unconditional_guidance_scale: float = 7.5,
-        batch_size: int = 1,
+        prompt,
+        prompt_edit,
+        method,
+        self_attn_steps,
+        cross_attn_steps,
+        attn_edit_weights=np.array([]),
+        negative_prompt=None,
+        num_steps=50,
+        unconditional_guidance_scale=7.5,
+        batch_size=1,
         diffusion_noise=None,
-        seed: Optional[int] = None,
+        seed=None,
     ) -> np.ndarray:
         """Generate an image based on the Prompt-to-Prompt editing method.
         Edit a generated image controlled only through text.
@@ -266,9 +262,10 @@ class StableDiffusionBase:
         https://arxiv.org/abs/2208.01626
 
         Args:
-            prompt (str): Text containing the information for the model to generate.
-            prompt_edit (str): Second prompt used to control the edit of the generated image.
-            method (str): Prompt-to-Prompt method to chose. Can be ['replace', 'refine', 'reweight'].
+            prompt: Text containing the information for the model to generate.
+            prompt_edit: Second prompt used to control the edit of the generated image.
+            method: Prompt-to-Prompt method to chose. Can be a string with the 
+                following values ['replace', 'refine', 'reweight']:
                 - `replace`: the user swaps a single token of the original prompt, for example,
                 "a bowl full of apple" to "a bowl full of pears", editing locally the generated image
                 over the replaced attribute (apple → pears).
@@ -280,13 +277,12 @@ class StableDiffusionBase:
                 with the intent of strengthening or weakening their effect on the resulting image.
                 For example, we may want to reduce the number of persons on a generated image with the
                 prompt "a photo of crowded avenue" by attributing a negative weight to the word "crowded".
-            self_attn_steps (Union[float, Tuple[float, float]]): Specifies at which step
-                of the start of the diffusion process it replaces the self attention maps with
-                the ones produced by the edited prompt.
-            cross_attn_steps (Union[float, Tuple[float, float]]): Specifies at which step
+            self_attn_steps: Specifies at which step of the start of the diffusion process 
+                it replaces the self attention maps with the ones produced by the edited prompt.
+            cross_attn_steps: Specifies at which step
                 of the start of the diffusion process it replaces the cross attention maps
                 with the ones produced by the edited prompt.
-            attn_edit_weights: Set of weights for each edit prompt token.
+            attn_edit_weights: Array of weights for each edit prompt token.
                 This is used for manipulating the importance of the edit prompt tokens,
                 increasing or decreasing the importance assigned to each word.
                 Default: np.array([])
@@ -698,14 +694,14 @@ class StableDiffusionBase:
         decoded = ((decoded + 1) / 2) * 255
         return np.clip(decoded, 0, 255).astype("uint8")
 
-    def tokenize_prompt(self, prompt: str) -> tf.Tensor:
+    def tokenize_prompt(self, prompt):
         """Tokenize a phrase prompt.
 
         Args:
-            prompt (str): The prompt string to tokenize, must be 77 tokens or shorter.
+            prompt: The prompt string to tokenize, must be 77 tokens or shorter.
 
         Returns:
-            phrase (tf.Tensor): The tokenize prompt.
+            phrase: The tokenize tensor prompt.
         """
         inputs = self.tokenizer.encode(prompt)
         if len(inputs) > MAX_PROMPT_LENGTH:
@@ -717,19 +713,19 @@ class StableDiffusionBase:
         return phrase
 
     def create_attention_weights(
-        self, prompt: str, attn_weights: List[Tuple[str, float]]
-    ) -> np.ndarray:
+        self, prompt, attn_weights
+    ):
         """Create an array of weights to scale the attention maps associated with each prompt token.
         This is used for manipulating the importance of the prompt tokens,
         increasing or decreasing the importance assigned to each word.
 
         Args:
-            prompt (str): The prompt string to tokenize, must be 77 tokens or shorter.
-            attn_weights (List[Tuple[str, float]]): A list of tuples containing the
+            prompt: The prompt string to tokenize, must be 77 tokens or shorter.
+            attn_weights: A list of tuples containing the
                 pair of word and weight to be manipulated.
 
         Returns:
-            weights (np.ndarray): Array of weights to control the importance of each prompt token.
+            weights: Array of weights to control the importance of each prompt token.
 
         Example:
 

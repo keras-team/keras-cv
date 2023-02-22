@@ -24,7 +24,6 @@ Credits:
 - Official implementation of the paper: https://github.com/google/prompt-to-prompt
 """
 
-import numpy as np
 import tensorflow as tf
 from tensorflow import keras
 
