@@ -712,9 +712,7 @@ class StableDiffusionBase:
         phrase = tf.convert_to_tensor([phrase], dtype=tf.int32)
         return phrase
 
-    def create_attention_weights(
-        self, prompt, attn_weights
-    ):
+    def create_attention_weights(self, prompt, attn_weights):
         """Create an array of weights to scale the attention maps associated with each prompt token.
         This is used for manipulating the importance of the prompt tokens,
         increasing or decreasing the importance assigned to each word.
