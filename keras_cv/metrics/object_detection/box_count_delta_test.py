@@ -72,7 +72,8 @@ class BoxCountDeltaTest(tf.test.TestCase):
 
         mean_box_count_delta.update_state(y_true, y_pred)
         self.assertAllEqual(
-            mean_box_count_delta.result(), tf.cast(2 / 3, tf.float32)
+            mean_box_count_delta.result(),
+            tf.cast(2 / 3, tf.float32)
         )
 
     def test_ragged_boxes(self):
