@@ -59,7 +59,7 @@ class ResNetV2BackboneTest(tf.test.TestCase, parameterized.TestCase):
 
     @parameterized.named_parameters(
         ("tf_format", "tf", "model"),
-        #    ("keras_format", "keras_v3", "model.keras"),
+        ("keras_format", "keras_v3", "model.keras"),
     )
     def test_saved_model(self, save_format, filename):
         model = ResNetV2Backbone(
@@ -134,7 +134,21 @@ class ResNetV2BackboneTest(tf.test.TestCase, parameterized.TestCase):
         self.assertEquals(list(outputs.keys()), [3, 4])
         self.assertEquals(outputs[3].shape, [None, 32, 32, 512])
         self.assertEquals(outputs[4].shape, [None, 16, 16, 1024])
-
+    
+    @parameterized.named_parameters(
+        ("one_channel", 1),
+        ("four_channels", 4),
+    )
+    def test_application_variable_input_channels(self, num_channels):
+        # ResNet50 model
+        model = ResNetV2Backbone(
+            stackwise_filters=[64, 128, 256, 512],
+            stackwise_blocks=[3, 4, 6, 3],
+            stackwise_strides=[1, 2, 2, 2],
+            input_shape=(None, None, num_channels),
+            include_rescaling=False,
+        )
+        self.assertEqual(model.output_shape, (None, None, None, 2048))
 
 if __name__ == "__main__":
     tf.test.main()
