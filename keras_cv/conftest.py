@@ -18,12 +18,6 @@ import tensorflow as tf
 from packaging import version
 
 
-@pytest.fixture(scope="class")
-def tpu_test_class(request, tpu_strategy):
-    # set a class attribute on the invoking test context
-    request.cls.tpu_strategy = tpu_strategy
-
-
 def pytest_addoption(parser):
     parser.addoption(
         "--run_large",
