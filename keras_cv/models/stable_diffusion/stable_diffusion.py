@@ -406,14 +406,14 @@ class StableDiffusionBase:
                 prompt, prompt_edit, self.tokenizer
             )
             # Add the mask and indices to the diffusion model
-            prompt_to_prompt_utils.put_mask_dif_model(
+            prompt_to_prompt_utils.put_mask_diffusion_model(
                 self.diffusion_model_prompt_to_prompt, mask, indices
             )
 
         # Update prompt weights variable
         if attn_edit_weights.size:
             prompt_to_prompt_utils.add_attention_weights(
-                diff_model=self.diffusion_model_prompt_to_prompt,
+                diffusion_model=self.diffusion_model_prompt_to_prompt,
                 prompt_weights=attn_edit_weights,
             )
 
@@ -433,7 +433,7 @@ class StableDiffusionBase:
 
             # Update Cross-Attention mode to 'unconditional'
             prompt_to_prompt_utils.update_cross_attention_mode(
-                diff_model=self.diffusion_model_prompt_to_prompt,
+                diffusion_model=self.diffusion_model_prompt_to_prompt,
                 mode="unconditional",
             )
 
@@ -446,7 +446,8 @@ class StableDiffusionBase:
 
             # Save last cross attention activations
             prompt_to_prompt_utils.update_cross_attention_mode(
-                diff_model=self.diffusion_model_prompt_to_prompt, mode="save"
+                diffusion_model=self.diffusion_model_prompt_to_prompt,
+                mode="save",
             )
 
             # Predict the conditional noise residual
@@ -459,28 +460,28 @@ class StableDiffusionBase:
                 if method == "replace":
                     # Use cross attention from the original prompt (M_t)
                     prompt_to_prompt_utils.update_cross_attention_mode(
-                        diff_model=self.diffusion_model_prompt_to_prompt,
+                        diffusion_model=self.diffusion_model_prompt_to_prompt,
                         mode="use_last",
                         attn_suffix="attn2",
                     )
                 elif method == "refine":
                     # Use cross attention with function A(J)
                     prompt_to_prompt_utils.update_cross_attention_mode(
-                        diff_model=self.diffusion_model_prompt_to_prompt,
+                        diffusion_model=self.diffusion_model_prompt_to_prompt,
                         mode="edit",
                         attn_suffix="attn2",
                     )
                 if method == "reweight" or attn_edit_weights.size:
                     # Use the parsed weights on the edited prompt
                     prompt_to_prompt_utils.update_attention_weights_usage(
-                        diff_model=self.diffusion_model_prompt_to_prompt,
+                        diffusion_model=self.diffusion_model_prompt_to_prompt,
                         use=True,
                     )
 
             else:
                 # Use cross attention from the edited prompt (M^*_t)
                 prompt_to_prompt_utils.update_cross_attention_mode(
-                    diff_model=self.diffusion_model_prompt_to_prompt,
+                    diffusion_model=self.diffusion_model_prompt_to_prompt,
                     mode="injection",
                     attn_suffix="attn2",
                 )
@@ -489,14 +490,14 @@ class StableDiffusionBase:
             if self_attn_steps[0] <= t_scale <= self_attn_steps[1]:
                 # Use self attention from the original prompt (M_t)
                 prompt_to_prompt_utils.update_cross_attention_mode(
-                    diff_model=self.diffusion_model_prompt_to_prompt,
+                    diffusion_model=self.diffusion_model_prompt_to_prompt,
                     mode="use_last",
                     attn_suffix="attn1",
                 )
             else:
                 # Use self attention from the edited prompt (M^*_t)
                 prompt_to_prompt_utils.update_cross_attention_mode(
-                    diff_model=self.diffusion_model_prompt_to_prompt,
+                    diffusion_model=self.diffusion_model_prompt_to_prompt,
                     mode="injection",
                     attn_suffix="attn1",
                 )
@@ -511,7 +512,8 @@ class StableDiffusionBase:
             # Assign usage to False so it doesn't get used in other contexts
             if attn_edit_weights.size:
                 prompt_to_prompt_utils.update_attention_weights_usage(
-                    diff_model=self.diffusion_model_prompt_to_prompt, use=False
+                    diffusion_model=self.diffusion_model_prompt_to_prompt,
+                    use=False,
                 )
 
             # Perform guidance

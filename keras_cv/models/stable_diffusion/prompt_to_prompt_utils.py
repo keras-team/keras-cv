@@ -34,17 +34,17 @@ import keras_cv.models.stable_diffusion.seq_aligner as seq_aligner
 from keras_cv.models.stable_diffusion.diffusion_model import td_dot
 
 
-def rename_cross_attention_layers(diff_model: tf.keras.Model):
+def rename_cross_attention_layers(diffusion_model: tf.keras.Model):
     """Add suffix to the cross attention layers.
 
     This becomes useful when using the prompt editing method to save the
     attention maps and manipulate the control variables.
 
     Args:
-        diff_model (tf.keras.Model): The diffusion model.
+        diffusion_model (tf.keras.Model): The diffusion model.
     """
     cross_attention_count = 0
-    for submodule in diff_model.submodules:
+    for submodule in diffusion_model.submodules:
         submodule_name = submodule.name
         if (
             not cross_attention_count % 2
@@ -58,12 +58,12 @@ def rename_cross_attention_layers(diff_model: tf.keras.Model):
 
 
 def update_cross_attention_mode(
-    diff_model: tf.keras.Model, mode: str, attn_suffix: str = "attn"
+    diffusion_model: tf.keras.Model, mode: str, attn_suffix: str = "attn"
 ):
     """Update the mode control variable.
 
     Args:
-        diff_model (tf.keras.Model): The diffusion model.
+        diffusion_model (tf.keras.Model): The diffusion model.
         mode (str): The mode parameter can take 5 values:
                     - save: to save the attention map.
                     - use_last: to use the original cross attention maps.
@@ -72,7 +72,7 @@ def update_cross_attention_mode(
                     - unconditional: to perform the standard attention computations.
         attn_suffix (str): Suffix used to find the attention layer, by default "attn".
     """
-    for submodule in diff_model.submodules:
+    for submodule in diffusion_model.submodules:
         submodule_name = submodule.name
         if (
             "cross_attention" in submodule_name
@@ -81,14 +81,14 @@ def update_cross_attention_mode(
             submodule.cross_attn_mode.assign(mode)
 
 
-def update_attention_weights_usage(diff_model: tf.keras.Model, use: bool):
+def update_attention_weights_usage(diffusion_model: tf.keras.Model, use: bool):
     """Update the mode control variable.
 
     Args:
-        diff_model (tf.keras.Model): The diffusion model.
+        diffusion_model (tf.keras.Model): The diffusion model.
         use (bool): Whether to use the prompt weights.
     """
-    for submodule in diff_model.submodules:
+    for submodule in diffusion_model.submodules:
         submodule_name = submodule.name
         if (
             "cross_attention" in submodule_name
@@ -98,15 +98,15 @@ def update_attention_weights_usage(diff_model: tf.keras.Model, use: bool):
 
 
 def add_attention_weights(
-    diff_model: tf.keras.Model, prompt_weights: np.ndarray
+    diffusion_model: tf.keras.Model, prompt_weights: np.ndarray
 ):
     """Assign the attention weights to the diffusion model's corresponding tf.variable.
 
     Args:
-        diff_model (tf.keras.Model): The diffusion model.
+        diffusion_model (tf.keras.Model): The diffusion model.
         prompt_weights (np.ndarray): Weights of the attention tokens.
     """
-    for submodule in diff_model.submodules:
+    for submodule in diffusion_model.submodules:
         submodule_name = submodule.name
         if (
             "cross_attention" in submodule_name
@@ -115,17 +115,17 @@ def add_attention_weights(
             submodule.prompt_weights.assign(prompt_weights)
 
 
-def put_mask_dif_model(
-    diff_model: tf.keras.Model, mask: np.ndarray, indices: np.ndarray
+def put_mask_diffusion_model(
+    diffusion_model: tf.keras.Model, mask: np.ndarray, indices: np.ndarray
 ):
     """Assign the diffusion model's tf.variables with the passed mask and indices.
 
     Args:
-        diff_model (tf.keras.Model): The diffusion model.
+        diffusion_model (tf.keras.Model): The diffusion model.
         mask (np.ndarray): Mask of the original and edited prompt overlap.
         indices (np.ndarray): Indices of the original and edited prompt overlap.
     """
-    for submodule in diff_model.submodules:
+    for submodule in diffusion_model.submodules:
         submodule_name = submodule.name
         if (
             "cross_attention" in submodule_name
@@ -159,13 +159,13 @@ def get_matching_sentence_tokens(
     return mask, indices
 
 
-def set_initial_tf_variables(diff_model: tf.keras.Model):
+def set_initial_tf_variables(diffusion_model: tf.keras.Model):
     """Create initial control variables to auxiliate the prompt editing method.
 
     Args:
-        diff_model (tf.keras.Model): The diffusion model.
+        diffusion_model (tf.keras.Model): The diffusion model.
     """
-    for submodule in diff_model.submodules:
+    for submodule in diffusion_model.submodules:
         submodule_name = submodule.name
         if "cross_attention" in submodule_name:
             # Set control variables
@@ -199,13 +199,13 @@ def set_initial_tf_variables(diff_model: tf.keras.Model):
             )
 
 
-def reset_initial_tf_variables(diff_model: tf.keras.Model):
+def reset_initial_tf_variables(diffusion_model: tf.keras.Model):
     """Reset the control variables to their default values.
 
     Args:
-        diff_model (tf.keras.Model): The diffusion model.
+        diffusion_model (tf.keras.Model): The diffusion model.
     """
-    for submodule in diff_model.submodules:
+    for submodule in diffusion_model.submodules:
         submodule_name = submodule.name
         if "cross_attention" in submodule_name:
             # Reset control variables
@@ -218,13 +218,13 @@ def reset_initial_tf_variables(diff_model: tf.keras.Model):
             submodule.prompt_weights.assign([])
 
 
-def overwrite_forward_call(diff_model: tf.keras.Model):
+def overwrite_forward_call(diffusion_model: tf.keras.Model):
     """Update the attention forward pass with a custom call method.
 
     Args:
-        diff_model (tf.keras.Model): The diffusion model.
+        diffusion_model (tf.keras.Model): The diffusion model.
     """
-    for submodule in diff_model.submodules:
+    for submodule in diffusion_model.submodules:
         submodule_name = submodule.name
         if "cross_attention" in submodule_name:
             # Overwrite forward pass method
