@@ -251,7 +251,7 @@ class StableDiffusionBase:
         batch_size=1,
         diffusion_noise=None,
         seed=None,
-    ) -> np.ndarray:
+    ):
         """Generate an image based on the Prompt-to-Prompt editing method.
         Edit a generated image controlled only through text.
 
@@ -264,7 +264,7 @@ class StableDiffusionBase:
         Args:
             prompt: Text containing the information for the model to generate.
             prompt_edit: Second prompt used to control the edit of the generated image.
-            method: Prompt-to-Prompt method to chose. Can be a string with the 
+            method: Prompt-to-Prompt method to chose. Can be a string with the
                 following values ['replace', 'refine', 'reweight']:
                 - `replace`: the user swaps a single token of the original prompt, for example,
                 "a bowl full of apple" to "a bowl full of pears", editing locally the generated image
@@ -277,7 +277,7 @@ class StableDiffusionBase:
                 with the intent of strengthening or weakening their effect on the resulting image.
                 For example, we may want to reduce the number of persons on a generated image with the
                 prompt "a photo of crowded avenue" by attributing a negative weight to the word "crowded".
-            self_attn_steps: Specifies at which step of the start of the diffusion process 
+            self_attn_steps: Specifies at which step of the start of the diffusion process
                 it replaces the self attention maps with the ones produced by the edited prompt.
             cross_attn_steps: Specifies at which step
                 of the start of the diffusion process it replaces the cross attention maps
