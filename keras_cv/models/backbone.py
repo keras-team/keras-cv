@@ -75,6 +75,13 @@ class Backbone(keras.Model):
                 f"""{", ".join(cls.presets)}. Received: {preset}."""
             )
         metadata = cls.presets[preset]
+
+        if load_weights and "weights_url" not in metadata:
+            raise ValueError(
+                f"""Pretrained weights not available for preset "{preset}". """
+                "Set `load_weights=False` to use this preset."
+            )
+
         config = metadata["config"]
         model = cls.from_config({**config, **kwargs})
 
