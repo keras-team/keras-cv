@@ -34,7 +34,7 @@ import keras_cv.models.stable_diffusion.seq_aligner as seq_aligner
 from keras_cv.models.stable_diffusion.diffusion_model import td_dot
 
 
-def rename_cross_attn_layers(diff_model: tf.keras.Model):
+def rename_cross_attention_layers(diff_model: tf.keras.Model):
     """Add suffix to the cross attention layers.
 
     This becomes useful when using the prompt editing method to save the
@@ -57,7 +57,7 @@ def rename_cross_attn_layers(diff_model: tf.keras.Model):
             cross_attention_count += 1
 
 
-def update_cross_attn_mode(
+def update_cross_attention_mode(
     diff_model: tf.keras.Model, mode: str, attn_suffix: str = "attn"
 ):
     """Update the mode control variable.
@@ -81,7 +81,7 @@ def update_cross_attn_mode(
             submodule.cross_attn_mode.assign(mode)
 
 
-def update_attn_weights_usage(diff_model: tf.keras.Model, use: bool):
+def update_attention_weights_usage(diff_model: tf.keras.Model, use: bool):
     """Update the mode control variable.
 
     Args:
@@ -97,7 +97,9 @@ def update_attn_weights_usage(diff_model: tf.keras.Model, use: bool):
             submodule.use_prompt_weights.assign(use)
 
 
-def add_attn_weights(diff_model: tf.keras.Model, prompt_weights: np.ndarray):
+def add_attention_weights(
+    diff_model: tf.keras.Model, prompt_weights: np.ndarray
+):
     """Assign the attention weights to the diffusion model's corresponding tf.variable.
 
     Args:
@@ -226,10 +228,10 @@ def overwrite_forward_call(diff_model: tf.keras.Model):
         submodule_name = submodule.name
         if "cross_attention" in submodule_name:
             # Overwrite forward pass method
-            submodule.call = call_attn_edit.__get__(submodule)
+            submodule.call = call_attention_edit.__get__(submodule)
 
 
-def call_attn_edit(self, inputs):
+def call_attention_edit(self, inputs):
     """Implementation of the custom attention forward pass used in the paper's method.
     This is later used replace the call method of the self/cross attention layers available in
     the U-Net spatial transformer block of the diffusion model.
