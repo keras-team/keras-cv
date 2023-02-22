@@ -24,8 +24,6 @@ Credits:
 - Official implementation of the paper: https://github.com/google/prompt-to-prompt
 """
 
-from typing import Tuple
-
 import numpy as np
 import tensorflow as tf
 from tensorflow import keras
@@ -34,14 +32,14 @@ import keras_cv.models.stable_diffusion.seq_aligner as seq_aligner
 from keras_cv.models.stable_diffusion.diffusion_model import td_dot
 
 
-def rename_cross_attention_layers(diffusion_model: tf.keras.Model):
+def rename_cross_attention_layers(diffusion_model):
     """Add suffix to the cross attention layers.
 
     This becomes useful when using the prompt editing method to save the
     attention maps and manipulate the control variables.
 
     Args:
-        diffusion_model (tf.keras.Model): The diffusion model.
+        diffusion_model: The diffusion model.
     """
     cross_attention_count = 0
     for submodule in diffusion_model.submodules:
@@ -57,20 +55,18 @@ def rename_cross_attention_layers(diffusion_model: tf.keras.Model):
             cross_attention_count += 1
 
 
-def update_cross_attention_mode(
-    diffusion_model: tf.keras.Model, mode: str, attn_suffix: str = "attn"
-):
+def update_cross_attention_mode(diffusion_model, mode, attn_suffix="attn"):
     """Update the mode control variable.
 
     Args:
-        diffusion_model (tf.keras.Model): The diffusion model.
-        mode (str): The mode parameter can take 5 values:
-                    - save: to save the attention map.
-                    - use_last: to use the original cross attention maps.
-                    - edit: to calculate the attention map with respect to the edited prompt.
-                    - injection: to use the edited prompt cross attention maps
-                    - unconditional: to perform the standard attention computations.
-        attn_suffix (str): Suffix used to find the attention layer, by default "attn".
+        diffusion_model: The diffusion model.
+        mode: The mode parameter can take 5 string values:
+                    - `save`: to save the attention map.
+                    - `use_last`: to use the original cross attention maps.
+                    - `edit`: to calculate the attention map with respect to the edited prompt.
+                    - `injection`: to use the edited prompt cross attention maps
+                    - `unconditional`: to perform the standard attention computations.
+        attn_suffix: Suffix used to find the attention layer, by default "attn".
     """
     for submodule in diffusion_model.submodules:
         submodule_name = submodule.name
@@ -81,12 +77,12 @@ def update_cross_attention_mode(
             submodule.cross_attn_mode.assign(mode)
 
 
-def update_attention_weights_usage(diffusion_model: tf.keras.Model, use: bool):
+def update_attention_weights_usage(diffusion_model, use):
     """Update the mode control variable.
 
     Args:
-        diffusion_model (tf.keras.Model): The diffusion model.
-        use (bool): Whether to use the prompt weights.
+        diffusion_model: The diffusion model.
+        use: Boolean to indicate whether to use the prompt weights.
     """
     for submodule in diffusion_model.submodules:
         submodule_name = submodule.name
@@ -97,14 +93,12 @@ def update_attention_weights_usage(diffusion_model: tf.keras.Model, use: bool):
             submodule.use_prompt_weights.assign(use)
 
 
-def add_attention_weights(
-    diffusion_model: tf.keras.Model, prompt_weights: np.ndarray
-):
+def add_attention_weights(diffusion_model, prompt_weights):
     """Assign the attention weights to the diffusion model's corresponding tf.variable.
 
     Args:
-        diffusion_model (tf.keras.Model): The diffusion model.
-        prompt_weights (np.ndarray): Weights of the attention tokens.
+        diffusion_model: The diffusion model.
+        prompt_weights: Array of weights of the attention tokens.
     """
     for submodule in diffusion_model.submodules:
         submodule_name = submodule.name
@@ -115,15 +109,13 @@ def add_attention_weights(
             submodule.prompt_weights.assign(prompt_weights)
 
 
-def put_mask_diffusion_model(
-    diffusion_model: tf.keras.Model, mask: np.ndarray, indices: np.ndarray
-):
+def put_mask_diffusion_model(diffusion_model, mask, indices):
     """Assign the diffusion model's tf.variables with the passed mask and indices.
 
     Args:
-        diffusion_model (tf.keras.Model): The diffusion model.
-        mask (np.ndarray): Mask of the original and edited prompt overlap.
-        indices (np.ndarray): Indices of the original and edited prompt overlap.
+        diffusion_model: The diffusion model.
+        mask: Array of values containing the mask of the original and edited prompt overlap.
+        indices: Indices array of the original and edited prompt overlap.
     """
     for submodule in diffusion_model.submodules:
         submodule_name = submodule.name
@@ -135,21 +127,20 @@ def put_mask_diffusion_model(
             submodule.prompt_edit_indices.assign(indices)
 
 
-def get_matching_sentence_tokens(
-    prompt, prompt_edit, tokenizer
-) -> Tuple[np.ndarray, np.ndarray]:
+def get_matching_sentence_tokens(prompt, prompt_edit, tokenizer):
     """Create the mask and indices of the overlap between the tokens of the original \
     prompt and the edited one.
 
     Original code source: https://github.com/google/prompt-to-prompt
 
     Args:
-        tokens (np.ndarray): Array of the original prompt tokens.
-        tokens_edit (np.ndarray): Array of the edit prompt tokens.
+        prompt: Array of the original prompt tokens.
+        prompt_edit: Array of the edit prompt tokens.
+        tokenizer: tokenizer used for text inputs.
 
     Returns:
-        mask (np.ndarray): Mask of the original and edited prompt overlap.
-        indices: (np.ndarray): Indices of the original and edited prompt overlap.
+        mask: Array of values containing the mask of the original and edited prompt overlap.
+        indices: Indices array of the original and edited prompt overlap.
     """
     tokens_conditional = tokenizer.encode(prompt)
     tokens_conditional_edit = tokenizer.encode(prompt_edit)
@@ -159,11 +150,11 @@ def get_matching_sentence_tokens(
     return mask, indices
 
 
-def set_initial_tf_variables(diffusion_model: tf.keras.Model):
+def set_initial_tf_variables(diffusion_model):
     """Create initial control variables to auxiliate the prompt editing method.
 
     Args:
-        diffusion_model (tf.keras.Model): The diffusion model.
+        diffusion_model: The diffusion model.
     """
     for submodule in diffusion_model.submodules:
         submodule_name = submodule.name
@@ -199,11 +190,11 @@ def set_initial_tf_variables(diffusion_model: tf.keras.Model):
             )
 
 
-def reset_initial_tf_variables(diffusion_model: tf.keras.Model):
+def reset_initial_tf_variables(diffusion_model):
     """Reset the control variables to their default values.
 
     Args:
-        diffusion_model (tf.keras.Model): The diffusion model.
+        diffusion_model: The diffusion model.
     """
     for submodule in diffusion_model.submodules:
         submodule_name = submodule.name
@@ -218,11 +209,11 @@ def reset_initial_tf_variables(diffusion_model: tf.keras.Model):
             submodule.prompt_weights.assign([])
 
 
-def overwrite_forward_call(diffusion_model: tf.keras.Model):
+def overwrite_forward_call(diffusion_model):
     """Update the attention forward pass with a custom call method.
 
     Args:
-        diffusion_model (tf.keras.Model): The diffusion model.
+        diffusion_model: The diffusion model.
     """
     for submodule in diffusion_model.submodules:
         submodule_name = submodule.name
