@@ -86,3 +86,11 @@ backbone_presets = {
         },
     },
 }
+
+backbone_presets_with_weights = set(
+    {
+        name: backbone_presets[name]
+        for name in backbone_presets
+        if "weights_url" in backbone_presets[name]
+    }
+)

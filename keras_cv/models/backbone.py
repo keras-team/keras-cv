@@ -38,6 +38,10 @@ class Backbone(keras.Model):
     def presets(cls):
         return {}
 
+    @classproperty
+    def presets_with_weights(cls):
+        return {}
+
     @classmethod
     def from_preset(
         cls,
@@ -79,7 +83,9 @@ class Backbone(keras.Model):
         if load_weights and "weights_url" not in metadata:
             raise ValueError(
                 f"""Pretrained weights not available for preset "{preset}". """
-                "Set `load_weights=False` to use this preset."
+                "Set `load_weights=False` to use this preset or choose one of "
+                "the following presets with weights:"
+                f""" "{'", "'.join(cls.presets_with_weights)}"."""
             )
 
         config = metadata["config"]
@@ -116,7 +122,7 @@ class Backbone(keras.Model):
             cls.from_preset.__func__.__doc__ = Backbone.from_preset.__doc__
             format_docstring(
                 model_name=cls.__name__,
-                example_preset_name=next(iter(cls.presets), ""),
+                example_preset_name=next(iter(cls.presets_with_weights), ""),
                 preset_names='", "'.join(cls.presets),
             )(cls.from_preset.__func__)
 

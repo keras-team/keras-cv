@@ -26,6 +26,7 @@ from tensorflow.keras import layers
 from keras_cv.models import utils
 from keras_cv.models.backbone import Backbone
 from keras_cv.models.resnet_v2_presets import backbone_presets
+from keras_cv.models.resnet_v2_presets import backbone_presets_with_weights
 from keras_cv.utils.python_utils import classproperty
 
 BN_AXIS = 3
@@ -389,3 +390,7 @@ class ResNetV2Backbone(Backbone):
     @classproperty
     def presets(cls):
         return copy.deepcopy(backbone_presets)
+
+    @classproperty
+    def presets_with_weights(cls):
+        return copy.deepcopy(backbone_presets_with_weights)

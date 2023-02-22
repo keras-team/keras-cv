@@ -134,7 +134,7 @@ class ResNetV2BackboneTest(tf.test.TestCase, parameterized.TestCase):
         self.assertEquals(list(outputs.keys()), [3, 4])
         self.assertEquals(outputs[3].shape, [None, 32, 32, 512])
         self.assertEquals(outputs[4].shape, [None, 16, 16, 1024])
-    
+
     @parameterized.named_parameters(
         ("one_channel", 1),
         ("four_channels", 4),
@@ -149,6 +149,7 @@ class ResNetV2BackboneTest(tf.test.TestCase, parameterized.TestCase):
             include_rescaling=False,
         )
         self.assertEqual(model.output_shape, (None, None, None, 2048))
+
 
 if __name__ == "__main__":
     tf.test.main()
