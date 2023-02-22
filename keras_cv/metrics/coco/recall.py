@@ -161,11 +161,7 @@ class _BoxRecall(keras.metrics.Metric):
             dtype=self.compute_dtype,
         )
 
-        y_pred = utils.sort_bounding_boxes(
-            y_pred, axis=bounding_box.XYXY.CONFIDENCE
-        )
-
-        num_images = tf.shape(y_true)[0]
+        num_images = tf.shape(y_true["classes"])[0]
 
         iou_thresholds = tf.constant(self.iou_thresholds, dtype=tf.float32)
         class_ids = tf.constant(self.class_ids, dtype=tf.float32)
@@ -193,10 +189,9 @@ class _BoxRecall(keras.metrics.Metric):
             for k_i in tf.range(num_categories):
                 category = class_ids[k_i]
 
-                category_filtered_y_pred = utils.filter_boxes(
+                category_filtered_y_pred = utils.select_boxes_of_class(
                     y_pred_for_image,
-                    value=category,
-                    axis=bounding_box.XYXY.CLASS,
+                    class_id=category,
                 )
 
                 detections = category_filtered_y_pred
@@ -208,10 +203,9 @@ class _BoxRecall(keras.metrics.Metric):
                         category_filtered_y_pred, self.max_detections
                     )
 
-                ground_truths = utils.filter_boxes(
+                ground_truths = utils.select_boxes_of_class(
                     y_true_for_image,
-                    value=category,
-                    axis=bounding_box.XYXY.CLASS,
+                    class_id=category,
                 )
 
                 ious = iou_lib.compute_iou(
