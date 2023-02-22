@@ -31,7 +31,7 @@ import numpy as np
 import tensorflow as tf
 from tensorflow import keras
 
-import keras_cv.models.stable_diffusion.ptp_utils as ptp_utils
+import keras_cv.models.stable_diffusion.prompt_to_prompt_utils as prompt_to_prompt_utils
 from keras_cv.models.stable_diffusion.clip_tokenizer import SimpleTokenizer
 from keras_cv.models.stable_diffusion.constants import _ALPHAS_CUMPROD
 from keras_cv.models.stable_diffusion.constants import _UNCONDITIONAL_TOKENS
@@ -402,17 +402,17 @@ class StableDiffusionBase:
         if method == "refine":
             # Get the mask and indices of the difference between the
             # original prompt token's and the edited one
-            mask, indices = ptp_utils.get_matching_sentence_tokens(
+            mask, indices = prompt_to_prompt_utils.get_matching_sentence_tokens(
                 prompt, prompt_edit, self.tokenizer
             )
             # Add the mask and indices to the diffusion model
-            ptp_utils.put_mask_dif_model(
+            prompt_to_prompt_utils.put_mask_dif_model(
                 self.diffusion_model_prompt_to_prompt, mask, indices
             )
 
         # Update prompt weights variable
         if attn_edit_weights.size:
-            ptp_utils.add_attn_weights(
+            prompt_to_prompt_utils.add_attn_weights(
                 diff_model=self.diffusion_model_prompt_to_prompt,
                 prompt_weights=attn_edit_weights,
             )
@@ -432,7 +432,7 @@ class StableDiffusionBase:
             t_scale = 1 - (timestep / 1000)
 
             # Update Cross-Attention mode to 'unconditional'
-            ptp_utils.update_cross_attn_mode(
+            prompt_to_prompt_utils.update_cross_attn_mode(
                 diff_model=self.diffusion_model_prompt_to_prompt,
                 mode="unconditional",
             )
@@ -445,7 +445,7 @@ class StableDiffusionBase:
             )
 
             # Save last cross attention activations
-            ptp_utils.update_cross_attn_mode(
+            prompt_to_prompt_utils.update_cross_attn_mode(
                 diff_model=self.diffusion_model_prompt_to_prompt, mode="save"
             )
 
@@ -458,28 +458,28 @@ class StableDiffusionBase:
             if cross_attn_steps[0] <= t_scale <= cross_attn_steps[1]:
                 if method == "replace":
                     # Use cross attention from the original prompt (M_t)
-                    ptp_utils.update_cross_attn_mode(
+                    prompt_to_prompt_utils.update_cross_attn_mode(
                         diff_model=self.diffusion_model_prompt_to_prompt,
                         mode="use_last",
                         attn_suffix="attn2",
                     )
                 elif method == "refine":
                     # Use cross attention with function A(J)
-                    ptp_utils.update_cross_attn_mode(
+                    prompt_to_prompt_utils.update_cross_attn_mode(
                         diff_model=self.diffusion_model_prompt_to_prompt,
                         mode="edit",
                         attn_suffix="attn2",
                     )
                 if method == "reweight" or attn_edit_weights.size:
                     # Use the parsed weights on the edited prompt
-                    ptp_utils.update_attn_weights_usage(
+                    prompt_to_prompt_utils.update_attn_weights_usage(
                         diff_model=self.diffusion_model_prompt_to_prompt,
                         use=True,
                     )
 
             else:
                 # Use cross attention from the edited prompt (M^*_t)
-                ptp_utils.update_cross_attn_mode(
+                prompt_to_prompt_utils.update_cross_attn_mode(
                     diff_model=self.diffusion_model_prompt_to_prompt,
                     mode="injection",
                     attn_suffix="attn2",
@@ -488,14 +488,14 @@ class StableDiffusionBase:
             # Edit the self-Attention layer activations
             if self_attn_steps[0] <= t_scale <= self_attn_steps[1]:
                 # Use self attention from the original prompt (M_t)
-                ptp_utils.update_cross_attn_mode(
+                prompt_to_prompt_utils.update_cross_attn_mode(
                     diff_model=self.diffusion_model_prompt_to_prompt,
                     mode="use_last",
                     attn_suffix="attn1",
                 )
             else:
                 # Use self attention from the edited prompt (M^*_t)
-                ptp_utils.update_cross_attn_mode(
+                prompt_to_prompt_utils.update_cross_attn_mode(
                     diff_model=self.diffusion_model_prompt_to_prompt,
                     mode="injection",
                     attn_suffix="attn1",
@@ -510,7 +510,7 @@ class StableDiffusionBase:
 
             # Assign usage to False so it doesn't get used in other contexts
             if attn_edit_weights.size:
-                ptp_utils.update_attn_weights_usage(
+                prompt_to_prompt_utils.update_attn_weights_usage(
                     diff_model=self.diffusion_model_prompt_to_prompt, use=False
                 )
 
@@ -531,7 +531,7 @@ class StableDiffusionBase:
         img = np.clip(decoded, 0, 255).astype("uint8")
 
         # Reset control variables
-        ptp_utils.reset_initial_tf_variables(
+        prompt_to_prompt_utils.reset_initial_tf_variables(
             self.diffusion_model_prompt_to_prompt
         )
 
@@ -970,13 +970,13 @@ class StableDiffusion(StableDiffusionBase):
                 self._diffusion_model_prompt_to_prompt = self._diffusion_model
 
             # Add extra variables and callbacks
-            ptp_utils.rename_cross_attn_layers(
+            prompt_to_prompt_utils.rename_cross_attn_layers(
                 self._diffusion_model_prompt_to_prompt
             )
-            ptp_utils.overwrite_forward_call(
+            prompt_to_prompt_utils.overwrite_forward_call(
                 self._diffusion_model_prompt_to_prompt
             )
-            ptp_utils.set_initial_tf_variables(
+            prompt_to_prompt_utils.set_initial_tf_variables(
                 self._diffusion_model_prompt_to_prompt
             )
 
@@ -1084,13 +1084,13 @@ class StableDiffusionV2(StableDiffusionBase):
                 self._diffusion_model_prompt_to_prompt = self._diffusion_model
 
             # Add extra variables and callbacks
-            ptp_utils.rename_cross_attn_layers(
+            prompt_to_prompt_utils.rename_cross_attn_layers(
                 self._diffusion_model_prompt_to_prompt
             )
-            ptp_utils.overwrite_forward_call(
+            prompt_to_prompt_utils.overwrite_forward_call(
                 self._diffusion_model_prompt_to_prompt
             )
-            ptp_utils.set_initial_tf_variables(
+            prompt_to_prompt_utils.set_initial_tf_variables(
                 self._diffusion_model_prompt_to_prompt
             )
 
