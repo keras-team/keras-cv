@@ -54,10 +54,6 @@ def pytest_collection_modifyitems(config, items):
     # Run large tests for --run_extra_large or --run_large.
     run_large_tests = config.getoption("--run_large") or run_extra_large_tests
 
-    # Messages to annotate skipped tests with.
-    skip_xla = pytest.mark.skipif(
-        sys.platform == "darwin", reason="XLA unsupported on MacOS."
-    )
     # Run Keras saving tests on 2.12 stable, nightlies and later releases.
     skip_keras_saving_test = pytest.mark.skipif(
         version.parse(tf.__version__) < version.parse("2.12.0-dev0"),
@@ -70,8 +66,6 @@ def pytest_collection_modifyitems(config, items):
         not run_extra_large_tests, reason="need --run_extra_large option to run"
     )
     for item in items:
-        if "jit_compile_true" in item.name:
-            item.add_marker(skip_xla)
         if "keras_format" in item.name:
             item.add_marker(skip_keras_saving_test)
         if "large" in item.keywords:
