@@ -163,7 +163,7 @@ def apply_block(
     if name is None:
         name = "prestem" + str(backend.get_uid("prestem"))
 
-    x1 = x
+    inputs = x
 
     x = layers.Conv2D(
         filters=projection_dim,
@@ -185,13 +185,13 @@ def apply_block(
         )(x)
     if drop_path_rate:
         layer = StochasticDepth(drop_path_rate, name=name + "_stochastic_depth")
-        return layer([x1, x])
+        return layer([inputs, x])
     else:
         layer = layers.Activation("linear", name=name + "_identity")
-        return x1 + layer(x)
+        return inputs + layer(x)
 
 
-def Head(x, num_classes, activation="softmax", name=None):
+def apply_head(x, num_classes, activation="softmax", name=None):
     """Implementation of classification head of ConvNeXt.
     Args:
       num_classes: number of classes for Dense layer
@@ -248,7 +248,7 @@ class ConvNeXt(keras.Model):
       classifier_activation: A `str` or callable. The activation function to use
             on the "top" layer. Ignored unless `include_top=True`. Set
             `classifier_activation=None` to return the logits of the "top" layer.
-      name: (Optional) name to pass to the model.  Defaults to "{name}".
+      name: (Optional) name to pass to the model.  Defaults to "convnext".
     Returns:
       A `keras.Model` instance.
     Raises:
@@ -365,7 +365,7 @@ class ConvNeXt(keras.Model):
             cur += depths[i]
 
         if include_top:
-            x = Head(
+            x = apply_head(
                 x,
                 num_classes=classes,
                 activation=classifier_activation,
