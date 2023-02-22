@@ -56,13 +56,21 @@ class BoxRecallTest(tf.test.TestCase):
         recall.update_state(y_true, y_pred)
         self.assertAlmostEqual(recall.result(), 2 / 3)
 
-    def DISABLE_test_merge_state(self):
-        y_true = tf.constant([[[0, 0, 100, 100, 1]]], dtype=tf.float32)
-        y_pred = tf.constant([[[0, 50, 100, 150, 1, 1.0]]], dtype=tf.float32)
-        y_pred_match = tf.constant(
-            [[[0, 0, 100, 100, 1, 1.0]]], dtype=tf.float32
-        )
-
+    def test_merge_state(self):
+        y_true = {
+            "boxes": [[[0, 0, 100, 100]]],
+            "classes": [[1]],
+        }
+        y_pred = {
+            "boxes": [[[0, 50, 100, 150]]],
+            "classes": [[1]],
+            "confidence": [[1.0]],
+        }
+        y_pred_match = {
+            "boxes": [[[0, 0, 100, 100]]],
+            "classes": [[1]],
+            "confidence": [[1.0]],
+        }
         m1 = _BoxRecall(
             bounding_box_format="xyxy",
             iou_thresholds=[0.95],
@@ -103,14 +111,16 @@ class BoxRecallTest(tf.test.TestCase):
             class_ids=[1],
             area_range=(32**2, 64**2),
         )
+        y_true = {
+            "boxes": [[[0, 0, 10, 10], [5, 5, 10, 10]]],
+            "classes": [[1, 1]],
+        }
+        y_pred = {
+            "boxes": [[[0, 0, 10, 10], [5, 5, 10, 10]]],
+            "classes": [[1, 1]],
+            "confidence": [[1.0, 0.9]],
+        }
 
-        # These would match if they were in the area range
-        y_true = np.array([[[0, 0, 10, 10, 1], [5, 5, 10, 10, 1]]]).astype(
-            np.float32
-        )
-        y_pred = np.array(
-            [[[0, 0, 10, 10, 1, 1.0], [5, 5, 10, 10, 1, 0.9]]]
-        ).astype(np.float32)
         recall.update_state(y_true, y_pred)
 
         self.assertAllEqual(recall.result(), 0.0)
@@ -162,18 +172,27 @@ class BoxRecallTest(tf.test.TestCase):
             class_ids=[1],
             area_range=(0, 1e9**2),
         )
-        y_true = np.array(
-            [
+        y_true = {
+            "boxes": [
                 [
-                    [0, 0, 100, 100, 1],
-                    [100, 100, 200, 200, 1],
-                    [300, 300, 400, 400, 1],
+                    [0, 0, 100, 100],
+                    [100, 100, 200, 200],
+                    [300, 300, 400, 400],
                 ]
-            ]
-        ).astype(np.float32)
-        y_pred = np.concatenate([y_true, np.ones((1, 3, 1))], axis=-1).astype(
-            np.float32
-        )
+            ],
+            "classes": [[1, 1, 1]],
+        }
+        y_pred = {
+            "boxes": [
+                [
+                    [0, 0, 100, 100],
+                    [100, 100, 200, 200],
+                    [300, 300, 400, 400],
+                ]
+            ],
+            "classes": [[1, 1, 1]],
+            "confidence": [[1, 1, 1]],
+        }
         # with max_dets=1, only 1 of the three boxes can be found
         recall.update_state(y_true, y_pred)
 
@@ -186,18 +205,27 @@ class BoxRecallTest(tf.test.TestCase):
             class_ids=[1],
             area_range=(0, 1e9**2),
         )
-        y_true = np.array(
-            [
+        y_true = {
+            "boxes": [
                 [
-                    [0, 0, 100, 100, 1],
-                    [100, 100, 200, 200, 1],
-                    [300, 300, 400, 400, 1],
+                    [0, 0, 100, 100],
+                    [100, 100, 200, 200],
+                    [300, 300, 400, 400],
                 ]
-            ]
-        ).astype(np.float32)
-        y_pred = np.concatenate([y_true, np.ones((1, 3, 1))], axis=-1).astype(
-            np.float32
-        )
+            ],
+            "classes": [[1, 1, 1]],
+        }
+        y_pred = {
+            "boxes": [
+                [
+                    [0, 0, 100, 100],
+                    [100, 100, 200, 200],
+                    [300, 300, 400, 400],
+                ]
+            ],
+            "classes": [[1, 1, 1]],
+            "confidence": [[1, 1, 1]],
+        }
 
         # with max_dets=1, only 1 of the three boxes can be found
         recall.update_state(y_true, y_pred)
