@@ -34,7 +34,7 @@ class ResNetV2PresetSmokeTest(tf.test.TestCase, parameterized.TestCase):
     def test_backbone_output(self, load_weights):
         input_data = tf.ones(shape=(8, 224, 224, 3))
         model = ResNetV2Backbone.from_preset(
-            "resnet50_v2", load_weights=load_weights
+            "resnet50_v2_imagenet", load_weights=load_weights
         )
         outputs = model(input_data)
 
