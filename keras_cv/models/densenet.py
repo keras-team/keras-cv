@@ -83,7 +83,7 @@ BASE_DOCSTRING = """Instantiates the {name} architecture.
 """
 
 
-def DenseBlock(x, blocks, name=None):
+def apply_dense_block(x, blocks, name=None):
     """A dense block.
 
     Args:
@@ -91,17 +91,17 @@ def DenseBlock(x, blocks, name=None):
       name: string, block label.
 
     Returns:
-      a function that takes an input Tensor representing a DenseBlock.
+      a function that takes an input Tensor representing a apply_dense_block.
     """
     if name is None:
         name = f"dense_block_{backend.get_uid('dense_block')}"
 
     for i in range(blocks):
-        x = ConvBlock(x, 32, name=f"{name}_block_{i}")
+        x = apply_conv_block(x, 32, name=f"{name}_block_{i}")
     return x
 
 
-def TransitionBlock(x, reduction, name=None):
+def apply_transition_block(x, reduction, name=None):
     """A transition block.
 
     Args:
@@ -109,7 +109,7 @@ def TransitionBlock(x, reduction, name=None):
       name: string, block label.
 
     Returns:
-      a function that takes an input Tensor representing a TransitionBlock.
+      a function that takes an input Tensor representing a apply_transition_block.
     """
     if name is None:
         name = f"transition_block_{backend.get_uid('transition_block')}"
@@ -128,7 +128,7 @@ def TransitionBlock(x, reduction, name=None):
     return x
 
 
-def ConvBlock(x, growth_rate, name=None):
+def apply_conv_block(x, growth_rate, name=None):
     """A building block for a dense block.
 
     Args:
@@ -136,7 +136,7 @@ def ConvBlock(x, growth_rate, name=None):
       name: string, block label.
 
     Returns:
-      a function that takes an input Tensor representing a ConvBlock.
+      a function that takes an input Tensor representing a apply_conv_block.
     """
     if name is None:
         name = f"conv_block_{backend.get_uid('conv_block')}"
@@ -199,7 +199,7 @@ class DenseNet(keras.Model):
                 of the last convolutional block, and thus the output of the model will
                 be a 2D tensor.
             - `max` means that global max pooling will be applied.
-        name: (Optional) name to pass to the model.  Defaults to "{name}".
+        name: (Optional) name to pass to the model.  Defaults to "DenseNet".
         classifier_activation: A `str` or callable. The activation function to use
             on the "top" layer. Ignored unless `include_top=True`. Set
             `classifier_activation=None` to return the logits of the "top" layer.
@@ -243,13 +243,13 @@ class DenseNet(keras.Model):
         x = layers.Activation("relu", name="conv1/relu")(x)
         x = layers.MaxPooling2D(3, strides=2, padding="same", name="pool1")(x)
 
-        x = DenseBlock(x, blocks[0], name="conv2")
-        x = TransitionBlock(x, 0.5, name="pool2")
-        x = DenseBlock(x, blocks[1], name="conv3")
-        x = TransitionBlock(x, 0.5, name="pool3")
-        x = DenseBlock(x, blocks[2], name="conv4")
-        x = TransitionBlock(x, 0.5, name="pool4")
-        x = DenseBlock(x, blocks[3], name="conv5")
+        x = apply_dense_block(x, blocks[0], name="conv2")
+        x = apply_transition_block(x, 0.5, name="pool2")
+        x = apply_dense_block(x, blocks[1], name="conv3")
+        x = apply_transition_block(x, 0.5, name="pool3")
+        x = apply_dense_block(x, blocks[2], name="conv4")
+        x = apply_transition_block(x, 0.5, name="pool4")
+        x = apply_dense_block(x, blocks[3], name="conv5")
 
         x = layers.BatchNormalization(
             axis=BN_AXIS, epsilon=BN_EPSILON, name="bn"
@@ -366,7 +366,7 @@ def DenseNet201(
     **kwargs,
 ):
     return DenseNet(
-        blocks=MODEL_CONFIGS["DenseNet121"]["blocks"],
+        blocks=MODEL_CONFIGS["DenseNet201"]["blocks"],
         include_rescaling=include_rescaling,
         include_top=include_top,
         classes=classes,
