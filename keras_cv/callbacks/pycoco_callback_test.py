@@ -34,9 +34,11 @@ class PyCOCOCallbackTest(tf.test.TestCase):
         model = keras_cv.models.RetinaNet(
             classes=10,
             bounding_box_format="xywh",
-            backbone=keras_cv.models.ResNet50V2(
-                include_top=False, include_rescaling=True, weights=None
-            ).as_backbone(),
+            backbone=keras_cv.models.ResNetV2Backbone.from_preset(
+                "resnet50_v2_imagenet",
+                load_weights=False,
+                include_rescaling=True,
+            ).extract_features(),
         )
         # all metric formats must match
         model.compile(
@@ -65,9 +67,11 @@ class PyCOCOCallbackTest(tf.test.TestCase):
         model = keras_cv.models.FasterRCNN(
             classes=10,
             bounding_box_format="xywh",
-            backbone=keras_cv.models.ResNet50V2(
-                include_top=False, include_rescaling=True, weights=None
-            ).as_backbone(),
+            backbone=keras_cv.models.ResNetV2Backbone.from_preset(
+                "resnet50_v2_imagenet",
+                load_weights=False,
+                include_rescaling=True,
+            ).extract_features(),
         )
         model.compile(
             optimizer="adam",

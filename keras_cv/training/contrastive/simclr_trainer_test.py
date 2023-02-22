@@ -16,7 +16,7 @@ import tensorflow as tf
 from tensorflow.keras import optimizers
 
 from keras_cv.losses import SimCLRLoss
-from keras_cv.models import ResNet50V2
+from keras_cv.models import ResNetV2Backbone
 from keras_cv.training import SimCLRAugmenter
 from keras_cv.training import SimCLRTrainer
 
@@ -37,6 +37,9 @@ class SimCLRTrainerTest(tf.test.TestCase):
         simclr_without_probing.fit(images)
 
     def build_encoder(self):
-        return ResNet50V2(
-            include_rescaling=False, include_top=False, pooling="avg"
+        return ResNetV2Backbone.from_preset(
+            "resnet50_v2_imagenet",
+            load_weights=False,
+            include_rescaling=False,
+            pooling="avg",
         )
