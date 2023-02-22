@@ -71,10 +71,12 @@ class BoxCountDeltaTest(tf.test.TestCase):
         self.assertAllEqual(mean_box_count_delta.result(), 0.0)
 
         mean_box_count_delta.update_state(y_true, y_pred)
-        self.assertAllEqual(mean_box_count_delta.result(), 1.0)
+        self.assertAllEqual(mean_box_count_delta.result(), tf.cast(2 / 3, tf.float32))
 
     def test_ragged_boxes(self):
-        mean_box_count_delta = keras_cv.metrics.BoxCountDelta(name="test-name")
+        mean_box_count_delta = keras_cv.metrics.BoxCountDelta(
+            mode="absolute", name="test-name"
+        )
         y_true = {
             "classes": tf.ragged.stack(
                 [

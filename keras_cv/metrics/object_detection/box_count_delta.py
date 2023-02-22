@@ -18,29 +18,7 @@ import tensorflow.keras.initializers as initializers
 from keras_cv import bounding_box
 
 
-def box_count_delta(y_true, y_pred, mode):
-    y_true = bounding_box.ensure_tensor(y_true)
-    y_pred = bounding_box.ensure_tensor(y_pred)
-    y_pred = bounding_box.to_dense(y_pred)
-    y_true = bounding_box.to_dense(y_true)
-
-    ground_truth_boxes = tf.cast(y_true["classes"] != -1, tf.int32)
-    predicted_boxes = tf.cast(y_pred["classes"] != -1, tf.int32)
-
-    ground_truth_boxes = tf.math.reduce_sum(ground_truth_boxes, axis=-1)
-    predicted_boxes = tf.math.reduce_sum(predicted_boxes, axis=-1)
-
-    if mode == "relative":
-        return ground_truth_boxes - predicted_boxes
-    elif mode == "absolute":
-        return tf.math.abs(ground_truth_boxes - predicted_boxes)
-    raise ValueError(
-        f"`BoxCountDelta` received unimplemented `mode`={mode}. "
-        "Expected either 'relative' or 'absolute'."
-    )
-
-
-class BoxCountDelta(keras.metrics.MeanMetricWrapper):
+class BoxCountDelta(keras.metrics.Metric):
     """BoxCountDelta counts the difference of counts of predicted and true boxes.
 
     BoxCountDelta looks at the number of boxes in the ground truth dataset
@@ -82,8 +60,68 @@ class BoxCountDelta(keras.metrics.MeanMetricWrapper):
         **kwargs,
     ):
         super().__init__(
-            lambda y_true, y_pred: box_count_delta(y_true, y_pred, mode),
+            **kwargs,
             dtype=dtype,
             name=name,
             **kwargs,
         )
+        self.mode = mode
+        self.delta_sum = self.add_weight(
+            name="delta_sum",
+            shape=(),
+            dtype=self.compute_dtype,
+            initializer=initializers.Zeros(),
+        )
+        self.samples = self.add_weight(
+            name="samples",
+            shape=(),
+            dtype=self.compute_dtype,
+            initializer=initializers.Zeros(),
+        )
+
+    def reset_state(self):
+        self.delta_sum.assign(tf.zeros_like(self.delta_sum))
+        self.samples.assign(tf.zeros_like(self.samples))
+
+    def update_state(self, y_true, y_pred, sample_weight=None):
+        """
+        Args:
+            y_true: a bounding box Tensor in corners format.
+            y_pred: a bounding box Tensor in corners format.
+            sample_weight: Currently unsupported.
+        """
+        del sample_weight
+        y_true = bounding_box.ensure_tensor(y_true)
+        y_pred = bounding_box.ensure_tensor(y_pred)
+        y_pred = bounding_box.to_dense(y_pred)
+        y_true = bounding_box.to_dense(y_true)
+
+        ground_truth_boxes = tf.cast(y_true["classes"] != -1, tf.int32)
+        predicted_boxes = tf.cast(y_pred["classes"] != -1, tf.int32)
+
+        ground_truth_boxes = tf.math.reduce_sum(ground_truth_boxes, axis=-1)
+        predicted_boxes = tf.math.reduce_sum(predicted_boxes, axis=-1)
+
+        if self.mode == "relative":
+            delta_sum = predicted_boxes - ground_truth_boxes
+        elif self.mode == "absolute":
+            delta_sum = tf.math.abs(predicted_boxes - ground_truth_boxes)
+        else:
+            raise ValueError(
+                "`keras_cv.metrics.BoxCountDelta()` expects "
+                "either 'relative' or 'absolute' for `mode`. "
+                f"Received `mode={mode}`."
+            )
+
+        self.delta_sum.assign_add(
+            tf.cast(tf.math.reduce_sum(delta_sum), self.compute_dtype)
+        )
+        self.samples.assign_add(
+            tf.cast(tf.shape(y_pred["classes"])[0], self.compute_dtype)
+        )
+
+    def result(self):
+        return self.delta_sum / self.samples
+
+    def get_config(self):
+        return super().get_config()

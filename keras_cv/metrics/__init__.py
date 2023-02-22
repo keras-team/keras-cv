@@ -16,4 +16,4 @@ from keras_cv.metrics.coco.mean_average_precision import (
     _COCOMeanAveragePrecision,
 )
 from keras_cv.metrics.coco.recall import _COCORecall
-from keras_cv.metrics.object_detection.mean_box_count_delta import BoxCountDelta
+from keras_cv.metrics.object_detection.box_count_delta import BoxCountDelta
