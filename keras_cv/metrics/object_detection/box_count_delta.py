@@ -110,7 +110,7 @@ class BoxCountDelta(keras.metrics.Metric):
             raise ValueError(
                 "`keras_cv.metrics.BoxCountDelta()` expects "
                 "either 'relative' or 'absolute' for `mode`. "
-                f"Received `mode={mode}`."
+                f"Received `mode={self.mode}`."
             )
 
         self.delta_sum.assign_add(
