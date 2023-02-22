@@ -117,19 +117,6 @@ def get_boxes_for_image(bounding_boxes, index):
     return result
 
 
-def filter_out_sentinels(bounding_boxes):
-    """filter_out_sentinels to filter out boxes that were padded on to the prediction
-    or ground truth bounding_box tensor to ensure dimensions match.
-    Args:
-        bounding_boxes: dictionarys of bounding boxes in KerasCV format
-    Returns:
-        A new dictionary of bounding boxes, where boxes['classes']!=-1.
-    """
-    return tf.gather_nd(
-        boxes, tf.where(boxes[:, bounding_box.XYXY.CLASS] != -1)
-    )
-
-
 def order_by_confidence(bounding_boxes):
     """order_by_confidence is used to sort a batch of bounding boxes.
 
@@ -138,17 +125,6 @@ def order_by_confidence(bounding_boxes):
     Returns:
         boxes: A new Tensor of Bounding boxes, sorted on an image-wise basis.
     """
-    num_images = tf.shape(boxes)[0]
-    boxes_sorted_list = tf.TensorArray(
-        tf.float32, size=num_images, dynamic_size=False
-    )
-    for img in tf.range(num_images):
-        preds_for_img = boxes[img, :, :]
-        prediction_scores = preds_for_img[:, axis]
-        _, idx = tf.math.top_k(prediction_scores, tf.shape(preds_for_img)[0])
-        boxes_sorted_list = boxes_sorted_list.write(
-            img, tf.gather(preds_for_img, idx, axis=0)
-        )
 
     boxes = bounding_boxes["boxes"]
     classes = bounding_boxes["classes"]
