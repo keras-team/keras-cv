@@ -174,27 +174,7 @@ BASE_DOCSTRING = """Instantiates the {name} architecture.
       A `keras.Model` instance.
 """
 
-
-def ViT(
-    include_rescaling,
-    include_top,
-    name="ViT",
-    weights=None,
-    input_shape=(None, None, 3),
-    input_tensor=None,
-    pooling=None,
-    classes=None,
-    patch_size=None,
-    transformer_layer_num=None,
-    num_heads=None,
-    mlp_dropout=None,
-    attention_dropout=None,
-    activation=None,
-    project_dim=None,
-    mlp_dim=None,
-    classifier_activation="softmax",
-    **kwargs,
-):
+class ViT(keras.Model):
     """Instantiates the ViT architecture.
 
     Args:
@@ -249,64 +229,128 @@ def ViT(
       A `keras.Model` instance.
     """
 
-    if weights and not tf.io.gfile.exists(weights):
-        raise ValueError(
-            "The `weights` argument should be either `None` or the path to the "
-            "weights file to be loaded. Weights file not found at location: {weights}"
-        )
+    def __init__(
+      self,
+      include_rescaling,
+      include_top,
+      name="ViT",
+      weights=None,
+      input_shape=(None, None, 3),
+      input_tensor=None,
+      pooling=None,
+      classes=None,
+      patch_size=None,
+      transformer_layer_num=None,
+      num_heads=None,
+      mlp_dropout=None,
+      attention_dropout=None,
+      activation=None,
+      project_dim=None,
+      mlp_dim=None,
+      classifier_activation="softmax",
+      **kwargs,
+  ):
 
-    if include_top and not classes:
-        raise ValueError(
-            "If `include_top` is True, you should specify `classes`. "
-            f"Received: classes={classes}"
-        )
+      if weights and not tf.io.gfile.exists(weights):
+          raise ValueError(
+              "The `weights` argument should be either `None` or the path to the "
+              "weights file to be loaded. Weights file not found at location: {weights}"
+          )
 
-    if include_top and pooling:
-        raise ValueError(
-            f"`pooling` must be `None` when `include_top=True`."
-            f"Received pooling={pooling} and include_top={include_top}. "
-        )
+      if include_top and not classes:
+          raise ValueError(
+              "If `include_top` is True, you should specify `classes`. "
+              f"Received: classes={classes}"
+          )
 
-    inputs = utils.parse_model_inputs(input_shape, input_tensor)
-    x = inputs
+      if include_top and pooling:
+          raise ValueError(
+              f"`pooling` must be `None` when `include_top=True`."
+              f"Received pooling={pooling} and include_top={include_top}. "
+          )
 
-    if include_rescaling:
-        x = layers.Rescaling(1.0 / 255.0, name="rescaling")(x)
+      inputs = utils.parse_model_inputs(input_shape, input_tensor)
+      x = inputs
 
-    # The previous layer rescales [0..255] to [0..1] if applicable
-    # This one rescales [0..1] to [-1..1] since ViTs expect [-1..1]
-    x = layers.Rescaling(scale=1.0 / 0.5, offset=-1.0, name="rescaling_2")(x)
+      if include_rescaling:
+          x = layers.Rescaling(1.0 / 255.0, name="rescaling")(x)
 
-    encoded_patches = PatchingAndEmbedding(project_dim, patch_size)(x)
-    encoded_patches = layers.Dropout(mlp_dropout)(encoded_patches)
+      # The previous layer rescales [0..255] to [0..1] if applicable
+      # This one rescales [0..1] to [-1..1] since ViTs expect [-1..1]
+      x = layers.Rescaling(scale=1.0 / 0.5, offset=-1.0, name="rescaling_2")(x)
 
-    for _ in range(transformer_layer_num):
-        encoded_patches = TransformerEncoder(
-            project_dim=project_dim,
-            mlp_dim=mlp_dim,
-            num_heads=num_heads,
-            mlp_dropout=mlp_dropout,
-            attention_dropout=attention_dropout,
-            activation=activation,
-        )(encoded_patches)
+      encoded_patches = PatchingAndEmbedding(project_dim, patch_size)(x)
+      encoded_patches = layers.Dropout(mlp_dropout)(encoded_patches)
 
-    output = layers.LayerNormalization(epsilon=1e-6)(encoded_patches)
+      for _ in range(transformer_layer_num):
+          encoded_patches = TransformerEncoder(
+              project_dim=project_dim,
+              mlp_dim=mlp_dim,
+              num_heads=num_heads,
+              mlp_dropout=mlp_dropout,
+              attention_dropout=attention_dropout,
+              activation=activation,
+          )(encoded_patches)
 
-    if include_top:
-        output = layers.Lambda(lambda rep: rep[:, 0])(output)
-        output = layers.Dense(classes, activation=classifier_activation)(output)
+      output = layers.LayerNormalization(epsilon=1e-6)(encoded_patches)
 
-    elif pooling == "token_pooling":
-        output = layers.Lambda(lambda rep: rep[:, 0])(output)
-    elif pooling == "avg":
-        output = layers.GlobalAveragePooling1D()(output)
+      if include_top:
+          output = layers.Lambda(lambda rep: rep[:, 0])(output)
+          output = layers.Dense(classes, activation=classifier_activation)(output)
 
-    model = keras.Model(inputs=inputs, outputs=output)
+      elif pooling == "token_pooling":
+          output = layers.Lambda(lambda rep: rep[:, 0])(output)
+      elif pooling == "avg":
+          output = layers.GlobalAveragePooling1D()(output)
 
-    if weights is not None:
-        model.load_weights(weights)
+      # Create model.
+      super().__init__(inputs=inputs, outputs=output, **kwargs)
 
-    return model
+      if weights is not None:
+          self.load_weights(weights)
+
+      self.include_rescaling=include_rescaling
+      self.include_top=include_top
+      self.name=name
+      self.weights=weights
+      self.input_shape=input_shape
+      self.input_tensor=input_tensor
+      self.pooling=pooling
+      self.classes=classes
+      self.patch_size=patch_size
+      self.transformer_layer_num=transformer_layer_num
+      self.num_heads=num_heads
+      self.mlp_dropout=mlp_dropout
+      self.attention_dropout=attention_dropout
+      self.activation=activation
+      self.project_dim=project_dim
+      self.mlp_dim=mlp_dim
+      self.classifier_activation=classifier_activation
+
+      def get_config(self):
+        return {
+            "include_rescaling": self.include_rescaling,
+            "include_top": self.include_top,
+            "name": self.name,
+            "weights": self.weights,
+            "input_shape": self.input_shape,
+            "input_tensor": self.input_tensor,
+            "pooling": self.pooling,
+            "classes": self.classes,
+            "patch_size": self.patch_size,
+            "transformer_layer_num": self.transformer_layer_num,
+            "num_heads": self.num_heads,
+            "mlp_dropout": self.mlp_dropout,
+            "attention_dropout": self.attention_dropout,
+            "activation": self.activation,
+            "project_dim": self.project_dim,
+            "mlp_dim": self.mlp_dim,
+            "classifier_activation": self.classifier_activation,
+        }
+
+      @classmethod
+      def from_config(cls, config):
+          return cls(**config)
 
 
 def ViTTiny16(
