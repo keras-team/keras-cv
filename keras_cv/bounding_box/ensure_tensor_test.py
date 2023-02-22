@@ -21,11 +21,19 @@ class BoundingBoxEnsureTensorTest(tf.test.TestCase):
     def test_convert_list(self):
         boxes = {"boxes": [[0, 1, 2, 3]], "classes": [0]}
         output = bounding_box.ensure_tensor(boxes)
-        self.assertFalse(any([isinstance(boxes[k], tf.Tensor) for k in boxes.keys()]))
-        self.assertTrue(all([isinstance(output[k], tf.Tensor) for k in output.keys()]))
+        self.assertFalse(
+            any([isinstance(boxes[k], tf.Tensor) for k in boxes.keys()])
+        )
+        self.assertTrue(
+            all([isinstance(output[k], tf.Tensor) for k in output.keys()])
+        )
 
     def test_confidence(self):
         boxes = {"boxes": [[0, 1, 2, 3]], "classes": [0], "confidence": [0.245]}
         output = bounding_box.ensure_tensor(boxes)
-        self.assertFalse(any([isinstance(boxes[k], tf.Tensor) for k in boxes.keys()]))
-        self.assertTrue(all([isinstance(output[k], tf.Tensor) for k in output.keys()]))
+        self.assertFalse(
+            any([isinstance(boxes[k], tf.Tensor) for k in boxes.keys()])
+        )
+        self.assertTrue(
+            all([isinstance(output[k], tf.Tensor) for k in output.keys()])
+        )
