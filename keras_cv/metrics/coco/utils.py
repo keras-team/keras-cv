@@ -117,19 +117,6 @@ def get_boxes_for_image(bounding_boxes, index):
     return result
 
 
-def filter_out_sentinels(bounding_boxes):
-    """filter_out_sentinels to filter out boxes that were padded on to the prediction
-    or ground truth bounding_box tensor to ensure dimensions match.
-    Args:
-        bounding_boxes: dictionarys of bounding boxes in KerasCV format
-    Returns:
-        A new dictionary of bounding boxes, where boxes['classes']!=-1.
-    """
-    return tf.gather_nd(
-        boxes, tf.where(boxes[:, bounding_box.XYXY.CLASS] != -1)
-    )
-
-
 def order_by_confidence(bounding_boxes):
     """order_by_confidence is used to sort a batch of bounding boxes.
 
