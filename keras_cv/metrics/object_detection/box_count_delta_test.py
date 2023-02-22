@@ -17,9 +17,11 @@ import tensorflow as tf
 import keras_cv
 
 
-class MeanBoxCountDeltaTest(tf.test.TestCase):
+class BoxCountDeltaTest(tf.test.TestCase):
     def test_dense_boxes(self):
-        mean_box_count_delta = keras_cv.metrics.MeanBoxCountDelta(name="test-name")
+        mean_box_count_delta = keras_cv.metrics.BoxCountDelta(
+            mode="absolute", name="test-name"
+        )
         y_true = {
             "classes": [[0, 0, -1]],
             "boxes": [[[0, 0, 1, 1], [0, 0, 1, 1], [0, 0, 1, 1]]],
@@ -42,8 +44,37 @@ class MeanBoxCountDeltaTest(tf.test.TestCase):
         mean_box_count_delta.update_state(y_true, y_pred)
         self.assertAllEqual(mean_box_count_delta.result(), 1.0)
 
+    def test_relative_mode(self):
+        mean_box_count_delta = keras_cv.metrics.BoxCountDelta(
+            mode="relative", name="test-name"
+        )
+        y_true = {
+            "classes": [[0, 0, 0]],
+            "boxes": [[[0, 0, 1, 1], [0, 0, 1, 1], [0, 0, 1, 1]]],
+        }
+        y_pred = {
+            "classes": [[0, -1, -1, -1]],
+            "boxes": [[[0, 0, 1, 1], [0, 0, 1, 1], [0, 0, 1, 1], [0, 0, 1, 1]]],
+        }
+        mean_box_count_delta.update_state(y_true, y_pred)
+        self.assertAllEqual(mean_box_count_delta.result(), -2.0)
+
+        y_true = {
+            "classes": [[0, -1, -1]],
+            "boxes": [[[0, 0, 1, 1], [0, 0, 1, 1], [0, 0, 1, 1]]],
+        }
+        y_pred = {
+            "classes": [[0, 1, 1, -1]],
+            "boxes": [[[0, 0, 1, 1], [0, 0, 1, 1], [0, 0, 1, 1], [0, 0, 1, 1]]],
+        }
+        mean_box_count_delta.update_state(y_true, y_pred)
+        self.assertAllEqual(mean_box_count_delta.result(), 0.0)
+
+        mean_box_count_delta.update_state(y_true, y_pred)
+        self.assertAllEqual(mean_box_count_delta.result(), 1.0)
+
     def test_ragged_boxes(self):
-        mean_box_count_delta = keras_cv.metrics.MeanBoxCountDelta(name="test-name")
+        mean_box_count_delta = keras_cv.metrics.BoxCountDelta(name="test-name")
         y_true = {
             "classes": tf.ragged.stack(
                 [
