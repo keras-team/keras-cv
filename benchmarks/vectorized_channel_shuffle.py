@@ -102,23 +102,6 @@ class OldChannelShuffle(BaseImageAugmentationLayer):
         return input_shape
 
 
-class ChannelShuffleTest(tf.test.TestCase):
-    def test_consistency_with_old_impl(self):
-        # must set batch_size=1 due to randomness from
-        # images = tf.random.shuffle(images, seed=self.seed)
-        image_shape = (1, 32, 32, 3)
-        fixed_seed = 2023
-        image = tf.random.uniform(shape=image_shape) * 255.0
-
-        layer = ChannelShuffle(groups=3, seed=fixed_seed)
-        old_layer = OldChannelShuffle(groups=3, seed=fixed_seed)
-
-        output = layer(image)
-        old_output = old_layer(image)
-
-        self.assertAllClose(old_output, output)
-
-
 if __name__ == "__main__":
     # Run benchmark
     (x_train, _), _ = tf.keras.datasets.cifar10.load_data()
@@ -210,6 +193,3 @@ if __name__ == "__main__":
     plt.ylabel("Runtime (seconds)")
     plt.legend()
     plt.savefig("comparison_no_old_eager.png")
-
-    # Run unit tests
-    tf.test.main()

@@ -1,4 +1,4 @@
-# Copyright 2023 The KerasCV Authors
+# Copyright 2022 The KerasCV Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -56,9 +56,25 @@ class ChannelShuffle(VectorizedBaseImageAugmentationLayer):
         self.groups = groups
         self.seed = seed
 
+    def get_random_transformation_batch(self, batch_size, **kwargs):
+        # get batched shuffled indices
+        # for example: batch_size=2; self.group=5
+        # indices = [
+        #     [0, 2, 3, 4, 1],
+        #     [4, 1, 0, 2, 3]
+        # ]
+        indices_distribution = tf.random.uniform(
+            (batch_size, self.groups), seed=self.seed
+        )
+        indices = tf.argsort(indices_distribution, axis=-1)
+        return indices
+
     def augment_ragged_image(self, image, transformation, **kwargs):
-        # augment_images needs 4D (batch_size, height, width, channel)
+        # self.augment_images must have
+        # 4D images (batch_size, height, width, channel)
+        # 3D transformations (batch_size, groups, 2)
         image = tf.expand_dims(image, axis=0)
+        transformation = tf.expand_dims(transformation, axis=0)
         image = self.augment_images(
             images=image, transformations=transformation, **kwargs
         )
@@ -68,6 +84,14 @@ class ChannelShuffle(VectorizedBaseImageAugmentationLayer):
         batch_size = images.shape[0]
         height, width = images.shape[1], images.shape[2]
         num_channels = images.shape[3]
+        indices = transformations
+
+        # append batch indexes next to shuffled indices
+        batch_indexs = tf.reshape(
+            tf.repeat(tf.range(batch_size), self.groups),
+            (batch_size, self.groups),
+        )
+        indices = tf.stack([batch_indexs, indices], axis=-1)
 
         if not num_channels % self.groups == 0:
             raise ValueError(
@@ -77,12 +101,13 @@ class ChannelShuffle(VectorizedBaseImageAugmentationLayer):
             )
 
         channels_per_group = num_channels // self.groups
+
         images = tf.reshape(
             images, [batch_size, height, width, self.groups, channels_per_group]
         )
-        images = tf.transpose(images, perm=[3, 0, 1, 2, 4])
-        images = tf.random.shuffle(images, seed=self.seed)
-        images = tf.transpose(images, perm=[1, 2, 3, 4, 0])
+        images = tf.transpose(images, perm=[0, 3, 1, 2, 4])
+        images = tf.gather_nd(images, indices=indices)
+        images = tf.transpose(images, perm=[0, 2, 3, 4, 1])
         images = tf.reshape(images, [batch_size, height, width, num_channels])
 
         return images

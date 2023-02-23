@@ -94,3 +94,12 @@ class ChannelShuffleTest(tf.test.TestCase):
         layer = ChannelShuffle(groups=1)
         xs = layer(xs, training=True)
         self.assertTrue(tf.math.reduce_any(xs == 1.0))
+
+    def test_channel_shuffle_on_batched_images_independently(self):
+        image = tf.random.uniform((100, 100, 3))
+        batched_images = tf.stack((image, image), axis=0)
+        layer = ChannelShuffle(groups=3)
+
+        results = layer(batched_images)
+
+        self.assertNotAllClose(results[0], results[1])
