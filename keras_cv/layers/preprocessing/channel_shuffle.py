@@ -72,7 +72,7 @@ class ChannelShuffle(VectorizedBaseImageAugmentationLayer):
     def augment_ragged_image(self, image, transformation, **kwargs):
         # self.augment_images must have
         # 4D images (batch_size, height, width, channel)
-        # 3D transformations (batch_size, groups, 2)
+        # 2D transformations (batch_size, groups)
         image = tf.expand_dims(image, axis=0)
         transformation = tf.expand_dims(transformation, axis=0)
         image = self.augment_images(
