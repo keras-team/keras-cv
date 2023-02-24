@@ -139,14 +139,14 @@ BASE_DOCSTRING = """Instantiates the {name} architecture.
     For transfer learning use cases, make sure to read the [guide to transfer
         learning & fine-tuning](https://keras.io/guides/transfer_learning/).
     Args:
-        include_rescaling: whether or not to Rescale the inputs. If set to True,
+        include_rescaling: bool, whether or not to Rescale the inputs. If set to True,
             inputs will be passed through a `Rescaling(scale=1./255.0)` layer. Note that ViTs
             expect an input range of `[0..1]` if rescaling isn't used. Regardless of whether
             you supply `[0..1]` or the input is rescaled to `[0..1]`, the inputs will further be
             rescaled to `[-1..1]`.
-        include_top: whether to include the fully-connected layer at the top of the
+        include_top: bool, whether to include the fully-connected layer at the top of the
             network.  If provided, classes must be provided.
-        classes: optional number of classes to classify images into, only to be
+        classes: optional int, number of classes to classify images into, only to be
             specified if `include_top` is True.
         weights: one of `None` (random initialization), a pretrained weight file
             path, or a reference to pre-trained weights (e.g. 'imagenet/classification')
@@ -180,10 +180,10 @@ class ViT(keras.Model):
     Args:
         mlp_dim: the dimensionality of the hidden Dense layer in the transformer
             MLP head
-        include_rescaling: whether or not to Rescale the inputs. If set to True,
+        include_rescaling: bool, whether or not to Rescale the inputs. If set to True,
             inputs will be passed through a `Rescaling(1/255.0)` layer.
-            name: string, model name.
-        include_top: whether to include the fully-connected
+        name: string, model name.
+        include_top: bool, whether to include the fully-connected
             layer at the top of the network.
         weights: one of `None` (random initialization),
             or the path to the weights file to be loaded.
@@ -233,7 +233,6 @@ class ViT(keras.Model):
         self,
         include_rescaling,
         include_top,
-        # name="ViT",
         weights=None,
         input_shape=(None, None, 3),
         input_tensor=None,
@@ -311,9 +310,6 @@ class ViT(keras.Model):
 
         self.include_rescaling=include_rescaling
         self.include_top=include_top
-        # self.name=name
-        # self.weights=weights
-        # self.input_shape=input_shape
         self.input_tensor=input_tensor
         self.pooling=pooling
         self.classes=classes
@@ -332,7 +328,6 @@ class ViT(keras.Model):
             "include_rescaling": self.include_rescaling,
             "include_top": self.include_top,
             "name": self.name,
-            # "weights": self.weights,
             "input_shape": self.input_shape,
             "input_tensor": self.input_tensor,
             "pooling": self.pooling,
