@@ -18,6 +18,9 @@ import tensorflow as tf
 from absl.testing import parameterized
 
 from keras_cv.models.backbones.resnet_v2.resnet_v2_backbone import (
+    ResNet50V2Backbone,
+)
+from keras_cv.models.backbones.resnet_v2.resnet_v2_backbone import (
     ResNetV2Backbone,
 )
 
@@ -30,14 +33,16 @@ class ResNetV2PresetSmokeTest(tf.test.TestCase, parameterized.TestCase):
     `pytest keras_cv/models/backbones/resnet_v2/resnetv2_presets_test.py --run_large`
     """
 
+    def setUp(self):
+        self.input_batch = tf.ones(shape=(8, 224, 224, 3))
+
     @parameterized.named_parameters(
         ("preset_with_weights", "resnet50_v2_imagenet"),
         ("preset_no_weights", "resnet50_v2"),
     )
     def test_backbone_output(self, preset):
-        input_data = tf.ones(shape=(8, 224, 224, 3))
         model = ResNetV2Backbone.from_preset(preset)
-        outputs = model(input_data)
+        outputs = model(self.input_batch)
 
         if preset == "resnet50_v2_imagenet":
             # The forward pass from a preset should be stable!
@@ -49,6 +54,14 @@ class ResNetV2PresetSmokeTest(tf.test.TestCase, parameterized.TestCase):
             expected = [1.051145, 0, 0, 1.16328, 0]
             # Keep a high tolerance, so we are robust to different hardware.
             self.assertAllClose(outputs, expected, atol=0.01, rtol=0.01)
+
+    @parameterized.named_parameters(
+        ("preset_with_weights", "imagenet"),
+        ("preset_no_weights", None),
+    )
+    def test_applications_model_output(self, weights):
+        model = ResNet50V2Backbone(weights)
+        model(self.input_batch)
 
     @parameterized.named_parameters(
         ("backbone", ResNetV2Backbone),

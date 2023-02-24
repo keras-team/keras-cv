@@ -19,6 +19,7 @@ Reference:
 
 import copy
 
+import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras import backend
 from tensorflow.keras import layers
@@ -301,6 +302,7 @@ class ResNetV2Backbone(Backbone):
 
     def __init__(
         self,
+        *,
         stackwise_filters,
         stackwise_blocks,
         stackwise_strides,
@@ -400,3 +402,131 @@ class ResNetV2Backbone(Backbone):
     def presets_with_weights(cls):
         """Dictionary of preset names and configurations that include weights."""
         return copy.deepcopy(backbone_presets_with_weights)
+
+
+def ResNet18V2Backbone(weights=None, **kwargs):
+    """ResNetV2 model with 18 layers.
+
+    Args:
+        weights: one of `None` (random initialization), a pretrained weight file
+            path, or name of pretrained checkpoint if available.
+            Available checkpoints: None
+        kwargs: Args to be passed to `keras_cv.models.ResNetV2Backbone`
+    """
+
+    if weights and not tf.io.gfile.exists(weights):
+        raise ValueError(
+            "The `weights` argument should be either `None` or the path to the "
+            "weights file to be loaded. Weights file not found at location: "
+            f"{weights}."
+        )
+
+    model = ResNetV2Backbone.from_preset("resnet18_v2", **kwargs)
+
+    if weights:
+        model.load_weights(weights)
+
+    return model
+
+
+def ResNet34V2Backbone(weights=None, **kwargs):
+    """ResNetV2 model with 34 layers.
+
+    Args:
+        weights: one of `None` (random initialization), a pretrained weight file
+            path, or name of pretrained checkpoint if available.
+            Available checkpoints: None
+        kwargs: Args to be passed to `keras_cv.models.ResNetV2Backbone`
+    """
+
+    if weights and not tf.io.gfile.exists(weights):
+        raise ValueError(
+            "The `weights` argument should be either `None` or the path to the "
+            "weights file to be loaded. Weights file not found at location: "
+            f"{weights}."
+        )
+
+    model = ResNetV2Backbone.from_preset("resnet34_v2", **kwargs)
+
+    if weights:
+        model.load_weights(weights)
+
+    return model
+
+
+def ResNet50V2Backbone(weights=None, **kwargs):
+    """ResNetV2 model with 50 layers.
+
+    Args:
+        weights: one of `None` (random initialization), a pretrained weight file
+            path, or name of pretrained checkpoint if available.
+            Available checkpoints: "imagenet"
+        kwargs: Args to be passed to `keras_cv.models.ResNetV2Backbone`
+    """
+
+    if weights == "imagenet":
+        return ResNetV2Backbone.from_preset("resnet50_v2_imagenet", **kwargs)
+
+    if weights and not tf.io.gfile.exists(weights):
+        raise ValueError(
+            "The `weights` argument should be either `None`, the path to the "
+            'weights file to be loaded, or "imagenet". Weights file not '
+            f"found at location: {weights}."
+        )
+
+    model = ResNetV2Backbone.from_preset("resnet34_v2", **kwargs)
+
+    if weights:
+        model.load_weights(weights)
+
+    return model
+
+
+def ResNet101V2Backbone(weights=None, **kwargs):
+    """ResNetV2 model with 101 layers.
+
+    Args:
+        weights: one of `None` (random initialization), a pretrained weight file
+            path, or name of pretrained checkpoint if available.
+            Available checkpoints: None
+        kwargs: Args to be passed to `keras_cv.models.ResNetV2Backbone`
+    """
+
+    if weights and not tf.io.gfile.exists(weights):
+        raise ValueError(
+            "The `weights` argument should be either `None` or the path to the "
+            "weights file to be loaded. Weights file not found at location: "
+            f"{weights}."
+        )
+
+    model = ResNetV2Backbone.from_preset("resnet101_v2", **kwargs)
+
+    if weights:
+        model.load_weights(weights)
+
+    return model
+
+
+def ResNet152V2Backbone(weights=None, **kwargs):
+    """ResNetV2 model with 152 layers.
+
+    Args:
+        weights: one of `None` (random initialization), a pretrained weight file
+            path, or name of pretrained checkpoint if available.
+            Available checkpoints: None
+        kwargs: Args to be passed to `keras_cv.models.ResNetV2Backbone`
+    """
+
+    if weights and not tf.io.gfile.exists(weights):
+        raise ValueError(
+            "The `weights` argument should be either `None` or the path to the "
+            "weights file to be loaded. Weights file not found at location: "
+            f"{weights}."
+        )
+
+    model = ResNetV2Backbone.from_preset("resnet152_v2", **kwargs)
+
+    if weights:
+        model.load_weights(weights)
+
+    return model

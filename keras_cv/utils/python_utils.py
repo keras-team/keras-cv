@@ -23,8 +23,10 @@ class classproperty(property):
 
 def format_docstring(**replacements):
     """Format a python docstring using a dictionary of replacements.
+
     This decorator can be placed on a function, class or method to format it's
     docstring with python variables.
+
     The decorator will replace any double bracketed variable with a kwargs
     value passed to the decorator itself. For example
     `@format_docstring(name="foo")` will replace any occurance of `{{name}}` in

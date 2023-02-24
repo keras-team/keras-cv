@@ -56,6 +56,7 @@ class Backbone(keras.Model):
         **kwargs,
     ):
         """Instantiate {{model_name}} model from preset architecture and weights.
+
         Args:
             preset: string. Must be one of "{{preset_names}}".
                 If looking for a preset with pretrained weights, choose one of

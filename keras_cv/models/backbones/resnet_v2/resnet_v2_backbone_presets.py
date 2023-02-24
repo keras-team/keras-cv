@@ -18,7 +18,7 @@ backbone_presets_no_weights = {
         "metadata": {
             "description": (
                 "ResNet model with 18 layers where the batch normalization "
-                "and ReLU activation precede the convolution layers."
+                "and ReLU activation precede the convolution layers (v2 style)."
             ),
         },
         "config": {
@@ -37,7 +37,7 @@ backbone_presets_no_weights = {
         "metadata": {
             "description": (
                 "ResNet model with 34 layers where the batch normalization "
-                "and ReLU activation precede the convolution layers."
+                "and ReLU activation precede the convolution layers (v2 style)."
             ),
         },
         "config": {
@@ -56,7 +56,7 @@ backbone_presets_no_weights = {
         "metadata": {
             "description": (
                 "ResNet model with 50 layers where the batch normalization "
-                "and ReLU activation precede the convolution layers."
+                "and ReLU activation precede the convolution layers (v2 style)."
             ),
         },
         "config": {
@@ -75,7 +75,7 @@ backbone_presets_no_weights = {
         "metadata": {
             "description": (
                 "ResNet model with 101 layers where the batch normalization "
-                "and ReLU activation precede the convolution layers."
+                "and ReLU activation precede the convolution layers (v2 style)."
             ),
         },
         "config": {
@@ -94,7 +94,7 @@ backbone_presets_no_weights = {
         "metadata": {
             "description": (
                 "ResNet model with 152 layers where the batch normalization "
-                "and ReLU activation precede the convolution layers."
+                "and ReLU activation precede the convolution layers (v2 style)."
             ),
         },
         "config": {
@@ -116,8 +116,8 @@ backbone_presets_with_weights = {
         "metadata": {
             "description": (
                 "ResNet model with 50 layers where the batch normalization and "
-                "ReLU activation precede the convolution layers. Trained on "
-                "Imagenet classification task."
+                "ReLU activation precede the convolution layers (v2 style). "
+                "Trained on ILSVRC 2012 (Imagenet) classification task."
             ),
         },
         "config": backbone_presets_no_weights["resnet50_v2"]["config"],

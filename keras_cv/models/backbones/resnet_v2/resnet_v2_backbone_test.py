@@ -19,6 +19,9 @@ from absl.testing import parameterized
 from tensorflow import keras
 
 from keras_cv.models.backbones.resnet_v2.resnet_v2_backbone import (
+    ResNet18V2Backbone,
+)
+from keras_cv.models.backbones.resnet_v2.resnet_v2_backbone import (
     ResNetV2Backbone,
 )
 
@@ -26,10 +29,6 @@ from keras_cv.models.backbones.resnet_v2.resnet_v2_backbone import (
 class ResNetV2BackboneTest(tf.test.TestCase, parameterized.TestCase):
     def setUp(self):
         self.input_batch = tf.ones(shape=(8, 224, 224, 3))
-
-        self.input_dataset = tf.data.Dataset.from_tensor_slices(
-            self.input_batch
-        ).batch(2)
 
     def test_valid_call(self):
         model = ResNetV2Backbone(
@@ -39,6 +38,14 @@ class ResNetV2BackboneTest(tf.test.TestCase, parameterized.TestCase):
             include_rescaling=False,
         )
         model(self.input_batch)
+
+    def test_valid_call_applications_model(self):
+        model = ResNet18V2Backbone()
+        model(self.input_batch)
+
+    def test_load_weights_error_applications_model(self):
+        with self.assertRaises(ValueError):
+            ResNet18V2Backbone(weights="not_a_file.h5")
 
     def test_valid_call_with_rescaling(self):
         model = ResNetV2Backbone(
