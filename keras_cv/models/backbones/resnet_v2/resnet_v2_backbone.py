@@ -446,12 +446,6 @@ ALIAS_DOCSTRING = """ResNetV2 model with {num_layers} layers.
             Available checkpoints: "{aliases}"
 """
 
-ALIAS_ERROR_MSG = (
-    "The `weights` argument should be either `None`, the path to the weights "
-    'file to be loaded, or one of valid checkpoint types: "{aliases}". '
-    "Weights file not found at location: {weights}."
-)
-
 
 def _backbone_alias(
     preset,
@@ -480,7 +474,9 @@ def _backbone_alias(
     # Otherwise check if valid file
     elif weights and not tf.io.gfile.exists(weights):
         raise ValueError(
-            ALIAS_ERROR_MSG.format(
+            "The `weights` argument should be either `None`, the path to the "
+            'weights file to be loaded, or one of valid checkpoint types: "{aliases}". '
+            "Weights file not found at location: {weights}.".format(
                 aliases=", ".join(aliases),
                 weights=weights,
             )
