@@ -24,9 +24,13 @@ from tensorflow.keras import backend
 from tensorflow.keras import layers
 
 from keras_cv.models import utils
-from keras_cv.models.backbone import Backbone
-from keras_cv.models.resnet_v2_presets import backbone_presets
-from keras_cv.models.resnet_v2_presets import backbone_presets_with_weights
+from keras_cv.models.backbones.backbone import Backbone
+from keras_cv.models.backbones.resnet_v2.resnet_v2_backbone_presets import (
+    backbone_presets,
+)
+from keras_cv.models.backbones.resnet_v2.resnet_v2_backbone_presets import (
+    backbone_presets_with_weights,
+)
 from keras_cv.utils.python_utils import classproperty
 
 BN_AXIS = 3

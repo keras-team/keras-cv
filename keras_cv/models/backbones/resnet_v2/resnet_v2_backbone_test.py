@@ -18,7 +18,9 @@ import tensorflow as tf
 from absl.testing import parameterized
 from tensorflow import keras
 
-from keras_cv.models.resnet_v2_backbone import ResNetV2Backbone
+from keras_cv.models.backbones.resnet_v2.resnet_v2_backbone import (
+    ResNetV2Backbone,
+)
 
 
 class ResNetV2BackboneTest(tf.test.TestCase, parameterized.TestCase):

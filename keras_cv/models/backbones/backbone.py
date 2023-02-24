@@ -101,7 +101,7 @@ class Backbone(keras.Model):
         config = metadata["config"]
         model = cls.from_config({**config, **kwargs})
 
-        if preset not in cls.presets_with_weights or load_weights == False:
+        if preset not in cls.presets_with_weights or load_weights is False:
             return model
 
         weights = keras.utils.get_file(
