@@ -14,6 +14,11 @@
 
 from keras_cv.models.backbones.resnet_v2.resnet_v2_backbone import (
     ResNetV2Backbone,
+    ResNet18V2Backbone,
+    ResNet34V2Backbone,
+    ResNet50V2Backbone,
+    ResNet101V2Backbone,
+    ResNet152V2Backbone,
 )
 from keras_cv.models.convmixer import ConvMixer_512_16
 from keras_cv.models.convmixer import ConvMixer_768_32
