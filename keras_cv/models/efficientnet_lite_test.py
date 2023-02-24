@@ -1,4 +1,4 @@
-# Copyright 2022 The KerasCV Authors
+# Copyright 2023 The KerasCV Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,6 +14,7 @@
 
 import tensorflow as tf
 from absl.testing import parameterized
+from packaging import version
 
 from keras_cv.models import efficientnet_lite
 
@@ -55,6 +56,17 @@ class EfficientNetLiteTest(
     @parameterized.parameters(*MODEL_LIST)
     def test_model_can_be_used_as_backbone(self, app, last_dim, args):
         super()._test_model_can_be_used_as_backbone(app, last_dim, args)
+
+    @parameterized.parameters(*MODEL_LIST)
+    def test_model_serialization_keras_format(self, app, last_dim, args):
+        if version.parse(tf.__version__) >= version.parse("2.12.0-dev0"):
+            super()._test_model_serialization(
+                app,
+                last_dim,
+                args,
+                save_format="keras_v3",
+                filename="model.keras",
+            )
 
 
 if __name__ == "__main__":
