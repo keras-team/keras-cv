@@ -230,109 +230,109 @@ class ViT(keras.Model):
     """
 
     def __init__(
-      self,
-      include_rescaling,
-      include_top,
-      name="ViT",
-      weights=None,
-      input_shape=(None, None, 3),
-      input_tensor=None,
-      pooling=None,
-      classes=None,
-      patch_size=None,
-      transformer_layer_num=None,
-      num_heads=None,
-      mlp_dropout=None,
-      attention_dropout=None,
-      activation=None,
-      project_dim=None,
-      mlp_dim=None,
-      classifier_activation="softmax",
-      **kwargs,
-  ):
+        self,
+        include_rescaling,
+        include_top,
+        # name="ViT",
+        weights=None,
+        input_shape=(None, None, 3),
+        input_tensor=None,
+        pooling=None,
+        classes=None,
+        patch_size=None,
+        transformer_layer_num=None,
+        num_heads=None,
+        mlp_dropout=None,
+        attention_dropout=None,
+        activation=None,
+        project_dim=None,
+        mlp_dim=None,
+        classifier_activation="softmax",
+        **kwargs,
+    ):
 
-      if weights and not tf.io.gfile.exists(weights):
-          raise ValueError(
-              "The `weights` argument should be either `None` or the path to the "
-              "weights file to be loaded. Weights file not found at location: {weights}"
-          )
+        if weights and not tf.io.gfile.exists(weights):
+            raise ValueError(
+                "The `weights` argument should be either `None` or the path to the "
+                "weights file to be loaded. Weights file not found at location: {weights}"
+            )
 
-      if include_top and not classes:
-          raise ValueError(
-              "If `include_top` is True, you should specify `classes`. "
-              f"Received: classes={classes}"
-          )
+        if include_top and not classes:
+            raise ValueError(
+                "If `include_top` is True, you should specify `classes`. "
+                f"Received: classes={classes}"
+            )
 
-      if include_top and pooling:
-          raise ValueError(
-              f"`pooling` must be `None` when `include_top=True`."
-              f"Received pooling={pooling} and include_top={include_top}. "
-          )
+        if include_top and pooling:
+            raise ValueError(
+                f"`pooling` must be `None` when `include_top=True`."
+                f"Received pooling={pooling} and include_top={include_top}. "
+            )
 
-      inputs = utils.parse_model_inputs(input_shape, input_tensor)
-      x = inputs
+        inputs = utils.parse_model_inputs(input_shape, input_tensor)
+        x = inputs
 
-      if include_rescaling:
-          x = layers.Rescaling(1.0 / 255.0, name="rescaling")(x)
+        if include_rescaling:
+            x = layers.Rescaling(1.0 / 255.0, name="rescaling")(x)
 
-      # The previous layer rescales [0..255] to [0..1] if applicable
-      # This one rescales [0..1] to [-1..1] since ViTs expect [-1..1]
-      x = layers.Rescaling(scale=1.0 / 0.5, offset=-1.0, name="rescaling_2")(x)
+        # The previous layer rescales [0..255] to [0..1] if applicable
+        # This one rescales [0..1] to [-1..1] since ViTs expect [-1..1]
+        x = layers.Rescaling(scale=1.0 / 0.5, offset=-1.0, name="rescaling_2")(x)
 
-      encoded_patches = PatchingAndEmbedding(project_dim, patch_size)(x)
-      encoded_patches = layers.Dropout(mlp_dropout)(encoded_patches)
+        encoded_patches = PatchingAndEmbedding(project_dim, patch_size)(x)
+        encoded_patches = layers.Dropout(mlp_dropout)(encoded_patches)
 
-      for _ in range(transformer_layer_num):
-          encoded_patches = TransformerEncoder(
-              project_dim=project_dim,
-              mlp_dim=mlp_dim,
-              num_heads=num_heads,
-              mlp_dropout=mlp_dropout,
-              attention_dropout=attention_dropout,
-              activation=activation,
-          )(encoded_patches)
+        for _ in range(transformer_layer_num):
+            encoded_patches = TransformerEncoder(
+                project_dim=project_dim,
+                mlp_dim=mlp_dim,
+                num_heads=num_heads,
+                mlp_dropout=mlp_dropout,
+                attention_dropout=attention_dropout,
+                activation=activation,
+            )(encoded_patches)
 
-      output = layers.LayerNormalization(epsilon=1e-6)(encoded_patches)
+        output = layers.LayerNormalization(epsilon=1e-6)(encoded_patches)
 
-      if include_top:
-          output = layers.Lambda(lambda rep: rep[:, 0])(output)
-          output = layers.Dense(classes, activation=classifier_activation)(output)
+        if include_top:
+            output = layers.Lambda(lambda rep: rep[:, 0])(output)
+            output = layers.Dense(classes, activation=classifier_activation)(output)
 
-      elif pooling == "token_pooling":
-          output = layers.Lambda(lambda rep: rep[:, 0])(output)
-      elif pooling == "avg":
-          output = layers.GlobalAveragePooling1D()(output)
+        elif pooling == "token_pooling":
+            output = layers.Lambda(lambda rep: rep[:, 0])(output)
+        elif pooling == "avg":
+            output = layers.GlobalAveragePooling1D()(output)
 
-      # Create model.
-      super().__init__(inputs=inputs, outputs=output, **kwargs)
+        # Create model.
+        super().__init__(inputs=inputs, outputs=output, **kwargs)
 
-      if weights is not None:
-          self.load_weights(weights)
+        if weights is not None:
+            self.load_weights(weights)
 
-      self.include_rescaling=include_rescaling
-      self.include_top=include_top
-      self.name=name
-      self.weights=weights
-      self.input_shape=input_shape
-      self.input_tensor=input_tensor
-      self.pooling=pooling
-      self.classes=classes
-      self.patch_size=patch_size
-      self.transformer_layer_num=transformer_layer_num
-      self.num_heads=num_heads
-      self.mlp_dropout=mlp_dropout
-      self.attention_dropout=attention_dropout
-      self.activation=activation
-      self.project_dim=project_dim
-      self.mlp_dim=mlp_dim
-      self.classifier_activation=classifier_activation
+        self.include_rescaling=include_rescaling
+        self.include_top=include_top
+        # self.name=name
+        # self.weights=weights
+        # self.input_shape=input_shape
+        self.input_tensor=input_tensor
+        self.pooling=pooling
+        self.classes=classes
+        self.patch_size=patch_size
+        self.transformer_layer_num=transformer_layer_num
+        self.num_heads=num_heads
+        self.mlp_dropout=mlp_dropout
+        self.attention_dropout=attention_dropout
+        self.activation=activation
+        self.project_dim=project_dim
+        self.mlp_dim=mlp_dim
+        self.classifier_activation=classifier_activation
 
-      def get_config(self):
+    def get_config(self):
         return {
             "include_rescaling": self.include_rescaling,
             "include_top": self.include_top,
             "name": self.name,
-            "weights": self.weights,
+            # "weights": self.weights,
             "input_shape": self.input_shape,
             "input_tensor": self.input_tensor,
             "pooling": self.pooling,
@@ -348,9 +348,9 @@ class ViT(keras.Model):
             "classifier_activation": self.classifier_activation,
         }
 
-      @classmethod
-      def from_config(cls, config):
-          return cls(**config)
+    @classmethod
+    def from_config(cls, config):
+        return cls(**config)
 
 
 def ViTTiny16(
