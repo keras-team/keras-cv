@@ -13,12 +13,22 @@
 # limitations under the License.
 
 from keras_cv.models.backbones.resnet_v2.resnet_v2_backbone import (
-    ResNetV2Backbone,
     ResNet18V2Backbone,
+)
+from keras_cv.models.backbones.resnet_v2.resnet_v2_backbone import (
     ResNet34V2Backbone,
+)
+from keras_cv.models.backbones.resnet_v2.resnet_v2_backbone import (
     ResNet50V2Backbone,
+)
+from keras_cv.models.backbones.resnet_v2.resnet_v2_backbone import (
     ResNet101V2Backbone,
+)
+from keras_cv.models.backbones.resnet_v2.resnet_v2_backbone import (
     ResNet152V2Backbone,
+)
+from keras_cv.models.backbones.resnet_v2.resnet_v2_backbone import (
+    ResNetV2Backbone,
 )
 from keras_cv.models.convmixer import ConvMixer_512_16
 from keras_cv.models.convmixer import ConvMixer_768_32

@@ -27,6 +27,12 @@ from tensorflow.keras import layers
 from keras_cv.models import utils
 from keras_cv.models.backbones.backbone import Backbone
 from keras_cv.models.backbones.resnet_v2.resnet_v2_backbone_presets import (
+    applications_presets,
+)
+from keras_cv.models.backbones.resnet_v2.resnet_v2_backbone_presets import (
+    applications_weight_aliases,
+)
+from keras_cv.models.backbones.resnet_v2.resnet_v2_backbone_presets import (
     backbone_presets,
 )
 from keras_cv.models.backbones.resnet_v2.resnet_v2_backbone_presets import (
@@ -259,7 +265,6 @@ class ResNetV2Backbone(Backbone):
 
     Reference:
         - [Identity Mappings in Deep Residual Networks](https://arxiv.org/abs/1603.05027) (ECCV 2016)
-    This function returns a Keras {name} model.
 
     The difference in Resnet and ResNetV2 rests in the structure of their
     individual building blocks. In ResNetV2, the batch normalization and
@@ -404,24 +409,84 @@ class ResNetV2Backbone(Backbone):
         return copy.deepcopy(backbone_presets_with_weights)
 
 
-def ResNet18V2Backbone(weights=None, **kwargs):
-    """ResNetV2 model with 18 layers.
+ALIAS_DOCSTRING = """ResNetV2 model with {num_layers} layers.
+
+    Reference:
+        - [Identity Mappings in Deep Residual Networks](https://arxiv.org/abs/1603.05027) (ECCV 2016)
+
+    The difference in ResNet and ResNetV2 rests in the structure of their
+    individual building blocks. In ResNetV2, the batch normalization and
+    ReLU activation precede the convolution layers, as opposed to ResNetV1 where
+    the batch normalization and ReLU activation are applied after the
+    convolution layers.
+
+    For transfer learning use cases, make sure to read the [guide to transfer
+        learning & fine-tuning](https://keras.io/guides/transfer_learning/).
 
     Args:
+        include_rescaling: bool, whether or not to Rescale the inputs. If set
+            to `True`, inputs will be passed through a `Rescaling(1/255.0)`
+            layer.
+        input_shape: optional shape tuple, defaults to (None, None, 3).
+        input_tensor: optional Keras tensor (i.e. output of `layers.Input()`)
+            to use as image input for the model.
+        pooling: optional pooling mode for feature extraction
+            when `include_top` is `False`.
+            - `None` means that the output of the model will be
+                the 4D tensor output of the
+                last convolutional layer.
+            - `avg` means that global average pooling
+                will be applied to the output of the
+                last convolutional layer, and thus
+                the output of the model will be a 2D tensor.
+            - `max` means that global max pooling will
+                be applied.
         weights: one of `None` (random initialization), a pretrained weight file
             path, or name of pretrained checkpoint if available.
-            Available checkpoints: None
-        kwargs: Args to be passed to `keras_cv.models.ResNetV2Backbone`
-    """
+            Available checkpoints: "{aliases}"
+"""
 
-    if weights and not tf.io.gfile.exists(weights):
+ALIAS_ERROR_MSG = (
+    "The `weights` argument should be either `None`, the path to the weights "
+    'file to be loaded, or one of valid checkpoint types: "{aliases}". '
+    "Weights file not found at location: {weights}."
+)
+
+
+def _backbone_alias(
+    preset,
+    include_rescaling=True,
+    input_shape=(None, None, 3),
+    input_tensor=None,
+    pooling=None,
+    weights=None,
+    **kwargs,
+):
+    """Helper method to generate keras.application style interfaces for presets."""
+    # Pack args in kwargs
+    kwargs.update(
+        {
+            "include_rescaling": include_rescaling,
+            "input_shape": input_shape,
+            "input_tensor": input_tensor,
+            "pooling": pooling,
+        }
+    )
+    # Check if `weights` is valid preset alias
+    aliases = applications_weight_aliases[preset]
+    if weights and weights in aliases:
+        preset = applications_presets[(preset, weights)]
+        return ResNetV2Backbone.from_preset(preset, **kwargs)
+    # Otherwise check if valid file
+    elif weights and not tf.io.gfile.exists(weights):
         raise ValueError(
-            "The `weights` argument should be either `None` or the path to the "
-            "weights file to be loaded. Weights file not found at location: "
-            f"{weights}."
+            ALIAS_ERROR_MSG.format(
+                aliases=", ".join(aliases),
+                weights=weights,
+            )
         )
 
-    model = ResNetV2Backbone.from_preset("resnet18_v2", **kwargs)
+    model = ResNetV2Backbone.from_preset(preset, **kwargs)
 
     if weights:
         model.load_weights(weights)
@@ -429,104 +494,138 @@ def ResNet18V2Backbone(weights=None, **kwargs):
     return model
 
 
-def ResNet34V2Backbone(weights=None, **kwargs):
-    """ResNetV2 model with 34 layers.
-
-    Args:
-        weights: one of `None` (random initialization), a pretrained weight file
-            path, or name of pretrained checkpoint if available.
-            Available checkpoints: None
-        kwargs: Args to be passed to `keras_cv.models.ResNetV2Backbone`
-    """
-
-    if weights and not tf.io.gfile.exists(weights):
-        raise ValueError(
-            "The `weights` argument should be either `None` or the path to the "
-            "weights file to be loaded. Weights file not found at location: "
-            f"{weights}."
-        )
-
-    model = ResNetV2Backbone.from_preset("resnet34_v2", **kwargs)
-
-    if weights:
-        model.load_weights(weights)
-
-    return model
+def ResNet18V2Backbone(
+    include_rescaling=True,
+    input_shape=(None, None, 3),
+    input_tensor=None,
+    pooling=None,
+    weights=None,
+    **kwargs,
+):
+    return _backbone_alias(
+        "resnet18_v2",
+        include_rescaling,
+        input_shape,
+        input_tensor,
+        pooling,
+        weights,
+        **kwargs,
+    )
 
 
-def ResNet50V2Backbone(weights=None, **kwargs):
-    """ResNetV2 model with 50 layers.
-
-    Args:
-        weights: one of `None` (random initialization), a pretrained weight file
-            path, or name of pretrained checkpoint if available.
-            Available checkpoints: "imagenet"
-        kwargs: Args to be passed to `keras_cv.models.ResNetV2Backbone`
-    """
-
-    if weights == "imagenet":
-        return ResNetV2Backbone.from_preset("resnet50_v2_imagenet", **kwargs)
-
-    if weights and not tf.io.gfile.exists(weights):
-        raise ValueError(
-            "The `weights` argument should be either `None`, the path to the "
-            'weights file to be loaded, or "imagenet". Weights file not '
-            f"found at location: {weights}."
-        )
-
-    model = ResNetV2Backbone.from_preset("resnet50_v2", **kwargs)
-
-    if weights:
-        model.load_weights(weights)
-
-    return model
+def ResNet34V2Backbone(
+    include_rescaling=True,
+    input_shape=(None, None, 3),
+    input_tensor=None,
+    pooling=None,
+    weights=None,
+    **kwargs,
+):
+    return _backbone_alias(
+        "resnet34_v2",
+        include_rescaling,
+        input_shape,
+        input_tensor,
+        pooling,
+        weights,
+        **kwargs,
+    )
 
 
-def ResNet101V2Backbone(weights=None, **kwargs):
-    """ResNetV2 model with 101 layers.
-
-    Args:
-        weights: one of `None` (random initialization), a pretrained weight file
-            path, or name of pretrained checkpoint if available.
-            Available checkpoints: None
-        kwargs: Args to be passed to `keras_cv.models.ResNetV2Backbone`
-    """
-
-    if weights and not tf.io.gfile.exists(weights):
-        raise ValueError(
-            "The `weights` argument should be either `None` or the path to the "
-            "weights file to be loaded. Weights file not found at location: "
-            f"{weights}."
-        )
-
-    model = ResNetV2Backbone.from_preset("resnet101_v2", **kwargs)
-
-    if weights:
-        model.load_weights(weights)
-
-    return model
+def ResNet50V2Backbone(
+    include_rescaling=True,
+    input_shape=(None, None, 3),
+    input_tensor=None,
+    pooling=None,
+    weights=None,
+    **kwargs,
+):
+    return _backbone_alias(
+        "resnet50_v2",
+        include_rescaling,
+        input_shape,
+        input_tensor,
+        pooling,
+        weights,
+        **kwargs,
+    )
 
 
-def ResNet152V2Backbone(weights=None, **kwargs):
-    """ResNetV2 model with 152 layers.
+def ResNet101V2Backbone(
+    include_rescaling=True,
+    input_shape=(None, None, 3),
+    input_tensor=None,
+    pooling=None,
+    weights=None,
+    **kwargs,
+):
+    return _backbone_alias(
+        "resnet101_v2",
+        include_rescaling,
+        input_shape,
+        input_tensor,
+        pooling,
+        weights,
+        **kwargs,
+    )
 
-    Args:
-        weights: one of `None` (random initialization), a pretrained weight file
-            path, or name of pretrained checkpoint if available.
-            Available checkpoints: None
-        kwargs: Args to be passed to `keras_cv.models.ResNetV2Backbone`
-    """
 
-    if weights and not tf.io.gfile.exists(weights):
-        raise ValueError(
-            "The `weights` argument should be either `None` or the path to the "
-            "weights file to be loaded. Weights file not found at location: "
-            f"{weights}."
-        )
+def ResNet152V2Backbone(
+    include_rescaling=True,
+    input_shape=(None, None, 3),
+    input_tensor=None,
+    pooling=None,
+    weights=None,
+    **kwargs,
+):
+    return _backbone_alias(
+        "resnet152_v2",
+        include_rescaling,
+        input_shape,
+        input_tensor,
+        pooling,
+        weights,
+        **kwargs,
+    )
 
-    model = ResNetV2Backbone.from_preset("resnet152_v2", **kwargs)
 
-    if weights:
-        model.load_weights(weights)
-
-    return model
+setattr(
+    ResNet18V2Backbone,
+    "__doc__",
+    ALIAS_DOCSTRING.format(
+        num_layers=18,
+        aliases='", "'.join(applications_weight_aliases["resnet18_v2"])
+    ),
+)
+setattr(
+    ResNet34V2Backbone,
+    "__doc__",
+    ALIAS_DOCSTRING.format(
+        num_layers=34,
+        aliases='", "'.join(applications_weight_aliases["resnet34_v2"])
+    ),
+)
+setattr(
+    ResNet50V2Backbone,
+    "__doc__",
+    ALIAS_DOCSTRING.format(
+        num_layers=50,
+        aliases='", "'.join(applications_weight_aliases["resnet50_v2"])
+    ),
+)
+setattr(
+    ResNet101V2Backbone,
+    "__doc__",
+    ALIAS_DOCSTRING.format(
+        num_layers=101,
+        aliases='", "'.join(applications_weight_aliases["resnet101_v2"])
+    ),
+)
+setattr(
+    ResNet152V2Backbone,
+    "__doc__",
+    ALIAS_DOCSTRING.format(
+        num_layers=152,
+        aliases='", "'.join(applications_weight_aliases["resnet152_v2"])
+    ),
+)

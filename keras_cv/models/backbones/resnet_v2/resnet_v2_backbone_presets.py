@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """ResNetV2 model preset configurations."""
+from collections import defaultdict
 
 backbone_presets_no_weights = {
     "resnet18_v2": {
@@ -119,6 +120,8 @@ backbone_presets_with_weights = {
                 "ReLU activation precede the convolution layers (v2 style). "
                 "Trained on ILSVRC 2012 (Imagenet) classification task."
             ),
+            "source_preset": "resnet50_v2",
+            "applications_alias": "imagenet",
         },
         "config": backbone_presets_no_weights["resnet50_v2"]["config"],
         "weights_url": "https://storage.googleapis.com/keras-cv/models/resnet50v2/imagenet/classification-v2-notop.h5",
@@ -129,4 +132,20 @@ backbone_presets_with_weights = {
 backbone_presets = {
     **backbone_presets_no_weights,
     **backbone_presets_with_weights,
+}
+
+# Index valid weight aliases per preset
+applications_weight_aliases = defaultdict(set)
+for key, value in backbone_presets_with_weights.items():
+    applications_weight_aliases[value["metadata"]["source_preset"]].add(
+        value["metadata"]["applications_alias"]
+    )
+
+# Index preset name for every valid (source_preset, weight alias) pair
+applications_presets = {
+    (
+        value["metadata"]["source_preset"],
+        value["metadata"]["applications_alias"],
+    ): preset
+    for (preset, value) in backbone_presets_with_weights.items()
 }
