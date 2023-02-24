@@ -594,7 +594,7 @@ setattr(
     "__doc__",
     ALIAS_DOCSTRING.format(
         num_layers=18,
-        aliases='", "'.join(applications_weight_aliases["resnet18_v2"])
+        aliases='", "'.join(applications_weight_aliases["resnet18_v2"]),
     ),
 )
 setattr(
@@ -602,7 +602,7 @@ setattr(
     "__doc__",
     ALIAS_DOCSTRING.format(
         num_layers=34,
-        aliases='", "'.join(applications_weight_aliases["resnet34_v2"])
+        aliases='", "'.join(applications_weight_aliases["resnet34_v2"]),
     ),
 )
 setattr(
@@ -610,7 +610,7 @@ setattr(
     "__doc__",
     ALIAS_DOCSTRING.format(
         num_layers=50,
-        aliases='", "'.join(applications_weight_aliases["resnet50_v2"])
+        aliases='", "'.join(applications_weight_aliases["resnet50_v2"]),
     ),
 )
 setattr(
@@ -618,7 +618,7 @@ setattr(
     "__doc__",
     ALIAS_DOCSTRING.format(
         num_layers=101,
-        aliases='", "'.join(applications_weight_aliases["resnet101_v2"])
+        aliases='", "'.join(applications_weight_aliases["resnet101_v2"]),
     ),
 )
 setattr(
@@ -626,6 +626,6 @@ setattr(
     "__doc__",
     ALIAS_DOCSTRING.format(
         num_layers=152,
-        aliases='", "'.join(applications_weight_aliases["resnet152_v2"])
+        aliases='", "'.join(applications_weight_aliases["resnet152_v2"]),
     ),
 )
