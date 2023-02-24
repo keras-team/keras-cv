@@ -27,7 +27,7 @@ class ResNetV2PresetSmokeTest(tf.test.TestCase, parameterized.TestCase):
     """
     A smoke test for ResNetV2 presets we run continuously.
     This only tests the smallest weights we have available. Run with:
-    `pytest keras_cv/models/resnetv2_presets_test.py --run_large`
+    `pytest keras_cv/models/backbones/resnet_v2/resnetv2_presets_test.py --run_large`
     """
 
     @parameterized.named_parameters(
@@ -81,7 +81,7 @@ class ResNetV2PresetFullTest(tf.test.TestCase, parameterized.TestCase):
     Test the full enumeration of our preset.
     This every presets for ResNetV2 and is only run manually.
     Run with:
-    `pytest keras_cv/models/resnet_v2_presets_test.py --run_extra_large`
+    `pytest keras_cv/models/backbones/resnet_v2/resnet_v2_presets_test.py --run_extra_large`
     """
 
     def test_load_resnetv2(self):
