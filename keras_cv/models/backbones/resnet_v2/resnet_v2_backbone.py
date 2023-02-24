@@ -474,7 +474,7 @@ def ResNet50V2Backbone(weights=None, **kwargs):
             f"found at location: {weights}."
         )
 
-    model = ResNetV2Backbone.from_preset("resnet34_v2", **kwargs)
+    model = ResNetV2Backbone.from_preset("resnet50_v2", **kwargs)
 
     if weights:
         model.load_weights(weights)
