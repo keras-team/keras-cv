@@ -107,7 +107,5 @@ class FasterRCNNTest(tf.test.TestCase, parameterized.TestCase):
 
     def _build_backbone(self):
         return ResNetV2Backbone.from_preset(
-            "resnet50_v2_imagenet",
-            load_weights=False,
-            include_rescaling=True,
-        ).extract_features()
+            "resnet50_v2",
+        ).get_feature_extractor()

@@ -23,7 +23,11 @@ from keras_cv.utils.python_utils import format_docstring
 
 
 class Backbone(keras.Model):
-    """Base class for Backbone models."""
+    """Base class for Backbone models.
+
+    Backbones are reusable layers of models trained on a standard task such as
+    Imagenet classifcation that can be reused in other tasks.
+    """
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -36,35 +40,41 @@ class Backbone(keras.Model):
 
     @classproperty
     def presets(cls):
+        """Dictionary of preset names and configurations."""
         return {}
 
     @classproperty
     def presets_with_weights(cls):
+        """Dictionary of preset names and configurations that include weights."""
         return {}
 
     @classmethod
     def from_preset(
         cls,
         preset,
-        load_weights=True,
+        load_weights=None,
         **kwargs,
     ):
         """Instantiate {{model_name}} model from preset architecture and weights.
         Args:
             preset: string. Must be one of "{{preset_names}}".
+                If looking for a preset with pretrained weights, choose one of
+                "{{preset_with_weights_names}}".
             load_weights: Whether to load pre-trained weights into model.
-                Defaults to `True`.
+                Defaults to `None`, which follows whether the preset has
+                pretrained weights available.
+
         Examples:
         ```python
         # Load architecture and weights from preset
         model = keras_cv.models.{{model_name}}.from_preset(
-            "{{example_preset_name}}"
+            "{{example_preset_name}}",
         )
-        # Load randomly initialized model from preset architecture
+
+        # Load randomly initialized model from preset architecture with weights
         model = keras_cv.models.{{model_name}}.from_preset(
             "{{example_preset_name}}",
-            load_weights=False
-        )
+            load_weights=False,
         ```
         """
 
@@ -78,9 +88,8 @@ class Backbone(keras.Model):
                 "`preset` must be one of "
                 f"""{", ".join(cls.presets)}. Received: {preset}."""
             )
-        metadata = cls.presets[preset]
 
-        if load_weights and "weights_url" not in metadata:
+        if load_weights and preset not in cls.presets_with_weights:
             raise ValueError(
                 f"""Pretrained weights not available for preset "{preset}". """
                 "Set `load_weights=False` to use this preset or choose one of "
@@ -88,10 +97,11 @@ class Backbone(keras.Model):
                 f""" "{'", "'.join(cls.presets_with_weights)}"."""
             )
 
+        metadata = cls.presets[preset]
         config = metadata["config"]
         model = cls.from_config({**config, **kwargs})
 
-        if not load_weights:
+        if preset not in cls.presets_with_weights or load_weights == False:
             return model
 
         weights = keras.utils.get_file(
@@ -124,6 +134,7 @@ class Backbone(keras.Model):
                 model_name=cls.__name__,
                 example_preset_name=next(iter(cls.presets_with_weights), ""),
                 preset_names='", "'.join(cls.presets),
+                preset_with_weights_names='", "'.join(cls.presets_with_weights),
             )(cls.from_preset.__func__)
 
     @property
@@ -135,7 +146,7 @@ class Backbone(keras.Model):
     def backbone_level_outputs(self, value):
         self._backbone_level_outputs = value
 
-    def extract_features(self, min_level=None, max_level=None):
+    def get_feature_extractor(self, min_level=None, max_level=None):
         """Convert the application model into a model backbone for other tasks.
 
         The backbone model will usually take same inputs as the original

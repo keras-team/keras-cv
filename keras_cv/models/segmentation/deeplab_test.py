@@ -25,9 +25,7 @@ from keras_cv.models import segmentation
 class DeeplabTest(tf.test.TestCase):
     def test_deeplab_model_construction_with_preconfigured_setting(self):
         backbone = models.ResNetV2Backbone.from_preset(
-            "resnet50_v2_imagenet",
-            load_weights=False,
-            include_rescaling=True,
+            "resnet50_v2",
             input_shape=[64, 64, 3],
         )
         model = segmentation.DeepLabV3(classes=11, backbone=backbone)
@@ -38,9 +36,7 @@ class DeeplabTest(tf.test.TestCase):
 
     def test_greyscale_input(self):
         backbone = models.ResNetV2Backbone.from_preset(
-            "resnet50_v2_imagenet",
-            load_weights=False,
-            include_rescaling=True,
+            "resnet50_v2",
             input_shape=[64, 64, 1],
         )
         model = segmentation.DeepLabV3(classes=11, backbone=backbone)
@@ -55,17 +51,13 @@ class DeeplabTest(tf.test.TestCase):
             "Input shapes for both the backbone and DeepLabV3 are `None`.",
         ):
             backbone = models.ResNetV2Backbone.from_preset(
-                "resnet50_v2_imagenet",
-                load_weights=False,
-                include_rescaling=True,
+                "resnet50_v2",
             )
             segmentation.DeepLabV3(classes=11, backbone=backbone)
 
     def test_deeplab_model_with_components(self):
         backbone = models.ResNetV2Backbone.from_preset(
-            "resnet50_v2_imagenet",
-            load_weights=False,
-            include_rescaling=True,
+            "resnet50_v2",
             input_shape=[64, 64, 3],
         )
         model = segmentation.DeepLabV3(
@@ -81,9 +73,7 @@ class DeeplabTest(tf.test.TestCase):
     def test_mixed_precision(self):
         tf.keras.mixed_precision.set_global_policy("mixed_float16")
         backbone = models.ResNetV2Backbone.from_preset(
-            "resnet50_v2_imagenet",
-            load_weights=False,
-            include_rescaling=True,
+            "resnet50_v2",
             input_shape=[64, 64, 3],
         )
         model = segmentation.DeepLabV3(
@@ -113,9 +103,7 @@ class DeeplabTest(tf.test.TestCase):
     )
     def test_model_train(self):
         backbone = models.ResNetV2Backbone.from_preset(
-            "resnet50_v2_imagenet",
-            load_weights=False,
-            include_rescaling=True,
+            "resnet50_v2",
             input_shape=[384, 384, 3],
         )
         model = segmentation.DeepLabV3(classes=1, backbone=backbone)

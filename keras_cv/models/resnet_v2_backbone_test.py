@@ -108,7 +108,7 @@ class ResNetV2BackboneTest(tf.test.TestCase, parameterized.TestCase):
             stackwise_strides=[1, 2, 2, 2],
             include_rescaling=False,
         )
-        backbone_model = model.extract_features()
+        backbone_model = model.get_feature_extractor()
         inputs = tf.keras.Input(shape=[256, 256, 3])
         outputs = backbone_model(inputs)
         # Resnet50 backbone has 4 level of features (2 ~ 5)
@@ -127,7 +127,7 @@ class ResNetV2BackboneTest(tf.test.TestCase, parameterized.TestCase):
             include_rescaling=False,
             input_shape=[256, 256, 3],
         )
-        backbone_model = model.extract_features(min_level=3, max_level=4)
+        backbone_model = model.get_feature_extractor(min_level=3, max_level=4)
         inputs = tf.keras.Input(shape=[256, 256, 3])
         outputs = backbone_model(inputs)
         self.assertLen(outputs, 2)

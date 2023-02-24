@@ -38,8 +38,7 @@ class SimCLRTrainerTest(tf.test.TestCase):
 
     def build_encoder(self):
         return ResNetV2Backbone.from_preset(
-            "resnet50_v2_imagenet",
-            load_weights=False,
+            "resnet50_v2",
             include_rescaling=False,
             pooling="avg",
         )

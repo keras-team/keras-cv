@@ -25,20 +25,19 @@ class ResNetV2PresetSmokeTest(tf.test.TestCase, parameterized.TestCase):
     """
     A smoke test for ResNetV2 presets we run continuously.
     This only tests the smallest weights we have available. Run with:
-    `pytest keras_cv/models//resnetv2_presets_test.py --run_large`
+    `pytest keras_cv/models/resnetv2_presets_test.py --run_large`
     """
 
     @parameterized.named_parameters(
-        ("load_weights", True), ("no_load_weights", False)
+        ("preset_with_weights", "resnet50_v2_imagenet"),
+        ("preset_no_weights", "resnet50_v2"),
     )
-    def test_backbone_output(self, load_weights):
+    def test_backbone_output(self, preset):
         input_data = tf.ones(shape=(8, 224, 224, 3))
-        model = ResNetV2Backbone.from_preset(
-            "resnet50_v2_imagenet", load_weights=load_weights
-        )
+        model = ResNetV2Backbone.from_preset(preset)
         outputs = model(input_data)
 
-        if load_weights:
+        if preset == "resnet50_v2_imagenet":
             # The forward pass from a preset should be stable!
             # This test should catch cases where we unintentionally change our
             # network code in a way that would invalidate our preset weights.
@@ -63,7 +62,15 @@ class ResNetV2PresetSmokeTest(tf.test.TestCase, parameterized.TestCase):
     def test_unknown_preset_error(self, cls):
         # Not a preset name
         with self.assertRaises(ValueError):
-            cls.from_preset("resnet_v2_clowntown")
+            cls.from_preset("resnet50_v2_clowntown")
+
+    @parameterized.named_parameters(
+        ("backbone", ResNetV2Backbone),
+    )
+    def test_load_weights_error(self, cls):
+        # Try to load weights when none available
+        with self.assertRaises(ValueError):
+            cls.from_preset("resnet50_v2", load_weights=True)
 
 
 @pytest.mark.extra_large
@@ -75,21 +82,8 @@ class ResNetV2PresetFullTest(tf.test.TestCase, parameterized.TestCase):
     `pytest keras_cv/models/resnet_v2_presets_test.py --run_extra_large`
     """
 
-    @parameterized.named_parameters(
-        ("load_weights", True), ("no_load_weights", False)
-    )
-    def test_load_resnetv2(self, load_weights):
+    def test_load_resnetv2(self):
         input_data = tf.ones(shape=(8, 224, 224, 3))
         for preset in ResNetV2Backbone.presets:
-            try:
-                model = ResNetV2Backbone.from_preset(
-                    preset, load_weights=load_weights
-                )
-                model(input_data)
-            except ValueError as err:
-                # Only allow "no weights available" error
-                if (
-                    load_weights
-                    and str(err).find("Pretrained weights not available") < 0
-                ):
-                    raise ValueError(err)
+            model = ResNetV2Backbone.from_preset(preset)
+            model(input_data)

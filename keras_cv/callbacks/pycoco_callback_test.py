@@ -35,10 +35,8 @@ class PyCOCOCallbackTest(tf.test.TestCase):
             classes=10,
             bounding_box_format="xywh",
             backbone=keras_cv.models.ResNetV2Backbone.from_preset(
-                "resnet50_v2_imagenet",
-                load_weights=False,
-                include_rescaling=True,
-            ).extract_features(),
+                "resnet50_v2",
+            ).get_feature_extractor(),
         )
         # all metric formats must match
         model.compile(
@@ -68,10 +66,8 @@ class PyCOCOCallbackTest(tf.test.TestCase):
             classes=10,
             bounding_box_format="xywh",
             backbone=keras_cv.models.ResNetV2Backbone.from_preset(
-                "resnet50_v2_imagenet",
-                load_weights=False,
-                include_rescaling=True,
-            ).extract_features(),
+                "resnet50_v2",
+            ).get_feature_extractor(),
         )
         model.compile(
             optimizer="adam",
