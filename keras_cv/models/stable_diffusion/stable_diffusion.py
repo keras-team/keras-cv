@@ -237,7 +237,7 @@ class StableDiffusionBase:
         decoded = ((decoded + 1) / 2) * 255
         return np.clip(decoded, 0, 255).astype("uint8")
 
-    def text_to_image_prompt_to_prompt(
+    def prompt_to_prompt(
         self,
         prompt,
         prompt_edit,
