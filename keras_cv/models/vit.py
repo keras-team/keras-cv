@@ -224,9 +224,6 @@ class ViT(keras.Model):
             on the "top" layer. Ignored unless `include_top=True`. Set
             `classifier_activation=None` to return the logits of the "top" layer.
         **kwargs: Pass-through keyword arguments to `tf.keras.Model`.
-
-    Returns:
-      A `keras.Model` instance.
     """
 
     def __init__(
