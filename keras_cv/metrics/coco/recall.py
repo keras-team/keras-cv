@@ -29,9 +29,12 @@ class _BoxRecall(keras.metrics.Metric):
     that when operating in the problem domain of object detection there exists
     ambiguity in what is considered a true positive.  The _BoxRecall metric
     works by using the Intersection over Union (IoU) metric to determine whether
-    or not a detection is a true positive or a false positive.  An average
-    across many IoU thresholds may also be taken by passing a list to the
-    `iou_thresholds` argument.
+    or not a detection is a true positive or a false positive.  For each
+    detection the IoU metric is computed for all ground truth boxes of the same
+    category.  If the IoU is above the selected threshold `t`, then the box is
+    considered a true positive.  If not, it is marked as a false positive. An
+    average is taken across many `t`, or IoU thresholds.  These thresholds are
+    specified in the `iou_thresholds` argument.
 
     Args:
         class_ids: The class IDs to evaluate the metric for.  To evaluate for
