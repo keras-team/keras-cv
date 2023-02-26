@@ -42,11 +42,11 @@ BASE_DOCSTRING = """Instantiates the {name} architecture.
         https://keras.io/guides/transfer_learning/).
 
     Args:
-        include_rescaling: whether or not to Rescale the inputs.If set to True,
+        include_rescaling: bool, whether or not to Rescale the inputs.If set to True,
             inputs will be passed through a `Rescaling(1/255.0)` layer.
-        include_top: whether to include the fully-connected layer at the top of
+        include_top: bool, whether to include the fully-connected layer at the top of
             the network.  If provided, `classes` must be provided.
-        classes: optional number of classes to classify images into, only to be
+        classes: optional int, number of classes to classify images into, only to be
             specified if `include_top` is True.
         weights: one of `None` (random initialization), or a pretrained weight
             file path.
@@ -65,7 +65,6 @@ BASE_DOCSTRING = """Instantiates the {name} architecture.
     Returns:
         A `keras.Model` instance.
 """
-
 
 def DarkNet(
     blocks,
@@ -94,12 +93,12 @@ def DarkNet(
         https://keras.io/guides/transfer_learning/).
 
     Args:
-        blocks: numbers of building blocks from the layer dark2 to layer dark5.
-        include_rescaling: whether or not to Rescale the inputs.If set to True,
+        blocks: int, numbers of building blocks from the layer dark2 to layer dark5.
+        include_rescaling: bool, whether or not to Rescale the inputs.If set to True,
             inputs will be passed through a `Rescaling(1/255.0)` layer.
-        include_top: whether to include the fully-connected layer at the top of
+        include_top: bool, whether to include the fully-connected layer at the top of
             the network.  If provided, `classes` must be provided.
-        classes: optional number of classes to classify imagesinto, only to be
+        classes: optional int, number of classes to classify imagesinto, only to be
             specified if `include_top` is True.
         weights: one of `None` (random initialization), or a pretrained weight
             file path.
@@ -117,11 +116,11 @@ def DarkNet(
         classifier_activation: A `str` or callable. The activation function to use
             on the "top" layer. Ignored unless `include_top=True`. Set
             `classifier_activation=None` to return the logits of the "top" layer.
-
         name: (Optional) name to pass to the model.  Defaults to "DarkNet".
     Returns:
         A `keras.Model` instance.
     """
+    
     if weights and not tf.io.gfile.exists(weights):
         raise ValueError(
             "The `weights` argument should be either `None` or the path to the "
@@ -142,8 +141,7 @@ def DarkNet(
 
     # stem
     x = DarknetConvBlock(
-        filters=32, kernel_size=3, strides=1, activation="leaky_relu", name="stem_conv"
-    )(x)
+        filters=32, kernel_size=3, strides=1, activation="leaky_relu", name="stem_conv")(x)
     x = ResidualBlocks(filters=64, num_blocks=1, name="stem_residual_block")(x)
 
     # filters for the ResidualBlock outputs
@@ -154,8 +152,7 @@ def DarkNet(
 
     for filter, block in zip(filters, blocks):
         x = ResidualBlocks(
-            filters=filter, num_blocks=block, name=f"dark{layer_num}_residual_block"
-        )(x)
+            filters=filter, num_blocks=block, name=f"dark{layer_num}_residual_block")(x)
         layer_num += 1
 
     # remaining dark5 layers
@@ -173,9 +170,8 @@ def DarkNet(
         activation="leaky_relu",
         name="dark5_conv2",
     )(x)
-    x = SpatialPyramidPoolingBottleneck(512, activation="leaky_relu", name="dark5_spp")(
-        x
-    )
+    x = SpatialPyramidPoolingBottleneck(512, activation="leaky_relu", name="dark5_spp"
+    )(x)
     x = DarknetConvBlock(
         filters=1024,
         kernel_size=3,
@@ -193,15 +189,14 @@ def DarkNet(
 
     if include_top:
         x = layers.GlobalAveragePooling2D(name="avg_pool")(x)
-        x = layers.Dense(classes, activation=classifier_activation, name="predictions")(
-            x
-        )
-    elif pooling == "avg":
-        x = layers.GlobalAveragePooling2D(name="avg_pool")(x)
-    elif pooling == "max":
-        x = layers.GlobalMaxPooling2D(name="max_pool")(x)
+        x = layers.Dense(classes, activation=classifier_activation, name="predictions")(x)
+    else:   
+        if pooling == "avg":
+            x = layers.GlobalAveragePooling2D(name="avg_pool")(x)
+        elif pooling == "max":
+            x = layers.GlobalMaxPooling2D(name="max_pool")(x)
 
-    model = keras.Model(inputs, x, name=name, **kwargs)
+    model = tf.keras.Model(inputs, x, name=name, **kwargs)
 
     if weights is not None:
         model.load_weights(weights)
@@ -219,6 +214,7 @@ def DarkNet21(
     name="DarkNet21",
     **kwargs,
 ):
+    """Instantiates the DarkNet21 architecture."""
     return DarkNet(
         [1, 2, 2, 1],
         include_rescaling=include_rescaling,
@@ -244,6 +240,7 @@ def DarkNet53(
     name="DarkNet53",
     **kwargs,
 ):
+    """Instantiates the DarkNet53 architecture."""
     return DarkNet(
         [2, 8, 8, 4],
         include_rescaling=include_rescaling,
