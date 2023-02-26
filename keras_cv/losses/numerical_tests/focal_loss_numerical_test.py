@@ -41,18 +41,21 @@ class ModelGardenFocalLoss(tf.keras.losses.Loss):
             modulator = tf.pow(1.0 - probs_gt, self._gamma)
             loss = modulator * cross_entropy
             weighted_loss = tf.where(
-                positive_label_mask, self._alpha * loss, (1.0 - self._alpha) * loss
+                positive_label_mask,
+                self._alpha * loss,
+                (1.0 - self._alpha) * loss,
             )
 
         return weighted_loss
 
 
-class FocalLossModelGardenComparisonTest(tf.test.TestCase, parameterized.TestCase):
+class FocalLossModelGardenComparisonTest(
+    tf.test.TestCase, parameterized.TestCase
+):
     @parameterized.named_parameters(
         ("sum", "sum"),
     )
     def test_model_garden_implementation_has_same_outputs(self, reduction):
-
         focal_loss = FocalLoss(
             alpha=0.25, gamma=2.0, from_logits=True, reduction=reduction
         )
@@ -66,5 +69,6 @@ class FocalLossModelGardenComparisonTest(tf.test.TestCase, parameterized.TestCas
             y_true = tf.cast(y_true, tf.float32)
             y_pred = tf.random.uniform((200, 10), dtype=tf.float32)
             self.assertAllClose(
-                focal_loss(y_true, y_pred), model_garden_focal_loss(y_true, y_pred)
+                focal_loss(y_true, y_pred),
+                model_garden_focal_loss(y_true, y_pred),
             )

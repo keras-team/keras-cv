@@ -30,17 +30,25 @@ from keras_cv.datasets import imagenet
 flags.DEFINE_string(
     "model_name", None, "The name of the model in KerasCV.models to use."
 )
-flags.DEFINE_string("imagenet_path", None, "Directory from which to load Imagenet.")
+flags.DEFINE_string(
+    "imagenet_path", None, "Directory from which to load Imagenet."
+)
 flags.DEFINE_string(
     "backup_path", None, "Directory which will be used for training backups."
 )
 flags.DEFINE_string(
-    "weights_path", None, "Directory which will be used to store weight checkpoints."
+    "weights_path",
+    None,
+    "Directory which will be used to store weight checkpoints.",
 )
 flags.DEFINE_string(
-    "tensorboard_path", None, "Directory which will be used to store tensorboard logs."
+    "tensorboard_path",
+    None,
+    "Directory which will be used to store tensorboard logs.",
 )
-flags.DEFINE_integer("batch_size", 256, "Batch size for training and evaluation.")
+flags.DEFINE_integer(
+    "batch_size", 256, "Batch size for training and evaluation."
+)
 flags.DEFINE_boolean(
     "use_xla", True, "Whether or not to use XLA (jit_compile) for training."
 )
@@ -98,7 +106,9 @@ with strategy.scope():
     )
 
     optimizer = optimizers.SGD(
-        learning_rate=FLAGS.initial_learning_rate, momentum=0.9, global_clipnorm=10
+        learning_rate=FLAGS.initial_learning_rate,
+        momentum=0.9,
+        global_clipnorm=10,
     )
     loss_fn = losses.SimCLRLoss(temperature=0.5, reduction="none")
     probe_loss = keras.losses.CategoricalCrossentropy(

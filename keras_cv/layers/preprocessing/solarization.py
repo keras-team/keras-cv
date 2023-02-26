@@ -80,10 +80,16 @@ class Solarization(BaseImageAugmentationLayer):
         super().__init__(seed=seed, **kwargs)
         self.seed = seed
         self.addition_factor = preprocessing.parse_factor(
-            addition_factor, max_value=255, seed=seed, param_name="addition_factor"
+            addition_factor,
+            max_value=255,
+            seed=seed,
+            param_name="addition_factor",
         )
         self.threshold_factor = preprocessing.parse_factor(
-            threshold_factor, max_value=255, seed=seed, param_name="threshold_factor"
+            threshold_factor,
+            max_value=255,
+            seed=seed,
+            param_name="threshold_factor",
         )
         self.value_range = value_range
 
@@ -118,7 +124,9 @@ class Solarization(BaseImageAugmentationLayer):
     def augment_label(self, label, transformation=None, **kwargs):
         return label
 
-    def augment_segmentation_mask(self, segmentation_mask, transformation, **kwargs):
+    def augment_segmentation_mask(
+        self, segmentation_mask, transformation, **kwargs
+    ):
         return segmentation_mask
 
     def get_config(self):
@@ -130,3 +138,17 @@ class Solarization(BaseImageAugmentationLayer):
         }
         base_config = super().get_config()
         return dict(list(base_config.items()) + list(config.items()))
+
+    @classmethod
+    def from_config(cls, config):
+        if isinstance(config["threshold_factor"], dict):
+            config[
+                "threshold_factor"
+            ] = tf.keras.utils.deserialize_keras_object(
+                config["threshold_factor"]
+            )
+        if isinstance(config["addition_factor"], dict):
+            config["addition_factor"] = tf.keras.utils.deserialize_keras_object(
+                config["addition_factor"]
+            )
+        return cls(**config)

@@ -29,7 +29,10 @@ def preprocess_voc(inputs, format, image_size):
         source="rel_yxyx",
         target=format,
     )
-    return {"images": inputs["image"], "bounding_boxes": inputs["objects"]["bbox"]}
+    return {
+        "images": inputs["image"],
+        "bounding_boxes": inputs["objects"]["bbox"],
+    }
 
 
 def load_voc_dataset(
@@ -38,10 +41,11 @@ def load_voc_dataset(
     batch_size=9,
     image_size=(224, 224),
 ):
-
     dataset = tfds.load(name, split=tfds.Split.TRAIN, shuffle_files=True)
     dataset = dataset.map(
-        lambda x: preprocess_voc(x, format=bounding_box_format, image_size=image_size),
+        lambda x: preprocess_voc(
+            x, format=bounding_box_format, image_size=image_size
+        ),
         num_parallel_calls=tf.data.AUTOTUNE,
     )
     dataset = dataset.padded_batch(

@@ -25,7 +25,9 @@ from keras_cv.layers import preprocessing
 
 def main():
     ds = demo_utils.load_oxford_dataset()
-    random_color_degeneration = preprocessing.RandomColorDegeneration(factor=(0, 1.0))
+    random_color_degeneration = preprocessing.RandomColorDegeneration(
+        factor=(0, 1.0)
+    )
     ds = ds.map(random_color_degeneration, num_parallel_calls=tf.data.AUTOTUNE)
     demo_utils.visualize_dataset(ds)
 

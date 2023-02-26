@@ -35,10 +35,7 @@ def produce_random_data(include_confidence=False, num_images=128, classes=20):
             )
         )
 
-    images = [
-        keras_cv.bounding_box.pad_batch_to_shape(x, [25, images[0].shape[1]])
-        for x in images
-    ]
+    images = [keras_cv.bounding_box.to_dense(x, max_boxes=25) for x in images]
     return tf.stack(images, axis=0)
 
 
@@ -53,7 +50,7 @@ result_runtimes = []
 end_to_end_runtimes = []
 
 for buckets in bucket_values:
-    metric = coco.COCOMeanAveragePrecision(class_ids, num_buckets=buckets)
+    metric = coco._COCOMeanAveragePrecision(class_ids, num_buckets=buckets)
     # warm up
     metric.update_state(y_true, y_pred)
     metric.result()

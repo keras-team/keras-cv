@@ -27,7 +27,9 @@ from keras_cv.layers import preprocessing
 
 def main():
     ds = demo_utils.load_oxford_dataset()
-    rgbshift = preprocessing.RandomChannelShift(value_range=(0, 255), factor=0.4)
+    rgbshift = preprocessing.RandomChannelShift(
+        value_range=(0, 255), factor=0.4
+    )
     ds = ds.map(rgbshift, num_parallel_calls=tf.data.AUTOTUNE)
     demo_utils.visualize_dataset(ds)
 

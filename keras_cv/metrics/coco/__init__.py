@@ -12,13 +12,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from keras_cv.metrics.coco.mean_average_precision import COCOMeanAveragePrecision
+from keras_cv.metrics.coco.mean_average_precision import (
+    _COCOMeanAveragePrecision,
+)
 
 try:
     from keras_cv.metrics.coco.pycoco_wrapper import PyCOCOWrapper
     from keras_cv.metrics.coco.pycoco_wrapper import compute_pycoco_metrics
 except ImportError:
     print(
-        "You do not have pycocotools installed, so KerasCV pycoco metrics are not available."
+        "You do not have pycocotools installed, so KerasCV pycoco metrics are not available. "
+        "Please run `pip install pycocotools`."
     )
     pass

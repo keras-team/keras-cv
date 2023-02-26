@@ -17,9 +17,6 @@ from tensorflow import keras
 from keras_cv.models.stable_diffusion.__internal__.layers.attention_block import (
     AttentionBlock,
 )
-from keras_cv.models.stable_diffusion.__internal__.layers.group_normalization import (
-    GroupNormalization,
-)
 from keras_cv.models.stable_diffusion.__internal__.layers.padded_conv2d import (
     PaddedConv2D,
 )
@@ -50,7 +47,7 @@ class ImageEncoder(keras.Sequential):
                 ResnetBlock(512),
                 AttentionBlock(512),
                 ResnetBlock(512),
-                GroupNormalization(epsilon=1e-5),
+                keras.layers.GroupNormalization(epsilon=1e-5),
                 keras.layers.Activation("swish"),
                 PaddedConv2D(8, 3, padding=1),
                 PaddedConv2D(8, 1),

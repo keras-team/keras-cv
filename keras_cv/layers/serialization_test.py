@@ -11,80 +11,15 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 import inspect
 
 import tensorflow as tf
 from absl.testing import parameterized
 
-from keras_cv import core
 from keras_cv import layers as cv_layers
-from keras_cv.layers.vit_layers import PatchEmbedding
-from keras_cv.layers.vit_layers import Patching
-from keras_cv.models.segmentation.__internal__ import SegmentationHead
-
-
-def exhaustive_compare(obj1, obj2):
-    classes_supporting_get_config = (
-        core.FactorSampler,
-        tf.keras.layers.Layer,
-        cv_layers.BaseImageAugmentationLayer,
-    )
-
-    # If both objects are either one of list or tuple then their individual
-    # elements also must be checked exhaustively.
-    if isinstance(obj1, (list, tuple)) and isinstance(obj2, (list, tuple)):
-        # Length based checks.
-        if len(obj1) == 0 and len(obj2) == 0:
-            return True
-        if len(obj1) != len(obj2):
-            return False
-
-        # Exhaustive check for all elements.
-        for v1, v2 in list(zip(obj1, obj2)):
-            return exhaustive_compare(v1, v2)
-
-    # If the objects are dicts then we simply call the `config_equals` function
-    # which supports dicts.
-    elif isinstance(obj1, (dict)) and isinstance(obj2, (dict)):
-        return config_equals(v1, v2)
-
-    # If both objects are subclasses of Keras classes that support `get_config`
-    # method, then we compare their individual attributes using `config_equals`.
-    elif isinstance(obj1, classes_supporting_get_config) and isinstance(
-        obj2, classes_supporting_get_config
-    ):
-        return config_equals(obj1.get_config(), obj2.get_config())
-
-    # Following checks are if either of the objects are _functions_, not methods
-    # or callables, since Layers and other unforeseen objects may also fit into
-    # this category. Specifically for Keras activation functions.
-    elif inspect.isfunction(obj1) and inspect.isfunction(obj2):
-        return tf.keras.utils.serialize_keras_object(
-            obj1
-        ) == tf.keras.utils.serialize_keras_object(obj2)
-    elif inspect.isfunction(obj1) and not inspect.isfunction(obj2):
-        return tf.keras.utils.serialize_keras_object(obj1) == obj2
-    elif inspect.isfunction(obj2) and not inspect.isfunction(obj1):
-        return obj1 == tf.keras.utils.serialize_keras_object(obj2)
-
-    # Lastly check for primitive datatypes and objects that don't need
-    # additional preprocessing.
-    else:
-        return obj1 == obj2
-
-
-def config_equals(config1, config2):
-    # Both `config1` and `config2` are python dicts. So the first check is to
-    # see if both of them have same keys.
-    if config1.keys() != config2.keys():
-        return False
-
-    # Iterate over all keys of the configs and compare each entry exhaustively.
-    for key in list(config1.keys()):
-        v1, v2 = config1[key], config2[key]
-        if not exhaustive_compare(v1, v2):
-            return False
-    return True
+from keras_cv.layers.vit_layers import PatchingAndEmbedding
+from keras_cv.utils import test_utils
 
 
 class SerializationTest(tf.test.TestCase, parameterized.TestCase):
@@ -99,9 +34,24 @@ class SerializationTest(tf.test.TestCase, parameterized.TestCase):
         ("MixUp", cv_layers.MixUp, {"seed": 1}),
         ("Mosaic", cv_layers.Mosaic, {"seed": 1}),
         (
+            "RepeatedAugmentation",
+            cv_layers.RepeatedAugmentation,
+            {
+                "augmenters": [
+                    cv_layers.RandAugment(value_range=(0, 1)),
+                    cv_layers.RandomFlip(),
+                ]
+            },
+        ),
+        (
             "RandomChannelShift",
             cv_layers.RandomChannelShift,
             {"value_range": (0, 255), "factor": 0.5},
+        ),
+        (
+            "RandomTranslation",
+            cv_layers.RandomTranslation,
+            {"width_factor": (0, 0.5), "height_factor": 0.5},
         ),
         (
             "Posterization",
@@ -171,6 +121,7 @@ class SerializationTest(tf.test.TestCase, parameterized.TestCase):
                 "rate": 1.0,
             },
         ),
+        ("RandomBrightness", cv_layers.RandomBrightness, {"factor": 0.5}),
         (
             "RandomChoice",
             cv_layers.RandomChoice,
@@ -188,6 +139,7 @@ class SerializationTest(tf.test.TestCase, parameterized.TestCase):
                 "seed": 1,
             },
         ),
+        ("RandomContrast", cv_layers.RandomContrast, {"factor": 0.5}),
         (
             "RandomCropAndResize",
             cv_layers.RandomCropAndResize,
@@ -261,33 +213,10 @@ class SerializationTest(tf.test.TestCase, parameterized.TestCase):
             },
         ),
         (
-            "NonMaxSuppression",
-            cv_layers.NonMaxSuppression,
-            {
-                "classes": 5,
-                "bounding_box_format": "xyxy",
-                "confidence_threshold": 0.5,
-                "iou_threshold": 0.5,
-                "max_detections": 100,
-                "max_detections_per_class": 100,
-            },
-        ),
-        (
             "RandomRotation",
             cv_layers.RandomRotation,
             {
                 "factor": 0.5,
-            },
-        ),
-        (
-            "SegmentationHead",
-            SegmentationHead,
-            {
-                "classes": 11,
-                "convs": 3,
-                "filters": 256,
-                "activations": tf.keras.activations.relu,
-                "output_scale_factor": None,
             },
         ),
         (
@@ -309,14 +238,10 @@ class SerializationTest(tf.test.TestCase, parameterized.TestCase):
             },
         ),
         (
-            "Patching",
-            Patching,
-            {
-                "padding": "VALID",
-                "patch_size": 16,
-            },
+            "PatchingAndEmbedding",
+            PatchingAndEmbedding,
+            {"project_dim": 128, "patch_size": 16},
         ),
-        ("PatchEmbedding", PatchEmbedding, {"project_dim": 128}),
         (
             "TransformerEncoder",
             cv_layers.TransformerEncoder,
@@ -356,8 +281,8 @@ class SerializationTest(tf.test.TestCase, parameterized.TestCase):
             {"drop_rate": 0.1},
         ),
         (
-            "GlobalRandomFlipY",
-            cv_layers.GlobalRandomFlipY,
+            "GlobalRandomFlip",
+            cv_layers.GlobalRandomFlip,
             {},
         ),
         (
@@ -373,10 +298,10 @@ class SerializationTest(tf.test.TestCase, parameterized.TestCase):
             "GlobalRandomScaling",
             cv_layers.GlobalRandomScaling,
             {
-                "scaling_factor_x": (0.2, 1.0),
-                "scaling_factor_y": (0.3, 1.1),
-                "scaling_factor_z": (0.4, 1.3),
-                "same_scaling_xyz": False,
+                "x_factor": (0.2, 1.0),
+                "y_factor": (0.3, 1.1),
+                "z_factor": (0.4, 1.3),
+                "preserve_aspect_ratio": False,
             },
         ),
         (
@@ -412,6 +337,51 @@ class SerializationTest(tf.test.TestCase, parameterized.TestCase):
             cv_layers.SwapBackground,
             {},
         ),
+        (
+            "RandomZoom",
+            cv_layers.RandomZoom,
+            {"height_factor": 0.2, "width_factor": 0.5},
+        ),
+        (
+            "RandomCrop",
+            cv_layers.RandomCrop,
+            {
+                "height": 100,
+                "width": 200,
+            },
+        ),
+        (
+            "MBConvBlock",
+            cv_layers.MBConvBlock,
+            {
+                "input_filters": 16,
+                "output_filters": 16,
+            },
+        ),
+        (
+            "FusedMBConvBlock",
+            cv_layers.FusedMBConvBlock,
+            {
+                "input_filters": 16,
+                "output_filters": 16,
+            },
+        ),
+        (
+            "Rescaling",
+            cv_layers.Rescaling,
+            {
+                "scale": 1,
+                "offset": 0.5,
+            },
+        ),
+        (
+            "MultiClassNonMaxSuppression",
+            cv_layers.MultiClassNonMaxSuppression,
+            {
+                "bounding_box_format": "yxyx",
+                "from_logits": True,
+            },
+        ),
     )
     def test_layer_serialization(self, layer_cls, init_args):
         layer = layer_cls(**init_args)
@@ -425,7 +395,9 @@ class SerializationTest(tf.test.TestCase, parameterized.TestCase):
         reconstructed_layer = reconstructed_model.layers[0]
 
         self.assertTrue(
-            config_equals(layer.get_config(), reconstructed_layer.get_config())
+            test_utils.config_equals(
+                layer.get_config(), reconstructed_layer.get_config()
+            )
         )
 
     def assertAllInitParametersAreInConfig(self, layer_cls, config):
@@ -436,6 +408,8 @@ class SerializationTest(tf.test.TestCase, parameterized.TestCase):
             if v not in excluded_name
         }
 
-        intersection_with_config = {v for v in config.keys() if v in parameter_names}
+        intersection_with_config = {
+            v for v in config.keys() if v in parameter_names
+        }
 
         self.assertSetEqual(parameter_names, intersection_with_config)

@@ -42,3 +42,7 @@ class ConstantFactorSampler(FactorSampler):
 
     def get_config(self):
         return {"value": self.value}
+
+    @classmethod
+    def from_config(cls, config):
+        return cls(**config)

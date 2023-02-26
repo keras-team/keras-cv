@@ -20,13 +20,17 @@ from keras_cv.models import csp_darknet
 from .models_test import ModelsTest
 
 MODEL_LIST = [
-    (csp_darknet.CSPDarkNet, 1024, {}),
+    (csp_darknet.CSPDarkNetTiny, 384, {}),
+    (csp_darknet.CSPDarkNetS, 512, {}),
+    (csp_darknet.CSPDarkNetM, 768, {}),
 ]
 
 
 class CSPDarkNetTest(ModelsTest, tf.test.TestCase, parameterized.TestCase):
     @parameterized.parameters(*MODEL_LIST)
     def test_application_base(self, app, _, args):
+        if hasattr(tf.keras.__internal__, "enable_unsafe_deserialization"):
+            tf.keras.__internal__.enable_unsafe_deserialization()
         super()._test_application_base(app, _, args)
 
     @parameterized.parameters(*MODEL_LIST)

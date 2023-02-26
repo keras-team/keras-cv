@@ -244,8 +244,12 @@ def EfficientNetBlock(
                 kernel_initializer=CONV_KERNEL_INITIALIZER,
                 name=name + "expand_conv",
             )(inputs)
-            x = layers.BatchNormalization(axis=BN_AXIS, name=name + "expand_bn")(x)
-            x = layers.Activation(activation, name=name + "expand_activation")(x)
+            x = layers.BatchNormalization(
+                axis=BN_AXIS, name=name + "expand_bn"
+            )(x)
+            x = layers.Activation(activation, name=name + "expand_activation")(
+                x
+            )
         else:
             x = inputs
 
@@ -411,7 +415,9 @@ def EfficientNet(
     def round_filters(filters, divisor=depth_divisor):
         """Round number of filters based on depth multiplier."""
         filters *= width_coefficient
-        new_filters = max(divisor, int(filters + divisor / 2) // divisor * divisor)
+        new_filters = max(
+            divisor, int(filters + divisor / 2) // divisor * divisor
+        )
         # Make sure that round down does not go down by more than 10%.
         if new_filters < 0.9 * filters:
             new_filters += divisor
@@ -446,7 +452,7 @@ def EfficientNet(
 
     b = 0
     blocks = float(sum(round_repeats(args["repeats"]) for args in blocks_args))
-    for (i, args) in enumerate(blocks_args):
+    for i, args in enumerate(blocks_args):
         assert args["repeats"] > 0
         # Update block input and output filters based on depth multiplier.
         args["filters_in"] = round_filters(args["filters_in"])
@@ -506,6 +512,7 @@ def EfficientNet(
 
 
 def EfficientNetB0(
+    *,
     include_rescaling,
     include_top,
     classes=None,
@@ -535,6 +542,7 @@ def EfficientNetB0(
 
 
 def EfficientNetB1(
+    *,
     include_rescaling,
     include_top,
     classes=None,
@@ -564,6 +572,7 @@ def EfficientNetB1(
 
 
 def EfficientNetB2(
+    *,
     include_rescaling,
     include_top,
     classes=None,
@@ -593,6 +602,7 @@ def EfficientNetB2(
 
 
 def EfficientNetB3(
+    *,
     include_rescaling,
     include_top,
     classes=None,
@@ -622,6 +632,7 @@ def EfficientNetB3(
 
 
 def EfficientNetB4(
+    *,
     include_rescaling,
     include_top,
     classes=None,
@@ -651,6 +662,7 @@ def EfficientNetB4(
 
 
 def EfficientNetB5(
+    *,
     include_rescaling,
     include_top,
     classes=None,
@@ -680,6 +692,7 @@ def EfficientNetB5(
 
 
 def EfficientNetB6(
+    *,
     include_rescaling,
     include_top,
     classes=None,
@@ -709,6 +722,7 @@ def EfficientNetB6(
 
 
 def EfficientNetB7(
+    *,
     include_rescaling,
     include_top,
     classes=None,

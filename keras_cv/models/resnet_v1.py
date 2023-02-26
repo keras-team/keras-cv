@@ -17,11 +17,15 @@ Reference:
   - [Based on the original keras.applications ResNet](https://github.com/keras-team/keras/blob/master/keras/applications/resnet.py)
 """
 
+import types
+
 import tensorflow as tf
+from tensorflow import keras
 from tensorflow.keras import backend
 from tensorflow.keras import layers
 
 from keras_cv.models import utils
+from keras_cv.models.weights import parse_weights
 
 MODEL_CONFIGS = {
     "ResNet18": {
@@ -52,6 +56,7 @@ MODEL_CONFIGS = {
 }
 
 BN_AXIS = 3
+BN_EPSILON = 1.001e-5
 
 BASE_DOCSTRING = """Instantiates the {name} architecture.
     Reference:
@@ -67,15 +72,18 @@ BASE_DOCSTRING = """Instantiates the {name} architecture.
 
     For transfer learning use cases, make sure to read the [guide to transfer
         learning & fine-tuning](https://keras.io/guides/transfer_learning/).
+
     Args:
-        include_rescaling: whether or not to Rescale the inputs.If set to True,
-            inputs will be passed through a `Rescaling(1/255.0)` layer.
-        include_top: whether to include the fully-connected layer at the top of the
-            network.  If provided, classes must be provided.
-        classes: optional number of classes to classify images into, only to be
-            specified if `include_top` is True.
-        weights: one of `None` (random initialization), or a pretrained weight file
-            path.
+        include_rescaling: bool, whether or not to Rescale the inputs. If set
+            to `True`, inputs will be passed through a `Rescaling(1/255.0)`
+            layer.
+        include_top: bool, whether to include the fully-connected layer at
+            the top of the network.  If provided, `classes` must be provided.
+        classes: optional int, number of classes to classify images into (only
+            to be specified if `include_top` is `True`).
+        weights: one of `None` (random initialization), a pretrained weight file
+            path, or a reference to pre-trained weights (e.g. 'imagenet/classification')
+            (see available pre-trained weights in weights.py)
         input_shape: optional shape tuple, defaults to (None, None, 3).
         input_tensor: optional Keras tensor (i.e. output of `layers.Input()`)
             to use as image input for the model.
@@ -91,174 +99,207 @@ BASE_DOCSTRING = """Instantiates the {name} architecture.
         classifier_activation: A `str` or callable. The activation function to use
             on the "top" layer. Ignored unless `include_top=True`. Set
             `classifier_activation=None` to return the logits of the "top" layer.
+
     Returns:
       A `keras.Model` instance.
 """
 
 
-def BasicBlock(filters, kernel_size=3, stride=1, conv_shortcut=True, name=None):
-    """A basic residual block.
+def apply_basic_block(
+    x, filters, kernel_size=3, stride=1, conv_shortcut=True, name=None
+):
+    """A basic residual block (v1).
+
     Args:
-      x: input tensor.
-      filters: integer, filters of the basic layer.
-      kernel_size: default 3, kernel size of the basic layer.
-      stride: default 1, stride of the first layer.
-      conv_shortcut: default True, use convolution shortcut if True,
-          otherwise identity shortcut.
-      name: string, block label.
+        x: input tensor.
+        filters: int, filters of the basic layer.
+        kernel_size: int, kernel size of the bottleneck layer. Defaults to 3.
+        stride: int, stride of the first layer. Defaults to 1.
+        conv_shortcut: bool, uses convolution shortcut if `True`. If `False`
+            (default), uses identity or pooling shortcut, based on stride.
+
     Returns:
       Output tensor for the residual block.
     """
+
     if name is None:
         name = f"v1_basic_block_{backend.get_uid('v1_basic_block_')}"
 
-    def apply(x):
-        if conv_shortcut:
-            shortcut = layers.Conv2D(
-                filters, 1, strides=stride, use_bias=False, name=name + "_0_conv"
-            )(x)
-            shortcut = layers.BatchNormalization(
-                axis=BN_AXIS, epsilon=1.001e-5, name=name + "_0_bn"
-            )(shortcut)
-        else:
-            shortcut = x
-
-        x = layers.Conv2D(
+    if conv_shortcut:
+        shortcut = layers.Conv2D(
             filters,
-            kernel_size,
-            padding="SAME",
+            1,
             strides=stride,
             use_bias=False,
-            name=name + "_1_conv",
+            name=name + "_0_conv",
         )(x)
-        x = layers.BatchNormalization(
-            axis=BN_AXIS, epsilon=1.001e-5, name=name + "_1_bn"
-        )(x)
-        x = layers.Activation("relu", name=name + "_1_relu")(x)
+        shortcut = layers.BatchNormalization(
+            axis=BN_AXIS, epsilon=BN_EPSILON, name=name + "_0_bn"
+        )(shortcut)
+    else:
+        shortcut = x
 
-        x = layers.Conv2D(
-            filters, kernel_size, padding="SAME", use_bias=False, name=name + "_2_conv"
-        )(x)
-        x = layers.BatchNormalization(
-            axis=BN_AXIS, epsilon=1.001e-5, name=name + "_2_bn"
-        )(x)
+    x = layers.Conv2D(
+        filters,
+        kernel_size,
+        padding="SAME",
+        strides=stride,
+        use_bias=False,
+        name=name + "_1_conv",
+    )(x)
+    x = layers.BatchNormalization(
+        axis=BN_AXIS, epsilon=BN_EPSILON, name=name + "_1_bn"
+    )(x)
+    x = layers.Activation("relu", name=name + "_1_relu")(x)
 
-        x = layers.Add(name=name + "_add")([shortcut, x])
-        x = layers.Activation("relu", name=name + "_out")(x)
-        return x
+    x = layers.Conv2D(
+        filters,
+        kernel_size,
+        padding="SAME",
+        use_bias=False,
+        name=name + "_2_conv",
+    )(x)
+    x = layers.BatchNormalization(
+        axis=BN_AXIS, epsilon=BN_EPSILON, name=name + "_2_bn"
+    )(x)
 
-    return apply
+    x = layers.Add(name=name + "_add")([shortcut, x])
+    x = layers.Activation("relu", name=name + "_out")(x)
+    return x
 
 
-def Block(filters, kernel_size=3, stride=1, conv_shortcut=True, name=None):
-    """A residual block.
+def apply_block(
+    x, filters, kernel_size=3, stride=1, conv_shortcut=True, name=None
+):
+    """A residual block (v1).
+
     Args:
-      x: input tensor.
-      filters: integer, filters of the bottleneck layer.
-      kernel_size: default 3, kernel size of the bottleneck layer.
-      stride: default 1, stride of the first layer.
-      conv_shortcut: default True, use convolution shortcut if True,
-          otherwise identity shortcut.
-      name: string, block label.
+        x: input tensor.
+        filters: int, filters of the basic layer.
+        kernel_size: int, kernel size of the bottleneck layer. Defaults to 3.
+        stride: int, stride of the first layer. Defaults to 1.
+        conv_shortcut: bool, uses convolution shortcut if `True`. If `False`
+            (default), uses identity or pooling shortcut, based on stride.
+
     Returns:
       Output tensor for the residual block.
     """
+
     if name is None:
         name = f"v1_block_{backend.get_uid('v1_block')}"
 
-    def apply(x):
-        if conv_shortcut:
-            shortcut = layers.Conv2D(
-                4 * filters, 1, strides=stride, use_bias=False, name=name + "_0_conv"
-            )(x)
-            shortcut = layers.BatchNormalization(
-                axis=BN_AXIS, epsilon=1.001e-5, name=name + "_0_bn"
-            )(shortcut)
-        else:
-            shortcut = x
-
-        x = layers.Conv2D(
-            filters, 1, strides=stride, use_bias=False, name=name + "_1_conv"
+    if conv_shortcut:
+        shortcut = layers.Conv2D(
+            4 * filters,
+            1,
+            strides=stride,
+            use_bias=False,
+            name=name + "_0_conv",
         )(x)
-        x = layers.BatchNormalization(
-            axis=BN_AXIS, epsilon=1.001e-5, name=name + "_1_bn"
-        )(x)
-        x = layers.Activation("relu", name=name + "_1_relu")(x)
+        shortcut = layers.BatchNormalization(
+            axis=BN_AXIS, epsilon=BN_EPSILON, name=name + "_0_bn"
+        )(shortcut)
+    else:
+        shortcut = x
 
-        x = layers.Conv2D(
-            filters, kernel_size, padding="SAME", use_bias=False, name=name + "_2_conv"
-        )(x)
-        x = layers.BatchNormalization(
-            axis=BN_AXIS, epsilon=1.001e-5, name=name + "_2_bn"
-        )(x)
-        x = layers.Activation("relu", name=name + "_2_relu")(x)
+    x = layers.Conv2D(
+        filters, 1, strides=stride, use_bias=False, name=name + "_1_conv"
+    )(x)
+    x = layers.BatchNormalization(
+        axis=BN_AXIS, epsilon=BN_EPSILON, name=name + "_1_bn"
+    )(x)
+    x = layers.Activation("relu", name=name + "_1_relu")(x)
 
-        x = layers.Conv2D(4 * filters, 1, use_bias=False, name=name + "_3_conv")(x)
-        x = layers.BatchNormalization(
-            axis=BN_AXIS, epsilon=1.001e-5, name=name + "_3_bn"
-        )(x)
+    x = layers.Conv2D(
+        filters,
+        kernel_size,
+        padding="SAME",
+        use_bias=False,
+        name=name + "_2_conv",
+    )(x)
+    x = layers.BatchNormalization(
+        axis=BN_AXIS, epsilon=BN_EPSILON, name=name + "_2_bn"
+    )(x)
+    x = layers.Activation("relu", name=name + "_2_relu")(x)
 
-        x = layers.Add(name=name + "_add")([shortcut, x])
-        x = layers.Activation("relu", name=name + "_out")(x)
-        return x
+    x = layers.Conv2D(4 * filters, 1, use_bias=False, name=name + "_3_conv")(x)
+    x = layers.BatchNormalization(
+        axis=BN_AXIS, epsilon=BN_EPSILON, name=name + "_3_bn"
+    )(x)
 
-    return apply
+    x = layers.Add(name=name + "_add")([shortcut, x])
+    x = layers.Activation("relu", name=name + "_out")(x)
+    return x
 
 
-def Stack(filters, blocks, stride=2, name=None, block_fn=Block, first_shortcut=True):
+def apply_stack(
+    x,
+    filters,
+    blocks,
+    stride=2,
+    name=None,
+    block_type="block",
+    first_shortcut=True,
+):
     """A set of stacked residual blocks.
+
     Args:
-      filters: integer, filters of the layers in a block.
-      blocks: integer, blocks in the stacked blocks.
-      stride1: default 2, stride of the first layer in the first block.
-      name: string, stack label.
-      block_fn: callable, `Block` or `BasicBlock`, the block function to stack.
-      first_shortcut: default True, use convolution shortcut if True,
-          otherwise identity shortcut.
+      x: input tensor.
+      filters: int, filters of the layer in a block.
+      blocks: int, blocks in the stacked blocks.
+      stride: int, stride of the first layer in the first block. Defaults to 2.
+      block_type: string, one of "basic_block" or "block". The block type to
+            stack. Use "basic_block" for ResNet18 and ResNet34.
+      first_shortcut: bool. Use convolution shortcut if `True` (default),
+            otherwise uses identity or pooling shortcut, based on stride.
+
     Returns:
       Output tensor for the stacked blocks.
     """
+
     if name is None:
         name = f"v1_stack_{backend.get_uid('v1_stack')}"
 
-    def apply(x):
+    if block_type == "basic_block":
+        block_fn = apply_basic_block
+    elif block_type == "block":
+        block_fn = apply_block
+    else:
+        raise ValueError(
+            """`block_type` must be either "basic_block" or "block". """
+            f"Received block_type={block_type}."
+        )
+
+    x = block_fn(
+        x,
+        filters,
+        stride=stride,
+        name=name + "_block1",
+        conv_shortcut=first_shortcut,
+    )
+    for i in range(2, blocks + 1):
         x = block_fn(
-            filters, stride=stride, name=name + "_block1", conv_shortcut=first_shortcut
-        )(x)
-        for i in range(2, blocks + 1):
-            x = block_fn(filters, conv_shortcut=False, name=name + "_block" + str(i))(x)
-        return x
-
-    return apply
+            x, filters, conv_shortcut=False, name=name + "_block" + str(i)
+        )
+    return x
 
 
-def ResNet(
-    stackwise_filters,
-    stackwise_blocks,
-    stackwise_strides,
-    include_rescaling,
-    include_top,
-    name="ResNet",
-    weights=None,
-    input_shape=(None, None, 3),
-    input_tensor=None,
-    pooling=None,
-    classes=None,
-    classifier_activation="softmax",
-    block_fn=Block,
-    **kwargs,
-):
+@keras.utils.register_keras_serializable(package="keras_cv.models")
+class ResNet(keras.Model):
     """Instantiates the ResNet architecture.
 
     Args:
-        stackwise_filters: number of filters for each stack in the model.
-        stackwise_blocks: number of blocks for each stack in the model.
-        stackwise_strides: stride for each stack in the model.
-        include_rescaling: whether or not to Rescale the inputs. If set to True,
-            inputs will be passed through a `Rescaling(1/255.0)` layer.
-            name: string, model name.
-        include_top: whether to include the fully-connected
+        stackwise_filters: list of ints, number of filters for each stack in
+            the model.
+        stackwise_blocks: list of ints, number of blocks for each stack in the
+            model.
+        stackwise_strides: list of ints, stride for each stack in the model.
+        include_rescaling: bool, whether or not to Rescale the inputs. If set
+            to `True`, inputs will be passed through a `Rescaling(1/255.0)`
+            layer.
+        include_top: bool, whether to include the fully-connected
             layer at the top of the network.
+        name: string, model name.
         weights: one of `None` (random initialization),
             or the path to the weights file to be loaded.
         input_shape: optional shape tuple, defaults to (None, None, 3).
@@ -277,81 +318,145 @@ def ResNet(
                 be applied.
         classes: optional number of classes to classify images
             into, only to be specified if `include_top` is True.
-        classifier_activation: A `str` or callable. The activation function to use
-            on the "top" layer. Ignored unless `include_top=True`. Set
-            `classifier_activation=None` to return the logits of the "top" layer.
-        block_fn: callable, `Block` or `BasicBlock`, the block function to stack.
-            Use 'basic_block' for ResNet18 and ResNet34.
-        **kwargs: Pass-through keyword arguments to `tf.keras.Model`.
+        classifier_activation: A `str` or callable. The activation function to
+            use on the "top" layer. Ignored unless `include_top=True`. Set
+            `classifier_activation=None` to return the logits of the "top"
+            layer.
+        block_type: string, one of "basic_block" or "block". The block type to
+            stack. Use "basic_block" for ResNet18 and ResNet34.
 
     Returns:
       A `keras.Model` instance.
     """
-    if weights and not tf.io.gfile.exists(weights):
-        raise ValueError(
-            "The `weights` argument should be either `None` or the path to the "
-            "weights file to be loaded. Weights file not found at location: {weights}"
-        )
 
-    if include_top and not classes:
-        raise ValueError(
-            "If `include_top` is True, you should specify `classes`. "
-            f"Received: classes={classes}"
-        )
+    def __init__(
+        self,
+        stackwise_filters,
+        stackwise_blocks,
+        stackwise_strides,
+        include_rescaling,
+        include_top,
+        name="ResNet",
+        weights=None,
+        input_shape=(None, None, 3),
+        input_tensor=None,
+        pooling=None,
+        classes=None,
+        classifier_activation="softmax",
+        block_type="block",
+        **kwargs,
+    ):
+        if weights and not tf.io.gfile.exists(weights):
+            raise ValueError(
+                "The `weights` argument should be either `None` or the path to the "
+                f"weights file to be loaded. Weights file not found at location: {weights}"
+            )
 
-    if include_top and pooling:
-        raise ValueError(
-            f"`pooling` must be `None` when `include_top=True`."
-            f"Received pooling={pooling} and include_top={include_top}. "
-        )
+        if include_top and not classes:
+            raise ValueError(
+                "If `include_top` is True, you should specify `classes`. "
+                f"Received: classes={classes}"
+            )
 
-    inputs = utils.parse_model_inputs(input_shape, input_tensor)
-    x = inputs
+        if include_top and pooling:
+            raise ValueError(
+                f"`pooling` must be `None` when `include_top=True`."
+                f"Received pooling={pooling} and include_top={include_top}. "
+            )
 
-    if include_rescaling:
-        x = layers.Rescaling(1 / 255.0)(x)
+        inputs = utils.parse_model_inputs(input_shape, input_tensor)
+        x = inputs
 
-    x = layers.Conv2D(
-        64, 7, strides=2, use_bias=False, padding="same", name="conv1_conv"
-    )(x)
+        if include_rescaling:
+            x = layers.Rescaling(1 / 255.0)(x)
 
-    x = layers.BatchNormalization(axis=BN_AXIS, epsilon=1.001e-5, name="conv1_bn")(x)
-    x = layers.Activation("relu", name="conv1_relu")(x)
-
-    x = layers.MaxPooling2D(3, strides=2, padding="same", name="pool1_pool")(x)
-
-    num_stacks = len(stackwise_filters)
-
-    for stack_index in range(num_stacks):
-        x = Stack(
-            filters=stackwise_filters[stack_index],
-            blocks=stackwise_blocks[stack_index],
-            stride=stackwise_strides[stack_index],
-            block_fn=block_fn,
-            first_shortcut=block_fn == Block or stack_index > 0,
+        x = layers.Conv2D(
+            64, 7, strides=2, use_bias=False, padding="same", name="conv1_conv"
         )(x)
 
-    if include_top:
-        x = layers.GlobalAveragePooling2D(name="avg_pool")(x)
-        x = layers.Dense(classes, activation=classifier_activation, name="predictions")(
-            x
-        )
-    else:
-        if pooling == "avg":
+        x = layers.BatchNormalization(
+            axis=BN_AXIS, epsilon=BN_EPSILON, name="conv1_bn"
+        )(x)
+        x = layers.Activation("relu", name="conv1_relu")(x)
+
+        x = layers.MaxPooling2D(
+            3, strides=2, padding="same", name="pool1_pool"
+        )(x)
+
+        num_stacks = len(stackwise_filters)
+
+        stack_level_outputs = {}
+        for stack_index in range(num_stacks):
+            x = apply_stack(
+                x,
+                filters=stackwise_filters[stack_index],
+                blocks=stackwise_blocks[stack_index],
+                stride=stackwise_strides[stack_index],
+                block_type=block_type,
+                first_shortcut=(block_type == "block" or stack_index > 0),
+            )
+            stack_level_outputs[stack_index + 2] = x
+
+        if include_top:
             x = layers.GlobalAveragePooling2D(name="avg_pool")(x)
-        elif pooling == "max":
-            x = layers.GlobalMaxPooling2D(name="max_pool")(x)
+            x = layers.Dense(
+                classes, activation=classifier_activation, name="predictions"
+            )(x)
+        else:
+            if pooling == "avg":
+                x = layers.GlobalAveragePooling2D(name="avg_pool")(x)
+            elif pooling == "max":
+                x = layers.GlobalMaxPooling2D(name="max_pool")(x)
 
-    # Create model.
-    model = tf.keras.Model(inputs, x, name=name, **kwargs)
+        # Create model.
+        super().__init__(inputs=inputs, outputs=x, **kwargs)
 
-    if weights is not None:
-        model.load_weights(weights)
+        # All references to `self` below this line
+        if weights is not None:
+            self.load_weights(weights)
+        # Set this private attribute for recreate backbone model with outputs at
+        # each resolution level.
+        self._backbone_level_outputs = stack_level_outputs
 
-    return model
+        # Bind the `to_backbone_model` method to the application model.
+        self.as_backbone = types.MethodType(utils.as_backbone, self)
+
+        self.stackwise_filters = stackwise_filters
+        self.stackwise_blocks = stackwise_blocks
+        self.stackwise_strides = stackwise_strides
+        self.include_rescaling = include_rescaling
+        self.include_top = include_top
+        self.input_tensor = input_tensor
+        self.pooling = pooling
+        self.classes = classes
+        self.classifier_activation = classifier_activation
+        self.block_type = block_type
+
+    def get_config(self):
+        return {
+            "stackwise_filters": self.stackwise_filters,
+            "stackwise_blocks": self.stackwise_blocks,
+            "stackwise_strides": self.stackwise_strides,
+            "include_rescaling": self.include_rescaling,
+            "include_top": self.include_top,
+            # Remove batch dimension from `input_shape`
+            "input_shape": self.input_shape[1:],
+            "input_tensor": self.input_tensor,
+            "pooling": self.pooling,
+            "classes": self.classes,
+            "classifier_activation": self.classifier_activation,
+            "block_type": self.block_type,
+            "name": self.name,
+            "trainable": self.trainable,
+        }
+
+    @classmethod
+    def from_config(cls, config):
+        return cls(**config)
 
 
 def ResNet18(
+    *,
     include_rescaling,
     include_top,
     classes=None,
@@ -378,12 +483,13 @@ def ResNet18(
         pooling=pooling,
         classes=classes,
         classifier_activation=classifier_activation,
-        block_fn=BasicBlock,
+        block_type="basic_block",
         **kwargs,
     )
 
 
 def ResNet34(
+    *,
     include_rescaling,
     include_top,
     classes=None,
@@ -410,12 +516,13 @@ def ResNet34(
         pooling=pooling,
         classes=classes,
         classifier_activation=classifier_activation,
-        block_fn=BasicBlock,
+        block_type="basic_block",
         **kwargs,
     )
 
 
 def ResNet50(
+    *,
     include_rescaling,
     include_top,
     classes=None,
@@ -436,17 +543,19 @@ def ResNet50(
         include_rescaling=include_rescaling,
         include_top=include_top,
         name=name,
-        weights=weights,
+        weights=parse_weights(weights, include_top, "resnet50"),
         input_shape=input_shape,
         input_tensor=input_tensor,
         pooling=pooling,
         classes=classes,
         classifier_activation=classifier_activation,
+        block_type="block",
         **kwargs,
     )
 
 
 def ResNet101(
+    *,
     include_rescaling,
     include_top,
     classes=None,
@@ -472,11 +581,13 @@ def ResNet101(
         pooling=pooling,
         classes=classes,
         classifier_activation=classifier_activation,
+        block_type="block",
         **kwargs,
     )
 
 
 def ResNet152(
+    *,
     include_rescaling,
     include_top,
     classes=None,
@@ -502,6 +613,7 @@ def ResNet152(
         pooling=pooling,
         classes=classes,
         classifier_activation=classifier_activation,
+        block_type="block",
         **kwargs,
     )
 

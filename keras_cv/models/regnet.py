@@ -462,7 +462,9 @@ def YBlock(
         x = layers.ReLU(name=name + "_conv_3x3_relu")(x)
 
         # Squeeze-Excitation block
-        x = SqueezeAndExcite2D(filters_out, ratio=squeeze_excite_ratio, name=name)(x)
+        x = SqueezeAndExcite2D(
+            filters_out, ratio=squeeze_excite_ratio, name=name
+        )(x)
 
         # conv_1x1_2
         x = layers.Conv2D(
@@ -667,7 +669,9 @@ def Head(classes=None, name=None, activation=None):
 
     def apply(x):
         x = layers.GlobalAveragePooling2D(name=name + "_head_gap")(x)
-        x = layers.Dense(classes, name=name + "head_dense", activation=activation)(x)
+        x = layers.Dense(
+            classes, name=name + "head_dense", activation=activation
+        )(x)
         return x
 
     return apply
@@ -786,7 +790,9 @@ def RegNet(
         elif pooling == "max":
             x = layers.GlobalMaxPooling2D()(x)
 
-    model = tf.keras.Model(inputs=img_input, outputs=x, name=model_name, **kwargs)
+    model = tf.keras.Model(
+        inputs=img_input, outputs=x, name=model_name, **kwargs
+    )
 
     # Load weights.
     if weights is not None:
@@ -799,6 +805,7 @@ def RegNet(
 
 
 def RegNetX002(
+    *,
     include_rescaling,
     include_top,
     classes=None,
@@ -829,6 +836,7 @@ def RegNetX002(
 
 
 def RegNetX004(
+    *,
     include_rescaling,
     include_top,
     classes=None,
@@ -859,6 +867,7 @@ def RegNetX004(
 
 
 def RegNetX006(
+    *,
     include_rescaling,
     include_top,
     classes=None,
@@ -889,6 +898,7 @@ def RegNetX006(
 
 
 def RegNetX008(
+    *,
     include_rescaling,
     include_top,
     classes=None,
@@ -919,6 +929,7 @@ def RegNetX008(
 
 
 def RegNetX016(
+    *,
     include_rescaling,
     include_top,
     classes=None,
@@ -949,6 +960,7 @@ def RegNetX016(
 
 
 def RegNetX032(
+    *,
     include_rescaling,
     include_top,
     classes=None,
@@ -979,6 +991,7 @@ def RegNetX032(
 
 
 def RegNetX040(
+    *,
     include_rescaling,
     include_top,
     classes=None,
@@ -1009,6 +1022,7 @@ def RegNetX040(
 
 
 def RegNetX064(
+    *,
     include_rescaling,
     include_top,
     classes=None,
@@ -1039,6 +1053,7 @@ def RegNetX064(
 
 
 def RegNetX080(
+    *,
     include_rescaling,
     include_top,
     classes=None,
@@ -1069,6 +1084,7 @@ def RegNetX080(
 
 
 def RegNetX120(
+    *,
     include_rescaling,
     include_top,
     classes=None,
@@ -1099,6 +1115,7 @@ def RegNetX120(
 
 
 def RegNetX160(
+    *,
     include_rescaling,
     include_top,
     classes=None,
@@ -1129,6 +1146,7 @@ def RegNetX160(
 
 
 def RegNetX320(
+    *,
     include_rescaling,
     include_top,
     classes=None,
@@ -1159,6 +1177,7 @@ def RegNetX320(
 
 
 def RegNetY002(
+    *,
     include_rescaling,
     include_top,
     classes=None,
@@ -1189,6 +1208,7 @@ def RegNetY002(
 
 
 def RegNetY004(
+    *,
     include_rescaling,
     include_top,
     classes=None,
@@ -1219,6 +1239,7 @@ def RegNetY004(
 
 
 def RegNetY006(
+    *,
     include_rescaling,
     include_top,
     classes=None,
@@ -1249,6 +1270,7 @@ def RegNetY006(
 
 
 def RegNetY008(
+    *,
     include_rescaling,
     include_top,
     classes=None,
@@ -1279,6 +1301,7 @@ def RegNetY008(
 
 
 def RegNetY016(
+    *,
     include_rescaling,
     include_top,
     classes=None,
@@ -1309,6 +1332,7 @@ def RegNetY016(
 
 
 def RegNetY032(
+    *,
     include_rescaling,
     include_top,
     classes=None,
@@ -1339,6 +1363,7 @@ def RegNetY032(
 
 
 def RegNetY040(
+    *,
     include_rescaling,
     include_top,
     classes=None,
@@ -1369,6 +1394,7 @@ def RegNetY040(
 
 
 def RegNetY064(
+    *,
     include_rescaling,
     include_top,
     classes=None,
@@ -1399,6 +1425,7 @@ def RegNetY064(
 
 
 def RegNetY080(
+    *,
     include_rescaling,
     include_top,
     classes=None,
@@ -1429,6 +1456,7 @@ def RegNetY080(
 
 
 def RegNetY120(
+    *,
     include_rescaling,
     include_top,
     classes=None,
@@ -1459,6 +1487,7 @@ def RegNetY120(
 
 
 def RegNetY160(
+    *,
     include_rescaling,
     include_top,
     classes=None,
@@ -1489,6 +1518,7 @@ def RegNetY160(
 
 
 def RegNetY320(
+    *,
     include_rescaling,
     include_top,
     classes=None,

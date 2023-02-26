@@ -19,9 +19,7 @@ import tensorflow as tf
 from keras_cv.layers import preprocessing3d
 
 # use serialize_records to convert WOD frame to Tensors
-TRAINING_RECORD_PATH = (
-    "./wod_transformed"  # "gs://waymo_open_dataset_v_1_0_0_individual_files/training"
-)
+TRAINING_RECORD_PATH = "./wod_transformed"  # "gs://waymo_open_dataset_v_1_0_0_individual_files/training"
 
 global_batch = 1
 
@@ -52,18 +50,24 @@ def pad_tensors(x):
     point_clouds = point_clouds.to_tensor(
         default_value=-1.0, shape=[global_batch, 1, 200000, 8]
     )
-    boxes = boxes.to_tensor(default_value=-1.0, shape=[global_batch, 1, 1000, 11])
+    boxes = boxes.to_tensor(
+        default_value=-1.0, shape=[global_batch, 1, 1000, 11]
+    )
     res["point_clouds"] = point_clouds
     res["bounding_boxes"] = boxes
     return res
 
 
 # Load the training dataset
-filenames = tf.data.Dataset.list_files(os.path.join(TRAINING_RECORD_PATH, "*.tfrecord"))
+filenames = tf.data.Dataset.list_files(
+    os.path.join(TRAINING_RECORD_PATH, "*.tfrecord")
+)
 train_ds = tf.data.TFRecordDataset(filenames)
 train_ds = train_ds.map(build_tensors, num_parallel_calls=tf.data.AUTOTUNE)
 train_ds = train_ds.apply(
-    tf.data.experimental.dense_to_ragged_batch(global_batch, drop_remainder=True)
+    tf.data.experimental.dense_to_ragged_batch(
+        global_batch, drop_remainder=True
+    )
 )
 # Batch by 1 to add a dimension for `num_frames`
 train_ds = train_ds.map(pad_tensors, num_parallel_calls=tf.data.AUTOTUNE)
@@ -71,7 +75,7 @@ print(f"train ds element spec {train_ds.element_spec}")
 
 # Augment the training data
 AUGMENTATION_LAYERS = [
-    preprocessing3d.GlobalRandomFlipY(),
+    preprocessing3d.GlobalRandomFlip(),
     preprocessing3d.GlobalRandomDroppingPoints(drop_rate=0.02),
     preprocessing3d.GlobalRandomRotation(max_rotation_angle_x=3.14),
     preprocessing3d.GlobalRandomScaling(scaling_factor_z=(0.5, 1.5)),

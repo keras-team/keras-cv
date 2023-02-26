@@ -18,8 +18,12 @@ from __future__ import division
 from __future__ import print_function
 
 import os
+import warnings
 
 import tensorflow as tf
+
+TF_VERSION_FOR_ABI_COMPATIBILITY = "2.11"
+abi_warning_already_raised = False
 
 
 def get_project_root():
@@ -49,5 +53,31 @@ class LazySO:
     @property
     def ops(self):
         if self._ops is None:
-            self._ops = tf.load_op_library(get_path_to_datafile(self.relative_path))
+            self.display_warning_if_incompatible()
+            self._ops = tf.load_op_library(
+                get_path_to_datafile(self.relative_path)
+            )
         return self._ops
+
+    def display_warning_if_incompatible(self):
+        global abi_warning_already_raised
+        if abi_warning_already_raised or abi_is_compatible():
+            return
+
+        user_version = tf.__version__
+        warnings.warn(
+            f"You are currently using TensorFlow {user_version} and trying to load a KerasCV custom op."
+            "\n"
+            f"KerasCV has compiled its custom ops against TensorFlow {TF_VERSION_FOR_ABI_COMPATIBILITY}, "
+            "and there are no compatibility guarantees between the two versions. "
+            "\n"
+            "This means that you might get segfaults when loading the custom op, "
+            "or other kind of low-level errors.\n If you do, do not file an issue "
+            "on Github. This is a known limitation.",
+            UserWarning,
+        )
+        abi_warning_already_raised = True
+
+
+def abi_is_compatible():
+    return tf.__version__.startswith(TF_VERSION_FOR_ABI_COMPATIBILITY)

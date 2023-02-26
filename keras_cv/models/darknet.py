@@ -25,7 +25,9 @@ from tensorflow.keras import layers
 from keras_cv.models import utils
 from keras_cv.models.__internal__.darknet_utils import DarknetConvBlock
 from keras_cv.models.__internal__.darknet_utils import ResidualBlocks
-from keras_cv.models.__internal__.darknet_utils import SpatialPyramidPoolingBottleneck
+from keras_cv.models.__internal__.darknet_utils import (
+    SpatialPyramidPoolingBottleneck,
+)
 from keras_cv.models.weights import parse_weights
 
 BASE_DOCSTRING = """Instantiates the {name} architecture.
@@ -76,12 +78,12 @@ def DarkNet(
     input_tensor=None,
     pooling=None,
     classifier_activation="softmax",
-    name=None,
+    name="DarkNet",
     **kwargs,
 ):
     """Instantiates the DarkNet architecture.
 
-    Although the DarkNet architecture is commonly used for detection tasks, it is
+    The DarkNet architecture is commonly used for detection tasks. It is
     possible to extract the intermediate dark2 to dark5 layers from the model for
     creating a feature pyramid Network.
 
@@ -141,7 +143,12 @@ def DarkNet(
 
     # stem
     x = DarknetConvBlock(
-        filters=32, kernel_size=3, strides=1, activation="leaky_relu", name="stem_conv")(x)
+        filters=32,
+        kernel_size=3,
+        strides=1,
+        activation="leaky_relu",
+        name="stem_conv",
+    )(x)
     x = ResidualBlocks(filters=64, num_blocks=1, name="stem_residual_block")(x)
 
     # filters for the ResidualBlock outputs
@@ -152,7 +159,11 @@ def DarkNet(
 
     for filter, block in zip(filters, blocks):
         x = ResidualBlocks(
-            filters=filter, num_blocks=block, name=f"dark{layer_num}_residual_block")(x)
+            filters=filter,
+            num_blocks=block,
+            name=f"dark{layer_num}_residual_block",
+        )(x)
+
         layer_num += 1
 
     # remaining dark5 layers
@@ -170,7 +181,8 @@ def DarkNet(
         activation="leaky_relu",
         name="dark5_conv2",
     )(x)
-    x = SpatialPyramidPoolingBottleneck(512, activation="leaky_relu", name="dark5_spp"
+    x = SpatialPyramidPoolingBottleneck(
+        512, activation="leaky_relu", name="dark5_spp"
     )(x)
     x = DarknetConvBlock(
         filters=1024,
@@ -196,6 +208,7 @@ def DarkNet(
         elif pooling == "max":
             x = layers.GlobalMaxPooling2D(name="max_pool")(x)
 
+
     model = tf.keras.Model(inputs, x, name=name, **kwargs)
 
     if weights is not None:
@@ -204,6 +217,7 @@ def DarkNet(
 
 
 def DarkNet21(
+    *,
     include_rescaling,
     include_top,
     classes=None,
@@ -230,6 +244,7 @@ def DarkNet21(
 
 
 def DarkNet53(
+    *,
     include_rescaling,
     include_top,
     classes=None,

@@ -54,8 +54,9 @@ def DarknetConvBlock(
             strides,
             padding="same",
             use_bias=use_bias,
+            name=name + "_conv",
         ),
-        layers.BatchNormalization(),
+        layers.BatchNormalization(name=name + "_bn"),
     ]
 
     if activation == "silu":
@@ -122,7 +123,11 @@ def ResidualBlocks(filters, num_blocks, name=None):
 
 
 def SpatialPyramidPoolingBottleneck(
-    filters, hidden_filters=None, kernel_sizes=(5, 9, 13), activation="silu", name=None
+    filters,
+    hidden_filters=None,
+    kernel_sizes=(5, 9, 13),
+    activation="silu",
+    name=None,
 ):
     """Spatial pyramid pooling layer used in YOLOv3-SPP
 
@@ -204,7 +209,9 @@ def DarknetConvBlockDepthwise(
         name = f"conv_block{backend.get_uid('conv_block')}"
 
     model_layers = [
-        layers.DepthwiseConv2D(kernel_size, strides, padding="same", use_bias=False),
+        layers.DepthwiseConv2D(
+            kernel_size, strides, padding="same", use_bias=False
+        ),
         layers.BatchNormalization(),
     ]
 
@@ -216,7 +223,9 @@ def DarknetConvBlockDepthwise(
         model_layers.append(layers.LeakyReLU(0.1))
 
     model_layers.append(
-        DarknetConvBlock(filters, kernel_size=1, strides=1, activation=activation)
+        DarknetConvBlock(
+            filters, kernel_size=1, strides=1, activation=activation
+        )
     )
 
     return keras.Sequential(model_layers, name=name)
@@ -257,7 +266,9 @@ class CrossStagePartial(layers.Layer):
         self.activation = activation
 
         hidden_channels = filters // 2
-        ConvBlock = DarknetConvBlockDepthwise if use_depthwise else DarknetConvBlock
+        ConvBlock = (
+            DarknetConvBlockDepthwise if use_depthwise else DarknetConvBlock
+        )
 
         self.darknet_conv1 = DarknetConvBlock(
             hidden_channels,

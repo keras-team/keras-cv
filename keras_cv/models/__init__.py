@@ -12,12 +12,21 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from keras_cv.models.convmixer import ConvMixer_512_16
+from keras_cv.models.convmixer import ConvMixer_768_32
+from keras_cv.models.convmixer import ConvMixer_1024_16
+from keras_cv.models.convmixer import ConvMixer_1536_20
+from keras_cv.models.convmixer import ConvMixer_1536_24
 from keras_cv.models.convnext import ConvNeXtBase
 from keras_cv.models.convnext import ConvNeXtLarge
 from keras_cv.models.convnext import ConvNeXtSmall
 from keras_cv.models.convnext import ConvNeXtTiny
 from keras_cv.models.convnext import ConvNeXtXLarge
-from keras_cv.models.csp_darknet import CSPDarkNet
+from keras_cv.models.csp_darknet import CSPDarkNetL
+from keras_cv.models.csp_darknet import CSPDarkNetM
+from keras_cv.models.csp_darknet import CSPDarkNetS
+from keras_cv.models.csp_darknet import CSPDarkNetTiny
+from keras_cv.models.csp_darknet import CSPDarkNetX
 from keras_cv.models.darknet import DarkNet21
 from keras_cv.models.darknet import DarkNet53
 from keras_cv.models.densenet import DenseNet121
@@ -50,6 +59,9 @@ from keras_cv.models.mobilenet_v3 import MobileNetV3Large
 from keras_cv.models.mobilenet_v3 import MobileNetV3Small
 from keras_cv.models.object_detection.faster_rcnn import FasterRCNN
 from keras_cv.models.object_detection.retina_net.retina_net import RetinaNet
+from keras_cv.models.object_detection_3d.center_pillar import (
+    MultiHeadCenterPillar,
+)
 from keras_cv.models.regnet import RegNetX002
 from keras_cv.models.regnet import RegNetX004
 from keras_cv.models.regnet import RegNetX006
@@ -82,5 +94,18 @@ from keras_cv.models.resnet_v1 import ResNet152
 from keras_cv.models.resnet_v2 import ResNet50V2
 from keras_cv.models.resnet_v2 import ResNet101V2
 from keras_cv.models.resnet_v2 import ResNet152V2
+from keras_cv.models.segmentation.deeplab import DeepLabV3
 from keras_cv.models.stable_diffusion import StableDiffusion
+from keras_cv.models.stable_diffusion import StableDiffusionV2
+from keras_cv.models.vgg16 import VGG16
 from keras_cv.models.vgg19 import VGG19
+from keras_cv.models.vit import ViTB16
+from keras_cv.models.vit import ViTB32
+from keras_cv.models.vit import ViTH16
+from keras_cv.models.vit import ViTH32
+from keras_cv.models.vit import ViTL16
+from keras_cv.models.vit import ViTL32
+from keras_cv.models.vit import ViTS16
+from keras_cv.models.vit import ViTS32
+from keras_cv.models.vit import ViTTiny16
+from keras_cv.models.vit import ViTTiny32

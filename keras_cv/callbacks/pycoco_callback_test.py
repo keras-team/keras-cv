@@ -18,7 +18,9 @@ import tensorflow as tf
 import keras_cv
 from keras_cv.callbacks import PyCOCOCallback
 from keras_cv.metrics.coco.pycoco_wrapper import METRIC_NAMES
-from keras_cv.models.object_detection.__test_utils__ import _create_bounding_box_dataset
+from keras_cv.models.object_detection.__test_utils__ import (
+    _create_bounding_box_dataset,
+)
 
 
 class PyCOCOCallbackTest(tf.test.TestCase):
@@ -32,9 +34,9 @@ class PyCOCOCallbackTest(tf.test.TestCase):
         model = keras_cv.models.RetinaNet(
             classes=10,
             bounding_box_format="xywh",
-            backbone="resnet50",
-            backbone_weights=None,
-            include_rescaling=True,
+            backbone=keras_cv.models.ResNet50V2(
+                include_top=False, include_rescaling=True, weights=None
+            ).as_backbone(),
         )
         # all metric formats must match
         model.compile(
@@ -43,21 +45,23 @@ class PyCOCOCallbackTest(tf.test.TestCase):
             classification_loss="focal",
         )
 
-        images, boxes = _create_bounding_box_dataset(bounding_box_format="xyxy")
-        validation_dataset = _create_bounding_box_dataset(
+        train_ds = _create_bounding_box_dataset(
+            bounding_box_format="xyxy", use_dictionary_box_format=True
+        )
+        val_ds = _create_bounding_box_dataset(
             bounding_box_format="xyxy", use_dictionary_box_format=True
         )
 
         callback = PyCOCOCallback(
-            validation_data=validation_dataset, bounding_box_format="xyxy"
+            validation_data=val_ds, bounding_box_format="xyxy"
         )
-        history = model.fit(images, boxes, callbacks=[callback])
+        history = model.fit(train_ds, callbacks=[callback])
 
         self.assertAllInSet(
             [f"val_{metric}" for metric in METRIC_NAMES], history.history.keys()
         )
 
-    def test_input_nms_false(self):
+    def test_model_fit_rcnn(self):
         model = keras_cv.models.FasterRCNN(
             classes=10,
             bounding_box_format="xywh",
@@ -81,7 +85,6 @@ class PyCOCOCallbackTest(tf.test.TestCase):
         callback = PyCOCOCallback(
             validation_data=eval_ds,
             bounding_box_format="yxyx",
-            input_nms=False,
         )
         history = model.fit(train_ds, callbacks=[callback])
         self.assertAllInSet(

@@ -24,6 +24,13 @@ except ImportError:
     pd = None
 
 
+def unpack_input(data):
+    if type(data) is dict:
+        return data["images"], data["bounding_boxes"]
+    else:
+        return data
+
+
 def _get_tensor_types():
     if pd is None:
         return (tf.Tensor, np.ndarray)
@@ -31,7 +38,9 @@ def _get_tensor_types():
         return (tf.Tensor, np.ndarray, pd.Series, pd.DataFrame)
 
 
-def convert_inputs_to_tf_dataset(x=None, y=None, sample_weight=None, batch_size=None):
+def convert_inputs_to_tf_dataset(
+    x=None, y=None, sample_weight=None, batch_size=None
+):
     if sample_weight is not None:
         raise ValueError("RetinaNet does not yet support `sample_weight`.")
 

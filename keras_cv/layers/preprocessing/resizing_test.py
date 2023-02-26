@@ -69,8 +69,12 @@ class ResizingTest(tf.test.TestCase, parameterized.TestCase):
 
     def test_down_sampling_numeric(self):
         for dtype in (np.int64, np.float32):
-            input_image = np.reshape(np.arange(0, 16), (1, 4, 4, 1)).astype(dtype)
-            layer = cv_layers.Resizing(height=2, width=2, interpolation="nearest")
+            input_image = np.reshape(np.arange(0, 16), (1, 4, 4, 1)).astype(
+                dtype
+            )
+            layer = cv_layers.Resizing(
+                height=2, width=2, interpolation="nearest"
+            )
             output_image = layer(input_image)
             # pyformat: disable
             expected_output = np.asarray([[5, 7], [13, 15]]).astype(dtype)
@@ -80,8 +84,12 @@ class ResizingTest(tf.test.TestCase, parameterized.TestCase):
 
     def test_up_sampling_numeric(self):
         for dtype in (np.int64, np.float32):
-            input_image = np.reshape(np.arange(0, 4), (1, 2, 2, 1)).astype(dtype)
-            layer = cv_layers.Resizing(height=4, width=4, interpolation="nearest")
+            input_image = np.reshape(np.arange(0, 4), (1, 2, 2, 1)).astype(
+                dtype
+            )
+            layer = cv_layers.Resizing(
+                height=4, width=4, interpolation="nearest"
+            )
             output_image = layer(input_image)
             # pyformat: disable
             expected_output = np.asarray(
@@ -108,7 +116,9 @@ class ResizingTest(tf.test.TestCase, parameterized.TestCase):
         self.assertEqual(layer_1.name, layer.name)
 
     def test_crop_to_aspect_ratio(self):
-        input_image = np.reshape(np.arange(0, 16), (1, 4, 4, 1)).astype("float32")
+        input_image = np.reshape(np.arange(0, 16), (1, 4, 4, 1)).astype(
+            "float32"
+        )
         layer = cv_layers.Resizing(4, 2, crop_to_aspect_ratio=True)
         output_image = layer(input_image)
         expected_output = np.asarray(
@@ -169,7 +179,9 @@ class ResizingTest(tf.test.TestCase, parameterized.TestCase):
     def test_raises_with_segmap(self):
         inputs = {
             "images": np.array([[[1], [2]], [[3], [4]]], dtype="float64"),
-            "segmentation_map": np.array([[[1], [2]], [[3], [4]]], dtype="float64"),
+            "segmentation_map": np.array(
+                [[[1], [2]], [[3], [4]]], dtype="float64"
+            ),
         }
         layer = cv_layers.Resizing(2, 2)
         with self.assertRaises(ValueError):
@@ -235,14 +247,24 @@ class ResizingTest(tf.test.TestCase, parameterized.TestCase):
             ],
             dtype="float32",
         )
-        boxes = tf.ragged.stack(
-            [
-                tf.ones((3, 5), dtype=tf.float32),
-                tf.ones((5, 5), dtype=tf.float32),
-                tf.ones((3, 5), dtype=tf.float32),
-                tf.ones((2, 5), dtype=tf.float32),
-            ],
-        )
+        boxes = {
+            "boxes": tf.ragged.stack(
+                [
+                    tf.ones((3, 4), dtype=tf.float32),
+                    tf.ones((5, 4), dtype=tf.float32),
+                    tf.ones((3, 4), dtype=tf.float32),
+                    tf.ones((2, 4), dtype=tf.float32),
+                ],
+            ),
+            "classes": tf.ragged.stack(
+                [
+                    tf.ones((3,), dtype=tf.float32),
+                    tf.ones((5,), dtype=tf.float32),
+                    tf.ones((3,), dtype=tf.float32),
+                    tf.ones((2,), dtype=tf.float32),
+                ],
+            ),
+        }
         layer = cv_layers.Resizing(
             4, 4, pad_to_aspect_ratio=True, bounding_box_format="xyxy"
         )
@@ -263,14 +285,24 @@ class ResizingTest(tf.test.TestCase, parameterized.TestCase):
             ],
             dtype="float32",
         )
-        boxes = tf.ragged.stack(
-            [
-                tf.ones((3, 5), dtype=tf.float32),
-                tf.ones((5, 5), dtype=tf.float32),
-                tf.ones((3, 5), dtype=tf.float32),
-                tf.ones((2, 5), dtype=tf.float32),
-            ],
-        )
+        boxes = {
+            "boxes": tf.ragged.stack(
+                [
+                    tf.ones((3, 4), dtype=tf.float32),
+                    tf.ones((5, 4), dtype=tf.float32),
+                    tf.ones((3, 4), dtype=tf.float32),
+                    tf.ones((2, 4), dtype=tf.float32),
+                ],
+            ),
+            "classes": tf.ragged.stack(
+                [
+                    tf.ones((3,), dtype=tf.float32),
+                    tf.ones((5,), dtype=tf.float32),
+                    tf.ones((3,), dtype=tf.float32),
+                    tf.ones((2,), dtype=tf.float32),
+                ],
+            ),
+        }
         layer = cv_layers.Resizing(
             16, 16, pad_to_aspect_ratio=True, bounding_box_format="xyxy"
         )
@@ -282,4 +314,6 @@ class ResizingTest(tf.test.TestCase, parameterized.TestCase):
         )
 
         self.assertAllEqual(outputs["images"][1][:, :8, :], tf.ones((16, 8, 3)))
-        self.assertAllEqual(outputs["images"][1][:, -8:, :], tf.zeros((16, 8, 3)))
+        self.assertAllEqual(
+            outputs["images"][1][:, -8:, :], tf.zeros((16, 8, 3))
+        )

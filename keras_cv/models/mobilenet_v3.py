@@ -154,7 +154,14 @@ def HardSwish(name=None):
 
 
 def InvertedResBlock(
-    expansion, filters, kernel_size, stride, se_ratio, activation, block_id, name=None
+    expansion,
+    filters,
+    kernel_size,
+    stride,
+    se_ratio,
+    activation,
+    block_id,
+    name=None,
 ):
     """An Inverted Residual Block.
 
@@ -403,9 +410,13 @@ def MobileNetV3(
 
         if dropout_rate > 0:
             x = layers.Dropout(dropout_rate)(x)
-        x = layers.Conv2D(classes, kernel_size=1, padding="same", name="Logits")(x)
+        x = layers.Conv2D(
+            classes, kernel_size=1, padding="same", name="Logits"
+        )(x)
         x = layers.Flatten()(x)
-        x = layers.Activation(activation=classifier_activation, name="Predictions")(x)
+        x = layers.Activation(
+            activation=classifier_activation, name="Predictions"
+        )(x)
     elif pooling == "avg":
         x = layers.GlobalAveragePooling2D(name="avg_pool")(x)
     elif pooling == "max":
@@ -419,6 +430,7 @@ def MobileNetV3(
 
 
 def MobileNetV3Small(
+    *,
     include_rescaling,
     include_top,
     classes=None,
@@ -434,38 +446,39 @@ def MobileNetV3Small(
     **kwargs,
 ):
     def stack_fn(x, kernel, activation, se_ratio):
-
-        x = InvertedResBlock(1, depth(16 * alpha), 3, 2, se_ratio, layers.ReLU(), 0)(x)
+        x = InvertedResBlock(
+            1, depth(16 * alpha), 3, 2, se_ratio, layers.ReLU(), 0
+        )(x)
         x = InvertedResBlock(
             72.0 / 16, depth(24 * alpha), 3, 2, None, layers.ReLU(), 1
         )(x)
         x = InvertedResBlock(
             88.0 / 24, depth(24 * alpha), 3, 1, None, layers.ReLU(), 2
         )(x)
-        x = InvertedResBlock(4, depth(40 * alpha), kernel, 2, se_ratio, activation, 3)(
-            x
-        )
-        x = InvertedResBlock(6, depth(40 * alpha), kernel, 1, se_ratio, activation, 4)(
-            x
-        )
-        x = InvertedResBlock(6, depth(40 * alpha), kernel, 1, se_ratio, activation, 5)(
-            x
-        )
-        x = InvertedResBlock(3, depth(48 * alpha), kernel, 1, se_ratio, activation, 6)(
-            x
-        )
-        x = InvertedResBlock(3, depth(48 * alpha), kernel, 1, se_ratio, activation, 7)(
-            x
-        )
-        x = InvertedResBlock(6, depth(96 * alpha), kernel, 2, se_ratio, activation, 8)(
-            x
-        )
-        x = InvertedResBlock(6, depth(96 * alpha), kernel, 1, se_ratio, activation, 9)(
-            x
-        )
-        x = InvertedResBlock(6, depth(96 * alpha), kernel, 1, se_ratio, activation, 10)(
-            x
-        )
+        x = InvertedResBlock(
+            4, depth(40 * alpha), kernel, 2, se_ratio, activation, 3
+        )(x)
+        x = InvertedResBlock(
+            6, depth(40 * alpha), kernel, 1, se_ratio, activation, 4
+        )(x)
+        x = InvertedResBlock(
+            6, depth(40 * alpha), kernel, 1, se_ratio, activation, 5
+        )(x)
+        x = InvertedResBlock(
+            3, depth(48 * alpha), kernel, 1, se_ratio, activation, 6
+        )(x)
+        x = InvertedResBlock(
+            3, depth(48 * alpha), kernel, 1, se_ratio, activation, 7
+        )(x)
+        x = InvertedResBlock(
+            6, depth(96 * alpha), kernel, 2, se_ratio, activation, 8
+        )(x)
+        x = InvertedResBlock(
+            6, depth(96 * alpha), kernel, 1, se_ratio, activation, 9
+        )(x)
+        x = InvertedResBlock(
+            6, depth(96 * alpha), kernel, 1, se_ratio, activation, 10
+        )(x)
         return x
 
     return MobileNetV3(
@@ -488,6 +501,7 @@ def MobileNetV3Small(
 
 
 def MobileNetV3Large(
+    *,
     include_rescaling,
     include_top,
     classes=None,
@@ -503,10 +517,15 @@ def MobileNetV3Large(
     **kwargs,
 ):
     def stack_fn(x, kernel, activation, se_ratio):
-
-        x = InvertedResBlock(1, depth(16 * alpha), 3, 1, None, layers.ReLU(), 0)(x)
-        x = InvertedResBlock(4, depth(24 * alpha), 3, 2, None, layers.ReLU(), 1)(x)
-        x = InvertedResBlock(3, depth(24 * alpha), 3, 1, None, layers.ReLU(), 2)(x)
+        x = InvertedResBlock(
+            1, depth(16 * alpha), 3, 1, None, layers.ReLU(), 0
+        )(x)
+        x = InvertedResBlock(
+            4, depth(24 * alpha), 3, 2, None, layers.ReLU(), 1
+        )(x)
+        x = InvertedResBlock(
+            3, depth(24 * alpha), 3, 1, None, layers.ReLU(), 2
+        )(x)
         x = InvertedResBlock(
             3, depth(40 * alpha), kernel, 2, se_ratio, layers.ReLU(), 3
         )(x)
@@ -517,11 +536,21 @@ def MobileNetV3Large(
             3, depth(40 * alpha), kernel, 1, se_ratio, layers.ReLU(), 5
         )(x)
         x = InvertedResBlock(6, depth(80 * alpha), 3, 2, None, activation, 6)(x)
-        x = InvertedResBlock(2.5, depth(80 * alpha), 3, 1, None, activation, 7)(x)
-        x = InvertedResBlock(2.3, depth(80 * alpha), 3, 1, None, activation, 8)(x)
-        x = InvertedResBlock(2.3, depth(80 * alpha), 3, 1, None, activation, 9)(x)
-        x = InvertedResBlock(6, depth(112 * alpha), 3, 1, se_ratio, activation, 10)(x)
-        x = InvertedResBlock(6, depth(112 * alpha), 3, 1, se_ratio, activation, 11)(x)
+        x = InvertedResBlock(2.5, depth(80 * alpha), 3, 1, None, activation, 7)(
+            x
+        )
+        x = InvertedResBlock(2.3, depth(80 * alpha), 3, 1, None, activation, 8)(
+            x
+        )
+        x = InvertedResBlock(2.3, depth(80 * alpha), 3, 1, None, activation, 9)(
+            x
+        )
+        x = InvertedResBlock(
+            6, depth(112 * alpha), 3, 1, se_ratio, activation, 10
+        )(x)
+        x = InvertedResBlock(
+            6, depth(112 * alpha), 3, 1, se_ratio, activation, 11
+        )(x)
         x = InvertedResBlock(
             6, depth(160 * alpha), kernel, 2, se_ratio, activation, 12
         )(x)
@@ -552,5 +581,9 @@ def MobileNetV3Large(
     )
 
 
-setattr(MobileNetV3Large, "__doc__", BASE_DOCSTRING.format(name="MobileNetV3Large"))
-setattr(MobileNetV3Small, "__doc__", BASE_DOCSTRING.format(name="MobileNetV3Small"))
+setattr(
+    MobileNetV3Large, "__doc__", BASE_DOCSTRING.format(name="MobileNetV3Large")
+)
+setattr(
+    MobileNetV3Small, "__doc__", BASE_DOCSTRING.format(name="MobileNetV3Small")
+)

@@ -14,13 +14,13 @@
 
 import tensorflow as tf
 
+from keras_cv.layers.object_detection.box_matcher import BoxMatcher
 from keras_cv.layers.object_detection.roi_sampler import _ROISampler
-from keras_cv.ops.box_matcher import ArgmaxBoxMatcher
 
 
 class ROISamplerTest(tf.test.TestCase):
     def test_roi_sampler(self):
-        box_matcher = ArgmaxBoxMatcher(thresholds=[0.3], match_values=[-1, 1])
+        box_matcher = BoxMatcher(thresholds=[0.3], match_values=[-1, 1])
         roi_sampler = _ROISampler(
             bounding_box_format="xyxy",
             roi_matcher=box_matcher,
@@ -29,7 +29,12 @@ class ROISamplerTest(tf.test.TestCase):
             append_gt_boxes=False,
         )
         rois = tf.constant(
-            [[0, 0, 5, 5], [2.5, 2.5, 7.5, 7.5], [5, 5, 10, 10], [7.5, 7.5, 12.5, 12.5]]
+            [
+                [0, 0, 5, 5],
+                [2.5, 2.5, 7.5, 7.5],
+                [5, 5, 10, 10],
+                [7.5, 7.5, 12.5, 12.5],
+            ]
         )
         rois = rois[tf.newaxis, ...]
         # the 3rd box will generate 0 IOUs and not sampled.
@@ -44,7 +49,9 @@ class ROISamplerTest(tf.test.TestCase):
         )
         # given we only choose 1 positive sample, and `append_labesl` is False,
         # only the 2nd ROI is chosen.
-        expected_gt_boxes = tf.constant([[0.0, 0.0, 0, 0.0], [0.0, 0.0, 0, 0.0]])
+        expected_gt_boxes = tf.constant(
+            [[0.0, 0.0, 0, 0.0], [0.0, 0.0, 0, 0.0]]
+        )
         expected_gt_boxes = expected_gt_boxes[tf.newaxis, ...]
         # only the 2nd ROI is chosen, and the negative ROI is mapped to 0.
         expected_gt_classes = tf.constant([[10], [0]], dtype=tf.int32)
@@ -53,11 +60,12 @@ class ROISamplerTest(tf.test.TestCase):
             tf.reduce_max(expected_gt_boxes), tf.reduce_max(sampled_gt_boxes)
         )
         self.assertAllClose(
-            tf.reduce_min(expected_gt_classes), tf.reduce_min(sampled_gt_classes)
+            tf.reduce_min(expected_gt_classes),
+            tf.reduce_min(sampled_gt_classes),
         )
 
     def test_roi_sampler_small_threshold(self):
-        box_matcher = ArgmaxBoxMatcher(thresholds=[0.1], match_values=[-1, 1])
+        box_matcher = BoxMatcher(thresholds=[0.1], match_values=[-1, 1])
         roi_sampler = _ROISampler(
             bounding_box_format="xyxy",
             roi_matcher=box_matcher,
@@ -66,7 +74,12 @@ class ROISamplerTest(tf.test.TestCase):
             append_gt_boxes=False,
         )
         rois = tf.constant(
-            [[0, 0, 5, 5], [2.5, 2.5, 7.5, 7.5], [5, 5, 10, 10], [7.5, 7.5, 12.5, 12.5]]
+            [
+                [0, 0, 5, 5],
+                [2.5, 2.5, 7.5, 7.5],
+                [5, 5, 10, 10],
+                [7.5, 7.5, 12.5, 12.5],
+            ]
         )
         rois = rois[tf.newaxis, ...]
         # the 3rd box will generate 0 IOUs and not sampled.
@@ -100,13 +113,14 @@ class ROISamplerTest(tf.test.TestCase):
             tf.reduce_max(expected_rois, 1), tf.reduce_max(sampled_rois, 1)
         )
         self.assertAllClose(
-            tf.reduce_max(expected_gt_boxes, 1), tf.reduce_max(sampled_gt_boxes, 1)
+            tf.reduce_max(expected_gt_boxes, 1),
+            tf.reduce_max(sampled_gt_boxes, 1),
         )
         self.assertAllClose(expected_gt_classes, sampled_gt_classes)
 
     def test_roi_sampler_large_threshold(self):
         # the 2nd roi and 2nd gt box has IOU of 0.923, setting positive_threshold to 0.95 to ignore it
-        box_matcher = ArgmaxBoxMatcher(thresholds=[0.95], match_values=[-1, 1])
+        box_matcher = BoxMatcher(thresholds=[0.95], match_values=[-1, 1])
         roi_sampler = _ROISampler(
             bounding_box_format="xyxy",
             roi_matcher=box_matcher,
@@ -115,7 +129,12 @@ class ROISamplerTest(tf.test.TestCase):
             append_gt_boxes=False,
         )
         rois = tf.constant(
-            [[0, 0, 5, 5], [2.5, 2.5, 7.5, 7.5], [5, 5, 10, 10], [7.5, 7.5, 12.5, 12.5]]
+            [
+                [0, 0, 5, 5],
+                [2.5, 2.5, 7.5, 7.5],
+                [5, 5, 10, 10],
+                [7.5, 7.5, 12.5, 12.5],
+            ]
         )
         rois = rois[tf.newaxis, ...]
         # the 3rd box will generate 0 IOUs and not sampled.
@@ -139,7 +158,7 @@ class ROISamplerTest(tf.test.TestCase):
 
     def test_roi_sampler_large_threshold_custom_bg_class(self):
         # the 2nd roi and 2nd gt box has IOU of 0.923, setting positive_threshold to 0.95 to ignore it
-        box_matcher = ArgmaxBoxMatcher(thresholds=[0.95], match_values=[-1, 1])
+        box_matcher = BoxMatcher(thresholds=[0.95], match_values=[-1, 1])
         roi_sampler = _ROISampler(
             bounding_box_format="xyxy",
             roi_matcher=box_matcher,
@@ -149,7 +168,12 @@ class ROISamplerTest(tf.test.TestCase):
             append_gt_boxes=False,
         )
         rois = tf.constant(
-            [[0, 0, 5, 5], [2.5, 2.5, 7.5, 7.5], [5, 5, 10, 10], [7.5, 7.5, 12.5, 12.5]]
+            [
+                [0, 0, 5, 5],
+                [2.5, 2.5, 7.5, 7.5],
+                [5, 5, 10, 10],
+                [7.5, 7.5, 12.5, 12.5],
+            ]
         )
         rois = rois[tf.newaxis, ...]
         # the 3rd box will generate 0 IOUs and not sampled.
@@ -173,7 +197,7 @@ class ROISamplerTest(tf.test.TestCase):
 
     def test_roi_sampler_large_threshold_append_gt_boxes(self):
         # the 2nd roi and 2nd gt box has IOU of 0.923, setting positive_threshold to 0.95 to ignore it
-        box_matcher = ArgmaxBoxMatcher(thresholds=[0.95], match_values=[-1, 1])
+        box_matcher = BoxMatcher(thresholds=[0.95], match_values=[-1, 1])
         roi_sampler = _ROISampler(
             bounding_box_format="xyxy",
             roi_matcher=box_matcher,
@@ -182,7 +206,12 @@ class ROISamplerTest(tf.test.TestCase):
             append_gt_boxes=True,
         )
         rois = tf.constant(
-            [[0, 0, 5, 5], [2.5, 2.5, 7.5, 7.5], [5, 5, 10, 10], [7.5, 7.5, 12.5, 12.5]]
+            [
+                [0, 0, 5, 5],
+                [2.5, 2.5, 7.5, 7.5],
+                [5, 5, 10, 10],
+                [7.5, 7.5, 12.5, 12.5],
+            ]
         )
         rois = rois[tf.newaxis, ...]
         # the 3rd box will generate 0 IOUs and not sampled.
@@ -204,7 +233,7 @@ class ROISamplerTest(tf.test.TestCase):
         self.assertAllGreaterEqual(tf.reduce_min(sampled_gt_classes), 0)
 
     def test_roi_sampler_large_num_sampled_rois(self):
-        box_matcher = ArgmaxBoxMatcher(thresholds=[0.95], match_values=[-1, 1])
+        box_matcher = BoxMatcher(thresholds=[0.95], match_values=[-1, 1])
         roi_sampler = _ROISampler(
             bounding_box_format="xyxy",
             roi_matcher=box_matcher,
@@ -213,7 +242,12 @@ class ROISamplerTest(tf.test.TestCase):
             append_gt_boxes=True,
         )
         rois = tf.constant(
-            [[0, 0, 5, 5], [2.5, 2.5, 7.5, 7.5], [5, 5, 10, 10], [7.5, 7.5, 12.5, 12.5]]
+            [
+                [0, 0, 5, 5],
+                [2.5, 2.5, 7.5, 7.5],
+                [5, 5, 10, 10],
+                [7.5, 7.5, 12.5, 12.5],
+            ]
         )
         rois = rois[tf.newaxis, ...]
         # the 3rd box will generate 0 IOUs and not sampled.
@@ -227,7 +261,7 @@ class ROISamplerTest(tf.test.TestCase):
             _, _, _ = roi_sampler(rois, gt_boxes, gt_classes)
 
     def test_serialization(self):
-        box_matcher = ArgmaxBoxMatcher(thresholds=[0.95], match_values=[-1, 1])
+        box_matcher = BoxMatcher(thresholds=[0.95], match_values=[-1, 1])
         roi_sampler = _ROISampler(
             bounding_box_format="xyxy",
             roi_matcher=box_matcher,

@@ -125,12 +125,18 @@ class RandomSharpness(BaseImageAugmentationLayer):
     def augment_label(self, label, transformation=None, **kwargs):
         return label
 
-    def augment_segmentation_mask(self, segmentation_mask, transformation, **kwargs):
+    def augment_segmentation_mask(
+        self, segmentation_mask, transformation, **kwargs
+    ):
         return segmentation_mask
 
     def get_config(self):
         config = super().get_config()
         config.update(
-            {"factor": self.factor, "value_range": self.value_range, "seed": self.seed}
+            {
+                "factor": self.factor,
+                "value_range": self.value_range,
+                "seed": self.seed,
+            }
         )
         return config

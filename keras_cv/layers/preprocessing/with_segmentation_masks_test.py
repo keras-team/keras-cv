@@ -37,6 +37,7 @@ TEST_CONFIGURATIONS = [
         preprocessing.RandomHue,
         {"factor": 0.5, "value_range": (0, 255)},
     ),
+    ("RandomBrightness", preprocessing.RandomBrightness, {"factor": 0.5}),
     (
         "RandomChannelShift",
         preprocessing.RandomChannelShift,
@@ -54,12 +55,17 @@ TEST_CONFIGURATIONS = [
             "seed": 1,
         },
     ),
+    ("RandomContrast", preprocessing.RandomContrast, {"factor": 0.5}),
     (
         "RandomGaussianBlur",
         preprocessing.RandomGaussianBlur,
         {"kernel_size": 3, "factor": (0.0, 3.0)},
     ),
-    ("RandomJpegQuality", preprocessing.RandomJpegQuality, {"factor": (75, 100)}),
+    (
+        "RandomJpegQuality",
+        preprocessing.RandomJpegQuality,
+        {"factor": (75, 100)},
+    ),
     ("RandomSaturation", preprocessing.RandomSaturation, {"factor": 0.5}),
     (
         "RandomSharpness",
@@ -90,12 +96,16 @@ class WithSegmentationMasksTest(tf.test.TestCase, parameterized.TestCase):
         # This currently asserts that all layers are no-ops.
         # When preprocessing layers are updated to mutate segmentation masks,
         # this condition should only be asserted for no-op layers.
-        self.assertAllClose(inputs["segmentation_masks"], outputs["segmentation_masks"])
+        self.assertAllClose(
+            inputs["segmentation_masks"], outputs["segmentation_masks"]
+        )
 
     # This has to be a separate test case to exclude CutMix and MixUp
     # (which are not yet supported for segmentation mask augmentation)
     @parameterized.named_parameters(*TEST_CONFIGURATIONS)
-    def test_can_run_with_segmentation_mask_single_image(self, layer_cls, init_args):
+    def test_can_run_with_segmentation_mask_single_image(
+        self, layer_cls, init_args
+    ):
         classes = 10
         layer = layer_cls(**init_args)
         img = tf.random.uniform(
@@ -112,4 +122,6 @@ class WithSegmentationMasksTest(tf.test.TestCase, parameterized.TestCase):
         # This currently asserts that all layers are no-ops.
         # When preprocessing layers are updated to mutate segmentation masks,
         # this condition should only be asserted for no-op layers.
-        self.assertAllClose(inputs["segmentation_masks"], outputs["segmentation_masks"])
+        self.assertAllClose(
+            inputs["segmentation_masks"], outputs["segmentation_masks"]
+        )

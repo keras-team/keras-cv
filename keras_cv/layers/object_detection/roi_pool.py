@@ -17,6 +17,7 @@ import tensorflow as tf
 from keras_cv import bounding_box
 
 
+@tf.keras.utils.register_keras_serializable(package="keras_cv")
 class ROIPooler(tf.keras.layers.Layer):
     """
     Pooling feature map of dynamic shape into region of interest (ROI) of fixed shape.
@@ -60,7 +61,11 @@ class ROIPooler(tf.keras.layers.Layer):
             raise ValueError(
                 f"Expected `target_size` to be size 2, got {len(target_size)}"
             )
-        if image_shape[0] is None or image_shape[1] is None or image_shape[2] is None:
+        if (
+            image_shape[0] is None
+            or image_shape[1] is None
+            or image_shape[2] is None
+        ):
             raise ValueError(
                 f"`image_shape` cannot have dynamic shape, got {image_shape}"
             )
@@ -121,12 +126,16 @@ class ROIPooler(tf.keras.layers.Layer):
                     height_end = tf.cast(height_end, tf.int32)
                     # if feature_map shape smaller than roi, h_step would be 0
                     # in this case the result will be feature_map[0, 0, ...]
-                    height_end = height_start + tf.maximum(1, height_end - height_start)
+                    height_end = height_start + tf.maximum(
+                        1, height_end - height_start
+                    )
                     width_start = x_start + j * w_step
                     width_end = width_start + w_step
                     width_start = tf.cast(width_start, tf.int32)
                     width_end = tf.cast(width_end, tf.int32)
-                    width_end = width_start + tf.maximum(1, width_end - width_start)
+                    width_end = width_start + tf.maximum(
+                        1, width_end - width_start
+                    )
                     # [h_step, w_step, C]
                     region = feature_map[
                         height_start:height_end, width_start:width_end, :
@@ -134,7 +143,8 @@ class ROIPooler(tf.keras.layers.Layer):
                     # target_height * target_width * [C]
                     regions.append(tf.reduce_max(region, axis=[0, 1]))
             regions = tf.reshape(
-                tf.stack(regions), [self.target_height, self.target_width, channel]
+                tf.stack(regions),
+                [self.target_height, self.target_width, channel],
             )
             return regions
 

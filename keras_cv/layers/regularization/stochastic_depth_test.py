@@ -24,7 +24,8 @@ class StochasticDepthTest(tf.test.TestCase):
         inputs = [inputs, inputs, inputs]
 
         with self.assertRaisesRegex(
-            ValueError, "Input must be a list of length 2. " "Got input with length=3."
+            ValueError,
+            "Input must be a list of length 2. " "Got input with length=3.",
         ):
             StochasticDepth()(inputs)
 

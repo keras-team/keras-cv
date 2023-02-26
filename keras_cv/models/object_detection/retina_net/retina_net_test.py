@@ -19,7 +19,9 @@ import tensorflow as tf
 from tensorflow.keras import optimizers
 
 import keras_cv
-from keras_cv.models.object_detection.__test_utils__ import _create_bounding_box_dataset
+from keras_cv.models.object_detection.__test_utils__ import (
+    _create_bounding_box_dataset,
+)
 
 
 class RetinaNetTest(tf.test.TestCase):
@@ -36,36 +38,17 @@ class RetinaNetTest(tf.test.TestCase):
         retina_net = keras_cv.models.RetinaNet(
             classes=20,
             bounding_box_format="xywh",
-            backbone="resnet50",
-            backbone_weights=None,
-            include_rescaling=True,
+            backbone=self.build_backbone(),
         )
         retina_net.compile(
             classification_loss="focal",
             box_loss="smoothl1",
             optimizer="adam",
-            metrics=[
-                keras_cv.metrics.COCOMeanAveragePrecision(
-                    class_ids=range(20),
-                    bounding_box_format="xyxy",
-                    name="Standard MaP",
-                ),
-            ],
         )
 
         # TODO(lukewood) uncomment when using keras_cv.models.ResNet50
         # self.assertIsNotNone(retina_net.backbone.get_layer(name="rescaling"))
         # TODO(lukewood): test compile with the FocalLoss class
-
-    def test_retina_net_include_rescaling_required_with_default_backbone(self):
-        with self.assertRaises(ValueError):
-            _ = keras_cv.models.RetinaNet(
-                classes=20,
-                bounding_box_format="xywh",
-                backbone="resnet50",
-                backbone_weights=None,
-                # Note no include_rescaling is provided
-            )
 
     @pytest.mark.skipif(
         "INTEGRATION" not in os.environ or os.environ["INTEGRATION"] != "true",
@@ -77,83 +60,17 @@ class RetinaNetTest(tf.test.TestCase):
         retina_net = keras_cv.models.RetinaNet(
             classes=20,
             bounding_box_format="xywh",
-            backbone="resnet50",
-            backbone_weights=None,
-            include_rescaling=True,
+            backbone=self.build_backbone(),
         )
         images = tf.random.uniform((2, 512, 512, 3))
         _ = retina_net(images)
         _ = retina_net.predict(images)
 
-    def test_all_metric_formats_must_match(self):
-        retina_net = keras_cv.models.RetinaNet(
-            classes=20,
-            bounding_box_format="xywh",
-            backbone="resnet50",
-            backbone_weights=None,
-            include_rescaling=True,
-        )
-
-        # all metric formats must match
-        with self.assertRaises(ValueError):
-            retina_net.compile(
-                optimizer="adam",
-                metrics=[
-                    keras_cv.metrics.COCOMeanAveragePrecision(
-                        class_ids=range(20),
-                        bounding_box_format="xyxy",
-                        name="Standard MaP",
-                    ),
-                    keras_cv.metrics.COCOMeanAveragePrecision(
-                        class_ids=range(20),
-                        bounding_box_format="rel_xyxy",
-                        name="Standard MaP",
-                    ),
-                ],
-            )
-
-    def test_loss_output_shape_error_messages(self):
-        retina_net = keras_cv.models.RetinaNet(
-            classes=20,
-            bounding_box_format="xywh",
-            backbone="resnet50",
-            backbone_weights=None,
-            include_rescaling=True,
-        )
-        xs, ys = _create_bounding_box_dataset("xywh")
-
-        # all metric formats must match
-        retina_net.compile(
-            optimizer="adam",
-            box_loss=keras_cv.losses.SmoothL1Loss(reduction="none"),
-            classification_loss=keras_cv.losses.FocalLoss(
-                from_logits=True, reduction="sum"
-            ),
-        )
-
-        with self.assertRaisesRegex(
-            ValueError, "output shape of `classification_loss`"
-        ):
-            retina_net.fit(x=xs, y=ys, epochs=1)
-
-        # all metric formats must match
-        retina_net.compile(
-            optimizer="adam",
-            box_loss=keras_cv.losses.SmoothL1Loss(reduction="sum"),
-            classification_loss=keras_cv.losses.FocalLoss(
-                from_logits=True, reduction="none"
-            ),
-        )
-        with self.assertRaisesRegex(ValueError, "output shape of `box_loss`"):
-            retina_net.fit(x=xs, y=ys, epochs=1)
-
     def test_wrong_logits(self):
         retina_net = keras_cv.models.RetinaNet(
             classes=2,
             bounding_box_format="xywh",
-            backbone="resnet50",
-            backbone_weights=None,
-            include_rescaling=False,
+            backbone=self.build_backbone(),
         )
 
         with self.assertRaisesRegex(
@@ -165,16 +82,16 @@ class RetinaNetTest(tf.test.TestCase):
                 classification_loss=keras_cv.losses.FocalLoss(
                     from_logits=False, reduction="none"
                 ),
-                box_loss=keras_cv.losses.SmoothL1Loss(l1_cutoff=1.0, reduction="none"),
+                box_loss=keras_cv.losses.SmoothL1Loss(
+                    l1_cutoff=1.0, reduction="none"
+                ),
             )
 
     def test_no_metrics(self):
         retina_net = keras_cv.models.RetinaNet(
             classes=2,
             bounding_box_format="xywh",
-            backbone="resnet50",
-            backbone_weights=None,
-            include_rescaling=False,
+            backbone=self.build_backbone(),
         )
 
         retina_net.compile(
@@ -182,7 +99,9 @@ class RetinaNetTest(tf.test.TestCase):
             classification_loss=keras_cv.losses.FocalLoss(
                 from_logits=True, reduction="none"
             ),
-            box_loss=keras_cv.losses.SmoothL1Loss(l1_cutoff=1.0, reduction="none"),
+            box_loss=keras_cv.losses.SmoothL1Loss(
+                l1_cutoff=1.0, reduction="none"
+            ),
         )
 
     def test_weights_contained_in_trainable_variables(self):
@@ -190,9 +109,7 @@ class RetinaNetTest(tf.test.TestCase):
         retina_net = keras_cv.models.RetinaNet(
             classes=1,
             bounding_box_format=bounding_box_format,
-            backbone="resnet50",
-            backbone_weights=None,
-            include_rescaling=False,
+            backbone=self.build_backbone(),
         )
         retina_net.backbone.trainable = False
         retina_net.compile(
@@ -200,8 +117,9 @@ class RetinaNetTest(tf.test.TestCase):
             classification_loss=keras_cv.losses.FocalLoss(
                 from_logits=True, reduction="none"
             ),
-            box_loss=keras_cv.losses.SmoothL1Loss(l1_cutoff=1.0, reduction="none"),
-            metrics=[],
+            box_loss=keras_cv.losses.SmoothL1Loss(
+                l1_cutoff=1.0, reduction="none"
+            ),
         )
         xs, ys = _create_bounding_box_dataset(bounding_box_format)
 
@@ -209,18 +127,20 @@ class RetinaNetTest(tf.test.TestCase):
         _ = retina_net(xs)
         variable_names = [x.name for x in retina_net.trainable_variables]
         # classification_head
-        self.assertIn("RetinaNet/prediction_head/conv2d_8/kernel:0", variable_names)
+        self.assertIn(
+            "RetinaNet/prediction_head/conv2d_8/kernel:0", variable_names
+        )
         # box_head
-        self.assertIn("RetinaNet/prediction_head_1/conv2d_12/kernel:0", variable_names)
+        self.assertIn(
+            "RetinaNet/prediction_head_1/conv2d_12/kernel:0", variable_names
+        )
 
     def test_weights_change(self):
         bounding_box_format = "xywh"
         retina_net = keras_cv.models.RetinaNet(
             classes=1,
             bounding_box_format=bounding_box_format,
-            backbone="resnet50",
-            backbone_weights=None,
-            include_rescaling=False,
+            backbone=self.build_backbone(),
         )
 
         retina_net.compile(
@@ -228,8 +148,9 @@ class RetinaNetTest(tf.test.TestCase):
             classification_loss=keras_cv.losses.FocalLoss(
                 from_logits=True, reduction="none"
             ),
-            box_loss=keras_cv.losses.SmoothL1Loss(l1_cutoff=1.0, reduction="none"),
-            metrics=[],
+            box_loss=keras_cv.losses.SmoothL1Loss(
+                l1_cutoff=1.0, reduction="none"
+            ),
         )
         xs, ys = _create_bounding_box_dataset(bounding_box_format)
 
@@ -248,14 +169,15 @@ class RetinaNetTest(tf.test.TestCase):
             retina_net.classification_head.get_weights()
         )
 
-        # print('after_fit', after_fit)
-
         for w1, w2 in zip(
-            original_classification_head_weights, classification_head_after_fit_weights
+            original_classification_head_weights,
+            classification_head_after_fit_weights,
         ):
             self.assertNotAllClose(w1, w2)
 
-        for w1, w2 in zip(original_box_head_weights, box_head_after_fit_weights):
+        for w1, w2 in zip(
+            original_box_head_weights, box_head_after_fit_weights
+        ):
             self.assertNotAllClose(w1, w2)
 
         for w1, w2 in zip(original_fpn_weights, fpn_after_fit):
@@ -275,9 +197,7 @@ class RetinaNetTest(tf.test.TestCase):
         retina_net = keras_cv.models.RetinaNet(
             classes=1,
             bounding_box_format=bounding_box_format,
-            backbone="resnet50",
-            backbone_weights=None,
-            include_rescaling=False,
+            backbone=self.build_backbone(),
         )
 
         retina_net.compile(
@@ -285,21 +205,47 @@ class RetinaNetTest(tf.test.TestCase):
             classification_loss=keras_cv.losses.FocalLoss(
                 from_logits=True, reduction="none"
             ),
-            box_loss=keras_cv.losses.SmoothL1Loss(l1_cutoff=1.0, reduction="none"),
-            metrics=[
-                keras_cv.metrics.COCOMeanAveragePrecision(
-                    class_ids=range(1),
-                    bounding_box_format=bounding_box_format,
-                    name="MaP",
-                ),
-                keras_cv.metrics.COCORecall(
-                    class_ids=range(1),
-                    bounding_box_format=bounding_box_format,
-                    name="Recall",
-                ),
-            ],
+            box_loss=keras_cv.losses.SmoothL1Loss(
+                l1_cutoff=1.0, reduction="none"
+            ),
         )
 
         xs, ys = _create_bounding_box_dataset(bounding_box_format)
-        retina_net.fit(x=xs, y=ys, epochs=10)
+        retina_net.fit(x=xs, y=ys, epochs=1)
         _ = retina_net.predict(xs)
+
+    @pytest.mark.skipif(
+        "INTEGRATION" not in os.environ or os.environ["INTEGRATION"] != "true",
+        reason="Takes a long time to run, only runs when INTEGRATION "
+        "environment variable is set.  To run the test please run: \n"
+        "`INTEGRATION=true pytest keras_cv/",
+    )
+    def test_retina_net_with_dictionary_input_format(self):
+        retina_net = keras_cv.models.RetinaNet(
+            classes=20,
+            bounding_box_format="xywh",
+            backbone=self.build_backbone(),
+        )
+
+        images, boxes = _create_bounding_box_dataset("xywh")
+        dataset = tf.data.Dataset.from_tensor_slices(
+            {"images": images, "bounding_boxes": boxes}
+        ).batch(5, drop_remainder=True)
+
+        retina_net.compile(
+            optimizer=optimizers.Adam(),
+            classification_loss=keras_cv.losses.FocalLoss(
+                from_logits=True, reduction="none"
+            ),
+            box_loss=keras_cv.losses.SmoothL1Loss(
+                l1_cutoff=1.0, reduction="none"
+            ),
+        )
+
+        retina_net.fit(dataset, epochs=1)
+        retina_net.evaluate(dataset)
+
+    def build_backbone(self):
+        return keras_cv.models.ResNet50(
+            include_top=False, include_rescaling=False
+        ).as_backbone()

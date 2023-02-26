@@ -109,7 +109,9 @@ class ConvertersTestCase(tf.test.TestCase, parameterized.TestCase):
 
     def test_raise_errors_when_missing_shape(self):
         with self.assertRaises(ValueError) as e:
-            keypoint.convert_format(keypoints["xy"], source="xy", target="rel_xy")
+            keypoint.convert_format(
+                keypoints["xy"], source="xy", target="rel_xy"
+            )
 
         self.assertEqual(
             str(e.exception),

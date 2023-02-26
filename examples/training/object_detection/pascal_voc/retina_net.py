@@ -33,32 +33,6 @@ low, high = resource.getrlimit(resource.RLIMIT_NOFILE)
 resource.setrlimit(resource.RLIMIT_NOFILE, (high, high))
 
 EPOCHS = 100
-CHECKPOINT_PATH = "checkpoint/"
-
-class_ids = [
-    "Aeroplane",
-    "Bicycle",
-    "Bird",
-    "Boat",
-    "Bottle",
-    "Bus",
-    "Car",
-    "Cat",
-    "Chair",
-    "Cow",
-    "Dining Table",
-    "Dog",
-    "Horse",
-    "Motorbike",
-    "Person",
-    "Potted Plant",
-    "Sheep",
-    "Sofa",
-    "Train",
-    "Tvmonitor",
-    "Total",
-]
-class_mapping = dict(zip(range(len(class_ids)), class_ids))
 
 flags.DEFINE_string(
     "weights_name",
@@ -74,6 +48,7 @@ FLAGS = flags.FLAGS
 FLAGS(sys.argv)
 
 # parameters from RetinaNet [paper](https://arxiv.org/abs/1708.02002)
+
 
 # Try to detect an available TPU. If none is present, default to MirroredStrategy
 try:
@@ -95,7 +70,12 @@ train_ds = tfds.load(
     "voc/2007", split="train+validation", with_info=False, shuffle_files=True
 )
 train_ds = train_ds.concatenate(
-    tfds.load("voc/2012", split="train+validation", with_info=False, shuffle_files=True)
+    tfds.load(
+        "voc/2012",
+        split="train+validation",
+        with_info=False,
+        shuffle_files=True,
+    )
 )
 eval_ds = tfds.load("voc/2007", split="test", with_info=False)
 
@@ -210,21 +190,23 @@ def get_non_empty_box_indices(boxes):
     # Selects indices if box height or width is 0.
     height = boxes[:, 2] - boxes[:, 0]
     width = boxes[:, 3] - boxes[:, 1]
-    indices = tf.where(tf.logical_and(tf.greater(height, 0), tf.greater(width, 0)))
+    indices = tf.where(
+        tf.logical_and(tf.greater(height, 0), tf.greater(width, 0))
+    )
     return indices[:, 0]
 
 
-def resize_fn(image, gt_boxes, gt_classes):
+def resize_fn(image, boxes, classes):
     image, image_info = resize_and_crop_image(
         image, image_size[:2], image_size[:2], 0.8, 1.25
     )
-    gt_boxes = resize_and_crop_boxes(
-        gt_boxes, image_info[2, :], image_info[1, :], image_info[3, :]
+    boxes = resize_and_crop_boxes(
+        boxes, image_info[2, :], image_info[1, :], image_info[3, :]
     )
-    indices = get_non_empty_box_indices(gt_boxes)
-    gt_boxes = tf.gather(gt_boxes, indices)
-    gt_classes = tf.gather(gt_classes, indices)
-    return image, gt_boxes, gt_classes
+    indices = get_non_empty_box_indices(boxes)
+    boxes = tf.gather(boxes, indices)
+    classes = tf.gather(classes, indices)
+    return image, boxes, classes
 
 
 def flip_fn(image, boxes):
@@ -239,21 +221,20 @@ def proc_train_fn(bounding_box_format, img_size):
     def apply(inputs):
         image = inputs["image"]
         image = tf.cast(image, tf.float32)
-        gt_boxes = inputs["objects"]["bbox"]
-        image, gt_boxes = flip_fn(image, gt_boxes)
-        gt_boxes = keras_cv.bounding_box.convert_format(
-            gt_boxes,
+        boxes = inputs["objects"]["bbox"]
+        image, boxes = flip_fn(image, boxes)
+        boxes = keras_cv.bounding_box.convert_format(
+            boxes,
             images=image,
             source="rel_yxyx",
             target="yxyx",
         )
-        gt_classes = tf.cast(inputs["objects"]["label"], tf.float32)
-        image, gt_boxes, gt_classes = resize_fn(image, gt_boxes, gt_classes)
-        gt_classes = tf.expand_dims(gt_classes, axis=-1)
-        bounding_boxes = tf.concat([gt_boxes, gt_classes], axis=-1)
+        classes = tf.cast(inputs["objects"]["label"], tf.float32)
+        image, boxes, classes = resize_fn(image, boxes, classes)
         bounding_boxes = keras_cv.bounding_box.convert_format(
-            bounding_boxes, images=image, source="yxyx", target=bounding_box_format
+            boxes, images=image, source="yxyx", target=bounding_box_format
         )
+        bounding_boxes = {"boxes": bounding_boxes, "classes": classes}
         return image, bounding_boxes
 
     return apply
@@ -282,7 +263,7 @@ def proc_eval_fn(bounding_box_format, target_size):
             raw_image, (target_height, target_width), antialias=False
         )
 
-        gt_boxes = keras_cv.bounding_box.convert_format(
+        boxes = keras_cv.bounding_box.convert_format(
             inputs["objects"]["bbox"],
             images=image,
             source="rel_yxyx",
@@ -291,51 +272,53 @@ def proc_eval_fn(bounding_box_format, target_size):
         image = tf.image.pad_to_bounding_box(
             image, 0, 0, target_size[0], target_size[1]
         )
-        gt_boxes = keras_cv.bounding_box.convert_format(
-            gt_boxes,
+        boxes = keras_cv.bounding_box.convert_format(
+            boxes,
             images=image,
             source="xyxy",
             target=bounding_box_format,
         )
-        gt_classes = tf.cast(inputs["objects"]["label"], tf.float32)
-        gt_classes = tf.expand_dims(gt_classes, axis=-1)
-
-        bounding_boxes = tf.concat([gt_boxes, gt_classes], axis=-1)
-
+        classes = tf.cast(inputs["objects"]["label"], tf.float32)
+        bounding_boxes = {"boxes": boxes, "classes": classes}
         return image, bounding_boxes
 
     return apply
 
 
-def pad_fn(image, boxes):
-    return image, boxes.to_tensor(default_value=-1.0)
+def pad_fn(images, bounding_boxes):
+    boxes = bounding_boxes["boxes"].to_tensor(
+        default_value=-1.0, shape=[GLOBAL_BATCH_SIZE, 32, 4]
+    )
+    classes = bounding_boxes["classes"].to_tensor(
+        default_value=-1.0, shape=[GLOBAL_BATCH_SIZE, 32]
+    )
+    return images, {"boxes": boxes, "classes": classes}
 
 
 train_ds = train_ds.map(
     proc_train_fn("xywh", image_size), num_parallel_calls=tf.data.AUTOTUNE
 )
-train_ds = train_ds.apply(
-    tf.data.experimental.dense_to_ragged_batch(GLOBAL_BATCH_SIZE, drop_remainder=True)
-)
 
+train_ds = train_ds.apply(
+    tf.data.experimental.dense_to_ragged_batch(
+        GLOBAL_BATCH_SIZE, drop_remainder=True
+    )
+)
 train_ds = train_ds.map(pad_fn, num_parallel_calls=tf.data.AUTOTUNE)
 train_ds = train_ds.shuffle(8 * strategy.num_replicas_in_sync)
-train_ds = train_ds.prefetch(2)
+train_ds = train_ds.prefetch(tf.data.AUTOTUNE)
 
 eval_ds = eval_ds.map(
     proc_eval_fn(bounding_box_format="xywh", target_size=image_size),
     num_parallel_calls=tf.data.AUTOTUNE,
 )
 eval_ds = eval_ds.apply(
-    tf.data.experimental.dense_to_ragged_batch(GLOBAL_BATCH_SIZE, drop_remainder=True)
+    tf.data.experimental.dense_to_ragged_batch(
+        GLOBAL_BATCH_SIZE, drop_remainder=True
+    )
 )
 eval_ds = eval_ds.map(pad_fn, num_parallel_calls=tf.data.AUTOTUNE)
-eval_ds = eval_ds.prefetch(2)
-
-
-"""
-Our data pipeline is now complete.  We can now move on to model creation and training.
-"""
+eval_ds = eval_ds.prefetch(tf.data.AUTOTUNE)
 
 """
 ## Model creation
@@ -347,47 +330,59 @@ the model are expected to be in the range `[0, 255]`.
 """
 
 with strategy.scope():
+    inputs = keras.layers.Input(shape=image_size)
+    x = inputs
+    x = keras.applications.resnet.preprocess_input(x)
+
+    backbone = keras.applications.ResNet50(
+        include_top=False, input_tensor=x, weights="imagenet"
+    )
+
+    c3_output, c4_output, c5_output = [
+        backbone.get_layer(layer_name).output
+        for layer_name in [
+            "conv3_block4_out",
+            "conv4_block6_out",
+            "conv5_block3_out",
+        ]
+    ]
+    backbone = keras.Model(
+        inputs=inputs, outputs=[c3_output, c4_output, c5_output]
+    )
+    # keras_cv backbone gives 4mAP lower result.
+    # TODO(ian): should eventually use keras_cv backbone.
+    # backbone = keras_cv.models.ResNet50(
+    #     include_top=False, weights="imagenet", include_rescaling=False
+    # ).as_backbone()
     model = keras_cv.models.RetinaNet(
         # number of classes to be used in box classification
-        classes=len(class_ids),
+        classes=20,
         # For more info on supported bounding box formats, visit
         # https://keras.io/api/keras_cv/bounding_box/
         bounding_box_format="xywh",
-        # KerasCV offers a set of pre-configured backbones
-        backbone="resnet50",
-        # Each backbone comes with multiple pre-trained weights
-        # These weights match the weights available in the `keras_cv.model` class.
-        backbone_weights="imagenet",
-        # include_rescaling tells the model whether your input images are in the default
-        # pixel range (0, 255) or if you have already rescaled your inputs to the range
-        # (0, 1).  In our case, we feed our model images with inputs in the range (0, 255).
-        include_rescaling=True,
+        backbone=backbone,
     )
     # Fine-tuning a RetinaNet is as simple as setting backbone.trainable = False
     model.backbone.trainable = False
-
     optimizer = tf.optimizers.SGD(learning_rate=BASE_LR, global_clipnorm=10.0)
+
 model.compile(
     classification_loss="focal",
     box_loss="smoothl1",
     optimizer=optimizer,
 )
 
-
-def convert_to_dict(images, boxes):
-    return images, {"gt_boxes": boxes[:, :, :4], "gt_classes": boxes[:, :, 4]}
-
-
 callbacks = [
-    keras.callbacks.TensorBoard(log_dir="logs"),
+    keras.callbacks.TensorBoard(log_dir=FLAGS.tensorboard_path),
     keras.callbacks.ReduceLROnPlateau(patience=5),
     keras.callbacks.EarlyStopping(patience=10),
-    keras.callbacks.ModelCheckpoint(CHECKPOINT_PATH, save_weights_only=True),
-    PyCOCOCallback(eval_ds.map(convert_to_dict), "xywh"),
+    keras.callbacks.ModelCheckpoint(FLAGS.weights_path, save_weights_only=True),
+    PyCOCOCallback(eval_ds, "xywh"),
 ]
 
 history = model.fit(
     train_ds,
-    epochs=100,
+    validation_data=eval_ds,
+    epochs=35,
     callbacks=callbacks,
 )

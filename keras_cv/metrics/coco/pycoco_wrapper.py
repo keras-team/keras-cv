@@ -78,7 +78,9 @@ class PyCOCOWrapper(COCO):
 
         image_ids = [ann["image_id"] for ann in predictions]
         if set(image_ids) != (set(image_ids) & set(self.getImgIds())):
-            raise ValueError("Results do not correspond to the current dataset!")
+            raise ValueError(
+                "Results do not correspond to the current dataset!"
+            )
         for ann in predictions:
             x1, x2, y1, y2 = [
                 ann["bbox"][0],
@@ -105,7 +107,9 @@ def _yxyx_to_xywh(boxes):
     boxes_xmin = boxes[..., 1]
     boxes_width = boxes[..., 3] - boxes[..., 1]
     boxes_height = boxes[..., 2] - boxes[..., 0]
-    new_boxes = np.stack([boxes_xmin, boxes_ymin, boxes_width, boxes_height], axis=-1)
+    new_boxes = np.stack(
+        [boxes_xmin, boxes_ymin, boxes_width, boxes_height], axis=-1
+    )
 
     return new_boxes
 
@@ -196,7 +200,12 @@ def _convert_to_numpy(groundtruths, predictions):
             val = np.concatenate(val)
         numpy_groundtruths[key] = val
 
-    outputs = tf.nest.map_structure(lambda x: x.numpy(), predictions)
+    def _to_numpy(x):
+        if isinstance(x, np.ndarray):
+            return x
+        return x.numpy()
+
+    outputs = tf.nest.map_structure(lambda x: _to_numpy(x), predictions)
     numpy_predictions = {}
     for key, val in outputs.items():
         if isinstance(val, tuple):

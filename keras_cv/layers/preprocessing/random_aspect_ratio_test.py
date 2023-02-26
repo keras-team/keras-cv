@@ -47,14 +47,20 @@ class RandomAspectRatioTest(tf.test.TestCase):
 
     def test_augment_boxes_ragged(self):
         image = tf.zeros([2, 20, 20, 3])
-        boxes = tf.ragged.constant(
-            [[[0.2, 0.12, 1, 1], [0, 0, 0.5, 0.73]], [[0, 0, 1, 1]]], dtype=tf.float32
-        )
-        boxes = bounding_box.add_class_id(boxes)
-        input = {"images": image, "bounding_boxes": boxes}
+        bounding_boxes = {
+            "boxes": tf.ragged.constant(
+                [[[0.2, 0.12, 1, 1], [0, 0, 0.5, 0.73]], [[0, 0, 1, 1]]],
+                dtype=tf.float32,
+            ),
+            "classes": tf.ragged.constant([[0, 0], [0]], dtype=tf.float32),
+        }
+        input = {"images": image, "bounding_boxes": bounding_boxes}
         layer = layers.RandomAspectRatio(
             factor=(0.9, 1.1), bounding_box_format="rel_xywh"
         )
         output = layer(input, training=True)
-
-        self.assertAllClose(boxes.to_tensor(-1), output["bounding_boxes"].to_tensor(-1))
+        output["bounding_boxes"] = bounding_box.to_dense(
+            output["bounding_boxes"]
+        )
+        bounding_boxes = bounding_box.to_dense(bounding_boxes)
+        self.assertAllClose(bounding_boxes, output["bounding_boxes"])

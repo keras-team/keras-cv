@@ -250,8 +250,12 @@ def EfficientNetLiteBlock(
                 kernel_initializer=CONV_KERNEL_INITIALIZER,
                 name=name + "expand_conv",
             )(inputs)
-            x = layers.BatchNormalization(axis=BN_AXIS, name=name + "expand_bn")(x)
-            x = layers.Activation(activation, name=name + "expand_activation")(x)
+            x = layers.BatchNormalization(
+                axis=BN_AXIS, name=name + "expand_bn"
+            )(x)
+            x = layers.Activation(activation, name=name + "expand_activation")(
+                x
+            )
         else:
             x = inputs
 
@@ -415,7 +419,7 @@ def EfficientNetLite(
     b = 0
     blocks = float(sum(args["repeats"] for args in blocks_args))
 
-    for (i, args) in enumerate(blocks_args):
+    for i, args in enumerate(blocks_args):
         assert args["repeats"] > 0
         # Update block input and output filters based on depth multiplier.
         args["filters_in"] = round_filters(
@@ -492,6 +496,7 @@ def EfficientNetLite(
 
 
 def EfficientNetLiteB0(
+    *,
     include_rescaling,
     include_top,
     classes=None,
@@ -521,6 +526,7 @@ def EfficientNetLiteB0(
 
 
 def EfficientNetLiteB1(
+    *,
     include_rescaling,
     include_top,
     classes=None,
@@ -550,6 +556,7 @@ def EfficientNetLiteB1(
 
 
 def EfficientNetLiteB2(
+    *,
     include_rescaling,
     include_top,
     classes=None,
@@ -579,6 +586,7 @@ def EfficientNetLiteB2(
 
 
 def EfficientNetLiteB3(
+    *,
     include_rescaling,
     include_top,
     classes=None,
@@ -608,6 +616,7 @@ def EfficientNetLiteB3(
 
 
 def EfficientNetLiteB4(
+    *,
     include_rescaling,
     include_top,
     classes=None,

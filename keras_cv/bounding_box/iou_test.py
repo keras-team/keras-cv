@@ -26,13 +26,11 @@ class IoUTest(tf.test.TestCase):
         # area of bb1 and bb1_off_by_1 are each 10000.
         # intersection area is 99*99=9801
         # iou=9801/(2*10000 - 9801)=0.96097656633
-        print(iou_lib.compute_iou(bb1, bb1_off_by_1, "yxyx"))
         self.assertAlmostEqual(
             iou_lib.compute_iou(bb1, bb1_off_by_1, "yxyx")[0], 0.96097656633
         )
 
     def test_compute_iou(self):
-
         bb1 = [100, 101, 200, 201]
         bb1_off_by_1_pred = [101, 102, 201, 202]
         iou_bb1_bb1_off = 0.96097656633
@@ -58,7 +56,6 @@ class IoUTest(tf.test.TestCase):
         self.assertAllClose(expected_result, result.numpy())
 
     def test_batched_compute_iou(self):
-
         bb1 = [100, 101, 200, 201]
         bb1_off_by_1_pred = [101, 102, 201, 202]
         iou_bb1_bb1_off = 0.96097656633
@@ -84,8 +81,16 @@ class IoUTest(tf.test.TestCase):
         )
         sample_y_pred = tf.constant(
             [
-                [bb1_off_by_1_pred, top_left_bounding_box, another_far_away_pred],
-                [bb1_off_by_1_pred, top_left_bounding_box, another_far_away_pred],
+                [
+                    bb1_off_by_1_pred,
+                    top_left_bounding_box,
+                    another_far_away_pred,
+                ],
+                [
+                    bb1_off_by_1_pred,
+                    top_left_bounding_box,
+                    another_far_away_pred,
+                ],
             ],
             dtype=tf.float32,
         )
@@ -150,8 +155,16 @@ class IoUTest(tf.test.TestCase):
         )
         sample_y_pred = tf.constant(
             [
-                [bb1_off_by_1_pred, top_left_bounding_box, another_far_away_pred],
-                [bb1_off_by_1_pred, top_left_bounding_box, another_far_away_pred],
+                [
+                    bb1_off_by_1_pred,
+                    top_left_bounding_box,
+                    another_far_away_pred,
+                ],
+                [
+                    bb1_off_by_1_pred,
+                    top_left_bounding_box,
+                    another_far_away_pred,
+                ],
             ],
             dtype=tf.float32,
         )

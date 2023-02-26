@@ -22,11 +22,12 @@ import keras_cv
 
 
 @pytest.mark.skipif(
-    "INTEGRATION" not in os.environ or os.environ["INTEGRATION"] != "true",
-    reason="Takes a long time to run, only runs when INTEGRATION "
+    "REGRESSION" not in os.environ or os.environ["REGRESSION"] != "true",
+    reason="Takes a long time to run, only runs when REGRESSION "
     "environment variable is set.  To run the test please run: \n"
-    "`INTEGRATION=true pytest keras_cv/",
+    "`REGRESSION=true pytest keras_cv/",
 )
+# TODO(lukewood): Should we remove this test file entirely?
 class RetinaNetTest(tf.test.TestCase):
     @pytest.fixture(autouse=True)
     def cleanup_global_session(self):
@@ -40,7 +41,9 @@ class RetinaNetTest(tf.test.TestCase):
 
     def test_weight_setting(self):
         x, y = _create_bounding_box_dataset(bounding_box_format="xywh")
-        pretrained_retina_net, new_retina_net = _create_retina_nets(x, y, epochs=1)
+        pretrained_retina_net, new_retina_net = _create_retina_nets(
+            x, y, epochs=1
+        )
 
         new_retina_net.set_weights(pretrained_retina_net.get_weights())
 
@@ -81,20 +84,28 @@ class RetinaNetTest(tf.test.TestCase):
             pretrained_decoder.suppression_layer.iou_threshold,
         )
 
-    @pytest.mark.skipif(os.name == "nt", reason="tempfile does not work on windows")
+    @pytest.mark.skipif(
+        os.name == "nt", reason="tempfile does not work on windows"
+    )
     def test_savedmodel_creation(self):
         x, y = _create_bounding_box_dataset(bounding_box_format="xywh")
-        pretrained_retina_net, new_retina_net = _create_retina_nets(x, y, epochs=1)
+        pretrained_retina_net, new_retina_net = _create_retina_nets(
+            x, y, epochs=1
+        )
 
         tmp = tempfile.mkdtemp()
         pretrained_retina_net.save(f"{tmp}/checkpoint/")
         load_model = tf.saved_model.load(f"{tmp}/checkpoint/")
         _ = load_model(x)
 
-    @pytest.mark.skipif(os.name == "nt", reason="tempfile does not work on windows")
+    @pytest.mark.skipif(
+        os.name == "nt", reason="tempfile does not work on windows"
+    )
     def test_savedmodel_format_weight_loading(self):
         x, y = _create_bounding_box_dataset(bounding_box_format="xywh")
-        pretrained_retina_net, new_retina_net = _create_retina_nets(x, y, epochs=1)
+        pretrained_retina_net, new_retina_net = _create_retina_nets(
+            x, y, epochs=1
+        )
 
         tmp = tempfile.mkdtemp()
         pretrained_retina_net.save_weights(f"{tmp}/checkpoint/")
@@ -111,12 +122,12 @@ class RetinaNetTest(tf.test.TestCase):
         x, y = _create_bounding_box_dataset(bounding_box_format="xywh")
         pretrained_retina_net, _ = _create_retina_nets(x, y, epochs=0)
 
-        prediction_decoder = keras_cv.layers.NmsPredictionDecoder(
+        prediction_decoder = keras_cv.layers.MultiClassNonMaxSuppression(
             bounding_box_format="xywh",
             anchor_generator=keras_cv.models.RetinaNet.default_anchor_generator(
                 bounding_box_format="xywh"
             ),
-            suppression_layer=keras_cv.layers.NonMaxSuppression(
+            suppression_layer=keras_cv.layers.MultiClassNonMaxSuppression(
                 iou_threshold=0.75,
                 bounding_box_format="xywh",
                 classes=20,
@@ -126,10 +137,14 @@ class RetinaNetTest(tf.test.TestCase):
         pretrained_retina_net.prediction_decoder = prediction_decoder
         _ = pretrained_retina_net.predict(x)
 
-    @pytest.mark.skipif(os.name == "nt", reason="tempfile does not work on windows")
+    @pytest.mark.skipif(
+        os.name == "nt", reason="tempfile does not work on windows"
+    )
     def test_weight_loading(self):
         x, y = _create_bounding_box_dataset(bounding_box_format="xywh")
-        pretrained_retina_net, new_retina_net = _create_retina_nets(x, y, epochs=1)
+        pretrained_retina_net, new_retina_net = _create_retina_nets(
+            x, y, epochs=1
+        )
 
         tmp = tempfile.mkdtemp()
         pretrained_retina_net.save_weights(f"{tmp}/checkpoint.h5")
@@ -156,7 +171,9 @@ class RetinaNetTest(tf.test.TestCase):
 
     def test_weight_loading_via_metrics(self):
         x, y = _create_bounding_box_dataset(bounding_box_format="xywh")
-        pretrained_retina_net, new_retina_net = _create_retina_nets(x, y, epochs=30)
+        pretrained_retina_net, new_retina_net = _create_retina_nets(
+            x, y, epochs=30
+        )
 
         tmp = tempfile.mkdtemp()
         pretrained_retina_net.save_weights(f"{tmp}/checkpoint.h5")
@@ -182,10 +199,13 @@ def _get_retina_net_layers(model):
 
 
 def _create_retina_nets(x, y, epochs=1, custom_decoder=False):
+    backbone = keras_cv.models.ResNet50(
+        include_top=False, weights="imagenet", include_rescaling=False
+    ).as_backbone()
     pretrained_retina_net = keras_cv.models.RetinaNet(
         classes=20,
         bounding_box_format="xywh",
-        backbone="resnet50",
+        backbone=backbone,
         backbone_weights="imagenet",
         include_rescaling=True,
     )
@@ -196,18 +216,6 @@ def _create_retina_nets(x, y, epochs=1, custom_decoder=False):
         ),
         box_loss=keras_cv.losses.SmoothL1Loss(l1_cutoff=1.0, reduction="none"),
         optimizer="adam",
-        metrics=[
-            keras_cv.metrics.COCOMeanAveragePrecision(
-                class_ids=range(20),
-                bounding_box_format="xyxy",
-                name="MaP",
-            ),
-            keras_cv.metrics.COCORecall(
-                class_ids=range(20),
-                bounding_box_format="xyxy",
-                name="Recall",
-            ),
-        ],
     )
     pretrained_retina_net.build((None, None, None, 3))
     # we need to fit the pretrained retina net to ensure the classification_head and
@@ -219,12 +227,12 @@ def _create_retina_nets(x, y, epochs=1, custom_decoder=False):
     # pretrained backbone weights
     prediction_decoder = None
     if custom_decoder:
-        prediction_decoder = keras_cv.layers.NmsPredictionDecoder(
+        prediction_decoder = keras_cv.layers.MultiClassNonMaxSuppression(
             bounding_box_format="xywh",
             anchor_generator=keras_cv.models.RetinaNet.default_anchor_generator(
                 bounding_box_format="xywh"
             ),
-            suppression_layer=keras_cv.layers.NonMaxSuppression(
+            suppression_layer=keras_cv.layers.MultiClassNonMaxSuppression(
                 iou_threshold=0.75,
                 bounding_box_format="xywh",
                 classes=20,
@@ -234,7 +242,7 @@ def _create_retina_nets(x, y, epochs=1, custom_decoder=False):
     new_retina_net = keras_cv.models.RetinaNet(
         classes=20,
         bounding_box_format="xywh",
-        backbone="resnet50",
+        backbone=backbone,
         backbone_weights=None,
         include_rescaling=True,
         prediction_decoder=prediction_decoder,
@@ -246,25 +254,12 @@ def _create_retina_nets(x, y, epochs=1, custom_decoder=False):
         ),
         box_loss=keras_cv.losses.SmoothL1Loss(l1_cutoff=1.0, reduction="none"),
         optimizer="adam",
-        metrics=[
-            keras_cv.metrics.COCOMeanAveragePrecision(
-                class_ids=range(20),
-                bounding_box_format="xyxy",
-                name="MaP",
-            ),
-            keras_cv.metrics.COCORecall(
-                class_ids=range(20),
-                bounding_box_format="xyxy",
-                name="Recall",
-            ),
-        ],
     )
     new_retina_net.build((None, None, None, 3))
     return pretrained_retina_net, new_retina_net
 
 
 def _create_bounding_box_dataset(bounding_box_format):
-
     # Just about the easiest dataset you can have, all classes are 0, all boxes are
     # exactly the same.  [1, 1, 2, 2] are the coordinates in xyxy
     xs = tf.ones((10, 512, 512, 3), dtype=tf.float32)
@@ -274,9 +269,12 @@ def _create_bounding_box_dataset(bounding_box_format):
     ys = tf.expand_dims(ys, axis=0)
     ys = tf.expand_dims(ys, axis=0)
     ys = tf.tile(ys, [10, 10, 1])
-    ys = tf.concat([ys, y_classes], axis=-1)
 
     ys = keras_cv.bounding_box.convert_format(
-        ys, source="rel_xywh", target=bounding_box_format, images=xs, dtype=tf.float32
+        ys,
+        source="rel_xywh",
+        target=bounding_box_format,
+        images=xs,
+        dtype=tf.float32,
     )
-    return xs, ys
+    return xs, {"boxes": ys, "classes": y_classes}

@@ -43,7 +43,11 @@ class UniformFactorSampler(FactorSampler):
 
     def __call__(self, shape=(), dtype="float32"):
         return tf.random.uniform(
-            shape, seed=self.seed, minval=self.lower, maxval=self.upper, dtype=dtype
+            shape,
+            seed=self.seed,
+            minval=self.lower,
+            maxval=self.upper,
+            dtype=dtype,
         )
 
     def get_config(self):
@@ -52,3 +56,7 @@ class UniformFactorSampler(FactorSampler):
             "upper": self.upper,
             "seed": self.seed,
         }
+
+    @classmethod
+    def from_config(cls, config):
+        return cls(**config)

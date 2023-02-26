@@ -15,6 +15,7 @@
 import tensorflow as tf
 
 import keras_cv.utils
+from keras_cv import bounding_box
 from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
     BaseImageAugmentationLayer,
 )
@@ -79,7 +80,9 @@ class Resizing(BaseImageAugmentationLayer):
         self.interpolation = interpolation
         self.crop_to_aspect_ratio = crop_to_aspect_ratio
         self.pad_to_aspect_ratio = pad_to_aspect_ratio
-        self._interpolation_method = keras_cv.utils.get_interpolation(interpolation)
+        self._interpolation_method = keras_cv.utils.get_interpolation(
+            interpolation
+        )
         self.bounding_box_format = bounding_box_format
         self.force_output_dense_images = True
 
@@ -113,7 +116,13 @@ class Resizing(BaseImageAugmentationLayer):
             inputs["images"] = images
 
         if bounding_boxes is not None:
-            bounding_boxes = tf.expand_dims(bounding_boxes, axis=0)
+            bounding_boxes = bounding_boxes.copy()
+            bounding_boxes["classes"] = tf.expand_dims(
+                bounding_boxes["classes"], axis=0
+            )
+            bounding_boxes["boxes"] = tf.expand_dims(
+                bounding_boxes["boxes"], axis=0
+            )
             inputs["bounding_boxes"] = bounding_boxes
 
         outputs = self._batch_augment(inputs)
@@ -123,15 +132,23 @@ class Resizing(BaseImageAugmentationLayer):
             inputs["images"] = images
 
         if bounding_boxes is not None:
-            bounding_boxes = tf.squeeze(outputs["bounding_boxes"], axis=0)
-            inputs["bounding_boxes"] = bounding_boxes
+            outputs["bounding_boxes"]["classes"] = tf.squeeze(
+                outputs["bounding_boxes"]["classes"], axis=0
+            )
+            outputs["bounding_boxes"]["boxes"] = tf.squeeze(
+                outputs["bounding_boxes"]["boxes"], axis=0
+            )
+            inputs["bounding_boxes"] = outputs["bounding_boxes"]
+
         return inputs
 
     def _resize_with_distortion(self, inputs):
         images = inputs.get("images", None)
 
         size = [self.height, self.width]
-        images = tf.image.resize(images, size=size, method=self._interpolation_method)
+        images = tf.image.resize(
+            images, size=size, method=self._interpolation_method
+        )
         images = tf.cast(images, self.compute_dtype)
 
         inputs["images"] = images
@@ -140,7 +157,7 @@ class Resizing(BaseImageAugmentationLayer):
     def _resize_with_pad(self, inputs):
         def resize_single_with_pad_to_aspect(x):
             image = x.get("images", None)
-            boxes = x.get("bounding_boxes", None)
+            bounding_boxes = x.get("bounding_boxes", None)
 
             # images must be dense-able at this point.
             if isinstance(image, tf.RaggedTensor):
@@ -149,12 +166,10 @@ class Resizing(BaseImageAugmentationLayer):
             img_size = tf.shape(image)
             img_height = tf.cast(img_size[H_AXIS], self.compute_dtype)
             img_width = tf.cast(img_size[W_AXIS], self.compute_dtype)
-            if boxes is not None:
-                if isinstance(boxes, tf.RaggedTensor):
-                    boxes = boxes.to_tensor(-1)
-
-                boxes = keras_cv.bounding_box.convert_format(
-                    boxes,
+            if bounding_boxes is not None:
+                bounding_boxes = bounding_box.to_dense(bounding_boxes)
+                bounding_boxes = keras_cv.bounding_box.convert_format(
+                    bounding_boxes,
                     image_shape=img_size,
                     source=self.bounding_box_format,
                     target="rel_xyxy",
@@ -173,29 +188,32 @@ class Resizing(BaseImageAugmentationLayer):
                 size=(target_height, target_width),
                 method=self._interpolation_method,
             )
-            if boxes is not None:
-                boxes = keras_cv.bounding_box.convert_format(
-                    boxes,
+            if bounding_boxes is not None:
+                bounding_boxes = keras_cv.bounding_box.convert_format(
+                    bounding_boxes,
                     images=image,
                     source="rel_xyxy",
                     target="xyxy",
                 )
-            image = tf.image.pad_to_bounding_box(image, 0, 0, self.height, self.width)
-            if boxes is not None:
-                boxes = keras_cv.bounding_box.clip_to_image(
-                    boxes, images=image, bounding_box_format="xyxy"
+            image = tf.image.pad_to_bounding_box(
+                image, 0, 0, self.height, self.width
+            )
+            if bounding_boxes is not None:
+                bounding_boxes = keras_cv.bounding_box.clip_to_image(
+                    bounding_boxes, images=image, bounding_box_format="xyxy"
                 )
-                boxes = keras_cv.bounding_box.convert_format(
-                    boxes,
+                bounding_boxes = keras_cv.bounding_box.convert_format(
+                    bounding_boxes,
                     images=image,
                     source="xyxy",
                     target=self.bounding_box_format,
                 )
             inputs["images"] = image
 
-            if boxes is not None:
-                boxes = keras_cv.bounding_box.filter_sentinels(boxes)
-                inputs["bounding_boxes"] = tf.RaggedTensor.from_tensor(boxes)
+            if bounding_boxes is not None:
+                inputs["bounding_boxes"] = keras_cv.bounding_box.to_ragged(
+                    bounding_boxes
+                )
             return inputs
 
         size_as_shape = tf.TensorShape((self.height, self.width))
@@ -205,10 +223,7 @@ class Resizing(BaseImageAugmentationLayer):
 
         bounding_boxes = inputs.get("bounding_boxes", None)
         if bounding_boxes is not None:
-            boxes_spec = tf.RaggedTensorSpec(
-                shape=[None, bounding_boxes.shape[2]],
-                dtype=bounding_boxes.dtype,
-            )
+            boxes_spec = self._compute_bounding_box_signature(bounding_boxes)
             fn_output_signature["bounding_boxes"] = boxes_spec
 
         return tf.map_fn(

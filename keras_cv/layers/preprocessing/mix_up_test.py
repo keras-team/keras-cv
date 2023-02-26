@@ -27,12 +27,19 @@ class MixUpTest(tf.test.TestCase):
         ys_labels = tf.one_hot(ys_labels, classes)
 
         # randomly sample bounding boxes
-        ys_bounding_boxes = tf.random.uniform((2, 3, 5), 0, 1)
+        ys_bounding_boxes = {
+            "boxes": tf.random.uniform((2, 3, 4), 0, 1),
+            "classes": tf.random.uniform((2, 3), 0, 1),
+        }
 
         layer = MixUp()
         # mixup on labels
         outputs = layer(
-            {"images": xs, "labels": ys_labels, "bounding_boxes": ys_bounding_boxes}
+            {
+                "images": xs,
+                "labels": ys_labels,
+                "bounding_boxes": ys_bounding_boxes,
+            }
         )
         xs, ys_labels, ys_bounding_boxes = (
             outputs["images"],
@@ -42,7 +49,8 @@ class MixUpTest(tf.test.TestCase):
 
         self.assertEqual(xs.shape, [2, 512, 512, 3])
         self.assertEqual(ys_labels.shape, [2, 10])
-        self.assertEqual(ys_bounding_boxes.shape, [2, 6, 5])
+        self.assertEqual(ys_bounding_boxes["boxes"].shape, [2, 6, 4])
+        self.assertEqual(ys_bounding_boxes["classes"].shape, [2, 6])
 
     def test_mix_up_call_results(self):
         xs = tf.cast(
@@ -95,11 +103,15 @@ class MixUpTest(tf.test.TestCase):
 
     def test_image_input_only(self):
         xs = tf.cast(
-            tf.stack([2 * tf.ones((100, 100, 1)), tf.ones((100, 100, 1))], axis=0),
+            tf.stack(
+                [2 * tf.ones((100, 100, 1)), tf.ones((100, 100, 1))], axis=0
+            ),
             tf.float32,
         )
         layer = MixUp()
-        with self.assertRaisesRegexp(ValueError, "expects inputs in a dictionary"):
+        with self.assertRaisesRegexp(
+            ValueError, "expects inputs in a dictionary"
+        ):
             _ = layer(xs)
 
     def test_single_image_input(self):
@@ -117,7 +129,9 @@ class MixUpTest(tf.test.TestCase):
         ys = tf.one_hot(tf.constant([1, 0]), 2, dtype=tf.int32)
         inputs = {"images": xs, "labels": ys}
         layer = MixUp()
-        with self.assertRaisesRegexp(ValueError, "MixUp received labels with type"):
+        with self.assertRaisesRegexp(
+            ValueError, "MixUp received labels with type"
+        ):
             _ = layer(inputs)
 
     def test_image_input(self):

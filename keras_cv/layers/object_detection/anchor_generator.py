@@ -87,7 +87,9 @@ class AnchorGenerator(keras.layers.Layer):
         self.bounding_box_format = bounding_box_format
         # aspect_ratio is a single list that is the same across all levels.
         sizes, strides = self._format_sizes_and_strides(sizes, strides)
-        aspect_ratios = self._match_param_structure_to_sizes(aspect_ratios, sizes)
+        aspect_ratios = self._match_param_structure_to_sizes(
+            aspect_ratios, sizes
+        )
         scales = self._match_param_structure_to_sizes(scales, sizes)
 
         self.anchor_generators = {}
@@ -105,7 +107,9 @@ class AnchorGenerator(keras.layers.Layer):
 
     @staticmethod
     def _format_sizes_and_strides(sizes, strides):
-        result_sizes = AnchorGenerator._ensure_param_is_levels_dict(sizes, "sizes")
+        result_sizes = AnchorGenerator._ensure_param_is_levels_dict(
+            sizes, "sizes"
+        )
         result_strides = AnchorGenerator._ensure_param_is_levels_dict(
             strides, "strides"
         )
@@ -147,14 +151,17 @@ class AnchorGenerator(keras.layers.Layer):
         #     return [params] * len(sizes)
         if not isinstance(sizes, dict):
             raise ValueError(
-                "the structure of `sizes` must be a dict, " f"received sizes={sizes}"
+                "the structure of `sizes` must be a dict, "
+                f"received sizes={sizes}"
             )
 
         return tf.nest.map_structure(lambda _: params, sizes)
 
     def __call__(self, image=None, image_shape=None):
         if image is None and image_shape is None:
-            raise ValueError("AnchorGenerator() requires `images` or `image_shape`.")
+            raise ValueError(
+                "AnchorGenerator() requires `images` or `image_shape`."
+            )
 
         if image is not None:
             if image.shape.rank != 3:
@@ -188,7 +195,8 @@ class _SingleAnchorGenerator:
     ```
 
     Input shape: the size of the image, `[H, W, C]`
-    Output shape: the size of anchors, `[(H / stride) * (W / stride), 4]`
+    Output shape: the size of anchors,
+        `(H/stride * W/stride * len(scales) * len(aspect_ratios), 4)`.
 
     Args:
       sizes: A single int represents the base anchor size. The anchor
@@ -217,7 +225,6 @@ class _SingleAnchorGenerator:
         clip_boxes=False,
         dtype="float32",
     ):
-
         self.sizes = sizes
         self.scales = scales
         self.aspect_ratios = aspect_ratios
@@ -248,10 +255,14 @@ class _SingleAnchorGenerator:
         half_anchor_widths = tf.reshape(0.5 * anchor_widths, [1, 1, -1])
 
         stride = tf.cast(self.stride, tf.float32)
+        # make sure range of `cx` is within limit of `image_width` with `stride`,
+        # also for sizes where `image_width % stride != 0`.
         # [W]
-        cx = tf.range(0.5 * stride, image_width + 1, stride)
+        cx = tf.range(0.5 * stride, (image_width // stride) * stride, stride)
+        # make sure range of `cy` is within limit of `image_height` with `stride`,
+        # also for sizes where `image_height % stride != 0`.
         # [H]
-        cy = tf.range(0.5 * stride, image_height + 1, stride)
+        cy = tf.range(0.5 * stride, (image_height // stride) * stride, stride)
         # [H, W]
         cx_grid, cy_grid = tf.meshgrid(cx, cy)
         # [H, W, 1]
@@ -276,4 +287,6 @@ class _SingleAnchorGenerator:
             x_max = tf.maximum(tf.minimum(x_max, image_width), 0.0)
 
         # [H * W * K, 4]
-        return tf.cast(tf.concat([y_min, x_min, y_max, x_max], axis=-1), self.dtype)
+        return tf.cast(
+            tf.concat([y_min, x_min, y_max, x_max], axis=-1), self.dtype
+        )

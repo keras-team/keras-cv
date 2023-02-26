@@ -59,12 +59,45 @@ train_ds = tfds.load(
     "voc/2007", split="train+validation", with_info=False, shuffle_files=True
 )
 train_ds = train_ds.concatenate(
-    tfds.load("voc/2012", split="train+validation", with_info=False, shuffle_files=True)
+    tfds.load(
+        "voc/2012",
+        split="train+validation",
+        with_info=False,
+        shuffle_files=True,
+    )
 )
 eval_ds = tfds.load("voc/2007", split="test", with_info=False)
 
 with strategy.scope():
-    model = keras_cv.models.FasterRCNN(classes=20, bounding_box_format="yxyx")
+    inputs = tf.keras.layers.Input(shape=image_size)
+    x = inputs
+    x = tf.keras.applications.resnet.preprocess_input(x)
+
+    backbone = tf.keras.applications.ResNet50(
+        include_top=False, input_tensor=x, weights="imagenet"
+    )
+
+    c2_output, c3_output, c4_output, c5_output = [
+        backbone.get_layer(layer_name).output
+        for layer_name in [
+            "conv2_block3_out",
+            "conv3_block4_out",
+            "conv4_block6_out",
+            "conv5_block3_out",
+        ]
+    ]
+    backbone = tf.keras.Model(
+        inputs=inputs,
+        outputs={2: c2_output, 3: c3_output, 4: c4_output, 5: c5_output},
+    )
+    # keras_cv backbone gives 2mAP lower result.
+    # TODO(ian): should eventually use keras_cv backbone.
+    # backbone = keras_cv.models.ResNet50(
+    #     include_top=False, weights="imagenet", include_rescaling=False
+    # ).as_backbone()
+    model = keras_cv.models.FasterRCNN(
+        classes=20, bounding_box_format="yxyx", backbone=backbone
+    )
 
 
 # TODO (tanzhenyu): migrate to KPL, as this is mostly a duplicate of
@@ -177,7 +210,9 @@ def get_non_empty_box_indices(boxes):
     # Selects indices if box height or width is 0.
     height = boxes[:, 2] - boxes[:, 0]
     width = boxes[:, 3] - boxes[:, 1]
-    indices = tf.where(tf.logical_and(tf.greater(height, 0), tf.greater(width, 0)))
+    indices = tf.where(
+        tf.logical_and(tf.greater(height, 0), tf.greater(width, 0))
+    )
     return indices[:, 0]
 
 
@@ -206,7 +241,6 @@ def proc_train_fn(bounding_box_format, img_size):
     def apply(inputs):
         image = inputs["image"]
         image = tf.cast(image, tf.float32)
-        image = tf.keras.applications.resnet50.preprocess_input(image)
         gt_boxes = inputs["objects"]["bbox"]
         image, gt_boxes = flip_fn(image, gt_boxes)
         gt_boxes = keras_cv.bounding_box.convert_format(
@@ -217,7 +251,6 @@ def proc_train_fn(bounding_box_format, img_size):
         )
         gt_classes = tf.cast(inputs["objects"]["label"], tf.float32)
         image, gt_boxes, gt_classes = resize_fn(image, gt_boxes, gt_classes)
-        gt_classes = tf.expand_dims(gt_classes, axis=-1)
 
         return {
             "images": image,
@@ -232,13 +265,15 @@ def proc_train_fn(bounding_box_format, img_size):
 def pad_fn(examples):
     gt_boxes = examples.pop("gt_boxes")
     gt_classes = examples.pop("gt_classes")
-    num_det = gt_boxes.row_lengths()
-    gt_boxes = gt_boxes.to_tensor(default_value=-1.0, shape=[global_batch, 32, 4])
-    gt_classes = gt_classes.to_tensor(default_value=-1.0, shape=[global_batch, 32, 1])
+    gt_boxes = gt_boxes.to_tensor(
+        default_value=-1.0, shape=[global_batch, 32, 4]
+    )
+    gt_classes = gt_classes.to_tensor(
+        default_value=-1.0, shape=[global_batch, 32]
+    )
     return examples["images"], {
-        "gt_boxes": gt_boxes,
-        "gt_classes": gt_classes,
-        "gt_num_dets": num_det,
+        "boxes": gt_boxes,
+        "classes": gt_classes,
     }
 
 
@@ -247,7 +282,9 @@ train_ds = train_ds.map(
     num_parallel_calls=tf.data.AUTOTUNE,
 )
 train_ds = train_ds.apply(
-    tf.data.experimental.dense_to_ragged_batch(global_batch, drop_remainder=True)
+    tf.data.experimental.dense_to_ragged_batch(
+        global_batch, drop_remainder=True
+    )
 )
 train_ds = train_ds.map(pad_fn, num_parallel_calls=tf.data.AUTOTUNE)
 train_ds = train_ds.shuffle(8)
@@ -258,7 +295,9 @@ eval_ds = eval_ds.map(
     num_parallel_calls=tf.data.AUTOTUNE,
 )
 eval_ds = eval_ds.apply(
-    tf.data.experimental.dense_to_ragged_batch(global_batch, drop_remainder=True)
+    tf.data.experimental.dense_to_ragged_batch(
+        global_batch, drop_remainder=True
+    )
 )
 eval_ds = eval_ds.map(pad_fn, num_parallel_calls=tf.data.AUTOTUNE)
 eval_ds = eval_ds.prefetch(2)
@@ -278,11 +317,13 @@ weight_decay = 0.0001
 step = 0
 
 callbacks = [
-    tf.keras.callbacks.ModelCheckpoint(FLAGS.weights_path, save_weights_only=True),
+    tf.keras.callbacks.ModelCheckpoint(
+        FLAGS.weights_path, save_weights_only=True
+    ),
     tf.keras.callbacks.TensorBoard(
         log_dir=FLAGS.tensorboard_path, write_steps_per_second=True
     ),
-    PyCOCOCallback(eval_ds, bounding_box_format="yxyx", input_nms=False),
+    PyCOCOCallback(eval_ds, bounding_box_format="yxyx"),
 ]
 model.compile(
     optimizer=optimizer,

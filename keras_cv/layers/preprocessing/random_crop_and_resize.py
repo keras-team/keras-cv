@@ -70,7 +70,9 @@ class RandomCropAndResize(BaseImageAugmentationLayer):
     ):
         super().__init__(seed=seed, **kwargs)
 
-        self._check_class_arguments(target_size, crop_area_factor, aspect_ratio_factor)
+        self._check_class_arguments(
+            target_size, crop_area_factor, aspect_ratio_factor
+        )
         self.target_size = target_size
         self.aspect_ratio_factor = preprocessing.parse_factor(
             aspect_ratio_factor,
@@ -100,7 +102,9 @@ class RandomCropAndResize(BaseImageAugmentationLayer):
         new_height = tf.clip_by_value(
             tf.sqrt(crop_area_factor / aspect_ratio), 0.0, 1.0
         )  # to avoid unwanted/unintuitive effects
-        new_width = tf.clip_by_value(tf.sqrt(crop_area_factor * aspect_ratio), 0.0, 1.0)
+        new_width = tf.clip_by_value(
+            tf.sqrt(crop_area_factor * aspect_ratio), 0.0, 1.0
+        )
 
         height_offset = self._random_generator.random_uniform(
             (),
@@ -124,7 +128,6 @@ class RandomCropAndResize(BaseImageAugmentationLayer):
         return [[y1, x1, y2, x2]]
 
     def call(self, inputs, training=True):
-
         if training:
             return super().call(inputs, training)
         else:
@@ -155,11 +158,12 @@ class RandomCropAndResize(BaseImageAugmentationLayer):
         return target
 
     def _transform_bounding_boxes(bounding_boxes, transformation):
+        bounding_boxes = bounding_boxes.copy()
         t_y1, t_x1, t_y2, t_x2 = transformation[0]
         t_dx = t_x2 - t_x1
         t_dy = t_y2 - t_y1
-        x1, y1, x2, y2, rest = tf.split(
-            bounding_boxes, [1, 1, 1, 1, bounding_boxes.shape[-1] - 4], axis=-1
+        x1, y1, x2, y2 = tf.split(
+            bounding_boxes["boxes"], [1, 1, 1, 1], axis=-1
         )
         output = tf.concat(
             [
@@ -167,11 +171,11 @@ class RandomCropAndResize(BaseImageAugmentationLayer):
                 (y1 - t_y1) / t_dy,
                 (x2 - t_x1) / t_dx,
                 (y2 - t_y1) / t_dy,
-                rest,
             ],
             axis=-1,
         )
-        return output
+        bounding_boxes["boxes"] = output
+        return bounding_boxes
 
     def augment_bounding_boxes(
         self, bounding_boxes, transformation=None, image=None, **kwargs
@@ -243,7 +247,9 @@ class RandomCropAndResize(BaseImageAugmentationLayer):
             )
 
         if (
-            not isinstance(aspect_ratio_factor, (tuple, list, core.FactorSampler))
+            not isinstance(
+                aspect_ratio_factor, (tuple, list, core.FactorSampler)
+            )
             or isinstance(aspect_ratio_factor, float)
             or isinstance(aspect_ratio_factor, int)
         ):
@@ -253,7 +259,9 @@ class RandomCropAndResize(BaseImageAugmentationLayer):
                 f"aspect_ratio_factor={aspect_ratio_factor}"
             )
 
-    def augment_segmentation_mask(self, segmentation_mask, transformation, **kwargs):
+    def augment_segmentation_mask(
+        self, segmentation_mask, transformation, **kwargs
+    ):
         return self._crop_and_resize(
             segmentation_mask, transformation, method="nearest"
         )
@@ -271,6 +279,22 @@ class RandomCropAndResize(BaseImageAugmentationLayer):
             }
         )
         return config
+
+    @classmethod
+    def from_config(cls, config):
+        if isinstance(config["crop_area_factor"], dict):
+            config[
+                "crop_area_factor"
+            ] = tf.keras.utils.deserialize_keras_object(
+                config["crop_area_factor"]
+            )
+        if isinstance(config["aspect_ratio_factor"], dict):
+            config[
+                "aspect_ratio_factor"
+            ] = tf.keras.utils.deserialize_keras_object(
+                config["aspect_ratio_factor"]
+            )
+        return cls(**config)
 
     def _crop_and_resize(self, image, transformation, method=None):
         image = tf.expand_dims(image, axis=0)

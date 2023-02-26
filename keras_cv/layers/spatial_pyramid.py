@@ -64,7 +64,6 @@ class SpatialPyramidPooling(tf.keras.layers.Layer):
         self.dropout = dropout
 
     def build(self, input_shape):
-
         height = input_shape[1]
         width = input_shape[2]
         channels = input_shape[3]
@@ -118,7 +117,9 @@ class SpatialPyramidPooling(tf.keras.layers.Layer):
                 ),
                 tf.keras.layers.BatchNormalization(),
                 tf.keras.layers.Activation(self.activation),
-                tf.keras.layers.Resizing(height, width, interpolation="bilinear"),
+                tf.keras.layers.Resizing(
+                    height, width, interpolation="bilinear"
+                ),
             ]
         )
         self.aspp_parallel_channels.append(pool_sequential)
@@ -147,6 +148,7 @@ class SpatialPyramidPooling(tf.keras.layers.Layer):
           A `tf.Tensor` of shape [batch, height, width, num_channels]
         """
         result = []
+
         for channel in self.aspp_parallel_channels:
             temp = tf.cast(channel(inputs, training=training), inputs.dtype)
             result.append(temp)

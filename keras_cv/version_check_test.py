@@ -13,26 +13,38 @@
 # limitations under the License.
 
 import pytest
+import tensorflow as tf
 
 from keras_cv import version_check
 
 
+@pytest.fixture(autouse=True)
+def cleanup_tf_version():
+    actual_tf_version = tf.__version__
+    # Tests will be run after yield
+    yield
+
+    # Cleanup
+    tf.__version__ = actual_tf_version
+
+
 def test_check_tf_version_error():
-    version_check.tf.__version__ = "2.8.0"
+    tf.__version__ = "2.8.0"
 
     with pytest.raises(
-        RuntimeError, match="Tensorflow package version needs to be at least 2.9.0"
+        RuntimeError,
+        match="Tensorflow package version needs to be at least 2.11.0",
     ):
         version_check.check_tf_version()
 
 
 def test_check_tf_version_passes_rc2():
     # should pass
-    version_check.tf.__version__ = "2.9.1rc2"
+    tf.__version__ = "2.11.1rc2"
     version_check.check_tf_version()
 
 
 def test_check_tf_version_passes_nightly():
     # should pass
-    version_check.tf.__version__ = "2.10.0-dev20220419"
+    tf.__version__ = "2.12.0-dev20230119"
     version_check.check_tf_version()

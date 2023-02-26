@@ -72,7 +72,9 @@ def single_rectangle_mask(corners, mask_shape):
     return masks
 
 
-def fill_single_rectangle(image, centers_x, centers_y, widths, heights, fill_values):
+def fill_single_rectangle(
+    image, centers_x, centers_y, widths, heights, fill_values
+):
     """Fill rectangles with fill value into images.
 
     Args:
@@ -361,7 +363,6 @@ class MapFnRandomCutout(layers.Layer):
 
     @tf.function(jit_compile=True)
     def call(self, inputs, training=True):
-
         augment = lambda: tf.map_fn(self._random_cutout, inputs)
         no_augment = lambda: inputs
         return tf.cond(tf.cast(training, tf.bool), augment, no_augment)
@@ -892,7 +893,6 @@ class JITMapFnRandomCutout(layers.Layer):
 
     @tf.function(jit_compile=True)
     def call(self, inputs, training=True):
-
         augment = lambda: tf.map_fn(self._random_cutout, inputs)
         no_augment = lambda: inputs
         return tf.cond(tf.cast(training, tf.bool), augment, no_augment)

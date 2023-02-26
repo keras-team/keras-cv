@@ -19,16 +19,24 @@ from keras_cv.losses.iou_loss import IoULoss
 
 class IoUTest(tf.test.TestCase):
     def test_output_shape(self):
-        y_true = tf.random.uniform(shape=(2, 2, 4), minval=0, maxval=10, dtype=tf.int32)
-        y_pred = tf.random.uniform(shape=(2, 2, 4), minval=0, maxval=20, dtype=tf.int32)
+        y_true = tf.random.uniform(
+            shape=(2, 2, 4), minval=0, maxval=10, dtype=tf.int32
+        )
+        y_pred = tf.random.uniform(
+            shape=(2, 2, 4), minval=0, maxval=20, dtype=tf.int32
+        )
 
         iou_loss = IoULoss(bounding_box_format="xywh")
 
         self.assertAllEqual(iou_loss(y_true, y_pred).shape, ())
 
     def test_output_shape_reduction_none(self):
-        y_true = tf.random.uniform(shape=(2, 2, 4), minval=0, maxval=10, dtype=tf.int32)
-        y_pred = tf.random.uniform(shape=(2, 2, 4), minval=0, maxval=20, dtype=tf.int32)
+        y_true = tf.random.uniform(
+            shape=(2, 2, 4), minval=0, maxval=10, dtype=tf.int32
+        )
+        y_pred = tf.random.uniform(
+            shape=(2, 2, 4), minval=0, maxval=20, dtype=tf.int32
+        )
 
         iou_loss = IoULoss(bounding_box_format="xywh", reduction="none")
 
@@ -41,17 +49,17 @@ class IoUTest(tf.test.TestCase):
 
     def test_output_shape_relative(self):
         y_true = [
-            [0.0, 0.0, 0.1, 0.1, 4, 0.9],
-            [0.0, 0.0, 0.2, 0.3, 4, 0.76],
-            [0.4, 0.5, 0.5, 0.6, 3, 0.89],
-            [0.2, 0.2, 0.3, 0.3, 6, 0.04],
+            [0.0, 0.0, 0.1, 0.1],
+            [0.0, 0.0, 0.2, 0.3],
+            [0.4, 0.5, 0.5, 0.6],
+            [0.2, 0.2, 0.3, 0.3],
         ]
 
         y_pred = [
-            [0.0, 0.0, 0.5, 0.6, 4, 0.9],
-            [0.0, 0.0, 0.7, 0.3, 1, 0.76],
-            [0.4, 0.5, 0.5, 0.6, 4, 0.04],
-            [0.2, 0.1, 0.3, 0.3, 7, 0.48],
+            [0.0, 0.0, 0.5, 0.6],
+            [0.0, 0.0, 0.7, 0.3],
+            [0.4, 0.5, 0.5, 0.6],
+            [0.2, 0.1, 0.3, 0.3],
         ]
 
         iou_loss = IoULoss(bounding_box_format="rel_xyxy")
@@ -60,20 +68,20 @@ class IoUTest(tf.test.TestCase):
 
     def test_output_value(self):
         y_true = [
-            [0, 0, 1, 1, 4, 0.9],
-            [0, 0, 2, 3, 4, 0.76],
-            [4, 5, 3, 6, 3, 0.89],
-            [2, 2, 3, 3, 6, 0.04],
+            [0, 0, 1, 1],
+            [0, 0, 2, 3],
+            [4, 5, 3, 6],
+            [2, 2, 3, 3],
         ]
 
         y_pred = [
-            [0, 0, 5, 6, 4, 0.9],
-            [0, 0, 7, 3, 1, 0.76],
-            [4, 5, 5, 6, 4, 0.04],
-            [2, 1, 3, 3, 7, 0.48],
+            [0, 0, 5, 6],
+            [0, 0, 7, 3],
+            [4, 5, 5, 6],
+            [2, 1, 3, 3],
         ]
 
         iou_loss = IoULoss(bounding_box_format="xywh")
 
-        # -log(compute_iou(y_true, y_pred)) = 2.0311017
-        self.assertAllClose(iou_loss(y_true, y_pred), 2.0311017)
+        # -log(compute_iou(y_true, y_pred)) = 1.0363084
+        self.assertAllClose(iou_loss(y_true, y_pred), 1.0363084)

@@ -18,6 +18,7 @@ from keras_cv import version_check
 version_check.check_tf_version()
 # isort:on
 
+from keras_cv import callbacks
 from keras_cv import datasets
 from keras_cv import layers
 from keras_cv import losses
@@ -30,4 +31,4 @@ from keras_cv.core import FactorSampler
 from keras_cv.core import NormalFactorSampler
 from keras_cv.core import UniformFactorSampler
 
-__version__ = "0.3.5"
+__version__ = "0.4.2"

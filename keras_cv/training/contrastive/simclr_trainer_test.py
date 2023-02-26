@@ -37,4 +37,6 @@ class SimCLRTrainerTest(tf.test.TestCase):
         simclr_without_probing.fit(images)
 
     def build_encoder(self):
-        return ResNet50V2(include_rescaling=False, include_top=False, pooling="avg")
+        return ResNet50V2(
+            include_rescaling=False, include_top=False, pooling="avg"
+        )

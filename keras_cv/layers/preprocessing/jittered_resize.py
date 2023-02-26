@@ -113,7 +113,7 @@ class JitteredResize(BaseImageAugmentationLayer):
         )
         self.crop_size = crop_size
         self.target_size = target_size
-        self.inference_resizing = layers.Resizing(
+        self._inference_resizing = layers.Resizing(
             target_size[0],
             target_size[1],
             pad_to_aspect_ratio=True,
@@ -131,8 +131,7 @@ class JitteredResize(BaseImageAugmentationLayer):
         else:
             inputs = self._ensure_inputs_are_compute_dtype(inputs)
             inputs, meta_data = self._format_inputs(inputs)
-            output = inputs
-            output["images"] = self.inference_resizing(inputs["images"])
+            output = self._inference_resizing(inputs)
             return self._format_output(output, meta_data)
 
     def get_random_transformation(self, image=None, **kwargs):
@@ -193,7 +192,7 @@ class JitteredResize(BaseImageAugmentationLayer):
                 "Please provide a `bounding_box_format` when augmenting "
                 "bounding boxes with `JitteredResize()`."
             )
-
+        result = bounding_boxes.copy()
         image_scale = tf.cast(transformation["image_scale"], self.compute_dtype)
         offset = tf.cast(transformation["offset"], self.compute_dtype)
         original_size = transformation["original_size"]
@@ -206,24 +205,23 @@ class JitteredResize(BaseImageAugmentationLayer):
         )
 
         # Adjusts box coordinates based on image_scale and offset.
-        yxyx = bounding_boxes[:, :4]
-        rest = bounding_boxes[:, 4:]
+        yxyx = bounding_boxes["boxes"]
         yxyx *= tf.tile(tf.expand_dims(image_scale, axis=0), [1, 2])
         yxyx -= tf.tile(tf.expand_dims(offset, axis=0), [1, 2])
 
-        bounding_boxes = tf.concat([yxyx, rest], axis=-1)
-        bounding_boxes = keras_cv.bounding_box.clip_to_image(
-            bounding_boxes,
+        result["boxes"] = yxyx
+        result = keras_cv.bounding_box.clip_to_image(
+            result,
             image_shape=self.target_size + (3,),
             bounding_box_format="yxyx",
         )
-        bounding_boxes = keras_cv.bounding_box.filter_sentinels(bounding_boxes)
-        return keras_cv.bounding_box.convert_format(
-            bounding_boxes,
+        result = keras_cv.bounding_box.convert_format(
+            result,
             image_shape=self.target_size + (3,),
             source="yxyx",
             target=self.bounding_box_format,
         )
+        return result
 
     def augment_label(self, label, transformation, **kwargs):
         return label

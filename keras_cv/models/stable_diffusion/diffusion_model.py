@@ -15,9 +15,6 @@
 import tensorflow as tf
 from tensorflow import keras
 
-from keras_cv.models.stable_diffusion.__internal__.layers.group_normalization import (
-    GroupNormalization,
-)
 from keras_cv.models.stable_diffusion.__internal__.layers.padded_conv2d import (
     PaddedConv2D,
 )
@@ -25,7 +22,12 @@ from keras_cv.models.stable_diffusion.__internal__.layers.padded_conv2d import (
 
 class DiffusionModel(keras.Model):
     def __init__(
-        self, img_height, img_width, max_text_length, name=None, download_weights=True
+        self,
+        img_height,
+        img_width,
+        max_text_length,
+        name=None,
+        download_weights=True,
     ):
         context = keras.layers.Input((max_text_length, 768))
         t_embed_input = keras.layers.Input((320,))
@@ -43,21 +45,21 @@ class DiffusionModel(keras.Model):
 
         for _ in range(2):
             x = ResBlock(320)([x, t_emb])
-            x = SpatialTransformer(8, 40)([x, context])
+            x = SpatialTransformer(8, 40, fully_connected=False)([x, context])
             outputs.append(x)
         x = PaddedConv2D(320, 3, strides=2, padding=1)(x)  # Downsample 2x
         outputs.append(x)
 
         for _ in range(2):
             x = ResBlock(640)([x, t_emb])
-            x = SpatialTransformer(8, 80)([x, context])
+            x = SpatialTransformer(8, 80, fully_connected=False)([x, context])
             outputs.append(x)
         x = PaddedConv2D(640, 3, strides=2, padding=1)(x)  # Downsample 2x
         outputs.append(x)
 
         for _ in range(2):
             x = ResBlock(1280)([x, t_emb])
-            x = SpatialTransformer(8, 160)([x, context])
+            x = SpatialTransformer(8, 160, fully_connected=False)([x, context])
             outputs.append(x)
         x = PaddedConv2D(1280, 3, strides=2, padding=1)(x)  # Downsample 2x
         outputs.append(x)
@@ -69,7 +71,7 @@ class DiffusionModel(keras.Model):
         # Middle flow
 
         x = ResBlock(1280)([x, t_emb])
-        x = SpatialTransformer(8, 160)([x, context])
+        x = SpatialTransformer(8, 160, fully_connected=False)([x, context])
         x = ResBlock(1280)([x, t_emb])
 
         # Upsampling flow
@@ -82,23 +84,23 @@ class DiffusionModel(keras.Model):
         for _ in range(3):
             x = keras.layers.Concatenate()([x, outputs.pop()])
             x = ResBlock(1280)([x, t_emb])
-            x = SpatialTransformer(8, 160)([x, context])
+            x = SpatialTransformer(8, 160, fully_connected=False)([x, context])
         x = Upsample(1280)(x)
 
         for _ in range(3):
             x = keras.layers.Concatenate()([x, outputs.pop()])
             x = ResBlock(640)([x, t_emb])
-            x = SpatialTransformer(8, 80)([x, context])
+            x = SpatialTransformer(8, 80, fully_connected=False)([x, context])
         x = Upsample(640)(x)
 
         for _ in range(3):
             x = keras.layers.Concatenate()([x, outputs.pop()])
             x = ResBlock(320)([x, t_emb])
-            x = SpatialTransformer(8, 40)([x, context])
+            x = SpatialTransformer(8, 40, fully_connected=False)([x, context])
 
         # Exit flow
 
-        x = GroupNormalization(epsilon=1e-5)(x)
+        x = keras.layers.GroupNormalization(epsilon=1e-5)(x)
         x = keras.layers.Activation("swish")(x)
         output = PaddedConv2D(4, kernel_size=3, padding=1)(x)
 
@@ -112,12 +114,106 @@ class DiffusionModel(keras.Model):
             self.load_weights(diffusion_model_weights_fpath)
 
 
+class DiffusionModelV2(keras.Model):
+    def __init__(
+        self,
+        img_height,
+        img_width,
+        max_text_length,
+        name=None,
+        download_weights=True,
+    ):
+        context = keras.layers.Input((max_text_length, 1024))
+        t_embed_input = keras.layers.Input((320,))
+        latent = keras.layers.Input((img_height // 8, img_width // 8, 4))
+
+        t_emb = keras.layers.Dense(1280)(t_embed_input)
+        t_emb = keras.layers.Activation("swish")(t_emb)
+        t_emb = keras.layers.Dense(1280)(t_emb)
+
+        # Downsampling flow
+
+        outputs = []
+        x = PaddedConv2D(320, kernel_size=3, padding=1)(latent)
+        outputs.append(x)
+
+        for _ in range(2):
+            x = ResBlock(320)([x, t_emb])
+            x = SpatialTransformer(5, 64, fully_connected=True)([x, context])
+            outputs.append(x)
+        x = PaddedConv2D(320, 3, strides=2, padding=1)(x)  # Downsample 2x
+        outputs.append(x)
+
+        for _ in range(2):
+            x = ResBlock(640)([x, t_emb])
+            x = SpatialTransformer(10, 64, fully_connected=True)([x, context])
+            outputs.append(x)
+        x = PaddedConv2D(640, 3, strides=2, padding=1)(x)  # Downsample 2x
+        outputs.append(x)
+
+        for _ in range(2):
+            x = ResBlock(1280)([x, t_emb])
+            x = SpatialTransformer(20, 64, fully_connected=True)([x, context])
+            outputs.append(x)
+        x = PaddedConv2D(1280, 3, strides=2, padding=1)(x)  # Downsample 2x
+        outputs.append(x)
+
+        for _ in range(2):
+            x = ResBlock(1280)([x, t_emb])
+            outputs.append(x)
+
+        # Middle flow
+
+        x = ResBlock(1280)([x, t_emb])
+        x = SpatialTransformer(20, 64, fully_connected=True)([x, context])
+        x = ResBlock(1280)([x, t_emb])
+
+        # Upsampling flow
+
+        for _ in range(3):
+            x = keras.layers.Concatenate()([x, outputs.pop()])
+            x = ResBlock(1280)([x, t_emb])
+        x = Upsample(1280)(x)
+
+        for _ in range(3):
+            x = keras.layers.Concatenate()([x, outputs.pop()])
+            x = ResBlock(1280)([x, t_emb])
+            x = SpatialTransformer(20, 64, fully_connected=True)([x, context])
+        x = Upsample(1280)(x)
+
+        for _ in range(3):
+            x = keras.layers.Concatenate()([x, outputs.pop()])
+            x = ResBlock(640)([x, t_emb])
+            x = SpatialTransformer(10, 64, fully_connected=True)([x, context])
+        x = Upsample(640)(x)
+
+        for _ in range(3):
+            x = keras.layers.Concatenate()([x, outputs.pop()])
+            x = ResBlock(320)([x, t_emb])
+            x = SpatialTransformer(5, 64, fully_connected=True)([x, context])
+
+        # Exit flow
+
+        x = keras.layers.GroupNormalization(epsilon=1e-5)(x)
+        x = keras.layers.Activation("swish")(x)
+        output = PaddedConv2D(4, kernel_size=3, padding=1)(x)
+
+        super().__init__([latent, t_embed_input, context], output, name=name)
+
+        if download_weights:
+            diffusion_model_weights_fpath = keras.utils.get_file(
+                origin="https://huggingface.co/ianstenbit/keras-sd2.1/resolve/main/diffusion_model_v2_1.h5",
+                file_hash="c31730e91111f98fe0e2dbde4475d381b5287ebb9672b1821796146a25c5132d",
+            )
+            self.load_weights(diffusion_model_weights_fpath)
+
+
 class ResBlock(keras.layers.Layer):
     def __init__(self, output_dim, **kwargs):
         super().__init__(**kwargs)
         self.output_dim = output_dim
         self.entry_flow = [
-            GroupNormalization(epsilon=1e-5),
+            keras.layers.GroupNormalization(epsilon=1e-5),
             keras.layers.Activation("swish"),
             PaddedConv2D(output_dim, 3, padding=1),
         ]
@@ -126,7 +222,7 @@ class ResBlock(keras.layers.Layer):
             keras.layers.Dense(output_dim),
         ]
         self.exit_flow = [
-            GroupNormalization(epsilon=1e-5),
+            keras.layers.GroupNormalization(epsilon=1e-5),
             keras.layers.Activation("swish"),
             PaddedConv2D(output_dim, 3, padding=1),
         ]
@@ -151,23 +247,31 @@ class ResBlock(keras.layers.Layer):
 
 
 class SpatialTransformer(keras.layers.Layer):
-    def __init__(self, num_heads, head_size, **kwargs):
+    def __init__(self, num_heads, head_size, fully_connected=False, **kwargs):
         super().__init__(**kwargs)
-        self.norm = GroupNormalization(epsilon=1e-5)
+        self.norm = keras.layers.GroupNormalization(epsilon=1e-5)
         channels = num_heads * head_size
-        self.conv1 = PaddedConv2D(num_heads * head_size, 1)
-        self.transformer_block = BasicTransformerBlock(channels, num_heads, head_size)
-        self.conv2 = PaddedConv2D(channels, 1)
+        if fully_connected:
+            self.proj1 = keras.layers.Dense(num_heads * head_size)
+        else:
+            self.proj1 = PaddedConv2D(num_heads * head_size, 1)
+        self.transformer_block = BasicTransformerBlock(
+            channels, num_heads, head_size
+        )
+        if fully_connected:
+            self.proj2 = keras.layers.Dense(channels)
+        else:
+            self.proj2 = PaddedConv2D(channels, 1)
 
     def call(self, inputs):
         inputs, context = inputs
         _, h, w, c = inputs.shape
         x = self.norm(inputs)
-        x = self.conv1(x)
+        x = self.proj1(x)
         x = tf.reshape(x, (-1, h * w, c))
         x = self.transformer_block([x, context])
         x = tf.reshape(x, (-1, h, w, c))
-        return self.conv2(x) + inputs
+        return self.proj2(x) + inputs
 
 
 class BasicTransformerBlock(keras.layers.Layer):
@@ -204,18 +308,28 @@ class CrossAttention(keras.layers.Layer):
         context = inputs if context is None else context
         q, k, v = self.to_q(inputs), self.to_k(context), self.to_v(context)
         q = tf.reshape(q, (-1, inputs.shape[1], self.num_heads, self.head_size))
-        k = tf.reshape(k, (-1, context.shape[1], self.num_heads, self.head_size))
-        v = tf.reshape(v, (-1, context.shape[1], self.num_heads, self.head_size))
+        k = tf.reshape(
+            k, (-1, context.shape[1], self.num_heads, self.head_size)
+        )
+        v = tf.reshape(
+            v, (-1, context.shape[1], self.num_heads, self.head_size)
+        )
 
         q = tf.transpose(q, (0, 2, 1, 3))  # (bs, num_heads, time, head_size)
         k = tf.transpose(k, (0, 2, 3, 1))  # (bs, num_heads, head_size, time)
         v = tf.transpose(v, (0, 2, 1, 3))  # (bs, num_heads, time, head_size)
 
         score = td_dot(q, k) * self.scale
-        weights = keras.activations.softmax(score)  # (bs, num_heads, time, time)
+        weights = keras.activations.softmax(
+            score
+        )  # (bs, num_heads, time, time)
         attn = td_dot(weights, v)
-        attn = tf.transpose(attn, (0, 2, 1, 3))  # (bs, time, num_heads, head_size)
-        out = tf.reshape(attn, (-1, inputs.shape[1], self.num_heads * self.head_size))
+        attn = tf.transpose(
+            attn, (0, 2, 1, 3)
+        )  # (bs, time, num_heads, head_size)
+        out = tf.reshape(
+            attn, (-1, inputs.shape[1], self.num_heads * self.head_size)
+        )
         return self.out_proj(out)
 
 

@@ -18,14 +18,18 @@ from tensorflow.experimental import numpy as tfnp
 
 
 class TextEncoder(keras.Model):
-    def __init__(self, max_length, vocab_size=49408, name=None, download_weights=True):
-        tokens = keras.layers.Input(shape=(max_length,), dtype="int32", name="tokens")
+    def __init__(
+        self, max_length, vocab_size=49408, name=None, download_weights=True
+    ):
+        tokens = keras.layers.Input(
+            shape=(max_length,), dtype="int32", name="tokens"
+        )
         positions = keras.layers.Input(
             shape=(max_length,), dtype="int32", name="positions"
         )
         x = CLIPEmbedding(vocab_size, 768, max_length)([tokens, positions])
         for _ in range(12):
-            x = CLIPEncoderLayer()(x)
+            x = CLIPEncoderLayer(768, 12, activation=quick_gelu)(x)
         embedded = keras.layers.LayerNormalization(epsilon=1e-5)(x)
         super().__init__([tokens, positions], embedded, name=name)
 
@@ -37,8 +41,38 @@ class TextEncoder(keras.Model):
             self.load_weights(text_encoder_weights_fpath)
 
 
+class TextEncoderV2(keras.Model):
+    def __init__(
+        self, max_length, vocab_size=49408, name=None, download_weights=True
+    ):
+        tokens = keras.layers.Input(
+            shape=(max_length,), dtype="int32", name="tokens"
+        )
+        positions = keras.layers.Input(
+            shape=(max_length,), dtype="int32", name="positions"
+        )
+        x = CLIPEmbedding(vocab_size, 1024, max_length)([tokens, positions])
+        for _ in range(23):
+            x = CLIPEncoderLayer(1024, 16, activation=tf.nn.gelu)(x)
+        embedded = keras.layers.LayerNormalization(epsilon=1e-5)(x)
+        super().__init__([tokens, positions], embedded, name=name)
+
+        if download_weights:
+            text_encoder_weights_fpath = keras.utils.get_file(
+                origin="https://huggingface.co/ianstenbit/keras-sd2.1/resolve/main/text_encoder_v2_1.h5",
+                file_hash="985002e68704e1c5c3549de332218e99c5b9b745db7171d5f31fcd9a6089f25b",
+            )
+            self.load_weights(text_encoder_weights_fpath)
+
+
+def quick_gelu(x):
+    return x * tf.sigmoid(x * 1.702)
+
+
 class CLIPEmbedding(keras.layers.Layer):
-    def __init__(self, input_dim=49408, output_dim=768, max_length=77, **kwargs):
+    def __init__(
+        self, input_dim=49408, output_dim=768, max_length=77, **kwargs
+    ):
         super().__init__(**kwargs)
         self.token_embedding = keras.layers.Embedding(input_dim, output_dim)
         self.position_embedding = keras.layers.Embedding(max_length, output_dim)
@@ -51,13 +85,14 @@ class CLIPEmbedding(keras.layers.Layer):
 
 
 class CLIPEncoderLayer(keras.layers.Layer):
-    def __init__(self, **kwargs):
+    def __init__(self, embed_dim, num_heads, activation=None, **kwargs):
         super().__init__(**kwargs)
         self.layer_norm1 = keras.layers.LayerNormalization(epsilon=1e-5)
-        self.clip_attn = CLIPAttention(causal=True)
+        self.clip_attn = CLIPAttention(embed_dim, num_heads, causal=True)
         self.layer_norm2 = keras.layers.LayerNormalization(epsilon=1e-5)
-        self.fc1 = keras.layers.Dense(3072)
-        self.fc2 = keras.layers.Dense(768)
+        self.fc1 = keras.layers.Dense(embed_dim * 4)
+        self.fc2 = keras.layers.Dense(embed_dim)
+        self.activation = activation
 
     def call(self, inputs):
         residual = inputs
@@ -67,7 +102,7 @@ class CLIPEncoderLayer(keras.layers.Layer):
         residual = x
         x = self.layer_norm2(x)
         x = self.fc1(x)
-        x = x * tf.sigmoid(x * 1.702)  # Quick gelu
+        x = self.activation(x)
         x = self.fc2(x)
         return x + residual
 
@@ -86,14 +121,19 @@ class CLIPAttention(keras.layers.Layer):
         self.out_proj = keras.layers.Dense(self.embed_dim)
 
     def reshape_states(self, x, sequence_length, batch_size):
-        x = tf.reshape(x, (batch_size, sequence_length, self.num_heads, self.head_dim))
-        return tf.transpose(x, (0, 2, 1, 3))  # bs, heads, sequence_length, head_dim
+        x = tf.reshape(
+            x, (batch_size, sequence_length, self.num_heads, self.head_dim)
+        )
+        return tf.transpose(
+            x, (0, 2, 1, 3)
+        )  # bs, heads, sequence_length, head_dim
 
     def call(self, inputs, attention_mask=None):
         if attention_mask is None and self.causal:
             length = tf.shape(inputs)[1]
             attention_mask = tfnp.triu(
-                tf.ones((1, 1, length, length), dtype=self.compute_dtype) * -tfnp.inf,
+                tf.ones((1, 1, length, length), dtype=self.compute_dtype)
+                * -tfnp.inf,
                 k=1,
             )
 
@@ -111,7 +151,9 @@ class CLIPAttention(keras.layers.Layer):
         value_states = tf.reshape(value_states, proj_shape)
         attn_weights = query_states @ tf.transpose(key_states, (0, 2, 1))
 
-        attn_weights = tf.reshape(attn_weights, (-1, self.num_heads, tgt_len, src_len))
+        attn_weights = tf.reshape(
+            attn_weights, (-1, self.num_heads, tgt_len, src_len)
+        )
         attn_weights = attn_weights + attention_mask
         attn_weights = tf.reshape(attn_weights, (-1, tgt_len, src_len))
 

@@ -27,4 +27,43 @@ class ModelUtilTestCase(tf.test.TestCase):
         self.assertEqual(inputs.shape.as_list(), list((None,) + input_shape))
 
         input_tensor = layers.Input(shape=input_shape)
-        self.assertIs(utils.parse_model_inputs(input_shape, input_tensor), input_tensor)
+        self.assertIs(
+            utils.parse_model_inputs(input_shape, input_tensor), input_tensor
+        )
+
+    def test_as_backbone_missing_backbone_level_outputs(self):
+        model = tf.keras.models.Sequential()
+        model.add(layers.Conv2D(64, kernel_size=3, input_shape=(16, 16, 3)))
+        model.add(
+            layers.Conv2D(
+                32,
+                kernel_size=3,
+            )
+        )
+        model.add(layers.Dense(10))
+        with self.assertRaises(ValueError):
+            utils.as_backbone(model)
+
+    def test_as_backbone_util(self):
+        inp = layers.Input((16, 16, 3))
+        _backbone_level_outputs = {}
+
+        x = layers.Conv2D(64, kernel_size=3, input_shape=(16, 16, 3))(inp)
+        _backbone_level_outputs[2] = x
+
+        x = layers.Conv2D(
+            32,
+            kernel_size=3,
+        )(x)
+        _backbone_level_outputs[3] = x
+
+        out = layers.Dense(10)(x)
+        _backbone_level_outputs[4] = out
+
+        model = tf.keras.models.Model(inputs=inp, outputs=out)
+
+        # when model has _backbone_level_outputs, it should not raise an error
+        model._backbone_level_outputs = _backbone_level_outputs
+
+        backbone = utils.as_backbone(model)
+        self.assertEqual(len(backbone.outputs), 3)

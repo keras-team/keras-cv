@@ -67,7 +67,6 @@ class RandomGaussianBlur(BaseImageAugmentationLayer):
         return (blur_v, blur_h)
 
     def augment_image(self, image, transformation=None, **kwargs):
-
         image = tf.expand_dims(image, axis=0)
 
         num_channels = tf.shape(image)[-1]
@@ -93,7 +92,9 @@ class RandomGaussianBlur(BaseImageAugmentationLayer):
     def augment_label(self, label, transformation=None, **kwargs):
         return label
 
-    def augment_segmentation_mask(self, segmentation_mask, transformation, **kwargs):
+    def augment_segmentation_mask(
+        self, segmentation_mask, transformation, **kwargs
+    ):
         return segmentation_mask
 
     @staticmethod
@@ -101,10 +102,12 @@ class RandomGaussianBlur(BaseImageAugmentationLayer):
         # We are running this in float32, regardless of layer's self.compute_dtype.
         # Calculating blur_filter in lower precision will corrupt the final results.
         x = tf.cast(
-            tf.range(-filter_size // 2 + 1, filter_size // 2 + 1), dtype=tf.float32
+            tf.range(-filter_size // 2 + 1, filter_size // 2 + 1),
+            dtype=tf.float32,
         )
         blur_filter = tf.exp(
-            -tf.pow(x, 2.0) / (2.0 * tf.pow(tf.cast(factor, dtype=tf.float32), 2.0))
+            -tf.pow(x, 2.0)
+            / (2.0 * tf.pow(tf.cast(factor, dtype=tf.float32), 2.0))
         )
         blur_filter /= tf.reduce_sum(blur_filter)
         return blur_filter

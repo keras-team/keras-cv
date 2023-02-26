@@ -54,6 +54,7 @@ TEST_CONFIGURATIONS = [
         layers.Posterization,
         {"bits": 3, "value_range": (0, 255)},
     ),
+    ("RandomBrightness", layers.RandomBrightness, {"factor": 0.5}),
     (
         "RandomColorDegeneration",
         layers.RandomColorDegeneration,
@@ -86,6 +87,7 @@ TEST_CONFIGURATIONS = [
             "seed": 1,
         },
     ),
+    ("RandomContrast", layers.RandomContrast, {"factor": 0.5}),
     (
         "RandomGaussianBlur",
         layers.RandomGaussianBlur,
@@ -100,6 +102,27 @@ TEST_CONFIGURATIONS = [
     ),
     ("RandomShear", layers.RandomShear, {"x_factor": 0.3, "x_factor": 0.3}),
     ("Solarization", layers.Solarization, {"value_range": (0, 255)}),
+    (
+        "RandomZoom",
+        layers.RandomZoom,
+        {"height_factor": 0.2, "width_factor": 0.5},
+    ),
+    (
+        "RandomCrop",
+        layers.RandomCrop,
+        {
+            "height": 100,
+            "width": 200,
+        },
+    ),
+    (
+        "Rescaling",
+        layers.Rescaling,
+        {
+            "scale": 1,
+            "offset": 0.5,
+        },
+    ),
 ]
 
 
