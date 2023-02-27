@@ -426,16 +426,6 @@ class ResNet18V2Backbone(Backbone):
         )
         return ResNetV2Backbone.from_preset("resnet18_v2", **kwargs)
 
-    @classproperty
-    def presets(cls):
-        """Dictionary of preset names and configurations."""
-        return {}
-
-    @classproperty
-    def presets_with_weights(cls):
-        """Dictionary of preset names and configurations that include weights."""
-        return cls.presets
-
 
 class ResNet34V2Backbone(Backbone):
     def __new__(
@@ -454,16 +444,6 @@ class ResNet34V2Backbone(Backbone):
             }
         )
         return ResNetV2Backbone.from_preset("resnet34_v2", **kwargs)
-
-    @classproperty
-    def presets(cls):
-        """Dictionary of preset names and configurations."""
-        return {}
-
-    @classproperty
-    def presets_with_weights(cls):
-        """Dictionary of preset names and configurations that include weights."""
-        return cls.presets
 
 
 class ResNet50V2Backbone(Backbone):
@@ -515,16 +495,6 @@ class ResNet101V2Backbone(Backbone):
         )
         return ResNetV2Backbone.from_preset("resnet101_v2", **kwargs)
 
-    @classproperty
-    def presets(cls):
-        """Dictionary of preset names and configurations."""
-        return {}
-
-    @classproperty
-    def presets_with_weights(cls):
-        """Dictionary of preset names and configurations that include weights."""
-        return cls.presets
-
 
 class ResNet152V2Backbone(Backbone):
     def __new__(
@@ -543,16 +513,6 @@ class ResNet152V2Backbone(Backbone):
             }
         )
         return ResNetV2Backbone.from_preset("resnet152_v2", **kwargs)
-
-    @classproperty
-    def presets(cls):
-        """Dictionary of preset names and configurations."""
-        return {}
-
-    @classproperty
-    def presets_with_weights(cls):
-        """Dictionary of preset names and configurations that include weights."""
-        return cls.presets
 
 
 setattr(

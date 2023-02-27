@@ -52,7 +52,6 @@ class ResNetV2BackboneTest(tf.test.TestCase, parameterized.TestCase):
         )
         model(self.input_batch)
 
-
     @parameterized.named_parameters(
         ("tf_format", "tf", "model"),
         ("keras_format", "keras_v3", "model.keras"),
