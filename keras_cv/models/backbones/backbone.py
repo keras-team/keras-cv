@@ -128,6 +128,12 @@ class Backbone(keras.Model):
 
             cls.from_preset = classmethod(from_preset)
 
+        if not cls.presets:
+            cls.from_preset.__func__.__doc__ = """Not implemented.
+
+            No presets available for this class.
+            """
+
         # Format and assign the docstring unless the subclass has overridden it.
         if cls.from_preset.__doc__ is None:
             cls.from_preset.__func__.__doc__ = Backbone.from_preset.__doc__

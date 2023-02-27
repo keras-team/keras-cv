@@ -55,12 +55,12 @@ class ResNetV2PresetSmokeTest(tf.test.TestCase, parameterized.TestCase):
             # Keep a high tolerance, so we are robust to different hardware.
             self.assertAllClose(outputs, expected, atol=0.01, rtol=0.01)
 
-    @parameterized.named_parameters(
-        ("preset_with_weights", "imagenet"),
-        ("preset_no_weights", None),
-    )
-    def test_applications_model_output(self, weights):
-        model = ResNet50V2Backbone(weights)
+    def test_applications_model_output(self):
+        model = ResNet50V2Backbone()
+        model(self.input_batch)
+
+    def test_applications_model_output_with_preset(self):
+        model = ResNet50V2Backbone.from_preset("resnet50_v2_imagenet")
         model(self.input_batch)
 
     @parameterized.named_parameters(

@@ -19,13 +19,13 @@ import tensorflow as tf
 import tensorflow_datasets as tfds
 
 from keras_cv import models
+from keras_cv.models import ResNet50V2Backbone
 from keras_cv.models import segmentation
 
 
 class DeeplabTest(tf.test.TestCase):
     def test_deeplab_model_construction_with_preconfigured_setting(self):
-        backbone = models.ResNetV2Backbone.from_preset(
-            "resnet50_v2",
+        backbone = ResNet50V2Backbone(
             input_shape=[64, 64, 3],
         )
         model = segmentation.DeepLabV3(classes=11, backbone=backbone)
@@ -35,8 +35,7 @@ class DeeplabTest(tf.test.TestCase):
         self.assertEquals(output["output"].shape, [1, 64, 64, 11])
 
     def test_greyscale_input(self):
-        backbone = models.ResNetV2Backbone.from_preset(
-            "resnet50_v2",
+        backbone = ResNet50V2Backbone(
             input_shape=[64, 64, 1],
         )
         model = segmentation.DeepLabV3(classes=11, backbone=backbone)
@@ -50,14 +49,11 @@ class DeeplabTest(tf.test.TestCase):
             ValueError,
             "Input shapes for both the backbone and DeepLabV3 are `None`.",
         ):
-            backbone = models.ResNetV2Backbone.from_preset(
-                "resnet50_v2",
-            )
+            backbone = ResNet50V2Backbone()
             segmentation.DeepLabV3(classes=11, backbone=backbone)
 
     def test_deeplab_model_with_components(self):
-        backbone = models.ResNetV2Backbone.from_preset(
-            "resnet50_v2",
+        backbone = ResNet50V2Backbone(
             input_shape=[64, 64, 3],
         )
         model = segmentation.DeepLabV3(
@@ -72,8 +68,7 @@ class DeeplabTest(tf.test.TestCase):
 
     def test_mixed_precision(self):
         tf.keras.mixed_precision.set_global_policy("mixed_float16")
-        backbone = models.ResNetV2Backbone.from_preset(
-            "resnet50_v2",
+        backbone = ResNet50V2Backbone(
             input_shape=[64, 64, 3],
         )
         model = segmentation.DeepLabV3(
@@ -102,8 +97,7 @@ class DeeplabTest(tf.test.TestCase):
         "`REGRESSION=true pytest keras_cv/",
     )
     def test_model_train(self):
-        backbone = models.ResNetV2Backbone.from_preset(
-            "resnet50_v2",
+        backbone = ResNet50V2Backbone(
             input_shape=[384, 384, 3],
         )
         model = segmentation.DeepLabV3(classes=1, backbone=backbone)

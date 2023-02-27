@@ -27,12 +27,6 @@ from tensorflow.keras import layers
 from keras_cv.models import utils
 from keras_cv.models.backbones.backbone import Backbone
 from keras_cv.models.backbones.resnet_v2.resnet_v2_backbone_presets import (
-    applications_presets,
-)
-from keras_cv.models.backbones.resnet_v2.resnet_v2_backbone_presets import (
-    applications_weight_aliases,
-)
-from keras_cv.models.backbones.resnet_v2.resnet_v2_backbone_presets import (
     backbone_presets,
 )
 from keras_cv.models.backbones.resnet_v2.resnet_v2_backbone_presets import (
@@ -289,17 +283,6 @@ class ResNetV2Backbone(Backbone):
         input_shape: optional shape tuple, defaults to (None, None, 3).
         input_tensor: optional Keras tensor (i.e. output of `layers.Input()`)
             to use as image input for the model.
-        pooling: optional pooling mode for feature extraction
-            when `include_top` is `False`.
-            - `None` means that the output of the model will be
-                the 4D tensor output of the
-                last convolutional layer.
-            - `avg` means that global average pooling
-                will be applied to the output of the
-                last convolutional layer, and thus
-                the output of the model will be a 2D tensor.
-            - `max` means that global max pooling will
-                be applied.
         block_type: string, one of "basic_block" or "block". The block type to
             stack. Use "basic_block" for smaller models like ResNet18 and
             ResNet34.
@@ -315,7 +298,6 @@ class ResNetV2Backbone(Backbone):
         stackwise_dilations=None,
         input_shape=(None, None, 3),
         input_tensor=None,
-        pooling=None,
         block_type="block",
         **kwargs,
     ):
@@ -361,11 +343,6 @@ class ResNetV2Backbone(Backbone):
         )(x)
         x = layers.Activation("relu", name="post_relu")(x)
 
-        if pooling == "avg":
-            x = layers.GlobalAveragePooling2D(name="avg_pool")(x)
-        elif pooling == "max":
-            x = layers.GlobalMaxPooling2D(name="max_pool")(x)
-
         # Create model.
         super().__init__(inputs=inputs, outputs=x, **kwargs)
 
@@ -379,7 +356,6 @@ class ResNetV2Backbone(Backbone):
         self.include_rescaling = include_rescaling
         self.stackwise_dilations = stackwise_dilations
         self.input_tensor = input_tensor
-        self.pooling = pooling
         self.block_type = block_type
 
     def get_config(self):
@@ -392,7 +368,6 @@ class ResNetV2Backbone(Backbone):
             "input_shape": self.input_shape[1:],
             "stackwise_dilations": self.stackwise_dilations,
             "input_tensor": self.input_tensor,
-            "pooling": self.pooling,
             "block_type": self.block_type,
             "name": self.name,
             "trainable": self.trainable,
@@ -409,7 +384,7 @@ class ResNetV2Backbone(Backbone):
         return copy.deepcopy(backbone_presets_with_weights)
 
 
-ALIAS_DOCSTRING = """ResNetV2 model with {num_layers} layers.
+ALIAS_DOCSTRING = """ResNetV2Backbone model with {num_layers} layers.
 
     Reference:
         - [Identity Mappings in Deep Residual Networks](https://arxiv.org/abs/1603.05027) (ECCV 2016)
@@ -430,198 +405,178 @@ ALIAS_DOCSTRING = """ResNetV2 model with {num_layers} layers.
         input_shape: optional shape tuple, defaults to (None, None, 3).
         input_tensor: optional Keras tensor (i.e. output of `layers.Input()`)
             to use as image input for the model.
-        pooling: optional pooling mode for feature extraction
-            when `include_top` is `False`.
-            - `None` means that the output of the model will be
-                the 4D tensor output of the
-                last convolutional layer.
-            - `avg` means that global average pooling
-                will be applied to the output of the
-                last convolutional layer, and thus
-                the output of the model will be a 2D tensor.
-            - `max` means that global max pooling will
-                be applied.
-        weights: one of `None` (random initialization), a pretrained weight file
-            path, or name of pretrained checkpoint if available.
-            Available checkpoints: "{aliases}"
 """
 
 
-def _backbone_alias(
-    preset,
-    include_rescaling=True,
-    input_shape=(None, None, 3),
-    input_tensor=None,
-    pooling=None,
-    weights=None,
-    **kwargs,
-):
-    """Helper method to generate keras.application style interfaces for presets."""
-    # Pack args in kwargs
-    kwargs.update(
-        {
-            "include_rescaling": include_rescaling,
-            "input_shape": input_shape,
-            "input_tensor": input_tensor,
-            "pooling": pooling,
-        }
-    )
-    # Check if `weights` is valid preset alias
-    aliases = applications_weight_aliases[preset]
-    if weights and weights in aliases:
-        preset = applications_presets[(preset, weights)]
-        return ResNetV2Backbone.from_preset(preset, **kwargs)
-    # Otherwise check if valid file
-    elif weights and not tf.io.gfile.exists(weights):
-        raise ValueError(
-            "The `weights` argument should be either `None`, the path to the "
-            'weights file to be loaded, or one of valid checkpoint types: "{aliases}". '
-            "Weights file not found at location: {weights}.".format(
-                aliases=", ".join(aliases),
-                weights=weights,
-            )
+class ResNet18V2Backbone(Backbone):
+    def __new__(
+        self,
+        include_rescaling=True,
+        input_shape=(None, None, 3),
+        input_tensor=None,
+        **kwargs,
+    ):
+        # Pack args in kwargs
+        kwargs.update(
+            {
+                "include_rescaling": include_rescaling,
+                "input_shape": input_shape,
+                "input_tensor": input_tensor,
+            }
         )
+        return ResNetV2Backbone.from_preset("resnet18_v2", **kwargs)
 
-    model = ResNetV2Backbone.from_preset(preset, **kwargs)
+    @classproperty
+    def presets(cls):
+        """Dictionary of preset names and configurations."""
+        return {}
 
-    if weights:
-        model.load_weights(weights)
+    @classproperty
+    def presets_with_weights(cls):
+        """Dictionary of preset names and configurations that include weights."""
+        return cls.presets
 
-    return model
 
-
-def ResNet18V2Backbone(
-    include_rescaling=True,
-    input_shape=(None, None, 3),
-    input_tensor=None,
-    pooling=None,
-    weights=None,
-    **kwargs,
-):
-    return _backbone_alias(
-        "resnet18_v2",
-        include_rescaling,
-        input_shape,
-        input_tensor,
-        pooling,
-        weights,
+class ResNet34V2Backbone(Backbone):
+    def __new__(
+        self,
+        include_rescaling=True,
+        input_shape=(None, None, 3),
+        input_tensor=None,
         **kwargs,
-    )
+    ):
+        # Pack args in kwargs
+        kwargs.update(
+            {
+                "include_rescaling": include_rescaling,
+                "input_shape": input_shape,
+                "input_tensor": input_tensor,
+            }
+        )
+        return ResNetV2Backbone.from_preset("resnet34_v2", **kwargs)
+
+    @classproperty
+    def presets(cls):
+        """Dictionary of preset names and configurations."""
+        return {}
+
+    @classproperty
+    def presets_with_weights(cls):
+        """Dictionary of preset names and configurations that include weights."""
+        return cls.presets
 
 
-def ResNet34V2Backbone(
-    include_rescaling=True,
-    input_shape=(None, None, 3),
-    input_tensor=None,
-    pooling=None,
-    weights=None,
-    **kwargs,
-):
-    return _backbone_alias(
-        "resnet34_v2",
-        include_rescaling,
-        input_shape,
-        input_tensor,
-        pooling,
-        weights,
+class ResNet50V2Backbone(Backbone):
+    def __new__(
+        self,
+        include_rescaling=True,
+        input_shape=(None, None, 3),
+        input_tensor=None,
         **kwargs,
-    )
+    ):
+        # Pack args in kwargs
+        kwargs.update(
+            {
+                "include_rescaling": include_rescaling,
+                "input_shape": input_shape,
+                "input_tensor": input_tensor,
+            }
+        )
+        return ResNetV2Backbone.from_preset("resnet50_v2", **kwargs)
+
+    @classproperty
+    def presets(cls):
+        """Dictionary of preset names and configurations."""
+        return {
+            "resnet50_v2_imagenet": backbone_presets["resnet50_v2_imagenet"],
+        }
+
+    @classproperty
+    def presets_with_weights(cls):
+        """Dictionary of preset names and configurations that include weights."""
+        return cls.presets
 
 
-def ResNet50V2Backbone(
-    include_rescaling=True,
-    input_shape=(None, None, 3),
-    input_tensor=None,
-    pooling=None,
-    weights=None,
-    **kwargs,
-):
-    return _backbone_alias(
-        "resnet50_v2",
-        include_rescaling,
-        input_shape,
-        input_tensor,
-        pooling,
-        weights,
+class ResNet101V2Backbone(Backbone):
+    def __new__(
+        self,
+        include_rescaling=True,
+        input_shape=(None, None, 3),
+        input_tensor=None,
         **kwargs,
-    )
+    ):
+        # Pack args in kwargs
+        kwargs.update(
+            {
+                "include_rescaling": include_rescaling,
+                "input_shape": input_shape,
+                "input_tensor": input_tensor,
+            }
+        )
+        return ResNetV2Backbone.from_preset("resnet101_v2", **kwargs)
+
+    @classproperty
+    def presets(cls):
+        """Dictionary of preset names and configurations."""
+        return {}
+
+    @classproperty
+    def presets_with_weights(cls):
+        """Dictionary of preset names and configurations that include weights."""
+        return cls.presets
 
 
-def ResNet101V2Backbone(
-    include_rescaling=True,
-    input_shape=(None, None, 3),
-    input_tensor=None,
-    pooling=None,
-    weights=None,
-    **kwargs,
-):
-    return _backbone_alias(
-        "resnet101_v2",
-        include_rescaling,
-        input_shape,
-        input_tensor,
-        pooling,
-        weights,
+class ResNet152V2Backbone(Backbone):
+    def __new__(
+        self,
+        include_rescaling=True,
+        input_shape=(None, None, 3),
+        input_tensor=None,
         **kwargs,
-    )
+    ):
+        # Pack args in kwargs
+        kwargs.update(
+            {
+                "include_rescaling": include_rescaling,
+                "input_shape": input_shape,
+                "input_tensor": input_tensor,
+            }
+        )
+        return ResNetV2Backbone.from_preset("resnet152_v2", **kwargs)
 
+    @classproperty
+    def presets(cls):
+        """Dictionary of preset names and configurations."""
+        return {}
 
-def ResNet152V2Backbone(
-    include_rescaling=True,
-    input_shape=(None, None, 3),
-    input_tensor=None,
-    pooling=None,
-    weights=None,
-    **kwargs,
-):
-    return _backbone_alias(
-        "resnet152_v2",
-        include_rescaling,
-        input_shape,
-        input_tensor,
-        pooling,
-        weights,
-        **kwargs,
-    )
+    @classproperty
+    def presets_with_weights(cls):
+        """Dictionary of preset names and configurations that include weights."""
+        return cls.presets
 
 
 setattr(
     ResNet18V2Backbone,
     "__doc__",
-    ALIAS_DOCSTRING.format(
-        num_layers=18,
-        aliases='", "'.join(applications_weight_aliases["resnet18_v2"]),
-    ),
+    ALIAS_DOCSTRING.format(num_layers=18),
 )
 setattr(
     ResNet34V2Backbone,
     "__doc__",
-    ALIAS_DOCSTRING.format(
-        num_layers=34,
-        aliases='", "'.join(applications_weight_aliases["resnet34_v2"]),
-    ),
+    ALIAS_DOCSTRING.format(num_layers=34),
 )
 setattr(
     ResNet50V2Backbone,
     "__doc__",
-    ALIAS_DOCSTRING.format(
-        num_layers=50,
-        aliases='", "'.join(applications_weight_aliases["resnet50_v2"]),
-    ),
+    ALIAS_DOCSTRING.format(num_layers=50),
 )
 setattr(
     ResNet101V2Backbone,
     "__doc__",
-    ALIAS_DOCSTRING.format(
-        num_layers=101,
-        aliases='", "'.join(applications_weight_aliases["resnet101_v2"]),
-    ),
+    ALIAS_DOCSTRING.format(num_layers=101),
 )
 setattr(
     ResNet152V2Backbone,
     "__doc__",
-    ALIAS_DOCSTRING.format(
-        num_layers=152,
-        aliases='", "'.join(applications_weight_aliases["resnet152_v2"]),
-    ),
+    ALIAS_DOCSTRING.format(num_layers=152),
 )
