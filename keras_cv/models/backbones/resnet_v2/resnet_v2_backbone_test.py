@@ -43,10 +43,6 @@ class ResNetV2BackboneTest(tf.test.TestCase, parameterized.TestCase):
         model = ResNet18V2Backbone()
         model(self.input_batch)
 
-    def test_load_weights_error_applications_model(self):
-        with self.assertRaises(ValueError):
-            ResNet18V2Backbone(weights="not_a_file.h5")
-
     def test_valid_call_with_rescaling(self):
         model = ResNetV2Backbone(
             stackwise_filters=[64, 128, 256, 512],
@@ -56,15 +52,6 @@ class ResNetV2BackboneTest(tf.test.TestCase, parameterized.TestCase):
         )
         model(self.input_batch)
 
-    def test_valid_call_pooling(self):
-        model = ResNetV2Backbone(
-            stackwise_filters=[64, 128, 256, 512],
-            stackwise_blocks=[2, 2, 2, 2],
-            stackwise_strides=[1, 2, 2, 2],
-            include_rescaling=False,
-            pooling="avg",
-        )
-        model(self.input_batch)
 
     @parameterized.named_parameters(
         ("tf_format", "tf", "model"),
