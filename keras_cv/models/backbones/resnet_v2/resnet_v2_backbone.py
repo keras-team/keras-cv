@@ -408,7 +408,7 @@ ALIAS_DOCSTRING = """ResNetV2Backbone model with {num_layers} layers.
 """
 
 
-class ResNet18V2Backbone(Backbone):
+class ResNet18V2Backbone(ResNetV2Backbone):
     def __new__(
         self,
         include_rescaling=True,
@@ -426,8 +426,18 @@ class ResNet18V2Backbone(Backbone):
         )
         return ResNetV2Backbone.from_preset("resnet18_v2", **kwargs)
 
+    @classproperty
+    def presets(cls):
+        """Dictionary of preset names and configurations."""
+        return {}
 
-class ResNet34V2Backbone(Backbone):
+    @classproperty
+    def presets_with_weights(cls):
+        """Dictionary of preset names and configurations that include weights."""
+        return {}
+
+
+class ResNet34V2Backbone(ResNetV2Backbone):
     def __new__(
         self,
         include_rescaling=True,
@@ -445,8 +455,18 @@ class ResNet34V2Backbone(Backbone):
         )
         return ResNetV2Backbone.from_preset("resnet34_v2", **kwargs)
 
+    @classproperty
+    def presets(cls):
+        """Dictionary of preset names and configurations."""
+        return {}
 
-class ResNet50V2Backbone(Backbone):
+    @classproperty
+    def presets_with_weights(cls):
+        """Dictionary of preset names and configurations that include weights."""
+        return {}
+
+
+class ResNet50V2Backbone(ResNetV2Backbone):
     def __new__(
         self,
         include_rescaling=True,
@@ -467,9 +487,13 @@ class ResNet50V2Backbone(Backbone):
     @classproperty
     def presets(cls):
         """Dictionary of preset names and configurations."""
-        return {
-            "resnet50_v2_imagenet": backbone_presets["resnet50_v2_imagenet"],
-        }
+        return copy.deepcopy(
+            {
+                "resnet50_v2_imagenet": backbone_presets[
+                    "resnet50_v2_imagenet"
+                ],
+            }
+        )
 
     @classproperty
     def presets_with_weights(cls):
@@ -477,7 +501,7 @@ class ResNet50V2Backbone(Backbone):
         return cls.presets
 
 
-class ResNet101V2Backbone(Backbone):
+class ResNet101V2Backbone(ResNetV2Backbone):
     def __new__(
         self,
         include_rescaling=True,
@@ -495,8 +519,18 @@ class ResNet101V2Backbone(Backbone):
         )
         return ResNetV2Backbone.from_preset("resnet101_v2", **kwargs)
 
+    @classproperty
+    def presets(cls):
+        """Dictionary of preset names and configurations."""
+        return {}
 
-class ResNet152V2Backbone(Backbone):
+    @classproperty
+    def presets_with_weights(cls):
+        """Dictionary of preset names and configurations that include weights."""
+        return {}
+
+
+class ResNet152V2Backbone(ResNetV2Backbone):
     def __new__(
         self,
         include_rescaling=True,
@@ -513,6 +547,16 @@ class ResNet152V2Backbone(Backbone):
             }
         )
         return ResNetV2Backbone.from_preset("resnet152_v2", **kwargs)
+
+    @classproperty
+    def presets(cls):
+        """Dictionary of preset names and configurations."""
+        return {}
+
+    @classproperty
+    def presets_with_weights(cls):
+        """Dictionary of preset names and configurations that include weights."""
+        return {}
 
 
 setattr(
