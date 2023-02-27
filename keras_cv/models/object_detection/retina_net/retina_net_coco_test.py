@@ -53,7 +53,7 @@ class RetinaNetTest(tf.test.TestCase):
         )
         retina_net.prediction_decoder = keras_cv.layers.MultiClassNonMaxSuppression(
             bounding_box_format="xywh",
-            confidence_threshold=0.1,
+            confidence_threshold=0.9,
             from_logits=True,
         )
         # retina_net.backbone.trainable = False
@@ -76,9 +76,9 @@ class RetinaNetTest(tf.test.TestCase):
         ds = tf.data.Dataset.from_tensor_slices((xs, ys))
         ds = ds.batch(xs.shape[0])
         retina_net.fit(
-            ds.repeat(10),
+            ds,
             validation_data=ds,
-            epochs=1,
+            epochs=10,
         )
         metrics = retina_net.evaluate(x=xs, y=ys, return_dict=True)
         self.assertAllGreater(metrics["private__box_recall"], 0.75)

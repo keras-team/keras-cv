@@ -57,13 +57,13 @@ class MultiClassNonMaxSuppression(tf.keras.layers.Layer):
         self.max_detections_per_class = max_detections_per_class
         self.built = True
 
-    def call(self, box_prediction, confidence_prediction):
+    def call(self, box_prediction, class_prediction):
         """Accepts images and raw predictions, and returns bounding box predictions.
 
         Args:
             box_prediction: Dense Tensor of shape [batch, boxes, 4] in the
                 `bounding_box_format` specified in the constructor.
-            confidence_prediction: Dense Tensor of shape [batch, boxes, num_classes].
+            class_prediction: Dense Tensor of shape [batch, boxes, num_classes].
         """
         target_format = "yxyx"
         if bounding_box.is_relative(self.bounding_box_format):
@@ -75,17 +75,23 @@ class MultiClassNonMaxSuppression(tf.keras.layers.Layer):
             target=target_format,
         )
         if self.from_logits:
-            confidence_prediction = tf.nn.softmax(confidence_prediction)
+            class_prediction = tf.nn.softmax(class_prediction)
+
+        tf.print('class_prediction.shape', tf.shape(class_prediction))
+        print('box_prediction.shape', box_prediction.shape)
+
+        tf.print('\nclass prediction', class_prediction[0])
+        tf.print('box_prediction', box_prediction[0])
 
         box_prediction = tf.expand_dims(box_prediction, axis=-2)
         (
             box_prediction,
             confidence_prediction,
-            class_pred,
+            class_prediction,
             valid_det,
         ) = tf.image.combined_non_max_suppression(
             boxes=box_prediction,
-            scores=confidence_prediction,
+            scores=class_prediction,
             max_output_size_per_class=self.max_detections_per_class,
             max_total_size=self.max_detections,
             score_threshold=self.confidence_threshold,
@@ -100,10 +106,10 @@ class MultiClassNonMaxSuppression(tf.keras.layers.Layer):
         bounding_boxes = {
             "boxes": box_prediction,
             "confidence": confidence_prediction,
-            "classes": class_pred,
+            "classes": class_prediction,
             "num_detections": valid_det,
         }
-        tf.print('valid_det', valid_det)
+        tf.print('bounding_boxes', bounding_boxes)
         # this is required to comply with KerasCV bounding box format.
         return bounding_box.mask_invalid_detections(bounding_boxes)
 
