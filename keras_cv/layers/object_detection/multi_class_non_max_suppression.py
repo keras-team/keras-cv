@@ -79,8 +79,8 @@ class MultiClassNonMaxSuppression(tf.keras.layers.Layer):
 
         box_prediction = tf.expand_dims(box_prediction, axis=-2)
         (
-            box_pred,
-            confidence_pred,
+            box_prediction,
+            confidence_prediction,
             class_pred,
             valid_det,
         ) = tf.image.combined_non_max_suppression(
@@ -92,17 +92,18 @@ class MultiClassNonMaxSuppression(tf.keras.layers.Layer):
             iou_threshold=self.iou_threshold,
             clip_boxes=False,
         )
-        box_pred = bounding_box.convert_format(
-            box_pred,
+        box_prediction = bounding_box.convert_format(
+            box_prediction,
             source=target_format,
             target=self.bounding_box_format,
         )
         bounding_boxes = {
-            "boxes": box_pred,
-            "confidence": confidence_pred,
+            "boxes": box_prediction,
+            "confidence": confidence_prediction,
             "classes": class_pred,
             "num_detections": valid_det,
         }
+        tf.print('valid_det', valid_det)
         # this is required to comply with KerasCV bounding box format.
         return bounding_box.mask_invalid_detections(bounding_boxes)
 

@@ -19,7 +19,9 @@ import tensorflow as tf
 from tensorflow.keras import optimizers
 
 import keras_cv
-from keras_cv.models.object_detection.__test_utils__ import _create_bounding_box_dataset
+from keras_cv.models.object_detection.__test_utils__ import (
+    _create_bounding_box_dataset,
+)
 
 
 class RetinaNetTest(tf.test.TestCase):
@@ -49,6 +51,11 @@ class RetinaNetTest(tf.test.TestCase):
                 include_top=False, include_rescaling=False
             ).as_backbone(),
         )
+        retina_net.prediction_decoder = keras_cv.layers.MultiClassNonMaxSuppression(
+            bounding_box_format="xywh",
+            confidence_threshold=0.1,
+            from_logits=True,
+        )
         # retina_net.backbone.trainable = False
         retina_net.compile(
             optimizer=optimizers.SGD(
@@ -58,7 +65,9 @@ class RetinaNetTest(tf.test.TestCase):
             box_loss="smoothl1",
             metrics=[
                 keras_cv.metrics._BoxRecall(
-                    bounding_box_format="xywh", iou_thresholds=[0.5], class_ids=[0]
+                    bounding_box_format="xywh",
+                    iou_thresholds=[0.5],
+                    class_ids=[0],
                 ),
             ],
         )
@@ -69,11 +78,7 @@ class RetinaNetTest(tf.test.TestCase):
         retina_net.fit(
             ds.repeat(10),
             validation_data=ds,
-            epochs=100,
-            callbacks=[
-                keras_cv.callbacks.PyCOCOCallback(ds, bounding_box_format="xywh"),
-            ],
+            epochs=1,
         )
         metrics = retina_net.evaluate(x=xs, y=ys, return_dict=True)
-        self.assertAllGreater(metrics["mean_box_count_delta"], 0.0)
-        self.assertAllGreater(metrics["private__box_recall"], 0.0)
+        self.assertAllGreater(metrics["private__box_recall"], 0.75)
