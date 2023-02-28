@@ -32,6 +32,8 @@ from keras_cv.models.weights import parse_weights
 # Radosavovic et al.
 
 # BatchNorm momentum and epsilon values taken from original implementation.
+MOMENTUM = 0.9
+EPSILON = 1e-5
 
 MODEL_CONFIGS = {
     "x002": {
@@ -279,7 +281,7 @@ def apply_stem(x, name=None):
         name=name + "_stem_conv",
     )(x)
     x = layers.BatchNormalization(
-        momentum=0.9, epsilon=1e-5, name=name + "_stem_bn"
+        momentum=MOMENTUM, epsilon=EPSILON, name=name + "_stem_bn"
     )(x)
     x = layers.ReLU(name=name + "_stem_relu")(x)
     return x
@@ -324,7 +326,7 @@ def apply_x_block(x, filters_in, filters_out, group_width, stride=1, name=None):
             name=name + "_skip_1x1",
         )(inputs)
         skip = layers.BatchNormalization(
-            momentum=0.9, epsilon=1e-5, name=name + "_skip_bn"
+            momentum=MOMENTUM, epsilon=EPSILON, name=name + "_skip_bn"
         )(skip)
     else:
         skip = inputs
@@ -339,7 +341,7 @@ def apply_x_block(x, filters_in, filters_out, group_width, stride=1, name=None):
         name=name + "_conv_1x1_1",
     )(inputs)
     x = layers.BatchNormalization(
-        momentum=0.9, epsilon=1e-5, name=name + "_conv_1x1_1_bn"
+        momentum=MOMENTUM, epsilon=EPSILON, name=name + "_conv_1x1_1_bn"
     )(x)
     x = layers.ReLU(name=name + "_conv_1x1_1_relu")(x)
 
@@ -355,7 +357,7 @@ def apply_x_block(x, filters_in, filters_out, group_width, stride=1, name=None):
         name=name + "_conv_3x3",
     )(x)
     x = layers.BatchNormalization(
-        momentum=0.9, epsilon=1e-5, name=name + "_conv_3x3_bn"
+        momentum=MOMENTUM, epsilon=EPSILON, name=name + "_conv_3x3_bn"
     )(x)
     x = layers.ReLU(name=name + "_conv_3x3_relu")(x)
 
@@ -368,7 +370,7 @@ def apply_x_block(x, filters_in, filters_out, group_width, stride=1, name=None):
         name=name + "_conv_1x1_2",
     )(x)
     x = layers.BatchNormalization(
-        momentum=0.9, epsilon=1e-5, name=name + "_conv_1x1_2_bn"
+        momentum=MOMENTUM, epsilon=EPSILON, name=name + "_conv_1x1_2_bn"
     )(x)
 
     x = layers.ReLU(name=name + "_exit_relu")(x + skip)
@@ -423,7 +425,7 @@ def apply_y_block(
             name=name + "_skip_1x1",
         )(inputs)
         skip = layers.BatchNormalization(
-            momentum=0.9, epsilon=1e-5, name=name + "_skip_bn"
+            momentum=MOMENTUM, epsilon=EPSILON, name=name + "_skip_bn"
         )(skip)
     else:
         skip = inputs
@@ -438,7 +440,7 @@ def apply_y_block(
         name=name + "_conv_1x1_1",
     )(inputs)
     x = layers.BatchNormalization(
-        momentum=0.9, epsilon=1e-5, name=name + "_conv_1x1_1_bn"
+        momentum=MOMENTUM, epsilon=EPSILON, name=name + "_conv_1x1_1_bn"
     )(x)
     x = layers.ReLU(name=name + "_conv_1x1_1_relu")(x)
 
@@ -454,7 +456,7 @@ def apply_y_block(
         name=name + "_conv_3x3",
     )(x)
     x = layers.BatchNormalization(
-        momentum=0.9, epsilon=1e-5, name=name + "_conv_3x3_bn"
+        momentum=MOMENTUM, epsilon=EPSILON, name=name + "_conv_3x3_bn"
     )(x)
     x = layers.ReLU(name=name + "_conv_3x3_relu")(x)
 
@@ -472,7 +474,7 @@ def apply_y_block(
         name=name + "_conv_1x1_2",
     )(x)
     x = layers.BatchNormalization(
-        momentum=0.9, epsilon=1e-5, name=name + "_conv_1x1_2_bn"
+        momentum=MOMENTUM, epsilon=EPSILON, name=name + "_conv_1x1_2_bn"
     )(x)
 
     x = layers.ReLU(name=name + "_exit_relu")(x + skip)
@@ -531,7 +533,7 @@ def apply_z_block(
         name=name + "_conv_1x1_1",
     )(inputs)
     x = layers.BatchNormalization(
-        momentum=0.9, epsilon=1e-5, name=name + "_conv_1x1_1_bn"
+        momentum=MOMENTUM, epsilon=EPSILON, name=name + "_conv_1x1_1_bn"
     )(x)
     x = tf.nn.silu(x)
 
@@ -547,7 +549,7 @@ def apply_z_block(
         name=name + "_conv_3x3",
     )(x)
     x = layers.BatchNormalization(
-        momentum=0.9, epsilon=1e-5, name=name + "_conv_3x3_bn"
+        momentum=MOMENTUM, epsilon=EPSILON, name=name + "_conv_3x3_bn"
     )(x)
     x = tf.nn.silu(x)
 
@@ -565,7 +567,7 @@ def apply_z_block(
         name=name + "_conv_1x1_2",
     )(x)
     x = layers.BatchNormalization(
-        momentum=0.9, epsilon=1e-5, name=name + "_conv_1x1_2_bn"
+        momentum=MOMENTUM, epsilon=EPSILON, name=name + "_conv_1x1_2_bn"
     )(x)
 
     if stride != 1:
