@@ -270,16 +270,16 @@ def apply_stem(x, name=None):
         name = "stem" + str(backend.get_uid("stem"))
 
     x = layers.Conv2D(
-            32,
-            (3, 3),
-            strides=2,
-            use_bias=False,
-            padding="same",
-            kernel_initializer="he_normal",
-            name=name + "_stem_conv",
+        32,
+        (3, 3),
+        strides=2,
+        use_bias=False,
+        padding="same",
+        kernel_initializer="he_normal",
+        name=name + "_stem_conv",
     )(x)
     x = layers.BatchNormalization(
-            momentum=0.9, epsilon=1e-5, name=name + "_stem_bn"
+        momentum=0.9, epsilon=1e-5, name=name + "_stem_bn"
     )(x)
     x = layers.ReLU(name=name + "_stem_relu")(x)
     return x
@@ -332,48 +332,49 @@ def apply_x_block(x, filters_in, filters_out, group_width, stride=1, name=None):
     # Build block
     # conv_1x1_1
     x = layers.Conv2D(
-            filters_out,
-            (1, 1),
-            use_bias=False,
-            kernel_initializer="he_normal",
-            name=name + "_conv_1x1_1",
+        filters_out,
+        (1, 1),
+        use_bias=False,
+        kernel_initializer="he_normal",
+        name=name + "_conv_1x1_1",
     )(inputs)
     x = layers.BatchNormalization(
-            momentum=0.9, epsilon=1e-5, name=name + "_conv_1x1_1_bn"
+        momentum=0.9, epsilon=1e-5, name=name + "_conv_1x1_1_bn"
     )(x)
     x = layers.ReLU(name=name + "_conv_1x1_1_relu")(x)
 
     # conv_3x3
     x = layers.Conv2D(
-            filters_out,
-            (3, 3),
-            use_bias=False,
-            strides=stride,
-            groups=groups,
-            padding="same",
-            kernel_initializer="he_normal",
-            name=name + "_conv_3x3",
+        filters_out,
+        (3, 3),
+        use_bias=False,
+        strides=stride,
+        groups=groups,
+        padding="same",
+        kernel_initializer="he_normal",
+        name=name + "_conv_3x3",
     )(x)
     x = layers.BatchNormalization(
-            momentum=0.9, epsilon=1e-5, name=name + "_conv_3x3_bn"
+        momentum=0.9, epsilon=1e-5, name=name + "_conv_3x3_bn"
     )(x)
     x = layers.ReLU(name=name + "_conv_3x3_relu")(x)
 
-        # conv_1x1_2
+    # conv_1x1_2
     x = layers.Conv2D(
-            filters_out,
-            (1, 1),
-            use_bias=False,
-            kernel_initializer="he_normal",
-            name=name + "_conv_1x1_2",
+        filters_out,
+        (1, 1),
+        use_bias=False,
+        kernel_initializer="he_normal",
+        name=name + "_conv_1x1_2",
     )(x)
     x = layers.BatchNormalization(
-            momentum=0.9, epsilon=1e-5, name=name + "_conv_1x1_2_bn"
+        momentum=0.9, epsilon=1e-5, name=name + "_conv_1x1_2_bn"
     )(x)
 
     x = layers.ReLU(name=name + "_exit_relu")(x + skip)
 
     return x
+
 
 def apply_y_block(
     x,
@@ -403,26 +404,26 @@ def apply_y_block(
 
     inputs = x
     if filters_in != filters_out and stride == 1:
-            raise ValueError(
-                f"Input filters({filters_in}) and output "
-                f"filters({filters_out}) "
-                f"are not equal for stride {stride}. Input and output filters "
-                f"must be equal for stride={stride}."
+        raise ValueError(
+            f"Input filters({filters_in}) and output "
+            f"filters({filters_out}) "
+            f"are not equal for stride {stride}. Input and output filters "
+            f"must be equal for stride={stride}."
         )
 
     groups = filters_out // group_width
 
     if stride != 1:
         skip = layers.Conv2D(
-                filters_out,
-                (1, 1),
-                strides=stride,
-                use_bias=False,
-                kernel_initializer="he_normal",
-                name=name + "_skip_1x1",
+            filters_out,
+            (1, 1),
+            strides=stride,
+            use_bias=False,
+            kernel_initializer="he_normal",
+            name=name + "_skip_1x1",
         )(inputs)
         skip = layers.BatchNormalization(
-                momentum=0.9, epsilon=1e-5, name=name + "_skip_bn"
+            momentum=0.9, epsilon=1e-5, name=name + "_skip_bn"
         )(skip)
     else:
         skip = inputs
@@ -430,48 +431,48 @@ def apply_y_block(
     # Build block
     # conv_1x1_1
     x = layers.Conv2D(
-            filters_out,
-            (1, 1),
-            use_bias=False,
-            kernel_initializer="he_normal",
-            name=name + "_conv_1x1_1",
+        filters_out,
+        (1, 1),
+        use_bias=False,
+        kernel_initializer="he_normal",
+        name=name + "_conv_1x1_1",
     )(inputs)
     x = layers.BatchNormalization(
-            momentum=0.9, epsilon=1e-5, name=name + "_conv_1x1_1_bn"
+        momentum=0.9, epsilon=1e-5, name=name + "_conv_1x1_1_bn"
     )(x)
     x = layers.ReLU(name=name + "_conv_1x1_1_relu")(x)
 
     # conv_3x3
     x = layers.Conv2D(
-            filters_out,
-            (3, 3),
-            use_bias=False,
-            strides=stride,
-            groups=groups,
-            padding="same",
-            kernel_initializer="he_normal",
-            name=name + "_conv_3x3",
+        filters_out,
+        (3, 3),
+        use_bias=False,
+        strides=stride,
+        groups=groups,
+        padding="same",
+        kernel_initializer="he_normal",
+        name=name + "_conv_3x3",
     )(x)
     x = layers.BatchNormalization(
-            momentum=0.9, epsilon=1e-5, name=name + "_conv_3x3_bn"
+        momentum=0.9, epsilon=1e-5, name=name + "_conv_3x3_bn"
     )(x)
     x = layers.ReLU(name=name + "_conv_3x3_relu")(x)
 
     # Squeeze-Excitation block
-    x = SqueezeAndExcite2D(
-            filters_out, ratio=squeeze_excite_ratio, name=name
-    )(x)
+    x = SqueezeAndExcite2D(filters_out, ratio=squeeze_excite_ratio, name=name)(
+        x
+    )
 
     # conv_1x1_2
     x = layers.Conv2D(
-            filters_out,
-            (1, 1),
-            use_bias=False,
-            kernel_initializer="he_normal",
-            name=name + "_conv_1x1_2",
+        filters_out,
+        (1, 1),
+        use_bias=False,
+        kernel_initializer="he_normal",
+        name=name + "_conv_1x1_2",
     )(x)
     x = layers.BatchNormalization(
-            momentum=0.9, epsilon=1e-5, name=name + "_conv_1x1_2_bn"
+        momentum=0.9, epsilon=1e-5, name=name + "_conv_1x1_2_bn"
     )(x)
 
     x = layers.ReLU(name=name + "_exit_relu")(x + skip)
@@ -510,10 +511,10 @@ def apply_z_block(
 
     inputs = x
     if filters_in != filters_out and stride == 1:
-            raise ValueError(
-                f"Input filters({filters_in}) and output filters({filters_out})"
-                f"are not equal for stride {stride}. Input and output filters "
-                f"must be equal for stride={stride}."
+        raise ValueError(
+            f"Input filters({filters_in}) and output filters({filters_out})"
+            f"are not equal for stride {stride}. Input and output filters "
+            f"must be equal for stride={stride}."
         )
 
     groups = filters_out // group_width
@@ -523,48 +524,48 @@ def apply_z_block(
     # Build block
     # conv_1x1_1
     x = layers.Conv2D(
-            inv_btlneck_filters,
-            (1, 1),
-            use_bias=False,
-            kernel_initializer="he_normal",
-            name=name + "_conv_1x1_1",
+        inv_btlneck_filters,
+        (1, 1),
+        use_bias=False,
+        kernel_initializer="he_normal",
+        name=name + "_conv_1x1_1",
     )(inputs)
     x = layers.BatchNormalization(
-            momentum=0.9, epsilon=1e-5, name=name + "_conv_1x1_1_bn"
+        momentum=0.9, epsilon=1e-5, name=name + "_conv_1x1_1_bn"
     )(x)
     x = tf.nn.silu(x)
 
     # conv_3x3
     x = layers.Conv2D(
-            inv_btlneck_filters,
-            (3, 3),
-            use_bias=False,
-            strides=stride,
-            groups=groups,
-            padding="same",
-            kernel_initializer="he_normal",
-            name=name + "_conv_3x3",
+        inv_btlneck_filters,
+        (3, 3),
+        use_bias=False,
+        strides=stride,
+        groups=groups,
+        padding="same",
+        kernel_initializer="he_normal",
+        name=name + "_conv_3x3",
     )(x)
     x = layers.BatchNormalization(
-            momentum=0.9, epsilon=1e-5, name=name + "_conv_3x3_bn"
+        momentum=0.9, epsilon=1e-5, name=name + "_conv_3x3_bn"
     )(x)
     x = tf.nn.silu(x)
 
     # Squeeze-Excitation block
     x = SqueezeAndExcite2D(
-            inv_btlneck_filters, ratio=squeeze_excite_ratio, name=name
+        inv_btlneck_filters, ratio=squeeze_excite_ratio, name=name
     )
 
     # conv_1x1_2
     x = layers.Conv2D(
-            filters_out,
-            (1, 1),
-            use_bias=False,
-            kernel_initializer="he_normal",
-            name=name + "_conv_1x1_2",
+        filters_out,
+        (1, 1),
+        use_bias=False,
+        kernel_initializer="he_normal",
+        name=name + "_conv_1x1_2",
     )(x)
     x = layers.BatchNormalization(
-            momentum=0.9, epsilon=1e-5, name=name + "_conv_1x1_2_bn"
+        momentum=0.9, epsilon=1e-5, name=name + "_conv_1x1_2_bn"
     )(x)
 
     if stride != 1:
@@ -573,7 +574,9 @@ def apply_z_block(
         return x + inputs
 
 
-def apply_stage(x, block_type, depth, group_width, filters_in, filters_out, name=None):
+def apply_stage(
+    x, block_type, depth, group_width, filters_in, filters_out, name=None
+):
     """Implementation of Stage in RegNet.
 
     Args:
@@ -594,53 +597,59 @@ def apply_stage(x, block_type, depth, group_width, filters_in, filters_out, name
     x = inputs
     if block_type == "X":
         x = apply_x_block(
-                filters_in,
-                filters_out,
-                group_width,
-                stride=2,
-                name=f"{name}_XBlock_0",
-        )(x)
+            x,
+            filters_in,
+            filters_out,
+            group_width,
+            stride=2,
+            name=f"{name}_XBlock_0",
+        )
         for i in range(1, depth):
             x = apply_x_block(
-                    filters_out,
-                    filters_out,
-                    group_width,
-                    name=f"{name}_XBlock_{i}",
-            )(x)
+                x,
+                filters_out,
+                filters_out,
+                group_width,
+                name=f"{name}_XBlock_{i}",
+            )
     elif block_type == "Y":
         x = apply_y_block(
-                filters_in,
-                filters_out,
-                group_width,
-                stride=2,
-                name=name + "_YBlock_0",
-        )(x)
+            x,
+            filters_in,
+            filters_out,
+            group_width,
+            stride=2,
+            name=name + "_YBlock_0",
+        )
         for i in range(1, depth):
             x = apply_y_block(
-                    filters_out,
-                    filters_out,
-                    group_width,
-                    name=f"{name}_YBlock_{i}",
-            )(x)
-    elif block_type == "Z":
-        x = apply_z_block(
-                filters_in,
+                x,
+                filters_out,
                 filters_out,
                 group_width,
-                stride=2,
-                name=f"{name}_ZBlock_0",
-        )(x)
+                name=f"{name}_YBlock_{i}",
+            )
+    elif block_type == "Z":
+        x = apply_z_block(
+            x,
+            filters_in,
+            filters_out,
+            group_width,
+            stride=2,
+            name=f"{name}_ZBlock_0",
+        )
         for i in range(1, depth):
             x = apply_z_block(
-                    filters_out,
-                    filters_out,
-                    group_width,
-                    name=f"{name}_ZBlock_{i}",
-            )(x)
+                x,
+                filters_out,
+                filters_out,
+                group_width,
+                name=f"{name}_ZBlock_{i}",
+            )
     else:
         raise NotImplementedError(
-                f"Block type `{block_type}` not recognized."
-                f"block_type must be one of (`X`, `Y`, `Z`). "
+            f"Block type `{block_type}` not recognized."
+            f"block_type must be one of (`X`, `Y`, `Z`). "
         )
     return x
 
@@ -659,9 +668,9 @@ def apply_head(x, classes=None, name=None, activation=None):
         name = str(backend.get_uid("head"))
 
     x = layers.GlobalAveragePooling2D(name=name + "_head_gap")(x)
-    x = layers.Dense(
-            classes, name=name + "head_dense", activation=activation
-    )(x)
+    x = layers.Dense(classes, name=name + "head_dense", activation=activation)(
+        x
+    )
     return x
 
 
@@ -712,6 +721,7 @@ class RegNet(keras.Model):
     Returns:
       A `keras.Model` instance.
     """
+
     def __init__(
         self,
         depths,
@@ -729,7 +739,6 @@ class RegNet(keras.Model):
         classifier_activation="softmax",
         **kwargs,
     ):
-    
         if not (weights is None or tf.io.gfile.exists(weights)):
             raise ValueError(
                 "The `weights` argument should be either "
@@ -754,7 +763,7 @@ class RegNet(keras.Model):
 
         if include_rescaling:
             x = layers.Rescaling(scale=1.0 / 255.0)(x)
-        x = apply_stem(name=model_name)(x)
+        x = apply_stem(x, name=model_name)
 
         in_channels = x.shape[-1]  # Output from Stem
 
@@ -765,17 +774,18 @@ class RegNet(keras.Model):
             out_channels = widths[stage_index]
 
             x = apply_stage(
+                x,
                 block_type,
                 depth,
                 group_width,
                 in_channels,
                 out_channels,
                 name=model_name + "_Stage_" + str(stage_index),
-            )(x)
+            )
             in_channels = out_channels
 
         if include_top:
-            x = apply_head(classes=classes, activation=classifier_activation)(x)
+            x = apply_head(x, classes=classes, activation=classifier_activation)
         else:
             if pooling == "avg":
                 x = layers.GlobalAveragePooling2D()(x)
@@ -822,6 +832,7 @@ class RegNet(keras.Model):
     @classmethod
     def from_config(cls, config):
         return cls(**config)
+
 
 def RegNetX002(
     *,
