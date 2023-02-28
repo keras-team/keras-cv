@@ -548,7 +548,6 @@ BASE_DOCSTRING = """Instantiates the {name} architecture.
                 of the last convolutional block, and thus the output of the model will
                 be a 2D tensor.
             - `max` means that global max pooling will be applied.
-        name: (Optional) name to pass to the model.  Defaults to "{name}".
         classifier_activation: A `str` or callable. The activation function to use
             on the "top" layer. Ignored unless `include_top=True`. Set
             `classifier_activation=None` to return the logits of the "top" layer.
