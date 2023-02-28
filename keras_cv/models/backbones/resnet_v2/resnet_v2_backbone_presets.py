@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """ResNetV2 model preset configurations."""
-from collections import defaultdict
 
 backbone_presets_no_weights = {
     "resnet18_v2": {
