@@ -285,6 +285,24 @@ class ResNetV2Backbone(Backbone):
         block_type: string, one of "basic_block" or "block". The block type to
             stack. Use "basic_block" for smaller models like ResNet18 and
             ResNet34.
+
+    Examples:
+    ```python
+    input_data = tf.ones(shape=(8, 224, 224, 3))
+
+    # Pretrained backbone
+    model = keras_cv.models.ResNetV2Backbone.from_preset("resnet50_v2_imagenet")
+    output = model(input_data)
+
+    # Randomly initialized backbone with a custom config
+    model = ResNetV2Backbone(
+        stackwise_filters=[64, 128, 256, 512],
+        stackwise_blocks=[2, 2, 2, 2],
+        stackwise_strides=[1, 2, 2, 2],
+        include_rescaling=False,
+    )
+    output = model(input_data)
+    ```
     """
 
     def __init__(
@@ -404,6 +422,15 @@ ALIAS_DOCSTRING = """ResNetV2Backbone model with {num_layers} layers.
         input_shape: optional shape tuple, defaults to (None, None, 3).
         input_tensor: optional Keras tensor (i.e. output of `layers.Input()`)
             to use as image input for the model.
+
+    Examples:
+    ```python
+    input_data = tf.ones(shape=(8, 224, 224, 3))
+
+    # Randomly initialized backbone
+    model = ResNet{num_layers}V2Backbone()
+    output = model(input_data)
+    ```
 """
 
 
