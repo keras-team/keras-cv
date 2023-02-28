@@ -63,29 +63,20 @@ class ResNetV2PresetSmokeTest(tf.test.TestCase, parameterized.TestCase):
         model = ResNet50V2Backbone.from_preset("resnet50_v2_imagenet")
         model(self.input_batch)
 
-    @parameterized.named_parameters(
-        ("backbone", ResNetV2Backbone),
-    )
-    def test_preset_docstring(self, cls):
+    def test_preset_docstring(self):
         """Check we did our docstring formatting correctly."""
-        for name in cls.presets:
-            self.assertRegex(cls.from_preset.__doc__, name)
+        for name in ResNetV2Backbone.presets:
+            self.assertRegex(ResNetV2Backbone.from_preset.__doc__, name)
 
-    @parameterized.named_parameters(
-        ("backbone", ResNetV2Backbone),
-    )
-    def test_unknown_preset_error(self, cls):
+    def test_unknown_preset_error(self):
         # Not a preset name
         with self.assertRaises(ValueError):
-            cls.from_preset("resnet50_v2_clowntown")
+            ResNetV2Backbone.from_preset("resnet50_v2_clowntown")
 
-    @parameterized.named_parameters(
-        ("backbone", ResNetV2Backbone),
-    )
-    def test_load_weights_error(self, cls):
+    def test_load_weights_error(self):
         # Try to load weights when none available
         with self.assertRaises(ValueError):
-            cls.from_preset("resnet50_v2", load_weights=True)
+            ResNetV2Backbone.from_preset("resnet50_v2", load_weights=True)
 
 
 @pytest.mark.extra_large
