@@ -796,6 +796,7 @@ class RegNet(keras.Model):
         self.include_rescaling = include_rescaling
         self.include_top = include_top
         self.classes = classes
+        self.model_name = model_name
         self.input_tensor = input_tensor
         self.pooling = pooling
         self.classifier_activation = classifier_activation
@@ -808,6 +809,7 @@ class RegNet(keras.Model):
             "block_type": self.block_type,
             "include_rescaling": self.include_rescaling,
             "include_top": self.include_top,
+            "model_name": self.model_name,
             "classes": self.classes,
             "input_tensor": self.input_tensor,
             # Remove batch dimension from `input_shape`
