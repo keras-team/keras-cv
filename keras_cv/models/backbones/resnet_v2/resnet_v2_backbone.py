@@ -266,7 +266,7 @@ class ResNetV2Backbone(Backbone):
     the batch normalization and ReLU activation are applied after the
     convolution layers.
 
-    For transfer learning use cases, make sure to read the 
+    For transfer learning use cases, make sure to read the
     [guide to transfer learning & fine-tuning](https://keras.io/guides/transfer_learning/).
 
     Args:
