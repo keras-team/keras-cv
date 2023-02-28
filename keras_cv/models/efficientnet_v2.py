@@ -575,6 +575,57 @@ def round_repeats(repeats, depth_coefficient):
 
 @keras.utils.register_keras_serializable(package="keras_cv.models")
 class EfficientNetV2(keras.Model):
+    """Instantiates the EfficientNetV2 architecture using given scaling
+    coefficients.
+    Args:
+        include_rescaling: bool, whether or not to Rescale the inputs. If set
+            to `True`, inputs will be passed through a `Rescaling(1/255.0)`
+            layer.
+        include_top: bool, whether to include the fully-connected
+            layer at the top of the network.
+        width_coefficient: float, scaling coefficient for network width.
+        depth_coefficient: float, scaling coefficient for network depth.
+        default_size: integer, default input image size.
+        dropout_rate: float, dropout rate before final classifier layer.
+        drop_connect_rate: float, dropout rate at skip connections.
+        depth_divisor: integer, a unit of network width.
+        min_depth: integer, minimum number of filters.
+        bn_momentum: float. Momentum parameter for Batch Normalization layers.
+        activation: activation function.
+        blocks_args: list of dicts, parameters to construct block modules.
+        model_name: string, model name.
+        weights: one of `None` (random initialization),
+            or the path to the weights file to be loaded.
+        input_shape: optional shape tuple, defaults to (None, None, 3).
+        input_tensor: optional Keras tensor (i.e. output of `layers.Input()`)
+            to use as image input for the model.
+        pooling: optional pooling mode for feature extraction
+            when `include_top` is `False`.
+            - `None` means that the output of the model will be
+                the 4D tensor output of the
+                last convolutional layer.
+            - `avg` means that global average pooling
+                will be applied to the output of the
+                last convolutional layer, and thus
+                the output of the model will be a 2D tensor.
+            - `max` means that global max pooling will
+                be applied.
+        classes: optional number of classes to classify images
+            into, only to be specified if `include_top` is True.
+        classifier_activation: A `str` or callable. The activation function to
+            use on the "top" layer. Ignored unless `include_top=True`. Set
+            `classifier_activation=None` to return the logits of the "top"
+            layer.
+
+    Returns:
+      A `keras.Model` instance.
+    Raises:
+      ValueError: in case of invalid argument for `weights`,
+        or invalid input shape.
+      ValueError: if `classifier_activation` is not `"softmax"` or `None` when
+        using a pretrained top layer.
+    """
+
     def __init__(
         self,
         include_rescaling,
