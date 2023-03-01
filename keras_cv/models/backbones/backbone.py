@@ -31,6 +31,7 @@ class Backbone(keras.Model):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self._stack_level_outputs = {}
 
     @classmethod
     def from_config(cls, config):
@@ -145,71 +146,41 @@ class Backbone(keras.Model):
             )(cls.from_preset.__func__)
 
     @property
-    def backbone_level_outputs(self):
-        """Backbone outputs at each resolution level for transfer learning."""
-        return None
+    def stack_level_outputs(self):
+        """Intermediate model outputs for transfer learning.
 
-    @backbone_level_outputs.setter
-    def backbone_level_outputs(self, value):
-        self._backbone_level_outputs = value
+        Format is a dictionary with int as key and layer name as value.
+        The int key represent the level of the feature output. A typical feature
+        pyramid has five levels corresponding to scales P3, P4, P5, P6, P7 in
+        the backbone. Scale Pn represents a feature map 2n times smaller in
+        width and height than the input image.
+        """
+        return self._stack_level_outputs
 
-    def get_feature_extractor(self, min_level=None, max_level=None):
-        """Convert the application model into a model backbone for other tasks.
+    @stack_level_outputs.setter
+    def stack_level_outputs(self, value):
+        self._stack_level_outputs = value
 
-        The backbone model will usually take same inputs as the original
-        application model, but produce multiple outputs, one for each feature
-        level. Those outputs can be feed to network downstream, like FPN and RPN.
+    def get_feature_extractor(self, layer_names, output_keys=None):
+        """Create a feature extractor model with augmented output.
 
-        The output of the backbone model will be a dict with int as key and
-        tensor as value. The int key represent the level of the feature output.
-        A typical feature pyramid has five levels corresponding to scales P3,
-        P4, P5, P6, P7 in the backbone. Scale Pn represents a feature map 2n
-        times smaller in width and height than the input image.
+        This method produces a new `keras.Model` with the same input signature
+        as this instance but with the layers in `layer_names` as the output.
+        This is useful for downstream Tasks that require more output than the
+        final layer of the backbone.
 
         Args:
-            min_level: optional int, the lowest level of feature to be included
-                in the output. Default to model's lowest feature level (based on
-                the model structure).
-            max_level: optional int, the highest level of feature to be included
-                in the output. Default to model's highest feature level (based
-                on the model structure).
+            layer_names: list of strings. Names of layers to include in the
+                output signature.
+            output_keys: optional, list of strings. Key to use for each layer in
+                the model's output dictionary
 
         Returns:
-            a `tf.keras.Model` which has dict as outputs.
-        Raises:
-            ValueError: When the model is lack of information for feature level,
-            and can't be converted to backbone model, or the min_level/max_level
-            param is out of range based on the model structure.
+            `tf.keras.Model` which has dict as outputs.
         """
-        if self._backbone_level_outputs is not None:
-            backbone_level_outputs = self._backbone_level_outputs
-            model_levels = list(sorted(backbone_level_outputs.keys()))
-            if min_level is not None:
-                if min_level < model_levels[0]:
-                    raise ValueError(
-                        f"The min_level provided: {min_level} should be in "
-                        f"the range of {model_levels}"
-                    )
-            else:
-                min_level = model_levels[0]
 
-            if max_level is not None:
-                if max_level > model_levels[-1]:
-                    raise ValueError(
-                        f"The max_level provided: {max_level} should be in "
-                        f"the range of {model_levels}"
-                    )
-            else:
-                max_level = model_levels[-1]
-
-            outputs = {}
-            for level in range(min_level, max_level + 1):
-                outputs[level] = backbone_level_outputs[level]
-
-            return tf.keras.Model(inputs=self.inputs, outputs=outputs)
-
-        else:
-            raise ValueError(
-                "The current model doesn't have any feature level "
-                "information so extraction not possible."
-            )
+        if not output_keys:
+            output_keys = layer_names
+        items = zip(output_keys, layer_names)
+        outputs = {item[0]: self.get_layer(item[1]).output for item in items}
+        return tf.keras.Model(inputs=self.inputs, outputs=outputs)

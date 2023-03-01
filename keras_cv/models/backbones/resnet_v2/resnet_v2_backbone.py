@@ -189,8 +189,9 @@ def apply_block(
     x = layers.Activation("relu", name=name + "_2_relu")(x)
 
     x = layers.Conv2D(4 * filters, 1, name=name + "_3_conv")(x)
-    x = layers.Add(name=name + "_out")([shortcut, x])
-    return x
+    last_layer = layers.Add(name=name + "_out")
+    x = last_layer([shortcut, x])
+    return x, last_layer.name
 
 
 def apply_stack(
@@ -235,21 +236,21 @@ def apply_stack(
             f"Received block_type={block_type}."
         )
 
-    x = block_fn(
+    x, _ = block_fn(
         x, filters, conv_shortcut=first_shortcut, name=name + "_block1"
     )
     for i in range(2, blocks):
-        x = block_fn(
+        x, _ = block_fn(
             x, filters, dilation=dilations, name=name + "_block" + str(i)
         )
-    x = block_fn(
+    x, output_name = block_fn(
         x,
         filters,
         stride=stride,
         dilation=dilations,
         name=name + "_block" + str(blocks),
     )
-    return x
+    return x, output_name
 
 
 @keras.utils.register_keras_serializable(package="keras_cv.models")
@@ -343,7 +344,7 @@ class ResNetV2Backbone(Backbone):
 
         stack_level_outputs = {}
         for stack_index in range(num_stacks):
-            x = apply_stack(
+            x, output_name = apply_stack(
                 x,
                 filters=stackwise_filters[stack_index],
                 blocks=stackwise_blocks[stack_index],
@@ -353,7 +354,7 @@ class ResNetV2Backbone(Backbone):
                 first_shortcut=(block_type == "block" or stack_index > 0),
                 stack_index=stack_index,
             )
-            stack_level_outputs[stack_index + 2] = x
+            stack_level_outputs[stack_index + 2] = output_name
 
         x = layers.BatchNormalization(
             axis=BN_AXIS, epsilon=BN_EPSILON, name="post_bn"
@@ -365,7 +366,7 @@ class ResNetV2Backbone(Backbone):
 
         # All references to `self` below this line
         # Backbone outputs at each resolution level for transfer learning.
-        self.backbone_level_outputs = stack_level_outputs
+        self.stack_level_outputs = stack_level_outputs
 
         self.stackwise_filters = stackwise_filters
         self.stackwise_blocks = stackwise_blocks
@@ -492,6 +493,7 @@ class ResNet34V2Backbone(ResNetV2Backbone):
         return {}
 
 
+@keras.utils.register_keras_serializable(package="keras_cv.models")
 class ResNet50V2Backbone(ResNetV2Backbone):
     def __new__(
         self,

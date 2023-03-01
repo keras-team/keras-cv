@@ -19,6 +19,7 @@ from tensorflow import keras
 import keras_cv
 from keras_cv import bounding_box
 from keras_cv import layers as cv_layers
+from keras_cv.models import ResNet50V2Backbone
 from keras_cv.bounding_box.converters import _decode_deltas_to_boxes
 from keras_cv.models.object_detection import predict_utils
 from keras_cv.models.object_detection.__internal__ import unpack_input
@@ -37,7 +38,7 @@ class RetinaNet(tf.keras.Model):
     """A Keras model implementing the RetinaNet architecture.
 
     Implements the RetinaNet architecture for object detection.  The constructor
-    requires `classes`, `bounding_box_format` and a `backbone`.  Optionally, a
+    requires `classes`, and `bounding_box_format`.  Optionally, a backbone,
     custom label encoder, feature pyramid network, and prediction decoder may all be
     provided.
 
@@ -57,8 +58,10 @@ class RetinaNet(tf.keras.Model):
         bounding_box_format: The format of bounding boxes of input dataset. Refer
             [to the keras.io docs](https://keras.io/api/keras_cv/bounding_box/formats/)
             for more details on supported bounding box formats.
-        backbone: backbone: an optional `tf.keras.Model` custom backbone model. Defaults
-            to a keras_cv.models.ResNet50 with include_rescaling=True
+        backbone: an optional `tf.keras.Model` custom backbone model.
+            If `feature_pyramid` is not provided, must implement the
+            `stack_level_outputs` property with keys "3", "4", and "5". Defaults
+            to a `keras_cv.models.ResNet50V2Backbone`.
         anchor_generator: (Optional) a `keras_cv.layers.AnchorGenerator`.  If provided,
             the anchor generator will be passed to both the `label_encoder` and the
             `prediction_decoder`.  Only to be used when both `label_encoder` and
@@ -78,11 +81,9 @@ class RetinaNet(tf.keras.Model):
             layer uses a `MultiClassNonMaxSuppression` operation for box pruning.
         feature_pyramid: (Optional) A `keras.Model` representing a feature pyramid
             network (FPN).  The feature pyramid network is called on the outputs of the
-            `backbone`.  The KerasCV default backbones return three outputs in a list,
-            but custom backbones may be written and used with custom feature pyramid
-            networks.  If not provided, a default feature pyramid neetwork is produced
-            by the library.  The default feature pyramid network is compatible with all
-            standard keras_cv backbones.
+            `backbone`.  If not provided, a default feature pyramid network is produced
+            by the library. The default feature pyramid network is compatible with all
+            standard keras_cv Backbones.
         classification_head: (Optional) A `keras.Layer` that performs classification of
             the bounding boxes.  If not provided, a simple ConvNet with 1 layer will be
             used.
@@ -95,7 +96,7 @@ class RetinaNet(tf.keras.Model):
         self,
         classes,
         bounding_box_format,
-        backbone=None,
+        backbone="keras_cv.models>ResNet50V2Backbone",
         anchor_generator=None,
         label_encoder=None,
         prediction_decoder=None,
@@ -143,13 +144,8 @@ class RetinaNet(tf.keras.Model):
 
         self.bounding_box_format = bounding_box_format
         self.classes = classes
-        self.backbone = (
-            backbone
-            or keras_cv.models.ResNet50(
-                include_top=False, include_rescaling=True
-            ).as_backbone()
-        )
-
+        if isinstance(backbone, str):
+            backbone = keras.utils.get_registered_object(backbone)()
         self._prediction_decoder = (
             prediction_decoder
             or cv_layers.MultiClassNonMaxSuppression(
@@ -159,7 +155,19 @@ class RetinaNet(tf.keras.Model):
         )
 
         # initialize trainable networks
-        self.feature_pyramid = feature_pyramid or layers_lib.FeaturePyramid()
+        if not feature_pyramid:
+            extractor_levels = [3, 4, 5]
+            extractor_layer_names = [
+                backbone.stack_level_outputs[i] for i in extractor_levels
+            ]
+            # TODO(bischof): consider calling this `self.feature_extractor`
+            self.backbone = backbone.get_feature_extractor(
+                extractor_layer_names, extractor_levels
+            )
+            self.feature_pyramid = layers_lib.FeaturePyramid()
+        else:
+            self.backbone = backbone
+            self.feature_pyramid = feature_pyramid
         prior_probability = tf.constant_initializer(-np.log((1 - 0.01) / 0.01))
 
         self.classification_head = (
@@ -441,6 +449,7 @@ class RetinaNet(tf.keras.Model):
         return {
             "classes": self.classes,
             "bounding_box_format": self.bounding_box_format,
+            # TODO(bischof): actually serialize the backbone
             "backbone": self.backbone,
             "anchor_generator": self.anchor_generator,
             "label_encoder": self.label_encoder,
