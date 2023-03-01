@@ -223,35 +223,30 @@ BASE_DOCSTRING = """Instantiates the {name} architecture.
   Y block and 6.4 giga flops (64 hundred million flops).
 
   Args:
-    include_rescaling: whether or not to Rescale the inputs.If set to True,
-        inputs will be passed through a `Rescaling(1/255.0)` layer.
-    include_top: Whether to include the fully-connected
-        layer at the top of the network.
-    classes: Optional number of classes to classify images
-        into, only to be specified if `include_top` is True.
-    weights: One of `None` (random initialization), or the path to the weights
-          file to be loaded. Defaults to `None`.
-    input_tensor: Optional Keras tensor (i.e. output of `layers.Input()`)
-        to use as image input for the model.
-    input_shape: Optional shape tuple, defaults to (None, None, 3).
-        It should have exactly 3 inputs channels.
-    pooling: Optional pooling mode for feature extraction
-        when `include_top` is `False`. Defaults to None.
-        - `None` means that the output of the model will be
-            the 4D tensor output of the
-            last convolutional layer.
-        - `avg` means that global average pooling
-            will be applied to the output of the
-            last convolutional layer, and thus
-            the output of the model will be a 2D tensor.
-        - `max` means that global max pooling will
-            be applied.
-    classifier_activation: A `str` or callable. The activation function to use
-        on the "top" layer. Ignored unless `include_top=True`. Set
-        `classifier_activation=None` to return the logits of the "top" layer.
-        Defaults to `"softmax"`.
-        When loading pretrained weights, `classifier_activation` can only
-        be `None` or `"softmax"`.
+        include_rescaling: bool, whether or not to Rescale the inputs. If set
+            to `True`, inputs will be passed through a `Rescaling(1/255.0)`
+            layer.
+        include_top: bool, whether to include the fully-connected layer at
+            the top of the network.  If provided, `classes` must be provided.
+        classes: optional int, number of classes to classify images into (only
+            to be specified if `include_top` is `True`).
+        weights: one of `None` (random initialization), a pretrained weight file
+            path, or a reference to pre-trained weights (e.g. 'imagenet/classification')
+            (see available pre-trained weights in weights.py)
+        input_shape: optional shape tuple, defaults to (None, None, 3).
+        input_tensor: optional Keras tensor (i.e. output of `layers.Input()`)
+            to use as image input for the model.
+        pooling: optional pooling mode for feature extraction
+            when `include_top` is `False`.
+            - `None` means that the output of the model will be the 4D tensor output
+                of the last convolutional block.
+            - `avg` means that global average pooling will be applied to the output
+                of the last convolutional block, and thus the output of the model will
+                be a 2D tensor.
+            - `max` means that global max pooling will be applied.
+        classifier_activation: A `str` or callable. The activation function to use
+            on the "top" layer. Ignored unless `include_top=True`. Set
+            `classifier_activation=None` to return the logits of the "top" layer.
 
   Returns:
     A `keras.Model` instance.
@@ -691,34 +686,30 @@ class RegNet(keras.Model):
             Model Scaling"
         default_size: Default input image size.
         model_name: An optional name for the model.
-        include_rescaling: whether or not to Rescale the inputs.If set to True,
-            inputs will be passed through a `Rescaling(1/255.0)` layer.
-        include_top: Whether to include the fully-connected
-            layer at the top of the network.
-        classes: Optional number of classes to classify images
-            into, only to be specified if `include_top` is True, and
-            if no `weights` argument is specified.
-        weights: One of `None` (random initialization), or the path to the
-            weights file to be loaded. Defaults to `None`.
-        input_tensor: Optional Keras tensor (i.e. output of `layers.Input()`)
+        include_rescaling: bool, whether or not to Rescale the inputs. If set
+            to `True`, inputs will be passed through a `Rescaling(1/255.0)`
+            layer.
+        include_top: bool, whether to include the fully-connected layer at
+            the top of the network.  If provided, `classes` must be provided.
+        classes: optional int, number of classes to classify images into (only
+            to be specified if `include_top` is `True`).
+        weights: one of `None` (random initialization), a pretrained weight file
+            path, or a reference to pre-trained weights (e.g. 'imagenet/classification')
+            (see available pre-trained weights in weights.py)
+        input_shape: optional shape tuple, defaults to (None, None, 3).
+        input_tensor: optional Keras tensor (i.e. output of `layers.Input()`)
             to use as image input for the model.
-        input_shape: Optional shape tuple, defaults to (None, None, 3).
-            It should have exactly 3 inputs channels.
-        pooling: Optional pooling mode for feature extraction
-            when `include_top` is `False`. Defaults to None.
-            - `None` means that the output of the model will be
-                the 4D tensor output of the
-                last convolutional layer.
-            - `avg` means that global average pooling
-                will be applied to the output of the
-                last convolutional layer, and thus
-                the output of the model will be a 2D tensor.
-            - `max` means that global max pooling will
-                be applied.
-        classifier_activation: A `str` or callable. The activation function to
-            use on the "top" layer. Ignored unless `include_top=True`. Set
-            `classifier_activation=None` to return the logits of the "top"
-            layer. Defaults to `"softmax"`.
+        pooling: optional pooling mode for feature extraction
+            when `include_top` is `False`.
+            - `None` means that the output of the model will be the 4D tensor output
+                of the last convolutional block.
+            - `avg` means that global average pooling will be applied to the output
+                of the last convolutional block, and thus the output of the model will
+                be a 2D tensor.
+            - `max` means that global max pooling will be applied.
+        classifier_activation: A `str` or callable. The activation function to use
+            on the "top" layer. Ignored unless `include_top=True`. Set
+            `classifier_activation=None` to return the logits of the "top" layer.
 
     Returns:
       A `keras.Model` instance.
