@@ -19,7 +19,6 @@ from tensorflow import keras
 import keras_cv
 from keras_cv import bounding_box
 from keras_cv import layers as cv_layers
-from keras_cv.models import ResNet50V2Backbone
 from keras_cv.bounding_box.converters import _decode_deltas_to_boxes
 from keras_cv.models.object_detection import predict_utils
 from keras_cv.models.object_detection.__internal__ import unpack_input
