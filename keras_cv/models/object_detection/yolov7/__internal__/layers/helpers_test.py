@@ -16,6 +16,10 @@ import tensorflow as tf
 from helpers import (
     ReOrganise,
     Shortcut,
+    DownC,
+    FusedConvolution,
+    ImplicitAddition,
+    ImplicitMultiplication,
 )
 
 
@@ -53,3 +57,61 @@ class ShortcutTest(tf.test.TestCase):
         inputs = c4
         output = layer(inputs, training=False)
         self.assertEquals(output.shape, [16, 16, 3])
+
+
+class DownCTest(tf.test.TestCase):
+    def test_return_type_and_shape(self):
+        layer = Down(filters=322)
+        c4 = tf.ones([2, 16, 16, 3])
+
+        inputs = c4
+        output = layer(inputs, training=False)
+        self.assertEquals(output.shape, [2, 8, 8, 16])
+
+    def test_with_keras_input(self):
+        layer = DownC()
+        c4 = tf.keras.layers.Input([2, 16, 16, 3])
+
+        inputs = c4
+        output = layer(inputs, training=False)
+        self.assertEquals(output.shape, [2, 8, 8, 16])
+
+
+class FusedConvolutionTest(tf.test.TestCase):
+    
+
+class ImplicitAdditionTest(tf.test.TestCase):
+    def test_return_type_and_shape(self):
+        layer = ImplicitAddition()
+        c4 = tf.ones([16, 16, 3])
+
+        inputs = c4
+        output = layer(inputs, training=False)
+        self.assertEquals(output.shape, [1, 16, 16, 3])
+
+    def test_with_keras_input(self):
+        layer = ImplicitAddition()
+        c4 = tf.keras.layers.Input([16, 16, 3])
+
+        inputs = c4
+        output = layer(inputs, training=False)
+        self.assertEquals(output.shape, [1, 16, 16, 3])
+
+
+class ImplicitMultiplicationTest(tf.test.TestCase):
+    def test_return_type_and_shape(self):
+        layer = ImplicitMultiplication()
+        c4 = tf.ones([16, 16, 3])
+
+        inputs = c4
+        output = layer(inputs, training=False)
+        self.assertEquals(output.shape, [1, 16, 16, 3])
+
+    def test_with_keras_input(self):
+        layer = ImplicitMultiplication()
+        c4 = tf.keras.layers.Input([16, 16, 3])
+
+        inputs = c4
+        output = layer(inputs, training=False)
+        self.assertEquals(output.shape, [1, 16, 16, 3])
+

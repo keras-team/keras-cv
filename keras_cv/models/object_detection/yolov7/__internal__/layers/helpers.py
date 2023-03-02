@@ -57,6 +57,8 @@ class Shortcut(tf.keras.layers.Layer):
 
 
 class DownC(tf.keras.layers.Layer):
+    """Spatial Pyramidal Pooling Layer. Used in YOLOv3-SPP"""
+
     def __init__(self, filters, n=1, kernel_size=2, **kwargs):
         super(DownC, self).__init__(**kwargs)
         self.filters = filters
@@ -83,6 +85,10 @@ class DownC(tf.keras.layers.Layer):
 
 
 class FusedConvolution(tf.keras.layers.Layer):
+    """Convolution and Batch Normalization operation fused together in
+    order for faster processing during inference time. Training
+    works similar normal convolution and then batch normalization operation."""
+
     def __init__(
         self,
         filters,
@@ -138,7 +144,97 @@ class FusedConvolution(tf.keras.layers.Layer):
         return config
 
 
+class BreakDownFusedConv(tf.keras.layers.Layer):
+    def __init__(self, depth=2, concat_dim=-1):
+        super(BreakDownFusedConv, self).__init__()
+        self.depth = depth
+        self.part1 = None
+        self.part2 = None
+        self.concat_dim = concat_dim
+        self.concat = tf.keras.layers.Concatenate(axis=concat_dim)
+
+    def build(self, input_shape):
+        channels = input_shape[-1]
+        self.part1 = [
+            FusedConvolution(channels / 2, kernel_size=1, strides=1)
+            for _ in range(self.depth - 1)
+        ]
+        self.part1.append(FusedConvolution(channels / 2, kernel_size=3, strides=2))
+        self.part2 = [tf.keras.layers.MaxPooling2D()]
+        for i in range(self.depth - 1):
+            self.part2.append(FusedConvolution(channels / 2, kernel_size=1, strides=1))
+
+    def call(self, x):
+        out = x
+        x1 = out
+        x2 = out
+        for i in self.part1:
+            x1 = i(x1)
+        for i in self.part2:
+            x2 = i(x2)
+        return self.concat([x1, x2])
+
+    def get_config(self):
+        config = super(BreakDownFusedConv, self).get_config()
+        config.update({"depth": self.depth, "concat_dim": self.concat_dim})
+        return config
+
+
+class Block(tf.keras.layers.Layer):
+    def __init__(self, depth, block_depth, filters, filters2, concat_dim=-1):
+        super(Block, self).__init__()
+        self.depth = depth
+        self.filters = filters
+        self.filters2 = filters2
+        self.block_depth = block_depth
+        self.concat_dim = concat_dim
+        self.part1 = FusedConvolution(filters, kernel_size=1, strides=1)
+        self.part2 = [
+            [
+                FusedConvolution(filters, kernel_size=1, strides=1)
+                if i == 0 and j == 0
+                else FusedConvolution(filters, kernel_size=3, strides=1)
+                for i in range(block_depth)
+            ]
+            for j in range(depth)
+        ]
+        self.part2.append([FusedConvolution(filters)])
+        self.concat = tf.keras.layers.Concatenate(axis=concat_dim)
+        self.fc1 = FusedConvolution(filters2, kernel_size=1, strides=1)
+
+    def call(self, x):
+        x1 = self.part1(x)
+        x2 = []
+        out = x
+        for index, layer in enumerate(self.part2):
+            for index2, layer2 in enumerate(layer):
+                out = layer2(out)
+                if index == len(self.part2) - 1:
+                    continue
+                elif index2 == 0:
+                    x2.append(out)
+        x2.append(out)
+        fin = [x1]
+        for i in x2:
+            fin.append(i)
+        return self.fc1(self.concat(fin))
+
+    def get_config(self):
+        config = super(Block, self).get_config()
+        config.update(
+            {
+                "filters": self.filters,
+                "depth": self.depth,
+                "block_depth": self.block_depth,
+                "concat_dim": self.concat_dim,
+            }
+        )
+        return config
+
+
 class ImplicitAddition(tf.keras.layers.Layer):
+    """Implicit Addition knowledge layer introduced in YOLOR."""
+
     def __init__(self, mean=0.0, std=0.02, **kwargs):
         super(ImplicitAddition, self).__init__(**kwargs)
         self.mean = mean
@@ -163,6 +259,8 @@ class ImplicitAddition(tf.keras.layers.Layer):
 
 
 class ImplicitMultiplication(tf.keras.layers.Layer):
+    """Implicit Multiplication knowledge layer introduced in YOLOR."""
+
     def __init__(self, mean=1.0, std=0.02, **kwargs):
         super(ImplicitMultiplication, self).__init__(**kwargs)
         self.mean = mean
