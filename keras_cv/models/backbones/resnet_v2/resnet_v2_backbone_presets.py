@@ -21,6 +21,7 @@ backbone_presets_no_weights = {
                 "and ReLU activation precede the convolution layers (v2 style)."
             ),
         },
+        "class_name": "keras_cv.models>ResNetV2Backbone",
         "config": {
             "stackwise_filters": [64, 128, 256, 512],
             "stackwise_blocks": [2, 2, 2, 2],
@@ -39,6 +40,7 @@ backbone_presets_no_weights = {
                 "and ReLU activation precede the convolution layers (v2 style)."
             ),
         },
+        "class_name": "keras_cv.models>ResNetV2Backbone",
         "config": {
             "stackwise_filters": [64, 128, 256, 512],
             "stackwise_blocks": [3, 4, 6, 3],
@@ -57,6 +59,7 @@ backbone_presets_no_weights = {
                 "and ReLU activation precede the convolution layers (v2 style)."
             ),
         },
+        "class_name": "keras_cv.models>ResNetV2Backbone",
         "config": {
             "stackwise_filters": [64, 128, 256, 512],
             "stackwise_blocks": [3, 4, 6, 3],
@@ -75,6 +78,7 @@ backbone_presets_no_weights = {
                 "and ReLU activation precede the convolution layers (v2 style)."
             ),
         },
+        "class_name": "keras_cv.models>ResNetV2Backbone",
         "config": {
             "stackwise_filters": [64, 128, 256, 512],
             "stackwise_blocks": [3, 4, 23, 3],
@@ -93,6 +97,7 @@ backbone_presets_no_weights = {
                 "and ReLU activation precede the convolution layers (v2 style)."
             ),
         },
+        "class_name": "keras_cv.models>ResNetV2Backbone",
         "config": {
             "stackwise_filters": [64, 128, 256, 512],
             "stackwise_blocks": [3, 8, 36, 3],
@@ -115,6 +120,7 @@ backbone_presets_with_weights = {
                 "Trained on ILSVRC 2012 (Imagenet) classification task."
             ),
         },
+        "class_name": "keras_cv.models>ResNetV2Backbone",
         "config": backbone_presets_no_weights["resnet50_v2"]["config"],
         "weights_url": "https://storage.googleapis.com/keras-cv/models/resnet50v2/imagenet/classification-v2-notop.h5",
         "weights_hash": "e711c83d6db7034871f6d345a476c8184eab99dbf3ffcec0c1d8445684890ad9",
