@@ -66,6 +66,50 @@ class FrustumRandomDroppingPointTest(tf.test.TestCase):
         outputs = add_layer(inputs)
         self.assertAllClose(inputs[POINT_CLOUDS] * 0.0, outputs[POINT_CLOUDS])
 
+    def test_exclude_all_points(self):
+        add_layer = FrustumRandomDroppingPoints(
+            r_distance=0,
+            theta_width=np.pi,
+            phi_width=np.pi,
+            drop_rate=1.0,
+            exclude_class=1,
+        )
+        point_clouds = np.random.random(size=(2, 50, 10)).astype("float32")
+        exclude_class = np.ones(shape=(2, 50, 1)).astype("float32")
+        point_clouds = np.concatenate([point_clouds, exclude_class], axis=-1)
+
+        bounding_boxes = np.random.random(size=(2, 10, 7)).astype("float32")
+        inputs = {POINT_CLOUDS: point_clouds, BOUNDING_BOXES: bounding_boxes}
+        outputs = add_layer(inputs)
+        self.assertAllClose(inputs, outputs)
+
+    def test_exclude_the_first_half_points(self):
+        add_layer = FrustumRandomDroppingPoints(
+            r_distance=0,
+            theta_width=np.pi,
+            phi_width=np.pi,
+            drop_rate=1.0,
+            exclude_class=1,
+        )
+        point_clouds = np.random.random(size=(2, 50, 10)).astype("float32")
+        exclude_class = np.ones(shape=(2, 25, 1)).astype("float32")
+        exclude_class = np.concatenate(
+            [exclude_class, np.zeros(shape=(2, 25, 1)).astype("float32")],
+            axis=1,
+        )
+        point_clouds = np.concatenate([point_clouds, exclude_class], axis=-1)
+
+        bounding_boxes = np.random.random(size=(2, 10, 7)).astype("float32")
+        inputs = {POINT_CLOUDS: point_clouds, BOUNDING_BOXES: bounding_boxes}
+        outputs = add_layer(inputs)
+        self.assertAllClose(
+            inputs[POINT_CLOUDS][:, 25:, :] * 0.0,
+            outputs[POINT_CLOUDS][:, 25:, :],
+        )
+        self.assertAllClose(
+            inputs[POINT_CLOUDS][:, :25, :], outputs[POINT_CLOUDS][:, :25, :]
+        )
+
     def test_augment_batch_point_clouds_and_bounding_boxes(self):
         add_layer = FrustumRandomDroppingPoints(
             r_distance=0, theta_width=1, phi_width=1, drop_rate=0.5
