@@ -47,7 +47,7 @@ class ClassifierTest(tf.test.TestCase, parameterized.TestCase):
     @parameterized.named_parameters(
         ("jit_compile_false", False), ("jit_compile_true", True)
     )
-    def test_bert_classifier_fit(self, jit_compile):
+    def test_classifier_fit(self, jit_compile):
         self.model.compile(
             loss="categorical_crossentropy",
             optimizer="adam",

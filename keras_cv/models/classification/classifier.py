@@ -35,7 +35,7 @@ class Classifier(Task):
         backbone: `keras_cv.models.Backbone`, the backbone architecture of the
             classifier called on the inputs
         num_classes: number of classes to predict
-    
+
     Example:
     ```python
     input_data = tf.ones(shape=(8, 224, 224, 3))
