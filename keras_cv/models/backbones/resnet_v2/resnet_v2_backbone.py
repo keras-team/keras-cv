@@ -277,8 +277,8 @@ class ResNetV2Backbone(Backbone):
         include_rescaling: bool, whether or not to Rescale the inputs. If set
             to `True`, inputs will be passed through a `Rescaling(1/255.0)`
             layer.
-        stackwise_dialations: list of ints, dialation for each stack in the
-            model. If `None` (default), dialation will not be used.
+        stackwise_dilations: list of ints, dilation for each stack in the
+            model. If `None` (default), dilation will not be used.
         input_shape: optional shape tuple, defaults to (None, None, 3).
         input_tensor: optional Keras tensor (i.e. output of `layers.Input()`)
             to use as image input for the model.
@@ -434,6 +434,7 @@ ALIAS_DOCSTRING = """ResNetV2Backbone model with {num_layers} layers.
 """
 
 
+@keras.utils.register_keras_serializable(package="keras_cv.models")
 class ResNet18V2Backbone(ResNetV2Backbone):
     def __new__(
         self,
@@ -463,6 +464,7 @@ class ResNet18V2Backbone(ResNetV2Backbone):
         return {}
 
 
+@keras.utils.register_keras_serializable(package="keras_cv.models")
 class ResNet34V2Backbone(ResNetV2Backbone):
     def __new__(
         self,
@@ -492,6 +494,7 @@ class ResNet34V2Backbone(ResNetV2Backbone):
         return {}
 
 
+@keras.utils.register_keras_serializable(package="keras_cv.models")
 class ResNet50V2Backbone(ResNetV2Backbone):
     def __new__(
         self,
@@ -525,6 +528,7 @@ class ResNet50V2Backbone(ResNetV2Backbone):
         return cls.presets
 
 
+@keras.utils.register_keras_serializable(package="keras_cv.models")
 class ResNet101V2Backbone(ResNetV2Backbone):
     def __new__(
         self,
@@ -554,6 +558,7 @@ class ResNet101V2Backbone(ResNetV2Backbone):
         return {}
 
 
+@keras.utils.register_keras_serializable(package="keras_cv.models")
 class ResNet152V2Backbone(ResNetV2Backbone):
     def __new__(
         self,
