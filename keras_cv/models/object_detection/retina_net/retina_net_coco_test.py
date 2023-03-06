@@ -34,15 +34,6 @@ class RetinaNetTest(tf.test.TestCase):
         tf.config.set_soft_device_placement(True)
         tf.keras.backend.clear_session()
 
-    # TODO(lukewood): configure for other coordinate systems.
-    @pytest.mark.skipif(
-        "INTEGRATION" not in os.environ or os.environ["INTEGRATION"] != "true",
-        reason="Takes a long time to run, only runs when INTEGRATION "
-        "environment variable is set.  To run the test please run: \n"
-        "`INTEGRATION=true pytest "
-        "keras_cv/models/object_detection/retina_net/retina_net_test.py -k "
-        "test_fit_coco_metrics -s`",
-    )
     def test_fit_coco_metrics(self):
         retina_net = keras_cv.models.RetinaNet(
             classes=2,
@@ -59,10 +50,11 @@ class RetinaNetTest(tf.test.TestCase):
             )
         )
 
+        # BatchNormalization makes it really hard to overfit a miniature dataset
         for layer in retina_net.backbone.layers:
             if isinstance(layer, tf.keras.layers.BatchNormalization):
                 layer.trainable = False
-        # retina_net.backbone.trainable = False
+
         retina_net.compile(
             optimizer=optimizers.SGD(
                 learning_rate=0.0075, momentum=0.9, global_clipnorm=10.0
