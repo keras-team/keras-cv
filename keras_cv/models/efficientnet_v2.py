@@ -651,7 +651,7 @@ class EfficientNetV2(keras.Model):
         if blocks_args == "default":
             blocks_args = DEFAULT_BLOCKS_ARGS[model_name]
 
-        copy_blocks_args = copy.deepcopy(blocks_args)
+        input_blocks_args = copy.deepcopy(blocks_args)
 
         if weights and not tf.io.gfile.exists(weights):
             raise ValueError(
@@ -828,7 +828,7 @@ class EfficientNetV2(keras.Model):
         self.min_depth = min_depth
         self.bn_momentum = bn_momentum
         self.activation = activation
-        self.blocks_args = copy_blocks_args
+        self.blocks_args = input_blocks_args
         self.model_name = model_name
         self.input_tensor = input_tensor
         self.pooling = pooling
