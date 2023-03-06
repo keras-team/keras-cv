@@ -39,9 +39,7 @@ def decode_predictions_output_shapes():
         max_detections=100,
     )
 
-    result = layer(
-        box_prediction=box_pred, class_prediction=class_prediction
-    )
+    result = layer(box_prediction=box_pred, class_prediction=class_prediction)
     return result
 
 
