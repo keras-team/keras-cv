@@ -51,11 +51,17 @@ class RetinaNetTest(tf.test.TestCase):
                 include_top=False, include_rescaling=False
             ).as_backbone(),
         )
-        retina_net.prediction_decoder = keras_cv.layers.MultiClassNonMaxSuppression(
-            bounding_box_format="xywh",
-            confidence_threshold=0.9,
-            from_logits=True,
+        retina_net.prediction_decoder = (
+            keras_cv.layers.MultiClassNonMaxSuppression(
+                bounding_box_format="xywh",
+                confidence_threshold=0.9,
+                from_logits=True,
+            )
         )
+
+        for layer in retina_net.backbone.layers:
+            if isinstance(layer, tf.keras.layers.BatchNormalization):
+                layer.trainable = False
         # retina_net.backbone.trainable = False
         retina_net.compile(
             optimizer=optimizers.SGD(
@@ -72,13 +78,32 @@ class RetinaNetTest(tf.test.TestCase):
             ],
         )
 
+        class StopWhenMetricAboveThreshold(tf.keras.callbacks.Callback):
+            def __init__(self, metric, threshold):
+                self.metric = metric
+                self.threshold = threshold
+
+            def on_epoch_end(self, epoch, logs):
+                if logs[self.metric] > self.threshold:
+                    self.model.stop_training = True
+
         xs, ys = _create_bounding_box_dataset("xywh")
-        ds = tf.data.Dataset.from_tensor_slices((xs, ys))
-        ds = ds.batch(xs.shape[0])
+        dataset = tf.data.Dataset.from_tensor_slices((xs, ys))
+        dataset = dataset.batch(xs.shape[0])
+
+        recall_target_threshold = 0.75
+
         retina_net.fit(
-            ds,
-            validation_data=ds,
-            epochs=10,
+            dataset,
+            validation_data=dataset,
+            epochs=50,
+            callbacks=[
+                StopWhenMetricAboveThreshold(
+                    "val_private__box_recall", recall_target_threshold
+                )
+            ],
         )
         metrics = retina_net.evaluate(x=xs, y=ys, return_dict=True)
-        self.assertAllGreater(metrics["private__box_recall"], 0.75)
+        self.assertAllGreater(
+            metrics["private__box_recall"], recall_target_threshold
+        )

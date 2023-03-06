@@ -217,12 +217,14 @@ class RetinaNet(tf.keras.Model):
     @prediction_decoder.setter
     def prediction_decoder(self, prediction_decoder):
         if prediction_decoder.bounding_box_format != self.bounding_box_format:
-            raise ValueError("Expected `prediction_decoder` and RetinaNet to "
-            "use the same `bounding_box_format`, but got "
-            "`prediction_decoder.bounding_box_format="
-            f"{prediction_decoder.bounding_box_format}`, and "
-            "`self.bounding_box_format="
-            f"{self.bounding_box_format}`.")
+            raise ValueError(
+                "Expected `prediction_decoder` and RetinaNet to "
+                "use the same `bounding_box_format`, but got "
+                "`prediction_decoder.bounding_box_format="
+                f"{prediction_decoder.bounding_box_format}`, and "
+                "`self.bounding_box_format="
+                f"{self.bounding_box_format}`."
+            )
         self._prediction_decoder = prediction_decoder
         self.make_predict_function(force=True)
         self.make_train_function(force=True)

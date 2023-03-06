@@ -77,12 +77,6 @@ class MultiClassNonMaxSuppression(tf.keras.layers.Layer):
         if self.from_logits:
             class_prediction = tf.nn.softmax(class_prediction)
 
-        tf.print('class_prediction.shape', tf.shape(class_prediction))
-        print('box_prediction.shape', box_prediction.shape)
-
-        tf.print('\nclass prediction', class_prediction[0])
-        tf.print('box_prediction', box_prediction[0])
-
         box_prediction = tf.expand_dims(box_prediction, axis=-2)
         (
             box_prediction,
@@ -109,7 +103,6 @@ class MultiClassNonMaxSuppression(tf.keras.layers.Layer):
             "classes": class_prediction,
             "num_detections": valid_det,
         }
-        tf.print('bounding_boxes', bounding_boxes)
         # this is required to comply with KerasCV bounding box format.
         return bounding_box.mask_invalid_detections(bounding_boxes)
 
