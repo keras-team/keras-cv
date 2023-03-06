@@ -55,7 +55,7 @@ class RetinaNetTest(tf.test.TestCase):
 
         retina_net.compile(
             optimizer=optimizers.SGD(
-                learning_rate=0.0075, momentum=0.9, global_clipnorm=10.0
+                learning_rate=0.0075, global_clipnorm=10.0
             ),
             classification_loss="focal",
             box_loss="smoothl1",

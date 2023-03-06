@@ -31,7 +31,7 @@ def decode_predictions_output_shapes():
         dtype=tf.float32,
     )
     box_pred = predictions[..., :4]
-    confidence_pred = predictions[..., 4:]
+    class_prediction = predictions[..., 4:]
 
     layer = cv_layers.MultiClassNonMaxSuppression(
         bounding_box_format="xyxy",
@@ -40,7 +40,7 @@ def decode_predictions_output_shapes():
     )
 
     result = layer(
-        box_prediction=box_pred, confidence_prediction=confidence_pred
+        box_prediction=box_pred, class_prediction=class_prediction
     )
     return result
 
