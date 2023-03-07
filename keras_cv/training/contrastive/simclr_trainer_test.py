@@ -13,10 +13,12 @@
 # limitations under the License.
 
 import tensorflow as tf
+from tensorflow import keras
+from tensorflow.keras import layers
 from tensorflow.keras import optimizers
 
 from keras_cv.losses import SimCLRLoss
-from keras_cv.models import ResNet50V2
+from keras_cv.models import ResNet50V2Backbone
 from keras_cv.training import SimCLRAugmenter
 from keras_cv.training import SimCLRTrainer
 
@@ -37,6 +39,9 @@ class SimCLRTrainerTest(tf.test.TestCase):
         simclr_without_probing.fit(images)
 
     def build_encoder(self):
-        return ResNet50V2(
-            include_rescaling=False, include_top=False, pooling="avg"
+        return keras.Sequential(
+            [
+                ResNet50V2Backbone(include_rescaling=False),
+                layers.GlobalAveragePooling2D(name="avg_pool"),
+            ]
         )

@@ -11,13 +11,16 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import time
 
-
+import matplotlib.pyplot as plt
+import numpy as np
 import tensorflow as tf
 from keras import backend
 
-from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer import (
-    VectorizedBaseImageAugmentationLayer,
+from keras_cv.layers import RandomZoom
+from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
+    BaseImageAugmentationLayer,
 )
 from keras_cv.utils import preprocessing as preprocessing_utils
 
@@ -27,8 +30,7 @@ H_AXIS = -3
 W_AXIS = -2
 
 
-@tf.keras.utils.register_keras_serializable(package="keras_cv")
-class RandomZoom(VectorizedBaseImageAugmentationLayer):
+class OldRandomZoom(BaseImageAugmentationLayer):
     """A preprocessing layer which randomly zooms images during training.
 
     This layer will randomly zoom in or out on each axis of an image
@@ -138,51 +140,60 @@ class RandomZoom(VectorizedBaseImageAugmentationLayer):
         self.interpolation = interpolation
         self.seed = seed
 
-    def get_random_transformation_batch(self, batch_size, **kwargs):
-        height_zooms = self._random_generator.random_uniform(
-            shape=[batch_size, 1],
+    def get_random_transformation(self, image=None, **kwargs):
+        height_zoom = self._random_generator.random_uniform(
+            shape=[1, 1],
             minval=1.0 + self.height_lower,
             maxval=1.0 + self.height_upper,
         )
         if self.width_factor is not None:
-            width_zooms = self._random_generator.random_uniform(
-                shape=[batch_size, 1],
+            width_zoom = self._random_generator.random_uniform(
+                shape=[1, 1],
                 minval=1.0 + self.width_lower,
                 maxval=1.0 + self.width_upper,
             )
         else:
-            width_zooms = height_zooms
+            width_zoom = height_zoom
 
-        return {"height_zooms": height_zooms, "width_zooms": width_zooms}
+        return {"height_zoom": height_zoom, "width_zoom": width_zoom}
 
-    def augment_ragged_image(self, image, transformation, **kwargs):
-        return self.augment_images(
-            images=image, transformations=transformation, **kwargs
-        )
-
-    def augment_images(self, images, transformations, **kwargs):
-        images = preprocessing_utils.ensure_tensor(images, self.compute_dtype)
-        original_shape = images.shape
-        image_shape = tf.shape(images)
+    def augment_image(self, image, transformation, **kwargs):
+        image = preprocessing_utils.ensure_tensor(image, self.compute_dtype)
+        original_shape = image.shape
+        image = tf.expand_dims(image, 0)
+        image_shape = tf.shape(image)
         img_hd = tf.cast(image_shape[H_AXIS], tf.float32)
         img_wd = tf.cast(image_shape[W_AXIS], tf.float32)
-        width_zooms = transformations["width_zooms"]
-        height_zooms = transformations["height_zooms"]
+        width_zoom = transformation["width_zoom"]
+        height_zoom = transformation["height_zoom"]
         zooms = tf.cast(
-            tf.concat([width_zooms, height_zooms], axis=1), dtype=tf.float32
+            tf.concat([width_zoom, height_zoom], axis=1), dtype=tf.float32
         )
-        outputs = preprocessing_utils.transform(
-            images,
+        output = preprocessing_utils.transform(
+            image,
             self.get_zoom_matrix(zooms, img_hd, img_wd),
             fill_mode=self.fill_mode,
             fill_value=self.fill_value,
             interpolation=self.interpolation,
         )
-        outputs.set_shape(original_shape)
-        return outputs
+        output = tf.squeeze(output, 0)
+        output.set_shape(original_shape)
+        return output
 
-    def augment_labels(self, labels, transformations, **kwargs):
-        return labels
+    def augment_label(self, label, transformation, **kwargs):
+        return label
+
+    def get_config(self):
+        config = {
+            "height_factor": self.height_factor,
+            "width_factor": self.width_factor,
+            "fill_mode": self.fill_mode,
+            "fill_value": self.fill_value,
+            "interpolation": self.interpolation,
+            "seed": self.seed,
+        }
+        base_config = super().get_config()
+        return dict(list(base_config.items()) + list(config.items()))
 
     def get_zoom_matrix(self, zooms, image_height, image_width, name=None):
         """Returns projective transform(s) for the given zoom(s).
@@ -226,18 +237,119 @@ class RandomZoom(VectorizedBaseImageAugmentationLayer):
                 axis=1,
             )
 
-    def get_config(self):
-        config = {
-            "height_factor": self.height_factor,
-            "width_factor": self.width_factor,
-            "fill_mode": self.fill_mode,
-            "fill_value": self.fill_value,
-            "interpolation": self.interpolation,
-            "seed": self.seed,
-        }
-        base_config = super().get_config()
-        return dict(list(base_config.items()) + list(config.items()))
 
-    @classmethod
-    def from_config(cls, config):
-        return cls(**config)
+class RandomZoomTest(tf.test.TestCase):
+    def test_consistency_with_old_impl_in(self):
+        image_shape = (16, 32, 32, 3)
+        fixed_height_factor = (-0.5, -0.5)
+        fixed_width_factor = (-0.5, -0.5)
+        image = tf.random.uniform(shape=image_shape) * 255.0
+
+        layer = RandomZoom(
+            fixed_height_factor, fixed_width_factor, interpolation="nearest"
+        )
+        old_layer = OldRandomZoom(
+            fixed_height_factor, fixed_width_factor, interpolation="nearest"
+        )
+
+        output = layer(image)
+        old_output = old_layer(image)
+
+        self.assertAllClose(old_output, output)
+
+    def test_consistency_with_old_impl_out(self):
+        image_shape = (16, 32, 32, 3)
+        fixed_height_factor = (0.5, 0.5)
+        fixed_width_factor = (0.8, 0.8)
+        image = tf.random.uniform(shape=image_shape) * 255.0
+
+        layer = RandomZoom(
+            fixed_height_factor, fixed_width_factor, interpolation="nearest"
+        )
+        old_layer = OldRandomZoom(
+            fixed_height_factor, fixed_width_factor, interpolation="nearest"
+        )
+
+        output = layer(image)
+        old_output = old_layer(image)
+
+        self.assertAllClose(old_output, output)
+
+
+if __name__ == "__main__":
+    # Run benchmark
+    (x_train, _), _ = tf.keras.datasets.cifar10.load_data()
+    x_train = x_train.astype(np.float32)
+
+    num_images = [100, 200, 500, 1000]
+    results = {}
+    aug_candidates = [RandomZoom, OldRandomZoom]
+    aug_args = {"height_factor": 0.2, "width_factor": 0.3}
+
+    for aug in aug_candidates:
+        # Eager Mode
+        c = aug.__name__
+        layer = aug(**aug_args)
+        runtimes = []
+        print(f"Timing {c}")
+
+        for n_images in num_images:
+            # warmup
+            layer(x_train[:n_images])
+
+            t0 = time.time()
+            r1 = layer(x_train[:n_images])
+            t1 = time.time()
+            runtimes.append(t1 - t0)
+            print(f"Runtime for {c}, n_images={n_images}: {t1-t0}")
+        results[c] = runtimes
+
+        # Graph Mode
+        c = aug.__name__ + " Graph Mode"
+        layer = aug(**aug_args)
+
+        @tf.function()
+        def apply_aug(inputs):
+            return layer(inputs)
+
+        runtimes = []
+        print(f"Timing {c}")
+
+        for n_images in num_images:
+            # warmup
+            apply_aug(x_train[:n_images])
+
+            t0 = time.time()
+            r1 = apply_aug(x_train[:n_images])
+            t1 = time.time()
+            runtimes.append(t1 - t0)
+            print(f"Runtime for {c}, n_images={n_images}: {t1-t0}")
+        results[c] = runtimes
+
+        # XLA Mode
+        # cannot run tf.raw_ops.ImageProjectiveTransformV3 on XLA
+        # for more information please refer:
+        # https://github.com/tensorflow/tensorflow/issues/55194
+
+    plt.figure()
+    for key in results:
+        plt.plot(num_images, results[key], label=key)
+        plt.xlabel("Number images")
+
+    plt.ylabel("Runtime (seconds)")
+    plt.legend()
+    plt.savefig("comparison.png")
+
+    # So we can actually see more relevant margins
+    del results[aug_candidates[1].__name__]
+    plt.figure()
+    for key in results:
+        plt.plot(num_images, results[key], label=key)
+        plt.xlabel("Number images")
+
+    plt.ylabel("Runtime (seconds)")
+    plt.legend()
+    plt.savefig("comparison_no_old_eager.png")
+
+    # Run unit tests
+    tf.test.main()

@@ -53,7 +53,7 @@ end_to_end_runtimes = []
 for images in n_images:
     y_true = produce_random_data(num_images=images)
     y_pred = produce_random_data(num_images=images, include_confidence=True)
-    metric = coco._COCORecall(class_ids)
+    metric = coco._BoxRecall(class_ids)
     # warm up
     metric.update_state(y_true, y_pred)
     metric.result()

@@ -20,8 +20,8 @@ from keras_cv import metrics
 class SerializationTest(tf.test.TestCase, parameterized.TestCase):
     @parameterized.named_parameters(
         (
-            "_COCORecall",
-            metrics._COCORecall,
+            "_BoxRecall",
+            metrics._BoxRecall,
             {"class_ids": [0, 1, 2], "bounding_box_format": "xyxy"},
         ),
         (
