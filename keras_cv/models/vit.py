@@ -293,11 +293,11 @@ def ViT(
     output = layers.LayerNormalization(epsilon=1e-6)(encoded_patches)
 
     if include_top:
-        output = layers.Lambda(lambda rep: rep[:, 0])(output)
+        output = output[:, 0]
         output = layers.Dense(classes, activation=classifier_activation)(output)
 
     elif pooling == "token_pooling":
-        output = layers.Lambda(lambda rep: rep[:, 0])(output)
+        output = output[:, 0]
     elif pooling == "avg":
         output = layers.GlobalAveragePooling1D()(output)
 
