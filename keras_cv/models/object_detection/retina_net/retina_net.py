@@ -46,7 +46,7 @@ class RetinaNet(tf.keras.Model):
     retina_net = keras_cv.models.RetinaNet(
         classes=20,
         bounding_box_format="xywh",
-        backbone=backbone,
+        backbone=ResNet50V2Backbone(),
     )
     ```
 
@@ -59,7 +59,7 @@ class RetinaNet(tf.keras.Model):
             for more details on supported bounding box formats.
         backbone: an optional `tf.keras.Model` custom backbone model.
             If `feature_pyramid` is not provided, must implement the
-            `stack_level_outputs` property with keys "3", "4", and "5". Defaults
+            `pyramid_level_outputs` property with keys "3", "4", and "5". Defaults
             to a `keras_cv.models.ResNet50V2Backbone`.
         anchor_generator: (Optional) a `keras_cv.layers.AnchorGenerator`.  If provided,
             the anchor generator will be passed to both the `label_encoder` and the
@@ -95,7 +95,7 @@ class RetinaNet(tf.keras.Model):
         self,
         classes,
         bounding_box_format,
-        backbone="keras_cv.models>ResNet50V2Backbone",
+        backbone=None,
         anchor_generator=None,
         label_encoder=None,
         prediction_decoder=None,
@@ -143,8 +143,9 @@ class RetinaNet(tf.keras.Model):
 
         self.bounding_box_format = bounding_box_format
         self.classes = classes
-        if isinstance(backbone, str):
-            backbone = keras.utils.get_registered_object(backbone)()
+        # TODO(jbischof): replace with preset default once this is Task subclass
+        if backbone is None:
+            backbone = keras_cv.models.ResNet50V2Backbone()
         self._prediction_decoder = (
             prediction_decoder
             or cv_layers.MultiClassNonMaxSuppression(
@@ -157,7 +158,7 @@ class RetinaNet(tf.keras.Model):
         if not feature_pyramid:
             extractor_levels = [3, 4, 5]
             extractor_layer_names = [
-                backbone.stack_level_outputs[i] for i in extractor_levels
+                backbone.pyramid_level_outputs[i] for i in extractor_levels
             ]
             # TODO(bischof): consider calling this `self.feature_extractor`
             self.backbone = backbone.get_feature_extractor(

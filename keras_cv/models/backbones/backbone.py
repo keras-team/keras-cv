@@ -31,7 +31,7 @@ class Backbone(keras.Model):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self._stack_level_outputs = {}
+        self._pyramid_level_outputs = {}
 
     @classmethod
     def from_config(cls, config):
@@ -146,20 +146,20 @@ class Backbone(keras.Model):
             )(cls.from_preset.__func__)
 
     @property
-    def stack_level_outputs(self):
+    def pyramid_level_outputs(self):
         """Intermediate model outputs for transfer learning.
 
         Format is a dictionary with int as key and layer name as value.
         The int key represent the level of the feature output. A typical feature
         pyramid has five levels corresponding to scales P3, P4, P5, P6, P7 in
-        the backbone. Scale Pn represents a feature map 2n times smaller in
+        the backbone. Scale Pn represents a feature map 2^n times smaller in
         width and height than the input image.
         """
-        return self._stack_level_outputs
+        return self._pyramid_level_outputs
 
-    @stack_level_outputs.setter
-    def stack_level_outputs(self, value):
-        self._stack_level_outputs = value
+    @pyramid_level_outputs.setter
+    def pyramid_level_outputs(self, value):
+        self._pyramid_level_outputs = value
 
     def get_feature_extractor(self, layer_names, output_keys=None):
         """Create a feature extractor model with augmented output.
