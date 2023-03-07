@@ -50,7 +50,7 @@ class FrustumRandomDroppingPoints(
       theta_width: A float scalar sets the theta width of a frustum.
       phi_width: A float scalar sets the phi width of a frustum.
       drop_rate: A float scalar sets the probability threshold for dropping the points.
-      exclude_class: A int scalar. When the last feature of a point == exclude_class, the point is not dropped.
+      exclude_class: An optional int scalar or a list of ints. Points with the specified class(es) will not be dropped.
 
     """
 
@@ -60,10 +60,13 @@ class FrustumRandomDroppingPoints(
         theta_width,
         phi_width,
         drop_rate=None,
-        exclude_class=-1,
+        exclude_class=None,
         **kwargs,
     ):
         super().__init__(**kwargs)
+
+        if not isinstance(exclude_class, (tuple, list)):
+            exclude_class = [exclude_class]
 
         if r_distance < 0:
             raise ValueError(
@@ -137,9 +140,12 @@ class FrustumRandomDroppingPoints(
         self, point_clouds, bounding_boxes, transformation, **kwargs
     ):
         point_mask = transformation["point_mask"]
+
         # Do not drop points that are protected by setting the corresponding
         # point_mask = 1.0.
-        protected_points = point_clouds[0, :, -1] == self._exclude_class
+        protected_points = tf.zeros_like(point_clouds[0, :, -1], dtype=tf.bool)
+        for excluded_class in self._exclude_class:
+            protected_points |= point_clouds[0, :, -1] == excluded_class
         point_mask = tf.where(
             protected_points[tf.newaxis, :, tf.newaxis], True, point_mask
         )

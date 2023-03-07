@@ -89,15 +89,16 @@ class FrustumRandomDroppingPointTest(tf.test.TestCase):
             theta_width=np.pi,
             phi_width=np.pi,
             drop_rate=1.0,
-            exclude_class=1,
+            exclude_class=[1, 2],
         )
         point_clouds = np.random.random(size=(2, 50, 10)).astype("float32")
-        exclude_class = np.ones(shape=(2, 25, 1)).astype("float32")
-        exclude_class = np.concatenate(
-            [exclude_class, np.zeros(shape=(2, 25, 1)).astype("float32")],
+        class_1 = np.ones(shape=(2, 10, 1)).astype("float32")
+        class_2 = np.ones(shape=(2, 15, 1)).astype("float32") * 2
+        classes = np.concatenate(
+            [class_1, class_2, np.zeros(shape=(2, 25, 1)).astype("float32")],
             axis=1,
         )
-        point_clouds = np.concatenate([point_clouds, exclude_class], axis=-1)
+        point_clouds = np.concatenate([point_clouds, classes], axis=-1)
 
         bounding_boxes = np.random.random(size=(2, 10, 7)).astype("float32")
         inputs = {POINT_CLOUDS: point_clouds, BOUNDING_BOXES: bounding_boxes}

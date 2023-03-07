@@ -44,13 +44,16 @@ class GlobalRandomDroppingPoints(
 
     Arguments:
       drop_rate: A float scalar sets the probability threshold for dropping the points.
-      exclude_class: A int scalar. When the last feature of a point == exclude_class, the point is not dropped.
+      exclude_class: An optional int scalar or a list of ints. Points with the specified class(es) will not be dropped.
 
     """
 
-    def __init__(self, drop_rate=None, exclude_class=-1, **kwargs):
+    def __init__(self, drop_rate=None, exclude_class=None, **kwargs):
         super().__init__(**kwargs)
         drop_rate = drop_rate if drop_rate else 0.0
+
+        if not isinstance(exclude_class, (tuple, list)):
+            exclude_class = [exclude_class]
 
         if drop_rate > 1:
             raise ValueError("drop_rate must be <=1.")
@@ -80,9 +83,13 @@ class GlobalRandomDroppingPoints(
         self, point_clouds, bounding_boxes, transformation, **kwargs
     ):
         point_mask = transformation["point_mask"]
-        # Do not drop points that are protected by setting the corresponding
-        # point_mask = 1.0.
-        protected_points = point_clouds[0, :, -1] == self._exclude_class
+
+        # Do not add noise to points that are protected by setting the corresponding
+        # point_noise = 1.0.
+        protected_points = tf.zeros_like(point_clouds[0, :, -1], dtype=tf.bool)
+        for excluded_class in self._exclude_class:
+            protected_points |= point_clouds[0, :, -1] == excluded_class
+
         point_mask = tf.where(
             protected_points[tf.newaxis, :, tf.newaxis], True, point_mask
         )
