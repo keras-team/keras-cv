@@ -94,9 +94,14 @@ class VGG16(keras.Model):
                  name="VGG16",
                  **kwargs,
                  ):
-        self.in_shape = input_shape
         self.include_rescaling = include_rescaling
         self.include_top = include_top
+        self.classes = classes
+        self.input_tensor = input_tensor
+        self.weights = self.weights
+        self.pooling = pooling
+        self.classifier_activation = classifier_activation
+        self.name = name
 
         if weights and not tf.io.gfile.exists(weights):
             raise ValueError(
@@ -109,6 +114,13 @@ class VGG16(keras.Model):
                 "If `include_top` is True, you should specify `classes`. "
                 f"Received: classes={classes}"
             )
+
+        if include_top and pooling:
+            raise ValueError(
+                f"`pooling` must be `None` when `include_top=True`."
+                f"Received pooling={pooling} and include_top={include_top}. "
+            )
+
         inputs = utils.parse_model_inputs(input_shape, input_tensor)
         x = inputs
 
@@ -176,3 +188,21 @@ class VGG16(keras.Model):
         super().__init__(inputs=inputs, outputs=x, name=name, **kwargs)
         if weights is not None:
             self.load_weights(weights)
+
+    def get_config(self):
+        return {
+            "include_rescaling": self.include_rescaling,
+            "include_top": self.include_top,
+            "name": self.name,
+            "input_shape": self.input_shape[1:],
+            "input_tensor": self.input_tensor,
+            "pooling": self.pooling,
+            "classes": self.classes,
+            "activation": self.activation,
+            "classifier_activation": self.classifier_activation,
+            "trainables": self.trainables,
+        }
+
+    @classmethod
+    def from_config(cls, config):
+        return cls(**config)
