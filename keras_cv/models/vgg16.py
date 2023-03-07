@@ -23,32 +23,69 @@ from tensorflow import keras
 from tensorflow.keras import layers
 from keras_cv.models import utils
 
-class VGG16(keras.Model):
 
-    @staticmethod
-    def build_vgg_block(num_layers,
+def build_vgg_block(input_tensor,
+                    num_layers,
                     kernel_size,
                     stride,
                     activation,
                     padding,
-                    max_pooling,
+                    max_pool,
                     name,
                     ):
-        block = keras.Sequential(name=name)
-        for num in range(1, num_layers+1):
-            block.add(layers.Conv2D(kernel_size,
-                                    stride,
-                                    activation=activation,
-                                    padding=padding,
-                                    name=f"{name}_conv{str(num)}"))
-        if max_pooling:
-            block.add(layers.MaxPooling2D((2, 2), strides=(2, 2), name=f"{name}_pool"))
+    x = input_tensor
+    for num in range(1, num_layers + 1):
+        x = layers.Conv2D(kernel_size,
+                          stride,
+                          activation=activation,
+                          padding=padding,
+                          name=f"{name}_conv{str(num)}")(x)
+    if max_pool:
+        x = layers.MaxPooling2D((2, 2), strides=(2, 2), name=f"{name}_pool")(x)
+    return x
 
-        return block
 
+@keras.utils.register_keras_serializable(package="keras_cv.models")
+class VGG16(keras.Model):
+    """Instantiates the VGG16 architecture.
+    Reference:
+    - [Very Deep Convolutional Networks for Large-Scale Image Recognition](https://arxiv.org/abs/1409.1556) (ICLR 2015)
+    This function returns a Keras VGG16 model.
+    Args:
+      include_rescaling: bool, whether or not to Rescale the inputs.If set to True,
+        inputs will be passed through a `Rescaling(1/255.0)` layer.
+      include_top: bool, whether to include the 3 fully-connected
+        layers at the top of the network. If provided, classes must be provided.
+      classes: int, optional number of classes to classify images into, only to be
+        specified if `include_top` is True.
+      weights: os.PathLike or None, one of `None` (random initialization), or a pretrained weight file path.
+      input_shape: tuple, optional shape tuple, defaults to (224, 224, 3).
+      input_tensor: Tensor, optional Keras tensor (i.e. output of `layers.Input()`)
+        to use as image input for the model.
+      pooling: bool, Optional pooling mode for feature extraction
+        when `include_top` is `False`.
+        - `None` means that the output of the model will be
+            the 4D tensor output of the
+            last convolutional block.
+        - `avg` means that global average pooling
+            will be applied to the output of the
+            last convolutional block, and thus
+            the output of the model will be a 2D tensor.
+        - `max` means that global max pooling will
+            be applied.
+      classifier_activation:`str` or callable. The activation function to use
+        on the "top" layer. Ignored unless `include_top=True`. Set
+        `classifier_activation=None` to return the logits of the "top" layer.
+        When loading pretrained weights, `classifier_activation` can only
+        be `None` or `"softmax"`.
+      name: (Optional) name to pass to the model.  Defaults to "VGG16".
+    Returns:
+      A `keras.Model` instance.
+    """
     def __init__(self,
-                 include_rescaling,
-                 include_top,
+                 input_tensor=None,
+                 include_rescaling=True,
+                 include_top=True,
                  classes=None,
                  weights=None,
                  input_shape=(224, 224, 3),
@@ -57,7 +94,6 @@ class VGG16(keras.Model):
                  name="VGG16",
                  **kwargs,
                  ):
-        super().__init__(name=name, **kwargs)
         self.input_shape = input_shape
         self.include_rescaling = include_rescaling
         self.include_top = include_top
@@ -73,144 +109,70 @@ class VGG16(keras.Model):
                 "If `include_top` is True, you should specify `classes`. "
                 f"Received: classes={classes}"
             )
+        inputs = utils.parse_model_inputs(input_shape, input_tensor)
+        x = inputs
 
-        # inputs = utils.parse_model_inputs(input_shape, input_tensor)
-        #
-        # x = inputs
         if include_rescaling:
-            self.rescaling_layer = layers.Rescaling(1 / 255.0)
+            x = layers.Rescaling(1 / 255.0)(x)
 
-        self.block_1 = build_vgg_block(num_layers=2,
-                                  kernel_size=64,
-                                  stride=(3,3),
-                                  activation='relu',
-                                  padding='same',
-                                  max_pool=True,
-                                  name='block1')
+        x = build_vgg_block(input_tensor=x,
+                            num_layers=2,
+                            kernel_size=64,
+                            stride=(3, 3),
+                            activation='relu',
+                            padding='same',
+                            max_pool=True,
+                            name='block1')
 
-        self.block_2 = build_vgg_block(num_layers=2,
-                                  kernel_size=128,
-                                  stride=(3,3),
-                                  activation='relu',
-                                  padding='same',
-                                  max_pool=True,
-                                  name='block2')
+        x = build_vgg_block(input_tensor=x,
+                            num_layers=2,
+                            kernel_size=128,
+                            stride=(3, 3),
+                            activation='relu',
+                            padding='same',
+                            max_pool=True,
+                            name='block2')
 
-        self.block_3 = build_vgg_block(num_layers=3,
-                                  kernel_size=256,
-                                  stride=(3,3),
-                                  activation='relu',
-                                  padding='same',
-                                  max_pool=True,
-                                  name='block3')
+        x = build_vgg_block(input_tensor=x,
+                            num_layers=3,
+                            kernel_size=256,
+                            stride=(3, 3),
+                            activation='relu',
+                            padding='same',
+                            max_pool=True,
+                            name='block3')
 
-        self.block_4 = build_vgg_block(num_layers=3,
-                                  kernel_size=512,
-                                  stride=(3, 3),
-                                  activation='relu',
-                                  padding='same',
-                                  max_pool=True,
-                                  name='block4')
+        x = build_vgg_block(input_tensor=x,
+                            num_layers=3,
+                            kernel_size=512,
+                            stride=(3, 3),
+                            activation='relu',
+                            padding='same',
+                            max_pool=True,
+                            name='block4')
 
-        self.block_5 = build_vgg_block(num_layers=3,
-                                  kernel_size=512,
-                                  stride=(3, 3),
-                                  activation='relu',
-                                  padding='same',
-                                  max_pool=True,
-                                  name='block5')
-
-        # Block 1
-        # x = layers.Conv2D(
-        #     64, (3, 3), activation="relu", padding="same", name="block1_conv1"
-        # )(x)
-        # x = layers.Conv2D(
-        #     64, (3, 3), activation="relu", padding="same", name="block1_conv2"
-        # )(x)
-        # x = layers.MaxPooling2D((2, 2), strides=(2, 2), name="block1_pool")(x)
-        #
-        # # Block 2
-        # x = layers.Conv2D(
-        #     128, (3, 3), activation="relu", padding="same", name="block2_conv1"
-        # )(x)
-        # x = layers.Conv2D(
-        #     128, (3, 3), activation="relu", padding="same", name="block2_conv2"
-        # )(x)
-        # x = layers.MaxPooling2D((2, 2), strides=(2, 2), name="block2_pool")(x)
-        #
-        # # Block 3
-        # x = layers.Conv2D(
-        #     256, (3, 3), activation="relu", padding="same", name="block3_conv1"
-        # )(x)
-        # x = layers.Conv2D(
-        #     256, (3, 3), activation="relu", padding="same", name="block3_conv2"
-        # )(x)
-        # x = layers.Conv2D(
-        #     256, (3, 3), activation="relu", padding="same", name="block3_conv3"
-        # )(x)
-        # x = layers.MaxPooling2D((2, 2), strides=(2, 2), name="block3_pool")(x)
-        #
-        # # Block 4
-        # x = layers.Conv2D(
-        #     512, (3, 3), activation="relu", padding="same", name="block4_conv1"
-        # )(x)
-        # x = layers.Conv2D(
-        #     512, (3, 3), activation="relu", padding="same", name="block4_conv2"
-        # )(x)
-        # x = layers.Conv2D(
-        #     512, (3, 3), activation="relu", padding="same", name="block4_conv3"
-        # )(x)
-        # x = layers.MaxPooling2D((2, 2), strides=(2, 2), name="block4_pool")(x)
-        #
-        # # Block 5
-        # x = layers.Conv2D(
-        #     512, (3, 3), activation="relu", padding="same", name="block5_conv1"
-        # )(x)
-        # x = layers.Conv2D(
-        #     512, (3, 3), activation="relu", padding="same", name="block5_conv2"
-        # )(x)
-        # x = layers.Conv2D(
-        #     512, (3, 3), activation="relu", padding="same", name="block5_conv3"
-        # )(x)
-        # x = layers.MaxPooling2D((2, 2), strides=(2, 2), name="block5_pool")(x)
+        x = build_vgg_block(input_tensor=x,
+                            num_layers=3,
+                            kernel_size=512,
+                            stride=(3, 3),
+                            activation='relu',
+                            padding='same',
+                            max_pool=True,
+                            name='block5')
 
         if include_top:
-            self.flatten_layer = layers.Flatten(name="flatten")(x)
-            self.fc1_layer = layers.Dense(4096, activation="relu", name="fc1")(x)
-            self.fc2_layer = layers.Dense(4096, activation="relu", name="fc2")(x)
-            self.classification_layer = layers.Dense(
+            x = layers.Flatten(name="flatten")(x)
+            x = layers.Dense(4096, activation="relu", name="fc1")(x)
+            x = layers.Dense(4096, activation="relu", name="fc2")(x)
+            x = layers.Dense(
                 classes, activation=classifier_activation, name="predictions"
             )(x)
         else:
             if pooling == "avg":
-                self.pool_layer = layers.GlobalAveragePooling2D()(x)
+                x = layers.GlobalAveragePooling2D()(x)
             elif pooling == "max":
-                self.pool_layer = layers.GlobalMaxPooling2D()(x)
+                x = layers.GlobalMaxPooling2D()(x)
 
-        # model = keras.Model(inputs, x, name=name, **kwargs)
-        # if weights is not None:
-        #     model.load_weights(weights)
-        # return model
-
-    def call(self, input_tensor):
-        inputs = utils.parse_model_inputs(self.input_shape, input_tensor)
-        x = inputs
-
-        if self.include_rescaling is not None:
-            x = self.rescaling_layer(x)
-
-        x = self.block_1(x)
-        x = self.block_2(x)
-        x = self.block_3(x)
-        x = self.block_4(x)
-        x = self.block_5(x)
-
-        if self.include_top:
-            x = self.flatten_layer(x)
-            x = self.fc1_layer(x)
-            x = self.fc2_layer(x)
-            out = self.classification_layer(x)
-        else:
-            out = self.pool_layer(x)
-
-        return out
+        super().__init__(inputs=inputs, outputs=x, name=name, **kwargs)
+        if weights is not None:
+            self.load_weights(weights)
