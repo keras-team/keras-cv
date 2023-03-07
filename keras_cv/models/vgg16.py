@@ -100,7 +100,6 @@ class VGG16(keras.Model):
         self.input_tensor = input_tensor
         self.pooling = pooling
         self.classifier_activation = classifier_activation
-        self.name = name
 
         if weights and not tf.io.gfile.exists(weights):
             raise ValueError(
