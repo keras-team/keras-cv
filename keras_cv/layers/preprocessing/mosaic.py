@@ -210,7 +210,9 @@ class Mosaic(BaseImageAugmentationLayer):
             [input_height, input_width],
         )
         # tf.image.crop_and_resize will always output float32, so we need to recast
-        output = tf.cast(output, self.compute_dtype)
+        # tf.image.crop_and_resize outputs [num_boxes, crop_height, crop_width, depth]
+        # since num_boxes is always one we only need the first element
+        output = tf.cast(output[0], self.compute_dtype)
         return output
 
     def _update_label(
