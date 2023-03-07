@@ -196,7 +196,6 @@ class VGG16(keras.Model):
             "input_tensor": self.input_tensor,
             "pooling": self.pooling,
             "classes": self.classes,
-            "activation": self.activation,
             "classifier_activation": self.classifier_activation,
             "trainables": self.trainables,
         }
