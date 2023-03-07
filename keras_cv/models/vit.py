@@ -174,6 +174,7 @@ BASE_DOCSTRING = """Instantiates the {name} architecture.
       A `keras.Model` instance.
 """
 
+
 @keras.utils.register_keras_serializable(package="keras_cv.models")
 class ViT(keras.Model):
     """Instantiates the ViT architecture.
@@ -247,7 +248,6 @@ class ViT(keras.Model):
         classifier_activation="softmax",
         **kwargs,
     ):
-
         if weights and not tf.io.gfile.exists(weights):
             raise ValueError(
                 "The `weights` argument should be either `None` or the path to the "
@@ -274,7 +274,9 @@ class ViT(keras.Model):
 
         # The previous layer rescales [0..255] to [0..1] if applicable
         # This one rescales [0..1] to [-1..1] since ViTs expect [-1..1]
-        x = layers.Rescaling(scale=1.0 / 0.5, offset=-1.0, name="rescaling_2")(x)
+        x = layers.Rescaling(scale=1.0 / 0.5, offset=-1.0, name="rescaling_2")(
+            x
+        )
 
         encoded_patches = PatchingAndEmbedding(project_dim, patch_size)(x)
         encoded_patches = layers.Dropout(mlp_dropout)(encoded_patches)
@@ -293,7 +295,9 @@ class ViT(keras.Model):
 
         if include_top:
             output = layers.Lambda(lambda rep: rep[:, 0])(output)
-            output = layers.Dense(classes, activation=classifier_activation)(output)
+            output = layers.Dense(classes, activation=classifier_activation)(
+                output
+            )
 
         elif pooling == "token_pooling":
             output = layers.Lambda(lambda rep: rep[:, 0])(output)
@@ -306,20 +310,20 @@ class ViT(keras.Model):
         if weights is not None:
             self.load_weights(weights)
 
-        self.include_rescaling=include_rescaling
-        self.include_top=include_top
-        self.input_tensor=input_tensor
-        self.pooling=pooling
-        self.classes=classes
-        self.patch_size=patch_size
-        self.transformer_layer_num=transformer_layer_num
-        self.num_heads=num_heads
-        self.mlp_dropout=mlp_dropout
-        self.attention_dropout=attention_dropout
-        self.activation=activation
-        self.project_dim=project_dim
-        self.mlp_dim=mlp_dim
-        self.classifier_activation=classifier_activation
+        self.include_rescaling = include_rescaling
+        self.include_top = include_top
+        self.input_tensor = input_tensor
+        self.pooling = pooling
+        self.classes = classes
+        self.patch_size = patch_size
+        self.transformer_layer_num = transformer_layer_num
+        self.num_heads = num_heads
+        self.mlp_dropout = mlp_dropout
+        self.attention_dropout = attention_dropout
+        self.activation = activation
+        self.project_dim = project_dim
+        self.mlp_dim = mlp_dim
+        self.classifier_activation = classifier_activation
 
     def get_config(self):
         return {
