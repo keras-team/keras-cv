@@ -53,13 +53,23 @@ class FrustumRandomPointFeatureNoise(
       theta_width: A float scalar sets the theta width of a frustum.
       phi_width: A float scalar sets the phi width of a frustum.
       max_noise_level: A float scalar sets the sampled feature noise range [1-max_noise_level, 1+max_noise_level].
+      exclude_classes: An optional int scalar or a list of ints. Points with the specified class(es) will not be modified.
 
     """
 
     def __init__(
-        self, r_distance, theta_width, phi_width, max_noise_level=None, **kwargs
+        self,
+        r_distance,
+        theta_width,
+        phi_width,
+        max_noise_level=None,
+        exclude_classes=None,
+        **kwargs
     ):
         super().__init__(**kwargs)
+
+        if not isinstance(exclude_classes, (tuple, list)):
+            exclude_classes = [exclude_classes]
 
         if r_distance < 0:
             raise ValueError("r_distance must be >=0.")
@@ -75,6 +85,7 @@ class FrustumRandomPointFeatureNoise(
         self._theta_width = theta_width
         self._phi_width = phi_width
         self._max_noise_level = max_noise_level
+        self._exclude_classes = exclude_classes
 
     def get_config(self):
         return {
@@ -82,6 +93,7 @@ class FrustumRandomPointFeatureNoise(
             "theta_width": self._theta_width,
             "phi_width": self._phi_width,
             "max_noise_level": self._max_noise_level,
+            "exclude_classes": self._exclude_classes,
         }
 
     def get_random_transformation(self, point_clouds, **kwargs):
@@ -135,5 +147,16 @@ class FrustumRandomPointFeatureNoise(
         self, point_clouds, bounding_boxes, transformation, **kwargs
     ):
         point_noise = transformation["point_noise"]
+
+        # Do not add noise to points that are protected by setting the corresponding
+        # point_noise = 1.0.
+        protected_points = tf.zeros_like(point_clouds[..., -1], dtype=tf.bool)
+        for excluded_class in self._exclude_classes:
+            protected_points |= point_clouds[..., -1] == excluded_class
+
+        no_noise = tf.ones_like(point_noise, point_noise.dtype)
+        point_noise = tf.where(
+            protected_points[:, :, tf.newaxis], no_noise, point_noise
+        )
         point_clouds *= point_noise
         return (point_clouds, bounding_boxes)
