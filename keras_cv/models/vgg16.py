@@ -94,7 +94,7 @@ class VGG16(keras.Model):
                  name="VGG16",
                  **kwargs,
                  ):
-        self.input_shape = input_shape
+        self.in_shape = input_shape
         self.include_rescaling = include_rescaling
         self.include_top = include_top
 
