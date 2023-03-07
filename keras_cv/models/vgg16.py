@@ -98,7 +98,6 @@ class VGG16(keras.Model):
         self.include_top = include_top
         self.classes = classes
         self.input_tensor = input_tensor
-        self.weights = weights
         self.pooling = pooling
         self.classifier_activation = classifier_activation
         self.name = name
