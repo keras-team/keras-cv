@@ -21,7 +21,7 @@ from keras_cv.utils.python_utils import classproperty
 from keras_cv.utils.python_utils import format_docstring
 
 
-@keras.utils.register_keras_serializable(package="keras_nlp")
+@keras.utils.register_keras_serializable(package="keras_cv")
 class Task(keras.Model):
     """Base class for Task models."""
 
@@ -70,25 +70,33 @@ class Task(keras.Model):
     def from_preset(
         cls,
         preset,
-        load_weights=True,
+        load_weights=None,
         **kwargs,
     ):
-        """Instantiate {{model_task_name}} model from preset architecture and weights.
+        """Instantiate {{model_name}} model from preset architecture and weights.
+
         Args:
             preset: string. Must be one of "{{preset_names}}".
+                If looking for a preset with pretrained weights, choose one of
+                "{{preset_with_weights_names}}".
             load_weights: Whether to load pre-trained weights into model.
-                Defaults to `True`.
+                Defaults to `None`, which follows whether the preset has
+                pretrained weights available.
+
         Examples:
         ```python
         # Load architecture and weights from preset
-        model = {{model_task_name}}.from_preset("{{example_preset_name}}")
-        # Load randomly initialized model from preset architecture
-        model = {{model_task_name}}.from_preset(
+        model = keras_cv.models.{{model_name}}.from_preset(
             "{{example_preset_name}}",
-            load_weights=False
         )
+
+        # Load randomly initialized model from preset architecture with weights
+        model = keras_cv.models.{{model_name}}.from_preset(
+            "{{example_preset_name}}",
+            load_weights=False,
         ```
         """
+
         if not cls.presets:
             raise NotImplementedError(
                 "No presets have been created for this class."
@@ -128,8 +136,8 @@ class Task(keras.Model):
         # Use __init_subclass__ to setup a correct docstring for from_preset.
         super().__init_subclass__(**kwargs)
 
-        # If the subclass does not define `from_preset`, assign a wrapper so that
-        # each class can have a distinct docstring.
+        # If the subclass does not define from_preset, assign a wrapper so that
+        # each class can have an distinct docstring.
         if "from_preset" not in cls.__dict__:
 
             def from_preset(calling_cls, *args, **kwargs):
@@ -137,11 +145,18 @@ class Task(keras.Model):
 
             cls.from_preset = classmethod(from_preset)
 
+        if not cls.presets:
+            cls.from_preset.__func__.__doc__ = """Not implemented.
+
+            No presets available for this class.
+            """
+
         # Format and assign the docstring unless the subclass has overridden it.
         if cls.from_preset.__doc__ is None:
             cls.from_preset.__func__.__doc__ = Task.from_preset.__doc__
             format_docstring(
-                model_task_name=cls.__name__,
-                example_preset_name=next(iter(cls.presets), ""),
+                model_name=cls.__name__,
+                example_preset_name=next(iter(cls.presets_with_weights), ""),
                 preset_names='", "'.join(cls.presets),
+                preset_with_weights_names='", "'.join(cls.presets_with_weights),
             )(cls.from_preset.__func__)

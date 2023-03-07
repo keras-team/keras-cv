@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Classifier Task presets"""
+"""ImageClassifier Task presets"""
 
 from keras_cv.models.backbones.resnet_v2 import resnet_v2_backbone_presets
 
@@ -28,4 +28,24 @@ backbone_presets = {
     **backbone_presets_with_weights,
 }
 
-classifier_presets = {}
+classifier_presets = {
+    "resnet50_v2_imagenet_classifier": {
+        "metadata": {
+            "description": (
+                "ResNet classifier with 50 layers where the batch "
+                "normalization and ReLU activation precede the convolution "
+                "layers (v2 style). Trained on ILSVRC 2012 (Imagenet) "
+                "classification task."
+            ),
+        },
+        "config": {
+            "backbone": resnet_v2_backbone_presets.backbone_presets[
+                "resnet50_v2"
+            ],
+            "num_classes": 1000,
+        },
+        # TODO(jbischof): checkpoint conversion
+        "weights_url": "https://storage.googleapis.com/keras-cv/models/resnet50v2/imagenet/classification-v2.h5",
+        "weights_hash": "5ee5a8ac650aaa59342bc48ffe770e6797a5550bcc35961e1d06685292c15921",
+    },
+}

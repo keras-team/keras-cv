@@ -11,44 +11,51 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Image classifier model that works for most use cases."""
+"""Image classifier model using pooling and dense layers."""
 
 import copy
 
 from keras import layers
 from tensorflow import keras
 
-from keras_cv.models.classification.classifier_presets import backbone_presets
-from keras_cv.models.classification.classifier_presets import (
+from keras_cv.models.classification.image_classifier_presets import (
+    backbone_presets,
+)
+from keras_cv.models.classification.image_classifier_presets import (
     backbone_presets_with_weights,
 )
-from keras_cv.models.classification.classifier_presets import classifier_presets
+from keras_cv.models.classification.image_classifier_presets import (
+    classifier_presets,
+)
 from keras_cv.models.task import Task
 from keras_cv.utils.python_utils import classproperty
 
 
 @keras.utils.register_keras_serializable(package="keras_cv.models")
-class Classifier(Task):
+class ImageClassifier(Task):
     """Image classifier with pooling and dense layers.
 
     Args:
         backbone: `keras_cv.models.Backbone`, the backbone architecture of the
             classifier called on the inputs
-        num_classes: number of classes to predict
+        num_classes: int, number of classes to predict
+        activation: A `str` or callable. The activation function to
+            use on the Dense layer. Set `classifier_activation=None` to return
+            the logits of the "top" layer.
 
     Example:
     ```python
     input_data = tf.ones(shape=(8, 224, 224, 3))
 
     # Pretrained backbone
-    model = keras_cv.models.Classifier.from_preset(
+    model = keras_cv.models.ImageClassifier.from_preset(
         "resnet50_v2_imagenet",
         num_classes=4,
     )
     output = model(input_data)
 
     # Randomly initialized backbone with a custom config
-    model = keras_cv.models.Classifier(
+    model = keras_cv.models.ImageClassifier(
         backbone=keras_cv.models.ResNet50V2Backbone(),
         num_classes=4,
     )
@@ -60,12 +67,15 @@ class Classifier(Task):
         self,
         backbone,
         num_classes=2,
+        activation="softmax",
         **kwargs,
     ):
         inputs = backbone.input
         x = backbone(inputs)
         x = layers.GlobalAveragePooling2D(name="avg_pool")(x)
-        outputs = layers.Dense(num_classes, name="predictions")(x)
+        outputs = layers.Dense(
+            num_classes, activation=activation, name="predictions"
+        )(x)
         # Instantiate using Functional API Model constructor
         super().__init__(
             inputs=inputs,

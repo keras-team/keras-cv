@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Tests for Classifier."""
+"""Tests for ImageClassifier."""
 
 
 import os
@@ -24,16 +24,16 @@ from tensorflow import keras
 from keras_cv.models.backbones.resnet_v2.resnet_v2_backbone import (
     ResNet18V2Backbone,
 )
-from keras_cv.models.classification.classifier import Classifier
+from keras_cv.models.classification.image_classifier import ImageClassifier
 
 
-class ClassifierTest(tf.test.TestCase, parameterized.TestCase):
+class ImageClassifierTest(tf.test.TestCase, parameterized.TestCase):
     def setUp(self):
         self.input_batch = tf.ones(shape=(8, 224, 224, 3))
         self.dataset = tf.data.Dataset.from_tensor_slices(
             (self.input_batch, tf.one_hot(tf.ones((8,), dtype="int32"), 2))
         ).batch(4)
-        self.model = Classifier(
+        self.model = ImageClassifier(
             backbone=ResNet18V2Backbone(),
             num_classes=2,
         )
@@ -61,14 +61,14 @@ class ClassifierTest(tf.test.TestCase, parameterized.TestCase):
         ("keras_format", "keras_v3", "model.keras"),
     )
     def test_saved_model(self, save_format, filename):
-        model = Classifier(backbone=ResNet18V2Backbone())
+        model = ImageClassifier(backbone=ResNet18V2Backbone())
         model_output = model(self.input_batch)
         save_path = os.path.join(self.get_temp_dir(), filename)
         model.save(save_path, save_format=save_format)
         restored_model = keras.models.load_model(save_path)
 
         # Check we got the real object back.
-        self.assertIsInstance(restored_model, Classifier)
+        self.assertIsInstance(restored_model, ImageClassifier)
 
         # Check that output matches.
         restored_output = restored_model(self.input_batch)
@@ -76,9 +76,9 @@ class ClassifierTest(tf.test.TestCase, parameterized.TestCase):
 
 
 @pytest.mark.large
-class ClassifierPresetSmokeTest(tf.test.TestCase, parameterized.TestCase):
+class ImageClassifierPresetSmokeTest(tf.test.TestCase, parameterized.TestCase):
     """
-    A smoke test for Classifier presets we run continuously.
+    A smoke test for ImageClassifier presets we run continuously.
     This only tests the smallest weights we have available. Run with:
     `pytest keras_cv/models/classification/classifier_test.py --run_large`
     """
@@ -91,7 +91,11 @@ class ClassifierPresetSmokeTest(tf.test.TestCase, parameterized.TestCase):
         ("preset_no_weights", "resnet50_v2"),
     )
     def test_backbone_preset_output(self, preset):
-        model = Classifier.from_preset(preset)
+        model = ImageClassifier.from_preset(preset)
+        model(self.input_batch)
+
+    def test_classifier_preset_output(self):
+        model = ImageClassifier.from_preset("resnet50_v2_imagenet_classifier")
         model(self.input_batch)
 
 
