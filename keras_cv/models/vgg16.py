@@ -33,6 +33,21 @@ def build_vgg_block(input_tensor,
                     max_pool,
                     name,
                     ):
+    """
+    Builds VGG block
+    Args:
+        input_tensor: None (or) Tensor, input tensor to pass through network
+        num_layers: int, number of CNN layers in the block
+        kernel_size: int, kernel size of each CNN layer in block
+        stride: int (or) tuple, stride for CNN layer in block
+        activation: str (or) callable, activation function for each CNN layer in block
+        padding: str (or) callable, padding function for each CNN layer in block
+        max_pool: bool, whether or not to add MaxPooling2D layer at end of block.
+        name: str, name of the block
+
+    Returns:
+        tf.Tensor
+    """
     x = input_tensor
     for num in range(1, num_layers + 1):
         x = layers.Conv2D(kernel_size,
