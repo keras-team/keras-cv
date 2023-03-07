@@ -197,7 +197,7 @@ class VGG16(keras.Model):
             "pooling": self.pooling,
             "classes": self.classes,
             "classifier_activation": self.classifier_activation,
-            "trainables": self.trainables,
+            "trainables": self._trainable_weights,
         }
 
     @classmethod
