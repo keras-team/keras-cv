@@ -20,7 +20,7 @@ from absl.testing import parameterized
 from tensorflow.keras import optimizers
 
 import keras_cv
-from keras_cv.models import ResNet50V2
+from keras_cv.models import ResNet50V2Backbone
 from keras_cv.models.object_detection.__test_utils__ import (
     _create_bounding_box_dataset,
 )
@@ -106,6 +106,4 @@ class FasterRCNNTest(tf.test.TestCase, parameterized.TestCase):
         faster_rcnn.evaluate(dataset)
 
     def _build_backbone(self):
-        return ResNet50V2(
-            include_top=False, include_rescaling=True
-        ).as_backbone()
+        return ResNet50V2Backbone().get_feature_extractor()

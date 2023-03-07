@@ -25,7 +25,8 @@ import copy
 import math
 
 import tensorflow as tf
-from keras import layers
+from tensorflow import keras
+from tensorflow.keras import layers
 
 from keras_cv.layers import FusedMBConvBlock
 from keras_cv.layers import MBConvBlock
@@ -526,40 +527,32 @@ BASE_DOCSTRING = """Instantiates the {name} architecture.
     https://keras.io/guides/transfer_learning/).
 
     Args:
-        include_rescaling: whether or not to Rescale the inputs.If set to True,
-                    inputs will be passed through a `Rescaling(1/255.0)` layer.
-        include_top: Whether to include the fully-connected
-            layer at the top of the network.
+        include_rescaling: bool, whether or not to Rescale the inputs. If set
+            to `True`, inputs will be passed through a `Rescaling(1/255.0)`
+            layer.
+        include_top: bool, whether to include the fully-connected layer at
+            the top of the network.  If provided, `classes` must be provided.
+        classes: optional int, number of classes to classify images into (only
+            to be specified if `include_top` is `True`).
         weights: one of `None` (random initialization), a pretrained weight file
             path, or a reference to pre-trained weights (e.g. 'imagenet/classification')
             (see available pre-trained weights in weights.py)
-        input_shape: Optional shape tuple.
-            It should have exactly 3 inputs channels.
+        input_shape: optional shape tuple, defaults to (None, None, 3).
         input_tensor: optional Keras tensor (i.e. output of `layers.Input()`)
             to use as image input for the model.
-        pooling: Optional pooling mode for feature extraction
-            when `include_top` is `False`. Defaults to None.
-            - `None` means that the output of the model will be
-                the 4D tensor output of the
-                last convolutional layer.
-            - `avg` means that global average pooling
-                will be applied to the output of the
-                last convolutional layer, and thus
-                the output of the model will be a 2D tensor.
-            - `max` means that global max pooling will
-                be applied.
-        classes: Optional number of lasses to classify images
-            into, only to be specified if `include_top` is True, and
-            if no `weights` argument is specified. Defaults to None.
+        pooling: optional pooling mode for feature extraction
+            when `include_top` is `False`.
+            - `None` means that the output of the model will be the 4D tensor output
+                of the last convolutional block.
+            - `avg` means that global average pooling will be applied to the output
+                of the last convolutional block, and thus the output of the model will
+                be a 2D tensor.
+            - `max` means that global max pooling will be applied.
         classifier_activation: A `str` or callable. The activation function to use
             on the "top" layer. Ignored unless `include_top=True`. Set
             `classifier_activation=None` to return the logits of the "top" layer.
-            Defaults to 'softmax'.
-            When loading pretrained weights, `classifier_activation` can only
-            be `None` or `"softmax"`.
-
     Returns:
-        A `keras.Model` instance.
+      A `keras.Model` instance.
 """
 
 
@@ -579,34 +572,15 @@ def round_repeats(repeats, depth_coefficient):
     return int(math.ceil(depth_coefficient * repeats))
 
 
-def EfficientNetV2(
-    include_rescaling,
-    include_top,
-    width_coefficient,
-    depth_coefficient,
-    default_size,
-    dropout_rate=0.2,
-    drop_connect_rate=0.2,
-    depth_divisor=8,
-    min_depth=8,
-    bn_momentum=0.9,
-    activation="swish",
-    blocks_args="default",
-    model_name="efficientnet",
-    weights=None,
-    input_shape=(None, None, 3),
-    input_tensor=None,
-    pooling=None,
-    classes=None,
-    classifier_activation="softmax",
-    **kwargs,
-):
+@keras.utils.register_keras_serializable(package="keras_cv.models")
+class EfficientNetV2(keras.Model):
     """Instantiates the EfficientNetV2 architecture using given scaling
     coefficients.
     Args:
-        include_rescaling: whether or not to Rescale the inputs.If set to True,
-            inputs will be passed through a `Rescaling(1/255.0)` layer.
-        include_top: whether to include the fully-connected
+        include_rescaling: bool, whether or not to Rescale the inputs. If set
+            to `True`, inputs will be passed through a `Rescaling(1/255.0)`
+            layer.
+        include_top: bool, whether to include the fully-connected
             layer at the top of the network.
         width_coefficient: float, scaling coefficient for network width.
         depth_coefficient: float, scaling coefficient for network depth.
@@ -621,8 +595,7 @@ def EfficientNetV2(
         model_name: string, model name.
         weights: one of `None` (random initialization),
             or the path to the weights file to be loaded.
-        input_shape: optional shape tuple,
-            It should have exactly 3 inputs channels.
+        input_shape: optional shape tuple, defaults to (None, None, 3).
         input_tensor: optional Keras tensor (i.e. output of `layers.Input()`)
             to use as image input for the model.
         pooling: optional pooling mode for feature extraction
@@ -637,15 +610,14 @@ def EfficientNetV2(
             - `max` means that global max pooling will
                 be applied.
         classes: optional number of classes to classify images
-            into, only to be specified if `include_top` is True, and
-            if no `weights` argument is specified.
-        classifier_activation: A `str` or callable. The activation function to use
-            on the "top" layer. Ignored unless `include_top=True`. Set
-            `classifier_activation=None` to return the logits of the "top" layer.
+            into, only to be specified if `include_top` is True.
+        classifier_activation: A `str` or callable. The activation function to
+            use on the "top" layer. Ignored unless `include_top=True`. Set
+            `classifier_activation=None` to return the logits of the "top"
+            layer.
 
     Returns:
       A `keras.Model` instance.
-
     Raises:
       ValueError: in case of invalid argument for `weights`,
         or invalid input shape.
@@ -653,173 +625,243 @@ def EfficientNetV2(
         using a pretrained top layer.
     """
 
-    if blocks_args == "default":
-        blocks_args = DEFAULT_BLOCKS_ARGS[model_name]
+    def __init__(
+        self,
+        include_rescaling,
+        include_top,
+        width_coefficient,
+        depth_coefficient,
+        default_size,
+        dropout_rate=0.2,
+        drop_connect_rate=0.2,
+        depth_divisor=8,
+        min_depth=8,
+        bn_momentum=0.9,
+        activation="swish",
+        blocks_args="default",
+        model_name="efficientnet",
+        weights=None,
+        input_shape=(None, None, 3),
+        input_tensor=None,
+        pooling=None,
+        classes=None,
+        classifier_activation="softmax",
+        **kwargs,
+    ):
+        if blocks_args == "default":
+            blocks_args = DEFAULT_BLOCKS_ARGS[model_name]
 
-    if weights and not tf.io.gfile.exists(weights):
-        raise ValueError(
-            "The `weights` argument should be either `None` or the path to the "
-            "weights file to be loaded. Weights file not found at location: {weights}"
-        )
+        input_blocks_args = copy.deepcopy(blocks_args)
 
-    if include_top and not classes:
-        raise ValueError(
-            "If `include_top` is True, you should specify `classes`. "
-            f"Received: classes={classes}"
-        )
+        if weights and not tf.io.gfile.exists(weights):
+            raise ValueError(
+                "The `weights` argument should be either `None` or the path to the "
+                "weights file to be loaded. Weights file not found at location: {weights}"
+            )
 
-    if include_top and pooling:
-        raise ValueError(
-            f"`pooling` must be `None` when `include_top=True`."
-            f"Received pooling={pooling} and include_top={include_top}. "
-        )
+        if include_top and not classes:
+            raise ValueError(
+                "If `include_top` is True, you should specify `classes`. "
+                f"Received: classes={classes}"
+            )
 
-    # Determine proper input shape
-    img_input = utils.parse_model_inputs(input_shape, input_tensor)
+        if include_top and pooling:
+            raise ValueError(
+                f"`pooling` must be `None` when `include_top=True`."
+                f"Received pooling={pooling} and include_top={include_top}. "
+            )
 
-    x = img_input
+        # Determine proper input shape
+        img_input = utils.parse_model_inputs(input_shape, input_tensor)
 
-    if include_rescaling:
-        x = layers.Rescaling(scale=1 / 255.0)(x)
+        x = img_input
 
-    # Build stem
-    stem_filters = round_filters(
-        filters=blocks_args[0]["input_filters"],
-        width_coefficient=width_coefficient,
-        min_depth=min_depth,
-        depth_divisor=depth_divisor,
-    )
-    x = layers.Conv2D(
-        filters=stem_filters,
-        kernel_size=3,
-        strides=2,
-        kernel_initializer=CONV_KERNEL_INITIALIZER,
-        padding="same",
-        use_bias=False,
-        name="stem_conv",
-    )(x)
-    x = layers.BatchNormalization(
-        axis=BN_AXIS,
-        momentum=bn_momentum,
-        name="stem_bn",
-    )(x)
-    x = layers.Activation(activation, name="stem_activation")(x)
+        if include_rescaling:
+            x = layers.Rescaling(scale=1 / 255.0)(x)
 
-    # Build blocks
-    blocks_args = copy.deepcopy(blocks_args)
-    b = 0
-    blocks = float(sum(args["num_repeat"] for args in blocks_args))
-
-    for i, args in enumerate(blocks_args):
-        assert args["num_repeat"] > 0
-
-        # Update block input and output filters based on depth multiplier.
-        args["input_filters"] = round_filters(
-            filters=args["input_filters"],
+        # Build stem
+        stem_filters = round_filters(
+            filters=blocks_args[0]["input_filters"],
             width_coefficient=width_coefficient,
             min_depth=min_depth,
             depth_divisor=depth_divisor,
         )
-        args["output_filters"] = round_filters(
-            filters=args["output_filters"],
-            width_coefficient=width_coefficient,
-            min_depth=min_depth,
-            depth_divisor=depth_divisor,
-        )
-
-        repeats = round_repeats(
-            repeats=args.pop("num_repeat"), depth_coefficient=depth_coefficient
-        )
-        for j in range(repeats):
-            # The first block needs to take care of stride and filter size
-            # increase.
-            if j > 0:
-                args["strides"] = 1
-                args["input_filters"] = args["output_filters"]
-
-            # Determine which conv type to use:
-            block = {
-                0: MBConvBlock(
-                    input_filters=args["input_filters"],
-                    output_filters=args["output_filters"],
-                    expand_ratio=args["expand_ratio"],
-                    kernel_size=args["kernel_size"],
-                    strides=args["strides"],
-                    se_ratio=args["se_ratio"],
-                    activation=activation,
-                    bn_momentum=bn_momentum,
-                    survival_probability=drop_connect_rate * b / blocks,
-                    name="block{}{}_".format(i + 1, chr(j + 97)),
-                ),
-                1: FusedMBConvBlock(
-                    input_filters=args["input_filters"],
-                    output_filters=args["output_filters"],
-                    expand_ratio=args["expand_ratio"],
-                    kernel_size=args["kernel_size"],
-                    strides=args["strides"],
-                    se_ratio=args["se_ratio"],
-                    activation=activation,
-                    bn_momentum=bn_momentum,
-                    survival_probability=drop_connect_rate * b / blocks,
-                    name="block{}{}_".format(i + 1, chr(j + 97)),
-                ),
-            }[args["conv_type"]]
-
-            x = block(x)
-            b += 1
-
-    # Build top
-    top_filters = round_filters(
-        filters=1280,
-        width_coefficient=width_coefficient,
-        min_depth=min_depth,
-        depth_divisor=depth_divisor,
-    )
-
-    x = layers.Conv2D(
-        filters=top_filters,
-        kernel_size=1,
-        strides=1,
-        kernel_initializer=CONV_KERNEL_INITIALIZER,
-        padding="same",
-        data_format="channels_last",
-        use_bias=False,
-        name="top_conv",
-    )(x)
-    x = layers.BatchNormalization(
-        axis=BN_AXIS,
-        momentum=bn_momentum,
-        name="top_bn",
-    )(x)
-    x = layers.Activation(activation=activation, name="top_activation")(x)
-
-    if include_top:
-        x = layers.GlobalAveragePooling2D(name="avg_pool")(x)
-        if dropout_rate > 0:
-            x = layers.Dropout(dropout_rate, name="top_dropout")(x)
-        x = layers.Dense(
-            classes,
-            activation=classifier_activation,
-            kernel_initializer=DENSE_KERNEL_INITIALIZER,
-            bias_initializer=tf.constant_initializer(0),
-            name="predictions",
+        x = layers.Conv2D(
+            filters=stem_filters,
+            kernel_size=3,
+            strides=2,
+            kernel_initializer=CONV_KERNEL_INITIALIZER,
+            padding="same",
+            use_bias=False,
+            name="stem_conv",
         )(x)
-    else:
-        if pooling == "avg":
+        x = layers.BatchNormalization(
+            axis=BN_AXIS,
+            momentum=bn_momentum,
+            name="stem_bn",
+        )(x)
+        x = layers.Activation(activation, name="stem_activation")(x)
+
+        # Build blocks
+        blocks_args = copy.deepcopy(blocks_args)
+        b = 0
+        blocks = float(sum(args["num_repeat"] for args in blocks_args))
+
+        for i, args in enumerate(blocks_args):
+            assert args["num_repeat"] > 0
+
+            # Update block input and output filters based on depth multiplier.
+            args["input_filters"] = round_filters(
+                filters=args["input_filters"],
+                width_coefficient=width_coefficient,
+                min_depth=min_depth,
+                depth_divisor=depth_divisor,
+            )
+            args["output_filters"] = round_filters(
+                filters=args["output_filters"],
+                width_coefficient=width_coefficient,
+                min_depth=min_depth,
+                depth_divisor=depth_divisor,
+            )
+
+            repeats = round_repeats(
+                repeats=args.pop("num_repeat"),
+                depth_coefficient=depth_coefficient,
+            )
+            for j in range(repeats):
+                # The first block needs to take care of stride and filter size
+                # increase.
+                if j > 0:
+                    args["strides"] = 1
+                    args["input_filters"] = args["output_filters"]
+
+                # Determine which conv type to use:
+                block = {
+                    0: MBConvBlock(
+                        input_filters=args["input_filters"],
+                        output_filters=args["output_filters"],
+                        expand_ratio=args["expand_ratio"],
+                        kernel_size=args["kernel_size"],
+                        strides=args["strides"],
+                        se_ratio=args["se_ratio"],
+                        activation=activation,
+                        bn_momentum=bn_momentum,
+                        survival_probability=drop_connect_rate * b / blocks,
+                        name="block{}{}_".format(i + 1, chr(j + 97)),
+                    ),
+                    1: FusedMBConvBlock(
+                        input_filters=args["input_filters"],
+                        output_filters=args["output_filters"],
+                        expand_ratio=args["expand_ratio"],
+                        kernel_size=args["kernel_size"],
+                        strides=args["strides"],
+                        se_ratio=args["se_ratio"],
+                        activation=activation,
+                        bn_momentum=bn_momentum,
+                        survival_probability=drop_connect_rate * b / blocks,
+                        name="block{}{}_".format(i + 1, chr(j + 97)),
+                    ),
+                }[args["conv_type"]]
+
+                x = block(x)
+                b += 1
+
+        # Build top
+        top_filters = round_filters(
+            filters=1280,
+            width_coefficient=width_coefficient,
+            min_depth=min_depth,
+            depth_divisor=depth_divisor,
+        )
+
+        x = layers.Conv2D(
+            filters=top_filters,
+            kernel_size=1,
+            strides=1,
+            kernel_initializer=CONV_KERNEL_INITIALIZER,
+            padding="same",
+            data_format="channels_last",
+            use_bias=False,
+            name="top_conv",
+        )(x)
+        x = layers.BatchNormalization(
+            axis=BN_AXIS,
+            momentum=bn_momentum,
+            name="top_bn",
+        )(x)
+        x = layers.Activation(activation=activation, name="top_activation")(x)
+
+        if include_top:
             x = layers.GlobalAveragePooling2D(name="avg_pool")(x)
-        elif pooling == "max":
-            x = layers.GlobalMaxPooling2D(name="max_pool")(x)
+            if dropout_rate > 0:
+                x = layers.Dropout(dropout_rate, name="top_dropout")(x)
+            x = layers.Dense(
+                classes,
+                activation=classifier_activation,
+                kernel_initializer=DENSE_KERNEL_INITIALIZER,
+                bias_initializer=tf.constant_initializer(0),
+                name="predictions",
+            )(x)
+        else:
+            if pooling == "avg":
+                x = layers.GlobalAveragePooling2D(name="avg_pool")(x)
+            elif pooling == "max":
+                x = layers.GlobalMaxPooling2D(name="max_pool")(x)
 
-    inputs = img_input
+        inputs = img_input
 
-    # Create model.
-    model = tf.keras.Model(inputs, x, **kwargs)
+        # Create model.
+        super().__init__(inputs=inputs, outputs=x, **kwargs)
 
-    # Load weights.
-    if weights is not None:
-        model.load_weights(weights)
+        # All references to `self` below this line
+        if weights is not None:
+            self.load_weights(weights)
 
-    return model
+        self.include_rescaling = include_rescaling
+        self.include_top = include_top
+        self.width_coefficient = width_coefficient
+        self.depth_coefficient = depth_coefficient
+        self.default_size = default_size
+        self.dropout_rate = dropout_rate
+        self.drop_connect_rate = drop_connect_rate
+        self.depth_divisor = depth_divisor
+        self.min_depth = min_depth
+        self.bn_momentum = bn_momentum
+        self.activation = activation
+        self.blocks_args = input_blocks_args
+        self.model_name = model_name
+        self.input_tensor = input_tensor
+        self.pooling = pooling
+        self.classes = classes
+        self.classifier_activation = classifier_activation
+
+    def get_config(self):
+        return {
+            "include_rescaling": self.include_rescaling,
+            "include_top": self.include_top,
+            "width_coefficient": self.width_coefficient,
+            "depth_coefficient": self.depth_coefficient,
+            "default_size": self.default_size,
+            "dropout_rate": self.dropout_rate,
+            "drop_connect_rate": self.drop_connect_rate,
+            "depth_divisor": self.depth_divisor,
+            "min_depth": self.min_depth,
+            "bn_momentum": self.bn_momentum,
+            "activation": self.activation,
+            "blocks_args": self.blocks_args,
+            "model_name": self.model_name,
+            # Remove batch dimension from `input_shape`
+            "input_shape": self.input_shape[1:],
+            "input_tensor": self.input_tensor,
+            "pooling": self.pooling,
+            "classes": self.classes,
+            "classifier_activation": self.classifier_activation,
+            "trainable": self.trainable,
+        }
+
+    @classmethod
+    def from_config(cls, config):
+        return cls(**config)
 
 
 def EfficientNetV2B0(

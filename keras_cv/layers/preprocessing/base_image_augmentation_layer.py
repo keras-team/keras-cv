@@ -541,12 +541,7 @@ class BaseImageAugmentationLayer(tf.keras.__internal__.layers.BaseRandomLayer):
             self.compute_dtype,
         )
         if BOUNDING_BOXES in inputs:
-            inputs[BOUNDING_BOXES]["boxes"] = preprocessing.ensure_tensor(
-                inputs[BOUNDING_BOXES]["boxes"],
-                self.compute_dtype,
-            )
-            inputs[BOUNDING_BOXES]["classes"] = preprocessing.ensure_tensor(
-                inputs[BOUNDING_BOXES]["classes"],
-                self.compute_dtype,
+            inputs[BOUNDING_BOXES] = bounding_box.ensure_tensor(
+                inputs[BOUNDING_BOXES], dtype=self.compute_dtype
             )
         return inputs
