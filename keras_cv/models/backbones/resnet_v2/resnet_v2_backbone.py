@@ -434,7 +434,6 @@ ALIAS_DOCSTRING = """ResNetV2Backbone model with {num_layers} layers.
 """
 
 
-@keras.utils.register_keras_serializable(package="keras_cv.models")
 class ResNet18V2Backbone(ResNetV2Backbone):
     def __new__(
         self,
@@ -464,7 +463,6 @@ class ResNet18V2Backbone(ResNetV2Backbone):
         return {}
 
 
-@keras.utils.register_keras_serializable(package="keras_cv.models")
 class ResNet34V2Backbone(ResNetV2Backbone):
     def __new__(
         self,
@@ -494,7 +492,6 @@ class ResNet34V2Backbone(ResNetV2Backbone):
         return {}
 
 
-@keras.utils.register_keras_serializable(package="keras_cv.models")
 class ResNet50V2Backbone(ResNetV2Backbone):
     def __new__(
         self,
@@ -528,7 +525,6 @@ class ResNet50V2Backbone(ResNetV2Backbone):
         return cls.presets
 
 
-@keras.utils.register_keras_serializable(package="keras_cv.models")
 class ResNet101V2Backbone(ResNetV2Backbone):
     def __new__(
         self,
@@ -558,7 +554,6 @@ class ResNet101V2Backbone(ResNetV2Backbone):
         return {}
 
 
-@keras.utils.register_keras_serializable(package="keras_cv.models")
 class ResNet152V2Backbone(ResNetV2Backbone):
     def __new__(
         self,
