@@ -553,8 +553,6 @@ def EfficientNetLiteB0(
     classifier_activation="softmax",
     **kwargs,
 ):
-    """Instantiates the EfficientNetLiteB0 architecture."""
-
     return EfficientNetLite(
         include_rescaling,
         include_top,
@@ -585,8 +583,6 @@ def EfficientNetLiteB1(
     classifier_activation="softmax",
     **kwargs,
 ):
-    """Instantiates the EfficientNetLiteB1 architecture."""
-
     return EfficientNetLite(
         include_rescaling,
         include_top,
@@ -617,8 +613,6 @@ def EfficientNetLiteB2(
     classifier_activation="softmax",
     **kwargs,
 ):
-    """Instantiates the EfficientNetLiteB2 architecture."""
-
     return EfficientNetLite(
         include_rescaling,
         include_top,
@@ -649,8 +643,6 @@ def EfficientNetLiteB3(
     classifier_activation="softmax",
     **kwargs,
 ):
-    """Instantiates the EfficientNetLiteB3 architecture."""
-
     return EfficientNetLite(
         include_rescaling,
         include_top,
@@ -681,8 +673,6 @@ def EfficientNetLiteB4(
     classifier_activation="softmax",
     **kwargs,
 ):
-    """Instantiates the EfficientNetLiteB4 architecture."""
-
     return EfficientNetLite(
         include_rescaling,
         include_top,
