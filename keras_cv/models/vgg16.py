@@ -21,18 +21,20 @@ Reference:
 import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras import layers
+
 from keras_cv.models import utils
 
 
-def build_vgg_block(input_tensor,
-                    num_layers,
-                    kernel_size,
-                    stride,
-                    activation,
-                    padding,
-                    max_pool,
-                    name,
-                    ):
+def build_vgg_block(
+    input_tensor,
+    num_layers,
+    kernel_size,
+    stride,
+    activation,
+    padding,
+    max_pool,
+    name,
+):
     """
     Builds VGG block
     Args:
@@ -50,11 +52,13 @@ def build_vgg_block(input_tensor,
     """
     x = input_tensor
     for num in range(1, num_layers + 1):
-        x = layers.Conv2D(kernel_size,
-                          stride,
-                          activation=activation,
-                          padding=padding,
-                          name=f"{name}_conv{str(num)}")(x)
+        x = layers.Conv2D(
+            kernel_size,
+            stride,
+            activation=activation,
+            padding=padding,
+            name=f"{name}_conv{str(num)}",
+        )(x)
     if max_pool:
         x = layers.MaxPooling2D((2, 2), strides=(2, 2), name=f"{name}_pool")(x)
     return x
@@ -97,18 +101,20 @@ class VGG16(keras.Model):
     Returns:
       A `keras.Model` instance.
     """
-    def __init__(self,
-                 input_tensor=None,
-                 include_rescaling=True,
-                 include_top=True,
-                 classes=None,
-                 weights=None,
-                 input_shape=(224, 224, 3),
-                 pooling=None,
-                 classifier_activation="softmax",
-                 name="VGG16",
-                 **kwargs,
-                 ):
+
+    def __init__(
+        self,
+        input_tensor=None,
+        include_rescaling=True,
+        include_top=True,
+        classes=None,
+        weights=None,
+        input_shape=(224, 224, 3),
+        pooling=None,
+        classifier_activation="softmax",
+        name="VGG16",
+        **kwargs,
+    ):
         self.include_rescaling = include_rescaling
         self.include_top = include_top
         self.classes = classes
@@ -140,50 +146,60 @@ class VGG16(keras.Model):
         if include_rescaling:
             x = layers.Rescaling(1 / 255.0)(x)
 
-        x = build_vgg_block(input_tensor=x,
-                            num_layers=2,
-                            kernel_size=64,
-                            stride=(3, 3),
-                            activation='relu',
-                            padding='same',
-                            max_pool=True,
-                            name='block1')
+        x = build_vgg_block(
+            input_tensor=x,
+            num_layers=2,
+            kernel_size=64,
+            stride=(3, 3),
+            activation="relu",
+            padding="same",
+            max_pool=True,
+            name="block1",
+        )
 
-        x = build_vgg_block(input_tensor=x,
-                            num_layers=2,
-                            kernel_size=128,
-                            stride=(3, 3),
-                            activation='relu',
-                            padding='same',
-                            max_pool=True,
-                            name='block2')
+        x = build_vgg_block(
+            input_tensor=x,
+            num_layers=2,
+            kernel_size=128,
+            stride=(3, 3),
+            activation="relu",
+            padding="same",
+            max_pool=True,
+            name="block2",
+        )
 
-        x = build_vgg_block(input_tensor=x,
-                            num_layers=3,
-                            kernel_size=256,
-                            stride=(3, 3),
-                            activation='relu',
-                            padding='same',
-                            max_pool=True,
-                            name='block3')
+        x = build_vgg_block(
+            input_tensor=x,
+            num_layers=3,
+            kernel_size=256,
+            stride=(3, 3),
+            activation="relu",
+            padding="same",
+            max_pool=True,
+            name="block3",
+        )
 
-        x = build_vgg_block(input_tensor=x,
-                            num_layers=3,
-                            kernel_size=512,
-                            stride=(3, 3),
-                            activation='relu',
-                            padding='same',
-                            max_pool=True,
-                            name='block4')
+        x = build_vgg_block(
+            input_tensor=x,
+            num_layers=3,
+            kernel_size=512,
+            stride=(3, 3),
+            activation="relu",
+            padding="same",
+            max_pool=True,
+            name="block4",
+        )
 
-        x = build_vgg_block(input_tensor=x,
-                            num_layers=3,
-                            kernel_size=512,
-                            stride=(3, 3),
-                            activation='relu',
-                            padding='same',
-                            max_pool=True,
-                            name='block5')
+        x = build_vgg_block(
+            input_tensor=x,
+            num_layers=3,
+            kernel_size=512,
+            stride=(3, 3),
+            activation="relu",
+            padding="same",
+            max_pool=True,
+            name="block5",
+        )
 
         if include_top:
             x = layers.Flatten(name="flatten")(x)
@@ -212,7 +228,6 @@ class VGG16(keras.Model):
             "pooling": self.pooling,
             "classes": self.classes,
             "classifier_activation": self.classifier_activation,
-            "trainables": self._trainable_weights,
         }
 
     @classmethod
