@@ -174,6 +174,7 @@ BASE_DOCSTRING = """Instantiates the {name} architecture.
       A `keras.Model` instance.
 """
 
+@keras.utils.register_keras_serializable(package="keras_cv.models")
 class ViT(keras.Model):
     """Instantiates the ViT architecture.
 
@@ -328,7 +329,7 @@ class ViT(keras.Model):
             "include_rescaling": self.include_rescaling,
             "include_top": self.include_top,
             "name": self.name,
-            "input_shape": self.input_shape,
+            "input_shape": self.input_shape[1:],
             "input_tensor": self.input_tensor,
             "pooling": self.pooling,
             "classes": self.classes,
@@ -341,6 +342,7 @@ class ViT(keras.Model):
             "project_dim": self.project_dim,
             "mlp_dim": self.mlp_dim,
             "classifier_activation": self.classifier_activation,
+            "trainable": self.trainable,
         }
 
     @classmethod
