@@ -65,10 +65,10 @@ class GlobalDropPointsTest(tf.test.TestCase):
         self.assertAllClose(inputs[POINT_CLOUDS] * 0.0, outputs[POINT_CLOUDS])
 
     def test_exclude_all_points(self):
-        add_layer = GlobalRandomDroppingPoints(drop_rate=1.0, exclude_class=1)
+        add_layer = GlobalRandomDroppingPoints(drop_rate=1.0, exclude_classes=1)
         point_clouds = np.random.random(size=(2, 50, 10)).astype("float32")
-        exclude_class = np.ones(shape=(2, 50, 1)).astype("float32")
-        point_clouds = np.concatenate([point_clouds, exclude_class], axis=-1)
+        exclude_classes = np.ones(shape=(2, 50, 1)).astype("float32")
+        point_clouds = np.concatenate([point_clouds, exclude_classes], axis=-1)
 
         bounding_boxes = np.random.random(size=(2, 10, 7)).astype("float32")
         inputs = {POINT_CLOUDS: point_clouds, BOUNDING_BOXES: bounding_boxes}
@@ -77,7 +77,7 @@ class GlobalDropPointsTest(tf.test.TestCase):
 
     def test_exclude_the_first_half_points(self):
         add_layer = GlobalRandomDroppingPoints(
-            drop_rate=1.0, exclude_class=[1, 2]
+            drop_rate=1.0, exclude_classes=[1, 2]
         )
         point_clouds = np.random.random(size=(2, 50, 10)).astype("float32")
         class_1 = np.ones(shape=(2, 10, 1)).astype("float32")
