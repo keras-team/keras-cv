@@ -13,14 +13,14 @@
 # limitations under the License.
 import tensorflow as tf
 
-from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
-    BaseImageAugmentationLayer,
+from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer import (
+    VectorizedBaseImageAugmentationLayer,
 )
 from keras_cv.utils import preprocessing
 
 
 @tf.keras.utils.register_keras_serializable(package="keras_cv")
-class Solarization(BaseImageAugmentationLayer):
+class Solarization(VectorizedBaseImageAugmentationLayer):
     """Applies (max_value - pixel + min_value) for each pixel in the image.
 
     When created without `threshold` parameter, the layer performs solarization to
@@ -57,7 +57,7 @@ class Solarization(BaseImageAugmentationLayer):
     print(images[0, 0, 0])
     # [59 62 63]
     # Note that images are Tensor with values in the range [0, 255]
-    solarization = Solarization()
+    solarization = Solarization(value_range=(0, 255))
     images = solarization(images)
     print(images[0, 0, 0])
     # [196, 193, 192]
@@ -93,41 +93,51 @@ class Solarization(BaseImageAugmentationLayer):
         )
         self.value_range = value_range
 
-    def get_random_transformation(self, **kwargs):
+    def get_random_transformation_batch(self, batch_size, **kwargs):
         return (
-            self.addition_factor(dtype=self.compute_dtype),
-            self.threshold_factor(dtype=self.compute_dtype),
+            self.addition_factor(
+                shape=(batch_size, 1, 1, 1), dtype=self.compute_dtype
+            ),
+            self.threshold_factor(
+                shape=(batch_size, 1, 1, 1), dtype=self.compute_dtype
+            ),
         )
 
-    def augment_image(self, image, transformation=None, **kwargs):
-        (addition, threshold) = transformation
-        image = preprocessing.transform_value_range(
-            image,
+    def augment_ragged_image(self, image, transformation, **kwargs):
+        return self.augment_images(image, transformation)
+
+    def augment_images(self, images, transformations, **kwargs):
+        (additions, thresholds) = transformations
+        images = preprocessing.transform_value_range(
+            images,
             original_range=self.value_range,
             target_range=(0, 255),
             dtype=self.compute_dtype,
         )
-        result = image + addition
-        result = tf.clip_by_value(result, 0, 255)
-        result = tf.where(result < threshold, result, 255 - result)
-        result = preprocessing.transform_value_range(
-            result,
+        results = images + additions
+        results = tf.clip_by_value(results, 0, 255)
+        results = tf.where(results < thresholds, results, 255 - results)
+        results = preprocessing.transform_value_range(
+            results,
             original_range=(0, 255),
             target_range=self.value_range,
             dtype=self.compute_dtype,
         )
-        return result
+        return results
 
-    def augment_bounding_boxes(self, bounding_boxes, **kwargs):
+    def augment_bounding_boxes(self, bounding_boxes, transformations, **kwargs):
         return bounding_boxes
 
-    def augment_label(self, label, transformation=None, **kwargs):
-        return label
+    def augment_labels(self, labels, transformations, **kwargs):
+        return labels
 
-    def augment_segmentation_mask(
-        self, segmentation_mask, transformation, **kwargs
+    def augment_keypoints(self, keypoints, transformations, **kwargs):
+        return keypoints
+
+    def augment_segmentation_masks(
+        self, segmentation_masks, transformations, **kwargs
     ):
-        return segmentation_mask
+        return segmentation_masks
 
     def get_config(self):
         config = {
