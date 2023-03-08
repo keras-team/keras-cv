@@ -336,8 +336,8 @@ class RetinaNet(tf.keras.Model):
                 `keras_cv.layers.MultiClassNonMaxSuppression()` layer in the
                 `train_step()`.  It should be noted that the non max suppression
                 operation does not have TPU support, and thus when training on
-                TPU metrics should be evaluated in a `keras.utils.SidecarEvaluator`
-                or a custom `keras.callbacks.Callback`.
+                TPU metrics must be evaluated in a `keras.utils.SidecarEvaluator`
+                or a `keras.callbacks.Callback`.
             kwargs: most other `keras.Model.compile()` arguments are supported and
                 propagated to the `keras.Model` class.
         """
