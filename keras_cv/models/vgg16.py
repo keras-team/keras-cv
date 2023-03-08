@@ -28,8 +28,8 @@ from keras_cv.models import utils
 def apply_vgg_block(
     x,
     num_layers,
+    filters,
     kernel_size,
-    stride,
     activation,
     padding,
     max_pool,
@@ -40,8 +40,8 @@ def apply_vgg_block(
     Args:
         x: Tensor, input tensor to pass through network
         num_layers: int, number of CNN layers in the block
-        kernel_size: int, kernel size of each CNN layer in block
-        stride: int (or) tuple, stride for CNN layer in block
+        filters: int, filter size of each CNN layer in block
+        kernel_size: int (or) tuple, kernel size for CNN layer in block
         activation: str (or) callable, activation function for each CNN layer in block
         padding: str (or) callable, padding function for each CNN layer in block
         max_pool: bool, whether or not to add MaxPooling2D layer at end of block.
@@ -52,8 +52,8 @@ def apply_vgg_block(
     """
     for num in range(1, num_layers + 1):
         x = layers.Conv2D(
+            filters,
             kernel_size,
-            stride,
             activation=activation,
             padding=padding,
             name=f"{name}_conv{str(num)}",
@@ -141,8 +141,8 @@ class VGG16(keras.Model):
         x = apply_vgg_block(
             x=x,
             num_layers=2,
-            kernel_size=64,
-            stride=(3, 3),
+            filters=64,
+            kernel_size=(3, 3),
             activation="relu",
             padding="same",
             max_pool=True,
@@ -152,8 +152,8 @@ class VGG16(keras.Model):
         x = apply_vgg_block(
             x=x,
             num_layers=2,
-            kernel_size=128,
-            stride=(3, 3),
+            filters=128,
+            kernel_size=(3, 3),
             activation="relu",
             padding="same",
             max_pool=True,
@@ -163,8 +163,8 @@ class VGG16(keras.Model):
         x = apply_vgg_block(
             x=x,
             num_layers=3,
-            kernel_size=256,
-            stride=(3, 3),
+            filters=256,
+            kernel_size=(3, 3),
             activation="relu",
             padding="same",
             max_pool=True,
@@ -174,8 +174,8 @@ class VGG16(keras.Model):
         x = apply_vgg_block(
             x=x,
             num_layers=3,
-            kernel_size=512,
-            stride=(3, 3),
+            filters=512,
+            kernel_size=(3, 3),
             activation="relu",
             padding="same",
             max_pool=True,
@@ -185,8 +185,8 @@ class VGG16(keras.Model):
         x = apply_vgg_block(
             x=x,
             num_layers=3,
-            kernel_size=512,
-            stride=(3, 3),
+            filters=512,
+            kernel_size=(3, 3),
             activation="relu",
             padding="same",
             max_pool=True,
