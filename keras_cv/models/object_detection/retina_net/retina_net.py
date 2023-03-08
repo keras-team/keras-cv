@@ -327,7 +327,17 @@ class RetinaNet(tf.keras.Model):
                 A preconfigured `FocalLoss` is provided when the string "focal" is
                 passed.
             weight_decay: a float for variable weight decay.
-            metrics: object detection metrics.
+            metrics: KerasCV object detection metrics that accept decoded
+                bounding boxes as their inputs.  Examples of this metric type are
+                `keras_cv.metrics.BoxRecall()` and
+                `keras_cv.metrics.BoxMeanAveragePrecision()`.  When `metrics` are
+                included in the call to `compile()`, the RetinaNet will perform
+                non max suppression decoding using a
+                `keras_cv.layers.MultiClassNonMaxSuppression()` layer in the
+                `train_step()`.  It should be noted that the non max suppression
+                operation does not have TPU support, and thus when training on
+                TPU metrics should be evaluated in a `keras.utils.SidecarEvaluator`
+                or a custom `keras.callbacks.Callback`.
             kwargs: most other `keras.Model.compile()` arguments are supported and
                 propagated to the `keras.Model` class.
         """
