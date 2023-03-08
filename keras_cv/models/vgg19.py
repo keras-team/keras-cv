@@ -27,9 +27,10 @@ from keras_cv.models.vgg16 import apply_vgg_block
 
 @keras.utils.register_keras_serializable(package="keras_cv.models")
 class VGG19(keras.Model):
-    """Instantiates the VGG19 architecture.
+    """
     Reference:
     - [Very Deep Convolutional Networks for Large-Scale Image Recognition](https://arxiv.org/abs/1409.1556) (ICLR 2015)
+    This class returns a Keras VGG19 model.
     Args:
       include_rescaling: bool, whether or not to Rescale the inputs.If set to True,
         inputs will be passed through a `Rescaling(1/255.0)` layer.
