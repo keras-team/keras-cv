@@ -103,9 +103,9 @@ class VGG16(keras.Model):
 
     def __init__(
         self,
+        include_rescaling,
+        include_top,
         input_tensor=None,
-        include_rescaling=True,
-        include_top=True,
         classes=None,
         weights=None,
         input_shape=(224, 224, 3),
