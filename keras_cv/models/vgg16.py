@@ -36,9 +36,9 @@ def apply_vgg_block(
     name,
 ):
     """
-    Builds VGG block
+    Applies VGG block
     Args:
-        x: None (or) Tensor, input tensor to pass through network
+        x: Tensor, input tensor to pass through network
         num_layers: int, number of CNN layers in the block
         kernel_size: int, kernel size of each CNN layer in block
         stride: int (or) tuple, stride for CNN layer in block
