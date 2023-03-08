@@ -25,8 +25,8 @@ from tensorflow.keras import layers
 from keras_cv.models import utils
 
 
-def build_vgg_block(
-    input_tensor,
+def apply_vgg_block(
+    x,
     num_layers,
     kernel_size,
     stride,
@@ -38,7 +38,7 @@ def build_vgg_block(
     """
     Builds VGG block
     Args:
-        input_tensor: None (or) Tensor, input tensor to pass through network
+        x: None (or) Tensor, input tensor to pass through network
         num_layers: int, number of CNN layers in the block
         kernel_size: int, kernel size of each CNN layer in block
         stride: int (or) tuple, stride for CNN layer in block
@@ -50,7 +50,6 @@ def build_vgg_block(
     Returns:
         tf.Tensor
     """
-    x = input_tensor
     for num in range(1, num_layers + 1):
         x = layers.Conv2D(
             kernel_size,
@@ -115,13 +114,6 @@ class VGG16(keras.Model):
         name="VGG16",
         **kwargs,
     ):
-        self.include_rescaling = include_rescaling
-        self.include_top = include_top
-        self.classes = classes
-        self.input_tensor = input_tensor
-        self.pooling = pooling
-        self.classifier_activation = classifier_activation
-
         if weights and not tf.io.gfile.exists(weights):
             raise ValueError(
                 "The `weights` argument should be either `None` or the path to the "
@@ -218,6 +210,13 @@ class VGG16(keras.Model):
         if weights is not None:
             self.load_weights(weights)
 
+        self.include_rescaling = include_rescaling
+        self.include_top = include_top
+        self.classes = classes
+        self.input_tensor = input_tensor
+        self.pooling = pooling
+        self.classifier_activation = classifier_activation
+
     def get_config(self):
         return {
             "include_rescaling": self.include_rescaling,
@@ -228,6 +227,7 @@ class VGG16(keras.Model):
             "pooling": self.pooling,
             "classes": self.classes,
             "classifier_activation": self.classifier_activation,
+            "trainable": self.trainable
         }
 
     @classmethod
