@@ -214,7 +214,6 @@ class Mosaic(BaseImageAugmentationLayer):
         # since num_boxes is always one we squeeze axis 0
         output = tf.cast(output, self.compute_dtype)
         output = tf.squeeze(output, axis=0)
-        
         return output
 
     def _update_label(
