@@ -112,7 +112,7 @@ def depth(x, divisor=8, min_value=None):
     return new_x
 
 
-def HardSigmoid(name=None):
+def HardSigmoid(x, name=None):
     """The Hard Sigmoid function.
 
     Args:
@@ -126,13 +126,10 @@ def HardSigmoid(name=None):
 
     activation = layers.ReLU(6.0)
 
-    def apply(x):
-        return activation(x + 3.0) * (1.0 / 6.0)
-
-    return apply
+    return activation(x + 3.0) * (1.0 / 6.0)
 
 
-def HardSwish(name=None):
+def HardSwish(x, name=None):
     """The Hard Swish function.
 
     Args:
@@ -144,16 +141,13 @@ def HardSwish(name=None):
     if name is None:
         name = f"hard_swish_{backend.get_uid('hard_swish')}"
 
-    hard_sigmoid = HardSigmoid()
     multiply_layer = layers.Multiply()
 
-    def apply(x):
-        return multiply_layer([x, hard_sigmoid(x)])
-
-    return apply
+    return multiply_layer([x, HardSigmoid(x)])
 
 
 def InvertedResBlock(
+    x,
     expansion,
     filters,
     kernel_size,
@@ -184,73 +178,70 @@ def InvertedResBlock(
     if name is None:
         name = f"inverted_res_block_{backend.get_uid('inverted_res_block')}"
 
-    def apply(x):
-        shortcut = x
-        prefix = "expanded_conv/"
-        infilters = backend.int_shape(x)[channel_axis]
+    shortcut = x
+    prefix = "expanded_conv/"
+    infilters = backend.int_shape(x)[channel_axis]
 
-        if block_id:
-            prefix = f"expanded_conv_{block_id}"
-
-            x = layers.Conv2D(
-                depth(infilters * expansion),
-                kernel_size=1,
-                padding="same",
-                use_bias=False,
-                name=prefix + "expand",
-            )(x)
-            x = layers.BatchNormalization(
-                axis=channel_axis,
-                epsilon=1e-3,
-                momentum=0.999,
-                name=prefix + "expand/BatchNorm",
-            )(x)
-            x = activation(x)
-
-        x = layers.DepthwiseConv2D(
-            kernel_size,
-            strides=stride,
-            padding="same" if stride == 1 else "valid",
-            use_bias=False,
-            name=prefix + "depthwise",
-        )(x)
-        x = layers.BatchNormalization(
-            axis=channel_axis,
-            epsilon=1e-3,
-            momentum=0.999,
-            name=prefix + "depthwise/BatchNorm",
-        )(x)
-        x = activation(x)
-
-        if se_ratio:
-            with custom_object_scope({"hard_sigmoid": HardSigmoid()}):
-                x = cv_layers.SqueezeAndExcite2D(
-                    filters=depth(infilters * expansion),
-                    ratio=se_ratio,
-                    squeeze_activation="relu",
-                    excite_activation="hard_sigmoid",
-                )(x)
+    if block_id:
+        prefix = f"expanded_conv_{block_id}"
 
         x = layers.Conv2D(
-            filters,
+            depth(infilters * expansion),
             kernel_size=1,
             padding="same",
             use_bias=False,
-            name=prefix + "project",
+            name=prefix + "expand",
         )(x)
         x = layers.BatchNormalization(
             axis=channel_axis,
             epsilon=1e-3,
             momentum=0.999,
-            name=prefix + "project/BatchNorm",
+            name=prefix + "expand/BatchNorm",
         )(x)
+        x = activation(x)
 
-        if stride == 1 and infilters == filters:
-            x = layers.Add(name=prefix + "Add")([shortcut, x])
+    x = layers.DepthwiseConv2D(
+        kernel_size,
+        strides=stride,
+        padding="same" if stride == 1 else "valid",
+        use_bias=False,
+        name=prefix + "depthwise",
+    )(x)
+    x = layers.BatchNormalization(
+        axis=channel_axis,
+        epsilon=1e-3,
+        momentum=0.999,
+        name=prefix + "depthwise/BatchNorm",
+    )(x)
+    x = activation(x)
 
-        return x
+    if se_ratio:
+        with custom_object_scope({"hard_sigmoid": HardSigmoid}):
+            x = cv_layers.SqueezeAndExcite2D(
+                filters=depth(infilters * expansion),
+                ratio=se_ratio,
+                squeeze_activation="relu",
+                excite_activation="hard_sigmoid",
+            )(x)
 
-    return apply
+    x = layers.Conv2D(
+        filters,
+        kernel_size=1,
+        padding="same",
+        use_bias=False,
+        name=prefix + "project",
+    )(x)
+    x = layers.BatchNormalization(
+        axis=channel_axis,
+        epsilon=1e-3,
+        momentum=0.999,
+        name=prefix + "project/BatchNorm",
+    )(x)
+
+    if stride == 1 and infilters == filters:
+        x = layers.Add(name=prefix + "Add")([shortcut, x])
+
+    return x
 
 
 def MobileNetV3(
@@ -355,7 +346,7 @@ def MobileNetV3(
         se_ratio = None
     else:
         kernel = 5
-        activation = HardSwish()
+        activation = HardSwish
         se_ratio = 0.25
 
     inputs = utils.parse_model_inputs(input_shape, input_tensor)
@@ -447,38 +438,38 @@ def MobileNetV3Small(
 ):
     def stack_fn(x, kernel, activation, se_ratio):
         x = InvertedResBlock(
-            1, depth(16 * alpha), 3, 2, se_ratio, layers.ReLU(), 0
-        )(x)
+            x, 1, depth(16 * alpha), 3, 2, se_ratio, layers.ReLU(), 0
+        )
         x = InvertedResBlock(
-            72.0 / 16, depth(24 * alpha), 3, 2, None, layers.ReLU(), 1
-        )(x)
+            x, 72.0 / 16, depth(24 * alpha), 3, 2, None, layers.ReLU(), 1
+        )
         x = InvertedResBlock(
-            88.0 / 24, depth(24 * alpha), 3, 1, None, layers.ReLU(), 2
-        )(x)
+            x, 88.0 / 24, depth(24 * alpha), 3, 1, None, layers.ReLU(), 2
+        )
         x = InvertedResBlock(
-            4, depth(40 * alpha), kernel, 2, se_ratio, activation, 3
-        )(x)
+            x, 4, depth(40 * alpha), kernel, 2, se_ratio, activation, 3
+        )
         x = InvertedResBlock(
-            6, depth(40 * alpha), kernel, 1, se_ratio, activation, 4
-        )(x)
+            x, 6, depth(40 * alpha), kernel, 1, se_ratio, activation, 4
+        )
         x = InvertedResBlock(
-            6, depth(40 * alpha), kernel, 1, se_ratio, activation, 5
-        )(x)
+            x, 6, depth(40 * alpha), kernel, 1, se_ratio, activation, 5
+        )
         x = InvertedResBlock(
-            3, depth(48 * alpha), kernel, 1, se_ratio, activation, 6
-        )(x)
+            x, 3, depth(48 * alpha), kernel, 1, se_ratio, activation, 6
+        )
         x = InvertedResBlock(
-            3, depth(48 * alpha), kernel, 1, se_ratio, activation, 7
-        )(x)
+            x, 3, depth(48 * alpha), kernel, 1, se_ratio, activation, 7
+        )
         x = InvertedResBlock(
-            6, depth(96 * alpha), kernel, 2, se_ratio, activation, 8
-        )(x)
+            x, 6, depth(96 * alpha), kernel, 2, se_ratio, activation, 8
+        )
         x = InvertedResBlock(
-            6, depth(96 * alpha), kernel, 1, se_ratio, activation, 9
-        )(x)
+            x, 6, depth(96 * alpha), kernel, 1, se_ratio, activation, 9
+        )
         x = InvertedResBlock(
-            6, depth(96 * alpha), kernel, 1, se_ratio, activation, 10
-        )(x)
+            x, 6, depth(96 * alpha), kernel, 1, se_ratio, activation, 10
+        )
         return x
 
     return MobileNetV3(
@@ -518,48 +509,48 @@ def MobileNetV3Large(
 ):
     def stack_fn(x, kernel, activation, se_ratio):
         x = InvertedResBlock(
-            1, depth(16 * alpha), 3, 1, None, layers.ReLU(), 0
-        )(x)
-        x = InvertedResBlock(
-            4, depth(24 * alpha), 3, 2, None, layers.ReLU(), 1
-        )(x)
-        x = InvertedResBlock(
-            3, depth(24 * alpha), 3, 1, None, layers.ReLU(), 2
-        )(x)
-        x = InvertedResBlock(
-            3, depth(40 * alpha), kernel, 2, se_ratio, layers.ReLU(), 3
-        )(x)
-        x = InvertedResBlock(
-            3, depth(40 * alpha), kernel, 1, se_ratio, layers.ReLU(), 4
-        )(x)
-        x = InvertedResBlock(
-            3, depth(40 * alpha), kernel, 1, se_ratio, layers.ReLU(), 5
-        )(x)
-        x = InvertedResBlock(6, depth(80 * alpha), 3, 2, None, activation, 6)(x)
-        x = InvertedResBlock(2.5, depth(80 * alpha), 3, 1, None, activation, 7)(
-            x
-        )
-        x = InvertedResBlock(2.3, depth(80 * alpha), 3, 1, None, activation, 8)(
-            x
-        )
-        x = InvertedResBlock(2.3, depth(80 * alpha), 3, 1, None, activation, 9)(
-            x
+            x, 1, depth(16 * alpha), 3, 1, None, layers.ReLU(), 0
         )
         x = InvertedResBlock(
-            6, depth(112 * alpha), 3, 1, se_ratio, activation, 10
-        )(x)
+            x, 4, depth(24 * alpha), 3, 2, None, layers.ReLU(), 1
+        )
         x = InvertedResBlock(
-            6, depth(112 * alpha), 3, 1, se_ratio, activation, 11
-        )(x)
+            x, 3, depth(24 * alpha), 3, 1, None, layers.ReLU(), 2
+        )
         x = InvertedResBlock(
-            6, depth(160 * alpha), kernel, 2, se_ratio, activation, 12
-        )(x)
+            x, 3, depth(40 * alpha), kernel, 2, se_ratio, layers.ReLU(), 3
+        )
         x = InvertedResBlock(
-            6, depth(160 * alpha), kernel, 1, se_ratio, activation, 13
-        )(x)
+            x, 3, depth(40 * alpha), kernel, 1, se_ratio, layers.ReLU(), 4
+        )
         x = InvertedResBlock(
-            6, depth(160 * alpha), kernel, 1, se_ratio, activation, 14
-        )(x)
+            x, 3, depth(40 * alpha), kernel, 1, se_ratio, layers.ReLU(), 5
+        )
+        x = InvertedResBlock(x, 6, depth(80 * alpha), 3, 2, None, activation, 6)
+        x = InvertedResBlock(
+            x, 2.5, depth(80 * alpha), 3, 1, None, activation, 7
+        )
+        x = InvertedResBlock(
+            x, 2.3, depth(80 * alpha), 3, 1, None, activation, 8
+        )
+        x = InvertedResBlock(
+            x, 2.3, depth(80 * alpha), 3, 1, None, activation, 9
+        )
+        x = InvertedResBlock(
+            x, 6, depth(112 * alpha), 3, 1, se_ratio, activation, 10
+        )
+        x = InvertedResBlock(
+            x, 6, depth(112 * alpha), 3, 1, se_ratio, activation, 11
+        )
+        x = InvertedResBlock(
+            x, 6, depth(160 * alpha), kernel, 2, se_ratio, activation, 12
+        )
+        x = InvertedResBlock(
+            x, 6, depth(160 * alpha), kernel, 1, se_ratio, activation, 13
+        )
+        x = InvertedResBlock(
+            x, 6, depth(160 * alpha), kernel, 1, se_ratio, activation, 14
+        )
         return x
 
     return MobileNetV3(
