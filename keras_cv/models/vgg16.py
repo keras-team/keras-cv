@@ -138,8 +138,8 @@ class VGG16(keras.Model):
         if include_rescaling:
             x = layers.Rescaling(1 / 255.0)(x)
 
-        x = build_vgg_block(
-            input_tensor=x,
+        x = apply_vgg_block(
+            x=x,
             num_layers=2,
             kernel_size=64,
             stride=(3, 3),
@@ -149,8 +149,8 @@ class VGG16(keras.Model):
             name="block1",
         )
 
-        x = build_vgg_block(
-            input_tensor=x,
+        x = apply_vgg_block(
+            x=x,
             num_layers=2,
             kernel_size=128,
             stride=(3, 3),
@@ -160,8 +160,8 @@ class VGG16(keras.Model):
             name="block2",
         )
 
-        x = build_vgg_block(
-            input_tensor=x,
+        x = apply_vgg_block(
+            x=x,
             num_layers=3,
             kernel_size=256,
             stride=(3, 3),
@@ -171,8 +171,8 @@ class VGG16(keras.Model):
             name="block3",
         )
 
-        x = build_vgg_block(
-            input_tensor=x,
+        x = apply_vgg_block(
+            x=x,
             num_layers=3,
             kernel_size=512,
             stride=(3, 3),
@@ -182,8 +182,8 @@ class VGG16(keras.Model):
             name="block4",
         )
 
-        x = build_vgg_block(
-            input_tensor=x,
+        x = apply_vgg_block(
+            x=x,
             num_layers=3,
             kernel_size=512,
             stride=(3, 3),
@@ -227,7 +227,7 @@ class VGG16(keras.Model):
             "pooling": self.pooling,
             "classes": self.classes,
             "classifier_activation": self.classifier_activation,
-            "trainable": self.trainable
+            "trainable": self.trainable,
         }
 
     @classmethod
