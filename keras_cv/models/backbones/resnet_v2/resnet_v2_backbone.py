@@ -342,7 +342,7 @@ class ResNetV2Backbone(Backbone):
         if stackwise_dilations is None:
             stackwise_dilations = [1] * num_stacks
 
-        pyramid_level_outputs = {}
+        pyramid_level_inputs = {}
         for stack_index in range(num_stacks):
             x, output_name = apply_stack(
                 x,
@@ -354,7 +354,7 @@ class ResNetV2Backbone(Backbone):
                 first_shortcut=(block_type == "block" or stack_index > 0),
                 stack_index=stack_index,
             )
-            pyramid_level_outputs[stack_index + 2] = output_name
+            pyramid_level_inputs[stack_index + 2] = output_name
 
         x = layers.BatchNormalization(
             axis=BN_AXIS, epsilon=BN_EPSILON, name="post_bn"
@@ -365,7 +365,7 @@ class ResNetV2Backbone(Backbone):
         super().__init__(inputs=inputs, outputs=x, **kwargs)
 
         # All references to `self` below this line
-        self.pyramid_level_outputs = pyramid_level_outputs
+        self.pyramid_level_inputs = pyramid_level_inputs
         self.stackwise_filters = stackwise_filters
         self.stackwise_blocks = stackwise_blocks
         self.stackwise_strides = stackwise_strides

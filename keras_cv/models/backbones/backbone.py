@@ -31,7 +31,7 @@ class Backbone(keras.Model):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self._pyramid_level_outputs = {}
+        self._pyramid_level_inputs = {}
 
     @classmethod
     def from_config(cls, config):
@@ -146,7 +146,7 @@ class Backbone(keras.Model):
             )(cls.from_preset.__func__)
 
     @property
-    def pyramid_level_outputs(self):
+    def pyramid_level_inputs(self):
         """Intermediate model outputs for transfer learning.
 
         Format is a dictionary with int as key and layer name as value.
@@ -155,32 +155,8 @@ class Backbone(keras.Model):
         the backbone. Scale Pn represents a feature map 2^n times smaller in
         width and height than the input image.
         """
-        return self._pyramid_level_outputs
+        return self._pyramid_level_inputs
 
-    @pyramid_level_outputs.setter
-    def pyramid_level_outputs(self, value):
-        self._pyramid_level_outputs = value
-
-    def get_feature_extractor(self, layer_names, output_keys=None):
-        """Create a feature extractor model with augmented output.
-
-        This method produces a new `keras.Model` with the same input signature
-        as this instance but with the layers in `layer_names` as the output.
-        This is useful for downstream Tasks that require more output than the
-        final layer of the backbone.
-
-        Args:
-            layer_names: list of strings. Names of layers to include in the
-                output signature.
-            output_keys: optional, list of strings. Key to use for each layer in
-                the model's output dictionary
-
-        Returns:
-            `tf.keras.Model` which has dict as outputs.
-        """
-
-        if not output_keys:
-            output_keys = layer_names
-        items = zip(output_keys, layer_names)
-        outputs = {item[0]: self.get_layer(item[1]).output for item in items}
-        return tf.keras.Model(inputs=self.inputs, outputs=outputs)
+    @pyramid_level_inputs.setter
+    def pyramid_level_inputs(self, value):
+        self._pyramid_level_inputs = value

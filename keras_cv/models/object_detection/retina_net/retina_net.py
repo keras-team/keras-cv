@@ -25,21 +25,22 @@ from keras_cv.models.object_detection.__internal__ import unpack_input
 from keras_cv.models.object_detection.retina_net.__internal__ import (
     layers as layers_lib,
 )
+from keras_cv.utils.train import get_feature_extractor
 
 BOX_VARIANCE = [0.1, 0.1, 0.2, 0.2]
 
 
 # TODO(lukewood): update docstring to include documentation on creating a custom label
 # decoder/etc.
-# TODO(lukewood): link to keras.io guide on creating custom backbone and FPN.
+# TODO(jbischof): Generalize `FeaturePyramid` class to allow for any P-levels and
+# add `feature_pyramid_levels` param.
 @keras.utils.register_keras_serializable(package="keras_cv")
 class RetinaNet(tf.keras.Model):
     """A Keras model implementing the RetinaNet architecture.
 
     Implements the RetinaNet architecture for object detection.  The constructor
     requires `classes`, and `bounding_box_format`.  Optionally, a backbone,
-    custom label encoder, feature pyramid network, and prediction decoder may all be
-    provided.
+    custom label encoder, and prediction decoder may all be provided.
 
     Usage:
     ```python
@@ -57,10 +58,9 @@ class RetinaNet(tf.keras.Model):
         bounding_box_format: The format of bounding boxes of input dataset. Refer
             [to the keras.io docs](https://keras.io/api/keras_cv/bounding_box/formats/)
             for more details on supported bounding box formats.
-        backbone: an optional `tf.keras.Model` custom backbone model.
-            If `feature_pyramid` is not provided, must implement the
-            `pyramid_level_outputs` property with keys "3", "4", and "5". Defaults
-            to a `keras_cv.models.ResNet50V2Backbone`.
+        backbone: optional `keras.Model`. Must implement the `pyramid_level_inputs`
+            property with keys 3, 4, and 5 and layer names as values. If
+            `None`, defaults to `keras_cv.models.ResNet50V2Backbone()`.
         anchor_generator: (Optional) a `keras_cv.layers.AnchorGenerator`.  If provided,
             the anchor generator will be passed to both the `label_encoder` and the
             `prediction_decoder`.  Only to be used when both `label_encoder` and
@@ -71,18 +71,14 @@ class RetinaNet(tf.keras.Model):
             and `aspect_ratios=[0.5, 1.0, 2.0]`.
         label_encoder: (Optional) a keras.Layer that accepts an image Tensor, a
             bounding box Tensor and a bounding box class Tensor to its `call()` method,
-            and returns RetinaNet training targets.  By default, a KerasCV standard LabelEncoder is created and used.
-            Results of this `call()` method are passed to the `loss` object passed into
-            `compile()` as the `y_true` argument.
+            and returns RetinaNet training targets.  By default, a KerasCV standard
+            LabelEncoder is created and used.  Results of this `call()` method
+            are passed to the `loss` object passed into `compile()` as the `y_true`
+            argument.
         prediction_decoder: (Optional)  A `keras.layer` that is responsible for
             transforming RetinaNet predictions into usable bounding box Tensors.  If
             not provided, a default is provided.  The default `prediction_decoder`
             layer uses a `MultiClassNonMaxSuppression` operation for box pruning.
-        feature_pyramid: (Optional) A `keras.Model` representing a feature pyramid
-            network (FPN).  The feature pyramid network is called on the outputs of the
-            `backbone`.  If not provided, a default feature pyramid network is produced
-            by the library. The default feature pyramid network is compatible with all
-            standard keras_cv Backbones.
         classification_head: (Optional) A `keras.Layer` that performs classification of
             the bounding boxes.  If not provided, a simple ConvNet with 1 layer will be
             used.
@@ -99,7 +95,6 @@ class RetinaNet(tf.keras.Model):
         anchor_generator=None,
         label_encoder=None,
         prediction_decoder=None,
-        feature_pyramid=None,
         classification_head=None,
         box_head=None,
         name="RetinaNet",
@@ -145,7 +140,9 @@ class RetinaNet(tf.keras.Model):
         self.classes = classes
         # TODO(jbischof): replace with preset default once this is Task subclass
         if backbone is None:
-            backbone = keras_cv.models.ResNet50V2Backbone()
+            self.backbone = keras_cv.models.ResNet50V2Backbone()
+        else:
+            self.backbone = backbone
         self._prediction_decoder = (
             prediction_decoder
             or cv_layers.MultiClassNonMaxSuppression(
@@ -155,19 +152,14 @@ class RetinaNet(tf.keras.Model):
         )
 
         # initialize trainable networks
-        if not feature_pyramid:
-            extractor_levels = [3, 4, 5]
-            extractor_layer_names = [
-                backbone.pyramid_level_outputs[i] for i in extractor_levels
-            ]
-            # TODO(bischof): consider calling this `self.feature_extractor`
-            self.backbone = backbone.get_feature_extractor(
-                extractor_layer_names, extractor_levels
-            )
-            self.feature_pyramid = layers_lib.FeaturePyramid()
-        else:
-            self.backbone = backbone
-            self.feature_pyramid = feature_pyramid
+        extractor_levels = [3, 4, 5]
+        extractor_layer_names = [
+            self.backbone.pyramid_level_inputs[i] for i in extractor_levels
+        ]
+        self.feature_extractor = get_feature_extractor(
+            self.backbone, extractor_layer_names, extractor_levels
+        )
+        self.feature_pyramid = layers_lib.FeaturePyramid()
         prior_probability = tf.constant_initializer(-np.log((1 - 0.01) / 0.01))
 
         self.classification_head = (
@@ -209,8 +201,12 @@ class RetinaNet(tf.keras.Model):
         )
 
     def _forward(self, images, training=None):
-        backbone_outputs = self.backbone(images, training=training)
-        features = self.feature_pyramid(backbone_outputs, training=training)
+        feature_extractor_outputs = self.feature_extractor(
+            images, training=training
+        )
+        features = self.feature_pyramid(
+            feature_extractor_outputs, training=training
+        )
 
         N = tf.shape(images)[0]
         cls_pred = []
