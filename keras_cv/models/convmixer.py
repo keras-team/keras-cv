@@ -218,7 +218,9 @@ class ConvMixer(keras.Model):
         if include_top:
             x = layers.GlobalAveragePooling2D(name="avg_pool")(x)
             x = layers.Dense(
-                num_classes, activation=classifier_activation, name="predictions"
+                num_classes,
+                activation=classifier_activation,
+                name="predictions",
             )(x)
         else:
             if pooling == "avg":
