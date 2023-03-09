@@ -162,8 +162,8 @@ class RetinaNet(tf.keras.Model):
             )
 
         self.bounding_box_format = bounding_box_format
-        self.classes = classes
-        if classes == 1:
+        self.num_classes = num_classes
+        if num_classes == 1:
             raise ValueError(
                 "RetinaNet must always have at least 2 classes. "
                 "This is because logits are passed through a `tf.softmax()` call "
