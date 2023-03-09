@@ -94,20 +94,21 @@ class Solarization(VectorizedBaseImageAugmentationLayer):
         self.value_range = value_range
 
     def get_random_transformation_batch(self, batch_size, **kwargs):
-        return (
-            self.addition_factor(
+        return {
+            "additions": self.addition_factor(
                 shape=(batch_size, 1, 1, 1), dtype=self.compute_dtype
             ),
-            self.threshold_factor(
+            "thresholds": self.threshold_factor(
                 shape=(batch_size, 1, 1, 1), dtype=self.compute_dtype
             ),
-        )
+        }
 
     def augment_ragged_image(self, image, transformation, **kwargs):
         return self.augment_images(image, transformation)
 
     def augment_images(self, images, transformations, **kwargs):
-        (additions, thresholds) = transformations
+        thresholds = transformations["thresholds"]
+        additions = transformations["additions"]
         images = preprocessing.transform_value_range(
             images,
             original_range=self.value_range,
