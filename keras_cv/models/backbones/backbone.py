@@ -15,7 +15,6 @@
 
 import os
 
-import tensorflow as tf
 from tensorflow import keras
 
 from keras_cv.utils.python_utils import classproperty
