@@ -46,7 +46,7 @@ class JitteredResizeTest(tf.test.TestCase, parameterized.TestCase):
         image = tf.zeros([20, 20, 3])
         boxes = {
             "boxes": tf.convert_to_tensor([[0, 0, 1, 1]], dtype=tf.float32),
-            "classes": tf.convert_to_tensor([0], dtype=tf.float32),
+            "num_classes": tf.convert_to_tensor([0], dtype=tf.float32),
         }
         input = {"images": image, "bounding_boxes": boxes}
 
@@ -62,21 +62,21 @@ class JitteredResizeTest(tf.test.TestCase, parameterized.TestCase):
         )
         expected_output = {
             "boxes": tf.convert_to_tensor([[0, 0, 1, 1]], dtype=tf.float32),
-            "classes": tf.convert_to_tensor([0], dtype=tf.float32),
+            "num_classes": tf.convert_to_tensor([0], dtype=tf.float32),
         }
         self.assertAllClose(
             expected_output["boxes"],
             output["bounding_boxes"]["boxes"],
         )
         self.assertAllClose(
-            expected_output["classes"], output["bounding_boxes"]["classes"]
+            expected_output["num_classes"], output["bounding_boxes"]["num_classes"]
         )
 
     def test_augment_boxes_batched_input(self):
         image = tf.zeros([20, 20, 3])
 
         bounding_boxes = {
-            "classes": tf.convert_to_tensor([[0, 0], [0, 0]]),
+            "num_classes": tf.convert_to_tensor([[0, 0], [0, 0]]),
             "boxes": tf.convert_to_tensor(
                 [
                     [[0, 0, 1, 1], [0, 0, 1, 1]],
@@ -97,7 +97,7 @@ class JitteredResizeTest(tf.test.TestCase, parameterized.TestCase):
             output["bounding_boxes"]
         )
         expected_output = {
-            "classes": tf.convert_to_tensor([[0, 0], [0, 0]], dtype=tf.float32),
+            "num_classes": tf.convert_to_tensor([[0, 0], [0, 0]], dtype=tf.float32),
             "boxes": tf.convert_to_tensor(
                 [
                     [[0, 0, 1, 1], [0, 0, 1, 1]],
@@ -111,7 +111,7 @@ class JitteredResizeTest(tf.test.TestCase, parameterized.TestCase):
             output["bounding_boxes"]["boxes"],
         )
         self.assertAllClose(
-            expected_output["classes"], output["bounding_boxes"]["classes"]
+            expected_output["num_classes"], output["bounding_boxes"]["num_classes"]
         )
 
     def test_augment_boxes_ragged(self):
@@ -120,7 +120,7 @@ class JitteredResizeTest(tf.test.TestCase, parameterized.TestCase):
             "boxes": tf.ragged.constant(
                 [[[0, 0, 1, 1], [0, 0, 1, 1]], [[0, 0, 1, 1]]], dtype=tf.float32
             ),
-            "classes": tf.ragged.constant(
+            "num_classes": tf.ragged.constant(
                 [
                     [
                         0,
@@ -145,7 +145,7 @@ class JitteredResizeTest(tf.test.TestCase, parameterized.TestCase):
             "boxes": tf.ragged.constant(
                 [[[0, 0, 1, 1], [0, 0, 1, 1]], [[0, 0, 1, 1]]], dtype=tf.float32
             ),
-            "classes": tf.ragged.constant(
+            "num_classes": tf.ragged.constant(
                 [
                     [
                         0.0,
@@ -161,14 +161,14 @@ class JitteredResizeTest(tf.test.TestCase, parameterized.TestCase):
             output["bounding_boxes"]["boxes"].to_tensor(),
         )
         self.assertAllClose(
-            expected_output["classes"], output["bounding_boxes"]["classes"]
+            expected_output["num_classes"], output["bounding_boxes"]["num_classes"]
         )
 
     def test_augment_inference_mode(self):
         image = tf.zeros([20, 20, 3])
         boxes = {
             "boxes": tf.convert_to_tensor([[0, 0, 1, 1]], dtype=tf.float32),
-            "classes": tf.convert_to_tensor([0], dtype=tf.float32),
+            "num_classes": tf.convert_to_tensor([0], dtype=tf.float32),
         }
         input = {"images": image, "bounding_boxes": boxes}
 
@@ -185,8 +185,8 @@ class JitteredResizeTest(tf.test.TestCase, parameterized.TestCase):
             output["bounding_boxes"]["boxes"],
         )
         self.assertAllClose(
-            expected_output["bounding_boxes"]["classes"],
-            output["bounding_boxes"]["classes"],
+            expected_output["bounding_boxes"]["num_classes"],
+            output["bounding_boxes"]["num_classes"],
         )
         self.assertAllClose(
             expected_output["images"],

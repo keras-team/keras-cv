@@ -30,8 +30,8 @@ def preprocess_voc(inputs, format):
         source="rel_yxyx",
         target=format,
     )
-    classes = tf.cast(inputs["objects"]["label"], tf.float32)
-    bounding_boxes = {"classes": classes, "boxes": boxes}
+    num_classes = tf.cast(inputs["objects"]["label"], tf.float32)
+    bounding_boxes = {"num_classes": num_classes, "boxes": boxes}
     return {"images": image, "bounding_boxes": bounding_boxes}
 
 

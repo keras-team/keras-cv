@@ -27,7 +27,7 @@ class PyCOCOCallback(Callback):
         Args:
             validation_data: a tf.data.Dataset containing validation data. Entries
                 should have the form ```(images, {"boxes": boxes,
-                "classes": classes})```.
+                "num_classes": num_classes})```.
             bounding_box_format: the KerasCV bounding box format used in the
                 validation dataset (e.g. "xywh")
             cache: whether the callback should cache the dataset between iterations.
@@ -58,7 +58,7 @@ class PyCOCOCallback(Callback):
         images_only_ds = self.val_data.map(images_only)
         y_pred = self.model.predict(images_only_ds)
         box_pred = tf.convert_to_tensor(y_pred["boxes"])
-        cls_pred = tf.convert_to_tensor(y_pred["classes"])
+        cls_pred = tf.convert_to_tensor(y_pred["num_classes"])
         confidence_pred = tf.convert_to_tensor(y_pred["confidence"])
         valid_det = tf.convert_to_tensor(y_pred["num_detections"])
 
@@ -68,7 +68,7 @@ class PyCOCOCallback(Callback):
             axis=0,
         )
         gt_classes = tf.concat(
-            [tf.RaggedTensor.from_tensor(boxes["classes"]) for boxes in gt],
+            [tf.RaggedTensor.from_tensor(boxes["num_classes"]) for boxes in gt],
             axis=0,
         )
 
@@ -94,7 +94,7 @@ class PyCOCOCallback(Callback):
 
         ground_truth["num_detections"] = [gt_boxes.row_lengths(axis=1)]
         ground_truth["boxes"] = [gt_boxes.to_tensor(-1)]
-        ground_truth["classes"] = [gt_classes.to_tensor(-1)]
+        ground_truth["num_classes"] = [gt_classes.to_tensor(-1)]
         box_pred = bounding_box.convert_format(
             box_pred, source=self.bounding_box_format, target="yxyx"
         )

@@ -35,8 +35,8 @@ class VGG19(keras.Model):
       include_rescaling: bool, whether or not to Rescale the inputs.If set to True,
         inputs will be passed through a `Rescaling(1/255.0)` layer.
       include_top: bool, whether to include the 3 fully-connected
-        layers at the top of the network. If provided, classes must be provided.
-      classes: int, optional number of classes to classify images into, only to be
+        layers at the top of the network. If provided, num_classes must be provided.
+      num_classes: int, optional number of num_classes to classify images into, only to be
         specified if `include_top` is True.
       weights: os.PathLike or None, one of `None` (random initialization), or a pretrained weight file path.
       input_shape: tuple, optional shape tuple, defaults to (224, 224, 3).
@@ -68,7 +68,7 @@ class VGG19(keras.Model):
         include_rescaling,
         include_top,
         input_tensor=None,
-        classes=None,
+        num_classes=None,
         weights=None,
         input_shape=(224, 224, 3),
         pooling=None,
@@ -82,10 +82,10 @@ class VGG19(keras.Model):
                 "weights file to be loaded. Weights file not found at location: {weights}"
             )
 
-        if include_top and not classes:
+        if include_top and not num_classes:
             raise ValueError(
-                "If `include_top` is True, you should specify `classes`. "
-                f"Received: classes={classes}"
+                "If `include_top` is True, you should specify `num_classes`. "
+                f"Received: num_classes={num_classes}"
             )
 
         if include_top and pooling:
@@ -160,7 +160,7 @@ class VGG19(keras.Model):
             x = layers.Dense(4096, activation="relu", name="fc1")(x)
             x = layers.Dense(4096, activation="relu", name="fc2")(x)
             x = layers.Dense(
-                classes, activation=classifier_activation, name="predictions"
+                num_classes, activation=classifier_activation, name="predictions"
             )(x)
         else:
             if pooling == "avg":
@@ -174,7 +174,7 @@ class VGG19(keras.Model):
 
         self.include_rescaling = include_rescaling
         self.include_top = include_top
-        self.classes = classes
+        self.num_classes = num_classes
         self.input_tensor = input_tensor
         self.pooling = pooling
         self.classifier_activation = classifier_activation
@@ -187,7 +187,7 @@ class VGG19(keras.Model):
             "input_shape": self.input_shape[1:],
             "input_tensor": self.input_tensor,
             "pooling": self.pooling,
-            "classes": self.classes,
+            "num_classes": self.num_classes,
             "classifier_activation": self.classifier_activation,
             "trainable": self.trainable,
         }

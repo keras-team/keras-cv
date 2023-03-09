@@ -18,15 +18,15 @@ from keras_cv import bounding_box
 
 
 def filter_boxes_by_area_range(bounding_boxes, min_area, max_area):
-    boxes, classes = bounding_boxes["boxes"], bounding_boxes["classes"]
+    boxes, num_classes = bounding_boxes["boxes"], bounding_boxes["num_classes"]
     confidence = bounding_boxes.get("confidence", None)
 
     areas = bounding_box_area(boxes)
     inds = tf.where(tf.math.logical_and(areas >= min_area, areas < max_area))
 
     boxes = tf.gather_nd(boxes, inds)
-    classes = tf.gather_nd(classes, inds)
-    result = {"boxes": boxes, "classes": classes}
+    num_classes = tf.gather_nd(num_classes, inds)
+    result = {"boxes": boxes, "num_classes": num_classes}
 
     if confidence is not None:
         confidence = tf.gather_nd(bounding_boxes["confidence"], inds)
@@ -49,12 +49,12 @@ def bounding_box_area(boxes):
 
 
 def slice(bounding_boxes, idx):
-    boxes, classes = bounding_boxes["boxes"], bounding_boxes["classes"]
+    boxes, num_classes = bounding_boxes["boxes"], bounding_boxes["num_classes"]
     confidence = bounding_boxes.get("confidence", None)
 
     result = {
         "boxes": boxes[:idx],
-        "classes": classes[:idx],
+        "num_classes": num_classes[:idx],
     }
     if confidence is not None:
         result["confidence"] = confidence[:idx]
@@ -73,13 +73,13 @@ def select_boxes_of_class(bounding_boxes, class_id):
         boxes: A new Tensor of bounding boxes, where boxes[axis]==class_id
     """
 
-    boxes, classes = bounding_boxes["boxes"], bounding_boxes["classes"]
+    boxes, num_classes = bounding_boxes["boxes"], bounding_boxes["num_classes"]
     confidence = bounding_boxes.get("confidence", None)
-    indices = tf.where(classes == tf.cast(class_id, classes.dtype))
+    indices = tf.where(num_classes == tf.cast(class_id, num_classes.dtype))
 
     result = {
         "boxes": tf.gather_nd(boxes, indices),
-        "classes": tf.gather_nd(classes, indices),
+        "num_classes": tf.gather_nd(num_classes, indices),
     }
 
     if confidence is not None:
@@ -104,10 +104,10 @@ def to_sentinel_padded_bounding_box_tensor(box_sets):
 
 def get_boxes_for_image(bounding_boxes, index):
     boxes = bounding_boxes["boxes"]
-    classes = bounding_boxes["classes"]
+    num_classes = bounding_boxes["num_classes"]
     result = {
         "boxes": boxes[index, ...],
-        "classes": classes[index, ...],
+        "num_classes": num_classes[index, ...],
     }
 
     if "confidence" in bounding_boxes:
@@ -126,7 +126,7 @@ def order_by_confidence(bounding_boxes):
         boxes: A new Tensor of Bounding boxes, sorted on an image-wise basis.
     """
     boxes = bounding_boxes["boxes"]
-    classes = bounding_boxes["classes"]
+    num_classes = bounding_boxes["num_classes"]
     confidence = bounding_boxes["confidence"]
 
     if boxes.shape.rank != 2:
@@ -137,14 +137,14 @@ def order_by_confidence(bounding_boxes):
     _, idx = tf.math.top_k(confidence, tf.shape(confidence)[0])
 
     boxes = bounding_boxes["boxes"]
-    classes = bounding_boxes["classes"]
+    num_classes = bounding_boxes["num_classes"]
     confidence = bounding_boxes["confidence"]
 
     boxes = tf.gather(boxes, idx, axis=0)
-    classes = tf.gather(classes, idx, axis=0)
+    num_classes = tf.gather(num_classes, idx, axis=0)
     confidence = tf.gather(confidence, idx, axis=0)
 
-    return {"boxes": boxes, "classes": classes, "confidence": confidence}
+    return {"boxes": boxes, "num_classes": num_classes, "confidence": confidence}
 
 
 def match_boxes(ious, threshold):

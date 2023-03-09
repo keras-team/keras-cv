@@ -196,7 +196,7 @@ def get_non_empty_box_indices(boxes):
     return indices[:, 0]
 
 
-def resize_fn(image, boxes, classes):
+def resize_fn(image, boxes, num_classes):
     image, image_info = resize_and_crop_image(
         image, image_size[:2], image_size[:2], 0.8, 1.25
     )
@@ -205,8 +205,8 @@ def resize_fn(image, boxes, classes):
     )
     indices = get_non_empty_box_indices(boxes)
     boxes = tf.gather(boxes, indices)
-    classes = tf.gather(classes, indices)
-    return image, boxes, classes
+    num_classes = tf.gather(num_classes, indices)
+    return image, boxes, num_classes
 
 
 def flip_fn(image, boxes):
@@ -229,12 +229,12 @@ def proc_train_fn(bounding_box_format, img_size):
             source="rel_yxyx",
             target="yxyx",
         )
-        classes = tf.cast(inputs["objects"]["label"], tf.float32)
-        image, boxes, classes = resize_fn(image, boxes, classes)
+        num_classes = tf.cast(inputs["objects"]["label"], tf.float32)
+        image, boxes, num_classes = resize_fn(image, boxes, num_classes)
         bounding_boxes = keras_cv.bounding_box.convert_format(
             boxes, images=image, source="yxyx", target=bounding_box_format
         )
-        bounding_boxes = {"boxes": bounding_boxes, "classes": classes}
+        bounding_boxes = {"boxes": bounding_boxes, "num_classes": num_classes}
         return image, bounding_boxes
 
     return apply
@@ -278,8 +278,8 @@ def proc_eval_fn(bounding_box_format, target_size):
             source="xyxy",
             target=bounding_box_format,
         )
-        classes = tf.cast(inputs["objects"]["label"], tf.float32)
-        bounding_boxes = {"boxes": boxes, "classes": classes}
+        num_classes = tf.cast(inputs["objects"]["label"], tf.float32)
+        bounding_boxes = {"boxes": boxes, "num_classes": num_classes}
         return image, bounding_boxes
 
     return apply
@@ -289,10 +289,10 @@ def pad_fn(images, bounding_boxes):
     boxes = bounding_boxes["boxes"].to_tensor(
         default_value=-1.0, shape=[GLOBAL_BATCH_SIZE, 32, 4]
     )
-    classes = bounding_boxes["classes"].to_tensor(
+    num_classes = bounding_boxes["num_classes"].to_tensor(
         default_value=-1.0, shape=[GLOBAL_BATCH_SIZE, 32]
     )
-    return images, {"boxes": boxes, "classes": classes}
+    return images, {"boxes": boxes, "num_classes": num_classes}
 
 
 train_ds = train_ds.map(
@@ -355,8 +355,8 @@ with strategy.scope():
     #     include_top=False, weights="imagenet", include_rescaling=False
     # ).as_backbone()
     model = keras_cv.models.RetinaNet(
-        # number of classes to be used in box classification
-        classes=20,
+        # number of num_classes to be used in box classification
+        num_classes=20,
         # For more info on supported bounding box formats, visit
         # https://keras.io/api/keras_cv/bounding_box/
         bounding_box_format="xywh",

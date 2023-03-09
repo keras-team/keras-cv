@@ -79,14 +79,14 @@ TEST_CONFIGURATIONS = [
 class WithSegmentationMasksTest(tf.test.TestCase, parameterized.TestCase):
     @parameterized.named_parameters(*TEST_CONFIGURATIONS)
     def test_can_run_with_segmentation_masks(self, layer_cls, init_args):
-        classes = 10
+        num_classes = 10
         layer = layer_cls(**init_args)
 
         img = tf.random.uniform(
             shape=(3, 512, 512, 3), minval=0, maxval=1, dtype=tf.float32
         )
         segmentation_masks = tf.random.uniform(
-            shape=(3, 512, 512, 1), minval=0, maxval=classes, dtype=tf.int32
+            shape=(3, 512, 512, 1), minval=0, maxval=num_classes, dtype=tf.int32
         )
 
         inputs = {"images": img, "segmentation_masks": segmentation_masks}
@@ -106,13 +106,13 @@ class WithSegmentationMasksTest(tf.test.TestCase, parameterized.TestCase):
     def test_can_run_with_segmentation_mask_single_image(
         self, layer_cls, init_args
     ):
-        classes = 10
+        num_classes = 10
         layer = layer_cls(**init_args)
         img = tf.random.uniform(
             shape=(512, 512, 3), minval=0, maxval=1, dtype=tf.float32
         )
         segmentation_mask = tf.random.uniform(
-            shape=(512, 512, 1), minval=0, maxval=classes, dtype=tf.int32
+            shape=(512, 512, 1), minval=0, maxval=num_classes, dtype=tf.int32
         )
 
         inputs = {"images": img, "segmentation_masks": segmentation_mask}

@@ -52,7 +52,7 @@ class RandomAspectRatioTest(tf.test.TestCase):
                 [[[0.2, 0.12, 1, 1], [0, 0, 0.5, 0.73]], [[0, 0, 1, 1]]],
                 dtype=tf.float32,
             ),
-            "classes": tf.ragged.constant([[0, 0], [0]], dtype=tf.float32),
+            "num_classes": tf.ragged.constant([[0, 0], [0]], dtype=tf.float32),
         }
         input = {"images": image, "bounding_boxes": bounding_boxes}
         layer = layers.RandomAspectRatio(

@@ -127,7 +127,7 @@ flags.DEFINE_integer("epochs", 1000, "Epochs to train for")
 FLAGS = flags.FLAGS
 FLAGS(sys.argv)
 
-CLASSES = 1000
+num_classes = 1000
 IMAGE_SIZE = (224, 224)
 REDUCE_ON_PLATEAU = "ReduceOnPlateau"
 COSINE_DECAY_WITH_WARMUP = "CosineDecayWithWarmup"
@@ -239,7 +239,7 @@ with strategy.scope():
     model = model(
         include_rescaling=True,
         include_top=True,
-        classes=CLASSES,
+        num_classes=num_classes,
         input_shape=IMAGE_SIZE + (3,),
         **eval(FLAGS.model_kwargs),
     )

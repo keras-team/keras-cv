@@ -150,7 +150,7 @@ def _convert_groundtruths_to_coco_dataset(groundtruths, label_map=None):
     gt_annotations = []
     num_batches = len(groundtruths["source_id"])
     for i in range(num_batches):
-        max_num_instances = groundtruths["classes"][i].shape[1]
+        max_num_instances = groundtruths["num_classes"][i].shape[1]
         batch_size = groundtruths["source_id"][i].shape[0]
         for j in range(batch_size):
             num_instances = groundtruths["num_detections"][i][j]
@@ -160,7 +160,7 @@ def _convert_groundtruths_to_coco_dataset(groundtruths, label_map=None):
                 ann = {}
                 ann["image_id"] = groundtruths["source_id"][i][j]
                 ann["iscrowd"] = 0
-                ann["category_id"] = int(groundtruths["classes"][i][j, k])
+                ann["category_id"] = int(groundtruths["num_classes"][i][j, k])
                 boxes = groundtruths["boxes"][i]
                 ann["bbox"] = [
                     float(boxes[j, k, 1]),

@@ -27,7 +27,7 @@ class RetinaNetLabelEncoderTest(tf.test.TestCase):
         boxes = tf.random.uniform(
             shape=boxes_shape, minval=0.0, maxval=1.0, dtype=tf.float32
         )
-        classes = tf.random.uniform(
+        num_classes = tf.random.uniform(
             shape=classes_shape, minval=0, maxval=5, dtype=tf.float32
         )
         strides = [2**i for i in range(3, 8)]
@@ -46,7 +46,7 @@ class RetinaNetLabelEncoderTest(tf.test.TestCase):
             anchor_generator=anchor_generator,
             bounding_box_format="xyxy",
         )
-        bounding_boxes = {"boxes": boxes, "classes": classes}
+        bounding_boxes = {"boxes": boxes, "num_classes": num_classes}
         box_targets, class_targets = encoder(images, bounding_boxes)
 
         self.assertEqual(box_targets.shape, [8, 49104, 4])
@@ -59,7 +59,7 @@ class RetinaNetLabelEncoderTest(tf.test.TestCase):
 
         images = tf.random.uniform(shape=images_shape)
         boxes = -tf.ones(shape=boxes_shape, dtype=tf.float32)
-        classes = -tf.ones(shape=classes_shape, dtype=tf.float32)
+        num_classes = -tf.ones(shape=classes_shape, dtype=tf.float32)
 
         strides = [2**i for i in range(3, 8)]
         scales = [2**x for x in [0, 1 / 3, 2 / 3]]
@@ -78,7 +78,7 @@ class RetinaNetLabelEncoderTest(tf.test.TestCase):
             bounding_box_format="xyxy",
         )
 
-        bounding_boxes = {"boxes": boxes, "classes": classes}
+        bounding_boxes = {"boxes": boxes, "num_classes": num_classes}
         box_targets, class_targets = encoder(images, bounding_boxes)
 
         self.assertFalse(tf.math.reduce_any(tf.math.is_nan(box_targets)))
@@ -94,7 +94,7 @@ class RetinaNetLabelEncoderTest(tf.test.TestCase):
                 tf.constant([[0, 0, 10, 10]], tf.float32),
             ]
         )
-        classes = tf.ragged.stack(
+        num_classes = tf.ragged.stack(
             [
                 tf.constant([[1], [1]], tf.float32),
                 tf.constant([[1]], tf.float32),
@@ -117,7 +117,7 @@ class RetinaNetLabelEncoderTest(tf.test.TestCase):
             bounding_box_format="xywh",
         )
 
-        bounding_boxes = {"boxes": boxes, "classes": classes}
+        bounding_boxes = {"boxes": boxes, "num_classes": num_classes}
         box_targets, class_targets = encoder(images, bounding_boxes)
 
         # 49104 is the anchor generator shape

@@ -63,7 +63,7 @@ BASE_DOCSTRING = """Instantiates the {name} architecture.
             to `True`, inputs will be passed through a `Rescaling(1/255.0)`
             layer.
         include_top: bool, whether to include the fully-connected layer at
-            the top of the network.  If provided, `classes` must be provided.
+            the top of the network.  If provided, `num_classes` must be provided.
         depths: an iterable containing depths for each individual stages.
         projection_dims: An iterable containing output number of channels of
             each individual stages.
@@ -85,7 +85,7 @@ BASE_DOCSTRING = """Instantiates the {name} architecture.
                 of the last convolutional block, and thus the output of the model will
                 be a 2D tensor.
             - `max` means that global max pooling will be applied.
-        classes: optional int, number of classes to classify images into (only
+        num_classes: optional int, number of num_classes to classify images into (only
             to be specified if `include_top` is `True`).
         classifier_activation: A `str` or callable. The activation function to use
             on the "top" layer. Ignored unless `include_top=True`. Set
@@ -194,7 +194,7 @@ def apply_block(
 def apply_head(x, num_classes, activation="softmax", name=None):
     """Implementation of classification head of ConvNeXt.
     Args:
-      num_classes: number of classes for Dense layer
+      num_classes: number of num_classes for Dense layer
       activation: activation function for Dense layer
       name: name prefix
     Returns:
@@ -221,7 +221,7 @@ class ConvNeXt(keras.Model):
             to `True`, inputs will be passed through a `Rescaling(1/255.0)`
             layer.
         include_top: bool, whether to include the fully-connected layer at
-            the top of the network.  If provided, `classes` must be provided.
+            the top of the network.  If provided, `num_classes` must be provided.
       depths: An iterable containing depths for each individual stages.
       projection_dims: An iterable containing output number of channels of
       each individual stages.
@@ -243,7 +243,7 @@ class ConvNeXt(keras.Model):
                 of the last convolutional block, and thus the output of the model will
                 be a 2D tensor.
             - `max` means that global max pooling will be applied.
-      classes: optional int, number of classes to classify images into (only
+      num_classes: optional int, number of num_classes to classify images into (only
             to be specified if `include_top` is `True`).
       classifier_activation: A `str` or callable. The activation function to use
             on the "top" layer. Ignored unless `include_top=True`. Set
@@ -256,7 +256,7 @@ class ConvNeXt(keras.Model):
           or invalid input shape.
         ValueError: if `classifier_activation` is not `softmax`, or `None`
           when using a pretrained top layer.
-        ValueError: if `include_top` is True but `classes` is not specified.
+        ValueError: if `include_top` is True but `num_classes` is not specified.
     """
 
     def __init__(
@@ -271,7 +271,7 @@ class ConvNeXt(keras.Model):
         input_shape=(None, None, 3),
         input_tensor=None,
         pooling=None,
-        classes=None,
+        num_classes=None,
         classifier_activation="softmax",
         name="convnext",
         **kwargs,
@@ -283,11 +283,11 @@ class ConvNeXt(keras.Model):
                 f"Weights file not found at location: {weights}"
             )
 
-        if include_top and not classes:
+        if include_top and not num_classes:
             raise ValueError(
                 "If `include_top` is True, "
-                "you should specify `classes`. "
-                f"Received: classes={classes}"
+                "you should specify `num_classes`. "
+                f"Received: num_classes={num_classes}"
             )
 
         if include_top and pooling:
@@ -367,7 +367,7 @@ class ConvNeXt(keras.Model):
         if include_top:
             x = apply_head(
                 x,
-                num_classes=classes,
+                num_classes=num_classes,
                 activation=classifier_activation,
                 name=name,
             )
@@ -393,7 +393,7 @@ class ConvNeXt(keras.Model):
         self.layer_scale_init_value = layer_scale_init_value
         self.input_tensor = input_tensor
         self.pooling = pooling
-        self.classes = classes
+        self.num_classes = num_classes
         self.classifier_activation = classifier_activation
 
     def get_config(self):
@@ -408,7 +408,7 @@ class ConvNeXt(keras.Model):
             "input_shape": self.input_shape[1:],
             "input_tensor": self.input_tensor,
             "pooling": self.pooling,
-            "classes": self.classes,
+            "num_classes": self.num_classes,
             "classifier_activation": self.classifier_activation,
             "name": self.name,
             "trainable": self.trainable,
@@ -429,7 +429,7 @@ def ConvNeXtTiny(
     input_shape=(None, None, 3),
     input_tensor=None,
     pooling=None,
-    classes=None,
+    num_classes=None,
     classifier_activation="softmax",
     name="convnext_tiny",
 ):
@@ -444,7 +444,7 @@ def ConvNeXtTiny(
         input_tensor=input_tensor,
         input_shape=input_shape,
         pooling=pooling,
-        classes=classes,
+        num_classes=num_classes,
         classifier_activation=classifier_activation,
         name=name,
     )
@@ -460,7 +460,7 @@ def ConvNeXtSmall(
     input_shape=(None, None, 3),
     input_tensor=None,
     pooling=None,
-    classes=None,
+    num_classes=None,
     classifier_activation="softmax",
     name="convnext_small",
 ):
@@ -475,7 +475,7 @@ def ConvNeXtSmall(
         input_tensor=input_tensor,
         input_shape=input_shape,
         pooling=pooling,
-        classes=classes,
+        num_classes=num_classes,
         classifier_activation=classifier_activation,
         name=name,
     )
@@ -491,7 +491,7 @@ def ConvNeXtBase(
     input_shape=(None, None, 3),
     input_tensor=None,
     pooling=None,
-    classes=None,
+    num_classes=None,
     classifier_activation="softmax",
     name="convnext_base",
 ):
@@ -506,7 +506,7 @@ def ConvNeXtBase(
         input_tensor=input_tensor,
         input_shape=input_shape,
         pooling=pooling,
-        classes=classes,
+        num_classes=num_classes,
         classifier_activation=classifier_activation,
         name=name,
     )
@@ -522,7 +522,7 @@ def ConvNeXtLarge(
     input_shape=(None, None, 3),
     input_tensor=None,
     pooling=None,
-    classes=None,
+    num_classes=None,
     classifier_activation="softmax",
     name="convnext_large",
 ):
@@ -537,7 +537,7 @@ def ConvNeXtLarge(
         input_tensor=input_tensor,
         input_shape=input_shape,
         pooling=pooling,
-        classes=classes,
+        num_classes=num_classes,
         classifier_activation=classifier_activation,
         name=name,
     )
@@ -553,7 +553,7 @@ def ConvNeXtXLarge(
     input_shape=(None, None, 3),
     input_tensor=None,
     pooling=None,
-    classes=None,
+    num_classes=None,
     classifier_activation="softmax",
     name="convnext_xlarge",
 ):
@@ -568,7 +568,7 @@ def ConvNeXtXLarge(
         input_tensor=input_tensor,
         input_shape=input_shape,
         pooling=pooling,
-        classes=classes,
+        num_classes=num_classes,
         classifier_activation=classifier_activation,
         name=name,
     )

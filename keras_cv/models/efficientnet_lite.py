@@ -133,8 +133,8 @@ BASE_DOCSTRING = """Instantiates the {name} architecture.
             to `True`, inputs will be passed through a `Rescaling(1/255.0)`
             layer.
         include_top: bool, whether to include the fully-connected layer at
-            the top of the network.  If provided, `classes` must be provided.
-        classes: optional int, number of classes to classify images into (only
+            the top of the network.  If provided, `num_classes` must be provided.
+        num_classes: optional int, number of num_classes to classify images into (only
             to be specified if `include_top` is `True`).
         weights: one of `None` (random initialization), a pretrained weight file
             path, or a reference to pre-trained weights (e.g. 'imagenet/classification')
@@ -328,7 +328,7 @@ class EfficientNetLite(tf.keras.Model):
                 the output of the model will be a 2D tensor.
             - `max` means that global max pooling will
                 be applied.
-        classes: optional number of classes to classify images
+        num_classes: optional number of num_classes to classify images
             into, only to be specified if `include_top` is True, and
             if no `weights` argument is specified.
         classifier_activation: A `str` or callable. The activation function to use
@@ -362,7 +362,7 @@ class EfficientNetLite(tf.keras.Model):
         input_shape=(None, None, 3),
         input_tensor=None,
         pooling=None,
-        classes=None,
+        num_classes=None,
         classifier_activation="softmax",
         **kwargs,
     ):
@@ -384,10 +384,10 @@ class EfficientNetLite(tf.keras.Model):
                 f"Weights file not found at location: {weights}"
             )
 
-        if include_top and not classes:
+        if include_top and not num_classes:
             raise ValueError(
-                "If `include_top` is True, you should specify `classes`. "
-                f"Received: classes={classes}"
+                "If `include_top` is True, you should specify `num_classes`. "
+                f"Received: num_classes={num_classes}"
             )
 
         if include_top and pooling:
@@ -479,7 +479,7 @@ class EfficientNetLite(tf.keras.Model):
             if dropout_rate > 0:
                 x = layers.Dropout(dropout_rate, name="top_dropout")(x)
             x = layers.Dense(
-                classes,
+                num_classes,
                 activation=classifier_activation,
                 kernel_initializer=DENSE_KERNEL_INITIALIZER,
                 name="predictions",
@@ -511,7 +511,7 @@ class EfficientNetLite(tf.keras.Model):
         self.blocks_args = intact_blocks_args
         self.input_tensor = input_tensor
         self.pooling = pooling
-        self.classes = classes
+        self.num_classes = num_classes
         self.classifier_activation = classifier_activation
 
     def get_config(self):
@@ -530,7 +530,7 @@ class EfficientNetLite(tf.keras.Model):
             "input_shape": self.input_shape[1:],
             "input_tensor": self.input_tensor,
             "pooling": self.pooling,
-            "classes": self.classes,
+            "num_classes": self.num_classes,
             "classifier_activation": self.classifier_activation,
             "name": self.name,
             "trainable": self.trainable,
@@ -545,7 +545,7 @@ def EfficientNetLiteB0(
     *,
     include_rescaling,
     include_top,
-    classes=None,
+    num_classes=None,
     weights=None,
     input_shape=(None, None, 3),
     input_tensor=None,
@@ -565,7 +565,7 @@ def EfficientNetLiteB0(
         input_shape=input_shape,
         input_tensor=input_tensor,
         pooling=pooling,
-        classes=classes,
+        num_classes=num_classes,
         classifier_activation=classifier_activation,
         **kwargs,
     )
@@ -575,7 +575,7 @@ def EfficientNetLiteB1(
     *,
     include_rescaling,
     include_top,
-    classes=None,
+    num_classes=None,
     weights=None,
     input_shape=(None, None, 3),
     input_tensor=None,
@@ -595,7 +595,7 @@ def EfficientNetLiteB1(
         input_shape=input_shape,
         input_tensor=input_tensor,
         pooling=pooling,
-        classes=classes,
+        num_classes=num_classes,
         classifier_activation=classifier_activation,
         **kwargs,
     )
@@ -605,7 +605,7 @@ def EfficientNetLiteB2(
     *,
     include_rescaling,
     include_top,
-    classes=None,
+    num_classes=None,
     weights=None,
     input_shape=(None, None, 3),
     input_tensor=None,
@@ -625,7 +625,7 @@ def EfficientNetLiteB2(
         input_shape=input_shape,
         input_tensor=input_tensor,
         pooling=pooling,
-        classes=classes,
+        num_classes=num_classes,
         classifier_activation=classifier_activation,
         **kwargs,
     )
@@ -635,7 +635,7 @@ def EfficientNetLiteB3(
     *,
     include_rescaling,
     include_top,
-    classes=None,
+    num_classes=None,
     weights=None,
     input_shape=(None, None, 3),
     input_tensor=None,
@@ -655,7 +655,7 @@ def EfficientNetLiteB3(
         input_shape=input_shape,
         input_tensor=input_tensor,
         pooling=pooling,
-        classes=classes,
+        num_classes=num_classes,
         classifier_activation=classifier_activation,
         **kwargs,
     )
@@ -665,7 +665,7 @@ def EfficientNetLiteB4(
     *,
     include_rescaling,
     include_top,
-    classes=None,
+    num_classes=None,
     weights=None,
     input_shape=(None, None, 3),
     input_tensor=None,
@@ -685,7 +685,7 @@ def EfficientNetLiteB4(
         input_shape=input_shape,
         input_tensor=input_tensor,
         pooling=pooling,
-        classes=classes,
+        num_classes=num_classes,
         classifier_activation=classifier_activation,
         **kwargs,
     )

@@ -31,7 +31,7 @@ class _RpnLabelEncoder(tf.keras.layers.Layer):
     This is different from _ROISampler for a couple of reasons:
     1) This deals with unbatched input, dict of anchors and potentially ragged labels
     2) This deals with ground truth boxes, while _ROISampler deals with padded ground truth
-       boxes with value -1 and padded ground truth classes with value -1
+       boxes with value -1 and padded ground truth num_classes with value -1
     3) this returns positive class target as 1, while _ROISampler returns
        positive class target as-is. (All negative class target are 0)
        The final classification loss will use one hot and #num_fg_classes + 1

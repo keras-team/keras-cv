@@ -55,7 +55,7 @@ def exhaustive_compare(obj1, obj2):
     elif isinstance(obj1, (dict)) and isinstance(obj2, (dict)):
         return config_equals(v1, v2)
 
-    # If both objects are subclasses of Keras classes that support `get_config`
+    # If both objects are subclasses of Keras num_classes that support `get_config`
     # method, then we compare their individual attributes using `config_equals`.
     elif isinstance(obj1, classes_supporting_get_config) and isinstance(
         obj2, classes_supporting_get_config

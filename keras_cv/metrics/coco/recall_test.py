@@ -37,7 +37,7 @@ class BoxRecallTest(tf.test.TestCase):
                     tf.constant([[0, 0, 10, 10]], tf.float32),
                 ]
             ),
-            "classes": tf.ragged.stack([tf.constant([1, 1]), tf.constant([1])]),
+            "num_classes": tf.ragged.stack([tf.constant([1, 1]), tf.constant([1])]),
         }
 
         y_pred = {
@@ -47,7 +47,7 @@ class BoxRecallTest(tf.test.TestCase):
                     tf.constant([[0, 0, 10, 10], [5, 5, 10, 10]], tf.float32),
                 ]
             ),
-            "classes": tf.ragged.stack([tf.constant([1]), tf.constant([1, 1])]),
+            "num_classes": tf.ragged.stack([tf.constant([1]), tf.constant([1, 1])]),
             "confidence": tf.ragged.stack(
                 [tf.constant([1.0]), tf.constant([1.0, 0.9])]
             ),
@@ -59,16 +59,16 @@ class BoxRecallTest(tf.test.TestCase):
     def test_merge_state(self):
         y_true = {
             "boxes": [[[0, 0, 100, 100]]],
-            "classes": [[1]],
+            "num_classes": [[1]],
         }
         y_pred = {
             "boxes": [[[0, 50, 100, 150]]],
-            "classes": [[1]],
+            "num_classes": [[1]],
             "confidence": [[1.0]],
         }
         y_pred_match = {
             "boxes": [[[0, 0, 100, 100]]],
-            "classes": [[1]],
+            "num_classes": [[1]],
             "confidence": [[1.0]],
         }
         m1 = _BoxRecall(
@@ -113,11 +113,11 @@ class BoxRecallTest(tf.test.TestCase):
         )
         y_true = {
             "boxes": [[[0, 0, 10, 10], [5, 5, 10, 10]]],
-            "classes": [[1, 1]],
+            "num_classes": [[1, 1]],
         }
         y_pred = {
             "boxes": [[[0, 0, 10, 10], [5, 5, 10, 10]]],
-            "classes": [[1, 1]],
+            "num_classes": [[1, 1]],
             "confidence": [[1.0, 0.9]],
         }
 
@@ -180,7 +180,7 @@ class BoxRecallTest(tf.test.TestCase):
                     [300, 300, 400, 400],
                 ]
             ],
-            "classes": [[1, 1, 1]],
+            "num_classes": [[1, 1, 1]],
         }
         y_pred = {
             "boxes": [
@@ -190,7 +190,7 @@ class BoxRecallTest(tf.test.TestCase):
                     [300, 300, 400, 400],
                 ]
             ],
-            "classes": [[1, 1, 1]],
+            "num_classes": [[1, 1, 1]],
             "confidence": [[1, 1, 1]],
         }
         # with max_dets=1, only 1 of the three boxes can be found
@@ -213,7 +213,7 @@ class BoxRecallTest(tf.test.TestCase):
                     [300, 300, 400, 400],
                 ]
             ],
-            "classes": [[1, 1, 1]],
+            "num_classes": [[1, 1, 1]],
         }
         y_pred = {
             "boxes": [
@@ -223,7 +223,7 @@ class BoxRecallTest(tf.test.TestCase):
                     [300, 300, 400, 400],
                 ]
             ],
-            "classes": [[1, 1, 1]],
+            "num_classes": [[1, 1, 1]],
             "confidence": [[1, 1, 1]],
         }
 
@@ -253,11 +253,11 @@ class BoxRecallTest(tf.test.TestCase):
     def test_area_range_bounding_box_counting(self):
         y_true = {
             "boxes": [[[0.0, 0.0, 100.0, 100.0], [0.0, 0.0, 100.0, 100.0]]],
-            "classes": [[1.0, 1.0]],
+            "num_classes": [[1.0, 1.0]],
         }
         y_pred = {
             "boxes": [[[0.0, 50.0, 100.0, 150.0]]],
-            "classes": [[1.0]],
+            "num_classes": [[1.0]],
             "confidence": [[1.0]],
         }
         # note the low iou threshold
@@ -275,11 +275,11 @@ class BoxRecallTest(tf.test.TestCase):
     def test_true_positive_counting_one_good_one_bad(self):
         y_true = {
             "boxes": [[[0.0, 0.0, 100.0, 100.0], [0.0, 0.0, 100.0, 100.0]]],
-            "classes": [[1.0, 1.0]],
+            "num_classes": [[1.0, 1.0]],
         }
         y_pred = {
             "boxes": [[[0.0, 50.0, 100.0, 150.0]]],
-            "classes": [[1.0]],
+            "num_classes": [[1.0]],
             "confidence": [[1.0]],
         }
         # note the low iou threshold
@@ -296,10 +296,10 @@ class BoxRecallTest(tf.test.TestCase):
         self.assertEqual([[1]], metric.true_positives)
 
     def test_true_positive_counting_one_true_two_pred(self):
-        y_true = {"boxes": [[[0.0, 0.0, 100.0, 100.0]]], "classes": [[1.0]]}
+        y_true = {"boxes": [[[0.0, 0.0, 100.0, 100.0]]], "num_classes": [[1.0]]}
         y_pred = {
             "boxes": [[[0.0, 50.0, 100.0, 150.0], [0.0, 0.0, 100.0, 100.0]]],
-            "classes": [[1.0, 1.0]],
+            "num_classes": [[1.0, 1.0]],
             "confidence": [[0.8999999761581421, 1.0]],
         }
         # note the low iou threshold
@@ -313,10 +313,10 @@ class BoxRecallTest(tf.test.TestCase):
         metric.update_state(y_true, y_pred)
         self.assertEqual([[1]], metric.true_positives)
 
-        y_true = {"boxes": [[[0.0, 0.0, 100.0, 100.0]]], "classes": [[1.0]]}
+        y_true = {"boxes": [[[0.0, 0.0, 100.0, 100.0]]], "num_classes": [[1.0]]}
         y_pred = {
             "boxes": [[[0.0, 50.0, 100.0, 150.0]]],
-            "classes": [[1.0]],
+            "num_classes": [[1.0]],
             "confidence": [[1.0]],
         }
 
@@ -324,11 +324,11 @@ class BoxRecallTest(tf.test.TestCase):
         self.assertEqual([[2]], metric.true_positives)
 
     def test_mixed_dtypes(self):
-        y_true = {"boxes": [[[0.0, 0.0, 100.0, 100.0]]], "classes": [[1.0]]}
+        y_true = {"boxes": [[[0.0, 0.0, 100.0, 100.0]]], "num_classes": [[1.0]]}
         y_true = bounding_box.ensure_tensor(y_true, dtype=tf.float64)
         y_pred = {
             "boxes": [[[0.0, 50.0, 100.0, 150.0]]],
-            "classes": [[1.0]],
+            "num_classes": [[1.0]],
             "confidence": [[1.0]],
         }
 
@@ -343,10 +343,10 @@ class BoxRecallTest(tf.test.TestCase):
         self.assertEqual(metric.result(), 1.0)
 
     def test_matches_single_box(self):
-        y_true = {"boxes": [[[0.0, 0.0, 100.0, 100.0]]], "classes": [[1.0]]}
+        y_true = {"boxes": [[[0.0, 0.0, 100.0, 100.0]]], "num_classes": [[1.0]]}
         y_pred = {
             "boxes": [[[0.0, 50.0, 100.0, 150.0]]],
-            "classes": [[1.0]],
+            "num_classes": [[1.0]],
             "confidence": [[1.0]],
         }
 
@@ -363,10 +363,10 @@ class BoxRecallTest(tf.test.TestCase):
         self.assertEqual([[1]], metric.true_positives)
 
     def test_matches_single_false_positive(self):
-        y_true = {"boxes": [[[0.0, 0.0, 100.0, 100.0]]], "classes": [[1.0]]}
+        y_true = {"boxes": [[[0.0, 0.0, 100.0, 100.0]]], "num_classes": [[1.0]]}
         y_pred = {
             "boxes": [[[0.0, 50.0, 100.0, 150.0]]],
-            "classes": [[1.0]],
+            "num_classes": [[1.0]],
             "confidence": [[1.0]],
         }
 

@@ -130,7 +130,7 @@ class RetinaNetTest(tf.test.TestCase):
             suppression_layer=keras_cv.layers.MultiClassNonMaxSuppression(
                 iou_threshold=0.75,
                 bounding_box_format="xywh",
-                classes=20,
+                num_classes=20,
                 confidence_threshold=0.85,
             ),
         )
@@ -203,7 +203,7 @@ def _create_retina_nets(x, y, epochs=1, custom_decoder=False):
         include_top=False, weights="imagenet", include_rescaling=False
     ).as_backbone()
     pretrained_retina_net = keras_cv.models.RetinaNet(
-        classes=20,
+        num_classes=20,
         bounding_box_format="xywh",
         backbone=backbone,
         backbone_weights="imagenet",
@@ -235,12 +235,12 @@ def _create_retina_nets(x, y, epochs=1, custom_decoder=False):
             suppression_layer=keras_cv.layers.MultiClassNonMaxSuppression(
                 iou_threshold=0.75,
                 bounding_box_format="xywh",
-                classes=20,
+                num_classes=20,
                 confidence_threshold=0.85,
             ),
         )
     new_retina_net = keras_cv.models.RetinaNet(
-        classes=20,
+        num_classes=20,
         bounding_box_format="xywh",
         backbone=backbone,
         backbone_weights=None,
@@ -260,7 +260,7 @@ def _create_retina_nets(x, y, epochs=1, custom_decoder=False):
 
 
 def _create_bounding_box_dataset(bounding_box_format):
-    # Just about the easiest dataset you can have, all classes are 0, all boxes are
+    # Just about the easiest dataset you can have, all num_classes are 0, all boxes are
     # exactly the same.  [1, 1, 2, 2] are the coordinates in xyxy
     xs = tf.ones((10, 512, 512, 3), dtype=tf.float32)
     y_classes = tf.zeros((10, 10, 1), dtype=tf.float32)
@@ -277,4 +277,4 @@ def _create_bounding_box_dataset(bounding_box_format):
         images=xs,
         dtype=tf.float32,
     )
-    return xs, {"boxes": ys, "classes": y_classes}
+    return xs, {"boxes": ys, "num_classes": y_classes}

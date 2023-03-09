@@ -32,7 +32,7 @@ def curry_map_function(bounding_box_format):
             target=bounding_box_format,
         )
 
-        bounding_boxes = {"boxes": bounding_boxes, "classes": labels}
+        bounding_boxes = {"boxes": bounding_boxes, "num_classes": labels}
 
         outputs = {"images": images, "bounding_boxes": bounding_boxes}
         return outputs

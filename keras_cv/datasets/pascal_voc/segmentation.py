@@ -60,7 +60,7 @@ SBD_URL = "http://www.eecs.berkeley.edu/Research/Projects/CS/vision/grouping/sem
 # Note that this list doesn't contain the background class. In the classification use
 # case, the label is 0 based (aeroplane -> 0), whereas in segmentation use case, the 0 is
 # reserved for background, so aeroplane maps to 1.
-CLASSES = [
+num_classes = [
     "aeroplane",
     "bicycle",
     "bird",
@@ -83,7 +83,7 @@ CLASSES = [
     "tvmonitor",
 ]
 # This is used to map between string class to index.
-CLASS_TO_INDEX = {name: index for index, name in enumerate(CLASSES)}
+CLASS_TO_INDEX = {name: index for index, name in enumerate(num_classes)}
 
 # For the mask data in the PNG file, the encoded raw pixel value need be to converted
 # to the proper class index. In the following map, [0, 0, 0] will be convert to 0, and

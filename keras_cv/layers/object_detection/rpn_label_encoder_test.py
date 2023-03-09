@@ -55,7 +55,7 @@ class RpnLabelEncoderTest(tf.test.TestCase):
             / 0.1
         )
         self.assertAllClose(expected_box_targets, box_targets)
-        # only foreground and background classes
+        # only foreground and background num_classes
         self.assertAllClose(tf.reduce_max(cls_targets), 1.0)
         self.assertAllClose(tf.reduce_min(cls_targets), 0.0)
         # all weights between 0 and 1
@@ -131,7 +131,7 @@ class RpnLabelEncoderTest(tf.test.TestCase):
         )
         expected_box_targets = expected_box_targets[tf.newaxis, ...]
         self.assertAllClose(expected_box_targets, box_targets)
-        # only foreground and background classes
+        # only foreground and background num_classes
         self.assertAllClose(tf.reduce_max(cls_targets), 1.0)
         self.assertAllClose(tf.reduce_min(cls_targets), 0.0)
         # all weights between 0 and 1

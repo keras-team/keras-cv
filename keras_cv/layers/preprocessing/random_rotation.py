@@ -78,7 +78,7 @@ class RandomRotation(BaseImageAugmentationLayer):
       bounding_box_format: The format of bounding boxes of input dataset. Refer
         https://github.com/keras-team/keras-cv/blob/master/keras_cv/bounding_box/converters.py
         for more details on supported bounding box formats.
-      segmentation_classes: an optional integer with the number of classes in
+      segmentation_classes: an optional integer with the number of num_classes in
         the input segmentation mask. Required iff augmenting data with sparse
         (non one-hot) segmentation masks. Include the background class in this
         count (e.g. for segmenting dog vs background, this should be set to 2).

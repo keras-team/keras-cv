@@ -140,7 +140,7 @@ class RandomCropTest(tf.test.TestCase, parameterized.TestCase):
         input_image = np.random.random((512, 512, 3)).astype(np.float32)
         bboxes = {
             "boxes": tf.convert_to_tensor([[200, 200, 400, 400]]),
-            "classes": tf.convert_to_tensor([1]),
+            "num_classes": tf.convert_to_tensor([1]),
         }
         input = {"images": input_image, "bounding_boxes": bboxes}
         layer = RandomCrop(
@@ -159,7 +159,7 @@ class RandomCropTest(tf.test.TestCase, parameterized.TestCase):
         input_image = np.random.random((256, 256, 3)).astype(np.float32)
         bboxes = {
             "boxes": tf.convert_to_tensor([[100, 100, 200, 200]]),
-            "classes": tf.convert_to_tensor([1]),
+            "num_classes": tf.convert_to_tensor([1]),
         }
         input = {"images": input_image, "bounding_boxes": bboxes}
         layer = RandomCrop(height=512, width=512, bounding_box_format="xyxy")

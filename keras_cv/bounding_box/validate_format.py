@@ -19,15 +19,15 @@ def validate_format(bounding_boxes, variable_name="bounding_boxes"):
 
     For a set of bounding boxes to be valid it must satisfy the following conditions:
     - `bounding_boxes` must be a dictionary
-    - contains keys `"boxes"` and `"classes"`
+    - contains keys `"boxes"` and `"num_classes"`
     - each entry must have matching first two dimensions; representing the batch axis
         and the number of boxes per image axis.
-    - either both `"boxes"` and `"classes"` are batched, or both are unbatched
+    - either both `"boxes"` and `"num_classes"` are batched, or both are unbatched
 
     Additionally, one of the following must be satisfied:
-    - `"boxes"` and `"classes"` are both Ragged
-    - `"boxes"` and `"classes"` are both Dense
-    - `"boxes"` and `"classes"` are unbatched
+    - `"boxes"` and `"num_classes"` are both Ragged
+    - `"boxes"` and `"num_classes"` are both Dense
+    - `"boxes"` and `"num_classes"` are unbatched
 
     Args:
         bounding_boxes: dictionary of bounding boxes according to KerasCV format.
@@ -40,15 +40,15 @@ def validate_format(bounding_boxes, variable_name="bounding_boxes"):
             f"Expected `{variable_name}` to be a dictionary, got "
             f"`{variable_name}={bounding_boxes}`."
         )
-    if not all([x in bounding_boxes for x in ["boxes", "classes"]]):
+    if not all([x in bounding_boxes for x in ["boxes", "num_classes"]]):
         raise ValueError(
             f"Expected `{variable_name}` to be a dictionary containing keys "
-            "`'classes'` and `'boxes'`.  Got "
+            "`'num_classes'` and `'boxes'`.  Got "
             f"`{variable_name}.keys()={bounding_boxes.keys()}`."
         )
 
     boxes = bounding_boxes.get("boxes")
-    classes = bounding_boxes.get("classes")
+    num_classes = bounding_boxes.get("num_classes")
     info = {}
 
     is_batched = len(boxes.shape) == 3
@@ -56,34 +56,34 @@ def validate_format(bounding_boxes, variable_name="bounding_boxes"):
     info["ragged"] = isinstance(boxes, tf.RaggedTensor)
 
     if not is_batched:
-        if boxes.shape[:1] != classes.shape[:1]:
+        if boxes.shape[:1] != num_classes.shape[:1]:
             raise ValueError(
-                "Expected `boxes` and `classes` to have matching dimensions "
+                "Expected `boxes` and `num_classes` to have matching dimensions "
                 "on the first axis when operating in unbatched mode. "
-                f"Got `boxes.shape={boxes.shape}`, `classes.shape={classes.shape}`."
+                f"Got `boxes.shape={boxes.shape}`, `num_classes.shape={num_classes.shape}`."
             )
 
-        info["classes_one_hot"] = len(classes.shape) == 2
+        info["classes_one_hot"] = len(num_classes.shape) == 2
         # No Ragged checks needed in unbatched mode.
         return info
 
-    info["classes_one_hot"] = len(classes.shape) == 3
+    info["classes_one_hot"] = len(num_classes.shape) == 3
 
     if isinstance(boxes, tf.RaggedTensor) != isinstance(
-        classes, tf.RaggedTensor
+        num_classes, tf.RaggedTensor
     ):
         raise ValueError(
-            "Either both `boxes` and `classes` "
+            "Either both `boxes` and `num_classes` "
             "should be Ragged, or neither should be ragged."
-            f" Got `type(boxes)={type(boxes)}`, type(classes)={type(classes)}."
+            f" Got `type(boxes)={type(boxes)}`, type(num_classes)={type(num_classes)}."
         )
 
     # Batched mode checks
-    if boxes.shape[:2] != classes.shape[:2]:
+    if boxes.shape[:2] != num_classes.shape[:2]:
         raise ValueError(
-            "Expected `boxes` and `classes` to have matching dimensions "
+            "Expected `boxes` and `num_classes` to have matching dimensions "
             "on the first two axes when operating in batched mode. "
-            f"Got `boxes.shape={boxes.shape}`, `classes.shape={classes.shape}`."
+            f"Got `boxes.shape={boxes.shape}`, `num_classes.shape={num_classes.shape}`."
         )
 
     return info

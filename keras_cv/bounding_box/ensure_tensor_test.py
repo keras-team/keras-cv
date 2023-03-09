@@ -19,7 +19,7 @@ from keras_cv import bounding_box
 
 class BoundingBoxEnsureTensorTest(tf.test.TestCase):
     def test_convert_list(self):
-        boxes = {"boxes": [[0, 1, 2, 3]], "classes": [0]}
+        boxes = {"boxes": [[0, 1, 2, 3]], "num_classes": [0]}
         output = bounding_box.ensure_tensor(boxes)
         self.assertFalse(
             any([isinstance(boxes[k], tf.Tensor) for k in boxes.keys()])
@@ -29,7 +29,7 @@ class BoundingBoxEnsureTensorTest(tf.test.TestCase):
         )
 
     def test_confidence(self):
-        boxes = {"boxes": [[0, 1, 2, 3]], "classes": [0], "confidence": [0.245]}
+        boxes = {"boxes": [[0, 1, 2, 3]], "num_classes": [0], "confidence": [0.245]}
         output = bounding_box.ensure_tensor(boxes)
         self.assertFalse(
             any([isinstance(boxes[k], tf.Tensor) for k in boxes.keys()])

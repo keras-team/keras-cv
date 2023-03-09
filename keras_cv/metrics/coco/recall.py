@@ -38,8 +38,8 @@ class _BoxRecall(keras.metrics.Metric):
 
     Args:
         class_ids: The class IDs to evaluate the metric for.  To evaluate for
-            all classes in over a set of sequentially labelled classes, pass
-            `range(classes)`.
+            all num_classes in over a set of sequentially labelled num_classes, pass
+            `range(num_classes)`.
         bounding_box_format: Format of the incoming bounding boxes.  Supported values
             are "xywh", "center_xywh", "xyxy".
         iou_thresholds: IoU thresholds over which to evaluate the recall.  Must
@@ -164,7 +164,7 @@ class _BoxRecall(keras.metrics.Metric):
             dtype=self.compute_dtype,
         )
 
-        num_images = tf.shape(y_true["classes"])[0]
+        num_images = tf.shape(y_true["num_classes"])[0]
 
         iou_thresholds = tf.constant(self.iou_thresholds, dtype=tf.float32)
         class_ids = tf.constant(self.class_ids, dtype=tf.float32)
@@ -200,7 +200,7 @@ class _BoxRecall(keras.metrics.Metric):
                 detections = category_filtered_y_pred
                 if (
                     self.max_detections
-                    < tf.shape(category_filtered_y_pred["classes"])[0]
+                    < tf.shape(category_filtered_y_pred["num_classes"])[0]
                 ):
                     detections = utils.slice(
                         category_filtered_y_pred, self.max_detections
@@ -232,7 +232,7 @@ class _BoxRecall(keras.metrics.Metric):
                 ground_truth_boxes_update = tf.tensor_scatter_nd_add(
                     ground_truth_boxes_update,
                     [[k_i]],
-                    [tf.cast(tf.shape(ground_truths["classes"])[0], tf.int32)],
+                    [tf.cast(tf.shape(ground_truths["num_classes"])[0], tf.int32)],
                 )
 
         self.true_positives.assign_add(true_positives_update)

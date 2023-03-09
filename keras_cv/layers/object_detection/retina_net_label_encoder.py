@@ -90,7 +90,7 @@ class RetinaNetLabelEncoder(layers.Layer):
             the ground truth boxes, where each box is of the format
             `[x, y, width, height]`.
           gt_classes: A float Tensor with shape `(num_objects, 1)` representing
-            the ground truth classes.
+            the ground truth num_classes.
           anchor_boxes: A float tensor with the shape `(total_anchors, 4)`
             representing all the anchor boxes for a given input image shape,
             where each anchor box is of the format `[x, y, width, height]`.
@@ -102,7 +102,7 @@ class RetinaNetLabelEncoder(layers.Layer):
             training
         """
         gt_boxes = box_labels["boxes"]
-        gt_classes = box_labels["classes"]
+        gt_classes = box_labels["num_classes"]
         iou_matrix = bounding_box.compute_iou(
             anchor_boxes, gt_boxes, bounding_box_format="xywh"
         )
@@ -146,7 +146,7 @@ class RetinaNetLabelEncoder(layers.Layer):
             label,
         )
 
-        result = {"boxes": label[:, :, :4], "classes": label[:, :, 4]}
+        result = {"boxes": label[:, :, :4], "num_classes": label[:, :, 4]}
 
         box_shape = tf.shape(gt_boxes)
         batch_size = box_shape[0]
@@ -189,8 +189,8 @@ class RetinaNetLabelEncoder(layers.Layer):
             target="xywh",
             images=images,
         )
-        if box_labels["classes"].get_shape().rank == 2:
-            box_labels["classes"] = box_labels["classes"][..., tf.newaxis]
+        if box_labels["num_classes"].get_shape().rank == 2:
+            box_labels["num_classes"] = box_labels["num_classes"][..., tf.newaxis]
         anchor_boxes = self.anchor_generator(image_shape=tf.shape(images[0]))
         anchor_boxes = tf.concat(list(anchor_boxes.values()), axis=0)
         anchor_boxes = bounding_box.convert_format(
@@ -208,7 +208,7 @@ class RetinaNetLabelEncoder(layers.Layer):
             images=images,
         )
         encoded_box_targets = result["boxes"]
-        class_targets = result["classes"]
+        class_targets = result["num_classes"]
         return encoded_box_targets, class_targets
 
     def get_config(self):

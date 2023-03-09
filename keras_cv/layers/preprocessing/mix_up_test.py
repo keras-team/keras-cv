@@ -15,7 +15,7 @@ import tensorflow as tf
 
 from keras_cv.layers.preprocessing.mix_up import MixUp
 
-classes = 10
+num_classes = 10
 
 
 class MixUpTest(tf.test.TestCase):
@@ -24,12 +24,12 @@ class MixUpTest(tf.test.TestCase):
         # randomly sample labels
         ys_labels = tf.random.categorical(tf.math.log([[0.5, 0.5]]), 2)
         ys_labels = tf.squeeze(ys_labels)
-        ys_labels = tf.one_hot(ys_labels, classes)
+        ys_labels = tf.one_hot(ys_labels, num_classes)
 
         # randomly sample bounding boxes
         ys_bounding_boxes = {
             "boxes": tf.random.uniform((2, 3, 4), 0, 1),
-            "classes": tf.random.uniform((2, 3), 0, 1),
+            "num_classes": tf.random.uniform((2, 3), 0, 1),
         }
 
         layer = MixUp()
@@ -50,7 +50,7 @@ class MixUpTest(tf.test.TestCase):
         self.assertEqual(xs.shape, [2, 512, 512, 3])
         self.assertEqual(ys_labels.shape, [2, 10])
         self.assertEqual(ys_bounding_boxes["boxes"].shape, [2, 6, 4])
-        self.assertEqual(ys_bounding_boxes["classes"].shape, [2, 6])
+        self.assertEqual(ys_bounding_boxes["num_classes"].shape, [2, 6])
 
     def test_mix_up_call_results(self):
         xs = tf.cast(

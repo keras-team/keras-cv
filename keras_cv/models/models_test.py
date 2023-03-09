@@ -34,7 +34,7 @@ class ModelsTest:
     def _test_application_base(self, app, _, args):
         # Can be instantiated with default arguments
         model = app(
-            include_top=True, classes=1000, include_rescaling=False, **args
+            include_top=True, num_classes=1000, include_rescaling=False, **args
         )
 
         # Can be serialized and deserialized

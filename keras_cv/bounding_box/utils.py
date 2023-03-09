@@ -81,7 +81,7 @@ def clip_to_image(
         images: list of images to clip the bounding boxes to.
         image_shape: the shape of the images to clip the bounding boxes to.
     """
-    boxes, classes = bounding_boxes["boxes"], bounding_boxes["classes"]
+    boxes, num_classes = bounding_boxes["boxes"], bounding_boxes["num_classes"]
 
     boxes = bounding_box.convert_format(
         boxes,
@@ -90,7 +90,7 @@ def clip_to_image(
         images=images,
         image_shape=image_shape,
     )
-    boxes, classes, images, squeeze = _format_inputs(boxes, classes, images)
+    boxes, num_classes, images, squeeze = _format_inputs(boxes, num_classes, images)
     x1, y1, x2, y2 = tf.split(boxes, [1, 1, 1, 1], axis=-1)
     clipped_bounding_boxes = tf.concat(
         [
@@ -114,20 +114,20 @@ def clip_to_image(
     clipped_bounding_boxes = tf.where(
         tf.expand_dims(areas > 0.0, axis=-1), clipped_bounding_boxes, -1.0
     )
-    classes = tf.where(areas > 0.0, classes, tf.constant(-1, classes.dtype))
+    num_classes = tf.where(areas > 0.0, num_classes, tf.constant(-1, num_classes.dtype))
     nan_indices = tf.math.reduce_any(
         tf.math.is_nan(clipped_bounding_boxes), axis=-1
     )
-    classes = tf.where(nan_indices, tf.constant(-1, classes.dtype), classes)
+    num_classes = tf.where(nan_indices, tf.constant(-1, num_classes.dtype), num_classes)
 
     # TODO update dict and return
-    clipped_bounding_boxes, classes = _format_outputs(
-        clipped_bounding_boxes, classes, squeeze
+    clipped_bounding_boxes, num_classes = _format_outputs(
+        clipped_bounding_boxes, num_classes, squeeze
     )
 
     result = bounding_boxes.copy()
     result["boxes"] = clipped_bounding_boxes
-    result["classes"] = classes
+    result["num_classes"] = num_classes
     return result
 
 
@@ -151,7 +151,7 @@ def _clip_boxes(boxes, box_format, image_shape):
     return clipped_boxes
 
 
-def _format_inputs(boxes, classes, images):
+def _format_inputs(boxes, num_classes, images):
     boxes_rank = len(boxes.shape)
     if boxes_rank > 3:
         raise ValueError(
@@ -181,14 +181,14 @@ def _format_inputs(boxes, classes, images):
     if not boxes_includes_batch:
         return (
             tf.expand_dims(boxes, axis=0),
-            tf.expand_dims(classes, axis=0),
+            tf.expand_dims(num_classes, axis=0),
             images,
             True,
         )
-    return boxes, classes, images, False
+    return boxes, num_classes, images, False
 
 
-def _format_outputs(boxes, classes, squeeze):
+def _format_outputs(boxes, num_classes, squeeze):
     if squeeze:
-        return tf.squeeze(boxes, axis=0), tf.squeeze(classes, axis=0)
-    return boxes, classes
+        return tf.squeeze(boxes, axis=0), tf.squeeze(num_classes, axis=0)
+    return boxes, num_classes

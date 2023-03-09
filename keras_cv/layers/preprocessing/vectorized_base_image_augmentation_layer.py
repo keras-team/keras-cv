@@ -415,8 +415,8 @@ class VectorizedBaseImageAugmentationLayer(
                 inputs[BOUNDING_BOXES]["boxes"],
                 self.compute_dtype,
             )
-            inputs[BOUNDING_BOXES]["classes"] = preprocessing.ensure_tensor(
-                inputs[BOUNDING_BOXES]["classes"],
+            inputs[BOUNDING_BOXES]["num_classes"] = preprocessing.ensure_tensor(
+                inputs[BOUNDING_BOXES]["num_classes"],
                 self.compute_dtype,
             )
         return inputs
@@ -424,10 +424,10 @@ class VectorizedBaseImageAugmentationLayer(
     def _format_bounding_boxes(self, bounding_boxes):
         # We can't catch the case where this is None, sometimes RaggedTensor drops this
         # dimension
-        if "classes" not in bounding_boxes:
+        if "num_classes" not in bounding_boxes:
             raise ValueError(
                 "Bounding boxes are missing class_id. If you would like to pad the "
                 "bounding boxes with class_id, use: "
-                "`bounding_boxes['classes'] = tf.ones_like(bounding_boxes['boxes'])`."
+                "`bounding_boxes['num_classes'] = tf.ones_like(bounding_boxes['boxes'])`."
             )
         return bounding_boxes

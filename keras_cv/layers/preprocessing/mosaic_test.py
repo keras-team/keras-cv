@@ -15,7 +15,7 @@ import tensorflow as tf
 
 from keras_cv.layers.preprocessing.mosaic import Mosaic
 
-classes = 10
+num_classes = 10
 
 
 class MosaicTest(tf.test.TestCase):
@@ -24,12 +24,12 @@ class MosaicTest(tf.test.TestCase):
         # randomly sample labels
         ys_labels = tf.random.categorical(tf.math.log([[0.5, 0.5]]), 2)
         ys_labels = tf.squeeze(ys_labels)
-        ys_labels = tf.one_hot(ys_labels, classes)
+        ys_labels = tf.one_hot(ys_labels, num_classes)
 
         # randomly sample bounding boxes
         ys_bounding_boxes = {
             "boxes": tf.random.uniform((2, 3, 4), 0, 1),
-            "classes": tf.random.uniform((2, 3), 0, 1),
+            "num_classes": tf.random.uniform((2, 3), 0, 1),
         }
         layer = Mosaic(bounding_box_format="xywh")
         # mosaic on labels
@@ -49,7 +49,7 @@ class MosaicTest(tf.test.TestCase):
         self.assertEqual(xs.shape, [2, 512, 512, 3])
         self.assertEqual(ys_labels.shape, [2, 10])
         self.assertEqual(ys_bounding_boxes["boxes"].shape, [2, None, 4])
-        self.assertEqual(ys_bounding_boxes["classes"].shape, [2, None])
+        self.assertEqual(ys_bounding_boxes["num_classes"].shape, [2, None])
 
     def test_in_tf_function(self):
         xs = tf.cast(

@@ -42,7 +42,7 @@ class Mosaic(BaseImageAugmentationLayer):
         bounding_box_format: a case-insensitive string (for example, "xyxy") to be
             passed if bounding boxes are being augmented by this layer.
             Each bounding box is defined by at least these 4 values. The inputs
-            may contain additional information such as classes and confidence after
+            may contain additional information such as num_classes and confidence after
             these 4 values but these values will be ignored and returned as is. For
             detailed information on the supported formats, see the
             [KerasCV bounding box documentation](https://keras.io/api/keras_cv/bounding_box/formats/).
@@ -170,7 +170,7 @@ class Mosaic(BaseImageAugmentationLayer):
                         ragged_rank=1,
                         dtype=self.compute_dtype,
                     ),
-                    "classes": tf.RaggedTensorSpec(
+                    "num_classes": tf.RaggedTensorSpec(
                         shape=[None], dtype=self.compute_dtype
                     ),
                 },
@@ -259,9 +259,9 @@ class Mosaic(BaseImageAugmentationLayer):
             images=images,
             dtype=self.compute_dtype,
         )
-        boxes, classes = bounding_boxes["boxes"], bounding_boxes["classes"]
+        boxes, num_classes = bounding_boxes["boxes"], bounding_boxes["num_classes"]
 
-        classes_for_mosaic = tf.gather(classes, permutation_order[index])
+        classes_for_mosaic = tf.gather(num_classes, permutation_order[index])
         boxes_for_mosaic = tf.gather(boxes, permutation_order[index])
 
         # stacking translate values such that the shape is (4, 1, 4) or (num_images, broadcast dim, coordinates)
@@ -288,7 +288,7 @@ class Mosaic(BaseImageAugmentationLayer):
 
         boxes_for_mosaic = {
             "boxes": boxes_for_mosaic,
-            "classes": classes_for_mosaic,
+            "num_classes": classes_for_mosaic,
         }
         boxes_for_mosaic = bounding_box.clip_to_image(
             boxes_for_mosaic,

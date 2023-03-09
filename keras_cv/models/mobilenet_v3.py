@@ -46,8 +46,8 @@ BASE_DOCSTRING = """Instantiates the {name} architecture.
             inputs will be passed through a `Rescaling(scale=1 / 255)`
             layer, defaults to True.
         include_top: whether to include the fully-connected layer at the top of the
-            network.  If provided, `classes` must be provided.
-        classes: optional number of classes to classify images into, only to be
+            network.  If provided, `num_classes` must be provided.
+        num_classes: optional number of num_classes to classify images into, only to be
             specified if `include_top` is True, and if no `weights` argument is
             specified.
         weights: one of `None` (random initialization), or a pretrained weight file
@@ -258,7 +258,7 @@ def MobileNetV3(
     last_point_ch,
     include_rescaling,
     include_top,
-    classes=None,
+    num_classes=None,
     weights=None,
     input_shape=(None, None, 3),
     input_tensor=None,
@@ -289,8 +289,8 @@ def MobileNetV3(
             inputs will be passed through a `Rescaling(scale=1 / 255)`
             layer, defaults to True.
         include_top: whether to include the fully-connected layer at the top of the
-            network.  If provided, `classes` must be provided.
-        classes: optional number of classes to classify images into, only to be
+            network.  If provided, `num_classes` must be provided.
+        num_classes: optional number of num_classes to classify images into, only to be
             specified if `include_top` is True, and if no `weights` argument is
             specified.
         weights: one of `None` (random initialization), or a pretrained weight file
@@ -333,7 +333,7 @@ def MobileNetV3(
     Raises:
         ValueError: if `weights` represents an invalid path to weights file and is not
             None.
-        ValueError: if `include_top` is True and `classes` is not specified.
+        ValueError: if `include_top` is True and `num_classes` is not specified.
     """
     if weights and not tf.io.gfile.exists(weights):
         raise ValueError(
@@ -342,11 +342,11 @@ def MobileNetV3(
             f"Weights file not found at location: {weights}"
         )
 
-    if include_top and not classes:
+    if include_top and not num_classes:
         raise ValueError(
             "If `include_top` is True, "
-            "you should specify `classes`. "
-            f"Received: classes={classes}"
+            "you should specify `num_classes`. "
+            f"Received: num_classes={num_classes}"
         )
 
     if minimalistic:
@@ -411,7 +411,7 @@ def MobileNetV3(
         if dropout_rate > 0:
             x = layers.Dropout(dropout_rate)(x)
         x = layers.Conv2D(
-            classes, kernel_size=1, padding="same", name="Logits"
+            num_classes, kernel_size=1, padding="same", name="Logits"
         )(x)
         x = layers.Flatten()(x)
         x = layers.Activation(
@@ -433,7 +433,7 @@ def MobileNetV3Small(
     *,
     include_rescaling,
     include_top,
-    classes=None,
+    num_classes=None,
     weights=None,
     input_shape=(None, None, 3),
     input_tensor=None,
@@ -486,7 +486,7 @@ def MobileNetV3Small(
         last_point_ch=1024,
         include_rescaling=include_rescaling,
         include_top=include_top,
-        classes=classes,
+        num_classes=num_classes,
         weights=weights,
         input_shape=input_shape,
         input_tensor=input_tensor,
@@ -504,7 +504,7 @@ def MobileNetV3Large(
     *,
     include_rescaling,
     include_top,
-    classes=None,
+    num_classes=None,
     weights=None,
     input_shape=(None, None, 3),
     input_tensor=None,
@@ -567,7 +567,7 @@ def MobileNetV3Large(
         last_point_ch=1280,
         include_rescaling=include_rescaling,
         include_top=include_top,
-        classes=classes,
+        num_classes=num_classes,
         weights=weights,
         input_shape=input_shape,
         input_tensor=input_tensor,

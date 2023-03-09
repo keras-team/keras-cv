@@ -47,8 +47,8 @@ BASE_DOCSTRING = """Instantiates the {name} architecture.
         include_rescaling: whether or not to Rescale the inputs.If set to True,
             inputs will be passed through a `Rescaling(1/255.0)` layer.
         include_top: whether to include the fully-connected layer at the top of
-            the network.  If provided, `classes` must be provided.
-        classes: optional number of classes to classify images into, only to be
+            the network.  If provided, `num_classes` must be provided.
+        num_classes: optional number of num_classes to classify images into, only to be
             specified if `include_top` is True.
         weights: one of `None` (random initialization), or a pretrained weight
             file path.
@@ -73,7 +73,7 @@ def DarkNet(
     blocks,
     include_rescaling,
     include_top,
-    classes=None,
+    num_classes=None,
     weights=None,
     input_shape=(None, None, 3),
     input_tensor=None,
@@ -100,8 +100,8 @@ def DarkNet(
         include_rescaling: whether or not to Rescale the inputs.If set to True,
             inputs will be passed through a `Rescaling(1/255.0)` layer.
         include_top: whether to include the fully-connected layer at the top of
-            the network.  If provided, `classes` must be provided.
-        classes: optional number of classes to classify imagesinto, only to be
+            the network.  If provided, `num_classes` must be provided.
+        num_classes: optional number of num_classes to classify imagesinto, only to be
             specified if `include_top` is True.
         weights: one of `None` (random initialization), or a pretrained weight
             file path.
@@ -130,10 +130,10 @@ def DarkNet(
             f"weights file to be loaded. Weights file not found at location: {weights}"
         )
 
-    if include_top and not classes:
+    if include_top and not num_classes:
         raise ValueError(
-            "If `include_top` is True, you should specify `classes`. Received: "
-            f"classes={classes}"
+            "If `include_top` is True, you should specify `num_classes`. Received: "
+            f"num_classes={num_classes}"
         )
 
     inputs = utils.parse_model_inputs(input_shape, input_tensor)
@@ -202,7 +202,7 @@ def DarkNet(
     if include_top:
         x = layers.GlobalAveragePooling2D(name="avg_pool")(x)
         x = layers.Dense(
-            classes, activation=classifier_activation, name="predictions"
+            num_classes, activation=classifier_activation, name="predictions"
         )(x)
     elif pooling == "avg":
         x = layers.GlobalAveragePooling2D(name="avg_pool")(x)
@@ -220,7 +220,7 @@ def DarkNet21(
     *,
     include_rescaling,
     include_top,
-    classes=None,
+    num_classes=None,
     weights=None,
     input_shape=(None, None, 3),
     input_tensor=None,
@@ -232,7 +232,7 @@ def DarkNet21(
         [1, 2, 2, 1],
         include_rescaling=include_rescaling,
         include_top=include_top,
-        classes=classes,
+        num_classes=num_classes,
         weights=parse_weights(weights, include_top, "darknet"),
         input_shape=input_shape,
         input_tensor=input_tensor,
@@ -246,7 +246,7 @@ def DarkNet53(
     *,
     include_rescaling,
     include_top,
-    classes=None,
+    num_classes=None,
     weights=None,
     input_shape=(None, None, 3),
     input_tensor=None,
@@ -258,7 +258,7 @@ def DarkNet53(
         [2, 8, 8, 4],
         include_rescaling=include_rescaling,
         include_top=include_top,
-        classes=classes,
+        num_classes=num_classes,
         weights=parse_weights(weights, include_top, "darknet53"),
         input_shape=input_shape,
         input_tensor=input_tensor,

@@ -27,10 +27,10 @@ class DeepLabV3(keras.Model):
     A segmentation model based on the DeepLab v3.
 
     Args:
-        classes: int, the number of classes for the detection model. Note that
-            the classes doesn't contain the background class, and the classes
+        num_classes: int, the number of num_classes for the detection model. Note that
+            the num_classes doesn't contain the background class, and the num_classes
             from the data should be represented by integers with range
-            [0, classes).
+            [0, num_classes).
         backbone: an optional backbone network for the model. Should be a KerasCV model.
         weights: weights for the complete DeepLabV3 model. one of `None` (random
             initialization), a pretrained weight file path, or a reference to
@@ -57,7 +57,7 @@ class DeepLabV3(keras.Model):
 
     def __init__(
         self,
-        classes,
+        num_classes,
         backbone,
         spatial_pyramid_pooling=None,
         segmentation_head=None,
@@ -114,7 +114,7 @@ class DeepLabV3(keras.Model):
 
         if segmentation_head is None:
             segmentation_head = SegmentationHead(
-                classes=classes,
+                num_classes=num_classes,
                 name="segmentation_head",
                 convs=1,
                 dropout=0.2,
@@ -139,7 +139,7 @@ class DeepLabV3(keras.Model):
             self.load_weights(parse_weights(weights, True, "deeplabv3"))
 
         # All references to `self` below this line
-        self.classes = classes
+        self.num_classes = num_classes
         self.backbone = backbone
         self.spatial_pyramid_pooling = spatial_pyramid_pooling
         self.segmentation_head = segmentation_head
@@ -175,7 +175,7 @@ class DeepLabV3(keras.Model):
 
     def get_config(self):
         return {
-            "classes": self.classes,
+            "num_classes": self.num_classes,
             "backbone": self.backbone,
             "spatial_pyramid_pooling": self.spatial_pyramid_pooling,
             "segmentation_head": self.segmentation_head,
@@ -191,8 +191,8 @@ class SegmentationHead(layers.Layer):
     segmentation mask (pixel level classifications) as the output for the model.
 
     Args:
-        classes: int, the number of output classes for the prediction. This should
-            include all the classes (eg background) for the model to predict.
+        num_classes: int, the number of output num_classes for the prediction. This should
+            include all the num_classes (eg background) for the model to predict.
         convs: int, the number of conv2D layers that are stacked before the final
             classification layer. Default to 2.
         filters: int, the number of filter/channels for the the conv2D layers. Default
@@ -220,7 +220,7 @@ class SegmentationHead(layers.Layer):
     p5 = tf.ones([2, 8, 8, 3])
     inputs = {3: p3, 4: p4, 5: p5}
 
-    head = SegmentationHead(classes=11)
+    head = SegmentationHead(num_classes=11)
 
     output = head(inputs)
     # output tensor has shape [2, 32, 32, 11]. It has the same resolution as the p3.
@@ -229,7 +229,7 @@ class SegmentationHead(layers.Layer):
 
     def __init__(
         self,
-        classes,
+        num_classes,
         convs=2,
         filters=256,
         activations="relu",
@@ -241,7 +241,7 @@ class SegmentationHead(layers.Layer):
     ):
         """
         Args:
-            classes: the number of possible classes for the segmentation map
+            num_classes: the number of possible num_classes for the segmentation map
             convs: default 2; the number of conv blocks to use in the head (conv2d-batch_norm-activation blocks)
             filters: default 256; the number of filters in each Conv2D layer
             activations: default 'relu'; the activation to apply in conv blocks
@@ -255,7 +255,7 @@ class SegmentationHead(layers.Layer):
             **kwargs:
         """
         super().__init__(**kwargs)
-        self.classes = classes
+        self.num_classes = num_classes
         self.convs = convs
         self.filters = filters
         self.activations = activations
@@ -284,7 +284,7 @@ class SegmentationHead(layers.Layer):
 
         self._classification_layer = tf.keras.layers.Conv2D(
             name="segmentation_output",
-            filters=self.classes,
+            filters=self.num_classes,
             kernel_size=1,
             use_bias=False,
             padding="same",
@@ -322,7 +322,7 @@ class SegmentationHead(layers.Layer):
 
     def get_config(self):
         config = {
-            "classes": self.classes,
+            "num_classes": self.num_classes,
             "convs": self.convs,
             "filters": self.filters,
             "activations": self.activations,

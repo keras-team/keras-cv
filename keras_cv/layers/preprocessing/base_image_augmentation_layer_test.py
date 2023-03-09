@@ -42,7 +42,7 @@ class RandomAddLayer(BaseImageAugmentationLayer):
     def augment_bounding_boxes(self, bounding_boxes, transformation, **kwargs):
         return {
             "boxes": bounding_boxes["boxes"] + transformation,
-            "classes": bounding_boxes["classes"] + transformation,
+            "num_classes": bounding_boxes["num_classes"] + transformation,
         }
 
     def augment_keypoints(self, keypoints, transformation, **kwargs):
@@ -147,7 +147,7 @@ class BaseImageAugmentationLayerTest(tf.test.TestCase):
         images = np.random.random(size=(8, 8, 3)).astype("float32")
         bounding_boxes = {
             "boxes": np.random.random(size=(8, 3, 4)).astype("float32"),
-            "classes": np.random.random(size=(8, 3)).astype("float32"),
+            "num_classes": np.random.random(size=(8, 3)).astype("float32"),
         }
         keypoints = np.random.random(size=(8, 5, 2)).astype("float32")
         segmentation_mask = np.random.random(size=(8, 8, 1)).astype("float32")
@@ -165,7 +165,7 @@ class BaseImageAugmentationLayerTest(tf.test.TestCase):
             "bounding_boxes": bounding_box.to_dense(
                 {
                     "boxes": bounding_boxes["boxes"] + 2.0,
-                    "classes": bounding_boxes["classes"] + 2.0,
+                    "num_classes": bounding_boxes["num_classes"] + 2.0,
                 }
             ),
             "keypoints": keypoints + 2.0,
@@ -183,8 +183,8 @@ class BaseImageAugmentationLayerTest(tf.test.TestCase):
             expected_output["bounding_boxes"]["boxes"],
         )
         self.assertAllClose(
-            output["bounding_boxes"]["classes"],
-            expected_output["bounding_boxes"]["classes"],
+            output["bounding_boxes"]["num_classes"],
+            expected_output["bounding_boxes"]["num_classes"],
         )
         self.assertAllClose(
             output["segmentation_masks"], expected_output["segmentation_masks"]
@@ -195,7 +195,7 @@ class BaseImageAugmentationLayerTest(tf.test.TestCase):
         images = np.random.random(size=(2, 8, 8, 3)).astype("float32")
         bounding_boxes = {
             "boxes": np.random.random(size=(2, 3, 4)).astype("float32"),
-            "classes": np.random.random(size=(2, 3)).astype("float32"),
+            "num_classes": np.random.random(size=(2, 3)).astype("float32"),
         }
         keypoints = np.random.random(size=(2, 3, 5, 2)).astype("float32")
         segmentation_masks = np.random.random(size=(2, 8, 8, 1)).astype(
@@ -255,7 +255,7 @@ class BaseImageAugmentationLayerTest(tf.test.TestCase):
         images = np.random.random(size=(2, 8, 8, 3)).astype("float32")
         bounding_boxes = bounding_boxes = {
             "boxes": np.random.random(size=(2, 3, 4)).astype("float32"),
-            "classes": np.random.random(size=(2, 3)).astype("float32"),
+            "num_classes": np.random.random(size=(2, 3)).astype("float32"),
         }
         keypoints = np.random.random(size=(2, 5, 2)).astype("float32")
         segmentation_masks = np.random.random(size=(2, 8, 8, 1)).astype(

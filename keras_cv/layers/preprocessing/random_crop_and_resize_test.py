@@ -127,12 +127,12 @@ class RandomCropAndResizeTest(tf.test.TestCase, parameterized.TestCase):
             )
 
     def test_augment_sparse_segmentation_mask(self):
-        classes = 8
+        num_classes = 8
 
         input_image_shape = (1, self.height, self.width, 3)
         mask_shape = (1, self.height, self.width, 1)
         image = tf.random.uniform(shape=input_image_shape, seed=self.seed)
-        mask = np.random.randint(2, size=mask_shape) * (classes - 1)
+        mask = np.random.randint(2, size=mask_shape) * (num_classes - 1)
 
         inputs = {"images": image, "segmentation_masks": mask}
 
@@ -160,16 +160,16 @@ class RandomCropAndResizeTest(tf.test.TestCase, parameterized.TestCase):
         self.assertAllInSet(output["segmentation_masks"], [0, 7])
 
     def test_augment_one_hot_segmentation_mask(self):
-        classes = 8
+        num_classes = 8
 
         input_image_shape = (1, self.height, self.width, 3)
         mask_shape = (1, self.height, self.width, 1)
         image = tf.random.uniform(shape=input_image_shape, seed=self.seed)
         mask = tf.one_hot(
             tf.squeeze(
-                np.random.randint(2, size=mask_shape) * (classes - 1), axis=-1
+                np.random.randint(2, size=mask_shape) * (num_classes - 1), axis=-1
             ),
-            classes,
+            num_classes,
         )
 
         inputs = {"images": image, "segmentation_masks": mask}
@@ -191,7 +191,7 @@ class RandomCropAndResizeTest(tf.test.TestCase, parameterized.TestCase):
         image = tf.zeros([20, 20, 3])
         boxes = {
             "boxes": tf.convert_to_tensor([[0, 0, 1, 1]]),
-            "classes": tf.convert_to_tensor([0]),
+            "num_classes": tf.convert_to_tensor([0]),
         }
         input = {"images": image, "bounding_boxes": boxes}
 
@@ -205,7 +205,7 @@ class RandomCropAndResizeTest(tf.test.TestCase, parameterized.TestCase):
 
         expected_output = {
             "boxes": tf.convert_to_tensor([[0, 0, 1, 1]], dtype=tf.float32),
-            "classes": tf.convert_to_tensor([0], dtype=tf.float32),
+            "num_classes": tf.convert_to_tensor([0], dtype=tf.float32),
         }
         output["bounding_boxes"] = bounding_box.to_dense(
             output["bounding_boxes"]
@@ -214,7 +214,7 @@ class RandomCropAndResizeTest(tf.test.TestCase, parameterized.TestCase):
             expected_output["boxes"], output["bounding_boxes"]["boxes"]
         )
         self.assertAllClose(
-            expected_output["classes"], output["bounding_boxes"]["classes"]
+            expected_output["num_classes"], output["bounding_boxes"]["num_classes"]
         )
 
     def test_augment_boxes_batched_input(self):
@@ -227,7 +227,7 @@ class RandomCropAndResizeTest(tf.test.TestCase, parameterized.TestCase):
                     [[0, 0, 1, 1], [0, 0, 1, 1]],
                 ]
             ),
-            "classes": tf.convert_to_tensor([[0, 0], [0, 0]]),
+            "num_classes": tf.convert_to_tensor([[0, 0], [0, 0]]),
         }
         input = {"images": [image, image], "bounding_boxes": boxes}
         layer = preprocessing.RandomCropAndResize(
@@ -244,7 +244,7 @@ class RandomCropAndResizeTest(tf.test.TestCase, parameterized.TestCase):
                     [[0, 0, 1, 1], [0, 0, 1, 1]],
                 ]
             ),
-            "classes": tf.convert_to_tensor([[0, 0], [0, 0]]),
+            "num_classes": tf.convert_to_tensor([[0, 0], [0, 0]]),
         }
         output["bounding_boxes"] = bounding_box.to_dense(
             output["bounding_boxes"]
@@ -253,7 +253,7 @@ class RandomCropAndResizeTest(tf.test.TestCase, parameterized.TestCase):
             expected_output["boxes"], output["bounding_boxes"]["boxes"]
         )
         self.assertAllClose(
-            expected_output["classes"], output["bounding_boxes"]["classes"]
+            expected_output["num_classes"], output["bounding_boxes"]["num_classes"]
         )
 
     def test_augment_boxes_ragged(self):
@@ -262,7 +262,7 @@ class RandomCropAndResizeTest(tf.test.TestCase, parameterized.TestCase):
             "boxes": tf.ragged.constant(
                 [[[0, 0, 1, 1], [0, 0, 1, 1]], [[0, 0, 1, 1]]], dtype=tf.float32
             ),
-            "classes": tf.ragged.constant([[0, 0], [0]]),
+            "num_classes": tf.ragged.constant([[0, 0], [0]]),
         }
         input = {"images": image, "bounding_boxes": boxes}
         layer = preprocessing.RandomCropAndResize(
@@ -278,7 +278,7 @@ class RandomCropAndResizeTest(tf.test.TestCase, parameterized.TestCase):
             "boxes": tf.ragged.constant(
                 [[[0, 0, 1, 1], [0, 0, 1, 1]], [[0, 0, 1, 1]]], dtype=tf.float32
             ),
-            "classes": tf.ragged.constant([[0, 0], [0]]),
+            "num_classes": tf.ragged.constant([[0, 0], [0]]),
         }
         expected_output = bounding_box.to_dense(expected_output)
         output["bounding_boxes"] = bounding_box.to_dense(
@@ -288,5 +288,5 @@ class RandomCropAndResizeTest(tf.test.TestCase, parameterized.TestCase):
             expected_output["boxes"], output["bounding_boxes"]["boxes"]
         )
         self.assertAllClose(
-            expected_output["classes"], output["bounding_boxes"]["classes"]
+            expected_output["num_classes"], output["bounding_boxes"]["num_classes"]
         )

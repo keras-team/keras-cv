@@ -16,7 +16,7 @@ import tensorflow as tf
 from keras_cv import bounding_box
 from keras_cv.layers import preprocessing
 
-classes = 10
+num_classes = 10
 
 
 class RandomShearTest(tf.test.TestCase):
@@ -46,12 +46,12 @@ class RandomShearTest(tf.test.TestCase):
         # randomly sample labels
         ys_labels = tf.random.categorical(tf.math.log([[0.5, 0.5]]), 2)
         ys_labels = tf.squeeze(ys_labels)
-        ys_labels = tf.one_hot(ys_labels, classes)
+        ys_labels = tf.one_hot(ys_labels, num_classes)
 
         # randomly sample bounding boxes
         ys_bounding_boxes = {
             "boxes": tf.ones((2, 3, 4)),
-            "classes": tf.random.uniform((2, 3), 0, 1),
+            "num_classes": tf.random.uniform((2, 3), 0, 1),
         }
 
         layer = preprocessing.RandomShear(
@@ -78,7 +78,7 @@ class RandomShearTest(tf.test.TestCase):
         self.assertEqual(xs.shape, [2, 512, 512, 3])
         self.assertEqual(ys_labels.shape, [2, 10])
         self.assertEqual(ys_bounding_boxes["boxes"].shape, [2, 3, 4])
-        self.assertEqual(ys_bounding_boxes["classes"].shape, [2, 3])
+        self.assertEqual(ys_bounding_boxes["num_classes"].shape, [2, 3])
 
     def test_single_image_input(self):
         """test for single image input"""
@@ -96,7 +96,7 @@ class RandomShearTest(tf.test.TestCase):
         xs = tf.ones((512, 512, 3))
         ys = {
             "boxes": tf.constant([[0.3, 0.4, 0.5, 0.6], [0.9, 0.8, 1.0, 1.0]]),
-            "classes": tf.constant([2, 3]),
+            "num_classes": tf.constant([2, 3]),
         }
 
         inputs = {"images": xs, "bounding_boxes": ys}
@@ -144,7 +144,7 @@ class RandomShearTest(tf.test.TestCase):
         )
         ys = {
             "boxes": tf.random.uniform((2, 3, 4), 0, 1),
-            "classes": tf.random.uniform((2, 3), 0, 1),
+            "num_classes": tf.random.uniform((2, 3), 0, 1),
         }
 
         @tf.function
@@ -175,7 +175,7 @@ class RandomShearTest(tf.test.TestCase):
                 ],
                 dtype=tf.float32,
             ),
-            "classes": tf.constant([[0, 0], [0, 0]], dtype=tf.float32),
+            "num_classes": tf.constant([[0, 0], [0, 0]], dtype=tf.float32),
         }
         layer = preprocessing.RandomShear(
             x_factor=0, y_factor=0, bounding_box_format="rel_xyxy"
