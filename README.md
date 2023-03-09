@@ -88,7 +88,7 @@ test_dataset = test_dataset.batch(16).map(
 densenet = keras_cv.models.DenseNet121(
     include_rescaling=True,
     include_top=True,
-    classes=3
+    num_classes=3
 )
 densenet.compile(
     loss='categorical_crossentropy',

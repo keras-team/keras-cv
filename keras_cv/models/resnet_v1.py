@@ -78,8 +78,8 @@ BASE_DOCSTRING = """Instantiates the {name} architecture.
             to `True`, inputs will be passed through a `Rescaling(1/255.0)`
             layer.
         include_top: bool, whether to include the fully-connected layer at
-            the top of the network.  If provided, `classes` must be provided.
-        classes: optional int, number of classes to classify images into (only
+            the top of the network.  If provided, `num_classes` must be provided.
+        num_classes: optional int, number of classes to classify images into (only
             to be specified if `include_top` is `True`).
         weights: one of `None` (random initialization), a pretrained weight file
             path, or a reference to pre-trained weights (e.g. 'imagenet/classification')
@@ -316,7 +316,7 @@ class ResNet(keras.Model):
                 the output of the model will be a 2D tensor.
             - `max` means that global max pooling will
                 be applied.
-        classes: optional number of classes to classify images
+        num_classes: optional number of classes to classify images
             into, only to be specified if `include_top` is True.
         classifier_activation: A `str` or callable. The activation function to
             use on the "top" layer. Ignored unless `include_top=True`. Set
@@ -341,7 +341,7 @@ class ResNet(keras.Model):
         input_shape=(None, None, 3),
         input_tensor=None,
         pooling=None,
-        classes=None,
+        num_classes=None,
         classifier_activation="softmax",
         block_type="block",
         **kwargs,
@@ -352,10 +352,10 @@ class ResNet(keras.Model):
                 f"weights file to be loaded. Weights file not found at location: {weights}"
             )
 
-        if include_top and not classes:
+        if include_top and not num_classes:
             raise ValueError(
-                "If `include_top` is True, you should specify `classes`. "
-                f"Received: classes={classes}"
+                "If `include_top` is True, you should specify `num_classes`. "
+                f"Received: num_classes={num_classes}"
             )
 
         if include_top and pooling:
@@ -400,7 +400,9 @@ class ResNet(keras.Model):
         if include_top:
             x = layers.GlobalAveragePooling2D(name="avg_pool")(x)
             x = layers.Dense(
-                classes, activation=classifier_activation, name="predictions"
+                num_classes,
+                activation=classifier_activation,
+                name="predictions",
             )(x)
         else:
             if pooling == "avg":
@@ -428,7 +430,7 @@ class ResNet(keras.Model):
         self.include_top = include_top
         self.input_tensor = input_tensor
         self.pooling = pooling
-        self.classes = classes
+        self.num_classes = num_classes
         self.classifier_activation = classifier_activation
         self.block_type = block_type
 
@@ -443,7 +445,7 @@ class ResNet(keras.Model):
             "input_shape": self.input_shape[1:],
             "input_tensor": self.input_tensor,
             "pooling": self.pooling,
-            "classes": self.classes,
+            "num_classes": self.num_classes,
             "classifier_activation": self.classifier_activation,
             "block_type": self.block_type,
             "name": self.name,
@@ -459,7 +461,7 @@ def ResNet18(
     *,
     include_rescaling,
     include_top,
-    classes=None,
+    num_classes=None,
     weights=None,
     input_shape=(None, None, 3),
     input_tensor=None,
@@ -481,7 +483,7 @@ def ResNet18(
         input_shape=input_shape,
         input_tensor=input_tensor,
         pooling=pooling,
-        classes=classes,
+        num_classes=num_classes,
         classifier_activation=classifier_activation,
         block_type="basic_block",
         **kwargs,
@@ -492,7 +494,7 @@ def ResNet34(
     *,
     include_rescaling,
     include_top,
-    classes=None,
+    num_classes=None,
     weights=None,
     input_shape=(None, None, 3),
     input_tensor=None,
@@ -514,7 +516,7 @@ def ResNet34(
         input_shape=input_shape,
         input_tensor=input_tensor,
         pooling=pooling,
-        classes=classes,
+        num_classes=num_classes,
         classifier_activation=classifier_activation,
         block_type="basic_block",
         **kwargs,
@@ -525,7 +527,7 @@ def ResNet50(
     *,
     include_rescaling,
     include_top,
-    classes=None,
+    num_classes=None,
     weights=None,
     input_shape=(None, None, 3),
     input_tensor=None,
@@ -547,7 +549,7 @@ def ResNet50(
         input_shape=input_shape,
         input_tensor=input_tensor,
         pooling=pooling,
-        classes=classes,
+        num_classes=num_classes,
         classifier_activation=classifier_activation,
         block_type="block",
         **kwargs,
@@ -558,7 +560,7 @@ def ResNet101(
     *,
     include_rescaling,
     include_top,
-    classes=None,
+    num_classes=None,
     weights=None,
     input_shape=(None, None, 3),
     input_tensor=None,
@@ -579,7 +581,7 @@ def ResNet101(
         input_shape=input_shape,
         input_tensor=input_tensor,
         pooling=pooling,
-        classes=classes,
+        num_classes=num_classes,
         classifier_activation=classifier_activation,
         block_type="block",
         **kwargs,
@@ -590,7 +592,7 @@ def ResNet152(
     *,
     include_rescaling,
     include_top,
-    classes=None,
+    num_classes=None,
     weights=None,
     input_shape=(None, None, 3),
     input_tensor=None,
@@ -611,7 +613,7 @@ def ResNet152(
         input_shape=input_shape,
         input_tensor=input_tensor,
         pooling=pooling,
-        classes=classes,
+        num_classes=num_classes,
         classifier_activation=classifier_activation,
         block_type="block",
         **kwargs,

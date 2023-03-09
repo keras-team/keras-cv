@@ -46,8 +46,8 @@ BASE_DOCSTRING = """Instantiates the {name} architecture.
             inputs will be passed through a `Rescaling(scale=1 / 255)`
             layer, defaults to True.
         include_top: whether to include the fully-connected layer at the top of the
-            network.  If provided, `classes` must be provided.
-        classes: optional number of classes to classify images into, only to be
+            network.  If provided, `num_classes` must be provided.
+        num_classes: optional number of classes to classify images into, only to be
             specified if `include_top` is True, and if no `weights` argument is
             specified.
         weights: one of `None` (random initialization), or a pretrained weight file
@@ -244,8 +244,24 @@ def InvertedResBlock(
     return x
 
 
-@keras.utils.register_keras_serializable(package="keras_cv.models")
-class MobileNetV3(keras.Model):
+
+def MobileNetV3(
+    stack_fn,
+    last_point_ch,
+    include_rescaling,
+    include_top,
+    classes=None,
+    weights=None,
+    input_shape=(None, None, 3),
+    input_tensor=None,
+    pooling=None,
+    alpha=1.0,
+    minimalistic=True,
+    dropout_rate=0.2,
+    classifier_activation="softmax",
+    name="MobileNetV3",
+    **kwargs,
+):
     """Instantiates the MobileNetV3 architecture.
 
     References:
@@ -265,8 +281,8 @@ class MobileNetV3(keras.Model):
             inputs will be passed through a `Rescaling(scale=1 / 255)`
             layer, defaults to True.
         include_top: whether to include the fully-connected layer at the top of the
-            network.  If provided, `classes` must be provided.
-        classes: optional number of classes to classify images into, only to be
+            network.  If provided, `num_classes` must be provided.
+        num_classes: optional number of classes to classify images into, only to be
             specified if `include_top` is True, and if no `weights` argument is
             specified.
         weights: one of `None` (random initialization), or a pretrained weight file
@@ -309,7 +325,7 @@ class MobileNetV3(keras.Model):
     Raises:
         ValueError: if `weights` represents an invalid path to weights file and is not
             None.
-        ValueError: if `include_top` is True and `classes` is not specified.
+        ValueError: if `include_top` is True and `num_classes` is not specified.
     """
 
     def __int__(
@@ -318,7 +334,7 @@ class MobileNetV3(keras.Model):
         last_point_ch,
         include_rescaling,
         include_top,
-        classes=None,
+        num_classes=None,
         weights=None,
         input_shape=(None, None, 3),
         input_tensor=None,
@@ -337,12 +353,12 @@ class MobileNetV3(keras.Model):
                 f"Weights file not found at location: {weights}"
             )
 
-        if include_top and not classes:
-            raise ValueError(
-                "If `include_top` is True, "
-                "you should specify `classes`. "
-                f"Received: classes={classes}"
-            )
+    if include_top and not num_classes:
+        raise ValueError(
+            "If `include_top` is True, "
+            "you should specify `num_classes`. "
+            f"Received: num_classes={num_classes}"
+        )
 
         if include_top and pooling:
             raise ValueError(
@@ -415,19 +431,19 @@ class MobileNetV3(keras.Model):
             )(x)
             x = activation(x)
 
-            if dropout_rate > 0:
-                x = layers.Dropout(dropout_rate)(x)
-            x = layers.Conv2D(
-                classes, kernel_size=1, padding="same", name="Logits"
-            )(x)
-            x = layers.Flatten()(x)
-            x = layers.Activation(
-                activation=classifier_activation, name="Predictions"
-            )(x)
-        elif pooling == "avg":
-            x = layers.GlobalAveragePooling2D(name="avg_pool")(x)
-        elif pooling == "max":
-            x = layers.GlobalMaxPooling2D(name="max_pool")(x)
+        if dropout_rate > 0:
+            x = layers.Dropout(dropout_rate)(x)
+        x = layers.Conv2D(
+            num_classes, kernel_size=1, padding="same", name="Logits"
+        )(x)
+        x = layers.Flatten()(x)
+        x = layers.Activation(
+            activation=classifier_activation, name="Predictions"
+        )(x)
+    elif pooling == "avg":
+        x = layers.GlobalAveragePooling2D(name="avg_pool")(x)
+    elif pooling == "max":
+        x = layers.GlobalMaxPooling2D(name="max_pool")(x)
 
         super().__init__(inputs=inputs, outputs=x, name=name, **kwargs)
 
@@ -474,7 +490,7 @@ def MobileNetV3Small(
     *,
     include_rescaling,
     include_top,
-    classes=None,
+    num_classes=None,
     weights=None,
     input_shape=(None, None, 3),
     input_tensor=None,
@@ -527,7 +543,7 @@ def MobileNetV3Small(
         last_point_ch=1024,
         include_rescaling=include_rescaling,
         include_top=include_top,
-        classes=classes,
+        num_classes=num_classes,
         weights=weights,
         input_shape=input_shape,
         input_tensor=input_tensor,
@@ -545,7 +561,7 @@ def MobileNetV3Large(
     *,
     include_rescaling,
     include_top,
-    classes=None,
+    num_classes=None,
     weights=None,
     input_shape=(None, None, 3),
     input_tensor=None,
@@ -608,7 +624,7 @@ def MobileNetV3Large(
         last_point_ch=1280,
         include_rescaling=include_rescaling,
         include_top=include_top,
-        classes=classes,
+        num_classes=num_classes,
         weights=weights,
         input_shape=input_shape,
         input_tensor=input_tensor,

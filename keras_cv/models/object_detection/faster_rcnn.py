@@ -170,13 +170,13 @@ class RPNHead(tf.keras.layers.Layer):
 class RCNNHead(tf.keras.layers.Layer):
     def __init__(
         self,
-        classes,
+        num_classes,
         conv_dims=[],
         fc_dims=[1024, 1024],
         **kwargs,
     ):
         super().__init__(**kwargs)
-        self.num_classes = classes
+        self.num_classes = num_classes
         self.conv_dims = conv_dims
         self.fc_dims = fc_dims
         self.convs = []
@@ -195,7 +195,7 @@ class RCNNHead(tf.keras.layers.Layer):
             self.fcs.append(layer)
         self.box_pred = tf.keras.layers.Dense(units=4)
         self.cls_score = tf.keras.layers.Dense(
-            units=classes + 1, activation="softmax"
+            units=num_classes + 1, activation="softmax"
         )
 
     def call(self, feature_map, training=None):
@@ -210,7 +210,7 @@ class RCNNHead(tf.keras.layers.Layer):
 
     def get_config(self):
         config = {
-            "classes": self.num_classes,
+            "num_classes": self.num_classes,
             "conv_dims": self.conv_dims,
             "fc_dims": self.fc_dims,
         }
@@ -224,7 +224,7 @@ class FasterRCNN(tf.keras.Model):
     """A Keras model implementing the FasterRCNN architecture.
 
     Implements the FasterRCNN architecture for object detection.  The constructor
-    requires `classes`, `bounding_box_format` and a `backbone`.
+    requires `num_classes`, `bounding_box_format` and a `backbone`.
 
     References:
         - [FasterRCNN](https://arxiv.org/pdf/1506.01497.pdf)
@@ -232,16 +232,16 @@ class FasterRCNN(tf.keras.Model):
     Usage:
     ```python
     retina_net = keras_cv.models.FasterRCNN(
-        classes=20,
+        num_classes=20,
         bounding_box_format="xywh",
         backbone=None,
     )
     ```
 
     Args:
-        classes: the number of classes in your dataset excluding the background
-            class.  Classes should be represented by integers in the range
-            [0, classes).
+        num_classes: the number of classes in your dataset excluding the background
+            class.  classes should be represented by integers in the range
+            [0, num_classes).
         bounding_box_format: The format of bounding boxes of model output. Refer
             [to the keras.io docs](https://keras.io/api/keras_cv/bounding_box/formats/)
             for more details on supported bounding box formats.
@@ -276,7 +276,7 @@ class FasterRCNN(tf.keras.Model):
 
     def __init__(
         self,
-        classes,
+        num_classes,
         bounding_box_format,
         backbone=None,
         anchor_generator=None,
@@ -313,11 +313,11 @@ class FasterRCNN(tf.keras.Model):
         self.roi_sampler = _ROISampler(
             bounding_box_format="yxyx",
             roi_matcher=self.box_matcher,
-            background_class=classes,
+            background_class=num_classes,
             num_sampled_rois=512,
         )
         self.roi_pooler = _ROIAligner(bounding_box_format="yxyx")
-        self.rcnn_head = rcnn_head or RCNNHead(classes)
+        self.rcnn_head = rcnn_head or RCNNHead(num_classes)
         self.backbone = (
             backbone
             or keras_cv.models.ResNet50(
@@ -586,7 +586,7 @@ class FasterRCNN(tf.keras.Model):
 
     def get_config(self):
         return {
-            "classes": self.classes,
+            "num_classes": self.num_classes,
             "bounding_box_format": self.bounding_box_format,
             "backbone": self.backbone,
             "anchor_generator": self.anchor_generator,

@@ -96,7 +96,7 @@ with strategy.scope():
     #     include_top=False, weights="imagenet", include_rescaling=False
     # ).as_backbone()
     model = keras_cv.models.FasterRCNN(
-        classes=20, bounding_box_format="yxyx", backbone=backbone
+        num_classes=20, bounding_box_format="yxyx", backbone=backbone
     )
 
 

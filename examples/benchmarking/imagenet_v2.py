@@ -60,7 +60,7 @@ model = models.__dict__[FLAGS.model_name]
 model = model(
     include_rescaling=FLAGS.include_rescaling,
     include_top=True,
-    classes=1000,
+    num_classes=1000,
     input_shape=(224, 224, 3),
     weights=FLAGS.weights,
     **eval(FLAGS.model_kwargs),
