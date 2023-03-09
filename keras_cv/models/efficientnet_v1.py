@@ -26,7 +26,8 @@ import math
 
 import tensorflow as tf
 from keras import backend
-from keras import layers
+from tensorflow import keras
+from tensorflow.keras import layers
 
 from keras_cv.models import utils
 from keras_cv.models.weights import parse_weights
@@ -321,32 +322,19 @@ def EfficientNetBlock(
     return apply
 
 
-def EfficientNet(
-    include_rescaling,
-    include_top,
-    width_coefficient,
-    depth_coefficient,
-    default_size,
-    dropout_rate=0.2,
-    drop_connect_rate=0.2,
-    depth_divisor=8,
-    activation="swish",
-    blocks_args="default",
-    model_name="efficientnet",
-    weights=None,
-    input_shape=(None, None, 3),
-    input_tensor=None,
-    pooling=None,
-    classes=None,
-    classifier_activation="softmax",
-):
+@keras.utils.register_keras_serializable(package="keras_cv.models")
+class EfficientNet(keras.Model):
+
     """Instantiates the EfficientNet architecture using given scaling coefficients.
 
-    Args:
-        include_rescaling: whether or not to Rescale the inputs.If set to True,
-                inputs will be passed through a `Rescaling(1/255.0)` layer.
-        include_top: whether to include the fully-connected
-            layer at the top of the network.
+    Args: include_rescaling: bool, whether or not to Rescale the inputs. If set
+            to `True`, inputs will be passed through a `Rescaling(1/255.0)`
+            layer.
+        include_top: bool, whether to include the fully-connected layer at
+            the top of the network.  If provided, `classes` must be provided.
+        classes: optional int, number of classes to classify images into (only
+            to be specified if `include_top` is `True).
+
         width_coefficient: float, scaling coefficient for network width.
         depth_coefficient: float, scaling coefficient for network depth.
         default_size: integer, default input image size.
@@ -358,24 +346,18 @@ def EfficientNet(
         model_name: string, model name.
         weights: one of `None` (random initialization),
             or the path to the weights file to be loaded.
-        input_shape: optional shape tuple,
-            It should have exactly 3 inputs channels.
+      input_shape: optional shape tuple, defaults to (None, None, 3).
         input_tensor: optional Keras tensor (i.e. output of `layers.Input()`)
             to use as image input for the model.
-        pooling: optional pooling mode for feature extraction
+        . pooling: optional pooling mode for feature extraction
             when `include_top` is `False`.
-            - `None` means that the output of the model will be
-                the 4D tensor output of the
-                last convolutional layer.
-            - `avg` means that global average pooling
-                will be applied to the output of the
-                last convolutional layer, and thus
-                the output of the model will be a 2D tensor.
-            - `max` means that global max pooling will
-                be applied.
-        classes: optional number of classes to classify images
-            into, only to be specified if `include_top` is True, and
-            if no `weights` argument is specified.
+            - `None` means that the output of the model will be the 4D tensor output
+                of the last convolutional block.
+            - `avg` means that global average pooling will be applied to the output
+                of the last convolutional block, and thus the output of the model will
+                be a 2D tensor.
+            - `max` means that global max pooling will be applied.
+
         classifier_activation: A `str` or callable. The activation function to use
             on the "top" layer. Ignored unless `include_top=True`. Set
             `classifier_activation=None` to return the logits of the "top" layer.
@@ -389,6 +371,7 @@ def EfficientNet(
       ValueError: if `classifier_activation` is not `softmax` or `None` when
         using a pretrained top layer.
     """
+
     if blocks_args == "default":
         blocks_args = DEFAULT_BLOCKS_ARGS
 
