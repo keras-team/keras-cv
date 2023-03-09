@@ -177,36 +177,6 @@ class RetinaNetTest(tf.test.TestCase):
         for w1, w2 in zip(original_fpn_weights, fpn_after_fit):
             self.assertNotAllClose(w1, w2)
 
-    # TODO(lukewood): configure for other coordinate systems.
-    @pytest.mark.skipif(
-        "INTEGRATION" not in os.environ or os.environ["INTEGRATION"] != "true",
-        reason="Takes a long time to run, only runs when INTEGRATION "
-        "environment variable is set.  To run the test please run: \n"
-        "`INTEGRATION=true pytest "
-        "keras_cv/models/object_detection/retina_net/retina_net_test.py -k "
-        "test_fit_coco_metrics -s`",
-    )
-    def test_fit_coco_metrics(self):
-        bounding_box_format = "xywh"
-        retina_net = keras_cv.models.RetinaNet(
-            num_classes=1,
-            bounding_box_format=bounding_box_format,
-        )
-
-        retina_net.compile(
-            optimizer=optimizers.Adam(),
-            classification_loss=keras_cv.losses.FocalLoss(
-                from_logits=True, reduction="none"
-            ),
-            box_loss=keras_cv.losses.SmoothL1Loss(
-                l1_cutoff=1.0, reduction="none"
-            ),
-        )
-
-        xs, ys = _create_bounding_box_dataset(bounding_box_format)
-        retina_net.fit(x=xs, y=ys, epochs=1)
-        _ = retina_net.predict(xs)
-
     @pytest.mark.skipif(
         "INTEGRATION" not in os.environ or os.environ["INTEGRATION"] != "true",
         reason="Takes a long time to run, only runs when INTEGRATION "
