@@ -160,7 +160,7 @@ BASE_DOCSTRING = """Instantiates the {name} architecture.
                 the output of the model will be a 2D tensor.
             - `max` means that global max pooling will
                 be applied.
-        num_classes: Optional number of num_classes to classify images
+        num_classes: Optional number of classes to classify images
             into, only to be specified if `include_top` is True, and
             if no `weights` argument is specified. Defaults to None.
         classifier_activation: A `str` or callable. The activation function to use
@@ -373,7 +373,7 @@ def EfficientNet(
                 the output of the model will be a 2D tensor.
             - `max` means that global max pooling will
                 be applied.
-        num_classes: optional number of num_classes to classify images
+        num_classes: optional number of classes to classify images
             into, only to be specified if `include_top` is True, and
             if no `weights` argument is specified.
         classifier_activation: A `str` or callable. The activation function to use

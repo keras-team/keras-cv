@@ -134,7 +134,7 @@ BASE_DOCSTRING = """Instantiates the {name} architecture.
             layer.
         include_top: bool, whether to include the fully-connected layer at
             the top of the network.  If provided, `num_classes` must be provided.
-        num_classes: optional int, number of num_classes to classify images into (only
+        num_classes: optional int, number of classes to classify images into (only
             to be specified if `include_top` is `True`).
         weights: one of `None` (random initialization), a pretrained weight file
             path, or a reference to pre-trained weights (e.g. 'imagenet/classification')
@@ -328,7 +328,7 @@ class EfficientNetLite(tf.keras.Model):
                 the output of the model will be a 2D tensor.
             - `max` means that global max pooling will
                 be applied.
-        num_classes: optional number of num_classes to classify images
+        num_classes: optional number of classes to classify images
             into, only to be specified if `include_top` is True, and
             if no `weights` argument is specified.
         classifier_activation: A `str` or callable. The activation function to use

@@ -27,7 +27,7 @@ class DeepLabV3(keras.Model):
     A segmentation model based on the DeepLab v3.
 
     Args:
-        num_classes: int, the number of num_classes for the detection model. Note that
+        num_classes: int, the number of classes for the detection model. Note that
             the num_classes doesn't contain the background class, and the num_classes
             from the data should be represented by integers with range
             [0, num_classes).

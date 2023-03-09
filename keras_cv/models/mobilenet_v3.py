@@ -47,7 +47,7 @@ BASE_DOCSTRING = """Instantiates the {name} architecture.
             layer, defaults to True.
         include_top: whether to include the fully-connected layer at the top of the
             network.  If provided, `num_classes` must be provided.
-        num_classes: optional number of num_classes to classify images into, only to be
+        num_classes: optional number of classes to classify images into, only to be
             specified if `include_top` is True, and if no `weights` argument is
             specified.
         weights: one of `None` (random initialization), or a pretrained weight file
@@ -290,7 +290,7 @@ def MobileNetV3(
             layer, defaults to True.
         include_top: whether to include the fully-connected layer at the top of the
             network.  If provided, `num_classes` must be provided.
-        num_classes: optional number of num_classes to classify images into, only to be
+        num_classes: optional number of classes to classify images into, only to be
             specified if `include_top` is True, and if no `weights` argument is
             specified.
         weights: one of `None` (random initialization), or a pretrained weight file

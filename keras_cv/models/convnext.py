@@ -85,7 +85,7 @@ BASE_DOCSTRING = """Instantiates the {name} architecture.
                 of the last convolutional block, and thus the output of the model will
                 be a 2D tensor.
             - `max` means that global max pooling will be applied.
-        num_classes: optional int, number of num_classes to classify images into (only
+        num_classes: optional int, number of classes to classify images into (only
             to be specified if `include_top` is `True`).
         classifier_activation: A `str` or callable. The activation function to use
             on the "top" layer. Ignored unless `include_top=True`. Set
@@ -194,7 +194,7 @@ def apply_block(
 def apply_head(x, num_classes, activation="softmax", name=None):
     """Implementation of classification head of ConvNeXt.
     Args:
-      num_classes: number of num_classes for Dense layer
+      num_classes: number of classes for Dense layer
       activation: activation function for Dense layer
       name: name prefix
     Returns:
@@ -243,7 +243,7 @@ class ConvNeXt(keras.Model):
                 of the last convolutional block, and thus the output of the model will
                 be a 2D tensor.
             - `max` means that global max pooling will be applied.
-      num_classes: optional int, number of num_classes to classify images into (only
+      num_classes: optional int, number of classes to classify images into (only
             to be specified if `include_top` is `True`).
       classifier_activation: A `str` or callable. The activation function to use
             on the "top" layer. Ignored unless `include_top=True`. Set

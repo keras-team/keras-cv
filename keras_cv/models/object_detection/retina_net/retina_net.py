@@ -51,7 +51,7 @@ class RetinaNet(tf.keras.Model):
     ```
 
     Args:
-        num_classes: the number of num_classes in your dataset excluding the background
+        num_classes: the number of classes in your dataset excluding the background
             class.  num_classes should be represented by integers in the range
             [0, num_classes).
         bounding_box_format: The format of bounding boxes of input dataset. Refer

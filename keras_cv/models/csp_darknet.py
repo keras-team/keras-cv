@@ -76,7 +76,7 @@ def CSPDarkNet(
             the network.  If provided, `num_classes` must be provided.
         use_depthwise: a boolean value used to decide whether a depthwise conv block
             should be used over a regular darknet block. Defaults to False
-        num_classes: optional number of num_classes to classify images into, only to be
+        num_classes: optional number of classes to classify images into, only to be
             specified if `include_top` is True.
         weights: one of `None` (random initialization), a pretrained weight file
             path, or a reference to pre-trained weights (e.g. 'imagenet/classification')
@@ -238,7 +238,7 @@ BASE_DOCSTRING = """Instantiates the {name} architecture.
             the network.  If provided, `num_classes` must be provided.
         use_depthwise: a boolean value used to decide whether a depthwise conv block
             should be used over a regular darknet block. Defaults to False
-        num_classes: optional number of num_classes to classify images into, only to be
+        num_classes: optional number of classes to classify images into, only to be
             specified if `include_top` is True.
         weights: one of `None` (random initialization), a pretrained weight file
             path, or a reference to pre-trained weights (e.g. 'imagenet/classification')

@@ -74,7 +74,7 @@ class VGG16(keras.Model):
         inputs will be passed through a `Rescaling(1/255.0)` layer.
       include_top: bool, whether to include the 3 fully-connected
         layers at the top of the network. If provided, num_classes must be provided.
-      num_classes: int, optional number of num_classes to classify images into, only to be
+      num_classes: int, optional number of classes to classify images into, only to be
         specified if `include_top` is True.
       weights: os.PathLike or None, one of `None` (random initialization), or a pretrained weight file path.
       input_shape: tuple, optional shape tuple, defaults to (224, 224, 3).

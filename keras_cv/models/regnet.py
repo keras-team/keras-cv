@@ -224,7 +224,7 @@ BASE_DOCSTRING = """Instantiates the {name} architecture.
         inputs will be passed through a `Rescaling(1/255.0)` layer.
     include_top: Whether to include the fully-connected
         layer at the top of the network.
-    num_classes: Optional number of num_classes to classify images
+    num_classes: Optional number of classes to classify images
         into, only to be specified if `include_top` is True.
     weights: One of `None` (random initialization), or the path to the weights
           file to be loaded. Defaults to `None`.
@@ -658,7 +658,7 @@ def Head(num_classes=None, name=None, activation=None):
     """Implementation of classification head of RegNet.
 
     Args:
-      num_classes: number of num_classes for Dense layer
+      num_classes: number of classes for Dense layer
       name: name prefix
 
     Returns:
@@ -710,7 +710,7 @@ def RegNet(
             inputs will be passed through a `Rescaling(1/255.0)` layer.
         include_top: Whether to include the fully-connected
             layer at the top of the network.
-        num_classes: Optional number of num_classes to classify images
+        num_classes: Optional number of classes to classify images
             into, only to be specified if `include_top` is True, and
             if no `weights` argument is specified.
         weights: One of `None` (random initialization), or the path to the

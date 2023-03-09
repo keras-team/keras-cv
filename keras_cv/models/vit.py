@@ -146,7 +146,7 @@ BASE_DOCSTRING = """Instantiates the {name} architecture.
             rescaled to `[-1..1]`.
         include_top: bool, whether to include the fully-connected layer at the top of the
             network.  If provided, num_classes must be provided.
-        num_classes: optional int, number of num_classes to classify images into, only to be
+        num_classes: optional int, number of classes to classify images into, only to be
             specified if `include_top` is True.
         weights: one of `None` (random initialization), a pretrained weight file
             path, or a reference to pre-trained weights (e.g. 'imagenet/classification')
@@ -205,7 +205,7 @@ class ViT(keras.Model):
                 be applied.
             - `token_pooling`, default, means that the token at the start of the
                 sequences is used instead of regular pooling.
-        num_classes: optional number of num_classes to classify images
+        num_classes: optional number of classes to classify images
             into, only to be specified if `include_top` is True.
                     mlp_dim:
         project_dim: the latent dimensionality to be projected into in the output
