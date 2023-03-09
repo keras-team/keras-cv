@@ -22,12 +22,12 @@ from keras_cv.bounding_box import iou as iou_lib
 from keras_cv.metrics.coco import utils
 
 
-class _BoxRecall(keras.metrics.Metric):
-    """_BoxRecall computes recall based on varying true positive IoU thresholds.
+class BoxRecall(keras.metrics.Metric):
+    """BoxRecall computes recall based on varying true positive IoU thresholds.
 
-    _BoxRecall is analagous to traditional Recall.  The primary distinction is
+    BoxRecall is analagous to traditional Recall.  The primary distinction is
     that when operating in the problem domain of object detection there exists
-    ambiguity in what is considered a true positive.  The _BoxRecall metric
+    ambiguity in what is considered a true positive.  The BoxRecall metric
     works by using the Intersection over Union (IoU) metric to determine whether
     or not a detection is a true positive or a false positive.  For each
     detection the IoU metric is computed for all ground truth boxes of the same
@@ -58,13 +58,13 @@ class _BoxRecall(keras.metrics.Metric):
 
     Usage:
 
-    _BoxRecall accepts two dictionaries that comply with KerasCV's bounding box
+    BoxRecall accepts two dictionaries that comply with KerasCV's bounding box
     specification as inputs to it's `update_state` method.
     These dictionaries represent bounding boxes in the specified
     `bounding_box_format`.
 
     ```python
-    coco_recall = keras_cv.metrics._BoxRecall(
+    coco_recall = keras_cv.metrics.BoxRecall(
         bounding_box_format='xyxy',
         max_detections=100,
         class_ids=[1]
@@ -121,7 +121,6 @@ class _BoxRecall(keras.metrics.Metric):
         self.true_positives.assign(tf.zeros_like(self.true_positives))
         self.ground_truth_boxes.assign(tf.zeros_like(self.ground_truth_boxes))
 
-    @tf.function
     def update_state(self, y_true, y_pred, sample_weight=None):
         if sample_weight is not None:
             warnings.warn(
@@ -238,7 +237,6 @@ class _BoxRecall(keras.metrics.Metric):
         self.true_positives.assign_add(true_positives_update)
         self.ground_truth_boxes.assign_add(ground_truth_boxes_update)
 
-    @tf.function
     def result(self):
         present_values = self.ground_truth_boxes != 0
         n_present_categories = tf.math.reduce_sum(
