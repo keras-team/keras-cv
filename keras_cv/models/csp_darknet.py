@@ -36,21 +36,9 @@ from keras_cv.models.__internal__.darknet_utils import (
 from keras_cv.models.weights import parse_weights
 
 
-def CSPDarkNet(
-    depth_multiplier,
-    width_multiplier,
-    include_rescaling,
-    include_top,
-    use_depthwise=False,
-    num_classes=None,
-    weights=None,
-    input_shape=(None, None, 3),
-    input_tensor=None,
-    pooling=None,
-    classifier_activation="softmax",
-    name="CSPDarkNet",
-    **kwargs,
-):
+@keras.utils.register_keras_serializable(package="keras_cv.models")
+class CspDarknet(keras.Model):
+
     """Instantiates the CSPDarkNet architecture.
 
     Although the DarkNet architecture is commonly used for detection tasks, it is
@@ -99,6 +87,7 @@ def CSPDarkNet(
     Returns:
         A `keras.Model` instance.
     """
+
     if weights and not tf.io.gfile.exists(weights):
         raise ValueError(
             "The `weights` argument should be either `None` or the path to the "
