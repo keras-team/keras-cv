@@ -19,7 +19,7 @@ Reference:
 """
 
 import tensorflow as tf
-from tensorflow import keras
+#from tensorflow import keras
 from tensorflow.keras import layers
 
 from keras_cv.models import utils
@@ -67,6 +67,7 @@ BASE_DOCSTRING = """Instantiates the {name} architecture.
     Returns:
         A `keras.Model` instance.
 """
+
 
 def DarkNet(
     blocks,
@@ -122,7 +123,7 @@ def DarkNet(
     Returns:
         A `keras.Model` instance.
     """
-    
+ 
     if weights and not tf.io.gfile.exists(weights):
         raise ValueError(
             "The `weights` argument should be either `None` or the path to the "
@@ -207,7 +208,6 @@ def DarkNet(
             x = layers.GlobalAveragePooling2D(name="avg_pool")(x)
         elif pooling == "max":
             x = layers.GlobalMaxPooling2D(name="max_pool")(x)
-
 
     model = tf.keras.Model(inputs, x, name=name, **kwargs)
 
