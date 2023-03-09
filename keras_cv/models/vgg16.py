@@ -68,7 +68,7 @@ class VGG16(keras.Model):
     """
     Reference:
     - [Very Deep Convolutional Networks for Large-Scale Image Recognition](https://arxiv.org/abs/1409.1556) (ICLR 2015)
-    This class represents a Keras VGG16 model.
+    This function represents a Keras VGG16 model.
     Args:
       include_rescaling: bool, whether or not to Rescale the inputs.If set to True,
         inputs will be passed through a `Rescaling(1/255.0)` layer.
@@ -105,10 +105,10 @@ class VGG16(keras.Model):
         self,
         include_rescaling,
         include_top,
+        input_tensor=None,
         classes=None,
         weights=None,
         input_shape=(224, 224, 3),
-        input_tensor=None,
         pooling=None,
         classifier_activation="softmax",
         name="VGG16",
