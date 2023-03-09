@@ -27,7 +27,7 @@ class PyCOCOCallback(Callback):
         Args:
             validation_data: a tf.data.Dataset containing validation data. Entries
                 should have the form ```(images, {"boxes": boxes,
-                "num_classes": num_classes})```.
+                "classes": classes})```.
             bounding_box_format: the KerasCV bounding box format used in the
                 validation dataset (e.g. "xywh")
             cache: whether the callback should cache the dataset between iterations.

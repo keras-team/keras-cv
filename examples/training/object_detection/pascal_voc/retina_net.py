@@ -234,7 +234,7 @@ def proc_train_fn(bounding_box_format, img_size):
         bounding_boxes = keras_cv.bounding_box.convert_format(
             boxes, images=image, source="yxyx", target=bounding_box_format
         )
-        bounding_boxes = {"boxes": bounding_boxes, "num_classes": num_classes}
+        bounding_boxes = {"boxes": bounding_boxes, "classes": classes}
         return image, bounding_boxes
 
     return apply
@@ -279,7 +279,7 @@ def proc_eval_fn(bounding_box_format, target_size):
             target=bounding_box_format,
         )
         num_classes = tf.cast(inputs["objects"]["label"], tf.float32)
-        bounding_boxes = {"boxes": boxes, "num_classes": num_classes}
+        bounding_boxes = {"boxes": boxes, "classes": classes}
         return image, bounding_boxes
 
     return apply
@@ -292,7 +292,7 @@ def pad_fn(images, bounding_boxes):
     num_classes = bounding_boxes["num_classes"].to_tensor(
         default_value=-1.0, shape=[GLOBAL_BATCH_SIZE, 32]
     )
-    return images, {"boxes": boxes, "num_classes": num_classes}
+    return images, {"boxes": boxes, "classes": classes}
 
 
 train_ds = train_ds.map(

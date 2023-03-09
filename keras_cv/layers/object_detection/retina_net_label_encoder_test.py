@@ -46,7 +46,7 @@ class RetinaNetLabelEncoderTest(tf.test.TestCase):
             anchor_generator=anchor_generator,
             bounding_box_format="xyxy",
         )
-        bounding_boxes = {"boxes": boxes, "num_classes": num_classes}
+        bounding_boxes = {"boxes": boxes, "classes": classes}
         box_targets, class_targets = encoder(images, bounding_boxes)
 
         self.assertEqual(box_targets.shape, [8, 49104, 4])
@@ -78,7 +78,7 @@ class RetinaNetLabelEncoderTest(tf.test.TestCase):
             bounding_box_format="xyxy",
         )
 
-        bounding_boxes = {"boxes": boxes, "num_classes": num_classes}
+        bounding_boxes = {"boxes": boxes, "classes": classes}
         box_targets, class_targets = encoder(images, bounding_boxes)
 
         self.assertFalse(tf.math.reduce_any(tf.math.is_nan(box_targets)))
@@ -117,7 +117,7 @@ class RetinaNetLabelEncoderTest(tf.test.TestCase):
             bounding_box_format="xywh",
         )
 
-        bounding_boxes = {"boxes": boxes, "num_classes": num_classes}
+        bounding_boxes = {"boxes": boxes, "classes": classes}
         box_targets, class_targets = encoder(images, bounding_boxes)
 
         # 49104 is the anchor generator shape

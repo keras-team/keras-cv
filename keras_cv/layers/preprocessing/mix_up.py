@@ -124,7 +124,7 @@ class MixUp(BaseImageAugmentationLayer):
         classes_for_mixup = tf.gather(num_classes, permutation_order)
         boxes = tf.concat([boxes, boxes_for_mixup], axis=1)
         num_classes = tf.concat([num_classes, classes_for_mixup], axis=1)
-        return {"boxes": boxes, "num_classes": num_classes}
+        return {"boxes": boxes, "classes": classes}
 
     def _validate_inputs(self, inputs):
         images = inputs.get("images", None)

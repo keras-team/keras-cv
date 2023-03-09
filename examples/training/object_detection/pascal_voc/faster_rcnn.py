@@ -273,7 +273,7 @@ def pad_fn(examples):
     )
     return examples["images"], {
         "boxes": gt_boxes,
-        "num_classes": gt_classes,
+        "classes": gt_classes,
     }
 
 

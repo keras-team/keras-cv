@@ -26,7 +26,7 @@ def filter_boxes_by_area_range(bounding_boxes, min_area, max_area):
 
     boxes = tf.gather_nd(boxes, inds)
     num_classes = tf.gather_nd(num_classes, inds)
-    result = {"boxes": boxes, "num_classes": num_classes}
+    result = {"boxes": boxes, "classes": classes}
 
     if confidence is not None:
         confidence = tf.gather_nd(bounding_boxes["confidence"], inds)
@@ -54,7 +54,7 @@ def slice(bounding_boxes, idx):
 
     result = {
         "boxes": boxes[:idx],
-        "num_classes": num_classes[:idx],
+        "classes": classes[:idx],
     }
     if confidence is not None:
         result["confidence"] = confidence[:idx]
@@ -107,7 +107,7 @@ def get_boxes_for_image(bounding_boxes, index):
     num_classes = bounding_boxes["num_classes"]
     result = {
         "boxes": boxes[index, ...],
-        "num_classes": num_classes[index, ...],
+        "classes": classes[index, ...],
     }
 
     if "confidence" in bounding_boxes:
@@ -144,7 +144,7 @@ def order_by_confidence(bounding_boxes):
     num_classes = tf.gather(num_classes, idx, axis=0)
     confidence = tf.gather(confidence, idx, axis=0)
 
-    return {"boxes": boxes, "num_classes": num_classes, "confidence": confidence}
+    return {"boxes": boxes, "classes": classes, "confidence": confidence}
 
 
 def match_boxes(ious, threshold):
