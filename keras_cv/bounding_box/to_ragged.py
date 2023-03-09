@@ -34,7 +34,7 @@ def to_ragged(bounding_boxes, sentinel=-1, dtype=tf.float32):
     print(bounding_boxes)
     # {
     #     "boxes": [[0, 1, 2, 3]],
-    #     "num_classes": [[1]]
+    #     "classes": [[1]]
     # }
     ```
 
@@ -53,19 +53,19 @@ def to_ragged(bounding_boxes, sentinel=-1, dtype=tf.float32):
         return bounding_boxes
 
     boxes = bounding_boxes.get("boxes")
-    num_classes = bounding_boxes.get("num_classes")
-    mask = num_classes != sentinel
+    classes = bounding_boxes.get("classes")
+    mask = classes != sentinel
 
     boxes = tf.ragged.boolean_mask(boxes, mask)
-    num_classes = tf.ragged.boolean_mask(num_classes, mask)
+    classes = tf.ragged.boolean_mask(classes, mask)
 
     if isinstance(boxes, tf.Tensor):
         boxes = tf.RaggedTensor.from_tensor(boxes)
 
-    if isinstance(num_classes, tf.Tensor) and len(num_classes.shape) > 1:
-        num_classes = tf.RaggedTensor.from_tensor(num_classes)
+    if isinstance(classes, tf.Tensor) and len(classes.shape) > 1:
+        classes = tf.RaggedTensor.from_tensor(classes)
 
     result = bounding_boxes.copy()
     result["boxes"] = tf.cast(boxes, dtype)
-    result["num_classes"] = tf.cast(num_classes, dtype)
+    result["classes"] = tf.cast(classes, dtype)
     return result

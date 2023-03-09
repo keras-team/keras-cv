@@ -56,7 +56,7 @@ def mask_invalid_detections(bounding_boxes, output_ragged=False):
         )
 
     boxes = bounding_boxes.get("boxes")
-    num_classes = bounding_boxes.get("num_classes")
+    classes = bounding_boxes.get("classes")
     num_detections = bounding_boxes.get("num_detections")
 
     # Create a mask to select only the first N boxes from each batch
@@ -67,7 +67,7 @@ def mask_invalid_detections(bounding_boxes, output_ragged=False):
     )
     mask = mask < num_detections[:, None]
 
-    num_classes = tf.where(mask, num_classes, -tf.ones_like(num_classes))
+    classes = tf.where(mask, classes, -tf.ones_like(classes))
 
     # resuse mask for boxes
     mask = tf.expand_dims(mask, axis=-1)
@@ -76,7 +76,7 @@ def mask_invalid_detections(bounding_boxes, output_ragged=False):
 
     result = bounding_boxes.copy()
     result["boxes"] = boxes
-    result["num_classes"] = num_classes
+    result["classes"] = classes
 
     if output_ragged:
         return to_ragged(result)

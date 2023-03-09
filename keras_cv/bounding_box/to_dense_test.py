@@ -26,4 +26,4 @@ class ToDenseTest(tf.test.TestCase):
         }
         bounding_boxes = bounding_box.to_dense(bounding_boxes)
         self.assertEqual(bounding_boxes["boxes"].shape, [2, 3, 4])
-        self.assertEqual(bounding_boxes["num_classes"].shape, [2, 3])
+        self.assertEqual(bounding_boxes["classes"].shape, [2, 3])

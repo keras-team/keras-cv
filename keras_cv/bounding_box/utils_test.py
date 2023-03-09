@@ -75,7 +75,7 @@ class BoundingBoxUtilTest(tf.test.TestCase):
             tf.convert_to_tensor([[-1, -1, -1, -1], [100, 100, 256, 256]]),
         ),
         self.assertAllEqual(
-            bounding_boxes["num_classes"],
+            bounding_boxes["classes"],
             tf.convert_to_tensor([-1, 0]),
         )
 
@@ -87,7 +87,7 @@ class BoundingBoxUtilTest(tf.test.TestCase):
             "boxes": tf.convert_to_tensor(
                 [[110, 120, 100, 100], [100, 100, 300, 300]]
             ),
-            "num_classes": [0, 0],
+            "classes": [0, 0],
         }
         image = tf.ones(shape=(height, width, 3))
         bounding_boxes = bounding_box.clip_to_image(
@@ -113,7 +113,7 @@ class BoundingBoxUtilTest(tf.test.TestCase):
             ),
         )
         self.assertAllEqual(
-            bounding_boxes["num_classes"],
+            bounding_boxes["classes"],
             tf.convert_to_tensor([-1, 0]),
         )
 
@@ -125,7 +125,7 @@ class BoundingBoxUtilTest(tf.test.TestCase):
             "boxes": tf.convert_to_tensor(
                 [[0, float("NaN"), 100, 100], [100, 100, 300, 300]]
             ),
-            "num_classes": [0, 0],
+            "classes": [0, 0],
         }
         image = tf.ones(shape=(height, width, 3))
         bounding_boxes = bounding_box.clip_to_image(
@@ -151,7 +151,7 @@ class BoundingBoxUtilTest(tf.test.TestCase):
             ),
         )
         self.assertAllEqual(
-            bounding_boxes["num_classes"],
+            bounding_boxes["classes"],
             tf.convert_to_tensor([-1, 0]),
         )
 

@@ -27,8 +27,8 @@ class ToRaggedTest(tf.test.TestCase):
         bounding_boxes = bounding_box.to_ragged(bounding_boxes)
 
         self.assertEqual(bounding_boxes["boxes"][1].shape, [1, 4])
-        self.assertEqual(bounding_boxes["num_classes"][1].shape, [1])
-        self.assertEqual(bounding_boxes["num_classes"][0].shape, [0])
+        self.assertEqual(bounding_boxes["classes"][1].shape, [1])
+        self.assertEqual(bounding_boxes["classes"][0].shape, [0])
         self.assertEqual(bounding_boxes["boxes"][0].shape, [0, 4])
 
     def test_round_trip(self):
@@ -45,11 +45,9 @@ class ToRaggedTest(tf.test.TestCase):
         bounding_boxes = bounding_box.to_dense(bounding_boxes, max_boxes=2)
 
         self.assertEqual(bounding_boxes["boxes"][1].shape, [2, 4])
-        self.assertEqual(bounding_boxes["num_classes"][1].shape, [2])
-        self.assertEqual(bounding_boxes["num_classes"][0].shape, [2])
+        self.assertEqual(bounding_boxes["classes"][1].shape, [2])
+        self.assertEqual(bounding_boxes["classes"][0].shape, [2])
         self.assertEqual(bounding_boxes["boxes"][0].shape, [2, 4])
 
         self.assertAllEqual(bounding_boxes["boxes"], original["boxes"])
-        self.assertAllEqual(
-            bounding_boxes["num_classes"], original["num_classes"]
-        )
+        self.assertAllEqual(bounding_boxes["classes"], original["classes"])
