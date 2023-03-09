@@ -19,7 +19,7 @@ from absl.testing import parameterized
 from tensorflow import keras
 
 from keras_cv.models.backbones.resnet_v2.resnet_v2_backbone import (
-    ResNet18V2Backbone,
+    ResNet50V2Backbone,
 )
 from keras_cv.models.backbones.resnet_v2.resnet_v2_backbone import (
     ResNetV2Backbone,
@@ -41,7 +41,7 @@ class ResNetV2BackboneTest(tf.test.TestCase, parameterized.TestCase):
         model(self.input_batch)
 
     def test_valid_call_applications_model(self):
-        model = ResNet18V2Backbone()
+        model = ResNet50V2Backbone()
         model(self.input_batch)
 
     def test_valid_call_with_rescaling(self):
@@ -96,12 +96,8 @@ class ResNetV2BackboneTest(tf.test.TestCase, parameterized.TestCase):
                 continue
             self.assertEquals(layers_1[i].name, layers_2[i].name)
 
-    def test_create_backbone_model_from_application_model(self):
-        # ResNet50 style model
-        model = ResNetV2Backbone(
-            stackwise_filters=[64, 128, 256, 512],
-            stackwise_blocks=[3, 4, 6, 3],
-            stackwise_strides=[1, 2, 2, 2],
+    def test_create_backbone_model_from_alias_model(self):
+        model = ResNet50V2Backbone(
             include_rescaling=False,
         )
         backbone_model = get_feature_extractor(
