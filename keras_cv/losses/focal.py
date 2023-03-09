@@ -25,8 +25,8 @@ class FocalLoss(tf.keras.losses.Loss):
 
     Args:
         alpha: a float value between 0 and 1 representing a weighting factor
-            used to deal with class imbalance. Positive num_classes and negative
-            num_classes have alpha and (1 - alpha) as their weighting factors
+            used to deal with class imbalance. Positive classes and negative
+            classes have alpha and (1 - alpha) as their weighting factors
             respectively. Defaults to 0.25.
         gamma: a positive float value representing the tunable focusing
             parameter. Defaults to 2.

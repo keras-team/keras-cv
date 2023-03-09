@@ -125,18 +125,18 @@ def load_samples(fname):
 
     y_true = {
         "boxes": y_true[:, :, :4],
-        "num_classes": y_true[:, :, 4],
+        "classes": y_true[:, :, 4],
     }
     y_pred = {
         "boxes": y_pred[:, :, :4],
-        "num_classes": y_pred[:, :, 4],
+        "classes": y_pred[:, :, 4],
         "confidence": y_pred[:, :, 5],
     }
 
     y_true = bounding_box.convert_format(y_true, source="xywh", target="xyxy")
     y_pred = bounding_box.convert_format(y_pred, source="xywh", target="xyxy")
 
-    categories = set(int(x) for x in y_true["num_classes"].flatten())
+    categories = set(int(x) for x in y_true["classes"].flatten())
     categories = [x for x in categories if x != -1]
 
     return y_true, y_pred, categories
