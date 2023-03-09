@@ -65,7 +65,8 @@ def apply_vgg_block(
 
 @keras.utils.register_keras_serializable(package="keras_cv.models")
 class VGG16(keras.Model):
-    """Reference:
+    """
+    Reference:
     - [Very Deep Convolutional Networks for Large-Scale Image Recognition](https://arxiv.org/abs/1409.1556) (ICLR 2015)
     This class represents a Keras VGG16 model.
     Args:
