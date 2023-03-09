@@ -189,9 +189,8 @@ def apply_block(
     x = layers.Activation("relu", name=name + "_2_relu")(x)
 
     x = layers.Conv2D(4 * filters, 1, name=name + "_3_conv")(x)
-    last_layer = layers.Add(name=name + "_out")
-    x = last_layer([shortcut, x])
-    return x, last_layer.name
+    x = layers.Add(name=name + "_out")([shortcut, x])
+    return x
 
 
 def apply_stack(
@@ -218,6 +217,8 @@ def apply_stack(
             stack. Use "basic_block" for ResNet18 and ResNet34.
         first_shortcut: bool. Use convolution shortcut if `True` (default),
             otherwise uses identity or pooling shortcut, based on stride.
+        stack_index: int, the index of this stack in the ResNet model. Defaults
+            to 1.
 
     Returns:
         Output tensor for the stacked blocks.
@@ -236,21 +237,21 @@ def apply_stack(
             f"Received block_type={block_type}."
         )
 
-    x, _ = block_fn(
+    x = block_fn(
         x, filters, conv_shortcut=first_shortcut, name=name + "_block1"
     )
     for i in range(2, blocks):
-        x, _ = block_fn(
+        x = block_fn(
             x, filters, dilation=dilations, name=name + "_block" + str(i)
         )
-    x, output_name = block_fn(
+    x = block_fn(
         x,
         filters,
         stride=stride,
         dilation=dilations,
         name=name + "_block" + str(blocks),
     )
-    return x, output_name
+    return x
 
 
 @keras.utils.register_keras_serializable(package="keras_cv.models")
@@ -344,17 +345,20 @@ class ResNetV2Backbone(Backbone):
 
         pyramid_level_inputs = {}
         for stack_index in range(num_stacks):
-            x, output_name = apply_stack(
+            num_blocks = stackwise_blocks[stack_index]
+            x = apply_stack(
                 x,
                 filters=stackwise_filters[stack_index],
-                blocks=stackwise_blocks[stack_index],
+                blocks=num_blocks,
                 stride=stackwise_strides[stack_index],
                 dilations=stackwise_dilations[stack_index],
                 block_type=block_type,
                 first_shortcut=(block_type == "block" or stack_index > 0),
                 stack_index=stack_index,
             )
-            pyramid_level_inputs[stack_index + 2] = output_name
+            pyramid_level_inputs[
+                stack_index + 2
+            ] = f"v2_stack_{stack_index}_block{num_blocks}_out"
 
         x = layers.BatchNormalization(
             axis=BN_AXIS, epsilon=BN_EPSILON, name="post_bn"
