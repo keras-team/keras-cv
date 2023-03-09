@@ -17,7 +17,7 @@ from keras_cv.utils import preprocessing
 
 def ensure_tensor(boxes, dtype=None):
     boxes = boxes.copy()
-    for key in ["boxes", "num_classes", "confidence"]:
+    for key in ["boxes", "classes", "confidence"]:
         if key in boxes:
             boxes[key] = preprocessing.ensure_tensor(
                 boxes[key],
