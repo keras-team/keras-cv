@@ -240,7 +240,7 @@ class FasterRCNN(tf.keras.Model):
 
     Args:
         num_classes: the number of classes in your dataset excluding the background
-            class.  num_classes should be represented by integers in the range
+            class.  classes should be represented by integers in the range
             [0, num_classes).
         bounding_box_format: The format of bounding boxes of model output. Refer
             [to the keras.io docs](https://keras.io/api/keras_cv/bounding_box/formats/)
@@ -266,7 +266,7 @@ class FasterRCNN(tf.keras.Model):
             and 1 binary classifier.
         rcnn_head: (Optional) a `keras.layers.Layer` that takes input feature map and
             returns a box delta prediction (in reference to rois) and multi-class prediction
-            (all foreground num_classes + one background class). By default it uses the rcnn head
+            (all foreground classes + one background class). By default it uses the rcnn head
             from paper, which is 2 FC layer with 1024 dimension, 1 box regressor and 1
             softmax classifier.
         prediction_decoder: (Optional) a `keras.layers.Layer` that takes input box prediction and
@@ -454,7 +454,7 @@ class FasterRCNN(tf.keras.Model):
         }
         super().compile(loss=losses, **kwargs)
 
-    def compute_loss(self, images, boxes, num_classes, training):
+    def compute_loss(self, images, boxes, classes, training):
         image_shape = tf.shape(images[0])
         local_batch = images.get_shape().as_list()[0]
         if tf.distribute.has_strategy():
@@ -469,7 +469,7 @@ class FasterRCNN(tf.keras.Model):
             rpn_cls_targets,
             rpn_cls_weights,
         ) = self.rpn_labeler(
-            tf.concat(tf.nest.flatten(anchors), axis=0), boxes, num_classes
+            tf.concat(tf.nest.flatten(anchors), axis=0), boxes, classes
         )
         rpn_box_weights /= (
             self.rpn_labeler.samples_per_image * global_batch * 0.25
@@ -485,7 +485,7 @@ class FasterRCNN(tf.keras.Model):
             box_weights,
             cls_targets,
             cls_weights,
-        ) = self.roi_sampler(rois, boxes, num_classes)
+        ) = self.roi_sampler(rois, boxes, classes)
         box_weights /= self.roi_sampler.num_sampled_rois * global_batch * 0.25
         cls_weights /= self.roi_sampler.num_sampled_rois * global_batch
         box_pred, cls_pred = self._call_rcnn(
@@ -517,13 +517,13 @@ class FasterRCNN(tf.keras.Model):
         images, y = unpack_input(data)
 
         boxes = y["boxes"]
-        if len(y["num_classes"].shape) != 2:
+        if len(y["classes"].shape) != 2:
             raise ValueError(
-                "Expected 'num_classes' to be a tf.Tensor of rank 2. "
-                f"Got y['num_classes'].shape={y['num_classes'].shape}."
+                "Expected 'classes' to be a tf.Tensor of rank 2. "
+                f"Got y['classes'].shape={y['classes'].shape}."
             )
         # TODO(tanzhenyu): remove this hack and perform broadcasting elsewhere
-        num_classes = tf.expand_dims(y["num_classes"], axis=-1)
+        classes = tf.expand_dims(y["classes"], axis=-1)
         with tf.GradientTape() as tape:
             total_loss = self.compute_loss(
                 images, boxes, num_classes, training=True
@@ -544,13 +544,13 @@ class FasterRCNN(tf.keras.Model):
         images, y = unpack_input(data)
 
         boxes = y["boxes"]
-        if len(y["num_classes"].shape) != 2:
+        if len(y["classes"].shape) != 2:
             raise ValueError(
-                "Expected 'num_classes' to be a tf.Tensor of rank 2. "
-                f"Got y['num_classes'].shape={y['num_classes'].shape}."
+                "Expected 'classes' to be a tf.Tensor of rank 2. "
+                f"Got y['classes'].shape={y['classes'].shape}."
             )
-        num_classes = tf.expand_dims(y["num_classes"], axis=-1)
-        self.compute_loss(images, boxes, num_classes, training=False)
+        classes = tf.expand_dims(y["classes"], axis=-1)
+        self.compute_loss(images, boxes, classes, training=False)
         return self.compute_metrics(images, {}, {}, sample_weight={})
 
     def make_predict_function(self, force=False):

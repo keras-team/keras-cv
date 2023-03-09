@@ -28,7 +28,7 @@ class DeepLabV3(keras.Model):
 
     Args:
         num_classes: int, the number of classes for the detection model. Note that
-            the num_classes doesn't contain the background class, and the num_classes
+            the num_classes doesn't contain the background class, and the classes
             from the data should be represented by integers with range
             [0, num_classes).
         backbone: an optional backbone network for the model. Should be a KerasCV model.
@@ -191,8 +191,8 @@ class SegmentationHead(layers.Layer):
     segmentation mask (pixel level classifications) as the output for the model.
 
     Args:
-        num_classes: int, the number of output num_classes for the prediction. This should
-            include all the num_classes (eg background) for the model to predict.
+        num_classes: int, the number of output classes for the prediction. This should
+            include all the classes (e.g. background) for the model to predict.
         convs: int, the number of conv2D layers that are stacked before the final
             classification layer. Default to 2.
         filters: int, the number of filter/channels for the the conv2D layers. Default
@@ -241,7 +241,7 @@ class SegmentationHead(layers.Layer):
     ):
         """
         Args:
-            num_classes: the number of possible num_classes for the segmentation map
+            num_classes: the number of possible classes for the segmentation map
             convs: default 2; the number of conv blocks to use in the head (conv2d-batch_norm-activation blocks)
             filters: default 256; the number of filters in each Conv2D layer
             activations: default 'relu'; the activation to apply in conv blocks

@@ -52,7 +52,7 @@ class RetinaNet(tf.keras.Model):
 
     Args:
         num_classes: the number of classes in your dataset excluding the background
-            class.  num_classes should be represented by integers in the range
+            class.  classes should be represented by integers in the range
             [0, num_classes).
         bounding_box_format: The format of bounding boxes of input dataset. Refer
             [to the keras.io docs](https://keras.io/api/keras_cv/bounding_box/formats/)
@@ -331,7 +331,7 @@ class RetinaNet(tf.keras.Model):
         }
         super().compile(loss=losses, **kwargs)
 
-    def compute_loss(self, images, boxes, num_classes, training):
+    def compute_loss(self, images, boxes, classes, training):
         box_pred, cls_pred = self._forward(images, training=training)
         if boxes.shape[-1] != 4:
             raise ValueError(
@@ -353,15 +353,15 @@ class RetinaNet(tf.keras.Model):
             )
 
         cls_labels = tf.one_hot(
-            tf.cast(num_classes, dtype=tf.int32),
+            tf.cast(classes, dtype=tf.int32),
             depth=self.num_classes,
             dtype=tf.float32,
         )
 
-        positive_mask = tf.cast(tf.greater(num_classes, -1.0), dtype=tf.float32)
+        positive_mask = tf.cast(tf.greater(classes, -1.0), dtype=tf.float32)
         normalizer = tf.reduce_sum(positive_mask)
         cls_weights = tf.cast(
-            tf.math.not_equal(num_classes, -2.0), dtype=tf.float32
+            tf.math.not_equal(classes, -2.0), dtype=tf.float32
         )
         cls_weights /= normalizer
         box_weights = positive_mask / normalizer
@@ -390,7 +390,7 @@ class RetinaNet(tf.keras.Model):
             target=self.label_encoder.bounding_box_format,
             images=x,
         )
-        boxes, num_classes = self.label_encoder(x, y)
+        boxes, classes = self.label_encoder(x, y)
         boxes = bounding_box.convert_format(
             boxes,
             source=self.label_encoder.bounding_box_format,
@@ -399,7 +399,7 @@ class RetinaNet(tf.keras.Model):
         )
 
         with tf.GradientTape() as tape:
-            total_loss = self.compute_loss(x, boxes, num_classes, training=True)
+            total_loss = self.compute_loss(x, boxes, classes, training=True)
 
             reg_losses = []
             if self.weight_decay:
@@ -426,14 +426,14 @@ class RetinaNet(tf.keras.Model):
             target=self.label_encoder.bounding_box_format,
             images=x,
         )
-        boxes, num_classes = self.label_encoder(x, y)
+        boxes, classes = self.label_encoder(x, y)
         boxes = bounding_box.convert_format(
             boxes,
             source=self.label_encoder.bounding_box_format,
             target=self.bounding_box_format,
             images=x,
         )
-        _ = self.compute_loss(x, boxes, num_classes, training=False)
+        _ = self.compute_loss(x, boxes, classes, training=False)
 
         return self.compute_metrics(x, {}, {}, sample_weight={})
 
