@@ -35,7 +35,7 @@ class FasterRCNNTest(tf.test.TestCase, parameterized.TestCase):
     )
     def test_faster_rcnn_infer(self, batch_shape):
         model = FasterRCNN(
-            classes=80,
+            num_classes=80,
             bounding_box_format="xyxy",
             backbone=self._build_backbone(),
         )
@@ -52,7 +52,7 @@ class FasterRCNNTest(tf.test.TestCase, parameterized.TestCase):
     )
     def test_faster_rcnn_train(self, batch_shape):
         model = FasterRCNN(
-            classes=80,
+            num_classes=80,
             bounding_box_format="xyxy",
             backbone=self._build_backbone(),
         )
@@ -63,7 +63,7 @@ class FasterRCNNTest(tf.test.TestCase, parameterized.TestCase):
 
     def test_invalid_compile(self):
         model = FasterRCNN(
-            classes=80,
+            num_classes=80,
             bounding_box_format="yxyx",
             backbone=self._build_backbone(),
         )
@@ -84,7 +84,7 @@ class FasterRCNNTest(tf.test.TestCase, parameterized.TestCase):
     )
     def test_faster_rcnn_with_dictionary_input_format(self):
         faster_rcnn = keras_cv.models.FasterRCNN(
-            classes=20,
+            num_classes=20,
             bounding_box_format="xywh",
             backbone=self._build_backbone(),
         )

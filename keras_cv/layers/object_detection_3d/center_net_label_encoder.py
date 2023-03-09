@@ -331,7 +331,7 @@ class CenterNetLabelEncoder(tf.keras.layers.Layer):
       min_radius: minimum Gasussian radius in each dimension in meters.
       max_radius: maximum Gasussian radius in each dimension in meters.
       spatial_size: the x, y, z boundary of voxels
-      classes: number of object classes.
+      num_classes: number of object classes.
       top_k_heatmap: A sequence of integers, top k for each class. Can be None.
     """
 
@@ -341,7 +341,7 @@ class CenterNetLabelEncoder(tf.keras.layers.Layer):
         min_radius: Sequence[float],
         max_radius: Sequence[float],
         spatial_size: Sequence[float],
-        classes: int,
+        num_classes: int,
         top_k_heatmap: Sequence[int],
         **kwargs,
     ):
@@ -350,7 +350,7 @@ class CenterNetLabelEncoder(tf.keras.layers.Layer):
         self._min_radius = min_radius
         self._max_radius = max_radius
         self._spatial_size = spatial_size
-        self._classes = classes
+        self._num_classes = num_classes
         self._top_k_heatmap = top_k_heatmap
 
     def call(self, box_3d, box_classes, box_mask):
@@ -418,7 +418,7 @@ class CenterNetLabelEncoder(tf.keras.layers.Layer):
         heatmap_dict = {}
         box_3d_dict = {}
         top_k_heatmap_feature_idx_dict = {}
-        for i in range(self._classes):
+        for i in range(self._num_classes):
             class_key = f"class_{i+1}"
             # Object class is 1-indexed (0 is background).
             dense_box_class_i = tf.cast(

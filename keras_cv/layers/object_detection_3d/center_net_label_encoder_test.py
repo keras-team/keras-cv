@@ -27,7 +27,7 @@ class CenterNetLabelEncoderTest(tf.test.TestCase):
             min_radius=[0.8, 0.8, 0.0],
             max_radius=[8.0, 8.0, 0.0],
             spatial_size=[-20, 20, -20, 20, -20, 20],
-            classes=2,
+            num_classes=2,
             top_k_heatmap=[10, 20],
         )
         box_3d = tf.random.uniform(
@@ -53,7 +53,7 @@ class CenterNetLabelEncoderTest(tf.test.TestCase):
             min_radius=[0.8, 0.8, 0.0],
             max_radius=[8.0, 8.0, 0.0],
             spatial_size=[-20, 20, -20, 20, -20, 20],
-            classes=2,
+            num_classes=2,
             top_k_heatmap=[10, 20],
         )
         box_3d = tf.random.uniform(
@@ -79,7 +79,7 @@ class CenterNetLabelEncoderTest(tf.test.TestCase):
             min_radius=[0.8, 0.8, 0.0],
             max_radius=[8.0, 8.0, 0.0],
             spatial_size=[-20, 20, -20, 20, -20, 20],
-            classes=2,
+            num_classes=2,
             top_k_heatmap=[10, 0],
         )
         box_3d = tf.random.uniform(

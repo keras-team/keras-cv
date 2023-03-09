@@ -32,7 +32,7 @@ class PyCOCOCallbackTest(tf.test.TestCase):
 
     def test_model_fit_retinanet(self):
         model = keras_cv.models.RetinaNet(
-            classes=10,
+            num_classes=10,
             bounding_box_format="xywh",
             backbone=keras_cv.models.ResNet50V2Backbone().get_feature_extractor(),
         )
@@ -61,7 +61,7 @@ class PyCOCOCallbackTest(tf.test.TestCase):
 
     def test_model_fit_rcnn(self):
         model = keras_cv.models.FasterRCNN(
-            classes=10,
+            num_classes=10,
             bounding_box_format="xywh",
             backbone=keras_cv.models.ResNet50V2Backbone().get_feature_extractor(),
         )
