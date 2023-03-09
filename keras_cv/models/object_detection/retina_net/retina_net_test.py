@@ -36,7 +36,7 @@ class RetinaNetTest(tf.test.TestCase):
 
     def test_retina_net_construction(self):
         retina_net = keras_cv.models.RetinaNet(
-            classes=20,
+            num_classes=20,
             bounding_box_format="xywh",
             backbone=self.build_backbone(),
         )
@@ -58,7 +58,7 @@ class RetinaNetTest(tf.test.TestCase):
     )
     def test_retina_net_call(self):
         retina_net = keras_cv.models.RetinaNet(
-            classes=20,
+            num_classes=20,
             bounding_box_format="xywh",
             backbone=self.build_backbone(),
         )
@@ -68,7 +68,7 @@ class RetinaNetTest(tf.test.TestCase):
 
     def test_wrong_logits(self):
         retina_net = keras_cv.models.RetinaNet(
-            classes=2,
+            num_classes=2,
             bounding_box_format="xywh",
             backbone=self.build_backbone(),
         )
@@ -89,7 +89,7 @@ class RetinaNetTest(tf.test.TestCase):
 
     def test_no_metrics(self):
         retina_net = keras_cv.models.RetinaNet(
-            classes=2,
+            num_classes=2,
             bounding_box_format="xywh",
             backbone=self.build_backbone(),
         )
@@ -107,7 +107,7 @@ class RetinaNetTest(tf.test.TestCase):
     def test_weights_contained_in_trainable_variables(self):
         bounding_box_format = "xywh"
         retina_net = keras_cv.models.RetinaNet(
-            classes=1,
+            num_classes=1,
             bounding_box_format=bounding_box_format,
             backbone=self.build_backbone(),
         )
@@ -138,7 +138,7 @@ class RetinaNetTest(tf.test.TestCase):
     def test_weights_change(self):
         bounding_box_format = "xywh"
         retina_net = keras_cv.models.RetinaNet(
-            classes=1,
+            num_classes=1,
             bounding_box_format=bounding_box_format,
             backbone=self.build_backbone(),
         )
@@ -195,7 +195,7 @@ class RetinaNetTest(tf.test.TestCase):
     def test_fit_coco_metrics(self):
         bounding_box_format = "xywh"
         retina_net = keras_cv.models.RetinaNet(
-            classes=1,
+            num_classes=1,
             bounding_box_format=bounding_box_format,
             backbone=self.build_backbone(),
         )
@@ -222,7 +222,7 @@ class RetinaNetTest(tf.test.TestCase):
     )
     def test_retina_net_with_dictionary_input_format(self):
         retina_net = keras_cv.models.RetinaNet(
-            classes=20,
+            num_classes=20,
             bounding_box_format="xywh",
             backbone=self.build_backbone(),
         )

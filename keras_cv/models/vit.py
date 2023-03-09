@@ -145,8 +145,8 @@ BASE_DOCSTRING = """Instantiates the {name} architecture.
             you supply `[0..1]` or the input is rescaled to `[0..1]`, the inputs will further be
             rescaled to `[-1..1]`.
         include_top: bool, whether to include the fully-connected layer at the top of the
-            network.  If provided, classes must be provided.
-        classes: optional int, number of classes to classify images into, only to be
+            network.  If provided, num_classes must be provided.
+        num_classes: optional int, number of classes to classify images into, only to be
             specified if `include_top` is True.
         weights: one of `None` (random initialization), a pretrained weight file
             path, or a reference to pre-trained weights (e.g. 'imagenet/classification')
@@ -205,7 +205,7 @@ class ViT(keras.Model):
                 be applied.
             - `token_pooling`, default, means that the token at the start of the
                 sequences is used instead of regular pooling.
-        classes: optional number of classes to classify images
+        num_classes: optional number of classes to classify images
             into, only to be specified if `include_top` is True.
                     mlp_dim:
         project_dim: the latent dimensionality to be projected into in the output
@@ -236,7 +236,7 @@ class ViT(keras.Model):
         input_shape=(None, None, 3),
         input_tensor=None,
         pooling=None,
-        classes=None,
+        num_classes=None,
         patch_size=None,
         transformer_layer_num=None,
         num_heads=None,
@@ -254,10 +254,10 @@ class ViT(keras.Model):
                 "weights file to be loaded. Weights file not found at location: {weights}"
             )
 
-        if include_top and not classes:
+        if include_top and not num_classes:
             raise ValueError(
-                "If `include_top` is True, you should specify `classes`. "
-                f"Received: classes={classes}"
+                "If `include_top` is True, you should specify `num_classes`. "
+                f"Received: num_classes={num_classes}"
             )
 
         if include_top and pooling:
@@ -295,9 +295,9 @@ class ViT(keras.Model):
 
         if include_top:
             output = output[:, 0]
-            output = layers.Dense(classes, activation=classifier_activation)(
-                output
-            )
+            output = layers.Dense(
+                num_classes, activation=classifier_activation
+            )(output)
 
         elif pooling == "token_pooling":
             output = output[:, 0]
@@ -314,7 +314,7 @@ class ViT(keras.Model):
         self.include_top = include_top
         self.input_tensor = input_tensor
         self.pooling = pooling
-        self.classes = classes
+        self.num_classes = num_classes
         self.patch_size = patch_size
         self.transformer_layer_num = transformer_layer_num
         self.num_heads = num_heads
@@ -333,7 +333,7 @@ class ViT(keras.Model):
             "input_shape": self.input_shape[1:],
             "input_tensor": self.input_tensor,
             "pooling": self.pooling,
-            "classes": self.classes,
+            "num_classes": self.num_classes,
             "patch_size": self.patch_size,
             "transformer_layer_num": self.transformer_layer_num,
             "num_heads": self.num_heads,
@@ -360,7 +360,7 @@ def ViTTiny16(
     input_shape=(None, None, 3),
     input_tensor=None,
     pooling=None,
-    classes=None,
+    num_classes=None,
     activation=tf.keras.activations.gelu,
     classifier_activation="softmax",
     **kwargs,
@@ -375,7 +375,7 @@ def ViTTiny16(
         input_shape=input_shape,
         input_tensor=input_tensor,
         pooling=pooling,
-        classes=classes,
+        num_classes=num_classes,
         patch_size=MODEL_CONFIGS["ViTTiny16"]["patch_size"],
         transformer_layer_num=MODEL_CONFIGS["ViTTiny16"][
             "transformer_layer_num"
@@ -400,7 +400,7 @@ def ViTS16(
     input_shape=(None, None, 3),
     input_tensor=None,
     pooling=None,
-    classes=None,
+    num_classes=None,
     activation=tf.keras.activations.gelu,
     classifier_activation="softmax",
     **kwargs,
@@ -415,7 +415,7 @@ def ViTS16(
         input_shape=input_shape,
         input_tensor=input_tensor,
         pooling=pooling,
-        classes=classes,
+        num_classes=num_classes,
         patch_size=MODEL_CONFIGS["ViTS16"]["patch_size"],
         transformer_layer_num=MODEL_CONFIGS["ViTB32"]["transformer_layer_num"],
         project_dim=MODEL_CONFIGS["ViTS16"]["project_dim"],
@@ -438,7 +438,7 @@ def ViTB16(
     input_shape=(None, None, 3),
     input_tensor=None,
     pooling=None,
-    classes=None,
+    num_classes=None,
     activation=tf.keras.activations.gelu,
     classifier_activation="softmax",
     **kwargs,
@@ -453,7 +453,7 @@ def ViTB16(
         input_shape=input_shape,
         input_tensor=input_tensor,
         pooling=pooling,
-        classes=classes,
+        num_classes=num_classes,
         patch_size=MODEL_CONFIGS["ViTB16"]["patch_size"],
         transformer_layer_num=MODEL_CONFIGS["ViTB16"]["transformer_layer_num"],
         project_dim=MODEL_CONFIGS["ViTB16"]["project_dim"],
@@ -476,7 +476,7 @@ def ViTL16(
     input_shape=(None, None, 3),
     input_tensor=None,
     pooling=None,
-    classes=None,
+    num_classes=None,
     activation=tf.keras.activations.gelu,
     classifier_activation="softmax",
     **kwargs,
@@ -491,7 +491,7 @@ def ViTL16(
         input_shape=input_shape,
         input_tensor=input_tensor,
         pooling=pooling,
-        classes=classes,
+        num_classes=num_classes,
         patch_size=MODEL_CONFIGS["ViTL16"]["patch_size"],
         transformer_layer_num=MODEL_CONFIGS["ViTL16"]["transformer_layer_num"],
         project_dim=MODEL_CONFIGS["ViTL16"]["project_dim"],
@@ -514,7 +514,7 @@ def ViTH16(
     input_shape=(None, None, 3),
     input_tensor=None,
     pooling=None,
-    classes=None,
+    num_classes=None,
     activation=tf.keras.activations.gelu,
     classifier_activation="softmax",
     **kwargs,
@@ -529,7 +529,7 @@ def ViTH16(
         input_shape=input_shape,
         input_tensor=input_tensor,
         pooling=pooling,
-        classes=classes,
+        num_classes=num_classes,
         patch_size=MODEL_CONFIGS["ViTH16"]["patch_size"],
         transformer_layer_num=MODEL_CONFIGS["ViTH16"]["transformer_layer_num"],
         project_dim=MODEL_CONFIGS["ViTH16"]["project_dim"],
@@ -552,7 +552,7 @@ def ViTTiny32(
     input_shape=(None, None, 3),
     input_tensor=None,
     pooling=None,
-    classes=None,
+    num_classes=None,
     activation=tf.keras.activations.gelu,
     classifier_activation="softmax",
     **kwargs,
@@ -567,7 +567,7 @@ def ViTTiny32(
         input_shape=input_shape,
         input_tensor=input_tensor,
         pooling=pooling,
-        classes=classes,
+        num_classes=num_classes,
         patch_size=MODEL_CONFIGS["ViTTiny32"]["patch_size"],
         transformer_layer_num=MODEL_CONFIGS["ViTTiny32"][
             "transformer_layer_num"
@@ -592,7 +592,7 @@ def ViTS32(
     input_shape=(None, None, 3),
     input_tensor=None,
     pooling=None,
-    classes=None,
+    num_classes=None,
     activation=tf.keras.activations.gelu,
     classifier_activation="softmax",
     **kwargs,
@@ -607,7 +607,7 @@ def ViTS32(
         input_shape=input_shape,
         input_tensor=input_tensor,
         pooling=pooling,
-        classes=classes,
+        num_classes=num_classes,
         patch_size=MODEL_CONFIGS["ViTS32"]["patch_size"],
         transformer_layer_num=MODEL_CONFIGS["ViTS32"]["transformer_layer_num"],
         project_dim=MODEL_CONFIGS["ViTS32"]["project_dim"],
@@ -630,7 +630,7 @@ def ViTB32(
     input_shape=(None, None, 3),
     input_tensor=None,
     pooling=None,
-    classes=None,
+    num_classes=None,
     activation=tf.keras.activations.gelu,
     classifier_activation="softmax",
     **kwargs,
@@ -645,7 +645,7 @@ def ViTB32(
         input_shape=input_shape,
         input_tensor=input_tensor,
         pooling=pooling,
-        classes=classes,
+        num_classes=num_classes,
         patch_size=MODEL_CONFIGS["ViTB32"]["patch_size"],
         transformer_layer_num=MODEL_CONFIGS["ViTB32"]["transformer_layer_num"],
         project_dim=MODEL_CONFIGS["ViTB32"]["project_dim"],
@@ -668,7 +668,7 @@ def ViTL32(
     input_shape=(None, None, 3),
     input_tensor=None,
     pooling=None,
-    classes=None,
+    num_classes=None,
     activation=tf.keras.activations.gelu,
     classifier_activation="softmax",
     **kwargs,
@@ -683,7 +683,7 @@ def ViTL32(
         input_shape=input_shape,
         input_tensor=input_tensor,
         pooling=pooling,
-        classes=classes,
+        num_classes=num_classes,
         patch_size=MODEL_CONFIGS["ViTL32"]["patch_size"],
         transformer_layer_num=MODEL_CONFIGS["ViTL32"]["transformer_layer_num"],
         project_dim=MODEL_CONFIGS["ViTL32"]["project_dim"],
@@ -706,7 +706,7 @@ def ViTH32(
     input_shape=(None, None, 3),
     input_tensor=None,
     pooling=None,
-    classes=None,
+    num_classes=None,
     activation=tf.keras.activations.gelu,
     classifier_activation="softmax",
     **kwargs,
@@ -721,7 +721,7 @@ def ViTH32(
         input_shape=input_shape,
         input_tensor=input_tensor,
         pooling=pooling,
-        classes=classes,
+        num_classes=num_classes,
         patch_size=MODEL_CONFIGS["ViTH32"]["patch_size"],
         transformer_layer_num=MODEL_CONFIGS["ViTH32"]["transformer_layer_num"],
         project_dim=MODEL_CONFIGS["ViTH32"]["project_dim"],

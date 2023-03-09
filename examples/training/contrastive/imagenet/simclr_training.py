@@ -70,7 +70,7 @@ FLAGS(sys.argv)
 if FLAGS.model_name not in models.__dict__:
     raise ValueError(f"Invalid model name: {FLAGS.model_name}")
 
-CLASSES = 1000
+NUM_CLASSES = 1000
 IMAGE_SIZE = (224, 224)
 EPOCHS = 250
 
@@ -102,7 +102,7 @@ with strategy.scope():
         augmenter=training.SimCLRAugmenter(
             value_range=(0, 255), target_size=IMAGE_SIZE
         ),
-        probe=layers.Dense(CLASSES, name="linear_probe"),
+        probe=layers.Dense(NUM_CLASSES, name="linear_probe"),
     )
 
     optimizer = optimizers.SGD(

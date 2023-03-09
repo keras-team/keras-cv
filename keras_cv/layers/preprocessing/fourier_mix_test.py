@@ -15,7 +15,7 @@ import tensorflow as tf
 
 from keras_cv.layers.preprocessing.fourier_mix import FourierMix
 
-classes = 10
+num_classes = 10
 
 
 class FourierMixTest(tf.test.TestCase):
@@ -24,7 +24,7 @@ class FourierMixTest(tf.test.TestCase):
         # randomly sample labels
         ys = tf.random.categorical(tf.math.log([[0.5, 0.5]]), 2)
         ys = tf.squeeze(ys)
-        ys = tf.one_hot(ys, classes)
+        ys = tf.one_hot(ys, num_classes)
 
         layer = FourierMix()
         outputs = layer({"images": xs, "labels": ys})
