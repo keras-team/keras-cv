@@ -147,15 +147,15 @@ def HardSwish(x, name=None):
 
 
 def InvertedResBlock(
-    x,
-    expansion,
-    filters,
-    kernel_size,
-    stride,
-    se_ratio,
-    activation,
-    block_id,
-    name=None,
+        x,
+        expansion,
+        filters,
+        kernel_size,
+        stride,
+        se_ratio,
+        activation,
+        block_id,
+        name=None,
 ):
     """An Inverted Residual Block.
 
@@ -163,8 +163,8 @@ def InvertedResBlock(
         expansion: integer, the expansion ratio, multiplied with infilters to get the
             minimum value passed to depth.
         filters: integer, number of filters for convolution layer.
-        kernel_size: integer, the kernel size for DpethWise Convolutions.
-        stride: integer, the stride length for DpethWise Convolutions.
+        kernel_size: integer, the kernel size for DepthWise Convolutions.
+        stride: integer, the stride length for DepthWise Convolutions.
         se_ratio: float, ratio for bottleneck filters. Number of bottleneck
             filters = filters * se_ratio.
         activation: the activation layer to use.
@@ -244,23 +244,8 @@ def InvertedResBlock(
     return x
 
 
-def MobileNetV3(
-    stack_fn,
-    last_point_ch,
-    include_rescaling,
-    include_top,
-    classes=None,
-    weights=None,
-    input_shape=(None, None, 3),
-    input_tensor=None,
-    pooling=None,
-    alpha=1.0,
-    minimalistic=True,
-    dropout_rate=0.2,
-    classifier_activation="softmax",
-    name="MobileNetV3",
-    **kwargs,
-):
+@keras.utils.register_keras_serializable(package="keras_cv.models")
+class MobileNetV3(keras.Model):
     """Instantiates the MobileNetV3 architecture.
 
     References:
@@ -326,115 +311,175 @@ def MobileNetV3(
             None.
         ValueError: if `include_top` is True and `classes` is not specified.
     """
-    if weights and not tf.io.gfile.exists(weights):
-        raise ValueError(
-            "The `weights` argument should be either "
-            "`None` or the path to the weights file to be loaded. "
-            f"Weights file not found at location: {weights}"
-        )
 
-    if include_top and not classes:
-        raise ValueError(
-            "If `include_top` is True, "
-            "you should specify `classes`. "
-            f"Received: classes={classes}"
-        )
+    def __int__(
+        self,
+        stack_fn,
+        last_point_ch,
+        include_rescaling,
+        include_top,
+        classes=None,
+        weights=None,
+        input_shape=(None, None, 3),
+        input_tensor=None,
+        pooling=None,
+        alpha=1.0,
+        minimalistic=True,
+        dropout_rate=0.2,
+        classifier_activation="softmax",
+        name="MobileNetV3",
+        **kwargs,
+    ):
 
-    if minimalistic:
-        kernel = 3
-        activation = layers.ReLU()
-        se_ratio = None
-    else:
-        kernel = 5
-        activation = HardSwish
-        se_ratio = 0.25
+        if weights and not tf.io.gfile.exists(weights):
+            raise ValueError(
+                "The `weights` argument should be either "
+                "`None` or the path to the weights file to be loaded. "
+                f"Weights file not found at location: {weights}"
+            )
 
-    inputs = utils.parse_model_inputs(input_shape, input_tensor)
+        if include_top and not classes:
+            raise ValueError(
+                "If `include_top` is True, "
+                "you should specify `classes`. "
+                f"Received: classes={classes}"
+            )
 
-    x = inputs
+        if include_top and pooling:
+            raise ValueError(
+                f"`pooling` must be `None` when `include_top=True`."
+                f"Received pooling={pooling} and include_top={include_top}. "
+            )
 
-    if include_rescaling:
-        x = layers.Rescaling(scale=1 / 255)(x)
+        if minimalistic:
+            kernel = 3
+            activation = layers.ReLU()
+            se_ratio = None
+        else:
+            kernel = 5
+            activation = HardSwish
+            se_ratio = 0.25
 
-    x = layers.Conv2D(
-        16,
-        kernel_size=3,
-        strides=(2, 2),
-        padding="same",
-        use_bias=False,
-        name="Conv",
-    )(x)
-    x = layers.BatchNormalization(
-        axis=channel_axis, epsilon=1e-3, momentum=0.999, name="Conv/BatchNorm"
-    )(x)
-    x = activation(x)
+        inputs = utils.parse_model_inputs(input_shape, input_tensor)
 
-    x = stack_fn(x, kernel, activation, se_ratio)
+        x = inputs
 
-    last_conv_ch = depth(backend.int_shape(x)[channel_axis] * 6)
+        if include_rescaling:
+            x = layers.Rescaling(scale=1 / 255)(x)
 
-    # if the width multiplier is greater than 1 we
-    # increase the number of output channels
-    if alpha > 1.0:
-        last_point_ch = depth(last_point_ch * alpha)
-    x = layers.Conv2D(
-        last_conv_ch,
-        kernel_size=1,
-        padding="same",
-        use_bias=False,
-        name="Conv_1",
-    )(x)
-    x = layers.BatchNormalization(
-        axis=channel_axis, epsilon=1e-3, momentum=0.999, name="Conv_1/BatchNorm"
-    )(x)
-    x = activation(x)
-    if include_top:
-        x = layers.GlobalAveragePooling2D(keepdims=True)(x)
         x = layers.Conv2D(
-            last_point_ch,
-            kernel_size=1,
+            16,
+            kernel_size=3,
+            strides=(2, 2),
             padding="same",
-            use_bias=True,
-            name="Conv_2",
+            use_bias=False,
+            name="Conv",
+        )(x)
+        x = layers.BatchNormalization(
+            axis=channel_axis, epsilon=1e-3, momentum=0.999, name="Conv/BatchNorm"
         )(x)
         x = activation(x)
 
-        if dropout_rate > 0:
-            x = layers.Dropout(dropout_rate)(x)
+        x = stack_fn(x, kernel, activation, se_ratio)
+
+        last_conv_ch = depth(backend.int_shape(x)[channel_axis] * 6)
+
+        # if the width multiplier is greater than 1 we
+        # increase the number of output channels
+        if alpha > 1.0:
+            last_point_ch = depth(last_point_ch * alpha)
         x = layers.Conv2D(
-            classes, kernel_size=1, padding="same", name="Logits"
+            last_conv_ch,
+            kernel_size=1,
+            padding="same",
+            use_bias=False,
+            name="Conv_1",
         )(x)
-        x = layers.Flatten()(x)
-        x = layers.Activation(
-            activation=classifier_activation, name="Predictions"
+        x = layers.BatchNormalization(
+            axis=channel_axis, epsilon=1e-3, momentum=0.999, name="Conv_1/BatchNorm"
         )(x)
-    elif pooling == "avg":
-        x = layers.GlobalAveragePooling2D(name="avg_pool")(x)
-    elif pooling == "max":
-        x = layers.GlobalMaxPooling2D(name="max_pool")(x)
+        x = activation(x)
+        if include_top:
+            x = layers.GlobalAveragePooling2D(keepdims=True)(x)
+            x = layers.Conv2D(
+                last_point_ch,
+                kernel_size=1,
+                padding="same",
+                use_bias=True,
+                name="Conv_2",
+            )(x)
+            x = activation(x)
 
-    model = keras.Model(inputs, x, name=name, **kwargs)
+            if dropout_rate > 0:
+                x = layers.Dropout(dropout_rate)(x)
+            x = layers.Conv2D(
+                classes, kernel_size=1, padding="same", name="Logits"
+            )(x)
+            x = layers.Flatten()(x)
+            x = layers.Activation(
+                activation=classifier_activation, name="Predictions"
+            )(x)
+        elif pooling == "avg":
+            x = layers.GlobalAveragePooling2D(name="avg_pool")(x)
+        elif pooling == "max":
+            x = layers.GlobalMaxPooling2D(name="max_pool")(x)
 
-    if weights is not None:
-        model.load_weights(weights)
-    return model
+        super().__init__(inputs=inputs, outputs=x, name=name, **kwargs)
+
+        if weights is not None:
+            self.load_weights(weights)
+
+        self.stack_fn = stack_fn
+        self.last_point_ch = last_point_ch
+        self.include_rescaling = include_rescaling
+        self.include_top = include_top
+        self.classes = classes
+        self.input_tensor = input_tensor
+        self.pooling = pooling
+        self.alpha = alpha
+        self.minimalistic = minimalistic
+        self.dropout_rate = dropout_rate
+        self.classifier_activation = classifier_activation
+
+    def get_config(self):
+        return {
+            "stack_fn": self.stack_fn,
+            "last_point_ch": self.last_point_ch,
+            "include_rescaling": self.include_rescaling,
+            "include_top": self.include_top,
+            "classes": self.classes,
+            "weights": self.weights,
+            "input_shape": self.input_shape[1:],
+            "input_tensor": self.input_tensor,
+            "pooling": self.pooling,
+            "alpha": self.alpha,
+            "minimalistic": self.minimalistic,
+            "dropout_rate": self.dropout_rate,
+            "classifier_activation": self.classifier_activation,
+            "name": self.name,
+            "trainable": self.trainable,
+        }
+
+    @classmethod
+    def from_config(cls, config):
+        return cls(**config)
 
 
 def MobileNetV3Small(
-    *,
-    include_rescaling,
-    include_top,
-    classes=None,
-    weights=None,
-    input_shape=(None, None, 3),
-    input_tensor=None,
-    pooling=None,
-    alpha=1.0,
-    minimalistic=False,
-    dropout_rate=0.2,
-    classifier_activation="softmax",
-    name="MobileNetV3Small",
-    **kwargs,
+        *,
+        include_rescaling,
+        include_top,
+        classes=None,
+        weights=None,
+        input_shape=(None, None, 3),
+        input_tensor=None,
+        pooling=None,
+        alpha=1.0,
+        minimalistic=False,
+        dropout_rate=0.2,
+        classifier_activation="softmax",
+        name="MobileNetV3Small",
+        **kwargs,
 ):
     def stack_fn(x, kernel, activation, se_ratio):
         x = InvertedResBlock(
@@ -492,20 +537,20 @@ def MobileNetV3Small(
 
 
 def MobileNetV3Large(
-    *,
-    include_rescaling,
-    include_top,
-    classes=None,
-    weights=None,
-    input_shape=(None, None, 3),
-    input_tensor=None,
-    pooling=None,
-    alpha=1.0,
-    minimalistic=False,
-    dropout_rate=0.2,
-    classifier_activation="softmax",
-    name="MobileNetV3Large",
-    **kwargs,
+        *,
+        include_rescaling,
+        include_top,
+        classes=None,
+        weights=None,
+        input_shape=(None, None, 3),
+        input_tensor=None,
+        pooling=None,
+        alpha=1.0,
+        minimalistic=False,
+        dropout_rate=0.2,
+        classifier_activation="softmax",
+        name="MobileNetV3Large",
+        **kwargs,
 ):
     def stack_fn(x, kernel, activation, se_ratio):
         x = InvertedResBlock(
