@@ -147,15 +147,15 @@ def HardSwish(x, name=None):
 
 
 def InvertedResBlock(
-    x,
-    expansion,
-    filters,
-    kernel_size,
-    stride,
-    se_ratio,
-    activation,
-    block_id,
-    name=None,
+        x,
+        expansion,
+        filters,
+        kernel_size,
+        stride,
+        se_ratio,
+        activation,
+        block_id,
+        name=None,
 ):
     """An Inverted Residual Block.
 
@@ -244,24 +244,8 @@ def InvertedResBlock(
     return x
 
 
-
-def MobileNetV3(
-    stack_fn,
-    last_point_ch,
-    include_rescaling,
-    include_top,
-    classes=None,
-    weights=None,
-    input_shape=(None, None, 3),
-    input_tensor=None,
-    pooling=None,
-    alpha=1.0,
-    minimalistic=True,
-    dropout_rate=0.2,
-    classifier_activation="softmax",
-    name="MobileNetV3",
-    **kwargs,
-):
+@keras.utils.register_keras_serializable(package="keras_cv.models")
+class MobileNetV3(keras.Model):
     """Instantiates the MobileNetV3 architecture.
 
     References:
@@ -346,6 +330,7 @@ def MobileNetV3(
         name="MobileNetV3",
         **kwargs,
     ):
+
         if weights and not tf.io.gfile.exists(weights):
             raise ValueError(
                 "The `weights` argument should be either "
@@ -353,12 +338,12 @@ def MobileNetV3(
                 f"Weights file not found at location: {weights}"
             )
 
-    if include_top and not num_classes:
-        raise ValueError(
-            "If `include_top` is True, "
-            "you should specify `num_classes`. "
-            f"Received: num_classes={num_classes}"
-        )
+        if include_top and not num_classes:
+            raise ValueError(
+                "If `include_top` is True, "
+                "you should specify `num_classes`. "
+                f"Received: num_classes={num_classes}"
+            )
 
         if include_top and pooling:
             raise ValueError(
@@ -391,10 +376,7 @@ def MobileNetV3(
             name="Conv",
         )(x)
         x = layers.BatchNormalization(
-            axis=channel_axis,
-            epsilon=1e-3,
-            momentum=0.999,
-            name="Conv/BatchNorm",
+            axis=channel_axis, epsilon=1e-3, momentum=0.999, name="Conv/BatchNorm"
         )(x)
         x = activation(x)
 
@@ -414,10 +396,7 @@ def MobileNetV3(
             name="Conv_1",
         )(x)
         x = layers.BatchNormalization(
-            axis=channel_axis,
-            epsilon=1e-3,
-            momentum=0.999,
-            name="Conv_1/BatchNorm",
+            axis=channel_axis, epsilon=1e-3, momentum=0.999, name="Conv_1/BatchNorm"
         )(x)
         x = activation(x)
         if include_top:
@@ -431,19 +410,19 @@ def MobileNetV3(
             )(x)
             x = activation(x)
 
-        if dropout_rate > 0:
-            x = layers.Dropout(dropout_rate)(x)
-        x = layers.Conv2D(
-            num_classes, kernel_size=1, padding="same", name="Logits"
-        )(x)
-        x = layers.Flatten()(x)
-        x = layers.Activation(
-            activation=classifier_activation, name="Predictions"
-        )(x)
-    elif pooling == "avg":
-        x = layers.GlobalAveragePooling2D(name="avg_pool")(x)
-    elif pooling == "max":
-        x = layers.GlobalMaxPooling2D(name="max_pool")(x)
+            if dropout_rate > 0:
+                x = layers.Dropout(dropout_rate)(x)
+            x = layers.Conv2D(
+                num_classes, kernel_size=1, padding="same", name="Logits"
+            )(x)
+            x = layers.Flatten()(x)
+            x = layers.Activation(
+                activation=classifier_activation, name="Predictions"
+            )(x)
+        elif pooling == "avg":
+            x = layers.GlobalAveragePooling2D(name="avg_pool")(x)
+        elif pooling == "max":
+            x = layers.GlobalMaxPooling2D(name="max_pool")(x)
 
         super().__init__(inputs=inputs, outputs=x, name=name, **kwargs)
 
@@ -454,7 +433,7 @@ def MobileNetV3(
         self.last_point_ch = last_point_ch
         self.include_rescaling = include_rescaling
         self.include_top = include_top
-        self.classes = classes
+        self.num_classes = num_classes
         self.input_tensor = input_tensor
         self.pooling = pooling
         self.alpha = alpha
@@ -468,7 +447,7 @@ def MobileNetV3(
             "last_point_ch": self.last_point_ch,
             "include_rescaling": self.include_rescaling,
             "include_top": self.include_top,
-            "classes": self.classes,
+            "num_classes": self.num_classes,
             "weights": self.weights,
             "input_shape": self.input_shape[1:],
             "input_tensor": self.input_tensor,
@@ -487,20 +466,20 @@ def MobileNetV3(
 
 
 def MobileNetV3Small(
-    *,
-    include_rescaling,
-    include_top,
-    num_classes=None,
-    weights=None,
-    input_shape=(None, None, 3),
-    input_tensor=None,
-    pooling=None,
-    alpha=1.0,
-    minimalistic=False,
-    dropout_rate=0.2,
-    classifier_activation="softmax",
-    name="MobileNetV3Small",
-    **kwargs,
+        *,
+        include_rescaling,
+        include_top,
+        num_classes=None,
+        weights=None,
+        input_shape=(None, None, 3),
+        input_tensor=None,
+        pooling=None,
+        alpha=1.0,
+        minimalistic=False,
+        dropout_rate=0.2,
+        classifier_activation="softmax",
+        name="MobileNetV3Small",
+        **kwargs,
 ):
     def stack_fn(x, kernel, activation, se_ratio):
         x = InvertedResBlock(
@@ -558,20 +537,20 @@ def MobileNetV3Small(
 
 
 def MobileNetV3Large(
-    *,
-    include_rescaling,
-    include_top,
-    num_classes=None,
-    weights=None,
-    input_shape=(None, None, 3),
-    input_tensor=None,
-    pooling=None,
-    alpha=1.0,
-    minimalistic=False,
-    dropout_rate=0.2,
-    classifier_activation="softmax",
-    name="MobileNetV3Large",
-    **kwargs,
+        *,
+        include_rescaling,
+        include_top,
+        num_classes=None,
+        weights=None,
+        input_shape=(None, None, 3),
+        input_tensor=None,
+        pooling=None,
+        alpha=1.0,
+        minimalistic=False,
+        dropout_rate=0.2,
+        classifier_activation="softmax",
+        name="MobileNetV3Large",
+        **kwargs,
 ):
     def stack_fn(x, kernel, activation, se_ratio):
         x = InvertedResBlock(
