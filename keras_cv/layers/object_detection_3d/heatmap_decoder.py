@@ -101,7 +101,7 @@ class HeatmapDecoder(tf.keras.layers.Layer):
 
     Arg:
       class_id: the integer index for a parcitular class.
-      num_head_bin: number of bin num_classes divided by [-2pi, 2pi].
+      num_head_bin: number of bin classes divided by [-2pi, 2pi].
       anchor_size: the size of anchor at each xyz dimension.
       max_pool_size: the 2d pooling size for heatmap.
       max_num_box: top number of boxes selectd from heatmap.

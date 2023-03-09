@@ -228,7 +228,7 @@ class ROISamplerTest(tf.test.TestCase):
         # but the 2nd will be encoded to 0.
         self.assertAllClose(tf.reduce_min(sampled_gt_boxes), 0)
         self.assertAllClose(tf.reduce_max(sampled_gt_boxes), 0)
-        # the selected gt num_classes should be [0, 2 or 10]
+        # the selected gt classes should be [0, 2 or 10]
         self.assertAllLessEqual(tf.reduce_max(sampled_gt_classes), 10)
         self.assertAllGreaterEqual(tf.reduce_min(sampled_gt_classes), 0)
 

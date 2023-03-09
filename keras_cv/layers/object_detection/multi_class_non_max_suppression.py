@@ -100,7 +100,7 @@ class MultiClassNonMaxSuppression(tf.keras.layers.Layer):
         bounding_boxes = {
             "boxes": box_pred,
             "confidence": confidence_pred,
-            "num_classes": class_pred,
+            "classes": class_pred,
             "num_detections": valid_det,
         }
         # this is required to comply with KerasCV bounding box format.

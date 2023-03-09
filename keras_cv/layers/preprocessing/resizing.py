@@ -117,8 +117,8 @@ class Resizing(BaseImageAugmentationLayer):
 
         if bounding_boxes is not None:
             bounding_boxes = bounding_boxes.copy()
-            bounding_boxes["num_classes"] = tf.expand_dims(
-                bounding_boxes["num_classes"], axis=0
+            bounding_boxes["classes"] = tf.expand_dims(
+                bounding_boxes["classes"], axis=0
             )
             bounding_boxes["boxes"] = tf.expand_dims(
                 bounding_boxes["boxes"], axis=0
@@ -132,8 +132,8 @@ class Resizing(BaseImageAugmentationLayer):
             inputs["images"] = images
 
         if bounding_boxes is not None:
-            outputs["bounding_boxes"]["num_classes"] = tf.squeeze(
-                outputs["bounding_boxes"]["num_classes"], axis=0
+            outputs["bounding_boxes"]["classes"] = tf.squeeze(
+                outputs["bounding_boxes"]["classes"], axis=0
             )
             outputs["bounding_boxes"]["boxes"] = tf.squeeze(
                 outputs["bounding_boxes"]["boxes"], axis=0

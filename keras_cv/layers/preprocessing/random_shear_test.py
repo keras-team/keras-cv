@@ -78,7 +78,7 @@ class RandomShearTest(tf.test.TestCase):
         self.assertEqual(xs.shape, [2, 512, 512, 3])
         self.assertEqual(ys_labels.shape, [2, 10])
         self.assertEqual(ys_bounding_boxes["boxes"].shape, [2, 3, 4])
-        self.assertEqual(ys_bounding_boxes["num_classes"].shape, [2, 3])
+        self.assertEqual(ys_bounding_boxes["classes"].shape, [2, 3])
 
     def test_single_image_input(self):
         """test for single image input"""

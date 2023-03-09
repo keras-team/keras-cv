@@ -50,7 +50,7 @@ class MixUpTest(tf.test.TestCase):
         self.assertEqual(xs.shape, [2, 512, 512, 3])
         self.assertEqual(ys_labels.shape, [2, 10])
         self.assertEqual(ys_bounding_boxes["boxes"].shape, [2, 6, 4])
-        self.assertEqual(ys_bounding_boxes["num_classes"].shape, [2, 6])
+        self.assertEqual(ys_bounding_boxes["classes"].shape, [2, 6])
 
     def test_mix_up_call_results(self):
         xs = tf.cast(

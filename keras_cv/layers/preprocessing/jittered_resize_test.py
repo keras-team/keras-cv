@@ -69,7 +69,7 @@ class JitteredResizeTest(tf.test.TestCase, parameterized.TestCase):
             output["bounding_boxes"]["boxes"],
         )
         self.assertAllClose(
-            expected_output["num_classes"], output["bounding_boxes"]["num_classes"]
+            expected_output["classes"], output["bounding_boxes"]["classes"]
         )
 
     def test_augment_boxes_batched_input(self):
@@ -111,7 +111,7 @@ class JitteredResizeTest(tf.test.TestCase, parameterized.TestCase):
             output["bounding_boxes"]["boxes"],
         )
         self.assertAllClose(
-            expected_output["num_classes"], output["bounding_boxes"]["num_classes"]
+            expected_output["classes"], output["bounding_boxes"]["classes"]
         )
 
     def test_augment_boxes_ragged(self):
@@ -161,7 +161,7 @@ class JitteredResizeTest(tf.test.TestCase, parameterized.TestCase):
             output["bounding_boxes"]["boxes"].to_tensor(),
         )
         self.assertAllClose(
-            expected_output["num_classes"], output["bounding_boxes"]["num_classes"]
+            expected_output["classes"], output["bounding_boxes"]["classes"]
         )
 
     def test_augment_inference_mode(self):
@@ -185,8 +185,8 @@ class JitteredResizeTest(tf.test.TestCase, parameterized.TestCase):
             output["bounding_boxes"]["boxes"],
         )
         self.assertAllClose(
-            expected_output["bounding_boxes"]["num_classes"],
-            output["bounding_boxes"]["num_classes"],
+            expected_output["bounding_boxes"]["classes"],
+            output["bounding_boxes"]["classes"],
         )
         self.assertAllClose(
             expected_output["images"],

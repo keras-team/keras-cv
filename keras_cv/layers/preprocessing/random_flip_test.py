@@ -180,7 +180,7 @@ class RandomFlipTest(tf.test.TestCase, parameterized.TestCase):
             expected_output["boxes"], output["bounding_boxes"]["boxes"]
         )
         self.assertAllClose(
-            expected_output["num_classes"], output["bounding_boxes"]["num_classes"]
+            expected_output["classes"], output["bounding_boxes"]["classes"]
         )
 
     def test_augment_boxes_ragged(self):
@@ -221,7 +221,7 @@ class RandomFlipTest(tf.test.TestCase, parameterized.TestCase):
             expected_output["boxes"], output["bounding_boxes"]["boxes"]
         )
         self.assertAllClose(
-            expected_output["num_classes"], output["bounding_boxes"]["num_classes"]
+            expected_output["classes"], output["bounding_boxes"]["classes"]
         )
 
     def test_augment_segmentation_mask(self):

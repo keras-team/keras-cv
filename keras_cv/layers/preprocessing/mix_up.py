@@ -119,11 +119,11 @@ class MixUp(BaseImageAugmentationLayer):
         return labels
 
     def _update_bounding_boxes(self, bounding_boxes, permutation_order):
-        boxes, num_classes = bounding_boxes["boxes"], bounding_boxes["num_classes"]
+        boxes, classes = bounding_boxes["boxes"], bounding_boxes["classes"]
         boxes_for_mixup = tf.gather(boxes, permutation_order)
-        classes_for_mixup = tf.gather(num_classes, permutation_order)
+        classes_for_mixup = tf.gather(classes, permutation_order)
         boxes = tf.concat([boxes, boxes_for_mixup], axis=1)
-        num_classes = tf.concat([num_classes, classes_for_mixup], axis=1)
+        classes = tf.concat([classes, classes_for_mixup], axis=1)
         return {"boxes": boxes, "classes": classes}
 
     def _validate_inputs(self, inputs):
