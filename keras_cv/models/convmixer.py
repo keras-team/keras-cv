@@ -122,9 +122,9 @@ def PatchEmbed(x, dim, patch_size):
         Output tensor for the patch embed.
     """
 
-    x = layers.Conv2D(
-        filters=dim, kernel_size=patch_size, strides=patch_size
-    )(x)
+    x = layers.Conv2D(filters=dim, kernel_size=patch_size, strides=patch_size)(
+        x
+    )
     x = tf.nn.gelu(x)
     x = layers.BatchNormalization()(x)
     return x
@@ -170,23 +170,22 @@ class ConvMixer(keras.Model):
     """
 
     def __int__(
-            self,
-            dim,
-            depth,
-            patch_size,
-            kernel_size,
-            include_top,
-            include_rescaling,
-            name="ConvMixer",
-            weights=None,
-            input_shape=(None, None, 3),
-            input_tensor=None,
-            pooling=None,
-            classes=None,
-            classifier_activation="softmax",
-            **kwargs,
+        self,
+        dim,
+        depth,
+        patch_size,
+        kernel_size,
+        include_top,
+        include_rescaling,
+        name="ConvMixer",
+        weights=None,
+        input_shape=(None, None, 3),
+        input_tensor=None,
+        pooling=None,
+        classes=None,
+        classifier_activation="softmax",
+        **kwargs,
     ):
-
         if weights and not tf.io.gfile.exists(weights):
             raise ValueError(
                 "The `weights` argument should be either `None` or the path to the "
@@ -262,16 +261,16 @@ class ConvMixer(keras.Model):
 
 
 def ConvMixer_1536_20(
-        include_rescaling,
-        include_top,
-        classes=None,
-        weights=None,
-        input_shape=(None, None, 3),
-        input_tensor=None,
-        pooling=None,
-        classifier_activation="softmax",
-        name="ConvMixer_1536_20",
-        **kwargs,
+    include_rescaling,
+    include_top,
+    classes=None,
+    weights=None,
+    input_shape=(None, None, 3),
+    input_tensor=None,
+    pooling=None,
+    classifier_activation="softmax",
+    name="ConvMixer_1536_20",
+    **kwargs,
 ):
     return ConvMixer(
         dim=MODEL_CONFIGS["ConvMixer_1536_20"]["dim"],
@@ -292,16 +291,16 @@ def ConvMixer_1536_20(
 
 
 def ConvMixer_1536_24(
-        include_rescaling,
-        include_top,
-        classes=None,
-        weights=None,
-        input_shape=(None, None, 3),
-        input_tensor=None,
-        pooling=None,
-        classifier_activation="softmax",
-        name="ConvMixer_1536_24",
-        **kwargs,
+    include_rescaling,
+    include_top,
+    classes=None,
+    weights=None,
+    input_shape=(None, None, 3),
+    input_tensor=None,
+    pooling=None,
+    classifier_activation="softmax",
+    name="ConvMixer_1536_24",
+    **kwargs,
 ):
     return ConvMixer(
         dim=MODEL_CONFIGS["ConvMixer_1536_24"]["dim"],
@@ -322,16 +321,16 @@ def ConvMixer_1536_24(
 
 
 def ConvMixer_768_32(
-        include_rescaling,
-        include_top,
-        classes=None,
-        weights=None,
-        input_shape=(None, None, 3),
-        input_tensor=None,
-        pooling=None,
-        classifier_activation="softmax",
-        name="ConvMixer_768_32",
-        **kwargs,
+    include_rescaling,
+    include_top,
+    classes=None,
+    weights=None,
+    input_shape=(None, None, 3),
+    input_tensor=None,
+    pooling=None,
+    classifier_activation="softmax",
+    name="ConvMixer_768_32",
+    **kwargs,
 ):
     return ConvMixer(
         dim=MODEL_CONFIGS["ConvMixer_768_32"]["dim"],
@@ -352,16 +351,16 @@ def ConvMixer_768_32(
 
 
 def ConvMixer_1024_16(
-        include_rescaling,
-        include_top,
-        classes=None,
-        weights=None,
-        input_shape=(None, None, 3),
-        input_tensor=None,
-        pooling=None,
-        classifier_activation="softmax",
-        name="ConvMixer_1024_16",
-        **kwargs,
+    include_rescaling,
+    include_top,
+    classes=None,
+    weights=None,
+    input_shape=(None, None, 3),
+    input_tensor=None,
+    pooling=None,
+    classifier_activation="softmax",
+    name="ConvMixer_1024_16",
+    **kwargs,
 ):
     return ConvMixer(
         dim=MODEL_CONFIGS["ConvMixer_1024_16"]["dim"],
@@ -382,16 +381,16 @@ def ConvMixer_1024_16(
 
 
 def ConvMixer_512_16(
-        include_rescaling,
-        include_top,
-        classes=None,
-        weights=None,
-        input_shape=(None, None, 3),
-        input_tensor=None,
-        pooling=None,
-        classifier_activation="softmax",
-        name="ConvMixer_512_16",
-        **kwargs,
+    include_rescaling,
+    include_top,
+    classes=None,
+    weights=None,
+    input_shape=(None, None, 3),
+    input_tensor=None,
+    pooling=None,
+    classifier_activation="softmax",
+    name="ConvMixer_512_16",
+    **kwargs,
 ):
     return ConvMixer(
         dim=MODEL_CONFIGS["ConvMixer_512_16"]["dim"],
