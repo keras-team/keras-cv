@@ -526,7 +526,7 @@ class FasterRCNN(tf.keras.Model):
         classes = tf.expand_dims(y["classes"], axis=-1)
         with tf.GradientTape() as tape:
             total_loss = self.compute_loss(
-                images, boxes, num_classes, training=True
+                images, boxes, classes, training=True
             )
             reg_losses = []
             if self.weight_decay:
