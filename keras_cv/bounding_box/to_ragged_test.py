@@ -22,7 +22,7 @@ class ToRaggedTest(tf.test.TestCase):
             "boxes": tf.constant(
                 [[[0, 0, 0, 0], [0, 0, 0, 0]], [[2, 3, 4, 5], [0, 1, 2, 3]]]
             ),
-            "num_classes": tf.constant([[-1, -1], [-1, 1]]),
+            "classes": tf.constant([[-1, -1], [-1, 1]]),
         }
         bounding_boxes = bounding_box.to_ragged(bounding_boxes)
 
@@ -39,7 +39,7 @@ class ToRaggedTest(tf.test.TestCase):
                     [[-1, -1, -1, -1], [-1, -1, -1, -1]],
                 ]
             ),
-            "num_classes": tf.constant([[1, -1], [-1, -1]]),
+            "classes": tf.constant([[1, -1], [-1, -1]]),
         }
         bounding_boxes = bounding_box.to_ragged(original)
         bounding_boxes = bounding_box.to_dense(bounding_boxes, max_boxes=2)

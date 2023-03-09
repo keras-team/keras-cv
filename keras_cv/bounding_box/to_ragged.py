@@ -28,7 +28,7 @@ def to_ragged(bounding_boxes, sentinel=-1, dtype=tf.float32):
     ```python
     bounding_boxes = {
         "boxes": tf.constant([[2, 3, 4, 5], [0, 1, 2, 3]]),
-        "num_classes": tf.constant([[-1, 1]]),
+        "classes": tf.constant([[-1, 1]]),
     }
     bounding_boxes = bounding_box.to_ragged(bounding_boxes)
     print(bounding_boxes)

@@ -42,7 +42,7 @@ class RandomFlipTest(tf.test.TestCase, parameterized.TestCase):
         )
         bounding_boxes = {
             "boxes": tf.ragged.stack([tf.ones((5, 4)), tf.ones((3, 4))]),
-            "num_classes": tf.ragged.stack([tf.ones((5,)), tf.ones((3,))]),
+            "classes": tf.ragged.stack([tf.ones((5,)), tf.ones((3,))]),
         }
         inputs = {"images": images, "bounding_boxes": bounding_boxes}
         layer = RandomFlip(mode="horizontal", bounding_box_format="xywh")
@@ -133,7 +133,7 @@ class RandomFlipTest(tf.test.TestCase, parameterized.TestCase):
                 ],
                 dtype=tf.float32,
             ),
-            "num_classes": tf.convert_to_tensor(
+            "classes": tf.convert_to_tensor(
                 [
                     [
                         0,
@@ -163,7 +163,7 @@ class RandomFlipTest(tf.test.TestCase, parameterized.TestCase):
                     [[8, 8, 16, 16], [10, 10, 20, 20]],
                 ]
             ),
-            "num_classes": tf.convert_to_tensor(
+            "classes": tf.convert_to_tensor(
                 [
                     [
                         0,
@@ -190,7 +190,7 @@ class RandomFlipTest(tf.test.TestCase, parameterized.TestCase):
                 [[[0, 0, 10, 10], [4, 4, 12, 12]], [[0, 0, 10, 10]]],
                 dtype=tf.float32,
             ),
-            "num_classes": tf.ragged.constant([[0, 0], [0]], dtype=tf.float32),
+            "classes": tf.ragged.constant([[0, 0], [0]], dtype=tf.float32),
         }
 
         input = {"images": image, "bounding_boxes": bounding_boxes}
@@ -210,7 +210,7 @@ class RandomFlipTest(tf.test.TestCase, parameterized.TestCase):
                 [[[10, 10, 20, 20], [8, 8, 16, 16]], [[10, 10, 20, 20]]],
                 dtype=tf.float32,
             ),
-            "num_classes": tf.ragged.constant([[0, 0], [0]], dtype=tf.float32),
+            "classes": tf.ragged.constant([[0, 0], [0]], dtype=tf.float32),
         }
 
         output["bounding_boxes"] = bounding_box.to_dense(
@@ -256,7 +256,7 @@ class RandomFlipTest(tf.test.TestCase, parameterized.TestCase):
                 ],
                 dtype=tf.float32,
             ),
-            "num_classes": tf.ragged.constant([[0, 0], [0]], dtype=tf.float32),
+            "classes": tf.ragged.constant([[0, 0], [0]], dtype=tf.float32),
         }
 
         input = {"images": input_image, "bounding_boxes": bounding_boxes}

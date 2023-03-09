@@ -22,7 +22,7 @@ class MaskInvalidDetectionsTest(tf.test.TestCase):
         bounding_boxes = {
             "boxes": tf.random.uniform((4, 100, 4)),
             "num_detections": tf.constant([2, 3, 4, 2]),
-            "num_classes": tf.random.uniform((4, 100)),
+            "classes": tf.random.uniform((4, 100)),
         }
 
         result = bounding_box.mask_invalid_detections(bounding_boxes)
@@ -44,7 +44,7 @@ class MaskInvalidDetectionsTest(tf.test.TestCase):
         bounding_boxes = {
             "boxes": tf.random.uniform((4, 100, 4)),
             "num_detections": tf.constant([2, 3, 4, 2]),
-            "num_classes": tf.random.uniform((4, 100)),
+            "classes": tf.random.uniform((4, 100)),
         }
 
         @tf.function()
@@ -72,7 +72,7 @@ class MaskInvalidDetectionsTest(tf.test.TestCase):
                 [tf.random.uniform((10, 4)), tf.random.uniform((10, 4))]
             ),
             "num_detections": tf.constant([2, 3]),
-            "num_classes": tf.stack(
+            "classes": tf.stack(
                 [tf.random.uniform((10,)), tf.random.uniform((10,))]
             ),
         }

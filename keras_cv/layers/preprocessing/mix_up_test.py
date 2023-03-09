@@ -29,7 +29,7 @@ class MixUpTest(tf.test.TestCase):
         # randomly sample bounding boxes
         ys_bounding_boxes = {
             "boxes": tf.random.uniform((2, 3, 4), 0, 1),
-            "num_classes": tf.random.uniform((2, 3), 0, 1),
+            "classes": tf.random.uniform((2, 3), 0, 1),
         }
 
         layer = MixUp()

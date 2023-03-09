@@ -184,7 +184,7 @@ class BaseImageAugmentationLayer(tf.keras.__internal__.layers.BaseRandomLayer):
                 ragged_rank=1,
                 dtype=self.compute_dtype,
             ),
-            "num_classes": tf.RaggedTensorSpec(
+            "classes": tf.RaggedTensorSpec(
                 shape=[None], dtype=self.compute_dtype
             ),
         }

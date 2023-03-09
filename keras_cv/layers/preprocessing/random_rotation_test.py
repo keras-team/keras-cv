@@ -62,7 +62,7 @@ class RandomRotationTest(tf.test.TestCase):
             "boxes": tf.convert_to_tensor(
                 [[200, 200, 400, 400], [100, 100, 300, 300]], dtype=tf.float32
             ),
-            "num_classes": tf.convert_to_tensor([1, 2], dtype=tf.float32),
+            "classes": tf.convert_to_tensor([1, 2], dtype=tf.float32),
         }
         input = {"images": input_image, "bounding_boxes": bounding_boxes}
         # 180 rotation.
@@ -76,7 +76,7 @@ class RandomRotationTest(tf.test.TestCase):
                 [[112.0, 112.0, 312.0, 312.0], [212.0, 212.0, 412.0, 412.0]],
                 dtype=tf.float32,
             ),
-            "num_classes": tf.convert_to_tensor([1, 2], dtype=tf.float32),
+            "classes": tf.convert_to_tensor([1, 2], dtype=tf.float32),
         }
         self.assertAllClose(expected_bounding_boxes, output["bounding_boxes"])
 
@@ -97,7 +97,7 @@ class RandomRotationTest(tf.test.TestCase):
                 ],
                 dtype=tf.float32,
             ),
-            "num_classes": tf.ragged.constant(
+            "classes": tf.ragged.constant(
                 [
                     [
                         0,
@@ -122,7 +122,7 @@ class RandomRotationTest(tf.test.TestCase):
                 ],
                 dtype=tf.float32,
             ),
-            "num_classes": tf.ragged.constant(
+            "classes": tf.ragged.constant(
                 [
                     [
                         0,

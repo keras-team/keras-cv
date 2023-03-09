@@ -79,7 +79,7 @@ def select_boxes_of_class(bounding_boxes, class_id):
 
     result = {
         "boxes": tf.gather_nd(boxes, indices),
-        "num_classes": tf.gather_nd(num_classes, indices),
+        "classes": tf.gather_nd(num_classes, indices),
     }
 
     if confidence is not None:

@@ -256,7 +256,7 @@ class ResizingTest(tf.test.TestCase, parameterized.TestCase):
                     tf.ones((2, 4), dtype=tf.float32),
                 ],
             ),
-            "num_classes": tf.ragged.stack(
+            "classes": tf.ragged.stack(
                 [
                     tf.ones((3,), dtype=tf.float32),
                     tf.ones((5,), dtype=tf.float32),
@@ -294,7 +294,7 @@ class ResizingTest(tf.test.TestCase, parameterized.TestCase):
                     tf.ones((2, 4), dtype=tf.float32),
                 ],
             ),
-            "num_classes": tf.ragged.stack(
+            "classes": tf.ragged.stack(
                 [
                     tf.ones((3,), dtype=tf.float32),
                     tf.ones((5,), dtype=tf.float32),

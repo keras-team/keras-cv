@@ -22,7 +22,7 @@ class ToDenseTest(tf.test.TestCase):
             "boxes": tf.ragged.constant(
                 [[[0, 0, 1, 1]], [[0, 0, 1, 1], [0, 0, 1, 1], [0, 0, 1, 1]]]
             ),
-            "num_classes": tf.ragged.constant([[0], [1, 2, 3]]),
+            "classes": tf.ragged.constant([[0], [1, 2, 3]]),
         }
         bounding_boxes = bounding_box.to_dense(bounding_boxes)
         self.assertEqual(bounding_boxes["boxes"].shape, [2, 3, 4])

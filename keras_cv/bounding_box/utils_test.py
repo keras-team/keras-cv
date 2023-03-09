@@ -25,7 +25,7 @@ class BoundingBoxUtilTest(tf.test.TestCase):
             "boxes": tf.convert_to_tensor(
                 [[200, 200, 400, 400], [100, 100, 300, 300]], dtype=tf.float32
             ),
-            "num_classes": tf.convert_to_tensor([0, 0], dtype=tf.float32),
+            "classes": tf.convert_to_tensor([0, 0], dtype=tf.float32),
         }
         image = tf.ones(shape=(height, width, 3))
         bounding_boxes = bounding_box.clip_to_image(
@@ -48,7 +48,7 @@ class BoundingBoxUtilTest(tf.test.TestCase):
             "boxes": tf.convert_to_tensor(
                 [[[0.2, -1, 1.2, 0.3], [0.4, 1.5, 0.2, 0.3]]], dtype=tf.float32
             ),
-            "num_classes": tf.convert_to_tensor([[0, 0]], dtype=tf.float32),
+            "classes": tf.convert_to_tensor([[0, 0]], dtype=tf.float32),
         }
         bounding_boxes = bounding_box.clip_to_image(
             bounding_boxes, bounding_box_format="rel_xyxy", images=image
@@ -63,7 +63,7 @@ class BoundingBoxUtilTest(tf.test.TestCase):
             "boxes": tf.convert_to_tensor(
                 [[257, 257, 400, 400], [100, 100, 300, 300]]
             ),
-            "num_classes": tf.convert_to_tensor([0, 0]),
+            "classes": tf.convert_to_tensor([0, 0]),
         }
         image = tf.ones(shape=(height, width, 3))
         bounding_boxes = bounding_box.clip_to_image(

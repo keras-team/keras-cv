@@ -51,7 +51,7 @@ class RandomShearTest(tf.test.TestCase):
         # randomly sample bounding boxes
         ys_bounding_boxes = {
             "boxes": tf.ones((2, 3, 4)),
-            "num_classes": tf.random.uniform((2, 3), 0, 1),
+            "classes": tf.random.uniform((2, 3), 0, 1),
         }
 
         layer = preprocessing.RandomShear(
@@ -96,7 +96,7 @@ class RandomShearTest(tf.test.TestCase):
         xs = tf.ones((512, 512, 3))
         ys = {
             "boxes": tf.constant([[0.3, 0.4, 0.5, 0.6], [0.9, 0.8, 1.0, 1.0]]),
-            "num_classes": tf.constant([2, 3]),
+            "classes": tf.constant([2, 3]),
         }
 
         inputs = {"images": xs, "bounding_boxes": ys}
@@ -144,7 +144,7 @@ class RandomShearTest(tf.test.TestCase):
         )
         ys = {
             "boxes": tf.random.uniform((2, 3, 4), 0, 1),
-            "num_classes": tf.random.uniform((2, 3), 0, 1),
+            "classes": tf.random.uniform((2, 3), 0, 1),
         }
 
         @tf.function
@@ -175,7 +175,7 @@ class RandomShearTest(tf.test.TestCase):
                 ],
                 dtype=tf.float32,
             ),
-            "num_classes": tf.constant([[0, 0], [0, 0]], dtype=tf.float32),
+            "classes": tf.constant([[0, 0], [0, 0]], dtype=tf.float32),
         }
         layer = preprocessing.RandomShear(
             x_factor=0, y_factor=0, bounding_box_format="rel_xyxy"

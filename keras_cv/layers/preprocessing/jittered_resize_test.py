@@ -46,7 +46,7 @@ class JitteredResizeTest(tf.test.TestCase, parameterized.TestCase):
         image = tf.zeros([20, 20, 3])
         boxes = {
             "boxes": tf.convert_to_tensor([[0, 0, 1, 1]], dtype=tf.float32),
-            "num_classes": tf.convert_to_tensor([0], dtype=tf.float32),
+            "classes": tf.convert_to_tensor([0], dtype=tf.float32),
         }
         input = {"images": image, "bounding_boxes": boxes}
 
@@ -62,7 +62,7 @@ class JitteredResizeTest(tf.test.TestCase, parameterized.TestCase):
         )
         expected_output = {
             "boxes": tf.convert_to_tensor([[0, 0, 1, 1]], dtype=tf.float32),
-            "num_classes": tf.convert_to_tensor([0], dtype=tf.float32),
+            "classes": tf.convert_to_tensor([0], dtype=tf.float32),
         }
         self.assertAllClose(
             expected_output["boxes"],
@@ -76,7 +76,7 @@ class JitteredResizeTest(tf.test.TestCase, parameterized.TestCase):
         image = tf.zeros([20, 20, 3])
 
         bounding_boxes = {
-            "num_classes": tf.convert_to_tensor([[0, 0], [0, 0]]),
+            "classes": tf.convert_to_tensor([[0, 0], [0, 0]]),
             "boxes": tf.convert_to_tensor(
                 [
                     [[0, 0, 1, 1], [0, 0, 1, 1]],
@@ -97,7 +97,7 @@ class JitteredResizeTest(tf.test.TestCase, parameterized.TestCase):
             output["bounding_boxes"]
         )
         expected_output = {
-            "num_classes": tf.convert_to_tensor([[0, 0], [0, 0]], dtype=tf.float32),
+            "classes": tf.convert_to_tensor([[0, 0], [0, 0]], dtype=tf.float32),
             "boxes": tf.convert_to_tensor(
                 [
                     [[0, 0, 1, 1], [0, 0, 1, 1]],
@@ -120,7 +120,7 @@ class JitteredResizeTest(tf.test.TestCase, parameterized.TestCase):
             "boxes": tf.ragged.constant(
                 [[[0, 0, 1, 1], [0, 0, 1, 1]], [[0, 0, 1, 1]]], dtype=tf.float32
             ),
-            "num_classes": tf.ragged.constant(
+            "classes": tf.ragged.constant(
                 [
                     [
                         0,
@@ -145,7 +145,7 @@ class JitteredResizeTest(tf.test.TestCase, parameterized.TestCase):
             "boxes": tf.ragged.constant(
                 [[[0, 0, 1, 1], [0, 0, 1, 1]], [[0, 0, 1, 1]]], dtype=tf.float32
             ),
-            "num_classes": tf.ragged.constant(
+            "classes": tf.ragged.constant(
                 [
                     [
                         0.0,
@@ -168,7 +168,7 @@ class JitteredResizeTest(tf.test.TestCase, parameterized.TestCase):
         image = tf.zeros([20, 20, 3])
         boxes = {
             "boxes": tf.convert_to_tensor([[0, 0, 1, 1]], dtype=tf.float32),
-            "num_classes": tf.convert_to_tensor([0], dtype=tf.float32),
+            "classes": tf.convert_to_tensor([0], dtype=tf.float32),
         }
         input = {"images": image, "bounding_boxes": boxes}
 

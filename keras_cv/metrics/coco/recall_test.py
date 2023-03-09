@@ -37,7 +37,7 @@ class BoxRecallTest(tf.test.TestCase):
                     tf.constant([[0, 0, 10, 10]], tf.float32),
                 ]
             ),
-            "num_classes": tf.ragged.stack([tf.constant([1, 1]), tf.constant([1])]),
+            "classes": tf.ragged.stack([tf.constant([1, 1]), tf.constant([1])]),
         }
 
         y_pred = {
@@ -47,7 +47,7 @@ class BoxRecallTest(tf.test.TestCase):
                     tf.constant([[0, 0, 10, 10], [5, 5, 10, 10]], tf.float32),
                 ]
             ),
-            "num_classes": tf.ragged.stack([tf.constant([1]), tf.constant([1, 1])]),
+            "classes": tf.ragged.stack([tf.constant([1]), tf.constant([1, 1])]),
             "confidence": tf.ragged.stack(
                 [tf.constant([1.0]), tf.constant([1.0, 0.9])]
             ),
