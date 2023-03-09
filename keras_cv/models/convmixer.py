@@ -59,7 +59,6 @@ MODEL_CONFIGS = {
     },
 }
 
-
 BASE_DOCSTRING = """Instantiates the {name} architecture.
     Reference:
         - [Patches Are All You Need?](https://arxiv.org/abs/2201.09792)
@@ -93,31 +92,28 @@ BASE_DOCSTRING = """Instantiates the {name} architecture.
 """
 
 
-def ConvMixerLayer(dim, kernel_size):
+def ConvMixerLayer(x, dim, kernel_size):
     """ConvMixerLayer module.
     Args:
         dim: integer, Number of filters for convolution layers.
         kernel_size: integer, kernel size of the Conv2d layers.
     Returns:
-        Output tensor for the CovnMixer Layer.
+        Output tensor for the ConvMixer Layer.
     """
 
-    def apply(x):
-        residual = x
-        x = layers.DepthwiseConv2D(kernel_size=kernel_size, padding="same")(x)
-        x = tf.nn.gelu(x)
-        x = layers.BatchNormalization()(x)
-        x = layers.Add()([x, residual])
+    residual = x
+    x = layers.DepthwiseConv2D(kernel_size=kernel_size, padding="same")(x)
+    x = tf.nn.gelu(x)
+    x = layers.BatchNormalization()(x)
+    x = layers.Add()([x, residual])
 
-        x = layers.Conv2D(dim, kernel_size=1)(x)
-        x = tf.nn.gelu(x)
-        x = layers.BatchNormalization()(x)
-        return x
-
-    return apply
+    x = layers.Conv2D(dim, kernel_size=1)(x)
+    x = tf.nn.gelu(x)
+    x = layers.BatchNormalization()(x)
+    return x
 
 
-def PatchEmbed(dim, patch_size):
+def PatchEmbed(x, dim, patch_size):
     """Implementation for Extracting Patch Embeddings.
     Args:
         dim: integer, Number of filters for convolution layers.
@@ -126,32 +122,16 @@ def PatchEmbed(dim, patch_size):
         Output tensor for the patch embed.
     """
 
-    def apply(x):
-        x = layers.Conv2D(
-            filters=dim, kernel_size=patch_size, strides=patch_size
-        )(x)
-        x = tf.nn.gelu(x)
-        x = layers.BatchNormalization()(x)
-        return x
-
-    return apply
+    x = layers.Conv2D(filters=dim, kernel_size=patch_size, strides=patch_size)(
+        x
+    )
+    x = tf.nn.gelu(x)
+    x = layers.BatchNormalization()(x)
+    return x
 
 
-def ConvMixer(
-    dim,
-    depth,
-    patch_size,
-    kernel_size,
-    include_top,
-    include_rescaling,
-    name="ConvMixer",
-    weights=None,
-    input_shape=(None, None, 3),
-    input_tensor=None,
-    pooling=None,
-    classes=None,
-    classifier_activation="softmax",
-):
+@keras.utils.register_keras_serializable(package="keras_cv.models")
+class ConvMixer(keras.Model):
     """Instantiates the ConvMixer architecture.
     Args:
         dim: Number of filters for convolution layers.
@@ -189,50 +169,95 @@ def ConvMixer(
       A `keras.Model` instance.
     """
 
-    if weights and not tf.io.gfile.exists(weights):
-        raise ValueError(
-            "The `weights` argument should be either `None` or the path to the "
-            f"weights file to be loaded. Weights file not found at location: {weights}"
-        )
+    def __int__(
+        self,
+        dim,
+        depth,
+        patch_size,
+        kernel_size,
+        include_top,
+        include_rescaling,
+        name="ConvMixer",
+        weights=None,
+        input_shape=(None, None, 3),
+        input_tensor=None,
+        pooling=None,
+        classes=None,
+        classifier_activation="softmax",
+        **kwargs,
+    ):
+        if weights and not tf.io.gfile.exists(weights):
+            raise ValueError(
+                "The `weights` argument should be either `None` or the path to the "
+                f"weights file to be loaded. Weights file not found at location: {weights}"
+            )
 
-    if include_top and not classes:
-        raise ValueError(
-            "If `include_top` is True, you should specify `classes`. "
-            f"Received: classes={classes}"
-        )
+        if include_top and not classes:
+            raise ValueError(
+                "If `include_top` is True, you should specify `classes`. "
+                f"Received: classes={classes}"
+            )
 
-    if include_top and pooling:
-        raise ValueError(
-            f"`pooling` must be `None` when `include_top=True`."
-            f"Received pooling={pooling} and include_top={include_top}. "
-        )
+        if include_top and pooling:
+            raise ValueError(
+                f"`pooling` must be `None` when `include_top=True`."
+                f"Received pooling={pooling} and include_top={include_top}. "
+            )
 
-    inputs = utils.parse_model_inputs(input_shape, input_tensor)
-    x = inputs
+        inputs = utils.parse_model_inputs(input_shape, input_tensor)
+        x = inputs
 
-    if include_rescaling:
-        x = layers.Rescaling(1 / 255.0)(x)
-    x = PatchEmbed(dim, patch_size)(x)
+        if include_rescaling:
+            x = layers.Rescaling(1 / 255.0)(x)
+        x = PatchEmbed(x, dim, patch_size)
 
-    for _ in range(depth):
-        x = ConvMixerLayer(dim, kernel_size)(x)
+        for _ in range(depth):
+            x = ConvMixerLayer(x, dim, kernel_size)
 
-    if include_top:
-        x = layers.GlobalAveragePooling2D(name="avg_pool")(x)
-        x = layers.Dense(
-            classes, activation=classifier_activation, name="predictions"
-        )(x)
-    else:
-        if pooling == "avg":
+        if include_top:
             x = layers.GlobalAveragePooling2D(name="avg_pool")(x)
-        elif pooling == "max":
-            x = layers.GlobalMaxPooling2D(name="max_pool")(x)
+            x = layers.Dense(
+                classes, activation=classifier_activation, name="predictions"
+            )(x)
+        else:
+            if pooling == "avg":
+                x = layers.GlobalAveragePooling2D(name="avg_pool")(x)
+            elif pooling == "max":
+                x = layers.GlobalMaxPooling2D(name="max_pool")(x)
 
-    model = keras.Model(inputs, x, name=name)
-    if weights is not None:
-        model.load_weights(weights)
+        super().__init__(inputs=inputs, outputs=x, name=name, **kwargs)
 
-    return model
+        if weights is not None:
+            self.load_weights(weights)
+
+        self.dim = dim
+        self.depth = depth
+        self.patch_size = patch_size
+        self.kernel_size = kernel_size
+        self.include_top = include_top
+        self.include_rescaling = include_rescaling
+        self.input_tensor = input_tensor
+        self.pooling = pooling
+        self.classes = classes
+        self.classifier_activation = classifier_activation
+
+    def get_config(self):
+        return {
+            "dim": self.dim,
+            "depth": self.depth,
+            "patch_size": self.patch_size,
+            "kernel_size": self.kernel_size,
+            "include_top": self.include_top,
+            "include_rescaling": self.include_rescaling,
+            "name": self.name,
+            "weights": self.weights,
+            "input_shape": self.input_shape[1:],
+            "input_tensor": self.input_tensor,
+            "pooling": self.pooling,
+            "classes": self.classes,
+            "classifier_activation": self.classifier_activation,
+            "trainable": self.trainable,
+        }
 
 
 def ConvMixer_1536_20(
