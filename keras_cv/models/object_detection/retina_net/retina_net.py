@@ -332,14 +332,14 @@ class RetinaNet(tf.keras.Model):
                 `keras_cv.metrics.BoxRecall()` and
                 `keras_cv.metrics.BoxMeanAveragePrecision()`.  When `metrics` are
                 included in the call to `compile()`, the RetinaNet will perform
-                non max suppression decoding using the 
+                non max suppression decoding using the
                 `RetinaNet.decode_predictions()` metrod.  By default, this method
-                uses a `keras_cv.layers.MultiClassNonMaxSuppression()` layer to 
+                uses a `keras_cv.layers.MultiClassNonMaxSuppression()` layer to
                 perform decoding.  This behavior can be customized by passing in a
-                `prediction_decoder` to the constructor or by modifying the 
-                `prediction_decoder` attribute on the model. It should be noted 
+                `prediction_decoder` to the constructor or by modifying the
+                `prediction_decoder` attribute on the model. It should be noted
                 that the non max suppression operation does not have TPU support,
-                and thus when training on TPU metrics must be evaluated in a 
+                and thus when training on TPU metrics must be evaluated in a
                 `keras.utils.SidecarEvaluator` or a `keras.callbacks.Callback`.
             kwargs: most other `keras.Model.compile()` arguments are supported and
                 propagated to the `keras.Model` class.
