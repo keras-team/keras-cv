@@ -165,7 +165,8 @@ class RetinaNet(tf.keras.Model):
         self.classification_head = (
             classification_head
             or layers_lib.PredictionHead(
-                output_filters=9 * num_classes, bias_initializer=prior_probability
+                output_filters=9 * num_classes,
+                bias_initializer=prior_probability,
             )
         )
 

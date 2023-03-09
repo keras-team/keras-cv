@@ -160,7 +160,9 @@ class VGG19(keras.Model):
             x = layers.Dense(4096, activation="relu", name="fc1")(x)
             x = layers.Dense(4096, activation="relu", name="fc2")(x)
             x = layers.Dense(
-                num_classes, activation=classifier_activation, name="predictions"
+                num_classes,
+                activation=classifier_activation,
+                name="predictions",
             )(x)
         else:
             if pooling == "avg":

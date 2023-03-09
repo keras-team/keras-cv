@@ -61,7 +61,9 @@ def to_dense(bounding_boxes, max_boxes=None, default_value=-1):
         bounding_boxes["num_classes"] = bounding_boxes["num_classes"].to_tensor(
             default_value=default_value,
             shape=_classes_shape(
-                info["is_batched"], bounding_boxes["num_classes"].shape, max_boxes
+                info["is_batched"],
+                bounding_boxes["num_classes"].shape,
+                max_boxes,
             ),
         )
 

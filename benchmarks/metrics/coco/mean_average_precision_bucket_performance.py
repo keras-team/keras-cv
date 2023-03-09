@@ -12,7 +12,9 @@ import keras_cv
 from keras_cv.metrics import coco
 
 
-def produce_random_data(include_confidence=False, num_images=128, num_classes=20):
+def produce_random_data(
+    include_confidence=False, num_images=128, num_classes=20
+):
     """Generates a fake list of bounding boxes for use in this test.
 
     Returns:

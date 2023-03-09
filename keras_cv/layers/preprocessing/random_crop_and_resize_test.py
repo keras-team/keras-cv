@@ -167,7 +167,8 @@ class RandomCropAndResizeTest(tf.test.TestCase, parameterized.TestCase):
         image = tf.random.uniform(shape=input_image_shape, seed=self.seed)
         mask = tf.one_hot(
             tf.squeeze(
-                np.random.randint(2, size=mask_shape) * (num_classes - 1), axis=-1
+                np.random.randint(2, size=mask_shape) * (num_classes - 1),
+                axis=-1,
             ),
             num_classes,
         )

@@ -295,9 +295,9 @@ class ViT(keras.Model):
 
         if include_top:
             output = output[:, 0]
-            output = layers.Dense(num_classes, activation=classifier_activation)(
-                output
-            )
+            output = layers.Dense(
+                num_classes, activation=classifier_activation
+            )(output)
 
         elif pooling == "token_pooling":
             output = output[:, 0]

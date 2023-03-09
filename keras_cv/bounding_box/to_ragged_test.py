@@ -50,4 +50,6 @@ class ToRaggedTest(tf.test.TestCase):
         self.assertEqual(bounding_boxes["boxes"][0].shape, [2, 4])
 
         self.assertAllEqual(bounding_boxes["boxes"], original["boxes"])
-        self.assertAllEqual(bounding_boxes["num_classes"], original["num_classes"])
+        self.assertAllEqual(
+            bounding_boxes["num_classes"], original["num_classes"]
+        )

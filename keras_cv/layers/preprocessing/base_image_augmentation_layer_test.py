@@ -70,7 +70,7 @@ class BaseImageAugmentationLayerTest(tf.test.TestCase):
 
     def test_augment_dict_return_type(self):
         add_layer = RandomAddLayer(fixed_value=2.0)
-        image = np.random.random(size=(8, 8, 3)).aclassest32")
+        image = np.random.random(size=(8, 8, 3)).astype("float32")
         output = add_layer({"images": image})
 
         self.assertIsInstance(output, dict)
