@@ -103,7 +103,7 @@ class RetinaNetTest(tf.test.TestCase):
     def test_weights_contained_in_trainable_variables(self):
         bounding_box_format = "xywh"
         retina_net = keras_cv.models.RetinaNet(
-            num_classes=1,
+            num_classes=2,
             bounding_box_format=bounding_box_format,
         )
         retina_net.backbone.trainable = False
@@ -133,7 +133,7 @@ class RetinaNetTest(tf.test.TestCase):
     def test_weights_change(self):
         bounding_box_format = "xywh"
         retina_net = keras_cv.models.RetinaNet(
-            num_classes=1,
+            num_classes=2,
             bounding_box_format=bounding_box_format,
         )
 
