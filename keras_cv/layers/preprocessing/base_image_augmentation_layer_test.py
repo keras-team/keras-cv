@@ -255,7 +255,7 @@ class BaseImageAugmentationLayerTest(tf.test.TestCase):
         images = np.random.random(size=(2, 8, 8, 3)).astype("float32")
         bounding_boxes = bounding_boxes = {
             "boxes": np.random.random(size=(2, 3, 4)).astype("float32"),
-            "num_classes": np.random.random(size=(2, 3)).astype("float32"),
+            "classes": np.random.random(size=(2, 3)).astype("float32"),
         }
         keypoints = np.random.random(size=(2, 5, 2)).astype("float32")
         segmentation_masks = np.random.random(size=(2, 8, 8, 1)).astype(

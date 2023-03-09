@@ -182,7 +182,7 @@ class PascalVocSegmentationDataTest(tf.test.TestCase):
         self.assertEquals(
             tf.reduce_min(mask), 0
         )  # The 0 value is for the background
-        # The mask contains two num_classes, 1 and 15, see the label section in the previous
+        # The mask contains two classes, 1 and 15, see the label section in the previous
         # test case.
         self.assertEquals(
             tf.reduce_sum(tf.cast(tf.equal(mask, 1), tf.int32)), 4734
@@ -321,7 +321,7 @@ class PascalVocSegmentationDataTest(tf.test.TestCase):
         self.assertEquals(
             tf.reduce_min(png), 0
         )  # The 0 value is for the background
-        # The mask contains two num_classes, 1 and 15, see the label section in the previous
+        # The mask contains two classes, 1 and 15, see the label section in the previous
         # test case.
         self.assertEquals(
             tf.reduce_sum(tf.cast(tf.equal(png, 1), tf.int32)), 4734

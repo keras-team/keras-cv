@@ -142,8 +142,8 @@ class RandomRotationTest(tf.test.TestCase):
             expected_output["boxes"], output["bounding_boxes"]["boxes"]
         )
         self.assertAllClose(
-            expected_output["num_classes"],
-            output["bounding_boxes"]["num_classes"],
+            expected_output["classes"],
+            output["bounding_boxes"]["classes"],
         )
 
     def test_augment_sparse_segmentation_mask(self):

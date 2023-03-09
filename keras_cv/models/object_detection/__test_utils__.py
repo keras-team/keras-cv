@@ -19,7 +19,7 @@ import keras_cv
 def _create_bounding_box_dataset(
     bounding_box_format, use_dictionary_box_format=False
 ):
-    # Just about the easiest dataset you can have, all num_classes are 0, all boxes are
+    # Just about the easiest dataset you can have, all classes are 0, all boxes are
     # exactly the same.  [1, 1, 2, 2] are the coordinates in xyxy
     xs = tf.ones((5, 256, 256, 3), dtype=tf.float32)
     y_classes = tf.zeros((5, 10), dtype=tf.float32)
