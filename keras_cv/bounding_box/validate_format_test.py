@@ -29,7 +29,7 @@ class ValidateTest(tf.test.TestCase):
             "Expected `boxes` and `num_classes` to have matching dimensions",
         ):
             bounding_box.validate_format(
-                {"boxes": tf.ones((4, 3, 6)), "num_classes": tf.ones((4, 6))}
+                {"boxes": tf.ones((4, 3, 6)), "classes": tf.ones((4, 6))}
             )
 
     def test_bad_keys(self):

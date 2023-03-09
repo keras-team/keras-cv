@@ -296,7 +296,7 @@ class BoxRecallTest(tf.test.TestCase):
         self.assertEqual([[1]], metric.true_positives)
 
     def test_true_positive_counting_one_true_two_pred(self):
-        y_true = {"boxes": [[[0.0, 0.0, 100.0, 100.0]]], "num_classes": [[1.0]]}
+        y_true = {"boxes": [[[0.0, 0.0, 100.0, 100.0]]], "classes": [[1.0]]}
         y_pred = {
             "boxes": [[[0.0, 50.0, 100.0, 150.0], [0.0, 0.0, 100.0, 100.0]]],
             "num_classes": [[1.0, 1.0]],
@@ -313,7 +313,7 @@ class BoxRecallTest(tf.test.TestCase):
         metric.update_state(y_true, y_pred)
         self.assertEqual([[1]], metric.true_positives)
 
-        y_true = {"boxes": [[[0.0, 0.0, 100.0, 100.0]]], "num_classes": [[1.0]]}
+        y_true = {"boxes": [[[0.0, 0.0, 100.0, 100.0]]], "classes": [[1.0]]}
         y_pred = {
             "boxes": [[[0.0, 50.0, 100.0, 150.0]]],
             "num_classes": [[1.0]],
@@ -324,7 +324,7 @@ class BoxRecallTest(tf.test.TestCase):
         self.assertEqual([[2]], metric.true_positives)
 
     def test_mixed_dtypes(self):
-        y_true = {"boxes": [[[0.0, 0.0, 100.0, 100.0]]], "num_classes": [[1.0]]}
+        y_true = {"boxes": [[[0.0, 0.0, 100.0, 100.0]]], "classes": [[1.0]]}
         y_true = bounding_box.ensure_tensor(y_true, dtype=tf.float64)
         y_pred = {
             "boxes": [[[0.0, 50.0, 100.0, 150.0]]],
@@ -343,7 +343,7 @@ class BoxRecallTest(tf.test.TestCase):
         self.assertEqual(metric.result(), 1.0)
 
     def test_matches_single_box(self):
-        y_true = {"boxes": [[[0.0, 0.0, 100.0, 100.0]]], "num_classes": [[1.0]]}
+        y_true = {"boxes": [[[0.0, 0.0, 100.0, 100.0]]], "classes": [[1.0]]}
         y_pred = {
             "boxes": [[[0.0, 50.0, 100.0, 150.0]]],
             "num_classes": [[1.0]],
@@ -363,7 +363,7 @@ class BoxRecallTest(tf.test.TestCase):
         self.assertEqual([[1]], metric.true_positives)
 
     def test_matches_single_false_positive(self):
-        y_true = {"boxes": [[[0.0, 0.0, 100.0, 100.0]]], "num_classes": [[1.0]]}
+        y_true = {"boxes": [[[0.0, 0.0, 100.0, 100.0]]], "classes": [[1.0]]}
         y_pred = {
             "boxes": [[[0.0, 50.0, 100.0, 150.0]]],
             "num_classes": [[1.0]],

@@ -277,4 +277,4 @@ def _create_bounding_box_dataset(bounding_box_format):
         images=xs,
         dtype=tf.float32,
     )
-    return xs, {"boxes": ys, "num_classes": y_classes}
+    return xs, {"boxes": ys, "classes": y_classes}

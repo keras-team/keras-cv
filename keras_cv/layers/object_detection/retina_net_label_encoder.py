@@ -146,7 +146,7 @@ class RetinaNetLabelEncoder(layers.Layer):
             label,
         )
 
-        result = {"boxes": label[:, :, :4], "num_classes": label[:, :, 4]}
+        result = {"boxes": label[:, :, :4], "classes": label[:, :, 4]}
 
         box_shape = tf.shape(gt_boxes)
         batch_size = box_shape[0]
