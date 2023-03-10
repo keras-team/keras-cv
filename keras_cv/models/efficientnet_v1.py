@@ -205,20 +205,19 @@ class EfficientNetBlock(layers.Layer):
     """An inverted residual block.
 
     Args:
-        inputs: input tensor.
-        activation: activation function.
-        drop_rate: float between 0 and 1, fraction of the input units to drop.
-        name: string, block label.
         filters_in: integer, the number of input filters.
         filters_out: integer, the number of output filters.
         kernel_size: integer, the dimension of the convolution window.
         strides: integer, the stride of the convolution.
+        activation: activation function.
         expand_ratio: integer, scaling coefficient for the input filters.
         se_ratio: float between 0 and 1, fraction to squeeze the input filters.
         id_skip: boolean.
+        drop_rate: float between 0 and 1, fraction of the input units to drop.
+        name: string, block label.
 
     Returns:
-        output tensor for the block.
+        tf.Tensor
     """
 
     def __init__(self,
@@ -674,6 +673,7 @@ def EfficientNetB0(
         input_tensor=None,
         pooling=None,
         classifier_activation="softmax",
+        name="efficientnetb0",
         **kwargs,
 ):
     return EfficientNet(
@@ -683,7 +683,7 @@ def EfficientNetB0(
         depth_coefficient=1.0,
         default_size=224,
         dropout_rate=0.2,
-        model_name="efficientnetb0",
+        model_name=name,
         weights=parse_weights(weights, include_top, "efficientnetb0"),
         input_shape=input_shape,
         input_tensor=input_tensor,
@@ -704,6 +704,7 @@ def EfficientNetB1(
         input_tensor=None,
         pooling=None,
         classifier_activation="softmax",
+        name="efficientnetb1",
         **kwargs,
 ):
     return EfficientNet(
@@ -713,7 +714,7 @@ def EfficientNetB1(
         depth_coefficient=1.1,
         default_size=240,
         dropout_rate=0.2,
-        model_name="efficientnetb1",
+        model_name=name,
         weights=parse_weights(weights, include_top, "efficientnetb1"),
         input_shape=input_shape,
         input_tensor=input_tensor,
@@ -734,6 +735,7 @@ def EfficientNetB2(
         input_tensor=None,
         pooling=None,
         classifier_activation="softmax",
+        name="efficientnetb2",
         **kwargs,
 ):
     return EfficientNet(
@@ -743,7 +745,7 @@ def EfficientNetB2(
         depth_coefficient=1.2,
         default_size=260,
         dropout_rate=0.3,
-        model_name="efficientnetb2",
+        model_name=name,
         weights=parse_weights(weights, include_top, "efficientnetb2"),
         input_shape=input_shape,
         input_tensor=input_tensor,
@@ -764,6 +766,7 @@ def EfficientNetB3(
         input_tensor=None,
         pooling=None,
         classifier_activation="softmax",
+        name="efficientnetb3",
         **kwargs,
 ):
     return EfficientNet(
@@ -773,7 +776,7 @@ def EfficientNetB3(
         depth_coefficient=1.4,
         default_size=300,
         dropout_rate=0.3,
-        model_name="efficientnetb3",
+        model_name=name,
         weights=parse_weights(weights, include_top, "efficientnetb3"),
         input_shape=input_shape,
         input_tensor=input_tensor,
@@ -794,6 +797,7 @@ def EfficientNetB4(
         input_tensor=None,
         pooling=None,
         classifier_activation="softmax",
+        name="efficientnetb4"
         **kwargs,
 ):
     return EfficientNet(
@@ -803,7 +807,7 @@ def EfficientNetB4(
         depth_coefficient=1.8,
         default_size=380,
         dropout_rate=0.4,
-        model_name="efficientnetb4",
+        model_name=name,
         weights=parse_weights(weights, include_top, "efficientnetb4"),
         input_shape=input_shape,
         input_tensor=input_tensor,
@@ -824,6 +828,7 @@ def EfficientNetB5(
         input_tensor=None,
         pooling=None,
         classifier_activation="softmax",
+        name="efficientnetb5",
         **kwargs,
 ):
     return EfficientNet(
@@ -833,7 +838,7 @@ def EfficientNetB5(
         depth_coefficient=2.2,
         default_size=456,
         dropout_rate=0.4,
-        model_name="efficientnetb5",
+        model_name=name,
         weights=parse_weights(weights, include_top, "efficientnetb5"),
         input_shape=input_shape,
         input_tensor=input_tensor,
@@ -854,6 +859,7 @@ def EfficientNetB6(
         input_tensor=None,
         pooling=None,
         classifier_activation="softmax",
+        name="efficientnetb6",
         **kwargs,
 ):
     return EfficientNet(
@@ -863,7 +869,7 @@ def EfficientNetB6(
         depth_coefficient=2.6,
         default_size=528,
         dropout_rate=0.5,
-        model_name="efficientnetb6",
+        model_name=name,
         weights=parse_weights(weights, include_top, "efficientnetb6"),
         input_shape=input_shape,
         input_tensor=input_tensor,
@@ -884,6 +890,7 @@ def EfficientNetB7(
         input_tensor=None,
         pooling=None,
         classifier_activation="softmax",
+        name="efficientnetb7"
         **kwargs,
 ):
     return EfficientNet(
@@ -893,7 +900,7 @@ def EfficientNetB7(
         depth_coefficient=3.1,
         default_size=600,
         dropout_rate=0.5,
-        model_name="efficientnetb7",
+        model_name=name,
         weights=parse_weights(weights, include_top, "efficientnetb7"),
         input_shape=input_shape,
         input_tensor=input_tensor,
