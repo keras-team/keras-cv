@@ -27,7 +27,7 @@ class DeeplabTest(tf.test.TestCase):
         backbone = ResNet50V2Backbone(
             input_shape=[64, 64, 3],
         )
-        model = segmentation.DeepLabV3(classes=11, backbone=backbone)
+        model = segmentation.DeepLabV3(num_classes=11, backbone=backbone)
         input_image = tf.random.uniform(shape=[1, 64, 64, 3])
         output = model(input_image, training=True)
 
@@ -37,7 +37,7 @@ class DeeplabTest(tf.test.TestCase):
         backbone = ResNet50V2Backbone(
             input_shape=[64, 64, 1],
         )
-        model = segmentation.DeepLabV3(classes=11, backbone=backbone)
+        model = segmentation.DeepLabV3(num_classes=11, backbone=backbone)
         input_image = tf.random.uniform(shape=[1, 64, 64, 1])
         output = model(input_image, training=True)
 
@@ -49,14 +49,14 @@ class DeeplabTest(tf.test.TestCase):
             "Input shapes for both the backbone and DeepLabV3 are `None`.",
         ):
             backbone = ResNet50V2Backbone()
-            segmentation.DeepLabV3(classes=11, backbone=backbone)
+            segmentation.DeepLabV3(num_classes=11, backbone=backbone)
 
     def test_deeplab_model_with_components(self):
         backbone = ResNet50V2Backbone(
             input_shape=[64, 64, 3],
         )
         model = segmentation.DeepLabV3(
-            classes=11,
+            num_classes=11,
             backbone=backbone,
         )
 
@@ -71,7 +71,7 @@ class DeeplabTest(tf.test.TestCase):
             input_shape=[64, 64, 3],
         )
         model = segmentation.DeepLabV3(
-            classes=11,
+            num_classes=11,
             backbone=backbone,
         )
         input_image = tf.random.uniform(shape=[1, 64, 64, 3])
@@ -85,7 +85,7 @@ class DeeplabTest(tf.test.TestCase):
             ValueError, "Backbone need to be a `tf.keras.layers.Layer`"
         ):
             segmentation.DeepLabV3(
-                classes=11,
+                num_classes=11,
                 backbone=tf.Module(),
             )
 
@@ -99,7 +99,7 @@ class DeeplabTest(tf.test.TestCase):
         backbone = ResNet50V2Backbone(
             input_shape=[384, 384, 3],
         )
-        model = segmentation.DeepLabV3(classes=1, backbone=backbone)
+        model = segmentation.DeepLabV3(num_classes=1, backbone=backbone)
 
         gcs_data_pattern = "gs://caltech_birds2011_mask/0.1.1/*.tfrecord*"
         features = tfds.features.FeaturesDict(

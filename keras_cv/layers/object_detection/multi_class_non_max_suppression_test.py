@@ -20,8 +20,8 @@ from keras_cv import layers as cv_layers
 
 
 def decode_predictions_output_shapes():
-    classes = 10
-    predictions_shape = (8, 98208, 4 + classes)
+    num_classes = 10
+    predictions_shape = (8, 98208, 4 + num_classes)
 
     predictions = tf.random.stateless_uniform(
         shape=predictions_shape,

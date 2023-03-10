@@ -277,8 +277,8 @@ class ResNetV2Backbone(Backbone):
         include_rescaling: bool, whether or not to Rescale the inputs. If set
             to `True`, inputs will be passed through a `Rescaling(1/255.0)`
             layer.
-        stackwise_dialations: list of ints, dialation for each stack in the
-            model. If `None` (default), dialation will not be used.
+        stackwise_dilations: list of ints, dilation for each stack in the
+            model. If `None` (default), dilation will not be used.
         input_shape: optional shape tuple, defaults to (None, None, 3).
         input_tensor: optional Keras tensor (i.e. output of `layers.Input()`)
             to use as image input for the model.
