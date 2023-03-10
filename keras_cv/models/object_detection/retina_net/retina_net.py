@@ -22,9 +22,6 @@ from keras_cv import layers as cv_layers
 from keras_cv.bounding_box.converters import _decode_deltas_to_boxes
 from keras_cv.models.object_detection import predict_utils
 from keras_cv.models.object_detection.__internal__ import unpack_input
-from keras_cv.models.object_detection.retina_net.__internal__ import (
-    layers as layers_lib,
-)
 from keras_cv.utils.train import get_feature_extractor
 
 BOX_VARIANCE = [0.1, 0.1, 0.2, 0.2]
@@ -197,7 +194,7 @@ class RetinaNet(keras.Model):
 
         self.classification_head = (
             classification_head
-            or layers_lib.PredictionHead(
+            or keras_cv.models.object_detection.retina_net.prediction_head.PredictionHead(
                 output_filters=9 * num_classes,
                 bias_initializer=prior_probability,
             )
