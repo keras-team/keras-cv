@@ -508,9 +508,6 @@ class EfficientNet(keras.Model):
                 f"Received pooling={pooling} and include_top={include_top}. "
             )
 
-        if input_shape[0] is None or input_shape[1] is None:
-            input_shape = (default_size, default_size, 3)
-
         img_input = utils.parse_model_inputs(input_shape, input_tensor)
 
         # Build stem
