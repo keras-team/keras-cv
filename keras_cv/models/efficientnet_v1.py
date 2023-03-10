@@ -257,7 +257,8 @@ class EfficientNetBlock(layers.Layer):
                 name=''
                 ):
         """
-        Returns the Convolutional Block with optional Batch Normalization layer and activation layer
+        Represents Convolutional Block with optional Batch Normalization layer and activation layer
+        
         Args:
             x: Tensor
             conv_type: str, Type of Conv layer to be used in block.
@@ -417,7 +418,7 @@ class EfficientNetBlock(layers.Layer):
 
 @keras.utils.register_keras_serializable(package="keras_cv.models")
 class EfficientNet(keras.Model):
-    """This class represents a Keras VGG16 model.
+    """This class represents a Keras EfficientNet architecture.
     Args:
         include_rescaling: bool, whether or not to Rescale the inputs.If set to True,
                 inputs will be passed through a `Rescaling(1/255.0)` layer.
@@ -483,7 +484,7 @@ class EfficientNet(keras.Model):
                  classifier_activation="softmax",
                  **kwargs
                  ):
-        block_arg = blocks_args
+        blocks_args_type = blocks_args.copy()
         if blocks_args == "default":
             blocks_args = DEFAULT_BLOCKS_ARGS
 
@@ -610,7 +611,7 @@ class EfficientNet(keras.Model):
         self.drop_connect_rate = drop_connect_rate
         self.depth_divisor = depth_divisor
         self.activation = activation
-        self.blocks_args = block_arg
+        self.blocks_args = blocks_args_type
         self.input_tensor = input_tensor
         self.pooling = pooling
         self.num_classes = num_classes
