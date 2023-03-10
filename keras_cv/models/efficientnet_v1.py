@@ -483,6 +483,7 @@ class EfficientNet(keras.Model):
                  classifier_activation="softmax",
                  **kwargs
                  ):
+        block_arg = blocks_args
         if blocks_args == "default":
             blocks_args = DEFAULT_BLOCKS_ARGS
 
@@ -609,7 +610,7 @@ class EfficientNet(keras.Model):
         self.drop_connect_rate = drop_connect_rate
         self.depth_divisor = depth_divisor
         self.activation = activation
-        self.blocks_args = blocks_args
+        self.blocks_args = block_arg
         self.input_tensor = input_tensor
         self.pooling = pooling
         self.num_classes = num_classes
