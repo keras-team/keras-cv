@@ -797,7 +797,7 @@ def EfficientNetB4(
         input_tensor=None,
         pooling=None,
         classifier_activation="softmax",
-        name="efficientnetb4"
+        name="efficientnetb4",
         **kwargs,
 ):
     return EfficientNet(
@@ -890,7 +890,7 @@ def EfficientNetB7(
         input_tensor=None,
         pooling=None,
         classifier_activation="softmax",
-        name="efficientnetb7"
+        name="efficientnetb7",
         **kwargs,
 ):
     return EfficientNet(
