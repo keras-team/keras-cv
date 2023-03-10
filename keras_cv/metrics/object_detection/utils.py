@@ -102,6 +102,20 @@ def to_sentinel_padded_bounding_box_tensor(box_sets):
     return tf.ragged.stack(box_sets).to_tensor(default_value=-1)
 
 
+def gather_nd(bounding_boxes, indices):
+    boxes = bounding_boxes["boxes"]
+    classes = bounding_boxes["classes"]
+    result = {
+        "boxes": tf.gather_nd(boxes, indices),
+        "classes": tf.gather_nd(classes, indices,
+    }
+
+    if "confidence" in bounding_boxes:
+        confidence = bounding_boxes["confidence"]
+        result["confidence"] = tf.gather_nd(confidence, indices)
+
+    return result
+
 def get_boxes_for_image(bounding_boxes, index):
     boxes = bounding_boxes["boxes"]
     classes = bounding_boxes["classes"]
