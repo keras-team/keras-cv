@@ -618,6 +618,7 @@ class EfficientNet(keras.Model):
         self.pooling = pooling
         self.num_classes = num_classes
         self.classifier_activation = classifier_activation
+        self.repeats = blocks
 
     def round_filters(self, filters, width_coefficient, divisor):
         """Round number of filters based on depth multiplier."""
@@ -646,6 +647,7 @@ class EfficientNet(keras.Model):
             'depth_divisor': self.depth_divisor,
             'activation': self.activation,
             'blocks_args': self.block_args,
+            'repeats': self.blocks,
             'input_tensor': self.input_tensor,
             'input_shape': self.input_shape[1:],
             'model_name': self.name,
