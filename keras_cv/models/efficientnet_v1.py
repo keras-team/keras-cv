@@ -258,7 +258,7 @@ class EfficientNetBlock(layers.Layer):
                 ):
         """
         Represents Convolutional Block with optional Batch Normalization layer and activation layer
-        
+
         Args:
             x: Tensor
             conv_type: str, Type of Conv layer to be used in block.
@@ -416,6 +416,7 @@ class EfficientNetBlock(layers.Layer):
             'trainable': self.trainable
         }
 
+
 @keras.utils.register_keras_serializable(package="keras_cv.models")
 class EfficientNet(keras.Model):
     """This class represents a Keras EfficientNet architecture.
@@ -484,7 +485,9 @@ class EfficientNet(keras.Model):
                  classifier_activation="softmax",
                  **kwargs
                  ):
-        blocks_args_type = blocks_args.copy()
+
+        blocks_args_type = blocks_args
+
         if blocks_args == "default":
             blocks_args = DEFAULT_BLOCKS_ARGS
 
