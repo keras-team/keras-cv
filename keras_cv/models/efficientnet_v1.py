@@ -401,7 +401,7 @@ class EfficientNetBlock(layers.Layer):
         return x
 
     def get_config(self):
-        return {
+        config = {
             'filters_in': self.filters_in,
             'filters_out': self.filters_out,
             'kernel_size': self.kernel_size,
@@ -414,6 +414,9 @@ class EfficientNetBlock(layers.Layer):
             'name': self.name,
             'trainable': self.trainable
         }
+        base_config = super().get_config()
+        return dict(list(base_config.items()) + list(config.items()))
+
 
     @classmethod
     def from_config(cls, config):
