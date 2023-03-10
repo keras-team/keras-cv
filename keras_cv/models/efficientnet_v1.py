@@ -25,8 +25,8 @@ import copy
 import math
 
 import tensorflow as tf
-from tensorflow import keras
 from keras import backend
+from tensorflow import keras
 from tensorflow.keras import layers
 
 from keras_cv.models import utils
@@ -187,7 +187,7 @@ def correct_pad(inputs, kernel_size):
       A tuple.
     """
     img_dim = 1
-    input_size = backend.int_shape(inputs)[img_dim: (img_dim + 2)]
+    input_size = backend.int_shape(inputs)[img_dim : (img_dim + 2)]
     if isinstance(kernel_size, int):
         kernel_size = (kernel_size, kernel_size)
     if input_size[0] is None:
@@ -220,18 +220,20 @@ class EfficientNetBlock(layers.Layer):
         tf.Tensor
     """
 
-    def __init__(self,
-                 filters_in=32,
-                 filters_out=16,
-                 kernel_size=3,
-                 strides=1,
-                 activation='swish',
-                 expand_ratio=1,
-                 se_ratio=0.0,
-                 id_skip=True,
-                 drop_rate=0.0,
-                 name='',
-                 **kwargs):
+    def __init__(
+        self,
+        filters_in=32,
+        filters_out=16,
+        kernel_size=3,
+        strides=1,
+        activation="swish",
+        expand_ratio=1,
+        se_ratio=0.0,
+        id_skip=True,
+        drop_rate=0.0,
+        name="",
+        **kwargs,
+    ):
         super().__init__(name=name, **kwargs)
         self.filters_in = filters_in
         self.filters_out = filters_out
@@ -244,18 +246,19 @@ class EfficientNetBlock(layers.Layer):
         self.drop_rate = drop_rate
 
     @staticmethod
-    def conv_bn(x,
-                conv_type,
-                filters,
-                kernel_size,
-                strides=1,
-                padding="same",
-                use_bias=False,
-                kernel_initializer=CONV_KERNEL_INITIALIZER,
-                bn_norm=True,
-                activation='swish',
-                name=''
-                ):
+    def conv_bn(
+        x,
+        conv_type,
+        filters,
+        kernel_size,
+        strides=1,
+        padding="same",
+        use_bias=False,
+        kernel_initializer=CONV_KERNEL_INITIALIZER,
+        bn_norm=True,
+        activation="swish",
+        name="",
+    ):
         """
         Represents Convolutional Block with optional Batch Normalization layer and activation layer
 
@@ -278,9 +281,11 @@ class EfficientNetBlock(layers.Layer):
         Returns:
             tf.Tensor
         """
-        if conv_type == 'normal':
+        if conv_type == "normal":
             if filters is None or kernel_size is None:
-                raise ValueError("The filter size and kernel size should be set for Conv2D layer.")
+                raise ValueError(
+                    "The filter size and kernel size should be set for Conv2D layer."
+                )
             x = layers.Conv2D(
                 filters,
                 kernel_size,
@@ -290,11 +295,15 @@ class EfficientNetBlock(layers.Layer):
                 kernel_initializer=kernel_initializer,
                 name=name + "_conv",
             )(x)
-        elif conv_type == 'depth':
+        elif conv_type == "depth":
             if filters is not None:
-                raise ValueError("Filter size shouldn't be set for DepthWiseConv2D layer.")
+                raise ValueError(
+                    "Filter size shouldn't be set for DepthWiseConv2D layer."
+                )
             if kernel_size is None or strides is None:
-                raise ValueError("The kernel size and strides should be set for DepthWiseConv2D layer.")
+                raise ValueError(
+                    "The kernel size and strides should be set for DepthWiseConv2D layer."
+                )
             x = layers.DepthwiseConv2D(
                 kernel_size,
                 strides=strides,
@@ -304,12 +313,12 @@ class EfficientNetBlock(layers.Layer):
                 name=name + "_dwconv",
             )(x)
         else:
-            raise ValueError("The 'conv_type' parameter should be set either to 'normal' or 'depth'")
+            raise ValueError(
+                "The 'conv_type' parameter should be set either to 'normal' or 'depth'"
+            )
 
         if bn_norm:
-            x = layers.BatchNormalization(
-                axis=BN_AXIS, name=name + "_bn"
-            )(x)
+            x = layers.BatchNormalization(axis=BN_AXIS, name=name + "_bn")(x)
         if activation is not None:
             x = layers.Activation(activation, name=name + "_activation")(x)
 
@@ -318,16 +327,18 @@ class EfficientNetBlock(layers.Layer):
     def __call__(self, inputs):
         filters = self.filters_in * self.expand_ratio
         if self.expand_ratio != 1:
-            x = EfficientNetBlock.conv_bn(x=inputs,
-                                          conv_type='normal',
-                                          filters=filters,
-                                          kernel_size=1,
-                                          padding="same",
-                                          use_bias=False,
-                                          kernel_initializer=CONV_KERNEL_INITIALIZER,
-                                          bn_norm=True,
-                                          activation=self.activation,
-                                          name=self.name + '_expand')
+            x = EfficientNetBlock.conv_bn(
+                x=inputs,
+                conv_type="normal",
+                filters=filters,
+                kernel_size=1,
+                padding="same",
+                use_bias=False,
+                kernel_initializer=CONV_KERNEL_INITIALIZER,
+                bn_norm=True,
+                activation=self.activation,
+                name=self.name + "_expand",
+            )
         else:
             x = inputs
 
@@ -341,22 +352,26 @@ class EfficientNetBlock(layers.Layer):
         else:
             conv_pad = "same"
 
-        x = EfficientNetBlock.conv_bn(x=x,
-                                      conv_type='depth',
-                                      filters=None,
-                                      kernel_size=self.kernel_size,
-                                      strides=self.strides,
-                                      padding=conv_pad,
-                                      use_bias=False,
-                                      kernel_initializer=CONV_KERNEL_INITIALIZER,
-                                      bn_norm=True,
-                                      activation=self.activation,
-                                      name=self.name)
+        x = EfficientNetBlock.conv_bn(
+            x=x,
+            conv_type="depth",
+            filters=None,
+            kernel_size=self.kernel_size,
+            strides=self.strides,
+            padding=conv_pad,
+            use_bias=False,
+            kernel_initializer=CONV_KERNEL_INITIALIZER,
+            bn_norm=True,
+            activation=self.activation,
+            name=self.name,
+        )
 
         # Squeeze and Excitation phase
         if 0 < self.se_ratio <= 1:
             filters_se = max(1, int(self.filters_in * self.se_ratio))
-            se = layers.GlobalAveragePooling2D(name=self.name + "_se_squeeze")(x)
+            se = layers.GlobalAveragePooling2D(name=self.name + "_se_squeeze")(
+                x
+            )
             if BN_AXIS == 1:
                 se_shape = (filters, 1, 1)
             else:
@@ -381,21 +396,29 @@ class EfficientNetBlock(layers.Layer):
             x = layers.multiply([x, se], name=self.name + "_se_excite")
 
         # Output phase
-        x = EfficientNetBlock.conv_bn(x=x,
-                                      conv_type='normal',
-                                      filters=self.filters_out,
-                                      kernel_size=1,
-                                      padding="same",
-                                      use_bias=False,
-                                      kernel_initializer=CONV_KERNEL_INITIALIZER,
-                                      bn_norm=True,
-                                      activation=None,
-                                      name=self.name + '_project')
+        x = EfficientNetBlock.conv_bn(
+            x=x,
+            conv_type="normal",
+            filters=self.filters_out,
+            kernel_size=1,
+            padding="same",
+            use_bias=False,
+            kernel_initializer=CONV_KERNEL_INITIALIZER,
+            bn_norm=True,
+            activation=None,
+            name=self.name + "_project",
+        )
 
-        if self.id_skip and self.strides == 1 and self.filters_in == self.filters_out:
+        if (
+            self.id_skip
+            and self.strides == 1
+            and self.filters_in == self.filters_out
+        ):
             if self.drop_rate > 0:
                 x = layers.Dropout(
-                    self.drop_rate, noise_shape=(None, 1, 1, 1), name=self.name + "_drop"
+                    self.drop_rate,
+                    noise_shape=(None, 1, 1, 1),
+                    name=self.name + "_drop",
                 )(x)
             x = layers.add([x, inputs], name=self.name + "_add")
 
@@ -403,17 +426,17 @@ class EfficientNetBlock(layers.Layer):
 
     def get_config(self):
         return {
-            'filters_in': self.filters_in,
-            'filters_out': self.filters_out,
-            'kernel_size': self.kernel_size,
-            'strides': self.strides,
-            'activation': self.activation,
-            'expand_ratio': self.expand_ratio,
-            'se_ratio': self.se_ratio,
-            'id_skip': self.id_skip,
-            'drop_rate': self.drop_rate,
-            'name': self.name,
-            'trainable': self.trainable
+            "filters_in": self.filters_in,
+            "filters_out": self.filters_out,
+            "kernel_size": self.kernel_size,
+            "strides": self.strides,
+            "activation": self.activation,
+            "expand_ratio": self.expand_ratio,
+            "se_ratio": self.se_ratio,
+            "id_skip": self.id_skip,
+            "drop_rate": self.drop_rate,
+            "name": self.name,
+            "trainable": self.trainable,
         }
 
 
@@ -465,27 +488,28 @@ class EfficientNet(keras.Model):
       ValueError: if `classifier_activation` is not `softmax` or `None` when
         using a pretrained top layer.
     """
-    def __init__(self,
-                 include_rescaling,
-                 include_top,
-                 width_coefficient,
-                 depth_coefficient,
-                 default_size,
-                 dropout_rate=0.2,
-                 drop_connect_rate=0.2,
-                 depth_divisor=8,
-                 activation="swish",
-                 blocks_args="default",
-                 model_name="efficientnet",
-                 weights=None,
-                 input_shape=(None, None, 3),
-                 input_tensor=None,
-                 pooling=None,
-                 num_classes=None,
-                 classifier_activation="softmax",
-                 **kwargs
-                 ):
 
+    def __init__(
+        self,
+        include_rescaling,
+        include_top,
+        width_coefficient,
+        depth_coefficient,
+        default_size,
+        dropout_rate=0.2,
+        drop_connect_rate=0.2,
+        depth_divisor=8,
+        activation="swish",
+        blocks_args="default",
+        model_name="efficientnet",
+        weights=None,
+        input_shape=(None, None, 3),
+        input_tensor=None,
+        pooling=None,
+        num_classes=None,
+        classifier_activation="softmax",
+        **kwargs,
+    ):
         blocks_args_type = blocks_args
 
         if blocks_args == "default":
@@ -518,38 +542,47 @@ class EfficientNet(keras.Model):
             # Use common rescaling strategy across keras_cv
             x = layers.Rescaling(1.0 / 255.0)(x)
 
-        x = layers.ZeroPadding2D(padding=correct_pad(x, 3), name="stem_conv_pad")(x)
+        x = layers.ZeroPadding2D(
+            padding=correct_pad(x, 3), name="stem_conv_pad"
+        )(x)
 
-        x = EfficientNetBlock.conv_bn(x=x,
-                                      conv_type='normal',
-                                      filters=self.round_filters(32,
-                                                                 width_coefficient,
-                                                                 depth_divisor),
-                                      kernel_size=3,
-                                      strides=2,
-                                      padding="valid",
-                                      use_bias=False,
-                                      kernel_initializer=CONV_KERNEL_INITIALIZER,
-                                      bn_norm=True,
-                                      activation=activation,
-                                      name="stem")
+        x = EfficientNetBlock.conv_bn(
+            x=x,
+            conv_type="normal",
+            filters=self.round_filters(32, width_coefficient, depth_divisor),
+            kernel_size=3,
+            strides=2,
+            padding="valid",
+            use_bias=False,
+            kernel_initializer=CONV_KERNEL_INITIALIZER,
+            bn_norm=True,
+            activation=activation,
+            name="stem",
+        )
 
         # Build blocks
         blocks_args = copy.deepcopy(blocks_args)
 
         b = 0
-        blocks = float(sum(self.round_repeats(args["repeats"], depth_coefficient) for args in blocks_args))
+        blocks = float(
+            sum(
+                self.round_repeats(args["repeats"], depth_coefficient)
+                for args in blocks_args
+            )
+        )
         for i, args in enumerate(blocks_args):
             assert args["repeats"] > 0
             # Update block input and output filters based on depth multiplier.
-            args["filters_in"] = self.round_filters(args["filters_in"],
-                                                    width_coefficient,
-                                                    depth_divisor)
-            args["filters_out"] = self.round_filters(args["filters_out"],
-                                                     width_coefficient,
-                                                     depth_divisor)
+            args["filters_in"] = self.round_filters(
+                args["filters_in"], width_coefficient, depth_divisor
+            )
+            args["filters_out"] = self.round_filters(
+                args["filters_out"], width_coefficient, depth_divisor
+            )
 
-            for j in range(self.round_repeats(args.pop("repeats"), depth_coefficient)):
+            for j in range(
+                self.round_repeats(args.pop("repeats"), depth_coefficient)
+            ):
                 # The first block needs to take care of stride and filter size
                 # increase.
                 if j > 0:
@@ -564,18 +597,18 @@ class EfficientNet(keras.Model):
                 b += 1
 
         # Build top
-        x = EfficientNetBlock.conv_bn(x=x,
-                                      conv_type='normal',
-                                      filters=self.round_filters(1280,
-                                                                 width_coefficient,
-                                                                 depth_divisor),
-                                      kernel_size=1,
-                                      padding="same",
-                                      use_bias=False,
-                                      kernel_initializer=CONV_KERNEL_INITIALIZER,
-                                      bn_norm=True,
-                                      activation=activation,
-                                      name="top")
+        x = EfficientNetBlock.conv_bn(
+            x=x,
+            conv_type="normal",
+            filters=self.round_filters(1280, width_coefficient, depth_divisor),
+            kernel_size=1,
+            padding="same",
+            use_bias=False,
+            kernel_initializer=CONV_KERNEL_INITIALIZER,
+            bn_norm=True,
+            activation=activation,
+            name="top",
+        )
 
         if include_top:
             x = layers.GlobalAveragePooling2D(name="avg_pool")(x)
@@ -596,10 +629,7 @@ class EfficientNet(keras.Model):
         inputs = img_input
 
         # Create model.
-        super().__init__(inputs=inputs,
-                         outputs=x,
-                         name=model_name,
-                         **kwargs)
+        super().__init__(inputs=inputs, outputs=x, name=model_name, **kwargs)
 
         # Load weights.
         if weights is not None:
@@ -637,23 +667,23 @@ class EfficientNet(keras.Model):
 
     def get_config(self):
         return {
-            'include_rescaling': self.include_rescaling,
-            'include_top': self.include_top,
-            'width_coefficient': self.width_coefficient,
-            'depth_coefficient': self.depth_coefficient,
-            'default_size': self.default_size,
-            'dropout_rate': self.dropout_rate,
-            'drop_connect_rate': self.drop_connect_rate,
-            'depth_divisor': self.depth_divisor,
-            'activation': self.activation,
-            'blocks_args': self.blocks_args,
-            'input_tensor': self.input_tensor,
-            'input_shape': self.input_shape[1:],
-            'model_name': self.name,
-            'pooling': self.pooling,
-            'num_classes': self.num_classes,
-            'classifier_activation': self.classifier_activation,
-            'trainable': self.trainable,
+            "include_rescaling": self.include_rescaling,
+            "include_top": self.include_top,
+            "width_coefficient": self.width_coefficient,
+            "depth_coefficient": self.depth_coefficient,
+            "default_size": self.default_size,
+            "dropout_rate": self.dropout_rate,
+            "drop_connect_rate": self.drop_connect_rate,
+            "depth_divisor": self.depth_divisor,
+            "activation": self.activation,
+            "blocks_args": self.blocks_args,
+            "input_tensor": self.input_tensor,
+            "input_shape": self.input_shape[1:],
+            "model_name": self.name,
+            "pooling": self.pooling,
+            "num_classes": self.num_classes,
+            "classifier_activation": self.classifier_activation,
+            "trainable": self.trainable,
         }
 
     @classmethod
@@ -662,17 +692,17 @@ class EfficientNet(keras.Model):
 
 
 def EfficientNetB0(
-        *,
-        include_rescaling,
-        include_top,
-        num_classes=None,
-        weights=None,
-        input_shape=(None, None, 3),
-        input_tensor=None,
-        pooling=None,
-        classifier_activation="softmax",
-        name="efficientnetb0",
-        **kwargs,
+    *,
+    include_rescaling,
+    include_top,
+    num_classes=None,
+    weights=None,
+    input_shape=(None, None, 3),
+    input_tensor=None,
+    pooling=None,
+    classifier_activation="softmax",
+    name="efficientnetb0",
+    **kwargs,
 ):
     return EfficientNet(
         include_rescaling,
@@ -693,17 +723,17 @@ def EfficientNetB0(
 
 
 def EfficientNetB1(
-        *,
-        include_rescaling,
-        include_top,
-        num_classes=None,
-        weights=None,
-        input_shape=(None, None, 3),
-        input_tensor=None,
-        pooling=None,
-        classifier_activation="softmax",
-        name="efficientnetb1",
-        **kwargs,
+    *,
+    include_rescaling,
+    include_top,
+    num_classes=None,
+    weights=None,
+    input_shape=(None, None, 3),
+    input_tensor=None,
+    pooling=None,
+    classifier_activation="softmax",
+    name="efficientnetb1",
+    **kwargs,
 ):
     return EfficientNet(
         include_rescaling,
@@ -724,17 +754,17 @@ def EfficientNetB1(
 
 
 def EfficientNetB2(
-        *,
-        include_rescaling,
-        include_top,
-        num_classes=None,
-        weights=None,
-        input_shape=(None, None, 3),
-        input_tensor=None,
-        pooling=None,
-        classifier_activation="softmax",
-        name="efficientnetb2",
-        **kwargs,
+    *,
+    include_rescaling,
+    include_top,
+    num_classes=None,
+    weights=None,
+    input_shape=(None, None, 3),
+    input_tensor=None,
+    pooling=None,
+    classifier_activation="softmax",
+    name="efficientnetb2",
+    **kwargs,
 ):
     return EfficientNet(
         include_rescaling,
@@ -755,17 +785,17 @@ def EfficientNetB2(
 
 
 def EfficientNetB3(
-        *,
-        include_rescaling,
-        include_top,
-        num_classes=None,
-        weights=None,
-        input_shape=(None, None, 3),
-        input_tensor=None,
-        pooling=None,
-        classifier_activation="softmax",
-        name="efficientnetb3",
-        **kwargs,
+    *,
+    include_rescaling,
+    include_top,
+    num_classes=None,
+    weights=None,
+    input_shape=(None, None, 3),
+    input_tensor=None,
+    pooling=None,
+    classifier_activation="softmax",
+    name="efficientnetb3",
+    **kwargs,
 ):
     return EfficientNet(
         include_rescaling,
@@ -786,17 +816,17 @@ def EfficientNetB3(
 
 
 def EfficientNetB4(
-        *,
-        include_rescaling,
-        include_top,
-        num_classes=None,
-        weights=None,
-        input_shape=(None, None, 3),
-        input_tensor=None,
-        pooling=None,
-        classifier_activation="softmax",
-        name="efficientnetb4",
-        **kwargs,
+    *,
+    include_rescaling,
+    include_top,
+    num_classes=None,
+    weights=None,
+    input_shape=(None, None, 3),
+    input_tensor=None,
+    pooling=None,
+    classifier_activation="softmax",
+    name="efficientnetb4",
+    **kwargs,
 ):
     return EfficientNet(
         include_rescaling,
@@ -817,17 +847,17 @@ def EfficientNetB4(
 
 
 def EfficientNetB5(
-        *,
-        include_rescaling,
-        include_top,
-        num_classes=None,
-        weights=None,
-        input_shape=(None, None, 3),
-        input_tensor=None,
-        pooling=None,
-        classifier_activation="softmax",
-        name="efficientnetb5",
-        **kwargs,
+    *,
+    include_rescaling,
+    include_top,
+    num_classes=None,
+    weights=None,
+    input_shape=(None, None, 3),
+    input_tensor=None,
+    pooling=None,
+    classifier_activation="softmax",
+    name="efficientnetb5",
+    **kwargs,
 ):
     return EfficientNet(
         include_rescaling,
@@ -848,17 +878,17 @@ def EfficientNetB5(
 
 
 def EfficientNetB6(
-        *,
-        include_rescaling,
-        include_top,
-        num_classes=None,
-        weights=None,
-        input_shape=(None, None, 3),
-        input_tensor=None,
-        pooling=None,
-        classifier_activation="softmax",
-        name="efficientnetb6",
-        **kwargs,
+    *,
+    include_rescaling,
+    include_top,
+    num_classes=None,
+    weights=None,
+    input_shape=(None, None, 3),
+    input_tensor=None,
+    pooling=None,
+    classifier_activation="softmax",
+    name="efficientnetb6",
+    **kwargs,
 ):
     return EfficientNet(
         include_rescaling,
@@ -879,17 +909,17 @@ def EfficientNetB6(
 
 
 def EfficientNetB7(
-        *,
-        include_rescaling,
-        include_top,
-        num_classes=None,
-        weights=None,
-        input_shape=(None, None, 3),
-        input_tensor=None,
-        pooling=None,
-        classifier_activation="softmax",
-        name="efficientnetb7",
-        **kwargs,
+    *,
+    include_rescaling,
+    include_top,
+    num_classes=None,
+    weights=None,
+    input_shape=(None, None, 3),
+    input_tensor=None,
+    pooling=None,
+    classifier_activation="softmax",
+    name="efficientnetb7",
+    **kwargs,
 ):
     return EfficientNet(
         include_rescaling,
