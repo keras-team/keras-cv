@@ -394,9 +394,9 @@ class EfficientNetBlock(layers.Layer):
         if self.id_skip and self.strides == 1 and self.filters_in == self.filters_out:
             if self.drop_rate > 0:
                 x = layers.Dropout(
-                    self.drop_rate, noise_shape=(None, 1, 1, 1), name=self.name + "drop"
+                    self.drop_rate, noise_shape=(None, 1, 1, 1), name=self.name + "_drop"
                 )(x)
-            x = layers.add([x, inputs], name=self.name + "add")
+            x = layers.add([x, inputs], name=self.name + "_add")
 
         return x
 
