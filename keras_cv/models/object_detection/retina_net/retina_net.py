@@ -200,8 +200,11 @@ class RetinaNet(keras.Model):
             )
         )
 
-        self.box_head = box_head or layers_lib.PredictionHead(
-            output_filters=9 * 4, bias_initializer="zeros"
+        self.box_head = (
+            box_head
+            or keras_cv.models.object_detection.retina_net.prediction_head.PredictionHead(
+                output_filters=9 * 4, bias_initializer="zeros"
+            )
         )
 
     def make_predict_function(self, force=False):
