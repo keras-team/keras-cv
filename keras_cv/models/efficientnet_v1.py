@@ -314,7 +314,7 @@ class EfficientNetBlock(layers.Layer):
 
         return x
 
-    def call(self, inputs):
+    def __call__(self, inputs):
         filters = self.filters_in * self.expand_ratio
         if self.expand_ratio != 1:
             x = EfficientNetBlock.conv_bn(x=inputs,
@@ -360,7 +360,7 @@ class EfficientNetBlock(layers.Layer):
                 se_shape = (filters, 1, 1)
             else:
                 se_shape = (1, 1, filters)
-            se = layers.Reshape(se_shape, name=self.name + "se_reshape")(se)
+            se = layers.Reshape(se_shape, name=self.name + "_se_reshape")(se)
             se = layers.Conv2D(
                 filters_se,
                 1,
@@ -377,7 +377,7 @@ class EfficientNetBlock(layers.Layer):
                 kernel_initializer=CONV_KERNEL_INITIALIZER,
                 name=self.name + "_se_expand",
             )(se)
-            x = layers.multiply([x, se], name=self.name + "se_excite")
+            x = layers.multiply([x, se], name=self.name + "_se_excite")
 
         # Output phase
         x = EfficientNetBlock.conv_bn(x=x,
@@ -560,7 +560,7 @@ class EfficientNet(keras.Model):
                 x = EfficientNetBlock(
                     activation=activation,
                     drop_rate=drop_connect_rate * b / blocks,
-                    name="block{}{}_".format(i + 1, chr(j + 97)),
+                    name="block{}{}".format(i + 1, chr(j + 97)),
                     **args,
                 )(x)
                 b += 1
