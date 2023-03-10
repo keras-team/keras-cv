@@ -13,66 +13,18 @@
 # limitations under the License.
 
 import tensorflow as tf
-from keras import backend
 
-from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
-    BaseImageAugmentationLayer,
+from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer import (
+    VectorizedBaseImageAugmentationLayer,
 )
-from keras_cv.utils import preprocessing
-
-
-def check_fill_mode_and_interpolation(fill_mode, interpolation):
-    if fill_mode not in {"reflect", "wrap", "constant", "nearest"}:
-        raise NotImplementedError(
-            f"Unknown `fill_mode` {fill_mode}. Only `reflect`, `wrap`, "
-            "`constant` and `nearest` are supported."
-        )
-    if interpolation not in {"nearest", "bilinear"}:
-        raise NotImplementedError(
-            f"Unknown `interpolation` {interpolation}. Only `nearest` and "
-            "`bilinear` are supported."
-        )
-
-
-def get_translation_matrix(translations, name=None):
-    """Returns projective transform(s) for the given translation(s).
-
-    Args:
-      translations: A matrix of 2-element lists representing `[dx, dy]`
-        to translate for each image (for a batch of images).
-      name: The name of the op.
-
-    Returns:
-      A tensor of shape `(num_images, 8)` projective transforms which can be
-        given to `transform`.
-    """
-    with backend.name_scope(name or "translation_matrix"):
-        num_translations = tf.shape(translations)[0]
-        # The translation matrix looks like:
-        #     [[1 0 -dx]
-        #      [0 1 -dy]
-        #      [0 0 1]]
-        # where the last entry is implicit.
-        # Translation matrices are always float32.
-        return tf.concat(
-            values=[
-                tf.ones((num_translations, 1), tf.float32),
-                tf.zeros((num_translations, 1), tf.float32),
-                -translations[:, 0, None],
-                tf.zeros((num_translations, 1), tf.float32),
-                tf.ones((num_translations, 1), tf.float32),
-                -translations[:, 1, None],
-                tf.zeros((num_translations, 2), tf.float32),
-            ],
-            axis=1,
-        )
-
+from keras_cv.utils import preprocessing as preprocessing_utils
 
 H_AXIS = -3
 W_AXIS = -2
 
 
-class RandomTranslation(BaseImageAugmentationLayer):
+@tf.keras.utils.register_keras_serializable(package="keras_cv")
+class RandomTranslation(VectorizedBaseImageAugmentationLayer):
     """A preprocessing layer which randomly translates images during training.
 
     This layer will apply random translations to each image during training,
@@ -173,72 +125,72 @@ class RandomTranslation(BaseImageAugmentationLayer):
                 f"got {width_factor}"
             )
 
-        check_fill_mode_and_interpolation(fill_mode, interpolation)
+        preprocessing_utils.check_fill_mode_and_interpolation(
+            fill_mode, interpolation
+        )
 
         self.fill_mode = fill_mode
         self.fill_value = fill_value
         self.interpolation = interpolation
         self.seed = seed
 
-    def augment_image(self, image, transformation, **kwargs):
-        """Translated inputs with random ops."""
-        # The transform op only accepts rank 4 inputs, so if we have an
-        # unbatched image, we need to temporarily expand dims to a batch.
-        original_shape = image.shape
-        inputs = tf.expand_dims(image, 0)
-
-        inputs_shape = tf.shape(inputs)
-        img_hd = tf.cast(inputs_shape[H_AXIS], tf.float32)
-        img_wd = tf.cast(inputs_shape[W_AXIS], tf.float32)
-        height_translation = transformation["height_translation"]
-        width_translation = transformation["width_translation"]
-        height_translation = height_translation * img_hd
-        width_translation = width_translation * img_wd
-        translations = tf.cast(
-            tf.concat([width_translation, height_translation], axis=1),
-            dtype=tf.float32,
-        )
-        output = preprocessing.transform(
-            inputs,
-            get_translation_matrix(translations),
-            interpolation=self.interpolation,
-            fill_mode=self.fill_mode,
-            fill_value=self.fill_value,
-        )
-
-        output = tf.squeeze(output, 0)
-        output.set_shape(original_shape)
-        return output
-
-    def get_random_transformation(self, image=None, **kwargs):
-        batch_size = 1
-        height_translation = self._random_generator.random_uniform(
+    def get_random_transformation_batch(self, batch_size, **kwargs):
+        height_translations = self._random_generator.random_uniform(
             shape=[batch_size, 1],
             minval=self.height_lower,
             maxval=self.height_upper,
             dtype=tf.float32,
         )
-        width_translation = self._random_generator.random_uniform(
+        width_translations = self._random_generator.random_uniform(
             shape=[batch_size, 1],
             minval=self.width_lower,
             maxval=self.width_upper,
             dtype=tf.float32,
         )
         return {
-            "height_translation": height_translation,
-            "width_translation": width_translation,
+            "height_translations": height_translations,
+            "width_translations": width_translations,
         }
 
-    def _batch_augment(self, inputs):
-        # Change to vectorized_map for better performance, as well as work
-        # around issue for different tensorspec between inputs and outputs.
-        return tf.vectorized_map(self._augment, inputs)
+    def augment_ragged_image(self, image, transformation, **kwargs):
+        image = tf.expand_dims(image, axis=0)
+        height_translations = transformation["height_translations"]
+        width_translations = transformation["width_translations"]
+        transformation = {
+            "height_translations": tf.expand_dims(height_translations, axis=0),
+            "width_translations": tf.expand_dims(width_translations, axis=0),
+        }
+        image = self.augment_images(
+            images=image, transformations=transformation, **kwargs
+        )
+        return tf.squeeze(image, axis=0)
 
-    def augment_label(self, label, transformation, **kwargs):
-        return label
+    def augment_images(self, images, transformations, **kwargs):
+        """Translated inputs with random ops."""
+        original_shape = images.shape
+        inputs_shape = tf.shape(images)
+        img_hd = tf.cast(inputs_shape[H_AXIS], tf.float32)
+        img_wd = tf.cast(inputs_shape[W_AXIS], tf.float32)
+        height_translations = transformations["height_translations"]
+        width_translations = transformations["width_translations"]
+        height_translations = height_translations * img_hd
+        width_translations = width_translations * img_wd
+        translations = tf.cast(
+            tf.concat([width_translations, height_translations], axis=1),
+            dtype=tf.float32,
+        )
+        output = preprocessing_utils.transform(
+            images,
+            preprocessing_utils.get_translation_matrix(translations),
+            interpolation=self.interpolation,
+            fill_mode=self.fill_mode,
+            fill_value=self.fill_value,
+        )
+        output.set_shape(original_shape)
+        return output
 
-    def compute_output_shape(self, input_shape):
-        return input_shape
+    def augment_labels(self, labels, transformations, **kwargs):
+        return labels
 
     def get_config(self):
         config = {
@@ -251,3 +203,7 @@ class RandomTranslation(BaseImageAugmentationLayer):
         }
         base_config = super().get_config()
         return dict(list(base_config.items()) + list(config.items()))
+
+    @classmethod
+    def from_config(cls, config):
+        return cls(**config)
