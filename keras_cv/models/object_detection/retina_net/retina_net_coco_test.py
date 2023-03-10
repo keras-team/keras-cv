@@ -34,7 +34,7 @@ class RetinaNetTest(tf.test.TestCase):
 
     def test_fit_coco_metrics(self):
         retina_net = keras_cv.models.RetinaNet(
-            classes=2,
+            num_classes=2,
             bounding_box_format="xywh",
             backbone=keras_cv.models.ResNet50(
                 include_top=False, include_rescaling=False
