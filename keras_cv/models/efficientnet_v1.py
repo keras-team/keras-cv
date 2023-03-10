@@ -314,7 +314,7 @@ class EfficientNetBlock(layers.Layer):
 
         return x
 
-    def __call__(self, inputs):
+    def call(self, inputs):
         filters = self.filters_in * self.expand_ratio
         if self.expand_ratio != 1:
             x = EfficientNetBlock.conv_bn(x=inputs,
