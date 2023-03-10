@@ -19,10 +19,10 @@ import tensorflow.keras.initializers as initializers
 
 from keras_cv import bounding_box
 from keras_cv.bounding_box import iou as iou_lib
-from keras_cv.metrics.coco import utils
+from keras_cv.metrics.object_detection import utils
+import numpy as np
 
-
-class BoxRecall(keras.metrics.Metric):
+class BoxRecall(keras.metrics.PyMetric):
     """BoxRecall computes recall based on varying true positive IoU thresholds.
 
     BoxRecall is analagous to traditional Recall.  The primary distinction is
@@ -122,8 +122,12 @@ class BoxRecall(keras.metrics.Metric):
             self.ground_truth_boxes += y_true['boxes'].shape[0]
 
     def true_positives_for_image(self, y_true, y_pred):
-        ious = iou_lib.compute_iou(y_true, y_pred, bounding_box_format=self.bounding_box_format)
-        recalls_for_image = np.zeros((self.num_thresholds))
+        ious = iou_lib.compute_iou(y_pred['boxes'], y_true['boxes'], bounding_box_format=self.bounding_box_format)
+
+        # [num_gts]
+        max_ious = tf.math.reduce_max(ious, axis=-1)
+        matches = (max_ious > tf.constant(self.iou_thresholds)[None, :])
+        return tf.math.reduce_sum(tf.cast(matches, tf.int32), axis=-1)
 
     def result(self):
         pass
