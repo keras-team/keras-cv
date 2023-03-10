@@ -647,7 +647,7 @@ class EfficientNet(keras.Model):
             'depth_divisor': self.depth_divisor,
             'activation': self.activation,
             'blocks_args': self.block_args,
-            'repeats': self.blocks,
+            'repeats': self.repeats,
             'input_tensor': self.input_tensor,
             'input_shape': self.input_shape[1:],
             'model_name': self.name,
