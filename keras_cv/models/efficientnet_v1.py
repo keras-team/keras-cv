@@ -618,7 +618,6 @@ class EfficientNet(keras.Model):
         self.depth_divisor = depth_divisor
         self.activation = activation
         self.block_args = blocks_args
-        self.weights = weights
         self.input_tensor = input_tensor
         self.pooling = pooling
         self.num_classes = num_classes
