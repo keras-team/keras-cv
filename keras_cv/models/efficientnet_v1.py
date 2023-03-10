@@ -419,7 +419,7 @@ class EfficientNetBlock(layers.Layer):
     def from_config(cls, config):
         return cls(**config)
 
-
+@keras.utils.register_keras_serializable(package="keras_cv.models")
 class EfficientNet(keras.Model):
     """This class represents a Keras VGG16 model.
     Args:
