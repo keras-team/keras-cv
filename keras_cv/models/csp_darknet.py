@@ -23,6 +23,7 @@ import types
 
 import tensorflow as tf
 from tensorflow import keras
+from tensorflow.keras import backend
 from tensorflow.keras import layers
 
 from keras_cv.models import utils
@@ -36,10 +37,9 @@ from keras_cv.models.__internal__.darknet_utils import (
 from keras_cv.models.weights import parse_weights
 
 
-@keras.utils.register_keras_serializable(package="keras_cv.models")
-class CspDarknet(keras.Model):
-
-    """Instantiates the CSPDarkNet architecture.
+@keras.utils.regester_keras_serializable(package="keras_cv.models")
+class CSPDarkNet(keras.Model):
+    """This class Instantiates the CSPDarkNet architecture.
 
     Although the DarkNet architecture is commonly used for detection tasks, it is
     possible to extract the intermediate dark2 to dark5 layers from the model for
@@ -58,13 +58,13 @@ class CspDarknet(keras.Model):
             this changes based the detection model being used.
         width_multiplier: A float value used to calculate the base width of the model
             this changes based the detection model being used.
-        include_rescaling: whether or not to Rescale the inputs.If set to True,
+        include_rescaling: bool ,whether or not to Rescale the inputs.If set to True,
             inputs will be passed through a `Rescaling(1/255.0)` layer.
-        include_top: whether to include the fully-connected layer at the top of
+        include_top: bool, whether to include the fully-connected layer at the top of
             the network.  If provided, `num_classes` must be provided.
         use_depthwise: a boolean value used to decide whether a depthwise conv block
             should be used over a regular darknet block. Defaults to False
-        num_classes: optional number of classes to classify images into, only to be
+        num_classes: optional int,optional number of classes to classify images into, only to be
             specified if `include_top` is True.
         weights: one of `None` (random initialization), a pretrained weight file
             path, or a reference to pre-trained weights (e.g. 'imagenet/classification')
@@ -87,6 +87,23 @@ class CspDarknet(keras.Model):
     Returns:
         A `keras.Model` instance.
     """
+
+    def __init__(
+        self,
+        depth_multiplier,
+        width_multiplier,
+        include_rescaling,
+        include_top,
+        use_depthwise=False,
+        num_classes=None,
+        weights=None,
+        input_shape=(None, None, 3),
+        input_tensor=None,
+        pooling=None,
+        classifier_activation="softmax",
+        name="CSPDarkNet",
+        **kwargs,
+    ):
 
     if weights and not tf.io.gfile.exists(weights):
         raise ValueError(
