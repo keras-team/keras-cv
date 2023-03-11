@@ -264,9 +264,9 @@ class MobileNetV3(keras.Model):
         stack_fn: a function that returns tensors passed through Inverted
             Residual Blocks.
         last_point_ch: the number of filters for the convolution layer.
-        include_rescaling: whether or not to rescale the inputs. If set to True,
+        include_rescaling: whether to rescale the inputs. If set to True,
             inputs will be passed through a `Rescaling(scale=1 / 255)`
-            layer. Defaults to True.
+            layer.
         include_top: whether to include the fully-connected layer at the top of the
             network. If provided, `num_classes` must be provided.
         num_classes: optional number of classes to classify images into. Only to be
@@ -303,7 +303,7 @@ class MobileNetV3(keras.Model):
         dropout_rate: a float between 0 and 1 denoting the fraction of input units to
             drop, defaults to 0.2.
         classifier_activation: the activation function to use, defaults to softmax.
-        name: (Optional) name to pass to the model, defaults to "MobileNetV3".
+        name: optional name to pass to the model, defaults to "MobileNetV3".
         **kwargs: Pass-through keyword arguments to `tf.keras.Model`.
 
     Returns:
