@@ -768,7 +768,6 @@ class RegNet(tf.keras.Model):
         self.num_classes = num_classes
         self.model_name = model_name
         self.input_tensor = input_tensor
-        self.input_shape = input_shape
         self.pooling = pooling
         self.classifier_activation = classifier_activation
 
