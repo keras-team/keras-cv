@@ -696,7 +696,7 @@ def apply_stage(x, block_type, depth, group_width, filters_in, filters_out, name
         name = str(backend.get_uid("stage"))
 
     if block_type == "X":
-        x = XBlock(
+        x = apply_XBlock(
             filters_in,
             filters_out,
             group_width,
@@ -704,14 +704,14 @@ def apply_stage(x, block_type, depth, group_width, filters_in, filters_out, name
             name=f"{name}_XBlock_0",
         )(x)
         for i in range(1, depth):
-            x = XBlock(
+            x = apply_XBlock(
                 filters_out,
                 filters_out,
                 group_width,
                 name=f"{name}_XBlock_{i}",
             )(x)
     elif block_type == "Y":
-        x = YBlock(
+        x = apply_YBlock(
             filters_in,
             filters_out,
             group_width,
@@ -719,14 +719,14 @@ def apply_stage(x, block_type, depth, group_width, filters_in, filters_out, name
             name=name + "_YBlock_0",
         )(x)
         for i in range(1, depth):
-            x = YBlock(
+            x = apply_YBlock(
                 filters_out,
                 filters_out,
                 group_width,
                 name=f"{name}_YBlock_{i}",
             )(x)
     elif block_type == "Z":
-        x = ZBlock(
+        x = apply_ZBlock(
             filters_in,
             filters_out,
             group_width,
@@ -734,7 +734,7 @@ def apply_stage(x, block_type, depth, group_width, filters_in, filters_out, name
             name=f"{name}_ZBlock_0",
         )(x)
         for i in range(1, depth):
-            x = ZBlock(
+            x = apply_ZBlock(
                 filters_out,
                 filters_out,
                 group_width,
@@ -887,7 +887,7 @@ class RegNet(tf.keras.Model):
             inputs=img_input, outputs=x, name=model_name, **kwargs
         )
 
-    # Load weights.
+        # Load weights.
         if weights is not None:
             self.load_weights(weights)
 
