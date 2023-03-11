@@ -19,7 +19,7 @@ Reference:
 """
 
 import tensorflow as tf
-#from tensorflow import keras
+from tensorflow import keras
 from tensorflow.keras import layers
 
 from keras_cv.models import utils
