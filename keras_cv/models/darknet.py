@@ -115,7 +115,7 @@ class DarkNet(keras.Model):
         A `keras.Model` instance.
     """
 
-    def __int__(
+    def __init__(
         self,
         blocks,
         include_rescaling,
@@ -227,7 +227,6 @@ class DarkNet(keras.Model):
         self.include_rescaling = include_rescaling
         self.include_top = include_top
         self.num_classes = num_classes
-        self.input_shape = input_shape
         self.input_tensor = input_tensor
         self.pooling = pooling
         self.classifier_activation = classifier_activation
@@ -238,7 +237,6 @@ class DarkNet(keras.Model):
             "include_rescaling": self.include_rescaling,
             "include_top": self.include_top,
             "num_classes": self.num_classes,
-            "weights": self.weights,
             "input_shape": self.input_shape[1:],
             "input_tensor": self.input_tensor,
             "pooling": self.pooling,
