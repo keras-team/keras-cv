@@ -255,7 +255,40 @@ BASE_DOCSTRING = """Instantiates the {name} architecture.
 """
 
 
-def Stem(name=None):
+def conv2d_bn(x,
+              filters,
+              kernel_size,
+              strides=1,
+              use_bias=False,
+              groups=1,
+              padding="valid",
+              kernel_initializer="he_normal",
+              batch_norm=True,
+              activation='relu',
+              name=""):
+    x = layers.Conv2D(
+        filters,
+        kernel_size,
+        strides=strides,
+        groups=groups,
+        use_bias=use_bias,
+        padding=padding,
+        kernel_initializer=kernel_initializer,
+        name=name,
+    )(x)
+
+    if batch_norm:
+        x = layers.BatchNormalization(
+            momentum=0.9, epsilon=1e-5, name=name + "_bn"
+        )(x)
+
+    if activation is not None:
+        x = layers.Activation(activation, name=name + f"_{activation}")(x)
+
+    return x
+
+
+def apply_stem(x, name=None):
     """Implementation of RegNet stem.
 
     (Common to all model variants)
@@ -268,26 +301,30 @@ def Stem(name=None):
     if name is None:
         name = "stem" + str(backend.get_uid("stem"))
 
-    def apply(x):
-        x = layers.Conv2D(
-            32,
-            (3, 3),
-            strides=2,
-            use_bias=False,
-            padding="same",
-            kernel_initializer="he_normal",
-            name=name + "_stem_conv",
-        )(x)
-        x = layers.BatchNormalization(
-            momentum=0.9, epsilon=1e-5, name=name + "_stem_bn"
-        )(x)
-        x = layers.ReLU(name=name + "_stem_relu")(x)
-        return x
+    x = conv2d_bn(x=x,
+                  filters=32,
+                  kernel_size=(3, 3),
+                  strides=2,
+                  padding="same",
+                  name=name + "_stem_conv")
 
-    return apply
+    # x = layers.Conv2D(
+    #     32,
+    #     (3, 3),
+    #     strides=2,
+    #     use_bias=False,
+    #     padding="same",
+    #     kernel_initializer="he_normal",
+    #     name=name + "_stem_conv",
+    # )(x)
+    # x = layers.BatchNormalization(
+    #     momentum=0.9, epsilon=1e-5, name=name + "_stem_bn"
+    # )(x)
+    # x = layers.ReLU(name=name + "_stem_relu")(x)
+    return x
 
 
-def XBlock(filters_in, filters_out, group_width, stride=1, name=None):
+def apply_XBlock(inputs, filters_in, filters_out, group_width, stride=1, name=None):
     """Implementation of X Block.
     References:
         - [Designing Network Design Spaces](https://arxiv.org/abs/2003.13678)
@@ -304,89 +341,114 @@ def XBlock(filters_in, filters_out, group_width, stride=1, name=None):
     if name is None:
         name = str(backend.get_uid("xblock"))
 
-    def apply(inputs):
-        if filters_in != filters_out and stride == 1:
-            raise ValueError(
-                f"Input filters({filters_in}) and output "
-                f"filters({filters_out}) "
-                f"are not equal for stride {stride}. Input and output filters "
-                f"must be equal for stride={stride}."
-            )
+    if filters_in != filters_out and stride == 1:
+        raise ValueError(
+            f"Input filters({filters_in}) and output "
+            f"filters({filters_out}) "
+            f"are not equal for stride {stride}. Input and output filters "
+            f"must be equal for stride={stride}."
+        )
 
         # Declare layers
-        groups = filters_out // group_width
+    groups = filters_out // group_width
 
-        if stride != 1:
-            skip = layers.Conv2D(
-                filters_out,
-                (1, 1),
-                strides=stride,
-                use_bias=False,
-                kernel_initializer="he_normal",
-                name=name + "_skip_1x1",
-            )(inputs)
-            skip = layers.BatchNormalization(
-                momentum=0.9, epsilon=1e-5, name=name + "_skip_bn"
-            )(skip)
-        else:
-            skip = inputs
+    if stride != 1:
+        skip = conv2d_bn(x=inputs,
+                         filters=filters_out,
+                         kernel_size=(1, 1),
+                         strides=stride,
+                         activation=None,
+                         name=name + "_skip_1x1")
+        # skip = layers.Conv2D(
+        #     filters_out,
+        #     (1, 1),
+        #     strides=stride,
+        #     use_bias=False,
+        #     kernel_initializer="he_normal",
+        #     name=name + "_skip_1x1",
+        # )(inputs)
+        # skip = layers.BatchNormalization(
+        #     momentum=0.9, epsilon=1e-5, name=name + "_skip_bn"
+        # )(skip)
+    else:
+        skip = inputs
 
-        # Build block
-        # conv_1x1_1
-        x = layers.Conv2D(
-            filters_out,
-            (1, 1),
-            use_bias=False,
-            kernel_initializer="he_normal",
-            name=name + "_conv_1x1_1",
-        )(inputs)
-        x = layers.BatchNormalization(
-            momentum=0.9, epsilon=1e-5, name=name + "_conv_1x1_1_bn"
-        )(x)
-        x = layers.ReLU(name=name + "_conv_1x1_1_relu")(x)
+    # Build block
+    # conv_1x1_1
+    x = conv2d_bn(x=inputs,
+                  filters=filters_out,
+                  kernel_size=(1, 1),
+                  name=name + "_conv_1x1_1")
+    # x = layers.Conv2D(
+    #     filters_out,
+    #     (1, 1),
+    #     use_bias=False,
+    #     kernel_initializer="he_normal",
+    #     name=name + "_conv_1x1_1",
+    # )(inputs)
+    # x = layers.BatchNormalization(
+    #     momentum=0.9, epsilon=1e-5, name=name + "_conv_1x1_1_bn"
+    # )(x)
+    # x = layers.ReLU(name=name + "_conv_1x1_1_relu")(x)
 
-        # conv_3x3
-        x = layers.Conv2D(
-            filters_out,
-            (3, 3),
-            use_bias=False,
-            strides=stride,
-            groups=groups,
-            padding="same",
-            kernel_initializer="he_normal",
-            name=name + "_conv_3x3",
-        )(x)
-        x = layers.BatchNormalization(
-            momentum=0.9, epsilon=1e-5, name=name + "_conv_3x3_bn"
-        )(x)
-        x = layers.ReLU(name=name + "_conv_3x3_relu")(x)
+    # conv_3x3
+    x = conv2d_bn(x=x,
+                  filters=filters_out,
+                  kernel_size=(3, 3),
+                  strides=stride,
+                  groups=groups,
+                  padding="same",
+                  name=name + "_conv_3x3")
+    # x = layers.Conv2D(
+    #     filters_out,
+    #     (3, 3),
+    #     use_bias=False,
+    #     strides=stride,
+    #     groups=groups,
+    #     padding="same",
+    #     kernel_initializer="he_normal",
+    #     name=name + "_conv_3x3",
+    # )(x)
+    # x = layers.BatchNormalization(
+    #     momentum=0.9, epsilon=1e-5, name=name + "_conv_3x3_bn"
+    # )(x)
+    # x = layers.ReLU(name=name + "_conv_3x3_relu")(x)
 
-        # conv_1x1_2
-        x = layers.Conv2D(
-            filters_out,
-            (1, 1),
-            use_bias=False,
-            kernel_initializer="he_normal",
-            name=name + "_conv_1x1_2",
-        )(x)
-        x = layers.BatchNormalization(
-            momentum=0.9, epsilon=1e-5, name=name + "_conv_1x1_2_bn"
-        )(x)
+    # conv_1x1_2
+    x = conv2d_bn(x=x,
+                  filters=filters_out,
+                  kernel_size=(1, 1),
+                  activation=None,
+                  name=name + "_conv_1x1_2")
+    # x = layers.Conv2D(
+    #     filters_out,
+    #     (1, 1),
+    #     use_bias=False,
+    #     kernel_initializer="he_normal",
+    #     name=name + "_conv_1x1_2",
+    # )(x)
+    # x = layers.BatchNormalization(
+    #     momentum=0.9, epsilon=1e-5, name=name + "_conv_1x1_2_bn"
+    # )(x)
+    # x = conv2d_bn(x=x,
+    #               filters=filters_out,
+    #               kernel_size=(1,1),
+    #               activation=None,
+    #               name=name + "_conv_3x3")
 
-        x = layers.ReLU(name=name + "_exit_relu")(x + skip)
+    x = layers.Activation('relu', name=name + "_exit_relu")(x + skip)
 
-        return x
-
-    return apply
+    return x
 
 
-def YBlock(
-    filters_in,
-    filters_out,
-    group_width,
-    stride=1,
-    squeeze_excite_ratio=0.25,
-    name=None,
+def apply_YBlock(
+        inputs,
+        filters_in,
+        filters_out,
+        group_width,
+        stride=1,
+        squeeze_excite_ratio=0.25,
+        name=None,
 ):
     """Implementation of Y Block.
     References:
@@ -405,94 +467,115 @@ def YBlock(
     if name is None:
         name = str(backend.get_uid("yblock"))
 
-    def apply(inputs):
-        if filters_in != filters_out and stride == 1:
-            raise ValueError(
-                f"Input filters({filters_in}) and output "
-                f"filters({filters_out}) "
-                f"are not equal for stride {stride}. Input and output filters "
-                f"must be equal for stride={stride}."
-            )
+    if filters_in != filters_out and stride == 1:
+        raise ValueError(
+            f"Input filters({filters_in}) and output "
+            f"filters({filters_out}) "
+            f"are not equal for stride {stride}. Input and output filters "
+            f"must be equal for stride={stride}."
+        )
 
-        groups = filters_out // group_width
+    groups = filters_out // group_width
 
-        if stride != 1:
-            skip = layers.Conv2D(
-                filters_out,
-                (1, 1),
-                strides=stride,
-                use_bias=False,
-                kernel_initializer="he_normal",
-                name=name + "_skip_1x1",
-            )(inputs)
-            skip = layers.BatchNormalization(
-                momentum=0.9, epsilon=1e-5, name=name + "_skip_bn"
-            )(skip)
-        else:
-            skip = inputs
+    if stride != 1:
+        skip = conv2d_bn(x=inputs,
+                         filters=filters_out,
+                         kernel_size=(1, 1),
+                         strides=stride,
+                         activation=None,
+                         name=name + "_skip_1x1")
+        # skip = layers.Conv2D(
+        #     filters_out,
+        #     (1, 1),
+        #     strides=stride,
+        #     use_bias=False,
+        #     kernel_initializer="he_normal",
+        #     name=name + "_skip_1x1",
+        # )(inputs)
+        # skip = layers.BatchNormalization(
+        #     momentum=0.9, epsilon=1e-5, name=name + "_skip_bn"
+        # )(skip)
+    else:
+        skip = inputs
 
-        # Build block
-        # conv_1x1_1
-        x = layers.Conv2D(
-            filters_out,
-            (1, 1),
-            use_bias=False,
-            kernel_initializer="he_normal",
-            name=name + "_conv_1x1_1",
-        )(inputs)
-        x = layers.BatchNormalization(
-            momentum=0.9, epsilon=1e-5, name=name + "_conv_1x1_1_bn"
-        )(x)
-        x = layers.ReLU(name=name + "_conv_1x1_1_relu")(x)
+    # Build block
+    # conv_1x1_1
+    x = conv2d_bn(x=inputs,
+                  filters=filters_out,
+                  kernel_size=(1, 1),
+                  name=name + "_conv_1x1_1")
+    # x = layers.Conv2D(
+    #     filters_out,
+    #     (1, 1),
+    #     use_bias=False,
+    #     kernel_initializer="he_normal",
+    #     name=name + "_conv_1x1_1",
+    # )(inputs)
+    # x = layers.BatchNormalization(
+    #     momentum=0.9, epsilon=1e-5, name=name + "_conv_1x1_1_bn"
+    # )(x)
+    # x = layers.ReLU(name=name + "_conv_1x1_1_relu")(x)
 
-        # conv_3x3
-        x = layers.Conv2D(
-            filters_out,
-            (3, 3),
-            use_bias=False,
-            strides=stride,
-            groups=groups,
-            padding="same",
-            kernel_initializer="he_normal",
-            name=name + "_conv_3x3",
-        )(x)
-        x = layers.BatchNormalization(
-            momentum=0.9, epsilon=1e-5, name=name + "_conv_3x3_bn"
-        )(x)
-        x = layers.ReLU(name=name + "_conv_3x3_relu")(x)
+    # conv_3x3
+    x = conv2d_bn(x=x,
+                  filters=filters_out,
+                  kernel_size=(3, 3),
+                  strides=stride,
+                  groups=groups,
+                  padding="same",
+                  name=name + "_conv_3x3")
+    # x = layers.Conv2D(
+    #     filters_out,
+    #     (3, 3),
+    #     use_bias=False,
+    #     strides=stride,
+    #     groups=groups,
+    #     padding="same",
+    #     kernel_initializer="he_normal",
+    #     name=name + "_conv_3x3",
+    # )(x)
+    # x = layers.BatchNormalization(
+    #     momentum=0.9, epsilon=1e-5, name=name + "_conv_3x3_bn"
+    # )(x)
+    # x = layers.ReLU(name=name + "_conv_3x3_relu")(x)
 
-        # Squeeze-Excitation block
-        x = SqueezeAndExcite2D(
-            filters_out, ratio=squeeze_excite_ratio, name=name
-        )(x)
+    # Squeeze-Excitation block
+    x = SqueezeAndExcite2D(
+        filters_out, ratio=squeeze_excite_ratio, name=name
+    )(x)
 
-        # conv_1x1_2
-        x = layers.Conv2D(
-            filters_out,
-            (1, 1),
-            use_bias=False,
-            kernel_initializer="he_normal",
-            name=name + "_conv_1x1_2",
-        )(x)
-        x = layers.BatchNormalization(
-            momentum=0.9, epsilon=1e-5, name=name + "_conv_1x1_2_bn"
-        )(x)
+    # conv_1x1_2
+    x = conv2d_bn(x=x,
+                  filters=filters_out,
+                  kernel_size=(1, 1),
+                  activation=None,
+                  name=name + "_conv_1x1_2")
 
-        x = layers.ReLU(name=name + "_exit_relu")(x + skip)
+    # x = layers.Conv2D(
+    #     filters_out,
+    #     (1, 1),
+    #     use_bias=False,
+    #     kernel_initializer="he_normal",
+    #     name=name + "_conv_1x1_2",
+    # )(x)
+    # x = layers.BatchNormalization(
+    #     momentum=0.9, epsilon=1e-5, name=name + "_conv_1x1_2_bn"
+    # )(x)
 
-        return x
+    x = layers.Activation('relu', name=name + "_exit_relu")(x + skip)
 
-    return apply
+    return x
 
 
-def ZBlock(
-    filters_in,
-    filters_out,
-    group_width,
-    stride=1,
-    squeeze_excite_ratio=0.25,
-    bottleneck_ratio=0.25,
-    name=None,
+def apply_ZBlock(
+        inputs,
+        filters_in,
+        filters_out,
+        group_width,
+        stride=1,
+        squeeze_excite_ratio=0.25,
+        bottleneck_ratio=0.25,
+        name=None,
 ):
     """Implementation of Z block.
 
@@ -513,74 +596,89 @@ def ZBlock(
     if name is None:
         name = str(backend.get_uid("zblock"))
 
-    def apply(inputs):
-        if filters_in != filters_out and stride == 1:
-            raise ValueError(
-                f"Input filters({filters_in}) and output filters({filters_out})"
-                f"are not equal for stride {stride}. Input and output filters "
-                f"must be equal for stride={stride}."
-            )
-
-        groups = filters_out // group_width
-
-        inv_btlneck_filters = int(filters_out / bottleneck_ratio)
-
-        # Build block
-        # conv_1x1_1
-        x = layers.Conv2D(
-            inv_btlneck_filters,
-            (1, 1),
-            use_bias=False,
-            kernel_initializer="he_normal",
-            name=name + "_conv_1x1_1",
-        )(inputs)
-        x = layers.BatchNormalization(
-            momentum=0.9, epsilon=1e-5, name=name + "_conv_1x1_1_bn"
-        )(x)
-        x = tf.nn.silu(x)
-
-        # conv_3x3
-        x = layers.Conv2D(
-            inv_btlneck_filters,
-            (3, 3),
-            use_bias=False,
-            strides=stride,
-            groups=groups,
-            padding="same",
-            kernel_initializer="he_normal",
-            name=name + "_conv_3x3",
-        )(x)
-        x = layers.BatchNormalization(
-            momentum=0.9, epsilon=1e-5, name=name + "_conv_3x3_bn"
-        )(x)
-        x = tf.nn.silu(x)
-
-        # Squeeze-Excitation block
-        x = SqueezeAndExcite2D(
-            inv_btlneck_filters, ratio=squeeze_excite_ratio, name=name
+    if filters_in != filters_out and stride == 1:
+        raise ValueError(
+            f"Input filters({filters_in}) and output filters({filters_out})"
+            f"are not equal for stride {stride}. Input and output filters "
+            f"must be equal for stride={stride}."
         )
 
-        # conv_1x1_2
-        x = layers.Conv2D(
-            filters_out,
-            (1, 1),
-            use_bias=False,
-            kernel_initializer="he_normal",
-            name=name + "_conv_1x1_2",
-        )(x)
-        x = layers.BatchNormalization(
-            momentum=0.9, epsilon=1e-5, name=name + "_conv_1x1_2_bn"
-        )(x)
+    groups = filters_out // group_width
 
-        if stride != 1:
-            return x
-        else:
-            return x + inputs
+    inv_btlneck_filters = int(filters_out / bottleneck_ratio)
 
-    return apply
+    # Build block
+    # conv_1x1_1
+    x = conv2d_bn(x=inputs,
+                  filters=inv_btlneck_filters,
+                  kernel_size=(1, 1),
+                  name=name + "_conv_1x1_1",
+                  activation='silu')
+    # x = layers.Conv2D(
+    #     inv_btlneck_filters,
+    #     (1, 1),
+    #     use_bias=False,
+    #     kernel_initializer="he_normal",
+    #     name=name + "_conv_1x1_1",
+    # )(inputs)
+    # x = layers.BatchNormalization(
+    #     momentum=0.9, epsilon=1e-5, name=name + "_conv_1x1_1_bn"
+    # )(x)
+    # x = tf.nn.silu(x)
+
+    # conv_3x3
+    x = conv2d_bn(x=x,
+                  filters=inv_btlneck_filters,
+                  kernel_size=(3, 3),
+                  strides=stride,
+                  groups=groups,
+                  padding="same",
+                  name=name + "_conv_3x3",
+                  activation='silu')
+    # x = layers.Conv2D(
+    #     inv_btlneck_filters,
+    #     (3, 3),
+    #     use_bias=False,
+    #     strides=stride,
+    #     groups=groups,
+    #     padding="same",
+    #     kernel_initializer="he_normal",
+    #     name=name + "_conv_3x3",
+    # )(x)
+    # x = layers.BatchNormalization(
+    #     momentum=0.9, epsilon=1e-5, name=name + "_conv_3x3_bn"
+    # )(x)
+    # x = tf.nn.silu(x)
+
+    # Squeeze-Excitation block
+    x = SqueezeAndExcite2D(
+        inv_btlneck_filters, ratio=squeeze_excite_ratio, name=name
+    )  # Bug: SqueezeAndExcite2D is not inclued
+
+    # conv_1x1_2
+    x = conv2d_bn(x=x,
+                  filters=filters_out,
+                  kernel_size=(1, 1),
+                  activation=None,
+                  name=name + "_conv_1x1_2")
+    # x = layers.Conv2D(
+    #     filters_out,
+    #     (1, 1),
+    #     use_bias=False,
+    #     kernel_initializer="he_normal",
+    #     name=name + "_conv_1x1_2",
+    # )(x)
+    # x = layers.BatchNormalization(
+    #     momentum=0.9, epsilon=1e-5, name=name + "_conv_1x1_2_bn"
+    # )(x)
+
+    if stride != 1:
+        return x
+    else:
+        return x + inputs
 
 
-def Stage(block_type, depth, group_width, filters_in, filters_out, name=None):
+def apply_stage(x, block_type, depth, group_width, filters_in, filters_out, name=None):
     """Implementation of Stage in RegNet.
 
     Args:
@@ -597,64 +695,60 @@ def Stage(block_type, depth, group_width, filters_in, filters_out, name=None):
     if name is None:
         name = str(backend.get_uid("stage"))
 
-    def apply(inputs):
-        x = inputs
-        if block_type == "X":
+    if block_type == "X":
+        x = XBlock(
+            filters_in,
+            filters_out,
+            group_width,
+            stride=2,
+            name=f"{name}_XBlock_0",
+        )(x)
+        for i in range(1, depth):
             x = XBlock(
-                filters_in,
+                filters_out,
                 filters_out,
                 group_width,
-                stride=2,
-                name=f"{name}_XBlock_0",
+                name=f"{name}_XBlock_{i}",
             )(x)
-            for i in range(1, depth):
-                x = XBlock(
-                    filters_out,
-                    filters_out,
-                    group_width,
-                    name=f"{name}_XBlock_{i}",
-                )(x)
-        elif block_type == "Y":
+    elif block_type == "Y":
+        x = YBlock(
+            filters_in,
+            filters_out,
+            group_width,
+            stride=2,
+            name=name + "_YBlock_0",
+        )(x)
+        for i in range(1, depth):
             x = YBlock(
-                filters_in,
+                filters_out,
                 filters_out,
                 group_width,
-                stride=2,
-                name=name + "_YBlock_0",
+                name=f"{name}_YBlock_{i}",
             )(x)
-            for i in range(1, depth):
-                x = YBlock(
-                    filters_out,
-                    filters_out,
-                    group_width,
-                    name=f"{name}_YBlock_{i}",
-                )(x)
-        elif block_type == "Z":
+    elif block_type == "Z":
+        x = ZBlock(
+            filters_in,
+            filters_out,
+            group_width,
+            stride=2,
+            name=f"{name}_ZBlock_0",
+        )(x)
+        for i in range(1, depth):
             x = ZBlock(
-                filters_in,
+                filters_out,
                 filters_out,
                 group_width,
-                stride=2,
-                name=f"{name}_ZBlock_0",
+                name=f"{name}_ZBlock_{i}",
             )(x)
-            for i in range(1, depth):
-                x = ZBlock(
-                    filters_out,
-                    filters_out,
-                    group_width,
-                    name=f"{name}_ZBlock_{i}",
-                )(x)
-        else:
-            raise NotImplementedError(
-                f"Block type `{block_type}` not recognized."
-                f"block_type must be one of (`X`, `Y`, `Z`). "
-            )
-        return x
-
-    return apply
+    else:
+        raise NotImplementedError(
+            f"Block type `{block_type}` not recognized."
+            f"block_type must be one of (`X`, `Y`, `Z`). "
+        )
+    return x
 
 
-def Head(num_classes=None, name=None, activation=None):
+def apply_head(x, num_classes=None, name=None, activation=None):
     """Implementation of classification head of RegNet.
 
     Args:
@@ -667,33 +761,31 @@ def Head(num_classes=None, name=None, activation=None):
     if name is None:
         name = str(backend.get_uid("head"))
 
-    def apply(x):
-        x = layers.GlobalAveragePooling2D(name=name + "_head_gap")(x)
-        x = layers.Dense(
-            num_classes, name=name + "head_dense", activation=activation
-        )(x)
-        return x
-
-    return apply
+    x = layers.GlobalAveragePooling2D(name=name + "_head_gap")(x)
+    x = layers.Dense(
+        num_classes, name=name + "head_dense", activation=activation
+    )(x)
+    return x
 
 
-def RegNet(
-    depths,
-    widths,
-    group_width,
-    block_type,
-    include_rescaling,
-    include_top,
-    num_classes=None,
-    model_name="regnet",
-    weights=None,
-    input_tensor=None,
-    input_shape=(None, None, 3),
-    pooling=None,
-    classifier_activation="softmax",
-    **kwargs,
-):
-    """Instantiates RegNet architecture given specific configuration.
+class RegNet(keras.Model):
+    def __init__(self,
+                 depths,
+                 widths,
+                 group_width,
+                 block_type,
+                 include_rescaling,
+                 include_top,
+                 num_classes=None,
+                 model_name="regnet",
+                 weights=None,
+                 input_tensor=None,
+                 input_shape=(None, None, 3),
+                 pooling=None,
+                 classifier_activation="softmax",
+                 **kwargs,
+                 ):
+        """Instantiates RegNet architecture given specific configuration.
 
     Args:
         depths: An iterable containing depths for each individual stages.
@@ -738,84 +830,81 @@ def RegNet(
     Returns:
       A `keras.Model` instance.
     """
-    if not (weights is None or tf.io.gfile.exists(weights)):
-        raise ValueError(
-            "The `weights` argument should be either "
-            "`None` (random initialization) "
-            "or the path to the weights file to be loaded."
+
+        if not (weights is None or tf.io.gfile.exists(weights)):
+            raise ValueError(
+                "The `weights` argument should be either "
+                "`None` (random initialization) "
+                "or the path to the weights file to be loaded."
+            )
+
+        if include_top and not num_classes:
+            raise ValueError(
+                "If `include_top` is True, you should specify `num_classes`. "
+                f"Received: num_classes={num_classes}"
+            )
+
+        if include_top and pooling:
+            raise ValueError(
+                f"`pooling` must be `None` when `include_top=True`."
+                f"Received pooling={pooling} and include_top={include_top}. "
+            )
+
+        img_input = utils.parse_model_inputs(input_shape, input_tensor)
+        x = img_input
+
+        if include_rescaling:
+            x = layers.Rescaling(scale=1.0 / 255.0)(x)
+        x = apply_stem(x, name=model_name)
+
+        in_channels = x.shape[-1]  # Output from Stem
+
+        NUM_STAGES = 4
+
+        for stage_index in range(NUM_STAGES):
+            depth = depths[stage_index]
+            out_channels = widths[stage_index]
+
+            x = apply_stage(x,
+                            block_type,
+                            depth,
+                            group_width,
+                            in_channels,
+                            out_channels,
+                            name=model_name + "_Stage_" + str(stage_index),
+                            )
+            in_channels = out_channels
+
+        if include_top:
+            x = apply_head(x, num_classes=num_classes, activation=classifier_activation)
+        else:
+            if pooling == "avg":
+                x = layers.GlobalAveragePooling2D()(x)
+            elif pooling == "max":
+                x = layers.GlobalMaxPooling2D()(x)
+
+        super().__init__(
+            inputs=img_input, outputs=x, name=model_name, **kwargs
         )
-
-    if include_top and not num_classes:
-        raise ValueError(
-            "If `include_top` is True, you should specify `num_classes`. "
-            f"Received: num_classes={num_classes}"
-        )
-
-    if include_top and pooling:
-        raise ValueError(
-            f"`pooling` must be `None` when `include_top=True`."
-            f"Received pooling={pooling} and include_top={include_top}. "
-        )
-
-    img_input = utils.parse_model_inputs(input_shape, input_tensor)
-    x = img_input
-
-    if include_rescaling:
-        x = layers.Rescaling(scale=1.0 / 255.0)(x)
-    x = Stem(name=model_name)(x)
-
-    in_channels = x.shape[-1]  # Output from Stem
-
-    NUM_STAGES = 4
-
-    for stage_index in range(NUM_STAGES):
-        depth = depths[stage_index]
-        out_channels = widths[stage_index]
-
-        x = Stage(
-            block_type,
-            depth,
-            group_width,
-            in_channels,
-            out_channels,
-            name=model_name + "_Stage_" + str(stage_index),
-        )(x)
-        in_channels = out_channels
-
-    if include_top:
-        x = Head(num_classes=num_classes, activation=classifier_activation)(x)
-    else:
-        if pooling == "avg":
-            x = layers.GlobalAveragePooling2D()(x)
-        elif pooling == "max":
-            x = layers.GlobalMaxPooling2D()(x)
-
-    model = tf.keras.Model(
-        inputs=img_input, outputs=x, name=model_name, **kwargs
-    )
 
     # Load weights.
-    if weights is not None:
-        model.load_weights(weights)
-
-    return model
+        if weights is not None:
+            self.load_weights(weights)
 
 
 # Instantiating variants
-
-
 def RegNetX002(
-    *,
-    include_rescaling,
-    include_top,
-    num_classes=None,
-    weights=None,
-    input_tensor=None,
-    input_shape=(None, None, 3),
-    pooling=None,
-    model_name="regnetx002",
-    classifier_activation="softmax",
-    **kwargs,
+        *,
+        include_rescaling,
+        include_top,
+        num_classes=None,
+        weights=None,
+        input_tensor=None,
+        input_shape=(None, None, 3),
+        pooling=None,
+        model_name="regnetx002",
+        classifier_activation="softmax",
+        **kwargs,
 ):
     return RegNet(
         MODEL_CONFIGS["x002"]["depths"],
@@ -836,17 +925,17 @@ def RegNetX002(
 
 
 def RegNetX004(
-    *,
-    include_rescaling,
-    include_top,
-    num_classes=None,
-    weights=None,
-    input_tensor=None,
-    input_shape=(None, None, 3),
-    pooling=None,
-    model_name="regnetx004",
-    classifier_activation="softmax",
-    **kwargs,
+        *,
+        include_rescaling,
+        include_top,
+        num_classes=None,
+        weights=None,
+        input_tensor=None,
+        input_shape=(None, None, 3),
+        pooling=None,
+        model_name="regnetx004",
+        classifier_activation="softmax",
+        **kwargs,
 ):
     return RegNet(
         MODEL_CONFIGS["x004"]["depths"],
@@ -867,17 +956,17 @@ def RegNetX004(
 
 
 def RegNetX006(
-    *,
-    include_rescaling,
-    include_top,
-    num_classes=None,
-    weights=None,
-    input_tensor=None,
-    input_shape=(None, None, 3),
-    pooling=None,
-    model_name="regnetx006",
-    classifier_activation="softmax",
-    **kwargs,
+        *,
+        include_rescaling,
+        include_top,
+        num_classes=None,
+        weights=None,
+        input_tensor=None,
+        input_shape=(None, None, 3),
+        pooling=None,
+        model_name="regnetx006",
+        classifier_activation="softmax",
+        **kwargs,
 ):
     return RegNet(
         MODEL_CONFIGS["x006"]["depths"],
@@ -898,17 +987,17 @@ def RegNetX006(
 
 
 def RegNetX008(
-    *,
-    include_rescaling,
-    include_top,
-    num_classes=None,
-    weights=None,
-    input_tensor=None,
-    input_shape=(None, None, 3),
-    pooling=None,
-    model_name="regnetx008",
-    classifier_activation="softmax",
-    **kwargs,
+        *,
+        include_rescaling,
+        include_top,
+        num_classes=None,
+        weights=None,
+        input_tensor=None,
+        input_shape=(None, None, 3),
+        pooling=None,
+        model_name="regnetx008",
+        classifier_activation="softmax",
+        **kwargs,
 ):
     return RegNet(
         MODEL_CONFIGS["x008"]["depths"],
@@ -929,17 +1018,17 @@ def RegNetX008(
 
 
 def RegNetX016(
-    *,
-    include_rescaling,
-    include_top,
-    num_classes=None,
-    weights=None,
-    input_tensor=None,
-    input_shape=(None, None, 3),
-    pooling=None,
-    model_name="regnetx016",
-    classifier_activation="softmax",
-    **kwargs,
+        *,
+        include_rescaling,
+        include_top,
+        num_classes=None,
+        weights=None,
+        input_tensor=None,
+        input_shape=(None, None, 3),
+        pooling=None,
+        model_name="regnetx016",
+        classifier_activation="softmax",
+        **kwargs,
 ):
     return RegNet(
         MODEL_CONFIGS["x016"]["depths"],
@@ -960,17 +1049,17 @@ def RegNetX016(
 
 
 def RegNetX032(
-    *,
-    include_rescaling,
-    include_top,
-    num_classes=None,
-    weights=None,
-    input_tensor=None,
-    input_shape=(None, None, 3),
-    pooling=None,
-    model_name="regnetx032",
-    classifier_activation="softmax",
-    **kwargs,
+        *,
+        include_rescaling,
+        include_top,
+        num_classes=None,
+        weights=None,
+        input_tensor=None,
+        input_shape=(None, None, 3),
+        pooling=None,
+        model_name="regnetx032",
+        classifier_activation="softmax",
+        **kwargs,
 ):
     return RegNet(
         MODEL_CONFIGS["x032"]["depths"],
@@ -991,17 +1080,17 @@ def RegNetX032(
 
 
 def RegNetX040(
-    *,
-    include_rescaling,
-    include_top,
-    num_classes=None,
-    weights=None,
-    input_tensor=None,
-    input_shape=(None, None, 3),
-    pooling=None,
-    model_name="regnetx040",
-    classifier_activation="softmax",
-    **kwargs,
+        *,
+        include_rescaling,
+        include_top,
+        num_classes=None,
+        weights=None,
+        input_tensor=None,
+        input_shape=(None, None, 3),
+        pooling=None,
+        model_name="regnetx040",
+        classifier_activation="softmax",
+        **kwargs,
 ):
     return RegNet(
         MODEL_CONFIGS["x040"]["depths"],
@@ -1022,17 +1111,17 @@ def RegNetX040(
 
 
 def RegNetX064(
-    *,
-    include_rescaling,
-    include_top,
-    num_classes=None,
-    weights=None,
-    input_tensor=None,
-    input_shape=(None, None, 3),
-    pooling=None,
-    model_name="regnetx064",
-    classifier_activation="softmax",
-    **kwargs,
+        *,
+        include_rescaling,
+        include_top,
+        num_classes=None,
+        weights=None,
+        input_tensor=None,
+        input_shape=(None, None, 3),
+        pooling=None,
+        model_name="regnetx064",
+        classifier_activation="softmax",
+        **kwargs,
 ):
     return RegNet(
         MODEL_CONFIGS["x064"]["depths"],
@@ -1053,17 +1142,17 @@ def RegNetX064(
 
 
 def RegNetX080(
-    *,
-    include_rescaling,
-    include_top,
-    num_classes=None,
-    weights=None,
-    input_tensor=None,
-    input_shape=(None, None, 3),
-    pooling=None,
-    model_name="regnetx080",
-    classifier_activation="softmax",
-    **kwargs,
+        *,
+        include_rescaling,
+        include_top,
+        num_classes=None,
+        weights=None,
+        input_tensor=None,
+        input_shape=(None, None, 3),
+        pooling=None,
+        model_name="regnetx080",
+        classifier_activation="softmax",
+        **kwargs,
 ):
     return RegNet(
         MODEL_CONFIGS["x080"]["depths"],
@@ -1084,17 +1173,17 @@ def RegNetX080(
 
 
 def RegNetX120(
-    *,
-    include_rescaling,
-    include_top,
-    num_classes=None,
-    weights=None,
-    input_tensor=None,
-    input_shape=(None, None, 3),
-    pooling=None,
-    model_name="regnetx120",
-    classifier_activation="softmax",
-    **kwargs,
+        *,
+        include_rescaling,
+        include_top,
+        num_classes=None,
+        weights=None,
+        input_tensor=None,
+        input_shape=(None, None, 3),
+        pooling=None,
+        model_name="regnetx120",
+        classifier_activation="softmax",
+        **kwargs,
 ):
     return RegNet(
         MODEL_CONFIGS["x120"]["depths"],
@@ -1115,17 +1204,17 @@ def RegNetX120(
 
 
 def RegNetX160(
-    *,
-    include_rescaling,
-    include_top,
-    num_classes=None,
-    weights=None,
-    input_tensor=None,
-    input_shape=(None, None, 3),
-    pooling=None,
-    model_name="regnetx160",
-    classifier_activation="softmax",
-    **kwargs,
+        *,
+        include_rescaling,
+        include_top,
+        num_classes=None,
+        weights=None,
+        input_tensor=None,
+        input_shape=(None, None, 3),
+        pooling=None,
+        model_name="regnetx160",
+        classifier_activation="softmax",
+        **kwargs,
 ):
     return RegNet(
         MODEL_CONFIGS["x160"]["depths"],
@@ -1146,17 +1235,17 @@ def RegNetX160(
 
 
 def RegNetX320(
-    *,
-    include_rescaling,
-    include_top,
-    num_classes=None,
-    weights=None,
-    input_tensor=None,
-    input_shape=(None, None, 3),
-    pooling=None,
-    model_name="regnetx320",
-    classifier_activation="softmax",
-    **kwargs,
+        *,
+        include_rescaling,
+        include_top,
+        num_classes=None,
+        weights=None,
+        input_tensor=None,
+        input_shape=(None, None, 3),
+        pooling=None,
+        model_name="regnetx320",
+        classifier_activation="softmax",
+        **kwargs,
 ):
     return RegNet(
         MODEL_CONFIGS["x320"]["depths"],
@@ -1177,17 +1266,17 @@ def RegNetX320(
 
 
 def RegNetY002(
-    *,
-    include_rescaling,
-    include_top,
-    num_classes=None,
-    weights=None,
-    input_tensor=None,
-    input_shape=(None, None, 3),
-    pooling=None,
-    model_name="regnety002",
-    classifier_activation="softmax",
-    **kwargs,
+        *,
+        include_rescaling,
+        include_top,
+        num_classes=None,
+        weights=None,
+        input_tensor=None,
+        input_shape=(None, None, 3),
+        pooling=None,
+        model_name="regnety002",
+        classifier_activation="softmax",
+        **kwargs,
 ):
     return RegNet(
         MODEL_CONFIGS["y002"]["depths"],
@@ -1208,17 +1297,17 @@ def RegNetY002(
 
 
 def RegNetY004(
-    *,
-    include_rescaling,
-    include_top,
-    num_classes=None,
-    weights=None,
-    input_tensor=None,
-    input_shape=(None, None, 3),
-    pooling=None,
-    model_name="regnety004",
-    classifier_activation="softmax",
-    **kwargs,
+        *,
+        include_rescaling,
+        include_top,
+        num_classes=None,
+        weights=None,
+        input_tensor=None,
+        input_shape=(None, None, 3),
+        pooling=None,
+        model_name="regnety004",
+        classifier_activation="softmax",
+        **kwargs,
 ):
     return RegNet(
         MODEL_CONFIGS["y004"]["depths"],
@@ -1239,17 +1328,17 @@ def RegNetY004(
 
 
 def RegNetY006(
-    *,
-    include_rescaling,
-    include_top,
-    num_classes=None,
-    weights=None,
-    input_tensor=None,
-    input_shape=(None, None, 3),
-    pooling=None,
-    model_name="regnety006",
-    classifier_activation="softmax",
-    **kwargs,
+        *,
+        include_rescaling,
+        include_top,
+        num_classes=None,
+        weights=None,
+        input_tensor=None,
+        input_shape=(None, None, 3),
+        pooling=None,
+        model_name="regnety006",
+        classifier_activation="softmax",
+        **kwargs,
 ):
     return RegNet(
         MODEL_CONFIGS["y006"]["depths"],
@@ -1270,17 +1359,17 @@ def RegNetY006(
 
 
 def RegNetY008(
-    *,
-    include_rescaling,
-    include_top,
-    num_classes=None,
-    weights=None,
-    input_tensor=None,
-    input_shape=(None, None, 3),
-    pooling=None,
-    model_name="regnety008",
-    classifier_activation="softmax",
-    **kwargs,
+        *,
+        include_rescaling,
+        include_top,
+        num_classes=None,
+        weights=None,
+        input_tensor=None,
+        input_shape=(None, None, 3),
+        pooling=None,
+        model_name="regnety008",
+        classifier_activation="softmax",
+        **kwargs,
 ):
     return RegNet(
         MODEL_CONFIGS["y008"]["depths"],
@@ -1301,17 +1390,17 @@ def RegNetY008(
 
 
 def RegNetY016(
-    *,
-    include_rescaling,
-    include_top,
-    num_classes=None,
-    weights=None,
-    input_tensor=None,
-    input_shape=(None, None, 3),
-    pooling=None,
-    model_name="regnety016",
-    classifier_activation="softmax",
-    **kwargs,
+        *,
+        include_rescaling,
+        include_top,
+        num_classes=None,
+        weights=None,
+        input_tensor=None,
+        input_shape=(None, None, 3),
+        pooling=None,
+        model_name="regnety016",
+        classifier_activation="softmax",
+        **kwargs,
 ):
     return RegNet(
         MODEL_CONFIGS["y016"]["depths"],
@@ -1332,17 +1421,17 @@ def RegNetY016(
 
 
 def RegNetY032(
-    *,
-    include_rescaling,
-    include_top,
-    num_classes=None,
-    weights=None,
-    input_tensor=None,
-    input_shape=(None, None, 3),
-    pooling=None,
-    model_name="regnety032",
-    classifier_activation="softmax",
-    **kwargs,
+        *,
+        include_rescaling,
+        include_top,
+        num_classes=None,
+        weights=None,
+        input_tensor=None,
+        input_shape=(None, None, 3),
+        pooling=None,
+        model_name="regnety032",
+        classifier_activation="softmax",
+        **kwargs,
 ):
     return RegNet(
         MODEL_CONFIGS["y032"]["depths"],
@@ -1363,17 +1452,17 @@ def RegNetY032(
 
 
 def RegNetY040(
-    *,
-    include_rescaling,
-    include_top,
-    num_classes=None,
-    weights=None,
-    input_tensor=None,
-    input_shape=(None, None, 3),
-    pooling=None,
-    model_name="regnety040",
-    classifier_activation="softmax",
-    **kwargs,
+        *,
+        include_rescaling,
+        include_top,
+        num_classes=None,
+        weights=None,
+        input_tensor=None,
+        input_shape=(None, None, 3),
+        pooling=None,
+        model_name="regnety040",
+        classifier_activation="softmax",
+        **kwargs,
 ):
     return RegNet(
         MODEL_CONFIGS["y040"]["depths"],
@@ -1394,17 +1483,17 @@ def RegNetY040(
 
 
 def RegNetY064(
-    *,
-    include_rescaling,
-    include_top,
-    num_classes=None,
-    weights=None,
-    input_tensor=None,
-    input_shape=(None, None, 3),
-    pooling=None,
-    model_name="regnety064",
-    classifier_activation="softmax",
-    **kwargs,
+        *,
+        include_rescaling,
+        include_top,
+        num_classes=None,
+        weights=None,
+        input_tensor=None,
+        input_shape=(None, None, 3),
+        pooling=None,
+        model_name="regnety064",
+        classifier_activation="softmax",
+        **kwargs,
 ):
     return RegNet(
         MODEL_CONFIGS["y064"]["depths"],
@@ -1425,17 +1514,17 @@ def RegNetY064(
 
 
 def RegNetY080(
-    *,
-    include_rescaling,
-    include_top,
-    num_classes=None,
-    weights=None,
-    input_tensor=None,
-    input_shape=(None, None, 3),
-    pooling=None,
-    model_name="regnety080",
-    classifier_activation="softmax",
-    **kwargs,
+        *,
+        include_rescaling,
+        include_top,
+        num_classes=None,
+        weights=None,
+        input_tensor=None,
+        input_shape=(None, None, 3),
+        pooling=None,
+        model_name="regnety080",
+        classifier_activation="softmax",
+        **kwargs,
 ):
     return RegNet(
         MODEL_CONFIGS["y080"]["depths"],
@@ -1456,17 +1545,17 @@ def RegNetY080(
 
 
 def RegNetY120(
-    *,
-    include_rescaling,
-    include_top,
-    num_classes=None,
-    weights=None,
-    input_tensor=None,
-    input_shape=(None, None, 3),
-    pooling=None,
-    model_name="regnety120",
-    classifier_activation="softmax",
-    **kwargs,
+        *,
+        include_rescaling,
+        include_top,
+        num_classes=None,
+        weights=None,
+        input_tensor=None,
+        input_shape=(None, None, 3),
+        pooling=None,
+        model_name="regnety120",
+        classifier_activation="softmax",
+        **kwargs,
 ):
     return RegNet(
         MODEL_CONFIGS["y120"]["depths"],
@@ -1487,17 +1576,17 @@ def RegNetY120(
 
 
 def RegNetY160(
-    *,
-    include_rescaling,
-    include_top,
-    num_classes=None,
-    weights=None,
-    input_tensor=None,
-    input_shape=(None, None, 3),
-    pooling=None,
-    model_name="regnety160",
-    classifier_activation="softmax",
-    **kwargs,
+        *,
+        include_rescaling,
+        include_top,
+        num_classes=None,
+        weights=None,
+        input_tensor=None,
+        input_shape=(None, None, 3),
+        pooling=None,
+        model_name="regnety160",
+        classifier_activation="softmax",
+        **kwargs,
 ):
     return RegNet(
         MODEL_CONFIGS["y160"]["depths"],
@@ -1518,17 +1607,17 @@ def RegNetY160(
 
 
 def RegNetY320(
-    *,
-    include_rescaling,
-    include_top,
-    num_classes=None,
-    weights=None,
-    input_tensor=None,
-    input_shape=(None, None, 3),
-    pooling=None,
-    model_name="regnety320",
-    classifier_activation="softmax",
-    **kwargs,
+        *,
+        include_rescaling,
+        include_top,
+        num_classes=None,
+        weights=None,
+        input_tensor=None,
+        input_shape=(None, None, 3),
+        pooling=None,
+        model_name="regnety320",
+        classifier_activation="softmax",
+        **kwargs,
 ):
     return RegNet(
         MODEL_CONFIGS["y320"]["depths"],
