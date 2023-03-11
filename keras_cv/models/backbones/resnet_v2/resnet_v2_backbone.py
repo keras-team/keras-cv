@@ -342,11 +342,10 @@ class ResNetV2Backbone(Backbone):
 
         pyramid_level_inputs = {}
         for stack_index in range(num_stacks):
-            num_blocks = stackwise_blocks[stack_index]
             x = apply_stack(
                 x,
                 filters=stackwise_filters[stack_index],
-                blocks=num_blocks,
+                blocks=stackwise_blocks[stack_index],
                 stride=stackwise_strides[stack_index],
                 dilations=stackwise_dilations[stack_index],
                 block_type=block_type,
