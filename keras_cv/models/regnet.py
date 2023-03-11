@@ -697,49 +697,55 @@ def apply_stage(x, block_type, depth, group_width, filters_in, filters_out, name
 
     if block_type == "X":
         x = apply_XBlock(
+            x,
             filters_in,
             filters_out,
             group_width,
             stride=2,
             name=f"{name}_XBlock_0",
-        )(x)
+        )
         for i in range(1, depth):
             x = apply_XBlock(
+                x,
                 filters_out,
                 filters_out,
                 group_width,
                 name=f"{name}_XBlock_{i}",
-            )(x)
+            )
     elif block_type == "Y":
         x = apply_YBlock(
+            x,
             filters_in,
             filters_out,
             group_width,
             stride=2,
             name=name + "_YBlock_0",
-        )(x)
+        )
         for i in range(1, depth):
             x = apply_YBlock(
+                x,
                 filters_out,
                 filters_out,
                 group_width,
                 name=f"{name}_YBlock_{i}",
-            )(x)
+            )
     elif block_type == "Z":
         x = apply_ZBlock(
+            x,
             filters_in,
             filters_out,
             group_width,
             stride=2,
             name=f"{name}_ZBlock_0",
-        )(x)
+        )
         for i in range(1, depth):
             x = apply_ZBlock(
+                x,
                 filters_out,
                 filters_out,
                 group_width,
                 name=f"{name}_ZBlock_{i}",
-            )(x)
+            )
     else:
         raise NotImplementedError(
             f"Block type `{block_type}` not recognized."
