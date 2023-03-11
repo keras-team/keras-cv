@@ -522,7 +522,7 @@ def apply_ZBlock(
     # Squeeze-Excitation block
     x = SqueezeAndExcite2D(
         inv_btlneck_filters, ratio=squeeze_excite_ratio, name=name
-    )(x) # Bug: SqueezeAndExcite2D is not included
+    ) # Bug: SqueezeAndExcite2D is not included
 
     # conv_1x1_2
     x = conv2d_bn(x=x,
@@ -782,7 +782,7 @@ class RegNet(tf.keras.Model):
             "num_classes": self.num_classes,
             "model_name": self.model_name,
             "input_tensor": self.input_tensor,
-            "input_shape": self.input_shape,
+            "input_shape": self.input_shape[1:],
             "pooling": self.pooling,
             "classifier_activation": self.classifier_activation,
             "trainable": self.trainable
