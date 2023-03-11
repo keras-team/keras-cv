@@ -36,24 +36,24 @@ BASE_DOCSTRING = """Instantiates the {name} architecture.
         - [Searching for MobileNetV3](https://arxiv.org/abs/1905.02244)
         - [Based on the Original keras.applications MobileNetv3](https://github.com/keras-team/keras/blob/master/keras/applications/mobilenet_v3.py)
 
-    This function returns a Keras {name} model.
+    This class returns a Keras {name} model.
 
     For transfer learning use cases, make sure to read the [guide to transfer
         learning & fine-tuning](https://keras.io/guides/transfer_learning/).
 
     Args:
-        include_rescaling: whether or not to Rescale the inputs.If set to True,
+        include_rescaling: whether or not to rescale the inputs. If set to True,
             inputs will be passed through a `Rescaling(scale=1 / 255)`
-            layer, defaults to True.
+            layer. Defaults to True.
         include_top: whether to include the fully-connected layer at the top of the
-            network.  If provided, `num_classes` must be provided.
-        num_classes: optional number of classes to classify images into, only to be
+            network. If provided, `num_classes` must be provided.
+        num_classes: optional number of classes to classify images into. Only to be
             specified if `include_top` is True, and if no `weights` argument is
             specified.
-        weights: one of `None` (random initialization), or a pretrained weight file
+        weights: one of `None` (random initialization) or a pretrained weight file
             path.
         input_shape: optional shape tuple, defaults to (None, None, 3).
-        input_tensor: optional Keras tensor (i.e. output of `layers.Input()`)
+        input_tensor: optional Keras tensor (i.e., output of `layers.Input()`)
             to use as image input for the model.
         pooling: optional pooling mode for feature extraction
             when `include_top` is `False`.
@@ -72,8 +72,8 @@ BASE_DOCSTRING = """Instantiates the {name} architecture.
                 of filters in each layer.
             - If `alpha` = 1, default number of filters from the paper
                 are used at each layer.
-        minimalistic: in addition to large and small models this module also
-            contains so-called minimalistic models, these models have the same
+        minimalistic: in addition to large and small models, this module also
+            contains so-called minimalistic models; these models have the same
             per-layer dimensions characteristic as MobilenetV3 however, they don't
             utilize any of the advanced blocks (squeeze-and-excite units, hard-swish,
             and 5x5 convolutions). While these models are less efficient on CPU, they
@@ -81,7 +81,7 @@ BASE_DOCSTRING = """Instantiates the {name} architecture.
         dropout_rate: a float between 0 and 1 denoting the fraction of input units to
             drop, defaults to 0.2.
         classifier_activation: the activation function to use, defaults to softmax.
-        name: (Optional) name to pass to the model. Defaults to "{name}".
+        name: (Optional) name to pass to the model, defaults to "{name}".
 
     Returns:
         A `keras.Model` instance.
@@ -92,13 +92,13 @@ def depth(x, divisor=8, min_value=None):
     """Ensure that all layers have a channel number that is divisible by the `divisor`.
 
     Args:
-        x: input value.
+        x: input tensor.
         divisor: integer, the value by which a channel number should be divisible,
             defaults to 8.
         min_value: float, minimum value for the new tensor.
 
     Returns:
-        the updated value of the input.
+        the updated input tensor.
     """
 
     if min_value is None:
@@ -116,10 +116,11 @@ def HardSigmoid(x, name=None):
     """The Hard Sigmoid function.
 
     Args:
+        x: input tensor
         name: string, layer label.
 
     Returns:
-        a function that takes an input Tensor representing a HardSigmoid layer.
+        the updated input tensor.
     """
     if name is None:
         name = f"hard_sigmoid_{backend.get_uid('hard_sigmoid')}"
@@ -133,10 +134,11 @@ def HardSwish(x, name=None):
     """The Hard Swish function.
 
     Args:
+        x: input tensor
         name: string, layer label.
 
     Returns:
-        a function that takes an input Tensor representing a HardSwish layer.
+        the updated input tensor.
     """
     if name is None:
         name = f"hard_swish_{backend.get_uid('hard_swish')}"
@@ -160,6 +162,7 @@ def InvertedResBlock(
     """An Inverted Residual Block.
 
     Args:
+        x: input tensor.
         expansion: integer, the expansion ratio, multiplied with infilters to get the
             minimum value passed to depth.
         filters: integer, number of filters for convolution layer.
@@ -173,7 +176,7 @@ def InvertedResBlock(
         name: string, layer label.
 
     Returns:
-        a function that takes an input Tensor representing a InvertedResBlock.
+        the updated input tensor.
     """
     if name is None:
         name = f"inverted_res_block_{backend.get_uid('inverted_res_block')}"
@@ -252,7 +255,7 @@ class MobileNetV3(keras.Model):
         - [Searching for MobileNetV3](https://arxiv.org/pdf/1905.02244.pdf) (ICCV 2019)
         - [Based on the Original keras.applications MobileNetv3](https://github.com/keras-team/keras/blob/master/keras/applications/mobilenet_v3.py)
 
-    This function returns a Keras MobileNetV3 model.
+    This class returns a Keras MobileNetV3 model.
 
     For transfer learning use cases, make sure to read the [guide to transfer
         learning & fine-tuning](https://keras.io/guides/transfer_learning/).
@@ -261,18 +264,18 @@ class MobileNetV3(keras.Model):
         stack_fn: a function that returns tensors passed through Inverted
             Residual Blocks.
         last_point_ch: the number of filters for the convolution layer.
-        include_rescaling: whether or not to Rescale the inputs.If set to True,
+        include_rescaling: whether or not to rescale the inputs. If set to True,
             inputs will be passed through a `Rescaling(scale=1 / 255)`
-            layer, defaults to True.
+            layer. Defaults to True.
         include_top: whether to include the fully-connected layer at the top of the
-            network.  If provided, `num_classes` must be provided.
-        num_classes: optional number of classes to classify images into, only to be
+            network. If provided, `num_classes` must be provided.
+        num_classes: optional number of classes to classify images into. Only to be
             specified if `include_top` is True, and if no `weights` argument is
             specified.
-        weights: one of `None` (random initialization), or a pretrained weight file
+        weights: one of `None` (random initialization) or a pre-trained weight file
             path.
         input_shape: optional shape tuple, defaults to (None, None, 3).
-        input_tensor: optional Keras tensor (i.e. output of `layers.Input()`)
+        input_tensor: optional Keras tensor (i.e., output of `layers.Input()`)
             to use as image input for the model.
         pooling: optional pooling mode for feature extraction
             when `include_top` is `False`.
@@ -291,8 +294,8 @@ class MobileNetV3(keras.Model):
                 of filters in each layer.
             - If `alpha` = 1, default number of filters from the paper
                 are used at each layer.
-        minimalistic: in addition to large and small models this module also
-            contains so-called minimalistic models, these models have the same
+        minimalistic: in addition to large and small models, this module also
+            contains so-called minimalistic models; these models have the same
             per-layer dimensions characteristic as MobilenetV3 however, they don't
             utilize any of the advanced blocks (squeeze-and-excite units, hard-swish,
             and 5x5 convolutions). While these models are less efficient on CPU, they
@@ -300,14 +303,14 @@ class MobileNetV3(keras.Model):
         dropout_rate: a float between 0 and 1 denoting the fraction of input units to
             drop, defaults to 0.2.
         classifier_activation: the activation function to use, defaults to softmax.
-
-        name: (Optional) name to pass to the model. Defaults to "MobileNetV3".
+        name: (Optional) name to pass to the model, defaults to "MobileNetV3".
+        **kwargs: Pass-through keyword arguments to `tf.keras.Model`.
 
     Returns:
         A `keras.Model` instance.
 
     Raises:
-        ValueError: if `weights` represents an invalid path to weights file and is not
+        ValueError: if `weights` represents an invalid path to the weights file and is not
             None.
         ValueError: if `include_top` is True and `num_classes` is not specified.
     """
@@ -342,12 +345,6 @@ class MobileNetV3(keras.Model):
                 "If `include_top` is True, "
                 "you should specify `num_classes`. "
                 f"Received: num_classes={num_classes}"
-            )
-
-        if include_top and pooling:
-            raise ValueError(
-                f"`pooling` must be `None` when `include_top=True`."
-                f"Received pooling={pooling} and include_top={include_top}. "
             )
 
         if minimalistic:
