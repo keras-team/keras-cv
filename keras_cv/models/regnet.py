@@ -318,12 +318,7 @@ def apply_stem(x, name=None):
 
 
 def apply_XBlock(
-    inputs,
-    filters_in,
-    filters_out,
-    group_width,
-    stride=1,
-    name=None
+    inputs, filters_in, filters_out, group_width, stride=1, name=None
 ):
     """Implementation of X Block.
     References:
