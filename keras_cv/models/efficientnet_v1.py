@@ -516,7 +516,7 @@ class EfficientNet(keras.Model):
             padding=correct_pad(x, 3), name="stem_conv_pad"
         )(x)
 
-        x = EfficientNetBlock.conv_bn(
+        x = conv_bn(
             x=x,
             conv_type="normal",
             filters=self.round_filters(32, width_coefficient, depth_divisor),
