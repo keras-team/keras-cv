@@ -38,7 +38,8 @@ class WithinBoxOp : public OpKernel {
     const int num_boxes = boxes.dim_size(0);
     Tensor* box_indices = nullptr;
     OP_REQUIRES_OK(
-        ctx, ctx->allocate_output("box_indices", TensorShape({num_points}), &box_indices));
+        ctx, ctx->allocate_output("box_indices", TensorShape({num_points}),
+                                  &box_indices));
     auto boxes_indices_t = box_indices->flat<int>();
     for (auto i = 0; i < num_points; ++i) boxes_indices_t(i) = -1;
 
@@ -52,13 +53,13 @@ class WithinBoxOp : public OpKernel {
 
     // sort, return sorted value and indices
     std::sort(p_indices_x.begin(), p_indices_x.end(),
-      [&points_vec](const int& a, const int& b) -> bool {
-        return points_vec[a].x < points_vec[b].x;
-      });
+              [&points_vec](const int& a, const int& b) -> bool {
+                return points_vec[a].x < points_vec[b].x;
+              });
     std::sort(p_indices_y.begin(), p_indices_y.end(),
-      [&points_vec](const int& a, const int& b) -> bool {
-        return points_vec[a].y < points_vec[b].y;
-      });
+              [&points_vec](const int& a, const int& b) -> bool {
+                return points_vec[a].y < points_vec[b].y;
+              });
     std::vector<double> sorted_points_x;
     sorted_points_x.reserve(num_points);
     std::vector<double> sorted_points_y;
@@ -68,12 +69,16 @@ class WithinBoxOp : public OpKernel {
       sorted_points_y.emplace_back(points_vec[p_indices_y[i]].y);
     }
 
-    // for each box, find all point indices whose x values are within box boundaries
-    // when the box is rotated, the box boundary is the minimum and maximum x for all vertices
-    std::vector<int> points_x_min = box::GetMinXIndexFromBoxes(boxes_vec, sorted_points_x);
-    std::vector<int> points_x_max = box::GetMaxXIndexFromBoxes(boxes_vec, sorted_points_x);
+    // for each box, find all point indices whose x values are within box
+    // boundaries when the box is rotated, the box boundary is the minimum and
+    // maximum x for all vertices
+    std::vector<int> points_x_min =
+        box::GetMinXIndexFromBoxes(boxes_vec, sorted_points_x);
+    std::vector<int> points_x_max =
+        box::GetMaxXIndexFromBoxes(boxes_vec, sorted_points_x);
     std::vector<std::unordered_set<int>> points_x_indices(num_boxes);
-    auto set_fn_x = [&points_x_min, &points_x_max, &p_indices_x, &points_x_indices](int64_t begin, int64_t end) {
+    auto set_fn_x = [&points_x_min, &points_x_max, &p_indices_x,
+                     &points_x_indices](int64_t begin, int64_t end) {
       for (int64_t idx = begin; idx < end; ++idx) {
         std::unordered_set<int> p_set;
         int p_start = points_x_min[idx];
@@ -88,12 +93,16 @@ class WithinBoxOp : public OpKernel {
     const Eigen::TensorOpCost cost(num_points, num_boxes, 3);
     device.parallelFor(num_boxes, cost, set_fn_x);
 
-    // for each box, find all point indices whose y values are within box boundaries
-    // when the box is rotated, the box boundary is the minimum and maximum x for all vertices
-    std::vector<int> points_y_min = box::GetMinYIndexFromBoxes(boxes_vec, sorted_points_y);
-    std::vector<int> points_y_max = box::GetMaxYIndexFromBoxes(boxes_vec, sorted_points_y);
+    // for each box, find all point indices whose y values are within box
+    // boundaries when the box is rotated, the box boundary is the minimum and
+    // maximum x for all vertices
+    std::vector<int> points_y_min =
+        box::GetMinYIndexFromBoxes(boxes_vec, sorted_points_y);
+    std::vector<int> points_y_max =
+        box::GetMaxYIndexFromBoxes(boxes_vec, sorted_points_y);
     std::vector<std::unordered_set<int>> points_y_indices(num_boxes);
-    auto set_fn_y = [&points_y_min, &points_y_max, &p_indices_y, &points_y_indices](int64_t begin, int64_t end) {
+    auto set_fn_y = [&points_y_min, &points_y_max, &p_indices_y,
+                     &points_y_indices](int64_t begin, int64_t end) {
       for (int64_t idx = begin; idx < end; ++idx) {
         std::unordered_set<int> p_set;
         int p_start = points_y_min[idx];
@@ -108,7 +117,9 @@ class WithinBoxOp : public OpKernel {
 
     // for the intersection of x indices set and y indices set, check if
     // those points are within the box
-    auto within_fn = [&points_x_indices, &points_y_indices, &boxes_vec, &points_vec, &boxes_indices_t](int64_t begin, int64_t end) {
+    auto within_fn = [&points_x_indices, &points_y_indices, &boxes_vec,
+                      &points_vec,
+                      &boxes_indices_t](int64_t begin, int64_t end) {
       for (int64_t idx = begin; idx < end; ++idx) {
         std::unordered_set<int>& set_a = points_x_indices[idx];
         std::unordered_set<int>& set_b = points_y_indices[idx];
@@ -128,12 +139,10 @@ class WithinBoxOp : public OpKernel {
       }
     };
     device.parallelFor(num_boxes, cost, within_fn);
-
   }
 };
 
-REGISTER_KERNEL_BUILDER(Name("KcvWithinBox").Device(DEVICE_CPU),
-                        WithinBoxOp);
+REGISTER_KERNEL_BUILDER(Name("KcvWithinBox").Device(DEVICE_CPU), WithinBoxOp);
 
 }  // namespace kerascv
 }  // namespace tensorflow
