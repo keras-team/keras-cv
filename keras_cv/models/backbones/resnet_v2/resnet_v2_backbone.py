@@ -202,7 +202,6 @@ def apply_stack(
     name=None,
     block_type="block",
     first_shortcut=True,
-    stack_index=1,
 ):
     """A set of stacked blocks.
 
@@ -217,15 +216,13 @@ def apply_stack(
             stack. Use "basic_block" for ResNet18 and ResNet34.
         first_shortcut: bool. Use convolution shortcut if `True` (default),
             otherwise uses identity or pooling shortcut, based on stride.
-        stack_index: int, the index of this stack in the ResNet model. Defaults
-            to 1.
 
     Returns:
         Output tensor for the stacked blocks.
     """
 
     if name is None:
-        name = f"v2_stack_{stack_index}"
+        name = "v2_stack"
 
     if block_type == "basic_block":
         block_fn = apply_basic_block
@@ -354,11 +351,9 @@ class ResNetV2Backbone(Backbone):
                 dilations=stackwise_dilations[stack_index],
                 block_type=block_type,
                 first_shortcut=(block_type == "block" or stack_index > 0),
-                stack_index=stack_index,
+                name=f"v2_stack_{stack_index}",
             )
-            pyramid_level_inputs[
-                stack_index + 2
-            ] = f"v2_stack_{stack_index}_block{num_blocks}_out"
+            pyramid_level_inputs[stack_index + 2] = x.node.layer.name
 
         x = layers.BatchNormalization(
             axis=BN_AXIS, epsilon=BN_EPSILON, name="post_bn"
@@ -495,7 +490,6 @@ class ResNet34V2Backbone(ResNetV2Backbone):
         return {}
 
 
-@keras.utils.register_keras_serializable(package="keras_cv.models")
 class ResNet50V2Backbone(ResNetV2Backbone):
     def __new__(
         self,

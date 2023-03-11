@@ -75,5 +75,5 @@ def get_feature_extractor(model, layer_names, output_keys=None):
     if not output_keys:
         output_keys = layer_names
     items = zip(output_keys, layer_names)
-    outputs = {item[0]: model.get_layer(item[1]).output for item in items}
+    outputs = {key: model.get_layer(name).output for key, name in items}
     return tf.keras.Model(inputs=model.inputs, outputs=outputs)
