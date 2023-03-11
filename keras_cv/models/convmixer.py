@@ -150,7 +150,6 @@ class ConvMixer(keras.Model):
             layer at the top of the network.
         include_rescaling: whether to rescale the inputs. If set to True,
             inputs will be passed through a `Rescaling(1/255.0)` layer.
-            Defaults to True.
         name: optional name to pass to the model, defaults to "ConvMixer".
         weights: one of `None` (random initialization)
             or the path to the weights file to be loaded.
