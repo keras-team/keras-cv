@@ -23,7 +23,6 @@ import types
 
 import tensorflow as tf
 from tensorflow import keras
-from tensorflow.keras import backend
 from tensorflow.keras import layers
 
 from keras_cv.models import utils
@@ -107,7 +106,7 @@ class CSPDarkNet(keras.Model):
         if weights and not tf.io.gfile.exists(weights):
             raise ValueError(
                 "The `weights` argument should be either `None` or the path to the "
-                f"weights file to be loaded. Weights file not found at location: {weights}"
+                f"weights file to be loaded. Weights file not found at location{weights}"
             )
 
         if include_top and not num_classes:
@@ -277,8 +276,8 @@ BASE_DOCSTRING = """Instantiates the {name} architecture.
 
 def CSPDarkNetTiny(
     *,
-    include_rescaling,
-    include_top,
+    include_rescaling=None,
+    include_top=None,
     use_depthwise=False,
     num_classes=None,
     weights=None,
