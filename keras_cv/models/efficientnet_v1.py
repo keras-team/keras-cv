@@ -25,8 +25,8 @@ import copy
 import math
 
 import tensorflow as tf
-from keras import backend
 from tensorflow import keras
+from tensorflow.keras import backend
 from tensorflow.keras import layers
 
 from keras_cv.models import utils
@@ -187,7 +187,7 @@ def correct_pad(inputs, kernel_size):
       A tuple.
     """
     img_dim = 1
-    input_size = backend.int_shape(inputs)[img_dim: (img_dim + 2)]
+    input_size = backend.int_shape(inputs)[img_dim : (img_dim + 2)]
     if isinstance(kernel_size, int):
         kernel_size = (kernel_size, kernel_size)
     if input_size[0] is None:
@@ -202,17 +202,17 @@ def correct_pad(inputs, kernel_size):
 
 
 def conv_bn(
-        x,
-        conv_type,
-        filters,
-        kernel_size,
-        strides=1,
-        padding="same",
-        use_bias=False,
-        kernel_initializer=CONV_KERNEL_INITIALIZER,
-        bn_norm=True,
-        activation="swish",
-        name="",
+    x,
+    conv_type,
+    filters,
+    kernel_size,
+    strides=1,
+    padding="same",
+    use_bias=False,
+    kernel_initializer=CONV_KERNEL_INITIALIZER,
+    bn_norm=True,
+    activation="swish",
+    name="",
 ):
     """
     Represents Convolutional Block with optional Batch Normalization layer and activation layer
@@ -280,18 +280,19 @@ def conv_bn(
     return x
 
 
-def apply_efficientnet_block(inputs,
-                             filters_in=32,
-                             filters_out=16,
-                             kernel_size=3,
-                             strides=1,
-                             activation="swish",
-                             expand_ratio=1,
-                             se_ratio=0.0,
-                             id_skip=True,
-                             drop_rate=0.0,
-                             name=""
-                             ):
+def apply_efficientnet_block(
+    inputs,
+    filters_in=32,
+    filters_out=16,
+    kernel_size=3,
+    strides=1,
+    activation="swish",
+    expand_ratio=1,
+    se_ratio=0.0,
+    id_skip=True,
+    drop_rate=0.0,
+    name="",
+):
     """An inverted residual block.
 
     Args:
@@ -354,9 +355,7 @@ def apply_efficientnet_block(inputs,
     # Squeeze and Excitation phase
     if 0 < se_ratio <= 1:
         filters_se = max(1, int(filters_in * se_ratio))
-        se = layers.GlobalAveragePooling2D(name=name + "_se_squeeze")(
-            x
-        )
+        se = layers.GlobalAveragePooling2D(name=name + "_se_squeeze")(x)
         if BN_AXIS == 1:
             se_shape = (filters, 1, 1)
         else:
@@ -394,11 +393,7 @@ def apply_efficientnet_block(inputs,
         name=name + "_project",
     )
 
-    if (
-            id_skip
-            and strides == 1
-            and filters_in == filters_out
-    ):
+    if id_skip and strides == 1 and filters_in == filters_out:
         if drop_rate > 0:
             x = layers.Dropout(
                 drop_rate,
@@ -460,25 +455,25 @@ class EfficientNet(keras.Model):
     """
 
     def __init__(
-            self,
-            include_rescaling,
-            include_top,
-            width_coefficient,
-            depth_coefficient,
-            default_size,
-            dropout_rate=0.2,
-            drop_connect_rate=0.2,
-            depth_divisor=8,
-            activation="swish",
-            blocks_args="default",
-            model_name="efficientnet",
-            weights=None,
-            input_shape=(None, None, 3),
-            input_tensor=None,
-            pooling=None,
-            num_classes=None,
-            classifier_activation="softmax",
-            **kwargs,
+        self,
+        include_rescaling,
+        include_top,
+        width_coefficient,
+        depth_coefficient,
+        default_size,
+        dropout_rate=0.2,
+        drop_connect_rate=0.2,
+        depth_divisor=8,
+        activation="swish",
+        blocks_args="default",
+        model_name="efficientnet",
+        weights=None,
+        input_shape=(None, None, 3),
+        input_tensor=None,
+        pooling=None,
+        num_classes=None,
+        classifier_activation="softmax",
+        **kwargs,
     ):
         blocks_args_type = blocks_args
 
@@ -551,7 +546,7 @@ class EfficientNet(keras.Model):
             )
 
             for j in range(
-                    self.round_repeats(args.pop("repeats"), depth_coefficient)
+                self.round_repeats(args.pop("repeats"), depth_coefficient)
             ):
                 # The first block needs to take care of stride and filter size
                 # increase.
@@ -663,17 +658,17 @@ class EfficientNet(keras.Model):
 
 
 def EfficientNetB0(
-        *,
-        include_rescaling,
-        include_top,
-        num_classes=None,
-        weights=None,
-        input_shape=(None, None, 3),
-        input_tensor=None,
-        pooling=None,
-        classifier_activation="softmax",
-        name="efficientnetb0",
-        **kwargs,
+    *,
+    include_rescaling,
+    include_top,
+    num_classes=None,
+    weights=None,
+    input_shape=(None, None, 3),
+    input_tensor=None,
+    pooling=None,
+    classifier_activation="softmax",
+    name="efficientnetb0",
+    **kwargs,
 ):
     return EfficientNet(
         include_rescaling,
@@ -694,17 +689,17 @@ def EfficientNetB0(
 
 
 def EfficientNetB1(
-        *,
-        include_rescaling,
-        include_top,
-        num_classes=None,
-        weights=None,
-        input_shape=(None, None, 3),
-        input_tensor=None,
-        pooling=None,
-        classifier_activation="softmax",
-        name="efficientnetb1",
-        **kwargs,
+    *,
+    include_rescaling,
+    include_top,
+    num_classes=None,
+    weights=None,
+    input_shape=(None, None, 3),
+    input_tensor=None,
+    pooling=None,
+    classifier_activation="softmax",
+    name="efficientnetb1",
+    **kwargs,
 ):
     return EfficientNet(
         include_rescaling,
@@ -725,17 +720,17 @@ def EfficientNetB1(
 
 
 def EfficientNetB2(
-        *,
-        include_rescaling,
-        include_top,
-        num_classes=None,
-        weights=None,
-        input_shape=(None, None, 3),
-        input_tensor=None,
-        pooling=None,
-        classifier_activation="softmax",
-        name="efficientnetb2",
-        **kwargs,
+    *,
+    include_rescaling,
+    include_top,
+    num_classes=None,
+    weights=None,
+    input_shape=(None, None, 3),
+    input_tensor=None,
+    pooling=None,
+    classifier_activation="softmax",
+    name="efficientnetb2",
+    **kwargs,
 ):
     return EfficientNet(
         include_rescaling,
@@ -756,17 +751,17 @@ def EfficientNetB2(
 
 
 def EfficientNetB3(
-        *,
-        include_rescaling,
-        include_top,
-        num_classes=None,
-        weights=None,
-        input_shape=(None, None, 3),
-        input_tensor=None,
-        pooling=None,
-        classifier_activation="softmax",
-        name="efficientnetb3",
-        **kwargs,
+    *,
+    include_rescaling,
+    include_top,
+    num_classes=None,
+    weights=None,
+    input_shape=(None, None, 3),
+    input_tensor=None,
+    pooling=None,
+    classifier_activation="softmax",
+    name="efficientnetb3",
+    **kwargs,
 ):
     return EfficientNet(
         include_rescaling,
@@ -787,17 +782,17 @@ def EfficientNetB3(
 
 
 def EfficientNetB4(
-        *,
-        include_rescaling,
-        include_top,
-        num_classes=None,
-        weights=None,
-        input_shape=(None, None, 3),
-        input_tensor=None,
-        pooling=None,
-        classifier_activation="softmax",
-        name="efficientnetb4",
-        **kwargs,
+    *,
+    include_rescaling,
+    include_top,
+    num_classes=None,
+    weights=None,
+    input_shape=(None, None, 3),
+    input_tensor=None,
+    pooling=None,
+    classifier_activation="softmax",
+    name="efficientnetb4",
+    **kwargs,
 ):
     return EfficientNet(
         include_rescaling,
@@ -818,17 +813,17 @@ def EfficientNetB4(
 
 
 def EfficientNetB5(
-        *,
-        include_rescaling,
-        include_top,
-        num_classes=None,
-        weights=None,
-        input_shape=(None, None, 3),
-        input_tensor=None,
-        pooling=None,
-        classifier_activation="softmax",
-        name="efficientnetb5",
-        **kwargs,
+    *,
+    include_rescaling,
+    include_top,
+    num_classes=None,
+    weights=None,
+    input_shape=(None, None, 3),
+    input_tensor=None,
+    pooling=None,
+    classifier_activation="softmax",
+    name="efficientnetb5",
+    **kwargs,
 ):
     return EfficientNet(
         include_rescaling,
@@ -849,17 +844,17 @@ def EfficientNetB5(
 
 
 def EfficientNetB6(
-        *,
-        include_rescaling,
-        include_top,
-        num_classes=None,
-        weights=None,
-        input_shape=(None, None, 3),
-        input_tensor=None,
-        pooling=None,
-        classifier_activation="softmax",
-        name="efficientnetb6",
-        **kwargs,
+    *,
+    include_rescaling,
+    include_top,
+    num_classes=None,
+    weights=None,
+    input_shape=(None, None, 3),
+    input_tensor=None,
+    pooling=None,
+    classifier_activation="softmax",
+    name="efficientnetb6",
+    **kwargs,
 ):
     return EfficientNet(
         include_rescaling,
@@ -880,17 +875,17 @@ def EfficientNetB6(
 
 
 def EfficientNetB7(
-        *,
-        include_rescaling,
-        include_top,
-        num_classes=None,
-        weights=None,
-        input_shape=(None, None, 3),
-        input_tensor=None,
-        pooling=None,
-        classifier_activation="softmax",
-        name="efficientnetb7",
-        **kwargs,
+    *,
+    include_rescaling,
+    include_top,
+    num_classes=None,
+    weights=None,
+    input_shape=(None, None, 3),
+    input_tensor=None,
+    pooling=None,
+    classifier_activation="softmax",
+    name="efficientnetb7",
+    **kwargs,
 ):
     return EfficientNet(
         include_rescaling,
