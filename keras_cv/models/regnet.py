@@ -522,7 +522,7 @@ def apply_ZBlock(
     # Squeeze-Excitation block
     x = SqueezeAndExcite2D(
         inv_btlneck_filters, ratio=squeeze_excite_ratio, name=name
-    )  # Bug: SqueezeAndExcite2D is not included
+    )(x) # Bug: SqueezeAndExcite2D is not included
 
     # conv_1x1_2
     x = conv2d_bn(x=x,
