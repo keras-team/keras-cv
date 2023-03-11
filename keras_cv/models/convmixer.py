@@ -170,7 +170,7 @@ class ConvMixer(keras.Model):
       A `keras.Model` instance.
     """
 
-    def __int__(
+    def __init__(
         self,
         dim,
         depth,
@@ -210,10 +210,10 @@ class ConvMixer(keras.Model):
 
         if include_rescaling:
             x = layers.Rescaling(1 / 255.0)(x)
-        x = PatchEmbed(dim, patch_size)(x)
+        x = PatchEmbed(x, dim, patch_size)
 
         for _ in range(depth):
-            x = ConvMixerLayer(dim, kernel_size)(x)
+            x = ConvMixerLayer(x, dim, kernel_size)
 
         if include_top:
             x = layers.GlobalAveragePooling2D(name="avg_pool")(x)
@@ -253,7 +253,6 @@ class ConvMixer(keras.Model):
             "include_top": self.include_top,
             "include_rescaling": self.include_rescaling,
             "name": self.name,
-            "weights": self.weights,
             "input_shape": self.input_shape[1:],
             "input_tensor": self.input_tensor,
             "pooling": self.pooling,
