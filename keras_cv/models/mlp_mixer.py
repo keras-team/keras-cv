@@ -50,24 +50,27 @@ MODEL_CONFIGS = {
 }
 
 BASE_DOCSTRING = """Instantiates the {name} architecture.
+
     Reference:
         - [MLP-Mixer: An all-MLP Architecture for Vision](https://arxiv.org/abs/2105.01601)
-    This function returns a Keras {name} model.
+        
+    This class returns a Keras {name} model.
 
     For transfer learning use cases, make sure to read the [guide to transfer
         learning & fine-tuning](https://keras.io/guides/transfer_learning/).
+        
     Args:
-        include_rescaling: whether or not to Rescale the inputs.If set to True,
+        include_rescaling: whether or not to rescale the inputs. If set to True,
             inputs will be passed through a `Rescaling(1/255.0)` layer.
         include_top: whether to include the fully-connected layer at the top of the
             network.  If provided, num_classes must be provided.
-        num_classes: optional number of classes to classify images into, only to be
+        num_classes: optional number of classes to classify images into. Only to be
             specified if `include_top` is True.
         weights: one of `None` (random initialization), a pretrained weight file
             path, or a reference to pre-trained weights (e.g. 'imagenet/classification')
             (see available pre-trained weights in weights.py)
         input_shape: optional shape tuple, defaults to (None, None, 3).
-        input_tensor: optional Keras tensor (i.e. output of `layers.Input()`)
+        input_tensor: optional Keras tensor (i.e., output of `layers.Input()`)
             to use as image input for the model.
         pooling: optional pooling mode for feature extraction
             when `include_top` is `False`.
@@ -77,10 +80,11 @@ BASE_DOCSTRING = """Instantiates the {name} architecture.
                 of the last convolutional block, and thus the output of the model will
                 be a 2D tensor.
             - `max` means that global max pooling will be applied.
-        name: (Optional) name to pass to the model.  Defaults to "{name}".
+        name: optional name to pass to the model, defaults to "{name}".
         classifier_activation: A `str` or callable. The activation function to use
             on the "top" layer. Ignored unless `include_top=True`. Set
             `classifier_activation=None` to return the logits of the "top" layer.
+            
     Returns:
       A `keras.Model` instance.
 """
@@ -91,11 +95,12 @@ def MLPBlock(x, mlp_dim, name=None):
     between.
 
     Args:
+      x: input tensor.
       mlp_dim: integer, the number of units to be present in the first layer.
       name: string, block label.
 
     Returns:
-      a function that takes an input Tensor representing an MLP block.
+      the updated input tensor.
     """
     if name is None:
         name = f"mlp_block_{backend.get_uid('mlp_block')}"
@@ -109,6 +114,7 @@ def MixerBlock(x, tokens_mlp_dim, channels_mlp_dim, name=None):
     """A mixer block.
 
     Args:
+      x: input tensor.
       tokens_mlp_dim: integer, number of units to be present in the MLP block
         dealing with tokens.
       channels_mlp_dim: integer, number of units to be present in the MLP block
@@ -116,7 +122,7 @@ def MixerBlock(x, tokens_mlp_dim, channels_mlp_dim, name=None):
       name: string, block label.
 
     Returns:
-      a function that takes an input Tensor representing an MLP block.
+      the updated input tensor.
     """
     if name is None:
         name = f"mixer_block_{backend.get_uid('mlp_block')}"
@@ -146,16 +152,16 @@ class MLPMixer(keras.Model):
       hidden_dim: dimension to which the patches will be linearly projected.
       tokens_mlp_dim: dimension of the MLP block responsible for tokens.
       channels_mlp_dim: dimension of the MLP block responsible for channels.
-      include_rescaling: whether or not to Rescale the inputs.
+      include_rescaling: whether to rescale the inputs.
         If set to True, inputs will be passed through a
         `Rescaling(1/255.0)` layer.
       include_top: whether to include the fully-connected
-        layer at the top of the network.  If provided, num_classes must be provided.
+        layer at the top of the network. If provided, num_classes must be provided.
       num_classes: optional number of classes to classify images
-        into, only to be specified if `include_top` is True.
-      weights: one of `None` (random initialization), or a pretrained
+        into. Only to be specified if `include_top` is True.
+      weights: one of `None` (random initialization) or a pretrained
         weight file path.
-      input_tensor: optional Keras tensor (i.e. output of `layers.Input()`)
+      input_tensor: optional Keras tensor (i.e., output of `layers.Input()`)
         to use as image input for the model.
       pooling: optional pooling mode for feature extraction
         when `include_top` is `False`.
@@ -173,11 +179,12 @@ class MLPMixer(keras.Model):
         `classifier_activation=None` to return the logits of the "top" layer.
         When loading pretrained weights, `classifier_activation` can only
         be `None` or `"softmax"`.
-      name: (Optional) name to pass to the model.  Defaults to "DenseNet".
+      name: optional name to pass to the model, defaults to "MLPMixer".
 
     Returns:
       A `keras.Model` instance.
     """
+
     def __init__(
         self,
         input_shape,
@@ -193,10 +200,9 @@ class MLPMixer(keras.Model):
         weights=None,
         pooling=None,
         classifier_activation="softmax",
-        name=None,
+        name="MLPMixer",
         **kwargs,
     ):
-
         if weights and not tf.io.gfile.exists(weights):
             raise ValueError(
                 "The `weights` argument should be either "
@@ -253,7 +259,9 @@ class MLPMixer(keras.Model):
         if include_top:
             x = layers.GlobalAveragePooling1D(name="avg_pool")(x)
             x = layers.Dense(
-                num_classes, activation=classifier_activation, name="predictions"
+                num_classes,
+                activation=classifier_activation,
+                name="predictions",
             )(x)
 
         elif pooling == "avg":
