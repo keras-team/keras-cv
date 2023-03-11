@@ -72,7 +72,7 @@ BASE_DOCSTRING = """Instantiates the {name} architecture.
         input_shape: optional shape tuple, defaults to (None, None, 3).
         input_tensor: optional Keras tensor (i.e. output of `layers.Input()`)
             to use as image input for the model.
-        pooling: pooling: optional pooling mode for feature extraction
+        pooling: optional pooling mode for feature extraction
             when `include_top` is `False`.
             - `None` means that the output of the model will be the 4D tensor output
                 of the last convolutional block.
@@ -89,7 +89,7 @@ BASE_DOCSTRING = """Instantiates the {name} architecture.
 """
 
 
-def MLPBlock(mlp_dim, name=None):
+def conv_bn(mlp_dim, name=None):
     """An MLP block consisting of two linear layers with GELU activation in
     between.
 
@@ -103,7 +103,7 @@ def MLPBlock(mlp_dim, name=None):
     if name is None:
         name = f"mlp_block_{backend.get_uid('mlp_block')}"
 
-    def apply(x):
+    def apply_mlpmixer_block(x):
         y = layers.Dense(mlp_dim, name=f"{name}_dense_1")(x)
         y = layers.Activation("gelu", name=f"{name}_gelu")(y)
         return layers.Dense(x.shape[-1], name=f"{name}_dense_2")(y)
@@ -111,7 +111,7 @@ def MLPBlock(mlp_dim, name=None):
     return apply
 
 
-def MixerBlock(tokens_mlp_dim, channels_mlp_dim, name=None):
+def convBlock(tokens_mlp_dim, channels_mlp_dim, name=None):
     """A mixer block.
 
     Args:
@@ -131,35 +131,20 @@ def MixerBlock(tokens_mlp_dim, channels_mlp_dim, name=None):
         y = layers.LayerNormalization()(x)
         y = layers.Permute((2, 1))(y)
 
-        y = MLPBlock(tokens_mlp_dim, name=f"{name}_token_mixing")(y)
+        y = conv_bn(tokens_mlp_dim, name=f"{name}_token_mixing")(y)
         y = layers.Permute((2, 1))(y)
         x = layers.Add()([x, y])
 
         y = layers.LayerNormalization()(x)
-        y = MLPBlock(channels_mlp_dim, name=f"{name}_channel_mixing")(y)
+        y = conv_bn(channels_mlp_dim, name=f"{name}_channel_mixing")(y)
         return layers.Add()([x, y])
 
     return apply
 
 
-def MLPMixer(
-    input_shape,
-    patch_size,
-    num_blocks,
-    hidden_dim,
-    tokens_mlp_dim,
-    channels_mlp_dim,
-    include_rescaling,
-    include_top,
-    num_classes=None,
-    input_tensor=None,
-    weights=None,
-    pooling=None,
-    classifier_activation="softmax",
-    name=None,
-    **kwargs,
-):
-    """Instantiates the MLP Mixer architecture.
+@keras.utils.register_keras_serializable(package="keras_cv.models")
+class MLPMixer:
+    """This Class Instantiates the MLP Mixer architecture.
 
     Args:
       input_shape: tuple denoting the input shape, (224, 224, 3) for example.
@@ -201,75 +186,94 @@ def MLPMixer(
     Returns:
       A `keras.Model` instance.
     """
-    if weights and not tf.io.gfile.exists(weights):
-        raise ValueError(
-            "The `weights` argument should be either "
-            "`None` or the path to the weights file to be loaded. "
-            f"Weights file not found at location: {weights}"
-        )
 
-    if include_top and not num_classes:
-        raise ValueError(
-            "If `include_top` is True, "
-            "you should specify `num_classes`. "
-            f"Received: num_classes={num_classes}"
-        )
+    def __init__(
+        input_shape,
+        patch_size,
+        num_blocks,
+        hidden_dim,
+        tokens_mlp_dim,
+        channels_mlp_dim,
+        include_rescaling,
+        include_top,
+        num_classes=None,
+        input_tensor=None,
+        weights=None,
+        pooling=None,
+        classifier_activation="softmax",
+        name=None,
+    ):
+        if weights and not tf.io.gfile.exists(weights):
+            raise ValueError(
+                "The `weights` argument should be either "
+                "`None` or the path to the weights file to be loaded. "
+                f"Weights file not found at location: {weights}"
+            )
 
-    if not isinstance(input_shape, tuple):
-        raise ValueError("`input_shape` needs to be tuple.")
+        if include_top and not num_classes:
+            raise ValueError(
+                "If `include_top` is True, "
+                "you should specify `num_classes`. "
+                f"Received: num_classes={num_classes}"
+            )
 
-    if len(input_shape) != 3:
-        raise ValueError(
-            "`input_shape` needs to contain dimensions for three"
-            " axes: height, width, and channel ((224, 224, 3) for example)."
-        )
+        if not isinstance(input_shape, tuple):
+            raise ValueError("`input_shape` needs to be tuple.")
 
-    if input_shape[0] != input_shape[1]:
-        raise ValueError("Non-uniform resolutions are not supported.")
+        if len(input_shape) != 3:
+            raise ValueError(
+                "`input_shape` needs to contain dimensions for three"
+                " axes: height, width, and channel ((224, 224, 3) for example)."
+            )
 
-    if input_shape[0] % patch_size != 0:
-        raise ValueError(
-            "Input resolution should be divisible by the patch size."
-        )
+        if input_shape[0] != input_shape[1]:
+            raise ValueError("Non-uniform resolutions are not supported.")
 
-    inputs = utils.parse_model_inputs(input_shape, input_tensor)
+        if input_shape[0] % patch_size != 0:
+            raise ValueError(
+                "Input resolution should be divisible by the patch size."
+            )
 
-    x = inputs
-    if include_rescaling:
-        x = layers.Rescaling(1 / 255.0)(x)
+        inputs = utils.parse_model_inputs(input_shape, input_tensor)
 
-    x = layers.Conv2D(
-        filters=hidden_dim,
-        kernel_size=(patch_size, patch_size),
-        strides=(patch_size, patch_size),
-        padding="valid",
-        name="patchify_and_projection",
-    )(x)
-    x = layers.Reshape((x.shape[1] * x.shape[2], x.shape[3]))(x)
+        x = inputs
+        if include_rescaling:
+            x = layers.Rescaling(1 / 255.0)(x)
 
-    for i in range(num_blocks):
-        x = MixerBlock(
-            tokens_mlp_dim, channels_mlp_dim, name=f"mixer_block_{i}"
+        x = layers.Conv2D(
+            filters=hidden_dim,
+            kernel_size=(patch_size, patch_size),
+            strides=(patch_size, patch_size),
+            padding="valid",
+            name="patchify_and_projection",
         )(x)
+        x = layers.Reshape((x.shape[1] * x.shape[2], x.shape[3]))(x)
 
-    x = layers.LayerNormalization()(x)
+        for i in range(num_blocks):
+            x = conv_bn(
+                tokens_mlp_dim, channels_mlp_dim, name=f"mixer_block_{i}"
+            )(x)
 
-    if include_top:
-        x = layers.GlobalAveragePooling1D(name="avg_pool")(x)
-        x = layers.Dense(
-            num_classes, activation=classifier_activation, name="predictions"
-        )(x)
+        x = layers.LayerNormalization()(x)
 
-    elif pooling == "avg":
-        x = layers.GlobalAveragePooling1D(name="avg_pool")(x)
-    elif pooling == "max":
-        x = layers.GlobalMaxPooling1D(name="max_pool")(x)
+        if include_top:
+            x = layers.GlobalAveragePooling1D(name="avg_pool")(x)
+            x = layers.Dense(
+                num_classes,
+                activation=classifier_activation,
+                name="predictions",
+            )(x)
 
-    model = keras.Model(inputs, x, name=name, **kwargs)
+        elif pooling == "avg":
+            x = layers.GlobalAveragePooling1D(name="avg_pool")(x)
+        elif pooling == "max":
+            x = layers.GlobalMaxPooling1D(name="max_pool")(x)
 
-    if weights is not None:
-        model.load_weights(weights)
-    return model
+        model = keras.Model(inputs, x, name=name, **kwargs)
+
+        if weights is not None:
+            model.load_weights(weights)
+        return model
 
 
 def MLPMixerB16(
