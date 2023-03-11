@@ -132,6 +132,7 @@ def MixerBlock(x, tokens_mlp_dim, channels_mlp_dim, name=None):
     y = MLPBlock(y, channels_mlp_dim, name=f"{name}_channel_mixing")
     return layers.Add()([x, y])
 
+
 @keras.utils.register_keras_serializable(package="keras_cv.models")
 class MLPMixer(keras.Model):
 
@@ -309,7 +310,7 @@ def MLPMixerB16(
     input_tensor=None,
     weights=None,
     pooling=None,
-    name="mlp_mixer_b16",
+    name="MLPMixerB16",
     **kwargs,
 ):
     """Instantiates the MLPMixerB16 architecture."""
@@ -341,7 +342,7 @@ def MLPMixerB32(
     input_tensor=None,
     weights=None,
     pooling=None,
-    name="mlp_mixer_b32",
+    name="MLPMixerB32",
     **kwargs,
 ):
     """Instantiates the MLPMixerB32 architecture."""
@@ -372,7 +373,7 @@ def MLPMixerL16(
     input_tensor=None,
     weights=None,
     pooling=None,
-    name="mlp_mixer_l16",
+    name="MLPMixerL16",
     **kwargs,
 ):
     """Instantiates the MLPMixerL16 architecture."""
