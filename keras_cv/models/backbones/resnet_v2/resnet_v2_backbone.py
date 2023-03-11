@@ -373,19 +373,21 @@ class ResNetV2Backbone(Backbone):
         self.block_type = block_type
 
     def get_config(self):
-        return {
-            "stackwise_filters": self.stackwise_filters,
-            "stackwise_blocks": self.stackwise_blocks,
-            "stackwise_strides": self.stackwise_strides,
-            "include_rescaling": self.include_rescaling,
-            # Remove batch dimension from `input_shape`
-            "input_shape": self.input_shape[1:],
-            "stackwise_dilations": self.stackwise_dilations,
-            "input_tensor": self.input_tensor,
-            "block_type": self.block_type,
-            "name": self.name,
-            "trainable": self.trainable,
-        }
+        config = super().get_config()
+        config.update(
+            {
+                "stackwise_filters": self.stackwise_filters,
+                "stackwise_blocks": self.stackwise_blocks,
+                "stackwise_strides": self.stackwise_strides,
+                "include_rescaling": self.include_rescaling,
+                # Remove batch dimension from `input_shape`
+                "input_shape": self.input_shape[1:],
+                "stackwise_dilations": self.stackwise_dilations,
+                "input_tensor": self.input_tensor,
+                "block_type": self.block_type,
+            }
+        )
+        return config
 
     @classproperty
     def presets(cls):
