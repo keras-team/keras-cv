@@ -312,7 +312,7 @@ class MobileNetV3(keras.Model):
         ValueError: if `include_top` is True and `num_classes` is not specified.
     """
 
-    def __int__(
+    def __init__(
         self,
         stack_fn,
         last_point_ch,
@@ -453,7 +453,6 @@ class MobileNetV3(keras.Model):
             "include_rescaling": self.include_rescaling,
             "include_top": self.include_top,
             "num_classes": self.num_classes,
-            "weights": self.weights,
             "input_shape": self.input_shape[1:],
             "input_tensor": self.input_tensor,
             "pooling": self.pooling,
