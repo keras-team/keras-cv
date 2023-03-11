@@ -768,7 +768,7 @@ def apply_head(x, num_classes=None, name=None, activation=None):
     return x
 
 
-class RegNet(keras.Model):
+class RegNet(tf.keras.Model):
     def __init__(self,
                  depths,
                  widths,
