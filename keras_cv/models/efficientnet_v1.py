@@ -352,7 +352,7 @@ def apply_efficientnet_block(inputs,
     )
 
     # Squeeze and Excitation phase
-    if 0 < self.se_ratio <= 1:
+    if 0 < se_ratio <= 1:
         filters_se = max(1, int(filters_in * se_ratio))
         se = layers.GlobalAveragePooling2D(name=name + "_se_squeeze")(
             x
