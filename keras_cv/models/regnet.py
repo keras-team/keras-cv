@@ -203,7 +203,7 @@ MODEL_CONFIGS = {
     },
 }
 
-BASE_DOCSTRING = """Instantiates the {name} architecture.
+BASE_DOCSTRING = """This class represents the {name} architecture.
 
   Reference:
     - [Designing Network Design Spaces](https://arxiv.org/abs/2003.13678)
@@ -293,6 +293,7 @@ def apply_stem(x, name=None):
 
     (Common to all model variants)
     Args:
+      x: Tensor, input tensor to the stem
       name: name prefix
 
     Returns:
@@ -308,19 +309,6 @@ def apply_stem(x, name=None):
                   padding="same",
                   name=name + "_stem_conv")
 
-    # x = layers.Conv2D(
-    #     32,
-    #     (3, 3),
-    #     strides=2,
-    #     use_bias=False,
-    #     padding="same",
-    #     kernel_initializer="he_normal",
-    #     name=name + "_stem_conv",
-    # )(x)
-    # x = layers.BatchNormalization(
-    #     momentum=0.9, epsilon=1e-5, name=name + "_stem_bn"
-    # )(x)
-    # x = layers.ReLU(name=name + "_stem_relu")(x)
     return x
 
 
@@ -330,11 +318,12 @@ def apply_XBlock(inputs, filters_in, filters_out, group_width, stride=1, name=No
         - [Designing Network Design Spaces](https://arxiv.org/abs/2003.13678)
 
     Args:
-      filters_in: filters in the input tensor
-      filters_out: filters in the output tensor
-      group_width: group width
-      stride: stride
-      name: name prefix
+      inputs: Tensor, input tensor to the block
+      filters_in: int, filters in the input tensor
+      filters_out: int, filters in the output tensor
+      group_width: int, group width
+      stride: int (or) tuple, stride of Conv layer
+      name: str, name prefix
     Returns:
       Output tensor of the block
     """
@@ -349,7 +338,7 @@ def apply_XBlock(inputs, filters_in, filters_out, group_width, stride=1, name=No
             f"must be equal for stride={stride}."
         )
 
-        # Declare layers
+    # Declare layers
     groups = filters_out // group_width
 
     if stride != 1:
@@ -359,17 +348,6 @@ def apply_XBlock(inputs, filters_in, filters_out, group_width, stride=1, name=No
                          strides=stride,
                          activation=None,
                          name=name + "_skip_1x1")
-        # skip = layers.Conv2D(
-        #     filters_out,
-        #     (1, 1),
-        #     strides=stride,
-        #     use_bias=False,
-        #     kernel_initializer="he_normal",
-        #     name=name + "_skip_1x1",
-        # )(inputs)
-        # skip = layers.BatchNormalization(
-        #     momentum=0.9, epsilon=1e-5, name=name + "_skip_bn"
-        # )(skip)
     else:
         skip = inputs
 
@@ -379,17 +357,6 @@ def apply_XBlock(inputs, filters_in, filters_out, group_width, stride=1, name=No
                   filters=filters_out,
                   kernel_size=(1, 1),
                   name=name + "_conv_1x1_1")
-    # x = layers.Conv2D(
-    #     filters_out,
-    #     (1, 1),
-    #     use_bias=False,
-    #     kernel_initializer="he_normal",
-    #     name=name + "_conv_1x1_1",
-    # )(inputs)
-    # x = layers.BatchNormalization(
-    #     momentum=0.9, epsilon=1e-5, name=name + "_conv_1x1_1_bn"
-    # )(x)
-    # x = layers.ReLU(name=name + "_conv_1x1_1_relu")(x)
 
     # conv_3x3
     x = conv2d_bn(x=x,
@@ -399,20 +366,6 @@ def apply_XBlock(inputs, filters_in, filters_out, group_width, stride=1, name=No
                   groups=groups,
                   padding="same",
                   name=name + "_conv_3x3")
-    # x = layers.Conv2D(
-    #     filters_out,
-    #     (3, 3),
-    #     use_bias=False,
-    #     strides=stride,
-    #     groups=groups,
-    #     padding="same",
-    #     kernel_initializer="he_normal",
-    #     name=name + "_conv_3x3",
-    # )(x)
-    # x = layers.BatchNormalization(
-    #     momentum=0.9, epsilon=1e-5, name=name + "_conv_3x3_bn"
-    # )(x)
-    # x = layers.ReLU(name=name + "_conv_3x3_relu")(x)
 
     # conv_1x1_2
     x = conv2d_bn(x=x,
@@ -420,21 +373,6 @@ def apply_XBlock(inputs, filters_in, filters_out, group_width, stride=1, name=No
                   kernel_size=(1, 1),
                   activation=None,
                   name=name + "_conv_1x1_2")
-    # x = layers.Conv2D(
-    #     filters_out,
-    #     (1, 1),
-    #     use_bias=False,
-    #     kernel_initializer="he_normal",
-    #     name=name + "_conv_1x1_2",
-    # )(x)
-    # x = layers.BatchNormalization(
-    #     momentum=0.9, epsilon=1e-5, name=name + "_conv_1x1_2_bn"
-    # )(x)
-    # x = conv2d_bn(x=x,
-    #               filters=filters_out,
-    #               kernel_size=(1,1),
-    #               activation=None,
-    #               name=name + "_conv_3x3")
 
     x = layers.Activation('relu', name=name + "_exit_relu")(x + skip)
 
@@ -455,12 +393,13 @@ def apply_YBlock(
         - [Designing Network Design Spaces](https://arxiv.org/abs/2003.13678)
 
     Args:
-      filters_in: filters in the input tensor
-      filters_out: filters in the output tensor
-      group_width: group width
-      stride: stride
-      squeeze_excite_ratio: expansion ration for Squeeze and Excite block
-      name: name prefix
+      inputs: Tensor, input tensor to the block
+      filters_in: int, filters in the input tensor
+      filters_out: int, filters in the output tensor
+      group_width: int, group width
+      stride: int (or) tuple, stride of Conv layer
+      squeeze_excite_ratio: float, expansion ratio for Squeeze and Excite block
+      name: str, name prefix
     Returns:
       Output tensor of the block
     """
@@ -484,17 +423,6 @@ def apply_YBlock(
                          strides=stride,
                          activation=None,
                          name=name + "_skip_1x1")
-        # skip = layers.Conv2D(
-        #     filters_out,
-        #     (1, 1),
-        #     strides=stride,
-        #     use_bias=False,
-        #     kernel_initializer="he_normal",
-        #     name=name + "_skip_1x1",
-        # )(inputs)
-        # skip = layers.BatchNormalization(
-        #     momentum=0.9, epsilon=1e-5, name=name + "_skip_bn"
-        # )(skip)
     else:
         skip = inputs
 
@@ -504,17 +432,6 @@ def apply_YBlock(
                   filters=filters_out,
                   kernel_size=(1, 1),
                   name=name + "_conv_1x1_1")
-    # x = layers.Conv2D(
-    #     filters_out,
-    #     (1, 1),
-    #     use_bias=False,
-    #     kernel_initializer="he_normal",
-    #     name=name + "_conv_1x1_1",
-    # )(inputs)
-    # x = layers.BatchNormalization(
-    #     momentum=0.9, epsilon=1e-5, name=name + "_conv_1x1_1_bn"
-    # )(x)
-    # x = layers.ReLU(name=name + "_conv_1x1_1_relu")(x)
 
     # conv_3x3
     x = conv2d_bn(x=x,
@@ -524,20 +441,6 @@ def apply_YBlock(
                   groups=groups,
                   padding="same",
                   name=name + "_conv_3x3")
-    # x = layers.Conv2D(
-    #     filters_out,
-    #     (3, 3),
-    #     use_bias=False,
-    #     strides=stride,
-    #     groups=groups,
-    #     padding="same",
-    #     kernel_initializer="he_normal",
-    #     name=name + "_conv_3x3",
-    # )(x)
-    # x = layers.BatchNormalization(
-    #     momentum=0.9, epsilon=1e-5, name=name + "_conv_3x3_bn"
-    # )(x)
-    # x = layers.ReLU(name=name + "_conv_3x3_relu")(x)
 
     # Squeeze-Excitation block
     x = SqueezeAndExcite2D(
@@ -550,17 +453,6 @@ def apply_YBlock(
                   kernel_size=(1, 1),
                   activation=None,
                   name=name + "_conv_1x1_2")
-
-    # x = layers.Conv2D(
-    #     filters_out,
-    #     (1, 1),
-    #     use_bias=False,
-    #     kernel_initializer="he_normal",
-    #     name=name + "_conv_1x1_2",
-    # )(x)
-    # x = layers.BatchNormalization(
-    #     momentum=0.9, epsilon=1e-5, name=name + "_conv_1x1_2_bn"
-    # )(x)
 
     x = layers.Activation('relu', name=name + "_exit_relu")(x + skip)
 
@@ -583,13 +475,14 @@ def apply_ZBlock(
         - [Fast and Accurate Model Scaling](https://arxiv.org/abs/2103.06877).
 
     Args:
-      filters_in: filters in the input tensor
-      filters_out: filters in the output tensor
-      group_width: group width
-      stride: stride
-      squeeze_excite_ratio: expansion ration for Squeeze and Excite block
-      bottleneck_ratio: inverted bottleneck ratio
-      name: name prefix
+      inputs: Tensor, input tensor to the block
+      filters_in: int, filters in the input tensor
+      filters_out: int, filters in the output tensor
+      group_width: int, group width
+      stride: int (or) tuple, stride
+      squeeze_excite_ratio: float, expansion ration for Squeeze and Excite block
+      bottleneck_ratio: float, inverted bottleneck ratio
+      name: str, name prefix
     Returns:
       Output tensor of the block
     """
@@ -614,17 +507,6 @@ def apply_ZBlock(
                   kernel_size=(1, 1),
                   name=name + "_conv_1x1_1",
                   activation='silu')
-    # x = layers.Conv2D(
-    #     inv_btlneck_filters,
-    #     (1, 1),
-    #     use_bias=False,
-    #     kernel_initializer="he_normal",
-    #     name=name + "_conv_1x1_1",
-    # )(inputs)
-    # x = layers.BatchNormalization(
-    #     momentum=0.9, epsilon=1e-5, name=name + "_conv_1x1_1_bn"
-    # )(x)
-    # x = tf.nn.silu(x)
 
     # conv_3x3
     x = conv2d_bn(x=x,
@@ -635,25 +517,11 @@ def apply_ZBlock(
                   padding="same",
                   name=name + "_conv_3x3",
                   activation='silu')
-    # x = layers.Conv2D(
-    #     inv_btlneck_filters,
-    #     (3, 3),
-    #     use_bias=False,
-    #     strides=stride,
-    #     groups=groups,
-    #     padding="same",
-    #     kernel_initializer="he_normal",
-    #     name=name + "_conv_3x3",
-    # )(x)
-    # x = layers.BatchNormalization(
-    #     momentum=0.9, epsilon=1e-5, name=name + "_conv_3x3_bn"
-    # )(x)
-    # x = tf.nn.silu(x)
 
     # Squeeze-Excitation block
     x = SqueezeAndExcite2D(
         inv_btlneck_filters, ratio=squeeze_excite_ratio, name=name
-    )  # Bug: SqueezeAndExcite2D is not inclued
+    )  # Bug: SqueezeAndExcite2D is not included
 
     # conv_1x1_2
     x = conv2d_bn(x=x,
@@ -661,16 +529,6 @@ def apply_ZBlock(
                   kernel_size=(1, 1),
                   activation=None,
                   name=name + "_conv_1x1_2")
-    # x = layers.Conv2D(
-    #     filters_out,
-    #     (1, 1),
-    #     use_bias=False,
-    #     kernel_initializer="he_normal",
-    #     name=name + "_conv_1x1_2",
-    # )(x)
-    # x = layers.BatchNormalization(
-    #     momentum=0.9, epsilon=1e-5, name=name + "_conv_1x1_2_bn"
-    # )(x)
 
     if stride != 1:
         return x
@@ -682,15 +540,16 @@ def apply_stage(x, block_type, depth, group_width, filters_in, filters_out, name
     """Implementation of Stage in RegNet.
 
     Args:
+      x: Tensor, input tensor to the stage
       block_type: must be one of "X", "Y", "Z"
-      depth: depth of stage, number of blocks to use
-      group_width: group width of all blocks in  this stage
-      filters_in: input filters to this stage
-      filters_out: output filters from this stage
-      name: name prefix
+      depth: int, depth of stage, number of blocks to use
+      group_width: int, group width of all blocks in  this stage
+      filters_in: int, input filters to this stage
+      filters_out: int, output filters from this stage
+      name: str, name prefix
 
     Returns:
-      Output tensor of Stage
+      Output tensor of the block
     """
     if name is None:
         name = str(backend.get_uid("stage"))
@@ -758,8 +617,9 @@ def apply_head(x, num_classes=None, name=None, activation=None):
     """Implementation of classification head of RegNet.
 
     Args:
-      num_classes: number of classes for Dense layer
-      name: name prefix
+      x: Tensor, input to the head block
+      num_classes: int, number of classes for Dense layer
+      name: str, name prefix
 
     Returns:
       Output logits tensor.
@@ -773,8 +633,54 @@ def apply_head(x, num_classes=None, name=None, activation=None):
     )(x)
     return x
 
-
+@keras.utils.register_keras_serializable(package="keras_cv.models")
 class RegNet(tf.keras.Model):
+    """
+        This class represents the architecture of RegNet
+        Args:
+            depths: iterable, Contains depths for each individual stages.
+            widths: iterable, Contains output channel width of each individual
+                stages
+            group_width: int, Number of channels to be used in each group. See grouped
+                convolutions for more information.
+            block_type: Must be one of `{"X", "Y", "Z"}`. For more details see the
+                papers "Designing network design spaces" and "Fast and Accurate
+                Model Scaling"
+            default_size: tuple (or) list, Default input image size.
+            model_name: str, An optional name for the model.
+            include_rescaling: bool, whether or not to Rescale the inputs.If set to True,
+                inputs will be passed through a `Rescaling(1/255.0)` layer.
+            include_top: bool, Whether to include the fully-connected
+                layer at the top of the network.
+            num_classes: int, Optional number of classes to classify images
+                into, only to be specified if `include_top` is True, and
+                if no `weights` argument is specified.
+            weights: str, One of `None` (random initialization), or the path to the
+                weights file to be loaded. Defaults to `None`.
+            input_tensor: Tensor, Optional Keras tensor (i.e. output of `layers.Input()`)
+                to use as image input for the model.
+            input_shape: Optional shape tuple, defaults to (None, None, 3).
+                It should have exactly 3 inputs channels.
+            pooling: Optional pooling mode for feature extraction
+                when `include_top` is `False`. Defaults to None.
+                - `None` means that the output of the model will be
+                    the 4D tensor output of the
+                    last convolutional layer.
+                - `avg` means that global average pooling
+                    will be applied to the output of the
+                    last convolutional layer, and thus
+                    the output of the model will be a 2D tensor.
+                - `max` means that global max pooling will
+                    be applied.
+            classifier_activation: A `str` or callable. The activation function to
+                use on the "top" layer. Ignored unless `include_top=True`. Set
+                `classifier_activation=None` to return the logits of the "top"
+                layer. Defaults to `"softmax"`.
+
+        Returns:
+          A `keras.Model` instance.
+    """
+
     def __init__(self,
                  depths,
                  widths,
@@ -791,51 +697,6 @@ class RegNet(tf.keras.Model):
                  classifier_activation="softmax",
                  **kwargs,
                  ):
-        """Instantiates RegNet architecture given specific configuration.
-
-    Args:
-        depths: An iterable containing depths for each individual stages.
-        widths: An iterable containing output channel width of each individual
-            stages
-        group_width: Number of channels to be used in each group. See grouped
-            convolutions for more information.
-        block_type: Must be one of `{"X", "Y", "Z"}`. For more details see the
-            papers "Designing network design spaces" and "Fast and Accurate
-            Model Scaling"
-        default_size: Default input image size.
-        model_name: An optional name for the model.
-        include_rescaling: whether or not to Rescale the inputs.If set to True,
-            inputs will be passed through a `Rescaling(1/255.0)` layer.
-        include_top: Whether to include the fully-connected
-            layer at the top of the network.
-        num_classes: Optional number of classes to classify images
-            into, only to be specified if `include_top` is True, and
-            if no `weights` argument is specified.
-        weights: One of `None` (random initialization), or the path to the
-            weights file to be loaded. Defaults to `None`.
-        input_tensor: Optional Keras tensor (i.e. output of `layers.Input()`)
-            to use as image input for the model.
-        input_shape: Optional shape tuple, defaults to (None, None, 3).
-            It should have exactly 3 inputs channels.
-        pooling: Optional pooling mode for feature extraction
-            when `include_top` is `False`. Defaults to None.
-            - `None` means that the output of the model will be
-                the 4D tensor output of the
-                last convolutional layer.
-            - `avg` means that global average pooling
-                will be applied to the output of the
-                last convolutional layer, and thus
-                the output of the model will be a 2D tensor.
-            - `max` means that global max pooling will
-                be applied.
-        classifier_activation: A `str` or callable. The activation function to
-            use on the "top" layer. Ignored unless `include_top=True`. Set
-            `classifier_activation=None` to return the logits of the "top"
-            layer. Defaults to `"softmax"`.
-
-    Returns:
-      A `keras.Model` instance.
-    """
 
         if not (weights is None or tf.io.gfile.exists(weights)):
             raise ValueError(
@@ -896,6 +757,39 @@ class RegNet(tf.keras.Model):
         # Load weights.
         if weights is not None:
             self.load_weights(weights)
+
+        self.depths = depths
+        self.widths = widths
+        self.group_width = group_width
+        self.block_type = block_type
+        self.include_rescaling = include_rescaling
+        self.include_top = include_top
+        self.num_classes = num_classes
+        self.model_name = model_name
+        self.input_tensor = input_tensor
+        self.input_shape = input_shape
+        self.pooling = pooling
+        self.classifier_activation = classifier_activation
+
+    def get_config(self):
+        return {
+            "depths": self.depths,
+            "widths": self.widths,
+            "group_width": self.group_width,
+            "block_type": self.block_type,
+            "include_rescaling": self.include_rescaling,
+            "include_top": self.include_top,
+            "num_classes": self.num_classes,
+            "model_name": self.model_name,
+            "input_tensor": self.input_tensor,
+            "input_shape": self.input_shape,
+            "pooling": self.pooling,
+            "classifier_activation": self.classifier_activation
+        }
+
+    @classmethod
+    def from_config(cls, config):
+        return cls(**config)
 
 
 # Instantiating variants
